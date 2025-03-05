@@ -34,7 +34,7 @@ void cmp_node_type_base(blender::bke::bNodeType *ntype,
                         std::string idname,
                         const std::optional<int16_t> legacy_type)
 {
-  blender::bke::node_type_base(ntype, idname, legacy_type);
+  blender::bke::node_type_base(*ntype, idname, legacy_type);
 
   ntype->poll = cmp_node_poll_default;
   ntype->updatefunc = cmp_node_update_default;

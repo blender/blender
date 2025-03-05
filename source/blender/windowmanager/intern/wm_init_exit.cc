@@ -596,7 +596,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   /* Free the GPU subdivision data after the database to ensure that subdivision structs used by
    * the modifiers were garbage collected. */
   if (gpu_is_init) {
-    blender::draw::DRW_subdiv_free();
+    blender::draw::DRW_cache_free_old_subdiv();
   }
 
   ANIM_fcurves_copybuf_free();

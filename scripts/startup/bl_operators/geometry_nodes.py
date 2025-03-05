@@ -49,7 +49,7 @@ def geometry_node_group_empty_tool_new(context):
     if ob_type == 'CURVES':
         group.is_type_curve = True
     elif ob_type == 'POINTCLOUD':
-        group.is_type_point_cloud = True
+        group.is_type_pointcloud = True
     else:
         group.is_type_mesh = True
 

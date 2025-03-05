@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -24,6 +25,8 @@
 
 #include "BKE_context.hh"
 #include "BKE_report.hh"
+
+#include "BLT_translation.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -725,8 +728,7 @@ static Strip *strip_select_seq_from_preview(
     float center_dist_sq_test = 0.0f;
     if (center) {
       /* Detect overlapping center points (scaled by the zoom level). */
-      float co[2];
-      SEQ_image_transform_origin_offset_pixelspace_get(scene, strip, co);
+      blender::float2 co = SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
       sub_v2_v2(co, mouseco_view);
       mul_v2_v2(co, center_scale_px);
       center_dist_sq_test = len_squared_v2(co);
@@ -743,7 +745,7 @@ static Strip *strip_select_seq_from_preview(
     }
 
     if (isect) {
-      SeqSelect_Link *slink = MEM_cnew<SeqSelect_Link>(__func__);
+      SeqSelect_Link *slink = MEM_callocN<SeqSelect_Link>(__func__);
       slink->strip = strip;
       slink->center_dist_sq = center_dist_sq_test;
       BLI_addtail(&strips_ordered, slink);
@@ -1278,6 +1280,24 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return retval;
 }
 
+static std::string sequencer_select_get_name(wmOperatorType *ot, PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "ignore_connections")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Unconnected)");
+  }
+  if (RNA_boolean_get(ptr, "linked_time")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Linked Time)");
+  }
+  if (RNA_boolean_get(ptr, "linked_handle")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Linked Handle)");
+  }
+  if (RNA_boolean_get(ptr, "side_of_frame")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Side of Frame)");
+  }
+
+  return ED_select_pick_get_name(ot, ptr);
+}
+
 void SEQUENCER_OT_select(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1292,7 +1312,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
   ot->invoke = sequencer_select_invoke;
   ot->modal = WM_generic_select_modal;
   ot->poll = ED_operator_sequencer_active;
-  ot->get_name = ED_select_pick_get_name;
+  ot->get_name = sequencer_select_get_name;
 
   /* Flags. */
   ot->flag = OPTYPE_UNDO;

@@ -22,11 +22,12 @@ void extract_skin_roots(const MeshRenderData &mr, gpu::VertBuf &vbo)
   /* Exclusively for edit mode. */
   BLI_assert(mr.bm);
 
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
     GPU_vertformat_attr_add(&format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     GPU_vertformat_attr_add(&format, "local_pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  }
+    return format;
+  }();
 
   Vector<SkinRootData> skin_roots;
   const int offset = CustomData_get_offset(&mr.bm->vdata, CD_MVERT_SKIN);

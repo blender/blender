@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_grid_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_grid_next)
+
 /**
  * Infinite grid:
  * Draw anti-aliased grid and axes of different sizes with smooth blending between levels of
@@ -26,8 +30,8 @@
 #define GRID_LINE_SMOOTH_END (0.5 - DISC_RADIUS)
 #define GRID_LINE_STEP(dist) smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist)
 
-#include "common_math_lib.glsl"
 #include "draw_view_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 float get_grid(vec2 co, vec2 fwidthCos, vec2 grid_scale)
 {
@@ -62,7 +66,7 @@ void main()
   P += drw_view_position() * plane_axes;
 
   float dist, fade;
-  bool is_persp = drw_view.winmat[3][3] == 0.0;
+  bool is_persp = drw_view().winmat[3][3] == 0.0;
   if (is_persp) {
     vec3 V = drw_view_position() - P;
     dist = length(V);
@@ -92,7 +96,7 @@ void main()
     dist = 1.0; /* Avoid branch after. */
 
     if (flag_test(grid_flag, PLANE_XY)) {
-      float angle = 1.0 - abs(drw_view.viewinv[2].z);
+      float angle = 1.0 - abs(drw_view().viewinv[2].z);
       dist = 1.0 + angle * 2.0;
       angle *= angle;
       fade *= 1.0 - angle * angle;
@@ -100,9 +104,9 @@ void main()
   }
 
   if (flag_test(grid_flag, SHOW_GRID)) {
-    /* Using `max(dot(dFdxPos, ViewMatrixInverse[0]), dot(dFdyPos, ViewMatrixInverse[1]))`
+    /* Using `max(dot(dFdxPos, drw_view().viewinv[0]), dot(dFdyPos, drw_view().viewinv[1]))`
      * would be more accurate, but not really necessary. */
-    float grid_res = dot(dFdxPos, ViewMatrixInverse[0].xyz);
+    float grid_res = dot(dFdxPos, drw_view().viewinv[0].xyz);
 
     /* The grid begins to appear when it comprises 4 pixels. */
     grid_res *= 4;

@@ -141,7 +141,7 @@ static char *generate(blender::Map<std::string, std::string> &messages, size_t *
     return a.key < b.key;
   });
 
-  Offset *offsets = MEM_cnew_array<Offset>(num_keys, __func__);
+  Offset *offsets = MEM_calloc_arrayN<Offset>(num_keys, __func__);
   uint32_t tot_keys_len = 0;
   uint32_t tot_vals_len = 0;
 
@@ -170,7 +170,7 @@ static char *generate(blender::Map<std::string, std::string> &messages, size_t *
 
   /* Final buffer representing the binary MO file. */
   *r_output_size = valstart + tot_vals_len;
-  char *output = MEM_cnew_array<char>(*r_output_size, __func__);
+  char *output = MEM_calloc_arrayN<char>(*r_output_size, __func__);
   char *h = output;
   char *ik = output + idx_keystart;
   char *iv = output + idx_valstart;

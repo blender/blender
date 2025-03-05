@@ -75,6 +75,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_mmap.h"
@@ -390,11 +391,11 @@ static int openexr_jpg_like_quality_to_dwa_quality(int q)
 {
   q = blender::math::clamp(q, 0, 100);
 
-  /* Map "visually lossless" JPG quality of 97 to default DWA level of 45,
+  /* Map default JPG quality of 90 to default DWA level of 45,
    * "lossless" JPG quality of 100 to DWA level of 0, and everything else
    * linearly based on those. */
   constexpr int x0 = 100, y0 = 0;
-  constexpr int x1 = 97, y1 = 45;
+  constexpr int x1 = 90, y1 = 45;
   q = y0 + (q - x0) * (y1 - y0) / (x1 - x0);
   return q;
 }
@@ -737,7 +738,7 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *data);
 
 void *IMB_exr_get_handle()
 {
-  ExrHandle *data = MEM_cnew<ExrHandle>("exr handle");
+  ExrHandle *data = MEM_callocN<ExrHandle>("exr handle");
   data->multiView = new StringVector();
 
   BLI_addtail(&exrhandles, data);
@@ -844,7 +845,7 @@ void IMB_exr_add_channel(void *handle,
   ExrHandle *data = (ExrHandle *)handle;
   ExrChannel *echan;
 
-  echan = MEM_cnew<ExrChannel>("exr channel");
+  echan = MEM_callocN<ExrChannel>("exr channel");
   echan->m = new MultiViewChannelName();
 
   if (layname && layname[0] != '\0') {
@@ -1592,7 +1593,7 @@ static ExrLayer *imb_exr_get_layer(ListBase *lb, const char *layname)
   ExrLayer *lay = (ExrLayer *)BLI_findstring(lb, layname, offsetof(ExrLayer, name));
 
   if (lay == nullptr) {
-    lay = MEM_cnew<ExrLayer>("exr layer");
+    lay = MEM_callocN<ExrLayer>("exr layer");
     BLI_addtail(lb, lay);
     BLI_strncpy(lay->name, layname, EXR_LAY_MAXNAME);
   }
@@ -1605,7 +1606,7 @@ static ExrPass *imb_exr_get_pass(ListBase *lb, const char *passname)
   ExrPass *pass = (ExrPass *)BLI_findstring(lb, passname, offsetof(ExrPass, name));
 
   if (pass == nullptr) {
-    pass = MEM_cnew<ExrPass>("exr pass");
+    pass = MEM_callocN<ExrPass>("exr pass");
 
     if (STREQ(passname, "Combined")) {
       BLI_addhead(lb, pass);
@@ -2175,7 +2176,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, char colorspac
           size_t ystride = -xstride * width;
 
           /* No need to clear image memory, it will be fully written below. */
-          imb_addrectfloatImBuf(ibuf, 4, false);
+          IMB_alloc_float_pixels(ibuf, 4, false);
 
           /* Inverse correct first pixel for data-window
            * coordinates (- dw.min.y because of y flip). */
@@ -2225,7 +2226,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, char colorspac
            * Disabling this because the sequencer frees immediate. */
 #if 0
           if (flag & IM_rect) {
-            IMB_rect_from_float(ibuf);
+            IMB_byte_from_float(ibuf);
           }
 #endif
 
@@ -2348,7 +2349,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     int dest_w = std::max(int(source_w * scale_factor), 1);
     int dest_h = std::max(int(source_h * scale_factor), 1);
 
-    ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rectfloat);
+    ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_float_data);
 
     /* A single row of source pixels. */
     Imf::Array<Imf::Rgba> pixels(source_w);

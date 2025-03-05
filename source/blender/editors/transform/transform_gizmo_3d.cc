@@ -12,12 +12,14 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_function_ref.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
@@ -62,7 +64,7 @@
 #include "transform_gizmo.hh"
 #include "transform_snap.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 static wmGizmoGroupType *g_GGT_xform_gizmo = nullptr;
 static wmGizmoGroupType *g_GGT_xform_gizmo_context = nullptr;
@@ -755,6 +757,29 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       }
       FOREACH_EDIT_OBJECT_END();
     }
+    else if (obedit->type == OB_POINTCLOUD) {
+      FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
+        const PointCloud &pointcloud = *static_cast<const PointCloud *>(ob_iter->data);
+
+        float4x4 mat_local;
+        if (use_mat_local) {
+          mat_local = obedit->world_to_object() * ob_iter->object_to_world();
+        }
+
+        const bke::AttributeAccessor attributes = pointcloud.attributes();
+        const VArray selection = *attributes.lookup_or_default<bool>(
+            ".selection", bke::AttrDomain::Point, true);
+
+        IndexMaskMemory memory;
+        const IndexMask mask = IndexMask::from_bools(selection, memory);
+        const Span<float3> positions = pointcloud.positions();
+        totsel += mask.size();
+        mask.foreach_index([&](const int point) {
+          run_coord_with_matrix(positions[point], use_mat_local, mat_local.ptr());
+        });
+      }
+      FOREACH_EDIT_OBJECT_END();
+    }
     else if (obedit->type == OB_GREASE_PENCIL) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
         GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_iter->data);
@@ -917,10 +942,10 @@ static int gizmo_3d_foreach_selected(const bContext *C,
   return totsel;
 }
 
-int ED_transform_calc_gizmo_stats(const bContext *C,
-                                  const TransformCalcParams *params,
-                                  TransformBounds *tbounds,
-                                  RegionView3D *rv3d)
+int calc_gizmo_stats(const bContext *C,
+                     const TransformCalcParams *params,
+                     TransformBounds *tbounds,
+                     RegionView3D *rv3d)
 {
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
@@ -943,7 +968,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
    * if we could check 'totsel' now, this should be skipped with no selection. */
   if (ob) {
     float mat[3][3];
-    ED_transform_calc_orientation_from_type_ex(
+    calc_orientation_from_type_ex(
         scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat);
     copy_m3_m3(tbounds->axis, mat);
   }
@@ -1038,7 +1063,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
           copy_v3_v3(r_pivot_pos, ss->pivot_pos);
           return true;
         }
-        if (blender::ed::object::calc_active_center(ob, false, r_pivot_pos)) {
+        if (object::calc_active_center(ob, false, r_pivot_pos)) {
           return true;
         }
       }
@@ -1049,7 +1074,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
       if (tbounds == nullptr) {
         TransformCalcParams calc_params{};
         calc_params.use_only_center = true;
-        if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds_stack, nullptr)) {
+        if (calc_gizmo_stats(C, &calc_params, &tbounds_stack, nullptr)) {
           tbounds = &tbounds_stack;
         }
       }
@@ -1556,7 +1581,7 @@ static void gizmo_3d_setup_draw_modal(wmGizmo *axis, const int axis_idx, const i
 
 static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
 {
-  GizmoGroup *ggd = MEM_cnew<GizmoGroup>(__func__);
+  GizmoGroup *ggd = MEM_callocN<GizmoGroup>(__func__);
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
@@ -1652,7 +1677,7 @@ static int gizmo_modal(bContext *C,
 
     TransformCalcParams calc_params{};
     calc_params.use_only_center = true;
-    if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d)) {
+    if (calc_gizmo_stats(C, &calc_params, &tbounds, rv3d)) {
       gizmo_prepare_mat(C, rv3d, &tbounds);
       LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
         WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
@@ -1928,7 +1953,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   TransformCalcParams calc_params{};
   calc_params.use_only_center = true;
   calc_params.orientation_index = orient_index + 1;
-  if ((ggd->all_hidden = (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d) == 0))) {
+  if ((ggd->all_hidden = (calc_gizmo_stats(C, &calc_params, &tbounds, rv3d) == 0))) {
     return;
   }
 
@@ -2437,8 +2462,10 @@ void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t)
   MAN_ITER_AXES_END;
 }
 
-bool ED_transform_calc_pivot_pos(const bContext *C, const short pivot_type, float r_pivot_pos[3])
+bool calc_pivot_pos(const bContext *C, const short pivot_type, float r_pivot_pos[3])
 {
   Scene *scene = CTX_data_scene(C);
   return gizmo_3d_calc_pos(C, scene, nullptr, pivot_type, r_pivot_pos);
 }
+
+}  // namespace blender::ed::transform

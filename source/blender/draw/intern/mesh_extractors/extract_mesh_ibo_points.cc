@@ -11,6 +11,8 @@
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
+#include "BLI_timeit.hh"
+
 namespace blender::draw {
 
 static IndexMask calc_vert_visibility_mesh(const MeshRenderData &mr,
@@ -163,8 +165,8 @@ static void extract_points_bm(const MeshRenderData &mr, gpu::IndexBuf &points)
     Array<bool> used(mr.verts_num, false);
     process_ibo_verts_bm(mr, [&](const int ibo_index, const int vert) {
       if (!used[vert]) {
-        data[vert] = ibo_index;
         used[vert] = true;
+        data[vert] = ibo_index;
       }
     });
   }
@@ -173,9 +175,10 @@ static void extract_points_bm(const MeshRenderData &mr, gpu::IndexBuf &points)
     Array<int> map(mr.verts_num, -1);
     index_mask::build_reverse_map(visible_verts, map.as_mutable_span());
     process_ibo_verts_bm(mr, [&](const int ibo_index, const int vert) {
-      if (map[vert] != -1) {
-        data[map[vert]] = ibo_index;
+      const int index = map[vert];
+      if (index != -1) {
         map[vert] = -1;
+        data[index] = ibo_index;
       }
     });
   }

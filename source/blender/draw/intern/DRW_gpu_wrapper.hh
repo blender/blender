@@ -59,11 +59,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "draw_manager_c.hh"
-#include "draw_texture_pool.hh"
-
 #include "BKE_global.hh"
 
+#include "BLI_math_base.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
@@ -73,6 +71,7 @@
 #include "GPU_framebuffer.hh"
 #include "GPU_storage_buffer.hh"
 #include "GPU_texture.hh"
+#include "GPU_texture_pool.hh"
 #include "GPU_uniform_buffer.hh"
 
 namespace blender::draw {
@@ -292,7 +291,7 @@ class UniformArrayBuffer : public detail::UniformCommon<T, len, false> {
   }
   ~UniformArrayBuffer()
   {
-    MEM_freeN(this->data_);
+    MEM_freeN(static_cast<void *>(this->data_));
   }
 };
 
@@ -339,7 +338,9 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
   }
   ~StorageArrayBuffer()
   {
-    MEM_freeN(this->data_);
+    /* NOTE: T is not always trivial (e.g. can be #blender::eevee::VelocityIndex), so cannot use
+     * `MEM_freeN` directly on it, without casting it to `void *`. */
+    MEM_freeN(static_cast<void *>(this->data_));
   }
 
   /* Resize to \a new_size elements. */
@@ -350,7 +351,7 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
       /* Manual realloc since MEM_reallocN_aligned does not exists. */
       T *new_data_ = (T *)MEM_mallocN_aligned(new_size * sizeof(T), 16, this->name_);
       memcpy(new_data_, this->data_, min_uu(this->len_, new_size) * sizeof(T));
-      MEM_freeN(this->data_);
+      MEM_freeN(static_cast<void *>(this->data_));
       this->data_ = new_data_;
       GPU_storagebuf_free(this->ssbo_);
 
@@ -928,6 +929,11 @@ class Texture : NonCopyable {
    */
   void debug_clear()
   {
+    if (GPU_texture_dimensions(this->tx_) == 1) {
+      /* Clearing of 1D texture is currently unsupported. */
+      return;
+    }
+
     if (GPU_texture_has_float_format(this->tx_) || GPU_texture_has_normalized_format(this->tx_)) {
       this->clear(float4(NAN_FLT));
     }
@@ -1062,8 +1068,7 @@ class TextureFromPool : public Texture, NonMovable {
   {
     BLI_assert(this->tx_ == nullptr);
 
-    this->tx_ = DRW_texture_pool_texture_acquire(
-        DST.vmempool->texture_pool, UNPACK2(extent), format, usage);
+    this->tx_ = gpu::TexturePool::get().acquire_texture(UNPACK2(extent), format, usage);
 
     if (G.debug & G_DEBUG_GPU) {
       debug_clear();
@@ -1076,7 +1081,7 @@ class TextureFromPool : public Texture, NonMovable {
     if (this->tx_ == nullptr) {
       return;
     }
-    DRW_texture_pool_texture_release(DST.vmempool->texture_pool, this->tx_);
+    gpu::TexturePool::get().release_texture(this->tx_);
     this->tx_ = nullptr;
   }
 
@@ -1087,8 +1092,8 @@ class TextureFromPool : public Texture, NonMovable {
   static void swap(TextureFromPool &a, Texture &b)
   {
     Texture::swap(a, b);
-    DRW_texture_pool_give_texture_ownership(DST.vmempool->texture_pool, a);
-    DRW_texture_pool_take_texture_ownership(DST.vmempool->texture_pool, b);
+    gpu::TexturePool::get().give_texture_ownership(a);
+    gpu::TexturePool::get().take_texture_ownership(b);
   }
   static void swap(Texture &a, TextureFromPool &b)
   {

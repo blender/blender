@@ -23,33 +23,23 @@ gpu::VertBuf *hair_pos_buffer_get(Scene *scene,
                                   ParticleSystem *psys,
                                   ModifierData *md);
 
-void hair_update(Manager &manager);
-
-void hair_free();
-
 gpu::Batch *hair_sub_pass_setup(PassMain::Sub &sub_ps,
                                 const Scene *scene,
-                                Object *object,
+                                const ObjectRef &ob_ref,
                                 ParticleSystem *psys,
                                 ModifierData *md,
                                 GPUMaterial *gpu_material = nullptr);
 
 gpu::Batch *hair_sub_pass_setup(PassSimple::Sub &sub_ps,
                                 const Scene *scene,
-                                Object *object,
+                                const ObjectRef &ob_ref,
                                 ParticleSystem *psys,
                                 ModifierData *md,
                                 GPUMaterial *gpu_material = nullptr);
 
 /** Curves. */
 
-void curves_init();
-
 gpu::VertBuf *curves_pos_buffer_get(Scene *scene, Object *object);
-
-void curves_update(Manager &manager);
-
-void curves_free();
 
 gpu::Batch *curves_sub_pass_setup(PassMain::Sub &ps,
                                   const Scene *scene,
@@ -63,13 +53,13 @@ gpu::Batch *curves_sub_pass_setup(PassSimple::Sub &ps,
 
 /* Point cloud. */
 
-gpu::Batch *point_cloud_sub_pass_setup(PassMain::Sub &sub_ps,
-                                       Object *object,
-                                       GPUMaterial *gpu_material = nullptr);
+gpu::Batch *pointcloud_sub_pass_setup(PassMain::Sub &sub_ps,
+                                      Object *object,
+                                      GPUMaterial *gpu_material = nullptr);
 
-gpu::Batch *point_cloud_sub_pass_setup(PassSimple::Sub &sub_ps,
-                                       Object *object,
-                                       GPUMaterial *gpu_material = nullptr);
+gpu::Batch *pointcloud_sub_pass_setup(PassSimple::Sub &sub_ps,
+                                      Object *object,
+                                      GPUMaterial *gpu_material = nullptr);
 
 /** Volume. */
 

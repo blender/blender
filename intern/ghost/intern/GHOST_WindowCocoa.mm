@@ -270,14 +270,12 @@
 
     switch (m_draggedObjectType) {
       case GHOST_kDragnDropTypeBitmap: {
-        if ([NSImage canInitWithPasteboard:draggingPBoard]) {
-          NSImage *droppedImg = [[[NSImage alloc] initWithPasteboard:draggingPBoard] autorelease];
-          data = droppedImg;  // [draggingPBoard dataForType:NSPasteboardTypeTIFF];
-        }
-        else {
+        if (![NSImage canInitWithPasteboard:draggingPBoard]) {
           return NO;
         }
-
+        /* Caller must [release] the returned data in this case. */
+        NSImage *droppedImg = [[NSImage alloc] initWithPasteboard:draggingPBoard];
+        data = droppedImg;
         break;
       }
       case GHOST_kDragnDropTypeFilenames:

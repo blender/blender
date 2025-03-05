@@ -334,11 +334,8 @@ inline constexpr int64_t power_of_2_max(const int64_t x)
 /** \name Pointer Macros
  * \{ */
 
-#if defined(__GNUC__) || defined(__clang__)
-#  define POINTER_OFFSET(v, ofs) ((typeof(v))((char *)(v) + (ofs)))
-#else
-#  define POINTER_OFFSET(v, ofs) ((void *)((char *)(v) + (ofs)))
-#endif
+#define POINTER_OFFSET(v, ofs) \
+  (reinterpret_cast<typename std::remove_reference<decltype(v)>::type>((char *)(v) + (ofs)))
 
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */
@@ -358,7 +355,7 @@ inline constexpr int64_t power_of_2_max(const int64_t x)
  *
  * \{ */
 
-/** Performs `offsetof(typeof(data), member) + sizeof((data)->member)` for non-gcc compilers. */
+/** Performs `offsetof(decltype(data), member) + sizeof((data)->member)` for non-gcc compilers. */
 #define OFFSETOF_STRUCT_AFTER(_struct, _member) \
   ((size_t)(((const char *)&((_struct)->_member)) - ((const char *)(_struct))) + \
    sizeof((_struct)->_member))

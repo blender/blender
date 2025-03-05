@@ -10,9 +10,11 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 
+#include "DRW_render.hh"
 #include "GPU_compute.hh"
 #include "GPU_debug.hh"
 
+#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 #include "draw_view.hh"
 
@@ -318,12 +320,12 @@ VisibilityBuf &View::get_visibility_buffer()
 
 blender::draw::View &View::default_get()
 {
-  return *DST.vmempool->default_view;
+  return *drw_get().data->default_view;
 }
 
 void View::default_set(const float4x4 &view_mat, const float4x4 &win_mat)
 {
-  DST.vmempool->default_view->sync(view_mat, win_mat);
+  drw_get().data->default_view->sync(view_mat, win_mat);
 }
 
 std::array<float4, 6> View::frustum_planes_get(int view_id)

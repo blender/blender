@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 

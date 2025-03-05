@@ -73,7 +73,7 @@ METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
                                               Ray ray)
 {
   /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
-  if (ProjectionMatrix[3][3] == 0.0) {
+  if (drw_view().winmat[3][3] == 0.0) {
     raytrace_clip_ray_to_near_plane(ray);
   }
 
@@ -175,7 +175,7 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
                                    Ray ray)
 {
   /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
-  if (ProjectionMatrix[3][3] == 0.0) {
+  if (drw_view().winmat[3][3] == 0.0) {
     raytrace_clip_ray_to_near_plane(ray);
   }
 

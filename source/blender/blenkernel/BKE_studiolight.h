@@ -16,10 +16,6 @@
 
 #include "DNA_userdef_types.h" /* for #SolidLight */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ImBuf;
 
 #define STUDIOLIGHT_ICON_ID_TYPE_RADIANCE (1 << 0)
@@ -120,7 +116,3 @@ void BKE_studiolight_set_free_function(StudioLight *sl,
                                        StudioLightFreeFunction *free_function,
                                        void *data);
 void BKE_studiolight_unset_icon_id(StudioLight *sl, int icon_id);
-
-#ifdef __cplusplus
-}
-#endif

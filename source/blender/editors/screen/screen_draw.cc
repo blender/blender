@@ -20,6 +20,7 @@
 #include "BLF_api.hh"
 
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "BLT_translation.hh"
@@ -164,7 +165,8 @@ void ED_screen_draw_edges(wmWindow *win)
     return;
   }
 
-  if (screen->temp && BLI_listbase_is_single(&screen->areabase)) {
+  if (BLI_listbase_is_single(&screen->areabase) && win->global_areas.areabase.first == nullptr) {
+    /* Do not show edges on windows without global areas and with only one editor. */
     return;
   }
 
@@ -230,7 +232,7 @@ void ED_screen_draw_edges(wmWindow *win)
 
   UI_GetThemeColor4fv(TH_EDITOR_BORDER, col);
   col[3] = 1.0f;
-  corner_scale = U.pixelsize * 8.0f;
+  corner_scale = UI_SCALE_FAC * 8.0f;
   edge_thickness = corner_scale * 0.21f;
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -264,7 +266,7 @@ void ED_screen_draw_edges(wmWindow *win)
                             1.0f,
                             (area == active_area) ? outline2 : outline1,
                             U.pixelsize,
-                            6.0f * U.pixelsize);
+                            6.0f * UI_SCALE_FAC);
   }
 
   GPU_blend(GPU_BLEND_NONE);
@@ -304,10 +306,11 @@ void screen_draw_move_highlight(bScreen *screen, eScreenAxis dir_axis)
   float outline[4] = {0.0f, 0.0f, 0.0f, 0.8f};
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv_ex(
-      &rect, inner, nullptr, 1.0f, outline, 2.0f * U.pixelsize, 2.5f * U.pixelsize);
+      &rect, inner, nullptr, 1.0f, outline, 2.0f * U.pixelsize, 2.5f * UI_SCALE_FAC);
 }
 
-static void screen_draw_area_drag_tip(int x, int y, const ScrArea *source, const std::string &hint)
+static void screen_draw_area_drag_tip(
+    const wmWindow *win, int x, int y, const ScrArea *source, const std::string &hint)
 {
   const char *area_name = IFACE_(ED_area_name(source).c_str());
   const uiFontStyle *fstyle = UI_FSTYLE_TOOLTIP;
@@ -332,8 +335,9 @@ static void screen_draw_area_drag_tip(int x, int y, const ScrArea *source, const
   const float height = margin + lheight + line_gap + lheight + margin;
 
   /* Position of this hint relative to the mouse position. */
-  const int left = x + int(5.0f * UI_SCALE_FAC);
-  const int top = y - int(7.0f * UI_SCALE_FAC);
+  const int left = std::min(x + int(5.0f * UI_SCALE_FAC),
+                            WM_window_native_pixel_x(win) - int(width));
+  const int top = std::max(y - int(7.0f * UI_SCALE_FAC), int(height));
 
   rctf rect;
   rect.xmin = left;
@@ -372,7 +376,7 @@ static void screen_draw_area_closed(int xmin, int xmax, int ymin, int ymax)
   rctf rect = {float(xmin), float(xmax), float(ymin), float(ymax)};
   float darken[4] = {0.0f, 0.0f, 0.0f, 0.7f};
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_4fv_ex(&rect, darken, nullptr, 1.0f, nullptr, U.pixelsize, 6 * U.pixelsize);
+  UI_draw_roundbox_4fv_ex(&rect, darken, nullptr, 1.0f, nullptr, U.pixelsize, 6 * UI_SCALE_FAC);
 }
 
 void screen_draw_join_highlight(const wmWindow *win, ScrArea *sa1, ScrArea *sa2, eScreenDir dir)
@@ -443,10 +447,10 @@ void screen_draw_join_highlight(const wmWindow *win, ScrArea *sa1, ScrArea *sa2,
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f};
-  UI_draw_roundbox_4fv_ex(&combined, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
+  UI_draw_roundbox_4fv_ex(&combined, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * UI_SCALE_FAC);
 
   screen_draw_area_drag_tip(
-      win->eventstate->xy[0], win->eventstate->xy[1], sa1, IFACE_("Join Areas"));
+      win, win->eventstate->xy[0], win->eventstate->xy[1], sa1, IFACE_("Join Areas"));
 }
 
 static void rounded_corners(rctf rect, float color[4], int corners)
@@ -454,7 +458,7 @@ static void rounded_corners(rctf rect, float color[4], int corners)
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  const float rad = 7 * U.pixelsize;
+  const float rad = 7 * UI_SCALE_FAC;
 
   float vec[4][2] = {
       {0.195, 0.02},
@@ -516,8 +520,13 @@ static void rounded_corners(rctf rect, float color[4], int corners)
   immUnbindProgram();
 }
 
-void screen_draw_dock_preview(
-    ScrArea *source, ScrArea *target, AreaDockTarget dock_target, float factor, int x, int y)
+void screen_draw_dock_preview(const wmWindow *win,
+                              ScrArea *source,
+                              ScrArea *target,
+                              AreaDockTarget dock_target,
+                              float factor,
+                              int x,
+                              int y)
 {
   if (dock_target == AreaDockTarget::None) {
     return;
@@ -568,7 +577,7 @@ void screen_draw_dock_preview(
   }
 
   rounded_corners(dest, border, corners);
-  UI_draw_roundbox_4fv_ex(&dest, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * U.pixelsize);
+  UI_draw_roundbox_4fv_ex(&dest, inner, nullptr, 1.0f, outline, U.pixelsize, 6 * UI_SCALE_FAC);
 
   if (dock_target != AreaDockTarget::Center) {
     /* Darken the split position itself. */
@@ -583,7 +592,8 @@ void screen_draw_dock_preview(
     UI_draw_roundbox_4fv(&dest, true, 0.0f, border);
   }
 
-  screen_draw_area_drag_tip(x,
+  screen_draw_area_drag_tip(win,
+                            x,
                             y,
                             source,
                             dock_target == AreaDockTarget::Center ? IFACE_("Replace this area") :
@@ -603,7 +613,7 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
 
   if (factor < 0.0001 || factor > 0.9999) {
     /* Highlight the entire area. */
-    UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * U.pixelsize);
+    UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * UI_SCALE_FAC);
     return;
   }
 
@@ -621,7 +631,7 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
                   border,
                   (dir_axis == SCREEN_AXIS_H) ? UI_CNR_TOP_RIGHT | UI_CNR_TOP_LEFT :
                                                 UI_CNR_BOTTOM_RIGHT | UI_CNR_TOP_RIGHT);
-  UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * U.pixelsize);
+  UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * UI_SCALE_FAC);
 
   /* Outlined rectangle to right/below split position. */
   if (dir_axis == SCREEN_AXIS_H) {
@@ -637,7 +647,7 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
                   border,
                   (dir_axis == SCREEN_AXIS_H) ? UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT :
                                                 UI_CNR_BOTTOM_LEFT | UI_CNR_TOP_LEFT);
-  UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * U.pixelsize);
+  UI_draw_roundbox_4fv_ex(&rect, inner, nullptr, 1.0f, outline, U.pixelsize, 7 * UI_SCALE_FAC);
 
   /* Darken the split position itself. */
   if (dir_axis == SCREEN_AXIS_H) {

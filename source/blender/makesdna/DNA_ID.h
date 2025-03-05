@@ -605,7 +605,8 @@ typedef struct PreviewImage {
 #define ID_REFCOUNTING_USERS(id) (ID_REAL_USERS(id) - ID_EXTRA_REAL_USERS(id))
 
 #define ID_CHECK_UNDO(id) \
-  ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS))
+  ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS)) && \
+      (GS((id)->name) != ID_BR)
 
 #define ID_BLEND_PATH(_bmain, _id) \
   ((_id)->lib ? (_id)->lib->runtime->filepath_abs : BKE_main_blendfile_path((_bmain)))
@@ -616,7 +617,8 @@ typedef struct PreviewImage {
 
 #define ID_IS_LINKED(_id) (((const ID *)(_id))->lib != NULL)
 
-#define ID_TYPE_SUPPORTS_ASSET_EDITABLE(id_type) ELEM(id_type, ID_BR, ID_TE, ID_NT, ID_IM, ID_PC)
+#define ID_TYPE_SUPPORTS_ASSET_EDITABLE(id_type) \
+  ELEM(id_type, ID_BR, ID_TE, ID_NT, ID_IM, ID_PC, ID_MA)
 
 #define ID_IS_EDITABLE(_id) \
   ((((const ID *)(_id))->lib == NULL) || \
@@ -1157,7 +1159,7 @@ typedef enum IDRecalcFlag {
 
 /**
  * This enum defines the index assigned to each type of IDs in the array returned by
- * #set_listbasepointers, and by extension, controls the default order in which each ID type is
+ * #BKE_main_lists_get, and by extension, controls the default order in which each ID type is
  * processed during standard 'foreach' looping over all IDs of a #Main data-base.
  *
  * About Order:
@@ -1171,7 +1173,7 @@ typedef enum IDRecalcFlag {
  *   #Material <- #Mesh <- #Object <- #Collection <- #Scene
  *
  * Default order of processing of IDs in 'foreach' macros (#FOREACH_MAIN_ID_BEGIN and the like),
- * built on top of #set_listbasepointers, is actually reversed compared to the order defined here,
+ * built on top of #BKE_main_lists_get, is actually reversed compared to the order defined here,
  * since processing usually needs to happen on users before it happens on used IDs (when freeing
  * e.g.).
  *

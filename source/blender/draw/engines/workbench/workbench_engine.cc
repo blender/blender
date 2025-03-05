@@ -22,6 +22,7 @@
 
 #include "BLT_translation.hh"
 
+#include "GPU_context.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "RE_engine.h"
@@ -175,7 +176,7 @@ class Instance {
         emitter_handle = handle;
       }
       else if (ob->type == OB_POINTCLOUD) {
-        this->point_cloud_sync(manager, ob_ref, object_state);
+        this->pointcloud_sync(manager, ob_ref, object_state);
       }
       else if (ob->type == OB_CURVES) {
         this->curves_sync(manager, ob_ref, object_state);
@@ -358,7 +359,7 @@ class Instance {
     }
   }
 
-  void point_cloud_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
+  void pointcloud_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
   {
     ResourceHandle handle = manager.resource_handle(ob_ref);
 
@@ -369,7 +370,7 @@ class Instance {
     this->draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
       PassMain::Sub &pass =
           mesh_pass.get_subpass(eGeometryType::POINTCLOUD).sub("Point Cloud SubPass");
-      gpu::Batch *batch = point_cloud_sub_pass_setup(pass, ob_ref.object);
+      gpu::Batch *batch = pointcloud_sub_pass_setup(pass, ob_ref.object);
       pass.draw(batch, handle, material_index);
     });
   }
@@ -396,7 +397,7 @@ class Instance {
       PassMain::Sub &pass =
           mesh_pass.get_subpass(eGeometryType::CURVES, &texture).sub("Hair SubPass");
       pass.push_constant("emitter_object_id", int(emitter_handle.raw));
-      gpu::Batch *batch = hair_sub_pass_setup(pass, scene_state_.scene, ob_ref.object, psys, md);
+      gpu::Batch *batch = hair_sub_pass_setup(pass, scene_state_.scene, ob_ref, psys, md);
       pass.draw(batch, handle, material_index);
     });
   }
@@ -531,10 +532,6 @@ using namespace blender;
 
 struct WORKBENCH_Data {
   DrawEngineType *engine_type;
-  DRWViewportEmptyList *fbl;
-  DRWViewportEmptyList *txl;
-  DRWViewportEmptyList *psl;
-  DRWViewportEmptyList *stl;
   workbench::Instance *instance;
 
   char info[GPU_INFO_SIZE];
@@ -555,17 +552,11 @@ static void workbench_cache_init(void *vedata)
   reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->begin_sync();
 }
 
-static void workbench_cache_populate(void *vedata, Object *object)
+static void workbench_cache_populate(void *vedata, blender::draw::ObjectRef &ob_ref)
 {
   draw::Manager *manager = DRW_manager_get();
 
-  draw::ObjectRef ref;
-  ref.object = object;
-  ref.dupli_object = DRW_object_get_dupli(object);
-  ref.dupli_parent = DRW_object_get_dupli_parent(object);
-  ref.handle = draw::ResourceHandle(0);
-
-  reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->object_sync(*manager, ref);
+  reinterpret_cast<WORKBENCH_Data *>(vedata)->instance->object_sync(*manager, ob_ref);
 }
 
 static void workbench_cache_finish(void *vedata)
@@ -602,11 +593,6 @@ static void workbench_view_update(void *vedata)
   if (ved->instance) {
     ved->instance->reset_taa_sample();
   }
-}
-
-static void workbench_id_update(void *vedata, ID *id)
-{
-  UNUSED_VARS(vedata, id);
 }
 
 /* RENDER */
@@ -763,10 +749,12 @@ static void workbench_render_to_image(void *vedata,
   manager.begin_sync();
 
   workbench_cache_init(vedata);
-  auto workbench_render_cache =
-      [](void *vedata, Object *ob, RenderEngine * /*engine*/, Depsgraph * /*depsgraph*/) {
-        workbench_cache_populate(vedata, ob);
-      };
+  auto workbench_render_cache = [](void *vedata,
+                                   blender::draw::ObjectRef &ob_ref,
+                                   RenderEngine * /*engine*/,
+                                   Depsgraph * /*depsgraph*/) {
+    workbench_cache_populate(vedata, ob_ref);
+  };
   DRW_render_object_iter(vedata, engine, depsgraph, workbench_render_cache);
   workbench_cache_finish(vedata);
 
@@ -796,15 +784,10 @@ static void workbench_render_update_passes(RenderEngine *engine,
   }
 }
 
-extern "C" {
-
-static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
-
 DrawEngineType draw_engine_workbench = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("Workbench"),
-    /*vedata_size*/ &workbench_data_size,
     /*engine_init*/ &workbench_engine_init,
     /*engine_free*/ &workbench_engine_free,
     /*instance_free*/ &workbench_instance_free,
@@ -813,7 +796,7 @@ DrawEngineType draw_engine_workbench = {
     /*cache_finish*/ &workbench_cache_finish,
     /*draw_scene*/ &workbench_draw_scene,
     /*view_update*/ &workbench_view_update,
-    /*id_update*/ &workbench_id_update,
+    /*id_update*/ nullptr,
     /*render_to_image*/ &workbench_render_to_image,
     /*store_metadata*/ nullptr,
 };
@@ -841,6 +824,5 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
         /*call*/ nullptr,
     },
 };
-}
 
 /** \} */

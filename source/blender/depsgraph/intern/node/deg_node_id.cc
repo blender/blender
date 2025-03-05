@@ -90,7 +90,7 @@ void IDNode::init_copy_on_write(Depsgraph &depsgraph, ID *id_cow_hint)
     }
   }
   else if (deg_eval_copy_is_needed(id_orig)) {
-    id_cow = (ID *)BKE_libblock_alloc_notest(GS(id_orig->name));
+    id_cow = BKE_libblock_alloc_notest(GS(id_orig->name));
     DEG_COW_PRINT(
         "Create shallow copy for %s: id_orig=%p id_cow=%p\n", id_orig->name, id_orig, id_cow);
     deg_tag_eval_copy_id(depsgraph, id_cow, id_orig);

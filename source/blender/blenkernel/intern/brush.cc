@@ -84,8 +84,8 @@ static void brush_copy_data(Main * /*bmain*/,
   brush_dst->automasking_cavity_curve = BKE_curvemapping_copy(brush_src->automasking_cavity_curve);
 
   if (brush_src->gpencil_settings != nullptr) {
-    brush_dst->gpencil_settings = MEM_cnew<BrushGpencilSettings>(__func__,
-                                                                 *(brush_src->gpencil_settings));
+    brush_dst->gpencil_settings = MEM_dupallocN<BrushGpencilSettings>(
+        __func__, *(brush_src->gpencil_settings));
     brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
         brush_src->gpencil_settings->curve_sensitivity);
     brush_dst->gpencil_settings->curve_strength = BKE_curvemapping_copy(
@@ -107,7 +107,7 @@ static void brush_copy_data(Main * /*bmain*/,
         brush_src->gpencil_settings->curve_rand_value);
   }
   if (brush_src->curves_sculpt_settings != nullptr) {
-    brush_dst->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(
+    brush_dst->curves_sculpt_settings = MEM_dupallocN<BrushCurvesSculptSettings>(
         __func__, *(brush_src->curves_sculpt_settings));
     brush_dst->curves_sculpt_settings->curve_parameter_falloff = BKE_curvemapping_copy(
         brush_src->curves_sculpt_settings->curve_parameter_falloff);
@@ -162,18 +162,6 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
   bool force_local, force_copy;
   BKE_lib_id_make_local_generic_action_define(bmain, id, flags, &force_local, &force_copy);
 
-  if (brush->clone.image) {
-    /* Special case: `ima` always local immediately.
-     * Clone image should only have one user anyway. */
-    /* FIXME: Recursive calls affecting other non-embedded IDs are really bad and should be avoided
-     * in IDType callbacks. Higher-level ID management code usually does not expect such things and
-     * does not deal properly with it. */
-    /* NOTE: assert below ensures that the comment above is valid, and that exception is
-     * acceptable for the time being. */
-    BKE_lib_id_make_local(bmain, &brush->clone.image->id, LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR);
-    BLI_assert(!ID_IS_LINKED(brush->clone.image) && brush->clone.image->id.newid == nullptr);
-  }
-
   if (force_local) {
     BKE_lib_id_clear_library_data(bmain, &brush->id, flags);
     BKE_lib_id_expand_local(bmain, &brush->id, flags);
@@ -186,7 +174,7 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
 
     brush_new->id.us = 0;
 
-    /* setting newid is mandatory for complex make_lib_local logic... */
+    /* Setting `newid` is mandatory for complex #make_lib_local logic. */
     ID_NEW_SET(brush, brush_new);
 
     if (!lib_local) {
@@ -200,7 +188,6 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
   Brush *brush = (Brush *)id;
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->toggle_brush, IDWALK_CB_NOP);
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->clone.image, IDWALK_CB_NOP);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->paint_curve, IDWALK_CB_USER);
   if (brush->gpencil_settings) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->gpencil_settings->material, IDWALK_CB_USER);
@@ -505,7 +492,6 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(disconnected_distance_max);
   FROM_DEFAULT(sculpt_plane);
   FROM_DEFAULT(plane_offset);
-  FROM_DEFAULT(clone.alpha);
   FROM_DEFAULT(normal_weight);
   FROM_DEFAULT(fill_threshold);
   FROM_DEFAULT(flag);
@@ -562,7 +548,7 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 void BKE_brush_init_gpencil_settings(Brush *brush)
 {
   if (brush->gpencil_settings == nullptr) {
-    brush->gpencil_settings = MEM_cnew<BrushGpencilSettings>("BrushGpencilSettings");
+    brush->gpencil_settings = MEM_callocN<BrushGpencilSettings>("BrushGpencilSettings");
   }
 
   brush->gpencil_settings->draw_smoothlvl = 1;
@@ -604,7 +590,7 @@ bool BKE_brush_delete(Main *bmain, Brush *brush)
 void BKE_brush_init_curves_sculpt_settings(Brush *brush)
 {
   if (brush->curves_sculpt_settings == nullptr) {
-    brush->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(__func__);
+    brush->curves_sculpt_settings = MEM_callocN<BrushCurvesSculptSettings>(__func__);
   }
   BrushCurvesSculptSettings *settings = brush->curves_sculpt_settings;
   settings->flag = BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_RADIUS;
@@ -1482,7 +1468,7 @@ static bool brush_gen_texture(const Brush *br,
 
 ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool display_gradient)
 {
-  ImBuf *im = MEM_cnew<ImBuf>("radial control texture");
+  ImBuf *im = MEM_callocN<ImBuf>("radial control texture");
   int side = 512;
   int half = side / 2;
 

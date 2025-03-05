@@ -795,8 +795,10 @@ static void panel_draw(const bContext *C, Panel *panel)
                                                         layout,
                                                         ptr,
                                                         "open_frame_range_panel",
+                                                        ptr,
                                                         "use_restrict_frame_range",
-                                                        IFACE_("Effective Range")))
+                                                        IFACE_("Effective Range"))
+                            .body)
   {
     const bool active = RNA_boolean_get(ptr, "use_restrict_frame_range");
     uiLayout *col = uiLayoutColumn(panel, false);
@@ -805,8 +807,10 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanelPropWithBoolHeader(
-          C, layout, ptr, "open_fading_panel", "use_fading", IFACE_("Fading")))
+  if (uiLayout *panel =
+          uiLayoutPanelPropWithBoolHeader(
+              C, layout, ptr, "open_fading_panel", ptr, "use_fading", IFACE_("Fading"))
+              .body)
   {
     const bool active = RNA_boolean_get(ptr, "use_fading");
     uiLayout *col = uiLayoutColumn(panel, false);

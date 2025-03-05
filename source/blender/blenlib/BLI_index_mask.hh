@@ -199,6 +199,7 @@ class IndexMask : private IndexMaskData {
   /** Construct a mask from the true indices. */
   static IndexMask from_bools(Span<bool> bools, IndexMaskMemory &memory);
   static IndexMask from_bools(const VArray<bool> &bools, IndexMaskMemory &memory);
+  static IndexMask from_bools_inverse(const VArray<bool> &bools, IndexMaskMemory &memory);
   /** Construct a mask from the true indices, but limited by the indices in #universe. */
   static IndexMask from_bools(const IndexMask &universe,
                               Span<bool> bools,
@@ -209,6 +210,9 @@ class IndexMask : private IndexMaskData {
   static IndexMask from_bools(const IndexMask &universe,
                               const VArray<bool> &bools,
                               IndexMaskMemory &memory);
+  static IndexMask from_bools_inverse(const IndexMask &universe,
+                                      const VArray<bool> &bools,
+                                      IndexMaskMemory &memory);
   /** Construct a mask from the ranges referenced by the offset indices. */
   template<typename T>
   static IndexMask from_ranges(OffsetIndices<T> offsets,
@@ -1107,6 +1111,26 @@ inline void index_range_to_mask_segments(const IndexRange range,
         IndexMaskSegment(range.first() + i, Span(static_indices_array).take_front(size)));
   }
 }
+
+/**
+ * Return a mask of random points or curves.
+ *
+ * \param mask: (optional) The elements that should be used in the resulting mask.
+ * \param universe_size: The size of the mask.
+ * \param random_seed: The seed for the \a RandomNumberGenerator.
+ * \param probability: Determines how likely a point/curve will be chosen.
+ * If set to 0.0, nothing will be in the mask, if set to 1.0 everything will be in the mask.
+ */
+IndexMask random_mask(const IndexMask &mask,
+                      const int64_t universe_size,
+                      const uint32_t random_seed,
+                      const float probability,
+                      IndexMaskMemory &memory);
+
+IndexMask random_mask(const int64_t universe_size,
+                      const uint32_t random_seed,
+                      const float probability,
+                      IndexMaskMemory &memory);
 
 }  // namespace blender::index_mask
 

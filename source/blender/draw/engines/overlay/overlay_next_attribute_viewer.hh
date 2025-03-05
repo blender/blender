@@ -43,6 +43,7 @@ class AttributeViewer : Overlay {
       return;
     };
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                   state.clipping_plane_count);
 
@@ -64,7 +65,7 @@ class AttributeViewer : Overlay {
                    Resources & /*res*/,
                    const State &state) final
   {
-    const DupliObject *dupli_object = DRW_object_get_dupli(ob_ref.object);
+    const DupliObject *dupli_object = ob_ref.dupli_object;
     const bool is_preview = dupli_object != nullptr &&
                             dupli_object->preview_base_geometry != nullptr;
     if (!enabled_ || !is_preview) {
@@ -142,7 +143,7 @@ class AttributeViewer : Overlay {
       }
       case OB_POINTCLOUD: {
         auto &sub = *pointcloud_sub_;
-        gpu::Batch *batch = point_cloud_sub_pass_setup(sub, &object, nullptr);
+        gpu::Batch *batch = pointcloud_sub_pass_setup(sub, &object, nullptr);
         sub.push_constant("ucolor", float4(color));
         sub.draw(batch, manager.unique_handle(ob_ref));
         break;
@@ -196,7 +197,7 @@ class AttributeViewer : Overlay {
           if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
             gpu::VertBuf **vertbuf = DRW_pointcloud_evaluated_attribute(pointcloud, ".viewer");
             auto &sub = *pointcloud_sub_;
-            gpu::Batch *batch = point_cloud_sub_pass_setup(sub, &object, nullptr);
+            gpu::Batch *batch = pointcloud_sub_pass_setup(sub, &object, nullptr);
             sub.push_constant("opacity", opacity);
             sub.bind_texture("attribute_tx", vertbuf);
             sub.draw(batch, manager.unique_handle(ob_ref));

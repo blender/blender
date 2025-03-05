@@ -17,6 +17,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_vector_set.hh"
 

@@ -43,6 +43,7 @@ set(SRC
   object_transform.cc
   object_utils.cc
   object_vgroup.cc
+  object_visual_geometry_to_objects.cc
   object_volume.cc
   object_warp.cc
 
@@ -80,7 +81,7 @@ endif()
 
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
-  add_definitions(-DWITH_POINT_CLOUD)
+  add_definitions(-DWITH_POINTCLOUD)
 endif()
 
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

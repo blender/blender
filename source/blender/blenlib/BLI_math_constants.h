@@ -8,6 +8,15 @@
  * \ingroup bli
  */
 
+/* On Windows we have to include math.h before defining our own constants, to
+ * avoid warnings about redefinition. This can likely be simplified later when
+ * code is fully converted to C++, not defining our own constants at all. */
+#if defined(_MSC_VER) && !defined(_USE_MATH_DEFINES)
+#  define _USE_MATH_DEFINES
+#endif
+
+#include <math.h> /* IWYU pragma: export */
+
 #ifndef M_PI
 #  define M_PI 3.14159265358979323846 /* `pi` */
 #endif
@@ -47,3 +56,19 @@
 #ifndef M_LN10
 #  define M_LN10 2.30258509299404568402 /* `log_e 10` */
 #endif
+
+#if defined(_MSC_VER) && !defined(_MATH_DEFINES_DEFINED)
+#  define _MATH_DEFINES_DEFINED
+#endif
+
+/* -------------------------------------------------------------------- */
+/** \name Conversion Defines
+ * \{ */
+
+#define RAD2DEG(_rad) ((_rad) * (180.0 / M_PI))
+#define DEG2RAD(_deg) ((_deg) * (M_PI / 180.0))
+
+#define RAD2DEGF(_rad) ((_rad) * (float)(180.0 / M_PI))
+#define DEG2RADF(_deg) ((_deg) * (float)(M_PI / 180.0))
+
+/** \} */

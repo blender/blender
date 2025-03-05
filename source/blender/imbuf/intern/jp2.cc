@@ -435,7 +435,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     float_divs[i] = (1 << image->comps[i].prec) - 1;
   }
 
-  ibuf = IMB_allocImBuf(w, h, planes, use_float ? IB_rectfloat : IB_rect);
+  ibuf = IMB_allocImBuf(w, h, planes, use_float ? IB_float_data : IB_byte_data);
 
   if (ibuf == nullptr) {
     goto finally;
@@ -552,8 +552,8 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     }
   }
 
-  if (flags & IB_rect) {
-    IMB_rect_from_float(ibuf);
+  if (flags & IB_byte_data) {
+    IMB_byte_from_float(ibuf);
   }
 
 finally:

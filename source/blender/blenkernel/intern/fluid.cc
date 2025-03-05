@@ -3934,7 +3934,7 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
         has_config = manta_read_config(fds->fluid, fmd, data_frame);
       }
 
-      if (with_smoke) {
+      if (with_smoke || with_liquid) {
         /* Read config and realloc fluid object if needed. */
         if (has_config && manta_needs_realloc(fds->fluid, fmd)) {
           BKE_fluid_reallocate_fluid(fds, fds->res, 1);
@@ -4420,7 +4420,7 @@ void BKE_fluid_particle_system_create(Main *bmain,
 
   /* add particle system */
   part = BKE_particlesettings_add(bmain, pset_name);
-  psys = MEM_cnew<ParticleSystem>(__func__);
+  psys = MEM_callocN<ParticleSystem>(__func__);
 
   part->type = psys_type;
   part->totpart = 0;

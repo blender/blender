@@ -249,11 +249,6 @@ ccl_device_inline uint path_state_ray_visibility(ConstIntegratorState state)
     visibility &= ~(PATH_RAY_DIFFUSE | PATH_RAY_GLOSSY);
   }
 
-  /* todo: this is not supported as its own ray visibility yet. */
-  if (path_flag & PATH_RAY_VOLUME_SCATTER) {
-    visibility |= PATH_RAY_DIFFUSE;
-  }
-
   visibility = SHADOW_CATCHER_PATH_VISIBILITY(path_flag, visibility);
 
   return visibility;

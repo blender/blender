@@ -72,7 +72,7 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
 
   /* Update texture info in case memory moved to host. */
   if (oneapi_device_->load_texture_info()) {
-    if (oneapi_device_->have_error()) {
+    if (!synchronize()) {
       return false;
     }
   }

@@ -1234,7 +1234,7 @@ def keymap_from_id(context, space_type, idname):
 def _keymap_from_item(context, item):
     if item.keymap is not None:
         wm = context.window_manager
-        keyconf = wm.keyconfigs.active
+        keyconf = wm.keyconfigs.user
         return keyconf.keymaps.get(item.keymap[0])
     return None
 

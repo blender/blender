@@ -33,6 +33,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Extrude Gizmo
  * \{ */
@@ -255,7 +257,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     TransformBounds tbounds_normal;
     TransformCalcParams params{};
     params.orientation_index = V3D_ORIENT_NORMAL + 1;
-    if (!ED_transform_calc_gizmo_stats(C, &params, &tbounds_normal, rv3d)) {
+    if (!calc_gizmo_stats(C, &params, &tbounds_normal, rv3d)) {
       unit_m3(tbounds_normal.axis);
     }
     copy_m3_m3(ggd->data.normal_mat3, tbounds_normal.axis);
@@ -264,7 +266,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   /* TODO(@ideasman42): run second since this modifies the 3D view, it should not. */
   TransformCalcParams params{};
   params.orientation_index = ggd->data.orientation_index + 1;
-  if (!ED_transform_calc_gizmo_stats(C, &params, &tbounds, rv3d)) {
+  if (!calc_gizmo_stats(C, &params, &tbounds, rv3d)) {
     return;
   }
 
@@ -514,3 +516,5 @@ void VIEW3D_GGT_xform_extrude(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender::ed::transform

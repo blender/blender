@@ -104,7 +104,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
   OSL::ShadingContext *octx = kg->osl.context;
   const int shader = sd->shader & SHADER_MASK;
 
-  if (sd->object == OBJECT_NONE && sd->lamp == LAMP_NONE) {
+  if (sd->object == OBJECT_NONE) {
     /* background */
     if (kg->osl.globals->background_state) {
       ss->execute(*octx,

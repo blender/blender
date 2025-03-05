@@ -355,40 +355,41 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
     if (do_thickness && inter->co_index != 1) {
       Scene *scene = DEG_get_input_scene(depsgraph);
       View3D *v3d = static_cast<View3D *>(ruler_info->area->spacedata.first);
-      SnapObjectContext *snap_context = ED_gizmotypes_snap_3d_context_ensure(scene, snap_gizmo);
+      blender::ed::transform::SnapObjectContext *snap_context =
+          ED_gizmotypes_snap_3d_context_ensure(scene, snap_gizmo);
       const float2 mval_fl = {float(mval[0]), float(mval[1])};
       float3 ray_normal;
       float3 ray_start;
       float3 &co_other = ruler_item->co[inter->co_index == 0 ? 2 : 0];
 
-      SnapObjectParams snap_object_params{};
+      blender::ed::transform::SnapObjectParams snap_object_params{};
       snap_object_params.snap_target_select = SCE_SNAP_TARGET_ALL;
-      snap_object_params.edit_mode_type = SNAP_GEOM_CAGE;
+      snap_object_params.edit_mode_type = blender::ed::transform::SNAP_GEOM_CAGE;
 
-      eSnapMode hit = ED_transform_snap_object_project_view3d(snap_context,
-                                                              depsgraph,
-                                                              ruler_info->region,
-                                                              v3d,
-                                                              SCE_SNAP_TO_FACE,
-                                                              &snap_object_params,
-                                                              nullptr,
-                                                              mval_fl,
-                                                              nullptr,
-                                                              &dist_px,
-                                                              co,
-                                                              ray_normal);
+      eSnapMode hit = blender::ed::transform::snap_object_project_view3d(snap_context,
+                                                                         depsgraph,
+                                                                         ruler_info->region,
+                                                                         v3d,
+                                                                         SCE_SNAP_TO_FACE,
+                                                                         &snap_object_params,
+                                                                         nullptr,
+                                                                         mval_fl,
+                                                                         nullptr,
+                                                                         &dist_px,
+                                                                         co,
+                                                                         ray_normal);
       if (hit) {
         /* add some bias */
         ray_start = co - ray_normal * eps_bias;
-        ED_transform_snap_object_project_ray(snap_context,
-                                             depsgraph,
-                                             v3d,
-                                             &snap_object_params,
-                                             ray_start,
-                                             -ray_normal,
-                                             nullptr,
-                                             co_other,
-                                             nullptr);
+        blender::ed::transform::snap_object_project_ray(snap_context,
+                                                        depsgraph,
+                                                        v3d,
+                                                        &snap_object_params,
+                                                        ray_start,
+                                                        -ray_normal,
+                                                        nullptr,
+                                                        co_other,
+                                                        nullptr);
       }
     }
     else {
@@ -444,7 +445,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
         const int pivot_point = scene->toolsettings->transform_pivot_point;
         float3x3 mat;
 
-        ED_transform_calc_orientation_from_type_ex(
+        blender::ed::transform::calc_orientation_from_type_ex(
             scene, view_layer, v3d, rv3d, ob, obedit, orient_index, pivot_point, mat.ptr());
 
         ruler_item->co = blender::math::invert(mat) * ruler_item->co;

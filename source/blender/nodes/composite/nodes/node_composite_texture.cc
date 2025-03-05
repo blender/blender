@@ -58,8 +58,8 @@ class TextureOperation : public NodeOperation {
         texture,
         true,
         domain.size,
-        get_input("Offset").get_single_value_default(float4(0.0f)).xyz(),
-        get_input("Scale").get_single_value_default(float4(1.0f)).xyz());
+        get_input("Offset").get_single_value_default(float3(0.0f)),
+        get_input("Scale").get_single_value_default(float3(1.0f)));
 
     Result &color_result = get_result("Color");
     if (color_result.should_compute()) {
@@ -120,5 +120,5 @@ void register_node_type_cmp_texture()
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

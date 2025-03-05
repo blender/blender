@@ -40,10 +40,10 @@ static void node_register()
       "Geometry node when the inputs are large";
   ntype.enum_name_legacy = "GEOMETRY_TO_INSTANCE";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  blender::bke::node_type_size(&ntype, 160, 100, 300);
+  blender::bke::node_type_size(ntype, 160, 100, 300);
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

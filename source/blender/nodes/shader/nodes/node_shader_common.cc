@@ -85,7 +85,7 @@ void register_node_type_sh_group()
    * to the shared #NODE_GROUP integer type id. */
 
   blender::bke::node_type_base_custom(
-      &ntype, "ShaderNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
+      ntype, "ShaderNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.enum_name_legacy = "GROUP";
   ntype.type_legacy = NODE_GROUP;
   ntype.poll = sh_node_poll_default;
@@ -97,12 +97,12 @@ void register_node_type_sh_group()
   BLI_assert(ntype.rna_ext.srna != nullptr);
   RNA_struct_blender_type_set(ntype.rna_ext.srna, &ntype);
 
-  blender::bke::node_type_size(&ntype, 140, 60, 400);
+  blender::bke::node_type_size(ntype, 140, 60, 400);
   ntype.labelfunc = node_group_label;
   ntype.declare = blender::nodes::node_group_declare;
   ntype.gpu_fn = gpu_group_execute;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 
 void register_node_type_sh_custom_group(blender::bke::bNodeType *ntype)

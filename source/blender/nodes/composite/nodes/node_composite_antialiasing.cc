@@ -30,7 +30,7 @@ static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_antialiasing(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeAntiAliasingData *data = MEM_cnew<NodeAntiAliasingData>(__func__);
+  NodeAntiAliasingData *data = MEM_callocN<NodeAntiAliasingData>(__func__);
 
   data->threshold = CMP_DEFAULT_SMAA_THRESHOLD;
   data->contrast_limit = CMP_DEFAULT_SMAA_CONTRAST_LIMIT;
@@ -109,11 +109,11 @@ void register_node_type_cmp_antialiasing()
   ntype.declare = file_ns::cmp_node_antialiasing_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_antialiasing;
   ntype.flag |= NODE_PREVIEW;
-  blender::bke::node_type_size(&ntype, 170, 140, 200);
+  blender::bke::node_type_size(ntype, 170, 140, 200);
   ntype.initfunc = file_ns::node_composit_init_antialiasing;
   blender::bke::node_type_storage(
-      &ntype, "NodeAntiAliasingData", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeAntiAliasingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -306,7 +306,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
 
     if (bpp == 1) {
 
-      ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize_read, IB_rect);
+      ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize_read, IB_byte_data);
       if (!ibuf) {
         goto fail_rle;
       }
@@ -354,7 +354,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
     }
     else { /* bpp == 2 */
 
-      ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect) | IB_rectfloat);
+      ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_byte_data) | IB_float_data);
       if (!ibuf) {
         goto fail_rle;
       }
@@ -414,7 +414,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
 
     if (bpp == 1) {
 
-      ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize_read, IB_rect);
+      ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize_read, IB_byte_data);
       if (!ibuf) {
         goto fail_uncompressed;
       }
@@ -446,7 +446,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
     }
     else { /* bpp == 2 */
 
-      ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect) | IB_rectfloat);
+      ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_byte_data) | IB_float_data);
       if (!ibuf) {
         goto fail_uncompressed;
       }
@@ -534,8 +534,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
       }
     }
 
-    if (flags & IB_rect) {
-      IMB_rect_from_float(ibuf);
+    if (flags & IB_byte_data) {
+      IMB_byte_from_float(ibuf);
     }
   }
 

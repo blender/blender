@@ -132,7 +132,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
     /* Lazily allocate light linking on the evaluated object for the cases when the object is only
      * a receiver or a blocker and does not need its own LightLinking on the original object. */
     if (!object->light_linking) {
-      object->light_linking = MEM_cnew<LightLinking>(__func__);
+      object->light_linking = MEM_callocN<LightLinking>(__func__);
     }
     object->light_linking->runtime = *light_linking_runtime;
   }

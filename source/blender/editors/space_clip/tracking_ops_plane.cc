@@ -146,7 +146,7 @@ static SlidePlaneMarkerData *slide_plane_marker_customdata(bContext *C, const wm
   if (plane_track) {
     MovieTrackingPlaneMarker *plane_marker;
 
-    customdata = MEM_cnew<SlidePlaneMarkerData>("slide plane marker data");
+    customdata = MEM_callocN<SlidePlaneMarkerData>("slide plane marker data");
 
     customdata->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 

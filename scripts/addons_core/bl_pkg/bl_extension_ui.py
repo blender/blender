@@ -300,6 +300,11 @@ def addon_draw_item_expanded(
         row.label(text=mod.__file__, translate=False)
 
         # Add a button to quickly open the add-on's folder for accessing its files and assets.
+        #
+        # Only show this with a developer UI since extensions should be
+        # usable without direct file-system access / manipulation.
+        # If non-technical users need this for some task then we could consider alternative solutions,
+        # see: #128474 discussion for details.
         if show_developer_ui:
             import os
             row.operator("wm.path_open", text="", icon='FILE_FOLDER').filepath = os.path.dirname(mod.__file__)
@@ -1215,14 +1220,18 @@ def extensions_panel_draw_online_extensions_request_impl(
     row = box.row(align=True)
     row.alignment = 'LEFT'
     row.label(text="While offline, use \"Install from Disk\" instead.")
-    # TODO: the URL must be updated before release,
-    # this could be constructed using a function to account for Blender version & locale.
     row.operator(
         "wm.url_open",
         text="",
         icon='URL',
         emboss=False,
-    ).url = "https://docs.blender.org/manual/en/dev/editors/preferences/extensions.html#install"
+    ).url = (
+        "https://docs.blender.org/manual/"
+        "{:s}/{:d}.{:d}/editors/preferences/extensions.html#installing-extensions"
+    ).format(
+        bpy.utils.manual_language_code(),
+        *bpy.app.version[:2],
+    )
 
     row = box.row()
     props = row.operator("wm.context_set_boolean", text="Continue Offline", icon='X')

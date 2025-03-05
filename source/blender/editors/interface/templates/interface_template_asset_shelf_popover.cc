@@ -54,7 +54,7 @@ void template_asset_shelf_popover(uiLayout &layout,
   ed::asset::shelf::ensure_asset_library_fetched(C, *shelf_type);
 
   uiItemPopoverPanel(row, &C, "ASSETSHELF_PT_popover_panel", name, icon);
-  uiBut *but = static_cast<uiBut *>(block->buttons.last);
+  uiBut *but = block->buttons.last().get();
   if (use_preview_icon) {
     ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
     /* Avoid small annoyance where asset shelf popover gets spawned unintentionally on mouse hover,

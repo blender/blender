@@ -288,11 +288,6 @@ int main(int argc,
   bArgs *ba;
 #endif
 
-#ifdef USE_WIN32_UNICODE_ARGS
-  char **argv;
-  int argv_num;
-#endif
-
   /* Ensure we free data on early-exit. */
   CreatorAtExitData app_init_data = {nullptr};
   BKE_blender_atexit_register(callback_main_atexit, &app_init_data);
@@ -325,16 +320,16 @@ int main(int argc,
     /* NOTE: Can't use `guardedalloc` allocation here, as it's not yet initialized
      * (it depends on the arguments passed in, which is what we're getting here!). */
     wchar_t **argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
-    argv = static_cast<char **>(malloc(argc * sizeof(char *)));
-    for (argv_num = 0; argv_num < argc; argv_num++) {
-      argv[argv_num] = alloc_utf_8_from_16(argv_16[argv_num], 0);
+    app_init_data.argv = static_cast<char **>(malloc(argc * sizeof(char *)));
+    for (int i = 0; i < argc; i++) {
+      app_init_data.argv[i] = alloc_utf_8_from_16(argv_16[i], 0);
     }
     LocalFree(argv_16);
 
     /* Free on early-exit. */
-    app_init_data.argv = argv;
-    app_init_data.argv_num = argv_num;
+    app_init_data.argv_num = argc;
   }
+  const char **argv = const_cast<const char **>(app_init_data.argv);
 #  endif /* USE_WIN32_UNICODE_ARGS */
 #endif   /* WIN32 */
 
@@ -454,7 +449,7 @@ int main(int argc,
 
 /* First test for background-mode (#Global.background). */
 #ifndef WITH_PYTHON_MODULE
-  ba = BLI_args_create(argc, (const char **)argv); /* Skip binary path. */
+  ba = BLI_args_create(argc, argv); /* Skip binary path. */
 
   /* Ensure we free on early exit. */
   app_init_data.ba = ba;
@@ -535,7 +530,7 @@ int main(int argc,
   BLI_args_parse(ba, ARG_PASS_SETTINGS_FORCE, nullptr, nullptr);
 #endif
 
-  WM_init(C, argc, (const char **)argv);
+  WM_init(C, argc, argv);
 
 #ifndef WITH_PYTHON
   printf(

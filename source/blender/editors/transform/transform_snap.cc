@@ -6,9 +6,13 @@
  * \ingroup edtransform
  */
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_time.h"
+
+#include "DNA_userdef_types.h"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
@@ -40,7 +44,7 @@
 #include "transform_mode.hh"
 #include "transform_snap.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 /* Use half of flt-max so we can scale up without an exception. */
 
@@ -394,18 +398,19 @@ static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td
   snap_object_params.occlusion_test = SNAP_OCCLUSION_ALWAYS;
   snap_object_params.use_backface_culling = (t->tsnap.flag & SCE_SNAP_BACKFACE_CULLING) != 0;
 
-  eSnapMode hit = ED_transform_snap_object_project_view3d(t->tsnap.object_context,
-                                                          t->depsgraph,
-                                                          t->region,
-                                                          static_cast<const View3D *>(t->view),
-                                                          SCE_SNAP_TO_FACE,
-                                                          &snap_object_params,
-                                                          nullptr,
-                                                          mval_fl,
-                                                          nullptr,
-                                                          nullptr,
-                                                          loc,
-                                                          no);
+  eSnapMode hit = blender::ed::transform::snap_object_project_view3d(
+      t->tsnap.object_context,
+      t->depsgraph,
+      t->region,
+      static_cast<const View3D *>(t->view),
+      SCE_SNAP_TO_FACE,
+      &snap_object_params,
+      nullptr,
+      mval_fl,
+      nullptr,
+      nullptr,
+      loc,
+      no);
   if (hit != SCE_SNAP_TO_FACE) {
     return false;
   }
@@ -460,18 +465,19 @@ static void applyFaceNearest(TransInfo *t, TransDataContainer *tc, TransData *td
   snap_object_params.face_nearest_steps = t->tsnap.face_nearest_steps;
   snap_object_params.keep_on_same_target = t->tsnap.flag & SCE_SNAP_KEEP_ON_SAME_OBJECT;
 
-  eSnapMode hit = ED_transform_snap_object_project_view3d(t->tsnap.object_context,
-                                                          t->depsgraph,
-                                                          t->region,
-                                                          static_cast<const View3D *>(t->view),
-                                                          SCE_SNAP_INDIVIDUAL_NEAREST,
-                                                          &snap_object_params,
-                                                          init_loc,
-                                                          nullptr,
-                                                          prev_loc,
-                                                          nullptr,
-                                                          snap_loc,
-                                                          snap_no);
+  eSnapMode hit = blender::ed::transform::snap_object_project_view3d(
+      t->tsnap.object_context,
+      t->depsgraph,
+      t->region,
+      static_cast<const View3D *>(t->view),
+      SCE_SNAP_INDIVIDUAL_NEAREST,
+      &snap_object_params,
+      init_loc,
+      nullptr,
+      prev_loc,
+      nullptr,
+      snap_loc,
+      snap_no);
 
   if (hit != SCE_SNAP_INDIVIDUAL_NEAREST) {
     return;
@@ -766,7 +772,7 @@ static void snap_object_context_init(TransInfo *t)
 {
   if (t->data_type == &TransConvertType_Mesh) {
     /* Ignore elements being transformed. */
-    ED_transform_snap_object_context_set_editmesh_callbacks(
+    blender::ed::transform::snap_object_context_set_editmesh_callbacks(
         t->tsnap.object_context,
         (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
         bm_edge_is_snap_target,
@@ -775,7 +781,7 @@ static void snap_object_context_init(TransInfo *t)
   }
   else {
     /* Ignore hidden geometry in the general case. */
-    ED_transform_snap_object_context_set_editmesh_callbacks(
+    blender::ed::transform::snap_object_context_set_editmesh_callbacks(
         t->tsnap.object_context,
         (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
         (bool (*)(BMEdge *, void *))BM_elem_cb_check_hflag_disabled,
@@ -809,13 +815,13 @@ static void initSnappingMode(TransInfo *t)
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->tsnap.object_context == nullptr) {
       SET_FLAG_FROM_TEST(t->tsnap.flag, snap_use_backface_culling(t), SCE_SNAP_BACKFACE_CULLING);
-      t->tsnap.object_context = ED_transform_snap_object_context_create(t->scene, 0);
+      t->tsnap.object_context = snap_object_context_create(t->scene, 0);
       snap_object_context_init(t);
     }
   }
   else if (t->spacetype == SPACE_SEQ) {
     if (t->tsnap.seq_context == nullptr) {
-      t->tsnap.seq_context = transform_snap_sequencer_data_alloc(t);
+      t->tsnap.seq_context = snap_sequencer_data_alloc(t);
     }
   }
 }
@@ -854,7 +860,7 @@ void transform_snap_grid_init(const TransInfo *t, float r_snap[3], float *r_snap
     *r_snap_precision = 0.5f;
   }
   else if (t->spacetype == SPACE_NODE) {
-    r_snap[0] = r_snap[1] = blender::ed::space_node::grid_size_get();
+    r_snap[0] = r_snap[1] = space_node::grid_size_get();
   }
 }
 
@@ -982,11 +988,11 @@ void initSnapping(TransInfo *t, wmOperator *op)
 void freeSnapping(TransInfo *t)
 {
   if ((t->spacetype == SPACE_SEQ) && t->tsnap.seq_context) {
-    transform_snap_sequencer_data_free(t->tsnap.seq_context);
+    snap_sequencer_data_free(t->tsnap.seq_context);
     t->tsnap.seq_context = nullptr;
   }
   else if (t->tsnap.object_context) {
-    ED_transform_snap_object_context_destroy(t->tsnap.object_context);
+    blender::ed::transform::snap_object_context_destroy(t->tsnap.object_context);
     t->tsnap.object_context = nullptr;
 
     ED_transform_snap_object_time_average_print();
@@ -1072,7 +1078,7 @@ void addSnapPoint(TransInfo *t)
 {
   /* Currently only 3D viewport works for snapping points. */
   if (t->tsnap.status & SNAP_TARGET_FOUND && t->spacetype == SPACE_VIEW3D) {
-    TransSnapPoint *p = MEM_cnew<TransSnapPoint>("SnapPoint");
+    TransSnapPoint *p = MEM_callocN<TransSnapPoint>("SnapPoint");
 
     t->tsnap.selectedPoint = p;
 
@@ -1298,7 +1304,7 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
 static void snap_target_sequencer_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_SEQ);
-  if (transform_snap_sequencer_calc(t)) {
+  if (snap_sequencer_calc(t)) {
     t->tsnap.status |= (SNAP_TARGET_FOUND | SNAP_SOURCE_FOUND);
   }
   else {
@@ -1423,7 +1429,7 @@ static void snap_source_closest_fn(TransInfo *t)
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         TransData *td;
         for (td = tc->data, i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
-          std::optional<blender::Bounds<blender::float3>> bounds;
+          std::optional<Bounds<float3>> bounds;
 
           if ((t->options & CTX_OBMODE_XFORM_OBDATA) == 0) {
             Object *ob = static_cast<Object *>(td->extra);
@@ -1533,18 +1539,18 @@ static eSnapMode snapObjectsTransform(
     add_v3_v3(grid_co, t->center_global);
   }
 
-  return ED_transform_snap_object_project_view3d(t->tsnap.object_context,
-                                                 t->depsgraph,
-                                                 t->region,
-                                                 static_cast<const View3D *>(t->view),
-                                                 t->tsnap.mode,
-                                                 &snap_object_params,
-                                                 grid_co,
-                                                 mval,
-                                                 prev_co,
-                                                 dist_px,
-                                                 r_loc,
-                                                 r_no);
+  return blender::ed::transform::snap_object_project_view3d(t->tsnap.object_context,
+                                                            t->depsgraph,
+                                                            t->region,
+                                                            static_cast<const View3D *>(t->view),
+                                                            t->tsnap.mode,
+                                                            &snap_object_params,
+                                                            grid_co,
+                                                            mval,
+                                                            prev_co,
+                                                            dist_px,
+                                                            r_loc,
+                                                            r_no);
 }
 
 /** \} */
@@ -1566,15 +1572,15 @@ bool peelObjectsTransform(TransInfo *t,
   snap_object_params.edit_mode_type = (t->flag & T_EDIT) != 0 ? SNAP_GEOM_EDIT : SNAP_GEOM_FINAL;
 
   ListBase depths_peel = {nullptr};
-  ED_transform_snap_object_project_all_view3d_ex(t->tsnap.object_context,
-                                                 t->depsgraph,
-                                                 t->region,
-                                                 static_cast<const View3D *>(t->view),
-                                                 &snap_object_params,
-                                                 mval,
-                                                 -1.0f,
-                                                 false,
-                                                 &depths_peel);
+  blender::ed::transform::object_project_all_view3d_ex(t->tsnap.object_context,
+                                                       t->depsgraph,
+                                                       t->region,
+                                                       static_cast<const View3D *>(t->view),
+                                                       &snap_object_params,
+                                                       mval,
+                                                       -1.0f,
+                                                       false,
+                                                       &depths_peel);
 
   if (!BLI_listbase_is_empty(&depths_peel)) {
     /* At the moment we only use the hits of the first object. */
@@ -1752,3 +1758,5 @@ float transform_snap_distance_len_squared_fn(TransInfo * /*t*/,
 }
 
 /** \} */
+
+}  // namespace blender::ed::transform

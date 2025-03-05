@@ -8,10 +8,6 @@
  * \ingroup bli
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Time Constants Definitions
  * \{ */
@@ -55,7 +51,3 @@ void BLI_math_time_seconds_decompose(double seconds,
 /* None. */
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

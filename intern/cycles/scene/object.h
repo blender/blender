@@ -77,6 +77,10 @@ class Object : public Node {
   /* Set during device update. */
   bool intersects_volume;
 
+  /* Specifies the position of the object in scene->objects and
+   * in the device vectors. Gets set in device_update. */
+  int index;
+
   Object();
   ~Object() override;
 
@@ -120,10 +124,6 @@ class Object : public Node {
   bool has_shadow_linking() const;
 
  protected:
-  /* Specifies the position of the object in scene->objects and
-   * in the device vectors. Gets set in device_update. */
-  int index;
-
   /* Reference to the attribute map with object attributes,
    * or 0 if none. Set in update_svm_attributes. */
   size_t attr_map_offset;

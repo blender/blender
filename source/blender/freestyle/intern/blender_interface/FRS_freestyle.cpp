@@ -35,6 +35,7 @@ using namespace Freestyle;
 
 #include "BLT_translation.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -48,8 +49,6 @@ using namespace Freestyle;
 #include "pipeline.hh"
 
 #include "FRS_freestyle.h"
-
-extern "C" {
 
 FreestyleGlobals g_freestyle;
 
@@ -759,5 +758,3 @@ Material *FRS_create_stroke_material(Main *bmain, FreestyleLineStyle *linestyle)
   ma->id.us = 0;
   return ma;
 }
-
-}  // extern "C"

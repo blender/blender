@@ -17,13 +17,13 @@
 
 #include "BKE_screen.hh"
 
-struct Mesh;
 struct ReportList;
 struct PointerRNA;
 struct PropertyRNA;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
-}
+class MutableAttributeAccessor;
+}  // namespace blender::bke
 namespace blender::nodes::geo_eval_log {
 class GeoModifierLog;
 }
@@ -48,9 +48,7 @@ bool attribute_set_poll(bContext &C, const ID &object_data);
 
 /** \} */
 
-}  // namespace blender::ed::geometry
-
-void ED_operatortypes_geometry();
+void operatortypes_geometry();
 
 /**
  * Convert an attribute with the given name to a new type and domain.
@@ -58,13 +56,11 @@ void ED_operatortypes_geometry();
  *
  * \note Does not support meshes in edit mode.
  */
-bool ED_geometry_attribute_convert(Mesh *mesh,
-                                   const char *name,
-                                   eCustomDataType dst_type,
-                                   blender::bke::AttrDomain dst_domain,
-                                   ReportList *reports);
-
-namespace blender::ed::geometry {
+bool convert_attribute(bke::MutableAttributeAccessor attributes,
+                       StringRef name,
+                       bke::AttrDomain dst_domain,
+                       eCustomDataType dst_type,
+                       ReportList *reports);
 
 struct GeoOperatorLog {
   std::string node_group_name;

@@ -352,11 +352,11 @@ static void uilist_free_dyn_data(uiList *ui_list)
 
   if (dyn_data->custom_activate_opptr) {
     WM_operator_properties_free(dyn_data->custom_activate_opptr);
-    MEM_freeN(dyn_data->custom_activate_opptr);
+    MEM_delete(dyn_data->custom_activate_opptr);
   }
   if (dyn_data->custom_drag_opptr) {
     WM_operator_properties_free(dyn_data->custom_drag_opptr);
-    MEM_freeN(dyn_data->custom_drag_opptr);
+    MEM_delete(dyn_data->custom_drag_opptr);
   }
 
   MEM_SAFE_FREE(dyn_data->items_filter_flags);
@@ -639,11 +639,11 @@ static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *pr
   return nullptr;
 }
 
-static std::string uilist_item_tooltip_func(bContext * /*C*/, void *argN, const char *tip)
+static std::string uilist_item_tooltip_func(bContext * /*C*/, void *argN, const StringRef tip)
 {
   char *dyn_tooltip = static_cast<char *>(argN);
   std::string tooltip_string = dyn_tooltip;
-  if (tip && tip[0]) {
+  if (!tip.is_empty()) {
     tooltip_string += '\n';
     tooltip_string += tip;
   }
@@ -941,7 +941,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                                0,
                                0,
                                org_i,
-                               nullptr);
+                               std::nullopt);
           UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
 
           sub = uiLayoutRow(overlap, false);
@@ -1041,7 +1041,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                                0,
                                0,
                                org_i,
-                               nullptr);
+                               std::nullopt);
           UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
 
           col = uiLayoutColumn(overlap, false);

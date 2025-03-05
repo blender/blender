@@ -67,16 +67,8 @@ ccl_device void shadow_linking_setup_ray_from_intersection(
   ray->self.object = INTEGRATOR_STATE(state, shadow_link, last_isect_object);
   ray->self.prim = INTEGRATOR_STATE(state, shadow_link, last_isect_prim);
 
-  if (isect->type == PRIMITIVE_LAMP) {
-    ray->self.light_object = OBJECT_NONE;
-    ray->self.light_prim = PRIM_NONE;
-    ray->self.light = isect->prim;
-  }
-  else {
-    ray->self.light_object = isect->object;
-    ray->self.light_prim = isect->prim;
-    ray->self.light = LAMP_NONE;
-  }
+  ray->self.light_object = isect->object;
+  ray->self.light_prim = isect->prim;
 }
 
 ccl_device bool shadow_linking_shade_light(KernelGlobals kg,

@@ -50,7 +50,7 @@ static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderScript *nss = MEM_cnew<NodeShaderScript>("shader script node");
+  NodeShaderScript *nss = MEM_callocN<NodeShaderScript>("shader script node");
   node->storage = nss;
 }
 
@@ -98,7 +98,7 @@ void register_node_type_sh_script()
   ntype.draw_buttons_ex = file_ns::node_shader_buts_script_ex;
   ntype.initfunc = file_ns::init;
   blender::bke::node_type_storage(
-      &ntype, "NodeShaderScript", file_ns::node_free_script, file_ns::node_copy_script);
+      ntype, "NodeShaderScript", file_ns::node_free_script, file_ns::node_copy_script);
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

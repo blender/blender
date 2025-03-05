@@ -325,10 +325,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   int *vert_part_index = nullptr;
   float *vert_part_value = nullptr;
   if (mloopcols_index != nullptr) {
-    vert_part_index = MEM_cnew_array<int>(maxvert, "vertex part index array");
+    vert_part_index = MEM_calloc_arrayN<int>(maxvert, "vertex part index array");
   }
   if (mloopcols_value) {
-    vert_part_value = MEM_cnew_array<float>(maxvert, "vertex part value array");
+    vert_part_value = MEM_calloc_arrayN<float>(maxvert, "vertex part value array");
   }
 
   for (p = part_start, p_skip = 0; p < part_end; p++) {

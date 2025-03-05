@@ -2,8 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_clipping_lib.glsl"
+#include "infos/overlay_facing_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_facing_base)
+VERTEX_SHADER_CREATE_INFO(draw_modelmat)
+
 #include "draw_model_lib.glsl"
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 
 void main()

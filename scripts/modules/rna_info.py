@@ -395,6 +395,8 @@ class InfoPropertyRNA:
         type_str = ""
         if self.fixed_type is None:
             type_str += self.type
+            if self.type == "string" and self.subtype == "BYTE_STRING":
+                type_str = "byte string"
             if self.array_length:
                 if self.array_dimensions[1] != 0:
                     dimension_str = " of {:s} items".format(
@@ -468,7 +470,7 @@ class InfoPropertyRNA:
             if not self.is_required:
                 type_info.append("optional")
             if self.is_argument_optional:
-                type_info.append("optional argument")
+                type_info.append("optional for registration")
         else:  # readonly is only useful for self's, not args
             if self.is_readonly:
                 type_info.append("readonly")

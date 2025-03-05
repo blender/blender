@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "BKE_idprop.hh"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 /* allow readfile to use deprecated functionality */
@@ -253,7 +254,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
     if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
       /* previous CMP_NODE_OUTPUT_FILE nodes get converted to multi-file outputs */
       NodeImageFile *old_data = static_cast<NodeImageFile *>(node->storage);
-      NodeImageMultiFile *nimf = MEM_cnew<NodeImageMultiFile>("node image multi file");
+      NodeImageMultiFile *nimf = MEM_callocN<NodeImageMultiFile>("node image multi file");
       bNodeSocket *old_image = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 0));
       bNodeSocket *old_z = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
 
@@ -318,8 +319,8 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
         }
       }
 
-      blender::bke::node_remove_socket(ntree, node, old_image);
-      blender::bke::node_remove_socket(ntree, node, old_z);
+      blender::bke::node_remove_socket(*ntree, *node, *old_image);
+      blender::bke::node_remove_socket(*ntree, *node, *old_z);
       if (old_data) {
         MEM_freeN(old_data);
       }
@@ -399,7 +400,7 @@ static void do_versions_nodetree_image_layer_2_64_5(bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type_legacy == CMP_NODE_IMAGE) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        NodeImageLayer *output = MEM_cnew<NodeImageLayer>("node image layer");
+        NodeImageLayer *output = MEM_callocN<NodeImageLayer>("node image layer");
 
         /* Take pass index both from current storage pointer (actually an int). */
         output->pass_index = POINTER_AS_INT(sock->storage);
@@ -417,7 +418,7 @@ static void do_versions_nodetree_frame_2_64_6(bNodeTree *ntree)
     if (node->type_legacy == NODE_FRAME) {
       /* initialize frame node storage data */
       if (node->storage == nullptr) {
-        NodeFrame *data = MEM_cnew<NodeFrame>("frame node storage");
+        NodeFrame *data = MEM_callocN<NodeFrame>("frame node storage");
         node->storage = data;
 
         /* copy current flags */
@@ -1051,7 +1052,7 @@ static bNodeSocket *version_make_socket_stub(const char *idname,
                                              const void *default_value,
                                              const IDProperty *prop)
 {
-  bNodeSocket *socket = MEM_cnew<bNodeSocket>(__func__);
+  bNodeSocket *socket = MEM_callocN<bNodeSocket>(__func__);
   socket->runtime = MEM_new<blender::bke::bNodeSocketRuntime>(__func__);
   STRNCPY(socket->idname, idname);
   socket->type = int(type);
@@ -1080,7 +1081,7 @@ static bNode *version_add_group_in_out_node(bNodeTree *ntree, const int type)
   ListBase *node_socket_list = nullptr;
   eNodeSocketInOut socket_in_out = SOCK_IN;
 
-  bNode *node = MEM_cnew<bNode>("new node");
+  bNode *node = MEM_callocN<bNode>("new node");
   switch (type) {
     case NODE_GROUP_INPUT:
       STRNCPY(node->idname, "NodeGroupInput");
@@ -1103,7 +1104,7 @@ static bNode *version_add_group_in_out_node(bNodeTree *ntree, const int type)
 
   node->runtime = MEM_new<blender::bke::bNodeRuntime>(__func__);
   BLI_addtail(&ntree->nodes, node);
-  blender::bke::node_unique_id(ntree, node);
+  blender::bke::node_unique_id(*ntree, *node);
 
   /* Manual initialization of the node,
    * node->typeinfo is only set after versioning. */
@@ -1788,7 +1789,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type_legacy == CMP_NODE_DILATEERODE) {
             if (node->storage == nullptr) {
-              NodeDilateErode *data = MEM_cnew<NodeDilateErode>(__func__);
+              NodeDilateErode *data = MEM_callocN<NodeDilateErode>(__func__);
               data->falloff = PROP_SMOOTH;
               node->storage = data;
             }
@@ -1831,7 +1832,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type_legacy == CMP_NODE_MASK) {
             if (node->storage == nullptr) {
-              NodeMask *data = MEM_cnew<NodeMask>(__func__);
+              NodeMask *data = MEM_callocN<NodeMask>(__func__);
               /* move settings into own struct */
               data->size_x = int(node->custom3);
               data->size_y = int(node->custom4);
@@ -1900,7 +1901,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
     {
       LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
         CustomData_update_typemap(&me->vert_data);
-        CustomData_free_layers(&me->vert_data, CD_MSTICKY, me->verts_num);
+        CustomData_free_layers(&me->vert_data, CD_MSTICKY);
       }
     }
   }
@@ -2195,7 +2196,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type_legacy == CMP_NODE_TRANSLATE && node->storage == nullptr) {
-            node->storage = MEM_cnew<NodeTranslateData>("node translate data");
+            node->storage = MEM_callocN<NodeTranslateData>("node translate data");
           }
         }
       }
@@ -2255,7 +2256,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         }
 
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          blender::bke::node_unique_name(ntree, node);
+          blender::bke::node_unique_name(*ntree, *node);
         }
       }
       FOREACH_NODETREE_END;
@@ -2344,7 +2345,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         }
 
         if (free_link) {
-          blender::bke::node_remove_link(ntree, link);
+          blender::bke::node_remove_link(ntree, *link);
         }
       }
 
@@ -2373,7 +2374,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
       {
         next_link = link->next;
         if (link->fromnode == nullptr || link->tonode == nullptr) {
-          blender::bke::node_remove_link(ntree, link);
+          blender::bke::node_remove_link(ntree, *link);
         }
       }
     }

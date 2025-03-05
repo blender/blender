@@ -4,8 +4,13 @@
 
 #pragma once
 
-#include "common_view_clipping_lib.glsl"
+#include "infos/overlay_edit_mode_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(overlay_edit_mesh_common)
+SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
+
 #include "draw_model_lib.glsl"
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -53,7 +58,7 @@ VertOut vertex_main(VertIn vert_in)
 
   /* Offset Z position for retopology overlay. */
   vert_out.gpu_position.z += get_homogenous_z_offset(
-      drw_view.winmat, view_pos.z, vert_out.gpu_position.w, retopologyOffset);
+      drw_view().winmat, view_pos.z, vert_out.gpu_position.w, retopologyOffset);
 
   uvec4 m_data = vert_in.e_data & uvec4(dataMask);
 
@@ -105,7 +110,7 @@ VertOut vertex_main(VertIn vert_in)
   vert_out.final_color = EDIT_MESH_facedot_color(norAndFlag.w);
 
   /* Bias Face-dot Z position in clip-space. */
-  vert_out.gpu_position.z -= (drw_view.winmat[3][3] == 0.0) ? 0.00035 : 1e-6;
+  vert_out.gpu_position.z -= (drw_view().winmat[3][3] == 0.0) ? 0.00035 : 1e-6;
 
   bool occluded = test_occlusion(vert_out.gpu_position);
 
@@ -117,7 +122,7 @@ VertOut vertex_main(VertIn vert_in)
 #if !defined(FACE)
   /* Facing based color blend */
   vec3 view_normal = normalize(drw_normal_object_to_view(vert_in.lN) + 1e-4);
-  vec3 view_vec = (drw_view.winmat[3][3] == 0.0) ? normalize(view_pos) : vec3(0.0, 0.0, 1.0);
+  vec3 view_vec = (drw_view().winmat[3][3] == 0.0) ? normalize(view_pos) : vec3(0.0, 0.0, 1.0);
   float facing = dot(view_vec, view_normal);
   facing = 1.0 - abs(facing) * 0.2;
 

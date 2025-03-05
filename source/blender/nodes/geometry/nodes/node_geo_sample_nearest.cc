@@ -91,7 +91,7 @@ static void get_closest_pointcloud_points(const bke::BVHTreeFromPointCloud &tree
     nearest.index = -1;
     nearest.dist_sq = FLT_MAX;
     const float3 position = positions[i];
-    BLI_bvhtree_find_nearest(tree_data.tree.get(),
+    BLI_bvhtree_find_nearest(tree_data.tree,
                              position,
                              &nearest,
                              tree_data.nearest_callback,
@@ -342,7 +342,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

@@ -384,9 +384,9 @@ bke::GeometryComponentPtr reordered_component(const bke::GeometryComponent &src_
   if (const bke::PointCloudComponent *src_points_component =
           dynamic_cast<const bke::PointCloudComponent *>(&src_component))
   {
-    PointCloud *result_point_cloud = reorder_points(
+    PointCloud *result_pointcloud = reorder_points(
         *src_points_component->get(), old_by_new_map, attribute_filter);
-    return bke::GeometryComponentPtr(new bke::PointCloudComponent(result_point_cloud));
+    return bke::GeometryComponentPtr(new bke::PointCloudComponent(result_pointcloud));
   }
   if (const bke::CurveComponent *src_curves_component = dynamic_cast<const bke::CurveComponent *>(
           &src_component))

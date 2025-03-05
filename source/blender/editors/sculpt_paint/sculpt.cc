@@ -19,6 +19,7 @@
 #include "BLI_atomic_disjoint_set.hh"
 #include "BLI_dial_2d.h"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_axis_angle.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -49,6 +50,7 @@
 #include "BKE_image.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
@@ -1107,7 +1109,7 @@ void restore_position_from_undo_step(const Depsgraph &depsgraph, Object &object)
     }
     case bke::pbvh::Type::BMesh: {
       MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      if (!undo::get_bmesh_log_entry()) {
+      if (!undo::has_bmesh_log_entry()) {
         return;
       }
       const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
@@ -1179,9 +1181,6 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
       bke::pbvh::update_normals(depsgraph, object, *bke::object::pbvh_get(object));
       break;
   }
-  /* Disable multi-threading when dynamic-topology is enabled. Otherwise,
-   * new entries might be inserted by #undo::push_node() into the #GHash
-   * used internally by #BM_log_original_vert_co() by a different thread. See #33787. */
 }
 
 }  // namespace undo
@@ -1628,7 +1627,7 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
 
   bool use_original = false;
   if (ss.cache && !ss.cache->accum) {
-    use_original = undo::get_bmesh_log_entry() != nullptr;
+    use_original = undo::has_bmesh_log_entry();
   }
 
   /* When the mesh is edited we can't rely on original coords
@@ -2957,9 +2956,14 @@ void calc_brush_plane(const Depsgraph &depsgraph,
   zero_v3(r_area_co);
   zero_v3(r_area_no);
 
+  const bool use_original_plane = (brush.flag & BRUSH_ORIGINAL_PLANE) &&
+                                  brush.sculpt_brush_type != SCULPT_BRUSH_TYPE_PLANE;
+  const bool use_original_normal = (brush.flag & BRUSH_ORIGINAL_NORMAL) &&
+                                   brush.sculpt_brush_type != SCULPT_BRUSH_TYPE_PLANE;
+
   if (SCULPT_stroke_is_main_symmetry_pass(*ss.cache) &&
-      (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) ||
-       !(brush.flag & BRUSH_ORIGINAL_PLANE) || !(brush.flag & BRUSH_ORIGINAL_NORMAL)))
+      (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) || !use_original_plane ||
+       !use_original_normal))
   {
     switch (brush.sculpt_plane) {
       case SCULPT_DISP_DIR_VIEW:
@@ -2994,9 +2998,7 @@ void calc_brush_plane(const Depsgraph &depsgraph,
     }
 
     /* For area normal. */
-    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) &&
-        (brush.flag & BRUSH_ORIGINAL_NORMAL))
-    {
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) && use_original_normal) {
       copy_v3_v3(r_area_no, ss.cache->sculpt_normal);
     }
     else {
@@ -3004,9 +3006,7 @@ void calc_brush_plane(const Depsgraph &depsgraph,
     }
 
     /* For flatten center. */
-    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) &&
-        (brush.flag & BRUSH_ORIGINAL_PLANE))
-    {
+    if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) && use_original_plane) {
       copy_v3_v3(r_area_co, ss.cache->last_center);
     }
     else {
@@ -3902,7 +3902,9 @@ namespace blender::ed::sculpt_paint {
 
 StrokeCache::~StrokeCache()
 {
-  MEM_SAFE_FREE(this->dial);
+  if (this->dial) {
+    BLI_dial_free(this->dial);
+  }
 }
 
 }  // namespace blender::ed::sculpt_paint
@@ -5167,30 +5169,70 @@ static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
 
 namespace blender::ed::sculpt_paint {
 
-void flush_update_step(bContext *C, UpdateType update_type)
+static void tag_mesh_positions_changed(Object &object, const bool use_pbvh_draw)
 {
-  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+
+  /* Various operations inside sculpt mode can cause either the #MeshRuntimeData or the entire
+   * Mesh to be changed (e.g. Undoing the very first operation after opening a file, performing
+   * remesh, etc).
+   *
+   * This isn't an ideal fix for the core issue here, but to mitigate the drastic performance
+   * falloff, we refreeze the cache before we do any operation that would tag this runtime
+   * cache as dirty.
+   *
+   * See #130636. */
+  if (!mesh.runtime->corner_tris_cache.frozen) {
+    mesh.runtime->corner_tris_cache.freeze();
+  }
+
+  /* Updating mesh positions without marking caches dirty is generally not good, but since
+   * sculpt mode has special requirements and is expected to have sole ownership of the mesh it
+   * modifies, it's generally okay. */
+  if (use_pbvh_draw) {
+    /* When drawing from bke::pbvh::Tree is used, vertex and face normals are updated
+     * later in #bke::pbvh::update_normals. However, we update the mesh's bounds eagerly here
+     * since they are trivial to access from the bke::pbvh::Tree. Updating the
+     * object's evaluated geometry bounding box is necessary because sculpt strokes don't cause
+     * an object reevaluation. */
+    mesh.tag_positions_changed_no_normals();
+    /* Sculpt mode does not use or recalculate face corner normals, so they are cleared. */
+    mesh.runtime->corner_normals_cache.tag_dirty();
+  }
+  else {
+    /* Drawing happens from the modifier stack evaluation result.
+     * Tag both coordinates and normals as modified, as both needed for proper drawing and the
+     * modifier stack is not guaranteed to tag normals for update. */
+    mesh.tag_positions_changed();
+  }
+
+  if (const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(object)) {
+    mesh.bounds_set_eager(bke::pbvh::bounds_get(*pbvh));
+    if (object.runtime->bounds_eval) {
+      object.runtime->bounds_eval = mesh.bounds_min_max();
+    }
+  }
+}
+
+void flush_update_step(const bContext *C, const UpdateType update_type)
+{
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
-  ARegion &region = *CTX_wm_region(C);
-  MultiresModifierData *mmd = ss.multires.modifier;
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
-
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
-
-  const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&ob, rv3d);
 
   if (rv3d) {
     /* Mark for faster 3D viewport redraws. */
     rv3d->rflag |= RV3D_PAINTING;
   }
 
+  const SculptSession &ss = *ob.sculpt;
+  const MultiresModifierData *mmd = ss.multires.modifier;
   if (mmd != nullptr) {
+    Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
     multires_mark_as_modified(&depsgraph, &ob, MULTIRES_COORDS_MODIFIED);
   }
 
-  if ((update_type == UpdateType::Image) != 0) {
+  ARegion &region = *CTX_wm_region(C);
+  if (update_type == UpdateType::Image) {
     ED_region_tag_redraw(&region);
     if (update_type == UpdateType::Image) {
       /* Early exit when only need to update the images. We don't want to tag any geometry updates
@@ -5201,6 +5243,7 @@ void flush_update_step(bContext *C, UpdateType update_type)
 
   DEG_id_tag_update(&ob.id, ID_RECALC_SHADING);
 
+  const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&ob, rv3d);
   /* Only current viewport matters, slower update for all viewports will
    * be done in sculpt_flush_update_done. */
   if (!use_pbvh_draw) {
@@ -5214,7 +5257,6 @@ void flush_update_step(bContext *C, UpdateType update_type)
      * only the part of the 3D viewport where changes happened. */
     rcti r;
 
-    RegionView3D *rv3d = CTX_wm_region_view3d(C);
     if (rv3d && SCULPT_get_redraw_rect(region, *rv3d, ob, r)) {
       if (ss.cache) {
         ss.cache->current_r = r;
@@ -5232,82 +5274,45 @@ void flush_update_step(bContext *C, UpdateType update_type)
     }
   }
 
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   if (update_type == UpdateType::Position && !ss.shapekey_active) {
     if (pbvh.type() == bke::pbvh::Type::Mesh) {
-      /* Various operations inside sculpt mode can cause either the #MeshRuntimeData or the entire
-       * Mesh to be changed (e.g. Undoing the very first operation after opening a file, performing
-       * remesh, etc).
-       *
-       * This isn't an ideal fix for the core issue here, but to mitigate the drastic performance
-       * falloff, we refreeze the cache before we do any operation that would tag this runtime
-       * cache as dirty.
-       *
-       * See #130636.
-       */
-      if (!mesh->runtime->corner_tris_cache.frozen) {
-        mesh->runtime->corner_tris_cache.freeze();
-      }
-
-      /* Updating mesh positions without marking caches dirty is generally not good, but since
-       * sculpt mode has special requirements and is expected to have sole ownership of the mesh it
-       * modifies, it's generally okay. */
-      if (use_pbvh_draw) {
-        /* When drawing from bke::pbvh::Tree is used, vertex and face normals are updated
-         * later in #bke::pbvh::update_normals. However, we update the mesh's bounds eagerly here
-         * since they are trivial to access from the bke::pbvh::Tree. Updating the
-         * object's evaluated geometry bounding box is necessary because sculpt strokes don't cause
-         * an object reevaluation. */
-        mesh->tag_positions_changed_no_normals();
-        /* Sculpt mode does not use or recalculate face corner normals, so they are cleared. */
-        mesh->runtime->corner_normals_cache.tag_dirty();
-      }
-      else {
-        /* Drawing happens from the modifier stack evaluation result.
-         * Tag both coordinates and normals as modified, as both needed for proper drawing and the
-         * modifier stack is not guaranteed to tag normals for update. */
-        mesh->tag_positions_changed();
-      }
-
-      mesh->bounds_set_eager(bke::pbvh::bounds_get(pbvh));
-      if (ob.runtime->bounds_eval) {
-        ob.runtime->bounds_eval = mesh->bounds_min_max();
-      }
+      tag_mesh_positions_changed(ob, use_pbvh_draw);
     }
   }
 }
 
-void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
+void flush_update_done(const bContext *C, Object &ob, const UpdateType update_type)
 {
   /* After we are done drawing the stroke, check if we need to do a more
    * expensive depsgraph tag to update geometry. */
-  wmWindowManager *wm = CTX_wm_manager(C);
-  RegionView3D *current_rv3d = CTX_wm_region_view3d(C);
-  SculptSession &ss = *ob.sculpt;
-  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  const Mesh &mesh = *static_cast<Mesh *>(ob.data);
 
   /* Always needed for linked duplicates. */
-  bool need_tag = (ID_REAL_USERS(&mesh->id) > 1);
+  bool need_tag = ID_REAL_USERS(&mesh.id) > 1;
 
+  RegionView3D *current_rv3d = CTX_wm_region_view3d(C);
   if (current_rv3d) {
     current_rv3d->rflag &= ~RV3D_PAINTING;
   }
 
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
-      if (sl->spacetype != SPACE_VIEW3D) {
+  const wmWindowManager &wm = *CTX_wm_manager(C);
+  LISTBASE_FOREACH (wmWindow *, win, &wm.windows) {
+    const bScreen &screen = *WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen.areabase) {
+      const SpaceLink &sl = *static_cast<SpaceLink *>(area->spacedata.first);
+      if (sl.spacetype != SPACE_VIEW3D) {
         continue;
       }
 
-      /* Tag all 3D viewports for redraw now that we are done. Others
+      /* Tag all 3D viewports for redraw now that we are done. Other
        * viewports did not get a full redraw, and anti-aliasing for the
        * current viewport was deactivated. */
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         if (region->regiontype == RGN_TYPE_WINDOW) {
-          RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-          if (rv3d != current_rv3d) {
-            need_tag |= !BKE_sculptsession_use_pbvh_draw(&ob, rv3d);
+          const RegionView3D *other_rv3d = static_cast<RegionView3D *>(region->regiondata);
+          if (other_rv3d != current_rv3d) {
+            need_tag |= !BKE_sculptsession_use_pbvh_draw(&ob, other_rv3d);
           }
 
           ED_region_tag_redraw(region);
@@ -5316,9 +5321,9 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
     }
 
     if (update_type == UpdateType::Image) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
-        if (sl->spacetype != SPACE_IMAGE) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen.areabase) {
+        const SpaceLink &sl = *static_cast<SpaceLink *>(area->spacedata.first);
+        if (sl.spacetype != SPACE_IMAGE) {
           continue;
         }
         ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
@@ -5337,12 +5342,190 @@ void flush_update_done(const bContext *C, Object &ob, UpdateType update_type)
 
   if (update_type == UpdateType::Position) {
     if (pbvh.type() == bke::pbvh::Type::BMesh) {
+      SculptSession &ss = *ob.sculpt;
       BKE_pbvh_bmesh_after_stroke(*ss.bm, pbvh);
     }
   }
 
   if (need_tag) {
     DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+  }
+}
+
+/* Replace an entire attribute using implicit sharing to avoid copies when possible. */
+static void replace_attribute(const bke::AttributeAccessor src_attributes,
+                              const StringRef name,
+                              const bke::AttrDomain domain,
+                              const eCustomDataType data_type,
+                              bke::MutableAttributeAccessor dst_attributes)
+{
+  dst_attributes.remove(name);
+  bke::GAttributeReader src = src_attributes.lookup(name, domain, data_type);
+  if (!src) {
+    return;
+  }
+  if (src.sharing_info && src.varray.is_span()) {
+    const bke::AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
+    dst_attributes.add(name, domain, data_type, init);
+  }
+  else {
+    const bke::AttributeInitVArray init(*src);
+    dst_attributes.add(name, domain, data_type, init);
+  }
+}
+
+static bool attribute_matches(const bke::AttributeAccessor a,
+                              const bke::AttributeAccessor b,
+                              const StringRef name)
+{
+  const bke::GAttributeReader a_attr = a.lookup(name);
+  const bke::GAttributeReader b_attr = b.lookup(name);
+  if (!a_attr.sharing_info || !b_attr.sharing_info) {
+    return false;
+  }
+  return a_attr.sharing_info == b_attr.sharing_info;
+}
+
+static bool topology_matches(const Mesh &a, const Mesh &b)
+{
+  if (a.verts_num != b.verts_num || a.edges_num != b.edges_num || a.faces_num != b.faces_num ||
+      a.corners_num != b.corners_num)
+  {
+    return false;
+  }
+  if (a.runtime->face_offsets_sharing_info != b.runtime->face_offsets_sharing_info) {
+    return false;
+  }
+  const bke::AttributeAccessor a_attributes = a.attributes();
+  const bke::AttributeAccessor b_attributes = b.attributes();
+  if (!attribute_matches(a_attributes, b_attributes, ".edge_verts") ||
+      !attribute_matches(a_attributes, b_attributes, ".corner_vert") ||
+      !attribute_matches(a_attributes, b_attributes, ".corner_edge"))
+  {
+    return false;
+  }
+  return true;
+}
+
+static void store_sculpt_entire_mesh(const wmOperator &op,
+                                     const Scene &scene,
+                                     Object &object,
+                                     Mesh *new_mesh)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  sculpt_paint::undo::geometry_begin(scene, object, &op);
+  BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
+  sculpt_paint::undo::geometry_end(object);
+  BKE_sculptsession_free_pbvh(object);
+}
+
+void store_mesh_from_eval(const wmOperator &op,
+                          const Scene &scene,
+                          const Depsgraph &depsgraph,
+                          const RegionView3D *rv3d,
+                          Object &object,
+                          Mesh *new_mesh)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const bool changed_topology = !topology_matches(mesh, *new_mesh);
+  const bool use_pbvh_draw = BKE_sculptsession_use_pbvh_draw(&object, rv3d);
+  bool entire_mesh_changed = false;
+
+  if (changed_topology) {
+    store_sculpt_entire_mesh(op, scene, object, new_mesh);
+    entire_mesh_changed = true;
+  }
+  else {
+    /* Detect attributes present in the new mesh which no longer match the original. */
+    VectorSet<StringRef> changed_attributes;
+    new_mesh->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (ELEM(iter.name, ".edge_verts", ".corner_vert", ".corner_edge")) {
+        return;
+      }
+      const bke::GAttributeReader attribute = iter.get();
+      if (attribute_matches(new_mesh->attributes(), mesh.attributes(), iter.name)) {
+        return;
+      }
+      changed_attributes.add(iter.name);
+    });
+    /* Detect attributes that were removed in the new mesh. */
+    mesh.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (!new_mesh->attributes().contains(iter.name)) {
+        changed_attributes.add(iter.name);
+      }
+    });
+
+    /* Try to use the few specialized sculpt undo types that result in better performance, mainly
+     * because redo avoids clearing the BVH, but also because some other updates can be skipped. */
+    bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+    IndexMaskMemory memory;
+    const IndexMask leaf_nodes = bke::pbvh::all_leaf_nodes(pbvh, memory);
+    if (changed_attributes.as_span() == Span<StringRef>{"position"}) {
+      undo::push_begin(scene, object, &op);
+      undo::push_nodes(depsgraph, object, leaf_nodes, undo::Type::Position);
+      undo::push_end(object);
+      CustomData_free_layer_named(&mesh.vert_data, "position");
+      mesh.attributes_for_write().remove("position");
+      const bke::AttributeReader position = new_mesh->attributes().lookup<float3>("position");
+      if (position.sharing_info) {
+        /* Use lower level API to add the position attribute to avoid copying the array and to
+         * allow using #tag_positions_changed_no_normals instead of #tag_positions_changed (which
+         * would be called by the attribute API). */
+        CustomData_add_layer_named_with_data(
+            &mesh.vert_data,
+            CD_PROP_FLOAT3,
+            const_cast<float3 *>(position.varray.get_internal_span().data()),
+            mesh.verts_num,
+            "position",
+            position.sharing_info);
+      }
+      else {
+        mesh.vert_positions_for_write().copy_from(VArraySpan(*position));
+      }
+
+      pbvh.tag_positions_changed(leaf_nodes);
+      pbvh.update_bounds(depsgraph, object);
+      tag_mesh_positions_changed(object, use_pbvh_draw);
+      BKE_mesh_copy_parameters(&mesh, new_mesh);
+      BKE_id_free(nullptr, new_mesh);
+    }
+    else if (changed_attributes.as_span() == Span<StringRef>{".sculpt_mask"}) {
+      undo::push_begin(scene, object, &op);
+      undo::push_nodes(depsgraph, object, leaf_nodes, undo::Type::Mask);
+      undo::push_end(object);
+      replace_attribute(new_mesh->attributes(),
+                        ".sculpt_mask",
+                        bke::AttrDomain::Point,
+                        CD_PROP_FLOAT,
+                        mesh.attributes_for_write());
+      pbvh.tag_masks_changed(leaf_nodes);
+      BKE_mesh_copy_parameters(&mesh, new_mesh);
+      BKE_id_free(nullptr, new_mesh);
+    }
+    else if (changed_attributes.as_span() == Span<StringRef>{".sculpt_face_set"}) {
+      undo::push_begin(scene, object, &op);
+      undo::push_nodes(depsgraph, object, leaf_nodes, undo::Type::FaceSet);
+      undo::push_end(object);
+      replace_attribute(new_mesh->attributes(),
+                        ".sculpt_face_set",
+                        bke::AttrDomain::Face,
+                        CD_PROP_INT32,
+                        mesh.attributes_for_write());
+      pbvh.tag_face_sets_changed(leaf_nodes);
+      BKE_mesh_copy_parameters(&mesh, new_mesh);
+      BKE_id_free(nullptr, new_mesh);
+    }
+    else {
+      /* Non-geometry-type sculpt undo steps can only handle a single change at a time. When
+       * multiple attributes or attributes that don't have their own undo type are changed, we're
+       * forced to fall back to the slower geometry undo type. */
+      store_sculpt_entire_mesh(op, scene, object, new_mesh);
+      entire_mesh_changed = true;
+    }
+  }
+  DEG_id_tag_update(&mesh.id, ID_RECALC_SHADING);
+  if (!use_pbvh_draw || entire_mesh_changed) {
+    DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
   }
 }
 

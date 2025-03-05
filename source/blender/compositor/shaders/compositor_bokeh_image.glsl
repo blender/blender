@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_math_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 /* Get the 2D vertex position of the vertex with the given index in the regular polygon
  * representing this bokeh. The polygon is rotated by the rotation amount and have a unit
@@ -49,7 +49,7 @@ float bokeh(vec2 point, float circumradius)
   /* Get the index of the vertex of the regular polygon whose polar angle is maximum but less than
    * the polar angle of the given point, taking rotation into account. This essentially finds the
    * vertex closest to the given point in the clock-wise direction. */
-  float angle = mod(atan(point.y, point.x) + rotation, M_2PI);
+  float angle = mod(atan(point.y, point.x) + rotation, 2.0 * M_PI);
   int vertex_index = int(angle / exterior_angle);
 
   /* Compute the shortest distance between the origin and the polygon edge composed from the

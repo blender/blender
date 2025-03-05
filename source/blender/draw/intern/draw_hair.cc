@@ -8,9 +8,11 @@
  * \brief Contains procedural GPU hair drawing methods.
  */
 
+#include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_modifier_types.h"
@@ -30,40 +32,9 @@
 #include "draw_common_c.hh"
 #include "draw_hair_private.hh"
 #include "draw_manager.hh"
+#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 #include "draw_shader_shared.hh"
-
-static blender::gpu::VertBuf *g_dummy_vbo = nullptr;
-static blender::draw::UniformBuffer<CurvesInfos> *g_dummy_curves_info = nullptr;
-
-static void drw_hair_ensure_vbo()
-{
-  if (g_dummy_vbo != nullptr) {
-    return;
-  }
-  /* initialize vertex format */
-  GPUVertFormat format = {0};
-  uint dummy_id = GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-
-  g_dummy_vbo = GPU_vertbuf_create_with_format_ex(
-      format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-
-  const float vert[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  GPU_vertbuf_data_alloc(*g_dummy_vbo, 1);
-  GPU_vertbuf_attr_fill(g_dummy_vbo, dummy_id, vert);
-  /* Create VBO immediately to bind to texture buffer. */
-  GPU_vertbuf_use(g_dummy_vbo);
-
-  g_dummy_curves_info = MEM_new<blender::draw::UniformBuffer<CurvesInfos>>("g_dummy_curves_info");
-  memset(
-      g_dummy_curves_info->is_point_attribute, 0, sizeof(g_dummy_curves_info->is_point_attribute));
-  g_dummy_curves_info->push_update();
-}
-
-void DRW_hair_init()
-{
-  drw_hair_ensure_vbo();
-}
 
 static void drw_hair_particle_cache_update_compute(ParticleHairCache *cache, const int subdiv)
 {
@@ -74,7 +45,7 @@ static void drw_hair_particle_cache_update_compute(ParticleHairCache *cache, con
     GPUShader *shader = DRW_shader_hair_refine_get(PART_REFINE_CATMULL_ROM);
 
     /* TODO(fclem): Remove Global access. */
-    PassSimple &pass = *DST.vmempool->curves_refine;
+    PassSimple &pass = drw_get().data->curves_module->refine;
     pass.shader_set(shader);
     pass.bind_texture("hairPointBuffer", cache->proc_point_buf);
     pass.bind_texture("hairStrandBuffer", cache->proc_strand_buf);
@@ -127,13 +98,13 @@ blender::gpu::VertBuf *DRW_hair_pos_buffer_get(Object *object,
   return cache->final[subdiv].proc_buf;
 }
 
-void DRW_hair_duplimat_get(Object *object,
+void DRW_hair_duplimat_get(const blender::draw::ObjectRef &ob_ref,
                            ParticleSystem * /*psys*/,
                            ModifierData * /*md*/,
                            float (*dupli_mat)[4])
 {
-  Object *dupli_parent = DRW_object_get_dupli_parent(object);
-  DupliObject *dupli_object = DRW_object_get_dupli(object);
+  Object *dupli_parent = ob_ref.dupli_parent;
+  DupliObject *dupli_object = ob_ref.dupli_object;
 
   if ((dupli_parent != nullptr) && (dupli_object != nullptr)) {
     if (dupli_object->type & OB_DUPLICOLLECTION) {
@@ -147,7 +118,7 @@ void DRW_hair_duplimat_get(Object *object,
     else {
       copy_m4_m4(dupli_mat, dupli_object->ob->object_to_world().ptr());
       invert_m4(dupli_mat);
-      mul_m4_m4m4(dupli_mat, object->object_to_world().ptr(), dupli_mat);
+      mul_m4_m4m4(dupli_mat, ob_ref.object->object_to_world().ptr(), dupli_mat);
     }
   }
   else {
@@ -155,27 +126,10 @@ void DRW_hair_duplimat_get(Object *object,
   }
 }
 
-void DRW_hair_free()
-{
-  GPU_VERTBUF_DISCARD_SAFE(g_dummy_vbo);
-  MEM_delete(g_dummy_curves_info);
-}
-
 /* New Draw Manager. */
 #include "draw_common.hh"
 
 namespace blender::draw {
-
-static PassSimple *g_pass = nullptr;
-
-void hair_init()
-{
-  if (!g_pass) {
-    g_pass = MEM_new<PassSimple>("drw_hair g_pass", "Update Hair Pass");
-  }
-  g_pass->init();
-  g_pass->state_set(DRW_STATE_NO_DRAW);
-}
 
 static ParticleHairCache *hair_particle_cache_get(Object *object,
                                                   ParticleSystem *psys,
@@ -193,10 +147,12 @@ static ParticleHairCache *hair_particle_cache_get(Object *object,
     return cache;
   }
 
+  CurvesModule &module = *drw_get().data->curves_module;
+
   const int strands_len = cache->strands_len;
   const int final_points_len = cache->final[subdiv].strands_res * strands_len;
   if (final_points_len > 0) {
-    PassSimple::Sub &ob_ps = g_pass->sub("Object Pass");
+    PassSimple::Sub &ob_ps = module.refine.sub("Object Pass");
 
     ob_ps.shader_set(DRW_shader_hair_refine_get(PART_REFINE_CATMULL_ROM));
 
@@ -234,27 +190,16 @@ blender::gpu::VertBuf *hair_pos_buffer_get(Scene *scene,
   return cache->final[subdiv].proc_buf;
 }
 
-void hair_update(Manager &manager)
-{
-  manager.submit(*g_pass);
-  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
-}
-
-void hair_free()
-{
-  MEM_delete(g_pass);
-  g_pass = nullptr;
-}
-
 template<typename PassT>
 blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
                                                         const Scene *scene,
-                                                        Object *object,
+                                                        const ObjectRef &ob_ref,
                                                         ParticleSystem *psys,
                                                         ModifierData *md,
                                                         GPUMaterial *gpu_material)
 {
   /** NOTE: This still relies on the old DRW_hair implementation. */
+  Object *object = ob_ref.object;
 
   int subdiv = scene->r.hair_subdiv;
   int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
@@ -273,20 +218,23 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
     }
   }
 
+  /* TODO(fclem): Remove Global access. */
+  CurvesModule &module = *drw_get().data->curves_module;
+
   /* Fix issue with certain driver not drawing anything if there is nothing bound to
    * "ac", "au", "u" or "c". */
   if (hair_cache->num_uv_layers == 0) {
-    sub_ps.bind_texture("u", g_dummy_vbo);
-    sub_ps.bind_texture("au", g_dummy_vbo);
-    sub_ps.bind_texture("a", g_dummy_vbo);
+    sub_ps.bind_texture("u", module.dummy_vbo);
+    sub_ps.bind_texture("au", module.dummy_vbo);
+    sub_ps.bind_texture("a", module.dummy_vbo);
   }
   if (hair_cache->num_col_layers == 0) {
-    sub_ps.bind_texture("c", g_dummy_vbo);
-    sub_ps.bind_texture("ac", g_dummy_vbo);
+    sub_ps.bind_texture("c", module.dummy_vbo);
+    sub_ps.bind_texture("ac", module.dummy_vbo);
   }
 
   float4x4 dupli_mat;
-  DRW_hair_duplimat_get(object, psys, md, dupli_mat.ptr());
+  DRW_hair_duplimat_get(ob_ref, psys, md, dupli_mat.ptr());
 
   /* Get hair shape parameters. */
   ParticleSettings *part = psys->part;
@@ -300,7 +248,7 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
     sub_ps.bind_texture("l", hair_cache->proc_length_buf);
   }
 
-  sub_ps.bind_ubo("drw_curves", *g_dummy_curves_info);
+  sub_ps.bind_ubo("drw_curves", module.ubo_pool.dummy_get());
   sub_ps.push_constant("hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
   sub_ps.push_constant("hairThicknessRes", thickness_res);
   sub_ps.push_constant("hairRadShape", hair_rad_shape);
@@ -314,22 +262,22 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
 
 blender::gpu::Batch *hair_sub_pass_setup(PassMain::Sub &sub_ps,
                                          const Scene *scene,
-                                         Object *object,
+                                         const ObjectRef &ob_ref,
                                          ParticleSystem *psys,
                                          ModifierData *md,
                                          GPUMaterial *gpu_material)
 {
-  return hair_sub_pass_setup_implementation(sub_ps, scene, object, psys, md, gpu_material);
+  return hair_sub_pass_setup_implementation(sub_ps, scene, ob_ref, psys, md, gpu_material);
 }
 
 blender::gpu::Batch *hair_sub_pass_setup(PassSimple::Sub &sub_ps,
                                          const Scene *scene,
-                                         Object *object,
+                                         const ObjectRef &ob_ref,
                                          ParticleSystem *psys,
                                          ModifierData *md,
                                          GPUMaterial *gpu_material)
 {
-  return hair_sub_pass_setup_implementation(sub_ps, scene, object, psys, md, gpu_material);
+  return hair_sub_pass_setup_implementation(sub_ps, scene, ob_ref, psys, md, gpu_material);
 }
 
 }  // namespace blender::draw

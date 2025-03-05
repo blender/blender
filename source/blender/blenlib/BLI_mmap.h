@@ -11,10 +11,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Memory-mapped file IO that implements all the OS-specific details and error handling. */
 
 struct BLI_mmap_file;
@@ -36,7 +32,3 @@ void *BLI_mmap_get_pointer(BLI_mmap_file *file) ATTR_WARN_UNUSED_RESULT;
 size_t BLI_mmap_get_length(const BLI_mmap_file *file) ATTR_WARN_UNUSED_RESULT;
 
 void BLI_mmap_free(BLI_mmap_file *file) ATTR_NONNULL(1);
-
-#ifdef __cplusplus
-}
-#endif

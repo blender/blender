@@ -556,8 +556,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 {
   Mesh *mesh = ED_mesh_context(C);
 
-  int tot;
-  CustomData *data = mesh_customdata_get_type(mesh, htype, &tot);
+  CustomData *data = mesh_customdata_get_type(mesh, htype, nullptr);
 
   BLI_assert(CustomData_layertype_is_singleton(type) == true);
 
@@ -566,7 +565,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
       BM_data_layer_free(mesh->runtime->edit_mesh->bm, data, type);
     }
     else {
-      CustomData_free_layers(data, type, tot);
+      CustomData_free_layers(data, type);
     }
 
     DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
@@ -810,7 +809,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
     CustomData_add_layer_named(&vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, totvert, "position");
   }
 
-  CustomData_free(&mesh->vert_data, mesh->verts_num);
+  CustomData_free(&mesh->vert_data);
   mesh->vert_data = vert_data;
 
   BKE_mesh_runtime_clear_cache(mesh);
@@ -846,7 +845,7 @@ static void mesh_add_edges(Mesh *mesh, int len)
         &edge_data, CD_PROP_INT32_2D, CD_SET_DEFAULT, totedge, ".edge_verts");
   }
 
-  CustomData_free(&mesh->edge_data, mesh->edges_num);
+  CustomData_free(&mesh->edge_data);
   mesh->edge_data = edge_data;
 
   BKE_mesh_runtime_clear_cache(mesh);
@@ -885,7 +884,7 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  CustomData_free(&mesh->corner_data, mesh->corners_num);
+  CustomData_free(&mesh->corner_data);
   mesh->corner_data = ldata;
 
   mesh->corners_num = totloop;
@@ -922,7 +921,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
   mesh->face_offset_indices[0] = 0;
   mesh->face_offset_indices[faces_num] = mesh->corners_num;
 
-  CustomData_free(&mesh->face_data, mesh->faces_num);
+  CustomData_free(&mesh->face_data);
   mesh->face_data = face_data;
 
   BKE_mesh_runtime_clear_cache(mesh);

@@ -411,8 +411,8 @@ static void autotrack_context_init_image_accessor(AutoTrackContext *context)
     clips[i] = context->autotrack_clips[i].clip;
   }
 
-  MovieTrackingTrack **tracks = MEM_cnew_array<MovieTrackingTrack *>(context->num_all_tracks,
-                                                                     "image accessor init tracks");
+  MovieTrackingTrack **tracks = MEM_calloc_arrayN<MovieTrackingTrack *>(
+      context->num_all_tracks, "image accessor init tracks");
   for (int i = 0; i < context->num_all_tracks; ++i) {
     tracks[i] = context->all_autotrack_tracks[i].track;
   }
@@ -467,8 +467,8 @@ static void autotrack_context_init_autotrack(AutoTrackContext *context)
   }
 
   /* Allocate memory for all the markers. */
-  libmv_Marker *libmv_markers = MEM_cnew_array<libmv_Marker>(num_trackable_markers,
-                                                             "libmv markers array");
+  libmv_Marker *libmv_markers = MEM_calloc_arrayN<libmv_Marker>(num_trackable_markers,
+                                                                "libmv markers array");
 
   /* Fill in markers array. */
   int num_filled_libmv_markers = 0;
@@ -508,8 +508,8 @@ static void autotrack_context_init_markers(AutoTrackContext *context)
   }
 
   /* Allocate required memory. */
-  context->autotrack_markers = MEM_cnew_array<AutoTrackMarker>(context->num_autotrack_markers,
-                                                               "auto track options");
+  context->autotrack_markers = MEM_calloc_arrayN<AutoTrackMarker>(context->num_autotrack_markers,
+                                                                  "auto track options");
 
   /* Fill in all the markers. */
   int autotrack_marker_index = 0;
@@ -542,7 +542,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
                                             MovieClipUser *user,
                                             const bool is_backwards)
 {
-  AutoTrackContext *context = MEM_cnew<AutoTrackContext>("autotrack context");
+  AutoTrackContext *context = MEM_callocN<AutoTrackContext>("autotrack context");
 
   context->start_scene_frame = user->framenr;
   context->is_backwards = is_backwards;
@@ -572,8 +572,8 @@ static void reference_keyframed_image_buffers(AutoTrackContext *context)
   /* NOTE: This is potentially over-allocating, but it simplifies memory manipulation.
    * In practice this is unlikely to be noticed in the profiler as the memory footprint of this
    * data is way less of what the tracking process will use. */
-  context->referenced_image_buffers = MEM_cnew_array<ImBuf *>(context->num_autotrack_markers,
-                                                              __func__);
+  context->referenced_image_buffers = MEM_calloc_arrayN<ImBuf *>(context->num_autotrack_markers,
+                                                                 __func__);
 
   context->num_referenced_image_buffers = 0;
 
@@ -651,7 +651,7 @@ static void autotrack_context_step_cb(void *__restrict userdata,
 
   const int new_marker_frame = libmv_current_marker.frame + frame_delta;
 
-  AutoTrackTrackingResult *autotrack_result = MEM_cnew<AutoTrackTrackingResult>(
+  AutoTrackTrackingResult *autotrack_result = MEM_callocN<AutoTrackTrackingResult>(
       "autotrack result");
   autotrack_result->libmv_marker = libmv_current_marker;
   autotrack_result->libmv_marker.frame = new_marker_frame;

@@ -36,7 +36,7 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_init_tex_checker(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexChecker *tex = MEM_cnew<NodeTexChecker>(__func__);
+  NodeTexChecker *tex = MEM_callocN<NodeTexChecker>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
 
@@ -139,7 +139,7 @@ void register_node_type_sh_tex_checker()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeTexChecker", SH_NODE_TEX_CHECKER);
+  common_node_type_base(&ntype, "ShaderNodeTexChecker", SH_NODE_TEX_CHECKER);
   ntype.ui_name = "Checker Texture";
   ntype.ui_description = "Generate a checkerboard texture";
   ntype.enum_name_legacy = "TEX_CHECKER";
@@ -147,10 +147,10 @@ void register_node_type_sh_tex_checker()
   ntype.declare = file_ns::sh_node_tex_checker_declare;
   ntype.initfunc = file_ns::node_shader_init_tex_checker;
   blender::bke::node_type_storage(
-      &ntype, "NodeTexChecker", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeTexChecker", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_checker;
   ntype.build_multi_function = file_ns::sh_node_tex_checker_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

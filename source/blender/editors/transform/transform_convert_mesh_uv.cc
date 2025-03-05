@@ -28,7 +28,7 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
 /** \name UVs Transform Creation
@@ -1160,3 +1160,5 @@ TransConvertTypeInfo TransConvertType_MeshUV = {
     /*recalc_data*/ recalcData_uv,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

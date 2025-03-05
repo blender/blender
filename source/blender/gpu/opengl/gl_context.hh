@@ -12,6 +12,7 @@
 
 #include "GPU_framebuffer.hh"
 
+#include "BKE_global.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
@@ -88,6 +89,25 @@ class GLContext : public Context {
   Vector<GLuint> orphaned_framebuffers_;
   /** #GLBackend owns this data. */
   GLSharedOrphanLists &shared_orphan_list_;
+
+  struct TimeQuery {
+    std::string name;
+    union {
+      GLuint handles[2];
+      struct {
+        GLuint handle_start, handle_end;
+      };
+    };
+    bool finished;
+    int64_t cpu_start;
+    int64_t cpu_end;
+  };
+  struct FrameQueries {
+    Vector<TimeQuery> queries;
+  };
+  Vector<FrameQueries> frame_timings;
+
+  void process_frame_timings();
 
  public:
   GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list);

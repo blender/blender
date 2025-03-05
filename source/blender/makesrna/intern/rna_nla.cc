@@ -669,7 +669,7 @@ static void rna_NlaStrip_remove(
   }
 
   BKE_nlastrip_remove_and_free(&track->strips, strip, true);
-  RNA_POINTER_INVALIDATE(strip_ptr);
+  strip_ptr->invalidate();
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, nullptr);
 

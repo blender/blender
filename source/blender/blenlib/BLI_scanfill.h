@@ -14,10 +14,6 @@
 
 struct ScanFillVert;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct ScanFillContext {
   ListBase fillvertbase;
   ListBase filledgebase;
@@ -120,7 +116,3 @@ void BLI_scanfill_end_arena(ScanFillContext *sf_ctx, struct MemArena *arena);
 bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
                                   ListBase *remvertbase,
                                   ListBase *remedgebase);
-
-#ifdef __cplusplus
-}
-#endif

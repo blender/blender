@@ -56,7 +56,7 @@ struct SnapCursorDataIntern {
   ListBase state_intern;
   V3DSnapCursorData snap_data;
 
-  SnapObjectContext *snap_context_v3d;
+  blender::ed::transform::SnapObjectContext *snap_context_v3d;
   const Scene *scene;
   eSnapMode snap_elem_hidden;
 
@@ -580,11 +580,11 @@ static void v3d_cursor_snap_context_ensure(Scene *scene)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (data_intern->snap_context_v3d && (data_intern->scene != scene)) {
-    ED_transform_snap_object_context_destroy(data_intern->snap_context_v3d);
+    blender::ed::transform::snap_object_context_destroy(data_intern->snap_context_v3d);
     data_intern->snap_context_v3d = nullptr;
   }
   if (data_intern->snap_context_v3d == nullptr) {
-    data_intern->snap_context_v3d = ED_transform_snap_object_context_create(scene, 0);
+    data_intern->snap_context_v3d = blender::ed::transform::snap_object_context_create(scene, 0);
     data_intern->scene = scene;
   }
 }
@@ -665,51 +665,54 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
         snap_elements &= ~SCE_SNAP_TO_EDGE_PERPENDICULAR;
       }
 
-      eSnapEditType edit_mode_type = (state->flag & V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL) ?
-                                         SNAP_GEOM_FINAL :
-                                     (state->flag & V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE) ?
-                                         SNAP_GEOM_CAGE :
-                                         SNAP_GEOM_EDIT;
+      blender::ed::transform::eSnapEditType edit_mode_type =
+          (state->flag & V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL) ?
+              blender::ed::transform::SNAP_GEOM_FINAL :
+          (state->flag & V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE) ?
+              blender::ed::transform::SNAP_GEOM_CAGE :
+              blender::ed::transform::SNAP_GEOM_EDIT;
 
       float dist_px = 12.0f * U.pixelsize;
 
-      SnapObjectParams params{};
+      blender::ed::transform::SnapObjectParams params{};
       params.snap_target_select = SCE_SNAP_TARGET_ALL;
       params.edit_mode_type = edit_mode_type;
       params.occlusion_test = (state->flag & V3D_SNAPCURSOR_OCCLUSION_ALWAYS_TRUE) ?
-                                  SNAP_OCCLUSION_ALWAYS :
-                                  SNAP_OCCLUSION_AS_SEEM;
-      snap_elem = ED_transform_snap_object_project_view3d_ex(data_intern->snap_context_v3d,
-                                                             depsgraph,
-                                                             region,
-                                                             v3d,
-                                                             snap_elements,
-                                                             &params,
-                                                             nullptr,
-                                                             mval_fl,
-                                                             prev_co,
-                                                             &dist_px,
-                                                             co,
-                                                             no,
-                                                             &index,
-                                                             nullptr,
-                                                             obmat,
-                                                             face_nor);
+                                  blender::ed::transform::SNAP_OCCLUSION_ALWAYS :
+                                  blender::ed::transform::SNAP_OCCLUSION_AS_SEEM;
+      snap_elem = blender::ed::transform::snap_object_project_view3d_ex(
+          data_intern->snap_context_v3d,
+          depsgraph,
+          region,
+          v3d,
+          snap_elements,
+          &params,
+          nullptr,
+          mval_fl,
+          prev_co,
+          &dist_px,
+          co,
+          no,
+          &index,
+          nullptr,
+          obmat,
+          face_nor);
       if ((snap_elem & data_intern->snap_elem_hidden) && (snap_elements & SCE_SNAP_TO_GRID)) {
         BLI_assert(snap_elem != SCE_SNAP_TO_GRID);
-        params.occlusion_test = SNAP_OCCLUSION_NEVER;
-        snap_elem = ED_transform_snap_object_project_view3d(data_intern->snap_context_v3d,
-                                                            depsgraph,
-                                                            region,
-                                                            v3d,
-                                                            SCE_SNAP_TO_GRID,
-                                                            &params,
-                                                            co,
-                                                            mval_fl,
-                                                            prev_co,
-                                                            &dist_px,
-                                                            co,
-                                                            no);
+        params.occlusion_test = blender::ed::transform::SNAP_OCCLUSION_NEVER;
+        snap_elem = blender::ed::transform::snap_object_project_view3d(
+            data_intern->snap_context_v3d,
+            depsgraph,
+            region,
+            v3d,
+            SCE_SNAP_TO_GRID,
+            &params,
+            co,
+            mval_fl,
+            prev_co,
+            &dist_px,
+            co,
+            no);
       }
     }
   }
@@ -731,7 +734,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       Object *ob = BKE_view_layer_active_object_get(view_layer);
       const int orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
       const int pivot_point = scene->toolsettings->transform_pivot_point;
-      ED_transform_calc_orientation_from_type_ex(
+      blender::ed::transform::calc_orientation_from_type_ex(
           scene, view_layer, v3d, rv3d, ob, nullptr, orient_index, pivot_point, omat);
 
       if (tool_settings->use_plane_axis_auto) {
@@ -1008,7 +1011,7 @@ static void v3d_cursor_snap_free()
     data_intern->handle = nullptr;
   }
   if (data_intern->snap_context_v3d) {
-    ED_transform_snap_object_context_destroy(data_intern->snap_context_v3d);
+    blender::ed::transform::snap_object_context_destroy(data_intern->snap_context_v3d);
     data_intern->snap_context_v3d = nullptr;
   }
 }
@@ -1096,7 +1099,7 @@ V3DSnapCursorData *ED_view3d_cursor_snap_data_get()
   return &data_intern->snap_data;
 }
 
-SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene)
+blender::ed::transform::SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   v3d_cursor_snap_context_ensure(scene);

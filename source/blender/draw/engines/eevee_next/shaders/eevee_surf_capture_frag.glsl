@@ -59,7 +59,7 @@ void main()
     if (is_surface_view_aligned) {
       uint surfel_id = atomicAdd(capture_info_buf.surfel_len, 1u);
       if (capture_info_buf.do_surfel_output) {
-        ObjectInfos object_infos = drw_infos[resource_id];
+        ObjectInfos object_infos = drw_infos[drw_resource_id()];
         surfel_buf[surfel_id].position = g_data.P;
         surfel_buf[surfel_id].normal = gl_FrontFacing ? g_data.Ng : -g_data.Ng;
         surfel_buf[surfel_id].albedo_front = albedo;

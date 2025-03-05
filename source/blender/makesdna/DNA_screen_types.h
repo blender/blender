@@ -329,7 +329,12 @@ typedef struct uiViewState {
    * and the default should be used.
    */
   int custom_height;
-  char _pad[4];
+  /**
+   * Amount of vertical scrolling. View types decide on the unit:
+   * - Tree views: Number of items scrolled out of view (#scroll_offset of 5 means 5 items are
+   *   scrolled out of view).
+   */
+  int scroll_offset;
 } uiViewState;
 
 /**

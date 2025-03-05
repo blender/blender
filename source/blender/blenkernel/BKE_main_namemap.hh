@@ -19,12 +19,14 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_string_ref.hh"
 
 struct ID;
+struct Library;
 struct Main;
 struct UniqueName_Map;
 
-UniqueName_Map *BKE_main_namemap_create() ATTR_WARN_UNUSED_RESULT;
+/** If given pointer is not null, destroy the namemap and set the pointer to null. */
 void BKE_main_namemap_destroy(UniqueName_Map **r_name_map) ATTR_NONNULL();
 
 /**
@@ -34,27 +36,45 @@ void BKE_main_namemap_destroy(UniqueName_Map **r_name_map) ATTR_NONNULL();
  *   readfile code).
  * - In all of the libraries IDs (for linked IDs).
  */
-void BKE_main_namemap_clear(Main *bmain) ATTR_NONNULL();
+void BKE_main_namemap_clear(Main &bmain);
 
 /**
- * Ensures the given name is unique within the given ID type.
+ * Check if the given name is already in use in the whole Main data-base (local and all linked
+ * data).
+ *
+ * \return true if the name is already in use.
+ */
+bool BKE_main_global_namemap_contain_name(Main &bmain, short id_type, blender::StringRef name);
+/**
+ * Same as #BKE_main_global_namemap_contain_name, but only search in the local or related library
+ * namemap.
+ */
+bool BKE_main_namemap_contain_name(Main &bmain,
+                                   Library *lib,
+                                   short id_type,
+                                   blender::StringRef name);
+
+/**
+ * Ensures the given name is unique within the given ID type, in the whole Main data-base (local
+ * and all linked data).
  *
  * In case of name collisions, the name will be adjusted to be unique.
  *
- * \param do_unique_in_bmain: if `true`, ensure that the final name is unique in the whole Main
- * (for the given ID type), not only in the set of IDs from the same library.
- *
  * \return true if the name had to be adjusted for uniqueness.
  */
-bool BKE_main_namemap_get_name(Main *bmain, ID *id, char *name, const bool do_unique_in_bmain)
-    ATTR_NONNULL();
+bool BKE_main_global_namemap_get_unique_name(Main &bmain, ID &id, char *r_name);
+/**
+ * Same as #BKE_main_global_namemap_get_name, but only make the name unique in the local or related
+ * library namemap.
+ */
+bool BKE_main_namemap_get_unique_name(Main &bmain, ID &id, char *r_name);
 
 /**
  * Remove a given name from usage.
  *
  * Call this whenever deleting or renaming an object.
  */
-void BKE_main_namemap_remove_name(Main *bmain, ID *id, const char *name) ATTR_NONNULL();
+void BKE_main_namemap_remove_id(Main &bmain, ID &id);
 
 /**
  * Check that all ID names in given `bmain` are unique (per ID type and library), and that existing
@@ -62,7 +82,7 @@ void BKE_main_namemap_remove_name(Main *bmain, ID *id, const char *name) ATTR_NO
  *
  * This is typically called within an assert, or in tests.
  */
-bool BKE_main_namemap_validate(Main *bmain) ATTR_NONNULL();
+bool BKE_main_namemap_validate(Main &bmain);
 
 /**
  * Same as #BKE_main_namemap_validate, but also fixes any issue by re-generating all name maps,
@@ -70,4 +90,4 @@ bool BKE_main_namemap_validate(Main *bmain) ATTR_NONNULL();
  *
  * This is typically only used in `do_versions` code to fix broken files.
  */
-bool BKE_main_namemap_validate_and_fix(Main *bmain) ATTR_NONNULL();
+bool BKE_main_namemap_validate_and_fix(Main &bmain);

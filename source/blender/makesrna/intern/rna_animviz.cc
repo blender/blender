@@ -61,6 +61,8 @@ const EnumPropertyItem rna_enum_motionpath_range_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "DNA_userdef_types.h"
+
 static PointerRNA rna_AnimViz_motion_paths_get(PointerRNA *ptr)
 {
   return RNA_pointer_create_with_parent(*ptr, &RNA_AnimVizMotionPaths, ptr->data);

@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
@@ -95,6 +96,7 @@ static void geometry_to_blender_geometry_set(const OBJImportParams &import_param
       geometry_set = bke::GeometrySet::from_curves(curves_id);
     }
 
+    geometry_set.name = geometry->geometry_name_;
     geometries.append(std::move(geometry_set));
   }
 }

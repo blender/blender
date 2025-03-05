@@ -10,6 +10,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -31,6 +32,8 @@
 
 #include "transform.hh"
 #include "transform_convert.hh"
+
+namespace blender::ed::transform {
 
 /** Used for NLA transform (stored in #TransData.extra pointer). */
 struct TransDataNla {
@@ -997,3 +1000,5 @@ TransConvertTypeInfo TransConvertType_NLA = {
     /*recalc_data*/ recalcData_nla,
     /*special_aftertrans_update*/ special_aftertrans_update__nla,
 };
+
+}  // namespace blender::ed::transform

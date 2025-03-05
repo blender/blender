@@ -944,7 +944,7 @@ TEST(vector, RecursiveStructure)
 TEST(vector, FromRaw)
 {
   VectorData<int, GuardedAllocator> data;
-  data.data = MEM_cnew_array<int>(30, __func__);
+  data.data = MEM_calloc_arrayN<int>(30, __func__);
   data.size = 10;
   data.capacity = 30;
 

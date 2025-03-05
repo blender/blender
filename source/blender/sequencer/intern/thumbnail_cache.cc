@@ -216,7 +216,7 @@ static ImBuf *make_thumb_for_image(const Scene *scene, const ThumbnailCache::Req
   }
   /* Keep only float buffer if we have both byte & float. */
   if (ibuf->float_buffer.data != nullptr && ibuf->byte_buffer.data != nullptr) {
-    imb_freerectImBuf(ibuf);
+    IMB_free_byte_pixels(ibuf);
   }
 
   seq_imbuf_to_sequencer_space(scene, ibuf, false);
@@ -358,7 +358,7 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
 
             cur_anim_path = request.file_path;
             cur_stream = request.stream_index;
-            cur_anim = MOV_open_file(cur_anim_path.c_str(), IB_rect, cur_stream, nullptr);
+            cur_anim = MOV_open_file(cur_anim_path.c_str(), IB_byte_data, cur_stream, nullptr);
           }
 
           /* Decode the movie frame. */

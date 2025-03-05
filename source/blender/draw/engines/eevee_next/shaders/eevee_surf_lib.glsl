@@ -125,7 +125,7 @@ void init_interface()
 #ifdef GPU_VERTEX_SHADER
   interp.P = vec3(0.0);
   interp.N = vec3(0.0);
-  drw_ResourceID_iface.resource_index = resource_id;
+  drw_ResourceID_iface.resource_index = drw_resource_id();
 #endif
 }
 

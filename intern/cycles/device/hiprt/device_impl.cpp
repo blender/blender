@@ -145,7 +145,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   const std::string arch = hipDeviceArch(hipDevId);
 
   if (!use_adaptive_compilation()) {
-    const string fatbin = path_get(string_printf("lib/%s_rt_gfx.hipfb.zst", name));
+    const string fatbin = path_get(string_printf("lib/%s_rt_%s.hipfb.zst", name, arch.c_str()));
     VLOG(1) << "Testing for pre-compiled kernel " << fatbin << ".";
     if (path_exists(fatbin)) {
       VLOG(1) << "Using precompiled kernel.";
@@ -160,16 +160,9 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
   const string include_path = source_path;
-  const string cycles_bc = string_printf(
-      "cycles_%s_%s_%s.bc", name, arch.c_str(), kernel_md5.c_str());
-  const string cycles_bitcode = path_cache_get(path_join("kernels", cycles_bc));
   const string fatbin_file = string_printf(
       "cycles_%s_%s_%s.hipfb", name, arch.c_str(), kernel_md5.c_str());
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
-  const string hiprt_bc = string_printf(
-      "hiprt_%s_%s_%s.bc", name, arch.c_str(), kernel_md5.c_str());
-  const string hiprt_bitcode = path_cache_get(path_join("kernels", hiprt_bc));
-
   const string hiprt_include_path = path_join(source_path, "kernel/device/hiprt");
 
   VLOG(1) << "Testing for locally compiled kernel " << fatbin << ".";
@@ -219,89 +212,35 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
 
   path_create_directories(fatbin);
 
-  string rtc_options;
-  rtc_options.append(" --offload-arch=").append(arch);
-  rtc_options.append(" -D __HIPRT__");
-  rtc_options.append(" -ffast-math -O3 -std=c++17");
-  rtc_options.append(" -fgpu-rdc -c --gpu-bundle-output -c -emit-llvm");
-
   source_path = path_join(path_join(source_path, "kernel"),
                           path_join("device", path_join(base, string_printf("%s.cpp", name))));
+
+  const char *const kernel_ext = "genco";
+  string options;
+  options.append(
+      "-Wno-parentheses-equality -Wno-unused-value -ffast-math -O3 -std=c++17 -D __HIPRT__");
+  options.append(" --offload-arch=").append(arch.c_str());
+#  ifdef WITH_NANOVDB
+  options.append(" -D WITH_NANOVDB");
+#  endif
 
   printf("Compiling  %s and caching to %s", source_path.c_str(), fatbin.c_str());
 
   double starttime = time_dt();
 
-  if (!path_exists(cycles_bitcode)) {
-
-    string command = string_printf("%s %s -I %s  -I %s %s -o \"%s\"",
-                                   hipcc,
-                                   rtc_options.c_str(),
-                                   include_path.c_str(),
-                                   hiprt_include_path.c_str(),
-                                   source_path.c_str(),
-                                   cycles_bitcode.c_str());
-
-    printf("Compiling %sHIP kernel ...\n%s\n",
-           (use_adaptive_compilation()) ? "adaptive " : "",
-           command.c_str());
+  string compile_command = string_printf("%s %s -I %s -I %s --%s %s -o \"%s\"",
+                                         hipcc,
+                                         options.c_str(),
+                                         include_path.c_str(),
+                                         hiprt_include_path.c_str(),
+                                         kernel_ext,
+                                         source_path.c_str(),
+                                         fatbin.c_str());
 
 #  ifdef _WIN32
-    command = "call " + command;
+  compile_command = "call " + compile_command;
 #  endif
-    if (system(command.c_str()) != 0) {
-      set_error(
-          "Failed to execute compilation command, "
-          "see console for details.");
-      return string();
-    }
-  }
-
-  if (!path_exists(hiprt_bitcode)) {
-
-    rtc_options.append(" -x hip");
-    rtc_options.append(" -D HIPRT_BITCODE_LINKING ");
-
-    string source_path = path_join(hiprt_include_path, "/hiprt/impl/hiprt_kernels_bitcode.h");
-
-    string command = string_printf("%s %s -I %s %s -o \"%s\"",
-                                   hipcc,
-                                   rtc_options.c_str(),
-                                   hiprt_include_path.c_str(),
-                                   source_path.c_str(),
-                                   hiprt_bitcode.c_str());
-
-    printf("Compiling %sHIP kernel ...\n%s\n",
-           (use_adaptive_compilation()) ? "adaptive " : "",
-           command.c_str());
-
-#  ifdef _WIN32
-    command = "call " + command;
-#  endif
-    if (system(command.c_str()) != 0) {
-      set_error(
-          "Failed to execute compilation command, "
-          "see console for details.");
-      return string();
-    }
-  }
-
-  // After compilation, the bitcode produced is linked with HIP RT bitcode (containing
-  // implementations of HIP RT functions, e.g. traversal, to produce the final executable code
-  string linker_options;
-  linker_options.append(" --offload-arch=").append(arch);
-  linker_options.append(" -fgpu-rdc --hip-link --cuda-device-only ");
-
-  string linker_command = string_printf("clang++ %s \"%s\" \"%s\" -o \"%s\"",
-                                        linker_options.c_str(),
-                                        cycles_bitcode.c_str(),
-                                        hiprt_bitcode.c_str(),
-                                        fatbin.c_str());
-
-#  ifdef _WIN32
-  linker_command = "call " + linker_command;
-#  endif
-  if (system(linker_command.c_str()) != 0) {
+  if (system(compile_command.c_str()) != 0) {
     set_error(
         "Failed to execute linking command, "
         "see console for details.");
@@ -329,6 +268,12 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
   if (!support_device(kernel_features)) {
     return false;
   }
+
+  /* Keep track of whether motion blur is enabled, so to enable/disable motion in BVH builds
+   * This is necessary since objects may be reported to have motion if the Vector pass is
+   * active, but may still need to be rendered without motion blur if that isn't active as well.
+   */
+  use_motion_blur |= kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
   /* get kernel */
   const char *kernel_name = "kernel";
@@ -418,7 +363,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
   hiprtGeometryBuildInput geom_input;
   geom_input.geomType = Triangle;
 
-  if (mesh->has_motion_blur()) {
+  if (use_motion_blur && mesh->has_motion_blur()) {
 
     const Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     const float3 *vert_steps = attr_mP->data_float3();
@@ -541,8 +486,11 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
   const size_t num_segments = hair->num_segments();
   const Attribute *curve_attr_mP = nullptr;
 
-  if (curve_attr_mP == nullptr || bvh->params.num_motion_curve_steps == 0) {
+  if (use_motion_blur && hair->has_motion_blur()) {
+    curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+  }
 
+  if (curve_attr_mP == nullptr || bvh->params.num_motion_curve_steps == 0) {
     bvh->custom_prim_info.resize(num_segments);
     bvh->custom_primitive_bound.alloc(num_segments);
   }
@@ -551,7 +499,6 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
     bvh->custom_prim_info.resize(num_boxes);
     bvh->prims_time.resize(num_boxes);
     bvh->custom_primitive_bound.alloc(num_boxes);
-    curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
 
   int num_bounds = 0;
@@ -650,8 +597,8 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
               bvh->custom_prim_info[num_bounds].x = j;
               bvh->custom_prim_info[num_bounds].y = packed_type;  // k
               bvh->custom_primitive_bound[num_bounds] = bounds;
-              bvh->prims_time[num_bounds].x = curr_time;
-              bvh->prims_time[num_bounds].y = prev_time;
+              bvh->prims_time[num_bounds].x = prev_time;
+              bvh->prims_time[num_bounds].y = curr_time;
               num_bounds++;
             }
             prev_bounds = curr_bounds;
@@ -678,7 +625,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   hiprtGeometryBuildInput geom_input;
 
   const Attribute *point_attr_mP = nullptr;
-  if (pointcloud->has_motion_blur()) {
+  if (use_motion_blur && pointcloud->has_motion_blur()) {
     point_attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
 
@@ -831,14 +778,19 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
   if (rt_err != hiprtSuccess) {
     set_error(string_printf("Failed to create BLAS!"));
   }
-  bvh->geom_input = geom_input;
   {
     thread_scoped_lock lock(hiprt_mutex);
     if (blas_scratch_buffer_size > scratch_buffer_size) {
       scratch_buffer.alloc(blas_scratch_buffer_size);
-      scratch_buffer_size = blas_scratch_buffer_size;
       scratch_buffer.zero_to_device();
+      if (!scratch_buffer.device_pointer) {
+        hiprtDestroyGeometry(hiprt_context, bvh->hiprt_geom);
+        bvh->hiprt_geom = nullptr;
+        return;
+      }
+      scratch_buffer_size = blas_scratch_buffer_size;
     }
+    bvh->geom_input = geom_input;
     rt_err = hiprtBuildGeometry(hiprt_context,
                                 hiprtBuildOperationBuild,
                                 bvh->geom_input,
@@ -967,7 +919,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
       hiprtTransformHeader current_header = {0};
       current_header.frameCount = 1;
       current_header.frameIndex = transform_matrix.size();
-      if (ob->get_motion().size()) {
+      if (use_motion_blur && ob->get_motion().size()) {
         int motion_size = ob->get_motion().size();
         assert(motion_size != 1);
 
@@ -1003,6 +955,28 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     blender_instance_id++;
   }
 
+  size_t table_ptr_size = 0;
+  hipDeviceptr_t table_device_ptr;
+
+  hip_assert(hipModuleGetGlobal(&table_device_ptr, &table_ptr_size, hipModule, "kernel_params"));
+
+  size_t kernel_param_offset[4];
+  int table_index = 0;
+  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_closest_intersect);
+  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_shadow_intersect);
+  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_local_intersect);
+  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_volume_intersect);
+
+  for (int index = 0; index < table_index; index++) {
+
+    hip_assert(hipMemcpyHtoD(table_device_ptr + kernel_param_offset[index],
+                             (void *)&functions_table,
+                             sizeof(device_ptr)));
+  }
+
+  if (num_instances == 0)
+    return nullptr;
+
   int frame_count = transform_matrix.size();
   hiprtSceneBuildInput scene_input_ptr = {nullptr};
   scene_input_ptr.instanceCount = num_instances;
@@ -1015,6 +989,10 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   blas_ptr.copy_to_device();
   transform_headers.copy_to_device();
   {
+    if (instance_transform_matrix.data_size != frame_count) {
+      assert(!instance_transform_matrix.host_pointer);
+      instance_transform_matrix.host_and_device_free();
+    }
     instance_transform_matrix.host_pointer = transform_matrix.data();
     instance_transform_matrix.data_elements = sizeof(hiprtFrameMatrix);
     instance_transform_matrix.data_type = TYPE_UCHAR;
@@ -1069,6 +1047,10 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
   if (bvh->custom_prim_info.size()) {
     size_t data_size = bvh->custom_prim_info.size();
+    if (custom_prim_info.data_size != data_size) {
+      assert(!custom_prim_info.host_pointer);
+      custom_prim_info.host_and_device_free();
+    }
     custom_prim_info.host_pointer = bvh->custom_prim_info.data();
     custom_prim_info.data_elements = 2;
     custom_prim_info.data_type = TYPE_INT;
@@ -1084,6 +1066,10 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
   if (bvh->prims_time.size()) {
     size_t data_size = bvh->prims_time.size();
+    if (prims_time.data_size != data_size) {
+      assert(!prims_time.host_pointer);
+      prims_time.host_and_device_free();
+    }
     prims_time.host_pointer = bvh->prims_time.data();
     prims_time.data_elements = 2;
     prims_time.data_type = TYPE_FLOAT;
@@ -1095,25 +1081,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     prims_time.host_pointer = nullptr;
 
     prim_time_offset.copy_to_device();
-  }
-
-  size_t table_ptr_size = 0;
-  hipDeviceptr_t table_device_ptr;
-
-  hip_assert(hipModuleGetGlobal(&table_device_ptr, &table_ptr_size, hipModule, "kernel_params"));
-
-  size_t kernel_param_offset[4];
-  int table_index = 0;
-  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_closest_intersect);
-  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_shadow_intersect);
-  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_local_intersect);
-  kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_volume_intersect);
-
-  for (int index = 0; index < table_index; index++) {
-
-    hip_assert(hipMemcpyHtoD(table_device_ptr + kernel_param_offset[index],
-                             (void *)&functions_table,
-                             sizeof(device_ptr)));
   }
 
   return scene;

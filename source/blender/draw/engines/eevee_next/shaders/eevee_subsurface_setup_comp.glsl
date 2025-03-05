@@ -43,8 +43,8 @@ void main()
     float depth = texelFetch(depth_tx, texel, 0).r;
     /* TODO(fclem): Check if this simplifies. */
     float vPz = drw_depth_screen_to_view(depth);
-    float homcoord = ProjectionMatrix[2][3] * vPz + ProjectionMatrix[3][3];
-    float sample_scale = ProjectionMatrix[0][0] * (0.5 * max_radius / homcoord);
+    float homcoord = drw_view().winmat[2][3] * vPz + drw_view().winmat[3][3];
+    float sample_scale = drw_view().winmat[0][0] * (0.5 * max_radius / homcoord);
     float pixel_footprint = sample_scale * float(textureSize(gbuf_header_tx, 0).x);
     if (pixel_footprint > 1.0) {
       /* Race condition doesn't matter here. */

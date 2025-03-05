@@ -18,6 +18,7 @@
 #include "BLI_dial_2d.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
@@ -588,8 +589,9 @@ static void cage2d_draw_rect_corner_handles(const rctf *r,
                                             bool solid)
 {
   /* Only draw corner handles when hovering over the corners. */
-  if (highlighted < ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y ||
-      highlighted > ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y)
+  if (!((highlighted == ED_GIZMO_CAGE2D_PART_ROTATE) ||
+        (highlighted >= ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y &&
+         highlighted <= ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y)))
   {
     return;
   }
@@ -1290,7 +1292,10 @@ static void gizmo_cage2d_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
   RectTransformInteraction *data = static_cast<RectTransformInteraction *>(gz->interaction_data);
 
-  MEM_SAFE_FREE(data->dial);
+  if (data->dial) {
+    BLI_dial_free(data->dial);
+    data->dial = nullptr;
+  }
 
   if (!cancel) {
     return;

@@ -8,6 +8,7 @@
 
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
 #include "RE_pipeline.h"
@@ -183,7 +184,7 @@ static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
   if (!linear_image_buffer->float_buffer.data) {
     IMB_assign_byte_buffer(
         linear_image_buffer, image_buffer->byte_buffer, IB_DO_NOT_TAKE_OWNERSHIP);
-    IMB_float_from_rect(linear_image_buffer);
+    IMB_float_from_byte(linear_image_buffer);
   }
 
   /* If the image buffer contained compressed data, assign them as well, but only if the color
@@ -199,6 +200,56 @@ static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
   }
 
   return linear_image_buffer;
+}
+
+/* Returns the appropriate result type for the given image buffer, which represents the pass in the
+ * given render result with the given image user. The type is determined based on the channels
+ * count of the buffer for simple images, while channel IDs are also considered for multi-layer
+ * images since 3-channel passes can be RGB without alpha and 4-channel passes can be XYZW 4D
+ * vectors. */
+static ResultType get_result_type(const RenderResult *render_result,
+                                  const ImageUser &image_user,
+                                  const ImBuf *image_buffer)
+{
+  if (!render_result) {
+    return Result::float_type(image_buffer->channels);
+  }
+
+  const RenderLayer *render_layer = get_render_layer(render_result, image_user);
+  if (!render_layer) {
+    return Result::float_type(image_buffer->channels);
+  }
+
+  const RenderPass *render_pass = get_render_pass(render_layer, image_user);
+  if (!render_pass) {
+    return Result::float_type(image_buffer->channels);
+  }
+
+  switch (render_pass->channels) {
+    case 1:
+      return ResultType::Float;
+    case 2:
+      return ResultType::Float2;
+    case 3:
+      if (STR_ELEM(render_pass->chan_id, "RGB", "rgb")) {
+        return ResultType::Color;
+      }
+      else {
+        return ResultType::Float3;
+      }
+    case 4:
+      if (STR_ELEM(render_pass->chan_id, "RGBA", "rgba")) {
+        return ResultType::Color;
+      }
+      else {
+        return ResultType::Float4;
+      }
+    default:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return ResultType::Float;
 }
 
 CachedImage::CachedImage(Context &context,
@@ -235,11 +286,7 @@ CachedImage::CachedImage(Context &context,
   const bool use_half_float = linear_image_buffer->flags & IB_halffloat;
   this->result.set_precision(use_half_float ? ResultPrecision::Half : ResultPrecision::Full);
 
-  /* At the user level, vector images are always treated as color, so there are only two possible
-   * options, float images and color images. 3-channel images should then be converted to 4-channel
-   * images below. */
-  const bool is_single_channel = linear_image_buffer->channels == 1;
-  this->result.set_type(is_single_channel ? ResultType::Float : ResultType::Color);
+  this->result.set_type(get_result_type(render_result, image_user_for_pass, linear_image_buffer));
 
   /* For GPU, we wrap the texture returned by IMB module and free it ourselves in destructor. For
    * CPU, we allocate the result and copy to it from the image buffer. */
@@ -250,8 +297,8 @@ CachedImage::CachedImage(Context &context,
   }
   else {
     const int2 size = int2(image_buffer->x, image_buffer->y);
-    const int channels_count = linear_image_buffer->channels;
-    Result buffer_result(context, Result::float_type(channels_count), ResultPrecision::Full);
+    Result buffer_result(
+        context, Result::float_type(image_buffer->channels), ResultPrecision::Full);
     buffer_result.wrap_external(linear_image_buffer->float_buffer.data, size);
     this->result.allocate_texture(size, false);
     parallel_for(size, [&](const int2 texel) {
@@ -320,10 +367,6 @@ void CachedImage::populate_meta_data(const RenderResult *render_result,
         }
       },
       false);
-
-  if (StringRef(render_pass->chan_id) == "XYZW") {
-    this->result.meta_data.is_4d_vector = true;
-  }
 }
 
 CachedImage::~CachedImage()
@@ -343,6 +386,7 @@ void CachedImageContainer::reset()
     cached_images_for_id.remove_if([](auto item) { return !item.value->needed; });
   }
   map_.remove_if([](auto item) { return item.value.is_empty(); });
+  update_counts_.remove_if([&](auto item) { return !map_.contains(item.key); });
 
   /* Second, reset the needed status of the remaining cached images to false to ready them to
    * track their needed status for the next evaluation. */
@@ -372,14 +416,19 @@ Result CachedImageContainer::get(Context &context,
   const std::string id_key = std::string(image->id.name) + library_key;
   auto &cached_images_for_id = map_.lookup_or_add_default(id_key);
 
-  /* Invalidate the cache for that image ID if it was changed and reset the recalculate flag. */
-  if (context.query_id_recalc_flag(reinterpret_cast<ID *>(image)) & ID_RECALC_ALL) {
+  /* Invalidate the cache for that image if it was changed since it was cached. */
+  if (!cached_images_for_id.is_empty() &&
+      image->runtime.update_count != update_counts_.lookup(id_key))
+  {
     cached_images_for_id.clear();
   }
 
   auto &cached_image = *cached_images_for_id.lookup_or_add_cb(key, [&]() {
     return std::make_unique<CachedImage>(context, image, &image_user_for_frame, pass_name);
   });
+
+  /* Store the current update count to later compare to and check if the image changed. */
+  update_counts_.add_overwrite(id_key, image->runtime.update_count);
 
   cached_image.needed = true;
   return cached_image.result;

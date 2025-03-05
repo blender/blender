@@ -24,7 +24,9 @@ set(SRC
   intern/curves_ops.cc
   intern/curves_selection.cc
   intern/curves_undo.cc
+  intern/join.cc
   intern/select_linked_pick.cc
+  intern/separate.cc
 )
 
 set(LIB

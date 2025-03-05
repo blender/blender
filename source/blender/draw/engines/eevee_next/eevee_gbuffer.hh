@@ -13,6 +13,7 @@
 #include "DRW_render.hh"
 #include "GPU_capabilities.hh"
 
+#include "GPU_platform.hh"
 #include "eevee_material.hh"
 #include "eevee_shader_shared.hh"
 

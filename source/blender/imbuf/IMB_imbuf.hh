@@ -1,4 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2025 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,42 +7,11 @@
  * \ingroup imbuf
  */
 
-/**
- * \brief IMage Buffer module.
- *
- * This module offers import/export of several graphical file formats.
- * \ingroup imbuf
- *
- * \page IMB ImBuf module external interface
- * \section imb_about About the IMB module
- *
- * External interface of the IMage Buffer module. This module offers
- * import/export of several graphical file formats. It offers the
- * ImBuf type as a common structure to refer to different graphical
- * file formats, and to enable a uniform way of handling them.
- *
- * \section imb_issues Known issues with IMB
- *
- * - imbuf is written in C.
- * - Endianness issues are dealt with internally.
- * - File I/O must be done externally. The module uses FILE*'s to
- *   direct input/output.
- *
- * \section imb_dependencies Dependencies
- *
- * IMB needs:
- * - \ref DNA module
- *     The #ListBase types are used for handling the memory management.
- * - \ref blenlib module
- *     blenlib handles guarded memory management in blender-style.
- *     BLI_winstuff.h makes a few windows specific behaviors
- *     posix-compliant.
- */
-
 #pragma once
 
 #include "../gpu/GPU_texture.hh"
 
+#include "BLI_math_matrix_types.hh"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.hh"
@@ -168,16 +138,16 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1);
 /**
  * Approximate size of ImBuf in memory
  */
-size_t IMB_get_size_in_memory(ImBuf *ibuf);
+size_t IMB_get_size_in_memory(const ImBuf *ibuf);
 
 /**
- * \brief Get the length of the rect of the given image buffer in terms of pixels.
+ * \brief Get the length of the data of the given image buffer in pixels.
  *
  * This is the width * the height of the image buffer.
- * This function is preferred over `ibuf->x * ibuf->y` due to overflow issues when
- * working with large resolution images (30kx30k).
+ * This function is preferred over `ibuf->x * ibuf->y` due to 32 bit int overflow
+ * issues when working with very large resolution images.
  */
-size_t IMB_get_rect_len(const ImBuf *ibuf);
+size_t IMB_get_pixel_count(const ImBuf *ibuf);
 
 enum IMB_BlendMode {
   IMB_BLEND_MIX = 0,
@@ -366,9 +336,9 @@ bool IMB_alpha_affects_rgb(const ImBuf *ibuf);
 /**
  * Create char buffer, color corrected if necessary, for ImBufs that lack one.
  */
-void IMB_rect_from_float(ImBuf *ibuf);
-void IMB_float_from_rect_ex(ImBuf *dst, const ImBuf *src, const rcti *region_to_update);
-void IMB_float_from_rect(ImBuf *ibuf);
+void IMB_byte_from_float(ImBuf *ibuf);
+void IMB_float_from_byte_ex(ImBuf *dst, const ImBuf *src, const rcti *region_to_update);
+void IMB_float_from_byte(ImBuf *ibuf);
 /**
  * No profile conversion.
  */
@@ -390,7 +360,8 @@ void IMB_buffer_byte_from_float(unsigned char *rect_to,
                                 int width,
                                 int height,
                                 int stride_to,
-                                int stride_from);
+                                int stride_from,
+                                int start_y = 0);
 /**
  * Float to byte pixels, output 4-channel RGBA.
  */
@@ -551,42 +522,40 @@ void *imb_alloc_pixels(unsigned int x,
                        bool initialize_pixels,
                        const char *alloc_name);
 
-bool imb_addrectImBuf(ImBuf *ibuf, bool initialize_pixels = true);
 /**
- * Any free `ibuf->rect` frees mipmaps to be sure, creation is in render on first request.
+ * Allocate storage for byte type pixels.
+ * If the image already contains byte data storage, it is freed first.
  */
-void imb_freerectImBuf(ImBuf *ibuf);
+bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels = true);
 
-bool imb_addrectfloatImBuf(ImBuf *ibuf,
-                           const unsigned int channels,
-                           bool initialize_pixels = true);
 /**
- * Any free `ibuf->rect` frees mipmaps to be sure, creation is in render on first request.
+ * Deallocate image byte storage. Also deallocates any mipmaps.
  */
-void imb_freerectfloatImBuf(ImBuf *ibuf);
-void imb_freemipmapImBuf(ImBuf *ibuf);
+void IMB_free_byte_pixels(ImBuf *ibuf);
 
-/** Free all CPU pixel data (associated with image size). */
-void imb_freerectImbuf_all(ImBuf *ibuf);
+/**
+ * Allocate storage for float type pixels.
+ * If the image already contains float data storage, it is freed first.
+ */
+bool IMB_alloc_float_pixels(ImBuf *ibuf,
+                            const unsigned int channels,
+                            bool initialize_pixels = true);
+/**
+ * Deallocate image float storage. Also deallocates any mipmaps.
+ */
+void IMB_free_float_pixels(ImBuf *ibuf);
+
+/**
+ * Deallocate mipmaps.
+ */
+void IMB_free_mipmaps(ImBuf *ibuf);
+
+/** Deallocate all CPU side data storage (byte, float, encoded, mipmaps). */
+void IMB_free_all_data(ImBuf *ibuf);
 
 /* Free the GPU textures of the given image buffer, leaving the CPU buffers unchanged.
  * The ibuf can be nullptr, in which case the function does nothing. */
 void IMB_free_gpu_textures(ImBuf *ibuf);
-
-/**
- * Threaded processors.
- */
-void IMB_processor_apply_threaded(
-    int buffer_lines,
-    int handle_size,
-    void *init_customdata,
-    void(init_handle)(void *handle, int start_line, int tot_line, void *customdata),
-    void(do_thread)(void *));
-
-using ScanlineThreadFunc = void (*)(void *custom_data, int scanline);
-void IMB_processor_apply_threaded_scanlines(int total_scanlines,
-                                            ScanlineThreadFunc do_thread,
-                                            void *custom_data);
 
 /**
  * \brief Transform modes to use for IMB_transform function.
@@ -625,7 +594,7 @@ void IMB_transform(const ImBuf *src,
                    ImBuf *dst,
                    eIMBTransformMode mode,
                    eIMBInterpolationFilterMode filter,
-                   const float transform_matrix[4][4],
+                   const blender::float3x3 &transform_matrix,
                    const rctf *src_crop);
 
 GPUTexture *IMB_create_gpu_texture(const char *name,

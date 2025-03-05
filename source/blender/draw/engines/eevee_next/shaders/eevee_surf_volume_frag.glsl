@@ -55,7 +55,7 @@ VolumeProperties eval_froxel(ivec3 froxel, float jitter)
 
   vec3 vP = volume_jitter_to_view(uvw);
   vec3 wP = drw_point_view_to_world(vP);
-#if !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINT_CLOUD)
+#if !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINTCLOUD)
 #  ifdef GRID_ATTRIBUTES
   g_lP = drw_point_world_to_object(wP);
 #  else

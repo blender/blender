@@ -94,7 +94,7 @@ BLI_INLINE CacheArchiveHandle *handle_from_archive(ArchiveReader *archive)
  */
 static void add_object_path(ListBase *object_paths, const IObject &object)
 {
-  CacheObjectPath *abc_path = MEM_cnew<CacheObjectPath>("CacheObjectPath");
+  CacheObjectPath *abc_path = MEM_callocN<CacheObjectPath>("CacheObjectPath");
   STRNCPY(abc_path->path, object.getFullName().c_str());
   BLI_addtail(object_paths, abc_path);
 }

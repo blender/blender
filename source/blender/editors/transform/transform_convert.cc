@@ -47,7 +47,7 @@
 /* Own include. */
 #include "transform_convert.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 bool transform_mode_use_local_origins(const TransInfo *t)
 {
@@ -715,9 +715,9 @@ static void init_proportional_edit(TransInfo *t)
   if (!(ELEM(t->data_type,
              &TransConvertType_Action,
              &TransConvertType_Curve,
-             &TransConvertType_Curves,
+             &curves::TransConvertType_Curves,
              &TransConvertType_Graph,
-             &TransConvertType_GreasePencil,
+             &greasepencil::TransConvertType_GreasePencil,
              &TransConvertType_Lattice,
              &TransConvertType_Mask,
              &TransConvertType_MBall,
@@ -762,7 +762,7 @@ static void init_proportional_edit(TransInfo *t)
     else if (t->data_type == &TransConvertType_MeshUV && t->flag & T_PROP_CONNECTED) {
       /* Already calculated by uv_set_connectivity_distance. */
     }
-    else if (ELEM(t->data_type, &TransConvertType_Curve, &TransConvertType_Curves)) {
+    else if (ELEM(t->data_type, &TransConvertType_Curve, &curves::TransConvertType_Curves)) {
       BLI_assert(t->obedit_type == OB_CURVES_LEGACY || t->obedit_type == OB_CURVES);
       set_prop_dist(t, false);
     }
@@ -786,8 +786,9 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
             &TransConvertType_Pose,
             &TransConvertType_EditArmature,
             &TransConvertType_Curve,
-            &TransConvertType_Curves,
-            &TransConvertType_GreasePencil,
+            &curves::TransConvertType_Curves,
+            &greasepencil::TransConvertType_GreasePencil,
+            &pointcloud::TransConvertType_PointCloud,
             &TransConvertType_Lattice,
             &TransConvertType_MBall,
             &TransConvertType_Mesh,
@@ -803,7 +804,8 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
   const eObjectMode object_mode = eObjectMode(obact ? obact->mode : OB_MODE_OBJECT);
   const short object_type = obact ? obact->type : -1;
 
-  if ((object_mode & OB_MODE_EDIT) || (t->data_type == &TransConvertType_GreasePencil) ||
+  if ((object_mode & OB_MODE_EDIT) ||
+      (t->data_type == &greasepencil::TransConvertType_GreasePencil) ||
       ((object_mode & OB_MODE_POSE) && (object_type == OB_ARMATURE)))
   {
     if (t->data_container) {
@@ -847,7 +849,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
         tc->poseobj = objects[i];
         tc->use_local_mat = true;
       }
-      else if (t->data_type == &TransConvertType_GreasePencil) {
+      else if (t->data_type == &greasepencil::TransConvertType_GreasePencil) {
         tc->use_local_mat = true;
       }
 
@@ -897,7 +899,7 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   }
   if (t->options & CTX_GPENCIL_STROKES) {
     if (t->obedit_type == OB_GREASE_PENCIL) {
-      return &TransConvertType_GreasePencil;
+      return &greasepencil::TransConvertType_GreasePencil;
     }
     return nullptr;
   }
@@ -971,7 +973,10 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
       return &TransConvertType_EditArmature;
     }
     if (t->obedit_type == OB_CURVES) {
-      return &TransConvertType_Curves;
+      return &curves::TransConvertType_Curves;
+    }
+    if (t->obedit_type == OB_POINTCLOUD) {
+      return &pointcloud::TransConvertType_PointCloud;
     }
     return nullptr;
   }
@@ -1177,7 +1182,7 @@ void animrecord_check_state(TransInfo *t, ID *id)
    * - We're not only keying for available channels.
    * - The option to add new actions for each round is not enabled.
    */
-  if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE) == 0 &&
+  if (animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE) == 0 &&
       (scene->toolsettings->keying_flag & AUTOKEY_FLAG_LAYERED_RECORD))
   {
     /* If playback has just looped around,
@@ -1270,3 +1275,5 @@ void recalc_data(TransInfo *t)
 }
 
 /** \} */
+
+}  // namespace blender::ed::transform

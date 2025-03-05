@@ -11,6 +11,7 @@
 #include "GPU_context.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
+#include "GPU_texture_pool.hh"
 
 #include "gpu_texture_private.hh"
 
@@ -1152,6 +1153,55 @@ static void test_texture_update_sub_unpack_row_length()
   GPU_texture_free(texture);
 }
 GPU_TEST(texture_update_sub_unpack_row_length);
+
+static void test_texture_pool()
+{
+  const int2 size1(10);
+  const int2 size2(20);
+  const int2 size3(30);
+
+  TexturePool &pool = TexturePool::get();
+
+  eGPUTextureFormat format1 = GPU_RGBA8;
+  eGPUTextureFormat format2 = GPU_RGBA16F;
+  eGPUTextureFormat format3 = GPU_RGBA32F;
+
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+
+  auto test_acquire =
+      [&](int2 size, eGPUTextureFormat format, eGPUTextureUsage usage) -> GPUTexture * {
+    GPUTexture *tex = pool.acquire_texture(size.x, size.y, format, usage);
+    EXPECT_EQ(GPU_texture_format(tex), format);
+    EXPECT_EQ(GPU_texture_width(tex), size.x);
+    EXPECT_EQ(GPU_texture_height(tex), size.y);
+    return tex;
+  };
+
+  /* Tests multiple acquire. */
+  GPUTexture *tex1 = test_acquire(size1, format1, usage);
+  GPUTexture *tex2 = test_acquire(size2, format1, usage);
+  GPUTexture *tex3 = test_acquire(size3, format2, usage);
+  GPUTexture *tex4 = test_acquire(size3, format3, usage);
+
+  pool.release_texture(tex1);
+
+  /* Tests texture recycling. */
+  /* Note we don't test if the same texture is reused as this is implementation dependent. */
+  tex1 = test_acquire(size1, format1, usage);
+
+  pool.release_texture(tex1);
+
+  /* Tests missing release assert. */
+  EXPECT_BLI_ASSERT(pool.reset(), "Missing texture release");
+
+  pool.release_texture(tex2);
+  pool.release_texture(tex3);
+  pool.release_texture(tex4);
+
+  /* Expects no assert. */
+  pool.reset();
+}
+GPU_TEST(texture_pool);
 
 /* \} */
 

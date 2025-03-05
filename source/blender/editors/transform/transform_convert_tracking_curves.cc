@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
@@ -24,6 +25,8 @@
 
 #include "transform.hh"
 #include "transform_convert.hh"
+
+namespace blender::ed::transform {
 
 struct TransDataTrackingCurves {
   int flag;
@@ -305,3 +308,5 @@ TransConvertTypeInfo TransConvertType_TrackingCurves = {
     /*recalc_data*/ recalcData_tracking_curves,
     /*special_aftertrans_update*/ special_aftertrans_update__movieclip_for_curves,
 };
+
+}  // namespace blender::ed::transform

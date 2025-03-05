@@ -13,10 +13,6 @@
 #include "../Interface0D/BPy_CurvePoint.h"
 #include "../Interface0D/BPy_SVertex.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 using namespace Freestyle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -228,7 +224,3 @@ PyTypeObject FrsCurve_Type = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

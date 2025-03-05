@@ -37,6 +37,12 @@ blender::gpu::Batch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat
     ATTR_NONNULL(1);
 
 /**
+ * Create a batch of a unit cube (-1..+1).
+ * Only has position attribute.
+ */
+blender::gpu::Batch *GPU_batch_unit_cube() ATTR_WARN_UNUSED_RESULT;
+
+/**
  * Replacement for #gluSphere.
  *
  * \note Only use by draw manager. Use the presets function instead for interface.

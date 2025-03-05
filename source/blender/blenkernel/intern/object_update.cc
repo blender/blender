@@ -11,6 +11,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
@@ -185,7 +186,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       BKE_volume_data_update(depsgraph, scene, ob);
       break;
     case OB_GREASE_PENCIL:
-      BKE_grease_pencil_data_update(depsgraph, scene, ob);
+      BKE_object_eval_grease_pencil(depsgraph, scene, ob);
       break;
   }
 

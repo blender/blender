@@ -60,7 +60,7 @@ struct MovieIndexBuilder {
 
 static MovieIndexBuilder *index_builder_create(const char *filepath)
 {
-  MovieIndexBuilder *rv = MEM_cnew<MovieIndexBuilder>("index builder");
+  MovieIndexBuilder *rv = MEM_callocN<MovieIndexBuilder>("index builder");
 
   STRNCPY(rv->filepath, filepath);
 
@@ -372,7 +372,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
                                                    int height,
                                                    int quality)
 {
-  proxy_output_ctx *rv = MEM_cnew<proxy_output_ctx>("alloc_proxy_output");
+  proxy_output_ctx *rv = MEM_callocN<proxy_output_ctx>("alloc_proxy_output");
 
   char filepath[FILE_MAX];
 
@@ -705,7 +705,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
     return nullptr;
   }
 
-  MovieProxyBuilder *context = MEM_cnew<MovieProxyBuilder>("FFmpeg index builder context");
+  MovieProxyBuilder *context = MEM_callocN<MovieProxyBuilder>("FFmpeg index builder context");
   int num_proxy_sizes = IMB_PROXY_MAX_SLOT;
   int i, streamcount;
 

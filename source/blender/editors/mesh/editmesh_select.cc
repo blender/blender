@@ -249,14 +249,14 @@ void EDBM_select_mirrored(BMEditMesh *em,
 
 static BMElem *edbm_select_id_bm_elem_get(const Span<Base *> bases,
                                           const uint sel_id,
-                                          uint *r_base_index)
+                                          uint &r_base_index)
 {
   uint elem_id;
   char elem_type = 0;
-  bool success = DRW_select_buffer_elem_get(sel_id, &elem_id, r_base_index, &elem_type);
+  bool success = DRW_select_buffer_elem_get(sel_id, elem_id, r_base_index, elem_type);
 
   if (success) {
-    Object *obedit = bases[*r_base_index]->object;
+    Object *obedit = bases[r_base_index]->object;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     switch (elem_type) {
@@ -364,7 +364,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
 
       if (index) {
-        eve = (BMVert *)edbm_select_id_bm_elem_get(bases, index, &base_index);
+        eve = (BMVert *)edbm_select_id_bm_elem_get(bases, index, base_index);
       }
       else {
         eve = nullptr;
@@ -594,7 +594,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
 
       if (index) {
-        eed = (BMEdge *)edbm_select_id_bm_elem_get(bases, index, &base_index);
+        eed = (BMEdge *)edbm_select_id_bm_elem_get(bases, index, base_index);
       }
       else {
         eed = nullptr;
@@ -818,7 +818,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
       }
 
       if (index) {
-        efa = (BMFace *)edbm_select_id_bm_elem_get(bases, index, &base_index);
+        efa = (BMFace *)edbm_select_id_bm_elem_get(bases, index, base_index);
       }
       else {
         efa = nullptr;
@@ -5123,15 +5123,15 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
   float axis_mat[3][3];
 
   /* 3D view variables may be nullptr, (no need to check in poll function). */
-  ED_transform_calc_orientation_from_type_ex(scene,
-                                             view_layer,
-                                             CTX_wm_view3d(C),
-                                             CTX_wm_region_view3d(C),
-                                             obedit,
-                                             obedit,
-                                             orientation,
-                                             V3D_AROUND_ACTIVE,
-                                             axis_mat);
+  blender::ed::transform::calc_orientation_from_type_ex(scene,
+                                                        view_layer,
+                                                        CTX_wm_view3d(C),
+                                                        CTX_wm_region_view3d(C),
+                                                        obedit,
+                                                        obedit,
+                                                        orientation,
+                                                        V3D_AROUND_ACTIVE,
+                                                        axis_mat);
 
   const float *axis_vector = axis_mat[axis];
 

@@ -213,6 +213,13 @@ ccl_device_inline float max4(const float a, const float b, float c, const float 
   return max(max(a, b), max(c, d));
 }
 
+template<typename T> ccl_device_inline T make_zero();
+
+ccl_device_template_spec float make_zero()
+{
+  return 0.0f;
+}
+
 #if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
 /* Int/Float conversion */
 
@@ -860,6 +867,14 @@ template<typename T> struct Interval {
     return max - min;
   }
 };
+
+template<typename T1, typename T2>
+ccl_device_inline Interval<T1> operator/=(ccl_private Interval<T1> &interval, const T2 f)
+{
+  interval.min /= f;
+  interval.max /= f;
+  return interval;
+}
 
 /* Computes the intersection of two intervals. */
 template<typename T>

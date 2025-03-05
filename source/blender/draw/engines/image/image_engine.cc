@@ -30,10 +30,6 @@ namespace blender::image_engine {
 
 struct IMAGE_Data {
   void *engine_type;
-  DRWViewportEmptyList *fbl;
-  DRWViewportEmptyList *txl;
-  DRWViewportEmptyList *psl;
-  DRWViewportEmptyList *stl;
   Instance *instance;
   char info[GPU_INFO_SIZE];
 };
@@ -61,7 +57,7 @@ static void IMAGE_cache_init(void *vedata)
   ved->instance->image_sync();
 }
 
-static void IMAGE_cache_populate(void * /*vedata*/, Object * /*ob*/)
+static void IMAGE_cache_populate(void * /*vedata*/, blender::draw::ObjectRef & /*ob_ref*/)
 {
   /* Function intentional left empty. `cache_populate` is required to be implemented. */
 }
@@ -85,11 +81,7 @@ static void IMAGE_instance_free(void *instance)
 
 /** \} */
 
-static const DrawEngineDataSize IMAGE_data_size = DRW_VIEWPORT_DATA_SIZE(IMAGE_Data);
-
 }  // namespace blender::image_engine
-
-extern "C" {
 
 using namespace blender::image_engine;
 
@@ -97,7 +89,6 @@ DrawEngineType draw_engine_image_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ N_("UV/Image"),
-    /*vedata_size*/ &IMAGE_data_size,
     /*engine_init*/ &IMAGE_engine_init,
     /*engine_free*/ &IMAGE_engine_free,
     /*instance_free*/ &IMAGE_instance_free,
@@ -110,4 +101,3 @@ DrawEngineType draw_engine_image_type = {
     /*render_to_image*/ nullptr,
     /*store_metadata*/ nullptr,
 };
-}

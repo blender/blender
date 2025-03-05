@@ -2197,7 +2197,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
                                                  scopes->track_pos);
     if (tmpibuf) {
       if (tmpibuf->float_buffer.data) {
-        IMB_rect_from_float(tmpibuf);
+        IMB_byte_from_float(tmpibuf);
       }
 
       if (tmpibuf->byte_buffer.data) {

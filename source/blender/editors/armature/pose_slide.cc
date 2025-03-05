@@ -31,6 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
 
@@ -70,10 +71,6 @@
 #include "armature_intern.hh"
 
 using blender::Vector;
-
-/* Pixel distance from 0% to 100%. */
-#define SLIDE_PIXEL_DISTANCE (300 * U.pixelsize)
-#define OVERSHOOT_RANGE_DELTA 0.2f
 
 /* **************************************************** */
 /* A) Push & Relax, Breakdowner */

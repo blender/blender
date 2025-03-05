@@ -6,6 +6,7 @@
  * \ingroup spseq
  */
 
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
 #include "BLI_set.hh"
@@ -195,8 +196,9 @@ static bool retiming_key_add_new_for_seq(bContext *C,
                                          const int timeline_frame)
 {
   Scene *scene = CTX_data_scene(C);
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const float frame_index = (BKE_scene_frame_get(scene) - SEQ_time_start_frame_get(strip)) *
-                            SEQ_time_media_playback_rate_factor_get(scene, strip);
+                            SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
   const SeqRetimingKey *key = SEQ_retiming_find_segment_start_key(strip, frame_index);
 
   if (key != nullptr && SEQ_retiming_key_is_transition_start(key)) {
@@ -453,7 +455,7 @@ static bool transition_add_new_for_seq(const bContext *C,
     return false;
   }
 
-  SeqRetimingKey *transition = SEQ_retiming_add_transition(strip, key, duration);
+  SeqRetimingKey *transition = SEQ_retiming_add_transition(scene, strip, key, duration);
 
   if (transition == nullptr) {
     BKE_report(op->reports, RPT_WARNING, "Cannot create transition");

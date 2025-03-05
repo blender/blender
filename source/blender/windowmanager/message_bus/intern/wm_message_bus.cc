@@ -152,8 +152,8 @@ wmMsgSubscribeKey *WM_msg_subscribe_with_key(wmMsgBus *mbus,
 
   void **r_key;
   if (!BLI_gset_ensure_p_ex(mbus->messages_gset[type], msg_key_test, &r_key)) {
-    key = static_cast<wmMsgSubscribeKey *>(*r_key = MEM_mallocN(info->msg_key_size, __func__));
-    memcpy(key, msg_key_test, info->msg_key_size);
+    *r_key = info->gset.key_duplicate_fn(msg_key_test);
+    key = static_cast<wmMsgSubscribeKey *>(*r_key);
     BLI_addtail(&mbus->messages, key);
   }
   else {

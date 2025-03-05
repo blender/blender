@@ -10,6 +10,7 @@
 
 #include <mutex>
 
+#include "DRW_engine.hh"
 #include "DRW_render.hh"
 
 #include "BKE_global.hh"

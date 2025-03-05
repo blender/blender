@@ -2,32 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* To be compiled with subdiv_lib.glsl */
+/* Accumulate vertex normals from their adjacent faces.
+ *
+ * Accumulated normals needs to be finalized `subdiv_normals_finalize_comp.glsl`.
+ * to be stored as loops.
+ */
 
-layout(std430, binding = 0) readonly buffer inputVertexData
-{
-  PosNorLoop pos_nor[];
-};
+#include "subdiv_lib.glsl"
 
-layout(std430, binding = 1) readonly buffer faceAdjacencyOffsets
-{
-  uint face_adjacency_offsets[];
-};
-
-layout(std430, binding = 2) readonly buffer faceAdjacencyLists
-{
-  uint face_adjacency_lists[];
-};
-
-layout(std430, binding = 3) readonly buffer vertexLoopMap
-{
-  uint vert_loop_map[];
-};
-
-layout(std430, binding = 4) writeonly buffer vertexNormals
-{
-  vec3 normals[];
-};
+COMPUTE_SHADER_CREATE_INFO(subdiv_normals_accumulate)
 
 void find_prev_and_next_vertex_on_face(
     uint face_index, uint vertex_index, out uint curr, out uint next, out uint prev)
@@ -49,7 +32,7 @@ void find_prev_and_next_vertex_on_face(
 void main()
 {
   uint vertex_index = get_global_invocation_index();
-  if (vertex_index >= total_dispatch_size) {
+  if (vertex_index >= shader_data.total_dispatch_size) {
     return;
   }
 
@@ -67,7 +50,8 @@ void main()
     /* Compute the face normal using Newell's method. */
     vec3 verts[4];
     for (uint j = 0; j < 4; j++) {
-      verts[j] = get_vertex_pos(pos_nor[start_loop_index + j]);
+      PosNorLoop vertex_data = pos_nor[start_loop_index + j];
+      verts[j] = subdiv_get_vertex_pos(vertex_data);
     }
 
     vec3 face_normal = vec3(0.0);

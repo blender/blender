@@ -12,10 +12,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct BLI_Stack BLI_Stack;
 
 BLI_Stack *BLI_stack_new_ex(size_t elem_size,
@@ -89,7 +85,3 @@ size_t BLI_stack_count(const BLI_Stack *stack) ATTR_WARN_UNUSED_RESULT ATTR_NONN
  * Returns true if the stack is empty, false otherwise
  */
 bool BLI_stack_is_empty(const BLI_Stack *stack) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-
-#ifdef __cplusplus
-}
-#endif

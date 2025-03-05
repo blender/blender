@@ -139,10 +139,8 @@ static void extract_edge_factor_bm(const MeshRenderData &mr, MutableSpan<T> vbo_
 void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
   if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
-    static GPUVertFormat format = {0};
-    if (format.attr_len == 0) {
-      GPU_vertformat_attr_add(&format, "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    }
+    static const GPUVertFormat format = GPU_vertformat_from_attribute(
+        "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
     GPU_vertbuf_init_with_format(vbo, format);
     GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
     MutableSpan vbo_data = vbo.data<float>();
@@ -155,10 +153,8 @@ void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
     vbo_data.take_back(mr.loose_indices_num).fill(0.0f);
   }
   else {
-    static GPUVertFormat format = {0};
-    if (format.attr_len == 0) {
-      GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    }
+    static const GPUVertFormat format = GPU_vertformat_from_attribute(
+        "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
     GPU_vertbuf_init_with_format(vbo, format);
     GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
     MutableSpan vbo_data = vbo.data<uint8_t>();
@@ -176,15 +172,14 @@ void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
  * the buggy AMD driver case. */
 static const GPUVertFormat &get_subdiv_edge_fac_format()
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
-      GPU_vertformat_attr_add(&format, "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    }
-    else {
-      GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    }
+  if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
+    static const GPUVertFormat format = GPU_vertformat_from_attribute(
+        "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    return format;
   }
+
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
   return format;
 }
 
@@ -192,10 +187,8 @@ static gpu::VertBuf *build_poly_other_map_vbo(const DRWSubdivCache &subdiv_cache
 {
   gpu::VertBuf *vbo = GPU_vertbuf_calloc();
 
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "poly_other", GPU_COMP_I32, 1, GPU_FETCH_INT);
-  }
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "poly_other", GPU_COMP_I32, 1, GPU_FETCH_INT);
 
   GPU_vertbuf_init_with_format(*vbo, format);
   GPU_vertbuf_data_alloc(*vbo, subdiv_cache.num_subdiv_loops);

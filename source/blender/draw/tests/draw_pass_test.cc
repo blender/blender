@@ -6,6 +6,7 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
+#include "GPU_context.hh"
 
 #include "draw_cache.hh"
 #include "draw_manager.hh"
@@ -125,8 +126,6 @@ static void test_draw_pass_all_commands()
   expected << "  .barrier(2)" << std::endl;
 
   EXPECT_EQ(result, expected.str());
-
-  DRW_shape_cache_free();
 }
 DRAW_TEST(draw_pass_all_commands)
 
@@ -205,8 +204,6 @@ static void test_draw_pass_simple_draw()
   expected << "    .draw(inst_len=3, vert_len=80, vert_first=8, res_id=8)" << std::endl;
 
   EXPECT_EQ(result, expected.str());
-
-  DRW_shape_cache_free();
 }
 DRAW_TEST(draw_pass_simple_draw)
 
@@ -248,8 +245,6 @@ static void test_draw_pass_multi_draw()
   expected << "      .proto(instance_len=1, resource_id=1, front_face)" << std::endl;
 
   EXPECT_EQ(result, expected.str());
-
-  DRW_shape_cache_free();
 }
 DRAW_TEST(draw_pass_multi_draw)
 
@@ -274,8 +269,6 @@ static void test_draw_pass_sortable()
   expected << "  .Sub5" << std::endl;
 
   EXPECT_EQ(result, expected.str());
-
-  DRW_shape_cache_free();
 }
 DRAW_TEST(draw_pass_sortable)
 
@@ -360,8 +353,6 @@ static void test_draw_resource_id_gen()
   }
 
   GPU_render_end();
-
-  DRW_shape_cache_free();
   DRW_shaders_free();
 }
 DRAW_TEST(draw_resource_id_gen)
@@ -414,8 +405,6 @@ static void test_draw_visibility()
   EXPECT_EQ(result.str(), "11111111111111111111111111111011");
 
   GPU_render_end();
-
-  DRW_shape_cache_free();
   DRW_shaders_free();
 }
 DRAW_TEST(draw_visibility)

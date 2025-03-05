@@ -6,22 +6,13 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** \file
  * \ingroup imbuf
  */
 
 #define IM_MAX_SPACE 64
 
-/* WARNING: Keep explicit value assignments here,
- * this file is included in areas where not all format defines are set
- * (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined).
- * See #46524. */
-
-/** #ImBuf.ftype flag, main image types. */
+/** #ImBuf.ftype: main image types. */
 enum eImbFileType {
   IMB_FTYPE_NONE = 0,
   IMB_FTYPE_PNG = 1,
@@ -56,7 +47,3 @@ enum IMB_Proxy_Size {
   IMB_PROXY_MAX_SLOT = 4,
 };
 ENUM_OPERATORS(IMB_Proxy_Size, IMB_PROXY_100);
-
-#ifdef __cplusplus
-}
-#endif

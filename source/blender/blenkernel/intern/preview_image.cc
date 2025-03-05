@@ -446,7 +446,7 @@ ImBuf *BKE_previewimg_to_imbuf(const PreviewImage *prv, const int size)
 
   if (w > 0 && h > 0 && rect) {
     /* first allocate imbuf for copying preview into it */
-    ima = IMB_allocImBuf(w, h, 32, IB_rect);
+    ima = IMB_allocImBuf(w, h, 32, IB_byte_data);
     memcpy(ima->byte_buffer.data, rect, w * h * sizeof(uint8_t) * 4);
   }
 

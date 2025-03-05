@@ -16,10 +16,6 @@
 
 #include "BLI_threads.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct GHash;
 struct MovieTracking;
 struct MovieTrackingMarker;
@@ -184,7 +180,3 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
                                                    MovieTrackingTrack **tracks,
                                                    int num_tracks);
 void tracking_image_accessor_destroy(TrackingImageAccessor *accessor);
-
-#ifdef __cplusplus
-}
-#endif

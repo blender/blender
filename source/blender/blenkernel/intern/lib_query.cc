@@ -578,9 +578,9 @@ int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
 static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 {
   IDUsersIter iter;
-  ListBase *lb_array[INDEX_ID_MAX];
+  MainListsArray lb_array = BKE_main_lists_get(*bmain);
+  int i = lb_array.size();
   ID *id = static_cast<ID *>(idv);
-  int i = set_listbasepointers(bmain, lb_array);
   bool is_defined = false;
 
   iter.id = id;
@@ -624,9 +624,9 @@ void BKE_library_ID_test_usages(Main *bmain,
                                 bool *r_is_used_linked)
 {
   IDUsersIter iter;
-  ListBase *lb_array[INDEX_ID_MAX];
+  MainListsArray lb_array = BKE_main_lists_get(*bmain);
+  int i = lb_array.size();
   ID *id = static_cast<ID *>(idv);
-  int i = set_listbasepointers(bmain, lb_array);
   bool is_defined = false;
 
   iter.id = id;
@@ -1127,11 +1127,10 @@ void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 
 void BKE_library_indirectly_used_data_tag_clear(Main *bmain)
 {
-  ListBase *lb_array[INDEX_ID_MAX];
-
   bool do_loop = true;
   while (do_loop) {
-    int i = set_listbasepointers(bmain, lb_array);
+    MainListsArray lb_array = BKE_main_lists_get(*bmain);
+    int i = lb_array.size();
     do_loop = false;
 
     while (i--) {

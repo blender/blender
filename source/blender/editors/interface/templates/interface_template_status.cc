@@ -17,6 +17,7 @@
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
@@ -153,21 +154,26 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
 {
   if (az->type == AZONE_AREA) {
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemS_ex(layout, -0.2f);
     uiItemL(layout, IFACE_("Split/Dock"), ICON_NONE);
-    uiItemS_ex(layout, 0.7f);
+    uiItemS_ex(layout, 0.6f);
     uiItemL(layout, "", ICON_EVENT_SHIFT);
+    uiItemS_ex(layout, -0.4f);
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemS_ex(layout, -0.2f);
     uiItemL(layout, IFACE_("Duplicate into Window"), ICON_NONE);
-    uiItemS_ex(layout, 0.7f);
+    uiItemS_ex(layout, 0.6f);
     uiItemL(layout, "", ICON_EVENT_CTRL);
-    uiItemS_ex(layout, 1.5f);
+    uiItemS_ex(layout, ui_event_icon_offset(ICON_EVENT_CTRL));
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemS_ex(layout, -0.2f);
     uiItemL(layout, IFACE_("Swap Areas"), ICON_NONE);
     return true;
   }
 
   if (az->type == AZONE_REGION) {
     uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    uiItemS_ex(layout, -0.2f);
     uiItemL(layout,
             (region->runtime->visible) ? IFACE_("Resize Region") : IFACE_("Show Hidden Region"),
             ICON_NONE);
@@ -190,11 +196,12 @@ static bool uiTemplateInputStatusBorder(wmWindow *win, uiLayout *row)
     if (BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
       /* No resize at top and bottom. */
       uiItemL(row, nullptr, ICON_MOUSE_LMB_DRAG);
+      uiItemS_ex(row, -0.2f);
       uiItemL(row, IFACE_("Resize"), ICON_NONE);
-      uiItemS_ex(row, 0.7f);
+      uiItemS_ex(row, 0.6f);
     }
     uiItemL(row, nullptr, ICON_MOUSE_RMB);
-    uiItemS_ex(row, -0.5f);
+    uiItemS_ex(row, -0.9f);
     uiItemL(row, IFACE_("Options"), ICON_NONE);
     return true;
   }
@@ -208,10 +215,11 @@ static bool uiTemplateInputStatusHeader(ARegion *region, uiLayout *row)
   }
   /* Over a header region. */
   uiItemL(row, nullptr, ICON_MOUSE_MMB_DRAG);
+  uiItemS_ex(row, -0.2f);
   uiItemL(row, IFACE_("Pan"), ICON_NONE);
-  uiItemS_ex(row, 0.7f);
+  uiItemS_ex(row, 0.6f);
   uiItemL(row, nullptr, ICON_MOUSE_RMB);
-  uiItemS_ex(row, -0.5f);
+  uiItemS_ex(row, -0.9f);
   uiItemL(row, IFACE_("Options"), ICON_NONE);
   return true;
 }
@@ -229,7 +237,7 @@ static bool uiTemplateInputStatus3DView(bContext *C, uiLayout *row)
     uiItemS_ex(row, -0.2f);
     uiItemL(row, IFACE_("Active object has negative scale"), ICON_NONE);
     uiItemS_ex(row, 0.5f, LayoutSeparatorType::Line);
-    uiItemS_ex(row, 0.8f);
+    uiItemS_ex(row, 0.5f);
     /* Return false to allow other items to be added after. */
     return false;
   }
@@ -241,7 +249,7 @@ static bool uiTemplateInputStatus3DView(bContext *C, uiLayout *row)
     uiItemS_ex(row, -0.2f);
     uiItemL(row, IFACE_("Active object has non-uniform scale"), ICON_NONE);
     uiItemS_ex(row, 0.5f, LayoutSeparatorType::Line);
-    uiItemS_ex(row, 0.8f);
+    uiItemS_ex(row, 0.5f);
     /* Return false to allow other items to be added after. */
     return false;
   }
@@ -345,20 +353,23 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
 
     if (msg) {
       uiItemL(row, "", (ICON_MOUSE_LMB + i));
-      uiItemS_ex(row, -0.5f);
+      uiItemS_ex(row, -0.9f);
       uiItemL(row, msg, ICON_NONE);
-      uiItemS_ex(row, 0.7f);
+      uiItemS_ex(row, 0.6f);
     }
 
     if (msg_drag) {
       uiItemL(row, "", (ICON_MOUSE_LMB_DRAG + i));
+      uiItemS_ex(row, -0.4f);
       uiItemL(row, msg_drag, ICON_NONE);
-      uiItemS_ex(row, 0.7f);
+      uiItemS_ex(row, 0.6f);
     }
   }
 }
 
-static std::string ui_template_status_tooltip(bContext *C, void * /*argN*/, const char * /*tip*/)
+static std::string ui_template_status_tooltip(bContext *C,
+                                              void * /*argN*/,
+                                              const blender::StringRef /*tip*/)
 {
   Main *bmain = CTX_data_main(C);
   std::string tooltip_message;
@@ -412,7 +423,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
       /* This operator also works fine for blocked extensions. */
       uiItemO(row, "", ICON_ERROR, "EXTENSIONS_OT_userpref_show_for_update");
-      uiBut *but = static_cast<uiBut *>(uiLayoutGetBlock(layout)->buttons.last);
+      uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
       uchar color[4];
       UI_GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
@@ -437,7 +448,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       else {
         uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
         uiItemO(row, "", ICON_INTERNET_OFFLINE, "EXTENSIONS_OT_userpref_show_online");
-        uiBut *but = static_cast<uiBut *>(uiLayoutGetBlock(layout)->buttons.last);
+        uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
         uchar color[4];
         UI_GetThemeColor4ubv(TH_TEXT, color);
         copy_v4_v4_uchar(but->col, color);
@@ -461,7 +472,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       }
       uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
       uiItemO(row, "", icon, "EXTENSIONS_OT_userpref_show_for_update");
-      uiBut *but = static_cast<uiBut *>(uiLayoutGetBlock(layout)->buttons.last);
+      uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
       uchar color[4];
       UI_GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
@@ -532,7 +543,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                         0.0f,
                         "");
   /*# UI_BTYPE_ROUNDBOX's background color is set in `but->col`. */
-  UI_GetThemeColorType4ubv(TH_INFO_WARNING, SPACE_INFO, but->col);
+  UI_GetThemeColor4ubv(TH_WARNING, but->col);
 
   if (!warning_message.is_empty()) {
     /* Background for the rest of the message. */
@@ -550,7 +561,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                    "");
 
     /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
-    UI_GetThemeColorType4ubv(TH_INFO_WARNING, SPACE_INFO, but->col);
+    UI_GetThemeColor4ubv(TH_WARNING, but->col);
     but->col[3] = 64;
   }
 
@@ -569,7 +580,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                      nullptr,
                      0.0f,
                      0.0f,
-                     nullptr);
+                     std::nullopt);
   UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
   UI_GetThemeColorType4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
   but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
@@ -587,7 +598,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                    nullptr,
                    0.0f,
                    0.0f,
-                   nullptr);
+                   std::nullopt);
     UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
   }
 

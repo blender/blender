@@ -50,8 +50,8 @@ class ABCHierarchyIterator : public AbstractHierarchyIterator {
  protected:
   bool mark_as_weak_export(const Object *object) const override;
 
-  ExportGraph::key_type determine_graph_index_object(const HierarchyContext *context) override;
-  AbstractHierarchyIterator::ExportGraph::key_type determine_graph_index_dupli(
+  ObjectIdentifier determine_graph_index_object(const HierarchyContext *context) override;
+  ObjectIdentifier determine_graph_index_dupli(
       const HierarchyContext *context,
       const DupliObject *dupli_object,
       const DupliParentFinder &dupli_parent_finder) override;

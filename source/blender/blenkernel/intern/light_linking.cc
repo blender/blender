@@ -14,6 +14,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_assert.h"
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "BKE_collection.hh"
@@ -97,7 +98,7 @@ void BKE_light_linking_collection_assign_only(Object *object,
 
   /* Allocate light linking on demand. */
   if (new_collection && !object->light_linking) {
-    object->light_linking = MEM_cnew<LightLinking>(__func__);
+    object->light_linking = MEM_callocN<LightLinking>(__func__);
   }
 
   if (object->light_linking) {

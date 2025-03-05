@@ -230,8 +230,8 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
   if (const GreasePencil *grease_pencil = geometry_set.get_grease_pencil()) {
     parts.append(std::to_string(grease_pencil->layers().size()) + " Grease Pencil layers");
   }
-  if (const PointCloud *point_cloud = geometry_set.get_pointcloud()) {
-    parts.append(std::to_string(point_cloud->totpoint) + " points");
+  if (const PointCloud *pointcloud = geometry_set.get_pointcloud()) {
+    parts.append(std::to_string(pointcloud->totpoint) + " points");
   }
   if (const Volume *volume = geometry_set.get_volume()) {
     parts.append(std::to_string(BKE_volume_num_grids(volume)) + " volume grids");

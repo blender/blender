@@ -9,6 +9,8 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
@@ -399,7 +401,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
                          0,
                          0,
                          0,
-                         nullptr);
+                         std::nullopt);
       UI_block_emboss_set(block, UI_EMBOSS);
     }
 

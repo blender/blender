@@ -16,9 +16,10 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "IO_string_utils.hh"
+
 #include "obj_export_mtl.hh"
 #include "obj_import_file_reader.hh"
-#include "obj_import_string_utils.hh"
 
 #include <algorithm>
 #include <charconv>

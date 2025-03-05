@@ -15,7 +15,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 
 #include "BKE_image.hh"
 #include "BKE_report.hh"
@@ -32,7 +32,7 @@
 #include "transform_mode.hh"
 #include "transform_snap.hh"
 
-using namespace blender;
+namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Translate) Custom Data
@@ -63,17 +63,6 @@ struct TranslateCustomData {
 /* -------------------------------------------------------------------- */
 /** \name Transform (Translation) Element
  * \{ */
-
-/**
- * \note Small arrays / data-structures should be stored copied for faster memory access.
- */
-struct TransDataArgs_Translate {
-  const TransInfo *t;
-  const TransDataContainer *tc;
-  float3 snap_source_local;
-  float3 vec;
-  enum eTranslateRotateMode rotate_mode;
-};
 
 static void transdata_elem_translate(const TransInfo *t,
                                      const TransDataContainer *tc,
@@ -159,19 +148,6 @@ static void transdata_elem_translate(const TransInfo *t,
   }
 
   constraintTransLim(t, tc, td);
-}
-
-static void transdata_elem_translate_fn(void *__restrict iter_data_v,
-                                        const int iter,
-                                        const TaskParallelTLS *__restrict /*tls*/)
-{
-  TransDataArgs_Translate *data = static_cast<TransDataArgs_Translate *>(iter_data_v);
-  TransData *td = &data->tc->data[iter];
-  if (td->flag & TD_SKIP) {
-    return;
-  }
-  transdata_elem_translate(
-      data->t, data->tc, td, data->snap_source_local, data->vec, data->rotate_mode);
 }
 
 /** \} */
@@ -349,10 +325,10 @@ static void ApplySnapTranslation(TransInfo *t, float vec[3])
 
   if (t->spacetype == SPACE_SEQ) {
     if (t->region->regiontype == RGN_TYPE_PREVIEW) {
-      transform_snap_sequencer_image_apply_translate(t, vec);
+      snap_sequencer_image_apply_translate(t, vec);
     }
     else {
-      transform_snap_sequencer_apply_seqslide(t, vec);
+      snap_sequencer_apply_seqslide(t, vec);
     }
   }
   else {
@@ -456,27 +432,15 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
       }
     }
 
-    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
-      TransData *td = tc->data;
-      for (int i = 0; i < tc->data_len; i++, td++) {
+    threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        TransData *td = &tc->data[i];
         if (td->flag & TD_SKIP) {
           continue;
         }
         transdata_elem_translate(t, tc, td, snap_source_local, vec, rotate_mode);
       }
-    }
-    else {
-      TransDataArgs_Translate data{};
-      data.t = t;
-      data.tc = tc;
-      data.snap_source_local = snap_source_local;
-      data.vec = vec;
-      data.rotate_mode = rotate_mode;
-
-      TaskParallelSettings settings;
-      BLI_parallel_range_settings_defaults(&settings);
-      BLI_task_parallel_range(0, tc->data_len, &data, transdata_elem_translate_fn, &settings);
-    }
+    });
   }
 
   custom_data->prev.rotate_mode = rotate_mode;
@@ -669,3 +633,5 @@ TransModeInfo TransMode_translate = {
     /*snap_apply_fn*/ ApplySnapTranslation,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

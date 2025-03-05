@@ -250,7 +250,7 @@ std::string ShaderCreateInfo::check_error() const
     if (this->vertex_source_.is_empty()) {
       error += "Missing vertex shader in " + this->name_ + ".\n";
     }
-    if (tf_type_ == GPU_SHADER_TFB_NONE && this->fragment_source_.is_empty()) {
+    if (this->fragment_source_.is_empty()) {
       error += "Missing fragment shader in " + this->name_ + ".\n";
     }
   }
@@ -472,21 +472,10 @@ void gpu_shader_create_info_init()
 /* Declare, register and construct the infos. */
 #include "gpu_shader_create_info_list.hh"
 
-  /* WORKAROUND: Replace draw_mesh info with the legacy one for systems that have problems with UBO
-   * indexing. */
-  if (GPU_type_matches_ex(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD,
-                          GPU_OS_ANY,
-                          GPU_DRIVER_ANY,
-                          GPU_BACKEND_OPENGL) ||
-      GPU_crappy_amd_driver())
-  {
-    draw_modelmat = draw_modelmat_legacy;
-  }
-
   /* WORKAROUND: Replace the use of gpu_BaseInstance by an instance attribute. */
   if (GPU_shader_draw_parameters_support() == false) {
-    draw_resource_id_new = draw_resource_id_fallback;
-    draw_resource_with_custom_id_new = draw_resource_with_custom_id_fallback;
+    draw_resource_id = draw_resource_id_fallback;
+    draw_resource_with_custom_id = draw_resource_with_custom_id_fallback;
   }
 
   if (GPU_stencil_clasify_buffer_workaround()) {
@@ -563,8 +552,7 @@ bool gpu_shader_create_info_compile(const char *name_starts_with_filter)
         continue;
       }
       if ((info->metal_backend_only_ && GPU_backend_get_type() != GPU_BACKEND_METAL) ||
-          (GPU_geometry_shader_support() == false && info->geometry_source_ != nullptr) ||
-          (GPU_transform_feedback_support() == false && info->tf_type_ != GPU_SHADER_TFB_NONE))
+          (GPU_geometry_shader_support() == false && info->geometry_source_ != nullptr))
       {
         skipped++;
         continue;

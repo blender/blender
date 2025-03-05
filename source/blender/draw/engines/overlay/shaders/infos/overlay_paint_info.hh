@@ -2,6 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_common_shader_shared.hh"
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+#endif
+
 #include "overlay_common_info.hh"
 
 /* -------------------------------------------------------------------- */
@@ -19,8 +28,7 @@ FRAGMENT_OUT(0, VEC4, fragColor)
 VERTEX_SOURCE("overlay_paint_face_vert.glsl")
 FRAGMENT_SOURCE("overlay_uniform_color_frag.glsl")
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
@@ -47,8 +55,7 @@ FRAGMENT_OUT(0, VEC4, fragColor)
 VERTEX_SOURCE("overlay_paint_point_vert.glsl")
 FRAGMENT_SOURCE("overlay_point_varying_color_frag.glsl")
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
@@ -80,8 +87,7 @@ FRAGMENT_OUT(0, VEC4, fragColor)
 VERTEX_SOURCE("overlay_paint_texture_vert.glsl")
 FRAGMENT_SOURCE("overlay_paint_texture_frag.glsl")
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
@@ -115,8 +121,7 @@ FRAGMENT_OUT(1, VEC4, lineOutput)
 VERTEX_SOURCE("overlay_paint_weight_vert.glsl")
 FRAGMENT_SOURCE("overlay_paint_weight_frag.glsl")
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
@@ -154,8 +159,7 @@ FRAGMENT_OUT(0, VEC4, fragColor)
 VERTEX_SOURCE("overlay_paint_wire_vert.glsl")
 FRAGMENT_SOURCE("overlay_varying_color.glsl")
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 

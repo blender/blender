@@ -6,6 +6,8 @@
  * \ingroup edinterface
  */
 
+#include "BLI_listbase.h"
+
 #include "UI_interface.hh"
 
 namespace blender::ui {

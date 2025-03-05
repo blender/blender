@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include "DNA_userdef_types.h"
+
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 
@@ -72,7 +74,7 @@ void Manager::begin_sync()
   attribute_len_ = 0;
   /* TODO(fclem): Resize buffers if too big, but with an hysteresis threshold. */
 
-  object_active = DST.draw_ctx.obact;
+  object_active = drw_get().draw_ctx.obact;
 
   /* Init the 0 resource. */
   resource_handle(float4x4::identity());
@@ -96,7 +98,7 @@ void Manager::sync_layer_attributes()
 
   for (uint32_t id : id_list) {
     if (layer_attributes_buf[count].sync(
-            DST.draw_ctx.scene, DST.draw_ctx.view_layer, layer_attributes.lookup(id)))
+            drw_get().draw_ctx.scene, drw_get().draw_ctx.view_layer, layer_attributes.lookup(id)))
     {
       /* Check if the buffer is full. */
       if (++count == size) {
@@ -119,7 +121,6 @@ void Manager::end_sync()
   infos_buf.current().push_update();
   attributes_buf.push_update();
   layer_attributes_buf.push_update();
-  attributes_buf_legacy.push_update();
 
   /* Useful for debugging the following resource finalize. But will trigger the drawing of the GPU
    * debug draw/print buffers for every frame. Not nice for performance. */
@@ -142,7 +143,7 @@ void Manager::end_sync()
 void Manager::debug_bind()
 {
 #ifdef WITH_DRAW_DEBUG
-  if (DST.debug == nullptr) {
+  if (drw_get().debug == nullptr) {
     return;
   }
   GPU_storagebuf_bind(drw_debug_gpu_draw_buf_get(), DRW_DEBUG_DRAW_SLOT);
@@ -159,9 +160,6 @@ void Manager::resource_bind()
   GPU_storagebuf_bind(infos_buf.current(), DRW_OBJ_INFOS_SLOT);
   GPU_storagebuf_bind(attributes_buf, DRW_OBJ_ATTR_SLOT);
   GPU_uniformbuf_bind(layer_attributes_buf, DRW_LAYER_ATTR_UBO_SLOT);
-  /* 2 is the hardcoded location of the uniform attr UBO. */
-  /* TODO(@fclem): Remove this workaround. */
-  GPU_uniformbuf_bind(attributes_buf_legacy, 2);
 }
 
 uint64_t Manager::fingerprint_get()
@@ -182,8 +180,9 @@ ResourceHandleRange Manager::resource_handle_for_sculpt(const ObjectRef &ref)
 
 void Manager::compute_visibility(View &view)
 {
-  bool freeze_culling = (USER_EXPERIMENTAL_TEST(&U, use_viewport_debug) && DST.draw_ctx.v3d &&
-                         (DST.draw_ctx.v3d->debug_flag & V3D_DEBUG_FREEZE_CULLING) != 0);
+  bool freeze_culling = (USER_EXPERIMENTAL_TEST(&U, use_viewport_debug) &&
+                         drw_get().draw_ctx.v3d &&
+                         (drw_get().draw_ctx.v3d->debug_flag & V3D_DEBUG_FREEZE_CULLING) != 0);
 
   BLI_assert_msg(view.manager_fingerprint_ != this->fingerprint_get(),
                  "Resources did not changed, no need to update");

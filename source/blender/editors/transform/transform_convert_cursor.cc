@@ -22,6 +22,8 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Shared 2D Cursor Utilities
  * \{ */
@@ -145,7 +147,7 @@ static void createTransCursor_view3d(bContext * /*C*/, TransInfo *t)
   copy_v3_v3(td->center, cursor->location);
 
   unit_m3(td->mtx);
-  copy_m3_m3(td->axismtx, cursor->matrix<blender::float3x3>().ptr());
+  copy_m3_m3(td->axismtx, cursor->matrix<float3x3>().ptr());
   normalize_m3(td->axismtx);
   pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
@@ -207,3 +209,5 @@ TransConvertTypeInfo TransConvertType_Cursor3D = {
     /*recalc_data*/ recalcData_cursor_view3d,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

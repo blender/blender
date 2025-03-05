@@ -147,23 +147,22 @@ bool calc_active_center(Object *ob, const bool select_only, float r_center[3])
  * \{ */
 
 struct XFormObjectSkipChild_Container {
-  GHash *obchild_in_obmode_map;
+  GHash *obchild_in_obmode_map = nullptr;
 };
 
 struct XFormObjectSkipChild {
-  float obmat_orig[4][4];
-  float parent_obmat_orig[4][4];
-  float parent_obmat_inv_orig[4][4];
-  float parent_recurse_obmat_orig[4][4];
-  float parentinv_orig[4][4];
-  Object *ob_parent_recurse;
-  int mode;
+  float obmat_orig[4][4] = {};
+  float parent_obmat_orig[4][4] = {};
+  float parent_obmat_inv_orig[4][4] = {};
+  float parent_recurse_obmat_orig[4][4] = {};
+  float parentinv_orig[4][4] = {};
+  Object *ob_parent_recurse = nullptr;
+  int mode = OB_MODE_OBJECT;
 };
 
 XFormObjectSkipChild_Container *xform_skip_child_container_create()
 {
-  XFormObjectSkipChild_Container *xcs = static_cast<XFormObjectSkipChild_Container *>(
-      MEM_callocN(sizeof(*xcs), __func__));
+  XFormObjectSkipChild_Container *xcs = MEM_new<XFormObjectSkipChild_Container>(__func__);
   if (xcs->obchild_in_obmode_map == nullptr) {
     xcs->obchild_in_obmode_map = BLI_ghash_ptr_new(__func__);
   }
@@ -229,7 +228,7 @@ void xform_skip_child_container_item_ensure_from_array(XFormObjectSkipChild_Cont
 void object_xform_skip_child_container_destroy(XFormObjectSkipChild_Container *xcs)
 {
   BLI_ghash_free(xcs->obchild_in_obmode_map, nullptr, MEM_freeN);
-  MEM_freeN(xcs);
+  MEM_delete(xcs);
 }
 
 void object_xform_skip_child_container_item_ensure(XFormObjectSkipChild_Container *xcs,
@@ -239,8 +238,7 @@ void object_xform_skip_child_container_item_ensure(XFormObjectSkipChild_Containe
 {
   void **xf_p;
   if (!BLI_ghash_ensure_p(xcs->obchild_in_obmode_map, ob, &xf_p)) {
-    XFormObjectSkipChild *xf = static_cast<XFormObjectSkipChild *>(
-        MEM_mallocN(sizeof(*xf), __func__));
+    XFormObjectSkipChild *xf = MEM_new<XFormObjectSkipChild>(__func__);
     copy_m4_m4(xf->parentinv_orig, ob->parentinv);
     copy_m4_m4(xf->obmat_orig, ob->object_to_world().ptr());
     copy_m4_m4(xf->parent_obmat_orig, ob->parent->object_to_world().ptr());
@@ -330,13 +328,13 @@ void object_xform_skip_child_container_update_all(XFormObjectSkipChild_Container
  * \{ */
 
 struct XFormObjectData_Container {
-  GHash *obdata_in_obmode_map;
+  GHash *obdata_in_obmode_map = nullptr;
 };
 
 struct XFormObjectData_Extra {
-  Object *ob;
-  float obmat_orig[4][4];
-  XFormObjectData *xod;
+  Object *ob = nullptr;
+  float obmat_orig[4][4] = {};
+  std::unique_ptr<XFormObjectData> xod;
 };
 
 void data_xform_container_item_ensure(XFormObjectData_Container *xds, Object *ob)
@@ -347,8 +345,7 @@ void data_xform_container_item_ensure(XFormObjectData_Container *xds, Object *ob
 
   void **xf_p;
   if (!BLI_ghash_ensure_p(xds->obdata_in_obmode_map, ob->data, &xf_p)) {
-    XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(
-        MEM_mallocN(sizeof(*xf), __func__));
+    XFormObjectData_Extra *xf = MEM_new<XFormObjectData_Extra>(__func__);
     copy_m4_m4(xf->obmat_orig, ob->object_to_world().ptr());
     xf->ob = ob;
     /* Result may be nullptr, that's OK. */
@@ -371,17 +368,17 @@ void data_xform_container_update_all(XFormObjectData_Container *xds,
     ID *id = static_cast<ID *>(BLI_ghashIterator_getKey(&gh_iter));
     XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(
         BLI_ghashIterator_getValue(&gh_iter));
-    if (xf->xod == nullptr) {
+    if (!xf->xod) {
       continue;
     }
 
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, xf->ob);
-    float imat[4][4], dmat[4][4];
-    invert_m4_m4(imat, xf->obmat_orig);
-    mul_m4_m4m4(dmat, imat, ob_eval->object_to_world().ptr());
-    invert_m4(dmat);
+    float4x4 imat, dmat;
+    invert_m4_m4(imat.ptr(), xf->obmat_orig);
+    mul_m4_m4m4(dmat.ptr(), imat.ptr(), ob_eval->object_to_world().ptr());
+    invert_m4(dmat.ptr());
 
-    data_xform_by_mat4(xf->xod, dmat);
+    data_xform_by_mat4(*xf->xod, dmat);
     if (xf->ob->type == OB_ARMATURE) {
       /* TODO: none of the current flags properly update armatures, needs investigation. */
       DEG_id_tag_update(id, 0);
@@ -396,16 +393,12 @@ void data_xform_container_update_all(XFormObjectData_Container *xds,
 static void trans_obdata_in_obmode_free_elem(void *xf_p)
 {
   XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(xf_p);
-  if (xf->xod) {
-    data_xform_destroy(xf->xod);
-  }
-  MEM_freeN(xf);
+  MEM_delete(xf);
 }
 
 XFormObjectData_Container *data_xform_container_create()
 {
-  XFormObjectData_Container *xds = static_cast<XFormObjectData_Container *>(
-      MEM_callocN(sizeof(*xds), __func__));
+  XFormObjectData_Container *xds = MEM_new<XFormObjectData_Container>(__func__);
   xds->obdata_in_obmode_map = BLI_ghash_ptr_new(__func__);
   return xds;
 }
@@ -413,7 +406,7 @@ XFormObjectData_Container *data_xform_container_create()
 void data_xform_container_destroy(XFormObjectData_Container *xds)
 {
   BLI_ghash_free(xds->obdata_in_obmode_map, nullptr, trans_obdata_in_obmode_free_elem);
-  MEM_freeN(xds);
+  MEM_delete(xds);
 }
 
 /** \} */

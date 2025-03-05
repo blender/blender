@@ -54,7 +54,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   nullptr,
                                   0,
                                   0,
-                                  nullptr);
+                                  std::nullopt);
     /* Center-align column headers. */
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
     UI_but_drawflag_disable(but, UI_BUT_TEXT_RIGHT);
@@ -76,7 +76,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   nullptr,
                                   0,
                                   0,
-                                  nullptr);
+                                  std::nullopt);
     /* Right-align indices. */
     UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -107,13 +107,13 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    nullptr);
+                                    std::nullopt);
       UI_but_func_tooltip_set(
           but,
-          [](bContext * /*C*/, void *argN, const char * /*tip*/) {
+          [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{}", *((int *)argN));
           },
-          MEM_cnew<int>(__func__, value),
+          MEM_dupallocN<int>(__func__, value),
           MEM_freeN);
       /* Right-align Integers. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -134,7 +134,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    nullptr);
+                                    std::nullopt);
       /* Right-align Integers. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
       UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
@@ -164,13 +164,13 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    nullptr);
+                                    std::nullopt);
       UI_but_func_tooltip_set(
           but,
-          [](bContext * /*C*/, void *argN, const char * /*tip*/) {
+          [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{:f}", *((float *)argN));
           },
-          MEM_cnew<float>(__func__, value),
+          MEM_dupallocN<float>(__func__, value),
           MEM_freeN);
       /* Right-align Floats. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -191,7 +191,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    nullptr);
+                                    std::nullopt);
       UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
     }
     else if (data.type().is<float2>()) {
@@ -233,7 +233,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                        nullptr,
                        0,
                        0,
-                       nullptr);
+                       std::nullopt);
     }
     else if (data.type().is<std::string>()) {
       uiDefIconTextBut(params.block,
@@ -248,10 +248,10 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                        nullptr,
                        0,
                        0,
-                       nullptr);
+                       std::nullopt);
     }
     else if (data.type().is<MStringProperty>()) {
-      MStringProperty *prop = MEM_cnew<MStringProperty>(__func__);
+      MStringProperty *prop = MEM_callocN<MStringProperty>(__func__);
       data.get_to_uninitialized(real_index, prop);
       uiBut *but = uiDefIconTextBut(params.block,
                                     UI_BTYPE_LABEL,
@@ -265,11 +265,11 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    nullptr);
+                                    std::nullopt);
 
       UI_but_func_tooltip_set(
           but,
-          [](bContext * /*C*/, void *argN, const char * /*tip*/) {
+          [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             const MStringProperty &prop = *static_cast<MStringProperty *>(argN);
             return std::string(StringRef(prop.s, prop.s_len));
           },
@@ -299,14 +299,14 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    nullptr);
+                                    std::nullopt);
 
       UI_but_func_tooltip_set(
           but,
-          [](bContext * /*C*/, void *argN, const char * /*tip*/) {
+          [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{:f}", *((float *)argN));
           },
-          MEM_cnew<float>(__func__, value),
+          MEM_dupallocN<float>(__func__, value),
           MEM_freeN);
       /* Right-align Floats. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -335,13 +335,13 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    nullptr);
+                                    std::nullopt);
       UI_but_func_tooltip_set(
           but,
-          [](bContext * /*C*/, void *argN, const char * /*tip*/) {
+          [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{}", *((int *)argN));
           },
-          MEM_cnew<int>(__func__, value),
+          MEM_dupallocN<int>(__func__, value),
           MEM_freeN);
       /* Right-align Floats. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -371,7 +371,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    nullptr);
+                                    std::nullopt);
       /* Right-align Floats. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
       UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
@@ -379,7 +379,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       /* Tooltip showing raw byte values. Encode values in pointer to avoid memory allocation. */
       UI_but_func_tooltip_set(
           but,
-          [](bContext * /*C*/, void *argN, const char * /*tip*/) {
+          [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             const uint32_t uint_color = POINTER_AS_UINT(argN);
             ColorGeometry4b color = *(ColorGeometry4b *)&uint_color;
             return fmt::format(fmt::runtime(TIP_("Byte Color (sRGB encoded):\n{}  {}  {}  {}")),
@@ -407,12 +407,12 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   nullptr,
                                   0,
                                   0,
-                                  nullptr);
+                                  std::nullopt);
     /* Center alignment. */
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
     UI_but_func_tooltip_set(
         but,
-        [](bContext * /*C*/, void *argN, const char * /*tip*/) {
+        [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
           /* Transpose to be able to print row by row. */
           const float4x4 value = math::transpose(*static_cast<const float4x4 *>(argN));
           std::stringstream ss;
@@ -422,7 +422,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           ss << value[3];
           return ss.str();
         },
-        MEM_cnew<float4x4>(__func__, value),
+        MEM_dupallocN<float4x4>(__func__, value),
         MEM_freeN);
   }
 

@@ -10,10 +10,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ListBase;
 
 /* Box Packer */
@@ -74,7 +70,3 @@ void BLI_box_pack_2d_fixedarea(struct ListBase *boxes,
                                int width,
                                int height,
                                struct ListBase *packed);
-
-#ifdef __cplusplus
-}
-#endif

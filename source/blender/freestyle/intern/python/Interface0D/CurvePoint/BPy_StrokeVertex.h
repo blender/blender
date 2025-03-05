@@ -12,10 +12,6 @@
 
 #include "../../../stroke/Stroke.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject StrokeVertex_Type;
@@ -34,7 +30,3 @@ typedef struct {
 void StrokeVertex_mathutils_register_callback();
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

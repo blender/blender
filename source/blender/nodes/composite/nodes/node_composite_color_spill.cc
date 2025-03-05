@@ -43,7 +43,7 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_color_spill(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeColorspill *ncs = MEM_cnew<NodeColorspill>(__func__);
+  NodeColorspill *ncs = MEM_callocN<NodeColorspill>(__func__);
   node->storage = ncs;
   node->custom2 = CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE;
   node->custom1 = 2;    /* green channel */
@@ -225,9 +225,9 @@ void register_node_type_cmp_color_spill()
   ntype.draw_buttons = file_ns::node_composit_buts_color_spill;
   ntype.initfunc = file_ns::node_composit_init_color_spill;
   blender::bke::node_type_storage(
-      &ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeColorspill", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -25,13 +25,13 @@ static gpu::Batch *procedural_batch_get(GPUPrimType primitive)
 {
   switch (primitive) {
     case GPU_PRIM_POINTS:
-      return drw_cache_procedural_points_get();
+      return GPU_batch_procedural_points_get();
     case GPU_PRIM_LINES:
-      return drw_cache_procedural_lines_get();
+      return GPU_batch_procedural_lines_get();
     case GPU_PRIM_TRIS:
-      return drw_cache_procedural_triangles_get();
+      return GPU_batch_procedural_triangles_get();
     case GPU_PRIM_TRI_STRIP:
-      return drw_cache_procedural_triangle_strips_get();
+      return GPU_batch_procedural_triangle_strips_get();
     default:
       /* Add new one as needed. */
       BLI_assert_unreachable();

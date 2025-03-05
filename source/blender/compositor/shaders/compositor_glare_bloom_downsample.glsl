@@ -2,8 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_math_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 #if defined(KARIS_AVERAGE)
 /* Computes the weighted average of the given four colors, which are assumed to the colors of
@@ -14,7 +15,8 @@
  * https://graphicrants.blogspot.com/2013/12/tone-mapping.html */
 vec4 karis_brightness_weighted_sum(vec4 color1, vec4 color2, vec4 color3, vec4 color4)
 {
-  vec4 brightness = vec4(max_v3(color1), max_v3(color2), max_v3(color3), max_v3(color4));
+  vec4 brightness = vec4(
+      reduce_max(color1), reduce_max(color2), reduce_max(color3), reduce_max(color4));
   vec4 weights = 1.0 / (brightness + 1.0);
   return weighted_sum(color1, color2, color3, color4, weights);
 }

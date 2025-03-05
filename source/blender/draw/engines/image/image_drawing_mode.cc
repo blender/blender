@@ -123,7 +123,7 @@ void ScreenSpaceDrawingMode::do_partial_update_float_buffer(
     return;
   }
 
-  IMB_float_from_rect_ex(float_buffer, src, &clipped_update_region);
+  IMB_float_from_byte_ex(float_buffer, src, &clipped_update_region);
 }
 
 void ScreenSpaceDrawingMode::do_partial_update(
@@ -204,7 +204,7 @@ void ScreenSpaceDrawingMode::do_partial_update(
 
       ImBuf extracted_buffer;
       IMB_initImBuf(
-          &extracted_buffer, texture_region_width, texture_region_height, 32, IB_rectfloat);
+          &extracted_buffer, texture_region_width, texture_region_height, 32, IB_float_data);
 
       int offset = 0;
       for (int y = gpu_texture_region_to_update.ymin; y < gpu_texture_region_to_update.ymax; y++) {
@@ -234,7 +234,7 @@ void ScreenSpaceDrawingMode::do_partial_update(
                              extracted_buffer.x,
                              extracted_buffer.y,
                              0);
-      imb_freerectImbuf_all(&extracted_buffer);
+      IMB_free_all_data(&extracted_buffer);
     }
   }
 }
@@ -255,7 +255,7 @@ void ScreenSpaceDrawingMode::do_full_update_gpu_texture(TextureInfo &info,
   ImBuf texture_buffer;
   const int texture_width = GPU_texture_width(info.texture);
   const int texture_height = GPU_texture_height(info.texture);
-  IMB_initImBuf(&texture_buffer, texture_width, texture_height, 0, IB_rectfloat);
+  IMB_initImBuf(&texture_buffer, texture_width, texture_height, 0, IB_float_data);
   ImageUser tile_user = {nullptr};
   if (image_user) {
     tile_user = *image_user;
@@ -276,7 +276,7 @@ void ScreenSpaceDrawingMode::do_full_update_gpu_texture(TextureInfo &info,
   }
   IMB_gpu_clamp_half_float(&texture_buffer);
   GPU_texture_update(info.texture, GPU_DATA_FLOAT, texture_buffer.float_buffer.data);
-  imb_freerectImbuf_all(&texture_buffer);
+  IMB_free_all_data(&texture_buffer);
 }
 
 void ScreenSpaceDrawingMode::do_full_update_texture_slot(const TextureInfo &texture_info,
@@ -291,7 +291,7 @@ void ScreenSpaceDrawingMode::do_full_update_texture_slot(const TextureInfo &text
   /* IMB_transform works in a non-consistent space. This should be documented or fixed!.
    * Construct a variant of the info_uv_to_texture that adds the texel space
    * transformation. */
-  float4x4 uv_to_texel;
+  float3x3 uv_to_texel;
   rctf texture_area;
   rctf tile_area;
 
@@ -302,7 +302,7 @@ void ScreenSpaceDrawingMode::do_full_update_texture_slot(const TextureInfo &text
       tile_buffer.x * (texture_info.clipping_uv_bounds.xmax - image_tile.get_tile_x_offset()),
       tile_buffer.y * (texture_info.clipping_uv_bounds.ymin - image_tile.get_tile_y_offset()),
       tile_buffer.y * (texture_info.clipping_uv_bounds.ymax - image_tile.get_tile_y_offset()));
-  BLI_rctf_transform_calc_m4_pivot_min(&tile_area, &texture_area, uv_to_texel.ptr());
+  BLI_rctf_transform_calc_m3_pivot_min(&tile_area, &texture_area, uv_to_texel.ptr());
   uv_to_texel = math::invert(uv_to_texel);
 
   rctf crop_rect;
@@ -321,7 +321,7 @@ void ScreenSpaceDrawingMode::do_full_update_texture_slot(const TextureInfo &text
                 &texture_buffer,
                 transform_mode,
                 IMB_FILTER_NEAREST,
-                uv_to_texel.ptr(),
+                uv_to_texel,
                 crop_rect_ptr);
 }
 

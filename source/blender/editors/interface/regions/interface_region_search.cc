@@ -315,12 +315,12 @@ static ARegion *wm_searchbox_tooltip_init(
   *r_exit_on_event = true;
 
   LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
-    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+    for (const std::unique_ptr<uiBut> &but : block->buttons) {
       if (but->type != UI_BTYPE_SEARCH_MENU) {
         continue;
       }
 
-      uiButSearch *search_but = (uiButSearch *)but;
+      uiButSearch *search_but = (uiButSearch *)but.get();
       if (!search_but->item_tooltip_fn) {
         continue;
       }
@@ -871,7 +871,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   region->runtime->type = &type;
 
   /* Create search-box data. */
-  uiSearchboxData *data = MEM_cnew<uiSearchboxData>(__func__);
+  uiSearchboxData *data = MEM_callocN<uiSearchboxData>(__func__);
   data->search_arg = but->arg;
   data->search_but = but;
   data->butregion = butregion;
@@ -1088,7 +1088,7 @@ void ui_but_search_refresh(uiButSearch *but)
     return;
   }
 
-  uiSearchItems *items = MEM_cnew<uiSearchItems>(__func__);
+  uiSearchItems *items = MEM_callocN<uiSearchItems>(__func__);
 
   /* setup search struct */
   items->maxitem = 10;

@@ -18,6 +18,7 @@
 #include "DNA_object_types.h"   /* for OB_DATA_SUPPORT_ID */
 #include "DNA_screen_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -311,7 +312,8 @@ static void UI_OT_copy_python_command_button(wmOperatorType *ot)
 
 static int operator_button_property_finish(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
-  ID *id = ptr->owner_id;
+  /* Assign before executing logic in the unlikely event the ID is freed. */
+  const bool is_undo = ptr->owner_id && ID_CHECK_UNDO(ptr->owner_id);
 
   /* perform updates required for this property */
   RNA_property_update(C, ptr, prop);
@@ -322,7 +324,7 @@ static int operator_button_property_finish(bContext *C, PointerRNA *ptr, Propert
   /* Since we don't want to undo _all_ edits to settings, eg window
    * edits on the screen or on operator settings.
    * it might be better to move undo's inline - campbell */
-  if (id && ID_CHECK_UNDO(id)) {
+  if (is_undo) {
     /* do nothing, go ahead with undo */
     return OPERATOR_FINISHED;
   }
@@ -1005,7 +1007,7 @@ static void override_idtemplate_menu()
 {
   MenuType *mt;
 
-  mt = MEM_cnew<MenuType>(__func__);
+  mt = MEM_callocN<MenuType>(__func__);
   STRNCPY(mt->idname, "UI_MT_idtemplate_liboverride");
   STRNCPY(mt->label, N_("Library Override"));
   mt->poll = override_idtemplate_menu_poll;
@@ -1237,12 +1239,13 @@ bool UI_context_copy_to_selected_list(bContext *C,
       node = static_cast<bNode *>(ptr->data);
     }
 
-    /* Now filter by type */
+    /* Now filter out non-matching nodes (by idname). */
     if (node) {
+      const blender::StringRef node_idname = node->idname;
       lb = CTX_data_collection_get(C, "selected_nodes");
       lb.remove_if([&](const PointerRNA &link) {
         bNode *node_data = static_cast<bNode *>(link.data);
-        if (node_data->type_legacy != node->type_legacy) {
+        if (node_data->idname != node_idname) {
           return true;
         }
         return false;
@@ -2062,7 +2065,7 @@ extern void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno);
 void UI_editsource_active_but_test(uiBut *but)
 {
 
-  uiEditSourceButStore *but_store = MEM_cnew<uiEditSourceButStore>(__func__);
+  uiEditSourceButStore *but_store = MEM_callocN<uiEditSourceButStore>(__func__);
 
   const char *fn;
   int line_number = -1;
@@ -2357,14 +2360,14 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       if (!gamma) {
         IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
       }
-      RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
+      RNA_property_float_set_array_at_most(&but->rnapoin, but->rnaprop, color, ARRAY_SIZE(color));
       RNA_property_update(C, &but->rnapoin, but->rnaprop);
     }
     else if (RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
       if (gamma) {
         IMB_colormanagement_srgb_to_scene_linear_v3(color, color);
       }
-      RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
+      RNA_property_float_set_array_at_most(&but->rnapoin, but->rnaprop, color, ARRAY_SIZE(color));
       RNA_property_update(C, &but->rnapoin, but->rnaprop);
     }
 
@@ -2770,7 +2773,7 @@ static int ui_drop_material_exec(bContext *C, wmOperator *op)
   const int target_slot = RNA_int_get(&mat_slot, "slot_index") + 1;
 
   /* only drop grease pencil material on grease pencil objects */
-  if ((ma->gp_style != nullptr) && (ob->type != OB_GPENCIL_LEGACY)) {
+  if ((ma->gp_style != nullptr) && (ob->type != OB_GREASE_PENCIL)) {
     return OPERATOR_CANCELLED;
   }
 

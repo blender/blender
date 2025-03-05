@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -516,9 +517,9 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     return OPERATOR_CANCELLED;
   }
 
-  data = MEM_cnew<SlipData>("trimdata");
+  data = MEM_callocN<SlipData>("trimdata");
   op->customdata = static_cast<void *>(data);
-  data->strip_array = MEM_cnew_array<Strip *>(num_seq, "trimdata_strips");
+  data->strip_array = MEM_calloc_arrayN<Strip *>(num_seq, "trimdata_strips");
   data->num_seq = num_seq;
   data->previous_offset = 0;
 
@@ -602,9 +603,9 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SlipData *data = MEM_cnew<SlipData>("trimdata");
+  SlipData *data = MEM_callocN<SlipData>("trimdata");
   op->customdata = static_cast<void *>(data);
-  data->strip_array = MEM_cnew_array<Strip *>(num_seq, "trimdata_strips");
+  data->strip_array = MEM_calloc_arrayN<Strip *>(num_seq, "trimdata_strips");
   data->num_seq = num_seq;
 
   slip_add_sequences(ed->seqbasep, data->strip_array);
@@ -1288,7 +1289,7 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
   /* Force time position update for reassigned effects.
    * TODO(Richard): This is because internally startdisp is still used, due to poor performance of
    * mapping effect range to inputs. This mapping could be cached though. */
-  SEQ_strip_lookup_invalidate(scene);
+  SEQ_strip_lookup_invalidate(scene->ed);
   SEQ_time_left_handle_frame_set(scene, seq1, SEQ_time_left_handle_frame_get(scene, seq1));
 
   SEQ_relations_invalidate_cache_preprocessed(scene, active_strip);
@@ -2098,7 +2099,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator * /*op*/)
     SEQ_transform_seqbase_shuffle(active_seqbase, seqm, scene);
   }
 
-  SEQ_strip_lookup_invalidate(scene);
+  SEQ_strip_lookup_invalidate(ed);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2673,7 +2674,6 @@ const EnumPropertyItem sequencer_prop_effect_types[] = {
     {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", "Alpha Under effect strip type"},
     {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Gamma Cross effect strip type"},
     {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", "Multiply effect strip type"},
-    {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Alpha Over Drop", "Alpha Over Drop effect strip type"},
     {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", "Wipe effect strip type"},
     {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
     {STRIP_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
@@ -2786,7 +2786,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
     if (strip->data->stripdata) {
       MEM_freeN(strip->data->stripdata);
     }
-    strip->data->stripdata = se = MEM_cnew_array<StripElem>(len, "stripelem");
+    strip->data->stripdata = se = MEM_calloc_arrayN<StripElem>(len, "stripelem");
 
     if (use_placeholders) {
       sequencer_image_seq_reserve_frames(op, se, len, minext_frameme, numdigits);
@@ -3239,20 +3239,47 @@ static int sequencer_strip_transform_clear_exec(bContext *C, wmOperator *op)
   const Editing *ed = SEQ_editing_get(scene);
   const int property = RNA_enum_get(op->ptr, "property");
 
+  const bool use_autokeyframe = blender::animrig::is_autokey_on(scene);
+  const bool only_when_keyed = blender::animrig::is_keying_flag(scene,
+                                                                AUTOKEY_FLAG_INSERTAVAILABLE);
+
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
     if (strip->flag & SELECT && strip->type != STRIP_TYPE_SOUND_RAM) {
       StripTransform *transform = strip->data->transform;
+      PropertyRNA *prop;
+      PointerRNA ptr = RNA_pointer_create_discrete(&scene->id, &RNA_StripTransform, transform);
       switch (property) {
         case STRIP_TRANSFORM_POSITION:
           transform->xofs = 0;
           transform->yofs = 0;
+          if (use_autokeyframe) {
+            prop = RNA_struct_find_property(&ptr, "offset_x");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+            prop = RNA_struct_find_property(&ptr, "offset_y");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+          }
           break;
         case STRIP_TRANSFORM_SCALE:
           transform->scale_x = 1.0f;
           transform->scale_y = 1.0f;
+          if (use_autokeyframe) {
+            prop = RNA_struct_find_property(&ptr, "scale_x");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+            prop = RNA_struct_find_property(&ptr, "scale_y");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+          }
           break;
         case STRIP_TRANSFORM_ROTATION:
           transform->rotation = 0.0f;
+          if (use_autokeyframe) {
+            prop = RNA_struct_find_property(&ptr, "rotation");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+          }
           break;
         case STRIP_TRANSFORM_ALL:
           transform->xofs = 0;
@@ -3260,6 +3287,23 @@ static int sequencer_strip_transform_clear_exec(bContext *C, wmOperator *op)
           transform->scale_x = 1.0f;
           transform->scale_y = 1.0f;
           transform->rotation = 0.0f;
+          if (use_autokeyframe) {
+            prop = RNA_struct_find_property(&ptr, "offset_x");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+            prop = RNA_struct_find_property(&ptr, "offset_y");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+            prop = RNA_struct_find_property(&ptr, "scale_x");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+            prop = RNA_struct_find_property(&ptr, "scale_y");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+            prop = RNA_struct_find_property(&ptr, "rotation");
+            blender::animrig::autokeyframe_property(
+                C, scene, &ptr, prop, -1, scene->r.cfra, only_when_keyed);
+          }
           break;
       }
       SEQ_relations_invalidate_cache_preprocessed(scene, strip);
@@ -3418,7 +3462,8 @@ static int sequencer_set_2d_cursor_exec(bContext *C, wmOperator *op)
   float cursor_pixel[2];
   RNA_float_get_array(op->ptr, "location", cursor_pixel);
 
-  SEQ_image_preview_unit_from_px(scene, cursor_pixel, sseq->cursor);
+  blender::float2 cursor_region = SEQ_image_preview_unit_from_px(scene, cursor_pixel);
+  copy_v2_v2(sseq->cursor, cursor_region);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 

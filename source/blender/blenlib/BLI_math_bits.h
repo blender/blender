@@ -10,11 +10,6 @@
 
 #include "BLI_build_config.h"
 #include "BLI_math_inline.h"
-#include "BLI_utildefines.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Search the value from LSB to MSB for a set bit. Returns index of this bit. */
 
@@ -61,9 +56,5 @@ MINLINE float uint_as_float(unsigned int i);
 MINLINE float xor_fl(float x, int y);
 
 #if BLI_MATH_DO_INLINE
-#  include "intern/math_bits_inline.c"  // IWYU pragma: export
-#endif
-
-#ifdef __cplusplus
-}
+#  include "intern/math_bits_inline.cc"  // IWYU pragma: export
 #endif

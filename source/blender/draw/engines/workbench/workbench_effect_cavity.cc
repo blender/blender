@@ -14,6 +14,7 @@
  */
 
 #include "BLI_rand.h"
+#include "DNA_scene_types.h"
 #include "workbench_private.hh"
 
 namespace blender::workbench {

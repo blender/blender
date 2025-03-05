@@ -13,7 +13,7 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 
 #include "BKE_context.hh"
 
@@ -34,31 +34,7 @@
 #include "transform_mode.hh"
 #include "transform_snap.hh"
 
-using namespace blender;
-
-/* -------------------------------------------------------------------- */
-/** \name Transform (Resize) Element
- * \{ */
-
-struct ElemResizeData {
-  const TransInfo *t;
-  const TransDataContainer *tc;
-  float mat[3][3];
-};
-
-static void element_resize_fn(void *__restrict iter_data_v,
-                              const int iter,
-                              const TaskParallelTLS *__restrict /*tls*/)
-{
-  ElemResizeData *data = static_cast<ElemResizeData *>(iter_data_v);
-  TransData *td = &data->tc->data[iter];
-  if (td->flag & TD_SKIP) {
-    return;
-  }
-  ElementResize(data->t, data->tc, td, data->mat);
-}
-
-/** \} */
+namespace blender::ed::transform {
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Resize)
@@ -238,27 +214,15 @@ static void applyResize(TransInfo *t)
   copy_m3_m3(t->mat, mat); /* Used in gizmo. */
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-
-    if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
-      TransData *td = tc->data;
-      for (i = 0; i < tc->data_len; i++, td++) {
+    threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        TransData *td = &tc->data[i];
         if (td->flag & TD_SKIP) {
           continue;
         }
-
         ElementResize(t, tc, td, mat);
       }
-    }
-    else {
-      ElemResizeData data{};
-      data.t = t;
-      data.tc = tc;
-      copy_m3_m3(data.mat, mat);
-
-      TaskParallelSettings settings;
-      BLI_parallel_range_settings_defaults(&settings);
-      BLI_task_parallel_range(0, tc->data_len, &data, element_resize_fn, &settings);
-    }
+    });
   }
 
   /* Evil hack - redo resize if clipping needed. */
@@ -312,17 +276,14 @@ static void initResize(TransInfo *t, wmOperator *op)
     zero_v3(mouse_dir_constraint);
   }
 
-  const bool only_location = (t->flag & T_V3D_ALIGN) && (t->options & CTX_OBJECT) &&
-                             (t->settings->transform_pivot_point != V3D_AROUND_CURSOR) &&
-                             t->context &&
-                             (CTX_DATA_COUNT(t->context, selected_editable_objects) == 1);
+  const bool only_location = transform_mode_affect_only_locations(t);
   if (only_location) {
     WorkspaceStatus status(t->context);
     status.item(TIP_("Transform is set to only affect location"), ICON_ERROR);
   }
 
   if (is_zero_v3(mouse_dir_constraint)) {
-    initMouseInputMode(t, &t->mouse, only_location ? INPUT_ERROR : INPUT_SPRING_FLIP);
+    initMouseInputMode(t, &t->mouse, only_location ? INPUT_ERROR_DASH : INPUT_SPRING_FLIP);
   }
   else {
     int mval_start[2], mval_end[2];
@@ -350,7 +311,7 @@ static void initResize(TransInfo *t, wmOperator *op)
 
     setCustomPoints(t, &t->mouse, mval_end, mval_start);
 
-    initMouseInputMode(t, &t->mouse, only_location ? INPUT_ERROR : INPUT_CUSTOM_RATIO);
+    initMouseInputMode(t, &t->mouse, only_location ? INPUT_ERROR_DASH : INPUT_CUSTOM_RATIO);
   }
 
   t->num.val_flag[0] |= NUM_NULL_ONE;
@@ -391,3 +352,5 @@ TransModeInfo TransMode_resize = {
     /*snap_apply_fn*/ ApplySnapResize,
     /*draw_fn*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

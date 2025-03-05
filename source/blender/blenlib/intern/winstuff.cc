@@ -36,7 +36,7 @@ int BLI_windows_get_executable_dir(char r_dirpath[/*FILE_MAXDIR*/])
   char dir[FILE_MAX];
   int a;
   /* Change to utf support. */
-  GetModuleFileName(NULL, filepath, sizeof(filepath));
+  GetModuleFileName(nullptr, filepath, sizeof(filepath));
   BLI_path_split_dir_part(filepath, dir, sizeof(dir)); /* shouldn't be relative */
   a = strlen(dir);
   if (dir[a - 1] == '\\') {
@@ -52,7 +52,7 @@ bool BLI_windows_is_store_install(void)
 {
   char install_dir[FILE_MAXDIR];
   BLI_windows_get_executable_dir(install_dir);
-  return (BLI_strcasestr(install_dir, "\\WindowsApps\\") != NULL);
+  return (BLI_strcasestr(install_dir, "\\WindowsApps\\") != nullptr);
 }
 
 static void registry_error(HKEY root, const char *message)
@@ -92,12 +92,19 @@ static bool register_blender_prog_id(const char *prog_id,
     return false;
   }
 
-  lresult = RegCreateKeyEx(
-      root, prog_id, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey_progid, &dwd);
+  lresult = RegCreateKeyEx(root,
+                           prog_id,
+                           0,
+                           nullptr,
+                           REG_OPTION_NON_VOLATILE,
+                           KEY_ALL_ACCESS,
+                           nullptr,
+                           &hkey_progid,
+                           &dwd);
 
   if (lresult == ERROR_SUCCESS) {
     lresult = RegSetValueEx(
-        hkey_progid, NULL, 0, REG_SZ, (BYTE *)friendly_name, strlen(friendly_name) + 1);
+        hkey_progid, nullptr, 0, REG_SZ, (BYTE *)friendly_name, strlen(friendly_name) + 1);
   }
   if (lresult == ERROR_SUCCESS) {
     lresult = RegSetValueEx(
@@ -109,20 +116,34 @@ static bool register_blender_prog_id(const char *prog_id,
   }
 
   SNPRINTF(buffer, "%s\\shell\\open", prog_id);
-  lresult = RegCreateKeyEx(
-      root, buffer, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey_progid, &dwd);
+  lresult = RegCreateKeyEx(root,
+                           buffer,
+                           0,
+                           nullptr,
+                           REG_OPTION_NON_VOLATILE,
+                           KEY_ALL_ACCESS,
+                           nullptr,
+                           &hkey_progid,
+                           &dwd);
 
   lresult = RegSetValueEx(
       hkey_progid, "FriendlyAppName", 0, REG_SZ, (BYTE *)friendly_name, strlen(friendly_name) + 1);
 
   SNPRINTF(buffer, "%s\\shell\\open\\command", prog_id);
 
-  lresult = RegCreateKeyEx(
-      root, buffer, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey_progid, &dwd);
+  lresult = RegCreateKeyEx(root,
+                           buffer,
+                           0,
+                           nullptr,
+                           REG_OPTION_NON_VOLATILE,
+                           KEY_ALL_ACCESS,
+                           nullptr,
+                           &hkey_progid,
+                           &dwd);
 
   if (lresult == ERROR_SUCCESS) {
     SNPRINTF(buffer, "\"%s\" \"%%1\"", executable);
-    lresult = RegSetValueEx(hkey_progid, NULL, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
+    lresult = RegSetValueEx(hkey_progid, nullptr, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
     RegCloseKey(hkey_progid);
   }
   if (lresult != ERROR_SUCCESS) {
@@ -131,12 +152,19 @@ static bool register_blender_prog_id(const char *prog_id,
   }
 
   SNPRINTF(buffer, "%s\\DefaultIcon", prog_id);
-  lresult = RegCreateKeyEx(
-      root, buffer, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey_progid, &dwd);
+  lresult = RegCreateKeyEx(root,
+                           buffer,
+                           0,
+                           nullptr,
+                           REG_OPTION_NON_VOLATILE,
+                           KEY_ALL_ACCESS,
+                           nullptr,
+                           &hkey_progid,
+                           &dwd);
 
   if (lresult == ERROR_SUCCESS) {
     SNPRINTF(buffer, "\"%s\", 1", executable);
-    lresult = RegSetValueEx(hkey_progid, NULL, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
+    lresult = RegSetValueEx(hkey_progid, nullptr, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
     RegCloseKey(hkey_progid);
   }
   if (lresult != ERROR_SUCCESS) {
@@ -185,10 +213,10 @@ bool BLI_windows_register_blend_extension(const bool all_users)
   }
 
   lresult = RegCreateKeyEx(
-      root, ".blend", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+      root, ".blend", 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, nullptr, &hkey, &dwd);
   if (lresult == ERROR_SUCCESS) {
     /* Set this instance the default. */
-    lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE *)prog_id, strlen(prog_id) + 1);
+    lresult = RegSetValueEx(hkey, nullptr, 0, REG_SZ, (BYTE *)prog_id, strlen(prog_id) + 1);
 
     if (lresult != ERROR_SUCCESS) {
       registry_error(root, "Unable to register Blend document type");
@@ -200,10 +228,10 @@ bool BLI_windows_register_blend_extension(const bool all_users)
     lresult = RegCreateKeyEx(root,
                              ".blend\\OpenWithProgids",
                              0,
-                             NULL,
+                             nullptr,
                              REG_OPTION_NON_VOLATILE,
                              KEY_ALL_ACCESS,
-                             NULL,
+                             nullptr,
                              &hkey,
                              &dwd);
 
@@ -212,7 +240,7 @@ bool BLI_windows_register_blend_extension(const bool all_users)
       RegCloseKey(hkey);
       return false;
     }
-    lresult = RegSetValueEx(hkey, prog_id, 0, REG_NONE, NULL, 0);
+    lresult = RegSetValueEx(hkey, prog_id, 0, REG_NONE, nullptr, 0);
     RegCloseKey(hkey);
   }
 
@@ -272,9 +300,9 @@ bool BLI_windows_unregister_blend_extension(const bool all_users)
   if (lresult == ERROR_SUCCESS) {
     char buffer[256] = {0};
     DWORD size = sizeof(buffer);
-    lresult = RegGetValueA(hkey, NULL, NULL, RRF_RT_REG_SZ, NULL, &buffer, &size);
+    lresult = RegGetValueA(hkey, nullptr, nullptr, RRF_RT_REG_SZ, nullptr, &buffer, &size);
     if (lresult == ERROR_SUCCESS && STREQ(buffer, BLENDER_WIN_APPID)) {
-      RegSetValueEx(hkey, NULL, 0, REG_SZ, 0, 0);
+      RegSetValueEx(hkey, nullptr, 0, REG_SZ, 0, 0);
     }
   }
 
@@ -374,13 +402,13 @@ bool BLI_windows_execute_self(const char *parameters,
   SHELLEXECUTEINFOA shellinfo = {0};
   shellinfo.cbSize = sizeof(SHELLEXECUTEINFO);
   shellinfo.fMask = wait ? SEE_MASK_NOCLOSEPROCESS : SEE_MASK_DEFAULT;
-  shellinfo.hwnd = NULL;
-  shellinfo.lpVerb = elevated ? "runas" : NULL;
+  shellinfo.hwnd = nullptr;
+  shellinfo.lpVerb = elevated ? "runas" : nullptr;
   shellinfo.lpFile = blender_path;
   shellinfo.lpParameters = parameters;
-  shellinfo.lpDirectory = NULL;
+  shellinfo.lpDirectory = nullptr;
   shellinfo.nShow = silent ? SW_HIDE : SW_SHOW;
-  shellinfo.hInstApp = NULL;
+  shellinfo.hInstApp = nullptr;
   shellinfo.hProcess = 0;
 
   DWORD exitCode = 0;
@@ -417,7 +445,7 @@ void BLI_windows_get_default_root_dir(char root[4])
   else {
     /* if GetWindowsDirectory fails, something has probably gone wrong,
      * we are trying the blender install dir though */
-    if (GetModuleFileName(NULL, str, MAX_PATH + 1)) {
+    if (GetModuleFileName(nullptr, str, MAX_PATH + 1)) {
       printf(
           "Error! Could not get the Windows Directory - "
           "Defaulting to Blender installation Dir!\n");
@@ -461,8 +489,8 @@ void BLI_windows_get_default_root_dir(char root[4])
 bool BLI_windows_get_directx_driver_version(const wchar_t *deviceSubString,
                                             long long *r_driverVersion)
 {
-  IDXGIFactory *pFactory = NULL;
-  IDXGIAdapter *pAdapter = NULL;
+  IDXGIFactory *pFactory = nullptr;
+  IDXGIAdapter *pAdapter = nullptr;
   if (CreateDXGIFactory(__uuidof(IDXGIFactory), (void **)&pFactory) == S_OK) {
     for (UINT i = 0; pFactory->EnumAdapters(i, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++i) {
       LARGE_INTEGER version;

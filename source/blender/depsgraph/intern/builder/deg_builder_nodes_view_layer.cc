@@ -19,6 +19,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"

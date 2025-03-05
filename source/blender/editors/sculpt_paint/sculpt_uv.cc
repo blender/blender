@@ -651,7 +651,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
   ToolSettings *ts = scene->toolsettings;
-  UvSculptData *data = MEM_cnew<UvSculptData>(__func__);
+  UvSculptData *data = MEM_callocN<UvSculptData>(__func__);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
 
@@ -721,13 +721,13 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   }
 
   /* Allocate the unique uv buffers */
-  data->uv = MEM_cnew_array<UvAdjacencyElement>(unique_uvs, __func__);
+  data->uv = MEM_calloc_arrayN<UvAdjacencyElement>(unique_uvs, __func__);
   /* Holds, for each UvElement in elementMap, an index of its unique UV. */
   int *uniqueUv = static_cast<int *>(
       MEM_mallocN(sizeof(*uniqueUv) * data->elementMap->total_uvs, __func__));
   GHash *edgeHash = BLI_ghash_new(uv_edge_hash, uv_edge_compare, "uv_brush_edge_hash");
   /* we have at most totalUVs edges */
-  UvEdge *edges = MEM_cnew_array<UvEdge>(data->elementMap->total_uvs, __func__);
+  UvEdge *edges = MEM_calloc_arrayN<UvEdge>(data->elementMap->total_uvs, __func__);
   if (!data->uv || !uniqueUv || !edgeHash || !edges) {
     MEM_SAFE_FREE(edges);
     MEM_SAFE_FREE(uniqueUv);
@@ -815,7 +815,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   MEM_SAFE_FREE(uniqueUv);
 
   /* Allocate connectivity data, we allocate edges once */
-  data->uvedges = MEM_cnew_array<UvEdge>(BLI_ghash_len(edgeHash), __func__);
+  data->uvedges = MEM_calloc_arrayN<UvEdge>(BLI_ghash_len(edgeHash), __func__);
   if (!data->uvedges) {
     BLI_ghash_free(edgeHash, nullptr, nullptr);
     MEM_SAFE_FREE(edges);

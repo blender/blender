@@ -79,7 +79,7 @@ void register_node_type_sh_seprgb()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeSeparateRGB", SH_NODE_SEPRGB_LEGACY);
+  common_node_type_base(&ntype, "ShaderNodeSeparateRGB", SH_NODE_SEPRGB_LEGACY);
   ntype.ui_name = "Separate RGB (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "SEPRGB";
@@ -89,7 +89,7 @@ void register_node_type_sh_seprgb()
   ntype.build_multi_function = file_ns::sh_node_seprgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 
 namespace blender::nodes::node_shader_sepcomb_rgb_cc {
@@ -127,7 +127,7 @@ void register_node_type_sh_combrgb()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeCombineRGB", SH_NODE_COMBRGB_LEGACY);
+  common_node_type_base(&ntype, "ShaderNodeCombineRGB", SH_NODE_COMBRGB_LEGACY);
   ntype.ui_name = "Combine RGB (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "COMBRGB";
@@ -137,5 +137,5 @@ void register_node_type_sh_combrgb()
   ntype.build_multi_function = file_ns::sh_node_combrgb_build_multi_function;
   ntype.gather_link_search_ops = nullptr;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

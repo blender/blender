@@ -607,7 +607,7 @@ static SingleKeyingResult insert_keyframe_fcurve_value(Main *bmain,
    */
 
   FCurve *fcu = key_insertion_may_create_fcurve(flag) ?
-                    action_fcurve_ensure(bmain, act, group, ptr, {rna_path, array_index}) :
+                    action_fcurve_ensure_ex(bmain, act, group, ptr, {rna_path, array_index}) :
                     fcurve_find_in_action(act, {rna_path, array_index});
 
   /* We may not have a F-Curve when we're replacing only. */

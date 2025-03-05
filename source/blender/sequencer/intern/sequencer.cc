@@ -301,7 +301,7 @@ void SEQ_editing_free(Scene *scene, const bool do_id_user)
   }
 
   BLI_freelistN(&ed->metastack);
-  SEQ_strip_lookup_free(scene);
+  SEQ_strip_lookup_free(ed);
   blender::seq::media_presence_free(scene);
   blender::seq::thumbnail_cache_destroy(scene);
   SEQ_channels_free(&ed->channels);
@@ -432,7 +432,7 @@ static MetaStack *seq_meta_stack_alloc(const Scene *scene, Strip *strip_meta)
   ms->parseq = strip_meta;
 
   /* Reference to previously displayed timeline data. */
-  Strip *higher_level_meta = SEQ_lookup_meta_by_strip(scene, strip_meta);
+  Strip *higher_level_meta = SEQ_lookup_meta_by_strip(ed, strip_meta);
   ms->oldbasep = higher_level_meta ? &higher_level_meta->seqbase : &ed->seqbase;
   ms->old_channels = higher_level_meta ? &higher_level_meta->channels : &ed->channels;
 
@@ -460,7 +460,7 @@ void SEQ_meta_stack_set(const Scene *scene, Strip *dst_seq)
     /* Allocate meta stack in a way, that represents meta hierarchy in timeline. */
     seq_meta_stack_alloc(scene, dst_seq);
     Strip *meta_parent = dst_seq;
-    while ((meta_parent = SEQ_lookup_meta_by_strip(scene, meta_parent))) {
+    while ((meta_parent = SEQ_lookup_meta_by_strip(ed, meta_parent))) {
       seq_meta_stack_alloc(scene, meta_parent);
     }
 

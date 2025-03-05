@@ -29,7 +29,7 @@ static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_bokehimage(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeBokehImage *data = MEM_cnew<NodeBokehImage>(__func__);
+  NodeBokehImage *data = MEM_callocN<NodeBokehImage>(__func__);
   data->angle = 0.0f;
   data->flaps = 5;
   data->rounding = 0.0f;
@@ -114,8 +114,8 @@ void register_node_type_cmp_bokehimage()
   ntype.flag |= NODE_PREVIEW;
   ntype.initfunc = file_ns::node_composit_init_bokehimage;
   blender::bke::node_type_storage(
-      &ntype, "NodeBokehImage", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeBokehImage", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

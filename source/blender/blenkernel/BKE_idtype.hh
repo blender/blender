@@ -145,7 +145,7 @@ struct IDTypeInfo {
 
   /**
    * Define the position of this data-block type in the virtual list of all data in a Main that is
-   * returned by `set_listbasepointers()`.
+   * returned by `BKE_main_lists_get()`.
    * Very important, this has to be unique and below INDEX_ID_MAX, see DNA_ID.h.
    */
   int main_listbase_index;

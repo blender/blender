@@ -5,14 +5,12 @@
 /* Preferences Data File 'U_default'. */
 
 /* For constants. */
-#include "BLI_math_base.h"
+#include "BLI_math_constants.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
-
-#include "BLI_math_rotation.h"
 
 #include "BKE_blender_version.h"
 
@@ -79,7 +77,7 @@ const UserDef U_default = {
     .scrollback = 256,
     .node_margin = 40,
     .node_preview_res = 120,
-    .transopts = USER_TR_TOOLTIPS,
+    .transopts = USER_TR_TOOLTIPS | USER_TR_IFACE | USER_TR_REPORTS | USER_TR_NEWDATANAME,
     .menuthreshold1 = 5,
     .menuthreshold2 = 2,
     .app_template = "",

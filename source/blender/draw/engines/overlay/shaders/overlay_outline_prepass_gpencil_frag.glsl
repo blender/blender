@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_gpencil_lib.glsl"
+#include "infos/overlay_outline_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_outline_prepass_gpencil)
+
+#include "draw_grease_pencil_lib.glsl"
 
 vec3 ray_plane_intersection(vec3 ray_ori, vec3 ray_dir, vec4 plane)
 {
@@ -27,14 +31,14 @@ void main()
 
   if (!gpStrokeOrder3d) {
     /* Stroke order 2D. Project to gpDepthPlane. */
-    bool is_persp = drw_view.winmat[3][3] == 0.0;
+    bool is_persp = drw_view().winmat[3][3] == 0.0;
     vec2 uvs = vec2(gl_FragCoord.xy) * sizeViewportInv;
     vec3 pos_ndc = vec3(uvs, gl_FragCoord.z) * 2.0 - 1.0;
-    vec4 pos_world = drw_view.viewinv * (drw_view.wininv * vec4(pos_ndc, 1.0));
+    vec4 pos_world = drw_view().viewinv * (drw_view().wininv * vec4(pos_ndc, 1.0));
     vec3 pos = pos_world.xyz / pos_world.w;
 
     vec3 ray_ori = pos;
-    vec3 ray_dir = (is_persp) ? (drw_view.viewinv[3].xyz - pos) : drw_view.viewinv[2].xyz;
+    vec3 ray_dir = (is_persp) ? (drw_view().viewinv[3].xyz - pos) : drw_view().viewinv[2].xyz;
     vec3 isect = ray_plane_intersection(ray_ori, ray_dir, gpDepthPlane);
     vec4 ndc = drw_point_world_to_homogenous(isect);
     gl_FragDepth = (ndc.z / ndc.w) * 0.5 + 0.5;

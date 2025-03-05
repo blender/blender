@@ -16,7 +16,7 @@
 
 static void node_cmp_combsep_color_init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeCMPCombSepColor *data = MEM_cnew<NodeCMPCombSepColor>(__func__);
+  NodeCMPCombSepColor *data = MEM_callocN<NodeCMPCombSepColor>(__func__);
   data->mode = CMP_NODE_COMBSEP_COLOR_RGB;
   data->ycc_mode = BLI_YCC_ITU_BT709;
   node->storage = data;
@@ -235,12 +235,12 @@ void register_node_type_cmp_separate_color()
   ntype.declare = file_ns::cmp_node_separate_color_declare;
   ntype.initfunc = node_cmp_combsep_color_init;
   blender::bke::node_type_storage(
-      &ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.updatefunc = file_ns::cmp_node_separate_color_update;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 
 /* **************** COMBINE COLOR ******************** */
@@ -450,10 +450,10 @@ void register_node_type_cmp_combine_color()
   ntype.declare = file_ns::cmp_node_combine_color_declare;
   ntype.initfunc = node_cmp_combsep_color_init;
   blender::bke::node_type_storage(
-      &ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.updatefunc = file_ns::cmp_node_combine_color_update;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

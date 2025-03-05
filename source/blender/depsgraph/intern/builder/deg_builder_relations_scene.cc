@@ -10,6 +10,8 @@
 
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
+
 namespace blender::deg {
 
 void DepsgraphRelationBuilder::build_scene_render(Scene *scene, ViewLayer *view_layer)

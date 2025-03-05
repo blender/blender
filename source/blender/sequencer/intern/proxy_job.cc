@@ -13,6 +13,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_context.hh"
 
 #include "SEQ_proxy.hh"

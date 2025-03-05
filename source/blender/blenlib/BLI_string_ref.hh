@@ -144,6 +144,7 @@ class StringRef : public StringRefBase {
   constexpr StringRef(const char *str, int64_t length);
   constexpr StringRef(const char *begin, const char *one_after_end);
   constexpr StringRef(std::string_view view);
+  constexpr StringRef(Span<char> span);
   StringRef(const std::string &str);
 
   constexpr StringRef drop_prefix(int64_t n) const;
@@ -557,6 +558,8 @@ constexpr StringRef::StringRef(std::string_view view)
     : StringRefBase(view.data(), int64_t(view.size()))
 {
 }
+
+constexpr StringRef::StringRef(Span<char> span) : StringRefBase(span.data(), span.size()) {}
 
 /** \} */
 

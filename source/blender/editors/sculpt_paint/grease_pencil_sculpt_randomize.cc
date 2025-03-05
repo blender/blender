@@ -127,21 +127,24 @@ void RandomizeOperation::on_stroke_extended(const bContext &C, const InputSample
           changed = true;
         }
         if (sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_UV) {
-          bke::SpanAttributeWriter<float> rotations =
-              attributes.lookup_or_add_for_write_span<float>("rotation", bke::AttrDomain::Point);
-          point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-            const float2 &co = view_positions[point_i];
-            const float influence = brush_point_influence(
-                scene, brush, co, extension_sample, params.multi_frame_falloff);
-            if (influence <= 0.0f) {
-              return;
-            }
-            const float noise = 2.0f * hash_rng(seed, 1212, point_i) - 1.0f;
-            rotations.span[point_i] = math::clamp(
-                rotations.span[point_i] + influence * noise, -float(M_PI_2), float(M_PI_2));
-          });
-          rotations.finish();
-          changed = true;
+          if (bke::SpanAttributeWriter<float> rotations =
+                  attributes.lookup_or_add_for_write_span<float>("rotation",
+                                                                 bke::AttrDomain::Point))
+          {
+            point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+              const float2 &co = view_positions[point_i];
+              const float influence = brush_point_influence(
+                  scene, brush, co, extension_sample, params.multi_frame_falloff);
+              if (influence <= 0.0f) {
+                return;
+              }
+              const float noise = 2.0f * hash_rng(seed, 1212, point_i) - 1.0f;
+              rotations.span[point_i] = math::clamp(
+                  rotations.span[point_i] + influence * noise, -float(M_PI_2), float(M_PI_2));
+            });
+            rotations.finish();
+            changed = true;
+          }
         }
         return changed;
       });

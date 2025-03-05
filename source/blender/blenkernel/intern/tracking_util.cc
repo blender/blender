@@ -50,13 +50,13 @@
 
 TracksMap *tracks_map_new(const char *object_name, int num_tracks)
 {
-  TracksMap *map = MEM_cnew<TracksMap>("TrackingsMap");
+  TracksMap *map = MEM_callocN<TracksMap>("TrackingsMap");
 
   STRNCPY(map->object_name, object_name);
 
   map->num_tracks = num_tracks;
 
-  map->tracks = MEM_cnew_array<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
+  map->tracks = MEM_calloc_arrayN<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
 
   map->hash = BLI_ghash_ptr_new("TracksMap hash");
 
@@ -625,7 +625,7 @@ static ImBuf *make_grayscale_ibuf_copy(ImBuf *ibuf)
    */
   const size_t num_pixels = size_t(grayscale->x) * size_t(grayscale->y);
   grayscale->channels = 1;
-  float *rect_float = MEM_cnew_array<float>(num_pixels, "tracking grayscale image");
+  float *rect_float = MEM_calloc_arrayN<float>(num_pixels, "tracking grayscale image");
   if (rect_float != nullptr) {
     IMB_assign_float_buffer(grayscale, rect_float, IB_TAKE_OWNERSHIP);
 
@@ -653,7 +653,7 @@ static ImBuf *float_image_to_ibuf(libmv_FloatImage *float_image)
   ImBuf *ibuf = IMB_allocImBuf(float_image->width, float_image->height, 32, 0);
   size_t num_total_channels = size_t(ibuf->x) * size_t(ibuf->y) * float_image->channels;
   ibuf->channels = float_image->channels;
-  float *rect_float = MEM_cnew_array<float>(num_total_channels, "tracking grayscale image");
+  float *rect_float = MEM_calloc_arrayN<float>(num_total_channels, "tracking grayscale image");
   if (rect_float != nullptr) {
     IMB_assign_float_buffer(ibuf, rect_float, IB_TAKE_OWNERSHIP);
 
@@ -694,7 +694,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
     clamped_width = min_ii(clamped_width, orig_ibuf->x - clamped_origin_x);
     clamped_height = min_ii(clamped_height, orig_ibuf->y - clamped_origin_y);
 
-    final_ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat);
+    final_ibuf = IMB_allocImBuf(width, height, 32, IB_float_data);
 
     if (orig_ibuf->float_buffer.data != nullptr) {
       IMB_rectcpy(final_ibuf,
@@ -731,7 +731,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
      * frames) but on the other hand it bumps the memory usage up.
      */
     BLI_thread_lock(LOCK_MOVIECLIP);
-    IMB_float_from_rect(orig_ibuf);
+    IMB_float_from_byte(orig_ibuf);
     BLI_thread_unlock(LOCK_MOVIECLIP);
     final_ibuf = orig_ibuf;
   }
@@ -885,14 +885,14 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
                                                    MovieTrackingTrack **tracks,
                                                    int num_tracks)
 {
-  TrackingImageAccessor *accessor = MEM_cnew<TrackingImageAccessor>("tracking image accessor");
+  TrackingImageAccessor *accessor = MEM_callocN<TrackingImageAccessor>("tracking image accessor");
 
   BLI_assert(num_clips <= MAX_ACCESSOR_CLIP);
 
   memcpy(accessor->clips, clips, num_clips * sizeof(MovieClip *));
   accessor->num_clips = num_clips;
 
-  accessor->tracks = MEM_cnew_array<MovieTrackingTrack *>(num_tracks, "image accessor tracks");
+  accessor->tracks = MEM_calloc_arrayN<MovieTrackingTrack *>(num_tracks, "image accessor tracks");
   memcpy(accessor->tracks, tracks, num_tracks * sizeof(MovieTrackingTrack *));
   accessor->num_tracks = num_tracks;
 

@@ -3,12 +3,14 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_asset.hh"
 #include "BKE_asset_edit.hh"

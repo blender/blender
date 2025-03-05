@@ -13,6 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_time.h"
@@ -1072,7 +1073,7 @@ static void annotation_free_stroke(bGPDframe *gpf, bGPDstroke *gps)
 
   if (gps->dvert) {
     BKE_gpencil_free_stroke_weights(gps);
-    MEM_freeN(gps->dvert);
+    MEM_freeN(static_cast<void *>(gps->dvert));
   }
 
   if (gps->triangles) {
@@ -1463,7 +1464,7 @@ static tGPsdata *annotation_session_initpaint(bContext *C)
   tGPsdata *p = nullptr;
 
   /* create new context data */
-  p = static_cast<tGPsdata *>(MEM_callocN(sizeof(tGPsdata), "Annotation Drawing Data"));
+  p = MEM_new<tGPsdata>("Annotation Drawing Data");
 
   /* Try to initialize context data
    * WARNING: This may not always succeed (e.g. using GP in an annotation-only context)
@@ -1473,7 +1474,7 @@ static tGPsdata *annotation_session_initpaint(bContext *C)
      * NOTE: It should be safe to just free the data, since failing context checks should
      * only happen when no data has been allocated.
      */
-    MEM_freeN(p);
+    MEM_delete(p);
     return nullptr;
   }
 
@@ -1518,7 +1519,7 @@ static void annotation_session_free(tGPsdata *p)
   if (p->depths) {
     ED_view3d_depths_free(p->depths);
   }
-  MEM_freeN(p);
+  MEM_delete(p);
 }
 
 /* init new stroke */

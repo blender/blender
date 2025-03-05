@@ -15,6 +15,7 @@
 #include "DNA_screen_types.h"
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -50,11 +51,11 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   ARegion *region;
   SpaceNla *snla;
 
-  snla = MEM_cnew<SpaceNla>("initnla");
+  snla = MEM_callocN<SpaceNla>("initnla");
   snla->spacetype = SPACE_NLA;
 
   /* allocate DopeSheet data for NLA Editor */
-  snla->ads = MEM_cnew<bDopeSheet>("NlaEdit DopeSheet");
+  snla->ads = MEM_callocN<bDopeSheet>("NlaEdit DopeSheet");
   snla->ads->source = (ID *)(scene);
 
   /* set auto-snapping settings */
@@ -133,7 +134,7 @@ static void nla_init(wmWindowManager *wm, ScrArea *area)
 
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (snla->ads == nullptr) {
-    snla->ads = MEM_cnew<bDopeSheet>("NlaEdit DopeSheet");
+    snla->ads = MEM_callocN<bDopeSheet>("NlaEdit DopeSheet");
     wmWindow *win = WM_window_find_by_area(wm, area);
     snla->ads->source = win ? reinterpret_cast<ID *>(WM_window_get_active_scene(win)) : nullptr;
   }
@@ -629,7 +630,7 @@ void ED_spacetype_nla()
   st->blend_write = nla_space_blend_write;
 
   /* regions: main window */
-  art = MEM_cnew<ARegionType>("spacetype nla region");
+  art = MEM_callocN<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = nla_main_region_init;
   art->draw = nla_main_region_draw;
@@ -641,7 +642,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_cnew<ARegionType>("spacetype nla region");
+  art = MEM_callocN<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -652,7 +653,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: tracks */
-  art = MEM_cnew<ARegionType>("spacetype nla region");
+  art = MEM_callocN<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = 200;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
@@ -665,7 +666,7 @@ void ED_spacetype_nla()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: UI buttons */
-  art = MEM_cnew<ARegionType>("spacetype nla region");
+  art = MEM_callocN<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;

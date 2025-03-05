@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -57,7 +58,7 @@
 
 static void sound_open_cancel(bContext * /*C*/, wmOperator *op)
 {
-  MEM_freeN(op->customdata);
+  MEM_delete(static_cast<PropertyPointerRNA *>(op->customdata));
   op->customdata = nullptr;
 }
 
@@ -432,6 +433,7 @@ static const char *snd_ext_sound[] = {
     ".mp3",
     ".ogg",
     ".wav",
+    ".aac",
     nullptr,
 };
 
@@ -446,7 +448,7 @@ static bool sound_mixdown_check(bContext * /*C*/, wmOperator *op)
     if (item->value == container) {
       const char **ext = snd_ext_sound;
       while (*ext != nullptr) {
-        if (STREQ(*ext + 1, item->name)) {
+        if (STRCASEEQ(*ext + 1, item->name)) {
           extension = *ext;
           break;
         }

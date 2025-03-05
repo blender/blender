@@ -849,6 +849,7 @@ size_t blf_font_width_to_rstrlen(
   GlyphBLF *g, *g_prev;
   ft_pix pen_x, width_new;
   size_t i, i_prev, i_tmp;
+  std::optional<size_t> i_next = {};
   const char *s, *s_prev;
 
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
@@ -862,7 +863,7 @@ size_t blf_font_width_to_rstrlen(
   i_tmp = i;
   g = blf_glyph_from_utf8_and_step(font, gc, nullptr, str, str_len, &i_tmp, nullptr);
   for (width_new = pen_x = 0; (s != nullptr && i > 0);
-       i = i_prev, s = s_prev, g = g_prev, g_prev = nullptr, width_new = pen_x)
+       i_next = i, i = i_prev, s = s_prev, g = g_prev, g_prev = nullptr, width_new = pen_x)
   {
     s_prev = BLI_str_find_prev_char_utf8(s, str);
     i_prev = size_t(s_prev - str);
@@ -881,7 +882,7 @@ size_t blf_font_width_to_rstrlen(
   }
 
   blf_glyph_cache_release(font);
-  return i;
+  return i_next ? *i_next : i;
 }
 
 /** \} */
@@ -1286,9 +1287,8 @@ static void blf_font_wrap_apply(FontBLF *font,
 
     g = blf_glyph_from_utf8_and_step(font, gc, g_prev, str, str_len, &i, &pen_x);
 
-    if (UNLIKELY(g == nullptr)) {
-      continue;
-    }
+    const ft_pix advance_x = g ? g->advance_x : 0;
+    const uint codepoint = g ? g->c : BLI_str_utf8_as_unicode_safe(&str[i_curr]);
 
     /**
      * Implementation Detail (utf8).
@@ -1298,22 +1298,22 @@ static void blf_font_wrap_apply(FontBLF *font,
      *
      * This is _only_ done when we know for sure the character is ascii (newline or a space).
      */
-    pen_x_next = pen_x + g->advance_x;
+    pen_x_next = pen_x + advance_x;
     if (UNLIKELY((pen_x_next >= wrap.wrap_width) && (wrap.start != wrap.last[0]))) {
       do_draw = true;
     }
     else if (UNLIKELY(((i < str_len) && str[i]) == 0)) {
       /* Need check here for trailing newline, else we draw it. */
-      wrap.last[0] = i + ((g->c != '\n') ? 1 : 0);
+      wrap.last[0] = i + ((codepoint != '\n') ? 1 : 0);
       wrap.last[1] = i;
       do_draw = true;
     }
-    else if (UNLIKELY(g->c == '\n')) {
+    else if (UNLIKELY(codepoint == '\n')) {
       wrap.last[0] = i_curr + 1;
       wrap.last[1] = i;
       do_draw = true;
     }
-    else if (UNLIKELY(g->c != ' ' && (g_prev ? g_prev->c == ' ' : false))) {
+    else if (UNLIKELY(codepoint != ' ' && (g_prev ? g_prev->c == ' ' : false))) {
       wrap.last[0] = i_curr;
       wrap.last[1] = i_curr;
     }

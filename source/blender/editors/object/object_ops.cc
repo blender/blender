@@ -113,6 +113,7 @@ void operatortypes_object()
   WM_operatortype_append(OBJECT_OT_join);
   WM_operatortype_append(OBJECT_OT_join_shapes);
   WM_operatortype_append(OBJECT_OT_convert);
+  WM_operatortype_append(OBJECT_OT_visual_geometry_to_objects);
 
   WM_operatortype_append(OBJECT_OT_modifier_add);
   WM_operatortype_append(OBJECT_OT_modifier_remove);

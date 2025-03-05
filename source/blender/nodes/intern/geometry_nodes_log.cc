@@ -4,6 +4,8 @@
 
 #include "NOD_geometry_nodes_log.hh"
 
+#include "BLI_listbase.h"
+
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"

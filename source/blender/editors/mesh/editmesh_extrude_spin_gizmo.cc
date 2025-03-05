@@ -324,7 +324,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
     }
   }
 
-  ED_transform_calc_orientation_from_type(C, ggd->data.orient_mat);
+  blender::ed::transform::calc_orientation_from_type(C, ggd->data.orient_mat);
   for (int i = 0; i < 3; i++) {
     const int axis_ortho = (i + ORTHO_AXIS_OFFSET) % 3;
     const float *axis_ortho_vec = ggd->data.orient_mat[axis_ortho];

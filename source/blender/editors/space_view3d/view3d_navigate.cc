@@ -8,6 +8,8 @@
 
 #include "DNA_curve_types.h"
 
+#include "BLI_dial_2d.h"
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
@@ -384,7 +386,10 @@ void ViewOpsData::end_navigation(bContext *C)
     WM_event_timer_remove(CTX_wm_manager(C), this->timer->win, this->timer);
   }
 
-  MEM_SAFE_FREE(this->init.dial);
+  if (this->init.dial) {
+    BLI_dial_free(this->init.dial);
+    this->init.dial = nullptr;
+  }
 
   /* Need to redraw because drawing code uses RV3D_NAVIGATING to draw
    * faster while navigation operator runs. */
@@ -854,7 +859,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   }
   else {
     /* If there's no selection, `lastofs` is unmodified and last value since static. */
-    is_set = ED_transform_calc_pivot_pos(C, V3D_AROUND_CENTER_MEDIAN, lastofs);
+    is_set = blender::ed::transform::calc_pivot_pos(C, V3D_AROUND_CENTER_MEDIAN, lastofs);
   }
 
   copy_v3_v3(r_dyn_ofs, lastofs);

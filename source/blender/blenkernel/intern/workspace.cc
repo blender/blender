@@ -239,7 +239,7 @@ static void workspace_relation_add(ListBase *relation_list,
                                    const int parentid,
                                    void *data)
 {
-  WorkSpaceDataRelation *relation = MEM_cnew<WorkSpaceDataRelation>(__func__);
+  WorkSpaceDataRelation *relation = MEM_callocN<WorkSpaceDataRelation>(__func__);
   relation->parent = parent;
   relation->parentid = parentid;
   relation->value = data;
@@ -336,7 +336,7 @@ void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
 
 WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const Main *bmain, const int winid)
 {
-  WorkSpaceInstanceHook *hook = MEM_cnew<WorkSpaceInstanceHook>(__func__);
+  WorkSpaceInstanceHook *hook = MEM_callocN<WorkSpaceInstanceHook>(__func__);
 
   /* set an active screen-layout for each possible window/workspace combination */
   for (WorkSpace *workspace = static_cast<WorkSpace *>(bmain->workspaces.first); workspace;
@@ -380,7 +380,7 @@ WorkSpaceLayout *BKE_workspace_layout_add(Main *bmain,
                                           bScreen *screen,
                                           const char *name)
 {
-  WorkSpaceLayout *layout = MEM_cnew<WorkSpaceLayout>(__func__);
+  WorkSpaceLayout *layout = MEM_callocN<WorkSpaceLayout>(__func__);
 
   BLI_assert(!workspaces_is_screen_used(bmain, screen));
 #ifdef NDEBUG

@@ -14,10 +14,6 @@ extern "C" {
 
 #include "../view_map/Functions0D.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject UnaryFunction0D_Type;
@@ -36,7 +32,3 @@ typedef struct {
 int UnaryFunction0D_Init(PyObject *module);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

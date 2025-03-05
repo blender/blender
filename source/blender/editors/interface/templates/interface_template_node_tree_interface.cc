@@ -173,6 +173,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
  private:
   bNodeTree &nodetree_;
   bNodeTreeInterfacePanel &panel_;
+  const bNodeTreeInterfaceSocket *toggle_ = nullptr;
 
  public:
   NodePanelViewItem(bNodeTree &nodetree,
@@ -185,10 +186,21 @@ class NodePanelViewItem : public BasicTreeViewItem {
       NodePanelViewItem &self = static_cast<NodePanelViewItem &>(new_active);
       interface.active_item_set(&self.panel_.item);
     });
+    toggle_ = panel.header_toggle_socket();
+    is_always_collapsible_ = true;
   }
 
   void build_row(uiLayout &row) override
   {
+    /* Add boolean socket if panel has a toggle. */
+    if (toggle_ != nullptr) {
+      uiLayout *toggle_layout = uiLayoutRow(&row, true);
+      /* XXX Socket template only draws in embossed layouts (Julian). */
+      uiLayoutSetEmboss(toggle_layout, UI_EMBOSS);
+      /* Context is not used by the template function. */
+      uiTemplateNodeSocket(toggle_layout, /*C*/ nullptr, toggle_->socket_color());
+    }
+
     this->add_label(row);
 
     uiLayout *sub = uiLayoutRow(&row, true);
@@ -212,11 +224,11 @@ class NodePanelViewItem : public BasicTreeViewItem {
   }
   bool rename(const bContext &C, StringRefNull new_name) override
   {
-    MEM_SAFE_FREE(panel_.name);
-
-    panel_.name = BLI_strdup(new_name.c_str());
-    nodetree_.tree_interface.tag_items_changed();
-    BKE_main_ensure_invariants(*CTX_data_main(&C), nodetree_.id);
+    PointerRNA panel_ptr = RNA_pointer_create_discrete(
+        &nodetree_.id, &RNA_NodeTreeInterfacePanel, &panel_);
+    PropertyRNA *name_prop = RNA_struct_find_property(&panel_ptr, "name");
+    RNA_property_string_set(&panel_ptr, name_prop, new_name.c_str());
+    RNA_property_update(const_cast<bContext *>(&C), &panel_ptr, name_prop);
     return true;
   }
   StringRef get_rename_string() const override
@@ -257,9 +269,13 @@ class NodeTreeInterfaceView : public AbstractTreeView {
 
  protected:
   void add_items_for_panel_recursive(bNodeTreeInterfacePanel &parent,
-                                     ui::TreeViewOrItem &parent_item)
+                                     ui::TreeViewOrItem &parent_item,
+                                     const bNodeTreeInterfaceItem *skip_item = nullptr)
   {
     for (bNodeTreeInterfaceItem *item : parent.items()) {
+      if (item == skip_item) {
+        continue;
+      }
       switch (item->item_type) {
         case NODE_INTERFACE_SOCKET: {
           bNodeTreeInterfaceSocket *socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(
@@ -275,7 +291,10 @@ class NodeTreeInterfaceView : public AbstractTreeView {
           NodePanelViewItem &panel_item = parent_item.add_tree_item<NodePanelViewItem>(
               nodetree_, interface_, *panel);
           panel_item.uncollapse_by_default();
-          add_items_for_panel_recursive(*panel, panel_item);
+          /* Skip over sockets which are a panel toggle. */
+          const bNodeTreeInterfaceSocket *skip_item = panel->header_toggle_socket();
+          add_items_for_panel_recursive(
+              *panel, panel_item, reinterpret_cast<const bNodeTreeInterfaceItem *>(skip_item));
           break;
         }
       }
@@ -318,7 +337,7 @@ eWM_DragDataType NodeTreeInterfaceDragController::get_drag_type() const
 
 void *NodeTreeInterfaceDragController::create_drag_data() const
 {
-  wmDragNodeTreeInterface *drag_data = MEM_cnew<wmDragNodeTreeInterface>(__func__);
+  wmDragNodeTreeInterface *drag_data = MEM_callocN<wmDragNodeTreeInterface>(__func__);
   drag_data->item = &item_;
   return drag_data;
 }
@@ -459,7 +478,8 @@ bool NodePanelDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
     case DropLocation::Into: {
       /* Insert into target */
       parent = &panel_;
-      index = 0;
+      const bool has_toggle_socket = panel_.header_toggle_socket() != nullptr;
+      index = has_toggle_socket ? 1 : 0;
       break;
     }
     case DropLocation::Before: {

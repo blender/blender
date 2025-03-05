@@ -31,7 +31,7 @@ namespace blender::bke::subdiv {
 
 #ifdef WITH_OPENSUBDIV
 
-static eOpenSubdivEvaluator opensubdiv_evalutor_from_subdiv_evaluator_type(
+static eOpenSubdivEvaluator opensubdiv_evaluator_from_subdiv_evaluator_type(
     eSubdivEvaluatorType evaluator_type)
 {
   switch (evaluator_type) {
@@ -66,7 +66,7 @@ bool eval_begin(Subdiv *subdiv,
   }
   if (subdiv->evaluator == nullptr) {
     eOpenSubdivEvaluator opensubdiv_evaluator_type =
-        opensubdiv_evalutor_from_subdiv_evaluator_type(evaluator_type);
+        opensubdiv_evaluator_from_subdiv_evaluator_type(evaluator_type);
     stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
     subdiv->evaluator = openSubdiv_createEvaluatorFromTopologyRefiner(
         subdiv->topology_refiner, opensubdiv_evaluator_type, evaluator_cache);

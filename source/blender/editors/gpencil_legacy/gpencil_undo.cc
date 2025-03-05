@@ -13,6 +13,7 @@
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"
@@ -152,7 +153,7 @@ void gpencil_undo_push(bGPdata *gpd)
   }
 
   /* create new undo node */
-  undo_node = MEM_cnew<bGPundonode>("gpencil undo node");
+  undo_node = MEM_callocN<bGPundonode>("gpencil undo node");
   undo_node->gpd = BKE_gpencil_data_duplicate(nullptr, gpd, true);
 
   cur_node = undo_node;

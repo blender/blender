@@ -14,7 +14,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
@@ -65,6 +67,7 @@
 #include "GPU_state.hh"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
@@ -516,6 +519,7 @@ static bAnimChannelType ACF_SUMMARY = {
     /*has_setting*/ acf_summary_setting_valid,
     /*setting_flag*/ acf_summary_setting_flag,
     /*setting_ptr*/ acf_summary_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Scene ------------------------------------------- */
@@ -628,6 +632,7 @@ static bAnimChannelType ACF_SCENE = {
     /*has_setting*/ acf_scene_setting_valid,
     /*setting_flag*/ acf_scene_setting_flag,
     /*setting_ptr*/ acf_scene_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Object ------------------------------------------- */
@@ -807,6 +812,7 @@ static bAnimChannelType ACF_OBJECT = {
     /*has_setting*/ acf_object_setting_valid,
     /*setting_flag*/ acf_object_setting_flag,
     /*setting_ptr*/ acf_object_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Group ------------------------------------------- */
@@ -993,6 +999,7 @@ static bAnimChannelType ACF_GROUP = {
     /*has_setting*/ acf_group_setting_valid,
     /*setting_flag*/ acf_group_setting_flag,
     /*setting_ptr*/ acf_group_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* F-Curve ------------------------------------------- */
@@ -1159,6 +1166,7 @@ static bAnimChannelType ACF_FCURVE = {
     /*has_setting*/ acf_fcurve_setting_valid,
     /*setting_flag*/ acf_fcurve_setting_flag,
     /*setting_ptr*/ acf_fcurve_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* NLA Control FCurves Expander ----------------------- */
@@ -1275,6 +1283,7 @@ static bAnimChannelType ACF_NLACONTROLS = {
     /*has_setting*/ acf_nla_controls_setting_valid,
     /*setting_flag*/ acf_nla_controls_setting_flag,
     /*setting_ptr*/ acf_nla_controls_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* NLA Control F-Curve -------------------------------- */
@@ -1316,6 +1325,7 @@ static bAnimChannelType ACF_NLACURVE = {
     /*has_setting*/ acf_fcurve_setting_valid,
     /*setting_flag*/ acf_fcurve_setting_flag,
     /*setting_ptr*/ acf_fcurve_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Object Animation Expander  ------------------------------------------- */
@@ -1401,6 +1411,7 @@ static bAnimChannelType ACF_FILLANIM = {
     /*has_setting*/ acf_fillanim_setting_valid,
     /*setting_flag*/ acf_fillanim_setting_flag,
     /*setting_ptr*/ acf_fillanim_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 static void acf_action_slot_name(bAnimListElem *ale, char *r_name)
@@ -1506,6 +1517,7 @@ static bAnimChannelType ACF_ACTION_SLOT = {
     /*has_setting*/ acf_action_slot_setting_valid,
     /*setting_flag*/ acf_action_slot_setting_flag,
     /*setting_ptr*/ acf_action_slot_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Object Action Expander  ------------------------------------------- */
@@ -1597,6 +1609,7 @@ static bAnimChannelType ACF_FILLACTD = {
     /*has_setting*/ acf_fillactd_setting_valid,
     /*setting_flag*/ acf_fillactd_setting_flag,
     /*setting_ptr*/ acf_fillactd_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Drivers Expander  ------------------------------------------- */
@@ -1683,6 +1696,7 @@ static bAnimChannelType ACF_FILLDRIVERS = {
     /*has_setting*/ acf_filldrivers_setting_valid,
     /*setting_flag*/ acf_filldrivers_setting_flag,
     /*setting_ptr*/ acf_filldrivers_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Material Expander  ------------------------------------------- */
@@ -1765,6 +1779,7 @@ static bAnimChannelType ACF_DSMAT = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dsmat_setting_flag,
     /*setting_ptr*/ acf_dsmat_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Light Expander  ------------------------------------------- */
@@ -1847,6 +1862,7 @@ static bAnimChannelType ACF_DSLIGHT = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dslight_setting_flag,
     /*setting_ptr*/ acf_dslight_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Texture Expander  ------------------------------------------- */
@@ -1936,6 +1952,7 @@ static bAnimChannelType ACF_DSTEX = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dstex_setting_flag,
     /*setting_ptr*/ acf_dstex_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Camera Expander  ------------------------------------------- */
@@ -2022,6 +2039,7 @@ static bAnimChannelType ACF_DSCACHEFILE = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dscachefile_setting_flag,
     /*setting_ptr*/ acf_dscachefile_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Camera Expander  ------------------------------------------- */
@@ -2108,6 +2126,7 @@ static bAnimChannelType ACF_DSCAM = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dscam_setting_flag,
     /*setting_ptr*/ acf_dscam_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Curve Expander  ------------------------------------------- */
@@ -2200,6 +2219,7 @@ static bAnimChannelType ACF_DSCUR = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dscur_setting_flag,
     /*setting_ptr*/ acf_dscur_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Shape Key Expander  ------------------------------------------- */
@@ -2301,6 +2321,7 @@ static bAnimChannelType ACF_DSSKEY = {
     /*has_setting*/ acf_dsskey_setting_valid,
     /*setting_flag*/ acf_dsskey_setting_flag,
     /*setting_ptr*/ acf_dsskey_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* World Expander  ------------------------------------------- */
@@ -2383,6 +2404,7 @@ static bAnimChannelType ACF_DSWOR = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dswor_setting_flag,
     /*setting_ptr*/ acf_dswor_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Particle Expander  ------------------------------------------- */
@@ -2465,6 +2487,7 @@ static bAnimChannelType ACF_DSPART = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dspart_setting_flag,
     /*setting_ptr*/ acf_dspart_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* MetaBall Expander  ------------------------------------------- */
@@ -2547,6 +2570,7 @@ static bAnimChannelType ACF_DSMBALL = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dsmball_setting_flag,
     /*setting_ptr*/ acf_dsmball_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Armature Expander  ------------------------------------------- */
@@ -2629,6 +2653,7 @@ static bAnimChannelType ACF_DSARM = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dsarm_setting_flag,
     /*setting_ptr*/ acf_dsarm_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* NodeTree Expander  ------------------------------------------- */
@@ -2722,6 +2747,7 @@ static bAnimChannelType ACF_DSNTREE = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dsntree_setting_flag,
     /*setting_ptr*/ acf_dsntree_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* LineStyle Expander  ------------------------------------------- */
@@ -2804,6 +2830,7 @@ static bAnimChannelType ACF_DSLINESTYLE = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dslinestyle_setting_flag,
     /*setting_ptr*/ acf_dslinestyle_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Mesh Expander  ------------------------------------------- */
@@ -2887,6 +2914,7 @@ static bAnimChannelType ACF_DSMESH = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dsmesh_setting_flag,
     /*setting_ptr*/ acf_dsmesh_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Lattice Expander  ------------------------------------------- */
@@ -2970,6 +2998,7 @@ static bAnimChannelType ACF_DSLAT = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dslat_setting_flag,
     /*setting_ptr*/ acf_dslat_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Speaker Expander  ------------------------------------------- */
@@ -3052,6 +3081,7 @@ static bAnimChannelType ACF_DSSPK = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dsspk_setting_flag,
     /*setting_ptr*/ acf_dsspk_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Curves Expander  ------------------------------------------- */
@@ -3133,7 +3163,9 @@ static bAnimChannelType ACF_DSCURVES = {
 
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dscurves_setting_flag,
-    /*setting_ptr*/ acf_dscurves_setting_ptr};
+    /*setting_ptr*/ acf_dscurves_setting_ptr,
+    /*setting_post_update*/ nullptr,
+};
 
 /* PointCloud Expander  ------------------------------------------- */
 
@@ -3214,7 +3246,9 @@ static bAnimChannelType ACF_DSPOINTCLOUD = {
 
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dspointcloud_setting_flag,
-    /*setting_ptr*/ acf_dspointcloud_setting_ptr};
+    /*setting_ptr*/ acf_dspointcloud_setting_ptr,
+    /*setting_post_update*/ nullptr,
+};
 
 /* Volume Expander  ------------------------------------------- */
 
@@ -3295,7 +3329,9 @@ static bAnimChannelType ACF_DSVOLUME = {
 
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dsvolume_setting_flag,
-    /*setting_ptr*/ acf_dsvolume_setting_ptr};
+    /*setting_ptr*/ acf_dsvolume_setting_ptr,
+    /*setting_post_update*/ nullptr,
+};
 
 /* GPencil Expander  ------------------------------------------- */
 
@@ -3377,6 +3413,7 @@ static bAnimChannelType ACF_DSGPENCIL = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dsgpencil_setting_flag,
     /*setting_ptr*/ acf_dsgpencil_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* World Expander  ------------------------------------------- */
@@ -3459,6 +3496,7 @@ static bAnimChannelType ACF_DSMCLIP = {
     /*has_setting*/ acf_generic_dataexpand_setting_valid,
     /*setting_flag*/ acf_dsmclip_setting_flag,
     /*setting_ptr*/ acf_dsmclip_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* ShapeKey Entry  ------------------------------------------- */
@@ -3575,6 +3613,7 @@ static bAnimChannelType ACF_SHAPEKEY = {
     /*has_setting*/ acf_shapekey_setting_valid,
     /*setting_flag*/ acf_shapekey_setting_flag,
     /*setting_ptr*/ acf_shapekey_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* GPencil Datablock (Legacy) ------------------------------------------- */
@@ -3658,6 +3697,7 @@ static bAnimChannelType ACF_GPD_LEGACY = {
     /*has_setting*/ acf_gpd_setting_valid,
     /*setting_flag*/ acf_gpd_setting_flag_legacy,
     /*setting_ptr*/ acf_gpd_setting_ptr_legacy,
+    /*setting_post_update*/ nullptr,
 };
 
 /* GPencil Layer (Legacy) ------------------------------------------- */
@@ -3767,6 +3807,7 @@ static bAnimChannelType ACF_GPL_LEGACY = {
     /*has_setting*/ acf_gpl_setting_valid_legacy,
     /*setting_flag*/ acf_gpl_setting_flag_legacy,
     /*setting_ptr*/ acf_gpl_setting_ptr_legacy,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Grease Pencil Animation functions ------------------------------------------- */
@@ -3907,8 +3948,8 @@ static void *layer_setting_ptr(bAnimListElem *ale,
 static bool layer_channel_color(const bAnimListElem *ale, uint8_t r_color[3])
 {
   using namespace bke::greasepencil;
-  GreasePencilLayerTreeNode &layer = *static_cast<GreasePencilLayerTreeNode *>(ale->data);
-  rgb_float_to_uchar(r_color, layer.color);
+  GreasePencilLayerTreeNode &node = *static_cast<GreasePencilLayerTreeNode *>(ale->data);
+  rgb_float_to_uchar(r_color, node.color);
   return true;
 }
 
@@ -3986,6 +4027,7 @@ static bAnimChannelType ACF_GPD = {
     /*has_setting*/ acf_gpd_setting_valid,
     /*setting_flag*/ greasepencil::data_block_setting_flag,
     /*setting_ptr*/ greasepencil::data_block_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Grease Pencil Layer ------------------------------------------- */
@@ -4006,6 +4048,7 @@ static bAnimChannelType ACF_GPL = {
     /*has_setting*/ greasepencil::layer_setting_valid,
     /*setting_flag*/ greasepencil::layer_setting_flag,
     /*setting_ptr*/ greasepencil::layer_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Grease Pencil Layer Group -------------------------------- */
@@ -4014,7 +4057,7 @@ static bAnimChannelType ACF_GPLGROUP = {
     /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
     /*get_backdrop_color*/ greasepencil::layer_group_color,
-    /*get_channel_color*/ nullptr,
+    /*get_channel_color*/ greasepencil::layer_channel_color,
     /*draw_backdrop*/ acf_group_backdrop,
     /*get_indent_level*/ acf_generic_indentation_0,
     /*get_offset*/ greasepencil::layer_offset,
@@ -4026,6 +4069,7 @@ static bAnimChannelType ACF_GPLGROUP = {
     /*has_setting*/ greasepencil::layer_group_setting_valid,
     /*setting_flag*/ greasepencil::layer_setting_flag,
     /*setting_ptr*/ greasepencil::layer_group_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Mask Datablock ------------------------------------------- */
@@ -4107,6 +4151,7 @@ static bAnimChannelType ACF_MASKDATA = {
     /*has_setting*/ acf_mask_setting_valid,
     /*setting_flag*/ acf_mask_setting_flag,
     /*setting_ptr*/ acf_mask_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* Mask Layer ------------------------------------------- */
@@ -4204,6 +4249,7 @@ static bAnimChannelType ACF_MASKLAYER = {
     /*has_setting*/ acf_masklay_setting_valid,
     /*setting_flag*/ acf_masklay_setting_flag,
     /*setting_ptr*/ acf_masklay_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* NLA Track ----------------------------------------------- */
@@ -4327,6 +4373,28 @@ static void *acf_nlatrack_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(nlt->flag, r_type);
 }
 
+static void acf_nlatrack_setting_post_update(Main &bmain,
+                                             const bAnimListElem & /*ale*/,
+                                             const eAnimChannel_Settings setting)
+{
+  switch (setting) {
+    case ACHANNEL_SETTING_MUTE:
+    case ACHANNEL_SETTING_SOLO:
+      /* Changing these settings can change whether data-blocks are animated at all. */
+      DEG_relations_tag_update(&bmain);
+      break;
+
+    case ACHANNEL_SETTING_SELECT:
+    case ACHANNEL_SETTING_PROTECT:
+    case ACHANNEL_SETTING_EXPAND:
+    case ACHANNEL_SETTING_VISIBLE:
+    case ACHANNEL_SETTING_PINNED:
+    case ACHANNEL_SETTING_MOD_OFF:
+    case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+      break;
+  }
+}
+
 /** NLA track type define. */
 static bAnimChannelType ACF_NLATRACK = {
     /*channel_type_name*/ "NLA Track",
@@ -4345,6 +4413,7 @@ static bAnimChannelType ACF_NLATRACK = {
     /*has_setting*/ acf_nlatrack_setting_valid,
     /*setting_flag*/ acf_nlatrack_setting_flag,
     /*setting_ptr*/ acf_nlatrack_setting_ptr,
+    /*setting_post_update*/ acf_nlatrack_setting_post_update,
 };
 
 /* NLA Action ----------------------------------------------- */
@@ -4528,6 +4597,7 @@ static bAnimChannelType ACF_NLAACTION = {
     /*has_setting*/ acf_nlaaction_setting_valid,
     /*setting_flag*/ acf_nlaaction_setting_flag,
     /*setting_ptr*/ acf_nlaaction_setting_ptr,
+    /*setting_post_update*/ nullptr,
 };
 
 /* *********************************************** */
@@ -4612,7 +4682,7 @@ static void ANIM_init_channel_typeinfo_data()
   }
 }
 
-const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale)
+const bAnimChannelType *ANIM_channel_get_typeinfo(const bAnimListElem *ale)
 {
   /* Sanity checks. */
   if (ale == nullptr) {
@@ -4622,12 +4692,12 @@ const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale)
   /* init the typeinfo if not available yet... */
   ANIM_init_channel_typeinfo_data();
 
-  /* check if type is in bounds... */
-  if ((ale->type >= 0) && (ale->type < ANIMTYPE_NUM_TYPES)) {
-    return animchannelTypeInfo[ale->type];
+  BLI_assert(ale->type < ANIMTYPE_NUM_TYPES);
+  if (ale->type >= ANIMTYPE_NUM_TYPES) {
+    return nullptr;
   }
 
-  return nullptr;
+  return animchannelTypeInfo[ale->type];
 }
 
 /* --------------------------- */
@@ -4804,6 +4874,12 @@ void ANIM_channel_setting_set(bAnimContext *ac,
           ACF_SETTING_SET(*val, flag, mode);
           break;
         }
+      }
+
+      if (acf->setting_post_update) {
+        BLI_assert(ale);
+        BLI_assert(ac->bmain);
+        acf->setting_post_update(*ac->bmain, *ale, setting);
       }
     }
   }
@@ -5246,9 +5322,32 @@ void ANIM_channel_draw(
 /* ------------------ */
 
 /* callback for (normal) widget settings - send notifiers */
-static void achannel_setting_widget_cb(bContext *C, void * /*arg1*/, void * /*arg2*/)
+static void achannel_setting_widget_cb(bContext *C, void *ale_npoin, void *setting_wrap)
 {
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
+
+  const bAnimListElem *ale_setting = static_cast<bAnimListElem *>(ale_npoin);
+  const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale_setting);
+  if (!acf) {
+    /* Any channel with settings should have a type, because it is the type that
+     * tells the system which settings are supported. */
+    BLI_assert_unreachable();
+    return;
+  }
+
+  /* When the button in the UI changes the setting, it does NOT call `ANIM_channel_setting_set()`,
+   * but actually manipulates the data directly via a pointer (see `ui_but_value_set()` in
+   * `source/blender/editors/interface/interface.cc`).
+   *
+   * As a result, `setting_post_update()` was not called yet and we need to call it here. */
+  if (acf->setting_post_update) {
+    const eAnimChannel_Settings setting = eAnimChannel_Settings(POINTER_AS_INT(setting_wrap));
+    Main *bmain = CTX_data_main(C);
+
+    BLI_assert(ale_setting);
+    BLI_assert(bmain);
+    acf->setting_post_update(*bmain, *ale_setting, setting);
+  }
 }
 
 /* callback for widget settings that need flushing */
@@ -5258,11 +5357,11 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
   int filter;
-  int setting = POINTER_AS_INT(setting_wrap);
+  const eAnimChannel_Settings setting = eAnimChannel_Settings(POINTER_AS_INT(setting_wrap));
   short on = 0;
 
-  /* send notifiers before doing anything else... */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
+  /* Before flushing, just do the regular notification & callback. */
+  achannel_setting_widget_cb(C, ale_npoin, setting_wrap);
 
   /* verify that we have a channel to operate on. */
   if (!ale_setting) {
@@ -5324,11 +5423,14 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 }
 
 /* callback for wrapping NLA Track "solo" toggle logic */
-static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void * /*arg2*/)
+static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void *setting_wrap)
 {
   bAnimListElem *ale = static_cast<bAnimListElem *>(ale_poin);
   AnimData *adt = ale->adt;
   NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
+
+  /* Before the special handling, just do the regular notification & callback. */
+  achannel_setting_widget_cb(C, ale_poin, setting_wrap);
 
   /* Toggle 'solo' mode. There are several complications here which need explaining:
    * - The method call is needed to perform a few additional validation operations
@@ -5340,9 +5442,7 @@ static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void *
   nlt->flag ^= NLATRACK_SOLO;
   BKE_nlatrack_solo_toggle(adt, nlt);
 
-  /* send notifiers */
   DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, nullptr);
 }
 
 /* callback for widget sliders - insert keyframes */
@@ -5505,7 +5605,7 @@ static void draw_setting_widget(bAnimContext *ac,
 {
   bool usetoggle = true;
   int icon;
-  const char *tooltip;
+  std::optional<StringRef> tooltip;
 
   /* get the flag and the pointer to that flag */
   bool negflag;
@@ -5606,12 +5706,12 @@ static void draw_setting_widget(bAnimContext *ac,
       }
       else {
         /* TODO: there are no other tools which require the 'pinning' concept yet */
-        tooltip = nullptr;
+        tooltip = std::nullopt;
       }
       break;
 
     default:
-      tooltip = nullptr;
+      tooltip = std::nullopt;
       icon = 0;
       break;
   }
@@ -5690,30 +5790,33 @@ static void draw_setting_widget(bAnimContext *ac,
     return;
   }
 
-  /* set call to send relevant notifiers and/or perform type-specific updates */
-  switch (setting) {
-    /* Settings needing flushing up/down hierarchy. */
-    case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - 'visibility' toggles */
-    case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
-    case ACHANNEL_SETTING_MUTE:    /* General - muting flags */
-    case ACHANNEL_SETTING_PINNED:  /* NLA Actions - 'map/nomap' */
-    case ACHANNEL_SETTING_MOD_OFF:
-    case ACHANNEL_SETTING_ALWAYS_VISIBLE:
-      UI_but_funcN_set(
-          but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), POINTER_FROM_INT(setting));
-      break;
+  /* Set callback to send relevant notifiers and/or perform type-specific updates */
+  {
+    uiButHandleNFunc button_callback;
+    switch (setting) {
+      /* Settings needing flushing up/down hierarchy. */
+      case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - 'visibility' toggles */
+      case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
+      case ACHANNEL_SETTING_MUTE:    /* General - muting flags */
+      case ACHANNEL_SETTING_PINNED:  /* NLA Actions - 'map/nomap' */
+      case ACHANNEL_SETTING_MOD_OFF:
+      case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+        button_callback = achannel_setting_flush_widget_cb;
+        break;
 
-    /* settings needing special attention */
-    case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
-      UI_but_funcN_set(but, achannel_nlatrack_solo_widget_cb, MEM_dupallocN(ale), nullptr);
-      break;
+      /* settings needing special attention */
+      case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
+        button_callback = achannel_nlatrack_solo_widget_cb;
+        break;
 
-    /* no flushing */
-    case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush,
-                                   * otherwise all would open/close at once */
-    default:
-      UI_but_func_set(but, achannel_setting_widget_cb, nullptr, nullptr);
-      break;
+      /* no flushing */
+      case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush,
+                                     * otherwise all would open/close at once */
+      default:
+        button_callback = achannel_setting_widget_cb;
+        break;
+    }
+    UI_but_funcN_set(but, button_callback, MEM_dupallocN(ale), POINTER_FROM_INT(setting));
   }
 
   if ((ale->fcurve_owner_id != nullptr && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
@@ -5928,7 +6031,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                       -1,
                       0,
                       0,
-                      nullptr);
+                      std::nullopt);
 
       /* copy what outliner does here, see outliner_buttons */
       if (UI_but_active_only(C, ac->region, block, but) == false) {
@@ -6075,7 +6178,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                             ymid,
                             UI_UNIT_X,
                             UI_UNIT_X,
-                            nullptr);
+                            std::nullopt);
 
         opptr_b = UI_but_operator_ptr_ensure(but);
         RNA_int_set(opptr_b, "track_index", channel_index);

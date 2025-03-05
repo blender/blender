@@ -179,9 +179,10 @@ static void shape_attributes_to_curves(bke::CurvesGeometry &curves,
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
       "material_index", bke::AttrDomain::Curve);
+  MutableSpan<bool> cyclic = curves.cyclic_for_write();
+
   bke::SpanAttributeWriter fill_colors = attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
       "fill_color", bke::AttrDomain::Curve);
-  MutableSpan<bool> cyclic = curves.cyclic_for_write();
   bke::SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
       "fill_opacity", bke::AttrDomain::Curve);
 
@@ -200,8 +201,12 @@ static void shape_attributes_to_curves(bke::CurvesGeometry &curves,
 
   materials.span.slice(curves_range).fill(material_index);
   const ColorGeometry4f shape_color = convert_svg_color(shape.fill);
-  fill_colors.span.slice(curves_range).fill(shape_color);
-  fill_opacities.span.slice(curves_range).fill(shape_color.a);
+  if (fill_colors) {
+    fill_colors.span.slice(curves_range).fill(shape_color);
+  }
+  if (fill_opacities) {
+    fill_opacities.span.slice(curves_range).fill(shape_color.a);
+  }
 
   int curve_index = curves_range.start();
   for (NSVGpath *path = shape.paths; path; path = path->next) {
@@ -232,8 +237,12 @@ static void shape_attributes_to_curves(bke::CurvesGeometry &curves,
       radii.span[point_index] = shape.strokeWidth * path_width_scale;
 
       const ColorGeometry4f point_color = convert_svg_color(shape.stroke);
-      vertex_colors.span[point_index] = point_color;
-      point_opacities.span[point_index] = point_color.a;
+      if (vertex_colors) {
+        vertex_colors.span[point_index] = point_color;
+      }
+      if (point_opacities) {
+        point_opacities.span[point_index] = point_color.a;
+      }
     }
 
     ++curve_index;

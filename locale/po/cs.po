@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -63,12 +63,12 @@ msgid "F-Curves"
 msgstr "F-Křivky"
 
 
+msgid "Slot"
+msgstr "Slot"
+
+
 msgid "Action F-Curves"
 msgstr "Akce F-křivek"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Kolekce akcí F-křivek"
 
 
 msgid "Action Group"
@@ -245,30 +245,6 @@ msgstr "Skupiny akcí"
 
 msgid "Collection of action groups"
 msgstr "Kolekce akčních skupin"
-
-
-msgid "Mix Mode"
-msgstr "Mixážní režim"
-
-
-msgid "Replace"
-msgstr "Nahradit"
-
-
-msgid "Offset"
-msgstr "Odsazení"
-
-
-msgid "Add"
-msgstr "Přidat"
-
-
-msgid "Subtract"
-msgstr "Odečíst"
-
-
-msgid "Multiply"
-msgstr "Násobit"
 
 
 msgid "Strips"
@@ -583,10 +559,6 @@ msgid "HIP RT (Experimental)"
 msgstr "HIP RT (Experimentální)"
 
 
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT povoluje AMD hardwarový ray tracing na RDNA2 a vyšší. Tato funkcionalita je experimentální a některé scény mohou být špatně vyrenderovány"
-
-
 msgid "Embree on GPU"
 msgstr "Embree na GPU"
 
@@ -707,6 +679,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda použitá pro kombinování výsledku aktivní akce s výsledkem zásobníku NLA"
 
 
+msgid "Replace"
+msgstr "Nahradit"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Hodnoty proužku nahrazují akumulované výsledky částkou určenou vlivem"
 
@@ -719,12 +695,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Hodnoty proužku jsou kombinovány s nashromážděným výsledkem vhodným použitím sčítání, násobení nebo kvarternionové matematiky na základě typu kanálu"
 
 
+msgid "Add"
+msgstr "Přidat"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Vážený výsledek proužku se přidá k akumulovaným výsledkům"
 
 
+msgid "Subtract"
+msgstr "Odečíst"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Vážený výsledek proužku je odstraněn z nahromaděných výsledků"
+
+
+msgid "Multiply"
+msgstr "Násobit"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -3194,6 +3182,10 @@ msgid "Image User"
 msgstr "Prohlížeč obrázků"
 
 
+msgid "Offset"
+msgstr "Odsazení"
+
+
 msgid "Rotation"
 msgstr "Rotace"
 
@@ -4353,6 +4345,10 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Vzdálenost meli linkami orientační sítě"
+
+
+msgid "Mix Mode"
+msgstr "Mixážní režim"
 
 
 msgid "Target object"
@@ -8001,10 +7997,6 @@ msgid "Groups"
 msgstr "Skupiny"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Skupiny F-křivek"
-
-
 msgid "Layers"
 msgstr "Vrstvy"
 
@@ -8131,18 +8123,6 @@ msgstr "Smyčka"
 
 msgid "Brush's capabilities"
 msgstr "Schopnosti štetce"
-
-
-msgid "Clone Alpha"
-msgstr "Barva a alfa"
-
-
-msgid "Clone Image"
-msgstr "Vyberte renderovanou vrstvu"
-
-
-msgid "Clone Offset"
-msgstr "Odsazení klonování"
 
 
 msgid "Soft Body Plasticity"
@@ -13637,12 +13617,20 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
 
 
 msgid "Names"
@@ -13747,14 +13735,6 @@ msgstr "Data Ploch"
 
 msgid "Merge"
 msgstr "Sloučit"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Basic"
@@ -22702,6 +22682,10 @@ msgid "Select Mode"
 msgstr "Seskupený objekt"
 
 
+msgid "Fill Opacity"
+msgstr "Neprůsvitnost výplně"
+
+
 msgctxt "Operator"
 msgid "Snap Selection to Cursor"
 msgstr "Přichytit výběr ke kurzoru"
@@ -29628,10 +29612,6 @@ msgid "Export the UV layout to a bitmap image"
 msgstr "Vybrat"
 
 
-msgid "Fill Opacity"
-msgstr "Neprůsvitnost výplně"
-
-
 msgid "Dimensions of the exported file"
 msgstr "Určuje délku životnosti vlny"
 
@@ -31114,6 +31094,18 @@ msgid "Canvas"
 msgstr "Plátno"
 
 
+msgid "Clone Alpha"
+msgstr "Barva a alfa"
+
+
+msgid "Clone Image"
+msgstr "Vyberte renderovanou vrstvu"
+
+
+msgid "Clone Offset"
+msgstr "Odsazení klonování"
+
+
 msgid "Invert the stencil layer"
 msgstr "Pouze render aktivní vrstvy"
 
@@ -31484,10 +31476,6 @@ msgstr "Textury"
 
 msgid "OpenVDB File"
 msgstr "OpenVDB Soubor"
-
-
-msgid "Slot"
-msgstr "Slot"
 
 
 msgid "Filters"
@@ -33161,10 +33149,6 @@ msgstr "Převrátit Osu X"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Určuje délku životnosti vlny"
-
-
-msgid "Show Navigation Guide"
-msgstr "Zobrazit navigační příručku"
 
 
 msgid "Display the center and axis during rotation"
@@ -42011,10 +41995,6 @@ msgid "Online Python Reference"
 msgstr "Reference pythonu pro API"
 
 
-msgid "Home"
-msgstr "Domů"
-
-
 msgid "Animate property"
 msgstr "Animovat vlastnost"
 
@@ -43319,6 +43299,10 @@ msgstr "Název souboru, přepíše stávající"
 
 msgid "File name"
 msgstr "Název souboru"
+
+
+msgid "Home"
+msgstr "Domů"
 
 
 msgid "Desktop"

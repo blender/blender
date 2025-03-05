@@ -11,6 +11,7 @@
 #include "BKE_idprop.hh"
 #include "BKE_screen.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "BLT_translation.hh"
@@ -181,9 +182,9 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
   if (block->oldblock == nullptr) {
     const bool is_popup = (block->flag & UI_BLOCK_KEEP_OPEN) != 0;
 
-    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+    for (const std::unique_ptr<uiBut> &but : block->buttons) {
       /* no undo for buttons for operator redo panels */
-      UI_but_flag_disable(but, UI_BUT_UNDO);
+      UI_but_flag_disable(but.get(), UI_BUT_UNDO);
 
       /* only for popups, see #36109. */
 
@@ -192,7 +193,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
        */
       if (is_popup) {
         if ((but->rnaprop == op->type->prop) && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_NUM)) {
-          UI_but_focus_on_enter_event(CTX_wm_window(C), but);
+          UI_but_focus_on_enter_event(CTX_wm_window(C), but.get());
         }
       }
     }
@@ -332,7 +333,7 @@ static wmOperator *minimal_operator_create(wmOperatorType *ot, PointerRNA *prope
 {
   /* Copied from #wm_operator_create.
    * Create a slimmed down operator suitable only for UI drawing. */
-  wmOperator *op = MEM_cnew<wmOperator>(ot->rna_ext.srna ? __func__ : ot->idname);
+  wmOperator *op = MEM_callocN<wmOperator>(ot->rna_ext.srna ? __func__ : ot->idname);
   STRNCPY(op->idname, ot->idname);
   op->type = ot;
 
@@ -407,7 +408,7 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
 
   /* Register the exporter list type on first use. */
   static const uiListType *exporter_item_list = []() {
-    uiListType *lt = MEM_cnew<uiListType>(__func__);
+    uiListType *lt = MEM_callocN<uiListType>(__func__);
     STRNCPY(lt->idname, "COLLECTION_UL_exporter_list");
     lt->draw_item = draw_exporter_item;
     WM_uilisttype_add(lt);

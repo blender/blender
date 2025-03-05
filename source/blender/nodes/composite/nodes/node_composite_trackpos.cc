@@ -44,7 +44,7 @@ static void init(const bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
-  NodeTrackPosData *data = MEM_cnew<NodeTrackPosData>(__func__);
+  NodeTrackPosData *data = MEM_callocN<NodeTrackPosData>(__func__);
   node->storage = data;
 
   const Scene *scene = CTX_data_scene(C);
@@ -171,9 +171,11 @@ class TrackPositionOperation : public NodeOperation {
     const float2 speed_toward_next = current_marker_position - next_marker_position;
 
     /* Encode both speeds in a 4D vector. Multiply by the size to get the speed in pixel space. */
-    const float4 speed = float4(speed_toward_previous, speed_toward_next) * float4(size, size);
+    const float4 speed = float4(speed_toward_previous * float2(size),
+                                speed_toward_next * float2(size));
 
     Result &result = get_result("Speed");
+    result.set_type(ResultType::Float4);
     result.allocate_single_value();
     result.set_single_value(speed);
   }
@@ -192,6 +194,7 @@ class TrackPositionOperation : public NodeOperation {
     }
     if (should_compute_output("Speed")) {
       Result &result = get_result("Speed");
+      result.set_type(ResultType::Float4);
       result.allocate_single_value();
       result.set_single_value(float4(0.0f));
     }
@@ -365,8 +368,8 @@ void register_node_type_cmp_trackpos()
   ntype.draw_buttons = file_ns::node_composit_buts_trackpos;
   ntype.initfunc_api = file_ns::init;
   blender::bke::node_type_storage(
-      &ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

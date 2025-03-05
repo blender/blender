@@ -47,6 +47,24 @@ vec3 safe_mod(vec3 a, float b);
 vec4 safe_mod(vec4 a, float b);
 
 /**
+ * A version of mod that behaves similar to C++ std::modf, and is safe such that it returns 0 when
+ * b is also 0.
+ */
+vec2 compatible_mod(vec2 a, vec2 b);
+vec3 compatible_mod(vec3 a, vec3 b);
+vec4 compatible_mod(vec4 a, vec4 b);
+vec2 compatible_mod(vec2 a, float b);
+vec3 compatible_mod(vec3 a, float b);
+vec4 compatible_mod(vec4 a, float b);
+
+/**
+ * Wrap the given value a to fall within the range [b, c].
+ */
+vec2 wrap(vec2 a, vec2 b, vec2 c);
+vec3 wrap(vec3 a, vec3 b, vec3 c);
+vec4 wrap(vec4 a, vec4 b, vec4 c);
+
+/**
  * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
  * In other words, it is equivalent to `divide_ceil(a, b) * b`.
  * It is undefined if \a a is negative or \b b is not strictly positive.
@@ -142,6 +160,14 @@ vec4 safe_normalize(vec4 vector);
 vec2 safe_rcp(vec2 a);
 vec3 safe_rcp(vec3 a);
 vec4 safe_rcp(vec4 a);
+
+/**
+ * A version of pow that returns a fallback value if the computation is undefined. From the spec:
+ * The result is undefined if x < 0 or if x = 0 and y is less than or equal 0.
+ */
+vec2 fallback_pow(vec2 a, float b, vec2 fallback);
+vec3 fallback_pow(vec3 a, float b, vec3 fallback);
+vec4 fallback_pow(vec4 a, float b, vec4 fallback);
 
 /**
  * Per component linear interpolation.
@@ -240,7 +266,6 @@ float average(vec4 a);
 /** \name Implementation
  * \{ */
 
-#  ifdef GPU_METAL /* Already defined in shader_defines.msl/glsl to move here. */
 bool is_zero(vec2 vec)
 {
   return all(equal(vec, vec2(0.0)));
@@ -253,7 +278,6 @@ bool is_zero(vec4 vec)
 {
   return all(equal(vec, vec4(0.0)));
 }
-#  endif /* GPU_METAL */
 
 bool is_any_zero(vec2 vec)
 {
@@ -320,6 +344,51 @@ vec3 safe_mod(vec3 a, float b)
 vec4 safe_mod(vec4 a, float b)
 {
   return (b != 0.0) ? mod(a, vec4(b)) : vec4(0);
+}
+
+vec2 compatible_mod(vec2 a, float b)
+{
+  return vec2(compatible_mod(a.x, b), compatible_mod(a.y, b));
+}
+vec3 compatible_mod(vec3 a, float b)
+{
+  return vec3(compatible_mod(a.x, b), compatible_mod(a.y, b), compatible_mod(a.z, b));
+}
+vec4 compatible_mod(vec4 a, float b)
+{
+  return vec4(compatible_mod(a.x, b),
+              compatible_mod(a.y, b),
+              compatible_mod(a.z, b),
+              compatible_mod(a.w, b));
+}
+
+vec2 compatible_mod(vec2 a, vec2 b)
+{
+  return vec2(compatible_mod(a.x, b.x), compatible_mod(a.y, b.y));
+}
+vec3 compatible_mod(vec3 a, vec3 b)
+{
+  return vec3(compatible_mod(a.x, b.x), compatible_mod(a.y, b.y), compatible_mod(a.z, b.z));
+}
+vec4 compatible_mod(vec4 a, vec4 b)
+{
+  return vec4(compatible_mod(a.x, b.x),
+              compatible_mod(a.y, b.y),
+              compatible_mod(a.z, b.z),
+              compatible_mod(a.w, b.w));
+}
+
+vec2 wrap(vec2 a, vec2 b, vec2 c)
+{
+  return vec2(wrap(a.x, b.x, c.x), wrap(a.y, b.y, c.y));
+}
+vec3 wrap(vec3 a, vec3 b, vec3 c)
+{
+  return vec3(wrap(a.x, b.x, c.x), wrap(a.y, b.y, c.y), wrap(a.z, b.z, c.z));
+}
+vec4 wrap(vec4 a, vec4 b, vec4 c)
+{
+  return vec4(wrap(a.x, b.x, c.x), wrap(a.y, b.y, c.y), wrap(a.z, b.z, c.z), wrap(a.w, b.w, c.w));
 }
 
 ivec2 ceil_to_multiple(ivec2 a, ivec2 b)
@@ -575,6 +644,24 @@ vec3 safe_rcp(vec3 a)
 vec4 safe_rcp(vec4 a)
 {
   return select(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0)));
+}
+
+vec2 fallback_pow(vec2 a, float b, vec2 fallback)
+{
+  return vec2(fallback_pow(a.x, b, fallback.x), fallback_pow(a.y, b, fallback.y));
+}
+vec3 fallback_pow(vec3 a, float b, vec3 fallback)
+{
+  return vec3(fallback_pow(a.x, b, fallback.x),
+              fallback_pow(a.y, b, fallback.y),
+              fallback_pow(a.z, b, fallback.z));
+}
+vec4 fallback_pow(vec4 a, float b, vec4 fallback)
+{
+  return vec4(fallback_pow(a.x, b, fallback.x),
+              fallback_pow(a.y, b, fallback.y),
+              fallback_pow(a.z, b, fallback.z),
+              fallback_pow(a.w, b, fallback.w));
 }
 
 vec2 interpolate(vec2 a, vec2 b, float t)

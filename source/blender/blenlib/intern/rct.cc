@@ -23,6 +23,7 @@
 
 /* avoid including BLI_math */
 static void unit_m4(float m[4][4]);
+static void unit_m3(float m[3][3]);
 
 bool BLI_rcti_is_empty(const rcti *rect)
 {
@@ -551,6 +552,16 @@ void BLI_rctf_transform_calc_m4_pivot_min_ex(
 void BLI_rctf_transform_calc_m4_pivot_min(const rctf *dst, const rctf *src, float matrix[4][4])
 {
   BLI_rctf_transform_calc_m4_pivot_min_ex(dst, src, matrix, 0, 1);
+}
+
+void BLI_rctf_transform_calc_m3_pivot_min(const rctf *dst, const rctf *src, float matrix[3][3])
+{
+  unit_m3(matrix);
+
+  matrix[0][0] = BLI_rctf_size_x(src) / BLI_rctf_size_x(dst);
+  matrix[1][1] = BLI_rctf_size_y(src) / BLI_rctf_size_y(dst);
+  matrix[2][0] = (src->xmin - dst->xmin) * matrix[1][1];
+  matrix[2][1] = (src->ymin - dst->ymin) * matrix[0][0];
 }
 
 void BLI_rcti_translate(rcti *rect, int x, int y)
@@ -1127,4 +1138,12 @@ static void unit_m4(float m[4][4])
   m[1][0] = m[1][2] = m[1][3] = 0.0f;
   m[2][0] = m[2][1] = m[2][3] = 0.0f;
   m[3][0] = m[3][1] = m[3][2] = 0.0f;
+}
+
+static void unit_m3(float m[3][3])
+{
+  m[0][0] = m[1][1] = m[2][2] = 1.0f;
+  m[0][1] = m[0][2] = 0.0f;
+  m[1][0] = m[1][2] = 0.0f;
+  m[2][0] = m[2][1] = 0.0f;
 }

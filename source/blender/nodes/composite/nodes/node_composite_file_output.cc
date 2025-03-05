@@ -10,6 +10,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_index_range.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -142,10 +143,10 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
 {
   NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
   bNodeSocket *sock = blender::bke::node_add_static_socket(
-      ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, "", name);
+      *ntree, *node, SOCK_IN, SOCK_RGBA, PROP_NONE, "", name);
 
   /* create format data for the input socket */
-  NodeImageMultiFileSocket *sockdata = MEM_cnew<NodeImageMultiFileSocket>(__func__);
+  NodeImageMultiFileSocket *sockdata = MEM_callocN<NodeImageMultiFileSocket>(__func__);
   sock->storage = sockdata;
 
   STRNCPY_UTF8(sockdata->path, name);
@@ -191,7 +192,7 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
   /* free format data */
   MEM_freeN(sock->storage);
 
-  blender::bke::node_remove_socket(ntree, node, sock);
+  blender::bke::node_remove_socket(*ntree, *node, *sock);
   return 1;
 }
 
@@ -219,7 +220,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
   Scene *scene = CTX_data_scene(C);
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node = (bNode *)ptr->data;
-  NodeImageMultiFile *nimf = MEM_cnew<NodeImageMultiFile>(__func__);
+  NodeImageMultiFile *nimf = MEM_callocN<NodeImageMultiFile>(__func__);
   nimf->save_as_render = true;
   ImageFormatData *format = nullptr;
   node->storage = nimf;
@@ -289,11 +290,11 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
    */
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
     if (sock->storage == nullptr) {
-      blender::bke::node_remove_socket(ntree, node, sock);
+      blender::bke::node_remove_socket(*ntree, *node, *sock);
     }
   }
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->outputs) {
-    blender::bke::node_remove_socket(ntree, node, sock);
+    blender::bke::node_remove_socket(*ntree, *node, *sock);
   }
 
   cmp_node_update_default(ntree, node);
@@ -512,6 +513,7 @@ class FileOutputOperation : public NodeOperation {
       descriptor.realization_mode = this->is_multi_layer() ?
                                         InputRealizationMode::OperationDomain :
                                         InputRealizationMode::Transforms;
+      descriptor.skip_type_conversion = true;
     }
   }
 
@@ -675,19 +677,26 @@ class FileOutputOperation : public NodeOperation {
           file_output.add_pass(pass_name, view_name, "RGBA", buffer);
         }
         break;
-      case ResultType::Vector:
-        if (result.meta_data.is_4d_vector) {
-          file_output.add_pass(pass_name, view_name, "XYZW", buffer);
-        }
-        else {
+      case ResultType::Float3:
+        /* Float3 results might be stored in 4-component textures due to hardware limitations, so
+         * we need to convert the buffer to a 3-component buffer on the host. */
+        if (this->context().use_gpu() && GPU_texture_component_len(GPU_texture_format(result))) {
           file_output.add_pass(pass_name, view_name, "XYZ", float4_to_float3_image(size, buffer));
         }
+        else {
+          file_output.add_pass(pass_name, view_name, "XYZ", buffer);
+        }
+        break;
+      case ResultType::Float4:
+        file_output.add_pass(pass_name, view_name, "XYZW", buffer);
         break;
       case ResultType::Float:
         file_output.add_pass(pass_name, view_name, "V", buffer);
         break;
-      default:
-        /* Other types are internal and needn't be handled by operations. */
+      case ResultType::Float2:
+      case ResultType::Int2:
+      case ResultType::Int:
+        /* Not supported. */
         BLI_assert_unreachable();
         break;
     }
@@ -709,21 +718,40 @@ class FileOutputOperation : public NodeOperation {
             size, [&](const int2 texel) { buffer[int64_t(texel.y) * size.x + texel.x] = value; });
         return buffer;
       }
-      case ResultType::Vector:
       case ResultType::Color: {
         float *buffer = static_cast<float *>(MEM_malloc_arrayN(
             size_t(size.x) * size.y, sizeof(float[4]), "File Output Inflated Buffer."));
 
-        const float4 value = result.type() == ResultType::Color ?
-                                 result.get_single_value<float4>() :
-                                 result.get_single_value<float4>();
+        const float4 value = result.get_single_value<float4>();
         parallel_for(size, [&](const int2 texel) {
           copy_v4_v4(buffer + ((int64_t(texel.y) * size.x + texel.x) * 4), value);
         });
         return buffer;
       }
-      default:
-        /* Other types are internal and needn't be handled by operations. */
+      case ResultType::Float4: {
+        float *buffer = static_cast<float *>(MEM_malloc_arrayN(
+            size_t(size.x) * size.y, sizeof(float[4]), "File Output Inflated Buffer."));
+
+        const float4 value = result.get_single_value<float4>();
+        parallel_for(size, [&](const int2 texel) {
+          copy_v4_v4(buffer + ((int64_t(texel.y) * size.x + texel.x) * 4), value);
+        });
+        return buffer;
+      }
+      case ResultType::Float3: {
+        float *buffer = static_cast<float *>(MEM_malloc_arrayN(
+            size_t(size.x) * size.y, sizeof(float[3]), "File Output Inflated Buffer."));
+
+        const float3 value = result.get_single_value<float3>();
+        parallel_for(size, [&](const int2 texel) {
+          copy_v3_v3(buffer + ((int64_t(texel.y) * size.x + texel.x) * 3), value);
+        });
+        return buffer;
+      }
+      case ResultType::Int:
+      case ResultType::Int2:
+      case ResultType::Float2:
+        /* Not supported. */
         break;
     }
 
@@ -751,14 +779,26 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Color:
         file_output.add_view(view_name, 4, buffer);
         break;
-      case ResultType::Vector:
-        file_output.add_view(view_name, 3, float4_to_float3_image(size, buffer));
+      case ResultType::Float4:
+        file_output.add_view(view_name, 4, buffer);
+        break;
+      case ResultType::Float3:
+        /* Float3 results might be stored in 4-component textures due to hardware limitations, so
+         * we need to convert the buffer to a 3-component buffer on the host. */
+        if (this->context().use_gpu() && GPU_texture_component_len(GPU_texture_format(result))) {
+          file_output.add_view(view_name, 3, float4_to_float3_image(size, buffer));
+        }
+        else {
+          file_output.add_view(view_name, 3, buffer);
+        }
         break;
       case ResultType::Float:
         file_output.add_view(view_name, 1, buffer);
         break;
-      default:
-        /* Other types are internal and needn't be handled by operations. */
+      case ResultType::Float2:
+      case ResultType::Int2:
+      case ResultType::Int:
+        /* Not supported. */
         BLI_assert_unreachable();
         break;
     }
@@ -913,9 +953,9 @@ void register_node_type_cmp_output_file()
   ntype.initfunc_api = file_ns::init_output_file;
   ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_storage(
-      &ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
+      ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
   ntype.updatefunc = file_ns::update_output_file;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

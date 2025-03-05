@@ -17,9 +17,11 @@
 #include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_linklist_stack.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -32,6 +34,7 @@
 
 using blender::Array;
 using blender::float3;
+using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
 
@@ -268,47 +271,32 @@ void BM_mesh_normals_update(BMesh *bm)
 /** \name Update Vertex & Face Normals (Partial Updates)
  * \{ */
 
-static void bm_partial_faces_parallel_range_calc_normals_cb(
-    void *userdata, const int iter, const TaskParallelTLS *__restrict /*tls*/)
-{
-  BMFace *f = ((BMFace **)userdata)[iter];
-  BM_face_calc_normal(f, f->no);
-}
-
-static void bm_partial_verts_parallel_range_calc_normal_cb(
-    void *userdata, const int iter, const TaskParallelTLS *__restrict /*tls*/)
-{
-  BMVert *v = ((BMVert **)userdata)[iter];
-  bm_vert_calc_normals_impl(v);
-}
-
 void BM_mesh_normals_update_with_partial_ex(BMesh * /*bm*/,
                                             const BMPartialUpdate *bmpinfo,
                                             const BMeshNormalsUpdate_Params *params)
 {
+  using namespace blender;
   BLI_assert(bmpinfo->params.do_normals);
   /* While harmless, exit early if there is nothing to do. */
-  if (UNLIKELY((bmpinfo->verts_len == 0) && (bmpinfo->faces_len == 0))) {
+  if (UNLIKELY(bmpinfo->verts.is_empty() && bmpinfo->faces.is_empty())) {
     return;
   }
 
-  BMVert **verts = bmpinfo->verts;
-  BMFace **faces = bmpinfo->faces;
-  const int verts_len = bmpinfo->verts_len;
-  const int faces_len = bmpinfo->faces_len;
-
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-
-  /* Faces. */
   if (params->face_normals) {
-    BLI_task_parallel_range(
-        0, faces_len, faces, bm_partial_faces_parallel_range_calc_normals_cb, &settings);
+    threading::parallel_for(bmpinfo->faces.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        BMFace *f = bmpinfo->faces[i];
+        BM_face_calc_normal(f, f->no);
+      }
+    });
   }
 
-  /* Verts. */
-  BLI_task_parallel_range(
-      0, verts_len, verts, bm_partial_verts_parallel_range_calc_normal_cb, &settings);
+  threading::parallel_for(bmpinfo->verts.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      BMVert *v = bmpinfo->verts[i];
+      bm_vert_calc_normals_impl(v);
+    }
+  });
 }
 
 void BM_mesh_normals_update_with_partial(BMesh *bm, const BMPartialUpdate *bmpinfo)
@@ -1893,7 +1881,7 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
 void BM_lnorspace_update(BMesh *bm)
 {
   if (bm->lnor_spacearr == nullptr) {
-    bm->lnor_spacearr = MEM_cnew<MLoopNorSpaceArray>(__func__);
+    bm->lnor_spacearr = MEM_callocN<MLoopNorSpaceArray>(__func__);
   }
   if (bm->lnor_spacearr->lspacearr == nullptr) {
     Array<float3> lnors(bm->totloop, float3(0));
@@ -1923,7 +1911,7 @@ void BM_lnorspace_err(BMesh *bm)
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
   bool clear = true;
 
-  MLoopNorSpaceArray *temp = MEM_cnew<MLoopNorSpaceArray>(__func__);
+  MLoopNorSpaceArray *temp = MEM_callocN<MLoopNorSpaceArray>(__func__);
   temp->lspacearr = nullptr;
 
   BKE_lnor_spacearr_init(temp, bm->totloop, MLNOR_SPACEARR_BMLOOP_PTR);
@@ -2149,8 +2137,9 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
 
   BLI_assert(bm->spacearr_dirty == 0);
 
-  BMLoopNorEditDataArray *lnors_ed_arr = MEM_cnew<BMLoopNorEditDataArray>(__func__);
-  lnors_ed_arr->lidx_to_lnor_editdata = MEM_cnew_array<BMLoopNorEditData *>(bm->totloop, __func__);
+  BMLoopNorEditDataArray *lnors_ed_arr = MEM_callocN<BMLoopNorEditDataArray>(__func__);
+  lnors_ed_arr->lidx_to_lnor_editdata = MEM_calloc_arrayN<BMLoopNorEditData *>(bm->totloop,
+                                                                               __func__);
 
   BM_data_layer_ensure_named(bm, &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   const int cd_custom_normal_offset = CustomData_get_offset_named(
@@ -2249,7 +2238,7 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
   }
 
   if (bm->lnor_spacearr == nullptr) {
-    bm->lnor_spacearr = MEM_cnew<MLoopNorSpaceArray>(__func__);
+    bm->lnor_spacearr = MEM_callocN<MLoopNorSpaceArray>(__func__);
   }
 
   bm_mesh_loops_custom_normals_set(bm,

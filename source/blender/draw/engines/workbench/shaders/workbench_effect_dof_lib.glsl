@@ -19,7 +19,7 @@
   (dof_aperturesize * (dof_distance / zdepth - 1.0) * dof_invsensorsize)
 
 #define dof_linear_depth(z) \
-  ((drw_view.winmat[3][3] == 0.0) ? \
+  ((drw_view().winmat[3][3] == 0.0) ? \
        (nearFar.x * nearFar.y) / (z * (nearFar.x - nearFar.y) + nearFar.y) : \
        (z * 2.0 - 1.0) * nearFar.y)
 

@@ -259,6 +259,25 @@ class Set {
   }
 
   /**
+   * Similar to #add but reinserts the key if it already exists. Using this only makes sense if the
+   * key contains additional data besides what affects the hash.
+   *
+   * \return True if the key was newly added, false if it was already present and was overwritten.
+   */
+  bool add_overwrite(const Key &key)
+  {
+    return this->add_overwrite_as(key);
+  }
+  bool add_overwrite(Key &&key)
+  {
+    return this->add_overwrite_as(std::move(key));
+  }
+  template<typename ForwardKey> bool add_overwrite_as(ForwardKey &&key)
+  {
+    return this->add_overwrite__impl(std::forward<ForwardKey>(key), hash_(key));
+  }
+
+  /**
    * Convenience function to add many keys to the set at once. Duplicates are removed
    * automatically.
    *
@@ -811,6 +830,27 @@ class Set {
         return true;
       }
       if (slot.contains(key, is_equal_, hash)) {
+        return false;
+      }
+    }
+    SET_SLOT_PROBING_END();
+  }
+
+  template<typename ForwardKey> bool add_overwrite__impl(ForwardKey &&key, const uint64_t hash)
+  {
+    this->ensure_can_add();
+
+    SET_SLOT_PROBING_BEGIN (hash, slot) {
+      if (slot.is_empty()) {
+        slot.occupy(std::forward<ForwardKey>(key), hash);
+        BLI_assert(hash_(*slot.key()) == hash);
+        occupied_and_removed_slots_++;
+        return true;
+      }
+      if (slot.contains(key, is_equal_, hash)) {
+        Key &stored_key = *slot.key();
+        stored_key = std::forward<ForwardKey>(key);
+        BLI_assert(hash_(stored_key) == hash);
         return false;
       }
     }

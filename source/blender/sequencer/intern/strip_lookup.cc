@@ -74,9 +74,8 @@ static void strip_lookup_build_from_seqbase(Strip *parent_meta,
   }
 }
 
-static void strip_lookup_build(const Scene *scene, StripLookup *lookup)
+static void strip_lookup_build(const Editing *ed, StripLookup *lookup)
 {
-  Editing *ed = SEQ_editing_get(scene);
   strip_lookup_build_from_seqbase(nullptr, &ed->seqbase, lookup);
   lookup->is_valid = true;
 }
@@ -93,78 +92,77 @@ static void strip_lookup_free(StripLookup **lookup)
   *lookup = nullptr;
 }
 
-static void strip_lookup_rebuild(const Scene *scene, StripLookup **lookup)
+static void strip_lookup_rebuild(const Editing *ed, StripLookup **lookup)
 {
   strip_lookup_free(lookup);
   *lookup = strip_lookup_new();
-  strip_lookup_build(scene, *lookup);
+  strip_lookup_build(ed, *lookup);
 }
 
-static void strip_lookup_update_if_needed(const Scene *scene, StripLookup **lookup)
+static void strip_lookup_update_if_needed(const Editing *ed, StripLookup **lookup)
 {
-  if (!scene->ed) {
+  if (!ed) {
     return;
   }
   if (*lookup && (*lookup)->is_valid) {
     return;
   }
 
-  strip_lookup_rebuild(scene, lookup);
+  strip_lookup_rebuild(ed, lookup);
 }
 
-void SEQ_strip_lookup_free(const Scene *scene)
+void SEQ_strip_lookup_free(Editing *ed)
 {
-  BLI_assert(scene->ed);
+  BLI_assert(ed != nullptr);
   std::lock_guard lock(lookup_lock);
-  StripLookup *lookup = scene->ed->runtime.strip_lookup;
-  strip_lookup_free(&lookup);
+  strip_lookup_free(&ed->runtime.strip_lookup);
 }
 
-Strip *SEQ_lookup_strip_by_name(const Scene *scene, const char *key)
+Strip *SEQ_lookup_strip_by_name(Editing *ed, const char *key)
 {
-  BLI_assert(scene->ed);
+  BLI_assert(ed != nullptr);
   std::lock_guard lock(lookup_lock);
-  strip_lookup_update_if_needed(scene, &scene->ed->runtime.strip_lookup);
-  StripLookup *lookup = scene->ed->runtime.strip_lookup;
+  strip_lookup_update_if_needed(ed, &ed->runtime.strip_lookup);
+  StripLookup *lookup = ed->runtime.strip_lookup;
   return lookup->strip_by_name.lookup_default(key, nullptr);
 }
 
-Strip *SEQ_lookup_meta_by_strip(const Scene *scene, const Strip *key)
+Strip *SEQ_lookup_meta_by_strip(Editing *ed, const Strip *key)
 {
-  BLI_assert(scene->ed);
+  BLI_assert(ed != nullptr);
   std::lock_guard lock(lookup_lock);
-  strip_lookup_update_if_needed(scene, &scene->ed->runtime.strip_lookup);
-  StripLookup *lookup = scene->ed->runtime.strip_lookup;
+  strip_lookup_update_if_needed(ed, &ed->runtime.strip_lookup);
+  StripLookup *lookup = ed->runtime.strip_lookup;
   return lookup->meta_by_strip.lookup_default(key, nullptr);
 }
 
-blender::Span<Strip *> SEQ_lookup_effects_by_strip(const Scene *scene, const Strip *key)
+blender::Span<Strip *> SEQ_lookup_effects_by_strip(Editing *ed, const Strip *key)
 {
-  BLI_assert(scene->ed);
+  BLI_assert(ed != nullptr);
   std::lock_guard lock(lookup_lock);
-  strip_lookup_update_if_needed(scene, &scene->ed->runtime.strip_lookup);
-  StripLookup *lookup = scene->ed->runtime.strip_lookup;
+  strip_lookup_update_if_needed(ed, &ed->runtime.strip_lookup);
+  StripLookup *lookup = ed->runtime.strip_lookup;
   blender::VectorSet<Strip *> &effects = lookup->effects_by_strip.lookup_or_add_default(key);
   return effects.as_span();
 }
 
-Strip *SEQ_lookup_strip_by_channel_owner(const Scene *scene, const SeqTimelineChannel *channel)
+Strip *SEQ_lookup_strip_by_channel_owner(Editing *ed, const SeqTimelineChannel *channel)
 {
-  BLI_assert(scene->ed);
+  BLI_assert(ed != nullptr);
   std::lock_guard lock(lookup_lock);
-  strip_lookup_update_if_needed(scene, &scene->ed->runtime.strip_lookup);
-  StripLookup *lookup = scene->ed->runtime.strip_lookup;
+  strip_lookup_update_if_needed(ed, &ed->runtime.strip_lookup);
+  StripLookup *lookup = ed->runtime.strip_lookup;
   return lookup->owner_by_channel.lookup_default(channel, nullptr);
 }
 
-void SEQ_strip_lookup_invalidate(const Scene *scene)
+void SEQ_strip_lookup_invalidate(const Editing *ed)
 {
-  if (scene == nullptr || scene->ed == nullptr) {
+  if (ed == nullptr) {
     return;
   }
 
   std::lock_guard lock(lookup_lock);
-  StripLookup *lookup = scene->ed->runtime.strip_lookup;
+  StripLookup *lookup = ed->runtime.strip_lookup;
   if (lookup != nullptr) {
     lookup->is_valid = false;
   }

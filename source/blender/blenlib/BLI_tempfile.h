@@ -11,10 +11,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Sets `tempdir` from `dirpath` when it's a valid directory.
  * Simple sanitize operations are performed and a trailing slash is ensured.
@@ -33,7 +29,3 @@ bool BLI_temp_directory_path_copy_if_valid(char *tempdir,
  * The directory path is always null-terminated.
  */
 void BLI_temp_directory_path_get(char *tempdir, const size_t tempdir_maxncpy) ATTR_NONNULL(1);
-
-#ifdef __cplusplus
-}
-#endif

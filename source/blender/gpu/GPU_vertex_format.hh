@@ -12,8 +12,8 @@
 
 #include "BLI_assert.h"
 #include "BLI_compiler_compat.h"
-#include "BLI_math_vector.h"
-#include "BLI_math_vector_types.hh"
+#include "BLI_string_ref.hh"
+#include "BLI_sys_types.h"
 
 struct GPUShader;
 
@@ -93,8 +93,17 @@ void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat &src);
 void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader);
 
 uint GPU_vertformat_attr_add(
-    GPUVertFormat *, const char *name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
-void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
+    GPUVertFormat *, blender::StringRef name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
+void GPU_vertformat_alias_add(GPUVertFormat *, blender::StringRef alias);
+
+/**
+ * Return a vertex format from a single attribute description.
+ * The attribute ID is ensured to be 0.
+ */
+GPUVertFormat GPU_vertformat_from_attribute(blender::StringRef name,
+                                            const GPUVertCompType comp_type,
+                                            const uint comp_len,
+                                            const GPUVertFetchMode fetch_mode);
 
 /**
  * Makes vertex attribute from the next vertices to be accessible in the vertex shader.
@@ -125,7 +134,7 @@ void GPU_vertformat_multiload_enable(GPUVertFormat *format, int load_count);
  */
 void GPU_vertformat_deinterleave(GPUVertFormat *format);
 
-int GPU_vertformat_attr_id_get(const GPUVertFormat *, const char *name);
+int GPU_vertformat_attr_id_get(const GPUVertFormat *, blender::StringRef name);
 
 BLI_INLINE const char *GPU_vertformat_attr_name_get(const GPUVertFormat *format,
                                                     const GPUVertAttr *attr,
@@ -144,91 +153,4 @@ void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr, const char *new
  * \warning Always add a prefix to the result of this function as
  * the generated string can start with a number and not be a valid attribute name.
  */
-void GPU_vertformat_safe_attr_name(const char *attr_name, char *r_safe_name, uint max_len);
-
-/* format conversion */
-
-struct GPUPackedNormal {
-  int x : 10;
-  int y : 10;
-  int z : 10;
-  int w : 2; /* 0 by default, can manually set to { -2, -1, 0, 1 } */
-
-  GPUPackedNormal() = default;
-  GPUPackedNormal(int _x, int _y, int _z, int _w = 0) : x(_x), y(_y), z(_z), w(_w) {}
-
-  /* Cast from int to float. */
-  operator blender::float4()
-  {
-    return blender::float4(x, y, z, w);
-  }
-};
-
-struct GPUNormal {
-  union {
-    GPUPackedNormal low;
-    short high[4];
-  };
-};
-
-BLI_INLINE int clampi(int x, int min_allowed, int max_allowed)
-{
-  BLI_assert(min_allowed <= max_allowed);
-  if (x < min_allowed) {
-    return min_allowed;
-  }
-  if (x > max_allowed) {
-    return max_allowed;
-  }
-  return x;
-}
-
-BLI_INLINE int gpu_convert_normalized_f32_to_i10(float x)
-{
-  /* OpenGL ES packs in a different order as desktop GL but component conversion is the same.
-   * Of the code here, only GPUPackedNormal needs to change. */
-  constexpr int signed_int_10_max = 511;
-  constexpr int signed_int_10_min = -512;
-
-  int qx = x * signed_int_10_max;
-  return clampi(qx, signed_int_10_min, signed_int_10_max);
-}
-
-BLI_INLINE int gpu_convert_i16_to_i10(short x)
-{
-  /* 16-bit signed --> 10-bit signed */
-  /* TODO: round? */
-  return x >> 6;
-}
-
-BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3])
-{
-  GPUPackedNormal n = {
-      gpu_convert_normalized_f32_to_i10(data[0]),
-      gpu_convert_normalized_f32_to_i10(data[1]),
-      gpu_convert_normalized_f32_to_i10(data[2]),
-  };
-  return n;
-}
-
-BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3])
-{
-  GPUPackedNormal n = {
-      gpu_convert_i16_to_i10(data[0]),
-      gpu_convert_i16_to_i10(data[1]),
-      gpu_convert_i16_to_i10(data[2]),
-  };
-  return n;
-}
-
-BLI_INLINE void GPU_normal_convert_v3(GPUNormal *gpu_normal,
-                                      const float data[3],
-                                      const bool do_hq_normals)
-{
-  if (do_hq_normals) {
-    normal_float_to_short_v3(gpu_normal->high, data);
-  }
-  else {
-    gpu_normal->low = GPU_normal_convert_i10_v3(data);
-  }
-}
+void GPU_vertformat_safe_attr_name(blender::StringRef attr_name, char *r_safe_name, uint max_len);

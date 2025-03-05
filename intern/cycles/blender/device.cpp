@@ -63,13 +63,6 @@ static void adjust_device_info(DeviceInfo &device, PointerRNA cpreferences, bool
   adjust_device_info_from_preferences(device, cpreferences);
   for (DeviceInfo &info : device.multi_devices) {
     adjust_device_info_from_preferences(info, cpreferences);
-
-    /* There is an accumulative logic here, because Multi-devices are supported only for
-     * the same backend + CPU in Blender right now, and both oneAPI and Metal have a
-     * global boolean backend setting for enabling/disabling Hardware Ray Tracing,
-     * so all sub-devices in the multi-device should enable (or disable) Hardware Ray Tracing
-     * simultaneously (and CPU device is expected to ignore `use_hardware_raytracing` setting). */
-    device.use_hardware_raytracing |= info.use_hardware_raytracing;
   }
 
   if (preview) {

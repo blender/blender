@@ -201,6 +201,12 @@ class LazyFunctionForRepeatZone : public LazyFunction {
     const int iterations = std::max<int>(
         0, params.get_input<SocketValueVariant>(zone_info_.indices.inputs.main[0]).get<int>());
 
+    if (iterations >= 10) {
+      /* Constructing and running the repeat zone has some overhead so that it's probably worth
+       * trying to do something else in the meantime already. */
+      lazy_threading::send_hint();
+    }
+
     /* Show a warning when the inspection index is out of range. */
     if (node_storage.inspection_index > 0) {
       if (node_storage.inspection_index >= iterations) {

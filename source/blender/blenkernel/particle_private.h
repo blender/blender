@@ -10,10 +10,6 @@
 
 #include "BKE_particle.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct CurveMapping;
 
 typedef struct ParticleChildModifierContext {
@@ -56,7 +52,3 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
                         float mat[4][4],
                         ParticleKey *state,
                         float t);
-
-#ifdef __cplusplus
-}
-#endif

@@ -89,31 +89,31 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
 };
 
 struct GPUPass {
-  GPUPass *next;
+  GPUPass *next = nullptr;
 
-  GPUShader *shader;
+  GPUShader *shader = nullptr;
   GPUCodegenCreateInfo *create_info = nullptr;
   /** Orphaned GPUPasses gets freed by the garbage collector. */
-  uint refcount;
+  uint refcount = 0;
   /** The last time the refcount was greater than 0. */
-  int gc_timestamp;
+  int gc_timestamp = 0;
   /** The engine type this pass is compiled for. */
-  eGPUMaterialEngine engine;
+  eGPUMaterialEngine engine = GPU_MAT_EEVEE_LEGACY;
   /** Identity hash generated from all GLSL code. */
-  uint32_t hash;
+  uint32_t hash = 0;
   /** Did we already tried to compile the attached GPUShader. */
-  bool compiled;
+  bool compiled = false;
   /** If this pass is already being_compiled (A GPUPass can be shared by multiple GPUMaterials). */
-  bool compilation_requested;
+  bool compilation_requested = false;
   /** Hint that an optimized variant of this pass should be created based on a complexity heuristic
    * during pass code generation. */
-  bool should_optimize;
+  bool should_optimize = false;
   /** Whether pass is in the GPUPass cache. */
-  bool cached;
+  bool cached = false;
   /** Protects pass shader from being created from multiple threads at the same time. */
-  ThreadMutex shader_creation_mutex;
+  ThreadMutex shader_creation_mutex = {};
 
-  BatchHandle async_compilation_handle;
+  BatchHandle async_compilation_handle = {};
 };
 
 /* -------------------------------------------------------------------- */
@@ -796,7 +796,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
   else {
     /* We still create a pass even if shader compilation
      * fails to avoid trying to compile again and again. */
-    pass = (GPUPass *)MEM_callocN(sizeof(GPUPass), "GPUPass");
+    pass = MEM_new<GPUPass>("GPUPass");
     pass->shader = nullptr;
     pass->refcount = 1;
     pass->create_info = codegen.create_info;
@@ -984,7 +984,7 @@ static void gpu_pass_free(GPUPass *pass)
     GPU_shader_free(pass->shader);
   }
   delete pass->create_info;
-  MEM_freeN(pass);
+  MEM_delete(pass);
 }
 
 void GPU_pass_acquire(GPUPass *pass)

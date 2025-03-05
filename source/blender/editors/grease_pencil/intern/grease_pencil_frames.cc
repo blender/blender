@@ -9,6 +9,8 @@
 #include <algorithm>
 
 #include "BKE_curves.hh"
+
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
@@ -319,7 +321,7 @@ static void append_frame_to_key_edit_data(KeyframeEditData *ked,
                                           const int frame_number,
                                           const GreasePencilFrame &frame)
 {
-  CfraElem *ce = MEM_cnew<CfraElem>(__func__);
+  CfraElem *ce = MEM_callocN<CfraElem>(__func__);
   ce->cfra = float(frame_number);
   ce->sel = frame.is_selected();
   BLI_addtail(&ked->list, ce);
@@ -804,20 +806,26 @@ static int grease_pencil_frame_duplicate_exec(bContext *C, wmOperator *op)
   const int current_frame = scene->r.cfra;
   bool changed = false;
 
+  auto insert_duplicate_frame = [&](Layer &layer, std::optional<int> active_frame_number) {
+    if (!active_frame_number.has_value()) {
+      return false;
+    }
+    return grease_pencil.insert_duplicate_frame(
+        layer, active_frame_number.value(), current_frame, false);
+  };
+
   if (only_active) {
     if (!grease_pencil.has_active_layer()) {
       return OPERATOR_CANCELLED;
     }
     Layer &active_layer = *grease_pencil.get_active_layer();
     const std::optional<int> active_frame_number = active_layer.start_frame_at(current_frame);
-    changed |= grease_pencil.insert_duplicate_frame(
-        active_layer, active_frame_number.value(), current_frame, false);
+    changed |= insert_duplicate_frame(active_layer, active_frame_number);
   }
   else {
     for (Layer *layer : grease_pencil.layers_for_write()) {
       const std::optional<int> active_frame_number = layer->start_frame_at(current_frame);
-      changed |= grease_pencil.insert_duplicate_frame(
-          *layer, active_frame_number.value(), current_frame, false);
+      changed |= insert_duplicate_frame(*layer, active_frame_number);
     }
   }
 

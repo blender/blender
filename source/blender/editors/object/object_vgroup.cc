@@ -621,7 +621,20 @@ static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type
 
   vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
       ob, subset_type, &vgroup_tot, &subset_count);
-  BKE_defvert_normalize_subset(dvert_act, vgroup_validmap, vgroup_tot);
+
+  bool *lock_flags = BKE_object_defgroup_lock_flags_get(ob, vgroup_tot);
+
+  if (lock_flags) {
+    const ListBase *defbase = BKE_object_defgroup_list(ob);
+    const int defbase_tot = BLI_listbase_count(defbase);
+    BKE_defvert_normalize_lock_map(
+        dvert_act, vgroup_validmap, vgroup_tot, lock_flags, defbase_tot);
+    MEM_freeN(lock_flags);
+  }
+  else {
+    BKE_defvert_normalize_subset(dvert_act, vgroup_validmap, vgroup_tot);
+  }
+
   MEM_freeN((void *)vgroup_validmap);
 
   if (mesh->symmetry & ME_SYMMETRY_X) {
@@ -1024,12 +1037,12 @@ static void vgroup_grease_pencil_select_verts(const Scene &scene,
     const int def_nr = BKE_defgroup_name_index(&vertex_group_names, def_group->name);
     if (def_nr < 0) {
       /* No vertices assigned to the group in this drawing. */
-      return;
+      continue;
     }
 
     const Span<MDeformVert> dverts = curves.deform_verts();
     if (dverts.is_empty()) {
-      return;
+      continue;
     }
 
     GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(

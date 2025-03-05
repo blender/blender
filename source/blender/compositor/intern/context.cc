@@ -9,6 +9,7 @@
 #include "DNA_vec_types.h"
 
 #include "GPU_shader.hh"
+#include "GPU_texture_pool.hh"
 
 #include "BKE_node_runtime.hh"
 
@@ -16,11 +17,8 @@
 #include "COM_profiler.hh"
 #include "COM_render_context.hh"
 #include "COM_static_cache_manager.hh"
-#include "COM_texture_pool.hh"
 
 namespace blender::compositor {
-
-Context::Context(TexturePool &texture_pool) : texture_pool_(texture_pool) {}
 
 bool Context::treat_viewer_as_composite_output() const
 {
@@ -56,7 +54,6 @@ bool Context::is_canceled() const
 
 void Context::reset()
 {
-  texture_pool_.reset();
   cache_manager_.reset();
 }
 
@@ -112,11 +109,6 @@ Result Context::create_result(ResultType type, ResultPrecision precision)
 Result Context::create_result(ResultType type)
 {
   return create_result(type, get_precision());
-}
-
-TexturePool &Context::texture_pool()
-{
-  return texture_pool_;
 }
 
 StaticCacheManager &Context::cache_manager()

@@ -45,6 +45,18 @@ thiprtDestroyGlobalStackBuffer *hiprtDestroyGlobalStackBuffer;
 thiprtDestroyFuncTable *hiprtDestroyFuncTable;
 thiprtSetLogLevel *hiprtSetLogLevel;
 
+static DynamicLibrary dynamic_library_open_find(const char **paths) {
+  int i = 0;
+  while (paths[i] != NULL) {
+      DynamicLibrary lib = dynamic_library_open(paths[i]);
+      if (lib != NULL) {
+        return lib;
+      }
+      ++i;
+  }
+  return NULL;
+}
+
 static void hipewHipRtExit(void)
 {
   if (hiprt_lib != NULL) {
@@ -70,12 +82,16 @@ bool hiprtewInit()
   }
 
 #ifdef _WIN32
-  std::string hiprt_path = "hiprt64.dll";
+  const char *hiprt_paths[] = {"hiprt64.dll", NULL};
 #else
-  std::string hiprt_path = "libhiprt64.so";
+  /* libhiprt is installed to the bin subfolder by default, so we include it
+   * in our search path. */
+  const char *hiprt_paths[] = {"libhiprt64.so",
+                               "/opt/rocm/lib/libhiprt64.so",
+                               "/opt/rocm/bin/libhiprt64.so", NULL};
 #endif
 
-  hiprt_lib = dynamic_library_open(hiprt_path.c_str());
+  hiprt_lib = dynamic_library_open_find(hiprt_paths);
 
   if (hiprt_lib == NULL) {
     return false;

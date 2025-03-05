@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -1554,10 +1555,6 @@ static std::string sequencer_add_effect_strip_get_description(bContext * /*C*/,
     case STRIP_TYPE_MUL:
       return TIP_(
           "Add a multiply blend mode effect strip for two selected strips with video content");
-    case STRIP_TYPE_OVERDROP:
-      return TIP_(
-          "Add an alpha over drop blend mode effect strip for two selected strips with video "
-          "content");
     case STRIP_TYPE_WIPE:
       return TIP_("Add a wipe transition strip for two selected strips with video content");
     case STRIP_TYPE_GLOW:

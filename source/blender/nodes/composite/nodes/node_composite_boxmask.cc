@@ -46,7 +46,7 @@ static void cmp_node_boxmask_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_boxmask(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeBoxMask *data = MEM_cnew<NodeBoxMask>(__func__);
+  NodeBoxMask *data = MEM_callocN<NodeBoxMask>(__func__);
   data->x = 0.5;
   data->y = 0.5;
   data->width = 0.2;
@@ -313,8 +313,8 @@ void register_node_type_cmp_boxmask()
   ntype.draw_buttons = file_ns::node_composit_buts_boxmask;
   ntype.initfunc = file_ns::node_composit_init_boxmask;
   blender::bke::node_type_storage(
-      &ntype, "NodeBoxMask", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeBoxMask", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -4,6 +4,7 @@
 
 #include "testing/testing.h"
 
+#include "GPU_attribute_convert.hh"
 #include "GPU_batch.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_shader.hh"
@@ -119,8 +120,8 @@ GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_U16__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_I10__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<GPU_COMP_I10, GPU_FETCH_INT_TO_FLOAT_UNIT, GPUPackedNormal>(
-      GPUPackedNormal(321, -511, 511, 0));
+  vertex_buffer_fetch_mode<GPU_COMP_I10, GPU_FETCH_INT_TO_FLOAT_UNIT, PackedNormal>(
+      PackedNormal(321, -511, 511, 0));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_I10__GPU_FETCH_INT_TO_FLOAT_UNIT);
 

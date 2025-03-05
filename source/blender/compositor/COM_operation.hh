@@ -15,7 +15,6 @@
 #include "COM_domain.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_result.hh"
-#include "COM_texture_pool.hh"
 
 namespace blender::compositor {
 
@@ -159,16 +158,8 @@ class Operation {
   /* Get a reference to the descriptor of the input identified by the given identified. */
   InputDescriptor &get_input_descriptor(StringRef identifier);
 
-  /* Release the results that are mapped to the inputs of the operation. This is called after the
-   * evaluation of the operation to declare that the results are no longer needed by this
-   * operation. */
-  virtual void release_inputs();
-
   /* Returns a reference to the compositor context. */
   Context &context() const;
-
-  /* Returns a reference to the texture pool of the compositor context. */
-  TexturePool &texture_pool() const;
 
  private:
   /* Evaluate the input processors. If the input processors were already added they will be
@@ -179,11 +170,10 @@ class Operation {
    * information. */
   void reset_results();
 
-  /* Release the results that were allocated in the execute method but are not actually needed.
-   * This can be the case if the execute method allocated a dummy texture for an unneeded result,
-   * see the description of Result::allocate_texture() for more information. This is called after
-   * the evaluation of the operation. */
-  void release_unneeded_results();
+  /* Release the results that are mapped to the inputs of the operation. This is called after the
+   * evaluation of the operation to declare that the results are no longer needed by this
+   * operation. */
+  void release_inputs();
 };
 
 }  // namespace blender::compositor

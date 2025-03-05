@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_math_lib.glsl"
 #include "gpu_shader_common_color_utils.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 ivec3 compute_saturation_indices(vec3 v)
 {
@@ -29,7 +29,7 @@ void main()
 
   /* We assume that the keying screen will not be overexposed in the image, so if the input
    * brightness is high, we assume the pixel is opaque. */
-  if (min_v3(input_color) > 1.0f) {
+  if (reduce_min(input_color) > 1.0f) {
     imageStore(output_img, texel, vec4(1.0));
     return;
   }

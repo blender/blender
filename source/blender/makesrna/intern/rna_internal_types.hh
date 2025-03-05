@@ -11,6 +11,8 @@
 #include <optional>
 #include <string>
 
+#include "BLI_vector_set.hh"
+
 #include "DNA_listBase.h"
 
 #include "RNA_access.hh"
@@ -287,11 +289,15 @@ struct RNAPropertyOverrideApplyContext {
 };
 using RNAPropOverrideApply = bool (*)(Main *bmain, RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
+struct PropertyRNAIdentifierGetter {
+  blender::StringRef operator()(const PropertyRNA *prop) const;
+};
+
 /* Container - generic abstracted container of RNA properties */
 struct ContainerRNA {
   void *next, *prev;
 
-  struct GHash *prophash;
+  blender::CustomIDVectorSet<PropertyRNA *, PropertyRNAIdentifierGetter> *prop_lookup_set;
   ListBase properties;
 };
 
@@ -384,6 +390,11 @@ struct PropertyRNA {
    * (in a pointer array at the moment, may later be a tuple) */
   void *py_data;
 };
+
+inline blender::StringRef PropertyRNAIdentifierGetter::operator()(const PropertyRNA *prop) const
+{
+  return prop->identifier;
+}
 
 /* internal flags WARNING! 16bits only! */
 enum PropertyFlagIntern {
@@ -492,6 +503,12 @@ struct StringPropertyRNA {
   StringPropertySearchFunc search;
   eStringPropertySearchFlag search_flag;
 
+  /**
+   * Used for strings which are #PROP_FILEPATH to have a default filter when opening a file
+   * browser.
+   */
+  StringPropertyPathFilterFunc path_filter;
+
   int maxlength; /* includes string terminator! */
 
   const char *defaultvalue;
@@ -549,8 +566,12 @@ struct StructRNA {
   /* unique identifier, keep after 'cont' */
   const char *identifier;
 
-  /** Python type, this is a subtype of #pyrna_struct_Type
-   * but used so each struct can have its own type which is useful for subclassing RNA. */
+  /**
+   * Python type, this is a sub-type of #pyrna_struct_Type
+   * but used so each struct can have its own type which is useful for subclassing RNA.
+   *
+   * Owns a reference so the value isn't freed by Python.
+   */
   void *py_type;
   void *blender_type;
 

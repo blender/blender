@@ -128,32 +128,30 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
 {
   if (this->get_input().get_realization_options().interpolation == Interpolation::Bicubic) {
     switch (this->get_input().type()) {
-      case ResultType::Color:
-        return "compositor_realize_on_domain_bicubic_color";
-      case ResultType::Vector:
-        return "compositor_realize_on_domain_bicubic_vector";
       case ResultType::Float:
         return "compositor_realize_on_domain_bicubic_float";
+      case ResultType::Color:
+      case ResultType::Float3:
+      case ResultType::Float4:
+        return "compositor_realize_on_domain_bicubic_float4";
       case ResultType::Int:
       case ResultType::Int2:
       case ResultType::Float2:
-      case ResultType::Float3:
         /* Realization does not support internal image types. */
         break;
     }
   }
   else {
     switch (this->get_input().type()) {
-      case ResultType::Color:
-        return "compositor_realize_on_domain_color";
-      case ResultType::Vector:
-        return "compositor_realize_on_domain_vector";
       case ResultType::Float:
         return "compositor_realize_on_domain_float";
+      case ResultType::Color:
+      case ResultType::Float3:
+      case ResultType::Float4:
+        return "compositor_realize_on_domain_float4";
       case ResultType::Int:
       case ResultType::Int2:
       case ResultType::Float2:
-      case ResultType::Float3:
         /* Realization does not support internal image types. */
         break;
     }

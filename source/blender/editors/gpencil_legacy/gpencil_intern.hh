@@ -19,7 +19,6 @@ struct bGPDstroke;
 struct bGPdata;
 struct tGPspoint;
 
-struct GHash;
 struct RNG;
 
 struct ARegion;

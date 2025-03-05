@@ -25,6 +25,8 @@ const char *ED_info_statusbar_string(Main *bmain, Scene *scene, ViewLayer *view_
 
 const char *ED_info_statistics_string(Main *bmain, Scene *scene, ViewLayer *view_layer);
 
+void ED_view3d_local_stats_free(View3D *v3d);
+
 /**
  * \param v3d_local: Pass this argument to calculate view-port local statistics.
  * Note that this must only be used for local-view, otherwise report specific statistics

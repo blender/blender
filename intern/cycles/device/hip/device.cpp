@@ -38,9 +38,13 @@ bool device_hip_init()
 
   initialized = true;
   int hipew_result = hipewInit(HIPEW_INIT_HIP);
+
   if (hipew_result == HIPEW_SUCCESS) {
     VLOG_INFO << "HIPEW initialization succeeded";
-    if (HIPDevice::have_precompiled_kernels()) {
+    if (!hipSupportsDriver()) {
+      VLOG_WARNING << "Driver version is too old";
+    }
+    else if (HIPDevice::have_precompiled_kernels()) {
       VLOG_INFO << "Found precompiled kernels";
       result = true;
     }
@@ -60,7 +64,7 @@ bool device_hip_init()
     else if (hipew_result == HIPEW_ERROR_OLD_DRIVER) {
       VLOG_WARNING
           << "HIPEW initialization failed: Driver version too old, requires AMD Radeon Pro "
-             "21.Q4 driver or newer";
+             "24.Q2 driver or newer";
     }
     else {
       VLOG_WARNING << "HIPEW initialization failed: Error opening HIP dynamic library";
@@ -164,8 +168,11 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.description = string(name);
     info.num = num;
 
+    const bool is_rdna2_or_newer = hipIsRDNA2OrNewer(num);
+
+    /* Disable on RDNA1 due to apparent bug in HIP SDK 6.3. */
+    info.has_mnee = is_rdna2_or_newer;
     info.has_nanovdb = true;
-    info.has_mnee = true;
 
     info.has_gpu_queue = true;
     /* Check if the device has P2P access to any other device in the system. */
@@ -177,7 +184,8 @@ void device_hip_info(vector<DeviceInfo> &devices)
       }
     }
 
-    info.use_hardware_raytracing = has_hardware_raytracing;
+    /* Disable on RDNA1 due to bug rendering curves in HIP-RT 2.5 or HIP SDK 6.3. */
+    info.use_hardware_raytracing = has_hardware_raytracing && is_rdna2_or_newer;
 
     int pci_location[3] = {0, 0, 0};
     hipDeviceGetAttribute(&pci_location[0], hipDeviceAttributePciDomainID, num);

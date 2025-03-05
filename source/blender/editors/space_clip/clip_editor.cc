@@ -717,7 +717,7 @@ static uchar *prefetch_read_file_to_memory(
     return nullptr;
   }
 
-  uchar *mem = MEM_cnew_array<uchar>(size, "movieclip prefetch memory file");
+  uchar *mem = MEM_calloc_arrayN<uchar>(size, "movieclip prefetch memory file");
   if (mem == nullptr) {
     close(file);
     return nullptr;
@@ -847,7 +847,7 @@ static void prefetch_task_func(TaskPool *__restrict pool, void *task_data)
   while ((mem = prefetch_thread_next_frame(queue, clip, &size, &current_frame))) {
     ImBuf *ibuf;
     MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
-    int flag = IB_rect | IB_multilayer | IB_alphamode_detect | IB_metadata;
+    int flag = IB_byte_data | IB_multilayer | IB_alphamode_detect | IB_metadata;
     int result;
     char *colorspace_name = nullptr;
     const bool use_proxy = (clip->flag & MCLIP_USE_PROXY) &&
@@ -1126,7 +1126,7 @@ void clip_start_prefetch_job(const bContext *C)
                        WM_JOB_TYPE_CLIP_PREFETCH);
 
   /* create new job */
-  pj = MEM_cnew<PrefetchJob>("prefetch job");
+  pj = MEM_callocN<PrefetchJob>("prefetch job");
   pj->clip = ED_space_clip_get_clip(sc);
   pj->start_frame = prefetch_get_start_frame(C);
   pj->current_frame = sc->user.framenr;

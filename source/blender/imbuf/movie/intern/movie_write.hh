@@ -40,44 +40,44 @@ struct Scene;
 struct StampData;
 
 struct MovieWriter {
-  int ffmpeg_type;
-  AVCodecID ffmpeg_codec;
-  AVCodecID ffmpeg_audio_codec;
-  int ffmpeg_video_bitrate;
-  int ffmpeg_audio_bitrate;
-  int ffmpeg_gop_size;
-  int ffmpeg_max_b_frames;
-  int ffmpeg_autosplit_count;
-  bool ffmpeg_autosplit;
-  bool ffmpeg_preview;
+  int ffmpeg_type = 0;
+  AVCodecID ffmpeg_codec = {};
+  AVCodecID ffmpeg_audio_codec = {};
+  int ffmpeg_video_bitrate = 0;
+  int ffmpeg_audio_bitrate = 0;
+  int ffmpeg_gop_size = 0;
+  int ffmpeg_max_b_frames = 0;
+  int ffmpeg_autosplit_count = 0;
+  bool ffmpeg_autosplit = false;
+  bool ffmpeg_preview = false;
 
-  int ffmpeg_crf;    /* set to 0 to not use CRF mode; we have another flag for lossless anyway. */
-  int ffmpeg_preset; /* see eFFMpegPreset */
+  int ffmpeg_crf = 0; /* set to 0 to not use CRF mode; we have another flag for lossless anyway. */
+  int ffmpeg_preset = 0; /* see eFFMpegPreset */
 
-  AVFormatContext *outfile;
-  AVCodecContext *video_codec;
-  AVCodecContext *audio_codec;
-  AVStream *video_stream;
-  AVStream *audio_stream;
-  AVFrame *current_frame; /* Image frame in output pixel format. */
-  int video_time;
+  AVFormatContext *outfile = nullptr;
+  AVCodecContext *video_codec = nullptr;
+  AVCodecContext *audio_codec = nullptr;
+  AVStream *video_stream = nullptr;
+  AVStream *audio_stream = nullptr;
+  AVFrame *current_frame = nullptr; /* Image frame in output pixel format. */
+  int video_time = 0;
 
   /* Image frame in Blender's own pixel format, may need conversion to the output pixel format. */
-  AVFrame *img_convert_frame;
-  SwsContext *img_convert_ctx;
+  AVFrame *img_convert_frame = nullptr;
+  SwsContext *img_convert_ctx = nullptr;
 
-  uint8_t *audio_input_buffer;
-  uint8_t *audio_deinterleave_buffer;
-  int audio_input_samples;
-  double audio_time;
-  double audio_time_total;
-  bool audio_deinterleave;
-  int audio_sample_size;
+  uint8_t *audio_input_buffer = nullptr;
+  uint8_t *audio_deinterleave_buffer = nullptr;
+  int audio_input_samples = 0;
+  double audio_time = 0.0;
+  double audio_time_total = 0.0;
+  bool audio_deinterleave = false;
+  int audio_sample_size = 0;
 
-  StampData *stamp_data;
+  StampData *stamp_data = nullptr;
 
 #  ifdef WITH_AUDASPACE
-  AUD_Device *audio_mixdown_device;
+  AUD_Device *audio_mixdown_device = nullptr;
 #  endif
 };
 

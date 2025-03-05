@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_edit_mode_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_edit_uv_mask_image)
+
 #include "common_colormanagement_lib.glsl"
 
 void main()

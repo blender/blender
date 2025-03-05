@@ -61,7 +61,7 @@ template<typename T> class GuardedAllocator {
     util_guarded_mem_free(n * sizeof(T));
     if (p != nullptr) {
 #ifdef WITH_BLENDER_GUARDEDALLOC
-      MEM_freeN(p);
+      MEM_freeN(const_cast<void *>(static_cast<const void *>(p)));
 #else
       free(p);
 #endif

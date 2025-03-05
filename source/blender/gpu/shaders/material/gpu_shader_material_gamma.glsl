@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_common_math_utils.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 void node_gamma(vec4 col, float gamma, out vec4 outcol)
 {

@@ -6,7 +6,12 @@
  * Draw particles as shapes using primitive expansion.
  */
 
-#include "common_view_clipping_lib.glsl"
+#include "infos/overlay_extra_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_particle_shape)
+
+#include "draw_model_lib.glsl"
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "select_lib.glsl"
@@ -25,7 +30,7 @@ vec2 circle_position(float angle)
 
 void main()
 {
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
 
   int particle_id = gl_VertexID;
   int shape_vert_id = gl_VertexID;
@@ -81,13 +86,13 @@ void main()
   vec3 world_pos = part.position;
   if (shape_type == PART_SHAPE_CIRCLE) {
     /* World sized, camera facing geometry. */
-    world_pos += transform_direction(ViewMatrixInverse, shape_pos);
+    world_pos += transform_direction(drw_view().viewinv, shape_pos);
   }
   else {
     world_pos += rotate(shape_pos, part.rotation);
   }
   gl_Position = drw_point_world_to_homogenous(world_pos);
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
 
   view_clipping_distances(world_pos);
 }

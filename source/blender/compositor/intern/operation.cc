@@ -14,10 +14,8 @@
 #include "COM_input_descriptor.hh"
 #include "COM_operation.hh"
 #include "COM_realize_on_domain_operation.hh"
-#include "COM_reduce_to_single_value_operation.hh"
 #include "COM_result.hh"
 #include "COM_simple_operation.hh"
-#include "COM_texture_pool.hh"
 
 namespace blender::compositor {
 
@@ -36,8 +34,6 @@ void Operation::evaluate()
   compute_preview();
 
   release_inputs();
-
-  release_unneeded_results();
 
   context().evaluate_operation_post();
 }
@@ -100,12 +96,6 @@ void Operation::add_and_evaluate_input_processors()
    * processors for all inputs. For instance, the realize on domain input processor considers the
    * value of all inputs, so previous input processors for all inputs needs to be added and
    * evaluated first. */
-
-  for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
-    SimpleOperation *single_value = ReduceToSingleValueOperation::construct_if_needed(
-        context(), get_input(identifier));
-    add_and_evaluate_input_processor(identifier, single_value);
-  }
 
   for (const StringRef &identifier : results_mapped_to_inputs_.keys()) {
     SimpleOperation *conversion = ConversionOperation::construct_if_needed(
@@ -172,23 +162,9 @@ InputDescriptor &Operation::get_input_descriptor(StringRef identifier)
   return input_descriptors_.lookup(identifier);
 }
 
-void Operation::release_unneeded_results()
-{
-  for (Result &result : results_.values()) {
-    if (!result.should_compute() && result.is_allocated()) {
-      result.release();
-    }
-  }
-}
-
 Context &Operation::context() const
 {
   return context_;
-}
-
-TexturePool &Operation::texture_pool() const
-{
-  return context_.texture_pool();
 }
 
 void Operation::evaluate_input_processors()

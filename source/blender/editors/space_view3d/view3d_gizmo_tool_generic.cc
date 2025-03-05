@@ -145,11 +145,11 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
     }
 
     RegionView3D *rv3d = static_cast<RegionView3D *>(CTX_wm_region_data(C));
-    TransformBounds tbounds;
-    TransformCalcParams params{};
+    blender::ed::transform::TransformBounds tbounds;
+    blender::ed::transform::TransformCalcParams params{};
     params.use_only_center = true;
     params.orientation_index = orientation + 1;
-    const bool hide = ED_transform_calc_gizmo_stats(C, &params, &tbounds, rv3d) == 0;
+    const bool hide = blender::ed::transform::calc_gizmo_stats(C, &params, &tbounds, rv3d) == 0;
 
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, hide);
     if (hide) {

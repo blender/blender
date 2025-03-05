@@ -10,7 +10,7 @@
 
 #include "RE_engine.h"
 
-#include "draw_manager_profiling.hh"
+#include "GPU_debug.hh"
 
 #include "eevee_instance.hh"
 #include "eevee_motion_blur.hh"
@@ -236,7 +236,7 @@ void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **ou
   dispatch_dilate_size_ = int3(math::divide_ceil(tiles_extent, int2(MOTION_BLUR_GROUP_SIZE)), 1);
   dispatch_gather_size_ = int3(math::divide_ceil(extent, int2(MOTION_BLUR_GROUP_SIZE)), 1);
 
-  DRW_stats_group_start("Motion Blur");
+  GPU_debug_group_begin("Motion Blur");
 
   tiles_tx_.acquire(tiles_extent, GPU_RGBA16F);
 
@@ -246,7 +246,7 @@ void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **ou
 
   tiles_tx_.release();
 
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 
   /* Swap buffers so that next effect has the right input. */
   *input_tx = output_color_tx_;

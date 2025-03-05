@@ -361,24 +361,6 @@ static ImBuf *do_colormix_effect(const SeqRenderData *context,
   return dst;
 }
 
-/* -------------------------------------------------------------------- */
-/* Over-Drop Effect */
-
-/* Before Blender 2.42 (2006), over-drop effect used to have some
- * sort of drop shadow with itself blended on top. However since then
- * (commit 327d413eb3c0c), it is effectively just alpha-over with swapped
- * inputs and thus the effect "fade" factor controlling the other input. */
-
-static ImBuf *do_overdrop_effect(const SeqRenderData *context,
-                                 Strip *strip,
-                                 float timeline_frame,
-                                 float fac,
-                                 ImBuf *src1,
-                                 ImBuf *src2)
-{
-  return do_alphaover_effect(context, strip, timeline_frame, fac, src1, src2);
-}
-
 static void copy_effect_default(Strip *dst, const Strip *src, const int /*flag*/)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
@@ -409,11 +391,6 @@ void alpha_over_effect_get_handle(SeqEffectHandle &rval)
   rval.init = init_alpha_over_or_under;
   rval.execute = do_alphaover_effect;
   rval.early_out = early_out_mul_input1;
-}
-
-void over_drop_effect_get_handle(SeqEffectHandle &rval)
-{
-  rval.execute = do_overdrop_effect;
 }
 
 void alpha_under_effect_get_handle(SeqEffectHandle &rval)

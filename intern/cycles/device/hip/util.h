@@ -47,7 +47,9 @@ class HIPContextScope {
 const char *hipewErrorString(hipError_t result);
 const char *hipewCompilerPath();
 int hipewCompilerVersion();
-#  endif /* WITH_HIP_DYNLOAD */
+#  endif /* !WITH_HIP_DYNLOAD */
+
+bool hipSupportsDriver();
 
 static std::string hipDeviceArch(const int hipDevId)
 {
@@ -64,6 +66,15 @@ static inline bool hipSupportsDevice(const int hipDevId)
   hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
 
   return (major >= 10);
+}
+
+static inline bool hipIsRDNA2OrNewer(const int hipDevId)
+{
+  int major, minor;
+  hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
+  hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
+
+  return (major > 10 || (major == 10 && minor >= 3));
 }
 
 static inline bool hipSupportsDeviceOIDN(const int hipDevId)

@@ -25,6 +25,7 @@
 #include "BKE_volume_grid_fwd.hh"
 #include "BKE_volume_render.hh"
 
+#include "GPU_attribute_convert.hh"
 #include "GPU_batch.hh"
 #include "GPU_capabilities.hh"
 #include "GPU_texture.hh"
@@ -71,7 +72,7 @@ static void volume_batch_cache_init(Volume *volume)
   VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
 
   if (!cache) {
-    volume->batch_cache = cache = MEM_cnew<VolumeBatchCache>(__func__);
+    volume->batch_cache = cache = MEM_callocN<VolumeBatchCache>(__func__);
   }
   else {
     memset(cache, 0, sizeof(*cache));
@@ -148,25 +149,27 @@ static void drw_volume_wireframe_cb(
                              GPU_use_hq_normals_workaround();
 
   /* Create vertex buffer. */
-  static GPUVertFormat format = {0};
-  static GPUVertFormat format_hq = {0};
   static struct {
     uint pos_id, nor_id;
     uint pos_hq_id, nor_hq_id;
   } attr_id;
 
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     attr_id.pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     attr_id.nor_id = GPU_vertformat_attr_add(
         &format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    attr_id.pos_id = GPU_vertformat_attr_add(&format_hq, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    attr_id.nor_id = GPU_vertformat_attr_add(
-        &format_hq, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  }
+    return format;
+  }();
 
-  static float normal[3] = {1.0f, 0.0f, 0.0f};
-  GPUNormal packed_normal;
-  GPU_normal_convert_v3(&packed_normal, normal, do_hq_normals);
+  static const GPUVertFormat format_hq = [&]() {
+    GPUVertFormat format{};
+    attr_id.pos_hq_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    attr_id.nor_hq_id = GPU_vertformat_attr_add(
+        &format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    return format;
+  }();
+
   uint pos_id = do_hq_normals ? attr_id.pos_hq_id : attr_id.pos_id;
   uint nor_id = do_hq_normals ? attr_id.nor_hq_id : attr_id.nor_id;
 
@@ -174,7 +177,15 @@ static void drw_volume_wireframe_cb(
                                                                                      format);
   GPU_vertbuf_data_alloc(*cache->face_wire.pos_nor_in_order, totvert);
   GPU_vertbuf_attr_fill(cache->face_wire.pos_nor_in_order, pos_id, verts);
-  GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
+  const float3 normal(1.0f, 0.0f, 0.0f);
+  if (do_hq_normals) {
+    const gpu::PackedNormal packed_normal = gpu::convert_normal<gpu::PackedNormal>(normal);
+    GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
+  }
+  else {
+    const short4 packed_normal = gpu::convert_normal<short4>(normal);
+    GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
+  }
 
   /* Create wiredata. */
   gpu::VertBuf *vbo_wiredata = GPU_vertbuf_calloc();
@@ -233,11 +244,12 @@ static void drw_volume_selection_surface_cb(
   Volume *volume = static_cast<Volume *>(userdata);
   VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
 
-  static GPUVertFormat format = {0};
   static uint pos_id;
-  if (format.attr_len == 0) {
+  static const GPUVertFormat format = [&]() {
+    GPUVertFormat format{};
     pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  }
+    return format;
+  }();
 
   /* Create vertex buffer. */
   gpu::VertBuf *vbo_surface = GPU_vertbuf_create_with_format(format);
@@ -284,7 +296,7 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
   }
 
   /* Allocate new grid. */
-  DRWVolumeGrid *cache_grid = MEM_cnew<DRWVolumeGrid>(__func__);
+  DRWVolumeGrid *cache_grid = MEM_callocN<DRWVolumeGrid>(__func__);
   cache_grid->name = BLI_strdup(name.c_str());
   BLI_addtail(&cache->grids, cache_grid);
 

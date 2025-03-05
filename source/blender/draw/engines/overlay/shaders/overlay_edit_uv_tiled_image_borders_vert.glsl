@@ -2,6 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_edit_mode_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_tiled_image_borders)
+
+#ifdef GLSL_CPP_STUBS
+/* TODO(fclem): Simplify this. There is no reason for tile_scale and tile_pos to be a mix of
+ * defines and push constant. Have to add the define manually for the CPP compilation. */
+#  define tile_scale float3(0.0)
+#endif
+
 #include "draw_view_lib.glsl"
 
 void main()

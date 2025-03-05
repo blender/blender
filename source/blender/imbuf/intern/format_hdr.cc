@@ -33,8 +33,8 @@ ImBuf *imb_load_hdr(const uchar *mem, size_t size, int flags, char colorspace[IM
     if (flags & IB_alphamode_detect) {
       ibuf->flags |= IB_alphamode_premul;
     }
-    if (flags & IB_rect) {
-      IMB_rect_from_float(ibuf);
+    if (flags & IB_byte_data) {
+      IMB_byte_from_float(ibuf);
     }
   }
 

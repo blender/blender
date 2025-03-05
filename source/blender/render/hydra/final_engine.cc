@@ -10,6 +10,7 @@
 
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_time.h"
 #include "BLI_timecode.h"
 
@@ -69,13 +70,14 @@ void FinalEngine::render()
   render_task_delegate_->bind();
 
   auto t = tasks();
-  engine_->Execute(render_index_.get(), &t);
 
   char elapsed_time[32];
   double time_begin = BLI_time_now_seconds();
   float percent_done = 0.0;
 
   while (true) {
+    engine_->Execute(render_index_.get(), &t);
+
     if (RE_engine_test_break(bl_engine_)) {
       break;
     }

@@ -1141,7 +1141,7 @@ HairGrid *SIM_hair_volume_create_vertex_grid(float cellsize,
   }
   size = hair_grid_size(res);
 
-  grid = MEM_cnew<HairGrid>("hair grid");
+  grid = MEM_callocN<HairGrid>("hair grid");
   grid->res[0] = res[0];
   grid->res[1] = res[1];
   grid->res[2] = res[2];

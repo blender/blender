@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"

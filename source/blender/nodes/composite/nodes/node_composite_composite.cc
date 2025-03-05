@@ -298,5 +298,5 @@ void register_node_type_cmp_composite()
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.no_muting = true;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -98,6 +98,19 @@ ccl_device float fresnel_dielectric_cos(const float cosi, const float eta)
   return 1.0f;  // TIR(no refracted component)
 }
 
+/* Approximates the average single-scattering Fresnel for a given IOR.
+ * This is defined as the integral over 0...1 of 2*cosI * F(cosI, eta) d_cosI, with F being
+ * the real dielectric Fresnel.
+ * The implementation here uses a numerical fit from "Revisiting Physically Based Shading
+ * at Imageworks" by Christopher Kulla and Alejandro Conty. */
+ccl_device_inline float fresnel_dielectric_Fss(const float eta)
+{
+  if (eta < 1.0f) {
+    return 0.997118f + eta * (0.1014f - eta * (0.965241f + eta * 0.130607f));
+  }
+  return (eta - 1.0f) / (4.08567f + 1.00071f * eta);
+}
+
 ccl_device Spectrum fresnel_conductor(const float cosi, const Spectrum eta, const Spectrum k)
 {
   const Spectrum cosi2 = make_spectrum(cosi * cosi);
@@ -108,6 +121,46 @@ ccl_device Spectrum fresnel_conductor(const float cosi, const Spectrum eta, cons
   const Spectrum Rperp2 = (tmp_f - (2.0f * eta * cosi) + cosi2) /
                           (tmp_f + (2.0f * eta * cosi) + cosi2);
   return (Rparl2 + Rperp2) * 0.5f;
+}
+
+/* Computes the average single-scattering Fresnel for the F82 metallic model. */
+ccl_device_inline Spectrum fresnel_f82_Fss(const Spectrum F0, const Spectrum B)
+{
+  return mix(F0, one_spectrum(), 1.0f / 21.0f) - B * (1.0f / 126.0f);
+}
+
+/* Precompute the B term for the F82 metallic model, given a tint factor. */
+ccl_device_inline Spectrum fresnel_f82tint_B(const Spectrum F0, const Spectrum tint)
+{
+  /* In the classic F82 model, the F82 input directly determines the value of the Fresnel
+   * model at ~82°, similar to F0 and F90.
+   * With F82-Tint, on the other hand, the value at 82° is the value of the classic Schlick
+   * model multiplied by the tint input.
+   * Therefore, the factor follows by setting F82Tint(cosI) = FSchlick(cosI) - b*cosI*(1-cosI)^6
+   * and F82Tint(acos(1/7)) = FSchlick(acos(1/7)) * f82_tint and solving for b. */
+  const float f = 6.0f / 7.0f;
+  const float f5 = sqr(sqr(f)) * f;
+  const Spectrum F_schlick = mix(F0, one_spectrum(), f5);
+  return F_schlick * (7.0f / (f5 * f)) * (one_spectrum() - tint);
+}
+
+/* Precompute the B term for the F82 metallic model, given the F82 value. */
+ccl_device_inline Spectrum fresnel_f82_B(const Spectrum F0, const Spectrum F82)
+{
+  const float f = 6.0f / 7.0f;
+  const float f5 = sqr(sqr(f)) * f;
+  const Spectrum F_schlick = mix(F0, one_spectrum(), f5);
+  return (7.0f / (f5 * f)) * (F_schlick - F82);
+}
+
+/* Approximates the average single-scattering Fresnel for a physical conductor. */
+ccl_device_inline Spectrum fresnel_conductor_Fss(const Spectrum eta, const Spectrum k)
+{
+  /* In order to estimate Fss of the conductor, we fit the F82 model to it based on the
+   * value at 0° and ~82° and then use the analytic expression for its Fss. */
+  const Spectrum F0 = fresnel_conductor(1.0f, eta, k);
+  const Spectrum F82 = fresnel_conductor(1.0f / 7.0f, eta, k);
+  return saturate(fresnel_f82_Fss(F0, fresnel_f82_B(F0, F82)));
 }
 
 ccl_device float ior_from_F0(const float f0)

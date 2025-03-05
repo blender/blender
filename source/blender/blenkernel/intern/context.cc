@@ -103,14 +103,14 @@ struct bContext {
 
 bContext *CTX_create()
 {
-  bContext *C = MEM_cnew<bContext>(__func__);
+  bContext *C = MEM_callocN<bContext>(__func__);
 
   return C;
 }
 
 bContext *CTX_copy(const bContext *C)
 {
-  bContext *newC = MEM_cnew<bContext>(__func__);
+  bContext *newC = MEM_callocN<bContext>(__func__);
   *newC = *C;
 
   memset(&newC->wm.operator_poll_msg_dyn_params, 0, sizeof(newC->wm.operator_poll_msg_dyn_params));
@@ -609,7 +609,7 @@ static void data_dir_add(ListBase *lb, const char *member, const bool use_all)
     return;
   }
 
-  link = MEM_cnew<LinkData>(__func__);
+  link = MEM_callocN<LinkData>(__func__);
   link->data = (void *)member;
   BLI_addtail(lb, link);
 }
@@ -1242,7 +1242,7 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
       case OB_GREASE_PENCIL:
         return CTX_MODE_EDIT_GREASE_PENCIL;
       case OB_POINTCLOUD:
-        return CTX_MODE_EDIT_POINT_CLOUD;
+        return CTX_MODE_EDIT_POINTCLOUD;
     }
   }
   else {
@@ -1320,7 +1320,7 @@ static const char *data_mode_strings[] = {
     "lattice_edit",
     "curves_edit",
     "grease_pencil_edit",
-    "point_cloud_edit",
+    "pointcloud_edit",
     "posemode",
     "sculpt_mode",
     "weightpaint",

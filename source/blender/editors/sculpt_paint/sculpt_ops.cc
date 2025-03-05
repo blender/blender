@@ -129,9 +129,11 @@ static int set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
     }
     case bke::pbvh::Type::Grids: {
       const SubdivCCG &subdiv_ccg = *ss->subdiv_ccg;
-      ss->sculpt_persistent_co = subdiv_ccg.positions;
-      ss->sculpt_persistent_no = subdiv_ccg.normals;
-      ss->sculpt_persistent_disp = {};
+      ss->persistent.sculpt_persistent_co = subdiv_ccg.positions;
+      ss->persistent.sculpt_persistent_no = subdiv_ccg.normals;
+      ss->persistent.sculpt_persistent_disp = Array<float>(subdiv_ccg.positions.size(), 0.0f);
+      ss->persistent.grid_size = subdiv_ccg.grid_size;
+      ss->persistent.grids_num = subdiv_ccg.grids_num;
       break;
     }
     case bke::pbvh::Type::BMesh: {
@@ -810,7 +812,7 @@ static void mask_by_color_full_mesh(const Depsgraph &depsgraph,
       });
 }
 
-static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int mask_by_color(bContext *C, wmOperator *op, const float2 region_location)
 {
   const Scene &scene = *CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -834,17 +836,16 @@ static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_CANCELLED;
   }
 
-  if (std::holds_alternative<std::monostate>(ss.active_vert())) {
-    return OPERATOR_CANCELLED;
-  }
-
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
    * so it needs to be updated here. */
   SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, region_location, false);
+
+  if (std::holds_alternative<std::monostate>(ss.active_vert())) {
+    return OPERATOR_CANCELLED;
+  }
 
   undo::push_begin(scene, ob, op);
   BKE_sculpt_color_layer_create_if_needed(&ob);
@@ -869,6 +870,19 @@ static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return OPERATOR_FINISHED;
 }
 
+static int mask_by_color_exec(bContext *C, wmOperator *op)
+{
+  int2 mval;
+  RNA_int_get_array(op->ptr, "location", mval);
+  return mask_by_color(C, op, float2(mval[0], mval[1]));
+}
+
+static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  RNA_int_set_array(op->ptr, "location", event->mval);
+  return mask_by_color(C, op, float2(event->mval[0], event->mval[1]));
+}
+
 static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
 {
   ot->name = "Mask by Color";
@@ -876,9 +890,10 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
   ot->description = "Creates a mask based on the active color attribute";
 
   ot->invoke = mask_by_color_invoke;
+  ot->exec = mask_by_color_exec;
   ot->poll = SCULPT_mode_poll;
 
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   ot->prop = RNA_def_boolean(
       ot->srna, "contiguous", false, "Contiguous", "Mask only contiguous color areas");
@@ -900,6 +915,18 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
                 "How much changes in color affect the mask generation",
                 0.0f,
                 1.0f);
+
+  ot->prop = RNA_def_int_array(ot->srna,
+                               "location",
+                               2,
+                               nullptr,
+                               0,
+                               SHRT_MAX,
+                               "Location",
+                               "Region coordinates of sampling",
+                               0,
+                               SHRT_MAX);
+  RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -1249,6 +1276,7 @@ static int mask_from_cavity_exec(bContext *C, wmOperator *op)
   undo::push_begin(scene, ob, op);
   undo::push_nodes(*depsgraph, ob, node_mask, undo::Type::Mask);
 
+  automasking->calc_cavity_factor(*depsgraph, ob, node_mask);
   apply_mask_from_settings(*depsgraph, ob, pbvh, node_mask, *automasking, mode, factor, false);
 
   undo::push_end(ob);

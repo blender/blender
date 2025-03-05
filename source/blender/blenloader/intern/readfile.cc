@@ -39,6 +39,7 @@
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_sdna_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_alloc_string_storage.hh"
 #include "MEM_guardedalloc.h"
@@ -174,6 +175,10 @@
 
 static CLG_LogRef LOG = {"blo.readfile"};
 static CLG_LogRef LOG_UNDO = {"blo.readfile.undo"};
+
+#if ENDIAN_ORDER == B_ENDIAN
+#  warning "Support for Big Endian endianness is deprecated and will be removed in Blender 5.0"
+#endif
 
 /* local prototypes */
 static void read_libraries(FileData *basefd, ListBase *mainlist);
@@ -333,15 +338,13 @@ static void oldnewmap_free(OldNewMap *onm)
 
 static void add_main_to_main(Main *mainvar, Main *from)
 {
-  ListBase *lbarray[INDEX_ID_MAX], *fromarray[INDEX_ID_MAX];
-  int a;
-
   if (from->is_read_invalid) {
     mainvar->is_read_invalid = true;
   }
 
-  set_listbasepointers(mainvar, lbarray);
-  a = set_listbasepointers(from, fromarray);
+  MainListsArray lbarray = BKE_main_lists_get(*mainvar);
+  MainListsArray fromarray = BKE_main_lists_get(*from);
+  int a = fromarray.size();
   while (a--) {
     BLI_movelisttolist(lbarray[a], fromarray[a]);
   }
@@ -360,7 +363,7 @@ void blo_join_main(ListBase *mainlist)
   }
 
   /* Will no longer be valid after joining. */
-  BKE_main_namemap_clear(mainl);
+  BKE_main_namemap_clear(*mainl);
 
   while ((tojoin = mainl->next)) {
     BLI_assert(((tojoin->curlib->runtime->tag & LIBRARY_IS_ASSET_EDIT_FILE) != 0) ==
@@ -410,7 +413,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
   }
 
   /* Will no longer be valid after splitting. */
-  BKE_main_namemap_clear(main);
+  BKE_main_namemap_clear(*main);
 
   /* (Library.temp_index -> Main), lookup table */
   const uint lib_main_array_len = BLI_listbase_count(&main->libraries);
@@ -433,8 +436,8 @@ void blo_split_main(ListBase *mainlist, Main *main)
     lib_main_array[i] = libmain;
   }
 
-  ListBase *lbarray[INDEX_ID_MAX];
-  i = set_listbasepointers(main, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(*main);
+  i = lbarray.size();
   while (i--) {
     ID *id = static_cast<ID *>(lbarray[i]->first);
     if (id == nullptr || GS(id->name) == ID_LI) {
@@ -1198,6 +1201,22 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
     else if (is_minversion_older_than_blender(fd, reports)) {
       blo_filedata_free(fd);
       fd = nullptr;
+    }
+    else if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+      if (ENDIAN_ORDER == L_ENDIAN) {
+        if (!BKE_reports_print_test(reports, RPT_WARNING)) {
+          CLOG_WARN(
+              &LOG,
+              "Blend file '%s' created by a Big Endian version of Blender, support for these "
+              "files will be removed in Blender 5.0",
+              fd->relabase);
+        }
+        BKE_reportf(reports,
+                    RPT_WARNING,
+                    "Blend file '%s' created by a Big Endian version of Blender, support for "
+                    "these files will be removed in Blender 5.0",
+                    fd->relabase);
+      }
     }
   }
   else if (fd->flags & FD_FLAGS_FILE_FUTURE) {
@@ -2123,7 +2142,7 @@ static void readfile_id_runtime_data_ensure(ID &id)
   if (id.runtime.readfile_data) {
     return;
   }
-  id.runtime.readfile_data = MEM_cnew<ID_Readfile_Data>(__func__);
+  id.runtime.readfile_data = MEM_callocN<ID_Readfile_Data>(__func__);
 }
 
 ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id)
@@ -2472,7 +2491,7 @@ static ID *create_placeholder(Main *mainvar,
                               const bool was_liboverride)
 {
   ListBase *lb = which_libbase(mainvar, idcode);
-  ID *ph_id = static_cast<ID *>(BKE_libblock_alloc_notest(idcode));
+  ID *ph_id = BKE_libblock_alloc_notest(idcode);
 
   *((short *)ph_id->name) = idcode;
   BLI_strncpy(ph_id->name + 2, idname, sizeof(ph_id->name) - 2);
@@ -2625,12 +2644,12 @@ static bool read_libblock_is_identical(FileData *fd, BHead *bhead)
 static void read_undo_reuse_noundo_local_ids(FileData *fd)
 {
   Main *old_bmain = static_cast<Main *>(fd->old_mainlist->first);
-  ListBase *lbarray[INDEX_ID_MAX];
 
   BLI_assert(old_bmain->curlib == nullptr);
   BLI_assert(BLI_listbase_is_single(fd->mainlist));
 
-  int i = set_listbasepointers(old_bmain, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(*old_bmain);
+  int i = lbarray.size();
   while (i--) {
     if (BLI_listbase_is_empty(lbarray[i])) {
       continue;
@@ -3423,7 +3442,7 @@ static void after_liblink_merged_bmain_process(Main *bmain, BlendFileReadReport 
   /* We only expect a merged Main here, not a split one. */
   BLI_assert((bmain->prev == nullptr) && (bmain->next == nullptr));
 
-  if (!BKE_main_namemap_validate_and_fix(bmain)) {
+  if (!BKE_main_namemap_validate_and_fix(*bmain)) {
     BKE_report(
         reports ? reports->reports : nullptr,
         RPT_ERROR,
@@ -3882,7 +3901,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     /* After all data has been read and versioned, uses ID_TAG_NEW. Theoretically this should
      * not be calculated in the undo case, but it is currently needed even on undo to recalculate
      * a cache. */
-    blender::bke::node_tree_update_all_new(bfd->main);
+    blender::bke::node_tree_update_all_new(*bfd->main);
 
     placeholders_ensure_valid(bfd->main);
 
@@ -3987,8 +4006,7 @@ static void sort_bhead_old_map(FileData *fd)
     return;
   }
 
-  bhs = fd->bheadmap = static_cast<BHeadSort *>(
-      MEM_malloc_arrayN(tot, sizeof(BHeadSort), "BHeadSort"));
+  bhs = fd->bheadmap = MEM_malloc_arrayN<BHeadSort>(tot, "BHeadSort");
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead), bhs++) {
     bhs->bhead = bhead;
@@ -4434,10 +4452,9 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
   STRNCPY(main_newid->filepath, mainptr->filepath);
   main_newid->curlib = mainptr->curlib;
 
-  ListBase *lbarray[INDEX_ID_MAX];
-  ListBase *lbarray_newid[INDEX_ID_MAX];
-  int i = set_listbasepointers(mainptr, lbarray);
-  set_listbasepointers(main_newid, lbarray_newid);
+  MainListsArray lbarray = BKE_main_lists_get(*mainptr);
+  MainListsArray lbarray_newid = BKE_main_lists_get(*main_newid);
+  int i = lbarray.size();
   while (i--) {
     BLI_listbase_clear(lbarray_newid[i]);
 
@@ -4535,7 +4552,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   BKE_main_id_refcount_recompute(mainvar, false);
 
   /* After all data has been read and versioned, uses ID_TAG_NEW. */
-  blender::bke::node_tree_update_all_new(mainvar);
+  blender::bke::node_tree_update_all_new(*mainvar);
 
   placeholders_ensure_valid(mainvar);
 
@@ -4612,9 +4629,8 @@ void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname)
 
 static int has_linked_ids_to_read(Main *mainvar)
 {
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a = set_listbasepointers(mainvar, lbarray);
-
+  MainListsArray lbarray = BKE_main_lists_get(*mainvar);
+  int a = lbarray.size();
   while (a--) {
     LISTBASE_FOREACH (ID *, id, lbarray[a]) {
       if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder &&
@@ -4687,9 +4703,8 @@ static void read_library_linked_ids(FileData *basefd,
 {
   blender::Map<std::string, ID *> loaded_ids;
 
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a = set_listbasepointers(mainvar, lbarray);
-
+  MainListsArray lbarray = BKE_main_lists_get(*mainvar);
+  int a = lbarray.size();
   while (a--) {
     ID *id = static_cast<ID *>(lbarray[a]->first);
 
@@ -4748,9 +4763,8 @@ static void read_library_clear_weak_links(FileData *basefd, ListBase *mainlist, 
 {
   /* Any remaining weak links at this point have been lost, silently drop
    * those by setting them to nullptr pointers. */
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a = set_listbasepointers(mainvar, lbarray);
-
+  MainListsArray lbarray = BKE_main_lists_get(*mainvar);
+  int a = lbarray.size();
   while (a--) {
     ID *id = static_cast<ID *>(lbarray[a]->first);
 

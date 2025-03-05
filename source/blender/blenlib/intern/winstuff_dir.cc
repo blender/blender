@@ -53,7 +53,7 @@ DIR *opendir(const char *path)
 {
   wchar_t *path_16 = alloc_utf16_from_8(path, 0);
   int path_len;
-  DIR *newd = NULL;
+  DIR *newd = nullptr;
 
   if ((GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) &&
       ((path_len = strlen(path)) < (sizeof(newd->path) - PATH_SUFFIX_LEN)))
@@ -66,7 +66,7 @@ DIR *opendir(const char *path)
     newd->direntry.d_ino = 0;
     newd->direntry.d_off = 0;
     newd->direntry.d_reclen = 0;
-    newd->direntry.d_name = NULL;
+    newd->direntry.d_name = nullptr;
   }
 
   free(path_16);
@@ -76,9 +76,9 @@ DIR *opendir(const char *path)
 static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
 {
   size_t bsize = count_utf_8_from_16(in16);
-  char *out8 = NULL;
+  char *out8 = nullptr;
   if (!bsize) {
-    return NULL;
+    return nullptr;
   }
   out8 = (char *)MEM_mallocN(sizeof(char) * (bsize + add), "UTF-8 String");
   conv_utf_16_to_8(in16, out8, bsize);
@@ -88,9 +88,9 @@ static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
 static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8)(char *in8, size_t add)
 {
   size_t bsize = count_utf_16_from_8(in8);
-  wchar_t *out16 = NULL;
+  wchar_t *out16 = nullptr;
   if (!bsize) {
-    return NULL;
+    return nullptr;
   }
   out16 = (wchar_t *)MEM_mallocN(sizeof(wchar_t) * (bsize + add), "UTF-16 String");
   conv_utf_8_to_16(in8, out16, bsize);
@@ -101,7 +101,7 @@ struct dirent *readdir(DIR *dp)
 {
   if (dp->direntry.d_name) {
     MEM_freeN(dp->direntry.d_name);
-    dp->direntry.d_name = NULL;
+    dp->direntry.d_name = nullptr;
   }
 
   if (dp->handle == INVALID_HANDLE_VALUE) {
@@ -109,7 +109,7 @@ struct dirent *readdir(DIR *dp)
     dp->handle = FindFirstFileW(path_16, &(dp->data));
     free(path_16);
     if (dp->handle == INVALID_HANDLE_VALUE) {
-      return NULL;
+      return nullptr;
     }
 
     dp->direntry.d_name = BLI_alloc_utf_8_from_16(dp->data.cFileName, 0);
@@ -122,7 +122,7 @@ struct dirent *readdir(DIR *dp)
     return &dp->direntry;
   }
   else {
-    return NULL;
+    return nullptr;
   }
 }
 

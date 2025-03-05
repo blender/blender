@@ -45,7 +45,7 @@ void *device_memory::host_alloc(const size_t size)
     return nullptr;
   }
 
-  void *ptr = util_aligned_malloc(size, MIN_ALIGNMENT_CPU_DATA_TYPES);
+  void *ptr = device->host_alloc(type, size);
 
   if (ptr == nullptr) {
     throw std::bad_alloc();
@@ -58,7 +58,7 @@ void device_memory::host_and_device_free()
 {
   if (host_pointer) {
     if (host_pointer != shared_pointer) {
-      util_aligned_free(host_pointer, memory_size());
+      device->host_free(type, host_pointer, memory_size());
     }
     host_pointer = nullptr;
   }
@@ -136,9 +136,9 @@ bool device_memory::is_resident(Device *sub_device) const
   return device->is_resident(device_pointer, sub_device);
 }
 
-bool device_memory::is_host_mapped(Device *sub_device) const
+bool device_memory::is_shared(Device *sub_device) const
 {
-  return device->is_host_mapped(shared_pointer, device_pointer, sub_device);
+  return device->is_shared(shared_pointer, device_pointer, sub_device);
 }
 
 /* Device Sub `ptr`. */

@@ -294,6 +294,29 @@ class VectorSet {
   }
 
   /**
+   * Similar to #add but reinserts the key if it already exists. Using this only makes sense if the
+   * key contains additional data besides what affects the hash.
+   *
+   * \note This is different from first removing and then adding the key again, because
+   * #add_overwrite does not change the index where the value is stored. Removing an element can
+   * change the order of elements.
+   *
+   * \return True if the key was newly added, false if it was already present and was overwritten.
+   */
+  bool add_overwrite(const Key &key)
+  {
+    return this->add_overwrite_as(key);
+  }
+  bool add_overwrite(Key &&key)
+  {
+    return this->add_overwrite_as(std::move(key));
+  }
+  template<typename ForwardKey> bool add_overwrite_as(ForwardKey &&key)
+  {
+    return this->add_overwrite__impl(std::forward<ForwardKey>(key), hash_(key));
+  }
+
+  /**
    * Convenience function to add many keys to the vector set at once. Duplicates are removed
    * automatically.
    *
@@ -737,7 +760,7 @@ class VectorSet {
 
     VECTOR_SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
-        int64_t index = this->size();
+        const int64_t index = this->size();
         Key *dst = keys_ + index;
         new (dst) Key(std::forward<ForwardKey>(key));
         BLI_assert(hash_(*dst) == hash);
@@ -746,6 +769,31 @@ class VectorSet {
         return true;
       }
       if (slot.contains(key, is_equal_, hash, keys_)) {
+        return false;
+      }
+    }
+    VECTOR_SET_SLOT_PROBING_END();
+  }
+
+  template<typename ForwardKey> bool add_overwrite__impl(ForwardKey &&key, const uint64_t hash)
+  {
+    this->ensure_can_add();
+
+    VECTOR_SET_SLOT_PROBING_BEGIN (hash, slot) {
+      if (slot.is_empty()) {
+        const int64_t index = this->size();
+        Key *dst = keys_ + index;
+        new (dst) Key(std::forward<ForwardKey>(key));
+        BLI_assert(hash_(*dst) == hash);
+        slot.occupy(index, hash);
+        occupied_and_removed_slots_++;
+        return true;
+      }
+      if (slot.contains(key, is_equal_, hash, keys_)) {
+        const int64_t index = slot.index();
+        Key &stored_key = keys_[index];
+        stored_key = std::forward<ForwardKey>(key);
+        BLI_assert(hash_(stored_key) == hash);
         return false;
       }
     }

@@ -56,7 +56,10 @@ void vk_pipeline_data_build_commands(VKCommandBufferInterface &command_buffer,
 
 void vk_pipeline_data_free(VKPipelineData &data)
 {
-  MEM_SAFE_FREE(data.push_constants_data);
+  if (data.push_constants_data) {
+    MEM_freeN(const_cast<void *>(data.push_constants_data));
+    data.push_constants_data = nullptr;
+  }
 }
 
 void vk_index_buffer_binding_build_links(VKResourceStateTracker &resources,

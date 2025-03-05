@@ -12,7 +12,7 @@
 
 #include "GPU_capabilities.hh"
 
-#include "draw_manager_profiling.hh"
+#include "GPU_debug.hh"
 
 #include "eevee_instance.hh"
 #include "eevee_pipeline.hh"
@@ -414,7 +414,7 @@ void VolumeModule::draw_prepass(View &main_view)
 
   inst_.uniform_data.push_update();
 
-  DRW_stats_group_start("Volumes");
+  GPU_debug_group_begin("Volumes");
   occupancy_fb_.bind();
   inst_.pipelines.world_volume.render(main_view);
 
@@ -426,7 +426,7 @@ void VolumeModule::draw_prepass(View &main_view)
   if (!current_objects_.is_empty()) {
     inst_.pipelines.volume.render(volume_view, occupancy_tx_);
   }
-  DRW_stats_group_end();
+  GPU_debug_group_end();
 }
 
 void VolumeModule::draw_compute(View &main_view, int2 extent)

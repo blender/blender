@@ -8,6 +8,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "BLI_array.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -26,7 +27,7 @@ namespace blender::nodes {
 
 class NodeDeclarationBuilder;
 
-enum class InputSocketFieldType {
+enum class InputSocketFieldType : int8_t {
   /** The input is required to be a single value. */
   None,
   /** The input can be a field. */
@@ -35,7 +36,7 @@ enum class InputSocketFieldType {
   Implicit,
 };
 
-enum class OutputSocketFieldType {
+enum class OutputSocketFieldType : int8_t {
   /** The output is always a single value. */
   None,
   /** The output is always a field, independent of the inputs. */
@@ -50,7 +51,7 @@ enum class OutputSocketFieldType {
 /**
  * An enum that maps to the #compositor::InputRealizationMode.
  */
-enum class CompositorInputRealizationMode : uint8_t {
+enum class CompositorInputRealizationMode : int8_t {
   None,
   Transforms,
   OperationDomain,
@@ -80,8 +81,8 @@ class OutputFieldDependency {
  * Information about how a node interacts with fields.
  */
 struct FieldInferencingInterface {
-  Vector<InputSocketFieldType> inputs;
-  Vector<OutputFieldDependency> outputs;
+  Array<InputSocketFieldType> inputs;
+  Array<OutputFieldDependency> outputs;
 
   BLI_STRUCT_EQUALITY_OPERATORS_2(FieldInferencingInterface, inputs, outputs)
 };
@@ -188,6 +189,8 @@ class SocketDeclaration : public ItemDeclaration {
   bool is_default_link_socket = false;
   /** Puts this socket on the same line as the previous one in the UI. */
   bool align_with_previous_socket = false;
+  /** This socket is used as a toggle for the parent panel. */
+  bool is_panel_toggle = false;
 
   /** Index in the list of inputs or outputs of the node. */
   int index = -1;
@@ -387,6 +390,10 @@ class BaseSocketDeclarationBuilder {
                                                 const StructRNA *srna,
                                                 const void *data,
                                                 StringRef property_name);
+  /**
+   * Use the socket as a toggle in its panel.
+   */
+  BaseSocketDeclarationBuilder &panel_toggle(bool value = true);
 
   /** Index in the list of inputs or outputs. */
   int index() const;
@@ -454,6 +461,9 @@ class PanelDeclaration : public ItemDeclaration {
   void update_or_build(const bNodePanelState &old_panel, bNodePanelState &new_panel) const;
 
   int depth() const;
+
+  /** Get the declaration for a child item that should be drawn as part of the panel header. */
+  const SocketDeclaration *panel_input_decl() const;
 };
 
 /**

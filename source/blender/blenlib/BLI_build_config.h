@@ -267,7 +267,7 @@
  *   http://msdn.microsoft.com/en-us/library/b0084kay.aspx
  *   http://www.agner.org/optimize/calling_conventions.pdf
  *
- *   or with gcc, run: "echo | gcc -E -dM -"
+ *   or with GCC, run: `echo | gcc -E -dM -`
  * \{ */
 
 #if defined(_M_X64) || defined(__x86_64__)

@@ -65,6 +65,7 @@ Context::Context()
   thread_ = pthread_self();
   is_active_ = false;
   matrix_state = GPU_matrix_state_create();
+  texture_pool = new TexturePool();
 
   context_id = Context::context_counter;
   Context::context_counter++;
@@ -72,29 +73,36 @@ Context::Context()
 
 Context::~Context()
 {
-  /* Derived class should have called free_famebuffers already. */
+  /* Derived class should have called free_resources already. */
   BLI_assert(front_left == nullptr);
   BLI_assert(back_left == nullptr);
   BLI_assert(front_right == nullptr);
   BLI_assert(back_right == nullptr);
+  BLI_assert(texture_pool == nullptr);
 
   GPU_matrix_state_discard(matrix_state);
-  GPU_BATCH_DISCARD_SAFE(polyline_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_points_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_lines_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_triangles_batch);
+  GPU_BATCH_DISCARD_SAFE(procedural_triangle_strips_batch);
+  GPU_VERTBUF_DISCARD_SAFE(dummy_vbo);
   delete state_manager;
   delete imm;
 }
 
-void Context::free_framebuffers()
+void Context::free_resources()
 {
   delete front_left;
   delete back_left;
   delete front_right;
   delete back_right;
-
   front_left = nullptr;
   back_left = nullptr;
   front_right = nullptr;
   back_right = nullptr;
+
+  delete texture_pool;
+  texture_pool = nullptr;
 }
 
 bool Context::is_active_on_thread()
@@ -107,20 +115,59 @@ Context *Context::get()
   return active_ctx;
 }
 
-Batch *Context::polyline_batch_get()
+VertBuf *Context::dummy_vbo_get()
 {
-  if (polyline_batch) {
-    return polyline_batch;
+  if (this->dummy_vbo) {
+    return this->dummy_vbo;
   }
 
   /* TODO(fclem): get rid of this dummy VBO. */
   GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-  GPU_vertbuf_data_alloc(*vbo, 1);
+  this->dummy_vbo = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*this->dummy_vbo, 1);
+  return this->dummy_vbo;
+}
 
-  polyline_batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-  return polyline_batch;
+Batch *Context::procedural_points_batch_get()
+{
+  if (procedural_points_batch) {
+    return procedural_points_batch;
+  }
+
+  procedural_points_batch = GPU_batch_create(GPU_PRIM_POINTS, dummy_vbo_get(), nullptr);
+  return procedural_points_batch;
+}
+
+Batch *Context::procedural_lines_batch_get()
+{
+  if (procedural_lines_batch) {
+    return procedural_lines_batch;
+  }
+
+  procedural_lines_batch = GPU_batch_create(GPU_PRIM_LINES, dummy_vbo_get(), nullptr);
+  return procedural_lines_batch;
+}
+
+Batch *Context::procedural_triangles_batch_get()
+{
+  if (procedural_triangles_batch) {
+    return procedural_triangles_batch;
+  }
+
+  procedural_triangles_batch = GPU_batch_create(GPU_PRIM_TRIS, dummy_vbo_get(), nullptr);
+  return procedural_triangles_batch;
+}
+
+Batch *Context::procedural_triangle_strips_batch_get()
+{
+  if (procedural_triangle_strips_batch) {
+    return procedural_triangle_strips_batch;
+  }
+
+  procedural_triangle_strips_batch = GPU_batch_create(
+      GPU_PRIM_TRI_STRIP, dummy_vbo_get(), nullptr);
+  return procedural_triangle_strips_batch;
 }
 
 }  // namespace blender::gpu
@@ -149,6 +196,14 @@ GPUContext *GPU_context_create(void *ghost_window, void *ghost_context)
 void GPU_context_discard(GPUContext *ctx_)
 {
   Context *ctx = unwrap(ctx_);
+  BLI_assert(active_ctx == ctx);
+
+  GPUBackend *backend = GPUBackend::get();
+  /* Flush any remaining printf while making sure we are inside render boundaries. */
+  backend->render_begin();
+  printf_end(ctx);
+  backend->render_end();
+
   delete ctx;
   active_ctx = nullptr;
 

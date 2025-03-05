@@ -6,7 +6,7 @@
 
 #include "gpu_glsl_cpp_stubs.hh"
 
-#include "gpu_shader_common_math_utils.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 void math_add(float a, float b, float c, out float result)
 {
@@ -116,7 +116,7 @@ void math_fraction(float a, float b, float c, out float result)
 
 void math_modulo(float a, float b, float c, out float result)
 {
-  result = compatible_fmod(a, b);
+  result = compatible_mod(a, b);
 }
 
 void math_floored_modulo(float a, float b, float c, out float result)

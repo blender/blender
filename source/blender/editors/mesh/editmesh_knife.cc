@@ -3573,7 +3573,7 @@ static void knife_constrain_axis(const KnifeTool_OpData *kcd,
                                                        kcd->constrain_axis_mode - 1;
     const int pivot_point = scene->toolsettings->transform_pivot_point;
     float mat[3][3];
-    ED_transform_calc_orientation_from_type_ex(
+    blender::ed::transform::calc_orientation_from_type_ex(
         scene, view_layer, kcd->vc.v3d, rv3d, obedit, obedit, orientation_type, pivot_point, mat);
 
     constrain_dir = mat[kcd->constrain_axis - 1];

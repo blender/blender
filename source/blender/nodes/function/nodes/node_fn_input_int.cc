@@ -29,7 +29,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeInputInt *data = MEM_cnew<NodeInputInt>(__func__);
+  NodeInputInt *data = MEM_callocN<NodeInputInt>(__func__);
   node->storage = data;
 }
 
@@ -44,10 +44,10 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
-      &ntype, "NodeInputInt", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeInputInt", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = node_build_multi_function;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

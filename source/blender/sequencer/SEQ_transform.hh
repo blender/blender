@@ -9,6 +9,7 @@
  */
 
 #include "BLI_array.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
@@ -75,18 +76,16 @@ bool SEQ_transform_is_locked(ListBase *channels, const Strip *strip);
 
 /* Image transformation. */
 
-void SEQ_image_transform_mirror_factor_get(const Strip *strip, float r_mirror[2]);
+blender::float2 SEQ_image_transform_mirror_factor_get(const Strip *strip);
 /**
  * Get strip transform origin offset from image center
  * NOTE: This function does not apply axis mirror.
  *
  * \param scene: Scene in which strips are located
  * \param seq: Sequence to calculate image transform origin
- * \param r_origin: return value
  */
-void SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
-                                                      const Strip *strip,
-                                                      float r_origin[2]);
+blender::float2 SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
+                                                                 const Strip *strip);
 /**
  * Get 4 corner points of strip image, optionally without rotation component applied.
  * Corner vectors are in viewport space.
@@ -109,8 +108,8 @@ blender::Array<blender::float2> SEQ_image_transform_quad_get(const Scene *scene,
 blender::Array<blender::float2> SEQ_image_transform_final_quad_get(const Scene *scene,
                                                                    const Strip *strip);
 
-void SEQ_image_preview_unit_to_px(const Scene *scene, const float co_src[2], float co_dst[2]);
-void SEQ_image_preview_unit_from_px(const Scene *scene, const float co_src[2], float co_dst[2]);
+blender::float2 SEQ_image_preview_unit_to_px(const Scene *scene, blender::float2 co_src);
+blender::float2 SEQ_image_preview_unit_from_px(const Scene *scene, blender::float2 co_src);
 
 /**
  * Get viewport axis aligned bounding box from a collection of sequences.
@@ -122,11 +121,8 @@ void SEQ_image_preview_unit_from_px(const Scene *scene, const float co_src[2], f
  * \param r_min: Minimum x and y values
  * \param r_max: Maximum x and y values
  */
-void SEQ_image_transform_bounding_box_from_collection(Scene *scene,
-                                                      blender::Span<Strip *> strips,
-                                                      bool apply_rotation,
-                                                      float r_min[2],
-                                                      float r_max[2]);
+blender::Bounds<blender::float2> SEQ_image_transform_bounding_box_from_collection(
+    Scene *scene, blender::Span<Strip *> strips, bool apply_rotation);
 
 /**
  * Get strip image transformation matrix. Pivot point is set to correspond with viewport coordinate
@@ -135,4 +131,4 @@ void SEQ_image_transform_bounding_box_from_collection(Scene *scene,
  * \param scene: Scene in which strips are located
  * \param seq: Strip that is used to construct the matrix
  */
-blender::float4x4 SEQ_image_transform_matrix_get(const Scene *scene, const Strip *strip);
+blender::float3x3 SEQ_image_transform_matrix_get(const Scene *scene, const Strip *strip);

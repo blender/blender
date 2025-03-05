@@ -10,10 +10,6 @@
 
 #include "BLI_math_inline.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Defines
  * \{ */
@@ -160,11 +156,14 @@ MINLINE int compare_rgb_uchar(const unsigned char col_a[3],
                               int limit);
 
 /**
- * Return triangle noise in [-0.5..1.5] range.
+ * Returns triangle noise in [-1..+1) range, given integer pixel coordinates.
+ * Triangle distribution which gives a more final uniform noise,
+ * see "Banding in Games: A Noisy Rant" by Mikkel Gjoel (slide 27)
+ * https://loopit.dk/banding_in_games.pdf
  */
-MINLINE float dither_random_value(float s, float t);
+MINLINE float dither_random_value(int x, int y);
 MINLINE void float_to_byte_dither_v3(
-    unsigned char b[3], const float f[3], float dither, float s, float t);
+    unsigned char b[3], const float f[3], float dither, int x, int y);
 
 #define rgba_char_args_set_fl(col, r, g, b, a) \
   rgba_char_args_set(col, (r) * 255, (g) * 255, (b) * 255, (a) * 255)
@@ -181,10 +180,6 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], unsigned int pack);
 
 /** \} */
 
-#ifdef __cplusplus
-}
-#endif
-
 #if BLI_MATH_DO_INLINE
-#  include "intern/math_color_inline.c"
+#  include "intern/math_color_inline.cc"
 #endif

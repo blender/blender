@@ -272,6 +272,10 @@ int Object::motion_step(const float time) const
 
 bool Object::is_traceable() const
 {
+  /* Not supported for lights yet. */
+  if (geometry->is_light()) {
+    return false;
+  }
   /* Mesh itself can be empty,can skip all such objects. */
   if (!bounds.valid() || bounds.size() == zero_float3()) {
     return false;

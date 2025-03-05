@@ -8,10 +8,12 @@
 #include "DNA_brush_types.h"
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
+#include "DNA_userdef_types.h"
 
 #include "ED_paint.hh"
 
 #include "BLI_bit_vector.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_geom.h"
 #ifdef DEBUG_PIXEL_NODES

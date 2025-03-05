@@ -30,8 +30,8 @@ vec4 velocity_unpack(vec4 data)
  */
 vec4 velocity_surface(vec3 P_prv, vec3 P, vec3 P_nxt)
 {
-  /* NOTE: We use CameraData matrices instead of drw_view.persmat to avoid adding the TAA jitter to
-   * the velocity. */
+  /* NOTE: We use CameraData matrices instead of drw_view().persmat to avoid adding the TAA jitter
+   * to the velocity. */
   vec2 prev_uv = project_point(camera_prev.persmat, P_prv).xy;
   vec2 curr_uv = project_point(camera_curr.persmat, P).xy;
   vec2 next_uv = project_point(camera_next.persmat, P_nxt).xy;
@@ -59,8 +59,8 @@ vec4 velocity_surface(vec3 P_prv, vec3 P, vec3 P_nxt)
 vec4 velocity_background(vec3 vV)
 {
   vec3 V = transform_direction(camera_curr.viewinv, vV);
-  /* NOTE: We use CameraData matrices instead of drw_view.winmat to avoid adding the TAA jitter to
-   * the velocity. */
+  /* NOTE: We use CameraData matrices instead of drw_view().winmat to avoid adding the TAA jitter
+   * to the velocity. */
   vec2 prev_uv = project_point(camera_prev.winmat, transform_direction(camera_prev.viewmat, V)).xy;
   vec2 curr_uv = project_point(camera_curr.winmat, transform_direction(camera_curr.viewmat, V)).xy;
   vec2 next_uv = project_point(camera_next.winmat, transform_direction(camera_next.viewmat, V)).xy;
@@ -113,7 +113,7 @@ vec4 velocity_resolve(sampler2D vector_tx, ivec2 texel, float depth)
  */
 void velocity_local_pos_get(vec3 lP, int vert_id, out vec3 lP_prev, out vec3 lP_next)
 {
-  VelocityIndex vel = velocity_indirection_buf[resource_id];
+  VelocityIndex vel = velocity_indirection_buf[drw_resource_id()];
   lP_next = lP_prev = lP;
   if (vel.geo.do_deform) {
     if (vel.geo.ofs[STEP_PREVIOUS] != -1) {
@@ -133,12 +133,12 @@ void velocity_local_pos_get(vec3 lP, int vert_id, out vec3 lP_prev, out vec3 lP_
 void velocity_vertex(
     vec3 lP_prev, vec3 lP, vec3 lP_next, out vec3 motion_prev, out vec3 motion_next)
 {
-  VelocityIndex vel = velocity_indirection_buf[resource_id];
+  VelocityIndex vel = velocity_indirection_buf[drw_resource_id()];
   mat4 obmat_prev = velocity_obj_prev_buf[vel.obj.ofs[STEP_PREVIOUS]];
   mat4 obmat_next = velocity_obj_next_buf[vel.obj.ofs[STEP_NEXT]];
   vec3 P_prev = transform_point(obmat_prev, lP_prev);
   vec3 P_next = transform_point(obmat_next, lP_next);
-  vec3 P = transform_point(ModelMatrix, lP);
+  vec3 P = transform_point(drw_modelmat(), lP);
   motion_prev = P_prev - P;
   motion_next = P_next - P;
 }

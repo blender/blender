@@ -8,21 +8,12 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * Initialize OpenImageIO on startup.
  */
-void OIIO_init(void);
+void OIIO_init();
 
 /*
  * Get OpenImageIO version.
  */
-int OIIO_getVersionHex(void);
-
-#ifdef __cplusplus
-}
-
-#endif
+int OIIO_getVersionHex();

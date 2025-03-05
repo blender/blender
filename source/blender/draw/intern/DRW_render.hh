@@ -10,18 +10,10 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
 #include "DNA_object_enums.h"
 
 #include "GPU_material.hh"
-
-/* Uncomment to track unused resource bindings. */
-// #define DRW_UNUSED_RESOURCE_TRACKING
-
-#ifdef DRW_UNUSED_RESOURCE_TRACKING
-#  define DRW_DEBUG_FILE_LINE_ARGS , const char *file, int line
-#else
-#  define DRW_DEBUG_FILE_LINE_ARGS
-#endif
 
 namespace blender::gpu {
 class Batch;
@@ -51,6 +43,7 @@ struct ViewLayer;
 struct World;
 namespace blender::draw {
 class TextureFromPool;
+struct ObjectRef;
 }  // namespace blender::draw
 
 typedef struct DRWPass DRWPass;
@@ -62,34 +55,10 @@ struct BoundSphere {
   float center[3], radius;
 };
 
-/* declare members as empty (unused) */
-typedef char DRWViewportEmptyList;
-
-#define DRW_VIEWPORT_LIST_SIZE(list) \
-  (sizeof(list) == sizeof(DRWViewportEmptyList) ? 0 : (sizeof(list) / sizeof(void *)))
-
-/* Unused members must be either pass list or 'char *' when not used. */
-#define DRW_VIEWPORT_DATA_SIZE(ty) \
-  { \
-    DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->fbl)), \
-        DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->txl)), \
-        DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->psl)), \
-        DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->stl)), \
-  }
-
-struct DrawEngineDataSize {
-  int fbl_len;
-  int txl_len;
-  int psl_len;
-  int stl_len;
-};
-
 struct DrawEngineType {
   DrawEngineType *next, *prev;
 
   char idname[32];
-
-  const DrawEngineDataSize *vedata_size;
 
   void (*engine_init)(void *vedata);
   void (*engine_free)();
@@ -97,12 +66,13 @@ struct DrawEngineType {
   void (*instance_free)(void *instance_data);
 
   void (*cache_init)(void *vedata);
-  void (*cache_populate)(void *vedata, Object *ob);
+  void (*cache_populate)(void *vedata, blender::draw::ObjectRef &ob_ref);
   void (*cache_finish)(void *vedata);
 
   void (*draw_scene)(void *vedata);
 
   void (*view_update)(void *vedata);
+  /* TODO(fclem): Remove. */
   void (*id_update)(void *vedata, ID *id);
 
   void (*render_to_image)(void *vedata,
@@ -113,6 +83,7 @@ struct DrawEngineType {
 };
 
 /* Shaders */
+/** IMPORTANT: Modify the currently bound context. */
 void DRW_shader_init();
 void DRW_shader_exit();
 
@@ -138,9 +109,7 @@ void DRW_shader_queue_optimize_material(GPUMaterial *mat);
 
 /* Viewport. */
 
-const float *DRW_viewport_size_get();
-const float *DRW_viewport_invert_size_get();
-const float *DRW_viewport_pixelsize_get();
+blender::float2 DRW_viewport_size_get();
 
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get();
 DefaultTextureList *DRW_viewport_texture_list_get();
@@ -151,11 +120,13 @@ blender::draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_n
 void DRW_viewport_request_redraw();
 
 void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph);
-void DRW_render_object_iter(
-    void *vedata,
-    RenderEngine *engine,
-    Depsgraph *depsgraph,
-    void (*callback)(void *vedata, Object *ob, RenderEngine *engine, Depsgraph *depsgraph));
+void DRW_render_object_iter(void *vedata,
+                            RenderEngine *engine,
+                            Depsgraph *depsgraph,
+                            void (*callback)(void *vedata,
+                                             blender::draw::ObjectRef &ob_ref,
+                                             RenderEngine *engine,
+                                             Depsgraph *depsgraph));
 
 /**
  * \warning Changing frame might free the #ViewLayerEngineData.
@@ -199,10 +170,6 @@ DrawData *DRW_drawdata_ensure(ID *id,
                               size_t size,
                               DrawDataInitCb init_cb,
                               DrawDataFreeCb free_cb);
-/**
- * Return nullptr if not a dupli or a pointer of pointer to the engine data.
- */
-void **DRW_duplidata_get(void *vedata);
 
 /* Settings. */
 

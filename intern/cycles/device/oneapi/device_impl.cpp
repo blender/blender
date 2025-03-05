@@ -57,9 +57,12 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
       kg_memory_size_(0)
 {
   /* Verify that base class types can be used with specific backend types */
-  static_assert(sizeof(texMemObject) == sizeof(void *));
-  static_assert(sizeof(arrayMemObject) == sizeof(void *));
+  static_assert(sizeof(texMemObject) ==
+                sizeof(sycl::ext::oneapi::experimental::sampled_image_handle));
+  static_assert(sizeof(arrayMemObject) ==
+                sizeof(sycl::ext::oneapi::experimental::image_mem_handle));
 
+  need_texture_info = false;
   use_hardware_raytracing = info.use_hardware_raytracing;
 
   oneapi_set_error_cb(queue_error_cb, &oneapi_error_string_);
@@ -332,18 +335,18 @@ void OneapiDevice::free_device(void *device_pointer)
   usm_free(device_queue_, device_pointer);
 }
 
-bool OneapiDevice::alloc_host(void *&shared_pointer, const size_t size)
+bool OneapiDevice::shared_alloc(void *&shared_pointer, const size_t size)
 {
   shared_pointer = usm_aligned_alloc_host(device_queue_, size, 64);
   return shared_pointer != nullptr;
 }
 
-void OneapiDevice::free_host(void *shared_pointer)
+void OneapiDevice::shared_free(void *shared_pointer)
 {
   usm_free(device_queue_, shared_pointer);
 }
 
-void *OneapiDevice::transform_host_to_device_pointer(const void *shared_pointer)
+void *OneapiDevice::shared_to_device_pointer(const void *shared_pointer)
 {
   /* Device and host pointer are in the same address space
    * as we're using Unified Shared Memory. */
@@ -376,6 +379,35 @@ void *OneapiDevice::kernel_globals_device_pointer()
   return kg_memory_device_;
 }
 
+void *OneapiDevice::host_alloc(const MemoryType type, const size_t size)
+{
+  void *host_pointer = GPUDevice::host_alloc(type, size);
+
+#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
+  if (host_pointer) {
+    /* Import host_pointer into USM memory for faster host<->device data transfers. */
+    if (type == MEM_READ_WRITE || type == MEM_READ_ONLY) {
+      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+      sycl::ext::oneapi::experimental::prepare_for_device_copy(host_pointer, size, *queue);
+    }
+  }
+#  endif
+
+  return host_pointer;
+}
+
+void OneapiDevice::host_free(const MemoryType type, void *host_pointer, const size_t size)
+{
+#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
+  if (type == MEM_READ_WRITE || type == MEM_READ_ONLY) {
+    sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+    sycl::ext::oneapi::experimental::release_from_device_copy(host_pointer, *queue);
+  }
+#  endif
+
+  GPUDevice::host_free(type, host_pointer, size);
+}
+
 void OneapiDevice::mem_alloc(device_memory &mem)
 {
   if (mem.type == MEM_TEXTURE) {
@@ -391,14 +423,6 @@ void OneapiDevice::mem_alloc(device_memory &mem)
                  << string_human_readable_size(mem.memory_size()) << ")";
     }
     generic_alloc(mem);
-#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
-    /* Import host_pointer into USM memory for faster host<->device data transfers. */
-    if (mem.type == MEM_READ_WRITE || mem.type == MEM_READ_ONLY) {
-      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
-      sycl::ext::oneapi::experimental::prepare_for_device_copy(
-          mem.host_pointer, mem.memory_size(), *queue);
-    }
-#  endif
   }
 }
 
@@ -540,12 +564,6 @@ void OneapiDevice::mem_free(device_memory &mem)
     tex_free((device_texture &)mem);
   }
   else {
-#  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
-    if (mem.type == MEM_READ_WRITE || mem.type == MEM_READ_ONLY) {
-      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
-      sycl::ext::oneapi::experimental::release_from_device_copy(mem.host_pointer, *queue);
-    }
-#  endif
     generic_free(mem);
   }
 }
@@ -636,23 +654,188 @@ void OneapiDevice::global_free(device_memory &mem)
   }
 }
 
+static sycl::ext::oneapi::experimental::image_descriptor image_desc(const device_texture &mem)
+{
+  /* Image Texture Storage */
+  sycl::image_channel_type channel_type;
+
+  switch (mem.data_type) {
+    case TYPE_UCHAR:
+      channel_type = sycl::image_channel_type::unorm_int8;
+      break;
+    case TYPE_UINT16:
+      channel_type = sycl::image_channel_type::unorm_int16;
+      break;
+    case TYPE_FLOAT:
+      channel_type = sycl::image_channel_type::fp32;
+      break;
+    case TYPE_HALF:
+      channel_type = sycl::image_channel_type::fp16;
+      break;
+    default:
+      assert(0);
+  }
+
+  sycl::ext::oneapi::experimental::image_descriptor param;
+  param.width = mem.data_width;
+  param.height = mem.data_height;
+  param.depth = mem.data_depth == 1 ? 0 : mem.data_depth;
+  param.num_channels = mem.data_elements;
+  param.channel_type = channel_type;
+
+  param.verify();
+
+  return param;
+}
+
 void OneapiDevice::tex_alloc(device_texture &mem)
 {
-  generic_alloc(mem);
-  generic_copy_to(mem);
+  assert(device_queue_);
 
-  {
-    /* Update texture info. */
-    thread_scoped_lock lock(texture_info_mutex);
-    const uint slot = mem.slot;
-    if (slot >= texture_info.size()) {
-      /* Allocate some slots in advance, to reduce amount of re-allocations. */
-      texture_info.resize(slot + 128);
+  size_t size = mem.memory_size();
+
+  sycl::addressing_mode address_mode = sycl::addressing_mode::none;
+  switch (mem.info.extension) {
+    case EXTENSION_REPEAT:
+      address_mode = sycl::addressing_mode::repeat;
+      break;
+    case EXTENSION_EXTEND:
+      address_mode = sycl::addressing_mode::clamp_to_edge;
+      break;
+    case EXTENSION_CLIP:
+      address_mode = sycl::addressing_mode::clamp;
+      break;
+    case EXTENSION_MIRROR:
+      address_mode = sycl::addressing_mode::mirrored_repeat;
+      break;
+    default:
+      assert(0);
+      break;
+  }
+
+  sycl::filtering_mode filter_mode;
+  if (mem.info.interpolation == INTERPOLATION_CLOSEST) {
+    filter_mode = sycl::filtering_mode::nearest;
+  }
+  else {
+    filter_mode = sycl::filtering_mode::linear;
+  }
+
+  /* Image Texture Storage */
+  sycl::image_channel_type channel_type;
+
+  switch (mem.data_type) {
+    case TYPE_UCHAR:
+      channel_type = sycl::image_channel_type::unorm_int8;
+      break;
+    case TYPE_UINT16:
+      channel_type = sycl::image_channel_type::unorm_int16;
+      break;
+    case TYPE_FLOAT:
+      channel_type = sycl::image_channel_type::fp32;
+      break;
+    case TYPE_HALF:
+      channel_type = sycl::image_channel_type::fp16;
+      break;
+    default:
+      assert(0);
+      return;
+  }
+
+  sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+
+  try {
+    Mem *cmem = nullptr;
+    sycl::ext::oneapi::experimental::image_mem_handle memHandle{0};
+    sycl::ext::oneapi::experimental::image_descriptor desc{};
+
+    if (mem.data_height > 0) {
+      /* 2D/3D texture -- Tile optimized */
+      size_t depth = mem.data_depth == 1 ? 0 : mem.data_depth;
+      desc = sycl::ext::oneapi::experimental::image_descriptor(
+          {mem.data_width, mem.data_height, depth}, mem.data_elements, channel_type);
+
+      VLOG_WORK << "Array 2D/3D allocate: " << mem.name << ", "
+                << string_human_readable_number(mem.memory_size()) << " bytes. ("
+                << string_human_readable_size(mem.memory_size()) << ")";
+
+      sycl::ext::oneapi::experimental::image_mem_handle memHandle =
+          sycl::ext::oneapi::experimental::alloc_image_mem(desc, *queue);
+
+      /* Copy data from host to the texture properly based on the texture description */
+      queue->ext_oneapi_copy(mem.host_pointer, memHandle, desc);
+
+      mem.device_pointer = (device_ptr)memHandle.raw_handle;
+      mem.device_size = size;
+      stats.mem_alloc(size);
+
+      thread_scoped_lock lock(device_mem_map_mutex);
+      cmem = &device_mem_map[&mem];
+      cmem->texobject = 0;
+      cmem->array = (arrayMemObject)(memHandle.raw_handle);
     }
+    else {
+      /* 1D texture -- Linear memory */
+      desc = sycl::ext::oneapi::experimental::image_descriptor(
+          {mem.data_width}, mem.data_elements, channel_type);
+      cmem = generic_alloc(mem);
+      if (!cmem) {
+        return;
+      }
+
+      queue->memcpy((void *)mem.device_pointer, mem.host_pointer, size);
+    }
+
+    queue->wait_and_throw();
+
+    /* Set Mapping and tag that we need to (re-)upload to device */
     TextureInfo tex_info = mem.info;
-    tex_info.data = (uint64_t)mem.device_pointer;
-    texture_info[slot] = tex_info;
-    need_texture_info = true;
+
+    sycl::ext::oneapi::experimental::bindless_image_sampler samp(
+        address_mode, sycl::coordinate_normalization_mode::normalized, filter_mode);
+
+    if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
+        mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
+        mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
+        mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
+    {
+      sycl::ext::oneapi::experimental::sampled_image_handle imgHandle;
+
+      if (memHandle.raw_handle) {
+        /* Create 2D/3D texture handle */
+        imgHandle = sycl::ext::oneapi::experimental::create_image(memHandle, samp, desc, *queue);
+      }
+      else {
+        /* Create 1D texture */
+        imgHandle = sycl::ext::oneapi::experimental::create_image(
+            (void *)mem.device_pointer, 0, samp, desc, *queue);
+      }
+
+      thread_scoped_lock lock(device_mem_map_mutex);
+      cmem = &device_mem_map[&mem];
+      cmem->texobject = (texMemObject)(imgHandle.raw_handle);
+
+      tex_info.data = (uint64_t)cmem->texobject;
+    }
+    else {
+      tex_info.data = (uint64_t)mem.device_pointer;
+    }
+
+    {
+      /* Update texture info. */
+      thread_scoped_lock lock(texture_info_mutex);
+      const uint slot = mem.slot;
+      if (slot >= texture_info.size()) {
+        /* Allocate some slots in advance, to reduce amount of re-allocations. */
+        texture_info.resize(slot + 128);
+      }
+      texture_info[slot] = tex_info;
+      need_texture_info = true;
+    }
+  }
+  catch (sycl::exception const &e) {
+    set_error("oneAPI texture allocation error: got runtime exception \"" + string(e.what()) +
+              "\"");
   }
 }
 
@@ -662,15 +845,73 @@ void OneapiDevice::tex_copy_to(device_texture &mem)
     tex_alloc(mem);
   }
   else {
-    generic_copy_to(mem);
+    if (mem.data_height > 0) {
+      /* 2D/3D texture -- Tile optimized */
+      sycl::ext::oneapi::experimental::image_descriptor desc = image_desc(mem);
+
+      sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+
+      try {
+        /* Copy data from host to the texture properly based on the texture description */
+        thread_scoped_lock lock(device_mem_map_mutex);
+        const Mem &cmem = device_mem_map[&mem];
+        sycl::ext::oneapi::experimental::image_mem_handle image_handle{
+            (sycl::ext::oneapi::experimental::image_mem_handle::raw_handle_type)cmem.array};
+        queue->ext_oneapi_copy(mem.host_pointer, image_handle, desc);
+
+#  ifdef WITH_CYCLES_DEBUG
+        queue->wait_and_throw();
+#  endif
+      }
+      catch (sycl::exception const &e) {
+        set_error("oneAPI texture copy error: got runtime exception \"" + string(e.what()) + "\"");
+      }
+    }
+    else {
+      generic_copy_to(mem);
+    }
   }
 }
 
 void OneapiDevice::tex_free(device_texture &mem)
 {
-  /* There is no texture memory in SYCL. */
   if (mem.device_pointer) {
-    generic_free(mem);
+    thread_scoped_lock lock(device_mem_map_mutex);
+    DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
+    const Mem &cmem = device_mem_map[&mem];
+
+    sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
+
+    if (cmem.texobject) {
+      /* Free bindless texture itself. */
+      sycl::ext::oneapi::experimental::sampled_image_handle image(cmem.texobject);
+      sycl::ext::oneapi::experimental::destroy_image_handle(image, *queue);
+    }
+
+    if (cmem.array) {
+      /* Free texture memory. */
+      sycl::ext::oneapi::experimental::image_mem_handle imgHandle{
+          (sycl::ext::oneapi::experimental::image_mem_handle::raw_handle_type)cmem.array};
+
+      try {
+        /* We have allocated only standard textures, so we also deallocate only them. */
+        sycl::ext::oneapi::experimental::free_image_mem(
+            imgHandle, sycl::ext::oneapi::experimental::image_type::standard, *queue);
+      }
+      catch (sycl::exception const &e) {
+        set_error("oneAPI texture deallocation error: got runtime exception \"" +
+                  string(e.what()) + "\"");
+      }
+
+      stats.mem_free(mem.memory_size());
+      mem.device_pointer = 0;
+      mem.device_size = 0;
+      device_mem_map.erase(device_mem_map.find(&mem));
+    }
+    else {
+      lock.unlock();
+      generic_free(mem);
+    }
   }
 }
 
@@ -1061,11 +1302,11 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
 
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
  * since Windows driver 101.3268. */
-static const int lowest_supported_driver_version_win = 1015730;
+static const int lowest_supported_driver_version_win = 1016554;
 #  ifdef _WIN32
-/* For Windows driver 101.5730, compute-runtime version is 29550.
+/* For Windows driver 101.6557, compute-runtime version is 31896.
  * This information is returned by `ocloc query OCL_DRIVER_VERSION`.*/
-static const int lowest_supported_driver_version_neo = 29550;
+static const int lowest_supported_driver_version_neo = 31896;
 #  else
 static const int lowest_supported_driver_version_neo = 31740;
 #  endif

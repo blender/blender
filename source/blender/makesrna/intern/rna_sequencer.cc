@@ -293,7 +293,7 @@ static bool rna_SequenceEditor_strips_all_lookup_string(PointerRNA *ptr,
   ID *id = ptr->owner_id;
   Scene *scene = (Scene *)id;
 
-  Strip *strip = SEQ_lookup_strip_by_name(scene, key);
+  Strip *strip = SEQ_lookup_strip_by_name(scene->ed, key);
   if (strip) {
     rna_pointer_create_with_ancestors(*ptr, &RNA_Strip, strip, *r_ptr);
     return true;
@@ -801,8 +801,6 @@ static StructRNA *rna_Strip_refine(PointerRNA *ptr)
       return &RNA_GammaCrossStrip;
     case STRIP_TYPE_MUL:
       return &RNA_MultiplyStrip;
-    case STRIP_TYPE_OVERDROP:
-      return &RNA_OverDropStrip;
     case STRIP_TYPE_MULTICAM:
       return &RNA_MulticamStrip;
     case STRIP_TYPE_ADJUSTMENT:
@@ -1452,7 +1450,7 @@ static void rna_Strip_modifier_remove(Strip *strip,
     return;
   }
 
-  RNA_POINTER_INVALIDATE(smd_ptr);
+  smd_ptr->invalidate();
   SEQ_relations_invalidate_cache_preprocessed(scene, strip);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
@@ -1519,7 +1517,7 @@ static void rna_SequenceTimelineChannel_name_set(PointerRNA *ptr, const char *va
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
 
-  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene, channel);
+  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(ed, channel);
   ListBase *channels_base = &ed->channels;
 
   if (channel_owner != nullptr) {
@@ -1543,7 +1541,7 @@ static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
   Editing *ed = SEQ_editing_get(scene);
   SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr;
 
-  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene, channel);
+  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(ed, channel);
   ListBase *seqbase;
   if (channel_owner == nullptr) {
     seqbase = &ed->seqbase;
@@ -1564,7 +1562,7 @@ static std::optional<std::string> rna_SeqTimelineChannel_path(const PointerRNA *
   Scene *scene = (Scene *)ptr->owner_id;
   SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr->data;
 
-  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene, channel);
+  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene->ed, channel);
 
   char channel_name_esc[(sizeof(channel->name)) * 2];
   BLI_str_escape(channel_name_esc, channel->name, sizeof(channel_name_esc));
@@ -2018,7 +2016,6 @@ static const EnumPropertyItem blend_mode_items[] = {
     {STRIP_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
     {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
     {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-    {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2087,7 +2084,6 @@ static void rna_def_strip(BlenderRNA *brna)
       {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
       {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
       {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
-      {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
       {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
       {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", ""},
       {STRIP_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
@@ -3621,7 +3617,6 @@ static EffectInfo def_effects[] = {
      rna_def_multicam,
      0},
     {"MultiplyStrip", "Multiply Strip", "Multiply Strip", nullptr, 2},
-    {"OverDropStrip", "Over Drop Strip", "Over Drop Strip", nullptr, 2},
     {"SpeedControlStrip",
      "SpeedControl Strip",
      "Sequence strip to control the speed of other strips",

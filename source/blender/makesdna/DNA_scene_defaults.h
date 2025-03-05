@@ -280,6 +280,7 @@
     .paint.flags = PAINT_SHOW_BRUSH, \
     .normal_angle = 80, \
     .seam_bleed = 2, \
+    .clone_alpha = 0.5f, \
   }
 
 #define _DNA_DEFAULTS_ParticleBrushData \

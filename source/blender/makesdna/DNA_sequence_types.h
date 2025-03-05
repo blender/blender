@@ -745,7 +745,8 @@ typedef enum StripType {
   STRIP_TYPE_ALPHAUNDER = 12,
   STRIP_TYPE_GAMCROSS = 13,
   STRIP_TYPE_MUL = 14,
-  STRIP_TYPE_OVERDROP = 15,
+  STRIP_TYPE_OVERDROP_REMOVED =
+      15, /* Removed (behavior was the same as alpha-over), only used when reading old files. */
   /* STRIP_TYPE_PLUGIN      = 24, */ /* Deprecated */
   STRIP_TYPE_WIPE = 25,
   STRIP_TYPE_GLOW = 26,

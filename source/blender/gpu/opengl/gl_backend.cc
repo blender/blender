@@ -310,6 +310,7 @@ static void detect_workarounds()
     GCaps.depth_blitting_workaround = true;
     GCaps.mip_render_workaround = true;
     GCaps.stencil_clasify_buffer_workaround = true;
+    GCaps.node_link_instancing_workaround = true;
     GLContext::debug_layer_workaround = true;
     /* Turn off Blender features. */
     GCaps.hdr_viewport_support = false;
@@ -493,6 +494,14 @@ static void detect_workarounds()
     GLContext::multi_bind_image_support = false;
   }
 
+  /* #134509 Intel ARC GPU have a driver bug that break the display of batched nodelinks.
+   * Disabling batching fixes the issue. */
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    if (strstr(renderer, "Arc")) {
+      GCaps.node_link_instancing_workaround = true;
+    }
+  }
+
   /* Multi viewport creates small triangle discard on RDNA2 GPUs with official drivers.
    * Using geometry shader workaround fixes the issue. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
@@ -590,7 +599,6 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &ssbo_alignment);
   GCaps.storage_buffer_alignment = size_t(ssbo_alignment);
 
-  GCaps.transform_feedback_support = true;
   GCaps.texture_view_support = epoxy_gl_version() >= 43 ||
                                epoxy_has_gl_extension("GL_ARB_texture_view");
   GCaps.stencil_export_support = epoxy_has_gl_extension("GL_ARB_shader_stencil_export");

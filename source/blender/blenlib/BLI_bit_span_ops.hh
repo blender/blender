@@ -98,7 +98,7 @@ inline bool any_set_expr(ExprFn &&expr, const FirstBitSpanT &first_arg, const Bi
      * complexity and is not necessary yet. */
     for (const int64_t i : IndexRange(size)) {
       const BitInt result = expr(BitInt(first_arg[i].test()), BitInt(args[i].test())...);
-      if (result != 0) {
+      if (result & 1) {
         return true;
       }
     }
@@ -119,6 +119,9 @@ inline void foreach_1_index_expr(ExprFn &&expr,
                                  const FirstBitSpanT &first_arg,
                                  const BitSpanT &...args)
 {
+  static_assert(std::is_invocable_v<HandleFn, int64_t>);
+  constexpr bool is_cancellable = std::is_invocable_r_v<bool, HandleFn, int64_t>;
+
   const int64_t size = first_arg.size();
   BLI_assert(((size == args.size()) && ...));
   if (size == 0) {
@@ -134,9 +137,17 @@ inline void foreach_1_index_expr(ExprFn &&expr,
       const int64_t offset = int_i << BitToIntIndexShift;
       while (tmp != 0) {
         static_assert(std::is_same_v<BitInt, uint64_t>);
-        const int index = bitscan_forward_uint64(tmp);
-        handle(index + offset);
-        tmp &= ~mask_single_bit(index);
+        const int index_in_int = bitscan_forward_uint64(tmp);
+        const int64_t index_in_span = index_in_int + offset;
+        if constexpr (is_cancellable) {
+          if (!handle(index_in_span)) {
+            return;
+          }
+        }
+        else {
+          handle(index_in_span);
+        }
+        tmp &= ~mask_single_bit(index_in_int);
       }
     }
     /* Iterate over remaining bits. */
@@ -147,9 +158,17 @@ inline void foreach_1_index_expr(ExprFn &&expr,
       const int64_t offset = full_ints_num << BitToIntIndexShift;
       while (tmp != 0) {
         static_assert(std::is_same_v<BitInt, uint64_t>);
-        const int index = bitscan_forward_uint64(tmp);
-        handle(index + offset);
-        tmp &= ~mask_single_bit(index);
+        const int index_in_int = bitscan_forward_uint64(tmp);
+        const int64_t index_in_span = index_in_int + offset;
+        if constexpr (is_cancellable) {
+          if (!handle(index_in_span)) {
+            return;
+          }
+        }
+        else {
+          handle(index_in_span);
+        }
+        tmp &= ~mask_single_bit(index_in_int);
       }
     }
   }
@@ -158,11 +177,35 @@ inline void foreach_1_index_expr(ExprFn &&expr,
      * complexity and is not necessary yet. */
     for (const int64_t i : IndexRange(size)) {
       const BitInt result = expr(BitInt(first_arg[i].test()), BitInt(args[i].test())...);
-      if (result) {
-        handle(i);
+      if (result & 1) {
+        if constexpr (is_cancellable) {
+          if (!handle(i)) {
+            return;
+          }
+        }
+        else {
+          handle(i);
+        }
       }
     }
   }
+}
+
+template<typename ExprFn, typename FirstBitSpanT, typename... BitSpanT>
+inline std::optional<int64_t> find_first_1_index_expr(ExprFn &&expr,
+                                                      const FirstBitSpanT &first_arg,
+                                                      const BitSpanT &...args)
+{
+  std::optional<int64_t> result;
+  detail::foreach_1_index_expr(
+      expr,
+      [&](const int64_t i) {
+        result = i;
+        return false;
+      },
+      first_arg,
+      args...);
+  return result;
 }
 
 }  // namespace detail
@@ -277,6 +320,25 @@ template<typename BitSpanT, typename Fn> inline void foreach_1_index(const BitSp
 template<typename BitSpanT, typename Fn> inline void foreach_0_index(const BitSpanT &data, Fn &&fn)
 {
   foreach_1_index_expr([](const BitInt x) { return ~x; }, fn, data);
+}
+
+template<typename ExprFn, typename FirstBitSpanT, typename... BitSpanT>
+inline std::optional<int64_t> find_first_1_index_expr(ExprFn &&Expr,
+                                                      const FirstBitSpanT &first_arg,
+                                                      const BitSpanT &...args)
+{
+  return detail::find_first_1_index_expr(
+      Expr, to_best_bit_span(first_arg), to_best_bit_span(args)...);
+}
+
+template<typename BitSpanT> inline std::optional<int64_t> find_first_1_index(const BitSpanT &data)
+{
+  return find_first_1_index_expr([](const BitInt x) { return x; }, data);
+}
+
+template<typename BitSpanT> inline std::optional<int64_t> find_first_0_index(const BitSpanT &data)
+{
+  return find_first_1_index_expr([](const BitInt x) { return ~x; }, data);
 }
 
 template<typename BitSpanT1, typename BitSpanT2>

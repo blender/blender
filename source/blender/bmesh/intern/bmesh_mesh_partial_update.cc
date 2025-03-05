@@ -37,82 +37,67 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
+#include "BLI_bit_vector.hh"
 #include "BLI_math_base.h"
 
 #include "bmesh.hh"
 
-/**
- * Grow by 1.5x (rounding up).
- *
- * \note Use conservative reallocation since the initial sizes reserved
- * may be close to (or exactly) the number of elements needed.
- */
-#define GROW(len_alloc) ((len_alloc) + ((len_alloc) - ((len_alloc) / 2)))
-#define GROW_ARRAY(mem, len_alloc) \
-  { \
-    *(void **)&mem = MEM_reallocN(mem, sizeof(*mem) * ((len_alloc) = GROW(len_alloc))); \
-  } \
-  ((void)0)
-
-#define GROW_ARRAY_AS_NEEDED(mem, len_alloc, index) \
-  if (UNLIKELY(len_alloc == index)) { \
-    GROW_ARRAY(mem, len_alloc); \
-  }
+using blender::BitSpan;
+using blender::BitVector;
+using blender::MutableBitSpan;
+using blender::Span;
+using blender::Vector;
 
 BLI_INLINE bool partial_elem_vert_ensure(BMPartialUpdate *bmpinfo,
-                                         BLI_bitmap *verts_tag,
+                                         MutableBitSpan verts_tag,
                                          BMVert *v)
 {
   const int i = BM_elem_index_get(v);
-  if (!BLI_BITMAP_TEST(verts_tag, i)) {
-    BLI_BITMAP_ENABLE(verts_tag, i);
-    GROW_ARRAY_AS_NEEDED(bmpinfo->verts, bmpinfo->verts_len_alloc, bmpinfo->verts_len);
-    bmpinfo->verts[bmpinfo->verts_len++] = v;
+  if (!verts_tag[i]) {
+    verts_tag[i].set();
+    bmpinfo->verts.append(v);
     return true;
   }
   return false;
 }
 
 BLI_INLINE bool partial_elem_face_ensure(BMPartialUpdate *bmpinfo,
-                                         BLI_bitmap *faces_tag,
+                                         MutableBitSpan faces_tag,
                                          BMFace *f)
 {
   const int i = BM_elem_index_get(f);
-  if (!BLI_BITMAP_TEST(faces_tag, i)) {
-    BLI_BITMAP_ENABLE(faces_tag, i);
-    GROW_ARRAY_AS_NEEDED(bmpinfo->faces, bmpinfo->faces_len_alloc, bmpinfo->faces_len);
-    bmpinfo->faces[bmpinfo->faces_len++] = f;
+  if (!faces_tag[i]) {
+    faces_tag[i].set();
+    bmpinfo->faces.append(f);
     return true;
   }
   return false;
 }
 
-BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
-                                                   const BMPartialUpdate_Params *params,
-                                                   const BLI_bitmap *verts_mask,
+BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh &bm,
+                                                   const BMPartialUpdate_Params &params,
+                                                   const BitSpan verts_mask,
                                                    const int verts_mask_count)
 {
   /* The caller is doing something wrong if this isn't the case. */
-  BLI_assert(verts_mask_count <= bm->totvert);
+  BLI_assert(verts_mask_count <= bm.totvert);
 
-  BMPartialUpdate *bmpinfo = static_cast<BMPartialUpdate *>(
-      MEM_callocN(sizeof(*bmpinfo), __func__));
+  BMPartialUpdate *bmpinfo = MEM_new<BMPartialUpdate>(__func__);
 
   /* Reserve more edges than vertices since it's common for a grid topology
    * to use around twice as many edges as vertices. */
   const int default_verts_len_alloc = verts_mask_count;
-  const int default_faces_len_alloc = min_ii(bm->totface, verts_mask_count);
+  const int default_faces_len_alloc = min_ii(bm.totface, verts_mask_count);
 
   /* Allocate tags instead of using #BM_ELEM_TAG because the caller may already be using tags.
    * Further, walking over all geometry to clear the tags isn't so efficient. */
-  BLI_bitmap *verts_tag = nullptr;
-  BLI_bitmap *faces_tag = nullptr;
+  BitVector<> verts_tag;
+  BitVector<> faces_tag;
 
   /* Set vert inline. */
-  BM_mesh_elem_index_ensure(bm, BM_FACE);
+  BM_mesh_elem_index_ensure(&bm, BM_FACE);
 
-  if (params->do_normals || params->do_tessellate) {
+  if (params.do_normals || params.do_tessellate) {
     /* - Extend to all vertices connected faces:
      *   In the case of tessellation this is enough.
      *
@@ -127,19 +112,15 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
      */
 
     /* Faces. */
-    if (bmpinfo->faces == nullptr) {
-      bmpinfo->faces_len_alloc = default_faces_len_alloc;
-      bmpinfo->faces = static_cast<BMFace **>(
-          MEM_mallocN((sizeof(BMFace *) * bmpinfo->faces_len_alloc), __func__));
-      faces_tag = BLI_BITMAP_NEW(size_t(bm->totface), __func__);
-    }
+    bmpinfo->faces.reserve(default_faces_len_alloc);
+    faces_tag.resize(bm.totface);
 
     BMVert *v;
     BMIter iter;
     int i;
-    BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+    BM_ITER_MESH_INDEX (v, &iter, &bm, BM_VERTS_OF_MESH, i) {
       BM_elem_index_set(v, i); /* set_inline */
-      if (!BLI_BITMAP_TEST(verts_mask, i)) {
+      if (!verts_mask[i]) {
         continue;
       }
       BMEdge *e_iter = v->e;
@@ -162,7 +143,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
     }
   }
 
-  if (params->do_normals) {
+  if (params.do_normals) {
     /* - Extend to all faces vertices:
      *   Any changes to the faces normal needs to update all surrounding vertices.
      *
@@ -171,15 +152,10 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
      */
 
     /* Vertices. */
-    if (bmpinfo->verts == nullptr) {
-      bmpinfo->verts_len_alloc = default_verts_len_alloc;
-      bmpinfo->verts = static_cast<BMVert **>(
-          MEM_mallocN((sizeof(BMVert *) * bmpinfo->verts_len_alloc), __func__));
-      verts_tag = BLI_BITMAP_NEW(size_t(bm->totvert), __func__);
-    }
+    bmpinfo->verts.reserve(default_verts_len_alloc);
+    verts_tag.resize(bm.totvert);
 
-    for (int i = 0; i < bmpinfo->faces_len; i++) {
-      BMFace *f = bmpinfo->faces[i];
+    for (const BMFace *f : bmpinfo->faces) {
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
@@ -188,56 +164,38 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
     }
   }
 
-  if (verts_tag) {
-    MEM_freeN(verts_tag);
-  }
-  if (faces_tag) {
-    MEM_freeN(faces_tag);
-  }
-
-  bmpinfo->params = *params;
+  bmpinfo->params = params;
 
   return bmpinfo;
 }
 
 BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
-    BMesh *bm,
-    const BMPartialUpdate_Params *params,
-    const BLI_bitmap *verts_mask,
+    BMesh &bm,
+    const BMPartialUpdate_Params &params,
+    const BitSpan verts_mask,
     const int verts_mask_count)
 {
-  BMPartialUpdate *bmpinfo = static_cast<BMPartialUpdate *>(
-      MEM_callocN(sizeof(*bmpinfo), __func__));
+  BMPartialUpdate *bmpinfo = MEM_new<BMPartialUpdate>(__func__);
 
-  BLI_bitmap *verts_tag = nullptr;
-  BLI_bitmap *faces_tag = nullptr;
-
-  /* It's not worth guessing a large number as isolated regions will allocate zero faces. */
-  const int default_faces_len_alloc = 1;
+  BitVector<> verts_tag;
+  BitVector<> faces_tag;
 
   int face_tag_loop_len = 0;
 
-  if (params->do_normals || params->do_tessellate) {
-
-    /* Faces. */
-    if (bmpinfo->faces == nullptr) {
-      bmpinfo->faces_len_alloc = default_faces_len_alloc;
-      bmpinfo->faces = static_cast<BMFace **>(
-          MEM_mallocN((sizeof(BMFace *) * bmpinfo->faces_len_alloc), __func__));
-      faces_tag = BLI_BITMAP_NEW(size_t(bm->totface), __func__);
-    }
+  if (params.do_normals || params.do_tessellate) {
+    faces_tag.resize(bm.totface);
 
     BMFace *f;
     BMIter iter;
     int i;
-    BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+    BM_ITER_MESH_INDEX (f, &iter, &bm, BM_FACES_OF_MESH, i) {
       enum Side { SIDE_A = (1 << 0), SIDE_B = (1 << 1) } side_flag = Side(0);
       BM_elem_index_set(f, i); /* set_inline */
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
         const int j = BM_elem_index_get(l_iter->v);
-        side_flag = Side(side_flag | (BLI_BITMAP_TEST(verts_mask, j) ? SIDE_A : SIDE_B));
+        side_flag = Side(side_flag | (verts_mask[j].test() ? SIDE_A : SIDE_B));
         if (UNLIKELY(side_flag == (SIDE_A | SIDE_B))) {
           partial_elem_face_ensure(bmpinfo, faces_tag, f);
           face_tag_loop_len += f->len;
@@ -247,23 +205,15 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
     }
   }
 
-  if (params->do_normals) {
+  if (params.do_normals) {
     /* Extend to all faces vertices:
      * Any changes to the faces normal needs to update all surrounding vertices. */
 
     /* Over allocate using the total number of face loops. */
-    const int default_verts_len_alloc = min_ii(bm->totvert, max_ii(1, face_tag_loop_len));
+    bmpinfo->verts.reserve(min_ii(bm.totvert, max_ii(1, face_tag_loop_len)));
+    verts_tag.resize(bm.totvert);
 
-    /* Vertices. */
-    if (bmpinfo->verts == nullptr) {
-      bmpinfo->verts_len_alloc = default_verts_len_alloc;
-      bmpinfo->verts = static_cast<BMVert **>(
-          MEM_mallocN((sizeof(BMVert *) * bmpinfo->verts_len_alloc), __func__));
-      verts_tag = BLI_BITMAP_NEW(size_t(bm->totvert), __func__);
-    }
-
-    for (int i = 0; i < bmpinfo->faces_len; i++) {
-      BMFace *f = bmpinfo->faces[i];
+    for (BMFace *f : bmpinfo->faces) {
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
@@ -272,64 +222,46 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
     }
 
     /* Loose vertex support, these need special handling as loose normals depend on location. */
-    if (bmpinfo->verts_len < verts_mask_count) {
+    if (bmpinfo->verts.size() < verts_mask_count) {
       BMVert *v;
       BMIter iter;
       int i;
-      BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-        if (BLI_BITMAP_TEST(verts_mask, i) && (BM_vert_find_first_loop(v) == nullptr)) {
+      BM_ITER_MESH_INDEX (v, &iter, &bm, BM_VERTS_OF_MESH, i) {
+        if (verts_mask[i] && (BM_vert_find_first_loop(v) == nullptr)) {
           partial_elem_vert_ensure(bmpinfo, verts_tag, v);
         }
       }
     }
   }
 
-  if (verts_tag) {
-    MEM_freeN(verts_tag);
-  }
-  if (faces_tag) {
-    MEM_freeN(faces_tag);
-  }
-
-  bmpinfo->params = *params;
+  bmpinfo->params = params;
 
   return bmpinfo;
 }
 
 BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
-    BMesh *bm,
-    const BMPartialUpdate_Params *params,
-    const int *verts_group,
+    BMesh &bm,
+    const BMPartialUpdate_Params &params,
+    const Span<int> verts_group,
     const int verts_group_count)
 {
   /* Provide a quick way of visualizing which faces are being manipulated. */
   // #define DEBUG_MATERIAL
 
-  BMPartialUpdate *bmpinfo = static_cast<BMPartialUpdate *>(
-      MEM_callocN(sizeof(*bmpinfo), __func__));
+  BMPartialUpdate *bmpinfo = MEM_new<BMPartialUpdate>(__func__);
 
-  BLI_bitmap *verts_tag = nullptr;
-  BLI_bitmap *faces_tag = nullptr;
-
-  /* It's not worth guessing a large number as isolated regions will allocate zero faces. */
-  const int default_faces_len_alloc = 1;
+  BitVector<> verts_tag;
+  BitVector<> faces_tag;
 
   int face_tag_loop_len = 0;
 
-  if (params->do_normals || params->do_tessellate) {
-
-    /* Faces. */
-    if (bmpinfo->faces == nullptr) {
-      bmpinfo->faces_len_alloc = default_faces_len_alloc;
-      bmpinfo->faces = static_cast<BMFace **>(
-          MEM_mallocN((sizeof(BMFace *) * bmpinfo->faces_len_alloc), __func__));
-      faces_tag = BLI_BITMAP_NEW(size_t(bm->totface), __func__);
-    }
+  if (params.do_normals || params.do_tessellate) {
+    faces_tag.resize(bm.totface);
 
     BMFace *f;
     BMIter iter;
     int i;
-    BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+    BM_ITER_MESH_INDEX (f, &iter, &bm, BM_FACES_OF_MESH, i) {
       BM_elem_index_set(f, i); /* set_inline */
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -351,23 +283,15 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
     }
   }
 
-  if (params->do_normals) {
+  if (params.do_normals) {
     /* Extend to all faces vertices:
      * Any changes to the faces normal needs to update all surrounding vertices. */
 
     /* Over allocate using the total number of face loops. */
-    const int default_verts_len_alloc = min_ii(bm->totvert, max_ii(1, face_tag_loop_len));
+    bmpinfo->verts.reserve(min_ii(bm.totvert, max_ii(1, face_tag_loop_len)));
+    verts_tag.resize(bm.totvert);
 
-    /* Vertices. */
-    if (bmpinfo->verts == nullptr) {
-      bmpinfo->verts_len_alloc = default_verts_len_alloc;
-      bmpinfo->verts = static_cast<BMVert **>(
-          MEM_mallocN((sizeof(BMVert *) * bmpinfo->verts_len_alloc), __func__));
-      verts_tag = BLI_BITMAP_NEW(size_t(bm->totvert), __func__);
-    }
-
-    for (int i = 0; i < bmpinfo->faces_len; i++) {
-      BMFace *f = bmpinfo->faces[i];
+    for (BMFace *f : bmpinfo->faces) {
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
@@ -376,11 +300,11 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
     }
 
     /* Loose vertex support, these need special handling as loose normals depend on location. */
-    if (bmpinfo->verts_len < verts_group_count) {
+    if (bmpinfo->verts.size() < verts_group_count) {
       BMVert *v;
       BMIter iter;
       int i;
-      BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+      BM_ITER_MESH_INDEX (v, &iter, &bm, BM_VERTS_OF_MESH, i) {
         if ((verts_group[i] != 0) && (BM_vert_find_first_loop(v) == nullptr)) {
           partial_elem_vert_ensure(bmpinfo, verts_tag, v);
         }
@@ -388,25 +312,12 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
     }
   }
 
-  if (verts_tag) {
-    MEM_freeN(verts_tag);
-  }
-  if (faces_tag) {
-    MEM_freeN(faces_tag);
-  }
-
-  bmpinfo->params = *params;
+  bmpinfo->params = params;
 
   return bmpinfo;
 }
 
 void BM_mesh_partial_destroy(BMPartialUpdate *bmpinfo)
 {
-  if (bmpinfo->verts) {
-    MEM_freeN(bmpinfo->verts);
-  }
-  if (bmpinfo->faces) {
-    MEM_freeN(bmpinfo->faces);
-  }
-  MEM_freeN(bmpinfo);
+  MEM_delete(bmpinfo);
 }

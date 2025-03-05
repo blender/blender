@@ -29,6 +29,7 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
@@ -48,6 +49,7 @@
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
+#include "BKE_wm_runtime.hh"
 #include "BKE_workspace.hh"
 
 #include "RNA_access.hh"
@@ -622,7 +624,7 @@ void WM_window_decoration_style_flags_set(const wmWindow *win,
                                           eWM_WindowDecorationStyleFlag style_flags)
 {
   BLI_assert(WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_STYLES);
-  unsigned int ghost_style_flags = GHOST_kDecorationNone;
+  uint ghost_style_flags = GHOST_kDecorationNone;
 
   if (style_flags & WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR) {
     ghost_style_flags |= GHOST_kDecorationColoredTitleBar;
@@ -2101,7 +2103,7 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
   const int dialog_width = std::max(int(400.0f * UI_SCALE_FAC),
                                     text_width + int(style->columnspace * 2.5));
 
-  const short icon_size = 64 * UI_SCALE_FAC;
+  const short icon_size = 40 * UI_SCALE_FAC;
   uiLayout *layout = uiItemsAlertBox(
       block, style, dialog_width + icon_size, ALERT_ICON_ERROR, icon_size);
 
@@ -2111,16 +2113,20 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
   /* Title and explanation text. */
   uiItemL_ex(col, title, ICON_NONE, true, false);
   uiItemS_ex(col, 0.8f, LayoutSeparatorType::Space);
-  uiItemL(col, message1, ICON_NONE);
-  uiItemL(col, message2, ICON_NONE);
-  uiItemL(col, message3, ICON_NONE);
+
+  uiLayout *messages = uiLayoutColumn(col, false);
+  uiLayoutSetScaleY(messages, 0.8f);
+
+  uiItemL(messages, message1, ICON_NONE);
+  uiItemL(messages, message2, ICON_NONE);
+  uiItemL(messages, message3, ICON_NONE);
   if (G.opengl_deprecation_usage_filename) {
     char location[1024];
     SNPRINTF(
         location, "%s:%d", G.opengl_deprecation_usage_filename, G.opengl_deprecation_usage_lineno);
-    uiItemL(col, location, ICON_NONE);
+    uiItemL(messages, location, ICON_NONE);
   }
-  uiItemL(col, message4, ICON_NONE);
+  uiItemL(messages, message4, ICON_NONE);
 
   uiItemS_ex(col, 0.5f, LayoutSeparatorType::Space);
 
@@ -2177,15 +2183,15 @@ static uiBlock *block_create_gpu_backend_fallback(bContext *C, ARegion *region, 
 
   /* Title and explanation text. */
   uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayoutSetScaleY(col, 0.8f);
   uiItemL_ex(
       col, RPT_("Failed to load using Vulkan, using OpenGL instead."), ICON_NONE, true, false);
-  uiItemL(col, RPT_(""), ICON_NONE);
+  uiItemS_ex(col, 1.3f, LayoutSeparatorType::Space);
+
   uiItemL(col, RPT_("Updating GPU drivers may solve this issue."), ICON_NONE);
   uiItemL(col,
           RPT_("The graphics backend can be changed in the System section of the Preferences."),
           ICON_NONE);
-
-  uiItemS(layout);
 
   UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
 

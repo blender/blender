@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_antialiasing_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_antialiasing)
+
 /**
  * We want to know how much a pixel is covered by a line.
  * We replace the square pixel with a circle of the same area and try to find the intersection
@@ -15,8 +19,6 @@
 #define DISC_RADIUS (M_1_SQRTPI * 1.05)
 #define LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define LINE_SMOOTH_END (0.5 + DISC_RADIUS)
-
-#include "common_math_lib.glsl"
 
 /**
  * Returns coverage of a line onto a sample that is distance_to_line (in pixels) far from the line.

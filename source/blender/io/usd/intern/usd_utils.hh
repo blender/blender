@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 #include <string>
 
 namespace blender::io::usd {
@@ -14,6 +16,6 @@ namespace blender::io::usd {
  * \param allow_unicode: Whether to allow unicode encoded characters in the USD identifier
  * \return A valid USD identifier
  */
-std::string make_safe_name(const std::string &name, bool allow_unicode);
+std::string make_safe_name(StringRef name, bool allow_unicode);
 
 }  // namespace blender::io::usd

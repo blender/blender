@@ -91,25 +91,16 @@ std::string PersistentID::as_object_name_suffix() const
   return fmt::to_string(buf);
 }
 
-bool operator<(const PersistentID &persistent_id_a, const PersistentID &persistent_id_b)
+uint64_t PersistentID::hash() const
 {
-  const PersistentID::PIDArray &pid_a = persistent_id_a.persistent_id_;
-  const PersistentID::PIDArray &pid_b = persistent_id_b.persistent_id_;
-
-  for (int index = 0; index < PersistentID::array_length_; ++index) {
-    const int pid_digit_a = pid_a[index];
-    const int pid_digit_b = pid_b[index];
-
-    if (pid_digit_a != pid_digit_b) {
-      return pid_digit_a < pid_digit_b;
-    }
-
-    if (pid_a[index] == INT_MAX) {
+  uint64_t hash = 5381;
+  for (const int value : persistent_id_) {
+    if (value == INT_MAX) {
       break;
     }
+    hash = hash * 33 ^ uint64_t(value);
   }
-  /* Both Persistent IDs were equal, so not less-than. */
-  return false;
+  return hash;
 }
 
 bool operator==(const PersistentID &persistent_id_a, const PersistentID &persistent_id_b)

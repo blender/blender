@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_clipping_lib.glsl"
+#include "infos/overlay_armature_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_armature_shape_wire)
+
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
@@ -56,7 +60,7 @@ VertOut vertex_main(VertIn v_in)
     /* Scale uniformly by axis length */
     vpos *= length(model_mat[axis].xyz);
     /* World sized, camera facing geometry. */
-    vec3 screen_pos = ViewMatrixInverse[0].xyz * vpos.x + ViewMatrixInverse[1].xyz * vpos.y;
+    vec3 screen_pos = drw_view().viewinv[0].xyz * vpos.x + drw_view().viewinv[1].xyz * vpos.y;
     v_out.world_pos = (model_mat * vec4(vofs, 1.0)).xyz + screen_pos;
   }
   else {
@@ -137,7 +141,7 @@ void geometry_main(VertOut geom_in[2],
     half_size += 0.5;
   }
 
-  vec2 line = (screen_space_pos[0] - screen_space_pos[1]) * sizeViewport.xy;
+  vec2 line = (screen_space_pos[0] - screen_space_pos[1]) * sizeViewport;
   vec2 line_norm = normalize(vec2(line[1], -line[0]));
   vec2 edge_ofs = (half_size * line_norm) * sizeViewportInv;
 

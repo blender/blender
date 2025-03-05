@@ -2,7 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_create_info.hh"
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_common_shader_shared.hh"
+#  include "draw_view_info.hh"
+
+#  include "overlay_shader_shared.h"
+#endif
+
+#include "overlay_common_info.hh"
 
 /* We use the normalized local position to avoid precision loss during interpolation. */
 GPU_SHADER_INTERFACE_INFO(overlay_grid_iface)
@@ -35,8 +45,7 @@ FRAGMENT_OUT(0, VEC4, fragColor)
 VERTEX_SOURCE("overlay_edit_uv_tiled_image_borders_vert.glsl")
 FRAGMENT_SOURCE("overlay_grid_background_frag.glsl")
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 DEFINE_VALUE("tile_pos", "vec3(0.0)")
 PUSH_CONSTANT(VEC3, tile_scale)
@@ -50,8 +59,7 @@ FRAGMENT_OUT(0, VEC4, fragColor)
 VERTEX_SOURCE("overlay_edit_uv_tiled_image_borders_vert.glsl")
 FRAGMENT_SOURCE("overlay_uniform_color_frag.glsl")
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, READ, vec3, tile_pos_buf[])
 DEFINE_VALUE("tile_pos", "tile_pos_buf[gl_InstanceID]")

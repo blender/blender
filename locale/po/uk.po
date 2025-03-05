@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -63,12 +63,12 @@ msgid "F-Curves"
 msgstr "Ф-Криві"
 
 
+msgid "Slot"
+msgstr "Гніздо"
+
+
 msgid "Action F-Curves"
 msgstr "Ф-криві дій"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Колекція Ф-кривих дій"
 
 
 msgid "Action Group"
@@ -241,34 +241,6 @@ msgstr "Групи дій"
 
 msgid "Collection of action groups"
 msgstr "Колекція груп дій"
-
-
-msgid "Influence"
-msgstr "Вплив"
-
-
-msgid "Mix Mode"
-msgstr "Режим Мішання"
-
-
-msgid "Replace"
-msgstr "Замінити"
-
-
-msgid "Offset"
-msgstr "Зсув"
-
-
-msgid "Add"
-msgstr "Додання"
-
-
-msgid "Subtract"
-msgstr "Відняти"
-
-
-msgid "Multiply"
-msgstr "Множення"
 
 
 msgid "Strips"
@@ -639,6 +611,10 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Метод, який використовується для об'єднання результаті активних дій з результатом стосу НЛА"
 
 
+msgid "Replace"
+msgstr "Замінити"
+
+
 msgid "The strip values replace the accumulated results by amount specified by influence"
 msgstr "Значення смужки замінюють накопичені результати в обсязі, визначеному впливом"
 
@@ -651,12 +627,24 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Значення смужки комбінуються з накопиченими результатами шляхом відповідного використання додання, множення або математики кватерніонів, базуючись на типі каналу"
 
 
+msgid "Add"
+msgstr "Додання"
+
+
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Виважений результат смужки додається до накопичених результатів"
 
 
+msgid "Subtract"
+msgstr "Відняти"
+
+
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Виважений результат смужки вилучається з накопичених результатів"
+
+
+msgid "Multiply"
+msgstr "Множення"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -4002,6 +3990,10 @@ msgid "Parameters defining which layer, pass and frame of the image is displayed
 msgstr "Параметри, що визначають, який шар, прохід і кадр зображення показано"
 
 
+msgid "Offset"
+msgstr "Зсув"
+
+
 msgid "Rotation"
 msgstr "Обертання"
 
@@ -5355,6 +5347,10 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Величина залишкової похибки в радіанах для примусів, що працюють з орієнтацією"
 
 
+msgid "Influence"
+msgstr "Вплив"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Рівень впливу примусу на фінальне обчислення"
 
@@ -5709,6 +5705,10 @@ msgstr "Мінімум"
 
 msgid "Minimum value for target channel range"
 msgstr "Найменше значення діапазону цільового каналу"
+
+
+msgid "Mix Mode"
+msgstr "Режим Мішання"
 
 
 msgid "Specify how existing transformations and the action channels are combined"
@@ -14361,10 +14361,6 @@ msgid "A collection of F-Curves for animation"
 msgstr "Колекція Ф-Кривих для анімації"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "Окремі Ф-Криві, які створюють дію"
-
-
 msgid "Frame Range"
 msgstr "Діапазон кадрів"
 
@@ -14373,17 +14369,9 @@ msgid "Groups"
 msgstr "Групи"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Зручне групування Ф-Кривих"
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Тип кореневого ID"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "Тип ID-блока, до якого може бути застосована дія. НЕ ЗМІНЮЙТЕ, ЯКЩО НЕ РОЗУМІЄТЕ, ЩО РОБИТЕ"
 
 
 msgid "Layers"
@@ -14752,22 +14740,6 @@ msgstr "Зсув початку рубежу відносно радіуса п�
 
 msgid "Brush's capabilities"
 msgstr "Можливості пензля"
-
-
-msgid "Clone Alpha"
-msgstr "Клонувати прозорість"
-
-
-msgid "Opacity of clone image display"
-msgstr "Непрозорість при показі клону зображення"
-
-
-msgid "Clone Image"
-msgstr "Клонувати зображення"
-
-
-msgid "Clone Offset"
-msgstr "Клонувати зсув"
 
 
 msgid "Soft Body Plasticity"
@@ -22731,11 +22703,6 @@ msgid "Sequence playback mode"
 msgstr "Режим програвання послідовності"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Кліп"
-
-
 msgid "Hide frames outside the specified frame range"
 msgstr "Сховати кадри поза вказаним діапазоном кадрів"
 
@@ -26660,12 +26627,24 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Metaball"
-msgstr "Метакуля"
-
-
 msgid "Show/Hide"
 msgstr "Показати/приховати"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
 
 
 msgid "Names"
@@ -26866,18 +26845,6 @@ msgstr "Задати Силу Грані"
 
 msgid "Merge"
 msgstr "Об'єднання"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Basic"
@@ -46067,6 +46034,10 @@ msgid "Select all stroke points between other strokes"
 msgstr "Вибрати усі точки штрихів між іншими штрихами"
 
 
+msgid "Fill Opacity"
+msgstr "Безпрозорість Заповнення"
+
+
 msgctxt "Operator"
 msgid "Snap Cursor to Selected Points"
 msgstr "Підхопити курсор до виділених точок"
@@ -60068,10 +60039,6 @@ msgid "Exports UVs from the modified mesh"
 msgstr "Експортувати UV зі зміненої сіті"
 
 
-msgid "Fill Opacity"
-msgstr "Безпрозорість Заповнення"
-
-
 msgid "Set amount of opacity for exported UV layout"
 msgstr "Рівень непрозорості для експортованої UV-розстави"
 
@@ -63185,8 +63152,24 @@ msgid "Image used as canvas"
 msgstr "Зображення, використане як канва"
 
 
+msgid "Clone Alpha"
+msgstr "Клонувати прозорість"
+
+
+msgid "Opacity of clone image display"
+msgstr "Непрозорість при показі клону зображення"
+
+
+msgid "Clone Image"
+msgstr "Клонувати зображення"
+
+
 msgid "Image used as clone source"
 msgstr "Зображення, що використовується як джерело клонування"
+
+
+msgid "Clone Offset"
+msgstr "Клонувати зсув"
 
 
 msgid "Dither"
@@ -63827,10 +63810,6 @@ msgstr "Текстові поля"
 
 msgid "OpenVDB File"
 msgstr "Файл OpenVDB"
-
-
-msgid "Slot"
-msgstr "Гніздо"
 
 
 msgid "Filters"
@@ -66686,10 +66665,6 @@ msgstr "Інвертувати вісь вертіння (Z)"
 
 msgid "Overall sensitivity of the 3D Mouse for panning"
 msgstr "Загальна чутливість 3D-маніпулятора при панорамуванні"
-
-
-msgid "Show Navigation Guide"
-msgstr "Показати напрямні при навігації"
 
 
 msgid "Display the center and axis during rotation"
@@ -74265,6 +74240,11 @@ msgstr "Фільм"
 
 
 msgctxt "Sequence"
+msgid "Clip"
+msgstr "Кліп"
+
+
+msgctxt "Sequence"
 msgid "Mask"
 msgstr "Маска"
 
@@ -80123,10 +80103,6 @@ msgid "performance impact!"
 msgstr "вплив продуктивності!"
 
 
-msgid "Built without VR/OpenXR features"
-msgstr "Побудовано без функціональностей VR/OpenXR"
-
-
 msgid "API Defined"
 msgstr "Визначений API"
 
@@ -80735,14 +80711,6 @@ msgid "Only Axis Aligned"
 msgstr "Лише Вирівняно по Осі"
 
 
-msgid "Keyframes Before"
-msgstr "Ключкадри Перед"
-
-
-msgid "Keyframes After"
-msgstr "Ключкадри Після"
-
-
 msgid "Stroke Thickness"
 msgstr "Товщина Штриха"
 
@@ -80778,6 +80746,14 @@ msgstr "Розблокувати Все"
 msgctxt "Operator"
 msgid "Merge Down"
 msgstr "Об'єднати вниз"
+
+
+msgid "Keyframes Before"
+msgstr "Ключкадри Перед"
+
+
+msgid "Keyframes After"
+msgstr "Ключкадри Після"
 
 
 msgid "Interpolation U"
@@ -86835,10 +86811,6 @@ msgid "Nothing selected"
 msgstr "Нічого не вибрано"
 
 
-msgid "Active layer is locked or hidden"
-msgstr "Активний шар заблоковано або сховано"
-
-
 msgid "Cannot add active layer as mask"
 msgstr "Неможливо додати активний шар як маску"
 
@@ -86849,6 +86821,10 @@ msgstr "Шар вже додано"
 
 msgid "Unable to find layer to add"
 msgstr "Неможливо знайти шар для додання"
+
+
+msgid "Active layer is locked or hidden"
+msgstr "Активний шар заблоковано або сховано"
 
 
 msgid "Could not resolve path '%s'"
@@ -87024,10 +87000,6 @@ msgstr "Онлайнова довідка з Python"
 
 msgid "OS"
 msgstr "ОС"
-
-
-msgid "Home"
-msgstr "Домівка"
 
 
 msgid "Esc"
@@ -89600,6 +89572,10 @@ msgstr "Назва файлу"
 
 msgid "Date Modified"
 msgstr "Дату Модифіковано"
+
+
+msgid "Home"
+msgstr "Домівка"
 
 
 msgid "Desktop"

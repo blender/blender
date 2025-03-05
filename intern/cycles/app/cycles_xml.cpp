@@ -317,7 +317,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
             filepath = path_join(state.base, filepath);
           }
 
-          snode = OSLShaderManager::osl_node(graph.get(), manager, filepath, "");
+          snode = OSLShaderManager::osl_node(graph.get(), state.scene, filepath, "");
 
           if (!snode) {
             fprintf(stderr, "Failed to create OSL node from \"%s\".\n", filepath.c_str());

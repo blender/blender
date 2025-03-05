@@ -1255,7 +1255,7 @@ class IMAGE_PT_paint_settings_advanced(Panel, ImagePaintPanel):
         settings = context.tool_settings.image_paint
         brush = settings.brush
         if brush:
-            brush_settings_advanced(layout.column(), context, brush, self.is_popover)
+            brush_settings_advanced(layout.column(), context, settings, brush, self.is_popover)
 
 
 class IMAGE_PT_paint_color(Panel, ImagePaintPanel):

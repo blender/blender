@@ -407,7 +407,7 @@ static void rna_Mask_layers_remove(Mask *mask, ReportList *reports, PointerRNA *
   }
 
   BKE_mask_layer_remove(mask, masklay);
-  RNA_POINTER_INVALIDATE(masklay_ptr);
+  masklay_ptr->invalidate();
 
   WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 }
@@ -417,6 +417,24 @@ static void rna_Mask_layers_clear(Mask *mask)
   BKE_mask_layer_free_list(&mask->masklayers);
 
   WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
+}
+
+static void rna_MaskSplinePoint_handle_single_select_set(PointerRNA *ptr, bool value)
+{
+  Mask *mask = (Mask *)ptr->owner_id;
+  MaskSplinePoint *point = (MaskSplinePoint *)ptr->data;
+
+  BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_STICK, value);
+
+  DEG_id_tag_update(&mask->id, ID_RECALC_SELECT);
+  WM_main_add_notifier(NC_MASK | NA_SELECTED, mask);
+}
+
+static bool rna_MaskSplinePoint_handle_single_select_get(PointerRNA *ptr)
+{
+  MaskSplinePoint *point = (MaskSplinePoint *)ptr->data;
+
+  return MASKPOINT_ISSEL_HANDLE(point, MASK_WHICH_HANDLE_STICK);
 }
 
 static MaskSpline *rna_MaskLayer_spline_new(ID *id, MaskLayer *mask_layer)
@@ -445,7 +463,7 @@ static void rna_MaskLayer_spline_remove(ID *id,
     return;
   }
 
-  RNA_POINTER_INVALIDATE(spline_ptr);
+  spline_ptr->invalidate();
 
   DEG_id_tag_update(&mask->id, ID_RECALC_GEOMETRY);
 }
@@ -590,7 +608,7 @@ static void rna_MaskSpline_point_remove(ID *id,
   WM_main_add_notifier(NC_MASK | ND_DATA, mask);
   DEG_id_tag_update(&mask->id, 0);
 
-  RNA_POINTER_INVALIDATE(point_ptr);
+  point_ptr->invalidate();
 }
 
 #else
@@ -765,9 +783,37 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
   /* select */
+
+  /* DEPRECATED */
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "bezt.f2", SELECT);
+  RNA_def_property_ui_text(
+      prop,
+      "Select",
+      "Selection status of the control point. (Deprecated: use Select Control Point instead)");
+  RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+
+  prop = RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "bezt.f1", SELECT);
-  RNA_def_property_ui_text(prop, "Select", "Selection status");
+  RNA_def_property_ui_text(prop, "Select Left Handle", "Selection status of the left handle");
+  RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+
+  prop = RNA_def_property(srna, "select_control_point", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "bezt.f2", SELECT);
+  RNA_def_property_ui_text(prop, "Select Control Point", "Selection status of the control point");
+  RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+
+  prop = RNA_def_property(srna, "select_right_handle", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "bezt.f3", SELECT);
+  RNA_def_property_ui_text(prop, "Select Right Handle", "Selection status of the right handle");
+  RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+
+  prop = RNA_def_property(srna, "select_single_handle", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_MaskSplinePoint_handle_single_select_get",
+                                 "rna_MaskSplinePoint_handle_single_select_set");
+  RNA_def_property_ui_text(
+      prop, "Select Aligned Single Handle", "Selection status of the Aligned Single handle");
   RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
   /* parent */

@@ -8,6 +8,7 @@
 #include "DNA_node_types.h"
 
 #include "BLI_function_ref.hh"
+#include "BLI_listbase.h"
 #include "BLI_stack.hh"
 #include "BLI_task.hh"
 

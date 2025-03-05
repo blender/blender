@@ -18,9 +18,9 @@
  */
 
 #include "gpu_shader_common_hash.glsl"
-#include "gpu_shader_common_math_utils.glsl"
 #include "gpu_shader_material_fractal_voronoi.glsl"
 #include "gpu_shader_material_voronoi.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 
 #define INITIALIZE_VORONOIPARAMS(FEATURE) \
   params.feature = FEATURE; \

@@ -4,6 +4,10 @@
 
 #include "testing/testing.h"
 
+#include "ANIM_action.hh"
+#include "ANIM_fcurve.hh"
+
+#include "ED_anim_api.hh"
 #include "ED_keyframes_keylist.hh"
 
 #include "DNA_anim_types.h"
@@ -11,7 +15,20 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_action.hh"
+#include "BKE_armature.hh"
 #include "BKE_fcurve.hh"
+#include "BKE_global.hh"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_main.hh"
+#include "BKE_object.hh"
+
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+
+#include "CLG_log.h"
+#include "testing/testing.h"
 
 #include <functional>
 #include <optional>
@@ -134,6 +151,188 @@ TEST(keylist, find_exact)
   check_keylist_find_exact_range(keylist, 20.01f, 29.99f, std::nullopt);
   check_keylist_find_exact_range(keylist, 29.9901f, 30.01f, 30.0f);
   check_keylist_find_exact_range(keylist, 30.01f, 49.99f, std::nullopt);
+
+  ED_keylist_free(keylist);
+}
+
+class KeylistSummaryTest : public testing::Test {
+ public:
+  Main *bmain;
+  blender::animrig::Action *action;
+  Object *cube;
+  Object *armature;
+  bArmature *armature_data;
+  Bone *bone1;
+  Bone *bone2;
+
+  SpaceAction saction = {nullptr};
+  bAnimContext ac = {nullptr};
+
+  static void SetUpTestSuite()
+  {
+    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
+    CLG_init();
+
+    /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
+    BKE_idtype_init();
+  }
+
+  static void TearDownTestSuite()
+  {
+    CLG_exit();
+  }
+
+  void SetUp() override
+  {
+    bmain = BKE_main_new();
+    G_MAIN = bmain; /* For BKE_animdata_free(). */
+
+    action = &static_cast<bAction *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"))->wrap();
+    cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
+
+    armature_data = BKE_armature_add(bmain, "ARArmature");
+    bone1 = reinterpret_cast<Bone *>(MEM_callocN(sizeof(Bone), "KeylistSummaryTest"));
+    bone2 = reinterpret_cast<Bone *>(MEM_callocN(sizeof(Bone), "KeylistSummaryTest"));
+    STRNCPY(bone1->name, "Bone.001");
+    STRNCPY(bone2->name, "Bone.002");
+    BLI_addtail(&armature_data->bonebase, bone1);
+    BLI_addtail(&armature_data->bonebase, bone2);
+    BKE_armature_bone_hash_make(armature_data);
+
+    armature = BKE_object_add_only_object(bmain, OB_ARMATURE, "OBArmature");
+    armature->data = armature_data;
+    BKE_pose_ensure(bmain, armature, armature_data, false);
+
+    /*
+     * Fill in the common bits for the mock bAnimContext, for an Action editor.
+     *
+     * Tests should fill in:
+     * - saction.action_slot_handle
+     * - ac.obact
+     */
+    saction.action = action;
+    saction.ads.filterflag = eDopeSheet_FilterFlag(0);
+    ac.bmain = bmain;
+    ac.datatype = ANIMCONT_ACTION;
+    ac.data = action;
+    ac.spacetype = SPACE_ACTION;
+    ac.sl = reinterpret_cast<SpaceLink *>(&saction);
+    ac.ads = &saction.ads;
+  }
+
+  void TearDown() override
+  {
+    saction.action_slot_handle = blender::animrig::Slot::unassigned;
+    ac.obact = nullptr;
+
+    BKE_main_free(bmain);
+    G_MAIN = nullptr;
+  }
+};
+
+TEST_F(KeylistSummaryTest, slot_summary_simple)
+{
+  /* Test that a key summary is generated correctly for a slot that's animating
+   * an object's transforms. */
+
+  using namespace blender::animrig;
+
+  Slot &slot_cube = action->slot_add_for_id(cube->id);
+  ASSERT_EQ(ActionSlotAssignmentResult::OK, assign_action_and_slot(action, &slot_cube, cube->id));
+  Channelbag &channelbag = action_channelbag_ensure(*action, cube->id);
+
+  FCurve &loc_x = channelbag.fcurve_ensure(bmain, {"location", 0});
+  FCurve &loc_y = channelbag.fcurve_ensure(bmain, {"location", 1});
+  FCurve &loc_z = channelbag.fcurve_ensure(bmain, {"location", 2});
+
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&loc_x, {1.0, 0.0}, {}, {}));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&loc_x, {2.0, 1.0}, {}, {}));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&loc_y, {2.0, 2.0}, {}, {}));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&loc_y, {3.0, 3.0}, {}, {}));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&loc_z, {2.0, 4.0}, {}, {}));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&loc_z, {5.0, 5.0}, {}, {}));
+
+  /* Generate slot summary keylist. */
+  AnimKeylist *keylist = ED_keylist_create();
+  saction.action_slot_handle = slot_cube.handle;
+  ac.obact = cube;
+  action_slot_summary_to_keylist(
+      &ac, &cube->id, *action, slot_cube.handle, keylist, 0, {0.0, 6.0});
+  ED_keylist_prepare_for_direct_access(keylist);
+
+  const ActKeyColumn *col_0 = ED_keylist_find_exact(keylist, 0.0);
+  const ActKeyColumn *col_1 = ED_keylist_find_exact(keylist, 1.0);
+  const ActKeyColumn *col_2 = ED_keylist_find_exact(keylist, 2.0);
+  const ActKeyColumn *col_3 = ED_keylist_find_exact(keylist, 3.0);
+  const ActKeyColumn *col_4 = ED_keylist_find_exact(keylist, 4.0);
+  const ActKeyColumn *col_5 = ED_keylist_find_exact(keylist, 5.0);
+  const ActKeyColumn *col_6 = ED_keylist_find_exact(keylist, 6.0);
+
+  /* Check that we only have columns at the frames with keys. */
+  EXPECT_EQ(nullptr, col_0);
+  EXPECT_NE(nullptr, col_1);
+  EXPECT_NE(nullptr, col_2);
+  EXPECT_NE(nullptr, col_3);
+  EXPECT_EQ(nullptr, col_4);
+  EXPECT_NE(nullptr, col_5);
+  EXPECT_EQ(nullptr, col_6);
+
+  /* Check that the right number of keys are indicated in each column. */
+  EXPECT_EQ(1, col_1->totkey);
+  EXPECT_EQ(3, col_2->totkey);
+  EXPECT_EQ(1, col_3->totkey);
+  EXPECT_EQ(1, col_5->totkey);
+
+  ED_keylist_free(keylist);
+}
+
+TEST_F(KeylistSummaryTest, slot_summary_bone_selection)
+{
+  /* Test that a key summary is generated correctly, excluding keys for
+   * unselected bones when filter-by-selection is on. */
+
+  using namespace blender::animrig;
+
+  Slot &slot_armature = action->slot_add_for_id(armature->id);
+  ASSERT_EQ(ActionSlotAssignmentResult::OK,
+            assign_action_and_slot(action, &slot_armature, armature->id));
+  Channelbag &channelbag = action_channelbag_ensure(*action, armature->id);
+
+  FCurve &bone1_loc_x = channelbag.fcurve_ensure(
+      bmain, {"pose.bones[\"Bone.001\"].location", 0, std::nullopt, "Bone.001"});
+  FCurve &bone2_loc_x = channelbag.fcurve_ensure(
+      bmain, {"pose.bones[\"Bone.002\"].location", 0, std::nullopt, "Bone.002"});
+
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&bone1_loc_x, {1.0, 0.0}, {}, {}));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&bone1_loc_x, {2.0, 1.0}, {}, {}));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&bone2_loc_x, {2.0, 2.0}, {}, {}));
+  ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&bone2_loc_x, {3.0, 3.0}, {}, {}));
+
+  /* Select only Bone.001. */
+  bone1->flag |= BONE_SELECTED;
+  bone2->flag &= ~BONE_SELECTED;
+
+  /* Generate slot summary keylist. */
+  AnimKeylist *keylist = ED_keylist_create();
+  saction.ads.filterflag = ADS_FILTER_ONLYSEL; /* Filter by selection. */
+  saction.action_slot_handle = slot_armature.handle;
+  ac.obact = armature;
+  action_slot_summary_to_keylist(
+      &ac, &armature->id, *action, slot_armature.handle, keylist, 0, {0.0, 6.0});
+  ED_keylist_prepare_for_direct_access(keylist);
+
+  const ActKeyColumn *col_1 = ED_keylist_find_exact(keylist, 1.0);
+  const ActKeyColumn *col_2 = ED_keylist_find_exact(keylist, 2.0);
+  const ActKeyColumn *col_3 = ED_keylist_find_exact(keylist, 3.0);
+
+  /* Check that we only have columns at the frames with keys for Bone.001. */
+  EXPECT_NE(nullptr, col_1);
+  EXPECT_NE(nullptr, col_2);
+  EXPECT_EQ(nullptr, col_3);
+
+  /* Check that the right number of keys are indicated in each column. */
+  EXPECT_EQ(1, col_1->totkey);
+  EXPECT_EQ(1, col_2->totkey);
 
   ED_keylist_free(keylist);
 }

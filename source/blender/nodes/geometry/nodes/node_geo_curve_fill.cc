@@ -44,7 +44,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveFill *data = MEM_cnew<NodeGeometryCurveFill>(__func__);
+  NodeGeometryCurveFill *data = MEM_callocN<NodeGeometryCurveFill>(__func__);
 
   data->mode = GEO_NODE_CURVE_FILL_MODE_TRIANGULATED;
   node->storage = data;
@@ -347,11 +347,11 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
-      &ntype, "NodeGeometryCurveFill", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeGeometryCurveFill", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

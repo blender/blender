@@ -16,6 +16,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_geom.h"
 #include "BLI_rect.h"
@@ -507,7 +508,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip * /*clip*/, MovieTrackingTr
    * for really long paths. */
   path = (count < MAX_STATIC_PATH) ?
              path_static :
-             MEM_cnew_array<TrackPathPoint>(sizeof(*path) * (count + 1) * 2, "path");
+             MEM_calloc_arrayN<TrackPathPoint>(sizeof(*path) * (count + 1) * 2, "path");
   /* Collect path information. */
   const int num_points_before = track_to_path_segment(sc, track, -1, path);
   const int num_points_after = track_to_path_segment(sc, track, 1, path);
@@ -1495,7 +1496,7 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
     /* undistort */
     if (count) {
-      marker_pos = MEM_cnew_array<float>(2 * count, "draw_tracking_tracks marker_pos");
+      marker_pos = MEM_calloc_arrayN<float>(2 * count, "draw_tracking_tracks marker_pos");
 
       fp = marker_pos;
       LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {

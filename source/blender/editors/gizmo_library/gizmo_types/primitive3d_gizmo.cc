@@ -13,10 +13,13 @@
  * Currently only plane primitive supported without its own handling, use with operator only.
  */
 
+#include "BLI_math_vector.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"

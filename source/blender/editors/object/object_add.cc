@@ -121,6 +121,7 @@
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_physics.hh"
+#include "ED_pointcloud.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
@@ -2719,12 +2720,12 @@ static const EnumPropertyItem convert_target_items[] = {
      "MESH",
      ICON_OUTLINER_OB_MESH,
      "Mesh",
-#ifdef WITH_POINT_CLOUD
+#ifdef WITH_POINTCLOUD
      "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"},
 #else
      "Mesh from Curve, Surface, Metaball, or Text objects"},
 #endif
-#ifdef WITH_POINT_CLOUD
+#ifdef WITH_POINTCLOUD
     {OB_POINTCLOUD,
      "POINTCLOUD",
      ICON_OUTLINER_OB_POINTCLOUD,
@@ -2803,17 +2804,21 @@ static void object_data_convert_curve_to_mesh(Main *bmain, Depsgraph *depsgraph,
 static bool object_convert_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  Base *base_act = CTX_data_active_base(C);
-  Object *obact = base_act ? base_act->object : nullptr;
-
-  if (obact == nullptr || obact->data == nullptr || !ID_IS_EDITABLE(obact) ||
-      ID_IS_OVERRIDE_LIBRARY(obact) || ID_IS_OVERRIDE_LIBRARY(obact->data))
-  {
+  if (!ID_IS_EDITABLE(scene)) {
+    return false;
+  }
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  /* Don't use `active_object` in the context, it's important this value
+   * is from the view-layer as it's used to check if Blender is in edit-mode. */
+  Object *obact = BKE_view_layer_active_object_get(view_layer);
+  if (obact && BKE_object_is_in_editmode(obact)) {
     return false;
   }
 
-  return (ID_IS_EDITABLE(scene) && (BKE_object_is_in_editmode(obact) == false) &&
-          (base_act->flag & BASE_SELECTED));
+  /* Note that `obact` may not be editable,
+   * only check the active object to ensure Blender is not in edit-mode. */
+  return true;
 }
 
 /* Helper for object_convert_exec */
@@ -2873,6 +2878,10 @@ struct ObjectConversionInfo {
   Depsgraph *depsgraph;
   Scene *scene;
   ViewLayer *view_layer;
+  /**
+   * Note that this is not used for conversion operation,
+   * only to ensure the active-object doesn't change from a user perspective.
+   */
   Object *obact;
   bool keep_original;
   bool do_merge_customdata;
@@ -3022,9 +3031,9 @@ static Object *convert_mesh_to_curves(Base &base, ObjectConversionInfo &info, Ba
   return convert_grease_pencil_component_to_curves(base, info, r_new_base);
 }
 
-static Object *convert_mesh_to_point_cloud(Base &base,
-                                           ObjectConversionInfo &info,
-                                           Base **r_new_base)
+static Object *convert_mesh_to_pointcloud(Base &base,
+                                          ObjectConversionInfo &info,
+                                          Base **r_new_base)
 {
   Object *ob = base.object;
   ob->flag |= OB_DONE;
@@ -3315,7 +3324,7 @@ static Object *convert_mesh(Base &base,
     case OB_CURVES:
       return convert_mesh_to_curves(base, info, r_new_base);
     case OB_POINTCLOUD:
-      return convert_mesh_to_point_cloud(base, info, r_new_base);
+      return convert_mesh_to_pointcloud(base, info, r_new_base);
     case OB_MESH:
       return convert_mesh_to_mesh(base, info, r_new_base);
     case OB_GREASE_PENCIL:
@@ -3844,7 +3853,7 @@ static Object *convert_mball_to_mesh(Base &base,
     newob->data = mesh;
     newob->type = OB_MESH;
 
-    if (info.obact->type == OB_MBALL) {
+    if (info.obact && (info.obact->type == OB_MBALL)) {
       *r_act_base = *r_new_base;
     }
 
@@ -3870,9 +3879,9 @@ static Object *convert_mball(Base &base,
   }
 }
 
-static Object *convert_point_cloud_to_mesh(Base &base,
-                                           ObjectConversionInfo &info,
-                                           Base **r_new_base)
+static Object *convert_pointcloud_to_mesh(Base &base,
+                                          ObjectConversionInfo &info,
+                                          Base **r_new_base)
 {
   Object *ob = base.object;
   ob->flag |= OB_DONE;
@@ -3888,14 +3897,14 @@ static Object *convert_point_cloud_to_mesh(Base &base,
   return newob;
 }
 
-static Object *convert_point_cloud(Base &base,
-                                   const ObjectType target,
-                                   ObjectConversionInfo &info,
-                                   Base **r_new_base)
+static Object *convert_pointcloud(Base &base,
+                                  const ObjectType target,
+                                  ObjectConversionInfo &info,
+                                  Base **r_new_base)
 {
   switch (target) {
     case OB_MESH:
-      return convert_point_cloud_to_mesh(base, info, r_new_base);
+      return convert_pointcloud_to_mesh(base, info, r_new_base);
     default:
       return nullptr;
   }
@@ -3907,10 +3916,19 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = CTX_data_active_object(C);
+
   const short target = RNA_enum_get(op->ptr, "target");
   bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
   const bool do_merge_customdata = RNA_boolean_get(op->ptr, "merge_customdata");
+
+  Vector<PointerRNA> selected_editable_bases;
+  CTX_data_selected_editable_bases(C, &selected_editable_bases);
+
+  /* Too expensive to detect on poll(). */
+  if (selected_editable_bases.is_empty()) {
+    BKE_report(op->reports, RPT_INFO, "No editable objects to convert");
+    return OPERATOR_CANCELLED;
+  }
 
   /* don't forget multiple users! */
 
@@ -3937,15 +3955,12 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     FOREACH_SCENE_OBJECT_END;
   }
 
-  Vector<PointerRNA> selected_editable_bases;
-  CTX_data_selected_editable_bases(C, &selected_editable_bases);
-
   ObjectConversionInfo info;
   info.bmain = bmain;
   info.depsgraph = depsgraph;
   info.scene = scene;
   info.view_layer = view_layer;
-  info.obact = obact;
+  info.obact = BKE_view_layer_active_object_get(view_layer);
   info.keep_original = keep_original;
   info.do_merge_customdata = do_merge_customdata;
   info.op_props = op->ptr;
@@ -4033,7 +4048,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
           newob = convert_mball(*base, target_type, info, mball_converted, &new_base, &act_base);
           break;
         case OB_POINTCLOUD:
-          newob = convert_point_cloud(*base, target_type, info, &new_base);
+          newob = convert_pointcloud(*base, target_type, info, &new_base);
           break;
         default:
           continue;
@@ -4049,7 +4064,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
     /* If the original object is active then make this object active */
     if (new_base) {
-      if (ob == obact) {
+      if (info.obact && (info.obact == ob)) {
         /* Store new active base to update view layer. */
         act_base = new_base;
       }
@@ -4105,10 +4120,11 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   }
   else {
     BKE_view_layer_synced_ensure(scene, view_layer);
-    Object *object = BKE_view_layer_active_object_get(view_layer);
-    if (object->flag & OB_DONE) {
-      WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
-      WM_event_add_notifier(C, NC_OBJECT | ND_DATA, object);
+    if (Object *object = BKE_view_layer_active_object_get(view_layer)) {
+      if (object->flag & OB_DONE) {
+        WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
+        WM_event_add_notifier(C, NC_OBJECT | ND_DATA, object);
+      }
     }
   }
 
@@ -4434,8 +4450,12 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
                          "Duplicate object but not object data, linking to the original data");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_enum(
-      ot->srna, "mode", rna_enum_transform_mode_type_items, TFM_TRANSLATION, "Mode", "");
+  prop = RNA_def_enum(ot->srna,
+                      "mode",
+                      rna_enum_transform_mode_type_items,
+                      blender::ed::transform::TFM_TRANSLATION,
+                      "Mode",
+                      "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -4695,7 +4715,15 @@ static bool object_join_poll(bContext *C)
     return false;
   }
 
-  if (ELEM(ob->type, OB_MESH, OB_CURVES_LEGACY, OB_SURF, OB_ARMATURE, OB_GREASE_PENCIL)) {
+  if (ELEM(ob->type,
+           OB_MESH,
+           OB_CURVES_LEGACY,
+           OB_SURF,
+           OB_ARMATURE,
+           OB_CURVES,
+           OB_GREASE_PENCIL,
+           OB_POINTCLOUD))
+  {
     return true;
   }
   return false;
@@ -4731,6 +4759,12 @@ static int object_join_exec(bContext *C, wmOperator *op)
   }
   else if (ob->type == OB_ARMATURE) {
     ret = ED_armature_join_objects_exec(C, op);
+  }
+  else if (ob->type == OB_POINTCLOUD) {
+    ret = pointcloud::join_objects(C, op);
+  }
+  else if (ob->type == OB_CURVES) {
+    ret = curves::join_objects(C, op);
   }
   else if (ob->type == OB_GREASE_PENCIL) {
     ret = ED_grease_pencil_join_objects_exec(C, op);

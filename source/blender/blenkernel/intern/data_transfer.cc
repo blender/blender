@@ -13,6 +13,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
@@ -394,7 +395,7 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
                                                   custom_nors_dst.span);
     custom_nors_dst.finish();
     sharp_edges.finish();
-    CustomData_free_layers(ldata_dst, CD_NORMAL, me_dst->corners_num);
+    CustomData_free_layers(ldata_dst, CD_NORMAL);
   }
 }
 
@@ -467,7 +468,7 @@ void data_transfer_layersmapping_add_item(ListBase *r_map,
                                           cd_datatransfer_interp interp,
                                           void *interp_data)
 {
-  CustomDataTransferLayerMap *item = MEM_cnew<CustomDataTransferLayerMap>(__func__);
+  CustomDataTransferLayerMap *item = MEM_callocN<CustomDataTransferLayerMap>(__func__);
 
   BLI_assert(data_dst != nullptr);
 
@@ -562,7 +563,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
     if (use_delete) {
       idx_dst = tot_dst;
       while (idx_dst--) {
-        CustomData_free_layer(cd_dst, cddata_type, num_elem_dst, idx_dst);
+        CustomData_free_layer(cd_dst, cddata_type, idx_dst);
       }
     }
     return true;
@@ -593,7 +594,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
       }
       else if (use_delete && idx_dst > idx_src) {
         while (idx_dst-- > idx_src) {
-          CustomData_free_layer(cd_dst, cddata_type, num_elem_dst, idx_dst);
+          CustomData_free_layer(cd_dst, cddata_type, idx_dst);
         }
       }
       if (r_map) {
@@ -670,7 +671,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
          * from index shifting when deleting a layer. */
         for (idx_dst = tot_dst; idx_dst--;) {
           if (data_dst_to_delete[idx_dst]) {
-            CustomData_free_layer(cd_dst, cddata_type, num_elem_dst, idx_dst);
+            CustomData_free_layer(cd_dst, cddata_type, idx_dst);
           }
         }
 
@@ -705,7 +706,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
     const void *data_src = CustomData_get_layer(cd_src, cddata_type);
     if (!data_src) {
       if (use_delete) {
-        CustomData_free_layer(cd_dst, cddata_type, num_elem_dst, 0);
+        CustomData_free_layer(cd_dst, cddata_type, 0);
       }
       return true;
     }

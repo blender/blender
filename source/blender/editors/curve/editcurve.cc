@@ -5681,26 +5681,27 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if (use_proj) {
       const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
 
-      SnapObjectContext *snap_context = ED_transform_snap_object_context_create(vc.scene, 0);
+      blender::ed::transform::SnapObjectContext *snap_context =
+          blender::ed::transform::snap_object_context_create(vc.scene, 0);
 
-      SnapObjectParams params{};
+      blender::ed::transform::SnapObjectParams params{};
       params.snap_target_select = (vc.obedit != nullptr) ? SCE_SNAP_TARGET_NOT_ACTIVE :
                                                            SCE_SNAP_TARGET_ALL;
-      params.edit_mode_type = SNAP_GEOM_FINAL;
-      ED_transform_snap_object_project_view3d(snap_context,
-                                              vc.depsgraph,
-                                              vc.region,
-                                              vc.v3d,
-                                              SCE_SNAP_TO_FACE,
-                                              &params,
-                                              nullptr,
-                                              mval,
-                                              nullptr,
-                                              nullptr,
-                                              location,
-                                              nullptr);
+      params.edit_mode_type = blender::ed::transform::SNAP_GEOM_FINAL;
+      blender::ed::transform::snap_object_project_view3d(snap_context,
+                                                         vc.depsgraph,
+                                                         vc.region,
+                                                         vc.v3d,
+                                                         SCE_SNAP_TO_FACE,
+                                                         &params,
+                                                         nullptr,
+                                                         mval,
+                                                         nullptr,
+                                                         nullptr,
+                                                         location,
+                                                         nullptr);
 
-      ED_transform_snap_object_context_destroy(snap_context);
+      blender::ed::transform::snap_object_context_destroy(snap_context);
     }
 
     if (CU_IS_2D(cu)) {
@@ -5831,7 +5832,12 @@ void CURVE_OT_extrude(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* to give to transform */
-  RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_type_items, TFM_TRANSLATION, "Mode", "");
+  RNA_def_enum(ot->srna,
+               "mode",
+               rna_enum_transform_mode_type_items,
+               blender::ed::transform::TFM_TRANSLATION,
+               "Mode",
+               "");
 }
 
 /** \} */

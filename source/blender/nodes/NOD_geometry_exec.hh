@@ -306,6 +306,12 @@ class GeoNodeExecParams {
     return NodeAttributeFilter(set);
   }
 
+  /**
+   * If the path is relative, attempt to make it absolute. If the current node tree is linked,
+   * the path is relative to the linked file. Otherwise, the path is relative to the current file.
+   */
+  std::optional<std::string> ensure_absolute_path(StringRefNull path) const;
+
  private:
   /* Utilities for detecting common errors at when using this class. */
   void check_input_access(StringRef identifier, const CPPType *requested_type = nullptr) const;

@@ -185,7 +185,7 @@ void SEQ_edit_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
       SEQ_free_animdata(scene, strip);
       BLI_remlink(seqbase, strip);
       SEQ_sequence_free(scene, strip);
-      SEQ_strip_lookup_invalidate(scene);
+      SEQ_strip_lookup_invalidate(scene->ed);
     }
   }
 }
@@ -271,7 +271,8 @@ static void seq_split_set_right_hold_offset(Main *bmain,
   /* Adjust within range of strip contents. */
   else if ((timeline_frame >= content_start) && (timeline_frame <= content_end)) {
     strip->endofs = 0;
-    float speed_factor = SEQ_time_media_playback_rate_factor_get(scene, strip);
+    const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+    const float speed_factor = SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
     strip->anim_endofs += round_fl_to_int((content_end - timeline_frame) * speed_factor);
   }
 
@@ -290,7 +291,8 @@ static void seq_split_set_left_hold_offset(Main *bmain,
 
   /* Adjust within range of strip contents. */
   if ((timeline_frame >= content_start) && (timeline_frame <= content_end)) {
-    float speed_factor = SEQ_time_media_playback_rate_factor_get(scene, strip);
+    const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+    const float speed_factor = SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
     strip->anim_startofs += round_fl_to_int((timeline_frame - content_start) * speed_factor);
     strip->start = timeline_frame;
     strip->startofs = 0;
@@ -521,5 +523,5 @@ void SEQ_edit_sequence_name_set(Scene *scene, Strip *strip, const char *new_name
 {
   BLI_strncpy_utf8(strip->name + 2, new_name, MAX_NAME - 2);
   BLI_str_utf8_invalid_strip(strip->name + 2, strlen(strip->name + 2));
-  SEQ_strip_lookup_invalidate(scene);
+  SEQ_strip_lookup_invalidate(scene->ed);
 }

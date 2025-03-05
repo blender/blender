@@ -13,6 +13,7 @@
 
 #include "BLF_api.hh"
 
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "DNA_collection_types.h"
@@ -129,19 +130,19 @@ static const IconType icontypes[] = {
 static DrawInfo *def_internal_icon(
     ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type, int theme_color)
 {
-  Icon *new_icon = MEM_cnew<Icon>(__func__);
+  Icon *new_icon = MEM_callocN<Icon>(__func__);
 
   new_icon->obj = nullptr; /* icon is not for library object */
   new_icon->id_type = 0;
 
-  DrawInfo *di = MEM_cnew<DrawInfo>(__func__);
+  DrawInfo *di = MEM_callocN<DrawInfo>(__func__);
   di->type = type;
 
   if (type == ICON_TYPE_SVG_MONO) {
     di->data.texture.theme_color = theme_color;
   }
   else if (type == ICON_TYPE_BUFFER) {
-    IconImage *iimg = MEM_cnew<IconImage>(__func__);
+    IconImage *iimg = MEM_callocN<IconImage>(__func__);
     iimg->w = size;
     iimg->h = size;
 
@@ -178,12 +179,12 @@ static DrawInfo *def_internal_icon(
 
 static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 {
-  Icon *new_icon = MEM_cnew<Icon>("texicon");
+  Icon *new_icon = MEM_callocN<Icon>("texicon");
 
   new_icon->obj = nullptr; /* icon is not for library object */
   new_icon->id_type = 0;
 
-  DrawInfo *di = MEM_cnew<DrawInfo>("drawinfo");
+  DrawInfo *di = MEM_callocN<DrawInfo>("drawinfo");
   di->type = ICON_TYPE_VECTOR;
   di->data.vector.func = drawFunc;
 
@@ -796,7 +797,7 @@ static void icon_verify_datatoc(IconImage *iimg)
 
   if (iimg->datatoc_rect) {
     ImBuf *bbuf = IMB_ibImageFromMemory(
-        iimg->datatoc_rect, iimg->datatoc_size, IB_rect, nullptr, "<matcap icon>");
+        iimg->datatoc_rect, iimg->datatoc_size, IB_byte_data, nullptr, "<matcap icon>");
     /* w and h were set on initialize */
     if (bbuf->x != iimg->h && bbuf->y != iimg->w) {
       IMB_scale(bbuf, iimg->w, iimg->h, IMBScaleFilter::Box, false);
@@ -927,7 +928,7 @@ static DrawInfo *icon_create_drawinfo(Icon *icon)
 {
   const int icon_data_type = icon->obj_type;
 
-  DrawInfo *di = MEM_cnew<DrawInfo>("di_icon");
+  DrawInfo *di = MEM_callocN<DrawInfo>("di_icon");
 
   if (ELEM(icon_data_type, ICON_DATA_ID, ICON_DATA_PREVIEW)) {
     di->type = ICON_TYPE_PREVIEW;
@@ -1106,7 +1107,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
           wmWindowManager *wm = CTX_wm_manager(C);
           StudioLight *sl = static_cast<StudioLight *>(icon->obj);
           BKE_studiolight_set_free_function(sl, &ui_studiolight_free_function, wm);
-          IconImage *img = MEM_cnew<IconImage>(__func__);
+          IconImage *img = MEM_callocN<IconImage>(__func__);
 
           img->w = STUDIOLIGHT_ICON_SIZE;
           img->h = STUDIOLIGHT_ICON_SIZE;
@@ -1121,7 +1122,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
                                       "StudioLight Icon",
                                       eWM_JobFlag(0),
                                       WM_JOB_TYPE_STUDIOLIGHT);
-          Icon **tmp = MEM_cnew<Icon *>(__func__);
+          Icon **tmp = MEM_callocN<Icon *>(__func__);
           *tmp = icon;
           WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
           WM_jobs_timer(wm_job, 0.01, 0, NC_WINDOW);
@@ -1229,7 +1230,7 @@ PreviewImage *UI_icon_to_preview(int icon_id)
 
     bbuf = IMB_ibImageFromMemory(di->data.buffer.image->datatoc_rect,
                                  di->data.buffer.image->datatoc_size,
-                                 IB_rect,
+                                 IB_byte_data,
                                  nullptr,
                                  __func__);
     if (bbuf) {
@@ -1360,10 +1361,10 @@ static void svg_replace_color_attributes(std::string &svg,
       {"blender_back", nullptr, TH_BACK},
       {"blender_text", nullptr, TH_TEXT},
       {"blender_text_hi", nullptr, TH_TEXT_HI},
-      {"blender_red_alert", nullptr, TH_REDALERT},
-      {"blender_error", nullptr, TH_INFO_ERROR, SPACE_INFO},
-      {"blender_warning", nullptr, TH_INFO_WARNING, SPACE_INFO},
-      {"blender_info", nullptr, TH_INFO_INFO, SPACE_INFO},
+      {"blender_red_alert", nullptr, TH_ERROR},
+      {"blender_error", nullptr, TH_ERROR},
+      {"blender_warning", nullptr, TH_WARNING},
+      {"blender_info", nullptr, TH_INFO},
       {"blender_scene", nullptr, TH_ICON_SCENE},
       {"blender_collection", nullptr, TH_ICON_COLLECTION},
       {"blender_object", nullptr, TH_ICON_OBJECT},
@@ -1501,7 +1502,8 @@ static void icon_draw_size(float x,
     if (G.debug & G_DEBUG) {
       printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
     }
-    return;
+    icon_id = ICON_NOT_FOUND;
+    icon = BKE_icon_get(icon_id);
   }
 
   if (icon->obj_type != ICON_DATA_STUDIOLIGHT) {
@@ -1574,7 +1576,10 @@ static void icon_draw_size(float x,
                                                  0.3f) :
                                             0.0f;
     float color[4];
-    if (mono_rgba) {
+    if (icon_id == ICON_NOT_FOUND) {
+      UI_GetThemeColor4fv(TH_ERROR, color);
+    }
+    else if (mono_rgba) {
       rgba_uchar_to_float(color, mono_rgba);
     }
     else {

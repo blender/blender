@@ -291,8 +291,8 @@ MTLContext::~MTLContext()
   /* Wait for all GPU work to finish. */
   main_command_buffer.wait_until_active_command_buffers_complete();
 
-  /* Free framebuffers in base class. */
-  free_framebuffers();
+  /* Free textures and framebuffers in base class. */
+  free_resources();
 
   /* Release context textures. */
   if (default_fbo_gputexture_) {
@@ -989,39 +989,6 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
     if (shader_interface->get_total_textures() > 0) {
       this->ensure_texture_bindings(rec, shader_interface, pipeline_state_instance);
     }
-
-    /* Transform feedback buffer binding. */
-    VertBuf *tf_vbo = this->pipeline_state.active_shader->get_transform_feedback_active_buffer();
-    if (tf_vbo != nullptr && pipeline_state_instance->transform_feedback_buffer_index >= 0) {
-
-      /* Ensure primitive type is either GPU_LINES, GPU_TRIANGLES or GPU_POINT */
-      BLI_assert(mtl_prim_type == MTLPrimitiveTypeLine ||
-                 mtl_prim_type == MTLPrimitiveTypeTriangle ||
-                 mtl_prim_type == MTLPrimitiveTypePoint);
-
-      /* Fetch active transform feedback buffer from vertbuf */
-      MTLVertBuf *tf_vbo_mtl = static_cast<MTLVertBuf *>(reinterpret_cast<VertBuf *>(tf_vbo));
-      /* Ensure TF buffer is ready. */
-      tf_vbo_mtl->bind();
-      id<MTLBuffer> tf_buffer_mtl = tf_vbo_mtl->get_metal_buffer();
-      BLI_assert(tf_buffer_mtl != nil);
-
-      if (tf_buffer_mtl != nil) {
-        [rec setVertexBuffer:tf_buffer_mtl
-                      offset:0
-                     atIndex:pipeline_state_instance->transform_feedback_buffer_index];
-        MTL_LOG_INFO("Successfully bound VBO: %p for transform feedback (MTL Buffer: %p)",
-                     tf_vbo_mtl,
-                     tf_buffer_mtl);
-      }
-    }
-
-    /* Matrix Bindings. */
-    /* This is now called upon shader bind. We may need to re-evaluate this though,
-     * as was done here to ensure uniform changes between draws were tracked.
-     * NOTE(Metal): We may be able to remove this. */
-    GPU_matrix_bind(reinterpret_cast<struct GPUShader *>(
-        static_cast<Shader *>(this->pipeline_state.active_shader)));
 
     /* Bind buffers.
      * NOTE: `ensure_buffer_bindings` must be called after `ensure_texture_bindings` to allow

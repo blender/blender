@@ -15,6 +15,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -246,7 +247,7 @@ static void image_panel_uv(const bContext *C, Panel *panel)
 
 void ED_uvedit_buttons_register(ARegionType *art)
 {
-  PanelType *pt = MEM_cnew<PanelType>(__func__);
+  PanelType *pt = MEM_callocN<PanelType>(__func__);
 
   STRNCPY(pt->idname, "IMAGE_PT_uv");
   STRNCPY(pt->label, N_("UV Vertex")); /* XXX C panels unavailable through RNA bpy.types! */

@@ -40,6 +40,15 @@ class DATA_PT_context_pointcloud(DataButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
+class POINTCLOUD_MT_attribute_context_menu(Menu):
+    bl_label = "Attribute Specials"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("geometry.attribute_convert")
+
+
 class POINTCLOUD_MT_add_attribute(Menu):
     bl_label = "Add Attribute"
 
@@ -136,6 +145,10 @@ class DATA_PT_pointcloud_attributes(DataButtonsPanel, Panel):
         col.menu("POINTCLOUD_MT_add_attribute", icon='ADD', text="")
         col.operator("geometry.attribute_remove", icon='REMOVE', text="")
 
+        col.separator()
+
+        col.menu("POINTCLOUD_MT_attribute_context_menu", icon='DOWNARROW_HLT', text="")
+
 
 class DATA_PT_custom_props_pointcloud(DataButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {
@@ -152,6 +165,7 @@ classes = (
     DATA_PT_pointcloud_attributes,
     DATA_PT_custom_props_pointcloud,
     POINTCLOUD_MT_add_attribute,
+    POINTCLOUD_MT_attribute_context_menu,
     POINTCLOUD_UL_attributes,
 )
 

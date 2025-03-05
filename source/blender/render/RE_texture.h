@@ -17,10 +17,6 @@ struct ImagePool;
 struct MTex;
 struct Tex;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* `texture_procedural.cc` */
 
 /**
@@ -139,7 +135,3 @@ int multitex_nodes(struct Tex *tex,
                    short which_output,
                    const struct MTex *mtex,
                    struct ImagePool *pool);
-
-#ifdef __cplusplus
-}
-#endif

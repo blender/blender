@@ -130,7 +130,7 @@ static void rna_NodeSocket_draw_color_simple(const blender::bke::bNodeSocketType
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_NodeSocket_unregister(Main * /*bmain*/, StructRNA *type)
+static bool rna_NodeSocket_unregister(Main *bmain, StructRNA *type)
 {
   blender::bke::bNodeSocketType *st = static_cast<blender::bke::bNodeSocketType *>(
       RNA_struct_blender_type_get(type));
@@ -141,14 +141,15 @@ static bool rna_NodeSocket_unregister(Main * /*bmain*/, StructRNA *type)
   RNA_struct_free_extension(type, &st->ext_socket);
   RNA_struct_free(&BLENDER_RNA, type);
 
-  blender::bke::node_unregister_socket_type(st);
+  blender::bke::node_unregister_socket_type(*st);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
+  BKE_main_ensure_invariants(*bmain);
   return true;
 }
 
-static StructRNA *rna_NodeSocket_register(Main * /*bmain*/,
+static StructRNA *rna_NodeSocket_register(Main *bmain,
                                           ReportList *reports,
                                           void *data,
                                           const char *identifier,
@@ -187,7 +188,7 @@ static StructRNA *rna_NodeSocket_register(Main * /*bmain*/,
   if (!st) {
     /* create a new node socket type */
     st = MEM_new<blender::bke::bNodeSocketType>(__func__, dummy_st);
-    blender::bke::node_register_socket_type(st);
+    blender::bke::node_register_socket_type(*st);
   }
 
   st->free_self = [](blender::bke::bNodeSocketType *stype) { MEM_delete(stype); };
@@ -213,7 +214,7 @@ static StructRNA *rna_NodeSocket_register(Main * /*bmain*/,
 
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
-
+  BKE_main_ensure_invariants(*bmain);
   return st->ext_socket.srna;
 }
 
@@ -371,7 +372,7 @@ static bool rna_NodeSocket_is_output_get(PointerRNA *ptr)
 static int rna_NodeSocket_link_limit_get(PointerRNA *ptr)
 {
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
-  return blender::bke::node_socket_link_limit(sock);
+  return blender::bke::node_socket_link_limit(*sock);
 }
 
 static void rna_NodeSocket_link_limit_set(PointerRNA *ptr, int value)
@@ -600,6 +601,20 @@ const EnumPropertyItem *RNA_node_socket_menu_itemf(bContext * /*C*/,
     return rna_enum_dummy_NULL_items;
   }
   return RNA_node_enum_definition_itemf(*data->enum_items, r_free);
+}
+
+std::optional<std::string> rna_NodeSocketString_filepath_filter(const bContext * /*C*/,
+                                                                PointerRNA *ptr,
+                                                                PropertyRNA * /*prop*/)
+{
+  bNodeSocket *socket = static_cast<bNodeSocket *>(ptr->data);
+  BLI_assert(socket->type == SOCK_STRING);
+  if (const auto *decl = dynamic_cast<const blender::nodes::decl::String *>(
+          socket->runtime->declaration))
+  {
+    return decl->path_filter;
+  }
+  return std::nullopt;
 }
 
 #else
@@ -1323,6 +1338,10 @@ static void rna_def_node_socket_string(BlenderRNA *brna,
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+
+  if (subtype == PROP_FILEPATH) {
+    RNA_def_property_string_filepath_filter_func(prop, "rna_NodeSocketString_filepath_filter");
+  }
 
   RNA_def_struct_sdna_from(srna, "bNodeSocket", nullptr);
 }

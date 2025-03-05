@@ -34,7 +34,7 @@ float linear_zdepth(float depth, mat4 proj_mat)
  */
 float calculate_transparent_weight()
 {
-  float z = linear_zdepth(gl_FragCoord.z, drw_view.winmat);
+  float z = linear_zdepth(gl_FragCoord.z, drw_view().winmat);
 #if 0
   /* Eq 10 : Good for surfaces with varying opacity (like particles) */
   float a = min(1.0, alpha * 10.0) + 0.01;

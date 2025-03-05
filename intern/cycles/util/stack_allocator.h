@@ -69,7 +69,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
     if (p < data_ || p >= data_ + SIZE) {
       util_guarded_mem_free(n * sizeof(T));
 #ifdef WITH_BLENDER_GUARDEDALLOC
-      MEM_freeN(p);
+      MEM_freeN(static_cast<void *>(p));
 #else
       free(p);
 #endif

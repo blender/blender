@@ -14,6 +14,7 @@
  * \note It is currently work in progress and should replace the old global draw manager.
  */
 
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_sys_types.h"
 
@@ -83,11 +84,6 @@ class Manager {
    * This is because attribute list is arbitrary.
    */
   ObjectAttributeBuf attributes_buf;
-  /**
-   * TODO(@fclem): Remove once we get rid of old EEVEE code-base.
-   * Only here to satisfy bindings.
-   */
-  ObjectAttributeLegacyBuf attributes_buf_legacy;
 
   /**
    * Table of all View Layer attributes required by shaders, used to populate the buffer below.
@@ -463,4 +459,3 @@ inline void Manager::register_layer_attributes(GPUMaterial *material)
 /* TODO(@fclem): This is for testing. The manager should be passed to the engine through the
  * callbacks. */
 blender::draw::Manager *DRW_manager_get();
-blender::draw::ObjectRef DRW_object_ref_get(Object *object);

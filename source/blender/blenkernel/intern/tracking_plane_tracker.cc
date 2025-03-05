@@ -26,8 +26,8 @@ static int point_markers_correspondences_on_both_image(
 {
   Vec2 *x1, *x2;
 
-  *r_x1 = x1 = MEM_cnew_array<Vec2>(plane_track->point_tracksnr, "point correspondences x1");
-  *r_x2 = x2 = MEM_cnew_array<Vec2>(plane_track->point_tracksnr, "point correspondences x2");
+  *r_x1 = x1 = MEM_calloc_arrayN<Vec2>(plane_track->point_tracksnr, "point correspondences x1");
+  *r_x2 = x2 = MEM_calloc_arrayN<Vec2>(plane_track->point_tracksnr, "point correspondences x2");
 
   int correspondence_index = 0;
   for (int i = 0; i < plane_track->point_tracksnr; i++) {

@@ -19,6 +19,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "BLI_kdtree.h"
+#include "BLI_listbase.h"
 #include "BLI_rect.h"
 
 #include "DNA_brush_types.h"

@@ -15,20 +15,21 @@
 #include "DNA_uuid_types.h"
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_string_ref.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <initializer_list>
+#include <iosfwd>
+#include <string>
 
 /**
  * UUID generator for random (version 4) UUIDs. See RFC4122 section 4.4.
  * This function is not thread-safe. */
-bUUID BLI_uuid_generate_random(void);
+bUUID BLI_uuid_generate_random();
 
 /**
  * Return the UUID nil value, consisting of all-zero fields.
  */
-bUUID BLI_uuid_nil(void);
+bUUID BLI_uuid_nil();
 
 /** Return true only if this is the nil UUID. */
 bool BLI_uuid_is_nil(bUUID uuid);
@@ -53,15 +54,6 @@ void BLI_uuid_format(char *buffer, bUUID uuid) ATTR_NONNULL();
  */
 bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer) ATTR_NONNULL();
 
-#ifdef __cplusplus
-}
-
-#  include <initializer_list>
-#  include <iosfwd>
-#  include <string>
-
-#  include "BLI_string_ref.hh"
-
 /** Output the UUID as formatted ASCII string, see #BLI_uuid_format(). */
 std::ostream &operator<<(std::ostream &stream, bUUID uuid);
 
@@ -81,7 +73,7 @@ class bUUID : public ::bUUID {
   bUUID(std::initializer_list<uint32_t> field_values);
 
   /** Initialize by parsing the string; undefined behavior when the string is invalid. */
-  explicit bUUID(const StringRefNull string_formatted_uuid);
+  explicit bUUID(StringRefNull string_formatted_uuid);
 
   /** Return the UUID as formatted ASCII string, see #BLI_uuid_format(). */
   std::string str() const;
@@ -98,5 +90,3 @@ bool operator!=(bUUID uuid1, bUUID uuid2);
 bool operator<(bUUID uuid1, bUUID uuid2);
 
 }  // namespace blender
-
-#endif

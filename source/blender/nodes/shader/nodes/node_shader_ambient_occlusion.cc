@@ -94,5 +94,5 @@ void register_node_type_sh_ambient_occlusion()
   ntype.gpu_fn = file_ns::node_shader_gpu_ambient_occlusion;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

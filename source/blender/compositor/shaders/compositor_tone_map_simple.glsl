@@ -6,8 +6,8 @@
  * for digital images." Proceedings of the 29th annual conference on Computer graphics and
  * interactive techniques. 2002. */
 
-#include "gpu_shader_common_math_utils.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 void main()
 {

@@ -40,7 +40,7 @@ static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_setalpha(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeSetAlpha *settings = MEM_cnew<NodeSetAlpha>(__func__);
+  NodeSetAlpha *settings = MEM_callocN<NodeSetAlpha>(__func__);
   node->storage = settings;
   settings->mode = CMP_NODE_SETALPHA_MODE_APPLY;
 }
@@ -112,9 +112,9 @@ void register_node_type_cmp_setalpha()
   ntype.draw_buttons = file_ns::node_composit_buts_set_alpha;
   ntype.initfunc = file_ns::node_composit_init_setalpha;
   blender::bke::node_type_storage(
-      &ntype, "NodeSetAlpha", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeSetAlpha", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

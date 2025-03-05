@@ -138,9 +138,9 @@ static void node_geo_exec(GeoNodeExecParams params)
                         selection_field,
                         position_field);
   }
-  if (PointCloud *point_cloud = geometry.get_pointcloud_for_write()) {
-    set_points_position(point_cloud->attributes_for_write(),
-                        bke::PointCloudFieldContext(*point_cloud),
+  if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
+    set_points_position(pointcloud->attributes_for_write(),
+                        bke::PointCloudFieldContext(*pointcloud),
                         selection_field,
                         position_field);
   }
@@ -172,7 +172,7 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

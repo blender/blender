@@ -32,25 +32,25 @@ struct PolyCornerIndex {
 };
 
 struct MultiresDisplacementData {
-  Subdiv *subdiv;
-  int grid_size;
+  Subdiv *subdiv = nullptr;
+  int grid_size = 0;
   /* Mesh is used to read external displacement. */
-  Mesh *mesh;
-  const MultiresModifierData *mmd;
-  OffsetIndices<int> faces;
-  const MDisps *mdisps;
+  Mesh *mesh = nullptr;
+  const MultiresModifierData *mmd = nullptr;
+  OffsetIndices<int> faces = {};
+  const MDisps *mdisps = nullptr;
   /* Indexed by PTEX face index, contains face/corner which corresponds
    * to it.
    *
    * NOTE: For quad face this is an index of first corner only, since
    * there we only have one PTEX. */
-  PolyCornerIndex *ptex_face_corner;
+  PolyCornerIndex *ptex_face_corner = nullptr;
   /* Indexed by coarse face index, returns first PTEX face index corresponding
    * to that coarse face. */
-  int *face_ptex_offset;
+  int *face_ptex_offset = nullptr;
   /* Sanity check, is used in debug builds.
    * Controls that initialize() was called prior to eval_displacement(). */
-  bool is_initialized;
+  bool is_initialized = false;
 };
 
 /* Denotes which grid to use to average value of the displacement read from the
@@ -359,7 +359,7 @@ static void free_displacement(Displacement *displacement)
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
   MEM_freeN(data->ptex_face_corner);
-  MEM_freeN(data);
+  MEM_delete(data);
 }
 
 /* TODO(sergey): This seems to be generally used information, which almost
@@ -438,9 +438,8 @@ void displacement_attach_from_multires(Subdiv *subdiv, Mesh *mesh, const Multire
     return;
   }
   /* Allocate all required memory. */
-  Displacement *displacement = MEM_cnew<Displacement>("multires displacement");
-  displacement->user_data = MEM_callocN(sizeof(MultiresDisplacementData),
-                                        "multires displacement data");
+  Displacement *displacement = MEM_callocN<Displacement>("multires displacement");
+  displacement->user_data = MEM_new<MultiresDisplacementData>("multires displacement data");
   displacement_init_data(displacement, subdiv, mesh, mmd);
   displacement_init_functions(displacement);
   /* Finish. */

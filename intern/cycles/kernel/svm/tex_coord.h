@@ -360,8 +360,8 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     }
 
     /* get _unnormalized_ interpolated normal and tangent */
-    const float3 tangent = primitive_surface_attribute_float3(kg, sd, attr, nullptr, nullptr);
-    const float sign = primitive_surface_attribute_float(kg, sd, attr_sign, nullptr, nullptr);
+    const float3 tangent = primitive_surface_attribute<float3>(kg, sd, attr, nullptr, nullptr);
+    const float sign = primitive_surface_attribute<float>(kg, sd, attr_sign, nullptr, nullptr);
     float3 normal;
 
     if (sd->shader & SHADER_SMOOTH_NORMAL) {
@@ -445,13 +445,13 @@ ccl_device_noinline void svm_node_tangent(KernelGlobals kg,
   const AttributeDescriptor desc = find_attribute(kg, sd, node.z);
   if (desc.offset != ATTR_STD_NOT_FOUND) {
     if (desc.type == NODE_ATTR_FLOAT2) {
-      const float2 value = primitive_surface_attribute_float2(kg, sd, desc, nullptr, nullptr);
+      const float2 value = primitive_surface_attribute<float2>(kg, sd, desc, nullptr, nullptr);
       attribute_value.x = value.x;
       attribute_value.y = value.y;
       attribute_value.z = 0.0f;
     }
     else {
-      attribute_value = primitive_surface_attribute_float3(kg, sd, desc, nullptr, nullptr);
+      attribute_value = primitive_surface_attribute<float3>(kg, sd, desc, nullptr, nullptr);
     }
   }
 

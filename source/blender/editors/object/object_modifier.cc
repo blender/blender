@@ -385,6 +385,8 @@ static bool object_modifier_remove(
     ob->mode &= ~OB_MODE_PARTICLE_EDIT;
   }
 
+  BKE_animdata_drivers_remove_for_rna_struct(ob->id, RNA_Modifier, md);
+
   BKE_modifier_remove_from_list(ob, md);
   BKE_modifier_free(md);
   BKE_object_free_derived_caches(ob);
@@ -942,39 +944,6 @@ static bool modifier_apply_shape(Main *bmain,
   return true;
 }
 
-static bool meta_data_matches(const std::optional<bke::AttributeMetaData> meta_data,
-                              const AttrDomainMask domains,
-                              const eCustomDataMask types)
-{
-  if (!meta_data) {
-    return false;
-  }
-  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & domains)) {
-    return false;
-  }
-  if (!(CD_TYPE_AS_MASK(meta_data->data_type) & types)) {
-    return false;
-  }
-  return true;
-}
-
-static void remove_invalid_attribute_strings(Mesh &mesh)
-{
-  bke::AttributeAccessor attributes = mesh.attributes();
-  if (!meta_data_matches(attributes.lookup_meta_data(mesh.active_color_attribute),
-                         ATTR_DOMAIN_MASK_COLOR,
-                         CD_MASK_COLOR_ALL))
-  {
-    MEM_SAFE_FREE(mesh.active_color_attribute);
-  }
-  if (!meta_data_matches(attributes.lookup_meta_data(mesh.default_color_attribute),
-                         ATTR_DOMAIN_MASK_COLOR,
-                         CD_MASK_COLOR_ALL))
-  {
-    MEM_SAFE_FREE(mesh.default_color_attribute);
-  }
-}
-
 static void apply_eval_grease_pencil_data(const GreasePencil &src_grease_pencil,
                                           const int eval_frame,
                                           const IndexMask &orig_layers,
@@ -1010,7 +979,13 @@ static void apply_eval_grease_pencil_data(const GreasePencil &src_grease_pencil,
     Map<const LayerGroup *, TreeNode *> last_node_by_group;
     /* Set of orig layers that require the drawing on `eval_frame` to be cleared. These are layers
      * that existed in original geometry but were removed during the modifier evaluation. */
-    Set<Layer *> orig_layers_to_clear(orig_grease_pencil.layers_for_write());
+    Set<Layer *> orig_layers_to_clear;
+    for (Layer *layer : orig_grease_pencil.layers_for_write()) {
+      /* Only allow clearing a layer if it is visible. */
+      if (layer->is_visible()) {
+        orig_layers_to_clear.add(layer);
+      }
+    }
     for (const TreeNode *node_eval : merged_layers_grease_pencil.nodes()) {
       /* Check if the original geometry has a layer with the same name. */
       TreeNode *node_orig = orig_grease_pencil.find_node_by_name(node_eval->name());
@@ -1375,7 +1350,7 @@ static bool modifier_apply_obdata(ReportList *reports,
       mesh->attributes_for_write().remove_anonymous();
 
       /* Remove strings referring to attributes if they no longer exist. */
-      remove_invalid_attribute_strings(*mesh);
+      bke::mesh_remove_invalid_attribute_strings(*mesh);
 
       if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(mesh);
@@ -1400,13 +1375,9 @@ static bool modifier_apply_obdata(ReportList *reports,
                RPT_INFO,
                "Applied modifier only changed CV points, not tessellated/bevel vertices");
 
-    int verts_num;
-    float(*vertexCos)[3] = BKE_curve_nurbs_vert_coords_alloc(&curve_eval->nurb, &verts_num);
-    mti->deform_verts(
-        md_eval, &mectx, nullptr, {reinterpret_cast<float3 *>(vertexCos), verts_num});
+    Array<float3> vertexCos = BKE_curve_nurbs_vert_coords_alloc(&curve_eval->nurb);
+    mti->deform_verts(md_eval, &mectx, nullptr, vertexCos);
     BKE_curve_nurbs_vert_coords_apply(&curve->nurb, vertexCos, false);
-
-    MEM_freeN(vertexCos);
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
@@ -1420,13 +1391,9 @@ static bool modifier_apply_obdata(ReportList *reports,
       return false;
     }
 
-    int verts_num;
-    float(*vertexCos)[3] = BKE_lattice_vert_coords_alloc(lattice, &verts_num);
-    mti->deform_verts(
-        md_eval, &mectx, nullptr, {reinterpret_cast<float3 *>(vertexCos), verts_num});
-    BKE_lattice_vert_coords_apply(lattice, vertexCos);
-
-    MEM_freeN(vertexCos);
+    Array<float3> positions = BKE_lattice_vert_coords_alloc(lattice);
+    mti->deform_verts(md_eval, &mectx, nullptr, positions);
+    BKE_lattice_vert_coords_apply(lattice, positions);
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
@@ -1633,6 +1600,7 @@ bool modifier_copy(
   ModifierData *nmd = BKE_modifier_new(md->type);
   BKE_modifier_copydata(md, nmd);
   BLI_insertlinkafter(&ob->modifiers, md, nmd);
+  STRNCPY(nmd->name, md->name);
   BKE_modifier_unique_name(&ob->modifiers, nmd);
   BKE_modifiers_persistent_uid_init(*ob, *nmd);
   BKE_object_modifier_set_active(ob, nmd);
@@ -2795,7 +2763,7 @@ static void modifier_skin_customdata_delete(Object *ob)
     BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);
   }
   else {
-    CustomData_free_layer_active(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num);
+    CustomData_free_layer_active(&mesh->vert_data, CD_MVERT_SKIN);
   }
 }
 
@@ -3049,7 +3017,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   ANIM_armature_bonecoll_show_all(arm);
   arm_ob->dtx |= OB_DRAW_IN_FRONT;
   arm->drawtype = ARM_LINE;
-  arm->edbo = MEM_cnew<ListBase>("edbo armature");
+  arm->edbo = MEM_callocN<ListBase>("edbo armature");
 
   MVertSkin *mvert_skin = static_cast<MVertSkin *>(
       CustomData_get_layer_for_write(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num));
@@ -3521,7 +3489,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
                               "Ocean Simulation",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_OBJECT_SIM_OCEAN);
-  OceanBakeJob *oj = MEM_cnew<OceanBakeJob>("ocean bake job");
+  OceanBakeJob *oj = MEM_callocN<OceanBakeJob>("ocean bake job");
   oj->owner = ob;
   oj->ocean = ocean;
   oj->och = och;

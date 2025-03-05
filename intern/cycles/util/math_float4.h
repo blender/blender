@@ -24,6 +24,11 @@ ccl_device_inline float4 one_float4()
   return make_float4(1.0f);
 }
 
+ccl_device_template_spec float4 make_zero()
+{
+  return zero_float4();
+}
+
 ccl_device_inline int4 cast(const float4 a)
 {
 #ifdef __KERNEL_SSE__

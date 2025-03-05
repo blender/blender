@@ -33,8 +33,7 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
   GPENCIL_Instance &inst = *vedata->instance;
 
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  const float *viewport_size = DRW_viewport_size_get();
-  const int size[2] = {int(viewport_size[0]), int(viewport_size[1])};
+  const int2 size = int2(DRW_viewport_size_get());
 
   /* Set the perspective & view matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
@@ -143,15 +142,17 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
 
 /* render all objects and select only grease pencil */
 static void GPENCIL_render_cache(void *vedata,
-                                 Object *ob,
+                                 blender::draw::ObjectRef &ob_ref,
                                  RenderEngine * /*engine*/,
                                  Depsgraph * /*depsgraph*/)
 {
-  if (ob && ELEM(ob->type, OB_GREASE_PENCIL, OB_LAMP)) {
-    if (DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF) {
-      GPENCIL_cache_populate(vedata, ob);
-    }
+  if (!ELEM(ob_ref.object->type, OB_GREASE_PENCIL, OB_LAMP)) {
+    return;
   }
+  if (!(DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF)) {
+    return;
+  }
+  GPENCIL_cache_populate(vedata, ob_ref);
 }
 
 static void GPENCIL_render_result_z(RenderLayer *rl,
@@ -246,7 +247,7 @@ void GPENCIL_render_to_image(void *ved,
   GPENCIL_render_init(vedata, engine, render_layer, depsgraph, rect);
   GPENCIL_engine_init(vedata);
 
-  vedata->stl->pd->camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  vedata->instance->camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
 
   /* Loop over all objects and create draw structure. */
   GPENCIL_cache_init(vedata);

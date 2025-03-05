@@ -112,7 +112,6 @@ struct CCGDerivedMesh {
     float (*orco)[3];
 
     Object *ob;
-    MultiresModifiedFlags modified_flags;
   } multires;
 
   blender::VectorSet<blender::OrderedEdge> *ehash;

@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_time.h"
 
 #include "BLT_translation.hh"
@@ -305,7 +306,7 @@ static int track_markers(bContext *C, wmOperator *op, bool use_job)
     return OPERATOR_CANCELLED;
   }
 
-  tmj = MEM_cnew<TrackMarkersJob>("TrackMarkersJob data");
+  tmj = MEM_callocN<TrackMarkersJob>("TrackMarkersJob data");
   if (!track_markers_initjob(C, tmj, backwards, sequence)) {
     track_markers_freejob(tmj);
     return OPERATOR_CANCELLED;

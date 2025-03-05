@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_clipping_lib.glsl"
+#include "infos/overlay_extra_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_motion_path_line)
+
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 
 #include "gpu_shader_attribute_load_lib.glsl"
@@ -44,7 +48,7 @@ VertOut vertex_main(VertIn vert_in)
   /* Optionally transform from view space to world space for screen space motion paths. */
   vert_out.ws_P = transform_point(camera_space_matrix, vert_in.P);
   vert_out.hs_P = drw_point_world_to_homogenous(vert_out.ws_P);
-  vert_out.ss_P = drw_ndc_to_screen(drw_perspective_divide(vert_out.hs_P)).xy * sizeViewport.xy;
+  vert_out.ss_P = drw_ndc_to_screen(drw_perspective_divide(vert_out.hs_P)).xy * sizeViewport;
 
   int frame = int(vert_in.vert_id) + cacheStart;
 
@@ -103,7 +107,7 @@ void geometry_main(VertOut geom_in[2],
 
   vec2 edge_dir = orthogonal(normalize(ss_P1 - ss_P0 + 1e-8)) * sizeViewportInv;
 
-  bool is_persp = (drw_view.winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0);
   float line_size = float(lineThickness) * sizePixel;
 
   GeomOut geom_out;

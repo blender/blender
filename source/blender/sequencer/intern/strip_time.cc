@@ -35,7 +35,7 @@
 #include "strip_time.hh"
 #include "utils.hh"
 
-float SEQ_time_media_playback_rate_factor_get(const Scene *scene, const Strip *strip)
+float SEQ_time_media_playback_rate_factor_get(const Strip *strip, const float scene_fps)
 {
   if ((strip->flag & SEQ_AUTO_PLAYBACK_RATE) == 0) {
     return 1.0f;
@@ -43,18 +43,7 @@ float SEQ_time_media_playback_rate_factor_get(const Scene *scene, const Strip *s
   if (strip->media_playback_rate == 0.0f) {
     return 1.0f;
   }
-
-  float scene_playback_rate = float(scene->r.frs_sec) / scene->r.frs_sec_base;
-  return strip->media_playback_rate / scene_playback_rate;
-}
-
-int seq_time_strip_original_content_length_get(const Scene *scene, const Strip *strip)
-{
-  if (strip->type == STRIP_TYPE_SOUND_RAM) {
-    return strip->len;
-  }
-
-  return strip->len / SEQ_time_media_playback_rate_factor_get(scene, strip);
+  return strip->media_playback_rate / scene_fps;
 }
 
 float SEQ_give_frame_index(const Scene *scene, const Strip *strip, float timeline_frame)
@@ -86,7 +75,8 @@ float SEQ_give_frame_index(const Scene *scene, const Strip *strip, float timelin
 
   frame_index = max_ff(frame_index, 0);
 
-  frame_index *= SEQ_time_media_playback_rate_factor_get(scene, strip);
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
+  frame_index *= SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
 
   if (SEQ_retiming_is_active(strip)) {
     const float retiming_factor = strip_retiming_evaluate(strip, frame_index);
@@ -192,9 +182,9 @@ void SEQ_time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)
   strip_meta->enddisp = strip_end; /* Only to make files usable in older versions. */
 
   strip_update_sound_bounds_recursive(scene, strip_meta);
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene, strip_meta);
+  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip_meta);
   strip_time_update_effects_strip_range(scene, effects);
-  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene, strip_meta));
+  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip_meta));
 }
 
 void strip_time_effect_range_set(const Scene *scene, Strip *strip)
@@ -239,7 +229,7 @@ void strip_time_update_effects_strip_range(const Scene *scene,
   /* Second pass: Recursive call to update effects in chain and in order, so they inherit length
    * correctly. */
   for (Strip *strip : effects) {
-    blender::Span<Strip *> effects_recurse = SEQ_lookup_effects_by_strip(scene, strip);
+    blender::Span<Strip *> effects_recurse = SEQ_lookup_effects_by_strip(scene->ed, strip);
     strip_time_update_effects_strip_range(scene, effects_recurse);
   }
 }
@@ -461,15 +451,16 @@ bool SEQ_time_has_still_frames(const Scene *scene, const Strip *strip)
 
 int SEQ_time_strip_length_get(const Scene *scene, const Strip *strip)
 {
+  const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   if (SEQ_retiming_is_active(strip)) {
     const int last_key_frame = SEQ_retiming_key_timeline_frame_get(
         scene, strip, SEQ_retiming_last_key_get(strip));
     /* Last key is mapped to last frame index. Numbering starts from 0. */
-    int sound_offset = SEQ_time_get_rounded_sound_offset(scene, strip);
+    const int sound_offset = SEQ_time_get_rounded_sound_offset(strip, scene_fps);
     return last_key_frame + 1 - SEQ_time_start_frame_get(strip) - sound_offset;
   }
 
-  return strip->len / SEQ_time_media_playback_rate_factor_get(scene, strip);
+  return strip->len / SEQ_time_media_playback_rate_factor_get(strip, scene_fps);
 }
 
 float SEQ_time_start_frame_get(const Strip *strip)
@@ -480,9 +471,9 @@ float SEQ_time_start_frame_get(const Strip *strip)
 void SEQ_time_start_frame_set(const Scene *scene, Strip *strip, int timeline_frame)
 {
   strip->start = timeline_frame;
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene, strip);
+  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene, strip));
+  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
 }
 
 float SEQ_time_content_end_frame_get(const Scene *scene, const Strip *strip)
@@ -530,9 +521,9 @@ void SEQ_time_left_handle_frame_set(const Scene *scene, Strip *strip, int timeli
 
   strip->startdisp = timeline_frame; /* Only to make files usable in older versions. */
 
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene, strip);
+  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene, strip));
+  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
 }
 
 void SEQ_time_right_handle_frame_set(const Scene *scene, Strip *strip, int timeline_frame)
@@ -546,9 +537,9 @@ void SEQ_time_right_handle_frame_set(const Scene *scene, Strip *strip, int timel
   strip->endofs = SEQ_time_content_end_frame_get(scene, strip) - timeline_frame;
   strip->enddisp = timeline_frame; /* Only to make files usable in older versions. */
 
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene, strip);
+  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene, strip));
+  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
 }
 
 void strip_time_translate_handles(const Scene *scene, Strip *strip, const int offset)
@@ -558,9 +549,9 @@ void strip_time_translate_handles(const Scene *scene, Strip *strip, const int of
   strip->startdisp += offset; /* Only to make files usable in older versions. */
   strip->enddisp -= offset;   /* Only to make files usable in older versions. */
 
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene, strip);
+  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene, strip));
+  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
 }
 
 static void strip_time_slip_strip_ex(
@@ -607,7 +598,7 @@ static void strip_time_slip_strip_ex(
   strip->startdisp = SEQ_time_left_handle_frame_get(scene, strip);
   strip->enddisp = SEQ_time_right_handle_frame_get(scene, strip);
 
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene, strip);
+  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
 }
 
@@ -616,11 +607,10 @@ void SEQ_time_slip_strip(const Scene *scene, Strip *strip, int delta, float subf
   strip_time_slip_strip_ex(scene, strip, delta, subframe_delta, false);
 }
 
-int SEQ_time_get_rounded_sound_offset(const Scene *scene, const Strip *strip)
+int SEQ_time_get_rounded_sound_offset(const Strip *strip, const float frames_per_second)
 {
-  int sound_offset = 0;
   if (strip->type == STRIP_TYPE_SOUND_RAM && strip->sound != nullptr) {
-    sound_offset = round_fl_to_int((strip->sound->offset_time + strip->sound_offset) * FPS);
+    return round_fl_to_int((strip->sound->offset_time + strip->sound_offset) * frames_per_second);
   }
-  return sound_offset;
+  return 0;
 }

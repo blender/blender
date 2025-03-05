@@ -34,7 +34,7 @@ static void cmp_node_sunbeams_declare(NodeDeclarationBuilder &b)
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeSunBeams *data = MEM_cnew<NodeSunBeams>(__func__);
+  NodeSunBeams *data = MEM_callocN<NodeSunBeams>(__func__);
 
   data->source[0] = 0.5f;
   data->source[1] = 0.5f;
@@ -179,8 +179,8 @@ void register_node_type_cmp_sunbeams()
   ntype.draw_buttons = file_ns::node_composit_buts_sunbeams;
   ntype.initfunc = file_ns::init;
   blender::bke::node_type_storage(
-      &ntype, "NodeSunBeams", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeSunBeams", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

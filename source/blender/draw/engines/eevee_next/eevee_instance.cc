@@ -22,6 +22,7 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
 
+#include "GPU_context.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "RE_pipeline.h"
@@ -73,8 +74,9 @@ void Instance::init(const int2 &output_res,
 
   info_ = "";
 
-  shaders_are_ready_ = shaders.is_ready(is_image_render());
+  shaders_are_ready_ = shaders.static_shaders_are_ready(is_image_render());
   if (!shaders_are_ready_) {
+    skip_render_ = true;
     return;
   }
 
@@ -122,10 +124,12 @@ void Instance::init(const int2 &output_res,
   volume.init();
   lookdev.init(visible_rect);
 
-  /* Pre-compile specialization constants in parallel (if supported). */
-  shaders.precompile_specializations(
-      render_buffers.data.shadow_id, shadows.get_data().ray_count, shadows.get_data().step_count);
-  shaders_are_ready_ = shaders.is_ready(is_image_render());
+  shaders_are_ready_ = shaders.static_shaders_are_ready(is_image_render()) &&
+                       shaders.request_specializations(is_image_render(),
+                                                       render_buffers.data.shadow_id,
+                                                       shadows.get_data().ray_count,
+                                                       shadows.get_data().step_count);
+  skip_render_ = !shaders_are_ready_ || !film.is_valid_render_extent();
 }
 
 void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
@@ -144,7 +148,7 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   debug_mode = (eDebugMode)G.debug_value;
   info_ = "";
 
-  shaders.is_ready(true);
+  shaders.static_shaders_are_ready(true);
 
   sampling.init(scene);
   camera.init();
@@ -163,6 +167,11 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   volume_probes.init();
   volume.init();
   lookdev.init(&empty_rect);
+
+  shaders.request_specializations(true,
+                                  render_buffers.data.shadow_id,
+                                  shadows.get_data().ray_count,
+                                  shadows.get_data().step_count);
 }
 
 void Instance::set_time(float time)
@@ -200,7 +209,7 @@ void Instance::view_update()
 
 void Instance::begin_sync()
 {
-  if (!shaders_are_ready_) {
+  if (skip_render_) {
     return;
   }
 
@@ -244,7 +253,7 @@ void Instance::begin_sync()
 
 void Instance::object_sync(ObjectRef &ob_ref)
 {
-  if (!shaders_are_ready_) {
+  if (skip_render_) {
     return;
   }
 
@@ -290,7 +299,7 @@ void Instance::object_sync(ObjectRef &ob_ref)
         }
         break;
       case OB_POINTCLOUD:
-        sync.sync_point_cloud(ob, ob_handle, ob_ref);
+        sync.sync_pointcloud(ob, ob_handle, ob_ref);
         break;
       case OB_VOLUME:
         sync.sync_volume(ob, ob_handle, ob_ref);
@@ -308,19 +317,18 @@ void Instance::object_sync(ObjectRef &ob_ref)
 }
 
 void Instance::object_sync_render(void *instance_,
-                                  Object *ob,
+                                  ObjectRef &ob_ref,
                                   RenderEngine *engine,
                                   Depsgraph *depsgraph)
 {
   UNUSED_VARS(engine, depsgraph);
   Instance &inst = *reinterpret_cast<Instance *>(instance_);
-  ObjectRef ob_ref = DRW_object_ref_get(ob);
   inst.object_sync(ob_ref);
 }
 
 void Instance::end_sync()
 {
-  if (!shaders_are_ready_) {
+  if (skip_render_) {
     return;
   }
 
@@ -349,17 +357,13 @@ void Instance::render_sync()
 
   manager->begin_sync();
 
-  draw::hair_init();
-  draw::curves_init();
+  DRW_curves_init();
 
   begin_sync();
 
   DRW_render_object_iter(this, render, depsgraph, object_sync_render);
 
-  draw::hair_update(*manager);
-  draw::curves_update(*manager);
-  draw::hair_free();
-  draw::curves_free();
+  DRW_curves_update(*manager);
 
   velocity.geometry_steps_fill();
 
@@ -507,6 +511,13 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
 
 void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, const char *view_name)
 {
+  if (skip_render_) {
+    if (!info_.empty()) {
+      RE_engine_set_error_message(engine, info_.c_str());
+      info_ = "";
+    }
+    return;
+  }
   /* TODO: Break on RE_engine_test_break(engine) */
   while (!sampling.finished()) {
     this->render_sample();
@@ -558,11 +569,13 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
 
 void Instance::draw_viewport()
 {
-  if (!shaders_are_ready_) {
+  if (skip_render_) {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
     GPU_framebuffer_clear_color_depth(dfbl->default_fb, float4(0.0f), 1.0f);
-    info_append_i18n("Compiling EEVEE engine shaders");
-    DRW_viewport_request_redraw();
+    if (!shaders_are_ready_) {
+      info_append_i18n("Compiling EEVEE engine shaders");
+      DRW_viewport_request_redraw();
+    }
     return;
   }
 
@@ -599,6 +612,9 @@ void Instance::draw_viewport()
 
 void Instance::draw_viewport_image_render()
 {
+  if (skip_render_) {
+    return;
+  }
   while (!sampling.finished_viewport()) {
     this->render_sample();
   }
@@ -611,6 +627,9 @@ void Instance::draw_viewport_image_render()
 
 void Instance::store_metadata(RenderResult *render_result)
 {
+  if (skip_render_) {
+    return;
+  }
   cryptomatte.store_metadata(render_result);
 }
 

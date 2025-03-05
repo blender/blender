@@ -6,14 +6,13 @@
 #include "tests/blendfile_loading_base_test.h"
 
 #include "BKE_scene.hh"
+#include "BLI_map.hh"
 #include "BLI_path_utils.hh"
+#include "BLI_set.hh"
 #include "BLO_readfile.hh"
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 #include "DNA_object_types.h"
-
-#include <map>
-#include <set>
 
 namespace blender::io {
 
@@ -21,7 +20,7 @@ namespace {
 
 /* Mapping from ID.name to set of export hierarchy path. Duplicated objects can be exported
  * multiple times with different export paths, hence the set. */
-using used_writers = std::map<std::string, std::set<std::string>>;
+using used_writers = blender::Map<std::string, blender::Set<std::string>>;
 
 class TestHierarchyWriter : public AbstractHierarchyWriter {
  public:
@@ -36,13 +35,13 @@ class TestHierarchyWriter : public AbstractHierarchyWriter {
   void write(HierarchyContext &context) override
   {
     const char *id_name = context.object->id.name;
-    used_writers::mapped_type &writers = writers_map[id_name];
+    Set<std::string> &writers = writers_map.lookup_or_add(id_name, {});
 
-    if (writers.find(context.export_path) != writers.end()) {
+    if (writers.contains(context.export_path)) {
       ADD_FAILURE() << "Unexpectedly found another " << writer_type << " writer for " << id_name
                     << " to export to " << context.export_path;
     }
-    writers.insert(context.export_path);
+    writers.add_new(context.export_path);
   }
 };
 

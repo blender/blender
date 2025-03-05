@@ -7,9 +7,6 @@
  * \ingroup bke
  * \brief Blender kernel action and pose functionality.
  */
-#ifndef __cplusplus
-#  error This is a C++ only header.
-#endif
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"

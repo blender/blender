@@ -23,6 +23,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 
 #include "BKE_colortools.hh" /* CurveMapping. */
 #include "BKE_customdata.hh"

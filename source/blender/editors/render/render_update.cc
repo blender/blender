@@ -32,6 +32,7 @@
 #include "BKE_main.hh"
 #include "BKE_main_invariants.hh"
 #include "BKE_material.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
@@ -264,7 +265,7 @@ static void texture_changed(Main *bmain, Tex *tex)
     }
     /* find compositing nodes */
     if (scene->use_nodes && scene->nodetree) {
-      LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
+      for (bNode *node : scene->nodetree->all_nodes()) {
         if (node->id == &tex->id) {
           blender::ed::space_node::tag_update_id(&scene->id);
         }

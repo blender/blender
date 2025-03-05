@@ -53,7 +53,7 @@ static GreasePencil *curves_to_grease_pencil_with_one_layer(
   /* Transfer materials. */
   const int materials_num = curves_id.totcol;
   grease_pencil->material_array_num = materials_num;
-  grease_pencil->material_array = MEM_cnew_array<Material *>(materials_num, __func__);
+  grease_pencil->material_array = MEM_calloc_arrayN<Material *>(materials_num, __func__);
   initialized_copy_n(curves_id.mat, materials_num, grease_pencil->material_array);
 
   return grease_pencil;
@@ -124,7 +124,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
   });
 
   grease_pencil->material_array_num = all_materials.size();
-  grease_pencil->material_array = MEM_cnew_array<Material *>(all_materials.size(), __func__);
+  grease_pencil->material_array = MEM_calloc_arrayN<Material *>(all_materials.size(), __func__);
   initialized_copy_n(all_materials.data(), all_materials.size(), grease_pencil->material_array);
 
   const bke::AttributeAccessor instances_attributes = instances.attributes();
@@ -227,9 +227,9 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  bke::node_type_size(&ntype, 160, 100, 320);
+  bke::node_type_size(ntype, 160, 100, 320);
 
-  bke::node_register_type(&ntype);
+  bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

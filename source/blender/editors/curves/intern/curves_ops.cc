@@ -6,6 +6,7 @@
  * \ingroup edcurves
  */
 
+#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_string.h"
@@ -913,8 +914,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
     const int domain_size = curves.attributes().domain_size(selection_domain);
 
     IndexMaskMemory memory;
-    const IndexMask inv_random_elements = random_mask(
-                                              curves, selection_domain, seed, probability, memory)
+    const IndexMask inv_random_elements = random_mask(domain_size, seed, probability, memory)
                                               .complement(IndexRange(domain_size), memory);
 
     const bool was_anything_selected = has_anything_selected(curves);
@@ -1132,6 +1132,43 @@ static void CURVES_OT_select_less(wmOperatorType *ot)
   ot->description = "Shrink the selection by one point";
 
   ot->exec = select_less_exec;
+  ot->poll = editable_curves_point_domain_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+namespace split {
+
+static int split_exec(bContext *C, wmOperator * /*op*/)
+{
+  VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
+  for (Curves *curves_id : unique_curves) {
+    CurvesGeometry &curves = curves_id->geometry.wrap();
+    IndexMaskMemory memory;
+    const IndexMask points_to_split = retrieve_all_selected_points(curves, memory);
+    if (points_to_split.is_empty()) {
+      continue;
+    }
+    curves = split_points(curves, points_to_split);
+
+    curves.calculate_bezier_auto_handles();
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace split
+
+static void CURVES_OT_split(wmOperatorType *ot)
+{
+  ot->name = "Split";
+  ot->idname = __func__;
+  ot->description = "Split selected points";
+
+  ot->exec = split::split_exec;
   ot->poll = editable_curves_point_domain_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1770,6 +1807,8 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_select_linked_pick);
   WM_operatortype_append(CURVES_OT_select_more);
   WM_operatortype_append(CURVES_OT_select_less);
+  WM_operatortype_append(CURVES_OT_separate);
+  WM_operatortype_append(CURVES_OT_split);
   WM_operatortype_append(CURVES_OT_surface_set);
   WM_operatortype_append(CURVES_OT_delete);
   WM_operatortype_append(CURVES_OT_duplicate);
@@ -1788,7 +1827,6 @@ void operatormacros_curves()
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;
 
-  /* Duplicate + Move = Interactively place newly duplicated strokes */
   ot = WM_operatortype_append_macro("CURVES_OT_duplicate_move",
                                     "Duplicate",
                                     "Make copies of selected elements and move them",
@@ -1798,7 +1836,6 @@ void operatormacros_curves()
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   RNA_boolean_set(otmacro->ptr, "mirror", false);
 
-  /* Extrude + Move */
   ot = WM_operatortype_append_macro("CURVES_OT_extrude_move",
                                     "Extrude Curve and Move",
                                     "Extrude curve and move result",

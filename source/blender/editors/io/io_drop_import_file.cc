@@ -175,21 +175,7 @@ void WM_OT_drop_import_file(wmOperatorType *ot)
 
 static void drop_import_file_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
-  const auto paths = WM_drag_get_paths(drag);
-
-  char dir[FILE_MAX];
-  BLI_path_split_dir_part(paths[0].c_str(), dir, sizeof(dir));
-  RNA_string_set(drop->ptr, "directory", dir);
-
-  RNA_collection_clear(drop->ptr, "files");
-  for (const auto &path : paths) {
-    char file[FILE_MAX];
-    BLI_path_split_file_part(path.c_str(), file, sizeof(file));
-
-    PointerRNA itemptr{};
-    RNA_collection_add(drop->ptr, "files", &itemptr);
-    RNA_string_set(&itemptr, "name", file);
-  }
+  blender::ed::io::paths_to_operator_properties(drop->ptr, WM_drag_get_paths(drag));
 }
 
 static bool drop_import_file_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)

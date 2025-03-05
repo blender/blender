@@ -68,7 +68,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
                           0,
                           UI_UNIT_X,
                           UI_UNIT_Y,
-                          nullptr);
+                          std::nullopt);
       but->rnapoin = *ptr;
       but->rnaprop = prop;
       UI_block_emboss_set(block, UI_EMBOSS);
@@ -82,14 +82,18 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
   PointerRNA propptr = RNA_pointer_get(ptr, "properties");
 
   if (propptr.data) {
-    uiBut *but = static_cast<uiBut *>(uiLayoutGetBlock(layout)->buttons.last);
+    uiBlock *block = uiLayoutGetBlock(layout);
+    int i = uiLayoutGetBlock(layout)->buttons.size() - 1;
 
     WM_operator_properties_sanitize(&propptr, false);
     template_keymap_item_properties(layout, nullptr, &propptr);
-
+    if (i < 0) {
+      return;
+    }
     /* attach callbacks to compensate for missing properties update,
      * we don't know which keymap (item) is being modified there */
-    for (; but; but = but->next) {
+    for (; i < block->buttons.size(); i++) {
+      uiBut *but = block->buttons[i].get();
       /* operator buttons may store props for use (file selector, #36492) */
       if (but->rnaprop) {
         UI_but_func_set(but, keymap_item_modified, ptr->data, nullptr);

@@ -20,8 +20,8 @@ void PlanarProbe::set_view(const draw::View &view, int layer_id)
   this->world_to_object_transposed = float3x4(transpose(world_to_plane));
   this->normal = normalize(plane_to_world.z_axis());
 
-  bool view_is_below_plane = dot(view.location() - plane_to_world.location(),
-                                 plane_to_world.z_axis()) < 0.0;
+  float3 view_vec = view.is_persp() ? view.location() - plane_to_world.location() : view.forward();
+  bool view_is_below_plane = dot(view_vec, plane_to_world.z_axis()) < 0.0;
   if (view_is_below_plane) {
     this->normal = -this->normal;
   }

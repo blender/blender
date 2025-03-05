@@ -1849,7 +1849,7 @@ static StitchState *stitch_init(bContext *C,
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
-  state = MEM_cnew<StitchState>("stitch state obj");
+  state = MEM_callocN<StitchState>("stitch state obj");
 
   /* initialize state */
   state->obedit = obedit;
@@ -2205,7 +2205,7 @@ static int stitch_init_all(bContext *C, wmOperator *op)
     return 0;
   }
 
-  StitchStateContainer *ssc = MEM_cnew<StitchStateContainer>("stitch collection");
+  StitchStateContainer *ssc = MEM_callocN<StitchStateContainer>("stitch collection");
 
   op->customdata = ssc;
 

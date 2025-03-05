@@ -6,8 +6,11 @@
  * \ingroup edtransform
  */
 
-#include "BKE_armature.hh"
 #include "DNA_armature_types.h"
+
+#include "BLI_listbase.h"
+
+#include "BKE_armature.hh"
 
 #include "ED_armature.hh"
 #include "ED_transform_snap_object_context.hh"
@@ -16,7 +19,7 @@
 
 #include "transform_snap_object.hh"
 
-using blender::float4x4;
+namespace blender::ed::transform {
 
 eSnapMode snapArmature(SnapObjectContext *sctx,
                        const Object *ob_eval,
@@ -102,3 +105,5 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
   }
   return retval;
 }
+
+}  // namespace blender::ed::transform

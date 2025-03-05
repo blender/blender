@@ -37,8 +37,8 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
-  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
+  blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

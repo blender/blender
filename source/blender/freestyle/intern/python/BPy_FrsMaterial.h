@@ -14,10 +14,6 @@ extern "C" {
 
 #include "../scene_graph/FrsMaterial.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject FrsMaterial_Type;
@@ -37,7 +33,3 @@ int FrsMaterial_Init(PyObject *module);
 void FrsMaterial_mathutils_register_callback();
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

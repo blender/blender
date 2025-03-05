@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_dynstr.h"
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
@@ -1091,7 +1092,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
       /* create F-Curve for path animation */
       act = animrig::id_action_ensure(bmain, &cu->id);
       PointerRNA id_ptr = RNA_id_pointer_create(&cu->id);
-      fcu = animrig::action_fcurve_ensure(bmain, act, nullptr, &id_ptr, {"eval_time", 0});
+      fcu = animrig::action_fcurve_ensure_ex(bmain, act, nullptr, &id_ptr, {"eval_time", 0});
 
       /* standard vertical range - 1:1 = 100 frames */
       standardRange = 100.0f;
@@ -1116,7 +1117,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
     /* create F-Curve for constraint */
     act = animrig::id_action_ensure(bmain, &ob->id);
     PointerRNA id_ptr = RNA_id_pointer_create(&ob->id);
-    fcu = animrig::action_fcurve_ensure(bmain, act, nullptr, &id_ptr, {path->c_str(), 0});
+    fcu = animrig::action_fcurve_ensure_ex(bmain, act, nullptr, &id_ptr, {path->c_str(), 0});
 
     /* standard vertical range - 0.0 to 1.0 */
     standardRange = 1.0f;
@@ -2760,7 +2761,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator * /*op*/)
     for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = next) {
       next = con->next;
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-        BKE_constraint_remove(&pchan->constraints, con);
+        BKE_constraint_remove_ex(&pchan->constraints, ob, con);
       }
     }
     pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET);

@@ -146,7 +146,7 @@ void SEQ_sound_update(Scene *scene, bSound *sound)
 
 float SEQ_sound_pitch_get(const Scene *scene, const Strip *strip)
 {
-  const Strip *meta_parent = SEQ_lookup_meta_by_strip(scene, strip);
+  const Strip *meta_parent = SEQ_lookup_meta_by_strip(scene->ed, strip);
   if (meta_parent != nullptr) {
     return strip->speed_factor * SEQ_sound_pitch_get(scene, meta_parent);
   }
@@ -166,7 +166,7 @@ EQCurveMappingData *SEQ_sound_equalizer_add(SoundEqualizerModifierData *semd,
     minX = 0.0;
   }
   /* It's the same as #BKE_curvemapping_add, but changing the name. */
-  eqcmd = MEM_cnew<EQCurveMappingData>("Equalizer");
+  eqcmd = MEM_callocN<EQCurveMappingData>("Equalizer");
   BKE_curvemapping_set_defaults(&eqcmd->curve_mapping,
                                 1, /* Total. */
                                 minX,

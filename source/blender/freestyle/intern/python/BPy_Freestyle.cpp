@@ -46,10 +46,6 @@
 #include "BKE_colortools.hh" /* BKE_curvemapping_evaluateF() */
 #include "BKE_material.hh"   /* ramp_blend() */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //------------------------ MODULE FUNCTIONS ----------------------------------
@@ -599,7 +595,3 @@ PyObject *Freestyle_Init()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

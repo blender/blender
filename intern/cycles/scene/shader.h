@@ -176,10 +176,8 @@ class ShaderManager {
     UPDATE_NONE = 0u,
   };
 
-  static unique_ptr<ShaderManager> create(const int shadingsystem, Device *device);
+  static unique_ptr<ShaderManager> create(const int shadingsystem);
   virtual ~ShaderManager();
-
-  virtual void reset(Scene *scene) = 0;
 
   virtual bool use_osl()
   {
@@ -210,8 +208,6 @@ class ShaderManager {
 
   /* Selective nodes compilation. */
   uint get_kernel_features(Scene *scene);
-
-  static void free_memory();
 
   float linear_rgb_to_gray(const float3 c);
   float3 rec709_to_scene_linear(const float3 c);

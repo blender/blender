@@ -14,6 +14,7 @@
 
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"

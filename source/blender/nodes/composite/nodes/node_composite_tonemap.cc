@@ -40,7 +40,7 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_tonemap(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTonemap *ntm = MEM_cnew<NodeTonemap>(__func__);
+  NodeTonemap *ntm = MEM_callocN<NodeTonemap>(__func__);
   ntm->type = 1;
   ntm->key = 0.18;
   ntm->offset = 1;
@@ -439,8 +439,8 @@ void register_node_type_cmp_tonemap()
   ntype.draw_buttons = file_ns::node_composit_buts_tonemap;
   ntype.initfunc = file_ns::node_composit_init_tonemap;
   blender::bke::node_type_storage(
-      &ntype, "NodeTonemap", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeTonemap", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -139,14 +139,26 @@ class VExportTree:
             for blender_object in [obj.original for obj in scene_eval.objects if obj.parent is None]:
                 self.recursive_node_traverse(blender_object, None, None, Matrix.Identity(4), False, blender_children)
         else:
-            self.recursive_node_traverse(
-                blender_scene.collection,
-                None,
-                None,
-                Matrix.Identity(4),
-                False,
-                blender_children,
-                is_collection=True)
+            if self.export_settings['gltf_collection']:
+                # Collection exporter
+                self.recursive_node_traverse(
+                    bpy.data.collections[self.export_settings['gltf_collection']],
+                    None,
+                    None,
+                    Matrix.Identity(4),
+                    False,
+                    blender_children,
+                    is_collection=True)
+            else:
+                # Scene / classic export
+                self.recursive_node_traverse(
+                    blender_scene.collection,
+                    None,
+                    None,
+                    Matrix.Identity(4),
+                    False,
+                    blender_children,
+                    is_collection=True)
 
     def recursive_node_traverse(
             self,

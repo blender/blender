@@ -410,6 +410,9 @@ void mesh_data_update(Depsgraph &depsgraph,
                       Object &ob,
                       const CustomData_MeshMasks &dataMask);
 
+/** Remove strings referring to attributes if they no longer exist. */
+void mesh_remove_invalid_attribute_strings(Mesh &mesh);
+
 const AttributeAccessorFunctions &mesh_attribute_accessor_functions();
 
 }  // namespace blender::bke

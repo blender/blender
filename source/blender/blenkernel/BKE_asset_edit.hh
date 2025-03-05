@@ -68,4 +68,9 @@ bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports);
 ID *asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports);
 bool asset_edit_id_delete(Main &global_main, ID &id, ReportList &reports);
 
+/** Find a local copy of the asset. */
+ID *asset_edit_id_find_local(Main &global_main, ID &id);
+/** Ensure a local copy of the asset exists. */
+ID *asset_edit_id_ensure_local(Main &global_main, ID &id);
+
 }  // namespace blender::bke

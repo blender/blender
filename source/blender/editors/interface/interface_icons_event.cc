@@ -86,7 +86,7 @@ static void icon_draw_rect_input_text(const rctf *rect,
   icon_draw_icon(rect, icon_bg, aspect, alpha, inverted);
 
   /* Margin to allow room between outer icon and text. */
-  const float margin = BLI_rctf_size_y(rect) * 0.09f;
+  const float margin = BLI_rctf_size_y(rect) * 0.12f;
 
   const float available_height = BLI_rctf_size_y(rect) - (2.0f * margin);
   const float available_width = BLI_rctf_size_x(rect) - (2.0f * margin);
@@ -147,24 +147,24 @@ float ui_event_icon_offset(const int icon_id)
            ICON_EVENT_INSERT,
            ICON_EVENT_APP))
   {
-    return 1.5f;
+    return 1.07f;
   }
   if (icon_id >= ICON_EVENT_PAD0 && icon_id <= ICON_EVENT_PADPERIOD) {
-    return 1.5f;
+    return 1.07f;
   }
   if (icon_id >= ICON_EVENT_F10 && icon_id <= ICON_EVENT_F24) {
-    return 1.5f;
+    return 1.07f;
   }
   if (platform != MACOS && ELEM(icon_id, ICON_EVENT_CTRL, ICON_EVENT_ALT, ICON_EVENT_OS)) {
-    return 1.5f;
+    return 1.07f;
   }
   if (icon_id == ICON_EVENT_OS && platform != MACOS && platform != MSWIN) {
-    return 1.5f;
+    return 1.07f;
   }
   if (icon_id == ICON_EVENT_SPACEKEY) {
-    return 3.0f;
+    return 2.42f;
   }
-  return 0.0f;
+  return -0.4f;
 }
 
 void icon_draw_rect_input(const float x,
@@ -198,10 +198,10 @@ void icon_draw_rect_input(const float x,
       ;
 
   const float offset = ui_event_icon_offset(icon_id);
-  if (offset >= 3.0f) {
+  if (offset >= 2.0f) {
     rect.xmax = rect.xmin + BLI_rctf_size_x(&rect) * 2.0f;
   }
-  else if (offset >= 1.5f) {
+  else if (offset >= 1.0f) {
     rect.xmax = rect.xmin + BLI_rctf_size_x(&rect) * 1.5f;
   }
 
@@ -260,7 +260,12 @@ void icon_draw_rect_input(const float x,
     icon_draw_icon(&rect, ICON_KEY_TAB, aspect, alpha, inverted);
   }
   else if (icon_id == ICON_EVENT_HOME) {
-    icon_draw_rect_input_text(&rect, IFACE_("Home"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
+    icon_draw_rect_input_text(&rect,
+                              CTX_IFACE_(BLT_I18NCONTEXT_UI_EVENTS, "Home"),
+                              aspect,
+                              alpha,
+                              inverted,
+                              ICON_KEY_EMPTY2);
   }
   else if (icon_id == ICON_EVENT_END) {
     icon_draw_rect_input_text(&rect, IFACE_("End"), aspect, alpha, inverted, ICON_KEY_EMPTY2);

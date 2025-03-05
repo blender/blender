@@ -20,6 +20,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
@@ -734,7 +735,12 @@ void GRAPH_OT_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* To give to transform. */
-  RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_type_items, TFM_TRANSLATION, "Mode", "");
+  RNA_def_enum(ot->srna,
+               "mode",
+               rna_enum_transform_mode_type_items,
+               blender::ed::transform::TFM_TRANSLATION,
+               "Mode",
+               "");
 }
 
 /** \} */

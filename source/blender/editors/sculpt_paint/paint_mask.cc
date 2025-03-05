@@ -851,7 +851,7 @@ static void gesture_end(bContext &C, gesture::GestureData &gesture_data)
 static void init_operation(bContext &C, gesture::GestureData &gesture_data, wmOperator &op)
 {
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<MaskOperation>(__func__));
+      MEM_callocN<MaskOperation>(__func__));
 
   MaskOperation *mask_operation = (MaskOperation *)gesture_data.operation;
 

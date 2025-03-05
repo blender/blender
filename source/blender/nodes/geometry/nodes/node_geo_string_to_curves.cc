@@ -72,7 +72,7 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryStringToCurves *data = MEM_cnew<NodeGeometryStringToCurves>(__func__);
+  NodeGeometryStringToCurves *data = MEM_callocN<NodeGeometryStringToCurves>(__func__);
 
   data->overflow = GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW;
   data->align_x = GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT;
@@ -388,13 +388,11 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;
-  blender::bke::node_type_size(&ntype, 190, 120, 700);
-  blender::bke::node_type_storage(&ntype,
-                                  "NodeGeometryStringToCurves",
-                                  node_free_standard_storage,
-                                  node_copy_standard_storage);
+  blender::bke::node_type_size(ntype, 190, 120, 700);
+  blender::bke::node_type_storage(
+      ntype, "NodeGeometryStringToCurves", node_free_standard_storage, node_copy_standard_storage);
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

@@ -13,6 +13,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -114,8 +116,8 @@ int ED_markers_post_apply_transform(
   LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (marker->flag & SELECT) {
       switch (mode) {
-        case TFM_TIME_TRANSLATE:
-        case TFM_TIME_EXTEND: {
+        case blender::ed::transform::TFM_TIME_TRANSLATE:
+        case blender::ed::transform::TFM_TIME_EXTEND: {
           /* apply delta if marker is on the right side of the current frame */
           if ((side == 'B') || (side == 'L' && marker->frame < cfra) ||
               (side == 'R' && marker->frame >= cfra))
@@ -125,7 +127,7 @@ int ED_markers_post_apply_transform(
           }
           break;
         }
-        case TFM_TIME_SCALE: {
+        case blender::ed::transform::TFM_TIME_SCALE: {
           /* rescale the distance between the marker and the current frame */
           marker->frame = cfra + round_fl_to_int(float(marker->frame - cfra) * value);
           changed_tot++;

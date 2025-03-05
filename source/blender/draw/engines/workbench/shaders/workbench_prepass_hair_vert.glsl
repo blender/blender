@@ -55,13 +55,13 @@ void workbench_hair_random_material(float rand,
 
 void main()
 {
-  bool is_persp = (drw_view.winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0);
   float time = 0.0, thick_time = 0.0, thickness = 0.0;
   vec3 world_pos, tangent, binor;
   hair_get_pos_tan_binor_time(is_persp,
                               drw_modelinv(),
-                              drw_view.viewinv[3].xyz,
-                              drw_view.viewinv[2].xyz,
+                              drw_view().viewinv[3].xyz,
+                              drw_view().viewinv[2].xyz,
                               world_pos,
                               tangent,
                               binor,
@@ -80,7 +80,7 @@ void main()
 
   normal_interp = normalize(drw_normal_world_to_view(nor));
 
-  workbench_material_data_get(int(drw_CustomID),
+  workbench_material_data_get(int(drw_custom_id()),
                               hair_get_customdata_vec3(ac),
                               color_interp,
                               alpha_interp,
@@ -93,7 +93,7 @@ void main()
 
   workbench_hair_random_material(hair_rand, color_interp, _roughness, metallic);
 
-  object_id = int(uint(resource_handle) & 0xFFFFu) + 1;
+  object_id = int(uint(drw_resource_id()) & 0xFFFFu) + 1;
 
   if (emitter_object_id != 0) {
     object_id = int(uint(emitter_object_id) & 0xFFFFu) + 1;

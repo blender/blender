@@ -220,7 +220,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Strip *strip, int timeline_
         return nullptr;
       }
 
-      proxy->anim = openanim(filepath, IB_rect, 0, strip->data->colorspace_settings.name);
+      proxy->anim = openanim(filepath, IB_byte_data, 0, strip->data->colorspace_settings.name);
     }
     if (proxy->anim == nullptr) {
       return nullptr;
@@ -242,7 +242,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Strip *strip, int timeline_
   }
 
   if (BLI_exists(filepath)) {
-    ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect | IB_metadata, nullptr);
+    ImBuf *ibuf = IMB_loadiffname(filepath, IB_byte_data | IB_metadata, nullptr);
 
     if (ibuf) {
       seq_imbuf_assign_spaces(context->scene, ibuf);
@@ -309,7 +309,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
   }
   BLI_file_ensure_parent_dir_exists(filepath);
 
-  const bool ok = IMB_saveiff(ibuf, filepath, save_float ? IB_rectfloat : IB_rect);
+  const bool ok = IMB_saveiff(ibuf, filepath, save_float ? IB_float_data : IB_byte_data);
   if (ok == false) {
     perror(filepath);
   }

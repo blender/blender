@@ -179,6 +179,8 @@ struct Global {
    * Set using `--debug-gpu-scope-capture "debug_scope"`.
    */
   char gpu_debug_scope_name[200];
+
+  bool profile_gpu;
 };
 
 /* **************** GLOBAL ********************* */

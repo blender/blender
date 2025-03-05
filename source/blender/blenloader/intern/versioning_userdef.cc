@@ -211,13 +211,26 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   }
 
   if (!USER_VERSION_ATLEAST(404, 7)) {
-    FROM_DEFAULT_V4_UCHAR(space_view3d.face_front);
+    if (btheme->space_view3d.face_front[0] == 0 && btheme->space_view3d.face_front[1] == 0 &&
+        btheme->space_view3d.face_front[2] == 0xFF && btheme->space_view3d.face_front[3] == 0xB3)
+    {
+      /* Use new default value only if currently set to the old default value. */
+      FROM_DEFAULT_V4_UCHAR(space_view3d.face_front);
+    }
   }
 
   if (!USER_VERSION_ATLEAST(404, 12)) {
     FROM_DEFAULT_V4_UCHAR(space_sequencer.text_strip_cursor);
     FROM_DEFAULT_V4_UCHAR(space_sequencer.selected_text);
   }
+
+  if (!USER_VERSION_ATLEAST(405, 3)) {
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_state.error);
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_state.warning);
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_state.info);
+    FROM_DEFAULT_V4_UCHAR(tui.wcol_state.success);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.

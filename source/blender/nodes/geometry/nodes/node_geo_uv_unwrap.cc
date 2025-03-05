@@ -46,7 +46,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryUVUnwrap *data = MEM_cnew<NodeGeometryUVUnwrap>(__func__);
+  NodeGeometryUVUnwrap *data = MEM_callocN<NodeGeometryUVUnwrap>(__func__);
   data->method = GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED;
   node->storage = data;
 }
@@ -219,11 +219,11 @@ static void node_register()
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
-      &ntype, "NodeGeometryUVUnwrap", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeGeometryUVUnwrap", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);
 }

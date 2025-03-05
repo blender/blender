@@ -8,6 +8,8 @@
 
 #include "DNA_curve_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_curve.hh"
 #include "BKE_object.hh"
 
@@ -15,8 +17,7 @@
 
 #include "transform_snap_object.hh"
 
-using blender::float4x4;
-using blender::IndexRange;
+namespace blender::ed::transform {
 
 eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4x4 &obmat)
 {
@@ -35,7 +36,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4
 
   if (use_obedit == false) {
     /* Test BoundBox. */
-    std::optional<blender::Bounds<blender::float3>> bounds = BKE_curve_minmax(cu, true);
+    std::optional<Bounds<float3>> bounds = BKE_curve_minmax(cu, true);
     if (bounds && !nearest2d.snap_boundbox(bounds->min, bounds->max)) {
       return SCE_SNAP_TO_NONE;
     }
@@ -48,7 +49,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4
 
   LISTBASE_FOREACH (Nurb *, nu, (use_obedit ? &cu->editnurb->nurbs : &cu->nurb)) {
     if (nu->bezt) {
-      for (int u : blender::IndexRange(nu->pntsu)) {
+      for (int u : IndexRange(nu->pntsu)) {
         if (use_obedit) {
           if (nu->bezt[u].hide) {
             /* Skip hidden. */
@@ -78,7 +79,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4
       }
     }
     else if (nu->bp) {
-      for (int u : blender::IndexRange(nu->pntsu * nu->pntsv)) {
+      for (int u : IndexRange(nu->pntsu * nu->pntsv)) {
         if (use_obedit) {
           if (nu->bp[u].hide) {
             /* Skip hidden. */
@@ -100,3 +101,5 @@ eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4
   }
   return SCE_SNAP_TO_NONE;
 }
+
+}  // namespace blender::ed::transform

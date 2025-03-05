@@ -542,7 +542,7 @@ struct KeyframePasteContext {
 
 eKeyPasteError paste_animedit_keys(bAnimContext *ac,
                                    ListBase *anim_data,
-                                   KeyframePasteContext paste_context);
+                                   const KeyframePasteContext &paste_context);
 
 /* ************************************************ */
 

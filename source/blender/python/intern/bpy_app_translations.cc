@@ -269,14 +269,12 @@ std::optional<StringRefNull> BPY_app_translations_py_pgettext(const StringRef ms
 
   tmp = BLT_lang_get();
   if (!STREQ(tmp, locale) || !get_translations_cache()) {
-    PyGILState_STATE _py_state;
+    /* This function may be called from C (i.e. outside of python interpreter 'context'). */
+    PyGILState_STATE _py_state = PyGILState_Ensure();
 
     STRNCPY(locale, tmp);
 
     /* Locale changed or cache does not exist, refresh the whole cache! */
-    /* This func may be called from C (i.e. outside of python interpreter 'context'). */
-    _py_state = PyGILState_Ensure();
-
     _build_translations_cache(_translations->py_messages, locale);
 
     PyGILState_Release(_py_state);

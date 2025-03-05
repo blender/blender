@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -37,6 +37,10 @@ msgstr "Вредност"
 
 msgid "F-Curves"
 msgstr "Ф-крива"
+
+
+msgid "Slot"
+msgstr "Слот"
 
 
 msgid "Action Group"
@@ -183,34 +187,6 @@ msgid "Expanded"
 msgstr "Проширено"
 
 
-msgid "Influence"
-msgstr "Утицај"
-
-
-msgid "Mix Mode"
-msgstr "Режим мешања"
-
-
-msgid "Replace"
-msgstr "Замени"
-
-
-msgid "Offset"
-msgstr "Одстојање"
-
-
-msgid "Add"
-msgstr "Додај"
-
-
-msgid "Subtract"
-msgstr "Одузимање"
-
-
-msgid "Multiply"
-msgstr "Умножено"
-
-
 msgid "Strips"
 msgstr "Траке"
 
@@ -297,6 +273,22 @@ msgstr "Трајна путања до података"
 
 msgid "Action"
 msgstr "Акција"
+
+
+msgid "Replace"
+msgstr "Замени"
+
+
+msgid "Add"
+msgstr "Додај"
+
+
+msgid "Subtract"
+msgstr "Одузимање"
+
+
+msgid "Multiply"
+msgstr "Умножено"
 
 
 msgid "Nothing"
@@ -1457,6 +1449,10 @@ msgid "Image"
 msgstr "Слика"
 
 
+msgid "Offset"
+msgstr "Одстојање"
+
+
 msgid "Rotation"
 msgstr "Ротација"
 
@@ -2034,6 +2030,10 @@ msgid "Constraint modifying the transformation of objects and bones"
 msgstr "Ограничење који мења трансформацију објеката и костију"
 
 
+msgid "Influence"
+msgstr "Утицај"
+
+
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Ниво који ће утицај овог ограничења имати на крајњи резултат"
 
@@ -2232,6 +2232,10 @@ msgstr "Минимум"
 
 msgid "Minimum value for target channel range"
 msgstr "Поставља минималну Y вредност рендерованог оквира"
+
+
+msgid "Mix Mode"
+msgstr "Режим мешања"
 
 
 msgid "Transform Channel"
@@ -4974,14 +4978,6 @@ msgstr "Кутија"
 
 msgid "Loop"
 msgstr "Петље"
-
-
-msgid "Clone Alpha"
-msgstr "X алфа"
-
-
-msgid "Clone Image"
-msgstr "Клонирај слој"
 
 
 msgid "Local"
@@ -7856,11 +7852,6 @@ msgid "Vector Font"
 msgstr "Векторски фонт"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Исечак"
-
-
 msgid "Window Manager"
 msgstr "Управљач прозорима"
 
@@ -8634,12 +8625,16 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Metaball"
-msgstr "Мета лопта"
-
-
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
 
 
 msgid "Names"
@@ -8736,10 +8731,6 @@ msgstr "Мод избора мреже"
 
 msgid "Merge"
 msgstr "Сједини"
-
-
-msgid "Special Characters"
-msgstr "Специјални знаци"
 
 
 msgid "Basic"
@@ -14597,6 +14588,10 @@ msgid "Select Mode"
 msgstr "Мод изабора"
 
 
+msgid "Fill Opacity"
+msgstr "Провидност испуне"
+
+
 msgctxt "Operator"
 msgid "Snap Selection to Cursor"
 msgstr "Изабор за курсор"
@@ -19008,10 +19003,6 @@ msgid "PNG Image (.png)"
 msgstr "PNG слика (.png)"
 
 
-msgid "Fill Opacity"
-msgstr "Провидност испуне"
-
-
 msgid "Edge Length Mode"
 msgstr "Режим дужине ивица"
 
@@ -19792,6 +19783,14 @@ msgid "Canvas"
 msgstr "Платно"
 
 
+msgid "Clone Alpha"
+msgstr "X алфа"
+
+
+msgid "Clone Image"
+msgstr "Клонирај слој"
+
+
 msgid "Dither"
 msgstr "Међутон"
 
@@ -19982,10 +19981,6 @@ msgstr "Путања анимације"
 
 msgid "Text Boxes"
 msgstr "Блок текста"
-
-
-msgid "Slot"
-msgstr "Слот"
 
 
 msgid "Filters"
@@ -20805,10 +20800,6 @@ msgstr "Изврнута оса скретања (Y)"
 
 msgid "Invert Roll (Z) Axis"
 msgstr "Изврнута оса окретања (Z)"
-
-
-msgid "Show Navigation Guide"
-msgstr "Промена погледа"
 
 
 msgid "Turntable"
@@ -22270,6 +22261,11 @@ msgstr "Сцена"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Филм"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Исечак"
 
 
 msgctxt "Sequence"

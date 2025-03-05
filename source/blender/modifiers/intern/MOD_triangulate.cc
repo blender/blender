@@ -71,7 +71,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
         {static_cast<float3 *>(
              CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num)),
          result->corners_num});
-    CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
+    CustomData_free_layers(&result->corner_data, CD_NORMAL);
   }
 
   return result;

@@ -2,6 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_common_shader_shared.hh"
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+
+#  define HAIR_SHADER
+#  define DRW_HAIR_INFO
+#endif
+
 #include "overlay_common_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(overlay_sculpt_curves_selection_iface)
@@ -18,10 +30,9 @@ VERTEX_SOURCE("overlay_sculpt_curves_selection_vert.glsl")
 FRAGMENT_SOURCE("overlay_sculpt_curves_selection_frag.glsl")
 FRAGMENT_OUT(0, VEC4, out_color)
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
-ADDITIONAL_INFO(draw_hair_new)
+ADDITIONAL_INFO(draw_hair)
 GPU_SHADER_CREATE_END()
 
 OVERLAY_INFO_CLIP_VARIATION(overlay_sculpt_curves_selection)
@@ -43,8 +54,7 @@ PUSH_CONSTANT(FLOAT, opacity)
 VERTEX_SOURCE("overlay_sculpt_curves_cage_vert.glsl")
 FRAGMENT_SOURCE("overlay_extra_frag.glsl")
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat_new)
-ADDITIONAL_INFO(draw_resource_handle_new)
+ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 

@@ -28,6 +28,8 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "DNA_userdef_types.h"
+
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"
 

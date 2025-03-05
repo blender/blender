@@ -508,6 +508,7 @@ void RNA_def_property_string_funcs(PropertyRNA *prop,
 void RNA_def_property_string_search_func(PropertyRNA *prop,
                                          const char *search,
                                          eStringPropertySearchFlag search_flag);
+void RNA_def_property_string_filepath_filter_func(PropertyRNA *prop, const char *filter);
 void RNA_def_property_pointer_funcs(
     PropertyRNA *prop, const char *get, const char *set, const char *type_fn, const char *poll);
 void RNA_def_property_collection_funcs(PropertyRNA *prop,

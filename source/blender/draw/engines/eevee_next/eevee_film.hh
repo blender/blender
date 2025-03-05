@@ -33,6 +33,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 
+#include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
 #include "eevee_shader_shared.hh"
@@ -91,6 +92,7 @@ class Film {
   eViewLayerEEVEEPassType viewport_compositor_enabled_passes_ = eViewLayerEEVEEPassType(0);
   PassCategory enabled_categories_ = PassCategory(0);
   bool use_reprojection_ = false;
+  bool is_valid_render_extent_ = true;
 
  public:
   Film(Instance &inst, FilmData &data) : inst_(inst), data_(data){};
@@ -129,6 +131,10 @@ class Film {
   int2 render_extent_get() const
   {
     return data_.render_extent;
+  }
+  inline bool is_valid_render_extent() const
+  {
+    return is_valid_render_extent_;
   }
 
   /** Size and offset of the film (taking into account render region). */

@@ -7,8 +7,8 @@
 
 #include "BKE_duplilist.hh"
 
-#include <map>
-#include <set>
+#include "BLI_map.hh"
+#include "BLI_set.hh"
 
 namespace blender::io {
 
@@ -17,14 +17,15 @@ namespace blender::io {
 class DupliParentFinder final {
  private:
   /* To check whether an Object * is instanced by this duplicator. */
-  std::set<const Object *> dupli_set_;
+  blender::Set<const Object *> dupli_set_;
 
   /* To find the DupliObject given its Persistent ID. */
-  using PIDToDupliMap = std::map<const PersistentID, const DupliObject *>;
+  using PIDToDupliMap = blender::Map<const PersistentID, const DupliObject *>;
   PIDToDupliMap pid_to_dupli_;
 
   /* Mapping from instancer PID to duplis instanced by it. */
-  using InstancerPIDToDuplisMap = std::map<const PersistentID, std::set<const DupliObject *>>;
+  using InstancerPIDToDuplisMap =
+      blender::Map<const PersistentID, blender::Set<const DupliObject *>>;
   InstancerPIDToDuplisMap instancer_pid_to_duplis_;
 
  public:

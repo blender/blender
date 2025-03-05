@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_node_types.h"
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
@@ -56,7 +57,7 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
 
 static void node_shader_init_normal_map(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderNormalMap *attr = MEM_cnew<NodeShaderNormalMap>("NodeShaderNormalMap");
+  NodeShaderNormalMap *attr = MEM_callocN<NodeShaderNormalMap>("NodeShaderNormalMap");
   node->storage = attr;
 }
 
@@ -138,6 +139,7 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem color = get_input_value("Color", NodeItem::Type::Vector3);
   NodeItem strength = get_input_value("Strength", NodeItem::Type::Float);
 
+#  if MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38
   std::string space;
   switch (normal_map_node->space) {
     case SHD_SPACE_TANGENT:
@@ -159,6 +161,25 @@ NODE_SHADER_MATERIALX_BEGIN
   return create_node("normalmap",
                      NodeItem::Type::Vector3,
                      {{"in", color}, {"scale", strength}, {"space", val(space)}});
+#  else
+  if (normal_map_node->space == SHD_SPACE_TANGENT) {
+    return create_node("normalmap", NodeItem::Type::Vector3, {{"in", color}, {"scale", strength}});
+  }
+
+  /* Object space not supported yet. Despite the 1.38 implementation accepting
+   * object space argument, that seems to work either. */
+  NodeItem tangent = val(MaterialX::Vector3(1.0f, 0.0f, 0.0f));
+  NodeItem bitangent = val(MaterialX::Vector3(0.0f, 1.0f, 0.0f));
+  NodeItem normal = val(MaterialX::Vector3(0.0f, 0.0f, 1.0f));
+
+  return create_node("normalmap",
+                     NodeItem::Type::Vector3,
+                     {{"in", color},
+                      {"scale", strength},
+                      {"tangent", tangent},
+                      {"bitangent", bitangent},
+                      {"normal", normal}});
+#  endif
 }
 #endif
 NODE_SHADER_MATERIALX_END
@@ -181,12 +202,12 @@ void register_node_type_sh_normal_map()
   ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_normal_map;
-  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
+  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_normal_map;
   blender::bke::node_type_storage(
-      &ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::gpu_shader_normal_map;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

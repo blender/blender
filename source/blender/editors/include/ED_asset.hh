@@ -57,7 +57,7 @@ AssetLibraryReference get_asset_library_ref_from_opptr(PointerRNA &ptr);
 void visit_library_catalogs_catalog_for_search(
     const Main &bmain,
     const AssetLibraryReference lib,
-    const StringRef edit_text,
+    StringRef edit_text,
     const FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 }  // namespace blender::ed::asset

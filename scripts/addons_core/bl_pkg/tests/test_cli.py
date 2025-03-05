@@ -338,6 +338,17 @@ class TestCLI(unittest.TestCase):
     def test_version(self) -> None:
         self.assertEqual(command_output(["--version"]), "0.1\n")
 
+    def test_progress(self) -> None:
+        self.assertEqual(
+            command_output(["dummy-progress", "--time-delay=0.0", "--steps-limit=4"]),
+            'PROGRESS: Demo, BYTE, 0, 4\n'
+            'PROGRESS: Demo, BYTE, 1, 4\n'
+            'PROGRESS: Demo, BYTE, 2, 4\n'
+            'PROGRESS: Demo, BYTE, 3, 4\n'
+            'PROGRESS: Demo, BYTE, 4, 4\n'
+            'DONE: \n',
+        )
+
 
 class TestCLI_Build(unittest.TestCase):
 

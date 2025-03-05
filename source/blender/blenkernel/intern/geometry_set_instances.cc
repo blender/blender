@@ -5,6 +5,7 @@
 #include "BKE_collection.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
@@ -125,6 +126,7 @@ void Instances::ensure_geometry_instances()
           break;
         }
         GeometrySet object_geometry_set = object_get_evaluated_geometry_set(object);
+        object_geometry_set.name = BKE_id_name(object.id);
         if (object_geometry_set.has_instances()) {
           object_geometry_set.get_instances_for_write()->ensure_geometry_instances();
         }
@@ -152,7 +154,9 @@ void Instances::ensure_geometry_instances()
           transforms[i].location() -= collection.instance_offset;
         }
         instances->ensure_geometry_instances();
-        new_references.append(GeometrySet::from_instances(instances.release()));
+        GeometrySet geometry_set = GeometrySet::from_instances(instances.release());
+        geometry_set.name = BKE_id_name(collection.id);
+        new_references.append(std::move(geometry_set));
         break;
       }
     }

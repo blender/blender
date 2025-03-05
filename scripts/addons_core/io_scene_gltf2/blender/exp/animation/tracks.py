@@ -107,6 +107,11 @@ def gather_track_animations(obj_uuid: int,
     # Access to fcurve and action data
 
     blender_object = export_settings['vtree'].nodes[obj_uuid].blender_object
+
+    # Before exporting, make sure the nla is not in edit mode
+    if bpy.context.scene.is_nla_tweakmode is True and blender_object.animation_data:
+        blender_object.animation_data.use_tweak_mode = False
+
     # Collect all tracks affecting this object.
     blender_tracks = __get_blender_tracks(obj_uuid, export_settings)
 

@@ -11,10 +11,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define BLI_MEM_BLOCK_CHUNK_SIZE (1 << 15) /* 32KiB */
 
 struct BLI_memblock;
@@ -53,7 +49,3 @@ void *BLI_memblock_iterstep(BLI_memblock_iter *iter) ATTR_WARN_UNUSED_RESULT ATT
  */
 void *BLI_memblock_elem_get(BLI_memblock *mblk, int chunk, int elem) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-
-#ifdef __cplusplus
-}
-#endif

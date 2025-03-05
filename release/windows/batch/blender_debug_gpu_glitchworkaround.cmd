@@ -14,6 +14,7 @@ setlocal
 
 set PYTHONPATH=
 set DEBUGLOGS="%temp%\blender\debug_logs"
+set VK_LOADER_DEBUG=all
 mkdir "%DEBUGLOGS%" > NUL 2>&1
 
 "%~dp0\blender" --debug --debug-gpu --debug-gpu-force-workarounds --python-expr "import bpy; bpy.context.preferences.filepaths.temporary_directory=r'%DEBUGLOGS%'; bpy.ops.wm.sysinfo(filepath=r'%DEBUGLOGS%\blender_system_info.txt')" > "%DEBUGLOGS%\blender_debug_output.txt" 2>&1 < %0

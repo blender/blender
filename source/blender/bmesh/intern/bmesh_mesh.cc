@@ -23,7 +23,9 @@
 
 using blender::Array;
 using blender::float3;
+using blender::float4x4;
 using blender::MutableSpan;
+using blender::Span;
 
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
@@ -201,10 +203,10 @@ void BM_mesh_data_free(BMesh *bm)
   }
 
   /* free custom data */
-  CustomData_free(&bm->vdata, 0);
-  CustomData_free(&bm->edata, 0);
-  CustomData_free(&bm->ldata, 0);
-  CustomData_free(&bm->pdata, 0);
+  CustomData_free(&bm->vdata);
+  CustomData_free(&bm->edata);
+  CustomData_free(&bm->ldata);
+  CustomData_free(&bm->pdata);
 
   /* destroy element pools */
   BLI_mempool_destroy(bm->vpool);
@@ -1361,7 +1363,7 @@ Array<float3> BM_mesh_vert_coords_alloc(BMesh *bm)
   return positions;
 }
 
-void BM_mesh_vert_coords_apply(BMesh *bm, const float (*vert_coords)[3])
+void BM_mesh_vert_coords_apply(BMesh *bm, const Span<float3> vert_coords)
 {
   BMIter iter;
   BMVert *v;
@@ -1372,14 +1374,14 @@ void BM_mesh_vert_coords_apply(BMesh *bm, const float (*vert_coords)[3])
 }
 
 void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
-                                         const float (*vert_coords)[3],
-                                         const float mat[4][4])
+                                         const Span<float3> vert_coords,
+                                         const float4x4 &transform)
 {
   BMIter iter;
   BMVert *v;
   int i;
   BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-    mul_v3_m4v3(v->co, mat, vert_coords[i]);
+    mul_v3_m4v3(v->co, transform.ptr(), vert_coords[i]);
   }
 }
 

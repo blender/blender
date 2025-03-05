@@ -2429,7 +2429,7 @@ GHOST_TSuccess GHOST_SystemWin32::hasClipboardImage(void) const
             WCHAR lpszFile[MAX_PATH] = {0};
             DragQueryFileW(hDrop, 0, lpszFile, MAX_PATH);
             char *filepath = alloc_utf_8_from_16(lpszFile, 0);
-            ImBuf *ibuf = IMB_testiffname(filepath, IB_rect | IB_multilayer);
+            ImBuf *ibuf = IMB_testiffname(filepath, IB_byte_data | IB_multilayer);
             free(filepath);
             if (ibuf) {
               IMB_freeImBuf(ibuf);
@@ -2465,7 +2465,7 @@ static uint *getClipboardImageFilepath(int *r_width, int *r_height)
   }
 
   if (filepath) {
-    ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect | IB_multilayer, nullptr);
+    ImBuf *ibuf = IMB_loadiffname(filepath, IB_byte_data | IB_multilayer, nullptr);
     free(filepath);
     if (ibuf) {
       *r_width = ibuf->x;
@@ -2584,7 +2584,7 @@ static uint *getClipboardImageImBuf(int *r_width, int *r_height, UINT format)
   uint *rgba = nullptr;
 
   ImBuf *ibuf = IMB_ibImageFromMemory(
-      (uchar *)pMem, GlobalSize(hGlobal), IB_rect, nullptr, "<clipboard>");
+      (uchar *)pMem, GlobalSize(hGlobal), IB_byte_data, nullptr, "<clipboard>");
 
   if (ibuf) {
     *r_width = ibuf->x;
@@ -2695,7 +2695,7 @@ static bool putClipboardImagePNG(uint *rgba, int width, int height)
   ImBuf *ibuf = IMB_allocFromBuffer(reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
   ibuf->ftype = IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
-  if (!IMB_saveiff(ibuf, "<memory>", IB_rect | IB_mem)) {
+  if (!IMB_saveiff(ibuf, "<memory>", IB_byte_data | IB_mem)) {
     IMB_freeImBuf(ibuf);
     return false;
   }

@@ -2,31 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* To be compiled with subdiv_lib.glsl */
+/* Extract edge data for object mode wire frame. */
 
-layout(std430, binding = 0) readonly buffer inputVertexData
-{
-  PosNorLoop pos_nor[];
-};
+#include "subdiv_lib.glsl"
 
-layout(std430, binding = 1) readonly buffer inputEdgeDrawFlag
-{
-  uint input_edge_draw_flag[];
-};
-
-layout(std430, binding = 2) readonly buffer inputPolyOtherMap
-{
-  int input_poly_other_map[];
-};
-
-layout(std430, binding = 3) writeonly buffer outputEdgeFactors
-{
 #ifdef GPU_AMD_DRIVER_BYTE_BUG
-  float output_edge_fac[];
+COMPUTE_SHADER_CREATE_INFO(subdiv_edge_fac_amd_legacy)
 #else
-  uint output_edge_fac[];
+COMPUTE_SHADER_CREATE_INFO(subdiv_edge_fac)
 #endif
-};
 
 void write_vec4(uint index, vec4 edge_facs)
 {
@@ -69,10 +53,13 @@ float compute_line_factor(uint corner_index, vec3 face_normal)
     return 0.0;
   }
 
-  uint start_coner_index_other = quad_other * 4;
-  vec3 v0 = get_vertex_pos(pos_nor[start_coner_index_other + 0]);
-  vec3 v1 = get_vertex_pos(pos_nor[start_coner_index_other + 1]);
-  vec3 v2 = get_vertex_pos(pos_nor[start_coner_index_other + 2]);
+  uint start_corner_index_other = quad_other * 4;
+  PosNorLoop pos_nor0 = pos_nor[start_corner_index_other + 0];
+  PosNorLoop pos_nor1 = pos_nor[start_corner_index_other + 1];
+  PosNorLoop pos_nor2 = pos_nor[start_corner_index_other + 2];
+  vec3 v0 = subdiv_get_vertex_pos(pos_nor0);
+  vec3 v1 = subdiv_get_vertex_pos(pos_nor1);
+  vec3 v2 = subdiv_get_vertex_pos(pos_nor2);
   vec3 face_normal_other = normalize(cross(v1 - v0, v2 - v0));
 
   return loop_edge_factor_get(face_normal, face_normal_other);
@@ -82,7 +69,7 @@ void main()
 {
   /* We execute for each quad. */
   uint quad_index = get_global_invocation_index();
-  if (quad_index >= total_dispatch_size) {
+  if (quad_index >= shader_data.total_dispatch_size) {
     return;
   }
 
@@ -90,9 +77,12 @@ void main()
   uint start_loop_index = quad_index * 4;
 
   /* First compute the face normal, we need it to compute the bihedral edge angle. */
-  vec3 v0 = get_vertex_pos(pos_nor[start_loop_index + 0]);
-  vec3 v1 = get_vertex_pos(pos_nor[start_loop_index + 1]);
-  vec3 v2 = get_vertex_pos(pos_nor[start_loop_index + 2]);
+  PosNorLoop pos_nor0 = pos_nor[start_loop_index + 0];
+  PosNorLoop pos_nor1 = pos_nor[start_loop_index + 1];
+  PosNorLoop pos_nor2 = pos_nor[start_loop_index + 2];
+  vec3 v0 = subdiv_get_vertex_pos(pos_nor0);
+  vec3 v1 = subdiv_get_vertex_pos(pos_nor1);
+  vec3 v2 = subdiv_get_vertex_pos(pos_nor2);
   vec3 face_normal = normalize(cross(v1 - v0, v2 - v0));
 
   vec4 edge_facs = vec4(0.0);

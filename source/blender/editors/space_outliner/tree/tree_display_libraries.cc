@@ -99,18 +99,16 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar, ListBase 
 {
   const short filter_id_type = id_filter_get();
 
-  ListBase *lbarray[INDEX_ID_MAX];
-  int tot;
+  Vector<ListBase *> lbarray;
   if (filter_id_type) {
-    lbarray[0] = which_libbase(&mainvar, space_outliner_.filter_id_type);
-    tot = 1;
+    lbarray.append(which_libbase(&mainvar, space_outliner_.filter_id_type));
   }
   else {
-    tot = set_listbasepointers(&mainvar, lbarray);
+    lbarray.extend(BKE_main_lists_get(mainvar));
   }
 
   TreeElement *tenlib = nullptr;
-  for (int a = 0; a < tot; a++) {
+  for (int a = 0; a < lbarray.size(); a++) {
     if (!lbarray[a] || !lbarray[a]->first) {
       continue;
     }

@@ -425,16 +425,15 @@ ShaderManager::ShaderManager()
 
 ShaderManager::~ShaderManager() = default;
 
-unique_ptr<ShaderManager> ShaderManager::create(const int shadingsystem, Device *device)
+unique_ptr<ShaderManager> ShaderManager::create(const int shadingsystem)
 {
   unique_ptr<ShaderManager> manager;
 
   (void)shadingsystem; /* Ignored when built without OSL. */
-  (void)device;
 
 #ifdef WITH_OSL
   if (shadingsystem == SHADINGSYSTEM_OSL) {
-    manager = make_unique<OSLShaderManager>(device);
+    manager = make_unique<OSLShaderManager>();
   }
   else
 #endif
@@ -782,16 +781,6 @@ uint ShaderManager::get_kernel_features(Scene *scene)
   }
 
   return kernel_features;
-}
-
-void ShaderManager::free_memory()
-{
-
-#ifdef WITH_OSL
-  OSLShaderManager::free_memory();
-#endif
-
-  ColorSpaceManager::free_memory();
 }
 
 float ShaderManager::linear_rgb_to_gray(const float3 c)

@@ -57,10 +57,22 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem color = get_input_value("Color", NodeItem::Type::Color3);
   NodeItem roughness = get_input_value("Roughness", NodeItem::Type::Float);
   NodeItem normal = get_input_link("Normal", NodeItem::Type::Vector3);
+#  if !(MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38)
+  NodeItem mode = node_->custom1 == SHD_SHEEN_MICROFIBER ? val(std::string("zeltner")) :
+                                                           val(std::string("conty_kulla"));
+#  endif
 
   return create_node("sheen_bsdf",
                      NodeItem::Type::BSDF,
-                     {{"color", color}, {"roughness", roughness}, {"normal", normal}});
+                     {{"color", color},
+                      {"roughness", roughness},
+                      {"normal", normal}
+#  if !(MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38)
+                      ,
+                      {"mode", mode}});
+#  else
+                     });
+#  endif
 }
 #endif
 NODE_SHADER_MATERIALX_END
@@ -88,5 +100,5 @@ void register_node_type_sh_bsdf_sheen()
   ntype.draw_buttons = file_ns::node_shader_buts_sheen;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

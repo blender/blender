@@ -38,7 +38,7 @@ static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_bilateralblur(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeBilateralBlurData *nbbd = MEM_cnew<NodeBilateralBlurData>(__func__);
+  NodeBilateralBlurData *nbbd = MEM_callocN<NodeBilateralBlurData>(__func__);
   node->storage = nbbd;
   nbbd->iter = 1;
   nbbd->sigma_color = 0.3;
@@ -191,8 +191,8 @@ void register_node_type_cmp_bilateralblur()
   ntype.draw_buttons = file_ns::node_composit_buts_bilateralblur;
   ntype.initfunc = file_ns::node_composit_init_bilateralblur;
   blender::bke::node_type_storage(
-      &ntype, "NodeBilateralBlurData", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeBilateralBlurData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -37,6 +37,7 @@ set(SRC
   transform_convert_object_texspace.cc
   transform_convert_paintcurve.cc
   transform_convert_particle.cc
+  transform_convert_pointcloud.cc
   transform_convert_sculpt.cc
   transform_convert_sequencer.cc
   transform_convert_sequencer_image.cc

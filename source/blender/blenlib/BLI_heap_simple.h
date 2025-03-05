@@ -12,10 +12,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct HeapSimple;
 typedef struct HeapSimple HeapSimple;
 
@@ -45,7 +41,3 @@ float BLI_heapsimple_top_value(const HeapSimple *heap) ATTR_WARN_UNUSED_RESULT A
  * Pop the top node off the heap and return its pointer.
  */
 void *BLI_heapsimple_pop_min(HeapSimple *heap) ATTR_NONNULL(1);
-
-#ifdef __cplusplus
-}
-#endif

@@ -403,7 +403,7 @@ bool BLI_dir_create_recursive(const char *dirname)
 
   size_t len = strlen(dirname);
   if (len >= sizeof(dirname_static_buf)) {
-    dirname_mut = MEM_cnew_array<char>(len + 1, __func__);
+    dirname_mut = MEM_calloc_arrayN<char>(len + 1, __func__);
   }
   memcpy(dirname_mut, dirname, len + 1);
 
@@ -562,9 +562,9 @@ void *BLI_gzopen(const char *filepath, const char *mode)
   /* XXX: Creates file before transcribing the path. */
   if (mode[0] == 'w') {
     FILE *file = ufopen(filepath, "a");
-    if (file == NULL) {
+    if (file == nullptr) {
       /* File couldn't be opened, e.g. due to permission error. */
-      return NULL;
+      return nullptr;
     }
     fclose(file);
   }
@@ -609,14 +609,14 @@ static bool delete_soft(const wchar_t *path_16, const char **r_error_message)
   IFileOperation *pfo;
   IShellItem *psi;
 
-  HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
   if (SUCCEEDED(hr)) {
     /* This is also the case when COM was previously initialized and CoInitializeEx returns
      * S_FALSE, which is not an error. Both HRESULT values S_OK and S_FALSE indicate success. */
 
     hr = CoCreateInstance(
-        CLSID_FileOperation, NULL, CLSCTX_ALL, IID_IFileOperation, (void **)&pfo);
+        CLSID_FileOperation, nullptr, CLSCTX_ALL, IID_IFileOperation, (void **)&pfo);
 
     if (SUCCEEDED(hr)) {
       /* Flags for deletion:
@@ -626,10 +626,10 @@ static bool delete_soft(const wchar_t *path_16, const char **r_error_message)
       hr = pfo->SetOperationFlags(FOF_ALLOWUNDO | FOF_SILENT | FOF_WANTNUKEWARNING);
 
       if (SUCCEEDED(hr)) {
-        hr = SHCreateItemFromParsingName(path_16, NULL, IID_IShellItem, (void **)&psi);
+        hr = SHCreateItemFromParsingName(path_16, nullptr, IID_IShellItem, (void **)&psi);
 
         if (SUCCEEDED(hr)) {
-          hr = pfo->DeleteItem(psi, NULL);
+          hr = pfo->DeleteItem(psi, nullptr);
 
           if (SUCCEEDED(hr)) {
             hr = pfo->PerformOperations();
@@ -786,7 +786,7 @@ static const char *path_destination_ensure_filename(const char *path_src,
       size_t buf_size_needed = path_dst_len + strlen(filename_src) + 1;
       char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
                                          buf :
-                                         MEM_cnew_array<char>(buf_size_needed, __func__);
+                                         MEM_calloc_arrayN<char>(buf_size_needed, __func__);
       BLI_string_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
       return path_dst_with_filename;
     }
@@ -870,7 +870,7 @@ enum {
   RecursiveOp_Callback_Error = 2,
 };
 
-typedef int (*RecursiveOp_Callback)(const char *from, const char *to);
+using RecursiveOp_Callback = int (*)(const char *from, const char *to);
 
 [[maybe_unused]] static bool path_has_trailing_slash(const char *path)
 {
@@ -1389,7 +1389,7 @@ static int copy_single_file(const char *from, const char *to)
       need_free = 0;
     }
     else {
-      link_buffer = MEM_cnew_array<char>(st.st_size + 2, "copy_single_file link_buffer");
+      link_buffer = MEM_calloc_arrayN<char>(st.st_size + 2, "copy_single_file link_buffer");
       need_free = 1;
     }
 
@@ -1512,7 +1512,7 @@ static const char *path_destination_ensure_filename(const char *path_src,
       const size_t buf_size_needed = strlen(path_dst) + 1 + strlen(filename_src) + 1;
       char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
                                          buf :
-                                         MEM_cnew_array<char>(buf_size_needed, __func__);
+                                         MEM_calloc_arrayN<char>(buf_size_needed, __func__);
       BLI_path_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
       path_dst = path_dst_with_filename;
     }

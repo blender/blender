@@ -17,6 +17,7 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_assert.h"
 #include "BLI_listbase.h"
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
@@ -915,7 +916,7 @@ LinkData *BLI_genericNodeN(void *data)
   }
 
   /* create new link, and make it hold the given data */
-  ld = MEM_cnew<LinkData>(__func__);
+  ld = MEM_callocN<LinkData>(__func__);
   ld->data = data;
 
   return ld;

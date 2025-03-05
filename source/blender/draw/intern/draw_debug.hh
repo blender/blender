@@ -110,7 +110,7 @@ class DebugDraw {
 
 /**
  * Ease of use function to get the debug module.
- * TODO(fclem): Should be removed once DRWManager is no longer global.
+ * TODO(fclem): Should be removed once DRWContext is no longer global.
  * IMPORTANT: Can return nullptr if storage buffer is not supported.
  */
 blender::draw::DebugDraw *DRW_debug_get();

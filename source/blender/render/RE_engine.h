@@ -36,10 +36,6 @@ struct ViewRender;
 struct bNode;
 struct bNodeTree;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* External Engine */
 
 /** #RenderEngineType.flag */
@@ -297,7 +293,3 @@ void RE_engine_free_blender_memory(struct RenderEngine *engine);
 void RE_engine_tile_highlight_set(
     struct RenderEngine *engine, int x, int y, int width, int height, bool highlight);
 void RE_engine_tile_highlight_clear_all(struct RenderEngine *engine);
-
-#ifdef __cplusplus
-}
-#endif

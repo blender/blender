@@ -28,6 +28,8 @@
 #include "transform.hh"
 #include "transform_gizmo.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Scale Cage Gizmo
  * \{ */
@@ -114,7 +116,7 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
   TransformCalcParams calc_params{};
   calc_params.use_local_axis = true;
   calc_params.orientation_index = orient_index + 1;
-  if ((ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d) == 0) ||
+  if ((calc_gizmo_stats(C, &calc_params, &tbounds, rv3d) == 0) ||
       equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max))
   {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
@@ -225,3 +227,5 @@ void VIEW3D_GGT_xform_cage(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender::ed::transform

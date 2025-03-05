@@ -10,9 +10,12 @@
 
 #include <optional>
 
+#include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
 struct BMEditMesh;
 struct BPoint;
@@ -31,12 +34,13 @@ void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
 void outside_lattice(Lattice *lt);
 
-float (*BKE_lattice_vert_coords_alloc(const Lattice *lt, int *r_vert_len))[3];
-void BKE_lattice_vert_coords_get(const Lattice *lt, float (*vert_coords)[3]);
+blender::Array<blender::float3> BKE_lattice_vert_coords_alloc(const Lattice *lt);
+void BKE_lattice_vert_coords_get(const Lattice *lt,
+                                 blender::MutableSpan<blender::float3> vert_coordss);
 void BKE_lattice_vert_coords_apply_with_mat4(Lattice *lt,
-                                             const float (*vert_coords)[3],
-                                             const float mat[4][4]);
-void BKE_lattice_vert_coords_apply(Lattice *lt, const float (*vert_coords)[3]);
+                                             blender::Span<blender::float3> vert_coordss,
+                                             const blender::float4x4 &transform);
+void BKE_lattice_vert_coords_apply(Lattice *lt, blender::Span<blender::float3> vert_coordss);
 void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob);
 
 MDeformVert *BKE_lattice_deform_verts_get(const Object *oblatt);

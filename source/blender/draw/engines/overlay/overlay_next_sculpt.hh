@@ -69,6 +69,7 @@ class Sculpts : Overlay {
     {
       sculpt_mask_.init();
       sculpt_mask_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      sculpt_mask_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       sculpt_mask_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
                                  DRW_STATE_BLEND_MUL,
                              state.clipping_plane_count);
@@ -93,6 +94,7 @@ class Sculpts : Overlay {
                      state.clipping_plane_count);
       pass.shader_set(res.shaders.sculpt_curves_cage.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       pass.push_constant("opacity", curve_cage_opacity);
     }
   }

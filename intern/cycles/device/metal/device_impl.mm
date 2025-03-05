@@ -725,13 +725,13 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
      * pointer recalculation */
     mem.device_pointer = device_ptr(mmem.get());
 
-    if (metal_buffer.storageMode == MTLResourceStorageModeShared) {
+    if (metal_buffer.storageMode == MTLStorageModeShared) {
       /* Replace host pointer with our host allocation. */
 
       if (mem.host_pointer && mem.host_pointer != mmem->hostPtr) {
         memcpy(mmem->hostPtr, mem.host_pointer, size);
 
-        util_aligned_free(mem.host_pointer, mem.memory_size());
+        host_free(mem.type, mem.host_pointer, mem.memory_size());
         mem.host_pointer = mmem->hostPtr;
       }
       mem.shared_pointer = mmem->hostPtr;

@@ -408,14 +408,14 @@ ccl_device_inline void volume_shader_motion_blur(KernelGlobals kg,
    */
 
   /* Find velocity. */
-  float3 velocity = primitive_volume_attribute_float3(kg, sd, v_desc);
+  float3 velocity = primitive_volume_attribute<float3>(kg, sd, v_desc);
   object_dir_transform(kg, sd, &velocity);
 
   /* Find advected P. */
   sd->P = P - (time - time_offset) * velocity_scale * velocity;
 
   /* Find advected velocity. */
-  velocity = primitive_volume_attribute_float3(kg, sd, v_desc);
+  velocity = primitive_volume_attribute<float3>(kg, sd, v_desc);
   object_dir_transform(kg, sd, &velocity);
 
   /* Find advected P. */
@@ -439,7 +439,6 @@ ccl_device_inline bool volume_shader_eval_entry(KernelGlobals kg,
   /* Setup shader-data from stack. It's mostly setup already in shader_setup_from_volume, this
    * switching should be quick. */
   sd->object = entry.object;
-  sd->lamp = LAMP_NONE;
   sd->shader = entry.shader;
 
   sd->flag &= ~SD_SHADER_FLAGS;

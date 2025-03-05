@@ -129,7 +129,9 @@ static void sh_node_mix_label(const bNodeTree * /*ntree*/,
       name = "Unknown";
     }
     BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
+    return;
   }
+  BLI_strncpy_utf8(label, "Mix", label_maxncpy);
 }
 
 static int sh_node_mix_ui_class(const bNode *node)
@@ -158,16 +160,16 @@ static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
   bool use_vector_factor = data_type == SOCK_VECTOR &&
                            storage.factor_mode != NODE_MIX_MODE_UNIFORM;
 
-  bke::node_set_socket_availability(ntree, sock_factor, !use_vector_factor);
+  bke::node_set_socket_availability(*ntree, *sock_factor, !use_vector_factor);
 
-  bke::node_set_socket_availability(ntree, sock_factor_vec, use_vector_factor);
+  bke::node_set_socket_availability(*ntree, *sock_factor_vec, use_vector_factor);
 
   for (bNodeSocket *socket = sock_factor_vec->next; socket != nullptr; socket = socket->next) {
-    bke::node_set_socket_availability(ntree, socket, socket->type == data_type);
+    bke::node_set_socket_availability(*ntree, *socket, socket->type == data_type);
   }
 
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    bke::node_set_socket_availability(ntree, socket, socket->type == data_type);
+    bke::node_set_socket_availability(*ntree, *socket, socket->type == data_type);
   }
 }
 
@@ -277,7 +279,7 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void node_mix_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeShaderMix *data = MEM_cnew<NodeShaderMix>(__func__);
+  NodeShaderMix *data = MEM_callocN<NodeShaderMix>(__func__);
   data->data_type = SOCK_FLOAT;
   data->factor_mode = NODE_MIX_MODE_UNIFORM;
   data->clamp_factor = 1;
@@ -599,7 +601,7 @@ void register_node_type_sh_mix()
   namespace file_ns = blender::nodes::node_sh_mix_cc;
 
   static blender::bke::bNodeType ntype;
-  sh_fn_node_type_base(&ntype, "ShaderNodeMix", SH_NODE_MIX);
+  common_node_type_base(&ntype, "ShaderNodeMix", SH_NODE_MIX);
   ntype.ui_name = "Mix";
   ntype.ui_description = "Mix values by a factor";
   ntype.enum_name_legacy = "MIX";
@@ -610,12 +612,12 @@ void register_node_type_sh_mix()
   ntype.updatefunc = file_ns::sh_node_mix_update;
   ntype.initfunc = file_ns::node_mix_init;
   blender::bke::node_type_storage(
-      &ntype, "NodeShaderMix", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeShaderMix", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = file_ns::sh_node_mix_build_multi_function;
   ntype.draw_buttons = file_ns::sh_node_mix_layout;
   ntype.labelfunc = file_ns::sh_node_mix_label;
   ntype.gather_link_search_ops = file_ns::node_mix_gather_link_searches;
   ntype.materialx_fn = file_ns::node_shader_materialx;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -36,10 +36,5 @@ enum OVERLAY_UVLineStyle {
 
 struct OVERLAY_Data {
   void *engine_type;
-  DRWViewportEmptyList *fbl;
-  DRWViewportEmptyList *txl;
-  DRWViewportEmptyList *psl;
-  DRWViewportEmptyList *stl;
-
   void *instance;
 };

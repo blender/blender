@@ -2,8 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_clipping_lib.glsl"
+#include "infos/overlay_edit_mode_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_edit_mesh_vert)
+#ifdef GLSL_CPP_STUBS
+#  define VERT
+#endif
+
 #include "draw_model_lib.glsl"
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "overlay_common_lib.glsl"
 #include "overlay_edit_mesh_common_lib.glsl"
@@ -37,7 +44,7 @@ void main()
 
   /* Offset Z position for retopology overlay. */
   gl_Position.z += get_homogenous_z_offset(
-      ProjectionMatrix, view_pos.z, gl_Position.w, retopologyOffset);
+      drw_view().winmat, view_pos.z, gl_Position.w, retopologyOffset);
 
   uvec4 m_data = data & uvec4(dataMask);
 
@@ -87,7 +94,7 @@ void main()
   finalColor = EDIT_MESH_facedot_color(norAndFlag.w);
 
   /* Bias Face-dot Z position in clip-space. */
-  gl_Position.z -= (drw_view.winmat[3][3] == 0.0) ? 0.00035 : 1e-6;
+  gl_Position.z -= (drw_view().winmat[3][3] == 0.0) ? 0.00035 : 1e-6;
   gl_PointSize = sizeFaceDot;
 
   bool occluded = test_occlusion();
@@ -99,7 +106,7 @@ void main()
 #if !defined(FACE)
   /* Facing based color blend */
   vec3 view_normal = normalize(drw_normal_object_to_view(vnor) + 1e-4);
-  vec3 view_vec = (drw_view.winmat[3][3] == 0.0) ? normalize(view_pos) : vec3(0.0, 0.0, 1.0);
+  vec3 view_vec = (drw_view().winmat[3][3] == 0.0) ? normalize(view_pos) : vec3(0.0, 0.0, 1.0);
   float facing = dot(view_vec, view_normal);
   facing = 1.0 - abs(facing) * 0.2;
 
@@ -107,9 +114,9 @@ void main()
   finalColor.rgb = mix(finalColor.rgb,
                        non_linear_blend_color(colorEditMeshMiddle.rgb, finalColor.rgb, facing),
                        fresnelMixEdit);
+#endif
 
   gl_Position.z -= ndc_offset_factor * ndc_offset;
-#endif
 
   view_clipping_distances(world_pos);
 }

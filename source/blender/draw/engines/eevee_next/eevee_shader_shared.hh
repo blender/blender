@@ -43,11 +43,7 @@ constexpr GPUSamplerState no_filter = GPUSamplerState::default_sampler();
 constexpr GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
 #endif
 
-/** WORKAROUND(@fclem): This is because this file is included before common_math_lib.glsl. */
-#ifndef M_PI
-#  define EEVEE_PI
-#  define M_PI 3.14159265358979323846 /* pi */
-#endif
+#define EEVEE_PI 3.14159265358979323846 /* pi */
 
 enum eCubeFace : uint32_t {
   /* Ordering by culling order. If cone aperture is shallow, we cull the later view. */
@@ -735,7 +731,7 @@ static inline float coc_radius_from_camera_depth(DepthOfFieldData dof, float dep
 
 static inline float regular_polygon_side_length(float sides_count)
 {
-  return 2.0f * sinf(M_PI / sides_count);
+  return 2.0f * sinf(EEVEE_PI / sides_count);
 }
 
 /* Returns intersection ratio between the radius edge at theta and the regular polygon edge.
@@ -743,16 +739,16 @@ static inline float regular_polygon_side_length(float sides_count)
 static inline float circle_to_polygon_radius(float sides_count, float theta)
 {
   /* From Graphics Gems from CryENGINE 3 (SIGGRAPH 2013) by Tiago Sousa (slide 36). */
-  float side_angle = (2.0f * M_PI) / sides_count;
+  float side_angle = (2.0f * EEVEE_PI) / sides_count;
   return cosf(side_angle * 0.5f) /
-         cosf(theta - side_angle * floorf((sides_count * theta + M_PI) / (2.0f * M_PI)));
+         cosf(theta - side_angle * floorf((sides_count * theta + EEVEE_PI) / (2.0f * EEVEE_PI)));
 }
 
 /* Remap input angle to have homogenous spacing of points along a polygon edge.
  * Expects theta to be in [0..2pi] range. */
 static inline float circle_to_polygon_angle(float sides_count, float theta)
 {
-  float side_angle = (2.0f * M_PI) / sides_count;
+  float side_angle = (2.0f * EEVEE_PI) / sides_count;
   float halfside_angle = side_angle * 0.5f;
   float side = floorf(theta / side_angle);
   /* Length of segment from center to the middle of polygon side. */
@@ -765,7 +761,7 @@ static inline float circle_to_polygon_angle(float sides_count, float theta)
   float halfside_len = regular_polygon_side_length(sides_count) * 0.5f;
   float opposite = ratio * halfside_len;
 
-  /* NOTE: atan(y_over_x) has output range [-M_PI_2..M_PI_2]. */
+  /* NOTE: atan(y_over_x) has output range [-pi/2..pi/2]. */
   float final_local_theta = atanf(opposite / adjacent);
 
   return side * side_angle + final_local_theta;
@@ -1277,7 +1273,7 @@ static inline int light_tilemap_max_get(LightData light)
 static inline int light_local_tilemap_count(LightData light)
 {
   if (is_spot_light(light.type)) {
-    return (light_spot_data_get(light).spot_tan > tanf(M_PI / 4.0)) ? 5 : 1;
+    return (light_spot_data_get(light).spot_tan > tanf(EEVEE_PI / 4.0)) ? 5 : 1;
   }
   if (is_area_light(light.type)) {
     return 5;
@@ -2201,7 +2197,7 @@ float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roug
 #endif
 
 #ifdef EEVEE_PI
-#  undef M_PI
+#  undef EEVEE_PI
 #endif
 
 /** \} */

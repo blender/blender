@@ -8,6 +8,7 @@
 
 #include "BKE_material.hh"
 #include "BKE_texture.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "DNA_material_types.h"
 #include "node_texture_util.hh"
@@ -261,14 +262,14 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
     ntype.enum_name_legacy = EnumNameLegacy; \
     ntype.nclass = NODE_CLASS_TEXTURE; \
     blender::bke::node_type_socket_templates(&ntype, name##_inputs, outputs); \
-    blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle); \
+    blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle); \
     ntype.initfunc = init; \
     blender::bke::node_type_storage( \
-        &ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
+        ntype, "Tex", node_free_standard_storage, node_copy_standard_storage); \
     ntype.exec_fn = name##_exec; \
     ntype.flag |= NODE_PREVIEW; \
 \
-    blender::bke::node_register_type(&ntype); \
+    blender::bke::node_register_type(ntype); \
   }
 
 #define C outputs_color_only

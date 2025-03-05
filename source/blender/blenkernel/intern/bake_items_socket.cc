@@ -10,6 +10,33 @@
 
 namespace blender::bke::bake {
 
+static void capture_field_on_geometry_components(GeometrySet &geometry,
+                                                 const fn::GField &field,
+                                                 const AttrDomain domain,
+                                                 const StringRef attribute_name)
+{
+  if (geometry.has_pointcloud()) {
+    PointCloudComponent &component = geometry.get_component_for_write<PointCloudComponent>();
+    try_capture_field_on_geometry(component, attribute_name, domain, field);
+  }
+  if (geometry.has_mesh()) {
+    MeshComponent &component = geometry.get_component_for_write<MeshComponent>();
+    try_capture_field_on_geometry(component, attribute_name, domain, field);
+  }
+  if (geometry.has_curves()) {
+    CurveComponent &component = geometry.get_component_for_write<CurveComponent>();
+    try_capture_field_on_geometry(component, attribute_name, domain, field);
+  }
+  if (geometry.has_grease_pencil()) {
+    GreasePencilComponent &component = geometry.get_component_for_write<GreasePencilComponent>();
+    try_capture_field_on_geometry(component, attribute_name, domain, field);
+  }
+  if (geometry.has_instances()) {
+    InstancesComponent &component = geometry.get_component_for_write<InstancesComponent>();
+    try_capture_field_on_geometry(component, attribute_name, domain, field);
+  }
+}
+
 Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<void *> socket_values,
                                                                   const BakeSocketConfig &config,
                                                                   BakeDataBlockMap *data_block_map)
@@ -19,6 +46,8 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
 
   Array<std::unique_ptr<BakeItem>> bake_items(socket_values.size());
 
+  Vector<GeometryBakeItem *> geometry_bake_items;
+
   /* Create geometry bake items first because they are used for field evaluation. */
   for (const int i : socket_values.index_range()) {
     const eNodeSocketDatatype socket_type = config.types[i];
@@ -27,7 +56,9 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     }
     void *socket_value = socket_values[i];
     GeometrySet &geometry = *static_cast<GeometrySet *>(socket_value);
-    bake_items[i] = std::make_unique<GeometryBakeItem>(std::move(geometry));
+    auto geometry_item = std::make_unique<GeometryBakeItem>(std::move(geometry));
+    geometry_bake_items.append(geometry_item.get());
+    bake_items[i] = std::move(geometry_item);
   }
 
   for (const int i : socket_values.index_range()) {
@@ -60,29 +91,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
             BLI_assert(config.types[geometry_i] == SOCK_GEOMETRY);
             GeometrySet &geometry =
                 static_cast<GeometryBakeItem *>(bake_items[geometry_i].get())->geometry;
-            if (geometry.has_pointcloud()) {
-              PointCloudComponent &component =
-                  geometry.get_component_for_write<PointCloudComponent>();
-              try_capture_field_on_geometry(component, attribute_name, domain, field);
-            }
-            if (geometry.has_mesh()) {
-              MeshComponent &component = geometry.get_component_for_write<MeshComponent>();
-              try_capture_field_on_geometry(component, attribute_name, domain, field);
-            }
-            if (geometry.has_curves()) {
-              CurveComponent &component = geometry.get_component_for_write<CurveComponent>();
-              try_capture_field_on_geometry(component, attribute_name, domain, field);
-            }
-            if (geometry.has_grease_pencil()) {
-              GreasePencilComponent &component =
-                  geometry.get_component_for_write<GreasePencilComponent>();
-              try_capture_field_on_geometry(component, attribute_name, domain, field);
-            }
-            if (geometry.has_instances()) {
-              InstancesComponent &component =
-                  geometry.get_component_for_write<InstancesComponent>();
-              try_capture_field_on_geometry(component, attribute_name, domain, field);
-            }
+            capture_field_on_geometry_components(geometry, field, domain, attribute_name);
           }
           bake_items[i] = std::make_unique<AttributeBakeItem>(attribute_name);
         }
@@ -107,13 +116,8 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
   }
 
   /* Cleanup geometries after fields have been evaluated. */
-  for (const int i : config.types.index_range()) {
-    const eNodeSocketDatatype socket_type = config.types[i];
-    if (socket_type != SOCK_GEOMETRY) {
-      continue;
-    }
-    GeometrySet &geometry = static_cast<GeometryBakeItem *>(bake_items[i].get())->geometry;
-    GeometryBakeItem::prepare_geometry_for_bake(geometry, data_block_map);
+  for (GeometryBakeItem *geometry_item : geometry_bake_items) {
+    GeometryBakeItem::prepare_geometry_for_bake(geometry_item->geometry, data_block_map);
   }
 
   for (const int i : bake_items.index_range()) {

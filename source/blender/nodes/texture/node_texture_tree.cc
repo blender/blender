@@ -106,8 +106,8 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
     node_next = node->next;
 
     if (node->is_muted() || node->is_reroute()) {
-      blender::bke::node_internal_relink(localtree, node);
-      blender::bke::node_tree_free_local_node(localtree, node);
+      blender::bke::node_internal_relink(*localtree, *node);
+      blender::bke::node_tree_free_local_node(*localtree, *node);
     }
   }
 }
@@ -123,7 +123,7 @@ static void update(bNodeTree *ntree)
 static bool texture_node_tree_socket_type_valid(blender::bke::bNodeTreeType * /*ntreetype*/,
                                                 blender::bke::bNodeSocketType *socket_type)
 {
-  return blender::bke::node_is_static_socket_type(socket_type) &&
+  return blender::bke::node_is_static_socket_type(*socket_type) &&
          ELEM(socket_type->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA);
 }
 
@@ -149,7 +149,7 @@ void register_node_tree_type_tex()
 
   tt->rna_ext.srna = &RNA_TextureNodeTree;
 
-  blender::bke::node_tree_type_add(tt);
+  blender::bke::node_tree_type_add(*tt);
 }
 
 /**** Material/Texture trees ****/
@@ -167,7 +167,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
   }
 
   if (!nts) {
-    nts = MEM_cnew<bNodeThreadStack>("bNodeThreadStack");
+    nts = MEM_callocN<bNodeThreadStack>("bNodeThreadStack");
     nts->stack = (bNodeStack *)MEM_dupallocN(exec->stack);
     nts->used = true;
     BLI_addtail(lb, nts);
@@ -219,7 +219,7 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
   exec = ntree_exec_begin(context, ntree, parent_key);
 
   /* allocate the thread stack listbase array */
-  exec->threadstack = MEM_cnew_array<ListBase>(BLENDER_MAX_THREADS, "thread stack array");
+  exec->threadstack = MEM_calloc_arrayN<ListBase>(BLENDER_MAX_THREADS, "thread stack array");
 
   LISTBASE_FOREACH (bNode *, node, &exec->nodetree->nodes) {
     node->runtime->need_exec = 1;
@@ -239,8 +239,6 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
   if (ntree->runtime->execdata) {
     return ntree->runtime->execdata;
   }
-
-  context.previews = ntree->previews;
 
   exec = ntreeTexBeginExecTree_internal(&context, ntree, blender::bke::NODE_INSTANCE_KEY_BASE);
 

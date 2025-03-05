@@ -57,6 +57,10 @@ bool mark_id(ID *id)
 
 void generate_preview(const bContext *C, ID *id)
 {
+  if (!ED_preview_id_is_supported(id)) {
+    return;
+  }
+
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   PreviewImage *preview = BKE_previewimg_id_get(id);

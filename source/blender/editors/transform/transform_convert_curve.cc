@@ -25,6 +25,8 @@
 #include "transform_convert.hh"
 #include "transform_orientations.hh"
 
+namespace blender::ed::transform {
+
 /* -------------------------------------------------------------------- */
 /** \name Curve/Surfaces Transform Creation
  * \{ */
@@ -87,9 +89,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
     int count_pt = 0, countsel_pt = 0;
 
     /* Avoid editing locked shapes. */
-    if (t->mode != TFM_DUMMY &&
-        blender::ed::object::shape_key_report_if_locked(tc->obedit, t->reports))
-    {
+    if (t->mode != TFM_DUMMY && object::shape_key_report_if_locked(tc->obedit, t->reports)) {
       continue;
     }
 
@@ -444,3 +444,5 @@ TransConvertTypeInfo TransConvertType_Curve = {
     /*recalc_data*/ recalcData_curve,
     /*special_aftertrans_update*/ nullptr,
 };
+
+}  // namespace blender::ed::transform

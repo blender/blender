@@ -15,11 +15,9 @@
  * For true UUIDs, see `BLI_uuid.h`.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "DNA_session_uid_types.h"
+
+#include "BLI_hash.hh"
 
 /** Generate new UID which is unique throughout the Blender session. */
 SessionUID BLI_session_uid_generate(void);
@@ -36,14 +34,6 @@ uint64_t BLI_session_uid_hash_uint64(const SessionUID *uid);
 
 uint BLI_session_uid_ghash_hash(const void *uid_v);
 bool BLI_session_uid_ghash_compare(const void *lhs_v, const void *rhs_v);
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-
-#  include "BLI_hash.hh"
 
 namespace blender {
 
@@ -62,5 +52,3 @@ template<> struct DefaultHash<SessionUID> {
 };
 
 }  // namespace blender
-
-#endif

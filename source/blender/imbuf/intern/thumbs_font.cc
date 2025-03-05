@@ -21,7 +21,7 @@
 
 ImBuf *IMB_thumb_load_font(const char *filepath, uint x, uint y)
 {
-  ImBuf *ibuf = IMB_allocImBuf(x, y, 32, IB_rect | IB_metadata);
+  ImBuf *ibuf = IMB_allocImBuf(x, y, 32, IB_byte_data | IB_metadata);
 
   /* fill with white and zero alpha */
   const float col[4] = {1.0f, 1.0f, 1.0f, 0.0f};
@@ -66,7 +66,7 @@ ImBuf *IMB_font_preview(const char *filepath, uint width, const float color[4])
   name_h *= scale;
 
   int height = int(name_h * 1.3f);
-  ImBuf *ibuf = IMB_allocImBuf(width, height, 32, IB_rect);
+  ImBuf *ibuf = IMB_allocImBuf(width, height, 32, IB_byte_data);
   /* fill with white and zero alpha */
   const float col[4] = {1.0f, 1.0f, 1.0f, 0.0f};
   IMB_rectfill(ibuf, col);

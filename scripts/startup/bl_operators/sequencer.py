@@ -287,16 +287,9 @@ class SequencerFadesAdd(Operator):
         Returns the matching FCurve or creates a new one if the function can't find a match.
         """
         scene = context.scene
-        fade_fcurve = None
-        fcurves = scene.animation_data.action.fcurves
+        action = scene.animation_data.action
         searched_data_path = sequence.path_from_id(animated_property)
-        for fcurve in fcurves:
-            if fcurve.data_path == searched_data_path:
-                fade_fcurve = fcurve
-                break
-        if not fade_fcurve:
-            fade_fcurve = fcurves.new(data_path=searched_data_path)
-        return fade_fcurve
+        return action.fcurve_ensure_for_datablock(scene, searched_data_path)
 
     def fade_animation_clear(self, fade_fcurve, fades):
         """

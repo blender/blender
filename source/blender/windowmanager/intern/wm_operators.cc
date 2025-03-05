@@ -40,7 +40,9 @@
 #include "BLT_translation.hh"
 
 #include "BLI_dial_2d.h"
+#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -1180,7 +1182,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
            nullptr,
            0,
            0,
-           nullptr);
+           std::nullopt);
 
   /* Move it downwards, mouse over button. */
   UI_block_bounds_set_popup(block, 0.3f * U.widget_unit, blender::int2{0, -UI_UNIT_Y});
@@ -1519,7 +1521,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   wmOperator *op = data->op;
   const uiStyle *style = UI_style_get_dpi();
   const bool small = data->size == WM_POPUP_SIZE_SMALL;
-  const short icon_size = (small ? 32 : 64) * UI_SCALE_FAC;
+  const short icon_size = (small ? 32 : 40) * UI_SCALE_FAC;
 
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
@@ -1581,8 +1583,13 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   }
 
   /* Message lines. */
-  for (auto &st : message_lines) {
-    uiItemL(layout, st, ICON_NONE);
+  if (message_lines.size() > 0) {
+    uiLayout *lines = uiLayoutColumn(layout, false);
+    uiLayoutSetScaleY(lines, 0.65f);
+    uiItemS_ex(lines, 0.1f);
+    for (auto &st : message_lines) {
+      uiItemL(lines, st, ICON_NONE);
+    }
   }
 
   if (data->include_properties) {
@@ -1590,7 +1597,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     uiTemplateOperatorPropertyButs(C, layout, op, UI_BUT_LABEL_ALIGN_SPLIT_COLUMN, 0);
   }
 
-  uiItemS_ex(layout, small ? 0.1f : 2.0f);
+  uiItemS_ex(layout, small ? 0.1f : 1.8f);
 
   /* Clear so the OK button is left alone. */
   UI_block_func_set(block, nullptr, nullptr, nullptr);
@@ -2025,7 +2032,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
            nullptr,
            0,
            0,
-           nullptr);
+           std::nullopt);
 
   /* Move it downwards, mouse over button. */
   UI_block_bounds_set_popup(block, 0.3f * U.widget_unit, blender::int2{0, -UI_UNIT_Y});
@@ -3202,7 +3209,10 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   ScrArea *area = CTX_wm_area(C);
 
-  MEM_SAFE_FREE(rc->dial);
+  if (rc->dial) {
+    BLI_dial_free(rc->dial);
+    rc->dial = nullptr;
+  }
 
   ED_area_status_text(area, nullptr);
 
@@ -3395,7 +3405,10 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (event->val == KM_RELEASE) {
         rc->slow_mode = false;
         handled = true;
-        MEM_SAFE_FREE(rc->dial);
+        if (rc->dial) {
+          BLI_dial_free(rc->dial);
+          rc->dial = nullptr;
+        }
       }
       break;
     }
@@ -3435,7 +3448,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     wmWindowManager *wm = CTX_wm_manager(C);
     if (wm->op_undo_depth == 0) {
       ID *id = rc->ptr.owner_id;
-      if (ED_undo_is_legacy_compatible_for_property(C, id)) {
+      if (ED_undo_is_legacy_compatible_for_property(C, id, rc->ptr)) {
         ED_undo_push(C, op->type->name);
       }
     }

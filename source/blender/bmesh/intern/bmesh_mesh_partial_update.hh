@@ -8,7 +8,9 @@
  * \ingroup bmesh
  */
 
+#include "BLI_bit_span.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_vector.hh"
 
 #include "bmesh_class.hh"
 
@@ -33,35 +35,33 @@ struct BMPartialUpdate_Params {
  *   setting them to dirty values between updates will slow down normal recalculation.
  */
 struct BMPartialUpdate {
-  BMVert **verts;
-  BMFace **faces;
-  int verts_len, verts_len_alloc;
-  int faces_len, faces_len_alloc;
+  blender::Vector<BMVert *> verts;
+  blender::Vector<BMFace *> faces;
 
   /** Store the parameters used in creation so invalid use can be asserted. */
-  BMPartialUpdate_Params params;
+  BMPartialUpdate_Params params = {};
 };
 
 /**
  * All Tagged & Connected, see: #BM_mesh_partial_create_from_verts
  * Operate on everything that's tagged as well as connected geometry.
  */
-BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
-                                                   const BMPartialUpdate_Params *params,
-                                                   const unsigned int *verts_mask,
-                                                   int verts_mask_count)
-    ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] BMPartialUpdate *BM_mesh_partial_create_from_verts(
+    BMesh &bm,
+    const BMPartialUpdate_Params &params,
+    blender::BitSpan verts_mask,
+    int verts_mask_count);
 
 /**
  * All Connected, operate on all faces that have both tagged and un-tagged vertices.
  *
  * Reduces computations when transforming isolated regions.
  */
-BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
-    BMesh *bm,
-    const BMPartialUpdate_Params *params,
-    const unsigned int *verts_mask,
-    int verts_mask_count) ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
+    BMesh &bm,
+    const BMPartialUpdate_Params &params,
+    blender::BitSpan verts_mask,
+    int verts_mask_count);
 
 /**
  * All Connected, operate on all faces that have vertices in the same group.
@@ -82,8 +82,10 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
  * - -1: Don't use grouping logic (include any face that contains a vertex with this group).
  * \param verts_group_count: The number of non-zero values in `verts_groups`.
  */
-BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
-    BMesh *bm, const BMPartialUpdate_Params *params, const int *verts_group, int verts_group_count)
-    ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
+    BMesh &bm,
+    const BMPartialUpdate_Params &params,
+    blender::Span<int> verts_group,
+    int verts_group_count);
 
 void BM_mesh_partial_destroy(BMPartialUpdate *bmpinfo) ATTR_NONNULL(1);

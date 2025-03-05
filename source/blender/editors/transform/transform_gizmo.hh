@@ -24,6 +24,8 @@ struct wmGizmoGroup;
 struct wmGizmoGroupType;
 struct wmMsgBus;
 
+namespace blender::ed::transform {
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -65,3 +67,5 @@ void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t);
 void transform_gizmo_3d_model_from_constraint_and_mode_restore(TransInfo *t);
 
 /** \} */
+
+}  // namespace blender::ed::transform

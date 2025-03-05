@@ -17,12 +17,13 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLT_translation.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -889,8 +890,7 @@ void ANIM_fmodifier_panels(const bContext *C,
       char panel_idname[MAX_NAME];
       panel_id_fn(fcm, panel_idname);
 
-      PointerRNA *fcm_ptr = static_cast<PointerRNA *>(
-          MEM_mallocN(sizeof(PointerRNA), "panel customdata"));
+      PointerRNA *fcm_ptr = MEM_new<PointerRNA>("panel customdata");
       *fcm_ptr = RNA_pointer_create_discrete(owner_id, &RNA_FModifier, fcm);
 
       UI_panel_add_instanced(C, region, &region->panels, panel_idname, fcm_ptr);

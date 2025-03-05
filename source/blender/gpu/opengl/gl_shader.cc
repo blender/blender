@@ -1316,59 +1316,6 @@ void GLShader::unbind()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Transform feedback
- *
- * TODO(fclem): Should be replaced by compute shaders.
- * \{ */
-
-void GLShader::transform_feedback_names_set(Span<const char *> name_list,
-                                            const eGPUShaderTFBType geom_type)
-{
-  glTransformFeedbackVaryings(
-      program_get(), name_list.size(), name_list.data(), GL_INTERLEAVED_ATTRIBS);
-  transform_feedback_type_ = geom_type;
-}
-
-bool GLShader::transform_feedback_enable(blender::gpu::VertBuf *buf_)
-{
-  if (transform_feedback_type_ == GPU_SHADER_TFB_NONE) {
-    return false;
-  }
-
-  GLVertBuf *buf = static_cast<GLVertBuf *>(buf_);
-
-  if (buf->vbo_id_ == 0) {
-    buf->bind();
-  }
-
-  BLI_assert(buf->vbo_id_ != 0);
-
-  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf->vbo_id_);
-
-  switch (transform_feedback_type_) {
-    case GPU_SHADER_TFB_POINTS:
-      glBeginTransformFeedback(GL_POINTS);
-      break;
-    case GPU_SHADER_TFB_LINES:
-      glBeginTransformFeedback(GL_LINES);
-      break;
-    case GPU_SHADER_TFB_TRIANGLES:
-      glBeginTransformFeedback(GL_TRIANGLES);
-      break;
-    default:
-      return false;
-  }
-  return true;
-}
-
-void GLShader::transform_feedback_disable()
-{
-  glEndTransformFeedback();
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Uniforms setters
  * \{ */
 

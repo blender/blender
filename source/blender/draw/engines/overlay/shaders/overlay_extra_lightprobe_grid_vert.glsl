@@ -2,8 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_clipping_lib.glsl"
+#include "infos/overlay_extra_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_extra_grid_base)
+VERTEX_SHADER_CREATE_INFO(draw_modelmat)
+
 #include "draw_model_lib.glsl"
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "select_lib.glsl"
 
@@ -29,7 +34,7 @@ vec4 color_from_id(float color_id)
 
 void main()
 {
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
   mat4 model_mat = gridModelMatrix;
   model_mat[0][3] = model_mat[1][3] = model_mat[2][3] = 0.0;
   model_mat[3][3] = 1.0;

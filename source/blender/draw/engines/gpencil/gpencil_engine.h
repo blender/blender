@@ -152,7 +152,7 @@ typedef struct GPENCIL_tObject {
 
 /* *********** LISTS *********** */
 typedef struct GPENCIL_StorageList {
-  struct GPENCIL_PrivateData *pd;
+  struct GPENCIL_Instance *inst;
 } GPENCIL_StorageList;
 
 struct GPENCIL_Instance {
@@ -206,23 +206,6 @@ struct GPENCIL_Instance {
   Framebuffer smaa_edge_fb = {"smaa_edge_fb"};
   Framebuffer smaa_weight_fb = {"smaa_weight_fb"};
 
-  void acquire_resources(GPENCIL_PrivateData *pd);
-  void release_resources();
-};
-
-struct GPENCIL_Data {
-  void *engine_type; /* Required */
-  DRWViewportEmptyList *fbl;
-  DRWViewportEmptyList *txl;
-  DRWViewportEmptyList *psl;
-  struct GPENCIL_StorageList *stl;
-  struct GPENCIL_Instance *instance;
-
-  char info[GPU_INFO_SIZE];
-};
-
-/* *********** STATIC *********** */
-typedef struct GPENCIL_PrivateData {
   /* Pointers copied from GPENCIL_ViewLayerData. */
   struct BLI_memblock *gp_object_pool;
   GPENCIL_tLayer_Pool *gp_layer_pool;
@@ -247,7 +230,6 @@ typedef struct GPENCIL_PrivateData {
   GPUFrameBuffer *scene_fb;
   /* Copy of txl->dummy_tx */
   GPUTexture *dummy_tx;
-  GPUTexture *dummy_depth;
   /* Copy of v3d->shading.single_color. */
   float v3d_single_color[3];
   /* Copy of v3d->shading.color_type or -1 to ignore. */
@@ -327,23 +309,32 @@ typedef struct GPENCIL_PrivateData {
   float vertex_paint_opacity;
   /* Force 3D depth rendering. */
   bool force_stroke_order_3d;
-} GPENCIL_PrivateData;
+
+  void acquire_resources();
+  void release_resources();
+};
+
+struct GPENCIL_Data {
+  void *engine_type; /* Required */
+  struct GPENCIL_Instance *instance;
+
+  char info[GPU_INFO_SIZE];
+};
 
 /* geometry batch cache functions */
 struct GpencilBatchCache *gpencil_batch_cache_get(struct Object *ob, int cfra);
 
-GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
+GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_Instance *inst,
                                           Object *ob,
                                           bool is_stroke_order_3d,
                                           blender::Bounds<float3> bounds);
-void gpencil_object_cache_sort(GPENCIL_PrivateData *pd);
+void gpencil_object_cache_sort(GPENCIL_Instance *inst);
 
 GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
                                               int layer_id,
                                               bool skip_onion);
 
 GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
-                                              GPENCIL_PrivateData *pd,
                                               const Object *ob,
                                               const blender::bke::greasepencil::Layer &layer,
                                               int onion_id,
@@ -354,7 +345,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
  * We merge the material pools together if object does not contain a huge amount of materials.
  * Also return an offset to the first material of the object in the UBO.
  */
-GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
+GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_Instance *inst,
                                                    Object *ob,
                                                    int *ofs,
                                                    bool is_vertex_mode);
@@ -366,11 +357,11 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
 
 void gpencil_light_ambient_add(GPENCIL_LightPool *lightpool, const float color[3]);
 void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob);
-GPENCIL_LightPool *gpencil_light_pool_add(GPENCIL_PrivateData *pd);
+GPENCIL_LightPool *gpencil_light_pool_add(GPENCIL_Instance *inst);
 /**
  * Creates a single pool containing all lights assigned (light linked) for a given object.
  */
-GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_PrivateData *pd, Object *ob);
+GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_Instance *inst, Object *ob);
 
 /* effects */
 void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
@@ -396,13 +387,13 @@ struct GPUShader *GPENCIL_shader_fx_shadow_get(void);
 void GPENCIL_shader_free(void);
 
 /* Antialiasing */
-void GPENCIL_antialiasing_init(GPENCIL_Instance *inst, GPENCIL_PrivateData *pd);
+void GPENCIL_antialiasing_init(GPENCIL_Instance *inst);
 void GPENCIL_antialiasing_draw(struct GPENCIL_Data *vedata);
 
 /* main functions */
 void GPENCIL_engine_init(void *vedata);
 void GPENCIL_cache_init(void *vedata);
-void GPENCIL_cache_populate(void *vedata, struct Object *ob);
+void GPENCIL_cache_populate(void *vedata, blender::draw::ObjectRef &ob_ref);
 void GPENCIL_cache_finish(void *vedata);
 void GPENCIL_draw_scene(void *vedata);
 

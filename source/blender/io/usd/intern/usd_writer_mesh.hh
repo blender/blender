@@ -53,7 +53,7 @@ class USDGenericMeshWriter : public USDAbstractWriter {
                           const bke::AttributeIter &attr);
   void write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
                      const bke::AttributeIter &attr,
-                     const StringRef active_uvmap_name);
+                     StringRef active_uvmap_name);
 };
 
 class USDMeshWriter : public USDGenericMeshWriter {

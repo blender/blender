@@ -2,52 +2,40 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* To be compiled with subdiv_lib.glsl */
+/* Generate triangle indices from subdivision quads. */
 
-/* Generate triangles from subdivision quads indices. */
+#include "subdiv_lib.glsl"
 
-layout(std430, binding = 1) readonly restrict buffer extraCoarseFaceData
-{
-  uint extra_coarse_face_data[];
-};
-
-layout(std430, binding = 2) writeonly buffer outputTriangles
-{
-  uint output_tris[];
-};
-
-#ifndef SINGLE_MATERIAL
-layout(std430, binding = 3) readonly buffer inputPolygonMatOffset
-{
-  int face_mat_offset[];
-};
+#ifdef SINGLE_MATERIAL
+COMPUTE_SHADER_CREATE_INFO(subdiv_tris_single_material)
+#else
+COMPUTE_SHADER_CREATE_INFO(subdiv_tris_multiple_materials)
 #endif
 
 bool is_face_hidden(uint coarse_quad_index)
 {
-  return (extra_coarse_face_data[coarse_quad_index] & coarse_face_hidden_mask) != 0;
+  return (extra_coarse_face_data[coarse_quad_index] & shader_data.coarse_face_hidden_mask) != 0;
 }
 
 void main()
 {
   uint quad_index = get_global_invocation_index();
-  if (quad_index >= total_dispatch_size) {
+  if (quad_index >= shader_data.total_dispatch_size) {
     return;
   }
 
   uint loop_index = quad_index * 4;
-
-  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index, coarse_face_count);
+  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index,
+                                                                    shader_data.coarse_face_count);
 
 #ifdef SINGLE_MATERIAL
   uint triangle_loop_index = quad_index * 6;
 #else
-  int mat_offset = face_mat_offset[coarse_quad_index];
-
-  int triangle_loop_index = (int(quad_index) + mat_offset) * 6;
+  uint mat_offset = face_mat_offset[coarse_quad_index];
+  uint triangle_loop_index = (quad_index + mat_offset) * 6;
 #endif
 
-  if (use_hide && is_face_hidden(coarse_quad_index)) {
+  if (shader_data.use_hide && is_face_hidden(coarse_quad_index)) {
     output_tris[triangle_loop_index + 0] = 0xffffffff;
     output_tris[triangle_loop_index + 1] = 0xffffffff;
     output_tris[triangle_loop_index + 2] = 0xffffffff;

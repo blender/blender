@@ -35,6 +35,7 @@ class Geometry;
 class GeometryManager;
 class Object;
 class ObjectManager;
+class OSLManager;
 class ParticleSystemManager;
 class ParticleSystem;
 class PointCloud;
@@ -136,7 +137,6 @@ class Scene : public NodeOwner {
   unique_ptr_vector<Shader> shaders;
   unique_ptr_vector<Pass> passes;
   unique_ptr_vector<ParticleSystem> particle_systems;
-  unique_ptr_vector<Light> lights;
   unique_ptr_vector<Geometry> geometry;
   unique_ptr_vector<Object> objects;
   unique_ptr_vector<Procedural> procedurals;
@@ -144,6 +144,7 @@ class Scene : public NodeOwner {
   /* data managers */
   unique_ptr<ImageManager> image_manager;
   unique_ptr<LightManager> light_manager;
+  unique_ptr<OSLManager> osl_manager;
   unique_ptr<ShaderManager> shader_manager;
   unique_ptr<GeometryManager> geometry_manager;
   unique_ptr<ObjectManager> object_manager;
@@ -281,7 +282,6 @@ template<> void Scene::delete_node(Procedural *node);
 template<> void Scene::delete_node(AlembicProcedural *node);
 template<> void Scene::delete_node(Pass *node);
 
-template<> void Scene::delete_nodes(const set<Light *> &nodes, const NodeOwner *owner);
 template<> void Scene::delete_nodes(const set<Geometry *> &nodes, const NodeOwner *owner);
 template<> void Scene::delete_nodes(const set<Object *> &nodes, const NodeOwner *owner);
 template<> void Scene::delete_nodes(const set<ParticleSystem *> &nodes, const NodeOwner *owner);

@@ -157,8 +157,6 @@ class Mesh : public Geometry {
 
   AttributeSet subd_attributes;
 
- private:
-  unique_ptr<PackedPatchTable> patch_table;
   /* BVH */
   size_t vert_offset;
 
@@ -166,6 +164,9 @@ class Mesh : public Geometry {
   size_t patch_table_offset;
   size_t face_offset;
   size_t corner_offset;
+
+ private:
+  unique_ptr<PackedPatchTable> patch_table;
 
   size_t num_subd_verts;
   size_t num_subd_faces;

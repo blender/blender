@@ -140,6 +140,7 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
   Mesh *active_mesh = ED_mesh_context(C);
   AttributeOwner active_owner = AttributeOwner::from_id(&active_mesh->id);
   CustomDataLayer *active_attribute = BKE_attributes_active_get(active_owner);
+  const StringRef name = active_attribute->name;
   const eCustomDataType active_type = eCustomDataType(active_attribute->type);
   const CPPType &type = *bke::custom_data_type_to_cpp_type(active_type);
 
@@ -156,13 +157,14 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(object);
     BMesh *bm = em->bm;
     AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-    CustomDataLayer *layer = BKE_attributes_active_get(owner);
+    CustomDataLayer *layer = BKE_attribute_search_for_write(
+        owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
     if (!layer) {
       continue;
     }
     /* Use implicit conversions to try to handle the case where the active attribute has a
      * different type on multiple objects. */
-    const eCustomDataType dst_data_type = eCustomDataType(active_attribute->type);
+    const eCustomDataType dst_data_type = eCustomDataType(layer->type);
     const CPPType &dst_type = *bke::custom_data_type_to_cpp_type(dst_data_type);
     if (&type != &dst_type && !conversions.is_convertible(type, dst_type)) {
       continue;

@@ -11,6 +11,7 @@
 #include <string>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -561,16 +562,19 @@ bool jump_to_bone(bContext *C, Object *ob, const char *bone_name, bool reveal_hi
 
 /* `object_data_transform.cc` */
 
-XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode);
-XFormObjectData *data_xform_create(ID *id);
-XFormObjectData *data_xform_create_from_edit_mode(ID *id);
+struct XFormObjectData {
+  ID *id;
+  XFormObjectData() = default;
+  virtual ~XFormObjectData() = default;
+};
 
-void data_xform_destroy(XFormObjectData *xod_base);
+std::unique_ptr<XFormObjectData> data_xform_create(ID *id);
+std::unique_ptr<XFormObjectData> data_xform_create_from_edit_mode(ID *id);
 
-void data_xform_by_mat4(XFormObjectData *xod, const float mat[4][4]);
+void data_xform_by_mat4(XFormObjectData &xod, const float4x4 &transform);
 
-void data_xform_restore(XFormObjectData *xod);
-void data_xform_tag_update(XFormObjectData *xod);
+void data_xform_restore(XFormObjectData &xod);
+void data_xform_tag_update(XFormObjectData &xod);
 
 void ui_template_modifier_asset_menu_items(uiLayout &layout, StringRef catalog_path);
 

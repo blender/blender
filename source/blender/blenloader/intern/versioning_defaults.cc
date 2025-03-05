@@ -401,7 +401,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   if (ts->sculpt) {
-    ts->sculpt->flags = (DNA_struct_default_get(Sculpt))->flags;
+    ts->sculpt->flags = DNA_struct_default_get(Sculpt)->flags;
   }
 
   /* Correct default startup UVs. */
@@ -502,6 +502,17 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           BLI_findstring(&bmain->objects, "Stroke", offsetof(ID, name) + 2));
       if (ob && ob->type == OB_GPENCIL_LEGACY) {
         ob->dtx |= OB_USE_GPENCIL_LIGHTS;
+      }
+    }
+
+    /* Add library weak references to avoid duplicating materials from essentials. */
+    const std::optional<std::string> assets_path = BKE_appdir_folder_id(BLENDER_SYSTEM_DATAFILES,
+                                                                        "assets/brushes");
+    if (assets_path.has_value()) {
+      const std::string assets_blend_path = *assets_path + "/essentials_brushes-gp_draw.blend";
+      LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+        BKE_main_library_weak_reference_add(
+            &material->id, assets_blend_path.c_str(), material->id.name);
       }
     }
 
@@ -617,8 +628,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
     else {
       /* Remove sculpt-mask data in default mesh objects for all non-sculpt templates. */
-      CustomData_free_layers(&mesh->vert_data, CD_PAINT_MASK, mesh->verts_num);
-      CustomData_free_layers(&mesh->corner_data, CD_GRID_PAINT_MASK, mesh->corners_num);
+      CustomData_free_layers(&mesh->vert_data, CD_PAINT_MASK);
+      CustomData_free_layers(&mesh->corner_data, CD_GRID_PAINT_MASK);
     }
     mesh->attributes_for_write().remove(".sculpt_face_set");
   }
@@ -646,12 +657,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       for (bNode *node : ma->nodetree->all_nodes()) {
         if (node->type_legacy == SH_NODE_BSDF_PRINCIPLED) {
           bNodeSocket *roughness_socket = blender::bke::node_find_socket(
-              node, SOCK_IN, "Roughness");
+              *node, SOCK_IN, "Roughness");
           *version_cycles_node_socket_float_value(roughness_socket) = 0.5f;
-          bNodeSocket *emission = blender::bke::node_find_socket(node, SOCK_IN, "Emission Color");
+          bNodeSocket *emission = blender::bke::node_find_socket(*node, SOCK_IN, "Emission Color");
           copy_v4_fl(version_cycles_node_socket_rgba_value(emission), 1.0f);
           bNodeSocket *emission_strength = blender::bke::node_find_socket(
-              node, SOCK_IN, "Emission Strength");
+              *node, SOCK_IN, "Emission Strength");
           *version_cycles_node_socket_float_value(emission_strength) = 0.0f;
 
           node->custom1 = SHD_GLOSSY_MULTI_GGX;

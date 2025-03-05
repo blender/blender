@@ -27,8 +27,8 @@ void main()
 
   normal_interp = normalize(drw_normal_object_to_view(nor));
 
-  object_id = int(uint(resource_id) & 0xFFFFu) + 1;
+  object_id = int(uint(drw_resource_id()) & 0xFFFFu) + 1;
 
   workbench_material_data_get(
-      int(drw_CustomID), ac.rgb, color_interp, alpha_interp, _roughness, metallic);
+      int(drw_custom_id()), ac.rgb, color_interp, alpha_interp, _roughness, metallic);
 }

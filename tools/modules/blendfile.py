@@ -548,7 +548,9 @@ class BlendFileBlock:
                 yield (k, "<%s>" % dna_type.dna_type_id.decode('ascii'))
 
 
-########################################################################################################################
+# -----------------------------------------------------------------------------
+# Low Level Blend File Access
+
 # Way more basic access to blend-file data, without any DNA handling.
 
 class BlendFileRaw:

@@ -785,6 +785,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--gpu-backend");
 #  ifdef WITH_OPENGL_BACKEND
   BLI_args_print_arg_doc(ba, "--gpu-compilation-subprocesses");
+  BLI_args_print_arg_doc(ba, "--profile-gpu");
 #  endif
 
   PRINT("\n");
@@ -2509,6 +2510,18 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
   return 0;
 }
 
+#  ifdef WITH_OPENGL_BACKEND
+static const char arg_handle_profile_gpu_set_doc[] =
+    "\n"
+    "\tEnable CPU & GPU performance profiling for GPU debug groups\n"
+    "\t(Outputs a profile.json file in the Trace Event Format to the current directory)";
+static int arg_handle_profile_gpu_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+{
+  G.profile_gpu = true;
+  return 0;
+}
+#  endif
+
 /**
  * Implementation for #arg_handle_load_last_file, also used by `--open-last`.
  * \return true on success.
@@ -2676,6 +2689,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                "--gpu-compilation-subprocesses",
                CB(arg_handle_gpu_compilation_subprocesses_set),
                nullptr);
+  BLI_args_add(ba, nullptr, "--profile-gpu", CB(arg_handle_profile_gpu_set), nullptr);
 #  endif
 
   /* Pass: Background Mode & Settings

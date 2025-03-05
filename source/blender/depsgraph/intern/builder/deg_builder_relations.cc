@@ -18,6 +18,7 @@
 #include "BKE_global.hh"
 #include "DNA_modifier_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
@@ -75,6 +76,7 @@
 #include "BKE_material.hh"
 #include "BKE_mball.hh"
 #include "BKE_modifier.hh"
+#include "BKE_nla.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
@@ -1616,7 +1618,7 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
     build_animdata_action_targets(id, adt->slot_handle, adt_key, operation_from, adt->action);
   }
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    if (nlt->flag & NLATRACK_MUTED) {
+    if (!BKE_nlatrack_is_enabled(*adt, *nlt)) {
       continue;
     }
     build_animdata_nlastrip_targets(id, adt_key, operation_from, &nlt->strips);

@@ -11,14 +11,19 @@ int float_to_int(float value)
   return int(value);
 }
 
-vec4 float_to_vector(float value)
+vec3 float_to_float3(float value)
 {
-  return vec4(vec3(value), 1.0);
+  return vec3(value);
 }
 
 vec4 float_to_color(float value)
 {
   return vec4(vec3(value), 1.0);
+}
+
+vec4 float_to_float4(float value)
+{
+  return vec4(value);
 }
 
 /* --------------------------------------------------------------------
@@ -30,9 +35,9 @@ float int_to_float(int value)
   return float(value);
 }
 
-vec4 int_to_vector(int value)
+vec3 int_to_float3(int value)
 {
-  return float_to_vector(int_to_float(value));
+  return float_to_float3(int_to_float(value));
 }
 
 vec4 int_to_color(int value)
@@ -40,23 +45,38 @@ vec4 int_to_color(int value)
   return float_to_color(int_to_float(value));
 }
 
+vec4 int_to_float4(int value)
+{
+  return float_to_float4(int_to_float(value));
+}
+
 /* --------------------------------------------------------------------
- * Vector to other.
+ * Float3 to other.
  */
 
-float vector_to_float(vec4 value)
+float float3_to_float(vec3 value)
 {
-  return dot(value.xyz, vec3(1.0)) / 3.0;
+  return dot(value, vec3(1.0)) / 3.0;
 }
 
-int vector_to_int(vec4 value)
+int float3_to_int(vec3 value)
 {
-  return float_to_int(vector_to_float(value));
+  return float_to_int(float3_to_float(value));
 }
 
-vec4 vector_to_color(vec4 value)
+vec4 float3_to_color(vec3 value)
 {
-  return vec4(value.xyz, 1.0);
+  return vec4(value, 1.0);
+}
+
+vec4 float3_to_float4(vec3 value)
+{
+  return vec4(value, 0.0);
+}
+
+vec4 vector_to_float4(vec4 value)
+{
+  return value;
 }
 
 /* --------------------------------------------------------------------
@@ -73,7 +93,36 @@ int color_to_int(vec4 value, vec3 luminance_coefficients)
   return float_to_int(color_to_float(value, luminance_coefficients));
 }
 
-vec4 color_to_vector(vec4 value)
+vec3 color_to_float3(vec4 value)
+{
+  return value.rgb;
+}
+
+vec4 color_to_float4(vec4 value)
+{
+  return value;
+}
+
+/* --------------------------------------------------------------------
+ * Float4 to other.
+ */
+
+float float4_to_float(vec4 value)
+{
+  return dot(value, vec4(1.0)) / 4.0;
+}
+
+int float4_to_int(vec4 value)
+{
+  return float_to_int(float4_to_float(value));
+}
+
+vec3 float4_to_float3(vec4 value)
+{
+  return value.xyz;
+}
+
+vec4 float4_to_color(vec4 value)
 {
   return value;
 }

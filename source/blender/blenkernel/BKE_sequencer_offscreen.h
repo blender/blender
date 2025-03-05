@@ -13,10 +13,6 @@
 
 #include "IMB_imbuf_types.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct GPUOffScreen;
 
 enum eDrawType;
@@ -36,7 +32,3 @@ typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            struct GPUViewport *viewport,
                                            char err_out[256]);
 extern SequencerDrawView sequencer_view3d_fn;
-
-#ifdef __cplusplus
-}
-#endif

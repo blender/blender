@@ -3478,6 +3478,15 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             *_tools_annotate,
         ],
+        'EDIT_POINTCLOUD': [
+            *_tools_select,
+            _defs_view3d_generic.cursor,
+            None,
+            *_tools_transform,
+            None,
+            *_tools_annotate,
+            _defs_view3d_generic.ruler,
+        ],
         'PARTICLE': [
             *_tools_select,
             _defs_view3d_generic.cursor,

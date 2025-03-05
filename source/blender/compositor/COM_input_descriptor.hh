@@ -47,6 +47,9 @@ class InputDescriptor {
    * result that will be discarded anyways. If false, the input can work with both single and
    * non-single values. */
   bool expects_single_value = false;
+  /* If true, the input will not be implicitly converted to the type of the input and will be
+   * passed as is. */
+  bool skip_type_conversion = false;
 };
 
 }  // namespace blender::compositor

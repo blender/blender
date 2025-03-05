@@ -265,7 +265,6 @@ void BPY_driver_reset()
 {
   PyGILState_STATE gilstate;
   const bool use_gil = true; /* !PyC_IsInterpreterActive(); */
-
   if (use_gil) {
     gilstate = PyGILState_Ensure();
   }

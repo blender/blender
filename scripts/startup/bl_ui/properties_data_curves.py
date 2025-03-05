@@ -72,6 +72,15 @@ class DATA_PT_curves_surface(DataButtonsPanel, Panel):
             row.active = has_surface
 
 
+class CURVES_MT_attribute_context_menu(Menu):
+    bl_label = "Attribute Specials"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("geometry.attribute_convert")
+
+
 class CURVES_MT_add_attribute(Menu):
     bl_label = "Add Attribute"
 
@@ -169,6 +178,10 @@ class DATA_PT_CURVES_attributes(DataButtonsPanel, Panel):
         col.menu("CURVES_MT_add_attribute", icon='ADD', text="")
         col.operator("geometry.attribute_remove", icon='REMOVE', text="")
 
+        col.separator()
+
+        col.menu("CURVES_MT_attribute_context_menu", icon='DOWNARROW_HLT', text="")
+
 
 class DATA_PT_curves_animation(DataButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
     COMPAT_ENGINES = {
@@ -196,6 +209,7 @@ classes = (
     DATA_PT_curves_animation,
     DATA_PT_custom_props_curves,
     CURVES_MT_add_attribute,
+    CURVES_MT_attribute_context_menu,
     CURVES_UL_attributes,
 )
 

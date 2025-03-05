@@ -141,7 +141,7 @@ static void scale_factors_by_height_and_depth(const float height,
                                               const MutableSpan<float3> local_positions,
                                               const MutableSpan<float> factors)
 {
-  if (height != 1.0f && height != 0.0f) {
+  if (!ELEM(height, 1.0f, 0.0f)) {
     for (const int i : factors.index_range()) {
       if (local_positions[i].z > 0.0f) {
         factors[i] *= height;

@@ -18,6 +18,7 @@
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_memory_counter_fwd.hh"
 #  include "BLI_span.hh"
+#  include "BLI_virtual_array_fwd.hh"
 #endif
 
 #ifdef __cplusplus
@@ -25,6 +26,7 @@ namespace blender {
 template<typename T> class Span;
 namespace bke {
 class AttributeAccessor;
+struct BVHTreeFromPointCloud;
 class MutableAttributeAccessor;
 struct PointCloudRuntime;
 }  // namespace bke
@@ -58,6 +60,9 @@ typedef struct PointCloud {
   blender::Span<blender::float3> positions() const;
   blender::MutableSpan<blender::float3> positions_for_write();
 
+  blender::VArray<float> radius() const;
+  blender::MutableSpan<float> radius_for_write();
+
   blender::bke::AttributeAccessor attributes() const;
   blender::bke::MutableAttributeAccessor attributes_for_write();
 
@@ -68,6 +73,8 @@ typedef struct PointCloud {
 
   /** Get the largest material index used by the point-cloud or `nullopt` if it is empty. */
   std::optional<int> material_index_max() const;
+
+  blender::bke::BVHTreeFromPointCloud bvh_tree() const;
 
   void count_memory(blender::MemoryCounter &memory) const;
 #endif

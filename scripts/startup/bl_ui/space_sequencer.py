@@ -866,11 +866,6 @@ class SEQUENCER_MT_add_effect(Menu):
         ).type = 'MULTIPLY'
         col.operator(
             "sequencer.effect_strip_add",
-            text="Over Drop",
-            text_ctxt=i18n_contexts.id_sequence,
-        ).type = 'OVER_DROP'
-        col.operator(
-            "sequencer.effect_strip_add",
             text="Alpha Over",
             text_ctxt=i18n_contexts.id_sequence,
         ).type = 'ALPHA_OVER'
@@ -1102,7 +1097,7 @@ class SEQUENCER_MT_strip(Menu):
 
                 if strip_type in {
                         'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-                        'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP', 'WIPE', 'GLOW',
+                        'GAMMA_CROSS', 'MULTIPLY', 'WIPE', 'GLOW',
                         'TRANSFORM', 'COLOR', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
                         'GAUSSIAN_BLUR',
                 }:
@@ -1286,7 +1281,7 @@ class SEQUENCER_MT_context_menu(Menu):
 
             if strip_type in {
                     'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-                    'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP', 'WIPE', 'GLOW',
+                    'GAMMA_CROSS', 'MULTIPLY', 'WIPE', 'GLOW',
                     'TRANSFORM', 'COLOR', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
                     'GAUSSIAN_BLUR',
             }:
@@ -1483,7 +1478,7 @@ class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
 
         if strip_type in {
                 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER', 'MULTIPLY',
-                'OVER_DROP', 'GLOW', 'TRANSFORM', 'SPEED', 'MULTICAM',
+                'GLOW', 'TRANSFORM', 'SPEED', 'MULTICAM',
                 'GAUSSIAN_BLUR', 'COLORMIX',
         }:
             icon_header = 'SHADERFX'
@@ -1575,7 +1570,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
         return strip.type in {
             'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-            'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
+            'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
             'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
             'MULTICAM', 'GAUSSIAN_BLUR', 'TEXT', 'COLORMIX',
         }
@@ -1708,7 +1703,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             layout.prop(strip, "wrap_width", text="Wrap Width")
 
         col = layout.column(align=True)
-        if strip_type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER', 'ALPHA_UNDER', 'OVER_DROP'}:
+        if strip_type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER', 'ALPHA_UNDER'}:
             col.prop(strip, "use_default_fade", text="Default Fade")
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect Fader")
@@ -2453,7 +2448,7 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
             'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'MASK',
             'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER',
             'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
-            'OVER_DROP', 'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+            'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
             'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX',
         }
 
@@ -2490,7 +2485,7 @@ class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
             'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'MASK',
             'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER',
             'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
-            'OVER_DROP', 'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+            'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
             'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX',
         }
 

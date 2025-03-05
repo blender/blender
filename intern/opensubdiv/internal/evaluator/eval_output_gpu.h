@@ -30,26 +30,27 @@ class GpuEvalOutput : public VolatileEvalOutput<GLVertexBuffer,
                 const PatchTable *patch_table,
                 EvaluatorCache *evaluator_cache = nullptr);
 
-  void fillPatchArraysBuffer(OpenSubdiv_Buffer *patch_arrays_buffer) override;
+  void fillPatchArraysBuffer(blender::gpu::VertBuf *patch_arrays_buffer) override;
 
-  void wrapPatchIndexBuffer(OpenSubdiv_Buffer *patch_index_buffer) override;
+  void wrapPatchIndexBuffer(blender::gpu::VertBuf *patch_index_buffer) override;
 
-  void wrapPatchParamBuffer(OpenSubdiv_Buffer *patch_param_buffer) override;
+  void wrapPatchParamBuffer(blender::gpu::VertBuf *patch_param_buffer) override;
 
-  void wrapSrcBuffer(OpenSubdiv_Buffer *src_buffer) override;
+  void wrapSrcBuffer(blender::gpu::VertBuf *src_buffer) override;
 
-  void wrapSrcVertexDataBuffer(OpenSubdiv_Buffer *src_buffer) override;
+  void wrapSrcVertexDataBuffer(blender::gpu::VertBuf *src_buffer) override;
 
   void fillFVarPatchArraysBuffer(const int face_varying_channel,
-                                 OpenSubdiv_Buffer *patch_arrays_buffer) override;
+                                 blender::gpu::VertBuf *patch_arrays_buffer) override;
 
   void wrapFVarPatchIndexBuffer(const int face_varying_channel,
-                                OpenSubdiv_Buffer *patch_index_buffer) override;
+                                blender::gpu::VertBuf *patch_index_buffer) override;
 
   void wrapFVarPatchParamBuffer(const int face_varying_channel,
-                                OpenSubdiv_Buffer *patch_param_buffer) override;
+                                blender::gpu::VertBuf *patch_param_buffer) override;
 
-  void wrapFVarSrcBuffer(const int face_varying_channel, OpenSubdiv_Buffer *src_buffer) override;
+  void wrapFVarSrcBuffer(const int face_varying_channel,
+                         blender::gpu::VertBuf *src_buffer) override;
 };
 
 }  // namespace blender::opensubdiv

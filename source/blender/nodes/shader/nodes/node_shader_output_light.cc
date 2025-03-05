@@ -47,5 +47,5 @@ void register_node_type_sh_output_light()
 
   ntype.no_muting = true;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

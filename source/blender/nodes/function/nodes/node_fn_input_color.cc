@@ -32,7 +32,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeInputColor *data = MEM_cnew<NodeInputColor>(__func__);
+  NodeInputColor *data = MEM_callocN<NodeInputColor>(__func__);
   copy_v4_fl4(data->color, 0.5f, 0.5f, 0.5f, 1.0f);
   node->storage = data;
 }
@@ -48,10 +48,10 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
-      &ntype, "NodeInputColor", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeInputColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = node_build_multi_function;
   ntype.draw_buttons = node_layout;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

@@ -157,14 +157,12 @@ void RNA_api_fcurves(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_float(
       func, "step", 1, 0.01, FLT_MAX, "Step", "At which interval to add keys", 1, 16);
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_PYFUNC_OPTIONAL);
   RNA_def_enum(func,
                "remove",
                channel_bake_remove_options,
                int(blender::animrig::BakeCurveRemove::IN_RANGE),
                "Remove Options",
                "Choose which keys should be automatically removed by the bake");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_PYFUNC_OPTIONAL);
 }
 
 void RNA_api_drivers(StructRNA * /*srna*/)

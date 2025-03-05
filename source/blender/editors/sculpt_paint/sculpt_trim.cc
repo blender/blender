@@ -809,7 +809,7 @@ static int gesture_box_exec(bContext *C, wmOperator *op)
   }
 
   gesture_data->operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<TrimOperation>(__func__));
+      MEM_callocN<TrimOperation>(__func__));
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
 
@@ -840,7 +840,7 @@ static int gesture_lasso_exec(bContext *C, wmOperator *op)
   }
 
   gesture_data->operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<TrimOperation>(__func__));
+      MEM_callocN<TrimOperation>(__func__));
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
 
@@ -871,7 +871,7 @@ static int gesture_line_exec(bContext *C, wmOperator *op)
   }
 
   gesture_data->operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<TrimOperation>(__func__));
+      MEM_callocN<TrimOperation>(__func__));
 
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
@@ -902,7 +902,7 @@ static int gesture_polyline_exec(bContext *C, wmOperator *op)
   }
 
   gesture_data->operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<TrimOperation>(__func__));
+      MEM_callocN<TrimOperation>(__func__));
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
 

@@ -4,6 +4,7 @@
 
 #include "testing/testing.h"
 
+#include "BLI_math_base.h"
 #include "BLI_math_matrix_types.hh"
 #include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"

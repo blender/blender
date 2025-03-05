@@ -872,13 +872,13 @@ static void multires_unsubdivide_free_original_datalayers(Mesh *mesh)
   const int l_layer_index = CustomData_get_named_layer_index(
       &mesh->corner_data, CD_PROP_INT32, lname);
   if (l_layer_index != -1) {
-    CustomData_free_layer(&mesh->corner_data, CD_PROP_INT32, mesh->corners_num, l_layer_index);
+    CustomData_free_layer(&mesh->corner_data, CD_PROP_INT32, l_layer_index);
   }
 
   const int v_layer_index = CustomData_get_named_layer_index(
       &mesh->vert_data, CD_PROP_INT32, vname);
   if (v_layer_index != -1) {
-    CustomData_free_layer(&mesh->vert_data, CD_PROP_INT32, mesh->verts_num, v_layer_index);
+    CustomData_free_layer(&mesh->vert_data, CD_PROP_INT32, v_layer_index);
   }
 }
 
@@ -1177,7 +1177,7 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
 {
   /* Free the current MDISPS and create a new ones. */
   if (CustomData_has_layer(&base_mesh->corner_data, CD_MDISPS)) {
-    CustomData_free_layers(&base_mesh->corner_data, CD_MDISPS, base_mesh->corners_num);
+    CustomData_free_layers(&base_mesh->corner_data, CD_MDISPS);
   }
   MDisps *mdisps = static_cast<MDisps *>(CustomData_add_layer(
       &base_mesh->corner_data, CD_MDISPS, CD_SET_DEFAULT, base_mesh->corners_num));

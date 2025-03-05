@@ -204,13 +204,7 @@ struct Cone {
   vec3 direction;
   float angle_cos;
 
-#ifdef __cplusplus
-  inline Cone() = default;
-  inline Cone(vec3 in_direction, float in_angle_cos)
-      : direction(in_direction), angle_cos(in_angle_cos)
-  {
-  }
-#endif
+  METAL_CONSTRUCTOR_2(Cone, vec3, direction, float, angle_cos)
 };
 
 Cone shape_cone(vec3 direction, float angle_cosine)

@@ -20,9 +20,6 @@ struct bConstraintTarget;
 struct bPoseChannel;
 
 /* ---------------------------------------------------------------------------- */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* special struct for use in constraint evaluation */
 typedef struct bConstraintOb {
@@ -243,11 +240,10 @@ struct bConstraint *BKE_constraint_add_for_pose(struct Object *ob,
                                                 const char *name,
                                                 short type);
 
-bool BKE_constraint_remove_ex(ListBase *list, struct Object *ob, struct bConstraint *con);
 /**
  * Remove the specified constraint from the given constraint stack.
  */
-bool BKE_constraint_remove(ListBase *list, struct bConstraint *con);
+bool BKE_constraint_remove_ex(ListBase *list, struct Object *ob, struct bConstraint *con);
 
 /**
  * Apply the specified constraint in the given constraint stack.
@@ -375,7 +371,3 @@ void BKE_constraint_blend_write(struct BlendWriter *writer, struct ListBase *con
 void BKE_constraint_blend_read_data(struct BlendDataReader *reader,
                                     struct ID *id_owner,
                                     struct ListBase *lb);
-
-#ifdef __cplusplus
-}
-#endif

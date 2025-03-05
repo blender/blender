@@ -11,7 +11,7 @@
 
 #elif defined(GPU_VERTEX_SHADER)
 
-void select_id_set(int id)
+void select_id_set(uint id)
 {
   /* Declared in the create info. */
   select_id = id;
@@ -19,7 +19,7 @@ void select_id_set(int id)
 
 #elif defined(GPU_FRAGMENT_SHADER)
 
-void select_id_output(int id)
+void select_id_output(uint id)
 {
   if (id == -1) {
     /* Invalid index */
@@ -28,7 +28,7 @@ void select_id_output(int id)
 
   if (select_info_buf.mode == SELECT_ALL) {
     /* Set the bit of the select id in the bitmap. */
-    atomicOr(out_select_buf[id / 32u], 1u << (uint(id) % 32u));
+    atomicOr(out_select_buf[id / 32u], 1u << (id % 32u));
   }
   else if (select_info_buf.mode == SELECT_PICK_ALL) {
     /* Stores the nearest depth for this select id. */

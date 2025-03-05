@@ -45,8 +45,8 @@ class USDPointsReader : public USDGeomReader {
                      USDMeshReadParams params,
                      const char **r_err_str) override;
 
-  void read_velocities(PointCloud *point_cloud, const double motionSampleTime) const;
-  void read_custom_data(PointCloud *point_cloud, const double motionSampleTime) const;
+  void read_velocities(PointCloud *pointcloud, const double motionSampleTime) const;
+  void read_custom_data(PointCloud *pointcloud, const double motionSampleTime) const;
 
   /* Return true if the USD data may be time varying. */
   bool is_animated() const;

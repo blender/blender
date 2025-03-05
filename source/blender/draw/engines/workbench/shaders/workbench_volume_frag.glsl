@@ -265,9 +265,9 @@ void main()
   fragColor = vec4(Lscat, Tr);
 #else
   vec2 screen_uv = gl_FragCoord.xy / vec2(textureSize(depthBuffer, 0).xy);
-  bool is_persp = drw_view.winmat[3][3] == 0.0;
+  bool is_persp = drw_view().winmat[3][3] == 0.0;
 
-  vec3 volume_center = ModelMatrix[3].xyz;
+  vec3 volume_center = drw_modelmat()[3].xyz;
 
   float depth = do_depth_test ? texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r : 1.0;
   float depth_end = min(depth, gl_FragCoord.z);

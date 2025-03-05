@@ -396,8 +396,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       mesh, int(maxVerts), int(maxEdges), int(maxPolys), int(maxPolys) * 4);
   /* The modifier doesn't support original index mapping on the edge or face domains. Remove
    * original index layers, since otherwise edges aren't displayed at all in wireframe view. */
-  CustomData_free_layers(&result->edge_data, CD_ORIGINDEX, result->edges_num);
-  CustomData_free_layers(&result->face_data, CD_ORIGINDEX, result->edges_num);
+  CustomData_free_layers(&result->edge_data, CD_ORIGINDEX);
+  CustomData_free_layers(&result->face_data, CD_ORIGINDEX);
 
   const blender::Span<float3> vert_positions_orig = mesh->vert_positions();
   const blender::Span<int2> edges_orig = mesh->edges();

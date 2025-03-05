@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_edit_mode_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
+
 /**
  * We want to know how much a pixel is covered by a line.
  * We replace the square pixel with a circle of the same area and try to find the intersection

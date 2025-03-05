@@ -39,6 +39,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "GEO_curves_remove_and_split.hh"
 #include "GEO_join_geometries.hh"
 #include "GEO_smooth_curves.hh"
 
@@ -1491,8 +1492,7 @@ static bool grease_pencil_fill_init(bContext &C, wmOperator &op)
   BKE_curvemapping_init(brush.gpencil_settings->curve_rand_saturation);
   BKE_curvemapping_init(brush.gpencil_settings->curve_rand_value);
 
-  Material *material = BKE_grease_pencil_object_material_ensure_from_active_input_brush(
-      &bmain, &ob, &brush);
+  Material *material = BKE_grease_pencil_object_material_ensure_from_brush(&bmain, &ob, &brush);
   const int material_index = BKE_object_material_index_get(&ob, material);
 
   const bool invert = RNA_boolean_get(op.ptr, "invert");
@@ -1800,8 +1800,8 @@ static bool remove_points_and_split_from_drawings(
     if (Drawing *drawing = get_current_drawing_or_duplicate_for_autokey(
             scene, grease_pencil, info.layer_index))
     {
-      drawing->strokes_for_write() = ed::greasepencil::remove_points_and_split(drawing->strokes(),
-                                                                               points_to_remove);
+      drawing->strokes_for_write() = geometry::remove_points_and_split(drawing->strokes(),
+                                                                       points_to_remove);
       drawing->tag_topology_changed();
       changed = true;
     }

@@ -268,15 +268,16 @@ ccl_device_inline int patch_eval_control_verts(KernelGlobals kg,
 
 /* functions for evaluating attributes on patches */
 
-ccl_device float patch_eval_float(KernelGlobals kg,
-                                  const ccl_private ShaderData *sd,
-                                  const int offset,
-                                  const int patch,
-                                  const float u,
-                                  const float v,
-                                  const int channel,
-                                  ccl_private float *du,
-                                  ccl_private float *dv)
+template<typename T, bool is_uchar>
+ccl_device T patch_eval(KernelGlobals kg,
+                        const ccl_private ShaderData *sd,
+                        const int offset,
+                        const int patch,
+                        const float u,
+                        const float v,
+                        const int channel,
+                        ccl_private T *du,
+                        ccl_private T *dv)
 {
   int indices[PATCH_MAX_CONTROL_VERTS];
   float weights[PATCH_MAX_CONTROL_VERTS];
@@ -286,181 +287,22 @@ ccl_device float patch_eval_float(KernelGlobals kg,
   const int num_control = patch_eval_control_verts(
       kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
 
-  float val = 0.0f;
+  T val = make_zero<T>();
   if (du) {
-    *du = 0.0f;
+    *du = make_zero<T>();
   }
   if (dv) {
-    *dv = 0.0f;
+    *dv = make_zero<T>();
   }
 
   for (int i = 0; i < num_control; i++) {
-    const float v = kernel_data_fetch(attributes_float, offset + indices[i]);
-
-    val += v * weights[i];
-    if (du) {
-      *du += v * weights_du[i];
+    T v;
+    if (is_uchar) {
+      v = attribute_data_fetch_bytecolor<T>(kg, offset + indices[i]);
     }
-    if (dv) {
-      *dv += v * weights_dv[i];
+    else {
+      v = attribute_data_fetch<T>(kg, offset + indices[i]);
     }
-  }
-
-  return val;
-}
-
-ccl_device float2 patch_eval_float2(KernelGlobals kg,
-                                    const ccl_private ShaderData *sd,
-                                    const int offset,
-                                    const int patch,
-                                    const float u,
-                                    const float v,
-                                    const int channel,
-                                    ccl_private float2 *du,
-                                    ccl_private float2 *dv)
-{
-  int indices[PATCH_MAX_CONTROL_VERTS];
-  float weights[PATCH_MAX_CONTROL_VERTS];
-  float weights_du[PATCH_MAX_CONTROL_VERTS];
-  float weights_dv[PATCH_MAX_CONTROL_VERTS];
-
-  const int num_control = patch_eval_control_verts(
-      kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
-
-  float2 val = make_float2(0.0f, 0.0f);
-  if (du) {
-    *du = make_float2(0.0f, 0.0f);
-  }
-  if (dv) {
-    *dv = make_float2(0.0f, 0.0f);
-  }
-
-  for (int i = 0; i < num_control; i++) {
-    const float2 v = kernel_data_fetch(attributes_float2, offset + indices[i]);
-
-    val += v * weights[i];
-    if (du) {
-      *du += v * weights_du[i];
-    }
-    if (dv) {
-      *dv += v * weights_dv[i];
-    }
-  }
-
-  return val;
-}
-
-ccl_device float3 patch_eval_float3(KernelGlobals kg,
-                                    const ccl_private ShaderData *sd,
-                                    const int offset,
-                                    const int patch,
-                                    const float u,
-                                    const float v,
-                                    const int channel,
-                                    ccl_private float3 *du,
-                                    ccl_private float3 *dv)
-{
-  int indices[PATCH_MAX_CONTROL_VERTS];
-  float weights[PATCH_MAX_CONTROL_VERTS];
-  float weights_du[PATCH_MAX_CONTROL_VERTS];
-  float weights_dv[PATCH_MAX_CONTROL_VERTS];
-
-  const int num_control = patch_eval_control_verts(
-      kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
-
-  float3 val = make_float3(0.0f, 0.0f, 0.0f);
-  if (du) {
-    *du = make_float3(0.0f, 0.0f, 0.0f);
-  }
-  if (dv) {
-    *dv = make_float3(0.0f, 0.0f, 0.0f);
-  }
-
-  for (int i = 0; i < num_control; i++) {
-    const float3 v = kernel_data_fetch(attributes_float3, offset + indices[i]);
-
-    val += v * weights[i];
-    if (du) {
-      *du += v * weights_du[i];
-    }
-    if (dv) {
-      *dv += v * weights_dv[i];
-    }
-  }
-
-  return val;
-}
-
-ccl_device float4 patch_eval_float4(KernelGlobals kg,
-                                    const ccl_private ShaderData *sd,
-                                    const int offset,
-                                    const int patch,
-                                    const float u,
-                                    const float v,
-                                    const int channel,
-                                    ccl_private float4 *du,
-                                    ccl_private float4 *dv)
-{
-  int indices[PATCH_MAX_CONTROL_VERTS];
-  float weights[PATCH_MAX_CONTROL_VERTS];
-  float weights_du[PATCH_MAX_CONTROL_VERTS];
-  float weights_dv[PATCH_MAX_CONTROL_VERTS];
-
-  const int num_control = patch_eval_control_verts(
-      kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
-
-  float4 val = zero_float4();
-  if (du) {
-    *du = zero_float4();
-  }
-  if (dv) {
-    *dv = zero_float4();
-  }
-
-  for (int i = 0; i < num_control; i++) {
-    const float4 v = kernel_data_fetch(attributes_float4, offset + indices[i]);
-
-    val += v * weights[i];
-    if (du) {
-      *du += v * weights_du[i];
-    }
-    if (dv) {
-      *dv += v * weights_dv[i];
-    }
-  }
-
-  return val;
-}
-
-ccl_device float4 patch_eval_uchar4(KernelGlobals kg,
-                                    const ccl_private ShaderData *sd,
-                                    const int offset,
-                                    const int patch,
-                                    const float u,
-                                    const float v,
-                                    const int channel,
-                                    ccl_private float4 *du,
-                                    ccl_private float4 *dv)
-{
-  int indices[PATCH_MAX_CONTROL_VERTS];
-  float weights[PATCH_MAX_CONTROL_VERTS];
-  float weights_du[PATCH_MAX_CONTROL_VERTS];
-  float weights_dv[PATCH_MAX_CONTROL_VERTS];
-
-  const int num_control = patch_eval_control_verts(
-      kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
-
-  float4 val = zero_float4();
-  if (du) {
-    *du = zero_float4();
-  }
-  if (dv) {
-    *dv = zero_float4();
-  }
-
-  for (int i = 0; i < num_control; i++) {
-    const float4 v = color_srgb_to_linear_v4(
-        color_uchar4_to_float4(kernel_data_fetch(attributes_uchar4, offset + indices[i])));
 
     val += v * weights[i];
     if (du) {

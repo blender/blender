@@ -2,8 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/overlay_volume_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_volume_gridlines_range)
+
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 #include "select_lib.glsl"
 
 vec4 flag_to_color(uint flag)

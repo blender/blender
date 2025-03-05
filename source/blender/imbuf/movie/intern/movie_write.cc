@@ -1257,8 +1257,7 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
                                       bool preview,
                                       const char *suffix)
 {
-  MovieWriter *context = static_cast<MovieWriter *>(
-      MEM_callocN(sizeof(MovieWriter), "new FFMPEG context"));
+  MovieWriter *context = MEM_new<MovieWriter>("new FFMPEG context");
 
   context->ffmpeg_codec = AV_CODEC_ID_MPEG4;
   context->ffmpeg_audio_codec = AV_CODEC_ID_NONE;
@@ -1398,9 +1397,9 @@ static void ffmpeg_movie_close(MovieWriter *context)
   }
   end_ffmpeg_impl(context, false);
   if (context->stamp_data) {
-    MEM_freeN(context->stamp_data);
+    BKE_stamp_data_free(context->stamp_data);
   }
-  MEM_freeN(context);
+  MEM_delete(context);
 }
 
 #endif /* WITH_FFMPEG */

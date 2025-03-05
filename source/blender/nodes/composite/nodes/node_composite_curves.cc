@@ -114,12 +114,12 @@ void register_node_type_cmp_curve_time()
   ntype.enum_name_legacy = "TIME";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::cmp_node_time_declare;
-  blender::bke::node_type_size(&ntype, 200, 140, 320);
+  blender::bke::node_type_size(ntype, 200, 140, 320);
   ntype.initfunc = file_ns::node_composit_init_curves_time;
-  blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  blender::bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 
 /* **************** CURVE VEC  ******************** */
@@ -195,10 +195,10 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   BKE_curvemapping_init(curve_mapping);
 
   builder.construct_and_set_matching_fn_cb([=]() {
-    return mf::build::SI1_SO<float4, float4>(
+    return mf::build::SI1_SO<float3, float3>(
         "Vector Curves",
-        [=](const float4 &vector) -> float4 {
-          float4 output_vector = float4(0.0f);
+        [=](const float3 &vector) -> float3 {
+          float3 output_vector = float3(0.0f);
           BKE_curvemapping_evaluate3F(curve_mapping, output_vector, vector);
           return output_vector;
         },
@@ -221,13 +221,13 @@ void register_node_type_cmp_curve_vec()
   ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::cmp_node_curve_vec_declare;
   ntype.draw_buttons = file_ns::node_buts_curvevec;
-  blender::bke::node_type_size(&ntype, 200, 140, 320);
+  blender::bke::node_type_size(ntype, 200, 140, 320);
   ntype.initfunc = file_ns::node_composit_init_curve_vec;
-  blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  blender::bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 
 /* **************** CURVE RGB  ******************** */
@@ -383,11 +383,11 @@ void register_node_type_cmp_curve_rgb()
   ntype.enum_name_legacy = "CURVE_RGB";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_rgbcurves_declare;
-  blender::bke::node_type_size(&ntype, 200, 140, 320);
+  blender::bke::node_type_size(ntype, 200, 140, 320);
   ntype.initfunc = file_ns::node_composit_init_curve_rgb;
-  blender::bke::node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
+  blender::bke::node_type_storage(ntype, "CurveMapping", node_free_curves, node_copy_curves);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

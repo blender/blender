@@ -7,7 +7,6 @@
  */
 
 #include "BLI_offset_indices.hh"
-#include "BLI_rand.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
@@ -63,35 +62,6 @@ IndexMask end_points(const bke::CurvesGeometry &curves,
                      IndexMaskMemory &memory)
 {
   return end_points(curves, curves.curves_range(), amount_start, amount_end, inverted, memory);
-}
-
-IndexMask random_mask(const bke::CurvesGeometry &curves,
-                      const IndexMask &mask,
-                      const bke::AttrDomain selection_domain,
-                      const uint32_t random_seed,
-                      const float probability,
-                      IndexMaskMemory &memory)
-{
-  RandomNumberGenerator rng{random_seed};
-  const auto next_bool_random_value = [&]() { return rng.get_float() <= probability; };
-
-  const int64_t domain_size = curves.attributes().domain_size(selection_domain);
-
-  Array<bool> random(domain_size, false);
-  mask.foreach_index_optimized<int64_t>(
-      [&](const int64_t i) { random[i] = next_bool_random_value(); });
-
-  return IndexMask::from_bools(IndexRange(domain_size), random, memory);
-}
-
-IndexMask random_mask(const bke::CurvesGeometry &curves,
-                      const bke::AttrDomain selection_domain,
-                      const uint32_t random_seed,
-                      const float probability,
-                      IndexMaskMemory &memory)
-{
-  const IndexRange selection(curves.attributes().domain_size(selection_domain));
-  return random_mask(curves, selection, selection_domain, random_seed, probability, memory);
 }
 
 }  // namespace blender::ed::curves

@@ -391,6 +391,10 @@ std::optional<std::string> rna_Node_ImageUser_path(const PointerRNA *ptr);
 std::optional<std::string> rna_CameraBackgroundImage_image_or_movieclip_user_path(
     const PointerRNA *ptr);
 
+std::optional<std::string> rna_ColorManagedDisplaySettings_path(const PointerRNA *ptr);
+std::optional<std::string> rna_ColorManagedViewSettings_path(const PointerRNA *ptr);
+std::optional<std::string> rna_ColorManagedInputColorspaceSettings_path(const PointerRNA *ptr);
+
 /* Node socket subtypes for group interface. */
 void rna_def_node_socket_interface_subtypes(BlenderRNA *brna);
 

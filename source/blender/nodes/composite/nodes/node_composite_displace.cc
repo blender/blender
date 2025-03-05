@@ -135,7 +135,7 @@ class DisplaceOperation : public NodeOperation {
          * transform it into the normalized sampler space. */
         float2 scale = float2(x_scale.load_pixel_extended<float, true>(texel),
                               y_scale.load_pixel_extended<float, true>(texel));
-        float2 displacement = input_displacement.load_pixel_extended<float4, true>(texel).xy() *
+        float2 displacement = input_displacement.load_pixel_extended<float3, true>(texel).xy() *
                               scale / float2(size);
         return coordinates - displacement;
       };
@@ -189,7 +189,7 @@ class DisplaceOperation : public NodeOperation {
 
     const Result &input_displacement = get_input("Vector");
     if (input_displacement.is_single_value() &&
-        math::is_zero(input_displacement.get_single_value<float4>()))
+        math::is_zero(input_displacement.get_single_value<float3>().xy()))
     {
       return true;
     }
@@ -227,5 +227,5 @@ void register_node_type_cmp_displace()
   ntype.declare = file_ns::cmp_node_displace_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

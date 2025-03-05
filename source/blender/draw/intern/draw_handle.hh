@@ -23,6 +23,7 @@
 
 struct Object;
 struct DupliObject;
+struct DEGObjectIterData;
 
 namespace blender::draw {
 
@@ -79,12 +80,22 @@ struct ResourceHandleRange {
 /* TODO(fclem): Move to somewhere more appropriated after cleaning up the header dependencies. */
 struct ObjectRef {
   Object *object;
-  /** Dupli object that corresponds to the current object. */
+  /** Duplicated object that corresponds to the current object. */
   DupliObject *dupli_object;
   /** Object that created the dupli-list the current object is part of. */
   Object *dupli_parent;
   /** Unique handle per object ref. */
   ResourceHandleRange handle;
+
+  ObjectRef() = default;
+  ObjectRef(DEGObjectIterData &iter_data, Object *ob);
+  ObjectRef(Object *ob);
+
+  /* Is the object coming from a Dupli system. */
+  bool is_dupli() const
+  {
+    return dupli_object != nullptr;
+  }
 };
 
 };  // namespace blender::draw

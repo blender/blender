@@ -66,6 +66,16 @@ IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, IndexMaskM
   return retrieve_selected_points(curves, ".selection", memory);
 }
 
+IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory)
+{
+  Vector<IndexMask> selection_by_attribute;
+  for (const StringRef selection_name : ed::curves::get_curves_selection_attribute_names(curves)) {
+    selection_by_attribute.append(
+        ed::curves::retrieve_selected_points(curves, selection_name, memory));
+  }
+  return IndexMask::from_union(selection_by_attribute, memory);
+}
+
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves,
                                    StringRef attribute_name,
                                    IndexMaskMemory &memory)
@@ -467,25 +477,6 @@ bool has_anything_selected(const GSpan selection)
   return false;
 }
 
-static void invert_selection(MutableSpan<float> selection)
-{
-  threading::parallel_for(selection.index_range(), 2048, [&](IndexRange range) {
-    for (const int i : range) {
-      selection[i] = 1.0f - selection[i];
-    }
-  });
-}
-
-static void invert_selection(GMutableSpan selection)
-{
-  if (selection.type().is<bool>()) {
-    array_utils::invert_booleans(selection.typed<bool>());
-  }
-  else if (selection.type().is<float>()) {
-    invert_selection(selection.typed<float>());
-  }
-}
-
 static void invert_selection(MutableSpan<float> selection, const IndexMask &mask)
 {
   mask.foreach_index_optimized<int64_t>(
@@ -500,6 +491,11 @@ static void invert_selection(GMutableSpan selection, const IndexMask &mask)
   else if (selection.type().is<float>()) {
     invert_selection(selection.typed<float>(), mask);
   }
+}
+
+static void invert_selection(GMutableSpan selection)
+{
+  invert_selection(selection, IndexRange(selection.size()));
 }
 
 void select_all(bke::CurvesGeometry &curves,

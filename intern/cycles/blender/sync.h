@@ -144,7 +144,6 @@ class BlenderSync {
                       bool use_particle_hair,
                       bool show_lights,
                       BlenderObjectCulling &culling,
-                      bool *use_portal,
                       TaskPool *geom_task_pool);
   void sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob, Object *object);
 
@@ -206,13 +205,8 @@ class BlenderSync {
                             TaskPool *task_pool);
 
   /* Light */
-  void sync_light(BL::Object &b_parent,
-                  int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
-                  BObjectInfo &b_ob_info,
-                  const int random_id,
-                  Transform &tfm,
-                  bool *use_portal);
-  void sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal);
+  void sync_light(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Light *light);
+  void sync_background_light(BL::SpaceView3D &b_v3d);
 
   /* Particles */
   bool sync_dupli_particle(BL::Object &b_ob,
@@ -223,7 +217,7 @@ class BlenderSync {
   void sync_images();
 
   /* util */
-  void find_shader(BL::ID &id, array<Node *> &used_shaders, Shader *default_shader);
+  void find_shader(const BL::ID &id, array<Node *> &used_shaders, Shader *default_shader);
   bool BKE_object_is_modified(BL::Object &b_ob);
   bool object_is_geometry(BObjectInfo &b_ob_info);
   bool object_can_have_geometry(BL::Object &b_ob);
@@ -242,7 +236,6 @@ class BlenderSync {
   id_map<ObjectKey, Object> object_map;
   id_map<void *, Procedural> procedural_map;
   id_map<GeometryKey, Geometry> geometry_map;
-  id_map<ObjectKey, Light> light_map;
   id_map<ParticleSystemKey, ParticleSystem> particle_system_map;
   set<Geometry *> geometry_synced;
   set<Geometry *> geometry_motion_synced;
@@ -252,6 +245,7 @@ class BlenderSync {
   set<float> motion_times;
   void *world_map;
   bool world_recalc;
+  bool world_use_portal = false;
   BlenderViewportParameters viewport_parameters;
 
   Scene *scene;

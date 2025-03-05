@@ -419,8 +419,16 @@ bool ED_undo_is_memfile_compatible(const bContext *C)
   return true;
 }
 
-bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id)
+bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id, PointerRNA &ptr)
 {
+  if (!RNA_struct_undo_check(ptr.type)) {
+    return false;
+  }
+  /* If the whole ID type doesn't support undo there is no need to check the current context. */
+  if (id && !ID_CHECK_UNDO(id)) {
+    return false;
+  }
+
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   if (view_layer != nullptr) {

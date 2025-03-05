@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_view_clipping_lib.glsl"
+#include "infos/overlay_armature_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_armature_shape_outline)
+
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
@@ -87,7 +91,7 @@ void geometry_main(VertOut geom_in[4],
                    uint out_primitive_id,
                    uint out_invocation_id)
 {
-  bool is_persp = (drw_view.winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0);
 
   vec3 view_vec = (is_persp) ? normalize(geom_in[1].vs_P) : vec3(0.0, 0.0, -1.0);
   vec3 v10 = geom_in[0].vs_P - geom_in[1].vs_P;

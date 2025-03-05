@@ -25,8 +25,6 @@
 #define T_ALL_RESTRICTIONS (T_NO_CONSTRAINT | T_NULL_ONE)
 #define T_PROP_EDIT_ALL (T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED)
 
-#define TRANSDATA_THREAD_LIMIT 1024
-
 /* Hard min/max for proportional size. */
 #define T_PROP_SIZE_MIN 1e-6f
 #define T_PROP_SIZE_MAX 1e12f
@@ -66,13 +64,6 @@ struct RNG;
 struct ReportList;
 struct Scene;
 struct ScrArea;
-struct SnapObjectContext;
-struct TransConvertTypeInfo;
-struct TransDataContainer;
-struct TransInfo;
-struct TransModeInfo;
-struct TransSeqSnapData;
-struct TransSnap;
 struct ViewLayer;
 struct ViewOpsData;
 struct bContext;
@@ -88,6 +79,16 @@ struct wmTimer;
 /* -------------------------------------------------------------------- */
 /** \name Enums and Flags
  * \{ */
+
+namespace blender::ed::transform {
+
+struct TransSnap;
+struct TransConvertTypeInfo;
+struct TransDataContainer;
+struct TransInfo;
+struct TransModeInfo;
+struct TransSeqSnapData;
+struct SnapObjectContext;
 
 /** #TransInfo.options */
 enum eTContext {
@@ -257,6 +258,7 @@ enum eTHelpline {
   HLP_CARROW = 5,
   HLP_TRACKBALL = 6,
   HLP_ERROR = 7,
+  HLP_ERROR_DASH = 8,
 };
 
 enum eTOType {
@@ -586,8 +588,8 @@ struct MouseInput {
   void (*post)(TransInfo *t, float values[3]);
 
   /** Initial mouse position. */
-  blender::float2 imval;
-  blender::float2 center;
+  float2 imval;
+  float2 center;
   float factor;
   float precision_factor;
   bool precision;
@@ -605,8 +607,8 @@ struct MouseInput {
    */
   bool use_virtual_mval;
   struct {
-    blender::double2 prev;
-    blender::double2 accum;
+    double2 prev;
+    double2 accum;
   } virtual_mval;
 };
 
@@ -866,7 +868,7 @@ struct TransInfo {
   /** Assign from the operator, or can be NULL. */
   ReportList *reports;
   /** Current mouse position. */
-  blender::float2 mval;
+  float2 mval;
   /** Use for 3d view. */
   float zfac;
   void *draw_handle_view;
@@ -959,21 +961,19 @@ enum MouseInputMode {
   INPUT_CUSTOM_RATIO,
   INPUT_CUSTOM_RATIO_FLIP,
   INPUT_ERROR,
+  INPUT_ERROR_DASH,
 };
 
-void initMouseInput(TransInfo *t,
-                    MouseInput *mi,
-                    const blender::float2 &center,
-                    const blender::float2 &mval,
-                    bool precision);
+void initMouseInput(
+    TransInfo *t, MouseInput *mi, const float2 &center, const float2 &mval, bool precision);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
-void applyMouseInput(TransInfo *t, MouseInput *mi, const blender::float2 &mval, float output[3]);
+void applyMouseInput(TransInfo *t, MouseInput *mi, const float2 &mval, float output[3]);
 void transform_input_update(TransInfo *t, const float fac);
 void transform_input_virtual_mval_reset(TransInfo *t);
-void transform_input_reset(TransInfo *t, const blender::float2 &mval);
+void transform_input_reset(TransInfo *t, const float2 &mval);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int mval_start[2], const int mval_end[2]);
-void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const blender::float2 &dir);
+void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float2 &dir);
 void setInputPostFct(MouseInput *mi, void (*post)(TransInfo *t, float values[3]));
 
 /** \} */
@@ -1046,3 +1046,5 @@ void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData
 bool checkUseAxisMatrix(TransInfo *t);
 
 /** \} */
+
+}  // namespace blender::ed::transform

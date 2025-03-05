@@ -26,6 +26,11 @@ ccl_device_inline float3 one_float3()
   return make_float3(1.0f, 1.0f, 1.0f);
 }
 
+ccl_device_template_spec float3 make_zero()
+{
+  return zero_float3();
+}
+
 ccl_device_inline float3 reciprocal(const float3 a)
 {
 #ifdef __KERNEL_SSE__

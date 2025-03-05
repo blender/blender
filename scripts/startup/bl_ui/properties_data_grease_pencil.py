@@ -228,6 +228,10 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
         layout.operator("grease_pencil.layer_merge", text="Merge All").mode = 'ALL'
 
         layout.separator()
+        layout.operator("grease_pencil.relative_layer_mask_add", text="Mask with Layer Above").mode = 'ABOVE'
+        layout.operator("grease_pencil.relative_layer_mask_add", text="Mask with Layer Below").mode = 'BELOW'
+
+        layout.separator()
         layout.operator("grease_pencil.layer_duplicate_object", text="Copy Layer to Selected").only_active = True
         layout.operator("grease_pencil.layer_duplicate_object", text="Copy All Layers to Selected").only_active = False
 
@@ -332,6 +336,28 @@ class DATA_PT_grease_pencil_layer_display(LayerDataButtonsPanel, GreasePencil_La
     bl_label = "Display"
     bl_parent_id = "DATA_PT_grease_pencil_layers"
     bl_options = {'DEFAULT_CLOSED'}
+
+
+class DATA_PT_grease_pencil_layer_group_display(Panel):
+    bl_label = "Display"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "data"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        grease_pencil = context.grease_pencil
+        return grease_pencil and grease_pencil.layer_groups.active
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        grease_pencil = context.grease_pencil
+        group = grease_pencil.layer_groups.active
+
+        layout.prop(group, "channel_color", text="Channel Color")
 
 
 class DATA_PT_grease_pencil_onion_skinning(DataButtonsPanel, Panel):
@@ -494,6 +520,7 @@ classes = (
     DATA_PT_grease_pencil_layer_adjustments,
     DATA_PT_grease_pencil_layer_relations,
     DATA_PT_grease_pencil_layer_display,
+    DATA_PT_grease_pencil_layer_group_display,
     DATA_PT_grease_pencil_onion_skinning,
     DATA_PT_grease_pencil_onion_skinning_custom_colors,
     DATA_PT_grease_pencil_onion_skinning_display,

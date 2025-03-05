@@ -12,10 +12,6 @@
 
 #include "../../stroke/ChainingIterators.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 extern PyTypeObject ChainPredicateIterator_Type;
@@ -32,7 +28,3 @@ typedef struct {
 } BPy_ChainPredicateIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef __cplusplus
-}
-#endif

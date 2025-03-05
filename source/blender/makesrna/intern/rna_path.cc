@@ -394,7 +394,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
   const bool do_item_ptr = r_item_ptr != nullptr && !eval_pointer;
 
   if (do_item_ptr) {
-    RNA_POINTER_INVALIDATE(&nextptr);
+    nextptr.invalidate();
   }
 
   prop = nullptr;
@@ -406,7 +406,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
 
   while (*path) {
     if (do_item_ptr) {
-      RNA_POINTER_INVALIDATE(&nextptr);
+      nextptr.invalidate();
     }
 
     const bool use_id_prop = (*path == '[');

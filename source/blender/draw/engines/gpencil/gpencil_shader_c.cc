@@ -11,171 +11,124 @@
 
 #include "gpencil_engine.h"
 
-extern "C" char datatoc_gpencil_common_lib_glsl[];
-extern "C" char datatoc_gpencil_frag_glsl[];
-extern "C" char datatoc_gpencil_vert_glsl[];
-extern "C" char datatoc_gpencil_antialiasing_frag_glsl[];
-extern "C" char datatoc_gpencil_antialiasing_vert_glsl[];
-extern "C" char datatoc_gpencil_layer_blend_frag_glsl[];
-extern "C" char datatoc_gpencil_mask_invert_frag_glsl[];
-extern "C" char datatoc_gpencil_depth_merge_frag_glsl[];
-extern "C" char datatoc_gpencil_depth_merge_vert_glsl[];
-extern "C" char datatoc_gpencil_vfx_frag_glsl[];
+namespace blender::draw::gpencil {
 
-extern "C" char datatoc_common_colormanagement_lib_glsl[];
-extern "C" char datatoc_common_fullscreen_vert_glsl[];
-extern "C" char datatoc_common_view_lib_glsl[];
+using StaticShader = gpu::StaticShader;
 
-static struct {
+class ShaderCache {
+ private:
+  static gpu::StaticShaderCache<ShaderCache> &get_static_cache()
+  {
+    static gpu::StaticShaderCache<ShaderCache> static_cache;
+    return static_cache;
+  }
+
+ public:
+  static ShaderCache &get()
+  {
+    return get_static_cache().get();
+  }
+  static void release()
+  {
+    get_static_cache().release();
+  }
+
   /* SMAA antialiasing */
-  GPUShader *antialiasing_sh[3];
+  StaticShader antialiasing[3] = {{"gpencil_antialiasing_stage_0"},
+                                  {"gpencil_antialiasing_stage_1"},
+                                  {"gpencil_antialiasing_stage_2"}};
   /* GPencil Object rendering */
-  GPUShader *gpencil_sh;
-  /* Final Compositing over rendered background. */
-  GPUShader *composite_sh;
+  StaticShader geometry = {"gpencil_geometry"};
   /* All layer blend types in one shader! */
-  GPUShader *layer_blend_sh;
+  StaticShader layer_blend = {"gpencil_layer_blend"};
   /* Merge the final object depth to the depth buffer. */
-  GPUShader *depth_merge_sh;
+  StaticShader depth_merge = {"gpencil_depth_merge"};
   /* Invert the content of the mask buffer. */
-  GPUShader *mask_invert_sh;
+  StaticShader mask_invert = {"gpencil_mask_invert"};
   /* Effects. */
-  GPUShader *fx_composite_sh;
-  GPUShader *fx_colorize_sh;
-  GPUShader *fx_blur_sh;
-  GPUShader *fx_glow_sh;
-  GPUShader *fx_pixel_sh;
-  GPUShader *fx_rim_sh;
-  GPUShader *fx_shadow_sh;
-  GPUShader *fx_transform_sh;
-} g_shaders = {{nullptr}};
+  StaticShader fx_composite = {"gpencil_fx_composite"};
+  StaticShader fx_colorize = {"gpencil_fx_colorize"};
+  StaticShader fx_blur = {"gpencil_fx_blur"};
+  StaticShader fx_glow = {"gpencil_fx_glow"};
+  StaticShader fx_pixelize = {"gpencil_fx_pixelize"};
+  StaticShader fx_rim = {"gpencil_fx_rim"};
+  StaticShader fx_shadow = {"gpencil_fx_shadow"};
+  StaticShader fx_transform = {"gpencil_fx_transform"};
+};
+
+}  // namespace blender::draw::gpencil
+
+using namespace blender::draw::gpencil;
 
 void GPENCIL_shader_free()
 {
-  GPU_SHADER_FREE_SAFE(g_shaders.antialiasing_sh[0]);
-  GPU_SHADER_FREE_SAFE(g_shaders.antialiasing_sh[1]);
-  GPU_SHADER_FREE_SAFE(g_shaders.antialiasing_sh[2]);
-  GPU_SHADER_FREE_SAFE(g_shaders.gpencil_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.composite_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.layer_blend_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.depth_merge_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.mask_invert_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.fx_composite_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.fx_colorize_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.fx_blur_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.fx_glow_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.fx_pixel_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.fx_rim_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.fx_shadow_sh);
-  GPU_SHADER_FREE_SAFE(g_shaders.fx_transform_sh);
+  ShaderCache::get().release();
 }
 
 GPUShader *GPENCIL_shader_antialiasing(int stage)
 {
   BLI_assert(stage < 3);
-
-  if (!g_shaders.antialiasing_sh[stage]) {
-    char stage_info_name[32];
-    SNPRINTF(stage_info_name, "gpencil_antialiasing_stage_%d", stage);
-    g_shaders.antialiasing_sh[stage] = GPU_shader_create_from_info_name(stage_info_name);
-  }
-  return g_shaders.antialiasing_sh[stage];
+  return ShaderCache::get().antialiasing[stage].get();
 }
 
 GPUShader *GPENCIL_shader_geometry_get()
 {
-  if (!g_shaders.gpencil_sh) {
-    g_shaders.gpencil_sh = GPU_shader_create_from_info_name("gpencil_geometry");
-  }
-  return g_shaders.gpencil_sh;
+  return ShaderCache::get().geometry.get();
 }
 
 GPUShader *GPENCIL_shader_layer_blend_get()
 {
-  if (!g_shaders.layer_blend_sh) {
-    g_shaders.layer_blend_sh = GPU_shader_create_from_info_name("gpencil_layer_blend");
-  }
-  return g_shaders.layer_blend_sh;
+  return ShaderCache::get().layer_blend.get();
 }
 
 GPUShader *GPENCIL_shader_mask_invert_get()
 {
-  if (!g_shaders.mask_invert_sh) {
-    g_shaders.mask_invert_sh = GPU_shader_create_from_info_name("gpencil_mask_invert");
-  }
-  return g_shaders.mask_invert_sh;
+  return ShaderCache::get().mask_invert.get();
 }
 
 GPUShader *GPENCIL_shader_depth_merge_get()
 {
-  if (!g_shaders.depth_merge_sh) {
-    g_shaders.depth_merge_sh = GPU_shader_create_from_info_name("gpencil_depth_merge");
-  }
-  return g_shaders.depth_merge_sh;
+  return ShaderCache::get().depth_merge.get();
 }
 
 /* ------- FX Shaders --------- */
 
 GPUShader *GPENCIL_shader_fx_blur_get()
 {
-  if (!g_shaders.fx_blur_sh) {
-    g_shaders.fx_blur_sh = GPU_shader_create_from_info_name("gpencil_fx_blur");
-  }
-  return g_shaders.fx_blur_sh;
+  return ShaderCache::get().fx_blur.get();
 }
 
 GPUShader *GPENCIL_shader_fx_colorize_get()
 {
-  if (!g_shaders.fx_colorize_sh) {
-    g_shaders.fx_colorize_sh = GPU_shader_create_from_info_name("gpencil_fx_colorize");
-  }
-  return g_shaders.fx_colorize_sh;
+  return ShaderCache::get().fx_colorize.get();
 }
 
 GPUShader *GPENCIL_shader_fx_composite_get()
 {
-  if (!g_shaders.fx_composite_sh) {
-    g_shaders.fx_composite_sh = GPU_shader_create_from_info_name("gpencil_fx_composite");
-  }
-  return g_shaders.fx_composite_sh;
+  return ShaderCache::get().fx_composite.get();
 }
 
 GPUShader *GPENCIL_shader_fx_glow_get()
 {
-  if (!g_shaders.fx_glow_sh) {
-    g_shaders.fx_glow_sh = GPU_shader_create_from_info_name("gpencil_fx_glow");
-  }
-  return g_shaders.fx_glow_sh;
+  return ShaderCache::get().fx_glow.get();
 }
 
 GPUShader *GPENCIL_shader_fx_pixelize_get()
 {
-  if (!g_shaders.fx_pixel_sh) {
-    g_shaders.fx_pixel_sh = GPU_shader_create_from_info_name("gpencil_fx_pixelize");
-  }
-  return g_shaders.fx_pixel_sh;
+  return ShaderCache::get().fx_pixelize.get();
 }
 
 GPUShader *GPENCIL_shader_fx_rim_get()
 {
-  if (!g_shaders.fx_rim_sh) {
-    g_shaders.fx_rim_sh = GPU_shader_create_from_info_name("gpencil_fx_rim");
-  }
-  return g_shaders.fx_rim_sh;
+  return ShaderCache::get().fx_rim.get();
 }
 
 GPUShader *GPENCIL_shader_fx_shadow_get()
 {
-  if (!g_shaders.fx_shadow_sh) {
-    g_shaders.fx_shadow_sh = GPU_shader_create_from_info_name("gpencil_fx_shadow");
-  }
-  return g_shaders.fx_shadow_sh;
+  return ShaderCache::get().fx_shadow.get();
 }
 
 GPUShader *GPENCIL_shader_fx_transform_get()
 {
-  if (!g_shaders.fx_transform_sh) {
-    g_shaders.fx_transform_sh = GPU_shader_create_from_info_name("gpencil_fx_transform");
-  }
-  return g_shaders.fx_transform_sh;
+  return ShaderCache::get().fx_transform.get();
 }

@@ -14,10 +14,6 @@
 #  error "Python 3.11 or greater is required, you'll need to update your Python."
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct bContext;
 struct ReportList;
 
@@ -54,7 +50,3 @@ extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
  * Context should be used but not now because it causes some bugs.
  */
 extern void bpy_context_clear(struct bContext *C, const PyGILState_STATE *gilstate);
-
-#ifdef __cplusplus
-}
-#endif

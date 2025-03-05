@@ -194,6 +194,12 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    */
   std::unique_ptr<nodes::GeometryNodesEvalDependencies> geometry_nodes_eval_dependencies;
 
+  /**
+   * Node previews for the compositor.
+   * Only available in base node trees (e.g. scene->node_tree).
+   */
+  Map<bNodeInstanceKey, bNodePreview> previews;
+
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> links;
   Vector<bNodeSocket *> sockets;
@@ -264,6 +270,8 @@ class bNodePanelRuntime : NonCopyable, NonMovable {
    * #bNode::runtime::draw_bounds). */
   std::optional<float> header_center_y;
   std::optional<bNodePanelExtent> content_extent;
+  /** Optional socket that is part of the panel header. */
+  bNodeSocket *input_socket = nullptr;
 };
 
 /**

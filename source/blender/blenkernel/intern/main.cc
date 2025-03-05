@@ -16,6 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_mempool.h"
 #include "BLI_path_utils.hh"
@@ -66,8 +67,6 @@ void BKE_main_init(Main &bmain)
 void BKE_main_clear(Main &bmain)
 {
   /* Also call when reading a file, erase all, etc */
-  ListBase *lbarray[INDEX_ID_MAX];
-  int a;
 
   /* Since we are removing whole main, no need to bother 'properly' (and slowly) removing each ID
    * from it. */
@@ -76,7 +75,8 @@ void BKE_main_clear(Main &bmain)
 
   MEM_SAFE_FREE(bmain.blen_thumb);
 
-  a = set_listbasepointers(&bmain, lbarray);
+  MainListsArray lbarray = BKE_main_lists_get(bmain);
+  int a = lbarray.size();
   while (a--) {
     ListBase *lb = lbarray[a];
     ID *id, *id_next;
@@ -157,12 +157,8 @@ void BKE_main_clear(Main &bmain)
   }
 
   /* NOTE: `name_map` in libraries are freed together with the library IDs above. */
-  if (bmain.name_map) {
-    BKE_main_namemap_destroy(&bmain.name_map);
-  }
-  if (bmain.name_map_global) {
-    BKE_main_namemap_destroy(&bmain.name_map_global);
-  }
+  BKE_main_namemap_destroy(&bmain.name_map);
+  BKE_main_namemap_destroy(&bmain.name_map_global);
 }
 
 void BKE_main_destroy(Main &bmain)
@@ -170,7 +166,7 @@ void BKE_main_destroy(Main &bmain)
   BKE_main_clear(bmain);
 
   BLI_spin_end(reinterpret_cast<SpinLock *>(bmain.lock));
-  MEM_freeN(bmain.lock);
+  MEM_freeN(static_cast<void *>(bmain.lock));
   bmain.lock = nullptr;
 }
 
@@ -448,9 +444,9 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
 
   /* Remapping above may have made some IDs local. So namemap needs to be cleared, and moved IDs
    * need to be re-sorted. */
-  BKE_main_namemap_clear(bmain_dst);
+  BKE_main_namemap_clear(*bmain_dst);
 
-  BLI_assert(BKE_main_namemap_validate(bmain_dst));
+  BLI_assert(BKE_main_namemap_validate(*bmain_dst));
 
   BKE_main_free(bmain_src);
   *r_bmain_src = nullptr;
@@ -712,14 +708,10 @@ void BKE_main_library_weak_reference_add_item(
   BLI_assert(new_id->library_weak_reference == nullptr);
   BLI_assert(BKE_idtype_idcode_append_is_reusable(GS(new_id->name)));
 
-  new_id->library_weak_reference = static_cast<LibraryWeakReference *>(
-      MEM_mallocN(sizeof(*(new_id->library_weak_reference)), __func__));
-
   const LibWeakRefKey key{library_filepath, library_id_name};
   library_weak_reference_mapping->map.add_new(key, new_id);
 
-  STRNCPY(new_id->library_weak_reference->library_filepath, library_filepath);
-  STRNCPY(new_id->library_weak_reference->library_id_name, library_id_name);
+  BKE_main_library_weak_reference_add(new_id, library_filepath, library_id_name);
 }
 
 void BKE_main_library_weak_reference_update_item(
@@ -761,6 +753,35 @@ void BKE_main_library_weak_reference_remove_item(
   MEM_SAFE_FREE(old_id->library_weak_reference);
 }
 
+ID *BKE_main_library_weak_reference_find(Main *bmain,
+                                         const char *library_filepath,
+                                         const char *library_id_name)
+{
+  ListBase *id_list = which_libbase(bmain, GS(library_id_name));
+  LISTBASE_FOREACH (ID *, existing_id, id_list) {
+    if (existing_id->library_weak_reference &&
+        STREQ(existing_id->library_weak_reference->library_id_name, library_id_name) &&
+        STREQ(existing_id->library_weak_reference->library_filepath, library_filepath))
+    {
+      return existing_id;
+    }
+  }
+
+  return nullptr;
+}
+
+void BKE_main_library_weak_reference_add(ID *local_id,
+                                         const char *library_filepath,
+                                         const char *library_id_name)
+{
+  if (local_id->library_weak_reference == nullptr) {
+    local_id->library_weak_reference = MEM_callocN<LibraryWeakReference>(__func__);
+  }
+
+  STRNCPY(local_id->library_weak_reference->library_filepath, library_filepath);
+  STRNCPY(local_id->library_weak_reference->library_id_name, library_id_name);
+}
+
 BlendThumbnail *BKE_main_thumbnail_from_buffer(Main *bmain, const uint8_t *rect, const int size[2])
 {
   BlendThumbnail *data = nullptr;
@@ -795,7 +816,7 @@ BlendThumbnail *BKE_main_thumbnail_from_imbuf(Main *bmain, ImBuf *img)
     const size_t data_size = BLEN_THUMB_MEMSIZE(img->x, img->y);
     data = static_cast<BlendThumbnail *>(MEM_mallocN(data_size, __func__));
 
-    IMB_rect_from_float(img); /* Just in case... */
+    IMB_byte_from_float(img); /* Just in case... */
     data->width = img->x;
     data->height = img->y;
     memcpy(data->rect, img->byte_buffer.data, data_size - sizeof(*data));
@@ -930,69 +951,70 @@ ListBase *which_libbase(Main *bmain, short type)
   return nullptr;
 }
 
-int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
+MainListsArray BKE_main_lists_get(Main &bmain)
 {
+  MainListsArray lb{};
   /* Libraries may be accessed from pretty much any other ID. */
-  lb[INDEX_ID_LI] = &(bmain->libraries);
+  lb[INDEX_ID_LI] = &bmain.libraries;
 
-  lb[INDEX_ID_IP] = &(bmain->ipo);
+  lb[INDEX_ID_IP] = &bmain.ipo;
 
   /* Moved here to avoid problems when freeing with animato (aligorith). */
-  lb[INDEX_ID_AC] = &(bmain->actions);
+  lb[INDEX_ID_AC] = &bmain.actions;
 
-  lb[INDEX_ID_KE] = &(bmain->shapekeys);
+  lb[INDEX_ID_KE] = &bmain.shapekeys;
 
   /* Referenced by gpencil, so needs to be before that to avoid crashes. */
-  lb[INDEX_ID_PAL] = &(bmain->palettes);
+  lb[INDEX_ID_PAL] = &bmain.palettes;
 
   /* Referenced by nodes, objects, view, scene etc, before to free after. */
-  lb[INDEX_ID_GD_LEGACY] = &(bmain->gpencils);
-  lb[INDEX_ID_GP] = &(bmain->grease_pencils);
+  lb[INDEX_ID_GD_LEGACY] = &bmain.gpencils;
+  lb[INDEX_ID_GP] = &bmain.grease_pencils;
 
-  lb[INDEX_ID_NT] = &(bmain->nodetrees);
-  lb[INDEX_ID_IM] = &(bmain->images);
-  lb[INDEX_ID_TE] = &(bmain->textures);
-  lb[INDEX_ID_MA] = &(bmain->materials);
-  lb[INDEX_ID_VF] = &(bmain->fonts);
+  lb[INDEX_ID_NT] = &bmain.nodetrees;
+  lb[INDEX_ID_IM] = &bmain.images;
+  lb[INDEX_ID_TE] = &bmain.textures;
+  lb[INDEX_ID_MA] = &bmain.materials;
+  lb[INDEX_ID_VF] = &bmain.fonts;
 
   /* Important!: When adding a new object type,
    * the specific data should be inserted here. */
 
-  lb[INDEX_ID_AR] = &(bmain->armatures);
+  lb[INDEX_ID_AR] = &bmain.armatures;
 
-  lb[INDEX_ID_CF] = &(bmain->cachefiles);
-  lb[INDEX_ID_ME] = &(bmain->meshes);
-  lb[INDEX_ID_CU_LEGACY] = &(bmain->curves);
-  lb[INDEX_ID_MB] = &(bmain->metaballs);
-  lb[INDEX_ID_CV] = &(bmain->hair_curves);
-  lb[INDEX_ID_PT] = &(bmain->pointclouds);
-  lb[INDEX_ID_VO] = &(bmain->volumes);
+  lb[INDEX_ID_CF] = &bmain.cachefiles;
+  lb[INDEX_ID_ME] = &bmain.meshes;
+  lb[INDEX_ID_CU_LEGACY] = &bmain.curves;
+  lb[INDEX_ID_MB] = &bmain.metaballs;
+  lb[INDEX_ID_CV] = &bmain.hair_curves;
+  lb[INDEX_ID_PT] = &bmain.pointclouds;
+  lb[INDEX_ID_VO] = &bmain.volumes;
 
-  lb[INDEX_ID_LT] = &(bmain->lattices);
-  lb[INDEX_ID_LA] = &(bmain->lights);
-  lb[INDEX_ID_CA] = &(bmain->cameras);
+  lb[INDEX_ID_LT] = &bmain.lattices;
+  lb[INDEX_ID_LA] = &bmain.lights;
+  lb[INDEX_ID_CA] = &bmain.cameras;
 
-  lb[INDEX_ID_TXT] = &(bmain->texts);
-  lb[INDEX_ID_SO] = &(bmain->sounds);
-  lb[INDEX_ID_GR] = &(bmain->collections);
-  lb[INDEX_ID_PAL] = &(bmain->palettes);
-  lb[INDEX_ID_PC] = &(bmain->paintcurves);
-  lb[INDEX_ID_BR] = &(bmain->brushes);
-  lb[INDEX_ID_PA] = &(bmain->particles);
-  lb[INDEX_ID_SPK] = &(bmain->speakers);
-  lb[INDEX_ID_LP] = &(bmain->lightprobes);
+  lb[INDEX_ID_TXT] = &bmain.texts;
+  lb[INDEX_ID_SO] = &bmain.sounds;
+  lb[INDEX_ID_GR] = &bmain.collections;
+  lb[INDEX_ID_PAL] = &bmain.palettes;
+  lb[INDEX_ID_PC] = &bmain.paintcurves;
+  lb[INDEX_ID_BR] = &bmain.brushes;
+  lb[INDEX_ID_PA] = &bmain.particles;
+  lb[INDEX_ID_SPK] = &bmain.speakers;
+  lb[INDEX_ID_LP] = &bmain.lightprobes;
 
-  lb[INDEX_ID_WO] = &(bmain->worlds);
-  lb[INDEX_ID_MC] = &(bmain->movieclips);
-  lb[INDEX_ID_SCR] = &(bmain->screens);
-  lb[INDEX_ID_OB] = &(bmain->objects);
-  lb[INDEX_ID_LS] = &(bmain->linestyles); /* referenced by scenes */
-  lb[INDEX_ID_SCE] = &(bmain->scenes);
-  lb[INDEX_ID_WS] = &(bmain->workspaces); /* before wm, so it's freed after it! */
-  lb[INDEX_ID_WM] = &(bmain->wm);
-  lb[INDEX_ID_MSK] = &(bmain->masks);
+  lb[INDEX_ID_WO] = &bmain.worlds;
+  lb[INDEX_ID_MC] = &bmain.movieclips;
+  lb[INDEX_ID_SCR] = &bmain.screens;
+  lb[INDEX_ID_OB] = &bmain.objects;
+  /* referenced by scenes */
+  lb[INDEX_ID_LS] = &bmain.linestyles;
+  lb[INDEX_ID_SCE] = &bmain.scenes;
+  /* before wm, so it's freed after it! */
+  lb[INDEX_ID_WS] = &bmain.workspaces;
+  lb[INDEX_ID_WM] = &bmain.wm;
+  lb[INDEX_ID_MSK] = &bmain.masks;
 
-  lb[INDEX_ID_NULL] = nullptr;
-
-  return (INDEX_ID_MAX - 1);
+  return lb;
 }

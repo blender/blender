@@ -303,10 +303,8 @@ void extract_attributes_subdiv(const MeshRenderData &mr,
 
 void extract_attr_viewer(const MeshRenderData &mr, gpu::VertBuf &vbo)
 {
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  }
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr.corners_num);

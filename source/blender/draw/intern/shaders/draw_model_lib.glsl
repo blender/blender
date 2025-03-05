@@ -12,38 +12,65 @@
 #  error Missing draw_modelmat additional create info on shader create info
 #endif
 
-#if defined(UNIFORM_RESOURCE_ID)
-/* TODO(fclem): Legacy API. To remove. */
-#  define resource_id drw_ResourceID
-#  define DRW_RESOURCE_ID_VARYING_SET
-
-#elif defined(GPU_VERTEX_SHADER)
+#if defined(GPU_VERTEX_SHADER)
 VERTEX_SHADER_CREATE_INFO(draw_resource_id_varying)
-#  if defined(UNIFORM_RESOURCE_ID_NEW)
-#    define resource_id (drw_ResourceID >> DRW_VIEW_SHIFT)
-#  else
-#    define resource_id gpu_InstanceIndex
-#  endif
-#  define DRW_RESOURCE_ID_VARYING_SET drw_ResourceID_iface.resource_index = resource_id;
-
-#elif defined(GPU_GEOMETRY_SHADER)
-#  define resource_id drw_ResourceID_iface_in[0].resource_index
-
 #elif defined(GPU_FRAGMENT_SHADER)
 FRAGMENT_SHADER_CREATE_INFO(draw_resource_id_varying)
-#  define resource_id drw_ResourceID_iface.resource_index
 #elif defined(GPU_LIBRARY_SHADER)
 SHADER_LIBRARY_CREATE_INFO(draw_resource_id_varying)
-#  define resource_id drw_ResourceID_iface.resource_index
 #endif
+
+uint drw_resource_id_raw()
+{
+#if defined(GPU_VERTEX_SHADER)
+#  if defined(RESOURCE_ID_FALLBACK)
+#    ifdef WITH_CUSTOM_IDS
+  uint id = in_resource_id.x;
+#    else
+  uint id = in_resource_id;
+#    endif
+#  else
+#    ifdef WITH_CUSTOM_IDS
+  uint id = resource_id_buf[gpu_BaseInstance + gl_InstanceID].x;
+#    else
+  uint id = resource_id_buf[gpu_BaseInstance + gl_InstanceID];
+#    endif
+#  endif
+  return id;
+
+#elif defined(GPU_FRAGMENT_SHADER) || defined(GPU_LIBRARY_SHADER)
+  return drw_ResourceID_iface.resource_index;
+#endif
+  return 0;
+}
+
+uint drw_resource_id()
+{
+  return drw_resource_id_raw() >> DRW_VIEW_SHIFT;
+}
+
+uint drw_custom_id()
+{
+#ifdef WITH_CUSTOM_IDS
+#  if defined(GPU_VERTEX_SHADER)
+#    if defined(RESOURCE_ID_FALLBACK)
+  return in_resource_id.y;
+#    else
+  uint inst_id = gpu_BaseInstance + gl_InstanceID;
+  return resource_id_buf[gpu_BaseInstance + gl_InstanceID].y;
+#    endif
+#  endif
+#endif
+  return 0;
+}
 
 mat4x4 drw_modelmat()
 {
-  return drw_matrix_buf[resource_id].model;
+  return drw_matrix_buf[drw_resource_id()].model;
 }
 mat4x4 drw_modelinv()
 {
-  return drw_matrix_buf[resource_id].model_inverse;
+  return drw_matrix_buf[drw_resource_id()].model_inverse;
 }
 
 /**
@@ -84,11 +111,11 @@ vec3 drw_normal_world_to_object(vec3 N)
 
 vec3 drw_normal_object_to_view(vec3 lN)
 {
-  return (to_float3x3(drw_view.viewmat) * (drw_normat() * lN));
+  return (to_float3x3(drw_view().viewmat) * (drw_normat() * lN));
 }
 vec3 drw_normal_view_to_object(vec3 vN)
 {
-  return (drw_norinv() * (to_float3x3(drw_view.viewinv) * vN));
+  return (drw_norinv() * (to_float3x3(drw_view().viewinv) * vN));
 }
 
 /** \} */
@@ -110,16 +137,16 @@ vec3 drw_point_world_to_object(vec3 P)
 
 vec3 drw_point_object_to_view(vec3 lP)
 {
-  return (drw_view.viewmat * (drw_modelmat() * vec4(lP, 1.0))).xyz;
+  return (drw_view().viewmat * (drw_modelmat() * vec4(lP, 1.0))).xyz;
 }
 vec3 drw_point_view_to_object(vec3 vP)
 {
-  return (drw_modelinv() * (drw_view.viewinv * vec4(vP, 1.0))).xyz;
+  return (drw_modelinv() * (drw_view().viewinv * vec4(vP, 1.0))).xyz;
 }
 
 vec4 drw_point_object_to_homogenous(vec3 lP)
 {
-  return (drw_view.winmat * (drw_view.viewmat * (drw_modelmat() * vec4(lP, 1.0))));
+  return (drw_view().winmat * (drw_view().viewmat * (drw_modelmat() * vec4(lP, 1.0))));
 }
 vec3 drw_point_object_to_ndc(vec3 lP)
 {

@@ -16,6 +16,7 @@
 #include "DNA_screen_types.h"
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -57,7 +58,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   SpaceAction *saction;
   ARegion *region;
 
-  saction = MEM_cnew<SpaceAction>("initaction");
+  saction = MEM_callocN<SpaceAction>("initaction");
   saction->spacetype = SPACE_ACTION;
 
   saction->mode = SACTCONT_DOPESHEET;
@@ -947,7 +948,7 @@ void ED_spacetype_action()
   st->blend_write = action_space_blend_write;
 
   /* regions: main window */
-  art = MEM_cnew<ARegionType>("spacetype action region");
+  art = MEM_callocN<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = action_main_region_init;
   art->draw = action_main_region_draw;
@@ -959,7 +960,7 @@ void ED_spacetype_action()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_cnew<ARegionType>("spacetype action region");
+  art = MEM_callocN<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -971,7 +972,7 @@ void ED_spacetype_action()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: channels */
-  art = MEM_cnew<ARegionType>("spacetype action region");
+  art = MEM_callocN<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = 200;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
@@ -984,7 +985,7 @@ void ED_spacetype_action()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: UI buttons */
-  art = MEM_cnew<ARegionType>("spacetype action region");
+  art = MEM_callocN<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;

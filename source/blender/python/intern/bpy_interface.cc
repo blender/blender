@@ -172,7 +172,6 @@ void BPY_context_dict_clear_members_array(void **dict_p,
 {
   PyGILState_STATE gilstate;
   const bool use_gil = !PyC_IsInterpreterActive();
-
   if (use_gil) {
     gilstate = PyGILState_Ensure();
   }
@@ -565,10 +564,8 @@ void BPY_python_end(const bool do_python_exit)
   BLI_assert_msg(Py_IsInitialized() != 0, "Python must be initialized");
 #endif
 
-  PyGILState_STATE gilstate;
-
   /* Finalizing, no need to grab the state, except when we are a module. */
-  gilstate = PyGILState_Ensure();
+  PyGILState_STATE gilstate = PyGILState_Ensure();
 
   /* Frees the Python-driver name-space & cached data. */
   BPY_driver_exit();
@@ -735,15 +732,14 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 {
   PyGILState_STATE gilstate;
   const bool use_gil = !PyC_IsInterpreterActive();
+  if (use_gil) {
+    gilstate = PyGILState_Ensure();
+  }
 
   PyObject *pyctx;
   PyObject *item;
   PointerRNA *ptr = nullptr;
   bool done = false;
-
-  if (use_gil) {
-    gilstate = PyGILState_Ensure();
-  }
 
   pyctx = (PyObject *)CTX_py_dict_get(C);
   item = PyDict_GetItemString(pyctx, member);

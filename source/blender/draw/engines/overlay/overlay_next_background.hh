@@ -85,12 +85,13 @@ class Background : Overlay {
       bg_ps_.shader_set(res.shaders.background_clip_bound.get());
       bg_ps_.push_constant("ucolor", res.theme_settings.color_clipping_border);
       bg_ps_.push_constant("boundbox", bbox.data(), 8);
-      bg_ps_.draw(DRW_cache_cube_get());
+      bg_ps_.draw(res.shapes.cube_solid.get());
     }
 
     bg_ps_.state_set(pass_state);
     bg_ps_.shader_set(res.shaders.background_fill.get());
     bg_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+    bg_ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     bg_ps_.bind_texture("colorBuffer", &res.color_render_tx);
     bg_ps_.bind_texture("depthBuffer", &res.depth_tx);
     bg_ps_.push_constant("colorOverride", color_override);

@@ -3507,7 +3507,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
           changed = true;
         }
 
-        MEM_freeN(uci);
+        BLI_uvproject_camera_info_free(uci);
       }
     }
     else {

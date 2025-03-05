@@ -85,9 +85,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryBake *data = MEM_cnew<NodeGeometryBake>(__func__);
+  NodeGeometryBake *data = MEM_callocN<NodeGeometryBake>(__func__);
 
-  data->items = MEM_cnew_array<NodeGeometryBakeItem>(1, __func__);
+  data->items = MEM_calloc_arrayN<NodeGeometryBakeItem>(1, __func__);
   data->items_num = 1;
 
   NodeGeometryBakeItem &item = data->items[0];
@@ -108,7 +108,7 @@ static void node_free_storage(bNode *node)
 static void node_copy_storage(bNodeTree * /*tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryBake &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_cnew<NodeGeometryBake>(__func__, src_storage);
+  auto *dst_storage = MEM_dupallocN<NodeGeometryBake>(__func__, src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<BakeItemsAccessor>(*src_node, *dst_node);
@@ -581,9 +581,8 @@ static void node_register()
   ntype.get_extra_info = node_extra_info;
   ntype.register_operators = node_operators;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  blender::bke::node_type_storage(
-      &ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_type_storage(ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
+  blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 
@@ -868,7 +867,7 @@ static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
 void draw_data_blocks(const bContext *C, uiLayout *layout, PointerRNA &bake_rna)
 {
   static const uiListType *data_block_list = []() {
-    uiListType *list = MEM_cnew<uiListType>(__func__);
+    uiListType *list = MEM_callocN<uiListType>(__func__);
     STRNCPY(list->idname, "DATA_UL_nodes_modifier_data_blocks");
     list->draw_item = draw_bake_data_block_list_item;
     WM_uilisttype_add(list);

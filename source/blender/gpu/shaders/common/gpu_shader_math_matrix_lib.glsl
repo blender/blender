@@ -236,6 +236,12 @@ mat4x4 from_loc_rot(vec3 location, EulerXYZ rotation);
 mat4x4 from_loc_rot_scale(vec3 location, EulerXYZ rotation, vec3 scale);
 
 /**
+ * Creates a 2D rotation matrix with the angle that the given direction makes with the x axis.
+ * Assumes the direction vector is normalized.
+ */
+mat2x2 from_direction(vec2 direction);
+
+/**
  * Create a rotation matrix from 2 basis vectors.
  * The matrix determinant is given to be positive and it can be converted to other rotation types.
  * \note `forward` and `up` must be normalized.
@@ -1026,6 +1032,13 @@ mat4x4 from_loc_rot_scale(vec3 location, AxisAngle rotation, vec3 scale)
   mat4x4 ret = to_float4x4(from_rot_scale(rotation, scale));
   ret[3].xyz = location;
   return ret;
+}
+
+mat2x2 from_direction(vec2 direction)
+{
+  float cos_angle = direction.x;
+  float sin_angle = direction.y;
+  return mat2x2(cos_angle, sin_angle, -sin_angle, cos_angle);
 }
 
 mat3x3 from_up_axis(vec3 up)

@@ -6,8 +6,12 @@
  * Draw particles as shapes using primitive expansion.
  */
 
-#include "common_view_clipping_lib.glsl"
+#include "infos/overlay_extra_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(overlay_particle_hair)
+
 #include "draw_model_lib.glsl"
+#include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -18,7 +22,7 @@
 
 void wire_color_get(out vec3 rim_col, out vec3 wire_col)
 {
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[resource_id].infos.w));
+  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
   bool is_selected = flag_test(ob_flag, OBJECT_SELECTED);
   bool is_from_set = flag_test(ob_flag, OBJECT_FROM_SET);
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
@@ -81,14 +85,14 @@ void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
 
 void main()
 {
-  select_id_set(drw_CustomID);
+  select_id_set(drw_custom_id());
 
   vec3 ws_P = drw_point_object_to_world(pos);
   vec3 ws_N = normalize(drw_normal_object_to_world(-nor));
 
   gl_Position = drw_point_world_to_homogenous(ws_P);
 
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
+  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
 
   vec3 rim_col, wire_col;
   if (colorType == V3D_SHADING_OBJECT_COLOR || colorType == V3D_SHADING_RANDOM_COLOR) {

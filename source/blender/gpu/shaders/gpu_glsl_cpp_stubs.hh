@@ -712,10 +712,10 @@ template<typename T, int D> VecBase<bool, D> lessThanEqual(VecOp<T, D>, VecOp<T,
 template<typename T, int D> VecBase<bool, D> greaterThanEqual(VecOp<T, D>, VecOp<T, D>) RET;
 template<typename T, int D> VecBase<bool, D> equal(VecOp<T, D>, VecOp<T, D>) RET;
 template<typename T, int D> VecBase<bool, D> notEqual(VecOp<T, D>, VecOp<T, D>) RET;
-template<int D> bool any(VecBase<bool, D>) RET;
-template<int D> bool all(VecBase<bool, D>) RET;
+template<int D> bool any(VecOp<bool, D>) RET;
+template<int D> bool all(VecOp<bool, D>) RET;
 /* `not` is a C++ keyword that aliases the `!` operator. Simply overload it. */
-template<int D> VecBase<bool, D> operator!(VecBase<bool, D>) RET;
+template<int D> VecBase<bool, D> operator!(VecOp<bool, D>) RET;
 
 template<int D> VecBase<int, D> bitCount(VecOp<int, D>) RET;
 template<int D> VecBase<int, D> bitCount(VecOp<uint, D>) RET;
@@ -833,6 +833,7 @@ double step(double, double) RET;
 template<int D> VecBase<double, D> step(VecOp<double, D>, VecOp<double, D>) RET;
 template<int D> VecBase<double, D> step(double, VecOp<double, D>) RET;
 double smoothstep(double, double, double) RET;
+template<int D> VecBase<double, D> smoothstep(double, double, VecOp<double, D>) RET;
 
 template<typename T> T degrees(T) RET;
 template<typename T> T radians(T) RET;
@@ -906,11 +907,6 @@ float4 unpackSnorm4x8(uint) RET;
 template<int C, int R> float determinant(MatBase<C, R>) RET;
 template<int C, int R> MatBase<C, R> inverse(MatBase<C, R>) RET;
 template<int C, int R> MatBase<R, C> transpose(MatBase<C, R>) RET;
-
-/* TODO(@fclem): Should be in a lib instead of being implemented by each backend. */
-bool is_zero(vec2) RET;
-bool is_zero(vec3) RET;
-bool is_zero(vec4) RET;
 
 #undef RET
 
@@ -1014,6 +1010,23 @@ void groupMemoryBarrier() {}
 #define bool3_array(...) { __VA_ARGS__ }
 #define bool4_array(...) { __VA_ARGS__ }
 /* clang-format on */
+
+#define METAL_CONSTRUCTOR_1(class_name, t1, m1) \
+  class_name() = default; \
+  class_name(t1 m1##_) : m1(m1##_){};
+
+#define METAL_CONSTRUCTOR_2(class_name, t1, m1, t2, m2) \
+  class_name() = default; \
+  class_name(t1 m1##_, t2 m2##_) : m1(m1##_), m2(m2##_){};
+
+#define METAL_CONSTRUCTOR_3(class_name, t1, m1, t2, m2, t3, m3) \
+  class_name() = default; \
+  class_name(t1 m1##_, t2 m2##_, t3 m3##_) : m1(m1##_), m2(m2##_), m3(m3##_){};
+
+#define METAL_CONSTRUCTOR_4(class_name, t1, m1, t2, m2, t3, m3, t4, m4) \
+  class_name() = default; \
+  class_name(t1 m1##_, t2 m2##_, t3 m3##_, t4 m4##_) \
+      : m1(m1##_), m2(m2##_), m3(m3##_), m4(m4##_){};
 
 /** \} */
 

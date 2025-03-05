@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
@@ -24,6 +25,8 @@
 
 #include "transform.hh"
 #include "transform_convert.hh"
+
+namespace blender::ed::transform {
 
 struct TransDataTracking {
   int mode;
@@ -626,3 +629,5 @@ TransConvertTypeInfo TransConvertType_Tracking = {
     /*recalc_data*/ recalcData_tracking,
     /*special_aftertrans_update*/ special_aftertrans_update__movieclip,
 };
+
+}  // namespace blender::ed::transform

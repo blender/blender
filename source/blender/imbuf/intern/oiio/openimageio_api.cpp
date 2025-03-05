@@ -14,8 +14,6 @@
 
 OIIO_NAMESPACE_USING
 
-extern "C" {
-
 void OIIO_init()
 {
   /* Make OIIO thread pool follow Blender number of threads override. */
@@ -32,5 +30,3 @@ int OIIO_getVersionHex()
 {
   return openimageio_version();
 }
-
-} /* extern "C" */

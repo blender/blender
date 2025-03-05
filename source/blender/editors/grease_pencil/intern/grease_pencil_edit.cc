@@ -11,6 +11,7 @@
 #include "BLI_assert.h"
 #include "BLI_index_mask.hh"
 #include "BLI_index_range.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
@@ -61,6 +62,7 @@
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 
+#include "GEO_curves_remove_and_split.hh"
 #include "GEO_join_geometries.hh"
 #include "GEO_realize_instances.hh"
 #include "GEO_reorder.hh"
@@ -237,12 +239,18 @@ static const EnumPropertyItem prop_simplify_modes[] = {
 
 static IndexMask simplify_fixed(const bke::CurvesGeometry &curves,
                                 const int step,
+                                const IndexMask &stroke_selection,
                                 IndexMaskMemory &memory)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
-  return IndexMask::from_predicate(
-      curves.points_range(), GrainSize(2048), memory, [&](const int64_t i) {
+
+  const IndexMask selected_points = IndexMask::from_ranges(
+      points_by_curve, stroke_selection, memory);
+
+  /* Find points to keep among selected points. */
+  const IndexMask selected_to_keep = IndexMask::from_predicate(
+      selected_points, GrainSize(2048), memory, [&](const int64_t i) {
         const int curve_i = point_to_curve_map[i];
         const IndexRange points = points_by_curve[curve_i];
         if (points.size() <= 2) {
@@ -251,6 +259,10 @@ static IndexMask simplify_fixed(const bke::CurvesGeometry &curves,
         const int local_i = i - points.start();
         return (local_i % int(math::pow(2.0f, float(step))) == 0) || points.last() == i;
       });
+
+  /* All the points that are not selected are also kept. */
+  return IndexMask::from_union(
+      {selected_to_keep, selected_points.complement(curves.points_range(), memory)}, memory);
 }
 
 static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
@@ -279,7 +291,7 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
     switch (mode) {
       case SimplifyMode::FIXED: {
         const int steps = RNA_int_get(op->ptr, "steps");
-        const IndexMask points_to_keep = simplify_fixed(curves, steps, memory);
+        const IndexMask points_to_keep = simplify_fixed(curves, steps, strokes, memory);
         if (points_to_keep.is_empty()) {
           info.drawing.strokes_for_write() = {};
           break;
@@ -320,8 +332,9 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
         const OffsetIndices<int> points_by_curve = curves.points_by_curve();
         const Array<int> point_to_curve_map = curves.point_to_curve_map();
         const float merge_distance = RNA_float_get(op->ptr, "distance");
-        const IndexMask points = IndexMask::from_predicate(
-            curves.points_range(), GrainSize(2048), memory, [&](const int64_t i) {
+        const IndexMask selected_points = IndexMask::from_ranges(points_by_curve, strokes, memory);
+        const IndexMask filtered_points = IndexMask::from_predicate(
+            selected_points, GrainSize(2048), memory, [&](const int64_t i) {
               const int curve_i = point_to_curve_map[i];
               const IndexRange points = points_by_curve[curve_i];
               if (points.drop_front(1).drop_back(1).contains(i)) {
@@ -330,7 +343,7 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
               return false;
             });
         info.drawing.strokes_for_write() = ed::greasepencil::curves_merge_by_distance(
-            curves, merge_distance, points, {});
+            curves, merge_distance, filtered_points, {});
         info.drawing.tag_topology_changed();
         changed = true;
         break;
@@ -417,106 +430,6 @@ static void GREASE_PENCIL_OT_stroke_simplify(wmOperatorType *ot)
 /** \name Delete Operator
  * \{ */
 
-bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &curves,
-                                            const IndexMask &mask)
-{
-  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-  const VArray<bool> src_cyclic = curves.cyclic();
-
-  Array<bool> points_to_delete(curves.points_num());
-  mask.to_bools(points_to_delete.as_mutable_span());
-  const int total_points = points_to_delete.as_span().count(false);
-
-  /* Return if deleting everything. */
-  if (total_points == 0) {
-    return {};
-  }
-
-  int curr_dst_point_id = 0;
-  Array<int> dst_to_src_point(total_points);
-  Vector<int> dst_curve_counts;
-  Vector<int> dst_to_src_curve;
-  Vector<bool> dst_cyclic;
-
-  for (const int curve_i : curves.curves_range()) {
-    const IndexRange points = points_by_curve[curve_i];
-    const Span<bool> curve_points_to_delete = points_to_delete.as_span().slice(points);
-    const bool curve_cyclic = src_cyclic[curve_i];
-
-    /* Note, these ranges start at zero and needed to be shifted by `points.first()` */
-    const Vector<IndexRange> ranges_to_keep = array_utils::find_all_ranges(curve_points_to_delete,
-                                                                           false);
-
-    if (ranges_to_keep.is_empty()) {
-      continue;
-    }
-
-    const bool is_last_segment_selected = curve_cyclic && ranges_to_keep.first().first() == 0 &&
-                                          ranges_to_keep.last().last() == points.size() - 1;
-    const bool is_curve_self_joined = is_last_segment_selected && ranges_to_keep.size() != 1;
-    const bool is_cyclic = ranges_to_keep.size() == 1 && is_last_segment_selected;
-
-    IndexRange range_ids = ranges_to_keep.index_range();
-    /* Skip the first range because it is joined to the end of the last range. */
-    for (const int range_i : ranges_to_keep.index_range().drop_front(is_curve_self_joined)) {
-      const IndexRange range = ranges_to_keep[range_i];
-
-      int count = range.size();
-      for (const int src_point : range.shift(points.first())) {
-        dst_to_src_point[curr_dst_point_id++] = src_point;
-      }
-
-      /* Join the first range to the end of the last range. */
-      if (is_curve_self_joined && range_i == range_ids.last()) {
-        const IndexRange first_range = ranges_to_keep[range_ids.first()];
-        for (const int src_point : first_range.shift(points.first())) {
-          dst_to_src_point[curr_dst_point_id++] = src_point;
-        }
-        count += first_range.size();
-      }
-
-      dst_curve_counts.append(count);
-      dst_to_src_curve.append(curve_i);
-      dst_cyclic.append(is_cyclic);
-    }
-  }
-
-  const int total_curves = dst_to_src_curve.size();
-
-  bke::CurvesGeometry dst_curves(total_points, total_curves);
-
-  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &curves.vertex_group_names);
-
-  MutableSpan<int> new_curve_offsets = dst_curves.offsets_for_write();
-  array_utils::copy(dst_curve_counts.as_span(), new_curve_offsets.drop_back(1));
-  offset_indices::accumulate_counts_to_offsets(new_curve_offsets);
-
-  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
-  const bke::AttributeAccessor src_attributes = curves.attributes();
-
-  /* Transfer curve attributes. */
-  gather_attributes(src_attributes,
-                    bke::AttrDomain::Curve,
-                    bke::AttrDomain::Curve,
-                    bke::attribute_filter_from_skip_ref({"cyclic"}),
-                    dst_to_src_curve,
-                    dst_attributes);
-  array_utils::copy(dst_cyclic.as_span(), dst_curves.cyclic_for_write());
-
-  /* Transfer point attributes. */
-  gather_attributes(src_attributes,
-                    bke::AttrDomain::Point,
-                    bke::AttrDomain::Point,
-                    {},
-                    dst_to_src_point,
-                    dst_attributes);
-
-  dst_curves.update_curve_types();
-  dst_curves.remove_attributes_based_on_types();
-
-  return dst_curves;
-}
-
 static int grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
@@ -541,7 +454,7 @@ static int grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
       curves.remove_curves(elements, {});
     }
     else if (selection_domain == bke::AttrDomain::Point) {
-      curves = remove_points_and_split(curves, elements);
+      curves = geometry::remove_points_and_split(curves, elements);
     }
     info.drawing.tag_topology_changed();
     changed = true;
@@ -1123,11 +1036,14 @@ static void GREASE_PENCIL_OT_set_uniform_thickness(wmOperatorType *ot)
 
 static int grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::bke;
+
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  const float opacity = RNA_float_get(op->ptr, "opacity");
+  const float opacity_stroke = RNA_float_get(op->ptr, "opacity_stroke");
+  const float opacity_fill = RNA_float_get(op->ptr, "opacity_fill");
 
   bool changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
@@ -1138,11 +1054,21 @@ static int grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
     if (strokes.is_empty()) {
       return;
     }
-    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-
+    CurvesGeometry &curves = info.drawing.strokes_for_write();
+    MutableAttributeAccessor attributes = curves.attributes_for_write();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+
     MutableSpan<float> opacities = info.drawing.opacities_for_write();
-    bke::curves::fill_points<float>(points_by_curve, strokes, opacity, opacities);
+    bke::curves::fill_points<float>(points_by_curve, strokes, opacity_stroke, opacities);
+
+    if (SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
+            "fill_opacity", AttrDomain::Curve))
+    {
+      strokes.foreach_index(GrainSize(2048), [&](const int64_t curve) {
+        fill_opacities.span[curve] = opacity_fill;
+      });
+    }
+
     changed = true;
   });
 
@@ -1165,7 +1091,10 @@ static void GREASE_PENCIL_OT_set_uniform_opacity(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  ot->prop = RNA_def_float(ot->srna, "opacity", 1.0f, 0.0f, 1.0f, "Opacity", "", 0.0f, 1.0f);
+  /* Differentiate default opacities for stroke & fills so shapes with same stroke+fill colors will
+   * be more readable. */
+  RNA_def_float(ot->srna, "opacity_stroke", 1.0f, 0.0f, 1.0f, "Stroke Opacity", "", 0.0f, 1.0f);
+  RNA_def_float(ot->srna, "opacity_fill", 0.5f, 0.0f, 1.0f, "Fill Opacity", "", 0.0f, 1.0f);
 }
 
 /** \} */
@@ -1381,33 +1310,41 @@ static int grease_pencil_caps_set_exec(bContext *C, wmOperator *op)
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
     if (ELEM(mode, CapsMode::ROUND, CapsMode::FLAT)) {
-      bke::SpanAttributeWriter<int8_t> start_caps =
-          attributes.lookup_or_add_for_write_span<int8_t>("start_cap", bke::AttrDomain::Curve);
-      bke::SpanAttributeWriter<int8_t> end_caps = attributes.lookup_or_add_for_write_span<int8_t>(
-          "end_cap", bke::AttrDomain::Curve);
-
       const int8_t flag_set = (mode == CapsMode::ROUND) ? int8_t(GP_STROKE_CAP_TYPE_ROUND) :
                                                           int8_t(GP_STROKE_CAP_TYPE_FLAT);
-
-      index_mask::masked_fill(start_caps.span, flag_set, strokes);
-      index_mask::masked_fill(end_caps.span, flag_set, strokes);
-      start_caps.finish();
-      end_caps.finish();
+      if (bke::SpanAttributeWriter<int8_t> start_caps =
+              attributes.lookup_or_add_for_write_span<int8_t>("start_cap", bke::AttrDomain::Curve))
+      {
+        index_mask::masked_fill(start_caps.span, flag_set, strokes);
+        start_caps.finish();
+      }
+      if (bke::SpanAttributeWriter<int8_t> end_caps =
+              attributes.lookup_or_add_for_write_span<int8_t>("end_cap", bke::AttrDomain::Curve))
+      {
+        index_mask::masked_fill(end_caps.span, flag_set, strokes);
+        end_caps.finish();
+      }
     }
     else {
       switch (mode) {
         case CapsMode::START: {
-          bke::SpanAttributeWriter<int8_t> caps = attributes.lookup_or_add_for_write_span<int8_t>(
-              "start_cap", bke::AttrDomain::Curve);
-          toggle_caps(caps.span, strokes);
-          caps.finish();
+          if (bke::SpanAttributeWriter<int8_t> caps =
+                  attributes.lookup_or_add_for_write_span<int8_t>("start_cap",
+                                                                  bke::AttrDomain::Curve))
+          {
+            toggle_caps(caps.span, strokes);
+            caps.finish();
+          }
           break;
         }
         case CapsMode::END: {
-          bke::SpanAttributeWriter<int8_t> caps = attributes.lookup_or_add_for_write_span<int8_t>(
-              "end_cap", bke::AttrDomain::Curve);
-          toggle_caps(caps.span, strokes);
-          caps.finish();
+          if (bke::SpanAttributeWriter<int8_t> caps =
+                  attributes.lookup_or_add_for_write_span<int8_t>("end_cap",
+                                                                  bke::AttrDomain::Curve))
+          {
+            toggle_caps(caps.span, strokes);
+            caps.finish();
+          }
           break;
         }
         case CapsMode::ROUND:
@@ -2156,7 +2093,7 @@ static bool grease_pencil_separate_selected(bContext &C,
     /* Copy strokes to new CurvesGeometry. */
     drawing_dst->strokes_for_write() = bke::curves_copy_point_selection(
         curves_src, selected_points, {});
-    curves_src = remove_points_and_split(curves_src, selected_points);
+    curves_src = geometry::remove_points_and_split(curves_src, selected_points);
 
     info.drawing.tag_topology_changed();
     drawing_dst->tag_topology_changed();
@@ -2583,7 +2520,8 @@ static int grease_pencil_copy_strokes_exec(bContext *C, wmOperator *op)
     }
     else if (selection_domain == bke::AttrDomain::Point) {
       const IndexMask selected_points = ed::curves::retrieve_selected_points(curves, memory);
-      copied_curves = curves_copy_point_selection(curves, selected_points, {});
+      copied_curves = geometry::remove_points_and_split(
+          curves, selected_points.complement(curves.points_range(), memory));
       num_elements_copied += copied_curves.points_num();
     }
 
@@ -3074,6 +3012,7 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   const int new_curves_num = dst_to_src_curves.size();
 
   bke::CurvesGeometry dst(new_points_num, new_curves_num);
+  BKE_defgroup_copy_list(&dst.vertex_group_names, &src.vertex_group_names);
 
   /* Setup curve offsets, based on the number of points in each curve. */
   MutableSpan<int> new_curve_offsets = dst.offsets_for_write();
@@ -3186,9 +3125,9 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
   const float offset = RNA_float_get(op->ptr, "offset");
 
   /* Init snap context for geometry projection. */
-  SnapObjectContext *snap_context = nullptr;
+  transform::SnapObjectContext *snap_context = nullptr;
   if (mode == ReprojectMode::Surface) {
-    snap_context = ED_transform_snap_object_context_create(&scene, 0);
+    snap_context = transform::snap_object_context_create(&scene, 0);
   }
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
@@ -3268,17 +3207,17 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
           float3 hit_position(0.0f);
           float3 hit_normal(0.0f);
 
-          SnapObjectParams params{};
+          transform::SnapObjectParams params{};
           params.snap_target_select = SCE_SNAP_TARGET_ALL;
-          if (ED_transform_snap_object_project_ray(snap_context,
-                                                   depsgraph,
-                                                   v3d,
-                                                   &params,
-                                                   ray_start,
-                                                   ray_direction,
-                                                   &hit_depth,
-                                                   hit_position,
-                                                   hit_normal))
+          if (transform::snap_object_project_ray(snap_context,
+                                                 depsgraph,
+                                                 v3d,
+                                                 &params,
+                                                 ray_start,
+                                                 ray_direction,
+                                                 &hit_depth,
+                                                 hit_position,
+                                                 hit_normal))
           {
             /* Apply offset over surface. */
             position = math::transform_point(
@@ -3301,7 +3240,7 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
   }
 
   if (snap_context != nullptr) {
-    ED_transform_snap_object_context_destroy(snap_context);
+    transform::snap_object_context_destroy(snap_context);
   }
 
   if (mode == ReprojectMode::Surface) {

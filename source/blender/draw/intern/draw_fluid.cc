@@ -435,7 +435,7 @@ void DRW_smoke_ensure_coba_field(FluidModifierData *fmd)
 
     if (!fds->tex_field) {
       fds->tex_field = create_field_texture(fds, false);
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_field));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_field));
     }
     if (!fds->tex_coba && !ELEM(fds->coba_field,
                                 FLUID_DOMAIN_FIELD_PHI,
@@ -446,7 +446,7 @@ void DRW_smoke_ensure_coba_field(FluidModifierData *fmd)
                                 FLUID_DOMAIN_FIELD_PRESSURE))
     {
       fds->tex_coba = create_transfer_function(TFUNC_COLOR_RAMP, fds->coba);
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_coba));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_coba));
     }
   }
 #endif
@@ -462,24 +462,24 @@ void DRW_smoke_ensure(FluidModifierData *fmd, int highres)
 
     if (!fds->tex_density) {
       fds->tex_density = create_density_texture(fds, highres);
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_density));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_density));
     }
     if (!fds->tex_color) {
       fds->tex_color = create_color_texture(fds, highres);
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_color));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_color));
     }
     if (!fds->tex_flame) {
       fds->tex_flame = create_flame_texture(fds, highres);
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_flame));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_flame));
     }
     if (!fds->tex_flame_coba && fds->tex_flame) {
       fds->tex_flame_coba = create_transfer_function(TFUNC_FLAME_SPECTRUM, nullptr);
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_flame_coba));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_flame_coba));
     }
     if (!fds->tex_shadow) {
       fds->tex_shadow = create_volume_texture(
           fds->res, GPU_R8, GPU_DATA_FLOAT, manta_smoke_get_shadow(fds->fluid));
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_shadow));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_shadow));
     }
   }
 #endif /* WITH_FLUID */
@@ -510,9 +510,9 @@ void DRW_smoke_ensure_velocity(FluidModifierData *fmd)
           "vely", UNPACK3(fds->res), 1, GPU_R16F, GPU_TEXTURE_USAGE_SHADER_READ, vel_y);
       fds->tex_velocity_z = GPU_texture_create_3d(
           "velz", UNPACK3(fds->res), 1, GPU_R16F, GPU_TEXTURE_USAGE_SHADER_READ, vel_z);
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_x));
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_y));
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_z));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_x));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_y));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_z));
     }
   }
 #endif /* WITH_FLUID */
@@ -528,7 +528,7 @@ void DRW_fluid_ensure_flags(FluidModifierData *fmd)
     if (!fds->tex_flags) {
       fds->tex_flags = create_volume_texture(
           fds->res, GPU_R8UI, GPU_DATA_INT, manta_smoke_get_flags(fds->fluid));
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_flags));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_flags));
 
       swizzle_texture_channel_single(fds->tex_flags);
     }
@@ -546,7 +546,7 @@ void DRW_fluid_ensure_range_field(FluidModifierData *fmd)
 
     if (!fds->tex_range_field) {
       fds->tex_range_field = create_field_texture(fds, true);
-      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_range_field));
+      BLI_addtail(&drw_get().data->smoke_textures, BLI_genericNodeN(&fds->tex_range_field));
     }
   }
 #endif /* WITH_FLUID */

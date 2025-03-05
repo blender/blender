@@ -24,4 +24,6 @@
 /* Python 3.13 made some changes, use the "new" names. */
 #if PY_VERSION_HEX < 0x030d0000
 #  define PyObject_GetOptionalAttr _PyObject_LookupAttr
+
+#  define Py_IsFinalizing _Py_IsFinalizing
 #endif

@@ -731,7 +731,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone->color = eBone->color;
 
     LISTBASE_FOREACH (BoneCollectionReference *, ref, &eBone->bone_collections) {
-      BoneCollectionReference *newBoneRef = MEM_cnew<BoneCollectionReference>(
+      BoneCollectionReference *newBoneRef = MEM_dupallocN<BoneCollectionReference>(
           "ED_armature_from_edit", *ref);
       BLI_addtail(&newBone->runtime.collections, newBoneRef);
     }

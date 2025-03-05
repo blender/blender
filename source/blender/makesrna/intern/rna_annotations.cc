@@ -86,7 +86,7 @@ static void rna_annotation_frame_remove(bGPDlayer *layer,
   }
 
   BKE_gpencil_layer_frame_delete(layer, frame);
-  RNA_POINTER_INVALIDATE(frame_ptr);
+  frame_ptr->invalidate();
 
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
 }
@@ -124,7 +124,7 @@ static void rna_annotation_layer_remove(bGPdata *gpd, ReportList *reports, Point
   }
 
   BKE_gpencil_layer_delete(gpd, layer);
-  RNA_POINTER_INVALIDATE(layer_ptr);
+  layer_ptr->invalidate();
 
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 }

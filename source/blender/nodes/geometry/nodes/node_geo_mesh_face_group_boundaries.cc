@@ -132,10 +132,10 @@ static void node_register()
       "Find edges on the boundaries between groups of faces with the same ID value";
   ntype.enum_name_legacy = "MESH_FACE_SET_BOUNDARIES";
   ntype.nclass = NODE_CLASS_INPUT;
-  bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::Middle);
+  bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
 

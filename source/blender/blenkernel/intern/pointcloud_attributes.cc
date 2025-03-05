@@ -26,7 +26,7 @@ static void tag_component_radius_changed(void *owner)
  * In this function all the attribute providers for a point cloud component are created. Most data
  * in this function is statically allocated, because it does not change over time.
  */
-static GeometryAttributeProviders create_attribute_providers_for_point_cloud()
+static GeometryAttributeProviders create_attribute_providers_for_pointcloud()
 {
   static CustomDataAccessInfo point_access = {
       [](void *owner) -> CustomData * {
@@ -66,7 +66,7 @@ static GeometryAttributeProviders create_attribute_providers_for_point_cloud()
 
 static AttributeAccessorFunctions get_pointcloud_accessor_functions()
 {
-  static const GeometryAttributeProviders providers = create_attribute_providers_for_point_cloud();
+  static const GeometryAttributeProviders providers = create_attribute_providers_for_pointcloud();
   AttributeAccessorFunctions fn =
       attribute_accessor_functions::accessor_functions_for_providers<providers>();
   fn.domain_size = [](const void *owner, const AttrDomain domain) {

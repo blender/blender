@@ -7,9 +7,11 @@
  */
 
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
@@ -101,7 +103,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   }
 
   /* Custom data to enable edge panning during the node transform. */
-  TransCustomDataNode *customdata = MEM_cnew<TransCustomDataNode>(__func__);
+  TransCustomDataNode *customdata = MEM_callocN<TransCustomDataNode>(__func__);
   UI_view2d_edge_pan_init(t->context,
                           &customdata->edgepan_data,
                           NODE_EDGE_PAN_INSIDE_PAD,
@@ -131,8 +133,8 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   }
 
   tc->data_len = nodes.size();
-  tc->data = MEM_cnew_array<TransData>(tc->data_len, __func__);
-  tc->data_2d = MEM_cnew_array<TransData2D>(tc->data_len, __func__);
+  tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, __func__);
+  tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, __func__);
 
   for (const int i : nodes.index_range()) {
     create_transform_data_for_node(tc->data[i], tc->data_2d[i], *nodes[i], UI_SCALE_FAC);
@@ -278,7 +280,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
     if (ntree) {
       LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
         if (node->flag & NODE_SELECT) {
-          bke::node_remove_node(bmain, ntree, node, true);
+          bke::node_remove_node(bmain, *ntree, *node, true);
         }
       }
       BKE_main_ensure_invariants(*bmain, ntree->id);
@@ -305,11 +307,11 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 
 /** \} */
 
-}  // namespace blender::ed::transform
-
 TransConvertTypeInfo TransConvertType_Node = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*create_trans_data*/ blender::ed::transform::createTransNodeData,
-    /*recalc_data*/ blender::ed::transform::flushTransNodes,
-    /*special_aftertrans_update*/ blender::ed::transform::special_aftertrans_update__node,
+    /*create_trans_data*/ createTransNodeData,
+    /*recalc_data*/ flushTransNodes,
+    /*special_aftertrans_update*/ special_aftertrans_update__node,
 };
+
+}  // namespace blender::ed::transform

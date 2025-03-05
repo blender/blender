@@ -15,6 +15,7 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
+#include "BKE_pointcloud.hh"
 
 namespace blender::bke {
 
@@ -811,21 +812,54 @@ BVHTreeFromMesh bvhtree_from_mesh_verts_init(const Mesh &mesh, const IndexMask &
 /** \name Point Cloud BVH Building
  * \{ */
 
-BVHTreeFromPointCloud bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
-                                                  const IndexMask &points_mask)
+static BVHTreeFromPointCloud create_points_tree_data(const BVHTree *tree,
+                                                     const Span<float3> positions)
 {
-  const Span<float3> positions = pointcloud.positions();
-  std::unique_ptr<BVHTree, BVHTreeDeleter> tree = create_tree_from_verts(positions, points_mask);
-  if (!tree) {
-    return {};
-  }
   BVHTreeFromPointCloud data{};
-  data.tree = std::move(tree);
+  data.tree = tree;
+  data.positions = positions;
   data.nearest_callback = nullptr;
-  data.coords = (const float(*)[3])positions.data();
   return data;
 }
 
-/** \} */
+static BVHTreeFromPointCloud create_pointcloud_tree_data(const BVHTree *tree,
+                                                         const Span<float3> positions)
+{
+  BVHTreeFromPointCloud data{};
+  data.tree = tree;
+  data.positions = positions;
+  return data;
+}
+
+static BVHTreeFromPointCloud create_pointcloud_tree_data(
+    std::unique_ptr<BVHTree, BVHTreeDeleter> tree, const Span<float3> positions)
+{
+  BVHTreeFromPointCloud data = create_points_tree_data(tree.get(), positions);
+  data.owned_tree = std::move(tree);
+  return data;
+}
+
+BVHTreeFromPointCloud bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
+                                                  const IndexMask &points_mask)
+{
+  if (points_mask.size() == pointcloud.totpoint) {
+    return pointcloud.bvh_tree();
+  }
+  const Span<float3> positions = pointcloud.positions();
+  return create_pointcloud_tree_data(create_tree_from_verts(positions, points_mask), positions);
+}
 
 }  // namespace blender::bke
+
+blender::bke::BVHTreeFromPointCloud PointCloud::bvh_tree() const
+{
+  using namespace blender;
+  using namespace blender::bke;
+  const Span<float3> positions = this->positions();
+  this->runtime->bvh_cache.ensure([&](std::unique_ptr<BVHTree, BVHTreeDeleter> &data) {
+    data = create_tree_from_verts(positions, positions.index_range());
+  });
+  return create_pointcloud_tree_data(this->runtime->bvh_cache.data().get(), positions);
+}
+
+/** \} */

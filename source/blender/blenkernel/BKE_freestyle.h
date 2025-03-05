@@ -8,10 +8,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct FreestyleConfig;
 struct FreestyleLineSet;
 struct FreestyleModuleConfig;
@@ -51,7 +47,3 @@ short BKE_freestyle_lineset_get_active_index(struct FreestyleConfig *config);
 void BKE_freestyle_lineset_set_active_index(struct FreestyleConfig *config, short index);
 void BKE_freestyle_lineset_unique_name(struct FreestyleConfig *config,
                                        struct FreestyleLineSet *lineset);
-
-#ifdef __cplusplus
-}
-#endif

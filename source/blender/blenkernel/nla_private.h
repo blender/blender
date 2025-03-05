@@ -16,10 +16,6 @@
 
 #include "RNA_types.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AnimationEvalContext;
 
 /* --------------- NLA Evaluation DataTypes ----------------------- */
@@ -294,7 +290,3 @@ void nlasnapshot_blend_strip_no_blend(PointerRNA *ptr,
                                       NlaEvalStrip *nes,
                                       NlaEvalSnapshot *snapshot,
                                       const struct AnimationEvalContext *anim_eval_context);
-
-#ifdef __cplusplus
-}
-#endif

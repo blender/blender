@@ -5,7 +5,6 @@
 #pragma once
 
 /**
- * Version of common_math_geom_lib.glsl that doesn't rely on common_math_lib.
  * This should ultimately be rewritten inside a gpu_shader lib with higher quality standard.
  */
 
@@ -175,16 +174,6 @@ void make_orthonormal_basis(vec3 N, out vec3 T, out vec3 B)
   vec3 up_vector = abs(N.z) < 0.99999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
   T = normalize(cross(up_vector, N));
   B = cross(N, T);
-}
-
-vec3 tangent_to_world(vec3 vector, vec3 N, vec3 T, vec3 B)
-{
-  return T * vector.x + B * vector.y + N * vector.z;
-}
-
-vec3 world_to_tangent(vec3 vector, vec3 N, vec3 T, vec3 B)
-{
-  return vec3(dot(T, vector), dot(B, vector), dot(N, vector));
 }
 
 /** \} */

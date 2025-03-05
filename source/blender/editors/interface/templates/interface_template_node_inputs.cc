@@ -69,7 +69,7 @@ static void draw_node_input(bContext *C,
 
   PointerRNA socket_ptr = RNA_pointer_create_discrete(
       node_ptr->owner_id, &RNA_NodeSocket, &socket);
-  const StringRefNull text(IFACE_(bke::nodeSocketLabel(&socket).c_str()));
+  const StringRefNull text(IFACE_(bke::node_socket_label(socket).c_str()));
   uiLayout *row = uiLayoutRow(layout, true);
   socket.typeinfo->draw(C, row, &socket_ptr, node_ptr, text);
 }
@@ -104,7 +104,7 @@ static void draw_node_inputs_recursive(bContext *C,
 {
   /* TODO: Use flag on the panel state instead which is better for dynamic panel amounts. */
   const std::string panel_idname = "NodePanel" + std::to_string(panel_decl.identifier);
-  PanelLayout panel = uiLayoutPanel(C, layout, panel_idname.c_str(), panel_decl.default_collapsed);
+  PanelLayout panel = uiLayoutPanel(C, layout, panel_idname, panel_decl.default_collapsed);
   const bool has_used_inputs = panel_has_input_affecting_node_output(node, panel_decl);
   uiLayoutSetActive(panel.header, has_used_inputs);
   uiItemL(panel.header, IFACE_(panel_decl.name), ICON_NONE);

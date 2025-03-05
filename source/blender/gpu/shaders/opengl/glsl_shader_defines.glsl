@@ -115,21 +115,6 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 /* Backend Functions. */
 #define select(A, B, mask) mix(A, B, mask)
 
-bool is_zero(vec2 A)
-{
-  return all(equal(A, vec2(0.0)));
-}
-
-bool is_zero(vec3 A)
-{
-  return all(equal(A, vec3(0.0)));
-}
-
-bool is_zero(vec4 A)
-{
-  return all(equal(A, vec4(0.0)));
-}
-
 /* Array syntax compatibility. */
 #define float_array float[]
 #define float2_array vec2[]
@@ -154,6 +139,12 @@ bool is_zero(vec4 A)
 #define VERTEX_SHADER_CREATE_INFO(a)
 #define FRAGMENT_SHADER_CREATE_INFO(a)
 #define COMPUTE_SHADER_CREATE_INFO(a)
+
+/* Stubs. These are defined by default in GLSL. */
+#define METAL_CONSTRUCTOR_1(class_name, t1, m1)
+#define METAL_CONSTRUCTOR_2(class_name, t1, m1, t2, m2)
+#define METAL_CONSTRUCTOR_3(class_name, t1, m1, t2, m2, t3, m3)
+#define METAL_CONSTRUCTOR_4(class_name, t1, m1, t2, m2, t3, m3, t4, m4)
 
 #define _in_sta
 #define _in_end

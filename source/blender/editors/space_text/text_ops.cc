@@ -16,6 +16,7 @@
 #include "DNA_text_types.h"
 
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
@@ -395,7 +396,7 @@ static void text_open_init(bContext *C, wmOperator *op)
 
 static void text_open_cancel(bContext * /*C*/, wmOperator *op)
 {
-  MEM_freeN(op->customdata);
+  MEM_delete(static_cast<PropertyPointerRNA *>(op->customdata));
 }
 
 static int text_open_exec(bContext *C, wmOperator *op)

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'5c1749f7b7d3')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-03 14:39+0000\n"
+"POT-Creation-Date: 2025-03-03 09:33+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -175,14 +175,6 @@ msgid "Expanded"
 msgstr "विस्तृत"
 
 
-msgid "Influence"
-msgstr "प्रभाव"
-
-
-msgid "Add"
-msgstr "जोड़ें"
-
-
 msgid "Off"
 msgstr "बंद"
 
@@ -249,6 +241,10 @@ msgstr "अनुप्राणन सामग्री"
 
 msgid "Action"
 msgstr "कार्य"
+
+
+msgid "Add"
+msgstr "जोड़ें"
 
 
 msgid "Nothing"
@@ -856,6 +852,10 @@ msgstr "निवेश"
 
 msgid "Error"
 msgstr "त्रुटि"
+
+
+msgid "Influence"
+msgstr "प्रभाव"
 
 
 msgid "Copy Location"
@@ -1639,14 +1639,6 @@ msgid "Loop"
 msgstr "कुण्डली"
 
 
-msgid "Clone Alpha"
-msgstr "प्रतिरूप पारदर्शिता"
-
-
-msgid "Clone Image"
-msgstr "प्रतिरूप छवि"
-
-
 msgid "Local"
 msgstr "स्थानीय"
 
@@ -2392,11 +2384,6 @@ msgid "fBM"
 msgstr "एफ़बीएम"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "छांटन"
-
-
 msgid "Window Manager"
 msgstr "खिडकी प्रबंधक"
 
@@ -2617,6 +2604,10 @@ msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
+msgid "Text"
+msgstr "पाठ"
+
+
 msgid "Names"
 msgstr "नाम"
 
@@ -2671,10 +2662,6 @@ msgstr "हड्डी विकल्प को सक्षम करें"
 
 msgid "Merge"
 msgstr "विलय करें"
-
-
-msgid "Text"
-msgstr "पाठ"
 
 
 msgid "Basic"
@@ -4543,6 +4530,14 @@ msgid "Canvas"
 msgstr "चित्रपटी"
 
 
+msgid "Clone Alpha"
+msgstr "प्रतिरूप पारदर्शिता"
+
+
+msgid "Clone Image"
+msgstr "प्रतिरूप छवि"
+
+
 msgid "Single Image"
 msgstr "एकल छवि"
 
@@ -4989,6 +4984,11 @@ msgstr "दृश्य"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "चलचित्र"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "छांटन"
 
 
 msgctxt "Sequence"

@@ -39,7 +39,7 @@ static ImBuf *imb_load_dpx_cineon(
 
   logImageGetSize(image, &width, &height, &depth);
 
-  ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags);
+  ibuf = IMB_allocImBuf(width, height, 32, IB_float_data | flags);
   if (ibuf == nullptr) {
     logImageClose(image);
     return nullptr;
@@ -135,7 +135,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
   }
   else {
     if (ibuf->byte_buffer.data == nullptr) {
-      IMB_rect_from_float(ibuf);
+      IMB_byte_from_float(ibuf);
     }
 
     fbuf = (float *)MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y,

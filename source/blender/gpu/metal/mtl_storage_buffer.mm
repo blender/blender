@@ -444,6 +444,7 @@ void MTLStorageBuf::read(void *data)
       }
     }
     else {
+      /* In the case of unified memory. Wait for all pending operation. */
       GPU_finish();
     }
 
@@ -457,6 +458,9 @@ void MTLStorageBuf::read(void *data)
       id<MTLBlitCommandEncoder> blit_encoder =
           ctx->main_command_buffer.ensure_begin_blit_encoder();
       [blit_encoder synchronizeResource:metal_buffer_->get_metal_buffer()];
+
+      /* Wait for the blit to finish. */
+      GPU_finish();
     }
 
     /* Read data. NOTE: Unless explicitly synchronized with GPU work, results may not be ready. */

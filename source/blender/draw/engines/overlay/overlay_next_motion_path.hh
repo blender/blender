@@ -45,6 +45,7 @@ class MotionPath : Overlay {
       PassSimple &pass = motion_path_ps_;
       pass.init();
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       pass.state_set(DRW_STATE_WRITE_COLOR, state.clipping_plane_count);
       {
         PassSimple::Sub &sub = pass.sub("Lines");

@@ -725,7 +725,7 @@ static void rna_trackingObject_remove(MovieTracking *tracking,
     return;
   }
 
-  RNA_POINTER_INVALIDATE(object_ptr);
+  object_ptr->invalidate();
 
   WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, nullptr);
 }

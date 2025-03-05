@@ -13,6 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
@@ -1323,7 +1324,7 @@ bool ED_mesh_pick_edge(bContext *C, Object *ob, const int mval[2], uint dist_px,
 
   edge_idx_best--;
 
-  if ((edge_idx_best != ORIGINDEX_NONE)) {
+  if (edge_idx_best != ORIGINDEX_NONE) {
     *r_index = edge_idx_best;
     return true;
   }

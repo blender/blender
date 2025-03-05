@@ -29,30 +29,28 @@ BLOCKLIST_USD = [
 # retested with newer OpenUSD versions as there are improvements.
 BLOCKLIST_METAL = [
     # Thinfilm
-    "metallic.*physical.blend",
-    "metallic.*f82.blend",
     "principled.*thinfilm.*.blend",
     # Transparency
-    "ray_portal.blend",
     "transparent.blend",
     "transparent_shadow.blend",
+    "transparent_shadow_hair.blend",
+    "transparent_shadow_hair_blur.blend",
     "shadow_all_max_bounces.blend",
     "underwater_caustics.blend",
     "shadow_link_transparency.blend",
     "principled_bsdf_transmission.blend",
+    "light_path_is_shadow_ray.blend",
+    "light_path_is_transmission_ray.blend",
+    "light_path_ray_depth.blend",
+    "light_path_ray_length.blend",
     # Volume
     "light_link_surface_in_volume.blend",
     "openvdb.*.blend",
     "principled_bsdf_interior",
     # Other
-    "bump.*.blend",
-    "bevel.*.blend",
-    "principled_bsdf_coat.blend",
-    "principled_bsdf_emission.blend",
     "white_noise.*.blend",
     "musgrave_multifractal.*.blend",
     "autosmooth_custom_normals.blend",
-    "diffuse_normal_map.blend",
 ]
 
 

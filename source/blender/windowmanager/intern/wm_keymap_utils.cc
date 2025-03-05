@@ -121,8 +121,8 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
       case CTX_MODE_EDIT_GREASE_PENCIL:
         km_id = "Grease Pencil Edit Mode";
         break;
-      case CTX_MODE_EDIT_POINT_CLOUD:
-        km_id = "Point Cloud Edit Mode";
+      case CTX_MODE_EDIT_POINTCLOUD:
+        km_id = "Point Cloud";
         break;
       case CTX_MODE_POSE:
         km_id = "Pose";
@@ -341,6 +341,9 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   else if (STRPREFIX(opname, "PARTICLE_OT")) {
     km = WM_keymap_find_all(wm, "Particle", SPACE_EMPTY, RGN_TYPE_WINDOW);
   }
+  else if (STRPREFIX(opname, "POINTCLOUD_OT")) {
+    km = WM_keymap_find_all(wm, "Point Cloud", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  }
   else if (STRPREFIX(opname, "FONT_OT")) {
     km = WM_keymap_find_all(wm, "Font", SPACE_EMPTY, RGN_TYPE_WINDOW);
   }
@@ -498,8 +501,8 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
           case CTX_MODE_EDIT_CURVES:
             km = WM_keymap_find_all(wm, "Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
             break;
-          case CTX_MODE_EDIT_POINT_CLOUD:
-            km = WM_keymap_find_all(wm, "Point Cloud Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
+          case CTX_MODE_EDIT_POINTCLOUD:
+            km = WM_keymap_find_all(wm, "Point Cloud", SPACE_EMPTY, RGN_TYPE_WINDOW);
             break;
           case CTX_MODE_SCULPT:
             km = WM_keymap_find_all(wm, "Sculpt", SPACE_EMPTY, RGN_TYPE_WINDOW);

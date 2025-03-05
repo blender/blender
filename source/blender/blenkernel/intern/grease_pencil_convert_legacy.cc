@@ -1191,7 +1191,7 @@ static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, L
       &conversion_data.bmain, library, OFFSET_RADIUS_NODETREE_NAME, "GeometryNodeTree");
 
   if (!group->geometry_node_asset_traits) {
-    group->geometry_node_asset_traits = MEM_cnew<GeometryNodeAssetTraits>(__func__);
+    group->geometry_node_asset_traits = MEM_callocN<GeometryNodeAssetTraits>(__func__);
   }
   group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
 
@@ -1210,80 +1210,80 @@ static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, L
   group->tree_interface.add_socket(
       DATA_("Layer"), "", "NodeSocketString", NODE_INTERFACE_SOCKET_INPUT, nullptr);
 
-  bNode *group_output = bke::node_add_node(nullptr, group, "NodeGroupOutput");
+  bNode *group_output = bke::node_add_node(nullptr, *group, "NodeGroupOutput");
   group_output->location[0] = 800;
   group_output->location[1] = 160;
-  bNode *group_input = bke::node_add_node(nullptr, group, "NodeGroupInput");
+  bNode *group_input = bke::node_add_node(nullptr, *group, "NodeGroupInput");
   group_input->location[0] = 0;
   group_input->location[1] = 160;
 
-  bNode *set_curve_radius = bke::node_add_node(nullptr, group, "GeometryNodeSetCurveRadius");
+  bNode *set_curve_radius = bke::node_add_node(nullptr, *group, "GeometryNodeSetCurveRadius");
   set_curve_radius->location[0] = 600;
   set_curve_radius->location[1] = 160;
   bNode *named_layer_selection = bke::node_add_node(
-      nullptr, group, "GeometryNodeInputNamedLayerSelection");
+      nullptr, *group, "GeometryNodeInputNamedLayerSelection");
   named_layer_selection->location[0] = 200;
   named_layer_selection->location[1] = 100;
-  bNode *input_radius = bke::node_add_node(nullptr, group, "GeometryNodeInputRadius");
+  bNode *input_radius = bke::node_add_node(nullptr, *group, "GeometryNodeInputRadius");
   input_radius->location[0] = 0;
   input_radius->location[1] = 0;
 
-  bNode *add = bke::node_add_node(nullptr, group, "ShaderNodeMath");
+  bNode *add = bke::node_add_node(nullptr, *group, "ShaderNodeMath");
   add->custom1 = NODE_MATH_ADD;
   add->location[0] = 200;
   add->location[1] = 0;
 
-  bNode *clamp_radius = bke::node_add_node(nullptr, group, "ShaderNodeClamp");
+  bNode *clamp_radius = bke::node_add_node(nullptr, *group, "ShaderNodeClamp");
   clamp_radius->location[0] = 400;
   clamp_radius->location[1] = 0;
-  bNodeSocket *sock_max = bke::node_find_socket(clamp_radius, SOCK_IN, "Max");
+  bNodeSocket *sock_max = bke::node_find_socket(*clamp_radius, SOCK_IN, "Max");
   static_cast<bNodeSocketValueFloat *>(sock_max->default_value)->value = FLT_MAX;
 
-  bke::node_add_link(group,
-                     group_input,
-                     bke::node_find_socket(group_input, SOCK_OUT, "Socket_0"),
-                     set_curve_radius,
-                     bke::node_find_socket(set_curve_radius, SOCK_IN, "Curve"));
-  bke::node_add_link(group,
-                     set_curve_radius,
-                     bke::node_find_socket(set_curve_radius, SOCK_OUT, "Curve"),
-                     group_output,
-                     bke::node_find_socket(group_output, SOCK_IN, "Socket_1"));
+  bke::node_add_link(*group,
+                     *group_input,
+                     *bke::node_find_socket(*group_input, SOCK_OUT, "Socket_0"),
+                     *set_curve_radius,
+                     *bke::node_find_socket(*set_curve_radius, SOCK_IN, "Curve"));
+  bke::node_add_link(*group,
+                     *set_curve_radius,
+                     *bke::node_find_socket(*set_curve_radius, SOCK_OUT, "Curve"),
+                     *group_output,
+                     *bke::node_find_socket(*group_output, SOCK_IN, "Socket_1"));
 
-  bke::node_add_link(group,
-                     group_input,
-                     bke::node_find_socket(group_input, SOCK_OUT, "Socket_3"),
-                     named_layer_selection,
-                     bke::node_find_socket(named_layer_selection, SOCK_IN, "Name"));
-  bke::node_add_link(group,
-                     named_layer_selection,
-                     bke::node_find_socket(named_layer_selection, SOCK_OUT, "Selection"),
-                     set_curve_radius,
-                     bke::node_find_socket(set_curve_radius, SOCK_IN, "Selection"));
+  bke::node_add_link(*group,
+                     *group_input,
+                     *bke::node_find_socket(*group_input, SOCK_OUT, "Socket_3"),
+                     *named_layer_selection,
+                     *bke::node_find_socket(*named_layer_selection, SOCK_IN, "Name"));
+  bke::node_add_link(*group,
+                     *named_layer_selection,
+                     *bke::node_find_socket(*named_layer_selection, SOCK_OUT, "Selection"),
+                     *set_curve_radius,
+                     *bke::node_find_socket(*set_curve_radius, SOCK_IN, "Selection"));
 
-  bke::node_add_link(group,
-                     group_input,
-                     bke::node_find_socket(group_input, SOCK_OUT, "Socket_2"),
-                     add,
-                     bke::node_find_socket(add, SOCK_IN, "Value"));
-  bke::node_add_link(group,
-                     input_radius,
-                     bke::node_find_socket(input_radius, SOCK_OUT, "Radius"),
-                     add,
-                     bke::node_find_socket(add, SOCK_IN, "Value_001"));
-  bke::node_add_link(group,
-                     add,
-                     bke::node_find_socket(add, SOCK_OUT, "Value"),
-                     clamp_radius,
-                     bke::node_find_socket(clamp_radius, SOCK_IN, "Value"));
-  bke::node_add_link(group,
-                     clamp_radius,
-                     bke::node_find_socket(clamp_radius, SOCK_OUT, "Result"),
-                     set_curve_radius,
-                     bke::node_find_socket(set_curve_radius, SOCK_IN, "Radius"));
+  bke::node_add_link(*group,
+                     *group_input,
+                     *bke::node_find_socket(*group_input, SOCK_OUT, "Socket_2"),
+                     *add,
+                     *bke::node_find_socket(*add, SOCK_IN, "Value"));
+  bke::node_add_link(*group,
+                     *input_radius,
+                     *bke::node_find_socket(*input_radius, SOCK_OUT, "Radius"),
+                     *add,
+                     *bke::node_find_socket(*add, SOCK_IN, "Value_001"));
+  bke::node_add_link(*group,
+                     *add,
+                     *bke::node_find_socket(*add, SOCK_OUT, "Value"),
+                     *clamp_radius,
+                     *bke::node_find_socket(*clamp_radius, SOCK_IN, "Value"));
+  bke::node_add_link(*group,
+                     *clamp_radius,
+                     *bke::node_find_socket(*clamp_radius, SOCK_OUT, "Result"),
+                     *set_curve_radius,
+                     *bke::node_find_socket(*set_curve_radius, SOCK_IN, "Radius"));
 
   LISTBASE_FOREACH (bNode *, node, &group->nodes) {
-    bke::node_set_selected(node, false);
+    bke::node_set_selected(*node, false);
   }
 
   return group;
@@ -1769,7 +1769,7 @@ static void legacy_object_modifier_dash(ConversionData &conversion_data,
   md_dash.segment_active_index = legacy_md_dash.segment_active_index;
   md_dash.segments_num = legacy_md_dash.segments_len;
   MEM_SAFE_FREE(md_dash.segments_array);
-  md_dash.segments_array = MEM_cnew_array<GreasePencilDashModifierSegment>(
+  md_dash.segments_array = MEM_calloc_arrayN<GreasePencilDashModifierSegment>(
       legacy_md_dash.segments_len, __func__);
   for (const int i : IndexRange(md_dash.segments_num)) {
     GreasePencilDashModifierSegment &dst_segment = md_dash.segments_array[i];
@@ -2481,7 +2481,7 @@ static void legacy_object_modifier_time(ConversionData &conversion_data,
   md_time.segment_active_index = legacy_md_time.segment_active_index;
   md_time.segments_num = legacy_md_time.segments_len;
   MEM_SAFE_FREE(md_time.segments_array);
-  md_time.segments_array = MEM_cnew_array<GreasePencilTimeModifierSegment>(
+  md_time.segments_array = MEM_calloc_arrayN<GreasePencilTimeModifierSegment>(
       legacy_md_time.segments_len, __func__);
   for (const int i : IndexRange(md_time.segments_num)) {
     GreasePencilTimeModifierSegment &dst_segment = md_time.segments_array[i];

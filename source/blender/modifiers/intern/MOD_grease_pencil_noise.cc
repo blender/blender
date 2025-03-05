@@ -211,24 +211,25 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
   }
 
   if (mmd.factor_uvs > 0.0f) {
-    bke::SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
-        "rotation", bke::AttrDomain::Point);
-
-    filtered_strokes.foreach_index(GrainSize(512), [&](const int stroke_i) {
-      const IndexRange points = points_by_curve[stroke_i];
-      const int noise_len = math::ceil(points.size() * noise_scale) + 2;
-      const Array<float> table = noise_table(
-          noise_len, int(math::floor(mmd.noise_offset)), seed + 4 + stroke_i);
-      for (const int i : points.index_range()) {
-        const int point = points[i];
-        const float weight = get_weight(points, i);
-        const float noise = get_noise(table, i * noise_scale + math::fract(mmd.noise_offset));
-        const float delta_rot = (noise * 2.0f - 1.0f) * weight * mmd.factor_uvs * M_PI_2;
-        rotations.span[point] = math::clamp(
-            rotations.span[point] + delta_rot, float(-M_PI_2), float(M_PI_2));
-      }
-    });
-    rotations.finish();
+    if (bke::SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
+            "rotation", bke::AttrDomain::Point))
+    {
+      filtered_strokes.foreach_index(GrainSize(512), [&](const int stroke_i) {
+        const IndexRange points = points_by_curve[stroke_i];
+        const int noise_len = math::ceil(points.size() * noise_scale) + 2;
+        const Array<float> table = noise_table(
+            noise_len, int(math::floor(mmd.noise_offset)), seed + 4 + stroke_i);
+        for (const int i : points.index_range()) {
+          const int point = points[i];
+          const float weight = get_weight(points, i);
+          const float noise = get_noise(table, i * noise_scale + math::fract(mmd.noise_offset));
+          const float delta_rot = (noise * 2.0f - 1.0f) * weight * mmd.factor_uvs * M_PI_2;
+          rotations.span[point] = math::clamp(
+              rotations.span[point] + delta_rot, float(-M_PI_2), float(M_PI_2));
+        }
+      });
+      rotations.finish();
+    }
   }
 }
 
@@ -291,8 +292,10 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "noise_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  if (uiLayout *random_layout = uiLayoutPanelPropWithBoolHeader(
-          C, layout, ptr, "open_random_panel", "use_random", IFACE_("Random")))
+  if (uiLayout *random_layout =
+          uiLayoutPanelPropWithBoolHeader(
+              C, layout, ptr, "open_random_panel", ptr, "use_random", IFACE_("Random"))
+              .body)
   {
     uiLayout *random_col = uiLayoutColumn(random_layout, false);
     uiLayoutSetActive(random_col, RNA_boolean_get(ptr, "use_random"));

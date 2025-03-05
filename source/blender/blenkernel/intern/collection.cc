@@ -1453,7 +1453,7 @@ static bool collection_object_remove(
 
 static void collection_exporter_copy(Collection *collection, CollectionExport *data)
 {
-  CollectionExport *new_data = MEM_cnew<CollectionExport>("CollectionExport");
+  CollectionExport *new_data = MEM_callocN<CollectionExport>("CollectionExport");
   STRNCPY(new_data->fh_idname, data->fh_idname);
   new_data->export_properties = IDP_CopyProperty(data->export_properties);
   new_data->flag = data->flag;

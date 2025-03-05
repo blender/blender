@@ -14,6 +14,7 @@
 
 #include "GPU_batch.hh"
 #include "GPU_context.hh"
+#include "GPU_texture_pool.hh"
 
 #include "gpu_debug_private.hh"
 #include "gpu_framebuffer_private.hh"
@@ -64,8 +65,16 @@ class Context {
   /* Used as a stack. Each render_begin/end pair will push pop from the stack. */
   Vector<GPUStorageBuf *> printf_buf;
 
-  /** Dummy triangle batch for polyline workaround. */
-  Batch *polyline_batch = nullptr;
+  /** Dummy VBO to feed the procedural batches. */
+  VertBuf *dummy_vbo = nullptr;
+  /** Dummy batches for procedural geometry rendering. */
+  Batch *procedural_points_batch = nullptr;
+  Batch *procedural_lines_batch = nullptr;
+  Batch *procedural_triangles_batch = nullptr;
+  Batch *procedural_triangle_strips_batch = nullptr;
+
+  /** Texture pool used to recycle temporary texture (or render target) memory. */
+  TexturePool *texture_pool = nullptr;
 
  protected:
   /** Thread on which this context is active. */
@@ -109,7 +118,11 @@ class Context {
 
   bool is_active_on_thread();
 
-  Batch *polyline_batch_get();
+  VertBuf *dummy_vbo_get();
+  Batch *procedural_points_batch_get();
+  Batch *procedural_lines_batch_get();
+  Batch *procedural_triangles_batch_get();
+  Batch *procedural_triangle_strips_batch_get();
 
   /* When using `--debug-gpu`, assert that the shader fragments write to all the writable
    * attachments of the bound frame-buffer. */
@@ -136,9 +149,9 @@ class Context {
   }
 
  protected:
-  /* Derived classes should call this from the destructor, as freeing framebuffers may need the
-   * derived context to be valid. */
-  void free_framebuffers();
+  /* Derived classes should call this from the destructor, as freeing textures and framebuffers may
+   * need the derived context to be valid. */
+  void free_resources();
 };
 
 /* Syntactic sugar. */

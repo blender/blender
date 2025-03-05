@@ -30,7 +30,7 @@
 
 static GPUNodeLink *gpu_node_link_create()
 {
-  GPUNodeLink *link = MEM_cnew<GPUNodeLink>("GPUNodeLink");
+  GPUNodeLink *link = MEM_callocN<GPUNodeLink>("GPUNodeLink");
   link->users++;
 
   return link;
@@ -56,7 +56,7 @@ static void gpu_node_link_free(GPUNodeLink *link)
 
 static GPUNode *gpu_node_create(const char *name)
 {
-  GPUNode *node = MEM_cnew<GPUNode>("GPUNode");
+  GPUNode *node = MEM_callocN<GPUNode>("GPUNode");
 
   node->name = name;
 
@@ -105,7 +105,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
     }
   }
 
-  input = MEM_cnew<GPUInput>("GPUInput");
+  input = MEM_callocN<GPUInput>("GPUInput");
   input->node = node;
   input->type = type;
 
@@ -245,7 +245,7 @@ static void gpu_node_input_socket(
 
 static void gpu_node_output(GPUNode *node, const eGPUType type, GPUNodeLink **link)
 {
-  GPUOutput *output = MEM_cnew<GPUOutput>("GPUOutput");
+  GPUOutput *output = MEM_callocN<GPUOutput>("GPUOutput");
 
   output->type = type;
   output->node = node;
@@ -401,7 +401,7 @@ static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
 
   /* Add new requested attribute if it's within GPU limits. */
   if (attr == nullptr) {
-    attr = MEM_cnew<GPUMaterialAttribute>(__func__);
+    attr = MEM_callocN<GPUMaterialAttribute>(__func__);
     attr->is_default_color = is_default_color;
     attr->is_hair_length = is_hair_length;
     attr->type = type;
@@ -435,7 +435,7 @@ static GPUUniformAttr *gpu_node_graph_add_uniform_attribute(GPUNodeGraph *graph,
 
   /* Add new requested attribute if it's within GPU limits. */
   if (attr == nullptr && attrs->count < GPU_MAX_UNIFORM_ATTR) {
-    attr = MEM_cnew<GPUUniformAttr>(__func__);
+    attr = MEM_callocN<GPUUniformAttr>(__func__);
     STRNCPY(attr->name, name);
     attr->use_dupli = use_dupli;
     attr->hash_code = BLI_ghashutil_strhash_p(attr->name) << 1 | (attr->use_dupli ? 0 : 1);
@@ -466,7 +466,7 @@ static GPULayerAttr *gpu_node_graph_add_layer_attribute(GPUNodeGraph *graph, con
 
   /* Add new requested attribute to the list. */
   if (attr == nullptr) {
-    attr = MEM_cnew<GPULayerAttr>(__func__);
+    attr = MEM_callocN<GPULayerAttr>(__func__);
     STRNCPY(attr->name, name);
     attr->hash_code = BLI_ghashutil_strhash_p(attr->name);
     BLI_addtail(attrs, attr);
@@ -501,7 +501,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
 
   /* Add new requested texture. */
   if (tex == nullptr) {
-    tex = MEM_cnew<GPUMaterialTexture>(__func__);
+    tex = MEM_callocN<GPUMaterialTexture>(__func__);
     tex->ima = ima;
     if (iuser != nullptr) {
       tex->iuser = *iuser;

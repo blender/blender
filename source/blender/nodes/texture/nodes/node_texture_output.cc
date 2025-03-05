@@ -79,7 +79,7 @@ static void unique_name(bNode *node)
       else {
         suffix = 0;
         new_len = len + 4;
-        new_len = std::min<unsigned long>(new_len, sizeof(tno->name) - 1);
+        new_len = std::min<ulong>(new_len, sizeof(tno->name) - 1);
       }
 
       STRNCPY(new_name, name);
@@ -119,7 +119,7 @@ check_index:
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  TexNodeOutput *tno = MEM_cnew<TexNodeOutput>("TEX_output");
+  TexNodeOutput *tno = MEM_callocN<TexNodeOutput>("TEX_output");
   node->storage = tno;
 
   STRNCPY(tno->name, "Default");
@@ -143,13 +143,13 @@ void register_node_type_tex_output()
   ntype.enum_name_legacy = "OUTPUT";
   ntype.nclass = NODE_CLASS_OUTPUT;
   blender::bke::node_type_socket_templates(&ntype, inputs, nullptr);
-  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
+  blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = init;
-  blender::bke::node_type_storage(&ntype, "TexNodeOutput", node_free_standard_storage, copy);
+  blender::bke::node_type_storage(ntype, "TexNodeOutput", node_free_standard_storage, copy);
   ntype.exec_fn = exec;
 
   ntype.flag |= NODE_PREVIEW;
   ntype.no_muting = true;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

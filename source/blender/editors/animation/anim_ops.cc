@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdlib>
 
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -23,6 +24,8 @@
 #include "BKE_lib_query.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
+
+#include "BLT_translation.hh"
 
 #include "UI_view2d.hh"
 
@@ -275,9 +278,12 @@ static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event
   }
 
   screen->scrubbing = true;
-  SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (sseq) {
-    change_frame_seq_preview_begin(C, event, sseq);
+
+  if (RNA_boolean_get(op->ptr, "seq_solo_preview")) {
+    SpaceSeq *sseq = CTX_wm_space_seq(C);
+    if (sseq) {
+      change_frame_seq_preview_begin(C, event, sseq);
+    }
   }
 
   change_frame_apply(C, op, true);
@@ -302,14 +308,16 @@ static bool need_extra_redraw_after_scrubbing_ends(bContext *C)
   return false;
 }
 
-static void change_frame_cancel(bContext *C, wmOperator * /*op*/)
+static void change_frame_cancel(bContext *C, wmOperator *op)
 {
   bScreen *screen = CTX_wm_screen(C);
   screen->scrubbing = false;
 
-  SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (sseq != nullptr) {
-    change_frame_seq_preview_end(sseq);
+  if (RNA_boolean_get(op->ptr, "seq_solo_preview")) {
+    SpaceSeq *sseq = CTX_wm_space_seq(C);
+    if (sseq != nullptr) {
+      change_frame_seq_preview_end(sseq);
+    }
   }
 
   if (need_extra_redraw_after_scrubbing_ends(C)) {
@@ -368,10 +376,13 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
     bScreen *screen = CTX_wm_screen(C);
     screen->scrubbing = false;
 
-    SpaceSeq *sseq = CTX_wm_space_seq(C);
-    if (sseq != nullptr) {
-      change_frame_seq_preview_end(sseq);
+    if (RNA_boolean_get(op->ptr, "seq_solo_preview")) {
+      SpaceSeq *sseq = CTX_wm_space_seq(C);
+      if (sseq != nullptr) {
+        change_frame_seq_preview_end(sseq);
+      }
     }
+
     if (need_extra_redraw_after_scrubbing_ends(C)) {
       Scene *scene = CTX_data_scene(C);
       WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
@@ -379,6 +390,15 @@ static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   return ret;
+}
+
+static std::string change_frame_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
+{
+  if (RNA_boolean_get(ptr, "seq_solo_preview")) {
+    return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Set Frame (Strip Preview)");
+  }
+
+  return {};
 }
 
 static void ANIM_OT_change_frame(wmOperatorType *ot)
@@ -396,6 +416,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
   ot->cancel = change_frame_cancel;
   ot->modal = change_frame_modal;
   ot->poll = change_frame_poll;
+  ot->get_name = change_frame_get_name;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X | OPTYPE_UNDO_GROUPED;
@@ -406,6 +427,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
       ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
   prop = RNA_def_boolean(ot->srna, "snap", false, "Snap", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna, "seq_solo_preview", false, "Strip Preview", "");
 }
 
 /** \} */

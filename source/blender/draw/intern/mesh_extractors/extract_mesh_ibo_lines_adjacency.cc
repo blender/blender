@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include <climits>
+
 #include "BLI_map.hh"
 #include "BLI_ordered_edge.hh"
 

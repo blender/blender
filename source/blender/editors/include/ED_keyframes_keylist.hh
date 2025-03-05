@@ -180,17 +180,27 @@ void action_group_to_keylist(AnimData *adt,
                              int saction_flag,
                              blender::float2 range);
 /* Action */
+
+/**
+ * Generate a full list of the keys in `dna_action` that are within the frame
+ * range `range`.
+ *
+ * For layered actions, this is limited to the keys that are for the slot
+ * assigned to `adt`.
+ *
+ * Note: this should only be used in places that need or want the *full* list of
+ * keys, without any filtering by e.g. channel selection/visibility, etc. For
+ * use cases that need such filtering, use `action_slot_summary_to_keylist()`
+ * instead.
+ *
+ * \see action_slot_summary_to_keylist()
+ */
 void action_to_keylist(AnimData *adt,
                        bAction *dna_action,
                        AnimKeylist *keylist,
                        int saction_flag,
                        blender::float2 range);
-void action_slot_to_keylist(AnimData *adt,
-                            blender::animrig::Action &action,
-                            blender::animrig::slot_handle_t slot_handle,
-                            AnimKeylist *keylist,
-                            int saction_flag,
-                            blender::float2 range);
+
 /* Object */
 void ob_to_keylist(
     bDopeSheet *ads, Object *ob, AnimKeylist *keylist, int saction_flag, blender::float2 range);
@@ -207,6 +217,42 @@ void summary_to_keylist(bAnimContext *ac,
                         AnimKeylist *keylist,
                         int saction_flag,
                         blender::float2 range);
+
+/**
+ * Generate a summary channel keylist for the specified slot, merging it into
+ * `keylist`.
+ *
+ * This filters the keys to be consistent with the visible channels in the
+ * editor indicated by `ac`
+ *
+ * \param animated_id: the particular animated ID that the slot summary is being
+ * generated for. This is needed for filtering channels based on bone selection,
+ * etc. NOTE: despite being passed as a pointer, this should never be null. It's
+ * currently passed as a pointer to be defensive because I (Nathan) am not 100%
+ * confident at the time of writing (PR #134922) that the callers of this
+ * actually guarantee a non-null pointer (they should, but bugs). This way we
+ * can assert internally to catch if that ever happens.
+ *
+ * \param action: the action containing the slot to generate the summary for.
+ *
+ * \param slot_handle: the handle of the slot to generate the summary for.
+ *
+ * \param keylist: the keylist that the generated summary will be merged into.
+ *
+ * \param saction_flag: needed for the `SACTION_SHOW_EXTREMES` flag, to
+ * determine whether to compute and store the data needed to determine which
+ * keys are "extremes" (local maxima/minima).
+ *
+ * \param range: only keys within this time range will be included in the
+ * summary.
+ */
+void action_slot_summary_to_keylist(bAnimContext *ac,
+                                    ID *animated_id,
+                                    blender::animrig::Action &action,
+                                    blender::animrig::slot_handle_t slot_handle,
+                                    AnimKeylist *keylist,
+                                    int /* eSAction_Flag */ saction_flag,
+                                    blender::float2 range);
 
 /* Grease Pencil datablock summary (Legacy) */
 void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, bool active);

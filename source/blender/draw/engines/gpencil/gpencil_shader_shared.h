@@ -6,15 +6,6 @@
 
 #ifndef GPU_SHADER
 #  include "GPU_shader_shared_utils.hh"
-
-#  ifndef __cplusplus
-typedef struct gpMaterial gpMaterial;
-typedef struct gpLight gpLight;
-typedef enum gpMaterialFlag gpMaterialFlag;
-#    ifdef GP_LIGHT
-typedef enum gpLightType gpLightType;
-#    endif
-#  endif
 #endif
 
 enum gpMaterialFlag : uint32_t {

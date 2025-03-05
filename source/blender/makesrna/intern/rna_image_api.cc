@@ -93,7 +93,8 @@ static void rna_Image_save(Image *image,
                            bContext *C,
                            ReportList *reports,
                            const char *path,
-                           const int quality)
+                           const int quality,
+                           const bool save_copy)
 {
   Scene *scene = CTX_data_scene(C);
   ImageSaveOptions opts;
@@ -105,6 +106,7 @@ static void rna_Image_save(Image *image,
     if (quality != 0) {
       opts.im_format.quality = clamp_i(quality, 0, 100);
     }
+    opts.save_copy = save_copy;
     if (!BKE_image_save(reports, bmain, image, nullptr, &opts)) {
       BKE_reportf(reports,
                   RPT_ERROR,
@@ -180,7 +182,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
   }
 
   if (ibuf->byte_buffer.data) {
-    IMB_rect_from_float(ibuf);
+    IMB_byte_from_float(ibuf);
   }
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
@@ -318,6 +320,11 @@ void RNA_api_image(StructRNA *srna)
               "not specified",
               0,
               100);
+  RNA_def_boolean(func,
+                  "save_copy",
+                  false,
+                  "Save Copy",
+                  "Save the image as a copy, without updating current image's filepath");
 
   func = RNA_def_function(srna, "pack", "rna_Image_pack");
   RNA_def_function_ui_description(func, "Pack an image as embedded data into the .blend file");

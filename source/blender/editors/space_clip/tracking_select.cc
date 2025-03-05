@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "DNA_movieclip_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"

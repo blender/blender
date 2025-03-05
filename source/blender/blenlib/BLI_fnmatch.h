@@ -10,22 +10,10 @@
  * Bugs can be reported to <bug-glibc@prep.ai.mit.edu>.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined WIN32 && !defined _LIBC
 
-#  if defined(__cplusplus) || (defined(__STDC__) && __STDC__)
-#    undef __P
-#    define __P(protos) protos
-#  else /* Not C++ or ANSI C. */
-#    undef __P
-#    define __P(protos) ()
-/* We can get away without defining `const' here only because in this file
- * it is used only inside the prototype for `fnmatch', which is elided in
- * non-ANSI C where `const' is problematical. */
-#  endif /* C++ or ANSI C. */
+#  undef __P
+#  define __P(protos) protos
 
 /* We #undef these before defining them because some losing systems
  * (HP-UX A.08.07 for example) define these in <unistd.h>. */
@@ -57,7 +45,3 @@ extern int fnmatch __P((const char *__pattern, const char *__string, int __flags
 #  endif
 #  include <fnmatch.h>  // IWYU pragma: export
 #endif                  /* defined WIN32 && !defined _LIBC */
-
-#ifdef __cplusplus
-}
-#endif

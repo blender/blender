@@ -280,7 +280,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_CANCELLED;
   }
 
-  nvm = MEM_cnew<NodeViewMove>(__func__);
+  nvm = MEM_callocN<NodeViewMove>(__func__);
   op->customdata = nvm;
   nvm->mvalo.x = event->mval[0];
   nvm->mvalo.y = event->mval[1];
@@ -569,7 +569,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (!ibuf->byte_buffer.data) {
-    IMB_rect_from_float(ibuf);
+    IMB_byte_from_float(ibuf);
   }
 
   /* map the mouse coords to the backdrop image space */
@@ -661,7 +661,7 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  info = MEM_cnew<ImageSampleInfo>("ImageSampleInfo");
+  info = MEM_callocN<ImageSampleInfo>("ImageSampleInfo");
   info->art = region->runtime->type;
   info->draw_handle = ED_region_draw_cb_activate(
       region->runtime->type, sample_draw, info, REGION_DRAW_POST_PIXEL);

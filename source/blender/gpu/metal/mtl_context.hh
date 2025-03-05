@@ -847,7 +847,7 @@ class MTLContext : public Context {
    * to every draw call, to ensure that all state is applied and up
    * to date. We handle:
    *
-   * - Buffer bindings (Vertex buffers, Uniforms, UBOs, transform feedback)
+   * - Buffer bindings (Vertex buffers, Uniforms, UBOs)
    * - Texture bindings
    * - Sampler bindings (+ argument buffer bindings)
    * - Dynamic Render pipeline state (on encoder)

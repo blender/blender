@@ -20,6 +20,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 
 #include "BKE_action.hh" /* BKE_pose_channel_find_name */
 #include "BKE_colortools.hh"

@@ -56,7 +56,7 @@ template<typename _Tp> struct MEM_Allocator {
   // __p is not permitted to be a null pointer.
   void deallocate(pointer __p, size_type /*unused*/)
   {
-    MEM_freeN(__p);
+    MEM_freeN(static_cast<void *>(__p));
   }
 
   size_type max_size() const noexcept

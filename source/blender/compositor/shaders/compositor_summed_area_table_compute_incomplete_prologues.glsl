@@ -15,7 +15,7 @@ void main()
    * prologue. */
   if (gl_LocalInvocationID.x == 0) {
     vec4 x_accumulated_color = vec4(0.0);
-    for (int i = 0; i < gl_WorkGroupSize.x; i++) {
+    for (uint i = 0; i < gl_WorkGroupSize.x; i++) {
       ivec2 texel = ivec2(gl_WorkGroupID.x * gl_WorkGroupSize.x + i, gl_GlobalInvocationID.y);
       x_accumulated_color += OPERATION(texture_load(input_tx, texel, vec4(0.0)));
       block[i][gl_LocalInvocationID.y] = x_accumulated_color;
@@ -39,7 +39,7 @@ void main()
    * suitable prologue. */
   if (gl_LocalInvocationID.y == 0) {
     vec4 y_accumulated_color = vec4(0.0);
-    for (int i = 0; i < gl_WorkGroupSize.y; i++) {
+    for (uint i = 0; i < gl_WorkGroupSize.y; i++) {
       y_accumulated_color += block[gl_LocalInvocationID.x][i];
     }
 

@@ -20,10 +20,6 @@
 
 #include "DNA_particle_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ParticleKey;
 struct ParticleSettings;
 struct ParticleSystem;
@@ -712,7 +708,3 @@ void BKE_particle_system_blend_read_after_liblink(struct BlendLibReader *reader,
                                                   struct Object *ob,
                                                   struct ID *id,
                                                   struct ListBase *particles);
-
-#ifdef __cplusplus
-}
-#endif

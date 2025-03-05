@@ -546,7 +546,7 @@ bool parent_set(ReportList *reports,
         /* get or create F-Curve */
         bAction *act = animrig::id_action_ensure(bmain, &cu->id);
         PointerRNA id_ptr = RNA_id_pointer_create(&cu->id);
-        FCurve *fcu = animrig::action_fcurve_ensure(
+        FCurve *fcu = animrig::action_fcurve_ensure_ex(
             bmain, act, nullptr, &id_ptr, {"eval_time", 0});
 
         /* setup dummy 'generator' modifier here to get 1-1 correspondence still working */
@@ -1199,7 +1199,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
                CONSTRAINT_TYPE_LOCKTRACK,
                CONSTRAINT_TYPE_DAMPTRACK))
       {
-        BKE_constraint_remove(&ob->constraints, con);
+        BKE_constraint_remove_ex(&ob->constraints, ob, con);
       }
     }
 

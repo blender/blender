@@ -17,6 +17,7 @@
 #include "ED_mesh.hh"
 #include "ED_paint.hh"
 #include "ED_particle.hh"
+#include "ED_pointcloud.hh"
 #include "ED_sculpt.hh"
 #include "ED_text.hh"
 #include "ED_undo.hh"
@@ -37,6 +38,7 @@ void ED_undosys_type_init()
   BKE_undosys_type_append(ED_mball_undosys_type);
   BKE_undosys_type_append(ED_mesh_undosys_type);
   BKE_undosys_type_append(curves::undosys_type_register);
+  BKE_undosys_type_append(pointcloud::undosys_type_register);
   BKE_undosys_type_append(ED_undosys_type_grease_pencil);
 
   /* Paint Modes */

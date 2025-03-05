@@ -29,39 +29,31 @@ namespace blender::eevee {
  *
  * \{ */
 
-ShaderModule *ShaderModule::g_shader_module = nullptr;
-
 ShaderModule *ShaderModule::module_get()
 {
-  if (g_shader_module == nullptr) {
-    /* TODO(@fclem) thread-safety. */
-    g_shader_module = new ShaderModule();
-  }
-  return g_shader_module;
+  return &get_static_cache().get();
 }
 
 void ShaderModule::module_free()
 {
-  if (g_shader_module != nullptr) {
-    /* TODO(@fclem) thread-safety. */
-    delete g_shader_module;
-    g_shader_module = nullptr;
-  }
+  get_static_cache().release();
 }
 
 ShaderModule::ShaderModule()
 {
-  for (GPUShader *&shader : shaders_) {
-    shader = nullptr;
-  }
-
   Vector<const GPUShaderCreateInfo *> infos;
   infos.reserve(MAX_SHADER_TYPE);
 
   for (auto i : IndexRange(MAX_SHADER_TYPE)) {
     const char *name = static_shader_create_info_name_get(eShaderType(i));
     const GPUShaderCreateInfo *create_info = GPU_shader_create_info_get(name);
-    infos.append(create_info);
+
+    if (GPU_use_parallel_compilation()) {
+      infos.append(create_info);
+    }
+    else {
+      shaders_[i] = {name};
+    }
 
 #ifndef NDEBUG
     if (name == nullptr) {
@@ -80,13 +72,18 @@ ShaderModule::ShaderModule()
 
 ShaderModule::~ShaderModule()
 {
+  /* Finish compilation to avoid asserts on exit at GLShaderCompiler destructor. */
+
   if (compilation_handle_) {
-    /* Finish compilation to avoid asserts on exit at GLShaderCompiler destructor. */
-    is_ready(true);
+    static_shaders_are_ready(true);
   }
 
-  for (GPUShader *&shader : shaders_) {
-    GPU_SHADER_FREE_SAFE(shader);
+  for (SpecializationBatchHandle &handle : specialization_handles_.values()) {
+    if (handle) {
+      while (!GPU_shader_batch_specializations_is_ready(handle)) {
+        /* Block until ready. */
+      }
+    }
   }
 }
 
@@ -97,55 +94,70 @@ ShaderModule::~ShaderModule()
  *
  * \{ */
 
-void ShaderModule::precompile_specializations(int render_buffers_shadow_id,
-                                              int shadow_ray_count,
-                                              int shadow_ray_step_count)
+bool ShaderModule::static_shaders_are_ready(bool block_until_ready)
 {
-  BLI_assert(specialization_handle_ == 0);
-
   if (!GPU_use_parallel_compilation()) {
-    return;
+    return true;
   }
 
-  Vector<ShaderSpecialization> specializations;
-  for (int i = 0; i < 3; i++) {
-    GPUShader *sh = static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
-    for (bool use_split_indirect : {false, true}) {
-      for (bool use_lightprobe_eval : {false, true}) {
-        for (bool use_transmission : {false, true}) {
-          specializations.append({sh,
-                                  {{"render_pass_shadow_id", render_buffers_shadow_id},
-                                   {"use_split_indirect", use_split_indirect},
-                                   {"use_lightprobe_eval", use_lightprobe_eval},
-                                   {"use_transmission", use_transmission},
-                                   {"shadow_ray_count", shadow_ray_count},
-                                   {"shadow_ray_step_count", shadow_ray_step_count}}});
-        }
-      }
-    }
-  }
+  std::lock_guard lock = get_static_cache().lock_guard();
 
-  specialization_handle_ = GPU_shader_batch_specializations(specializations);
-}
-
-bool ShaderModule::is_ready(bool block)
-{
   if (compilation_handle_) {
-    if (GPU_shader_batch_is_ready(compilation_handle_) || block) {
+    if (GPU_shader_batch_is_ready(compilation_handle_) || block_until_ready) {
       Vector<GPUShader *> shaders = GPU_shader_batch_finalize(compilation_handle_);
       for (int i : IndexRange(MAX_SHADER_TYPE)) {
-        shaders_[i] = shaders[i];
+        shaders_[i].set(shaders[i]);
       }
     }
   }
 
-  if (specialization_handle_) {
-    while (!GPU_shader_batch_specializations_is_ready(specialization_handle_) && block) {
+  return compilation_handle_ == 0;
+}
+
+bool ShaderModule::request_specializations(bool block_until_ready,
+                                           int render_buffers_shadow_id,
+                                           int shadow_ray_count,
+                                           int shadow_ray_step_count)
+{
+  if (!GPU_use_parallel_compilation()) {
+    return true;
+  }
+
+  BLI_assert(static_shaders_are_ready(false));
+
+  std::lock_guard lock = get_static_cache().lock_guard();
+
+  SpecializationBatchHandle specialization_handle = specialization_handles_.lookup_or_add_cb(
+      {render_buffers_shadow_id, shadow_ray_count, shadow_ray_step_count}, [&]() {
+        Vector<ShaderSpecialization> specializations;
+        for (int i = 0; i < 3; i++) {
+          GPUShader *sh = static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
+          for (bool use_split_indirect : {false, true}) {
+            for (bool use_lightprobe_eval : {false, true}) {
+              for (bool use_transmission : {false, true}) {
+                specializations.append({sh,
+                                        {{"render_pass_shadow_id", render_buffers_shadow_id},
+                                         {"use_split_indirect", use_split_indirect},
+                                         {"use_lightprobe_eval", use_lightprobe_eval},
+                                         {"use_transmission", use_transmission},
+                                         {"shadow_ray_count", shadow_ray_count},
+                                         {"shadow_ray_step_count", shadow_ray_step_count}}});
+              }
+            }
+          }
+        }
+
+        return GPU_shader_batch_specializations(specializations);
+      });
+
+  if (specialization_handle) {
+    while (!GPU_shader_batch_specializations_is_ready(specialization_handle) && block_until_ready)
+    {
       /* Block until ready. */
     }
   }
 
-  return compilation_handle_ == 0 && specialization_handle_ == 0;
+  return specialization_handle == 0;
 }
 
 const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_type)
@@ -384,18 +396,14 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
 
 GPUShader *ShaderModule::static_shader_get(eShaderType shader_type)
 {
-  BLI_assert(is_ready());
-  if (shaders_[shader_type] == nullptr) {
+  BLI_assert(compilation_handle_ == 0);
+  if (GPU_use_parallel_compilation() && shaders_[shader_type].get() == nullptr) {
     const char *shader_name = static_shader_create_info_name_get(shader_type);
-    if (GPU_use_parallel_compilation()) {
-      fprintf(stderr, "EEVEE: error: Could not compile static shader \"%s\"\n", shader_name);
-      BLI_assert(0);
-    }
-    else {
-      shaders_[shader_type] = GPU_shader_create_from_info_name(shader_name);
-    }
+    fprintf(stderr, "EEVEE: error: Could not compile static shader \"%s\"\n", shader_name);
+    BLI_assert(0);
   }
-  return shaders_[shader_type];
+
+  return shaders_[shader_type].get();
 }
 
 /** \} */
@@ -417,7 +425,7 @@ class SamplerSlots {
                bool has_shader_to_rgba)
   {
     index_ = 0;
-    if (ELEM(geometry_type, MAT_GEOM_POINT_CLOUD, MAT_GEOM_CURVES)) {
+    if (ELEM(geometry_type, MAT_GEOM_POINTCLOUD, MAT_GEOM_CURVES)) {
       index_ = 1;
     }
     else if (geometry_type == MAT_GEOM_GPENCIL) {
@@ -469,7 +477,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
 
   /* WORKAROUND: Add new ob attr buffer. */
   if (GPU_material_uniform_attributes(gpumat) != nullptr) {
-    info.additional_info("draw_object_attribute_new");
+    info.additional_info("draw_object_attributes");
 
     /* Search and remove the old object attribute UBO which would creating bind point collision. */
     for (auto &resource_info : info.batch_resources_) {
@@ -645,7 +653,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         info.additional_info("draw_volume_infos");
       }
       break;
-    case MAT_GEOM_POINT_CLOUD:
+    case MAT_GEOM_POINTCLOUD:
     case MAT_GEOM_CURVES:
       /** Hair attributes come from sampler buffer. Transfer attributes to sampler. */
       for (auto &input : info.vertex_inputs_) {
@@ -772,15 +780,15 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         frag_gen << "return 0.0;\n";
       }
       else {
-        if (info.additional_infos_.first_index_of_try("draw_object_infos_new") == -1) {
-          info.additional_info("draw_object_infos_new");
+        if (info.additional_infos_.first_index_of_try("draw_object_infos") == -1) {
+          info.additional_info("draw_object_infos");
         }
         /* TODO(fclem): Should use `to_scale` but the gpu_shader_math_matrix_lib.glsl isn't
          * included everywhere yet. */
         frag_gen << "vec3 ob_scale;\n";
-        frag_gen << "ob_scale.x = length(ModelMatrix[0].xyz);\n";
-        frag_gen << "ob_scale.y = length(ModelMatrix[1].xyz);\n";
-        frag_gen << "ob_scale.z = length(ModelMatrix[2].xyz);\n";
+        frag_gen << "ob_scale.x = length(drw_modelmat()[0].xyz);\n";
+        frag_gen << "ob_scale.y = length(drw_modelmat()[1].xyz);\n";
+        frag_gen << "ob_scale.z = length(drw_modelmat()[2].xyz);\n";
         frag_gen << "vec3 ls_dimensions = safe_rcp(abs(OrcoTexCoFactors[1].xyz));\n";
         frag_gen << "vec3 ws_dimensions = ob_scale * ls_dimensions;\n";
         /* Choose the minimum axis so that cuboids are better represented. */
@@ -815,8 +823,8 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     case MAT_GEOM_MESH:
       info.additional_info("eevee_geom_mesh");
       break;
-    case MAT_GEOM_POINT_CLOUD:
-      info.additional_info("eevee_geom_point_cloud");
+    case MAT_GEOM_POINTCLOUD:
+      info.additional_info("eevee_geom_pointcloud");
       break;
     case MAT_GEOM_VOLUME:
       info.additional_info("eevee_geom_volume");

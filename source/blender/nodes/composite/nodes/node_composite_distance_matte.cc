@@ -42,7 +42,7 @@ static void cmp_node_distance_matte_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_distance_matte(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeChroma *c = MEM_cnew<NodeChroma>(__func__);
+  NodeChroma *c = MEM_callocN<NodeChroma>(__func__);
   node->storage = c;
   c->channel = CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA;
   c->t1 = 0.1f;
@@ -204,9 +204,9 @@ void register_node_type_cmp_distance_matte()
   ntype.flag |= NODE_PREVIEW;
   ntype.initfunc = file_ns::node_composit_init_distance_matte;
   blender::bke::node_type_storage(
-      &ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }

@@ -83,8 +83,8 @@ class Instance {
 
   uint64_t depsgraph_last_update_ = 0;
   bool overlays_enabled_ = false;
-
   bool shaders_are_ready_ = true;
+  bool skip_render_ = false;
 
   /** Info string displayed at the top of the render / viewport, or the console when baking. */
   std::string info_ = "";
@@ -363,7 +363,7 @@ class Instance {
  private:
   /** Wrapper to use with #DRW_render_object_iter. */
   static void object_sync_render(void *instance_,
-                                 Object *ob,
+                                 ObjectRef &ob_ref,
                                  RenderEngine *engine,
                                  Depsgraph *depsgraph);
   /**

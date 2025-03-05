@@ -16,10 +16,6 @@
 #  pragma GCC diagnostic ignored "-Wredundant-decls"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Polygons
  * \{ */
@@ -1383,16 +1379,12 @@ float geodesic_distance_propagate_across_triangle(
 
 /** \} */
 
-#ifdef __cplusplus
-}
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Inline Definitions
  * \{ */
 
 #if BLI_MATH_DO_INLINE
-#  include "intern/math_geom_inline.c"  // IWYU pragma: export
+#  include "intern/math_geom_inline.cc"  // IWYU pragma: export
 #endif
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA

@@ -40,7 +40,7 @@ FileOutput::FileOutput(const std::string &path,
                        bool save_as_render)
     : path_(path), format_(format), save_as_render_(save_as_render)
 {
-  render_result_ = MEM_cnew<RenderResult>("Temporary Render Result For File Output");
+  render_result_ = MEM_callocN<RenderResult>("Temporary Render Result For File Output");
 
   render_result_->rectx = size.x;
   render_result_->recty = size.y;
@@ -50,7 +50,7 @@ FileOutput::FileOutput(const std::string &path,
    * by the EXR writer as a special case where the channel names take the form:
    *   <pass-name>.<view-name>.<channel-id>
    * Otherwise, the layer name would have preceded in the pass name in yet another section. */
-  RenderLayer *render_layer = MEM_cnew<RenderLayer>("Render Layer For File Output.");
+  RenderLayer *render_layer = MEM_callocN<RenderLayer>("Render Layer For File Output.");
   BLI_addtail(&render_result_->layers, render_layer);
   render_layer->name[0] = '\0';
 
@@ -68,14 +68,14 @@ void FileOutput::add_view(const char *view_name)
   /* Empty views can only be added for EXR images. */
   BLI_assert(ELEM(format_.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER));
 
-  RenderView *render_view = MEM_cnew<RenderView>("Render View For File Output.");
+  RenderView *render_view = MEM_callocN<RenderView>("Render View For File Output.");
   BLI_addtail(&render_result_->views, render_view);
   STRNCPY(render_view->name, view_name);
 }
 
 void FileOutput::add_view(const char *view_name, int channels, float *buffer)
 {
-  RenderView *render_view = MEM_cnew<RenderView>("Render View For File Output.");
+  RenderView *render_view = MEM_callocN<RenderView>("Render View For File Output.");
   BLI_addtail(&render_result_->views, render_view);
   STRNCPY(render_view->name, view_name);
 
@@ -94,7 +94,7 @@ void FileOutput::add_pass(const char *pass_name,
   BLI_assert(ELEM(format_.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER));
 
   RenderLayer *render_layer = static_cast<RenderLayer *>(render_result_->layers.first);
-  RenderPass *render_pass = MEM_cnew<RenderPass>("Render Pass For File Output.");
+  RenderPass *render_pass = MEM_callocN<RenderPass>("Render Pass For File Output.");
   BLI_addtail(&render_layer->passes, render_pass);
   STRNCPY(render_pass->name, pass_name);
   STRNCPY(render_pass->view, view_name);

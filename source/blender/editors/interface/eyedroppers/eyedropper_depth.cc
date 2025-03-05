@@ -49,21 +49,21 @@
  * \note #DepthDropper is only internal name to avoid confusion with other kinds of eye-droppers.
  */
 struct DepthDropper {
-  PointerRNA ptr;
-  PropertyRNA *prop;
-  bool is_undo;
+  PointerRNA ptr = {};
+  PropertyRNA *prop = nullptr;
+  bool is_undo = false;
 
-  bool is_set;
-  float init_depth; /* For resetting on cancel. */
+  bool is_set = false;
+  float init_depth = 0.0f; /* For resetting on cancel. */
 
-  bool accum_start; /* Has mouse been pressed. */
-  float accum_depth;
-  int accum_tot;
+  bool accum_start = false; /* Has mouse been pressed. */
+  float accum_depth = 0.0f;
+  int accum_tot = 0;
 
-  ARegionType *art;
-  void *draw_handle_pixel;
-  int name_pos[2];
-  char name[200];
+  ARegionType *art = nullptr;
+  void *draw_handle_pixel = nullptr;
+  int name_pos[2] = {};
+  char name[200] = {};
 };
 
 static void depthdropper_draw_cb(const bContext * /*C*/, ARegion * /*region*/, void *arg)
@@ -156,7 +156,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
     char *prop_data_path = RNA_string_get_alloc(op->ptr, "prop_data_path", nullptr, 0, nullptr);
     BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(prop_data_path); });
     if (!prop_data_path) {
-      MEM_freeN(ddr);
+      MEM_delete(ddr);
       return false;
     }
     PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);

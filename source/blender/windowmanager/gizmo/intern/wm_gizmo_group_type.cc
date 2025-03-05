@@ -125,7 +125,7 @@ wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(wmGizmoMapType *gzmap_typ
 }
 
 /**
- * Free but don't remove from #GHash.
+ * Free but don't remove from the global list.
  */
 static void gizmogrouptype_free(wmGizmoGroupType *gzgt)
 {

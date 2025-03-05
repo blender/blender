@@ -13,10 +13,6 @@
  * \brief Low-level operations for curves that cannot be defined in the C++ header yet.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Curves;
 struct Depsgraph;
 struct Main;
@@ -46,7 +42,3 @@ void BKE_curves_batch_cache_free(struct Curves *curves);
 
 extern void (*BKE_curves_batch_cache_dirty_tag_cb)(struct Curves *curves, int mode);
 extern void (*BKE_curves_batch_cache_free_cb)(struct Curves *curves);
-
-#ifdef __cplusplus
-}
-#endif

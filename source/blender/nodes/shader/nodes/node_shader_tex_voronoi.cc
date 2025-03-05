@@ -92,7 +92,7 @@ static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext * /*C*/, Poi
 
 static void node_shader_init_tex_voronoi(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexVoronoi *tex = MEM_cnew<NodeTexVoronoi>(__func__);
+  NodeTexVoronoi *tex = MEM_callocN<NodeTexVoronoi>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->dimensions = 3;
@@ -168,57 +168,57 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
 
 static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *inVectorSock = bke::node_find_socket(node, SOCK_IN, "Vector");
-  bNodeSocket *inWSock = bke::node_find_socket(node, SOCK_IN, "W");
-  bNodeSocket *inDetailSock = bke::node_find_socket(node, SOCK_IN, "Detail");
-  bNodeSocket *inRoughnessSock = bke::node_find_socket(node, SOCK_IN, "Roughness");
-  bNodeSocket *inLacunaritySock = bke::node_find_socket(node, SOCK_IN, "Lacunarity");
-  bNodeSocket *inSmoothnessSock = bke::node_find_socket(node, SOCK_IN, "Smoothness");
-  bNodeSocket *inExponentSock = bke::node_find_socket(node, SOCK_IN, "Exponent");
+  bNodeSocket *inVectorSock = bke::node_find_socket(*node, SOCK_IN, "Vector");
+  bNodeSocket *inWSock = bke::node_find_socket(*node, SOCK_IN, "W");
+  bNodeSocket *inDetailSock = bke::node_find_socket(*node, SOCK_IN, "Detail");
+  bNodeSocket *inRoughnessSock = bke::node_find_socket(*node, SOCK_IN, "Roughness");
+  bNodeSocket *inLacunaritySock = bke::node_find_socket(*node, SOCK_IN, "Lacunarity");
+  bNodeSocket *inSmoothnessSock = bke::node_find_socket(*node, SOCK_IN, "Smoothness");
+  bNodeSocket *inExponentSock = bke::node_find_socket(*node, SOCK_IN, "Exponent");
 
-  bNodeSocket *outDistanceSock = bke::node_find_socket(node, SOCK_OUT, "Distance");
-  bNodeSocket *outColorSock = bke::node_find_socket(node, SOCK_OUT, "Color");
-  bNodeSocket *outPositionSock = bke::node_find_socket(node, SOCK_OUT, "Position");
-  bNodeSocket *outWSock = bke::node_find_socket(node, SOCK_OUT, "W");
-  bNodeSocket *outRadiusSock = bke::node_find_socket(node, SOCK_OUT, "Radius");
+  bNodeSocket *outDistanceSock = bke::node_find_socket(*node, SOCK_OUT, "Distance");
+  bNodeSocket *outColorSock = bke::node_find_socket(*node, SOCK_OUT, "Color");
+  bNodeSocket *outPositionSock = bke::node_find_socket(*node, SOCK_OUT, "Position");
+  bNodeSocket *outWSock = bke::node_find_socket(*node, SOCK_OUT, "W");
+  bNodeSocket *outRadiusSock = bke::node_find_socket(*node, SOCK_OUT, "Radius");
 
   const NodeTexVoronoi &storage = node_storage(*node);
 
   bke::node_set_socket_availability(
-      ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
-  bke::node_set_socket_availability(ntree, inVectorSock, storage.dimensions != 1);
+      *ntree, *inWSock, storage.dimensions == 1 || storage.dimensions == 4);
+  bke::node_set_socket_availability(*ntree, *inVectorSock, storage.dimensions != 1);
   bke::node_set_socket_availability(
-      ntree,
-      inExponentSock,
+      *ntree,
+      *inExponentSock,
       storage.distance == SHD_VORONOI_MINKOWSKI && storage.dimensions != 1 &&
           !ELEM(storage.feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS));
   bke::node_set_socket_availability(
-      ntree, inDetailSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
+      *ntree, *inDetailSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
   bke::node_set_socket_availability(
-      ntree, inRoughnessSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
+      *ntree, *inRoughnessSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
   bke::node_set_socket_availability(
-      ntree, inLacunaritySock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
+      *ntree, *inLacunaritySock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
   bke::node_set_socket_availability(
-      ntree, inSmoothnessSock, storage.feature == SHD_VORONOI_SMOOTH_F1);
+      *ntree, *inSmoothnessSock, storage.feature == SHD_VORONOI_SMOOTH_F1);
 
   bke::node_set_socket_availability(
-      ntree, outDistanceSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  bke::node_set_socket_availability(ntree,
-                                    outColorSock,
+      *ntree, *outDistanceSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
+  bke::node_set_socket_availability(*ntree,
+                                    *outColorSock,
                                     storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                         storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  bke::node_set_socket_availability(ntree,
-                                    outPositionSock,
+  bke::node_set_socket_availability(*ntree,
+                                    *outPositionSock,
                                     storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                         storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
                                         storage.dimensions != 1);
-  bke::node_set_socket_availability(ntree,
-                                    outWSock,
+  bke::node_set_socket_availability(*ntree,
+                                    *outWSock,
                                     storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
                                         storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
                                         ELEM(storage.dimensions, 1, 4));
   bke::node_set_socket_availability(
-      ntree, outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
+      *ntree, *outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 
 static mf::MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
@@ -818,7 +818,7 @@ void register_node_type_sh_tex_voronoi()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeTexVoronoi", SH_NODE_TEX_VORONOI);
+  common_node_type_base(&ntype, "ShaderNodeTexVoronoi", SH_NODE_TEX_VORONOI);
   ntype.ui_name = "Voronoi Texture";
   ntype.ui_description =
       "Generate Worley noise based on the distance to random points. Typically used to generate "
@@ -829,10 +829,10 @@ void register_node_type_sh_tex_voronoi()
   ntype.draw_buttons = file_ns::node_shader_buts_tex_voronoi;
   ntype.initfunc = file_ns::node_shader_init_tex_voronoi;
   blender::bke::node_type_storage(
-      &ntype, "NodeTexVoronoi", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeTexVoronoi", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_voronoi;
   ntype.updatefunc = file_ns::node_shader_update_tex_voronoi;
   ntype.build_multi_function = file_ns::sh_node_voronoi_build_multi_function;
 
-  blender::bke::node_register_type(&ntype);
+  blender::bke::node_register_type(ntype);
 }
