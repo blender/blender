@@ -856,7 +856,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 
   BLI_assert(tree_type >= 2 && tree_type <= MAX_TREETYPE);
 
-  BVHTree *tree = MEM_cnew<BVHTree>(__func__);
+  BVHTree *tree = MEM_callocN<BVHTree>(__func__);
 
   /* tree epsilon must be >= FLT_EPSILON
    * so that tangent rays can still hit a bounding volume..
@@ -899,10 +899,10 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
     /* Allocate arrays */
     numnodes = maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type;
 
-    tree->nodes = MEM_cnew_array<BVHNode *>(size_t(numnodes), "BVHNodes");
-    tree->nodebv = MEM_cnew_array<float>(axis * size_t(numnodes), "BVHNodeBV");
-    tree->nodechild = MEM_cnew_array<BVHNode *>(tree_type * size_t(numnodes), "BVHNodeBV");
-    tree->nodearray = MEM_cnew_array<BVHNode>(size_t(numnodes), "BVHNodeArray");
+    tree->nodes = MEM_calloc_arrayN<BVHNode *>(size_t(numnodes), "BVHNodes");
+    tree->nodebv = MEM_calloc_arrayN<float>(axis * size_t(numnodes), "BVHNodeBV");
+    tree->nodechild = MEM_calloc_arrayN<BVHNode *>(tree_type * size_t(numnodes), "BVHNodeBV");
+    tree->nodearray = MEM_calloc_arrayN<BVHNode>(size_t(numnodes), "BVHNodeArray");
 
     if (UNLIKELY((!tree->nodes) || (!tree->nodebv) || (!tree->nodechild) || (!tree->nodearray))) {
       goto fail;

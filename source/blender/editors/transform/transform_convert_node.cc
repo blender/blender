@@ -103,7 +103,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   }
 
   /* Custom data to enable edge panning during the node transform. */
-  TransCustomDataNode *customdata = MEM_cnew<TransCustomDataNode>(__func__);
+  TransCustomDataNode *customdata = MEM_callocN<TransCustomDataNode>(__func__);
   UI_view2d_edge_pan_init(t->context,
                           &customdata->edgepan_data,
                           NODE_EDGE_PAN_INSIDE_PAD,
@@ -133,8 +133,8 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   }
 
   tc->data_len = nodes.size();
-  tc->data = MEM_cnew_array<TransData>(tc->data_len, __func__);
-  tc->data_2d = MEM_cnew_array<TransData2D>(tc->data_len, __func__);
+  tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, __func__);
+  tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, __func__);
 
   for (const int i : nodes.index_range()) {
     create_transform_data_for_node(tc->data[i], tc->data_2d[i], *nodes[i], UI_SCALE_FAC);

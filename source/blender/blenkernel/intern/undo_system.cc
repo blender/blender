@@ -269,7 +269,7 @@ static void undosys_stack_validate(UndoStack * /*ustack*/, bool /*expect_non_emp
 
 UndoStack *BKE_undosys_stack_create()
 {
-  UndoStack *ustack = MEM_cnew<UndoStack>(__func__);
+  UndoStack *ustack = MEM_callocN<UndoStack>(__func__);
   return ustack;
 }
 
@@ -907,7 +907,7 @@ bool BKE_undosys_step_redo(UndoStack *ustack, bContext *C)
 
 UndoType *BKE_undosys_type_append(void (*undosys_fn)(UndoType *))
 {
-  UndoType *ut = MEM_cnew<UndoType>(__func__);
+  UndoType *ut = MEM_callocN<UndoType>(__func__);
 
   undosys_fn(ut);
 

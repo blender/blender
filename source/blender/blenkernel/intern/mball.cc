@@ -183,7 +183,7 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 
 MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 {
-  MetaElem *ml = MEM_cnew<MetaElem>(__func__);
+  MetaElem *ml = MEM_callocN<MetaElem>(__func__);
 
   unit_qt(ml->quat);
 

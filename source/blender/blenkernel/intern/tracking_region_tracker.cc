@@ -76,7 +76,7 @@ static float *track_get_search_floatbuf(ImBuf *ibuf,
   width = searchibuf->x;
   height = searchibuf->y;
 
-  gray_pixels = MEM_cnew_array<float>(width * height, "tracking floatBuf");
+  gray_pixels = MEM_calloc_arrayN<float>(width * height, "tracking floatBuf");
 
   if (searchibuf->float_buffer.data) {
     float_rgba_to_gray(

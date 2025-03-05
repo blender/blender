@@ -269,7 +269,7 @@ static void toolsystem_brush_type_binding_update(Paint *paint,
   }
   /* Add new reference. */
   else {
-    NamedBrushAssetReference *new_brush_ref = MEM_cnew<NamedBrushAssetReference>(__func__);
+    NamedBrushAssetReference *new_brush_ref = MEM_callocN<NamedBrushAssetReference>(__func__);
 
     new_brush_ref->name = BLI_strdup(brush_type_name);
     new_brush_ref->brush_asset_reference = MEM_new<AssetWeakReference>(

@@ -226,7 +226,8 @@ static void mask_spline_add_point_at_index(MaskSpline *spline, int point_index)
 {
   MaskSplinePoint *new_point_array;
 
-  new_point_array = MEM_cnew_array<MaskSplinePoint>(spline->tot_point + 1, "add mask vert points");
+  new_point_array = MEM_calloc_arrayN<MaskSplinePoint>(spline->tot_point + 1,
+                                                       "add mask vert points");
 
   memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * (point_index + 1));
   memcpy(new_point_array + point_index + 2,
@@ -716,7 +717,7 @@ static BezTriple *points_to_bezier(const float (*points)[2],
                                    const float scale,
                                    const float location[2])
 {
-  BezTriple *bezier_points = MEM_cnew_array<BezTriple>(num_points, __func__);
+  BezTriple *bezier_points = MEM_calloc_arrayN<BezTriple>(num_points, __func__);
   for (int i = 0; i < num_points; i++) {
     copy_v2_v2(bezier_points[i].vec[1], points[i]);
     mul_v2_fl(bezier_points[i].vec[1], scale);

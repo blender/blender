@@ -111,7 +111,7 @@ static void restore_materials(Material ***materials,
   }
   BLI_assert(*materials == nullptr);
   *materials_num = materials_list->size();
-  *materials = MEM_cnew_array<Material *>(materials_list->size(), __func__);
+  *materials = MEM_calloc_arrayN<Material *>(materials_list->size(), __func__);
   if (!data_block_map) {
     return;
   }

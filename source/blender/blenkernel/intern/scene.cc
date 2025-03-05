@@ -352,7 +352,7 @@ static void scene_copy_data(Main *bmain,
 
   /* Copy sequencer, this is local data! */
   if (scene_src->ed) {
-    scene_dst->ed = MEM_cnew<Editing>(__func__);
+    scene_dst->ed = MEM_callocN<Editing>(__func__);
     scene_dst->ed->seqbasep = &scene_dst->ed->seqbase;
     scene_dst->ed->cache_flag = scene_src->ed->cache_flag;
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
@@ -2648,7 +2648,7 @@ SceneRenderView *BKE_scene_add_render_view(Scene *sce, const char *name)
     name = DATA_("RenderView");
   }
 
-  SceneRenderView *srv = MEM_cnew<SceneRenderView>(__func__);
+  SceneRenderView *srv = MEM_callocN<SceneRenderView>(__func__);
   STRNCPY(srv->name, name);
   BLI_uniquename(&sce->r.views,
                  srv,
@@ -3282,7 +3282,7 @@ static Depsgraph **scene_get_depsgraph_p(Scene *scene,
   }
 
   /* Depsgraph was not found in the ghash, but the key still needs allocating. */
-  *key_ptr = MEM_cnew<DepsgraphKey>(__func__);
+  *key_ptr = MEM_callocN<DepsgraphKey>(__func__);
   **key_ptr = key;
 
   *depsgraph_ptr = nullptr;

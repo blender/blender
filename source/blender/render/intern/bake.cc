@@ -567,7 +567,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   TriTessFace **tris_high;
 
   /* Assume all low-poly tessfaces can be quads. */
-  tris_high = MEM_cnew_array<TriTessFace *>(highpoly_num, "MVerts Highpoly Mesh Array");
+  tris_high = MEM_calloc_arrayN<TriTessFace *>(highpoly_num, "MVerts Highpoly Mesh Array");
 
   /* Assume all high-poly tessfaces are triangles. */
   me_highpoly = static_cast<Mesh **>(
@@ -731,7 +731,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
 
   BakeDataZSpan bd;
   bd.pixel_array = pixel_array;
-  bd.zspan = MEM_cnew_array<ZSpan>(targets->images_num, "bake zspan");
+  bd.zspan = MEM_calloc_arrayN<ZSpan>(targets->images_num, "bake zspan");
 
   /* initialize all pixel arrays so we know which ones are 'blank' */
   for (int i = 0; i < pixels_num; i++) {

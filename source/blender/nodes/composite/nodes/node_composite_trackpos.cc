@@ -44,7 +44,7 @@ static void init(const bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
-  NodeTrackPosData *data = MEM_cnew<NodeTrackPosData>(__func__);
+  NodeTrackPosData *data = MEM_callocN<NodeTrackPosData>(__func__);
   node->storage = data;
 
   const Scene *scene = CTX_data_scene(C);

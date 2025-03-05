@@ -130,19 +130,19 @@ static const IconType icontypes[] = {
 static DrawInfo *def_internal_icon(
     ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type, int theme_color)
 {
-  Icon *new_icon = MEM_cnew<Icon>(__func__);
+  Icon *new_icon = MEM_callocN<Icon>(__func__);
 
   new_icon->obj = nullptr; /* icon is not for library object */
   new_icon->id_type = 0;
 
-  DrawInfo *di = MEM_cnew<DrawInfo>(__func__);
+  DrawInfo *di = MEM_callocN<DrawInfo>(__func__);
   di->type = type;
 
   if (type == ICON_TYPE_SVG_MONO) {
     di->data.texture.theme_color = theme_color;
   }
   else if (type == ICON_TYPE_BUFFER) {
-    IconImage *iimg = MEM_cnew<IconImage>(__func__);
+    IconImage *iimg = MEM_callocN<IconImage>(__func__);
     iimg->w = size;
     iimg->h = size;
 
@@ -179,12 +179,12 @@ static DrawInfo *def_internal_icon(
 
 static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 {
-  Icon *new_icon = MEM_cnew<Icon>("texicon");
+  Icon *new_icon = MEM_callocN<Icon>("texicon");
 
   new_icon->obj = nullptr; /* icon is not for library object */
   new_icon->id_type = 0;
 
-  DrawInfo *di = MEM_cnew<DrawInfo>("drawinfo");
+  DrawInfo *di = MEM_callocN<DrawInfo>("drawinfo");
   di->type = ICON_TYPE_VECTOR;
   di->data.vector.func = drawFunc;
 
@@ -928,7 +928,7 @@ static DrawInfo *icon_create_drawinfo(Icon *icon)
 {
   const int icon_data_type = icon->obj_type;
 
-  DrawInfo *di = MEM_cnew<DrawInfo>("di_icon");
+  DrawInfo *di = MEM_callocN<DrawInfo>("di_icon");
 
   if (ELEM(icon_data_type, ICON_DATA_ID, ICON_DATA_PREVIEW)) {
     di->type = ICON_TYPE_PREVIEW;
@@ -1107,7 +1107,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
           wmWindowManager *wm = CTX_wm_manager(C);
           StudioLight *sl = static_cast<StudioLight *>(icon->obj);
           BKE_studiolight_set_free_function(sl, &ui_studiolight_free_function, wm);
-          IconImage *img = MEM_cnew<IconImage>(__func__);
+          IconImage *img = MEM_callocN<IconImage>(__func__);
 
           img->w = STUDIOLIGHT_ICON_SIZE;
           img->h = STUDIOLIGHT_ICON_SIZE;
@@ -1122,7 +1122,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
                                       "StudioLight Icon",
                                       eWM_JobFlag(0),
                                       WM_JOB_TYPE_STUDIOLIGHT);
-          Icon **tmp = MEM_cnew<Icon *>(__func__);
+          Icon **tmp = MEM_callocN<Icon *>(__func__);
           *tmp = icon;
           WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
           WM_jobs_timer(wm_job, 0.01, 0, NC_WINDOW);

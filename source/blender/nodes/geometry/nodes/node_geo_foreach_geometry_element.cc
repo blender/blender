@@ -174,7 +174,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryForeachGeometryElementInput *data =
-      MEM_cnew<NodeGeometryForeachGeometryElementInput>(__func__);
+      MEM_callocN<NodeGeometryForeachGeometryElementInput>(__func__);
   /* Needs to be initialized for the node to work. */
   data->output_node_id = 0;
   node->storage = data;
@@ -307,9 +307,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryForeachGeometryElementOutput *data =
-      MEM_cnew<NodeGeometryForeachGeometryElementOutput>(__func__);
+      MEM_callocN<NodeGeometryForeachGeometryElementOutput>(__func__);
 
-  data->generation_items.items = MEM_cnew_array<NodeForeachGeometryElementGenerationItem>(
+  data->generation_items.items = MEM_calloc_arrayN<NodeForeachGeometryElementGenerationItem>(
       1, __func__);
   NodeForeachGeometryElementGenerationItem &item = data->generation_items.items[0];
   item.name = BLI_strdup(DATA_("Geometry"));
@@ -331,7 +331,8 @@ static void node_free_storage(bNode *node)
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryForeachGeometryElementOutput &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_cnew<NodeGeometryForeachGeometryElementOutput>(__func__, src_storage);
+  auto *dst_storage = MEM_dupallocN<NodeGeometryForeachGeometryElementOutput>(__func__,
+                                                                              src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<ForeachGeometryElementInputItemsAccessor>(*src_node, *dst_node);

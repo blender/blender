@@ -83,7 +83,7 @@ template<typename T> static void grow_array(T **array, int *num, const int add_n
 {
   BLI_assert(add_num > 0);
   const int new_array_num = *num + add_num;
-  T *new_array = MEM_cnew_array<T>(new_array_num, "animrig::action/grow_array");
+  T *new_array = MEM_calloc_arrayN<T>(new_array_num, "animrig::action/grow_array");
 
   blender::uninitialized_relocate_n(*array, *num, new_array);
   MEM_SAFE_FREE(*array);
@@ -103,7 +103,7 @@ static void grow_array_and_insert(T **array, int *num, const int index, T item)
 {
   BLI_assert(index >= 0 && index <= *num);
   const int new_array_num = *num + 1;
-  T *new_array = MEM_cnew_array<T>(new_array_num, __func__);
+  T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
 
   blender::uninitialized_relocate_n(*array, index, new_array);
   new_array[index] = item;
@@ -119,7 +119,7 @@ template<typename T> static void shrink_array(T **array, int *num, const int shr
 {
   BLI_assert(shrink_num > 0);
   const int new_array_num = *num - shrink_num;
-  T *new_array = MEM_cnew_array<T>(new_array_num, __func__);
+  T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
 
   blender::uninitialized_move_n(*array, new_array_num, new_array);
   MEM_freeN(*array);
@@ -132,7 +132,7 @@ template<typename T> static void shrink_array_and_remove(T **array, int *num, co
 {
   BLI_assert(index >= 0 && index < *num);
   const int new_array_num = *num - 1;
-  T *new_array = MEM_cnew_array<T>(new_array_num, __func__);
+  T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
 
   blender::uninitialized_move_n(*array, index, new_array);
   blender::uninitialized_move_n(*array + index + 1, *num - index - 1, new_array + index);
@@ -151,7 +151,7 @@ template<typename T> static void shrink_array_and_swap_remove(T **array, int *nu
 {
   BLI_assert(index >= 0 && index < *num);
   const int new_array_num = *num - 1;
-  T *new_array = MEM_cnew_array<T>(new_array_num, __func__);
+  T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
 
   blender::uninitialized_move_n(*array, index, new_array);
   if (index < new_array_num) {
@@ -913,12 +913,12 @@ static float2 get_frame_range_of_fcurves(Span<const FCurve *> fcurves,
 
 Layer *Layer::duplicate_with_shallow_strip_copies(const StringRefNull allocation_name) const
 {
-  ActionLayer *copy = MEM_cnew<ActionLayer>(allocation_name.c_str());
+  ActionLayer *copy = MEM_callocN<ActionLayer>(allocation_name.c_str());
   *copy = *reinterpret_cast<const ActionLayer *>(this);
 
   /* Make a shallow copy of the Strips, without copying their data. */
-  copy->strip_array = MEM_cnew_array<ActionStrip *>(this->strip_array_num,
-                                                    allocation_name.c_str());
+  copy->strip_array = MEM_calloc_arrayN<ActionStrip *>(this->strip_array_num,
+                                                       allocation_name.c_str());
   for (int i : this->strips().index_range()) {
     Strip *strip_copy = MEM_new<Strip>(allocation_name.c_str(), *this->strip(i));
     copy->strip_array[i] = strip_copy;
@@ -1634,7 +1634,7 @@ std::optional<std::pair<Action *, Slot *>> get_action_slot_pair(ID &animated_id)
 Strip &Strip::create(Action &owning_action, const Strip::Type type)
 {
   /* Create the strip. */
-  ActionStrip *strip = MEM_cnew<ActionStrip>(__func__);
+  ActionStrip *strip = MEM_callocN<ActionStrip>(__func__);
   memcpy(strip, DNA_struct_default_get(ActionStrip), sizeof(*strip));
   strip->strip_type = int8_t(type);
 
@@ -1712,8 +1712,8 @@ StripKeyframeData::StripKeyframeData(const StripKeyframeData &other)
 {
   memcpy(this, &other, sizeof(*this));
 
-  this->channelbag_array = MEM_cnew_array<ActionChannelbag *>(other.channelbag_array_num,
-                                                              __func__);
+  this->channelbag_array = MEM_calloc_arrayN<ActionChannelbag *>(other.channelbag_array_num,
+                                                                 __func__);
   Span<const Channelbag *> channelbags_src = other.channelbags();
   for (int i : channelbags_src.index_range()) {
     this->channelbag_array[i] = MEM_new<animrig::Channelbag>(__func__, *other.channelbag(i));
@@ -2138,14 +2138,14 @@ Channelbag::Channelbag(const Channelbag &other)
   this->slot_handle = other.slot_handle;
 
   this->fcurve_array_num = other.fcurve_array_num;
-  this->fcurve_array = MEM_cnew_array<FCurve *>(other.fcurve_array_num, __func__);
+  this->fcurve_array = MEM_calloc_arrayN<FCurve *>(other.fcurve_array_num, __func__);
   for (int i = 0; i < other.fcurve_array_num; i++) {
     const FCurve *fcu_src = other.fcurve_array[i];
     this->fcurve_array[i] = BKE_fcurve_copy(fcu_src);
   }
 
   this->group_array_num = other.group_array_num;
-  this->group_array = MEM_cnew_array<bActionGroup *>(other.group_array_num, __func__);
+  this->group_array = MEM_calloc_arrayN<bActionGroup *>(other.group_array_num, __func__);
   for (int i = 0; i < other.group_array_num; i++) {
     const bActionGroup *group_src = other.group_array[i];
     this->group_array[i] = static_cast<bActionGroup *>(MEM_dupallocN(group_src));
@@ -3032,7 +3032,7 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
   Channelbag *bag = &strip.data<StripKeyframeData>(converted_action).channelbag_for_slot_add(slot);
 
   const int fcu_count = BLI_listbase_count(&legacy_action.curves);
-  bag->fcurve_array = MEM_cnew_array<FCurve *>(fcu_count, "Convert to layered action");
+  bag->fcurve_array = MEM_calloc_arrayN<FCurve *>(fcu_count, "Convert to layered action");
   bag->fcurve_array_num = fcu_count;
 
   int i = 0;

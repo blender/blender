@@ -594,7 +594,7 @@ LinkNode *BLI_file_read_as_lines(const char *filepath)
     return nullptr;
   }
 
-  buf = MEM_cnew_array<char>(size, "file_as_lines");
+  buf = MEM_calloc_arrayN<char>(size, "file_as_lines");
   if (buf) {
     size_t i, last = 0;
 

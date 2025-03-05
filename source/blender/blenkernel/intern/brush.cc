@@ -84,8 +84,8 @@ static void brush_copy_data(Main * /*bmain*/,
   brush_dst->automasking_cavity_curve = BKE_curvemapping_copy(brush_src->automasking_cavity_curve);
 
   if (brush_src->gpencil_settings != nullptr) {
-    brush_dst->gpencil_settings = MEM_cnew<BrushGpencilSettings>(__func__,
-                                                                 *(brush_src->gpencil_settings));
+    brush_dst->gpencil_settings = MEM_dupallocN<BrushGpencilSettings>(
+        __func__, *(brush_src->gpencil_settings));
     brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
         brush_src->gpencil_settings->curve_sensitivity);
     brush_dst->gpencil_settings->curve_strength = BKE_curvemapping_copy(
@@ -107,7 +107,7 @@ static void brush_copy_data(Main * /*bmain*/,
         brush_src->gpencil_settings->curve_rand_value);
   }
   if (brush_src->curves_sculpt_settings != nullptr) {
-    brush_dst->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(
+    brush_dst->curves_sculpt_settings = MEM_dupallocN<BrushCurvesSculptSettings>(
         __func__, *(brush_src->curves_sculpt_settings));
     brush_dst->curves_sculpt_settings->curve_parameter_falloff = BKE_curvemapping_copy(
         brush_src->curves_sculpt_settings->curve_parameter_falloff);
@@ -548,7 +548,7 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 void BKE_brush_init_gpencil_settings(Brush *brush)
 {
   if (brush->gpencil_settings == nullptr) {
-    brush->gpencil_settings = MEM_cnew<BrushGpencilSettings>("BrushGpencilSettings");
+    brush->gpencil_settings = MEM_callocN<BrushGpencilSettings>("BrushGpencilSettings");
   }
 
   brush->gpencil_settings->draw_smoothlvl = 1;
@@ -590,7 +590,7 @@ bool BKE_brush_delete(Main *bmain, Brush *brush)
 void BKE_brush_init_curves_sculpt_settings(Brush *brush)
 {
   if (brush->curves_sculpt_settings == nullptr) {
-    brush->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(__func__);
+    brush->curves_sculpt_settings = MEM_callocN<BrushCurvesSculptSettings>(__func__);
   }
   BrushCurvesSculptSettings *settings = brush->curves_sculpt_settings;
   settings->flag = BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_RADIUS;
@@ -1468,7 +1468,7 @@ static bool brush_gen_texture(const Brush *br,
 
 ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool display_gradient)
 {
-  ImBuf *im = MEM_cnew<ImBuf>("radial control texture");
+  ImBuf *im = MEM_callocN<ImBuf>("radial control texture");
   int side = 512;
   int half = side / 2;
 

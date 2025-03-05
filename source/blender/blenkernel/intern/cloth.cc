@@ -832,7 +832,8 @@ static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mes
 
   /* Allocate our vertices. */
   clmd->clothObject->mvert_num = mvert_num;
-  clmd->clothObject->verts = MEM_cnew_array<ClothVertex>(clmd->clothObject->mvert_num, __func__);
+  clmd->clothObject->verts = MEM_calloc_arrayN<ClothVertex>(clmd->clothObject->mvert_num,
+                                                            __func__);
   if (clmd->clothObject->verts == nullptr) {
     cloth_free_modifier(clmd);
     BKE_modifier_set_error(ob, &(clmd->modifier), "Out of memory on allocating vertices");

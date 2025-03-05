@@ -165,7 +165,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
                               PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK)}));
 
   /* Create an empty sequence editor data to store all copied strips. */
-  scene_dst->ed = MEM_cnew<Editing>(__func__);
+  scene_dst->ed = MEM_callocN<Editing>(__func__);
   scene_dst->ed->seqbasep = &scene_dst->ed->seqbase;
   SEQ_sequence_base_dupli_recursive(
       scene_src, scene_dst, &scene_dst->ed->seqbase, scene_src->ed->seqbasep, 0, 0);

@@ -259,7 +259,7 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   BLI_addtail(&v3d->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  region->regiondata = MEM_cnew<RegionView3D>("region view3d");
+  region->regiondata = MEM_callocN<RegionView3D>("region view3d");
   rv3d = static_cast<RegionView3D *>(region->regiondata);
   rv3d->viewquat[0] = 1.0f;
   rv3d->persp = RV3D_PERSP;
@@ -2173,7 +2173,7 @@ void ED_spacetype_view3d()
   st->blend_write = view3d_space_blend_write;
 
   /* regions: main window */
-  art = MEM_cnew<ARegionType>("spacetype view3d main region");
+  art = MEM_callocN<ARegionType>("spacetype view3d main region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_GIZMO | ED_KEYMAP_TOOL | ED_KEYMAP_GPENCIL;
   art->draw = view3d_main_region_draw;
@@ -2188,7 +2188,7 @@ void ED_spacetype_view3d()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: list-view/buttons */
-  art = MEM_cnew<ARegionType>("spacetype view3d buttons region");
+  art = MEM_callocN<ARegionType>("spacetype view3d buttons region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
@@ -2202,7 +2202,7 @@ void ED_spacetype_view3d()
   view3d_buttons_register(art);
 
   /* regions: tool(bar) */
-  art = MEM_cnew<ARegionType>("spacetype view3d tools region");
+  art = MEM_callocN<ARegionType>("spacetype view3d tools region");
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = int(UI_TOOLBAR_WIDTH);
   art->prefsizey = 50; /* XXX */
@@ -2215,7 +2215,7 @@ void ED_spacetype_view3d()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: tool header */
-  art = MEM_cnew<ARegionType>("spacetype view3d tool header region");
+  art = MEM_callocN<ARegionType>("spacetype view3d tool header region");
   art->regionid = RGN_TYPE_TOOL_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -2226,7 +2226,7 @@ void ED_spacetype_view3d()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_cnew<ARegionType>("spacetype view3d header region");
+  art = MEM_callocN<ARegionType>("spacetype view3d header region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -2237,7 +2237,7 @@ void ED_spacetype_view3d()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: asset shelf */
-  art = MEM_cnew<ARegionType>("spacetype view3d asset shelf region");
+  art = MEM_callocN<ARegionType>("spacetype view3d asset shelf region");
   art->regionid = RGN_TYPE_ASSET_SHELF;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_FRAMES;
   art->duplicate = asset::shelf::region_duplicate;
@@ -2255,7 +2255,7 @@ void ED_spacetype_view3d()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: asset shelf header */
-  art = MEM_cnew<ARegionType>("spacetype view3d asset shelf header region");
+  art = MEM_callocN<ARegionType>("spacetype view3d asset shelf header region");
   art->regionid = RGN_TYPE_ASSET_SHELF_HEADER;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
   art->init = asset::shelf::header_region_init;
@@ -2271,13 +2271,13 @@ void ED_spacetype_view3d()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: xr */
-  art = MEM_cnew<ARegionType>("spacetype view3d xr region");
+  art = MEM_callocN<ARegionType>("spacetype view3d xr region");
   art->regionid = RGN_TYPE_XR;
   BLI_addhead(&st->regiontypes, art);
 
   WM_menutype_add(
-      MEM_cnew<MenuType>(__func__, blender::ed::geometry::node_group_operator_assets_menu()));
-  WM_menutype_add(MEM_cnew<MenuType>(
+      MEM_dupallocN<MenuType>(__func__, blender::ed::geometry::node_group_operator_assets_menu()));
+  WM_menutype_add(MEM_dupallocN<MenuType>(
       __func__, blender::ed::geometry::node_group_operator_assets_menu_unassigned()));
 
   BKE_spacetype_register(std::move(st));

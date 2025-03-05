@@ -47,7 +47,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryDuplicateElements *data = MEM_cnew<NodeGeometryDuplicateElements>(__func__);
+  NodeGeometryDuplicateElements *data = MEM_callocN<NodeGeometryDuplicateElements>(__func__);
   data->domain = int8_t(AttrDomain::Point);
   node->storage = data;
 }

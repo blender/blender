@@ -4783,7 +4783,7 @@ struct FillGridSplitJoin {
  */
 static FillGridSplitJoin *edbm_fill_grid_split_join_init(BMEditMesh *em)
 {
-  FillGridSplitJoin *split_join = MEM_cnew<FillGridSplitJoin>(__func__);
+  FillGridSplitJoin *split_join = MEM_callocN<FillGridSplitJoin>(__func__);
 
   /* Split the selection into an island. */
   BMOperator split_op;

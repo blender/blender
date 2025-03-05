@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_init_tex_environment(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexEnvironment *tex = MEM_cnew<NodeTexEnvironment>("NodeTexEnvironment");
+  NodeTexEnvironment *tex = MEM_callocN<NodeTexEnvironment>("NodeTexEnvironment");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->projection = SHD_PROJ_EQUIRECTANGULAR;

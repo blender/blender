@@ -115,7 +115,7 @@ static void memiter_init(BLI_memiter *mi)
 
 BLI_memiter *BLI_memiter_create(uint chunk_size_min)
 {
-  BLI_memiter *mi = MEM_cnew<BLI_memiter>("BLI_memiter");
+  BLI_memiter *mi = MEM_callocN<BLI_memiter>("BLI_memiter");
   memiter_init(mi);
 
   /* Small values are used for tests to check for correctness,

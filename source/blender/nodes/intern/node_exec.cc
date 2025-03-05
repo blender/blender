@@ -159,7 +159,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   const Span<bNode *> nodelist = ntree->toposort_left_to_right();
 
   /* XXX could let callbacks do this for specialized data */
-  exec = MEM_cnew<bNodeTreeExec>("node tree execution data");
+  exec = MEM_callocN<bNodeTreeExec>("node tree execution data");
   /* Back-pointer to node tree. */
   exec->nodetree = ntree;
 

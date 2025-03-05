@@ -2609,7 +2609,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
 
     if (nu->type == CU_POLY) {
       len = nu->pntsu;
-      BevList *bl = MEM_cnew<BevList>(__func__);
+      BevList *bl = MEM_callocN<BevList>(__func__);
       bl->bevpoints = (BevPoint *)MEM_calloc_arrayN(len, sizeof(BevPoint), __func__);
       if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
         bl->seglen = (float *)MEM_malloc_arrayN(segcount, sizeof(float), __func__);
@@ -2659,7 +2659,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
       /* in case last point is not cyclic */
       len = segcount * resolu + 1;
 
-      BevList *bl = MEM_cnew<BevList>(__func__);
+      BevList *bl = MEM_callocN<BevList>(__func__);
       bl->bevpoints = (BevPoint *)MEM_calloc_arrayN(len, sizeof(BevPoint), __func__);
       if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
         bl->seglen = (float *)MEM_malloc_arrayN(segcount, sizeof(float), __func__);
@@ -2795,7 +2795,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
       if (nu->pntsv == 1) {
         len = (resolu * segcount);
 
-        BevList *bl = MEM_cnew<BevList>(__func__);
+        BevList *bl = MEM_callocN<BevList>(__func__);
         bl->bevpoints = (BevPoint *)MEM_calloc_arrayN(len, sizeof(BevPoint), __func__);
         if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
           bl->seglen = (float *)MEM_malloc_arrayN(segcount, sizeof(float), __func__);

@@ -59,7 +59,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometrySubdivisionSurface *data = MEM_cnew<NodeGeometrySubdivisionSurface>(__func__);
+  NodeGeometrySubdivisionSurface *data = MEM_callocN<NodeGeometrySubdivisionSurface>(__func__);
   data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES;
   data->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
   node->storage = data;

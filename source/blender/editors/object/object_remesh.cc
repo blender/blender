@@ -438,7 +438,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   Object *active_object = CTX_data_active_object(C);
   Mesh *mesh = (Mesh *)active_object->data;
 
-  VoxelSizeEditCustomData *cd = MEM_cnew<VoxelSizeEditCustomData>(
+  VoxelSizeEditCustomData *cd = MEM_callocN<VoxelSizeEditCustomData>(
       "Voxel Size Edit OP Custom Data");
 
   /* Initial operator Custom Data setup. */

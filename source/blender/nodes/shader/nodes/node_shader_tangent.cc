@@ -54,7 +54,7 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
 
 static void node_shader_init_tangent(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderTangent *attr = MEM_cnew<NodeShaderTangent>("NodeShaderTangent");
+  NodeShaderTangent *attr = MEM_callocN<NodeShaderTangent>("NodeShaderTangent");
   attr->axis = SHD_TANGENT_AXIS_Z;
   node->storage = attr;
 }

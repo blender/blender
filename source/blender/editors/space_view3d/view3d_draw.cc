@@ -2423,7 +2423,7 @@ void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d)
 /* NOTE: with NOUVEAU drivers the #glReadPixels() is very slow. #24339. */
 static ViewDepths *view3d_depths_create(ARegion *region)
 {
-  ViewDepths *d = MEM_cnew<ViewDepths>("ViewDepths");
+  ViewDepths *d = MEM_callocN<ViewDepths>("ViewDepths");
 
   {
     GPUViewport *viewport = WM_draw_region_get_viewport(region);

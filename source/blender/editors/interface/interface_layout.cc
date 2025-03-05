@@ -5881,7 +5881,7 @@ uiLayout *UI_block_layout(uiBlock *block,
                           int padding,
                           const uiStyle *style)
 {
-  uiLayoutRoot *root = MEM_cnew<uiLayoutRoot>(__func__);
+  uiLayoutRoot *root = MEM_callocN<uiLayoutRoot>(__func__);
   root->type = type;
   root->style = style;
   root->block = block;

@@ -94,7 +94,7 @@ KDTree *BLI_kdtree_nd_(new)(uint nodes_len_capacity)
 {
   KDTree *tree;
 
-  tree = MEM_cnew<KDTree>("KDTree");
+  tree = MEM_callocN<KDTree>("KDTree");
   tree->nodes = static_cast<KDTreeNode *>(
       MEM_mallocN(sizeof(KDTreeNode) * nodes_len_capacity, "KDTreeNode"));
   tree->nodes_len = 0;

@@ -152,10 +152,10 @@ static void strip_convert_transform_crop(const Scene *scene,
                                          const eSpaceSeq_Proxy_RenderSize render_size)
 {
   if (strip->data->transform == nullptr) {
-    strip->data->transform = MEM_cnew<StripTransform>(__func__);
+    strip->data->transform = MEM_callocN<StripTransform>(__func__);
   }
   if (strip->data->crop == nullptr) {
-    strip->data->crop = MEM_cnew<StripCrop>(__func__);
+    strip->data->crop = MEM_callocN<StripCrop>(__func__);
   }
 
   StripCrop *c = strip->data->crop;
@@ -1635,7 +1635,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           if (node->type_legacy != CMP_NODE_SETALPHA) {
             continue;
           }
-          NodeSetAlpha *storage = MEM_cnew<NodeSetAlpha>("NodeSetAlpha");
+          NodeSetAlpha *storage = MEM_callocN<NodeSetAlpha>("NodeSetAlpha");
           storage->mode = CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA;
           node->storage = storage;
         }

@@ -33,7 +33,7 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_dblur(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeDBlurData *ndbd = MEM_cnew<NodeDBlurData>(__func__);
+  NodeDBlurData *ndbd = MEM_callocN<NodeDBlurData>(__func__);
   node->storage = ndbd;
   ndbd->iter = 1;
   ndbd->center_x = 0.5;

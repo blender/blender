@@ -40,7 +40,7 @@ static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_setalpha(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeSetAlpha *settings = MEM_cnew<NodeSetAlpha>(__func__);
+  NodeSetAlpha *settings = MEM_callocN<NodeSetAlpha>(__func__);
   node->storage = settings;
   settings->mode = CMP_NODE_SETALPHA_MODE_APPLY;
 }

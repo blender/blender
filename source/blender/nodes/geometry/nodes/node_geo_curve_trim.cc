@@ -78,7 +78,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveTrim *data = MEM_cnew<NodeGeometryCurveTrim>(__func__);
+  NodeGeometryCurveTrim *data = MEM_callocN<NodeGeometryCurveTrim>(__func__);
 
   data->mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
   node->storage = data;

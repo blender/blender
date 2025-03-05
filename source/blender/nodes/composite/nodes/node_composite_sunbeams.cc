@@ -34,7 +34,7 @@ static void cmp_node_sunbeams_declare(NodeDeclarationBuilder &b)
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeSunBeams *data = MEM_cnew<NodeSunBeams>(__func__);
+  NodeSunBeams *data = MEM_callocN<NodeSunBeams>(__func__);
 
   data->source[0] = 0.5f;
   data->source[1] = 0.5f;

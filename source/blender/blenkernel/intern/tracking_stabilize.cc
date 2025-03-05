@@ -202,7 +202,7 @@ static void use_values_from_fcurves(StabContext *ctx, bool toggle)
  */
 static StabContext *init_stabilization_working_context(MovieClip *clip)
 {
-  StabContext *ctx = MEM_cnew<StabContext>("2D stabilization animation runtime data");
+  StabContext *ctx = MEM_callocN<StabContext>("2D stabilization animation runtime data");
   ctx->clip = clip;
   ctx->tracking = &clip->tracking;
   ctx->stab = &clip->tracking.stabilization;
@@ -869,7 +869,7 @@ static void init_all_tracks(StabContext *ctx, float aspect)
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_camera_object->tracks) {
     TrackStabilizationBase *local_data = access_stabilization_baseline_data(ctx, track);
     if (!local_data) {
-      local_data = MEM_cnew<TrackStabilizationBase>("2D stabilization per track baseline data");
+      local_data = MEM_callocN<TrackStabilizationBase>("2D stabilization per track baseline data");
       attach_stabilization_baseline_data(ctx, track, local_data);
     }
     BLI_assert(local_data != nullptr);
@@ -882,7 +882,7 @@ static void init_all_tracks(StabContext *ctx, float aspect)
     return;
   }
 
-  order = MEM_cnew_array<TrackInitOrder>(track_len, "stabilization track order");
+  order = MEM_calloc_arrayN<TrackInitOrder>(track_len, "stabilization track order");
   if (!order) {
     return;
   }

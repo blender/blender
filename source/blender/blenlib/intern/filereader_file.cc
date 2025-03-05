@@ -53,7 +53,7 @@ static void file_close(FileReader *reader)
 
 FileReader *BLI_filereader_new_file(int filedes)
 {
-  RawFileReader *rawfile = MEM_cnew<RawFileReader>(__func__);
+  RawFileReader *rawfile = MEM_callocN<RawFileReader>(__func__);
 
   rawfile->filedes = filedes;
 

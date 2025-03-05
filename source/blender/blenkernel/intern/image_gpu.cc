@@ -147,7 +147,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
 
     if (ibuf) {
-      PackTile *packtile = MEM_cnew<PackTile>(__func__);
+      PackTile *packtile = MEM_callocN<PackTile>(__func__);
       packtile->tile = tile;
       packtile->boxpack.w = ibuf->x;
       packtile->boxpack.h = ibuf->y;

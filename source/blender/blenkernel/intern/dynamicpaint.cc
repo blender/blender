@@ -742,7 +742,7 @@ static void surfaceGenerateGrid(DynamicPaintSurface *surface)
     freeGrid(sData);
   }
 
-  bData->grid = MEM_cnew<DynamicPaintVolumeGrid>(__func__);
+  bData->grid = MEM_callocN<DynamicPaintVolumeGrid>(__func__);
   grid = bData->grid;
 
   {
@@ -1036,7 +1036,7 @@ void dynamicPaint_Modifier_free(DynamicPaintModifierData *pmd)
 DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *canvas,
                                                    Scene *scene)
 {
-  DynamicPaintSurface *surface = MEM_cnew<DynamicPaintSurface>(__func__);
+  DynamicPaintSurface *surface = MEM_callocN<DynamicPaintSurface>(__func__);
   if (!surface) {
     return nullptr;
   }
@@ -1119,7 +1119,7 @@ bool dynamicPaint_createType(DynamicPaintModifierData *pmd, int type, Scene *sce
         dynamicPaint_freeCanvas(pmd);
       }
 
-      canvas = pmd->canvas = MEM_cnew<DynamicPaintCanvasSettings>(__func__);
+      canvas = pmd->canvas = MEM_callocN<DynamicPaintCanvasSettings>(__func__);
       if (!canvas) {
         return false;
       }
@@ -1136,7 +1136,7 @@ bool dynamicPaint_createType(DynamicPaintModifierData *pmd, int type, Scene *sce
         dynamicPaint_freeBrush(pmd);
       }
 
-      brush = pmd->brush = MEM_cnew<DynamicPaintBrushSettings>(__func__);
+      brush = pmd->brush = MEM_callocN<DynamicPaintBrushSettings>(__func__);
       if (!brush) {
         return false;
       }
@@ -1402,7 +1402,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
   }
 
   /* allocate memory */
-  ad = sData->adj_data = MEM_cnew<PaintAdjData>(__func__);
+  ad = sData->adj_data = MEM_callocN<PaintAdjData>(__func__);
   if (!ad) {
     return;
   }
@@ -1765,7 +1765,7 @@ bool dynamicPaint_resetSurface(const Scene *scene, DynamicPaintSurface *surface)
   }
 
   /* allocate memory */
-  surface->data = MEM_cnew<PaintSurfaceData>(__func__);
+  surface->data = MEM_callocN<PaintSurfaceData>(__func__);
   if (!surface->data) {
     return false;
   }
@@ -2879,7 +2879,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
   if (surface->data) {
     dynamicPaint_freeSurfaceData(surface);
   }
-  sData = surface->data = MEM_cnew<PaintSurfaceData>(__func__);
+  sData = surface->data = MEM_callocN<PaintSurfaceData>(__func__);
   if (!surface->data) {
     return setError(canvas, N_("Not enough free memory"));
   }
@@ -3106,7 +3106,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
     *do_update = true;
 
     /* Create final surface data without inactive points */
-    ImgSeqFormatData *f_data = MEM_cnew<ImgSeqFormatData>(__func__);
+    ImgSeqFormatData *f_data = MEM_callocN<ImgSeqFormatData>(__func__);
     if (f_data) {
       f_data->uv_p = static_cast<PaintUVPoint *>(
           MEM_callocN(active_points * sizeof(*f_data->uv_p), "PaintUVPoint"));

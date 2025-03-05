@@ -2143,7 +2143,7 @@ static bool ui_but_drag_init(bContext *C,
     data->cancel = true;
 #ifdef USE_DRAG_TOGGLE
     if (ui_drag_toggle_but_is_supported(but)) {
-      uiDragToggleHandle *drag_info = MEM_cnew<uiDragToggleHandle>(__func__);
+      uiDragToggleHandle *drag_info = MEM_callocN<uiDragToggleHandle>(__func__);
       ARegion *region_prev;
 
       /* call here because regular mouse-up event won't run,
@@ -2198,7 +2198,7 @@ static bool ui_but_drag_init(bContext *C,
         if (but->type == UI_BTYPE_COLOR)
     {
       bool valid = false;
-      uiDragColorHandle *drag_info = MEM_cnew<uiDragColorHandle>(__func__);
+      uiDragColorHandle *drag_info = MEM_callocN<uiDragColorHandle>(__func__);
 
       drag_info->has_alpha = ui_but_color_has_alpha(but);
 
@@ -2723,7 +2723,7 @@ static void ui_but_paste_colorband(bContext *C, uiBut *but, uiHandleButtonData *
 {
   if (but_copypaste_coba.tot != 0) {
     if (!but->poin) {
-      but->poin = reinterpret_cast<char *>(MEM_cnew<ColorBand>(__func__));
+      but->poin = reinterpret_cast<char *>(MEM_callocN<ColorBand>(__func__));
     }
 
     button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
@@ -2745,7 +2745,7 @@ static void ui_but_paste_curvemapping(bContext *C, uiBut *but)
 {
   if (but_copypaste_curve_alive) {
     if (!but->poin) {
-      but->poin = reinterpret_cast<char *>(MEM_cnew<CurveMapping>(__func__));
+      but->poin = reinterpret_cast<char *>(MEM_callocN<CurveMapping>(__func__));
     }
 
     button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
@@ -2768,7 +2768,7 @@ static void ui_but_paste_CurveProfile(bContext *C, uiBut *but)
 {
   if (but_copypaste_profile_alive) {
     if (!but->poin) {
-      but->poin = reinterpret_cast<char *>(MEM_cnew<CurveProfile>(__func__));
+      but->poin = reinterpret_cast<char *>(MEM_callocN<CurveProfile>(__func__));
     }
 
     button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
@@ -12423,7 +12423,7 @@ static uiBlockInteraction_Handle *ui_block_interaction_begin(bContext *C,
                                                              const bool is_click)
 {
   BLI_assert(block->custom_interaction_callbacks.begin_fn != nullptr);
-  uiBlockInteraction_Handle *interaction = MEM_cnew<uiBlockInteraction_Handle>(__func__);
+  uiBlockInteraction_Handle *interaction = MEM_callocN<uiBlockInteraction_Handle>(__func__);
 
   int unique_retval_ids_len = 0;
   for (const std::unique_ptr<uiBut> &but : block->buttons) {

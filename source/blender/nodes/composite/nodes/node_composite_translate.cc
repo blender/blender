@@ -44,7 +44,7 @@ static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_translate(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTranslateData *data = MEM_cnew<NodeTranslateData>(__func__);
+  NodeTranslateData *data = MEM_callocN<NodeTranslateData>(__func__);
   node->storage = data;
 }
 

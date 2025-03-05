@@ -38,7 +38,7 @@ static void node_shader_buts_vect_transform(uiLayout *layout, bContext * /*C*/, 
 
 static void node_shader_init_vect_transform(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderVectTransform *vect = MEM_cnew<NodeShaderVectTransform>("NodeShaderVectTransform");
+  NodeShaderVectTransform *vect = MEM_callocN<NodeShaderVectTransform>("NodeShaderVectTransform");
 
   /* Convert World into Object Space per default */
   vect->convert_to = 1;

@@ -52,7 +52,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryStoreNamedAttribute *data = MEM_cnew<NodeGeometryStoreNamedAttribute>(__func__);
+  NodeGeometryStoreNamedAttribute *data = MEM_callocN<NodeGeometryStoreNamedAttribute>(__func__);
   data->data_type = CD_PROP_FLOAT;
   data->domain = int8_t(AttrDomain::Point);
   node->storage = data;

@@ -29,7 +29,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeInputBool *data = MEM_cnew<NodeInputBool>(__func__);
+  NodeInputBool *data = MEM_callocN<NodeInputBool>(__func__);
   node->storage = data;
 }
 

@@ -32,7 +32,7 @@ inline void remove_index(
   const int new_items_num = old_items_num - 1;
 
   T *old_items = *items;
-  T *new_items = MEM_cnew_array<T>(new_items_num, __func__);
+  T *new_items = MEM_calloc_arrayN<T>(new_items_num, __func__);
 
   std::copy_n(old_items, index, new_items);
   std::copy_n(old_items + index + 1, old_items_num - index - 1, new_items + index);

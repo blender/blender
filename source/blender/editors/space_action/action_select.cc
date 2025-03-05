@@ -1195,7 +1195,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 
     case ACTKEYS_COLUMNSEL_CFRA: /* current frame */
       /* make a single CfraElem for storing this */
-      ce = MEM_cnew<CfraElem>("cfraElem");
+      ce = MEM_callocN<CfraElem>("cfraElem");
       BLI_addtail(&ked.list, ce);
 
       ce->cfra = float(scene->r.cfra);

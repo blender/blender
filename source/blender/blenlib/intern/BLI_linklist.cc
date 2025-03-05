@@ -237,7 +237,7 @@ void *BLI_linklist_pop_pool(LinkNode **listp, BLI_mempool *mempool)
 
 void BLI_linklist_insert_after(LinkNode **listp, void *ptr)
 {
-  LinkNode *nlink = MEM_cnew<LinkNode>(__func__);
+  LinkNode *nlink = MEM_callocN<LinkNode>(__func__);
   LinkNode *node = *listp;
 
   nlink->link = ptr;

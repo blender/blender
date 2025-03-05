@@ -37,7 +37,7 @@ static void node_shader_buts_attribute(uiLayout *layout, bContext * /*C*/, Point
 
 static void node_shader_init_attribute(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderAttribute *attr = MEM_cnew<NodeShaderAttribute>("NodeShaderAttribute");
+  NodeShaderAttribute *attr = MEM_callocN<NodeShaderAttribute>("NodeShaderAttribute");
   node->storage = attr;
 }
 

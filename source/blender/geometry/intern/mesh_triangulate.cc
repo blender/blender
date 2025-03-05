@@ -516,7 +516,7 @@ static GroupedSpan<int> build_vert_to_tri_map(const int verts_num,
   const OffsetIndices offsets(r_offsets.as_span());
 
   r_indices.reinitialize(offsets.total_size());
-  int *counts = MEM_cnew_array<int>(size_t(offsets.size()), __func__);
+  int *counts = MEM_calloc_arrayN<int>(size_t(offsets.size()), __func__);
   BLI_SCOPED_DEFER([&]() { MEM_freeN(counts); })
   threading::parallel_for(vert_tris.index_range(), 1024, [&](const IndexRange range) {
     for (const int tri : range) {

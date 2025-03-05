@@ -96,7 +96,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeMenuSwitch *data = MEM_cnew<NodeMenuSwitch>(__func__);
+  NodeMenuSwitch *data = MEM_callocN<NodeMenuSwitch>(__func__);
   data->data_type = SOCK_GEOMETRY;
   data->enum_definition.next_identifier = 0;
   data->enum_definition.items_array = nullptr;
@@ -116,7 +116,7 @@ static void node_free_storage(bNode *node)
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeMenuSwitch &src_storage = node_storage(*src_node);
-  NodeMenuSwitch *dst_storage = MEM_cnew<NodeMenuSwitch>(__func__, src_storage);
+  NodeMenuSwitch *dst_storage = MEM_dupallocN<NodeMenuSwitch>(__func__, src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<MenuSwitchItemsAccessor>(*src_node, *dst_node);

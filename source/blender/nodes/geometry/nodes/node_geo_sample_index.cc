@@ -48,7 +48,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometrySampleIndex *data = MEM_cnew<NodeGeometrySampleIndex>(__func__);
+  NodeGeometrySampleIndex *data = MEM_callocN<NodeGeometrySampleIndex>(__func__);
   data->data_type = CD_PROP_FLOAT;
   data->domain = int8_t(AttrDomain::Point);
   data->clamp = 0;

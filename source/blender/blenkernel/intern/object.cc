@@ -3644,7 +3644,7 @@ void BKE_object_empty_draw_type_set(Object *ob, const int value)
 
   if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
     if (!ob->iuser) {
-      ob->iuser = MEM_cnew<ImageUser>("image user");
+      ob->iuser = MEM_callocN<ImageUser>("image user");
       ob->iuser->flag |= IMA_ANIM_ALWAYS;
       ob->iuser->frames = 100;
       ob->iuser->sfra = 1;
@@ -4246,7 +4246,7 @@ int BKE_object_insert_ptcache(Object *ob)
     }
   }
 
-  link = MEM_cnew<LinkData>("PCLink");
+  link = MEM_callocN<LinkData>("PCLink");
   link->data = POINTER_FROM_INT(i);
   BLI_addtail(&ob->pc_ids, link);
 

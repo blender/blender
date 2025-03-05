@@ -268,7 +268,7 @@ static bool colormanage_hashcmp(const void *av, const void *bv)
 static MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 {
   if (!ibuf->colormanage_cache) {
-    ibuf->colormanage_cache = MEM_cnew<ColormanageCache>("imbuf colormanage cache");
+    ibuf->colormanage_cache = MEM_callocN<ColormanageCache>("imbuf colormanage cache");
   }
 
   if (!ibuf->colormanage_cache->moviecache) {
@@ -288,7 +288,7 @@ static MovieCache *colormanage_moviecache_ensure(ImBuf *ibuf)
 static void colormanage_cachedata_set(ImBuf *ibuf, ColormanageCacheData *data)
 {
   if (!ibuf->colormanage_cache) {
-    ibuf->colormanage_cache = MEM_cnew<ColormanageCache>("imbuf colormanage cache");
+    ibuf->colormanage_cache = MEM_callocN<ColormanageCache>("imbuf colormanage cache");
   }
 
   ibuf->colormanage_cache->data = data;
@@ -430,7 +430,7 @@ static void colormanage_cache_put(ImBuf *ibuf,
 
   /* Store data which is needed to check whether cached buffer
    * could be used for color managed display settings. */
-  cache_data = MEM_cnew<ColormanageCacheData>("color manage cache imbuf data");
+  cache_data = MEM_callocN<ColormanageCacheData>("color manage cache imbuf data");
   cache_data->look = view_settings->look;
   cache_data->exposure = view_settings->exposure;
   cache_data->gamma = view_settings->gamma;
@@ -2956,7 +2956,7 @@ ColorManagedDisplay *colormanage_display_add(const char *name)
     index = last_display->index;
   }
 
-  display = MEM_cnew<ColorManagedDisplay>("ColorManagedDisplay");
+  display = MEM_callocN<ColorManagedDisplay>("ColorManagedDisplay");
 
   display->index = index + 1;
 
@@ -3069,7 +3069,7 @@ ColorManagedView *colormanage_view_add(const char *name)
   ColorManagedView *view;
   int index = global_tot_view;
 
-  view = MEM_cnew<ColorManagedView>("ColorManagedView");
+  view = MEM_callocN<ColorManagedView>("ColorManagedView");
   view->index = index + 1;
   STRNCPY(view->name, name);
 
@@ -3209,7 +3209,7 @@ ColorSpace *colormanage_colorspace_add(const char *name,
   ColorSpace *colorspace, *prev_space;
   int counter = 1;
 
-  colorspace = MEM_cnew<ColorSpace>("ColorSpace");
+  colorspace = MEM_callocN<ColorSpace>("ColorSpace");
 
   STRNCPY(colorspace->name, name);
 
@@ -3338,7 +3338,7 @@ ColorManagedLook *colormanage_look_add(const char *name, const char *process_spa
   ColorManagedLook *look;
   int index = global_tot_looks;
 
-  look = MEM_cnew<ColorManagedLook>("ColorManagedLook");
+  look = MEM_callocN<ColorManagedLook>("ColorManagedLook");
   look->index = index + 1;
   STRNCPY(look->name, name);
   STRNCPY(look->ui_name, name);
@@ -3883,7 +3883,7 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(
   const ColorManagedViewSettings *applied_view_settings;
   ColorSpace *display_space;
 
-  cm_processor = MEM_cnew<ColormanageProcessor>("colormanagement processor");
+  cm_processor = MEM_callocN<ColormanageProcessor>("colormanagement processor");
 
   if (view_settings) {
     applied_view_settings = view_settings;
@@ -3923,7 +3923,7 @@ ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(const char *f
 {
   ColormanageProcessor *cm_processor;
 
-  cm_processor = MEM_cnew<ColormanageProcessor>("colormanagement processor");
+  cm_processor = MEM_callocN<ColormanageProcessor>("colormanagement processor");
   cm_processor->is_data_result = IMB_colormanagement_space_name_is_data(to_colorspace);
 
   OCIO_ConstProcessorRcPtr *processor = create_colorspace_transform_processor(from_colorspace,

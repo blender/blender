@@ -236,7 +236,7 @@ void *ED_region_draw_cb_activate(ARegionType *art,
                                  void *customdata,
                                  int type)
 {
-  RegionDrawCB *rdc = MEM_cnew<RegionDrawCB>(__func__);
+  RegionDrawCB *rdc = MEM_callocN<RegionDrawCB>(__func__);
 
   BLI_addtail(&art->drawcalls, rdc);
   rdc->draw = draw;

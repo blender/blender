@@ -98,7 +98,7 @@ static void node_shader_buts_tex_brick(uiLayout *layout, bContext * /*C*/, Point
 
 static void node_shader_init_tex_brick(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexBrick *tex = MEM_cnew<NodeTexBrick>(__func__);
+  NodeTexBrick *tex = MEM_callocN<NodeTexBrick>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
 

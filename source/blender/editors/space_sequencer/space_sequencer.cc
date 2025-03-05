@@ -91,7 +91,7 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   ARegion *region;
   SpaceSeq *sseq;
 
-  sseq = MEM_cnew<SpaceSeq>("initsequencer");
+  sseq = MEM_callocN<SpaceSeq>("initsequencer");
   sseq->spacetype = SPACE_SEQ;
   sseq->chanshown = 0;
   sseq->view = SEQ_VIEW_SEQUENCE;
@@ -1189,7 +1189,7 @@ void ED_spacetype_sequencer()
 
   /* Create regions: */
   /* Main window. */
-  art = MEM_cnew<ARegionType>("spacetype sequencer region");
+  art = MEM_callocN<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_WINDOW;
   art->poll = sequencer_main_region_poll;
   art->init = sequencer_main_region_init;
@@ -1207,7 +1207,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* Preview. */
-  art = MEM_cnew<ARegionType>("spacetype sequencer region");
+  art = MEM_callocN<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_PREVIEW;
   art->poll = sequencer_preview_region_poll;
   art->init = sequencer_preview_region_init;
@@ -1219,7 +1219,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* List-view/buttons. */
-  art = MEM_cnew<ARegionType>("spacetype sequencer region");
+  art = MEM_callocN<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH * 1.3f;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
@@ -1231,7 +1231,7 @@ void ED_spacetype_sequencer()
 
   sequencer_buttons_register(art);
   /* Toolbar. */
-  art = MEM_cnew<ARegionType>("spacetype sequencer tools region");
+  art = MEM_callocN<ARegionType>("spacetype sequencer tools region");
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = int(UI_TOOLBAR_WIDTH);
   art->prefsizey = 50; /* XXX */
@@ -1244,7 +1244,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* Channels. */
-  art = MEM_cnew<ARegionType>("spacetype sequencer channels");
+  art = MEM_callocN<ARegionType>("spacetype sequencer channels");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
@@ -1255,7 +1255,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* Tool header. */
-  art = MEM_cnew<ARegionType>("spacetype sequencer tool header region");
+  art = MEM_callocN<ARegionType>("spacetype sequencer tool header region");
   art->regionid = RGN_TYPE_TOOL_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -1266,7 +1266,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* Header. */
-  art = MEM_cnew<ARegionType>("spacetype sequencer region");
+  art = MEM_callocN<ARegionType>("spacetype sequencer region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;

@@ -3017,7 +3017,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   ANIM_armature_bonecoll_show_all(arm);
   arm_ob->dtx |= OB_DRAW_IN_FRONT;
   arm->drawtype = ARM_LINE;
-  arm->edbo = MEM_cnew<ListBase>("edbo armature");
+  arm->edbo = MEM_callocN<ListBase>("edbo armature");
 
   MVertSkin *mvert_skin = static_cast<MVertSkin *>(
       CustomData_get_layer_for_write(&mesh->vert_data, CD_MVERT_SKIN, mesh->verts_num));
@@ -3489,7 +3489,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
                               "Ocean Simulation",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_OBJECT_SIM_OCEAN);
-  OceanBakeJob *oj = MEM_cnew<OceanBakeJob>("ocean bake job");
+  OceanBakeJob *oj = MEM_callocN<OceanBakeJob>("ocean bake job");
   oj->owner = ob;
   oj->ocean = ocean;
   oj->och = och;

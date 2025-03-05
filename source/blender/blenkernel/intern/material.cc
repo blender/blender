@@ -590,7 +590,7 @@ void BKE_id_material_append(Main *bmain, ID *id, Material *ma)
   Material ***matar = BKE_id_material_array_p(id);
   if (matar) {
     short *totcol = BKE_id_material_len_p(id);
-    Material **mat = MEM_cnew_array<Material *>((*totcol) + 1, "newmatar");
+    Material **mat = MEM_calloc_arrayN<Material *>((*totcol) + 1, "newmatar");
     if (*totcol) {
       memcpy(mat, *matar, sizeof(void *) * (*totcol));
     }
@@ -980,8 +980,8 @@ void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, boo
     }
   }
   else if (ob->totcol < totcol) {
-    newmatar = MEM_cnew_array<Material *>(totcol, "newmatar");
-    newmatbits = MEM_cnew_array<char>(totcol, "newmatbits");
+    newmatar = MEM_calloc_arrayN<Material *>(totcol, "newmatar");
+    newmatbits = MEM_calloc_arrayN<char>(totcol, "newmatbits");
     if (ob->totcol) {
       memcpy(newmatar, ob->mat, sizeof(void *) * ob->totcol);
       memcpy(newmatbits, ob->matbits, sizeof(char) * ob->totcol);
@@ -1070,7 +1070,7 @@ void BKE_id_material_assign(Main *bmain, ID *id, Material *ma, short act)
   }
 
   if (act > *totcolp) {
-    matar = MEM_cnew_array<Material *>(act, "matarray1");
+    matar = MEM_calloc_arrayN<Material *>(act, "matarray1");
 
     if (*totcolp) {
       memcpy(matar, *matarar, sizeof(void *) * (*totcolp));
@@ -1119,7 +1119,7 @@ static void object_material_assign(
   }
 
   if (act > *totcolp) {
-    matar = MEM_cnew_array<Material *>(act, "matarray1");
+    matar = MEM_calloc_arrayN<Material *>(act, "matarray1");
 
     if (*totcolp) {
       memcpy(matar, *matarar, sizeof(void *) * (*totcolp));
@@ -1306,7 +1306,7 @@ void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *
 
   /* Create new material slots based on materials on evaluated geometry. */
   *orig_totcol = *eval_totcol;
-  *orig_mat = *eval_totcol > 0 ? MEM_cnew_array<Material *>(*eval_totcol, __func__) : nullptr;
+  *orig_mat = *eval_totcol > 0 ? MEM_calloc_arrayN<Material *>(*eval_totcol, __func__) : nullptr;
   for (int i = 0; i < *eval_totcol; i++) {
     Material *material_eval = (*eval_mat)[i];
     if (material_eval != nullptr) {

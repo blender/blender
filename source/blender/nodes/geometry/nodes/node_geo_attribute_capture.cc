@@ -63,7 +63,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryAttributeCapture *data = MEM_cnew<NodeGeometryAttributeCapture>(__func__);
+  NodeGeometryAttributeCapture *data = MEM_callocN<NodeGeometryAttributeCapture>(__func__);
   data->domain = int8_t(AttrDomain::Point);
   node->storage = data;
 }
@@ -217,8 +217,8 @@ static void node_free_storage(bNode *node)
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryAttributeCapture &src_storage = node_storage(*src_node);
-  NodeGeometryAttributeCapture *dst_storage = MEM_cnew<NodeGeometryAttributeCapture>(__func__,
-                                                                                     src_storage);
+  NodeGeometryAttributeCapture *dst_storage = MEM_dupallocN<NodeGeometryAttributeCapture>(
+      __func__, src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<CaptureAttributeItemsAccessor>(*src_node, *dst_node);

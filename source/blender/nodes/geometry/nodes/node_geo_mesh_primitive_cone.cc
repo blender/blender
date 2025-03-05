@@ -69,7 +69,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryMeshCone *node_storage = MEM_cnew<NodeGeometryMeshCone>(__func__);
+  NodeGeometryMeshCone *node_storage = MEM_callocN<NodeGeometryMeshCone>(__func__);
 
   node_storage->fill_type = GEO_NODE_MESH_CIRCLE_FILL_NGON;
 

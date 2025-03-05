@@ -140,7 +140,7 @@ static BrushPainter *brush_painter_2d_new(Scene *scene,
                                           Brush *brush,
                                           bool invert)
 {
-  BrushPainter *painter = MEM_cnew<BrushPainter>(__func__);
+  BrushPainter *painter = MEM_callocN<BrushPainter>(__func__);
 
   painter->brush = brush;
   painter->scene = scene;
@@ -1585,7 +1585,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   const Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
 
-  ImagePaintState *s = MEM_cnew<ImagePaintState>(__func__);
+  ImagePaintState *s = MEM_callocN<ImagePaintState>(__func__);
 
   s->sima = CTX_wm_space_image(C);
   s->v2d = &CTX_wm_region(C)->v2d;
@@ -1609,7 +1609,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   }
 
   s->num_tiles = BLI_listbase_count(&s->image->tiles);
-  s->tiles = MEM_cnew_array<ImagePaintTile>(s->num_tiles, __func__);
+  s->tiles = MEM_calloc_arrayN<ImagePaintTile>(s->num_tiles, __func__);
   for (int i = 0; i < s->num_tiles; i++) {
     s->tiles[i].iuser = sima->iuser;
   }

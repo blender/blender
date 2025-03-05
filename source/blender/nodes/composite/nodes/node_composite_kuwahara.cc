@@ -44,7 +44,7 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_kuwahara(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeKuwaharaData *data = MEM_cnew<NodeKuwaharaData>(__func__);
+  NodeKuwaharaData *data = MEM_callocN<NodeKuwaharaData>(__func__);
   node->storage = data;
 
   /* Set defaults. */

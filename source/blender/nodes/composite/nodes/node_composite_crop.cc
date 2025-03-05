@@ -40,7 +40,7 @@ static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_crop(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTwoXYs *nxy = MEM_cnew<NodeTwoXYs>(__func__);
+  NodeTwoXYs *nxy = MEM_callocN<NodeTwoXYs>(__func__);
   node->storage = nxy;
   nxy->x1 = 0;
   nxy->x2 = 0;

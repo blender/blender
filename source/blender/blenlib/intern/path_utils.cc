@@ -1988,9 +1988,9 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
   const size_t p2_size = strlen(p2) + 1;
 
   char *norm_p1 = (p1_size <= sizeof(norm_p1_buf)) ? norm_p1_buf :
-                                                     MEM_cnew_array<char>(p1_size, __func__);
+                                                     MEM_calloc_arrayN<char>(p1_size, __func__);
   char *norm_p2 = (p2_size <= sizeof(norm_p2_buf)) ? norm_p2_buf :
-                                                     MEM_cnew_array<char>(p2_size, __func__);
+                                                     MEM_calloc_arrayN<char>(p2_size, __func__);
 
   memcpy(norm_p1, p1, p1_size);
   memcpy(norm_p2, p2, p2_size);

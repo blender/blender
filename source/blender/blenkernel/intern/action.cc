@@ -176,13 +176,13 @@ static void action_copy_data(Main * /*bmain*/,
   action_dst.last_slot_handle = action_src.last_slot_handle;
 
   /* Layers, and (recursively) Strips. */
-  action_dst.layer_array = MEM_cnew_array<ActionLayer *>(action_src.layer_array_num, __func__);
+  action_dst.layer_array = MEM_calloc_arrayN<ActionLayer *>(action_src.layer_array_num, __func__);
   for (int i : action_src.layers().index_range()) {
     action_dst.layer_array[i] = action_src.layer(i)->duplicate_with_shallow_strip_copies(__func__);
   }
 
   /* Strip data. */
-  action_dst.strip_keyframe_data_array = MEM_cnew_array<ActionStripKeyframeData *>(
+  action_dst.strip_keyframe_data_array = MEM_calloc_arrayN<ActionStripKeyframeData *>(
       action_src.strip_keyframe_data_array_num, __func__);
   for (int i : action_src.strip_keyframe_data().index_range()) {
     action_dst.strip_keyframe_data_array[i] = MEM_new<animrig::StripKeyframeData>(
@@ -190,7 +190,7 @@ static void action_copy_data(Main * /*bmain*/,
   }
 
   /* Slots. */
-  action_dst.slot_array = MEM_cnew_array<ActionSlot *>(action_src.slot_array_num, __func__);
+  action_dst.slot_array = MEM_calloc_arrayN<ActionSlot *>(action_src.slot_array_num, __func__);
   for (int i : action_src.slots().index_range()) {
     action_dst.slot_array[i] = MEM_new<animrig::Slot>(__func__, *action_src.slot(i));
   }

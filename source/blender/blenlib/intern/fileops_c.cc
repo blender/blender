@@ -403,7 +403,7 @@ bool BLI_dir_create_recursive(const char *dirname)
 
   size_t len = strlen(dirname);
   if (len >= sizeof(dirname_static_buf)) {
-    dirname_mut = MEM_cnew_array<char>(len + 1, __func__);
+    dirname_mut = MEM_calloc_arrayN<char>(len + 1, __func__);
   }
   memcpy(dirname_mut, dirname, len + 1);
 
@@ -786,7 +786,7 @@ static const char *path_destination_ensure_filename(const char *path_src,
       size_t buf_size_needed = path_dst_len + strlen(filename_src) + 1;
       char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
                                          buf :
-                                         MEM_cnew_array<char>(buf_size_needed, __func__);
+                                         MEM_calloc_arrayN<char>(buf_size_needed, __func__);
       BLI_string_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
       return path_dst_with_filename;
     }
@@ -1389,7 +1389,7 @@ static int copy_single_file(const char *from, const char *to)
       need_free = 0;
     }
     else {
-      link_buffer = MEM_cnew_array<char>(st.st_size + 2, "copy_single_file link_buffer");
+      link_buffer = MEM_calloc_arrayN<char>(st.st_size + 2, "copy_single_file link_buffer");
       need_free = 1;
     }
 
@@ -1512,7 +1512,7 @@ static const char *path_destination_ensure_filename(const char *path_src,
       const size_t buf_size_needed = strlen(path_dst) + 1 + strlen(filename_src) + 1;
       char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
                                          buf :
-                                         MEM_cnew_array<char>(buf_size_needed, __func__);
+                                         MEM_calloc_arrayN<char>(buf_size_needed, __func__);
       BLI_path_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
       path_dst = path_dst_with_filename;
     }

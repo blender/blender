@@ -1497,7 +1497,7 @@ BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
 {
   BLI_assert(stride > 0 && chunk_count > 0);
 
-  BArrayStore *bs = MEM_cnew<BArrayStore>(__func__);
+  BArrayStore *bs = MEM_callocN<BArrayStore>(__func__);
 
   bs->info.chunk_stride = stride;
   // bs->info.chunk_count = chunk_count;
@@ -1656,7 +1656,7 @@ BArrayState *BLI_array_store_state_add(BArrayStore *bs,
 
   chunk_list->users += 1;
 
-  BArrayState *state = MEM_cnew<BArrayState>(__func__);
+  BArrayState *state = MEM_callocN<BArrayState>(__func__);
   state->chunk_list = chunk_list;
 
   BLI_addtail(&bs->states, state);

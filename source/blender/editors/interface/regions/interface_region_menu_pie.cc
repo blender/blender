@@ -96,7 +96,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
 
   wmWindow *win = CTX_wm_window(C);
 
-  uiPieMenu *pie = MEM_cnew<uiPieMenu>(__func__);
+  uiPieMenu *pie = MEM_callocN<uiPieMenu>(__func__);
 
   pie->pie_block = UI_block_begin(C, nullptr, __func__, UI_EMBOSS);
   /* may be useful later to allow spawning pies

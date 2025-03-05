@@ -891,7 +891,7 @@ void merged_element_search_menu_invoke(bContext *C,
                                        TreeElement *parent_te,
                                        TreeElement *activate_te)
 {
-  MergedSearchData *select_data = MEM_cnew<MergedSearchData>("merge_search_data");
+  MergedSearchData *select_data = MEM_callocN<MergedSearchData>("merge_search_data");
   select_data->parent_element = parent_te;
   select_data->select_element = activate_te;
 

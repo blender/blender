@@ -1067,7 +1067,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
     }
 #endif
 
-    uint *target_map = MEM_cnew_array<uint>(poly, "polycache");
+    uint *target_map = MEM_calloc_arrayN<uint>(poly, "polycache");
     range_vn_u(target_map, poly, 0);
 
     for (a = 0; a < poly; a++) {

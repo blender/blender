@@ -248,7 +248,7 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
   UI_but_placeholder_set(but, placeholder.c_str());
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
-  AttributeSearchData *data = MEM_cnew<AttributeSearchData>(__func__);
+  AttributeSearchData *data = MEM_callocN<AttributeSearchData>(__func__);
   data->node_id = node.identifier;
   STRNCPY(data->socket_identifier, socket.identifier);
 

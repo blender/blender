@@ -1225,7 +1225,7 @@ void ED_spacetype_image()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: asset shelf */
-  art = MEM_cnew<ARegionType>("spacetype image asset shelf region");
+  art = MEM_callocN<ARegionType>("spacetype image asset shelf region");
   art->regionid = RGN_TYPE_ASSET_SHELF;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_FRAMES;
   art->duplicate = asset::shelf::region_duplicate;
@@ -1243,7 +1243,7 @@ void ED_spacetype_image()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: asset shelf header */
-  art = MEM_cnew<ARegionType>("spacetype image asset shelf header region");
+  art = MEM_callocN<ARegionType>("spacetype image asset shelf header region");
   art->regionid = RGN_TYPE_ASSET_SHELF_HEADER;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
   art->init = asset::shelf::header_region_init;

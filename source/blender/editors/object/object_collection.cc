@@ -496,7 +496,7 @@ static int collection_exporter_add_exec(bContext *C, wmOperator *op)
 
   /* Add a new #CollectionExport item to our handler list and fill it with #FileHandlerType
    * information. Also load in the operator's properties now as well. */
-  CollectionExport *data = MEM_cnew<CollectionExport>("CollectionExport");
+  CollectionExport *data = MEM_callocN<CollectionExport>("CollectionExport");
   STRNCPY(data->fh_idname, fh->idname);
 
   BKE_collection_exporter_name_set(exporters, data, fh->label);
@@ -842,7 +842,7 @@ static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)
 
 void collection_exporter_register()
 {
-  MenuType *mt = MEM_cnew<MenuType>(__func__);
+  MenuType *mt = MEM_callocN<MenuType>(__func__);
   STRNCPY(mt->idname, "COLLECTION_MT_exporter_add");
   STRNCPY(mt->label, N_("Add Exporter"));
   mt->draw = collection_exporter_menu_draw;

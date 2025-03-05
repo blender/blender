@@ -40,7 +40,7 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_tonemap(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTonemap *ntm = MEM_cnew<NodeTonemap>(__func__);
+  NodeTonemap *ntm = MEM_callocN<NodeTonemap>(__func__);
   ntm->type = 1;
   ntm->key = 0.18;
   ntm->offset = 1;

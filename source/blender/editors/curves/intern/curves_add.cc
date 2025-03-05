@@ -76,7 +76,7 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
   nmd.node_group = bke::node_tree_add_tree(bmain, DATA_("Surface Deform"), "GeometryNodeTree");
 
   if (!nmd.node_group->geometry_node_asset_traits) {
-    nmd.node_group->geometry_node_asset_traits = MEM_cnew<GeometryNodeAssetTraits>(__func__);
+    nmd.node_group->geometry_node_asset_traits = MEM_callocN<GeometryNodeAssetTraits>(__func__);
   }
 
   nmd.node_group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;

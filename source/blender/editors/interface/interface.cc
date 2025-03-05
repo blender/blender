@@ -1744,10 +1744,10 @@ static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
                                                       wmOperatorCallContext opcontext,
                                                       int icon)
 {
-  uiButExtraOpIcon *extra_op_icon = MEM_cnew<uiButExtraOpIcon>(__func__);
+  uiButExtraOpIcon *extra_op_icon = MEM_callocN<uiButExtraOpIcon>(__func__);
 
   extra_op_icon->icon = icon;
-  extra_op_icon->optype_params = MEM_cnew<wmOperatorCallParams>(__func__);
+  extra_op_icon->optype_params = MEM_callocN<wmOperatorCallParams>(__func__);
   extra_op_icon->optype_params->optype = optype;
   extra_op_icon->optype_params->opptr = MEM_new<PointerRNA>(__func__);
   WM_operator_properties_create_ptr(extra_op_icon->optype_params->opptr,
@@ -3835,7 +3835,7 @@ uiBlock *UI_block_begin(const bContext *C,
     STRNCPY(block->display_device, scene->display_settings.display_device);
 
     /* Copy to avoid crash when scene gets deleted with UI still open. */
-    UnitSettings *unit = MEM_cnew<UnitSettings>(__func__);
+    UnitSettings *unit = MEM_callocN<UnitSettings>(__func__);
     memcpy(unit, &scene->unit, sizeof(scene->unit));
     block->unit = unit;
   }
@@ -5122,7 +5122,7 @@ AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxncpy)
 {
   AutoComplete *autocpl;
 
-  autocpl = MEM_cnew<AutoComplete>(__func__);
+  autocpl = MEM_callocN<AutoComplete>(__func__);
   autocpl->maxncpy = maxncpy;
   autocpl->matches = 0;
   autocpl->truncate = static_cast<char *>(MEM_callocN(sizeof(char) * maxncpy, __func__));

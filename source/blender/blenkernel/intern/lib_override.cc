@@ -104,7 +104,7 @@ BLI_INLINE IDOverrideLibraryRuntime *override_library_runtime_ensure(
     IDOverrideLibrary *liboverride)
 {
   if (liboverride->runtime == nullptr) {
-    liboverride->runtime = MEM_cnew<IDOverrideLibraryRuntime>(__func__);
+    liboverride->runtime = MEM_callocN<IDOverrideLibraryRuntime>(__func__);
   }
   return liboverride->runtime;
 }
@@ -168,7 +168,7 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
   BLI_assert(local_id->override_library == nullptr);
 
   /* Else, generate new empty override. */
-  local_id->override_library = MEM_cnew<IDOverrideLibrary>(__func__);
+  local_id->override_library = MEM_callocN<IDOverrideLibrary>(__func__);
   local_id->override_library->reference = reference_id;
   if (reference_id) {
     id_us_plus(local_id->override_library->reference);
@@ -582,7 +582,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     if ((reference_id->tag & ID_TAG_DOIT) != 0 && reference_id->lib == reference_library &&
         BKE_idtype_idcode_is_linkable(GS(reference_id->name)))
     {
-      todo_id_iter = MEM_cnew<LinkData>(__func__);
+      todo_id_iter = MEM_callocN<LinkData>(__func__);
       todo_id_iter->data = reference_id;
       BLI_addtail(&todo_ids, todo_id_iter);
     }
@@ -3266,7 +3266,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
     if (!BLI_ghash_ensure_p(
             id_roots, hierarchy_root, reinterpret_cast<void ***>(&id_resync_roots_p)))
     {
-      *id_resync_roots_p = MEM_cnew<LinkNodePair>(__func__);
+      *id_resync_roots_p = MEM_callocN<LinkNodePair>(__func__);
     }
     BLI_linklist_append(*id_resync_roots_p, id_iter);
   }
@@ -3906,7 +3906,7 @@ IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibra
   IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(liboverride, rna_path);
 
   if (op == nullptr) {
-    op = MEM_cnew<IDOverrideLibraryProperty>(__func__);
+    op = MEM_callocN<IDOverrideLibraryProperty>(__func__);
     op->rna_path = BLI_strdup(rna_path);
     BLI_addtail(&liboverride->properties, op);
 
@@ -4197,7 +4197,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
       r_strict);
 
   if (opop == nullptr) {
-    opop = MEM_cnew<IDOverrideLibraryPropertyOperation>(__func__);
+    opop = MEM_callocN<IDOverrideLibraryPropertyOperation>(__func__);
     opop->operation = operation;
     if (subitem_locname) {
       opop->subitem_local_name = BLI_strdup(subitem_locname);

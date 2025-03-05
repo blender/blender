@@ -163,7 +163,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     }
 
     if (tc.data_len > 0) {
-      tc.data = MEM_cnew_array<TransData>(tc.data_len, __func__);
+      tc.data = MEM_calloc_arrayN<TransData>(tc.data_len, __func__);
       curves_transform_data->positions.reinitialize(tc.data_len);
     }
     else {

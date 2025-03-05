@@ -83,7 +83,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurvePrimitiveCircle *data = MEM_cnew<NodeGeometryCurvePrimitiveCircle>(__func__);
+  NodeGeometryCurvePrimitiveCircle *data = MEM_callocN<NodeGeometryCurvePrimitiveCircle>(__func__);
 
   data->mode = GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS;
   node->storage = data;

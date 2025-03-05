@@ -40,7 +40,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometrySeparateGeometry *data = MEM_cnew<NodeGeometrySeparateGeometry>(__func__);
+  NodeGeometrySeparateGeometry *data = MEM_callocN<NodeGeometrySeparateGeometry>(__func__);
   data->domain = int8_t(AttrDomain::Point);
   node->storage = data;
 }

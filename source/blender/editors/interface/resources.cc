@@ -1098,7 +1098,7 @@ void UI_theme_init_default()
   bTheme *btheme = static_cast<bTheme *>(
       BLI_findstring(&U.themes, U_theme_default.name, offsetof(bTheme, name)));
   if (btheme == nullptr) {
-    btheme = MEM_cnew<bTheme>(__func__);
+    btheme = MEM_callocN<bTheme>(__func__);
     STRNCPY(btheme->name, U_theme_default.name);
     BLI_addhead(&U.themes, btheme);
   }

@@ -212,7 +212,7 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
   using namespace blender;
   BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  BlendFileReadWMSetupData *wm_setup_data = MEM_cnew<BlendFileReadWMSetupData>(__func__);
+  BlendFileReadWMSetupData *wm_setup_data = MEM_callocN<BlendFileReadWMSetupData>(__func__);
   wm_setup_data->is_read_homefile = is_read_homefile;
   /* This info is not always known yet when this function is called. */
   wm_setup_data->is_factory_startup = false;
@@ -4481,7 +4481,7 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
 void wm_save_file_overwrite_dialog(bContext *C, wmOperator *op)
 {
   if (!UI_popup_block_name_exists(CTX_wm_screen(C), save_file_overwrite_dialog_name)) {
-    wmGenericCallback *callback = MEM_cnew<wmGenericCallback>(__func__);
+    wmGenericCallback *callback = MEM_callocN<wmGenericCallback>(__func__);
     callback->exec = nullptr;
     callback->user_data = IDP_CopyProperty(op->properties);
     callback->free_user_data = wm_free_operator_properties_callback;
@@ -4820,7 +4820,7 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
   if (U.uiflag & USER_SAVE_PROMPT &&
       wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C)))
   {
-    wmGenericCallback *callback = MEM_cnew<wmGenericCallback>(__func__);
+    wmGenericCallback *callback = MEM_callocN<wmGenericCallback>(__func__);
     callback->exec = post_action_fn;
     callback->user_data = IDP_CopyProperty(op->properties);
     callback->free_user_data = wm_free_operator_properties_callback;

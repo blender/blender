@@ -62,7 +62,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurvePrimitiveLine *data = MEM_cnew<NodeGeometryCurvePrimitiveLine>(__func__);
+  NodeGeometryCurvePrimitiveLine *data = MEM_callocN<NodeGeometryCurvePrimitiveLine>(__func__);
 
   data->mode = GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS;
   node->storage = data;

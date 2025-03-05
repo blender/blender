@@ -70,7 +70,7 @@ static void node_shader_buts_tex_wave(uiLayout *layout, bContext * /*C*/, Pointe
 
 static void node_shader_init_tex_wave(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexWave *tex = MEM_cnew<NodeTexWave>(__func__);
+  NodeTexWave *tex = MEM_callocN<NodeTexWave>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->wave_type = SHD_WAVE_BANDS;

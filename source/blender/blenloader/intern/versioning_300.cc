@@ -872,7 +872,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
     store_attribute_node->parent = node->parent;
     store_attribute_node->locx_legacy = node->locx_legacy + 25;
     store_attribute_node->locy_legacy = node->locy_legacy;
-    auto &storage = *MEM_cnew<NodeGeometryStoreNamedAttribute>(__func__);
+    auto &storage = *MEM_callocN<NodeGeometryStoreNamedAttribute>(__func__);
     store_attribute_node->storage = &storage;
     storage.domain = int8_t(blender::bke::AttrDomain::Corner);
     /* Intentionally use 3D instead of 2D vectors, because 2D vectors did not exist in older
@@ -1002,7 +1002,7 @@ static void version_geometry_nodes_extrude_smooth_propagation(bNodeTree &ntree)
     capture_node.locx_legacy = node->locx_legacy - 25;
     capture_node.locy_legacy = node->locy_legacy;
     new_nodes.append(&capture_node);
-    auto *capture_node_storage = MEM_cnew<NodeGeometryAttributeCapture>(__func__);
+    auto *capture_node_storage = MEM_callocN<NodeGeometryAttributeCapture>(__func__);
     capture_node.storage = capture_node_storage;
     capture_node_storage->data_type_legacy = CD_PROP_BOOL;
     capture_node_storage->domain = int8_t(bke::AttrDomain::Face);
@@ -3375,7 +3375,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (node->type_legacy == SH_NODE_MAP_RANGE) {
           if (node->storage == nullptr) {
-            NodeMapRange *data = MEM_cnew<NodeMapRange>(__func__);
+            NodeMapRange *data = MEM_callocN<NodeMapRange>(__func__);
             data->clamp = node->custom1;
             data->data_type = CD_PROP_FLOAT;
             data->interpolation_type = node->custom2;
@@ -3618,7 +3618,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       if (brush->curves_sculpt_settings != nullptr) {
         continue;
       }
-      brush->curves_sculpt_settings = MEM_cnew<BrushCurvesSculptSettings>(__func__);
+      brush->curves_sculpt_settings = MEM_callocN<BrushCurvesSculptSettings>(__func__);
       brush->curves_sculpt_settings->add_amount = 1;
     }
 
@@ -3791,7 +3791,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type_legacy == GEO_NODE_MERGE_BY_DISTANCE) {
             if (node->storage == nullptr) {
-              NodeGeometryMergeByDistance *data = MEM_cnew<NodeGeometryMergeByDistance>(__func__);
+              NodeGeometryMergeByDistance *data = MEM_callocN<NodeGeometryMergeByDistance>(
+                  __func__);
               data->mode = GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL;
               node->storage = data;
             }

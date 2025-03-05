@@ -72,7 +72,7 @@ static void volume_batch_cache_init(Volume *volume)
   VolumeBatchCache *cache = static_cast<VolumeBatchCache *>(volume->batch_cache);
 
   if (!cache) {
-    volume->batch_cache = cache = MEM_cnew<VolumeBatchCache>(__func__);
+    volume->batch_cache = cache = MEM_callocN<VolumeBatchCache>(__func__);
   }
   else {
     memset(cache, 0, sizeof(*cache));
@@ -296,7 +296,7 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
   }
 
   /* Allocate new grid. */
-  DRWVolumeGrid *cache_grid = MEM_cnew<DRWVolumeGrid>(__func__);
+  DRWVolumeGrid *cache_grid = MEM_callocN<DRWVolumeGrid>(__func__);
   cache_grid->name = BLI_strdup(name.c_str());
   BLI_addtail(&cache->grids, cache_grid);
 

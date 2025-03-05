@@ -50,7 +50,7 @@ static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderScript *nss = MEM_cnew<NodeShaderScript>("shader script node");
+  NodeShaderScript *nss = MEM_callocN<NodeShaderScript>("shader script node");
   node->storage = nss;
 }
 

@@ -172,7 +172,7 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeGlare *ndg = MEM_cnew<NodeGlare>(__func__);
+  NodeGlare *ndg = MEM_callocN<NodeGlare>(__func__);
   ndg->quality = 1;
   ndg->type = CMP_NODE_GLARE_STREAKS;
   ndg->star_45 = true;

@@ -181,7 +181,7 @@ wmEvent *wm_event_add_ex(wmWindow *win,
                          const wmEvent *event_to_add,
                          const wmEvent *event_to_add_after)
 {
-  wmEvent *event = MEM_cnew<wmEvent>(__func__);
+  wmEvent *event = MEM_callocN<wmEvent>(__func__);
 
   *event = *event_to_add;
 
@@ -386,7 +386,7 @@ void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint typ
   if (BLI_gset_ensure_p_ex(wm->notifier_queue_set, &note_test, &note_p)) {
     return;
   }
-  wmNotifier *note = MEM_cnew<wmNotifier>(__func__);
+  wmNotifier *note = MEM_callocN<wmNotifier>(__func__);
   *note = note_test;
   *note_p = note;
   BLI_addtail(&wm->notifier_queue, note);
@@ -982,7 +982,7 @@ void WM_report_banner_show(wmWindowManager *wm, wmWindow *win)
   /* Records time since last report was added. */
   wm_reports->reporttimer = WM_event_timer_add(wm, win, TIMERREPORT, 0.05);
 
-  ReportTimerInfo *rti = MEM_cnew<ReportTimerInfo>(__func__);
+  ReportTimerInfo *rti = MEM_callocN<ReportTimerInfo>(__func__);
   wm_reports->reporttimer->customdata = rti;
 }
 
@@ -1449,7 +1449,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
 {
   /* Operator-type names are static still (for C++ defined operators).
    * Pass to allocation name for debugging. */
-  wmOperator *op = MEM_cnew<wmOperator>(ot->rna_ext.srna ? __func__ : ot->idname);
+  wmOperator *op = MEM_callocN<wmOperator>(ot->rna_ext.srna ? __func__ : ot->idname);
 
   /* Adding new operator could be function, only happens here now. */
   op->type = ot;
@@ -1470,7 +1470,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
     op->reports = reports; /* Must be initialized already. */
   }
   else {
-    op->reports = MEM_cnew<ReportList>("wmOperatorReportList");
+    op->reports = MEM_callocN<ReportList>("wmOperatorReportList");
     BKE_reports_init(op->reports, RPT_STORE | RPT_FREE);
   }
 
@@ -4408,7 +4408,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
     root_region = CTX_wm_region(C);
   }
 
-  wmEventHandler_Op *handler = MEM_cnew<wmEventHandler_Op>(__func__);
+  wmEventHandler_Op *handler = MEM_callocN<wmEventHandler_Op>(__func__);
   handler->head.type = WM_HANDLER_TYPE_OP;
 
   handler->is_fileselect = true;
@@ -4501,7 +4501,7 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
                                                  ARegion *region,
                                                  wmOperator *op)
 {
-  wmEventHandler_Op *handler = MEM_cnew<wmEventHandler_Op>(__func__);
+  wmEventHandler_Op *handler = MEM_callocN<wmEventHandler_Op>(__func__);
   handler->head.type = WM_HANDLER_TYPE_OP;
 
   /* Operator was part of macro. */
@@ -4628,7 +4628,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap 
     }
   }
 
-  wmEventHandler_Keymap *handler = MEM_cnew<wmEventHandler_Keymap>(__func__);
+  wmEventHandler_Keymap *handler = MEM_callocN<wmEventHandler_Keymap>(__func__);
   handler->head.type = WM_HANDLER_TYPE_KEYMAP;
   BLI_addtail(handlers, handler);
   handler->keymap = keymap;
@@ -4776,7 +4776,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_dynamic(
     }
   }
 
-  wmEventHandler_Keymap *handler = MEM_cnew<wmEventHandler_Keymap>(__func__);
+  wmEventHandler_Keymap *handler = MEM_callocN<wmEventHandler_Keymap>(__func__);
   handler->head.type = WM_HANDLER_TYPE_KEYMAP;
   BLI_addtail(handlers, handler);
   handler->dynamic.keymap_fn = keymap_fn;
@@ -4791,7 +4791,7 @@ wmEventHandler_Keymap *WM_event_add_keymap_handler_priority(ListBase *handlers,
 {
   WM_event_remove_keymap_handler(handlers, keymap);
 
-  wmEventHandler_Keymap *handler = MEM_cnew<wmEventHandler_Keymap>("event key-map handler");
+  wmEventHandler_Keymap *handler = MEM_callocN<wmEventHandler_Keymap>("event key-map handler");
   handler->head.type = WM_HANDLER_TYPE_KEYMAP;
 
   BLI_addhead(handlers, handler);
@@ -4899,7 +4899,7 @@ wmEventHandler_UI *WM_event_add_ui_handler(const bContext *C,
                                            void *user_data,
                                            const eWM_EventHandlerFlag flag)
 {
-  wmEventHandler_UI *handler = MEM_cnew<wmEventHandler_UI>(__func__);
+  wmEventHandler_UI *handler = MEM_callocN<wmEventHandler_UI>(__func__);
   handler->head.type = WM_HANDLER_TYPE_UI;
   handler->handle_fn = handle_fn;
   handler->remove_fn = remove_fn;
@@ -4978,7 +4978,7 @@ wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBas
     }
   }
 
-  wmEventHandler_Dropbox *handler = MEM_cnew<wmEventHandler_Dropbox>(__func__);
+  wmEventHandler_Dropbox *handler = MEM_callocN<wmEventHandler_Dropbox>(__func__);
   handler->head.type = WM_HANDLER_TYPE_DROPBOX;
 
   /* Dropbox stored static, no free or copy. */
@@ -5453,7 +5453,7 @@ void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData
 /* Adds custom-data to event. */
 static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *ghost)
 {
-  wmNDOFMotionData *data = MEM_cnew<wmNDOFMotionData>("Custom-data NDOF");
+  wmNDOFMotionData *data = MEM_callocN<wmNDOFMotionData>("Custom-data NDOF");
 
   const float ts = U.ndof_sensitivity;
   const float rs = U.ndof_orbit_sensitivity;

@@ -32,7 +32,7 @@
 
 CurveProfile *BKE_curveprofile_add(eCurveProfilePresets preset)
 {
-  CurveProfile *profile = MEM_cnew<CurveProfile>(__func__);
+  CurveProfile *profile = MEM_callocN<CurveProfile>(__func__);
 
   BKE_curveprofile_set_defaults(profile);
   profile->preset = preset;

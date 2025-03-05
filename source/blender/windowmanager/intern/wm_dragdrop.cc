@@ -97,7 +97,7 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
     }
   }
 
-  wmDropBoxMap *dm = MEM_cnew<wmDropBoxMap>(__func__);
+  wmDropBoxMap *dm = MEM_callocN<wmDropBoxMap>(__func__);
   STRNCPY_UTF8(dm->idname, idname);
   dm->spaceid = spaceid;
   dm->regionid = regionid;
@@ -119,7 +119,7 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
     return nullptr;
   }
 
-  wmDropBox *drop = MEM_cnew<wmDropBox>(__func__);
+  wmDropBox *drop = MEM_callocN<wmDropBox>(__func__);
   drop->poll = poll;
   drop->copy = copy;
   drop->cancel = cancel;
@@ -617,7 +617,7 @@ void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
   }
 
   /* Add to list. */
-  wmDragID *drag_id = MEM_cnew<wmDragID>(__func__);
+  wmDragID *drag_id = MEM_callocN<wmDragID>(__func__);
   drag_id->id = id;
   drag_id->from_parent = from_parent;
   BLI_addtail(&drag->ids, drag_id);
@@ -826,7 +826,7 @@ void WM_drag_add_asset_list_item(wmDrag *drag,
   /* No guarantee that the same asset isn't added twice. */
 
   /* Add to list. */
-  wmDragAssetListItem *drag_asset = MEM_cnew<wmDragAssetListItem>(__func__);
+  wmDragAssetListItem *drag_asset = MEM_callocN<wmDragAssetListItem>(__func__);
   ID *local_id = asset->local_id();
   if (local_id) {
     drag_asset->is_external = false;

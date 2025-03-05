@@ -720,7 +720,7 @@ static void *mem_guarded_malloc_arrayN_aligned(const size_t len,
     return nullptr;
   }
   if (alignment <= MEM_MIN_CPP_ALIGNMENT) {
-    return MEM_callocN(r_bytes_num, str);
+    return mem_callocN(r_bytes_num, str);
   }
   return MEM_mallocN_aligned(r_bytes_num, alignment, str);
 }

@@ -1799,7 +1799,7 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator & /*op
 {
   Object &object = *gesture_data.vc.obact;
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<FaceSetOperation>(__func__));
+      MEM_callocN<FaceSetOperation>(__func__));
 
   FaceSetOperation *face_set_operation = (FaceSetOperation *)gesture_data.operation;
 

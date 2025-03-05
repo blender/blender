@@ -76,7 +76,7 @@ void ED_clip_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = MEM_cnew<PanelType>("spacetype clip panel metadata");
+  pt = MEM_callocN<PanelType>("spacetype clip panel metadata");
   STRNCPY(pt->idname, "CLIP_PT_metadata");
   STRNCPY(pt->label, N_("Metadata"));
   STRNCPY(pt->category, "Footage");
@@ -409,7 +409,7 @@ void uiTemplateMarker(uiLayout *layout,
   int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
   MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_framenr);
 
-  MarkerUpdateCb *cb = MEM_cnew<MarkerUpdateCb>("uiTemplateMarker update_cb");
+  MarkerUpdateCb *cb = MEM_callocN<MarkerUpdateCb>("uiTemplateMarker update_cb");
   cb->compact = compact;
   cb->clip = clip;
   cb->user = user;

@@ -37,7 +37,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryMergeByDistance *data = MEM_cnew<NodeGeometryMergeByDistance>(__func__);
+  NodeGeometryMergeByDistance *data = MEM_callocN<NodeGeometryMergeByDistance>(__func__);
   data->mode = GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL;
   node->storage = data;
 }

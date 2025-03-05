@@ -47,13 +47,13 @@ BLI_memblock *BLI_memblock_create_ex(uint elem_size, uint chunk_size)
 {
   BLI_assert(elem_size < chunk_size);
 
-  BLI_memblock *mblk = MEM_cnew<BLI_memblock>("BLI_memblock");
+  BLI_memblock *mblk = MEM_callocN<BLI_memblock>("BLI_memblock");
   mblk->elem_size = int(elem_size);
   mblk->elem_next = 0;
   mblk->elem_last = -1;
   mblk->chunk_size = int(chunk_size);
   mblk->chunk_len = CHUNK_LIST_SIZE;
-  mblk->chunk_list = MEM_cnew_array<void *>(size_t(mblk->chunk_len), "chunk list");
+  mblk->chunk_list = MEM_calloc_arrayN<void *>(size_t(mblk->chunk_len), "chunk list");
   mblk->chunk_list[0] = MEM_mallocN_aligned(size_t(mblk->chunk_size), 32, "BLI_memblock chunk");
   memset(mblk->chunk_list[0], 0x0, uint(mblk->chunk_size));
   mblk->chunk_max_ofs = (mblk->chunk_size / mblk->elem_size) * mblk->elem_size;

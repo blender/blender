@@ -140,7 +140,7 @@ static void view_pan_init(bContext *C, wmOperator *op)
   BLI_assert(view_pan_poll(C));
 
   /* set custom-data for operator */
-  v2dViewPanData *vpd = MEM_cnew<v2dViewPanData>(__func__);
+  v2dViewPanData *vpd = MEM_callocN<v2dViewPanData>(__func__);
   op->customdata = vpd;
 
   /* set pointers to owners */
@@ -724,7 +724,7 @@ static void view_zoomdrag_init(bContext *C, wmOperator *op)
   BLI_assert(view_zoom_poll(C));
 
   /* set custom-data for operator */
-  v2dViewZoomData *vzd = MEM_cnew<v2dViewZoomData>(__func__);
+  v2dViewZoomData *vzd = MEM_callocN<v2dViewZoomData>(__func__);
   op->customdata = vzd;
 
   /* set pointers to owners */
@@ -1896,7 +1896,7 @@ static void scroller_activate_init(bContext *C,
   View2D *v2d = &region->v2d;
 
   /* set custom-data for operator */
-  v2dScrollerMove *vsm = MEM_cnew<v2dScrollerMove>(__func__);
+  v2dScrollerMove *vsm = MEM_callocN<v2dScrollerMove>(__func__);
   op->customdata = vsm;
 
   /* set general data */

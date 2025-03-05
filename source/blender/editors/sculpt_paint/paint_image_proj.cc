@@ -3892,7 +3892,7 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
   int a;
 
   if (ps->do_mask_cavity) {
-    int *counter = MEM_cnew_array<int>(ps->totvert_eval, "counter");
+    int *counter = MEM_calloc_arrayN<int>(ps->totvert_eval, "counter");
     float(*edges)[3] = static_cast<float(*)[3]>(
         MEM_callocN(sizeof(float[3]) * ps->totvert_eval, "edges"));
     ps->cavities = static_cast<float *>(
@@ -3929,12 +3929,12 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
 static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
 {
   if (ps->seam_bleed_px > 0.0f) {
-    ps->vertFaces = MEM_cnew_array<LinkNode *>(ps->totvert_eval, "paint-vertFaces");
-    ps->faceSeamFlags = MEM_cnew_array<ushort>(ps->corner_tris_eval.size(), __func__);
-    ps->faceWindingFlags = MEM_cnew_array<char>(ps->corner_tris_eval.size(), __func__);
+    ps->vertFaces = MEM_calloc_arrayN<LinkNode *>(ps->totvert_eval, "paint-vertFaces");
+    ps->faceSeamFlags = MEM_calloc_arrayN<ushort>(ps->corner_tris_eval.size(), __func__);
+    ps->faceWindingFlags = MEM_calloc_arrayN<char>(ps->corner_tris_eval.size(), __func__);
     ps->loopSeamData = static_cast<LoopSeamData *>(
         MEM_mallocN(sizeof(LoopSeamData) * ps->totloop_eval, "paint-loopSeamUVs"));
-    ps->vertSeams = MEM_cnew_array<ListBase>(ps->totvert_eval, "paint-vertSeams");
+    ps->vertSeams = MEM_calloc_arrayN<ListBase>(ps->totvert_eval, "paint-vertSeams");
   }
 }
 #endif
@@ -3977,7 +3977,7 @@ static void proj_paint_state_vert_flags_init(ProjPaintState *ps)
     float no[3];
     int a;
 
-    ps->vertFlags = MEM_cnew_array<char>(ps->totvert_eval, "paint-vertFlags");
+    ps->vertFlags = MEM_calloc_arrayN<char>(ps->totvert_eval, "paint-vertFlags");
 
     for (a = 0; a < ps->totvert_eval; a++) {
       copy_v3_v3(no, ps->vert_normals[a]);
@@ -4456,7 +4456,7 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
           iuser.tile = tile;
           iuser.framenr = tpage->lastframe;
           if (BKE_image_has_ibuf(tpage, &iuser)) {
-            PrepareImageEntry *e = MEM_cnew<PrepareImageEntry>("PrepareImageEntry");
+            PrepareImageEntry *e = MEM_callocN<PrepareImageEntry>("PrepareImageEntry");
             e->ima = tpage;
             e->iuser = iuser;
             BLI_addtail(&used_images, e);
@@ -4575,10 +4575,12 @@ static void project_paint_begin(const bContext *C,
   CLAMP(ps->buckets_x, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
   CLAMP(ps->buckets_y, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
 
-  ps->bucketRect = MEM_cnew_array<LinkNode *>(ps->buckets_x * ps->buckets_y, "paint-bucketRect");
-  ps->bucketFaces = MEM_cnew_array<LinkNode *>(ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
+  ps->bucketRect = MEM_calloc_arrayN<LinkNode *>(ps->buckets_x * ps->buckets_y,
+                                                 "paint-bucketRect");
+  ps->bucketFaces = MEM_calloc_arrayN<LinkNode *>(ps->buckets_x * ps->buckets_y,
+                                                  "paint-bucketFaces");
 
-  ps->bucketFlags = MEM_cnew_array<uchar>(ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
+  ps->bucketFlags = MEM_calloc_arrayN<uchar>(ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
 #ifndef PROJ_DEBUG_NOSEAMBLEED
   if (ps->is_shared_user == false) {
     proj_paint_state_seam_bleed_init(ps);
@@ -5955,7 +5957,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   ToolSettings *settings = scene->toolsettings;
   char symmetry_flag_views[BOUNDED_ARRAY_TYPE_SIZE<decltype(ps_handle->ps_views)>()] = {0};
 
-  ps_handle = MEM_cnew<ProjStrokeHandle>("ProjStrokeHandle");
+  ps_handle = MEM_callocN<ProjStrokeHandle>("ProjStrokeHandle");
   ps_handle->scene = scene;
   ps_handle->brush = BKE_paint_brush(&settings->imapaint.paint);
 

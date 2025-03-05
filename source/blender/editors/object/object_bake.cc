@@ -444,7 +444,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 
     multires_flush_sculpt_updates(ob);
 
-    MultiresBakerJobData *data = MEM_cnew<MultiresBakerJobData>(__func__);
+    MultiresBakerJobData *data = MEM_callocN<MultiresBakerJobData>(__func__);
 
     data->ob_image.array = bake_object_image_get_array(ob);
     data->ob_image.len = ob->totcol;
@@ -557,7 +557,7 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  MultiresBakeJob *bkr = MEM_cnew<MultiresBakeJob>(__func__);
+  MultiresBakeJob *bkr = MEM_callocN<MultiresBakeJob>(__func__);
   init_multiresbake_job(C, bkr);
 
   if (!bkr->data.first) {

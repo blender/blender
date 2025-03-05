@@ -114,9 +114,9 @@ static void createTransSeqRetimingData(bContext * /*C*/, TransInfo *t)
   tc->custom.type.free_cb = freeSeqData;
 
   tc->data_len = selection.size();
-  tc->data = MEM_cnew_array<TransData>(tc->data_len, "TransSeq TransData");
-  tc->data_2d = MEM_cnew_array<TransData2D>(tc->data_len, "TransSeq TransData2D");
-  TransDataSeq *tdseq = MEM_cnew_array<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
+  tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransSeq TransData");
+  tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransSeq TransData2D");
+  TransDataSeq *tdseq = MEM_calloc_arrayN<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
   TransData *td = tc->data;
   TransData2D *td2d = tc->data_2d;
 

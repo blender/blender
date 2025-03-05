@@ -4816,7 +4816,7 @@ void CustomData_external_add(CustomData *data,
   }
 
   if (!external) {
-    external = MEM_cnew<CustomDataExternal>(__func__);
+    external = MEM_callocN<CustomDataExternal>(__func__);
     data->external = external;
   }
   STRNCPY(external->filepath, filepath);

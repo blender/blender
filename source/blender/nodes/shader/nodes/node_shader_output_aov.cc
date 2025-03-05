@@ -25,7 +25,7 @@ static void node_shader_buts_output_aov(uiLayout *layout, bContext * /*C*/, Poin
 
 static void node_shader_init_output_aov(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderOutputAOV *aov = MEM_cnew<NodeShaderOutputAOV>("NodeShaderOutputAOV");
+  NodeShaderOutputAOV *aov = MEM_callocN<NodeShaderOutputAOV>("NodeShaderOutputAOV");
   node->storage = aov;
 }
 

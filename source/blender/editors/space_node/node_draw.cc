@@ -2171,7 +2171,7 @@ void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, ui
     const bNodeSocket *socket;
   };
 
-  SocketTooltipData *data = MEM_cnew<SocketTooltipData>(__func__);
+  SocketTooltipData *data = MEM_callocN<SocketTooltipData>(__func__);
   data->ntree = &ntree;
   data->socket = &sock;
 

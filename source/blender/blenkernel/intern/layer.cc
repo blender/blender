@@ -76,7 +76,7 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 
 static LayerCollection *layer_collection_add(ListBase *lb_parent, Collection *collection)
 {
-  LayerCollection *lc = MEM_cnew<LayerCollection>("Collection Base");
+  LayerCollection *lc = MEM_callocN<LayerCollection>("Collection Base");
   lc->collection = collection;
   lc->local_collections_bits = ~(0);
   BLI_addtail(lb_parent, lc);
@@ -99,7 +99,7 @@ static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc)
 
 static Base *object_base_new(Object *ob)
 {
-  Base *base = MEM_cnew<Base>("Object Base");
+  Base *base = MEM_callocN<Base>("Object Base");
   base->object = ob;
   base->local_view_bits = ~(0);
   if (ob->base_flag & BASE_SELECTED) {
@@ -163,7 +163,7 @@ static ViewLayer *view_layer_add(const char *name)
     name = DATA_("ViewLayer");
   }
 
-  ViewLayer *view_layer = MEM_cnew<ViewLayer>("View Layer");
+  ViewLayer *view_layer = MEM_callocN<ViewLayer>("View Layer");
   view_layer->flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE;
 
   STRNCPY_UTF8(view_layer->name, name);
@@ -210,7 +210,7 @@ ViewLayer *BKE_view_layer_add(Scene *scene,
     }
     case VIEWLAYER_ADD_COPY: {
       /* Allocate and copy view layer data */
-      view_layer_new = MEM_cnew<ViewLayer>("View Layer");
+      view_layer_new = MEM_callocN<ViewLayer>("View Layer");
       *view_layer_new = *view_layer_source;
       BKE_view_layer_copy_data(scene, scene, view_layer_new, view_layer_source, 0);
       BLI_addtail(&scene->view_layers, view_layer_new);
@@ -2068,7 +2068,7 @@ static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in_v, con
     return;
   }
 
-  LayerObjectBaseIteratorData *data = MEM_cnew<LayerObjectBaseIteratorData>(__func__);
+  LayerObjectBaseIteratorData *data = MEM_callocN<LayerObjectBaseIteratorData>(__func__);
   iter->data = data;
 
   data->v3d = v3d;
@@ -2530,7 +2530,7 @@ static void viewlayer_aov_active_set(ViewLayer *view_layer, ViewLayerAOV *aov)
 ViewLayerAOV *BKE_view_layer_add_aov(ViewLayer *view_layer)
 {
   ViewLayerAOV *aov;
-  aov = MEM_cnew<ViewLayerAOV>(__func__);
+  aov = MEM_callocN<ViewLayerAOV>(__func__);
   aov->type = AOV_TYPE_COLOR;
   STRNCPY_UTF8(aov->name, DATA_("AOV"));
   BLI_addtail(&view_layer->aovs, aov);
@@ -2655,7 +2655,7 @@ static void viewlayer_lightgroup_active_set(ViewLayer *view_layer, ViewLayerLigh
 ViewLayerLightgroup *BKE_view_layer_add_lightgroup(ViewLayer *view_layer, const char *name)
 {
   ViewLayerLightgroup *lightgroup;
-  lightgroup = MEM_cnew<ViewLayerLightgroup>(__func__);
+  lightgroup = MEM_callocN<ViewLayerLightgroup>(__func__);
   STRNCPY_UTF8(lightgroup->name, (name && name[0]) ? name : DATA_("Lightgroup"));
   BLI_addtail(&view_layer->lightgroups, lightgroup);
   viewlayer_lightgroup_active_set(view_layer, lightgroup);
@@ -2748,7 +2748,7 @@ void BKE_lightgroup_membership_set(LightgroupMembership **lgm, const char *name)
 {
   if (name[0] != '\0') {
     if (*lgm == nullptr) {
-      *lgm = MEM_cnew<LightgroupMembership>(__func__);
+      *lgm = MEM_callocN<LightgroupMembership>(__func__);
     }
     BLI_strncpy((*lgm)->name, name, sizeof((*lgm)->name));
   }

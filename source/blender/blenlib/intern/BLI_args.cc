@@ -108,8 +108,8 @@ static void args_print_wrapper(void * /*user_data*/, const char *format, va_list
 
 bArgs *BLI_args_create(int argc, const char **argv)
 {
-  bArgs *ba = MEM_cnew<bArgs>("bArgs");
-  ba->passes = MEM_cnew_array<int>(argc, "bArgs passes");
+  bArgs *ba = MEM_callocN<bArgs>("bArgs");
+  ba->passes = MEM_calloc_arrayN<int>(argc, "bArgs passes");
   ba->items = BLI_ghash_new(keyhash, keycmp, "bArgs passes gh");
   BLI_listbase_clear(&ba->docs);
   ba->argc = argc;
@@ -166,7 +166,7 @@ static bArgDoc *internalDocs(bArgs *ba,
 {
   bArgDoc *d;
 
-  d = MEM_cnew<bArgDoc>("bArgDoc");
+  d = MEM_callocN<bArgDoc>("bArgDoc");
 
   if (doc == nullptr) {
     doc = NO_DOCS;
@@ -202,8 +202,8 @@ static void internalAdd(
            a->key->case_str == 1 ? "not " : "");
   }
 
-  a = MEM_cnew<bArgument>("bArgument");
-  key = MEM_cnew<bAKey>("bAKey");
+  a = MEM_callocN<bArgument>("bArgument");
+  key = MEM_callocN<bAKey>("bAKey");
 
   key->arg = arg;
   key->pass = pass;

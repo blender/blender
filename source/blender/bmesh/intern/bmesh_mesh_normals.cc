@@ -1881,7 +1881,7 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
 void BM_lnorspace_update(BMesh *bm)
 {
   if (bm->lnor_spacearr == nullptr) {
-    bm->lnor_spacearr = MEM_cnew<MLoopNorSpaceArray>(__func__);
+    bm->lnor_spacearr = MEM_callocN<MLoopNorSpaceArray>(__func__);
   }
   if (bm->lnor_spacearr->lspacearr == nullptr) {
     Array<float3> lnors(bm->totloop, float3(0));
@@ -1911,7 +1911,7 @@ void BM_lnorspace_err(BMesh *bm)
   bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
   bool clear = true;
 
-  MLoopNorSpaceArray *temp = MEM_cnew<MLoopNorSpaceArray>(__func__);
+  MLoopNorSpaceArray *temp = MEM_callocN<MLoopNorSpaceArray>(__func__);
   temp->lspacearr = nullptr;
 
   BKE_lnor_spacearr_init(temp, bm->totloop, MLNOR_SPACEARR_BMLOOP_PTR);
@@ -2137,8 +2137,9 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
 
   BLI_assert(bm->spacearr_dirty == 0);
 
-  BMLoopNorEditDataArray *lnors_ed_arr = MEM_cnew<BMLoopNorEditDataArray>(__func__);
-  lnors_ed_arr->lidx_to_lnor_editdata = MEM_cnew_array<BMLoopNorEditData *>(bm->totloop, __func__);
+  BMLoopNorEditDataArray *lnors_ed_arr = MEM_callocN<BMLoopNorEditDataArray>(__func__);
+  lnors_ed_arr->lidx_to_lnor_editdata = MEM_calloc_arrayN<BMLoopNorEditData *>(bm->totloop,
+                                                                               __func__);
 
   BM_data_layer_ensure_named(bm, &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   const int cd_custom_normal_offset = CustomData_get_offset_named(
@@ -2237,7 +2238,7 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
   }
 
   if (bm->lnor_spacearr == nullptr) {
-    bm->lnor_spacearr = MEM_cnew<MLoopNorSpaceArray>(__func__);
+    bm->lnor_spacearr = MEM_callocN<MLoopNorSpaceArray>(__func__);
   }
 
   bm_mesh_loops_custom_normals_set(bm,

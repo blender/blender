@@ -236,7 +236,7 @@ static void editselect_buf_cache_init_with_generic_userdata(wmGenericUserData *w
                                                             const ViewContext *vc,
                                                             short select_mode)
 {
-  EditSelectBuf_Cache *esel = MEM_cnew<EditSelectBuf_Cache>(__func__);
+  EditSelectBuf_Cache *esel = MEM_callocN<EditSelectBuf_Cache>(__func__);
   wm_userdata->data = esel;
   wm_userdata->free_fn = editselect_buf_cache_free_voidp;
   wm_userdata->use_free = true;
@@ -1741,7 +1741,7 @@ static bool object_mouse_select_menu(bContext *C,
 
     if (ok) {
       base_count++;
-      BaseRefWithDepth *base_ref = MEM_cnew<BaseRefWithDepth>(__func__);
+      BaseRefWithDepth *base_ref = MEM_callocN<BaseRefWithDepth>(__func__);
       base_ref->base = base;
       base_ref->depth_id = depth_id;
       BLI_addtail(&base_ref_list, (void *)base_ref);
@@ -1981,7 +1981,7 @@ static bool bone_mouse_select_menu(bContext *C,
 
     if (!is_duplicate_bone) {
       bone_count++;
-      BoneRefWithDepth *bone_ref = MEM_cnew<BoneRefWithDepth>(__func__);
+      BoneRefWithDepth *bone_ref = MEM_callocN<BoneRefWithDepth>(__func__);
       bone_ref->base = bone_base;
       bone_ref->bone_ptr = bone_ptr;
       bone_ref->depth_id = hit_result.depth;

@@ -44,7 +44,7 @@ static void node_shader_buts_ies(uiLayout *layout, bContext * /*C*/, PointerRNA 
 
 static void node_shader_init_tex_ies(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderTexIES *tex = MEM_cnew<NodeShaderTexIES>("NodeShaderIESLight");
+  NodeShaderTexIES *tex = MEM_callocN<NodeShaderTexIES>("NodeShaderIESLight");
   node->storage = tex;
 }
 

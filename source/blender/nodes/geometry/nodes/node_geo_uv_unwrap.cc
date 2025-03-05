@@ -46,7 +46,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryUVUnwrap *data = MEM_cnew<NodeGeometryUVUnwrap>(__func__);
+  NodeGeometryUVUnwrap *data = MEM_callocN<NodeGeometryUVUnwrap>(__func__);
   data->method = GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED;
   node->storage = data;
 }

@@ -137,7 +137,7 @@ ListBase BKE_asset_catalog_path_list_duplicate(const ListBase &catalog_path_list
   ListBase duplicated_list = {nullptr};
 
   LISTBASE_FOREACH (AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
-    AssetCatalogPathLink *copied_path = MEM_cnew<AssetCatalogPathLink>(__func__);
+    AssetCatalogPathLink *copied_path = MEM_callocN<AssetCatalogPathLink>(__func__);
     copied_path->path = BLI_strdup(catalog_path->path);
 
     BLI_addtail(&duplicated_list, copied_path);
@@ -173,7 +173,7 @@ bool BKE_asset_catalog_path_list_has_path(const ListBase &catalog_path_list,
 
 void BKE_asset_catalog_path_list_add_path(ListBase &catalog_path_list, const char *catalog_path)
 {
-  AssetCatalogPathLink *new_path = MEM_cnew<AssetCatalogPathLink>(__func__);
+  AssetCatalogPathLink *new_path = MEM_callocN<AssetCatalogPathLink>(__func__);
   new_path->path = BLI_strdup(catalog_path);
   BLI_addtail(&catalog_path_list, new_path);
 }

@@ -442,7 +442,7 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
   /* New panel states buffer. */
   MEM_SAFE_FREE(node.panel_states_array);
   node.num_panel_states = new_num_panels;
-  node.panel_states_array = MEM_cnew_array<bNodePanelState>(new_num_panels, __func__);
+  node.panel_states_array = MEM_calloc_arrayN<bNodePanelState>(new_num_panels, __func__);
 
   /* Find list of sockets to add, mixture of old and new sockets. */
   VectorSet<bNodeSocket *> new_inputs;
@@ -571,7 +571,7 @@ void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subty
 
   switch (datatype) {
     case SOCK_FLOAT: {
-      bNodeSocketValueFloat *dval = MEM_cnew<bNodeSocketValueFloat>("node socket value float");
+      bNodeSocketValueFloat *dval = MEM_callocN<bNodeSocketValueFloat>("node socket value float");
       dval->subtype = subtype;
       dval->value = 0.0f;
       dval->min = -FLT_MAX;
@@ -581,7 +581,7 @@ void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subty
       break;
     }
     case SOCK_INT: {
-      bNodeSocketValueInt *dval = MEM_cnew<bNodeSocketValueInt>("node socket value int");
+      bNodeSocketValueInt *dval = MEM_callocN<bNodeSocketValueInt>("node socket value int");
       dval->subtype = subtype;
       dval->value = 0;
       dval->min = INT_MIN;
@@ -591,20 +591,22 @@ void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subty
       break;
     }
     case SOCK_BOOLEAN: {
-      bNodeSocketValueBoolean *dval = MEM_cnew<bNodeSocketValueBoolean>("node socket value bool");
+      bNodeSocketValueBoolean *dval = MEM_callocN<bNodeSocketValueBoolean>(
+          "node socket value bool");
       dval->value = false;
 
       *data = dval;
       break;
     }
     case SOCK_ROTATION: {
-      bNodeSocketValueRotation *dval = MEM_cnew<bNodeSocketValueRotation>(__func__);
+      bNodeSocketValueRotation *dval = MEM_callocN<bNodeSocketValueRotation>(__func__);
       *data = dval;
       break;
     }
     case SOCK_VECTOR: {
       static float default_value[] = {0.0f, 0.0f, 0.0f};
-      bNodeSocketValueVector *dval = MEM_cnew<bNodeSocketValueVector>("node socket value vector");
+      bNodeSocketValueVector *dval = MEM_callocN<bNodeSocketValueVector>(
+          "node socket value vector");
       dval->subtype = subtype;
       copy_v3_v3(dval->value, default_value);
       dval->min = -FLT_MAX;
@@ -615,14 +617,15 @@ void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subty
     }
     case SOCK_RGBA: {
       static float default_value[] = {0.0f, 0.0f, 0.0f, 1.0f};
-      bNodeSocketValueRGBA *dval = MEM_cnew<bNodeSocketValueRGBA>("node socket value color");
+      bNodeSocketValueRGBA *dval = MEM_callocN<bNodeSocketValueRGBA>("node socket value color");
       copy_v4_v4(dval->value, default_value);
 
       *data = dval;
       break;
     }
     case SOCK_STRING: {
-      bNodeSocketValueString *dval = MEM_cnew<bNodeSocketValueString>("node socket value string");
+      bNodeSocketValueString *dval = MEM_callocN<bNodeSocketValueString>(
+          "node socket value string");
       dval->subtype = subtype;
       dval->value[0] = '\0';
 
@@ -630,28 +633,29 @@ void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subty
       break;
     }
     case SOCK_MENU: {
-      bNodeSocketValueMenu *dval = MEM_cnew<bNodeSocketValueMenu>("node socket value menu");
+      bNodeSocketValueMenu *dval = MEM_callocN<bNodeSocketValueMenu>("node socket value menu");
       dval->value = -1;
 
       *data = dval;
       break;
     }
     case SOCK_OBJECT: {
-      bNodeSocketValueObject *dval = MEM_cnew<bNodeSocketValueObject>("node socket value object");
+      bNodeSocketValueObject *dval = MEM_callocN<bNodeSocketValueObject>(
+          "node socket value object");
       dval->value = nullptr;
 
       *data = dval;
       break;
     }
     case SOCK_IMAGE: {
-      bNodeSocketValueImage *dval = MEM_cnew<bNodeSocketValueImage>("node socket value image");
+      bNodeSocketValueImage *dval = MEM_callocN<bNodeSocketValueImage>("node socket value image");
       dval->value = nullptr;
 
       *data = dval;
       break;
     }
     case SOCK_COLLECTION: {
-      bNodeSocketValueCollection *dval = MEM_cnew<bNodeSocketValueCollection>(
+      bNodeSocketValueCollection *dval = MEM_callocN<bNodeSocketValueCollection>(
           "node socket value object");
       dval->value = nullptr;
 
@@ -659,7 +663,7 @@ void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subty
       break;
     }
     case SOCK_TEXTURE: {
-      bNodeSocketValueTexture *dval = MEM_cnew<bNodeSocketValueTexture>(
+      bNodeSocketValueTexture *dval = MEM_callocN<bNodeSocketValueTexture>(
           "node socket value texture");
       dval->value = nullptr;
 
@@ -667,7 +671,7 @@ void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subty
       break;
     }
     case SOCK_MATERIAL: {
-      bNodeSocketValueMaterial *dval = MEM_cnew<bNodeSocketValueMaterial>(
+      bNodeSocketValueMaterial *dval = MEM_callocN<bNodeSocketValueMaterial>(
           "node socket value material");
       dval->value = nullptr;
 

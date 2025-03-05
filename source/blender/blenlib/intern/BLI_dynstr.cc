@@ -35,12 +35,12 @@ struct DynStr {
 
 DynStr *BLI_dynstr_new()
 {
-  return MEM_cnew<DynStr>("DynStr");
+  return MEM_callocN<DynStr>("DynStr");
 }
 
 DynStr *BLI_dynstr_new_memarena()
 {
-  DynStr *ds = MEM_cnew<DynStr>("DynStr");
+  DynStr *ds = MEM_callocN<DynStr>("DynStr");
   ds->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
   return ds;

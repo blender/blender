@@ -70,7 +70,7 @@ static void memory_close_raw(FileReader *reader)
 
 FileReader *BLI_filereader_new_memory(const void *data, size_t len)
 {
-  MemoryReader *mem = MEM_cnew<MemoryReader>(__func__);
+  MemoryReader *mem = MEM_callocN<MemoryReader>(__func__);
 
   mem->data = (const char *)data;
   mem->length = len;
@@ -118,7 +118,7 @@ FileReader *BLI_filereader_new_mmap(int filedes)
     return nullptr;
   }
 
-  MemoryReader *mem = MEM_cnew<MemoryReader>(__func__);
+  MemoryReader *mem = MEM_callocN<MemoryReader>(__func__);
 
   mem->mmap = mmap;
   mem->length = BLI_mmap_get_length(mmap);

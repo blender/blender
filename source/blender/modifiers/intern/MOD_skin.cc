@@ -461,7 +461,7 @@ static Frame **collect_hull_frames(int v,
   int hull_frames_num, i;
 
   (*tothullframe) = emap[v].size();
-  hull_frames = MEM_cnew_array<Frame *>(*tothullframe, __func__);
+  hull_frames = MEM_calloc_arrayN<Frame *>(*tothullframe, __func__);
   hull_frames_num = 0;
   for (i = 0; i < emap[v].size(); i++) {
     const blender::int2 &edge = edges[emap[v][i]];
@@ -663,7 +663,7 @@ static SkinNode *build_frames(const blender::Span<blender::float3> vert_position
 {
   int v;
 
-  SkinNode *skin_nodes = MEM_cnew_array<SkinNode>(verts_num, __func__);
+  SkinNode *skin_nodes = MEM_calloc_arrayN<SkinNode>(verts_num, __func__);
 
   for (v = 0; v < verts_num; v++) {
     if (emap[v].size() <= 1) {
@@ -789,7 +789,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
   stack = BLI_stack_new(sizeof(stack_elem), "build_edge_mats.stack");
 
   visited_e = BLI_BITMAP_NEW(edges.size(), "build_edge_mats.visited_e");
-  emat = MEM_cnew_array<EMat>(edges.size(), __func__);
+  emat = MEM_calloc_arrayN<EMat>(edges.size(), __func__);
 
   /* Edge matrices are built from the root nodes, add all roots with
    * children to the stack */
@@ -950,7 +950,7 @@ static Mesh *subdivide_base(const Mesh *orig)
     if (origdvert) {
       const MDeformVert *dv1 = &origdvert[edge[0]];
       const MDeformVert *dv2 = &origdvert[edge[1]];
-      vgroups = MEM_cnew_array<VGroupData>(dv1->totweight, __func__);
+      vgroups = MEM_calloc_arrayN<VGroupData>(dv1->totweight, __func__);
 
       /* Only want vertex groups used by both vertices */
       for (j = 0; j < dv1->totweight; j++) {

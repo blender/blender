@@ -92,7 +92,7 @@ static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext * /*C*/, Poi
 
 static void node_shader_init_tex_voronoi(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexVoronoi *tex = MEM_cnew<NodeTexVoronoi>(__func__);
+  NodeTexVoronoi *tex = MEM_callocN<NodeTexVoronoi>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->dimensions = 3;

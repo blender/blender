@@ -133,7 +133,7 @@ float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline,
 
   /* len+1 because of 'forward_diff_bezier' function */
   *r_tot_diff_point = tot;
-  diff_points = fp = MEM_cnew_array<float[2]>(tot + 1, "mask spline vets");
+  diff_points = fp = MEM_calloc_arrayN<float[2]>(tot + 1, "mask spline vets");
 
   a = spline->tot_point - 1;
   if (spline->flag & MASK_SPLINE_CYCLIC) {
@@ -200,7 +200,7 @@ static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int e
 
   if (bucket->tot_segment >= bucket->alloc_segment) {
     if (!bucket->segments) {
-      bucket->segments = MEM_cnew_array<int[2]>(alloc_delta, "feather bucket segments");
+      bucket->segments = MEM_calloc_arrayN<int[2]>(alloc_delta, "feather bucket segments");
     }
     else {
       bucket->segments = static_cast<int(*)[2]>(MEM_reallocN(
@@ -400,7 +400,7 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline,
   bucket_scale[1] = 1.0f / ((max[1] - min[1]) * bucket_size);
 
   /* fill in buckets' edges */
-  buckets = MEM_cnew_array<FeatherEdgesBucket>(tot_bucket, "feather buckets");
+  buckets = MEM_calloc_arrayN<FeatherEdgesBucket>(tot_bucket, "feather buckets");
 
   for (int i = 0; i < tot_feather_point; i++) {
     int start = i, end = i + 1;
@@ -501,7 +501,7 @@ static float (
   int a;
 
   /* tot+1 because of 'forward_diff_bezier' function */
-  feather = fp = MEM_cnew_array<float[2]>(tot + 1, "mask spline feather diff points");
+  feather = fp = MEM_calloc_arrayN<float[2]>(tot + 1, "mask spline feather diff points");
 
   a = spline->tot_point - 1;
   if (spline->flag & MASK_SPLINE_CYCLIC) {
@@ -582,7 +582,7 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__double
 
   /* len+1 because of 'forward_diff_bezier' function */
   *r_tot_feather_point = tot;
-  feather = fp = MEM_cnew_array<float[2]>(tot + 1, "mask spline vets");
+  feather = fp = MEM_calloc_arrayN<float[2]>(tot + 1, "mask spline vets");
 
   a = spline->tot_point - 1;
   if (spline->flag & MASK_SPLINE_CYCLIC) {
@@ -734,7 +734,7 @@ float (*BKE_mask_spline_feather_points(MaskSpline *spline, int *r_tot_feather_po
   }
 
   /* create data */
-  feather = fp = MEM_cnew_array<float[2]>(tot, "mask spline feather points");
+  feather = fp = MEM_calloc_arrayN<float[2]>(tot, "mask spline feather points");
 
   for (i = 0; i < spline->tot_point; i++) {
     MaskSplinePoint *point = &points_array[i];
@@ -772,7 +772,7 @@ float *BKE_mask_point_segment_feather_diff(
   float *feather, *fp;
   uint resol = BKE_mask_spline_feather_resolution(spline, width, height);
 
-  feather = fp = MEM_cnew_array<float>(2 * resol, "mask point spline feather diff points");
+  feather = fp = MEM_calloc_arrayN<float>(2 * resol, "mask point spline feather diff points");
 
   for (uint i = 0; i < resol; i++, fp += 2) {
     float u = float(i % resol) / resol, weight;
@@ -809,7 +809,7 @@ float *BKE_mask_point_segment_diff(
 
   /* resol+1 because of 'forward_diff_bezier' function */
   *r_tot_diff_point = resol + 1;
-  diff_points = fp = MEM_cnew_array<float>(2 * (resol + 1), "mask segment vets");
+  diff_points = fp = MEM_calloc_arrayN<float>(2 * (resol + 1), "mask segment vets");
 
   for (j = 0; j < 2; j++) {
     BKE_curve_forward_diff_bezier(bezt->vec[1][j],

@@ -71,7 +71,7 @@ static size_t queue_chunk_elem_max_calc(const size_t elem_size, size_t chunk_siz
 
 GSQueue *BLI_gsqueue_new(const size_t elem_size)
 {
-  GSQueue *queue = MEM_cnew<GSQueue>("BLI_gsqueue_new");
+  GSQueue *queue = MEM_callocN<GSQueue>("BLI_gsqueue_new");
 
   queue->chunk_elem_max = queue_chunk_elem_max_calc(elem_size, CHUNK_SIZE_DEFAULT);
   queue->elem_size = elem_size;

@@ -655,7 +655,7 @@ void BLI_box_pack_2d(
 void BLI_box_pack_2d_fixedarea(ListBase *boxes, int width, int height, ListBase *packed)
 {
   ListBase spaces = {nullptr};
-  FixedSizeBoxPack *full_rect = MEM_cnew<FixedSizeBoxPack>(__func__);
+  FixedSizeBoxPack *full_rect = MEM_callocN<FixedSizeBoxPack>(__func__);
   full_rect->w = width;
   full_rect->h = height;
 
@@ -717,7 +717,7 @@ void BLI_box_pack_2d_fixedarea(ListBase *boxes, int width, int height, ListBase 
 
         /* Perform split. This space becomes the larger space,
          * while the new smaller space is inserted _before_ it. */
-        FixedSizeBoxPack *new_space = MEM_cnew<FixedSizeBoxPack>(__func__);
+        FixedSizeBoxPack *new_space = MEM_callocN<FixedSizeBoxPack>(__func__);
         if (area_hsplit_large > area_vsplit_large) {
           new_space->x = space->x + box->w;
           new_space->y = space->y;

@@ -809,7 +809,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   Object &active_object = *CTX_data_active_object(C);
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  DyntopoDetailSizeEditCustomData *cd = MEM_cnew<DyntopoDetailSizeEditCustomData>(__func__);
+  DyntopoDetailSizeEditCustomData *cd = MEM_callocN<DyntopoDetailSizeEditCustomData>(__func__);
 
   /* Initial operator Custom Data setup. */
   cd->draw_handle = ED_region_draw_cb_activate(

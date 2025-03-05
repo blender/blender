@@ -49,7 +49,7 @@ namespace blender::ed::spreadsheet {
 
 static SpaceLink *spreadsheet_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
-  SpaceSpreadsheet *spreadsheet_space = MEM_cnew<SpaceSpreadsheet>("spreadsheet space");
+  SpaceSpreadsheet *spreadsheet_space = MEM_callocN<SpaceSpreadsheet>("spreadsheet space");
   spreadsheet_space->spacetype = SPACE_SPREADSHEET;
 
   spreadsheet_space->filter_flag = SPREADSHEET_FILTER_ENABLE;
@@ -745,7 +745,7 @@ void register_spacetype()
   st->blend_write = spreadsheet_blend_write;
 
   /* regions: main window */
-  art = MEM_cnew<ARegionType>("spacetype spreadsheet region");
+  art = MEM_callocN<ARegionType>("spacetype spreadsheet region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
   art->lock = 1;
@@ -756,7 +756,7 @@ void register_spacetype()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_cnew<ARegionType>("spacetype spreadsheet header region");
+  art = MEM_callocN<ARegionType>("spacetype spreadsheet header region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = 0;
@@ -770,7 +770,7 @@ void register_spacetype()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: footer */
-  art = MEM_cnew<ARegionType>("spacetype spreadsheet footer region");
+  art = MEM_callocN<ARegionType>("spacetype spreadsheet footer region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
   art->keymapflag = 0;
@@ -784,7 +784,7 @@ void register_spacetype()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: right panel buttons */
-  art = MEM_cnew<ARegionType>("spacetype spreadsheet right region");
+  art = MEM_callocN<ARegionType>("spacetype spreadsheet right region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
@@ -800,7 +800,7 @@ void register_spacetype()
   register_row_filter_panels(*art);
 
   /* regions: channels */
-  art = MEM_cnew<ARegionType>("spreadsheet dataset region");
+  art = MEM_callocN<ARegionType>("spreadsheet dataset region");
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = 150 + V2D_SCROLL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;

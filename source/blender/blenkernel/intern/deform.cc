@@ -49,7 +49,7 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const StringRef name)
 
   BLI_assert(OB_TYPE_SUPPORT_VGROUP(ob->type));
 
-  defgroup = MEM_cnew<bDeformGroup>(__func__);
+  defgroup = MEM_callocN<bDeformGroup>(__func__);
 
   name.copy_utf8_truncated(defgroup->name);
 
@@ -84,7 +84,7 @@ bDeformGroup *BKE_defgroup_duplicate(const bDeformGroup *ingroup)
     return nullptr;
   }
 
-  bDeformGroup *outgroup = MEM_cnew<bDeformGroup>(__func__);
+  bDeformGroup *outgroup = MEM_callocN<bDeformGroup>(__func__);
 
   /* For now, just copy everything over. */
   memcpy(outgroup, ingroup, sizeof(bDeformGroup));

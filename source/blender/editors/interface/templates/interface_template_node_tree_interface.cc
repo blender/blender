@@ -337,7 +337,7 @@ eWM_DragDataType NodeTreeInterfaceDragController::get_drag_type() const
 
 void *NodeTreeInterfaceDragController::create_drag_data() const
 {
-  wmDragNodeTreeInterface *drag_data = MEM_cnew<wmDragNodeTreeInterface>(__func__);
+  wmDragNodeTreeInterface *drag_data = MEM_callocN<wmDragNodeTreeInterface>(__func__);
   drag_data->item = &item_;
   return drag_data;
 }

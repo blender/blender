@@ -916,7 +916,7 @@ LinkData *BLI_genericNodeN(void *data)
   }
 
   /* create new link, and make it hold the given data */
-  ld = MEM_cnew<LinkData>(__func__);
+  ld = MEM_callocN<LinkData>(__func__);
   ld->data = data;
 
   return ld;

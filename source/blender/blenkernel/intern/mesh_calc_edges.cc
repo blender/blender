@@ -199,7 +199,7 @@ void mesh_calc_edges(Mesh &mesh, bool keep_existing_edges, const bool select_new
   /* Create new edges. */
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   attributes.add<int>(".corner_edge", AttrDomain::Corner, AttributeInitConstruct());
-  MutableSpan<int2> new_edges(MEM_cnew_array<int2>(edge_offsets.total_size(), __func__),
+  MutableSpan<int2> new_edges(MEM_calloc_arrayN<int2>(edge_offsets.total_size(), __func__),
                               edge_offsets.total_size());
   calc_edges::serialize_and_initialize_deduplicated_edges(edge_maps, edge_offsets, new_edges);
   calc_edges::update_edge_indices_in_face_loops(mesh.faces(),

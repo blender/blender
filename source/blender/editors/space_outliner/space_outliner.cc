@@ -379,7 +379,7 @@ static SpaceLink *outliner_create(const ScrArea * /*area*/, const Scene * /*scen
   ARegion *region;
   SpaceOutliner *space_outliner;
 
-  space_outliner = MEM_cnew<SpaceOutliner>("initoutliner");
+  space_outliner = MEM_callocN<SpaceOutliner>("initoutliner");
   space_outliner->spacetype = SPACE_OUTLINER;
   space_outliner->filter_id_type = ID_GR;
   space_outliner->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_HIDE | SO_RESTRICT_RENDER;
@@ -430,7 +430,7 @@ static void outliner_init(wmWindowManager * /*wm*/, ScrArea *area)
 static SpaceLink *outliner_duplicate(SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
-  SpaceOutliner *space_outliner_new = MEM_cnew<SpaceOutliner>(__func__, *space_outliner);
+  SpaceOutliner *space_outliner_new = MEM_dupallocN<SpaceOutliner>(__func__, *space_outliner);
 
   BLI_listbase_clear(&space_outliner_new->tree);
   space_outliner_new->treestore = nullptr;
@@ -676,7 +676,7 @@ void ED_spacetype_outliner()
   st->blend_write = outliner_space_blend_write;
 
   /* regions: main window */
-  art = MEM_cnew<ARegionType>("spacetype outliner region");
+  art = MEM_callocN<ARegionType>("spacetype outliner region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
 
@@ -689,7 +689,7 @@ void ED_spacetype_outliner()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_cnew<ARegionType>("spacetype outliner header region");
+  art = MEM_callocN<ARegionType>("spacetype outliner header region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;

@@ -74,7 +74,7 @@ static void gzip_close(FileReader *reader)
 
 FileReader *BLI_filereader_new_gzip(FileReader *base)
 {
-  GzipReader *gzip = MEM_cnew<GzipReader>(__func__);
+  GzipReader *gzip = MEM_callocN<GzipReader>(__func__);
   gzip->base = base;
 
   if (inflateInit2(&gzip->strm, 16 + MAX_WBITS) != Z_OK) {

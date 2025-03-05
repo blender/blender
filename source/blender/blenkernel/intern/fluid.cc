@@ -4420,7 +4420,7 @@ void BKE_fluid_particle_system_create(Main *bmain,
 
   /* add particle system */
   part = BKE_particlesettings_add(bmain, pset_name);
-  psys = MEM_cnew<ParticleSystem>(__func__);
+  psys = MEM_callocN<ParticleSystem>(__func__);
 
   part->type = psys_type;
   part->totpart = 0;

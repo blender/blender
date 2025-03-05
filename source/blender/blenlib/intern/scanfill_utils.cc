@@ -93,7 +93,7 @@ static ListBase *edge_isect_ls_ensure(GHash *isect_hash, ScanFillEdge *eed)
   void **val_p;
 
   if (!BLI_ghash_ensure_p(isect_hash, eed, &val_p)) {
-    *val_p = MEM_cnew<ListBase>(__func__);
+    *val_p = MEM_callocN<ListBase>(__func__);
   }
 
   return static_cast<ListBase *>(*val_p);
@@ -104,7 +104,7 @@ static ListBase *edge_isect_ls_add(GHash *isect_hash, ScanFillEdge *eed, ScanFil
   ListBase *e_ls;
   LinkData *isect_link;
   e_ls = edge_isect_ls_ensure(isect_hash, eed);
-  isect_link = MEM_cnew<LinkData>(__func__);
+  isect_link = MEM_callocN<LinkData>(__func__);
   isect_link->data = isect;
   EFLAG_SET(eed, E_ISISECT);
   BLI_addtail(e_ls, isect_link);
@@ -367,7 +367,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
     return false;
   }
 
-  PolyInfo *poly_info = MEM_cnew_array<PolyInfo>(poly_num, __func__);
+  PolyInfo *poly_info = MEM_calloc_arrayN<PolyInfo>(poly_num, __func__);
 
   /* get the polygon span */
   if (sf_ctx->poly_nr == 0) {

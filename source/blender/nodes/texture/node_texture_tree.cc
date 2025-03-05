@@ -167,7 +167,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
   }
 
   if (!nts) {
-    nts = MEM_cnew<bNodeThreadStack>("bNodeThreadStack");
+    nts = MEM_callocN<bNodeThreadStack>("bNodeThreadStack");
     nts->stack = (bNodeStack *)MEM_dupallocN(exec->stack);
     nts->used = true;
     BLI_addtail(lb, nts);
@@ -219,7 +219,7 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
   exec = ntree_exec_begin(context, ntree, parent_key);
 
   /* allocate the thread stack listbase array */
-  exec->threadstack = MEM_cnew_array<ListBase>(BLENDER_MAX_THREADS, "thread stack array");
+  exec->threadstack = MEM_calloc_arrayN<ListBase>(BLENDER_MAX_THREADS, "thread stack array");
 
   LISTBASE_FOREACH (bNode *, node, &exec->nodetree->nodes) {
     node->runtime->need_exec = 1;

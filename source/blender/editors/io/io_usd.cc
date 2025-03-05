@@ -246,7 +246,7 @@ static void process_prim_path(char *prim_path)
 
 static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  eUSDOperatorOptions *options = MEM_cnew<eUSDOperatorOptions>("eUSDOperatorOptions");
+  eUSDOperatorOptions *options = MEM_callocN<eUSDOperatorOptions>("eUSDOperatorOptions");
   options->as_background_job = true;
   op->customdata = options;
 
@@ -913,7 +913,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
 
 static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  eUSDOperatorOptions *options = MEM_cnew<eUSDOperatorOptions>("eUSDOperatorOptions");
+  eUSDOperatorOptions *options = MEM_callocN<eUSDOperatorOptions>("eUSDOperatorOptions");
   options->as_background_job = true;
   op->customdata = options;
 

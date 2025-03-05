@@ -123,7 +123,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurvePrimitiveArc *data = MEM_cnew<NodeGeometryCurvePrimitiveArc>(__func__);
+  NodeGeometryCurvePrimitiveArc *data = MEM_callocN<NodeGeometryCurvePrimitiveArc>(__func__);
 
   data->mode = GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_RADIUS;
   node->storage = data;

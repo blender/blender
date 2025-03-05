@@ -55,7 +55,7 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
   const size_t str2_len = strlen(str2) + 1;
   char *str, *s;
 
-  str = MEM_cnew_array<char>(str1_len + str2_len, "strdupcat");
+  str = MEM_calloc_arrayN<char>(str1_len + str2_len, "strdupcat");
   s = str;
 
   memcpy(s, str1, str1_len); /* NOLINT: bugprone-not-null-terminated-result */
@@ -244,7 +244,7 @@ char *BLI_sprintfN_with_buffer(
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
     if (UNLIKELY(fixed_buf_size == 0)) {
-      return MEM_cnew_array<char>(1, __func__);
+      return MEM_calloc_arrayN<char>(1, __func__);
     }
     *fixed_buf = '\0';
     return fixed_buf;
@@ -279,7 +279,7 @@ char *BLI_vsprintfN_with_buffer(char *fixed_buf,
     /* Return an empty string as there was an error there is no valid output. */
     *result_len = 0;
     if (UNLIKELY(fixed_buf_size == 0)) {
-      return MEM_cnew_array<char>(1, __func__);
+      return MEM_calloc_arrayN<char>(1, __func__);
     }
     *fixed_buf = '\0';
     return fixed_buf;
@@ -326,7 +326,7 @@ char *BLI_vsprintfN(const char *__restrict format, va_list args)
     return result;
   }
   size_t size = result_len + 1;
-  result = MEM_cnew_array<char>(size, __func__);
+  result = MEM_calloc_arrayN<char>(size, __func__);
   memcpy(result, fixed_buf, size);
   return result;
 }

@@ -156,7 +156,7 @@ static void task_mempool_iter_tls_func(void * /*userdata*/,
 
   EXPECT_TRUE(data != nullptr);
   if (task_data->accumulate_items == nullptr) {
-    task_data->accumulate_items = MEM_cnew<ListBase>(__func__);
+    task_data->accumulate_items = MEM_callocN<ListBase>(__func__);
   }
 
   /* Flip to prove this has been touched. */
@@ -174,7 +174,7 @@ static void task_mempool_iter_tls_reduce(const void *__restrict /*userdata*/,
 
   if (data_chunk->accumulate_items != nullptr) {
     if (join_chunk->accumulate_items == nullptr) {
-      join_chunk->accumulate_items = MEM_cnew<ListBase>(__func__);
+      join_chunk->accumulate_items = MEM_callocN<ListBase>(__func__);
     }
     BLI_movelisttolist(join_chunk->accumulate_items, data_chunk->accumulate_items);
   }

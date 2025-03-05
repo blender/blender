@@ -901,7 +901,7 @@ struct uiButStoreElem {
 
 uiButStore *UI_butstore_create(uiBlock *block)
 {
-  uiButStore *bs_handle = MEM_cnew<uiButStore>(__func__);
+  uiButStore *bs_handle = MEM_callocN<uiButStore>(__func__);
 
   bs_handle->block = block;
   BLI_addtail(&block->butstore, bs_handle);
@@ -950,7 +950,7 @@ bool UI_butstore_is_registered(uiBlock *block, uiBut *but)
 
 void UI_butstore_register(uiButStore *bs_handle, uiBut **but_p)
 {
-  uiButStoreElem *bs_elem = MEM_cnew<uiButStoreElem>(__func__);
+  uiButStoreElem *bs_elem = MEM_callocN<uiButStoreElem>(__func__);
   BLI_assert(*but_p);
   bs_elem->but_p = but_p;
 

@@ -181,7 +181,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
     rv = static_cast<RenderView *>(rr->views.first);
 
     if (rv == nullptr) {
-      rv = MEM_cnew<RenderView>("new opengl render view");
+      rv = MEM_callocN<RenderView>("new opengl render view");
       BLI_addtail(&rr->views, rv);
     }
 
@@ -229,7 +229,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
           BLI_findstring(&rr->views, srv->name, offsetof(SceneRenderView, name)));
 
       if (rv == nullptr) {
-        rv = MEM_cnew<RenderView>("new opengl render view");
+        rv = MEM_callocN<RenderView>("new opengl render view");
         STRNCPY(rv->name, srv->name);
         BLI_addtail(&rr->views, rv);
       }
@@ -1090,7 +1090,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
     return false;
   }
   Scene *scene = oglrender->scene;
-  WriteTaskData *task_data = MEM_cnew<WriteTaskData>("write task data");
+  WriteTaskData *task_data = MEM_callocN<WriteTaskData>("write task data");
   task_data->rr = rr;
   memcpy(&task_data->tmp_scene, scene, sizeof(task_data->tmp_scene));
   {

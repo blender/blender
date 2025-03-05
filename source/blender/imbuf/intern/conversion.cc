@@ -20,6 +20,7 @@
 #include "MEM_guardedalloc.h"
 
 /* -------------------------------------------------------------------- */
+
 /** \name Generic Buffer Conversion
  * \{ */
 

@@ -45,7 +45,7 @@ static void cmp_node_ellipsemask_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_ellipsemask(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeEllipseMask *data = MEM_cnew<NodeEllipseMask>(__func__);
+  NodeEllipseMask *data = MEM_callocN<NodeEllipseMask>(__func__);
   data->x = 0.5;
   data->y = 0.5;
   data->width = 0.2;

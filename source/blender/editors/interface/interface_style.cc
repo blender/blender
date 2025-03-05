@@ -57,7 +57,7 @@ static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac);
 
 static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id)
 {
-  uiStyle *style = MEM_cnew<uiStyle>(__func__);
+  uiStyle *style = MEM_callocN<uiStyle>(__func__);
 
   BLI_addtail(styles, style);
   STRNCPY(style->name, name);
@@ -383,7 +383,7 @@ void uiStyleInit()
 
   /* default builtin */
   if (font_first == nullptr) {
-    font_first = MEM_cnew<uiFont>(__func__);
+    font_first = MEM_callocN<uiFont>(__func__);
     BLI_addtail(&U.uifonts, font_first);
   }
 

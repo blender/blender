@@ -918,7 +918,7 @@ void RE_InitState(Render *re,
 
     /* make empty render result, so display callbacks can initialize */
     render_result_free(re->result);
-    re->result = MEM_cnew<RenderResult>("new render result");
+    re->result = MEM_callocN<RenderResult>("new render result");
     re->result->rectx = re->rectx;
     re->result->recty = re->recty;
     render_result_view_new(re->result, "");
@@ -2898,7 +2898,7 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
   RenderLayer *rl = RE_GetRenderLayer(rr, layername);
   /* only create render layer if not exist */
   if (!rl) {
-    rl = MEM_cnew<RenderLayer>(layername);
+    rl = MEM_callocN<RenderLayer>(layername);
     BLI_addtail(&rr->layers, rl);
     STRNCPY(rl->name, layername);
     rl->layflag = SCE_LAY_SOLID;

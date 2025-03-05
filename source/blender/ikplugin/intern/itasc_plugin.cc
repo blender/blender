@@ -270,7 +270,7 @@ static int initialize_chain(Object * /*ob*/, bPoseChannel *pchan_tip, bConstrain
 
   /* setup the chain data */
   /* create a target */
-  target = MEM_cnew<PoseTarget>("posetarget");
+  target = MEM_callocN<PoseTarget>("posetarget");
   target->con = con;
   /* by construction there can be only one tree per channel
    * and each channel can be part of at most one tree. */
@@ -278,7 +278,7 @@ static int initialize_chain(Object * /*ob*/, bPoseChannel *pchan_tip, bConstrain
 
   if (tree == nullptr) {
     /* make new tree */
-    tree = MEM_cnew<PoseTree>("posetree");
+    tree = MEM_callocN<PoseTree>("posetree");
 
     tree->iterations = data->iterations;
     tree->totchannel = segcount;

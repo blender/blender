@@ -1518,7 +1518,7 @@ static void other_id_types_preview_render(IconPreview *ip,
                                           const ePreviewRenderMethod pr_method,
                                           wmJobWorkerStatus *worker_status)
 {
-  ShaderPreview *sp = MEM_cnew<ShaderPreview>("Icon ShaderPreview");
+  ShaderPreview *sp = MEM_callocN<ShaderPreview>("Icon ShaderPreview");
 
   /* These types don't use the ShaderPreview mess, they have their own types and functions. */
   BLI_assert(!ip->id || !ELEM(GS(ip->id->name), ID_OB));
@@ -1661,7 +1661,7 @@ static void icon_preview_add_size(IconPreview *ip, uint *rect, int sizex, int si
     cur_size = cur_size->next;
   }
 
-  IconPreviewSize *new_size = MEM_cnew<IconPreviewSize>("IconPreviewSize");
+  IconPreviewSize *new_size = MEM_callocN<IconPreviewSize>("IconPreviewSize");
   new_size->sizex = sizex;
   new_size->sizey = sizey;
   new_size->rect = rect;
@@ -2046,7 +2046,7 @@ void ED_preview_icon_job(
                               WM_JOB_EXCL_RENDER,
                               WM_JOB_TYPE_RENDER_PREVIEW);
 
-  ip = MEM_cnew<IconPreview>("icon preview");
+  ip = MEM_callocN<IconPreview>("icon preview");
 
   /* render all resolutions from suspended job too */
   old_ip = static_cast<IconPreview *>(WM_jobs_customdata_get(wm_job));
@@ -2113,7 +2113,7 @@ void ED_preview_shader_job(const bContext *C,
                        "Shader Preview",
                        WM_JOB_EXCL_RENDER,
                        WM_JOB_TYPE_RENDER_PREVIEW);
-  sp = MEM_cnew<ShaderPreview>("shader preview");
+  sp = MEM_callocN<ShaderPreview>("shader preview");
 
   /* customdata for preview thread */
   sp->scene = scene;
@@ -2184,7 +2184,7 @@ void ED_preview_restart_queue_free()
 
 void ED_preview_restart_queue_add(ID *id, enum eIconSizes size)
 {
-  PreviewRestartQueueEntry *queue_entry = MEM_cnew<PreviewRestartQueueEntry>(__func__);
+  PreviewRestartQueueEntry *queue_entry = MEM_callocN<PreviewRestartQueueEntry>(__func__);
   queue_entry->size = size;
   queue_entry->id = id;
   BLI_addtail(&G_restart_previews_queue, queue_entry);

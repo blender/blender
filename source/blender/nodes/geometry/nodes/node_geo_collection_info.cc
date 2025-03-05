@@ -45,7 +45,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCollectionInfo *data = MEM_cnew<NodeGeometryCollectionInfo>(__func__);
+  NodeGeometryCollectionInfo *data = MEM_callocN<NodeGeometryCollectionInfo>(__func__);
   data->transform_space = GEO_NODE_TRANSFORM_SPACE_ORIGINAL;
   node->storage = data;
 }

@@ -392,7 +392,7 @@ static void mask_draw_curve_type(const bContext *C,
     const bool undistort = sc->clip && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT);
 
     if (undistort) {
-      points = MEM_cnew_array<float[2]>(tot_point, "undistorthed mask curve");
+      points = MEM_calloc_arrayN<float[2]>(tot_point, "undistorthed mask curve");
 
       for (int i = 0; i < tot_point; i++) {
         mask_point_undistort_pos(sc, points[i], orig_points[i]);
@@ -624,7 +624,7 @@ static void draw_mask_layers(
 static float *mask_rasterize(Mask *mask, const int width, const int height)
 {
   MaskRasterHandle *handle;
-  float *buffer = MEM_cnew_array<float>(height * width, "rasterized mask buffer");
+  float *buffer = MEM_calloc_arrayN<float>(height * width, "rasterized mask buffer");
 
   /* Initialize rasterization handle. */
   handle = BKE_maskrasterize_handle_new();

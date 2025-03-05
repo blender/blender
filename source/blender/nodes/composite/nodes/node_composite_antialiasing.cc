@@ -30,7 +30,7 @@ static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_antialiasing(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeAntiAliasingData *data = MEM_cnew<NodeAntiAliasingData>(__func__);
+  NodeAntiAliasingData *data = MEM_callocN<NodeAntiAliasingData>(__func__);
 
   data->threshold = CMP_DEFAULT_SMAA_THRESHOLD;
   data->contrast_limit = CMP_DEFAULT_SMAA_CONTRAST_LIMIT;

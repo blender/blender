@@ -1230,7 +1230,7 @@ static void add_collision_object(ListBase *relations,
   ModifierData *cmd = BKE_modifiers_findby_type(ob, modifier_type);
 
   if (cmd) {
-    CollisionRelation *relation = MEM_cnew<CollisionRelation>(__func__);
+    CollisionRelation *relation = MEM_callocN<CollisionRelation>(__func__);
     relation->ob = ob;
     BLI_addtail(relations, relation);
   }
@@ -1259,7 +1259,7 @@ ListBase *BKE_collision_relations_create(Depsgraph *depsgraph,
   const bool for_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   const int base_flag = (for_render) ? BASE_ENABLED_RENDER : BASE_ENABLED_VIEWPORT;
 
-  ListBase *relations = MEM_cnew<ListBase>(__func__);
+  ListBase *relations = MEM_callocN<ListBase>(__func__);
 
   for (; base; base = base->next) {
     if (base->flag & base_flag) {
@@ -1293,7 +1293,7 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
 
   int maxnum = BLI_listbase_count(relations);
   int num = 0;
-  Object **objects = MEM_cnew_array<Object *>(maxnum, __func__);
+  Object **objects = MEM_calloc_arrayN<Object *>(maxnum, __func__);
 
   LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
     /* Get evaluated object. */
@@ -1347,10 +1347,10 @@ ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collecti
         ob, eModifierType_Collision);
     if (cmd && cmd->bvhtree) {
       if (cache == nullptr) {
-        cache = MEM_cnew<ListBase>(__func__);
+        cache = MEM_callocN<ListBase>(__func__);
       }
 
-      ColliderCache *col = MEM_cnew<ColliderCache>(__func__);
+      ColliderCache *col = MEM_callocN<ColliderCache>(__func__);
       col->ob = ob;
       col->collmd = cmd;
       /* make sure collider is properly set up */
@@ -1577,8 +1577,8 @@ int cloth_bvh_collision(
                                             eModifierType_Collision);
 
     if (collobjs) {
-      coll_counts_obj = MEM_cnew_array<uint>(numcollobj, "CollCounts");
-      overlap_obj = MEM_cnew_array<BVHTreeOverlap *>(numcollobj, "BVHOverlap");
+      coll_counts_obj = MEM_calloc_arrayN<uint>(numcollobj, "CollCounts");
+      overlap_obj = MEM_calloc_arrayN<BVHTreeOverlap *>(numcollobj, "BVHOverlap");
 
       for (i = 0; i < numcollobj; i++) {
         Object *collob = collobjs[i];
@@ -1618,7 +1618,7 @@ int cloth_bvh_collision(
       CollPair **collisions;
       bool collided = false;
 
-      collisions = MEM_cnew_array<CollPair *>(numcollobj, "CollPair");
+      collisions = MEM_calloc_arrayN<CollPair *>(numcollobj, "CollPair");
 
       for (i = 0; i < numcollobj; i++) {
         Object *collob = collobjs[i];

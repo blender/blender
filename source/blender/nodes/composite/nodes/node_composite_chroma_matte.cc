@@ -45,7 +45,7 @@ static void cmp_node_chroma_matte_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_chroma_matte(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeChroma *c = MEM_cnew<NodeChroma>(__func__);
+  NodeChroma *c = MEM_callocN<NodeChroma>(__func__);
   node->storage = c;
   c->t1 = DEG2RADF(30.0f);
   c->t2 = DEG2RADF(10.0f);

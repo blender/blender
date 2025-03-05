@@ -69,7 +69,7 @@ void ED_masklayer_make_cfra_list(MaskLayer *mask_layer, ListBase *elems, bool on
   /* loop through mask-frames, adding */
   LISTBASE_FOREACH (MaskLayerShape *, mask_layer_shape, &mask_layer->splines_shapes) {
     if ((onlysel == false) || (mask_layer_shape->flag & MASK_SHAPE_SELECT)) {
-      CfraElem *ce = MEM_cnew<CfraElem>("CfraElem");
+      CfraElem *ce = MEM_callocN<CfraElem>("CfraElem");
 
       ce->cfra = float(mask_layer_shape->frame);
       ce->sel = (mask_layer_shape->flag & MASK_SHAPE_SELECT) ? 1 : 0;

@@ -917,7 +917,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 
 ColorPicker *ui_block_colorpicker_create(uiBlock *block)
 {
-  ColorPicker *cpicker = MEM_cnew<ColorPicker>(__func__);
+  ColorPicker *cpicker = MEM_callocN<ColorPicker>(__func__);
   BLI_addhead(&block->color_pickers.list, cpicker);
 
   return cpicker;

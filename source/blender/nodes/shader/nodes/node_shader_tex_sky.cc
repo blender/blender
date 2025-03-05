@@ -70,7 +70,7 @@ static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *
 
 static void node_shader_init_tex_sky(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexSky *tex = MEM_cnew<NodeTexSky>("NodeTexSky");
+  NodeTexSky *tex = MEM_callocN<NodeTexSky>("NodeTexSky");
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->sun_direction[0] = 0.0f;

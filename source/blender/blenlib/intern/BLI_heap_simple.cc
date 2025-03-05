@@ -138,11 +138,11 @@ static void heapsimple_up(HeapSimple *heap, uint i, float active_val, void *acti
 
 HeapSimple *BLI_heapsimple_new_ex(uint reserve_num)
 {
-  HeapSimple *heap = MEM_cnew<HeapSimple>(__func__);
+  HeapSimple *heap = MEM_callocN<HeapSimple>(__func__);
   /* ensure we have at least one so we can keep doubling it */
   heap->size = 0;
   heap->bufsize = std::max(1u, reserve_num);
-  heap->tree = MEM_cnew_array<HeapSimpleNode>(heap->bufsize, "BLIHeapSimpleTree");
+  heap->tree = MEM_calloc_arrayN<HeapSimpleNode>(heap->bufsize, "BLIHeapSimpleTree");
   return heap;
 }
 

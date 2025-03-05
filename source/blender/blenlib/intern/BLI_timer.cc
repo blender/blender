@@ -38,7 +38,7 @@ void BLI_timer_register(uintptr_t uuid,
                         double first_interval,
                         bool persistent)
 {
-  TimedFunction *timed_func = MEM_cnew<TimedFunction>(__func__);
+  TimedFunction *timed_func = MEM_callocN<TimedFunction>(__func__);
   timed_func->func = func;
   timed_func->user_data_free = user_data_free;
   timed_func->user_data = user_data;

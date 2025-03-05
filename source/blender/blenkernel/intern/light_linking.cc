@@ -98,7 +98,7 @@ void BKE_light_linking_collection_assign_only(Object *object,
 
   /* Allocate light linking on demand. */
   if (new_collection && !object->light_linking) {
-    object->light_linking = MEM_cnew<LightLinking>(__func__);
+    object->light_linking = MEM_callocN<LightLinking>(__func__);
   }
 
   if (object->light_linking) {

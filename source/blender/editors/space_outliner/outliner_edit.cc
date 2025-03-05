@@ -274,7 +274,7 @@ static int outliner_item_openclose_invoke(bContext *C, wmOperator *op, const wmE
     }
 
     /* Store last expanded tselem and x coordinate of disclosure triangle */
-    OpenCloseData *toggle_data = MEM_cnew<OpenCloseData>("open_close_data");
+    OpenCloseData *toggle_data = MEM_callocN<OpenCloseData>("open_close_data");
     toggle_data->prev_tselem = tselem;
     toggle_data->open = open;
     toggle_data->x_location = te->xs;
@@ -1701,7 +1701,7 @@ static void tree_element_to_path(TreeElement *te,
 
   /* step 1: flatten out hierarchy of parents into a flat chain */
   for (TreeElement *tem = te->parent; tem; tem = tem->parent) {
-    LinkData *ld = MEM_cnew<LinkData>("LinkData for tree_element_to_path()");
+    LinkData *ld = MEM_callocN<LinkData>("LinkData for tree_element_to_path()");
     ld->data = tem;
     BLI_addhead(&hierarchy, ld);
   }

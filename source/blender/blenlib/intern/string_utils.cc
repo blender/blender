@@ -607,7 +607,7 @@ size_t BLI_string_join_array_by_sep_char(
 char *BLI_string_join_arrayN(const char *strings[], uint strings_num)
 {
   const size_t result_size = BLI_string_len_array(strings, strings_num) + 1;
-  char *result = MEM_cnew_array<char>(result_size, __func__);
+  char *result = MEM_calloc_arrayN<char>(result_size, __func__);
   char *c = result;
   for (uint i = 0; i < strings_num; i++) {
     const size_t string_len = strlen(strings[i]);
@@ -624,7 +624,7 @@ char *BLI_string_join_array_by_sep_charN(char sep, const char *strings[], uint s
 {
   const size_t result_size = BLI_string_len_array(strings, strings_num) +
                              (strings_num ? strings_num - 1 : 0) + 1;
-  char *result = MEM_cnew_array<char>(result_size, __func__);
+  char *result = MEM_calloc_arrayN<char>(result_size, __func__);
   char *c = result;
   if (strings_num != 0) {
     for (uint i = 0; i < strings_num; i++) {
@@ -654,7 +654,7 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
     result_size = 1;
   }
 
-  char *result = MEM_cnew_array<char>(result_size, __func__);
+  char *result = MEM_calloc_arrayN<char>(result_size, __func__);
   char *c = result;
   if (strings_num != 0) {
     for (uint i = 0; i < strings_num; i++) {

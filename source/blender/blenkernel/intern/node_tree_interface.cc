@@ -191,7 +191,7 @@ static void *make_socket_data(const StringRef socket_type)
   void *socket_data = nullptr;
   socket_data_to_static_type_tag(socket_type, [&socket_data](auto type_tag) {
     using SocketDataType = typename decltype(type_tag)::type;
-    SocketDataType *new_socket_data = MEM_cnew<SocketDataType>(__func__);
+    SocketDataType *new_socket_data = MEM_callocN<SocketDataType>(__func__);
     socket_data_init_impl(*new_socket_data);
     socket_data = new_socket_data;
   });
@@ -448,7 +448,7 @@ static void panel_init(bNodeTreeInterfacePanel &panel,
                        UidGeneratorFn generate_uid)
 {
   panel.items_num = items_src.size();
-  panel.items_array = MEM_cnew_array<bNodeTreeInterfaceItem *>(panel.items_num, __func__);
+  panel.items_array = MEM_calloc_arrayN<bNodeTreeInterfaceItem *>(panel.items_num, __func__);
 
   /* Copy buffers. */
   for (const int i : items_src.index_range()) {
@@ -887,7 +887,7 @@ void bNodeTreeInterfacePanel::insert_item(bNodeTreeInterfaceItem &item, int posi
 
   blender::MutableSpan<bNodeTreeInterfaceItem *> old_items = this->items();
   items_num++;
-  items_array = MEM_cnew_array<bNodeTreeInterfaceItem *>(items_num, __func__);
+  items_array = MEM_calloc_arrayN<bNodeTreeInterfaceItem *>(items_num, __func__);
   this->items().take_front(position).copy_from(old_items.take_front(position));
   this->items().drop_front(position + 1).copy_from(old_items.drop_front(position));
   this->items()[position] = &item;
@@ -906,7 +906,7 @@ bool bNodeTreeInterfacePanel::remove_item(bNodeTreeInterfaceItem &item, const bo
 
   blender::MutableSpan<bNodeTreeInterfaceItem *> old_items = this->items();
   items_num--;
-  items_array = MEM_cnew_array<bNodeTreeInterfaceItem *>(items_num, __func__);
+  items_array = MEM_calloc_arrayN<bNodeTreeInterfaceItem *>(items_num, __func__);
   this->items().take_front(position).copy_from(old_items.take_front(position));
   this->items().drop_front(position).copy_from(old_items.drop_front(position + 1));
 
@@ -1078,7 +1078,7 @@ static bNodeTreeInterfaceSocket *make_socket(const int uid,
     return nullptr;
   }
 
-  bNodeTreeInterfaceSocket *new_socket = MEM_cnew<bNodeTreeInterfaceSocket>(__func__);
+  bNodeTreeInterfaceSocket *new_socket = MEM_callocN<bNodeTreeInterfaceSocket>(__func__);
   BLI_assert(new_socket);
 
   /* Init common socket properties. */
@@ -1140,7 +1140,7 @@ static bNodeTreeInterfacePanel *make_panel(const int uid,
 {
   BLI_assert(!name.is_empty());
 
-  bNodeTreeInterfacePanel *new_panel = MEM_cnew<bNodeTreeInterfacePanel>(__func__);
+  bNodeTreeInterfacePanel *new_panel = MEM_callocN<bNodeTreeInterfacePanel>(__func__);
   new_panel->item.item_type = NODE_INTERFACE_PANEL;
   new_panel->name = BLI_strdupn(name.data(), name.size());
   new_panel->description = description.is_empty() ?

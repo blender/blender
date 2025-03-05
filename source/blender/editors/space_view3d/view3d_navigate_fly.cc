@@ -1107,7 +1107,7 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  FlyInfo *fly = MEM_cnew<FlyInfo>("FlyOperation");
+  FlyInfo *fly = MEM_callocN<FlyInfo>("FlyOperation");
 
   op->customdata = fly;
 

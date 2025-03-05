@@ -865,7 +865,7 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
       if (value->type() != io::serialize::eValueType::String) {
         return cancel();
       }
-      bDeformGroup *defgroup = MEM_cnew<bDeformGroup>(__func__);
+      bDeformGroup *defgroup = MEM_callocN<bDeformGroup>(__func__);
       STRNCPY(defgroup->name, value->as_string_value()->value().c_str());
       BLI_addtail(&mesh->vertex_group_names, defgroup);
     }

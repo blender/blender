@@ -52,7 +52,7 @@ static void init(const bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
-  NodePlaneTrackDeformData *data = MEM_cnew<NodePlaneTrackDeformData>(__func__);
+  NodePlaneTrackDeformData *data = MEM_callocN<NodePlaneTrackDeformData>(__func__);
   data->motion_blur_samples = 16;
   data->motion_blur_shutter = 0.5f;
   node->storage = data;

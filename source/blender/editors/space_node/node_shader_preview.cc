@@ -806,7 +806,7 @@ static void ensure_nodetree_previews(const bContext &C,
   job_data->preview_type = preview_type;
 
   /* Update the treepath copied to fit the structure of the nodetree copied. */
-  bNodeTreePath *root_path = MEM_cnew<bNodeTreePath>(__func__);
+  bNodeTreePath *root_path = MEM_callocN<bNodeTreePath>(__func__);
   root_path->nodetree = job_data->mat_copy->nodetree;
   job_data->treepath_copy.append(root_path);
   for (bNodeTreePath *original_path = static_cast<bNodeTreePath *>(treepath.first)->next;
@@ -820,7 +820,7 @@ static void ensure_nodetree_previews(const bContext &C,
        * nodetree. In that case, just skip the node. */
       continue;
     }
-    bNodeTreePath *new_path = MEM_cnew<bNodeTreePath>(__func__);
+    bNodeTreePath *new_path = MEM_callocN<bNodeTreePath>(__func__);
     memcpy(new_path, original_path, sizeof(bNodeTreePath));
     new_path->nodetree = reinterpret_cast<bNodeTree *>(parent->id);
     job_data->treepath_copy.append(new_path);

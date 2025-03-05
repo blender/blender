@@ -1581,7 +1581,7 @@ static void gizmo_3d_setup_draw_modal(wmGizmo *axis, const int axis_idx, const i
 
 static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
 {
-  GizmoGroup *ggd = MEM_cnew<GizmoGroup>(__func__);
+  GizmoGroup *ggd = MEM_callocN<GizmoGroup>(__func__);
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);

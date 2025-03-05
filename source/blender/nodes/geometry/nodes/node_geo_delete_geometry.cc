@@ -43,7 +43,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryDeleteGeometry *data = MEM_cnew<NodeGeometryDeleteGeometry>(__func__);
+  NodeGeometryDeleteGeometry *data = MEM_callocN<NodeGeometryDeleteGeometry>(__func__);
   data->domain = int(AttrDomain::Point);
   data->mode = GEO_NODE_DELETE_GEOMETRY_MODE_ALL;
 

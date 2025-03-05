@@ -303,7 +303,7 @@ static void zstd_close(FileReader *reader)
 
 FileReader *BLI_filereader_new_zstd(FileReader *base)
 {
-  ZstdReader *zstd = MEM_cnew<ZstdReader>(__func__);
+  ZstdReader *zstd = MEM_callocN<ZstdReader>(__func__);
 
   zstd->ctx = ZSTD_createDCtx();
   zstd->base = base;

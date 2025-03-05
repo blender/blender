@@ -1007,7 +1007,7 @@ static void override_idtemplate_menu()
 {
   MenuType *mt;
 
-  mt = MEM_cnew<MenuType>(__func__);
+  mt = MEM_callocN<MenuType>(__func__);
   STRNCPY(mt->idname, "UI_MT_idtemplate_liboverride");
   STRNCPY(mt->label, N_("Library Override"));
   mt->poll = override_idtemplate_menu_poll;
@@ -2065,7 +2065,7 @@ extern void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno);
 void UI_editsource_active_but_test(uiBut *but)
 {
 
-  uiEditSourceButStore *but_store = MEM_cnew<uiEditSourceButStore>(__func__);
+  uiEditSourceButStore *but_store = MEM_callocN<uiEditSourceButStore>(__func__);
 
   const char *fn;
   int line_number = -1;

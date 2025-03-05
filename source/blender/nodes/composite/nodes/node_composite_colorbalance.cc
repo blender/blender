@@ -80,7 +80,7 @@ static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_colorbalance(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeColorBalance *n = MEM_cnew<NodeColorBalance>(__func__);
+  NodeColorBalance *n = MEM_callocN<NodeColorBalance>(__func__);
 
   n->lift[0] = n->lift[1] = n->lift[2] = 1.0f;
   n->gamma[0] = n->gamma[1] = n->gamma[2] = 1.0f;

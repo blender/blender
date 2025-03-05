@@ -1009,7 +1009,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   /* Ensure mesh and editmesh topology are in sync. */
   editmode_load(bmain, ob);
 
-  targets->images = MEM_cnew<BakeImage>(__func__);
+  targets->images = MEM_callocN<BakeImage>(__func__);
   targets->images_num = 1;
 
   targets->material_to_image = static_cast<Image **>(

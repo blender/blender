@@ -73,7 +73,7 @@ static int *dm_getCornerEdgeArray(DerivedMesh *dm)
 static int *dm_getPolyArray(DerivedMesh *dm)
 {
   if (!dm->face_offsets) {
-    dm->face_offsets = MEM_cnew_array<int>(dm->getNumPolys(dm) + 1, __func__);
+    dm->face_offsets = MEM_calloc_arrayN<int>(dm->getNumPolys(dm) + 1, __func__);
     dm->copyPolyArray(dm, dm->face_offsets);
   }
   return dm->face_offsets;
@@ -285,7 +285,7 @@ static void cdDM_release(DerivedMesh *dm)
 /**************** CDDM interface functions ****************/
 static CDDerivedMesh *cdDM_create(const char *desc)
 {
-  CDDerivedMesh *cddm = MEM_cnew<CDDerivedMesh>(desc);
+  CDDerivedMesh *cddm = MEM_callocN<CDDerivedMesh>(desc);
   DerivedMesh *dm = &cddm->dm;
 
   dm->getNumVerts = cdDM_getNumVerts;

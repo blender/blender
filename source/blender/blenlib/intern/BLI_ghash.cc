@@ -416,7 +416,7 @@ static GHash *ghash_new(GHashHashFP hashfp,
                         const uint nentries_reserve,
                         const uint flag)
 {
-  GHash *gh = MEM_cnew<GHash>(info);
+  GHash *gh = MEM_callocN<GHash>(info);
 
   gh->hashfp = hashfp;
   gh->cmpfp = cmpfp;
@@ -887,7 +887,7 @@ void BLI_ghash_flag_clear(GHash *gh, uint flag)
 
 GHashIterator *BLI_ghashIterator_new(GHash *gh)
 {
-  GHashIterator *ghi = MEM_cnew<GHashIterator>("ghash iterator");
+  GHashIterator *ghi = MEM_callocN<GHashIterator>("ghash iterator");
   BLI_ghashIterator_init(ghi, gh);
   return ghi;
 }

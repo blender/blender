@@ -51,7 +51,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void fn_node_random_value_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeRandomValue *data = MEM_cnew<NodeRandomValue>(__func__);
+  NodeRandomValue *data = MEM_callocN<NodeRandomValue>(__func__);
   data->data_type = CD_PROP_FLOAT;
   node->storage = data;
 }

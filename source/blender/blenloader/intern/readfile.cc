@@ -2142,7 +2142,7 @@ static void readfile_id_runtime_data_ensure(ID &id)
   if (id.runtime.readfile_data) {
     return;
   }
-  id.runtime.readfile_data = MEM_cnew<ID_Readfile_Data>(__func__);
+  id.runtime.readfile_data = MEM_callocN<ID_Readfile_Data>(__func__);
 }
 
 ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id)

@@ -47,7 +47,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_keying(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeKeyingData *data = MEM_cnew<NodeKeyingData>(__func__);
+  NodeKeyingData *data = MEM_callocN<NodeKeyingData>(__func__);
 
   data->screen_balance = 0.5f;
   data->despill_balance = 0.5f;

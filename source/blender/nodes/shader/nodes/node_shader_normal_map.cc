@@ -57,7 +57,7 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
 
 static void node_shader_init_normal_map(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderNormalMap *attr = MEM_cnew<NodeShaderNormalMap>("NodeShaderNormalMap");
+  NodeShaderNormalMap *attr = MEM_callocN<NodeShaderNormalMap>("NodeShaderNormalMap");
   node->storage = attr;
 }
 

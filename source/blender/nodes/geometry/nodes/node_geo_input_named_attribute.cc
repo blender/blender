@@ -38,7 +38,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryInputNamedAttribute *data = MEM_cnew<NodeGeometryInputNamedAttribute>(__func__);
+  NodeGeometryInputNamedAttribute *data = MEM_callocN<NodeGeometryInputNamedAttribute>(__func__);
   data->data_type = CD_PROP_FLOAT;
   node->storage = data;
 }

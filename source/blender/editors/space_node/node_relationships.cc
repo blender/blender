@@ -2481,7 +2481,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
   /* Set up insert offset data, it needs stuff from here. */
   if (U.uiflag & USER_NODE_AUTO_OFFSET) {
     BLI_assert(snode.runtime->iofsd == nullptr);
-    NodeInsertOfsData *iofsd = MEM_cnew<NodeInsertOfsData>(__func__);
+    NodeInsertOfsData *iofsd = MEM_callocN<NodeInsertOfsData>(__func__);
 
     iofsd->insert = node_to_insert;
     iofsd->prev = from_node;

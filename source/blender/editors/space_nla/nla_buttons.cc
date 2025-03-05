@@ -660,7 +660,7 @@ void nla_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = MEM_cnew<PanelType>("spacetype nla panel animdata");
+  pt = MEM_callocN<PanelType>("spacetype nla panel animdata");
   STRNCPY(pt->idname, "NLA_PT_animdata");
   STRNCPY(pt->label, N_("Animation Data"));
   STRNCPY(pt->category, "Edited Action");
@@ -670,7 +670,7 @@ void nla_buttons_register(ARegionType *art)
   pt->poll = nla_animdata_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_cnew<PanelType>("spacetype nla panel properties");
+  pt = MEM_callocN<PanelType>("spacetype nla panel properties");
   STRNCPY(pt->idname, "NLA_PT_stripname");
   STRNCPY(pt->label, N_("Active Strip Name"));
   STRNCPY(pt->category, "Strip");
@@ -680,7 +680,7 @@ void nla_buttons_register(ARegionType *art)
   pt->poll = nla_strip_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  PanelType *pt_properties = pt = MEM_cnew<PanelType>("spacetype nla panel properties");
+  PanelType *pt_properties = pt = MEM_callocN<PanelType>("spacetype nla panel properties");
   STRNCPY(pt->idname, "NLA_PT_properties");
   STRNCPY(pt->label, N_("Active Strip"));
   STRNCPY(pt->category, "Strip");
@@ -689,7 +689,7 @@ void nla_buttons_register(ARegionType *art)
   pt->poll = nla_strip_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_cnew<PanelType>("spacetype nla panel properties");
+  pt = MEM_callocN<PanelType>("spacetype nla panel properties");
   STRNCPY(pt->idname, "NLA_PT_actionclip");
   STRNCPY(pt->label, N_("Action Clip"));
   STRNCPY(pt->category, "Strip");
@@ -699,7 +699,7 @@ void nla_buttons_register(ARegionType *art)
   pt->poll = nla_strip_actclip_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_cnew<PanelType>("spacetype nla panel evaluation");
+  pt = MEM_callocN<PanelType>("spacetype nla panel evaluation");
   STRNCPY(pt->idname, "NLA_PT_evaluation");
   STRNCPY(pt->parent_id, "NLA_PT_properties");
   STRNCPY(pt->label, N_("Animated Influence"));
@@ -713,7 +713,7 @@ void nla_buttons_register(ARegionType *art)
   BLI_addtail(&pt_properties->children, BLI_genericNodeN(pt));
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_cnew<PanelType>("spacetype nla panel animated strip time");
+  pt = MEM_callocN<PanelType>("spacetype nla panel animated strip time");
   STRNCPY(pt->idname, "NLA_PT_animated_strip_time");
   STRNCPY(pt->parent_id, "NLA_PT_properties");
   STRNCPY(pt->label, N_("Animated Strip Time"));
@@ -727,7 +727,7 @@ void nla_buttons_register(ARegionType *art)
   BLI_addtail(&pt_properties->children, BLI_genericNodeN(pt));
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_cnew<PanelType>("spacetype nla panel modifiers");
+  pt = MEM_callocN<PanelType>("spacetype nla panel modifiers");
   STRNCPY(pt->idname, "NLA_PT_modifiers");
   STRNCPY(pt->label, N_("Modifiers"));
   STRNCPY(pt->category, "Modifiers");

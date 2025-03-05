@@ -55,7 +55,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveFillet *data = MEM_cnew<NodeGeometryCurveFillet>(__func__);
+  NodeGeometryCurveFillet *data = MEM_callocN<NodeGeometryCurveFillet>(__func__);
   data->mode = GEO_NODE_CURVE_FILLET_BEZIER;
   node->storage = data;
 }

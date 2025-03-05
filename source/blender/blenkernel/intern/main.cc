@@ -775,7 +775,7 @@ void BKE_main_library_weak_reference_add(ID *local_id,
                                          const char *library_id_name)
 {
   if (local_id->library_weak_reference == nullptr) {
-    local_id->library_weak_reference = MEM_cnew<LibraryWeakReference>(__func__);
+    local_id->library_weak_reference = MEM_callocN<LibraryWeakReference>(__func__);
   }
 
   STRNCPY(local_id->library_weak_reference->library_filepath, library_filepath);

@@ -43,7 +43,7 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
 
 static void node_shader_init_vertex_color(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderVertexColor *vertexColor = MEM_cnew<NodeShaderVertexColor>("NodeShaderVertexColor");
+  NodeShaderVertexColor *vertexColor = MEM_callocN<NodeShaderVertexColor>("NodeShaderVertexColor");
   node->storage = vertexColor;
 }
 

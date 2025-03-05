@@ -438,7 +438,7 @@ void displacement_attach_from_multires(Subdiv *subdiv, Mesh *mesh, const Multire
     return;
   }
   /* Allocate all required memory. */
-  Displacement *displacement = MEM_cnew<Displacement>("multires displacement");
+  Displacement *displacement = MEM_callocN<Displacement>("multires displacement");
   displacement->user_data = MEM_new<MultiresDisplacementData>("multires displacement data");
   displacement_init_data(displacement, subdiv, mesh, mmd);
   displacement_init_functions(displacement);

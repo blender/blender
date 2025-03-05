@@ -408,7 +408,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc,
                                                  int width,
                                                  int height)
 {
-  SlideMarkerData *data = MEM_cnew<SlideMarkerData>("slide marker data");
+  SlideMarkerData *data = MEM_callocN<SlideMarkerData>("slide marker data");
   int framenr = ED_space_clip_get_clip_frame_number(sc);
 
   marker = BKE_tracking_marker_ensure(track, framenr);
@@ -1584,7 +1584,7 @@ static bool is_track_clean(MovieTrackingTrack *track, int frames, int del)
   int markersnr = track->markersnr;
 
   if (del) {
-    new_markers = MEM_cnew_array<MovieTrackingMarker>(markersnr, "track cleaned markers");
+    new_markers = MEM_calloc_arrayN<MovieTrackingMarker>(markersnr, "track cleaned markers");
   }
 
   for (int a = 0; a < markersnr; a++) {

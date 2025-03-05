@@ -784,7 +784,7 @@ static void rna_ActionGroup_channels_begin(CollectionPropertyIterator *iter, Poi
 {
   bActionGroup *group = (bActionGroup *)ptr->data;
 
-  ActionGroupChannelsIterator *custom_iter = MEM_cnew<ActionGroupChannelsIterator>(__func__);
+  ActionGroupChannelsIterator *custom_iter = MEM_callocN<ActionGroupChannelsIterator>(__func__);
 
   iter->internal.custom = custom_iter;
 

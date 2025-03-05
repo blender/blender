@@ -863,7 +863,7 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
 
 static void header_regiontype_register(ARegionType *region_type, const int space_type)
 {
-  HeaderType *ht = MEM_cnew<HeaderType>(__func__);
+  HeaderType *ht = MEM_callocN<HeaderType>(__func__);
   STRNCPY(ht->idname, "ASSETSHELF_HT_settings");
   ht->space_type = space_type;
   ht->region_type = RGN_TYPE_ASSET_SHELF_HEADER;

@@ -490,7 +490,7 @@ void Cache::eval_runtime_data(Object &object_eval) const
     }
   }
   else if (need_runtime) {
-    object_eval.light_linking = MEM_cnew<LightLinking>(__func__);
+    object_eval.light_linking = MEM_callocN<LightLinking>(__func__);
     object_eval.light_linking->runtime = runtime;
   }
 }

@@ -45,7 +45,7 @@ static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
-  NodeKeyingScreenData *data = MEM_cnew<NodeKeyingScreenData>(__func__);
+  NodeKeyingScreenData *data = MEM_callocN<NodeKeyingScreenData>(__func__);
   data->smoothness = 0.0f;
   node->storage = data;
 

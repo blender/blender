@@ -58,7 +58,7 @@ static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeLensDist *nld = MEM_cnew<NodeLensDist>(__func__);
+  NodeLensDist *nld = MEM_callocN<NodeLensDist>(__func__);
   nld->jit = nld->proj = nld->fit = 0;
   node->storage = nld;
 }

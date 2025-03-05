@@ -304,7 +304,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
                                             const float aspect_y,
                                             const int cd_loop_uv_offset)
 {
-  UVRipSingle *rip = MEM_cnew<UVRipSingle>(__func__);
+  UVRipSingle *rip = MEM_callocN<UVRipSingle>(__func__);
   const float *co_center = BM_ELEM_CD_GET_FLOAT_P(l_init_orig, cd_loop_uv_offset);
   rip->loops = BLI_gset_ptr_new(__func__);
 
@@ -557,7 +557,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
                                           const float aspect_y,
                                           const int cd_loop_uv_offset)
 {
-  UVRipPairs *rip = MEM_cnew<UVRipPairs>(__func__);
+  UVRipPairs *rip = MEM_callocN<UVRipPairs>(__func__);
   rip->loops = BLI_gset_ptr_new(__func__);
 
   /* We can rely on this stack being small, as we're walking down two sides of an edge loop,
