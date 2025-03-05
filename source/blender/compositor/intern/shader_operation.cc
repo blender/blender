@@ -348,10 +348,6 @@ void ShaderOperation::generate_code(void *thunk,
 
   shader_create_info.local_group_size(16, 16);
 
-  /* The resources are added without explicit locations, so make sure it is done by the shader
-   * creator. */
-  shader_create_info.auto_resource_location(true);
-
   /* Add implementation for implicit conversion operations inserted by the code generator. This
    * file should include the functions [float|vec3|vec4]_from_[float|vec3|vec4]. */
   shader_create_info.typedef_source("gpu_shader_compositor_type_conversion.glsl");
@@ -462,16 +458,18 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
   store_color_function << store_color_function_header << store_function_start;
   store_float4_function << store_float4_function_header << store_function_start;
 
+  int output_index = 0;
   for (StringRefNull output_identifier : output_sockets_to_output_identifiers_map_.values()) {
     const Result &result = get_result(output_identifier);
 
     /* Add a write-only image for this output where its values will be written. */
-    shader_create_info.image(0,
+    shader_create_info.image(output_index,
                              result.get_gpu_texture_format(),
                              Qualifier::WRITE,
                              gpu_image_type_from_result_type(result.type()),
                              output_identifier,
                              Frequency::PASS);
+    output_index++;
 
     /* Add a case for the index of this output followed by a break statement. */
     std::stringstream case_code;
@@ -578,13 +576,18 @@ void ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
     return;
   }
 
-  /* Add a texture sampler for each of the inputs with the same name as the attribute. */
+  /* Add a texture sampler for each of the inputs with the same name as the attribute, we start
+   * counting the sampler slot location from the number of textures in the material, since some
+   * sampler slots may be reserved for things like color band textures. */
+  const ListBase textures = GPU_material_textures(material);
+  int input_slot_location = BLI_listbase_count(&textures);
   LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
     const InputDescriptor &input_descriptor = get_input_descriptor(attribute->name);
-    shader_create_info.sampler(0,
+    shader_create_info.sampler(input_slot_location,
                                gpu_image_type_from_result_type(input_descriptor.type),
                                attribute->name,
                                Frequency::PASS);
+    input_slot_location++;
   }
 
   /* Declare a struct called var_attrs that includes an appropriately typed member for each of the
