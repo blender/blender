@@ -980,7 +980,7 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
     job->symmetry_axes = (eSymmetryAxes)0;
   }
 
-  if (op->flag == 0) {
+  if ((op->flag & OP_IS_INVOKE) == 0) {
     /* This is called directly from the exec operator, this operation is now blocking */
     job->is_nonblocking_job = false;
     wmJobWorkerStatus worker_status = {};
