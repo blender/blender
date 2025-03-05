@@ -58,8 +58,8 @@ OsdPatchParam GetPatchParam(int patchIndex)
 }
 
 /* ------------------------------------------------------------------------------
- * Patch Coordinate lookup. Return an OsdPatchCoord for the given patch_index and uvs.
- * This code is a port of the OpenSubdiv PatchMap lookup code.
+ * Patch Coordinate lookup. Return an #OsdPatchCoord for the given patch_index and UVs.
+ * This code is a port of the #OpenSubdiv PatchMap lookup code.
  */
 
 PatchHandle bogus_patch_handle()

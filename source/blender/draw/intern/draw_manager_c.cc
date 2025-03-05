@@ -548,7 +548,7 @@ void DRW_viewport_request_redraw()
 /* The Dupli systems generate a lot of transient objects that share the batch caches.
  * So we ensure to only clear and generate the cache once per source instance type using this
  * set. */
-/* TODO(fclem): This should be reconsidered as this has some uneeded overhead and complexity.
+/* TODO(fclem): This should be reconsidered as this has some unneeded overhead and complexity.
  * Maybe it isn't needed at all. */
 struct DupliCacheManager {
  private:
@@ -591,7 +591,7 @@ void DupliCacheManager::try_add(blender::draw::ObjectRef &ob_ref)
     return;
   }
   if (last_key_ == ob_ref.dupli_object) {
-    /* Same data as previous iter. No need to poll ghash for this. */
+    /* Same data as previous iteration. No need to perform the check again. */
     return;
   }
 

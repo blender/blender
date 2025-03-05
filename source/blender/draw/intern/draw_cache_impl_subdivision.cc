@@ -1684,7 +1684,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
  */
 static OpenSubdiv_EvaluatorCache *g_subdiv_evaluator_cache = nullptr;
 static uint64_t g_subdiv_evaluator_users = 0;
-/* The evaluator cache is global, so we cannot allow concurent usage and need synchronization. */
+/* The evaluator cache is global, so we cannot allow concurrent usage and need synchronization. */
 static std::mutex g_subdiv_eval_mutex;
 
 static bool draw_subdiv_create_requested_buffers(Object &ob,
@@ -1724,7 +1724,7 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
     return false;
   }
 
-  /* Lock the entire evaluation to avoid concurent usage of shader objects in evaluator cache. */
+  /* Lock the entire evaluation to avoid concurrent usage of shader objects in evaluator cache. */
   std::scoped_lock lock(g_subdiv_eval_mutex);
 
   if (g_subdiv_evaluator_cache == nullptr) {
@@ -1850,11 +1850,11 @@ void DRW_subdivide_loose_geom(DRWSubdivCache &subdiv_cache, const MeshBufferCach
 }
 
 /**
- * The `bke::subdiv::Subdiv` data is being owned the modifier.
- * Since the modifier can be freed from any thread (e.g. from depsgraph multithreaded update)
- * which may not have a valid GPUContext active, we move the data to discard to this free list
+ * The #bke::subdiv::Subdiv data is being owned the modifier.
+ * Since the modifier can be freed from any thread (e.g. from depsgraph multi-threaded update)
+ * which may not have a valid #GPUContext active, we move the data to discard to this free list
  * until a code-path with a active GPUContext is hit.
- * This is kindof garbage collection.
+ * This is kind of garbage collection.
  */
 static LinkNode *gpu_subdiv_free_queue = nullptr;
 static ThreadMutex gpu_subdiv_queue_mutex = BLI_MUTEX_INITIALIZER;

@@ -4866,7 +4866,7 @@ static void edbm_fill_grid_split_join_finish(BMEditMesh *em,
   }
   BMO_op_finish(em->bm, &split_join->delete_op);
 
-  /* If fill_grid created geometry from faces after those faces had been been split
+  /* If fill_grid created geometry from faces after those faces had been split
    * from the rest of the mesh, the geometry it generated will be inward-facing.
    * (using the fill_grid on an island instead of a hole is 'inside out'.) Fix it.
    * This is the same as #edbm_flip_normals_face_winding without the #EDBM_update

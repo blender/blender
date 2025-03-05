@@ -8,7 +8,7 @@
  * floats, but even if some compilers claim full support,
  * their standard libraries are not quite there yet.
  * LLVM/libc++ only has a float parser since LLVM 14,
- * and gcc/libstdc++ since 11.1. So until at least these are
+ * and GCC/libstdc++ since 11.1. So until at least these are
  * the minimum spec, use an external library. */
 #include "fast_float.h"
 #include <charconv>

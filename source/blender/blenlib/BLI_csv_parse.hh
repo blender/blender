@@ -225,7 +225,7 @@ std::optional<int64_t> find_end_of_quoted_field(Span<char> buffer,
  * Finds all fields for the record starting at the given index. Typically, the record ends with a
  * newline, but quoted multi-line records are supported as well.
  *
- * \return Index of the the start of the next record or the end of the buffer. #std::nullopt is
+ * \return Index of the start of the next record or the end of the buffer. #std::nullopt is
  * returned if the buffer has a malformed record at the end,
  * i.e. a quoted field that is not closed.
  */

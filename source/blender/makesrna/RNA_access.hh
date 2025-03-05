@@ -498,7 +498,7 @@ void RNA_property_string_search(
 
 /**
  * For filepath properties, get a glob pattern to filter possible files.
- * For example: *.csv
+ * For example: `*.csv`
  */
 std::optional<std::string> RNA_property_string_path_filter(const bContext *C,
                                                            PointerRNA *ptr,

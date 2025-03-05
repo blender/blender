@@ -677,7 +677,7 @@ using StringPropertySearchFunc =
              blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
- * Returns an optional glob pattern (e.g. "*.png") that can be passed to the file browser to filter
+ * Returns an optional glob pattern (e.g. `*.png`) that can be passed to the file browser to filter
  * valid files for this property.
  */
 using StringPropertyPathFilterFunc = std::optional<std::string> (*)(const bContext *C,

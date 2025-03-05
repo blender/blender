@@ -93,7 +93,7 @@ struct BlenderPatchCoord {
   uint encoded_uv;
 };
 
-/* Patch evaluation - fdots */
+/* Patch evaluation - F-dots. */
 /* vec3 is padded to vec4, but the format used for face-dots does not have any padding. */
 struct FDotVert {
   float x, y, z;
@@ -105,14 +105,14 @@ struct FDotNor {
   float flag;
 };
 
-/* This structure is a carbon copy of OpenSubDiv's PatchTable::PatchHandle. */
+/* This structure is a carbon copy of OpenSubDiv's #PatchTable::PatchHandle. */
 struct PatchHandle {
   int array_index;
   int patch_index;
   int vertex_index;
 };
 
-/* This structure is a carbon copy of OpenSubDiv's PatchCoord. */
+/* This structure is a carbon copy of OpenSubDiv's #PatchCoord. */
 struct PatchCoord {
   int array_index;
   int patch_index;
@@ -121,7 +121,7 @@ struct PatchCoord {
   float v;
 };
 
-/* This structure is a carbon copy of OpenSubDiv's PatchCoord.QuadNode.
+/* This structure is a carbon copy of OpenSubDiv's #PatchCoord.QuadNode.
  * Each child is a bit-field. */
 struct QuadNode {
   uint4 child;
@@ -130,14 +130,14 @@ struct QuadNode {
 /* When not using OSD we need to defined the structs as they subdiv_info still refer to them. */
 #if !defined(USE_GPU_SHADER_CREATE_INFO) || \
     (!defined(OSD_PATCH_BASIS_GLSL) && !defined(OSD_PATCH_BASIS_METAL))
-/* This structure is a carbon copy of OpenSubDiv's Osd::PatchParam. */
+/* This structure is a carbon copy of OpenSubDiv's #Osd::PatchParam. */
 struct OsdPatchParam {
   int field0;
   int field1;
   float sharpness;
 };
 
-/* This structure is a carbon copy of OpenSubDiv's Osd::PatchArray. */
+/* This structure is a carbon copy of OpenSubDiv's #Osd::PatchArray. */
 struct OsdPatchArray {
   int regDesc;
   int desc;
@@ -147,7 +147,7 @@ struct OsdPatchArray {
   int primitiveIdBase;
 };
 
-/* This structure is a carbon copy of OpenSubDiv's Osd::PatchCoord. */
+/* This structure is a carbon copy of OpenSubDiv's #Osd::PatchCoord. */
 struct OsdPatchCoord {
   int arrayIndex;
   int patchIndex;

@@ -1525,7 +1525,7 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
 
     state = (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE) ? UI_SCROLL_PRESSED : 0;
 
-    /* In the case that scrollbar track is invisible, range from 0 ->`final_alpha` instead to
+    /* In the case that scroll-bar track is invisible, range from 0 ->`final_alpha` instead to
      * avoid errors with users trying to click into the underlying view. */
     if (wcol.inner[3] == 0) {
       const float final_alpha = 0.25f;
@@ -1569,7 +1569,7 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
 
     state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? UI_SCROLL_PRESSED : 0;
 
-    /* In the case that scrollbar track is invisible, range from 0 ->`final_alpha` instead to
+    /* In the case that scroll-bar track is invisible, range from 0 ->`final_alpha` instead to
      * avoid errors with users trying to click into the underlying view. */
     if (wcol.inner[3] == 0) {
       const float final_alpha = 0.25f;
