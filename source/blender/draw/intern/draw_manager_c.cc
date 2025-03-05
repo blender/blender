@@ -623,20 +623,25 @@ void DupliCacheManager::extract_all()
     return;
   }
 
+  /* Note these can referenced by the temporary object pointer `Object *ob` and needs to have at
+   * least the same lifetime. */
+  blender::bke::ObjectRuntime tmp_runtime;
+  Object tmp_object;
+  tmp_object.runtime = &tmp_runtime;
+
   using Iter = blender::Set<DupliKey>::Iterator;
   Iter begin = dupli_set_->begin();
   Iter end = dupli_set_->end();
   for (Iter iter = begin; iter != end; ++iter) {
     const DupliKey &key = *iter;
     Object *ob = iter->ob;
-    Object tmp_object;
 
     if (key.ob_data != ob->data) {
-      blender::bke::ObjectRuntime runtime = *ob->runtime;
+      /* Copy both object data and runtime. */
+      tmp_runtime = *ob->runtime;
       tmp_object = blender::dna::shallow_copy(*ob);
       /* Geometry instances shouldn't be rendered with edit mode overlays. */
       tmp_object.mode = OB_MODE_OBJECT;
-      tmp_object.runtime = &runtime;
       /* Do not modify the original bound-box. */
       BKE_object_replace_data_on_shallow_copy(&tmp_object, key.ob_data);
 
