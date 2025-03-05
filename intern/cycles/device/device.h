@@ -78,46 +78,30 @@ enum MetalRTSetting {
 
 class DeviceInfo {
  public:
-  DeviceType type;
+  DeviceType type = DEVICE_CPU;
   string description;
-  string id; /* used for user preferences, should stay fixed with changing hardware config */
-  int num;
-  bool display_device;          /* GPU is used as a display device. */
-  bool has_nanovdb;             /* Support NanoVDB volumes. */
-  bool has_mnee;                /* Support MNEE. */
-  bool has_osl;                 /* Support Open Shading Language. */
-  bool has_guiding;             /* Support path guiding. */
-  bool has_profiling;           /* Supports runtime collection of profiling info. */
-  bool has_peer_memory;         /* GPU has P2P access to memory of another GPU. */
-  bool has_gpu_queue;           /* Device supports GPU queue. */
-  bool use_hardware_raytracing; /* Use hardware instructions to accelerate ray tracing. */
-  bool use_metalrt_by_default;  /* Use MetalRT by default. */
-  KernelOptimizationLevel kernel_optimization_level; /* Optimization level applied to path tracing
-                                                      * kernels (Metal only). */
-  DenoiserTypeMask denoisers;                        /* Supported denoiser types. */
-  int cpu_threads;
+  /* used for user preferences, should stay fixed with changing hardware config */
+  string id = "CPU";
+  int num = 0;
+  bool display_device = false;          /* GPU is used as a display device. */
+  bool has_nanovdb = false;             /* Support NanoVDB volumes. */
+  bool has_mnee = true;                 /* Support MNEE. */
+  bool has_osl = false;                 /* Support Open Shading Language. */
+  bool has_guiding = false;             /* Support path guiding. */
+  bool has_profiling = false;           /* Supports runtime collection of profiling info. */
+  bool has_peer_memory = false;         /* GPU has P2P access to memory of another GPU. */
+  bool has_gpu_queue = false;           /* Device supports GPU queue. */
+  bool use_hardware_raytracing = false; /* Use hardware instructions to accelerate ray tracing. */
+  bool use_metalrt_by_default = false;  /* Use MetalRT by default. */
+  KernelOptimizationLevel kernel_optimization_level =
+      KERNEL_OPTIMIZATION_LEVEL_FULL;         /* Optimization level applied to path tracing
+                                               * kernels (Metal only). */
+  DenoiserTypeMask denoisers = DENOISER_NONE; /* Supported denoiser types. */
+  int cpu_threads = 0;
   vector<DeviceInfo> multi_devices;
   string error_msg;
 
-  DeviceInfo()
-  {
-    type = DEVICE_CPU;
-    id = "CPU";
-    num = 0;
-    cpu_threads = 0;
-    display_device = false;
-    has_nanovdb = false;
-    has_mnee = true;
-    has_osl = false;
-    has_guiding = false;
-    has_profiling = false;
-    has_peer_memory = false;
-    has_gpu_queue = false;
-    use_hardware_raytracing = false;
-    use_metalrt_by_default = false;
-    kernel_optimization_level = KERNEL_OPTIMIZATION_LEVEL_FULL;
-    denoisers = DENOISER_NONE;
-  }
+  DeviceInfo() = default;
 
   bool operator==(const DeviceInfo &info) const
   {
