@@ -53,8 +53,8 @@ using blender::Vector;
 
 static void pointcloud_random(PointCloud *pointcloud);
 
-const char *POINTCLOUD_ATTR_POSITION = "position";
-const char *POINTCLOUD_ATTR_RADIUS = "radius";
+constexpr StringRef ATTR_POSITION = "position";
+constexpr StringRef ATTR_RADIUS = "radius";
 
 static void pointcloud_init_data(ID *id)
 {
@@ -180,17 +180,18 @@ IDTypeInfo IDType_ID_PT = {
 
 static void pointcloud_random(PointCloud *pointcloud)
 {
+  using namespace blender;
+  using namespace blender::bke;
   BLI_assert(pointcloud->totpoint == 0);
   pointcloud->totpoint = 400;
   CustomData_realloc(&pointcloud->pdata, 0, pointcloud->totpoint);
 
   RNG *rng = BLI_rng_new(0);
 
-  blender::bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
-  blender::MutableSpan<float3> positions = pointcloud->positions_for_write();
-  blender::bke::SpanAttributeWriter<float> radii =
-      attributes.lookup_or_add_for_write_only_span<float>(POINTCLOUD_ATTR_RADIUS,
-                                                          blender::bke::AttrDomain::Point);
+  MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
+  MutableSpan<float3> positions = pointcloud->positions_for_write();
+  SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
+      ATTR_RADIUS, AttrDomain::Point);
 
   for (const int i : positions.index_range()) {
     positions[i] = float3(BLI_rng_get_float(rng), BLI_rng_get_float(rng), BLI_rng_get_float(rng)) *
@@ -326,8 +327,8 @@ std::optional<blender::Bounds<blender::float3>> PointCloud::bounds_min_max() con
   this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
     const AttributeAccessor attributes = this->attributes();
     const Span<float3> positions = this->positions();
-    if (attributes.contains(POINTCLOUD_ATTR_RADIUS)) {
-      const VArraySpan radii = *attributes.lookup<float>(POINTCLOUD_ATTR_RADIUS);
+    if (attributes.contains(ATTR_RADIUS)) {
+      const VArraySpan radii = *attributes.lookup<float>(ATTR_RADIUS);
       r_bounds = *bounds::min_max_with_radii(positions, radii);
     }
     else {
@@ -368,7 +369,7 @@ blender::bke::MutableAttributeAccessor PointCloud::attributes_for_write()
 bool BKE_pointcloud_attribute_required(const PointCloud * /*pointcloud*/,
                                        const blender::StringRef name)
 {
-  return name == POINTCLOUD_ATTR_POSITION;
+  return name == ATTR_POSITION;
 }
 
 void pointcloud_copy_parameters(const PointCloud &src, PointCloud &dst)

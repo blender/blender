@@ -26,10 +26,6 @@ namespace blender::bke::bake {
 struct BakeMaterialsList;
 }
 
-/* PointCloud datablock */
-extern const char *POINTCLOUD_ATTR_POSITION;
-extern const char *POINTCLOUD_ATTR_RADIUS;
-
 namespace blender::bke {
 
 struct PointCloudRuntime {
