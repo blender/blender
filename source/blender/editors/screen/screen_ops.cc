@@ -408,6 +408,12 @@ static bool ed_object_hidden(const Object *ob)
   return ((ob->visibility_flag & OB_HIDE_VIEWPORT) && !(ob->mode & OB_MODE_EDIT));
 }
 
+bool ED_operator_object_active_only(bContext *C)
+{
+  Object *ob = blender::ed::object::context_active_object(C);
+  return (ob != nullptr);
+}
+
 bool ED_operator_object_active(bContext *C)
 {
   Object *ob = blender::ed::object::context_active_object(C);
