@@ -10,6 +10,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_renderpass_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
@@ -783,20 +784,7 @@ vec4 attr_load_color_post(vec4 attr)
 
 vec4 attr_load_uniform(vec4 attr, const uint attr_hash)
 {
-#if defined(OBATTR_LIB)
-  uint index = floatBitsToUint(ObjectAttributeStart);
-  for (uint i = 0; i < floatBitsToUint(ObjectAttributeLen); i++, index++) {
-    if (drw_attrs[index].hash_code == attr_hash) {
-      return vec4(drw_attrs[index].data_x,
-                  drw_attrs[index].data_y,
-                  drw_attrs[index].data_z,
-                  drw_attrs[index].data_w);
-    }
-  }
-  return vec4(0.0);
-#else
-  return attr;
-#endif
+  return drw_object_attribute(attr_hash);
 }
 
 /** \} */

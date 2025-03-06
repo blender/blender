@@ -62,7 +62,7 @@ void main()
   float alpha_rcp = safe_rcp(alpha);
 
   /* Object holdout. */
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
+  eObjectInfoFlag ob_flag = drw_object_infos().flag;
   if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
     /* alpha is set from rejected pixels / dithering. */
     g_holdout = 1.0;

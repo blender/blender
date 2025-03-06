@@ -11,6 +11,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 #endif
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -29,7 +30,7 @@ packed_float4 g_color;
 vec3 attr_load_orco(vec4 orco)
 {
   vec3 lP = drw_point_world_to_object(interp.P);
-  return OrcoTexCoFactors[0].xyz + lP * OrcoTexCoFactors[1].xyz;
+  return drw_object_orco(lP);
 }
 #endif
 vec4 attr_load_tangent(vec4 tangent)

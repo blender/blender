@@ -7,6 +7,7 @@
 VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud)
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "draw_pointcloud_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
@@ -14,13 +15,8 @@ VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud)
 
 uint outline_colorid_get()
 {
-#ifdef OBINFO_NEW
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
+  eObjectInfoFlag ob_flag = drw_object_infos().flag;
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
-#else
-  int flag = int(abs(ObjectInfo.w));
-  bool is_active = (flag & DRW_BASE_ACTIVE) != 0;
-#endif
 
   if (isTransform) {
     return 0u; /* colorTransform */

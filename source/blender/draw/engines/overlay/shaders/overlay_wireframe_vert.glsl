@@ -7,6 +7,7 @@
 VERTEX_SHADER_CREATE_INFO(overlay_wireframe)
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -23,17 +24,10 @@ bool is_edge_sharpness_visible(float wire_data)
 
 void wire_color_get(out vec3 rim_col, out vec3 wire_col)
 {
-#ifdef OBINFO_NEW
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
+  eObjectInfoFlag ob_flag = drw_object_infos().flag;
   bool is_selected = flag_test(ob_flag, OBJECT_SELECTED);
   bool is_from_set = flag_test(ob_flag, OBJECT_FROM_SET);
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
-#else
-  int flag = int(abs(ObjectInfo.w));
-  bool is_selected = (flag & DRW_BASE_SELECTED) != 0;
-  bool is_from_set = (flag & DRW_BASE_FROM_SET) != 0;
-  bool is_active = (flag & DRW_BASE_ACTIVE) != 0;
-#endif
 
   if (is_from_set) {
     rim_col = colorWire.rgb;
@@ -66,19 +60,14 @@ vec3 hsv_to_rgb(vec3 hsv)
 
 void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
 {
-#ifdef OBINFO_NEW
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
-  bool is_selected = flag_test(ob_flag, OBJECT_SELECTED);
-#else
-  int flag = int(abs(ObjectInfo.w));
-  bool is_selected = (flag & DRW_BASE_SELECTED) != 0;
-#endif
+  ObjectInfos info = drw_object_infos();
+  bool is_selected = flag_test(info.flag, OBJECT_SELECTED);
 
   if (colorType == V3D_SHADING_OBJECT_COLOR) {
-    rim_col = wire_col = ObjectColor.rgb * 0.5;
+    rim_col = wire_col = drw_object_infos().ob_color.rgb * 0.5;
   }
   else {
-    float hue = ObjectInfo.z;
+    float hue = info.random;
     vec3 hsv = vec3(hue, 0.75, 0.8);
     rim_col = wire_col = hsv_to_rgb(hsv);
   }

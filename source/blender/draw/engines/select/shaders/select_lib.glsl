@@ -21,7 +21,7 @@ void select_id_set(uint id)
 
 void select_id_output(uint id)
 {
-  if (id == -1) {
+  if (id == uint(-1)) {
     /* Invalid index */
     return;
   }

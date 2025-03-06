@@ -11,6 +11,7 @@ VERTEX_SHADER_CREATE_INFO(workbench_volume_cubic)
 VERTEX_SHADER_CREATE_INFO(workbench_volume_smoke)
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
 
 void main()
@@ -33,7 +34,8 @@ void main()
 #endif
 
 #ifdef VOLUME_SMOKE
-  final_pos = ((final_pos * 0.5 + 0.5) - OrcoTexCoFactors[0].xyz) / OrcoTexCoFactors[1].xyz;
+  ObjectInfos info = drw_object_infos();
+  final_pos = ((final_pos * 0.5 + 0.5) - info.orco_add) / info.orco_mul;
 #else
   final_pos = (volumeTextureToObject * vec4(final_pos * 0.5 + 0.5, 1.0)).xyz;
 #endif

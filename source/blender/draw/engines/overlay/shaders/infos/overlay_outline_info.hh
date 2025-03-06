@@ -14,8 +14,6 @@
 #  include "gpu_index_load_info.hh"
 #  include "gpu_shader_create_info.hh"
 
-#  define OBINFO_NEW
-
 #  define HAIR_SHADER
 #  define DRW_HAIR_INFO
 

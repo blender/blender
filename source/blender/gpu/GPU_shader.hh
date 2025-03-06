@@ -356,7 +356,6 @@ enum GPUUniformBuiltin {
   GPU_UNIFORM_VIEWPROJECTION_INV, /* mat4 ViewProjectionMatrixInverse */
 
   GPU_UNIFORM_NORMAL,     /* mat3 NormalMatrix */
-  GPU_UNIFORM_ORCO,       /* vec4 OrcoTexCoFactors[] */
   GPU_UNIFORM_CLIPPLANES, /* vec4 WorldClipPlanes[] */
 
   GPU_UNIFORM_COLOR,          /* vec4 color */

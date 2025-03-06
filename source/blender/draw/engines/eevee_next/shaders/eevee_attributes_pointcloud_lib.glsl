@@ -15,6 +15,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 SHADER_LIBRARY_CREATE_INFO(draw_pointcloud)
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "draw_pointcloud_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
@@ -31,7 +32,7 @@ vec3 attr_load_orco(vec4 orco)
 {
   vec3 P = pointcloud_get_pos();
   vec3 lP = transform_point(drw_modelinv(), P);
-  return OrcoTexCoFactors[0].xyz + lP * OrcoTexCoFactors[1].xyz;
+  return drw_object_orco(lP);
 }
 #endif
 

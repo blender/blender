@@ -54,7 +54,7 @@ void main()
 
   nodetree_surface(closure_rand);
 
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
+  eObjectInfoFlag ob_flag = drw_object_infos().flag;
   if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
     g_holdout = 1.0 - average(g_transmittance);
   }

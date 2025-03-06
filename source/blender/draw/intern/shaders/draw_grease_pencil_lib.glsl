@@ -9,6 +9,7 @@
 SHADER_LIBRARY_CREATE_INFO(draw_gpencil)
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -352,7 +353,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
     /* Flat normal following camera and object bounds. */
     vec3 V = drw_world_incident_vector(drw_modelmat()[3].xyz);
     vec3 N = drw_normal_world_to_object(V);
-    N *= OrcoTexCoFactors[1].xyz;
+    N *= drw_object_infos().orco_mul;
     N = drw_normal_world_to_object(N);
     out_N = safe_normalize(N);
 

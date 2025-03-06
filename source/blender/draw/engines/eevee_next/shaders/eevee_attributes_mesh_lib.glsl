@@ -11,6 +11,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 #endif
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -30,7 +31,7 @@ vec3 attr_load_orco(vec4 orco)
   if (orco.w == 1.0) {
     /* If the object does not have any deformation, the orco layer calculation is done on the fly
      * using the orco_madd factors. */
-    return OrcoTexCoFactors[0].xyz + pos * OrcoTexCoFactors[1].xyz;
+    return drw_object_orco(pos);
   }
 #  endif
   return orco.xyz * 0.5 + 0.5;

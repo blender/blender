@@ -198,8 +198,6 @@ inline const char *ShaderInterface::builtin_uniform_name(GPUUniformBuiltin u)
 
     case GPU_UNIFORM_NORMAL:
       return "NormalMatrix";
-    case GPU_UNIFORM_ORCO:
-      return "OrcoTexCoFactors";
     case GPU_UNIFORM_CLIPPLANES:
       return "WorldClipPlanes";
 
