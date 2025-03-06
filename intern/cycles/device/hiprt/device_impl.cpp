@@ -805,7 +805,7 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
 }
 
 hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
-                                   vector<Object *> objects,
+                                   const vector<Object *> &objects,
                                    hiprtBuildOptions options,
                                    bool refit)
 {
@@ -1097,18 +1097,16 @@ void HIPRTDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
   HIPContextScope scope(this);
 
   if (!bvh_rt->is_tlas()) {
-    vector<Geometry *> geometry = bvh_rt->geometry;
+    const vector<Geometry *> &geometry = bvh_rt->geometry;
     assert(geometry.size() == 1);
-    Geometry *geom = geometry[0];
-    build_blas(bvh_rt, geom, options);
+    build_blas(bvh_rt, geometry[0], options);
   }
   else {
 
-    const vector<Object *> objects = bvh_rt->objects;
     if (scene) {
       hiprtDestroyScene(hiprt_context, scene);
     }
-    scene = build_tlas(bvh_rt, objects, options, refit);
+    scene = build_tlas(bvh_rt, bvh_rt->objects, options, refit);
   }
 }
 CCL_NAMESPACE_END

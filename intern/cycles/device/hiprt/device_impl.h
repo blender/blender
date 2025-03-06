@@ -62,7 +62,7 @@ class HIPRTDevice : public HIPDevice {
   hiprtGeometryBuildInput prepare_point_blas(BVHHIPRT *bvh, PointCloud *pointcloud);
   void build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions options);
   hiprtScene build_tlas(BVHHIPRT *bvh,
-                        vector<Object *> objects,
+                        const vector<Object *> &objects,
                         hiprtBuildOptions options,
                         bool refit);
 
