@@ -83,7 +83,7 @@ void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
       reference_count++;
     }
 
-    get_result(item.value).set_initial_reference_count(reference_count);
+    get_result(item.value).set_reference_count(reference_count);
   }
 }
 

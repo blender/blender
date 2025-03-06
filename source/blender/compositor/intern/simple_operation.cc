@@ -39,7 +39,7 @@ void SimpleOperation::populate_result(Result result)
   Operation::populate_result(output_identifier_, result);
 
   /* The result of a simple operation is guaranteed to have a single user. */
-  get_result().set_initial_reference_count(1);
+  get_result().set_reference_count(1);
 }
 
 void SimpleOperation::declare_input_descriptor(InputDescriptor descriptor)

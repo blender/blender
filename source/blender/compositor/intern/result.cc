@@ -353,13 +353,7 @@ void Result::pass_through(Result &target)
   /* Increment the reference count of the master by the original reference count of the target. */
   increment_reference_count(target.reference_count());
 
-  /* Make the target an exact copy of this result, but keep the initial reference count, as this is
-   * a property of the original result and is needed for correctly resetting the result before the
-   * next evaluation. */
-  const int initial_reference_count = target.initial_reference_count_;
   target = *this;
-  target.initial_reference_count_ = initial_reference_count;
-
   target.master_ = this;
 }
 
@@ -372,12 +366,10 @@ void Result::steal_data(Result &source)
 
   /* Overwrite everything except reference counts. */
   const int reference_count = reference_count_;
-  const int initial_reference_count = initial_reference_count_;
   *this = source;
   reference_count_ = reference_count;
-  initial_reference_count_ = initial_reference_count;
 
-  source.reset();
+  source = Result(*context_, type_, precision_);
 }
 
 /* Returns true if the given GPU texture is compatible with the type and precision of the given
@@ -450,17 +442,9 @@ RealizationOptions &Result::get_realization_options()
   return domain_.realization_options;
 }
 
-void Result::set_initial_reference_count(int count)
+void Result::set_reference_count(int count)
 {
-  initial_reference_count_ = count;
-}
-
-void Result::reset()
-{
-  const int initial_reference_count = initial_reference_count_;
-  *this = Result(*context_, type_, precision_);
-  initial_reference_count_ = initial_reference_count;
-  reference_count_ = initial_reference_count;
+  reference_count_ = count;
 }
 
 void Result::increment_reference_count(int count)
@@ -541,7 +525,7 @@ void Result::free()
 
 bool Result::should_compute()
 {
-  return initial_reference_count_ != 0;
+  return reference_count_ != 0;
 }
 
 DerivedResources &Result::derived_resources()

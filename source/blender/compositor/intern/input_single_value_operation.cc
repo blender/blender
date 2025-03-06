@@ -21,7 +21,7 @@ InputSingleValueOperation::InputSingleValueOperation(Context &context, DInputSoc
   Result result = context.create_result(result_type);
 
   /* The result of an input single value operation is guaranteed to have a single user. */
-  result.set_initial_reference_count(1);
+  result.set_reference_count(1);
 
   populate_result(result);
 }

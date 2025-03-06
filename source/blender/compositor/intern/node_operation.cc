@@ -85,7 +85,7 @@ void NodeOperation::compute_results_reference_counts(const Schedule &schedule)
     const int reference_count = number_of_inputs_linked_to_output_conditioned(
         doutput, [&](DInputSocket input) { return schedule.contains(input.node()); });
 
-    get_result(doutput->identifier).set_initial_reference_count(reference_count);
+    get_result(doutput->identifier).set_reference_count(reference_count);
   }
 }
 

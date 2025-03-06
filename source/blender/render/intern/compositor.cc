@@ -184,7 +184,7 @@ class Context : public compositor::Context {
       /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
        * the new render size below. */
       output_result_.release();
-      output_result_.reset();
+      output_result_ = this->create_result(compositor::ResultType::Color);
     }
 
     output_result_.allocate_texture(render_size, false);
@@ -208,7 +208,7 @@ class Context : public compositor::Context {
       /* Otherwise, the size or precision changed, so release its data and reset it, then we
        * reallocate it on the new domain below. */
       viewer_output_result_.release();
-      viewer_output_result_.reset();
+      viewer_output_result_ = this->create_result(compositor::ResultType::Color);
     }
 
     viewer_output_result_.set_precision(precision);
