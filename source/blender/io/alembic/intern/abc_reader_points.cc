@@ -19,6 +19,8 @@
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
 
+#include <algorithm>
+
 using namespace Alembic::AbcGeom;
 
 namespace blender::io::alembic {
@@ -164,7 +166,7 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
   MutableSpan<float> point_radii = point_radii_writer.span;
 
   if (widths) {
-    for (size_t i = 0; i < widths->size(); i++) {
+    for (const int64_t i : IndexRange(std::min(point_radii.size(), int64_t(widths->size())))) {
       point_radii[i] = (*widths)[i] / 2.0f;
     }
   }
@@ -177,7 +179,7 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
     bke::SpanAttributeWriter<float3> normals_writer =
         attribute_accessor.lookup_or_add_for_write_span<float3>("N", bke::AttrDomain::Point);
     MutableSpan<float3> point_normals = normals_writer.span;
-    for (size_t i = 0; i < normals->size(); i++) {
+    for (const int64_t i : IndexRange(std::min(point_normals.size(), int64_t(normals->size())))) {
       Imath::V3f nor_in = (*normals)[i];
       copy_zup_from_yup(point_normals[i], nor_in.getValue());
     }
@@ -191,7 +193,9 @@ void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
           attribute_accessor.lookup_or_add_for_write_span<float3>("velocity",
                                                                   bke::AttrDomain::Point);
       MutableSpan<float3> point_velocity = velocity_writer.span;
-      for (size_t i = 0; i < velocities->size(); i++) {
+      for (const int64_t i :
+           IndexRange(std::min(point_velocity.size(), int64_t(velocities->size()))))
+      {
         const Imath::V3f &vel_in = (*velocities)[i];
         copy_zup_from_yup(point_velocity[i], vel_in.getValue());
         point_velocity[i] *= velocity_scale;
