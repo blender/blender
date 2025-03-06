@@ -170,6 +170,7 @@ class ShaderModule {
  private:
   std::array<StaticShader, MAX_SHADER_TYPE> shaders_;
   BatchHandle compilation_handle_ = 0;
+  std::mutex mutex_;
 
   class SpecializationsKey {
    private:

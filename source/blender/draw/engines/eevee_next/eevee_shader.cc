@@ -100,7 +100,7 @@ bool ShaderModule::static_shaders_are_ready(bool block_until_ready)
     return true;
   }
 
-  std::lock_guard lock = get_static_cache().lock_guard();
+  std::lock_guard lock(mutex_);
 
   if (compilation_handle_) {
     if (GPU_shader_batch_is_ready(compilation_handle_) || block_until_ready) {
@@ -125,7 +125,7 @@ bool ShaderModule::request_specializations(bool block_until_ready,
 
   BLI_assert(static_shaders_are_ready(false));
 
-  std::lock_guard lock = get_static_cache().lock_guard();
+  std::lock_guard lock(mutex_);
 
   SpecializationBatchHandle specialization_handle = specialization_handles_.lookup_or_add_cb(
       {render_buffers_shadow_id, shadow_ray_count, shadow_ray_step_count}, [&]() {
