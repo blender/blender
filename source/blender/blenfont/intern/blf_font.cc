@@ -1288,7 +1288,7 @@ static void blf_font_wrap_apply(FontBLF *font,
     g = blf_glyph_from_utf8_and_step(font, gc, g_prev, str, str_len, &i, &pen_x);
 
     const ft_pix advance_x = g ? g->advance_x : 0;
-    const uint codepoint = g ? g->c : BLI_str_utf8_as_unicode_safe(&str[i_curr]);
+    const uint codepoint = BLI_str_utf8_as_unicode_safe(&str[i_curr]);
 
     /**
      * Implementation Detail (utf8).
