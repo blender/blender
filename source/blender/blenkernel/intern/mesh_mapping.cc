@@ -474,7 +474,7 @@ GroupedSpan<int> build_edge_to_face_map(const OffsetIndices<int> faces,
  */
 using MeshRemap_CheckIslandBoundary =
     blender::FunctionRef<bool(int face_index,
-                              int loop_index,
+                              int corner,
                               int edge_index,
                               int edge_user_count,
                               const blender::Span<int> edge_face_map_elem)>;
@@ -671,7 +671,7 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
   auto face_is_smooth = [&](const int i) { return sharp_faces.is_empty() || !sharp_faces[i]; };
 
   auto face_is_island_boundary_smooth = [&](const int face_index,
-                                            const int /*loop_index*/,
+                                            const int /*corner*/,
                                             const int edge_index,
                                             const int edge_user_count,
                                             const blender::Span<int> edge_face_map_elem) {
@@ -854,12 +854,12 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
   const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
       faces, {corner_edges, corners_num}, totedge, edge_to_face_offsets, edge_to_face_indices);
 
-  Array<int> edge_to_loop_offsets;
-  Array<int> edge_to_loop_indices;
-  GroupedSpan<int> edge_to_loop_map;
+  Array<int> edge_to_corner_offsets;
+  Array<int> edge_to_corner_indices;
+  GroupedSpan<int> edge_to_corner_map;
   if (luvs) {
-    edge_to_loop_map = bke::mesh::build_edge_to_corner_map(
-        {corner_edges, corners_num}, totedge, edge_to_loop_offsets, edge_to_loop_indices);
+    edge_to_corner_map = bke::mesh::build_edge_to_corner_map(
+        {corner_edges, corners_num}, totedge, edge_to_corner_offsets, edge_to_corner_indices);
   }
 
   /* TODO: I'm not sure edge seam flag is enough to define UV islands?
@@ -869,32 +869,32 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
    *       and each UVMap would then need its own mesh mapping, not sure we want that at all!
    */
   auto mesh_check_island_boundary_uv = [&](const int /*face_index*/,
-                                           const int loop_index,
+                                           const int corner,
                                            const int edge_index,
                                            const int /*edge_user_count*/,
                                            const Span<int> /*edge_face_map_elem*/) -> bool {
     if (luvs) {
-      const Span<int> edge_to_loops = edge_to_loop_map[corner_edges[loop_index]];
+      const Span<int> edge_to_corners = edge_to_corner_map[corner_edges[corner]];
 
-      BLI_assert(edge_to_loops.size() >= 2 && (edge_to_loops.size() % 2) == 0);
+      BLI_assert(edge_to_corners.size() >= 2 && (edge_to_corners.size() % 2) == 0);
 
-      const int v1 = corner_verts[edge_to_loops[0]];
-      const int v2 = corner_verts[edge_to_loops[1]];
-      const float *uvco_v1 = luvs[edge_to_loops[0]];
-      const float *uvco_v2 = luvs[edge_to_loops[1]];
-      for (int i = 2; i < edge_to_loops.size(); i += 2) {
-        if (corner_verts[edge_to_loops[i]] == v1) {
-          if (!equals_v2v2(uvco_v1, luvs[edge_to_loops[i]]) ||
-              !equals_v2v2(uvco_v2, luvs[edge_to_loops[i + 1]]))
+      const int v1 = corner_verts[edge_to_corners[0]];
+      const int v2 = corner_verts[edge_to_corners[1]];
+      const float *uvco_v1 = luvs[edge_to_corners[0]];
+      const float *uvco_v2 = luvs[edge_to_corners[1]];
+      for (int i = 2; i < edge_to_corners.size(); i += 2) {
+        if (corner_verts[edge_to_corners[i]] == v1) {
+          if (!equals_v2v2(uvco_v1, luvs[edge_to_corners[i]]) ||
+              !equals_v2v2(uvco_v2, luvs[edge_to_corners[i + 1]]))
           {
             return true;
           }
         }
         else {
-          BLI_assert(corner_verts[edge_to_loops[i]] == v2);
+          BLI_assert(corner_verts[edge_to_corners[i]] == v2);
           UNUSED_VARS_NDEBUG(v2);
-          if (!equals_v2v2(uvco_v2, luvs[edge_to_loops[i]]) ||
-              !equals_v2v2(uvco_v1, luvs[edge_to_loops[i + 1]]))
+          if (!equals_v2v2(uvco_v2, luvs[edge_to_corners[i]]) ||
+              !equals_v2v2(uvco_v1, luvs[edge_to_corners[i + 1]]))
           {
             return true;
           }

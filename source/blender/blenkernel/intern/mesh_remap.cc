@@ -1259,7 +1259,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
     blender::Array<blender::float3> face_cents_src;
 
-    GroupedSpan<int> vert_to_loop_map_src;
+    GroupedSpan<int> vert_to_corner_map_src;
     GroupedSpan<int> vert_to_face_map_src;
 
     Array<int> edge_to_face_src_offsets;
@@ -1322,7 +1322,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
 
     if (use_from_vert) {
-      vert_to_loop_map_src = me_src->vert_to_corner_map();
+      vert_to_corner_map_src = me_src->vert_to_corner_map();
       if (mode & MREMAP_USE_POLY) {
         vert_to_face_map_src = me_src->vert_to_face_map();
       }
@@ -1523,7 +1523,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                 }
                 nor_dst = &tmp_no;
                 nors_src = loop_normals_src;
-                vert_to_refelem_map_src = vert_to_loop_map_src[nearest.index];
+                vert_to_refelem_map_src = vert_to_corner_map_src[nearest.index];
               }
               else { /* if (mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR) { */
                 nor_dst = &pnor_dst;

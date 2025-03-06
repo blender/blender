@@ -452,53 +452,53 @@ static void generate_geometry(gesture::GestureData &gesture_data)
   MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
   int face_index = 0;
-  int loop_index = 0;
+  int corner = 0;
   for (const int i : tris.index_range()) {
-    face_offsets[face_index] = loop_index;
-    corner_verts[loop_index + 0] = tris[i][0];
-    corner_verts[loop_index + 1] = tris[i][1];
-    corner_verts[loop_index + 2] = tris[i][2];
+    face_offsets[face_index] = corner;
+    corner_verts[corner + 0] = tris[i][0];
+    corner_verts[corner + 1] = tris[i][1];
+    corner_verts[corner + 2] = tris[i][2];
     face_index++;
-    loop_index += 3;
+    corner += 3;
   }
 
   /* Write the back face triangle indices. */
   for (const int i : tris.index_range()) {
-    face_offsets[face_index] = loop_index;
-    corner_verts[loop_index + 0] = tris[i][0] + screen_points.size();
-    corner_verts[loop_index + 1] = tris[i][1] + screen_points.size();
-    corner_verts[loop_index + 2] = tris[i][2] + screen_points.size();
+    face_offsets[face_index] = corner;
+    corner_verts[corner + 0] = tris[i][0] + screen_points.size();
+    corner_verts[corner + 1] = tris[i][1] + screen_points.size();
+    corner_verts[corner + 2] = tris[i][2] + screen_points.size();
     face_index++;
-    loop_index += 3;
+    corner += 3;
   }
 
   /* Write the indices for the lateral triangles. */
   for (const int i : screen_points.index_range()) {
-    face_offsets[face_index] = loop_index;
+    face_offsets[face_index] = corner;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= screen_points.size()) {
       next_index = 0;
     }
-    corner_verts[loop_index + 0] = next_index + screen_points.size();
-    corner_verts[loop_index + 1] = next_index;
-    corner_verts[loop_index + 2] = current_index;
+    corner_verts[corner + 0] = next_index + screen_points.size();
+    corner_verts[corner + 1] = next_index;
+    corner_verts[corner + 2] = current_index;
     face_index++;
-    loop_index += 3;
+    corner += 3;
   }
 
   for (const int i : screen_points.index_range()) {
-    face_offsets[face_index] = loop_index;
+    face_offsets[face_index] = corner;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= screen_points.size()) {
       next_index = 0;
     }
-    corner_verts[loop_index + 0] = current_index;
-    corner_verts[loop_index + 1] = current_index + screen_points.size();
-    corner_verts[loop_index + 2] = next_index + screen_points.size();
+    corner_verts[corner + 0] = current_index;
+    corner_verts[corner + 1] = current_index + screen_points.size();
+    corner_verts[corner + 2] = next_index + screen_points.size();
     face_index++;
-    loop_index += 3;
+    corner += 3;
   }
 
   bke::mesh_smooth_set(*trim_operation->mesh, false);

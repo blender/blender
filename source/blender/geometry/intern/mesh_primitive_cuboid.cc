@@ -104,21 +104,21 @@ static void calculate_positions(const CuboidConfig &config, MutableSpan<float3> 
  * anti-clockwise.
  */
 static void define_quad(MutableSpan<int> corner_verts,
-                        const int loop_index,
+                        const int corner,
                         const int vert_1,
                         const int vert_2,
                         const int vert_3,
                         const int vert_4)
 {
-  corner_verts[loop_index] = vert_1;
-  corner_verts[loop_index + 1] = vert_2;
-  corner_verts[loop_index + 2] = vert_3;
-  corner_verts[loop_index + 3] = vert_4;
+  corner_verts[corner] = vert_1;
+  corner_verts[corner + 1] = vert_2;
+  corner_verts[corner + 2] = vert_3;
+  corner_verts[corner + 3] = vert_4;
 }
 
 static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> corner_verts)
 {
-  int loop_index = 0;
+  int corner = 0;
 
   /* Number of vertices in an XY cross-section of the cube (barring top and bottom faces). */
   const int xy_cross_section_vert_count = config.verts_x * config.verts_y -
@@ -134,8 +134,8 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
       const int vert_3 = vert_2 + 1;
       const int vert_4 = vert_1 + 1;
 
-      define_quad(corner_verts, loop_index, vert_1, vert_2, vert_3, vert_4);
-      loop_index += 4;
+      define_quad(corner_verts, corner, vert_1, vert_2, vert_3, vert_4);
+      corner += 4;
     }
     vert_1_start += config.verts_x;
   }
@@ -147,12 +147,12 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
   for ([[maybe_unused]] const int z : IndexRange(config.edges_z)) {
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(corner_verts,
-                  loop_index,
+                  corner,
                   vert_1_start + x,
                   vert_1_start + x + 1,
                   vert_2_start + x + 1,
                   vert_2_start + x);
-      loop_index += 4;
+      corner += 4;
     }
     vert_1_start = vert_2_start;
     vert_2_start += config.verts_x * config.verts_y - (config.verts_x - 2) * (config.verts_y - 2);
@@ -167,12 +167,12 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
   for ([[maybe_unused]] const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(corner_verts,
-                  loop_index,
+                  corner,
                   vert_1_start + x,
                   vert_1_start + x + 1,
                   vert_2_start + x + 1,
                   vert_2_start + x);
-      loop_index += 4;
+      corner += 4;
     }
     vert_2_start += config.verts_x;
     vert_1_start += config.verts_x;
@@ -188,12 +188,12 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
     }
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(corner_verts,
-                  loop_index,
+                  corner,
                   vert_1_start + x,
                   vert_2_start + x,
                   vert_2_start + x + 1,
                   vert_1_start + x + 1);
-      loop_index += 4;
+      corner += 4;
     }
     vert_2_start += xy_cross_section_vert_count;
     vert_1_start += xy_cross_section_vert_count;
@@ -230,8 +230,8 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
         vert_3 = vert_2 + 2;
       }
 
-      define_quad(corner_verts, loop_index, vert_1, vert_2, vert_3, vert_4);
-      loop_index += 4;
+      define_quad(corner_verts, corner, vert_1, vert_2, vert_3, vert_4);
+      corner += 4;
     }
     if (z == 0) {
       vert_1_start += config.verts_x * config.verts_y;
@@ -276,8 +276,8 @@ static void calculate_corner_verts(const CuboidConfig &config, MutableSpan<int> 
         vert_4 = vert_1 + config.verts_x;
       }
 
-      define_quad(corner_verts, loop_index, vert_1, vert_4, vert_3, vert_2);
-      loop_index += 4;
+      define_quad(corner_verts, corner, vert_1, vert_4, vert_3, vert_2);
+      corner += 4;
     }
     if (z == 0) {
       vert_1_start += config.verts_x * config.verts_y;
@@ -296,7 +296,7 @@ static void calculate_uvs(const CuboidConfig &config, Mesh *mesh, const StringRe
       uv_id, bke::AttrDomain::Corner);
   MutableSpan<float2> uvs = uv_attribute.span;
 
-  int loop_index = 0;
+  int corner = 0;
 
   const float x_delta = 0.25f / float(config.edges_x);
   const float y_delta = 0.25f / float(config.edges_y);
@@ -305,60 +305,60 @@ static void calculate_uvs(const CuboidConfig &config, Mesh *mesh, const StringRe
   /* Calculate bottom face UVs. */
   for (const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
-      uvs[loop_index++] = float2(0.25f + x * x_delta, 0.375f - y * y_delta);
-      uvs[loop_index++] = float2(0.25f + x * x_delta, 0.375f - (y + 1) * y_delta);
-      uvs[loop_index++] = float2(0.25f + (x + 1) * x_delta, 0.375f - (y + 1) * y_delta);
-      uvs[loop_index++] = float2(0.25f + (x + 1) * x_delta, 0.375f - y * y_delta);
+      uvs[corner++] = float2(0.25f + x * x_delta, 0.375f - y * y_delta);
+      uvs[corner++] = float2(0.25f + x * x_delta, 0.375f - (y + 1) * y_delta);
+      uvs[corner++] = float2(0.25f + (x + 1) * x_delta, 0.375f - (y + 1) * y_delta);
+      uvs[corner++] = float2(0.25f + (x + 1) * x_delta, 0.375f - y * y_delta);
     }
   }
 
   /* Calculate front face UVs. */
   for (const int z : IndexRange(config.edges_z)) {
     for (const int x : IndexRange(config.edges_x)) {
-      uvs[loop_index++] = float2(0.25f + x * x_delta, 0.375f + z * z_delta);
-      uvs[loop_index++] = float2(0.25f + (x + 1) * x_delta, 0.375f + z * z_delta);
-      uvs[loop_index++] = float2(0.25f + (x + 1) * x_delta, 0.375f + (z + 1) * z_delta);
-      uvs[loop_index++] = float2(0.25f + x * x_delta, 0.375f + (z + 1) * z_delta);
+      uvs[corner++] = float2(0.25f + x * x_delta, 0.375f + z * z_delta);
+      uvs[corner++] = float2(0.25f + (x + 1) * x_delta, 0.375f + z * z_delta);
+      uvs[corner++] = float2(0.25f + (x + 1) * x_delta, 0.375f + (z + 1) * z_delta);
+      uvs[corner++] = float2(0.25f + x * x_delta, 0.375f + (z + 1) * z_delta);
     }
   }
 
   /* Calculate top face UVs. */
   for (const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
-      uvs[loop_index++] = float2(0.25f + x * x_delta, 0.625f + y * y_delta);
-      uvs[loop_index++] = float2(0.25f + (x + 1) * x_delta, 0.625f + y * y_delta);
-      uvs[loop_index++] = float2(0.25f + (x + 1) * x_delta, 0.625f + (y + 1) * y_delta);
-      uvs[loop_index++] = float2(0.25f + x * x_delta, 0.625f + (y + 1) * y_delta);
+      uvs[corner++] = float2(0.25f + x * x_delta, 0.625f + y * y_delta);
+      uvs[corner++] = float2(0.25f + (x + 1) * x_delta, 0.625f + y * y_delta);
+      uvs[corner++] = float2(0.25f + (x + 1) * x_delta, 0.625f + (y + 1) * y_delta);
+      uvs[corner++] = float2(0.25f + x * x_delta, 0.625f + (y + 1) * y_delta);
     }
   }
 
   /* Calculate back face UVs. */
   for (const int z : IndexRange(config.edges_z)) {
     for (const int x : IndexRange(config.edges_x)) {
-      uvs[loop_index++] = float2(1.0f - x * x_delta, 0.375f + z * z_delta);
-      uvs[loop_index++] = float2(1.0f - x * x_delta, 0.375f + (z + 1) * z_delta);
-      uvs[loop_index++] = float2(1.0f - (x + 1) * x_delta, 0.375f + (z + 1) * z_delta);
-      uvs[loop_index++] = float2(1.0f - (x + 1) * x_delta, 0.375f + z * z_delta);
+      uvs[corner++] = float2(1.0f - x * x_delta, 0.375f + z * z_delta);
+      uvs[corner++] = float2(1.0f - x * x_delta, 0.375f + (z + 1) * z_delta);
+      uvs[corner++] = float2(1.0f - (x + 1) * x_delta, 0.375f + (z + 1) * z_delta);
+      uvs[corner++] = float2(1.0f - (x + 1) * x_delta, 0.375f + z * z_delta);
     }
   }
 
   /* Calculate left face UVs. */
   for (const int z : IndexRange(config.edges_z)) {
     for (const int y : IndexRange(config.edges_y)) {
-      uvs[loop_index++] = float2(0.25f - y * y_delta, 0.375f + z * z_delta);
-      uvs[loop_index++] = float2(0.25f - y * y_delta, 0.375f + (z + 1) * z_delta);
-      uvs[loop_index++] = float2(0.25f - (y + 1) * y_delta, 0.375f + (z + 1) * z_delta);
-      uvs[loop_index++] = float2(0.25f - (y + 1) * y_delta, 0.375f + z * z_delta);
+      uvs[corner++] = float2(0.25f - y * y_delta, 0.375f + z * z_delta);
+      uvs[corner++] = float2(0.25f - y * y_delta, 0.375f + (z + 1) * z_delta);
+      uvs[corner++] = float2(0.25f - (y + 1) * y_delta, 0.375f + (z + 1) * z_delta);
+      uvs[corner++] = float2(0.25f - (y + 1) * y_delta, 0.375f + z * z_delta);
     }
   }
 
   /* Calculate right face UVs. */
   for (const int z : IndexRange(config.edges_z)) {
     for (const int y : IndexRange(config.edges_y)) {
-      uvs[loop_index++] = float2(0.50f + y * y_delta, 0.375f + z * z_delta);
-      uvs[loop_index++] = float2(0.50f + (y + 1) * y_delta, 0.375f + z * z_delta);
-      uvs[loop_index++] = float2(0.50f + (y + 1) * y_delta, 0.375f + (z + 1) * z_delta);
-      uvs[loop_index++] = float2(0.50f + y * y_delta, 0.375f + (z + 1) * z_delta);
+      uvs[corner++] = float2(0.50f + y * y_delta, 0.375f + z * z_delta);
+      uvs[corner++] = float2(0.50f + (y + 1) * y_delta, 0.375f + z * z_delta);
+      uvs[corner++] = float2(0.50f + (y + 1) * y_delta, 0.375f + (z + 1) * z_delta);
+      uvs[corner++] = float2(0.50f + y * y_delta, 0.375f + (z + 1) * z_delta);
     }
   }
 

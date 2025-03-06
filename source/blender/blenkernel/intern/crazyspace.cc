@@ -513,41 +513,40 @@ void BKE_crazyspace_api_eval(Depsgraph *depsgraph,
 
 void BKE_crazyspace_api_displacement_to_deformed(Object *object,
                                                  ReportList *reports,
-                                                 int vertex_index,
+                                                 int vert,
                                                  const float displacement[3],
                                                  float r_displacement_deformed[3])
 {
-  if (vertex_index < 0 || vertex_index >= object->runtime->crazyspace_deform_imats.size()) {
+  if (vert < 0 || vert >= object->runtime->crazyspace_deform_imats.size()) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Invalid vertex index %d (expected to be within 0 to %d range)",
-                vertex_index,
+                vert,
                 int(object->runtime->crazyspace_deform_imats.size()));
     return;
   }
 
-  mul_v3_m3v3(r_displacement_deformed,
-              object->runtime->crazyspace_deform_imats[vertex_index].ptr(),
-              displacement);
+  mul_v3_m3v3(
+      r_displacement_deformed, object->runtime->crazyspace_deform_imats[vert].ptr(), displacement);
 }
 
 void BKE_crazyspace_api_displacement_to_original(Object *object,
                                                  ReportList *reports,
-                                                 int vertex_index,
+                                                 int vert,
                                                  const float displacement_deformed[3],
                                                  float r_displacement[3])
 {
-  if (vertex_index < 0 || vertex_index >= object->runtime->crazyspace_deform_imats.size()) {
+  if (vert < 0 || vert >= object->runtime->crazyspace_deform_imats.size()) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Invalid vertex index %d (expected to be within 0 to %d range)",
-                vertex_index,
+                vert,
                 int(object->runtime->crazyspace_deform_imats.size()));
     return;
   }
 
   float mat[3][3];
-  if (!invert_m3_m3(mat, object->runtime->crazyspace_deform_imats[vertex_index].ptr())) {
+  if (!invert_m3_m3(mat, object->runtime->crazyspace_deform_imats[vert].ptr())) {
     copy_v3_v3(r_displacement, displacement_deformed);
     return;
   }
