@@ -361,14 +361,14 @@ Strip *add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
 void add_sound_av_sync(Main * /*bmain*/,
                        Scene * /*scene*/,
                        Strip * /*strip*/,
-                       SeqLoadData * /*load_data*/)
+                       LoadData * /*load_data*/)
 {
 }
 
 Strip *add_sound_strip(Main * /*bmain*/,
                        Scene * /*scene*/,
                        ListBase * /*seqbase*/,
-                       SeqLoadData * /*load_data*/)
+                       LoadData * /*load_data*/)
 {
   return nullptr;
 }
