@@ -1017,11 +1017,32 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
   blender::VectorSet<Strip *> movie_strips;
   const int tot_files = RNA_property_collection_length(op->ptr,
                                                        RNA_struct_find_property(op->ptr, "files"));
+
+  char vt_old[64];
+  STRNCPY(vt_old, scene->view_settings.view_transform);
+  float fps_old = scene->r.frs_sec / scene->r.frs_sec_base;
+
   if (tot_files > 1) {
     sequencer_add_movie_multiple_strips(C, op, &load_data, movie_strips);
   }
   else {
     sequencer_add_movie_single_strip(C, op, &load_data, movie_strips);
+  }
+
+  if (!STREQ(vt_old, scene->view_settings.view_transform)) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "View transform was automatically converted from %s to %s",
+                vt_old,
+                scene->view_settings.view_transform);
+  }
+
+  if (fps_old != scene->r.frs_sec / scene->r.frs_sec_base) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "Scene frame rate was automatically converted from %.4g to %.4g",
+                fps_old,
+                scene->r.frs_sec / scene->r.frs_sec_base);
   }
 
   if (movie_strips.is_empty()) {
@@ -1378,7 +1399,19 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
     deselect_all_strips(scene);
   }
 
+  char vt_old[64];
+  STRNCPY(vt_old, scene->view_settings.view_transform);
+
   Strip *strip = seq::add_image_strip(CTX_data_main(C), scene, ed->seqbasep, &load_data);
+
+  if (!STREQ(vt_old, scene->view_settings.view_transform)) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "View transform was automatically converted from %s to %s",
+                vt_old,
+                scene->view_settings.view_transform);
+  }
+
   sequencer_add_image_strip_load_files(op, scene, strip, &load_data, minframe, numdigits);
   seq::add_image_init_alpha_mode(strip);
 
