@@ -253,9 +253,11 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   pso->num.idx_max = 0;                /* One axis. */
   pso->num.unit_type[0] = B_UNIT_NONE; /* Percentages don't have any units. */
 
-  /* Save current bone visibility. */
-  View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
-  pso->overlay_flag = v3d->overlay.flag;
+  if (pso->area && (pso->area->spacetype == SPACE_VIEW3D)) {
+    /* Save current bone visibility. */
+    View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
+    pso->overlay_flag = v3d->overlay.flag;
+  }
 
   /* Return status is whether we've got all the data we were requested to get. */
   return 1;
@@ -271,7 +273,7 @@ static void pose_slide_exit(bContext *C, wmOperator *op)
   ED_slider_destroy(C, pso->slider);
 
   /* Hide Bone Overlay. */
-  if (pso->area) {
+  if (pso->area && (pso->area->spacetype == SPACE_VIEW3D)) {
     View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
     v3d->overlay.flag = pso->overlay_flag;
   }
@@ -954,7 +956,7 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 
     status.item(str_offs, ICON_NONE);
   }
-  else {
+  else if (pso->area && (pso->area->spacetype == SPACE_VIEW3D)) {
     ED_slider_status_get(pso->slider, status);
     View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
     status.item_bool(
@@ -1252,9 +1254,12 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
           /* Toggle Bone visibility. */
           case EVT_HKEY: {
-            View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
-            v3d->overlay.flag ^= V3D_OVERLAY_HIDE_BONES;
-            ED_region_tag_redraw(pso->region);
+            if (pso->area && (pso->area->spacetype == SPACE_VIEW3D)) {
+              View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
+              v3d->overlay.flag ^= V3D_OVERLAY_HIDE_BONES;
+              ED_region_tag_redraw(pso->region);
+            }
+            break;
           }
 
           default: /* Some other unhandled key... */
