@@ -17,6 +17,8 @@ struct Scene;
 struct Strip;
 struct StripElem;
 
+namespace blender::seq {
+
 void SEQ_sequence_base_unique_name_recursive(Scene *scene, ListBase *seqbasep, Strip *strip);
 const char *SEQ_sequence_give_name(const Strip *strip);
 ListBase *SEQ_get_seqbase_from_sequence(Strip *strip, ListBase **r_channels, int *r_offset);
@@ -57,8 +59,6 @@ void SEQ_set_scale_to_fit(const Strip *strip,
 void SEQ_ensure_unique_name(Strip *strip, Scene *scene);
 
 void SEQ_fontmap_clear();
-
-namespace blender::seq {
 
 /**
  * Check whether a sequence strip has missing media.

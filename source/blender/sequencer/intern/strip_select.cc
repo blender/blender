@@ -16,6 +16,8 @@
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 
+namespace blender::seq {
+
 Strip *SEQ_select_active_get(const Scene *scene)
 {
   const Editing *ed = SEQ_editing_get(scene);
@@ -62,3 +64,5 @@ bool SEQ_select_active_get_pair(Scene *scene, Strip **r_seq_act, Strip **r_seq_o
 
   return (*r_seq_other != nullptr);
 }
+
+}  // namespace blender::seq

@@ -19,7 +19,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 static void init_transform_effect(Strip *strip)
 {
@@ -200,3 +200,5 @@ void transform_effect_get_handle(SeqEffectHandle &rval)
   rval.copy = copy_transform_effect;
   rval.execute = do_transform_effect;
 }
+
+}  // namespace blender::seq

@@ -14,6 +14,8 @@ struct Main;
 struct Scene;
 struct Strip;
 
+namespace blender::seq {
+
 bool SEQ_edit_sequence_swap(Scene *scene,
                             Strip *strip_a,
                             Strip *strip_b,
@@ -89,3 +91,5 @@ bool SEQ_edit_remove_gaps(Scene *scene,
                           int initial_frame,
                           bool remove_all_gaps);
 void SEQ_edit_sequence_name_set(Scene *scene, Strip *strip, const char *new_name);
+
+}  // namespace blender::seq

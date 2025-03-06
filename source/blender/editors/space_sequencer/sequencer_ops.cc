@@ -17,6 +17,8 @@
 
 #include "sequencer_intern.hh"
 
+namespace blender::ed::vse {
+
 /* ************************** registration **********************************/
 
 void sequencer_operatortypes()
@@ -186,3 +188,5 @@ void ED_operatormacros_sequencer()
   WM_operatortype_macro_define(ot, "SEQUENCER_OT_retiming_transition_add");
   WM_operatortype_macro_define(ot, "TRANSFORM_OT_seq_slide");
 }
+
+}  // namespace blender::ed::vse

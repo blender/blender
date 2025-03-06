@@ -2155,10 +2155,10 @@ static void sequence_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, 
   TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
   Strip *strip = &te_strip->get_strip();
   Scene *scene = (Scene *)scene_ptr;
-  Editing *ed = SEQ_editing_get(scene);
+  Editing *ed = seq::SEQ_editing_get(scene);
   if (BLI_findindex(ed->seqbasep, strip) != -1) {
     if (event == OL_DOP_SELECT) {
-      ED_sequencer_select_sequence_single(scene, strip, true);
+      vse::ED_sequencer_select_sequence_single(scene, strip, true);
     }
     else if (event == OL_DOP_DESELECT) {
       strip->flag &= ~SELECT;
@@ -2166,13 +2166,13 @@ static void sequence_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, 
     else if (event == OL_DOP_HIDE) {
       if (!(strip->flag & SEQ_MUTE)) {
         strip->flag |= SEQ_MUTE;
-        SEQ_relations_invalidate_dependent(scene, strip);
+        seq::SEQ_relations_invalidate_dependent(scene, strip);
       }
     }
     else if (event == OL_DOP_UNHIDE) {
       if (strip->flag & SEQ_MUTE) {
         strip->flag &= ~SEQ_MUTE;
-        SEQ_relations_invalidate_dependent(scene, strip);
+        seq::SEQ_relations_invalidate_dependent(scene, strip);
       }
     }
   }

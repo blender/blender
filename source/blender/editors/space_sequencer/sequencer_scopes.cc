@@ -24,7 +24,7 @@
 #  include "BLI_timeit.hh"
 #endif
 
-namespace blender::ed::seq {
+namespace blender::ed::vse {
 
 SeqScopes::~SeqScopes()
 {
@@ -392,4 +392,4 @@ ImBuf *make_vectorscope_view_from_ibuf(const ImBuf *ibuf)
   return rval;
 }
 
-}  // namespace blender::ed::seq
+}  // namespace blender::ed::vse

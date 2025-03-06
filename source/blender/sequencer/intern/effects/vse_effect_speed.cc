@@ -21,6 +21,8 @@
 #include "effects.hh"
 #include "render.hh"
 
+namespace blender::seq {
+
 static void init_speed_effect(Strip *strip)
 {
   if (strip->effectdata) {
@@ -215,3 +217,5 @@ void speed_effect_get_handle(SeqEffectHandle &rval)
   rval.execute = do_speed_effect;
   rval.early_out = early_out_speed;
 }
+
+}  // namespace blender::seq

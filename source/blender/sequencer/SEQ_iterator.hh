@@ -14,6 +14,8 @@ struct ListBase;
 struct Scene;
 struct Strip;
 
+namespace blender::seq {
+
 /**
  * Callback format for the for_each function below.
  */
@@ -130,3 +132,5 @@ blender::VectorSet<Strip *> SEQ_query_rendered_strips(const Scene *scene,
                                                       ListBase *seqbase,
                                                       int timeline_frame,
                                                       int displayed_channel);
+
+}  // namespace blender::seq

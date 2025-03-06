@@ -55,6 +55,8 @@
 #include "sequencer.hh"
 #include "strip_time.hh"
 
+namespace blender::seq {
+
 void SEQ_add_load_data_init(SeqLoadData *load_data,
                             const char *name,
                             const char *path,
@@ -741,3 +743,5 @@ void SEQ_add_movie_reload_if_needed(
   /* There are one or more anims, and all can produce frames. */
   *r_can_produce_frames = true;
 }
+
+}  // namespace blender::seq

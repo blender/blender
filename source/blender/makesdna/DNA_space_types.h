@@ -67,10 +67,10 @@ struct SpaceOutliner_Runtime;
 }  // namespace blender::ed::outliner
 using SpaceOutliner_Runtime = blender::ed::outliner::SpaceOutliner_Runtime;
 
-namespace blender::ed::seq {
+namespace blender::ed::vse {
 struct SpaceSeq_Runtime;
-}  // namespace blender::ed::seq
-using SpaceSeq_Runtime = blender::ed::seq::SpaceSeq_Runtime;
+}  // namespace blender::ed::vse
+using SpaceSeq_Runtime = blender::ed::vse::SpaceSeq_Runtime;
 
 namespace blender::ed::text {
 struct SpaceText_Runtime;

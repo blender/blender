@@ -21,6 +21,8 @@
 #include "SEQ_channels.hh"
 #include "SEQ_sequencer.hh"
 
+namespace blender::seq {
+
 ListBase *SEQ_channels_displayed_get(Editing *ed)
 {
   return ed->displayed_channels;
@@ -100,3 +102,5 @@ ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const S
 
   return nullptr;
 }
+
+}  // namespace blender::seq

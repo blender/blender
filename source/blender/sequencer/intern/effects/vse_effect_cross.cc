@@ -14,7 +14,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 struct CrossEffectOp {
   template<typename T> void apply(const T *src1, const T *src2, T *dst, int64_t size) const
@@ -124,3 +124,5 @@ void gamma_cross_effect_get_handle(SeqEffectHandle &rval)
   rval.get_default_fac = get_default_fac_fade;
   rval.execute = do_gammacross_effect;
 }
+
+}  // namespace blender::seq

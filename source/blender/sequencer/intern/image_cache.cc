@@ -61,6 +61,8 @@
  * User can exclude caching of some images. Such entries will have is_temp_cache set.
  */
 
+namespace blender::seq {
+
 struct SeqCache {
   Main *bmain;
   GHash *hash;
@@ -875,3 +877,5 @@ bool seq_cache_is_full()
 {
   return seq_cache_get_mem_total() < MEM_get_memory_in_use();
 }
+
+}  // namespace blender::seq

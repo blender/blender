@@ -49,6 +49,8 @@
 #include "sequencer.hh"
 #include "utils.hh"
 
+namespace blender::seq {
+
 struct SeqUniqueInfo {
   Strip *strip;
   char name_src[STRIP_NAME_MAXSTR];
@@ -518,3 +520,5 @@ void SEQ_ensure_unique_name(Strip *strip, Scene *scene)
     }
   }
 }
+
+}  // namespace blender::seq

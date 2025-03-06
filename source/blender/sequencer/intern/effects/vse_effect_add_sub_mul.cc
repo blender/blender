@@ -14,6 +14,8 @@
 
 #include "effects.hh"
 
+namespace blender::seq {
+
 /* -------------------------------------------------------------------- */
 /* Color Add Effect */
 
@@ -163,3 +165,5 @@ void mul_effect_get_handle(SeqEffectHandle &rval)
   rval.execute = do_mul_effect;
   rval.early_out = early_out_mul_input2;
 }
+
+}  // namespace blender::seq

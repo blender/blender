@@ -13,6 +13,9 @@
 struct Scene;
 struct Strip;
 struct StripProxy;
+
+namespace blender::seq {
+
 /**
  * Cache must be freed before calling this function
  * since it leaves the #Editing::seqbase in an invalid state.
@@ -39,3 +42,5 @@ Strip *SEQ_lookup_meta_by_strip(Editing *ed, const Strip *key);
  * \return collection of effect strips
  */
 blender::Span<Strip *> SEQ_lookup_effects_by_strip(Editing *ed, const Strip *key);
+
+}  // namespace blender::seq

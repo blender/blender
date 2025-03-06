@@ -48,7 +48,7 @@ static TransData *SeqToTransData(const Scene *scene,
                                  int vert_index)
 {
   const StripTransform *transform = strip->data->transform;
-  const float2 origin = SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
+  const float2 origin = seq::SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
   float vertex[2] = {origin[0], origin[1]};
 
   /* Add control vertex, so rotation and scale can be calculated.
@@ -104,7 +104,7 @@ static void freeSeqData(TransInfo * /*t*/,
 
 static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
 {
-  Editing *ed = SEQ_editing_get(t->scene);
+  Editing *ed = seq::SEQ_editing_get(t->scene);
   const SpaceSeq *sseq = static_cast<const SpaceSeq *>(t->area->spacedata.first);
   const ARegion *region = t->region;
 
@@ -118,9 +118,10 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
     return;
   }
 
-  ListBase *seqbase = SEQ_active_seqbase_get(ed);
-  ListBase *channels = SEQ_channels_displayed_get(ed);
-  VectorSet strips = SEQ_query_rendered_strips(t->scene, channels, seqbase, t->scene->r.cfra, 0);
+  ListBase *seqbase = seq::SEQ_active_seqbase_get(ed);
+  ListBase *channels = seq::SEQ_channels_displayed_get(ed);
+  VectorSet strips = seq::SEQ_query_rendered_strips(
+      t->scene, channels, seqbase, t->scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
 
   if (strips.is_empty()) {
@@ -219,7 +220,7 @@ static void recalcData_sequencer_image(TransInfo *t)
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdseq->strip;
     StripTransform *transform = strip->data->transform;
-    const float2 mirror = SEQ_image_transform_mirror_factor_get(strip);
+    const float2 mirror = seq::SEQ_image_transform_mirror_factor_get(strip);
 
     /* Calculate translation. */
     float translation[2];
@@ -250,7 +251,7 @@ static void recalcData_sequencer_image(TransInfo *t)
       autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
 
-    SEQ_relations_invalidate_cache_preprocessed(t->scene, strip);
+    seq::SEQ_relations_invalidate_cache_preprocessed(t->scene, strip);
   }
 }
 

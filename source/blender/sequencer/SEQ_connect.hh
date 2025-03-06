@@ -13,6 +13,8 @@
 struct Strip;
 struct ListBase;
 
+namespace blender::seq {
+
 void SEQ_connections_duplicate(ListBase *connections_dst, ListBase *connections_src);
 
 /**
@@ -52,3 +54,5 @@ bool SEQ_is_strip_connected(const Strip *strip);
  * connected to each other and there are no outside connections.
  */
 bool SEQ_are_strips_connected_together(blender::VectorSet<Strip *> &strip_list);
+
+}  // namespace blender::seq

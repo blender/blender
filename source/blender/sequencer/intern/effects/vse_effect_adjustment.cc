@@ -17,6 +17,8 @@
 #include "effects.hh"
 #include "render.hh"
 
+namespace blender::seq {
+
 /* No effect inputs for adjustment, we use #give_ibuf_seq. */
 static int num_inputs_adjustment()
 {
@@ -94,3 +96,5 @@ void adjustment_effect_get_handle(SeqEffectHandle &rval)
   rval.early_out = early_out_adjustment;
   rval.execute = do_adjustment;
 }
+
+}  // namespace blender::seq

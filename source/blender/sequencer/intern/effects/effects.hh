@@ -19,6 +19,8 @@ struct ImBuf;
 struct Scene;
 struct Strip;
 
+namespace blender::seq {
+
 SeqEffectHandle strip_effect_get_sequence_blend(Strip *strip);
 /**
  * Build frame map when speed in mode #SEQ_SPEED_MULTIPLY is animated.
@@ -141,3 +143,5 @@ static void apply_effect_op(const OpT &op, const ImBuf *src1, const ImBuf *src2,
         }
       });
 }
+
+}  // namespace blender::seq

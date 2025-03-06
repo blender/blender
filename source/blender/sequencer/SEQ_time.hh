@@ -13,6 +13,8 @@ struct Scene;
 struct Strip;
 struct rctf;
 
+namespace blender::seq {
+
 /**
  * Initialize given rectangle with the Scene's timeline boundaries.
  *
@@ -134,3 +136,5 @@ float SEQ_time_media_playback_rate_factor_get(const Strip *strip, float frames_p
  * Returns zero if sequence is not a sound strip or if there is no offset.
  */
 int SEQ_time_get_rounded_sound_offset(const Strip *strip, float frames_per_second);
+
+}  // namespace blender::seq

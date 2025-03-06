@@ -12,6 +12,8 @@ struct Scene;
 struct SeqRenderData;
 struct Strip;
 
+namespace blender::seq {
+
 /**
  * Start or resume prefetching.
  */
@@ -27,3 +29,5 @@ SeqRenderData *seq_prefetch_get_original_context(const SeqRenderData *context);
  * For cache context swapping.
  */
 Strip *seq_prefetch_get_original_sequence(Strip *strip, Scene *scene);
+
+}  // namespace blender::seq

@@ -17,7 +17,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 static void init_gaussian_blur_effect(Strip *strip)
 {
@@ -225,3 +225,5 @@ void gaussian_blur_effect_get_handle(SeqEffectHandle &rval)
   rval.early_out = early_out_gaussian_blur;
   rval.execute = do_gaussian_blur_effect;
 }
+
+}  // namespace blender::seq

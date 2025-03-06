@@ -22,6 +22,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::seq {
+
 static std::mutex lookup_lock;
 
 struct StripLookup {
@@ -167,3 +169,5 @@ void SEQ_strip_lookup_invalidate(const Editing *ed)
     lookup->is_valid = false;
   }
 }
+
+}  // namespace blender::seq

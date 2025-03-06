@@ -17,6 +17,8 @@ struct ReportList;
 struct Scene;
 struct Strip;
 
+namespace blender::seq {
+
 /**
  * Check if one sequence is input to the other.
  */
@@ -68,3 +70,5 @@ Strip *SEQ_find_metastrip_by_sequence(ListBase *seqbase /* = ed->seqbase */,
                                       Strip *meta /* = NULL */,
                                       Strip *strip);
 bool SEQ_exists_in_seqbase(const Strip *strip, const ListBase *seqbase);
+
+}  // namespace blender::seq

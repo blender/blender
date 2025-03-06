@@ -35,6 +35,8 @@
 #include "strip_time.hh"
 #include "utils.hh"
 
+namespace blender::seq {
+
 float SEQ_time_media_playback_rate_factor_get(const Strip *strip, const float scene_fps)
 {
   if ((strip->flag & SEQ_AUTO_PLAYBACK_RATE) == 0) {
@@ -614,3 +616,5 @@ int SEQ_time_get_rounded_sound_offset(const Strip *strip, const float frames_per
   }
   return 0;
 }
+
+}  // namespace blender::seq

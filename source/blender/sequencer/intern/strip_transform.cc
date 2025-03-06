@@ -30,7 +30,7 @@
 #include "sequencer.hh"
 #include "strip_time.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 bool SEQ_transform_single_image_check(const Strip *strip)
 {
@@ -694,3 +694,5 @@ Bounds<float2> SEQ_image_transform_bounding_box_from_collection(Scene *scene,
 
   return box;
 }
+
+}  // namespace blender::seq

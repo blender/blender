@@ -693,7 +693,7 @@ void BKE_sound_update_fps(Main *bmain, Scene *scene)
     AUD_Sequence_setFPS(scene->sound_scene, FPS);
   }
 
-  SEQ_sound_update_length(bmain, scene);
+  blender::seq::SEQ_sound_update_length(bmain, scene);
 }
 
 void BKE_sound_update_scene_listener(Scene *scene)
@@ -723,11 +723,12 @@ void *BKE_sound_scene_add_scene_sound(
 
 void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Strip *sequence)
 {
-  return BKE_sound_scene_add_scene_sound(scene,
-                                         sequence,
-                                         SEQ_time_left_handle_frame_get(scene, sequence),
-                                         SEQ_time_right_handle_frame_get(scene, sequence),
-                                         sequence->startofs + sequence->anim_startofs);
+  return BKE_sound_scene_add_scene_sound(
+      scene,
+      sequence,
+      blender::seq::SEQ_time_left_handle_frame_get(scene, sequence),
+      blender::seq::SEQ_time_right_handle_frame_get(scene, sequence),
+      sequence->startofs + sequence->anim_startofs);
 }
 
 void *BKE_sound_add_scene_sound(
@@ -760,8 +761,8 @@ void *BKE_sound_add_scene_sound_defaults(Scene *scene, Strip *sequence)
 {
   return BKE_sound_add_scene_sound(scene,
                                    sequence,
-                                   SEQ_time_left_handle_frame_get(scene, sequence),
-                                   SEQ_time_right_handle_frame_get(scene, sequence),
+                                   blender::seq::SEQ_time_left_handle_frame_get(scene, sequence),
+                                   blender::seq::SEQ_time_right_handle_frame_get(scene, sequence),
                                    sequence->startofs + sequence->anim_startofs);
 }
 
@@ -803,8 +804,8 @@ void BKE_sound_move_scene_sound_defaults(Scene *scene, Strip *sequence)
     }
     BKE_sound_move_scene_sound(scene,
                                sequence->scene_sound,
-                               SEQ_time_left_handle_frame_get(scene, sequence),
-                               SEQ_time_right_handle_frame_get(scene, sequence),
+                               blender::seq::SEQ_time_left_handle_frame_get(scene, sequence),
+                               blender::seq::SEQ_time_right_handle_frame_get(scene, sequence),
                                sequence->startofs + sequence->anim_startofs,
                                offset_time);
   }
@@ -885,7 +886,7 @@ void BKE_sound_update_sequencer(Main *main, bSound *sound)
   for (scene = static_cast<Scene *>(main->scenes.first); scene;
        scene = static_cast<Scene *>(scene->id.next))
   {
-    SEQ_sound_update(scene, sound);
+    blender::seq::SEQ_sound_update(scene, sound);
   }
 }
 

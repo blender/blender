@@ -15,6 +15,8 @@
 #include "GPU_index_buffer.hh"
 #include "GPU_vertex_buffer.hh"
 
+namespace blender::ed::vse {
+
 struct ColorVertex {
   blender::float2 pos;
   blender::ColorTheme4b color;
@@ -169,3 +171,5 @@ void SeqQuadsBatch::add_line(
 
   lines_num++;
 }
+
+}  // namespace blender::ed::vse

@@ -20,6 +20,8 @@ struct Scene;
 struct Strip;
 struct Stereo3dFormat;
 
+namespace blender::seq {
+
 /** #SeqLoadData.flags */
 enum eSeqLoadFlags {
   SEQ_LOAD_SOUND_CACHE = (1 << 1),
@@ -183,3 +185,5 @@ void SEQ_add_image_init_alpha_mode(Strip *strip);
 void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, bool lock_range);
 void SEQ_add_movie_reload_if_needed(
     Main *bmain, Scene *scene, Strip *strip, bool *r_was_reloaded, bool *r_can_produce_frames);
+
+}  // namespace blender::seq

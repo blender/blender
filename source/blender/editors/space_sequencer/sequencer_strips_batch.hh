@@ -20,7 +20,7 @@ namespace blender::gpu {
 class Batch;
 }
 
-namespace blender::ed::seq {
+namespace blender::ed::vse {
 
 /* Utility to draw VSE timeline strip widgets in batches, with a dedicated
  * shader. Internally, strip data for drawing is encoded into a uniform
@@ -83,4 +83,4 @@ class StripsDrawBatch {
 uint color_pack(const uchar rgba[4]);
 float calc_strip_round_radius(float pixely);
 
-}  // namespace blender::ed::seq
+}  // namespace blender::ed::vse

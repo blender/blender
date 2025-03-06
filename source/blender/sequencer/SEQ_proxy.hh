@@ -16,12 +16,15 @@ struct Depsgraph;
 struct ListBase;
 struct Main;
 struct Scene;
-struct SeqIndexBuildContext;
 struct SeqRenderData;
 struct Strip;
 struct bContext;
 struct wmJob;
 struct wmJobWorkerStatus;
+
+namespace blender::seq {
+
+struct SeqIndexBuildContext;
 
 bool SEQ_proxy_rebuild_context(Main *bmain,
                                Depsgraph *depsgraph,
@@ -47,3 +50,5 @@ struct ProxyJob {
 
 wmJob *ED_seq_proxy_wm_job_get(const bContext *C);
 ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job);
+
+}  // namespace blender::seq

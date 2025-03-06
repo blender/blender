@@ -50,6 +50,8 @@
 #include "sequencer.hh"
 #include "utils.hh"
 
+namespace blender::seq {
+
 struct SeqIndexBuildContext {
   MovieProxyBuilder *proxy_builder;
 
@@ -621,3 +623,5 @@ void free_proxy_seq(Strip *strip)
     strip->data->proxy->anim = nullptr;
   }
 }
+
+}  // namespace blender::seq

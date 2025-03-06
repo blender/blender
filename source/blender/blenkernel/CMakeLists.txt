@@ -491,7 +491,6 @@ set(SRC
   BKE_scene.hh
   BKE_scene_runtime.hh
   BKE_screen.hh
-  BKE_sequencer_offscreen.h
   BKE_shader_fx.h
   BKE_shrinkwrap.hh
   BKE_softbody.h

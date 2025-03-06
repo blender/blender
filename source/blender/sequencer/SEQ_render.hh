@@ -18,6 +18,8 @@ struct Scene;
 struct Strip;
 struct StripElem;
 
+namespace blender::seq {
+
 enum eSeqTaskId {
   SEQ_TASK_MAIN_RENDER,
   SEQ_TASK_PREFETCH_RENDER,
@@ -77,3 +79,5 @@ void SEQ_render_pixel_from_sequencer_space_v4(const Scene *scene, float pixel[4]
  * This function also checks `SeqTimelineChannel` flag.
  */
 bool SEQ_render_is_muted(const ListBase *channels, const Strip *strip);
+
+}  // namespace blender::seq

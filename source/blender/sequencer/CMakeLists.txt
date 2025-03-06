@@ -25,6 +25,7 @@ set(SRC
   SEQ_effects.hh
   SEQ_iterator.hh
   SEQ_modifier.hh
+  SEQ_offscreen.hh
   SEQ_prefetch.hh
   SEQ_proxy.hh
   SEQ_relations.hh

@@ -20,6 +20,8 @@ struct SeqEffectHandle;
 struct SeqRenderData;
 struct Strip;
 
+namespace blender::seq {
+
 /* mutable state for sequencer */
 struct SeqRenderState {
   LinkNode *scene_parents = nullptr;
@@ -28,7 +30,7 @@ struct SeqRenderState {
 /* Strip corner coordinates in screen pixel space. Note that they might not be
  * axis aligned when rotation is present. */
 struct StripScreenQuad {
-  blender::float2 v0, v1, v2, v3;
+  float2 v0, v1, v2, v3;
 
   bool is_empty() const
   {
@@ -58,3 +60,5 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
 void seq_imbuf_assign_spaces(const Scene *scene, ImBuf *ibuf);
 
 StripScreenQuad get_strip_screen_quad(const SeqRenderData *context, const Strip *strip);
+
+}  // namespace blender::seq

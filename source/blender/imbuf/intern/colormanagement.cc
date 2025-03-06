@@ -1314,7 +1314,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 
     /* check sequencer strip input color space settings */
     if (scene->ed != nullptr) {
-      SEQ_for_each_callback(&scene->ed->seqbase, strip_callback, nullptr);
+      blender::seq::SEQ_for_each_callback(&scene->ed->seqbase, strip_callback, nullptr);
     }
   }
 

@@ -12,10 +12,13 @@ struct BlendDataReader;
 struct BlendWriter;
 struct ImBuf;
 struct ListBase;
-struct SeqRenderData;
 struct Strip;
 struct SequenceModifierData;
+
+namespace blender::seq {
+
 struct StripScreenQuad;
+struct SeqRenderData;
 
 struct SequenceModifierTypeInfo {
   /* default name for the modifier */
@@ -60,3 +63,5 @@ int SEQ_sequence_supports_modifiers(Strip *strip);
 
 void SEQ_modifier_blend_write(BlendWriter *writer, ListBase *modbase);
 void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb);
+
+}  // namespace blender::seq

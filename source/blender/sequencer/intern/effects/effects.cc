@@ -23,7 +23,7 @@
 #include "effects.hh"
 #include "render.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
                              ImBuf *ibuf1,
@@ -293,3 +293,5 @@ int SEQ_effect_get_num_inputs(int strip_type)
   }
   return 0;
 }
+
+}  // namespace blender::seq

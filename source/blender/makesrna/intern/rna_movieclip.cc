@@ -60,7 +60,7 @@ static void rna_MovieClip_use_proxy_update(Main *bmain, Scene * /*scene*/, Point
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   BKE_movieclip_clear_cache(clip);
-  SEQ_relations_invalidate_movieclip_strips(bmain, clip);
+  blender::seq::SEQ_relations_invalidate_movieclip_strips(bmain, clip);
 }
 
 static void rna_MovieClipUser_proxy_render_settings_update(Main *bmain,
@@ -89,7 +89,7 @@ static void rna_MovieClipUser_proxy_render_settings_update(Main *bmain,
 
             if (clip && (clip->flag & MCLIP_USE_PROXY)) {
               BKE_movieclip_clear_cache(clip);
-              SEQ_relations_invalidate_movieclip_strips(bmain, clip);
+              blender::seq::SEQ_relations_invalidate_movieclip_strips(bmain, clip);
             }
 
             break;

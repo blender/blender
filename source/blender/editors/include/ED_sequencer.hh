@@ -16,6 +16,8 @@ struct SpaceSeq;
 struct bContext;
 struct View2D;
 
+namespace blender::ed::vse {
+
 enum eSeqHandle {
   SEQ_HANDLE_NONE,
   SEQ_HANDLE_LEFT,
@@ -76,3 +78,5 @@ StripSelection ED_sequencer_pick_strip_and_handle(const struct Scene *scene,
                                                   float mouse_co[2]);
 bool ED_sequencer_can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d);
 bool ED_sequencer_handle_is_selected(const Strip *strip, eSeqHandle handle);
+
+}  // namespace blender::ed::vse

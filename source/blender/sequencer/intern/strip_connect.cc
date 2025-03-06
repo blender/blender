@@ -12,6 +12,8 @@
 
 #include "SEQ_connect.hh"
 
+namespace blender::seq {
+
 static void strip_connections_free(Strip *strip)
 {
   if (strip == nullptr) {
@@ -150,3 +152,5 @@ bool SEQ_are_strips_connected_together(blender::VectorSet<Strip *> &strip_list)
   }
   return true;
 }
+
+}  // namespace blender::seq

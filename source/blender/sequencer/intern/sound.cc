@@ -35,6 +35,8 @@
 #include "sequencer.hh"
 #include "strip_time.hh"
 
+namespace blender::seq {
+
 /* Unlike _update_sound_ functions,
  * these ones take info from audaspace to update sequence length! */
 const SoundModifierWorkerInfo workersSoundModifiers[] = {
@@ -348,3 +350,5 @@ void *SEQ_sound_modifier_recreator(Strip *strip, SequenceModifierData *smd, void
   }
   return sound;
 }
+
+}  // namespace blender::seq

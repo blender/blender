@@ -254,7 +254,7 @@ static void outliner_select_sync_to_strip(Scene *scene, const TreeElement *te)
   Strip *strip = &te_strip->get_strip();
 
   if (tselem->flag & TSE_ACTIVE) {
-    SEQ_select_active_set(scene, strip);
+    seq::SEQ_select_active_set(scene, strip);
   }
 
   if (tselem->flag & TSE_SELECTED) {
@@ -503,7 +503,7 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
   active_data->object = BKE_view_layer_active_object_get(view_layer);
   active_data->edit_bone = CTX_data_active_bone(C);
   active_data->pose_channel = CTX_data_active_pose_bone(C);
-  active_data->strip = SEQ_select_active_get(scene);
+  active_data->strip = seq::SEQ_select_active_get(scene);
 }
 
 void outliner_sync_selection(const bContext *C,

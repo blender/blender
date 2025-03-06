@@ -53,6 +53,8 @@
 #include "sequencer_intern.hh"
 #include "sequencer_strips_batch.hh"
 
+namespace blender::ed::vse {
+
 struct SeqDropCoords {
   float start_frame, channel;
   int strip_len, channel_len;
@@ -226,10 +228,10 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   dummy_seq.speed_factor = 1.0f;
   dummy_seq.media_playback_rate = coords->playback_rate;
   dummy_seq.flag = SEQ_AUTO_PLAYBACK_RATE;
-  Editing *ed = SEQ_editing_ensure(scene);
+  Editing *ed = seq::SEQ_editing_ensure(scene);
 
   for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
-    coords->is_intersecting = SEQ_transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
+    coords->is_intersecting = seq::SEQ_transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
     dummy_seq.machine++;
   }
 
@@ -263,12 +265,12 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     /* We are dropped inside the preview region. Put the strip on top of the
      * current displayed frame. */
     Scene *scene = CTX_data_scene(C);
-    Editing *ed = SEQ_editing_ensure(scene);
-    ListBase *seqbase = SEQ_active_seqbase_get(ed);
-    ListBase *channels = SEQ_channels_displayed_get(ed);
+    Editing *ed = seq::SEQ_editing_ensure(scene);
+    ListBase *seqbase = seq::SEQ_active_seqbase_get(ed);
+    ListBase *channels = seq::SEQ_channels_displayed_get(ed);
     SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-    blender::VectorSet strips = SEQ_query_rendered_strips(
+    blender::VectorSet strips = seq::SEQ_query_rendered_strips(
         scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
     /* Get the top most strip channel that is in view. */
@@ -358,7 +360,6 @@ static void get_drag_path(const bContext *C, wmDrag *drag, char r_path[FILE_MAX]
 
 static void draw_seq_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, const int xy[2])
 {
-  using namespace blender::ed::seq;
   SeqDropCoords *coords = &g_drop_coords;
   if (!coords->in_use) {
     return;
@@ -756,3 +757,5 @@ void sequencer_dropboxes()
   lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
   sequencer_preview_dropboxes_add_to_lb(lb);
 }
+
+}  // namespace blender::ed::vse

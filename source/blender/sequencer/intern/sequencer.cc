@@ -58,6 +58,8 @@
 #include "sequencer.hh"
 #include "utils.hh"
 
+namespace blender::seq {
+
 /* -------------------------------------------------------------------- */
 /** \name Allocate / Free Functions
  * \{ */
@@ -1085,3 +1087,5 @@ void SEQ_eval_sequences(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase)
   SEQ_edit_update_muting(scene->ed);
   SEQ_sound_update_bounds_all(scene);
 }
+
+}  // namespace blender::seq

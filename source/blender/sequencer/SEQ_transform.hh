@@ -17,6 +17,8 @@ struct ListBase;
 struct Scene;
 struct Strip;
 
+namespace blender::seq {
+
 bool SEQ_transform_sequence_can_be_translated(const Strip *strip);
 /**
  * Used so we can do a quick check for single image seq
@@ -132,3 +134,5 @@ blender::Bounds<blender::float2> SEQ_image_transform_bounding_box_from_collectio
  * \param seq: Strip that is used to construct the matrix
  */
 blender::float3x3 SEQ_image_transform_matrix_get(const Scene *scene, const Strip *strip);
+
+}  // namespace blender::seq

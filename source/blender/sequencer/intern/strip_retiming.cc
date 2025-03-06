@@ -32,7 +32,7 @@
 #include "sequencer.hh"
 #include "strip_time.hh"
 
-using blender::MutableSpan;
+namespace blender::seq {
 
 MutableSpan<SeqRetimingKey> SEQ_retiming_keys_get(const Strip *strip)
 {
@@ -1164,3 +1164,5 @@ bool SEQ_retiming_selection_has_whole_transition(const Editing *ed, SeqRetimingK
   }
   return false;
 }
+
+}  // namespace blender::seq

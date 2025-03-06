@@ -96,7 +96,7 @@ static bool change_frame_poll(bContext *C)
 
 static int seq_snap_threshold_get_frame_distance(bContext *C)
 {
-  const int snap_distance = SEQ_tool_settings_snap_distance_get(CTX_data_scene(C));
+  const int snap_distance = blender::seq::SEQ_tool_settings_snap_distance_get(CTX_data_scene(C));
   const ARegion *region = CTX_wm_region(C);
   return round_fl_to_int(UI_view2d_region_to_view_x(&region->v2d, snap_distance) -
                          UI_view2d_region_to_view_x(&region->v2d, 0));
@@ -116,14 +116,16 @@ static void seq_frame_snap_update_best(const int position,
 static int seq_frame_apply_snap(bContext *C, Scene *scene, const int timeline_frame)
 {
 
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+  ListBase *seqbase = blender::seq::SEQ_active_seqbase_get(blender::seq::SEQ_editing_get(scene));
 
   int best_frame = 0;
   int best_distance = MAXFRAME;
-  for (Strip *strip : SEQ_query_all_strips(seqbase)) {
-    seq_frame_snap_update_best(
-        SEQ_time_left_handle_frame_get(scene, strip), timeline_frame, &best_frame, &best_distance);
-    seq_frame_snap_update_best(SEQ_time_right_handle_frame_get(scene, strip),
+  for (Strip *strip : blender::seq::SEQ_query_all_strips(seqbase)) {
+    seq_frame_snap_update_best(blender::seq::SEQ_time_left_handle_frame_get(scene, strip),
+                               timeline_frame,
+                               &best_frame,
+                               &best_distance);
+    seq_frame_snap_update_best(blender::seq::SEQ_time_right_handle_frame_get(scene, strip),
                                timeline_frame,
                                &best_frame,
                                &best_distance);
@@ -147,7 +149,7 @@ static void change_frame_apply(bContext *C, wmOperator *op, const bool always_up
   const float old_subframe = scene->r.subframe;
 
   if (do_snap) {
-    if (CTX_wm_space_seq(C) && SEQ_editing_get(scene) != nullptr) {
+    if (CTX_wm_space_seq(C) && blender::seq::SEQ_editing_get(scene) != nullptr) {
       frame = seq_frame_apply_snap(C, scene, frame);
     }
     else {
@@ -208,8 +210,10 @@ static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event, Sp
 {
   BLI_assert(sseq != nullptr);
   ARegion *region = CTX_wm_region(C);
-  if (ED_space_sequencer_check_show_strip(sseq) && !ED_time_scrub_event_in_region(region, event)) {
-    ED_sequencer_special_preview_set(C, event->mval);
+  if (blender::ed::vse::ED_space_sequencer_check_show_strip(sseq) &&
+      !ED_time_scrub_event_in_region(region, event))
+  {
+    blender::ed::vse::ED_sequencer_special_preview_set(C, event->mval);
   }
 }
 
@@ -217,8 +221,8 @@ static void change_frame_seq_preview_end(SpaceSeq *sseq)
 {
   BLI_assert(sseq != nullptr);
   UNUSED_VARS_NDEBUG(sseq);
-  if (ED_sequencer_special_preview_get() != nullptr) {
-    ED_sequencer_special_preview_clear();
+  if (blender::ed::vse::ED_sequencer_special_preview_get() != nullptr) {
+    blender::ed::vse::ED_sequencer_special_preview_clear();
   }
 }
 
@@ -229,7 +233,7 @@ static bool use_sequencer_snapping(bContext *C)
   }
 
   Scene *scene = CTX_data_scene(C);
-  short snap_flag = SEQ_tool_settings_snap_flag_get(scene);
+  short snap_flag = blender::seq::SEQ_tool_settings_snap_flag_get(scene);
   return (scene->toolsettings->snap_flag_seq & SCE_SNAP) &&
          (snap_flag & SEQ_SNAP_CURRENT_FRAME_TO_STRIPS);
 }
@@ -241,7 +245,7 @@ static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *ev
   }
 
   const Scene *scene = CTX_data_scene(C);
-  if (!SEQ_editing_get(scene)) {
+  if (!blender::seq::SEQ_editing_get(scene)) {
     return false;
   }
 
@@ -250,9 +254,10 @@ static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *ev
   float mouse_co[2];
   UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouse_co[0], &mouse_co[1]);
 
-  StripSelection selection = ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
+  blender::ed::vse::StripSelection selection =
+      blender::ed::vse::ED_sequencer_pick_strip_and_handle(scene, v2d, mouse_co);
 
-  return selection.handle != SEQ_HANDLE_NONE;
+  return selection.handle != blender::ed::vse::SEQ_HANDLE_NONE;
 }
 
 /* Modal Operator init */

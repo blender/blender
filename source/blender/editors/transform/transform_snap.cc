@@ -694,7 +694,7 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
   }
 
   if (t->spacetype == SPACE_SEQ) {
-    return eSnapMode(SEQ_tool_settings_snap_mode_get(t->scene));
+    return eSnapMode(seq::SEQ_tool_settings_snap_mode_get(t->scene));
   }
 
   if (t->spacetype == SPACE_VIEW3D) {

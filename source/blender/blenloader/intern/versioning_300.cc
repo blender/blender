@@ -439,7 +439,8 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
           v->speed_control_type = SEQ_SPEED_MULTIPLY;
           v->speed_fader = globalSpeed *
                            (float(strip->seq1->len) /
-                            max_ff(float(SEQ_time_right_handle_frame_get(scene, strip->seq1) -
+                            max_ff(float(blender::seq::SEQ_time_right_handle_frame_get(
+                                             scene, strip->seq1) -
                                          strip->seq1->start),
                                    1.0f));
         }
@@ -649,7 +650,7 @@ static bool version_fix_seq_meta_range(Strip *strip, void *user_data)
 {
   Scene *scene = (Scene *)user_data;
   if (strip->type == STRIP_TYPE_META) {
-    SEQ_time_update_meta_strip_range(scene, strip);
+    blender::seq::SEQ_time_update_meta_strip_range(scene, strip);
   }
   return true;
 }
@@ -1309,12 +1310,12 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 303, 5)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = blender::seq::SEQ_editing_get(scene);
       if (ed == nullptr) {
         continue;
       }
-      SEQ_for_each_callback(&ed->seqbase, strip_speed_factor_set, scene);
-      SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
+      blender::seq::SEQ_for_each_callback(&ed->seqbase, strip_speed_factor_set, scene);
+      blender::seq::SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
     }
   }
 
@@ -1517,7 +1518,7 @@ static bool strip_transform_filter_set(Strip *strip, void * /*user_data*/)
 static bool strip_meta_channels_ensure(Strip *strip, void * /*user_data*/)
 {
   if (strip->type == STRIP_TYPE_META) {
-    SEQ_channels_ensure(&strip->channels);
+    blender::seq::SEQ_channels_ensure(&strip->channels);
   }
   return true;
 }
@@ -1760,9 +1761,9 @@ static bool version_fix_delete_flag(Strip *strip, void * /*user_data*/)
 
 static bool version_set_seq_single_frame_content(Strip *strip, void * /*user_data*/)
 {
-  if ((strip->len == 1) &&
-      (strip->type == STRIP_TYPE_IMAGE ||
-       ((strip->type & STRIP_TYPE_EFFECT) && SEQ_effect_get_num_inputs(strip->type) == 0)))
+  if ((strip->len == 1) && (strip->type == STRIP_TYPE_IMAGE ||
+                            ((strip->type & STRIP_TYPE_EFFECT) &&
+                             blender::seq::SEQ_effect_get_num_inputs(strip->type) == 0)))
   {
     strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
   }
@@ -1776,7 +1777,7 @@ static bool version_seq_fix_broken_sound_strips(Strip *strip, void * /*user_data
   }
 
   strip->speed_factor = 1.0f;
-  SEQ_retiming_data_clear(strip);
+  blender::seq::SEQ_retiming_data_clear(strip);
 
   /* Broken files do have negative start offset, which should not be present in sound strips. */
   if (strip->startofs < 0) {
@@ -2565,7 +2566,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_TO_INCREMENT */
       }
 
-      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::SEQ_tool_settings_ensure(
+          scene);
       sequencer_tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
                                            SEQ_SNAP_TO_STRIP_HOLD;
       sequencer_tool_settings->snap_distance = 15;
@@ -2827,7 +2829,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::SEQ_tool_settings_ensure(
+          scene);
       sequencer_tool_settings->overlap_mode = SEQ_OVERLAP_SHUFFLE;
     }
   }
@@ -2929,11 +2932,13 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 24)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::SEQ_tool_settings_ensure(
+          scene);
       sequencer_tool_settings->pivot_point = V3D_AROUND_CENTER_MEDIAN;
 
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_transform_origin_set, nullptr);
+        blender::seq::SEQ_for_each_callback(
+            &scene->ed->seqbase, strip_transform_origin_set, nullptr);
       }
     }
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -3045,7 +3050,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
                                                                      &sl->regionbase;
               LISTBASE_FOREACH (ARegion *, region, regionbase) {
                 if (region->regiontype == RGN_TYPE_WINDOW) {
-                  region->v2d.max[1] = SEQ_MAX_CHANNELS;
+                  region->v2d.max[1] = blender::seq::SEQ_MAX_CHANNELS;
                 }
               }
               break;
@@ -3085,7 +3090,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Set strip color tags to STRIP_COLOR_NONE. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_tags, nullptr);
+        blender::seq::SEQ_for_each_callback(
+            &scene->ed->seqbase, do_versions_sequencer_color_tags, nullptr);
       }
     }
 
@@ -3104,7 +3110,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Set defaults for new color balance modifier parameters. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(
+        blender::seq::SEQ_for_each_callback(
             &scene->ed->seqbase, do_versions_sequencer_color_balance_sop, nullptr);
       }
     }
@@ -3466,7 +3472,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 302, 2)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_transform_filter_set, nullptr);
+        blender::seq::SEQ_for_each_callback(
+            &scene->ed->seqbase, strip_transform_filter_set, nullptr);
       }
     }
   }
@@ -3670,12 +3677,13 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Initialize channels. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = blender::seq::SEQ_editing_get(scene);
       if (ed == nullptr) {
         continue;
       }
-      SEQ_channels_ensure(&ed->channels);
-      SEQ_for_each_callback(&scene->ed->seqbase, strip_meta_channels_ensure, nullptr);
+      blender::seq::SEQ_channels_ensure(&ed->channels);
+      blender::seq::SEQ_for_each_callback(
+          &scene->ed->seqbase, strip_meta_channels_ensure, nullptr);
 
       ed->displayed_channels = &ed->channels;
 
@@ -3878,9 +3886,9 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Merge still offsets into start/end offsets. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = blender::seq::SEQ_editing_get(scene);
       if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, version_merge_still_offsets, nullptr);
+        blender::seq::SEQ_for_each_callback(&ed->seqbase, version_merge_still_offsets, nullptr);
       }
     }
 
@@ -4333,9 +4341,9 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Fix possible uncleared `SEQ_FLAG_DELETE` flag */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = blender::seq::SEQ_editing_get(scene);
       if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, version_fix_delete_flag, nullptr);
+        blender::seq::SEQ_for_each_callback(&ed->seqbase, version_fix_delete_flag, nullptr);
       }
     }
 
@@ -4367,9 +4375,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Use `SEQ_SINGLE_FRAME_CONTENT` flag instead of weird function to check if strip has multiple
      * frames. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = blender::seq::SEQ_editing_get(scene);
       if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, version_set_seq_single_frame_content, nullptr);
+        blender::seq::SEQ_for_each_callback(
+            &ed->seqbase, version_set_seq_single_frame_content, nullptr);
       }
     }
 
@@ -4461,9 +4470,10 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 306, 9)) {
     /* Fix sound strips with speed factor set to 0. See #107289. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = blender::seq::SEQ_editing_get(scene);
       if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, version_seq_fix_broken_sound_strips, nullptr);
+        blender::seq::SEQ_for_each_callback(
+            &ed->seqbase, version_seq_fix_broken_sound_strips, nullptr);
       }
     }
 

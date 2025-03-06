@@ -18,7 +18,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 struct WipeZone {
   float angle;
@@ -394,3 +394,5 @@ void wipe_effect_get_handle(SeqEffectHandle &rval)
   rval.get_default_fac = get_default_fac_fade;
   rval.execute = do_wipe_effect;
 }
+
+}  // namespace blender::seq

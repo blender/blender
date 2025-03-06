@@ -21,6 +21,8 @@ struct SeqTimelineChannel;
 struct Strip;
 struct SequencerToolSettings;
 
+namespace blender::seq {
+
 constexpr int SEQ_MAX_CHANNELS = 128;
 
 /* RNA enums, just to be more readable */
@@ -140,3 +142,5 @@ void SEQ_strip_lookup_free(Editing *ed);
  * Mark strip lookup as invalid (i.e. will need rebuilding).
  */
 void SEQ_strip_lookup_invalidate(const Editing *ed);
+
+}  // namespace blender::seq

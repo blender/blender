@@ -17,6 +17,7 @@ struct GPUOffScreen;
 
 enum eDrawType;
 
+namespace blender::seq {
 typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            struct Scene *scene,
                                            struct View3DShading *shading_override,
@@ -32,3 +33,4 @@ typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            struct GPUViewport *viewport,
                                            char err_out[256]);
 extern SequencerDrawView sequencer_view3d_fn;
+}  // namespace blender::seq

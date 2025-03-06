@@ -17,6 +17,8 @@ struct Scene;
 struct Strip;
 struct SeqAnimationBackup;
 
+namespace blender::seq {
+
 bool SEQ_animation_keyframes_exist(Scene *scene);
 bool SEQ_animation_drivers_exist(Scene *scene);
 void SEQ_free_animdata(Scene *scene, Strip *strip);
@@ -49,3 +51,5 @@ void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup);
 void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
                                              Strip *strip,
                                              SeqAnimationBackup *backup);
+
+}  // namespace blender::seq

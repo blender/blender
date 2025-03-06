@@ -19,7 +19,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 static void glow_blur_bitmap(
     const float4 *src, float4 *map, int width, int height, float blur, int quality)
@@ -266,3 +266,5 @@ void glow_effect_get_handle(SeqEffectHandle &rval)
   rval.copy = copy_glow_effect;
   rval.execute = do_glow_effect;
 }
+
+}  // namespace blender::seq

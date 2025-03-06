@@ -39,7 +39,7 @@
 
 #include "render.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 /* -------------------------------------------------------------------- */
 
@@ -1434,3 +1434,5 @@ void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
 }
 
 /** \} */
+
+}  // namespace blender::seq

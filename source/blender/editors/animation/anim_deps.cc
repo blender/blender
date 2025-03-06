@@ -192,8 +192,8 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
   }
 
   /* Check if this strip is selected. */
-  Editing *ed = SEQ_editing_get(scene);
-  strip = SEQ_get_sequence_by_name(ed->seqbasep, strip_name, false);
+  Editing *ed = blender::seq::SEQ_editing_get(scene);
+  strip = blender::seq::SEQ_get_sequence_by_name(ed->seqbasep, strip_name, false);
   if (strip == nullptr) {
     return;
   }

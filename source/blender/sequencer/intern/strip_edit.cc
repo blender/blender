@@ -39,6 +39,8 @@
 
 #include <cstring>
 
+namespace blender::seq {
+
 bool SEQ_edit_sequence_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **r_error_str)
 {
   char name[sizeof(strip_a->name)];
@@ -525,3 +527,5 @@ void SEQ_edit_sequence_name_set(Scene *scene, Strip *strip, const char *new_name
   BLI_str_utf8_invalid_strip(strip->name + 2, strlen(strip->name + 2));
   SEQ_strip_lookup_invalidate(scene->ed);
 }
+
+}  // namespace blender::seq

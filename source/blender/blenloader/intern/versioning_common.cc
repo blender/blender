@@ -655,7 +655,7 @@ void do_versions_after_setup(Main *new_bmain,
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
     LISTBASE_FOREACH (Scene *, scene, &new_bmain->scenes) {
       if (scene->ed) {
-        SEQ_doversion_250_sound_proxy_update(new_bmain, scene->ed);
+        blender::seq::SEQ_doversion_250_sound_proxy_update(new_bmain, scene->ed);
       }
     }
   }

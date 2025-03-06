@@ -35,7 +35,7 @@
 /* Own include. */
 #include "sequencer_intern.hh"
 
-using namespace blender;
+namespace blender::ed::vse {
 
 static bool sequencer_text_editing_poll(bContext *C)
 {
@@ -43,8 +43,10 @@ static bool sequencer_text_editing_poll(bContext *C)
     return false;
   }
 
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
-  if (strip == nullptr || strip->type != STRIP_TYPE_TEXT || !SEQ_effects_can_render_text(strip)) {
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
+  if (strip == nullptr || strip->type != STRIP_TYPE_TEXT ||
+      !seq::SEQ_effects_can_render_text(strip))
+  {
     return false;
   }
 
@@ -58,7 +60,7 @@ static bool sequencer_text_editing_poll(bContext *C)
 
 bool sequencer_text_editing_active_poll(bContext *C)
 {
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   if (strip == nullptr || !sequencer_text_editing_poll(C)) {
     return false;
   }
@@ -69,7 +71,7 @@ bool sequencer_text_editing_active_poll(bContext *C)
 
   const Scene *scene = CTX_data_scene(C);
 
-  if (!SEQ_time_strip_intersects_frame(scene, strip, BKE_scene_frame_get(scene))) {
+  if (!seq::SEQ_time_strip_intersects_frame(scene, strip, BKE_scene_frame_get(scene))) {
     return false;
   }
 
@@ -162,8 +164,8 @@ static void delete_selected_text(TextVars *data)
 
 static void text_editing_update(const bContext *C)
 {
-  Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
-  SEQ_relations_invalidate_cache_raw(CTX_data_scene(C), strip);
+  Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
+  seq::SEQ_relations_invalidate_cache_raw(CTX_data_scene(C), strip);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, CTX_data_scene(C));
 }
 
@@ -296,7 +298,7 @@ static int2 cursor_move_next_word(int2 cursor_position, const TextVarsRuntime *t
 
 static int sequencer_text_cursor_move_exec(bContext *C, wmOperator *op)
 {
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const TextVarsRuntime *text = data->runtime;
 
@@ -409,7 +411,7 @@ static bool text_insert(TextVars *data, const char *buf)
 
 static int sequencer_text_insert_exec(bContext *C, wmOperator *op)
 {
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   char str[512];
@@ -472,7 +474,7 @@ static void delete_character(const seq::CharInfo character, const TextVars *data
 
 static int sequencer_text_delete_exec(bContext *C, wmOperator *op)
 {
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const TextVarsRuntime *text = data->runtime;
   const int type = RNA_enum_get(op->ptr, "type");
@@ -528,7 +530,7 @@ void SEQUENCER_OT_text_delete(wmOperatorType *ot)
 
 static int sequencer_text_line_break_exec(bContext *C, wmOperator * /*op*/)
 {
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   if (!text_insert(data, "\n")) {
@@ -556,7 +558,7 @@ void SEQUENCER_OT_text_line_break(wmOperatorType *ot)
 
 static int sequencer_text_select_all(bContext *C, wmOperator * /*op*/)
 {
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   data->selection_start_offset = 0;
   data->selection_end_offset = data->runtime->character_count;
@@ -581,7 +583,7 @@ void SEQUENCER_OT_text_select_all(wmOperatorType *ot)
 
 static int sequencer_text_deselect_all(bContext *C, wmOperator * /*op*/)
 {
-  Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   if (!text_has_selection(data)) {
@@ -613,7 +615,7 @@ void SEQUENCER_OT_text_deselect_all(wmOperatorType *ot)
 
 static int sequencer_text_edit_mode_toggle(bContext *C, wmOperator * /*op*/)
 {
-  Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   if (sequencer_text_editing_active_poll(C)) {
     strip->flag &= ~SEQ_FLAG_TEXT_EDITING_ACTIVE;
   }
@@ -662,7 +664,7 @@ static int find_closest_cursor_offset(const TextVars *data, float2 mouse_loc)
 static void cursor_set_by_mouse_position(const bContext *C, const wmEvent *event)
 {
   const Scene *scene = CTX_data_scene(C);
-  const Strip *strip = SEQ_select_active_get(scene);
+  const Strip *strip = seq::SEQ_select_active_get(scene);
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const View2D *v2d = UI_view2d_fromcontext(C);
 
@@ -674,7 +676,7 @@ static void cursor_set_by_mouse_position(const bContext *C, const wmEvent *event
   /* Convert cursor coordinates to domain of CharInfo::position. */
   const blender::float2 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f};
   const float view_aspect = scene->r.xasp / scene->r.yasp;
-  blender::float3x3 transform_mat = SEQ_image_transform_matrix_get(CTX_data_scene(C), strip);
+  blender::float3x3 transform_mat = seq::SEQ_image_transform_matrix_get(CTX_data_scene(C), strip);
   // MSVC 2019 can't decide here for some reason, pick the template for it.
   transform_mat = blender::math::invert<float, 3>(transform_mat);
 
@@ -687,7 +689,7 @@ static void cursor_set_by_mouse_position(const bContext *C, const wmEvent *event
 static int sequencer_text_cursor_set_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   const Scene *scene = CTX_data_scene(C);
-  const Strip *strip = SEQ_select_active_get(scene);
+  const Strip *strip = seq::SEQ_select_active_get(scene);
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   bool make_selection = false;
 
@@ -721,7 +723,7 @@ static int sequencer_text_cursor_set_modal(bContext *C, wmOperator * /*op*/, con
 static int sequencer_text_cursor_set_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const Scene *scene = CTX_data_scene(C);
-  Strip *strip = SEQ_select_active_get(scene);
+  Strip *strip = seq::SEQ_select_active_get(scene);
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const View2D *v2d = UI_view2d_fromcontext(C);
 
@@ -780,7 +782,7 @@ static void text_edit_copy(const TextVars *data)
 
 static int sequencer_text_edit_copy_exec(bContext *C, wmOperator * /*op*/)
 {
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   const TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   if (!text_has_selection(data)) {
@@ -809,7 +811,7 @@ void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot)
 
 static int sequencer_text_edit_paste_exec(bContext *C, wmOperator * /*op*/)
 {
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const TextVarsRuntime *text = data->runtime;
 
@@ -862,7 +864,7 @@ void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot)
 
 static int sequencer_text_edit_cut_exec(bContext *C, wmOperator * /*op*/)
 {
-  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::SEQ_select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   if (!text_has_selection(data)) {
@@ -890,3 +892,5 @@ void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_UNDO;
 }
+
+}  // namespace blender::ed::vse

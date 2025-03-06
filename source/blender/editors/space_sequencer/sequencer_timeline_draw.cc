@@ -72,8 +72,7 @@
 #include "sequencer_quads_batch.hh"
 #include "sequencer_strips_batch.hh"
 
-using namespace blender;
-using namespace blender::ed::seq;
+namespace blender::ed::vse {
 
 constexpr int MUTE_ALPHA = 120;
 
@@ -86,17 +85,17 @@ Vector<Strip *> sequencer_visible_strips_get(const bContext *C)
 
 Vector<Strip *> sequencer_visible_strips_get(const Scene *scene, const View2D *v2d)
 {
-  const Editing *ed = SEQ_editing_get(scene);
+  const Editing *ed = seq::SEQ_editing_get(scene);
   Vector<Strip *> strips;
 
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if (min_ii(SEQ_time_left_handle_frame_get(scene, strip), SEQ_time_start_frame_get(strip)) >
-        v2d->cur.xmax)
+    if (min_ii(seq::SEQ_time_left_handle_frame_get(scene, strip),
+               seq::SEQ_time_start_frame_get(strip)) > v2d->cur.xmax)
     {
       continue;
     }
-    if (max_ii(SEQ_time_right_handle_frame_get(scene, strip),
-               SEQ_time_content_end_frame_get(scene, strip)) < v2d->cur.xmin)
+    if (max_ii(seq::SEQ_time_right_handle_frame_get(scene, strip),
+               seq::SEQ_time_content_end_frame_get(scene, strip)) < v2d->cur.xmin)
     {
       continue;
     }
@@ -121,8 +120,8 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
   ctx.sseq = CTX_wm_space_seq(C);
   ctx.v2d = UI_view2d_fromcontext(C);
 
-  ctx.ed = SEQ_editing_get(ctx.scene);
-  ctx.channels = ctx.ed ? SEQ_channels_displayed_get(ctx.ed) : nullptr;
+  ctx.ed = seq::SEQ_editing_get(ctx.scene);
+  ctx.channels = ctx.ed ? seq::SEQ_channels_displayed_get(ctx.ed) : nullptr;
 
   ctx.viewport = WM_draw_region_get_viewport(ctx.region);
   ctx.framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(ctx.viewport);
@@ -130,7 +129,7 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
   ctx.pixely = BLI_rctf_size_y(&ctx.v2d->cur) / BLI_rcti_size_y(&ctx.v2d->mask);
   ctx.pixelx = BLI_rctf_size_x(&ctx.v2d->cur) / BLI_rcti_size_x(&ctx.v2d->mask);
 
-  ctx.retiming_selection = SEQ_retiming_selection_get(ctx.ed);
+  ctx.retiming_selection = seq::SEQ_retiming_selection_get(ctx.ed);
 
   ctx.quads = quads_batch;
 
@@ -215,10 +214,10 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   strip_ctx.strip = strip;
   strip_ctx.bottom = strip->machine + STRIP_OFSBOTTOM;
   strip_ctx.top = strip->machine + STRIP_OFSTOP;
-  strip_ctx.left_handle = SEQ_time_left_handle_frame_get(scene, strip);
-  strip_ctx.right_handle = SEQ_time_right_handle_frame_get(scene, strip);
-  strip_ctx.content_start = SEQ_time_start_frame_get(strip);
-  strip_ctx.content_end = SEQ_time_content_end_frame_get(scene, strip);
+  strip_ctx.left_handle = seq::SEQ_time_left_handle_frame_get(scene, strip);
+  strip_ctx.right_handle = seq::SEQ_time_right_handle_frame_get(scene, strip);
+  strip_ctx.content_start = seq::SEQ_time_start_frame_get(strip);
+  strip_ctx.content_end = seq::SEQ_time_content_end_frame_get(scene, strip);
 
   if (strip->type == STRIP_TYPE_SOUND_RAM && strip->sound != nullptr) {
     /* Visualize sub-frame sound offsets. */
@@ -238,8 +237,8 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   strip_draw_context_set_retiming_overlay_visibility(ctx, &strip_ctx);
   strip_ctx.strip_is_too_small = (!strip_ctx.can_draw_text_overlay &&
                                   !strip_ctx.can_draw_strip_content);
-  strip_ctx.is_active_strip = strip == SEQ_select_active_get(scene);
-  strip_ctx.is_single_image = SEQ_transform_single_image_check(strip);
+  strip_ctx.is_active_strip = strip == seq::SEQ_select_active_get(scene);
+  strip_ctx.is_single_image = seq::SEQ_transform_single_image_check(strip);
   strip_ctx.handle_width = strip_handle_draw_size_get(ctx->scene, strip, ctx->pixelx);
   strip_ctx.show_strip_color_tag = (ctx->sseq->timeline_overlay.flag &
                                     SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG);
@@ -247,7 +246,7 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   /* Determine if strip (or contents of meta strip) has missing data/media. */
   strip_ctx.missing_data_block = !SEQ_sequence_has_valid_data(strip);
   strip_ctx.missing_media = media_presence_is_missing(scene, strip);
-  strip_ctx.is_connected = SEQ_is_strip_connected(strip);
+  strip_ctx.is_connected = seq::SEQ_is_strip_connected(strip);
   if (strip->type == STRIP_TYPE_META) {
     const ListBase *seqbase = &strip->seqbase;
     LISTBASE_FOREACH (const Strip *, sub, seqbase) {
@@ -267,7 +266,7 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
     strip_ctx.strip_content_top = strip_ctx.top;
   }
 
-  strip_ctx.is_muted = SEQ_render_is_muted(ctx->channels, strip);
+  strip_ctx.is_muted = seq::SEQ_render_is_muted(ctx->channels, strip);
   strip_ctx.curve = nullptr;
   return strip_ctx;
 }
@@ -526,7 +525,8 @@ static void draw_seq_waveform_overlay(TimelineDrawContext *timeline_ctx,
   float prev_y_mid = y_zero;
   for (int i = 0; i < pixels_to_draw; i++) {
     float timeline_frame = sample_start_frame + i * frames_per_pixel;
-    float frame_index = SEQ_give_frame_index(scene, strip, timeline_frame) + strip->anim_startofs;
+    float frame_index = seq::SEQ_give_frame_index(scene, strip, timeline_frame) +
+                        strip->anim_startofs;
     float sample = frame_index * samples_per_frame;
     int sample_index = round_fl_to_int(sample);
 
@@ -642,7 +642,7 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
 
   uchar col[4];
 
-  int chan_min = SEQ_MAX_CHANNELS;
+  int chan_min = seq::SEQ_MAX_CHANNELS;
   int chan_max = 0;
   int chan_range = 0;
   /* Some vertical margin to account for rounded corners, so that contents do
@@ -660,7 +660,7 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
   ListBase *meta_channels;
   int offset;
 
-  meta_seqbase = SEQ_get_seqbase_from_sequence(strip_meta, &meta_channels, &offset);
+  meta_seqbase = seq::SEQ_get_seqbase_from_sequence(strip_meta, &meta_channels, &offset);
 
   if (!meta_seqbase || BLI_listbase_is_empty(meta_seqbase)) {
     return;
@@ -688,8 +688,8 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
 
   /* Draw only immediate children (1 level depth). */
   LISTBASE_FOREACH (Strip *, strip, meta_seqbase) {
-    float x1_chan = SEQ_time_left_handle_frame_get(scene, strip) + offset;
-    float x2_chan = SEQ_time_right_handle_frame_get(scene, strip) + offset;
+    float x1_chan = seq::SEQ_time_left_handle_frame_get(scene, strip) + offset;
+    float x2_chan = seq::SEQ_time_right_handle_frame_get(scene, strip) + offset;
     if (x1_chan <= meta_x2 && x2_chan >= meta_x1) {
       float y_chan = (strip->machine - chan_min) / float(chan_range) * draw_range;
       float y1_chan, y2_chan;
@@ -782,8 +782,8 @@ float strip_handle_draw_size_get(const Scene *scene, Strip *strip, const float p
 
   /* Ensure that handle is not wider, than quarter of strip. */
   return min_ff(maxhandle,
-                (float(SEQ_time_right_handle_frame_get(scene, strip) -
-                       SEQ_time_left_handle_frame_get(scene, strip)) /
+                (float(seq::SEQ_time_right_handle_frame_get(scene, strip) -
+                       seq::SEQ_time_left_handle_frame_get(scene, strip)) /
                  4.0f));
 }
 
@@ -791,7 +791,7 @@ static const char *draw_seq_text_get_name(const Strip *strip)
 {
   const char *name = strip->name + 2;
   if (name[0] == '\0') {
-    name = SEQ_sequence_give_name(strip);
+    name = seq::SEQ_sequence_give_name(strip);
   }
   return name;
 }
@@ -1196,7 +1196,7 @@ static void draw_seq_fcurve_overlay(TimelineDrawContext *timeline_ctx,
 static void draw_multicam_highlight(TimelineDrawContext *timeline_ctx,
                                     const StripDrawContext *strip_ctx)
 {
-  Strip *act_seq = SEQ_select_active_get(timeline_ctx->scene);
+  Strip *act_seq = seq::SEQ_select_active_get(timeline_ctx->scene);
 
   if (strip_ctx->strip != act_seq || act_seq == nullptr) {
     return;
@@ -1219,7 +1219,7 @@ static void draw_multicam_highlight(TimelineDrawContext *timeline_ctx,
 /* Force redraw, when prefetching and using cache view. */
 static void seq_prefetch_wm_notify(const bContext *C, Scene *scene)
 {
-  if (SEQ_prefetch_need_redraw(C, scene)) {
+  if (seq::SEQ_prefetch_need_redraw(C, scene)) {
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, nullptr);
   }
 }
@@ -1382,7 +1382,7 @@ static void strip_data_lock_flags_set(const StripDrawContext &strip,
                                       const TimelineDrawContext *timeline_ctx,
                                       SeqStripDrawData &data)
 {
-  if (SEQ_transform_is_locked(timeline_ctx->channels, strip.strip)) {
+  if (seq::SEQ_transform_is_locked(timeline_ctx->channels, strip.strip)) {
     data.flags |= GPU_SEQ_FLAG_LOCKED;
   }
 }
@@ -1413,7 +1413,8 @@ static void strip_data_outline_params_set(const StripDrawContext &strip,
     UI_GetThemeColorShade3ubv(TH_BACK, -40, col);
   }
 
-  const eSeqOverlapMode overlap_mode = SEQ_tool_settings_overlap_mode_get(timeline_ctx->scene);
+  const eSeqOverlapMode overlap_mode = seq::SEQ_tool_settings_overlap_mode_get(
+      timeline_ctx->scene);
   const bool use_overwrite = overlap_mode == SEQ_OVERLAP_OVERWRITE;
   const bool overlaps = (strip.strip->flag & SEQ_OVERLAP) && (G.moving & G_TRANSFORM_SEQ);
 
@@ -1438,7 +1439,7 @@ static void strip_data_highlight_flags_set(const StripDrawContext &strip,
                                            const TimelineDrawContext *timeline_ctx,
                                            SeqStripDrawData &data)
 {
-  const Strip *act_seq = SEQ_select_active_get(timeline_ctx->scene);
+  const Strip *act_seq = seq::SEQ_select_active_get(timeline_ctx->scene);
   const Strip *special_preview = ED_sequencer_special_preview_get();
   /* Highlight if strip is an input of an active strip, or if the strip is solo preview. */
   if (act_seq != nullptr && (act_seq->flag & SELECT) != 0) {
@@ -1459,7 +1460,7 @@ static void strip_data_handle_flags_set(const StripDrawContext &strip,
   const bool selected = strip.strip->flag & SELECT;
   const bool show_handles = (U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0;
   /* Handles on left/right side. */
-  if (!SEQ_transform_is_locked(timeline_ctx->channels, strip.strip) &&
+  if (!seq::SEQ_transform_is_locked(timeline_ctx->channels, strip.strip) &&
       ED_sequencer_can_select_handle(scene, strip.strip, timeline_ctx->v2d))
   {
     const bool selected_l = selected &&
@@ -1604,7 +1605,7 @@ static void draw_timeline_sfra_efra(TimelineDrawContext *ctx)
 {
   const Scene *scene = ctx->scene;
   const View2D *v2d = ctx->v2d;
-  const Editing *ed = SEQ_editing_get(scene);
+  const Editing *ed = seq::SEQ_editing_get(scene);
   const int frame_sta = scene->r.sfra;
   const int frame_end = scene->r.efra + 1;
 
@@ -1756,9 +1757,9 @@ static void draw_cache_stripe(const Scene *scene,
                               const float stripe_ht,
                               const uchar color[4])
 {
-  quads.add_quad(SEQ_time_left_handle_frame_get(scene, strip),
+  quads.add_quad(seq::SEQ_time_left_handle_frame_get(scene, strip),
                  stripe_bot,
-                 SEQ_time_right_handle_frame_get(scene, strip),
+                 seq::SEQ_time_right_handle_frame_get(scene, strip),
                  stripe_bot + stripe_ht,
                  color);
 }
@@ -1844,7 +1845,7 @@ static void draw_cache_view(const bContext *C)
   GPU_blend(GPU_BLEND_ALPHA);
 
   draw_cache_background(C, &userdata);
-  SEQ_cache_iterate(scene, &userdata, draw_cache_view_init_fn, draw_cache_view_iter_fn);
+  seq::SEQ_cache_iterate(scene, &userdata, draw_cache_view_init_fn, draw_cache_view_iter_fn);
 
   quads.draw();
   GPU_blend(GPU_BLEND_NONE);
@@ -1982,8 +1983,8 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
   ED_time_scrub_draw_current_frame(region, scene, !(sseq->flag & SEQ_DRAWFRAMES));
 
   if (region->winy > HEADERY * UI_SCALE_FAC) {
-    const ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
-    SEQ_timeline_boundbox(scene, seqbase, &v2d->tot);
+    const ListBase *seqbase = seq::SEQ_active_seqbase_get(seq::SEQ_editing_get(scene));
+    seq::SEQ_timeline_boundbox(scene, seqbase, &v2d->tot);
     const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
     region->v2d.scroll |= V2D_SCROLL_BOTTOM;
     UI_view2d_scrollers_draw(v2d, &scroller_mask);
@@ -1992,3 +1993,5 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
     region->v2d.scroll &= ~V2D_SCROLL_BOTTOM;
   }
 }
+
+}  // namespace blender::ed::vse

@@ -672,7 +672,8 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_sound_proxy_update_cb, bmain);
+        blender::seq::SEQ_for_each_callback(
+            &scene->ed->seqbase, strip_sound_proxy_update_cb, bmain);
       }
     }
 
@@ -1339,7 +1340,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         sce->r.ffcodecdata.audio_codec = 0x0; /* `CODEC_ID_NONE` */
       }
       if (sce->ed) {
-        SEQ_for_each_callback(&sce->ed->seqbase, strip_set_volume_cb, nullptr);
+        blender::seq::SEQ_for_each_callback(&sce->ed->seqbase, strip_set_volume_cb, nullptr);
       }
     }
 
@@ -1566,7 +1567,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_set_sat_cb, nullptr);
+        blender::seq::SEQ_for_each_callback(&scene->ed->seqbase, strip_set_sat_cb, nullptr);
       }
     }
 
@@ -1997,7 +1998,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       scene->r.ffcodecdata.audio_channels = 2;
       scene->audio.volume = 1.0f;
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_set_pitch_cb, nullptr);
+        blender::seq::SEQ_for_each_callback(&scene->ed->seqbase, strip_set_pitch_cb, nullptr);
       }
     }
 

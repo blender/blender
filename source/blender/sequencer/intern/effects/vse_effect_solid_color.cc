@@ -15,7 +15,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 static void init_solid_color(Strip *strip)
 {
@@ -106,3 +106,5 @@ void solid_color_effect_get_handle(SeqEffectHandle &rval)
   rval.copy = copy_solid_color;
   rval.execute = do_solid_color;
 }
+
+}  // namespace blender::seq

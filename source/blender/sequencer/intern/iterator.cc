@@ -21,7 +21,7 @@
 #include "SEQ_render.hh"
 #include "SEQ_time.hh"
 
-using blender::VectorSet;
+namespace blender::seq {
 
 static bool strip_for_each_recursive(ListBase *seqbase, SeqForEachFunc callback, void *user_data)
 {
@@ -269,3 +269,5 @@ void SEQ_query_strip_connected_and_effect_chain(const Scene *scene,
     }
   }
 }
+
+}  // namespace blender::seq

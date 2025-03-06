@@ -18,6 +18,8 @@
 
 #include "multiview.hh"
 
+namespace blender::seq {
+
 void seq_anim_add_suffix(Scene *scene, MovieReader *anim, const int view_id)
 {
   const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
@@ -48,3 +50,5 @@ void seq_multiview_name(Scene *scene,
   BLI_assert(ext != nullptr && suffix != nullptr && prefix != nullptr);
   BLI_snprintf(r_path, r_size, "%s%s%s", prefix, suffix, ext);
 }
+
+}  // namespace blender::seq

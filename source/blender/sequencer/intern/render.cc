@@ -38,7 +38,6 @@
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
 #include "BKE_scene.hh"
-#include "BKE_sequencer_offscreen.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -59,6 +58,7 @@
 #include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
+#include "SEQ_offscreen.hh"
 #include "SEQ_proxy.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
@@ -77,7 +77,7 @@
 
 #include <algorithm>
 
-using namespace blender;
+namespace blender::seq {
 
 static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
                                      SeqRenderState *state,
@@ -2060,3 +2060,5 @@ bool SEQ_render_is_muted(const ListBase *channels, const Strip *strip)
 }
 
 /** \} */
+
+}  // namespace blender::seq

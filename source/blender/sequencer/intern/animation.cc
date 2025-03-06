@@ -20,7 +20,7 @@
 
 #include "SEQ_animation.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 bool SEQ_animation_keyframes_exist(Scene *scene)
 {
@@ -219,3 +219,5 @@ void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
     strip_drivers_duplicate(strip, scene->adt, backup);
   }
 }
+
+}  // namespace blender::seq

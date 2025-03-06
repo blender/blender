@@ -13,6 +13,8 @@ struct ListBase;
 struct SeqTimelineChannel;
 struct Strip;
 
+namespace blender::seq {
+
 ListBase *SEQ_channels_displayed_get(Editing *ed);
 void SEQ_channels_displayed_set(Editing *ed, ListBase *channels);
 void SEQ_channels_ensure(ListBase *channels);
@@ -25,3 +27,5 @@ bool SEQ_channel_is_locked(const SeqTimelineChannel *channel);
 bool SEQ_channel_is_muted(const SeqTimelineChannel *channel);
 int SEQ_channel_index_get(const SeqTimelineChannel *channel);
 ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Strip *strip);
+
+}  // namespace blender::seq

@@ -47,6 +47,8 @@
 #include "prefetch.hh"
 #include "render.hh"
 
+namespace blender::seq {
+
 struct PrefetchJob {
   PrefetchJob *next = nullptr;
   PrefetchJob *prev = nullptr;
@@ -603,3 +605,5 @@ bool SEQ_prefetch_need_redraw(const bContext *C, Scene *scene)
   }
   return false;
 }
+
+}  // namespace blender::seq

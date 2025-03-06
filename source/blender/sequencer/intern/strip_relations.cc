@@ -34,6 +34,8 @@
 #include "image_cache.hh"
 #include "utils.hh"
 
+namespace blender::seq {
+
 bool SEQ_relation_is_effect_of_strip(const Strip *effect, const Strip *input)
 {
   return ELEM(input, effect->seq1, effect->seq2);
@@ -480,3 +482,5 @@ bool SEQ_exists_in_seqbase(const Strip *strip, const ListBase *seqbase)
   }
   return false;
 }
+
+}  // namespace blender::seq

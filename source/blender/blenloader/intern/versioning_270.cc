@@ -448,7 +448,7 @@ static bool strip_update_effectdata_cb(Strip *strip, void * /*user_data*/)
   }
 
   if (strip->effectdata == nullptr) {
-    SeqEffectHandle effect_handle = SEQ_effect_handle_get(strip);
+    blender::seq::SeqEffectHandle effect_handle = blender::seq::SEQ_effect_handle_get(strip);
     effect_handle.init(strip);
   }
 
@@ -861,7 +861,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       STRNCPY(srv->suffix, STEREO_RIGHT_SUFFIX);
 
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_update_proxy_cb, nullptr);
+        blender::seq::SEQ_for_each_callback(&scene->ed->seqbase, strip_update_proxy_cb, nullptr);
       }
     }
 
@@ -1132,7 +1132,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_update_effectdata_cb, nullptr);
+        blender::seq::SEQ_for_each_callback(
+            &scene->ed->seqbase, strip_update_effectdata_cb, nullptr);
       }
     }
 

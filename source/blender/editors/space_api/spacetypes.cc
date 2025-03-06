@@ -77,7 +77,7 @@ void ED_spacetypes_init()
   ED_spacetype_nla();
   ED_spacetype_script();
   ED_spacetype_text();
-  ED_spacetype_sequencer();
+  vse::ED_spacetype_sequencer();
   ED_spacetype_console();
   ED_spacetype_userpref();
   ED_spacetype_clip();
@@ -166,7 +166,7 @@ void ED_spacemacros_init()
   curves::operatormacros_curves();
   pointcloud::operatormacros_pointcloud();
   ED_operatormacros_mask();
-  ED_operatormacros_sequencer();
+  vse::ED_operatormacros_sequencer();
   ED_operatormacros_paint();
   ED_operatormacros_grease_pencil();
   ED_operatormacros_nla();

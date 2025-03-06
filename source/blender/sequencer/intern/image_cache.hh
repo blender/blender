@@ -12,9 +12,12 @@
 
 struct ImBuf;
 struct Scene;
-struct SeqCache;
 struct SeqRenderData;
 struct Strip;
+
+namespace blender::seq {
+
+struct SeqCache;
 
 struct SeqCacheKey {
   SeqCache *cache_owner;
@@ -51,3 +54,5 @@ void seq_cache_cleanup_sequence(Scene *scene,
                                 bool force_seq_changed_range);
 bool seq_cache_is_full();
 float seq_cache_frame_index_to_timeline_frame(Strip *strip, float frame_index);
+
+}  // namespace blender::seq

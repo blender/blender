@@ -27,6 +27,8 @@
 
 #include "sequencer_intern.hh"
 
+namespace blender::ed::vse {
+
 /* **************************** buttons ********************************* */
 
 #if 0
@@ -100,3 +102,5 @@ void sequencer_buttons_register(ARegionType *art)
   pt->order = 10;
   BLI_addtail(&art->paneltypes, pt);
 }
+
+}  // namespace blender::ed::vse

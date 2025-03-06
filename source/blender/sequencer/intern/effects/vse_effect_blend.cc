@@ -16,7 +16,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 /* -------------------------------------------------------------------- */
 /* Alpha Over Effect */
@@ -398,3 +398,5 @@ void alpha_under_effect_get_handle(SeqEffectHandle &rval)
   rval.init = init_alpha_over_or_under;
   rval.execute = do_alphaunder_effect;
 }
+
+}  // namespace blender::seq

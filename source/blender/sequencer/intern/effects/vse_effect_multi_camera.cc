@@ -16,6 +16,8 @@
 #include "effects.hh"
 #include "render.hh"
 
+namespace blender::seq {
+
 /* No effect inputs for multi-camera, we use #give_ibuf_seq. */
 static int num_inputs_multicam()
 {
@@ -63,3 +65,5 @@ void multi_camera_effect_get_handle(SeqEffectHandle &rval)
   rval.early_out = early_out_multicam;
   rval.execute = do_multicam;
 }
+
+}  // namespace blender::seq
