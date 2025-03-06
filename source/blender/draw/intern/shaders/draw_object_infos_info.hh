@@ -103,12 +103,6 @@ TYPEDEF_SOURCE("gpencil_shader_shared.h")
 DEFINE("DRW_GPENCIL_INFO")
 SAMPLER(0, FLOAT_BUFFER, gp_pos_tx)
 SAMPLER(1, FLOAT_BUFFER, gp_col_tx)
-/* Per Object */
-PUSH_CONSTANT(FLOAT, gpThicknessScale)      /* TODO(fclem): Replace with object info. */
-PUSH_CONSTANT(FLOAT, gpThicknessWorldScale) /* TODO(fclem): Same as above. */
-DEFINE_VALUE("gpThicknessIsScreenSpace", "(gpThicknessWorldScale < 0.0)")
-/* Per Layer */
-PUSH_CONSTANT(FLOAT, gpThicknessOffset)
 ADDITIONAL_INFO(draw_resource_id_varying)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_object_infos)

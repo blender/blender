@@ -1212,9 +1212,6 @@ static void grease_pencil_geom_batch_ensure(Object &object,
        * use negative values as a special 'flag' to get rounded caps. */
       s_vert.radius = math::max(radii[point_i], 0.0f) *
                       ((end_cap == GP_STROKE_CAP_TYPE_ROUND) ? 1.0f : -1.0f);
-      /* Convert to legacy "pixel" space. We divide here, because the shader expects the values to
-       * be in the `px` space rather than world space. Otherwise the values will get clamped. */
-      s_vert.radius /= bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       s_vert.opacity = opacities[point_i] *
                        ((start_cap == GP_STROKE_CAP_TYPE_ROUND) ? 1.0f : -1.0f);
       s_vert.point_id = verts_range[idx];

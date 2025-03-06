@@ -18,7 +18,6 @@
 #  define USE_WORLD_CLIP_PLANES
 
 #  define DRW_VIEW_LEN DRW_VIEW_MAX
-#  define gpThicknessIsScreenSpace (gpThicknessWorldScale < 0.0)
 #endif
 
 #include "gpu_shader_create_info.hh"

@@ -136,8 +136,6 @@ typedef struct GPENCIL_tObject {
 
   /* Distance to camera. Used for sorting. */
   float camera_z;
-  /* Used for stroke thickness scaling. */
-  float object_scale;
   /* Normal used for shading. Based on view angle. */
   float3 plane_normal;
   /* Used for drawing depth merge pass. */

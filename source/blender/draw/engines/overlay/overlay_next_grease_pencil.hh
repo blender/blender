@@ -310,16 +310,10 @@ class GreasePencil : Overlay {
     const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*scene, grease_pencil, true);
     for (const DrawingInfo info : drawings) {
 
-      const float object_scale = mat4_to_scale(ob->object_to_world().ptr());
-      const float thickness_scale = bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
-
       gpu::VertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(scene, ob);
       gpu::VertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(scene, ob);
 
       pass.push_constant("gpStrokeOrder3d", is_stroke_order_3d);
-      pass.push_constant("gpThicknessScale", object_scale);
-      pass.push_constant("gpThicknessOffset", 0.0f);
-      pass.push_constant("gpThicknessWorldScale", thickness_scale);
       pass.bind_texture("gp_pos_tx", position_tx);
       pass.bind_texture("gp_col_tx", color_tx);
 

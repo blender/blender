@@ -75,18 +75,20 @@ vec2 gpencil_project_to_screenspace(vec4 v, vec4 viewport_size)
 
 float gpencil_stroke_thickness_modulate(float thickness, vec4 ndc_pos, vec4 viewport_size)
 {
-  /* Modify stroke thickness by object and layer factors. */
-  thickness = max(1.0, thickness * gpThicknessScale + gpThicknessOffset);
+  /* Modify stroke thickness by object scale. */
+  thickness = length(to_float3x3(drw_modelmat()) * vec3(thickness * M_SQRT1_3));
 
-  if (gpThicknessIsScreenSpace) {
-    /* Multiply offset by view Z so that offset is constant in screen-space.
-     * (e.i: does not change with the distance to camera) */
-    thickness *= ndc_pos.w;
-  }
-  else {
-    /* World space point size. */
-    thickness *= gpThicknessWorldScale * drw_view().winmat[1][1] * viewport_size.y;
-  }
+  /* For compatibility, thickness has to be clamped after being multiplied by this factor.
+   * This clamping was introduced to reduce aliasing issue by instead fading the lines alpha at
+   * smaller radii. This can be removed in major release if compatibility is not a concern. */
+  const float legacy_radius_conversion_factor = 2000.0;
+  thickness *= legacy_radius_conversion_factor;
+  thickness = max(1.0, thickness);
+  thickness /= legacy_radius_conversion_factor;
+
+  /* World space point size. */
+  thickness *= drw_view().winmat[1][1] * viewport_size.y;
+
   return thickness;
 }
 
