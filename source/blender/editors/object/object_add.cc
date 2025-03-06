@@ -100,6 +100,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "GEO_join_geometries.hh"
+#include "GEO_mesh_to_curve.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -3191,8 +3192,6 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
   bke::greasepencil::Drawing *drawing_line = grease_pencil.insert_frame(layer_line, current_frame);
 
   const Span<float3> mesh_positions = mesh_eval.vert_positions();
-  const Span<float3> vert_normals = mesh_eval.vert_normals();
-  const Span<int2> edges = mesh_eval.edges();
   const OffsetIndices<int> faces = mesh_eval.faces();
   Span<int> faces_span = faces.data();
   const Span<int> corner_verts = mesh_eval.corner_verts();
@@ -3229,26 +3228,38 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
     stroke_materials_fill.finish();
   }
 
-  const int edges_num = edges.size();
-  const int points_num = edges_num * 2;
+  Mesh *mesh_copied = BKE_mesh_copy_for_eval(mesh_eval);
+  const Span<float3> normals = mesh_copied->vert_normals();
 
-  bke::CurvesGeometry &curves = drawing_line->strokes_for_write();
-  curves.resize(points_num, edges_num);
-  MutableSpan<float3> positions = curves.positions_for_write();
-  MutableSpan<int> offsets = curves.offsets_for_write();
-  MutableSpan<float> radii = curves.radius_for_write();
-  curves.fill_curve_types(CURVE_TYPE_POLY);
+  std::string unique_attribute_id = BKE_attribute_calc_unique_name(
+      AttributeOwner::from_id(&mesh_copied->id), "vertex_normal_for_conversion");
 
-  for (const int edge_i : edges.index_range()) {
-    const int2 edge = edges[edge_i];
-    const int point_i = edge_i * 2;
-    positions[point_i] = mesh_positions[edge[0]] + offset * vert_normals[edge[0]];
-    positions[point_i + 1] = mesh_positions[edge[1]] + offset * vert_normals[edge[1]];
-    radii[point_i] = radii[point_i + 1] = stroke_radius;
-  }
-  radii.fill(stroke_radius);
+  mesh_copied->attributes_for_write().add(
+      unique_attribute_id,
+      bke::AttrDomain::Point,
+      CD_PROP_FLOAT3,
+      bke::AttributeInitVArray(VArray<float3>::ForSpan(normals)));
 
-  offset_indices::fill_constant_group_size(2, 0, offsets);
+  const int edges_num = mesh_copied->edges_num;
+  bke::CurvesGeometry curves = geometry::mesh_to_curve_convert(
+      *mesh_copied, IndexRange(edges_num), {});
+
+  MutableSpan<float3> curve_positions = curves.positions_for_write();
+  const VArraySpan<float3> point_normals = *curves.attributes().lookup<float3>(
+      unique_attribute_id);
+
+  threading::parallel_for(curve_positions.index_range(), 8192, [&](const IndexRange range) {
+    for (const int point_i : range) {
+      curve_positions[point_i] += offset * point_normals[point_i];
+    }
+  });
+
+  curves.radius_for_write().fill(stroke_radius);
+
+  drawing_line->strokes_for_write() = std::move(curves);
+  drawing_line->tag_topology_changed();
+
+  BKE_id_free(nullptr, mesh_copied);
 }
 
 static Object *convert_mesh_to_grease_pencil(Base &base,
