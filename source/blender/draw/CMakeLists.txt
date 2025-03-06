@@ -167,7 +167,6 @@ set(SRC
   intern/draw_common_shader_shared.hh
   intern/draw_curves_private.hh
   intern/draw_debug.hh
-  intern/draw_debug_c.hh
   intern/draw_hair_private.hh
   intern/draw_handle.hh
   intern/draw_manager.hh

@@ -33,6 +33,7 @@
 #include "DNA_particle_types.h"
 
 #include "draw_common.hh"
+#include "draw_manager_c.hh"
 #include "draw_view_data.hh"
 
 namespace blender::eevee {
@@ -710,11 +711,13 @@ void Instance::light_bake_irradiance(
 {
   BLI_assert(is_baking());
 
+  DRWContext draw_ctx;
+
   auto custom_pipeline_wrapper = [&](FunctionRef<void()> callback) {
     context_enable();
-    DRW_custom_pipeline_begin(&draw_engine_eevee_next_type, depsgraph);
+    DRW_custom_pipeline_begin(draw_ctx, &draw_engine_eevee_next_type, depsgraph);
     callback();
-    DRW_custom_pipeline_end();
+    DRW_custom_pipeline_end(draw_ctx);
     context_disable();
   };
 

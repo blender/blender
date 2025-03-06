@@ -126,9 +126,6 @@ struct DRWContext {
   /* Contains list of objects that needs to be extracted from other objects. */
   GSet *delayed_extraction = nullptr;
 
-  /* Contains debug drawcall infos. Persistent across usage. */
-  DRWDebugModule *debug = nullptr;
-
   /* Reset all members before drawing in order to avoid undefined state. */
   void prepare_clean_for_draw();
   /* Poison all members to detect missing `prepare_clean_for_draw()`. */

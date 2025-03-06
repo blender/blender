@@ -40,6 +40,7 @@ struct SpaceLink;
 struct TaskGraph;
 struct View3D;
 struct ViewLayer;
+struct DRWContext;
 struct World;
 namespace blender::draw {
 class TextureFromPool;
@@ -138,18 +139,14 @@ void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, 
  * This function only setup DST and execute the given function.
  * \warning similar to DRW_render_to_image you cannot use default lists (`dfbl` & `dtxl`).
  */
-void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
-                         Depsgraph *depsgraph,
-                         void (*callback)(void *vedata, void *user_data),
-                         void *user_data);
-/**
- * Same as `DRW_custom_pipeline` but allow better code-flow than a callback.
- */
-void DRW_custom_pipeline_begin(DrawEngineType *draw_engine_type, Depsgraph *depsgraph);
-void DRW_custom_pipeline_end();
+void DRW_custom_pipeline_begin(DRWContext &draw_ctx,
+                               DrawEngineType *draw_engine_type,
+                               Depsgraph *depsgraph);
+void DRW_custom_pipeline_end(DRWContext &draw_ctx);
 
 /**
  * Used when the render engine want to redo another cache populate inside the same render frame.
+ * Assumes it is called between `DRW_custom_pipeline_begin/end()`.
  */
 void DRW_cache_restart();
 

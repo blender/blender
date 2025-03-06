@@ -96,7 +96,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
                           DRW_ObjectFilterFn object_filter_fn,
                           void *object_filter_user_data);
 /**
- * Object mode select-loop.
+ * Used by auto-depth and other depth queries feature.
  */
 void DRW_draw_depth_loop(Depsgraph *depsgraph,
                          ARegion *region,
@@ -109,6 +109,10 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
  */
 void DRW_draw_depth_object(
     Scene *scene, ARegion *region, View3D *v3d, GPUViewport *viewport, Object *object);
+
+/**
+ * Edit mesh mode selection.
+ */
 void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d);
 
 /**
@@ -122,6 +126,12 @@ bool DRW_draw_in_progress();
  * Helper to check if exit object type to render.
  */
 bool DRW_render_check_grease_pencil(Depsgraph *depsgraph);
+/**
+ * Render grease pencil on top of other render engine output (but only for non-draw-engine).
+ * This function creates a DRWContext.
+ * `DRW_render_to_image()` applies grease pencil using `DRW_render_gpencil_to_image` as it
+ * already has a DRWContext setup.
+ */
 void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph);
 
 void DRW_render_context_enable(Render *render);

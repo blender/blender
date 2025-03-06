@@ -79,7 +79,7 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
   depth_tx_.ensure_2d_array(GPU_DEPTH_COMPONENT32F, extent, layer_count, usage);
   depth_tx_.ensure_layer_views();
 
-  do_display_draw_ = DRW_state_draw_support() && num_probes > 0;
+  do_display_draw_ = inst_.do_display_support() && num_probes > 0;
 
   int resource_index = 0;
   int display_index = 0;
