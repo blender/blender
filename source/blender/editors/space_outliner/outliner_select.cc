@@ -735,20 +735,20 @@ static void tree_element_strip_activate(bContext *C,
 {
   const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
   Strip *strip = &te_strip->get_strip();
-  Editing *ed = seq::SEQ_editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
 
   if (BLI_findindex(ed->seqbasep, strip) != -1) {
     if (set == OL_SETSEL_EXTEND) {
-      seq::SEQ_select_active_set(scene, nullptr);
+      seq::select_active_set(scene, nullptr);
     }
-    vse::ED_sequencer_deselect_all(scene);
+    vse::deselect_all_strips(scene);
 
     if ((set == OL_SETSEL_EXTEND) && strip->flag & SELECT) {
       strip->flag &= ~SELECT;
     }
     else {
       strip->flag |= SELECT;
-      seq::SEQ_select_active_set(scene, strip);
+      seq::select_active_set(scene, strip);
     }
   }
 
@@ -757,7 +757,7 @@ static void tree_element_strip_activate(bContext *C,
 
 static void tree_element_strip_dup_activate(Scene *scene, TreeElement * /*te*/)
 {
-  Editing *ed = seq::SEQ_editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
 
 #if 0
   select_single_seq(strip, 1);

@@ -40,7 +40,7 @@ namespace blender::ed::vse {
 static void seq_proxy_build_job(const bContext *C, ReportList *reports)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = seq::SEQ_editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
   ScrArea *area = CTX_wm_area(C);
 
   if (ed == nullptr) {
@@ -53,7 +53,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   blender::Set<std::string> processed_paths;
   bool selected = false; /* Check for no selected strips */
 
-  LISTBASE_FOREACH (Strip *, seq, seq::SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, seq, seq::active_seqbase_get(ed)) {
     if (!ELEM(seq->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE) || (seq->flag & SELECT) == 0) {
       continue;
     }
@@ -68,7 +68,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
       continue;
     }
 
-    bool success = seq::SEQ_proxy_rebuild_context(
+    bool success = seq::proxy_rebuild_context(
         pj->main, pj->depsgraph, pj->scene, seq, &processed_paths, &pj->queue, false);
 
     if (!success && (seq->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
@@ -101,7 +101,7 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /*o*/)
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = seq::SEQ_editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
 
   if (ed == nullptr) {
     return OPERATOR_CANCELLED;
@@ -109,20 +109,19 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /*o*/)
 
   blender::Set<std::string> processed_paths;
 
-  LISTBASE_FOREACH (Strip *, seq, seq::SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, seq, seq::active_seqbase_get(ed)) {
     if (seq->flag & SELECT) {
       ListBase queue = {nullptr, nullptr};
 
-      seq::SEQ_proxy_rebuild_context(
-          bmain, depsgraph, scene, seq, &processed_paths, &queue, false);
+      seq::proxy_rebuild_context(bmain, depsgraph, scene, seq, &processed_paths, &queue, false);
 
       wmJobWorkerStatus worker_status = {};
       LISTBASE_FOREACH (LinkData *, link, &queue) {
-        seq::SeqIndexBuildContext *context = static_cast<seq::SeqIndexBuildContext *>(link->data);
-        seq::SEQ_proxy_rebuild(context, &worker_status);
-        seq::SEQ_proxy_rebuild_finish(context, false);
+        seq::IndexBuildContext *context = static_cast<seq::IndexBuildContext *>(link->data);
+        seq::proxy_rebuild(context, &worker_status);
+        seq::proxy_rebuild_finish(context, false);
       }
-      seq::SEQ_relations_free_imbuf(scene, &ed->seqbase, false);
+      seq::relations_free_imbuf(scene, &ed->seqbase, false);
     }
   }
 
@@ -159,7 +158,7 @@ static int sequencer_enable_proxies_invoke(bContext *C, wmOperator *op, const wm
 static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = seq::SEQ_editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
   bool proxy_25 = RNA_boolean_get(op->ptr, "proxy_25");
   bool proxy_50 = RNA_boolean_get(op->ptr, "proxy_50");
   bool proxy_75 = RNA_boolean_get(op->ptr, "proxy_75");
@@ -171,10 +170,10 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
     turnon = false;
   }
 
-  LISTBASE_FOREACH (Strip *, seq, seq::SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, seq, seq::active_seqbase_get(ed)) {
     if (seq->flag & SELECT) {
       if (ELEM(seq->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
-        seq::SEQ_proxy_set(seq, turnon);
+        seq::proxy_set(seq, turnon);
         if (seq->data->proxy == nullptr) {
           continue;
         }

@@ -107,7 +107,7 @@ static int t_around_get(TransInfo *t)
     }
     case SPACE_SEQ: {
       if (t->region->regiontype == RGN_TYPE_PREVIEW) {
-        return seq::SEQ_tool_settings_pivot_point_get(t->scene);
+        return seq::tool_settings_pivot_point_get(t->scene);
       }
       break;
     }
@@ -957,7 +957,7 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
   }
   if (t->spacetype == SPACE_SEQ) {
     SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
-    const float2 cursor_pixel = seq::SEQ_image_preview_unit_to_px(t->scene, sseq->cursor);
+    const float2 cursor_pixel = seq::image_preview_unit_to_px(t->scene, sseq->cursor);
     copy_v2_v2(cursor_local_buf, cursor_pixel);
     cursor = cursor_local_buf;
   }

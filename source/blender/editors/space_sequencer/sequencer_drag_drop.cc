@@ -228,10 +228,10 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   dummy_seq.speed_factor = 1.0f;
   dummy_seq.media_playback_rate = coords->playback_rate;
   dummy_seq.flag = SEQ_AUTO_PLAYBACK_RATE;
-  Editing *ed = seq::SEQ_editing_ensure(scene);
+  Editing *ed = seq::editing_ensure(scene);
 
   for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
-    coords->is_intersecting = seq::SEQ_transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
+    coords->is_intersecting = seq::transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
     dummy_seq.machine++;
   }
 
@@ -265,12 +265,12 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     /* We are dropped inside the preview region. Put the strip on top of the
      * current displayed frame. */
     Scene *scene = CTX_data_scene(C);
-    Editing *ed = seq::SEQ_editing_ensure(scene);
-    ListBase *seqbase = seq::SEQ_active_seqbase_get(ed);
-    ListBase *channels = seq::SEQ_channels_displayed_get(ed);
+    Editing *ed = seq::editing_ensure(scene);
+    ListBase *seqbase = seq::active_seqbase_get(ed);
+    ListBase *channels = seq::channels_displayed_get(ed);
     SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-    blender::VectorSet strips = seq::SEQ_query_rendered_strips(
+    blender::VectorSet strips = seq::query_rendered_strips(
         scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
     /* Get the top most strip channel that is in view. */

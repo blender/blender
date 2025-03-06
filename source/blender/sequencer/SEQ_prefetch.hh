@@ -13,12 +13,12 @@ struct Scene;
 
 namespace blender::seq {
 
-void SEQ_prefetch_stop_all();
+void prefetch_stop_all();
 /**
  * Use also to update scene and context changes
  * This function should almost always be called by cache invalidation, not directly.
  */
-void SEQ_prefetch_stop(Scene *scene);
-bool SEQ_prefetch_need_redraw(const bContext *C, Scene *scene);
+void prefetch_stop(Scene *scene);
+bool prefetch_need_redraw(const bContext *C, Scene *scene);
 
 }  // namespace blender::seq

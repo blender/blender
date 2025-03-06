@@ -135,7 +135,7 @@ static void gaussian_blur_y(const Span<float> gaussian,
   }
 }
 
-static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
+static ImBuf *do_gaussian_blur_effect(const RenderData *context,
                                       Strip *strip,
                                       float /*timeline_frame*/,
                                       float /*fac*/,
@@ -216,7 +216,7 @@ static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
   return out;
 }
 
-void gaussian_blur_effect_get_handle(SeqEffectHandle &rval)
+void gaussian_blur_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_gaussian_blur_effect;
   rval.num_inputs = num_inputs_gaussian_blur;

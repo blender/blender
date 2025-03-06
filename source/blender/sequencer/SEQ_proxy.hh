@@ -23,22 +23,22 @@ struct wmJobWorkerStatus;
 
 namespace blender::seq {
 
-struct SeqIndexBuildContext;
-struct SeqRenderData;
+struct IndexBuildContext;
+struct RenderData;
 
-bool SEQ_proxy_rebuild_context(Main *bmain,
-                               Depsgraph *depsgraph,
-                               Scene *scene,
-                               Strip *strip,
-                               blender::Set<std::string> *processed_paths,
-                               ListBase *queue,
-                               bool build_only_on_bad_performance);
-void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_status);
-void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop);
-void SEQ_proxy_set(Strip *strip, bool value);
-bool SEQ_can_use_proxy(const SeqRenderData *context, const Strip *strip, int psize);
-int SEQ_rendersize_to_proxysize(int render_size);
-double SEQ_rendersize_to_scale_factor(int render_size);
+bool proxy_rebuild_context(Main *bmain,
+                           Depsgraph *depsgraph,
+                           Scene *scene,
+                           Strip *strip,
+                           blender::Set<std::string> *processed_paths,
+                           ListBase *queue,
+                           bool build_only_on_bad_performance);
+void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status);
+void proxy_rebuild_finish(IndexBuildContext *context, bool stop);
+void proxy_set(Strip *strip, bool value);
+bool can_use_proxy(const RenderData *context, const Strip *strip, int psize);
+int rendersize_to_proxysize(int render_size);
+double rendersize_to_scale_factor(int render_size);
 
 struct ProxyJob {
   Main *main;

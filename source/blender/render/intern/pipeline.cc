@@ -1451,9 +1451,7 @@ bool RE_seq_render_active(Scene *scene, RenderData *rd)
   }
 
   LISTBASE_FOREACH (Strip *, seq, &ed->seqbase) {
-    if (seq->type != STRIP_TYPE_SOUND_RAM &&
-        !blender::seq::SEQ_render_is_muted(&ed->channels, seq))
-    {
+    if (seq->type != STRIP_TYPE_SOUND_RAM && !blender::seq::render_is_muted(&ed->channels, seq)) {
       return true;
     }
   }
@@ -1494,7 +1492,7 @@ static ImBuf *seq_process_render_image(ImBuf *src,
   else {
     /* Duplicate sequencer output and ensure it is in needed color space. */
     dst = IMB_dupImBuf(src);
-    blender::seq::SEQ_render_imbuf_from_sequencer_space(scene, dst);
+    blender::seq::render_imbuf_from_sequencer_space(scene, dst);
   }
   IMB_metadata_copy(dst, src);
   IMB_freeImBuf(src);
@@ -1509,7 +1507,7 @@ static void do_render_sequencer(Render *re)
   ImBuf *out;
   RenderResult *rr; /* don't assign re->result here as it might change during give_ibuf_seq */
   int cfra = re->r.cfra;
-  blender::seq::SeqRenderData context;
+  blender::seq::RenderData context;
   int view_id, tot_views;
   int re_x, re_y;
 
@@ -1531,21 +1529,21 @@ static void do_render_sequencer(Render *re)
   tot_views = BKE_scene_multiview_num_views_get(&re->r);
   blender::Vector<ImBuf *> ibuf_arr(tot_views);
 
-  SEQ_render_new_render_data(re->main,
-                             re->pipeline_depsgraph,
-                             re->scene,
-                             re_x,
-                             re_y,
-                             SEQ_RENDER_SIZE_SCENE,
-                             true,
-                             &context);
+  render_new_render_data(re->main,
+                         re->pipeline_depsgraph,
+                         re->scene,
+                         re_x,
+                         re_y,
+                         SEQ_RENDER_SIZE_SCENE,
+                         true,
+                         &context);
 
   /* The render-result gets destroyed during the rendering, so we first collect all ibufs
    * and then we populate the final render-result. */
 
   for (view_id = 0; view_id < tot_views; view_id++) {
     context.view_id = view_id;
-    out = SEQ_render_give_ibuf(&context, cfra, 0);
+    out = render_give_ibuf(&context, cfra, 0);
     ibuf_arr[view_id] = seq_process_render_image(out, re->r.im_format, re->pipeline_scene_eval);
   }
 
@@ -1572,7 +1570,7 @@ static void do_render_sequencer(Render *re)
       if (recurs_depth == 0) { /* With nested scenes, only free on top-level. */
         Editing *ed = re->pipeline_scene_eval->ed;
         if (ed) {
-          blender::seq::SEQ_relations_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);
+          blender::seq::relations_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);
         }
       }
       IMB_freeImBuf(ibuf_arr[view_id]);
@@ -1618,7 +1616,7 @@ static void do_render_full_pipeline(Render *re)
 
   /* ensure no images are in memory from previous animated sequences */
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
-  blender::seq::SEQ_cache_cleanup(re->scene);
+  blender::seq::cache_cleanup(re->scene);
 
   if (RE_engine_render(re, true)) {
     /* in this case external render overrides all */

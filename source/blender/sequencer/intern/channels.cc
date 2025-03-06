@@ -23,20 +23,20 @@
 
 namespace blender::seq {
 
-ListBase *SEQ_channels_displayed_get(Editing *ed)
+ListBase *channels_displayed_get(Editing *ed)
 {
   return ed->displayed_channels;
 }
 
-void SEQ_channels_displayed_set(Editing *ed, ListBase *channels)
+void channels_displayed_set(Editing *ed, ListBase *channels)
 {
   ed->displayed_channels = channels;
 }
 
-void SEQ_channels_ensure(ListBase *channels)
+void channels_ensure(ListBase *channels)
 {
   /* Allocate channels. Channel 0 is never used, but allocated to prevent off by 1 issues. */
-  for (int i = 0; i < SEQ_MAX_CHANNELS + 1; i++) {
+  for (int i = 0; i < MAX_CHANNELS + 1; i++) {
     SeqTimelineChannel *channel = static_cast<SeqTimelineChannel *>(
         MEM_callocN(sizeof(SeqTimelineChannel), "seq timeline channel"));
     SNPRINTF(channel->name, DATA_("Channel %d"), i);
@@ -45,7 +45,7 @@ void SEQ_channels_ensure(ListBase *channels)
   }
 }
 
-void SEQ_channels_duplicate(ListBase *channels_dst, ListBase *channels_src)
+void channels_duplicate(ListBase *channels_dst, ListBase *channels_src)
 {
   LISTBASE_FOREACH (SeqTimelineChannel *, channel, channels_src) {
     SeqTimelineChannel *channel_duplicate = static_cast<SeqTimelineChannel *>(
@@ -54,40 +54,40 @@ void SEQ_channels_duplicate(ListBase *channels_dst, ListBase *channels_src)
   }
 }
 
-void SEQ_channels_free(ListBase *channels)
+void channels_free(ListBase *channels)
 {
   LISTBASE_FOREACH_MUTABLE (SeqTimelineChannel *, channel, channels) {
     MEM_freeN(channel);
   }
 }
 
-SeqTimelineChannel *SEQ_channel_get_by_index(const ListBase *channels, const int channel_index)
+SeqTimelineChannel *channel_get_by_index(const ListBase *channels, const int channel_index)
 {
   return static_cast<SeqTimelineChannel *>(BLI_findlink(channels, channel_index));
 }
 
-char *SEQ_channel_name_get(ListBase *channels, const int channel_index)
+char *channel_name_get(ListBase *channels, const int channel_index)
 {
-  SeqTimelineChannel *channel = SEQ_channel_get_by_index(channels, channel_index);
+  SeqTimelineChannel *channel = channel_get_by_index(channels, channel_index);
   return channel->name;
 }
 
-int SEQ_channel_index_get(const SeqTimelineChannel *channel)
+int channel_index_get(const SeqTimelineChannel *channel)
 {
   return channel->index;
 }
 
-bool SEQ_channel_is_locked(const SeqTimelineChannel *channel)
+bool channel_is_locked(const SeqTimelineChannel *channel)
 {
   return (channel->flag & SEQ_CHANNEL_LOCK) != 0;
 }
 
-bool SEQ_channel_is_muted(const SeqTimelineChannel *channel)
+bool channel_is_muted(const SeqTimelineChannel *channel)
 {
   return (channel->flag & SEQ_CHANNEL_MUTE) != 0;
 }
 
-ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Strip *strip)
+ListBase *get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Strip *strip)
 {
   ListBase *lb = nullptr;
 
@@ -95,7 +95,7 @@ ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const S
     if (strip == istrip) {
       return channels;
     }
-    if ((lb = SEQ_get_channels_by_seq(&istrip->seqbase, &istrip->channels, strip))) {
+    if ((lb = get_channels_by_seq(&istrip->seqbase, &istrip->channels, strip))) {
       return lb;
     }
   }

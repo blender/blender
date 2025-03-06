@@ -84,7 +84,7 @@ static bool seq_update_modifier_curve(Strip *strip, void *user_data)
     if (smd->type == seqModifierType_Curves) {
       CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
       if (&cmd->curve_mapping == data->curve) {
-        blender::seq::SEQ_relations_invalidate_cache_preprocessed(data->scene, strip);
+        blender::seq::relations_invalidate_cache_preprocessed(data->scene, strip);
       }
     }
   }
@@ -97,7 +97,7 @@ static void seq_notify_curve_update(CurveMapping *curve, ID *id)
     Scene *scene = (Scene *)id;
     if (scene->ed) {
       SeqCurveMappingUpdateData data{scene, curve};
-      blender::seq::SEQ_for_each_callback(&scene->ed->seqbase, seq_update_modifier_curve, &data);
+      blender::seq::for_each_callback(&scene->ed->seqbase, seq_update_modifier_curve, &data);
     }
   }
 }
@@ -687,14 +687,14 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
     MovieClip *clip = (MovieClip *)id;
 
     DEG_id_tag_update(&clip->id, ID_RECALC_SOURCE);
-    blender::seq::SEQ_relations_invalidate_movieclip_strips(bmain, clip);
+    blender::seq::relations_invalidate_movieclip_strips(bmain, clip);
 
     WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
     WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, &clip->id);
   }
   else if (GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
-    blender::seq::SEQ_relations_invalidate_scene_strips(bmain, scene);
+    blender::seq::relations_invalidate_scene_strips(bmain, scene);
 
     if (scene->ed) {
       ColorManagedColorspaceSettings *colorspace_settings = (ColorManagedColorspaceSettings *)
@@ -703,24 +703,24 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
 
       if (&scene->sequencer_colorspace_settings == colorspace_settings) {
         /* Scene colorspace was changed. */
-        blender::seq::SEQ_cache_cleanup(scene);
+        blender::seq::cache_cleanup(scene);
         blender::seq::thumbnail_cache_clear(scene);
       }
       else {
         /* Strip colorspace was likely changed. */
-        blender::seq::SEQ_for_each_callback(
+        blender::seq::for_each_callback(
             &scene->ed->seqbase, strip_find_colorspace_settings_cb, &cb_data);
         Strip *strip = cb_data.r_seq;
 
         if (strip) {
-          blender::seq::SEQ_relations_sequence_free_anim(strip);
+          blender::seq::relations_sequence_free_anim(strip);
 
           if (strip->data->proxy && strip->data->proxy->anim) {
             MOV_close(strip->data->proxy->anim);
             strip->data->proxy->anim = nullptr;
           }
 
-          blender::seq::SEQ_relations_invalidate_cache_raw(scene, strip);
+          blender::seq::relations_invalidate_cache_raw(scene, strip);
         }
       }
 

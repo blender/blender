@@ -39,12 +39,12 @@ namespace blender::ed::vse {
 static int strip_modifier_add_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Strip *strip = seq::SEQ_select_active_get(scene);
+  Strip *strip = seq::select_active_get(scene);
   int type = RNA_enum_get(op->ptr, "type");
 
-  seq::SEQ_modifier_new(strip, nullptr, type);
+  seq::modifier_new(strip, nullptr, type);
 
-  seq::SEQ_relations_invalidate_cache_preprocessed(scene, strip);
+  seq::relations_invalidate_cache_preprocessed(scene, strip);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -60,7 +60,7 @@ static const EnumPropertyItem *filter_modifiers_by_sequence_type_itemf(bContext 
   }
 
   Scene *scene = CTX_data_scene(C);
-  Strip *strip = seq::SEQ_select_active_get(scene);
+  Strip *strip = seq::select_active_get(scene);
   if (strip) {
     if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM)) {
       return rna_enum_strip_sound_modifier_type_items;
@@ -100,25 +100,25 @@ void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
 static int strip_modifier_remove_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Strip *strip = seq::SEQ_select_active_get(scene);
+  Strip *strip = seq::select_active_get(scene);
   char name[MAX_NAME];
   SequenceModifierData *smd;
 
   RNA_string_get(op->ptr, "name", name);
 
-  smd = seq::SEQ_modifier_find_by_name(strip, name);
+  smd = seq::modifier_find_by_name(strip, name);
   if (!smd) {
     return OPERATOR_CANCELLED;
   }
 
   BLI_remlink(&strip->modifiers, smd);
-  seq::SEQ_modifier_free(smd);
+  seq::modifier_free(smd);
 
   if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM)) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   }
   else {
-    seq::SEQ_relations_invalidate_cache_preprocessed(scene, strip);
+    seq::relations_invalidate_cache_preprocessed(scene, strip);
   }
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -160,7 +160,7 @@ enum {
 static int strip_modifier_move_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Strip *strip = seq::SEQ_select_active_get(scene);
+  Strip *strip = seq::select_active_get(scene);
   char name[MAX_NAME];
   int direction;
   SequenceModifierData *smd;
@@ -168,7 +168,7 @@ static int strip_modifier_move_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "name", name);
   direction = RNA_enum_get(op->ptr, "direction");
 
-  smd = seq::SEQ_modifier_find_by_name(strip, name);
+  smd = seq::modifier_find_by_name(strip, name);
   if (!smd) {
     return OPERATOR_CANCELLED;
   }
@@ -190,7 +190,7 @@ static int strip_modifier_move_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   }
   else {
-    seq::SEQ_relations_invalidate_cache_preprocessed(scene, strip);
+    seq::relations_invalidate_cache_preprocessed(scene, strip);
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -242,7 +242,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = scene->ed;
-  Strip *strip = seq::SEQ_select_active_get(scene);
+  Strip *strip = seq::select_active_get(scene);
   const int type = RNA_enum_get(op->ptr, "type");
 
   if (!strip || !strip->modifiers.first) {
@@ -251,7 +251,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
 
   int isSound = ELEM(strip->type, STRIP_TYPE_SOUND_RAM);
 
-  LISTBASE_FOREACH (Strip *, strip_iter, seq::SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, strip_iter, seq::active_seqbase_get(ed)) {
     if (strip_iter->flag & SELECT) {
       if (strip_iter == strip) {
         continue;
@@ -271,14 +271,14 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
           while (smd) {
             smd_tmp = smd->next;
             BLI_remlink(&strip_iter->modifiers, smd);
-            seq::SEQ_modifier_free(smd);
+            seq::modifier_free(smd);
             smd = smd_tmp;
           }
           BLI_listbase_clear(&strip_iter->modifiers);
         }
       }
 
-      seq::SEQ_modifier_list_copy(strip_iter, strip);
+      seq::modifier_list_copy(strip_iter, strip);
     }
   }
 
@@ -286,7 +286,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   }
   else {
-    seq::SEQ_relations_invalidate_cache_preprocessed(scene, strip);
+    seq::relations_invalidate_cache_preprocessed(scene, strip);
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -332,20 +332,20 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
 static int strip_modifier_equalizer_redefine_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Strip *strip = seq::SEQ_select_active_get(scene);
+  Strip *strip = seq::select_active_get(scene);
   SequenceModifierData *smd;
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
   int number = RNA_enum_get(op->ptr, "graphs");
 
-  smd = seq::SEQ_modifier_find_by_name(strip, name);
+  smd = seq::modifier_find_by_name(strip, name);
   if (!smd) {
     return OPERATOR_CANCELLED;
   }
 
-  seq::SEQ_sound_equalizermodifier_set_graphs((SoundEqualizerModifierData *)smd, number);
+  seq::sound_equalizermodifier_set_graphs((SoundEqualizerModifierData *)smd, number);
 
-  seq::SEQ_relations_invalidate_cache_preprocessed(scene, strip);
+  seq::relations_invalidate_cache_preprocessed(scene, strip);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;

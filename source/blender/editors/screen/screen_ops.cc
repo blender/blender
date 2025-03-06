@@ -5393,7 +5393,7 @@ static void screen_animation_region_tag_redraw(
 
     if (area->spacetype == SPACE_SEQ) {
       const SpaceSeq *sseq = static_cast<const SpaceSeq *>(area->spacedata.first);
-      if (!blender::ed::vse::ED_space_sequencer_has_playback_animation(sseq, scene)) {
+      if (!blender::ed::vse::has_playback_animation(sseq, scene)) {
         return;
       }
     }

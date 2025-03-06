@@ -95,11 +95,11 @@ static void strip_get_thumb_image_dimensions(const Strip *strip,
   /* Fix the dimensions to be max SEQ_THUMB_SIZE for x or y. */
   float aspect_ratio = image_width / image_height;
   if (image_width > image_height) {
-    image_width = seq::SEQ_THUMB_SIZE;
+    image_width = seq::THUMB_SIZE;
     image_height = round_fl_to_int(image_width / aspect_ratio);
   }
   else {
-    image_height = seq::SEQ_THUMB_SIZE;
+    image_height = seq::THUMB_SIZE;
     image_width = round_fl_to_int(image_height * aspect_ratio);
   }
 

@@ -105,16 +105,16 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
   Scene *scene = CTX_data_scene(C);
-  const Editing *ed = seq::SEQ_editing_get(scene);
+  const Editing *ed = seq::editing_get(scene);
 
-  seq::SEQ_timeline_init_boundbox(scene, &box);
-  MetaStack *ms = seq::SEQ_meta_stack_active_get(ed);
+  seq::timeline_init_boundbox(scene, &box);
+  MetaStack *ms = seq::meta_stack_active_get(ed);
   /* Use meta strip range instead of scene. */
   if (ms != nullptr) {
     box.xmin = ms->disp_range[0] - 1;
     box.xmax = ms->disp_range[1] + 1;
   }
-  seq::SEQ_timeline_expand_boundbox(scene, seq::SEQ_active_seqbase_get(ed), &box);
+  seq::timeline_expand_boundbox(scene, seq::active_seqbase_get(ed), &box);
 
   SEQ_add_timeline_region_padding(C, &box);
 
@@ -297,8 +297,8 @@ static void seq_view_collection_rect_preview(Scene *scene,
                                              blender::Span<Strip *> strips,
                                              rctf *rect)
 {
-  const blender::Bounds<blender::float2> box =
-      seq::SEQ_image_transform_bounding_box_from_collection(scene, strips, true);
+  const blender::Bounds<blender::float2> box = seq::image_transform_bounding_box_from_collection(
+      scene, strips, true);
 
   rect->xmin = box.min[0];
   rect->xmax = box.max[0];
@@ -323,13 +323,13 @@ static void seq_view_collection_rect_timeline(const bContext *C,
   const Scene *scene = CTX_data_scene(C);
   int xmin = MAXFRAME * 2;
   int xmax = -MAXFRAME * 2;
-  int ymin = seq::SEQ_MAX_CHANNELS + 1;
+  int ymin = seq::MAX_CHANNELS + 1;
   int ymax = 0;
   int xmargin = FPS;
 
   for (Strip *strip : strips) {
-    xmin = min_ii(xmin, seq::SEQ_time_left_handle_frame_get(scene, strip));
-    xmax = max_ii(xmax, seq::SEQ_time_right_handle_frame_get(scene, strip));
+    xmin = min_ii(xmin, seq::time_left_handle_frame_get(scene, strip));
+    xmax = max_ii(xmax, seq::time_right_handle_frame_get(scene, strip));
 
     ymin = min_ii(ymin, strip->machine);
     /* "+1" because each channel has a thickness of 1. */
@@ -353,9 +353,9 @@ static void seq_view_collection_rect_timeline(const bContext *C,
   /* Y axis should only zoom out if needed, never zoom in. */
   if (orig_height > BLI_rctf_size_y(&new_viewport)) {
     /* Get the current max/min channel we can display. */
-    const Editing *ed = seq::SEQ_editing_get(scene);
+    const Editing *ed = seq::editing_get(scene);
     rctf box;
-    seq::SEQ_timeline_boundbox(scene, seq::SEQ_active_seqbase_get(ed), &box);
+    seq::timeline_boundbox(scene, seq::active_seqbase_get(ed), &box);
     SEQ_add_timeline_region_padding(C, &box);
     float timeline_ymin = box.ymin;
     float timeline_ymax = box.ymax;
@@ -389,7 +389,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
-  blender::VectorSet strips = ED_sequencer_selected_strips_from_context(C);
+  blender::VectorSet strips = selected_strips_from_context(C);
   View2D *v2d = UI_view2d_fromcontext(C);
   rctf cur_new = v2d->cur;
 

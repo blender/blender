@@ -113,14 +113,14 @@ static void strip_lookup_update_if_needed(const Editing *ed, StripLookup **looku
   strip_lookup_rebuild(ed, lookup);
 }
 
-void SEQ_strip_lookup_free(Editing *ed)
+void strip_lookup_free(Editing *ed)
 {
   BLI_assert(ed != nullptr);
   std::lock_guard lock(lookup_lock);
   strip_lookup_free(&ed->runtime.strip_lookup);
 }
 
-Strip *SEQ_lookup_strip_by_name(Editing *ed, const char *key)
+Strip *lookup_strip_by_name(Editing *ed, const char *key)
 {
   BLI_assert(ed != nullptr);
   std::lock_guard lock(lookup_lock);
@@ -148,7 +148,7 @@ blender::Span<Strip *> SEQ_lookup_effects_by_strip(Editing *ed, const Strip *key
   return effects.as_span();
 }
 
-Strip *SEQ_lookup_strip_by_channel_owner(Editing *ed, const SeqTimelineChannel *channel)
+Strip *lookup_strip_by_channel_owner(Editing *ed, const SeqTimelineChannel *channel)
 {
   BLI_assert(ed != nullptr);
   std::lock_guard lock(lookup_lock);
@@ -157,7 +157,7 @@ Strip *SEQ_lookup_strip_by_channel_owner(Editing *ed, const SeqTimelineChannel *
   return lookup->owner_by_channel.lookup_default(channel, nullptr);
 }
 
-void SEQ_strip_lookup_invalidate(const Editing *ed)
+void strip_lookup_invalidate(const Editing *ed)
 {
   if (ed == nullptr) {
     return;

@@ -130,7 +130,7 @@ static void transform_image(int x,
   }
 }
 
-static ImBuf *do_transform_effect(const SeqRenderData *context,
+static ImBuf *do_transform_effect(const RenderData *context,
                                   Strip *strip,
                                   float /*timeline_frame*/,
                                   float /*fac*/,
@@ -160,7 +160,7 @@ static ImBuf *do_transform_effect(const SeqRenderData *context,
     /* Compensate text size for preview render size. */
     double proxy_size_comp = context->scene->r.size / 100.0;
     if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
-      proxy_size_comp = SEQ_rendersize_to_scale_factor(context->preview_render_size);
+      proxy_size_comp = rendersize_to_scale_factor(context->preview_render_size);
     }
 
     translate_x = transform->xIni * proxy_size_comp + (x / 2.0f);
@@ -192,7 +192,7 @@ static ImBuf *do_transform_effect(const SeqRenderData *context,
   return dst;
 }
 
-void transform_effect_get_handle(SeqEffectHandle &rval)
+void transform_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_transform_effect;
   rval.num_inputs = num_inputs_transform;

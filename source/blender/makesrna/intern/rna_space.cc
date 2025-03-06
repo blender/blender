@@ -2435,7 +2435,7 @@ static void rna_SpaceConsole_rect_update(Main * /*bmain*/, Scene * /*scene*/, Po
 
 static void rna_SequenceEditor_update_cache(Main * /*bmain*/, Scene *scene, PointerRNA * /*ptr*/)
 {
-  blender::seq::SEQ_cache_cleanup(scene);
+  blender::seq::cache_cleanup(scene);
 }
 
 static void seq_build_proxy(bContext *C, PointerRNA *ptr)
@@ -2446,7 +2446,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
 
   SpaceSeq *sseq = static_cast<SpaceSeq *>(ptr->data);
   Scene *scene = CTX_data_scene(C);
-  ListBase *seqbase = blender::seq::SEQ_active_seqbase_get(blender::seq::SEQ_editing_get(scene));
+  ListBase *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
 
   blender::Set<std::string> processed_paths;
   wmJob *wm_job = blender::seq::ED_seq_proxy_wm_job_get(C);
@@ -2459,11 +2459,11 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
     }
 
     /* Add new proxy size. */
-    strip->data->proxy->build_size_flags |= blender::seq::SEQ_rendersize_to_proxysize(
+    strip->data->proxy->build_size_flags |= blender::seq::rendersize_to_proxysize(
         sseq->render_size);
 
     /* Build proxy. */
-    blender::seq::SEQ_proxy_rebuild_context(
+    blender::seq::proxy_rebuild_context(
         pj->main, pj->depsgraph, pj->scene, strip, &processed_paths, &pj->queue, true);
   }
 
@@ -6215,7 +6215,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
       prop,
       "Display Channel",
       "The channel number shown in the image preview. 0 is the result of all strips combined");
-  RNA_def_property_range(prop, -5, blender::seq::SEQ_MAX_CHANNELS);
+  RNA_def_property_range(prop, -5, blender::seq::MAX_CHANNELS);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   prop = RNA_def_property(srna, "preview_channels", PROP_ENUM, PROP_NONE);

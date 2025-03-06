@@ -19,15 +19,15 @@ struct SeqAnimationBackup;
 
 namespace blender::seq {
 
-bool SEQ_animation_keyframes_exist(Scene *scene);
-bool SEQ_animation_drivers_exist(Scene *scene);
-void SEQ_free_animdata(Scene *scene, Strip *strip);
-void SEQ_offset_animdata(Scene *scene, Strip *strip, int ofs);
+bool animation_keyframes_exist(Scene *scene);
+bool animation_drivers_exist(Scene *scene);
+void free_animdata(Scene *scene, Strip *strip);
+void offset_animdata(Scene *scene, Strip *strip, int ofs);
 /**
  * Return whether the fcurve targets the given sequence.
  */
-bool SEQ_fcurve_matches(const Strip &strip, const FCurve &fcurve);
-struct SeqAnimationBackup {
+bool fcurve_matches(const Strip &strip, const FCurve &fcurve);
+struct AnimationBackup {
   /* `curves` and `channelbag` here represent effectively the same data (the
    * fcurves that animate the Scene that the sequence belongs to), just for
    * legacy and layered actions, respectively. Therefore only one or the other
@@ -40,16 +40,14 @@ struct SeqAnimationBackup {
 /**
  * Move all F-Curves and drivers from `scene` to `backup`.
  */
-void SEQ_animation_backup_original(Scene *scene, SeqAnimationBackup *backup);
+void animation_backup_original(Scene *scene, AnimationBackup *backup);
 /**
  * Move all F-Curves and drivers from `backup` to `scene`.
  */
-void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup);
+void animation_restore_original(Scene *scene, AnimationBackup *backup);
 /**
  * Duplicate F-Curves and drivers used by `seq` from `backup` to `scene`.
  */
-void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
-                                             Strip *strip,
-                                             SeqAnimationBackup *backup);
+void animation_duplicate_backup_to_scene(Scene *scene, Strip *strip, AnimationBackup *backup);
 
 }  // namespace blender::seq

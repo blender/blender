@@ -583,7 +583,7 @@ void WM_jobs_kill_all(wmWindowManager *wm)
   }
 
   /* This job will be automatically restarted. */
-  blender::seq::SEQ_prefetch_stop_all();
+  blender::seq::prefetch_stop_all();
 }
 
 void WM_jobs_kill_all_except(wmWindowManager *wm, const void *owner)

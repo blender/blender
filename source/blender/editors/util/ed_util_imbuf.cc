@@ -341,7 +341,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 
       /* sequencer's image buffers are in non-linear space, need to make them linear */
       copy_v4_v4(info->linearcol, info->colf);
-      blender::seq::SEQ_render_pixel_from_sequencer_space_v4(scene, info->linearcol);
+      blender::seq::render_pixel_from_sequencer_space_v4(scene, info->linearcol);
 
       info->color_manage = true;
     }
@@ -538,7 +538,7 @@ bool ED_imbuf_sample_poll(bContext *C)
       if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
         return false;
       }
-      if (blender::seq::SEQ_editing_get(CTX_data_scene(C)) == nullptr) {
+      if (blender::seq::editing_get(CTX_data_scene(C)) == nullptr) {
         return false;
       }
       ARegion *region = CTX_wm_region(C);

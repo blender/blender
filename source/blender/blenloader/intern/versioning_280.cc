@@ -774,8 +774,8 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
     if (scene->ed != nullptr) {
       LISTBASE_FOREACH (Strip *, seq, &scene->ed->seqbase) {
         LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
-          const blender::seq::SequenceModifierTypeInfo *smti =
-              blender::seq::SEQ_modifier_type_info_get(smd->type);
+          const blender::seq::StripModifierTypeInfo *smti = blender::seq::modifier_type_info_get(
+              smd->type);
 
           if (smti) {
             if (smd->type == seqModifierType_Curves) {
@@ -3007,7 +3007,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
 static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
 {
   LISTBASE_FOREACH (Strip *, seq, seqbasep) {
-    blender::seq::SEQ_sequence_base_unique_name_recursive(sce, &sce->ed->seqbase, seq);
+    blender::seq::sequence_base_unique_name_recursive(sce, &sce->ed->seqbase, seq);
     if (seq->seqbase.first != nullptr) {
       do_versions_seq_unique_name_all_strips(sce, &seq->seqbase);
     }
@@ -4658,7 +4658,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
 
       if (scene->ed) {
-        blender::seq::SEQ_for_each_callback(&scene->ed->seqbase, strip_update_flags_cb, nullptr);
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_update_flags_cb, nullptr);
       }
     }
 

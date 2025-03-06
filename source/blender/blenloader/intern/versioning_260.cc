@@ -1004,7 +1004,7 @@ static bool strip_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
   StripData *data = strip->data;
 
   if (data && data->color_balance) {
-    SequenceModifierData *smd = blender::seq::SEQ_modifier_new(
+    SequenceModifierData *smd = blender::seq::modifier_new(
         strip, nullptr, seqModifierType_ColorBalance);
     ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
 
@@ -1030,7 +1030,7 @@ static bool strip_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
     strip->alpha_mode = SEQ_ALPHA_STRAIGHT;
   }
   else {
-    blender::seq::SEQ_alpha_mode_from_file_extension(strip);
+    blender::seq::alpha_mode_from_file_extension(strip);
   }
   return true;
 }
@@ -1850,7 +1850,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 18)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        blender::seq::SEQ_for_each_callback(
+        blender::seq::for_each_callback(
             &scene->ed->seqbase, strip_colorbalance_update_cb, nullptr);
       }
     }
@@ -2090,7 +2090,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 265, 5)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        blender::seq::SEQ_for_each_callback(&scene->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
       }
 
       if (scene->r.bake_samples == 0) {
@@ -2786,8 +2786,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
 
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         if (scene->ed) {
-          blender::seq::SEQ_for_each_callback(
-              &scene->ed->seqbase, strip_set_wipe_angle_cb, nullptr);
+          blender::seq::for_each_callback(&scene->ed->seqbase, strip_set_wipe_angle_cb, nullptr);
         }
       }
 

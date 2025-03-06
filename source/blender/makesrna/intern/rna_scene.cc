@@ -957,7 +957,7 @@ static void rna_Scene_fps_update(Main *bmain, Scene * /*active_scene*/, PointerR
   /* NOTE: Tag via dependency graph will take care of all the updates ion the evaluated domain,
    * however, changes in FPS actually modifies an original skip length,
    * so this we take care about here. */
-  blender::seq::SEQ_sound_update_length(bmain, scene);
+  blender::seq::sound_update_length(bmain, scene);
   /* Reset simulation states because new frame interval doesn't apply anymore. */
   blender::bke::bake::scene_simulation_states_reset(*scene);
 }
@@ -2466,7 +2466,7 @@ static void rna_SceneCamera_update(Main * /*bmain*/, Scene * /*scene*/, PointerR
   Scene *scene = (Scene *)ptr->owner_id;
   Object *camera = scene->camera;
 
-  blender::seq::SEQ_cache_cleanup(scene);
+  blender::seq::cache_cleanup(scene);
 
   if (camera && (camera->type == OB_CAMERA)) {
     DEG_id_tag_update(&camera->id, ID_RECALC_GEOMETRY);
@@ -2475,7 +2475,7 @@ static void rna_SceneCamera_update(Main * /*bmain*/, Scene * /*scene*/, PointerR
 
 static void rna_SceneSequencer_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  blender::seq::SEQ_cache_cleanup((Scene *)ptr->owner_id);
+  blender::seq::cache_cleanup((Scene *)ptr->owner_id);
 }
 
 static std::optional<std::string> rna_ToolSettings_path(const PointerRNA * /*ptr*/)

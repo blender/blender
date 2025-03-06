@@ -80,18 +80,18 @@ struct TransSeq {
 static void SeqTransInfo(TransInfo *t, Strip *strip, int *r_count, int *r_flag)
 {
   Scene *scene = t->scene;
-  Editing *ed = seq::SEQ_editing_get(t->scene);
-  ListBase *channels = seq::SEQ_channels_displayed_get(ed);
+  Editing *ed = seq::editing_get(t->scene);
+  ListBase *channels = seq::channels_displayed_get(ed);
 
   /* For extend we need to do some tricks. */
   if (t->mode == TFM_TIME_EXTEND) {
 
     /* *** Extend Transform *** */
     int cfra = scene->r.cfra;
-    int left = seq::SEQ_time_left_handle_frame_get(scene, strip);
-    int right = seq::SEQ_time_right_handle_frame_get(scene, strip);
+    int left = seq::time_left_handle_frame_get(scene, strip);
+    int right = seq::time_right_handle_frame_get(scene, strip);
 
-    if ((strip->flag & SELECT) == 0 || seq::SEQ_transform_is_locked(channels, strip)) {
+    if ((strip->flag & SELECT) == 0 || seq::transform_is_locked(channels, strip)) {
       *r_count = 0;
       *r_flag = 0;
     }
@@ -130,7 +130,7 @@ static void SeqTransInfo(TransInfo *t, Strip *strip, int *r_count, int *r_flag)
     /* Count. */
 
     /* Non nested strips (reset selection and handles). */
-    if ((strip->flag & SELECT) == 0 || seq::SEQ_transform_is_locked(channels, strip)) {
+    if ((strip->flag & SELECT) == 0 || seq::transform_is_locked(channels, strip)) {
       *r_count = 0;
       *r_flag = 0;
     }
@@ -174,16 +174,16 @@ static TransData *SeqToTransData(Scene *scene,
       /* Use seq_tx_get_final_left() and an offset here
        * so transform has the left hand location of the strip.
        * `tdsq->start_offset` is used when flushing the tx data back. */
-      start_left = seq::SEQ_time_left_handle_frame_get(scene, strip);
+      start_left = seq::time_left_handle_frame_get(scene, strip);
       td2d->loc[0] = start_left;
       tdsq->start_offset = start_left - strip->start; /* Use to apply the original location. */
       break;
     case SEQ_LEFTSEL:
-      start_left = seq::SEQ_time_left_handle_frame_get(scene, strip);
+      start_left = seq::time_left_handle_frame_get(scene, strip);
       td2d->loc[0] = start_left;
       break;
     case SEQ_RIGHTSEL:
-      td2d->loc[0] = seq::SEQ_time_right_handle_frame_get(scene, strip);
+      td2d->loc[0] = seq::time_right_handle_frame_get(scene, strip);
       break;
   }
 
@@ -269,21 +269,21 @@ static void free_transform_custom_data(TransCustomData *custom_data)
 /* Canceled, need to update the strips display. */
 static void seq_transform_cancel(TransInfo *t, Span<Strip *> transformed_strips)
 {
-  ListBase *seqbase = seq::SEQ_active_seqbase_get(seq::SEQ_editing_get(t->scene));
+  ListBase *seqbase = seq::active_seqbase_get(seq::editing_get(t->scene));
 
   for (Strip *strip : transformed_strips) {
     /* Handle pre-existing overlapping strips even when operator is canceled.
      * This is necessary for SEQUENCER_OT_duplicate_move macro for example. */
-    if (seq::SEQ_transform_test_overlap(t->scene, seqbase, strip)) {
-      seq::SEQ_transform_seqbase_shuffle(seqbase, strip, t->scene);
+    if (seq::transform_test_overlap(t->scene, seqbase, strip)) {
+      seq::transform_seqbase_shuffle(seqbase, strip, t->scene);
     }
   }
 }
 
 static ListBase *seqbase_active_get(const TransInfo *t)
 {
-  Editing *ed = seq::SEQ_editing_get(t->scene);
-  return seq::SEQ_active_seqbase_get(ed);
+  Editing *ed = seq::editing_get(t->scene);
+  return seq::active_seqbase_get(ed);
 }
 
 bool seq_transform_check_overlap(Span<Strip *> transformed_strips)
@@ -309,15 +309,15 @@ static VectorSet<Strip *> seq_transform_collection_from_transdata(TransDataConta
 
 static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data)
 {
-  Editing *ed = seq::SEQ_editing_get(t->scene);
+  Editing *ed = seq::editing_get(t->scene);
   if (ed == nullptr) {
     free_transform_custom_data(custom_data);
     return;
   }
 
   VectorSet transformed_strips = seq_transform_collection_from_transdata(tc);
-  seq::SEQ_iterator_set_expand(
-      t->scene, seqbase_active_get(t), transformed_strips, seq::SEQ_query_strip_effect_chain);
+  seq::iterator_set_expand(
+      t->scene, seqbase_active_get(t), transformed_strips, seq::query_strip_effect_chain);
 
   for (Strip *strip : transformed_strips) {
     strip->flag &= ~SEQ_IGNORE_CHANNEL_LOCK;
@@ -335,7 +335,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   const bool use_sync_markers = (((SpaceSeq *)t->area->spacedata.first)->flag &
                                  SEQ_MARKER_TRANS) != 0;
   if (seq_transform_check_overlap(transformed_strips)) {
-    seq::SEQ_transform_handle_overlap(
+    seq::transform_handle_overlap(
         scene, seqbasep, transformed_strips, ts->time_dependent_strips, use_sync_markers);
   }
 
@@ -362,8 +362,8 @@ enum SeqInputSide {
 static Strip *effect_input_get(const Scene *scene, Strip *effect, SeqInputSide side)
 {
   Strip *input = effect->seq1;
-  if (effect->seq2 && (seq::SEQ_time_left_handle_frame_get(scene, effect->seq2) -
-                       seq::SEQ_time_left_handle_frame_get(scene, effect->seq1)) *
+  if (effect->seq2 && (seq::time_left_handle_frame_get(scene, effect->seq2) -
+                       seq::time_left_handle_frame_get(scene, effect->seq1)) *
                               side >
                           0)
   {
@@ -398,8 +398,7 @@ static void query_time_dependent_strips_strips(TransInfo *t,
   VectorSet<Strip *> strips_no_handles = query_selected_strips_no_handles(seqbase);
   time_dependent_strips.add_multiple(strips_no_handles);
 
-  seq::SEQ_iterator_set_expand(
-      t->scene, seqbase, strips_no_handles, seq::SEQ_query_strip_effect_chain);
+  seq::iterator_set_expand(t->scene, seqbase, strips_no_handles, seq::query_strip_effect_chain);
   bool strip_added = true;
 
   while (strip_added) {
@@ -425,9 +424,8 @@ static void query_time_dependent_strips_strips(TransInfo *t,
    * If any 2-input effect changes position because handles were moved, animation should be offset.
    * With single input effect, it is less likely desirable to move animation. */
 
-  VectorSet selected_strips = seq::SEQ_query_selected_strips(seqbase);
-  seq::SEQ_iterator_set_expand(
-      t->scene, seqbase, selected_strips, seq::SEQ_query_strip_effect_chain);
+  VectorSet selected_strips = seq::query_selected_strips(seqbase);
+  seq::iterator_set_expand(t->scene, seqbase, selected_strips, seq::query_strip_effect_chain);
   for (Strip *strip : selected_strips) {
     /* Check only 2 input effects. */
     if (strip->seq1 == nullptr || strip->seq2 == nullptr) {
@@ -445,13 +443,13 @@ static void query_time_dependent_strips_strips(TransInfo *t,
 
   /* Remove all non-effects. */
   time_dependent_strips.remove_if(
-      [&](Strip *strip) { return seq::SEQ_transform_sequence_can_be_translated(strip); });
+      [&](Strip *strip) { return seq::transform_sequence_can_be_translated(strip); });
 }
 
 static void createTransSeqData(bContext * /*C*/, TransInfo *t)
 {
   Scene *scene = t->scene;
-  Editing *ed = seq::SEQ_editing_get(t->scene);
+  Editing *ed = seq::editing_get(t->scene);
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
   TransDataSeq *tdsq = nullptr;
@@ -502,14 +500,14 @@ static void createTransSeqData(bContext * /*C*/, TransInfo *t)
                           STRIP_EDGE_PAN_MAX_SPEED,
                           STRIP_EDGE_PAN_DELAY,
                           STRIP_EDGE_PAN_ZOOM_INFLUENCE);
-  UI_view2d_edge_pan_set_limits(&ts->edge_pan, -FLT_MAX, FLT_MAX, 1, seq::SEQ_MAX_CHANNELS + 1);
+  UI_view2d_edge_pan_set_limits(&ts->edge_pan, -FLT_MAX, FLT_MAX, 1, seq::MAX_CHANNELS + 1);
   ts->initial_v2d_cur = t->region->v2d.cur;
 
   /* Loop 2: build transdata array. */
   SeqToTransData_build(t, ed->seqbasep, td, td2d, tdsq);
 
-  ts->selection_channel_range_min = seq::SEQ_MAX_CHANNELS + 1;
-  LISTBASE_FOREACH (Strip *, strip, seq::SEQ_active_seqbase_get(ed)) {
+  ts->selection_channel_range_min = seq::MAX_CHANNELS + 1;
+  LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
     if ((strip->flag & SELECT) != 0) {
       ts->selection_channel_range_min = min_ii(ts->selection_channel_range_min, strip->machine);
       ts->selection_channel_range_max = max_ii(ts->selection_channel_range_max, strip->machine);
@@ -591,15 +589,15 @@ static void flushTransSeq(TransInfo *t)
 
     switch (tdsq->sel_flag) {
       case SELECT: {
-        if (seq::SEQ_transform_sequence_can_be_translated(strip)) {
+        if (seq::transform_sequence_can_be_translated(strip)) {
           offset = new_frame - tdsq->start_offset - strip->start;
-          seq::SEQ_transform_translate_sequence(scene, strip, offset);
+          seq::transform_translate_sequence(scene, strip, offset);
           if (abs(offset) > abs(max_offset)) {
             max_offset = offset;
           }
         }
         strip->machine = round_fl_to_int(td->loc[1] + edge_pan_offset[1]);
-        CLAMP(strip->machine, 1, seq::SEQ_MAX_CHANNELS);
+        CLAMP(strip->machine, 1, seq::MAX_CHANNELS);
         break;
       }
       case SEQ_LEFTSEL: { /* No vertical transform. */
@@ -607,30 +605,25 @@ static void flushTransSeq(TransInfo *t)
          * the old one to avoid unexpected left handle clamping when canceling. See #126191. */
         bool both_handles_selected = (tdsq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) ==
                                      (SEQ_LEFTSEL | SEQ_RIGHTSEL);
-        if (both_handles_selected && new_frame > seq::SEQ_time_left_handle_frame_get(scene, strip))
-        {
+        if (both_handles_selected && new_frame > seq::time_left_handle_frame_get(scene, strip)) {
           a++, td++, td2d++;
           int new_right_frame = round_fl_to_int(td->loc[0] + edge_pan_offset[0]);
-          seq::SEQ_time_right_handle_frame_set(scene, strip, new_right_frame);
+          seq::time_right_handle_frame_set(scene, strip, new_right_frame);
         }
-        int old_startdisp = seq::SEQ_time_left_handle_frame_get(scene, strip);
-        seq::SEQ_time_left_handle_frame_set(t->scene, strip, new_frame);
+        int old_startdisp = seq::time_left_handle_frame_get(scene, strip);
+        seq::time_left_handle_frame_set(t->scene, strip, new_frame);
 
-        if (abs(seq::SEQ_time_left_handle_frame_get(scene, strip) - old_startdisp) >
-            abs(max_offset))
-        {
-          max_offset = seq::SEQ_time_left_handle_frame_get(scene, strip) - old_startdisp;
+        if (abs(seq::time_left_handle_frame_get(scene, strip) - old_startdisp) > abs(max_offset)) {
+          max_offset = seq::time_left_handle_frame_get(scene, strip) - old_startdisp;
         }
         break;
       }
       case SEQ_RIGHTSEL: { /* No vertical transform. */
-        int old_enddisp = seq::SEQ_time_right_handle_frame_get(scene, strip);
-        seq::SEQ_time_right_handle_frame_set(t->scene, strip, new_frame);
+        int old_enddisp = seq::time_right_handle_frame_get(scene, strip);
+        seq::time_right_handle_frame_set(t->scene, strip, new_frame);
 
-        if (abs(seq::SEQ_time_right_handle_frame_get(scene, strip) - old_enddisp) >
-            abs(max_offset))
-        {
-          max_offset = seq::SEQ_time_right_handle_frame_get(scene, strip) - old_enddisp;
+        if (abs(seq::time_right_handle_frame_get(scene, strip) - old_enddisp) > abs(max_offset)) {
+          max_offset = seq::time_right_handle_frame_get(scene, strip) - old_enddisp;
         }
         break;
       }
@@ -641,19 +634,19 @@ static void flushTransSeq(TransInfo *t)
 
   /* Update animation for effects. */
   for (Strip *strip : ts->time_dependent_strips) {
-    seq::SEQ_offset_animdata(t->scene, strip, max_offset);
+    seq::offset_animdata(t->scene, strip, max_offset);
   }
 
   /* Need to do the overlap check in a new loop otherwise adjacent strips
    * will not be updated and we'll get false positives. */
   VectorSet transformed_strips = seq_transform_collection_from_transdata(tc);
-  seq::SEQ_iterator_set_expand(
-      t->scene, seqbase_active_get(t), transformed_strips, seq::SEQ_query_strip_effect_chain);
+  seq::iterator_set_expand(
+      t->scene, seqbase_active_get(t), transformed_strips, seq::query_strip_effect_chain);
 
   for (Strip *strip : transformed_strips) {
     /* Test overlap, displays red outline. */
     strip->flag &= ~SEQ_OVERLAP;
-    if (seq::SEQ_transform_test_overlap(scene, seqbasep, strip)) {
+    if (seq::transform_test_overlap(scene, seqbasep, strip)) {
       strip->flag |= SEQ_OVERLAP;
     }
   }
@@ -672,7 +665,7 @@ static void recalcData_sequencer(TransInfo *t)
     Strip *strip = tdsq->strip;
 
     if (strip != strip_prev) {
-      seq::SEQ_relations_invalidate_cache_composite(t->scene, strip);
+      seq::relations_invalidate_cache_composite(t->scene, strip);
     }
 
     strip_prev = strip;
@@ -736,8 +729,8 @@ void transform_convert_sequencer_channel_clamp(TransInfo *t, float r_val[2])
   const int min_channel_after_transform = ts->selection_channel_range_min + channel_offset;
   const int max_channel_after_transform = ts->selection_channel_range_max + channel_offset;
 
-  if (max_channel_after_transform > seq::SEQ_MAX_CHANNELS) {
-    r_val[1] -= max_channel_after_transform - seq::SEQ_MAX_CHANNELS;
+  if (max_channel_after_transform > seq::MAX_CHANNELS) {
+    r_val[1] -= max_channel_after_transform - seq::MAX_CHANNELS;
   }
   if (min_channel_after_transform < 1) {
     r_val[1] -= min_channel_after_transform - 1;

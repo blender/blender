@@ -862,21 +862,21 @@ static bool versioning_convert_strip_speed_factor(Strip *strip, void *user_data)
   const Scene *scene = static_cast<Scene *>(user_data);
   const float speed_factor = strip->speed_factor;
 
-  if (speed_factor == 1.0f || !blender::seq::SEQ_retiming_is_allowed(strip) ||
-      blender::seq::SEQ_retiming_keys_count(strip) > 0)
+  if (speed_factor == 1.0f || !blender::seq::retiming_is_allowed(strip) ||
+      blender::seq::retiming_keys_count(strip) > 0)
   {
     return true;
   }
 
-  blender::seq::SEQ_retiming_data_ensure(strip);
-  SeqRetimingKey *last_key = &blender::seq::SEQ_retiming_keys_get(strip)[1];
+  blender::seq::retiming_data_ensure(strip);
+  SeqRetimingKey *last_key = &blender::seq::retiming_keys_get(strip)[1];
 
   last_key->strip_frame_index = (strip->len) / speed_factor;
 
   if (strip->type == STRIP_TYPE_SOUND_RAM) {
     const int prev_length = strip->len - strip->startofs - strip->endofs;
-    const float left_handle = blender::seq::SEQ_time_left_handle_frame_get(scene, strip);
-    blender::seq::SEQ_time_right_handle_frame_set(scene, strip, left_handle + prev_length);
+    const float left_handle = blender::seq::time_left_handle_frame_get(scene, strip);
+    blender::seq::time_right_handle_frame_set(scene, strip, left_handle + prev_length);
   }
 
   return true;
@@ -1406,9 +1406,9 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 27)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = blender::seq::SEQ_editing_get(scene);
+      Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        blender::seq::SEQ_for_each_callback(
+        blender::seq::for_each_callback(
             &ed->seqbase, versioning_convert_strip_speed_factor, scene);
       }
     }
@@ -3781,7 +3781,7 @@ static void version_sequencer_update_overdrop(Main *bmain)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->ed != nullptr) {
-      blender::seq::SEQ_for_each_callback(
+      blender::seq::for_each_callback(
           &scene->ed->seqbase, strip_effect_overdrop_to_alphaover, nullptr);
     }
   }
@@ -4692,7 +4692,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 18)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::SEQ_for_each_callback(
+        blender::seq::for_each_callback(
             &scene->ed->seqbase, strip_filter_bilinear_to_auto, nullptr);
       }
     }
@@ -4853,7 +4853,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::SEQ_for_each_callback(
+        blender::seq::for_each_callback(
             &scene->ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
       }
     }
@@ -4905,8 +4905,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 20)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = blender::seq::SEQ_tool_settings_ensure(
-          scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_MARKERS;
     }
   }
@@ -5014,7 +5013,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 28)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        blender::seq::SEQ_for_each_callback(
+        blender::seq::for_each_callback(
             &scene->ed->seqbase, strip_proxies_timecode_update, nullptr);
       }
     }
@@ -5028,7 +5027,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 29)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        blender::seq::SEQ_for_each_callback(&scene->ed->seqbase, strip_text_data_update, nullptr);
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_text_data_update, nullptr);
       }
     }
   }
@@ -5395,8 +5394,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 7)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = blender::seq::SEQ_tool_settings_ensure(
-          scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_PREVIEW_BORDERS |
                                             SEQ_SNAP_TO_PREVIEW_CENTER |
                                             SEQ_SNAP_TO_STRIPS_PREVIEW;
@@ -5668,10 +5666,9 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 1)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = blender::seq::SEQ_editing_get(scene);
+      Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        blender::seq::SEQ_for_each_callback(
-            &ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
+        blender::seq::for_each_callback(&ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
       }
     }
   }
@@ -5775,10 +5772,9 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 15)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = blender::seq::SEQ_editing_get(scene);
+      Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        blender::seq::SEQ_for_each_callback(
-            &ed->seqbase, versioning_clear_strip_unused_flag, scene);
+        blender::seq::for_each_callback(&ed->seqbase, versioning_clear_strip_unused_flag, scene);
       }
     }
   }
@@ -5869,8 +5865,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 28)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = blender::seq::SEQ_tool_settings_ensure(
-          scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_RETIMING;
     }
   }

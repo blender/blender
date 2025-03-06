@@ -29,7 +29,7 @@ static StripEarlyOut early_out_multicam(const Strip * /*strip*/, float /*fac*/)
   return StripEarlyOut::NoInput;
 }
 
-static ImBuf *do_multicam(const SeqRenderData *context,
+static ImBuf *do_multicam(const RenderData *context,
                           Strip *strip,
                           float timeline_frame,
                           float /*fac*/,
@@ -47,8 +47,8 @@ static ImBuf *do_multicam(const SeqRenderData *context,
   if (!ed) {
     return nullptr;
   }
-  ListBase *seqbasep = SEQ_get_seqbase_by_seq(context->scene, strip);
-  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, strip);
+  ListBase *seqbasep = get_seqbase_by_seq(context->scene, strip);
+  ListBase *channels = get_channels_by_seq(&ed->seqbase, &ed->channels, strip);
   if (!seqbasep) {
     return nullptr;
   }
@@ -59,7 +59,7 @@ static ImBuf *do_multicam(const SeqRenderData *context,
   return out;
 }
 
-void multi_camera_effect_get_handle(SeqEffectHandle &rval)
+void multi_camera_effect_get_handle(EffectHandle &rval)
 {
   rval.num_inputs = num_inputs_multicam;
   rval.early_out = early_out_multicam;

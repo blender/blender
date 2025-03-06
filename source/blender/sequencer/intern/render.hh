@@ -17,7 +17,7 @@ struct ListBase;
 struct Mask;
 struct Scene;
 struct SeqEffectHandle;
-struct SeqRenderData;
+struct RenderData;
 struct Strip;
 
 namespace blender::seq {
@@ -38,7 +38,7 @@ struct StripScreenQuad {
   }
 };
 
-ImBuf *seq_render_give_ibuf_seqbase(const SeqRenderData *context,
+ImBuf *seq_render_give_ibuf_seqbase(const RenderData *context,
                                     float timeline_frame,
                                     int chan_shown,
                                     ListBase *channels,
@@ -46,19 +46,16 @@ ImBuf *seq_render_give_ibuf_seqbase(const SeqRenderData *context,
 void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float);
 blender::Vector<Strip *> seq_get_shown_sequences(
     const Scene *scene, ListBase *channels, ListBase *seqbase, int timeline_frame, int chanshown);
-ImBuf *seq_render_strip(const SeqRenderData *context,
+ImBuf *seq_render_strip(const RenderData *context,
                         SeqRenderState *state,
                         Strip *strip,
                         float timeline_frame);
 
 /* Renders Mask into an image suitable for sequencer:
  * RGB channels contain mask intensity; alpha channel is opaque. */
-ImBuf *seq_render_mask(const SeqRenderData *context,
-                       Mask *mask,
-                       float frame_index,
-                       bool make_float);
+ImBuf *seq_render_mask(const RenderData *context, Mask *mask, float frame_index, bool make_float);
 void seq_imbuf_assign_spaces(const Scene *scene, ImBuf *ibuf);
 
-StripScreenQuad get_strip_screen_quad(const SeqRenderData *context, const Strip *strip);
+StripScreenQuad get_strip_screen_quad(const RenderData *context, const Strip *strip);
 
 }  // namespace blender::seq

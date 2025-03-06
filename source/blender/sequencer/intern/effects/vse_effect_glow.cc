@@ -223,7 +223,7 @@ static void do_glow_effect_float(Strip *strip,
                    glow->dQuality);
 }
 
-static ImBuf *do_glow_effect(const SeqRenderData *context,
+static ImBuf *do_glow_effect(const RenderData *context,
                              Strip *strip,
                              float /*timeline_frame*/,
                              float fac,
@@ -258,7 +258,7 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
   return out;
 }
 
-void glow_effect_get_handle(SeqEffectHandle &rval)
+void glow_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_glow_effect;
   rval.num_inputs = num_inputs_glow;

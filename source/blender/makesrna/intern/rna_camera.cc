@@ -190,7 +190,7 @@ static bool rna_Camera_background_images_override_apply(
 
 static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA * /*ptr*/)
 {
-  blender::seq::SEQ_relations_invalidate_scene_strips(bmain, scene);
+  blender::seq::relations_invalidate_scene_strips(bmain, scene);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 

@@ -1018,9 +1018,9 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
         BLI_str_quoted_substr(fcu->rna_path, "strips_all[", strip_name, sizeof(strip_name)))
     {
       /* Get strip name, and check if this strip is selected. */
-      Editing *ed = blender::seq::SEQ_editing_get(scene);
+      Editing *ed = blender::seq::editing_get(scene);
       if (ed) {
-        strip = blender::seq::SEQ_get_sequence_by_name(ed->seqbasep, strip_name, false);
+        strip = blender::seq::get_sequence_by_name(ed->seqbasep, strip_name, false);
       }
 
       /* Can only add this F-Curve if it is selected. */

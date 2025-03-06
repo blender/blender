@@ -353,7 +353,7 @@ static void do_wipe_effect(
   });
 }
 
-static ImBuf *do_wipe_effect(const SeqRenderData *context,
+static ImBuf *do_wipe_effect(const RenderData *context,
                              Strip *strip,
                              float /*timeline_frame*/,
                              float fac,
@@ -384,7 +384,7 @@ static ImBuf *do_wipe_effect(const SeqRenderData *context,
   return out;
 }
 
-void wipe_effect_get_handle(SeqEffectHandle &rval)
+void wipe_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_wipe_effect;
   rval.num_inputs = num_inputs_wipe;

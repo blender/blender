@@ -238,7 +238,7 @@ static void scene_init_data(ID *id)
   scene->toolsettings->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
 
   /* Sequencer */
-  scene->toolsettings->sequencer_tool_settings = blender::seq::SEQ_tool_settings_init();
+  scene->toolsettings->sequencer_tool_settings = blender::seq::tool_settings_init();
 
   for (size_t i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
     scene->orientation_slots[i].index_custom = -1;
@@ -358,12 +358,12 @@ static void scene_copy_data(Main *bmain,
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
     scene_dst->ed->proxy_storage = scene_src->ed->proxy_storage;
     STRNCPY(scene_dst->ed->proxy_dir, scene_src->ed->proxy_dir);
-    blender::seq::SEQ_sequence_base_dupli_recursive(scene_src,
-                                                    scene_dst,
-                                                    &scene_dst->ed->seqbase,
-                                                    &scene_src->ed->seqbase,
-                                                    STRIP_DUPE_ALL,
-                                                    flag_subdata);
+    blender::seq::sequence_base_dupli_recursive(scene_src,
+                                                scene_dst,
+                                                &scene_dst->ed->seqbase,
+                                                &scene_src->ed->seqbase,
+                                                STRIP_DUPE_ALL,
+                                                flag_subdata);
     BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
     scene_dst->ed->displayed_channels = &scene_dst->ed->channels;
   }
@@ -398,7 +398,7 @@ static void scene_free_data(ID *id)
 
   DRW_drawdata_free(id);
 
-  blender::seq::SEQ_editing_free(scene, do_id_user);
+  blender::seq::editing_free(scene, do_id_user);
 
   BKE_keyingsets_free(&scene->keyingsets);
 
@@ -863,8 +863,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   if (scene->ed) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
         data,
-        blender::seq::SEQ_for_each_callback(
-            &scene->ed->seqbase, strip_foreach_member_id_cb, data));
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_foreach_member_id_cb, data));
   }
 
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
@@ -989,8 +988,7 @@ static void scene_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Scene *scene = (Scene *)id;
   if (scene->ed != nullptr) {
-    blender::seq::SEQ_for_each_callback(
-        &scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
+    blender::seq::for_each_callback(&scene->ed->seqbase, strip_foreach_path_callback, bpath_data);
   }
 }
 
@@ -1095,7 +1093,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (ed) {
     BLO_write_struct(writer, Editing, ed);
 
-    blender::seq::SEQ_blend_write(writer, &ed->seqbase);
+    blender::seq::blend_write(writer, &ed->seqbase);
     LISTBASE_FOREACH (SeqTimelineChannel *, channel, &ed->channels) {
       BLO_write_struct(writer, SeqTimelineChannel, channel);
     }
@@ -1186,7 +1184,7 @@ static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
 
   LISTBASE_FOREACH_MUTABLE (Strip *, seq, lb) {
     /* Sanity check. */
-    if (!blender::seq::SEQ_is_valid_strip_channel(seq)) {
+    if (!blender::seq::is_valid_strip_channel(seq)) {
       BLI_freelinkN(lb, seq);
       BLO_read_data_reports(reader)->count.sequence_strips_skipped++;
     }
@@ -1314,7 +1312,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     link_recurs_seq(reader, &ed->seqbase);
 
     /* Read in sequence member data. */
-    blender::seq::SEQ_blend_read(reader, &ed->seqbase);
+    blender::seq::blend_read(reader, &ed->seqbase);
     BLO_read_struct_list(reader, SeqTimelineChannel, &ed->channels);
 
     /* link metastack, slight abuse of structs here,
@@ -1682,7 +1680,7 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
 
   ts->custom_bevel_profile_preset = BKE_curveprofile_copy(ts->custom_bevel_profile_preset);
 
-  ts->sequencer_tool_settings = blender::seq::SEQ_tool_settings_copy(ts->sequencer_tool_settings);
+  ts->sequencer_tool_settings = blender::seq::tool_settings_copy(ts->sequencer_tool_settings);
   return ts;
 }
 
@@ -1752,7 +1750,7 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
   }
 
   if (toolsettings->sequencer_tool_settings) {
-    blender::seq::SEQ_tool_settings_free(toolsettings->sequencer_tool_settings);
+    blender::seq::tool_settings_free(toolsettings->sequencer_tool_settings);
   }
 
   MEM_freeN(toolsettings);
@@ -1912,7 +1910,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     /* Remove sequencer if not full copy */
     /* XXX Why in Hell? :/ */
     remove_sequencer_fcurves(sce_copy);
-    blender::seq::SEQ_editing_free(sce_copy, true);
+    blender::seq::editing_free(sce_copy, true);
   }
 
   return sce_copy;

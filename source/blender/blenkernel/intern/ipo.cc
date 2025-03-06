@@ -2414,7 +2414,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
     Editing *ed = scene->ed;
     if (ed && ed->seqbasep) {
       Seq_callback_data cb_data = {bmain, scene, BKE_animdata_ensure_id(id)};
-      seq::SEQ_for_each_callback(&ed->seqbase, strip_convert_callback, &cb_data);
+      seq::for_each_callback(&ed->seqbase, strip_convert_callback, &cb_data);
     }
   }
 
