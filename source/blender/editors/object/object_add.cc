@@ -3241,7 +3241,7 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
       bke::AttributeInitVArray(VArray<float3>::ForSpan(normals)));
 
   const int edges_num = mesh_copied->edges_num;
-  bke::CurvesGeometry curves = geometry::mesh_to_curve_convert(
+  bke::CurvesGeometry curves = geometry::mesh_edges_to_curves_convert(
       *mesh_copied, IndexRange(edges_num), {});
 
   MutableSpan<float3> curve_positions = curves.positions_for_write();
