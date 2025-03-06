@@ -16,7 +16,6 @@ struct Depsgraph;
 struct ListBase;
 struct Main;
 struct Scene;
-struct SeqRenderData;
 struct Strip;
 struct bContext;
 struct wmJob;
@@ -25,6 +24,7 @@ struct wmJobWorkerStatus;
 namespace blender::seq {
 
 struct SeqIndexBuildContext;
+struct SeqRenderData;
 
 bool SEQ_proxy_rebuild_context(Main *bmain,
                                Depsgraph *depsgraph,
