@@ -1061,6 +1061,9 @@ static int node_add_import_node_exec(bContext *C, wmOperator *op)
     else if (path.endswith(".stl")) {
       node = add_node(*C, "GeometryNodeImportSTL", snode->runtime->cursor);
     }
+    else if (path.endswith(".txt")) {
+      node = add_node(*C, "GeometryNodeImportText", snode->runtime->cursor);
+    }
 
     if (node) {
       bNodeSocket &path_socket = node->input_by_identifier("Path");

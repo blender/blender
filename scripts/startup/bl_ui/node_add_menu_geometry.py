@@ -479,6 +479,7 @@ class NODE_MT_category_import(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeImportOBJ")
         node_add_menu.add_node_type(layout, "GeometryNodeImportPLY")
         node_add_menu.add_node_type(layout, "GeometryNodeImportSTL")
+        node_add_menu.add_node_type(layout, "GeometryNodeImportText")
         node_add_menu.draw_assets_for_catalog(layout, "Input/Import")
 
 

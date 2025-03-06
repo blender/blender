@@ -90,6 +90,7 @@ set(SRC
   nodes/node_geo_import_obj.cc
   nodes/node_geo_import_ply.cc
   nodes/node_geo_import_stl.cc
+  nodes/node_geo_import_text.cc
   nodes/node_geo_index_of_nearest.cc
   nodes/node_geo_index_switch.cc
   nodes/node_geo_input_active_camera.cc
