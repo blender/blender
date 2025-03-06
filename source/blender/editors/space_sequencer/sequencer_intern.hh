@@ -45,8 +45,8 @@ struct ListBase;
 
 namespace blender::ed::vse {
 
-struct SeqQuadsBatch;
-struct StripsDrawBatch;
+class SeqQuadsBatch;
+class StripsDrawBatch;
 
 #define DEFAULT_IMG_STRIP_LENGTH 25 /* XXX arbitrary but ok for now. */
 

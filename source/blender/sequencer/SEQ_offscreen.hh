@@ -14,8 +14,12 @@
 #include "IMB_imbuf_types.hh"
 
 struct GPUOffScreen;
-
+struct GPUViewport;
+struct Depsgraph;
+struct View3DShading;
+struct Object;
 enum eDrawType;
+enum eV3DOffscreenDrawFlag;
 
 namespace blender::seq {
 typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
