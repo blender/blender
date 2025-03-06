@@ -279,7 +279,10 @@ def bake_action_iter(
             if isinstance(obj[key], idprop.types.IDPropertyGroup):
                 continue
             obj[key] = value
-            if key in obj.bl_rna.properties:
+            # The check for `is_runtime` is needed in case the custom property has the same
+            # name as a built in property, e.g. `scale`. In that case the simple check
+            # `key in ...` would be true and the square brackets would never get added.
+            if key in obj.bl_rna.properties and obj.bl_rna.properties[key].is_runtime:
                 rna_path = key
             else:
                 rna_path = "[\"{:s}\"]".format(bpy.utils.escape_identifier(key))
