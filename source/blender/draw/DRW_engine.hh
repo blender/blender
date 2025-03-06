@@ -38,17 +38,6 @@ bool DRW_engine_render_support(DrawEngineType *draw_engine_type);
 
 void DRW_engine_external_free(RegionView3D *rv3d);
 
-struct DRWUpdateContext {
-  Main *bmain;
-  Depsgraph *depsgraph;
-  Scene *scene;
-  ViewLayer *view_layer;
-  ARegion *region;
-  View3D *v3d;
-  RenderEngineType *engine_type;
-};
-void DRW_notify_view_update(const DRWUpdateContext *update_ctx);
-
 enum eDRWSelectStage {
   DRW_SELECT_PASS_PRE = 1,
   DRW_SELECT_PASS_POST,

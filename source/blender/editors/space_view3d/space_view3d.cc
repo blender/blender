@@ -1392,27 +1392,6 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
   }
 }
 
-static void view3d_do_msg_notify_workbench_view_update(bContext *C,
-                                                       wmMsgSubscribeKey * /*msg_key*/,
-                                                       wmMsgSubscribeValue *msg_val)
-{
-  Scene *scene = CTX_data_scene(C);
-  ScrArea *area = (ScrArea *)msg_val->user_data;
-  View3D *v3d = (View3D *)area->spacedata.first;
-  if (v3d->shading.type == OB_SOLID) {
-    RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
-    DRWUpdateContext drw_context = {nullptr};
-    drw_context.bmain = CTX_data_main(C);
-    drw_context.depsgraph = CTX_data_depsgraph_pointer(C);
-    drw_context.scene = scene;
-    drw_context.view_layer = CTX_data_view_layer(C);
-    drw_context.region = (ARegion *)(msg_val->owner);
-    drw_context.v3d = v3d;
-    drw_context.engine_type = engine_type;
-    DRW_notify_view_update(&drw_context);
-  }
-}
-
 static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   wmMsgBus *mbus = params->message_bus;
@@ -1453,11 +1432,6 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
   msg_sub_value_region_tag_redraw.user_data = region;
   msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
 
-  wmMsgSubscribeValue msg_sub_value_workbench_view_update{};
-  msg_sub_value_workbench_view_update.owner = region;
-  msg_sub_value_workbench_view_update.user_data = area;
-  msg_sub_value_workbench_view_update.notify = view3d_do_msg_notify_workbench_view_update;
-
   for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
     msg_key_params.ptr.type = type_array[i];
     WM_msg_subscribe_rna_params(mbus, &msg_key_params, &msg_sub_value_region_tag_redraw, __func__);
@@ -1492,11 +1466,6 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
     switch (obact->mode) {
       case OB_MODE_PARTICLE_EDIT:
         WM_msg_subscribe_rna_anon_type(mbus, ParticleEdit, &msg_sub_value_region_tag_redraw);
-        break;
-
-      case OB_MODE_SCULPT:
-        WM_msg_subscribe_rna_anon_prop(
-            mbus, WorkSpace, tools, &msg_sub_value_workbench_view_update);
         break;
       default:
         break;

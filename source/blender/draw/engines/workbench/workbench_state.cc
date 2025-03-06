@@ -24,9 +24,9 @@
 
 namespace blender::workbench {
 
-void SceneState::init(Object *camera_ob /*=nullptr*/)
+void SceneState::init(bool scene_updated, Object *camera_ob /*=nullptr*/)
 {
-  bool reset_taa = reset_taa_next_sample;
+  bool reset_taa = reset_taa_next_sample || scene_updated;
   reset_taa_next_sample = false;
 
   const DRWContextState *context = DRW_context_state_get();

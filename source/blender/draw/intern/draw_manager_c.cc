@@ -110,8 +110,6 @@
 
 #include "DRW_select_buffer.hh"
 
-static CLG_LogRef LOG = {"draw.manager"};
-
 /* -------------------------------------------------------------------- */
 /** \name Settings
  *
@@ -1200,129 +1198,6 @@ static bool drw_gpencil_engine_needed(Depsgraph *depsgraph, View3D *v3d)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name View Update
- * \{ */
-
-void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
-{
-  RenderEngineType *engine_type = update_ctx->engine_type;
-  ARegion *region = update_ctx->region;
-  View3D *v3d = update_ctx->v3d;
-  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  Depsgraph *depsgraph = update_ctx->depsgraph;
-  Scene *scene = update_ctx->scene;
-  ViewLayer *view_layer = update_ctx->view_layer;
-
-  GPUViewport *viewport = WM_draw_region_get_viewport(region);
-  if (!viewport) {
-    return;
-  }
-
-  const bool gpencil_engine_needed = drw_gpencil_engine_needed(depsgraph, v3d);
-
-  /* XXX Really nasty locking. But else this could be executed by the
-   * material previews thread while rendering a viewport.
-   *
-   * Check for recursive lock which can deadlock. This should not
-   * happen, but in case there is a bug where depsgraph update is called
-   * during drawing we try not to hang Blender. */
-  if (!BLI_ticket_mutex_lock_check_recursive(system_gpu_context_mutex)) {
-    CLOG_ERROR(&LOG, "GPU context already bound");
-    BLI_assert_unreachable();
-    return;
-  }
-
-  DRWContext draw_ctx;
-  drw_set(draw_ctx);
-
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  drw_get().draw_ctx = {};
-  drw_get().draw_ctx.region = region;
-  drw_get().draw_ctx.rv3d = rv3d;
-  drw_get().draw_ctx.v3d = v3d;
-  drw_get().draw_ctx.scene = scene;
-  drw_get().draw_ctx.view_layer = view_layer;
-  drw_get().draw_ctx.obact = BKE_view_layer_active_object_get(view_layer);
-  drw_get().draw_ctx.engine_type = engine_type;
-  drw_get().draw_ctx.depsgraph = depsgraph;
-  drw_get().draw_ctx.object_mode = OB_MODE_OBJECT;
-
-  /* Custom lightweight initialize to avoid resetting the memory-pools. */
-  drw_get().viewport = viewport;
-  drw_get().data = drw_viewport_data_ensure(drw_get().viewport);
-
-  /* Separate update for each stereo view. */
-  int view_count = GPU_viewport_is_stereo_get(viewport) ? 2 : 1;
-  for (int view = 0; view < view_count; view++) {
-    drw_get().view_data_active = drw_get().data->view_data[view];
-
-    drw_engines_enable(view_layer, engine_type, gpencil_engine_needed);
-    drw_engines_data_validate();
-
-    DRW_view_data_engines_view_update(drw_get().view_data_active);
-
-    drw_engines_disable();
-  }
-
-  drw_manager_exit(&draw_ctx);
-
-  BLI_ticket_mutex_unlock(system_gpu_context_mutex);
-}
-
-/* update a viewport which belongs to a GPUOffscreen */
-static void drw_notify_view_update_offscreen(Depsgraph *depsgraph,
-                                             RenderEngineType *engine_type,
-                                             ARegion *region,
-                                             View3D *v3d,
-                                             GPUViewport *viewport)
-{
-
-  if (viewport && GPU_viewport_do_update(viewport)) {
-
-    Scene *scene = DEG_get_evaluated_scene(depsgraph);
-    ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-    RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-
-    const bool gpencil_engine_needed = drw_gpencil_engine_needed(depsgraph, v3d);
-
-    DRWContext draw_ctx;
-    drw_set(draw_ctx);
-
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    drw_get().draw_ctx = {};
-    drw_get().draw_ctx.region = region;
-    drw_get().draw_ctx.rv3d = rv3d;
-    drw_get().draw_ctx.v3d = v3d;
-    drw_get().draw_ctx.scene = scene;
-    drw_get().draw_ctx.view_layer = view_layer;
-    drw_get().draw_ctx.obact = BKE_view_layer_active_object_get(view_layer);
-    drw_get().draw_ctx.engine_type = engine_type;
-    drw_get().draw_ctx.depsgraph = depsgraph;
-
-    /* Custom lightweight initialize to avoid resetting the memory-pools. */
-    drw_get().viewport = viewport;
-    drw_get().data = drw_viewport_data_ensure(drw_get().viewport);
-
-    /* Separate update for each stereo view. */
-    int view_count = GPU_viewport_is_stereo_get(viewport) ? 2 : 1;
-    for (int view = 0; view < view_count; view++) {
-      drw_get().view_data_active = drw_get().data->view_data[view];
-
-      drw_engines_enable(view_layer, engine_type, gpencil_engine_needed);
-      drw_engines_data_validate();
-
-      DRW_view_data_engines_view_update(drw_get().view_data_active);
-
-      drw_engines_disable();
-    }
-
-    drw_manager_exit(&draw_ctx);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Callbacks
  * \{ */
 
@@ -1642,9 +1517,6 @@ void DRW_draw_render_loop_offscreen(Depsgraph *depsgraph,
   GPUViewport *render_viewport = viewport;
   if (viewport == nullptr) {
     render_viewport = GPU_viewport_create();
-  }
-  else {
-    drw_notify_view_update_offscreen(depsgraph, engine_type, region, v3d, render_viewport);
   }
 
   GPU_viewport_bind_from_offscreen(render_viewport, ofs, is_xr_surface);

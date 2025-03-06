@@ -193,8 +193,6 @@ class Instance {
             const View3D *v3d = nullptr,
             const RegionView3D *rv3d = nullptr);
 
-  void view_update();
-
   void begin_sync();
   void object_sync(ObjectRef &ob_ref);
   void end_sync();

@@ -82,6 +82,10 @@ void Instance::init(const int2 &output_res,
   }
 
   if (is_viewport()) {
+    /* Note: Do not update the value here as we use it during sync for checking ID updates. */
+    if (depsgraph_last_update_ != DEG_get_update_count(depsgraph)) {
+      sampling.reset();
+    }
     if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
       sampling.reset();
     }
@@ -189,13 +193,6 @@ void Instance::update_eval_members()
   camera_eval_object = (camera_orig_object) ?
                            DEG_get_evaluated_object(depsgraph, camera_orig_object) :
                            nullptr;
-}
-
-void Instance::view_update()
-{
-  if (is_viewport()) {
-    sampling.reset();
-  }
 }
 
 /** \} */

@@ -164,7 +164,7 @@ struct SceneState {
   /* When r == -1.0 the shader uses the vertex color */
   Material material_attribute_color = Material(float3(-1.0f));
 
-  void init(Object *camera_ob = nullptr);
+  void init(bool scene_updated, Object *camera_ob = nullptr);
 };
 
 struct MaterialTexture {
