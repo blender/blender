@@ -134,6 +134,7 @@ set(SRC_DNA_DEFAULTS_INC
 # Utility & other headers.
 set(SRC_DNA_OTHER_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_array_utils.hh
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_print.hh
 )
 
 add_subdirectory(datatoc)

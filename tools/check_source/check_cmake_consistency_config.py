@@ -114,7 +114,6 @@ IGNORE_SOURCE_MISSING: tuple[tuple[str, tuple[str, ...]], ...] = (
             "hiprt/impl/hiprt_device_impl.h",
             "hiprt/impl/hiprt_kernels_bitcode.h",
             "hiprt/impl/Instance.h",
-            "hiprt/impl/Math.h",
             "hiprt/impl/QrDecomposition.h",
             "hiprt/impl/Quaternion.h",
             "hiprt/impl/Scene.h",
@@ -123,6 +122,7 @@ IGNORE_SOURCE_MISSING: tuple[tuple[str, tuple[str, ...]], ...] = (
 
             "hiprt/hiprt_common.h",
             "hiprt/hiprt_device.h",
+            "hiprt/hiprt_math.h",
             "hiprt/hiprt_types.h",
             "hiprt/hiprt_vec.h",
         ),

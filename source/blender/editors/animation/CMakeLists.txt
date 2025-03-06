@@ -37,6 +37,7 @@ set(SRC
   time_scrub_ui.cc
 
   anim_intern.hh
+  keyframes_general_intern.hh
 )
 
 set(LIB
