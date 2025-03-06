@@ -100,7 +100,12 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
     return;
   }
 
-  hiprtSetLogLevel(hiprtLogLevelNone);
+  if (VLOG_DEBUG_IS_ON) {
+    hiprtSetLogLevel(hiprtLogLevelInfo | hiprtLogLevelWarn | hiprtLogLevelError);
+  }
+  else {
+    hiprtSetLogLevel(hiprtLogLevelNone);
+  }
 }
 
 HIPRTDevice::~HIPRTDevice()
