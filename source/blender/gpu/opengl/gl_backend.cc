@@ -497,9 +497,7 @@ static void detect_workarounds()
   /* #134509 Intel ARC GPU have a driver bug that break the display of batched node-links.
    * Disabling batching fixes the issue. */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    if (strstr(renderer, "Arc")) {
-      GCaps.node_link_instancing_workaround = true;
-    }
+    GCaps.node_link_instancing_workaround = true;
   }
 
   /* Fix #123787: Multi viewport creates small triangle discard on RDNA2 GPUs with official

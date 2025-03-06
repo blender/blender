@@ -389,10 +389,31 @@ static void rna_iterator_grease_pencil_layers_begin(CollectionPropertyIterator *
 {
   using namespace blender::bke::greasepencil;
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
+  const blender::Span<const Layer *> layers = grease_pencil->layers();
+
+  iter->internal.count.item = 0;
+  iter->valid = !layers.is_empty();
+}
+
+static void rna_iterator_grease_pencil_layers_next(CollectionPropertyIterator *iter)
+{
+  using namespace blender::bke::greasepencil;
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(iter->parent.data);
+  const blender::Span<const Layer *> layers = grease_pencil->layers();
+
+  iter->internal.count.item++;
+  iter->valid = layers.index_range().contains(iter->internal.count.item);
+}
+
+static PointerRNA rna_iterator_grease_pencil_layers_get(CollectionPropertyIterator *iter)
+{
+  using namespace blender::bke::greasepencil;
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(iter->parent.data);
   blender::Span<Layer *> layers = grease_pencil->layers_for_write();
 
-  rna_iterator_array_begin(
-      iter, ptr, (void *)layers.data(), sizeof(Layer *), layers.size(), false, nullptr);
+  return RNA_pointer_create_discrete(iter->parent.owner_id,
+                                     &RNA_GreasePencilLayer,
+                                     static_cast<void *>(layers[iter->internal.count.item]));
 }
 
 static int rna_iterator_grease_pencil_layers_length(PointerRNA *ptr)
@@ -628,11 +649,31 @@ static void rna_iterator_grease_pencil_layer_groups_begin(CollectionPropertyIter
 {
   using namespace blender::bke::greasepencil;
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
+  const blender::Span<const LayerGroup *> groups = grease_pencil->layer_groups();
 
+  iter->internal.count.item = 0;
+  iter->valid = !groups.is_empty();
+}
+
+static void rna_iterator_grease_pencil_layer_groups_next(CollectionPropertyIterator *iter)
+{
+  using namespace blender::bke::greasepencil;
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(iter->parent.data);
+  const blender::Span<const LayerGroup *> groups = grease_pencil->layer_groups();
+
+  iter->internal.count.item++;
+  iter->valid = groups.index_range().contains(iter->internal.count.item);
+}
+
+static PointerRNA rna_iterator_grease_pencil_layer_groups_get(CollectionPropertyIterator *iter)
+{
+  using namespace blender::bke::greasepencil;
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(iter->parent.data);
   blender::Span<LayerGroup *> groups = grease_pencil->layer_groups_for_write();
 
-  rna_iterator_array_begin(
-      iter, ptr, (void *)groups.data(), sizeof(LayerGroup *), groups.size(), false, nullptr);
+  return RNA_pointer_create_discrete(iter->parent.owner_id,
+                                     &RNA_GreasePencilLayerGroup,
+                                     static_cast<void *>(groups[iter->internal.count.item]));
 }
 
 static int rna_iterator_grease_pencil_layer_groups_length(PointerRNA *ptr)
@@ -1420,9 +1461,9 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "GreasePencilLayer");
   RNA_def_property_collection_funcs(prop,
                                     "rna_iterator_grease_pencil_layers_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_dereference_get",
+                                    "rna_iterator_grease_pencil_layers_next",
+                                    nullptr,
+                                    "rna_iterator_grease_pencil_layers_get",
                                     "rna_iterator_grease_pencil_layers_length",
                                     nullptr, /* TODO */
                                     nullptr, /* TODO */
@@ -1435,9 +1476,9 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "GreasePencilLayerGroup");
   RNA_def_property_collection_funcs(prop,
                                     "rna_iterator_grease_pencil_layer_groups_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_dereference_get",
+                                    "rna_iterator_grease_pencil_layer_groups_next",
+                                    nullptr,
+                                    "rna_iterator_grease_pencil_layer_groups_get",
                                     "rna_iterator_grease_pencil_layer_groups_length",
                                     nullptr, /* TODO */
                                     nullptr, /* TODO */

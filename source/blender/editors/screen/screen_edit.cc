@@ -848,7 +848,13 @@ void ED_screen_refresh(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 void ED_screens_init(bContext *C, Main *bmain, wmWindowManager *wm)
 {
+  wmWindow *prev_ctx_win = CTX_wm_window(C);
+  BLI_SCOPED_DEFER([&]() { CTX_wm_window_set(C, prev_ctx_win); });
+
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    /* Region polls may need window/screen context. */
+    CTX_wm_window_set(C, win);
+
     if (BKE_workspace_active_get(win->workspace_hook) == nullptr) {
       BKE_workspace_active_set(win->workspace_hook,
                                static_cast<WorkSpace *>(bmain->workspaces.first));
