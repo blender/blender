@@ -3787,7 +3787,7 @@ struct GeometryNodesLazyFunctionBuilder {
    * Combine multiple socket usages with a logical or. Inserts a new node for that purpose if
    * necessary.
    */
-  lf::OutputSocket *or_socket_usages(MutableSpan<lf::OutputSocket *> usages,
+  lf::OutputSocket *or_socket_usages(const Span<lf::OutputSocket *> usages,
                                      BuildGraphParams &graph_params)
   {
     if (usages.is_empty()) {
@@ -3797,16 +3797,19 @@ struct GeometryNodesLazyFunctionBuilder {
       return usages[0];
     }
 
-    std::sort(usages.begin(), usages.end());
-    return graph_params.socket_usages_combination_cache.lookup_or_add_cb_as(usages, [&]() {
-      auto &logical_or_fn = scope_.construct<LazyFunctionForLogicalOr>(usages.size());
-      lf::Node &logical_or_node = graph_params.lf_graph.add_function(logical_or_fn);
+    /* Sort usages to produce a deterministic key for the same set of sockets. */
+    Vector<lf::OutputSocket *> usages_sorted(usages);
+    std::sort(usages_sorted.begin(), usages_sorted.end());
+    return graph_params.socket_usages_combination_cache.lookup_or_add_cb(
+        std::move(usages_sorted), [&]() {
+          auto &logical_or_fn = scope_.construct<LazyFunctionForLogicalOr>(usages.size());
+          lf::Node &logical_or_node = graph_params.lf_graph.add_function(logical_or_fn);
 
-      for (const int i : usages.index_range()) {
-        graph_params.lf_graph.add_link(*usages[i], logical_or_node.input(i));
-      }
-      return &logical_or_node.output(0);
-    });
+          for (const int i : usages_sorted.index_range()) {
+            graph_params.lf_graph.add_link(*usages_sorted[i], logical_or_node.input(i));
+          }
+          return &logical_or_node.output(0);
+        });
   }
 
   void build_output_socket_usages(const bNode &bnode, BuildGraphParams &graph_params)
