@@ -239,7 +239,6 @@ bool ANIM_nla_mapping_allowed(const bAnimListElem *ale)
       return !fcurve->driver;
     }
     case ANIMTYPE_DSGPENCIL:
-    case ANIMTYPE_GPDATABLOCK:
     case ANIMTYPE_GPLAYER:
     case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
     case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:

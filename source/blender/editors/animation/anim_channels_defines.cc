@@ -3618,13 +3618,6 @@ static bAnimChannelType ACF_SHAPEKEY = {
 
 /* GPencil Datablock (Legacy) ------------------------------------------- */
 
-/* get backdrop color for gpencil datablock widget */
-static void acf_gpd_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])
-{
-  /* these are ID-blocks, but not exactly standalone... */
-  UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
-}
-
 /* TODO: just get this from RNA? */
 static int acf_gpd_icon(bAnimListElem * /*ale*/)
 {
@@ -3646,59 +3639,6 @@ static bool acf_gpd_setting_valid(bAnimContext * /*ac*/,
       return false;
   }
 }
-
-/* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_gpd_setting_flag_legacy(bAnimContext * /*ac*/,
-                                       eAnimChannel_Settings setting,
-                                       bool *r_neg)
-{
-  /* Clear extra return data first. */
-  *r_neg = false;
-
-  switch (setting) {
-    case ACHANNEL_SETTING_SELECT: /* selected */
-      return AGRP_SELECTED;
-
-    case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GP_DATA_EXPAND;
-
-    default:
-      /* these shouldn't happen */
-      return 0;
-  }
-}
-
-/* get pointer to the setting */
-static void *acf_gpd_setting_ptr_legacy(bAnimListElem *ale,
-                                        eAnimChannel_Settings /*setting*/,
-                                        short *r_type)
-{
-  bGPdata *grease_pencil = (bGPdata *)ale->data;
-
-  /* all flags are just in gpd->flag for now... */
-  return GET_ACF_FLAG_PTR(grease_pencil->flag, r_type);
-}
-
-/** Grease-pencil data-block type define. (Legacy) */
-static bAnimChannelType ACF_GPD_LEGACY = {
-    /*channel_type_name*/ "GPencil Datablock",
-    /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
-
-    /*get_backdrop_color*/ acf_gpd_color,
-    /*get_channel_color*/ nullptr,
-    /*draw_backdrop*/ acf_group_backdrop,
-    /*get_indent_level*/ acf_generic_indentation_0,
-    /*get_offset*/ acf_generic_group_offset,
-
-    /*name*/ acf_generic_idblock_name,
-    /*name_prop*/ acf_generic_idfill_name_prop,
-    /*icon*/ acf_gpd_icon,
-
-    /*has_setting*/ acf_gpd_setting_valid,
-    /*setting_flag*/ acf_gpd_setting_flag_legacy,
-    /*setting_ptr*/ acf_gpd_setting_ptr_legacy,
-    /*setting_post_update*/ nullptr,
-};
 
 /* GPencil Layer (Legacy) ------------------------------------------- */
 
@@ -4662,7 +4602,6 @@ static void ANIM_init_channel_typeinfo_data()
 
     animchannelTypeInfo[type++] = &ACF_SHAPEKEY; /* ShapeKey */
 
-    animchannelTypeInfo[type++] = &ACF_GPD_LEGACY; /* Grease Pencil Datablock (Legacy) */
     animchannelTypeInfo[type++] = &ACF_GPL_LEGACY; /* Grease Pencil Layer (Legacy) */
 
     animchannelTypeInfo[type++] = &ACF_GPD;      /* Grease Pencil Datablock. */

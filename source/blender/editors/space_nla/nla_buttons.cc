@@ -178,7 +178,6 @@ bool nla_panel_context(const bContext *C,
       case ANIMTYPE_FILLDRIVERS:
       case ANIMTYPE_DSMCLIP:
       case ANIMTYPE_SHAPEKEY:
-      case ANIMTYPE_GPDATABLOCK:
       case ANIMTYPE_GPLAYER:
       case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
       case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:

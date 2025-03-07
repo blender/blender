@@ -942,7 +942,6 @@ static bAnimListElem *make_new_animlistelem(
     case ANIMTYPE_ANIMDATA:
     case ANIMTYPE_SPECIALDATA__UNUSED:
     case ANIMTYPE_DSMBALL:
-    case ANIMTYPE_GPDATABLOCK:
     case ANIMTYPE_MASKDATABLOCK:
     case ANIMTYPE_PALETTE:
     case ANIMTYPE_NUM_TYPES:

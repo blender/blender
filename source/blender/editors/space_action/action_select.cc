@@ -460,17 +460,6 @@ static void box_select_elem(
   bAnimContext *ac = sel_data->ac;
 
   switch (ale->type) {
-#if 0 /* XXX: Keyframes are not currently shown here */
-    case ANIMTYPE_GPDATABLOCK: {
-      bGPdata *gpd = ale->data;
-      bGPDlayer *gpl;
-      for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-        ED_gpencil_layer_frames_select_box(gpl, xmin, xmax, data->selectmode);
-      }
-      ale->update |= ANIM_UPDATE_DEPS;
-      break;
-    }
-#endif
     case ANIMTYPE_GREASE_PENCIL_DATABLOCK: {
       GreasePencil *grease_pencil = static_cast<GreasePencil *>(ale->data);
       for (blender::bke::greasepencil::Layer *layer : grease_pencil->layers_for_write()) {
@@ -736,17 +725,6 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
   bAnimContext *ac = sel_data->ac;
 
   switch (ale->type) {
-#if 0 /* XXX: Keyframes are not currently shown here */
-    case ANIMTYPE_GPDATABLOCK: {
-      bGPdata *gpd = ale->data;
-      bGPDlayer *gpl;
-      for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-        ED_gpencil_layer_frames_select_region(
-            &rdata->ked, ale->data, rdata->mode, rdata->selectmode);
-      }
-      break;
-    }
-#endif
     case ANIMTYPE_GPLAYER: {
       ED_gpencil_layer_frames_select_region(&sel_data->ked,
                                             static_cast<bGPDlayer *>(ale->data),
