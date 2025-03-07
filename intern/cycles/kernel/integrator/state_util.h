@@ -98,23 +98,50 @@ ccl_device_forceinline void integrator_state_read_shadow_ray(ConstIntegratorShad
 ccl_device_forceinline void integrator_state_write_shadow_ray_self(
     KernelGlobals kg, IntegratorShadowState state, const ccl_private Ray *ccl_restrict ray)
 {
-  /* Save memory by storing the light and object indices in the shadow_isect. */
-  /* TODO(sergey): This optimization does not work on GPU where multiple iterations of intersection
-   * is needed if there are more than 4 transparent intersections. The indices starts to conflict
-   * with each other. */
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, 0, object) = ray->self.object;
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, 0, prim) = ray->self.prim;
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, 1, object) = ray->self.light_object;
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, 1, prim) = ray->self.light_prim;
+  /* There is a bit of implicit knowledge about the way how the kernels are invoked and what the
+   * state is actually storing. Special logic here is needed because the intersect_shadow kernel
+   * might be called multiple times. This happens when the total number of intersections by the
+   * ray (shadow_path.num_hits) exceeds INTEGRATOR_SHADOW_ISECT_SIZE.
+   *
+   * Writing of the shadow_ray.self to the state happens only during the shadow ray setup, and
+   * the shadow_isect array gets overwritten by the intersect_shadow kernel. It is important to
+   * preserve the exact values of the light_object and light_prim for all invocations of the
+   * intersect_shadow kernel. Hence they are written to dedicated fields in the state.
+   *
+   * The self.object and self.prim are kept at the latest handled intersection: during shadow path
+   * branch-off it matches the main ray.self. For the consecutive calls of the intersect_shadow
+   * kernels it comes from the furthest intersection (the last element of the shadow_isect). So we
+   * use INTEGRATOR_SHADOW_ISECT_SIZE - 1 index for both writing and reading. This utilizes
+   * knowledge that intersect_shadow kernel is only called for either initial intersection, or when
+   * the number of ray intersections exceeds the shadow_isect size.
+   *
+   * This should help avoiding situations when the same intersection is recorded multiple times
+   * throughout separate invocations of the intersect_shadow kernel. However, it is still not
+   * fully reliable as there might be more than INTEGRATOR_SHADOW_ISECT_SIZE intersections at the
+   * same ray->t. There is no reliable way to deal with such situation, and offsetting ray from
+   * the shade_shadow kernel which will avoid potential false-positive detection of light being
+   * fully blocked at the expense of potentially ignoring some intersections. If the offset is
+   * used then preserving self.object and self.prim might not be as useful, but it definitely does
+   * not harm. */
+
+  INTEGRATOR_STATE_ARRAY_WRITE(
+      state, shadow_isect, INTEGRATOR_SHADOW_ISECT_SIZE - 1, object) = ray->self.object;
+  INTEGRATOR_STATE_ARRAY_WRITE(
+      state, shadow_isect, INTEGRATOR_SHADOW_ISECT_SIZE - 1, prim) = ray->self.prim;
+
+  INTEGRATOR_STATE_WRITE(state, shadow_ray, self_light_object) = ray->self.light_object;
+  INTEGRATOR_STATE_WRITE(state, shadow_ray, self_light_prim) = ray->self.light_prim;
 }
 
 ccl_device_forceinline void integrator_state_read_shadow_ray_self(
     KernelGlobals kg, ConstIntegratorShadowState state, ccl_private Ray *ccl_restrict ray)
 {
-  ray->self.object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, object);
-  ray->self.prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, prim);
-  ray->self.light_object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 1, object);
-  ray->self.light_prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 1, prim);
+  ray->self.object = INTEGRATOR_STATE_ARRAY(
+      state, shadow_isect, INTEGRATOR_SHADOW_ISECT_SIZE - 1, object);
+  ray->self.prim = INTEGRATOR_STATE_ARRAY(
+      state, shadow_isect, INTEGRATOR_SHADOW_ISECT_SIZE - 1, prim);
+  ray->self.light_object = INTEGRATOR_STATE(state, shadow_ray, self_light_object);
+  ray->self.light_prim = INTEGRATOR_STATE(state, shadow_ray, self_light_prim);
 }
 
 /* Intersection */
