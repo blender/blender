@@ -6324,6 +6324,8 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  STRNCPY(ibuf->filepath, filename);
+
   image = BKE_image_add_from_imbuf(bmain, ibuf, "image_view");
 
   /* Drop reference to ibuf so that the image owns it */
