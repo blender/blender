@@ -240,16 +240,6 @@ static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportLis
 
   CLOG_INFO(&LOG, 1, "direction=%s", (step == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO");
 
-  /* TODO(@ideasman42): undo_system: use undo system */
-  /* grease pencil can be can be used in plenty of spaces, so check it first */
-  /* FIXME: This gpencil undo effectively only supports the one step undo/redo, undo based on name
-   * or index is fully not implemented.
-   * FIXME: However, it seems to never be used in current code (`ED_gpencil_session_active` seems
-   * to always return false). */
-  if (ED_gpencil_session_active()) {
-    return ED_undo_gpencil_step(C, step);
-  }
-
   wmWindowManager *wm = CTX_wm_manager(C);
 
   ed_undo_step_pre(C, wm, step, reports);
@@ -274,11 +264,6 @@ static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportLis
 static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *reports)
 {
   BLI_assert(undo_name != nullptr);
-
-  /* FIXME: See comments in `ed_undo_step_direction`. */
-  if (ED_gpencil_session_active()) {
-    BLI_assert_msg(0, "Not implemented currently.");
-  }
 
   wmWindowManager *wm = CTX_wm_manager(C);
   UndoStep *undo_step_from_name = BKE_undosys_step_find_by_name(wm->undo_stack, undo_name);
@@ -323,11 +308,6 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
 static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *reports)
 {
   BLI_assert(undo_index >= 0);
-
-  /* FIXME: See comments in `ed_undo_step_direction`. */
-  if (ED_gpencil_session_active()) {
-    BLI_assert_msg(0, "Not implemented currently.");
-  }
 
   wmWindowManager *wm = CTX_wm_manager(C);
   const int active_step_index = BLI_findindex(&wm->undo_stack->steps, wm->undo_stack->step_active);

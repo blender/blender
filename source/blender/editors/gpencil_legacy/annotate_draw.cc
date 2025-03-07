@@ -704,9 +704,7 @@ static void annotation_draw_data_layers(
     /* Check if may need to draw the active stroke cache, only if this layer is the active layer
      * that is being edited. (Stroke buffer is currently stored in gp-data)
      */
-    if (ED_gpencil_session_active() && (gpl->flag & GP_LAYER_ACTIVE) &&
-        (gpf->flag & GP_FRAME_PAINT))
-    {
+    if ((gpl->flag & GP_LAYER_ACTIVE) && (gpf->flag & GP_FRAME_PAINT)) {
       /* Buffer stroke needs to be drawn with a different line-style
        * to help differentiate them from normal strokes.
        *
