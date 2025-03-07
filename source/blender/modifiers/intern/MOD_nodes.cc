@@ -2267,6 +2267,12 @@ static bool interface_panel_affects_output(DrawGroupInputsContext &ctx,
   for (const bNodeTreeInterfaceItem *item : panel.items()) {
     if (item->item_type == NODE_INTERFACE_SOCKET) {
       const auto &socket = *reinterpret_cast<const bNodeTreeInterfaceSocket *>(item);
+      if (socket.flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER) {
+        continue;
+      }
+      if (!(socket.flag & NODE_INTERFACE_SOCKET_INPUT)) {
+        continue;
+      }
       const int input_index = ctx.nmd.node_group->interface_input_index(socket);
       if (ctx.input_usages[input_index]) {
         return true;

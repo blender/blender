@@ -3318,7 +3318,7 @@ static void GREASE_PENCIL_OT_reproject(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_reproject_exec;
-  ot->poll = editable_grease_pencil_poll;
+  ot->poll = editable_grease_pencil_with_region_view3d_poll;
   ot->ui = grease_pencil_reproject_ui;
 
   /* flags */
@@ -3782,7 +3782,7 @@ static void GREASE_PENCIL_OT_texture_gradient(wmOperatorType *ot)
   ot->invoke = grease_pencil_texture_gradient_invoke;
   ot->modal = grease_pencil_texture_gradient_modal;
   ot->exec = grease_pencil_texture_gradient_exec;
-  ot->poll = editable_grease_pencil_poll;
+  ot->poll = editable_grease_pencil_with_region_view3d_poll;
   ot->cancel = WM_gesture_straightline_cancel;
 
   /* Flags. */
