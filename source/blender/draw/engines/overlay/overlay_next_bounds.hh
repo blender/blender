@@ -130,7 +130,10 @@ class Bounds : Overlay {
     };
 
     auto add_bounds = [&](const bool around_origin, const char bound_type) {
-      const blender::Bounds<float3> bounds = BKE_object_boundbox_get(ob).value_or(
+      const std::optional<blender::Bounds<float3>> bounds_opt =
+          ELEM(ob->type, OB_LATTICE, OB_ARMATURE) ? BKE_object_boundbox_get(ob) :
+                                                    BKE_object_evaluated_geometry_bounds(ob);
+      const blender::Bounds<float3> bounds = bounds_opt.value_or(
           blender::Bounds(float3(-1.0f), float3(1.0f)));
       const float3 size = (bounds.max - bounds.min) * 0.5f;
       const float3 center = around_origin ? float3(0) : math::midpoint(bounds.min, bounds.max);
