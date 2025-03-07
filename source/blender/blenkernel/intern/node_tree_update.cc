@@ -925,17 +925,16 @@ class NodeTreeMainUpdater {
         }
         continue;
       }
-      else {
-        /* Clear current enum references. */
-        for (bNodeSocket *socket : node->input_sockets()) {
-          if (socket->is_available() && socket->type == SOCK_MENU) {
-            clear_enum_reference(*socket);
-          }
+
+      /* Clear current enum references. */
+      for (bNodeSocket *socket : node->input_sockets()) {
+        if (socket->is_available() && socket->type == SOCK_MENU) {
+          clear_enum_reference(*socket);
         }
-        for (bNodeSocket *socket : node->output_sockets()) {
-          if (socket->is_available() && socket->type == SOCK_MENU) {
-            clear_enum_reference(*socket);
-          }
+      }
+      for (bNodeSocket *socket : node->output_sockets()) {
+        if (socket->is_available() && socket->type == SOCK_MENU) {
+          clear_enum_reference(*socket);
         }
       }
 
