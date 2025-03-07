@@ -213,7 +213,7 @@ static bool thumbhash_from_path(const char * /*path*/, ThumbSource source, char 
   }
 }
 
-static bool uri_from_filename(const char *path, char *uri)
+static bool uri_from_filepath(const char *path, char *uri)
 {
   char orig_uri[URI_MAX];
 
@@ -488,7 +488,7 @@ ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source
   char uri[URI_MAX] = "";
   char thumb_name[40];
 
-  if (!uri_from_filename(filepath, uri)) {
+  if (!uri_from_filepath(filepath, uri)) {
     return nullptr;
   }
   thumbname_from_uri(uri, thumb_name, sizeof(thumb_name));
@@ -503,7 +503,7 @@ ImBuf *IMB_thumb_read(const char *file_or_lib_path, ThumbSize size)
   char uri[URI_MAX];
   ImBuf *img = nullptr;
 
-  if (!uri_from_filename(file_or_lib_path, uri)) {
+  if (!uri_from_filepath(file_or_lib_path, uri)) {
     return nullptr;
   }
   if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
@@ -518,7 +518,7 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
   char thumb[FILE_MAX];
   char uri[URI_MAX];
 
-  if (!uri_from_filename(file_or_lib_path, uri)) {
+  if (!uri_from_filepath(file_or_lib_path, uri)) {
     return;
   }
   if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
@@ -556,7 +556,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
     return nullptr;
   }
   char uri[URI_MAX];
-  if (!uri_from_filename(file_or_lib_path, uri)) {
+  if (!uri_from_filepath(file_or_lib_path, uri)) {
     return nullptr;
   }
 

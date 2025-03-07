@@ -6256,7 +6256,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
   using namespace blender;
   Image *image;
   ImBuf *ibuf;
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
 
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -6280,7 +6280,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
   }
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  RNA_string_get(op->ptr, "filepath", filename);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   maxsize = GPU_max_texture_size();
 
@@ -6324,7 +6324,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  STRNCPY(ibuf->filepath, filename);
+  STRNCPY(ibuf->filepath, filepath);
 
   image = BKE_image_add_from_imbuf(bmain, ibuf, "image_view");
 
