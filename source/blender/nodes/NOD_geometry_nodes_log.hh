@@ -120,6 +120,12 @@ class FieldInfoLog : public ValueLog {
   FieldInfoLog(const GField &field);
 };
 
+struct StringLog : public ValueLog {
+  StringRef value;
+  bool truncated;
+  StringLog(StringRef string, LinearAllocator<> &allocator);
+};
+
 struct GeometryAttributeInfo {
   std::string name;
   /** Can be empty when #name does not actually exist on a geometry yet. */

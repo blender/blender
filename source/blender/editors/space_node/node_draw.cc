@@ -1527,12 +1527,6 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_GR);
     return;
   }
-  if (value_type.is<std::string>()) {
-    fmt::format_to(fmt::appender(buf),
-                   fmt::runtime(TIP_("{} (String)")),
-                   *static_cast<const std::string *>(buffer));
-    return;
-  }
 
   const CPPType &socket_type = *socket.typeinfo->base_cpp_type;
 
@@ -1889,6 +1883,16 @@ static std::optional<std::string> create_log_inspection_string(geo_log::GeoTreeL
           dynamic_cast<const geo_log::GenericValueLog *>(value_log))
   {
     create_inspection_string_for_generic_value(socket, generic_value_log->value, buf);
+  }
+  else if (const geo_log::StringLog *string_log = dynamic_cast<const geo_log::StringLog *>(
+               value_log))
+  {
+    if (string_log->truncated) {
+      fmt::format_to(fmt::appender(buf), fmt::runtime(TIP_("{}... (String)")), string_log->value);
+    }
+    else {
+      fmt::format_to(fmt::appender(buf), fmt::runtime(TIP_("{} (String)")), string_log->value);
+    }
   }
   else if (const geo_log::FieldInfoLog *gfield_value_log =
                dynamic_cast<const geo_log::FieldInfoLog *>(value_log))

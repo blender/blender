@@ -5,6 +5,8 @@
 #include "NOD_geometry_nodes_log.hh"
 
 #include "BLI_listbase.h"
+#include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_compute_contexts.hh"
@@ -40,6 +42,19 @@ using fn::FieldInputs;
 GenericValueLog::~GenericValueLog()
 {
   this->value.destruct();
+}
+
+StringLog::StringLog(StringRef string, LinearAllocator<> &allocator)
+{
+  /* Avoid logging the entirety of long strings, to avoid unnecessary memory usage. */
+  if (string.size() <= 100) {
+    this->truncated = false;
+    this->value = allocator.copy_string(string);
+    return;
+  }
+  this->truncated = true;
+  const char *end = BLI_str_find_prev_char_utf8(string.data() + 100, string.data());
+  this->value = allocator.copy_string(StringRef(string.data(), end));
 }
 
 FieldInfoLog::FieldInfoLog(const GField &field) : type(field.cpp_type())
@@ -256,7 +271,13 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     else {
       value_variant.convert_to_single();
       const GPointer value = value_variant.get_single_ptr();
-      log_generic_value(*value.type(), value.get());
+      if (value.type()->is<std::string>()) {
+        const std::string &string = *value.get<std::string>();
+        store_logged_value(this->allocator->construct<StringLog>(string, *this->allocator));
+      }
+      else {
+        log_generic_value(*value.type(), value.get());
+      }
     }
   }
   else {
