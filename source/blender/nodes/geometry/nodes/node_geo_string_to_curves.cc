@@ -294,6 +294,14 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
     }
 
     GeometrySet geometry_set = GeometrySet::from_curves(curves_id);
+
+    {
+      const char32_t char_code[2] = {layout.char_codes[i], 0};
+      char inserted_utf8[8] = {0};
+      const size_t len = BLI_str_utf32_as_utf8(inserted_utf8, char_code, sizeof(inserted_utf8));
+      geometry_set.name = std::string(inserted_utf8, len);
+    }
+
     handles.add_new(layout.char_codes[i], instances.add_reference(std::move(geometry_set)));
   }
   return handles;
