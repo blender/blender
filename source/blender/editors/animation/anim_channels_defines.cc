@@ -100,7 +100,7 @@ using namespace blender;
 
 /* Draw Backdrop ---------------------------------- */
 
-/* get backdrop color for top-level widgets (Scene and Object only) */
+/* get backdrop color for top-level widgets (Scene, Object and ActionSlot only) */
 static void acf_generic_root_color(bAnimContext * /*ac*/,
                                    bAnimListElem * /*ale*/,
                                    float r_color[3])
@@ -1502,9 +1502,9 @@ static bAnimChannelType ACF_ACTION_SLOT = {
     /*channel_type_name*/ "Action Slot",
     /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
-    /*get_backdrop_color*/ acf_generic_dataexpand_color,
+    /*get_backdrop_color*/ acf_generic_root_color,
     /*get_channel_color*/ nullptr,
-    /*draw_backdrop*/ nullptr,
+    /*draw_backdrop*/ acf_generic_root_backdrop,
     /*get_indent_level*/ acf_generic_indentation_0,
     /*get_offset*/ acf_generic_group_offset,
 
