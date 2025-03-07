@@ -784,6 +784,9 @@ static bool edit_constraint_invoke_properties(bContext *C,
     }
   }
 
+  if (r_retval != nullptr) {
+    *r_retval = OPERATOR_CANCELLED;
+  }
   return false;
 }
 

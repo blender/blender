@@ -947,9 +947,17 @@ static int view_layer_add_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer_current = WM_window_get_active_view_layer(win);
+
+  ViewLayer *view_layer_current = win ? WM_window_get_active_view_layer(win) : nullptr;
+  int type = RNA_enum_get(op->ptr, "type");
+  /* Copy requires a source. */
+  if (type == VIEWLAYER_ADD_COPY) {
+    if (view_layer_current == nullptr) {
+      type = VIEWLAYER_ADD_NEW;
+    }
+  }
   ViewLayer *view_layer_new = BKE_view_layer_add(
-      scene, view_layer_current->name, view_layer_current, RNA_enum_get(op->ptr, "type"));
+      scene, view_layer_current ? view_layer_current->name : nullptr, view_layer_current, type);
 
   if (win) {
     WM_window_set_active_view_layer(win, view_layer_new);
