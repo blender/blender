@@ -206,13 +206,25 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
   const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", bke::AttrDomain::Edge);
   const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
-  face_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
-                                                   mesh_faces_,
-                                                   export_mesh_->corner_edges(),
-                                                   sharp_edges,
-                                                   sharp_faces,
-                                                   &tot_smooth_groups_,
-                                                   use_bitflags);
+  if (use_bitflags) {
+    face_smooth_groups_ = BKE_mesh_calc_smoothgroups_bitflags(mesh_edges_.size(),
+                                                              export_mesh_->verts_num,
+                                                              mesh_faces_,
+                                                              export_mesh_->corner_edges(),
+                                                              export_mesh_->corner_verts(),
+                                                              sharp_edges,
+                                                              sharp_faces,
+                                                              false,
+                                                              &tot_smooth_groups_);
+  }
+  else {
+    face_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
+                                                     mesh_faces_,
+                                                     export_mesh_->corner_edges(),
+                                                     sharp_edges,
+                                                     sharp_faces,
+                                                     &tot_smooth_groups_);
+  }
 }
 
 void OBJMesh::calc_face_order()

@@ -247,22 +247,52 @@ bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
                                            MeshIslandStore *r_island_store);
 
 /**
- * Calculate smooth groups from sharp edges.
+ * Calculate smooth groups from sharp edges, using increasing numbers as identifier for each group.
  *
  * \param sharp_edges: Optional (possibly empty) span.
  * \param sharp_faces: Optional (possibly empty) span.
  * \param r_totgroup: The total number of groups, 1 or more.
- * \return Polygon aligned array of group index values (bitflags if use_bitflags is true),
- * starting at 1 (0 being used as 'invalid' flag).
- * Note it's callers's responsibility to MEM_freeN returned array.
+ * \return Face aligned array of group index values, starting at 1 (0 being used as 'invalid'
+ * flag). Note that it's the callers's responsibility to MEM_freeN the returned array.
  */
 int *BKE_mesh_calc_smoothgroups(int edges_num,
                                 blender::OffsetIndices<int> faces,
                                 blender::Span<int> corner_edges,
                                 blender::Span<bool> sharp_edges,
                                 blender::Span<bool> sharp_faces,
-                                int *r_totgroup,
-                                bool use_bitflags);
+                                int *r_totgroup);
+/**
+ * Same as #BKE_mesh_calc_smoothgroups, but use bitflags instead of increasing numbers for each
+ * group.
+ *
+ * This means that the same value (bit) can be re-used for different groups, as long as they are
+ * not neighbors. Values of each group are always powers of two.
+ *
+ * By default, only groups that share a same sharp edge are considered neighbors, and therefore
+ * prevented to use the same bitflag value.
+ *
+ * If #use_boundary_vertices_for_bitflags is set to `true`, then groups are also considered
+ * neighbors (and therefore cannot have the same bitflag value) if they share a single vertex, even
+ * if they have no common edge. This behavior seems to be required by some DCCs to recompute
+ * correct normals, see e.g. #104434. It will however make it much more likely to run out of
+ * available bits with certain types of topology (e.g. large fans of sharp faces).
+ *
+ * \param sharp_edges: Optional (possibly empty) span.
+ * \param sharp_faces: Optional (possibly empty) span.
+ * \param r_totgroup: The total number of groups, 1 or more.
+ * \return Face aligned array of group bitflags values (i.e. always powers of 2), starting at 1 (0
+ * being used as 'invalid' flag). Note that it's the callers's responsibility to MEM_freeN the
+ * returned array.
+ */
+int *BKE_mesh_calc_smoothgroups_bitflags(int edges_num,
+                                         int verts_num,
+                                         blender::OffsetIndices<int> faces,
+                                         blender::Span<int> corner_edges,
+                                         blender::Span<int> corner_verts,
+                                         blender::Span<bool> sharp_edges,
+                                         blender::Span<bool> sharp_faces,
+                                         bool use_boundary_vertices_for_bitflags,
+                                         int *r_totgroup);
 
 /* Use on corner_tri vertex values. */
 #define BKE_MESH_TESSTRI_VINDEX_ORDER(_tri, _v) \
