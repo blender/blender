@@ -30,7 +30,7 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
 
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN: {
-        bool *tmp_bool = static_cast<bool *>(MEM_malloc_arrayN(length, sizeof(bool), __func__));
+        bool *tmp_bool = MEM_malloc_arrayN<bool>(length, __func__);
         RNA_property_boolean_get_array(ptr, prop, tmp_bool);
         for (int i = 0; i < length; i++) {
           values.append(float(tmp_bool[i]));
@@ -39,7 +39,7 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
         break;
       }
       case PROP_INT: {
-        int *tmp_int = static_cast<int *>(MEM_malloc_arrayN(length, sizeof(int), __func__));
+        int *tmp_int = MEM_malloc_arrayN<int>(length, __func__);
         RNA_property_int_get_array(ptr, prop, tmp_int);
         for (int i = 0; i < length; i++) {
           values.append(float(tmp_int[i]));

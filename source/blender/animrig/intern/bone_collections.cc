@@ -1399,8 +1399,7 @@ blender::Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_array_copy_no_mem
   BLI_assert(*bcoll_array_dst == nullptr);
   BLI_assert(*bcoll_array_dst_num == 0);
 
-  *bcoll_array_dst = static_cast<BoneCollection **>(
-      MEM_malloc_arrayN(bcoll_array_src_num, sizeof(BoneCollection *), __func__));
+  *bcoll_array_dst = MEM_malloc_arrayN<BoneCollection *>(bcoll_array_src_num, __func__);
   *bcoll_array_dst_num = bcoll_array_src_num;
 
   blender::Map<BoneCollection *, BoneCollection *> bcoll_map{};

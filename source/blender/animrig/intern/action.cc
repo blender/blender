@@ -2249,8 +2249,7 @@ int Channelbag::channel_group_containing_index(const int fcurve_array_index)
 
 bActionGroup &Channelbag::channel_group_create(StringRefNull name)
 {
-  bActionGroup *new_group = static_cast<bActionGroup *>(
-      MEM_callocN(sizeof(bActionGroup), __func__));
+  bActionGroup *new_group = MEM_callocN<bActionGroup>(__func__);
 
   /* Find the end fcurve index of the current channel groups, to be used as the
    * start of the new channel group. */
