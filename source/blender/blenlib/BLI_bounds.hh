@@ -44,6 +44,13 @@ template<typename T>
 }
 
 template<typename T>
+[[nodiscard]] inline std::optional<Bounds<T>> merge(const std::optional<Bounds<T>> &a,
+                                                    const Bounds<T> &b)
+{
+  return merge(a, std::optional<Bounds<T>>(b));
+}
+
+template<typename T>
 [[nodiscard]] inline std::optional<Bounds<T>> min_max(const std::optional<Bounds<T>> &a,
                                                       const T &b)
 {

@@ -40,8 +40,9 @@ struct StepObject {
   UndoRefID_Object obedit_ref = {};
   CustomData custom_data = {};
   int totpoint = 0;
-  /* Store the bounds cache because it's small. */
+  /* Store the bounds caches because they are small. */
   SharedCache<Bounds<float3>> bounds_cache;
+  SharedCache<Bounds<float3>> bounds_with_radius_cache;
 };
 
 struct PointCloudUndoStep {
@@ -71,6 +72,7 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
       CustomData_init_from(
           &pointcloud.pdata, &object.custom_data, CD_MASK_ALL, pointcloud.totpoint);
       object.bounds_cache = pointcloud.runtime->bounds_cache;
+      object.bounds_with_radius_cache = pointcloud.runtime->bounds_with_radius_cache;
       object.totpoint = pointcloud.totpoint;
     }
   });
@@ -107,6 +109,7 @@ static void step_decode(
     CustomData_init_from(&object.custom_data, &pointcloud.pdata, CD_MASK_ALL, object.totpoint);
     pointcloud.totpoint = object.totpoint;
     pointcloud.runtime->bounds_cache = object.bounds_cache;
+    pointcloud.runtime->bounds_with_radius_cache = object.bounds_with_radius_cache;
     if (positions_changed) {
       pointcloud.runtime->bvh_cache.tag_dirty();
     }

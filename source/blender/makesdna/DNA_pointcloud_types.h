@@ -69,7 +69,7 @@ typedef struct PointCloud {
   void tag_positions_changed();
   void tag_radii_changed();
 
-  std::optional<blender::Bounds<blender::float3>> bounds_min_max() const;
+  std::optional<blender::Bounds<blender::float3>> bounds_min_max(bool use_radius = true) const;
 
   /** Get the largest material index used by the point-cloud or `nullopt` if it is empty. */
   std::optional<int> material_index_max() const;

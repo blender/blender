@@ -3285,7 +3285,8 @@ static void transform_positions(const Span<blender::float3> src,
   });
 }
 
-std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(const int frame) const
+std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(
+    const int frame, const bool use_radius) const
 {
   using namespace blender;
   std::optional<Bounds<float3>> bounds;
@@ -3296,20 +3297,53 @@ std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max(con
     if (!layer.is_visible()) {
       continue;
     }
-    if (const bke::greasepencil::Drawing *drawing = this->get_drawing_at(layer, frame)) {
-      const bke::CurvesGeometry &curves = drawing->strokes();
-
-      Array<float3> world_pos(curves.evaluated_positions().size());
-      transform_positions(curves.evaluated_positions(), layer_to_object, world_pos);
-      bounds = bounds::merge(bounds, bounds::min_max(world_pos.as_span()));
+    const bke::greasepencil::Drawing *drawing = this->get_drawing_at(layer, frame);
+    if (!drawing) {
+      continue;
     }
+    const bke::CurvesGeometry &curves = drawing->strokes();
+    if (curves.is_empty()) {
+      continue;
+    }
+    if (layer_to_object == float4x4::identity()) {
+      bounds = bounds::merge(bounds, curves.bounds_min_max(use_radius));
+      continue;
+    }
+    const VArray<float> radius = curves.radius();
+    Array<float3> positions_world(curves.evaluated_points_num());
+    transform_positions(curves.evaluated_positions(), layer_to_object, positions_world);
+    if (!use_radius) {
+      const Bounds<float3> drawing_bounds = *bounds::min_max(positions_world.as_span());
+      bounds = bounds::merge(bounds, drawing_bounds);
+      continue;
+    }
+    if (const std::optional radius_single = radius.get_if_single()) {
+      Bounds<float3> drawing_bounds = *curves.bounds_min_max(false);
+      drawing_bounds.pad(*radius_single);
+      bounds = bounds::merge(bounds, drawing_bounds);
+      continue;
+    }
+    const Span radius_span = radius.get_internal_span();
+    if (curves.is_single_type(CURVE_TYPE_POLY)) {
+      const Bounds<float3> drawing_bounds = *bounds::min_max_with_radii(positions_world.as_span(),
+                                                                        radius_span);
+      bounds = bounds::merge(bounds, drawing_bounds);
+      continue;
+    }
+    curves.ensure_can_interpolate_to_evaluated();
+    Array<float> radii_eval(curves.evaluated_points_num());
+    curves.interpolate_to_evaluated(radius_span, radii_eval.as_mutable_span());
+    const Bounds<float3> drawing_bounds = *bounds::min_max_with_radii(positions_world.as_span(),
+                                                                      radii_eval.as_span());
+    bounds = bounds::merge(bounds, drawing_bounds);
   }
   return bounds;
 }
 
-std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max_eval() const
+std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max_eval(
+    const bool use_radius) const
 {
-  return this->bounds_min_max(this->runtime->eval_frame);
+  return this->bounds_min_max(this->runtime->eval_frame, use_radius);
 }
 
 void GreasePencil::count_memory(blender::MemoryCounter &memory) const

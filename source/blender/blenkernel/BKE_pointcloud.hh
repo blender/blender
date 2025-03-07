@@ -35,6 +35,7 @@ struct PointCloudRuntime {
    * See #SharedCache comments.
    */
   mutable SharedCache<Bounds<float3>> bounds_cache;
+  mutable SharedCache<Bounds<float3>> bounds_with_radius_cache;
 
   /** Stores weak references to material data blocks. */
   std::unique_ptr<bake::BakeMaterialsList> bake_materials;

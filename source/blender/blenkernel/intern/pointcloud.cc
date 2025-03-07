@@ -85,6 +85,8 @@ static void pointcloud_copy_data(Main * /*bmain*/,
 
   pointcloud_dst->runtime = new blender::bke::PointCloudRuntime();
   pointcloud_dst->runtime->bounds_cache = pointcloud_src->runtime->bounds_cache;
+  pointcloud_dst->runtime->bounds_with_radius_cache =
+      pointcloud_src->runtime->bounds_with_radius_cache;
   pointcloud_dst->runtime->bvh_cache = pointcloud_src->runtime->bvh_cache;
   if (pointcloud_src->runtime->bake_materials) {
     pointcloud_dst->runtime->bake_materials =
@@ -317,25 +319,31 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud 
   BKE_id_free(nullptr, pointcloud_src);
 }
 
-std::optional<blender::Bounds<blender::float3>> PointCloud::bounds_min_max() const
+std::optional<blender::Bounds<float3>> PointCloud::bounds_min_max(const bool use_radius) const
 {
   using namespace blender;
   using namespace blender::bke;
   if (this->totpoint == 0) {
     return std::nullopt;
   }
-  this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
-    const AttributeAccessor attributes = this->attributes();
-    const Span<float3> positions = this->positions();
-    if (attributes.contains(ATTR_RADIUS)) {
-      const VArraySpan radii = *attributes.lookup<float>(ATTR_RADIUS);
-      r_bounds = *bounds::min_max_with_radii(positions, radii);
-    }
-    else {
-      r_bounds = *bounds::min_max(positions);
-    }
-  });
-  return this->runtime->bounds_cache.data();
+  if (use_radius) {
+    this->runtime->bounds_with_radius_cache.ensure([&](Bounds<float3> &r_bounds) {
+      const VArray<float> radius = this->radius();
+      if (const std::optional radius_single = radius.get_if_single()) {
+        r_bounds = *this->bounds_min_max(false);
+        r_bounds.pad(*radius_single);
+        return;
+      }
+      const Span radius_span = radius.get_internal_span();
+      r_bounds = *bounds::min_max_with_radii(this->positions(), radius_span);
+    });
+  }
+  else {
+    this->runtime->bounds_cache.ensure(
+        [&](Bounds<float3> &r_bounds) { r_bounds = *bounds::min_max(this->positions()); });
+  }
+  return use_radius ? this->runtime->bounds_with_radius_cache.data() :
+                      this->runtime->bounds_cache.data();
 }
 
 std::optional<int> PointCloud::material_index_max() const
@@ -470,12 +478,13 @@ void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *obje
 void PointCloud::tag_positions_changed()
 {
   this->runtime->bounds_cache.tag_dirty();
+  this->runtime->bounds_with_radius_cache.tag_dirty();
   this->runtime->bvh_cache.tag_dirty();
 }
 
 void PointCloud::tag_radii_changed()
 {
-  this->runtime->bounds_cache.tag_dirty();
+  this->runtime->bounds_with_radius_cache.tag_dirty();
 }
 
 /* Draw Cache */
