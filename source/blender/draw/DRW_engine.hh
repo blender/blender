@@ -91,16 +91,9 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
                          View3D *v3d,
                          GPUViewport *viewport,
                          const bool use_gpencil,
-                         const bool use_only_selected);
-/**
- * Clears the Depth Buffer and draws only the specified object.
- */
-void DRW_draw_depth_object(
-    Scene *scene, ARegion *region, View3D *v3d, GPUViewport *viewport, Object *object);
+                         const bool use_only_selected,
+                         const bool use_only_active_object);
 
-/**
- * Edit mesh mode selection.
- */
 void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d);
 
 /**

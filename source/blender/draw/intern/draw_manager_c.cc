@@ -2279,7 +2279,8 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
                          View3D *v3d,
                          GPUViewport *viewport,
                          const bool use_gpencil,
-                         const bool use_only_selected)
+                         const bool use_only_selected,
+                         const bool use_only_active_object)
 {
   using namespace blender::draw;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -2332,7 +2333,6 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   drw_get().data->modules_init();
 
   {
-    DupliCacheManager dupli_handler;
     drw_engines_cache_init();
     drw_engines_world_update(drw_get().draw_ctx.scene);
 
@@ -2343,26 +2343,33 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
     if (v3d->flag2 & V3D_SHOW_VIEWER) {
       deg_iter_settings.viewer_path = &v3d->viewer_path;
     }
-    DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-      if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
-        continue;
-      }
-      if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
-        continue;
-      }
-      if (use_only_selected && !(ob->base_flag & BASE_SELECTED)) {
-        continue;
-      }
-      if ((ob->base_flag & BASE_SELECTABLE) == 0) {
-        continue;
-      }
-      blender::draw::ObjectRef ob_ref(data_, ob);
-      dupli_handler.try_add(ob_ref);
+    if (use_only_active_object) {
+      blender::draw::ObjectRef ob_ref(drw_get().draw_ctx.obact);
       drw_engines_cache_populate(ob_ref);
     }
-    DEG_OBJECT_ITER_END;
+    else {
+      DupliCacheManager dupli_handler;
+      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
+        if ((object_type_exclude_viewport & (1 << ob->type)) != 0) {
+          continue;
+        }
+        if (!BKE_object_is_visible_in_viewport(v3d, ob)) {
+          continue;
+        }
+        if (use_only_selected && !(ob->base_flag & BASE_SELECTED)) {
+          continue;
+        }
+        if ((ob->base_flag & BASE_SELECTABLE) == 0) {
+          continue;
+        }
+        blender::draw::ObjectRef ob_ref(data_, ob);
+        dupli_handler.try_add(ob_ref);
+        drw_engines_cache_populate(ob_ref);
+      }
+      DEG_OBJECT_ITER_END;
+      dupli_handler.extract_all();
+    }
 
-    dupli_handler.extract_all();
     drw_engines_cache_finish();
 
     drw_task_graph_deinit();
@@ -2473,90 +2480,6 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
   drw_engines_disable();
 
   drw_manager_exit(&draw_ctx);
-}
-
-void DRW_draw_depth_object(
-    Scene *scene, ARegion *region, View3D *v3d, GPUViewport *viewport, Object *object)
-{
-  using namespace blender::draw;
-  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-
-  GPU_matrix_projection_set(rv3d->winmat);
-  GPU_matrix_set(rv3d->viewmat);
-  GPU_matrix_mul(object->object_to_world().ptr());
-
-  /* Setup frame-buffer. */
-  GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
-
-  GPUFrameBuffer *depth_fb = nullptr;
-  GPU_framebuffer_ensure_config(&depth_fb,
-                                {
-                                    GPU_ATTACHMENT_TEXTURE(depth_tx),
-                                    GPU_ATTACHMENT_NONE,
-                                });
-
-  GPU_framebuffer_bind(depth_fb);
-  GPU_framebuffer_clear_depth(depth_fb, 1.0f);
-  GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
-
-  GPUClipPlanes planes;
-  const bool use_clipping_planes = RV3D_CLIPPING_ENABLED(v3d, rv3d);
-  if (use_clipping_planes) {
-    GPU_clip_distances(6);
-    ED_view3d_clipping_local(rv3d, object->object_to_world().ptr());
-    for (int i = 0; i < 6; i++) {
-      copy_v4_v4(planes.world[i], rv3d->clip_local[i]);
-    }
-    copy_m4_m4(planes.ClipModelMatrix.ptr(), object->object_to_world().ptr());
-  }
-
-  drw_batch_cache_validate(object);
-
-  switch (object->type) {
-    case OB_MESH: {
-      blender::gpu::Batch *batch;
-
-      Mesh &mesh = *static_cast<Mesh *>(object->data);
-
-      if (object->mode & OB_MODE_EDIT) {
-        batch = DRW_mesh_batch_cache_get_edit_triangles(mesh);
-      }
-      else {
-        batch = DRW_mesh_batch_cache_get_surface(mesh);
-      }
-      TaskGraph *task_graph = BLI_task_graph_create();
-      DRW_mesh_batch_cache_create_requested(*task_graph, *object, mesh, *scene, false, true);
-      BLI_task_graph_work_and_wait(task_graph);
-      BLI_task_graph_free(task_graph);
-
-      const eGPUShaderConfig sh_cfg = use_clipping_planes ? GPU_SHADER_CFG_CLIPPED :
-                                                            GPU_SHADER_CFG_DEFAULT;
-      GPU_batch_program_set_builtin_with_config(batch, GPU_SHADER_3D_DEPTH_ONLY, sh_cfg);
-
-      GPUUniformBuf *ubo = nullptr;
-      if (use_clipping_planes) {
-        ubo = GPU_uniformbuf_create_ex(sizeof(GPUClipPlanes), &planes, __func__);
-        GPU_batch_uniformbuf_bind(batch, "clipPlanes", ubo);
-      }
-
-      GPU_batch_draw(batch);
-      GPU_uniformbuf_free(ubo);
-      break;
-    }
-    case OB_CURVES_LEGACY:
-    case OB_SURF:
-      break;
-  }
-
-  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-    GPU_clip_distances(0);
-  }
-
-  GPU_matrix_set(rv3d->viewmat);
-  GPU_depth_test(GPU_DEPTH_NONE);
-  GPU_framebuffer_restore();
-
-  GPU_framebuffer_free(depth_fb);
 }
 
 bool DRW_draw_in_progress()
