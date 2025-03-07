@@ -220,6 +220,7 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
           immUniformThemeColor(TH_ANIM_ACTIVE);
           break;
         }
+        case ANIMTYPE_ACTION_SLOT:
         case ANIMTYPE_SCENE:
         case ANIMTYPE_OBJECT: {
           immUniformColor3ubvAlpha(col1b, sel ? col1[3] : col1b[3]);
