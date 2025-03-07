@@ -1059,7 +1059,7 @@ static void GREASE_PENCIL_OT_layer_group_color_tag(wmOperatorType *ot)
   ot->description = "Change layer group icon";
 
   ot->exec = grease_pencil_layer_group_color_tag_exec;
-  ot->poll = grease_pencil_context_poll;
+  ot->poll = active_grease_pencil_layer_group_poll;
 
   ot->flag = OPTYPE_UNDO;
 
