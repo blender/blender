@@ -647,8 +647,12 @@ void Instance::draw(Manager &manager)
 
   static gpu::DebugScope select_scope = {"Selection"};
   static gpu::DebugScope draw_scope = {"Overlay"};
+  static gpu::DebugScope depth_scope = {"DepthOnly"};
 
-  if (resources.is_selection()) {
+  if (state.is_depth_only_drawing) {
+    depth_scope.begin_capture();
+  }
+  else if (resources.is_selection()) {
     select_scope.begin_capture();
   }
   else {
@@ -709,7 +713,10 @@ void Instance::draw(Manager &manager)
 
   resources.read_result();
 
-  if (resources.is_selection()) {
+  if (state.is_depth_only_drawing) {
+    depth_scope.end_capture();
+  }
+  else if (resources.is_selection()) {
     select_scope.end_capture();
   }
   else {
