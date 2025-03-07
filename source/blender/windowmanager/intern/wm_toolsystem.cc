@@ -115,7 +115,7 @@ bool WM_toolsystem_ref_ensure(WorkSpace *workspace, const bToolKey *tkey, bToolR
     *r_tref = tref;
     return false;
   }
-  tref = static_cast<bToolRef *>(MEM_callocN(sizeof(*tref), __func__));
+  tref = MEM_callocN<bToolRef>(__func__);
   BLI_addhead(&workspace->tools, tref);
   tref->space_type = tkey->space_type;
   tref->mode = tkey->mode;
@@ -588,7 +588,7 @@ void WM_toolsystem_ref_set_from_runtime(bContext *C,
   tref->idname_pending[0] = '\0';
 
   if (tref->runtime == nullptr) {
-    tref->runtime = static_cast<bToolRef_Runtime *>(MEM_callocN(sizeof(*tref->runtime), __func__));
+    tref->runtime = MEM_callocN<bToolRef_Runtime>(__func__);
   }
 
   if (tref_rt != tref->runtime) {

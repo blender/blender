@@ -308,15 +308,14 @@ static int find_free_winid(wmWindowManager *wm)
 
 wmWindow *wm_window_new(const Main *bmain, wmWindowManager *wm, wmWindow *parent, bool dialog)
 {
-  wmWindow *win = static_cast<wmWindow *>(MEM_callocN(sizeof(wmWindow), "window"));
+  wmWindow *win = MEM_callocN<wmWindow>("window");
 
   BLI_addtail(&wm->windows, win);
   win->winid = find_free_winid(wm);
 
   /* Dialogs may have a child window as parent. Otherwise, a child must not be a parent too. */
   win->parent = (!dialog && parent && parent->parent) ? parent->parent : parent;
-  win->stereo3d_format = static_cast<Stereo3dFormat *>(
-      MEM_callocN(sizeof(Stereo3dFormat), "Stereo 3D Format (window)"));
+  win->stereo3d_format = MEM_callocN<Stereo3dFormat>("Stereo 3D Format (window)");
   win->workspace_hook = BKE_workspace_instance_hook_create(bmain, win->winid);
 
   return win;
@@ -389,8 +388,7 @@ static void wm_save_file_on_quit_dialog_callback(bContext *C, void * /*user_data
  */
 static void wm_confirm_quit(bContext *C)
 {
-  wmGenericCallback *action = static_cast<wmGenericCallback *>(
-      MEM_callocN(sizeof(*action), __func__));
+  wmGenericCallback *action = MEM_callocN<wmGenericCallback>(__func__);
   action->exec = wm_save_file_on_quit_dialog_callback;
   wm_close_file_dialog(C, action);
 }
@@ -790,7 +788,7 @@ static void wm_window_ensure_eventstate(wmWindow *win)
     return;
   }
 
-  win->eventstate = static_cast<wmEvent *>(MEM_callocN(sizeof(wmEvent), "window event state"));
+  win->eventstate = MEM_callocN<wmEvent>("window event state");
   wm_window_update_eventstate(win);
 }
 
@@ -2302,7 +2300,7 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm,
 {
   BLI_assert(ISTIMER(event_type));
 
-  wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
+  wmTimer *wt = MEM_callocN<wmTimer>("window timer");
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = event_type;
@@ -2322,7 +2320,7 @@ wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      const uint type,
                                      const double time_step)
 {
-  wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
+  wmTimer *wt = MEM_callocN<wmTimer>("window timer");
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = TIMERNOTIFIER;
@@ -2456,8 +2454,8 @@ static void wm_clipboard_text_set_impl(const char *buf, bool selection)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
     if (g_wm_clipboard_text_simulate == nullptr) {
-      g_wm_clipboard_text_simulate = static_cast<decltype(g_wm_clipboard_text_simulate)>(
-          MEM_callocN(sizeof(*g_wm_clipboard_text_simulate), __func__));
+      g_wm_clipboard_text_simulate =
+          MEM_callocN<std::remove_pointer_t<decltype(g_wm_clipboard_text_simulate)>>(__func__);
     }
     char **buf_src_p = &(g_wm_clipboard_text_simulate->buffers[int(selection)]);
     MEM_SAFE_FREE(*buf_src_p);
@@ -2501,7 +2499,7 @@ static char *wm_clipboard_text_get_ex(bool selection,
   }
 
   /* Always convert from `\r\n` to `\n`. */
-  char *newbuf = static_cast<char *>(MEM_mallocN(buf_len + 1, __func__));
+  char *newbuf = MEM_malloc_arrayN<char>(size_t(buf_len + 1), __func__);
   char *p2 = newbuf;
 
   if (firstline) {
@@ -2560,7 +2558,7 @@ void WM_clipboard_text_set(const char *buf, bool selection)
       }
     }
 
-    newbuf = static_cast<char *>(MEM_callocN(newlen + 1, "WM_clipboard_text_set"));
+    newbuf = MEM_calloc_arrayN<char>(newlen + 1, "WM_clipboard_text_set");
 
     for (p = buf, p2 = newbuf; *p; p++, p2++) {
       if (*p == '\n') {

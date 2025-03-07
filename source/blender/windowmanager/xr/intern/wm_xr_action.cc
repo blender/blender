@@ -37,8 +37,7 @@
 
 static wmXrActionSet *action_set_create(const char *action_set_name)
 {
-  wmXrActionSet *action_set = static_cast<wmXrActionSet *>(
-      MEM_callocN(sizeof(*action_set), __func__));
+  wmXrActionSet *action_set = MEM_callocN<wmXrActionSet>(__func__);
   action_set->name = BLI_strdup(action_set_name);
   return action_set;
 }
@@ -74,7 +73,7 @@ static wmXrAction *action_create(const char *action_name,
                                  eXrActionFlag action_flag,
                                  eXrHapticFlag haptic_flag)
 {
-  wmXrAction *action = static_cast<wmXrAction *>(MEM_callocN(sizeof(*action), __func__));
+  wmXrAction *action = MEM_callocN<wmXrAction>(__func__);
   action->name = BLI_strdup(action_name);
   action->type = type;
 
@@ -82,8 +81,7 @@ static wmXrAction *action_create(const char *action_name,
   uint subaction_idx = 0;
   action->count_subaction_paths = count;
 
-  action->subaction_paths = static_cast<char **>(
-      MEM_mallocN(sizeof(*action->subaction_paths) * count, "XrAction_SubactionPaths"));
+  action->subaction_paths = MEM_malloc_arrayN<char *>(count, "XrAction_SubactionPaths");
   LISTBASE_FOREACH_INDEX (XrUserPath *, user_path, user_paths, subaction_idx) {
     action->subaction_paths[subaction_idx] = BLI_strdup(user_path->path);
   }
@@ -111,12 +109,10 @@ static wmXrAction *action_create(const char *action_name,
   const bool is_float_action = ELEM(type, XR_FLOAT_INPUT, XR_VECTOR2F_INPUT);
   const bool is_button_action = (is_float_action || type == XR_BOOLEAN_INPUT);
   if (is_float_action) {
-    action->float_thresholds = static_cast<float *>(
-        MEM_calloc_arrayN(count, sizeof(*action->float_thresholds), "XrAction_FloatThresholds"));
+    action->float_thresholds = MEM_calloc_arrayN<float>(count, "XrAction_FloatThresholds");
   }
   if (is_button_action) {
-    action->axis_flags = static_cast<eXrAxisFlag *>(
-        MEM_calloc_arrayN(count, sizeof(*action->axis_flags), "XrAction_AxisFlags"));
+    action->axis_flags = MEM_calloc_arrayN<eXrAxisFlag>(count, "XrAction_AxisFlags");
   }
 
   action->ot = ot;
@@ -247,8 +243,7 @@ bool WM_xr_action_create(wmXrData *xr,
   const uint count = uint(BLI_listbase_count(user_paths));
   uint subaction_idx = 0;
 
-  char **subaction_paths = static_cast<char **>(
-      MEM_calloc_arrayN(count, sizeof(*subaction_paths), "XrAction_SubactionPathPointers"));
+  char **subaction_paths = MEM_calloc_arrayN<char *>(count, "XrAction_SubactionPathPointers");
 
   LISTBASE_FOREACH_INDEX (XrUserPath *, user_path, user_paths, subaction_idx) {
     subaction_paths[subaction_idx] = (char *)user_path->path;
@@ -342,11 +337,11 @@ bool WM_xr_action_binding_create(wmXrData *xr,
   const uint count = uint(BLI_listbase_count(user_paths));
   BLI_assert(count == uint(BLI_listbase_count(component_paths)));
 
-  GHOST_XrActionBindingInfo *binding_infos = static_cast<GHOST_XrActionBindingInfo *>(
-      MEM_calloc_arrayN(count, sizeof(*binding_infos), "XrActionBinding_Infos"));
+  GHOST_XrActionBindingInfo *binding_infos = MEM_calloc_arrayN<GHOST_XrActionBindingInfo>(
+      count, "XrActionBinding_Infos");
 
-  char **subaction_paths = static_cast<char **>(
-      MEM_calloc_arrayN(count, sizeof(*subaction_paths), "XrActionBinding_SubactionPathPointers"));
+  char **subaction_paths = MEM_calloc_arrayN<char *>(count,
+                                                     "XrActionBinding_SubactionPathPointers");
 
   for (uint i = 0; i < count; ++i) {
     GHOST_XrActionBindingInfo *binding_info = &binding_infos[i];

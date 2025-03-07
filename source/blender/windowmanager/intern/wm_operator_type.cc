@@ -126,8 +126,7 @@ wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
 
 static wmOperatorType *wm_operatortype_append__begin()
 {
-  wmOperatorType *ot = static_cast<wmOperatorType *>(
-      MEM_callocN(sizeof(wmOperatorType), "operatortype"));
+  wmOperatorType *ot = MEM_callocN<wmOperatorType>("operatortype");
 
   BLI_assert(ot_prop_basic_count == -1);
 
@@ -317,7 +316,7 @@ struct MacroData {
 static void wm_macro_start(wmOperator *op)
 {
   if (op->customdata == nullptr) {
-    op->customdata = MEM_callocN(sizeof(MacroData), "MacroData");
+    op->customdata = MEM_callocN<MacroData>("MacroData");
   }
 }
 
@@ -511,7 +510,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
     return nullptr;
   }
 
-  ot = static_cast<wmOperatorType *>(MEM_callocN(sizeof(wmOperatorType), "operatortype"));
+  ot = MEM_callocN<wmOperatorType>("operatortype");
   ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
 
   ot->idname = idname;
@@ -548,7 +547,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *u
 {
   wmOperatorType *ot;
 
-  ot = static_cast<wmOperatorType *>(MEM_callocN(sizeof(wmOperatorType), "operatortype"));
+  ot = MEM_callocN<wmOperatorType>("operatortype");
   ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
 
   ot->flag = OPTYPE_MACRO;
@@ -576,8 +575,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *u
 
 wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)
 {
-  wmOperatorTypeMacro *otmacro = static_cast<wmOperatorTypeMacro *>(
-      MEM_callocN(sizeof(wmOperatorTypeMacro), "wmOperatorTypeMacro"));
+  wmOperatorTypeMacro *otmacro = MEM_callocN<wmOperatorTypeMacro>("wmOperatorTypeMacro");
 
   STRNCPY(otmacro->idname, idname);
 

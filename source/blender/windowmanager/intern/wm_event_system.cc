@@ -6463,7 +6463,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 
   CursorKeymapInfo *cd;
   if (UNLIKELY(win->cursor_keymap_status == nullptr)) {
-    win->cursor_keymap_status = MEM_callocN(sizeof(CursorKeymapInfo), __func__);
+    win->cursor_keymap_status = MEM_callocN<CursorKeymapInfo>(__func__);
   }
   cd = static_cast<CursorKeymapInfo *>(win->cursor_keymap_status);
 

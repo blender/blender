@@ -52,8 +52,7 @@ using blender::StringRef;
 
 wmGizmoGroup *wm_gizmogroup_new_from_type(wmGizmoMap *gzmap, wmGizmoGroupType *gzgt)
 {
-  wmGizmoGroup *gzgroup = static_cast<wmGizmoGroup *>(
-      MEM_callocN(sizeof(*gzgroup), "gizmo-group"));
+  wmGizmoGroup *gzgroup = MEM_callocN<wmGizmoGroup>("gizmo-group");
 
   gzgroup->type = gzgt;
   gzgroup->type->users += 1;
@@ -594,8 +593,7 @@ static int gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_PASS_THROUGH;
   }
 
-  GizmoTweakData *mtweak = static_cast<GizmoTweakData *>(
-      MEM_mallocN(sizeof(GizmoTweakData), __func__));
+  GizmoTweakData *mtweak = MEM_mallocN<GizmoTweakData>(__func__);
 
   mtweak->init_event = WM_userdef_event_type_from_keymap_type(event->type);
   mtweak->gz_modal = gzmap->gzmap_context.highlight;
@@ -962,8 +960,7 @@ wmGizmoGroupTypeRef *WM_gizmomaptype_group_link(wmGizmoMapType *gzmap_type, cons
 wmGizmoGroupTypeRef *WM_gizmomaptype_group_link_ptr(wmGizmoMapType *gzmap_type,
                                                     wmGizmoGroupType *gzgt)
 {
-  wmGizmoGroupTypeRef *gzgt_ref = static_cast<wmGizmoGroupTypeRef *>(
-      MEM_callocN(sizeof(wmGizmoGroupTypeRef), "gizmo-group-ref"));
+  wmGizmoGroupTypeRef *gzgt_ref = MEM_callocN<wmGizmoGroupTypeRef>("gizmo-group-ref");
   gzgt_ref->type = gzgt;
   BLI_addtail(&gzmap_type->grouptype_refs, gzgt_ref);
   return gzgt_ref;

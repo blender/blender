@@ -2466,8 +2466,7 @@ wmPaintCursor *WM_paint_cursor_activate(short space_type,
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
 
-  wmPaintCursor *pc = static_cast<wmPaintCursor *>(
-      MEM_callocN(sizeof(wmPaintCursor), "paint cursor"));
+  wmPaintCursor *pc = MEM_callocN<wmPaintCursor>("paint cursor");
 
   BLI_addtail(&wm->paintcursors, pc);
 

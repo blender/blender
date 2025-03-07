@@ -1560,8 +1560,7 @@ void wm_homefile_read_ex(bContext *C,
     }
     else {
       params_file_read_post.is_alloc = true;
-      *r_params_file_read_post = static_cast<wmFileReadPost_Params *>(
-          MEM_mallocN(sizeof(wmFileReadPost_Params), __func__));
+      *r_params_file_read_post = MEM_mallocN<wmFileReadPost_Params>(__func__);
       **r_params_file_read_post = params_file_read_post;
 
       /* Match #wm_file_read_post which leaves the window cleared too. */
@@ -1619,7 +1618,7 @@ void wm_history_file_read()
     const char *line = static_cast<const char *>(l->link);
     /* Don't check if files exist, causes slow startup for remote/external drives. */
     if (line[0]) {
-      RecentFile *recent = (RecentFile *)MEM_mallocN(sizeof(RecentFile), "RecentFile");
+      RecentFile *recent = MEM_mallocN<RecentFile>("RecentFile");
       BLI_addtail(&(G.recent_files), recent);
       recent->filepath = BLI_strdup(line);
       num++;
@@ -1631,7 +1630,7 @@ void wm_history_file_read()
 
 static RecentFile *wm_history_file_new(const char *filepath)
 {
-  RecentFile *recent = static_cast<RecentFile *>(MEM_mallocN(sizeof(RecentFile), "RecentFile"));
+  RecentFile *recent = MEM_mallocN<RecentFile>("RecentFile");
   recent->filepath = BLI_strdup(filepath);
   return recent;
 }
@@ -1771,13 +1770,11 @@ static uint8_t *blend_file_thumb_fast_downscale(const uint8_t *src_rect,
    * this isn't a concern. */
 
   BLI_assert(dst_size[0] <= src_size[0] && dst_size[1] <= src_size[1]);
-  uint8_t *dst_rect = static_cast<uint8_t *>(
-      MEM_mallocN(sizeof(uint8_t[4]) * dst_size[0] * dst_size[1], __func__));
+  uint8_t *dst_rect = MEM_malloc_arrayN<uint8_t>(size_t(4 * dst_size[0] * dst_size[1]), __func__);
 
   /* A row, the width of the destination to accumulate pixel values into
    * before writing into the image. */
-  uint32_t *accum_row = static_cast<uint32_t *>(
-      MEM_callocN(sizeof(uint32_t) * dst_size[0] * 4, __func__));
+  uint32_t *accum_row = MEM_calloc_arrayN<uint32_t>(size_t(dst_size[0] * 4), __func__);
 
 #  ifndef NDEBUG
   /* Assert that samples are calculated correctly. */

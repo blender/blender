@@ -148,8 +148,7 @@ bool wm_xr_events_handle(wmWindowManager *wm)
 
 wmXrRuntimeData *wm_xr_runtime_data_create()
 {
-  wmXrRuntimeData *runtime = static_cast<wmXrRuntimeData *>(
-      MEM_callocN(sizeof(*runtime), __func__));
+  wmXrRuntimeData *runtime = MEM_callocN<wmXrRuntimeData>(__func__);
   return runtime;
 }
 

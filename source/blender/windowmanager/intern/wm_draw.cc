@@ -611,7 +611,7 @@ void *WM_draw_cb_activate(wmWindow *win,
                           void (*draw)(const wmWindow *win, void *customdata),
                           void *customdata)
 {
-  WindowDrawCB *wdc = static_cast<WindowDrawCB *>(MEM_callocN(sizeof(*wdc), "WindowDrawCB"));
+  WindowDrawCB *wdc = MEM_callocN<WindowDrawCB>("WindowDrawCB");
 
   BLI_addtail(&win->drawcalls, wdc);
   wdc->draw = draw;
@@ -712,8 +712,7 @@ static void wm_draw_region_buffer_create(Scene *scene,
   if (!region->runtime->draw_buffer) {
     if (use_viewport) {
       /* Allocate viewport which includes an off-screen buffer with depth multi-sample, etc. */
-      region->runtime->draw_buffer = static_cast<wmDrawBuffer *>(
-          MEM_callocN(sizeof(wmDrawBuffer), "wmDrawBuffer"));
+      region->runtime->draw_buffer = MEM_callocN<wmDrawBuffer>("wmDrawBuffer");
       region->runtime->draw_buffer->viewport = stereo ? GPU_viewport_stereo_create() :
                                                         GPU_viewport_create();
     }
@@ -734,8 +733,7 @@ static void wm_draw_region_buffer_create(Scene *scene,
 
       wm_draw_offscreen_texture_parameters(offscreen);
 
-      region->runtime->draw_buffer = static_cast<wmDrawBuffer *>(
-          MEM_callocN(sizeof(wmDrawBuffer), "wmDrawBuffer"));
+      region->runtime->draw_buffer = MEM_callocN<wmDrawBuffer>("wmDrawBuffer");
       region->runtime->draw_buffer->offscreen = offscreen;
     }
 
@@ -1293,7 +1291,7 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
 
   const blender::int2 win_size = WM_window_native_pixel_size(win);
   const uint rect_len = win_size[0] * win_size[1];
-  uint8_t *rect = static_cast<uint8_t *>(MEM_mallocN(4 * sizeof(uint8_t) * rect_len, __func__));
+  uint8_t *rect = MEM_malloc_arrayN<uint8_t>(4 * rect_len, __func__);
 
   GPU_frontbuffer_read_color(0, 0, win_size[0], win_size[1], 4, GPU_DATA_UBYTE, rect);
 
@@ -1368,7 +1366,7 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
   }
 
   const uint rect_len = win_size[0] * win_size[1];
-  uint8_t *rect = static_cast<uint8_t *>(MEM_mallocN(4 * sizeof(uint8_t) * rect_len, __func__));
+  uint8_t *rect = MEM_malloc_arrayN<uint8_t>(4 * rect_len, __func__);
   GPU_offscreen_bind(offscreen, false);
   wm_draw_window_onscreen(C, win, -1);
   GPU_offscreen_unbind(offscreen, false);

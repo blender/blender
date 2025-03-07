@@ -44,8 +44,7 @@ XrActionMapBinding *WM_xr_actionmap_binding_new(XrActionMapItem *ami,
     return amb_prev;
   }
 
-  XrActionMapBinding *amb = static_cast<XrActionMapBinding *>(
-      MEM_callocN(sizeof(XrActionMapBinding), __func__));
+  XrActionMapBinding *amb = MEM_callocN<XrActionMapBinding>(__func__);
   STRNCPY(amb->name, name);
   if (amb_prev) {
     WM_xr_actionmap_binding_ensure_unique(ami, amb);
@@ -249,8 +248,7 @@ XrActionMapItem *WM_xr_actionmap_item_new(XrActionMap *actionmap,
     return ami_prev;
   }
 
-  XrActionMapItem *ami = static_cast<XrActionMapItem *>(
-      MEM_callocN(sizeof(XrActionMapItem), __func__));
+  XrActionMapItem *ami = MEM_callocN<XrActionMapItem>(__func__);
   STRNCPY(ami->name, name);
   if (ami_prev) {
     WM_xr_actionmap_item_ensure_unique(actionmap, ami);
@@ -391,7 +389,7 @@ XrActionMap *WM_xr_actionmap_new(wmXrRuntimeData *runtime, const char *name, boo
     return am_prev;
   }
 
-  XrActionMap *am = static_cast<XrActionMap *>(MEM_callocN(sizeof(XrActionMap), __func__));
+  XrActionMap *am = MEM_callocN<XrActionMap>(__func__);
   STRNCPY(am->name, name);
   if (am_prev) {
     WM_xr_actionmap_ensure_unique(runtime, am);

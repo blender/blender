@@ -44,7 +44,7 @@ void WM_msgbus_types_init()
 
 wmMsgBus *WM_msgbus_create()
 {
-  wmMsgBus *mbus = static_cast<wmMsgBus *>(MEM_callocN(sizeof(*mbus), __func__));
+  wmMsgBus *mbus = MEM_callocN<wmMsgBus>(__func__);
   const uint gset_reserve = 512;
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];
@@ -168,8 +168,7 @@ wmMsgSubscribeKey *WM_msg_subscribe_with_key(wmMsgBus *mbus,
     }
   }
 
-  wmMsgSubscribeValueLink *msg_lnk = static_cast<wmMsgSubscribeValueLink *>(
-      MEM_mallocN(sizeof(wmMsgSubscribeValueLink), __func__));
+  wmMsgSubscribeValueLink *msg_lnk = MEM_mallocN<wmMsgSubscribeValueLink>(__func__);
   msg_lnk->params = *msg_val_params;
   BLI_addtail(&key->values, msg_lnk);
   return key;

@@ -73,7 +73,7 @@ const wmGizmoType *WM_gizmotype_find(const StringRef idname, bool quiet)
 
 static wmGizmoType *wm_gizmotype_append__begin()
 {
-  wmGizmoType *gzt = static_cast<wmGizmoType *>(MEM_callocN(sizeof(wmGizmoType), "gizmotype"));
+  wmGizmoType *gzt = MEM_callocN<wmGizmoType>("gizmotype");
   gzt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoProperties);
 #if 0
   /* Set the default i18n context now, so that opfunc can redefine it if needed! */

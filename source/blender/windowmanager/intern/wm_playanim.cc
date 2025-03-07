@@ -862,7 +862,7 @@ static void build_pict_list_from_anim(ListBase &picsbase,
   }
 
   for (int pic = 0; pic < MOV_get_duration_frames(anim, IMB_TC_NONE); pic++) {
-    PlayAnimPict *picture = static_cast<PlayAnimPict *>(MEM_callocN(sizeof(PlayAnimPict), "Pict"));
+    PlayAnimPict *picture = MEM_callocN<PlayAnimPict>("Pict");
     picture->anim = anim;
     picture->frame = pic + frame_offset;
     picture->IB_flags = IB_byte_data;
@@ -930,8 +930,7 @@ static void build_pict_list_from_image_sequence(ListBase &picsbase,
       size = 0;
     }
 
-    PlayAnimPict *picture = static_cast<PlayAnimPict *>(
-        MEM_callocN(sizeof(PlayAnimPict), "picture"));
+    PlayAnimPict *picture = MEM_callocN<PlayAnimPict>("picture");
     picture->size = size;
     picture->IB_flags = IB_byte_data;
     picture->mem = static_cast<uchar *>(mem);
@@ -1564,7 +1563,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
       if (ddd->dataType == GHOST_kDragnDropTypeFilenames) {
         const GHOST_TStringArray *stra = static_cast<const GHOST_TStringArray *>(ddd->data);
         ps.argc_next = stra->count;
-        ps.argv_next = static_cast<char **>(MEM_mallocN(sizeof(char **) * ps.argc_next, __func__));
+        ps.argv_next = MEM_malloc_arrayN<char *>(size_t(ps.argc_next), __func__);
         for (int i = 0; i < stra->count; i++) {
           ps.argv_next[i] = BLI_strdup(reinterpret_cast<const char *>(stra->strings[i]));
         }

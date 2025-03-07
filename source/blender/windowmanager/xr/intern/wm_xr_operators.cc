@@ -177,7 +177,7 @@ static void wm_xr_grab_init(wmOperator *op)
 {
   BLI_assert(op->customdata == nullptr);
 
-  op->customdata = MEM_callocN(sizeof(XrGrabData), __func__);
+  op->customdata = MEM_callocN<XrGrabData>(__func__);
 }
 
 static void wm_xr_grab_uninit(wmOperator *op)
@@ -663,7 +663,7 @@ static void wm_xr_raycast_init(wmOperator *op)
 {
   BLI_assert(op->customdata == nullptr);
 
-  op->customdata = MEM_callocN(sizeof(XrRaycastData), __func__);
+  op->customdata = MEM_callocN<XrRaycastData>(__func__);
 
   SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
   if (!st) {
@@ -798,8 +798,8 @@ static void wm_xr_fly_init(wmOperator *op, const wmXrData *xr)
 {
   BLI_assert(op->customdata == nullptr);
 
-  XrFlyData *data = static_cast<XrFlyData *>(
-      op->customdata = MEM_callocN(sizeof(XrFlyData), __func__));
+  XrFlyData *data = MEM_callocN<XrFlyData>(__func__);
+  op->customdata = data;
 
   WM_xr_session_state_viewer_pose_rotation_get(xr, data->viewer_rot);
   data->time_prev = BLI_time_now_seconds();

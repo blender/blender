@@ -244,7 +244,7 @@ static void wm_stereo3d_set_init(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
 
-  Stereo3dData *s3dd = static_cast<Stereo3dData *>(MEM_callocN(sizeof(Stereo3dData), __func__));
+  Stereo3dData *s3dd = MEM_callocN<Stereo3dData>(__func__);
   op->customdata = s3dd;
 
   /* Store the original win stereo 3d settings in case of cancel. */
