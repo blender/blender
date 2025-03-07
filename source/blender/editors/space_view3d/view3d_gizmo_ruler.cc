@@ -633,6 +633,44 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
   return changed;
 }
 
+void ED_view3d_gizmo_ruler_remove_by_gpencil_layer(bContext *C, bGPDlayer *gpl)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    const Scene *scene = WM_window_get_active_scene(win);
+    if (!scene->gpd) {
+      continue;
+    }
+
+    bGPDlayer *gpl_scene = view3d_ruler_layer_get(scene->gpd);
+    if (gpl_scene != gpl) {
+      continue;
+    }
+
+    const bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->spacetype != SPACE_VIEW3D) {
+        continue;
+      }
+
+      ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+      if (!region) {
+        continue;
+      }
+
+      wmGizmoMap *gzmap = region->runtime->gizmo_map;
+      wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
+
+      RulerItem *ruler_item;
+      while ((ruler_item = gzgroup_ruler_item_first_get(gzgroup))) {
+        ruler_item_remove(C, gzgroup, ruler_item);
+      }
+
+      ED_region_tag_redraw_editor_overlays(region);
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1211,7 +1249,10 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
       ruler_state_set(ruler_info, RULER_STATE_NORMAL);
     }
     /* We could convert only the current gizmo, for now just re-generate. */
-    view3d_ruler_to_gpencil(C, gzgroup);
+    if (view3d_ruler_to_gpencil(C, gzgroup)) {
+      /* For immediate update when a ruler annotation layer was added. */
+      WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
+    }
   }
 
   MEM_SAFE_FREE(gz->interaction_data);

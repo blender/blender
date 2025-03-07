@@ -45,6 +45,7 @@ struct ViewContext;
 struct ViewLayer;
 struct ViewOpsData;
 struct bContext;
+struct bGPDlayer;
 struct bPoseChannel;
 struct bScreen;
 struct rctf;
@@ -1350,6 +1351,13 @@ void ED_view3d_gizmo_mesh_preselect_get_active(const bContext *C,
                                                Base **r_base,
                                                BMElem **r_ele);
 void ED_view3d_gizmo_mesh_preselect_clear(wmGizmo *gz);
+
+/* view3d_gizmo_ruler.cc */
+
+/**
+ * Remove all rulers when Annotation layer is removed.
+ */
+void ED_view3d_gizmo_ruler_remove_by_gpencil_layer(struct bContext *C, bGPDlayer *gpl);
 
 /* `space_view3d.cc` */
 
