@@ -997,6 +997,10 @@ static blender::Vector<Strip *> mouseover_strips_sorted_get(const Scene *scene,
 {
   Editing *ed = seq::editing_get(scene);
 
+  if (ed == nullptr) {
+    return {};
+  }
+
   blender::Vector<Strip *> strips;
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
     if (strip->machine != int(mouse_co[1])) {

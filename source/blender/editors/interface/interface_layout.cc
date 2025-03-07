@@ -941,7 +941,7 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
                                      PropertyRNA *prop,
                                      PointerRNA *ptr_highlight,
                                      PropertyRNA *prop_highlight,
-                                     const char *uiname,
+                                     const std::optional<StringRef> uiname,
                                      const int h,
                                      const bool icon_only)
 {
@@ -3725,8 +3725,16 @@ void uiItemTabsEnumR_prop(uiLayout *layout,
   uiBlock *block = layout->root->block;
 
   UI_block_layout_set_current(block, layout);
-  ui_item_enum_expand_tabs(
-      layout, C, block, ptr, prop, ptr_highlight, prop_highlight, nullptr, UI_UNIT_Y, icon_only);
+  ui_item_enum_expand_tabs(layout,
+                           C,
+                           block,
+                           ptr,
+                           prop,
+                           ptr_highlight,
+                           prop_highlight,
+                           std::nullopt,
+                           UI_UNIT_Y,
+                           icon_only);
 }
 
 /** \} */
