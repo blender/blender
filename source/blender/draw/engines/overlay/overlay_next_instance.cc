@@ -67,6 +67,10 @@ void Instance::init()
                                       (BKE_scene_uses_blender_eevee(state.scene) &&
                                        BKE_render_preview_pixel_size(&state.scene->r) == 1);
 
+    /* For depth only drawing, no other render engine is expected. Except for Grease Pencil which
+     * outputs valid depth. Otherwise depth is cleared and is valid. */
+    state.is_render_depth_available |= state.is_depth_only_drawing;
+
     if (!state.hide_overlays) {
       state.overlay = state.v3d->overlay;
       state.v3d_flag = state.v3d->flag;
