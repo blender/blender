@@ -89,11 +89,11 @@ void EdgeDice::add_triangle(const Patch *patch,
   }
 }
 
-void EdgeDice::stitch_triangles(SubPatch &sub, const int edge)
+void EdgeDice::stitch_triangles_to_inner_grid(SubPatch &sub,
+                                              const int edge,
+                                              const int Mu,
+                                              const int Mv)
 {
-  const int Mu = max(max(sub.edge_u0.edge->T, sub.edge_u1.edge->T), 2);
-  const int Mv = max(max(sub.edge_v0.edge->T, sub.edge_v1.edge->T), 2);
-
   const int outer_T = sub.edges[edge].edge->T;
   const int inner_T = ((edge % 2) == 0) ? Mu - 2 : Mv - 2;
 
@@ -128,14 +128,9 @@ void EdgeDice::stitch_triangles(SubPatch &sub, const int edge)
       break;
   }
 
-  if (inner_T < 0 || outer_T < 0) {
-    return;  // XXX avoid crashes for Mu or Mv == 1, missing polygons
-  }
-
-  /* stitch together two arrays of verts with triangles. at each step,
-   * we compare using the next verts on both sides, to find the split
-   * direction with the smallest diagonal, and use that in order to keep
-   * the triangle shape reasonable. */
+  /* Stitch together two arrays of verts with triangles. at each step, we compare using the next
+   * verts on both sides, to find the split direction with the smallest diagonal, and use that
+   * in order to keep the triangle shape reasonable. */
   for (size_t i = 0, j = 0; i < inner_T || j < outer_T;) {
     const int v0 = sub.get_vert_along_grid_edge(edge, i);
     const int v1 = sub.get_vert_along_edge(edge, j);
@@ -156,13 +151,13 @@ void EdgeDice::stitch_triangles(SubPatch &sub, const int edge)
       uv2 = sub.map_uv(outer_uv);
     }
     else {
-      /* length of diagonals */
+      /* Length of diagonals. */
       const float len1 = len_squared(mesh_P[sub.get_vert_along_grid_edge(edge, i)] -
                                      mesh_P[sub.get_vert_along_edge(edge, j + 1)]);
       const float len2 = len_squared(mesh_P[sub.get_vert_along_edge(edge, j)] -
                                      mesh_P[sub.get_vert_along_grid_edge(edge, i + 1)]);
 
-      /* use smallest diagonal */
+      /* Use smallest diagonal. */
       if (len1 < len2) {
         v2 = sub.get_vert_along_edge(edge, ++j);
         outer_uv += outer_uv_step;
@@ -172,6 +167,72 @@ void EdgeDice::stitch_triangles(SubPatch &sub, const int edge)
         v2 = sub.get_vert_along_grid_edge(edge, ++i);
         inner_uv += inner_uv_step;
         uv2 = sub.map_uv(inner_uv);
+      }
+    }
+
+    add_triangle(sub.patch, v0, v1, v2, uv0, uv1, uv2);
+  }
+}
+
+void EdgeDice::stitch_triangles_across(SubPatch &sub, const int left_edge, const int right_edge)
+{
+  /* Stitch triangles from side to side, edge in the other direction has T = 1. */
+  const int left_T = sub.edges[left_edge].edge->T;
+  const int right_T = sub.edges[right_edge].edge->T;
+
+  float2 left_uv, right_uv, left_uv_step, right_uv_step;
+  if (right_edge == 0) {
+    left_uv = make_float2(0.0f, 1.0f);
+    right_uv = make_float2(0.0f, 0.0f);
+    left_uv_step = make_float2(1.0f / (float)left_T, 0.0f);
+    right_uv_step = make_float2(1.0f / (float)right_T, 0.0f);
+  }
+  else {
+    left_uv = make_float2(0.0f, 0.0f);
+    right_uv = make_float2(1.0f, 0.0f);
+    left_uv_step = make_float2(0.0f, 1.0f / (float)left_T);
+    right_uv_step = make_float2(0.0f, 1.0f / (float)right_T);
+  }
+
+  /* Stitch together two arrays of verts with triangles. at each step, we compare using the next
+   * verts on both sides, to find the split direction with the smallest diagonal, and use that
+   * in order to keep the triangle shape reasonable. */
+  for (size_t i = 0, j = 0; i < left_T || j < right_T;) {
+    const int v0 = sub.get_vert_along_edge_reverse(left_edge, i);
+    const int v1 = sub.get_vert_along_edge(right_edge, j);
+    int v2;
+
+    const float2 uv0 = sub.map_uv(left_uv);
+    const float2 uv1 = sub.map_uv(right_uv);
+    float2 uv2;
+
+    if (j == right_T) {
+      v2 = sub.get_vert_along_edge_reverse(left_edge, ++i);
+      left_uv += left_uv_step;
+      uv2 = sub.map_uv(left_uv);
+    }
+    else if (i == left_T) {
+      v2 = sub.get_vert_along_edge(right_edge, ++j);
+      right_uv += right_uv_step;
+      uv2 = sub.map_uv(right_uv);
+    }
+    else {
+      /* Length of diagonals. */
+      const float len1 = len_squared(mesh_P[sub.get_vert_along_edge_reverse(left_edge, i)] -
+                                     mesh_P[sub.get_vert_along_edge(right_edge, j + 1)]);
+      const float len2 = len_squared(mesh_P[sub.get_vert_along_edge(right_edge, j)] -
+                                     mesh_P[sub.get_vert_along_edge_reverse(left_edge, i + 1)]);
+
+      /* Use smallest diagonal. */
+      if (len1 < len2) {
+        v2 = sub.get_vert_along_edge(right_edge, ++j);
+        right_uv += right_uv_step;
+        uv2 = sub.map_uv(right_uv);
+      }
+      else {
+        v2 = sub.get_vert_along_edge_reverse(left_edge, ++i);
+        left_uv += left_uv_step;
+        uv2 = sub.map_uv(left_uv);
       }
     }
 
@@ -268,6 +329,11 @@ float QuadDice::scale_factor(SubPatch &sub, const int Mu, const int Mv)
 
 void QuadDice::add_grid(SubPatch &sub, const int Mu, const int Mv, const int offset)
 {
+  /* no inner grid? */
+  if (Mu == 1 || Mv == 1) {
+    return;
+  }
+
   /* create inner grid */
   const float du = 1.0f / (float)Mu;
   const float dv = 1.0f / (float)Mv;
@@ -300,32 +366,43 @@ void QuadDice::add_grid(SubPatch &sub, const int Mu, const int Mv, const int off
 
 void QuadDice::dice(SubPatch &sub)
 {
-  /* compute inner grid size with scale factor */
-  int Mu = max(sub.edge_u0.edge->T, sub.edge_u1.edge->T);
-  int Mv = max(sub.edge_v0.edge->T, sub.edge_v1.edge->T);
+  /* Compute inner grid size with scale factor. */
+  const int Mu = max(sub.edge_u0.edge->T, sub.edge_u1.edge->T);
+  const int Mv = max(sub.edge_v0.edge->T, sub.edge_v1.edge->T);
 
-#if 0 /* Doesn't work very well, especially at grazing angles. */
-  const float S = scale_factor(sub, ef, Mu, Mv);
-#else
-  const float S = 1.0f;
-#endif
-
-  Mu = max((int)ceilf(S * Mu), 2);  // XXX handle 0 & 1?
-  Mv = max((int)ceilf(S * Mv), 2);  // XXX handle 0 & 1?
-
-  /* inner grid */
-  add_grid(sub, Mu, Mv, sub.inner_grid_vert_offset);
-
-  /* sides */
+  /* Vertex coordinates for sides. */
   set_side(sub, 0);
   set_side(sub, 1);
   set_side(sub, 2);
   set_side(sub, 3);
 
-  stitch_triangles(sub, 0);
-  stitch_triangles(sub, 1);
-  stitch_triangles(sub, 2);
-  stitch_triangles(sub, 3);
+  if (Mv == 1) {
+    /* No inner grid, stitch triangles from side to side. */
+    stitch_triangles_across(sub, 2, 0);
+  }
+  else if (Mu == 1) {
+    /* No inner grid, stitch triangles from side to side. */
+    stitch_triangles_across(sub, 3, 1);
+  }
+  else {
+#if 0 /* Doesn't work very well, especially at grazing angles. */
+    const float S = scale_factor(sub, ef, Mu, Mv);
+#else
+    const float S = 1.0f;
+#endif
+
+    const int grid_Mu = max((int)ceilf(S * Mu), 1);  // XXX handle 0 & 1?
+    const int grid_Mv = max((int)ceilf(S * Mv), 1);  // XXX handle 0 & 1?
+
+    /* Inner grid. */
+    add_grid(sub, grid_Mu, grid_Mv, sub.inner_grid_vert_offset);
+
+    /* Stitch triangles to inner grid. */
+    stitch_triangles_to_inner_grid(sub, 0, Mu, Mv);
+    stitch_triangles_to_inner_grid(sub, 1, Mu, Mv);
+    stitch_triangles_to_inner_grid(sub, 2, Mu, Mv);
+    stitch_triangles_to_inner_grid(sub, 3, Mu, Mv);
+  }
 }
 
 CCL_NAMESPACE_END

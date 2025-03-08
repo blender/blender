@@ -497,7 +497,6 @@ void DiagSplit::split_patches(const Patch *patches, const size_t patches_byte_st
   // TODO: avoid multiple write for shared vertices
   // TODO: avoid multiple write for linear vert attributes
   // TODO: avoid multiple write for smooth vert attributes
-  // TODO: lift restriction of max(Mu, 2) and max(Mv, 2)
   // TODO: support not splitting n-gons if not needed
   // TODO: multithreading
 

@@ -138,15 +138,22 @@ class SubPatch {
 
   int calc_num_inner_verts() const
   {
-    const int Mu = max(max(edge_u0.edge->T, edge_u1.edge->T), 2);
-    const int Mv = max(max(edge_v0.edge->T, edge_v1.edge->T), 2);
+    const int Mu = max(edge_u0.edge->T, edge_u1.edge->T);
+    const int Mv = max(edge_v0.edge->T, edge_v1.edge->T);
     return (Mu - 1) * (Mv - 1);
   }
 
   int calc_num_triangles() const
   {
-    const int Mu = max(max(edge_u0.edge->T, edge_u1.edge->T), 2);
-    const int Mv = max(max(edge_v0.edge->T, edge_v1.edge->T), 2);
+    const int Mu = max(edge_u0.edge->T, edge_u1.edge->T);
+    const int Mv = max(edge_v0.edge->T, edge_v1.edge->T);
+
+    if (Mu == 1) {
+      return Mv * 2;
+    }
+    if (Mv == 1) {
+      return Mu * 2;
+    }
 
     const int inner_triangles = (Mu - 2) * (Mv - 2) * 2;
     const int edge_triangles = edge_u0.edge->T + edge_u1.edge->T + edge_v0.edge->T +
@@ -160,10 +167,17 @@ class SubPatch {
     return edges[edge].get_vert_along_edge(n);
   }
 
+  int get_vert_along_edge_reverse(const int edge, const int n) const
+  {
+    return get_vert_along_edge(edge, edges[edge].edge->T - n);
+  }
+
   int get_vert_along_grid_edge(const int edge, const int n) const
   {
-    const int Mu = max(max(edge_u0.edge->T, edge_u1.edge->T), 2);
-    const int Mv = max(max(edge_v0.edge->T, edge_v1.edge->T), 2);
+    const int Mu = max(edge_u0.edge->T, edge_u1.edge->T);
+    const int Mv = max(edge_v0.edge->T, edge_v1.edge->T);
+
+    assert(Mu >= 2 && Mv >= 2);
 
     switch (edge) {
       case 0: {
