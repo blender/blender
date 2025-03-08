@@ -3328,6 +3328,7 @@ static bool knife_find_closest_vert_of_edge(KnifeTool_OpData *kcd,
 
   if (curv) {
     r_kpd->cage = curv->cageco;
+    r_kpd->vert = curv;
 
     /* Update mouse coordinates to the snapped-to vertex's screen coordinates
      * this is important for angle snap, which uses the previous mouse position. */
@@ -3497,22 +3498,11 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd,
   return knife_snap_angle_impl(kcd, refv, no_global, ray_orig, ray_dir, r_cage, r_angle);
 }
 
-static int knife_calculate_snap_ref_edges(KnifeTool_OpData *kcd)
+static int knife_calculate_snap_ref_edges(KnifeTool_OpData *kcd,
+                                          const float3 &ray_orig,
+                                          const float3 &ray_dir)
 {
-  KnifeEdge *kfe;
-
-  /* Ray for kcd->curr. */
-  float curr_origin[3];
-  float curr_origin_ofs[3];
-  float curr_ray[3], curr_ray_normal[3];
-  float curr_cage[3]; /* Unused. */
-
-  knife_input_ray_segment(kcd, kcd->curr.mval, curr_origin, curr_origin_ofs);
-  sub_v3_v3v3(curr_ray, curr_origin_ofs, curr_origin);
-  normalize_v3_v3(curr_ray_normal, curr_ray);
-
-  BMFace *fcurr = knife_bvh_raycast(
-      kcd, curr_origin, curr_ray_normal, 0.0f, nullptr, curr_cage, nullptr);
+  BMFace *fcurr = knife_bvh_raycast(kcd, ray_orig, ray_dir, 0.0f, nullptr, nullptr, nullptr);
 
   int count = 0;
 
@@ -3522,7 +3512,7 @@ static int knife_calculate_snap_ref_edges(KnifeTool_OpData *kcd)
 
   if (kcd->prev.vert) {
     LISTBASE_FOREACH (LinkData *, ref, &kcd->prev.vert->edges) {
-      kfe = ((KnifeEdge *)(ref->data));
+      KnifeEdge *kfe = ((KnifeEdge *)(ref->data));
       if (kfe->is_invalid) {
         continue;
       }
@@ -3673,7 +3663,8 @@ static void knife_snap_update_from_mval(KnifeTool_OpData *kcd, const float2 &mva
         kcd->is_angle_snapping = knife_snap_angle_relative(
             kcd, ray_orig, ray_dir_constrain, kcd->curr.cage, kcd->angle);
         if (kcd->is_angle_snapping) {
-          kcd->snap_ref_edges_count = knife_calculate_snap_ref_edges(kcd);
+          kcd->snap_ref_edges_count = knife_calculate_snap_ref_edges(
+              kcd, ray_orig, ray_dir_constrain);
         }
       }
     }
@@ -4268,10 +4259,11 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
           if (kcd->snap_ref_edges_count) {
             kcd->snap_edge++;
             kcd->snap_edge %= kcd->snap_ref_edges_count;
+            knife_snap_update_from_mval(kcd, kcd->curr.mval);
+            do_refresh = true;
+            handled = true;
           }
         }
-        do_refresh = true;
-        handled = true;
         break;
       case KNF_MODAL_CUT_THROUGH_TOGGLE:
         kcd->cut_through = !kcd->cut_through;
