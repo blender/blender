@@ -14,7 +14,6 @@
 
 #include "util/array.h"
 #include "util/boundbox.h"
-#include "util/map.h"
 #include "util/param.h"
 #include "util/set.h"
 #include "util/types.h"
@@ -181,10 +180,6 @@ class Mesh : public Geometry {
  private:
   size_t num_subd_added_verts;
   size_t num_subd_faces;
-
-  unordered_map<int, int> vert_to_stitching_key_map; /* real vert index -> stitching index */
-  unordered_multimap<int, int>
-      vert_stitching_map; /* stitching index -> multiple real vert indices */
 
   friend class BVH2;
   friend class BVHBuild;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011-2025 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2024 Blender Foundation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -76,7 +76,6 @@ struct OsdData {
   vector<OsdValue<float3>> refined_verts;
 
   void build(OsdMesh &osd_mesh);
-  void subdivide_attribute(Attribute &attr);
 };
 
 /* Patch with OpenSubdiv evaluation. */

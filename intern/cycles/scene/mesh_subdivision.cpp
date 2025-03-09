@@ -97,11 +97,10 @@ void Mesh::tessellate(DiagSplit *split)
         patch->patch_index = face.ptex_offset;
         patch->from_ngon = false;
 
-        for (int i = 0; i < 4; i++) {
-          hull[i] = verts[subd_face_corners[face.start_corner + i]];
-        }
-
-        swap(hull[2], hull[3]);
+        hull[0] = verts[subd_face_corners[face.start_corner + 0]];
+        hull[1] = verts[subd_face_corners[face.start_corner + 1]];
+        hull[2] = verts[subd_face_corners[face.start_corner + 3]];
+        hull[3] = verts[subd_face_corners[face.start_corner + 2]];
 
         patch->shader = face.shader;
         patch++;
@@ -123,16 +122,15 @@ void Mesh::tessellate(DiagSplit *split)
 
           patch->shader = face.shader;
 
-          hull[0] =
-              verts[subd_face_corners[face.start_corner + mod(corner + 0, face.num_corners)]];
-          hull[1] =
-              verts[subd_face_corners[face.start_corner + mod(corner + 1, face.num_corners)]];
-          hull[2] =
-              verts[subd_face_corners[face.start_corner + mod(corner - 1, face.num_corners)]];
-          hull[3] = center_vert;
+          const int v0 = subd_face_corners[face.start_corner + mod(corner + 0, face.num_corners)];
+          const int v1 = subd_face_corners[face.start_corner + mod(corner + 1, face.num_corners)];
+          const int v3 = subd_face_corners[face.start_corner +
+                                           mod(corner + face.num_corners - 1, face.num_corners)];
 
-          hull[1] = (hull[1] + hull[0]) * 0.5;
-          hull[2] = (hull[2] + hull[0]) * 0.5;
+          hull[0] = verts[v0];
+          hull[1] = 0.5f * (verts[v0] + verts[v1]);
+          hull[2] = 0.5f * (verts[v3] + verts[v0]);
+          hull[3] = center_vert;
 
           patch++;
         }

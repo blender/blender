@@ -260,9 +260,6 @@ void Mesh::clear_non_sockets()
 
   num_subd_added_verts = 0;
   num_subd_faces = 0;
-
-  vert_to_stitching_key_map.clear();
-  vert_stitching_map.clear();
 }
 
 void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)
