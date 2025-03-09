@@ -57,7 +57,6 @@ class OsdData {
   OsdData() = default;
 
   void build_from_mesh(Mesh *mesh_);
-  int calculate_max_isolation();
   void subdivide_attribute(Attribute &attr);
 
   friend struct OsdPatch;

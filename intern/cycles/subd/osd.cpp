@@ -144,7 +144,7 @@ void OsdData::build_from_mesh(Mesh *mesh_)
       *mesh, Far::TopologyRefinerFactory<Mesh>::Options(type, options)));
 
   /* adaptive refinement */
-  const int max_isolation = calculate_max_isolation();
+  const int max_isolation = 3;  // TODO: get from Blender
   refiner->RefineAdaptive(Far::TopologyRefiner::AdaptiveOptions(max_isolation));
 
   /* create patch table */
@@ -175,43 +175,6 @@ void OsdData::build_from_mesh(Mesh *mesh_)
 
   /* create patch map */
   patch_map = make_unique<Far::PatchMap>(*patch_table);
-}
-
-int OsdData::calculate_max_isolation()
-{
-  /* loop over all edges to find longest in screen space */
-  const Far::TopologyLevel &level = refiner->GetLevel(0);
-  const SubdParams *subd_params = mesh->get_subd_params();
-  const Transform objecttoworld = subd_params->objecttoworld;
-  Camera *cam = subd_params->camera;
-
-  float longest_edge = 0.0f;
-
-  for (size_t i = 0; i < level.GetNumEdges(); i++) {
-    const Far::ConstIndexArray verts = level.GetEdgeVertices(i);
-
-    float3 a = mesh->get_verts()[verts[0]];
-    float3 b = mesh->get_verts()[verts[1]];
-
-    float edge_len;
-
-    if (cam) {
-      a = transform_point(&objecttoworld, a);
-      b = transform_point(&objecttoworld, b);
-
-      edge_len = len(a - b) / cam->world_to_raster_size((a + b) * 0.5f);
-    }
-    else {
-      edge_len = len(a - b);
-    }
-
-    longest_edge = max(longest_edge, edge_len);
-  }
-
-  /* calculate isolation level */
-  const int isolation = (int)(log2f(max(longest_edge / subd_params->dicing_rate, 1.0f)) + 1.0f);
-
-  return min(isolation, 10);
 }
 
 /* OsdPatch */
