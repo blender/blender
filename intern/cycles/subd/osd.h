@@ -44,33 +44,33 @@ template<typename T> struct OsdValue {
   }
 };
 
-/* class for holding OpenSubdiv data used during tessellation */
+/* Wrapper around Mesh for TopologyRefinerFactory. */
 
-class OsdData {
-  Mesh *mesh = nullptr;
-  vector<OsdValue<float3>> verts;
+class OsdMesh {
+ public:
+  Mesh &mesh;
+
+  explicit OsdMesh(Mesh &mesh) : mesh(mesh) {}
+};
+
+/* OpenSubdiv refiner and patch data structures. */
+
+struct OsdData {
   unique_ptr<Far::TopologyRefiner> refiner;
   unique_ptr<Far::PatchTable> patch_table;
   unique_ptr<Far::PatchMap> patch_map;
+  vector<OsdValue<float3>> refined_verts;
 
- public:
-  OsdData() = default;
-
-  void build_from_mesh(Mesh *mesh_);
+  void build(OsdMesh &osd_mesh);
   void subdivide_attribute(Attribute &attr);
-
-  friend struct OsdPatch;
-  friend class Mesh;
 };
 
 /* Patch with OpenSubdiv evaluation. */
 
-struct OsdPatch : Patch {
-  OsdData *osd_data;
+struct OsdPatch final : Patch {
+  OsdData &osd_data;
 
-  OsdPatch() = default;
-  OsdPatch(OsdData *data) : osd_data(data) {}
-
+  explicit OsdPatch(OsdData &data) : osd_data(data) {}
   void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, float v) override;
 };
 

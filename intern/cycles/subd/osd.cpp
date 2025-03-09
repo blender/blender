@@ -7,8 +7,9 @@
 #  include "subd/osd.h"
 
 #  include "scene/attribute.h"
-#  include "scene/camera.h"
 #  include "scene/mesh.h"
+
+#  include "util/log.h"
 
 /* Specialization of TopologyRefinerFactory for OsdMesh */
 
@@ -17,32 +18,42 @@ namespace OpenSubdiv::OPENSUBDIV_VERSION::Far {
 using namespace ccl;
 
 template<>
-bool TopologyRefinerFactory<Mesh>::resizeComponentTopology(TopologyRefiner &refiner,
-                                                           const Mesh &mesh)
+bool TopologyRefinerFactory<OsdMesh>::resizeComponentTopology(TopologyRefiner &refiner,
+                                                              OsdMesh const &osd_mesh)
 {
-  setNumBaseVertices(refiner, mesh.get_verts().size());
-  setNumBaseFaces(refiner, mesh.get_num_subd_faces());
+  const Mesh &mesh = osd_mesh.mesh;
 
-  for (int i = 0; i < mesh.get_num_subd_faces(); i++) {
-    setNumBaseFaceVertices(refiner, i, mesh.get_subd_num_corners()[i]);
+  const int num_base_verts = mesh.get_verts().size();
+  const int num_base_faces = mesh.get_num_subd_faces();
+  const int *subd_num_corners = mesh.get_subd_num_corners().data();
+
+  setNumBaseVertices(refiner, num_base_verts);
+  setNumBaseFaces(refiner, num_base_faces);
+
+  for (int i = 0; i < num_base_faces; i++) {
+    setNumBaseFaceVertices(refiner, i, subd_num_corners[i]);
   }
 
   return true;
 }
 
 template<>
-bool TopologyRefinerFactory<Mesh>::assignComponentTopology(TopologyRefiner &refiner,
-                                                           const Mesh &mesh)
+bool TopologyRefinerFactory<OsdMesh>::assignComponentTopology(TopologyRefiner &refiner,
+                                                              OsdMesh const &osd_mesh)
 {
-  const array<int> &subd_face_corners = mesh.get_subd_face_corners();
-  const array<int> &subd_start_corner = mesh.get_subd_start_corner();
-  const array<int> &subd_num_corners = mesh.get_subd_num_corners();
+  const Mesh &mesh = osd_mesh.mesh;
 
-  for (int i = 0; i < mesh.get_num_subd_faces(); i++) {
+  const int num_base_faces = mesh.get_num_subd_faces();
+
+  const int *subd_face_corners = mesh.get_subd_face_corners().data();
+  const int *subd_start_corner = mesh.get_subd_start_corner().data();
+  const int *subd_num_corners = mesh.get_subd_num_corners().data();
+
+  for (int i = 0; i < num_base_faces; i++) {
     IndexArray face_verts = getBaseFaceVertices(refiner, i);
 
     const int start_corner = subd_start_corner[i];
-    int *corner = &subd_face_corners[start_corner];
+    const int *corner = &subd_face_corners[start_corner];
 
     for (int j = 0; j < subd_num_corners[i]; j++, corner++) {
       face_verts[j] = *corner;
@@ -53,8 +64,11 @@ bool TopologyRefinerFactory<Mesh>::assignComponentTopology(TopologyRefiner &refi
 }
 
 template<>
-bool TopologyRefinerFactory<Mesh>::assignComponentTags(TopologyRefiner &refiner, const Mesh &mesh)
+bool TopologyRefinerFactory<OsdMesh>::assignComponentTags(TopologyRefiner &refiner,
+                                                          OsdMesh const &osd_mesh)
 {
+  const Mesh &mesh = osd_mesh.mesh;
+
   /* Historical maximum crease weight used at Pixar, influencing the maximum in OpenSubDiv. */
   static constexpr float CREASE_SCALE = 10.0f;
 
@@ -84,7 +98,9 @@ bool TopologyRefinerFactory<Mesh>::assignComponentTags(TopologyRefiner &refiner,
     vertex_creases[vertex_idx] = weight * CREASE_SCALE;
   }
 
-  for (int i = 0; i < mesh.get_verts().size(); i++) {
+  const int num_base_verts = mesh.get_verts().size();
+
+  for (int i = 0; i < num_base_verts; i++) {
     float sharpness = 0.0f;
     const std::map<int, float>::const_iterator iter = vertex_creases.find(i);
 
@@ -111,17 +127,19 @@ bool TopologyRefinerFactory<Mesh>::assignComponentTags(TopologyRefiner &refiner,
 }
 
 template<>
-bool TopologyRefinerFactory<Mesh>::assignFaceVaryingTopology(TopologyRefiner & /*refiner*/,
-                                                             const Mesh & /*mesh*/)
+bool TopologyRefinerFactory<OsdMesh>::assignFaceVaryingTopology(TopologyRefiner & /*refiner*/,
+                                                                OsdMesh const & /*osd_mesh*/)
 {
   return true;
 }
 
 template<>
-void TopologyRefinerFactory<Mesh>::reportInvalidTopology(TopologyError /*err_code*/,
-                                                         const char * /*msg*/,
-                                                         const Mesh & /*mesh*/)
+void TopologyRefinerFactory<OsdMesh>::reportInvalidTopology(TopologyError /*err_code*/,
+                                                            char const *msg,
+                                                            OsdMesh const &osd_mesh)
 {
+  const Mesh &mesh = osd_mesh.mesh;
+  VLOG_WARNING << "Invalid subdivision topology for '" << mesh.name.c_str() << "': " << msg;
 }
 }  // namespace OpenSubdiv::OPENSUBDIV_VERSION::Far
 
@@ -129,19 +147,16 @@ CCL_NAMESPACE_BEGIN
 
 /* OsdData */
 
-void OsdData::build_from_mesh(Mesh *mesh_)
+void OsdData::build(OsdMesh &osd_mesh)
 {
-  mesh = mesh_;
-
-  /* type and options */
   const Sdc::SchemeType type = Sdc::SCHEME_CATMARK;
 
   Sdc::Options options;
   options.SetVtxBoundaryInterpolation(Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
 
   /* create refiner */
-  refiner.reset(Far::TopologyRefinerFactory<Mesh>::Create(
-      *mesh, Far::TopologyRefinerFactory<Mesh>::Options(type, options)));
+  refiner.reset(Far::TopologyRefinerFactory<OsdMesh>::Create(
+      osd_mesh, Far::TopologyRefinerFactory<OsdMesh>::Options(type, options)));
 
   /* adaptive refinement */
   const int max_isolation = 3;  // TODO: get from Blender
@@ -156,13 +171,15 @@ void OsdData::build_from_mesh(Mesh *mesh_)
   /* interpolate verts */
   const int num_refiner_verts = refiner->GetNumVerticesTotal();
   const int num_local_points = patch_table->GetNumLocalPoints();
+  const int num_base_verts = osd_mesh.mesh.get_verts().size();
+  const float3 *verts_data = osd_mesh.mesh.get_verts().data();
 
-  verts.resize(num_refiner_verts + num_local_points);
-  for (int i = 0; i < mesh->get_verts().size(); i++) {
-    verts[i].value = mesh->get_verts()[i];
+  refined_verts.resize(num_refiner_verts + num_local_points);
+  for (int i = 0; i < num_base_verts; i++) {
+    refined_verts[i].value = verts_data[i];
   }
 
-  OsdValue<float3> *src = verts.data();
+  OsdValue<float3> *src = refined_verts.data();
   for (int i = 0; i < refiner->GetMaxLevel(); i++) {
     OsdValue<float3> *dest = src + refiner->GetLevel(i).GetNumVertices();
     Far::PrimvarRefiner(*refiner).Interpolate(i + 1, src, dest);
@@ -170,27 +187,24 @@ void OsdData::build_from_mesh(Mesh *mesh_)
   }
 
   if (num_local_points) {
-    patch_table->ComputeLocalPointValues(verts.data(), &verts[num_refiner_verts]);
+    patch_table->ComputeLocalPointValues(refined_verts.data(), &refined_verts[num_refiner_verts]);
   }
 
-  /* create patch map */
+  /* Create patch map */
   patch_map = make_unique<Far::PatchMap>(*patch_table);
 }
 
 /* OsdPatch */
 
-void OsdPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, float v)
+void OsdPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, const float v)
 {
-  const Far::PatchTable::PatchHandle *handle = osd_data->patch_map->FindPatch(
+  const Far::PatchTable::PatchHandle &handle = *osd_data.patch_map->FindPatch(
       patch_index, (double)u, (double)v);
-  assert(handle);
 
-  float p_weights[20];
-  float du_weights[20];
-  float dv_weights[20];
-  osd_data->patch_table->EvaluateBasis(*handle, u, v, p_weights, du_weights, dv_weights);
+  float p_weights[20], du_weights[20], dv_weights[20];
+  osd_data.patch_table->EvaluateBasis(handle, u, v, p_weights, du_weights, dv_weights);
 
-  const Far::ConstIndexArray cv = osd_data->patch_table->GetPatchVertices(*handle);
+  const Far::ConstIndexArray cv = osd_data.patch_table->GetPatchVertices(handle);
 
   float3 du;
   float3 dv;
@@ -201,7 +215,7 @@ void OsdPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const floa
   dv = zero_float3();
 
   for (int i = 0; i < cv.size(); i++) {
-    const float3 p = osd_data->verts[cv[i]].value;
+    const float3 p = osd_data.refined_verts[cv[i]].value;
 
     if (P) {
       *P += p * p_weights[i];

@@ -22,12 +22,13 @@ void Mesh::tessellate(DiagSplit *split)
   num_subd_verts = 0;
 
 #ifdef WITH_OPENSUBDIV
+  OsdMesh osd_mesh(*this);
   OsdData osd_data;
   bool need_packed_patch_table = false;
 
   if (subdivision_type == SUBDIVISION_CATMULL_CLARK) {
     if (get_num_subd_faces()) {
-      osd_data.build_from_mesh(this);
+      osd_data.build(osd_mesh);
     }
   }
   else
@@ -65,7 +66,7 @@ void Mesh::tessellate(DiagSplit *split)
   /* build patches from faces */
 #ifdef WITH_OPENSUBDIV
   if (subdivision_type == SUBDIVISION_CATMULL_CLARK) {
-    vector<OsdPatch> osd_patches(num_patches, &osd_data);
+    vector<OsdPatch> osd_patches(num_patches, OsdPatch(osd_data));
     OsdPatch *patch = osd_patches.data();
 
     for (int f = 0; f < num_faces; f++) {
