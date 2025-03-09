@@ -115,6 +115,14 @@ class Subpatch {
 
     return -1;
   }
+
+  float2 map_uv(float2 uv)
+  {
+    /* Map UV from subpatch to patch parametric coordinates. */
+    const float2 d0 = interp(c00, c01, uv.y);
+    const float2 d1 = interp(c10, c11, uv.y);
+    return clamp(interp(d0, d1, uv.x), zero_float2(), one_float2());
+  }
 };
 
 struct Edge {

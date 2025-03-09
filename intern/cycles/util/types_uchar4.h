@@ -34,6 +34,12 @@ ccl_device_inline uchar4 make_uchar4(const uchar x, const uchar y, uchar z, cons
   uchar4 a = {x, y, z, w};
   return a;
 }
+
+ccl_device_inline bool operator==(const uchar4 a, const uchar4 b)
+{
+  return (a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w);
+}
+
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
 CCL_NAMESPACE_END

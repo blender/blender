@@ -248,12 +248,10 @@ set(SRC_KERNEL_GEOM_HEADERS
   geom/motion_triangle_intersect.h
   geom/motion_triangle_shader.h
   geom/object.h
-  geom/patch.h
   geom/point.h
   geom/point_intersect.h
   geom/primitive.h
   geom/shader_data.h
-  geom/subd_triangle.h
   geom/triangle.h
   geom/triangle_intersect.h
   geom/volume.h

@@ -5,9 +5,9 @@
 #include "scene/attribute.h"
 #include "scene/mesh.h"
 
+#include "subd/interpolation.h"
 #include "subd/osd.h"
 #include "subd/patch.h"
-#include "subd/patch_table.h"
 #include "subd/split.h"
 
 #include "util/algorithm.h"
@@ -19,12 +19,11 @@ void Mesh::tessellate(DiagSplit *split)
 {
   /* reset the number of subdivision vertices, in case the Mesh was not cleared
    * between calls or data updates */
-  num_subd_verts = 0;
+  num_subd_added_verts = 0;
 
 #ifdef WITH_OPENSUBDIV
   OsdMesh osd_mesh(*this);
   OsdData osd_data;
-  bool need_packed_patch_table = false;
 
   if (subdivision_type == SUBDIVISION_CATMULL_CLARK) {
     if (get_num_subd_faces()) {
@@ -38,11 +37,6 @@ void Mesh::tessellate(DiagSplit *split)
      * falling into catmull-clark code paths by accident
      */
     subdivision_type = SUBDIVISION_LINEAR;
-
-    /* force disable attribute subdivision for same reason as above */
-    for (Attribute &attr : subd_attributes.attributes) {
-      attr.flags &= ~ATTR_SUBDIVIDED;
-    }
   }
 
   const int num_faces = get_num_subd_faces();
@@ -88,7 +82,7 @@ void Mesh::tessellate(DiagSplit *split)
       }
     }
 
-    /* split patches */
+    /* Split patches. */
     split->split_patches(osd_patches.data(), sizeof(OsdPatch));
   }
   else
@@ -101,6 +95,7 @@ void Mesh::tessellate(DiagSplit *split)
       SubdFace face = get_subd_face(f);
 
       if (face.is_quad()) {
+        /* Simple quad case. */
         float3 *hull = patch->hull;
         float3 *normals = patch->normals;
 
@@ -130,7 +125,7 @@ void Mesh::tessellate(DiagSplit *split)
         patch++;
       }
       else {
-        /* ngon */
+        /* N-gon split into N quads. */
         float3 center_vert = zero_float3();
         float3 center_normal = zero_float3();
 
@@ -184,115 +179,35 @@ void Mesh::tessellate(DiagSplit *split)
       }
     }
 
-    /* split patches */
+    /* Split patches. */
     split->split_patches(linear_patches.data(), sizeof(LinearQuadPatch));
   }
 
-  /* interpolate center points for attributes */
-  for (Attribute &attr : subd_attributes.attributes) {
+  if (get_num_subd_faces()) {
+    /* Create a tessellated mesh attributes from subd base mesh attributes. */
 #ifdef WITH_OPENSUBDIV
-    if (subdivision_type == SUBDIVISION_CATMULL_CLARK && attr.flags & ATTR_SUBDIVIDED) {
-      if (attr.element == ATTR_ELEMENT_CORNER || attr.element == ATTR_ELEMENT_CORNER_BYTE) {
-        /* keep subdivision for corner attributes disabled for now */
-        attr.flags &= ~ATTR_SUBDIVIDED;
-      }
-      else if (get_num_subd_faces()) {
-        osd_data.subdivide_attribute(attr);
+    SubdAttributeInterpolation interpolation(*this, osd_mesh, osd_data, num_patches);
+#else
+    SubdAttributeInterpolation interpolation(*this, num_patches);
+#endif
 
-        need_packed_patch_table = true;
+    for (const Attribute &subd_attr : subd_attributes.attributes) {
+      if (!interpolation.support_interp_attribute(subd_attr)) {
         continue;
       }
-    }
-#endif
-
-    char *data = attr.data();
-    const size_t stride = attr.data_sizeof();
-    int ngons = 0;
-
-    switch (attr.element) {
-      case ATTR_ELEMENT_VERTEX: {
-        for (int f = 0; f < num_faces; f++) {
-          SubdFace face = get_subd_face(f);
-
-          if (!face.is_quad()) {
-            char *center = data + (verts.size() - num_subd_verts + ngons) * stride;
-            attr.zero_data(center);
-
-            const float inv_num_corners = 1.0f / float(face.num_corners);
-
-            for (int corner = 0; corner < face.num_corners; corner++) {
-              attr.add_with_weight(center,
-                                   data + subd_face_corners[face.start_corner + corner] * stride,
-                                   inv_num_corners);
-            }
-
-            ngons++;
-          }
-        }
-        break;
-      }
-      case ATTR_ELEMENT_VERTEX_MOTION: {
-        // TODO(mai): implement
-        break;
-      }
-      case ATTR_ELEMENT_CORNER: {
-        for (int f = 0; f < num_faces; f++) {
-          SubdFace face = get_subd_face(f);
-
-          if (!face.is_quad()) {
-            char *center = data + (subd_face_corners.size() + ngons) * stride;
-            attr.zero_data(center);
-
-            const float inv_num_corners = 1.0f / float(face.num_corners);
-
-            for (int corner = 0; corner < face.num_corners; corner++) {
-              attr.add_with_weight(
-                  center, data + (face.start_corner + corner) * stride, inv_num_corners);
-            }
-
-            ngons++;
-          }
-        }
-        break;
-      }
-      case ATTR_ELEMENT_CORNER_BYTE: {
-        for (int f = 0; f < num_faces; f++) {
-          SubdFace face = get_subd_face(f);
-
-          if (!face.is_quad()) {
-            uchar *center = (uchar *)data + (subd_face_corners.size() + ngons) * stride;
-
-            const float inv_num_corners = 1.0f / float(face.num_corners);
-            float4 val = zero_float4();
-
-            for (int corner = 0; corner < face.num_corners; corner++) {
-              for (int i = 0; i < 4; i++) {
-                val[i] += float(*(data + (face.start_corner + corner) * stride + i)) *
-                          inv_num_corners;
-              }
-            }
-
-            for (int i = 0; i < 4; i++) {
-              center[i] = uchar(min(max(val[i], 0.0f), 255.0f));
-            }
-
-            ngons++;
-          }
-        }
-        break;
-      }
-      default:
-        break;
+      Attribute &mesh_attr = attributes.copy(subd_attr);
+      interpolation.interp_attribute(subd_attr, mesh_attr);
     }
   }
 
-#ifdef WITH_OPENSUBDIV
-  /* pack patch tables */
-  if (need_packed_patch_table) {
-    patch_table = make_unique<PackedPatchTable>();
-    patch_table->pack(osd_data.patch_table.get());
-  }
-#endif
+  // TODO: Free subd base data? Or will this break interactive updates?
+
+  // TODO: Use ATTR_STD_PTEX attributes instead, and create only for lifetime of this function
+  // if there are attributes to interpolation. And then keep only if needed for ptex texturing
+
+  /* Clear temporary buffers needed for interpolation. */
+  subd_triangle_patch_index.clear();
+  subd_corner_patch_uv.clear();
 }
 
 CCL_NAMESPACE_END

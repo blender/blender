@@ -48,17 +48,24 @@ struct SubdParams {
 class EdgeDice {
  public:
   SubdParams params;
-  float3 *mesh_P;
-  float3 *mesh_N;
-  size_t vert_offset;
-  size_t tri_offset;
+  float3 *mesh_P = nullptr;
+  float3 *mesh_N = nullptr;
+  float *mesh_ptex_face_id = nullptr;
+  float2 *mesh_ptex_uv = nullptr;
 
   explicit EdgeDice(const SubdParams &params);
 
   void reserve(const int num_verts, const int num_triangles);
 
+ protected:
   void set_vert(Patch *patch, const int index, const float2 uv);
-  void add_triangle(Patch *patch, const int v0, const int v1, const int v2);
+  void add_triangle(const Patch *patch,
+                    const int v0,
+                    const int v1,
+                    const int v2,
+                    const float2 uv0,
+                    const float2 uv1,
+                    const float2 uv2);
 
   void stitch_triangles(Subpatch &sub, const int edge);
 };
@@ -69,10 +76,12 @@ class QuadDice : public EdgeDice {
  public:
   explicit QuadDice(const SubdParams &params);
 
-  float3 eval_projected(Subpatch &sub, const float u, float v);
+  void dice(Subpatch &sub);
 
-  float2 map_uv(Subpatch &sub, const float u, float v);
-  void set_vert(Subpatch &sub, const int index, const float u, float v);
+ protected:
+  float3 eval_projected(Subpatch &sub, const float2 uv);
+
+  void set_vert(Subpatch &sub, const int index, const float2 uv);
 
   void add_grid(Subpatch &sub, const int Mu, const int Mv, const int offset);
 
@@ -80,8 +89,6 @@ class QuadDice : public EdgeDice {
 
   float quad_area(const float3 &a, const float3 &b, const float3 &c, const float3 &d);
   float scale_factor(Subpatch &sub, const int Mu, const int Mv);
-
-  void dice(Subpatch &sub);
 };
 
 CCL_NAMESPACE_END

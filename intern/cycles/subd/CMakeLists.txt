@@ -16,7 +16,6 @@ set(SRC
   osd.cpp
   patch.cpp
   split.cpp
-  patch_table.cpp
 )
 
 set(SRC_HEADERS
@@ -24,7 +23,6 @@ set(SRC_HEADERS
   interpolation.h
   osd.h
   patch.h
-  patch_table.h
   split.h
   subpatch.h
 )

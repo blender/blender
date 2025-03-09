@@ -415,10 +415,8 @@ static void add_subd_polygons(CachedData &cached_data, const SubDSchemaData &dat
   const int *face_counts_array = face_counts->get();
   const int *face_indices_array = face_indices->get();
 
-  int num_ngons = 0;
   int num_corners = 0;
   for (size_t i = 0; i < face_counts->size(); i++) {
-    num_ngons += (face_counts_array[i] == 4 ? 0 : 1);
     num_corners += face_counts_array[i];
   }
 
@@ -467,7 +465,6 @@ static void add_subd_polygons(CachedData &cached_data, const SubDSchemaData &dat
   cached_data.subd_smooth.add_data(subd_smooth, time);
   cached_data.subd_ptex_offset.add_data(subd_ptex_offset, time);
   cached_data.subd_face_corners.add_data(subd_face_corners, time);
-  cached_data.num_ngons.add_data(num_ngons, time);
   cached_data.uv_loops.add_data(uv_loops, time);
 }
 

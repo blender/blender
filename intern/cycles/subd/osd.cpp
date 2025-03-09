@@ -23,7 +23,7 @@ bool TopologyRefinerFactory<OsdMesh>::resizeComponentTopology(TopologyRefiner &r
 {
   const Mesh &mesh = osd_mesh.mesh;
 
-  const int num_base_verts = mesh.get_verts().size();
+  const int num_base_verts = mesh.get_num_subd_base_verts();
   const int num_base_faces = mesh.get_num_subd_faces();
   const int *subd_num_corners = mesh.get_subd_num_corners().data();
 
@@ -98,7 +98,7 @@ bool TopologyRefinerFactory<OsdMesh>::assignComponentTags(TopologyRefiner &refin
     vertex_creases[vertex_idx] = weight * CREASE_SCALE;
   }
 
-  const int num_base_verts = mesh.get_verts().size();
+  const int num_base_verts = mesh.get_num_subd_base_verts();
 
   for (int i = 0; i < num_base_verts; i++) {
     float sharpness = 0.0f;
@@ -171,7 +171,7 @@ void OsdData::build(OsdMesh &osd_mesh)
   /* interpolate verts */
   const int num_refiner_verts = refiner->GetNumVerticesTotal();
   const int num_local_points = patch_table->GetNumLocalPoints();
-  const int num_base_verts = osd_mesh.mesh.get_verts().size();
+  const int num_base_verts = osd_mesh.mesh.get_num_subd_base_verts();
   const float3 *verts_data = osd_mesh.mesh.get_verts().data();
 
   refined_verts.resize(num_refiner_verts + num_local_points);

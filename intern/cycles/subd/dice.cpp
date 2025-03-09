@@ -14,15 +14,11 @@ CCL_NAMESPACE_BEGIN
 
 EdgeDice::EdgeDice(const SubdParams &params_) : params(params_)
 {
-  mesh_P = nullptr;
-  mesh_N = nullptr;
-  vert_offset = 0;
-
   params.mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 
   if (params.ptex) {
-    params.mesh->attributes.add(ATTR_STD_PTEX_UV);
     params.mesh->attributes.add(ATTR_STD_PTEX_FACE_ID);
+    params.mesh->attributes.add(ATTR_STD_PTEX_UV);
   }
 }
 
@@ -30,18 +26,24 @@ void EdgeDice::reserve(const int num_verts, const int num_triangles)
 {
   Mesh *mesh = params.mesh;
 
-  vert_offset = mesh->get_verts().size();
-  tri_offset = mesh->num_triangles();
+  mesh->num_subd_added_verts = num_verts;
 
   mesh->resize_mesh(mesh->get_verts().size() + num_verts, mesh->num_triangles());
   mesh->reserve_mesh(mesh->get_verts().size() + num_verts, mesh->num_triangles() + num_triangles);
 
   Attribute *attr_vN = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 
-  mesh_P = mesh->verts.data() + vert_offset;
-  mesh_N = attr_vN->data_float3() + vert_offset;
+  mesh_P = mesh->verts.data();
+  mesh_N = attr_vN->data_float3();
 
-  params.mesh->num_subd_verts += num_verts;
+  Attribute *attr_ptex_face_id = mesh->attributes.find(ATTR_STD_PTEX_FACE_ID);
+  if (attr_ptex_face_id) {
+    mesh_ptex_face_id = attr_ptex_face_id->data_float();
+  }
+  Attribute *attr_ptex_uv = mesh->attributes.find(ATTR_STD_PTEX_UV);
+  if (attr_ptex_uv) {
+    mesh_ptex_uv = attr_ptex_uv->data_float2();
+  }
 }
 
 void EdgeDice::set_vert(Patch *patch, const int index, const float2 uv)
@@ -55,17 +57,36 @@ void EdgeDice::set_vert(Patch *patch, const int index, const float2 uv)
 
   mesh_P[index] = P;
   mesh_N[index] = N;
-  params.mesh->vert_patch_uv[index + vert_offset] = make_float2(uv.x, uv.y);
 }
 
-void EdgeDice::add_triangle(Patch *patch, const int v0, const int v1, const int v2)
+void EdgeDice::add_triangle(const Patch *patch,
+                            const int v0,
+                            const int v1,
+                            const int v2,
+                            const float2 uv0,
+                            const float2 uv1,
+                            const float2 uv2)
 {
   Mesh *mesh = params.mesh;
 
-  mesh->add_triangle(v0 + vert_offset, v1 + vert_offset, v2 + vert_offset, patch->shader, true);
-  params.mesh->triangle_patch[params.mesh->num_triangles() - 1] = patch->patch_index;
+  mesh->add_triangle(v0, v1, v2, patch->shader, true);
 
-  tri_offset++;
+  const int triangle_offset = params.mesh->num_triangles() - 1;
+
+  params.mesh->subd_triangle_patch_index[triangle_offset] = patch->patch_index;
+  if (mesh_ptex_face_id) {
+    mesh_ptex_face_id[triangle_offset] = patch->patch_index;
+  }
+
+  params.mesh->subd_corner_patch_uv[(triangle_offset * 3) + 0] = uv0;
+  params.mesh->subd_corner_patch_uv[(triangle_offset * 3) + 1] = uv1;
+  params.mesh->subd_corner_patch_uv[(triangle_offset * 3) + 2] = uv2;
+
+  if (mesh_ptex_uv) {
+    mesh_ptex_uv[(triangle_offset * 3) + 0] = uv0;
+    mesh_ptex_uv[(triangle_offset * 3) + 0] = uv1;
+    mesh_ptex_uv[(triangle_offset * 3) + 0] = uv2;
+  }
 }
 
 void EdgeDice::stitch_triangles(Subpatch &sub, const int edge)
@@ -82,41 +103,80 @@ void EdgeDice::stitch_triangles(Subpatch &sub, const int edge)
     return;  // XXX avoid crashes for Mu or Mv == 1, missing polygons
   }
 
-  /* stitch together two arrays of verts with triangles. at each step,
-   * we compare using the next verts on both sides, to find the split
-   * direction with the smallest diagonal, and use that in order to keep
-   * the triangle shape reasonable. */
+  const float du = 1.0f / (float)Mu;
+  const float dv = 1.0f / (float)Mv;
+  float2 inner_uv, outer_uv, inner_uv_step, outer_uv_step;
+  switch (edge) {
+    case 0:
+      inner_uv = make_float2(du, dv);
+      outer_uv = make_float2(0.0f, 0.0f);
+      inner_uv_step = make_float2(du, 0.0f);
+      outer_uv_step = make_float2(1.0f / (float)outer_T, 0.0f);
+      break;
+    case 1:
+      inner_uv = make_float2(1.0f - du, dv);
+      outer_uv = make_float2(1.0f, 0.0f);
+      inner_uv_step = make_float2(0.0f, dv);
+      outer_uv_step = make_float2(0.0f, 1.0f / (float)outer_T);
+      break;
+    case 2:
+      inner_uv = make_float2(1.0f - du, 1.0f - dv);
+      outer_uv = make_float2(1.0f, 1.0f);
+      inner_uv_step = make_float2(-du, 0.0f);
+      outer_uv_step = make_float2(-1.0f / (float)outer_T, 0.0f);
+      break;
+    case 3:
+    default:
+      inner_uv = make_float2(du, 1.0f - dv);
+      outer_uv = make_float2(0.0f, 1.0f);
+      inner_uv_step = make_float2(0.0f, -dv);
+      outer_uv_step = make_float2(0.0f, -1.0f / (float)outer_T);
+      break;
+  }
+
+  /* Stitch together two arrays of verts with triangles. at each step, we compare using the next
+   * verts on both sides, to find the split direction with the smallest diagonal, and use that
+   * in order to keep the triangle shape reasonable. */
   for (size_t i = 0, j = 0; i < inner_T || j < outer_T;) {
-    int v0;
-    int v1;
+    const int v0 = sub.get_vert_along_grid_edge(edge, i);
+    const int v1 = sub.get_vert_along_edge(edge, j);
     int v2;
 
-    v0 = sub.get_vert_along_grid_edge(edge, i);
-    v1 = sub.get_vert_along_edge(edge, j);
+    const float2 uv0 = sub.map_uv(inner_uv);
+    const float2 uv1 = sub.map_uv(outer_uv);
+    float2 uv2;
 
     if (j == outer_T) {
       v2 = sub.get_vert_along_grid_edge(edge, ++i);
+      inner_uv += inner_uv_step;
+      uv2 = sub.map_uv(inner_uv);
     }
     else if (i == inner_T) {
       v2 = sub.get_vert_along_edge(edge, ++j);
+      outer_uv += outer_uv_step;
+      uv2 = sub.map_uv(outer_uv);
     }
     else {
-      /* length of diagonals */
+      /* Length of diagonals. */
       const float len1 = len_squared(mesh_P[sub.get_vert_along_grid_edge(edge, i)] -
                                      mesh_P[sub.get_vert_along_edge(edge, j + 1)]);
       const float len2 = len_squared(mesh_P[sub.get_vert_along_edge(edge, j)] -
                                      mesh_P[sub.get_vert_along_grid_edge(edge, i + 1)]);
 
-      /* use smallest diagonal */
+      /* Use smallest diagonal. */
       if (len1 < len2) {
         v2 = sub.get_vert_along_edge(edge, ++j);
+        outer_uv += outer_uv_step;
+        uv2 = sub.map_uv(outer_uv);
       }
       else {
         v2 = sub.get_vert_along_grid_edge(edge, ++i);
+        inner_uv += inner_uv_step;
+        uv2 = sub.map_uv(inner_uv);
       }
     }
 
-    add_triangle(sub.patch, v1, v0, v2);
+    add_triangle(sub.patch, v1, v0, v2, uv1, uv0, uv2);
   }
 }
 
@@ -124,17 +184,8 @@ void EdgeDice::stitch_triangles(Subpatch &sub, const int edge)
 
 QuadDice::QuadDice(const SubdParams &params_) : EdgeDice(params_) {}
 
-float2 QuadDice::map_uv(Subpatch &sub, const float u, float v)
+float3 QuadDice::eval_projected(Subpatch &sub, const float2 uv)
 {
-  /* map UV from subpatch to patch parametric coordinates */
-  const float2 d0 = interp(sub.c00, sub.c01, v);
-  const float2 d1 = interp(sub.c10, sub.c11, v);
-  return interp(d0, d1, u);
-}
-
-float3 QuadDice::eval_projected(Subpatch &sub, const float u, float v)
-{
-  const float2 uv = map_uv(sub, u, v);
   float3 P;
 
   sub.patch->eval(&P, nullptr, nullptr, nullptr, uv.x, uv.y);
@@ -145,9 +196,9 @@ float3 QuadDice::eval_projected(Subpatch &sub, const float u, float v)
   return P;
 }
 
-void QuadDice::set_vert(Subpatch &sub, const int index, const float u, float v)
+void QuadDice::set_vert(Subpatch &sub, const int index, const float2 uv)
 {
-  EdgeDice::set_vert(sub.patch, index, map_uv(sub, u, v));
+  EdgeDice::set_vert(sub.patch, index, sub.map_uv(uv));
 }
 
 void QuadDice::set_side(Subpatch &sub, const int edge)
@@ -158,29 +209,24 @@ void QuadDice::set_side(Subpatch &sub, const int edge)
   for (int i = 0; i < t; i++) {
     const float f = i / (float)t;
 
-    float u;
-    float v;
+    float2 uv;
     switch (edge) {
       case 0:
-        u = 0;
-        v = f;
+        uv = make_float2(0.0f, f);
         break;
       case 1:
-        u = f;
-        v = 1;
+        uv = make_float2(f, 1.0f);
         break;
       case 2:
-        u = 1;
-        v = 1.0f - f;
+        uv = make_float2(1.0f, 1.0f - f);
         break;
       case 3:
       default:
-        u = 1.0f - f;
-        v = 0;
+        uv = make_float2(1.0f - f, 0.0f);
         break;
     }
 
-    set_vert(sub, sub.get_vert_along_edge(edge, i), u, v);
+    set_vert(sub, sub.get_vert_along_edge(edge, i), uv);
   }
 }
 
@@ -196,7 +242,7 @@ float QuadDice::scale_factor(Subpatch &sub, const int Mu, const int Mv)
 
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
-      P[i][j] = eval_projected(sub, i * 0.5f, j * 0.5f);
+      P[i][j] = eval_projected(sub, sub.map_uv(make_float2(i * 0.5f, j * 0.5f)));
     }
   }
 
@@ -230,8 +276,9 @@ void QuadDice::add_grid(Subpatch &sub, const int Mu, const int Mv, const int off
     for (int i = 1; i < Mu; i++) {
       const float u = i * du;
       const float v = j * dv;
+      const int center_i = offset + (i - 1) + (j - 1) * (Mu - 1);
 
-      set_vert(sub, offset + (i - 1) + (j - 1) * (Mu - 1), u, v);
+      set_vert(sub, center_i, make_float2(u, v));
 
       if (i < Mu - 1 && j < Mv - 1) {
         const int i1 = offset + (i - 1) + (j - 1) * (Mu - 1);
@@ -239,8 +286,13 @@ void QuadDice::add_grid(Subpatch &sub, const int Mu, const int Mv, const int off
         const int i3 = offset + i + j * (Mu - 1);
         const int i4 = offset + (i - 1) + j * (Mu - 1);
 
-        add_triangle(sub.patch, i1, i2, i3);
-        add_triangle(sub.patch, i1, i3, i4);
+        const float2 uv1 = sub.map_uv(make_float2(u, v));
+        const float2 uv2 = sub.map_uv(make_float2(u + du, v));
+        const float2 uv3 = sub.map_uv(make_float2(u + du, v + dv));
+        const float2 uv4 = sub.map_uv(make_float2(u, v + dv));
+
+        add_triangle(sub.patch, i1, i2, i3, uv1, uv2, uv3);
+        add_triangle(sub.patch, i1, i3, i4, uv1, uv3, uv4);
       }
     }
   }

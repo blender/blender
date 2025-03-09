@@ -501,15 +501,7 @@ void Scene::update_kernel_features()
     if (object->get_is_shadow_catcher() && !geom->is_light()) {
       kernel_features |= KERNEL_FEATURE_SHADOW_CATCHER;
     }
-    if (geom->is_mesh()) {
-#ifdef WITH_OPENSUBDIV
-      Mesh *mesh = static_cast<Mesh *>(geom);
-      if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
-        kernel_features |= KERNEL_FEATURE_PATCH_EVALUATION;
-      }
-#endif
-    }
-    else if (geom->is_hair()) {
+    if (geom->is_hair()) {
       kernel_features |= KERNEL_FEATURE_HAIR;
     }
     else if (geom->is_pointcloud()) {
@@ -595,8 +587,6 @@ static void log_kernel_features(const uint features)
   VLOG_INFO << "Use Baking " << string_from_bool(features & KERNEL_FEATURE_BAKING) << "\n";
   VLOG_INFO << "Use Subsurface " << string_from_bool(features & KERNEL_FEATURE_SUBSURFACE) << "\n";
   VLOG_INFO << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_VOLUME) << "\n";
-  VLOG_INFO << "Use Patch Evaluation "
-            << string_from_bool(features & KERNEL_FEATURE_PATCH_EVALUATION) << "\n";
   VLOG_INFO << "Use Shadow Catcher " << string_from_bool(features & KERNEL_FEATURE_SHADOW_CATCHER)
             << "\n";
 }

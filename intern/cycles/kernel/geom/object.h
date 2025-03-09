@@ -351,17 +351,6 @@ ccl_device_inline float3 object_dupli_uv(KernelGlobals kg, const int object)
   return make_float3(kobject->dupli_uv[0], kobject->dupli_uv[1], 0.0f);
 }
 
-/* Offset to an objects patch map */
-
-ccl_device_inline uint object_patch_map_offset(KernelGlobals kg, const int object)
-{
-  if (object == OBJECT_NONE) {
-    return 0;
-  }
-
-  return kernel_data_fetch(objects, object).patch_map_offset;
-}
-
 /* Volume step size */
 
 ccl_device_inline float object_volume_density(KernelGlobals kg, const int object)

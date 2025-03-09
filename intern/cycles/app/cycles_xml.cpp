@@ -580,13 +580,11 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     /* create vertices */
     mesh->set_verts(P_array);
 
-    size_t num_ngons = 0;
     size_t num_corners = 0;
     for (size_t i = 0; i < nverts.size(); i++) {
-      num_ngons += (nverts[i] == 4) ? 0 : 1;
       num_corners += nverts[i];
     }
-    mesh->reserve_subd_faces(nverts.size(), num_ngons, num_corners);
+    mesh->reserve_subd_faces(nverts.size(), num_corners);
 
     /* create subd_faces */
     int index_offset = 0;
@@ -602,14 +600,6 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
     {
       Attribute *attr = mesh->subd_attributes.add(ATTR_STD_UV);
       float3 *fdata = attr->data_float3();
-
-      /* TODO: Implement various face-varying interpolation modes and make it
-       * a property of Mesh. */
-#if 0
-      if (subdivide_uvs) {
-        attr->flags |= ATTR_SUBDIVIDED;
-      }
-#endif
 
       index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {

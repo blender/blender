@@ -499,7 +499,12 @@ ccl_device_inline int mod(const int x, const int m)
   return (x % m + m) % m;
 }
 
-ccl_device_inline float inverse_lerp(const float a, const float b, float x)
+ccl_device_inline float interp(const float a, const float b, const float t)
+{
+  return a + t * (b - a);
+}
+
+ccl_device_inline float inverse_lerp(const float a, const float b, const float x)
 {
   return (x - a) / (b - a);
 }

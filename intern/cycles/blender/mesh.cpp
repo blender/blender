@@ -504,7 +504,6 @@ static void attr_create_uv_map(Scene *scene,
 static void attr_create_subd_uv_map(Scene *scene,
                                     Mesh *mesh,
                                     const ::Mesh &b_mesh,
-                                    bool subdivide_uvs,
                                     const set<ustring> &blender_uv_names)
 {
   const blender::OffsetIndices faces = b_mesh.faces();
@@ -538,10 +537,6 @@ static void attr_create_subd_uv_map(Scene *scene,
         }
         else {
           uv_attr = mesh->subd_attributes.add(uv_name, TypeFloat2, ATTR_ELEMENT_CORNER);
-        }
-
-        if (subdivide_uvs) {
-          uv_attr->flags |= ATTR_SUBDIVIDED;
         }
 
         const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
@@ -841,21 +836,13 @@ static void create_mesh(Scene *scene,
     corner_normals = b_mesh.corner_normals();
   }
 
-  int numngons = 0;
   int numtris = 0;
   if (!subdivision) {
     numtris = numfaces;
   }
-  else {
-    const blender::OffsetIndices faces = b_mesh.faces();
-    for (const int i : faces.index_range()) {
-      numngons += (faces[i].size() == 4) ? 0 : 1;
-    }
-  }
-
   /* allocate memory */
   if (subdivision) {
-    mesh->resize_subd_faces(numfaces, numngons, corner_verts.size());
+    mesh->resize_subd_faces(numfaces, corner_verts.size());
   }
   mesh->resize_mesh(positions.size(), numtris);
 
@@ -884,7 +871,6 @@ static void create_mesh(Scene *scene,
     const float(*orco)[3] = static_cast<const float(*)[3]>(
         CustomData_get_layer(&b_mesh.vert_data, CD_ORCO));
     Attribute *attr = attributes.add(ATTR_STD_GENERATED);
-    attr->flags |= ATTR_SUBDIVIDED;
 
     float3 loc;
     float3 size;
@@ -1023,7 +1009,7 @@ static void create_mesh(Scene *scene,
   attr_create_generic(scene, mesh, b_mesh, subdivision, need_motion, motion_scale);
 
   if (subdivision) {
-    attr_create_subd_uv_map(scene, mesh, b_mesh, subdivide_uvs, blender_uv_names);
+    attr_create_subd_uv_map(scene, mesh, b_mesh, blender_uv_names);
   }
   else {
     attr_create_uv_map(scene, mesh, b_mesh, blender_uv_names);

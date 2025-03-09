@@ -118,9 +118,6 @@ NODE_DEFINE(Mesh)
   SOCKET_INT_ARRAY(shader, "Shader", array<int>());
   SOCKET_BOOLEAN_ARRAY(smooth, "Smooth", array<bool>());
 
-  SOCKET_INT_ARRAY(triangle_patch, "Triangle Patch", array<int>());
-  SOCKET_POINT2_ARRAY(vert_patch_uv, "Patch UVs", array<float2>());
-
   static NodeEnum subdivision_type_enum;
   subdivision_type_enum.insert("none", SUBDIVISION_NONE);
   subdivision_type_enum.insert("linear", SUBDIVISION_LINEAR);
@@ -138,7 +135,6 @@ NODE_DEFINE(Mesh)
   SOCKET_INT_ARRAY(subd_shader, "Subdivision Face Shader", array<int>());
   SOCKET_BOOLEAN_ARRAY(subd_smooth, "Subdivision Face Smooth", array<bool>());
   SOCKET_INT_ARRAY(subd_ptex_offset, "Subdivision Face PTex Offset", array<int>());
-  SOCKET_INT(num_ngons, "NGons Number", 0);
 
   /* Subdivisions parameters */
   SOCKET_FLOAT(subd_dicing_rate, "Subdivision Dicing Rate", 1.0f)
@@ -176,14 +172,11 @@ Mesh::Mesh(const NodeType *node_type, Type geom_type_)
 {
   vert_offset = 0;
 
-  patch_offset = 0;
   face_offset = 0;
   corner_offset = 0;
 
-  num_subd_verts = 0;
+  num_subd_added_verts = 0;
   num_subd_faces = 0;
-
-  num_ngons = 0;
 
   subdivision_type = SUBDIVISION_NONE;
 }
@@ -198,8 +191,8 @@ void Mesh::resize_mesh(const int numverts, const int numtris)
   smooth.resize(numtris);
 
   if (get_num_subd_faces()) {
-    triangle_patch.resize(numtris);
-    vert_patch_uv.resize(numverts);
+    subd_triangle_patch_index.resize(numtris);
+    subd_corner_patch_uv.resize(numtris * 3);
   }
 
   attributes.resize();
@@ -214,14 +207,14 @@ void Mesh::reserve_mesh(const int numverts, const int numtris)
   smooth.reserve(numtris);
 
   if (get_num_subd_faces()) {
-    triangle_patch.reserve(numtris);
-    vert_patch_uv.reserve(numverts);
+    subd_triangle_patch_index.reserve(numtris);
+    subd_corner_patch_uv.reserve(numtris * 3);
   }
 
   attributes.resize(true);
 }
 
-void Mesh::resize_subd_faces(const int numfaces, const int num_ngons_, int numcorners)
+void Mesh::resize_subd_faces(const int numfaces, const int numcorners)
 {
   subd_start_corner.resize(numfaces);
   subd_num_corners.resize(numfaces);
@@ -229,13 +222,12 @@ void Mesh::resize_subd_faces(const int numfaces, const int num_ngons_, int numco
   subd_smooth.resize(numfaces);
   subd_ptex_offset.resize(numfaces);
   subd_face_corners.resize(numcorners);
-  num_ngons = num_ngons_;
   num_subd_faces = numfaces;
 
   subd_attributes.resize();
 }
 
-void Mesh::reserve_subd_faces(const int numfaces, const int num_ngons_, int numcorners)
+void Mesh::reserve_subd_faces(const int numfaces, const int numcorners)
 {
   subd_start_corner.reserve(numfaces);
   subd_num_corners.reserve(numfaces);
@@ -243,7 +235,6 @@ void Mesh::reserve_subd_faces(const int numfaces, const int num_ngons_, int numc
   subd_smooth.reserve(numfaces);
   subd_ptex_offset.reserve(numfaces);
   subd_face_corners.reserve(numcorners);
-  num_ngons = num_ngons_;
   num_subd_faces = numfaces;
 
   subd_attributes.resize(true);
@@ -259,13 +250,11 @@ void Mesh::clear_non_sockets()
 {
   Geometry::clear(true);
 
-  num_subd_verts = 0;
+  num_subd_added_verts = 0;
   num_subd_faces = 0;
 
   vert_to_stitching_key_map.clear();
   vert_stitching_map.clear();
-
-  patch_table.reset();
 }
 
 void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)
@@ -277,9 +266,6 @@ void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)
   triangles.clear();
   shader.clear();
   smooth.clear();
-
-  triangle_patch.clear();
-  vert_patch_uv.clear();
 
   subd_start_corner.clear();
   subd_num_corners.clear();
@@ -308,22 +294,12 @@ void Mesh::add_vertex(const float3 P)
 {
   verts.push_back_reserved(P);
   tag_verts_modified();
-
-  if (get_num_subd_faces()) {
-    vert_patch_uv.push_back_reserved(zero_float2());
-    tag_vert_patch_uv_modified();
-  }
 }
 
 void Mesh::add_vertex_slow(const float3 P)
 {
   verts.push_back_slow(P);
   tag_verts_modified();
-
-  if (get_num_subd_faces()) {
-    vert_patch_uv.push_back_slow(zero_float2());
-    tag_vert_patch_uv_modified();
-  }
 }
 
 void Mesh::add_triangle(const int v0, const int v1, const int v2, const int shader_, bool smooth_)
@@ -339,8 +315,10 @@ void Mesh::add_triangle(const int v0, const int v1, const int v2, const int shad
   tag_smooth_modified();
 
   if (get_num_subd_faces()) {
-    triangle_patch.push_back_reserved(-1);
-    tag_triangle_patch_modified();
+    subd_triangle_patch_index.push_back_reserved(-1);
+    subd_corner_patch_uv.push_back_reserved(zero_float2());
+    subd_corner_patch_uv.push_back_reserved(zero_float2());
+    subd_corner_patch_uv.push_back_reserved(zero_float2());
   }
 }
 
@@ -647,18 +625,11 @@ void Mesh::add_undisplaced()
 
   /* get attribute */
   Attribute *attr = attrs.add(ATTR_STD_POSITION_UNDISPLACED);
-  attr->flags |= ATTR_SUBDIVIDED;
 
   float3 *data = attr->data_float3();
 
   /* copy verts */
   size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY) / sizeof(float3);
-
-  /* Center points for ngons aren't stored in Mesh::verts but are included in size since they will
-   * be calculated later, we subtract them from size here so we don't have an overflow while
-   * copying.
-   */
-  size -= num_ngons;
 
   if (size) {
     std::copy_n(verts.data(), size, data);
@@ -718,87 +689,20 @@ void Mesh::pack_normals(packed_float3 *vnormal)
   }
 }
 
-void Mesh::pack_verts(packed_float3 *tri_verts,
-                      packed_uint3 *tri_vindex,
-                      uint *tri_patch,
-                      float2 *tri_patch_uv)
+void Mesh::pack_verts(packed_float3 *tri_verts, packed_uint3 *tri_vindex)
 {
   const size_t verts_size = verts.size();
   const size_t triangles_size = num_triangles();
   const int *p_tris = triangles.data();
   int off = 0;
-  if (verts_size && get_num_subd_faces()) {
-    float2 *vert_patch_uv_ptr = vert_patch_uv.data();
-
-    for (size_t i = 0; i < verts_size; i++) {
-      tri_verts[i] = verts[i];
-      tri_patch_uv[i] = vert_patch_uv_ptr[i];
-    }
-    for (size_t i = 0; i < triangles_size; i++) {
-      tri_vindex[i] = make_packed_uint3(p_tris[off + 0] + vert_offset,
-                                        p_tris[off + 1] + vert_offset,
-                                        p_tris[off + 2] + vert_offset);
-      tri_patch[i] = triangle_patch[i] * 8 + patch_offset;
-      off += 3;
-    }
+  for (size_t i = 0; i < verts_size; i++) {
+    tri_verts[i] = verts[i];
   }
-  else {
-    for (size_t i = 0; i < verts_size; i++) {
-      tri_verts[i] = verts[i];
-    }
-    for (size_t i = 0; i < triangles_size; i++) {
-      tri_vindex[i] = make_packed_uint3(p_tris[off + 0] + vert_offset,
-                                        p_tris[off + 1] + vert_offset,
-                                        p_tris[off + 2] + vert_offset);
-      tri_patch[i] = -1;
-      off += 3;
-    }
-  }
-}
-
-void Mesh::pack_patches(uint *patch_data)
-{
-  const size_t num_faces = get_num_subd_faces();
-  int ngons = 0;
-
-  for (size_t f = 0; f < num_faces; f++) {
-    SubdFace face = get_subd_face(f);
-
-    if (face.is_quad()) {
-      int c[4];
-      memcpy(c, &subd_face_corners[face.start_corner], sizeof(int) * 4);
-
-      *(patch_data++) = c[0] + vert_offset;
-      *(patch_data++) = c[1] + vert_offset;
-      *(patch_data++) = c[2] + vert_offset;
-      *(patch_data++) = c[3] + vert_offset;
-
-      *(patch_data++) = f + face_offset;
-      *(patch_data++) = face.num_corners;
-      *(patch_data++) = face.start_corner + corner_offset;
-      *(patch_data++) = 0;
-    }
-    else {
-      for (int i = 0; i < face.num_corners; i++) {
-        int c[4];
-        c[0] = subd_face_corners[face.start_corner + mod(i + 0, face.num_corners)];
-        c[1] = subd_face_corners[face.start_corner + mod(i + 1, face.num_corners)];
-        c[2] = verts.size() - num_subd_verts + ngons;
-        c[3] = subd_face_corners[face.start_corner + mod(i - 1, face.num_corners)];
-
-        *(patch_data++) = c[0] + vert_offset;
-        *(patch_data++) = c[1] + vert_offset;
-        *(patch_data++) = c[2] + vert_offset;
-        *(patch_data++) = c[3] + vert_offset;
-
-        *(patch_data++) = f + face_offset;
-        *(patch_data++) = face.num_corners | (i << 16);
-        *(patch_data++) = face.start_corner + corner_offset;
-        *(patch_data++) = subd_face_corners.size() + ngons + corner_offset;
-      }
-
-      ngons++;
-    }
+  for (size_t i = 0; i < triangles_size; i++) {
+    tri_vindex[i] = make_packed_uint3(p_tris[off + 0] + vert_offset,
+                                      p_tris[off + 1] + vert_offset,
+                                      p_tris[off + 2] + vert_offset);
+    off += 3;
   }
 }
 

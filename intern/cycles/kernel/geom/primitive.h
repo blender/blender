@@ -17,7 +17,6 @@
 #include "kernel/geom/curve.h"
 #include "kernel/geom/object.h"
 #include "kernel/geom/point.h"
-#include "kernel/geom/subd_triangle.h"
 #include "kernel/geom/triangle.h"
 #include "kernel/geom/volume.h"
 
@@ -48,10 +47,7 @@ ccl_device_forceinline T primitive_surface_attribute(KernelGlobals kg,
   }
 
   if (sd->type & PRIMITIVE_TRIANGLE) {
-    if (subd_triangle_patch(kg, sd->prim) == ~0) {
-      return triangle_attribute<T>(kg, sd, desc, dfdx, dfdy);
-    }
-    return subd_triangle_attribute<T>(kg, sd, desc, dfdx, dfdy);
+    return triangle_attribute<T>(kg, sd, desc, dfdx, dfdy);
   }
 #ifdef __HAIR__
   if (sd->type & PRIMITIVE_CURVE) {
@@ -232,16 +228,9 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
         if (sd->type & PRIMITIVE_TRIANGLE)
     {
       /* Triangle */
-      if (subd_triangle_patch(kg, sd->prim) == ~0) {
-        motion_pre = triangle_attribute<float3>(kg, sd, desc, nullptr, nullptr);
-        desc.offset += numverts;
-        motion_post = triangle_attribute<float3>(kg, sd, desc, nullptr, nullptr);
-      }
-      else {
-        motion_pre = subd_triangle_attribute<float3>(kg, sd, desc, nullptr, nullptr);
-        desc.offset += numverts;
-        motion_post = subd_triangle_attribute<float3>(kg, sd, desc, nullptr, nullptr);
-      }
+      motion_pre = triangle_attribute<float3>(kg, sd, desc, nullptr, nullptr);
+      desc.offset += numverts;
+      motion_post = triangle_attribute<float3>(kg, sd, desc, nullptr, nullptr);
     }
   }
 

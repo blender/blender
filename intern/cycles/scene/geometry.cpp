@@ -21,7 +21,6 @@
 #include "scene/stats.h"
 #include "scene/volume.h"
 
-#include "subd/patch_table.h"
 #include "subd/split.h"
 
 #ifdef WITH_OSL
@@ -268,7 +267,6 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
 
   size_t point_size = 0;
 
-  size_t patch_size = 0;
   size_t face_size = 0;
   size_t corner_size = 0;
 
@@ -283,23 +281,11 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
       mesh->vert_offset = vert_size;
       mesh->prim_offset = tri_size;
 
-      mesh->patch_offset = patch_size;
       mesh->face_offset = face_size;
       mesh->corner_offset = corner_size;
 
       vert_size += mesh->verts.size();
       tri_size += mesh->num_triangles();
-
-      if (mesh->get_num_subd_faces()) {
-        const Mesh::SubdFace last = mesh->get_subd_face(mesh->get_num_subd_faces() - 1);
-        patch_size += (last.ptex_offset + last.num_ptex_faces()) * 8;
-
-        /* patch tables are stored in same array so include them in patch_size */
-        if (mesh->patch_table) {
-          mesh->patch_table_offset = patch_size;
-          patch_size += mesh->patch_table->total_size();
-        }
-      }
 
       face_size += mesh->get_num_subd_faces();
       corner_size += mesh->subd_face_corners.size();
@@ -512,10 +498,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       dscene->tri_verts.tag_realloc();
       dscene->tri_vnormal.tag_realloc();
       dscene->tri_vindex.tag_realloc();
-      dscene->tri_patch.tag_realloc();
-      dscene->tri_patch_uv.tag_realloc();
       dscene->tri_shader.tag_realloc();
-      dscene->patches.tag_realloc();
     }
 
     if (device_update_flags & DEVICE_CURVE_DATA_NEEDS_REALLOC) {
@@ -1049,15 +1032,12 @@ void GeometryManager::device_update(Device *device,
   dscene->tri_verts.clear_modified();
   dscene->tri_shader.clear_modified();
   dscene->tri_vindex.clear_modified();
-  dscene->tri_patch.clear_modified();
   dscene->tri_vnormal.clear_modified();
-  dscene->tri_patch_uv.clear_modified();
   dscene->curves.clear_modified();
   dscene->curve_keys.clear_modified();
   dscene->curve_segments.clear_modified();
   dscene->points.clear_modified();
   dscene->points_shader.clear_modified();
-  dscene->patches.clear_modified();
   dscene->attributes_map.clear_modified();
   dscene->attributes_float.clear_modified();
   dscene->attributes_float2.clear_modified();
@@ -1080,14 +1060,11 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->tri_shader.free_if_need_realloc(force_free);
   dscene->tri_vnormal.free_if_need_realloc(force_free);
   dscene->tri_vindex.free_if_need_realloc(force_free);
-  dscene->tri_patch.free_if_need_realloc(force_free);
-  dscene->tri_patch_uv.free_if_need_realloc(force_free);
   dscene->curves.free_if_need_realloc(force_free);
   dscene->curve_keys.free_if_need_realloc(force_free);
   dscene->curve_segments.free_if_need_realloc(force_free);
   dscene->points.free_if_need_realloc(force_free);
   dscene->points_shader.free_if_need_realloc(force_free);
-  dscene->patches.free_if_need_realloc(force_free);
   dscene->attributes_map.free_if_need_realloc(force_free);
   dscene->attributes_float.free_if_need_realloc(force_free);
   dscene->attributes_float2.free_if_need_realloc(force_free);

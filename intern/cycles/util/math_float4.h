@@ -608,6 +608,11 @@ ccl_device_inline float4 power(const float4 v, const float e)
   return make_float4(powf(v.x, e), powf(v.y, e), powf(v.z, e), powf(v.w, e));
 }
 
+ccl_device_inline float4 interp(float4 a, float4 b, float t)
+{
+  return a + t * (b - a);
+}
+
 #if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
 /* Int/Float conversion */
 ccl_device_inline int4 __float4_as_int4(const float4 f)

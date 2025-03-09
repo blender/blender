@@ -25,8 +25,6 @@
 #include "util/tbb.h"
 #include "util/vector.h"
 
-#include "subd/patch_table.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Global state of object transform update. */
@@ -587,7 +585,6 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
                      geom->is_hair()       ? static_cast<Hair *>(geom)->get_curve_keys().size() :
                      geom->is_pointcloud() ? static_cast<PointCloud *>(geom)->num_points() :
                                              0;
-  kobject.patch_map_offset = 0;
   kobject.attribute_map_offset = 0;
 
   if (ob->asset_name_is_modified() || update_all) {
@@ -971,21 +968,6 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
 
   for (Object *object : scene->objects) {
     Geometry *geom = object->geometry;
-
-    if (geom->is_mesh()) {
-      Mesh *mesh = static_cast<Mesh *>(geom);
-      if (mesh->patch_table) {
-        const uint patch_map_offset = 2 * (mesh->patch_table_offset +
-                                           mesh->patch_table->total_size() -
-                                           mesh->patch_table->num_nodes * PATCH_NODE_SIZE) -
-                                      mesh->patch_offset;
-
-        if (kobjects[object->index].patch_map_offset != patch_map_offset) {
-          kobjects[object->index].patch_map_offset = patch_map_offset;
-          update = true;
-        }
-      }
-    }
 
     size_t attr_map_offset = object->attr_map_offset;
 

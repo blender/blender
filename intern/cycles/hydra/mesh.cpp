@@ -443,14 +443,12 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
     const PxOsdSubdivTags subdivTags = GetSubdivTags(sceneDelegate);
     _topology.SetSubdivTags(subdivTags);
 
-    size_t numNgons = 0;
     size_t numCorners = 0;
     for (const int vertCount : vertCounts) {
-      numNgons += (vertCount == 4) ? 0 : 1;
       numCorners += vertCount;
     }
 
-    _geom->reserve_subd_faces(_topology.GetNumFaces(), numNgons, numCorners);
+    _geom->reserve_subd_faces(_topology.GetNumFaces(), numCorners);
 
     // TODO: Handle hole indices
     size_t faceIndex = 0;

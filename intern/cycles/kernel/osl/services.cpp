@@ -982,8 +982,7 @@ bool OSLRenderServices::get_attribute(OSL::ShaderGlobals *sg,
   }
 
   /* find attribute on object */
-  const AttributeDescriptor desc = find_attribute(
-      kg, object, sd->prim, object == sd->object ? sd->type : PRIMITIVE_NONE, name.hash());
+  const AttributeDescriptor desc = find_attribute(kg, object, sd->prim, name.hash());
   if (desc.offset != ATTR_STD_NOT_FOUND) {
     return get_object_attribute(kg, sd, desc, type, derivatives, val);
   }
