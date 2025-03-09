@@ -496,6 +496,21 @@ void SubdAttributeInterpolation::interp_attribute_type(const Attribute &subd_att
       interp_attribute_corner_linear<T>(subd_attr, mesh_attr);
       break;
     }
+    case ATTR_ELEMENT_VERTEX_MOTION: {
+      /* Interpolate each motion step individually. */
+      for (int step = 0; step < mesh.get_motion_steps() - 1; step++) {
+#ifdef WITH_OPENSUBDIV
+        if (mesh.get_subdivision_type() == Mesh::SUBDIVISION_CATMULL_CLARK) {
+          interp_attribute_vertex_smooth<T>(subd_attr, mesh_attr, step);
+        }
+        else
+#endif
+        {
+          interp_attribute_vertex_linear<T>(subd_attr, mesh_attr, step);
+        }
+      }
+      break;
+    }
     case ATTR_ELEMENT_FACE: {
       interp_attribute_face<T>(subd_attr, mesh_attr);
       break;

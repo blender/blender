@@ -163,7 +163,7 @@ class Geometry : public Node {
   bool is_instanced() const;
 
   bool has_true_displacement() const;
-  bool has_motion_blur() const;
+  virtual bool has_motion_blur() const;
   bool has_voxel_attributes() const;
 
   bool is_mesh() const

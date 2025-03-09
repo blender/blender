@@ -210,6 +210,7 @@ class Mesh : public Geometry {
   void pack_normals(packed_float3 *vnormal);
   void pack_verts(packed_float3 *tri_verts, packed_uint3 *tri_vindex);
 
+  bool has_motion_blur() const override;
   PrimitiveType primitive_type() const override;
 
   void tessellate(DiagSplit *split);

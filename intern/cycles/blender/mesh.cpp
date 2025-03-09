@@ -245,12 +245,16 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
   /* Override motion steps to fixed number. */
   mesh->set_motion_steps(3);
 
+  AttributeSet &attributes = mesh->get_subdivision_type() == Mesh::SUBDIVISION_NONE ?
+                                 mesh->attributes :
+                                 mesh->subd_attributes;
+
   /* Find or add attribute */
   float3 *P = mesh->get_verts().data();
-  Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+  Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
   if (!attr_mP) {
-    attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+    attr_mP = attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
   }
 
   /* Only export previous and next frame, we don't have any in between data. */
@@ -1206,17 +1210,21 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
       return;
     }
 
+    AttributeSet &attributes = mesh->get_subdivision_type() == Mesh::SUBDIVISION_NONE ?
+                                   mesh->attributes :
+                                   mesh->subd_attributes;
+
     /* Export deformed coordinates. */
     /* Find attributes. */
-    Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-    Attribute *attr_mN = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
-    Attribute *attr_N = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
+    Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+    Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+    Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
     bool new_attribute = false;
     /* Add new attributes if they don't exist already. */
     if (!attr_mP) {
-      attr_mP = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
+      attr_mP = attributes.add(ATTR_STD_MOTION_VERTEX_POSITION);
       if (attr_N) {
-        attr_mN = mesh->attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
+        attr_mN = attributes.add(ATTR_STD_MOTION_VERTEX_NORMAL);
       }
 
       new_attribute = true;
@@ -1249,9 +1257,9 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
         else {
           VLOG_DEBUG << "No actual deformation motion for object " << ob_name;
         }
-        mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
+        attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
         if (attr_mN) {
-          mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_NORMAL);
+          attributes.remove(ATTR_STD_MOTION_VERTEX_NORMAL);
         }
       }
       else if (motion_step > 0) {
