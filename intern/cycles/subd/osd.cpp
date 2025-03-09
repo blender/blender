@@ -126,10 +126,115 @@ bool TopologyRefinerFactory<OsdMesh>::assignComponentTags(TopologyRefiner &refin
   return true;
 }
 
-template<>
-bool TopologyRefinerFactory<OsdMesh>::assignFaceVaryingTopology(TopologyRefiner & /*refiner*/,
-                                                                OsdMesh const & /*osd_mesh*/)
+template<typename T>
+static void merge_smooth_fvar(const Mesh &mesh,
+                              const Attribute &subd_attr,
+                              OsdMesh::MergedFVar &merged_fvar,
+                              vector<int> &merged_next,
+                              vector<int> &merged_face_corners)
 {
+  const int num_base_verts = mesh.get_num_subd_base_verts();
+  const int num_base_faces = mesh.get_num_subd_faces();
+  const int *subd_face_corners = mesh.get_subd_face_corners().data();
+
+  const T *values = reinterpret_cast<const T *>(subd_attr.data());
+
+  merged_fvar.values.resize(num_base_verts * sizeof(T));
+
+  // Merge identical corner values with the same vertex. The first value is stored at the vertex
+  // index, and any different values are pushed backed onto the array. merged_next creates a
+  // linked list between all values for the same vertex.
+  const int state_uninitialized = 0;
+  const int state_end = -1;
+  merged_next.resize(num_base_verts, state_uninitialized);
+
+  for (int f = 0, i = 0; f < num_base_faces; f++) {
+    Mesh::SubdFace face = mesh.get_subd_face(f);
+
+    for (int corner = 0; corner < face.num_corners; corner++) {
+      int v = subd_face_corners[face.start_corner + corner];
+      const T value = values[i++];
+
+      if (merged_next[v] == state_uninitialized) {
+        // First corner to initialize vertex.
+        reinterpret_cast<T *>(merged_fvar.values.data())[v] = value;
+        merged_next[v] = state_end;
+        merged_face_corners.push_back(v);
+      }
+      else {
+        // Find vertex with matching value, following linked list per vertex.
+        int v_prev = v;
+        for (; v != state_end; v_prev = v, v = merged_next[v]) {
+          if (reinterpret_cast<T *>(merged_fvar.values.data())[v] == value) {
+            // Matching value found, reuse merged vertex.
+            merged_face_corners.push_back(v);
+            break;
+          }
+        }
+
+        if (v == state_end) {
+          // Non-matching value, add new merged vertex and add to linked list.
+          const int next = merged_next.size();
+          merged_fvar.values.resize((next + 1) * sizeof(T));
+          reinterpret_cast<T *>(merged_fvar.values.data())[next] = value;
+          merged_next.push_back(state_end);
+          merged_next[v_prev] = next;
+          merged_face_corners.push_back(next);
+        }
+      }
+    }
+  }
+}
+
+template<>
+bool TopologyRefinerFactory<OsdMesh>::assignFaceVaryingTopology(TopologyRefiner &refiner,
+                                                                OsdMesh const &osd_mesh)
+{
+  const Mesh &mesh = osd_mesh.mesh;
+  auto &merged_fvars = const_cast<OsdMesh &>(osd_mesh).merged_fvars;
+
+  for (const Attribute &subd_attr : mesh.subd_attributes.attributes) {
+    if (!osd_mesh.use_smooth_fvar(subd_attr)) {
+      continue;
+    }
+
+    // Created merged FVar, for use in subdivide_attribute_corner_smooth.
+    OsdMesh::MergedFVar merged_fvar{subd_attr};
+
+    vector<int> merged_next;
+    vector<int> merged_face_corners;
+
+    if (subd_attr.element == ATTR_ELEMENT_CORNER_BYTE) {
+      merge_smooth_fvar<uchar4>(mesh, subd_attr, merged_fvar, merged_next, merged_face_corners);
+    }
+    else if (Attribute::same_storage(subd_attr.type, TypeFloat)) {
+      merge_smooth_fvar<float>(mesh, subd_attr, merged_fvar, merged_next, merged_face_corners);
+    }
+    else if (Attribute::same_storage(subd_attr.type, TypeFloat2)) {
+      merge_smooth_fvar<float2>(mesh, subd_attr, merged_fvar, merged_next, merged_face_corners);
+    }
+    else if (Attribute::same_storage(subd_attr.type, TypeVector)) {
+      merge_smooth_fvar<float3>(mesh, subd_attr, merged_fvar, merged_next, merged_face_corners);
+    }
+    else if (Attribute::same_storage(subd_attr.type, TypeFloat4)) {
+      merge_smooth_fvar<float4>(mesh, subd_attr, merged_fvar, merged_next, merged_face_corners);
+    }
+
+    // Create FVar channel and topology for OpenUSD.
+    merged_fvar.channel = createBaseFVarChannel(refiner, merged_next.size());
+
+    const int num_base_faces = mesh.get_num_subd_faces();
+    for (int f = 0, i = 0; f < num_base_faces; f++) {
+      Far::IndexArray dst_face_uvs = getBaseFaceFVarValues(refiner, f, merged_fvar.channel);
+      const int num_corners = dst_face_uvs.size();
+      for (int corner = 0; corner < num_corners; corner++) {
+        dst_face_uvs[corner] = merged_face_corners[i++];
+      }
+    }
+
+    merged_fvars.push_back(std::move(merged_fvar));
+  }
+
   return true;
 }
 
@@ -145,6 +250,25 @@ void TopologyRefinerFactory<OsdMesh>::reportInvalidTopology(TopologyError /*err_
 
 CCL_NAMESPACE_BEGIN
 
+/* OsdMesh */
+
+bool OsdMesh::use_smooth_fvar(const Attribute &attr) const
+{
+  return attr.element == ATTR_ELEMENT_CORNER &&
+         (attr.std == ATTR_STD_UV || (attr.flags & ATTR_SUBDIVIDE_SMOOTH_FVAR));
+}
+
+bool OsdMesh::use_smooth_fvar() const
+{
+  for (const Attribute &attr : mesh.subd_attributes.attributes) {
+    if (use_smooth_fvar(attr)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /* OsdData */
 
 void OsdData::build(OsdMesh &osd_mesh)
@@ -153,18 +277,27 @@ void OsdData::build(OsdMesh &osd_mesh)
 
   Sdc::Options options;
   options.SetVtxBoundaryInterpolation(Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
+  options.SetFVarLinearInterpolation(Sdc::Options::FVAR_LINEAR_CORNERS_PLUS1);
 
   /* create refiner */
   refiner.reset(Far::TopologyRefinerFactory<OsdMesh>::Create(
       osd_mesh, Far::TopologyRefinerFactory<OsdMesh>::Options(type, options)));
 
   /* adaptive refinement */
+  const bool has_fvar = osd_mesh.use_smooth_fvar();
   const int max_isolation = 3;  // TODO: get from Blender
-  refiner->RefineAdaptive(Far::TopologyRefiner::AdaptiveOptions(max_isolation));
+
+  Far::TopologyRefiner::AdaptiveOptions adaptive_options(max_isolation);
+  adaptive_options.considerFVarChannels = has_fvar;
+  adaptive_options.useInfSharpPatch = true;
+  refiner->RefineAdaptive(adaptive_options);
 
   /* create patch table */
   Far::PatchTableFactory::Options patch_options;
   patch_options.endCapType = Far::PatchTableFactory::Options::ENDCAP_GREGORY_BASIS;
+  patch_options.generateFVarTables = has_fvar;
+  patch_options.generateFVarLegacyLinearPatches = false;
+  patch_options.useInfSharpPatch = true;
 
   patch_table.reset(Far::PatchTableFactory::Create(*refiner, patch_options));
 

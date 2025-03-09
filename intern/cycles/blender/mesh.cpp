@@ -539,6 +539,8 @@ static void attr_create_subd_uv_map(Scene *scene,
           uv_attr = mesh->subd_attributes.add(uv_name, TypeFloat2, ATTR_ELEMENT_CORNER);
         }
 
+        uv_attr->flags |= ATTR_SUBDIVIDE_SMOOTH_FVAR;
+
         const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
             uv_name.c_str(), blender::bke::AttrDomain::Corner);
         float2 *fdata = uv_attr->data_float2();
@@ -808,8 +810,7 @@ static void create_mesh(Scene *scene,
                         const array<Node *> &used_shaders,
                         const bool need_motion,
                         const float motion_scale,
-                        const bool subdivision = false,
-                        const bool subdivide_uvs = true)
+                        const bool subdivision = false)
 {
   const blender::Span<blender::float3> positions = b_mesh.vert_positions();
   const blender::OffsetIndices faces = b_mesh.faces();
@@ -1043,9 +1044,8 @@ static void create_subd_mesh(Scene *scene,
   BL::Object b_ob = b_ob_info.real_object;
 
   BL::SubsurfModifier subsurf_mod(b_ob.modifiers[b_ob.modifiers.length() - 1]);
-  const bool subdivide_uvs = subsurf_mod.uv_smooth() != BL::SubsurfModifier::uv_smooth_NONE;
 
-  create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true, subdivide_uvs);
+  create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true);
 
   const blender::VArraySpan creases = *b_mesh.attributes().lookup<float>(
       "crease_edge", blender::bke::AttrDomain::Edge);

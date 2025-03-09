@@ -57,6 +57,17 @@ class SubdAttributeInterpolation {
   template<typename T>
   void interp_attribute_corner_linear(const Attribute &subd_attr, Attribute &mesh_attr);
 
+#ifdef WITH_OPENSUBDIV
+  template<typename T>
+  void interp_attribute_vertex_smooth(const Attribute &subd_attr,
+                                      Attribute &mesh_attr,
+                                      const int motion_step = 0);
+  template<typename T>
+  void interp_attribute_corner_smooth(Attribute &mesh_attr,
+                                      const int channel,
+                                      const vector<char> &merged_values);
+#endif
+
   template<typename T>
   void interp_attribute_face(const Attribute &subd_attr, Attribute &mesh_attr);
 

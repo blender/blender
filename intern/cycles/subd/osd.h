@@ -48,9 +48,22 @@ template<typename T> struct OsdValue {
 
 class OsdMesh {
  public:
+  /* Face-varying attribute that requires merging of corners with the same value, typically a UV
+   * map. The resulting topology after merging is stored in a topology refiner fvar channel. The
+   * merged attribute values are stored here, in a generic buffer used for different data types. */
+  struct MergedFVar {
+    const Attribute &attr;
+    int channel = -1;
+    vector<char> values;
+  };
+
   Mesh &mesh;
+  vector<MergedFVar> merged_fvars;
 
   explicit OsdMesh(Mesh &mesh) : mesh(mesh) {}
+
+  bool use_smooth_fvar(const Attribute &attr) const;
+  bool use_smooth_fvar() const;
 };
 
 /* OpenSubdiv refiner and patch data structures. */
