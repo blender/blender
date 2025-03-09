@@ -6,48 +6,43 @@
 
 #ifdef WITH_OPENSUBDIV
 
-#  include "scene/attribute.h"
-#  include "scene/mesh.h"
-
 #  include "subd/patch.h"
-#  include "subd/split.h"
+
+#  include "util/unique_ptr.h"
+#  include "util/vector.h"
 
 #  include <opensubdiv/far/patchMap.h>
 #  include <opensubdiv/far/patchTableFactory.h>
 #  include <opensubdiv/far/primvarRefiner.h>
 #  include <opensubdiv/far/topologyRefinerFactory.h>
 
-/* specializations of TopologyRefinerFactory for ccl::Mesh */
-
 CCL_NAMESPACE_BEGIN
 
-using namespace OpenSubdiv;
+/* Directly use some OpenSubdiv namespaces for brevity. */
+namespace Far = OpenSubdiv::Far;
+namespace Sdc = OpenSubdiv::Sdc;
 
-/* struct that implements OpenSubdiv's vertex interface */
+class Attribute;
+class Mesh;
+
+/* OpenSubdiv interface for vertex and attribute values. */
 
 template<typename T> struct OsdValue {
   T value;
 
   OsdValue() = default;
 
-  void Clear(void * /*unused*/ = nullptr)
+  void Clear(void *unused = nullptr)
   {
-    memset(&value, 0, sizeof(T));
+    (void)unused;
+    memset((void *)&value, 0, sizeof(T));
   }
 
-  void AddWithWeight(const OsdValue<T> &src, const float weight)
+  void AddWithWeight(OsdValue<T> const &src, float weight)
   {
     value += src.value * weight;
   }
 };
-
-template<>
-inline void OsdValue<uchar4>::AddWithWeight(const OsdValue<uchar4> &src, const float weight)
-{
-  for (int i = 0; i < 4; i++) {
-    value[i] += (uchar)(src.value[i] * weight);
-  }
-}
 
 /* class for holding OpenSubdiv data used during tessellation */
 
@@ -69,7 +64,7 @@ class OsdData {
   friend class Mesh;
 };
 
-/* ccl::Patch implementation that uses OpenSubdiv for eval */
+/* Patch with OpenSubdiv evaluation. */
 
 struct OsdPatch : Patch {
   OsdData *osd_data;

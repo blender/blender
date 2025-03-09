@@ -28,15 +28,15 @@ void OsdData::subdivide_attribute(Attribute &attr)
     for (int i = 0; i < refiner->GetMaxLevel(); i++) {
       char *dest = src + refiner->GetLevel(i).GetNumVertices() * attr.data_sizeof();
 
-      if (ccl::Attribute::same_storage(attr.type, TypeFloat)) {
+      if (Attribute::same_storage(attr.type, TypeFloat)) {
         primvar_refiner.Interpolate(i + 1, (OsdValue<float> *)src, (OsdValue<float> *&)dest);
       }
-      else if (ccl::Attribute::same_storage(attr.type, TypeFloat2)) {
+      else if (Attribute::same_storage(attr.type, TypeFloat2)) {
         primvar_refiner.Interpolate(i + 1, (OsdValue<float2> *)src, (OsdValue<float2> *&)dest);
         // float3 is not interchangeable with float4 and so needs to be handled
         // separately
       }
-      else if (ccl::Attribute::same_storage(attr.type, TypeFloat4)) {
+      else if (Attribute::same_storage(attr.type, TypeFloat4)) {
         primvar_refiner.Interpolate(i + 1, (OsdValue<float4> *)src, (OsdValue<float4> *&)dest);
       }
       else {
@@ -47,17 +47,17 @@ void OsdData::subdivide_attribute(Attribute &attr)
     }
 
     if (num_local_points) {
-      if (ccl::Attribute::same_storage(attr.type, TypeFloat)) {
+      if (Attribute::same_storage(attr.type, TypeFloat)) {
         patch_table->ComputeLocalPointValues(
             (OsdValue<float> *)attr.buffer.data(),
             (OsdValue<float> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
       }
-      else if (ccl::Attribute::same_storage(attr.type, TypeFloat2)) {
+      else if (Attribute::same_storage(attr.type, TypeFloat2)) {
         patch_table->ComputeLocalPointValues(
             (OsdValue<float2> *)attr.buffer.data(),
             (OsdValue<float2> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
       }
-      else if (ccl::Attribute::same_storage(attr.type, TypeFloat4)) {
+      else if (Attribute::same_storage(attr.type, TypeFloat4)) {
         // float3 is not interchangeable with float4 and so needs to be handled
         // separately
         patch_table->ComputeLocalPointValues(

@@ -13,9 +13,12 @@
 /* Specialization of TopologyRefinerFactory for OsdMesh */
 
 namespace OpenSubdiv::OPENSUBDIV_VERSION::Far {
+
+using namespace ccl;
+
 template<>
-bool TopologyRefinerFactory<ccl::Mesh>::resizeComponentTopology(TopologyRefiner &refiner,
-                                                                const ccl::Mesh &mesh)
+bool TopologyRefinerFactory<Mesh>::resizeComponentTopology(TopologyRefiner &refiner,
+                                                           const Mesh &mesh)
 {
   setNumBaseVertices(refiner, mesh.get_verts().size());
   setNumBaseFaces(refiner, mesh.get_num_subd_faces());
@@ -28,12 +31,12 @@ bool TopologyRefinerFactory<ccl::Mesh>::resizeComponentTopology(TopologyRefiner 
 }
 
 template<>
-bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTopology(TopologyRefiner &refiner,
-                                                                const ccl::Mesh &mesh)
+bool TopologyRefinerFactory<Mesh>::assignComponentTopology(TopologyRefiner &refiner,
+                                                           const Mesh &mesh)
 {
-  const ccl::array<int> &subd_face_corners = mesh.get_subd_face_corners();
-  const ccl::array<int> &subd_start_corner = mesh.get_subd_start_corner();
-  const ccl::array<int> &subd_num_corners = mesh.get_subd_num_corners();
+  const array<int> &subd_face_corners = mesh.get_subd_face_corners();
+  const array<int> &subd_start_corner = mesh.get_subd_start_corner();
+  const array<int> &subd_num_corners = mesh.get_subd_num_corners();
 
   for (int i = 0; i < mesh.get_num_subd_faces(); i++) {
     IndexArray face_verts = getBaseFaceVertices(refiner, i);
@@ -50,8 +53,7 @@ bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTopology(TopologyRefiner 
 }
 
 template<>
-bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &refiner,
-                                                            const ccl::Mesh &mesh)
+bool TopologyRefinerFactory<Mesh>::assignComponentTags(TopologyRefiner &refiner, const Mesh &mesh)
 {
   /* Historical maximum crease weight used at Pixar, influencing the maximum in OpenSubDiv. */
   static constexpr float CREASE_SCALE = 10.0f;
@@ -65,7 +67,7 @@ bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &ref
   }
 
   for (int i = 0; i < num_creases; i++) {
-    const ccl::Mesh::SubdEdgeCrease crease = mesh.get_subd_crease(i);
+    const Mesh::SubdEdgeCrease crease = mesh.get_subd_crease(i);
     const Index edge = findBaseEdge(refiner, crease.v[0], crease.v[1]);
 
     if (edge != INDEX_INVALID) {
@@ -96,8 +98,8 @@ bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &ref
       const float sharpness0 = refiner.getLevel(0).getEdgeSharpness(vert_edges[0]);
       const float sharpness1 = refiner.getLevel(0).getEdgeSharpness(vert_edges[1]);
 
-      sharpness += ccl::min(sharpness0, sharpness1);
-      sharpness = ccl::min(sharpness, CREASE_SCALE);
+      sharpness += min(sharpness0, sharpness1);
+      sharpness = min(sharpness, CREASE_SCALE);
     }
 
     if (sharpness != 0.0f) {
@@ -109,16 +111,16 @@ bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &ref
 }
 
 template<>
-bool TopologyRefinerFactory<ccl::Mesh>::assignFaceVaryingTopology(TopologyRefiner & /*refiner*/,
-                                                                  const ccl::Mesh & /*mesh*/)
+bool TopologyRefinerFactory<Mesh>::assignFaceVaryingTopology(TopologyRefiner & /*refiner*/,
+                                                             const Mesh & /*mesh*/)
 {
   return true;
 }
 
 template<>
-void TopologyRefinerFactory<ccl::Mesh>::reportInvalidTopology(TopologyError /*err_code*/,
-                                                              const char * /*msg*/,
-                                                              const ccl::Mesh & /*mesh*/)
+void TopologyRefinerFactory<Mesh>::reportInvalidTopology(TopologyError /*err_code*/,
+                                                         const char * /*msg*/,
+                                                         const Mesh & /*mesh*/)
 {
 }
 }  // namespace OpenSubdiv::OPENSUBDIV_VERSION::Far
