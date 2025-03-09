@@ -264,9 +264,11 @@ void QuadDice::set_vert(SubPatch &sub, const int index, const float2 uv)
 void QuadDice::set_side(SubPatch &sub, const int edge)
 {
   const int t = sub.edges[edge].edge->T;
+  const int i_start = (sub.edges[edge].own_vertex) ? 0 : 1;
+  const int i_end = (sub.edges[edge].own_edge) ? t : 1;
 
   /* set verts on the edge of the patch */
-  for (int i = 0; i < t; i++) {
+  for (int i = i_start; i < i_end; i++) {
     const float f = i / (float)t;
 
     float2 uv;

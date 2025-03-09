@@ -85,6 +85,11 @@ class SubPatch {
     /* Is the direction of this edge reverse compared to SubEdge? */
     bool reversed;
 
+    /* Is this subpatch responsible for owning attributes for the start vertex? */
+    bool own_vertex;
+    /* Is this subpatch responsible for owning attributes for edge vertices? */
+    bool own_edge;
+
     /* Get vertex indices in the direction of this patch edge, will take into
      * account the reversed flag to flip the indices. */
     int start_vert_index() const
