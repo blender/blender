@@ -10,6 +10,7 @@
  * ARB_tessellation_shader OpenGL extension, Section 2.X.2. */
 
 #include "util/transform.h"
+#include "util/types.h"
 
 #include "subd/subpatch.h"
 
@@ -20,27 +21,17 @@ class Mesh;
 class Patch;
 
 struct SubdParams {
-  Mesh *mesh;
-  bool ptex;
+  Mesh *mesh = nullptr;
+  bool ptex = false;
 
-  int test_steps;
-  int split_threshold;
-  float dicing_rate;
-  int max_level;
-  Camera *camera;
-  Transform objecttoworld;
+  int test_steps = 3;
+  int split_threshold = 1;
+  float dicing_rate = 1.0f;
+  int max_level = 12;
+  Camera *camera = nullptr;
+  Transform objecttoworld = transform_identity();
 
-  SubdParams(Mesh *mesh_, bool ptex_ = false)
-  {
-    mesh = mesh_;
-    ptex = ptex_;
-
-    test_steps = 3;
-    split_threshold = 1;
-    dicing_rate = 1.0f;
-    max_level = 12;
-    camera = nullptr;
-  }
+  SubdParams(Mesh *mesh_, bool ptex_ = false) : mesh(mesh_), ptex(ptex_) {}
 };
 
 /* EdgeDice Base */

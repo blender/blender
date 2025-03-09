@@ -124,6 +124,30 @@ NODE_DEFINE(Mesh)
   subdivision_type_enum.insert("catmull_clark", SUBDIVISION_CATMULL_CLARK);
   SOCKET_ENUM(subdivision_type, "Subdivision Type", subdivision_type_enum, SUBDIVISION_NONE);
 
+  static NodeEnum subdivision_boundary_interpolation_enum;
+  subdivision_boundary_interpolation_enum.insert("none", SUBDIVISION_BOUNDARY_NONE);
+  subdivision_boundary_interpolation_enum.insert("edge_only", SUBDIVISION_BOUNDARY_EDGE_ONLY);
+  subdivision_boundary_interpolation_enum.insert("edge_and_corner",
+                                                 SUBDIVISION_BOUNDARY_EDGE_AND_CORNER);
+  SOCKET_ENUM(subdivision_boundary_interpolation,
+              "Subdivision Boundary Interpolation",
+              subdivision_boundary_interpolation_enum,
+              SUBDIVISION_BOUNDARY_EDGE_AND_CORNER);
+
+  static NodeEnum subdivision_fvar_interpolation_enum;
+  subdivision_fvar_interpolation_enum.insert("none", SUBDIVISION_FVAR_LINEAR_NONE);
+  subdivision_fvar_interpolation_enum.insert("corners_only", SUBDIVISION_FVAR_LINEAR_CORNERS_ONLY);
+  subdivision_fvar_interpolation_enum.insert("corners_plus1",
+                                             SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS1);
+  subdivision_fvar_interpolation_enum.insert("corners_plus2",
+                                             SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS2);
+  subdivision_fvar_interpolation_enum.insert("boundaries", SUBDIVISION_FVAR_LINEAR_BOUNDARIES);
+  subdivision_fvar_interpolation_enum.insert("all", SUBDIVISION_FVAR_LINEAR_ALL);
+  SOCKET_ENUM(subdivision_fvar_interpolation,
+              "Subdivision Face-Varying Interpolation",
+              subdivision_fvar_interpolation_enum,
+              SUBDIVISION_FVAR_LINEAR_BOUNDARIES);
+
   SOCKET_INT_ARRAY(subd_vert_creases, "Subdivision Vertex Crease", array<int>());
   SOCKET_FLOAT_ARRAY(
       subd_vert_creases_weight, "Subdivision Vertex Crease Weights", array<float>());
@@ -144,27 +168,11 @@ NODE_DEFINE(Mesh)
   return type;
 }
 
-SubdParams *Mesh::get_subd_params()
-{
-  if (subdivision_type == SubdivisionType::SUBDIVISION_NONE) {
-    return nullptr;
-  }
-
-  if (!subd_params) {
-    subd_params = make_unique<SubdParams>(this);
-  }
-
-  subd_params->dicing_rate = subd_dicing_rate;
-  subd_params->max_level = subd_max_level;
-  subd_params->objecttoworld = subd_objecttoworld;
-
-  return subd_params.get();
-}
-
 bool Mesh::need_tesselation()
 {
-  return get_subd_params() && (verts_is_modified() || subd_dicing_rate_is_modified() ||
-                               subd_objecttoworld_is_modified() || subd_max_level_is_modified());
+  return (subdivision_type != SUBDIVISION_NONE) &&
+         (verts_is_modified() || subd_dicing_rate_is_modified() ||
+          subd_objecttoworld_is_modified() || subd_max_level_is_modified());
 }
 
 Mesh::Mesh(const NodeType *node_type, Type geom_type_)

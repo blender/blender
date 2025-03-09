@@ -675,9 +675,9 @@ static inline BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b
   return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
 }
 
-static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
-                                                            bool preview,
-                                                            bool experimental)
+static BL::SubsurfModifier object_subdivision_modifier(BL::Object &b_ob,
+                                                       const bool preview,
+                                                       const bool experimental)
 {
   PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
 
@@ -689,15 +689,77 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
         RNA_boolean_get(&cobj, "use_adaptive_subdivision"))
     {
       BL::SubsurfModifier subsurf(mod);
-
-      if (subsurf.subdivision_type() == BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
-        return Mesh::SUBDIVISION_CATMULL_CLARK;
-      }
-      return Mesh::SUBDIVISION_LINEAR;
+      return subsurf;
     }
   }
 
+  return PointerRNA_NULL;
+}
+
+static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
+                                                            const bool preview,
+                                                            const bool experimental)
+{
+  BL::SubsurfModifier subsurf = object_subdivision_modifier(b_ob, preview, experimental);
+
+  if (subsurf) {
+    if (subsurf.subdivision_type() == BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
+      return Mesh::SUBDIVISION_CATMULL_CLARK;
+    }
+    return Mesh::SUBDIVISION_LINEAR;
+  }
+
   return Mesh::SUBDIVISION_NONE;
+}
+
+static inline void object_subdivision_to_mesh(BL::Object &b_ob,
+                                              Mesh &mesh,
+                                              const bool preview,
+                                              const bool experimental)
+{
+  BL::SubsurfModifier subsurf = object_subdivision_modifier(b_ob, preview, experimental);
+
+  if (!subsurf) {
+    mesh.set_subdivision_type(Mesh::SUBDIVISION_NONE);
+    return;
+  }
+
+  if (subsurf.subdivision_type() != BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
+    mesh.set_subdivision_type(Mesh::SUBDIVISION_LINEAR);
+    return;
+  }
+
+  mesh.set_subdivision_type(Mesh::SUBDIVISION_CATMULL_CLARK);
+
+  switch (subsurf.boundary_smooth()) {
+    case BL::SubsurfModifier::boundary_smooth_PRESERVE_CORNERS:
+      mesh.set_subdivision_boundary_interpolation(Mesh::SUBDIVISION_BOUNDARY_EDGE_AND_CORNER);
+      break;
+    case BL::SubsurfModifier::boundary_smooth_ALL:
+      mesh.set_subdivision_boundary_interpolation(Mesh::SUBDIVISION_BOUNDARY_EDGE_ONLY);
+      break;
+  }
+
+  switch (subsurf.uv_smooth()) {
+    case BL::SubsurfModifier::uv_smooth_NONE:
+      mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_ALL);
+      break;
+    case BL::SubsurfModifier::uv_smooth_PRESERVE_CORNERS:
+      mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_ONLY);
+      break;
+    case BL::SubsurfModifier::uv_smooth_PRESERVE_CORNERS_AND_JUNCTIONS:
+      mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS1);
+      break;
+    case BL::SubsurfModifier::uv_smooth_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
+      mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS2);
+      break;
+    case BL::SubsurfModifier::uv_smooth_PRESERVE_BOUNDARIES:
+      mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_BOUNDARIES);
+      break;
+    case BL::SubsurfModifier::uv_smooth_SMOOTH_ALL:
+      mesh.set_subdivision_fvar_interpolation(Mesh::SUBDIVISION_FVAR_LINEAR_NONE);
+      break;
+  }
 }
 
 static inline uint object_ray_visibility(BL::Object &b_ob)

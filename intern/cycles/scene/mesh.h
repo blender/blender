@@ -121,7 +121,24 @@ class Mesh : public Geometry {
     SUBDIVISION_CATMULL_CLARK,
   };
 
+  enum SubdivisionBoundaryInterpolation {
+    SUBDIVISION_BOUNDARY_NONE,
+    SUBDIVISION_BOUNDARY_EDGE_ONLY,
+    SUBDIVISION_BOUNDARY_EDGE_AND_CORNER,
+  };
+
+  enum SubdivisionFVarInterpolation {
+    SUBDIVISION_FVAR_LINEAR_NONE,
+    SUBDIVISION_FVAR_LINEAR_CORNERS_ONLY,
+    SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS1,
+    SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS2,
+    SUBDIVISION_FVAR_LINEAR_BOUNDARIES,
+    SUBDIVISION_FVAR_LINEAR_ALL,
+  };
+
   NODE_SOCKET_API(SubdivisionType, subdivision_type)
+  NODE_SOCKET_API(SubdivisionBoundaryInterpolation, subdivision_boundary_interpolation)
+  NODE_SOCKET_API(SubdivisionFVarInterpolation, subdivision_fvar_interpolation)
 
   /* Mesh Data */
   NODE_SOCKET_API_ARRAY(array<int>, triangles)
@@ -216,9 +233,6 @@ class Mesh : public Geometry {
   void tessellate(DiagSplit *split);
 
   SubdFace get_subd_face(const size_t index) const;
-
-  SubdParams *get_subd_params();
-
   size_t get_num_subd_faces() const
   {
     return num_subd_faces;

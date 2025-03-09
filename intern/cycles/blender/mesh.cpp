@@ -1048,37 +1048,40 @@ static void create_subd_mesh(Scene *scene,
   BL::Object b_ob = b_ob_info.real_object;
 
   BL::SubsurfModifier subsurf_mod(b_ob.modifiers[b_ob.modifiers.length() - 1]);
+  const bool use_creases = subsurf_mod.use_creases();
 
   create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true);
 
-  const blender::VArraySpan creases = *b_mesh.attributes().lookup<float>(
-      "crease_edge", blender::bke::AttrDomain::Edge);
-  if (!creases.is_empty()) {
-    size_t num_creases = 0;
-    for (const int i : creases.index_range()) {
-      if (creases[i] != 0.0f) {
-        num_creases++;
+  if (use_creases) {
+    const blender::VArraySpan creases = *b_mesh.attributes().lookup<float>(
+        "crease_edge", blender::bke::AttrDomain::Edge);
+    if (!creases.is_empty()) {
+      size_t num_creases = 0;
+      for (const int i : creases.index_range()) {
+        if (creases[i] != 0.0f) {
+          num_creases++;
+        }
+      }
+
+      mesh->reserve_subd_creases(num_creases);
+
+      const blender::Span<blender::int2> edges = b_mesh.edges();
+      for (const int i : edges.index_range()) {
+        const float crease = creases[i];
+        if (crease != 0.0f) {
+          const blender::int2 &b_edge = edges[i];
+          mesh->add_edge_crease(b_edge[0], b_edge[1], crease);
+        }
       }
     }
 
-    mesh->reserve_subd_creases(num_creases);
-
-    const blender::Span<blender::int2> edges = b_mesh.edges();
-    for (const int i : edges.index_range()) {
-      const float crease = creases[i];
-      if (crease != 0.0f) {
-        const blender::int2 &b_edge = edges[i];
-        mesh->add_edge_crease(b_edge[0], b_edge[1], crease);
-      }
-    }
-  }
-
-  const blender::VArraySpan vert_creases = *b_mesh.attributes().lookup<float>(
-      "crease_vert", blender::bke::AttrDomain::Point);
-  if (!vert_creases.is_empty()) {
-    for (const int i : vert_creases.index_range()) {
-      if (vert_creases[i] != 0.0f) {
-        mesh->add_vertex_crease(i, vert_creases[i]);
+    const blender::VArraySpan vert_creases = *b_mesh.attributes().lookup<float>(
+        "crease_vert", blender::bke::AttrDomain::Point);
+    if (!vert_creases.is_empty()) {
+      for (const int i : vert_creases.index_range()) {
+        if (vert_creases[i] != 0.0f) {
+          mesh->add_vertex_crease(i, vert_creases[i]);
+        }
       }
     }
   }
@@ -1106,12 +1109,9 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
   if (view_layer.use_surfaces) {
     /* Adaptive subdivision setup. Not for baking since that requires
      * exact mapping to the Blender mesh. */
-    Mesh::SubdivisionType subdivision_type = (b_ob_info.real_object != b_bake_target) ?
-                                                 object_subdivision_type(b_ob_info.real_object,
-                                                                         preview,
-                                                                         experimental) :
-                                                 Mesh::SUBDIVISION_NONE;
-    new_mesh.set_subdivision_type(subdivision_type);
+    if (b_ob_info.real_object != b_bake_target) {
+      object_subdivision_to_mesh(b_ob_info.real_object, new_mesh, preview, experimental);
+    }
 
     /* For some reason, meshes do not need this... */
     const bool need_undeformed = new_mesh.need_attribute(scene, ATTR_STD_GENERATED);
@@ -1195,7 +1195,8 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   BL::Mesh b_mesh_rna(PointerRNA_NULL);
   if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
     /* get derived mesh */
-    b_mesh_rna = object_to_mesh(b_data, b_ob_info, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
+    b_mesh_rna = object_to_mesh(
+        b_data, b_ob_info, b_depsgraph, false, mesh->get_subdivision_type());
   }
 
   const std::string ob_name = b_ob_info.real_object.name();

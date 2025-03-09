@@ -786,8 +786,13 @@ void GeometryManager::device_update(Device *device,
 
         progress.set_status("Updating Mesh", msg);
 
-        mesh->subd_params->camera = dicing_camera;
-        DiagSplit dsplit(*mesh->subd_params);
+        SubdParams subd_params(mesh);
+        subd_params.dicing_rate = mesh->get_subd_dicing_rate();
+        subd_params.max_level = mesh->get_subd_max_level();
+        subd_params.objecttoworld = mesh->get_subd_objecttoworld();
+        subd_params.camera = dicing_camera;
+
+        DiagSplit dsplit(subd_params);
         mesh->tessellate(&dsplit);
 
         i++;

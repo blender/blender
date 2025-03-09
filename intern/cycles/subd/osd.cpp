@@ -252,9 +252,47 @@ CCL_NAMESPACE_BEGIN
 
 /* OsdMesh */
 
+Sdc::Options OsdMesh::sdc_options()
+{
+  Sdc::Options options;
+  switch (mesh.get_subdivision_fvar_interpolation()) {
+    case Mesh::SUBDIVISION_FVAR_LINEAR_NONE:
+      options.SetFVarLinearInterpolation(Sdc::Options::FVAR_LINEAR_NONE);
+      break;
+    case Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_ONLY:
+      options.SetFVarLinearInterpolation(Sdc::Options::FVAR_LINEAR_CORNERS_ONLY);
+      break;
+    case Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS1:
+      options.SetFVarLinearInterpolation(Sdc::Options::FVAR_LINEAR_CORNERS_PLUS1);
+      break;
+    case Mesh::SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS2:
+      options.SetFVarLinearInterpolation(Sdc::Options::FVAR_LINEAR_CORNERS_PLUS2);
+      break;
+    case Mesh::SUBDIVISION_FVAR_LINEAR_BOUNDARIES:
+      options.SetFVarLinearInterpolation(Sdc::Options::FVAR_LINEAR_BOUNDARIES);
+      break;
+    case Mesh::SUBDIVISION_FVAR_LINEAR_ALL:
+      options.SetFVarLinearInterpolation(Sdc::Options::FVAR_LINEAR_ALL);
+      break;
+  }
+  switch (mesh.get_subdivision_boundary_interpolation()) {
+    case Mesh::SUBDIVISION_BOUNDARY_NONE:
+      options.SetVtxBoundaryInterpolation(Sdc::Options::VTX_BOUNDARY_NONE);
+      break;
+    case Mesh::SUBDIVISION_BOUNDARY_EDGE_ONLY:
+      options.SetVtxBoundaryInterpolation(Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
+      break;
+    case Mesh::SUBDIVISION_BOUNDARY_EDGE_AND_CORNER:
+      options.SetVtxBoundaryInterpolation(Sdc::Options::VTX_BOUNDARY_EDGE_AND_CORNER);
+      break;
+  }
+  return options;
+}
+
 bool OsdMesh::use_smooth_fvar(const Attribute &attr) const
 {
-  return attr.element == ATTR_ELEMENT_CORNER &&
+  return mesh.get_subdivision_fvar_interpolation() != Mesh::SUBDIVISION_FVAR_LINEAR_ALL &&
+         attr.element == ATTR_ELEMENT_CORNER &&
          (attr.std == ATTR_STD_UV || (attr.flags & ATTR_SUBDIVIDE_SMOOTH_FVAR));
 }
 
@@ -273,15 +311,10 @@ bool OsdMesh::use_smooth_fvar() const
 
 void OsdData::build(OsdMesh &osd_mesh)
 {
-  const Sdc::SchemeType type = Sdc::SCHEME_CATMARK;
-
-  Sdc::Options options;
-  options.SetVtxBoundaryInterpolation(Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
-  options.SetFVarLinearInterpolation(Sdc::Options::FVAR_LINEAR_CORNERS_PLUS1);
-
   /* create refiner */
   refiner.reset(Far::TopologyRefinerFactory<OsdMesh>::Create(
-      osd_mesh, Far::TopologyRefinerFactory<OsdMesh>::Options(type, options)));
+      osd_mesh,
+      Far::TopologyRefinerFactory<OsdMesh>::Options(Sdc::SCHEME_CATMARK, osd_mesh.sdc_options())));
 
   /* adaptive refinement */
   const bool has_fvar = osd_mesh.use_smooth_fvar();

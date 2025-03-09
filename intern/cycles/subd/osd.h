@@ -62,6 +62,7 @@ class OsdMesh {
 
   explicit OsdMesh(Mesh &mesh) : mesh(mesh) {}
 
+  Sdc::Options sdc_options();
   bool use_smooth_fvar(const Attribute &attr) const;
   bool use_smooth_fvar() const;
 };

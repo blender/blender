@@ -9,9 +9,10 @@
 #include <cstddef>
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -313,11 +314,6 @@ static bool get_show_adaptive_options(const bContext *C, Panel *panel)
     return false;
   }
 
-  /* Don't show adaptive options if regular subdivision used. */
-  if (!RNA_boolean_get(ptr, "use_limit_surface")) {
-    return false;
-  }
-
   /* Don't show adaptive options if the cycles experimental feature set is disabled. */
   Scene *scene = CTX_data_scene(C);
   if (!BKE_scene_uses_cycles_experimental_features(scene)) {
@@ -347,8 +343,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     cycles_ptr = RNA_pointer_get(&scene_ptr, "cycles");
     ob_cycles_ptr = RNA_pointer_get(&ob_ptr, "cycles");
     if (!RNA_pointer_is_null(&ob_cycles_ptr)) {
-      ob_use_adaptive_subdivision = RNA_boolean_get(&ob_cycles_ptr, "use_adaptive_subdivision");
       show_adaptive_options = get_show_adaptive_options(C, panel);
+      ob_use_adaptive_subdivision = show_adaptive_options &&
+                                    RNA_boolean_get(&ob_cycles_ptr, "use_adaptive_subdivision");
     }
   }
 #else
@@ -359,35 +356,9 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  if (show_adaptive_options) {
-    uiItemR(layout,
-            &ob_cycles_ptr,
-            "use_adaptive_subdivision",
-            UI_ITEM_NONE,
-            IFACE_("Adaptive Subdivision"),
-            ICON_NONE);
-  }
-  if (ob_use_adaptive_subdivision && show_adaptive_options) {
-    uiItemR(layout, &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    float render = std::max(RNA_float_get(&cycles_ptr, "dicing_rate") *
-                                RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
-                            0.1f);
-    float preview = std::max(RNA_float_get(&cycles_ptr, "preview_dicing_rate") *
-                                 RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
-                             0.1f);
-    char output[256];
-    SNPRINTF(output, RPT_("Final Scale: Render %.2f px, Viewport %.2f px"), render, preview);
-    uiItemL(layout, output, ICON_NONE);
-
-    uiItemS(layout);
-
-    uiItemR(layout, ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
-  }
-  else {
-    uiLayout *col = uiLayoutColumn(layout, true);
-    uiItemR(col, ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
-    uiItemR(col, ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
-  }
+  uiLayout *col = uiLayoutColumn(layout, true);
+  uiItemR(col, ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
+  uiItemR(col, ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
   uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -415,51 +386,62 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  modifier_panel_end(layout, ptr);
-}
+  if (show_adaptive_options) {
+    PanelLayout adaptive_panel = uiLayoutPanel(C, layout, "adaptive_subdivision", true);
+    uiLayoutSetPropSep(adaptive_panel.header, false);
+    uiItemR(adaptive_panel.header,
+            &ob_cycles_ptr,
+            "use_adaptive_subdivision",
+            UI_ITEM_NONE,
+            "Adaptive Subdivision",
+            ICON_NONE);
 
-static void advanced_panel_draw(const bContext *C, Panel *panel)
-{
-  uiLayout *layout = panel->layout;
+    if (adaptive_panel.body) {
+      uiLayoutSetActive(adaptive_panel.body, ob_use_adaptive_subdivision);
+      uiItemR(adaptive_panel.body,
+              &ob_cycles_ptr,
+              "dicing_rate",
+              UI_ITEM_NONE,
+              std::nullopt,
+              ICON_NONE);
 
-  PointerRNA ob_ptr;
-  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
+      float render = std::max(RNA_float_get(&cycles_ptr, "dicing_rate") *
+                                  RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
+                              0.1f);
+      float preview = std::max(RNA_float_get(&cycles_ptr, "preview_dicing_rate") *
+                                   RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
+                               0.1f);
 
-  bool ob_use_adaptive_subdivision = false;
-  bool show_adaptive_options = false;
-#ifdef WITH_CYCLES
-  Scene *scene = CTX_data_scene(C);
-  if (BKE_scene_uses_cycles(scene)) {
-    PointerRNA ob_cycles_ptr = RNA_pointer_get(&ob_ptr, "cycles");
-    if (!RNA_pointer_is_null(&ob_cycles_ptr)) {
-      ob_use_adaptive_subdivision = RNA_boolean_get(&ob_cycles_ptr, "use_adaptive_subdivision");
-      show_adaptive_options = get_show_adaptive_options(C, panel);
+      uiLayout *split = uiLayoutSplit(adaptive_panel.body, 0.4f, false);
+      uiItemL(uiLayoutColumn(split, true), "", ICON_NONE);
+      uiLayout *col = uiLayoutColumn(split, true);
+      uiItemL(col, fmt::format(RPT_("Viewport {:.2f} px"), preview), ICON_NONE);
+      uiItemL(col, fmt::format(RPT_("Render {:.2f} px"), render), ICON_NONE);
     }
   }
-#else
-  UNUSED_VARS(C);
-#endif
 
-  uiLayoutSetPropSep(layout, true);
+  if (uiLayout *advanced_layout = uiLayoutPanel(C, layout, "advanced", true, IFACE_("Advanced"))) {
+    uiLayoutSetPropSep(advanced_layout, true);
 
-  uiLayoutSetActive(layout, !(show_adaptive_options && ob_use_adaptive_subdivision));
-  uiItemR(layout, ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(advanced_layout, ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiLayout *col = uiLayoutColumn(layout, true);
-  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_limit_surface"));
-  uiItemR(col, ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiLayout *col = uiLayoutColumn(advanced_layout, true);
+    uiLayoutSetActive(col,
+                      ob_use_adaptive_subdivision || RNA_boolean_get(ptr, "use_limit_surface"));
+    uiItemR(col, ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "boundary_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_creases", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(advanced_layout, ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(advanced_layout, ptr, "boundary_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(advanced_layout, ptr, "use_creases", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(advanced_layout, ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  }
+
+  modifier_panel_end(layout, ptr);
 }
 
 static void panel_register(ARegionType *region_type)
 {
-  PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Subsurf, panel_draw);
-  modifier_subpanel_register(
-      region_type, "advanced", "Advanced", nullptr, advanced_panel_draw, panel_type);
+  modifier_panel_register(region_type, eModifierType_Subsurf, panel_draw);
 }
 
 static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
