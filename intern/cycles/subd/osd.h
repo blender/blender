@@ -85,7 +85,8 @@ struct OsdPatch final : Patch {
   OsdData &osd_data;
 
   explicit OsdPatch(OsdData &data) : osd_data(data) {}
-  void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, float v) override;
+  void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, const float v)
+      const override;
 };
 
 CCL_NAMESPACE_END

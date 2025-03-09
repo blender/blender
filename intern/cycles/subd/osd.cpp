@@ -362,7 +362,8 @@ void OsdData::build(OsdMesh &osd_mesh)
 
 /* OsdPatch */
 
-void OsdPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, const float v)
+void OsdPatch::eval(
+    float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, const float v) const
 {
   const Far::PatchTable::PatchHandle &handle = *osd_data.patch_map->FindPatch(
       patch_index, (double)u, (double)v);
@@ -372,13 +373,11 @@ void OsdPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const floa
 
   const Far::ConstIndexArray cv = osd_data.patch_table->GetPatchVertices(handle);
 
-  float3 du;
-  float3 dv;
   if (P) {
     *P = zero_float3();
   }
-  du = zero_float3();
-  dv = zero_float3();
+  float3 du = zero_float3();
+  float3 dv = zero_float3();
 
   for (int i = 0; i < cv.size(); i++) {
     const float3 p = osd_data.refined_verts[cv[i]].value;
@@ -397,10 +396,7 @@ void OsdPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const floa
     *dPdv = dv;
   }
   if (N) {
-    *N = cross(du, dv);
-
-    const float t = len(*N);
-    *N = (t != 0.0f) ? *N / t : make_float3(0.0f, 0.0f, 1.0f);
+    *N = safe_normalize_fallback(cross(du, dv), make_float3(0.0f, 0.0f, 1.0f));
   }
 }
 

@@ -26,17 +26,20 @@ class Patch;
 class DiagSplit {
   SubdParams params;
 
-  vector<Subpatch> subpatches;
+  vector<SubPatch> subpatches;
   /* `deque` is used so that element pointers remain valid when size is changed. */
-  deque<Edge> edges;
+  deque<SubEdge> edges;
 
-  float3 to_world(Patch *patch, const float2 uv);
-  int T(Patch *patch, const float2 Pstart, const float2 Pend, bool recursive_resolve = false);
+  float3 to_world(const Patch *patch, const float2 uv);
+  int T(const Patch *patch,
+        const float2 Pstart,
+        const float2 Pend,
+        bool recursive_resolve = false);
 
-  void limit_edge_factor(int &T, Patch *patch, const float2 Pstart, const float2 Pend);
-  void resolve_edge_factors(Subpatch &sub);
+  void limit_edge_factor(int &T, const Patch *patch, const float2 Pstart, const float2 Pend);
+  void resolve_edge_factors(SubPatch &sub);
 
-  void partition_edge(Patch *patch,
+  void partition_edge(const Patch *patch,
                       float2 *P,
                       int *t0,
                       int *t1,
@@ -44,20 +47,22 @@ class DiagSplit {
                       const float2 Pend,
                       const int t);
 
-  void split(Subpatch &sub, const int depth = 0);
+  void split(SubPatch &sub, const int depth = 0);
 
   int num_alloced_verts = 0;
   int alloc_verts(const int n); /* Returns start index of new verts. */
 
  public:
-  Edge *alloc_edge();
+  SubEdge *alloc_edge();
 
   explicit DiagSplit(const SubdParams &params);
 
-  void split_patches(Patch *patches, const size_t patches_byte_stride);
+  void split_patches(const Patch *patches, const size_t patches_byte_stride);
 
-  void split_quad(const Mesh::SubdFace &face, Patch *patch);
-  void split_ngon(const Mesh::SubdFace &face, Patch *patches, const size_t patches_byte_stride);
+  void split_quad(const Mesh::SubdFace &face, const Patch *patch);
+  void split_ngon(const Mesh::SubdFace &face,
+                  const Patch *patches,
+                  const size_t patches_byte_stride);
 
   void post_split();
 };

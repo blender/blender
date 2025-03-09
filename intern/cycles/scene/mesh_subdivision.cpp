@@ -39,12 +39,8 @@ void Mesh::tessellate(DiagSplit *split)
     subdivision_type = SUBDIVISION_LINEAR;
   }
 
-  const int num_faces = get_num_subd_faces();
-
-  Attribute *attr_vN = subd_attributes.find(ATTR_STD_VERTEX_NORMAL);
-  float3 *vN = (attr_vN) ? attr_vN->data_float3() : nullptr;
-
   /* count patches */
+  const int num_faces = get_num_subd_faces();
   int num_patches = 0;
   for (int f = 0; f < num_faces; f++) {
     SubdFace face = get_subd_face(f);
@@ -97,7 +93,6 @@ void Mesh::tessellate(DiagSplit *split)
       if (face.is_quad()) {
         /* Simple quad case. */
         float3 *hull = patch->hull;
-        float3 *normals = patch->normals;
 
         patch->patch_index = face.ptex_offset;
         patch->from_ngon = false;
@@ -106,20 +101,7 @@ void Mesh::tessellate(DiagSplit *split)
           hull[i] = verts[subd_face_corners[face.start_corner + i]];
         }
 
-        if (face.smooth) {
-          for (int i = 0; i < 4; i++) {
-            normals[i] = vN[subd_face_corners[face.start_corner + i]];
-          }
-        }
-        else {
-          const float3 N = face.normal(this);
-          for (int i = 0; i < 4; i++) {
-            normals[i] = N;
-          }
-        }
-
         swap(hull[2], hull[3]);
-        swap(normals[2], normals[3]);
 
         patch->shader = face.shader;
         patch++;
@@ -127,17 +109,14 @@ void Mesh::tessellate(DiagSplit *split)
       else {
         /* N-gon split into N quads. */
         float3 center_vert = zero_float3();
-        float3 center_normal = zero_float3();
 
         const float inv_num_corners = 1.0f / float(face.num_corners);
         for (int corner = 0; corner < face.num_corners; corner++) {
           center_vert += verts[subd_face_corners[face.start_corner + corner]] * inv_num_corners;
-          center_normal += vN[subd_face_corners[face.start_corner + corner]] * inv_num_corners;
         }
 
         for (int corner = 0; corner < face.num_corners; corner++) {
           float3 *hull = patch->hull;
-          float3 *normals = patch->normals;
 
           patch->patch_index = face.ptex_offset + corner;
           patch->from_ngon = true;
@@ -154,25 +133,6 @@ void Mesh::tessellate(DiagSplit *split)
 
           hull[1] = (hull[1] + hull[0]) * 0.5;
           hull[2] = (hull[2] + hull[0]) * 0.5;
-
-          if (face.smooth) {
-            normals[0] =
-                vN[subd_face_corners[face.start_corner + mod(corner + 0, face.num_corners)]];
-            normals[1] =
-                vN[subd_face_corners[face.start_corner + mod(corner + 1, face.num_corners)]];
-            normals[2] =
-                vN[subd_face_corners[face.start_corner + mod(corner - 1, face.num_corners)]];
-            normals[3] = center_normal;
-
-            normals[1] = (normals[1] + normals[0]) * 0.5;
-            normals[2] = (normals[2] + normals[0]) * 0.5;
-          }
-          else {
-            const float3 N = face.normal(this);
-            for (int i = 0; i < 4; i++) {
-              normals[i] = N;
-            }
-          }
 
           patch++;
         }

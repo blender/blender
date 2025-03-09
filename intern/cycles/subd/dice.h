@@ -49,7 +49,7 @@ class EdgeDice {
   void reserve(const int num_verts, const int num_triangles);
 
  protected:
-  void set_vert(Patch *patch, const int index, const float2 uv);
+  void set_vert(const Patch *patch, const int index, const float2 uv);
   void add_triangle(const Patch *patch,
                     const int v0,
                     const int v1,
@@ -58,7 +58,7 @@ class EdgeDice {
                     const float2 uv1,
                     const float2 uv2);
 
-  void stitch_triangles(Subpatch &sub, const int edge);
+  void stitch_triangles(SubPatch &sub, const int edge);
 };
 
 /* Quad EdgeDice */
@@ -67,19 +67,19 @@ class QuadDice : public EdgeDice {
  public:
   explicit QuadDice(const SubdParams &params);
 
-  void dice(Subpatch &sub);
+  void dice(SubPatch &sub);
 
  protected:
-  float3 eval_projected(Subpatch &sub, const float2 uv);
+  float3 eval_projected(SubPatch &sub, const float2 uv);
 
-  void set_vert(Subpatch &sub, const int index, const float2 uv);
+  void set_vert(SubPatch &sub, const int index, const float2 uv);
 
-  void add_grid(Subpatch &sub, const int Mu, const int Mv, const int offset);
+  void add_grid(SubPatch &sub, const int Mu, const int Mv, const int offset);
 
-  void set_side(Subpatch &sub, const int edge);
+  void set_side(SubPatch &sub, const int edge);
 
   float quad_area(const float3 &a, const float3 &b, const float3 &c, const float3 &d);
-  float scale_factor(Subpatch &sub, const int Mu, const int Mv);
+  float scale_factor(SubPatch &sub, const int Mu, const int Mv);
 };
 
 CCL_NAMESPACE_END
