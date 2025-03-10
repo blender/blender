@@ -38,6 +38,9 @@ extern "C" {
 #ifdef WITH_OCIO
 #  include "glsl_ocio_source_list.h"
 #endif
+#ifdef WITH_OPENSUBDIV
+#  include "glsl_osd_source_list.h"
+#endif
 #undef SHADER_SOURCE
 }
 
@@ -449,6 +452,9 @@ void gpu_shader_dependency_init()
 #include "glsl_gpu_source_list.h"
 #ifdef WITH_OCIO
 #  include "glsl_ocio_source_list.h"
+#endif
+#ifdef WITH_OPENSUBDIV
+#  include "glsl_osd_source_list.h"
 #endif
 #undef SHADER_SOURCE
 #ifdef WITH_OPENSUBDIV

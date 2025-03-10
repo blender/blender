@@ -101,14 +101,13 @@ bool BKE_subsurf_modifier_has_split_normals(const SubsurfModifierData *smd, cons
 
 static bool is_subdivision_evaluation_possible_on_gpu()
 {
-  /* Only OpenGL is supported for OpenSubdiv evaluation for now. */
   if (GPU_backend_get_type() != GPU_BACKEND_OPENGL) {
     return false;
   }
 
   /* Now that we know it is OpenGL, check for Qualcomm GPUs,
    * which GPU subdiv is broken on some of (#124515) */
-  if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+  if (GPU_type_matches_ex(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     return false;
   }
 

@@ -8,8 +8,6 @@
 
 #include "opensubdiv_capi_type.hh"
 
-#include "GPU_vertex_buffer.hh"
-
 struct OpenSubdiv_EvaluatorCacheImpl;
 struct OpenSubdiv_PatchCoord;
 namespace blender::opensubdiv {

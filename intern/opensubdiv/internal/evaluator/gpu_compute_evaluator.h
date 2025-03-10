@@ -2,13 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef OPENSUBDIV_GL_COMPUTE_EVALUATOR_H_
-#define OPENSUBDIV_GL_COMPUTE_EVALUATOR_H_
+#ifndef OPENSUBDIV_GPU_COMPUTE_EVALUATOR_H_
+#define OPENSUBDIV_GPU_COMPUTE_EVALUATOR_H_
 
 #include <opensubdiv/osd/bufferDescriptor.h>
-#include <opensubdiv/osd/opengl.h>
 #include <opensubdiv/osd/types.h>
 #include <opensubdiv/version.h>
+
+#include "GPU_storage_buffer.hh"
 
 namespace OpenSubdiv::OPENSUBDIV_VERSION::Far {
 class LimitStencilTable;
@@ -24,61 +25,61 @@ namespace blender::opensubdiv {
 ///
 /// GLSLComputeKernel consumes this table to apply stencils
 ///
-class GLStencilTableSSBO {
+class GPUStencilTableSSBO {
  public:
-  static GLStencilTableSSBO *Create(OpenSubdiv::Far::StencilTable const *stencilTable,
-                                    void *deviceContext = nullptr)
+  static GPUStencilTableSSBO *Create(OpenSubdiv::Far::StencilTable const *stencilTable,
+                                     void *deviceContext = nullptr)
   {
     (void)deviceContext;  // unused
-    return new GLStencilTableSSBO(stencilTable);
+    return new GPUStencilTableSSBO(stencilTable);
   }
-  static GLStencilTableSSBO *Create(OpenSubdiv::Far::LimitStencilTable const *limitStencilTable,
-                                    void *deviceContext = nullptr)
+  static GPUStencilTableSSBO *Create(OpenSubdiv::Far::LimitStencilTable const *limitStencilTable,
+                                     void *deviceContext = nullptr)
   {
     (void)deviceContext;  // unused
-    return new GLStencilTableSSBO(limitStencilTable);
+    return new GPUStencilTableSSBO(limitStencilTable);
   }
 
-  explicit GLStencilTableSSBO(OpenSubdiv::Far::StencilTable const *stencilTable);
-  explicit GLStencilTableSSBO(OpenSubdiv::Far::LimitStencilTable const *limitStencilTable);
-  ~GLStencilTableSSBO();
+  explicit GPUStencilTableSSBO(OpenSubdiv::Far::StencilTable const *stencilTable);
+  explicit GPUStencilTableSSBO(OpenSubdiv::Far::LimitStencilTable const *limitStencilTable);
+  ~GPUStencilTableSSBO();
 
   // interfaces needed for GLSLComputeKernel
-  GLuint GetSizesBuffer() const
+  GPUStorageBuf *GetSizesBuffer() const
   {
-    return _sizes;
+    return sizes_buf;
   }
-  GLuint GetOffsetsBuffer() const
+  GPUStorageBuf *GetOffsetsBuffer() const
   {
-    return _offsets;
+    return offsets_buf;
   }
-  GLuint GetIndicesBuffer() const
+  GPUStorageBuf *GetIndicesBuffer() const
   {
-    return _indices;
+    return indices_buf;
   }
-  GLuint GetWeightsBuffer() const
+  GPUStorageBuf *GetWeightsBuffer() const
   {
-    return _weights;
+    return weights_buf;
   }
-  GLuint GetDuWeightsBuffer() const
+  GPUStorageBuf *GetDuWeightsBuffer() const
   {
-    return _duWeights;
+    return du_weights_buf;
   }
-  GLuint GetDvWeightsBuffer() const
+  GPUStorageBuf *GetDvWeightsBuffer() const
   {
-    return _dvWeights;
+    return dv_weights_buf;
   }
-  GLuint GetDuuWeightsBuffer() const
+  GPUStorageBuf *GetDuuWeightsBuffer() const
   {
-    return _duuWeights;
+    return duu_weights_buf;
   }
-  GLuint GetDuvWeightsBuffer() const
+  GPUStorageBuf *GetDuvWeightsBuffer() const
   {
-    return _duvWeights;
+    return duv_weights_buf;
   }
-  GLuint GetDvvWeightsBuffer() const
+  GPUStorageBuf *GetDvvWeightsBuffer() const
   {
-    return _dvvWeights;
+    return dvv_weights_buf;
   }
   int GetNumStencils() const
   {
@@ -86,28 +87,28 @@ class GLStencilTableSSBO {
   }
 
  private:
-  GLuint _sizes;
-  GLuint _offsets;
-  GLuint _indices;
-  GLuint _weights;
-  GLuint _duWeights;
-  GLuint _dvWeights;
-  GLuint _duuWeights;
-  GLuint _duvWeights;
-  GLuint _dvvWeights;
+  GPUStorageBuf *sizes_buf = nullptr;
+  GPUStorageBuf *offsets_buf = nullptr;
+  GPUStorageBuf *indices_buf = nullptr;
+  GPUStorageBuf *weights_buf = nullptr;
+  GPUStorageBuf *du_weights_buf = nullptr;
+  GPUStorageBuf *dv_weights_buf = nullptr;
+  GPUStorageBuf *duu_weights_buf = nullptr;
+  GPUStorageBuf *duv_weights_buf = nullptr;
+  GPUStorageBuf *dvv_weights_buf = nullptr;
   int _numStencils;
 };
 
 // ---------------------------------------------------------------------------
 
-class GLComputeEvaluator {
+class GPUComputeEvaluator {
  public:
   using Instantiatable = bool;
-  static GLComputeEvaluator *Create(OpenSubdiv::Osd::BufferDescriptor const &srcDesc,
-                                    OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
-                                    OpenSubdiv::Osd::BufferDescriptor const &duDesc,
-                                    OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
-                                    void *deviceContext = nullptr)
+  static GPUComputeEvaluator *Create(OpenSubdiv::Osd::BufferDescriptor const &srcDesc,
+                                     OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
+                                     OpenSubdiv::Osd::BufferDescriptor const &duDesc,
+                                     OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
+                                     void *deviceContext = nullptr)
   {
     return Create(srcDesc,
                   dstDesc,
@@ -119,17 +120,17 @@ class GLComputeEvaluator {
                   deviceContext);
   }
 
-  static GLComputeEvaluator *Create(OpenSubdiv::Osd::BufferDescriptor const &srcDesc,
-                                    OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
-                                    OpenSubdiv::Osd::BufferDescriptor const &duDesc,
-                                    OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
-                                    OpenSubdiv::Osd::BufferDescriptor const &duuDesc,
-                                    OpenSubdiv::Osd::BufferDescriptor const &duvDesc,
-                                    OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
-                                    void *deviceContext = nullptr)
+  static GPUComputeEvaluator *Create(OpenSubdiv::Osd::BufferDescriptor const &srcDesc,
+                                     OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
+                                     OpenSubdiv::Osd::BufferDescriptor const &duDesc,
+                                     OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
+                                     OpenSubdiv::Osd::BufferDescriptor const &duuDesc,
+                                     OpenSubdiv::Osd::BufferDescriptor const &duvDesc,
+                                     OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
+                                     void *deviceContext = nullptr)
   {
     (void)deviceContext;  // not used
-    GLComputeEvaluator *instance = new GLComputeEvaluator();
+    GPUComputeEvaluator *instance = new GPUComputeEvaluator();
     if (instance->Compile(srcDesc, dstDesc, duDesc, dvDesc, duuDesc, duvDesc, dvvDesc)) {
       return instance;
     }
@@ -138,10 +139,10 @@ class GLComputeEvaluator {
   }
 
   /// Constructor.
-  GLComputeEvaluator();
+  GPUComputeEvaluator();
 
   /// Destructor. note that the GL context must be made current.
-  ~GLComputeEvaluator();
+  ~GPUComputeEvaluator();
 
   /// ----------------------------------------------------------------------
   ///
@@ -154,13 +155,13 @@ class GLComputeEvaluator {
   ///        transparently from OsdMesh template interface.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
@@ -182,7 +183,7 @@ class GLComputeEvaluator {
                            DST_BUFFER *dstBuffer,
                            OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
                            STENCIL_TABLE const *stencilTable,
-                           GLComputeEvaluator const *instance,
+                           GPUComputeEvaluator *instance,
                            void *deviceContext = nullptr)
   {
 
@@ -209,25 +210,25 @@ class GLComputeEvaluator {
   ///        transparently from OsdMesh template interface.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the dstBuffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
@@ -253,7 +254,7 @@ class GLComputeEvaluator {
                            DST_BUFFER *dvBuffer,
                            OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
                            STENCIL_TABLE const *stencilTable,
-                           GLComputeEvaluator const *instance,
+                           GPUComputeEvaluator *instance,
                            void *deviceContext = nullptr)
   {
 
@@ -293,43 +294,43 @@ class GLComputeEvaluator {
   ///        transparently from OsdMesh template interface.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the dstBuffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
   ///
   /// @param duuBuffer      Output buffer 2nd derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duuDesc        vertex buffer descriptor for the duuBuffer
   ///
   /// @param duvBuffer      Output buffer 2nd derivative wrt u and v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duvDesc        vertex buffer descriptor for the duvBuffer
   ///
   /// @param dvvBuffer      Output buffer 2nd derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvvDesc        vertex buffer descriptor for the dvvBuffer
@@ -361,7 +362,7 @@ class GLComputeEvaluator {
                            DST_BUFFER *dvvBuffer,
                            OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
                            STENCIL_TABLE const *stencilTable,
-                           GLComputeEvaluator const *instance,
+                           GPUComputeEvaluator *instance,
                            void *deviceContext = nullptr)
   {
 
@@ -411,13 +412,13 @@ class GLComputeEvaluator {
   /// \brief Generic stencil function.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
@@ -432,13 +433,13 @@ class GLComputeEvaluator {
                     OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
                     STENCIL_TABLE const *stencilTable) const
   {
-    return EvalStencils(srcBuffer->BindVBO(),
+    return EvalStencils(srcBuffer->get_vertex_buffer(),
                         srcDesc,
-                        dstBuffer->BindVBO(),
+                        dstBuffer->get_vertex_buffer(),
                         dstDesc,
-                        0,
+                        nullptr,
                         OpenSubdiv::Osd::BufferDescriptor(),
-                        0,
+                        nullptr,
                         OpenSubdiv::Osd::BufferDescriptor(),
                         stencilTable->GetSizesBuffer(),
                         stencilTable->GetOffsetsBuffer(),
@@ -453,25 +454,25 @@ class GLComputeEvaluator {
   /// \brief Generic stencil function.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the dstBuffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
@@ -490,13 +491,13 @@ class GLComputeEvaluator {
                     OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
                     STENCIL_TABLE const *stencilTable) const
   {
-    return EvalStencils(srcBuffer->BindVBO(),
+    return EvalStencils(srcBuffer->get_vertex_buffer(),
                         srcDesc,
-                        dstBuffer->BindVBO(),
+                        dstBuffer->get_vertex_buffer(),
                         dstDesc,
-                        duBuffer->BindVBO(),
+                        duBuffer->get_vertex_buffer(),
                         duDesc,
-                        dvBuffer->BindVBO(),
+                        dvBuffer->get_vertex_buffer(),
                         dvDesc,
                         stencilTable->GetSizesBuffer(),
                         stencilTable->GetOffsetsBuffer(),
@@ -511,43 +512,43 @@ class GLComputeEvaluator {
   /// \brief Generic stencil function.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the dstBuffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
   ///
   /// @param duuBuffer      Output buffer 2nd derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duuDesc        vertex buffer descriptor for the duuBuffer
   ///
   /// @param duvBuffer      Output buffer 2nd derivative wrt u and v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duvDesc        vertex buffer descriptor for the duvBuffer
   ///
   /// @param dvvBuffer      Output buffer 2nd derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvvDesc        vertex buffer descriptor for the dvvBuffer
@@ -572,19 +573,19 @@ class GLComputeEvaluator {
                     OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
                     STENCIL_TABLE const *stencilTable) const
   {
-    return EvalStencils(srcBuffer->BindVBO(),
+    return EvalStencils(srcBuffer->get_vertex_buffer(),
                         srcDesc,
-                        dstBuffer->BindVBO(),
+                        dstBuffer->get_vertex_buffer(),
                         dstDesc,
-                        duBuffer->BindVBO(),
+                        duBuffer->get_vertex_buffer(),
                         duDesc,
-                        dvBuffer->BindVBO(),
+                        dvBuffer->get_vertex_buffer(),
                         dvDesc,
-                        duuBuffer->BindVBO(),
+                        duuBuffer->get_vertex_buffer(),
                         duuDesc,
-                        duvBuffer->BindVBO(),
+                        duvBuffer->get_vertex_buffer(),
                         duvDesc,
-                        dvvBuffer->BindVBO(),
+                        dvvBuffer->get_vertex_buffer(),
                         dvvDesc,
                         stencilTable->GetSizesBuffer(),
                         stencilTable->GetOffsetsBuffer(),
@@ -634,20 +635,20 @@ class GLComputeEvaluator {
   ///
   /// @param end              end index of stencil table
   ///
-  bool EvalStencils(GLuint srcBuffer,
+  bool EvalStencils(gpu::VertBuf *srcBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &srcDesc,
-                    GLuint dstBuffer,
+                    gpu::VertBuf *dstBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
-                    GLuint duBuffer,
+                    gpu::VertBuf *duBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &duDesc,
-                    GLuint dvBuffer,
+                    gpu::VertBuf *dvBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
-                    GLuint sizesBuffer,
-                    GLuint offsetsBuffer,
-                    GLuint indicesBuffer,
-                    GLuint weightsBuffer,
-                    GLuint duWeightsBuffer,
-                    GLuint dvWeightsBuffer,
+                    GPUStorageBuf *sizesBuffer,
+                    GPUStorageBuf *offsetsBuffer,
+                    GPUStorageBuf *indicesBuffer,
+                    GPUStorageBuf *weightsBuffer,
+                    GPUStorageBuf *duWeightsBuffer,
+                    GPUStorageBuf *dvWeightsBuffer,
                     int start,
                     int end) const;
 
@@ -704,29 +705,29 @@ class GLComputeEvaluator {
   ///
   /// @param end              end index of stencil table
   ///
-  bool EvalStencils(GLuint srcBuffer,
+  bool EvalStencils(gpu::VertBuf *srcBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &srcDesc,
-                    GLuint dstBuffer,
+                    gpu::VertBuf *dstBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
-                    GLuint duBuffer,
+                    gpu::VertBuf *duBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &duDesc,
-                    GLuint dvBuffer,
+                    gpu::VertBuf *dvBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
-                    GLuint duuBuffer,
+                    gpu::VertBuf *duuBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &duuDesc,
-                    GLuint duvBuffer,
+                    gpu::VertBuf *duvBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &duvDesc,
-                    GLuint dvvBuffer,
+                    gpu::VertBuf *dvvBuffer,
                     OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
-                    GLuint sizesBuffer,
-                    GLuint offsetsBuffer,
-                    GLuint indicesBuffer,
-                    GLuint weightsBuffer,
-                    GLuint duWeightsBuffer,
-                    GLuint dvWeightsBuffer,
-                    GLuint duuWeightsBuffer,
-                    GLuint duvWeightsBuffer,
-                    GLuint dvvWeightsBuffer,
+                    GPUStorageBuf *sizesBuffer,
+                    GPUStorageBuf *offsetsBuffer,
+                    GPUStorageBuf *indicesBuffer,
+                    GPUStorageBuf *weightsBuffer,
+                    GPUStorageBuf *duWeightsBuffer,
+                    GPUStorageBuf *dvWeightsBuffer,
+                    GPUStorageBuf *duuWeightsBuffer,
+                    GPUStorageBuf *duvWeightsBuffer,
+                    GPUStorageBuf *dvvWeightsBuffer,
                     int start,
                     int end) const;
 
@@ -741,13 +742,13 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
@@ -779,7 +780,7 @@ class GLComputeEvaluator {
                           int numPatchCoords,
                           PATCHCOORD_BUFFER *patchCoords,
                           PATCH_TABLE *patchTable,
-                          GLComputeEvaluator const *instance,
+                          GPUComputeEvaluator *instance,
                           void *deviceContext = nullptr)
   {
 
@@ -807,25 +808,25 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
@@ -861,7 +862,7 @@ class GLComputeEvaluator {
                           int numPatchCoords,
                           PATCHCOORD_BUFFER *patchCoords,
                           PATCH_TABLE *patchTable,
-                          GLComputeEvaluator const *instance,
+                          GPUComputeEvaluator *instance,
                           void *deviceContext = nullptr)
   {
     if (instance) {
@@ -904,43 +905,43 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
   ///
   /// @param duuBuffer      Output buffer 2nd derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duuDesc        vertex buffer descriptor for the duuBuffer
   ///
   /// @param duvBuffer      Output buffer 2nd derivative wrt u and v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duvDesc        vertex buffer descriptor for the duvBuffer
   ///
   /// @param dvvBuffer      Output buffer 2nd derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvvDesc        vertex buffer descriptor for the dvvBuffer
@@ -982,7 +983,7 @@ class GLComputeEvaluator {
                           int numPatchCoords,
                           PATCHCOORD_BUFFER *patchCoords,
                           PATCH_TABLE *patchTable,
-                          GLComputeEvaluator const *instance,
+                          GPUComputeEvaluator *instance,
                           void *deviceContext = nullptr)
   {
     if (instance) {
@@ -1037,13 +1038,13 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
@@ -1066,19 +1067,19 @@ class GLComputeEvaluator {
                    OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
                    int numPatchCoords,
                    PATCHCOORD_BUFFER *patchCoords,
-                   PATCH_TABLE *patchTable) const
+                   PATCH_TABLE *patchTable)
   {
 
-    return EvalPatches(srcBuffer->BindVBO(),
+    return EvalPatches(srcBuffer->get_vertex_buffer(),
                        srcDesc,
-                       dstBuffer->BindVBO(),
+                       dstBuffer->get_vertex_buffer(),
                        dstDesc,
-                       0,
+                       nullptr,
                        OpenSubdiv::Osd::BufferDescriptor(),
-                       0,
+                       nullptr,
                        OpenSubdiv::Osd::BufferDescriptor(),
                        numPatchCoords,
-                       patchCoords->BindVBO(),
+                       patchCoords->get_vertex_buffer(),
                        patchTable->GetPatchArrays(),
                        patchTable->GetPatchIndexBuffer(),
                        patchTable->GetPatchParamBuffer());
@@ -1089,25 +1090,25 @@ class GLComputeEvaluator {
   ///        called in the same way.
   ///
   /// @param srcBuffer        Input primvar buffer.
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of source data
   ///
   /// @param srcDesc          vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer        Output primvar buffer
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of destination data
   ///
   /// @param dstDesc          vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer         Output buffer derivative wrt u
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of destination data
   ///
   /// @param duDesc           vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer         Output buffer derivative wrt v
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of destination data
   ///
   /// @param dvDesc           vertex buffer descriptor for the dvBuffer
@@ -1132,19 +1133,19 @@ class GLComputeEvaluator {
                    OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
                    int numPatchCoords,
                    PATCHCOORD_BUFFER *patchCoords,
-                   PATCH_TABLE *patchTable) const
+                   PATCH_TABLE *patchTable)
   {
 
-    return EvalPatches(srcBuffer->BindVBO(),
+    return EvalPatches(srcBuffer->get_vertex_buffer(),
                        srcDesc,
-                       dstBuffer->BindVBO(),
+                       dstBuffer->get_vertex_buffer(),
                        dstDesc,
-                       duBuffer->BindVBO(),
+                       duBuffer->get_vertex_buffer(),
                        duDesc,
-                       dvBuffer->BindVBO(),
+                       dvBuffer->get_vertex_buffer(),
                        dvDesc,
                        numPatchCoords,
-                       patchCoords->BindVBO(),
+                       patchCoords->get_vertex_buffer(),
                        patchTable->GetPatchArrays(),
                        patchTable->GetPatchIndexBuffer(),
                        patchTable->GetPatchParamBuffer());
@@ -1155,43 +1156,43 @@ class GLComputeEvaluator {
   ///        called in the same way.
   ///
   /// @param srcBuffer        Input primvar buffer.
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of source data
   ///
   /// @param srcDesc          vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer        Output primvar buffer
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of destination data
   ///
   /// @param dstDesc          vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer         Output buffer derivative wrt u
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of destination data
   ///
   /// @param duDesc           vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer         Output buffer derivative wrt v
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of destination data
   ///
   /// @param dvDesc           vertex buffer descriptor for the dvBuffer
   ///
   /// @param duuBuffer        Output buffer 2nd derivative wrt u
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of destination data
   ///
   /// @param duuDesc          vertex buffer descriptor for the duuBuffer
   ///
   /// @param duvBuffer        Output buffer 2nd derivative wrt u and v
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of destination data
   ///
   /// @param duvDesc          vertex buffer descriptor for the duvBuffer
   ///
   /// @param dvvBuffer        Output buffer 2nd derivative wrt v
-  ///                         must have BindVBO() method returning a GL
+  ///                         Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                         buffer object of destination data
   ///
   /// @param dvvDesc          vertex buffer descriptor for the dvvBuffer
@@ -1222,76 +1223,76 @@ class GLComputeEvaluator {
                    OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
                    int numPatchCoords,
                    PATCHCOORD_BUFFER *patchCoords,
-                   PATCH_TABLE *patchTable) const
+                   PATCH_TABLE *patchTable)
   {
 
-    return EvalPatches(srcBuffer->BindVBO(),
+    return EvalPatches(srcBuffer->get_vertex_buffer(),
                        srcDesc,
-                       dstBuffer->BindVBO(),
+                       dstBuffer->get_vertex_buffer(),
                        dstDesc,
-                       duBuffer->BindVBO(),
+                       duBuffer->get_vertex_buffer(),
                        duDesc,
-                       dvBuffer->BindVBO(),
+                       dvBuffer->get_vertex_buffer(),
                        dvDesc,
-                       duuBuffer->BindVBO(),
+                       duuBuffer->get_vertex_buffer(),
                        duuDesc,
-                       duvBuffer->BindVBO(),
+                       duvBuffer->get_vertex_buffer(),
                        duvDesc,
-                       dvvBuffer->BindVBO(),
+                       dvvBuffer->get_vertex_buffer(),
                        dvvDesc,
                        numPatchCoords,
-                       patchCoords->BindVBO(),
+                       patchCoords->get_vertex_buffer(),
                        patchTable->GetPatchArrays(),
                        patchTable->GetPatchIndexBuffer(),
                        patchTable->GetPatchParamBuffer());
   }
 
-  bool EvalPatches(GLuint srcBuffer,
+  bool EvalPatches(gpu::VertBuf *srcBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &srcDesc,
-                   GLuint dstBuffer,
+                   gpu::VertBuf *dstBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
-                   GLuint duBuffer,
+                   gpu::VertBuf *duBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &duDesc,
-                   GLuint dvBuffer,
+                   gpu::VertBuf *dvBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
                    int numPatchCoords,
-                   GLuint patchCoordsBuffer,
+                   gpu::VertBuf *patchCoordsBuffer,
                    const OpenSubdiv::Osd::PatchArrayVector &patchArrays,
-                   GLuint patchIndexBuffer,
-                   GLuint patchParamsBuffer) const;
+                   GPUStorageBuf *patchIndexBuffer,
+                   GPUStorageBuf *patchParamsBuffer);
 
-  bool EvalPatches(GLuint srcBuffer,
+  bool EvalPatches(gpu::VertBuf *srcBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &srcDesc,
-                   GLuint dstBuffer,
+                   gpu::VertBuf *dstBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
-                   GLuint duBuffer,
+                   gpu::VertBuf *duBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &duDesc,
-                   GLuint dvBuffer,
+                   gpu::VertBuf *dvBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
-                   GLuint duuBuffer,
+                   gpu::VertBuf *duuBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &duuDesc,
-                   GLuint duvBuffer,
+                   gpu::VertBuf *duvBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &duvDesc,
-                   GLuint dvvBuffer,
+                   gpu::VertBuf *dvvBuffer,
                    OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
                    int numPatchCoords,
-                   GLuint patchCoordsBuffer,
+                   gpu::VertBuf *patchCoordsBuffer,
                    const OpenSubdiv::Osd::PatchArrayVector &patchArrays,
-                   GLuint patchIndexBuffer,
-                   GLuint patchParamsBuffer) const;
+                   GPUStorageBuf *patchIndexBuffer,
+                   GPUStorageBuf *patchParamsBuffer);
 
   /// \brief Generic limit eval function. This function has a same
   ///        signature as other device kernels have so that it can be called
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
@@ -1323,7 +1324,7 @@ class GLComputeEvaluator {
                                  int numPatchCoords,
                                  PATCHCOORD_BUFFER *patchCoords,
                                  PATCH_TABLE *patchTable,
-                                 GLComputeEvaluator const *instance,
+                                 GPUComputeEvaluator *instance,
                                  void *deviceContext = nullptr)
   {
     if (instance) {
@@ -1351,13 +1352,13 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
@@ -1380,19 +1381,19 @@ class GLComputeEvaluator {
                           OpenSubdiv::Osd::BufferDescriptor const &dstDesc,
                           int numPatchCoords,
                           PATCHCOORD_BUFFER *patchCoords,
-                          PATCH_TABLE *patchTable) const
+                          PATCH_TABLE *patchTable)
   {
 
-    return EvalPatches(srcBuffer->BindVBO(),
+    return EvalPatches(srcBuffer->get_vertex_buffer(),
                        srcDesc,
-                       dstBuffer->BindVBO(),
+                       dstBuffer->get_vertex_buffer(),
                        dstDesc,
-                       0,
+                       nullptr,
                        OpenSubdiv::Osd::BufferDescriptor(),
-                       0,
+                       nullptr,
                        OpenSubdiv::Osd::BufferDescriptor(),
                        numPatchCoords,
-                       patchCoords->BindVBO(),
+                       patchCoords->get_vertex_buffer(),
                        patchTable->GetVaryingPatchArrays(),
                        patchTable->GetVaryingPatchIndexBuffer(),
                        patchTable->GetPatchParamBuffer());
@@ -1403,25 +1404,25 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
@@ -1457,7 +1458,7 @@ class GLComputeEvaluator {
                                  int numPatchCoords,
                                  PATCHCOORD_BUFFER *patchCoords,
                                  PATCH_TABLE *patchTable,
-                                 GLComputeEvaluator const *instance,
+                                 GPUComputeEvaluator *instance,
                                  void *deviceContext = nullptr)
   {
     if (instance) {
@@ -1500,25 +1501,25 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
@@ -1545,19 +1546,19 @@ class GLComputeEvaluator {
                           OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
                           int numPatchCoords,
                           PATCHCOORD_BUFFER *patchCoords,
-                          PATCH_TABLE *patchTable) const
+                          PATCH_TABLE *patchTable)
   {
 
-    return EvalPatches(srcBuffer->BindVBO(),
+    return EvalPatches(srcBuffer->get_vertex_buffer(),
                        srcDesc,
-                       dstBuffer->BindVBO(),
+                       dstBuffer->get_vertex_buffer(),
                        dstDesc,
-                       duBuffer->BindVBO(),
+                       duBuffer->get_vertex_buffer(),
                        duDesc,
-                       dvBuffer->BindVBO(),
+                       dvBuffer->get_vertex_buffer(),
                        dvDesc,
                        numPatchCoords,
-                       patchCoords->BindVBO(),
+                       patchCoords->get_vertex_buffer(),
                        patchTable->GetVaryingPatchArrays(),
                        patchTable->GetVaryingPatchIndexBuffer(),
                        patchTable->GetPatchParamBuffer());
@@ -1568,43 +1569,43 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
   ///
   /// @param duuBuffer      Output buffer 2nd derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duuDesc        vertex buffer descriptor for the duuBuffer
   ///
   /// @param duvBuffer      Output buffer 2nd derivative wrt u and v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duvDesc        vertex buffer descriptor for the duvBuffer
   ///
   /// @param dvvBuffer      Output buffer 2nd derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvvDesc        vertex buffer descriptor for the dvvBuffer
@@ -1646,7 +1647,7 @@ class GLComputeEvaluator {
                                  int numPatchCoords,
                                  PATCHCOORD_BUFFER *patchCoords,
                                  PATCH_TABLE *patchTable,
-                                 GLComputeEvaluator const *instance,
+                                 GPUComputeEvaluator *instance,
                                  void *deviceContext = nullptr)
   {
     if (instance) {
@@ -1701,43 +1702,43 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
   ///
   /// @param duuBuffer      Output buffer 2nd derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duuDesc        vertex buffer descriptor for the duuBuffer
   ///
   /// @param duvBuffer      Output buffer 2nd derivative wrt u and v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duvDesc        vertex buffer descriptor for the duvBuffer
   ///
   /// @param dvvBuffer      Output buffer 2nd derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvvDesc        vertex buffer descriptor for the dvvBuffer
@@ -1770,25 +1771,25 @@ class GLComputeEvaluator {
                           OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
                           int numPatchCoords,
                           PATCHCOORD_BUFFER *patchCoords,
-                          PATCH_TABLE *patchTable) const
+                          PATCH_TABLE *patchTable)
   {
 
-    return EvalPatches(srcBuffer->BindVBO(),
+    return EvalPatches(srcBuffer->get_vertex_buffer(),
                        srcDesc,
-                       dstBuffer->BindVBO(),
+                       dstBuffer->get_vertex_buffer(),
                        dstDesc,
-                       duBuffer->BindVBO(),
+                       duBuffer->get_vertex_buffer(),
                        duDesc,
-                       dvBuffer->BindVBO(),
+                       dvBuffer->get_vertex_buffer(),
                        dvDesc,
-                       duuBuffer->BindVBO(),
+                       duuBuffer->get_vertex_buffer(),
                        duuDesc,
-                       duvBuffer->BindVBO(),
+                       duvBuffer->get_vertex_buffer(),
                        duvDesc,
-                       dvvBuffer->BindVBO(),
+                       dvvBuffer->get_vertex_buffer(),
                        dvvDesc,
                        numPatchCoords,
-                       patchCoords->BindVBO(),
+                       patchCoords->get_vertex_buffer(),
                        patchTable->GetVaryingPatchArrays(),
                        patchTable->GetVaryingPatchIndexBuffer(),
                        patchTable->GetPatchParamBuffer());
@@ -1799,13 +1800,13 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
@@ -1840,7 +1841,7 @@ class GLComputeEvaluator {
                                      PATCHCOORD_BUFFER *patchCoords,
                                      PATCH_TABLE *patchTable,
                                      int fvarChannel,
-                                     GLComputeEvaluator const *instance,
+                                     GPUComputeEvaluator *instance,
                                      void *deviceContext = nullptr)
   {
     if (instance) {
@@ -1880,13 +1881,13 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
@@ -1912,19 +1913,19 @@ class GLComputeEvaluator {
                               int numPatchCoords,
                               PATCHCOORD_BUFFER *patchCoords,
                               PATCH_TABLE *patchTable,
-                              int fvarChannel = 0) const
+                              int fvarChannel = 0)
   {
 
-    return EvalPatches(srcBuffer->BindVBO(),
+    return EvalPatches(srcBuffer->get_vertex_buffer(),
                        srcDesc,
-                       dstBuffer->BindVBO(),
+                       dstBuffer->get_vertex_buffer(),
                        dstDesc,
                        0,
                        OpenSubdiv::Osd::BufferDescriptor(),
                        0,
                        OpenSubdiv::Osd::BufferDescriptor(),
                        numPatchCoords,
-                       patchCoords->BindVBO(),
+                       patchCoords->get_vertex_buffer(),
                        patchTable->GetFVarPatchArrays(fvarChannel),
                        patchTable->GetFVarPatchIndexBuffer(fvarChannel),
                        patchTable->GetFVarPatchParamBuffer(fvarChannel));
@@ -1935,25 +1936,25 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
@@ -1992,7 +1993,7 @@ class GLComputeEvaluator {
                                      PATCHCOORD_BUFFER *patchCoords,
                                      PATCH_TABLE *patchTable,
                                      int fvarChannel,
-                                     GLComputeEvaluator const *instance,
+                                     GPUComputeEvaluator *instance,
                                      void *deviceContext = nullptr)
   {
     if (instance) {
@@ -2037,25 +2038,25 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
@@ -2085,19 +2086,19 @@ class GLComputeEvaluator {
                               int numPatchCoords,
                               PATCHCOORD_BUFFER *patchCoords,
                               PATCH_TABLE *patchTable,
-                              int fvarChannel = 0) const
+                              int fvarChannel = 0)
   {
 
-    return EvalPatches(srcBuffer->BindVBO(),
+    return EvalPatches(srcBuffer->get_vertex_buffer(),
                        srcDesc,
-                       dstBuffer->BindVBO(),
+                       dstBuffer->get_vertex_buffer(),
                        dstDesc,
-                       duBuffer->BindVBO(),
+                       duBuffer->get_vertex_buffer(),
                        duDesc,
-                       dvBuffer->BindVBO(),
+                       dvBuffer->get_vertex_buffer(),
                        dvDesc,
                        numPatchCoords,
-                       patchCoords->BindVBO(),
+                       patchCoords->get_vertex_buffer(),
                        patchTable->GetFVarPatchArrays(fvarChannel),
                        patchTable->GetFVarPatchIndexBuffer(fvarChannel),
                        patchTable->GetFVarPatchParamBuffer(fvarChannel));
@@ -2108,43 +2109,43 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
   ///
   /// @param duuBuffer      Output buffer 2nd derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duuDesc        vertex buffer descriptor for the duuBuffer
   ///
   /// @param duvBuffer      Output buffer 2nd derivative wrt u and v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duvDesc        vertex buffer descriptor for the duvBuffer
   ///
   /// @param dvvBuffer      Output buffer 2nd derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvvDesc        vertex buffer descriptor for the dvvBuffer
@@ -2189,7 +2190,7 @@ class GLComputeEvaluator {
                                      PATCHCOORD_BUFFER *patchCoords,
                                      PATCH_TABLE *patchTable,
                                      int fvarChannel,
-                                     GLComputeEvaluator const *instance,
+                                     GPUComputeEvaluator *instance,
                                      void *deviceContext = nullptr)
   {
     if (instance) {
@@ -2246,43 +2247,43 @@ class GLComputeEvaluator {
   ///        in the same way.
   ///
   /// @param srcBuffer      Input primvar buffer.
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of source data
   ///
   /// @param srcDesc        vertex buffer descriptor for the input buffer
   ///
   /// @param dstBuffer      Output primvar buffer
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dstDesc        vertex buffer descriptor for the output buffer
   ///
   /// @param duBuffer       Output buffer derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duDesc         vertex buffer descriptor for the duBuffer
   ///
   /// @param dvBuffer       Output buffer derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvDesc         vertex buffer descriptor for the dvBuffer
   ///
   /// @param duuBuffer      Output buffer 2nd derivative wrt u
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duuDesc        vertex buffer descriptor for the duuBuffer
   ///
   /// @param duvBuffer      Output buffer 2nd derivative wrt u and v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param duvDesc        vertex buffer descriptor for the duvBuffer
   ///
   /// @param dvvBuffer      Output buffer 2nd derivative wrt v
-  ///                       must have BindVBO() method returning a GL
+  ///                       Must have `get_vertex_buffer()` returning a `gpu::VertBuf`
   ///                       buffer object of destination data
   ///
   /// @param dvvDesc        vertex buffer descriptor for the dvvBuffer
@@ -2318,25 +2319,25 @@ class GLComputeEvaluator {
                               int numPatchCoords,
                               PATCHCOORD_BUFFER *patchCoords,
                               PATCH_TABLE *patchTable,
-                              int fvarChannel = 0) const
+                              int fvarChannel = 0)
   {
 
-    return EvalPatches(srcBuffer->BindVBO(),
+    return EvalPatches(srcBuffer->get_vertex_buffer(),
                        srcDesc,
-                       dstBuffer->BindVBO(),
+                       dstBuffer->get_vertex_buffer(),
                        dstDesc,
-                       duBuffer->BindVBO(),
+                       duBuffer->get_vertex_buffer(),
                        duDesc,
-                       dvBuffer->BindVBO(),
+                       dvBuffer->get_vertex_buffer(),
                        dvDesc,
-                       duuBuffer->BindVBO(),
+                       duuBuffer->get_vertex_buffer(),
                        duuDesc,
-                       duvBuffer->BindVBO(),
+                       duvBuffer->get_vertex_buffer(),
                        duvDesc,
-                       dvvBuffer->BindVBO(),
+                       dvvBuffer->get_vertex_buffer(),
                        dvvDesc,
                        numPatchCoords,
-                       patchCoords->BindVBO(),
+                       patchCoords->get_vertex_buffer(),
                        patchTable->GetFVarPatchArrays(fvarChannel),
                        patchTable->GetFVarPatchIndexBuffer(fvarChannel),
                        patchTable->GetFVarPatchParamBuffer(fvarChannel));
@@ -2374,16 +2375,16 @@ class GLComputeEvaluator {
                  OpenSubdiv::Osd::BufferDescriptor const &duvDesc,
                  OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
                  int workGroupSize);
-    GLuint program;
-    GLuint uniformStart;
-    GLuint uniformEnd;
-    GLuint uniformSrcOffset;
-    GLuint uniformDstOffset;
-    GLuint uniformDuDesc;
-    GLuint uniformDvDesc;
-    GLuint uniformDuuDesc;
-    GLuint uniformDuvDesc;
-    GLuint uniformDvvDesc;
+    GPUShader *shader = nullptr;
+    int uniformStart = 0;
+    int uniformEnd = 0;
+    int uniformSrcOffset = 0;
+    int uniformDstOffset = 0;
+    int uniformDuDesc = 0;
+    int uniformDvDesc = 0;
+    int uniformDuuDesc = 0;
+    int uniformDuvDesc = 0;
+    int uniformDvvDesc = 0;
   } _stencilKernel;
 
   struct _PatchKernel {
@@ -2397,25 +2398,24 @@ class GLComputeEvaluator {
                  OpenSubdiv::Osd::BufferDescriptor const &duvDesc,
                  OpenSubdiv::Osd::BufferDescriptor const &dvvDesc,
                  int workGroupSize);
-    GLuint program;
-    GLuint uniformSrcOffset;
-    GLuint uniformDstOffset;
-    GLuint uniformPatchArray;
-    GLuint uniformDuDesc;
-    GLuint uniformDvDesc;
-    GLuint uniformDuuDesc;
-    GLuint uniformDuvDesc;
-    GLuint uniformDvvDesc;
+    GPUShader *shader = nullptr;
+    int uniformSrcOffset = 0;
+    int uniformDstOffset = 0;
+    int uniformDuDesc = 0;
+    int uniformDvDesc = 0;
+    int uniformDuuDesc = 0;
+    int uniformDuvDesc = 0;
+    int uniformDvvDesc = 0;
   } _patchKernel;
 
   int _workGroupSize;
-  GLuint _patchArraysSSBO;
+  GPUStorageBuf *_patchArraysSSBO = nullptr;
 
   int GetDispatchSize(int count) const;
 
-  void DispatchCompute(int totalDispatchSize) const;
+  void DispatchCompute(GPUShader *shader, int totalDispatchSize) const;
 };
 
 }  // namespace blender::opensubdiv
 
-#endif  // OPENSUBDIV_GL_COMPUTE_EVALUATOR_H_
+#endif  // OPENSUBDIV_GPU_COMPUTE_EVALUATOR_H_

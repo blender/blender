@@ -770,6 +770,10 @@ if(WITH_OPENCOLORIO)
   target_link_libraries(bf_gpu PUBLIC bf_ocio_shaders)
 endif()
 
+if(WITH_OPENSUBDIV)
+  target_link_libraries(bf_gpu PUBLIC bf_osd_shaders)
+endif()
+
 if(WITH_RENDERDOC)
   target_link_libraries(bf_gpu PUBLIC bf_intern_renderdoc_dynload)
 endif()
