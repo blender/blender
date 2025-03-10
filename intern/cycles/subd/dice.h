@@ -19,6 +19,7 @@ CCL_NAMESPACE_BEGIN
 class Camera;
 class Mesh;
 class Patch;
+class SubdAttributeInterpolation;
 class DiagSplit;
 
 struct SubdParams {
@@ -38,6 +39,7 @@ struct SubdParams {
 class EdgeDice {
  public:
   SubdParams params;
+  SubdAttributeInterpolation &interpolation;
   int *mesh_triangles = nullptr;
   int *mesh_shader = nullptr;
   bool *mesh_smooth = nullptr;
@@ -46,7 +48,10 @@ class EdgeDice {
   float *mesh_ptex_face_id = nullptr;
   float2 *mesh_ptex_uv = nullptr;
 
-  explicit EdgeDice(const SubdParams &params, const int num_verts, const int num_triangles);
+  explicit EdgeDice(const SubdParams &params,
+                    const int num_verts,
+                    const int num_triangles,
+                    SubdAttributeInterpolation &interpolation);
 
   void dice(const DiagSplit &split);
 

@@ -8,6 +8,9 @@
 
 #include "util/vector.h"
 
+#include <cstddef>
+#include <functional>
+
 CCL_NAMESPACE_BEGIN
 
 class Mesh;
@@ -15,11 +18,15 @@ class Attribute;
 
 /* Attribute Interpolation. */
 
+struct SubdAttribute {
+  std::function<void(const int, const int, const int, const int *, const float2 *, const int)>
+      interp;
+  vector<char> refined_data;
+};
+
 class SubdAttributeInterpolation {
  protected:
   Mesh &mesh;
-  int num_patches;
-  vector<int> ptex_face_to_base_face;
 
 #ifdef WITH_OPENSUBDIV
   OsdMesh &osd_mesh;
@@ -27,52 +34,44 @@ class SubdAttributeInterpolation {
 #endif
 
  public:
-  SubdAttributeInterpolation(Mesh &mesh,
-#ifdef WITH_OPENSUBDIV
-                             OsdMesh &osd_mesh,
-                             OsdData &osd_data,
-#endif
-                             const int num_patches)
-      : mesh(mesh),
-        num_patches(num_patches)
-#ifdef WITH_OPENSUBDIV
-        ,
-        osd_mesh(osd_mesh),
-        osd_data(osd_data)
-#endif
-  {
-  }
+  vector<SubdAttribute> vertex_attributes;
+  vector<SubdAttribute> triangle_attributes;
 
-  bool support_interp_attribute(const Attribute &attr) const;
-  void interp_attribute(const Attribute &subd_attr, Attribute &mesh_attr);
+#ifdef WITH_OPENSUBDIV
+  SubdAttributeInterpolation(Mesh &mesh, OsdMesh &osd_mesh, OsdData &osd_data);
+#else
+  SubdAttributeInterpolation(Mesh &mesh);
+#endif
+
+  void setup();
 
  protected:
-  /* PTex face id to base mesh face mapping. */
-  const int *get_ptex_face_mapping();
+  bool support_interp_attribute(const Attribute &attr) const;
+  void setup_attribute(const Attribute &subd_attr, Attribute &mesh_attr);
 
   template<typename T>
-  void interp_attribute_vertex_linear(const Attribute &subd_attr,
-                                      Attribute &mesh_attr,
-                                      const int motion_step = 0);
+  void setup_attribute_vertex_linear(const Attribute &subd_attr,
+                                     Attribute &mesh_attr,
+                                     const int motion_step = 0);
+
   template<typename T>
-  void interp_attribute_corner_linear(const Attribute &subd_attr, Attribute &mesh_attr);
+  void setup_attribute_corner_linear(const Attribute &subd_attr, Attribute &mesh_attr);
 
 #ifdef WITH_OPENSUBDIV
   template<typename T>
-  void interp_attribute_vertex_smooth(const Attribute &subd_attr,
-                                      Attribute &mesh_attr,
-                                      const int motion_step = 0);
+  void setup_attribute_vertex_smooth(const Attribute &subd_attr,
+                                     Attribute &mesh_attr,
+                                     const int motion_step = 0);
+
   template<typename T>
-  void interp_attribute_corner_smooth(Attribute &mesh_attr,
-                                      const int channel,
-                                      const vector<char> &merged_values);
+  void setup_attribute_corner_smooth(Attribute &mesh_attr,
+                                     const int channel,
+                                     const vector<char> &merged_values);
 #endif
 
-  template<typename T>
-  void interp_attribute_face(const Attribute &subd_attr, Attribute &mesh_attr);
+  template<typename T> void setup_attribute_face(const Attribute &subd_attr, Attribute &mesh_attr);
 
-  template<typename T>
-  void interp_attribute_type(const Attribute &subd_attr, Attribute &mesh_attr);
+  template<typename T> void setup_attribute_type(const Attribute &subd_attr, Attribute &mesh_attr);
 };
 
 CCL_NAMESPACE_END

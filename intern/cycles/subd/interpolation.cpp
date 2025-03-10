@@ -42,6 +42,37 @@ struct SubdByte {
   }
 };
 
+#ifdef WITH_OPENSUBDIV
+SubdAttributeInterpolation::SubdAttributeInterpolation(Mesh &mesh,
+                                                       OsdMesh &osd_mesh,
+                                                       OsdData &osd_data)
+#else
+SubdAttributeInterpolation::SubdAttributeInterpolation(Mesh &mesh)
+#endif
+    : mesh(mesh)
+#ifdef WITH_OPENSUBDIV
+      ,
+      osd_mesh(osd_mesh),
+      osd_data(osd_data)
+#endif
+{
+}
+
+void SubdAttributeInterpolation::setup()
+{
+  if (mesh.get_num_subd_faces() == 0) {
+    return;
+  }
+
+  for (const Attribute &subd_attr : mesh.subd_attributes.attributes) {
+    if (!support_interp_attribute(subd_attr)) {
+      continue;
+    }
+    Attribute &mesh_attr = mesh.attributes.copy(subd_attr);
+    setup_attribute(subd_attr, mesh_attr);
+  }
+}
+
 bool SubdAttributeInterpolation::support_interp_attribute(const Attribute &attr) const
 {
   // TODO: Recompute UV tangent
@@ -76,69 +107,50 @@ bool SubdAttributeInterpolation::support_interp_attribute(const Attribute &attr)
   return true;
 }
 
-void SubdAttributeInterpolation::interp_attribute(const Attribute &subd_attr, Attribute &mesh_attr)
+void SubdAttributeInterpolation::setup_attribute(const Attribute &subd_attr, Attribute &mesh_attr)
 {
   if (subd_attr.element == ATTR_ELEMENT_CORNER_BYTE) {
-    interp_attribute_type<SubdByte>(subd_attr, mesh_attr);
+    setup_attribute_type<SubdByte>(subd_attr, mesh_attr);
   }
   else if (Attribute::same_storage(subd_attr.type, TypeFloat)) {
-    interp_attribute_type<SubdFloat<float>>(subd_attr, mesh_attr);
+    setup_attribute_type<SubdFloat<float>>(subd_attr, mesh_attr);
   }
   else if (Attribute::same_storage(subd_attr.type, TypeFloat2)) {
-    interp_attribute_type<SubdFloat<float2>>(subd_attr, mesh_attr);
+    setup_attribute_type<SubdFloat<float2>>(subd_attr, mesh_attr);
   }
   else if (Attribute::same_storage(subd_attr.type, TypeVector)) {
-    interp_attribute_type<SubdFloat<float3>>(subd_attr, mesh_attr);
+    setup_attribute_type<SubdFloat<float3>>(subd_attr, mesh_attr);
   }
   else if (Attribute::same_storage(subd_attr.type, TypeFloat4)) {
-    interp_attribute_type<SubdFloat<float4>>(subd_attr, mesh_attr);
+    setup_attribute_type<SubdFloat<float4>>(subd_attr, mesh_attr);
   }
-}
-const int *SubdAttributeInterpolation::get_ptex_face_mapping()
-{
-  if (ptex_face_to_base_face.empty()) {
-    ptex_face_to_base_face.resize(num_patches);
-
-    int *ptex_face_to_base_face_data = ptex_face_to_base_face.data();
-    const size_t num_faces = mesh.get_num_subd_faces();
-    int i = 0;
-
-    for (size_t f = 0; f < num_faces; f++) {
-      Mesh::SubdFace face = mesh.get_subd_face(f);
-      const int num_ptex_faces = (face.is_quad()) ? 1 : face.num_corners;
-      for (int j = 0; j < num_ptex_faces; j++) {
-        ptex_face_to_base_face_data[i++] = f;
-      }
-    }
-  }
-
-  return ptex_face_to_base_face.data();
 }
 
 template<typename T>
-void SubdAttributeInterpolation::interp_attribute_vertex_linear(const Attribute &subd_attr,
-                                                                Attribute &mesh_attr,
-                                                                const int motion_step)
+void SubdAttributeInterpolation::setup_attribute_vertex_linear(const Attribute &subd_attr,
+                                                               Attribute &mesh_attr,
+                                                               const int motion_step)
 {
-  const int *ptex_face_to_base_face_data = get_ptex_face_mapping();
-  const int num_base_verts = mesh.get_num_subd_base_verts();
+  SubdAttribute attr;
 
-  /* Interpolate values at vertices. */
-  const size_t triangles_size = mesh.num_triangles();
-  const int *patch_index = mesh.subd_triangle_patch_index.data();
-  const float2 *patch_uv = mesh.subd_corner_patch_uv.data();
   const typename T::Type *subd_data = reinterpret_cast<const typename T::Type *>(
                                           subd_attr.data()) +
-                                      motion_step * num_base_verts;
+                                      motion_step * mesh.get_num_subd_base_verts();
   typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data()) +
                                 motion_step * mesh.get_verts().size();
-  const int *subd_face_corners = mesh.get_subd_face_corners().data();
 
-  for (size_t i = 0; i < triangles_size; i++) {
-    const int p = patch_index[i];
-    const int f = ptex_face_to_base_face_data[p];
-    Mesh::SubdFace face = mesh.get_subd_face(f);
-    Mesh::Triangle triangle = mesh.get_triangle(i);
+  assert(mesh_data != nullptr);
+
+  attr.interp = [this, subd_data, mesh_data](const int /*patch_index*/,
+                                             const int face_index,
+                                             const int corner,
+                                             const int *vert_index,
+                                             const float2 *vert_uv,
+                                             const int vert_num) {
+    /* Interpolate values at vertices. */
+    const int *subd_face_corners = mesh.get_subd_face_corners().data();
+
+    Mesh::SubdFace face = mesh.get_subd_face(face_index);
 
     if (face.is_quad()) {
       /* Simple case for quads. */
@@ -151,16 +163,15 @@ void SubdAttributeInterpolation::interp_attribute_vertex_linear(const Attribute 
       const typename T::AccumType value3 = T::read(
           subd_data[subd_face_corners[face.start_corner + 3]]);
 
-      for (int j = 0; j < 3; j++) {
-        const float2 uv = patch_uv[(i * 3) + j];
+      for (int i = 0; i < vert_num; i++) {
+        const float2 uv = vert_uv[i];
         const typename T::AccumType value = interp(
             interp(value0, value1, uv.x), interp(value3, value2, uv.x), uv.y);
-        mesh_data[triangle.v[j]] = T::output(value);
+        mesh_data[vert_index[i]] = T::output(value);
       }
     }
     else {
       /* Other n-gons are split into n quads. */
-      const int corner = p - face.ptex_offset;
 
       /* Compute value at center of polygon. */
       typename T::AccumType value_center = T::read(
@@ -170,37 +181,41 @@ void SubdAttributeInterpolation::interp_attribute_vertex_linear(const Attribute 
       }
       value_center /= (float)face.num_corners;
 
-      for (int j = 0; j < 3; j++) {
-        const float2 uv = patch_uv[(i * 3) + j];
+      /* Compute value at corner at adjacent vertices. */
+      const typename T::AccumType value_corner = T::read(
+          subd_data[subd_face_corners[face.start_corner + corner]]);
+      const typename T::AccumType value_prev =
+          0.5f * (value_corner +
+                  T::read(subd_data[subd_face_corners[face.start_corner +
+                                                      mod(corner - 1, face.num_corners)]]));
+      const typename T::AccumType value_next =
+          0.5f * (value_corner +
+                  T::read(subd_data[subd_face_corners[face.start_corner +
+                                                      mod(corner + 1, face.num_corners)]]));
 
-        /* Compute value at corner at adjacent vertices. */
-        const typename T::AccumType value_corner = T::read(
-            subd_data[subd_face_corners[face.start_corner + corner]]);
-        const typename T::AccumType value_prev =
-            0.5f * (value_corner +
-                    T::read(subd_data[subd_face_corners[face.start_corner +
-                                                        mod(corner - 1, face.num_corners)]]));
-        const typename T::AccumType value_next =
-            0.5f * (value_corner +
-                    T::read(subd_data[subd_face_corners[face.start_corner +
-                                                        mod(corner + 1, face.num_corners)]]));
+      for (int i = 0; i < vert_num; i++) {
+        const float2 uv = vert_uv[i];
 
         /* Interpolate. */
         const typename T::AccumType value = interp(
             interp(value_corner, value_next, uv.x), interp(value_prev, value_center, uv.x), uv.y);
 
-        mesh_data[triangle.v[j]] = T::output(value);
+        mesh_data[vert_index[i]] = T::output(value);
       }
     }
-  }
+  };
+
+  vertex_attributes.push_back(std::move(attr));
 }
 
 #ifdef WITH_OPENSUBDIV
 template<typename T>
-void SubdAttributeInterpolation::interp_attribute_vertex_smooth(const Attribute &subd_attr,
-                                                                Attribute &mesh_attr,
-                                                                const int motion_step)
+void SubdAttributeInterpolation::setup_attribute_vertex_smooth(const Attribute &subd_attr,
+                                                               Attribute &mesh_attr,
+                                                               const int motion_step)
 {
+  SubdAttribute attr;
+
   // TODO: Avoid computing derivative weights when not needed
   // TODO: overhead of FindPatch and EvaluateBasis with vertex position
   const int num_refiner_verts = osd_data.refiner->GetNumVerticesTotal();
@@ -208,17 +223,19 @@ void SubdAttributeInterpolation::interp_attribute_vertex_smooth(const Attribute 
   const int num_base_verts = mesh.get_num_subd_base_verts();
 
   /* Refine attribute data to get patch coordinates. */
-  array<typename T::AccumType> refined_array(num_refiner_verts + num_local_points);
+  attr.refined_data.resize((num_refiner_verts + num_local_points) * sizeof(typename T::AccumType));
+  typename T::AccumType *subd_data = reinterpret_cast<typename T::AccumType *>(
+      attr.refined_data.data());
 
   const typename T::Type *base_src = reinterpret_cast<const typename T::Type *>(subd_attr.data()) +
                                      num_base_verts * motion_step;
-  typename T::AccumType *base_dst = refined_array.data();
+  typename T::AccumType *base_dst = subd_data;
   for (int i = 0; i < num_base_verts; i++) {
     base_dst[i] = T::read(base_src[i]);
   }
 
   Far::PrimvarRefiner primvar_refiner(*osd_data.refiner);
-  typename T::AccumType *src = refined_array.data();
+  typename T::AccumType *src = subd_data;
   for (int i = 0; i < osd_data.refiner->GetMaxLevel(); i++) {
     typename T::AccumType *dest = src + osd_data.refiner->GetLevel(i).GetNumVertices();
     primvar_refiner.Interpolate(
@@ -228,17 +245,15 @@ void SubdAttributeInterpolation::interp_attribute_vertex_smooth(const Attribute 
 
   if (num_local_points) {
     osd_data.patch_table->ComputeLocalPointValues(
-        (OsdValue<typename T::AccumType> *)refined_array.data(),
-        (OsdValue<typename T::AccumType> *)(refined_array.data() + num_refiner_verts));
+        (OsdValue<typename T::AccumType> *)subd_data,
+        (OsdValue<typename T::AccumType> *)(subd_data + num_refiner_verts));
   }
 
   /* Evaluate patches at limit. */
-  const size_t triangles_size = mesh.num_triangles();
-  const int *patch_index = mesh.subd_triangle_patch_index.data();
-  const float2 *patch_uv = mesh.subd_corner_patch_uv.data();
-  const typename T::AccumType *subd_data = refined_array.data();
   typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data()) +
                                 mesh.get_verts().size() * motion_step;
+
+  assert(mesh_data != nullptr);
 
   /* Compute motion normals alongside positions. */
   float3 *mesh_normal_data = nullptr;
@@ -249,15 +264,18 @@ void SubdAttributeInterpolation::interp_attribute_vertex_smooth(const Attribute 
     }
   }
 
-  for (size_t i = 0; i < triangles_size; i++) {
-    const int p = patch_index[i];
-    Mesh::Triangle triangle = mesh.get_triangle(i);
-
-    for (int j = 0; j < 3; j++) {
+  attr.interp = [this, subd_data, mesh_data, mesh_normal_data](const int patch_index,
+                                                               const int /*face_index*/,
+                                                               const int /*corner*/,
+                                                               const int *vert_index,
+                                                               const float2 *vert_uv,
+                                                               const int vert_num) {
+    for (int i = 0; i < vert_num; i++) {
       /* Compute patch weights. */
-      const float2 uv = patch_uv[(i * 3) + j];
+      const float2 uv = vert_uv[i];
+
       const Far::PatchTable::PatchHandle &handle = *osd_data.patch_map->FindPatch(
-          p, (double)uv.x, (double)uv.y);
+          patch_index, (double)uv.x, (double)uv.y);
 
       float p_weights[20], du_weights[20], dv_weights[20];
       osd_data.patch_table->EvaluateBasis(handle, uv.x, uv.y, p_weights, du_weights, dv_weights);
@@ -268,11 +286,11 @@ void SubdAttributeInterpolation::interp_attribute_vertex_smooth(const Attribute 
       for (int k = 1; k < cv.size(); k++) {
         value += subd_data[cv[k]] * p_weights[k];
       }
-      mesh_data[triangle.v[j]] = T::output(value);
+      mesh_data[vert_index[i]] = T::output(value);
 
       /* Optionally compute normal. */
-      if constexpr (std::is_same_v<typename T::Type, float3>) {
-        if (mesh_normal_data) {
+      if (mesh_normal_data) {
+        if constexpr (std::is_same_v<typename T::Type, float3>) {
           float3 du = zero_float3();
           float3 dv = zero_float3();
           for (int k = 0; k < cv.size(); k++) {
@@ -280,32 +298,37 @@ void SubdAttributeInterpolation::interp_attribute_vertex_smooth(const Attribute 
             du += p * du_weights[k];
             dv += p * dv_weights[k];
           }
-          mesh_normal_data[triangle.v[j]] = safe_normalize_fallback(cross(du, dv),
+          mesh_normal_data[vert_index[i]] = safe_normalize_fallback(cross(du, dv),
                                                                     make_float3(0.0f, 0.0f, 1.0f));
         }
       }
     }
-  }
+  };
+
+  vertex_attributes.push_back(std::move(attr));
 }
+
 #endif
 
 template<typename T>
-void SubdAttributeInterpolation::interp_attribute_corner_linear(const Attribute &subd_attr,
-                                                                Attribute &mesh_attr)
+void SubdAttributeInterpolation::setup_attribute_corner_linear(const Attribute &subd_attr,
+                                                               Attribute &mesh_attr)
 {
-  const int *ptex_face_to_base_face_data = get_ptex_face_mapping();
+  SubdAttribute attr;
 
   /* Interpolate values at corners. */
-  const size_t triangles_size = mesh.num_triangles();
-  const int *patch_index = mesh.subd_triangle_patch_index.data();
-  const float2 *patch_uv = mesh.subd_corner_patch_uv.data();
   const typename T::Type *subd_data = reinterpret_cast<const typename T::Type *>(subd_attr.data());
   typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data());
 
-  for (size_t i = 0; i < triangles_size; i++) {
-    const int p = patch_index[i];
-    const int f = ptex_face_to_base_face_data[p];
-    Mesh::SubdFace face = mesh.get_subd_face(f);
+  assert(mesh_data != nullptr);
+
+  attr.interp = [this, subd_data, mesh_data](const int /*patch_index*/,
+                                             const int face_index,
+                                             const int corner,
+                                             const int *triangle_index,
+                                             const float2 *triangle_uv,
+                                             const int triangle_num) {
+    Mesh::SubdFace face = mesh.get_subd_face(face_index);
 
     if (face.is_quad()) {
       /* Simple case for quads. */
@@ -314,16 +337,17 @@ void SubdAttributeInterpolation::interp_attribute_corner_linear(const Attribute 
       const typename T::AccumType value2 = T::read(subd_data[face.start_corner + 2]);
       const typename T::AccumType value3 = T::read(subd_data[face.start_corner + 3]);
 
-      for (int j = 0; j < 3; j++) {
-        const float2 uv = patch_uv[(i * 3) + j];
-        const typename T::AccumType value = interp(
-            interp(value0, value1, uv.x), interp(value3, value2, uv.x), uv.y);
-        mesh_data[(i * 3) + j] = T::output(value);
+      for (size_t i = 0; i < triangle_num; i++) {
+        for (int j = 0; j < 3; j++) {
+          const float2 uv = triangle_uv[(i * 3) + j];
+          const typename T::AccumType value = interp(
+              interp(value0, value1, uv.x), interp(value3, value2, uv.x), uv.y);
+          mesh_data[triangle_index[i] * 3 + j] = T::output(value);
+        }
       }
     }
     else {
       /* Other n-gons are split into n quads. */
-      const int corner = p - face.ptex_offset;
 
       /* Compute value at center of polygon. */
       typename T::AccumType value_center = T::read(subd_data[face.start_corner]);
@@ -331,51 +355,60 @@ void SubdAttributeInterpolation::interp_attribute_corner_linear(const Attribute 
         value_center += T::read(subd_data[face.start_corner + j]);
       }
 
-      for (int j = 0; j < 3; j++) {
-        const float2 uv = patch_uv[(i * 3) + j];
+      /* Compute value at corner at adjacent vertices. */
+      const typename T::AccumType value_corner = T::read(subd_data[face.start_corner + corner]);
+      const typename T::AccumType value_prev =
+          0.5f * (value_corner +
+                  T::read(subd_data[face.start_corner + mod(corner - 1, face.num_corners)]));
+      const typename T::AccumType value_next =
+          0.5f * (value_corner +
+                  T::read(subd_data[face.start_corner + mod(corner + 1, face.num_corners)]));
 
-        /* Compute value at corner at adjacent vertices. */
-        const typename T::AccumType value_corner = T::read(subd_data[face.start_corner + corner]);
-        const typename T::AccumType value_prev =
-            0.5f * (value_corner +
-                    T::read(subd_data[face.start_corner + mod(corner - 1, face.num_corners)]));
-        const typename T::AccumType value_next =
-            0.5f * (value_corner +
-                    T::read(subd_data[face.start_corner + mod(corner + 1, face.num_corners)]));
+      for (size_t i = 0; i < triangle_num; i++) {
+        for (int j = 0; j < 3; j++) {
+          const float2 uv = triangle_uv[(i * 3) + j];
 
-        /* Interpolate. */
-        const typename T::AccumType value = interp(
-            interp(value_corner, value_next, uv.x), interp(value_prev, value_center, uv.x), uv.y);
+          /* Interpolate. */
+          const typename T::AccumType value = interp(interp(value_corner, value_next, uv.x),
+                                                     interp(value_prev, value_center, uv.x),
+                                                     uv.y);
 
-        mesh_data[(i * 3) + j] = T::output(value);
+          mesh_data[triangle_index[i] * 3 + j] = T::output(value);
+        }
       }
     }
-  }
+  };
+
+  triangle_attributes.push_back(std::move(attr));
 }
 
 #ifdef WITH_OPENSUBDIV
 template<typename T>
-void SubdAttributeInterpolation::interp_attribute_corner_smooth(Attribute &mesh_attr,
-                                                                const int channel,
-                                                                const vector<char> &merged_values)
+void SubdAttributeInterpolation::setup_attribute_corner_smooth(Attribute &mesh_attr,
+                                                               const int channel,
+                                                               const vector<char> &merged_values)
 {
+  SubdAttribute attr;
+
   // TODO: Avoid computing derivative weights when not needed
   const int num_refiner_fvars = osd_data.refiner->GetNumFVarValuesTotal(channel);
   const int num_local_points = osd_data.patch_table->GetNumLocalPointsFaceVarying(channel);
   const int num_base_fvars = osd_data.refiner->GetLevel(0).GetNumFVarValues(channel);
 
   /* Refine attribute data to get patch coordinates. */
-  array<typename T::AccumType> refined_array(num_refiner_fvars + num_local_points);
+  attr.refined_data.resize((num_refiner_fvars + num_local_points) * sizeof(typename T::AccumType));
+  typename T::AccumType *refined_data = reinterpret_cast<typename T::AccumType *>(
+      attr.refined_data.data());
 
   const typename T::Type *base_src = reinterpret_cast<const typename T::Type *>(
       merged_values.data());
-  typename T::AccumType *base_dst = refined_array.data();
+  typename T::AccumType *base_dst = refined_data;
   for (int i = 0; i < num_base_fvars; i++) {
     base_dst[i] = T::read(base_src[i]);
   }
 
   Far::PrimvarRefiner primvar_refiner(*osd_data.refiner);
-  typename T::AccumType *src = refined_array.data();
+  typename T::AccumType *src = refined_data;
   for (int i = 0; i < osd_data.refiner->GetMaxLevel(); i++) {
     typename T::AccumType *dest = src + osd_data.refiner->GetLevel(i).GetNumFVarValues(channel);
     primvar_refiner.InterpolateFaceVarying(i + 1,
@@ -387,73 +420,85 @@ void SubdAttributeInterpolation::interp_attribute_corner_smooth(Attribute &mesh_
 
   if (num_local_points) {
     osd_data.patch_table->ComputeLocalPointValuesFaceVarying(
-        (OsdValue<typename T::AccumType> *)refined_array.data(),
-        (OsdValue<typename T::AccumType> *)(refined_array.data() + num_refiner_fvars),
+        (OsdValue<typename T::AccumType> *)refined_data,
+        (OsdValue<typename T::AccumType> *)(refined_data + num_refiner_fvars),
         channel);
   }
 
   /* Evaluate patches at limit. */
-  const size_t triangles_size = mesh.num_triangles();
-  const int *patch_index = mesh.subd_triangle_patch_index.data();
-  const float2 *patch_uv = mesh.subd_corner_patch_uv.data();
-  const typename T::AccumType *subd_data = refined_array.data();
+  const typename T::AccumType *subd_data = refined_data;
   typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data());
 
-  for (size_t i = 0; i < triangles_size; i++) {
-    const int p = patch_index[i];
+  assert(mesh_data != nullptr);
 
-    for (int j = 0; j < 3; j++) {
-      /* Compute patch weights. */
-      const float2 uv = patch_uv[(i * 3) + j];
-      const Far::PatchTable::PatchHandle &handle = *osd_data.patch_map->FindPatch(
-          p, (double)uv.x, (double)uv.y);
+  attr.interp = [this, subd_data, mesh_data, channel](const int patch_index,
+                                                      const int /*face_index*/,
+                                                      const int /*corner*/,
+                                                      const int *triangle_index,
+                                                      const float2 *triangle_uv,
+                                                      const int triangle_num) {
+    for (size_t i = 0; i < triangle_num; i++) {
+      for (int j = 0; j < 3; j++) {
+        /* Compute patch weights. */
+        const float2 uv = triangle_uv[(i * 3) + j];
+        const Far::PatchTable::PatchHandle &handle = *osd_data.patch_map->FindPatch(
+            patch_index, (double)uv.x, (double)uv.y);
 
-      float p_weights[20], du_weights[20], dv_weights[20];
-      osd_data.patch_table->EvaluateBasisFaceVarying(handle,
-                                                     uv.x,
-                                                     uv.y,
-                                                     p_weights,
-                                                     du_weights,
-                                                     dv_weights,
-                                                     nullptr,
-                                                     nullptr,
-                                                     nullptr,
-                                                     channel);
-      Far::ConstIndexArray cv = osd_data.patch_table->GetPatchFVarValues(handle, channel);
+        float p_weights[20], du_weights[20], dv_weights[20];
+        osd_data.patch_table->EvaluateBasisFaceVarying(handle,
+                                                       uv.x,
+                                                       uv.y,
+                                                       p_weights,
+                                                       du_weights,
+                                                       dv_weights,
+                                                       nullptr,
+                                                       nullptr,
+                                                       nullptr,
+                                                       channel);
+        Far::ConstIndexArray cv = osd_data.patch_table->GetPatchFVarValues(handle, channel);
 
-      /* Compution position. */
-      typename T::AccumType value = subd_data[cv[0]] * p_weights[0];
-      for (int k = 1; k < cv.size(); k++) {
-        value += subd_data[cv[k]] * p_weights[k];
+        /* Compution position. */
+        typename T::AccumType value = subd_data[cv[0]] * p_weights[0];
+        for (int k = 1; k < cv.size(); k++) {
+          value += subd_data[cv[k]] * p_weights[k];
+        }
+        mesh_data[triangle_index[i] * 3 + j] = T::output(value);
       }
-      mesh_data[(i * 3) + j] = T::output(value);
     }
-  }
+  };
+
+  triangle_attributes.push_back(std::move(attr));
 }
 #endif
 
 template<typename T>
-void SubdAttributeInterpolation::interp_attribute_face(const Attribute &subd_attr,
-                                                       Attribute &mesh_attr)
+void SubdAttributeInterpolation::setup_attribute_face(const Attribute &subd_attr,
+                                                      Attribute &mesh_attr)
 {
-  const int *ptex_face_to_base_face_data = get_ptex_face_mapping();
-
-  /* Interpolate values at corners. */
-  const size_t triangles_size = mesh.num_triangles();
-  const int *patch_index = mesh.subd_triangle_patch_index.data();
+  /* Copy value from face to triangle .*/
+  SubdAttribute attr;
   const typename T::Type *subd_data = reinterpret_cast<const typename T::Type *>(subd_attr.data());
   typename T::Type *mesh_data = reinterpret_cast<typename T::Type *>(mesh_attr.data());
 
-  for (size_t i = 0; i < triangles_size; i++) {
-    const int p = patch_index[i];
-    const int f = ptex_face_to_base_face_data[p];
-    mesh_data[i] = subd_data[f];
-  }
+  assert(mesh_data != nullptr);
+
+  attr.interp = [subd_data, mesh_data](const int /*patch_index*/,
+                                       const int face_index,
+                                       const int /*corner*/,
+                                       const int *triangle_index,
+                                       const float2 * /*triangle_uv*/,
+                                       const int triangle_num) {
+    for (int i = 0; i < triangle_num; i++) {
+      mesh_data[triangle_index[i]] = subd_data[face_index];
+    }
+  };
+
+  triangle_attributes.push_back(std::move(attr));
 }
 
 template<typename T>
-void SubdAttributeInterpolation::interp_attribute_type(const Attribute &subd_attr,
-                                                       Attribute &mesh_attr)
+void SubdAttributeInterpolation::setup_attribute_type(const Attribute &subd_attr,
+                                                      Attribute &mesh_attr)
 {
   switch (subd_attr.element) {
     case ATTR_ELEMENT_VERTEX: {
@@ -464,17 +509,17 @@ void SubdAttributeInterpolation::interp_attribute_type(const Attribute &subd_att
           case ATTR_STD_GENERATED:
           case ATTR_STD_POSITION_UNDEFORMED:
           case ATTR_STD_POSITION_UNDISPLACED:
-            interp_attribute_vertex_smooth<T>(subd_attr, mesh_attr);
+            setup_attribute_vertex_smooth<T>(subd_attr, mesh_attr);
             break;
           default:
-            interp_attribute_vertex_linear<T>(subd_attr, mesh_attr);
+            setup_attribute_vertex_linear<T>(subd_attr, mesh_attr);
             break;
         }
       }
       else
 #endif
       {
-        interp_attribute_vertex_linear<T>(subd_attr, mesh_attr);
+        setup_attribute_vertex_linear<T>(subd_attr, mesh_attr);
       }
       break;
     }
@@ -485,15 +530,14 @@ void SubdAttributeInterpolation::interp_attribute_type(const Attribute &subd_att
         for (const auto &merged_fvar : osd_mesh.merged_fvars) {
           if (&merged_fvar.attr == &subd_attr) {
             if constexpr (std::is_same_v<typename T::Type, float2>) {
-              interp_attribute_corner_smooth<T>(
-                  mesh_attr, merged_fvar.channel, merged_fvar.values);
+              setup_attribute_corner_smooth<T>(mesh_attr, merged_fvar.channel, merged_fvar.values);
               return;
             }
           }
         }
       }
 #endif
-      interp_attribute_corner_linear<T>(subd_attr, mesh_attr);
+      setup_attribute_corner_linear<T>(subd_attr, mesh_attr);
       break;
     }
     case ATTR_ELEMENT_VERTEX_MOTION: {
@@ -501,18 +545,18 @@ void SubdAttributeInterpolation::interp_attribute_type(const Attribute &subd_att
       for (int step = 0; step < mesh.get_motion_steps() - 1; step++) {
 #ifdef WITH_OPENSUBDIV
         if (mesh.get_subdivision_type() == Mesh::SUBDIVISION_CATMULL_CLARK) {
-          interp_attribute_vertex_smooth<T>(subd_attr, mesh_attr, step);
+          setup_attribute_vertex_smooth<T>(subd_attr, mesh_attr, step);
         }
         else
 #endif
         {
-          interp_attribute_vertex_linear<T>(subd_attr, mesh_attr, step);
+          setup_attribute_vertex_linear<T>(subd_attr, mesh_attr, step);
         }
       }
       break;
     }
     case ATTR_ELEMENT_FACE: {
-      interp_attribute_face<T>(subd_attr, mesh_attr);
+      setup_attribute_face<T>(subd_attr, mesh_attr);
       break;
     }
     default:

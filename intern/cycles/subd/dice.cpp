@@ -6,6 +6,7 @@
 #include "scene/mesh.h"
 
 #include "subd/dice.h"
+#include "subd/interpolation.h"
 #include "subd/patch.h"
 #include "subd/split.h"
 
@@ -13,8 +14,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-EdgeDice::EdgeDice(const SubdParams &params_, const int num_verts, const int num_triangles)
-    : params(params_)
+EdgeDice::EdgeDice(const SubdParams &params_,
+                   const int num_verts,
+                   const int num_triangles,
+                   SubdAttributeInterpolation &interpolation)
+    : params(params_), interpolation(interpolation)
 {
   Mesh *mesh = params.mesh;
 
@@ -36,6 +40,8 @@ EdgeDice::EdgeDice(const SubdParams &params_, const int num_verts, const int num
     mesh_ptex_face_id = attr_ptex_face_id->data_float();
     mesh_ptex_uv = attr_ptex_uv->data_float2();
   }
+
+  interpolation.setup();
 }
 
 float3 EdgeDice::eval_projected(const SubPatch &sub, const float2 uv)
@@ -98,6 +104,10 @@ void EdgeDice::set_vertex(const SubPatch &sub, const int index, const float2 uv)
 
   mesh_P[index] = P;
   mesh_N[index] = N;
+
+  for (const SubdAttribute &attr : interpolation.vertex_attributes) {
+    attr.interp(sub.patch->patch_index, sub.face_index, sub.corner, &index, &uv, 1);
+  }
 }
 
 void EdgeDice::add_triangle(const SubPatch &sub,
@@ -119,19 +129,19 @@ void EdgeDice::add_triangle(const SubPatch &sub,
   mesh_shader[triangle_index] = patch->shader;
   mesh_smooth[triangle_index] = true;
 
-  params.mesh->subd_triangle_patch_index[triangle_index] = patch->patch_index;
   if (mesh_ptex_face_id) {
     mesh_ptex_face_id[triangle_index] = patch->patch_index;
   }
-
-  params.mesh->subd_corner_patch_uv[triangle_index * 3 + 0] = uv0;
-  params.mesh->subd_corner_patch_uv[triangle_index * 3 + 1] = uv1;
-  params.mesh->subd_corner_patch_uv[triangle_index * 3 + 2] = uv2;
-
   if (mesh_ptex_uv) {
     mesh_ptex_uv[triangle_index * 3 + 0] = uv0;
     mesh_ptex_uv[triangle_index * 3 + 0] = uv1;
     mesh_ptex_uv[triangle_index * 3 + 0] = uv2;
+  }
+
+  /* TODO: batch together multiple triangles. */
+  float2 uv[3] = {uv0, uv1, uv2};
+  for (const SubdAttribute &attr : interpolation.triangle_attributes) {
+    attr.interp(sub.patch->patch_index, sub.face_index, sub.corner, &triangle_index, uv, 1);
   }
 }
 
@@ -363,9 +373,6 @@ void EdgeDice::dice(const SubPatch &sub)
   const int Mu = max(sub.edge_u0.edge->T, sub.edge_u1.edge->T);
   const int Mv = max(sub.edge_v0.edge->T, sub.edge_v1.edge->T);
 
-  /* Vertex coordinates for sides. */
-  set_sides(sub);
-
   if (Mv == 1) {
     /* No inner grid, stitch triangles from side to side. */
     add_triangle_strip(sub, 2, 0);
@@ -390,9 +397,21 @@ void EdgeDice::dice(const SubPatch &sub)
 void EdgeDice::dice(const DiagSplit &split)
 {
   const size_t num_subpatches = split.get_num_subpatches();
-  for (size_t i = 0; i < num_subpatches; i++) {
-    dice(split.get_subpatch(i));
-  }
+
+  /* Vertex coordinates for sides. Needs to be done first because tessellation depends
+   * on these coordinates and they are unique assigned to a subpatch for determinism. */
+  parallel_for(blocked_range<size_t>(0, num_subpatches, 8), [&](const blocked_range<size_t> &r) {
+    for (size_t i = r.begin(); i != r.end(); i++) {
+      set_sides(split.get_subpatch(i));
+    }
+  });
+
+  /* Inner vertex coordinates and triangles. */
+  parallel_for(blocked_range<size_t>(0, num_subpatches, 8), [&](const blocked_range<size_t> &r) {
+    for (size_t i = r.begin(); i != r.end(); i++) {
+      dice(split.get_subpatch(i));
+    }
+  });
 }
 
 CCL_NAMESPACE_END

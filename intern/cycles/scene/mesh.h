@@ -167,10 +167,6 @@ class Mesh : public Geometry {
 
   AttributeSet subd_attributes;
 
-  /* Temporary storage for attribute interpolation, per triangle and per vertex. */
-  array<int> subd_triangle_patch_index;
-  array<float2> subd_corner_patch_uv;
-
   /* BVH */
   size_t vert_offset;
 

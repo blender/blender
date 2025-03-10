@@ -554,17 +554,14 @@ void DiagSplit::split_patches(const Patch *patches, const size_t patches_byte_st
   owned_verts.resize(num_verts, false);
 
   /* Split all faces in the mesh. */
-  int patch_index = 0;
   for (int f = 0; f < params.mesh->get_num_subd_faces(); f++) {
     Mesh::SubdFace face = params.mesh->get_subd_face(f);
-    const Patch *patch = (const Patch *)(((char *)patches) + (patch_index * patches_byte_stride));
-
+    const Patch *patch = (const Patch *)(((char *)patches) +
+                                         (face.ptex_offset * patches_byte_stride));
     if (face.is_quad()) {
-      patch_index++;
       split_quad(face, f, patch);
     }
     else {
-      patch_index += face.num_corners;
       split_ngon(face, f, patch, patches_byte_stride);
     }
   }

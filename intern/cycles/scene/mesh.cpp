@@ -198,11 +198,6 @@ void Mesh::resize_mesh(const int numverts, const int numtris)
   shader.resize(numtris);
   smooth.resize(numtris);
 
-  if (get_num_subd_faces()) {
-    subd_triangle_patch_index.resize(numtris);
-    subd_corner_patch_uv.resize(numtris * 3);
-  }
-
   attributes.resize();
 }
 
@@ -213,11 +208,6 @@ void Mesh::reserve_mesh(const int numverts, const int numtris)
   triangles.reserve(numtris * 3);
   shader.reserve(numtris);
   smooth.reserve(numtris);
-
-  if (get_num_subd_faces()) {
-    subd_triangle_patch_index.reserve(numtris);
-    subd_corner_patch_uv.reserve(numtris * 3);
-  }
 
   attributes.resize(true);
 }
@@ -318,13 +308,6 @@ void Mesh::add_triangle(const int v0, const int v1, const int v2, const int shad
   tag_triangles_modified();
   tag_shader_modified();
   tag_smooth_modified();
-
-  if (get_num_subd_faces()) {
-    subd_triangle_patch_index.push_back_reserved(-1);
-    subd_corner_patch_uv.push_back_reserved(zero_float2());
-    subd_corner_patch_uv.push_back_reserved(zero_float2());
-    subd_corner_patch_uv.push_back_reserved(zero_float2());
-  }
 }
 
 void Mesh::add_subd_face(const int *corners,
