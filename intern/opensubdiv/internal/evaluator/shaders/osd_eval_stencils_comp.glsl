@@ -24,30 +24,11 @@
 
 //------------------------------------------------------------------------------
 
-#if defined(OPENSUBDIV_GLSL_COMPUTE_KERNEL_EVAL_STENCILS)
 uint getGlobalInvocationIndex()
 {
   uint invocations_per_row = gl_WorkGroupSize.x * gl_NumWorkGroups.x;
   return gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * invocations_per_row;
 }
-#endif
-
-#if defined(OPENSUBDIV_GLSL_COMPUTE_KERNEL_EVAL_PATCHES)
-OsdPatchCoord GetPatchCoord(int coordIndex)
-{
-  return patchCoords[coordIndex];
-}
-
-OsdPatchArray GetPatchArray(int arrayIndex)
-{
-  return patchArrayBuffer[arrayIndex];
-}
-
-OsdPatchParam GetPatchParam(int patchIndex)
-{
-  return patchParamBuffer[patchIndex];
-}
-#endif
 
 //------------------------------------------------------------------------------
 
@@ -132,7 +113,6 @@ void writeDvv(int index, Vertex dvv)
 #endif
 
 //------------------------------------------------------------------------------
-#if defined(OPENSUBDIV_GLSL_COMPUTE_KERNEL_EVAL_STENCILS)
 
 void main()
 {
@@ -154,7 +134,7 @@ void main()
 
   writeVertex(current, dst);
 
-#  if defined(OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES)
+#if defined(OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES)
   Vertex du, dv;
   clear(du);
   clear(dv);
@@ -171,8 +151,8 @@ void main()
   if (dvDesc.y > 0) {
     writeDv(current, dv);
   }
-#  endif
-#  if defined(OPENSUBDIV_GLSL_COMPUTE_USE_2ND_DERIVATIVES)
+#endif
+#if defined(OPENSUBDIV_GLSL_COMPUTE_USE_2ND_DERIVATIVES)
   Vertex duu, duv, dvv;
   clear(duu);
   clear(duv);
@@ -194,71 +174,5 @@ void main()
   if (dvvDesc.y > 0) {
     writeDvv(current, dvv);
   }
-#  endif
-}
-
 #endif
-
-//------------------------------------------------------------------------------
-#if defined(OPENSUBDIV_GLSL_COMPUTE_KERNEL_EVAL_PATCHES)
-
-// PERFORMANCE: stride could be constant, but not as significant as length
-
-void main()
-{
-
-  int current = int(gl_GlobalInvocationID.x);
-
-  OsdPatchCoord coord = GetPatchCoord(current);
-  OsdPatchArray array = GetPatchArray(coord.arrayIndex);
-  OsdPatchParam param = GetPatchParam(coord.patchIndex);
-
-  int patchType = OsdPatchParamIsRegular(param) ? array.regDesc : array.desc;
-
-  float wP[20], wDu[20], wDv[20], wDuu[20], wDuv[20], wDvv[20];
-  int nPoints = OsdEvaluatePatchBasis(
-      patchType, param, coord.s, coord.t, wP, wDu, wDv, wDuu, wDuv, wDvv);
-
-  Vertex dst, du, dv, duu, duv, dvv;
-  clear(dst);
-  clear(du);
-  clear(dv);
-  clear(duu);
-  clear(duv);
-  clear(dvv);
-
-  int indexBase = array.indexBase + array.stride * (coord.patchIndex - array.primitiveIdBase);
-
-  for (int cv = 0; cv < nPoints; ++cv) {
-    int index = patchIndexBuffer[indexBase + cv];
-    addWithWeight(dst, readVertex(index), wP[cv]);
-    addWithWeight(du, readVertex(index), wDu[cv]);
-    addWithWeight(dv, readVertex(index), wDv[cv]);
-    addWithWeight(duu, readVertex(index), wDuu[cv]);
-    addWithWeight(duv, readVertex(index), wDuv[cv]);
-    addWithWeight(dvv, readVertex(index), wDvv[cv]);
-  }
-  writeVertex(current, dst);
-
-#  if defined(OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES)
-  if (duDesc.y > 0) {  // length
-    writeDu(current, du);
-  }
-  if (dvDesc.y > 0) {
-    writeDv(current, dv);
-  }
-#  endif
-#  if defined(OPENSUBDIV_GLSL_COMPUTE_USE_2ND_DERIVATIVES)
-  if (duuDesc.y > 0) {  // length
-    writeDuu(current, duu);
-  }
-  if (duvDesc.y > 0) {  // length
-    writeDuv(current, duv);
-  }
-  if (dvvDesc.y > 0) {
-    writeDvv(current, dvv);
-  }
-#  endif
 }
-
-#endif

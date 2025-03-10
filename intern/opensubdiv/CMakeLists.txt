@@ -91,7 +91,8 @@ if(WITH_OPENSUBDIV)
   endif()
 
   set(GLSL_SRC
-    internal/evaluator/shaders/osd_kernel_comp.glsl
+    internal/evaluator/shaders/osd_eval_stencils_comp.glsl
+    internal/evaluator/shaders/osd_eval_patches_comp.glsl
   )
 
   set(GLSL_C)
