@@ -253,13 +253,12 @@ void ED_armature_bone_rename(Main *bmain,
 
       if (BKE_modifiers_uses_armature(ob, arm) && BKE_object_supports_vertex_groups(ob)) {
         if (BKE_object_defgroup_find_name(ob, newname)) {
-          WM_global_reportf(
-              eReportType::RPT_WARNING,
-              "%s (%s::%s)",
-              RPT_("New bone name collides with an existing vertex group name, vertex group "
-                   "names are unchanged."),
-              &ob->id.name[2],
-              newname);
+          WM_global_reportf(eReportType::RPT_WARNING,
+                            "New bone name collides with an existing vertex "
+                            "group name, vertex group "
+                            "names are unchanged. (%s::%s)",
+                            &ob->id.name[2],
+                            newname);
           /* Not renaming vertex group could cause bone to bind to other vertex group, in this case
            * deformation could change, so we tag this object for depsgraph update. */
           DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
