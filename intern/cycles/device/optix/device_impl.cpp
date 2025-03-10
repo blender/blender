@@ -721,48 +721,50 @@ bool OptiXDevice::load_osl_kernels()
     string fused_entry;
   };
 
+  auto get_osl_kernel = [&](const OSL::ShaderGroupRef &group) {
+    if (!group) {
+      return OSLKernel{};
+    }
+    string osl_ptx, fused_name;
+    osl_globals.ss->getattribute(group.get(), "group_fused_name", fused_name);
+    osl_globals.ss->getattribute(
+        group.get(), "ptx_compiled_version", OSL::TypeDesc::PTR, &osl_ptx);
+
+    int groupdata_size = 0;
+    osl_globals.ss->getattribute(group.get(), "llvm_groupdata_size", groupdata_size);
+    if (groupdata_size == 0) {
+      // Old attribute name from our patched OSL version as fallback.
+      osl_globals.ss->getattribute(group.get(), "groupdata_size", groupdata_size);
+    }
+    if (groupdata_size > 2048) { /* See 'group_data' array in kernel/osl/osl.h */
+      set_error(
+          string_printf("Requested OSL group data size (%d) is greater than the maximum "
+                        "supported with OptiX (2048)",
+                        groupdata_size));
+      return OSLKernel{};
+    }
+
+    return OSLKernel{std::move(osl_ptx), std::move(fused_name)};
+  };
+
   /* This has to be in the same order as the ShaderType enum, so that the index calculation in
    * osl_eval_nodes checks out */
   vector<OSLKernel> osl_kernels;
+  for (const OSL::ShaderGroupRef &group : osl_globals.surface_state) {
+    osl_kernels.emplace_back(get_osl_kernel(group));
+  }
+  for (const OSL::ShaderGroupRef &group : osl_globals.volume_state) {
+    osl_kernels.emplace_back(get_osl_kernel(group));
+  }
+  for (const OSL::ShaderGroupRef &group : osl_globals.displacement_state) {
+    osl_kernels.emplace_back(get_osl_kernel(group));
+  }
+  for (const OSL::ShaderGroupRef &group : osl_globals.bump_state) {
+    osl_kernels.emplace_back(get_osl_kernel(group));
+  }
 
-  for (ShaderType type = SHADER_TYPE_SURFACE; type <= SHADER_TYPE_BUMP;
-       type = static_cast<ShaderType>(type + 1))
-  {
-    const vector<OSL::ShaderGroupRef> &groups = (type == SHADER_TYPE_SURFACE ?
-                                                     osl_globals.surface_state :
-                                                 type == SHADER_TYPE_VOLUME ?
-                                                     osl_globals.volume_state :
-                                                 type == SHADER_TYPE_DISPLACEMENT ?
-                                                     osl_globals.displacement_state :
-                                                     osl_globals.bump_state);
-    for (const OSL::ShaderGroupRef &group : groups) {
-      if (group) {
-        string osl_ptx, fused_name;
-        osl_globals.ss->getattribute(group.get(), "group_fused_name", fused_name);
-        osl_globals.ss->getattribute(
-            group.get(), "ptx_compiled_version", OSL::TypeDesc::PTR, &osl_ptx);
-
-        int groupdata_size = 0;
-        osl_globals.ss->getattribute(group.get(), "llvm_groupdata_size", groupdata_size);
-        if (groupdata_size == 0) {
-          // Old attribute name from our patched OSL version as fallback.
-          osl_globals.ss->getattribute(group.get(), "groupdata_size", groupdata_size);
-        }
-        if (groupdata_size > 2048) { /* See 'group_data' array in kernel/osl/osl.h */
-          set_error(
-              string_printf("Requested OSL group data size (%d) is greater than the maximum "
-                            "supported with OptiX (2048)",
-                            groupdata_size));
-          return false;
-        }
-
-        osl_kernels.push_back({std::move(osl_ptx), std::move(fused_name)});
-      }
-      else {
-        /* Add empty entry for non-existent shader groups, so that the index stays stable. */
-        osl_kernels.emplace_back();
-      }
-    }
+  if (have_error()) {
+    return false;
   }
 
   const CUDAContextScope scope(this);

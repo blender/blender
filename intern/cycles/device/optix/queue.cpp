@@ -62,30 +62,22 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel,
   const device_ptr sbt_data_ptr = optix_device->sbt_data.device_pointer;
   const device_ptr launch_params_ptr = optix_device->launch_params.device_pointer;
 
-  cuda_device_assert(
-      cuda_device_,
-      cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, path_index_array),
-                        args.values[0],  // &d_path_index
-                        sizeof(device_ptr),
-                        cuda_stream_));
-
-  if (kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST || device_kernel_has_shading(kernel)) {
+  auto set_launch_param = [&](size_t offset, size_t size, int arg) {
     cuda_device_assert(
         cuda_device_,
-        cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, render_buffer),
-                          args.values[1],  // &d_render_buffer
-                          sizeof(device_ptr),
-                          cuda_stream_));
+        cuMemcpyHtoDAsync(launch_params_ptr + offset, args.values[arg], size, cuda_stream_));
+  };
+
+  set_launch_param(offsetof(KernelParamsOptiX, path_index_array), sizeof(device_ptr), 0);
+
+  if (kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST || device_kernel_has_shading(kernel)) {
+    set_launch_param(offsetof(KernelParamsOptiX, render_buffer), sizeof(device_ptr), 1);
   }
   if (kernel == DEVICE_KERNEL_SHADER_EVAL_DISPLACE ||
       kernel == DEVICE_KERNEL_SHADER_EVAL_BACKGROUND ||
       kernel == DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY)
   {
-    cuda_device_assert(cuda_device_,
-                       cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, offset),
-                                         args.values[2],  // &d_offset
-                                         sizeof(int32_t),
-                                         cuda_stream_));
+    set_launch_param(offsetof(KernelParamsOptiX, offset), sizeof(int32_t), 2);
   }
 
   cuda_device_assert(cuda_device_, cuStreamSynchronize(cuda_stream_));
