@@ -38,6 +38,8 @@
 #include "MOD_grease_pencil_util.hh"
 #include "MOD_ui_common.hh"
 
+#include "GEO_join_geometries.hh"
+
 namespace blender {
 
 static void init_data(ModifierData *md)
@@ -342,8 +344,20 @@ static void modify_drawing(const GreasePencilDashModifierData &dmd,
   IndexMaskMemory curve_mask_memory;
   const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
       ctx.object, src_curves, dmd.influence, curve_mask_memory);
+  const IndexMask unselected_mask = curves_mask.complement(src_curves.curves_range(),
+                                                           curve_mask_memory);
+  bke::CurvesGeometry unselected_curves = bke::curves_copy_curve_selection(
+      src_curves, unselected_mask, {});
 
-  drawing.strokes_for_write() = create_dashes(pattern_info, src_curves, curves_mask);
+  bke::CurvesGeometry dashed_curves = create_dashes(pattern_info, src_curves, curves_mask);
+
+  Curves *masked_curves_id = bke::curves_new_nomain(dashed_curves);
+  Curves *unselected_curves_id = bke::curves_new_nomain(unselected_curves);
+  bke::GeometrySet masked_geo = bke::GeometrySet::from_curves(masked_curves_id);
+  bke::GeometrySet unselected_geo = bke::GeometrySet::from_curves(unselected_curves_id);
+  bke::GeometrySet joined_geo = geometry::join_geometries({unselected_geo, masked_geo}, {});
+
+  drawing.strokes_for_write() = std::move(joined_geo.get_curves_for_write()->geometry.wrap());
   drawing.tag_topology_changed();
 }
 
