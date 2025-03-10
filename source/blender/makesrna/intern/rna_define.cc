@@ -4699,7 +4699,7 @@ int rna_parameter_size(PropertyRNA *parm)
 #endif
       }
       case PROP_COLLECTION:
-        return sizeof(ListBase);
+        return sizeof(CollectionVector);
     }
   }
 

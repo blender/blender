@@ -3433,12 +3433,20 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
                   (dparm->prop->arraydimension)) ?
                      "*" :
                      "";
-        fprintf(f,
-                "\t*((%s%s %s*)_retdata) = %s;\n",
-                rna_type_struct(dparm->prop),
-                rna_parameter_type_name(dparm->prop),
-                ptrstr,
-                func->c_ret->identifier);
+        if (dparm->prop->type == PROP_COLLECTION) {
+          /* Placement new is necessary because #ParameterList::data is not initialized. */
+          fprintf(f,
+                  "\tnew ((CollectionVector *)_retdata) CollectionVector(std::move(%s));\n",
+                  func->c_ret->identifier);
+        }
+        else {
+          fprintf(f,
+                  "\t*((%s%s %s*)_retdata) = %s;\n",
+                  rna_type_struct(dparm->prop),
+                  rna_parameter_type_name(dparm->prop),
+                  ptrstr,
+                  func->c_ret->identifier);
+        }
       }
     }
   }
