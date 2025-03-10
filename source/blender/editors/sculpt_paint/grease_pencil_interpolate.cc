@@ -522,13 +522,19 @@ static void sample_curve_padded(const bke::CurvesGeometry &curves,
 {
   const int num_dst_points = r_segment_indices.size();
   const IndexRange src_points = curves.points_by_curve()[curve_index];
+  if (src_points.is_empty()) {
+    return;
+  }
+  if (src_points.size() == 1) {
+    r_segment_indices.fill(0);
+    r_factors.fill(0.0f);
+    return;
+  }
+
   /* Extra segment at the end for cyclic curves. */
   const int num_src_segments = src_points.size() - 1 + cyclic;
   /* There should be at least one source point for every output sample. */
   BLI_assert(num_dst_points >= num_src_segments);
-  if (src_points.is_empty()) {
-    return;
-  }
 
   /* First destination point in each source segment. */
   Array<int> dst_sample_offsets(num_src_segments + 1);
