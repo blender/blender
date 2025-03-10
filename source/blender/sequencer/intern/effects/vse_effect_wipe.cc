@@ -288,7 +288,7 @@ static void init_wipe_effect(Strip *strip)
     MEM_freeN(strip->effectdata);
   }
 
-  strip->effectdata = MEM_callocN(sizeof(WipeVars), "wipevars");
+  strip->effectdata = MEM_callocN<WipeVars>("wipevars");
 }
 
 static int num_inputs_wipe()

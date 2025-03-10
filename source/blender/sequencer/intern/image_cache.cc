@@ -492,7 +492,7 @@ static void seq_cache_create(Main *bmain, Scene *scene)
 {
   BLI_mutex_lock(&cache_create_lock);
   if (scene->ed->cache == nullptr) {
-    SeqCache *cache = static_cast<SeqCache *>(MEM_callocN(sizeof(SeqCache), "SeqCache"));
+    SeqCache *cache = MEM_callocN<SeqCache>("SeqCache");
     cache->keys_pool = BLI_mempool_create(sizeof(SeqCacheKey), 0, 64, BLI_MEMPOOL_NOP);
     cache->items_pool = BLI_mempool_create(sizeof(SeqCacheItem), 0, 64, BLI_MEMPOOL_NOP);
     cache->hash = BLI_ghash_new(seq_cache_hashhash, seq_cache_hashcmp, "SeqCache hash");

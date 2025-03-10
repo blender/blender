@@ -130,9 +130,9 @@ static void init_glow_effect(Strip *strip)
     MEM_freeN(strip->effectdata);
   }
 
-  strip->effectdata = MEM_callocN(sizeof(GlowVars), "glowvars");
+  GlowVars *glow = MEM_callocN<GlowVars>("glowvars");
+  strip->effectdata = glow;
 
-  GlowVars *glow = (GlowVars *)strip->effectdata;
   glow->fMini = 0.25;
   glow->fClamp = 1.0;
   glow->fBoost = 0.5;

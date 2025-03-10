@@ -462,8 +462,7 @@ bool proxy_rebuild_context(Main *bmain,
 
     relations_sequence_free_anim(strip);
 
-    context = static_cast<IndexBuildContext *>(
-        MEM_callocN(sizeof(IndexBuildContext), "strip proxy rebuild context"));
+    context = MEM_callocN<IndexBuildContext>("strip proxy rebuild context");
 
     nseq = sequence_dupli_recursive(scene, scene, nullptr, strip, 0);
 

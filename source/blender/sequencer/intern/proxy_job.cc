@@ -73,7 +73,7 @@ ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ProxyJob *pj = static_cast<ProxyJob *>(WM_jobs_customdata_get(wm_job));
   if (!pj) {
-    pj = static_cast<ProxyJob *>(MEM_callocN(sizeof(ProxyJob), "proxy rebuild job"));
+    pj = MEM_callocN<ProxyJob>("proxy rebuild job");
     pj->depsgraph = depsgraph;
     pj->scene = scene;
     pj->main = CTX_data_main(C);

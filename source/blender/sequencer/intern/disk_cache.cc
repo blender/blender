@@ -135,8 +135,7 @@ static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache,
                                                       const char *filepath)
 {
 
-  DiskCacheFile *cache_file = static_cast<DiskCacheFile *>(
-      MEM_callocN(sizeof(DiskCacheFile), "SeqDiskCacheFile"));
+  DiskCacheFile *cache_file = MEM_callocN<DiskCacheFile>("SeqDiskCacheFile");
   char dir[FILE_MAXDIR], file[FILE_MAX];
   BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
   STRNCPY(cache_file->filepath, filepath);
@@ -669,8 +668,7 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
 
 SeqDiskCache *seq_disk_cache_create(Main *bmain, Scene *scene)
 {
-  SeqDiskCache *disk_cache = static_cast<SeqDiskCache *>(
-      MEM_callocN(sizeof(SeqDiskCache), "SeqDiskCache"));
+  SeqDiskCache *disk_cache = MEM_callocN<SeqDiskCache>("SeqDiskCache");
   disk_cache->bmain = bmain;
   BLI_mutex_init(&disk_cache->read_write_mutex);
   seq_disk_cache_handle_versioning(disk_cache);

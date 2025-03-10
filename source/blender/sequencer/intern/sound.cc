@@ -276,8 +276,7 @@ void *sound_equalizermodifier_recreator(Strip *strip, SequenceModifierData *smd,
     return sound;
   }
 
-  float *buf = (float *)MEM_callocN(sizeof(float) * SOUND_EQUALIZER_SIZE_DEFINITION,
-                                    "eqrecreator");
+  float *buf = MEM_calloc_arrayN<float>(SOUND_EQUALIZER_SIZE_DEFINITION, "eqrecreator");
 
   CurveMapping *eq_mapping;
   CurveMap *cm;

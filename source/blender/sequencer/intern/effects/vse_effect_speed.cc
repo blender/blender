@@ -29,9 +29,9 @@ static void init_speed_effect(Strip *strip)
     MEM_freeN(strip->effectdata);
   }
 
-  strip->effectdata = MEM_callocN(sizeof(SpeedControlVars), "speedcontrolvars");
+  SpeedControlVars *v = MEM_callocN<SpeedControlVars>("speedcontrolvars");
+  strip->effectdata = v;
 
-  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
   v->speed_control_type = SEQ_SPEED_STRETCH;
   v->speed_fader = 1.0f;
   v->speed_fader_length = 0.0f;
@@ -95,7 +95,7 @@ void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
     MEM_freeN(v->frameMap);
   }
 
-  v->frameMap = static_cast<float *>(MEM_mallocN(sizeof(float) * effect_strip_length, __func__));
+  v->frameMap = MEM_malloc_arrayN<float>(size_t(effect_strip_length), __func__);
   v->frameMap[0] = 0.0f;
 
   float target_frame = 0;

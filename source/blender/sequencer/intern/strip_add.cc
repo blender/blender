@@ -237,8 +237,7 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
       seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_IMAGE);
   strip->len = load_data->image.len;
   StripData *data = strip->data;
-  data->stripdata = static_cast<StripElem *>(
-      MEM_callocN(load_data->image.len * sizeof(StripElem), "stripelem"));
+  data->stripdata = MEM_calloc_arrayN<StripElem>(size_t(load_data->image.len), "stripelem");
 
   if (strip->len == 1) {
     strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
@@ -328,8 +327,7 @@ Strip *add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
 
   StripData *data = strip->data;
   /* We only need 1 element to store the filename. */
-  StripElem *se = data->stripdata = static_cast<StripElem *>(
-      MEM_callocN(sizeof(StripElem), "stripelem"));
+  StripElem *se = data->stripdata = MEM_callocN<StripElem>("stripelem");
   BLI_path_split_dir_file(
       load_data->path, data->dirpath, sizeof(data->dirpath), se->filename, sizeof(se->filename));
 
@@ -401,8 +399,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
   char colorspace[64] = "\0"; /* MAX_COLORSPACE_NAME */
   bool is_multiview_loaded = false;
   const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
-  MovieReader **anim_arr = static_cast<MovieReader **>(
-      MEM_callocN(sizeof(MovieReader *) * totfiles, "Video files"));
+  MovieReader **anim_arr = MEM_calloc_arrayN<MovieReader *>(size_t(totfiles), "Video files");
   int i;
   int orig_width = 0;
   int orig_height = 0;
@@ -474,7 +471,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
 
   for (i = 0; i < totfiles; i++) {
     if (anim_arr[i]) {
-      StripAnim *sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
+      StripAnim *sanim = MEM_mallocN<StripAnim>("Strip Anim");
       BLI_addtail(&strip->anims, sanim);
       sanim->anim = anim_arr[i];
     }
@@ -510,7 +507,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
   StripData *data = strip->data;
   /* We only need 1 element for MOVIE strips. */
   StripElem *se;
-  data->stripdata = se = static_cast<StripElem *>(MEM_callocN(sizeof(StripElem), "stripelem"));
+  data->stripdata = se = MEM_callocN<StripElem>("stripelem");
   data->stripdata->orig_width = orig_width;
   data->stripdata->orig_height = orig_height;
   data->stripdata->orig_fps = video_fps;
@@ -593,7 +590,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
 
             if (anim) {
               seq_anim_add_suffix(scene, anim, i);
-              sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
+              sanim = MEM_mallocN<StripAnim>("Strip Anim");
               BLI_addtail(&strip->anims, sanim);
               sanim->anim = anim;
             }
@@ -609,7 +606,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
                         strip->streamindex,
                         strip->data->colorspace_settings.name);
         if (anim) {
-          sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
+          sanim = MEM_mallocN<StripAnim>("Strip Anim");
           BLI_addtail(&strip->anims, sanim);
           sanim->anim = anim;
         }

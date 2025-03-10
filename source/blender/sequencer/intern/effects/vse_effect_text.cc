@@ -174,8 +174,9 @@ static void init_text_effect(Strip *strip)
     MEM_freeN(strip->effectdata);
   }
 
-  TextVars *data = static_cast<TextVars *>(
-      strip->effectdata = MEM_callocN(sizeof(TextVars), "textvars"));
+  TextVars *data = MEM_callocN<TextVars>("textvars");
+  strip->effectdata = data;
+
   data->text_font = nullptr;
   data->text_blf_id = -1;
   data->text_size = 60.0f;

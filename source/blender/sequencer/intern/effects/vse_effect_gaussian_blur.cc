@@ -25,7 +25,7 @@ static void init_gaussian_blur_effect(Strip *strip)
     MEM_freeN(strip->effectdata);
   }
 
-  strip->effectdata = MEM_callocN(sizeof(GaussianBlurVars), "gaussianblurvars");
+  strip->effectdata = MEM_callocN<GaussianBlurVars>("gaussianblurvars");
 }
 
 static int num_inputs_gaussian_blur()

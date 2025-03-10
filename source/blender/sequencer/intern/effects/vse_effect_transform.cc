@@ -27,9 +27,8 @@ static void init_transform_effect(Strip *strip)
     MEM_freeN(strip->effectdata);
   }
 
-  strip->effectdata = MEM_callocN(sizeof(TransformVars), "transformvars");
-
-  TransformVars *transform = (TransformVars *)strip->effectdata;
+  TransformVars *transform = MEM_callocN<TransformVars>("transformvars");
+  strip->effectdata = transform;
 
   transform->ScalexIni = 1.0f;
   transform->ScaleyIni = 1.0f;

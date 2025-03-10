@@ -830,7 +830,7 @@ static void convert_multilayer_ibuf(ImBuf *ibuf)
   /* Combined layer might be non-4 channels, however the rest
    * of sequencer assumes RGBA everywhere. Convert to 4 channel if needed. */
   if (ibuf->float_buffer.data != nullptr && ibuf->channels != 4) {
-    float *dst = static_cast<float *>(MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__));
+    float *dst = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
     IMB_buffer_float_from_float_threaded(dst,
                                          ibuf->float_buffer.data,
                                          ibuf->channels,
@@ -958,8 +958,8 @@ static ImBuf *seq_render_image_strip(const RenderData *context,
 
   if (is_multiview_render) {
     int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
-    ImBuf **ibufs_arr = static_cast<ImBuf **>(
-        MEM_callocN(sizeof(ImBuf *) * totviews, "Sequence Image Views Imbufs"));
+    ImBuf **ibufs_arr = MEM_calloc_arrayN<ImBuf *>(size_t(totviews),
+                                                   "Sequence Image Views Imbufs");
 
     for (int view_id = 0; view_id < totfiles; view_id++) {
       ibufs_arr[view_id] = seq_render_image_strip_view(
@@ -1114,8 +1114,7 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
   if (is_multiview_render) {
     ImBuf **ibuf_arr;
     int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
-    ibuf_arr = static_cast<ImBuf **>(
-        MEM_callocN(sizeof(ImBuf *) * totviews, "Sequence Image Views Imbufs"));
+    ibuf_arr = MEM_calloc_arrayN<ImBuf *>(size_t(totviews), "Sequence Image Views Imbufs");
     int ibuf_view_id;
 
     for (ibuf_view_id = 0, sanim = static_cast<StripAnim *>(strip->anims.first); sanim;
@@ -1276,8 +1275,7 @@ ImBuf *seq_render_mask(const RenderData *context, Mask *mask, float frame_index,
       context->depsgraph, mask->sfra + frame_index);
   BKE_animsys_evaluate_animdata(&mask_temp->id, adt, &anim_eval_context, ADT_RECALC_ANIM, false);
 
-  maskbuf = static_cast<float *>(
-      MEM_mallocN(sizeof(float) * context->rectx * context->recty, __func__));
+  maskbuf = MEM_malloc_arrayN<float>(size_t(context->rectx) * size_t(context->recty), __func__);
 
   mr_handle = BKE_maskrasterize_handle_new();
 
@@ -1520,8 +1518,7 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
       goto finally;
     }
 
-    ibufs_arr = static_cast<ImBuf **>(
-        MEM_callocN(sizeof(ImBuf *) * totviews, "Sequence Image Views Imbufs"));
+    ibufs_arr = MEM_calloc_arrayN<ImBuf *>(size_t(totviews), "Sequence Image Views Imbufs");
 
     if (re == nullptr) {
       re = RE_NewSceneRender(scene);

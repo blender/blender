@@ -111,7 +111,7 @@ void retiming_data_ensure(Strip *strip)
     return;
   }
 
-  strip->retiming_keys = (SeqRetimingKey *)MEM_calloc_arrayN(2, sizeof(SeqRetimingKey), __func__);
+  strip->retiming_keys = MEM_calloc_arrayN<SeqRetimingKey>(2, __func__);
   SeqRetimingKey *key = strip->retiming_keys + 1;
   key->strip_frame_index = strip->len - 1;
   key->retiming_factor = 1.0f;
@@ -345,8 +345,7 @@ static SeqRetimingKey *strip_retiming_add_key(Strip *strip, float frame_index)
   BLI_assert(new_key_index >= 0);
   BLI_assert(new_key_index < keys_count);
 
-  SeqRetimingKey *new_keys = (SeqRetimingKey *)MEM_callocN(
-      (keys_count + 1) * sizeof(SeqRetimingKey), __func__);
+  SeqRetimingKey *new_keys = MEM_calloc_arrayN<SeqRetimingKey>(keys_count + 1, __func__);
   if (new_key_index > 0) {
     memcpy(new_keys, keys, new_key_index * sizeof(SeqRetimingKey));
   }
@@ -443,8 +442,7 @@ void retiming_remove_multiple_keys(Strip *strip, blender::Vector<SeqRetimingKey 
 
   const size_t keys_count = retiming_keys_count(strip);
   size_t new_keys_count = keys_count - keys_to_remove.size() - transitions.size() / 2;
-  SeqRetimingKey *new_keys = (SeqRetimingKey *)MEM_callocN(new_keys_count * sizeof(SeqRetimingKey),
-                                                           __func__);
+  SeqRetimingKey *new_keys = MEM_calloc_arrayN<SeqRetimingKey>(new_keys_count, __func__);
   int keys_copied = 0;
 
   /* Copy keys to new array. */
@@ -480,8 +478,7 @@ static void strip_retiming_remove_key_ex(Strip *strip, SeqRetimingKey *key)
   }
 
   size_t keys_count = retiming_keys_count(strip);
-  SeqRetimingKey *keys = (SeqRetimingKey *)MEM_callocN((keys_count - 1) * sizeof(SeqRetimingKey),
-                                                       __func__);
+  SeqRetimingKey *keys = MEM_calloc_arrayN<SeqRetimingKey>(keys_count - 1, __func__);
 
   const int key_index = key - strip->retiming_keys;
   memcpy(keys, strip->retiming_keys, (key_index) * sizeof(SeqRetimingKey));

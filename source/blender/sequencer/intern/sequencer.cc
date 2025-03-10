@@ -66,8 +66,7 @@ namespace blender::seq {
 
 StripProxy *seq_strip_proxy_alloc()
 {
-  StripProxy *strip_proxy = static_cast<StripProxy *>(
-      MEM_callocN(sizeof(StripProxy), "StripProxy"));
+  StripProxy *strip_proxy = MEM_callocN<StripProxy>("StripProxy");
   strip_proxy->quality = 50;
   strip_proxy->build_tc_flags = SEQ_PROXY_TC_RECORD_RUN | SEQ_PROXY_TC_RECORD_RUN_NO_GAPS;
   strip_proxy->tc = SEQ_PROXY_TC_RECORD_RUN;
@@ -76,17 +75,16 @@ StripProxy *seq_strip_proxy_alloc()
 
 static StripData *seq_strip_alloc(int type)
 {
-  StripData *data = static_cast<StripData *>(MEM_callocN(sizeof(StripData), "strip"));
+  StripData *data = MEM_callocN<StripData>("strip");
 
   if (type != STRIP_TYPE_SOUND_RAM) {
-    data->transform = static_cast<StripTransform *>(
-        MEM_callocN(sizeof(StripTransform), "StripTransform"));
+    data->transform = MEM_callocN<StripTransform>("StripTransform");
     data->transform->scale_x = 1;
     data->transform->scale_y = 1;
     data->transform->origin[0] = 0.5f;
     data->transform->origin[1] = 0.5f;
     data->transform->filter = SEQ_TRANSFORM_FILTER_AUTO;
-    data->crop = static_cast<StripCrop *>(MEM_callocN(sizeof(StripCrop), "StripCrop"));
+    data->crop = MEM_callocN<StripCrop>("StripCrop");
   }
 
   data->us = 1;
@@ -129,7 +127,7 @@ Strip *sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type)
 {
   Strip *strip;
 
-  strip = static_cast<Strip *>(MEM_callocN(sizeof(Strip), "addseq"));
+  strip = MEM_callocN<Strip>("addseq");
   BLI_addtail(lb, strip);
 
   *((short *)strip->name) = ID_SEQ;
@@ -155,8 +153,7 @@ Strip *sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type)
   }
 
   strip->data = seq_strip_alloc(type);
-  strip->stereo3d_format = static_cast<Stereo3dFormat *>(
-      MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format"));
+  strip->stereo3d_format = MEM_callocN<Stereo3dFormat>("Sequence Stereo Format");
 
   strip->color_tag = STRIP_COLOR_NONE;
 
@@ -274,7 +271,7 @@ Editing *editing_ensure(Scene *scene)
   if (scene->ed == nullptr) {
     Editing *ed;
 
-    ed = scene->ed = static_cast<Editing *>(MEM_callocN(sizeof(Editing), "addseq"));
+    ed = scene->ed = MEM_callocN<Editing>("addseq");
     ed->seqbasep = &ed->seqbase;
     ed->cache = nullptr;
     ed->cache_flag = (SEQ_CACHE_STORE_FINAL_OUT | SEQ_CACHE_STORE_RAW);
@@ -339,8 +336,8 @@ static void seq_new_fix_links_recursive(Strip *strip, blender::Map<Strip *, Stri
 
 SequencerToolSettings *tool_settings_init()
 {
-  SequencerToolSettings *tool_settings = static_cast<SequencerToolSettings *>(
-      MEM_callocN(sizeof(SequencerToolSettings), "Sequencer tool settings"));
+  SequencerToolSettings *tool_settings = MEM_callocN<SequencerToolSettings>(
+      "Sequencer tool settings");
   tool_settings->fit_method = SEQ_SCALE_TO_FIT;
   tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
                              SEQ_SNAP_TO_STRIP_HOLD | SEQ_SNAP_TO_MARKERS | SEQ_SNAP_TO_RETIMING |
@@ -429,7 +426,7 @@ static MetaStack *seq_meta_stack_alloc(const Scene *scene, Strip *strip_meta)
 {
   Editing *ed = editing_get(scene);
 
-  MetaStack *ms = static_cast<MetaStack *>(MEM_mallocN(sizeof(MetaStack), "metastack"));
+  MetaStack *ms = MEM_mallocN<MetaStack>("metastack");
   BLI_addhead(&ed->metastack, ms);
   ms->parseq = strip_meta;
 

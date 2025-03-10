@@ -23,9 +23,9 @@ static void init_solid_color(Strip *strip)
     MEM_freeN(strip->effectdata);
   }
 
-  strip->effectdata = MEM_callocN(sizeof(SolidColorVars), "solidcolor");
+  SolidColorVars *cv = MEM_callocN<SolidColorVars>("solidcolor");
+  strip->effectdata = cv;
 
-  SolidColorVars *cv = (SolidColorVars *)strip->effectdata;
   cv->col[0] = cv->col[1] = cv->col[2] = 0.5;
 }
 

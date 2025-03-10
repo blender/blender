@@ -339,8 +339,10 @@ static void init_colormix_effect(Strip *strip)
   if (strip->effectdata) {
     MEM_freeN(strip->effectdata);
   }
-  strip->effectdata = MEM_callocN(sizeof(ColorMixVars), "colormixvars");
-  ColorMixVars *data = (ColorMixVars *)strip->effectdata;
+
+  ColorMixVars *data = MEM_callocN<ColorMixVars>("colormixvars");
+  strip->effectdata = data;
+
   data->blend_effect = STRIP_TYPE_OVERLAY;
   data->factor = 1.0f;
 }
