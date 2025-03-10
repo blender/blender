@@ -1149,7 +1149,7 @@ HairGrid *SIM_hair_volume_create_vertex_grid(float cellsize,
   copy_v3_v3(grid->gmax, gmax_margin);
   grid->cellsize = cellsize;
   grid->inv_cellsize = scale;
-  grid->verts = (HairGridVert *)MEM_callocN(sizeof(HairGridVert) * size, "hair voxel data");
+  grid->verts = MEM_calloc_arrayN<HairGridVert>(size_t(size), "hair voxel data");
 
   return grid;
 }
@@ -1200,7 +1200,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   hair_volume_get_boundbox(lX, numverts, gmin, gmax);
   hair_grid_get_scale(res, gmin, gmax, scale);
 
-  collgrid = MEM_mallocN(sizeof(HairGridVert) * size, "hair collider voxel data");
+  collgrid = MEM_malloc_arrayN<HairGridVert>(size, "hair collider voxel data");
 
   /* initialize grid */
   for (i = 0; i < size; i++) {
