@@ -479,7 +479,7 @@ void MTLFrameBuffer::subpass_transition_impl(const GPUAttachmentState /*depth_at
   if (!MTLBackend::capabilities.supports_native_tile_inputs) {
     /* Break render-pass if tile memory is unsupported to ensure current frame-buffer results are
      * stored. */
-    context_->main_command_buffer.end_active_command_encoder();
+    context_->main_command_buffer.end_active_command_encoder(true);
 
     /* Bind frame-buffer attachments as textures.
      * NOTE: Follows behavior of gl_framebuffer. However, shaders utilizing subpass_in will

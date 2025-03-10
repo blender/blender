@@ -632,7 +632,7 @@ class MTLCommandBufferManager {
 
   /* Encoder and Pass management. */
   /* End currently active MTLCommandEncoder. */
-  bool end_active_command_encoder();
+  bool end_active_command_encoder(bool retain_framebuffers = false);
   id<MTLRenderCommandEncoder> ensure_begin_render_command_encoder(MTLFrameBuffer *ctx_framebuffer,
                                                                   bool force_begin,
                                                                   bool *r_new_pass);
