@@ -106,6 +106,64 @@ static void grease_pencil_init_data(ID *id)
   grease_pencil->runtime = MEM_new<GreasePencilRuntime>(__func__);
 }
 
+/* See if the layer visibility is animated. This is determined whenever a copy is made, so that
+ * this happens in the "create evaluation copy" node of the depsgraph. */
+static void grease_pencil_set_runtime_visibilities(ID &id_dst, GreasePencil &grease_pencil)
+{
+  using namespace blender::bke;
+
+  if (!DEG_is_evaluated_id(&id_dst) || !grease_pencil.adt) {
+    return;
+  }
+
+  PropertyRNA *layer_hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayer, "hide");
+  BLI_assert_msg(layer_hide_prop,
+                 "RNA struct GreasePencilLayer is expected to have a 'hide' property.");
+  PropertyRNA *group_hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayerGroup,
+                                                               "hide");
+  BLI_assert_msg(group_hide_prop,
+                 "RNA struct GreasePencilLayerGroup is expected to have a 'hide' property.");
+
+  for (greasepencil::LayerGroup *layer_group : grease_pencil.layer_groups_for_write()) {
+    PointerRNA layer_ptr = RNA_pointer_create_discrete(
+        &id_dst, &RNA_GreasePencilLayerGroup, layer_group);
+    std::optional<std::string> rna_path = RNA_path_from_ID_to_property(&layer_ptr,
+                                                                       group_hide_prop);
+    BLI_assert_msg(
+        rna_path,
+        "It should be possible to construct the RNA path of a grease pencil layer group.");
+
+    layer_group->runtime->is_visibility_animated_ = animdata::prop_is_animated(
+        grease_pencil.adt, rna_path->c_str(), 0);
+  }
+
+  std::function<bool(greasepencil::LayerGroup &)> parent_group_visibility_animated =
+      [&](greasepencil::LayerGroup &parent) {
+        if (parent.runtime->is_visibility_animated_) {
+          return true;
+        }
+        greasepencil::LayerGroup *parent_group = parent.as_node().parent_group();
+        if (parent_group) {
+          return parent_group_visibility_animated(*parent_group);
+        }
+        return false;
+      };
+
+  for (greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
+    if (parent_group_visibility_animated(layer->parent_group())) {
+      layer->runtime->is_visibility_animated_ = true;
+      continue;
+    }
+    PointerRNA layer_ptr = RNA_pointer_create_discrete(&id_dst, &RNA_GreasePencilLayer, layer);
+    std::optional<std::string> rna_path = RNA_path_from_ID_to_property(&layer_ptr,
+                                                                       layer_hide_prop);
+    BLI_assert_msg(rna_path,
+                   "It should be possible to construct the RNA path of a grease pencil layer.");
+    layer->runtime->is_visibility_animated_ = animdata::prop_is_animated(
+        grease_pencil.adt, rna_path.value(), 0);
+  }
+}
+
 static void grease_pencil_copy_data(Main * /*bmain*/,
                                     std::optional<Library *> /*owner_library*/,
                                     ID *id_dst,
@@ -151,23 +209,7 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
         *grease_pencil_src->runtime->bake_materials);
   }
 
-  /* See if the layer visibility is animated. This is determined whenever a copy is made, so that
-   * this happens in the "create evaluation copy" node of the depsgraph. */
-  if (DEG_is_evaluated_id(id_dst) && grease_pencil_dst->adt) {
-    PropertyRNA *hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayer, "hide");
-    BLI_assert_msg(hide_prop,
-                   "RNA struct GreasePencilLayer is expected to have a 'hide' property.");
-
-    for (bke::greasepencil::Layer *layer : grease_pencil_dst->layers_for_write()) {
-      PointerRNA layer_ptr = RNA_pointer_create_discrete(id_dst, &RNA_GreasePencilLayer, layer);
-      std::optional<std::string> rna_path = RNA_path_from_ID_to_property(&layer_ptr, hide_prop);
-      BLI_assert_msg(rna_path,
-                     "It should be possible to construct the RNA path of a grease pencil layer.");
-
-      layer->runtime->is_visisbility_animated_ = bke::animdata::prop_is_animated(
-          grease_pencil_dst->adt, rna_path.value(), 0);
-    }
-  }
+  grease_pencil_set_runtime_visibilities(*id_dst, *grease_pencil_dst);
 }
 
 static void grease_pencil_free_data(ID *id)
@@ -2224,7 +2266,7 @@ static void grease_pencil_evaluate_layers(GreasePencil &grease_pencil)
     /* When the visibility is animated, the layer should be retained even when it is invisible.
      * Changing the visibility through the animation system does NOT create another evaluated copy,
      * and thus the layer has to be kept for this future use. */
-    if (layer->is_visible() || layer->runtime->is_visisbility_animated_) {
+    if (layer->is_visible() || layer->runtime->is_visibility_animated_) {
       continue;
     }
 
