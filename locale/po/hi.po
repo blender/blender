@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2015-03-03 16:21+0530\n"
-"Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
-"Language-Team: Hindi <www.anisecrets.com>\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: \n"
-"X-Generator: Poedit 1.6.9"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Valid"
@@ -181,10 +181,6 @@ msgstr "बंद"
 
 msgid "Full"
 msgstr "पूर्ण"
-
-
-msgid "Auto"
-msgstr "स्वत:"
 
 
 msgid "Never"
@@ -571,10 +567,6 @@ msgid "Volume"
 msgstr "आयतन"
 
 
-msgid "Automatic"
-msgstr "स्वत:"
-
-
 msgid "Relative"
 msgstr "सापेक्ष"
 
@@ -739,10 +731,6 @@ msgstr "क्षेत्र की गहनता"
 
 msgid "Ratio"
 msgstr "अनुपात"
-
-
-msgid "Pivot"
-msgstr "धुरी:"
 
 
 msgid "Left"
@@ -2604,18 +2592,6 @@ msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Text"
-msgstr "पाठ"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
 msgid "Snap"
 msgstr "स्नैप"
 
@@ -2652,6 +2628,10 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
+msgid "Names"
+msgstr "नाम"
+
+
 msgid "Toggle Bone Options"
 msgstr "हड्डी विकल्प बंद/बुझ"
 
@@ -2662,6 +2642,14 @@ msgstr "हड्डी विकल्प को सक्षम करें"
 
 msgid "Merge"
 msgstr "विलय करें"
+
+
+msgid "Text"
+msgstr "पाठ"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
 
 
 msgid "Basic"
@@ -5357,10 +5345,6 @@ msgid "Selection to Cursor"
 msgstr "प्रसंकेतक के लिए चयन"
 
 
-msgid "Parent:"
-msgstr "कारण"
-
-
 msgid "Transform:"
 msgstr "संचनांतरण:"
 
@@ -6420,14 +6404,6 @@ msgid "Offset:"
 msgstr "विचलन:"
 
 
-msgid "Width:"
-msgstr "चौड़ाई"
-
-
-msgid "Height:"
-msgstr "ऊँचाई"
-
-
 msgid "Y-position of search at frame relative to marker's position"
 msgstr "बाएँ-नीचे शंकुे सापेक्ष सामान्यीकृत निर्देशांक में खोज क्षेत्र के चिन्हक की स्थिति"
 
@@ -6510,10 +6486,6 @@ msgstr "डब्ल्यु:"
 
 msgid "Weight:"
 msgstr "भार:"
-
-
-msgid "Radius:"
-msgstr "त्रिज्या"
 
 
 msgid "Tilt:"

@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2012-09-07 22:32+0100\n"
-"Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
-"Language-Team: Nikola Radovanovic\n"
-"Language: sr\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
+"Language: sr@latin\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Virtaal 0.7.0"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Valid"
@@ -1865,10 +1865,6 @@ msgid "White Point"
 msgstr "Bela tačka"
 
 
-msgid "Color Mapping"
-msgstr "Bojenje:"
-
-
 msgid "Blend Factor"
 msgstr "Faktor preliva"
 
@@ -3495,10 +3491,6 @@ msgid "Simulation start frame"
 msgstr "Simulacija počinje u ovom kadru"
 
 
-msgid "Sub-Steps"
-msgstr "Pod-koraci:"
-
-
 msgid "File Format"
 msgstr "Format datoteke"
 
@@ -3525,10 +3517,6 @@ msgstr "Rezolucija izlazne slike"
 
 msgid "Initial color of the surface"
 msgstr "Osnovna boja površine"
-
-
-msgid "Initial Color"
-msgstr "Početne vrednosti:"
 
 
 msgid "UV Texture"
@@ -4890,10 +4878,6 @@ msgstr "Lažni korisnik"
 
 msgid "Users"
 msgstr "Korisnici"
-
-
-msgid "Frame Range"
-msgstr "Opseg kadrova:"
 
 
 msgid "Groups"
@@ -7704,10 +7688,6 @@ msgid "Use very clearly defined marble"
 msgstr "Koristi vrlo jasno definisan mermer"
 
 
-msgid "Noise Basis 2"
-msgstr "Osnova šuma:"
-
-
 msgid "Sin"
 msgstr "Sinus"
 
@@ -8629,22 +8609,6 @@ msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
-msgid "Special Characters"
-msgstr "Specijalni znaci"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
-
-
 msgid "Snap"
 msgstr "Lepljenje"
 
@@ -8671,6 +8635,10 @@ msgstr "Poravnaj pogled"
 
 msgid "Select Linked"
 msgstr "Izaberi povezano"
+
+
+msgid "Metaball"
+msgstr "Meta lopta"
 
 
 msgid "Light"
@@ -8713,6 +8681,10 @@ msgid "Propagate"
 msgstr "Prenesi"
 
 
+msgid "Names"
+msgstr "Imena"
+
+
 msgid "Toggle Bone Options"
 msgstr "Manje/više informacija"
 
@@ -8731,6 +8703,14 @@ msgstr "Mod izbora mreže"
 
 msgid "Merge"
 msgstr "Sjedini"
+
+
+msgid "Special Characters"
+msgstr "Specijalni znaci"
+
+
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
 msgid "Basic"
@@ -9961,10 +9941,6 @@ msgstr "Oštrina"
 
 msgid "Smooth Shading"
 msgstr "Meko senčenje"
-
-
-msgid "Screw Modifier"
-msgstr "Modifikator šrafa:"
 
 
 msgid "Angle of revolution"
@@ -16655,11 +16631,6 @@ msgstr "Višestruko sečenje"
 
 
 msgctxt "Operator"
-msgid "Multires Subdivide"
-msgstr "Zvuk:"
-
-
-msgctxt "Operator"
 msgid "Bake Ocean"
 msgstr "Ispeci okean"
 
@@ -17875,11 +17846,6 @@ msgstr "Vrati na prethodni ekran"
 msgctxt "Operator"
 msgid "Delete Screen"
 msgstr "Izbriši ekran"
-
-
-msgctxt "Operator"
-msgid "Jump to Endpoint"
-msgstr "Skoči do linije:"
 
 
 msgid "Last Frame"
@@ -19502,10 +19468,6 @@ msgid "Sort by Object name"
 msgstr "Poređak po imenu objekta"
 
 
-msgid "Context Attributes"
-msgstr "Atributi:"
-
-
 msgid "Cycle backwards"
 msgstr "Unazad"
 
@@ -19991,10 +19953,6 @@ msgid "Bookmarks"
 msgstr "Obeleživači"
 
 
-msgid "Fluid Presets"
-msgstr "Svojstva tečnosti:"
-
-
 msgid "Texture Mask"
 msgstr "Maska teksture"
 
@@ -20240,10 +20198,6 @@ msgstr "Sunce"
 
 msgid "Make hairs less puffy"
 msgstr "Napravi kosu manje pufnastom"
-
-
-msgid "Puff Volume"
-msgstr "Jačina:"
 
 
 msgid "Properties of particle editing mode"
@@ -20602,10 +20556,6 @@ msgid "Automatic keyframe insertion for Objects and Bones (default setting used 
 msgstr "Samostalno umeći ključeve na ipo krivoj objekta"
 
 
-msgid "Show Auto Keying Warning"
-msgstr "Automatski dodaj ključne kadrove:"
-
-
 msgid "Duplicate Action"
 msgstr "Dupliraj akciju"
 
@@ -20832,10 +20782,6 @@ msgstr "Postavlja da tasteri od 1 do 0 izigravaju numeričku tastaturu (korisno 
 
 msgid "Continuous Grab"
 msgstr "Kontinualno pomeranje"
-
-
-msgid "Auto Depth"
-msgstr "Dubina:"
 
 
 msgid "Emulate 3 Button Mouse"
@@ -21116,10 +21062,6 @@ msgstr "Prevodi opise"
 
 msgid "Base"
 msgstr "Osnova"
-
-
-msgid "Group of ID properties"
-msgstr "Svojstva tečnosti:"
 
 
 msgid "Case"
@@ -22041,10 +21983,6 @@ msgstr "Uvećanje pozadine"
 
 msgid "Backdrop zoom factor"
 msgstr "Faktor uvećanja prikaza pozadine"
-
-
-msgid "Cursor Location"
-msgstr "Pozicija kursora:"
 
 
 msgid "Location for adding new nodes"
@@ -25171,10 +25109,6 @@ msgid "Reset Black/White point and curves"
 msgstr "Resetuj crnu i belu tačku i krive"
 
 
-msgid "ID-Block:"
-msgstr "ID-blok"
-
-
 msgid "Browse Scene to be linked"
 msgstr "Izaberite scenu za povezivanje"
 
@@ -25742,14 +25676,6 @@ msgid "Offset:"
 msgstr "Odstojanje:"
 
 
-msgid "Width:"
-msgstr "Širina"
-
-
-msgid "Height:"
-msgstr "Visina"
-
-
 msgid "Marker is disabled at current frame"
 msgstr "Marker je isključen na ternutnom kadru"
 
@@ -25802,16 +25728,8 @@ msgid "Cursor X"
 msgstr "Kursor X"
 
 
-msgid "Prop:"
-msgstr "Svojstvo"
-
-
 msgid "Driver Value:"
 msgstr "Vrednost vozača:"
-
-
-msgid "Value:"
-msgstr "Vrednost"
 
 
 msgid "Update Dependencies"
@@ -25940,10 +25858,6 @@ msgstr "Poluprečnik:"
 
 msgid "Tilt:"
 msgstr "Nagib:"
-
-
-msgid "Mean Radius:"
-msgstr "Glavni poluprečnik"
 
 
 msgid "4L"

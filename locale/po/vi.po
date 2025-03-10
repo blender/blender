@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
 "PO-Revision-Date: 2024-12-30 20:42+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -33508,30 +33508,6 @@ msgid "Show/Hide"
 msgstr "Hiện/Ẩn Giấu"
 
 
-msgid "Special Characters"
-msgstr "Các Ký Tự Đặc Biệt"
-
-
-msgid "Kerning"
-msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
-
-
-msgid "Text"
-msgstr "Văn Bản"
-
-
-msgid "Metaball"
-msgstr "Siêu Cầu"
-
-
-msgid "Names"
-msgstr "Tên"
-
-
-msgid "Bone Roll"
-msgstr "Lăn Xương"
-
-
 msgid "Clean Up"
 msgstr "Dọn Dẹp"
 
@@ -33620,6 +33596,10 @@ msgid "Assign Material"
 msgstr "Ấn Định Nguyên Vật Liệu"
 
 
+msgid "Metaball"
+msgstr "Siêu Cầu"
+
+
 msgid "Light"
 msgstr "Nguồn/Ánh Sáng/Đèn"
 
@@ -33704,6 +33684,10 @@ msgid "Bone Collections"
 msgstr "Bộ Sưu Tập Xương"
 
 
+msgid "Names"
+msgstr "Tên"
+
+
 msgid "Toggle Bone Options"
 msgstr "Bật/Tắt Tùy Chọn về Xương"
 
@@ -33734,6 +33718,22 @@ msgstr "Đặt Cường Độ Mặt"
 
 msgid "Merge"
 msgstr "Hợp Nhất"
+
+
+msgid "Special Characters"
+msgstr "Các Ký Tự Đặc Biệt"
+
+
+msgid "Kerning"
+msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
+
+
+msgid "Text"
+msgstr "Văn Bản"
+
+
+msgid "Bone Roll"
+msgstr "Lăn Xương"
 
 
 msgid "Keyframe Insert Pie"
@@ -88872,14 +88872,6 @@ msgid "SSAO Settings"
 msgstr "Sắp Đặt về SSAO"
 
 
-msgid "glTF Variants"
-msgstr "Biến Thể glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Biến Thể Nguyên Vật Liệu glTF"
-
-
 msgid "Render Pass"
 msgstr "Lượt Kết Xuất"
 
@@ -88920,8 +88912,12 @@ msgid "Curves Edit Mode"
 msgstr "Chế Độ Biên Soạn Đường Cong"
 
 
-msgid "glTF Animations"
-msgstr "Hoạt Họa glTF"
+msgid "glTF Variants"
+msgstr "Biến Thể glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Biến Thể Nguyên Vật Liệu glTF"
 
 
 msgid "Snapping"
@@ -88950,6 +88946,10 @@ msgstr "Bốn Góc Nhìn"
 
 msgid "Onion Skin"
 msgstr "Bóc Vỏ Hành"
+
+
+msgid "glTF Animations"
+msgstr "Hoạt Họa glTF"
 
 
 msgid "Stereoscopy"
@@ -116840,10 +116840,6 @@ msgstr "Cảnh cáo, tập tin hiện đang tồn tại. Viết đè chồng lê
 
 msgid "Installing keymap failed: {:s}"
 msgstr "Cài đặt bố trí phím đã bị thất bại: {:s}"
-
-
-msgid "This script was written Blender version {:d}.{:d}.{:d} and might not function (correctly), though it is enabled"
-msgstr "Tập lệnh này được viết bằng phiên bản Blender {:d}.{:d}.{:d} và có thể không hoạt động (đúng đắn), mặc dù nó đã được bật lên"
 
 
 msgid "File already installed to {!r}"

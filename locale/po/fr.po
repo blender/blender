@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2025-02-28 16:56+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"PO-Revision-Date: 2025-03-04 21:36+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -738,6 +738,10 @@ msgstr "Faire de la place pour les grandes scènes en distribuant la mémoire da
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (expérimental)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT permet le lancer de rayons avec accélération matérielle AMD sur RDNA2 et supérieur. Cette fonctionnalité est expérimentale et le rendu de certaines scènes peut être incorrect"
 
 
 msgid "Embree on GPU"
@@ -5817,7 +5821,7 @@ msgstr "Remplir"
 
 
 msgid "Crop"
-msgstr "Recader"
+msgstr "Recadrer"
 
 
 msgid "Image"
@@ -29269,20 +29273,45 @@ msgid "Volume render settings for 3D viewport"
 msgstr "Réglages de rendu du volume dans la vue 3D"
 
 
+msgctxt "Volume"
+msgid "Sequence Mode"
+msgstr "Mode de séquence"
+
+
 msgid "Sequence playback mode"
 msgstr "Mode de lecture de la séquence"
+
+
+msgctxt "Volume"
+msgid "Clip"
+msgstr "Limiter"
 
 
 msgid "Hide frames outside the specified frame range"
 msgstr "Cacher les frames en dehors de l’intervalles de frames spécifié"
 
 
+msgctxt "Volume"
+msgid "Extend"
+msgstr "Étendre"
+
+
 msgid "Repeat the start frame before, and the end frame after the frame range"
 msgstr "Répéter la frame de début avant, et la frame de fin après l’intervalle de frames"
 
 
+msgctxt "Volume"
+msgid "Repeat"
+msgstr "Répéter"
+
+
 msgid "Cycle the frames in the sequence"
 msgstr "Faire boucler les frames dans la séquence"
+
+
+msgctxt "Volume"
+msgid "Ping-Pong"
+msgstr "Ping-pong"
 
 
 msgid "Repeat the frames, reversing the playback direction every other cycle"
@@ -33951,6 +33980,42 @@ msgid "Aligned Single"
 msgstr "Aligné unique"
 
 
+msgid "Selection status of the control point. (Deprecated: use Select Control Point instead)"
+msgstr "État de sélection du point de contrôle. (Obsolète : utiliser plutôt Sélectionner point de contrôle)"
+
+
+msgid "Select Control Point"
+msgstr "Sélectionner point de contrôle"
+
+
+msgid "Selection status of the control point"
+msgstr "État de sélection du point de contrôle"
+
+
+msgid "Select Left Handle"
+msgstr "Sélectionner la poignée gauche"
+
+
+msgid "Selection status of the left handle"
+msgstr "État de sélection de la poignée de gauche"
+
+
+msgid "Select Right Handle"
+msgstr "Sélectionner la poignée droite"
+
+
+msgid "Selection status of the right handle"
+msgstr "État de sélection de la poignée de droite"
+
+
+msgid "Select Aligned Single Handle"
+msgstr "Sélectionner la poignée Aligné unique"
+
+
+msgid "Selection status of the Aligned Single handle"
+msgstr "État de sélection de la poignée Aligné unique"
+
+
 msgid "Weight of the point"
 msgstr "Poids du point"
 
@@ -34293,30 +34358,6 @@ msgid "Show/Hide"
 msgstr "Afficher/cacher"
 
 
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
-
-
-msgid "Kerning"
-msgstr "Approche"
-
-
-msgid "Text"
-msgstr "Texte"
-
-
-msgid "Metaball"
-msgstr "Métaballe"
-
-
-msgid "Names"
-msgstr "Noms"
-
-
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
-
-
 msgid "Clean Up"
 msgstr "Nettoyer"
 
@@ -34405,6 +34446,10 @@ msgid "Assign Material"
 msgstr "Assigner un matériau"
 
 
+msgid "Metaball"
+msgstr "Métaballe"
+
+
 msgid "Light"
 msgstr "Éclairage"
 
@@ -34489,6 +34534,10 @@ msgid "Bone Collections"
 msgstr "Collections d’os"
 
 
+msgid "Names"
+msgstr "Noms"
+
+
 msgid "Toggle Bone Options"
 msgstr "(Dés)activer des options d’os"
 
@@ -34519,6 +34568,22 @@ msgstr "Définir la force de face"
 
 msgid "Merge"
 msgstr "Fusionner"
+
+
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
+
+
+msgid "Kerning"
+msgstr "Approche"
+
+
+msgid "Text"
+msgstr "Texte"
+
+
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
 
 
 msgid "Keyframe Insert Pie"
@@ -57889,7 +57954,7 @@ msgstr "Tout (dé)sélectionner"
 
 
 msgid "Toggle selection status of all bones"
-msgstr "Modifier le statut de sélection de tous les os"
+msgstr "Modifier l’état de sélection de tous les os"
 
 
 msgid "Select immediate parent/children of selected bones"
@@ -66190,6 +66255,10 @@ msgstr "Mettre tous les points de traits à la même opacité"
 
 msgid "Fill Opacity"
 msgstr "Opacité du remplissage"
+
+
+msgid "Stroke Opacity"
+msgstr "Opacité du trait"
 
 
 msgctxt "Operator"
@@ -90866,14 +90935,6 @@ msgid "SSAO Settings"
 msgstr "Réglages de SSAO"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de matériaux glTF"
-
-
 msgid "Render Pass"
 msgstr "Passe de rendu"
 
@@ -90914,12 +90975,12 @@ msgid "Curves Edit Mode"
 msgstr "Mode édition courbes"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "glTF Variants"
+msgstr "Variantes glTF"
 
 
-msgid "glTF Animations"
-msgstr "Animations glTF"
+msgid "glTF Material Variants"
+msgstr "Variantes de matériaux glTF"
 
 
 msgid "Snapping"
@@ -90948,6 +91009,14 @@ msgstr "Vue quadrants"
 
 msgid "Onion Skin"
 msgstr "Pelures d’oignon"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animations glTF"
 
 
 msgid "Stereoscopy"
@@ -102586,7 +102655,7 @@ msgstr "Stocker les proxies en utilisant le dossier du projet"
 
 
 msgid "Retiming Key Selection Status"
-msgstr "Statut de sélection des clés de reminutage"
+msgstr "État de sélection des clés de reminutage"
 
 
 msgid "(Deprecated: Replaced by '.strips') Top-level strips only"
@@ -117487,6 +117556,14 @@ msgid "Requires AMD GPU with RDNA architecture"
 msgstr "Nécessite un GPU AMD avec architecture RDNA"
 
 
+msgid "and AMD Adrenalin driver %s or newer"
+msgstr "et pilote AMD Adrenalin %s ou plus"
+
+
+msgid "or AMD Radeon Pro %s driver or newer"
+msgstr "ou pilote AMD Radeon Pro %s ou plus"
+
+
 msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Nécessite un GPU Intel avec architecture Xe-HPG"
 
@@ -119541,6 +119618,14 @@ msgid "No objects with bound-box selected"
 msgstr "Aucun objet avec boîte englobante sélectionné"
 
 
+msgid "Smoke Domain"
+msgstr "Domaine de fumée"
+
+
+msgid "Liquid Domain"
+msgstr "Domaine de liquide"
+
+
 msgid "Select at least one mesh object"
 msgstr "Sélectionner au moins un objet maillage"
 
@@ -119573,6 +119658,14 @@ msgid "Built without Fluid modifier"
 msgstr "Compilé sans le modificateur Fluide"
 
 
+msgid "Smoke Domain Material"
+msgstr "Matériau du domaine de fumée"
+
+
+msgid "Liquid Domain Material"
+msgstr "Matériau du domaine de liquide"
+
+
 msgid "Object {!r} already has a particle system"
 msgstr "L’objet {!r} a déjà un système de particules"
 
@@ -119585,12 +119678,20 @@ msgid "Interpolate Hair Curves"
 msgstr "Interpoler les courbes de poils"
 
 
+msgid "Explode Fade"
+msgstr "Explosion fondu"
+
+
 msgid "Hair Curves Noise"
 msgstr "Bruit de courbes de poils"
 
 
 msgid "Frizz Hair Curves"
 msgstr "Friser les courbes de poils"
+
+
+msgid "Explode fade"
+msgstr "Explosion fondu"
 
 
 msgid "New Preset"
@@ -119707,10 +119808,6 @@ msgstr "Attention, le fichier existe déjà. Écraser le fichier existant ?"
 
 msgid "Installing keymap failed: {:s}"
 msgstr "L’installation de l’ensemble de raccourcis a échoué : {:s}"
-
-
-msgid "This script was written Blender version {:d}.{:d}.{:d} and might not function (correctly), though it is enabled"
-msgstr "Ce script a été écrit avec la version {:d}.{:d}.{:d} de Blender et peut mal fonctionner, mais il a quand même été activé"
 
 
 msgid "File already installed to {!r}"
@@ -141581,6 +141678,11 @@ msgstr "Axe U"
 
 msgid "UVWarp"
 msgstr "DéformerUV"
+
+
+msgctxt "Modifier"
+msgid "To"
+msgstr "Vers"
 
 
 msgid "Sample Radius"

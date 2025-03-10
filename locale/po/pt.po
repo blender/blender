@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2025-02-28 16:56+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"PO-Revision-Date: 2025-03-09 03:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -745,6 +745,10 @@ msgstr "Fazer mais espaço para acomodar cenas grandes distribuindo a memória p
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (Experimental)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above. This feature is experimental and some scenes may render incorrectly"
+msgstr "O HIP RT possibilita o rastreamento de raios por hardware em RDNA2 e mais recentes. Esta funcionalidade é experimental e algumas cenas podem renderizar incorrectamente."
 
 
 msgid "Embree on GPU"
@@ -6702,11 +6706,11 @@ msgstr "Status da interação do solucionador."
 
 
 msgid "Success"
-msgstr "Sucesso !"
+msgstr "Sucesso"
 
 
 msgid "Computation was successful"
-msgstr "A computação foi feita com sucesso."
+msgstr "Computação bem sucedida"
 
 
 msgid "Numerical Issue"
@@ -29276,20 +29280,45 @@ msgid "Volume render settings for 3D viewport"
 msgstr "Definições de renderização de volumes para a janela de visualização 3D"
 
 
+msgctxt "Volume"
+msgid "Sequence Mode"
+msgstr "Modo de Sequência"
+
+
 msgid "Sequence playback mode"
 msgstr "Modo de reprodução da sequência"
+
+
+msgctxt "Volume"
+msgid "Clip"
+msgstr "Clipe"
 
 
 msgid "Hide frames outside the specified frame range"
 msgstr "Esconder fotogramas fora do intervalo de fotogramas especificado"
 
 
+msgctxt "Volume"
+msgid "Extend"
+msgstr "Estender"
+
+
 msgid "Repeat the start frame before, and the end frame after the frame range"
 msgstr "Repetir o fotograma inicial antes, e o fotograma final depois do intervalo de fotogramas especificado"
 
 
+msgctxt "Volume"
+msgid "Repeat"
+msgstr "Repetir"
+
+
 msgid "Cycle the frames in the sequence"
 msgstr "Repetir os fotogramas na sequência"
+
+
+msgctxt "Volume"
+msgid "Ping-Pong"
+msgstr "Ping-Pong"
 
 
 msgid "Repeat the frames, reversing the playback direction every other cycle"
@@ -33958,6 +33987,42 @@ msgid "Aligned Single"
 msgstr "Único alinhado"
 
 
+msgid "Selection status of the control point. (Deprecated: use Select Control Point instead)"
+msgstr "Seleccionar estado do ponto de controlo. (Descontinuado: usar Seleccionar Ponto de Controlo)"
+
+
+msgid "Select Control Point"
+msgstr "Selecionar Ponto de Controlo"
+
+
+msgid "Selection status of the control point"
+msgstr "Estado de selecção do ponto de controlo"
+
+
+msgid "Select Left Handle"
+msgstr "Seleccionar Manípulo Esquerdo"
+
+
+msgid "Selection status of the left handle"
+msgstr "Estado de selecção do manípulo esquerdo"
+
+
+msgid "Select Right Handle"
+msgstr "Seleccionar Manípulo Direito"
+
+
+msgid "Selection status of the right handle"
+msgstr "Estado de seleção do manípulo direito"
+
+
+msgid "Select Aligned Single Handle"
+msgstr "Seleccionar Manípulo Alinhado Individual"
+
+
+msgid "Selection status of the Aligned Single handle"
+msgstr "Estado de selecção do Manípulo Alinhado individual"
+
+
 msgid "Weight of the point"
 msgstr "Pesos de influência dos pontos."
 
@@ -34300,30 +34365,6 @@ msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Esfera-meta"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem do osso"
-
-
 msgid "Clean Up"
 msgstr "Limpeza"
 
@@ -34412,6 +34453,10 @@ msgid "Assign Material"
 msgstr "Aplicar Material"
 
 
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
 msgid "Light"
 msgstr "Leve"
 
@@ -34496,6 +34541,10 @@ msgid "Bone Collections"
 msgstr "Colecções de Ossos"
 
 
+msgid "Names"
+msgstr "Nomes"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -34526,6 +34575,22 @@ msgstr "Definir Força das Faces"
 
 msgid "Merge"
 msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem do osso"
 
 
 msgid "Keyframe Insert Pie"
@@ -49934,7 +49999,7 @@ msgstr "Criar uma malha na \"superfície\" de um volume"
 
 
 msgid "Warning"
-msgstr "Alertas:"
+msgstr "Aviso"
 
 
 msgid "Create custom warnings in node groups"
@@ -51071,11 +51136,11 @@ msgstr "Bi-cúbica durante a ampliação, caso contrário, bilinear (somente OSL
 
 
 msgid "Projection"
-msgstr "Tipo de projeção:"
+msgstr "Projecção"
 
 
 msgid "Projection of the input image"
-msgstr "Projeção da imagem de entrada."
+msgstr "Projecção da imagem de entrada"
 
 
 msgid "Equirectangular or latitude-longitude projection"
@@ -64582,12 +64647,94 @@ msgid "Keys to Samples"
 msgstr "Chaves a Amostrar"
 
 
+msgid "Convert selected channels to an uneditable set of samples to save storage space"
+msgstr "Converter canais seleccionados num conjunto não editável de amostras para poupar espaço de armazenamento"
+
+
+msgctxt "Operator"
+msgid "Match Slope"
+msgstr "Igualar Declive"
+
+
+msgid "Blend selected keys to the slope of neighboring ones"
+msgstr "Misturar chaves seleccionadas com declive das chaves vizinhas"
+
+
+msgid "Defines which keys to use as slope and how much to blend towards them"
+msgstr "Definir que chaves usar como declive, e quanto misturar na sua direcção"
+
+
+msgid "By Values Over Cursor Value"
+msgstr "Por Valores Sobre o Valor do Cursor"
+
+
 msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
 msgstr "Inverte os valores dos fotogramas chave seleccionados usando o valor do cursor (componente Horizontal / Y) como a linha de espelhamento."
 
 
+msgid "By Times Over Zero Time"
+msgstr "Por Vezes Acima do Tempo Zero"
+
+
 msgid "Flip times of selected keyframes, effectively reversing the order they appear in"
 msgstr "Vira os tempos dos fotogramas chave seleccionados, efetivamente revertendo a ordem na qual eles aparecem."
+
+
+msgid "Paste keys with a value offset"
+msgstr "Colar chaves com deslocamento de valor"
+
+
+msgid "Left Key"
+msgstr "Chave Esquerda"
+
+
+msgid "Paste keys with the first key matching the key left of the cursor"
+msgstr "Colar chaves com a primeira chave a corresponder com a chave à esquerda do cursor"
+
+
+msgid "Right Key"
+msgstr "Chave Direita"
+
+
+msgid "Paste keys with the last key matching the key right of the cursor"
+msgstr "Colar chaves com a última chave a corresponder com a chave à direita do cursor"
+
+
+msgid "Current Frame Value"
+msgstr "Valor do Fotograma Actual"
+
+
+msgid "Paste keys relative to the value of the curve under the cursor"
+msgstr "Colar chaves relativas ao valor da curva sob o cursor"
+
+
+msgid "Cursor Value"
+msgstr "Valor do Cursor"
+
+
+msgid "Paste keys relative to the Y-Position of the cursor"
+msgstr "Colar chaves relativas à posição Y do cursor"
+
+
+msgid "Paste keys with the same value as they were copied"
+msgstr "Colar chaves com o mesmo valor que foram copiadas"
+
+
+msgid "Set Preview Range based on range of selected keyframes"
+msgstr "Definir o Intervalo de Pré Visualização com base na extensão dos fotogramas chave seleccionados"
+
+
+msgctxt "Operator"
+msgid "Push Pull Keyframes"
+msgstr "Empurrar Puxar Fotogramas Chave"
+
+
+msgid "Exaggerate or minimize the value of the selected keys"
+msgstr "Exagerar ou minimizar o valor das chaves seleccionadas"
+
+
+msgid "Control how far to push or pull the keys"
+msgstr "Controlar quão longe empurrar ou puxar as chaves"
 
 
 msgctxt "Operator"
@@ -64599,8 +64746,129 @@ msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "Torna as curvas previamente ocultadas novamente visíveis na visualização do editor gráfico."
 
 
+msgctxt "Operator"
+msgid "Samples to Keys"
+msgstr "Amostras em Chaves"
+
+
+msgid "Convert selected channels from samples to keyframes"
+msgstr "Converter os canais seleccionados de amostras em fotogramas chave"
+
+
+msgctxt "Operator"
+msgid "Scale Average Keyframes"
+msgstr "Redimensionar Média de Fotogramas Chave"
+
+
+msgid "Scale selected key values by their combined average"
+msgstr "Redimensionar valores chave seleccionados pela sua média combinada"
+
+
+msgid "Scale Factor"
+msgstr "Factor de escala"
+
+
+msgid "The scale factor applied to the curve segments"
+msgstr "O factor de escala aplicado aos segmentos de curva"
+
+
+msgctxt "Operator"
+msgid "Scale from Neighbor"
+msgstr "Redimensionar a partir do vizinho"
+
+
+msgid "Increase or decrease the value of selected keys in relationship to the neighboring one"
+msgstr "Aumentar ou diminuir o valor das chaves seleccionadas em relação à do vizinho"
+
+
+msgid "Which end of the segment to use as a reference to scale from"
+msgstr "Que ponta do segmento usar como referência a partir da qual redimensionar"
+
+
+msgid "From Left"
+msgstr "Da Esquerda"
+
+
+msgid "From Right"
+msgstr "Da Direita"
+
+
+msgid "The factor to scale keys with"
+msgstr "O factor para redimensionar as chaves"
+
+
 msgid "Are handles tested individually against the selection criteria"
 msgstr "Os manípulos são testados individualmente com relação ao o critério de selecção."
+
+
+msgid "Select Curves"
+msgstr "Seleccionar Curvas"
+
+
+msgid "Allow selecting all the keyframes of a curve by selecting the calculated F-curve"
+msgstr "Permitir seleccionar todos os fotogramas chave de uma curva seleccionando a Curva-F calculada"
+
+
+msgid "Allow selecting all the keyframes of a curve by selecting the curve itself"
+msgstr "Permitir seleccionar todos os fotogramas chave de uma curva seleccionando a própria curva"
+
+
+msgctxt "Operator"
+msgid "Select Key / Handles"
+msgstr "Selecionar Chave / Manípulos"
+
+
+msgid "For selected keyframes, select/deselect any combination of the key itself and its handles"
+msgstr "Para fotogramas chave seleccionados, seleccionar qualquer combinação da própria chave e os seus manípulos"
+
+
+msgid "Effect on the key itself"
+msgstr "Efeito na própria chave"
+
+
+msgid "Keep"
+msgstr "Manter"
+
+
+msgid "Leave as is"
+msgstr "Manter como está"
+
+
+msgid "Effect on the left handle"
+msgstr "Efeito no manípulo esquerdo"
+
+
+msgid "Effect on the right handle"
+msgstr "Efeito no manípulo direito"
+
+
+msgctxt "Operator"
+msgid "Shear Keyframes"
+msgstr "Cisalhar Fotogramas Chave"
+
+
+msgid "Affect the value of the keys linearly, keeping the same relationship between them using either the left or the right key as reference"
+msgstr "Afectar o valor das chaves linearmente, mantendo a mesma relação entre elas usando o manípulo direito ou esquerdo como referência"
+
+
+msgid "Which end of the segment to use as a reference to shear from"
+msgstr "Que ponta do segmento usar como referência para cisalhar"
+
+
+msgid "Shear the keys using the left key as reference"
+msgstr "Cisalhar chaves usando a chave esquerda como referência"
+
+
+msgid "Shear the keys using the right key as reference"
+msgstr "Cisalhar chaves usando a chave direita como referência"
+
+
+msgid "Shear Factor"
+msgstr "Factor de Cisalhamento"
+
+
+msgid "The amount of shear to apply"
+msgstr "Quantidade de cisalhamento a aplicar"
 
 
 msgctxt "Operator"
@@ -64614,6 +64882,10 @@ msgstr "Aplica um balanceamento nos movimentos de transição entre as chaves se
 
 msgid "Snap selected keyframes to the chosen times/values"
 msgstr "Atrair os fotogramas chave seleccionados aos valores/tempos escolhidos"
+
+
+msgid "Selection to Cursor Value"
+msgstr "Selecção para Valor do Cursor"
 
 
 msgid "Set values of selected keyframes to the cursor value (Y/Horizontal component)"
@@ -64633,12 +64905,49 @@ msgid "Snap Cursor Value to Selected"
 msgstr "Atrair o Valor do Cursor à Selecção"
 
 
+msgid "Place the cursor value on the average value of selected keyframes"
+msgstr "Colocar o valor do cursor no valor médio dos fotogramas chave seleccionados"
+
+
+msgctxt "Operator"
+msgid "Sound to Samples"
+msgstr "Som em Amostras"
+
+
+msgid "Bakes a sound wave to samples on selected channels"
+msgstr "Pré calcula as ondas de som para amostras nos canais seleccionados"
+
+
+msgid "Attack Time"
+msgstr "Tempo de Ataque"
+
+
+msgid "Value for the envelope calculation that tells how fast the envelope can rise (the lower the value the steeper it can rise)"
+msgstr "Valor para cálculo do invólucro que diz quão rápido o invólucro pode subir (quanto mais baixo o valor mais íngreme a subida)"
+
+
+msgid "Highest Frequency"
+msgstr "Frequência Mais Alta"
+
+
 msgid "Cutoff frequency of a low-pass filter that is applied to the audio data"
 msgstr "Frequência de corte de um filtro passa-baixa que é aplicada aos dados de áudio."
 
 
+msgid "Lowest Frequency"
+msgstr "Frequência Mais Baixa"
+
+
 msgid "Cutoff frequency of a high-pass filter that is applied to the audio data"
 msgstr "Frequência de corte de um filtro passa-alta que é aplicada aos dados de áudio."
+
+
+msgid "Release Time"
+msgstr "Tempo de libertação"
+
+
+msgid "Value for the envelope calculation that tells how fast the envelope can fall (the lower the value the steeper it can fall)"
+msgstr "Valor para cálculo do invólucro que diz quão rápido o invólucro pode cair (quanto mais baixo o valor mais íngreme a descida)"
 
 
 msgid "Square Threshold"
@@ -64649,20 +64958,119 @@ msgid "Square only: all values with an absolute amplitude lower than that result
 msgstr "Somente quadrados: todos os valores com uma amplitude absoluta menor que esta resultam em zero."
 
 
+msgid "Minimum amplitude value needed to influence the envelope"
+msgstr "Valor de amplitude mínima necessário para influenciar o invólucro"
+
+
+msgid "Only the positive differences of the envelope amplitudes are summarized to produce the output"
+msgstr "Apenas as diferenças positivas de amplitude do invólucro são sumarizadas para produzir a saída"
+
+
+msgid "The amplitudes of the envelope are summarized (or, when Accumulate is enabled, both positive and negative differences are accumulated)"
+msgstr "As amplitudes do invólucro são sumarizadas (ou, quando Acumular está activo, ambas as diferenças positivas e negativas são acumuladas)"
+
+
 msgid "The output is a square curve (negative values always result in -1, and positive ones in 1)"
 msgstr "A saída é uma curva quadrada (valores negativos sempre resultam em -1, e positivos em 1)."
+
+
+msgctxt "Operator"
+msgid "Time Offset Keyframes"
+msgstr "Deslocar Temporalmente Fotogramas Chave"
+
+
+msgid "Shifts the value of selected keys in time"
+msgstr "Deslizar o valor das chaves seleccionadas no tempo"
+
+
+msgid "How far in frames to offset the animation"
+msgstr "Distância em fotogramas para deslocar animação"
 
 
 msgid "Reset viewable area to show selected keyframe range"
 msgstr "Redefine a área visível para mostrar a faixa de fotogramas chave seleccionada."
 
 
+msgctxt "Operator"
+msgid "Delete Active Frame(s)"
+msgstr "Apagar Fotograma Activo(s)"
+
+
+msgid "Delete the active Grease Pencil frame(s)"
+msgstr "Apagar o fotograma de grease pencil activo(s)"
+
+
+msgid "Delete all"
+msgstr "Apagar todos"
+
+
+msgid "Delete active keyframes of all layers"
+msgstr "Apagar fotogramas xhave activos em todas as camadas"
+
+
+msgctxt "Operator"
+msgid "Bake Object Transform to Grease Pencil"
+msgstr "Pré Calcular Transformação do Objecto para Grease Pencil"
+
+
+msgid "Bake Grease Pencil object transform to Grease Pencil keyframes"
+msgstr "Pré Calcular transformação Objecto Grease Pencil para fotogramas chave Grease Pencil"
+
+
+msgid "The end frame of animation"
+msgstr "O fotograma final da animação"
+
+
+msgid "The start frame"
+msgstr "O fotograma inicial"
+
+
+msgid "Target Frame"
+msgstr "Fotogramas Alvo"
+
+
+msgid "Destination frame"
+msgstr "Fotograma de destino"
+
+
+msgid "Only Selected Keyframes"
+msgstr "Apenas Fotogramas Chave Seleccionados"
+
+
+msgid "Convert only selected keyframes"
+msgstr "Converter apenas fotogramas chave seleccionados"
+
+
 msgid "Projection Type"
 msgstr "Tipo de projeção"
 
 
+msgid "No Reproject"
+msgstr "Sem Reprojecção"
+
+
+msgid "Reproject the strokes using the X-Z plane"
+msgstr "Reprojectar os traços usando o plano X-Z"
+
+
+msgid "Reproject the strokes using the Y-Z plane"
+msgstr "Reprojectar os traços usando o plano Y-Z"
+
+
+msgid "Reproject the strokes using the X-Y plane"
+msgstr "Reprojectar os traços usando o plano X-Y"
+
+
 msgid "Reproject the strokes to end up on the same plane, as if drawn from the current viewpoint using 'Cursor' Stroke Placement"
 msgstr "Reprojeta os trações para que sejam encerrados dentro do mesmo plano, como se fossem desenhados a partir da janela de visualização actual usando o posicionamento dos traços no cursor."
+
+
+msgid "Reproject the strokes using the orientation of 3D cursor"
+msgstr "Reprojectar os traços usando a orientação do cursor 3D"
+
+
+msgid "Step between generated frames"
+msgstr "Passo entre fotogramas gerados"
 
 
 msgctxt "Operator"
@@ -64670,8 +65078,22 @@ msgid "Grease Pencil Draw"
 msgstr "Desenho com lápis de cera"
 
 
+msgid "Draw a new stroke in the active Grease Pencil object"
+msgstr "Desenhar um novo traço no objecto Grease Pencil activo"
+
+
+msgctxt "Operator"
+msgid "Stroke Mode"
+msgstr "Modo de Traço"
+
+
 msgid "Action taken when a paint stroke is made"
 msgstr "Ação tomada quando um traço de pintura é feito."
+
+
+msgctxt "Operator"
+msgid "Regular"
+msgstr "Regular"
 
 
 msgid "Apply brush normally"
@@ -64696,12 +65118,62 @@ msgid "Erase"
 msgstr "Apagar"
 
 
+msgid "Switch brush to erase mode for duration of stroke"
+msgstr "Mudar o pincel para o modo de apagar pela duração do traço"
+
+
+msgid "Pen Flip"
+msgstr "Caneta Rodada"
+
+
+msgid "Whether a tablet's eraser mode is being used"
+msgstr "Se o modo de apagar da mesa digitalizadora está a ser usado"
+
+
+msgctxt "Operator"
+msgid "Set Curve Caps"
+msgstr "Atribuir términos da curva"
+
+
+msgid "Change curve caps mode (rounded or flat)"
+msgstr "Mudar modo de términos de curva (arredondado ou direito)"
+
+
+msgid "Rounded"
+msgstr "Arredondado"
+
+
+msgid "Set as default rounded"
+msgstr "Definir arredondado como padrão"
+
+
 msgid "Flat"
 msgstr "Achatar"
 
 
+msgid "Toggle Start"
+msgstr "Alternar início"
+
+
+msgid "Toggle End"
+msgstr "Alternar fim"
+
+
+msgctxt "Operator"
+msgid "Clean Loose Points"
+msgstr "Apaga Pontos Soltos"
+
+
+msgid "Remove loose points"
+msgstr "Remove pontos soltos"
+
+
 msgid "Limit"
 msgstr "Limite"
+
+
+msgid "Number of points to consider stroke as loose"
+msgstr "Número de pontos para considerar traço como solto"
 
 
 msgctxt "Operator"
@@ -64709,9 +65181,71 @@ msgid "Copy Strokes"
 msgstr "Copiar traços"
 
 
+msgid "Copy the selected Grease Pencil points or strokes to the internal clipboard"
+msgstr "Copiar pontos ou traços Grease Pencil seleccionados para a área de transferência interna"
+
+
 msgctxt "Operator"
 msgid "Set Cyclical State"
 msgstr "Definir estado cíclico"
+
+
+msgid "Close or open the selected stroke adding a segment from last to first point"
+msgstr "Abrir ou fechar o traço seleccionado adicionando um segmento do último ponto ao primeiro"
+
+
+msgid "Match Point Density"
+msgstr "Igualar Densidade de Pontos"
+
+
+msgid "Add point in the new segment to keep the same density"
+msgstr "Adicionar ponto no novo segmento para manter a mesma densidade"
+
+
+msgid "Close All"
+msgstr "Fechar Tudo"
+
+
+msgid "Open All"
+msgstr "Abrir Todos"
+
+
+msgid "Delete selected strokes or points"
+msgstr "Apagar os traços ou pontos seleccionados"
+
+
+msgctxt "Operator"
+msgid "Delete Breakdown Frames"
+msgstr "Apagar Fotogramas Chave de Transição"
+
+
+msgid "Remove breakdown frames generated by interpolating between two Grease Pencil frames"
+msgstr "Remover fotogramas de transição gerados ppr interpolação entre dois fotogramas Grease Pencil"
+
+
+msgctxt "Operator"
+msgid "Delete Frame"
+msgstr "Apagar Fotograma"
+
+
+msgid "Delete Grease Pencil Frame(s)"
+msgstr "Apagar Fotograma(s) de Grease Pencil"
+
+
+msgid "Method used for deleting Grease Pencil frames"
+msgstr "Método usado para apagar fotogramas Grease Pencil"
+
+
+msgid "Deletes current frame in the active layer"
+msgstr "Apagar fotograma actual na camada activa"
+
+
+msgid "All Active Frames"
+msgstr "Todos os Fotogramas Activos"
+
+
+msgid "Delete active frames for all layers"
+msgstr "Apagar fotogramas activos para todas as camadas"
 
 
 msgctxt "Operator"
@@ -64721,6 +65255,41 @@ msgstr "Dissolver"
 
 msgid "Delete selected points without splitting strokes"
 msgstr "Apaga os pontos seleccionados sem dividir os traços."
+
+
+msgctxt "GPencil"
+msgid "Type"
+msgstr "Tipo"
+
+
+msgid "Method used for dissolving stroke points"
+msgstr "Método utilizado para dissolver pontos do traço"
+
+
+msgid "Dissolve selected points"
+msgstr "Dissolver pontos seleccionados"
+
+
+msgctxt "GPencil"
+msgid "Dissolve Between"
+msgstr "Dissolver Entre"
+
+
+msgid "Dissolve points between selected points"
+msgstr "Dissolver pontos entre pontos seleccionados"
+
+
+msgctxt "GPencil"
+msgid "Dissolve Unselect"
+msgstr "Dissolver Não Seleccionados"
+
+
+msgid "Dissolve all unselected points"
+msgstr "Dissolver todos os pontos não seleccionados"
+
+
+msgid "Duplicate the selected points"
+msgstr "Duplicar os pontos seleccionadas"
 
 
 msgctxt "Operator"
@@ -64733,8 +65302,94 @@ msgstr "Cria cópias dos traços seleccionados de lápis de cera e permite movê
 
 
 msgctxt "Operator"
+msgid "Grease Pencil Box Erase"
+msgstr "Apagar em Rectângulo Grease Pencil"
+
+
+msgid "Erase points in the box region"
+msgstr "Apagar pontos dentro da região rectangular"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil Erase Lasso"
+msgstr "Apagar Laçada Grease Pencil"
+
+
+msgid "Erase points in the lasso region"
+msgstr "Apagar pontos dentro de uma região laçada"
+
+
+msgctxt "Operator"
+msgid "Extrude Stroke Points"
+msgstr "Extrudir Pontos do Traço"
+
+
+msgid "Extrude the selected points"
+msgstr "Extrudir os pontos seleccionados"
+
+
+msgid "Extrude selected points and move them"
+msgstr "Extrudir os pontos seleccionados e movê-los."
+
+
+msgid "Extrude Stroke Points"
+msgstr "Extrudir Pontos do Traço"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil Fill"
+msgstr "Preenchimento do Grease Pencil"
+
+
+msgid "Fill with color the shape formed by strokes"
+msgstr "Preencher com cor a forma formada por traços"
+
+
+msgid "Find boundary of unfilled instead of filled regions"
+msgstr "Encontrar fronteira de regiões não preenchidas em vez de preenchidas"
+
+
+msgid "Use precision movement for extension lines"
+msgstr "Usar movimento de precisão para linhas de extensão"
+
+
+msgctxt "Operator"
+msgid "Delete Duplicate Frames"
+msgstr "Apagar Fotogramas Duplicados"
+
+
+msgid "Remove any keyframe that is a duplicate of the previous one"
+msgstr "Remover qualquer fotograma que seja um duplicado do anterior"
+
+
+msgid "Only delete selected keyframes"
+msgstr "Apagar apenas fotogramas chave seleccionados"
+
+
+msgctxt "Operator"
+msgid "Duplicate Active Frame(s)"
+msgstr "Duplicar Fotogramas Activos"
+
+
+msgid "Make a copy of the active Grease Pencil frame(s)"
+msgstr "Cria uma cópia dos fotogramas activos Grease Pencil"
+
+
+msgid "Duplicate all"
+msgstr "Duplicar Todos"
+
+
+msgid "Duplicate active keyframes of all layer"
+msgstr "Duplicar fotogramas activos de todas as camadas"
+
+
+msgctxt "Operator"
 msgid "Insert Blank Frame"
 msgstr "Inserir fotograma em branco"
+
+
+msgid "Insert a blank frame on the current scene frame"
+msgstr "Inserir um fotograma vazio no fotograma actual da cena"
 
 
 msgctxt "Operator"
@@ -90232,7 +90887,16 @@ msgstr "Tipo de Edição"
 
 
 msgid "Path Steps"
-msgstr "Passos de caminho:"
+msgstr "Passos de Caminho"
+
+
+msgid "No brush selected"
+msgstr "Nenhum pincel seleccionado"
+
+
+msgctxt "Operator"
+msgid "Duplicate Asset..."
+msgstr "Duplicar Recurso..."
 
 
 msgid "No Brushes currently available"
@@ -90332,7 +90996,15 @@ msgstr "Ficheiro escrito por um executável Blender mais novo: (%d.%d), espere p
 
 
 msgid "Loading failed: "
-msgstr "Falha durante o carregamento:"
+msgstr "Falha no carregamento: "
+
+
+msgid "Loading \"%s\" failed: "
+msgstr "Carregamento de '%s' falhou: "
+
+
+msgid "Linked Data"
+msgstr "Dados Vinculados"
 
 
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
@@ -93812,15 +94484,15 @@ msgstr "Raio (parente)"
 
 
 msgid "Size:"
-msgstr "Tamanho"
+msgstr "Tamanho:"
 
 
 msgid "Displays global values"
-msgstr "Mostra valores globais."
+msgstr "Mostra valores globais"
 
 
 msgid "Displays local values"
-msgstr "Mostra valores locais."
+msgstr "Mostra valores locais"
 
 
 msgid "Vertex weight used by Bevel modifier"
@@ -94112,7 +94784,15 @@ msgstr "Encolher ou estufar: %3f"
 
 
 msgid "Edge Slide: "
-msgstr "Deslizar arestas:"
+msgstr "Deslizar arestas: "
+
+
+msgid "Opacity: %s"
+msgstr "Opacidade: %s"
+
+
+msgid "Opacity: %3f"
+msgstr "Opacidade: %3f"
 
 
 msgid "Feather Shrink/Fatten: %s"
@@ -95585,4 +96265,52 @@ msgstr "Gerar Curvas de Cabelo"
 
 msgid "Redistribute Curve Points"
 msgstr "Redistribuir Pontos da Curva"
+
+
+msgid "Amount of straightening"
+msgstr "Quantidade de alisamento"
+
+
+msgid "Trim Hair Curves"
+msgstr "Aparar Curvas de Cabelo"
+
+
+msgid "Trims or scales hair curves to a certain length"
+msgstr "Aparar ou redimensionar curvas de cabelo até certo comprimento"
+
+
+msgid "Scale each curve uniformly to reach the target length"
+msgstr "Redimensionar uniformemente cada curva para atingir o comprimento alvo"
+
+
+msgid "Multiply the original length by a factor"
+msgstr "Multiplicar o comprimento inicial por um factor"
+
+
+msgid "Replace Length"
+msgstr "Substituir Comprimento"
+
+
+msgid "Use the length input to fully replace the original length"
+msgstr "Usar introdução de comprimento para substituir completamente o comprimento original"
+
+
+msgid "Target length for the operation"
+msgstr "Comprimento alvo para a operação"
+
+
+msgid "Mask to blend overall effect"
+msgstr "Máscara para misturar o efeito final"
+
+
+msgid "Trim hair curves randomly up to a certain amount"
+msgstr "Aparar curvas de cabelo aleatoriamente até certa quantidade"
+
+
+msgid "Smooth by Angle"
+msgstr "Suavizar por Ângulo"
+
+
+msgid "Maximum face angle for smooth edges"
+msgstr "Ângulo máximo da face para arestas suaves"
 

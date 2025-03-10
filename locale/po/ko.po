@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23873,30 +23873,6 @@ msgid "Show/Hide"
 msgstr "표시/숨기기"
 
 
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Text"
-msgstr "텍스트"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Names"
-msgstr "이름"
-
-
-msgid "Bone Roll"
-msgstr "본 롤"
-
-
 msgid "Clean Up"
 msgstr "정리"
 
@@ -23973,6 +23949,10 @@ msgid "Assign Material"
 msgstr "매테리얼을 할당"
 
 
+msgid "Metaball"
+msgstr "메타볼"
+
+
 msgid "Light"
 msgstr "라이트"
 
@@ -24033,6 +24013,10 @@ msgid "Propagate"
 msgstr "전파"
 
 
+msgid "Names"
+msgstr "이름"
+
+
 msgid "Toggle Bone Options"
 msgstr "본 옵션을 토글"
 
@@ -24063,6 +24047,22 @@ msgstr "페이스 강도를 설정"
 
 msgid "Merge"
 msgstr "병합"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Text"
+msgstr "텍스트"
+
+
+msgid "Bone Roll"
+msgstr "본 롤"
 
 
 msgid "Basic"

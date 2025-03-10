@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2024-04-29 13:36+0000\n"
-"Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"PO-Revision-Date: 2025-03-03 11:29+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Weblate 5.0.1"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -13621,26 +13621,6 @@ msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
 
 
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
-
-
 msgid "Clean Up"
 msgstr "Vyčistit"
 
@@ -13685,6 +13665,10 @@ msgid "Assign Material"
 msgstr "Přiřadit Materiál"
 
 
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
 msgid "Light"
 msgstr "Světlo"
 
@@ -13725,6 +13709,10 @@ msgid "Propagate"
 msgstr "Vložit"
 
 
+msgid "Names"
+msgstr "Názvy"
+
+
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
@@ -13735,6 +13723,18 @@ msgstr "Data Ploch"
 
 msgid "Merge"
 msgstr "Sloučit"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
 
 
 msgid "Basic"
@@ -34947,10 +34947,6 @@ msgid "Handle 2 Location"
 msgstr "Náhodné umístění"
 
 
-msgid "Shape Key Curve Point"
-msgstr "3D kurzor:"
-
-
 msgid "Shape Key Point"
 msgstr "Zaklíčovat tvar"
 
@@ -35005,10 +35001,6 @@ msgstr "Minimalistické"
 
 msgid "Maximal"
 msgstr "Maximalní"
-
-
-msgid "AvMinMax"
-msgstr "Min/Max:"
 
 
 msgid "Edge spring friction"
@@ -35767,10 +35759,6 @@ msgid "Show current frame only"
 msgstr "Další klíč"
 
 
-msgid "No display"
-msgstr "Zobrazit:"
-
-
 msgid "Scene size"
 msgstr "Velikost scény"
 
@@ -35837,10 +35825,6 @@ msgstr "Ukázat okraj"
 
 msgid "Show right margin"
 msgstr "Ukázat pravý okraj"
-
-
-msgid "Tab Width"
-msgstr "Šířka:"
 
 
 msgid "Number of spaces to display tabs with"
@@ -35943,14 +35927,6 @@ msgid "Display size of tracks from reconstructed data"
 msgstr "Posunout vazbu nahoru v seznamu vazeb"
 
 
-msgid "Tracks Display Type"
-msgstr "Zobrazit:"
-
-
-msgid "Viewport display style for tracks"
-msgstr "3D pohled:"
-
-
 msgid "Use Local Camera"
 msgstr "Použít Místní Kameru"
 
@@ -36017,10 +35993,6 @@ msgstr "Koncový bod U"
 
 msgid "Endpoint V"
 msgstr "Koncový bod V"
-
-
-msgid "NURBS weight"
-msgstr "Váha:"
 
 
 msgid "Stereo Mode"
@@ -36411,18 +36383,6 @@ msgstr "Zobrazí armaturu zkrz objekt"
 
 msgid "Textbox Height"
 msgstr "Nastavit váhu"
-
-
-msgid "Textbox Width"
-msgstr "Šířka:"
-
-
-msgid "Textbox X Offset"
-msgstr "Kompenzace:"
-
-
-msgid "Textbox Y Offset"
-msgstr "Kompenzace:"
 
 
 msgid "Text Character Format"
@@ -37377,10 +37337,6 @@ msgid "Marker selection state"
 msgstr "Zarovnat výběr na střed"
 
 
-msgid "Window event timer"
-msgstr "Typ okna:"
-
-
 msgid "Time Step"
 msgstr "Armatura"
 
@@ -38086,11 +38042,6 @@ msgstr "Vyřezávat"
 msgctxt "WindowManager"
 msgid "Particle"
 msgstr "Částice"
-
-
-msgctxt "WindowManager"
-msgid "Paint Stroke Modal"
-msgstr "Vzorkovat:"
 
 
 msgctxt "WindowManager"
@@ -39336,10 +39287,6 @@ msgstr "Vyřešit pohyb objektu"
 
 msgid "Build Original:"
 msgstr "Budovat Originál:"
-
-
-msgid "Build Undistorted:"
-msgstr "Renderovvat animaci"
 
 
 msgctxt "Operator"
@@ -41487,10 +41434,6 @@ msgstr "Je potřeba UV Mapa"
 
 msgid "Point cache must be baked"
 msgstr "Zrcadlit UV"
-
-
-msgid "in memory to enable editing!"
-msgstr "Typ filtru"
 
 
 msgctxt "Operator"

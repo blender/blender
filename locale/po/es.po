@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2025-03-02 21:18+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"PO-Revision-Date: 2025-03-08 10:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -742,6 +742,10 @@ msgstr "Permite tener más espacio en donde colocar escenas grandes, distribuyen
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP RT (experimental)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT habilita el trazado de rayos por hardware en RDNA2 y superior de AMD. Esta característica es experimental y es posible que algunas escenas sean procesadas de forma incorrecta"
 
 
 msgid "Embree on GPU"
@@ -28014,7 +28018,7 @@ msgstr "Frecuencia de muestreo del audio, expresada en Hz"
 
 
 msgid "Caching"
-msgstr "Cachear"
+msgstr "En caché"
 
 
 msgid "The sound file is decoded and loaded into RAM"
@@ -29273,20 +29277,45 @@ msgid "Volume render settings for 3D viewport"
 msgstr "Opciones de procesamiento de volúmenes para la vista 3D"
 
 
+msgctxt "Volume"
+msgid "Sequence Mode"
+msgstr "Modo de secuencia"
+
+
 msgid "Sequence playback mode"
 msgstr "Modo de reproducción de la secuencia"
+
+
+msgctxt "Volume"
+msgid "Clip"
+msgstr "Recortar"
 
 
 msgid "Hide frames outside the specified frame range"
 msgstr "Ocultar fotogramas por fuera del rango de fotogramas seleccionado"
 
 
+msgctxt "Volume"
+msgid "Extend"
+msgstr "Extender"
+
+
 msgid "Repeat the start frame before, and the end frame after the frame range"
 msgstr "Repetir el fotograma inicial antes, y el final después del rango de fotogramas"
 
 
+msgctxt "Volume"
+msgid "Repeat"
+msgstr "Repetir"
+
+
 msgid "Cycle the frames in the sequence"
 msgstr "Repetir cíclicamente los fotogramas de la secuencia"
+
+
+msgctxt "Volume"
+msgid "Ping-Pong"
+msgstr "Ping pong"
 
 
 msgid "Repeat the frames, reversing the playback direction every other cycle"
@@ -33955,6 +33984,42 @@ msgid "Aligned Single"
 msgstr "Alineada única"
 
 
+msgid "Selection status of the control point. (Deprecated: use Select Control Point instead)"
+msgstr "Estado de selección el punto de control. (Obsoleto: usar Seleccionar punto de control)"
+
+
+msgid "Select Control Point"
+msgstr "Seleccionar punto de control"
+
+
+msgid "Selection status of the control point"
+msgstr "Estado de selección del punto de control"
+
+
+msgid "Select Left Handle"
+msgstr "Seleccionar asa izquierda"
+
+
+msgid "Selection status of the left handle"
+msgstr "Estado de selección del asa izquierda"
+
+
+msgid "Select Right Handle"
+msgstr "Seleccionar asa derecha"
+
+
+msgid "Selection status of the right handle"
+msgstr "Estado de selección del asa derecha"
+
+
+msgid "Select Aligned Single Handle"
+msgstr "Seleccionar asa individual alineada"
+
+
+msgid "Selection status of the Aligned Single handle"
+msgstr "Estado de selección del asa individual alineada"
+
+
 msgid "Weight of the point"
 msgstr "Influencia del punto"
 
@@ -34297,30 +34362,6 @@ msgid "Show/Hide"
 msgstr "Mostrar / Ocultar"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Nombres"
-
-
-msgid "Bone Roll"
-msgstr "Giro de huesos"
-
-
 msgid "Clean Up"
 msgstr "Limpiar"
 
@@ -34409,6 +34450,10 @@ msgid "Assign Material"
 msgstr "Asignar material"
 
 
+msgid "Metaball"
+msgstr "Metabola"
+
+
 msgid "Light"
 msgstr "Luz"
 
@@ -34493,6 +34538,10 @@ msgid "Bone Collections"
 msgstr "Colecciones de huesos"
 
 
+msgid "Names"
+msgstr "Nombres"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opciones de huesos"
 
@@ -34523,6 +34572,22 @@ msgstr "Definir intensidad de caras"
 
 msgid "Merge"
 msgstr "Fusionar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
 
 
 msgid "Keyframe Insert Pie"
@@ -45879,7 +45944,7 @@ msgstr "Tolerancia hacia píxeles dentro del núcleo que serán considerados com
 
 
 msgid "Feather Distance"
-msgstr "Esfumado Distancia"
+msgstr "Distancia esfumado"
 
 
 msgid "Distance to grow/shrink the feather"
@@ -45888,7 +45953,7 @@ msgstr "Distancia a expandir o contraer el esfumado"
 
 msgctxt "Curve"
 msgid "Feather Falloff"
-msgstr "Esfumado Decaimiento"
+msgstr "Esfumado"
 
 
 msgid "Screen Balance"
@@ -60060,7 +60125,7 @@ msgstr "Edita una restricción del hueso activo"
 
 
 msgid "Report"
-msgstr "Reportar"
+msgstr "Reporte"
 
 
 msgid "Create a notification after the operation"
@@ -66191,7 +66256,11 @@ msgstr "Define que todos los puntos del trazo tengan la misma opacidad"
 
 
 msgid "Fill Opacity"
-msgstr "Opacidad de relleno"
+msgstr "Opacidad del relleno"
+
+
+msgid "Stroke Opacity"
+msgstr "Opacidad del trazo"
 
 
 msgctxt "Operator"
@@ -90868,14 +90937,6 @@ msgid "SSAO Settings"
 msgstr "Opciones OAEP"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
-
-
 msgid "Render Pass"
 msgstr "Pasada de procesamiento"
 
@@ -90916,12 +90977,12 @@ msgid "Curves Edit Mode"
 msgstr "Modo edición de curvas"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "glTF Variants"
+msgstr "Variantes glTF"
 
 
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
 
 
 msgid "Snapping"
@@ -90950,6 +91011,14 @@ msgstr "Vista cuádruple"
 
 msgid "Onion Skin"
 msgstr "Piel de cebolla"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
 
 
 msgid "Stereoscopy"
@@ -117489,6 +117558,14 @@ msgid "Requires AMD GPU with RDNA architecture"
 msgstr "Requiere una GPU de AMD con arquitectura RDNA"
 
 
+msgid "and AMD Adrenalin driver %s or newer"
+msgstr "y el controlador Adrenalin %s de AMD o más nuevo"
+
+
+msgid "or AMD Radeon Pro %s driver or newer"
+msgstr "o el controlador Radeon Pro %s de AMD o más nuevo"
+
+
 msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Requiere una GPU de Intel con arquitectura Xe-HPG"
 
@@ -119543,6 +119620,14 @@ msgid "No objects with bound-box selected"
 msgstr "Ningún objeto con volumen delimitador seleccionado"
 
 
+msgid "Smoke Domain"
+msgstr "Humo_dominio"
+
+
+msgid "Liquid Domain"
+msgstr "Líquido_dominio"
+
+
 msgid "Select at least one mesh object"
 msgstr "Seleccionar al menos un objeto poligonal"
 
@@ -119575,6 +119660,14 @@ msgid "Built without Fluid modifier"
 msgstr "Construido sin el modificador Fluido"
 
 
+msgid "Smoke Domain Material"
+msgstr "Material_humo"
+
+
+msgid "Liquid Domain Material"
+msgstr "Material_líquido"
+
+
 msgid "Object {!r} already has a particle system"
 msgstr "El objeto {!r} ya contiene un sistema de partículas"
 
@@ -119587,12 +119680,20 @@ msgid "Interpolate Hair Curves"
 msgstr "Interpolar curvas de pelo"
 
 
+msgid "Explode Fade"
+msgstr "Explosión fundido"
+
+
 msgid "Hair Curves Noise"
 msgstr "Ruido de curvas de pelo"
 
 
 msgid "Frizz Hair Curves"
 msgstr "Encrespar curvas de pelo"
+
+
+msgid "Explode fade"
+msgstr "Explosión_fundido"
 
 
 msgid "New Preset"
@@ -119709,10 +119810,6 @@ msgstr "Advertencia, el archivo ya existe. ¿Sobrescribirlo?"
 
 msgid "Installing keymap failed: {:s}"
 msgstr "Falla al instalar el mapa de teclado: {:s}"
-
-
-msgid "This script was written Blender version {:d}.{:d}.{:d} and might not function (correctly), though it is enabled"
-msgstr "El script fue escrito para la versión {:d}.{:d}.{:d} de Blender y es posible que no funcione correctamente, a pesar de encontrarse habilitado"
 
 
 msgid "File already installed to {!r}"
@@ -128453,7 +128550,7 @@ msgstr "Sistema_partículas"
 
 
 msgid "ParticleSettings"
-msgstr "OpcionesPartículas"
+msgstr "Opciones_partículas"
 
 
 msgid "particles"
@@ -133092,7 +133189,7 @@ msgstr "No fue posible encontrar un modificador Gancho"
 
 
 msgid "Unable to execute '%s', error changing modes"
-msgstr "No es posible ejecutar '%s', error al cambiar de modo"
+msgstr "No se puede ejecutar '%s', error al cambiar de modo. Es posible que el modo ya esté activo en otra escena"
 
 
 msgid "No target object to transfer the mode to"
@@ -141585,6 +141682,11 @@ msgid "UVWarp"
 msgstr "Deformar_UV"
 
 
+msgctxt "Modifier"
+msgid "To"
+msgstr "Destino"
+
+
 msgid "Sample Radius"
 msgstr "Radio muestreo"
 
@@ -143821,7 +143923,7 @@ msgstr "Determina el orden de los puntos en cada curva"
 
 
 msgid "Sample Position"
-msgstr "Muestrear posición"
+msgstr "Posición muestreo"
 
 
 msgid "Sample Group ID"
