@@ -274,6 +274,7 @@ bool selection_update(const ViewContext *vc,
             const IndexMask not_in_mask = changed_element_mask.complement(
                 selection.span.index_range(), memory);
             ed::curves::fill_selection_false(selection.span, not_in_mask);
+            changed = true;
             selection.finish();
           }
         }
