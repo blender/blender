@@ -604,9 +604,7 @@ typedef struct PreviewImage {
  */
 #define ID_REFCOUNTING_USERS(id) (ID_REAL_USERS(id) - ID_EXTRA_REAL_USERS(id))
 
-#define ID_CHECK_UNDO(id) \
-  ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS)) && \
-      (GS((id)->name) != ID_BR)
+#define ID_CHECK_UNDO(id) (!ELEM(GS((id)->name), ID_SCR, ID_WM, ID_WS, ID_BR))
 
 #define ID_BLEND_PATH(_bmain, _id) \
   ((_id)->lib ? (_id)->lib->runtime->filepath_abs : BKE_main_blendfile_path((_bmain)))
