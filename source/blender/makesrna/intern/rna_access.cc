@@ -6485,7 +6485,8 @@ void RNA_parameter_list_free(ParameterList *parms)
   void *data = parms->data;
   for (; parm; parm = parm->next) {
     if (parm->type == PROP_COLLECTION) {
-      BLI_freelistN(static_cast<ListBase *>(data));
+      CollectionVector *vector = static_cast<CollectionVector *>(data);
+      vector->~CollectionVector();
     }
     else if ((parm->flag_parameter & PARM_RNAPTR) && (parm->flag & PROP_THICK_WRAP)) {
       BLI_assert(parm->type == PROP_POINTER);
