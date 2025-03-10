@@ -43,6 +43,8 @@ set(SRC_HEADERS
   atomic.h
   boundbox.h
   color.h
+  concurrent_set.h
+  concurrent_vector.h
   debug.h
   defines.h
   deque.h
