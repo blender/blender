@@ -245,7 +245,7 @@ static void control_point_colors_and_sizes(const PrimitiveToolOperation &ptd,
     }
 
     colors.last() = color_gizmo_primary;
-    sizes.last() = size_primary;
+    sizes.last() = size_tertiary;
 
     if (ELEM(ptd.type, PrimitiveType::Line, PrimitiveType::Polyline)) {
       colors.last(1) = color_gizmo_secondary;
