@@ -20,6 +20,13 @@ OnDiskAssetLibrary::OnDiskAssetLibrary(eAssetLibraryType library_type,
 
 std::optional<AssetLibraryReference> OnDiskAssetLibrary::library_reference() const
 {
+  if (library_type() == ASSET_LIBRARY_LOCAL) {
+    AssetLibraryReference library_ref{};
+    library_ref.custom_library_index = -1;
+    library_ref.type = ASSET_LIBRARY_LOCAL;
+    return library_ref;
+  }
+
   BLI_assert_msg(false,
                  "Library references are only available for built-in libraries and libraries "
                  "configured in the Preferences");
