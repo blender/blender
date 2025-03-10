@@ -88,7 +88,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
       HIPRT_API_VERSION, hiprt_context_input, &hiprt_context);
 
   if (rt_result != hiprtSuccess) {
-    set_error(string_printf("Failed to create HIPRT context"));
+    set_error("Failed to create HIPRT context");
     return;
   }
 
@@ -96,7 +96,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
       hiprt_context, Max_Primitive_Type, Max_Intersect_Filter_Function, functions_table);
 
   if (rt_result != hiprtSuccess) {
-    set_error(string_printf("Failed to create HIPRT Function Table"));
+    set_error("Failed to create HIPRT Function Table");
     return;
   }
 
@@ -441,6 +441,10 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
     geom_input.type = hiprtPrimitiveTypeAABBList;
     geom_input.primitive.aabbList = bvh->custom_prim_aabb;
     geom_input.geomType = Motion_Triangle;
+
+    if (bvh->custom_primitive_bound.device_pointer == 0) {
+      set_error("Failed to allocate triangle custom_primitive_bound for BLAS");
+    }
   }
   else {
     size_t triangle_size = mesh->get_triangles().size();
@@ -472,6 +476,10 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
 
     geom_input.type = hiprtPrimitiveTypeTriangleMesh;
     geom_input.primitive.triangleMesh = bvh->triangle_mesh;
+
+    if (bvh->triangle_index.device_pointer == 0 || bvh->vertex_data.device_pointer == 0) {
+      set_error("Failed to allocate triangle data for BLAS");
+    }
   }
 
   return geom_input;
@@ -617,6 +625,10 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
   geom_input.primitive.aabbList = bvh->custom_prim_aabb;
   geom_input.geomType = Curve;
 
+  if (bvh->custom_primitive_bound.device_pointer == 0) {
+    set_error("Failed to allocate curve custom_primitive_bound for BLAS");
+  }
+
   return geom_input;
 }
 
@@ -720,6 +732,10 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   geom_input.primitive.aabbList = bvh->custom_prim_aabb;
   geom_input.geomType = Point;
 
+  if (bvh->custom_primitive_bound.device_pointer == 0) {
+    set_error("Failed to allocate point custom_primitive_bound for BLAS");
+  }
+
   return geom_input;
 }
 
@@ -765,18 +781,24 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
       assert(geom_input.geomType != hiprtInvalidValue);
   }
 
+  if (have_error()) {
+    return;
+  }
+
   size_t blas_scratch_buffer_size = 0;
   hiprtError rt_err = hiprtGetGeometryBuildTemporaryBufferSize(
       hiprt_context, geom_input, options, blas_scratch_buffer_size);
 
   if (rt_err != hiprtSuccess) {
-    set_error(string_printf("Failed to get scratch buffer size for BLAS!"));
+    set_error("Failed to get scratch buffer size for BLAS");
+    return;
   }
 
   rt_err = hiprtCreateGeometry(hiprt_context, geom_input, options, bvh->hiprt_geom);
 
   if (rt_err != hiprtSuccess) {
-    set_error(string_printf("Failed to create BLAS!"));
+    set_error("Failed to create BLAS");
+    return;
   }
   {
     thread_scoped_lock lock(hiprt_mutex);
@@ -786,6 +808,7 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
       if (!scratch_buffer.device_pointer) {
         hiprtDestroyGeometry(hiprt_context, bvh->hiprt_geom);
         bvh->hiprt_geom = nullptr;
+        set_error("Failed to allocate scratch buffer for BLAS");
         return;
       }
       scratch_buffer_size = blas_scratch_buffer_size;
@@ -800,7 +823,7 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
                                 bvh->hiprt_geom);
   }
   if (rt_err != hiprtSuccess) {
-    set_error(string_printf("Failed to build BLAS"));
+    set_error("Failed to build BLAS");
   }
 }
 
@@ -959,6 +982,9 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   hipDeviceptr_t table_device_ptr;
 
   hip_assert(hipModuleGetGlobal(&table_device_ptr, &table_ptr_size, hipModule, "kernel_params"));
+  if (have_error()) {
+    return nullptr;
+  }
 
   size_t kernel_param_offset[4];
   int table_index = 0;
@@ -968,14 +994,17 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   kernel_param_offset[table_index++] = offsetof(KernelParamsHIPRT, table_volume_intersect);
 
   for (int index = 0; index < table_index; index++) {
-
     hip_assert(hipMemcpyHtoD(table_device_ptr + kernel_param_offset[index],
                              (void *)&functions_table,
                              sizeof(device_ptr)));
+    if (have_error()) {
+      return nullptr;
+    }
   }
 
-  if (num_instances == 0)
+  if (num_instances == 0) {
     return nullptr;
+  }
 
   int frame_count = transform_matrix.size();
   hiprtSceneBuildInput scene_input_ptr = {nullptr};
@@ -988,6 +1017,15 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   hiprt_blas_ptr.copy_to_device();
   blas_ptr.copy_to_device();
   transform_headers.copy_to_device();
+
+  if (user_instance_id.device_pointer == 0 || prim_visibility.device_pointer == 0 ||
+      hiprt_blas_ptr.device_pointer == 0 || blas_ptr.device_pointer == 0 ||
+      transform_headers.device_pointer == 0)
+  {
+    set_error("Failed to allocate object buffers for TLAS");
+    return nullptr;
+  }
+
   {
     if (instance_transform_matrix.data_size != frame_count) {
       assert(!instance_transform_matrix.host_pointer);
@@ -1002,6 +1040,11 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     instance_transform_matrix.data_depth = 0;
     instance_transform_matrix.copy_to_device();
     instance_transform_matrix.host_pointer = nullptr;
+
+    if (instance_transform_matrix.device_pointer == 0) {
+      set_error("Failed to allocate instance_transform_matrix for TLAS");
+      return nullptr;
+    }
   }
 
   scene_input_ptr.instanceMasks = (void *)prim_visibility.device_pointer;
@@ -1014,7 +1057,8 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   hiprtError rt_err = hiprtCreateScene(hiprt_context, scene_input_ptr, options, scene);
 
   if (rt_err != hiprtSuccess) {
-    set_error(string_printf("Failed to create TLAS"));
+    set_error("Failed to create TLAS");
+    return nullptr;
   }
 
   size_t tlas_scratch_buffer_size;
@@ -1022,12 +1066,19 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
       hiprt_context, scene_input_ptr, options, tlas_scratch_buffer_size);
 
   if (rt_err != hiprtSuccess) {
-    set_error(string_printf("Failed to get scratch buffer size for TLAS"));
+    set_error("Failed to get scratch buffer size for TLAS");
+    hiprtDestroyScene(hiprt_context, scene);
+    return nullptr;
   }
 
   if (tlas_scratch_buffer_size > scratch_buffer_size) {
     scratch_buffer.alloc(tlas_scratch_buffer_size);
     scratch_buffer.zero_to_device();
+    if (scratch_buffer.device_pointer == 0) {
+      set_error("Failed to allocate scratch buffer for TLAS");
+      hiprtDestroyScene(hiprt_context, scene);
+      return nullptr;
+    }
   }
 
   rt_err = hiprtBuildScene(hiprt_context,
@@ -1038,12 +1089,14 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
                            nullptr,
                            scene);
 
-  if (rt_err != hiprtSuccess) {
-    set_error(string_printf("Failed to build TLAS"));
-  }
-
   scratch_buffer.free();
   scratch_buffer_size = 0;
+
+  if (rt_err != hiprtSuccess) {
+    set_error("Failed to build TLAS");
+    hiprtDestroyScene(hiprt_context, scene);
+    return nullptr;
+  }
 
   if (bvh->custom_prim_info.size()) {
     size_t data_size = bvh->custom_prim_info.size();
@@ -1062,6 +1115,11 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     custom_prim_info.host_pointer = nullptr;
 
     custom_prim_info_offset.copy_to_device();
+    if (!custom_prim_info.device_pointer) {
+      set_error("Failed to allocate custom_prim_info_offset for TLAS");
+      hiprtDestroyScene(hiprt_context, scene);
+      return nullptr;
+    }
   }
 
   if (bvh->prims_time.size()) {
@@ -1081,6 +1139,11 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     prims_time.host_pointer = nullptr;
 
     prim_time_offset.copy_to_device();
+    if (!prim_time_offset.device_pointer) {
+      set_error("Failed to allocate prim_time_offset_offset for TLAS");
+      hiprtDestroyScene(hiprt_context, scene);
+      return nullptr;
+    }
   }
 
   return scene;
@@ -1088,6 +1151,10 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
 void HIPRTDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 {
+  if (have_error()) {
+    return;
+  }
+
   progress.set_substatus("Building HIPRT acceleration structure");
 
   hiprtBuildOptions options;
