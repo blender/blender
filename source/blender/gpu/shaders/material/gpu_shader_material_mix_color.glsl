@@ -467,6 +467,7 @@ void node_mix_soft(float fac,
   vec4 one = vec4(1.0);
   vec4 scr = one - (one - col2) * (one - col1);
   outcol = facm * col1 + fac * ((one - col1) * col2 * col1 + col1 * scr);
+  outcol.a = col1.a;
 }
 
 void node_mix_linear(float fac,
@@ -483,6 +484,7 @@ void node_mix_linear(float fac,
 {
 
   outcol = col1 + fac * (2.0 * (col2 - vec4(0.5)));
+  outcol.a = col1.a;
 }
 
 void node_mix_float(float fac,
@@ -545,6 +547,11 @@ void node_mix_rgba(float fac,
                    out vec4 outcol)
 {
   outcol = mix(col1, col2, fac);
+}
+
+void node_mix_clamp_color(vec4 col, vec4 min, vec4 max, out vec4 out_col)
+{
+  out_col = clamp(col, min, max);
 }
 
 void node_mix_clamp_vector(vec3 vec, vec3 min, vec3 max, out vec3 outvec)
