@@ -252,11 +252,12 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
   else {
     /* Copy only curves domain since we are not changing the number of curves here. */
     dst_curves = bke::curves::copy_only_curve_domain(src_curves);
-    /* Count how many points we need. */
     MutableSpan<int> dst_points_by_curve = dst_curves.offsets_for_write();
+    offset_indices::copy_group_sizes(
+        src_curves.points_by_curve(), src_curves.curves_range(), dst_points_by_curve);
+    /* Count how many points we need. */
     selection.foreach_index([&](const int curve) {
-      int point_count = points_by_curve[curve].size();
-      dst_points_by_curve[curve] = point_count;
+      const int point_count = dst_points_by_curve[curve];
       if (point_count <= 2) {
         /* Can't make a curve, set start/end points to 1 to allow straight extension. */
         start_points[curve] = 1;
