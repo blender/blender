@@ -50,8 +50,6 @@ void get_closest_in_bvhtree(bke::BVHTreeFromMesh &tree_data,
                             MutableSpan<float> r_distances_sq,
                             MutableSpan<float3> r_positions);
 
-int apply_offset_in_cyclic_range(IndexRange range, int start_index, int offset);
-
 void mix_baked_data_item(eNodeSocketDatatype socket_type,
                          void *prev,
                          const void *next,

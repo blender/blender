@@ -6,22 +6,6 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
-
-int apply_offset_in_cyclic_range(const IndexRange range, const int start_index, const int offset)
-{
-  BLI_assert(range.contains(start_index));
-  const int start_in_range = start_index - range.first();
-  const int offset_in_range = start_in_range + offset;
-  const int mod_offset = offset_in_range % range.size();
-  if (mod_offset >= 0) {
-    return range[mod_offset];
-  }
-  return range.last(-(mod_offset + 1));
-}
-
-}  // namespace blender::nodes
-
 namespace blender::nodes::node_geo_offset_point_in_curve_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -79,17 +63,18 @@ class ControlPointNeighborFieldInput final : public bke::GeometryFieldInput {
 
     Array<int> output(mask.min_array_size());
     mask.foreach_index([&](const int i_selection) {
-      const int i_point = std::clamp(indices[i_selection], 0, curves.points_num() - 1);
-      const int i_curve = parent_curves[i_point];
-      const IndexRange curve_points = points_by_curve[i_curve];
-      const int offset_point = i_point + offsets[i_selection];
+      const int point = std::clamp(indices[i_selection], 0, curves.points_num() - 1);
+      const int curve = parent_curves[point];
+      const IndexRange curve_points = points_by_curve[curve];
+      const int shifted_point = point + offsets[i_selection];
 
-      if (cyclic[i_curve]) {
-        output[i_selection] = apply_offset_in_cyclic_range(
-            curve_points, i_point, offsets[i_selection]);
+      if (cyclic[curve]) {
+        const int point_index_in_curve = shifted_point - curve_points.start();
+        output[i_selection] = curve_points.start() +
+                              math::mod_periodic<int>(point_index_in_curve, curve_points.size());
         return;
       }
-      output[i_selection] = std::clamp(offset_point, 0, curves.points_num() - 1);
+      output[i_selection] = std::clamp(shifted_point, 0, curves.points_num() - 1);
     });
 
     return VArray<int>::ForContainer(std::move(output));
