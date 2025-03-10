@@ -734,12 +734,16 @@ bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
 
   if (in_paint_mode) {
     /* Allow paint overlays to draw with depth equal test. */
-    return object_is_rendered_transparent(ob_ref.object, state);
+    if (object_is_rendered_transparent(ob_ref.object, state)) {
+      return true;
+    }
   }
 
   if (!state.xray_enabled) {
     /* Force depth prepass if depth buffer form render engine is not available. */
-    return !state.is_render_depth_available && (ob_ref.object->dt >= OB_SOLID);
+    if (!state.is_render_depth_available && (ob_ref.object->dt >= OB_SOLID)) {
+      return true;
+    }
   }
 
   return false;
