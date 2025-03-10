@@ -500,24 +500,6 @@ static void detect_workarounds()
     GCaps.node_link_instancing_workaround = true;
   }
 
-  /* Fix #123787: Multi viewport creates small triangle discard on RDNA2 GPUs with official
-   * drivers. Using geometry shader workaround fixes the issue. */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    if (strstr(renderer, "RX 6300") || strstr(renderer, "RX 6400") ||
-        strstr(renderer, "RX 6450") || strstr(renderer, "RX 6500") ||
-        strstr(renderer, "RX 6550") || strstr(renderer, "RX 6600") ||
-        strstr(renderer, "RX 6650") || strstr(renderer, "RX 6700") ||
-        strstr(renderer, "RX 6750") || strstr(renderer, "RX 6800") ||
-        strstr(renderer, "RX 6850") || strstr(renderer, "RX 6900") ||
-        strstr(renderer, "RX 6950") || strstr(renderer, "W6300") || strstr(renderer, "W6400") ||
-        strstr(renderer, "W6500") || strstr(renderer, "W6600") ||
-        /* NOTE: `W6700` was never released, so it's not in this list. */
-        strstr(renderer, "W6800") || strstr(renderer, "W6900"))
-    {
-      GLContext::layered_rendering_support = false;
-    }
-  }
-
   /* Metal-related Workarounds. */
 
   /* Minimum Per-Vertex stride is 1 byte for OpenGL. */
