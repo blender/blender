@@ -178,14 +178,14 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
 
   /* set various special settings for buttons */
 
-  /* Only do this if we're not refreshing an existing UI. */
-  if (block->oldblock == nullptr) {
-    const bool is_popup = (block->flag & UI_BLOCK_KEEP_OPEN) != 0;
+  const bool is_popup = (block->flag & UI_BLOCK_KEEP_OPEN) != 0;
 
-    for (const std::unique_ptr<uiBut> &but : block->buttons) {
-      /* no undo for buttons for operator redo panels */
-      UI_but_flag_disable(but.get(), UI_BUT_UNDO);
+  for (const std::unique_ptr<uiBut> &but : block->buttons) {
+    /* no undo for buttons for operator redo panels */
+    UI_but_flag_disable(but.get(), UI_BUT_UNDO);
 
+    /* Only do this if we're not refreshing an existing UI. */
+    if (block->oldblock == nullptr) {
       /* only for popups, see #36109. */
 
       /* if button is operator's default property, and a text-field, enable focus for it
