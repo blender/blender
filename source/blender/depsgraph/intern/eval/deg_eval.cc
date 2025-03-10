@@ -8,6 +8,9 @@
  * Evaluation engine entry-points for Depsgraph Engine.
  */
 
+#include <atomic>
+#include <cstdint>
+
 #include "intern/eval/deg_eval.h"
 
 #include "BLI_function_ref.hh"
@@ -382,7 +385,16 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
     return;
   }
 
-  graph->update_count++;
+  /* The update counts can be used to check if the Depsgraph was changed since the last time it was
+   * cached by comparing its current update count with the one stored at the moment the Depsgraph
+   * data were cached.
+   *
+   * A global atomic is used as opposed to incrementing the update count per Depsgraph to protect
+   * against the case where the Depsgraph is being recreated for each update and used to feed the
+   * same running engine instances. This can happen when using a brute force update pattern (see
+   * #135635). */
+  static std::atomic<uint64_t> global_update_count = 0;
+  graph->update_count = global_update_count.fetch_add(1) + 1;
 
   graph->debug.begin_graph_evaluation();
 
