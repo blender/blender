@@ -23,6 +23,7 @@
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
+#include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
@@ -57,7 +58,7 @@ class Tree;
  * \todo Most data is public but should either be removed or become private in the future.
  * The "_" suffix means that fields shouldn't be used by consumers of the `bke::pbvh` API.
  */
-class Node {
+class Node : NonCopyable {
   friend Tree;
 
  public:
