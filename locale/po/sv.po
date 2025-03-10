@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5205,18 +5205,6 @@ msgid "Show/Hide"
 msgstr "Visa/dölj"
 
 
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
 msgid "Clean Up"
 msgstr "Städa upp"
 
@@ -5249,6 +5237,10 @@ msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
 
+msgid "Metaball"
+msgstr "Metaboll"
+
+
 msgid "Light"
 msgstr "Ljus"
 
@@ -5279,6 +5271,14 @@ msgstr "Snabbeffekter"
 
 msgid "Asset"
 msgstr "Tillgång"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Catalog"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2025-03-02 05:56+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"PO-Revision-Date: 2025-03-10 09:29+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -111,6 +111,10 @@ msgstr "For each 遍历动作槽，为该槽指定的动画通道列表"
 
 msgid "Action F-Curves"
 msgstr "动作函数曲线"
+
+
+msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
+msgstr "动作函数曲线集合. 请注意这是一个旧版 API, 它不知道动作槽, 只会考虑该动作第一个槽的函数曲线"
 
 
 msgid "Action Group"
@@ -740,6 +744,10 @@ msgstr "通过在互连的设备(例如通过 NVLink)之间分配内存，而不
 
 msgid "HIP RT (Experimental)"
 msgstr "HIP光追 (试验性)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP 光追可在 RDNA2 及以上版本中启用 AMD 硬件光线追踪. 此功能为试验性功能, 某些场景可能会出现渲染不正确的情况"
 
 
 msgid "Embree on GPU"
@@ -12118,7 +12126,7 @@ msgstr "描述条目的目的"
 
 
 msgid "Identifier"
-msgstr "识别符"
+msgstr "标识符"
 
 
 msgid "Unique name used in the code and scripting"
@@ -14313,7 +14321,7 @@ msgstr "过滤 Blender ID"
 
 
 msgid "Show .blend files items (objects, materials, etc.)"
-msgstr "显示 .blend文件项目(物体、材质等等)"
+msgstr "显示 .blend 文件项目 (物体、材质等等)"
 
 
 msgid "Filter Folder"
@@ -18105,6 +18113,10 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "该动作中所有函数曲线的组合帧范围"
 
 
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curves for the action's first slot"
+msgstr "旧版 API, 用于向后兼容尚未处理插槽动作的代码, 该集合包含动作第一个槽的函数曲线"
+
+
 msgid "The end frame of the manually set intended playback range"
 msgstr "手动设置的预期播放范围的结束帧"
 
@@ -18125,9 +18137,17 @@ msgid "Groups"
 msgstr "组"
 
 
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. This collection contains the F-Curve groups for the action's first slot"
+msgstr "旧版 API, 用于向后兼容尚未处理插槽动作的代码, 该集合包含动作第一个槽的函数曲线组"
+
+
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "ID根类型"
+
+
+msgid "Legacy API, for backward compatibility with code that does not handle slotted actions yet. Type of data-block that the action's first slot can be used on. Do not change unless you know what you are doing"
+msgstr "旧版 API, 用于向后兼容尚未处理插槽动作的代码. 动作的第一个槽可用于的数据块类型. 除非您知道自己在做什么, 否则请勿更改"
 
 
 msgid "Is Layered Action"
@@ -18140,6 +18160,10 @@ msgstr "返回此是否为分层动作。一个空的动作被视为 '分层' �
 
 msgid "Is Legacy Action"
 msgstr "是旧式动作"
+
+
+msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action. Since Blender 4.4 actions are automatically updated to layered actions, and thus this will only return True when the action is empty"
+msgstr "返回此动作是否为旧版, 旧版动作没有层或槽. 空动作既被视为旧版动作, 也被视为分层动作. 自 Blender 4.4 版起, 动作会自动更新为分层动作, 因此只有当动作为空时, 才会返回 True"
 
 
 msgid "Is Empty"
@@ -29255,20 +29279,45 @@ msgid "Volume render settings for 3D viewport"
 msgstr "3D视图的体积渲染设置"
 
 
+msgctxt "Volume"
+msgid "Sequence Mode"
+msgstr "序列模式"
+
+
 msgid "Sequence playback mode"
 msgstr "序列播放模式"
+
+
+msgctxt "Volume"
+msgid "Clip"
+msgstr "裁剪"
 
 
 msgid "Hide frames outside the specified frame range"
 msgstr "隐藏指定帧范围以外的帧"
 
 
+msgctxt "Volume"
+msgid "Extend"
+msgstr "扩展"
+
+
 msgid "Repeat the start frame before, and the end frame after the frame range"
 msgstr "若当前帧在起始帧之前则重复起始帧，在结束帧之后则重复结束帧"
 
 
+msgctxt "Volume"
+msgid "Repeat"
+msgstr "重复"
+
+
 msgid "Cycle the frames in the sequence"
 msgstr "循环序列中的帧"
+
+
+msgctxt "Volume"
+msgid "Ping-Pong"
+msgstr "乒–乓"
 
 
 msgid "Repeat the frames, reversing the playback direction every other cycle"
@@ -33937,6 +33986,42 @@ msgid "Aligned Single"
 msgstr "单边对齐"
 
 
+msgid "Selection status of the control point. (Deprecated: use Select Control Point instead)"
+msgstr "控制点的选择状态. (已弃用: 使用 '选择控制点' 代替)"
+
+
+msgid "Select Control Point"
+msgstr "选择控制点"
+
+
+msgid "Selection status of the control point"
+msgstr "控制点的选择状态"
+
+
+msgid "Select Left Handle"
+msgstr "选择左控制柄"
+
+
+msgid "Selection status of the left handle"
+msgstr "左控制柄的选择状态"
+
+
+msgid "Select Right Handle"
+msgstr "选择右控制柄"
+
+
+msgid "Selection status of the right handle"
+msgstr "右控制柄的选择状态"
+
+
+msgid "Select Aligned Single Handle"
+msgstr "选择单边对齐控制柄"
+
+
+msgid "Selection status of the Aligned Single handle"
+msgstr "单边对齐控制柄的选择状态"
+
+
 msgid "Weight of the point"
 msgstr "点权重"
 
@@ -34279,30 +34364,6 @@ msgid "Show/Hide"
 msgstr "显示 / 隐藏"
 
 
-msgid "Special Characters"
-msgstr "特殊字符"
-
-
-msgid "Kerning"
-msgstr "字距"
-
-
-msgid "Text"
-msgstr "文本"
-
-
-msgid "Metaball"
-msgstr "融球"
-
-
-msgid "Names"
-msgstr "名称"
-
-
-msgid "Bone Roll"
-msgstr "骨骼扭转"
-
-
 msgid "Clean Up"
 msgstr "清理"
 
@@ -34391,6 +34452,10 @@ msgid "Assign Material"
 msgstr "指定材质"
 
 
+msgid "Metaball"
+msgstr "融球"
+
+
 msgid "Light"
 msgstr "灯光"
 
@@ -34475,6 +34540,10 @@ msgid "Bone Collections"
 msgstr "骨骼集合"
 
 
+msgid "Names"
+msgstr "名称"
+
+
 msgid "Toggle Bone Options"
 msgstr "切换骨骼设置"
 
@@ -34505,6 +34574,22 @@ msgstr "设置面强度"
 
 msgid "Merge"
 msgstr "合并"
+
+
+msgid "Special Characters"
+msgstr "特殊字符"
+
+
+msgid "Kerning"
+msgstr "字距"
+
+
+msgid "Text"
+msgstr "文本"
+
+
+msgid "Bone Roll"
+msgstr "骨骼扭转"
 
 
 msgid "Keyframe Insert Pie"
@@ -53575,7 +53660,7 @@ msgstr "删除目标"
 
 
 msgid "Denoise rendered animation sequence using current scene and view layer settings. Requires denoising data passes and output to OpenEXR multilayer files"
-msgstr "使用当前场景和视图图层设置对渲染动画序列降噪。需要降噪数据通道并且输出为OpenEXR 多层文件"
+msgstr "使用当前场景和视图层设置对渲染动画序列降噪。需要降噪数据通道并且输出为 OpenEXR 多层文件"
 
 
 msgctxt "Operator"
@@ -63895,7 +63980,7 @@ msgstr "3D游标旋转"
 
 
 msgid "Mouse coordinates in region space"
-msgstr "区域空间中的鼠标坐标"
+msgstr "区块空间中的鼠标坐标"
 
 
 msgid "Name of the data-block to use by the operator"
@@ -63903,7 +63988,7 @@ msgstr "操作要使用的数据块的名称"
 
 
 msgid "Region Size"
-msgstr "区域尺寸"
+msgstr "区块尺寸"
 
 
 msgid "Session UID of the data-block to use by the operator"
@@ -66176,6 +66261,10 @@ msgid "Fill Opacity"
 msgstr "填充的不透明度"
 
 
+msgid "Stroke Opacity"
+msgstr "笔画的不透明度"
+
+
 msgctxt "Operator"
 msgid "Set Uniform Thickness"
 msgstr "设置统一粗细"
@@ -66963,7 +67052,7 @@ msgstr "使用绝对尺寸"
 
 
 msgid "Scale to Camera Frame"
-msgstr "缩放到摄像机框架"
+msgstr "缩放到摄像机边框"
 
 
 msgid "Scale to fit or fill the camera frame"
@@ -90850,14 +90939,6 @@ msgid "SSAO Settings"
 msgstr "SSAO设置"
 
 
-msgid "glTF Variants"
-msgstr "glTF 变体"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材质变体"
-
-
 msgid "Render Pass"
 msgstr "渲染通道"
 
@@ -90898,12 +90979,12 @@ msgid "Curves Edit Mode"
 msgstr "曲线编辑模式"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "glTF Variants"
+msgstr "glTF 变体"
 
 
-msgid "glTF Animations"
-msgstr "glTF 动画"
+msgid "glTF Material Variants"
+msgstr "glTF 材质变体"
 
 
 msgid "Snapping"
@@ -90932,6 +91013,14 @@ msgstr "四格视图"
 
 msgid "Onion Skin"
 msgstr "洋葱皮"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 动画"
 
 
 msgid "Stereoscopy"
@@ -95932,7 +96021,7 @@ msgstr "拾色器部件的不同样式"
 
 
 msgid "Circle (HSV)"
-msgstr "色盘 (HSV)"
+msgstr "圆形 (HSV)"
 
 
 msgid "A circular Hue/Saturation color wheel, with Value slider"
@@ -95940,7 +96029,7 @@ msgstr "环形色相/饱和度，另加明度滑块的色盘"
 
 
 msgid "Circle (HSL)"
-msgstr "色盘 (HSL)"
+msgstr "圆形 (HSL)"
 
 
 msgid "A circular Hue/Saturation color wheel, with Lightness slider"
@@ -112730,7 +112819,7 @@ msgstr "材质覆盖"
 
 
 msgid "Material to override all other materials in this view layer"
-msgstr "此视图图层中的所有材质使用此材质覆盖"
+msgstr "此视图层中的所有材质使用此材质覆盖"
 
 
 msgid "All the objects in this layer"
@@ -112754,7 +112843,7 @@ msgstr "每个像素可包含多少独有物体的特征"
 
 
 msgid "Override number of render samples for this view layer, 0 will use the scene setting"
-msgstr "重写此视图图层的渲染采样值，0 将使用场景设置"
+msgstr "重写此视图层的渲染采样值，0 将使用场景设置"
 
 
 msgid "Enable or disable rendering of this View Layer"
@@ -117456,7 +117545,7 @@ msgstr "Blender在编译时未包含视口降噪器"
 
 
 msgid "No compatible GPUs found for Cycles"
-msgstr "找不到Cycles的兼容 GPU"
+msgstr "找不到 Cycles 的兼容 GPU"
 
 
 msgid "Requires NVIDIA GPU with compute capability %s"
@@ -117464,27 +117553,35 @@ msgstr "要求具有计算能力 %s 的 NVIDIA GPU"
 
 
 msgid "and NVIDIA driver version %s or newer"
-msgstr "以及NVIDIA驱动程序 %s 版本或更新"
+msgstr "以及 NVIDIA 驱动程序 %s 或更新版本"
 
 
 msgid "Requires AMD GPU with RDNA architecture"
-msgstr "需要RDNA架构的AMD GPU"
+msgstr "需要 RDNA 架构的 AMD GPU"
+
+
+msgid "and AMD Adrenalin driver %s or newer"
+msgstr "以及 AMD Adrenalin 驱动程序 %s 或更新版本"
+
+
+msgid "or AMD Radeon Pro %s driver or newer"
+msgstr "或 AMD Radeon Pro %s 驱动程序或更新版本"
 
 
 msgid "Requires Intel GPU with Xe-HPG architecture"
-msgstr "需要Xe-HPG 架构的英特尔 GPU"
+msgstr "需要 Xe-HPG 架构的英特尔 GPU"
 
 
 msgid "and AMD driver version %s or newer"
-msgstr "以及AMD驱动程序 %s 或更新版本"
+msgstr "以及 AMD 驱动程序 %s 或更新版本"
 
 
 msgid "and Windows driver version %s or newer"
-msgstr "以及Windows驱动程序 %s 或更新版本"
+msgstr "以及 Windows 驱动程序 %s 或更新版本"
 
 
 msgid "Requires Intel GPU with Xe-HPG architecture and"
-msgstr "需要Xe-HPG 架构的英特尔 GPU 以及"
+msgstr "需要 Xe-HPG 架构的英特尔 GPU 以及"
 
 
 msgid "  - intel-level-zero-gpu or intel-compute-runtime version"
@@ -117500,7 +117597,7 @@ msgstr "需要 Apple Silicon 和 macOS %s 或更新版本"
 
 
 msgid "    %s or newer"
-msgstr "    %s 或者更新的"
+msgstr "    %s 或更新版本"
 
 
 msgid "Noise Threshold"
@@ -119525,6 +119622,14 @@ msgid "No objects with bound-box selected"
 msgstr "未选择带有边界盒的物体"
 
 
+msgid "Smoke Domain"
+msgstr "烟雾域"
+
+
+msgid "Liquid Domain"
+msgstr "液体域"
+
+
 msgid "Select at least one mesh object"
 msgstr "至少选择一个网格物体"
 
@@ -119555,6 +119660,14 @@ msgstr "选择两个网格物体"
 
 msgid "Built without Fluid modifier"
 msgstr "不使用流体修改器进行构建"
+
+
+msgid "Smoke Domain Material"
+msgstr "烟雾域材质"
+
+
+msgid "Liquid Domain Material"
+msgstr "液体域材质"
 
 
 msgid "Object {!r} already has a particle system"
@@ -119691,10 +119804,6 @@ msgstr "警告，文件已存在。覆盖现有文件？"
 
 msgid "Installing keymap failed: {:s}"
 msgstr "安装键位映射失败: {:s}"
-
-
-msgid "This script was written Blender version {:d}.{:d}.{:d} and might not function (correctly), though it is enabled"
-msgstr "此脚本是为Blender版本 {:d}.{:d}.{:d} 编写的，可能无法(正确)工作，即便已启用"
 
 
 msgid "File already installed to {!r}"
@@ -136340,11 +136449,11 @@ msgstr "节点树最新解算的执行时间。对于帧和组节点，指所有
 
 
 msgid " Named Attribute"
-msgstr " 已命名属性"
+msgstr " 个已命名属性"
 
 
 msgid " Named Attributes"
-msgstr " 已命名属性"
+msgstr " 个已命名属性"
 
 
 msgid "Text not used by any node, no update done"
@@ -136432,7 +136541,7 @@ msgstr "无法复制主要集合"
 
 
 msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
-msgstr "无法找到一个有效的父级集合来进行复制，此操作将不会关联到任何视图图层"
+msgstr "无法找到一个有效的父级集合来进行复制，此操作将不会关联到任何视图层"
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"
@@ -141555,6 +141664,11 @@ msgid "UVWarp"
 msgstr "UV偏移"
 
 
+msgctxt "Modifier"
+msgid "To"
+msgstr "目标"
+
+
 msgid "Sample Radius"
 msgstr "采样半径"
 
@@ -145290,7 +145404,7 @@ msgstr "场景 \"%s\" 中没有找到活动视图"
 
 
 msgid "%s: no Combined pass found in the render layer '%s'"
-msgstr "%s: 找不到合成通道于渲染图层 '%s'"
+msgstr "%s: 找不到合成通道于渲染层 '%s'"
 
 
 msgid "%s: failed to allocate clip buffer '%s'"

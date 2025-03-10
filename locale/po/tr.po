@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -29213,30 +29213,6 @@ msgid "Show/Hide"
 msgstr "Göster/Gizle"
 
 
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Text"
-msgstr "Metin"
-
-
-msgid "Metaball"
-msgstr "Metabol"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
 msgid "Clean Up"
 msgstr "Temizle"
 
@@ -29325,6 +29301,10 @@ msgid "Assign Material"
 msgstr "Malzeme Atamak"
 
 
+msgid "Metaball"
+msgstr "Metabol"
+
+
 msgid "Light"
 msgstr "Işık"
 
@@ -29409,6 +29389,10 @@ msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
+msgid "Names"
+msgstr "Adlar"
+
+
 msgid "Toggle Bone Options"
 msgstr "Kemik Seçeneklerini Değiştir"
 
@@ -29439,6 +29423,22 @@ msgstr "Yüz Gücünü Ayarla"
 
 msgid "Merge"
 msgstr "Birleştir"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
 
 
 msgid "Keyframe Insert Pie"
@@ -79128,14 +79128,6 @@ msgid "SSAO Settings"
 msgstr "SSAO Ayarları"
 
 
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
-
-
 msgid "Render Pass"
 msgstr "Render Geçişi"
 
@@ -79170,6 +79162,14 @@ msgstr "Ölçüm"
 
 msgid "Curve Edit Mode"
 msgstr "Eğri Düzenleme Modu"
+
+
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
 
 
 msgid "Snapping"

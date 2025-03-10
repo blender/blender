@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
 "PO-Revision-Date: 2025-01-27 09:56+0000\n"
 "Last-Translator: Sander Spolspoel <sander@sworl.be>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2702,14 +2702,6 @@ msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
 msgid "Mirror"
 msgstr "Spiegel"
 
@@ -2760,6 +2752,14 @@ msgstr "Haken"
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgctxt "MovieClip"

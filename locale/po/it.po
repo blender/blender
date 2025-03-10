@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
 "PO-Revision-Date: 2025-02-22 22:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -23764,26 +23764,6 @@ msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
 
 
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
 msgid "Clean Up"
 msgstr "Ripulisci"
 
@@ -23856,6 +23836,10 @@ msgid "Assign Material"
 msgstr "Assegna Materiale"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Light"
 msgstr "Luce"
 
@@ -23904,6 +23888,10 @@ msgid "Propagate"
 msgstr "Propaga"
 
 
+msgid "Names"
+msgstr "Nomi"
+
+
 msgid "Toggle Bone Options"
 msgstr "Attiva/disattiva Opzioni Osso"
 
@@ -23926,6 +23914,18 @@ msgstr "Dati Faccia"
 
 msgid "Merge"
 msgstr "Unisci"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Basic"

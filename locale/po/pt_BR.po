@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2025-02-14 05:56+0000\n"
-"Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.9.2\n"
+"X-Generator: Weblate 5.10.1\n"
 "X-Poedit-SourceCharset: utf-8"
 
 
@@ -21496,26 +21496,6 @@ msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
 msgid "Clean Up"
 msgstr "Limpeza"
 
@@ -21584,6 +21564,10 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
 msgid "Light"
 msgstr "Luz"
 
@@ -21644,6 +21628,10 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
+msgid "Names"
+msgstr "Nomes"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -21666,6 +21654,18 @@ msgstr "Dados das faces"
 
 msgid "Merge"
 msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
 
 
 msgid "Basic"
@@ -65177,10 +65177,6 @@ msgid "Strand Lengths"
 msgstr "Comprimento do fio"
 
 
-msgid "Path Steps"
-msgstr "Passos de caminho:"
-
-
 msgid "No Brushes currently available"
 msgstr "Não há pincéis disponíveis atualmente."
 
@@ -65284,10 +65280,6 @@ msgstr "Não é possível criar o caminho das preferências de usuário para os 
 
 msgid "File written by newer Blender binary (%d.%d), expect loss of data!"
 msgstr "Arquivo escrito por um executável Blender mais novo: (%d.%d), espere por perda de dados !"
-
-
-msgid "Loading failed: "
-msgstr "Falha durante o carregamento:"
 
 
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
@@ -68995,10 +68987,6 @@ msgid "Radius (Parent)"
 msgstr "Raio (parente)"
 
 
-msgid "Size:"
-msgstr "Tamanho"
-
-
 msgid "Displays global values"
 msgstr "Mostra valores globais."
 
@@ -69309,10 +69297,6 @@ msgstr "Encolher ou estufar: %s"
 
 msgid "Shrink/Fatten: %3f"
 msgstr "Encolher ou estufar: %3f"
-
-
-msgid "Edge Slide: "
-msgstr "Deslizar arestas:"
 
 
 msgid "Opacity: %s"

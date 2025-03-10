@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2024-03-13 11:04+0000\n"
-"Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 5.0.1"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -26631,30 +26631,6 @@ msgid "Show/Hide"
 msgstr "Показати/приховати"
 
 
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
-
-
-msgid "Names"
-msgstr "Назви"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
 msgid "Clean Up"
 msgstr "Вичищення"
 
@@ -26743,6 +26719,10 @@ msgid "Assign Material"
 msgstr "Призначити Матеріал"
 
 
+msgid "Metaball"
+msgstr "Метакуля"
+
+
 msgid "Light"
 msgstr "Слабко"
 
@@ -26815,6 +26795,10 @@ msgid "Propagate"
 msgstr "Поширити"
 
 
+msgid "Names"
+msgstr "Назви"
+
+
 msgid "Toggle Bone Options"
 msgstr "Перемкнути параметри кісток"
 
@@ -26845,6 +26829,22 @@ msgstr "Задати Силу Грані"
 
 msgid "Merge"
 msgstr "Об'єднання"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
 
 
 msgid "Basic"
@@ -80014,10 +80014,6 @@ msgid "Options:"
 msgstr "Опції:"
 
 
-msgid "WARNING: preferences are lost when add-on is disabled, be sure to use \"Save Persistent\" if you want to keep your settings!"
-msgstr "ПОПЕРЕДЖЕННЯ: при вимиканні додатку уподобання будуть втрачені; щоб зберегти налаштування скористайтесь функцією збереження на постійно \"Save Persistent\""
-
-
 msgctxt "Operator"
 msgid "Save Persistent To..."
 msgstr "Зберегти на Постійно У..."
@@ -80155,10 +80151,6 @@ msgid "Some strings were fixed, don't forget to save the .blend file to keep tho
 msgstr "Деякі рядки було виправлено, не забудьте зберегти цей файл .blend для збереження цих змін"
 
 
-msgid "Unexpected modifier type: "
-msgstr "Неочікуваний тип модифікатора:"
-
-
 msgid "Target object not specified"
 msgstr "Цільовий об'єкт не визначено"
 
@@ -80203,10 +80195,6 @@ msgid "Expected one other selected mesh object to copy from"
 msgstr "Очікується ще один вибраний об'єкт сіті, з якого буде копіювання"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Модифікатори неможливо додати для об'єкта:"
-
-
 msgid "No objects with bound-box selected"
 msgstr "Жоден з об'єктів з габариткоробкою не вибрано"
 
@@ -80233,10 +80221,6 @@ msgstr "Збій створення шляху передустав"
 
 msgid "Unable to remove default presets"
 msgstr "Неможливо вилучити стандартні передустави"
-
-
-msgid "Failed to execute the preset: "
-msgstr "Збій виконання передустави:"
 
 
 msgid "No other objects selected"
@@ -80400,14 +80384,6 @@ msgstr "Символи"
 
 msgid "Strip From"
 msgstr "Смужка Із"
-
-
-msgid "Invalid regular expression (find): "
-msgstr "Недійсний регулярний вираз (знаходження):"
-
-
-msgid "Invalid regular expression (replace): "
-msgstr "Недійсний регулярний вираз (заміна):"
 
 
 msgctxt "Operator"
@@ -85734,10 +85710,6 @@ msgid "File written by newer Blender binary (%d.%d), expect loss of data!"
 msgstr "Файл записано новішою версією Blender (%d.%d), можлива втрата даних!"
 
 
-msgid "Loading failed: "
-msgstr "Не вдалося завантажити:"
-
-
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
 msgstr "Прив'язування або прилучення з дуже старого .blend-файлу формату (%d.%d), анімація не буде перетворена! Спробуйте переписати бібліотечний файл з поточної версії Blender'а."
 
@@ -89122,10 +89094,6 @@ msgid "Fill tool needs active material"
 msgstr "Засіб заповнення потребує активний матеріал"
 
 
-msgid "GPencil Interpolation: "
-msgstr "Інтерполяція Нарисного Олівця:"
-
-
 msgid "ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/MOVE to adjust factor"
 msgstr "ESC/СКМ для касування, Enter/ЛКМ для підтвердження, КОЛІЩА/ПЕРЕСУВ для наладнання фактора"
 
@@ -89632,10 +89600,6 @@ msgstr "Властивість:"
 
 msgid "Driver Value:"
 msgstr "Значення драйвера:"
-
-
-msgid "Expression:"
-msgstr "Вираз"
 
 
 msgid "Add Input Variable"
@@ -90539,10 +90503,6 @@ msgid "Mean Tilt:"
 msgstr "Середній нахил:"
 
 
-msgid "Dimensions:"
-msgstr "Розмірності"
-
-
 msgid "4L"
 msgstr "4L"
 
@@ -90967,10 +90927,6 @@ msgid "Shrink/Fatten: %3f"
 msgstr "Стиснути/Розширити: %3f"
 
 
-msgid "Edge Slide: "
-msgstr "Ковзання ребра:"
-
-
 msgid "Opacity: %s"
 msgstr "Безпрозорість: %s"
 
@@ -91053,10 +91009,6 @@ msgstr "зліва"
 
 msgid "Use 'Time_Translate' transform mode instead of 'Translation' mode for translating keyframes in Dope Sheet Editor"
 msgstr "Використати режим трансформування 'Time_Translate' замість режиму 'Translation' для трансформування ключкадрів на Аркуші експозицій"
-
-
-msgid "Vertex Slide: "
-msgstr "Ковзання Вершин:"
 
 
 msgid "(E)ven: %s, "

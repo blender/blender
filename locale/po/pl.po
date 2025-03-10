@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
 "PO-Revision-Date: 2025-02-18 05:56+0000\n"
 "Last-Translator: Krzysztof Chorzempa <Krzysztof-Chorzempa@users.noreply.translate.blender.org>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11580,14 +11580,6 @@ msgid "Show/Hide"
 msgstr "Pokaż/Ukryj"
 
 
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Metaball"
-msgstr "Metakula"
-
-
 msgid "Clean Up"
 msgstr "Sprzątanie"
 
@@ -11622,6 +11614,10 @@ msgstr "Zaznacz powiązane"
 
 msgid "Assign Material"
 msgstr "Przypisanie materiału"
+
+
+msgid "Metaball"
+msgstr "Metakula"
 
 
 msgid "Light"
@@ -11666,6 +11662,10 @@ msgstr "Dane ściany"
 
 msgid "Merge"
 msgstr "Scal"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Catalog"

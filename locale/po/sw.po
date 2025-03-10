@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
+"POT-Creation-Date: 2025-03-10 09:31+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28784,14 +28784,6 @@ msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
 
-msgid "Text"
-msgstr "Maandishi"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
 msgid "Clean Up"
 msgstr "Safisha"
 
@@ -28816,6 +28808,10 @@ msgid "Select Linked"
 msgstr "Chagua Imeunganishwa"
 
 
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
 msgid "Light"
 msgstr "Mwanga"
 
@@ -28838,6 +28834,10 @@ msgstr "Mikusanyo ya Mifupa"
 
 msgid "Merge"
 msgstr "Unganisha"
+
+
+msgid "Text"
+msgstr "Maandishi"
 
 
 msgid "Keyframe Insert Pie"
