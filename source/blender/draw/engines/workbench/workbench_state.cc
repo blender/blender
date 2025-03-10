@@ -24,6 +24,73 @@
 
 namespace blender::workbench {
 
+/* Used for update detection on the render settings. */
+static bool operator!=(const View3DShading &a, const View3DShading &b)
+{
+  /* Only checks the properties that are actually used by workbench. */
+  if (a.type != b.type) {
+    return true;
+  }
+  if (a.color_type != b.color_type) {
+    return true;
+  }
+  if (a.flag != b.flag) {
+    return true;
+  }
+  if (a.light != b.light) {
+    return true;
+  }
+  if (a.background_type != b.background_type) {
+    return true;
+  }
+  if (a.cavity_type != b.cavity_type) {
+    return true;
+  }
+  if (a.wire_color_type != b.wire_color_type) {
+    return true;
+  }
+  if (StringRefNull(a.studio_light) != StringRefNull(b.studio_light)) {
+    return true;
+  }
+  if (StringRefNull(a.matcap) != StringRefNull(b.matcap)) {
+    return true;
+  }
+  if (a.shadow_intensity != b.shadow_intensity) {
+    return true;
+  }
+  if (float3(a.single_color) != float3(b.single_color)) {
+    return true;
+  }
+  if (a.studiolight_rot_z != b.studiolight_rot_z) {
+    return true;
+  }
+  if (float3(a.object_outline_color) != float3(b.object_outline_color)) {
+    return true;
+  }
+  if (a.xray_alpha != b.xray_alpha) {
+    return true;
+  }
+  if (a.xray_alpha_wire != b.xray_alpha_wire) {
+    return true;
+  }
+  if (a.cavity_valley_factor != b.cavity_valley_factor) {
+    return true;
+  }
+  if (a.cavity_ridge_factor != b.cavity_ridge_factor) {
+    return true;
+  }
+  if (float3(a.background_color) != float3(b.background_color)) {
+    return true;
+  }
+  if (a.curvature_ridge_factor != b.curvature_ridge_factor) {
+    return true;
+  }
+  if (a.curvature_valley_factor != b.curvature_valley_factor) {
+    return true;
+  }
+  return false;
+}
+
 void SceneState::init(bool scene_updated, Object *camera_ob /*=nullptr*/)
 {
   bool reset_taa = reset_taa_next_sample || scene_updated;
@@ -95,9 +162,8 @@ void SceneState::init(bool scene_updated, Object *camera_ob /*=nullptr*/)
     /* Disable shading options that aren't supported in transparency mode. */
     shading.flag &= ~(V3D_SHADING_SHADOW | V3D_SHADING_CAVITY | V3D_SHADING_DEPTH_OF_FIELD);
   }
-  if (SHADING_XRAY_ENABLED(shading) != SHADING_XRAY_ENABLED(previous_shading) ||
-      shading.flag != previous_shading.flag)
-  {
+
+  if (shading != previous_shading) {
     reset_taa = true;
   }
 
