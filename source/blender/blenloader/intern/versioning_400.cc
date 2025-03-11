@@ -3766,6 +3766,83 @@ static void version_geometry_normal_input_node(bNodeTree &ntree)
   }
 }
 
+static void do_version_node_curve_to_mesh_scale_input(bNodeTree *tree)
+{
+  using namespace blender;
+  Set<bNode *> curve_to_mesh_nodes;
+  LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
+    if (STREQ(node->idname, "GeometryNodeCurveToMesh")) {
+      curve_to_mesh_nodes.add(node);
+    }
+  }
+
+  for (bNode *curve_to_mesh : curve_to_mesh_nodes) {
+    if (bke::node_find_socket(*curve_to_mesh, SOCK_IN, "Scale")) {
+      /* Make versioning idempotent. */
+      continue;
+    }
+    version_node_add_socket_if_not_exist(
+        tree, curve_to_mesh, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Scale", "Scale");
+
+    bNode &named_attribute = version_node_add_empty(*tree, "GeometryNodeInputNamedAttribute");
+    NodeGeometryInputNamedAttribute *named_attribute_storage =
+        MEM_callocN<NodeGeometryInputNamedAttribute>(__func__);
+    named_attribute_storage->data_type = CD_PROP_FLOAT;
+    named_attribute.storage = named_attribute_storage;
+    named_attribute.parent = curve_to_mesh->parent;
+    named_attribute.location[0] = curve_to_mesh->location[0] - 25;
+    named_attribute.location[1] = curve_to_mesh->location[1];
+    named_attribute.flag &= ~NODE_SELECT;
+
+    bNodeSocket *name_input = version_node_add_socket_if_not_exist(
+        tree, &named_attribute, SOCK_IN, SOCK_STRING, PROP_NONE, "Name", "Name");
+    STRNCPY(name_input->default_value_typed<bNodeSocketValueString>()->value, "radius");
+
+    version_node_add_socket_if_not_exist(
+        tree, &named_attribute, SOCK_OUT, SOCK_BOOLEAN, PROP_NONE, "Exists", "Exists");
+    version_node_add_socket_if_not_exist(
+        tree, &named_attribute, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Attribute", "Attribute");
+
+    bNode &switch_node = version_node_add_empty(*tree, "GeometryNodeSwitch");
+    NodeSwitch *switch_storage = MEM_callocN<NodeSwitch>(__func__);
+    switch_storage->input_type = SOCK_FLOAT;
+    switch_node.storage = switch_storage;
+    switch_node.parent = curve_to_mesh->parent;
+    switch_node.location[0] = curve_to_mesh->location[0] - 25;
+    switch_node.location[1] = curve_to_mesh->location[1];
+    switch_node.flag &= ~NODE_SELECT;
+
+    version_node_add_socket_if_not_exist(
+        tree, &switch_node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Switch", "Switch");
+    bNodeSocket *false_input = version_node_add_socket_if_not_exist(
+        tree, &switch_node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "False", "False");
+    false_input->default_value_typed<bNodeSocketValueFloat>()->value = 1.0f;
+
+    version_node_add_socket_if_not_exist(
+        tree, &switch_node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "True", "True");
+
+    version_node_add_link(*tree,
+                          named_attribute,
+                          *bke::node_find_socket(named_attribute, SOCK_OUT, "Exists"),
+                          switch_node,
+                          *bke::node_find_socket(switch_node, SOCK_IN, "Switch"));
+    version_node_add_link(*tree,
+                          named_attribute,
+                          *bke::node_find_socket(named_attribute, SOCK_OUT, "Attribute"),
+                          switch_node,
+                          *bke::node_find_socket(switch_node, SOCK_IN, "True"));
+
+    version_node_add_socket_if_not_exist(
+        tree, &switch_node, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Output", "Output");
+
+    version_node_add_link(*tree,
+                          switch_node,
+                          *bke::node_find_socket(switch_node, SOCK_OUT, "Output"),
+                          *curve_to_mesh,
+                          *bke::node_find_socket(*curve_to_mesh, SOCK_IN, "Scale"));
+  }
+}
+
 static bool strip_effect_overdrop_to_alphaover(Strip *strip, void * /*user_data*/)
 {
   if (strip->type == STRIP_TYPE_OVERDROP_REMOVED) {
@@ -5897,6 +5974,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 2)) {
     version_sequencer_update_overdrop(bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 4)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        do_version_node_curve_to_mesh_scale_input(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to

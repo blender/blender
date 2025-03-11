@@ -189,15 +189,15 @@ static void fill_mesh_positions(const int main_point_num,
                                 const Span<float3> profile_positions,
                                 const Span<float3> tangents,
                                 const Span<float3> normals,
-                                const Span<float> radii,
+                                const Span<float> scales,
                                 MutableSpan<float3> mesh_positions)
 {
   if (profile_point_num == 1) {
     for (const int i_ring : IndexRange(main_point_num)) {
       float4x4 point_matrix = build_point_matrix(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
-      if (!radii.is_empty()) {
-        point_matrix = math::scale(point_matrix, float3(radii[i_ring]));
+      if (!scales.is_empty()) {
+        point_matrix = math::scale(point_matrix, float3(scales[i_ring]));
       }
       mesh_positions[i_ring] = math::transform_point(point_matrix, profile_positions.first());
     }
@@ -206,8 +206,8 @@ static void fill_mesh_positions(const int main_point_num,
     for (const int i_ring : IndexRange(main_point_num)) {
       float4x4 point_matrix = build_point_matrix(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
-      if (!radii.is_empty()) {
-        point_matrix = math::scale(point_matrix, float3(radii[i_ring]));
+      if (!scales.is_empty()) {
+        point_matrix = math::scale(point_matrix, float3(scales[i_ring]));
       }
 
       const int ring_vert_start = i_ring * profile_point_num;
@@ -472,6 +472,7 @@ static void foreach_curve_combination(const CurvesInfo &info,
 
 static void build_mesh_positions(const CurvesInfo &curves_info,
                                  const ResultOffsets &offsets,
+                                 const VArray<float> &scales,
                                  Vector<std::byte> &eval_buffer,
                                  Mesh &mesh)
 {
@@ -499,9 +500,9 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
   }
   const Span<float3> tangents = curves_info.main.evaluated_tangents();
   const Span<float3> normals = curves_info.main.evaluated_normals();
-  Span<float> radii_eval;
-  if (const GVArray radii = *curves_info.main.attributes().lookup("radius", AttrDomain::Point)) {
-    radii_eval = evaluate_attribute(radii, curves_info.main, eval_buffer).typed<float>();
+  Span<float> eval_scales;
+  if (!scales.is_empty() && scales.get_if_single() != 1.0f) {
+    eval_scales = evaluate_attribute(scales, curves_info.main, eval_buffer).typed<float>();
   }
   foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
     fill_mesh_positions(info.main_points.size(),
@@ -510,7 +511,7 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
                         profile_positions.slice(info.profile_points),
                         tangents.slice(info.main_points),
                         normals.slice(info.main_points),
-                        radii_eval.is_empty() ? radii_eval : radii_eval.slice(info.main_points),
+                        eval_scales.is_empty() ? eval_scales : eval_scales.slice(info.main_points),
                         positions.slice(info.vert_range));
   });
 }
@@ -811,6 +812,7 @@ static void write_sharp_bezier_edges(const CurvesInfo &curves_info,
 
 Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                           const CurvesGeometry &profile,
+                          const VArray<float> &scales,
                           const bool fill_caps,
                           const AttributeFilter &attribute_filter)
 {
@@ -871,7 +873,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   /* Make sure curve attributes can be interpolated. */
   main.ensure_can_interpolate_to_evaluated();
 
-  build_mesh_positions(curves_info, offsets, eval_buffer, *mesh);
+  build_mesh_positions(curves_info, offsets, scales, eval_buffer, *mesh);
 
   mesh->tag_overlapping_none();
   if (!offsets.any_single_point_main) {
@@ -996,7 +998,7 @@ static CurvesGeometry get_curve_single_vert()
 Mesh *curve_to_wire_mesh(const CurvesGeometry &curve, const AttributeFilter &attribute_filter)
 {
   static const CurvesGeometry vert_curve = get_curve_single_vert();
-  return curve_to_mesh_sweep(curve, vert_curve, false, attribute_filter);
+  return curve_to_mesh_sweep(curve, vert_curve, {}, false, attribute_filter);
 }
 
 }  // namespace blender::bke

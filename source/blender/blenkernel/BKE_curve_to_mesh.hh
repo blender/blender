@@ -10,6 +10,8 @@ struct Mesh;
  * \ingroup bke
  */
 
+#include "BLI_virtual_array_fwd.hh"
+
 #include "BKE_attribute_filter.hh"
 
 namespace blender::bke {
@@ -28,6 +30,7 @@ class CurvesGeometry;
  */
 Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                           const CurvesGeometry &profile,
+                          const VArray<float> &scales,
                           bool fill_caps,
                           const bke::AttributeFilter &attribute_filter = {});
 /**
