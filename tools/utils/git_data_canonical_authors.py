@@ -373,6 +373,7 @@ def canonical_author_map() -> dict[str, str]:
             "Jeroen Bakker <88891617+jeroen-blender@users.noreply.github.com>",
             "Jeroen Bakker <j.bakker@atmind.nl>",
             "Jeroen Bakker <jbakker>",
+            "jeroen@blender.org <jeroen@blender.org>",
         ),
         "Jesse Yurkovich <jesse.y@gmail.com>": (
             "Jesse Y <deadpin>",
