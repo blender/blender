@@ -86,32 +86,6 @@ void writeDv(int index, Vertex dv)
 }
 #endif
 
-#if defined(OPENSUBDIV_GLSL_COMPUTE_USE_2ND_DERIVATIVES)
-void writeDuu(int index, Vertex duu)
-{
-  int duuIndex = duuDesc.x + index * duuDesc.z;
-  for (int i = 0; i < LENGTH; ++i) {
-    duuBuffer[duuIndex + i] = duu.vertexData[i];
-  }
-}
-
-void writeDuv(int index, Vertex duv)
-{
-  int duvIndex = duvDesc.x + index * duvDesc.z;
-  for (int i = 0; i < LENGTH; ++i) {
-    duvBuffer[duvIndex + i] = duv.vertexData[i];
-  }
-}
-
-void writeDvv(int index, Vertex dvv)
-{
-  int dvvIndex = dvvDesc.x + index * dvvDesc.z;
-  for (int i = 0; i < LENGTH; ++i) {
-    dvvBuffer[dvvIndex + i] = dvv.vertexData[i];
-  }
-}
-#endif
-
 //------------------------------------------------------------------------------
 
 void main()
@@ -150,29 +124,6 @@ void main()
   }
   if (dvDesc.y > 0) {
     writeDv(current, dv);
-  }
-#endif
-#if defined(OPENSUBDIV_GLSL_COMPUTE_USE_2ND_DERIVATIVES)
-  Vertex duu, duv, dvv;
-  clear(duu);
-  clear(duv);
-  clear(dvv);
-  for (int i = 0; i < size; ++i) {
-    // expects the compiler optimizes readVertex out here.
-    Vertex src = readVertex(indices_buf[offset + i]);
-    addWithWeight(duu, src, duu_weights_buf[offset + i]);
-    addWithWeight(duv, src, duv_weights_buf[offset + i]);
-    addWithWeight(dvv, src, dvv_weights_buf[offset + i]);
-  }
-
-  if (duuDesc.y > 0) {  // length
-    writeDuu(current, duu);
-  }
-  if (duvDesc.y > 0) {
-    writeDuv(current, duv);
-  }
-  if (dvvDesc.y > 0) {
-    writeDvv(current, dvv);
   }
 #endif
 }

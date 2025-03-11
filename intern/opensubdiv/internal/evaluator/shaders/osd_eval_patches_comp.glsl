@@ -95,32 +95,6 @@ void writeDv(int index, Vertex dv)
 }
 #endif
 
-#if defined(OPENSUBDIV_GLSL_COMPUTE_USE_2ND_DERIVATIVES)
-void writeDuu(int index, Vertex duu)
-{
-  int duuIndex = duuDesc.x + index * duuDesc.z;
-  for (int i = 0; i < LENGTH; ++i) {
-    duuBuffer[duuIndex + i] = duu.vertexData[i];
-  }
-}
-
-void writeDuv(int index, Vertex duv)
-{
-  int duvIndex = duvDesc.x + index * duvDesc.z;
-  for (int i = 0; i < LENGTH; ++i) {
-    duvBuffer[duvIndex + i] = duv.vertexData[i];
-  }
-}
-
-void writeDvv(int index, Vertex dvv)
-{
-  int dvvIndex = dvvDesc.x + index * dvvDesc.z;
-  for (int i = 0; i < LENGTH; ++i) {
-    dvvBuffer[dvvIndex + i] = dvv.vertexData[i];
-  }
-}
-#endif
-
 //------------------------------------------------------------------------------
 // PERFORMANCE: stride could be constant, but not as significant as length
 
@@ -143,9 +117,6 @@ void main()
   clear(dst);
   clear(du);
   clear(dv);
-  clear(duu);
-  clear(duv);
-  clear(dvv);
 
   int indexBase = array.indexBase + array.stride * (coord.patchIndex - array.primitiveIdBase);
 
@@ -154,9 +125,6 @@ void main()
     addWithWeight(dst, readVertex(index), wP[cv]);
     addWithWeight(du, readVertex(index), wDu[cv]);
     addWithWeight(dv, readVertex(index), wDv[cv]);
-    addWithWeight(duu, readVertex(index), wDuu[cv]);
-    addWithWeight(duv, readVertex(index), wDuv[cv]);
-    addWithWeight(dvv, readVertex(index), wDvv[cv]);
   }
   writeVertex(current, dst);
 
@@ -166,17 +134,6 @@ void main()
   }
   if (dvDesc.y > 0) {
     writeDv(current, dv);
-  }
-#endif
-#if defined(OPENSUBDIV_GLSL_COMPUTE_USE_2ND_DERIVATIVES)
-  if (duuDesc.y > 0) {  // length
-    writeDuu(current, duu);
-  }
-  if (duvDesc.y > 0) {  // length
-    writeDuv(current, duv);
-  }
-  if (dvvDesc.y > 0) {
-    writeDvv(current, dvv);
   }
 #endif
 }
