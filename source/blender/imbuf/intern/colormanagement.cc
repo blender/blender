@@ -1507,6 +1507,14 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
   return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
 }
 
+bool IMB_set_colorspace_name_if_exists(char dst_colorspace[], const char *name)
+{
+  ColorSpace *colorspace = colormanage_colorspace_get_named(name);
+  if (colorspace) {
+    BLI_strncpy(dst_colorspace, name, IM_MAX_SPACE);
+  }
+}
+
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear()
 {
   return blender::float3x3(imbuf_xyz_to_scene_linear);

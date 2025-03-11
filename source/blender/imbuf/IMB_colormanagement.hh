@@ -51,6 +51,7 @@ bool IMB_colormanagement_space_is_srgb(ColorSpace *colorspace);
 bool IMB_colormanagement_space_name_is_data(const char *name);
 bool IMB_colormanagement_space_name_is_scene_linear(const char *name);
 bool IMB_colormanagement_space_name_is_srgb(const char *name);
+bool IMB_set_colorspace_name_if_exists(char dst_colorspace[], const char *name);
 
 BLI_INLINE void IMB_colormanagement_get_luminance_coefficients(float r_rgb[3]);
 
