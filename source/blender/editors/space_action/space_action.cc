@@ -117,7 +117,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   region->v2d.minzoom = 0.01f;
   region->v2d.maxzoom = 50;
   region->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
-  region->v2d.scroll |= V2D_SCROLL_RIGHT;
+  region->v2d.scroll |= V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
   region->v2d.keepzoom = V2D_LOCKZOOM_Y;
   region->v2d.keepofs = V2D_KEEPOFS_Y;
   region->v2d.align = V2D_ALIGN_NO_POS_Y;
@@ -282,7 +282,8 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
   ED_time_scrub_draw_current_frame(region, scene, saction->flag & SACTION_DRAWTIME);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
+  UI_view2d_scrollers_draw(v2d, &scroller_mask);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
