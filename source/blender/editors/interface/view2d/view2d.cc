@@ -189,11 +189,20 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
       v2d->hor.ymin = v2d->hor.ymax - scroll_height;
     }
 
-    /* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
+    /* Adjust horizontal scroller to avoid interfering with splitter areas. */
+    if (scroll & V2D_SCROLL_HORIZONTAL) {
+      v2d->hor.xmin += UI_AZONESPOTW;
+      v2d->hor.xmax -= UI_AZONESPOTW;
+    }
+
+    /* Adjust vertical scroller to avoid horizontal scrollers and splitter areas. */
     if (scroll & V2D_SCROLL_VERTICAL) {
+      /* Note that top splitter areas are in the header,
+       * outside of `mask_scroll`, so we can ignore them. */
+      v2d->vert.ymin += UI_AZONESPOTH;
       if (scroll & V2D_SCROLL_BOTTOM) {
         /* on bottom edge of region */
-        v2d->vert.ymin = v2d->hor.ymax;
+        v2d->vert.ymin = max_ii(v2d->hor.ymax, v2d->vert.ymin);
       }
       else if (scroll & V2D_SCROLL_TOP) {
         /* on upper edge of region */
@@ -1376,7 +1385,6 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
   rcti vert, hor;
   float fac1, fac2, totsize, scrollsize;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
-  int smaller;
 
   /* Always update before drawing (for dynamically sized scrollers). */
   view2d_masks(v2d, mask_custom);
@@ -1384,26 +1392,20 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
   vert = v2d->vert;
   hor = v2d->hor;
 
-  /* slider rects need to be smaller than region and not interfere with splitter areas */
-  hor.xmin += UI_HEADER_OFFSET;
-  hor.xmax -= UI_HEADER_OFFSET;
-  vert.ymin += UI_HEADER_OFFSET;
-  vert.ymax -= UI_HEADER_OFFSET;
-
-  /* width of sliders */
-  smaller = int(0.1f * U.widget_unit);
+  /* Pad scrollbar drawing away from region edges. */
+  const int edge_pad = int(0.1f * U.widget_unit);
   if (scroll & V2D_SCROLL_BOTTOM) {
-    hor.ymin += smaller;
+    hor.ymin += edge_pad;
   }
   else {
-    hor.ymax -= smaller;
+    hor.ymax -= edge_pad;
   }
 
   if (scroll & V2D_SCROLL_LEFT) {
-    vert.xmin += smaller;
+    vert.xmin += edge_pad;
   }
   else {
-    vert.xmax -= smaller;
+    vert.xmax -= edge_pad;
   }
 
   CLAMP_MAX(vert.ymin, vert.ymax - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
