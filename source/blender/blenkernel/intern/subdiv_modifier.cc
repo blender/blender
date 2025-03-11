@@ -101,7 +101,7 @@ bool BKE_subsurf_modifier_has_split_normals(const SubsurfModifierData *smd, cons
 
 static bool is_subdivision_evaluation_possible_on_gpu()
 {
-  if (!ELEM(GPU_backend_get_type(), GPU_BACKEND_OPENGL, GPU_BACKEND_VULKAN)) {
+  if (GPU_backend_get_type() == GPU_BACKEND_NONE) {
     return false;
   }
 

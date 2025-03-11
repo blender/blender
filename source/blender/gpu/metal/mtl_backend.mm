@@ -506,6 +506,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes.
    * Can use argument buffers if a higher limit is required. */
   GCaps.max_shader_storage_buffer_bindings = 14;
+  GCaps.max_compute_shader_storage_blocks = 14;
   GCaps.max_storage_buffer_size = size_t(ctx->device.maxBufferLength);
   GCaps.storage_buffer_alignment = 256; /* TODO(fclem): But also unused. */
 
