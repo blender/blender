@@ -128,7 +128,7 @@ class AssetLibrary {
    */
   virtual std::optional<AssetLibraryReference> library_reference() const = 0;
 
-  void load_catalogs();
+  void load_or_reload_catalogs();
 
   AssetCatalogService &catalog_service() const;
 
