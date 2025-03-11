@@ -1190,6 +1190,17 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
   BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
   if (combined_result.get_count(SingleKeyingResult::SUCCESS) > 0) {
+    /* NOTE: this is NOT using ID_RECALC_ANIMATION on purpose, because that would be quite annoying
+     * in the following case:
+     *
+     * - Key Cube's loc/rot/scale.
+     * - Go to another frame.
+     * - Translate, rotate, and scale the cube.
+     * - Hover over the loc/rot/scale properties and one by one press 'I' to
+     *   insert a key there.
+     *
+     * If ID_RECALC_ANIMATION were used, keying the location would immediately cause a flush of the
+     * animation data, popping the rotation and scale back to their animated values. */
     DEG_id_tag_update(&dna_action->id, ID_RECALC_ANIMATION_NO_FLUSH);
 
     /* TODO: it's not entirely clear why the action we got wouldn't be the same
