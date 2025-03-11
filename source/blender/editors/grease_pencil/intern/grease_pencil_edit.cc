@@ -2023,7 +2023,7 @@ static Object *duplicate_grease_pencil_object(Main *bmain,
                                               Base *base_prev,
                                               const GreasePencil &grease_pencil_src)
 {
-  const eDupli_ID_Flags dupflag = eDupli_ID_Flags(U.dupflag & USER_DUP_ACT);
+  const eDupli_ID_Flags dupflag = eDupli_ID_Flags(U.dupflag & USER_DUP_GPENCIL);
   Base *base_new = object::add_duplicate(bmain, scene, view_layer, base_prev, dupflag);
   Object *object_dst = base_new->object;
   object_dst->mode = OB_MODE_OBJECT;
@@ -2148,7 +2148,7 @@ static bool grease_pencil_separate_layer(bContext &C,
   /* Create a new object for each layer. */
   for (const int layer_i : grease_pencil_src.layers().index_range()) {
     Layer &layer_src = grease_pencil_src.layer(layer_i);
-    if (layer_src.is_selected() || layer_src.is_locked()) {
+    if (layer_src.is_locked()) {
       continue;
     }
 
