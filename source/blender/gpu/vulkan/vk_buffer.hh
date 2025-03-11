@@ -47,6 +47,7 @@ class VKBuffer : public NonCopyable {
               VmaAllocationCreateFlags vma_allocation_flags);
   void clear(VKContext &context, uint32_t clear_value);
   void update_immediately(const void *data) const;
+  void update_sub_immediately(size_t start_offset, size_t data_size, const void *data) const;
 
   /**
    * Update the buffer as part of the render graph evaluation. The ownership of data will be

@@ -45,8 +45,14 @@ class VKStagingBuffer {
    */
   VKBuffer host_buffer_;
 
+  VkDeviceSize device_buffer_offset_;
+  VkDeviceSize region_size_;
+
  public:
-  VKStagingBuffer(const VKBuffer &device_buffer, Direction direction);
+  VKStagingBuffer(const VKBuffer &device_buffer,
+                  Direction direction,
+                  VkDeviceSize device_buffer_offset = 0,
+                  VkDeviceSize region_size = UINT64_MAX);
 
   /**
    * Copy the content of the host buffer to the device buffer.
