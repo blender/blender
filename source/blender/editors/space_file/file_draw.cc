@@ -337,12 +337,10 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/, uiTooltipData &tip, 
   }
 }
 
-static std::string file_draw_asset_tooltip_func(bContext * /*C*/,
-                                                void *argN,
-                                                const blender::StringRef /*tip*/)
+static void file_draw_asset_tooltip_custom_func(bContext & /*C*/, uiTooltipData &tip, void *argN)
 {
   const auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(argN);
-  return blender::ed::asset::asset_tooltip(*asset);
+  blender::ed::asset::asset_tooltip(*asset, tip);
 }
 
 static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
@@ -408,7 +406,7 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
       block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, std::nullopt);
   UI_but_label_alpha_factor_set(but, dimmed ? 0.3f : 1.0f);
   if (file->asset) {
-    UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
+    UI_but_func_tooltip_custom_set(but, file_draw_asset_tooltip_custom_func, file->asset, nullptr);
   }
   else {
     UI_but_func_tooltip_custom_set(
@@ -584,7 +582,7 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
   file_but_enable_drag(but, sfile, file, path, drag_image, file_type_icon, scale);
 
   if (file->asset) {
-    UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
+    UI_but_func_tooltip_custom_set(but, file_draw_asset_tooltip_custom_func, file->asset, nullptr);
   }
   else {
     UI_but_func_tooltip_custom_set(

@@ -14,30 +14,47 @@
 #include "BKE_preferences.h"
 #include "BKE_preview_image.hh"
 
+#include "BLI_path_utils.hh"
+
+#include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 
 #include "DNA_userdef_types.h"
 #include "ED_asset.hh"
 #include "RNA_access.hh"
-#include "UI_resources.hh"
 
 namespace blender::ed::asset {
 
-std::string asset_tooltip(const asset_system::AssetRepresentation &asset, const bool include_name)
+void asset_tooltip(const asset_system::AssetRepresentation &asset,
+                   uiTooltipData &tip,
+                   const bool include_name)
 {
-  std::string complete_string;
-
   if (include_name) {
-    complete_string += asset.get_name();
+    UI_tooltip_text_field_add(tip, asset.get_name(), {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_MAIN);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
   }
 
   const AssetMetaData &meta_data = asset.get_metadata();
   if (meta_data.description) {
-    complete_string += '\n';
-    complete_string += meta_data.description;
+    UI_tooltip_text_field_add(tip, meta_data.description, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_MAIN);
   }
-  return complete_string;
+
+  if (asset.owner_asset_library().library_type() == ASSET_LIBRARY_CUSTOM) {
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
+
+    const std::string full_blend_path = asset.full_library_path();
+
+    char dir[FILE_MAX], file[FILE_MAX];
+    BLI_path_split_dir_file(full_blend_path.c_str(), dir, sizeof(dir), file, sizeof(file));
+
+    if (file[0]) {
+      UI_tooltip_text_field_add(tip, file, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_MAIN);
+    }
+    if (dir[0]) {
+      UI_tooltip_text_field_add(tip, dir, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_MAIN);
+    }
+  }
 }
 
 BIFIconID asset_preview_icon_id(const asset_system::AssetRepresentation &asset)

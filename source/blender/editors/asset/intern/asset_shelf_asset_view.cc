@@ -242,12 +242,12 @@ void AssetViewItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) co
   UI_but_view_item_draw_size_set(
       item_but, style.tile_width + 2 * U.pixelsize, style.tile_height + 2 * U.pixelsize);
 
-  UI_but_func_tooltip_set(
+  UI_but_func_tooltip_custom_set(
       item_but,
-      [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
+      [](bContext & /*C*/, uiTooltipData &tip, void *argN) {
         const asset_system::AssetRepresentation *asset =
             static_cast<const asset_system::AssetRepresentation *>(argN);
-        return asset_tooltip(*asset, /*include_name=*/false);
+        asset_tooltip(*asset, tip);
       },
       (&asset_),
       nullptr);
