@@ -741,10 +741,12 @@ static int quadriflow_break_job(void *customdata)
   /* this is not nice yet, need to make the jobs list template better
    * for identifying/acting upon various different jobs */
   /* but for now we'll reuse the render break... */
-  bool should_break = (G.is_break);
-
-  if (should_break) {
-    qj->success = -1;
+  bool should_break = false;
+  if (qj->is_nonblocking_job) {
+    bool should_break = (G.is_break);
+    if (should_break) {
+      qj->success = -1;
+    }
   }
 
   return should_break;
