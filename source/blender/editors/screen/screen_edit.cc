@@ -27,6 +27,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
@@ -368,7 +369,8 @@ static void screen_verts_valign(const wmWindow *win,
 }
 
 /* Test if two adjoining areas can be aligned by having their screen edges adjusted. */
-static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, eScreenDir dir)
+static bool screen_areas_can_align(
+    ReportList *reports, bScreen *screen, ScrArea *sa1, ScrArea *sa2, eScreenDir dir)
 {
   if (dir == SCREEN_DIR_NONE) {
     return false;
@@ -395,7 +397,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
       if (area->v3->vec.x - area->v1->vec.x < tolerance &&
           (area->v1->vec.x == xmin || area->v3->vec.x == xmax))
       {
-        WM_global_report(RPT_ERROR, "A narrow vertical area interferes with this operation");
+        BKE_report(reports, RPT_ERROR, "A narrow vertical area interferes with this operation");
         return false;
       }
     }
@@ -410,7 +412,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
       if (area->v3->vec.y - area->v1->vec.y < tolerance &&
           (area->v1->vec.y == ymin || area->v3->vec.y == ymax))
       {
-        WM_global_report(RPT_ERROR, "A narrow horizontal area interferes with this operation");
+        BKE_report(reports, RPT_ERROR, "A narrow horizontal area interferes with this operation");
         return false;
       }
     }
@@ -421,10 +423,14 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
 
 /* Adjust all screen edges to allow joining two areas. 'dir' value is like area_getorientation().
  */
-static bool screen_areas_align(
-    bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2, const eScreenDir dir)
+static bool screen_areas_align(bContext *C,
+                               ReportList *reports,
+                               bScreen *screen,
+                               ScrArea *sa1,
+                               ScrArea *sa2,
+                               const eScreenDir dir)
 {
-  if (!screen_areas_can_align(screen, sa1, sa2, dir)) {
+  if (!screen_areas_can_align(reports, screen, sa1, sa2, dir)) {
     return false;
   }
 
@@ -461,12 +467,13 @@ static bool screen_areas_align(
 }
 
 /* Simple join of two areas without any splitting. Will return false if not possible. */
-static bool screen_area_join_aligned(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
+static bool screen_area_join_aligned(
+    bContext *C, ReportList *reports, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
 {
   const eScreenDir dir = area_getorientation(sa1, sa2);
 
   /* Ensure that the area edges are exactly aligned. */
-  if (!screen_areas_align(C, screen, sa1, sa2, dir)) {
+  if (!screen_areas_align(C, reports, screen, sa1, sa2, dir)) {
     return false;
   }
 
@@ -530,8 +537,12 @@ static ScrArea *screen_area_trim(
 }
 
 /* Join any two neighboring areas. Might create new areas, kept if over min_remainder. */
-static bool screen_area_join_ex(
-    bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2, bool close_all_remainders)
+static bool screen_area_join_ex(bContext *C,
+                                ReportList *reports,
+                                bScreen *screen,
+                                ScrArea *sa1,
+                                ScrArea *sa2,
+                                bool close_all_remainders)
 {
   const eScreenDir dir = area_getorientation(sa1, sa2);
   if (dir == SCREEN_DIR_NONE) {
@@ -549,12 +560,12 @@ static bool screen_area_join_ex(
   ScrArea *side2 = screen_area_trim(C, screen, (offset2 > 0) ? &sa1 : &sa2, offset2, dir, true);
 
   /* The two areas now line up, so join them. */
-  screen_area_join_aligned(C, screen, sa1, sa2);
+  screen_area_join_aligned(C, reports, screen, sa1, sa2);
 
   if (close_all_remainders || offset1 < 0 || offset2 > 0) {
     /* Close both if trimming `sa1`. */
-    screen_area_close(C, screen, side1);
-    screen_area_close(C, screen, side2);
+    screen_area_close(C, reports, screen, side1);
+    screen_area_close(C, reports, screen, side2);
   }
   else {
     /* Force full rebuild. #130732 */
@@ -572,12 +583,12 @@ static bool screen_area_join_ex(
   return true;
 }
 
-int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
+int screen_area_join(bContext *C, ReportList *reports, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
 {
-  return screen_area_join_ex(C, screen, sa1, sa2, false);
+  return screen_area_join_ex(C, reports, screen, sa1, sa2, false);
 }
 
-bool screen_area_close(bContext *C, bScreen *screen, ScrArea *area)
+bool screen_area_close(bContext *C, ReportList *reports, bScreen *screen, ScrArea *area)
 {
   if (area == nullptr) {
     return false;
@@ -606,7 +617,7 @@ bool screen_area_close(bContext *C, bScreen *screen, ScrArea *area)
   }
 
   /* Join from neighbor into this area to close it. */
-  return screen_area_join_ex(C, screen, sa2, area, true);
+  return screen_area_join_ex(C, reports, screen, sa2, area, true);
 }
 
 void screen_area_spacelink_add(const Scene *scene, ScrArea *area, eSpace_Type space_type)

@@ -12,6 +12,7 @@
 
 struct ARegion;
 struct AZone;
+struct ReportList;
 struct bContext;
 struct bContextDataResult;
 struct bScreen;
@@ -128,7 +129,8 @@ ScrArea *area_split(const wmWindow *win,
 /**
  * Join any two neighboring areas. Might involve complex changes.
  */
-int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2);
+int screen_area_join(
+    bContext *C, ReportList *reports, bScreen *screen, ScrArea *sa1, ScrArea *sa2);
 /**
  * with `sa_a` as center, `sa_b` is located at: 0=W, 1=N, 2=E, 3=S
  * -1 = not valid check.
@@ -142,7 +144,7 @@ void area_getoffsets(ScrArea *sa_a, ScrArea *sa_b, eScreenDir dir, int *r_offset
 /**
  * Close a screen area, allowing most-aligned neighbor to take its place.
  */
-bool screen_area_close(bContext *C, bScreen *screen, ScrArea *area);
+bool screen_area_close(bContext *C, ReportList *reports, bScreen *screen, ScrArea *area);
 void screen_area_spacelink_add(const Scene *scene, ScrArea *area, eSpace_Type space_type);
 AZone *ED_area_actionzone_find_xy(ScrArea *area, const int xy[2]);
 

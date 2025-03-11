@@ -1566,7 +1566,7 @@ static int area_close_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!screen_area_close(C, screen, area)) {
+  if (!screen_area_close(C, op->reports, screen, area)) {
     BKE_report(op->reports, RPT_ERROR, "Unable to close area");
     return OPERATOR_CANCELLED;
   }
@@ -2562,7 +2562,7 @@ static void area_split_cancel(bContext *C, wmOperator *op)
     /* pass */
   }
   else {
-    if (screen_area_join(C, CTX_wm_screen(C), sd->sarea, sd->narea)) {
+    if (screen_area_join(C, op->reports, CTX_wm_screen(C), sd->sarea, sd->narea)) {
       if (CTX_wm_area(C) == sd->narea) {
         CTX_wm_area_set(C, nullptr);
         CTX_wm_region_set(C, nullptr);
@@ -3713,7 +3713,7 @@ static bool area_join_apply(bContext *C, wmOperator *op)
 
   bScreen *screen = CTX_wm_screen(C);
 
-  if (!screen_area_join(C, screen, jd->sa1, jd->sa2)) {
+  if (!screen_area_join(C, op->reports, screen, jd->sa1, jd->sa2)) {
     return false;
   }
   if (CTX_wm_area(C) == jd->sa2) {
@@ -3865,7 +3865,8 @@ void static area_docking_apply(bContext *C, wmOperator *op)
     return;
   }
 
-  if (!aligned_neighbors || !screen_area_join(C, CTX_wm_screen(C), jd->sa1, jd->sa2)) {
+  if (!aligned_neighbors || !screen_area_join(C, op->reports, CTX_wm_screen(C), jd->sa1, jd->sa2))
+  {
     ED_area_swapspace(C, jd->sa2, jd->sa1);
     if (BLI_listbase_is_single(&WM_window_get_active_screen(jd->win1)->areabase) &&
         BLI_listbase_is_empty(&jd->win1->global_areas.areabase))
@@ -3873,7 +3874,7 @@ void static area_docking_apply(bContext *C, wmOperator *op)
       jd->close_win = true;
     }
     else {
-      screen_area_close(C, CTX_wm_screen(C), jd->sa1);
+      screen_area_close(C, op->reports, CTX_wm_screen(C), jd->sa1);
     }
   }
 
@@ -4283,7 +4284,8 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
             /* We have to clear handlers or we get an error in wm_gizmomap_modal_get. */
             WM_event_modal_handler_region_replace(jd->win1, CTX_wm_region(C), nullptr);
             area_dupli_open(C, jd->sa1, blender::int2(event->xy[0], event->xy[1] - jd->sa1->winy));
-            if (!screen_area_close(C, WM_window_get_active_screen(jd->win1), jd->sa1)) {
+            if (!screen_area_close(C, op->reports, WM_window_get_active_screen(jd->win1), jd->sa1))
+            {
               if (BLI_listbase_is_single(&WM_window_get_active_screen(jd->win1)->areabase) &&
                   BLI_listbase_is_empty(&jd->win1->global_areas.areabase))
               {
