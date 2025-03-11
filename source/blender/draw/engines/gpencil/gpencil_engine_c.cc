@@ -891,6 +891,8 @@ void GPENCIL_draw_scene(void *ved)
     return;
   }
 
+  DRW_submission_start();
+
   GPENCIL_antialiasing_init(&inst);
 
   inst.acquire_resources();
@@ -923,6 +925,8 @@ void GPENCIL_draw_scene(void *ved)
   inst.gp_layer_pool = nullptr;
 
   inst.release_resources();
+
+  DRW_submission_end();
 }
 
 static void GPENCIL_engine_free()

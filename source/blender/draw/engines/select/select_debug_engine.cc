@@ -71,7 +71,6 @@ static void select_debug_draw_scene(void * /*vedata*/)
   if (texture_u32 == nullptr) {
     return;
   }
-
   using namespace blender::draw;
 
   PassSimple pass = {"SelectEngineDebug"};
@@ -82,7 +81,9 @@ static void select_debug_draw_scene(void * /*vedata*/)
   pass.bind_texture("image", texture_u32);
   pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
+  DRW_submission_start();
   DRW_manager_get()->submit(pass);
+  DRW_submission_end();
 }
 
 static void select_debug_engine_free()

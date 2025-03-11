@@ -65,8 +65,10 @@ static void IMAGE_cache_populate(void * /*vedata*/, blender::draw::ObjectRef & /
 static void IMAGE_draw_scene(void *vedata)
 {
   IMAGE_Data *ved = reinterpret_cast<IMAGE_Data *>(vedata);
+  DRW_submission_start();
   ved->instance->draw_viewport();
   ved->instance->draw_finish();
+  DRW_submission_end();
 }
 
 static void IMAGE_engine_free()

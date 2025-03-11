@@ -126,6 +126,8 @@ void Manager::end_sync()
    * debug draw/print buffers for every frame. Not nice for performance. */
   // debug_bind();
 
+  DRW_submission_start();
+
   /* Dispatch compute to finalize the resources on GPU. Save a bit of CPU time. */
   uint thread_groups = divide_ceil_u(resource_len_, DRW_FINALIZE_GROUP_SIZE);
   GPUShader *shader = DRW_shader_draw_resource_finalize_get();
@@ -136,6 +138,8 @@ void Manager::end_sync()
   GPU_storagebuf_bind(infos_buf.current(), GPU_shader_get_ssbo_binding(shader, "infos_buf"));
   GPU_compute_dispatch(shader, thread_groups, 1, 1);
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+
+  DRW_submission_end();
 
   GPU_debug_group_end();
 }

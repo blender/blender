@@ -19,6 +19,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 
+#include "DRW_engine.hh"
 #include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 
@@ -264,6 +265,8 @@ void VelocityModule::geometry_steps_fill()
    * `tot_len * sizeof(float4)` is greater than max SSBO size. */
   geometry_steps[step_]->resize(max_ii(16, dst_ofs));
 
+  DRW_submission_start();
+
   PassSimple copy_ps("Velocity Copy Pass");
   copy_ps.init();
   copy_ps.state_set(DRW_STATE_NO_DRAW);
@@ -296,6 +299,8 @@ void VelocityModule::geometry_steps_fill()
 
   copy_ps.barrier(GPU_BARRIER_SHADER_STORAGE);
   inst_.manager->submit(copy_ps);
+
+  DRW_submission_end();
 
   /* Copy back the #VelocityGeometryIndex into #VelocityObjectData which are
    * indexed using persistent keys (unlike geometries which are indexed by volatile ID). */

@@ -185,12 +185,16 @@ static int attribute_index_in_material(GPUMaterial *gpu_material, const char *na
 
 void DRW_curves_update(draw::Manager &manager)
 {
+  DRW_submission_start();
+
   /* TODO(fclem): Remove Global access. */
   PassSimple &pass = drw_get().data->curves_module->refine;
 
   /* NOTE: This also update legacy hairs too as they populate the same pass. */
   manager.submit(pass);
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+
+  DRW_submission_end();
 }
 
 /* New Draw Manager. */

@@ -69,8 +69,10 @@ static void OVERLAY_next_cache_finish(void *vedata)
 
 static void OVERLAY_next_draw_scene(void *vedata)
 {
+  DRW_submission_start();
   reinterpret_cast<Instance *>(reinterpret_cast<OVERLAY_Data *>(vedata)->instance)
       ->draw(*DRW_manager_get());
+  DRW_submission_end();
 }
 
 static void OVERLAY_next_instance_free(void *instance_)

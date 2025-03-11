@@ -193,9 +193,6 @@ bool DRW_object_is_visible_psys_in_active_context(const Object *object,
 Object *DRW_object_get_dupli_parent(const Object *ob);
 DupliObject *DRW_object_get_dupli(const Object *ob);
 
-void DRW_draw_callbacks_pre_scene();
-void DRW_draw_callbacks_post_scene();
-
 /* Draw State. */
 
 /**

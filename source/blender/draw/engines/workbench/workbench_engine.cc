@@ -570,12 +570,15 @@ static void workbench_draw_scene(void *vedata)
   WORKBENCH_Data *ved = reinterpret_cast<WORKBENCH_Data *>(vedata);
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   draw::Manager *manager = DRW_manager_get();
+
+  DRW_submission_start();
   if (DRW_state_is_viewport_image_render()) {
     ved->instance->draw_image_render(*manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
   }
   else {
     ved->instance->draw_viewport(*manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
   }
+  DRW_submission_end();
 }
 
 static void workbench_instance_free(void *instance)
@@ -756,8 +759,12 @@ static void workbench_render_to_image(void *vedata,
   /* TODO: Remove old draw manager calls. */
   DRW_curves_update(manager);
 
+  DRW_submission_start();
+
   DefaultTextureList &dtxl = *DRW_viewport_texture_list_get();
   ved->instance->draw_image_render(manager, dtxl.depth, dtxl.depth_in_front, dtxl.color, engine);
+
+  DRW_submission_end();
 
   /* Write image */
   const char *viewname = RE_GetActiveRenderView(engine->re);

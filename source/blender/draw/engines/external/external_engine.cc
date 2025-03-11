@@ -228,7 +228,9 @@ static void external_draw_scene(void *vedata)
     GPU_framebuffer_bind(dfbl->default_fb);
     GPU_framebuffer_clear_color(dfbl->default_fb, clear_col);
 
+    DRW_submission_start();
     external_draw_scene_do(vedata);
+    DRW_submission_end();
   }
 }
 
