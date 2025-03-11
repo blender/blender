@@ -1523,7 +1523,7 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
   }
   std::unique_ptr<uiTooltipData> data = nullptr;
 
-  if (but->tip_custom_func) {
+  if (!is_label && but->tip_custom_func) {
     data = ui_tooltip_data_from_custom_func(C, but);
   }
 
