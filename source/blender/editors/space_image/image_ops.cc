@@ -45,6 +45,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_mask.h"
 #include "BKE_packedFile.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -970,6 +971,8 @@ static int image_view_selected_exec(bContext *C, wmOperator * /*op*/)
     if (!ED_mask_selected_minmax(C, min, max, false)) {
       return OPERATOR_CANCELLED;
     }
+    BKE_mask_coord_to_image(sima->image, &sima->iuser, min, min);
+    BKE_mask_coord_to_image(sima->image, &sima->iuser, max, max);
   }
   rctf bounds{};
   bounds.xmin = min[0];
