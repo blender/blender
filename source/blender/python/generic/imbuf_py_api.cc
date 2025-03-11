@@ -493,7 +493,7 @@ static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
   }
 
   /* TODO: make options. */
-  const uchar planes = 4;
+  const uchar planes = 32;
   const uint flags = IB_byte_data;
 
   ImBuf *ibuf = IMB_allocImBuf(UNPACK2(size), planes, flags);
