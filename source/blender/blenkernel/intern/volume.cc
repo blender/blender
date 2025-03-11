@@ -420,12 +420,12 @@ bool BKE_volume_is_loaded(const Volume *volume)
 #endif
 }
 
-bool BKE_volume_set_velocity_grid_by_name(Volume *volume, const char *base_name)
+bool BKE_volume_set_velocity_grid_by_name(Volume *volume, const StringRef ref_base_name)
 {
-  const StringRefNull ref_base_name = base_name;
+  const std::string base_name = ref_base_name;
 
   if (BKE_volume_grid_find(volume, base_name)) {
-    STRNCPY(volume->velocity_grid, base_name);
+    STRNCPY(volume->velocity_grid, base_name.c_str());
     volume->runtime->velocity_x_grid[0] = '\0';
     volume->runtime->velocity_y_grid[0] = '\0';
     volume->runtime->velocity_z_grid[0] = '\0';
@@ -439,7 +439,7 @@ bool BKE_volume_set_velocity_grid_by_name(Volume *volume, const char *base_name)
     bool found = true;
     for (int i = 0; i < 3; i++) {
       std::string post_fixed_name = ref_base_name + postfix[i];
-      if (!BKE_volume_grid_find(volume, post_fixed_name.c_str())) {
+      if (!BKE_volume_grid_find(volume, post_fixed_name)) {
         found = false;
         break;
       }
@@ -450,7 +450,7 @@ bool BKE_volume_set_velocity_grid_by_name(Volume *volume, const char *base_name)
     }
 
     /* Save the base name as well. */
-    STRNCPY(volume->velocity_grid, base_name);
+    STRNCPY(volume->velocity_grid, base_name.c_str());
     STRNCPY(volume->runtime->velocity_x_grid, (ref_base_name + postfix[0]).c_str());
     STRNCPY(volume->runtime->velocity_y_grid, (ref_base_name + postfix[1]).c_str());
     STRNCPY(volume->runtime->velocity_z_grid, (ref_base_name + postfix[2]).c_str());
@@ -909,7 +909,8 @@ const blender::bke::VolumeGridData *BKE_volume_grid_active_get_for_read(const Vo
   return BKE_volume_grid_get(volume, index);
 }
 
-const blender::bke::VolumeGridData *BKE_volume_grid_find(const Volume *volume, const char *name)
+const blender::bke::VolumeGridData *BKE_volume_grid_find(const Volume *volume,
+                                                         const StringRef name)
 {
   int num_grids = BKE_volume_num_grids(volume);
   for (int i = 0; i < num_grids; i++) {
@@ -922,7 +923,7 @@ const blender::bke::VolumeGridData *BKE_volume_grid_find(const Volume *volume, c
   return nullptr;
 }
 
-blender::bke::VolumeGridData *BKE_volume_grid_find_for_write(Volume *volume, const char *name)
+blender::bke::VolumeGridData *BKE_volume_grid_find_for_write(Volume *volume, const StringRef name)
 {
   int num_grids = BKE_volume_num_grids(volume);
   for (int i = 0; i < num_grids; i++) {
@@ -978,7 +979,7 @@ blender::bke::VolumeGridData *BKE_volume_grid_add_vdb(Volume &volume,
                                                       openvdb::GridBase::Ptr vdb_grid)
 {
   VolumeGridVector &grids = *volume.runtime->grids;
-  BLI_assert(BKE_volume_grid_find(&volume, name.data()) == nullptr);
+  BLI_assert(BKE_volume_grid_find(&volume, name) == nullptr);
   BLI_assert(blender::bke::volume_grid::get_type(*vdb_grid) != VOLUME_GRID_UNKNOWN);
 
   vdb_grid->setName(name);

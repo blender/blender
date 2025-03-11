@@ -59,7 +59,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       eNodeSocketDatatype(node.custom1));
 
   if (Volume *volume = geometry_set.get_volume_for_write()) {
-    if (const bke::VolumeGridData *grid = BKE_volume_grid_find(volume, grid_name.c_str())) {
+    if (const bke::VolumeGridData *grid = BKE_volume_grid_find(volume, grid_name)) {
       /* Increment user count before removing from volume. */
       grid->add_user();
       if (remove_grid) {

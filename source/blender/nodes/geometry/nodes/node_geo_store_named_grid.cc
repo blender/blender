@@ -87,7 +87,7 @@ static void try_store_grid(GeoNodeExecParams params, Volume &volume)
     return;
   }
 
-  if (const bke::VolumeGridData *existing_grid = BKE_volume_grid_find(&volume, grid_name.data())) {
+  if (const bke::VolumeGridData *existing_grid = BKE_volume_grid_find(&volume, grid_name)) {
     BKE_volume_grid_remove(&volume, existing_grid);
   }
   grid.get_for_write().set_name(grid_name);
