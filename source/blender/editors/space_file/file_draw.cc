@@ -874,7 +874,8 @@ static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
   if (!STREQ(orgname, newname)) {
     errno = 0;
     if ((BLI_rename(orgname, newname) != 0) || !BLI_exists(newname)) {
-      WM_reportf(RPT_ERROR, "Could not rename: %s", errno ? strerror(errno) : "unknown error");
+      WM_global_reportf(
+          RPT_ERROR, "Could not rename: %s", errno ? strerror(errno) : "unknown error");
       WM_report_banner_show(wm, win);
       /* Renaming failed, reset the name for further renaming handling. */
       STRNCPY(params->renamefile, oldname);

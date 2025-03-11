@@ -716,8 +716,30 @@ void WM_report_banners_cancel(Main *bmain);
  * #G_MAIN will be used.
  */
 void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports);
-void WM_report(eReportType type, const char *message);
-void WM_reportf(eReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
+
+/**
+ * Report directly to the window manager without any context.
+ *
+ * \warning This function should almost always be avoided in favor of #BKE_report,
+ * if this isn't possible, a code-comment must be included explaining why.
+ *
+ * Global reports are bad practice because the caller can't handle or suppress them.
+ * This means for example, if an automated tasks/scripts can generate many reports
+ * that are shown to the user without any way to control error handling.
+ *
+ * When used in operators it prevents the Python script from raising an exception
+ * form the error as it should do, showing a popup instead.
+ */
+void WM_global_report(eReportType type, const char *message);
+/**
+ * Report directly to the window manager without any context.
+ *
+ * \warning This function should almost always be avoided in favor of #BKE_reportf,
+ * if this isn't possible, a code-comment must be included explaining why.
+ *
+ * See #WM_global_report for details.
+ */
+void WM_global_reportf(eReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
 
 wmEvent *wm_event_add_ex(wmWindow *win,
                          const wmEvent *event_to_add,

@@ -1053,7 +1053,7 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
                        surface_bvh_eval.raycast_callback,
                        &surface_bvh_eval);
   if (ray_hit.index == -1) {
-    WM_report(RPT_ERROR, "Cursor must be over the surface mesh");
+    WM_global_report(RPT_ERROR, "Cursor must be over the surface mesh");
     return OPERATOR_CANCELLED;
   }
 

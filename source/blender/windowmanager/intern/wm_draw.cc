@@ -727,7 +727,7 @@ static void wm_draw_region_buffer_create(Scene *scene,
                                                      GPU_TEXTURE_USAGE_SHADER_READ,
                                                      nullptr);
       if (!offscreen) {
-        WM_report(RPT_ERROR, "Region could not be drawn!");
+        WM_global_report(RPT_ERROR, "Region could not be drawn!");
         return;
       }
 

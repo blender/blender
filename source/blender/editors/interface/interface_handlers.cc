@@ -2612,7 +2612,7 @@ static void ui_but_paste_numeric_array(bContext *C,
     ui_but_set_float_array(C, but, data, values.data(), values_len);
   }
   else {
-    WM_report(RPT_ERROR, "Expected an array of numbers: [n, n, ...]");
+    WM_global_report(RPT_ERROR, "Expected an array of numbers: [n, n, ...]");
   }
 }
 
@@ -2637,7 +2637,7 @@ static void ui_but_paste_numeric_value(bContext *C,
     button_activate_state(C, but, BUTTON_STATE_EXIT);
   }
   else {
-    WM_report(RPT_ERROR, "Expected a number");
+    WM_global_report(RPT_ERROR, "Expected a number");
   }
 }
 
@@ -2655,7 +2655,7 @@ static void ui_but_paste_normalized_vector(bContext *C,
     ui_but_set_float_array(C, but, data, xyz, 3);
   }
   else {
-    WM_report(RPT_ERROR, "Paste expected 3 numbers, formatted: '[n, n, n]'");
+    WM_global_report(RPT_ERROR, "Paste expected 3 numbers, formatted: '[n, n, n]'");
   }
 }
 
@@ -2696,7 +2696,7 @@ static void ui_but_paste_color(bContext *C, uiBut *but, char *buf_paste)
     }
   }
   else {
-    WM_report(RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
+    WM_global_report(RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
   }
 }
 
@@ -3667,7 +3667,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
           /* ensure menu (popup) too is closed! */
           data->escapecancel = true;
 
-          WM_reportf(RPT_ERROR, "Failed to find '%s'", but->editstr);
+          WM_global_reportf(RPT_ERROR, "Failed to find '%s'", but->editstr);
           WM_report_banner_show(CTX_wm_manager(C), win);
         }
       }
@@ -4752,11 +4752,11 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
       return WM_UI_HANDLER_CONTINUE;
     }
     if (event->type == EVT_UNKNOWNKEY) {
-      WM_report(RPT_WARNING, "Unsupported key: Unknown");
+      WM_global_report(RPT_WARNING, "Unsupported key: Unknown");
       return WM_UI_HANDLER_CONTINUE;
     }
     if (event->type == EVT_CAPSLOCKKEY) {
-      WM_report(RPT_WARNING, "Unsupported key: CapsLock");
+      WM_global_report(RPT_WARNING, "Unsupported key: CapsLock");
       return WM_UI_HANDLER_CONTINUE;
     }
 
@@ -8678,8 +8678,8 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
        * No warnings should show for editing driver expressions though!
        */
       if (state != BUTTON_STATE_TEXT_EDITING) {
-        WM_report(RPT_INFO,
-                  "Can't edit driven number value, see driver editor for the driver setup");
+        WM_global_report(RPT_INFO,
+                         "Can't edit driven number value, see driver editor for the driver setup");
       }
     }
 

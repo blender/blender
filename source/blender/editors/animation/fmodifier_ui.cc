@@ -106,7 +106,7 @@ static void fmodifier_reorder(bContext *C, Panel *panel, int new_index)
 
   /* Cycles modifier has to be the first, so make sure it's kept that way. */
   if (fmi->requires_flag & FMI_REQUIRES_ORIGINAL_DATA) {
-    WM_report(RPT_ERROR, "Modifier requires original data");
+    WM_global_report(RPT_ERROR, "Modifier requires original data");
     return;
   }
 
@@ -116,7 +116,7 @@ static void fmodifier_reorder(bContext *C, Panel *panel, int new_index)
   FModifier *fcm_first = static_cast<FModifier *>(modifiers->first);
   const FModifierTypeInfo *fmi_first = get_fmodifier_typeinfo(fcm_first->type);
   if (fmi_first->requires_flag & FMI_REQUIRES_ORIGINAL_DATA && new_index == 0) {
-    WM_report(RPT_ERROR, "Modifier requires original data");
+    WM_global_report(RPT_ERROR, "Modifier requires original data");
     return;
   }
 

@@ -381,7 +381,7 @@ static bool is_compositing_possible(const bContext *C)
    * texture, which we want to avoid due its cost. So we employ a heuristic that so far has worked
    * with all known GPU drivers. */
   if (size_t(width) * height > (size_t(max_texture_size) * max_texture_size) / 4) {
-    WM_report(RPT_ERROR, "Render size too large for GPU, use CPU compositor instead");
+    WM_global_report(RPT_ERROR, "Render size too large for GPU, use CPU compositor instead");
     return false;
   }
 

@@ -333,7 +333,7 @@ static void rna_ActionSlot_name_display_set(PointerRNA *ptr, const char *name)
   const StringRef name_ref(name);
 
   if (name_ref.is_empty()) {
-    WM_report(RPT_ERROR, "Action slot display names cannot be empty");
+    WM_global_report(RPT_ERROR, "Action slot display names cannot be empty");
     return;
   }
 
@@ -347,7 +347,7 @@ static void rna_ActionSlot_identifier_set(PointerRNA *ptr, const char *identifie
   const StringRef identifier_ref(identifier);
 
   if (identifier_ref.size() < animrig::Slot::identifier_length_min) {
-    WM_report(RPT_ERROR, "Action slot identifiers should be at least three characters");
+    WM_global_report(RPT_ERROR, "Action slot identifiers should be at least three characters");
     return;
   }
 
@@ -358,12 +358,13 @@ static void rna_ActionSlot_identifier_set(PointerRNA *ptr, const char *identifie
                                                      identifier_ref.substr(2);
 
   if (identifier_with_correct_prefix != identifier_ref) {
-    WM_reportf(RPT_WARNING,
-               "Attempted to set slot identifier to \"%s\", but the type prefix doesn't match the "
-               "slot's 'target_id_type' \"%s\". Setting to \"%s\" instead.\n",
-               identifier,
-               slot.idtype_string().c_str(),
-               identifier_with_correct_prefix.c_str());
+    WM_global_reportf(
+        RPT_WARNING,
+        "Attempted to set slot identifier to \"%s\", but the type prefix doesn't match the "
+        "slot's 'target_id_type' \"%s\". Setting to \"%s\" instead.\n",
+        identifier,
+        slot.idtype_string().c_str(),
+        identifier_with_correct_prefix.c_str());
   }
 
   action.slot_identifier_define(slot, identifier_with_correct_prefix);

@@ -95,7 +95,7 @@ static void rna_Volume_velocity_grid_set(PointerRNA *ptr, const char *value)
 {
   Volume *volume = (Volume *)ptr->data;
   if (!BKE_volume_set_velocity_grid_by_name(volume, value)) {
-    WM_reportf(RPT_ERROR, "Could not find grid with name %s", value);
+    WM_global_reportf(RPT_ERROR, "Could not find grid with name %s", value);
   }
   WM_main_add_notifier(NC_GEOM | ND_DATA, volume);
 }

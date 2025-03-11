@@ -355,7 +355,8 @@ static int lineart_bake_common(bContext *C,
   if (!bake_all_targets) {
     Object *ob = CTX_data_active_object(C);
     if (!ob || ob->type != OB_GREASE_PENCIL) {
-      WM_report(RPT_ERROR, "No active object, or active object isn't a Grease Pencil object");
+      WM_global_report(RPT_ERROR,
+                       "No active object, or active object isn't a Grease Pencil object");
       return OPERATOR_CANCELLED;
     }
     bj->objects.append(ob);

@@ -199,7 +199,7 @@ static int cachefile_layer_add_exec(bContext *C, wmOperator *op)
   CacheFileLayer *layer = BKE_cachefile_add_layer(cache_file, filepath);
 
   if (layer == nullptr) {
-    WM_report(RPT_ERROR, "Could not add a layer to the cache file");
+    WM_global_report(RPT_ERROR, "Could not add a layer to the cache file");
     return OPERATOR_CANCELLED;
   }
 

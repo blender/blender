@@ -965,13 +965,13 @@ static PoseBackup *action_preview_render_prepare(IconPreview *preview)
 {
   Object *object = preview->active_object;
   if (object == nullptr) {
-    WM_report(RPT_WARNING, "No active object, unable to apply the Action before rendering");
+    WM_global_report(RPT_WARNING, "No active object, unable to apply the Action before rendering");
     return nullptr;
   }
   if (object->pose == nullptr) {
-    WM_reportf(RPT_WARNING,
-               "Object %s has no pose, unable to apply the Action before rendering",
-               object->id.name + 2);
+    WM_global_reportf(RPT_WARNING,
+                      "Object %s has no pose, unable to apply the Action before rendering",
+                      object->id.name + 2);
     return nullptr;
   }
 
@@ -979,7 +979,7 @@ static PoseBackup *action_preview_render_prepare(IconPreview *preview)
   blender::animrig::Action &pose_action = reinterpret_cast<bAction *>(preview->id)->wrap();
 
   if (pose_action.slot_array_num == 0) {
-    WM_report(RPT_WARNING, "Action has no data, cannot render preview");
+    WM_global_report(RPT_WARNING, "Action has no data, cannot render preview");
     return nullptr;
   }
 

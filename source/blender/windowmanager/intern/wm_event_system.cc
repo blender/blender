@@ -1017,8 +1017,9 @@ void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports)
   WM_report_banner_show(wm, nullptr);
 }
 
-void WM_report(eReportType type, const char *message)
+void WM_global_report(eReportType type, const char *message)
 {
+  /* WARNING: in most cases #BKE_report should be used instead, see doc-string for details. */
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE | RPT_PRINT);
   BKE_report_print_level_set(&reports, RPT_WARNING);
@@ -1029,8 +1030,10 @@ void WM_report(eReportType type, const char *message)
   BKE_reports_free(&reports);
 }
 
-void WM_reportf(eReportType type, const char *format, ...)
+void WM_global_reportf(eReportType type, const char *format, ...)
 {
+  /* WARNING: in most cases #BKE_reportf should be used instead, see doc-string for details. */
+
   va_list args;
 
   format = RPT_(format);
@@ -1039,7 +1042,7 @@ void WM_reportf(eReportType type, const char *format, ...)
   char *str = BLI_vsprintfN(format, args);
   va_end(args);
 
-  WM_report(type, str);
+  WM_global_report(type, str);
   MEM_freeN(str);
 }
 

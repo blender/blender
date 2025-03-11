@@ -924,18 +924,19 @@ static void quadriflow_end_job(void *customdata)
   switch (qj->success) {
     case 1:
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      WM_reportf(RPT_INFO, "QuadriFlow: Remeshing completed");
+      WM_global_reportf(RPT_INFO, "QuadriFlow: Remeshing completed");
       break;
     case 0:
-      WM_reportf(RPT_ERROR, "QuadriFlow: Remeshing failed");
+      WM_global_reportf(RPT_ERROR, "QuadriFlow: Remeshing failed");
       break;
     case -1:
-      WM_report(RPT_WARNING, "QuadriFlow: Remeshing canceled");
+      WM_global_report(RPT_WARNING, "QuadriFlow: Remeshing canceled");
       break;
     case -2:
-      WM_report(RPT_WARNING,
-                "QuadriFlow: The mesh needs to be manifold and have face normals that point in a "
-                "consistent direction");
+      WM_global_report(
+          RPT_WARNING,
+          "QuadriFlow: The mesh needs to be manifold and have face normals that point in a "
+          "consistent direction");
       break;
   }
 }

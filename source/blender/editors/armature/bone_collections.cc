@@ -227,7 +227,7 @@ static BoneCollection *get_bonecoll_named_or_active(bContext * /*C*/, wmOperator
 
   BoneCollection *bcoll = ANIM_armature_bonecoll_get_by_name(armature, bcoll_name);
   if (!bcoll) {
-    WM_reportf(RPT_ERROR, "No bone collection named '%s'", bcoll_name);
+    WM_global_reportf(RPT_ERROR, "No bone collection named '%s'", bcoll_name);
     return nullptr;
   }
 
@@ -415,7 +415,7 @@ static int bone_collection_assign_exec(bContext *C, wmOperator *op)
 
   bArmature *armature = static_cast<bArmature *>(ob->data);
   if (!ANIM_armature_bonecoll_is_editable(armature, bcoll)) {
-    WM_reportf(RPT_ERROR, "Cannot assign to linked bone collection %s", bcoll->name);
+    WM_global_reportf(RPT_ERROR, "Cannot assign to linked bone collection %s", bcoll->name);
     return OPERATOR_CANCELLED;
   }
 
@@ -431,15 +431,15 @@ static int bone_collection_assign_exec(bContext *C, wmOperator *op)
       &had_bones_to_assign);
 
   if (!mode_is_supported) {
-    WM_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
+    WM_global_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
     return OPERATOR_CANCELLED;
   }
   if (!had_bones_to_assign) {
-    WM_report(RPT_WARNING, "No bones selected, nothing to assign to bone collection");
+    WM_global_report(RPT_WARNING, "No bones selected, nothing to assign to bone collection");
     return OPERATOR_CANCELLED;
   }
   if (!made_any_changes) {
-    WM_report(RPT_WARNING, "All selected bones were already part of this collection");
+    WM_global_report(RPT_WARNING, "All selected bones were already part of this collection");
     return OPERATOR_CANCELLED;
   }
 
@@ -528,12 +528,12 @@ static int bone_collection_create_and_assign_exec(bContext *C, wmOperator *op)
       &had_bones_to_assign);
 
   if (!mode_is_supported) {
-    WM_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
+    WM_global_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
     ANIM_armature_bonecoll_remove(armature, bcoll);
     return OPERATOR_CANCELLED;
   }
   if (!had_bones_to_assign) {
-    WM_report(RPT_WARNING, "No bones selected, nothing to assign to bone collection");
+    WM_global_report(RPT_WARNING, "No bones selected, nothing to assign to bone collection");
     return OPERATOR_FINISHED;
   }
   /* Not checking for `made_any_changes`, as if there were any bones to assign, they never could
@@ -591,15 +591,15 @@ static int bone_collection_unassign_exec(bContext *C, wmOperator *op)
       &had_bones_to_unassign);
 
   if (!mode_is_supported) {
-    WM_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
+    WM_global_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
     return OPERATOR_CANCELLED;
   }
   if (!had_bones_to_unassign) {
-    WM_report(RPT_WARNING, "No bones selected, nothing to unassign from bone collection");
+    WM_global_report(RPT_WARNING, "No bones selected, nothing to unassign from bone collection");
     return OPERATOR_CANCELLED;
   }
   if (!made_any_changes) {
-    WM_report(RPT_WARNING, "None of the selected bones were assigned to this collection");
+    WM_global_report(RPT_WARNING, "None of the selected bones were assigned to this collection");
     return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;
@@ -643,7 +643,7 @@ static int bone_collection_unassign_named_exec(bContext *C, wmOperator *op)
   char bone_name[MAX_NAME];
   RNA_string_get(op->ptr, "bone_name", bone_name);
   if (!bone_name[0]) {
-    WM_report(RPT_ERROR, "Missing bone name");
+    WM_global_report(RPT_ERROR, "Missing bone name");
     return OPERATOR_CANCELLED;
   }
 
@@ -660,15 +660,15 @@ static int bone_collection_unassign_named_exec(bContext *C, wmOperator *op)
       &had_bones_to_unassign);
 
   if (!mode_is_supported) {
-    WM_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
+    WM_global_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
     return OPERATOR_CANCELLED;
   }
   if (!had_bones_to_unassign) {
-    WM_reportf(RPT_WARNING, "Could not find bone '%s'", bone_name);
+    WM_global_reportf(RPT_WARNING, "Could not find bone '%s'", bone_name);
     return OPERATOR_CANCELLED;
   }
   if (!made_any_changes) {
-    WM_reportf(
+    WM_global_reportf(
         RPT_WARNING, "Bone '%s' was not assigned to collection '%s'", bone_name, bcoll->name);
     return OPERATOR_CANCELLED;
   }
@@ -926,15 +926,15 @@ static int add_or_move_to_collection_exec(bContext *C,
                                                                       &had_bones_to_assign);
 
   if (!mode_is_supported) {
-    WM_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
+    WM_global_report(RPT_ERROR, "This operator only works in pose mode and armature edit mode");
     return OPERATOR_CANCELLED;
   }
   if (!had_bones_to_assign) {
-    WM_report(RPT_WARNING, "No bones selected, nothing to assign to bone collection");
+    WM_global_report(RPT_WARNING, "No bones selected, nothing to assign to bone collection");
     return OPERATOR_CANCELLED;
   }
   if (!made_any_changes) {
-    WM_report(RPT_WARNING, "All selected bones were already part of this collection");
+    WM_global_report(RPT_WARNING, "All selected bones were already part of this collection");
     return OPERATOR_CANCELLED;
   }
 

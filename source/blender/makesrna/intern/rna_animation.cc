@@ -295,13 +295,13 @@ void rna_generic_action_slot_handle_set(blender::animrig::slot_handle_t slot_han
       BLI_assert_unreachable();
       break;
     case ActionSlotAssignmentResult::SlotNotSuitable:
-      WM_reportf(RPT_ERROR,
-                 "This slot is not suitable for this data-block type (%c%c)",
-                 animated_id.name[0],
-                 animated_id.name[1]);
+      WM_global_reportf(RPT_ERROR,
+                        "This slot is not suitable for this data-block type (%c%c)",
+                        animated_id.name[0],
+                        animated_id.name[1]);
       break;
     case ActionSlotAssignmentResult::MissingAction:
-      WM_report(RPT_ERROR, "Cannot set slot without an assigned Action.");
+      WM_global_report(RPT_ERROR, "Cannot set slot without an assigned Action.");
       break;
   }
 }
