@@ -48,6 +48,24 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.4" date="2025-03-18">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Animation: The structure of Actions has changed, introducing the concept of Slots</li>
+                    <li>Brushes: A new brush type, the Plane brush, has been added</li>
+                    <li>Compositor: The CPU compositor was rewritten and should generally be faster</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Viewport: The overlays have been rewritten for better consistency and better extendability</li>
+                    <li>Modeling: Improved Vertex and Edge Dissolve</li>
+                    <li>UI: Improvements for Status Bar display, Tooltips and Window decoration</li>
+                    <li>Video Sequencer: Improvements for text strips, performance and 10 and 12 bit/channel video support</li>
+                    <li>Stability: More than 650 issues have been fixed that existed in Blender 4.3 or older</li>
+                </ul>
+            </description>
+        </release>
         <release version="4.3" date="2024-11-19">
             <description>
                 <p>New features:</p>
