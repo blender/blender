@@ -45,7 +45,7 @@ void VertexAverageOperation::on_stroke_extended(const bContext &C,
   const bool do_fill = do_vertex_color_fill(brush);
 
   /* Compute the average color under the brush. */
-  float3 average_color;
+  float3 average_color(0.0f);
   int color_count = 0;
   this->foreach_editable_drawing(C, [&](const GreasePencilStrokeParams &params) {
     IndexMaskMemory memory;
