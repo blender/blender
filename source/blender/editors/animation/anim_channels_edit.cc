@@ -3435,7 +3435,7 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator * /*op*/)
     ID *id = ale->id;
     AnimData *adt = static_cast<AnimData *>(ale->data);
 
-    bool action_empty = false;
+    bool action_empty;
     bool nla_empty = false;
     bool drivers_empty = false;
 
@@ -3445,12 +3445,17 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator * /*op*/)
     /* check if this is "empty" and can be deleted */
     /* (For now, there are only these 3 criteria) */
 
-    /* 1) Active Action is missing or empty */
-    if (ELEM(nullptr, adt->action, adt->action->curves.first)) {
-      action_empty = true;
+    /* 1) Assigned Action is empty, at least when it comes to this data-block. */
+    if (adt->action) {
+      using namespace blender::animrig;
+      const Action &action = adt->action->wrap();
+      /* This should not be using action.is_empty(), as this operator is not about cleaning up the
+       * Action itself, but rather disassociating it from the animated ID when that ID is not being
+       * animated by it. */
+      action_empty = fcurves_for_action_slot(action, adt->slot_handle).is_empty();
     }
     else {
-      /* TODO: check for keyframe + F-modifier data on these too. */
+      action_empty = true;
     }
 
     /* 2) No NLA Tracks and/or NLA Strips */
