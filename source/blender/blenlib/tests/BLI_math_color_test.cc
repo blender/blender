@@ -5,6 +5,7 @@
 #include "testing/testing.h"
 
 #include "BLI_math_color.h"
+#include "BLI_math_color_blend.h"
 
 TEST(math_color, RGBToHSVRoundtrip)
 {
@@ -137,4 +138,42 @@ TEST(math_color, srgb_to_linearrgb_v3_v3)
     EXPECT_NEAR(8.35472869873f, linear_color[1], kTolerance);
     EXPECT_NEAR(56.2383270264f, linear_color[2], kTolerance);
   }
+}
+
+TEST(math_color, BlendModeConsistency_SoftLight)
+{
+  float fdst[4];
+  float fcolora[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  float fcolorb[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  float fcolorc[4] = {1.0f, 1.0f, 1.0f, 0.5f};
+  float fcolord[4] = {0.5f, 0.5f, 0.5f, 0.5f};
+  uchar bdst[4];
+  uchar bcolora[4] = {0, 0, 0, 255};
+  uchar bcolorb[4] = {255, 255, 255, 255};
+  uchar bcolorc[4] = {255, 255, 255, 128};
+  uchar bcolord[4] = {128, 128, 128, 128};
+
+  blend_color_softlight_float(fdst, fcolora, fcolorb);
+  blend_color_softlight_byte(bdst, bcolora, bcolorb);
+  EXPECT_NEAR(fdst[0] * 255.0f, bdst[0], 1.0f);
+  EXPECT_NEAR(fdst[1] * 255.0f, bdst[1], 1.0f);
+  EXPECT_NEAR(fdst[2] * 255.0f, bdst[2], 1.0f);
+
+  blend_color_softlight_float(fdst, fcolorb, fcolora);
+  blend_color_softlight_byte(bdst, bcolorb, bcolora);
+  EXPECT_NEAR(fdst[0] * 255.0f, bdst[0], 1.0f);
+  EXPECT_NEAR(fdst[1] * 255.0f, bdst[1], 1.0f);
+  EXPECT_NEAR(fdst[2] * 255.0f, bdst[2], 1.0f);
+
+  blend_color_softlight_float(fdst, fcolorc, fcolora);
+  blend_color_softlight_byte(bdst, bcolorc, bcolora);
+  EXPECT_NEAR(fdst[0] * 255.0f, bdst[0], 1.0f);
+  EXPECT_NEAR(fdst[1] * 255.0f, bdst[1], 1.0f);
+  EXPECT_NEAR(fdst[2] * 255.0f, bdst[2], 1.0f);
+
+  blend_color_softlight_float(fdst, fcolorc, fcolord);
+  blend_color_softlight_byte(bdst, bcolorc, bcolord);
+  EXPECT_NEAR(fdst[0] * 255.0f, bdst[0], 1.0f);
+  EXPECT_NEAR(fdst[1] * 255.0f, bdst[1], 1.0f);
+  EXPECT_NEAR(fdst[2] * 255.0f, bdst[2], 1.0f);
 }
