@@ -13,6 +13,8 @@
 
 #include "MOV_write.hh"
 
+#include "BKE_report.hh"
+
 #ifdef WITH_FFMPEG
 #  include <cstdio>
 #  include <cstring>
@@ -30,7 +32,6 @@
 #  include "BKE_global.hh"
 #  include "BKE_image.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.hh"
 
 #  include "IMB_imbuf.hh"
 
