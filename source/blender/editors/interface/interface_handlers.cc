@@ -12,6 +12,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
+#include <string>
 #include <variant>
 
 #include "MEM_guardedalloc.h"
@@ -3212,6 +3214,77 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
   ui_but_update(but);
 }
 
+static void ui_numedit_but_inc(uiBut *but, uiTextEdit &text_edit, const int mod = 1)
+{
+  const int str_len = strlen(text_edit.edit_string);
+
+  if ((text_edit.edit_string[but->pos] == ' ') || (text_edit.edit_string[but->pos] == '\0') ||
+      (!isdigit(text_edit.edit_string[but->pos])))
+  {
+
+    for (int i = str_len; i >= but->pos; i--) {
+      text_edit.edit_string[i + 1] = text_edit.edit_string[i];
+    }
+
+    text_edit.edit_string[but->pos] = '0';
+  }
+  else {
+    int dot_pos = 0;
+    int num_str_start = -1;
+
+    for (int i = but->pos; i >= 0; i--) {
+      char c = text_edit.edit_string[i];
+      if (c == '.') {
+        if (dot_pos == -1) {
+          dot_pos = but->pos - i;
+        }
+        else {
+          break;
+        }
+      }
+      else if (c == '-') {
+        num_str_start = i;
+        break;
+      }
+      else if (!isdigit(c)) {
+        break;
+      }
+      else {
+        num_str_start = i;
+      }
+    }
+
+    double fadd = 10 / pow(10, dot_pos + 1);
+
+    std::string str_edit{text_edit.edit_string};
+    std::string str_num{str_edit.substr(num_str_start, but->pos - num_str_start + 1)};
+
+    double prev_result = std::stod(str_num);
+    double result = prev_result + fadd * mod;
+
+    std::cout << result << std::endl;
+
+    int is_positive = 0;
+
+    if (signf(prev_result) > signf(result)) {
+      is_positive = -1;
+    }
+    else if (signf(prev_result) < signf(result)) {
+      is_positive = 1;
+    }
+
+    std::string str_num_incremented = std::to_string(result);
+
+    str_num_incremented = str_num_incremented.substr(0, str_num.length() - is_positive);
+
+    std::string lstrip = str_edit.substr(0, num_str_start);
+    std::string rstrip = str_edit.substr(but->pos + 1, str_edit.length() - but->pos);
+
+    ui_textedit_string_set(but, text_edit, (lstrip + str_num_incremented + rstrip).c_str());
+    but->pos -= is_positive;
+  }
+}
+
 /**
  * This is used for both utf8 and ascii
  *
@@ -4089,6 +4162,22 @@ static int ui_do_but_textedit(
         }
         break;
       }
+
+      case EVT_PADPLUSKEY:
+        if (event->modifier & KM_CTRL) {
+          ui_numedit_but_inc(but, text_edit, 1);
+          changed = true;
+          update = true;
+        }
+        break;
+
+      case EVT_PADMINUS:
+        if (event->modifier & KM_CTRL) {
+          ui_numedit_but_inc(but, text_edit, -1);
+          changed = true;
+          update = true;
+        }
+        break;
     }
 
     if ((event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)
