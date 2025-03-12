@@ -87,8 +87,7 @@ static MultiresRuntimeData *multires_ensure_runtime(MultiresModifierData *mmd)
 {
   MultiresRuntimeData *runtime_data = (MultiresRuntimeData *)mmd->modifier.runtime;
   if (runtime_data == nullptr) {
-    runtime_data = static_cast<MultiresRuntimeData *>(
-        MEM_callocN(sizeof(*runtime_data), __func__));
+    runtime_data = MEM_callocN<MultiresRuntimeData>(__func__);
     mmd->modifier.runtime = runtime_data;
   }
   return runtime_data;

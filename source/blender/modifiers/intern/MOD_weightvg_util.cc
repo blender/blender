@@ -149,7 +149,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     STRNCPY(t_map.uvlayer_name, tex_uvlayer_name);
     t_map.texmapping = tex_mapping;
 
-    tex_co = static_cast<float(*)[3]>(MEM_calloc_arrayN(verts_num, sizeof(*tex_co), __func__));
+    tex_co = MEM_calloc_arrayN<float[3]>(size_t(verts_num), __func__);
     MOD_get_texture_coords(&t_map, ctx, ob, mesh, nullptr, tex_co);
 
     MOD_init_texture(&t_map, ctx);

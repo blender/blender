@@ -477,8 +477,7 @@ static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_GreasePencilDash, panel_draw);
 
-  uiListType *list_type = static_cast<uiListType *>(
-      MEM_callocN(sizeof(uiListType), "Grease Pencil Dash modifier segments"));
+  uiListType *list_type = MEM_callocN<uiListType>("Grease Pencil Dash modifier segments");
   STRNCPY(list_type->idname, "MOD_UL_grease_pencil_dash_modifier_segments");
   list_type->draw_item = segment_list_item_draw;
   WM_uilisttype_add(list_type);

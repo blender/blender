@@ -202,10 +202,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   /* Get org weights, assuming 0.0 for vertices not in given vgroup. */
-  org_w = static_cast<float *>(MEM_malloc_arrayN(verts_num, sizeof(float), __func__));
-  new_w = static_cast<float *>(MEM_malloc_arrayN(verts_num, sizeof(float), __func__));
-  dw = static_cast<MDeformWeight **>(
-      MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), __func__));
+  org_w = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
+  new_w = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
+  dw = MEM_malloc_arrayN<MDeformWeight *>(size_t(verts_num), __func__);
   for (i = 0; i < verts_num; i++) {
     dw[i] = BKE_defvert_find_index(&dvert[i], defgrp_index);
     if (dw[i]) {

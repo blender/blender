@@ -81,8 +81,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 
   float(*vertexCos_Store)[3] = (use_factor || influence_group_index != -1 ||
                                 (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE)) ?
-                                   static_cast<float(*)[3]>(MEM_malloc_arrayN(
-                                       verts_num, sizeof(*vertexCos_Store), __func__)) :
+                                   MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__) :
                                    nullptr;
   float(*vertexCos)[3] = vertexCos_Store ? vertexCos_Store : vertexCos_Real;
 
@@ -173,8 +172,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
-      float(*vertexCos_New)[3] = static_cast<float(*)[3]>(
-          MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__));
+      float(*vertexCos_New)[3] = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
 
       BKE_mesh_calc_relative_deform(
           mesh->face_offsets().data(),

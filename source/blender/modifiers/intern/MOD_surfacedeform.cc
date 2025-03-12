@@ -488,7 +488,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
   float tot_weight = 0.0f;
   int inf_weight_flags = 0;
 
-  bwdata = static_cast<SDefBindWeightData *>(MEM_callocN(sizeof(*bwdata), "SDefBindWeightData"));
+  bwdata = MEM_callocN<SDefBindWeightData>("SDefBindWeightData");
   if (bwdata == nullptr) {
     data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
     return nullptr;
@@ -496,8 +496,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
 
   bwdata->faces_num = data->vert_edges[nearest].num / 2;
 
-  bpoly = static_cast<SDefBindPoly *>(
-      MEM_calloc_arrayN(bwdata->faces_num, sizeof(*bpoly), "SDefBindPoly"));
+  bpoly = MEM_calloc_arrayN<SDefBindPoly>(size_t(bwdata->faces_num), "SDefBindPoly");
   if (bpoly == nullptr) {
     freeBindData(bwdata);
     data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
@@ -540,16 +539,15 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         bpoly->verts_num = face.size();
         bpoly->loopstart = face.start();
 
-        bpoly->coords = static_cast<float(*)[3]>(
-            MEM_malloc_arrayN(face.size(), sizeof(*bpoly->coords), "SDefBindPolyCoords"));
+        bpoly->coords = MEM_malloc_arrayN<float[3]>(size_t(face.size()), "SDefBindPolyCoords");
         if (bpoly->coords == nullptr) {
           freeBindData(bwdata);
           data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
           return nullptr;
         }
 
-        bpoly->coords_v2 = static_cast<float(*)[2]>(
-            MEM_malloc_arrayN(face.size(), sizeof(*bpoly->coords_v2), "SDefBindPolyCoords_v2"));
+        bpoly->coords_v2 = MEM_malloc_arrayN<float[2]>(size_t(face.size()),
+                                                       "SDefBindPolyCoords_v2");
         if (bpoly->coords_v2 == nullptr) {
           freeBindData(bwdata);
           data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
@@ -989,8 +987,7 @@ static void bindVert(void *__restrict userdata,
     return;
   }
 
-  sdvert->binds = static_cast<SDefBind *>(
-      MEM_calloc_arrayN(bwdata->binds_num, sizeof(*sdvert->binds), "SDefVertBindData"));
+  sdvert->binds = MEM_calloc_arrayN<SDefBind>(size_t(bwdata->binds_num), "SDefVertBindData");
   if (sdvert->binds == nullptr) {
     data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
     sdvert->binds_num = 0;
@@ -1010,15 +1007,14 @@ static void bindVert(void *__restrict userdata,
         sdbind->verts_num = bpoly->verts_num;
 
         sdbind->mode = MOD_SDEF_MODE_NGONS;
-        sdbind->vert_weights = static_cast<float *>(MEM_malloc_arrayN(
-            bpoly->verts_num, sizeof(*sdbind->vert_weights), "SDefNgonVertWeights"));
+        sdbind->vert_weights = MEM_malloc_arrayN<float>(size_t(bpoly->verts_num),
+                                                        "SDefNgonVertWeights");
         if (sdbind->vert_weights == nullptr) {
           data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
           return;
         }
 
-        sdbind->vert_inds = static_cast<uint *>(
-            MEM_malloc_arrayN(bpoly->verts_num, sizeof(*sdbind->vert_inds), "SDefNgonVertInds"));
+        sdbind->vert_inds = MEM_malloc_arrayN<uint>(size_t(bpoly->verts_num), "SDefNgonVertInds");
         if (sdbind->vert_inds == nullptr) {
           data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
           return;
@@ -1051,15 +1047,14 @@ static void bindVert(void *__restrict userdata,
           sdbind->verts_num = bpoly->verts_num;
 
           sdbind->mode = MOD_SDEF_MODE_CENTROID;
-          sdbind->vert_weights = static_cast<float *>(
-              MEM_malloc_arrayN(3, sizeof(*sdbind->vert_weights), "SDefCentVertWeights"));
+          sdbind->vert_weights = MEM_malloc_arrayN<float>(3, "SDefCentVertWeights");
           if (sdbind->vert_weights == nullptr) {
             data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
             return;
           }
 
-          sdbind->vert_inds = static_cast<uint *>(
-              MEM_malloc_arrayN(bpoly->verts_num, sizeof(*sdbind->vert_inds), "SDefCentVertInds"));
+          sdbind->vert_inds = MEM_malloc_arrayN<uint>(size_t(bpoly->verts_num),
+                                                      "SDefCentVertInds");
           if (sdbind->vert_inds == nullptr) {
             data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
             return;
@@ -1099,15 +1094,13 @@ static void bindVert(void *__restrict userdata,
           sdbind->verts_num = bpoly->verts_num;
 
           sdbind->mode = MOD_SDEF_MODE_CORNER_TRIS;
-          sdbind->vert_weights = static_cast<float *>(
-              MEM_malloc_arrayN(3, sizeof(*sdbind->vert_weights), "SDefTriVertWeights"));
+          sdbind->vert_weights = MEM_malloc_arrayN<float>(3, "SDefTriVertWeights");
           if (sdbind->vert_weights == nullptr) {
             data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
             return;
           }
 
-          sdbind->vert_inds = static_cast<uint *>(
-              MEM_malloc_arrayN(bpoly->verts_num, sizeof(*sdbind->vert_inds), "SDefTriVertInds"));
+          sdbind->vert_inds = MEM_malloc_arrayN<uint>(size_t(bpoly->verts_num), "SDefTriVertInds");
           if (sdbind->vert_inds == nullptr) {
             data->success = MOD_SDEF_BIND_RESULT_MEM_ERR;
             return;
@@ -1180,23 +1173,23 @@ static bool surfacedeformBind(Object *ob,
   uint tedges_num = target->edges_num;
   int adj_result;
 
-  SDefAdjacencyArray *vert_edges = static_cast<SDefAdjacencyArray *>(
-      MEM_calloc_arrayN(target_verts_num, sizeof(*vert_edges), "SDefVertEdgeMap"));
+  SDefAdjacencyArray *vert_edges = MEM_calloc_arrayN<SDefAdjacencyArray>(size_t(target_verts_num),
+                                                                         "SDefVertEdgeMap");
   if (vert_edges == nullptr) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
     return false;
   }
 
-  SDefAdjacency *adj_array = static_cast<SDefAdjacency *>(
-      MEM_malloc_arrayN(tedges_num, 2 * sizeof(*adj_array), "SDefVertEdge"));
+  SDefAdjacency *adj_array = MEM_malloc_arrayN<SDefAdjacency>(2 * size_t(tedges_num),
+                                                              "SDefVertEdge");
   if (adj_array == nullptr) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
     MEM_freeN(vert_edges);
     return false;
   }
 
-  SDefEdgePolys *edge_polys = static_cast<SDefEdgePolys *>(
-      MEM_calloc_arrayN(tedges_num, sizeof(*edge_polys), "SDefEdgeFaceMap"));
+  SDefEdgePolys *edge_polys = MEM_calloc_arrayN<SDefEdgePolys>(size_t(tedges_num),
+                                                               "SDefEdgeFaceMap");
   if (edge_polys == nullptr) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
     MEM_freeN(vert_edges);
@@ -1204,8 +1197,7 @@ static bool surfacedeformBind(Object *ob,
     return false;
   }
 
-  smd_orig->verts = static_cast<SDefVert *>(
-      MEM_malloc_arrayN(verts_num, sizeof(*smd_orig->verts), "SDefBindVerts"));
+  smd_orig->verts = MEM_malloc_arrayN<SDefVert>(size_t(verts_num), "SDefBindVerts");
   if (smd_orig->verts == nullptr) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
     freeAdjacencyMap(vert_edges, adj_array, edge_polys);
@@ -1252,8 +1244,8 @@ static bool surfacedeformBind(Object *ob,
   data.corner_edges = corner_edges;
   data.corner_tris = target->corner_tris();
   data.tri_faces = target->corner_tri_faces();
-  data.targetCos = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(target_verts_num, sizeof(float[3]), "SDefTargetBindVertArray"));
+  data.targetCos = MEM_malloc_arrayN<float[3]>(size_t(target_verts_num),
+                                               "SDefTargetBindVertArray");
   data.bind_verts = smd_orig->verts;
   data.vertexCos = vertexCos;
   data.falloff = smd_orig->falloff;
@@ -1537,8 +1529,7 @@ static void surfacedeformModifier_do(ModifierData *md,
   /* Actual vertex location update starts here */
   SDefDeformData data{};
   data.bind_verts = smd->verts;
-  data.targetCos = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(target_verts_num, sizeof(float[3]), "SDefTargetVertArray"));
+  data.targetCos = MEM_malloc_arrayN<float[3]>(size_t(target_verts_num), "SDefTargetVertArray");
   data.vertexCos = vertexCos;
   data.dvert = dvert;
   data.defgrp_index = defgrp_index;

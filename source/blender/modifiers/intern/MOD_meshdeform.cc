@@ -464,9 +464,8 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
   }
 
   /* allocate bind influences */
-  mmd->bindinfluences = static_cast<MDefInfluence *>(
-      MEM_calloc_arrayN(mmd->influences_num, sizeof(MDefInfluence), __func__));
-  mmd->bindoffsets = static_cast<int *>(MEM_calloc_arrayN((verts_num + 1), sizeof(int), __func__));
+  mmd->bindinfluences = MEM_calloc_arrayN<MDefInfluence>(size_t(mmd->influences_num), __func__);
+  mmd->bindoffsets = MEM_calloc_arrayN<int>(size_t(verts_num) + 1, __func__);
 
   /* write influences */
   influences_num = 0;

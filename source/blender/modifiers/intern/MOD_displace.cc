@@ -277,8 +277,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 
   Tex *tex_target = dmd->texture;
   if (tex_target != nullptr) {
-    tex_co = static_cast<float(*)[3]>(MEM_calloc_arrayN(
-        size_t(positions.size()), sizeof(*tex_co), "displaceModifier_do tex_co"));
+    tex_co = MEM_calloc_arrayN<float[3]>(size_t(positions.size()), "displaceModifier_do tex_co");
     MOD_get_texture_coords((MappingInfoModifierData *)dmd,
                            ctx,
                            ob,
@@ -294,8 +293,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 
   if (direction == MOD_DISP_DIR_CLNOR) {
     if (mesh->attributes().contains("custom_normal")) {
-      vert_clnors = static_cast<float(*)[3]>(
-          MEM_malloc_arrayN(positions.size(), sizeof(*vert_clnors), __func__));
+      vert_clnors = MEM_malloc_arrayN<float[3]>(size_t(positions.size()), __func__);
       BKE_mesh_normals_loop_to_vertex(
           positions.size(),
           mesh->corner_verts().data(),

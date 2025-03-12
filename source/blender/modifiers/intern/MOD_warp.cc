@@ -234,7 +234,7 @@ static void warpModifier_do(WarpModifierData *wmd,
 
   Tex *tex_target = wmd->texture;
   if (mesh != nullptr && tex_target != nullptr) {
-    tex_co = static_cast<float(*)[3]>(MEM_malloc_arrayN(verts_num, sizeof(*tex_co), __func__));
+    tex_co = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
     MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);
 
     MOD_init_texture((MappingInfoModifierData *)wmd, ctx);

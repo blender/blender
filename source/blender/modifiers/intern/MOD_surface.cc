@@ -121,10 +121,8 @@ static void deform_verts(ModifierData *md,
       MEM_SAFE_FREE(surmd->runtime.vert_positions_prev);
       MEM_SAFE_FREE(surmd->runtime.vert_velocities);
 
-      surmd->runtime.vert_positions_prev = static_cast<float(*)[3]>(
-          MEM_calloc_arrayN(mesh_verts_num, sizeof(float[3]), __func__));
-      surmd->runtime.vert_velocities = static_cast<float(*)[3]>(
-          MEM_calloc_arrayN(mesh_verts_num, sizeof(float[3]), __func__));
+      surmd->runtime.vert_positions_prev = MEM_calloc_arrayN<float[3]>(mesh_verts_num, __func__);
+      surmd->runtime.vert_velocities = MEM_calloc_arrayN<float[3]>(mesh_verts_num, __func__);
 
       surmd->runtime.verts_num = mesh_verts_num;
 

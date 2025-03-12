@@ -70,9 +70,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const blender::Span<int> corner_verts_src = mesh->corner_verts();
   const blender::Span<int> corner_edges_src = mesh->corner_edges();
 
-  int *vertMap = static_cast<int *>(MEM_malloc_arrayN(vert_src_num, sizeof(int), __func__));
-  int *edgeMap = static_cast<int *>(MEM_malloc_arrayN(edges_src.size(), sizeof(int), __func__));
-  int *faceMap = static_cast<int *>(MEM_malloc_arrayN(faces_src.size(), sizeof(int), __func__));
+  int *vertMap = MEM_malloc_arrayN<int>(size_t(vert_src_num), __func__);
+  int *edgeMap = MEM_malloc_arrayN<int>(size_t(edges_src.size()), __func__);
+  int *faceMap = MEM_malloc_arrayN<int>(size_t(faces_src.size()), __func__);
 
   range_vn_i(vertMap, vert_src_num, 0);
   range_vn_i(edgeMap, edges_src.size(), 0);

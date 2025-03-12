@@ -267,11 +267,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   /* Find out which vertices to work on. */
-  tidx = static_cast<int *>(MEM_malloc_arrayN(verts_num, sizeof(int), __func__));
-  tdw1 = static_cast<MDeformWeight **>(
-      MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), __func__));
-  tdw2 = static_cast<MDeformWeight **>(
-      MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), __func__));
+  tidx = MEM_malloc_arrayN<int>(size_t(verts_num), __func__);
+  tdw1 = MEM_malloc_arrayN<MDeformWeight *>(size_t(verts_num), __func__);
+  tdw2 = MEM_malloc_arrayN<MDeformWeight *>(size_t(verts_num), __func__);
   switch (wmd->mix_set) {
     case MOD_WVG_SET_A:
       /* All vertices in first vgroup. */
@@ -347,14 +345,12 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     return mesh;
   }
   if (index_num != -1) {
-    indices = static_cast<int *>(MEM_malloc_arrayN(index_num, sizeof(int), __func__));
+    indices = MEM_malloc_arrayN<int>(size_t(index_num), __func__);
     memcpy(indices, tidx, sizeof(int) * index_num);
-    dw1 = static_cast<MDeformWeight **>(
-        MEM_malloc_arrayN(index_num, sizeof(MDeformWeight *), __func__));
+    dw1 = MEM_malloc_arrayN<MDeformWeight *>(size_t(index_num), __func__);
     memcpy(dw1, tdw1, sizeof(MDeformWeight *) * index_num);
     MEM_freeN(tdw1);
-    dw2 = static_cast<MDeformWeight **>(
-        MEM_malloc_arrayN(index_num, sizeof(MDeformWeight *), __func__));
+    dw2 = MEM_malloc_arrayN<MDeformWeight *>(size_t(index_num), __func__);
     memcpy(dw2, tdw2, sizeof(MDeformWeight *) * index_num);
     MEM_freeN(tdw2);
   }
@@ -367,8 +363,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
   MEM_freeN(tidx);
 
-  org_w = static_cast<float *>(MEM_malloc_arrayN(index_num, sizeof(float), __func__));
-  new_w = static_cast<float *>(MEM_malloc_arrayN(index_num, sizeof(float), __func__));
+  org_w = MEM_malloc_arrayN<float>(size_t(index_num), __func__);
+  new_w = MEM_malloc_arrayN<float>(size_t(index_num), __func__);
 
   /* Mix weights. */
   for (i = 0; i < index_num; i++) {

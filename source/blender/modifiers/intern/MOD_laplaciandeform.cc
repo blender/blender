@@ -125,12 +125,12 @@ static LaplacianSystem *initLaplacianSystem(int verts_num,
   sys->anchors_num = anchors_num;
   sys->repeat = iterations;
   STRNCPY(sys->anchor_grp_name, defgrpName);
-  sys->co = static_cast<float(*)[3]>(MEM_malloc_arrayN(verts_num, sizeof(float[3]), __func__));
-  sys->no = static_cast<float(*)[3]>(MEM_calloc_arrayN(verts_num, sizeof(float[3]), __func__));
-  sys->delta = static_cast<float(*)[3]>(MEM_calloc_arrayN(verts_num, sizeof(float[3]), __func__));
-  sys->tris = static_cast<uint(*)[3]>(MEM_malloc_arrayN(tris_num, sizeof(int[3]), __func__));
-  sys->index_anchors = static_cast<int *>(MEM_malloc_arrayN((anchors_num), sizeof(int), __func__));
-  sys->unit_verts = static_cast<int *>(MEM_calloc_arrayN(verts_num, sizeof(int), __func__));
+  sys->co = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
+  sys->no = MEM_calloc_arrayN<float[3]>(size_t(verts_num), __func__);
+  sys->delta = MEM_calloc_arrayN<float[3]>(size_t(verts_num), __func__);
+  sys->tris = MEM_malloc_arrayN<uint[3]>(size_t(tris_num), __func__);
+  sys->index_anchors = MEM_malloc_arrayN<int>(size_t(anchors_num), __func__);
+  sys->unit_verts = MEM_calloc_arrayN<int>(size_t(verts_num), __func__);
   return sys;
 }
 
@@ -543,8 +543,7 @@ static void initSystem(
   const bool invert_vgroup = (lmd->flag & MOD_LAPLACIANDEFORM_INVERT_VGROUP) != 0;
 
   if (isValidVertexGroup(lmd, ob, mesh)) {
-    int *index_anchors = static_cast<int *>(
-        MEM_malloc_arrayN(verts_num, sizeof(int), __func__)); /* Over-allocate. */
+    int *index_anchors = MEM_malloc_arrayN<int>(size_t(verts_num), __func__); /* Over-allocate. */
 
     STACK_DECLARE(index_anchors);
 
@@ -577,7 +576,7 @@ static void initSystem(
     memcpy(sys->index_anchors, index_anchors, sizeof(int) * anchors_num);
     memcpy(sys->co, vertexCos, sizeof(float[3]) * verts_num);
     MEM_freeN(index_anchors);
-    lmd->vertexco = static_cast<float *>(MEM_malloc_arrayN(verts_num, sizeof(float[3]), __func__));
+    lmd->vertexco = MEM_malloc_arrayN<float>(3 * size_t(verts_num), __func__);
     memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * verts_num);
     lmd->verts_num = verts_num;
 
@@ -658,8 +657,7 @@ static void LaplacianDeformModifier_do(
     sys = static_cast<LaplacianSystem *>(lmd->cache_system);
     if (sysdif) {
       if (ELEM(sysdif, LAPDEFORM_SYSTEM_ONLY_CHANGE_ANCHORS, LAPDEFORM_SYSTEM_ONLY_CHANGE_GROUP)) {
-        filevertexCos = static_cast<float(*)[3]>(
-            MEM_malloc_arrayN(verts_num, sizeof(float[3]), __func__));
+        filevertexCos = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
         memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * verts_num);
         MEM_SAFE_FREE(lmd->vertexco);
         lmd->verts_num = 0;
@@ -703,8 +701,7 @@ static void LaplacianDeformModifier_do(
       lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
     }
     else if (lmd->verts_num > 0 && lmd->verts_num == verts_num) {
-      filevertexCos = static_cast<float(*)[3]>(
-          MEM_malloc_arrayN(verts_num, sizeof(float[3]), "TempDeformCoordinates"));
+      filevertexCos = MEM_malloc_arrayN<float[3]>(size_t(verts_num), "TempDeformCoordinates");
       memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * verts_num);
       MEM_SAFE_FREE(lmd->vertexco);
       lmd->verts_num = 0;
