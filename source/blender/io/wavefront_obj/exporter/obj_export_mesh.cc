@@ -58,7 +58,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     /* Curves and NURBS surfaces need a new mesh when they're
      * exported in the form of vertices and edges.
      */
-    this->set_mesh(BKE_mesh_new_from_object(depsgraph, obj_eval, true, true));
+    this->set_mesh(BKE_mesh_new_from_object(depsgraph, obj_eval, true, true, true));
   }
   if (export_params.export_triangulated_mesh && obj_eval->type == OB_MESH) {
     this->triangulate_mesh_eval();

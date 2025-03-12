@@ -183,7 +183,8 @@ void BKE_mesh_texspace_get_reference(Mesh *mesh,
 Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph,
                                Object *object,
                                bool preserve_all_data_layers,
-                               bool preserve_origindex);
+                               bool preserve_origindex,
+                               bool ensure_subdivision);
 
 /**
  * This is a version of BKE_mesh_new_from_object() which stores mesh in the given main database.

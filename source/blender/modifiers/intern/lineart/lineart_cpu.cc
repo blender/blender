@@ -2505,7 +2505,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
     }
   }
   else {
-    use_mesh = BKE_mesh_new_from_object(depsgraph, ob, true, true);
+    use_mesh = BKE_mesh_new_from_object(depsgraph, ob, true, true, true);
   }
 
   /* In case we still can not get any mesh geometry data from the object, same as above. */

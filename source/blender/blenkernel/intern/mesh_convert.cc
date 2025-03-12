@@ -766,14 +766,14 @@ static Mesh *mesh_new_from_mball_object(Object *object)
   return BKE_mesh_copy_for_eval(*mesh_eval);
 }
 
-static Mesh *mesh_new_from_mesh(Object *object, const Mesh *mesh)
+static Mesh *mesh_new_from_mesh(Object *object, const Mesh *mesh, const bool ensure_subdivision)
 {
   /* While we could copy this into the new mesh,
    * add the data to 'mesh' so future calls to this function don't need to re-convert the data. */
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
     BKE_mesh_wrapper_ensure_mdata(const_cast<Mesh *>(mesh));
   }
-  else {
+  else if (ensure_subdivision) {
     mesh = BKE_mesh_wrapper_ensure_subdivision(const_cast<Mesh *>(mesh));
   }
 
@@ -787,10 +787,11 @@ static Mesh *mesh_new_from_mesh(Object *object, const Mesh *mesh)
 
 static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
                                                    Object *object,
-                                                   const bool preserve_origindex)
+                                                   const bool preserve_origindex,
+                                                   const bool ensure_subdivision)
 {
   if (DEG_is_original_id(&object->id)) {
-    return mesh_new_from_mesh(object, (Mesh *)object->data);
+    return mesh_new_from_mesh(object, (Mesh *)object->data, ensure_subdivision);
   }
 
   if (depsgraph == nullptr) {
@@ -814,13 +815,14 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
     mask.pmask |= CD_MASK_ORIGINDEX;
   }
   Mesh *result = blender::bke::mesh_create_eval_final(depsgraph, scene, &object_for_eval, &mask);
-  return BKE_mesh_wrapper_ensure_subdivision(result);
+  return (ensure_subdivision) ? BKE_mesh_wrapper_ensure_subdivision(result) : result;
 }
 
 static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
                                        Object *object,
                                        const bool preserve_all_data_layers,
-                                       const bool preserve_origindex)
+                                       const bool preserve_origindex,
+                                       const bool use_subdivision)
 {
   /* This function tries to reevaluate the object from the original data. If the original object
    * was not a mesh object, this won't work because it uses mesh object evaluation which assumes
@@ -828,7 +830,8 @@ static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
   if (!(object->runtime->data_orig && GS(object->runtime->data_orig->name) != ID_ME) &&
       (preserve_all_data_layers || preserve_origindex))
   {
-    return mesh_new_from_mesh_object_with_layers(depsgraph, object, preserve_origindex);
+    return mesh_new_from_mesh_object_with_layers(
+        depsgraph, object, preserve_origindex, use_subdivision);
   }
   const Mesh *mesh_input = (const Mesh *)object->data;
   /* If we are in edit mode, use evaluated mesh from edit structure, matching to what
@@ -838,13 +841,14 @@ static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
       mesh_input = editmesh_eval_final;
     }
   }
-  return mesh_new_from_mesh(object, mesh_input);
+  return mesh_new_from_mesh(object, mesh_input, use_subdivision);
 }
 
 Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph,
                                Object *object,
                                const bool preserve_all_data_layers,
-                               const bool preserve_origindex)
+                               const bool preserve_origindex,
+                               const bool ensure_subdivision)
 {
   Mesh *new_mesh = nullptr;
   switch (object->type) {
@@ -858,7 +862,7 @@ Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph,
       break;
     case OB_MESH:
       new_mesh = mesh_new_from_mesh_object(
-          depsgraph, object, preserve_all_data_layers, preserve_origindex);
+          depsgraph, object, preserve_all_data_layers, preserve_origindex, ensure_subdivision);
       break;
     default:
       /* Object does not have geometry data. */
@@ -923,7 +927,7 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
 {
   BLI_assert(ELEM(object->type, OB_FONT, OB_CURVES_LEGACY, OB_SURF, OB_MBALL, OB_MESH));
 
-  Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, preserve_all_data_layers, false);
+  Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, preserve_all_data_layers, false, true);
   if (mesh == nullptr) {
     /* Unable to convert the object to a mesh, return an empty one. */
     Mesh *mesh_in_bmain = BKE_mesh_add(bmain, ((ID *)object->data)->name + 2);

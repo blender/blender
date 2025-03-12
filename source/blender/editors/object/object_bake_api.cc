@@ -714,7 +714,7 @@ static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph,
                                        Object *object,
                                        const bool preserve_origindex)
 {
-  Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, false, preserve_origindex);
+  Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, false, preserve_origindex, true);
 
   if (mesh->normals_domain() == bke::MeshNormalDomain::Corner) {
     ED_mesh_split_faces(mesh);
@@ -1577,7 +1577,8 @@ static int bake(const BakeAPIRender *bkr,
         BKE_object_handle_data_update(depsgraph, scene, ob_low_eval);
       }
 
-      me_cage_eval = BKE_mesh_new_from_object(nullptr, ob_low_eval, false, preserve_origindex);
+      me_cage_eval = BKE_mesh_new_from_object(
+          nullptr, ob_low_eval, false, preserve_origindex, true);
       if (!CustomData_has_layer(&me_cage_eval->corner_data, CD_PROP_FLOAT2)) {
         BKE_reportf(reports,
                     RPT_ERROR,
@@ -1611,7 +1612,7 @@ static int bake(const BakeAPIRender *bkr,
       ob_eval->visibility_flag &= ~OB_HIDE_RENDER;
       ob_eval->base_flag |= (BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_ENABLED_RENDER);
 
-      Mesh *mesh_eval = BKE_mesh_new_from_object(nullptr, ob_eval, false, false);
+      Mesh *mesh_eval = BKE_mesh_new_from_object(nullptr, ob_eval, false, false, true);
 
       /* Initialize `highpoly` data. */
       highpoly[i].ob = ob_iter;
@@ -1766,7 +1767,7 @@ static int bake(const BakeAPIRender *bkr,
             md->mode &= ~eModifierMode_Render;
 
             /* Evaluate modifiers again. */
-            me_nores = BKE_mesh_new_from_object(nullptr, ob_low_eval, false, false);
+            me_nores = BKE_mesh_new_from_object(nullptr, ob_low_eval, false, false, true);
             if (!CustomData_has_layer(&me_nores->corner_data, CD_PROP_FLOAT2)) {
               BKE_reportf(reports,
                           RPT_ERROR,
