@@ -25,8 +25,10 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_types.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_scene.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_ccg.hh"
@@ -177,18 +179,43 @@ static Mesh *subdiv_as_ccg(SubsurfModifierData *smd,
 static void subdiv_cache_mesh_wrapper_settings(const ModifierEvalContext *ctx,
                                                Mesh *mesh,
                                                SubsurfModifierData *smd,
-                                               SubsurfRuntimeData *runtime_data)
+                                               SubsurfRuntimeData *runtime_data,
+                                               const bool has_gpu_subdiv)
 {
   blender::bke::subdiv::ToMeshSettings mesh_settings;
   subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
 
-  runtime_data->has_gpu_subdiv = true;
+  runtime_data->has_gpu_subdiv = has_gpu_subdiv;
   runtime_data->resolution = mesh_settings.resolution;
   runtime_data->use_optimal_display = mesh_settings.use_optimal_display;
   runtime_data->use_loop_normals = (smd->flags & eSubsurfModifierFlag_UseCustomNormals);
 
   mesh->runtime->subsurf_runtime_data = runtime_data;
 }
+
+static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
+                                                        const Object *ob,
+                                                        int required_mode)
+{
+  ModifierData *md = static_cast<ModifierData *>(ob->modifiers.last);
+
+  while (md) {
+    if (BKE_modifier_is_enabled(scene, md, required_mode)) {
+      break;
+    }
+
+    md = md->prev;
+  }
+
+  return md;
+}
+
+/**
+ * Return true if GPU subdivision evaluation is disabled by force due to incompatible mesh or
+ * modifier settings. This will only return true if GPU subdivision is enabled in the preferences
+ * and supported by the GPU. It is mainly useful for showing UI messages.
+ */
+bool BKE_subsurf_modifier_can_use_gpu_evaluation(const SubsurfModifierData *smd, const Mesh *mesh);
 
 /* Modifier itself. */
 
@@ -220,14 +247,33 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
    */
   if ((ctx->flag & MOD_APPLY_TO_ORIGINAL) == 0) {
     Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-    const bool is_render_mode = (ctx->flag & MOD_APPLY_RENDER) != 0;
+
     /* Same check as in `DRW_mesh_batch_cache_create_requested` to keep both code coherent. The
      * difference is that here we do not check for the final edit mesh pointer as it is not yet
      * assigned at this stage of modifier stack evaluation. */
+    const bool is_render_mode = (ctx->flag & MOD_APPLY_RENDER) != 0;
     const bool is_editmode = (mesh->runtime->edit_mesh != nullptr);
     const int required_mode = BKE_subsurf_modifier_eval_required_mode(is_render_mode, is_editmode);
-    if (BKE_subsurf_modifier_can_do_gpu_subdiv(scene, ctx->object, mesh, smd, required_mode)) {
-      subdiv_cache_mesh_wrapper_settings(ctx, mesh, smd, runtime_data);
+
+    /* Check if we are the last modifier in the stack. */
+    ModifierData *md = modifier_get_last_enabled_for_mode(scene, ctx->object, required_mode);
+    if (md == (const ModifierData *)smd) {
+      const bool has_gpu_subdiv = BKE_subsurf_modifier_can_do_gpu_subdiv(smd, mesh);
+      subdiv_cache_mesh_wrapper_settings(ctx, mesh, smd, runtime_data, has_gpu_subdiv);
+
+      /* Delay for:
+       * - Background mode: Not sure if we are going to use the tessellated mesh.
+       * - Render: Engine might do its own subdivision and not need this.
+       * - GPU subdivision support: Might only need to display and not access tessellated mesh.
+       *
+       * If we can't delay, we still create the wrapper so external renderers can get the base
+       * mesh. But we tessellate immediately to take advantage of better parallellization
+       * as part of multithreaded depsgraph evaluation. */
+      const bool delay = G.background || is_render_mode || has_gpu_subdiv;
+      if (!delay) {
+        BKE_mesh_wrapper_ensure_subdivision(mesh);
+      }
+
       return result;
     }
   }

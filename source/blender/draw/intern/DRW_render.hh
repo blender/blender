@@ -215,6 +215,8 @@ template<typename T> T &DRW_object_get_data_for_drawing(const Object &object)
   return *static_cast<T *>(object.data);
 }
 
+template<> Mesh &DRW_object_get_data_for_drawing(const Object &object);
+
 /* Draw State. */
 
 /* -------------------------------------------------------------------- */
