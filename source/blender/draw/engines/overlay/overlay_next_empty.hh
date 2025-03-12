@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "DRW_render.hh"
 #include "overlay_next_base.hh"
 #include "overlay_next_image.hh"
 

@@ -18,6 +18,8 @@
 
 #include "BKE_image.hh"
 
+#include "DRW_render.hh"
+
 #include "image_enums.hh"
 #include "image_space.hh"
 
@@ -41,8 +43,8 @@ struct ShaderParameters {
     use_premul_alpha = BKE_image_has_gpu_texture_premultiplied_alpha(image, image_buffer);
 
     if (scene->camera && scene->camera->type == OB_CAMERA) {
-      const Camera *camera = static_cast<const Camera *>(scene->camera->data);
-      far_near = float2(camera->clip_end, camera->clip_start);
+      const Camera &camera = DRW_object_get_data_for_drawing<const Camera>(*scene->camera);
+      far_near = float2(camera.clip_end, camera.clip_start);
     }
     space->get_shader_parameters(*this, image_buffer);
   }

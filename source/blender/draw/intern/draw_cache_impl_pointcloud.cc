@@ -28,6 +28,8 @@
 #include "GPU_batch.hh"
 #include "GPU_material.hh"
 
+#include "DRW_render.hh"
+
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh"
 #include "draw_cache_inline.hh"
@@ -392,14 +394,14 @@ gpu::Batch *pointcloud_surface_get(PointCloud *pointcloud)
 
 gpu::Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
 {
-  PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
+  PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
   return DRW_batch_request(&cache->eval_cache.dots);
 }
 
 gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob)
 {
-  PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
+  PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
   return pointcloud_position_and_radius_get(&pointcloud);
 }
 
@@ -453,8 +455,8 @@ static void build_edit_selection_indices(const PointCloud &pointcloud, gpu::Inde
 
 void DRW_pointcloud_batch_cache_create_requested(Object *ob)
 {
-  PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
-  PointCloudBatchCache &cache = *pointcloud_batch_cache_get(*pointcloud);
+  PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
+  PointCloudBatchCache &cache = *pointcloud_batch_cache_get(pointcloud);
 
   if (DRW_batch_requested(cache.eval_cache.dots, GPU_PRIM_POINTS)) {
     DRW_vbo_request(cache.eval_cache.dots, &cache.eval_cache.pos_rad);
@@ -479,20 +481,20 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob)
     DRW_vbo_request(nullptr, &cache.eval_cache.attributes_buf[j]);
 
     if (DRW_vbo_requested(cache.eval_cache.attributes_buf[j])) {
-      pointcloud_extract_attribute(*pointcloud, cache, cache.eval_cache.attr_used.requests[j], j);
+      pointcloud_extract_attribute(pointcloud, cache, cache.eval_cache.attr_used.requests[j], j);
     }
   }
 
   if (DRW_ibo_requested(cache.edit_selection_indices)) {
-    build_edit_selection_indices(*pointcloud, *cache.edit_selection_indices);
+    build_edit_selection_indices(pointcloud, *cache.edit_selection_indices);
   }
 
   if (DRW_ibo_requested(cache.eval_cache.geom_indices)) {
-    pointcloud_extract_indices(*pointcloud, cache);
+    pointcloud_extract_indices(pointcloud, cache);
   }
 
   if (DRW_vbo_requested(cache.eval_cache.pos_rad)) {
-    pointcloud_extract_position_and_radius(*pointcloud, cache);
+    pointcloud_extract_position_and_radius(pointcloud, cache);
   }
 }
 

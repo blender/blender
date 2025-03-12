@@ -308,10 +308,10 @@ class Meshes : Overlay {
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     Object *ob = ob_ref.object;
-    Mesh &mesh = *static_cast<Mesh *>(ob->data);
+    Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
     /* WORKAROUND: GPU subdiv uses a different normal format. Remove this once GPU subdiv is
      * refactored. */
-    const bool use_gpu_subdiv = BKE_subsurf_modifier_has_gpu_subdiv(static_cast<Mesh *>(ob->data));
+    const bool use_gpu_subdiv = BKE_subsurf_modifier_has_gpu_subdiv(&mesh);
     const bool draw_as_solid = (ob->dt > OB_WIRE) && !state.xray_enabled;
     const bool has_edit_cage = mesh_has_edit_cage(ob);
 
@@ -443,7 +443,7 @@ class Meshes : Overlay {
   static bool mesh_has_edit_cage(const Object *ob)
   {
     BLI_assert(ob->type == OB_MESH);
-    const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+    Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
     if (mesh.runtime->edit_mesh != nullptr) {
       const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
       const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
@@ -469,7 +469,7 @@ class Meshes : Overlay {
 
   static bool mesh_has_skin_roots(const Object *ob)
   {
-    const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+    Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
     if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
       return CustomData_get_offset(&em->bm->vdata, CD_MVERT_SKIN) != -1;
     }
@@ -753,7 +753,7 @@ class MeshUVs : Overlay {
     }
 
     Object &ob = *ob_ref.object;
-    Mesh &mesh = *static_cast<Mesh *>(ob.data);
+    Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(ob);
 
     const bool is_edit_object = DRW_object_is_in_edit_mode(&ob);
     const bool has_active_object_uvmap = CustomData_get_active_layer(&mesh.corner_data,

@@ -16,6 +16,7 @@
 #include "BKE_subdiv_ccg.hh"
 #include "DEG_depsgraph_query.hh"
 
+#include "DRW_render.hh"
 #include "bmesh.hh"
 
 #include "draw_cache_impl.hh"
@@ -120,14 +121,14 @@ class Sculpts : Overlay {
 
   void curves_sync(Manager &manager, const ObjectRef &ob_ref, const State &state)
   {
-    ::Curves *curves = static_cast<::Curves *>(ob_ref.object->data);
+    ::Curves &curves = DRW_object_get_data_for_drawing<::Curves>(*ob_ref.object);
 
     /* As an optimization, draw nothing if everything is selected. */
-    if (show_mask_ && !everything_selected(*curves)) {
+    if (show_mask_ && !everything_selected(curves)) {
       /* Retrieve the location of the texture. */
       bool is_point_domain;
       gpu::VertBuf **select_attr_buf = DRW_curves_texture_for_evaluated_attribute(
-          curves, ".selection", &is_point_domain);
+          &curves, ".selection", &is_point_domain);
       if (select_attr_buf) {
         /* Evaluate curves and their attributes if necessary. */
         gpu::Batch *geometry = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object);
@@ -144,7 +145,7 @@ class Sculpts : Overlay {
     if (show_curves_cage_) {
       ResourceHandle handle = manager.unique_handle(ob_ref);
 
-      blender::gpu::Batch *geometry = DRW_curves_batch_cache_get_sculpt_curves_cage(curves);
+      blender::gpu::Batch *geometry = DRW_curves_batch_cache_get_sculpt_curves_cage(&curves);
       sculpt_curve_cage_.draw(geometry, handle);
     }
   }
@@ -179,7 +180,7 @@ class Sculpts : Overlay {
 
     switch (pbvh->type()) {
       case blender::bke::pbvh::Type::Mesh: {
-        const Mesh &mesh = *static_cast<const Mesh *>(object_orig->data);
+        const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*object_orig);
         if (!mesh.attributes().contains(".sculpt_face_set") &&
             !mesh.attributes().contains(".sculpt_mask"))
         {
@@ -189,7 +190,7 @@ class Sculpts : Overlay {
       }
       case blender::bke::pbvh::Type::Grids: {
         const SubdivCCG &subdiv_ccg = *sculpt_session->subdiv_ccg;
-        const Mesh &base_mesh = *static_cast<const Mesh *>(object_orig->data);
+        const Mesh &base_mesh = DRW_object_get_data_for_drawing<Mesh>(*object_orig);
         if (subdiv_ccg.masks.is_empty() && !base_mesh.attributes().contains(".sculpt_face_set")) {
           return;
         }
@@ -222,7 +223,7 @@ class Sculpts : Overlay {
     else {
       ResourceHandle handle = manager.unique_handle(ob_ref);
 
-      Mesh &mesh = *static_cast<Mesh *>(ob_ref.object->data);
+      Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob_ref.object);
       gpu::Batch *sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(mesh);
       mesh_ps_->draw(sculpt_overlays, handle);
     }

@@ -170,20 +170,20 @@ class Bounds : Overlay {
     if (!from_dupli && ob->data && (ob->dtx & OB_TEXSPACE)) {
       switch (GS(static_cast<ID *>(ob->data)->name)) {
         case ID_ME: {
-          Mesh *me = static_cast<Mesh *>(ob->data);
-          BKE_mesh_texspace_ensure(me);
-          add_bounds_ex(me->texspace_location, me->texspace_size, OB_BOUND_BOX);
+          Mesh &me = DRW_object_get_data_for_drawing<Mesh>(*ob);
+          BKE_mesh_texspace_ensure(&me);
+          add_bounds_ex(me.texspace_location, me.texspace_size, OB_BOUND_BOX);
           break;
         }
         case ID_CU_LEGACY: {
-          Curve *cu = static_cast<Curve *>(ob->data);
-          BKE_curve_texspace_ensure(cu);
-          add_bounds_ex(cu->texspace_location, cu->texspace_size, OB_BOUND_BOX);
+          Curve &cu = DRW_object_get_data_for_drawing<Curve>(*ob);
+          BKE_curve_texspace_ensure(&cu);
+          add_bounds_ex(cu.texspace_location, cu.texspace_size, OB_BOUND_BOX);
           break;
         }
         case ID_MB: {
-          MetaBall *mb = static_cast<MetaBall *>(ob->data);
-          add_bounds_ex(mb->texspace_location, mb->texspace_size, OB_BOUND_BOX);
+          MetaBall &mb = DRW_object_get_data_for_drawing<MetaBall>(*ob);
+          add_bounds_ex(mb.texspace_location, mb.texspace_size, OB_BOUND_BOX);
           break;
         }
         case ID_CV:

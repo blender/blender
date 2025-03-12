@@ -18,16 +18,17 @@
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
 
-#include "UI_resources.hh"
-
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
+#include "BKE_subdiv_modifier.hh"
 
+#include "DRW_render.hh"
 #include "GPU_batch.hh"
 #include "GPU_batch_utils.hh"
 #include "GPU_capabilities.hh"
@@ -183,7 +184,7 @@ blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
   switch (type) {
     case OB_MESH:
       return DRW_mesh_batch_cache_pos_vertbuf_get(
-          *static_cast<Mesh *>((mesh != nullptr) ? mesh : ob->data));
+          (mesh != nullptr) ? *mesh : DRW_object_get_data_for_drawing<Mesh>(*ob));
     default:
       return nullptr;
   }
@@ -210,42 +211,43 @@ blender::gpu::Batch *DRW_cache_mesh_all_verts_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_all_verts(*static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_all_verts(DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_all_edges_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_all_edges(*static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_all_edges(DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_loose_edges_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_loose_edges(*static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_loose_edges(DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_edge_detection_get(Object *ob, bool *r_is_manifold)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_edge_detection(*static_cast<Mesh *>(ob->data), r_is_manifold);
+  return DRW_mesh_batch_cache_get_edge_detection(DRW_object_get_data_for_drawing<Mesh>(*ob),
+                                                 r_is_manifold);
 }
 
 blender::gpu::Batch *DRW_cache_mesh_surface_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface(*static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_surface(DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_surface_edges_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_edges(*static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_surface_edges(DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 Span<blender::gpu::Batch *> DRW_cache_mesh_surface_shaded_get(
@@ -253,63 +255,68 @@ Span<blender::gpu::Batch *> DRW_cache_mesh_surface_shaded_get(
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_shaded(*ob, *static_cast<Mesh *>(ob->data), materials);
+  return DRW_mesh_batch_cache_get_surface_shaded(
+      *ob, DRW_object_get_data_for_drawing<Mesh>(*ob), materials);
 }
 
 Span<blender::gpu::Batch *> DRW_cache_mesh_surface_texpaint_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_texpaint(*ob, *static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_surface_texpaint(*ob,
+                                                   DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_surface_texpaint_single_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_texpaint_single(*ob, *static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_surface_texpaint_single(
+      *ob, DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_surface_vertpaint_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_vertpaint(*ob, *static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_surface_vertpaint(*ob,
+                                                    DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_surface_sculptcolors_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_sculpt(*ob, *static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_surface_sculpt(*ob, DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_surface_weights_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_weights(*static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_surface_weights(DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_face_wireframe_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_wireframes_face(*static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_wireframes_face(DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_surface_mesh_analysis_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_edit_mesh_analysis(*static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_edit_mesh_analysis(DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_mesh_surface_viewer_attribute_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_viewer_attribute(*static_cast<Mesh *>(ob->data));
+  return DRW_mesh_batch_cache_get_surface_viewer_attribute(
+      DRW_object_get_data_for_drawing<Mesh>(*ob));
 }
 
 /** \} */
@@ -322,24 +329,24 @@ blender::gpu::Batch *DRW_cache_curve_edge_wire_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_CURVES_LEGACY);
-  Curve *cu = static_cast<Curve *>(ob->data);
-  return DRW_curve_batch_cache_get_wire_edge(cu);
+  Curve &cu = DRW_object_get_data_for_drawing<Curve>(*ob);
+  return DRW_curve_batch_cache_get_wire_edge(&cu);
 }
 
 blender::gpu::Batch *DRW_cache_curve_edge_wire_viewer_attribute_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_CURVES_LEGACY);
-  Curve *cu = static_cast<Curve *>(ob->data);
-  return DRW_curve_batch_cache_get_wire_edge_viewer_attribute(cu);
+  Curve &cu = DRW_object_get_data_for_drawing<Curve>(*ob);
+  return DRW_curve_batch_cache_get_wire_edge_viewer_attribute(&cu);
 }
 
 blender::gpu::Batch *DRW_cache_curve_edge_normal_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_CURVES_LEGACY);
-  Curve *cu = static_cast<Curve *>(ob->data);
-  return DRW_curve_batch_cache_get_normal_edge(cu);
+  Curve &cu = DRW_object_get_data_for_drawing<Curve>(*ob);
+  return DRW_curve_batch_cache_get_normal_edge(&cu);
 }
 
 blender::gpu::Batch *DRW_cache_curve_edge_overlay_get(Object *ob)
@@ -347,8 +354,8 @@ blender::gpu::Batch *DRW_cache_curve_edge_overlay_get(Object *ob)
   using namespace blender::draw;
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF));
 
-  Curve *cu = static_cast<Curve *>(ob->data);
-  return DRW_curve_batch_cache_get_edit_edges(cu);
+  Curve &cu = DRW_object_get_data_for_drawing<Curve>(*ob);
+  return DRW_curve_batch_cache_get_edit_edges(&cu);
 }
 
 blender::gpu::Batch *DRW_cache_curve_vert_overlay_get(Object *ob)
@@ -356,8 +363,8 @@ blender::gpu::Batch *DRW_cache_curve_vert_overlay_get(Object *ob)
   using namespace blender::draw;
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF));
 
-  Curve *cu = static_cast<Curve *>(ob->data);
-  return DRW_curve_batch_cache_get_edit_verts(cu);
+  Curve &cu = DRW_object_get_data_for_drawing<Curve>(*ob);
+  return DRW_curve_batch_cache_get_edit_verts(&cu);
 }
 
 /** \} */
@@ -370,8 +377,8 @@ blender::gpu::Batch *DRW_cache_text_edge_wire_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_FONT);
-  Curve *cu = static_cast<Curve *>(ob->data);
-  return DRW_curve_batch_cache_get_wire_edge(cu);
+  Curve &cu = DRW_object_get_data_for_drawing<Curve>(*ob);
+  return DRW_curve_batch_cache_get_wire_edge(&cu);
 }
 
 /** \} */
@@ -384,8 +391,8 @@ blender::gpu::Batch *DRW_cache_surf_edge_wire_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_SURF);
-  Curve *cu = static_cast<Curve *>(ob->data);
-  return DRW_curve_batch_cache_get_wire_edge(cu);
+  Curve &cu = DRW_object_get_data_for_drawing<Curve>(*ob);
+  return DRW_curve_batch_cache_get_wire_edge(&cu);
 }
 
 /** \} */
@@ -399,8 +406,8 @@ blender::gpu::Batch *DRW_cache_lattice_verts_get(Object *ob)
   using namespace blender::draw;
   BLI_assert(ob->type == OB_LATTICE);
 
-  Lattice *lt = static_cast<Lattice *>(ob->data);
-  return DRW_lattice_batch_cache_get_all_verts(lt);
+  Lattice &lt = DRW_object_get_data_for_drawing<Lattice>(*ob);
+  return DRW_lattice_batch_cache_get_all_verts(&lt);
 }
 
 blender::gpu::Batch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight)
@@ -408,14 +415,14 @@ blender::gpu::Batch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight)
   using namespace blender::draw;
   BLI_assert(ob->type == OB_LATTICE);
 
-  Lattice *lt = static_cast<Lattice *>(ob->data);
+  Lattice &lt = DRW_object_get_data_for_drawing<Lattice>(*ob);
   int actdef = -1;
 
-  if (use_weight && !BLI_listbase_is_empty(&lt->vertex_group_names) && lt->editlatt->latt->dvert) {
-    actdef = lt->vertex_group_active_index - 1;
+  if (use_weight && !BLI_listbase_is_empty(&lt.vertex_group_names) && lt.editlatt->latt->dvert) {
+    actdef = lt.vertex_group_active_index - 1;
   }
 
-  return DRW_lattice_batch_cache_get_all_edges(lt, use_weight, actdef);
+  return DRW_lattice_batch_cache_get_all_edges(&lt, use_weight, actdef);
 }
 
 blender::gpu::Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)
@@ -423,8 +430,8 @@ blender::gpu::Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)
   using namespace blender::draw;
   BLI_assert(ob->type == OB_LATTICE);
 
-  Lattice *lt = static_cast<Lattice *>(ob->data);
-  return DRW_lattice_batch_cache_get_edit_verts(lt);
+  Lattice &lt = DRW_object_get_data_for_drawing<Lattice>(*ob);
+  return DRW_lattice_batch_cache_get_edit_verts(&lt);
 }
 
 /** \} */
@@ -438,8 +445,8 @@ blender::gpu::Batch *DRW_cache_pointcloud_vert_overlay_get(Object *ob)
   using namespace blender::draw;
   BLI_assert(ob->type == OB_POINTCLOUD);
 
-  PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
-  return DRW_pointcloud_batch_cache_get_edit_dots(pointcloud);
+  PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*ob);
+  return DRW_pointcloud_batch_cache_get_edit_dots(&pointcloud);
 }
 
 /** \} */
@@ -453,13 +460,14 @@ namespace blender::draw {
 blender::gpu::Batch *DRW_cache_volume_face_wireframe_get(Object *ob)
 {
   BLI_assert(ob->type == OB_VOLUME);
-  return DRW_volume_batch_cache_get_wireframes_face(static_cast<Volume *>(ob->data));
+  return DRW_volume_batch_cache_get_wireframes_face(&DRW_object_get_data_for_drawing<Volume>(*ob));
 }
 
 blender::gpu::Batch *DRW_cache_volume_selection_surface_get(Object *ob)
 {
   BLI_assert(ob->type == OB_VOLUME);
-  return DRW_volume_batch_cache_get_selection_surface(static_cast<Volume *>(ob->data));
+  return DRW_volume_batch_cache_get_selection_surface(
+      &DRW_object_get_data_for_drawing<Volume>(*ob));
 }
 
 }  // namespace blender::draw
@@ -520,27 +528,27 @@ void drw_batch_cache_validate(Object *ob)
   using namespace blender::draw;
   switch (ob->type) {
     case OB_MESH:
-      DRW_mesh_batch_cache_validate(*(Mesh *)ob->data);
+      DRW_mesh_batch_cache_validate(DRW_object_get_data_for_drawing<Mesh>(*ob));
       break;
     case OB_CURVES_LEGACY:
     case OB_FONT:
     case OB_SURF:
-      DRW_curve_batch_cache_validate((Curve *)ob->data);
+      DRW_curve_batch_cache_validate(&DRW_object_get_data_for_drawing<Curve>(*ob));
       break;
     case OB_LATTICE:
-      DRW_lattice_batch_cache_validate((Lattice *)ob->data);
+      DRW_lattice_batch_cache_validate(&DRW_object_get_data_for_drawing<Lattice>(*ob));
       break;
     case OB_CURVES:
-      DRW_curves_batch_cache_validate((Curves *)ob->data);
+      DRW_curves_batch_cache_validate(&DRW_object_get_data_for_drawing<Curves>(*ob));
       break;
     case OB_POINTCLOUD:
-      DRW_pointcloud_batch_cache_validate((PointCloud *)ob->data);
+      DRW_pointcloud_batch_cache_validate(&DRW_object_get_data_for_drawing<PointCloud>(*ob));
       break;
     case OB_VOLUME:
-      DRW_volume_batch_cache_validate((Volume *)ob->data);
+      DRW_volume_batch_cache_validate(&DRW_object_get_data_for_drawing<Volume>(*ob));
       break;
     case OB_GREASE_PENCIL:
-      DRW_grease_pencil_batch_cache_validate((GreasePencil *)ob->data);
+      DRW_grease_pencil_batch_cache_validate(&DRW_object_get_data_for_drawing<GreasePencil>(*ob));
     default:
       break;
   }
@@ -563,8 +571,12 @@ void drw_batch_cache_generate_requested(Object *ob, TaskGraph &task_graph)
 
   switch (ob->type) {
     case OB_MESH:
-      DRW_mesh_batch_cache_create_requested(
-          task_graph, *ob, *(Mesh *)ob->data, *scene, is_paint_mode, use_hide);
+      DRW_mesh_batch_cache_create_requested(task_graph,
+                                            *ob,
+                                            DRW_object_get_data_for_drawing<Mesh>(*ob),
+                                            *scene,
+                                            is_paint_mode,
+                                            use_hide);
       break;
     case OB_CURVES_LEGACY:
     case OB_FONT:
@@ -627,13 +639,14 @@ void DRW_batch_cache_free_old(Object *ob, int ctime)
 {
   switch (ob->type) {
     case OB_MESH:
-      DRW_mesh_batch_cache_free_old((Mesh *)ob->data, ctime);
+      DRW_mesh_batch_cache_free_old(&DRW_object_get_data_for_drawing<Mesh>(*ob), ctime);
       break;
     case OB_CURVES:
-      DRW_curves_batch_cache_free_old((Curves *)ob->data, ctime);
+      DRW_curves_batch_cache_free_old(&DRW_object_get_data_for_drawing<Curves>(*ob), ctime);
       break;
     case OB_POINTCLOUD:
-      DRW_pointcloud_batch_cache_free_old((PointCloud *)ob->data, ctime);
+      DRW_pointcloud_batch_cache_free_old(&DRW_object_get_data_for_drawing<PointCloud>(*ob),
+                                          ctime);
       break;
     default:
       break;

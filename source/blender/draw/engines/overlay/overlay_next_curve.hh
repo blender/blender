@@ -9,12 +9,12 @@
 #pragma once
 
 #include "BKE_attribute.hh"
-#include "BKE_curves.h"
 
 #include "DNA_curves_types.h"
 
 #include "GPU_capabilities.hh"
 
+#include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 
 #include "overlay_next_base.hh"
@@ -183,7 +183,7 @@ class Curves : Overlay {
     }
 
     Object *ob = ob_ref.object;
-    ::Curves &curves = *static_cast<::Curves *>(ob->data);
+    ::Curves &curves = DRW_object_get_data_for_drawing<::Curves>(*ob);
     const bool show_points = bke::AttrDomain(curves.selection_domain) == bke::AttrDomain::Point;
 
     if (show_points) {
@@ -210,7 +210,7 @@ class Curves : Overlay {
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     Object *ob = ob_ref.object;
-    ::Curve &curve = *static_cast<::Curve *>(ob->data);
+    ::Curve &curve = DRW_object_get_data_for_drawing<::Curve>(*ob);
 
     if (ob->type == OB_CURVES_LEGACY) {
       gpu::Batch *geom = DRW_cache_curve_edge_wire_get(ob);

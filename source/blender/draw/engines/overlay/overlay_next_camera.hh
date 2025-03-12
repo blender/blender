@@ -13,6 +13,7 @@
 #include "BLI_math_rotation.h"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"
+#include "DRW_render.hh"
 #include "ED_view3d.hh"
 
 #include "draw_manager_text.hh"
@@ -290,7 +291,7 @@ class Cameras : Overlay {
     const Scene *scene = state.scene;
     const RegionView3D *rv3d = state.rv3d;
 
-    const Camera *cam = static_cast<Camera *>(ob->data);
+    const Camera &cam = DRW_object_get_data_for_drawing<Camera>(*ob);
     const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
     const bool is_select = res.is_selection();
     const bool is_active = (ob == camera_object);
@@ -318,8 +319,8 @@ class Cameras : Overlay {
     float2 shift;
     float drawsize;
     BKE_camera_view_frame_ex(scene,
-                             cam,
-                             cam->drawsize,
+                             &cam,
+                             cam.drawsize,
                              is_camera_view,
                              1.0f / scale,
                              aspect_ratio,
@@ -383,19 +384,19 @@ class Cameras : Overlay {
       (is_active ? call_buffers_.tria_buf : call_buffers_.tria_wire_buf).append(data, select_id);
     }
 
-    if (cam->flag & CAM_SHOWLIMITS) {
+    if (cam.flag & CAM_SHOWLIMITS) {
       /* Scale focus point. */
-      data.matrix.x_axis() *= cam->drawsize;
-      data.matrix.y_axis() *= cam->drawsize;
+      data.matrix.x_axis() *= cam.drawsize;
+      data.matrix.y_axis() *= cam.drawsize;
 
       data.dist_color_id = (is_active) ? 3 : 2;
       data.focus = -BKE_camera_object_dof_distance(ob);
-      data.clip_start = cam->clip_start;
-      data.clip_end = cam->clip_end;
+      data.clip_start = cam.clip_start;
+      data.clip_end = cam.clip_end;
       call_buffers_.distances_buf.append(data, select_id);
     }
 
-    if (cam->flag & CAM_SHOWMIST) {
+    if (cam.flag & CAM_SHOWMIST) {
       World *world = scene->world;
       if (world) {
         data.dist_color_id = (is_active) ? 1 : 0;
@@ -558,13 +559,13 @@ class Cameras : Overlay {
                           Resources &res)
   {
     Object *ob = ob_ref.object;
-    const Camera *cam = static_cast<Camera *>(ob_ref.object->data);
+    const Camera &cam = DRW_object_get_data_for_drawing<Camera>(*ob_ref.object);
     const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, state.v3d->camera);
 
     const bool is_active = ob_ref.object == camera_object;
     const bool is_camera_view = (is_active && (state.rv3d->persp == RV3D_CAMOB));
-    const bool show_image = (cam->flag & CAM_SHOW_BG_IMAGE) &&
-                            !BLI_listbase_is_empty(&cam->bg_images);
+    const bool show_image = (cam.flag & CAM_SHOW_BG_IMAGE) &&
+                            !BLI_listbase_is_empty(&cam.bg_images);
     const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, state.rv3d);
 
     if (!images_enabled_ || !is_camera_view || !show_image || !show_frame) {
@@ -576,7 +577,7 @@ class Cameras : Overlay {
     float4x4 modelmat;
     BKE_camera_multiview_model_matrix(&state.scene->r, ob, viewname, modelmat.ptr());
 
-    for (const CameraBGImage *bgpic : ConstListBaseWrapper<CameraBGImage>(&cam->bg_images)) {
+    for (const CameraBGImage *bgpic : ConstListBaseWrapper<CameraBGImage>(&cam.bg_images)) {
       if (bgpic->flag & CAM_BGIMG_FLAG_DISABLED) {
         continue;
       }
@@ -591,7 +592,7 @@ class Cameras : Overlay {
           bgpic, state, res, aspect, use_alpha_premult, use_view_transform);
 
       if (tex) {
-        image_camera_background_matrix_get(cam, bgpic, state, aspect, mat);
+        image_camera_background_matrix_get(&cam, bgpic, state, aspect, mat);
 
         const bool is_foreground = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != 0;
         /* Alpha is clamped just below 1.0 to fix background images to interfere with foreground
@@ -780,7 +781,7 @@ class Cameras : Overlay {
   {
     CameraInstanceData stereodata = instdata;
 
-    const Camera *cam = static_cast<const Camera *>(ob->data);
+    const Camera &cam = DRW_object_get_data_for_drawing<const Camera>(*ob);
     const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
     const bool is_stereo3d_cameras = (v3d->stereo3d_flag & V3D_S3D_DISPCAMERAS) != 0;
@@ -818,8 +819,8 @@ class Cameras : Overlay {
       if (is_stereo3d_volume && !is_selection) {
         float r = (eye == 1) ? 2.0f : 1.0f;
 
-        stereodata.volume_start = -cam->clip_start;
-        stereodata.volume_end = -cam->clip_end;
+        stereodata.volume_start = -cam.clip_start;
+        stereodata.volume_end = -cam.clip_end;
         /* Encode eye + intensity and alpha (see shader) */
         stereodata.color_.x = r + 0.15f;
         stereodata.color_.y = 1.0f;
@@ -839,7 +840,7 @@ class Cameras : Overlay {
     }
 
     if (is_stereo3d_plane && !is_selection) {
-      if (cam->stereo.convergence_mode == CAM_S3D_TOE) {
+      if (cam.stereo.convergence_mode == CAM_S3D_TOE) {
         /* There is no real convergence plane but we highlight the center
          * point where the views are pointing at. */
         // stereodata.matrix.x_axis() = float3(0.0f); /* We reconstruct from Z and Y */
@@ -857,7 +858,7 @@ class Cameras : Overlay {
         stereodata.matrix.x_axis() = math::cross(stereodata.matrix.y_axis(),
                                                  stereodata.matrix.z_axis());
       }
-      else if (cam->stereo.convergence_mode == CAM_S3D_PARALLEL) {
+      else if (cam.stereo.convergence_mode == CAM_S3D_PARALLEL) {
         /* Show plane at the given distance between the views even if it makes no sense. */
         stereodata.matrix.location() = float3(0.0f);
         for (int i : IndexRange(2)) {
@@ -866,11 +867,11 @@ class Cameras : Overlay {
           stereodata.matrix.location() += mat.location() * 0.5f;
         }
       }
-      else if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
+      else if (cam.stereo.convergence_mode == CAM_S3D_OFFAXIS) {
         /* Nothing to do. Everything is already setup. */
       }
-      stereodata.volume_start = -cam->stereo.convergence_distance;
-      stereodata.volume_end = -cam->stereo.convergence_distance;
+      stereodata.volume_start = -cam.stereo.convergence_distance;
+      stereodata.volume_end = -cam.stereo.convergence_distance;
       /* Encode eye + intensity and alpha (see shader) */
       stereodata.color_.x = 0.1f;
       stereodata.color_.y = 1.0f;
@@ -890,11 +891,11 @@ class Cameras : Overlay {
                                          float corner_x,
                                          bool right_eye)
   {
-    const Camera *cam = static_cast<const Camera *>(ob->data);
-    if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
+    const Camera &cam = DRW_object_get_data_for_drawing<const Camera>(*ob);
+    if (cam.stereo.convergence_mode == CAM_S3D_OFFAXIS) {
       const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
       const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, viewnames[right_eye]);
-      const float delta_shiftx = shiftx - cam->shiftx;
+      const float delta_shiftx = shiftx - cam.shiftx;
       const float width = corner_x * 2.0f;
       return delta_shiftx * width;
     }

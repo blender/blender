@@ -35,14 +35,14 @@ void VolumePass::object_sync_volume(Manager &manager,
 {
   Object *ob = ob_ref.object;
   /* Create 3D textures. */
-  Volume *volume = static_cast<Volume *>(ob->data);
-  BKE_volume_load(volume, G.main);
-  const bke::VolumeGridData *volume_grid = BKE_volume_grid_active_get_for_read(volume);
+  Volume &volume = DRW_object_get_data_for_drawing<Volume>(*ob);
+  BKE_volume_load(&volume, G.main);
+  const bke::VolumeGridData *volume_grid = BKE_volume_grid_active_get_for_read(&volume);
   if (volume_grid == nullptr) {
     return;
   }
 
-  DRWVolumeGrid *grid = DRW_volume_batch_cache_get_grid(volume, volume_grid);
+  DRWVolumeGrid *grid = DRW_volume_batch_cache_get_grid(&volume, volume_grid);
   if (grid == nullptr) {
     return;
   }
@@ -51,14 +51,14 @@ void VolumePass::object_sync_volume(Manager &manager,
 
   PassMain::Sub &sub_ps = ps_.sub("Volume Object SubPass");
 
-  const bool use_slice = (volume->display.axis_slice_method == AXIS_SLICE_SINGLE);
+  const bool use_slice = (volume.display.axis_slice_method == AXIS_SLICE_SINGLE);
 
-  sub_ps.shader_set(ShaderCache::get().volume_get(
-      false, volume->display.interpolation_method, false, use_slice));
+  sub_ps.shader_set(
+      ShaderCache::get().volume_get(false, volume.display.interpolation_method, false, use_slice));
   sub_ps.push_constant("do_depth_test", scene_state.shading.type >= OB_SOLID);
 
-  const float density_scale = volume->display.density *
-                              BKE_volume_density_scale(volume, ob->object_to_world().ptr());
+  const float density_scale = volume.display.density *
+                              BKE_volume_density_scale(&volume, ob->object_to_world().ptr());
 
   sub_ps.bind_texture("depthBuffer", &resources.depth_tx);
   sub_ps.bind_texture("stencil_tx", &stencil_tx_);
@@ -71,12 +71,8 @@ void VolumePass::object_sync_volume(Manager &manager,
   sub_ps.push_constant("volumeTextureToObject", float4x4(grid->texture_to_object));
 
   if (use_slice) {
-    draw_slice_ps(manager,
-                  resources,
-                  sub_ps,
-                  ob_ref,
-                  volume->display.slice_axis,
-                  volume->display.slice_depth);
+    draw_slice_ps(
+        manager, resources, sub_ps, ob_ref, volume.display.slice_axis, volume.display.slice_depth);
   }
   else {
     float4x4 texture_to_world = ob->object_to_world() * float4x4(grid->texture_to_object);

@@ -354,7 +354,7 @@ GPENCIL_tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHan
   using namespace blender;
   using namespace blender::ed::greasepencil;
   using namespace blender::bke::greasepencil;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+  GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<GreasePencil>(*ob);
   const bool is_vertex_mode = (ob->mode & OB_MODE_VERTEX_PAINT) != 0;
   const blender::Bounds<float3> bounds = grease_pencil.bounds_min_max_eval().value_or(
       blender::Bounds(float3(0)));

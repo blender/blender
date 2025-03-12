@@ -157,7 +157,7 @@ gpu::VertBuf *DRW_curves_pos_buffer_get(Object *object)
   const int subdiv = scene->r.hair_subdiv;
   const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
-  Curves &curves = *static_cast<Curves *>(object->data);
+  Curves &curves = DRW_object_get_data_for_drawing<Curves>(*object);
   CurvesEvalCache *cache = drw_curves_cache_get(curves, nullptr, subdiv, thickness_res);
 
   return cache->final.proc_buf;
@@ -262,7 +262,7 @@ gpu::VertBuf *curves_pos_buffer_get(Scene *scene, Object *object)
   const int subdiv = scene->r.hair_subdiv;
   const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
-  Curves &curves = *static_cast<Curves *>(object->data);
+  Curves &curves = DRW_object_get_data_for_drawing<Curves>(*object);
   CurvesEvalCache *cache = curves_cache_get(curves, nullptr, subdiv, thickness_res);
 
   return cache->final.proc_buf;
@@ -279,7 +279,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
   CurvesModule &module = *drw_get().data->curves_module;
   CurvesInfosBuf &curves_infos = module.ubo_pool.alloc();
   BLI_assert(ob->type == OB_CURVES);
-  Curves &curves_id = *static_cast<Curves *>(ob->data);
+  Curves &curves_id = DRW_object_get_data_for_drawing<Curves>(*ob);
 
   const int subdiv = scene->r.hair_subdiv;
   const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;

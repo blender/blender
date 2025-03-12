@@ -71,7 +71,7 @@ gpu::Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
                                                      GPUMaterial *gpu_material)
 {
   BLI_assert(object->type == OB_POINTCLOUD);
-  PointCloud &pointcloud = *static_cast<PointCloud *>(object->data);
+  PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*object);
 
   PointCloudModule &module = *drw_get().data->pointcloud_module;
   /* Fix issue with certain driver not drawing anything if there is no texture bound to

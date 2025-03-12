@@ -15,6 +15,7 @@
 #include "BLT_translation.hh"
 
 #include "DEG_depsgraph_query.hh"
+#include "DRW_render.hh"
 #include "ED_view3d.hh"
 
 #include "RE_engine.h"
@@ -209,7 +210,7 @@ struct Instance : public DrawEngine {
   {
     using namespace blender::draw;
     using namespace blender;
-    Mesh &mesh = *static_cast<Mesh *>(ob->data);
+    Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
     BMEditMesh *em = mesh.runtime->edit_mesh.get();
 
     ElemIndexRanges ranges{};
@@ -268,7 +269,7 @@ struct Instance : public DrawEngine {
   {
     using namespace blender::draw;
     using namespace blender;
-    Mesh &mesh = *static_cast<Mesh *>(ob->data);
+    Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
 
     ElemIndexRanges ranges{};
     ranges.total = IndexRange::from_begin_size(initial_index, 0);
@@ -311,7 +312,7 @@ struct Instance : public DrawEngine {
 
     switch (ob->type) {
       case OB_MESH: {
-        const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
+        const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
         if (mesh.runtime->edit_mesh) {
           bool draw_facedot = check_ob_drawface_dot(select_mode, v3d, eDrawType(ob->dt));
           return edit_mesh_sync(ob, res_handle, select_mode, draw_facedot, index_start);
@@ -336,7 +337,7 @@ struct Instance : public DrawEngine {
       /* This object is not selectable. It is here to participate in occlusion.
        * This is the case in retopology mode. */
       blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
-          *static_cast<Mesh *>(ob->data));
+          DRW_object_get_data_for_drawing<Mesh>(*ob));
 
       depth_occlude->draw(geom_faces, manager.resource_handle(ob_ref));
       return;

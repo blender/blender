@@ -1095,15 +1095,15 @@ static void create_edit_points_position_vbo(
 
 void DRW_curves_batch_cache_create_requested(Object *ob)
 {
-  Curves *curves_id = static_cast<Curves *>(ob->data);
+  Curves &curves_id = DRW_object_get_data_for_drawing<Curves>(*ob);
   Object *ob_orig = DEG_get_original_object(ob);
   if (ob_orig == nullptr) {
     return;
   }
-  const Curves *curves_orig_id = static_cast<Curves *>(ob_orig->data);
+  const Curves &curves_orig_id = DRW_object_get_data_for_drawing<Curves>(*ob_orig);
 
-  draw::CurvesBatchCache &cache = draw::get_batch_cache(*curves_id);
-  const bke::CurvesGeometry &curves_orig = curves_orig_id->geometry.wrap();
+  draw::CurvesBatchCache &cache = draw::get_batch_cache(curves_id);
+  const bke::CurvesGeometry &curves_orig = curves_orig_id.geometry.wrap();
 
   bool is_edit_data_needed = false;
 

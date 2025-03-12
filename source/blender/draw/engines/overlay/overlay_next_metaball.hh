@@ -11,7 +11,6 @@
 #include "ED_mball.hh"
 
 #include "overlay_next_base.hh"
-#include "overlay_shader_shared.h"
 
 namespace blender::draw::overlay {
 
@@ -42,7 +41,7 @@ class Metaballs : Overlay {
                         const State & /*state*/) final
   {
     const Object *ob = ob_ref.object;
-    const MetaBall *mb = static_cast<MetaBall *>(ob->data);
+    const MetaBall &mb = DRW_object_get_data_for_drawing<MetaBall>(*ob);
 
     const float *color;
     const float *col_radius = res.theme_settings.color_mball_radius;
@@ -51,7 +50,7 @@ class Metaballs : Overlay {
     const float *col_stiffness_select = res.theme_settings.color_mball_stiffness_select;
 
     int elem_num = 0;
-    LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
+    LISTBASE_FOREACH (MetaElem *, ml, mb.editelems) {
       const bool is_selected = (ml->flag & SELECT) != 0;
       const bool is_scale_radius = (ml->flag & MB_SCALE_RAD) != 0;
       const float stiffness_radius = ml->rad * atanf(ml->s) * 2.0f / math::numbers::pi;
@@ -74,7 +73,7 @@ class Metaballs : Overlay {
                    const State &state) final
   {
     const Object *ob = ob_ref.object;
-    const MetaBall *mb = static_cast<MetaBall *>(ob->data);
+    const MetaBall *mb = &DRW_object_get_data_for_drawing<MetaBall>(*ob);
 
     const float4 &color = res.object_wire_color(ob_ref, state);
     const select::ID select_id = res.select_id(ob_ref);

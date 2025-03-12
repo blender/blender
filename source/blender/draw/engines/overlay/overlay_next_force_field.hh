@@ -65,7 +65,8 @@ class ForceFields : Overlay {
     const select::ID select_id = res.select_id(ob_ref);
     const Object *ob = ob_ref.object;
     PartDeflect *pd = ob->pd;
-    Curve *cu = (ob->type == OB_CURVES_LEGACY) ? static_cast<Curve *>(ob->data) : nullptr;
+    Curve *cu = (ob->type == OB_CURVES_LEGACY) ? &DRW_object_get_data_for_drawing<Curve>(*ob) :
+                                                 nullptr;
 
     ExtraInstanceData data(
         ob->object_to_world(), res.object_background_blend_color(ob_ref, state), 1.0f);

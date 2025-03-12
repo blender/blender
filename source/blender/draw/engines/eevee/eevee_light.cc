@@ -389,13 +389,13 @@ void LightModule::begin_sync()
 
 void LightModule::sync_light(const Object *ob, ObjectHandle &handle)
 {
-  const ::Light *la = static_cast<const ::Light *>(ob->data);
+  const ::Light &la = DRW_object_get_data_for_drawing<const ::Light>(*ob);
   if (use_scene_lights_ == false) {
     return;
   }
 
   if (use_sun_lights_ == false) {
-    if (la->type == LA_SUN) {
+    if (la.type == LA_SUN) {
       return;
     }
   }
@@ -407,7 +407,7 @@ void LightModule::sync_light(const Object *ob, ObjectHandle &handle)
     light.sync(inst_.shadows,
                ob->object_to_world(),
                ob->visibility_flag,
-               la,
+               &la,
                ob->light_linking,
                light_threshold_);
   }

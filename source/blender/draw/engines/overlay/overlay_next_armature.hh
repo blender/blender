@@ -12,6 +12,8 @@
 
 #include "ED_view3d.hh"
 
+#include "DRW_render.hh"
+
 #include "overlay_next_base.hh"
 #include "overlay_shader_shared.h"
 
@@ -506,7 +508,7 @@ class Armatures : Overlay {
                                   const State &state,
                                   eArmatureDrawMode draw_mode)
   {
-    bArmature *arm = static_cast<bArmature *>(ob_ref.object->data);
+    bArmature &arm = DRW_object_get_data_for_drawing<bArmature>(*ob_ref.object);
 
     DrawContext ctx;
     ctx.ob = ob_ref.object;
@@ -514,7 +516,7 @@ class Armatures : Overlay {
     ctx.res = &res;
     ctx.dt = state.dt;
     ctx.draw_mode = draw_mode;
-    ctx.drawtype = eArmature_Drawtype(arm->drawtype);
+    ctx.drawtype = eArmature_Drawtype(arm.drawtype);
 
     const bool is_edit_or_pose_mode = draw_mode != ARM_DRAW_MODE_OBJECT;
     const bool draw_as_wire = (ctx.ob->dt < OB_SOLID);
@@ -526,7 +528,7 @@ class Armatures : Overlay {
     ctx.show_relations = show_relations;
     ctx.do_relations = show_relations && is_edit_or_pose_mode;
     ctx.draw_envelope_distance = is_edit_or_pose_mode;
-    ctx.draw_relation_from_head = (arm->flag & ARM_DRAW_RELATION_FROM_HEAD);
+    ctx.draw_relation_from_head = (arm.flag & ARM_DRAW_RELATION_FROM_HEAD);
     ctx.show_text = state.show_text;
     ctx.const_color = is_edit_or_pose_mode ? nullptr : &res.object_wire_color(ob_ref, state)[0];
     ctx.const_wire = (!ctx.is_filled || is_transparent) ? 1.0f : 0.0f;

@@ -288,7 +288,7 @@ class GreasePencil : Overlay {
   {
     using namespace blender;
     using namespace blender::ed::greasepencil;
-    ::GreasePencil &grease_pencil = *static_cast<::GreasePencil *>(ob->data);
+    ::GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<::GreasePencil>(*ob);
 
     const bool is_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
 
@@ -412,7 +412,7 @@ class GreasePencil : Overlay {
   {
     const ToolSettings *ts = scene->toolsettings;
 
-    const ::GreasePencil &grease_pencil = *static_cast<::GreasePencil *>(object.data);
+    const ::GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<::GreasePencil>(object);
     const blender::bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer();
 
     float4x4 mat = object.object_to_world();
@@ -464,7 +464,7 @@ class GreasePencil : Overlay {
     uchar4 color;
     UI_GetThemeColor4ubv(res.object_wire_theme_id(ob_ref, state), color);
 
-    ::GreasePencil &grease_pencil = *static_cast<::GreasePencil *>(object.data);
+    ::GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<::GreasePencil>(object);
 
     Vector<ed::greasepencil::DrawingInfo> drawings = ed::greasepencil::retrieve_visible_drawings(
         *state.scene, grease_pencil, false);

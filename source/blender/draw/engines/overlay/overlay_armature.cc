@@ -42,7 +42,6 @@
 #include "UI_resources.hh"
 
 #include "draw_cache.hh"
-#include "draw_common_c.hh"
 #include "draw_context_private.hh"
 #include "draw_manager_text.hh"
 
@@ -530,7 +529,7 @@ static void drw_shgroup_bone_custom_solid(const Armatures::DrawContext *ctx,
 
   if (ELEM(custom->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
     drw_shgroup_custom_bone_curve(ctx,
-                                  static_cast<Curve *>(custom->data),
+                                  &DRW_object_get_data_for_drawing<Curve>(*custom),
                                   bone_mat,
                                   outline_color,
                                   wire_width,
@@ -554,8 +553,13 @@ static void drw_shgroup_bone_custom_wire(const Armatures::DrawContext *ctx,
   }
 
   if (ELEM(custom->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
-    drw_shgroup_custom_bone_curve(
-        ctx, static_cast<Curve *>(custom->data), bone_mat, color, wire_width, select_id, custom);
+    drw_shgroup_custom_bone_curve(ctx,
+                                  &DRW_object_get_data_for_drawing<Curve>(*custom),
+                                  bone_mat,
+                                  color,
+                                  wire_width,
+                                  select_id,
+                                  custom);
   }
 }
 
@@ -699,9 +703,9 @@ static void drw_shgroup_bone_ik_spline_lines(const Armatures::DrawContext *ctx,
 /* This function sets the color-set for coloring a certain bone */
 static void set_ctx_bcolor(Armatures::DrawContext *ctx, const UnifiedBonePtr bone)
 {
-  bArmature *arm = static_cast<bArmature *>(ctx->ob->data);
+  bArmature &arm = DRW_object_get_data_for_drawing<bArmature>(*ctx->ob);
 
-  if ((arm->flag & ARM_COL_CUSTOM) == 0) {
+  if ((arm.flag & ARM_COL_CUSTOM) == 0) {
     /* Only set a custom color if that's enabled on this armature. */
     ctx->bcolor = nullptr;
     return;
@@ -1215,7 +1219,7 @@ static void draw_bone_update_disp_matrix_bbone(UnifiedBonePtr bone)
 
 static void draw_axes(const Armatures::DrawContext *ctx,
                       const UnifiedBonePtr bone,
-                      const bArmature *arm)
+                      const bArmature &arm)
 {
   float final_col[4];
   const float *col = (ctx->const_color)            ? ctx->const_color :
@@ -1225,7 +1229,7 @@ static void draw_axes(const Armatures::DrawContext *ctx,
   /* Mix with axes color. */
   final_col[3] = (ctx->const_color) ? 1.0 : (bone.flag() & BONE_SELECTED) ? 0.1 : 0.65;
 
-  if (bone.is_posebone() && bone.as_posebone()->custom && !(arm->flag & ARM_NO_CUSTOM)) {
+  if (bone.is_posebone() && bone.as_posebone()->custom && !(arm.flag & ARM_NO_CUSTOM)) {
     const bPoseChannel *pchan = bone.as_posebone();
     /* Special case: Custom bones can have different scale than the bone.
      * Recompute display matrix without the custom scaling applied. (#65640). */
@@ -1234,14 +1238,14 @@ static void draw_axes(const Armatures::DrawContext *ctx,
     copy_m4_m4(axis_mat, pchan->custom_tx ? pchan->custom_tx->pose_mat : pchan->pose_mat);
     const float3 length_vec = {length, length, length};
     rescale_m4(axis_mat, length_vec);
-    translate_m4(axis_mat, 0.0, arm->axes_position - 1.0, 0.0);
+    translate_m4(axis_mat, 0.0, arm.axes_position - 1.0, 0.0);
 
     drw_shgroup_bone_axes(ctx, axis_mat, final_col);
   }
   else {
     float disp_mat[4][4];
     copy_m4_m4(disp_mat, bone.disp_mat());
-    translate_m4(disp_mat, 0.0, arm->axes_position - 1.0, 0.0);
+    translate_m4(disp_mat, 0.0, arm.axes_position - 1.0, 0.0);
     drw_shgroup_bone_axes(ctx, disp_mat, final_col);
   }
 }
@@ -2019,21 +2023,21 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
    * however the active bone isn't updated. Long term solution is an 'EditArmature' struct.
    * for now we can draw from the original armature. See: #66773. */
   // bArmature *arm = ob->data;
-  bArmature *arm = static_cast<bArmature *>(ob_orig->data);
+  bArmature &arm = DRW_object_get_data_for_drawing<bArmature>(*ob_orig);
 
-  edbo_compute_bbone_child(arm);
+  edbo_compute_bbone_child(&arm);
 
   /* Determine drawing strategy. */
   const ArmatureBoneDrawStrategy &draw_strat = strategy_for_armature_drawtype(
-      eArmature_Drawtype(arm->drawtype));
+      eArmature_Drawtype(arm.drawtype));
 
-  for (eBone = static_cast<EditBone *>(arm->edbo->first),
+  for (eBone = static_cast<EditBone *>(arm.edbo->first),
       /* Note: Selection Next handles the object id merging later. */
        index = ctx->bone_buf ? 0x0 : ob_orig->runtime->select_id;
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
-    if (!EBONE_VISIBLE(arm, eBone)) {
+    if (!EBONE_VISIBLE(&arm, eBone)) {
       continue;
     }
 
@@ -2041,12 +2045,12 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
 
     /* catch exception for bone with hidden parent */
     eBone_Flag boneflag = eBone_Flag(eBone->flag);
-    if ((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent)) {
+    if ((eBone->parent) && !EBONE_VISIBLE(&arm, eBone->parent)) {
       boneflag &= ~BONE_CONNECTED;
     }
 
     /* set temporary flag for drawing bone as active, but only if selected */
-    if (eBone == arm->act_edbone) {
+    if (eBone == arm.act_edbone) {
       boneflag |= BONE_DRAW_ACTIVE;
     }
 
@@ -2065,11 +2069,11 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
     draw_strat.draw_bone(ctx, bone, boneflag, select_id);
 
     if (!is_select) {
-      if (show_text && (arm->flag & ARM_DRAWNAMES)) {
+      if (show_text && (arm.flag & ARM_DRAWNAMES)) {
         draw_bone_name(ctx, bone, boneflag);
       }
 
-      if (arm->flag & ARM_DRAWAXES) {
+      if (arm.flag & ARM_DRAWAXES) {
         draw_axes(ctx, bone, arm);
       }
     }
@@ -2081,7 +2085,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
   Object *ob = ctx->ob;
   const DRWContext *draw_ctx = DRW_context_get();
   const Scene *scene = draw_ctx->scene;
-  bArmature *arm = static_cast<bArmature *>(ob->data);
+  bArmature &arm = DRW_object_get_data_for_drawing<bArmature>(*ob);
   int index = -1;
   const bool show_text = ctx->show_text;
   bool draw_locked_weights = false;
@@ -2151,14 +2155,14 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
   }
 
   const ArmatureBoneDrawStrategy &draw_strat_normal = strategy_for_armature_drawtype(
-      eArmature_Drawtype(arm->drawtype));
+      eArmature_Drawtype(arm.drawtype));
   const ArmatureBoneDrawStrategyCustomShape draw_strat_custom;
 
   for (bPoseChannel *pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
        pchan = pchan->next, index += 0x10000)
   {
     Bone *bone = pchan->bone;
-    if (!ANIM_bone_is_visible(arm, bone)) {
+    if (!ANIM_bone_is_visible(&arm, bone)) {
       continue;
     }
 
@@ -2181,7 +2185,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
       /* Avoid drawing connection line to hidden parent. */
       boneflag &= ~BONE_CONNECTED;
     }
-    if (bone == arm->act_bone) {
+    if (bone == arm.act_bone) {
       /* Draw bone as active, but only if selected. */
       boneflag |= BONE_DRAW_ACTIVE;
     }
@@ -2189,7 +2193,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
       boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
     }
 
-    const bool use_custom_shape = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
+    const bool use_custom_shape = (pchan->custom) && !(arm.flag & ARM_NO_CUSTOM);
     const ArmatureBoneDrawStrategy &draw_strat = use_custom_shape ? draw_strat_custom :
                                                                     draw_strat_normal;
     if (!is_pose_select) {
@@ -2207,10 +2211,10 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     if (draw_dofs) {
       draw_bone_degrees_of_freedom(ctx, pchan);
     }
-    if (show_text && (arm->flag & ARM_DRAWNAMES)) {
+    if (show_text && (arm.flag & ARM_DRAWNAMES)) {
       draw_bone_name(ctx, bone_ptr, boneflag);
     }
-    if (arm->flag & ARM_DRAWAXES) {
+    if (arm.flag & ARM_DRAWAXES) {
       draw_axes(ctx, bone_ptr, arm);
     }
   }

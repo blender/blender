@@ -695,14 +695,14 @@ void IrradianceBake::init(const Object &probe_object)
 {
   float max_axis_len = math::reduce_max(math::to_scale(probe_object.object_to_world()));
 
-  const ::LightProbe *lightprobe = static_cast<::LightProbe *>(probe_object.data);
-  surfel_density_ = lightprobe->grid_surfel_density / max_axis_len;
-  min_distance_to_surface_ = lightprobe->grid_surface_bias;
-  max_virtual_offset_ = lightprobe->grid_escape_bias;
-  clip_distance_ = lightprobe->clipend;
-  capture_world_ = (lightprobe->grid_flag & LIGHTPROBE_GRID_CAPTURE_WORLD);
-  capture_indirect_ = (lightprobe->grid_flag & LIGHTPROBE_GRID_CAPTURE_INDIRECT);
-  capture_emission_ = (lightprobe->grid_flag & LIGHTPROBE_GRID_CAPTURE_EMISSION);
+  const ::LightProbe &lightprobe = DRW_object_get_data_for_drawing<::LightProbe>(probe_object);
+  surfel_density_ = lightprobe.grid_surfel_density / max_axis_len;
+  min_distance_to_surface_ = lightprobe.grid_surface_bias;
+  max_virtual_offset_ = lightprobe.grid_escape_bias;
+  clip_distance_ = lightprobe.clipend;
+  capture_world_ = (lightprobe.grid_flag & LIGHTPROBE_GRID_CAPTURE_WORLD);
+  capture_indirect_ = (lightprobe.grid_flag & LIGHTPROBE_GRID_CAPTURE_INDIRECT);
+  capture_emission_ = (lightprobe.grid_flag & LIGHTPROBE_GRID_CAPTURE_EMISSION);
 
   /* Initialize views data, since they're used by other modules. */
   surfel_raster_views_sync(float3(0.0f), float3(1.0f), float4x4::identity());
@@ -882,9 +882,9 @@ void IrradianceBake::surfels_create(const Object &probe_object)
    */
   using namespace blender::math;
 
-  const ::LightProbe *lightprobe = static_cast<::LightProbe *>(probe_object.data);
+  const ::LightProbe &lightprobe = DRW_object_get_data_for_drawing<::LightProbe>(probe_object);
 
-  int3 grid_resolution = int3(&lightprobe->grid_resolution_x);
+  int3 grid_resolution = int3(&lightprobe.grid_resolution_x);
   float4x4 grid_local_to_world = invert(probe_object.world_to_object());
   float3 grid_scale = math::to_scale(probe_object.object_to_world());
 
@@ -914,11 +914,11 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   float min_distance_between_grid_samples = math::reduce_min(grid_scale / float3(grid_resolution));
   capture_info_buf_.min_distance_to_surface *= min_distance_between_grid_samples;
   capture_info_buf_.max_virtual_offset *= min_distance_between_grid_samples;
-  capture_info_buf_.clamp_direct = (lightprobe->grid_clamp_direct > 0.0) ?
-                                       lightprobe->grid_clamp_direct :
+  capture_info_buf_.clamp_direct = (lightprobe.grid_clamp_direct > 0.0) ?
+                                       lightprobe.grid_clamp_direct :
                                        1e20f;
-  capture_info_buf_.clamp_indirect = (lightprobe->grid_clamp_indirect > 0.0) ?
-                                         lightprobe->grid_clamp_indirect :
+  capture_info_buf_.clamp_indirect = (lightprobe.grid_clamp_indirect > 0.0) ?
+                                         lightprobe.grid_clamp_indirect :
                                          1e20f;
 
   eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |

@@ -86,7 +86,7 @@ class Lights : Overlay {
     float &clip_start = matrix[2].w;
     float &clip_end = matrix[3].w;
 
-    const Light &la = *static_cast<Light *>(ob_ref.object->data);
+    const Light &la = DRW_object_get_data_for_drawing<Light>(*ob_ref.object);
     const select::ID select_id = res.select_id(ob_ref);
 
     /* FIXME / TODO: clip_end has no meaning nowadays.
