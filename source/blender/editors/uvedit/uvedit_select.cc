@@ -2326,10 +2326,6 @@ static void uv_select_all_perform(const Scene *scene, Object *obedit, int action
   const ToolSettings *ts = scene->toolsettings;
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-  if (action == SEL_TOGGLE) {
-    action = uvedit_select_is_any_selected(scene, obedit) ? SEL_DESELECT : SEL_SELECT;
-  }
-
   if (ts->uv_flag & UV_SYNC_SELECTION) {
     switch (action) {
       case SEL_TOGGLE:
@@ -2348,6 +2344,10 @@ static void uv_select_all_perform(const Scene *scene, Object *obedit, int action
     }
   }
   else {
+    if (action == SEL_TOGGLE) {
+      action = uvedit_select_is_any_selected(scene, obedit) ? SEL_DESELECT : SEL_SELECT;
+    }
+
     switch (action) {
       case SEL_SELECT:
         uv_select_all(scene, em, true);
