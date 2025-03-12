@@ -249,8 +249,7 @@ static void rna_SequenceEditor_strips_all_begin(CollectionPropertyIterator *iter
   strip_iter->index = 0;
   add_strips_from_seqbase(&ed->seqbase, strip_iter->strips);
 
-  BLI_Iterator *bli_iter = static_cast<BLI_Iterator *>(
-      MEM_callocN(sizeof(BLI_Iterator), __func__));
+  BLI_Iterator *bli_iter = MEM_callocN<BLI_Iterator>(__func__);
   iter->internal.custom = bli_iter;
   bli_iter->data = strip_iter;
 

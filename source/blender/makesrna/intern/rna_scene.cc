@@ -878,7 +878,7 @@ static void rna_all_grease_pencil_update(bContext *C, PointerRNA * /*ptr*/)
 static void rna_Scene_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->data;
-  iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
+  iter->internal.custom = MEM_callocN<BLI_Iterator>(__func__);
 
   BKE_scene_objects_iterator_begin(static_cast<BLI_Iterator *>(iter->internal.custom),
                                    (void *)scene);

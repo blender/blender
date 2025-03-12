@@ -1221,7 +1221,7 @@ static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
 
     /* Copy and sort the index array. */
     size_t size = sizeof(int) * indices_num;
-    int *buffer = static_cast<int *>(MEM_mallocN(size, "hook indexar"));
+    int *buffer = MEM_malloc_arrayN<int>(size_t(indices_num), "hook indexar");
     memcpy(buffer, indices, size);
 
     qsort(buffer, indices_num, sizeof(int), BLI_sortutil_cmp_int);

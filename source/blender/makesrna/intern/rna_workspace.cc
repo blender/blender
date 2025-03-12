@@ -60,7 +60,7 @@ static PointerRNA rna_workspace_screens_item_get(CollectionPropertyIterator *ite
 
 static wmOwnerID *rna_WorkSpace_owner_ids_new(WorkSpace *workspace, const char *name)
 {
-  wmOwnerID *owner_id = static_cast<wmOwnerID *>(MEM_callocN(sizeof(*owner_id), __func__));
+  wmOwnerID *owner_id = MEM_callocN<wmOwnerID>(__func__);
   BLI_addtail(&workspace->owner_ids, owner_id);
   STRNCPY(owner_id->name, name);
   WM_main_add_notifier(NC_WINDOW, nullptr);

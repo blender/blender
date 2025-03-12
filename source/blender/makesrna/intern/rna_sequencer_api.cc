@@ -630,8 +630,7 @@ static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int
     return;
   }
 
-  new_seq = static_cast<StripElem *>(
-      MEM_callocN(sizeof(StripElem) * (strip->len - 1), "StripElements_pop"));
+  new_seq = MEM_calloc_arrayN<StripElem>(size_t(strip->len) - 1, "StripElements_pop");
   strip->len--;
 
   if (strip->len == 1) {

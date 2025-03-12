@@ -320,10 +320,9 @@ static void rna_Depsgraph_update(Depsgraph *depsgraph, Main *bmain, ReportList *
 
 static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
+  iter->internal.custom = MEM_callocN<BLI_Iterator>(__func__);
   DEGObjectIterData *data = MEM_new<DEGObjectIterData>(__func__);
-  DEGObjectIterSettings *deg_iter_settings = static_cast<DEGObjectIterSettings *>(
-      MEM_callocN(sizeof(DEGObjectIterSettings), __func__));
+  DEGObjectIterSettings *deg_iter_settings = MEM_callocN<DEGObjectIterSettings>(__func__);
   deg_iter_settings->depsgraph = (Depsgraph *)ptr->data;
   deg_iter_settings->flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
                              DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
@@ -378,8 +377,7 @@ static void rna_Depsgraph_object_instances_begin(CollectionPropertyIterator *ite
 {
   RNA_Depsgraph_Instances_Iterator *di_it = MEM_new<RNA_Depsgraph_Instances_Iterator>(__func__);
   iter->internal.custom = di_it;
-  DEGObjectIterSettings *deg_iter_settings = static_cast<DEGObjectIterSettings *>(
-      MEM_callocN(sizeof(DEGObjectIterSettings), __func__));
+  DEGObjectIterSettings *deg_iter_settings = MEM_callocN<DEGObjectIterSettings>(__func__);
   deg_iter_settings->depsgraph = (Depsgraph *)ptr->data;
   deg_iter_settings->flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
                              DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET | DEG_ITER_OBJECT_FLAG_VISIBLE |
@@ -456,8 +454,8 @@ static PointerRNA rna_Depsgraph_object_instances_get(CollectionPropertyIterator 
 
 static void rna_Depsgraph_ids_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
-  DEGIDIterData *data = static_cast<DEGIDIterData *>(MEM_callocN(sizeof(DEGIDIterData), __func__));
+  iter->internal.custom = MEM_callocN<BLI_Iterator>(__func__);
+  DEGIDIterData *data = MEM_callocN<DEGIDIterData>(__func__);
 
   data->graph = (Depsgraph *)ptr->data;
 
@@ -487,8 +485,8 @@ static PointerRNA rna_Depsgraph_ids_get(CollectionPropertyIterator *iter)
 
 static void rna_Depsgraph_updates_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
-  DEGIDIterData *data = static_cast<DEGIDIterData *>(MEM_callocN(sizeof(DEGIDIterData), __func__));
+  iter->internal.custom = MEM_callocN<BLI_Iterator>(__func__);
+  DEGIDIterData *data = MEM_callocN<DEGIDIterData>(__func__);
 
   data->graph = (Depsgraph *)ptr->data;
   data->only_updated = true;
