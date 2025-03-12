@@ -32,7 +32,8 @@ static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_parti
   }
 
   if (b_ob_info.object_data.is_a(&RNA_Volume) ||
-      (b_ob_info.object_data == object_get_data(b_ob_info.real_object) &&
+      (b_ob_info.object_data ==
+           object_get_data(b_ob_info.real_object, b_ob_info.use_adaptive_subdivision) &&
        object_fluid_gas_domain_find(b_ob_info.real_object)))
   {
     return Geometry::VOLUME;

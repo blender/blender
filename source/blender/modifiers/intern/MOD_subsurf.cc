@@ -210,13 +210,6 @@ static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
   return md;
 }
 
-/**
- * Return true if GPU subdivision evaluation is disabled by force due to incompatible mesh or
- * modifier settings. This will only return true if GPU subdivision is enabled in the preferences
- * and supported by the GPU. It is mainly useful for showing UI messages.
- */
-bool BKE_subsurf_modifier_can_use_gpu_evaluation(const SubsurfModifierData *smd, const Mesh *mesh);
-
 /* Modifier itself. */
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)

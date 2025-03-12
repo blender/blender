@@ -1106,14 +1106,8 @@ void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
   new_mesh.set_used_shaders(used_shaders);
 
   if (view_layer.use_surfaces) {
-    /* Adaptive subdivision setup. Not for baking since that requires
-     * exact mapping to the Blender mesh. */
-    if (b_ob_info.real_object != b_bake_target) {
-      object_subdivision_to_mesh(b_ob_info.real_object, new_mesh, preview, experimental);
-    }
-
-    /* For some reason, meshes do not need this... */
-    BL::Mesh b_mesh = object_to_mesh(b_ob_info, new_mesh.get_subdivision_type());
+    object_subdivision_to_mesh(b_ob_info.real_object, new_mesh, preview, use_adaptive_subdivision);
+    BL::Mesh b_mesh = object_to_mesh(b_ob_info);
 
     if (b_mesh) {
       /* Motion blur attribute is relative to seconds, we need it relative to frames. */
@@ -1189,7 +1183,7 @@ void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int
   BL::Mesh b_mesh_rna(PointerRNA_NULL);
   if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
     /* get derived mesh */
-    b_mesh_rna = object_to_mesh(b_ob_info, mesh->get_subdivision_type());
+    b_mesh_rna = object_to_mesh(b_ob_info);
   }
 
   const std::string ob_name = b_ob_info.real_object.name();

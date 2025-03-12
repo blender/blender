@@ -91,14 +91,14 @@ bool BlenderSync::object_can_have_geometry(BL::Object &b_ob)
 
 bool BlenderSync::object_is_light(BL::Object &b_ob)
 {
-  BL::ID b_ob_data = object_get_data(b_ob);
+  BL::ID b_ob_data = object_get_data(b_ob, true);
 
   return (b_ob_data && b_ob_data.is_a(&RNA_Light));
 }
 
 bool BlenderSync::object_is_camera(BL::Object &b_ob)
 {
-  BL::ID b_ob_data = object_get_data(b_ob);
+  BL::ID b_ob_data = object_get_data(b_ob, true);
 
   return (b_ob_data && b_ob_data.is_a(&RNA_Camera));
 }
@@ -157,7 +157,11 @@ Object *BlenderSync::sync_object(BL::ViewLayer &b_view_layer,
   BL::Object b_ob = b_instance.object();
   BL::Object b_parent = is_instance ? b_instance.parent() : b_instance.object();
   BL::Object b_real_object = is_instance ? b_instance.instance_object() : b_ob;
-  BObjectInfo b_ob_info{b_ob, b_real_object, object_get_data(b_ob)};
+  const bool use_adaptive_subdiv = object_subdivision_type(
+                                       b_real_object, preview, use_adaptive_subdivision) !=
+                                   Mesh::SUBDIVISION_NONE;
+  BObjectInfo b_ob_info{
+      b_ob, b_real_object, object_get_data(b_ob, use_adaptive_subdiv), use_adaptive_subdiv};
   const bool motion = motion_time != 0.0f;
   /*const*/ Transform tfm = get_transform(b_ob.matrix_world());
   int *persistent_id = nullptr;
@@ -582,7 +586,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
       BL::MeshSequenceCacheModifier b_mesh_cache(PointerRNA_NULL);
 
       /* Experimental as Blender does not have good support for procedurals at the moment. */
-      if (experimental) {
+      if (use_experimental_procedural) {
         b_mesh_cache = object_mesh_cache_find(b_ob, &has_subdivision_modifier);
         use_procedural = b_mesh_cache && b_mesh_cache.cache_file().use_render_procedural();
       }
