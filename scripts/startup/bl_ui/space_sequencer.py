@@ -3022,6 +3022,7 @@ class SEQUENCER_PT_snapping(Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'HEADER'
     bl_label = ""
+    bl_ui_units_x = 11
 
     def draw(self, _context):
         pass
@@ -3072,6 +3073,7 @@ class SEQUENCER_PT_sequencer_snapping(Panel):
         layout.use_property_decorate = False
 
         col = layout.column(heading="Snap to", align=True)
+        col.prop(sequencer_tool_settings, "snap_to_frame_range")
         col.prop(sequencer_tool_settings, "snap_to_current_frame")
         col.prop(sequencer_tool_settings, "snap_to_hold_offset")
         col.prop(sequencer_tool_settings, "snap_to_markers")

@@ -2490,6 +2490,7 @@ enum {
   SEQ_SNAP_TO_STRIPS_PREVIEW = 1 << 6,
 
   SEQ_SNAP_TO_RETIMING = 1 << 7,
+  SEQ_SNAP_TO_FRAME_RANGE = 1 << 8,
 };
 
 /** #SequencerToolSettings::snap_flag */

@@ -261,6 +261,11 @@ static void points_build_targets_timeline(const Scene *scene,
     }
   }
 
+  if (snap_mode & SEQ_SNAP_TO_FRAME_RANGE) {
+    snap_data->target_snap_points.append(float2(PSFRA));
+    snap_data->target_snap_points.append(float2(PEFRA + 1));
+  }
+
   for (Strip *strip : strip_targets) {
     snap_data->target_snap_points.append(float2(seq::time_left_handle_frame_get(scene, strip)));
     snap_data->target_snap_points.append(float2(seq::time_right_handle_frame_get(scene, strip)));
