@@ -2446,7 +2446,6 @@ void RE_RenderAnim(Render *re,
     }
 
     if (is_error) {
-      BKE_report(re->reports, RPT_ERROR, "Movie format unsupported");
       re_movie_free_all(re);
       render_pipeline_free(re);
       return;

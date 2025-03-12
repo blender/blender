@@ -25,6 +25,7 @@
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
+#  include "BKE_report.hh"
 #  include "BKE_sound.h"
 
 /* If any of these codecs, we prefer the float sample format (if supported) */
@@ -132,8 +133,12 @@ static int write_audio_frame(MovieWriter *context)
 }
 #  endif /* #ifdef WITH_AUDASPACE */
 
-bool movie_audio_open(
-    MovieWriter *context, const Scene *scene, int start_frame, int mixrate, float volume)
+bool movie_audio_open(MovieWriter *context,
+                      const Scene *scene,
+                      int start_frame,
+                      int mixrate,
+                      float volume,
+                      ReportList *reports)
 {
   bool success = true;
 #  ifdef WITH_AUDASPACE
@@ -164,6 +169,7 @@ bool movie_audio_open(
         specs.format = AUD_FORMAT_FLOAT64;
         break;
       default:
+        BKE_report(reports, RPT_ERROR, "Audio sample format unsupported");
         success = false;
         break;
     }
