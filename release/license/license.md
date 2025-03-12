@@ -878,7 +878,7 @@ Provided by SIL’s Non-Roman Script Initiative. Contact us at nrsi@sil.org.
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
-| [Audaspace](https://audaspace.github.io/) | 1.4+ (ae29c | `Copyright © 2009-2015 Jörg Müller. All rights reserved.` |
+| [Audaspace](https://audaspace.github.io/) | 1.6.0 (cb49 | `Copyright © 2009-2025 Jörg Müller. All rights reserved.` |
 | [Cuda Wrangler](https://github.com/CudaWrangler/cuew) | cbf465b | `Copyright 2011-2014 Blender Foundation` |
 | [DPC++](https://github.com/intel/llvm#oneapi-dpc-compiler) | v6.0.0-rc1 | `Copyright (C) 2021-2024 Intel Corporation` |
 | [Draco](https://google.github.io/draco/) | 1.5.2 | `Copyright 2018 The Draco Authors` |
