@@ -973,7 +973,6 @@ static bool screen_opengl_render_anim_init(wmOperator *op)
                                             PRVRANGEON != 0,
                                             suffix);
       if (writer == nullptr) {
-        BKE_report(oglrender->reports, RPT_ERROR, "Movie format unsupported");
         screen_opengl_render_end(oglrender);
         MEM_delete(oglrender);
         return false;
