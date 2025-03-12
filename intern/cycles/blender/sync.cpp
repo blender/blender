@@ -180,7 +180,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
           if (updated_geometry ||
               (object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE))
           {
-            BL::ID const key = BKE_object_is_modified(b_ob) ? b_ob : b_ob.data();
+            BL::ID const key = BKE_object_is_modified(b_ob) ? b_ob : object_get_data(b_ob);
             geometry_map.set_recalc(key);
 
             /* Sync all contained geometry instances as well when the object changed.. */

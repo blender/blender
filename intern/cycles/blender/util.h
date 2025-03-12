@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "RNA_access.hh"
+#include "RNA_blender_cpp.hh"
+
 #include "scene/mesh.h"
 #include "scene/scene.h"
 
@@ -14,15 +17,29 @@
 #include "util/transform.h"
 #include "util/types.h"
 
-#include "RNA_blender_cpp.hh"
-
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_image.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_types.hh"
+#include "BKE_mesh_wrapper.hh"
 
 CCL_NAMESPACE_BEGIN
+
+static inline BL::ID object_get_data(const BL::Object &b_ob)
+{
+  ::Object *object = reinterpret_cast<::Object *>(b_ob.ptr.data);
+
+  if (object->type == OB_MESH) {
+    ::Mesh *mesh = static_cast<::Mesh *>(object->data);
+    mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
+    return BL::ID(RNA_id_pointer_create(&mesh->id));
+  }
+
+  return BL::ID(RNA_id_pointer_create(reinterpret_cast<ID *>(object->data)));
+}
 
 struct BObjectInfo {
   /* Object directly provided by the depsgraph iterator. This object is only valid during one
@@ -35,16 +52,25 @@ struct BObjectInfo {
   BL::Object real_object;
 
   /* The object-data referenced by the iter object. This is still valid after the depsgraph
-   * iterator is done. It might have a different type compared to real_object.data(). */
+   * iterator is done. It might have a different type compared to object_get_data(real_object). */
   BL::ID object_data;
 
   /* True when the current geometry is the data of the referenced object. False when it is a
    * geometry instance that does not have a 1-to-1 relationship with an object. */
   bool is_real_object_data() const
   {
-    return const_cast<BL::Object &>(real_object).data() == object_data;
+    return object_get_data(const_cast<BL::Object &>(real_object)) == object_data;
   }
 };
+
+static inline BL::Mesh object_copy_mesh_data(const BObjectInfo &b_ob_info,
+                                             const Mesh::SubdivisionType subdivision_type)
+{
+  ::Object *object = static_cast<::Object *>(b_ob_info.real_object.ptr.data);
+  ::Mesh *mesh = BKE_mesh_new_from_object(
+      nullptr, object, false, false, subdivision_type == Mesh::SUBDIVISION_NONE);
+  return BL::Mesh(RNA_id_pointer_create(&mesh->id));
+}
 
 using BlenderAttributeType = BL::ShaderNodeAttribute::attribute_type_enum;
 BlenderAttributeType blender_attribute_name_split_type(ustring name, string *r_real_name);
@@ -59,11 +85,8 @@ static bool mesh_use_corner_normals(BL::Mesh &mesh, Mesh::SubdivisionType subdiv
           blender::bke::MeshNormalDomain::Corner);
 }
 
-static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
-                                      BObjectInfo &b_ob_info,
-                                      BL::Depsgraph & /*depsgraph*/,
-                                      bool /*calc_undeformed*/,
-                                      Mesh::SubdivisionType subdivision_type)
+static inline BL::Mesh object_to_mesh(
+    BObjectInfo &b_ob_info, Mesh::SubdivisionType subdivision_type = Mesh::SUBDIVISION_NONE)
 {
   /* TODO: make this work with copy-on-evaluation, modifiers are already evaluated. */
 #if 0
@@ -90,20 +113,17 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
     if (mesh) {
       if (mesh.is_editmode()) {
         /* Flush edit-mesh to mesh, including all data layers. */
-        BL::Depsgraph depsgraph(PointerRNA_NULL);
-        mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
+        mesh = object_copy_mesh_data(b_ob_info, subdivision_type);
         use_corner_normals = mesh_use_corner_normals(mesh, subdivision_type);
       }
       else if (mesh_use_corner_normals(mesh, subdivision_type)) {
         /* Make a copy to split faces. */
-        BL::Depsgraph depsgraph(PointerRNA_NULL);
-        mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
+        mesh = object_copy_mesh_data(b_ob_info, subdivision_type);
         use_corner_normals = true;
       }
     }
     else {
-      BL::Depsgraph depsgraph(PointerRNA_NULL);
-      mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
+      mesh = object_copy_mesh_data(b_ob_info, subdivision_type);
       use_corner_normals = mesh_use_corner_normals(mesh, subdivision_type);
     }
   }
@@ -134,17 +154,15 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
   return mesh;
 }
 
-static inline void free_object_to_mesh(BL::BlendData & /*data*/,
-                                       BObjectInfo &b_ob_info,
-                                       BL::Mesh &mesh)
+static inline void free_object_to_mesh(BObjectInfo &b_ob_info, BL::Mesh &mesh)
 {
   if (!b_ob_info.is_real_object_data()) {
     return;
   }
   /* Free mesh if we didn't just use the existing one. */
   BL::Object object = b_ob_info.real_object;
-  if (object.data().ptr.data != mesh.ptr.data) {
-    object.to_mesh_clear();
+  if (object_get_data(object).ptr.data != mesh.ptr.data) {
+    BKE_id_free(nullptr, static_cast<ID *>(mesh.ptr.data));
   }
 }
 

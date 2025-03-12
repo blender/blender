@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-void BlenderSync::sync_light(BL::Depsgraph /*b_depsgraph*/, BObjectInfo &b_ob_info, Light *light)
+void BlenderSync::sync_light(BObjectInfo &b_ob_info, Light *light)
 {
   BL::Light b_light(b_ob_info.object_data);
 

@@ -10,7 +10,6 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "scene/bake.h"
 #include "scene/camera.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
@@ -1097,7 +1096,7 @@ static void create_subd_mesh(Scene *scene,
 
 /* Sync */
 
-void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Mesh *mesh)
+void BlenderSync::sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh)
 {
   /* make a copy of the shaders as the caller in the main thread still need them for syncing the
    * attributes */
@@ -1114,9 +1113,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
     }
 
     /* For some reason, meshes do not need this... */
-    const bool need_undeformed = new_mesh.need_attribute(scene, ATTR_STD_GENERATED);
-    BL::Mesh b_mesh = object_to_mesh(
-        b_data, b_ob_info, b_depsgraph, need_undeformed, new_mesh.get_subdivision_type());
+    BL::Mesh b_mesh = object_to_mesh(b_ob_info, new_mesh.get_subdivision_type());
 
     if (b_mesh) {
       /* Motion blur attribute is relative to seconds, we need it relative to frames. */
@@ -1148,7 +1145,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
                     false);
       }
 
-      free_object_to_mesh(b_data, b_ob_info, b_mesh);
+      free_object_to_mesh(b_ob_info, b_mesh);
     }
   }
 
@@ -1179,10 +1176,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
   mesh->tag_update(scene, rebuild);
 }
 
-void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
-                                   BObjectInfo &b_ob_info,
-                                   Mesh *mesh,
-                                   const int motion_step)
+void BlenderSync::sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, const int motion_step)
 {
   /* Skip if no vertices were exported. */
   const size_t numverts = mesh->get_verts().size();
@@ -1195,8 +1189,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   BL::Mesh b_mesh_rna(PointerRNA_NULL);
   if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
     /* get derived mesh */
-    b_mesh_rna = object_to_mesh(
-        b_data, b_ob_info, b_depsgraph, false, mesh->get_subdivision_type());
+    b_mesh_rna = object_to_mesh(b_ob_info, mesh->get_subdivision_type());
   }
 
   const std::string ob_name = b_ob_info.real_object.name();
@@ -1207,7 +1200,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     const int b_verts_num = b_mesh.verts_num;
     const blender::Span<blender::float3> positions = b_mesh.vert_positions();
     if (positions.is_empty()) {
-      free_object_to_mesh(b_data, b_ob_info, b_mesh_rna);
+      free_object_to_mesh(b_ob_info, b_mesh_rna);
       return;
     }
 
@@ -1290,7 +1283,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
       }
     }
 
-    free_object_to_mesh(b_data, b_ob_info, b_mesh_rna);
+    free_object_to_mesh(b_ob_info, b_mesh_rna);
     return;
   }
 

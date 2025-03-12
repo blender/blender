@@ -1031,7 +1031,7 @@ void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, con
   }
 }
 
-void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Hair *hair)
+void BlenderSync::sync_hair(BObjectInfo &b_ob_info, Hair *hair)
 {
   /* make a copy of the shaders as the caller in the main thread still need them for syncing the
    * attributes */
@@ -1047,13 +1047,11 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
     }
     else {
       /* Particle hair. */
-      const bool need_undeformed = new_hair.need_attribute(scene, ATTR_STD_GENERATED);
-      BL::Mesh b_mesh = object_to_mesh(
-          b_data, b_ob_info, b_depsgraph, need_undeformed, Mesh::SUBDIVISION_NONE);
+      BL::Mesh b_mesh = object_to_mesh(b_ob_info);
 
       if (b_mesh) {
         sync_particle_hair(&new_hair, b_mesh, b_ob_info, false);
-        free_object_to_mesh(b_data, b_ob_info, b_mesh);
+        free_object_to_mesh(b_ob_info, b_mesh);
       }
     }
   }
@@ -1079,10 +1077,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
   hair->tag_update(scene, rebuild);
 }
 
-void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
-                                   BObjectInfo &b_ob_info,
-                                   Hair *hair,
-                                   const int motion_step)
+void BlenderSync::sync_hair_motion(BObjectInfo &b_ob_info, Hair *hair, const int motion_step)
 {
   /* Skip if nothing exported. */
   if (hair->num_keys() == 0) {
@@ -1098,11 +1093,10 @@ void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
     }
 
     /* Particle hair. */
-    BL::Mesh b_mesh = object_to_mesh(
-        b_data, b_ob_info, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
+    BL::Mesh b_mesh = object_to_mesh(b_ob_info);
     if (b_mesh) {
       sync_particle_hair(hair, b_mesh, b_ob_info, true, motion_step);
-      free_object_to_mesh(b_data, b_ob_info, b_mesh);
+      free_object_to_mesh(b_ob_info, b_mesh);
       return;
     }
   }
