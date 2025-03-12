@@ -149,8 +149,8 @@ static void alloc_point_data(PointDensity *pd)
   }
 
   if (data_size) {
-    pd->point_data = static_cast<float *>(
-        MEM_callocN(sizeof(float) * data_size * totpoints, "particle point data"));
+    pd->point_data = MEM_calloc_arrayN<float>(size_t(data_size) * size_t(totpoints),
+                                              "particle point data");
   }
 }
 
@@ -292,8 +292,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
   }
 
   /* Stores the number of MLoops using the same vertex, so we can normalize colors. */
-  int *mcorners = static_cast<int *>(
-      MEM_callocN(sizeof(int) * pd->totpoints, "point density corner count"));
+  int *mcorners = MEM_calloc_arrayN<int>(size_t(pd->totpoints), "point density corner count");
 
   for (i = 0; i < totloop; i++) {
     int v = corner_verts[i];

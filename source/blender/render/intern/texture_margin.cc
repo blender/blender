@@ -520,7 +520,7 @@ static void generate_margin(ImBuf *ibuf,
     mask = (char *)MEM_dupallocN(mask);
   }
   else {
-    mask = (char *)MEM_callocN(sizeof(char) * ibuf->x * ibuf->y, __func__);
+    mask = MEM_calloc_arrayN<char>(size_t(ibuf->x) * size_t(ibuf->y), __func__);
     draw_new_mask = true;
   }
 

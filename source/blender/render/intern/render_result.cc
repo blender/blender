@@ -1149,8 +1149,8 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
     rr->have_combined = true;
 
     if (!rv_ibuf->float_buffer.data) {
-      float *data = static_cast<float *>(
-          MEM_malloc_arrayN(rr->rectx * rr->recty, sizeof(float[4]), "render_seq float"));
+      float *data = MEM_malloc_arrayN<float>(4 * size_t(rr->rectx) * size_t(rr->recty),
+                                             "render_seq float");
       IMB_assign_float_buffer(rv_ibuf, data, IB_TAKE_OWNERSHIP);
     }
 
@@ -1166,8 +1166,8 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
     rr->have_combined = true;
 
     if (!rv_ibuf->byte_buffer.data) {
-      uint8_t *data = static_cast<uint8_t *>(
-          MEM_malloc_arrayN(rr->rectx * rr->recty, sizeof(uint8_t[4]), "render_seq byte"));
+      uint8_t *data = MEM_malloc_arrayN<uint8_t>(4 * size_t(rr->rectx) * size_t(rr->recty),
+                                                 "render_seq byte");
       IMB_assign_byte_buffer(rv_ibuf, data, IB_TAKE_OWNERSHIP);
     }
 
