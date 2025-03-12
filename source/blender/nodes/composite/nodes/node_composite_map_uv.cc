@@ -57,8 +57,10 @@ class MapUVOperation : public NodeOperation {
 
   void execute() override
   {
-    if (get_input("Image").is_single_value()) {
-      get_input("Image").pass_through(get_result("Image"));
+    const Result &input = this->get_input("Image");
+    if (input.is_single_value()) {
+      Result &output = this->get_result("Image");
+      output.share_data(input);
       return;
     }
 

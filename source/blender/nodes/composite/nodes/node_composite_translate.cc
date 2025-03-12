@@ -63,8 +63,7 @@ class TranslateOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = this->get_input("Image");
-    Result &output = this->get_result("Image");
+    const Result &input = this->get_input("Image");
 
     float x = this->get_input("X").get_single_value_default(0.0f);
     float y = this->get_input("Y").get_single_value_default(0.0f);
@@ -75,7 +74,8 @@ class TranslateOperation : public NodeOperation {
 
     const float2 translation = float2(x, y);
 
-    input.pass_through(output);
+    Result &output = this->get_result("Image");
+    output.share_data(input);
     output.transform(math::from_location<float3x3>(translation));
     output.get_realization_options().interpolation = this->get_interpolation();
     output.get_realization_options().repeat_x = this->get_repeat_x();

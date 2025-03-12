@@ -85,10 +85,10 @@ static void sum_causal_and_non_causal_results_cpu(const Result &first_causal_inp
  * the transposition in the horizontal pass. This is done to improve spatial cache locality in the
  * shader and to avoid having two separate shaders for each blur pass. */
 static void sum_causal_and_non_causal_results(Context &context,
-                                              Result &first_causal_input,
-                                              Result &first_non_causal_input,
-                                              Result &second_causal_input,
-                                              Result &second_non_causal_input,
+                                              const Result &first_causal_input,
+                                              const Result &first_non_causal_input,
+                                              const Result &second_causal_input,
+                                              const Result &second_non_causal_input,
                                               Result &output)
 {
   if (context.use_gpu()) {
@@ -338,7 +338,7 @@ static void blur_pass_cpu(Context &context,
   });
 }
 
-static void blur_pass(Context &context, Result &input, Result &output, float sigma)
+static void blur_pass(Context &context, const Result &input, Result &output, const float sigma)
 {
   Result first_causal_result = context.create_result(ResultType::Color);
   Result first_non_causal_result = context.create_result(ResultType::Color);
@@ -376,7 +376,10 @@ static void blur_pass(Context &context, Result &input, Result &output, float sig
   second_non_causal_result.release();
 }
 
-void van_vliet_gaussian_blur(Context &context, Result &input, Result &output, float2 sigma)
+void van_vliet_gaussian_blur(Context &context,
+                             const Result &input,
+                             Result &output,
+                             const float2 &sigma)
 {
   BLI_assert_msg(math::reduce_max(sigma) >= 32.0f,
                  "Van Vliet filter is less accurate for sigma values less than 32. Use Deriche "

@@ -100,10 +100,10 @@ class DefocusOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    const Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
     if (input.is_single_value() || node_storage(bnode()).maxblur < 1.0f) {
-      input.pass_through(output);
+      output.share_data(input);
       return;
     }
 
@@ -121,7 +121,7 @@ class DefocusOperation : public NodeOperation {
     const Result &bokeh_kernel = context().cache_manager().bokeh_kernels.get(
         context(), kernel_size, sides, rotation, roundness, 0.0f, 0.0f);
 
-    Result *defocus_input = &input;
+    const Result *defocus_input = &input;
     Result *defocus_output = &output;
 
     /* Apply gamma correction if needed. */

@@ -519,10 +519,10 @@ class VectorBlurOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
+    const Result &input = this->get_input("Image");
     if (input.is_single_value()) {
-      input.pass_through(output);
+      Result &output = this->get_result("Image");
+      output.share_data(input);
       return;
     }
 

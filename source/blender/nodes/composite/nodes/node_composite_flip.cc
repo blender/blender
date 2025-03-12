@@ -44,12 +44,10 @@ class FlipOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &result = get_result("Image");
-
-    /* Can't flip a single value, pass it through to the output. */
+    const Result &input = this->get_input("Image");
     if (input.is_single_value()) {
-      input.pass_through(result);
+      Result &output = this->get_result("Image");
+      output.share_data(input);
       return;
     }
 

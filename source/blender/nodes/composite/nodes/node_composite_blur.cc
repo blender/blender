@@ -102,14 +102,14 @@ class BlurOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
-    if (is_identity()) {
-      input.pass_through(output);
+    const Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
+    if (this->is_identity()) {
+      output.share_data(input);
       return;
     }
 
-    Result *blur_input = &input;
+    const Result *blur_input = &input;
     Result *blur_output = &output;
 
     /* Apply gamma correction if needed. */

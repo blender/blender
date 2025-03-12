@@ -78,9 +78,10 @@ class CropOperation : public NodeOperation {
 
   void execute() override
   {
-    /* The operation does nothing, so just pass the input through. */
-    if (is_identity()) {
-      get_input("Image").pass_through(get_result("Image"));
+    if (this->is_identity()) {
+      const Result &input = get_input("Image");
+      Result &output = get_result("Image");
+      output.share_data(input);
       return;
     }
 

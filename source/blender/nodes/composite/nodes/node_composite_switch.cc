@@ -37,9 +37,9 @@ class SwitchOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input(get_condition() ? "On" : "Off");
-    Result &result = get_result("Image");
-    input.pass_through(result);
+    const Result &input = this->get_input(this->get_condition() ? "On" : "Off");
+    Result &output = this->get_result("Image");
+    output.share_data(input);
   }
 
   bool get_condition()

@@ -123,13 +123,14 @@ class PlaneTrackDeformOperation : public NodeOperation {
   {
     MovieTrackingPlaneTrack *plane_track = get_plane_track();
 
-    Result &input_image = get_input("Image");
-    Result &output_image = get_result("Image");
-    Result &output_mask = get_result("Plane");
+    const Result &input_image = get_input("Image");
     if (input_image.is_single_value() || !plane_track) {
+      Result &output_image = get_result("Image");
       if (output_image.should_compute()) {
-        input_image.pass_through(output_image);
+        output_image.share_data(input_image);
       }
+
+      Result &output_mask = get_result("Plane");
       if (output_mask.should_compute()) {
         output_mask.allocate_single_value();
         output_mask.set_single_value(1.0f);

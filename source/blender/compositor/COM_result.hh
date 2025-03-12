@@ -83,15 +83,11 @@ enum class ResultStorageType : uint8_t {
  * space. This area is called the Domain of the result, see the discussion in COM_domain.hh for
  * more information.
  *
- * A result can be a proxy result that merely wraps another master result, in which case, it shares
- * its values and delegates all reference counting to it. While a proxy result shares the value of
- * the master result, it can have a different domain. Consequently, transformation operations are
- * implemented using proxy results, where their results are proxy results of their inputs but with
- * their domains transformed based on their options. Moreover, proxy results can also be used as
- * the results of identity operations, that is, operations that do nothing to their inputs in
- * certain configurations. In which case, the proxy result is left as is with no extra
- * transformation on its domain whatsoever. Proxy results can be created by calling the
- * pass_through method, see that method for more details.
+ * Allocated data of results can be shared by multiple results, this is achieved by tracking an
+ * extra reference count for data data_reference_count_, which is heap allocated along with the
+ * data, and shared by all results that share the same data. This reference count is incremented
+ * every time the data is shared by a call to the share_data method, and decremented during
+ * freeing, where the data is only freed if the reference count is 1, that is, no longer shared.
  *
  * A result can wrap external data that is not allocated nor managed by the result. This is set up
  * by a call to the wrap_external method. In that case, when the reference count eventually reach
@@ -125,10 +121,15 @@ class Result {
   /* The number of users that currently needs this result. Operations initializes this by calling
    * the set_reference_count method before evaluation. Once each operation that needs the result no
    * longer needs it, the release method is called and the reference count is decremented, until it
-   * reaches zero, where the result's data is then released. If this result have a master result,
-   * then this reference count is irrelevant and shadowed by the reference count of the master
-   * result. */
+   * reaches zero, where the result's data is then released. */
   int reference_count_ = 1;
+  /* Allocated result data can be shared by multiple results by calling the share_data method. This
+   * member stores the number of results that share the data. This is heap allocated and have the
+   * same lifetime as allocated data, that's because this reference count is shared by all results
+   * that share the same data. Unlike the result's reference count, the data is freed if the count
+   * becomes 1, that is, data is no longer shared with some other result. This is nullptr if the
+   * data is external. */
+  int *data_reference_count_ = nullptr;
   /* If the result is a single value, this member stores the value of the result, the value of
    * which will be identical to that stored in the data_ member. The active variant member depends
    * on the type of the result. This member is uninitialized and should not be used if the result
@@ -137,12 +138,6 @@ class Result {
   /* The domain of the result. This only matters if the result was not a single value. See the
    * discussion in COM_domain.hh for more information. */
   Domain domain_ = Domain::identity();
-  /* If not nullptr, then this result wraps and shares the value of another master result. In this
-   * case, calls to methods like increment_reference_count and release should operate on the master
-   * result as opposed to this result. This member is typically set upon calling the pass_through
-   * method, which sets this result to be the master of a target result. See that method for more
-   * information. */
-  Result *master_ = nullptr;
   /* If true, then the result wraps external data that is not allocated nor managed by the result.
    * This is set up by a call to the wrap_external method. In that case, when the reference count
    * eventually reach zero, the data will not be freed. */
@@ -243,29 +238,21 @@ class Result {
   /* Unbind the GPU texture which was previously bound using bind_as_image. */
   void unbind_as_image() const;
 
-  /* Pass this result through to a target result, in which case, the target result becomes a proxy
-   * result with this result as its master result. This is done by making the target result a copy
-   * of this result, essentially having identical values between the two and consequently sharing
-   * the underlying texture. An exception is the initial reference count, whose value is retained
-   * and not copied, because it is a property of the original result and is needed for correctly
-   * resetting the result before the next evaluation. Additionally, this result is set to be the
-   * master of the target result, by setting the master member of the target. Finally, the
-   * reference count of the result is incremented by the reference count of the target result. See
-   * the discussion above for more information. */
-  void pass_through(Result &target);
+  /* Share the data of the given source result. For a source that wraps external results, this just
+   * shallow copies the data since it can be transparency shared. Otherwise, the data is also
+   * shallow copied and the data_reference_count_ is incremented to denote sharing. The source data
+   * is expect to be allocated and have the same type and precision as this result. */
+  void share_data(const Result &source);
 
   /* Steal the allocated data from the given source result and assign it to this result, then
    * remove any references to the data from the source result. It is assumed that:
    *
    *   - Both results are of the same type.
    *   - This result is not allocated but the source result is allocated.
-   *   - Neither of the results is a proxy one, that is, has a master result.
    *
-   * This is different from proxy results and the pass_through mechanism in that it can be used on
-   * temporary results. This is most useful in multi-step compositor operations where some steps
-   * can be optional, in that case, intermediate results can be temporary results that can
-   * eventually be stolen by the actual output of the operation. See the uses of the method for
-   * a practical example of use. */
+   * This is most useful in multi-step compositor operations where some steps can be optional, in
+   * that case, intermediate results can be temporary results that can eventually be stolen by the
+   * actual output of the operation. See the uses of the method for a practical example of use. */
   void steal_data(Result &source);
 
   /* Set up the result to wrap an external GPU texture that is not allocated nor managed by the
@@ -291,25 +278,23 @@ class Result {
   /* Get a reference to the realization options of this result. See the RealizationOptions struct
    * for more information. */
   RealizationOptions &get_realization_options();
+  const RealizationOptions &get_realization_options() const;
 
   /* Set the value of reference_count_, see that member for more details. This should be called
    * after constructing the result to declare the number of operations that needs it. */
   void set_reference_count(int count);
 
-  /* Increment the reference count of the result by the given count. If this result have a master
-   * result, the reference count of the master result is incremented instead. */
+  /* Increment the reference count of the result by the given count. */
   void increment_reference_count(int count = 1);
 
-  /* Decrement the reference count of the result by the given count. If this result have a master
-   * result, the reference count of the master result is decremented instead. */
+  /* Decrement the reference count of the result by the given count. */
   void decrement_reference_count(int count = 1);
 
-  /* Decrement the reference count of the result and free its data if it reaches zero. If this
-   * result have a master result, the master result is released instead. */
+  /* Decrement the reference count of the result and free its data if it reaches zero. */
   void release();
 
-  /* Frees the result data. If the result is not allocated or wraps external data, then this does
-   * nothing. If this result have a master result, the master result is freed instead. */
+  /* Frees the result data. If the result is not allocated, wraps external data, or shares data
+   * with some other result, then this does nothing. */
   void free();
 
   /* Returns true if this result should be computed and false otherwise. The result should be
@@ -339,8 +324,7 @@ class Result {
   /* Returns true if the result is allocated. */
   bool is_allocated() const;
 
-  /* Returns the reference count of the result. If this result have a master result, then the
-   * reference count of the master result is returned instead. */
+  /* Returns the reference count of the result. */
   int reference_count() const;
 
   /* Returns a reference to the domain of the result. See the Domain class. */

@@ -69,10 +69,10 @@ class ConvertColorSpaceOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input_image = get_input("Image");
-    Result &output_image = get_result("Image");
-    if (is_identity()) {
-      input_image.pass_through(output_image);
+    const Result &input_image = this->get_input("Image");
+    if (this->is_identity()) {
+      Result &output_image = this->get_result("Image");
+      output_image.share_data(input_image);
       return;
     }
 
@@ -101,10 +101,10 @@ class ConvertColorSpaceOperation : public NodeOperation {
 
     /* A null shader indicates that the conversion shader is just a stub implementation since OCIO
      * is disabled at compile time, so pass the input through in that case. */
-    Result &input_image = get_input("Image");
-    Result &output_image = get_result("Image");
+    const Result &input_image = this->get_input("Image");
+    Result &output_image = this->get_result("Image");
     if (!shader) {
-      input_image.pass_through(output_image);
+      output_image.share_data(input_image);
       return;
     }
 

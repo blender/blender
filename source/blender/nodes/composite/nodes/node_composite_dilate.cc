@@ -70,8 +70,10 @@ class DilateErodeOperation : public NodeOperation {
 
   void execute() override
   {
-    if (is_identity()) {
-      get_input("Mask").pass_through(get_result("Mask"));
+    if (this->is_identity()) {
+      const Result &input = this->get_input("Mask");
+      Result &output = this->get_result("Mask");
+      output.share_data(input);
       return;
     }
 
