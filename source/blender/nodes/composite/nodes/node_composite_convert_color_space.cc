@@ -35,8 +35,7 @@ static void CMP_NODE_CONVERT_COLOR_SPACE_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_convert_colorspace(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeConvertColorSpace *ncs = static_cast<NodeConvertColorSpace *>(
-      MEM_callocN(sizeof(NodeConvertColorSpace), "node colorspace"));
+  NodeConvertColorSpace *ncs = MEM_callocN<NodeConvertColorSpace>("node colorspace");
   const char *first_colorspace = IMB_colormanagement_role_colorspace_name_get(
       COLOR_ROLE_SCENE_LINEAR);
   if (first_colorspace && first_colorspace[0]) {

@@ -145,7 +145,7 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       ui_data->base.rna_subtype = value->subtype;
       ui_data->soft_min = double(value->min);
       ui_data->soft_max = double(value->max);
-      ui_data->default_array = (double *)MEM_mallocN(sizeof(double[3]), "mod_prop_default");
+      ui_data->default_array = MEM_malloc_arrayN<double>(3, "mod_prop_default");
       ui_data->default_array_len = 3;
       for (const int i : IndexRange(3)) {
         ui_data->default_array[i] = double(value->value[i]);
@@ -160,7 +160,7 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
           Span<float>{value->value[0], value->value[1], value->value[2], value->value[3]});
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = PROP_COLOR;
-      ui_data->default_array = (double *)MEM_mallocN(sizeof(double[4]), __func__);
+      ui_data->default_array = MEM_malloc_arrayN<double>(4, __func__);
       ui_data->default_array_len = 4;
       ui_data->min = 0.0;
       ui_data->max = FLT_MAX;

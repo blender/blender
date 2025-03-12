@@ -185,7 +185,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.linedist = line_spacing;
   cu.vfont = vfont;
   cu.overflow = overflow;
-  cu.tb = static_cast<TextBox *>(MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), __func__));
+  cu.tb = MEM_calloc_arrayN<TextBox>(MAXTEXTBOX, __func__);
   cu.tb->w = textbox_w;
   cu.tb->h = textbox_h;
   cu.totbox = 1;
@@ -197,7 +197,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   /* The reason for the additional character here is unknown, but reflects other code elsewhere. */
   cu.str = static_cast<char *>(MEM_mallocN(len_bytes + sizeof(char32_t), __func__));
   memcpy(cu.str, layout.text.c_str(), len_bytes + 1);
-  cu.strinfo = static_cast<CharInfo *>(MEM_callocN((len_chars + 1) * sizeof(CharInfo), __func__));
+  cu.strinfo = MEM_calloc_arrayN<CharInfo>(len_chars + 1, __func__);
 
   CharTrans *chartransdata = nullptr;
   int text_len;

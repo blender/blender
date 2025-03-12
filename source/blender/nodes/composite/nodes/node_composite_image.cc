@@ -310,8 +310,7 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
     if (engine_type && engine_type->update_render_passes) {
       ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene->view_layers, node->custom1);
       if (view_layer) {
-        RLayerUpdateData *data = (RLayerUpdateData *)MEM_mallocN(sizeof(RLayerUpdateData),
-                                                                 "render layer update data");
+        RLayerUpdateData *data = MEM_mallocN<RLayerUpdateData>("render layer update data");
         data->available_sockets = available_sockets;
         data->prev_index = -1;
         node->storage = data;

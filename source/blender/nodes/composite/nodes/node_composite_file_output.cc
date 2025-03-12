@@ -710,8 +710,8 @@ class FileOutputOperation : public NodeOperation {
 
     switch (result.type()) {
       case ResultType::Float: {
-        float *buffer = static_cast<float *>(MEM_malloc_arrayN(
-            size_t(size.x) * size.y, sizeof(float), "File Output Inflated Buffer."));
+        float *buffer = MEM_malloc_arrayN<float>(size_t(size.x) * size_t(size.y),
+                                                 "File Output Inflated Buffer.");
 
         const float value = result.get_single_value<float>();
         parallel_for(
@@ -719,8 +719,8 @@ class FileOutputOperation : public NodeOperation {
         return buffer;
       }
       case ResultType::Color: {
-        float *buffer = static_cast<float *>(MEM_malloc_arrayN(
-            size_t(size.x) * size.y, sizeof(float[4]), "File Output Inflated Buffer."));
+        float *buffer = MEM_malloc_arrayN<float>(4 * size_t(size.x) * size_t(size.y),
+                                                 "File Output Inflated Buffer.");
 
         const float4 value = result.get_single_value<float4>();
         parallel_for(size, [&](const int2 texel) {
@@ -729,8 +729,8 @@ class FileOutputOperation : public NodeOperation {
         return buffer;
       }
       case ResultType::Float4: {
-        float *buffer = static_cast<float *>(MEM_malloc_arrayN(
-            size_t(size.x) * size.y, sizeof(float[4]), "File Output Inflated Buffer."));
+        float *buffer = MEM_malloc_arrayN<float>(4 * size_t(size.x) * size_t(size.y),
+                                                 "File Output Inflated Buffer.");
 
         const float4 value = result.get_single_value<float4>();
         parallel_for(size, [&](const int2 texel) {
@@ -739,8 +739,8 @@ class FileOutputOperation : public NodeOperation {
         return buffer;
       }
       case ResultType::Float3: {
-        float *buffer = static_cast<float *>(MEM_malloc_arrayN(
-            size_t(size.x) * size.y, sizeof(float[3]), "File Output Inflated Buffer."));
+        float *buffer = MEM_malloc_arrayN<float>(3 * size_t(size.x) * size_t(size.y),
+                                                 "File Output Inflated Buffer.");
 
         const float3 value = result.get_single_value<float3>();
         parallel_for(size, [&](const int2 texel) {
@@ -808,8 +808,8 @@ class FileOutputOperation : public NodeOperation {
    * input image is freed. */
   float *float4_to_float3_image(int2 size, float *float4_image)
   {
-    float *float3_image = static_cast<float *>(MEM_malloc_arrayN(
-        size_t(size.x) * size.y, sizeof(float[3]), "File Output Vector Buffer."));
+    float *float3_image = MEM_malloc_arrayN<float>(3 * size_t(size.x) * size_t(size.y),
+                                                   "File Output Vector Buffer.");
 
     parallel_for(size, [&](const int2 texel) {
       for (int i = 0; i < 3; i++) {
