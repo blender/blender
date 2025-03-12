@@ -118,6 +118,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   LocalPayload payload = {0};
   payload.kg = kg;
   payload.self = ray->self;
+  payload.ray_time = ray->time;
   payload.local_object = local_object;
   payload.max_hits = max_hits;
   payload.lcg_state = lcg_state;
