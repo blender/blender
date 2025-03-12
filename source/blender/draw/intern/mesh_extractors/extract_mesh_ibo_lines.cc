@@ -38,14 +38,6 @@ static IndexMask calc_mesh_edge_visibility(const MeshRenderData &mr,
   return visible;
 }
 
-/* In the GPU vertex buffers, the value for each vertex is duplicated to each of its vertex
- * corners. So the edges on the GPU connect face corners rather than vertices. */
-static uint2 edge_from_corners(const IndexRange face, const int corner)
-{
-  const int corner_next = bke::mesh::face_corner_next(face, corner);
-  return uint2(corner, corner_next);
-}
-
 static void fill_loose_lines_ibo(const MeshRenderData &mr,
                                  const IndexMask &visible,
                                  MutableSpan<uint2> data)

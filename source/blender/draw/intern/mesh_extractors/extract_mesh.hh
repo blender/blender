@@ -224,6 +224,14 @@ void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
                                      const BMUVOffsets &offsets,
                                      EditLoopData &eattr);
 
+/* In the GPU vertex buffers, the value for each vertex is duplicated to each of its vertex
+ * corners. So the edges on the GPU connect face corners rather than vertices. */
+inline uint2 edge_from_corners(const IndexRange face, const int corner)
+{
+  const int corner_next = bke::mesh::face_corner_next(face, corner);
+  return uint2(corner, corner_next);
+}
+
 template<typename T>
 void extract_mesh_loose_edge_data(const Span<T> vert_data,
                                   const Span<int2> edges,
