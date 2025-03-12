@@ -1265,7 +1265,7 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject * /*self*/, PyObject *ar
     return nullptr;
   }
 
-  coord_array = static_cast<float *>(MEM_callocN(dims * (resolu) * sizeof(float), error_prefix));
+  coord_array = MEM_calloc_arrayN<float>(size_t(dims) * size_t(resolu), error_prefix);
   for (i = 0; i < dims; i++) {
     BKE_curve_forward_diff_bezier(
         UNPACK4_EX(, data, [i]), coord_array + i, resolu - 1, sizeof(float) * dims);
@@ -1327,15 +1327,14 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject * /*self*/, PyObject *po
 
     len_polypoints = PySequence_Size(polyLine);
     if (len_polypoints > 0) { /* don't bother adding edges as polylines */
-      dl = static_cast<DispList *>(MEM_callocN(sizeof(DispList), "poly disp"));
+      dl = MEM_callocN<DispList>("poly disp");
       BLI_addtail(&dispbase, dl);
       dl->nr = len_polypoints;
       dl->type = DL_POLY;
       dl->parts = 1; /* no faces, 1 edge loop */
       dl->col = 0;   /* no material */
-      dl->verts = fp = static_cast<float *>(
-          MEM_mallocN(sizeof(float[3]) * len_polypoints, "dl verts"));
-      dl->index = static_cast<int *>(MEM_callocN(sizeof(int[3]) * len_polypoints, "dl index"));
+      dl->verts = fp = MEM_malloc_arrayN<float>(3 * size_t(len_polypoints), "dl verts");
+      dl->index = MEM_calloc_arrayN<int>(3 * size_t(len_polypoints), "dl index");
 
       for (int index = 0; index < len_polypoints; index++, fp += 3) {
         polyVec = PySequence_GetItem(polyLine, index);
@@ -1409,7 +1408,7 @@ static int boxPack_FromPyObject(PyObject *value, BoxPack **r_boxarray)
 
   len = PyList_GET_SIZE(value);
 
-  boxarray = static_cast<BoxPack *>(MEM_mallocN(sizeof(BoxPack) * len, __func__));
+  boxarray = MEM_malloc_arrayN<BoxPack>(size_t(len), __func__);
 
   for (i = 0; i < len; i++) {
     list_item = PyList_GET_ITEM(value, i);
@@ -1564,7 +1563,7 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject * /*self*/, PyObject *pointl
     int *index_map;
     Py_ssize_t len_ret, i;
 
-    index_map = static_cast<int *>(MEM_mallocN(sizeof(*index_map) * len, __func__));
+    index_map = MEM_malloc_arrayN<int>(size_t(len), __func__);
 
     /* Non Python function */
     len_ret = BLI_convexhull_2d(points, len, index_map);

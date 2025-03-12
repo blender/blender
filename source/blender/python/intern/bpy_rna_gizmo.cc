@@ -399,7 +399,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
     }
   }
 
-  data = static_cast<BPyGizmoHandlerUserData *>(MEM_callocN(sizeof(*data), __func__));
+  data = MEM_callocN<BPyGizmoHandlerUserData>(__func__);
 
   for (int i = 0; i < BPY_GIZMO_FN_SLOT_LEN; i++) {
     data->fn_slots[i] = params.py_fn_slots[i];

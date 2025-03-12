@@ -151,9 +151,8 @@ static BPyGPUBuffer *pygpu_buffer_make_from_data(PyObject *parent,
   buffer->parent = nullptr;
   buffer->format = format;
   buffer->shape_len = shape_len;
-  buffer->shape = static_cast<Py_ssize_t *>(
-      MEM_mallocN(shape_len * sizeof(*buffer->shape), "BPyGPUBuffer shape"));
-  memcpy(buffer->shape, shape, shape_len * sizeof(*buffer->shape));
+  buffer->shape = MEM_malloc_arrayN<Py_ssize_t>(size_t(shape_len), "BPyGPUBuffer shape");
+  memcpy(buffer->shape, shape, sizeof(*buffer->shape) * size_t(shape_len));
   buffer->buf.as_void = buf;
 
   if (parent) {
@@ -265,14 +264,13 @@ static int pygpu_buffer_dimensions_set(BPyGPUBuffer *self, PyObject *value, void
     return -1;
   }
 
-  size_t size = shape_len * sizeof(*self->shape);
   if (shape_len != self->shape_len) {
     MEM_freeN(self->shape);
-    self->shape = static_cast<Py_ssize_t *>(MEM_mallocN(size, __func__));
+    self->shape = MEM_malloc_arrayN<Py_ssize_t>(size_t(shape_len), __func__);
   }
 
   self->shape_len = shape_len;
-  memcpy(self->shape, shape, size);
+  memcpy(self->shape, shape, sizeof(*self->shape) * size_t(shape_len));
   return 0;
 }
 
@@ -638,8 +636,7 @@ static int pygpu_buffer__bf_getbuffer(BPyGPUBuffer *self, Py_buffer *view, int f
     view->shape = self->shape;
   }
   if (flags & PyBUF_STRIDES) {
-    view->strides = static_cast<Py_ssize_t *>(
-        MEM_mallocN(view->ndim * sizeof(*view->strides), "BPyGPUBuffer strides"));
+    view->strides = MEM_malloc_arrayN<Py_ssize_t>(size_t(view->ndim), "BPyGPUBuffer strides");
     pygpu_buffer_strides_calc(
         eGPUDataFormat(self->format), view->ndim, view->shape, view->strides);
   }

@@ -65,7 +65,7 @@ static PyObject *M_Interpolate_poly_3d_calc(PyObject * /*self*/, PyObject *args)
   }
 
   if (len) {
-    float *weights = static_cast<float *>(MEM_mallocN(sizeof(float) * len, __func__));
+    float *weights = MEM_malloc_arrayN<float>(size_t(len), __func__);
 
     interp_weights_poly_v3(weights, vecs, len, fp);
 

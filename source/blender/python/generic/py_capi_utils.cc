@@ -1614,8 +1614,8 @@ bool PyC_RunString_AsStringAndSize(const char *imports[],
       ok = false;
     }
     else {
-      char *val_alloc = static_cast<char *>(MEM_mallocN(val_len + 1, __func__));
-      memcpy(val_alloc, val, val_len + 1);
+      char *val_alloc = MEM_malloc_arrayN<char>(size_t(val_len) + 1, __func__);
+      memcpy(val_alloc, val, (size_t(val_len) + 1) * sizeof(*val_alloc));
       *r_value = val_alloc;
       *r_value_size = val_len;
       ok = true;
@@ -1658,8 +1658,8 @@ bool PyC_RunString_AsStringAndSizeOrNone(const char *imports[],
         ok = false;
       }
       else {
-        char *val_alloc = static_cast<char *>(MEM_mallocN(val_len + 1, __func__));
-        memcpy(val_alloc, val, val_len + 1);
+        char *val_alloc = MEM_malloc_arrayN<char>(size_t(val_len) + 1, __func__);
+        memcpy(val_alloc, val, (size_t(val_len) + 1) * sizeof(val_alloc));
         *r_value = val_alloc;
         *r_value_size = val_len;
         ok = true;

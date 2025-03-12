@@ -2442,7 +2442,7 @@ static int BPy_IDArray_getbuffer(BPy_IDArray *self, Py_buffer *view, int flags)
   view->itemsize = itemsize;
   view->format = (char *)idp_format_from_array_type(prop->subtype);
 
-  Py_ssize_t *shape = static_cast<Py_ssize_t *>(MEM_mallocN(sizeof(Py_ssize_t), __func__));
+  Py_ssize_t *shape = MEM_mallocN<Py_ssize_t>(__func__);
   shape[0] = prop->len;
   view->shape = shape;
 

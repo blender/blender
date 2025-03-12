@@ -692,8 +692,7 @@ static Buffer *BGL_MakeBuffer_FromData(
   Py_XINCREF(parent);
   buffer->parent = parent;
   buffer->ndimensions = ndimensions;
-  buffer->dimensions = static_cast<int *>(
-      MEM_mallocN(ndimensions * sizeof(int), "Buffer dimensions"));
+  buffer->dimensions = MEM_malloc_arrayN<int>(size_t(ndimensions), "Buffer dimensions");
   memcpy(buffer->dimensions, dimensions, ndimensions * sizeof(int));
   buffer->type = type;
   buffer->buf.asvoid = buf;

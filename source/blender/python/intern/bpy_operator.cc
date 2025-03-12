@@ -229,7 +229,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
     if (error_val == 0) {
       ReportList *reports;
 
-      reports = static_cast<ReportList *>(MEM_mallocN(sizeof(ReportList), "wmOperatorReportList"));
+      reports = MEM_mallocN<ReportList>("wmOperatorReportList");
 
       /* Own so these don't move into global reports. */
       BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD | RPT_PRINT_HANDLED_BY_OWNER);
