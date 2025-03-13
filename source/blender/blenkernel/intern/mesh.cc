@@ -109,7 +109,10 @@ static void mesh_copy_data(Main *bmain,
 
   mesh_dst->runtime = new blender::bke::MeshRuntime();
   mesh_dst->runtime->deformed_only = mesh_src->runtime->deformed_only;
-  mesh_dst->runtime->wrapper_type = mesh_src->runtime->wrapper_type;
+  /* Subd runtime.mesh_eval is not copied, will need to be reevaluated. */
+  mesh_dst->runtime->wrapper_type = (mesh_src->runtime->wrapper_type == ME_WRAPPER_TYPE_SUBD) ?
+                                        ME_WRAPPER_TYPE_MDATA :
+                                        mesh_src->runtime->wrapper_type;
   mesh_dst->runtime->subsurf_runtime_data = mesh_src->runtime->subsurf_runtime_data;
   mesh_dst->runtime->cd_mask_extra = mesh_src->runtime->cd_mask_extra;
   /* Copy face dot tags and edge tags, since meshes may be duplicated after a subsurf modifier or
