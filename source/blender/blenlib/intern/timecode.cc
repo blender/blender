@@ -31,9 +31,9 @@ size_t BLI_timecode_string_from_time(char *str,
   char neg[2] = {'\0'};
   size_t rlen;
 
-  /* get cframes */
+  /* Get frames. */
   if (time < 0) {
-    /* Correction for negative cframes. */
+    /* Correction for negative frames. */
     neg[0] = '-';
     time = -time;
   }

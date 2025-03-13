@@ -129,7 +129,7 @@ static GPUContext *blender_gpu_context = nullptr;
 static TicketMutex *system_gpu_context_mutex = nullptr;
 /**
  * The usage of GPUShader objects is currently not thread safe. Since they are shared resources
- * between render engine instances, we cannot allow pass submissions in a concurent manner.
+ * between render engine instances, we cannot allow pass submissions in a concurrent manner.
  */
 static TicketMutex *submission_mutex = nullptr;
 

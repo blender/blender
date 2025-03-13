@@ -47,8 +47,8 @@ vec3 safe_mod(vec3 a, float b);
 vec4 safe_mod(vec4 a, float b);
 
 /**
- * A version of mod that behaves similar to C++ std::modf, and is safe such that it returns 0 when
- * b is also 0.
+ * A version of mod that behaves similar to C++ `std::modf`, and is safe such that it returns 0
+ * when b is also 0.
  */
 vec2 compatible_mod(vec2 a, vec2 b);
 vec3 compatible_mod(vec3 a, vec3 b);

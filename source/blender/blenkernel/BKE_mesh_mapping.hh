@@ -269,18 +269,18 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
  * not neighbors. Values of each group are always powers of two.
  *
  * By default, only groups that share a same sharp edge are considered neighbors, and therefore
- * prevented to use the same bitflag value.
+ * prevented to use the same bit-flag value.
  *
  * If #use_boundary_vertices_for_bitflags is set to `true`, then groups are also considered
- * neighbors (and therefore cannot have the same bitflag value) if they share a single vertex, even
- * if they have no common edge. This behavior seems to be required by some DCCs to recompute
+ * neighbors (and therefore cannot have the same bit-flag value) if they share a single vertex,
+ * even if they have no common edge. This behavior seems to be required by some DCCs to recompute
  * correct normals, see e.g. #104434. It will however make it much more likely to run out of
  * available bits with certain types of topology (e.g. large fans of sharp faces).
  *
  * \param sharp_edges: Optional (possibly empty) span.
  * \param sharp_faces: Optional (possibly empty) span.
  * \param r_totgroup: The total number of groups, 1 or more.
- * \return Face aligned array of group bitflags values (i.e. always powers of 2), starting at 1 (0
+ * \return Face aligned array of group bit-flags values (i.e. always powers of 2), starting at 1 (0
  * being used as 'invalid' flag). Note that it's the callers's responsibility to MEM_freeN the
  * returned array.
  */

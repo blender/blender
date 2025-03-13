@@ -42,7 +42,7 @@ void _BLI_assert_print_backtrace()
 
 void _BLI_assert_abort()
 {
-  /* Wrap to remove 'noreturn' attribute since this suppresses missing return statements,
+  /* Wrap to remove `noreturn` attribute since this suppresses missing return statements,
    * allowing changes to debug builds to accidentally to break release builds.
    *
    * For example `BLI_assert_unreachable();` at the end of a function that returns a value,

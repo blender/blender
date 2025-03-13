@@ -1392,7 +1392,7 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
   vert = v2d->vert;
   hor = v2d->hor;
 
-  /* Pad scrollbar drawing away from region edges. */
+  /* Pad scroll-bar drawing away from region edges. */
   const int edge_pad = int(0.1f * U.widget_unit);
   if (scroll & V2D_SCROLL_BOTTOM) {
     hor.ymin += edge_pad;

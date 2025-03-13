@@ -46,7 +46,7 @@ void fixup_line_continuations(char *p, char *end)
     if (backslash == end) {
       break;
     }
-    /* Skip over possible whitespace right after it. */
+    /* Skip over possible white-space right after it. */
     p = backslash + 1;
     while (p < end && is_whitespace(*p) && *p != '\n') {
       ++p;

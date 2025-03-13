@@ -118,8 +118,8 @@ float safe_mod(float a, float b)
 }
 
 /**
- * A version of mod that behaves similar to C++ std::modf, and is safe such that it returns 0 when
- * b is also 0.
+ * A version of mod that behaves similar to C++ `std::modf`, and is safe such that it returns 0
+ * when b is also 0.
  */
 float compatible_mod(float a, float b)
 {
