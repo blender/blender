@@ -901,6 +901,14 @@ static int uv_rip_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
+  if (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+    /* "Rip" is logically incompatible with sync-select.
+     * Report an error instead of "poll" so this is reported when the tool is used,
+     * with #131642 implemented, this can be made to work. */
+    BKE_report(op->reports, RPT_ERROR, "Rip is not compatible with sync selection");
+    return OPERATOR_CANCELLED;
+  }
+
   bool changed_multi = false;
 
   float co[2];
