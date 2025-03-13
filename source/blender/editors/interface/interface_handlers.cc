@@ -3235,7 +3235,7 @@ static void ui_numedit_but_inc(uiBut *but, uiTextEdit &text_edit, const int mod 
     for (int i = but->pos; i >= 0; i--) {
       char c = text_edit.edit_string[i];
       if (c == '.') {
-        if (dot_pos == -1) {
+        if (dot_pos == 0) {
           dot_pos = but->pos - i;
         }
         else {
@@ -3261,8 +3261,6 @@ static void ui_numedit_but_inc(uiBut *but, uiTextEdit &text_edit, const int mod 
 
     double prev_result = std::stod(str_num);
     double result = prev_result + fadd * mod;
-
-    std::cout << result << std::endl;
 
     int is_positive = 0;
 
