@@ -131,7 +131,7 @@ void DofPass::init(const SceneState &scene_state)
   float focal_len_scaled = scale_camera * focal_len;
   float sensor_scaled = scale_camera * sensor;
 
-  if (RegionView3D *rv3d = DRW_context_state_get()->rv3d) {
+  if (RegionView3D *rv3d = DRW_context_get()->rv3d) {
     sensor_scaled *= rv3d->viewcamtexcofac[0];
   }
 

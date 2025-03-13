@@ -14,7 +14,7 @@
 #include "GPU_compute.hh"
 #include "GPU_debug.hh"
 
-#include "draw_manager_c.hh"
+#include "draw_context_private.hh"
 #include "draw_shader.hh"
 #include "draw_view.hh"
 

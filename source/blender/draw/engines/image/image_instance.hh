@@ -88,7 +88,7 @@ class Instance {
     space_->init_ss_to_texture_matrix(
         region, state.image->runtime.backdrop_offset, image_resolution, state.ss_to_texture);
 
-    const Scene *scene = DRW_context_state_get()->scene;
+    const Scene *scene = DRW_context_get()->scene;
     state.sh_params.update(space_.get(), scene, state.image, image_buffer);
     space_->release_buffer(state.image, image_buffer, lock);
 

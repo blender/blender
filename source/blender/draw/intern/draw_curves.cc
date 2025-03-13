@@ -28,9 +28,9 @@
 
 #include "draw_cache_impl.hh"
 #include "draw_common.hh"
+#include "draw_context_private.hh"
 #include "draw_curves_private.hh"
 #include "draw_hair_private.hh"
-#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 
 namespace blender::draw {
@@ -151,7 +151,7 @@ static CurvesEvalCache *drw_curves_cache_get(Curves &curves,
 
 gpu::VertBuf *DRW_curves_pos_buffer_get(Object *object)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   const Scene *scene = draw_ctx->scene;
 
   const int subdiv = scene->r.hair_subdiv;
@@ -193,6 +193,9 @@ void DRW_curves_update(draw::Manager &manager)
   /* NOTE: This also update legacy hairs too as they populate the same pass. */
   manager.submit(pass);
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+
+  /* Make sure calling this function again will not subdivide the same data. */
+  pass.init();
 
   DRW_submission_end();
 }

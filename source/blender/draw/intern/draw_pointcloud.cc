@@ -19,7 +19,7 @@
 #include "draw_cache_impl.hh"
 #include "draw_common.hh"
 #include "draw_common_c.hh"
-#include "draw_manager_c.hh"
+#include "draw_context_private.hh"
 #include "draw_pointcloud_private.hh"
 /* For drw_curves_get_attribute_sampler_name. */
 #include "draw_curves_private.hh"

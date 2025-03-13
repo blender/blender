@@ -54,7 +54,7 @@
 void GPENCIL_engine_init(void *ved)
 {
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
-  const DRWContextState *ctx = DRW_context_state_get();
+  const DRWContext *ctx = DRW_context_get();
   const View3D *v3d = ctx->v3d;
 
   if (vedata->instance == nullptr) {
@@ -181,7 +181,7 @@ void GPENCIL_cache_init(void *ved)
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   GPENCIL_Instance *inst = vedata->instance;
 
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   inst->cfra = int(DEG_get_ctime(draw_ctx->depsgraph));
   inst->simplify_antialias = GPENCIL_SIMPLIFY_AA(draw_ctx->scene);
   inst->use_layer_fb = false;
@@ -950,8 +950,6 @@ DrawEngineType draw_engine_gpencil_type = {
     /*cache_populate*/ &GPENCIL_cache_populate,
     /*cache_finish*/ &GPENCIL_cache_finish,
     /*draw_scene*/ &GPENCIL_draw_scene,
-    /*view_update*/ nullptr,
-    /*id_update*/ nullptr,
     /*render_to_image*/ &GPENCIL_render_to_image,
     /*store_metadata*/ nullptr,
 };

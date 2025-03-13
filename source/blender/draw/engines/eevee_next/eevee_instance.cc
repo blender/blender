@@ -33,7 +33,7 @@
 #include "DNA_particle_types.h"
 
 #include "draw_common.hh"
-#include "draw_manager_c.hh"
+#include "draw_context_private.hh"
 #include "draw_view_data.hh"
 
 namespace blender::eevee {
@@ -276,7 +276,7 @@ void Instance::object_sync(ObjectRef &ob_ref)
 
   ObjectHandle &ob_handle = sync.sync_object(ob_ref);
 
-  if (partsys_is_visible && ob != DRW_context_state_get()->object_edit) {
+  if (partsys_is_visible && ob != DRW_context_get()->object_edit) {
     auto sync_hair =
         [&](ObjectHandle hair_handle, ModifierData &md, ParticleSystem &particle_sys) {
           ResourceHandle _res_handle = manager->resource_handle_for_psys(ob_ref,
@@ -350,27 +350,17 @@ void Instance::end_sync()
 
 void Instance::render_sync()
 {
-  /* TODO: Remove old draw manager calls. */
-  DRW_cache_restart();
-
   manager->begin_sync();
-
-  DRW_curves_init();
 
   begin_sync();
 
   DRW_render_object_iter(this, render, depsgraph, object_sync_render);
-
-  DRW_curves_update(*manager);
 
   velocity.geometry_steps_fill();
 
   end_sync();
 
   manager->end_sync();
-
-  /* TODO: Remove old draw manager calls. */
-  DRW_curves_update(*manager);
 }
 
 bool Instance::needs_lightprobe_sphere_passes() const
@@ -716,7 +706,7 @@ void Instance::light_bake_irradiance(
 {
   BLI_assert(is_baking());
 
-  DRWContext draw_ctx;
+  DRWContext draw_ctx(DRWContext::CUSTOM, depsgraph);
 
   auto custom_pipeline_wrapper = [&](FunctionRef<void()> callback) {
     context_enable();

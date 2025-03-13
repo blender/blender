@@ -68,57 +68,6 @@ struct DRWData {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Draw Manager
- * \{ */
-
-struct DRWContext {
-  /* TODO: clean up this struct a bit. */
-  /* Cache generation */
-  DRWData *data = nullptr;
-  /** Active view data structure for one of the 2 stereo view. */
-  DRWViewData *view_data_active = nullptr;
-
-  /* Optional associated viewport. Can be nullptr. */
-  GPUViewport *viewport = nullptr;
-  /* Size of the viewport or the final render frame. */
-  blender::float2 size = {0, 0};
-  blender::float2 inv_size = {0, 0};
-
-  /* Returns the viewport's default framebuffer. */
-  GPUFrameBuffer *default_framebuffer();
-
-  struct {
-    uint is_select : 1;
-    uint is_material_select : 1;
-    uint is_depth : 1;
-    uint is_image_render : 1;
-    uint is_scene_render : 1;
-    uint draw_background : 1;
-    uint draw_text : 1;
-  } options;
-
-  /* Current rendering context */
-  DRWContextState draw_ctx = {};
-
-  /* Convenience pointer to text_store owned by the viewport */
-  DRWTextStore **text_store_p = nullptr;
-
-  /** True, when drawing is in progress, see #DRW_draw_in_progress. */
-  bool in_progress = false;
-
-  TaskGraph *task_graph = nullptr;
-  /* Contains list of objects that needs to be extracted from other objects. */
-  GSet *delayed_extraction = nullptr;
-
-  /* Reset all members before drawing in order to avoid undefined state. */
-  void prepare_clean_for_draw();
-  /* Poison all members to detect missing `prepare_clean_for_draw()`. */
-  void state_ensure_not_reused();
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Functions
  * \{ */
 
@@ -131,13 +80,13 @@ void drw_debug_module_free(DRWDebugModule *module);
 GPUStorageBuf *drw_debug_gpu_draw_buf_get();
 
 void drw_batch_cache_validate(Object *ob);
-void drw_batch_cache_generate_requested(Object *ob);
+void drw_batch_cache_generate_requested(Object *ob, TaskGraph &task_graph);
 
 /**
  * \warning Only evaluated mesh data is handled by this delayed generation.
  */
 void drw_batch_cache_generate_requested_delayed(Object *ob);
-void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob);
+void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob, TaskGraph &task_graph);
 
 namespace blender::draw {
 

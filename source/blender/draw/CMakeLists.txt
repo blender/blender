@@ -68,12 +68,13 @@ set(SRC
   intern/draw_cache_impl_volume.cc
   intern/draw_color_management.cc
   intern/draw_command.cc
+  intern/draw_context.cc
   intern/draw_curves.cc
   intern/draw_debug.cc
   intern/draw_fluid.cc
+  intern/draw_gpu_context.cc
   intern/draw_hair.cc
   intern/draw_manager.cc
-  intern/draw_manager_c.cc
   intern/draw_manager_shader.cc
   intern/draw_manager_text.cc
   intern/draw_pbvh.cc
@@ -165,13 +166,12 @@ set(SRC
   intern/draw_common.hh
   intern/draw_common_c.hh
   intern/draw_common_shader_shared.hh
+  intern/draw_context_private.hh
   intern/draw_curves_private.hh
   intern/draw_debug.hh
   intern/draw_hair_private.hh
   intern/draw_handle.hh
   intern/draw_manager.hh
-  intern/draw_manager_c.hh
-  intern/draw_manager_testing.hh
   intern/draw_manager_text.hh
   intern/draw_pass.hh
   intern/draw_resource.hh

@@ -24,7 +24,7 @@
 
 #include "draw_cache_impl.hh"
 #include "draw_common_c.hh"
-#include "draw_manager_c.hh"
+#include "draw_context_private.hh"
 
 #include "../overlay/overlay_next_private.hh"
 
@@ -95,8 +95,10 @@ static void select_engine_framebuffer_setup()
 static void select_engine_init(void *vedata)
 {
   SelectEngineData &e_data = get_engine_data();
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
+  const DRWContext *draw_ctx = DRW_context_get();
+  eGPUShaderConfig sh_cfg = (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) ?
+                                GPU_SHADER_CFG_CLIPPED :
+                                GPU_SHADER_CFG_DEFAULT;
 
   SELECTID_Data *ved = reinterpret_cast<SELECTID_Data *>(vedata);
   SELECTID_Shaders *sh_data = &e_data.sh_data[sh_cfg];
@@ -145,9 +147,12 @@ static void select_cache_init(void *vedata)
 {
   SELECTID_Instance &inst = *reinterpret_cast<SELECTID_Data *>(vedata)->instance;
   SelectEngineData &e_data = get_engine_data();
+  const DRWContext *draw_ctx = DRW_context_get();
+  eGPUShaderConfig sh_cfg = (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) ?
+                                GPU_SHADER_CFG_CLIPPED :
+                                GPU_SHADER_CFG_DEFAULT;
 
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  SELECTID_Shaders *sh = &e_data.sh_data[draw_ctx->sh_cfg];
+  SELECTID_Shaders *sh = &e_data.sh_data[sh_cfg];
 
   if (e_data.context.select_mode == -1) {
     e_data.context.select_mode = select_id_get_object_select_mode(draw_ctx->scene,
@@ -400,7 +405,7 @@ static void select_cache_populate(void *vedata, blender::draw::ObjectRef &ob_ref
   SelectEngineData &e_data = get_engine_data();
   SELECTID_Context &sel_ctx = e_data.context;
   SELECTID_Instance &inst = *reinterpret_cast<SELECTID_Data *>(vedata)->instance;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
 
   if (!sel_ctx.objects.contains(ob) && ob->dt >= OB_SOLID) {
     /* This object is not selectable. It is here to participate in occlusion.
@@ -431,7 +436,7 @@ static void select_draw_scene(void *vedata)
 
   DRW_submission_start();
   {
-    const DRWContextState *draw_ctx = DRW_context_state_get();
+    const DRWContext *draw_ctx = DRW_context_get();
     View::OffsetData offset_data(*draw_ctx->rv3d);
     /* Create view with depth offset */
     const View &view = View::default_get();
@@ -497,8 +502,6 @@ DrawEngineType draw_engine_select_type = {
     /*cache_populate*/ &select_cache_populate,
     /*cache_finish*/ nullptr,
     /*draw_scene*/ &select_draw_scene,
-    /*view_update*/ nullptr,
-    /*id_update*/ nullptr,
     /*render_to_image*/ nullptr,
     /*store_metadata*/ nullptr,
 };

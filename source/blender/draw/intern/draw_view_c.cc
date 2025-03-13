@@ -47,7 +47,7 @@
 void DRW_draw_region_info()
 {
   GPU_debug_group_begin("RegionInfo");
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   ARegion *region = draw_ctx->region;
 
   view3d_draw_region_info(draw_ctx->evil_C, region);
@@ -58,7 +58,7 @@ void DRW_draw_region_info()
 
 void DRW_draw_gizmo_3d()
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   ARegion *region = draw_ctx->region;
 
   /* draw depth culled gizmos - gizmos need to be updated *after* view matrix was set up */
@@ -69,7 +69,7 @@ void DRW_draw_gizmo_3d()
 
 void DRW_draw_gizmo_2d()
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   ARegion *region = draw_ctx->region;
 
   WM_gizmomap_draw(region->runtime->gizmo_map, draw_ctx->evil_C, WM_GIZMOMAP_DRAWSTEP_2D);

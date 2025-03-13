@@ -43,7 +43,7 @@
 
 #include "draw_cache.hh"
 #include "draw_common_c.hh"
-#include "draw_manager_c.hh"
+#include "draw_context_private.hh"
 #include "draw_manager_text.hh"
 
 #include "overlay_next_armature.hh"
@@ -2079,7 +2079,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
 void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
 {
   Object *ob = ctx->ob;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   const Scene *scene = draw_ctx->scene;
   bArmature *arm = static_cast<bArmature *>(ob->data);
   int index = -1;

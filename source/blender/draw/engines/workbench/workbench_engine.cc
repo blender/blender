@@ -545,7 +545,7 @@ static void workbench_engine_init(void *vedata)
     ved->instance = new workbench::Instance();
   }
 
-  ved->instance->init(DRW_context_state_get()->depsgraph);
+  ved->instance->init(DRW_context_get()->depsgraph);
 }
 
 static void workbench_cache_init(void *vedata)
@@ -717,7 +717,7 @@ static void workbench_render_to_image(void *vedata,
 
   /* Setup */
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   Depsgraph *depsgraph = draw_ctx->depsgraph;
 
   WORKBENCH_Data *ved = reinterpret_cast<WORKBENCH_Data *>(vedata);
@@ -756,9 +756,6 @@ static void workbench_render_to_image(void *vedata,
 
   manager.end_sync();
 
-  /* TODO: Remove old draw manager calls. */
-  DRW_curves_update(manager);
-
   DRW_submission_start();
 
   DefaultTextureList &dtxl = *DRW_viewport_texture_list_get();
@@ -795,8 +792,6 @@ DrawEngineType draw_engine_workbench = {
     /*cache_populate*/ &workbench_cache_populate,
     /*cache_finish*/ &workbench_cache_finish,
     /*draw_scene*/ &workbench_draw_scene,
-    /*view_update*/ nullptr,
-    /*id_update*/ nullptr,
     /*render_to_image*/ &workbench_render_to_image,
     /*store_metadata*/ nullptr,
 };

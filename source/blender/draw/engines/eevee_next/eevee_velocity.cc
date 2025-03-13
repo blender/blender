@@ -107,11 +107,7 @@ void VelocityModule::step_sync(eVelocityStep step, float time)
   object_steps_usage[step_] = 0;
   step_camera_sync();
 
-  DRW_curves_init();
-
   DRW_render_object_iter(&inst_, inst_.render, inst_.depsgraph, step_object_sync_render);
-
-  DRW_curves_update(*inst_.manager);
 
   geometry_steps_fill();
 }

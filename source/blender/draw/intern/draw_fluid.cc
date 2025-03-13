@@ -24,7 +24,7 @@
 
 #include "GPU_texture.hh"
 
-#include "draw_manager_c.hh"
+#include "draw_context_private.hh"
 
 #include "draw_common_c.hh" /* Own include. */
 

@@ -15,7 +15,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "DRW_render.hh"
-#include "draw_manager_c.hh"
+#include "draw_context_private.hh"
 
 #define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT_SIZE */
 
@@ -167,6 +167,5 @@ ViewportEngineData *DRW_view_data_engine_data_get_ensure(DRWViewData *view_data,
 void DRW_view_data_use_engine(DRWViewData *view_data, DrawEngineType *engine_type);
 void DRW_view_data_reset(DRWViewData *view_data);
 void DRW_view_data_free_unused(DRWViewData *view_data);
-void DRW_view_data_engines_view_update(DRWViewData *view_data);
 DefaultFramebufferList *DRW_view_data_default_framebuffer_list_get(DRWViewData *view_data);
 DefaultTextureList *DRW_view_data_default_texture_list_get(DRWViewData *view_data);

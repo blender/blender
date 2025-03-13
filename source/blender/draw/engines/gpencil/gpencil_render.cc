@@ -160,7 +160,7 @@ static void GPENCIL_render_result_z(RenderLayer *rl,
                                     GPENCIL_Data *vedata,
                                     const rcti *rect)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   ViewLayer *view_layer = draw_ctx->view_layer;
   if ((view_layer->passflag & SCE_PASS_Z) == 0) {
     return;
@@ -239,7 +239,7 @@ void GPENCIL_render_to_image(void *ved,
 {
   GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   const char *viewname = RE_GetActiveRenderView(engine->re);
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   Depsgraph *depsgraph = draw_ctx->depsgraph;
 
   DRW_manager_get()->begin_sync();

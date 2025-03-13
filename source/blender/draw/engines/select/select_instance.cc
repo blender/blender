@@ -33,7 +33,7 @@ static void SELECT_next_engine_init(void *vedata)
   OVERLAY_Data *ved = reinterpret_cast<OVERLAY_Data *>(vedata);
 
   if (ved->instance == nullptr) {
-    const DRWContextState *draw_ctx = DRW_context_state_get();
+    const DRWContext *draw_ctx = DRW_context_get();
     const RegionView3D *rv3d = draw_ctx->rv3d;
     const View3D *v3d = draw_ctx->v3d;
     const bool clipping_enabled = RV3D_CLIPPING_ENABLED(v3d, rv3d);
@@ -85,8 +85,6 @@ DrawEngineType draw_engine_select_next_type = {
     /*cache_populate*/ &SELECT_next_cache_populate,
     /*cache_finish*/ &SELECT_next_cache_finish,
     /*draw_scene*/ &SELECT_next_draw_scene,
-    /*view_update*/ nullptr,
-    /*id_update*/ nullptr,
     /*render_to_image*/ nullptr,
     /*store_metadata*/ nullptr,
 };

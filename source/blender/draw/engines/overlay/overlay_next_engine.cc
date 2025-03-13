@@ -31,7 +31,7 @@ static void OVERLAY_next_engine_init(void *vedata)
 {
   OVERLAY_Data *ved = reinterpret_cast<OVERLAY_Data *>(vedata);
 
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   const RegionView3D *rv3d = draw_ctx->rv3d;
   const View3D *v3d = draw_ctx->v3d;
   const bool clipping_enabled = RV3D_CLIPPING_ENABLED(v3d, rv3d);
@@ -103,8 +103,6 @@ DrawEngineType draw_engine_overlay_next_type = {
     /*cache_populate*/ &OVERLAY_next_cache_populate,
     /*cache_finish*/ &OVERLAY_next_cache_finish,
     /*draw_scene*/ &OVERLAY_next_draw_scene,
-    /*view_update*/ nullptr,
-    /*id_update*/ nullptr,
     /*render_to_image*/ nullptr,
     /*store_metadata*/ nullptr,
 };

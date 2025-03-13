@@ -21,6 +21,7 @@
 
 #include "ED_image.hh"
 #include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 #include "GPU_debug.hh"
 #include "GPU_matrix.hh"
@@ -50,7 +51,7 @@ struct EXTERNAL_Data {
 
 static void external_draw_scene_do_v3d(void *vedata)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   RegionView3D *rv3d = draw_ctx->rv3d;
   ARegion *region = draw_ctx->region;
 
@@ -63,7 +64,8 @@ static void external_draw_scene_do_v3d(void *vedata)
   /* Create render engine. */
   RenderEngine *render_engine = nullptr;
   if (!rv3d->view_render) {
-    RenderEngineType *engine_type = draw_ctx->engine_type;
+    RenderEngineType *engine_type = ED_view3d_engine_type(draw_ctx->scene,
+                                                          draw_ctx->v3d->shading.type);
 
     if (!(engine_type->view_update && engine_type->view_draw)) {
       return;
@@ -110,7 +112,7 @@ static void external_image_space_matrix_set(const RenderEngine *engine)
 {
   BLI_assert(engine != nullptr);
 
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   SpaceImage *space_image = (SpaceImage *)draw_ctx->space_data;
 
   /* Apply current view as transformation matrix.
@@ -145,7 +147,7 @@ static void external_image_space_matrix_set(const RenderEngine *engine)
 
 static void external_draw_scene_do_image(void * /*vedata*/)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   Scene *scene = draw_ctx->scene;
   Render *re = RE_GetSceneRender(scene);
   RenderEngine *engine = RE_engine_get(re);
@@ -195,7 +197,7 @@ static void external_draw_scene_do_image(void * /*vedata*/)
 
 static void external_draw_scene_do(void *vedata)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
 
   if (draw_ctx->v3d != nullptr) {
     external_draw_scene_do_v3d(vedata);
@@ -215,7 +217,7 @@ static void external_draw_scene_do(void *vedata)
 
 static void external_draw_scene(void *vedata)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   /* Will be nullptr during OpenGL render.
@@ -245,8 +247,6 @@ DrawEngineType draw_engine_external_type = {
     /*cache_populate*/ nullptr,
     /*cache_finish*/ nullptr,
     /*draw_scene*/ &external_draw_scene,
-    /*view_update*/ nullptr,
-    /*id_update*/ nullptr,
     /*render_to_image*/ nullptr,
     /*store_metadata*/ nullptr,
 };
@@ -280,7 +280,7 @@ RenderEngineType DRW_engine_viewport_external_type = {
 
 bool DRW_engine_external_acquire_for_image_editor()
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   const SpaceLink *space_data = draw_ctx->space_data;
   Scene *scene = draw_ctx->scene;
 

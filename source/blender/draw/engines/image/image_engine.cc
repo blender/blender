@@ -45,7 +45,7 @@ static void IMAGE_engine_init(void *vedata)
     ved->instance = new image_engine::Instance();
   }
 
-  const DRWContextState *ctx_state = DRW_context_state_get();
+  const DRWContext *ctx_state = DRW_context_get();
   Main *bmain = CTX_data_main(ctx_state->evil_C);
   ved->instance->init(bmain, ctx_state->space_data, ctx_state->region);
 }
@@ -98,8 +98,6 @@ DrawEngineType draw_engine_image_type = {
     /*cache_populate*/ &IMAGE_cache_populate,
     /*cache_finish*/ nullptr,
     /*draw_scene*/ &IMAGE_draw_scene,
-    /*view_update*/ nullptr,
-    /*id_update*/ nullptr,
     /*render_to_image*/ nullptr,
     /*store_metadata*/ nullptr,
 };

@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "BLI_math_vector_types.hh"
 #include "DNA_object_enums.h"
 
@@ -42,6 +44,13 @@ struct View3D;
 struct ViewLayer;
 struct DRWContext;
 struct World;
+struct DRWData;
+struct DRWViewData;
+struct GPUViewport;
+struct GPUFrameBuffer;
+struct DRWTextStore;
+struct GSet;
+struct GPUViewport;
 namespace blender::draw {
 class TextureFromPool;
 struct ObjectRef;
@@ -71,11 +80,6 @@ struct DrawEngineType {
   void (*cache_finish)(void *vedata);
 
   void (*draw_scene)(void *vedata);
-
-  /* TODO(fclem): Remove. */
-  void (*view_update)(void *vedata);
-  /* TODO(fclem): Remove. */
-  void (*id_update)(void *vedata, ID *id);
 
   void (*render_to_image)(void *vedata,
                           RenderEngine *engine,
@@ -195,30 +199,251 @@ DupliObject *DRW_object_get_dupli(const Object *ob);
 
 /* Draw State. */
 
-/**
- * When false, drawing doesn't output to a pixel buffer
- * eg: Occlusion queries, or when we have setup a context to draw in already.
- */
-bool DRW_state_is_fbo();
+/* -------------------------------------------------------------------- */
+/** \name Draw Context
+ * \{ */
+
+struct DRWContext {
+ private:
+  /** Render State: No persistent data between draw calls. */
+  static thread_local DRWContext *g_context;
+
+  /* TODO(fclem): Private? */
+ public:
+  /* TODO: clean up this struct a bit. */
+  /* Cache generation */
+  DRWData *data = nullptr;
+  /** Active view data structure for one of the 2 stereo view. */
+  DRWViewData *view_data_active = nullptr;
+
+  /* Optional associated viewport. Can be nullptr. */
+  GPUViewport *viewport = nullptr;
+  /* Size of the viewport or the final render frame. */
+  blender::float2 size = {0, 0};
+  blender::float2 inv_size = {0, 0};
+
+  /* Returns the viewport's default framebuffer. */
+  GPUFrameBuffer *default_framebuffer();
+
+  const enum Mode {
+    /* Render for display of 2D or 3D area. Runs on main thread. */
+    VIEWPORT = 0,
+
+    /* These viewport modes will render without some overlays (i.e. no text). */
+
+    /* Render for a 3D viewport in XR. Runs on main thread. */
+    VIEWPORT_XR,
+    /* Render for a 3D viewport offscreen render (python). Runs on main thread. */
+    VIEWPORT_OFFSCREEN,
+    /* Render for a 3D viewport image render (render preview). Runs on main thread. */
+    VIEWPORT_RENDER,
+
+    /* Render for object mode selection. Runs on main thread. */
+    SELECT_OBJECT,
+    /* Render for object material selection. Runs on main thread. */
+    SELECT_OBJECT_MATERIAL,
+    /* Render for edit mesh selection. Runs on main thread. */
+    SELECT_EDIT_MESH,
+
+    /* Render for depth picking (auto-depth). Runs on main thread. */
+    DEPTH,
+
+    /* Render for F12 final render. Can run in any thread. */
+    RENDER,
+    /* Used by custom pipeline. Can run in any thread. */
+    CUSTOM,
+  } mode;
+
+  struct {
+    bool draw_background = false;
+    bool draw_text = false;
+  } options;
+
+  /* Convenience pointer to text_store owned by the viewport */
+  DRWTextStore **text_store_p = nullptr;
+
+  /* Contains list of objects that needs to be extracted from other objects. */
+  GSet *delayed_extraction = nullptr;
+
+  /* TODO(fclem): Public. */
+
+  /* Current rendering context. Avoid too many lookups while drawing. */
+
+  /* Evaluated Depsgraph. */
+  Depsgraph *depsgraph = nullptr;
+  /* Evaluated Scene. */
+  Scene *scene = nullptr;
+  /* Evaluated ViewLayer. */
+  ViewLayer *view_layer = nullptr;
+
+  /** Last resort (some functions take this as an arg so we can't easily avoid).
+   * May be nullptr when used for selection or depth buffer. */
+  const bContext *evil_C = nullptr;
+  /* Can be nullptr depending on context. */
+  ARegion *region = nullptr;
+  /* Can be nullptr depending on context. */
+  SpaceLink *space_data = nullptr;
+  /* Can be nullptr depending on context. */
+  RegionView3D *rv3d = nullptr;
+  /* Can be nullptr depending on context. */
+  View3D *v3d = nullptr;
+  /* Use 'object_edit' for edit-mode */
+  Object *obact = nullptr;
+  Object *object_pose = nullptr;
+  Object *object_edit = nullptr;
+
+  eObjectMode object_mode = OB_MODE_OBJECT;
+
+ public:
+  /**
+   * If `viewport` is not specified, `DRWData` will be considered temporary and discarded on exit.
+   * If `C` is nullptr, it means that the context is **not** associated with any UI or operator.
+   * If `region` is nullptr, it will be sourced from the context `C` or left as nullptr otherwise.
+   * If `v3d` is nullptr, it will be sourced from the context `C` or left as nullptr otherwise.
+   */
+  DRWContext(Mode mode,
+             Depsgraph *depsgraph,
+             GPUViewport *viewport,
+             const bContext *C = nullptr,
+             ARegion *region = nullptr,
+             View3D *v3d = nullptr);
+  DRWContext(Mode mode,
+             Depsgraph *depsgraph,
+             const blender::int2 size = {1, 1},
+             const bContext *C = nullptr,
+             ARegion *region = nullptr,
+             View3D *v3d = nullptr);
+
+  ~DRWContext();
+
+  /**
+   * Acquire `data` and `view_data_active`.
+   * Needs to be called before enabling any draw engine.
+   * IMPORTANT: This can be called multiple times before release_data.
+   * IMPORTANT: This must be called with an active GPUContext.
+   */
+  void acquire_data();
+
+  /**
+   * Make sure to release acquired DRWData. If created on the fly, make sure to destroy them.
+   * IMPORTANT: This needs to be called with the same active GPUContext `acquire_data()` was called
+   * with.
+   */
+  void release_data();
+
+  /**
+   * Enable engines from context. Not needed for Mode::RENDER and Mode::CUSTOM.
+   *
+   * `render_engine_type` specify the engine to use in OB_MATERIAL or OB_RENDER modes.
+   * `gpencil_engine_needed` should be set to true if the grease pencil engine is needed.
+   */
+  void enable_engines(bool gpencil_engine_needed = false,
+                      RenderEngineType *render_engine_type = nullptr);
+
+  /* Free unused engine data. */
+  void engines_data_validate();
+
+  using iter_callback_t =
+      std::function<void(struct DupliCacheManager &, struct ExtractionGraph &)>;
+
+  /* Run the sync phase with data extraction. iter_callback defines which object to sync. */
+  void sync(iter_callback_t iter_callback);
+  /* Run enabled engine init and sync callbacks. iter_callback defines which object to sync. */
+  void engines_init_and_sync(iter_callback_t iter_callback);
+  /* Run enabled engine init and draw scene callbacks. */
+  void engines_draw_scene();
+
+  static DRWContext &get_active()
+  {
+    return *g_context;
+  }
+
+  /* Return true if any DRWContext is active on this thread. */
+  static bool is_active()
+  {
+    return g_context != nullptr;
+  }
+
+  bool is_select() const
+  {
+    return ELEM(mode, SELECT_OBJECT, SELECT_OBJECT_MATERIAL, SELECT_EDIT_MESH);
+  }
+  bool is_material_select() const
+  {
+    return ELEM(mode, SELECT_OBJECT_MATERIAL);
+  }
+  bool is_depth() const
+  {
+    return ELEM(mode, DEPTH);
+  }
+  bool is_image_render() const
+  {
+    return ELEM(mode, VIEWPORT_RENDER, RENDER);
+  }
+  bool is_scene_render() const
+  {
+    return ELEM(mode, RENDER);
+  }
+  bool is_viewport_image_render() const
+  {
+    return ELEM(mode, VIEWPORT_RENDER);
+  }
+};
+
+/** \} */
+
+const DRWContext *DRW_context_get();
+
 /**
  * For when engines need to know if this is drawing for selection or not.
  */
-bool DRW_state_is_select();
-bool DRW_state_is_material_select();
-bool DRW_state_is_depth();
+static inline bool DRW_state_is_select()
+{
+  return DRWContext::get_active().is_select();
+}
+
+/**
+ * For when engines need to know if this is drawing for selection or not.
+ */
+static inline bool DRW_state_is_material_select()
+{
+  return DRWContext::get_active().is_material_select();
+}
+
+/**
+ * For when engines need to know if this is drawing for depth picking.
+ */
+static inline bool DRW_state_is_depth()
+{
+  return DRWContext::get_active().is_depth();
+}
+
 /**
  * Whether we are rendering for an image
  */
-bool DRW_state_is_image_render();
+static inline bool DRW_state_is_image_render()
+{
+  return DRWContext::get_active().is_image_render();
+  ;
+}
+
 /**
  * Whether we are rendering only the render engine,
  * or if we should also render the mode engines.
  */
-bool DRW_state_is_scene_render();
+static inline bool DRW_state_is_scene_render()
+{
+  return DRWContext::get_active().is_scene_render();
+}
+
 /**
  * Whether we are rendering simple opengl render
  */
-bool DRW_state_is_viewport_image_render();
+static inline bool DRW_state_is_viewport_image_render()
+{
+  return DRWContext::get_active().is_viewport_image_render();
+}
+
 bool DRW_state_is_playback();
 /**
  * Is the user navigating or painting the region.
@@ -242,40 +467,4 @@ bool DRW_state_draw_support();
  */
 bool DRW_state_draw_background();
 
-/* Avoid too many lookups while drawing */
-struct DRWContextState {
-  ARegion *region;       /* 'CTX_wm_region(C)' */
-  RegionView3D *rv3d;    /* 'CTX_wm_region_view3d(C)' */
-  View3D *v3d;           /* 'CTX_wm_view3d(C)' */
-  SpaceLink *space_data; /* 'CTX_wm_space_data(C)' */
-
-  Scene *scene;          /* 'CTX_data_scene(C)' */
-  ViewLayer *view_layer; /* 'CTX_data_view_layer(C)' */
-
-  /* Use 'object_edit' for edit-mode */
-  Object *obact;
-
-  RenderEngineType *engine_type;
-
-  Depsgraph *depsgraph;
-
-  TaskGraph *task_graph;
-
-  eObjectMode object_mode;
-
-  eGPUShaderConfig sh_cfg;
-
-  /** Last resort (some functions take this as an arg so we can't easily avoid).
-   * May be nullptr when used for selection or depth buffer. */
-  const bContext *evil_C;
-
-  /* ---- */
-
-  /* Cache: initialized by 'drw_context_state_init'. */
-  Object *object_pose;
-  Object *object_edit;
-};
-
-const DRWContextState *DRW_context_state_get();
-
-bool DRW_is_viewport_compositor_enabled();
+bool DRW_state_viewport_compositor_enabled();

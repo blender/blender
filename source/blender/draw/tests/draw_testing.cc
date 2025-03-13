@@ -6,8 +6,6 @@
 
 #include "GPU_shader.hh"
 
-#include "draw_manager_testing.hh"
-
 namespace blender::draw {
 
 /* Base class for draw test cases. It will setup and tear down the GPU part around each test. */
@@ -15,7 +13,6 @@ namespace blender::draw {
 void DrawOpenGLTest::SetUp()
 {
   GPUOpenGLTest::SetUp();
-  DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
 }
 #endif
 
@@ -23,7 +20,6 @@ void DrawOpenGLTest::SetUp()
 void DrawMetalTest::SetUp()
 {
   GPUMetalTest::SetUp();
-  DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
 }
 #endif
 
@@ -31,7 +27,6 @@ void DrawMetalTest::SetUp()
 void DrawVulkanTest::SetUp()
 {
   GPUVulkanTest::SetUp();
-  DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
 }
 #endif
 

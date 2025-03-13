@@ -56,6 +56,7 @@ ListBase R_engines = {nullptr, nullptr};
 void RE_engines_init()
 {
   DRW_engines_register();
+  DRW_module_init();
 }
 
 void RE_engines_exit()
@@ -63,6 +64,7 @@ void RE_engines_exit()
   RenderEngineType *type, *next;
 
   DRW_engines_free();
+  DRW_module_exit();
 
   for (type = static_cast<RenderEngineType *>(R_engines.first); type; type = next) {
     next = type->next;

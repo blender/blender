@@ -14,8 +14,8 @@
 #include "GPU_batch.hh"
 #include "GPU_debug.hh"
 
+#include "draw_context_private.hh"
 #include "draw_debug.hh"
-#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 #include "draw_shader_shared.hh"
 

@@ -30,9 +30,9 @@
 #include "DRW_gpu_wrapper.hh"
 
 #include "draw_common_c.hh"
+#include "draw_context_private.hh"
 #include "draw_hair_private.hh"
 #include "draw_manager.hh"
-#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 #include "draw_shader_shared.hh"
 
@@ -86,7 +86,7 @@ blender::gpu::VertBuf *DRW_hair_pos_buffer_get(Object *object,
                                                ParticleSystem *psys,
                                                ModifierData *md)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   Scene *scene = draw_ctx->scene;
 
   int subdiv = scene->r.hair_subdiv;

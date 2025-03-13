@@ -19,8 +19,8 @@
 
 #include "draw_manager_text.hh"
 
+#include "draw_context_private.hh"
 #include "draw_manager.hh"
-#include "draw_manager_c.hh"
 #include "draw_view_data.hh"
 
 #include "engines/compositor/compositor_engine.h"
@@ -184,15 +184,6 @@ void DRW_view_data_free_unused(DRWViewData *view_data)
   view_data->foreach_engine([&](ViewportEngineData *data, DrawEngineType * /*engine*/) {
     if (data->used == false) {
       draw_viewport_engines_data_clear(data, false);
-    }
-  });
-}
-
-void DRW_view_data_engines_view_update(DRWViewData *view_data)
-{
-  view_data->foreach_enabled_engine([&](ViewportEngineData *data, DrawEngineType *engine) {
-    if (engine->view_update) {
-      engine->view_update(data);
     }
   });
 }

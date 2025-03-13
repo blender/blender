@@ -11,7 +11,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "draw_attributes.hh"
-#include "draw_manager_c.hh"
+#include "draw_context_private.hh"
 #include "draw_view.hh"
 
 #include "BKE_attribute.hh"
@@ -55,7 +55,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   }
 
   /* TODO(Miguel Pozo): Don't use global context. */
-  const DRWContextState *drwctx = DRW_context_state_get();
+  const DRWContext *drwctx = DRW_context_get();
   RegionView3D *rv3d = drwctx->rv3d;
   const bool navigating = rv3d && (rv3d->rflag & RV3D_NAVIGATING);
 

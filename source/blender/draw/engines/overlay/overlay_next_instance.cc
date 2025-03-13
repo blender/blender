@@ -20,7 +20,7 @@ namespace blender::draw::overlay {
 void Instance::init()
 {
   /* TODO(fclem): Remove DRW global usage. */
-  const DRWContextState *ctx = DRW_context_state_get();
+  const DRWContext *ctx = DRW_context_get();
   /* Was needed by `object_wire_theme_id()` when doing the port. Not sure if needed nowadays. */
   BKE_view_layer_synced_ensure(ctx->scene, ctx->view_layer);
 
