@@ -29,8 +29,9 @@ GPU_SHADER_INTERFACE_END()
 GPU_SHADER_CREATE_INFO(select_id_patch)
 TYPEDEF_SOURCE("select_shader_shared.hh")
 VERTEX_OUT(select_id_patch_iface)
-/* Need to make sure the depth & stencil comparison runs before the fragment shader. */
-EARLY_FRAGMENT_TEST(true)
+/* This is on purpose. We want all fragment to be considered during selection.
+ * Selection in object mode is not yet depth aware (see #135898). */
+// EARLY_FRAGMENT_TEST(true)
 UNIFORM_BUF(SELECT_DATA, SelectInfoData, select_info_buf)
 /* Select IDs for instanced draw-calls not using #PassMain. */
 STORAGE_BUF(SELECT_ID_IN, READ, uint, in_select_buf[])

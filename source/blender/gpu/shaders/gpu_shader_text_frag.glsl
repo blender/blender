@@ -79,8 +79,8 @@ vec4 sample_glyph_rgba(vec2 uv)
 void main()
 {
   vec2 uv_base = texCoord_interp;
-  uint num_channels = (glyph_flags >> 4) & 0xF;
-  uint shadow_type = glyph_flags & 0xF;
+  uint num_channels = (glyph_flags >> 4) & 0xFu;
+  uint shadow_type = glyph_flags & 0xFu;
 
   /* Colored glyphs: do not do filtering or blurring. */
   if (num_channels == 4) {
