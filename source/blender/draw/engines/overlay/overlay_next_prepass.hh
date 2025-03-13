@@ -93,7 +93,7 @@ class Prepass : Overlay {
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | backface_cull_state,
                   state.clipping_plane_count);
-    res.select_bind(ps_);
+    res.select_bind(ps_, backface_cull_state);
     {
       auto &sub = ps_.sub("Mesh");
       sub.shader_set(res.is_selection() ? res.shaders.depth_mesh_conservative.get() :
