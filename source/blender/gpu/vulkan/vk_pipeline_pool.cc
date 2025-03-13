@@ -373,7 +373,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
         att_state.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
         att_state.dstColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
         att_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-        att_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        att_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
         break;
 
       case GPU_BLEND_ALPHA_UNDER_PREMUL:
