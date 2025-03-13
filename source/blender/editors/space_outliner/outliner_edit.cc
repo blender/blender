@@ -66,6 +66,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 #include "RNA_path.hh"
+#include "RNA_prototypes.hh"
 
 #include "GPU_material.hh"
 
@@ -908,6 +909,70 @@ void OUTLINER_OT_id_paste(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Linked ID Relocate Operator
+ * \{ */
+
+static wmOperatorStatus outliner_id_relocate_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent * /*event*/)
+{
+  PointerRNA id_linked_ptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
+  ID *id_linked = static_cast<ID *>(id_linked_ptr.data);
+
+  if (!id_linked) {
+    BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "There is no active data-block");
+    return OPERATOR_CANCELLED;
+  }
+  if (!ID_IS_LINKED(id_linked) || !BKE_idtype_idcode_is_linkable(GS(id_linked->name))) {
+    BKE_reportf(op->reports,
+                RPT_ERROR_INVALID_INPUT,
+                "The active data-block '%s' is not a valid linked one",
+                BKE_id_name(*id_linked));
+    return OPERATOR_CANCELLED;
+  }
+  if (BKE_library_ID_is_indirectly_used(CTX_data_main(C), id_linked)) {
+    BKE_reportf(op->reports,
+                RPT_ERROR_INVALID_INPUT,
+                "The active data-block '%s' is used by other linked data",
+                BKE_id_name(*id_linked));
+    return OPERATOR_CANCELLED;
+  }
+
+  wmOperatorType *ot = WM_operatortype_find("WM_OT_id_linked_relocate", false);
+  PointerRNA op_props;
+
+  WM_operator_properties_create_ptr(&op_props, ot);
+  RNA_int_set(&op_props, "id_session_uid", *reinterpret_cast<int *>(&id_linked->session_uid));
+
+  const wmOperatorStatus ret = WM_operator_name_call_ptr(
+      C, ot, WM_OP_INVOKE_DEFAULT, &op_props, nullptr);
+
+  WM_operator_properties_free(&op_props);
+
+  /* If the matching WM operator invoke was successful, it was added to modal handlers. This
+   * operator however is _not_ modal, and will memleak if it returns this status. */
+  return (ret == OPERATOR_RUNNING_MODAL) ? OPERATOR_FINISHED : ret;
+}
+
+void OUTLINER_OT_id_linked_relocate(wmOperatorType *ot)
+{
+  ot->name = "Relocate Linked ID";
+  ot->idname = "OUTLINER_OT_id_linked_relocate";
+  ot->description =
+      "Replace the active linked ID (and its dependencies if any) by another one, from the same "
+      "or a different library";
+
+  ot->invoke = outliner_id_relocate_invoke;
+  ot->poll = ED_operator_region_outliner_active;
+
+  /* Flags. No undo, no registering, all the actual work/changes is done by the matching WM
+   * operator. */
+  ot->flag = 0;
 }
 
 /** \} */

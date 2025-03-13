@@ -410,3 +410,11 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
                                     ReportList *reports,
                                     Library *library,
                                     bool do_reload);
+
+/**
+ * Relocate a single linked ID.
+ *
+ * NOTE: content of `lapp_context` after execution of that function should not be assumed valid
+ * anymore, and should immediately be freed.
+ */
+void BKE_blendfile_id_relocate(BlendfileLinkAppendContext &lapp_context, ReportList *reports);

@@ -2014,8 +2014,16 @@ static void lib_override_library_remap(
      */
     ID *id_reference_iter = static_cast<ID *>(
         BLI_ghashIterator_getKey(&linkedref_to_old_override_iter));
+
+    /* NOTE: Usually `id_reference_iter->lib == id_root_reference->lib` should always be true.
+     * However, there are some cases where it is not, e.g. if the linked reference of a liboverride
+     * is relocated to another ID in another library. */
+#if 0
     BLI_assert(id_reference_iter->lib == id_root_reference->lib);
     UNUSED_VARS_NDEBUG(id_root_reference);
+#else
+    UNUSED_VARS(id_root_reference);
+#endif
     if (!id_reference_iter->newid) {
       remapper_overrides_reference_to_old.add(id_reference_iter, id_override_old_iter);
     }
