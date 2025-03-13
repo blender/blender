@@ -85,8 +85,7 @@ class Prepass : Overlay {
 
     use_material_slot_selection_ = state.is_material_select;
 
-    const View3DShading &shading = state.v3d->shading;
-    bool use_cull = ((shading.type == OB_SOLID) && (shading.flag & V3D_SHADING_BACKFACE_CULLING));
+    bool use_cull = res.theme_settings.backface_culling;
     DRWState backface_cull_state = use_cull ? DRW_STATE_CULL_BACK : DRWState(0);
 
     ps_.init();
