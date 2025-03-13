@@ -4,10 +4,14 @@
 
 #include <fmt/format.h>
 
+#include "BLI_color.hh"
+#include "BLI_cpp_type.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 #include "GPU_shader.hh"
+
+#include "BKE_type_conversions.hh"
 
 #include "COM_context.hh"
 #include "COM_conversion_operation.hh"
@@ -211,171 +215,24 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
   BLI_assert_unreachable();
 }
 
-void ConversionOperation::execute_cpu(const Result &input, Result &output)
+/* Gets the CPU data of the given result as a GMutableSpan. This calls the underlying cpu_data
+ * method, however, it has an exception for color types, since colors are stored as float4, while
+ * their semantic type is ColorSceneLinear4f<eAlpha::Premultiplied> during conversion. */
+static GMutableSpan get_result_data(const Result &result)
 {
-  switch (this->get_input().type()) {
-    case ResultType::Float:
-      switch (this->get_result().type()) {
-        case ResultType::Int:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float_to_int(input.load_pixel<float>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float_to_float3(input.load_pixel<float>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float_to_color(input.load_pixel<float>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float_to_float4(input.load_pixel<float>(texel)));
-          });
-          return;
-        case ResultType::Float:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Int:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_float(input.load_pixel<int32_t>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_float3(input.load_pixel<int32_t>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_color(input.load_pixel<int32_t>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_float4(input.load_pixel<int32_t>(texel)));
-          });
-          return;
-        case ResultType::Int:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float3:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float3_to_float(input.load_pixel<float3>(texel)));
-          });
-          return;
-        case ResultType::Int:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float3_to_int(input.load_pixel<float3>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float3_to_color(input.load_pixel<float3>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float3_to_float4(input.load_pixel<float3>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Color:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, color_to_float(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Int:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, color_to_int(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, color_to_float3(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, color_to_float4(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float4:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float4_to_float(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Int:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float4_to_int(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float4_to_float3(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float4_to_color(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float2:
-    case ResultType::Int2:
-      /* Types are not user facing, so we needn't implement them. */
-      break;
+  if (result.type() == ResultType::Color) {
+    return GMutableSpan(CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(),
+                        result.cpu_data().data(),
+                        result.cpu_data().size());
   }
 
-  BLI_assert_unreachable();
+  return result.cpu_data();
+}
+
+void ConversionOperation::execute_cpu(const Result &input, Result &output)
+{
+  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+  conversions.convert_to_initialized_n(get_result_data(input), get_result_data(output));
 }
 
 }  // namespace blender::compositor
