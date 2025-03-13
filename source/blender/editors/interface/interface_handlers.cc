@@ -9671,9 +9671,9 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
           /* Drag on a hold button (used in the toolbar) now opens it immediately. */
           if (data->hold_action_timer) {
             if (but->flag & UI_SELECT) {
-              if (len_manhattan_v2v2_int(event->xy, event->prev_xy) <=
-                  WM_EVENT_CURSOR_MOTION_THRESHOLD)
-              {
+              const int threshold = WM_event_drag_threshold(event);
+              const int movement = len_manhattan_v2v2_int(event->xy, event->prev_press_xy);
+              if (movement <= threshold) {
                 /* pass */
               }
               else {
