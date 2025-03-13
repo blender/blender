@@ -55,6 +55,10 @@ void WM_tooltip_timer_init_ex(
   screen->tool_tip->region_from = region;
   screen->tool_tip->timer = WM_event_timer_add(wm, win, TIMER, delay);
   screen->tool_tip->init = init;
+
+  /* Mouse position will be updated when the tooltip is shown, but save now
+   * because we cancel the showing if there is movement before timer expiry. */
+  copy_v2_v2_int(screen->tool_tip->event_xy, win->eventstate->xy);
 }
 
 void WM_tooltip_timer_init(
