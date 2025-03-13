@@ -84,7 +84,6 @@ bool VKDevice::is_initialized() const
 void VKDevice::init(void *ghost_context)
 {
   BLI_assert(!is_initialized());
-  void *queue_mutex = nullptr;
   GHOST_VulkanHandles handles = {};
   GHOST_GetVulkanHandles((GHOST_ContextHandle)ghost_context, &handles);
   vk_instance_ = handles.instance;
