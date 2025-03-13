@@ -40,9 +40,6 @@ class ConversionOperation : public SimpleOperation {
 
   /* Convert the input to the appropriate type and write the result to the output on the CPU. */
   void execute_cpu(const Result &input, Result &output);
-
-  /* Get the name of the shader the will be used for conversion. */
-  const char *get_conversion_shader_name();
 };
 
 }  // namespace blender::compositor
