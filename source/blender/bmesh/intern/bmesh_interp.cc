@@ -924,6 +924,20 @@ void BM_uv_map_ensure_pin_attr(BMesh *bm, const StringRef uv_map_name)
       bm, &bm->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(uv_map_name, name));
 }
 
+bool BM_uv_map_has_vert_select_attr(const BMesh *bm, const StringRef uv_map_name)
+{
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  return (CustomData_get_named_layer_index(
+              &bm->ldata, CD_PROP_BOOL, BKE_uv_map_vert_select_name_get(uv_map_name, name)) != -1);
+}
+
+bool BM_uv_map_has_pin_attr(const BMesh *bm, const StringRef uv_map_name)
+{
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  return (CustomData_get_named_layer_index(
+              &bm->ldata, CD_PROP_BOOL, BKE_uv_map_pin_name_get(uv_map_name, name)) != -1);
+}
+
 void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
 {
   CustomData olddata = *data;
