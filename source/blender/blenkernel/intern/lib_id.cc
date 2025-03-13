@@ -1696,6 +1696,18 @@ ID *BKE_libblock_find_session_uid(Main *bmain, const short type, const uint32_t 
   return nullptr;
 }
 
+ID *BKE_libblock_find_session_uid(Main *bmain, const uint32_t session_uid)
+{
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (id_iter->session_uid == session_uid) {
+      return id_iter;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+  return nullptr;
+}
+
 ID *BKE_libblock_find_name_and_library(Main *bmain,
                                        const short type,
                                        const char *name,

@@ -340,6 +340,7 @@ ID *BKE_libblock_find_name(Main *bmain,
                            const std::optional<Library *> lib = std::nullopt)
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 ID *BKE_libblock_find_session_uid(Main *bmain, short type, uint32_t session_uid);
+ID *BKE_libblock_find_session_uid(Main *bmain, uint32_t session_uid);
 ID *BKE_libblock_find_name_and_library(Main *bmain,
                                        short type,
                                        const char *name,
