@@ -592,7 +592,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     Object *obedit = hit.ob;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     /* Respond to the hit. */
     if (uv_selectmode == UV_SELECT_FACE) {
@@ -700,7 +700,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
 
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   BMElem *ele_src, *ele_dst;
 
@@ -802,7 +802,7 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     BMElem *ele_src = nullptr, *ele_dst = nullptr;
 

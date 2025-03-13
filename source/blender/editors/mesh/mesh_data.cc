@@ -241,7 +241,7 @@ int ED_mesh_uv_add(
     }
 
     BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_PROP_FLOAT2, unique_name.c_str());
-    BM_uv_map_ensure_select_and_pin_attrs(em->bm);
+    BM_uv_map_attr_select_and_pin_ensure(em->bm);
     /* copy data from active UV */
     if (layernum_dst && do_init) {
       const int layernum_src = CustomData_get_active_layer(&em->bm->ldata, CD_PROP_FLOAT2);

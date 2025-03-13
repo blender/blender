@@ -742,9 +742,9 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   BMesh *bm = em->bm;
   const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_vert_select_attr(bm, active_uv_name);
-  BM_uv_map_ensure_edge_select_attr(bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  BM_uv_map_attr_vert_select_ensure(bm, active_uv_name);
+  BM_uv_map_attr_edge_select_ensure(bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   BMFace *efa;
   BMIter iter, liter;

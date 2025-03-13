@@ -95,7 +95,7 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
   BLI_LINKSTACK_INIT(queue);
   BLI_LINKSTACK_INIT(queue_next);
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   BMIter fiter, liter;
   BMVert *f;
@@ -267,7 +267,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
       int co_num;
     } *island_center = nullptr;
     int count = 0, countsel = 0;
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     if (!ED_space_image_show_uvedit(sima, tc->obedit)) {
       continue;
@@ -645,7 +645,7 @@ Array<TransDataVertSlideVert> transform_mesh_uv_vert_slide_data_create(
 
   BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
   BMesh *bm = em->bm;
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   UVGroups *uv_groups = mesh_uv_groups_get(tc, bm, offsets);
 
@@ -831,7 +831,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(const Tra
   Array<TransDataEdgeSlideVert> r_sv;
   BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
   BMesh *bm = em->bm;
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   const bool check_edge = ED_uvedit_select_mode_get(t->scene) == UV_SELECT_EDGE;
 

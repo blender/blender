@@ -842,7 +842,7 @@ bool uv_find_nearest_edge(
   int i;
   bool found = false;
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
   BLI_assert(offsets.uv >= 0);
 
   BM_mesh_elem_index_ensure(em->bm, BM_VERT);
@@ -990,7 +990,7 @@ bool uv_find_nearest_vert(
 
   BM_mesh_elem_index_ensure(em->bm, BM_VERT);
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
   BLI_assert(offsets.uv >= 0);
 
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -1065,7 +1065,7 @@ static bool uvedit_nearest_uv(const Scene *scene,
   BMFace *efa;
   const float *uv_best = nullptr;
   float dist_best = *dist_sq;
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
   BLI_assert(offsets.uv >= 0);
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     if (!uvedit_face_visible_test(scene, efa)) {
@@ -1281,9 +1281,9 @@ void ED_uvedit_selectmode_flush(const Scene *scene, BMEditMesh *em)
   UNUSED_VARS_NDEBUG(ts);
 
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-  BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+  BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   /* Vertex Mode only. */
   if (ts->uv_selectmode & UV_SELECT_VERTEX) {
@@ -1318,9 +1318,9 @@ void uvedit_select_flush(const Scene *scene, BMEditMesh *em)
   UNUSED_VARS_NDEBUG(ts);
 
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
-  BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
+  BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   BMFace *efa;
   BMLoop *l;
@@ -1346,9 +1346,9 @@ void uvedit_deselect_flush(const Scene *scene, BMEditMesh *em)
   UNUSED_VARS_NDEBUG(ts);
 
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
-  BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
+  BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   BMFace *efa;
   BMLoop *l;
@@ -1544,9 +1544,9 @@ static int uv_select_edgeloop(Scene *scene, Object *obedit, UvNearestHit *hit, c
    * the flags are used then flushed to the vertices.
    * So these need to be ensured even though the layers aren't used afterwards. */
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-  BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+  BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   if (extend) {
     select = !uvedit_edge_select_test(scene, hit->l, offsets);
@@ -1635,10 +1635,10 @@ static int uv_select_faceloop(Scene *scene, Object *obedit, UvNearestHit *hit, c
   }
   else {
     const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-    BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-    BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+    BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+    BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
   }
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   if (!extend) {
     uv_select_all_perform(scene, obedit, SEL_DESELECT);
@@ -1712,11 +1712,11 @@ static int uv_select_edgering(Scene *scene, Object *obedit, UvNearestHit *hit, c
   }
   else {
     const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-    BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-    BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+    BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+    BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
   }
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   if (!extend) {
     uv_select_all_perform(scene, obedit, SEL_DESELECT);
@@ -1834,11 +1834,11 @@ static void uv_select_linked_multi(Scene *scene,
       const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata,
                                                                     CD_PROP_FLOAT2);
       BLI_assert(active_uv_name != nullptr);
-      BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-      BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
     }
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
 
@@ -2085,10 +2085,10 @@ static int uv_select_more_less(bContext *C, const bool select)
     else {
       const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata,
                                                                     CD_PROP_FLOAT2);
-      BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-      BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
     }
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     if (ts->uv_flag & UV_SYNC_SELECTION) {
       if (select) {
@@ -2260,7 +2260,7 @@ bool uvedit_select_is_any_selected(const Scene *scene, Object *obedit)
     return (em->bm->totvertsel || em->bm->totedgesel || em->bm->totfacesel);
   }
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     if (!uvedit_face_visible_test(scene, efa)) {
@@ -2297,9 +2297,9 @@ static void uv_select_all(const Scene *scene, BMEditMesh *em, bool select_all)
   BMLoop *l;
   BMIter iter, liter;
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-  BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+  BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
     if (!uvedit_face_visible_test(scene, efa)) {
@@ -2318,9 +2318,9 @@ static void uv_select_invert(const Scene *scene, BMEditMesh *em)
   BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
 
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-  BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+  BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
@@ -2560,10 +2560,10 @@ static bool uv_mouse_select_multi(bContext *C,
     else {
       const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata,
                                                                     CD_PROP_FLOAT2);
-      BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-      BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
     }
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     if (selectmode == UV_SELECT_FACE) {
       is_selected = uvedit_face_select_test(scene, hit.efa, offsets);
@@ -2607,10 +2607,10 @@ static bool uv_mouse_select_multi(bContext *C,
     else {
       const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata,
                                                                     CD_PROP_FLOAT2);
-      BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-      BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
     }
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     if (selectmode == UV_SELECT_ISLAND) {
       const bool extend = params->sel_op == SEL_OP_ADD;
@@ -3172,9 +3172,9 @@ static int uv_select_split_exec(bContext *C, wmOperator *op)
     bool changed = false;
 
     const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
-    BM_uv_map_ensure_vert_select_attr(bm, active_uv_name);
-    BM_uv_map_ensure_edge_select_attr(bm, active_uv_name);
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    BM_uv_map_attr_vert_select_ensure(bm, active_uv_name);
+    BM_uv_map_attr_edge_select_ensure(bm, active_uv_name);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       bool is_sel = false;
@@ -3341,11 +3341,11 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
   }
   else {
     const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-    BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-    BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+    BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+    BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
   }
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
       ELEM(ts->uv_sticky, SI_STICKY_VERTEX, SI_STICKY_LOC))
@@ -3417,10 +3417,10 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
   }
   else {
     const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-    BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-    BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+    BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+    BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
   }
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && ts->uv_sticky == SI_STICKY_VERTEX) {
     /* Tag all verts as untouched, then touch the ones that have a face center
@@ -3496,10 +3496,10 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *
   }
   else {
     const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-    BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-    BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+    BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+    BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
   }
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
       ELEM(ts->uv_sticky, SI_STICKY_LOC, SI_STICKY_VERTEX))
@@ -3608,13 +3608,13 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
     else {
       const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata,
                                                                     CD_PROP_FLOAT2);
-      BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-      BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
       if (pinned) {
-        BM_uv_map_ensure_pin_attr(em->bm, active_uv_name);
+        BM_uv_map_attr_pin_ensure(em->bm, active_uv_name);
       }
     }
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     /* do actual selection */
     if (use_face_center && !pinned) {
@@ -3866,10 +3866,10 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
     else {
       const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata,
                                                                     CD_PROP_FLOAT2);
-      BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-      BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
     }
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     /* do selection */
     if (use_face_center) {
@@ -4068,10 +4068,10 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
     else {
       const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata,
                                                                     CD_PROP_FLOAT2);
-      BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-      BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
     }
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     if (use_face_center) { /* Face Center Select. */
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -4251,7 +4251,7 @@ static int uv_select_pinned_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-    if (!BM_uv_map_has_pin_attr(em->bm, active_uv_name)) {
+    if (!BM_uv_map_attr_pin_exists(em->bm, active_uv_name)) {
       continue;
     }
 
@@ -4260,10 +4260,10 @@ static int uv_select_pinned_exec(bContext *C, wmOperator *op)
       /* Pass. */
     }
     else {
-      BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-      BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
+      BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+      BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
     }
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       if (!uvedit_face_visible_test(scene, efa)) {
@@ -4538,13 +4538,13 @@ static int uv_select_overlap(bContext *C, const bool extend)
       else {
         const char *uv_a_name = CustomData_get_active_layer_name(&em_a->bm->ldata, CD_PROP_FLOAT2);
         const char *uv_b_name = CustomData_get_active_layer_name(&em_b->bm->ldata, CD_PROP_FLOAT2);
-        BM_uv_map_ensure_vert_select_attr(em_a->bm, uv_a_name);
-        BM_uv_map_ensure_vert_select_attr(em_b->bm, uv_b_name);
-        BM_uv_map_ensure_edge_select_attr(em_a->bm, uv_a_name);
-        BM_uv_map_ensure_edge_select_attr(em_b->bm, uv_b_name);
+        BM_uv_map_attr_vert_select_ensure(em_a->bm, uv_a_name);
+        BM_uv_map_attr_vert_select_ensure(em_b->bm, uv_b_name);
+        BM_uv_map_attr_edge_select_ensure(em_a->bm, uv_a_name);
+        BM_uv_map_attr_edge_select_ensure(em_b->bm, uv_b_name);
       }
-      const BMUVOffsets offsets_a = BM_uv_map_get_offsets(em_a->bm);
-      const BMUVOffsets offsets_b = BM_uv_map_get_offsets(em_b->bm);
+      const BMUVOffsets offsets_a = BM_uv_map_offsets_get(em_a->bm);
+      const BMUVOffsets offsets_b = BM_uv_map_offsets_get(em_b->bm);
 
       /* Skip if both faces are already selected. */
       if (uvedit_face_select_test(scene, face_a, offsets_a) &&
@@ -4815,7 +4815,7 @@ static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
@@ -4851,7 +4851,7 @@ static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
 
     bool changed = false;
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
@@ -4922,7 +4922,7 @@ static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
@@ -4960,7 +4960,7 @@ static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
     }
 
     bool changed = false;
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
@@ -5026,7 +5026,7 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     BMFace *face;
     BMIter iter;
@@ -5056,7 +5056,7 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
     bool changed = false;
     bool do_history = false;
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world().ptr());
@@ -5117,7 +5117,7 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
     if (offsets.uv == -1) {
       continue;
     }
@@ -5333,7 +5333,7 @@ void UV_OT_select_similar(wmOperatorType *ot)
 
 BMFace **ED_uvedit_selected_faces(const Scene *scene, BMesh *bm, int len_max, int *r_faces_len)
 {
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   CLAMP_MAX(len_max, bm->totface);
   int faces_len = 0;
@@ -5362,7 +5362,7 @@ finally:
 
 BMLoop **ED_uvedit_selected_edges(const Scene *scene, BMesh *bm, int len_max, int *r_edges_len)
 {
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
   BLI_assert(offsets.uv >= 0);
 
   CLAMP_MAX(len_max, bm->totloop);
@@ -5420,7 +5420,7 @@ finally:
 
 BMLoop **ED_uvedit_selected_verts(const Scene *scene, BMesh *bm, int len_max, int *r_verts_len)
 {
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
   BLI_assert(offsets.select_vert >= 0);
   BLI_assert(offsets.uv >= 0);
 
@@ -5549,9 +5549,9 @@ void ED_uvedit_selectmode_clean(const Scene *scene, Object *obedit)
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   char sticky = ts->uv_sticky;
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-  BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+  BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
