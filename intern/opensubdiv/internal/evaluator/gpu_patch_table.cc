@@ -47,29 +47,6 @@ GPUPatchTable::~GPUPatchTable()
   discard_list(_fvarParamBuffers);
 }
 
-/**
- * Storage buffers sizes needs to be divisable by 16 (float4).
- */
-static size_t storage_buffer_size(size_t size)
-{
-  return (size + 15) & (~0b1111);
-}
-
-/**
- * Function to create a storage buffer and upload it with data.
- *
- * - Ensures that allocated size is aligned to 16 byte
- * - WARNING: Can read from not allocated data after `data`.
- */
-// TODO: this means that if buffer size is adjusted we need to copy into a temp buffer otherwise we
-// could read out of bounds. The performance impact of this is measurable so I would suggest to
-// support GPU_storagebuf_update() with a max len to update.
-static GPUStorageBuf *storage_buffer_create(size_t size, const void *data, const char *name)
-{
-  size_t storage_size = storage_buffer_size(size);
-  return GPU_storagebuf_create_ex(storage_size, data, GPU_USAGE_STATIC, name);
-}
-
 bool GPUPatchTable::allocate(PatchTable const *far_patch_table)
 {
   CpuPatchTable patch_table(far_patch_table);
@@ -81,25 +58,29 @@ bool GPUPatchTable::allocate(PatchTable const *far_patch_table)
 
   /* Patch index buffer */
   const size_t index_size = patch_table.GetPatchIndexSize();
-  _patchIndexBuffer = storage_buffer_create(
+  _patchIndexBuffer = GPU_storagebuf_create_ex(
       index_size * sizeof(int32_t),
       static_cast<const void *>(patch_table.GetPatchIndexBuffer()),
+      GPU_USAGE_STATIC,
       "osd_patch_index");
 
   /* Patch param buffer */
   const size_t patch_param_size = patch_table.GetPatchParamSize();
-  _patchParamBuffer = storage_buffer_create(
-      patch_param_size * sizeof(PatchParam), patch_table.GetPatchParamBuffer(), "osd_patch_param");
+  _patchParamBuffer = GPU_storagebuf_create_ex(patch_param_size * sizeof(PatchParam),
+                                               patch_table.GetPatchParamBuffer(),
+                                               GPU_USAGE_STATIC,
+                                               "osd_patch_param");
 
   /* Varying patch array */
   _varyingPatchArrays.assign(patch_table.GetVaryingPatchArrayBuffer(),
                              patch_table.GetVaryingPatchArrayBuffer() + num_patch_arrays);
 
   /* Varying index buffer */
-  _varyingIndexBuffer = storage_buffer_create(patch_table.GetVaryingPatchIndexSize() *
-                                                  sizeof(uint32_t),
-                                              patch_table.GetVaryingPatchIndexBuffer(),
-                                              "osd_varying_index");
+  _varyingIndexBuffer = GPU_storagebuf_create_ex(patch_table.GetVaryingPatchIndexSize() *
+                                                     sizeof(uint32_t),
+                                                 patch_table.GetVaryingPatchIndexBuffer(),
+                                                 GPU_USAGE_STATIC,
+                                                 "osd_varying_index");
 
   /* Face varying */
   const int num_face_varying_channels = patch_table.GetNumFVarChannels();
@@ -112,16 +93,18 @@ bool GPUPatchTable::allocate(PatchTable const *far_patch_table)
                                    patch_table.GetFVarPatchArrayBuffer() + num_patch_arrays);
 
     /* Face varying patch index buffer */
-    _fvarIndexBuffers[index] = storage_buffer_create(patch_table.GetFVarPatchIndexSize(index) *
-                                                         sizeof(int32_t),
-                                                     patch_table.GetFVarPatchIndexBuffer(index),
-                                                     "osd_face_varying_index");
+    _fvarIndexBuffers[index] = GPU_storagebuf_create_ex(patch_table.GetFVarPatchIndexSize(index) *
+                                                            sizeof(int32_t),
+                                                        patch_table.GetFVarPatchIndexBuffer(index),
+                                                        GPU_USAGE_STATIC,
+                                                        "osd_face_varying_index");
 
     /* Face varying patch param buffer */
-    _fvarParamBuffers[index] = storage_buffer_create(patch_table.GetFVarPatchParamSize(index) *
-                                                         sizeof(PatchParam),
-                                                     patch_table.GetFVarPatchParamBuffer(index),
-                                                     "osd_face_varying_params");
+    _fvarParamBuffers[index] = GPU_storagebuf_create_ex(patch_table.GetFVarPatchParamSize(index) *
+                                                            sizeof(PatchParam),
+                                                        patch_table.GetFVarPatchParamBuffer(index),
+                                                        GPU_USAGE_STATIC,
+                                                        "osd_face_varying_params");
   }
 
   return true;

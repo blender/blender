@@ -22,6 +22,7 @@ class VKDevice;
  */
 class VKBuffer : public NonCopyable {
   size_t size_in_bytes_ = 0;
+  size_t alloc_size_in_bytes_ = 0;
   VkBuffer vk_buffer_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
   VkMemoryPropertyFlags vk_memory_property_flags_;

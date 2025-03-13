@@ -55,13 +55,10 @@ template<class T> GPUStorageBuf *create_buffer(std::vector<T> const &src, const 
     return nullptr;
   }
 
-  // TODO: this can lead to an out of bound read. `GPU_storagebuf_update` should have a number of
-  // bytes.
-  size_t buffer_size = src.size() * sizeof(T);
-  size_t buffer_alloc_size = (buffer_size + 15) & ~0b1111;
-
+  const size_t buffer_size = src.size() * sizeof(T);
   GPUStorageBuf *storage_buffer = GPU_storagebuf_create_ex(
-      buffer_alloc_size, &src.at(0), GPU_USAGE_STATIC, name);
+      buffer_size, &src.at(0), GPU_USAGE_STATIC, name);
+
   return storage_buffer;
 }
 

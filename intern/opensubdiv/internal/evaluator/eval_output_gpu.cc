@@ -18,11 +18,9 @@ namespace blender::opensubdiv {
 static GPUStorageBuf *create_patch_array_buffer(const PatchArrayVector &patch_arrays)
 {
   const size_t patch_array_size = sizeof(PatchArray);
-  const size_t patch_array_byte_site = patch_array_size * patch_arrays.size();
-  const size_t patch_array_alloc_size = (patch_array_byte_site + 15) & ~0b1111;
-  // TODO: potential read out of bounds.
+  const size_t patch_array_byte_size = patch_array_size * patch_arrays.size();
   GPUStorageBuf *storage_buf = GPU_storagebuf_create_ex(
-      patch_array_alloc_size, patch_arrays.data(), GPU_USAGE_STATIC, "osd_patch_array");
+      patch_array_byte_size, patch_arrays.data(), GPU_USAGE_STATIC, "osd_patch_array");
   return storage_buf;
 }
 
