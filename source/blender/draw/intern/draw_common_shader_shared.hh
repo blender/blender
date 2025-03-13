@@ -141,7 +141,10 @@ struct GlobalsUboStorage {
   float size_checker;
   float size_vertex_gpencil;
   float fresnel_mix_edit;
-  float _pad1, _pad2, _pad3;
+
+  bool32_t backface_culling;
+
+  float _pad1, _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 

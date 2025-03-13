@@ -384,6 +384,15 @@ void Resources::update_theme_settings(const State &state)
     } while (color <= gb->UBO_LAST_COLOR);
   }
 
+  if (state.v3d) {
+    const View3DShading &shading = state.v3d->shading;
+    gb->backface_culling = (shading.type == OB_SOLID) &&
+                           (shading.flag & V3D_SHADING_BACKFACE_CULLING);
+  }
+  else {
+    gb->backface_culling = false;
+  }
+
   globals_buf.push_update();
 }
 

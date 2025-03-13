@@ -10,6 +10,12 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_depth_mesh_base)
 
 void main()
 {
+#ifdef SELECT_ENABLE
+  if (globalsBlock.backface_culling && !gl_FrontFacing) {
+    /* Return early since we are not using early depth testing. */
+    return;
+  }
+#endif
   /* No color output, only depth (line below is implicit). */
   // gl_FragDepth = gl_FragCoord.z;
 
