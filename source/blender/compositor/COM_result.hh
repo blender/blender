@@ -187,6 +187,9 @@ class Result {
   /* Returns the CPP type corresponding to the given result type. */
   static const CPPType &cpp_type(const ResultType type);
 
+  /* Returns a string representation of the given result type. */
+  static const char *type_name(const ResultType type);
+
   /* Implicit conversion to the internal GPU texture. */
   operator GPUTexture *() const;
 

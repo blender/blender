@@ -145,6 +145,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blentranslation
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::imbuf

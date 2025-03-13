@@ -244,6 +244,29 @@ const CPPType &Result::cpp_type(const ResultType type)
   return CPPType::get<float>();
 }
 
+const char *Result::type_name(const ResultType type)
+{
+  switch (type) {
+    case ResultType::Float:
+      return "float";
+    case ResultType::Float2:
+      return "float2";
+    case ResultType::Float3:
+      return "float3";
+    case ResultType::Float4:
+      return "float4";
+    case ResultType::Color:
+      return "color";
+    case ResultType::Int2:
+      return "int2";
+    case ResultType::Int:
+      return "int";
+  }
+
+  BLI_assert_unreachable();
+  return "";
+}
+
 Result::operator GPUTexture *() const
 {
   return this->gpu_texture();

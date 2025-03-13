@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
@@ -38,7 +40,10 @@ void ConversionOperation::execute()
 
   result.allocate_texture(input.domain());
   if (this->context().use_gpu()) {
-    GPUShader *shader = this->context().get_shader(this->get_conversion_shader_name());
+    const std::string shader_name = fmt::format("compositor_convert_{}_to_{}",
+                                                Result::type_name(this->get_input().type()),
+                                                Result::type_name(this->get_result().type()));
+    GPUShader *shader = this->context().get_shader(shader_name.c_str());
     GPU_shader_bind(shader);
 
     if (this->get_input().type() == ResultType::Color &&
@@ -76,114 +81,6 @@ SimpleOperation *ConversionOperation::construct_if_needed(Context &context,
   if (result_type != expected_type) {
     return new ConversionOperation(context, result_type, expected_type);
   }
-  return nullptr;
-}
-
-const char *ConversionOperation::get_conversion_shader_name()
-{
-  switch (this->get_input().type()) {
-    case ResultType::Float:
-      switch (this->get_result().type()) {
-        case ResultType::Int:
-          return "compositor_convert_float_to_int";
-        case ResultType::Float3:
-          return "compositor_convert_float_to_float3";
-        case ResultType::Color:
-          return "compositor_convert_float_to_color";
-        case ResultType::Float4:
-          return "compositor_convert_float_to_float4";
-        case ResultType::Float:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Int:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          return "compositor_convert_int_to_float";
-        case ResultType::Float3:
-          return "compositor_convert_int_to_float3";
-        case ResultType::Color:
-          return "compositor_convert_int_to_color";
-        case ResultType::Float4:
-          return "compositor_convert_int_to_float4";
-        case ResultType::Int:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float3:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          return "compositor_convert_float3_to_float";
-        case ResultType::Int:
-          return "compositor_convert_float3_to_int";
-        case ResultType::Color:
-          return "compositor_convert_float3_to_color";
-        case ResultType::Float4:
-          return "compositor_convert_float3_to_float4";
-        case ResultType::Float3:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Color:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          return "compositor_convert_color_to_float";
-        case ResultType::Int:
-          return "compositor_convert_color_to_int";
-        case ResultType::Float3:
-          return "compositor_convert_color_to_float3";
-        case ResultType::Float4:
-          return "compositor_convert_color_to_float4";
-        case ResultType::Color:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float4:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          return "compositor_convert_float4_to_float";
-        case ResultType::Int:
-          return "compositor_convert_float4_to_int";
-        case ResultType::Float3:
-          return "compositor_convert_float4_to_float3";
-        case ResultType::Color:
-          return "compositor_convert_float4_to_color";
-        case ResultType::Float4:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float2:
-    case ResultType::Int2:
-      /* Types are not user facing, so we needn't implement them. */
-      break;
-  }
-
-  BLI_assert_unreachable();
   return nullptr;
 }
 
