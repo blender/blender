@@ -215,10 +215,22 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
   BLI_assert_unreachable();
 }
 
-/* Gets the CPU data of the given result as a GMutableSpan. This calls the underlying cpu_data
- * method, however, it has an exception for color types, since colors are stored as float4, while
- * their semantic type is ColorSceneLinear4f<eAlpha::Premultiplied> during conversion. */
-static GMutableSpan get_result_data(const Result &result)
+/* Gets the CPU data of the given result as a GSpan. This calls the underlying cpu_data method,
+ * however, it has an exception for color types, since colors are stored as float4 internally,
+ * while their semantic type is ColorSceneLinear4f<eAlpha::Premultiplied> during conversion. */
+static GSpan get_result_data(const Result &result)
+{
+  if (result.type() == ResultType::Color) {
+    return GSpan(CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(),
+                 result.cpu_data().data(),
+                 result.cpu_data().size());
+  }
+
+  return result.cpu_data();
+}
+
+/* Same as get_result_data but takes non-const result and returns a GMutableSpan. */
+static GMutableSpan get_result_data(Result &result)
 {
   if (result.type() == ResultType::Color) {
     return GMutableSpan(CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(),

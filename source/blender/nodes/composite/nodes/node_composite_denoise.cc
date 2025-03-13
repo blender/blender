@@ -148,7 +148,7 @@ class DenoiseOperation : public NodeOperation {
       temporary_buffers_to_free.append(input_color);
     }
     else {
-      input_color = static_cast<float *>(input_image.cpu_data().data());
+      input_color = const_cast<float *>(static_cast<const float *>(input_image.cpu_data().data()));
       output_color = static_cast<float *>(output_image.cpu_data().data());
     }
     oidn::FilterRef filter = device.newFilter("RT");

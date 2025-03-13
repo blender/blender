@@ -1976,13 +1976,14 @@ class GlareOperation : public NodeOperation {
         reinterpret_cast<fftwf_complex *>(image_frequency_domain),
         FFTW_ESTIMATE);
 
-    float *highlights_buffer = nullptr;
+    const float *highlights_buffer = nullptr;
     if (this->context().use_gpu()) {
       GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-      highlights_buffer = static_cast<float *>(GPU_texture_read(highlights, GPU_DATA_FLOAT, 0));
+      highlights_buffer = static_cast<const float *>(
+          GPU_texture_read(highlights, GPU_DATA_FLOAT, 0));
     }
     else {
-      highlights_buffer = static_cast<float *>(highlights.cpu_data().data());
+      highlights_buffer = static_cast<const float *>(highlights.cpu_data().data());
     }
 
     /* Zero pad the image to the required spatial domain size, storing each channel in planar
@@ -2061,7 +2062,7 @@ class GlareOperation : public NodeOperation {
     /* For GPU, write the output to the exist highlights_buffer then upload to the result after,
      * while for CPU, write to the result directly. */
     float *output = this->context().use_gpu() ?
-                        highlights_buffer :
+                        const_cast<float *>(highlights_buffer) :
                         static_cast<float *>(fog_glow_result.cpu_data().data());
 
     /* Copy the result to the output. */

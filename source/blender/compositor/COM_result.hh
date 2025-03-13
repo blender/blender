@@ -338,7 +338,8 @@ class Result {
 
   GPUTexture *gpu_texture() const;
 
-  GMutableSpan cpu_data() const;
+  GSpan cpu_data() const;
+  GMutableSpan cpu_data();
 
   /* Gets the single value stored in the result. Assumes the result stores a value of the given
    * template type. */
@@ -462,7 +463,13 @@ BLI_INLINE_METHOD GPUTexture *Result::gpu_texture() const
   return gpu_texture_;
 }
 
-BLI_INLINE_METHOD GMutableSpan Result::cpu_data() const
+BLI_INLINE_METHOD GSpan Result::cpu_data() const
+{
+  BLI_assert(storage_type_ == ResultStorageType::CPU);
+  return cpu_data_;
+}
+
+BLI_INLINE_METHOD GMutableSpan Result::cpu_data()
 {
   BLI_assert(storage_type_ == ResultStorageType::CPU);
   return cpu_data_;
