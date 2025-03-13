@@ -124,12 +124,7 @@ class GHOST_ContextVK : public GHOST_Context {
    * Gets the Vulkan context related resource handles.
    * \return  A boolean success indicator.
    */
-  GHOST_TSuccess getVulkanHandles(void *r_instance,
-                                  void *r_physical_device,
-                                  void *r_device,
-                                  uint32_t *r_graphic_queue_family,
-                                  void *r_queue,
-                                  void **r_queue_mutex) override;
+  GHOST_TSuccess getVulkanHandles(GHOST_VulkanHandles &r_handles) override;
 
   GHOST_TSuccess getVulkanSwapChainFormat(GHOST_VulkanSwapChainData *r_swap_chain_data) override;
 

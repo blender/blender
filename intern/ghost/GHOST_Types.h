@@ -747,6 +747,16 @@ typedef struct {
   /** Resolution of the image. */
   VkExtent2D extent;
 } GHOST_VulkanSwapChainData;
+
+typedef struct {
+  VkInstance instance;
+  VkPhysicalDevice physical_device;
+  VkDevice device;
+  uint32_t graphic_queue_family;
+  VkQueue queue;
+  void *queue_mutex;
+} GHOST_VulkanHandles;
+
 #endif
 
 typedef enum {

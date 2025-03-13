@@ -161,12 +161,7 @@ class GHOST_Context : public GHOST_IContext {
    *     GHOST_kSuccess when the context is a Vulkan context and the
    *     handles have been set.
    */
-  virtual GHOST_TSuccess getVulkanHandles(void * /*r_instance*/,
-                                          void * /*r_physical_device*/,
-                                          void * /*r_device*/,
-                                          uint32_t * /*r_graphic_queue_family*/,
-                                          void * /*r_queue*/,
-                                          void ** /*r_queue_mutex*/) override
+  virtual GHOST_TSuccess getVulkanHandles(GHOST_VulkanHandles & /* r_handles */) override
   {
     return GHOST_kFailure;
   };

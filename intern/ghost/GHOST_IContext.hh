@@ -53,33 +53,10 @@ class GHOST_IContext {
    * Other contexts will not return any handles and leave the
    * handles where the parameters are referring to unmodified.
    *
-   * \param context: GHOST context handle of a vulkan context to
-   *     get the Vulkan handles from.
-   * \param r_instance: After calling this function the VkInstance
-   *     referenced by this parameter will contain the VKInstance handle
-   *     of the context associated with the `context` parameter.
-   * \param r_physical_device: After calling this function the VkPhysicalDevice
-   *     referenced by this parameter will contain the VKPhysicalDevice handle
-   *     of the context associated with the `context` parameter.
-   * \param r_device: After calling this function the VkDevice
-   *     referenced by this parameter will contain the VKDevice handle
-   *     of the context associated with the `context` parameter.
-   * \param r_graphic_queue_family: After calling this function the uint32_t
-   *     referenced by this parameter will contain the graphic queue family id
-   *     of the context associated with the `context` parameter.
-   * \param r_queue: After calling this function the VkQueue
-   *     referenced by this parameter will contain the VKQueue handle
-   *     of the context associated with the `context` parameter.
-   * \param r_queue_mutex: After calling this function the std::mutex referred
-   *     by this parameter will contain the mutex of the context associated
-   *     with the context parameter.
+   * \param r_handles: After calling this structure is filled with
+   *     the vulkan handles of the context.
    */
-  virtual GHOST_TSuccess getVulkanHandles(void *r_instance,
-                                          void *r_physical_device,
-                                          void *r_device,
-                                          uint32_t *r_graphic_queue_family,
-                                          void *r_queue,
-                                          void **r_queue_mutex) = 0;
+  virtual GHOST_TSuccess getVulkanHandles(GHOST_VulkanHandles &r_handles) = 0;
 
   /**
    * Acquire the current swap chain format.

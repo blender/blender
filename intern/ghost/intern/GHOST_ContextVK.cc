@@ -632,27 +632,27 @@ GHOST_TSuccess GHOST_ContextVK::getVulkanSwapChainFormat(
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(void *r_instance,
-                                                 void *r_physical_device,
-                                                 void *r_device,
-                                                 uint32_t *r_graphic_queue_family,
-                                                 void *r_queue,
-                                                 void **r_queue_mutex)
+GHOST_TSuccess GHOST_ContextVK::getVulkanHandles(GHOST_VulkanHandles &r_handles)
 {
-  *((VkInstance *)r_instance) = VK_NULL_HANDLE;
-  *((VkPhysicalDevice *)r_physical_device) = VK_NULL_HANDLE;
-  *((VkDevice *)r_device) = VK_NULL_HANDLE;
+  r_handles = {
+      VK_NULL_HANDLE, /* instance */
+      VK_NULL_HANDLE, /* physical_device */
+      VK_NULL_HANDLE, /* device */
+      0,              /* queue_family */
+      VK_NULL_HANDLE, /* queue */
+      nullptr,        /* queue_mutex */
+  };
 
   if (vulkan_device.has_value()) {
-    *((VkInstance *)r_instance) = vulkan_device->instance;
-    *((VkPhysicalDevice *)r_physical_device) = vulkan_device->physical_device;
-    *((VkDevice *)r_device) = vulkan_device->device;
-    *r_graphic_queue_family = vulkan_device->generic_queue_family;
-    std::mutex **queue_mutex = (std::mutex **)r_queue_mutex;
-    *queue_mutex = &vulkan_device->queue_mutex;
+    r_handles = {
+        vulkan_device->instance,
+        vulkan_device->physical_device,
+        vulkan_device->device,
+        vulkan_device->generic_queue_family,
+        m_graphic_queue,
+        &vulkan_device->queue_mutex,
+    };
   }
-
-  *((VkQueue *)r_queue) = m_graphic_queue;
 
   return GHOST_kSuccess;
 }

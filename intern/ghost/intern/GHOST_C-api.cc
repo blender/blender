@@ -1276,17 +1276,10 @@ int GHOST_XrGetControllerModelData(GHOST_XrContextHandle xr_contexthandle,
 
 #ifdef WITH_VULKAN_BACKEND
 
-void GHOST_GetVulkanHandles(GHOST_ContextHandle contexthandle,
-                            void *r_instance,
-                            void *r_physical_device,
-                            void *r_device,
-                            uint32_t *r_graphic_queue_family,
-                            void *r_queue,
-                            void **r_queue_mutex)
+void GHOST_GetVulkanHandles(GHOST_ContextHandle contexthandle, GHOST_VulkanHandles *r_handles)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
-  context->getVulkanHandles(
-      r_instance, r_physical_device, r_device, r_graphic_queue_family, r_queue, r_queue_mutex);
+  context->getVulkanHandles(*r_handles);
 }
 
 void GHOST_SetVulkanSwapBuffersCallbacks(
