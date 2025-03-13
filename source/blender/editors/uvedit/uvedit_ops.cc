@@ -543,8 +543,6 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  const ToolSettings *ts = scene->toolsettings;
-  const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
   float cent[2], min[2], max[2];
 
   INIT_MINMAX2(min, max);
@@ -564,7 +562,7 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     bool changed = false;
 
-    if (synced_selection && (em->bm->totvertsel == 0)) {
+    if (em->bm->totvertsel == 0) {
       continue;
     }
 
@@ -645,10 +643,8 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  const ToolSettings *ts = scene->toolsettings;
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
@@ -665,7 +661,7 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-    if (synced_selection && (em->bm->totvertsel == 0)) {
+    if (em->bm->totvertsel == 0) {
       continue;
     }
 
@@ -1198,8 +1194,6 @@ static int uv_snap_selection_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  const ToolSettings *ts = scene->toolsettings;
-  const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
   const int target = RNA_enum_get(op->ptr, "target");
   float offset[2] = {0};
 
@@ -1218,7 +1212,7 @@ static int uv_snap_selection_exec(bContext *C, wmOperator *op)
   for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-    if (synced_selection && (em->bm->totvertsel == 0)) {
+    if (em->bm->totvertsel == 0) {
       continue;
     }
 
@@ -1301,10 +1295,11 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
     bool changed = false;
 
     const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
+    if (em->bm->totvertsel == 0) {
+      continue;
+    }
     if (synced_selection) {
-      if (em->bm->totvertsel == 0) {
-        continue;
-      }
+      /* Pass. */
     }
     else {
       if (!BM_uv_map_has_vert_select_attr(em->bm, active_uv_name)) {
