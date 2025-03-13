@@ -114,7 +114,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
                             const bool only_selected_uvs,
                             const bool use_seams,
                             const float aspect_y,
-                            const BMUVOffsets uv_offsets)
+                            const BMUVOffsets &uv_offsets)
 {
   BLI_assert(uv_offsets.uv >= 0);
   int island_added = 0;

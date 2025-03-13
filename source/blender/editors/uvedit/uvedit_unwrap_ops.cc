@@ -534,7 +534,7 @@ float ED_uvedit_get_aspect_y(Object *ob)
 static bool uvedit_is_face_affected(const Scene *scene,
                                     BMFace *efa,
                                     const UnwrapOptions *options,
-                                    const BMUVOffsets offsets)
+                                    const BMUVOffsets &offsets)
 {
   if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
     return false;
@@ -564,7 +564,7 @@ static void uvedit_prepare_pinned_indices(ParamHandle *handle,
                                           const Scene *scene,
                                           BMFace *efa,
                                           const UnwrapOptions *options,
-                                          const BMUVOffsets offsets)
+                                          const BMUVOffsets &offsets)
 {
   BMIter liter;
   BMLoop *l;
@@ -586,7 +586,7 @@ static void construct_param_handle_face_add(ParamHandle *handle,
                                             BMFace *efa,
                                             blender::geometry::ParamKey face_index,
                                             const UnwrapOptions *options,
-                                            const BMUVOffsets offsets,
+                                            const BMUVOffsets &offsets,
                                             const int cd_weight_offset,
                                             const int cd_weight_index)
 {
@@ -785,7 +785,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
 }
 
 static void texface_from_original_index(const Scene *scene,
-                                        const BMUVOffsets offsets,
+                                        const BMUVOffsets &offsets,
                                         BMFace *efa,
                                         int index,
                                         float **r_uv,
@@ -3763,7 +3763,7 @@ static float uv_sphere_project(const Scene *scene,
                                const float center[3],
                                const float rotmat[3][3],
                                const bool fan,
-                               const BMUVOffsets offsets,
+                               const BMUVOffsets &offsets,
                                const bool only_selected_uvs,
                                const bool use_seams,
                                const float branch_init)
@@ -3937,7 +3937,7 @@ static float uv_cylinder_project(const Scene *scene,
                                  const float center[3],
                                  const float rotmat[3][3],
                                  const bool fan,
-                                 const BMUVOffsets offsets,
+                                 const BMUVOffsets &offsets,
                                  const bool only_selected_uvs,
                                  const bool use_seams,
                                  const float branch_init)

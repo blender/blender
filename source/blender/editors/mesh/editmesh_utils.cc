@@ -660,7 +660,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
                                            UvElement *islandbuf,
                                            uint *map,
                                            bool uv_selected,
-                                           const BMUVOffsets offsets)
+                                           const BMUVOffsets &offsets)
 {
   BM_uv_element_map_ensure_head_table(element_map);
 

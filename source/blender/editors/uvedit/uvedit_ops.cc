@@ -443,7 +443,7 @@ static bool uvedit_line_update_endpoint(const float *luv,
  */
 static bool uvedit_uv_straighten_elements(const UvElement *element,
                                           const int len,
-                                          const BMUVOffsets offsets,
+                                          const BMUVOffsets &offsets,
                                           const eUVWeldAlign tool)
 {
   float uv_start[2];
@@ -1382,7 +1382,7 @@ static void UV_OT_pin(wmOperatorType *ot)
 #define UV_EDGE_SEL_TEST(l, bool_test) (BM_ELEM_CD_GET_BOOL(l, offsets.select_edge) == bool_test)
 
 /* is every UV vert selected or unselected depending on bool_test */
-static bool bm_face_is_all_uv_sel(BMFace *f, bool select_test, const BMUVOffsets offsets)
+static bool bm_face_is_all_uv_sel(BMFace *f, bool select_test, const BMUVOffsets &offsets)
 {
   BMLoop *l_iter;
   BMLoop *l_first;

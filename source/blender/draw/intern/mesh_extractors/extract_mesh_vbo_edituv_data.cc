@@ -112,7 +112,7 @@ void extract_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
 }
 
 static void extract_edituv_data_iter_subdiv_bm(const MeshRenderData &mr,
-                                               const BMUVOffsets offsets,
+                                               const BMUVOffsets &offsets,
                                                const Span<int> subdiv_loop_vert_index,
                                                const Span<int> subdiv_loop_edge_index,
                                                const int subdiv_quad_index,
