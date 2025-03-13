@@ -723,8 +723,8 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
       return strip->actstart;
     }
 
-    /* - the 'fmod(..., actlength * scale)' is needed to get the repeats working
-     * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
+    /* - The `fmod(..., actlength * scale)` is needed to get the repeats working.
+     * - The `/ scale` is needed to ensure that scaling influences the timing within the repeat.
      */
     return strip->actend - fmodf(cframe - strip->start, actlength * scale) / scale;
   }

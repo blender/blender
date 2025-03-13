@@ -454,7 +454,7 @@ void wm_gizmo_calculate_scale(wmGizmo *gz, const bContext *C)
   if ((gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_SCALE) == 0) {
     scale *= U.gizmo_size;
     if (rv3d) {
-      /* 'ED_view3d_pixel_size' includes 'U.pixelsize', remove it. */
+      /* #ED_view3d_pixel_size includes #U.pixelsize, remove it. */
       float matrix_world[4][4];
       if (gz->type->matrix_basis_get) {
         float matrix_basis[4][4];

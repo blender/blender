@@ -578,8 +578,8 @@ static void rna_MaskSpline_point_remove(ID *id,
 
   point_index = point - spline->points;
 
-  new_point_array = static_cast<MaskSplinePoint *>(
-      MEM_mallocN(sizeof(MaskSplinePoint) * (spline->tot_point - 1), "remove mask point"));
+  new_point_array = MEM_malloc_arrayN<MaskSplinePoint>(size_t(spline->tot_point) - 1,
+                                                       "remove mask point");
 
   memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * point_index);
   memcpy(new_point_array + point_index,

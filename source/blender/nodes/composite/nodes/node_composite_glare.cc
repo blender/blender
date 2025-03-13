@@ -220,14 +220,14 @@ class GlareOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &image_input = this->get_input("Image");
-    Result &image_output = this->get_result("Image");
+    const Result &image_input = this->get_input("Image");
     Result &glare_output = this->get_result("Glare");
     Result &highlights_output = this->get_result("Highlights");
 
     if (image_input.is_single_value()) {
+      Result &image_output = this->get_result("Image");
       if (image_output.should_compute()) {
-        image_input.pass_through(image_output);
+        image_output.share_data(image_input);
       }
       if (glare_output.should_compute()) {
         glare_output.allocate_invalid();

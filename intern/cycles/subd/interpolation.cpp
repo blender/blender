@@ -53,7 +53,7 @@ bool SubdAttributeInterpolation::support_interp_attribute(const Attribute &attr)
         return false;
       }
       break;
-    /* Ptex coordinates will be computed by subdivision. */
+    /* PTex coordinates will be computed by subdivision. */
     case ATTR_STD_PTEX_FACE_ID:
     case ATTR_STD_PTEX_UV:
       return false;

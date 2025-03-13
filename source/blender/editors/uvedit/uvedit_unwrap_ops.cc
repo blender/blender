@@ -104,9 +104,9 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
   }
 
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_vert_select_attr(em->bm, active_uv_name);
-  BM_uv_map_ensure_edge_select_attr(em->bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
+  BM_uv_map_attr_edge_select_ensure(em->bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   /* select new UVs (ignore UV_SYNC_SELECTION in this case) */
   BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -444,7 +444,7 @@ static bool uvedit_have_selection(const Scene *scene, BMEditMesh *em, const Unwr
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
   if (offsets.uv == -1) {
     return (em->bm->totfacesel != 0);
@@ -534,7 +534,7 @@ float ED_uvedit_get_aspect_y(Object *ob)
 static bool uvedit_is_face_affected(const Scene *scene,
                                     BMFace *efa,
                                     const UnwrapOptions *options,
-                                    const BMUVOffsets offsets)
+                                    const BMUVOffsets &offsets)
 {
   if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
     return false;
@@ -564,7 +564,7 @@ static void uvedit_prepare_pinned_indices(ParamHandle *handle,
                                           const Scene *scene,
                                           BMFace *efa,
                                           const UnwrapOptions *options,
-                                          const BMUVOffsets offsets)
+                                          const BMUVOffsets &offsets)
 {
   BMIter liter;
   BMLoop *l;
@@ -586,7 +586,7 @@ static void construct_param_handle_face_add(ParamHandle *handle,
                                             BMFace *efa,
                                             blender::geometry::ParamKey face_index,
                                             const UnwrapOptions *options,
-                                            const BMUVOffsets offsets,
+                                            const BMUVOffsets &offsets,
                                             const int cd_weight_offset,
                                             const int cd_weight_index)
 {
@@ -646,7 +646,7 @@ static void construct_param_edge_set_seams(ParamHandle *handle,
     return; /* Seams are not required with these options. */
   }
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
   if (offsets.uv == -1) {
     return; /* UVs aren't present on BMesh. Nothing to do. */
   }
@@ -699,7 +699,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
   /* we need the vert indices */
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
   const int cd_weight_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
   const int cd_weight_index = BKE_object_defgroup_name_index(ob, options->weight_group);
 
@@ -751,7 +751,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     if (offsets.uv == -1) {
       continue;
@@ -785,7 +785,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
 }
 
 static void texface_from_original_index(const Scene *scene,
-                                        const BMUVOffsets offsets,
+                                        const BMUVOffsets &offsets,
                                         BMFace *efa,
                                         int index,
                                         float **r_uv,
@@ -869,7 +869,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   /* Similar to the above, we need a way to map edges to their original ones. */
   BMEdge **edgeMap;
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
   const int cd_weight_index = BKE_object_defgroup_name_index(ob, options->weight_group);
 
   ParamHandle *handle = new blender::geometry::ParamHandle();
@@ -1452,7 +1452,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
     }
     BLI_assert(bm);
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
     if (offsets.uv == -1) {
       continue;
     }
@@ -2593,7 +2593,7 @@ static void uv_map_clip_correct(const Scene *scene,
 
   for (Object *ob : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(ob);
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
     /* Correct for image aspect ratio. */
     if (correct_aspect) {
@@ -2660,7 +2660,7 @@ static void uv_map_clip_correct(const Scene *scene,
 
     for (Object *ob : objects) {
       BMEditMesh *em = BKE_editmesh_from_object(ob);
-      const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+      const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
@@ -3190,7 +3190,7 @@ static int smart_project_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
     BLI_assert(offsets.uv >= 0);
     ThickFace *thick_faces = static_cast<ThickFace *>(
         MEM_mallocN(sizeof(*thick_faces) * em->bm->totface, __func__));
@@ -3763,7 +3763,7 @@ static float uv_sphere_project(const Scene *scene,
                                const float center[3],
                                const float rotmat[3][3],
                                const bool fan,
-                               const BMUVOffsets offsets,
+                               const BMUVOffsets &offsets,
                                const bool only_selected_uvs,
                                const bool use_seams,
                                const float branch_init)
@@ -3868,7 +3868,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
     float center[3], rotmat[3][3];
 
     uv_map_transform(C, op, rotmat);
@@ -3937,7 +3937,7 @@ static float uv_cylinder_project(const Scene *scene,
                                  const float center[3],
                                  const float rotmat[3][3],
                                  const bool fan,
-                                 const BMUVOffsets offsets,
+                                 const BMUVOffsets &offsets,
                                  const bool only_selected_uvs,
                                  const bool use_seams,
                                  const float branch_init)
@@ -4046,7 +4046,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
     float center[3], rotmat[3][3];
 
     uv_map_transform(C, op, rotmat);
@@ -4131,7 +4131,7 @@ static void uvedit_unwrap_cube_project(const Scene *scene,
   float loc[3];
   int cox, coy;
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   if (center) {
     copy_v3_v3(loc, center);

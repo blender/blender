@@ -108,9 +108,9 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   if (emd->facepa) {
     MEM_freeN(emd->facepa);
   }
-  facepa = emd->facepa = static_cast<int *>(MEM_calloc_arrayN(totface, sizeof(int), __func__));
+  facepa = emd->facepa = MEM_calloc_arrayN<int>(size_t(totface), __func__);
 
-  vertpa = static_cast<int *>(MEM_calloc_arrayN(totvert, sizeof(int), __func__));
+  vertpa = MEM_calloc_arrayN<int>(size_t(totvert), __func__);
 
   /* initialize all faces & verts to no particle */
   for (i = 0; i < totface; i++) {
@@ -656,8 +656,8 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   int totvert = mesh->verts_num;
   int totface = mesh->totface_legacy;
 
-  int *facesplit = static_cast<int *>(MEM_calloc_arrayN(totface, sizeof(int), __func__));
-  int *vertpa = static_cast<int *>(MEM_calloc_arrayN(totvert, sizeof(int), __func__));
+  int *facesplit = MEM_calloc_arrayN<int>(size_t(totface), __func__);
+  int *vertpa = MEM_calloc_arrayN<int>(size_t(totvert), __func__);
   int *facepa = emd->facepa;
   int *fs, totfsplit = 0, curdupface = 0;
   int i, v1, v2, v3, v4, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
@@ -746,8 +746,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
    * later interpreted as triangles, for this to work right I think we probably
    * have to stop using tessface. */
 
-  facepa = static_cast<int *>(
-      MEM_calloc_arrayN((totface + (totfsplit * 2)), sizeof(int), __func__));
+  facepa = MEM_calloc_arrayN<int>(size_t(totface) + (size_t(totfsplit) * 2), __func__);
   // memcpy(facepa, emd->facepa, totface*sizeof(int));
   emd->facepa = facepa;
 

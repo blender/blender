@@ -60,13 +60,13 @@ class SunBeamsOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input_image = get_input("Image");
-    Result &output_image = get_result("Image");
+    const Result &input_image = this->get_input("Image");
 
     const int2 input_size = input_image.domain().size;
     const int max_steps = int(node_storage(bnode()).ray_length * math::length(input_size));
     if (max_steps == 0) {
-      input_image.pass_through(output_image);
+      Result &output_image = this->get_result("Image");
+      output_image.share_data(input_image);
       return;
     }
 

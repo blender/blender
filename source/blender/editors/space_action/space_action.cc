@@ -84,7 +84,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   region->regiontype = RGN_TYPE_CHANNELS;
   region->alignment = RGN_ALIGN_LEFT;
 
-  /* only need to set scroll settings, as this will use 'listview' v2d configuration */
+  /* Only need to set scroll settings, as this will use `listview` v2d configuration. */
   region->v2d.scroll = V2D_SCROLL_BOTTOM;
   region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 

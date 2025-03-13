@@ -239,8 +239,8 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   }
 
   /* Now compare the files: */
-  arr_new = static_cast<char *>(MEM_mallocN(sizeof(char) * len_new, "rna_cmp_file_new"));
-  arr_org = static_cast<char *>(MEM_mallocN(sizeof(char) * len_org, "rna_cmp_file_org"));
+  arr_new = MEM_malloc_arrayN<char>(size_t(len_new), "rna_cmp_file_new");
+  arr_org = MEM_malloc_arrayN<char>(size_t(len_org), "rna_cmp_file_org");
 
   if (fread(arr_new, sizeof(char), len_new, fp_new) != len_new) {
     CLOG_ERROR(&LOG, "unable to read file %s for comparison.", tmpfile);
@@ -351,7 +351,7 @@ static void rna_sortlist(ListBase *listbase, int (*cmp)(const void *, const void
     size++;
   }
 
-  array = static_cast<void **>(MEM_mallocN(sizeof(void *) * size, "rna_sortlist"));
+  array = MEM_malloc_arrayN<void *>(size_t(size), "rna_sortlist");
   for (a = 0, link = static_cast<Link *>(listbase->first); link; link = link->next, a++) {
     array[a] = link;
   }
@@ -438,7 +438,7 @@ static void rna_construct_wrapper_function_name(
 
 void *rna_alloc_from_buffer(const char *buffer, int buffer_size)
 {
-  AllocDefRNA *alloc = static_cast<AllocDefRNA *>(MEM_callocN(sizeof(AllocDefRNA), "AllocDefRNA"));
+  AllocDefRNA *alloc = MEM_callocN<AllocDefRNA>("AllocDefRNA");
   alloc->mem = MEM_mallocN(buffer_size, __func__);
   memcpy(alloc->mem, buffer, buffer_size);
   rna_addtail(&DefRNA.allocs, alloc);
@@ -447,7 +447,7 @@ void *rna_alloc_from_buffer(const char *buffer, int buffer_size)
 
 void *rna_calloc(int buffer_size)
 {
-  AllocDefRNA *alloc = static_cast<AllocDefRNA *>(MEM_callocN(sizeof(AllocDefRNA), "AllocDefRNA"));
+  AllocDefRNA *alloc = MEM_callocN<AllocDefRNA>("AllocDefRNA");
   alloc->mem = MEM_callocN(buffer_size, __func__);
   rna_addtail(&DefRNA.allocs, alloc);
   return alloc->mem;
@@ -1221,10 +1221,11 @@ static char *rna_def_property_set_func(
                   "    if (data->%s != nullptr) { MEM_freeN(data->%s); }\n",
                   dp->dnaname,
                   dp->dnaname);
-          fprintf(f, "    const int length = strlen(value);\n");
+          fprintf(f, "    const size_t length = strlen(value);\n");
           fprintf(f, "    if (length > 0) {\n");
-          fprintf(
-              f, "        data->%s = (char *)MEM_mallocN(length + 1, __func__);\n", dp->dnaname);
+          fprintf(f,
+                  "        data->%s = MEM_malloc_arrayN<char>(length + 1, __func__);\n",
+                  dp->dnaname);
           fprintf(f, "        memcpy(data->%s, value, length + 1);\n", dp->dnaname);
           fprintf(f, "    } else { data->%s = nullptr; }\n", dp->dnaname);
         }
@@ -1899,7 +1900,8 @@ static char *rna_def_property_lookup_string_func(FILE *f,
   fprintf(f, "                }\n");
   fprintf(f, "            }\n");
   fprintf(f, "            else {\n");
-  fprintf(f, "                name = (char *)MEM_mallocN(namelen+1, \"name string\");\n");
+  fprintf(f, "                name = MEM_malloc_arrayN<char>(size_t(namelen) + 1,\n");
+  fprintf(f, "                                               \"name string\");\n");
   fprintf(f,
           "                %s_%s_get(&iter.ptr, name);\n",
           item_name_base->identifier,
@@ -4102,12 +4104,10 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
   bool freenest = false;
 
   if (nest != nullptr) {
-    int len = strlen(nest);
+    size_t len = strlen(nest);
 
-    strnest = static_cast<char *>(
-        MEM_mallocN(sizeof(char) * len + 2, "rna_generate_property -> strnest"));
-    errnest = static_cast<char *>(
-        MEM_mallocN(sizeof(char) * len + 2, "rna_generate_property -> errnest"));
+    strnest = MEM_malloc_arrayN<char>(len + 2, "rna_generate_property -> strnest");
+    errnest = MEM_malloc_arrayN<char>(len + 2, "rna_generate_property -> errnest");
 
     strnest[0] = '_';
     memcpy(strnest + 1, nest, len + 1);

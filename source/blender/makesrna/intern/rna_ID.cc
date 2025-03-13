@@ -1283,8 +1283,8 @@ static void rna_ImagePreview_size_set(PointerRNA *ptr, const int *values, enum e
   BKE_previewimg_clear_single(prv_img, size);
 
   if (values[0] && values[1]) {
-    prv_img->rect[size] = static_cast<unsigned int *>(
-        MEM_callocN(values[0] * values[1] * sizeof(uint), "prv_rect"));
+    prv_img->rect[size] = MEM_calloc_arrayN<uint>(size_t(values[0]) * size_t(values[1]),
+                                                  "prv_rect");
 
     prv_img->w[size] = values[0];
     prv_img->h[size] = values[1];
@@ -2672,12 +2672,10 @@ static void rna_def_library_weak_reference(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "library_filepath");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "File Path", "Path to the library .blend file");
 
   prop = RNA_def_property(srna, "id_name", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "library_id_name");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop,
       "ID name",

@@ -4324,8 +4324,8 @@ static void save_file_overwrite_confirm(bContext *C, void *arg_block, void *arg_
 {
   wmWindow *win = CTX_wm_window(C);
 
-  /* Re-use operator properties as defined for the initial 'save' operator, which triggered this
-   * 'forward compat' popup. */
+  /* Re-use operator properties as defined for the initial "Save" operator,
+   * which triggered this "Forward Compatibility" popup. */
   wmGenericCallback *callback = WM_generic_callback_steal(
       static_cast<wmGenericCallback *>(arg_data));
 

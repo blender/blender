@@ -198,7 +198,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 /**
  * helper function that returns a Python `__hash__`.
  *
- * \note consistent with the equivalent tuple of floats (CPython's 'tuplehash')
+ * \note consistent with the equivalent tuple of floats (CPython's `tuplehash`)
  */
 Py_hash_t mathutils_array_hash(const float *array, size_t array_len);
 

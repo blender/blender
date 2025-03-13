@@ -4526,8 +4526,7 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
   *values_num = 4 * resolution * resolution * resolution;
 
   if (*values == nullptr) {
-    *values = static_cast<float *>(
-        MEM_mallocN(sizeof(float) * (*values_num), "point density dynamic array"));
+    *values = MEM_malloc_arrayN<float>(size_t(*values_num), "point density dynamic array");
   }
 
   /* Single-threaded sampling of the voxel domain. */

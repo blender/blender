@@ -621,7 +621,7 @@ void do_versions_after_setup(Main *new_bmain,
                              BlendFileReadReport *reports)
 {
   /* WARNING: The code below may add IDs. These IDs _will_ be (by definition) conforming to current
-   * code's version already, and _must not_ be 'versionned' again.
+   * code's version already, and _must not_ be *versioned* again.
    *
    * This means that when adding code here, _extreme_ care must be taken that it will not badly
    * affect these 'modern' IDs potentially added by already existing processing.

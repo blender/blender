@@ -518,7 +518,7 @@ static PyObject *bpy_bmlayercollection_verify(BPy_BMLayerCollection *self)
     /* Because adding CustomData layers to a bmesh will invalidate any existing pointers
      * in Py objects we can't lazily add the associated bool layers. So add them all right
      * now. */
-    BM_uv_map_ensure_select_and_pin_attrs(self->bm);
+    BM_uv_map_attr_select_and_pin_ensure(self->bm);
   }
 
   BLI_assert(index >= 0);
@@ -569,7 +569,7 @@ static PyObject *bpy_bmlayercollection_new(BPy_BMLayerCollection *self, PyObject
     /* Because adding CustomData layers to a bmesh will invalidate any existing pointers
      * in Py objects we can't lazily add the associated bool layers. So add them all right
      * now. */
-    BM_uv_map_ensure_select_and_pin_attrs(self->bm);
+    BM_uv_map_attr_select_and_pin_ensure(self->bm);
   }
 
   index = CustomData_number_of_layers(data, eCustomDataType(self->type)) - 1;

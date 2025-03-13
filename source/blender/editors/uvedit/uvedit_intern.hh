@@ -85,9 +85,15 @@ bool uv_find_nearest_face_multi(Scene *scene,
 BMLoop *uv_find_nearest_loop_from_vert(Scene *scene, Object *obedit, BMVert *v, const float co[2]);
 BMLoop *uv_find_nearest_loop_from_edge(Scene *scene, Object *obedit, BMEdge *e, const float co[2]);
 
-bool uvedit_vert_is_edge_select_any_other(const Scene *scene, BMLoop *l, BMUVOffsets offsets);
-bool uvedit_vert_is_face_select_any_other(const Scene *scene, BMLoop *l, BMUVOffsets offsets);
-bool uvedit_vert_is_all_other_faces_selected(const Scene *scene, BMLoop *l, BMUVOffsets offsets);
+bool uvedit_vert_is_edge_select_any_other(const Scene *scene,
+                                          BMLoop *l,
+                                          const BMUVOffsets &offsets);
+bool uvedit_vert_is_face_select_any_other(const Scene *scene,
+                                          BMLoop *l,
+                                          const BMUVOffsets &offsets);
+bool uvedit_vert_is_all_other_faces_selected(const Scene *scene,
+                                             BMLoop *l,
+                                             const BMUVOffsets &offsets);
 
 /* utility tool functions */
 
@@ -125,7 +131,9 @@ bool uvedit_select_is_any_selected_multi(const Scene *scene, blender::Span<Objec
  * \warning This returns first selected UV,
  * not ideal in many cases since there could be multiple.
  */
-const float *uvedit_first_selected_uv_from_vertex(Scene *scene, BMVert *eve, BMUVOffsets offsets);
+const float *uvedit_first_selected_uv_from_vertex(Scene *scene,
+                                                  BMVert *eve,
+                                                  const BMUVOffsets &offsets);
 
 void UV_OT_select_all(wmOperatorType *ot);
 void UV_OT_select(wmOperatorType *ot);

@@ -157,7 +157,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
 
   if (tot_doubles != 0) {
     uint tot = totvert * step_tot;
-    int *full_doubles_map = static_cast<int *>(MEM_malloc_arrayN(tot, sizeof(int), __func__));
+    int *full_doubles_map = MEM_malloc_arrayN<int>(tot, __func__);
     copy_vn_i(full_doubles_map, int(tot), -1);
 
     uint tot_doubles_left = tot_doubles;
@@ -461,12 +461,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* build face -> edge map */
   if (faces_num) {
 
-    edge_face_map = static_cast<uint *>(
-        MEM_malloc_arrayN(totedge, sizeof(*edge_face_map), __func__));
+    edge_face_map = MEM_malloc_arrayN<uint>(totedge, __func__);
     memset(edge_face_map, 0xff, sizeof(*edge_face_map) * totedge);
 
-    vert_loop_map = static_cast<uint *>(
-        MEM_malloc_arrayN(totvert, sizeof(*vert_loop_map), __func__));
+    vert_loop_map = MEM_malloc_arrayN<uint>(totvert, __func__);
     memset(vert_loop_map, 0xff, sizeof(*vert_loop_map) * totvert);
 
     for (const int64_t i : faces_orig.index_range()) {
@@ -490,8 +488,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
      * Sort edge verts for correct face flipping
      * NOT REALLY NEEDED but face flipping is nice. */
 
-    vert_connect = static_cast<ScrewVertConnect *>(
-        MEM_malloc_arrayN(totvert, sizeof(ScrewVertConnect), __func__));
+    vert_connect = MEM_malloc_arrayN<ScrewVertConnect>(totvert, __func__);
     /* skip the first slice of verts. */
     // vert_connect = (ScrewVertConnect *) &medge_new[totvert];
     vc = vert_connect;

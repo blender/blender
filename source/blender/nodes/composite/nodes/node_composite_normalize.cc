@@ -42,10 +42,10 @@ class NormalizeOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input_image = this->get_input("Value");
-    Result &output_image = this->get_result("Value");
+    const Result &input_image = this->get_input("Value");
     if (input_image.is_single_value()) {
-      input_image.pass_through(output_image);
+      Result &output_image = this->get_result("Value");
+      output_image.share_data(input_image);
       return;
     }
 

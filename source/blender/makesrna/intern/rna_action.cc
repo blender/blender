@@ -1225,7 +1225,7 @@ static void rna_Action_fcurve_clear(bAction *act)
 
 static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
 {
-  TimeMarker *marker = static_cast<TimeMarker *>(MEM_callocN(sizeof(TimeMarker), "TimeMarker"));
+  TimeMarker *marker = MEM_callocN<TimeMarker>("TimeMarker");
   marker->flag = SELECT;
   marker->frame = 1;
   STRNCPY_UTF8(marker->name, name);

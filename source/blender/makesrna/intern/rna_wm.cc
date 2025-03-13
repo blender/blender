@@ -1320,8 +1320,7 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
   }
 
   /* create a new keyconf-prefs type */
-  kpt_rt = static_cast<wmKeyConfigPrefType_Runtime *>(
-      MEM_mallocN(sizeof(wmKeyConfigPrefType_Runtime), "keyconfigpreftype"));
+  kpt_rt = MEM_mallocN<wmKeyConfigPrefType_Runtime>("keyconfigpreftype");
   memcpy(kpt_rt, &dummy_kpt_rt, sizeof(dummy_kpt_rt));
 
   BKE_keyconfig_pref_type_add(kpt_rt);

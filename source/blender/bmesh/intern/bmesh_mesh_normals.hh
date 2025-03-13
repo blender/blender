@@ -98,7 +98,7 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm);
 void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges);
 
 /**
- * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
+ * Define sharp edges as needed to mimic auto-smooth from angle threshold.
  *
  * Used when defining an empty custom loop normals data layer,
  * to keep same shading as with auto-smooth!

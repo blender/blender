@@ -86,13 +86,13 @@ class KeyingOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input_image = get_result("Image");
+    const Result &input_image = get_result("Image");
     Result &output_image = get_result("Image");
     Result &output_matte = get_result("Matte");
     Result &output_edges = get_result("Edges");
     if (input_image.is_single_value()) {
       if (output_image.should_compute()) {
-        input_image.pass_through(output_image);
+        output_image.share_data(input_image);
       }
       if (output_matte.should_compute()) {
         output_matte.allocate_invalid();

@@ -490,7 +490,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 
   if (material_mode == eBooleanModifierMaterialMode_Transfer) {
     MEM_SAFE_FREE(result->mat);
-    result->mat = (Material **)MEM_malloc_arrayN(materials.size(), sizeof(Material *), __func__);
+    result->mat = MEM_malloc_arrayN<Material *>(size_t(materials.size()), __func__);
     result->totcol = materials.size();
     MutableSpan(result->mat, result->totcol).copy_from(materials);
   }

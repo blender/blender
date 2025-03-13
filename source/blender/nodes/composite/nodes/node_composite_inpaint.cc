@@ -46,10 +46,10 @@ class InpaintOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
-    if (input.is_single_value() || get_max_distance() == 0) {
-      input.pass_through(output);
+    const Result &input = this->get_input("Image");
+    if (input.is_single_value() || this->get_max_distance() == 0) {
+      Result &output = this->get_result("Image");
+      output.share_data(input);
       return;
     }
 

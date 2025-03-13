@@ -1271,7 +1271,7 @@ bool ED_mesh_pick_face_vert(
       }
     }
 
-    /* map 'dm -> mesh' r_index if possible */
+    /* Map the `dm` to `mesh`, setting the `r_index` if possible. */
     if (v_idx_best != ORIGINDEX_NONE) {
       const int *index_mv_to_orig = (const int *)CustomData_get_layer(&mesh_eval->vert_data,
                                                                       CD_ORIGINDEX);

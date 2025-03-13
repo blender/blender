@@ -213,15 +213,15 @@ struct EditLoopData {
 
 void mesh_render_data_face_flag(const MeshRenderData &mr,
                                 const BMFace *efa,
-                                BMUVOffsets offsets,
+                                const BMUVOffsets &offsets,
                                 EditLoopData &eattr);
 void mesh_render_data_loop_flag(const MeshRenderData &mr,
                                 const BMLoop *l,
-                                BMUVOffsets offsets,
+                                const BMUVOffsets &offsets,
                                 EditLoopData &eattr);
 void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
                                      const BMLoop *l,
-                                     BMUVOffsets offsets,
+                                     const BMUVOffsets &offsets,
                                      EditLoopData &eattr);
 
 template<typename T>

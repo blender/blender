@@ -344,6 +344,13 @@ static bool buttons_context_path_material(ButsContextPath *path)
 
     if (ob && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
       Material *ma = BKE_object_material_get(ob, ob->actcol);
+
+      const int slot = blender::math::max(ob->actcol - 1, 0);
+      if (ob->matbits && ob->matbits[slot] == 0) {
+        /* When material from active slot is stored in object data, include it in context path, see
+         * !134968. */
+        buttons_context_path_data(path, -1);
+      }
       if (ma != nullptr) {
         path->ptr[path->len] = RNA_id_pointer_create(&ma->id);
         path->len++;

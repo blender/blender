@@ -486,7 +486,7 @@ static void face_edge_loop_islands_calc_bitflags_exclude_at_boundary(
     const int face_group_id_overflowed,
     int &r_bit_face_group_mask)
 {
-  /* Find neighbour faces (either from a boundary edge, or a boundary vertex) that already have a
+  /* Find neighbor faces (either from a boundary edge, or a boundary vertex) that already have a
    * group assigned, and exclude these groups' bits from the available set of groups bits that can
    * be assigned to the currently processed group. */
   for (const int face_idx : faces_from_item) {
@@ -497,14 +497,15 @@ static void face_edge_loop_islands_calc_bitflags_exclude_at_boundary(
   }
 }
 
-/* ABOUT #use_boundary_vertices_for_bitflags:
+/**
+ * ABOUT #use_boundary_vertices_for_bitflags:
  *
  * Also exclude bits used in other groups sharing the same boundary vertex, i.e. if one edge
  * around the vertex of the current corner is a boundary edge.
  *
- * NOTE: The reason for this requirement is not very clear. Bitflags groups are only handled here
+ * NOTE: The reason for this requirement is not very clear. Bit-flags groups are only handled here
  * for I/O purposes, Blender itself does not have this feature. Main external apps heavily
- * relying on these bitflags groups for their smooth shading computation seem to generate invalid
+ * relying on these bit-flags groups for their smooth shading computation seem to generate invalid
  * results when two different groups share the same bits, and are connected by a vertex only
  * (i.e. have no edge in common). See #104434.
  *
@@ -641,9 +642,9 @@ static void face_edge_loop_islands_calc(const int totedge,
                *     first face's corner, then when processing the other face's corner in the same
                *     group.
                *   - Isolated boundary edges (i.e. boundary edges only connected to faces of the
-               *     same group) cannot be represented by bitflags groups, at least not with
+               *     same group) cannot be represented by bit-flags groups, at least not with
                *     current algorithm (they cannot define more than one group).
-               *   - Inverions of winding (aka flipped faces) always generate boundary edges in
+               *   - Inversions of winding (aka flipped faces) always generate boundary edges in
                *     current use-case (smooth groups), i.e. two faces with opposed winding cannot
                *     belong to the same group. */
               const int vert = corner_verts[loop];

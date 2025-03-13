@@ -381,8 +381,7 @@ static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *w
   const blender::OffsetIndices faces = wn_data->faces;
   const blender::Span<int> corner_verts = wn_data->corner_verts;
 
-  ModePair *face_area = static_cast<ModePair *>(
-      MEM_malloc_arrayN(faces.size(), sizeof(*face_area), __func__));
+  ModePair *face_area = MEM_malloc_arrayN<ModePair>(size_t(faces.size()), __func__);
 
   ModePair *f_area = face_area;
   for (const int i : faces.index_range()) {
@@ -402,13 +401,11 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
   const blender::OffsetIndices faces = wn_data->faces;
   const blender::Span<int> corner_verts = wn_data->corner_verts;
 
-  ModePair *corner_angle = static_cast<ModePair *>(
-      MEM_malloc_arrayN(corner_verts.size(), sizeof(*corner_angle), __func__));
+  ModePair *corner_angle = MEM_malloc_arrayN<ModePair>(size_t(corner_verts.size()), __func__);
 
   for (const int i : faces.index_range()) {
     const blender::IndexRange face = faces[i];
-    float *index_angle = static_cast<float *>(
-        MEM_malloc_arrayN(face.size(), sizeof(*index_angle), __func__));
+    float *index_angle = MEM_malloc_arrayN<float>(size_t(face.size()), __func__);
     blender::bke::mesh::face_angles_calc(
         positions, corner_verts.slice(face), {index_angle, face.size()});
 
@@ -435,15 +432,13 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
   const blender::OffsetIndices faces = wn_data->faces;
   const blender::Span<int> corner_verts = wn_data->corner_verts;
 
-  ModePair *combined = static_cast<ModePair *>(
-      MEM_malloc_arrayN(corner_verts.size(), sizeof(*combined), __func__));
+  ModePair *combined = MEM_malloc_arrayN<ModePair>(size_t(corner_verts.size()), __func__);
 
   for (const int i : faces.index_range()) {
     const blender::IndexRange face = faces[i];
     const blender::Span<int> face_verts = corner_verts.slice(face);
     const float face_area = blender::bke::mesh::face_area_calc(positions, face_verts);
-    float *index_angle = static_cast<float *>(
-        MEM_malloc_arrayN(size_t(face.size()), sizeof(*index_angle), __func__));
+    float *index_angle = MEM_malloc_arrayN<float>(size_t(face.size()), __func__);
     blender::bke::mesh::face_angles_calc(positions, face_verts, {index_angle, face.size()});
 
     ModePair *cmbnd = &combined[face.start()];

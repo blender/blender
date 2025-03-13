@@ -63,12 +63,12 @@ class CornerPinOperation : public NodeOperation {
   {
     const float3x3 homography_matrix = compute_homography_matrix();
 
-    Result &input_image = get_input("Image");
-    Result &output_image = get_result("Image");
-    Result &output_mask = get_result("Plane");
+    const Result &input_image = this->get_input("Image");
+    Result &output_image = this->get_result("Image");
+    Result &output_mask = this->get_result("Plane");
     if (input_image.is_single_value() || homography_matrix == float3x3::identity()) {
       if (output_image.should_compute()) {
-        input_image.pass_through(output_image);
+        output_image.share_data(input_image);
       }
       if (output_mask.should_compute()) {
         output_mask.allocate_single_value();

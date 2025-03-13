@@ -115,11 +115,11 @@ class DenoiseOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input_image = get_input("Image");
+    const Result &input_image = get_input("Image");
     Result &output_image = get_result("Image");
 
     if (!is_oidn_supported() || input_image.is_single_value()) {
-      input_image.pass_through(output_image);
+      output_image.share_data(input_image);
       return;
     }
 

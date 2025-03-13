@@ -49,10 +49,10 @@ class FilterOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input_image = get_input("Image");
+    const Result &input_image = this->get_input("Image");
     if (input_image.is_single_value()) {
-      Result &output_image = get_result("Image");
-      input_image.pass_through(output_image);
+      Result &output_image = this->get_result("Image");
+      output_image.share_data(input_image);
       return;
     }
 

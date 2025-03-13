@@ -474,7 +474,7 @@ void DiagSplit::split_ngon(const Mesh::SubdFace &face,
 
 void DiagSplit::split_patches(const Patch *patches, const size_t patches_byte_stride)
 {
-  /* Keep base mesh vertices, create new triangels. */
+  /* Keep base mesh vertices, create new triangles. */
   num_verts = params.mesh->get_num_subd_base_verts();
   num_triangles = 0;
 

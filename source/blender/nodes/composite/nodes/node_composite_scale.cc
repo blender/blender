@@ -100,16 +100,15 @@ class ScaleOperation : public NodeOperation {
 
   void execute_constant_size()
   {
-    Result &input = this->get_input("Image");
-    Result &output = this->get_result("Image");
-
     const float2 scale = this->get_scale();
     const math::AngleRadian rotation = 0.0f;
     const float2 translation = this->get_translation();
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
         translation, rotation, scale);
 
-    input.pass_through(output);
+    const Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
+    output.share_data(input);
     output.transform(transformation);
     output.get_realization_options().interpolation = input.get_realization_options().interpolation;
   }

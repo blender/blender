@@ -97,10 +97,10 @@ class ToneMapOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input_image = get_input("Image");
-    Result &output_image = get_result("Image");
+    const Result &input_image = this->get_input("Image");
+    Result &output_image = this->get_result("Image");
     if (input_image.is_single_value()) {
-      input_image.pass_through(output_image);
+      output_image.share_data(input_image);
       return;
     }
 

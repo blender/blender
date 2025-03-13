@@ -637,8 +637,7 @@ static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext * /*C*
 static bConstraintTarget *rna_ArmatureConstraint_target_new(ID *id, bConstraint *con, Main *bmain)
 {
   bArmatureConstraint *acon = static_cast<bArmatureConstraint *>(con->data);
-  bConstraintTarget *tgt = static_cast<bConstraintTarget *>(
-      MEM_callocN(sizeof(bConstraintTarget), "Constraint Target"));
+  bConstraintTarget *tgt = MEM_callocN<bConstraintTarget>("Constraint Target");
 
   tgt->weight = 1.0f;
   BLI_addtail(&acon->targets, tgt);

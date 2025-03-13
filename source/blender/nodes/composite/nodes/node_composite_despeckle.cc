@@ -62,9 +62,10 @@ class DespeckleOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input_image = get_input("Image");
-    if (input_image.is_single_value()) {
-      input_image.pass_through(get_result("Image"));
+    const Result &input = this->get_input("Image");
+    if (input.is_single_value()) {
+      Result &output = this->get_result("Image");
+      output.share_data(input);
       return;
     }
 

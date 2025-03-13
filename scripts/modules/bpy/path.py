@@ -337,7 +337,7 @@ def ensure_ext(filepath, ext, *, case_sensitive=False):
     :arg filepath: The file path.
     :type filepath: str
     :arg ext: The extension to check for, can be a compound extension. Should
-              start with a dot, such as '.blend' or '.tar.gz'.
+              start with a dot, such as ``.blend`` or ``.tar.gz``.
     :type ext: str
     :arg case_sensitive: Check for matching case when comparing extensions.
     :type case_sensitive: bool

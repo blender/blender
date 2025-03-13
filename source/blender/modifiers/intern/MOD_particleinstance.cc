@@ -244,7 +244,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   if (pimd->flag & eParticleInstanceFlag_UseSize) {
     float *si;
-    si = size = static_cast<float *>(MEM_calloc_arrayN(part_end, sizeof(float), __func__));
+    si = size = MEM_calloc_arrayN<float>(part_end, __func__);
 
     if (pimd->flag & eParticleInstanceFlag_Parents) {
       for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++, si++) {

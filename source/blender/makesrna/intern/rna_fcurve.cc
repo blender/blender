@@ -1168,8 +1168,7 @@ static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(
     env->totvert++;
   }
   else {
-    env->data = static_cast<FCM_EnvelopeData *>(
-        MEM_mallocN(sizeof(FCM_EnvelopeData), "FCM_EnvelopeData"));
+    env->data = MEM_mallocN<FCM_EnvelopeData>("FCM_EnvelopeData");
     env->totvert = 1;
     i = 0;
   }

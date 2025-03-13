@@ -909,7 +909,7 @@ enum AttributeStandard {
 };
 
 enum AttributeFlag {
-  ATTR_SUBDIVIDE_SMOOTH_FVAR = (1 << 0), /* This attribute is face-varying and requirs smooth
+  ATTR_SUBDIVIDE_SMOOTH_FVAR = (1 << 0), /* This attribute is face-varying and requires smooth
                                           * subdivision (typically UV map). */
 };
 

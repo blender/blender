@@ -2177,19 +2177,20 @@ static int rna_ConsoleLine_body_length(PointerRNA *ptr)
 static void rna_ConsoleLine_body_set(PointerRNA *ptr, const char *value)
 {
   ConsoleLine *ci = (ConsoleLine *)ptr->data;
-  int len = strlen(value);
+  size_t len = strlen(value);
 
-  if ((len >= ci->len_alloc) || (len * 2 < ci->len_alloc)) { /* allocate a new string */
+  if ((len >= size_t(ci->len_alloc)) || (len * 2 < size_t(ci->len_alloc)))
+  { /* allocate a new string */
     MEM_freeN(ci->line);
-    ci->line = static_cast<char *>(MEM_mallocN((len + 1) * sizeof(char), "rna_consoleline"));
-    ci->len_alloc = len + 1;
+    ci->line = MEM_malloc_arrayN<char>(len + 1, "rna_consoleline");
+    ci->len_alloc = int(len + 1);
   }
   memcpy(ci->line, value, len + 1);
-  ci->len = len;
+  ci->len = int(len);
 
-  if (ci->cursor > len) {
+  if (size_t(ci->cursor) > len) {
     /* clamp the cursor */
-    ci->cursor = len;
+    ci->cursor = int(len);
   }
 }
 

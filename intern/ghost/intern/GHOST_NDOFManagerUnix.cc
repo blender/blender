@@ -60,9 +60,9 @@ bool GHOST_NDOFManagerUnix::available()
   return available_;
 }
 
-/*
- * Workaround for a problem where we don't enter the 'GHOST_kFinished' state,
- * this causes any proceeding event to have a very high 'dt' (time delta),
+/**
+ * Workaround for a problem where we don't enter the #GHOST_kFinished state,
+ * this causes any proceeding event to have a very high `dt` (time delta),
  * many seconds for eg, causing the view to jump.
  *
  * this workaround expects continuous events, if we miss a motion event,

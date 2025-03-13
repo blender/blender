@@ -660,7 +660,7 @@ static int bm_uv_edge_select_build_islands(UvElementMap *element_map,
                                            UvElement *islandbuf,
                                            uint *map,
                                            bool uv_selected,
-                                           const BMUVOffsets offsets)
+                                           const BMUVOffsets &offsets)
 {
   BM_uv_element_map_ensure_head_table(element_map);
 
@@ -768,7 +768,7 @@ static void bm_uv_build_islands(UvElementMap *element_map,
       MEM_callocN(sizeof(*island_number) * bm->totface, __func__));
   copy_vn_i(island_number, bm->totface, INVALID_ISLAND);
 
-  const BMUVOffsets uv_offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets uv_offsets = BM_uv_map_offsets_get(bm);
 
   const bool use_uv_edge_connectivity = scene->toolsettings->uv_flag & UV_SYNC_SELECTION ?
                                             scene->toolsettings->selectmode & SCE_SELECT_EDGE :
@@ -1001,7 +1001,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   BMFace *efa;
   BMIter iter, liter;
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
   if (offsets.uv < 0) {
     return nullptr;
   }

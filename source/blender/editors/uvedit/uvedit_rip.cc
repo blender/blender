@@ -742,9 +742,9 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
   BMEditMesh *em = mesh->runtime->edit_mesh.get();
   BMesh *bm = em->bm;
   const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
-  BM_uv_map_ensure_vert_select_attr(bm, active_uv_name);
-  BM_uv_map_ensure_edge_select_attr(bm, active_uv_name);
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  BM_uv_map_attr_vert_select_ensure(bm, active_uv_name);
+  BM_uv_map_attr_edge_select_ensure(bm, active_uv_name);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   BMFace *efa;
   BMIter iter, liter;
@@ -900,6 +900,14 @@ static int uv_rip_exec(bContext *C, wmOperator *op)
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  if (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+    /* "Rip" is logically incompatible with sync-select.
+     * Report an error instead of "poll" so this is reported when the tool is used,
+     * with #131642 implemented, this can be made to work. */
+    BKE_report(op->reports, RPT_ERROR, "Rip is not compatible with sync selection");
+    return OPERATOR_CANCELLED;
+  }
 
   bool changed_multi = false;
 
