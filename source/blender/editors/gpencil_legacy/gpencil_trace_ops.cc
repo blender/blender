@@ -253,6 +253,10 @@ static void trace_start_job(void *customdata, wmJobWorkerStatus *worker_status)
 
         BKE_image_release_ibuf(trace_job->image, ibuf, lock);
       }
+
+      /* If source type is not sequence, override `trace_job.mode` to single because we need the
+       * correct mode for finalization. */
+      trace_job->mode = GPENCIL_TRACE_MODE_SINGLE;
     }
   }
 
