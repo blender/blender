@@ -906,8 +906,15 @@ static int merge_actions_selection_exec(bContext *C, wmOperator *op)
       }
       blender::animrig::move_slot(*bmain, *slot, *action, active_action);
       ANIM_id_update(bmain, related_id);
+      DEG_id_tag_update_ex(bmain, &action->id, ID_RECALC_ANIMATION_NO_FLUSH);
     }
   }
+
+  /* `ID_RECALC_ANIMATION_NO_FLUSH` is used here (and above), as the actual animation values do not
+   * change, so there is no need to flush to the animated IDs. The Action itself does need to be
+   * re-evaluated to get an up-to-date evaluated copy with the new slots & channelbags. Without
+   * this, future animation evaluation will break. */
+  DEG_id_tag_update_ex(bmain, &active_action.id, ID_RECALC_ANIMATION_NO_FLUSH);
 
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
