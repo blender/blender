@@ -71,37 +71,37 @@ class Outline : Overlay {
                      state.clipping_plane_count);
       {
         auto &sub = pass.sub("Curves");
-        sub.shader_set(res.shaders.outline_prepass_curves.get());
+        sub.shader_set(res.shaders->outline_prepass_curves.get());
         sub.push_constant("isTransform", is_transform);
         prepass_curves_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("PointCloud");
-        sub.shader_set(res.shaders.outline_prepass_pointcloud.get());
+        sub.shader_set(res.shaders->outline_prepass_pointcloud.get());
         sub.push_constant("isTransform", is_transform);
         prepass_pointcloud_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("GreasePencil");
-        sub.shader_set(res.shaders.outline_prepass_gpencil.get());
+        sub.shader_set(res.shaders->outline_prepass_gpencil.get());
         sub.push_constant("isTransform", is_transform);
         prepass_gpencil_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Mesh");
-        sub.shader_set(res.shaders.outline_prepass_mesh.get());
+        sub.shader_set(res.shaders->outline_prepass_mesh.get());
         sub.push_constant("isTransform", is_transform);
         prepass_mesh_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Volume");
-        sub.shader_set(res.shaders.outline_prepass_mesh.get());
+        sub.shader_set(res.shaders->outline_prepass_mesh.get());
         sub.push_constant("isTransform", is_transform);
         prepass_volume_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Wire");
-        sub.shader_set(res.shaders.outline_prepass_wire.get());
+        sub.shader_set(res.shaders->outline_prepass_wire.get());
         sub.push_constant("isTransform", is_transform);
         prepass_wire_ps_ = &sub;
       }
@@ -110,7 +110,7 @@ class Outline : Overlay {
       auto &pass = outline_resolve_ps_;
       pass.init();
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL);
-      pass.shader_set(res.shaders.outline_detect.get());
+      pass.shader_set(res.shaders->outline_detect.get());
       /* Don't occlude the outline if in xray mode as it causes too much flickering. */
       pass.push_constant("alphaOcclu", state.xray_enabled ? 1.0f : 0.35f);
       pass.push_constant("doThickOutlines", do_expand);
@@ -205,7 +205,7 @@ class Outline : Overlay {
       pass.framebuffer_set(&prepass_fb_);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                      state.clipping_plane_count);
-      pass.shader_set(res.shaders.outline_prepass_wire.get());
+      pass.shader_set(res.shaders->outline_prepass_wire.get());
       pass.push_constant("isTransform", is_transform);
 
       for (FlatObjectRef flag_ob_ref : flat_objects_) {

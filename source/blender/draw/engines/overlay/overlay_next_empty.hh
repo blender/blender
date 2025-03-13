@@ -68,7 +68,7 @@ class Empties : Overlay {
     auto init_pass = [&](PassMain &pass, DRWState draw_state) {
       pass.init();
       pass.state_set(draw_state, state.clipping_plane_count);
-      pass.shader_set(res.shaders.image_plane_depth_bias.get());
+      pass.shader_set(res.shaders->image_plane_depth_bias.get());
       pass.push_constant("depth_bias_winmat", &depth_bias_winmat_);
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
@@ -184,7 +184,7 @@ class Empties : Overlay {
   {
     ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                  state.clipping_plane_count);
-    ps.shader_set(res.shaders.extra_shape.get());
+    ps.shader_set(res.shaders->extra_shape.get());
     ps.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     ps.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
 
@@ -360,11 +360,11 @@ class Empties : Overlay {
     const float z = -math::dot(state.camera_forward, tmp);
     PassMain::Sub &sub = parent.sub("Sub", z);
     if (depth_bias) {
-      sub.shader_set(res.shaders.image_plane_depth_bias.get());
+      sub.shader_set(res.shaders->image_plane_depth_bias.get());
       sub.push_constant("depth_bias_winmat", &depth_bias_winmat_);
     }
     else {
-      sub.shader_set(res.shaders.image_plane.get());
+      sub.shader_set(res.shaders->image_plane.get());
     }
     sub.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     sub.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);

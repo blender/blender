@@ -122,7 +122,7 @@ class Cameras : Overlay {
       auto init_pass = [&](PassMain &pass, DRWState draw_state) {
         pass.init();
         pass.state_set(draw_state, state.clipping_plane_count);
-        pass.shader_set(res.shaders.image_plane_depth_bias.get());
+        pass.shader_set(res.shaders->image_plane_depth_bias.get());
         pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
         pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
         pass.push_constant("depth_bias_winmat", &depth_bias_winmat_);
@@ -176,7 +176,7 @@ class Cameras : Overlay {
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
                          state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
+      sub_pass.shader_set(res.shaders->extra_shape.get());
       call_buffers_.volume_buf.end_sync(sub_pass, res.shapes.camera_volume.get());
     }
     {
@@ -184,7 +184,7 @@ class Cameras : Overlay {
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                              DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK,
                          state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
+      sub_pass.shader_set(res.shaders->extra_shape.get());
       call_buffers_.volume_wire_buf.end_sync(sub_pass, res.shapes.camera_volume_wire.get());
     }
 
@@ -193,7 +193,7 @@ class Cameras : Overlay {
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
+      sub_pass.shader_set(res.shaders->extra_shape.get());
       call_buffers_.distances_buf.end_sync(sub_pass, res.shapes.camera_distances.get());
       call_buffers_.frame_buf.end_sync(sub_pass, res.shapes.camera_frame.get());
       call_buffers_.tria_buf.end_sync(sub_pass, res.shapes.camera_tria.get());
@@ -206,7 +206,7 @@ class Cameras : Overlay {
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_wire.get());
+      sub_pass.shader_set(res.shaders->extra_wire.get());
       call_buffers_.stereo_connect_lines.end_sync(sub_pass);
       call_buffers_.tracking_path.end_sync(sub_pass);
     }

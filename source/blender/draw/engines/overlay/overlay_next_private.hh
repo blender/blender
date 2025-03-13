@@ -613,7 +613,7 @@ struct GreasePencilDepthPlane {
 };
 
 struct Resources : public select::SelectMap {
-  ShaderModule &shaders;
+  ShaderModule *shaders = nullptr;
 
   /* Overlay Color. */
   Framebuffer overlay_color_only_fb = {"overlay_color_only_fb"};
@@ -697,10 +697,8 @@ struct Resources : public select::SelectMap {
 
   const ShapeCache &shapes;
 
-  Resources(const SelectionType selection_type_,
-            ShaderModule &shader_module,
-            const ShapeCache &shapes_)
-      : select::SelectMap(selection_type_), shaders(shader_module), shapes(shapes_){};
+  Resources(const SelectionType selection_type_, const ShapeCache &shapes_)
+      : select::SelectMap(selection_type_), shapes(shapes_){};
 
   ~Resources()
   {
@@ -709,6 +707,11 @@ struct Resources : public select::SelectMap {
 
   void update_theme_settings(const State &state);
   void update_clip_planes(const State &state);
+
+  void init(bool clipping_enabled)
+  {
+    shaders = &overlay::ShaderModule::module_get(selection_type, clipping_enabled);
+  }
 
   void begin_sync()
   {

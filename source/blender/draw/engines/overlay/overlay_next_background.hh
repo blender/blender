@@ -82,14 +82,14 @@ class Background : Overlay {
       Span<float3> bbox(reinterpret_cast<float3 *>(state.rv3d->clipbb->vec[0]), 8);
 
       bg_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA | DRW_STATE_CULL_BACK);
-      bg_ps_.shader_set(res.shaders.background_clip_bound.get());
+      bg_ps_.shader_set(res.shaders->background_clip_bound.get());
       bg_ps_.push_constant("ucolor", res.theme_settings.color_clipping_border);
       bg_ps_.push_constant("boundbox", bbox.data(), 8);
       bg_ps_.draw(res.shapes.cube_solid.get());
     }
 
     bg_ps_.state_set(pass_state);
-    bg_ps_.shader_set(res.shaders.background_fill.get());
+    bg_ps_.shader_set(res.shaders->background_fill.get());
     bg_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     bg_ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     bg_ps_.bind_texture("colorBuffer", &res.color_render_tx);

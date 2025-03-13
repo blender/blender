@@ -75,14 +75,14 @@ class Sculpts : Overlay {
                              state.clipping_plane_count);
       {
         auto &sub = sculpt_mask_.sub("Mesh");
-        sub.shader_set(res.shaders.sculpt_mesh.get());
+        sub.shader_set(res.shaders->sculpt_mesh.get());
         sub.push_constant("maskOpacity", mask_opacity);
         sub.push_constant("faceSetsOpacity", face_set_opacity);
         mesh_ps_ = &sub;
       }
       {
         auto &sub = sculpt_mask_.sub("Curves");
-        sub.shader_set(res.shaders.sculpt_curves.get());
+        sub.shader_set(res.shaders->sculpt_curves.get());
         sub.push_constant("selection_opacity", mask_opacity);
         curves_ps_ = &sub;
       }
@@ -92,7 +92,7 @@ class Sculpts : Overlay {
       pass.init();
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                      state.clipping_plane_count);
-      pass.shader_set(res.shaders.sculpt_curves_cage.get());
+      pass.shader_set(res.shaders->sculpt_curves_cage.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       pass.push_constant("opacity", curve_cage_opacity);

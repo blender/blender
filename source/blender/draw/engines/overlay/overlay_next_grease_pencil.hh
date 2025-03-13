@@ -121,7 +121,7 @@ class GreasePencil : Overlay {
 
       if (show_points_) {
         auto &sub = pass.sub("Points");
-        sub.shader_set(res.shaders.curve_edit_points.get());
+        sub.shader_set(res.shaders->curve_edit_points.get());
         sub.bind_texture("weightTex", &res.weight_ramp_tx);
         sub.push_constant("useWeight", show_weight_);
         sub.push_constant("useGreasePencil", true);
@@ -131,7 +131,7 @@ class GreasePencil : Overlay {
 
       if (show_lines_) {
         auto &sub = pass.sub("Lines");
-        sub.shader_set(res.shaders.curve_edit_line.get());
+        sub.shader_set(res.shaders->curve_edit_line.get());
         sub.bind_texture("weightTex", &res.weight_ramp_tx);
         sub.push_constant("useWeight", show_weight_);
         sub.push_constant("useGreasePencil", true);
@@ -154,7 +154,7 @@ class GreasePencil : Overlay {
       if (show_grid_) {
         const float4 col_grid(float3(state.overlay.gpencil_grid_color),
                               state.overlay.gpencil_grid_opacity);
-        pass.shader_set(res.shaders.grid_grease_pencil.get());
+        pass.shader_set(res.shaders->grid_grease_pencil.get());
         pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
         pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
         pass.push_constant("color", col_grid);

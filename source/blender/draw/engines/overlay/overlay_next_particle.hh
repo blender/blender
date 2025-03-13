@@ -68,19 +68,19 @@ class Particles : Overlay {
       res.select_bind(pass);
       {
         auto &sub = pass.sub("Dots");
-        sub.shader_set(res.shaders.particle_dot.get());
+        sub.shader_set(res.shaders->particle_dot.get());
         sub.bind_texture("weightTex", res.weight_ramp_tx);
         dot_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Shapes");
-        sub.shader_set(res.shaders.particle_shape.get());
+        sub.shader_set(res.shaders->particle_shape.get());
         sub.bind_texture("weightTex", res.weight_ramp_tx);
         shape_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Hair");
-        sub.shader_set(res.shaders.particle_hair.get());
+        sub.shader_set(res.shaders->particle_hair.get());
         sub.push_constant("colorType", state.v3d->shading.wire_color_type);
         sub.push_constant("isTransform", is_transform);
         hair_ps_ = &sub;
@@ -97,7 +97,7 @@ class Particles : Overlay {
       res.select_bind(pass);
       {
         auto &sub = pass.sub("Dots");
-        sub.shader_set(res.shaders.particle_edit_vert.get());
+        sub.shader_set(res.shaders->particle_edit_vert.get());
         sub.bind_texture("weightTex", res.weight_ramp_tx);
         sub.push_constant("useWeight", show_weight_);
         sub.push_constant("useGreasePencil", false);
@@ -105,7 +105,7 @@ class Particles : Overlay {
       }
       {
         auto &sub = pass.sub("Edges");
-        sub.shader_set(res.shaders.particle_edit_edge.get());
+        sub.shader_set(res.shaders->particle_edit_edge.get());
         sub.bind_texture("weightTex", res.weight_ramp_tx);
         sub.push_constant("useWeight", false);
         sub.push_constant("useGreasePencil", false);

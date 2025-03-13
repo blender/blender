@@ -203,7 +203,7 @@ class Relations : Overlay {
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_wire.get());
+      sub_pass.shader_set(res.shaders->extra_wire.get());
       relations_buf_.end_sync(sub_pass);
     }
     {
@@ -211,7 +211,7 @@ class Relations : Overlay {
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_loose_points.get());
+      sub_pass.shader_set(res.shaders->extra_loose_points.get());
       points_buf_.end_sync(sub_pass);
     }
   }

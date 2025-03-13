@@ -50,10 +50,10 @@ class Lattices : Overlay {
     ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     res.select_bind(ps_);
     edit_lattice_wire_ps_ = create_sub_pass(
-        "edit_lattice_wire", res.shaders.lattice_wire.get(), true);
+        "edit_lattice_wire", res.shaders->lattice_wire.get(), true);
     edit_lattice_point_ps_ = create_sub_pass(
-        "edit_lattice_points", res.shaders.lattice_points.get(), false);
-    lattice_ps_ = create_sub_pass("lattice", res.shaders.extra_wire_object.get(), false);
+        "edit_lattice_points", res.shaders->lattice_points.get(), false);
+    lattice_ps_ = create_sub_pass("lattice", res.shaders->extra_wire_object.get(), false);
   }
 
   void edit_object_sync(Manager &manager,

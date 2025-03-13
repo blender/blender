@@ -24,6 +24,10 @@ void Instance::init()
   /* Was needed by `object_wire_theme_id()` when doing the port. Not sure if needed nowadays. */
   BKE_view_layer_synced_ensure(ctx->scene, ctx->view_layer);
 
+  clipping_enabled_ = RV3D_CLIPPING_ENABLED(ctx->v3d, ctx->rv3d);
+
+  resources.init(clipping_enabled_);
+
   state.depsgraph = ctx->depsgraph;
   state.view_layer = ctx->view_layer;
   state.space_data = ctx->space_data;

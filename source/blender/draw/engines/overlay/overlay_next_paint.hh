@@ -75,7 +75,7 @@ class Paints : Overlay {
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                           DRW_STATE_BLEND_ALPHA,
                       state.clipping_plane_count);
-        sub.shader_set(res.shaders.paint_region_face.get());
+        sub.shader_set(res.shaders->paint_region_face.get());
         sub.push_constant("ucolor", float4(1.0, 1.0, 1.0, 0.2));
         paint_region_face_ps_ = &sub;
       }
@@ -84,14 +84,14 @@ class Paints : Overlay {
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
                           DRW_STATE_BLEND_ALPHA,
                       state.clipping_plane_count);
-        sub.shader_set(res.shaders.paint_region_edge.get());
+        sub.shader_set(res.shaders->paint_region_edge.get());
         paint_region_edge_ps_ = &sub;
       }
       {
         auto &sub = pass.sub("Vert");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                       state.clipping_plane_count);
-        sub.shader_set(res.shaders.paint_region_vert.get());
+        sub.shader_set(res.shaders->paint_region_vert.get());
         paint_region_vert_ps_ = &sub;
       }
     }
@@ -113,8 +113,8 @@ class Paints : Overlay {
       auto weight_subpass = [&](const char *name, DRWState drw_state) {
         auto &sub = pass.sub(name);
         sub.state_set(drw_state, state.clipping_plane_count);
-        sub.shader_set(shadeless ? res.shaders.paint_weight.get() :
-                                   res.shaders.paint_weight_fake_shading.get());
+        sub.shader_set(shadeless ? res.shaders->paint_weight.get() :
+                                   res.shaders->paint_weight_fake_shading.get());
         sub.bind_texture("colorramp", &res.weight_ramp_tx);
         sub.push_constant("drawContours", draw_contours);
         sub.push_constant("opacity", state.overlay.weight_paint_mode_opacity);
@@ -144,7 +144,7 @@ class Paints : Overlay {
         auto &pass = paint_mask_ps_;
         pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA,
                        state.clipping_plane_count);
-        pass.shader_set(res.shaders.paint_texture.get());
+        pass.shader_set(res.shaders->paint_texture.get());
         pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
         pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
         pass.bind_texture("maskImage", mask_texture);

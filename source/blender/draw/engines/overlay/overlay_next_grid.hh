@@ -67,7 +67,7 @@ class Grid : Overlay {
     if (state.is_space_image()) {
       /* Add quad background. */
       auto &sub = grid_ps_.sub("grid_background");
-      sub.shader_set(res.shaders.grid_background.get());
+      sub.shader_set(res.shaders->grid_background.get());
       const float4 color_back = math::interpolate(
           res.theme_settings.color_background, res.theme_settings.color_grid, 0.5);
       sub.push_constant("ucolor", color_back);
@@ -77,7 +77,7 @@ class Grid : Overlay {
     }
     {
       auto &sub = grid_ps_.sub("grid");
-      sub.shader_set(res.shaders.grid.get());
+      sub.shader_set(res.shaders->grid.get());
       sub.bind_ubo("grid_buf", &data_);
       sub.bind_texture("depth_tx", depth_tx, GPUSamplerState::default_sampler());
       sub.bind_texture("depth_infront_tx", depth_infront_tx, GPUSamplerState::default_sampler());
@@ -104,7 +104,7 @@ class Grid : Overlay {
 
       /* Add wire border. */
       auto &sub = grid_ps_.sub("wire_border");
-      sub.shader_set(res.shaders.grid_image.get());
+      sub.shader_set(res.shaders->grid_image.get());
       sub.push_constant("ucolor", theme_color);
       tile_pos_buf_.clear();
       for (const int x : IndexRange(data_.size[0])) {

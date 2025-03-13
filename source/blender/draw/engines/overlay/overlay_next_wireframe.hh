@@ -82,7 +82,7 @@ class Wireframe : Overlay {
       auto shader_pass =
           [&](GPUShader *shader, const char *name, bool use_coloring, float wire_threshold) {
             auto &sub = pass.sub(name);
-            if (res.shaders.wireframe_mesh.get() == shader) {
+            if (res.shaders->wireframe_mesh.get() == shader) {
               sub.specialize_constant(shader, "use_custom_depth_bias", do_smooth_lines);
             }
             sub.shader_set(shader);
@@ -98,7 +98,7 @@ class Wireframe : Overlay {
           };
 
       auto coloring_pass = [&](ColoringPass &ps, bool use_color) {
-        overlay::ShaderModule &sh = res.shaders;
+        overlay::ShaderModule &sh = *res.shaders;
         ps.mesh_ps_ = shader_pass(sh.wireframe_mesh.get(), "Mesh", use_color, wire_threshold);
         ps.mesh_all_edges_ps_ = shader_pass(sh.wireframe_mesh.get(), "Wire", use_color, 1.0f);
         ps.pointcloud_ps_ = shader_pass(sh.wireframe_points.get(), "PtCloud", use_color, 1.0f);

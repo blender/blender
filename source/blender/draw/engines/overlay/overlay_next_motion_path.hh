@@ -49,12 +49,12 @@ class MotionPath : Overlay {
       pass.state_set(DRW_STATE_WRITE_COLOR, state.clipping_plane_count);
       {
         PassSimple::Sub &sub = pass.sub("Lines");
-        sub.shader_set(res.shaders.motion_path_line.get());
+        sub.shader_set(res.shaders->motion_path_line.get());
         line_ps_ = &sub;
       }
       {
         PassSimple::Sub &sub = pass.sub("Points");
-        sub.shader_set(res.shaders.motion_path_vert.get());
+        sub.shader_set(res.shaders->motion_path_vert.get());
         vert_ps_ = &sub;
       }
     }

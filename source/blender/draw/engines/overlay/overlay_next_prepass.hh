@@ -38,7 +38,7 @@ class ImagePrepass : Overlay {
 
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
-    ps_.shader_set(res.shaders.mesh_edit_depth.get());
+    ps_.shader_set(res.shaders->mesh_edit_depth.get());
     ps_.draw(res.shapes.image_quad.get());
   }
 
@@ -96,33 +96,33 @@ class Prepass : Overlay {
     res.select_bind(ps_);
     {
       auto &sub = ps_.sub("Mesh");
-      sub.shader_set(res.is_selection() ? res.shaders.depth_mesh_conservative.get() :
-                                          res.shaders.depth_mesh.get());
+      sub.shader_set(res.is_selection() ? res.shaders->depth_mesh_conservative.get() :
+                                          res.shaders->depth_mesh.get());
       mesh_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("MeshFlat");
-      sub.shader_set(res.shaders.depth_mesh.get());
+      sub.shader_set(res.shaders->depth_mesh.get());
       mesh_flat_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("Hair");
-      sub.shader_set(res.shaders.depth_mesh.get());
+      sub.shader_set(res.shaders->depth_mesh.get());
       hair_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("Curves");
-      sub.shader_set(res.shaders.depth_curves.get());
+      sub.shader_set(res.shaders->depth_curves.get());
       curves_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("PointCloud");
-      sub.shader_set(res.shaders.depth_pointcloud.get());
+      sub.shader_set(res.shaders->depth_pointcloud.get());
       pointcloud_ps_ = &sub;
     }
     {
       auto &sub = ps_.sub("GreasePencil");
-      sub.shader_set(res.shaders.depth_grease_pencil.get());
+      sub.shader_set(res.shaders->depth_grease_pencil.get());
       grease_pencil_ps_ = &sub;
     }
   }

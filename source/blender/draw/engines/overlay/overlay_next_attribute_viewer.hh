@@ -53,11 +53,11 @@ class AttributeViewer : Overlay {
       return &sub;
     };
 
-    mesh_sub_ = create_sub("mesh", res.shaders.attribute_viewer_mesh.get());
-    pointcloud_sub_ = create_sub("pointcloud", res.shaders.attribute_viewer_pointcloud.get());
-    curve_sub_ = create_sub("curve", res.shaders.attribute_viewer_curve.get());
-    curves_sub_ = create_sub("curves", res.shaders.attribute_viewer_curves.get());
-    instance_sub_ = create_sub("instance", res.shaders.uniform_color.get());
+    mesh_sub_ = create_sub("mesh", res.shaders->attribute_viewer_mesh.get());
+    pointcloud_sub_ = create_sub("pointcloud", res.shaders->attribute_viewer_pointcloud.get());
+    curve_sub_ = create_sub("curve", res.shaders->attribute_viewer_curve.get());
+    curves_sub_ = create_sub("curves", res.shaders->attribute_viewer_curves.get());
+    instance_sub_ = create_sub("instance", res.shaders->uniform_color.get());
   }
 
   void object_sync(Manager &manager,

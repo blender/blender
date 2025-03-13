@@ -59,7 +59,7 @@ class EditText : Overlay {
       {
         auto &sub = ps_.sub("text_selection");
         sub.state_set(default_state, state.clipping_plane_count);
-        sub.shader_set(res.shaders.uniform_color.get());
+        sub.shader_set(res.shaders->uniform_color.get());
         UI_GetThemeColor4fv(TH_WIDGET_TEXT_SELECTION, color);
         srgb_to_linearrgb_v4(color, color);
         sub.push_constant("ucolor", color);
@@ -72,7 +72,7 @@ class EditText : Overlay {
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                           DRW_STATE_DEPTH_GREATER_EQUAL,
                       state.clipping_plane_count);
-        sub.shader_set(res.shaders.uniform_color.get());
+        sub.shader_set(res.shaders->uniform_color.get());
         UI_GetThemeColor4fv(TH_WIDGET_TEXT_HIGHLIGHT, color);
         srgb_to_linearrgb_v4(color, color);
         sub.push_constant("ucolor", color);
@@ -83,7 +83,7 @@ class EditText : Overlay {
       {
         auto &sub = ps_.sub("text_cursor");
         sub.state_set(default_state, state.clipping_plane_count);
-        sub.shader_set(res.shaders.uniform_color.get());
+        sub.shader_set(res.shaders->uniform_color.get());
         sub.state_set(default_state, state.clipping_plane_count);
         UI_GetThemeColor4fv(TH_WIDGET_TEXT_CURSOR, color);
         srgb_to_linearrgb_v4(color, color);
@@ -120,7 +120,7 @@ class EditText : Overlay {
       sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                              DRW_STATE_DEPTH_LESS_EQUAL,
                          state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_wire.get());
+      sub_pass.shader_set(res.shaders->extra_wire.get());
       box_line_buf_.end_sync(sub_pass);
     }
   }

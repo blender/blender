@@ -82,7 +82,7 @@ class Origins : Overlay {
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
     res.select_bind(ps_);
-    ps_.shader_set(res.shaders.extra_point.get());
+    ps_.shader_set(res.shaders->extra_point.get());
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     select_buf_.select_bind(ps_);

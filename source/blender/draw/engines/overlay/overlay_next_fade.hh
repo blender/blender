@@ -45,7 +45,7 @@ class Fade : Overlay {
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                   state.clipping_plane_count);
-    ps_.shader_set(res.shaders.uniform_color.get());
+    ps_.shader_set(res.shaders->uniform_color.get());
     {
       PassMain::Sub &sub = ps_.sub("edit_mesh.fade");
       float4 color = res.background_color_get(state);

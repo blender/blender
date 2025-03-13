@@ -35,7 +35,7 @@ class XrayFade : Overlay {
       pass.init();
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_MUL);
       pass.framebuffer_set(&res.overlay_color_only_fb);
-      pass.shader_set(res.shaders.xray_fade.get());
+      pass.shader_set(res.shaders->xray_fade.get());
       /* TODO(fclem): Confusing. The meaning of xray depth texture changed between legacy engine
        * and overlay next. To be renamed after shaders are not shared anymore. */
       pass.bind_texture("depthTex", &res.xray_depth_tx);

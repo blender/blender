@@ -63,7 +63,7 @@ class LightProbes : Overlay {
 
     ps_dots_.init();
     ps_dots_.state_set(DRW_STATE_WRITE_COLOR, state.clipping_plane_count);
-    ps_dots_.shader_set(res.shaders.extra_grid.get());
+    ps_dots_.shader_set(res.shaders->extra_grid.get());
     ps_dots_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     ps_dots_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     ps_dots_.bind_texture("depthBuffer", &res.depth_tx);
@@ -202,7 +202,7 @@ class LightProbes : Overlay {
     {
       PassSimple::Sub &sub_pass = ps_.sub("empties");
       sub_pass.state_set(pass_state, state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_shape.get());
+      sub_pass.shader_set(res.shaders->extra_shape.get());
       call_buffers_.probe_cube_buf.end_sync(sub_pass, res.shapes.lightprobe_cube.get());
       call_buffers_.probe_planar_buf.end_sync(sub_pass, res.shapes.lightprobe_planar.get());
       call_buffers_.probe_grid_buf.end_sync(sub_pass, res.shapes.lightprobe_grid.get());
@@ -214,7 +214,7 @@ class LightProbes : Overlay {
     {
       PassSimple::Sub &sub_pass = ps_.sub("ground_line");
       sub_pass.state_set(pass_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
-      sub_pass.shader_set(res.shaders.extra_ground_line.get());
+      sub_pass.shader_set(res.shaders->extra_ground_line.get());
       call_buffers_.ground_line_buf.end_sync(sub_pass, res.shapes.ground_line.get());
     }
   }

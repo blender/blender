@@ -33,7 +33,7 @@ class PointClouds : Overlay {
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                   state.clipping_plane_count);
-    ps_.shader_set(res.shaders.pointcloud_points.get());
+    ps_.shader_set(res.shaders->pointcloud_points.get());
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
   }
 
