@@ -229,9 +229,8 @@ if(NOT MSVC_CLANG)
   string(APPEND CMAKE_CXX_FLAGS " /permissive- /Zc:__cplusplus /Zc:inline")
   string(APPEND CMAKE_C_FLAGS   " /Zc:inline")
 
-  # For ARM64 devices, we need to tell MSVC to use the new preprocessor
-  # This is because sse2neon requires it.
-  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+  # For VS2022+ we can enable the the new preprocessor
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.30.30423)
     string(APPEND CMAKE_CXX_FLAGS " /Zc:preprocessor")
     string(APPEND CMAKE_C_FLAGS " /Zc:preprocessor")
   endif()
