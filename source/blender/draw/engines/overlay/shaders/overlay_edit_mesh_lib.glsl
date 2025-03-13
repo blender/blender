@@ -115,6 +115,11 @@ VertOut vertex_main(VertIn vert_in)
   bool occluded = test_occlusion(vert_out.gpu_position);
 
   gl_PointSize = sizeFaceDot;
+
+#  ifdef GLSL_CPP_STUBS
+  /* Fixes warning in C++ compilation about unused variable. */
+  vert_out.gpu_position.z = m_data.x;
+#  endif
 #endif
 
   vert_out.final_color.a *= (occluded) ? alpha : 1.0;
