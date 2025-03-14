@@ -705,6 +705,14 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_all()
   return *this;
 }
 
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::propagate_all_instance_attributes()
+{
+  /* We can't distinguish between actually propagating everything or just instance attributes
+   * currently. It's still nice to be more explicit at the node declaration level. */
+  this->propagate_all();
+  return *this;
+}
+
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::compositor_realization_mode(
     CompositorInputRealizationMode value)
 {

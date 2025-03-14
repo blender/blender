@@ -34,7 +34,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .hide_value()
       .description(
           "An index used to group curves together. Filling is done separately for each group");
-  b.add_output<decl::Geometry>("Mesh").propagate_all();
+  b.add_output<decl::Geometry>("Mesh").propagate_all_instance_attributes();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

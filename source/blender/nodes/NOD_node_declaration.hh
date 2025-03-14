@@ -352,6 +352,8 @@ class BaseSocketDeclarationBuilder {
 
   /** Attributes from the all geometry inputs can be propagated. */
   BaseSocketDeclarationBuilder &propagate_all();
+  /** Instance attributes from all geometry inputs can be propagated. */
+  BaseSocketDeclarationBuilder &propagate_all_instance_attributes();
 
   BaseSocketDeclarationBuilder &compositor_realization_mode(CompositorInputRealizationMode value);
 

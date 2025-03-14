@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "For curves, point clouds, and Grease Pencil, take the radius attribute into account "
           "when computing the bounds.");
-  b.add_output<decl::Geometry>("Bounding Box");
+  b.add_output<decl::Geometry>("Bounding Box").propagate_all_instance_attributes();
   b.add_output<decl::Vector>("Min");
   b.add_output<decl::Vector>("Max");
 }
