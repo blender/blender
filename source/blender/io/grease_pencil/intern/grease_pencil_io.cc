@@ -176,10 +176,15 @@ static IndexMask get_visible_strokes(const Object &object,
       return false;
     }
 
-    /* Check if the material is visible. */
     const Material *material = BKE_object_material_get(const_cast<Object *>(&object),
                                                        materials[curve_i] + 1);
-    const MaterialGPencilStyle *gp_style = material ? material->gp_style : nullptr;
+    if (material == nullptr) {
+      /* We can still export without a material. */
+      return true;
+    }
+
+    /* Check if the material is visible. */
+    const MaterialGPencilStyle *gp_style = material->gp_style;
     const bool is_hidden_material = (gp_style->flag & GP_MATERIAL_HIDE);
     const bool is_stroke_material = (gp_style->flag & GP_MATERIAL_STROKE_SHOW);
     if (gp_style == nullptr || is_hidden_material || !is_stroke_material) {
@@ -459,8 +464,16 @@ void GreasePencilExporter::foreach_stroke_in_layer(const Object &object,
 
     const bool is_cyclic = cyclic[i_curve];
     const int material_index = material_indices[i_curve];
-    const Material *material = BKE_object_material_get(const_cast<Object *>(&object),
-                                                       material_index + 1);
+    const Material *material = [&]() {
+      const Material *material = BKE_object_material_get(const_cast<Object *>(&object),
+                                                         material_index + 1);
+      if (!material) {
+        const Material *material_default = BKE_material_default_gpencil();
+        return material_default;
+      }
+      return material;
+    }();
+
     BLI_assert(material->gp_style != nullptr);
     if (material->gp_style->flag & GP_MATERIAL_HIDE) {
       continue;
