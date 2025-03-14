@@ -9,7 +9,6 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
-#include "DNA_ID.h"
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
@@ -104,14 +103,6 @@ class Context {
    * about something, typically an error. The implementation should display the message in an
    * appropriate place, which can be directly in the UI or just logged to the output stream. */
   virtual void set_info_message(StringRef message) const = 0;
-
-  /* Returns the ID recalculate flag of the given ID and reset it to zero. The given ID is assumed
-   * to be one that has a DrawDataList and conforms to the IdDdtTemplate.
-   *
-   * The ID recalculate flag is a mechanism through which one can identify if an ID has changed
-   * since the last time the flag was reset, hence why the method reset the flag after querying it,
-   * that is, to ready it to track the next change. */
-  virtual IDRecalcFlag query_id_recalc_flag(ID *id) const = 0;
 
   /* True if the compositor should treat viewers as composite outputs because it has no concept of
    * or support for viewers. */

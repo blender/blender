@@ -194,15 +194,6 @@ class Context : public compositor::Context {
   {
     message.copy_utf8_truncated(info_message_, GPU_INFO_SIZE);
   }
-
-  IDRecalcFlag query_id_recalc_flag(ID *id) const override
-  {
-    DrawEngineType *owner = &draw_engine_compositor_type;
-    DrawData *draw_data = DRW_drawdata_ensure(id, owner, sizeof(DrawData), nullptr, nullptr);
-    IDRecalcFlag recalc_flag = IDRecalcFlag(draw_data->recalc);
-    draw_data->recalc = IDRecalcFlag(0);
-    return recalc_flag;
-  }
 };
 
 class Engine {

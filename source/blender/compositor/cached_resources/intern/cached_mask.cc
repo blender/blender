@@ -161,6 +161,7 @@ void CachedMaskContainer::reset()
     cached_masks_for_id.remove_if([](auto item) { return !item.value->needed; });
   }
   map_.remove_if([](auto item) { return item.value.is_empty(); });
+  update_counts_.remove_if([&](auto item) { return !map_.contains(item.key); });
 
   /* Second, reset the needed status of the remaining cached masks to false to ready them to track
    * their needed status for the next evaluation. */
@@ -186,8 +187,10 @@ Result &CachedMaskContainer::get(Context &context,
   const std::string id_key = std::string(mask->id.name) + library_key;
   auto &cached_masks_for_id = map_.lookup_or_add_default(id_key);
 
-  /* Invalidate the cache for that mask ID if it was changed and reset the recalculate flag. */
-  if (context.query_id_recalc_flag(reinterpret_cast<ID *>(mask)) & ID_RECALC_ALL) {
+  /* Invalidate the cache for that mask if it was changed since it was cached. */
+  if (!cached_masks_for_id.is_empty() &&
+      mask->runtime.last_update != update_counts_.lookup(id_key))
+  {
     cached_masks_for_id.clear();
   }
 
@@ -201,6 +204,9 @@ Result &CachedMaskContainer::get(Context &context,
                                         motion_blur_samples,
                                         motion_blur_shutter);
   });
+
+  /* Store the current update count to later compare to and check if the mask changed. */
+  update_counts_.add_overwrite(id_key, mask->runtime.last_update);
 
   cached_mask.needed = true;
   return cached_mask.result;

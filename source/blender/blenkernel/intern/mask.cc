@@ -49,6 +49,12 @@
 
 static CLG_LogRef LOG = {"bke.mask"};
 
+/** Reset runtime mask fields when data-block is being initialized. */
+static void mask_runtime_reset(Mask *mask)
+{
+  mask->runtime.last_update = 0;
+}
+
 static void mask_copy_data(Main * /*bmain*/,
                            std::optional<Library *> /*owner_library*/,
                            ID *id_dst,
@@ -175,6 +181,8 @@ static void mask_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct(reader, MaskSpline, &masklay->act_spline);
     masklay->act_point = act_point_search;
   }
+
+  mask_runtime_reset(mask);
 }
 
 IDTypeInfo IDType_ID_MSK = {

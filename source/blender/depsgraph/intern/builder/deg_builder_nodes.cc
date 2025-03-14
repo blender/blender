@@ -2070,6 +2070,7 @@ void DepsgraphNodeBuilder::build_texture(Tex *texture)
   }
   /* Texture itself. */
   add_id_node(&texture->id);
+  Tex *texture_cow = get_cow_datablock(texture);
   build_idproperties(texture->id.properties);
   build_animdata(&texture->id);
   build_parameters(&texture->id);
@@ -2081,8 +2082,12 @@ void DepsgraphNodeBuilder::build_texture(Tex *texture)
       build_image(texture->ima);
     }
   }
-  add_operation_node(
-      &texture->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
+  add_operation_node(&texture->id,
+                     NodeType::GENERIC_DATABLOCK,
+                     OperationCode::GENERIC_DATABLOCK_UPDATE,
+                     [texture_cow](::Depsgraph *depsgraph) {
+                       texture_cow->runtime.last_update = DEG_get_update_count(depsgraph);
+                     });
 }
 
 void DepsgraphNodeBuilder::build_image(Image *image)

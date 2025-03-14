@@ -187,6 +187,8 @@ static void texture_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, tex->preview);
 
   tex->iuser.scene = nullptr;
+
+  tex->runtime.last_update = 0;
 }
 
 IDTypeInfo IDType_ID_TE = {

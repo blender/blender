@@ -50,6 +50,8 @@ typedef struct MovieClip_RuntimeGPUTexture {
 
 typedef struct MovieClip_Runtime {
   struct ListBase gputextures;
+  /* The Depsgraph::update_count when this ID was last updated. Covers any IDRecalcFlag. */
+  uint64_t last_update;
 } MovieClip_Runtime;
 
 typedef struct MovieClip {
@@ -80,6 +82,8 @@ typedef struct MovieClip {
   struct MovieClipCache *cache;
   /** Grease pencil data. */
   struct bGPdata *gpd;
+
+  void *_pad1;
 
   /** Data for SfM tracking. */
   struct MovieTracking tracking;

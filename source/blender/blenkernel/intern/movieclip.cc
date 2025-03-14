@@ -73,6 +73,16 @@
 
 static void free_buffers(MovieClip *clip);
 
+/** Reset runtime mask fields when data-block is being initialized. */
+static void movie_clip_runtime_reset(MovieClip *clip)
+{
+  /* TODO: we could store those in undo cache storage as well, and preserve them instead of
+   * re-creating them... */
+  BLI_listbase_clear(&clip->runtime.gputextures);
+
+  clip->runtime.last_update = 0;
+}
+
 static void movie_clip_init_data(ID *id)
 {
   MovieClip *movie_clip = (MovieClip *)id;
@@ -263,10 +273,6 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
   clip->tracking_context = nullptr;
   clip->tracking.stats = nullptr;
 
-  /* TODO: we could store those in undo cache storage as well, and preserve them instead of
-   * re-creating them... */
-  BLI_listbase_clear(&clip->runtime.gputextures);
-
   /* Needed for proper versioning, will be nullptr for all newer files anyway. */
   BLO_read_struct(reader, MovieTrackingTrack, &clip->tracking.stabilization.rot_track_legacy);
 
@@ -284,6 +290,8 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct(reader, MovieTrackingTrack, &object->active_track);
     BLO_read_struct(reader, MovieTrackingPlaneTrack, &object->active_plane_track);
   }
+
+  movie_clip_runtime_reset(clip);
 }
 
 IDTypeInfo IDType_ID_MC = {
@@ -1967,6 +1975,7 @@ void BKE_movieclip_eval_update(Depsgraph *depsgraph, Main *bmain, MovieClip *cli
   else {
     movieclip_eval_update_generic(depsgraph, clip);
   }
+  clip->runtime.last_update = DEG_get_update_count(depsgraph);
 }
 
 /* -------------------------------------------------------------------- */

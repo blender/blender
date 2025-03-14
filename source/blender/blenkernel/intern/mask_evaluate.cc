@@ -913,6 +913,7 @@ void BKE_mask_eval_animation(Depsgraph *depsgraph, Mask *mask)
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     BKE_mask_layer_evaluate_animation(mask_layer, ctime);
   }
+  mask->runtime.last_update = DEG_get_update_count(depsgraph);
 }
 
 void BKE_mask_eval_update(Depsgraph *depsgraph, Mask *mask)
@@ -944,4 +945,5 @@ void BKE_mask_eval_update(Depsgraph *depsgraph, Mask *mask)
       }
     }
   }
+  mask->runtime.last_update = DEG_get_update_count(depsgraph);
 }

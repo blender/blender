@@ -156,6 +156,11 @@ typedef struct PointDensity {
 /** \name #Tex
  * \{ */
 
+typedef struct Tex_Runtime {
+  /* The Depsgraph::update_count when this ID was last updated. Covers any IDRecalcFlag. */
+  uint64_t last_update;
+} Tex_Runtime;
+
 typedef struct Tex {
   DNA_DEFINE_CXX_METHODS(Tex)
 
@@ -226,6 +231,9 @@ typedef struct Tex {
   char use_nodes;
   char _pad[7];
 
+  void *_pad3;
+
+  Tex_Runtime runtime;
 } Tex;
 
 /** Used for mapping and texture nodes. */
