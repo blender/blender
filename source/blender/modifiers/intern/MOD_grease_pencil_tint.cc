@@ -16,6 +16,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
@@ -167,6 +168,7 @@ static void modify_stroke_color(Object &ob,
                                 const IndexMask &curves_mask,
                                 const MutableSpan<ColorGeometry4f> vertex_colors)
 {
+  const bool use_curve = (tmd.influence.flag & GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE);
   const bool use_weight_as_factor = (tmd.flag & MOD_GREASE_PENCIL_TINT_USE_WEIGHT_AS_FACTOR);
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
 
@@ -199,11 +201,17 @@ static void modify_stroke_color(Object &ob,
         const ColorGeometry4f material_color = get_material_color(curve_i);
 
         const IndexRange points = points_by_curve[curve_i];
-        for (const int64_t point_i : points) {
+        for (const int64_t i : points.index_range()) {
+          const int64_t point_i = points[i];
+          const float curve_input = points.size() >= 2 ? (float(i) / float(points.size() - 1)) :
+                                                         0.0f;
+          const float curve_factor = use_curve ? BKE_curvemapping_evaluateF(
+                                                     tmd.influence.custom_curve, 0, curve_input) :
+                                                 1.0f;
           vertex_colors[point_i] = apply_uniform_tint(
               tmd,
               get_base_color(vertex_colors[point_i], material_color),
-              get_point_factor(point_i));
+              get_point_factor(point_i) * curve_factor);
         }
       });
       break;
