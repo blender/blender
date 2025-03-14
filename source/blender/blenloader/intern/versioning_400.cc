@@ -6026,6 +6026,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 6)) {
+    asset_browser_add_list_view(bmain);
+  }
+
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
    * breaking release. */
@@ -6034,8 +6038,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     blender::bke::mesh_custom_normals_to_generic(*mesh);
     rename_mesh_uv_seam_attribute(*mesh);
   }
-
-  asset_browser_add_list_view(bmain);
 
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
