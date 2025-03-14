@@ -594,7 +594,7 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
         /* 7 is for Blender, 2 colon separators, length of property
          * name and property value, followed by the nullptr-terminator. */
         const int text_length_required = 7 + 2 + strlen(prop->name) + strlen(IDP_String(prop)) + 1;
-        if (text_length_required <= static_text_size) {
+        if (text_length_required > static_text_size) {
           text = static_cast<char *>(MEM_mallocN(text_length_required, "jpeg metadata field"));
           text_size = text_length_required;
         }
