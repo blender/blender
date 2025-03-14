@@ -117,7 +117,6 @@ class IndexBuf {
                                     uint max_idx,
                                     GPUPrimType prim_type,
                                     bool clamp_indices_in_range);
-  inline uint index_range(uint *r_min, uint *r_max);
   virtual void strip_restart_indices() = 0;
 };
 

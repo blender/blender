@@ -374,36 +374,6 @@ void IndexBuf::init_subrange(IndexBuf *elem_src, uint start, uint length)
   index_type_ = elem_src->index_type_;
 }
 
-uint IndexBuf::index_range(uint *r_min, uint *r_max)
-{
-  if (index_len_ == 0) {
-    *r_min = *r_max = 0;
-    return 0;
-  }
-  const uint32_t *uint_idx = (uint32_t *)data_;
-  uint min_value = RESTART_INDEX;
-  uint max_value = 0;
-  for (uint i = 0; i < index_len_; i++) {
-    const uint value = uint_idx[i];
-    if (value == RESTART_INDEX) {
-      continue;
-    }
-    if (value < min_value) {
-      min_value = value;
-    }
-    else if (value > max_value) {
-      max_value = value;
-    }
-  }
-  if (min_value == RESTART_INDEX) {
-    *r_min = *r_max = 0;
-    return 0;
-  }
-  *r_min = min_value;
-  *r_max = max_value;
-  return max_value - min_value;
-}
-
 void IndexBuf::squeeze_indices_short(uint min_idx,
                                      uint max_idx,
                                      GPUPrimType prim_type,
