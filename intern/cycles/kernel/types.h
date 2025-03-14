@@ -1122,6 +1122,10 @@ struct ccl_align(16) ShaderData
   float3 Ng;
   /* view/incoming direction */
   float3 wi;
+
+  /* combined type and curve segment for hair */
+  int type;
+
   /* shader id */
   int shader;
   /* booleans describing shader, see ShaderDataFlag */
@@ -1129,11 +1133,12 @@ struct ccl_align(16) ShaderData
   /* booleans describing object of the shader, see ShaderDataObjectFlag */
   int object_flag;
 
+  /* Closure data, we store a fixed array of closures */
+  int num_closure;
+  int num_closure_left;
+
   /* primitive id if there is one, ~0 otherwise */
   int prim;
-
-  /* combined type and curve segment for hair */
-  int type;
 
   /* parametric coordinates
    * - barycentric weights for triangles */
@@ -1177,10 +1182,6 @@ struct ccl_align(16) ShaderData
 
   /* LCG state for closures that require additional random numbers. */
   uint lcg_state;
-
-  /* Closure data, we store a fixed array of closures */
-  int num_closure;
-  int num_closure_left;
 
   /* Closure weights summed directly, so we can evaluate
    * emission and shadow transparency with MAX_CLOSURE 0. */
