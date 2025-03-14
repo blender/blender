@@ -1817,6 +1817,15 @@ bNodeSocketType *node_socket_type_find(const StringRef idname)
   return *value;
 }
 
+bNodeSocketType *node_socket_type_find_static(const int type, const int subtype)
+{
+  const std::optional<StringRefNull> idname = node_static_socket_type(type, subtype);
+  if (!idname) {
+    return nullptr;
+  }
+  return node_socket_type_find(*idname);
+}
+
 static void node_free_socket_type(void *socktype_v)
 {
   bNodeSocketType *socktype = static_cast<bNodeSocketType *>(socktype_v);
@@ -4254,8 +4263,7 @@ std::optional<eNodeSocketDatatype> custom_data_type_to_socket_type(eCustomDataTy
 
 static const CPPType *slow_socket_type_to_geo_nodes_base_cpp_type(const eNodeSocketDatatype type)
 {
-  const StringRefNull socket_idname = *node_static_socket_type(type, 0);
-  const bNodeSocketType *typeinfo = node_socket_type_find(socket_idname);
+  const bNodeSocketType *typeinfo = node_socket_type_find_static(type);
   return typeinfo->base_cpp_type;
 }
 
