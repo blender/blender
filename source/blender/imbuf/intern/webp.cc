@@ -167,8 +167,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
     /* We must convert the ImBuf RGBA buffer to RGB as WebP expects a RGB buffer. */
     const size_t num_pixels = ibuf->x * ibuf->y;
     const uint8_t *rgba_rect = ibuf->byte_buffer.data;
-    uint8_t *rgb_rect = static_cast<uint8_t *>(
-        MEM_mallocN(sizeof(uint8_t) * num_pixels * 3, "webp rgb_rect"));
+    uint8_t *rgb_rect = MEM_malloc_arrayN<uint8_t>(num_pixels * 3, "webp rgb_rect");
     for (int i = 0; i < num_pixels; i++) {
       rgb_rect[i * 3 + 0] = rgba_rect[i * 4 + 0];
       rgb_rect[i * 3 + 1] = rgba_rect[i * 4 + 1];

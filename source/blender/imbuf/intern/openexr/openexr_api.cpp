@@ -1183,8 +1183,7 @@ void IMB_exr_write_channels(void *handle)
 
     /* We allocate temporary storage for half pixels for all the channels at once. */
     if (data->num_half_channels != 0) {
-      rect_half = (half *)MEM_mallocN(sizeof(half) * data->num_half_channels * num_pixels,
-                                      __func__);
+      rect_half = MEM_malloc_arrayN<half>(size_t(data->num_half_channels) * num_pixels, __func__);
       current_rect_half = rect_half;
     }
 
@@ -1769,8 +1768,8 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *data)
   LISTBASE_FOREACH (ExrLayer *, lay, &data->layers) {
     LISTBASE_FOREACH (ExrPass *, pass, &lay->passes) {
       if (pass->totchan) {
-        pass->rect = (float *)MEM_callocN(
-            data->width * data->height * pass->totchan * sizeof(float), "pass rect");
+        pass->rect = MEM_calloc_arrayN<float>(
+            size_t(data->width) * size_t(data->height) * size_t(pass->totchan), "pass rect");
         if (pass->totchan == 1) {
           ExrChannel *echan = pass->chan[0];
           echan->rect = pass->rect;

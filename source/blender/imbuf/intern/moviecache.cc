@@ -270,7 +270,7 @@ MovieCache *IMB_moviecache_create(const char *name,
 
   PRINT("%s: cache '%s' create\n", __func__, name);
 
-  cache = (MovieCache *)MEM_callocN(sizeof(MovieCache), "MovieCache");
+  cache = MEM_callocN<MovieCache>("MovieCache");
 
   STRNCPY(cache->name, name);
 
@@ -505,7 +505,7 @@ void IMB_moviecache_get_cache_segments(
   }
   else {
     int totframe = BLI_ghash_len(cache->hash);
-    int *frames = (int *)MEM_callocN(totframe * sizeof(int), "movieclip cache frames");
+    int *frames = MEM_calloc_arrayN<int>(size_t(totframe), "movieclip cache frames");
     int a, totseg = 0;
     GHashIterator gh_iter;
 
@@ -540,7 +540,7 @@ void IMB_moviecache_get_cache_segments(
     if (totseg) {
       int b, *points;
 
-      points = (int *)MEM_callocN(sizeof(int[2]) * totseg, "movieclip cache segments");
+      points = MEM_calloc_arrayN<int>(2 * size_t(totseg), "movieclip cache segments");
 
       /* fill */
       for (a = 0, b = 0; a < totframe; a++) {

@@ -343,16 +343,15 @@ static void alloc_scale_dst_buffers(
 {
   *r_dst_byte = nullptr;
   if (ibuf->byte_buffer.data != nullptr) {
-    *r_dst_byte = static_cast<uchar4 *>(
-        MEM_mallocN(sizeof(uchar4) * newx * newy, "scale_buf_byte"));
+    *r_dst_byte = MEM_malloc_arrayN<uchar4>(newx * newy, "scale_buf_byte");
     if (*r_dst_byte == nullptr) {
       return;
     }
   }
   *r_dst_float = nullptr;
   if (ibuf->float_buffer.data != nullptr) {
-    *r_dst_float = static_cast<float *>(
-        MEM_mallocN(sizeof(float) * ibuf->channels * newx * newy, "scale_buf_float"));
+    *r_dst_float = MEM_malloc_arrayN<float>(size_t(ibuf->channels) * newx * newy,
+                                            "scale_buf_float");
     if (*r_dst_float == nullptr) {
       if (*r_dst_byte) {
         MEM_freeN(*r_dst_byte);

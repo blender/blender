@@ -273,8 +273,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
     size_t tablen = size_t(ysize) * size_t(zsize_file) * sizeof(int);
     MFILE_SEEK(inf, HEADER_SIZE);
 
-    uint *starttab = static_cast<uint *>(MEM_mallocN(tablen, "iris starttab"));
-    uint *lengthtab = static_cast<uint *>(MEM_mallocN(tablen, "iris endtab"));
+    uint *starttab = MEM_malloc_arrayN<uint>(tablen, "iris starttab");
+    uint *lengthtab = MEM_malloc_arrayN<uint>(tablen, "iris endtab");
 
 #define MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(p) \
   if (UNLIKELY((p) > mem_end)) { \
@@ -781,12 +781,12 @@ static bool output_iris(const char *filepath,
 
   tablen = ysize * zsize * sizeof(int);
 
-  image = (IMAGE *)MEM_mallocN(sizeof(IMAGE), "iris image");
-  starttab = (uint *)MEM_mallocN(tablen, "iris starttab");
-  lengthtab = (uint *)MEM_mallocN(tablen, "iris lengthtab");
+  image = MEM_mallocN<IMAGE>("iris image");
+  starttab = MEM_malloc_arrayN<uint>(size_t(tablen), "iris starttab");
+  lengthtab = MEM_malloc_arrayN<uint>(size_t(tablen), "iris lengthtab");
   rlebuflen = 1.05 * xsize + 10;
-  rlebuf = (uchar *)MEM_mallocN(rlebuflen, "iris rlebuf");
-  lumbuf = (uint *)MEM_mallocN(xsize * sizeof(int), "iris lumbuf");
+  rlebuf = MEM_malloc_arrayN<uchar>(size_t(rlebuflen), "iris rlebuf");
+  lumbuf = MEM_malloc_arrayN<uint>(size_t(xsize), "iris lumbuf");
 
   memset(image, 0, sizeof(IMAGE));
   image->imagic = IMAGIC;

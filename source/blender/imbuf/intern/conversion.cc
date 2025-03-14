@@ -720,8 +720,7 @@ void IMB_float_from_byte(ImBuf *ibuf)
    */
   float *rect_float = ibuf->float_buffer.data;
   if (rect_float == nullptr) {
-    const size_t size = IMB_get_pixel_count(ibuf) * sizeof(float[4]);
-    rect_float = static_cast<float *>(MEM_callocN(size, "IMB_float_from_byte"));
+    rect_float = MEM_calloc_arrayN<float>(4 * IMB_get_pixel_count(ibuf), "IMB_float_from_byte");
 
     if (rect_float == nullptr) {
       return;

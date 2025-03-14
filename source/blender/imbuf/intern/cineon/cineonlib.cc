@@ -124,7 +124,7 @@ static void fillCineonMainHeader(LogImageFile *cineon,
 LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSize)
 {
   CineonMainHeader header;
-  LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
+  LogImageFile *cineon = MEM_mallocN<LogImageFile>(__func__);
   const char *filepath = (const char *)byteStuff;
   int i;
   uint dataOffset;
@@ -357,7 +357,7 @@ LogImageFile *cineonCreate(
   const char *shortFilename = nullptr;
   // uchar pad[6044];
 
-  LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
+  LogImageFile *cineon = MEM_mallocN<LogImageFile>(__func__);
   if (cineon == nullptr) {
     if (verbose) {
       printf("cineon: Failed to malloc cineon file structure.\n");

@@ -132,7 +132,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
      * convention, no colorspace conversion needed. But we do require 4 channels
      * currently. */
     if (ibuf->channels != 4 || !store_premultiplied) {
-      data_rect = MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__);
+      data_rect = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
       *r_freedata = freedata = true;
 
       if (data_rect == nullptr) {
@@ -181,7 +181,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
     }
     else {
       /* Other colorspace, store as float texture to avoid precision loss. */
-      data_rect = MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__);
+      data_rect = MEM_malloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
       *r_freedata = freedata = true;
       is_float_rect = true;
 

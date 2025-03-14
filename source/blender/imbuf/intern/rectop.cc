@@ -274,7 +274,7 @@ static void rect_realloc_4bytes(void **buf_p, const uint size[2])
     return;
   }
   MEM_freeN(*buf_p);
-  *buf_p = MEM_mallocN(sizeof(uint) * size[0] * size[1], __func__);
+  *buf_p = MEM_malloc_arrayN<uint>(size[0] * size[1], __func__);
 }
 
 static void rect_realloc_16bytes(void **buf_p, const uint size[2])
@@ -283,7 +283,7 @@ static void rect_realloc_16bytes(void **buf_p, const uint size[2])
     return;
   }
   MEM_freeN(*buf_p);
-  *buf_p = MEM_mallocN(sizeof(uint[4]) * size[0] * size[1], __func__);
+  *buf_p = MEM_malloc_arrayN<uint>(4 * size[0] * size[1], __func__);
 }
 
 void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
