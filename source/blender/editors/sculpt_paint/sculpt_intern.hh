@@ -988,6 +988,16 @@ inline bool brush_uses_vector_displacement(const Brush &brush)
          brush.mtex.brush_map_mode == MTEX_MAP_MODE_AREA;
 }
 
+inline bool brush_type_supports_gravity(const int tool)
+{
+  return !brush_type_is_attribute_only(tool) && !ELEM(tool,
+                                                      SCULPT_BRUSH_TYPE_BOUNDARY,
+                                                      SCULPT_BRUSH_TYPE_SMOOTH,
+                                                      SCULPT_BRUSH_TYPE_SIMPLIFY,
+                                                      SCULPT_BRUSH_TYPE_DISPLACEMENT_SMEAR,
+                                                      SCULPT_BRUSH_TYPE_DISPLACEMENT_ERASER);
+}
+
 }  // namespace blender::ed::sculpt_paint
 
 namespace blender::ed::sculpt_paint {
