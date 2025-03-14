@@ -387,6 +387,17 @@ static void file_but_enable_drag(uiBut *but,
   }
 }
 
+static void file_but_tooltip_func_set(const SpaceFile *sfile, const FileDirEntry *file, uiBut *but)
+{
+  if (file->asset) {
+    UI_but_func_tooltip_custom_set(but, file_draw_asset_tooltip_custom_func, file->asset, nullptr);
+  }
+  else {
+    UI_but_func_tooltip_custom_set(
+        but, file_draw_tooltip_custom_func, file_tooltip_data_create(sfile, file), MEM_freeN);
+  }
+}
+
 static uiBut *file_add_icon_but(const SpaceFile *sfile,
                                 uiBlock *block,
                                 const char * /*path*/,
@@ -401,21 +412,56 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   uiBut *but;
 
   const int x = tile_draw_rect->xmin + padx;
-  const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y - height;
+  const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y -
+                round_fl_to_int((sfile->layout->tile_h + height) / 2.0f);
 
-  /* Small built-in icon. Draw centered in given width. */
-  but = uiDefIconBut(
-      block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, std::nullopt);
-  /* Center the icon. */
-  UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
-  UI_but_label_alpha_factor_set(but, dimmed ? 0.3f : 1.0f);
-  if (file->asset) {
-    UI_but_func_tooltip_custom_set(but, file_draw_asset_tooltip_custom_func, file->asset, nullptr);
+  if (icon < BIFICONID_LAST_STATIC) {
+    /* Small built-in icon. Draw centered in given width. */
+    but = uiDefIconBut(block,
+                       UI_BTYPE_LABEL,
+                       0,
+                       icon,
+                       x,
+                       y + 1,
+                       width,
+                       height,
+                       nullptr,
+                       0.0f,
+                       0.0f,
+                       std::nullopt);
+    /* Center the icon. */
+    UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
   }
   else {
-    UI_but_func_tooltip_custom_set(
-        but, file_draw_tooltip_custom_func, file_tooltip_data_create(sfile, file), MEM_freeN);
+    /* Larger preview icon. Fills available width/height. */
+    but = uiDefIconPreviewBut(
+        block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, std::nullopt);
   }
+  UI_but_label_alpha_factor_set(but, dimmed ? 0.3f : 1.0f);
+  file_but_tooltip_func_set(sfile, file, but);
+
+  return but;
+}
+
+static uiBut *file_add_overlay_icon_but(uiBlock *block, int pos_x, int pos_y, int icon)
+{
+  uiBut *but = uiDefIconBut(block,
+                            UI_BTYPE_LABEL,
+                            0,
+                            icon,
+                            pos_x,
+                            pos_y,
+                            ICON_DEFAULT_WIDTH_SCALE,
+                            ICON_DEFAULT_HEIGHT_SCALE,
+                            nullptr,
+                            0.0f,
+                            0.0f,
+                            std::nullopt);
+  /* Otherwise a left hand padding will be added. */
+  UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
+  UI_but_label_alpha_factor_set(but, 0.6f);
+  const uchar light[4] = {255, 255, 255, 255};
+  UI_but_color_set(but, light);
 
   return but;
 }
@@ -584,14 +630,7 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
   const auto [scaled_width, scaled_height, scale] = preview_image_scaled_dimensions_get(
       drag_image->x, drag_image->y, *layout);
   file_but_enable_drag(but, sfile, file, path, drag_image, file_type_icon, scale);
-
-  if (file->asset) {
-    UI_but_func_tooltip_custom_set(but, file_draw_asset_tooltip_custom_func, file->asset, nullptr);
-  }
-  else {
-    UI_but_func_tooltip_custom_set(
-        but, file_draw_tooltip_custom_func, file_tooltip_data_create(sfile, file), MEM_freeN);
-  }
+  file_but_tooltip_func_set(sfile, file, but);
 }
 
 static void file_draw_preview(const FileDirEntry *file,
@@ -1316,9 +1355,20 @@ void file_draw_list(const bContext *C, ARegion *region)
       }
     }
     else {
-      const int icon = filelist_geticon_file_type(files, i, true);
+      const bool filelist_loading = !filelist_is_ready(files);
+      const BIFIconID icon = [&]() {
+        if (file->asset) {
+          file->asset->ensure_previewable();
 
-      icon_ofs += ICON_DEFAULT_WIDTH_SCALE + 2 * padx;
+          if (filelist_loading) {
+            return BIFIconID(ICON_PREVIEW_LOADING);
+          }
+          return blender::ed::asset::asset_preview_or_icon(*file->asset);
+        }
+        return filelist_geticon_file_type(files, i, true);
+      }();
+
+      icon_ofs += layout->prv_w + 2 * padx;
 
       /* Add dummy draggable button covering the icon and the label. */
       if (do_drag) {
@@ -1341,10 +1391,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                      std::nullopt);
           UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
           file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
-          UI_but_func_tooltip_custom_set(drag_but,
-                                         file_draw_tooltip_custom_func,
-                                         file_tooltip_data_create(sfile, file),
-                                         MEM_freeN);
+          file_but_tooltip_func_set(sfile, file, drag_but);
         }
       }
 
@@ -1355,14 +1402,22 @@ void file_draw_list(const bContext *C, ARegion *region)
                                           file,
                                           &tile_draw_rect,
                                           icon,
-                                          ICON_DEFAULT_WIDTH_SCALE,
-                                          ICON_DEFAULT_HEIGHT_SCALE,
+                                          layout->prv_w,
+                                          layout->prv_h,
                                           padx,
                                           is_hidden);
       if (do_drag) {
         /* For some reason the dragging is unreliable for the icon button if we don't explicitly
          * enable dragging, even though the dummy drag button above covers the same area. */
         file_but_enable_drag(icon_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
+      }
+
+      if (layout->prv_w >= round_fl_to_int(ICON_DEFAULT_WIDTH_SCALE * 2) &&
+          (filelist_loading || icon >= BIFICONID_LAST_STATIC))
+      {
+        const BIFIconID type_icon = filelist_geticon_file_type(files, i, true);
+        file_add_overlay_icon_but(
+            block, tile_draw_rect.xmin + padx - 2, tile_draw_rect.ymin - 1, type_icon);
       }
     }
 
@@ -1377,7 +1432,8 @@ void file_draw_list(const bContext *C, ARegion *region)
                             1,
                             "",
                             tile_draw_rect.xmin + icon_ofs,
-                            tile_draw_rect.ymin + layout->tile_border_y - 0.15f * UI_UNIT_X,
+                            tile_draw_rect.ymin + layout->tile_border_y +
+                                ((layout->tile_h - textheight) / 2.0f) - 0.15f * UI_UNIT_X,
                             width - icon_ofs,
                             textheight,
                             params->renamefile,
@@ -1414,7 +1470,9 @@ void file_draw_list(const bContext *C, ARegion *region)
       const int twidth = (params->display == FILE_IMGDISPLAY) ?
                              column_width :
                              column_width - 1 - icon_ofs - padx - layout->tile_border_x;
-      file_draw_string(txpos, typos, file->name, float(twidth), textheight, align, text_col);
+      const int theight = (params->display == FILE_IMGDISPLAY) ? textheight : layout->tile_h;
+
+      file_draw_string(txpos, typos, file->name, float(twidth), theight, align, text_col);
     }
 
     if (params->display != FILE_IMGDISPLAY) {

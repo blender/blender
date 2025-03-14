@@ -67,8 +67,6 @@
 #include "file_intern.hh"
 #include "filelist.hh"
 
-#define VERTLIST_MAJORCOLUMN_WIDTH (25 * UI_UNIT_X)
-
 static void fileselect_initialize_params_common(SpaceFile *sfile, FileSelectParams *params)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
@@ -122,11 +120,15 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
   base_params->filter_id = FILTER_ID_ALL;
   base_params->display = FILE_IMGDISPLAY;
   base_params->sort = FILE_SORT_ASSET_CATALOG;
+  /* No details columns supported for assets (wouldn't contain anything), disable them all. */
+  base_params->details_flags = 0;
   /* Asset libraries include all sub-directories, so enable maximal recursion. */
   base_params->recursion_level = FILE_SELECT_MAX_RECURSIONS;
   /* 'SMALL' size by default. More reasonable since this is typically used as regular editor,
    * space is more of an issue here. */
   base_params->thumbnail_size = 96;
+  base_params->list_thumbnail_size = 32;
+  base_params->list_column_size = 220;
 
   fileselect_initialize_params_common(sfile, base_params);
 }
@@ -158,6 +160,8 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     sfile->params->thumbnail_size = U_default.file_space_data.thumbnail_size;
     sfile->params->details_flags = U_default.file_space_data.details_flags;
     sfile->params->filter_id = U_default.file_space_data.filter_id;
+    sfile->params->list_thumbnail_size = 16;
+    sfile->params->list_column_size = 500;
   }
 
   params = sfile->params;
@@ -987,9 +991,15 @@ static void file_attribute_columns_widths(const FileSelectParams *params, FileLa
   }
 
   /* Biggest possible reasonable values... */
-  columns[COLUMN_DATETIME].width = file_string_width(compact ? "23/08/89" : "23 Dec 6789, 23:59") +
-                                   pad;
-  columns[COLUMN_SIZE].width = file_string_width(compact ? "369G" : "098.7 MiB") + pad;
+  if (file_attribute_column_type_enabled(params, COLUMN_DATETIME, layout)) {
+    columns[COLUMN_DATETIME].width = file_string_width(compact ? "23/08/89" :
+                                                                 "23 Dec 6789, 23:59") +
+                                     pad;
+  }
+  if (file_attribute_column_type_enabled(params, COLUMN_SIZE, layout)) {
+    columns[COLUMN_SIZE].width = file_string_width(compact ? "369G" : "098.7 MiB") + pad;
+  }
+
   if (params->display == FILE_IMGDISPLAY) {
     columns[COLUMN_NAME].width = (float(params->thumbnail_size) / 8.0f) * UI_UNIT_X;
   }
@@ -1033,8 +1043,6 @@ static void file_attribute_columns_init(const FileSelectParams *params, FileLayo
 void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
 {
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  /* Request a slightly more compact layout for asset browsing. */
-  const bool compact = ED_fileselect_is_asset_browser(sfile);
   FileLayout *layout = nullptr;
   View2D *v2d = &region->v2d;
   int numfiles;
@@ -1054,7 +1062,8 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
   layout->textheight = textheight;
 
   if (params->display == FILE_IMGDISPLAY) {
-    const float pad_fac = compact ? 0.15f : 0.3f;
+    /* More compact spacing for asset browser. */
+    const float pad_fac = ED_fileselect_is_asset_browser(sfile) ? 0.15f : 0.3f;
     /* Matches UI_preview_tile_size_x()/_y() by default. */
     layout->prv_w = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_X;
     layout->prv_h = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_Y;
@@ -1082,9 +1091,8 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
   else if (params->display == FILE_VERTICALDISPLAY) {
     int rowcount;
 
-    /* Matches UI_preview_tile_size_x()/_y() by default. */
-    layout->prv_w = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_X;
-    layout->prv_h = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_Y;
+    layout->prv_w = ICON_DEFAULT_WIDTH_SCALE;
+    layout->prv_h = ICON_DEFAULT_HEIGHT_SCALE;
     layout->tile_border_x = 0.4f * UI_UNIT_X;
     layout->tile_border_y = 0.1f * UI_UNIT_Y;
     layout->tile_h = textheight * 3 / 2;
@@ -1106,19 +1114,19 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
     layout->flag = FILE_LAYOUT_VER;
   }
   else if (params->display == FILE_HORIZONTALDISPLAY) {
-    /* Matches UI_preview_tile_size_x()/_y() by default. */
-    layout->prv_w = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_X;
-    layout->prv_h = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_Y;
+    layout->prv_w = params->list_thumbnail_size * UI_SCALE_FAC;
+    layout->prv_h = params->list_thumbnail_size * UI_SCALE_FAC;
     layout->tile_border_x = 0.4f * UI_UNIT_X;
     layout->tile_border_y = 0.1f * UI_UNIT_Y;
-    layout->tile_h = textheight * 3 / 2;
+    layout->tile_h = std::max(textheight * 3 / 2, layout->prv_h);
     layout->attribute_column_header_h = 0;
     layout->offset_top = layout->attribute_column_header_h;
     layout->height = int(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
     /* Padding by full scroll-bar H is too much, can overlap tile border Y. */
     layout->rows = (layout->height - V2D_SCROLL_HEIGHT + layout->tile_border_y) /
                    (layout->tile_h + 2 * layout->tile_border_y);
-    layout->tile_w = VERTLIST_MAJORCOLUMN_WIDTH;
+
+    layout->tile_w = params->list_column_size * UI_SCALE_FAC;
     file_attribute_columns_init(params, layout);
 
     if (layout->rows > 0) {
@@ -1128,8 +1136,10 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
       layout->rows = 1;
       layout->flow_columns = numfiles;
     }
-    layout->width = sfile->layout->flow_columns * (layout->tile_w + 2 * layout->tile_border_x) +
-                    layout->tile_border_x * 2;
+    layout->width = (numfiles > 0) ? (sfile->layout->flow_columns *
+                                          (layout->tile_w + 2 * layout->tile_border_x) +
+                                      layout->tile_border_x * 2) :
+                                     int(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
     layout->flag = FILE_LAYOUT_HOR;
   }
   layout->dirty = false;

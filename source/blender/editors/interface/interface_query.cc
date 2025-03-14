@@ -165,7 +165,7 @@ int ui_but_icon(const uiBut *but)
   const bool is_preview = (but->flag & UI_BUT_ICON_PREVIEW) != 0;
 
   /* While icon is loading, show loading icon at the normal icon size. */
-  if (is_preview && ui_icon_is_preview_deferred_loading(but->icon, true)) {
+  if (ui_icon_is_preview_deferred_loading(but->icon, is_preview)) {
     return ICON_PREVIEW_LOADING;
   }
 

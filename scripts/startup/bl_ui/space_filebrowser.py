@@ -607,14 +607,19 @@ class ASSETBROWSER_PT_display(asset_utils.AssetBrowserPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        if params.display_type == 'THUMBNAIL':
-            layout.prop(params, "display_size", text="Size")
-        else:
-            col = layout.column(heading="Columns", align=True)
-            col.prop(params, "show_details_size", text="Size")
-            col.prop(params, "show_details_datetime", text="Date")
+        col = layout.column()
+        col.prop(params, "display_type", expand=True)
 
-        layout.column().prop(params, "sort_method", text="Sort By", expand=True)
+        if params.display_type == 'THUMBNAIL':
+            col.prop(params, "display_size", text="Size")
+        else:
+            col.prop(params, "list_display_size", text="Preview Size")
+        if params.display_type == 'LIST_HORIZONTAL':
+            col.prop(params, "list_column_size", text="Column Size")
+
+        col.separator()
+
+        col.prop(params, "sort_method", text="Sort By", expand=True)
 
 
 class ASSETBROWSER_PT_filter(asset_utils.AssetBrowserPanel, Panel):

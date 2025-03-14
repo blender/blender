@@ -1258,8 +1258,12 @@ static void widget_draw_icon_centered(const BIFIconID icon,
  * multiplied by #UI_INV_SCALE_FAC).
  * \param mono_color: Only for drawing monochrome icons.
  */
-static void widget_draw_preview_icon(
-    BIFIconID icon, float alpha, float aspect, const rcti *rect, const uchar mono_color[4])
+static void widget_draw_preview_icon(BIFIconID icon,
+                                     float alpha,
+                                     float aspect,
+                                     const bool add_padding,
+                                     const rcti *rect,
+                                     const uchar mono_color[4])
 {
   if (icon == ICON_NONE) {
     return;
@@ -1272,7 +1276,7 @@ static void widget_draw_preview_icon(
 
   const int w = BLI_rcti_size_x(rect);
   const int h = BLI_rcti_size_y(rect);
-  const int size = std::min(w, h) - PREVIEW_PAD * 2;
+  const int size = std::min(w, h) - (add_padding ? (PREVIEW_PAD * 2) : 0);
 
   if (size > 0) {
     const int x = rect->xmin + w / 2 - size / 2;
@@ -1294,7 +1298,12 @@ static void widget_draw_icon(
 {
   if (but->flag & UI_BUT_ICON_PREVIEW) {
     GPU_blend(GPU_BLEND_ALPHA);
-    widget_draw_preview_icon(icon, alpha, but->block->aspect, rect, mono_color);
+    widget_draw_preview_icon(icon,
+                             alpha,
+                             but->block->aspect,
+                             !(but->drawflag & UI_BUT_NO_PREVIEW_PADDING),
+                             rect,
+                             mono_color);
     GPU_blend(GPU_BLEND_NONE);
     return;
   }
@@ -1365,7 +1374,8 @@ static void widget_draw_icon(
     /* Get theme color. */
     uchar color[4] = {mono_color[0], mono_color[1], mono_color[2], mono_color[3]};
     const bTheme *btheme = UI_GetTheme();
-    const bool has_theme = UI_icon_get_theme_color(int(icon), color);
+    /* Only use theme colors if the button doesn't override the color. */
+    const bool has_theme = !but->col[3] && UI_icon_get_theme_color(int(icon), color);
     const bool outline = btheme->tui.icon_border_intensity > 0.0f && has_theme;
 
     /* to indicate draggable */
@@ -2288,7 +2298,12 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     /* draw icon in rect above the space reserved for the label */
     rect->ymin += text_size;
     GPU_blend(GPU_BLEND_ALPHA);
-    widget_draw_preview_icon(icon, alpha, but->block->aspect, rect, icon_color);
+    widget_draw_preview_icon(icon,
+                             alpha,
+                             but->block->aspect,
+                             !(but->drawflag & UI_BUT_NO_PREVIEW_PADDING),
+                             rect,
+                             icon_color);
     GPU_blend(GPU_BLEND_NONE);
 
     /* offset rect to draw label in */
@@ -4268,8 +4283,13 @@ static void widget_preview_tile(uiBut *but,
   }
 
   const BIFIconID icon = ui_but_icon(but);
-  ui_draw_preview_item_stateless(
-      &UI_style_get()->widget, rect, but->drawstr, icon, wcol->text, UI_STYLE_TEXT_CENTER);
+  ui_draw_preview_item_stateless(&UI_style_get()->widget,
+                                 rect,
+                                 but->drawstr,
+                                 icon,
+                                 wcol->text,
+                                 UI_STYLE_TEXT_CENTER,
+                                 !(but->drawflag & UI_BUT_NO_PREVIEW_PADDING));
 }
 
 static void widget_optionbut(uiWidgetColors *wcol,
@@ -5657,7 +5677,8 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     const blender::StringRef name,
                                     int iconid,
                                     const uchar text_col[4],
-                                    eFontStyle_Align text_align)
+                                    eFontStyle_Align text_align,
+                                    const bool add_padding)
 {
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
@@ -5670,7 +5691,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     rect->ymin += text_size;
   }
   GPU_blend(GPU_BLEND_ALPHA);
-  widget_draw_preview_icon(iconid, alpha, 1.0f, rect, text_col);
+  widget_draw_preview_icon(iconid, alpha, 1.0f, add_padding, rect, text_col);
   GPU_blend(GPU_BLEND_NONE);
 
   if (!has_text) {
@@ -5679,9 +5700,11 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
 
   /* text rect */
   trect.ymax = trect.ymin + text_size;
-  trect.ymin += PREVIEW_PAD;
-  trect.xmin += PREVIEW_PAD;
-  trect.xmax -= PREVIEW_PAD;
+  if (add_padding) {
+    trect.ymin += PREVIEW_PAD;
+    trect.xmin += PREVIEW_PAD;
+    trect.xmax -= PREVIEW_PAD;
+  }
 
   {
     char drawstr[UI_MAX_DRAW_STR];
@@ -5715,7 +5738,7 @@ void ui_draw_preview_item(const uiFontStyle *fstyle,
   wt->state(wt, &state, UI_EMBOSS_UNDEFINED);
   wt->draw(&wt->wcol, rect, &STATE_INFO_NULL, 0, 1.0f);
 
-  ui_draw_preview_item_stateless(fstyle, rect, name, iconid, wt->wcol.text, text_align);
+  ui_draw_preview_item_stateless(fstyle, rect, name, iconid, wt->wcol.text, text_align, true);
 }
 
 /** \} */
