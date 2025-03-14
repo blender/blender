@@ -487,6 +487,7 @@ typedef struct bNode {
   bool is_reroute() const;
   bool is_frame() const;
   bool is_group() const;
+  bool is_custom_group() const;
   bool is_group_input() const;
   bool is_group_output() const;
   bool is_undefined() const;
