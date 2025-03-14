@@ -42,6 +42,11 @@ class GMutablePointer {
     return type_;
   }
 
+  operator bool() const
+  {
+    return data_ != nullptr;
+  }
+
   template<typename T> T *get() const
   {
     BLI_assert(this->is_type<T>());
@@ -92,6 +97,11 @@ class GPointer {
   GPointer(const CPPType &type, const void *data = nullptr) : type_(&type), data_(data) {}
 
   template<typename T> GPointer(T *data) : GPointer(&CPPType::get<T>(), data) {}
+
+  operator bool() const
+  {
+    return data_ != nullptr;
+  }
 
   const void *get() const
   {
