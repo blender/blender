@@ -588,7 +588,7 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
          * which isn't needed by JPEG but #BLI_snprintf_rlen requires it. */
         const size_t text_length_required = 7 + 2 + strlen(prop->name) + strlen(IDP_String(prop)) +
                                             1;
-        if (text_length_required <= static_text_size) {
+        if (text_length_required > static_text_size) {
           text = MEM_malloc_arrayN<char>(text_length_required, "jpeg metadata field");
           text_size = text_length_required;
         }
