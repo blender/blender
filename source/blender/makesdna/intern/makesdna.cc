@@ -567,7 +567,7 @@ static int preprocess_include(char *maindata, const int maindata_len)
 {
   /* NOTE: len + 1, last character is a dummy to prevent
    * comparisons using uninitialized memory */
-  char *temp = static_cast<char *>(MEM_mallocN(maindata_len + 1, "preprocess_include"));
+  char *temp = MEM_malloc_arrayN<char>(size_t(maindata_len) + 1, "preprocess_include");
   temp[maindata_len] = ' ';
 
   memcpy(temp, maindata, maindata_len);
@@ -1275,23 +1275,18 @@ static int make_structDNA(const char *base_directory,
   mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
   /* the longest known struct is 50k, so we assume 100k is sufficient! */
-  structdata = static_cast<short *>(MEM_callocN(max_data_size, "structdata"));
+  structdata = MEM_calloc_arrayN<short>(size_t(max_data_size), "structdata");
 
   /* a maximum of 5000 variables, must be sufficient? */
-  members = static_cast<char **>(MEM_callocN(sizeof(char *) * max_array_len, "names"));
-  types = static_cast<char **>(MEM_callocN(sizeof(char *) * max_array_len, "types"));
-  types_size_native = static_cast<short *>(
-      MEM_callocN(sizeof(short) * max_array_len, "types_size_native"));
-  types_size_32 = static_cast<short *>(
-      MEM_callocN(sizeof(short) * max_array_len, "types_size_32"));
-  types_size_64 = static_cast<short *>(
-      MEM_callocN(sizeof(short) * max_array_len, "types_size_64"));
-  types_align_32 = static_cast<short *>(
-      MEM_callocN(sizeof(short) * max_array_len, "types_size_32"));
-  types_align_64 = static_cast<short *>(
-      MEM_callocN(sizeof(short) * max_array_len, "types_size_64"));
+  members = MEM_calloc_arrayN<char *>(size_t(max_array_len), "names");
+  types = MEM_calloc_arrayN<char *>(size_t(max_array_len), "types");
+  types_size_native = MEM_calloc_arrayN<short>(size_t(max_array_len), "types_size_native");
+  types_size_32 = MEM_calloc_arrayN<short>(size_t(max_array_len), "types_size_32");
+  types_size_64 = MEM_calloc_arrayN<short>(size_t(max_array_len), "types_size_64");
+  types_align_32 = MEM_calloc_arrayN<short>(size_t(max_array_len), "types_size_32");
+  types_align_64 = MEM_calloc_arrayN<short>(size_t(max_array_len), "types_size_64");
 
-  structs = static_cast<short **>(MEM_callocN(sizeof(short *) * max_array_len, "structs"));
+  structs = MEM_calloc_arrayN<short *>(size_t(max_array_len), "structs");
 
   /* Build versioning data */
   DNA_alias_maps(DNA_RENAME_ALIAS_FROM_STATIC,

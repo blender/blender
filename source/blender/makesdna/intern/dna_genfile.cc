@@ -360,8 +360,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     sdna->members_num_alloc = sdna->members_num;
 
     data++;
-    sdna->members = static_cast<const char **>(
-        MEM_callocN(sizeof(void *) * sdna->members_num, "sdnanames"));
+    sdna->members = MEM_calloc_arrayN<const char *>(size_t(sdna->members_num), "sdnanames");
   }
   else {
     *r_error_message = "NAME error in SDNA file";
@@ -400,8 +399,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     }
 
     data++;
-    sdna->types = static_cast<const char **>(
-        MEM_callocN(sizeof(void *) * sdna->types_num, "sdnatypes"));
+    sdna->types = MEM_calloc_arrayN<const char *>(size_t(sdna->types_num), "sdnatypes");
   }
   else {
     *r_error_message = "TYPE error in SDNA file";
@@ -454,8 +452,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     }
 
     data++;
-    sdna->structs = static_cast<SDNA_Struct **>(
-        MEM_callocN(sizeof(SDNA_Struct *) * sdna->structs_num, "sdnastrcs"));
+    sdna->structs = MEM_calloc_arrayN<SDNA_Struct *>(size_t(sdna->structs_num), "sdnastrcs");
   }
   else {
     *r_error_message = "STRC error in SDNA file";
@@ -534,16 +531,14 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
 
   /* Cache name size. */
   {
-    short *members_array_num = static_cast<short int *>(
-        MEM_mallocN(sizeof(*members_array_num) * sdna->members_num, __func__));
+    short *members_array_num = MEM_malloc_arrayN<short>(size_t(sdna->members_num), __func__);
     for (int member_index = 0; member_index < sdna->members_num; member_index++) {
       members_array_num[member_index] = DNA_member_array_num(sdna->members[member_index]);
     }
     sdna->members_array_num = members_array_num;
   }
 
-  sdna->types_alignment = static_cast<int *>(
-      MEM_malloc_arrayN(sdna->types_num, sizeof(int), __func__));
+  sdna->types_alignment = MEM_malloc_arrayN<int>(size_t(sdna->types_num), __func__);
   for (int type_index = 0; type_index < sdna->types_num; type_index++) {
     sdna->types_alignment[type_index] = int(__STDCPP_DEFAULT_NEW_ALIGNMENT__);
   }
@@ -570,12 +565,12 @@ SDNA *DNA_sdna_from_data(const void *data,
                          const bool do_alias,
                          const char **r_error_message)
 {
-  SDNA *sdna = static_cast<SDNA *>(MEM_mallocN(sizeof(*sdna), "sdna"));
+  SDNA *sdna = MEM_mallocN<SDNA>("sdna");
   const char *error_message = nullptr;
 
   sdna->data_size = data_len;
   if (data_alloc) {
-    char *data_copy = static_cast<char *>(MEM_mallocN(data_len, "sdna_data"));
+    char *data_copy = MEM_malloc_arrayN<char>(size_t(data_len), "sdna_data");
     memcpy(data_copy, data, data_len);
     sdna->data = data_copy;
   }
@@ -719,7 +714,7 @@ const char *DNA_struct_get_compareflags(const SDNA *oldsdna, const SDNA *newsdna
     return nullptr;
   }
 
-  char *compare_flags = static_cast<char *>(MEM_mallocN(oldsdna->structs_num, "compare flags"));
+  char *compare_flags = MEM_malloc_arrayN<char>(size_t(oldsdna->structs_num), "compare flags");
   memset(compare_flags, SDNA_CMP_UNKNOWN, oldsdna->structs_num);
 
   /* Set correct flag for every struct. */
@@ -1561,8 +1556,8 @@ static ReconstructStep *create_reconstruct_steps_for_struct(const SDNA *oldsdna,
                                                             const SDNA_Struct *old_struct,
                                                             const SDNA_Struct *new_struct)
 {
-  ReconstructStep *steps = static_cast<ReconstructStep *>(
-      MEM_calloc_arrayN(new_struct->members_num, sizeof(ReconstructStep), __func__));
+  ReconstructStep *steps = MEM_calloc_arrayN<ReconstructStep>(size_t(new_struct->members_num),
+                                                              __func__);
 
   int new_member_offset = 0;
   for (int new_member_index = 0; new_member_index < new_struct->members_num; new_member_index++) {
@@ -1627,15 +1622,13 @@ DNA_ReconstructInfo *DNA_reconstruct_info_create(const SDNA *oldsdna,
                                                  const SDNA *newsdna,
                                                  const char *compare_flags)
 {
-  DNA_ReconstructInfo *reconstruct_info = static_cast<DNA_ReconstructInfo *>(
-      MEM_callocN(sizeof(DNA_ReconstructInfo), __func__));
+  DNA_ReconstructInfo *reconstruct_info = MEM_callocN<DNA_ReconstructInfo>(__func__);
   reconstruct_info->oldsdna = oldsdna;
   reconstruct_info->newsdna = newsdna;
   reconstruct_info->compare_flags = compare_flags;
-  reconstruct_info->step_counts = static_cast<int *>(
-      MEM_malloc_arrayN(newsdna->structs_num, sizeof(int), __func__));
-  reconstruct_info->steps = static_cast<ReconstructStep **>(
-      MEM_malloc_arrayN(newsdna->structs_num, sizeof(ReconstructStep *), __func__));
+  reconstruct_info->step_counts = MEM_malloc_arrayN<int>(size_t(newsdna->structs_num), __func__);
+  reconstruct_info->steps = MEM_malloc_arrayN<ReconstructStep *>(size_t(newsdna->structs_num),
+                                                                 __func__);
 
   /* Generate reconstruct steps for all structs. */
   for (int new_struct_index = 0; new_struct_index < newsdna->structs_num; new_struct_index++) {
@@ -1904,10 +1897,8 @@ static void sdna_expand_names(SDNA *sdna)
     const SDNA_Struct *struct_old = sdna->structs[struct_index];
     names_expand_len += struct_old->members_num;
   }
-  const char **names_expand = static_cast<const char **>(
-      MEM_mallocN(sizeof(*names_expand) * names_expand_len, __func__));
-  short *names_array_len_expand = static_cast<short int *>(
-      MEM_mallocN(sizeof(*names_array_len_expand) * names_expand_len, __func__));
+  const char **names_expand = MEM_malloc_arrayN<const char *>(size_t(names_expand_len), __func__);
+  short *names_array_len_expand = MEM_malloc_arrayN<short>(size_t(names_expand_len), __func__);
 
   int names_expand_index = 0;
   for (int struct_index = 0; struct_index < sdna->structs_num; struct_index++) {
@@ -1986,8 +1977,7 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
       DNA_RENAME_ALIAS_FROM_STATIC, &type_map_alias_from_static, &member_map_alias_from_static);
 
   if (sdna->alias.types == nullptr) {
-    sdna->alias.types = static_cast<const char **>(
-        MEM_mallocN(sizeof(*sdna->alias.types) * sdna->types_num, __func__));
+    sdna->alias.types = MEM_malloc_arrayN<const char *>(size_t(sdna->types_num), __func__);
     for (int type_index = 0; type_index < sdna->types_num; type_index++) {
       const char *type_name_static = sdna->types[type_index];
 
@@ -2002,8 +1992,7 @@ void DNA_sdna_alias_data_ensure(SDNA *sdna)
 
   if (sdna->alias.members == nullptr) {
     sdna_expand_names(sdna);
-    sdna->alias.members = static_cast<const char **>(
-        MEM_mallocN(sizeof(*sdna->alias.members) * sdna->members_num, __func__));
+    sdna->alias.members = MEM_malloc_arrayN<const char *>(size_t(sdna->members_num), __func__);
     for (int struct_index = 0; struct_index < sdna->structs_num; struct_index++) {
       const SDNA_Struct *struct_info = sdna->structs[struct_index];
       const char *struct_name_static = sdna->types[struct_info->type_index];
