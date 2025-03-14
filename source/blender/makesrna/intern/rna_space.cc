@@ -2873,7 +2873,7 @@ int rna_FileSelectParams_filename_editable(const PointerRNA *ptr, const char **r
   FileSelectParams *params = static_cast<FileSelectParams *>(ptr->data);
 
   if (params && (params->flag & FILE_DIRSEL_ONLY)) {
-    *r_info = "Only directories can be chosen for the current operation.";
+    *r_info = N_("Only directories can be chosen for the current operation.");
     return 0;
   }
 

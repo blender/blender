@@ -597,9 +597,9 @@ int rna_ID_is_runtime_editable(const PointerRNA *ptr, const char **r_info)
   if (id->tag & (ID_TAG_NO_MAIN | ID_TAG_TEMP_MAIN | ID_TAG_LOCALIZED |
                  ID_TAG_COPIED_ON_EVAL_FINAL_RESULT | ID_TAG_COPIED_ON_EVAL))
   {
-    *r_info =
+    *r_info = N_(
         "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition "
-        "always runtime";
+        "always runtime");
     return 0;
   }
 
