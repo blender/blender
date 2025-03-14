@@ -28,7 +28,6 @@ struct ShadowPayload {
 struct LocalPayload {
   KernelGlobals kg;
   RaySelfPrimitives self;
-  int prim_type;
   float ray_time;
   int local_object;
   uint max_hits;
@@ -42,56 +41,35 @@ struct LocalPayload {
     RAY_RT.maxT = RAY->tmax; \
     RAY_RT.minT = RAY->tmin;
 
-#  if defined(HIPRT_SHARED_STACK)
-#    define GET_TRAVERSAL_STACK() \
-      Stack stack(kg->global_stack_buffer, kg->shared_stack); \
-      Instance_Stack instance_stack;
-#  else
-#    define GET_TRAVERSAL_STACK()
-#  endif
+#  define GET_TRAVERSAL_STACK() \
+    Stack stack(kg->global_stack_buffer, kg->shared_stack); \
+    Instance_Stack instance_stack;
 
-#  ifdef HIPRT_SHARED_STACK
-#    define GET_TRAVERSAL_ANY_HIT(FUNCTION_TABLE, RAY_TYPE, RAY_TIME) \
-      hiprtSceneTraversalAnyHitCustomStack<Stack, Instance_Stack> traversal( \
-          (hiprtScene)kernel_data.device_bvh, \
-          ray_hip, \
-          stack, \
-          instance_stack, \
-          visibility, \
-          hiprtTraversalHintDefault, \
-          &payload, \
-          kernel_params.FUNCTION_TABLE, \
-          RAY_TYPE, \
-          RAY_TIME);
+#  define GET_TRAVERSAL_ANY_HIT(FUNCTION_TABLE, RAY_TYPE, RAY_TIME) \
+    hiprtSceneTraversalAnyHitCustomStack<Stack, Instance_Stack> traversal( \
+        (hiprtScene)kernel_data.device_bvh, \
+        ray_hip, \
+        stack, \
+        instance_stack, \
+        visibility, \
+        hiprtTraversalHintDefault, \
+        &payload, \
+        kernel_params.FUNCTION_TABLE, \
+        RAY_TYPE, \
+        RAY_TIME);
 
-#    define GET_TRAVERSAL_CLOSEST_HIT(FUNCTION_TABLE, RAY_TYPE, RAY_TIME) \
-      hiprtSceneTraversalClosestCustomStack<Stack, Instance_Stack> traversal( \
-          (hiprtScene)kernel_data.device_bvh, \
-          ray_hip, \
-          stack, \
-          instance_stack, \
-          visibility, \
-          hiprtTraversalHintDefault, \
-          &payload, \
-          kernel_params.FUNCTION_TABLE, \
-          RAY_TYPE, \
-          RAY_TIME);
-#  else
-#    define GET_TRAVERSAL_ANY_HIT(FUNCTION_TABLE) \
-      hiprtSceneTraversalAnyHit traversal(kernel_data.device_bvh, \
-                                          ray_hip, \
-                                          visibility, \
-                                          FUNCTION_TABLE, \
-                                          hiprtTraversalHintDefault, \
-                                          &payload);
-#    define GET_TRAVERSAL_CLOSEST_HIT(FUNCTION_TABLE) \
-      hiprtSceneTraversalClosest traversal(kernel_data.device_bvh, \
-                                           ray_hip, \
-                                           visibility, \
-                                           FUNCTION_TABLE, \
-                                           hiprtTraversalHintDefault, \
-                                           &payload);
-#  endif
+#  define GET_TRAVERSAL_CLOSEST_HIT(FUNCTION_TABLE, RAY_TYPE, RAY_TIME) \
+    hiprtSceneTraversalClosestCustomStack<Stack, Instance_Stack> traversal( \
+        (hiprtScene)kernel_data.device_bvh, \
+        ray_hip, \
+        stack, \
+        instance_stack, \
+        visibility, \
+        hiprtTraversalHintDefault, \
+        &payload, \
+        kernel_params.FUNCTION_TABLE, \
+        RAY_TYPE, \
+        RAY_TIME);
 
 ccl_device_inline void set_intersect_point(KernelGlobals kg,
                                            hiprtHit &hit,
@@ -243,23 +221,19 @@ ccl_device_inline bool motion_triangle_custom_local_intersect(const hiprtRay &ra
 
   LocalIntersection *local_isect = local_payload->local_isect;
 
-  bool b_hit = motion_triangle_intersect_local(kg,
-                                               local_isect,
-                                               ray.origin,
-                                               ray.direction,
-                                               local_payload->ray_time,
-                                               object_id,
-                                               prim_id_global,
-                                               prim_id_local,
-                                               ray.minT,
-                                               ray.maxT,
-                                               local_payload->lcg_state,
-                                               local_payload->max_hits);
+  return motion_triangle_intersect_local(kg,
+                                         local_isect,
+                                         ray.origin,
+                                         ray.direction,
+                                         local_payload->ray_time,
+                                         object_id,
+                                         prim_id_global,
+                                         prim_id_local,
+                                         ray.minT,
+                                         ray.maxT,
+                                         local_payload->lcg_state,
+                                         local_payload->max_hits);
 
-  if (b_hit) {
-    local_payload->prim_type = PRIMITIVE_MOTION_TRIANGLE;
-  }
-  return b_hit;
 #  else
   return false;
 #  endif
@@ -585,18 +559,33 @@ ccl_device_inline bool local_intersection_filter(const hiprtRay &ray,
 #  ifdef __BVH_LOCAL__
   LocalPayload *payload = (LocalPayload *)user_data;
   KernelGlobals kg = payload->kg;
-  int object_id = payload->local_object;
-  int prim_offset = kernel_data_fetch(object_prim_offset, object_id);
-  int prim = hit.primID + prim_offset;
+  const int object_id = payload->local_object;
+  const uint max_hits = payload->max_hits;
+
+  /* Triangle primitive uses hardware intersection, other primitives  do custom intersection
+   * which does reservoir samlping for intersections. For the custom primitives only check
+   * whether we can stop travsersal early on. The rest of the checks here only do for the
+   * regular triangles. */
+  const int primitive_type = kernel_data_fetch(objects, object_id).primitive_type;
+  if (primitive_type != PRIMITIVE_TRIANGLE) {
+    if (max_hits == 0) {
+      return false;
+    }
+    return true;
+  }
+
+  const int prim_offset = kernel_data_fetch(object_prim_offset, object_id);
+  const int prim = hit.primID + prim_offset;
 #    ifndef __RAY_OFFSET__
   if (intersection_skip_self_local(payload->self, prim)) {
     return true;  // continue search
   }
 #    endif
-  uint max_hits = payload->max_hits;
+
   if (max_hits == 0) {
     return false;  // stop search
   }
+
   int hit_index = 0;
   if (payload->lcg_state) {
     for (int i = min(max_hits, payload->local_isect->num_hits) - 1; i >= 0; --i) {
@@ -618,19 +607,20 @@ ccl_device_inline bool local_intersection_filter(const hiprtRay &ray,
     }
     payload->local_isect->num_hits = 1;
   }
+
   Intersection *isect = &payload->local_isect->hits[hit_index];
   isect->t = hit.t;
-  isect->prim = prim;
-  isect->object = object_id;
-  isect->type = PRIMITIVE_TRIANGLE;  // kernel_data_fetch(__objects, object_id).primitive_type;
-
   isect->u = hit.uv.x;
   isect->v = hit.uv.y;
+  isect->prim = prim;
+  isect->object = object_id;
+  isect->type = primitive_type;
 
   payload->local_isect->Ng[hit_index] = hit.normal;
 
   return true;
-
+#  else
+  return false;
 #  endif
 }
 
