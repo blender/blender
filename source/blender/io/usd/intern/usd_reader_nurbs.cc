@@ -31,7 +31,7 @@ static bool set_knots(const pxr::VtDoubleArray &knots, float *&nu_knots)
 
   /* Skip first and last knots, as they are used for padding. */
   const size_t num_knots = knots.size();
-  nu_knots = static_cast<float *>(MEM_callocN(num_knots * sizeof(float), __func__));
+  nu_knots = MEM_calloc_arrayN<float>(num_knots, __func__);
 
   for (size_t i = 0; i < num_knots; i++) {
     nu_knots[i] = float(knots[i]);
@@ -105,7 +105,7 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
   for (size_t i = 0; i < usdCounts.size(); i++) {
     const int num_verts = usdCounts[i];
 
-    Nurb *nu = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), __func__));
+    Nurb *nu = MEM_callocN<Nurb>(__func__);
     nu->flag = CU_SMOOTH;
     nu->type = CU_NURBS;
 
@@ -137,7 +137,7 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
 
     float weight = 1.0f;
 
-    nu->bp = static_cast<BPoint *>(MEM_callocN(sizeof(BPoint) * nu->pntsu, __func__));
+    nu->bp = MEM_calloc_arrayN<BPoint>(size_t(nu->pntsu), __func__);
     BPoint *bp = nu->bp;
 
     for (int j = 0; j < nu->pntsu; j++, bp++, idx++) {
