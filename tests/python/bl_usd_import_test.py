@@ -1486,9 +1486,9 @@ class USDImportTest(AbstractUSDTest):
         # Ensure we find the expected number of mesh objects
         blender_objects = [ob for ob in bpy.data.objects if ob.type == 'MESH']
         self.assertEqual(
-            6,
+            9,
             len(blender_objects),
-            f"Test scene {infile} should have 6 mesh objects; found {len(blender_objects)}")
+            f"Test scene {infile} should have 9 mesh objects; found {len(blender_objects)}")
 
         # A MeshSequenceCache modifier should be present on every imported object
         for ob in blender_objects:
@@ -1513,8 +1513,8 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(len(bpy.data.collections), 2)
         self.assertEqual(bpy.data.collections["Usd Shapes Test"].users, 1)
         self.assertEqual(bpy.data.collections["Usd Shapes Test.001"].users, 1)
-        self.assertEqual(len(bpy.data.collections["Usd Shapes Test"].all_objects), 7)
-        self.assertEqual(len(bpy.data.collections["Usd Shapes Test.001"].all_objects), 7)
+        self.assertEqual(len(bpy.data.collections["Usd Shapes Test"].all_objects), 10)
+        self.assertEqual(len(bpy.data.collections["Usd Shapes Test.001"].all_objects), 10)
 
     def test_import_id_props(self):
         """Test importing object and data IDProperties."""
