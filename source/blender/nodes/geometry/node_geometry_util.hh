@@ -66,8 +66,7 @@ bool generic_attribute_type_supported(const EnumPropertyItem &item);
 
 }  // namespace enums
 
-bool custom_data_type_supports_grids(eCustomDataType data_type);
-const EnumPropertyItem *grid_custom_data_type_items_filter_fn(bContext *C,
+const EnumPropertyItem *grid_data_type_socket_items_filter_fn(bContext *C,
                                                               PointerRNA *ptr,
                                                               PropertyRNA *prop,
                                                               bool *r_free);
