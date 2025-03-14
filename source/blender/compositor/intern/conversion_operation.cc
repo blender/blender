@@ -6,6 +6,7 @@
 
 #include "BLI_color.hh"
 #include "BLI_cpp_type.hh"
+#include "BLI_generic_span.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
@@ -88,131 +89,35 @@ SimpleOperation *ConversionOperation::construct_if_needed(Context &context,
   return nullptr;
 }
 
-void ConversionOperation::execute_single(const Result &input, Result &output)
+/* Gets the single value of the given result as a single element GSpan. This calls the underlying
+ * single_value method to construct a GSpan from the GPointer, however, it has an exception for
+ * color types, since colors are stored as float4 internally, while their semantic type is
+ * ColorSceneLinear4f<eAlpha::Premultiplied> during conversion. */
+static GSpan get_result_single_value(const Result &result)
 {
-  switch (this->get_input().type()) {
-    case ResultType::Float:
-      switch (this->get_result().type()) {
-        case ResultType::Int:
-          output.set_single_value(float_to_int(input.get_single_value<float>()));
-          return;
-        case ResultType::Float3:
-          output.set_single_value(float_to_float3(input.get_single_value<float>()));
-          return;
-        case ResultType::Color:
-          output.set_single_value(float_to_color(input.get_single_value<float>()));
-          return;
-        case ResultType::Float4:
-          output.set_single_value(float_to_float4(input.get_single_value<float>()));
-          return;
-        case ResultType::Float:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Int:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          output.set_single_value(int_to_float(input.get_single_value<int32_t>()));
-          return;
-        case ResultType::Float3:
-          output.set_single_value(int_to_float3(input.get_single_value<int32_t>()));
-          return;
-        case ResultType::Color:
-          output.set_single_value(int_to_color(input.get_single_value<int32_t>()));
-          return;
-        case ResultType::Float4:
-          output.set_single_value(int_to_float4(input.get_single_value<int32_t>()));
-          return;
-        case ResultType::Int:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float3:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          output.set_single_value(float3_to_float(input.get_single_value<float3>()));
-          return;
-        case ResultType::Int:
-          output.set_single_value(float3_to_int(input.get_single_value<float3>()));
-          return;
-        case ResultType::Color:
-          output.set_single_value(float3_to_color(input.get_single_value<float3>()));
-          return;
-        case ResultType::Float4:
-          output.set_single_value(float3_to_float4(input.get_single_value<float3>()));
-          return;
-        case ResultType::Float3:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Color:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          output.set_single_value(color_to_float(input.get_single_value<float4>()));
-          return;
-        case ResultType::Int:
-          output.set_single_value(color_to_int(input.get_single_value<float4>()));
-          return;
-        case ResultType::Float3:
-          output.set_single_value(color_to_float3(input.get_single_value<float4>()));
-          return;
-        case ResultType::Float4:
-          output.set_single_value(color_to_float4(input.get_single_value<float4>()));
-          return;
-        case ResultType::Color:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float4:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          output.set_single_value(float4_to_float(input.get_single_value<float4>()));
-          return;
-        case ResultType::Int:
-          output.set_single_value(float4_to_int(input.get_single_value<float4>()));
-          return;
-        case ResultType::Float3:
-          output.set_single_value(float4_to_float3(input.get_single_value<float4>()));
-          return;
-        case ResultType::Color:
-          output.set_single_value(float4_to_color(input.get_single_value<float4>()));
-          return;
-        case ResultType::Float4:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float2:
-    case ResultType::Int2:
-      /* Types are not user facing, so we needn't implement them. */
-      break;
+  if (result.type() == ResultType::Color) {
+    return GSpan(
+        CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(), result.single_value().get(), 1);
   }
 
-  BLI_assert_unreachable();
+  return GSpan(result.single_value().type(), result.single_value().get(), 1);
+}
+
+static GMutableSpan get_result_single_value(Result &result)
+{
+  if (result.type() == ResultType::Color) {
+    return GMutableSpan(
+        CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(), result.single_value().get(), 1);
+  }
+
+  return GMutableSpan(result.single_value().type(), result.single_value().get(), 1);
+}
+
+void ConversionOperation::execute_single(const Result &input, Result &output)
+{
+  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+  conversions.convert_to_initialized_n(get_result_single_value(input),
+                                       get_result_single_value(output));
 }
 
 /* Gets the CPU data of the given result as a GSpan. This calls the underlying cpu_data method,
