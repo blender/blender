@@ -2436,6 +2436,9 @@ void BKE_grease_pencil_point_coords_apply(GreasePencil &grease_pencil,
         radii[i] = elem_data->radius;
         elem_data++;
       }
+
+      curves.tag_radii_changed();
+      drawing.tag_positions_changed();
     });
   }
 }
@@ -2469,6 +2472,9 @@ void BKE_grease_pencil_point_coords_apply_with_mat4(GreasePencil &grease_pencil,
         radii[i] = elem_data->radius * scalef;
         elem_data++;
       }
+
+      curves.tag_radii_changed();
+      drawing.tag_positions_changed();
     });
   }
 }
