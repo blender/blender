@@ -4102,6 +4102,53 @@ static void GREASE_PENCIL_OT_reset_uvs(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int grease_pencil_stroke_split_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Scene &scene = *CTX_data_scene(C);
+  Object &object = *CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+  std::atomic<bool> changed = false;
+
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask selected_points =
+        blender::ed::greasepencil::retrieve_editable_and_selected_points(
+            object, info.drawing, info.layer_index, memory);
+
+    if (selected_points.is_empty()) {
+      return;
+    }
+
+    info.drawing.strokes_for_write() = ed::curves::split_points(info.drawing.strokes(),
+                                                                selected_points);
+    info.drawing.tag_topology_changed();
+    changed.store(true, std::memory_order_relaxed);
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+    return OPERATOR_FINISHED;
+  }
+
+  return OPERATOR_CANCELLED;
+}
+
+static void GREASE_PENCIL_OT_stroke_split(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Split stroke";
+  ot->idname = "GREASE_PENCIL_OT_stroke_split";
+  ot->description = "Split selected points to a new stroke";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_stroke_split_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /** \} */
 
 }  // namespace blender::ed::greasepencil
@@ -4143,6 +4190,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_set_handle_type);
   WM_operatortype_append(GREASE_PENCIL_OT_reset_uvs);
   WM_operatortype_append(GREASE_PENCIL_OT_texture_gradient);
+  WM_operatortype_append(GREASE_PENCIL_OT_stroke_split);
 }
 
 /* -------------------------------------------------------------------- */

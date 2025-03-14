@@ -3993,6 +3993,9 @@ def km_grease_pencil_edit_mode(params):
 
         ("grease_pencil.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
 
+        # Split Stroke
+        ("grease_pencil.stroke_split", {"type": 'V', "value": 'PRESS'}, None),
+
         # Extrude and move selected points
         op_tool_optional(
             ("grease_pencil.extrude_move", {"type": 'E', "value": 'PRESS'}, None),
