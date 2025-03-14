@@ -3608,14 +3608,16 @@ void node_tree_free_local_tree(bNodeTree *ntree)
 void node_tree_set_output(bNodeTree &ntree)
 {
   const bool is_compositor = ntree.type == NTREE_COMPOSIT;
+  const bool is_geometry = ntree.type == NTREE_GEOMETRY;
   /* find the active outputs, might become tree type dependent handler */
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
       /* we need a check for which output node should be tagged like this, below an exception */
-      if (ELEM(node->type_legacy, CMP_NODE_OUTPUT_FILE, GEO_NODE_VIEWER)) {
+      if (node->is_type("CompositorNodeOutputFile")) {
         continue;
       }
-      const bool node_is_output = node->type_legacy == CMP_NODE_VIEWER;
+      const bool node_is_output = node->is_type("CompositorNodeViewer") ||
+                                  node->is_type("GeometryNodeViewer");
 
       int output = 0;
       /* there is more types having output class, each one is checked */
@@ -3626,12 +3628,15 @@ void node_tree_set_output(bNodeTree &ntree)
         }
 
         /* same type, exception for viewer */
-        const bool tnode_is_output = tnode->type_legacy == CMP_NODE_VIEWER;
-        const bool compositor_case = is_compositor && tnode_is_output && node_is_output;
-        const bool has_same_shortcut = compositor_case && node != tnode &&
+        const bool tnode_is_output = tnode->is_type("CompositorNodeViewer") ||
+                                     tnode->is_type("GeometryNodeViewer");
+        const bool viewer_case = (is_compositor || is_geometry) && tnode_is_output &&
+                                 node_is_output;
+        const bool has_same_shortcut = viewer_case && node != tnode &&
                                        tnode->custom1 == node->custom1 &&
                                        tnode->custom1 != NODE_VIEWER_SHORTCUT_NONE;
-        if (tnode->type_legacy == node->type_legacy || compositor_case) {
+
+        if (tnode->type_legacy == node->type_legacy || viewer_case) {
           if (tnode->flag & NODE_DO_OUTPUT) {
             output++;
             if (output > 1) {

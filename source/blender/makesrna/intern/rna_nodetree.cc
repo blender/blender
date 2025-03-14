@@ -1344,18 +1344,40 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr,
   }
 }
 
-static void rna_Node_shortcut_node_set(PointerRNA *ptr, int value)
+static void node_viewer_set_shortcut_fn(bNode *node, bNodeTree &ntree, int value)
+{
+  /* Avoid having two nodes with the same shortcut. */
+  for (bNode *other_node : ntree.all_nodes()) {
+    if ((other_node->is_type("CompositorNodeViewer") ||
+         other_node->is_type("GeometryNodeViewer")) &&
+        other_node->custom1 == value)
+    {
+      other_node->custom1 = NODE_VIEWER_SHORTCUT_NONE;
+    }
+  }
+  node->custom1 = value;
+}
+
+void rna_Node_Viewer_shortcut_node_set(PointerRNA *ptr, PropertyRNA * /*prop*/, int value)
 {
   bNode *curr_node = static_cast<bNode *>(ptr->data);
   bNodeTree &ntree = curr_node->owner_tree();
 
-  /* Avoid having two nodes with the same shortcut. */
-  for (bNode *node : ntree.all_nodes()) {
-    if (node->is_type("CompositorNodeViewer") && node->custom1 == value) {
-      node->custom1 = NODE_VIEWER_SHORTCUT_NONE;
-    }
-  }
-  curr_node->custom1 = value;
+  node_viewer_set_shortcut_fn(curr_node, ntree, value);
+}
+
+int rna_Node_Viewer_shortcut_node_get(PointerRNA *ptr, PropertyRNA * /*prop*/)
+{
+  bNode *curr_node = static_cast<bNode *>(ptr->data);
+  return curr_node->custom1;
+}
+
+void rna_Node_Viewer_shortcut_node_set(PointerRNA *ptr, int value)
+{
+  bNode *curr_node = static_cast<bNode *>(ptr->data);
+  bNodeTree &ntree = curr_node->owner_tree();
+
+  node_viewer_set_shortcut_fn(curr_node, ntree, value);
 }
 
 static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
@@ -9164,7 +9186,7 @@ static void def_cmp_viewer(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "ui_shortcut", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "custom1");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_Node_shortcut_node_set", nullptr);
+  RNA_def_property_int_funcs(prop, nullptr, "rna_Node_Viewer_shortcut_node_set", nullptr);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_int_default(prop, NODE_VIEWER_SHORTCUT_NONE);
