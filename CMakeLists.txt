@@ -848,8 +848,12 @@ Enable GPU drawing related unit testing (draw manager)"
 )
 option(WITH_GPU_COMPOSITOR_TESTS "Enable regression testing for GPU compositor" OFF)
 option(WITH_GPU_MESH_PAINT_TESTS "Enable visual render-based regression testing for mesh painting" OFF)
+option(WITH_UI_TESTS "\
+Enable user-interface tests (Experimental)"
+  OFF
+)
 if(UNIX AND NOT (APPLE OR HAIKU))
-  option(WITH_UI_TESTS "\
+  option(WITH_UI_TESTS_HEADLESS "\
 Enable user-interface tests using a headless display server. \
 Currently this depends on WITH_GHOST_WAYLAND and the weston compositor \
 (Experimental)"
@@ -862,8 +866,7 @@ packaged properly. For example that we don't link to any unexpected system libra
     OFF
   )
 else()
-  # TODO: support running GUI tests on other platforms.
-  set(WITH_UI_TESTS OFF)
+  set(WITH_UI_TESTS_HEADLESS OFF)
   # TODO: We should probaby add more sanity checks for Windows and Mac as well
   set(WITH_LINUX_OFFICIAL_RELEASE_TESTS OFF)
 endif()
@@ -1348,8 +1351,8 @@ endif()
 set_and_warn_incompatible(WITH_HEADLESS WITH_XR_OPENXR OFF)
 set_and_warn_incompatible(WITH_GHOST_SDL WITH_XR_OPENXR OFF)
 
-if(WITH_UI_TESTS)
-  set_and_warn_dependency(WITH_GHOST_WAYLAND WITH_UI_TESTS OFF)
+if(WITH_UI_TESTS_HEADLESS)
+  set_and_warn_dependency(WITH_GHOST_WAYLAND WITH_UI_TESTS_HEADLESS OFF)
 endif()
 
 if(WITH_BUILDINFO)
