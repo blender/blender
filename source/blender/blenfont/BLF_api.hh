@@ -345,6 +345,25 @@ void BLF_buffer(
     int fontid, float *fbuf, unsigned char *cbuf, int w, int h, ColorManagedDisplay *display);
 
 /**
+ * Opaque structure used to push/pop values set by the #BLF_buffer function.
+ */
+struct BLFBufferState;
+/**
+ * Store the current buffer state.
+ * This state *must* be popped with #BLF_buffer_state_pop.
+ */
+BLFBufferState *BLF_buffer_state_push(int fontid);
+/**
+ * Pop the state (restoring the state when #BLF_buffer_state_push was called).
+ */
+void BLF_buffer_state_pop(BLFBufferState *buffer_state);
+/**
+ * Free the state, only use in the rare case pop is not called
+ * (if the font itself is unloaded after pushing for example).
+ */
+void BLF_buffer_state_free(BLFBufferState *buffer_state);
+
+/**
  * Set the color to be used for text.
  */
 void BLF_buffer_col(int fontid, const float rgba[4]) ATTR_NONNULL(2);

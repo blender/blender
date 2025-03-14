@@ -720,3 +720,21 @@ PyObject *BPyInit_imbuf_types()
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
+
+ImBuf *BPy_ImBuf_FromPyObject(PyObject *py_imbuf)
+{
+  /* The caller must ensure this. */
+  BLI_assert(Py_TYPE(py_imbuf) == &Py_ImBuf_Type);
+
+  if (py_imbuf_valid_check((Py_ImBuf *)py_imbuf) == -1) {
+    return nullptr;
+  }
+
+  return ((Py_ImBuf *)py_imbuf)->ibuf;
+}
+
+/** \} */
