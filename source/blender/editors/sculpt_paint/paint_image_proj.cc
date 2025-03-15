@@ -6543,6 +6543,10 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
     RNA_string_get(op->ptr, "name", imagename);
   }
 
+  if (!alpha) {
+    color[3] = 1.0f;
+  }
+
   /* TODO(lukas): Add option for tiled image. */
   ima = BKE_image_add_generated(bmain,
                                 width,
