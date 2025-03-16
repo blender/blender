@@ -56,8 +56,20 @@ def _call_menu(e, text: str):
     yield e.ret()
 
 
-def _cursor_motion_data_x(window):
+def window_size_in_pixels(window):
+    import sys
     size = window.width, window.height
+    # macOS window size is a multiple of the pixel_size.
+    if sys.platform == "darwin":
+        from bpy import context
+        # The value is always rounded to an int, so converting to an int is safe here.
+        pixel_size = int(context.preferences.system.pixel_size)
+        size = size[0] * pixel_size, size[1] * pixel_size
+    return size
+
+
+def _cursor_motion_data_x(window):
+    size = window_size_in_pixels(window)
     return [
         (x, size[1] // 2) for x in
         range(int(size[0] * 0.2), int(size[0] * 0.8), 80)
@@ -65,7 +77,7 @@ def _cursor_motion_data_x(window):
 
 
 def _cursor_motion_data_y(window):
-    size = window.width, window.height
+    size = window_size_in_pixels(window)
     return [
         (size[0] // 2, y) for y in
         range(int(size[1] * 0.2), int(size[1] * 0.8), 80)
