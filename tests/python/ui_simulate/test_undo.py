@@ -56,7 +56,7 @@ def _call_menu(e, text: str):
     yield e.ret()
 
 
-def window_size_in_pixels(window):
+def _window_size_in_pixels(window):
     import sys
     size = window.width, window.height
     # macOS window size is a multiple of the pixel_size.
@@ -69,7 +69,7 @@ def window_size_in_pixels(window):
 
 
 def _cursor_motion_data_x(window):
-    size = window_size_in_pixels(window)
+    size = _window_size_in_pixels(window)
     return [
         (x, size[1] // 2) for x in
         range(int(size[0] * 0.2), int(size[0] * 0.8), 80)
@@ -77,7 +77,7 @@ def _cursor_motion_data_x(window):
 
 
 def _cursor_motion_data_y(window):
-    size = window_size_in_pixels(window)
+    size = _window_size_in_pixels(window)
     return [
         (size[0] // 2, y) for y in
         range(int(size[1] * 0.2), int(size[1] * 0.8), 80)
@@ -100,7 +100,7 @@ def _cursor_position_from_area(area):
 def _cursor_position_from_spacetype(window, space_type):
     area = _window_area_get_by_type(window, space_type)
     if area is None:
-        raise Exception("Space Type %r not found" % space_type)
+        raise Exception("Space Type {!r} not found".format(space_type))
     return _cursor_position_from_area(area)
 
 
