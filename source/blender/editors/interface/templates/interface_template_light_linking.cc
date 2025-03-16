@@ -405,7 +405,7 @@ void uiTemplateLightLinkingCollection(uiLayout *layout,
       "Light Linking Collection Tree View",
       std::make_unique<blender::ui::light_linking::CollectionView>(*context_layout, *collection));
   tree_view->set_context_menu_title("Light Linking");
-  tree_view->set_default_rows(3);
+  tree_view->set_default_rows(5);
 
   blender::ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }

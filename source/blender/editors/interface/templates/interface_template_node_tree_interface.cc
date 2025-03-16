@@ -538,7 +538,7 @@ void uiTemplateNodeTreeInterface(uiLayout *layout, bContext *C, PointerRNA *ptr)
       "Node Tree Declaration Tree View",
       std::make_unique<blender::ui::nodes::NodeTreeInterfaceView>(nodetree, interface));
   tree_view->set_context_menu_title("Node Tree Interface");
-  tree_view->set_default_rows(3);
+  tree_view->set_default_rows(5);
 
   blender::ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }
