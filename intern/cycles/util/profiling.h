@@ -154,12 +154,12 @@ class ProfilingWithShaderHelper : public ProfilingHelper {
       state->object = object;
 
       if (shader >= 0) {
-        assert(shader < state->shader_hits.size());
+        assert(shader < int(state->shader_hits.size()));
         state->shader_hits[shader]++;
       }
 
       if (object >= 0) {
-        assert(object < state->object_hits.size());
+        assert(object < int(state->object_hits.size()));
         state->object_hits[object]++;
       }
     }
