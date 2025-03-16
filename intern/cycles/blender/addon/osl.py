@@ -25,11 +25,78 @@ def osl_compile(input_path, report):
     return ok, output_path
 
 
+def shader_param_type_default(param, is_bool):
+    if param.isclosure:
+        return 'NodeSocketShader', None
+    elif param.type.vecsemantics == param.type.vecsemantics.COLOR:
+        return 'NodeSocketColor', (param.value[0], param.value[1], param.value[2], 1.0)
+    elif param.type.vecsemantics in [
+        param.type.vecsemantics.POINT,
+        param.type.vecsemantics.VECTOR,
+        param.type.vecsemantics.NORMAL,
+    ]:
+        return 'NodeSocketVector', param.value
+    elif param.type.aggregate == param.type.aggregate.SCALAR:
+        if param.type.basetype == param.type.basetype.INT:
+            if is_bool:
+                return 'NodeSocketBool', bool(param.value)
+            else:
+                return 'NodeSocketInt', int(param.value)
+        elif param.type.basetype == param.type.basetype.FLOAT:
+            return 'NodeSocketFloat', float(param.value)
+        elif param.type.basetype == param.type.basetype.STRING:
+            return 'NodeSocketString', str(param.value)
+
+    return None, None
+
+
+def shader_param_ensure(node, param):
+    # Skip unsupported types
+    if param.varlenarray or param.isstruct or param.type.arraylen > 1:
+        return None
+
+    metadata = {meta.name: meta.value for meta in param.metadata}
+
+    is_bool = metadata.get('widget') in ['boolean', 'checkBox']
+    hide_value = (param.value is None) or (metadata.get('widget') == 'null')
+    label = metadata.get('label', param.name)
+
+    socket_type, default = shader_param_type_default(param, is_bool)
+    if not socket_type:
+        return None
+
+    sockets = node.outputs if param.isoutput else node.inputs
+    if param.name in sockets:
+        sock = sockets[param.name]
+
+        if sock.bl_idname != socket_type:
+            # Type doesn't match, delete the socket and recreate it below
+            sockets.remove(sock)
+        else:
+            # Update properties if needed
+            if sock.name != label:
+                sock.name = label
+            if not param.isoutput and sock.hide_value != hide_value:
+                sock.hide_value = hide_value
+
+            # We have a matching socket, no need to create one
+            return sock
+
+    sock = sockets.new(type=socket_type, name=label, identifier=param.name)
+    if default is not None:
+        sock.default_value = default
+    sock.hide_value = hide_value
+    return sock
+
+
 def update_script_node(node, report):
     """compile and update shader script node"""
     import os
     import shutil
     import tempfile
+    import hashlib
+    import pathlib
+    import oslquery
 
     oso_file_remove = False
 
@@ -87,9 +154,12 @@ def update_script_node(node, report):
         if ok:
             # read bytecode
             try:
-                oso = open(oso_path, 'r')
-                node.bytecode = oso.read()
-                oso.close()
+                bytecode = pathlib.Path(oso_path).read_text()
+                md5 = hashlib.md5(usedforsecurity=False)
+                md5.update(bytecode.encode())
+
+                node.bytecode = bytecode
+                node.bytecode_hash = md5.hexdigest()
             except:
                 import traceback
                 traceback.print_exc()
@@ -102,11 +172,20 @@ def update_script_node(node, report):
         return
 
     if ok:
-        # now update node with new sockets
-        data = bpy.data.as_pointer()
-        ok = _cycles.osl_update_node(data, node.id_data.as_pointer(), node.as_pointer(), oso_path)
+        if query := oslquery.OSLQuery(oso_path):
+            # Ensure that all parameters have a matching socket
+            used_sockets = set()
+            for param in query.parameters:
+                if sock := shader_param_ensure(node, param):
+                    used_sockets.add(sock)
 
-        if not ok:
+            # Remove unused sockets
+            for sockets in (node.inputs, node.outputs):
+                for identifier in [sock.identifier for sock in sockets]:
+                    if sockets[identifier] not in used_sockets:
+                        sockets.remove(sockets[identifier])
+        else:
+            ok = False
             report({'ERROR'}, tip_("OSL query failed to open %s") % oso_path)
     else:
         report({'ERROR'}, "OSL script compilation failed, see console for errors")
