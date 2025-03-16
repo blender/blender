@@ -304,7 +304,20 @@ def view3d_simple():
     e, t = _test_vars(window := _test_window())
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Plane")
+    # NOTE: it should be possible to consider "Add -> Mesh -> Plane" an exact match.
+    # However, shortcuts are now included so without them this ends up fuzzy-matching to "Add -> Image -> Mesh Plane".
+    # To resolve that it's necessary to match the entire shortcut which... changes based on the platform (sign!).
+    use_menu_search_workaround = True
+    if use_menu_search_workaround:
+        import sys
+        yield from _call_menu(e, "Add ({:s} A) -> Mesh -> Plane".format(
+            "\u21e7" if sys.platform == "darwin" else "Shift"
+        ))
+        del sys
+    else:
+        # It would be nice if this could be restored.
+        yield from _call_menu(e, "Add -> Mesh -> Plane")
+
     # Duplicate and rotate.
     for _ in range(3):
         yield e.shift.d().x().text("3").ret()
