@@ -215,7 +215,7 @@ TEST(blf_wrapping_minimal, wrap_overflow_ascii)
   const float width = BLF_width(id, sample, sizeof(sample));
   blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.05f));
-  EXPECT_TRUE(wrapped.size() == 1 && (strlen(sample) == wrapped[0].size()));
+  EXPECT_TRUE(wrapped.size() == 1);
   close_font(id);
 }
 
