@@ -128,7 +128,6 @@ macro(blender_src_gtest_ex)
       if(WITH_WINDOWS_EXTERNAL_MANIFEST)
         add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests.exe.manifest ${TESTS_OUTPUT_DIR}/${TARGET_NAME}.exe.manifest
-          DEPENDS ${CMAKE_BINARY_DIR}/tests.exe.manifest
         )
       endif()
     endif()
