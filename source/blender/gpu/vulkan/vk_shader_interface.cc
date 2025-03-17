@@ -64,7 +64,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     }
   }
   const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
   uniform_len_ += info.subpass_inputs_.size();
 
   /* Reserve 1 uniform buffer for push constants fallback. */
@@ -294,7 +294,7 @@ void VKShaderInterface::descriptor_set_location_update(
                  "Incorrect parameter, bind types do not match.");
 
   const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
 
   int32_t index = shader_input_index(inputs_, shader_input);
   BLI_assert(resource_bindings_[index].binding == -1);
@@ -408,8 +408,8 @@ void VKShaderInterface::init_descriptor_set_layout_info(
     VKPushConstants::StorageType push_constants_storage)
 {
   BLI_assert(descriptor_set_layout_info_.bindings.is_empty());
-  const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
-  const bool supports_local_read = !workarounds.dynamic_rendering_local_read;
+  const VKExtensions &extensions = VKBackend::get().device.extensions_get();
+  const bool supports_local_read = extensions.dynamic_rendering_local_read;
 
   descriptor_set_layout_info_.bindings.reserve(resources_len);
   if (!(info.compute_source_.is_empty() && info.compute_source_generated.empty())) {
@@ -423,9 +423,10 @@ void VKShaderInterface::init_descriptor_set_layout_info(
   }
   for (int index : IndexRange(info.subpass_inputs_.size())) {
     UNUSED_VARS(index);
+    // TODO: clean up remove negation.
     descriptor_set_layout_info_.bindings.append_n_times(
-        workarounds.dynamic_rendering            ? VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
-        workarounds.dynamic_rendering_local_read ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER :
+        !extensions.dynamic_rendering            ? VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
+        !extensions.dynamic_rendering_local_read ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER :
                                                    VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
         info.subpass_inputs_.size());
   }

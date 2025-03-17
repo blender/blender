@@ -454,8 +454,8 @@ static VkImageUsageFlags to_vk_image_usage(const eGPUTextureUsage usage,
                                            const eGPUTextureFormatFlag format_flag)
 {
   const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
-  const bool supports_dynamic_rendering = !device.workarounds_get().dynamic_rendering;
+  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
+  const bool supports_dynamic_rendering = device.extensions_get().dynamic_rendering;
 
   VkImageUsageFlags result = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                              VK_IMAGE_USAGE_SAMPLED_BIT;

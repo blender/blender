@@ -152,7 +152,7 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
     const VKResourceBinding &resource_binding,
     render_graph::VKResourceAccessInfo &access_info)
 {
-  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
   if (supports_local_read) {
     VKTexture *texture = static_cast<VKTexture *>(
         state_manager.images_.get(resource_binding.binding));
@@ -170,7 +170,7 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
                                VK_REMAINING_ARRAY_LAYERS});
   }
   else {
-    bool supports_dynamic_rendering = !device.workarounds_get().dynamic_rendering;
+    bool supports_dynamic_rendering = device.extensions_get().dynamic_rendering;
     const BindSpaceTextures::Elem &elem = state_manager.textures_.get(resource_binding.binding);
     VKTexture *texture = static_cast<VKTexture *>(elem.resource);
     BLI_assert(texture);

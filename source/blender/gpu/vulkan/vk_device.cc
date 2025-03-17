@@ -112,8 +112,8 @@ void VKDevice::init(void *ghost_context)
   debug::object_label(queue_get(), "GenericQueue");
   init_glsl_patch();
 
-  resources.use_dynamic_rendering = !workarounds_.dynamic_rendering;
-  resources.use_dynamic_rendering_local_read = !workarounds_.dynamic_rendering_local_read;
+  resources.use_dynamic_rendering = extensions_.dynamic_rendering;
+  resources.use_dynamic_rendering_local_read = extensions_.dynamic_rendering_local_read;
   orphaned_data.timeline_ = timeline_value_ + 1;
 
   init_submission_pool();
@@ -242,7 +242,7 @@ void VKDevice::init_glsl_patch()
     ss << "#extension GL_ARB_shader_stencil_export: enable\n";
     ss << "#define GPU_ARB_shader_stencil_export 1\n";
   }
-  if (!workarounds_.fragment_shader_barycentric) {
+  if (extensions_.fragment_shader_barycentric) {
     ss << "#extension GL_EXT_fragment_shader_barycentric : require\n";
     ss << "#define gpu_BaryCoord gl_BaryCoordEXT\n";
     ss << "#define gpu_BaryCoordNoPersp gl_BaryCoordNoPerspEXT\n";
@@ -475,7 +475,7 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
 
       vk_command_buffer = command_buffers_unused.pop_last();
       command_buffer = std::make_optional<render_graph::VKCommandBufferWrapper>(
-          vk_command_buffer, device->workarounds_);
+          vk_command_buffer, device->extensions_);
       command_buffer->begin_recording();
     }
 

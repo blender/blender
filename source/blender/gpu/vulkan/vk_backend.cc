@@ -342,6 +342,7 @@ void VKBackend::platform_init(const VKDevice &device)
 void VKBackend::detect_workarounds(VKDevice &device)
 {
   VKWorkarounds workarounds;
+  VKExtensions extensions;
 
   if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
     printf("\n");
@@ -349,35 +350,36 @@ void VKBackend::detect_workarounds(VKDevice &device)
     printf("    Vendor: %s\n", device.vendor_name().c_str());
     printf("    Device: %s\n", device.physical_device_properties_get().deviceName);
     printf("    Driver: %s\n", device.driver_version().c_str());
-    /* Force workarounds. */
+    /* Force workarounds and disable extensions. */
     workarounds.not_aligned_pixel_formats = true;
-    workarounds.shader_output_layer = true;
-    workarounds.shader_output_viewport_index = true;
     workarounds.vertex_formats.r8g8b8 = true;
-    workarounds.fragment_shader_barycentric = true;
-    workarounds.dynamic_rendering = true;
-    workarounds.dynamic_rendering_local_read = true;
-    workarounds.dynamic_rendering_unused_attachments = true;
+    extensions.shader_output_layer = false;
+    extensions.shader_output_viewport_index = false;
+    extensions.fragment_shader_barycentric = false;
+    extensions.dynamic_rendering = false;
+    extensions.dynamic_rendering_local_read = false;
+    extensions.dynamic_rendering_unused_attachments = false;
 
     GCaps.render_pass_workaround = true;
 
     device.workarounds_ = workarounds;
+    device.extensions_ = extensions;
     return;
   }
 
-  workarounds.shader_output_layer =
-      !device.physical_device_vulkan_12_features_get().shaderOutputLayer;
-  workarounds.shader_output_viewport_index =
-      !device.physical_device_vulkan_12_features_get().shaderOutputViewportIndex;
-  workarounds.fragment_shader_barycentric = !device.supports_extension(
+  extensions.shader_output_layer =
+      device.physical_device_vulkan_12_features_get().shaderOutputLayer;
+  extensions.shader_output_viewport_index =
+      device.physical_device_vulkan_12_features_get().shaderOutputViewportIndex;
+  extensions.fragment_shader_barycentric = device.supports_extension(
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
-  workarounds.dynamic_rendering = !device.supports_extension(
+  extensions.dynamic_rendering = device.supports_extension(
       VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-  workarounds.dynamic_rendering_local_read = !device.supports_extension(
+  extensions.dynamic_rendering_local_read = device.supports_extension(
       VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
-  workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
+  extensions.dynamic_rendering_unused_attachments = device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
-  workarounds.logic_ops = !device.physical_device_features_get().logicOp;
+  extensions.logic_ops = device.physical_device_features_get().logicOp;
 
   /* AMD GPUs don't support texture formats that use are aligned to 24 or 48 bits. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) ||
@@ -399,7 +401,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
   if ((G.debug & G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ) == 0 &&
       !GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY))
   {
-    workarounds.dynamic_rendering_local_read = true;
+    extensions.dynamic_rendering_local_read = false;
   }
 
   VkFormatProperties format_properties = {};
@@ -408,13 +410,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
   workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
                                        VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
 
-  workarounds.fragment_shader_barycentric = !device.supports_extension(
-      VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
-
-  GCaps.render_pass_workaround = workarounds.dynamic_rendering = !device.supports_extension(
-      VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-  workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
-      VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
+  GCaps.render_pass_workaround = !extensions.dynamic_rendering;
 
 #ifdef __APPLE__
   /* Due to a limitation in MoltenVK, attachments should be sequential even when using
@@ -426,6 +422,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
 #endif
 
   device.workarounds_ = workarounds;
+  device.extensions_ = extensions;
 }
 
 void VKBackend::platform_exit()

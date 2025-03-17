@@ -29,6 +29,37 @@
 namespace blender::gpu {
 class VKBackend;
 
+struct VKExtensions {
+  /** Does the device support VkPhysicalDeviceVulkan12Features::shaderOutputViewportIndex. */
+  bool shader_output_viewport_index = false;
+  /** Does the device support VkPhysicalDeviceVulkan12Features::shaderOutputLayer. */
+  bool shader_output_layer = false;
+  /**
+   * Does the device support
+   * VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR::fragmentShaderBarycentric.
+   */
+  bool fragment_shader_barycentric = false;
+  /**
+   * Does the device support VK_KHR_dynamic_rendering enabled.
+   */
+  bool dynamic_rendering = false;
+
+  /**
+   * Does the device support VK_KHR_dynamic_rendering_local_read enabled.
+   */
+  bool dynamic_rendering_local_read = false;
+
+  /**
+   * Does the device support VK_EXT_dynamic_rendering_unused_attachments.
+   */
+  bool dynamic_rendering_unused_attachments = false;
+
+  /**
+   * Does the device support logic ops.
+   */
+  bool logic_ops = false;
+};
+
 /* TODO: Split into VKWorkarounds and VKExtensions to remove the negating when an extension isn't
  * supported. */
 struct VKWorkarounds {
@@ -40,18 +71,6 @@ struct VKWorkarounds {
    */
   bool not_aligned_pixel_formats = false;
 
-  /**
-   * Is the workaround for devices that don't support
-   * #VkPhysicalDeviceVulkan12Features::shaderOutputViewportIndex enabled.
-   */
-  bool shader_output_viewport_index = false;
-
-  /**
-   * Is the workaround for devices that don't support
-   * #VkPhysicalDeviceVulkan12Features::shaderOutputLayer enabled.
-   */
-  bool shader_output_layer = false;
-
   struct {
     /**
      * Is the workaround enabled for devices that don't support using VK_FORMAT_R8G8B8_* as vertex
@@ -59,34 +78,6 @@ struct VKWorkarounds {
      */
     bool r8g8b8 = false;
   } vertex_formats;
-
-  /**
-   * Is the workaround for devices that don't support
-   * #VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR::fragmentShaderBarycentric enabled.
-   * If set to true, the backend would inject a geometry shader to produce barycentric coordinates.
-   */
-  bool fragment_shader_barycentric = false;
-
-  /**
-   * Is the workarounds for devices that don't support VK_KHR_dynamic_rendering enabled.
-   */
-  bool dynamic_rendering = false;
-
-  /**
-   * Is the workarounds for devices that don't support VK_KHR_dynamic_rendering_local_read enabled.
-   */
-  bool dynamic_rendering_local_read = false;
-
-  /**
-   * Is the workarounds for devices that don't support VK_EXT_dynamic_rendering_unused_attachments
-   * enabled.
-   */
-  bool dynamic_rendering_unused_attachments = false;
-
-  /**
-   * Is the workarounds for devices that don't support Logic Ops enabled.
-   */
-  bool logic_ops = false;
 };
 
 /**
@@ -214,6 +205,7 @@ class VKDevice : public NonCopyable {
 
   /* Workarounds */
   VKWorkarounds workarounds_;
+  VKExtensions extensions_;
 
   std::string glsl_patch_;
   Vector<VKThreadData *> thread_data_;
@@ -341,6 +333,10 @@ class VKDevice : public NonCopyable {
   const VKWorkarounds &workarounds_get() const
   {
     return workarounds_;
+  }
+  const VKExtensions &extensions_get() const
+  {
+    return extensions_;
   }
 
   const char *glsl_patch_get() const;

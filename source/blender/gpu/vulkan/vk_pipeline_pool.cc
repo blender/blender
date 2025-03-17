@@ -298,7 +298,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
       graphics_info.fragment_shader.scissors.size();
 
   /* Color blending */
-  const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
+  const VKExtensions &extensions = VKBackend::get().device.extensions_get();
   {
     VkPipelineColorBlendStateCreateInfo &cb = vk_pipeline_color_blend_state_create_info_;
     VkPipelineColorBlendAttachmentState &att_state =
@@ -422,7 +422,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
     }
 
     /* Logic ops. */
-    if (graphics_info.state.logic_op_xor && !workarounds.logic_ops) {
+    if (graphics_info.state.logic_op_xor && extensions.logic_ops) {
       cb.logicOpEnable = VK_TRUE;
       cb.logicOp = VK_LOGIC_OP_XOR;
     }
@@ -544,13 +544,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   }
 
   /* VK_KHR_dynamic_rendering */
-  if (workarounds.dynamic_rendering) {
-    BLI_assert(ELEM(
-        vk_graphics_pipeline_create_info_.pNext, &vk_pipeline_rendering_create_info_, nullptr));
-    vk_graphics_pipeline_create_info_.pNext = nullptr;
-    vk_graphics_pipeline_create_info_.renderPass = graphics_info.fragment_out.vk_render_pass;
-  }
-  else {
+  if (extensions.dynamic_rendering) {
     vk_pipeline_rendering_create_info_.depthAttachmentFormat =
         graphics_info.fragment_out.depth_attachment_format;
     vk_pipeline_rendering_create_info_.stencilAttachmentFormat =
@@ -559,6 +553,12 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
         graphics_info.fragment_out.color_attachment_formats.size();
     vk_pipeline_rendering_create_info_.pColorAttachmentFormats =
         graphics_info.fragment_out.color_attachment_formats.data();
+  }
+  else {
+    BLI_assert(ELEM(
+        vk_graphics_pipeline_create_info_.pNext, &vk_pipeline_rendering_create_info_, nullptr));
+    vk_graphics_pipeline_create_info_.pNext = nullptr;
+    vk_graphics_pipeline_create_info_.renderPass = graphics_info.fragment_out.vk_render_pass;
   }
 
   /* Common values */
