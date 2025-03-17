@@ -198,17 +198,6 @@ inline OperationNode *flush_schedule_children(OperationNode *op_node, FlushQueue
   return result;
 }
 
-void flush_engine_data_update(ID *id)
-{
-  DrawDataList *draw_data_list = DRW_drawdatalist_from_id(id);
-  if (draw_data_list == nullptr) {
-    return;
-  }
-  LISTBASE_FOREACH (DrawData *, draw_data, draw_data_list) {
-    draw_data->recalc |= id->recalc;
-  }
-}
-
 /* NOTE: It will also accumulate flags from changed components. */
 void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *update_ctx)
 {
@@ -245,8 +234,6 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
       if (graph->is_active && id_node->is_user_modified) {
         deg_editors_id_update(update_ctx, id_orig);
       }
-      /* Inform draw engines that something was changed. */
-      flush_engine_data_update(id_cow);
     }
   }
 }

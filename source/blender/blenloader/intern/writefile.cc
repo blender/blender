@@ -1275,11 +1275,6 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, const bool is_undo)
   temp_id->py_instance = nullptr;
   /* Clear runtime data struct. */
   memset(&temp_id->runtime, 0, sizeof(temp_id->runtime));
-
-  DrawDataList *drawdata = DRW_drawdatalist_from_id(temp_id);
-  if (drawdata) {
-    BLI_listbase_clear(reinterpret_cast<ListBase *>(drawdata));
-  }
 }
 
 BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, BlendWriter *writer)

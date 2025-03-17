@@ -635,99 +635,6 @@ void DupliCacheManager::extract_all(ExtractionGraph &extraction)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Draw Data (DRW_drawdata)
- * \{ */
-
-/* Used for DRW_drawdata_from_id()
- * All ID-data-blocks which have their own 'local' DrawData
- * should have the same arrangement in their structs.
- */
-struct IdDdtTemplate {
-  ID id;
-  AnimData *adt;
-  DrawDataList drawdata;
-};
-
-/* Check if ID can have AnimData */
-static bool id_type_can_have_drawdata(const short id_type)
-{
-  /* Only some ID-blocks have this info for now */
-  /* TODO: finish adding this for the other block-types. */
-  switch (id_type) {
-    /* has DrawData */
-    case ID_OB:
-    case ID_WO:
-    case ID_SCE:
-    case ID_TE:
-    case ID_MSK:
-    case ID_MC:
-    case ID_IM:
-      return true;
-
-    /* no DrawData */
-    default:
-      return false;
-  }
-}
-
-static bool id_can_have_drawdata(const ID *id)
-{
-  /* sanity check */
-  if (id == nullptr) {
-    return false;
-  }
-
-  return id_type_can_have_drawdata(GS(id->name));
-}
-
-DrawDataList *DRW_drawdatalist_from_id(ID *id)
-{
-  /* only some ID-blocks have this info for now, so we cast the
-   * types that do to be of type IdDdtTemplate, and extract the
-   * DrawData that way
-   */
-  if (id_can_have_drawdata(id)) {
-    IdDdtTemplate *idt = (IdDdtTemplate *)id;
-    return &idt->drawdata;
-  }
-
-  return nullptr;
-}
-
-void DRW_drawdata_free(ID *id)
-{
-  DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
-
-  if (drawdata == nullptr) {
-    return;
-  }
-
-  LISTBASE_FOREACH (DrawData *, dd, drawdata) {
-    if (dd->free != nullptr) {
-      dd->free(dd);
-    }
-  }
-
-  BLI_freelistN((ListBase *)drawdata);
-}
-
-/* Unlink (but don't free) the drawdata from the DrawDataList if the ID is an OB from dupli. */
-static void drw_drawdata_unlink_dupli(ID *id)
-{
-  if ((GS(id->name) == ID_OB) && (((Object *)id)->base_flag & BASE_FROM_DUPLI) != 0) {
-    DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
-
-    if (drawdata == nullptr) {
-      return;
-    }
-
-    BLI_listbase_clear((ListBase *)drawdata);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name ObjectRef
  * \{ */
 
@@ -802,12 +709,6 @@ void DRW_cache_free_old_batches(Main *bmain)
 
 static void drw_engines_cache_populate(blender::draw::ObjectRef &ref, ExtractionGraph &extraction)
 {
-  /* HACK: DrawData is copied by copy-on-eval from the duplicated object.
-   * This is valid for IDs that cannot be instantiated but this
-   * is not what we want in this case so we clear the pointer
-   * ourselves here. */
-  drw_drawdata_unlink_dupli((ID *)ref.object);
-
   /* Validation for dupli objects happen elsewhere. */
   if (ref.is_dupli() == false) {
     drw_batch_cache_validate(ref.object);
@@ -822,10 +723,6 @@ static void drw_engines_cache_populate(blender::draw::ObjectRef &ref, Extraction
   if (ref.is_dupli() == false) {
     drw_batch_cache_generate_requested(ref.object, *extraction.graph);
   }
-
-  /* ... and clearing it here too because this draw data is
-   * from a mempool and must not be free individually by depsgraph. */
-  drw_drawdata_unlink_dupli((ID *)ref.object);
 }
 
 void DRWContext::sync(iter_callback_t iter_callback)

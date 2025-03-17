@@ -2293,11 +2293,6 @@ static void direct_link_id_common(BlendDataReader *reader,
     }
   }
 
-  DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
-  if (drawdata) {
-    BLI_listbase_clear((ListBase *)drawdata);
-  }
-
   /* Handle 'private IDs'. */
   direct_link_id_embedded_id(reader, current_library, id, id_old);
 }

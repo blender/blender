@@ -176,9 +176,6 @@ void DRW_render_object_iter(
     Depsgraph *depsgraph,
     std::function<void(blender::draw::ObjectRef &, RenderEngine *, Depsgraph *)>);
 
-/**
- * \warning Changing frame might free the #ViewLayerEngineData.
- */
 void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, float subframe);
 
 /**

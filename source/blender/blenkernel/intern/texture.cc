@@ -107,8 +107,6 @@ static void texture_copy_data(Main *bmain,
     }
   }
 
-  BLI_listbase_clear((ListBase *)&texture_dst->drawdata);
-
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
     BKE_previewimg_id_copy(&texture_dst->id, &texture_src->id);
   }
@@ -120,8 +118,6 @@ static void texture_copy_data(Main *bmain,
 static void texture_free_data(ID *id)
 {
   Tex *texture = (Tex *)id;
-
-  DRW_drawdata_free(id);
 
   /* is no lib link block, but texture extension */
   if (texture->nodetree) {

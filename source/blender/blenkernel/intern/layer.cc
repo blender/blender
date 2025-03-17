@@ -253,15 +253,6 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 {
   BKE_view_layer_free_object_content(view_layer);
 
-  LISTBASE_FOREACH (ViewLayerEngineData *, sled, &view_layer->drawdata) {
-    if (sled->storage) {
-      if (sled->free) {
-        sled->free(sled->storage);
-      }
-      MEM_freeN(sled->storage);
-    }
-  }
-  BLI_freelistN(&view_layer->drawdata);
   BLI_freelistN(&view_layer->aovs);
   view_layer->active_aov = nullptr;
   BLI_freelistN(&view_layer->lightgroups);
@@ -520,7 +511,6 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
   view_layer_dst->stats = nullptr;
 
   /* Clear temporary data. */
-  BLI_listbase_clear(&view_layer_dst->drawdata);
   view_layer_dst->object_bases_array = nullptr;
   view_layer_dst->object_bases_hash = nullptr;
 
@@ -2476,7 +2466,6 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
   BLO_read_struct_list(reader, ViewLayerLightgroup, &view_layer->lightgroups);
   BLO_read_struct(reader, ViewLayerLightgroup, &view_layer->active_lightgroup);
 
-  BLI_listbase_clear(&view_layer->drawdata);
   view_layer->object_bases_array = nullptr;
   view_layer->object_bases_hash = nullptr;
 }

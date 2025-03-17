@@ -208,7 +208,6 @@ static void image_copy_data(Main * /*bmain*/,
   }
 
   BLI_listbase_clear(&image_dst->anims);
-  BLI_listbase_clear(reinterpret_cast<ListBase *>(&image_dst->drawdata));
 
   BLI_duplicatelist(&image_dst->tiles, &image_src->tiles);
 
@@ -252,7 +251,6 @@ static void image_free_data(ID *id)
   BKE_previewimg_free(&image->preview);
 
   BLI_freelistN(&image->tiles);
-  DRW_drawdata_free(id);
 
   image_runtime_free_data(image);
 }

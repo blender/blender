@@ -249,7 +249,6 @@ static void object_copy_data(Main *bmain,
   BKE_object_modifier_stack_copy(ob_dst, ob_src, true, flag_subdata);
   BLI_assert(BKE_modifiers_persistent_uids_are_valid(*ob_dst));
 
-  BLI_listbase_clear((ListBase *)&ob_dst->drawdata);
   BLI_listbase_clear(&ob_dst->pc_ids);
 
   ob_dst->avs = ob_src->avs;
@@ -288,8 +287,6 @@ static void object_copy_data(Main *bmain,
 static void object_free_data(ID *id)
 {
   Object *ob = (Object *)id;
-
-  DRW_drawdata_free((ID *)ob);
 
   /* BKE_<id>_free shall never touch to ID->us. Never ever. */
   BKE_object_free_modifiers(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
