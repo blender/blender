@@ -863,7 +863,7 @@ VkPrimitiveTopology to_vk_primitive_topology(const GPUPrimType prim_type)
     case GPU_PRIM_LINE_STRIP:
       return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     case GPU_PRIM_LINE_LOOP:
-      return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+      return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     case GPU_PRIM_TRI_STRIP:
       return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     case GPU_PRIM_TRI_FAN:
