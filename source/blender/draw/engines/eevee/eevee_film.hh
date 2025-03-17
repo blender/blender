@@ -125,8 +125,6 @@ class Film {
 
   void write_viewport_compositor_passes();
 
-  bool is_viewport_compositor_enabled() const;
-
   /** Returns shading views internal resolution. Includes overscan pixels. */
   int2 render_extent_get() const
   {

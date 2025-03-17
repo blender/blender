@@ -30,7 +30,7 @@ static void render_init(Instance &inst,
                         const rcti *rect)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  const int2 size = int2(DRW_viewport_size_get());
+  const int2 size = int2(DRW_context_get()->viewport_size_get());
 
   /* Set the perspective & view matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];

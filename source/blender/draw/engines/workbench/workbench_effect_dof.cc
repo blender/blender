@@ -162,7 +162,7 @@ void DofPass::sync(SceneResources &resources)
 
   GPUSamplerState sampler_state = {GPU_SAMPLER_FILTERING_LINEAR | GPU_SAMPLER_FILTERING_MIPMAP};
 
-  const float2 viewport_size_inv = 1.0f / DRW_viewport_size_get();
+  const float2 viewport_size_inv = 1.0f / DRW_context_get()->viewport_size_get();
 
   down_ps_.init();
   down_ps_.state_set(DRW_STATE_WRITE_COLOR);

@@ -102,7 +102,7 @@ void SceneState::init(bool scene_updated, Object *camera_ob /*=nullptr*/)
 
   scene = DEG_get_evaluated_scene(context->depsgraph);
 
-  if (assign_if_different(resolution, int2(DRW_viewport_size_get()))) {
+  if (assign_if_different(resolution, int2(DRW_context_get()->viewport_size_get()))) {
     /* In some cases, the viewport can change resolution without a call to `workbench_view_update`.
      * This is the case when dragging a window between two screen with different DPI settings.
      * (See #128712) */
@@ -190,8 +190,8 @@ void SceneState::init(bool scene_updated, Object *camera_ob /*=nullptr*/)
     reset_taa = true;
   }
 
-  bool is_playback = DRW_state_is_playback();
-  bool is_navigating = DRW_state_is_navigating();
+  bool is_playback = context->is_playback();
+  bool is_navigating = context->is_navigating();
 
   /* Reset complete drawing when navigating or during viewport playback or when
    * leaving one of those states. In case of multires modifier the navigation

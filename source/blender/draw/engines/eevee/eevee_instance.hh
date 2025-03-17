@@ -148,12 +148,14 @@ class Instance : public DrawEngine {
   bool is_playback = false;
   /** True if current viewport is drawn during navigation operator. */
   bool is_navigating = false;
-  /** True if current viewport is drawn during painting operating. */
+  /** True if current viewport is drawn during painting operator. */
   bool is_painting = false;
-  /** True if current viewport is drawn during transforming operating. */
+  /** True if current viewport is drawn during transforming operator. */
   bool is_transforming = false;
-  /** True if support (overlays) need to be displayed (only for viewport). */
-  bool draw_support = false;
+  /** True if viewport compositor is enabled when drawing with this instance. */
+  bool is_viewport_compositor_enabled = false;
+  /** True if overlays need to be displayed (only for viewport). */
+  bool draw_overlays = false;
 
   /** View-layer overrides. */
   bool use_surfaces = true;

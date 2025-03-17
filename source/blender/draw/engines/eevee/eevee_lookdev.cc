@@ -333,7 +333,7 @@ void LookdevModule::sync_display()
 {
   PassSimple &pass = display_ps_;
 
-  const float2 viewport_size = DRW_viewport_size_get();
+  const float2 viewport_size = DRW_context_get()->viewport_size_get();
   const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
                          DRW_STATE_BLEND_ALPHA;
   pass.init();

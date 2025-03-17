@@ -233,7 +233,7 @@ void Instance::begin_sync()
 
   if (this->do_fast_drawing) {
     this->snapshot_buffer_dirty = !this->snapshot_depth_tx.is_valid();
-    const float2 size = DRW_viewport_size_get();
+    const float2 size = DRW_context_get()->viewport_size_get();
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT;
     this->snapshot_depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, int2(size), usage);
@@ -274,7 +274,7 @@ void Instance::begin_sync()
 
   /* Pseudo DOF setup. */
   if (cam && (cam->dof.flag & CAM_DOF_ENABLED)) {
-    const float2 vp_size = DRW_viewport_size_get();
+    const float2 vp_size = DRW_context_get()->viewport_size_get();
     float fstop = cam->dof.aperture_fstop;
     float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
     float focus_dist = BKE_camera_object_dof_distance(this->camera);
@@ -481,7 +481,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
     pass.push_constant("gpMaterialOffset", mat_ofs);
     /* Since we don't use the sbuffer in GPv3, this is always 0. */
     pass.push_constant("gpStrokeIndexOffset", 0.0f);
-    pass.push_constant("viewportSize", float2(DRW_viewport_size_get()));
+    pass.push_constant("viewportSize", float2(DRW_context_get()->viewport_size_get()));
 
     const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
@@ -631,7 +631,7 @@ void Instance::acquire_resources()
     return;
   }
 
-  const int2 size = int2(DRW_viewport_size_get());
+  const int2 size = int2(DRW_context_get()->viewport_size_get());
 
   eGPUTextureFormat format = this->use_signed_fb ? GPU_RGBA16F : GPU_R11F_G11F_B10F;
 

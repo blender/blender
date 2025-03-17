@@ -103,7 +103,7 @@ void Instance::init()
     }
 
     if (DRW_state_is_viewport_image_render()) {
-      const float2 vp_size = DRW_viewport_size_get();
+      const float2 vp_size = DRW_context_get()->viewport_size_get();
       visible_rect.xmax = vp_size[0];
       visible_rect.ymax = vp_size[1];
       visible_rect.xmin = visible_rect.ymin = 0;
@@ -140,13 +140,15 @@ void Instance::init(const int2 &output_res,
   info_ = "";
 
   if (is_viewport()) {
+    const DRWContext &viewport_ctx = *DRW_context_get();
     is_image_render = DRW_state_is_image_render();
     is_viewport_image_render = DRW_state_is_viewport_image_render();
-    is_playback = DRW_state_is_playback();
-    is_navigating = DRW_state_is_navigating();
-    is_painting = DRW_state_is_painting();
-    is_transforming = (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) != 0;
-    draw_support = DRW_state_draw_support();
+    is_viewport_compositor_enabled = viewport_ctx.is_viewport_compositor_enabled();
+    is_playback = viewport_ctx.is_playback();
+    is_navigating = viewport_ctx.is_navigating();
+    is_painting = viewport_ctx.is_painting();
+    is_transforming = viewport_ctx.is_transforming();
+    draw_overlays = v3d && (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
 
     /* Note: Do not update the value here as we use it during sync for checking ID updates. */
     if (depsgraph_last_update_ != DEG_get_update_count(depsgraph)) {
@@ -646,14 +648,14 @@ void Instance::draw_viewport()
   render_sample();
   velocity.step_swap();
 
-  if (this->film.is_viewport_compositor_enabled()) {
+  if (is_viewport_compositor_enabled) {
     this->film.write_viewport_compositor_passes();
   }
 
   /* Do not request redraw during viewport animation to lock the frame-rate to the animation
    * playback rate. This is in order to preserve motion blur aspect and also to avoid TAA reset
    * that can show flickering. */
-  if (!sampling.finished_viewport() && !DRW_state_is_playback()) {
+  if (!sampling.finished_viewport() && !is_playback) {
     DRW_viewport_request_redraw();
   }
 
@@ -684,7 +686,7 @@ void Instance::draw_viewport_image_render()
   }
   velocity.step_swap();
 
-  if (this->film.is_viewport_compositor_enabled()) {
+  if (is_viewport_compositor_enabled) {
     this->film.write_viewport_compositor_passes();
   }
 }

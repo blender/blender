@@ -42,8 +42,8 @@ void Instance::init()
   state.is_image_render = DRW_state_is_image_render();
   state.is_depth_only_drawing = ctx->is_depth();
   state.is_material_select = ctx->is_material_select();
-  state.draw_background = DRW_state_draw_background();
-  state.show_text = DRW_state_show_text();
+  state.draw_background = ctx->options.draw_background;
+  state.show_text = ctx->options.draw_text;
 
   /* Note there might be less than 6 planes, but we always compute the 6 of them for simplicity. */
   state.clipping_plane_count = clipping_enabled_ ? 6 : 0;
@@ -376,7 +376,8 @@ void Resources::update_theme_settings(const State &state)
 
   gb->pixel_fac = (state.rv3d) ? state.rv3d->pixsize : 1.0f;
 
-  gb->size_viewport = float4(DRW_viewport_size_get(), 1.0f / DRW_viewport_size_get());
+  gb->size_viewport = float4(DRW_context_get()->viewport_size_get(),
+                             1.0f / DRW_context_get()->viewport_size_get());
 
   /* Color management. */
   {
@@ -640,7 +641,7 @@ void Instance::end_sync()
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
     if (dtxl->depth_in_front == nullptr) {
-      int2 size = int2(DRW_viewport_size_get());
+      int2 size = int2(DRW_context_get()->viewport_size_get());
 
       dtxl->depth_in_front = GPU_texture_create_2d("txl.depth_in_front",
                                                    size.x,

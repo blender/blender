@@ -25,7 +25,7 @@ namespace blender::eevee {
 
 void VolumeProbeModule::init()
 {
-  display_grids_enabled_ = inst_.draw_support;
+  display_grids_enabled_ = inst_.draw_overlays;
 
   /* This might become an option in the future. */
   bool use_l2_band = false;

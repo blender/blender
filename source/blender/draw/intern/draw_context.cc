@@ -364,11 +364,6 @@ bool DRW_object_is_visible_psys_in_active_context(const Object *object, const Pa
 /** \name Viewport (DRW_viewport)
  * \{ */
 
-blender::float2 DRW_viewport_size_get()
-{
-  return blender::float2(drw_get().size);
-}
-
 DRWData *DRW_viewport_data_create()
 {
   DRWData *drw_data = static_cast<DRWData *>(MEM_callocN(sizeof(DRWData), "DRWData"));
@@ -890,9 +885,7 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
       view_data.grease_pencil.set_used(gpencil_engine_needed);
     }
 
-    if (DRW_state_viewport_compositor_enabled()) {
-      view_data.compositor.set_used(true);
-    }
+    view_data.compositor.set_used(is_viewport_compositor_enabled());
 
     view_data.overlay.set_used(true);
 
@@ -1911,7 +1904,7 @@ bool DRW_draw_in_progress()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Draw Manager State (DRW_state)
+/** \name Draw Manager State
  * \{ */
 
 const DRWContext *DRW_context_get()
@@ -1919,74 +1912,58 @@ const DRWContext *DRW_context_get()
   return &drw_get();
 }
 
-bool DRW_state_is_playback()
+bool DRWContext::is_playback() const
 {
-  DRWContext &draw_ctx = drw_get();
-  if (draw_ctx.evil_C != nullptr) {
-    wmWindowManager *wm = CTX_wm_manager(draw_ctx.evil_C);
+  if (this->evil_C != nullptr) {
+    wmWindowManager *wm = CTX_wm_manager(this->evil_C);
     return ED_screen_animation_playing(wm) != nullptr;
   }
   return false;
 }
 
-bool DRW_state_is_navigating()
+bool DRWContext::is_navigating() const
 {
-  const RegionView3D *rv3d = drw_get().rv3d;
   return (rv3d) && (rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING));
 }
 
-bool DRW_state_is_painting()
+bool DRWContext::is_painting() const
 {
-  const RegionView3D *rv3d = drw_get().rv3d;
   return (rv3d) && (rv3d->rflag & (RV3D_PAINTING));
 }
 
-bool DRW_state_show_text()
+bool DRWContext::is_transforming() const
 {
-  return drw_get().options.draw_text;
+  return (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) != 0;
 }
 
-bool DRW_state_draw_support()
+bool DRWContext::is_viewport_compositor_enabled() const
 {
-  View3D *v3d = drw_get().v3d;
-  return (DRW_state_is_scene_render() == false) && (v3d != nullptr) &&
-         ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0);
-}
-
-bool DRW_state_draw_background()
-{
-  return drw_get().options.draw_background;
-}
-
-bool DRW_state_viewport_compositor_enabled()
-{
-  DRWContext &draw_ctx = drw_get();
-  if (!draw_ctx.v3d) {
+  if (!this->v3d) {
     return false;
   }
 
-  if (draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
+  if (this->v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
     return false;
   }
 
-  if (!(draw_ctx.v3d->shading.type >= OB_MATERIAL)) {
+  if (!(this->v3d->shading.type >= OB_MATERIAL)) {
     return false;
   }
 
-  if (!draw_ctx.scene->use_nodes) {
+  if (!this->scene->use_nodes) {
     return false;
   }
 
-  if (!draw_ctx.scene->nodetree) {
+  if (!this->scene->nodetree) {
     return false;
   }
 
-  if (!draw_ctx.rv3d) {
+  if (!this->rv3d) {
     return false;
   }
 
-  if (draw_ctx.v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_CAMERA &&
-      draw_ctx.rv3d->persp != RV3D_CAMOB)
+  if (this->v3d->shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_CAMERA &&
+      this->rv3d->persp != RV3D_CAMOB)
   {
     return false;
   }

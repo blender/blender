@@ -2012,7 +2012,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
   EditBone *eBone;
   int index;
   const bool is_select = ctx->res->is_selection();
-  const bool show_text = DRW_state_show_text();
+  const bool show_text = ctx->show_text;
 
   const Object *ob_orig = DEG_get_original_object(ob);
   /* FIXME(@ideasman42): We should be able to use the evaluated object,
@@ -2083,7 +2083,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
   const Scene *scene = draw_ctx->scene;
   bArmature *arm = static_cast<bArmature *>(ob->data);
   int index = -1;
-  const bool show_text = DRW_state_show_text();
+  const bool show_text = ctx->show_text;
   bool draw_locked_weights = false;
 
   /* We can't safely draw non-updated pose, might contain nullptr bone pointers... */

@@ -492,6 +492,7 @@ class Armatures : Overlay {
     bool show_relations = false;
     bool draw_envelope_distance = false;
     bool draw_relation_from_head = false;
+    bool show_text = false;
     /* Draw the inner part of the bones, otherwise render just outlines. */
     bool is_filled = false;
 
@@ -526,6 +527,7 @@ class Armatures : Overlay {
     ctx.do_relations = show_relations && is_edit_or_pose_mode;
     ctx.draw_envelope_distance = is_edit_or_pose_mode;
     ctx.draw_relation_from_head = (arm->flag & ARM_DRAW_RELATION_FROM_HEAD);
+    ctx.show_text = state.show_text;
     ctx.const_color = is_edit_or_pose_mode ? nullptr : &res.object_wire_color(ob_ref, state)[0];
     ctx.const_wire = (!ctx.is_filled || is_transparent) ? 1.0f : 0.0f;
     if ((ctx.ob->base_flag & BASE_SELECTED) && show_outline) {

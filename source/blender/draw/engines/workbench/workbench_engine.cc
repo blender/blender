@@ -570,7 +570,7 @@ using namespace blender;
 static bool workbench_render_framebuffers_init()
 {
   /* For image render, allocate own buffers because we don't have a viewport. */
-  const float2 viewport_size = DRW_viewport_size_get();
+  const float2 viewport_size = DRW_context_get()->viewport_size_get();
   const int2 size = {int(viewport_size.x), int(viewport_size.y)};
 
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
