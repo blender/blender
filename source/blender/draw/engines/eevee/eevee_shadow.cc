@@ -591,8 +591,8 @@ void ShadowModule::init()
   bool update_lights = false;
   bool enable_shadow = (scene.eevee.flag & SCE_EEVEE_SHADOW_ENABLED) != 0;
   bool use_jitter = enable_shadow &&
-                    (inst_.is_image_render() ||
-                     (!inst_.is_navigating() && !inst_.is_transforming() && !inst_.is_playback() &&
+                    (inst_.is_image_render ||
+                     (!inst_.is_navigating && !inst_.is_transforming && !inst_.is_playback &&
                       (scene.eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT)));
   update_lights |= assign_if_different(enabled_, enable_shadow);
   update_lights |= assign_if_different(data_.use_jitter, bool32_t(use_jitter));
@@ -1172,7 +1172,7 @@ bool ShadowModule::shadow_update_finished(int loop_count)
     return true;
   }
 
-  if (!inst_.is_image_render()) {
+  if (!inst_.is_image_render) {
     /* For viewport, only run the shadow update once per redraw.
      * This avoids the stall from the read-back and freezes from long shadow update. */
     return true;
@@ -1204,7 +1204,7 @@ bool ShadowModule::shadow_update_finished(int loop_count)
 
 int ShadowModule::max_view_per_tilemap()
 {
-  if (inst_.is_image_render()) {
+  if (inst_.is_image_render) {
     /* No need to limit updates per lights as we ensure all lights levels will be rendered.
      * is_image_render. */
     return SHADOW_TILEMAP_LOD;
@@ -1222,11 +1222,11 @@ int ShadowModule::max_view_per_tilemap()
   }
   int max_view_count = divide_ceil_u(SHADOW_VIEW_MAX, math::max(potential_view_count, 1));
   /* For viewport interactivity, have a hard maximum. This allows smoother experience. */
-  if (inst_.is_transforming() || inst_.is_navigating()) {
+  if (inst_.is_transforming || inst_.is_navigating) {
     max_view_count = math::min(2, max_view_count);
   }
   /* For animation playback, we always want the maximum performance. */
-  if (inst_.is_playback()) {
+  if (inst_.is_playback) {
     max_view_count = math::min(1, max_view_count);
   }
 

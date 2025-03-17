@@ -81,7 +81,7 @@ void VolumeModule::world_sync(const WorldHandle &world_handle)
     return;
   }
 
-  if (world_handle.recalc && !inst_.is_playback()) {
+  if (world_handle.recalc && !inst_.is_playback) {
     valid_history_ = false;
   }
 }
@@ -94,7 +94,7 @@ void VolumeModule::object_sync(const ObjectHandle &ob_handle)
     return;
   }
 
-  if (ob_handle.recalc && !inst_.is_playback()) {
+  if (ob_handle.recalc && !inst_.is_playback) {
     valid_history_ = false;
   }
 }
@@ -321,7 +321,7 @@ void VolumeModule::draw_prepass(View &main_view)
 
   /* Number of frame to consider for blending with exponential (infinite) average. */
   int exponential_frame_count = 16;
-  if (inst_.is_image_render()) {
+  if (inst_.is_image_render) {
     /* Disable reprojection for rendering. */
     exponential_frame_count = 0;
   }
@@ -329,20 +329,20 @@ void VolumeModule::draw_prepass(View &main_view)
     /* No re-projection if TAA is disabled. */
     exponential_frame_count = 0;
   }
-  else if (inst_.is_playback()) {
+  else if (inst_.is_playback) {
     /* For now, we assume we want responsiveness for volume animation.
      * But this makes general animation inside uniform volumes less stable.
      * When we introduce updated volume tagging, we will be able to increase this for general
      * playback. */
     exponential_frame_count = 3;
   }
-  else if (inst_.is_transforming()) {
+  else if (inst_.is_transforming) {
     /* Improve responsiveness of volume if we are transforming objects. */
     /* TODO(fclem): This is too general as it will be triggered even for non volume object.
      * Instead, we should tag which areas of the volume that need increased responsiveness. */
     exponential_frame_count = 3;
   }
-  else if (inst_.is_navigating()) {
+  else if (inst_.is_navigating) {
     /* Navigation is usually smooth because of the re-projection but we can get ghosting
      * artifacts on lights because of voxels stretched in Z or anisotropy. */
     exponential_frame_count = 8;

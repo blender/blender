@@ -315,7 +315,7 @@ void SphereProbeModule::set_view(View & /*view*/)
 void SphereProbeModule::sync_display(Vector<SphereProbe *> &probe_active)
 {
   do_display_draw_ = false;
-  if (!instance_.do_display_support()) {
+  if (!instance_.draw_support) {
     return;
   }
 

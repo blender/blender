@@ -29,7 +29,7 @@ void Sampling::init(const Scene *scene)
 {
   sample_count_ = inst_.is_viewport() ? scene->eevee.taa_samples : scene->eevee.taa_render_samples;
 
-  if (inst_.is_image_render()) {
+  if (inst_.is_image_render) {
     sample_count_ = math::max(uint64_t(1), sample_count_);
   }
 
@@ -102,7 +102,7 @@ void Sampling::end_sync()
     interactive_mode_ = viewport_sample_ < interactive_mode_threshold;
 
     bool interactive_mode_disabled = (inst_.scene->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0 ||
-                                     inst_.is_viewport_image_render();
+                                     inst_.is_viewport_image_render;
     if (interactive_mode_disabled) {
       interactive_mode_ = false;
       sample_ = viewport_sample_;

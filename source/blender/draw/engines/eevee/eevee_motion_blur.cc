@@ -29,7 +29,7 @@ void MotionBlurModule::init()
 
   /* Disable on viewport outside of animation playback,
    * since it can get distracting while editing the scene. */
-  enabled_ = (scene->r.mode & R_MBLUR) != 0 && (inst_.is_image_render() || inst_.is_playback());
+  enabled_ = (scene->r.mode & R_MBLUR) != 0 && (inst_.is_image_render || inst_.is_playback);
   if (enabled_) {
     enabled_ = (view_layer->layflag & SCE_LAY_MOTION_BLUR) != 0;
   }
@@ -201,7 +201,7 @@ void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **ou
   if (inst_.is_viewport()) {
     float frame_delta = fabsf(inst_.velocity.step_time_delta_get(STEP_PREVIOUS, STEP_CURRENT));
     /* Avoid highly disturbing blurs, during navigation with high shutter time. */
-    if (frame_delta > 0.0f && !inst_.is_navigating()) {
+    if (frame_delta > 0.0f && !inst_.is_navigating) {
       /* Rescale motion blur intensity to be shutter time relative and avoid long streak when we
        * have frame skipping. Always try to stick to what the render frame would look like. */
       data_.motion_scale = float2(shutter_time_ / frame_delta);
@@ -211,15 +211,15 @@ void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **ou
        * Apply motion blur as smoothing and only blur towards last frame. */
       data_.motion_scale = float2(1.0f, 0.0f);
 
-      if (was_navigating_ != inst_.is_navigating()) {
+      if (was_navigating_ != inst_.is_navigating) {
         /* Special case for navigation events that only last for one frame (for instance mouse
          * scroll for zooming). For this case we have to wait for the next frame before enabling
          * the navigation motion blur. */
-        was_navigating_ = inst_.is_navigating();
+        was_navigating_ = inst_.is_navigating;
         return;
       }
     }
-    was_navigating_ = inst_.is_navigating();
+    was_navigating_ = inst_.is_navigating;
   }
   else {
     data_.motion_scale = float2(1.0f);

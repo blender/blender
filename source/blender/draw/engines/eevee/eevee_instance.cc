@@ -139,13 +139,15 @@ void Instance::init(const int2 &output_res,
 
   info_ = "";
 
-  shaders_are_ready_ = shaders.static_shaders_are_ready(is_image_render());
-  if (!shaders_are_ready_) {
-    skip_render_ = true;
-    return;
-  }
-
   if (is_viewport()) {
+    is_image_render = DRW_state_is_image_render();
+    is_viewport_image_render = DRW_state_is_viewport_image_render();
+    is_playback = DRW_state_is_playback();
+    is_navigating = DRW_state_is_navigating();
+    is_painting = DRW_state_is_painting();
+    is_transforming = (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) != 0;
+    draw_support = DRW_state_draw_support();
+
     /* Note: Do not update the value here as we use it during sync for checking ID updates. */
     if (depsgraph_last_update_ != DEG_get_update_count(depsgraph)) {
       sampling.reset();
@@ -166,12 +168,21 @@ void Instance::init(const int2 &output_res,
     if (assign_if_different(overlays_enabled_, v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS))) {
       sampling.reset();
     }
-    if (is_painting()) {
+    if (is_painting) {
       sampling.reset();
     }
-    if (is_navigating() && scene->eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT) {
+    if (is_navigating && scene->eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT) {
       sampling.reset();
     }
+  }
+  else {
+    is_image_render = true;
+  }
+
+  shaders_are_ready_ = shaders.static_shaders_are_ready(is_image_render);
+  if (!shaders_are_ready_) {
+    skip_render_ = true;
+    return;
   }
 
   sampling.init(scene);
@@ -193,8 +204,8 @@ void Instance::init(const int2 &output_res,
   volume.init();
   lookdev.init(visible_rect);
 
-  shaders_are_ready_ = shaders.static_shaders_are_ready(is_image_render()) &&
-                       shaders.request_specializations(is_image_render(),
+  shaders_are_ready_ = shaders.static_shaders_are_ready(is_image_render) &&
+                       shaders.request_specializations(is_image_render,
                                                        render_buffers.data.shadow_id,
                                                        shadows.get_data().ray_count,
                                                        shadows.get_data().step_count);

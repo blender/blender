@@ -140,6 +140,21 @@ class Instance : public DrawEngine {
 
   /** True if the instance is created for light baking. */
   bool is_light_bake = false;
+  /** True if the instance is created for either viewport image render or final image render. */
+  bool is_image_render = false;
+  /** True if the instance is created only for viewport image render. */
+  bool is_viewport_image_render = false;
+  /** True if current viewport is drawn during playback. */
+  bool is_playback = false;
+  /** True if current viewport is drawn during navigation operator. */
+  bool is_navigating = false;
+  /** True if current viewport is drawn during painting operating. */
+  bool is_painting = false;
+  /** True if current viewport is drawn during transforming operating. */
+  bool is_transforming = false;
+  /** True if support (overlays) need to be displayed (only for viewport). */
+  bool draw_support = false;
+
   /** View-layer overrides. */
   bool use_surfaces = true;
   bool use_curves = true;
@@ -270,18 +285,6 @@ class Instance : public DrawEngine {
     return render == nullptr && !is_baking();
   }
 
-  bool is_image_render() const
-  {
-    /* WORKAROUND: During light baking, this may be called before a DRWContext is bound. */
-    return !is_light_bake && DRW_state_is_image_render();
-  }
-
-  bool is_viewport_image_render() const
-  {
-    /* WORKAROUND: During light baking, this may be called before a DRWContext is bound. */
-    return !is_light_bake && DRW_state_is_viewport_image_render();
-  }
-
   bool is_baking() const
   {
     return is_light_bake;
@@ -296,36 +299,6 @@ class Instance : public DrawEngine {
   bool gpencil_engine_enabled() const
   {
     return DEG_id_type_any_exists(depsgraph, ID_GP);
-  }
-
-  bool is_playback() const
-  {
-    /* WORKAROUND: During light baking, this may be called before a DRWContext is bound. */
-    return !is_light_bake && DRW_state_is_playback();
-  }
-
-  bool is_transforming() const
-  {
-    BLI_assert_msg(!is_image_render(), "Caller need to check, otherwise this is unsafe");
-    return (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) != 0;
-  }
-
-  bool is_navigating() const
-  {
-    /* WORKAROUND: During light baking, this may be called before a DRWContext is bound. */
-    return !is_light_bake && DRW_state_is_navigating();
-  }
-
-  bool is_painting() const
-  {
-    /* WORKAROUND: During light baking, this may be called before a DRWContext is bound. */
-    return !is_light_bake && DRW_state_is_painting();
-  }
-
-  bool do_display_support() const
-  {
-    /* WORKAROUND: During light baking, this may be called before a DRWContext is bound. */
-    return !is_light_bake && DRW_state_draw_support();
   }
 
   bool use_scene_lights() const
