@@ -517,14 +517,14 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
             driversOk \
           } \
         } \
-        else if (ANIMDATA_HAS_ACTION_LAYERED(id)) { \
-          layeredActionOk \
-        } \
         else { \
           if (ANIMDATA_HAS_NLA(id)) { \
             nlaKeysOk \
           } \
-          if (ANIMDATA_HAS_ACTION_LEGACY(id)) { \
+          if (ANIMDATA_HAS_ACTION_LAYERED(id)) { \
+            layeredActionOk \
+          } \
+          else if (ANIMDATA_HAS_ACTION_LEGACY(id)) { \
             legacyActionOk \
           } \
         } \
