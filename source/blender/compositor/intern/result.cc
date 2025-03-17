@@ -513,11 +513,24 @@ void Result::free()
     return;
   }
 
-  /* Data is still shared with some other result, so decrement data reference count and do not free
-   * anything. */
+  /* Data is still shared with some other result, so decrement data reference count and reset data
+   * members without actually freeing the data itself. */
   BLI_assert(*data_reference_count_ >= 1);
   if (*data_reference_count_ != 1) {
     (*data_reference_count_)--;
+
+    switch (storage_type_) {
+      case ResultStorageType::GPU:
+        gpu_texture_ = nullptr;
+        break;
+      case ResultStorageType::CPU:
+        cpu_data_ = GMutableSpan();
+        break;
+    }
+
+    data_reference_count_ = nullptr;
+    derived_resources_ = nullptr;
+
     return;
   }
 
