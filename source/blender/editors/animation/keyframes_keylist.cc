@@ -556,7 +556,7 @@ static ActKeyColumn *nalloc_ak_gpframe(void *data)
 {
   ActKeyColumn *ak = static_cast<ActKeyColumn *>(
       MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumnGPF"));
-  const bGPDframe *gpf = (bGPDframe *)data;
+  const bGPDframe *gpf = static_cast<bGPDframe *>(data);
 
   /* store settings based on state of BezTriple */
   ak->cfra = gpf->framenum;
@@ -576,7 +576,7 @@ static ActKeyColumn *nalloc_ak_gpframe(void *data)
 /* Node updater callback used for building ActKeyColumns from GPencil frames. */
 static void nupdate_ak_gpframe(ActKeyColumn *ak, void *data)
 {
-  bGPDframe *gpf = (bGPDframe *)data;
+  bGPDframe *gpf = static_cast<bGPDframe *>(data);
 
   /* Set selection status and 'touched' status. */
   if (gpf->flag & GP_FRAME_SELECT) {
@@ -599,7 +599,7 @@ static ActKeyColumn *nalloc_ak_masklayshape(void *data)
 {
   ActKeyColumn *ak = static_cast<ActKeyColumn *>(
       MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumnGPF"));
-  const MaskLayerShape *masklay_shape = (const MaskLayerShape *)data;
+  const MaskLayerShape *masklay_shape = static_cast<const MaskLayerShape *>(data);
 
   /* Store settings based on state of BezTriple. */
   ak->cfra = masklay_shape->frame;
@@ -614,7 +614,7 @@ static ActKeyColumn *nalloc_ak_masklayshape(void *data)
 /* Node updater callback used for building ActKeyColumns from GPencil frames */
 static void nupdate_ak_masklayshape(ActKeyColumn *ak, void *data)
 {
-  MaskLayerShape *masklay_shape = (MaskLayerShape *)data;
+  MaskLayerShape *masklay_shape = static_cast<MaskLayerShape *>(data);
 
   /* Set selection status and 'touched' status. */
   if (masklay_shape->flag & MASK_SHAPE_SELECT) {

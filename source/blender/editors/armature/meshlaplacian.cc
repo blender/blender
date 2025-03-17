@@ -371,7 +371,7 @@ struct BVHCallbackUserData {
 
 static void bvh_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
-  BVHCallbackUserData *data = (BVHCallbackUserData *)userdata;
+  BVHCallbackUserData *data = static_cast<BVHCallbackUserData *>(userdata);
   const blender::int3 &tri = data->sys->heat.corner_tris[index];
   const blender::Span<int> corner_verts = data->sys->heat.corner_verts;
   float(*verts)[3] = data->sys->heat.verts;
@@ -1758,8 +1758,8 @@ void ED_mesh_deform_bind_callback(Object *object,
                                   int verts_num,
                                   float cagemat[4][4])
 {
-  MeshDeformModifierData *mmd_orig = (MeshDeformModifierData *)BKE_modifier_get_original(
-      object, &mmd->modifier);
+  MeshDeformModifierData *mmd_orig = reinterpret_cast<MeshDeformModifierData *>(
+      BKE_modifier_get_original(object, &mmd->modifier));
   MeshDeformBind mdb{};
   int a;
 
@@ -1806,7 +1806,7 @@ void ED_mesh_deform_bind_callback(Object *object,
   MEM_freeN(mdb.vertexcos);
 
   /* compact weights */
-  BKE_modifier_mdef_compact_influences((ModifierData *)mmd_orig);
+  BKE_modifier_mdef_compact_influences(reinterpret_cast<ModifierData *>(mmd_orig));
 
   end_progress_bar();
   waitcursor(0);

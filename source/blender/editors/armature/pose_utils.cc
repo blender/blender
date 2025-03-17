@@ -84,7 +84,7 @@ static eAction_TransformFlags get_item_transform_flags_and_fcurves(Object &ob,
   short flags = 0;
 
   /* Build PointerRNA from provided data to obtain the paths to use. */
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)&ob, &RNA_PoseBone, &pchan);
+  PointerRNA ptr = RNA_pointer_create_discrete(reinterpret_cast<ID *>(&ob), &RNA_PoseBone, &pchan);
 
   /* Get the basic path to the properties of interest. */
   const std::optional<std::string> basePath = RNA_path_from_ID_to_struct(&ptr);
@@ -185,7 +185,7 @@ static void fcurves_to_pchan_links_get(ListBase &pfLinks, Object &ob, bPoseChann
   pfl->pchan = &pchan;
 
   /* Get the RNA path to this pchan - this needs to be freed! */
-  PointerRNA ptr = RNA_pointer_create_discrete((ID *)&ob, &RNA_PoseBone, &pchan);
+  PointerRNA ptr = RNA_pointer_create_discrete(reinterpret_cast<ID *>(&ob), &RNA_PoseBone, &pchan);
   pfl->pchan_path = BLI_strdup(RNA_path_from_ID_to_struct(&ptr).value_or("").c_str());
 
   BLI_addtail(&pfLinks, pfl);
@@ -443,7 +443,7 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, con
 
   /* check each link to see if the linked F-Curve has a matching path */
   for (ld = first; ld; ld = ld->next) {
-    const FCurve *fcu = (const FCurve *)ld->data;
+    const FCurve *fcu = static_cast<const FCurve *>(ld->data);
 
     /* check if paths match */
     if (STREQ(path, fcu->rna_path)) {

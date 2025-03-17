@@ -67,7 +67,7 @@ void pose_apply(Object *ob,
     return;
   }
 
-  const bArmature *armature = (bArmature *)ob->data;
+  const bArmature *armature = static_cast<bArmature *>(ob->data);
   const blender::bke::BoneNameSet selected_bone_names =
       blender::bke::BKE_armature_find_selected_bone_names(armature);
 

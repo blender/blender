@@ -436,7 +436,7 @@ static void update_duplicate_subtarget(EditBone *dup_bone,
 static void update_duplicate_action_constraint_settings(
     EditBone *dup_bone, EditBone *orig_bone, Object *ob, bPoseChannel *pchan, bConstraint *curcon)
 {
-  bActionConstraint *act_con = (bActionConstraint *)curcon->data;
+  bActionConstraint *act_con = static_cast<bActionConstraint *>(curcon->data);
 
   float mat[4][4];
 
@@ -588,7 +588,7 @@ static void update_duplicate_action_constraint_settings(
 static void update_duplicate_kinematics_constraint_settings(bConstraint *curcon)
 {
   /* IK constraint */
-  bKinematicConstraint *ik = (bKinematicConstraint *)curcon->data;
+  bKinematicConstraint *ik = static_cast<bKinematicConstraint *>(curcon->data);
   ik->poleangle = -M_PI - ik->poleangle;
   /* Wrap the angle to the +/-180.0f range (default soft limit of the input boxes). */
   ik->poleangle = angle_wrap_rad(ik->poleangle);
@@ -600,7 +600,7 @@ static void update_duplicate_loc_rot_constraint_settings(Object *ob,
 {
   /* This code assumes that bRotLimitConstraint and bLocLimitConstraint have the same fields in
    * the same memory locations. */
-  bRotLimitConstraint *limit = (bRotLimitConstraint *)curcon->data;
+  bRotLimitConstraint *limit = static_cast<bRotLimitConstraint *>(curcon->data);
   float local_mat[4][4], imat[4][4];
 
   float min_vec[3], max_vec[3];
@@ -678,7 +678,7 @@ static void update_duplicate_transform_constraint_settings(Object *ob,
                                                            bPoseChannel *pchan,
                                                            bConstraint *curcon)
 {
-  bTransformConstraint *trans = (bTransformConstraint *)curcon->data;
+  bTransformConstraint *trans = static_cast<bTransformConstraint *>(curcon->data);
 
   float target_mat[4][4], own_mat[4][4], imat[4][4];
 
@@ -967,7 +967,7 @@ static void update_duplicate_custom_bone_shapes(bContext *C, EditBone *dup_bone,
 
     /* Skip the first two chars in the object name as those are used to store object type */
     BLI_string_flip_side_name(name_flip, pchan->custom->id.name + 2, false, sizeof(name_flip));
-    Object *shape_ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, name_flip);
+    Object *shape_ob = reinterpret_cast<Object *>(BKE_libblock_find_name(bmain, ID_OB, name_flip));
 
     /* If name_flip doesn't exist, BKE_libblock_find_name() returns pchan->custom (best match) */
     shape_ob = shape_ob == pchan->custom ? nullptr : shape_ob;

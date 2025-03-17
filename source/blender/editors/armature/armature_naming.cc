@@ -99,7 +99,7 @@ void ED_armature_ebone_unique_name(ListBase *ebones, char *name, EditBone *bone)
 
 static bool bone_unique_check(void *arg, const char *name)
 {
-  return BKE_armature_find_bone_name((bArmature *)arg, name) != nullptr;
+  return BKE_armature_find_bone_name(static_cast<bArmature *>(arg), name) != nullptr;
 }
 
 static void ed_armature_bone_unique_name(bArmature *arm, char *name)
@@ -137,7 +137,7 @@ static void constraint_bone_name_fix(Object *ob,
 
     /* action constraints */
     if (curcon->type == CONSTRAINT_TYPE_ACTION) {
-      bActionConstraint *actcon = (bActionConstraint *)curcon->data;
+      bActionConstraint *actcon = static_cast<bActionConstraint *>(curcon->data);
       BKE_action_fix_paths_rename(
           &ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, true);
     }
@@ -283,7 +283,7 @@ void ED_armature_bone_rename(Main *bmain,
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         switch (md->type) {
           case eModifierType_Hook: {
-            HookModifierData *hmd = (HookModifierData *)md;
+            HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
 
             if (hmd->object && (hmd->object->data == arm)) {
               if (STREQ(hmd->subtarget, oldname)) {
@@ -293,7 +293,7 @@ void ED_armature_bone_rename(Main *bmain,
             break;
           }
           case eModifierType_UVWarp: {
-            UVWarpModifierData *umd = (UVWarpModifierData *)md;
+            UVWarpModifierData *umd = reinterpret_cast<UVWarpModifierData *>(md);
 
             if (umd->object_src && (umd->object_src->data == arm)) {
               if (STREQ(umd->bone_src, oldname)) {
@@ -314,7 +314,7 @@ void ED_armature_bone_rename(Main *bmain,
 
       /* fix camera focus */
       if (ob->type == OB_CAMERA) {
-        Camera *cam = (Camera *)ob->data;
+        Camera *cam = static_cast<Camera *>(ob->data);
         if ((cam->dof.focus_object != nullptr) && (cam->dof.focus_object->data == arm)) {
           if (STREQ(cam->dof.focus_subtarget, oldname)) {
             STRNCPY(cam->dof.focus_subtarget, newname);
@@ -362,7 +362,7 @@ void ED_armature_bone_rename(Main *bmain,
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_VIEW3D) {
-              View3D *v3d = (View3D *)sl;
+              View3D *v3d = reinterpret_cast<View3D *>(sl);
               if (v3d->ob_center && v3d->ob_center->data == arm) {
                 if (STREQ(v3d->ob_center_bone, oldname)) {
                   STRNCPY(v3d->ob_center_bone, newname);

@@ -400,7 +400,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   }
 
   /* create verts */
-  mesh = (Mesh *)ob->data;
+  mesh = static_cast<Mesh *>(ob->data);
   verts = static_cast<float(*)[3]>(
       MEM_callocN(mesh->verts_num * sizeof(*verts), "closestboneverts"));
 

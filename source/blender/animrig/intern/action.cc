@@ -868,7 +868,7 @@ static float2 get_frame_range_of_fcurves(Span<const FCurve *> fcurves,
       switch (fcm->type) {
         case FMODIFIER_TYPE_LIMITS: /* Limits F-Modifier */
         {
-          FMod_Limits *fmd = (FMod_Limits *)fcm->data;
+          FMod_Limits *fmd = static_cast<FMod_Limits *>(fcm->data);
 
           if (fmd->flag & FCM_LIMIT_XMIN) {
             min = min_ff(min, fmd->rect.xmin);
@@ -880,7 +880,7 @@ static float2 get_frame_range_of_fcurves(Span<const FCurve *> fcurves,
         }
         case FMODIFIER_TYPE_CYCLES: /* Cycles F-Modifier */
         {
-          FMod_Cycles *fmd = (FMod_Cycles *)fcm->data;
+          FMod_Cycles *fmd = static_cast<FMod_Cycles *>(fcm->data);
 
           if (fmd->before_mode != FCM_EXTRAPOLATE_NONE) {
             min = MINAFRAMEF;

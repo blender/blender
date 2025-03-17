@@ -626,7 +626,7 @@ static int pose_bone_rotmode_exec(bContext *C, wmOperator *op)
 
     if (prev_ob != ob) {
       /* Notifiers and updates. */
-      DEG_id_tag_update((ID *)ob, ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(reinterpret_cast<ID *>(ob), ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
       prev_ob = ob;

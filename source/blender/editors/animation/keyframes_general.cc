@@ -102,7 +102,7 @@ void clean_fcurve(bAnimListElem *ale,
                   bool cleardefault,
                   const bool only_selected_keys)
 {
-  FCurve *fcu = (FCurve *)ale->key_data;
+  FCurve *fcu = static_cast<FCurve *>(ale->key_data);
   BezTriple *old_bezts, *bezt, *beztn;
   BezTriple *lastb;
   int totCount, i;
@@ -1070,7 +1070,7 @@ static void decimate_fcurve_segment(FCurve *fcu,
 
 bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
 {
-  FCurve *fcu = (FCurve *)ale->key_data;
+  FCurve *fcu = static_cast<FCurve *>(ale->key_data);
   /* Check if the curve actually has any points. */
   if (fcu == nullptr || fcu->bezt == nullptr || fcu->totvert == 0) {
     return true;
@@ -1359,7 +1359,7 @@ static bool is_animating_bone(const bAnimListElem *ale)
     return false;
   }
 
-  FCurve *fcurve = (FCurve *)ale->key_data;
+  FCurve *fcurve = static_cast<FCurve *>(ale->key_data);
   if (!fcurve->rna_path) {
     return false;
   }
@@ -2062,7 +2062,7 @@ static float paste_get_y_offset(const bAnimContext *ac,
 
   switch (value_offset_mode) {
     case KEYFRAME_PASTE_VALUE_OFFSET_CURSOR: {
-      const SpaceGraph *sipo = (SpaceGraph *)ac->sl;
+      const SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(ac->sl);
       const float offset = sipo->cursorVal - fcurve_in_copy_buffer.bezt[0].vec[1][1];
       return offset;
     }
@@ -2136,7 +2136,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   if (from_single && to_single) {
     /* 1:1 match, no tricky checking, just paste. */
     bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data->first);
-    FCurve *fcu = (FCurve *)ale->data; /* destination F-Curve */
+    FCurve *fcu = static_cast<FCurve *>(ale->data); /* destination F-Curve */
     const FCurve &fcurve_in_copy_buffer =
         *keyframe_copy_buffer->keyframe_data.channelbag(0)->fcurve(0);
 
@@ -2173,7 +2173,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
           ac, *fcurve_in_copy_buffer, ale, paste_context.value_offset_mode);
 
       /* Do the actual pasting. */
-      FCurve *fcurve_to_paste_into = (FCurve *)ale->data;
+      FCurve *fcurve_to_paste_into = static_cast<FCurve *>(ale->data);
       ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve_to_paste_into, false, false);
       paste_animedit_keys_fcurve(fcurve_to_paste_into,
                                  *fcurve_in_copy_buffer,

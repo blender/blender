@@ -1177,7 +1177,7 @@ class Channelbag : public ::ActionChannelbag {
    *
    * \see fcurve_detach
    */
-  void fcurve_detach_by_index(int64_t fcurve_array_index);
+  void fcurve_detach_by_index(int64_t fcurve_index);
 
   /**
    * Move the given fcurve to position `to_fcurve_index` in the fcurve array.

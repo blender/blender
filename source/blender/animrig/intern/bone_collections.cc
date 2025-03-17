@@ -160,10 +160,10 @@ static void bonecoll_insert_at_index(bArmature *armature, BoneCollection *bcoll,
 {
   BLI_assert(index <= armature->collection_array_num);
 
-  armature->collection_array = (BoneCollection **)MEM_reallocN_id(
-      armature->collection_array,
-      sizeof(BoneCollection *) * (armature->collection_array_num + 1),
-      __func__);
+  armature->collection_array = reinterpret_cast<BoneCollection **>(
+      MEM_reallocN_id(armature->collection_array,
+                      sizeof(BoneCollection *) * (armature->collection_array_num + 1),
+                      __func__));
 
   /* To keep the memory consistent, insert the new element at the end of the
    * now-grown array, then rotate it into place. */

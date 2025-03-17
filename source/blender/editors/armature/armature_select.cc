@@ -657,7 +657,7 @@ static EditBone *get_nearest_editbonepoint(
   /* find the bone after the current active bone, so as to bump up its chances in selection.
    * this way overlapping bones will cycle selection state as with objects. */
   Object *obedit_orig = vc->obedit;
-  EditBone *ebone_active_orig = ((bArmature *)obedit_orig->data)->act_edbone;
+  EditBone *ebone_active_orig = static_cast<bArmature *>(obedit_orig->data)->act_edbone;
   if (ebone_active_orig == nullptr) {
     use_cycle = false;
   }
@@ -1452,7 +1452,7 @@ static void armature_select_less(bArmature * /*arm*/, EditBone *ebone)
 
 static void armature_select_more_less(Object *ob, bool more)
 {
-  bArmature *arm = (bArmature *)ob->data;
+  bArmature *arm = static_cast<bArmature *>(ob->data);
 
   /* XXX(@ideasman42): eventually we shouldn't need this. */
   ED_armature_edit_sync_selection(arm->edbo);
@@ -2035,7 +2035,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
   int direction = RNA_enum_get(op->ptr, "direction");
   const bool add_to_sel = RNA_boolean_get(op->ptr, "extend");
   bool changed = false;
-  bArmature *arm = (bArmature *)ob->data;
+  bArmature *arm = static_cast<bArmature *>(ob->data);
 
   ebone_active = arm->act_edbone;
   if (ebone_active == nullptr) {

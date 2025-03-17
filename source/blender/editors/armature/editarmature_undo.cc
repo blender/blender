@@ -214,7 +214,7 @@ static bool armature_undosys_poll(bContext *C)
 
 static bool armature_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
-  ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
+  ArmatureUndoStep *us = reinterpret_cast<ArmatureUndoStep *>(us_p);
 
   /* Important not to use the 3D view when getting objects because all objects
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
@@ -246,7 +246,7 @@ static bool armature_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_
 static void armature_undosys_step_decode(
     bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
-  ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
+  ArmatureUndoStep *us = reinterpret_cast<ArmatureUndoStep *>(us_p);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -288,7 +288,7 @@ static void armature_undosys_step_decode(
 
 static void armature_undosys_step_free(UndoStep *us_p)
 {
-  ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
+  ArmatureUndoStep *us = reinterpret_cast<ArmatureUndoStep *>(us_p);
 
   for (uint i = 0; i < us->elems_len; i++) {
     ArmatureUndoStep_Elem *elem = &us->elems[i];
@@ -301,12 +301,12 @@ static void armature_undosys_foreach_ID_ref(UndoStep *us_p,
                                             UndoTypeForEachIDRefFn foreach_ID_ref_fn,
                                             void *user_data)
 {
-  ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
+  ArmatureUndoStep *us = reinterpret_cast<ArmatureUndoStep *>(us_p);
 
-  foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
+  foreach_ID_ref_fn(user_data, reinterpret_cast<UndoRefID *>(&us->scene_ref));
   for (uint i = 0; i < us->elems_len; i++) {
     ArmatureUndoStep_Elem *elem = &us->elems[i];
-    foreach_ID_ref_fn(user_data, ((UndoRefID *)&elem->obedit_ref));
+    foreach_ID_ref_fn(user_data, reinterpret_cast<UndoRefID *>(&elem->obedit_ref));
   }
 }
 

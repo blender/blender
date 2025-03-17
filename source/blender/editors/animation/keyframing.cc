@@ -175,7 +175,7 @@ static int insert_key_with_keyingset(bContext *C, wmOperator *op, KeyingSet *ks)
   /* exit the edit mode to make sure that those object data properties that have been
    * updated since the last switching to the edit mode will be keyframed correctly
    */
-  if (obedit && blender::animrig::keyingset_find_id(ks, (ID *)obedit->data)) {
+  if (obedit && blender::animrig::keyingset_find_id(ks, static_cast<ID *>(obedit->data))) {
     blender::ed::object::mode_set(C, OB_MODE_OBJECT);
     ob_edit_mode = true;
   }
@@ -806,7 +806,7 @@ static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
     /* skip if bone is not selected */
     if ((pchan) && (pchan->bone)) {
       /* bones are only selected/editable if visible... */
-      bArmature *arm = (bArmature *)ob->data;
+      bArmature *arm = static_cast<bArmature *>(ob->data);
 
       /* skipping - not visible on currently visible layers */
       if (!ANIM_bonecoll_is_visible_pchan(arm, pchan)) {

@@ -353,7 +353,7 @@ static void applyarmature_reset_bone_constraint(const bConstraint *constraint)
    * bConstraintTypeInfo callback function. */
   switch (constraint->type) {
     case CONSTRAINT_TYPE_STRETCHTO: {
-      bStretchToConstraint *stretch_to = (bStretchToConstraint *)constraint->data;
+      bStretchToConstraint *stretch_to = static_cast<bStretchToConstraint *>(constraint->data);
       stretch_to->orglength = 0.0f; /* Force recalculation on next evaluation. */
       break;
     }

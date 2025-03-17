@@ -174,7 +174,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
 /* Apply the relevant changes to the pose */
 static void poselib_blend_apply(bContext *C, wmOperator *op)
 {
-  PoseBlendData *pbd = (PoseBlendData *)op->customdata;
+  PoseBlendData *pbd = static_cast<PoseBlendData *>(op->customdata);
 
   if (!pbd->needs_redraw) {
     return;
@@ -327,14 +327,14 @@ static bAction *poselib_blend_init_get_action(bContext *C, wmOperator *op)
   PoseBlendData *pbd = static_cast<PoseBlendData *>(op->customdata);
 
   pbd->temp_id_consumer = asset::temp_id_consumer_create(asset);
-  return (bAction *)asset::temp_id_consumer_ensure_local_id(
-      pbd->temp_id_consumer, ID_AC, CTX_data_main(C), op->reports);
+  return reinterpret_cast<bAction *>(asset::temp_id_consumer_ensure_local_id(
+      pbd->temp_id_consumer, ID_AC, CTX_data_main(C), op->reports));
 }
 
 static bAction *flip_pose(bContext *C, blender::Span<Object *> objects, bAction *action)
 {
-  bAction *action_copy = (bAction *)BKE_id_copy_ex(
-      nullptr, &action->id, nullptr, LIB_ID_COPY_LOCALIZE);
+  bAction *action_copy = reinterpret_cast<bAction *>(
+      BKE_id_copy_ex(nullptr, &action->id, nullptr, LIB_ID_COPY_LOCALIZE));
 
   /* Lock the window manager while flipping the pose. Flipping requires temporarily modifying the
    * pose, which can cause unwanted visual glitches. */

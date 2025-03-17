@@ -394,7 +394,8 @@ static float2 remap_cyclic_keyframe_location(const FCurve &fcu,
 
     if (type == FCU_CYCLE_OFFSET) {
       /* Nasty check to handle the case when the modes are different better. */
-      FMod_Cycles *data = static_cast<FMod_Cycles *>(((FModifier *)fcu.modifiers.first)->data);
+      FMod_Cycles *data = static_cast<FMod_Cycles *>(
+          static_cast<FModifier *>(fcu.modifiers.first)->data);
       short mode = (step >= 0) ? data->after_mode : data->before_mode;
 
       if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {

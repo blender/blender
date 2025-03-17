@@ -259,7 +259,7 @@ void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, boo
 
 /* Grease Pencil Cels. */
 void grease_pencil_cels_to_keylist(AnimData *adt,
-                                   const GreasePencilLayer *layer,
+                                   const GreasePencilLayer *gpl,
                                    AnimKeylist *keylist,
                                    int saction_flag);
 

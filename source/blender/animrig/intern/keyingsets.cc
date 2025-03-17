@@ -388,7 +388,7 @@ static int insert_key_to_keying_set_path(bContext *C,
   switch (GS(keyingset_path->id->name)) {
     case ID_OB: /* Object (or Object-Related) Keyframes */
     {
-      Object *ob = (Object *)keyingset_path->id;
+      Object *ob = reinterpret_cast<Object *>(keyingset_path->id);
 
       /* XXX: only object transforms? */
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

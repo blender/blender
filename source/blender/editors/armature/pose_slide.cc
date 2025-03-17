@@ -425,7 +425,7 @@ static void pose_slide_apply_vec3(tPoseSlideOp *pso,
 
   /* Using this path, find each matching F-Curve for the variables we're interested in. */
   while ((ld = poseAnim_mapping_getNextFCurve(&pfl->fcurves, ld, path))) {
-    FCurve *fcu = (FCurve *)ld->data;
+    FCurve *fcu = static_cast<FCurve *>(ld->data);
     const int idx = fcu->array_index;
     const int lock = pso->axislock;
 
@@ -462,7 +462,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
    *   so a similar method should work here for those too
    */
   LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-    FCurve *fcu = (FCurve *)ld->data;
+    FCurve *fcu = static_cast<FCurve *>(ld->data);
     const char *bPtr, *pPtr;
 
     if (fcu->rna_path == nullptr) {
@@ -597,7 +597,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 
   /* Using this path, find each matching F-Curve for the variables we're interested in. */
   while ((ld = poseAnim_mapping_getNextFCurve(&pfl->fcurves, ld, path))) {
-    FCurve *fcu = (FCurve *)ld->data;
+    FCurve *fcu = static_cast<FCurve *>(ld->data);
 
     /* Assign this F-Curve to one of the relevant pointers. */
     switch (fcu->array_index) {
@@ -982,7 +982,7 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, const wmEvent *
     /* Do this for each F-Curve. */
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
       AnimData *adt = pfl->ob->adt;
-      FCurve *fcu = (FCurve *)ld->data;
+      FCurve *fcu = static_cast<FCurve *>(ld->data);
       fcurve_to_keylist(adt, fcu, pso->keylist, 0, {-FLT_MAX, FLT_MAX}, adt != nullptr);
     }
   }
@@ -1701,7 +1701,7 @@ static void propagate_curve_values(ListBase /*tPChanFCurveLink*/ *pflinks,
   const KeyframeSettings settings = get_keyframe_settings(true);
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = (FCurve *)ld->data;
+      FCurve *fcu = static_cast<FCurve *>(ld->data);
       if (!fcu->bezt) {
         continue;
       }
@@ -1719,7 +1719,7 @@ static float find_next_key(ListBase *pflinks, const float start_frame)
   float target_frame = FLT_MAX;
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = (FCurve *)ld->data;
+      FCurve *fcu = static_cast<FCurve *>(ld->data);
       if (!fcu->bezt) {
         continue;
       }
@@ -1742,7 +1742,7 @@ static float find_last_key(ListBase *pflinks)
   float target_frame = FLT_MIN;
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      const FCurve *fcu = (const FCurve *)ld->data;
+      const FCurve *fcu = static_cast<const FCurve *>(ld->data);
       if (!fcu->bezt) {
         continue;
       }
@@ -1773,7 +1773,7 @@ static void get_keyed_frames_in_range(ListBase *pflinks,
   AnimKeylist *keylist = ED_keylist_create();
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = (FCurve *)ld->data;
+      FCurve *fcu = static_cast<FCurve *>(ld->data);
       fcurve_to_keylist(nullptr, fcu, keylist, 0, {start_frame, end_frame}, false);
     }
   }
@@ -1796,7 +1796,7 @@ static void get_selected_frames(ListBase *pflinks, ListBase /*FrameLink*/ *targe
   AnimKeylist *keylist = ED_keylist_create();
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
-      FCurve *fcu = (FCurve *)ld->data;
+      FCurve *fcu = static_cast<FCurve *>(ld->data);
       fcurve_to_keylist(nullptr, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, false);
     }
   }

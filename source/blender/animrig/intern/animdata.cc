@@ -50,7 +50,7 @@ static void add_object_data_users(const Main &bmain, const ID &id, Vector<ID *> 
   Object *ob;
   ID *object_id;
   FOREACH_MAIN_LISTBASE_ID_BEGIN (&bmain.objects, object_id) {
-    ob = (Object *)object_id;
+    ob = reinterpret_cast<Object *>(object_id);
     if (ob->data != &id) {
       continue;
     }
@@ -84,11 +84,11 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
     /* No action found on current ID, add related IDs to the ID Vector. */
     switch (GS(related_id->name)) {
       case ID_OB: {
-        Object *ob = (Object *)related_id;
+        Object *ob = reinterpret_cast<Object *>(related_id);
         if (!ob->data) {
           break;
         }
-        ID *data = (ID *)ob->data;
+        ID *data = static_cast<ID *>(ob->data);
         if (ID_REAL_USERS(data) == 1) {
           related_ids.append_non_duplicates(data);
         }
@@ -106,7 +106,7 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
 
       case ID_KE: {
         /* Shape-keys. */
-        Key *key = (Key *)related_id;
+        Key *key = reinterpret_cast<Key *>(related_id);
         /* Shape-keys are not embedded but there is currently no way to reuse them. */
         BLI_assert(ID_REAL_USERS(related_id) == 1);
         related_ids.append_non_duplicates(key->from);
@@ -115,7 +115,7 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
 
       case ID_MA: {
         /* Explicitly not relating materials and material users. */
-        Material *mat = (Material *)related_id;
+        Material *mat = reinterpret_cast<Material *>(related_id);
         if (mat->nodetree && ID_REAL_USERS(&mat->nodetree->id) == 1) {
           related_ids.append_non_duplicates(&mat->nodetree->id);
         }
@@ -130,7 +130,7 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
         ID *object_id;
         /* Find users of this particle setting. */
         FOREACH_MAIN_LISTBASE_ID_BEGIN (&bmain.objects, object_id) {
-          ob = (Object *)object_id;
+          ob = reinterpret_cast<Object *>(object_id);
           bool object_uses_particle_settings = false;
           LISTBASE_FOREACH (ParticleSystem *, particle_system, &ob->particlesystem) {
             if (!particle_system->part) {
@@ -216,7 +216,7 @@ bAction *id_action_ensure(Main *bmain, ID *id)
         SNPRINTF(actname, DATA_("%sAction"), owner_id->name + 2);
       }
       else if (GS(id->name) == ID_KE) {
-        Key *key = (Key *)id;
+        Key *key = reinterpret_cast<Key *>(id);
         SNPRINTF(actname, DATA_("%sAction"), key->from->name + 2);
       }
       else {

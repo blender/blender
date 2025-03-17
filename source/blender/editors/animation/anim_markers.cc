@@ -67,7 +67,7 @@ ListBase *ED_scene_markers_get(Scene *scene, ScrArea *area)
   /* local marker sets... */
   if (area) {
     if (area->spacetype == SPACE_ACTION) {
-      SpaceAction *saction = (SpaceAction *)area->spacedata.first;
+      SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
 
       /* local markers can only be shown when there's only a single active action to grab them from
        * - flag only takes effect when there's an action, otherwise it can get too confusing?
@@ -826,12 +826,14 @@ struct MarkerMove {
 
 static bool ed_marker_move_use_time(MarkerMove *mm)
 {
-  if (((mm->slink->spacetype == SPACE_SEQ) && !(((SpaceSeq *)mm->slink)->flag & SEQ_DRAWFRAMES)) ||
+  if (((mm->slink->spacetype == SPACE_SEQ) &&
+       !(reinterpret_cast<SpaceSeq *>(mm->slink)->flag & SEQ_DRAWFRAMES)) ||
       ((mm->slink->spacetype == SPACE_ACTION) &&
-       (((SpaceAction *)mm->slink)->flag & SACTION_DRAWTIME)) ||
+       (reinterpret_cast<SpaceAction *>(mm->slink)->flag & SACTION_DRAWTIME)) ||
       ((mm->slink->spacetype == SPACE_GRAPH) &&
-       (((SpaceGraph *)mm->slink)->flag & SIPO_DRAWTIME)) ||
-      ((mm->slink->spacetype == SPACE_NLA) && (((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME)))
+       (reinterpret_cast<SpaceGraph *>(mm->slink)->flag & SIPO_DRAWTIME)) ||
+      ((mm->slink->spacetype == SPACE_NLA) &&
+       (reinterpret_cast<SpaceNla *>(mm->slink)->flag & SNLA_DRAWTIME)))
   {
     return true;
   }
