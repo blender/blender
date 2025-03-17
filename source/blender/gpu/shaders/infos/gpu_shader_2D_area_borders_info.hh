@@ -26,7 +26,10 @@ FRAGMENT_OUT(0, VEC4, fragColor)
 PUSH_CONSTANT(MAT4, ModelViewProjectionMatrix)
 PUSH_CONSTANT(VEC4, rect)
 PUSH_CONSTANT(VEC4, color)
+/* Amount of pixels the border can cover. Scales rounded corner radius. */
 PUSH_CONSTANT(FLOAT, scale)
+/* Width of the border relative to the scale. Also affects rounded corner radius. */
+PUSH_CONSTANT(FLOAT, width)
 PUSH_CONSTANT(INT, cornerLen)
 VERTEX_SOURCE("gpu_shader_2D_area_borders_vert.glsl")
 FRAGMENT_SOURCE("gpu_shader_2D_area_borders_frag.glsl")
