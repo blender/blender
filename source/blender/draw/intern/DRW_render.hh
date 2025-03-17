@@ -414,36 +414,11 @@ struct DRWContext {
 const DRWContext *DRW_context_get();
 
 /**
- * For when engines need to know if this is drawing for selection or not.
- */
-static inline bool DRW_state_is_select()
-{
-  return DRWContext::get_active().is_select();
-}
-
-/**
- * For when engines need to know if this is drawing for selection or not.
- */
-static inline bool DRW_state_is_material_select()
-{
-  return DRWContext::get_active().is_material_select();
-}
-
-/**
- * For when engines need to know if this is drawing for depth picking.
- */
-static inline bool DRW_state_is_depth()
-{
-  return DRWContext::get_active().is_depth();
-}
-
-/**
  * Whether we are rendering for an image
  */
 static inline bool DRW_state_is_image_render()
 {
   return DRWContext::get_active().is_image_render();
-  ;
 }
 
 /**

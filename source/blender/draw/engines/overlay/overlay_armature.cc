@@ -2011,7 +2011,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
   Object *ob = ctx->ob;
   EditBone *eBone;
   int index;
-  const bool is_select = DRW_state_is_select();
+  const bool is_select = ctx->res->is_selection();
   const bool show_text = DRW_state_show_text();
 
   const Object *ob_orig = DEG_get_original_object(ob);
@@ -2114,7 +2114,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
                   * (selection code ensures this won't become active). */
                  ((draw_ctx->object_mode & OB_MODE_ALL_WEIGHT_PAINT) &&
                   (draw_ctx->object_pose != nullptr))))) &&
-        DRW_state_is_select();
+        ctx->res->is_selection();
 
     if (is_pose_select) {
       const Object *ob_orig = DEG_get_original_object(ob);
