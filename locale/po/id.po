@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2025-01-31 04:04+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -648,10 +648,6 @@ msgstr "Distribusikan memori antar perangkat"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Buat spasi lebih banyak untuk adegan besar supaya cukup dengan mendistribusikan memori antar perangkat yang terkoneksi (e.g via NVLink) daripada menduplikasikannya"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (Eksperimental)"
 
 
 msgid "Embree on GPU"

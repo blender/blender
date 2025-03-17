@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2025-02-18 05:56+0000\n"
 "Last-Translator: Krzysztof Chorzempa <Krzysztof-Chorzempa@users.noreply.translate.blender.org>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -626,10 +626,6 @@ msgstr "Automatyczny"
 
 msgid "Distribute memory across devices"
 msgstr "Rozdziel pamięć między urządzeniami"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (Eksperymentalna funkcja)"
 
 
 msgid "Embree on GPU"
@@ -11576,14 +11572,6 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
-
-
-msgid "Clean Up"
-msgstr "Sprzątanie"
-
-
 msgid "Snap"
 msgstr "Przyciągnij"
 
@@ -11642,6 +11630,14 @@ msgstr "Ścieżka"
 
 msgid "Quick Effects"
 msgstr "Szybkie efekty"
+
+
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Clean Up"
+msgstr "Sprzątanie"
 
 
 msgid "Asset"

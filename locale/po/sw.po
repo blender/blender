@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -568,10 +568,6 @@ msgstr "Sambaza kumbukumbu kwenye vifaa"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Tafuta nafasi zaidi ya matukio makubwa kutoshea kwa kusambaza kumbukumbu kwenye vifaa vilivyounganishwa (k.m. kupitia NVLink) badala ya kuiiga"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (Majaribio)"
 
 
 msgid "Embree on GPU"
@@ -28780,14 +28776,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Clean Up"
-msgstr "Safisha"
-
-
 msgid "Pivot Point"
 msgstr "Egemeo"
 
@@ -28822,6 +28810,14 @@ msgstr "Uchunguzi wa Mwanga"
 
 msgid "Apply"
 msgstr "Tumia"
+
+
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
 
 
 msgid "Asset"
@@ -108596,10 +108592,6 @@ msgstr "Haiwezi kutumia OpenGL kutoa katika hali ya usuli (hakuna muktadha wa op
 
 msgid "Scene has no camera"
 msgstr "Mandhari haina kamera"
-
-
-msgid "Movie format unsupported"
-msgstr "Muundo wa filamu hautumiki"
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"

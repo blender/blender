@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
-"PO-Revision-Date: 2025-03-04 07:56+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"PO-Revision-Date: 2025-03-11 06:55+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -738,14 +738,6 @@ msgstr "Rozdeľujte pamäť medzi zariadeniami"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Vytvorte viac priestoru pre prispôsobenie veľkých scén tak, že budete rozdeľovať pamäť medzi vzájomne prepojenými zariadeniami (napr. prostredníctvom NVLink) radšej ako vytvárať duplikáty"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (experimentálne)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT umožňuje hardvérové sledovanie lúčov AMD v systéme RDNA2 a vyššom. Táto funkcia je experimentálna a niektoré scény sa môžu prekresľovať nesprávne"
 
 
 msgid "Embree on GPU"
@@ -34358,14 +34350,6 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
-msgid "Show/Hide"
-msgstr "Ukázať/skryť"
-
-
-msgid "Clean Up"
-msgstr "Prečistiť"
-
-
 msgid "Pivot Point"
 msgstr "Otočný bod"
 
@@ -34484,6 +34468,14 @@ msgstr "Stopa"
 
 msgid "Quick Effects"
 msgstr "Rýchle efekty"
+
+
+msgid "Show/Hide"
+msgstr "Ukázať/skryť"
+
+
+msgid "Clean Up"
+msgstr "Prečistiť"
 
 
 msgid "Asset"
@@ -90977,20 +90969,20 @@ msgid "Curves Edit Mode"
 msgstr "Režim editácie krivky"
 
 
-msgid "glTF Variants"
-msgstr "glTF varianty"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF varianty materiálu"
-
-
 msgid "Snapping"
 msgstr "Prichytenie"
 
 
 msgid "Transform Orientations"
 msgstr "Orientácia transformácie"
+
+
+msgid "glTF Variants"
+msgstr "glTF varianty"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF varianty materiálu"
 
 
 msgid "Stroke Placement"
@@ -91013,20 +91005,20 @@ msgid "Onion Skin"
 msgstr "Cibuľové šupky"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF animácie"
-
-
 msgid "Stereoscopy"
 msgstr "Stereoskopia"
 
 
 msgid "Multi Frame"
 msgstr "Viacsnímkové"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF animácie"
 
 
 msgid "Auto-Masking"
@@ -119812,6 +119804,10 @@ msgid "Installing keymap failed: {:s}"
 msgstr "Inštalácia priradenia kláves zlyhala: {:s}"
 
 
+msgid "This script was written for Blender version {:d}.{:d}.{:d} and might not function (correctly), though it is enabled"
+msgstr "Tento skript bol napísaný pre verziu Blenderu {:d}.{:d}.{:d} a nemusí fungovať (správne), hoci je povolený"
+
+
 msgid "File already installed to {!r}"
 msgstr "Súbor je už nainštalovaný do {!r}"
 
@@ -129888,6 +129884,14 @@ msgid "%d bones aligned to bone '%s'"
 msgstr "%d kostí zarovnaných na kosť '%s'"
 
 
+msgid "New bone name collides with an existing vertex group name, vertex group names are unchanged."
+msgstr "Nový názov kosti koliduje s existujúcim názvom skupiny vrcholov, názvy skupín vrcholov sa nemenia."
+
+
+msgid "%s (%s::%s)"
+msgstr "%s (%s::%s)"
+
+
 msgid "Active object is not a selected armature"
 msgstr "Nie je vybraný aktívny objekt armatúry"
 
@@ -130042,6 +130046,10 @@ msgstr "Preklopiť pózu"
 
 msgid "Pose lib is only for armatures in pose mode"
 msgstr "Knižnica pózy je len pre armatúry v režime pózy"
+
+
+msgid "This pose asset is empty, and thus has no pose"
+msgstr "Toto aktívum pózy je prázdne, a preto nemá žiadnu pózu"
 
 
 msgid "Internal pose library error, canceling operator"
@@ -131208,10 +131216,6 @@ msgstr "Radiány: {}"
 
 msgid "Expression: {}"
 msgstr "Výraz: {}"
-
-
-msgid "Library: {}"
-msgstr "Knižnica: {}"
 
 
 msgid "Disabled: {}"
@@ -132884,6 +132888,10 @@ msgid "Cage object \"%s\" not found in evaluated scene, it may be hidden"
 msgstr "Objekt klietky \"%s\" sa nenašiel v hodnotenej scéne, môže byť skrytý"
 
 
+msgid "No UV map found in the evaluated object \"%s\""
+msgstr "V hodnotenom objekte \"%s\" nebola nájdená žiadna UV mapa"
+
+
 msgid "Object \"%s\" not found in evaluated scene, it may be hidden"
 msgstr "Objekt \"%s\" sa nenašiel v hodnotenej scéne, môže byť skrytý"
 
@@ -133780,6 +133788,10 @@ msgid "Vertex group is locked"
 msgstr "Skupina vrcholov je uzamknutá"
 
 
+msgid "No meshes with vertex groups found"
+msgstr "Nenašli sa žiadne povrchové siete so skupinami vrcholov"
+
+
 msgid "%d vertex weights limited"
 msgstr "Obmedzená váha %d vrcholov"
 
@@ -134174,10 +134186,6 @@ msgstr "Nemožno použiť OpenGL prekreslenie v režime na pozadí (bez kontextu
 
 msgid "Scene has no camera"
 msgstr "Scéna nemá kameru"
-
-
-msgid "Movie format unsupported"
-msgstr "Formát filmu nie je podporovaný"
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"

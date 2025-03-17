@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2025-03-10 03:43+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -742,14 +742,6 @@ msgstr "デバイス間でメモリを分担"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "メモリを重複させるのではなく，相互接続するデバイス（NVLink など）の間でメモリを分担することで，大きなシーンが入るよう空きを増やします"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT（実験的）"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT は，RDNA2以降で AMD ハードウェアレイトレーシングを有効化します．これは実験的機能であり，一部のシーンでは正しくレンダリングされない可能性があります"
 
 
 msgid "Embree on GPU"
@@ -34850,14 +34842,6 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Show/Hide"
-msgstr "表示/隠す"
-
-
-msgid "Clean Up"
-msgstr "クリーンアップ"
-
-
 msgid "Pivot Point"
 msgstr "ピボットポイント"
 
@@ -34976,6 +34960,14 @@ msgstr "トラック"
 
 msgid "Quick Effects"
 msgstr "クイックエフェクト"
+
+
+msgid "Show/Hide"
+msgstr "表示/隠す"
+
+
+msgid "Clean Up"
+msgstr "クリーンアップ"
 
 
 msgid "Asset"
@@ -92127,20 +92119,20 @@ msgid "Curves Edit Mode"
 msgstr "ヘアーカーブ編集モード"
 
 
-msgid "glTF Variants"
-msgstr "glTFバリアント"
-
-
-msgid "glTF Material Variants"
-msgstr "glTFマテリアルバリアント"
-
-
 msgid "Snapping"
 msgstr "スナップ"
 
 
 msgid "Transform Orientations"
 msgstr "トランスフォーム座標系"
+
+
+msgid "glTF Variants"
+msgstr "glTFバリアント"
+
+
+msgid "glTF Material Variants"
+msgstr "glTFマテリアルバリアント"
 
 
 msgid "Stroke Placement"
@@ -92163,20 +92155,20 @@ msgid "Onion Skin"
 msgstr "オニオンスキン"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTFアニメーション"
-
-
 msgid "Stereoscopy"
 msgstr "立体視"
 
 
 msgid "Multi Frame"
 msgstr "マルチフレーム"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTFアニメーション"
 
 
 msgid "Auto-Masking"
@@ -132750,10 +132742,6 @@ msgid "Expression: {}"
 msgstr "式: {}"
 
 
-msgid "Library: {}"
-msgstr "ライブラリ: {}"
-
-
 msgid "Disabled: {}"
 msgstr "無効: {}"
 
@@ -135722,10 +135710,6 @@ msgstr "OpenGL レンダーはバックグラウンドモードでは使用で�
 
 msgid "Scene has no camera"
 msgstr "シーンにカメラがありません"
-
-
-msgid "Movie format unsupported"
-msgstr "動画フォーマットは未対応です"
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"

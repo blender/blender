@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
-"PO-Revision-Date: 2025-03-08 10:56+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"PO-Revision-Date: 2025-03-10 22:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -738,14 +738,6 @@ msgstr "Distribuir en la memoria de dispositivos"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Permite tener más espacio en donde colocar escenas grandes, distribuyendo la memoria de varios dispositivos interconectados (p.ej: a través de NVLink) en vez de duplicarla"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (experimental)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT habilita el trazado de rayos por hardware en RDNA2 y superior de AMD. Esta característica es experimental y es posible que algunas escenas sean procesadas de forma incorrecta"
 
 
 msgid "Embree on GPU"
@@ -34358,14 +34350,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar / Ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpiar"
-
-
 msgid "Pivot Point"
 msgstr "Punto de pivote"
 
@@ -34484,6 +34468,14 @@ msgstr "Rastrear"
 
 msgid "Quick Effects"
 msgstr "Efectos rápidos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar / Ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpiar"
 
 
 msgid "Asset"
@@ -90977,20 +90969,20 @@ msgid "Curves Edit Mode"
 msgstr "Modo edición de curvas"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de material glTF"
-
-
 msgid "Snapping"
 msgstr "Adherencia"
 
 
 msgid "Transform Orientations"
 msgstr "Orientación de transformación"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
 
 
 msgid "Stroke Placement"
@@ -91013,20 +91005,20 @@ msgid "Onion Skin"
 msgstr "Piel de cebolla"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animaciones glTF"
-
-
 msgid "Stereoscopy"
 msgstr "Estereoscopía"
 
 
 msgid "Multi Frame"
 msgstr "Multifotograma"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animaciones glTF"
 
 
 msgid "Auto-Masking"
@@ -119812,6 +119804,10 @@ msgid "Installing keymap failed: {:s}"
 msgstr "Falla al instalar el mapa de teclado: {:s}"
 
 
+msgid "This script was written for Blender version {:d}.{:d}.{:d} and might not function (correctly), though it is enabled"
+msgstr "El script fue escrito para la versión {:d}.{:d}.{:d} de Blender y es posible que no funcione (correctamente), a pesar de encontrarse habilitado"
+
+
 msgid "File already installed to {!r}"
 msgstr "Archivo ya instalado en {!r}"
 
@@ -129888,6 +129884,14 @@ msgid "%d bones aligned to bone '%s'"
 msgstr "%d huesos alineados al hueso '%s'"
 
 
+msgid "New bone name collides with an existing vertex group name, vertex group names are unchanged."
+msgstr "El nuevo nombre del hueso colisiona con el nombre de un grupo de vértices ya existente, no se modificaron los nombres de los grupos de vértices."
+
+
+msgid "%s (%s::%s)"
+msgstr "%s (%s::%s)"
+
+
 msgid "Active object is not a selected armature"
 msgstr "El objeto activo no es un esqueleto seleccionado"
 
@@ -130042,6 +130046,10 @@ msgstr "Voltear pose"
 
 msgid "Pose lib is only for armatures in pose mode"
 msgstr "La biblioteca de poses es sólo para esqueletos en modo Pose"
+
+
+msgid "This pose asset is empty, and thus has no pose"
+msgstr "Este recurso de pose se encuentra vacío y, por lo tanto, no tiene ninguna pose"
 
 
 msgid "Internal pose library error, canceling operator"
@@ -131208,10 +131216,6 @@ msgstr "Radianes: {}"
 
 msgid "Expression: {}"
 msgstr "Expresión: {}"
-
-
-msgid "Library: {}"
-msgstr "Biblioteca: {}"
 
 
 msgid "Disabled: {}"
@@ -132884,6 +132888,10 @@ msgid "Cage object \"%s\" not found in evaluated scene, it may be hidden"
 msgstr "Objeto jaula \"%s\" no encontrado en la escena evaluada, podría estar oculto"
 
 
+msgid "No UV map found in the evaluated object \"%s\""
+msgstr "No se encontraron mapas UV en el objeto evaluado \"%s\""
+
+
 msgid "Object \"%s\" not found in evaluated scene, it may be hidden"
 msgstr "Objeto \"%s\" no encontrado en la escena evaluada, podría estar oculto"
 
@@ -133780,6 +133788,10 @@ msgid "Vertex group is locked"
 msgstr "Grupo de vértices bloqueado"
 
 
+msgid "No meshes with vertex groups found"
+msgstr "No se encontraron mallas con grupos de vértices"
+
+
 msgid "%d vertex weights limited"
 msgstr "%d influencias de vértices limitadas"
 
@@ -134174,10 +134186,6 @@ msgstr "No es posible usar el procesamiento OpenGL en modo de fondo (no existe c
 
 msgid "Scene has no camera"
 msgstr "La escena no contiene cámaras"
-
-
-msgid "Movie format unsupported"
-msgstr "Formato de película no soportado"
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"
