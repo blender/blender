@@ -879,6 +879,7 @@ static int merge_actions_selection_exec(bContext *C, wmOperator *op)
   }
 
   Main *bmain = CTX_data_main(C);
+  int moved_slots_count = 0;
   for (const PointerRNA &ptr : selection) {
     blender::Vector<ID *> related_ids = find_related_ids(*bmain, *ptr.owner_id);
     for (ID *related_id : related_ids) {
@@ -905,9 +906,22 @@ static int merge_actions_selection_exec(bContext *C, wmOperator *op)
         continue;
       }
       blender::animrig::move_slot(*bmain, *slot, *action, active_action);
+      moved_slots_count++;
       ANIM_id_update(bmain, related_id);
       DEG_id_tag_update_ex(bmain, &action->id, ID_RECALC_ANIMATION_NO_FLUSH);
     }
+  }
+
+  if (moved_slots_count > 0) {
+    BKE_reportf(op->reports,
+                RPT_INFO,
+                "Moved %i slot(s) into the action of the active object",
+                moved_slots_count);
+  }
+  else {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Failed to merge any animation. Note that NLA strips cannot be merged");
   }
 
   /* `ID_RECALC_ANIMATION_NO_FLUSH` is used here (and above), as the actual animation values do not
