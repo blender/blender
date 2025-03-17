@@ -50,25 +50,25 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
                                             USDMeshReadParams params,
                                             const char ** /*r_err_str*/)
 {
-  pxr::VtArray<pxr::GfVec3f> positions;
-  pxr::VtArray<pxr::GfVec3f> scales;
-  pxr::VtArray<pxr::GfQuath> orientations;
-  pxr::VtArray<int> proto_indices;
-  std::vector<bool> mask = point_instancer_prim_.ComputeMaskAtTime(params.motion_sample_time);
+  pxr::VtArray<pxr::GfVec3f> usd_positions;
+  pxr::VtArray<pxr::GfVec3f> usd_scales;
+  pxr::VtArray<pxr::GfQuath> usd_orientations;
+  pxr::VtArray<int> usd_proto_indices;
+  std::vector<bool> usd_mask = point_instancer_prim_.ComputeMaskAtTime(params.motion_sample_time);
 
-  point_instancer_prim_.GetPositionsAttr().Get(&positions, params.motion_sample_time);
-  point_instancer_prim_.GetScalesAttr().Get(&scales, params.motion_sample_time);
-  point_instancer_prim_.GetOrientationsAttr().Get(&orientations, params.motion_sample_time);
-  point_instancer_prim_.GetProtoIndicesAttr().Get(&proto_indices, params.motion_sample_time);
+  point_instancer_prim_.GetPositionsAttr().Get(&usd_positions, params.motion_sample_time);
+  point_instancer_prim_.GetScalesAttr().Get(&usd_scales, params.motion_sample_time);
+  point_instancer_prim_.GetOrientationsAttr().Get(&usd_orientations, params.motion_sample_time);
+  point_instancer_prim_.GetProtoIndicesAttr().Get(&usd_proto_indices, params.motion_sample_time);
 
   PointCloud *pointcloud = geometry_set.get_pointcloud_for_write();
-  if (pointcloud->totpoint != positions.size()) {
+  if (pointcloud->totpoint != usd_positions.size()) {
     /* Size changed so we must reallocate. */
-    pointcloud = BKE_pointcloud_new_nomain(positions.size());
+    pointcloud = BKE_pointcloud_new_nomain(usd_positions.size());
   }
 
   MutableSpan<float3> point_positions = pointcloud->positions_for_write();
-  point_positions.copy_from(Span(positions.data(), positions.size()).cast<float3>());
+  point_positions.copy_from(Span(usd_positions.cdata(), usd_positions.size()).cast<float3>());
 
   bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
 
@@ -77,11 +77,12 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
 
   /* Here and below, handle the case where instancing attributes are empty or
    * not of the expected size. */
-  if (scales.size() < positions.size()) {
+  if (usd_scales.size() < usd_positions.size()) {
     scales_attribute.span.fill(float3(1.0f));
   }
 
-  for (const int i : IndexRange(std::min(scales.size(), positions.size()))) {
+  Span<pxr::GfVec3f> scales = Span(usd_scales.cdata(), usd_scales.size());
+  for (const int i : IndexRange(std::min(usd_scales.size(), usd_positions.size()))) {
     scales_attribute.span[i] = float3(scales[i][0], scales[i][1], scales[i][2]);
   }
 
@@ -91,11 +92,12 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
       attributes.lookup_or_add_for_write_only_span<math::Quaternion>("orientation",
                                                                      bke::AttrDomain::Point);
 
-  if (orientations.size() < positions.size()) {
+  if (usd_orientations.size() < usd_positions.size()) {
     orientations_attribute.span.fill(math::Quaternion::identity());
   }
 
-  for (const int i : IndexRange(std::min(orientations.size(), positions.size()))) {
+  Span<pxr::GfQuath> orientations = Span(usd_orientations.cdata(), usd_orientations.size());
+  for (const int i : IndexRange(std::min(usd_orientations.size(), usd_positions.size()))) {
     orientations_attribute.span[i] = math::Quaternion(orientations[i].GetReal(),
                                                       orientations[i].GetImaginary()[0],
                                                       orientations[i].GetImaginary()[1],
@@ -107,11 +109,12 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
   bke::SpanAttributeWriter<int> proto_indices_attribute =
       attributes.lookup_or_add_for_write_only_span<int>("proto_index", bke::AttrDomain::Point);
 
-  if (proto_indices.size() < positions.size()) {
+  if (usd_proto_indices.size() < usd_positions.size()) {
     proto_indices_attribute.span.fill(0);
   }
 
-  for (const int i : IndexRange(std::min(proto_indices.size(), positions.size()))) {
+  Span<int> proto_indices = Span(usd_proto_indices.cdata(), usd_proto_indices.size());
+  for (const int i : IndexRange(std::min(usd_proto_indices.size(), usd_positions.size()))) {
     proto_indices_attribute.span[i] = proto_indices[i];
   }
 
@@ -120,12 +123,12 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
   bke::SpanAttributeWriter<bool> mask_attribute =
       attributes.lookup_or_add_for_write_only_span<bool>("mask", bke::AttrDomain::Point);
 
-  if (mask.size() < positions.size()) {
+  if (usd_mask.size() < usd_positions.size()) {
     mask_attribute.span.fill(true);
   }
 
-  for (const int i : IndexRange(std::min(mask.size(), positions.size()))) {
-    mask_attribute.span[i] = mask[i];
+  for (const int i : IndexRange(std::min(usd_mask.size(), usd_positions.size()))) {
+    mask_attribute.span[i] = usd_mask[i];
   }
 
   mask_attribute.finish();

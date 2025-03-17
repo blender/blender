@@ -364,7 +364,7 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
     /* Ensure the names are unique. */
     pxr::VtTokenArray unique_names;
 
-    for (pxr::TfToken &name : names) {
+    for (const pxr::TfToken &name : names.AsConst()) {
       std::string unique = add_unique_name(merged_names, name.GetString());
       unique_names.push_back(pxr::TfToken(unique));
     }
@@ -373,7 +373,7 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
     skel_api.GetBlendShapesAttr().Set(unique_names);
 
     /* Look up the temporary weights time sample we wrote to the mesh. */
-    pxr::UsdAttribute temp_weights_attr = pxr::UsdGeomPrimvarsAPI(mesh_prim).GetPrimvar(
+    const pxr::UsdAttribute temp_weights_attr = pxr::UsdGeomPrimvarsAPI(mesh_prim).GetPrimvar(
         TempBlendShapeWeightsPrimvarName);
 
     if (!temp_weights_attr) {
@@ -424,7 +424,7 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
     for (const BlendShapeMergeInfo &info : merge_info) {
       pxr::VtFloatArray src_weights;
       if (info.src_weights_attr.Get(&src_weights, time)) {
-        if (!info.anim_map.Remap(src_weights, &dst_weights)) {
+        if (!info.anim_map.Remap(src_weights.AsConst(), &dst_weights)) {
           CLOG_WARN(&LOG, "Failed remapping blend shape weights");
         }
       }

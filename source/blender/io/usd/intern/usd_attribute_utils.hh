@@ -215,7 +215,7 @@ void copy_primvar_to_blender_buffer(const pxr::UsdGeomPrimvar &primvar,
                                     const OffsetIndices<int> faces,
                                     MutableSpan<BlenderT> attribute)
 {
-  pxr::VtArray<USDT> usd_data = get_primvar_array<USDT>(primvar, timecode);
+  const pxr::VtArray<USDT> usd_data = get_primvar_array<USDT>(primvar, timecode);
   if (usd_data.empty()) {
     return;
   }

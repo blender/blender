@@ -101,7 +101,7 @@ void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
 
 bool USDXformReader::prim_has_xform_ops() const
 {
-  pxr::UsdGeomXformable xformable(prim_);
+  const pxr::UsdGeomXformable xformable(prim_);
 
   if (!xformable) {
     /* This might happen if the prim is a Scope. */
@@ -154,7 +154,7 @@ bool USDXformReader::is_root_xform_prim() const
 
 std::optional<XformResult> USDXformReader::get_local_usd_xform(const float time) const
 {
-  pxr::UsdGeomXformable xformable = get_xformable();
+  const pxr::UsdGeomXformable xformable = get_xformable();
 
   if (!xformable) {
     /* This might happen if the prim is a Scope. */
