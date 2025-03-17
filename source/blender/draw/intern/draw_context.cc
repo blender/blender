@@ -86,7 +86,7 @@
 #include "draw_cache_impl.hh"
 
 #include "engines/compositor/compositor_engine.h"
-#include "engines/eevee_next/eevee_engine.h"
+#include "engines/eevee/eevee_engine.h"
 #include "engines/external/external_engine.h"
 #include "engines/gpencil/gpencil_engine.hh"
 #include "engines/image/image_engine.h"
@@ -871,7 +871,7 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
       case OB_MATERIAL:
       case OB_RENDER:
       default:
-        if (render_engine_type == &DRW_engine_viewport_eevee_next_type) {
+        if (render_engine_type == &DRW_engine_viewport_eevee_type) {
           view_data.eevee.set_used(true);
         }
         else if (render_engine_type == &DRW_engine_viewport_workbench_type) {
@@ -2002,7 +2002,7 @@ bool DRW_state_viewport_compositor_enabled()
 
 void DRW_engines_register()
 {
-  RE_engines_register(&DRW_engine_viewport_eevee_next_type);
+  RE_engines_register(&DRW_engine_viewport_eevee_type);
   RE_engines_register(&DRW_engine_viewport_workbench_type);
 }
 

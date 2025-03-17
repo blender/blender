@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "../eevee_next/eevee_lut.hh" /* TODO: find somewhere to share blue noise Table. */
+#include "../eevee/eevee_lut.hh" /* TODO: find somewhere to share blue noise Table. */
 
 #include "BKE_studiolight.h"
 

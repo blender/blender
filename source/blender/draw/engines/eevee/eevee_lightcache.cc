@@ -294,15 +294,15 @@ class LightBake {
 
 using namespace blender::eevee;
 
-wmJob *EEVEE_NEXT_lightbake_job_create(wmWindowManager *wm,
-                                       wmWindow *win,
-                                       Main *bmain,
-                                       ViewLayer *view_layer,
-                                       Scene *scene,
-                                       blender::Vector<Object *> original_probes,
-                                       std::string &report,
-                                       int delay_ms,
-                                       int frame)
+wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
+                                  wmWindow *win,
+                                  Main *bmain,
+                                  ViewLayer *view_layer,
+                                  Scene *scene,
+                                  blender::Vector<Object *> original_probes,
+                                  std::string &report,
+                                  int delay_ms,
+                                  int frame)
 {
   /* Do not bake if there is a render going on. */
   if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER)) {
@@ -322,25 +322,22 @@ wmJob *EEVEE_NEXT_lightbake_job_create(wmWindowManager *wm,
   LightBake *bake = new LightBake(
       bmain, view_layer, scene, std::move(original_probes), true, report, frame, delay_ms);
 
-  WM_jobs_customdata_set(wm_job, bake, EEVEE_NEXT_lightbake_job_data_free);
+  WM_jobs_customdata_set(wm_job, bake, EEVEE_lightbake_job_data_free);
   WM_jobs_timer(wm_job, 0.4, NC_SCENE | NA_EDITED, 0);
-  WM_jobs_callbacks(wm_job,
-                    EEVEE_NEXT_lightbake_job,
-                    nullptr,
-                    EEVEE_NEXT_lightbake_update,
-                    EEVEE_NEXT_lightbake_update);
+  WM_jobs_callbacks(
+      wm_job, EEVEE_lightbake_job, nullptr, EEVEE_lightbake_update, EEVEE_lightbake_update);
 
   G.is_break = false;
 
   return wm_job;
 }
 
-void *EEVEE_NEXT_lightbake_job_data_alloc(Main *bmain,
-                                          ViewLayer *view_layer,
-                                          Scene *scene,
-                                          blender::Vector<Object *> original_probes,
-                                          std::string &report,
-                                          int frame)
+void *EEVEE_lightbake_job_data_alloc(Main *bmain,
+                                     ViewLayer *view_layer,
+                                     Scene *scene,
+                                     blender::Vector<Object *> original_probes,
+                                     std::string &report,
+                                     int frame)
 {
   LightBake *bake = new LightBake(
       bmain, view_layer, scene, std::move(original_probes), false, report, frame);
@@ -348,17 +345,17 @@ void *EEVEE_NEXT_lightbake_job_data_alloc(Main *bmain,
   return reinterpret_cast<void *>(bake);
 }
 
-void EEVEE_NEXT_lightbake_job_data_free(void *job_data)
+void EEVEE_lightbake_job_data_free(void *job_data)
 {
   delete static_cast<LightBake *>(job_data);
 }
 
-void EEVEE_NEXT_lightbake_update(void *job_data)
+void EEVEE_lightbake_update(void *job_data)
 {
   static_cast<LightBake *>(job_data)->update();
 }
 
-void EEVEE_NEXT_lightbake_job(void *job_data, wmJobWorkerStatus *worker_status)
+void EEVEE_lightbake_job(void *job_data, wmJobWorkerStatus *worker_status)
 {
   static_cast<LightBake *>(job_data)->run(
       &worker_status->stop, &worker_status->do_update, &worker_status->progress);

@@ -1461,7 +1461,7 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   const bool aov_available = BKE_view_layer_has_valid_aov(view_layer);
-  const bool eevee_next_active = STREQ(scene->r.engine, "BLENDER_EEVEE_NEXT");
+  const bool eevee_active = STREQ(scene->r.engine, "BLENDER_EEVEE_NEXT");
 
   int totitem = 0;
   EnumPropertyItem *result = nullptr;
@@ -1486,7 +1486,7 @@ static const EnumPropertyItem *rna_3DViewShading_render_pass_itemf(bContext *C,
                   EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT,
                   EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET,
                   EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL) &&
-             !eevee_next_active)
+             !eevee_active)
     {
     }
     else if (!aov_available && STREQ(item->name, "Shader AOV")) {

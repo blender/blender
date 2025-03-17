@@ -11,7 +11,7 @@
 #include "DRW_render.hh"
 #include "RE_engine.h"
 
-extern RenderEngineType DRW_engine_viewport_eevee_next_type;
+extern RenderEngineType DRW_engine_viewport_eevee_type;
 
 namespace blender::eevee {
 

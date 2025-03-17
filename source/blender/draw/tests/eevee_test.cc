@@ -8,9 +8,9 @@
 #include "GPU_context.hh"
 #include "draw_shader.hh"
 #include "draw_testing.hh"
-#include "engines/eevee_next/eevee_lut.hh"
-#include "engines/eevee_next/eevee_precompute.hh"
-#include "engines/eevee_next/eevee_shadow.hh"
+#include "engines/eevee/eevee_lut.hh"
+#include "engines/eevee/eevee_precompute.hh"
+#include "engines/eevee/eevee_shadow.hh"
 
 namespace blender::draw {
 

@@ -73,7 +73,7 @@ static void eevee_render_update_passes(RenderEngine *engine, Scene *scene, ViewL
   Instance::update_passes(engine, scene, view_layer);
 }
 
-RenderEngineType DRW_engine_viewport_eevee_next_type = {
+RenderEngineType DRW_engine_viewport_eevee_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ "BLENDER_EEVEE_NEXT",
