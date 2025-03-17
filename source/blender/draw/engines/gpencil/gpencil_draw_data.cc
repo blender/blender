@@ -22,13 +22,15 @@
 
 #include "IMB_imbuf_types.hh"
 
-#include "gpencil_engine.h"
+#include "gpencil_engine_private.hh"
+
+namespace blender::draw::gpencil {
 
 /* -------------------------------------------------------------------- */
 /** \name Material
  * \{ */
 
-static GPENCIL_MaterialPool *gpencil_material_pool_add(GPENCIL_Instance *inst)
+static GPENCIL_MaterialPool *gpencil_material_pool_add(Instance *inst)
 {
   GPENCIL_MaterialPool *matpool = static_cast<GPENCIL_MaterialPool *>(
       BLI_memblock_alloc(inst->gp_material_pool));
@@ -41,7 +43,7 @@ static GPENCIL_MaterialPool *gpencil_material_pool_add(GPENCIL_Instance *inst)
   return matpool;
 }
 
-static GPUTexture *gpencil_image_texture_get(Image *image, bool *r_alpha_premult)
+static GPUTexture *gpencil_image_texture_get(::Image *image, bool *r_alpha_premult)
 {
   ImageUser iuser = {nullptr};
   GPUTexture *gpu_tex = nullptr;
@@ -88,7 +90,7 @@ static void gpencil_shade_color(float color[3])
 
 /* Apply all overrides from the solid viewport mode to the GPencil material. */
 static MaterialGPencilStyle *gpencil_viewport_material_overrides(
-    GPENCIL_Instance *inst,
+    Instance *inst,
     Object *ob,
     int color_type,
     MaterialGPencilStyle *gp_style,
@@ -159,7 +161,7 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(
   return gp_style;
 }
 
-GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_Instance *inst,
+GPENCIL_MaterialPool *gpencil_material_pool_create(Instance *inst,
                                                    Object *ob,
                                                    int *ofs,
                                                    const bool is_vertex_mode)
@@ -327,7 +329,7 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
 /** \name Lights
  * \{ */
 
-GPENCIL_LightPool *gpencil_light_pool_add(GPENCIL_Instance *inst)
+GPENCIL_LightPool *gpencil_light_pool_add(Instance *inst)
 {
   GPENCIL_LightPool *lightpool = static_cast<GPENCIL_LightPool *>(
       BLI_memblock_alloc(inst->gp_light_pool));
@@ -414,7 +416,7 @@ void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)
   }
 }
 
-GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_Instance *inst, Object * /*ob*/)
+GPENCIL_LightPool *gpencil_light_pool_create(Instance *inst, Object * /*ob*/)
 {
   GPENCIL_LightPool *lightpool = inst->last_light_pool;
 
@@ -427,57 +429,6 @@ GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_Instance *inst, Object * /*
   return lightpool;
 }
 
-void gpencil_material_pool_free(void *storage)
-{
-  GPENCIL_MaterialPool *matpool = (GPENCIL_MaterialPool *)storage;
-  GPU_UBO_FREE_SAFE(matpool->ubo);
-}
-
-void gpencil_light_pool_free(void *storage)
-{
-  GPENCIL_LightPool *lightpool = (GPENCIL_LightPool *)storage;
-  GPU_UBO_FREE_SAFE(lightpool->ubo);
-}
-
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name View Layer Data
- * \{ */
-
-static void gpencil_view_layer_data_free(void *storage)
-{
-  GPENCIL_ViewLayerData *vldata = (GPENCIL_ViewLayerData *)storage;
-
-  BLI_memblock_destroy(vldata->gp_light_pool, gpencil_light_pool_free);
-  BLI_memblock_destroy(vldata->gp_material_pool, gpencil_material_pool_free);
-  BLI_memblock_destroy(vldata->gp_maskbit_pool, nullptr);
-  BLI_memblock_destroy(vldata->gp_object_pool, nullptr);
-  delete vldata->gp_layer_pool;
-  delete vldata->gp_vfx_pool;
-}
-
-GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure()
-{
-  GPENCIL_ViewLayerData **vldata = (GPENCIL_ViewLayerData **)DRW_view_layer_engine_data_ensure(
-      &draw_engine_gpencil_type, gpencil_view_layer_data_free);
-
-  /* NOTE(@fclem): Putting this stuff in view-layer means it is shared by all viewports.
-   * For now it is ok, but in the future, it could become a problem if we implement
-   * the caching system. */
-  if (*vldata == nullptr) {
-    *vldata = static_cast<GPENCIL_ViewLayerData *>(
-        MEM_callocN(sizeof(**vldata), "GPENCIL_ViewLayerData"));
-
-    (*vldata)->gp_light_pool = BLI_memblock_create(sizeof(GPENCIL_LightPool));
-    (*vldata)->gp_material_pool = BLI_memblock_create(sizeof(GPENCIL_MaterialPool));
-    (*vldata)->gp_maskbit_pool = BLI_memblock_create(BLI_BITMAP_SIZE(GP_MAX_MASKBITS));
-    (*vldata)->gp_object_pool = BLI_memblock_create(sizeof(GPENCIL_tObject));
-    (*vldata)->gp_layer_pool = new GPENCIL_tLayer_Pool();
-    (*vldata)->gp_vfx_pool = new GPENCIL_tVfx_Pool();
-  }
-
-  return *vldata;
-}
-
-/** \} */
+}  // namespace blender::draw::gpencil

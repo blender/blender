@@ -17,6 +17,15 @@
 #include "DRW_render.hh"
 #include "draw_context_private.hh"
 
+#include "engines/compositor/compositor_engine.h"
+#include "engines/eevee_next/eevee_engine.h"
+#include "engines/external/external_engine.h"
+#include "engines/gpencil/gpencil_engine.hh"
+#include "engines/image/image_engine.h"
+#include "engines/overlay/overlay_engine.h"
+#include "engines/select/select_engine.hh"
+#include "engines/workbench/workbench_engine.h"
+
 #define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT_SIZE */
 
 namespace blender::draw {
@@ -24,39 +33,11 @@ class TextureFromPool;
 class Manager;
 }  // namespace blender::draw
 
-struct DrawEngineType;
 struct DRWTextStore;
 struct GPUFrameBuffer;
 struct GPUTexture;
 struct GPUViewport;
 struct ListBase;
-
-struct ViewportEngineData {
-  /* Not owning pointer to the draw engine. */
-  DrawEngineType *draw_engine;
-
-  /**
-   * \brief Memory block that can be freely used by the draw engine.
-   * When used the draw engine must implement #DrawEngineType.instance_free callback.
-   */
-  void *instance_data = nullptr;
-
-  char info[GPU_INFO_SIZE] = {'\0'};
-
-  /* we may want to put this elsewhere */
-  DRWTextStore *text_draw_cache = nullptr;
-
-  bool used = false;
-
-  ViewportEngineData(DrawEngineType *engine_type) : draw_engine(engine_type) {}
-};
-
-struct ViewportEngineData_Info {
-  int fbl_len;
-  int txl_len;
-  int psl_len;
-  int stl_len;
-};
 
 /* Buffer and textures used by the viewport by default */
 struct DefaultFramebufferList {
@@ -86,19 +67,18 @@ struct DRWViewData {
   blender::int2 texture_list_size = {0, 0};
 
   /* Engines running for this viewport. nullptr if not enabled. */
-  /* TODO(fclem): Directly use each engine class. */
-  ViewportEngineData eevee;
-  ViewportEngineData workbench;
-  ViewportEngineData external;
-  ViewportEngineData image;
-  ViewportEngineData grease_pencil;
-  ViewportEngineData overlay;
-  ViewportEngineData object_select;
-  ViewportEngineData edit_select;
+  blender::eevee::Engine eevee;
+  blender::workbench::Engine workbench;
+  blender::draw::external::Engine external;
+  blender::image_engine::Engine image;
+  blender::draw::gpencil::Engine grease_pencil;
+  blender::draw::overlay::Engine overlay;
+  blender::draw::select::Engine object_select;
+  blender::draw::edit_select::Engine edit_select;
 #ifdef WITH_DRAW_DEBUG
-  ViewportEngineData edit_select_debug;
+  blender::draw::edit_select_debug::Engine edit_select_debug;
 #endif
-  ViewportEngineData compositor;
+  blender::draw::compositor_engine::Engine compositor;
 
   /* Stores passes needed by the viewport compositor. Engines are expected to populate those in
    * every redraw using calls to the DRW_viewport_pass_texture_get function. The compositor can
@@ -121,32 +101,32 @@ struct DRWViewData {
     /* IMPORTANT: Order here defines the draw order. */
 
     /* Render engines. Output to the render result framebuffer. Mutually exclusive. */
-    callback(&eevee, eevee.draw_engine);
-    callback(&workbench, workbench.draw_engine);
-    callback(&external, external.draw_engine);
-    callback(&image, image.draw_engine);
+    callback(eevee);
+    callback(workbench);
+    callback(external);
+    callback(image);
 #ifdef WITH_DRAW_DEBUG
-    callback(&edit_select_debug, edit_select_debug.draw_engine);
+    callback(edit_select_debug);
 #endif
     /* Grease pencil. Merge its output to the render result framebuffer. */
-    callback(&grease_pencil, grease_pencil.draw_engine);
+    callback(grease_pencil);
     /* GPU compositor. Processes render result and output to the render result framebuffer. */
-    callback(&compositor, compositor.draw_engine);
+    callback(compositor);
     /* Overlays. Draw on a separate overlay framebuffer. Can read render result. */
-    callback(&overlay, overlay.draw_engine);
+    callback(overlay);
 
     /* Selection. Are always enabled alone and have no interaction with other engines. */
-    callback(&object_select, object_select.draw_engine);
-    callback(&edit_select, edit_select.draw_engine);
+    callback(object_select);
+    callback(edit_select);
   }
 
   template<typename CallbackT> void foreach_enabled_engine(CallbackT callback)
   {
-    foreach_engine([&](ViewportEngineData *data, DrawEngineType *engine) {
-      if (!data->used) {
+    foreach_engine([&](DrawEngine::Pointer &ptr) {
+      if (ptr.instance == nullptr || ptr.instance->used == false) {
         return;
       }
-      callback(data, engine);
+      callback(*ptr.instance);
     });
   }
 
@@ -154,18 +134,6 @@ struct DRWViewData {
   void clear(bool free_instance_data);
 };
 
-/* Returns a TextureFromPool stored in the given view data for the pass identified by the given
- * pass name. Engines should call this function for each of the passes needed by the viewport
- * compositor in every redraw, then it should allocate the texture and write the pass data to it.
- * The texture should cover the entire viewport. */
-blender::draw::TextureFromPool &DRW_view_data_pass_texture_get(DRWViewData *view_data,
-                                                               const char *pass_name);
-
 void DRW_view_data_default_lists_from_viewport(DRWViewData *view_data, GPUViewport *viewport);
-ViewportEngineData *DRW_view_data_engine_data_get_ensure(DRWViewData *view_data,
-                                                         DrawEngineType *engine_type);
-void DRW_view_data_use_engine(DRWViewData *view_data, DrawEngineType *engine_type);
 void DRW_view_data_reset(DRWViewData *view_data);
 void DRW_view_data_free_unused(DRWViewData *view_data);
-DefaultFramebufferList *DRW_view_data_default_framebuffer_list_get(DRWViewData *view_data);
-DefaultTextureList *DRW_view_data_default_texture_list_get(DRWViewData *view_data);

@@ -54,6 +54,7 @@ struct GPUViewport;
 namespace blender::draw {
 class TextureFromPool;
 struct ObjectRef;
+class Manager;
 }  // namespace blender::draw
 
 typedef struct DRWPass DRWPass;
@@ -65,27 +66,63 @@ struct BoundSphere {
   float center[3], radius;
 };
 
-struct DrawEngineType {
-  DrawEngineType *next, *prev;
+struct DrawEngine {
+  static constexpr int GPU_INFO_SIZE = 512; /* IMA_MAX_RENDER_TEXT_SIZE */
 
-  char idname[32];
+  char info[GPU_INFO_SIZE] = {'\0'};
+  DRWTextStore *text_draw_cache = nullptr;
 
-  void (*engine_init)(void *vedata);
-  void (*engine_free)();
+  bool used = false;
 
-  void (*instance_free)(void *instance_data);
+  virtual ~DrawEngine() = default;
 
-  void (*cache_init)(void *vedata);
-  void (*cache_populate)(void *vedata, blender::draw::ObjectRef &ob_ref);
-  void (*cache_finish)(void *vedata);
+  virtual blender::StringRefNull name_get() = 0;
 
-  void (*draw_scene)(void *vedata);
+  /* Functions called for viewport. */
 
-  void (*render_to_image)(void *vedata,
-                          RenderEngine *engine,
-                          RenderLayer *layer,
-                          const rcti *rect);
-  void (*store_metadata)(void *vedata, RenderResult *render_result);
+  /* Init engine. Run first and for every redraw. */
+  virtual void init() = 0;
+  /* Scene synchronization. Command buffers building. */
+  virtual void begin_sync() = 0;
+  virtual void object_sync(blender::draw::ObjectRef &ob_ref, blender::draw::Manager &manager) = 0;
+  virtual void end_sync() = 0;
+  /* Command Submission. */
+  virtual void draw(blender::draw::Manager &manager) = 0;
+
+  /* Called when closing blender.
+   * Cleanup all lazily initialized static members that have GPU resources.
+   * Implemented on a case by case basis and called directly. */
+  //  static void exit(){};
+
+  struct Pointer {
+    DrawEngine *instance = nullptr;
+
+    ~Pointer()
+    {
+      free_instance();
+    }
+
+    void free_instance()
+    {
+      delete instance;
+      instance = nullptr;
+    }
+
+    void set_used(bool used)
+    {
+      if (used) {
+        if (instance == nullptr) {
+          instance = create_instance();
+        }
+        instance->used = true;
+      }
+      else if (instance) {
+        instance->used = false;
+      }
+    }
+
+    virtual DrawEngine *create_instance() = 0;
+  };
 };
 
 /* Shaders */
@@ -120,19 +157,24 @@ blender::float2 DRW_viewport_size_get();
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get();
 DefaultTextureList *DRW_viewport_texture_list_get();
 
-/* See DRW_viewport_pass_texture_get. */
+/* Returns a TextureFromPool stored in the given view data for the pass identified by the given
+ * pass name. Engines should call this function for each of the passes needed by the viewport
+ * compositor in every redraw, then it should allocate the texture and write the pass data to it.
+ * The texture should cover the entire viewport. */
 blender::draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name);
 
 void DRW_viewport_request_redraw();
 
-void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph);
-void DRW_render_object_iter(void *vedata,
-                            RenderEngine *engine,
-                            Depsgraph *depsgraph,
-                            void (*callback)(void *vedata,
-                                             blender::draw::ObjectRef &ob_ref,
-                                             RenderEngine *engine,
-                                             Depsgraph *depsgraph));
+void DRW_render_to_image(
+    RenderEngine *engine,
+    Depsgraph *depsgraph,
+    std::function<void(RenderEngine *, RenderLayer *, const rcti)> render_view_cb,
+    std::function<void(RenderResult *)> store_metadata_cb);
+
+void DRW_render_object_iter(
+    RenderEngine *engine,
+    Depsgraph *depsgraph,
+    std::function<void(blender::draw::ObjectRef &, RenderEngine *, Depsgraph *)>);
 
 /**
  * \warning Changing frame might free the #ViewLayerEngineData.
@@ -144,9 +186,7 @@ void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, 
  * This function only setup DST and execute the given function.
  * \warning similar to DRW_render_to_image you cannot use default lists (`dfbl` & `dtxl`).
  */
-void DRW_custom_pipeline_begin(DRWContext &draw_ctx,
-                               DrawEngineType *draw_engine_type,
-                               Depsgraph *depsgraph);
+void DRW_custom_pipeline_begin(DRWContext &draw_ctx, Depsgraph *depsgraph);
 void DRW_custom_pipeline_end(DRWContext &draw_ctx);
 
 /**
@@ -154,24 +194,6 @@ void DRW_custom_pipeline_end(DRWContext &draw_ctx);
  * Assumes it is called between `DRW_custom_pipeline_begin/end()`.
  */
 void DRW_cache_restart();
-
-/* ViewLayers */
-
-void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type);
-void **DRW_view_layer_engine_data_ensure_ex(ViewLayer *view_layer,
-                                            DrawEngineType *engine_type,
-                                            void (*callback)(void *storage));
-void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type,
-                                         void (*callback)(void *storage));
-
-/* DrawData */
-
-DrawData *DRW_drawdata_get(ID *id, DrawEngineType *engine_type);
-DrawData *DRW_drawdata_ensure(ID *id,
-                              DrawEngineType *engine_type,
-                              size_t size,
-                              DrawDataInitCb init_cb,
-                              DrawDataFreeCb free_cb);
 
 /* Settings. */
 

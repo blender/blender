@@ -5,11 +5,10 @@
 /** \file
  * \ingroup draw
  */
-#include "DRW_render.hh"
 
-#include "BLI_string.h"
+#pragma once
 
-#include "gpencil_engine.h"
+#include "GPU_shader.hh"
 
 namespace blender::draw::gpencil {
 
@@ -57,78 +56,3 @@ class ShaderCache {
 };
 
 }  // namespace blender::draw::gpencil
-
-using namespace blender::draw::gpencil;
-
-void GPENCIL_shader_free()
-{
-  ShaderCache::get().release();
-}
-
-GPUShader *GPENCIL_shader_antialiasing(int stage)
-{
-  BLI_assert(stage < 3);
-  return ShaderCache::get().antialiasing[stage].get();
-}
-
-GPUShader *GPENCIL_shader_geometry_get()
-{
-  return ShaderCache::get().geometry.get();
-}
-
-GPUShader *GPENCIL_shader_layer_blend_get()
-{
-  return ShaderCache::get().layer_blend.get();
-}
-
-GPUShader *GPENCIL_shader_mask_invert_get()
-{
-  return ShaderCache::get().mask_invert.get();
-}
-
-GPUShader *GPENCIL_shader_depth_merge_get()
-{
-  return ShaderCache::get().depth_merge.get();
-}
-
-/* ------- FX Shaders --------- */
-
-GPUShader *GPENCIL_shader_fx_blur_get()
-{
-  return ShaderCache::get().fx_blur.get();
-}
-
-GPUShader *GPENCIL_shader_fx_colorize_get()
-{
-  return ShaderCache::get().fx_colorize.get();
-}
-
-GPUShader *GPENCIL_shader_fx_composite_get()
-{
-  return ShaderCache::get().fx_composite.get();
-}
-
-GPUShader *GPENCIL_shader_fx_glow_get()
-{
-  return ShaderCache::get().fx_glow.get();
-}
-
-GPUShader *GPENCIL_shader_fx_pixelize_get()
-{
-  return ShaderCache::get().fx_pixelize.get();
-}
-
-GPUShader *GPENCIL_shader_fx_rim_get()
-{
-  return ShaderCache::get().fx_rim.get();
-}
-
-GPUShader *GPENCIL_shader_fx_shadow_get()
-{
-  return ShaderCache::get().fx_shadow.get();
-}
-
-GPUShader *GPENCIL_shader_fx_transform_get()
-{
-  return ShaderCache::get().fx_transform.get();
-}

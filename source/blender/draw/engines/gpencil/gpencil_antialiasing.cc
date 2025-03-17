@@ -9,11 +9,13 @@
 #include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
-#include "gpencil_engine.h"
+#include "gpencil_engine_private.hh"
 
 #include "BLI_smaa_textures.h"
 
-void GPENCIL_antialiasing_init(GPENCIL_Instance *inst)
+namespace blender::draw::gpencil {
+
+void GPENCIL_antialiasing_init(Instance *inst)
 {
   const float2 size_f = DRW_viewport_size_get();
   const int2 size(size_f[0], size_f[1]);
@@ -24,7 +26,7 @@ void GPENCIL_antialiasing_init(GPENCIL_Instance *inst)
     blender::draw::PassSimple &pass = inst->smaa_resolve_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
-    pass.shader_set(GPENCIL_shader_antialiasing(2));
+    pass.shader_set(ShaderCache::get().antialiasing[2].get());
     pass.bind_texture("blendTex", &inst->color_tx);
     pass.bind_texture("colorTex", &inst->color_tx);
     pass.bind_texture("revealTex", &inst->reveal_tx);
@@ -61,7 +63,7 @@ void GPENCIL_antialiasing_init(GPENCIL_Instance *inst)
     blender::draw::PassSimple &pass = inst->smaa_edge_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR);
-    pass.shader_set(GPENCIL_shader_antialiasing(0));
+    pass.shader_set(ShaderCache::get().antialiasing[0].get());
     pass.bind_texture("colorTex", &inst->color_tx);
     pass.bind_texture("revealTex", &inst->reveal_tx);
     pass.push_constant("viewportMetrics", metrics);
@@ -74,7 +76,7 @@ void GPENCIL_antialiasing_init(GPENCIL_Instance *inst)
     blender::draw::PassSimple &pass = inst->smaa_weight_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR);
-    pass.shader_set(GPENCIL_shader_antialiasing(1));
+    pass.shader_set(ShaderCache::get().antialiasing[1].get());
     pass.bind_texture("edgesTex", &inst->smaa_edge_tx);
     pass.bind_texture("areaTex", &inst->smaa_area_tx);
     pass.bind_texture("searchTex", &inst->smaa_search_tx);
@@ -87,7 +89,7 @@ void GPENCIL_antialiasing_init(GPENCIL_Instance *inst)
     blender::draw::PassSimple &pass = inst->smaa_resolve_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
-    pass.shader_set(GPENCIL_shader_antialiasing(2));
+    pass.shader_set(ShaderCache::get().antialiasing[2].get());
     pass.bind_texture("blendTex", &inst->smaa_weight_tx);
     pass.bind_texture("colorTex", &inst->color_tx);
     pass.bind_texture("revealTex", &inst->reveal_tx);
@@ -98,10 +100,8 @@ void GPENCIL_antialiasing_init(GPENCIL_Instance *inst)
   }
 }
 
-void GPENCIL_antialiasing_draw(GPENCIL_Data *vedata)
+void GPENCIL_antialiasing_draw(Instance *inst)
 {
-  GPENCIL_Instance *inst = vedata->instance;
-
   blender::draw::Manager *manager = DRW_manager_get();
 
   if (!inst->simplify_antialias) {
@@ -115,3 +115,5 @@ void GPENCIL_antialiasing_draw(GPENCIL_Data *vedata)
   GPU_framebuffer_bind(inst->scene_fb);
   manager->submit(inst->smaa_resolve_ps);
 }
+
+}  // namespace blender::draw::gpencil

@@ -39,7 +39,8 @@
 #include "draw_manager.hh"
 #include "draw_view.hh"
 
-#include "gpencil_engine.h"
+#include "gpencil_engine.hh"
+#include "gpencil_engine_private.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -49,67 +50,62 @@
 
 #include "GPU_debug.hh"
 
-/* *********** FUNCTIONS *********** */
+namespace blender::draw::gpencil {
 
-void GPENCIL_engine_init(void *ved)
+using namespace blender::draw;
+
+void Instance::init()
 {
-  GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   const DRWContext *ctx = DRW_context_get();
   const View3D *v3d = ctx->v3d;
 
-  if (vedata->instance == nullptr) {
-    vedata->instance = new GPENCIL_Instance();
-  }
-  GPENCIL_Instance &inst = *vedata->instance;
-
-  if (!inst.dummy_texture.is_valid()) {
+  if (!dummy_texture.is_valid()) {
     const float pixels[1][4] = {{1.0f, 0.0f, 1.0f, 1.0f}};
-    inst.dummy_texture.ensure_2d(GPU_RGBA8, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, &pixels[0][0]);
+    dummy_texture.ensure_2d(GPU_RGBA8, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, &pixels[0][0]);
   }
-  if (!inst.dummy_depth.is_valid()) {
+  if (!dummy_depth.is_valid()) {
     const float pixels[1] = {1.0f};
-    inst.dummy_depth.ensure_2d(
+    dummy_depth.ensure_2d(
         GPU_DEPTH_COMPONENT24, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, &pixels[0]);
   }
 
-  GPENCIL_ViewLayerData *vldata = GPENCIL_view_layer_data_ensure();
-
   /* Resize and reset memory-blocks. */
-  BLI_memblock_clear(vldata->gp_light_pool, gpencil_light_pool_free);
-  BLI_memblock_clear(vldata->gp_material_pool, gpencil_material_pool_free);
-  BLI_memblock_clear(vldata->gp_object_pool, nullptr);
-  vldata->gp_layer_pool->clear();
-  vldata->gp_vfx_pool->clear();
-  BLI_memblock_clear(vldata->gp_maskbit_pool, nullptr);
+  BLI_memblock_clear(vldata.gp_light_pool, ViewLayerData::light_pool_free);
+  BLI_memblock_clear(vldata.gp_material_pool, ViewLayerData::material_pool_free);
+  BLI_memblock_clear(vldata.gp_object_pool, nullptr);
+  vldata.gp_layer_pool->clear();
+  vldata.gp_vfx_pool->clear();
+  BLI_memblock_clear(vldata.gp_maskbit_pool, nullptr);
 
-  inst.gp_light_pool = vldata->gp_light_pool;
-  inst.gp_material_pool = vldata->gp_material_pool;
-  inst.gp_maskbit_pool = vldata->gp_maskbit_pool;
-  inst.gp_object_pool = vldata->gp_object_pool;
-  inst.gp_layer_pool = vldata->gp_layer_pool;
-  inst.gp_vfx_pool = vldata->gp_vfx_pool;
-  inst.view_layer = ctx->view_layer;
-  inst.scene = ctx->scene;
-  inst.v3d = ctx->v3d;
-  inst.last_light_pool = nullptr;
-  inst.last_material_pool = nullptr;
-  inst.tobjects.first = nullptr;
-  inst.tobjects.last = nullptr;
-  inst.tobjects_infront.first = nullptr;
-  inst.tobjects_infront.last = nullptr;
-  inst.sbuffer_tobjects.first = nullptr;
-  inst.sbuffer_tobjects.last = nullptr;
-  inst.dummy_tx = inst.dummy_texture;
-  inst.draw_wireframe = (v3d && v3d->shading.type == OB_WIRE);
-  inst.scene_depth_tx = nullptr;
-  inst.scene_fb = nullptr;
-  inst.is_render = inst.render_depth_tx.is_valid() || (v3d && v3d->shading.type == OB_RENDER);
-  inst.is_viewport = (v3d != nullptr);
-  inst.global_light_pool = gpencil_light_pool_add(&inst);
-  inst.shadeless_light_pool = gpencil_light_pool_add(&inst);
+  /* TODO remove */
+  this->gp_light_pool = vldata.gp_light_pool;
+  this->gp_material_pool = vldata.gp_material_pool;
+  this->gp_maskbit_pool = vldata.gp_maskbit_pool;
+  this->gp_object_pool = vldata.gp_object_pool;
+  this->gp_layer_pool = vldata.gp_layer_pool;
+  this->gp_vfx_pool = vldata.gp_vfx_pool;
+  this->view_layer = ctx->view_layer;
+  this->scene = ctx->scene;
+  this->v3d = ctx->v3d;
+  this->last_light_pool = nullptr;
+  this->last_material_pool = nullptr;
+  this->tobjects.first = nullptr;
+  this->tobjects.last = nullptr;
+  this->tobjects_infront.first = nullptr;
+  this->tobjects_infront.last = nullptr;
+  this->sbuffer_tobjects.first = nullptr;
+  this->sbuffer_tobjects.last = nullptr;
+  this->dummy_tx = this->dummy_texture;
+  this->draw_wireframe = (v3d && v3d->shading.type == OB_WIRE);
+  this->scene_depth_tx = nullptr;
+  this->scene_fb = nullptr;
+  this->is_render = this->render_depth_tx.is_valid() || (v3d && v3d->shading.type == OB_RENDER);
+  this->is_viewport = (v3d != nullptr);
+  this->global_light_pool = gpencil_light_pool_add(this);
+  this->shadeless_light_pool = gpencil_light_pool_add(this);
   /* Small HACK: we don't want the global pool to be reused,
    * so we set the last light pool to nullptr. */
-  inst.last_light_pool = nullptr;
+  this->last_light_pool = nullptr;
 
   bool use_scene_lights = false;
   bool use_scene_world = false;
@@ -119,76 +115,72 @@ void GPENCIL_engine_init(void *ved)
 
     use_scene_world = V3D_USES_SCENE_WORLD(v3d);
 
-    inst.v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
+    this->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
     /* Special case: If we're in Vertex Paint mode, enforce #V3D_SHADING_VERTEX_COLOR setting. */
     if (v3d->shading.type == OB_SOLID && ctx->obact &&
         (ctx->obact->mode & OB_MODE_VERTEX_GREASE_PENCIL) != 0)
     {
-      inst.v3d_color_type = V3D_SHADING_VERTEX_COLOR;
+      this->v3d_color_type = V3D_SHADING_VERTEX_COLOR;
     }
 
-    copy_v3_v3(inst.v3d_single_color, v3d->shading.single_color);
+    copy_v3_v3(this->v3d_single_color, v3d->shading.single_color);
 
     /* For non active frame, use only lines in multiedit mode. */
     const bool overlays_on = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
-    inst.use_multiedit_lines_only = overlays_on &&
-                                    (v3d->gp_flag & V3D_GP_SHOW_MULTIEDIT_LINES) != 0;
+    this->use_multiedit_lines_only = overlays_on &&
+                                     (v3d->gp_flag & V3D_GP_SHOW_MULTIEDIT_LINES) != 0;
 
     const bool shmode_xray_support = v3d->shading.type <= OB_SOLID;
-    inst.xray_alpha = (shmode_xray_support && XRAY_ENABLED(v3d)) ? XRAY_ALPHA(v3d) : 1.0f;
-    inst.force_stroke_order_3d = v3d->gp_flag & V3D_GP_FORCE_STROKE_ORDER_3D;
+    this->xray_alpha = (shmode_xray_support && XRAY_ENABLED(v3d)) ? XRAY_ALPHA(v3d) : 1.0f;
+    this->force_stroke_order_3d = v3d->gp_flag & V3D_GP_FORCE_STROKE_ORDER_3D;
   }
-  else if (inst.is_render) {
+  else if (this->is_render) {
     use_scene_lights = true;
     use_scene_world = true;
-    inst.use_multiedit_lines_only = false;
-    inst.xray_alpha = 1.0f;
-    inst.v3d_color_type = -1;
-    inst.force_stroke_order_3d = false;
+    this->use_multiedit_lines_only = false;
+    this->xray_alpha = 1.0f;
+    this->v3d_color_type = -1;
+    this->force_stroke_order_3d = false;
   }
 
-  inst.use_lighting = (v3d && v3d->shading.type > OB_SOLID) || inst.is_render;
-  inst.use_lights = use_scene_lights;
+  this->use_lighting = (v3d && v3d->shading.type > OB_SOLID) || this->is_render;
+  this->use_lights = use_scene_lights;
 
-  gpencil_light_ambient_add(inst.shadeless_light_pool, blender::float3{1.0f, 1.0f, 1.0f});
+  gpencil_light_ambient_add(this->shadeless_light_pool, blender::float3{1.0f, 1.0f, 1.0f});
 
   World *world = ctx->scene->world;
   if (world != nullptr && use_scene_world) {
-    gpencil_light_ambient_add(inst.global_light_pool, &world->horr);
+    gpencil_light_ambient_add(this->global_light_pool, &world->horr);
   }
   else if (v3d) {
     float world_light[3];
     copy_v3_fl(world_light, v3d->shading.studiolight_intensity);
-    gpencil_light_ambient_add(inst.global_light_pool, world_light);
+    gpencil_light_ambient_add(this->global_light_pool, world_light);
   }
 
   float4x4 viewmatinv = blender::draw::View::default_get().viewinv();
-  copy_v3_v3(inst.camera_z_axis, viewmatinv[2]);
-  copy_v3_v3(inst.camera_pos, viewmatinv[3]);
-  inst.camera_z_offset = dot_v3v3(viewmatinv[3], viewmatinv[2]);
+  copy_v3_v3(this->camera_z_axis, viewmatinv[2]);
+  copy_v3_v3(this->camera_pos, viewmatinv[3]);
+  this->camera_z_offset = dot_v3v3(viewmatinv[3], viewmatinv[2]);
 
   if (ctx && ctx->rv3d && v3d) {
-    inst.camera = (ctx->rv3d->persp == RV3D_CAMOB) ? v3d->camera : nullptr;
+    this->camera = (ctx->rv3d->persp == RV3D_CAMOB) ? v3d->camera : nullptr;
   }
   else {
-    inst.camera = nullptr;
+    this->camera = nullptr;
   }
 }
 
-void GPENCIL_cache_init(void *ved)
+void Instance::begin_sync()
 {
-  using namespace blender::draw;
-  GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
-  GPENCIL_Instance *inst = vedata->instance;
-
   const DRWContext *draw_ctx = DRW_context_get();
-  inst->cfra = int(DEG_get_ctime(draw_ctx->depsgraph));
-  inst->simplify_antialias = GPENCIL_SIMPLIFY_AA(draw_ctx->scene);
-  inst->use_layer_fb = false;
-  inst->use_object_fb = false;
-  inst->use_mask_fb = false;
+  this->cfra = int(DEG_get_ctime(draw_ctx->depsgraph));
+  this->simplify_antialias = GPENCIL_SIMPLIFY_AA(draw_ctx->scene);
+  this->use_layer_fb = false;
+  this->use_object_fb = false;
+  this->use_mask_fb = false;
   /* Always use high precision for render. */
-  inst->use_signed_fb = !inst->is_viewport;
+  this->use_signed_fb = !this->is_viewport;
 
   if (draw_ctx->v3d) {
     const bool hide_overlay = ((draw_ctx->v3d->flag2 & V3D_HIDE_OVERLAYS) != 0);
@@ -197,95 +189,95 @@ void GPENCIL_cache_init(void *ved)
                              ED_screen_animation_playing(CTX_wm_manager(draw_ctx->evil_C)) !=
                                  nullptr :
                              false;
-    inst->do_onion = show_onion && !hide_overlay && !playing;
-    inst->playing = playing;
+    this->do_onion = show_onion && !hide_overlay && !playing;
+    this->playing = playing;
     /* Save simplify flags (can change while drawing, so it's better to save). */
     Scene *scene = draw_ctx->scene;
-    inst->simplify_fill = GPENCIL_SIMPLIFY_FILL(scene, playing);
-    inst->simplify_fx = GPENCIL_SIMPLIFY_FX(scene, playing) ||
+    this->simplify_fill = GPENCIL_SIMPLIFY_FILL(scene, playing);
+    this->simplify_fx = GPENCIL_SIMPLIFY_FX(scene, playing) ||
                         (draw_ctx->v3d->shading.type < OB_RENDER);
 
     /* Fade Layer. */
-    const bool is_fade_layer = ((!hide_overlay) && (!inst->is_render) &&
+    const bool is_fade_layer = ((!hide_overlay) && (!this->is_render) &&
                                 (draw_ctx->v3d->gp_flag & V3D_GP_FADE_NOACTIVE_LAYERS));
-    inst->fade_layer_opacity = (is_fade_layer) ? draw_ctx->v3d->overlay.gpencil_fade_layer : -1.0f;
-    inst->vertex_paint_opacity = draw_ctx->v3d->overlay.gpencil_vertex_paint_opacity;
+    this->fade_layer_opacity = (is_fade_layer) ? draw_ctx->v3d->overlay.gpencil_fade_layer : -1.0f;
+    this->vertex_paint_opacity = draw_ctx->v3d->overlay.gpencil_vertex_paint_opacity;
     /* Fade GPencil Objects. */
-    const bool is_fade_object = ((!hide_overlay) && (!inst->is_render) &&
+    const bool is_fade_object = ((!hide_overlay) && (!this->is_render) &&
                                  (draw_ctx->v3d->gp_flag & V3D_GP_FADE_OBJECTS) &&
                                  (draw_ctx->v3d->gp_flag & V3D_GP_FADE_NOACTIVE_GPENCIL));
-    inst->fade_gp_object_opacity = (is_fade_object) ?
+    this->fade_gp_object_opacity = (is_fade_object) ?
                                        draw_ctx->v3d->overlay.gpencil_paper_opacity :
                                        -1.0f;
-    inst->fade_3d_object_opacity = ((!hide_overlay) && (!inst->is_render) &&
+    this->fade_3d_object_opacity = ((!hide_overlay) && (!this->is_render) &&
                                     (draw_ctx->v3d->gp_flag & V3D_GP_FADE_OBJECTS)) ?
                                        draw_ctx->v3d->overlay.gpencil_paper_opacity :
                                        -1.0f;
   }
   else {
-    inst->do_onion = true;
+    this->do_onion = true;
     Scene *scene = draw_ctx->scene;
-    inst->simplify_fill = GPENCIL_SIMPLIFY_FILL(scene, false);
-    inst->simplify_fx = GPENCIL_SIMPLIFY_FX(scene, false);
-    inst->fade_layer_opacity = -1.0f;
-    inst->playing = false;
+    this->simplify_fill = GPENCIL_SIMPLIFY_FILL(scene, false);
+    this->simplify_fx = GPENCIL_SIMPLIFY_FX(scene, false);
+    this->fade_layer_opacity = -1.0f;
+    this->playing = false;
   }
 
   {
-    inst->stroke_batch = nullptr;
-    inst->fill_batch = nullptr;
-    inst->do_fast_drawing = false;
+    this->stroke_batch = nullptr;
+    this->fill_batch = nullptr;
+    this->do_fast_drawing = false;
 
-    inst->obact = draw_ctx->obact;
+    this->obact = draw_ctx->obact;
   }
 
-  if (inst->do_fast_drawing) {
-    inst->snapshot_buffer_dirty = !inst->snapshot_depth_tx.is_valid();
+  if (this->do_fast_drawing) {
+    this->snapshot_buffer_dirty = !this->snapshot_depth_tx.is_valid();
     const float2 size = DRW_viewport_size_get();
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT;
-    inst->snapshot_depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, int2(size), usage);
-    inst->snapshot_color_tx.ensure_2d(GPU_R11F_G11F_B10F, int2(size), usage);
-    inst->snapshot_reveal_tx.ensure_2d(GPU_R11F_G11F_B10F, int2(size), usage);
+    this->snapshot_depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, int2(size), usage);
+    this->snapshot_color_tx.ensure_2d(GPU_R11F_G11F_B10F, int2(size), usage);
+    this->snapshot_reveal_tx.ensure_2d(GPU_R11F_G11F_B10F, int2(size), usage);
 
-    inst->snapshot_fb.ensure(GPU_ATTACHMENT_TEXTURE(inst->snapshot_depth_tx),
-                             GPU_ATTACHMENT_TEXTURE(inst->snapshot_color_tx),
-                             GPU_ATTACHMENT_TEXTURE(inst->snapshot_reveal_tx));
+    this->snapshot_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->snapshot_depth_tx),
+                             GPU_ATTACHMENT_TEXTURE(this->snapshot_color_tx),
+                             GPU_ATTACHMENT_TEXTURE(this->snapshot_reveal_tx));
   }
   else {
     /* Free unneeded buffers. */
-    inst->snapshot_depth_tx.free();
-    inst->snapshot_color_tx.free();
-    inst->snapshot_reveal_tx.free();
+    this->snapshot_depth_tx.free();
+    this->snapshot_color_tx.free();
+    this->snapshot_reveal_tx.free();
   }
 
   {
-    blender::draw::PassSimple &pass = inst->merge_depth_ps;
+    blender::draw::PassSimple &pass = this->merge_depth_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
-    pass.shader_set(GPENCIL_shader_depth_merge_get());
-    pass.bind_texture("depthBuf", &inst->depth_tx);
-    pass.push_constant("strokeOrder3d", &inst->is_stroke_order_3d);
-    pass.push_constant("gpModelMatrix", &inst->object_bound_mat);
+    pass.shader_set(ShaderCache::get().depth_merge.get());
+    pass.bind_texture("depthBuf", &this->depth_tx);
+    pass.push_constant("strokeOrder3d", &this->is_stroke_order_3d);
+    pass.push_constant("gpModelMatrix", &this->object_bound_mat);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
   {
-    blender::draw::PassSimple &pass = inst->mask_invert_ps;
+    blender::draw::PassSimple &pass = this->mask_invert_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_LOGIC_INVERT);
-    pass.shader_set(GPENCIL_shader_mask_invert_get());
+    pass.shader_set(ShaderCache::get().mask_invert.get());
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
   Camera *cam = static_cast<Camera *>(
-      (inst->camera != nullptr && inst->camera->type == OB_CAMERA) ? inst->camera->data : nullptr);
+      (this->camera != nullptr && this->camera->type == OB_CAMERA) ? this->camera->data : nullptr);
 
   /* Pseudo DOF setup. */
   if (cam && (cam->dof.flag & CAM_DOF_ENABLED)) {
     const float2 vp_size = DRW_viewport_size_get();
     float fstop = cam->dof.aperture_fstop;
     float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
-    float focus_dist = BKE_camera_object_dof_distance(inst->camera);
+    float focus_dist = BKE_camera_object_dof_distance(this->camera);
     float focal_len = cam->lens;
 
     const float scale_camera = 0.001f;
@@ -298,13 +290,13 @@ void GPENCIL_cache_init(void *ved)
       sensor_scaled *= draw_ctx->rv3d->viewcamtexcofac[0];
     }
 
-    inst->dof_params[1] = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));
-    inst->dof_params[1] *= vp_size[0] / sensor_scaled;
-    inst->dof_params[0] = -focus_dist * inst->dof_params[1];
+    this->dof_params[1] = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));
+    this->dof_params[1] *= vp_size[0] / sensor_scaled;
+    this->dof_params[0] = -focus_dist * this->dof_params[1];
   }
   else {
     /* Disable DoF blur scaling. */
-    inst->camera = nullptr;
+    this->camera = nullptr;
   }
 }
 
@@ -358,7 +350,7 @@ static bool use_layer_in_render(const GreasePencil &grease_pencil,
 }
 
 static GPENCIL_tObject *grease_pencil_object_cache_populate(
-    GPENCIL_Instance *inst, Object *ob, blender::draw::ResourceHandle res_handle)
+    Instance *inst, Object *ob, blender::draw::ResourceHandle res_handle)
 {
   using namespace blender;
   using namespace blender::ed::greasepencil;
@@ -590,10 +582,8 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
   return tgp_ob;
 }
 
-void GPENCIL_cache_populate(void *ved, blender::draw::ObjectRef &ob_ref)
+void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
 {
-  GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
-  GPENCIL_Instance *inst = vedata->instance;
   Object *ob = ob_ref.object;
 
   /* object must be visible */
@@ -602,43 +592,39 @@ void GPENCIL_cache_populate(void *ved, blender::draw::ObjectRef &ob_ref)
   }
 
   if (ob->data && (ob->type == OB_GREASE_PENCIL) && (ob->dt >= OB_SOLID)) {
-    blender::draw::Manager *manager = DRW_manager_get();
-    blender::draw::ResourceHandle res_handle = manager->unique_handle(ob_ref);
+    blender::draw::ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
-    GPENCIL_tObject *tgp_ob = grease_pencil_object_cache_populate(inst, ob, res_handle);
+    GPENCIL_tObject *tgp_ob = grease_pencil_object_cache_populate(this, ob, res_handle);
     gpencil_vfx_cache_populate(
-        vedata,
+        this,
         ob,
         tgp_ob,
         ELEM(ob->mode, OB_MODE_EDIT, OB_MODE_SCULPT_GREASE_PENCIL, OB_MODE_WEIGHT_GREASE_PENCIL));
   }
 
-  if (ob->type == OB_LAMP && inst->use_lights) {
-    gpencil_light_pool_populate(inst->global_light_pool, ob);
+  if (ob->type == OB_LAMP && this->use_lights) {
+    gpencil_light_pool_populate(this->global_light_pool, ob);
   }
 }
 
-void GPENCIL_cache_finish(void *ved)
+void Instance::end_sync()
 {
-  GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
-  GPENCIL_Instance *inst = vedata->instance;
-
   /* Upload UBO data. */
   BLI_memblock_iter iter;
-  BLI_memblock_iternew(inst->gp_material_pool, &iter);
+  BLI_memblock_iternew(this->gp_material_pool, &iter);
   GPENCIL_MaterialPool *pool;
   while ((pool = (GPENCIL_MaterialPool *)BLI_memblock_iterstep(&iter))) {
     GPU_uniformbuf_update(pool->ubo, pool->mat_data);
   }
 
-  BLI_memblock_iternew(inst->gp_light_pool, &iter);
+  BLI_memblock_iternew(this->gp_light_pool, &iter);
   GPENCIL_LightPool *lpool;
   while ((lpool = (GPENCIL_LightPool *)BLI_memblock_iterstep(&iter))) {
     GPU_uniformbuf_update(lpool->ubo, lpool->light_data);
   }
 }
 
-void GPENCIL_Instance::acquire_resources()
+void Instance::acquire_resources()
 {
   /* Create frame-buffers only if needed. */
   if (this->tobjects.first == nullptr) {
@@ -690,7 +676,7 @@ void GPENCIL_Instance::acquire_resources()
   }
 }
 
-void GPENCIL_Instance::release_resources()
+void Instance::release_resources()
 {
   this->depth_tx.release();
   this->color_tx.release();
@@ -706,12 +692,11 @@ void GPENCIL_Instance::release_resources()
   this->smaa_weight_tx.release();
 }
 
-static void gpencil_draw_mask(GPENCIL_Data *vedata,
+static void gpencil_draw_mask(Instance *inst,
                               blender::draw::View &view,
                               GPENCIL_tObject *ob,
                               GPENCIL_tLayer *layer)
 {
-  GPENCIL_Instance *inst = vedata->instance;
   blender::draw::Manager *manager = DRW_manager_get();
 
   const float clear_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -759,11 +744,8 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata,
   GPU_debug_group_end();
 }
 
-static void GPENCIL_draw_object(GPENCIL_Data *vedata,
-                                blender::draw::View &view,
-                                GPENCIL_tObject *ob)
+static void GPENCIL_draw_object(Instance *inst, blender::draw::View &view, GPENCIL_tObject *ob)
 {
-  GPENCIL_Instance *inst = vedata->instance;
   blender::draw::Manager *manager = DRW_manager_get();
 
   const float clear_cols[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}};
@@ -781,7 +763,7 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata,
 
   LISTBASE_FOREACH (GPENCIL_tLayer *, layer, &ob->layers) {
     if (layer->mask_bits) {
-      gpencil_draw_mask(vedata, view, ob, layer);
+      gpencil_draw_mask(inst, view, ob, layer);
     }
 
     if (layer->blend_ps) {
@@ -816,10 +798,8 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata,
   GPU_debug_group_end();
 }
 
-static void GPENCIL_fast_draw_start(GPENCIL_Data *vedata)
+static void GPENCIL_fast_draw_start(Instance *inst)
 {
-  GPENCIL_Instance *inst = vedata->instance;
-
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   if (!inst->snapshot_buffer_dirty) {
@@ -832,10 +812,8 @@ static void GPENCIL_fast_draw_start(GPENCIL_Data *vedata)
   }
 }
 
-static void GPENCIL_fast_draw_end(GPENCIL_Data *vedata, blender::draw::View &view)
+static void GPENCIL_fast_draw_end(Instance *inst, blender::draw::View &view)
 {
-  GPENCIL_Instance *inst = vedata->instance;
-
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   if (inst->snapshot_buffer_dirty) {
@@ -847,109 +825,92 @@ static void GPENCIL_fast_draw_end(GPENCIL_Data *vedata, blender::draw::View &vie
   }
   /* Draw the sbuffer stroke(s). */
   LISTBASE_FOREACH (GPENCIL_tObject *, ob, &inst->sbuffer_tobjects) {
-    GPENCIL_draw_object(vedata, view, ob);
+    GPENCIL_draw_object(inst, view, ob);
   }
 }
 
-void GPENCIL_draw_scene(void *ved)
+void Instance::draw(Manager & /*manager*/)
 {
-  using namespace blender::draw;
-  GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
-  GPENCIL_Instance &inst = *vedata->instance;
-
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-  if (inst.render_depth_tx.is_valid()) {
-    inst.scene_depth_tx = inst.render_depth_tx;
-    inst.scene_fb = inst.render_fb;
+  if (this->render_depth_tx.is_valid()) {
+    this->scene_depth_tx = this->render_depth_tx;
+    this->scene_fb = this->render_fb;
   }
   else {
-    inst.scene_fb = dfbl->default_fb;
-    inst.scene_depth_tx = dtxl->depth;
+    this->scene_fb = dfbl->default_fb;
+    this->scene_depth_tx = dtxl->depth;
   }
-  BLI_assert(inst.scene_depth_tx);
+  BLI_assert(this->scene_depth_tx);
 
   float clear_cols[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}};
 
   /* Fade 3D objects. */
-  if ((!inst.is_render) && (inst.fade_3d_object_opacity > -1.0f) && (inst.obact != nullptr) &&
-      ELEM(inst.obact->type, OB_GREASE_PENCIL))
+  if ((!this->is_render) && (this->fade_3d_object_opacity > -1.0f) && (this->obact != nullptr) &&
+      ELEM(this->obact->type, OB_GREASE_PENCIL))
   {
     float background_color[3];
-    ED_view3d_background_color_get(inst.scene, inst.v3d, background_color);
+    ED_view3d_background_color_get(this->scene, this->v3d, background_color);
     /* Blend color. */
-    interp_v3_v3v3(clear_cols[0], background_color, clear_cols[0], inst.fade_3d_object_opacity);
+    interp_v3_v3v3(clear_cols[0], background_color, clear_cols[0], this->fade_3d_object_opacity);
 
-    mul_v4_fl(clear_cols[1], inst.fade_3d_object_opacity);
+    mul_v4_fl(clear_cols[1], this->fade_3d_object_opacity);
   }
 
   /* Sort object by decreasing Z to avoid most of alpha ordering issues. */
-  gpencil_object_cache_sort(&inst);
+  gpencil_object_cache_sort(this);
 
-  if (inst.tobjects.first == nullptr) {
+  if (this->tobjects.first == nullptr) {
     return;
   }
 
   DRW_submission_start();
 
-  GPENCIL_antialiasing_init(&inst);
+  GPENCIL_antialiasing_init(this);
 
-  inst.acquire_resources();
+  this->acquire_resources();
 
-  if (inst.do_fast_drawing) {
-    GPENCIL_fast_draw_start(vedata);
+  if (this->do_fast_drawing) {
+    GPENCIL_fast_draw_start(this);
   }
 
-  if (inst.tobjects.first) {
-    GPU_framebuffer_bind(inst.gpencil_fb);
-    GPU_framebuffer_multi_clear(inst.gpencil_fb, clear_cols);
+  if (this->tobjects.first) {
+    GPU_framebuffer_bind(this->gpencil_fb);
+    GPU_framebuffer_multi_clear(this->gpencil_fb, clear_cols);
   }
 
   blender::draw::View &view = blender::draw::View::default_get();
 
-  LISTBASE_FOREACH (GPENCIL_tObject *, ob, &inst.tobjects) {
-    GPENCIL_draw_object(vedata, view, ob);
+  LISTBASE_FOREACH (GPENCIL_tObject *, ob, &this->tobjects) {
+    GPENCIL_draw_object(this, view, ob);
   }
 
-  if (inst.do_fast_drawing) {
-    GPENCIL_fast_draw_end(vedata, view);
+  if (this->do_fast_drawing) {
+    GPENCIL_fast_draw_end(this, view);
   }
 
-  if (inst.scene_fb) {
-    GPENCIL_antialiasing_draw(vedata);
+  if (this->scene_fb) {
+    GPENCIL_antialiasing_draw(this);
   }
 
-  inst.gp_object_pool = inst.gp_maskbit_pool = nullptr;
-  inst.gp_vfx_pool = nullptr;
-  inst.gp_layer_pool = nullptr;
+  this->gp_object_pool = this->gp_maskbit_pool = nullptr;
+  this->gp_vfx_pool = nullptr;
+  this->gp_layer_pool = nullptr;
 
-  inst.release_resources();
+  this->release_resources();
 
   DRW_submission_end();
 }
 
-static void GPENCIL_engine_free()
+DrawEngine *Engine::create_instance()
 {
-  GPENCIL_shader_free();
+  return new Instance();
 }
 
-static void GPENCIL_instance_free(void *instance)
+void Engine::free_static()
 {
-  delete reinterpret_cast<GPENCIL_Instance *>(instance);
+  ShaderCache::release();
 }
 
-DrawEngineType draw_engine_gpencil_type = {
-    /*next*/ nullptr,
-    /*prev*/ nullptr,
-    /*idname*/ N_("GpencilMode"),
-    /*engine_init*/ &GPENCIL_engine_init,
-    /*engine_free*/ &GPENCIL_engine_free,
-    /*instance_free*/ &GPENCIL_instance_free,
-    /*cache_init*/ &GPENCIL_cache_init,
-    /*cache_populate*/ &GPENCIL_cache_populate,
-    /*cache_finish*/ &GPENCIL_cache_finish,
-    /*draw_scene*/ &GPENCIL_draw_scene,
-    /*render_to_image*/ &GPENCIL_render_to_image,
-    /*store_metadata*/ nullptr,
-};
+}  // namespace blender::draw::gpencil

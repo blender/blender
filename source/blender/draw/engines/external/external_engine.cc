@@ -38,218 +38,219 @@
 
 /* Shaders */
 
-#define EXTERNAL_ENGINE "BLENDER_EXTERNAL"
+namespace blender::draw::external {
+class Instance : public DrawEngine {
+  blender::StringRefNull name_get() final
+  {
+    return "External";
+  }
 
-struct EXTERNAL_Data {
-  void *engine_type;
-  void *instance_data;
+  void init() final {}
 
-  char info[GPU_INFO_SIZE];
-};
+  void begin_sync() final {}
 
-/* Functions */
+  void object_sync(blender::draw::ObjectRef & /*ob_ref*/,
+                   blender::draw::Manager & /*manager*/) final
+  {
+  }
 
-static void external_draw_scene_do_v3d(void *vedata)
-{
-  const DRWContext *draw_ctx = DRW_context_get();
-  RegionView3D *rv3d = draw_ctx->rv3d;
-  ARegion *region = draw_ctx->region;
+  void end_sync() final {}
 
-  blender::draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
+  void draw_scene_do_v3d()
+  {
+    const DRWContext *draw_ctx = DRW_context_get();
+    RegionView3D *rv3d = draw_ctx->rv3d;
+    ARegion *region = draw_ctx->region;
 
-  /* The external engine can use the OpenGL rendering API directly, so make sure the state is
-   * already applied. */
-  GPU_apply_state();
+    blender::draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
 
-  /* Create render engine. */
-  RenderEngine *render_engine = nullptr;
-  if (!rv3d->view_render) {
-    RenderEngineType *engine_type = ED_view3d_engine_type(draw_ctx->scene,
-                                                          draw_ctx->v3d->shading.type);
+    /* The external engine can use the OpenGL rendering API directly, so make sure the state is
+     * already applied. */
+    GPU_apply_state();
 
-    if (!(engine_type->view_update && engine_type->view_draw)) {
+    /* Create render engine. */
+    RenderEngine *render_engine = nullptr;
+    if (!rv3d->view_render) {
+      RenderEngineType *engine_type = ED_view3d_engine_type(draw_ctx->scene,
+                                                            draw_ctx->v3d->shading.type);
+
+      if (!(engine_type->view_update && engine_type->view_draw)) {
+        return;
+      }
+
+      rv3d->view_render = RE_NewViewRender(engine_type);
+      render_engine = RE_view_engine_get(rv3d->view_render);
+      engine_type->view_update(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
+    }
+    else {
+      render_engine = RE_view_engine_get(rv3d->view_render);
+    }
+
+    /* Rendered draw. */
+    GPU_matrix_push_projection();
+    GPU_matrix_push();
+    ED_region_pixelspace(region);
+
+    /* Render result draw. */
+    const RenderEngineType *type = render_engine->type;
+    type->view_draw(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
+
+    GPU_bgl_end();
+
+    GPU_matrix_pop();
+    GPU_matrix_pop_projection();
+
+    /* Set render info. */
+    if (render_engine->text[0] != '\0') {
+      STRNCPY(info, render_engine->text);
+    }
+    else {
+      info[0] = '\0';
+    }
+  }
+
+  /* Configure current matrix stack so that the external engine can use the same drawing code for
+   * both viewport and image editor drawing.
+   *
+   * The engine draws result in the pixel space, and is applying render offset. For image editor we
+   * need to switch from normalized space to pixel space, and "un-apply" offset. */
+  static void external_image_space_matrix_set(const RenderEngine *engine)
+  {
+    BLI_assert(engine != nullptr);
+
+    const DRWContext *draw_ctx = DRW_context_get();
+    SpaceImage *space_image = (SpaceImage *)draw_ctx->space_data;
+
+    /* Apply current view as transformation matrix.
+     * This will configure drawing for normalized space with current zoom and pan applied. */
+
+    float4x4 view_matrix = blender::draw::View::default_get().viewmat();
+    float4x4 projection_matrix = blender::draw::View::default_get().winmat();
+
+    GPU_matrix_projection_set(projection_matrix.ptr());
+    GPU_matrix_set(view_matrix.ptr());
+
+    /* Switch from normalized space to pixel space. */
+    {
+      int width, height;
+      ED_space_image_get_size(space_image, &width, &height);
+
+      const float width_inv = width ? 1.0f / width : 0.0f;
+      const float height_inv = height ? 1.0f / height : 0.0f;
+      GPU_matrix_scale_2f(width_inv, height_inv);
+    }
+
+    /* Un-apply render offset. */
+    {
+      Render *render = engine->re;
+      rctf view_rect;
+      rcti render_rect;
+      RE_GetViewPlane(render, &view_rect, &render_rect);
+
+      GPU_matrix_translate_2f(-render_rect.xmin, -render_rect.ymin);
+    }
+  }
+
+  void draw_scene_do_image()
+  {
+    const DRWContext *draw_ctx = DRW_context_get();
+    Scene *scene = draw_ctx->scene;
+    Render *re = RE_GetSceneRender(scene);
+    RenderEngine *engine = RE_engine_get(re);
+
+    /* Is tested before enabling the drawing engine. */
+    BLI_assert(re != nullptr);
+    BLI_assert(engine != nullptr);
+
+    blender::draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
+
+    /* The external engine can use the OpenGL rendering API directly, so make sure the state is
+     * already applied. */
+    GPU_apply_state();
+
+    const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+
+    /* Clear the depth buffer to the value used by the background overlay so that the overlay is
+     * not happening outside of the drawn image.
+     *
+     * NOTE: The external engine only draws color. The depth is taken care of using the depth pass
+     * which initialized the depth to the values expected by the background overlay. */
+    GPU_framebuffer_clear_depth(dfbl->default_fb, 1.0f);
+
+    GPU_matrix_push_projection();
+    GPU_matrix_push();
+
+    external_image_space_matrix_set(engine);
+
+    GPU_debug_group_begin("External Engine");
+
+    const RenderEngineType *engine_type = engine->type;
+    BLI_assert(engine_type != nullptr);
+    BLI_assert(engine_type->draw != nullptr);
+
+    engine_type->draw(engine, draw_ctx->evil_C, draw_ctx->depsgraph);
+
+    GPU_debug_group_end();
+
+    GPU_matrix_pop();
+    GPU_matrix_pop_projection();
+
+    blender::draw::command::StateSet::set();
+    GPU_bgl_end();
+
+    RE_engine_draw_release(re);
+  }
+
+  void draw_scene_do()
+  {
+    const DRWContext *draw_ctx = DRW_context_get();
+
+    if (draw_ctx->v3d != nullptr) {
+      draw_scene_do_v3d();
       return;
     }
 
-    rv3d->view_render = RE_NewViewRender(engine_type);
-    render_engine = RE_view_engine_get(rv3d->view_render);
-    engine_type->view_update(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
+    if (draw_ctx->space_data == nullptr) {
+      return;
+    }
+
+    const eSpace_Type space_type = eSpace_Type(draw_ctx->space_data->spacetype);
+    if (space_type == SPACE_IMAGE) {
+      draw_scene_do_image();
+      return;
+    }
   }
-  else {
-    render_engine = RE_view_engine_get(rv3d->view_render);
-  }
 
-  /* Rendered draw. */
-  GPU_matrix_push_projection();
-  GPU_matrix_push();
-  ED_region_pixelspace(region);
-
-  /* Render result draw. */
-  const RenderEngineType *type = render_engine->type;
-  type->view_draw(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
-
-  GPU_bgl_end();
-
-  GPU_matrix_pop();
-  GPU_matrix_pop_projection();
-
-  /* Set render info. */
-  EXTERNAL_Data *data = static_cast<EXTERNAL_Data *>(vedata);
-  if (render_engine->text[0] != '\0') {
-    STRNCPY(data->info, render_engine->text);
-  }
-  else {
-    data->info[0] = '\0';
-  }
-}
-
-/* Configure current matrix stack so that the external engine can use the same drawing code for
- * both viewport and image editor drawing.
- *
- * The engine draws result in the pixel space, and is applying render offset. For image editor we
- * need to switch from normalized space to pixel space, and "un-apply" offset. */
-static void external_image_space_matrix_set(const RenderEngine *engine)
-{
-  BLI_assert(engine != nullptr);
-
-  const DRWContext *draw_ctx = DRW_context_get();
-  SpaceImage *space_image = (SpaceImage *)draw_ctx->space_data;
-
-  /* Apply current view as transformation matrix.
-   * This will configure drawing for normalized space with current zoom and pan applied. */
-
-  float4x4 view_matrix = blender::draw::View::default_get().viewmat();
-  float4x4 projection_matrix = blender::draw::View::default_get().winmat();
-
-  GPU_matrix_projection_set(projection_matrix.ptr());
-  GPU_matrix_set(view_matrix.ptr());
-
-  /* Switch from normalized space to pixel space. */
+  void draw(blender::draw::Manager & /*manager*/) final
   {
-    int width, height;
-    ED_space_image_get_size(space_image, &width, &height);
+    const DRWContext *draw_ctx = DRW_context_get();
+    const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-    const float width_inv = width ? 1.0f / width : 0.0f;
-    const float height_inv = height ? 1.0f / height : 0.0f;
-    GPU_matrix_scale_2f(width_inv, height_inv);
+    /* Will be nullptr during OpenGL render.
+     * OpenGL render is used for quick preview (thumbnails or sequencer preview)
+     * where using the rendering engine to preview doesn't make so much sense. */
+    if (draw_ctx->evil_C) {
+      const float clear_col[4] = {0, 0, 0, 0};
+      /* This is to keep compatibility with external engine. */
+      /* TODO(fclem): remove it eventually. */
+      GPU_framebuffer_bind(dfbl->default_fb);
+      GPU_framebuffer_clear_color(dfbl->default_fb, clear_col);
+
+      DRW_submission_start();
+      draw_scene_do();
+      DRW_submission_end();
+    }
   }
-
-  /* Un-apply render offset. */
-  {
-    Render *render = engine->re;
-    rctf view_rect;
-    rcti render_rect;
-    RE_GetViewPlane(render, &view_rect, &render_rect);
-
-    GPU_matrix_translate_2f(-render_rect.xmin, -render_rect.ymin);
-  }
-}
-
-static void external_draw_scene_do_image(void * /*vedata*/)
-{
-  const DRWContext *draw_ctx = DRW_context_get();
-  Scene *scene = draw_ctx->scene;
-  Render *re = RE_GetSceneRender(scene);
-  RenderEngine *engine = RE_engine_get(re);
-
-  /* Is tested before enabling the drawing engine. */
-  BLI_assert(re != nullptr);
-  BLI_assert(engine != nullptr);
-
-  blender::draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
-
-  /* The external engine can use the OpenGL rendering API directly, so make sure the state is
-   * already applied. */
-  GPU_apply_state();
-
-  const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-
-  /* Clear the depth buffer to the value used by the background overlay so that the overlay is not
-   * happening outside of the drawn image.
-   *
-   * NOTE: The external engine only draws color. The depth is taken care of using the depth pass
-   * which initialized the depth to the values expected by the background overlay. */
-  GPU_framebuffer_clear_depth(dfbl->default_fb, 1.0f);
-
-  GPU_matrix_push_projection();
-  GPU_matrix_push();
-
-  external_image_space_matrix_set(engine);
-
-  GPU_debug_group_begin("External Engine");
-
-  const RenderEngineType *engine_type = engine->type;
-  BLI_assert(engine_type != nullptr);
-  BLI_assert(engine_type->draw != nullptr);
-
-  engine_type->draw(engine, draw_ctx->evil_C, draw_ctx->depsgraph);
-
-  GPU_debug_group_end();
-
-  GPU_matrix_pop();
-  GPU_matrix_pop_projection();
-
-  blender::draw::command::StateSet::set();
-  GPU_bgl_end();
-
-  RE_engine_draw_release(re);
-}
-
-static void external_draw_scene_do(void *vedata)
-{
-  const DRWContext *draw_ctx = DRW_context_get();
-
-  if (draw_ctx->v3d != nullptr) {
-    external_draw_scene_do_v3d(vedata);
-    return;
-  }
-
-  if (draw_ctx->space_data == nullptr) {
-    return;
-  }
-
-  const eSpace_Type space_type = eSpace_Type(draw_ctx->space_data->spacetype);
-  if (space_type == SPACE_IMAGE) {
-    external_draw_scene_do_image(vedata);
-    return;
-  }
-}
-
-static void external_draw_scene(void *vedata)
-{
-  const DRWContext *draw_ctx = DRW_context_get();
-  const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-
-  /* Will be nullptr during OpenGL render.
-   * OpenGL render is used for quick preview (thumbnails or sequencer preview)
-   * where using the rendering engine to preview doesn't make so much sense. */
-  if (draw_ctx->evil_C) {
-    const float clear_col[4] = {0, 0, 0, 0};
-    /* This is to keep compatibility with external engine. */
-    /* TODO(fclem): remove it eventually. */
-    GPU_framebuffer_bind(dfbl->default_fb);
-    GPU_framebuffer_clear_color(dfbl->default_fb, clear_col);
-
-    DRW_submission_start();
-    external_draw_scene_do(vedata);
-    DRW_submission_end();
-  }
-}
-
-DrawEngineType draw_engine_external_type = {
-    /*next*/ nullptr,
-    /*prev*/ nullptr,
-    /*idname*/ N_("External"),
-    /*engine_init*/ nullptr,
-    /*engine_free*/ nullptr,
-    /*instance_free*/ nullptr,
-    /*cache_init*/ nullptr,
-    /*cache_populate*/ nullptr,
-    /*cache_finish*/ nullptr,
-    /*draw_scene*/ &external_draw_scene,
-    /*render_to_image*/ nullptr,
-    /*store_metadata*/ nullptr,
 };
+
+DrawEngine *Engine::create_instance()
+{
+  return new Instance();
+}
+
+}  // namespace blender::draw::external
+
+/* Functions */
 
 /* NOTE: currently unused,
  * we should not register unless we want to see this when debugging the view. */
@@ -257,7 +258,7 @@ DrawEngineType draw_engine_external_type = {
 RenderEngineType DRW_engine_viewport_external_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
-    /*idname*/ EXTERNAL_ENGINE,
+    /*idname*/ "BLENDER_EXTERNAL",
     /*name*/ N_("External"),
     /*flag*/ RE_INTERNAL | RE_USE_STEREO_VIEWPORT,
     /*update*/ nullptr,
@@ -269,7 +270,7 @@ RenderEngineType DRW_engine_viewport_external_type = {
     /*view_draw*/ nullptr,
     /*update_script_node*/ nullptr,
     /*update_render_passes*/ nullptr,
-    /*draw_engine*/ &draw_engine_external_type,
+    /*draw_engine*/ nullptr,
     /*rna_ext*/
     {
         /*data*/ nullptr,
@@ -324,5 +325,3 @@ void DRW_engine_external_free(RegionView3D *rv3d)
     DRW_gpu_context_disable_ex(true);
   }
 }
-
-#undef EXTERNAL_ENGINE

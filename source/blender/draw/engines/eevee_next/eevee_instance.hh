@@ -72,7 +72,7 @@ struct UniformDataModule {
  * \class Instance
  * \brief A running instance of the engine.
  */
-class Instance {
+class Instance : public DrawEngine {
   friend VelocityModule;
   friend MotionBlurModule;
 
@@ -180,6 +180,11 @@ class Instance {
         volume(*this, uniform_data.data.volumes){};
   ~Instance(){};
 
+  blender::StringRefNull name_get() final
+  {
+    return "EEVEE";
+  }
+
   /* Render & Viewport. */
   /* TODO(fclem): Split for clarity. */
   void init(const int2 &output_res,
@@ -193,9 +198,11 @@ class Instance {
             const View3D *v3d = nullptr,
             const RegionView3D *rv3d = nullptr);
 
-  void begin_sync();
-  void object_sync(ObjectRef &ob_ref);
-  void end_sync();
+  void init() final;
+
+  void begin_sync() final;
+  void object_sync(ObjectRef &ob_ref, Manager &manager) final;
+  void end_sync() final;
 
   /**
    * Return true when probe pipeline is used during this sample.
@@ -220,6 +227,8 @@ class Instance {
 
   void draw_viewport();
   void draw_viewport_image_render();
+
+  void draw(Manager &manager) final;
 
   /* Light bake. */
 
@@ -370,11 +379,6 @@ class Instance {
   }
 
  private:
-  /** Wrapper to use with #DRW_render_object_iter. */
-  static void object_sync_render(void *instance_,
-                                 ObjectRef &ob_ref,
-                                 RenderEngine *engine,
-                                 Depsgraph *depsgraph);
   /**
    * Conceptually renders one sample per pixel.
    * Everything based on random sampling should be done here (i.e: DRWViews jitter)

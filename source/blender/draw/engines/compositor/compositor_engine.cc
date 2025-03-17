@@ -196,90 +196,63 @@ class Context : public compositor::Context {
   }
 };
 
-class Engine {
+class Instance : public DrawEngine {
  private:
   Context context_;
 
  public:
-  Engine(char *info_message) : context_(info_message) {}
+  Instance() : context_(this->info) {}
 
-  void draw()
+  StringRefNull name_get() final
   {
-    compositor::Evaluator evaluator(context_);
-    evaluator.evaluate();
+    return "Compositor";
+  }
+
+  void init() final{};
+  void begin_sync() final{};
+  void object_sync(blender::draw::ObjectRef & /*ob_ref*/,
+                   blender::draw::Manager & /*manager*/) final{};
+  void end_sync() final{};
+
+  void draw(Manager & /*manager*/) final
+  {
+    DRW_submission_start();
+
+#if defined(__APPLE__)
+    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      /* NOTE(Metal): Isolate Compositor compute work in individual command buffer to improve
+       * workload scheduling. When expensive compositor nodes are in the graph, these can stall out
+       * the GPU for extended periods of time and sub-optimally schedule work for execution. */
+      GPU_flush();
+    }
+#endif
+
+    /* Execute Compositor render commands. */
+    {
+      compositor::Evaluator evaluator(context_);
+      evaluator.evaluate();
+    }
+
+#if defined(__APPLE__)
+    /* NOTE(Metal): Following previous flush to break command stream, with compositor command
+     * buffers potentially being heavy, we avoid issuing subsequent commands until compositor work
+     * has completed. If subsequent work is prematurely queued up, the subsequent command buffers
+     * will be blocked behind compositor work and may trigger a command buffer time-out error. As a
+     * result, we should wait for compositor work to complete.
+     *
+     * This is not an efficient approach for peak performance, but a catch-all to prevent command
+     * buffer failure, until the offending cases can be resolved. */
+    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      GPU_finish();
+    }
+#endif
+    DRW_submission_end();
   }
 };
+
+DrawEngine *Engine::create_instance()
+{
+  return new Instance();
+}
 
 }  // namespace blender::draw::compositor_engine
-
-using namespace blender::draw::compositor_engine;
-
-struct COMPOSITOR_Data {
-  DrawEngineType *engine_type;
-  Engine *instance_data;
-  char info[GPU_INFO_SIZE];
-};
-
-static void compositor_engine_init(void *data)
-{
-  COMPOSITOR_Data *compositor_data = static_cast<COMPOSITOR_Data *>(data);
-
-  if (!compositor_data->instance_data) {
-    compositor_data->instance_data = new Engine(compositor_data->info);
-  }
-}
-
-static void compositor_engine_free(void *instance_data)
-{
-  Engine *engine = static_cast<Engine *>(instance_data);
-  delete engine;
-}
-
-static void compositor_engine_draw(void *data)
-{
-  COMPOSITOR_Data *compositor_data = static_cast<COMPOSITOR_Data *>(data);
-
-  DRW_submission_start();
-
-#if defined(__APPLE__)
-  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-    /* NOTE(Metal): Isolate Compositor compute work in individual command buffer to improve
-     * workload scheduling. When expensive compositor nodes are in the graph, these can stall out
-     * the GPU for extended periods of time and sub-optimally schedule work for execution. */
-    GPU_flush();
-  }
-#endif
-
-  /* Execute Compositor render commands. */
-  compositor_data->instance_data->draw();
-
-#if defined(__APPLE__)
-  /* NOTE(Metal): Following previous flush to break command stream, with compositor command
-   * buffers potentially being heavy, we avoid issuing subsequent commands until compositor work
-   * has completed. If subsequent work is prematurely queued up, the subsequent command buffers
-   * will be blocked behind compositor work and may trigger a command buffer time-out error. As a
-   * result, we should wait for compositor work to complete.
-   *
-   * This is not an efficient approach for peak performance, but a catch-all to prevent command
-   * buffer failure, until the offending cases can be resolved. */
-  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-    GPU_finish();
-  }
-#endif
-  DRW_submission_end();
-}
-
-DrawEngineType draw_engine_compositor_type = {
-    /*next*/ nullptr,
-    /*prev*/ nullptr,
-    /*idname*/ N_("Compositor"),
-    /*engine_init*/ &compositor_engine_init,
-    /*engine_free*/ nullptr,
-    /*instance_free*/ &compositor_engine_free,
-    /*cache_init*/ nullptr,
-    /*cache_populate*/ nullptr,
-    /*cache_finish*/ nullptr,
-    /*draw_scene*/ &compositor_engine_draw,
-    /*render_to_image*/ nullptr,
-    /*store_metadata*/ nullptr,
-};

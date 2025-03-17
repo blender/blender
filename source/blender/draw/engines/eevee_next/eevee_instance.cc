@@ -22,6 +22,8 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
 
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 #include "GPU_context.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -51,6 +53,68 @@ void *Instance::debug_scope_irradiance_sample = nullptr;
  * IMPORTANT: xxx.init() functions are NOT meant to acquire and allocate DRW resources.
  * Any attempt to do so will likely produce use after free situations.
  * \{ */
+
+void Instance::init()
+{
+  const DRWContext *ctx_state = DRW_context_get();
+  Depsgraph *depsgraph = ctx_state->depsgraph;
+  Scene *scene = ctx_state->scene;
+  View3D *v3d = ctx_state->v3d;
+  ARegion *region = ctx_state->region;
+  RegionView3D *rv3d = ctx_state->rv3d;
+
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+  int2 size = int2(GPU_texture_width(dtxl->color), GPU_texture_height(dtxl->color));
+
+  draw::View &default_view = draw::View::default_get();
+
+  Object *camera = nullptr;
+  /* Get render borders. */
+  rcti rect;
+  BLI_rcti_init(&rect, 0, size[0], 0, size[1]);
+  rcti visible_rect = rect;
+  if (v3d) {
+    if (rv3d && (rv3d->persp == RV3D_CAMOB)) {
+      camera = v3d->camera;
+    }
+
+    if (camera) {
+      rctf default_border;
+      BLI_rctf_init(&default_border, 0.0f, 1.0f, 0.0f, 1.0f);
+      bool is_default_border = BLI_rctf_compare(&scene->r.border, &default_border, 0.0f);
+      bool use_border = scene->r.mode & R_BORDER;
+      if (!is_default_border && use_border) {
+        rctf viewborder;
+        /* TODO(fclem) Might be better to get it from DRW. */
+        ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, false, &viewborder);
+        float viewborder_sizex = BLI_rctf_size_x(&viewborder);
+        float viewborder_sizey = BLI_rctf_size_y(&viewborder);
+        rect.xmin = floorf(viewborder.xmin + (scene->r.border.xmin * viewborder_sizex));
+        rect.ymin = floorf(viewborder.ymin + (scene->r.border.ymin * viewborder_sizey));
+        rect.xmax = floorf(viewborder.xmin + (scene->r.border.xmax * viewborder_sizex));
+        rect.ymax = floorf(viewborder.ymin + (scene->r.border.ymax * viewborder_sizey));
+      }
+    }
+    else if (v3d->flag2 & V3D_RENDER_BORDER) {
+      rect.xmin = v3d->render_border.xmin * size[0];
+      rect.ymin = v3d->render_border.ymin * size[1];
+      rect.xmax = v3d->render_border.xmax * size[0];
+      rect.ymax = v3d->render_border.ymax * size[1];
+    }
+
+    if (DRW_state_is_viewport_image_render()) {
+      const float2 vp_size = DRW_viewport_size_get();
+      visible_rect.xmax = vp_size[0];
+      visible_rect.ymax = vp_size[1];
+      visible_rect.xmin = visible_rect.ymin = 0;
+    }
+    else {
+      visible_rect = *ED_region_visible_rect(region);
+    }
+  }
+
+  init(size, &rect, &visible_rect, nullptr, depsgraph, camera, nullptr, &default_view, v3d, rv3d);
+}
 
 void Instance::init(const int2 &output_res,
                     const rcti *output_rect,
@@ -249,7 +313,7 @@ void Instance::begin_sync()
   }
 }
 
-void Instance::object_sync(ObjectRef &ob_ref)
+void Instance::object_sync(ObjectRef &ob_ref, Manager & /*manager*/)
 {
   if (skip_render_) {
     return;
@@ -314,16 +378,6 @@ void Instance::object_sync(ObjectRef &ob_ref)
   }
 }
 
-void Instance::object_sync_render(void *instance_,
-                                  ObjectRef &ob_ref,
-                                  RenderEngine *engine,
-                                  Depsgraph *depsgraph)
-{
-  UNUSED_VARS(engine, depsgraph);
-  Instance &inst = *reinterpret_cast<Instance *>(instance_);
-  inst.object_sync(ob_ref);
-}
-
 void Instance::end_sync()
 {
   if (skip_render_) {
@@ -354,7 +408,10 @@ void Instance::render_sync()
 
   begin_sync();
 
-  DRW_render_object_iter(this, render, depsgraph, object_sync_render);
+  DRW_render_object_iter(
+      render, depsgraph, [this](blender::draw::ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
+        this->object_sync(ob_ref, *this->manager);
+      });
 
   velocity.geometry_steps_fill();
 
@@ -621,6 +678,19 @@ void Instance::draw_viewport_image_render()
   }
 }
 
+void Instance::draw(Manager & /*manager*/)
+{
+  if (DRW_state_is_viewport_image_render()) {
+    draw_viewport_image_render();
+  }
+  else {
+    draw_viewport();
+  }
+  STRNCPY(info, info_get());
+  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  GPU_framebuffer_viewport_reset(dfbl->default_fb);
+}
+
 void Instance::store_metadata(RenderResult *render_result)
 {
   if (skip_render_) {
@@ -710,7 +780,7 @@ void Instance::light_bake_irradiance(
 
   auto custom_pipeline_wrapper = [&](FunctionRef<void()> callback) {
     context_enable();
-    DRW_custom_pipeline_begin(draw_ctx, &draw_engine_eevee_next_type, depsgraph);
+    DRW_custom_pipeline_begin(draw_ctx, depsgraph);
     callback();
     DRW_custom_pipeline_end(draw_ctx);
     context_disable();

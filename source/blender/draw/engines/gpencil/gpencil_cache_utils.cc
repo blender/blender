@@ -27,17 +27,19 @@
 #include "BLI_math_vector.hh"
 #include "BLI_memblock.h"
 
-#include "gpencil_engine.h"
+#include "gpencil_engine_private.hh"
 
 #include "DEG_depsgraph.hh"
 
 #include "UI_resources.hh"
 
+namespace blender::draw::gpencil {
+
 /* -------------------------------------------------------------------- */
 /** \name Object
  * \{ */
 
-GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_Instance *inst,
+GPENCIL_tObject *gpencil_object_cache_add(Instance *inst,
                                           Object *ob,
                                           const bool is_stroke_order_3d,
                                           const blender::Bounds<float3> bounds)
@@ -144,7 +146,7 @@ static int gpencil_tobject_dist_sort(const void *a, const void *b)
   return 0;
 }
 
-void gpencil_object_cache_sort(GPENCIL_Instance *inst)
+void gpencil_object_cache_sort(Instance *inst)
 {
   /* Sort object by distance to the camera. */
   if (inst->tobjects.first) {
@@ -184,7 +186,7 @@ void gpencil_object_cache_sort(GPENCIL_Instance *inst)
 /** \name Layer
  * \{ */
 
-static float grease_pencil_layer_final_opacity_get(const GPENCIL_Instance *inst,
+static float grease_pencil_layer_final_opacity_get(const Instance *inst,
                                                    const Object *ob,
                                                    const GreasePencil &grease_pencil,
                                                    const blender::bke::greasepencil::Layer &layer)
@@ -206,7 +208,7 @@ static float grease_pencil_layer_final_opacity_get(const GPENCIL_Instance *inst,
   return layer.opacity;
 }
 
-static float4 grease_pencil_layer_final_tint_and_alpha_get(const GPENCIL_Instance *inst,
+static float4 grease_pencil_layer_final_tint_and_alpha_get(const Instance *inst,
                                                            const GreasePencil &grease_pencil,
                                                            const int onion_id,
                                                            float *r_alpha)
@@ -286,7 +288,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
   return nullptr;
 }
 
-GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
+GPENCIL_tLayer *grease_pencil_layer_cache_add(Instance *inst,
                                               const Object *ob,
                                               const blender::bke::greasepencil::Layer &layer,
                                               const int onion_id,
@@ -407,7 +409,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
     PassSimple &pass = *tgp_layer->blend_ps;
     pass.init();
     pass.state_set(state);
-    pass.shader_set(GPENCIL_shader_layer_blend_get());
+    pass.shader_set(ShaderCache::get().layer_blend.get());
     pass.push_constant("blendMode", int(layer.blend_mode));
     pass.push_constant("blendOpacity", layer_opacity);
     pass.bind_texture("colorBuf", &inst->color_layer_tx);
@@ -445,7 +447,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
     state |= DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS;
 
     pass.state_set(state);
-    pass.shader_set(GPENCIL_shader_geometry_get());
+    pass.shader_set(ShaderCache::get().geometry.get());
     pass.bind_texture("gpSceneDepthTexture", depth_tex);
     pass.bind_texture("gpMaskTexture", mask_tex);
     pass.push_constant("gpNormal", tgp_ob->plane_normal);
@@ -471,3 +473,5 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
   return tgp_layer;
 }
 /** \} */
+
+}  // namespace blender::draw::gpencil

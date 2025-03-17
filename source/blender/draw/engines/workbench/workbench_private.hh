@@ -16,8 +16,6 @@
 
 #include "GPU_capabilities.hh"
 
-extern "C" DrawEngineType draw_engine_workbench;
-
 namespace blender::workbench {
 
 using namespace draw;

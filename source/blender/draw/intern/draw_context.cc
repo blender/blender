@@ -88,7 +88,7 @@
 #include "engines/compositor/compositor_engine.h"
 #include "engines/eevee_next/eevee_engine.h"
 #include "engines/external/external_engine.h"
-#include "engines/gpencil/gpencil_engine.h"
+#include "engines/gpencil/gpencil_engine.hh"
 #include "engines/image/image_engine.h"
 #include "engines/overlay/overlay_engine.h"
 #include "engines/select/select_engine.hh"
@@ -197,8 +197,7 @@ DRWContext::~DRWContext()
 
 GPUFrameBuffer *DRWContext::default_framebuffer()
 {
-  DefaultFramebufferList *dfbl = DRW_view_data_default_framebuffer_list_get(view_data_active);
-  return dfbl->default_fb;
+  return view_data_active->dfbl.default_fb;
 }
 
 static bool draw_show_annotation()
@@ -496,17 +495,18 @@ void DRWContext::release_data()
 
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get()
 {
-  return DRW_view_data_default_framebuffer_list_get(drw_get().view_data_active);
+  return &drw_get().view_data_active->dfbl;
 }
 
 DefaultTextureList *DRW_viewport_texture_list_get()
 {
-  return DRW_view_data_default_texture_list_get(drw_get().view_data_active);
+  return &drw_get().view_data_active->dtxl;
 }
 
 blender::draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name)
 {
-  return DRW_view_data_pass_texture_get(drw_get().view_data_active, pass_name);
+  return *drw_get().view_data_active->viewport_compositor_passes.lookup_or_add_cb(
+      pass_name, [&]() { return std::make_unique<blender::draw::TextureFromPool>(pass_name); });
 }
 
 void DRW_viewport_request_redraw()
@@ -635,49 +635,6 @@ void DupliCacheManager::extract_all(ExtractionGraph &extraction)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name ViewLayers (DRW_scenelayer)
- * \{ */
-
-void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type)
-{
-  LISTBASE_FOREACH (ViewLayerEngineData *, sled, &drw_get().view_layer->drawdata) {
-    if (sled->engine_type == engine_type) {
-      return sled->storage;
-    }
-  }
-  return nullptr;
-}
-
-void **DRW_view_layer_engine_data_ensure_ex(ViewLayer *view_layer,
-                                            DrawEngineType *engine_type,
-                                            void (*callback)(void *storage))
-{
-  ViewLayerEngineData *sled;
-
-  LISTBASE_FOREACH (ViewLayerEngineData *, sled, &view_layer->drawdata) {
-    if (sled->engine_type == engine_type) {
-      return &sled->storage;
-    }
-  }
-
-  sled = static_cast<ViewLayerEngineData *>(
-      MEM_callocN(sizeof(ViewLayerEngineData), "ViewLayerEngineData"));
-  sled->engine_type = engine_type;
-  sled->free = callback;
-  BLI_addtail(&view_layer->drawdata, sled);
-
-  return &sled->storage;
-}
-
-void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type,
-                                         void (*callback)(void *storage))
-{
-  return DRW_view_layer_engine_data_ensure_ex(drw_get().view_layer, engine_type, callback);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Draw Data (DRW_drawdata)
  * \{ */
 
@@ -735,56 +692,6 @@ DrawDataList *DRW_drawdatalist_from_id(ID *id)
   }
 
   return nullptr;
-}
-
-DrawData *DRW_drawdata_get(ID *id, DrawEngineType *engine_type)
-{
-  DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
-
-  if (drawdata == nullptr) {
-    return nullptr;
-  }
-
-  LISTBASE_FOREACH (DrawData *, dd, drawdata) {
-    if (dd->engine_type == engine_type) {
-      return dd;
-    }
-  }
-  return nullptr;
-}
-
-DrawData *DRW_drawdata_ensure(ID *id,
-                              DrawEngineType *engine_type,
-                              size_t size,
-                              DrawDataInitCb init_cb,
-                              DrawDataFreeCb free_cb)
-{
-  BLI_assert(size >= sizeof(DrawData));
-  BLI_assert(id_can_have_drawdata(id));
-  BLI_assert_msg(
-      GS(id->name) != ID_OB,
-      "Objects should not use DrawData anymore. Use last_update instead for update detection");
-  /* Try to re-use existing data. */
-  DrawData *dd = DRW_drawdata_get(id, engine_type);
-  if (dd != nullptr) {
-    return dd;
-  }
-
-  DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
-
-  /* Allocate new data. */
-  {
-    dd = static_cast<DrawData *>(MEM_callocN(size, "DrawData"));
-  }
-  dd->engine_type = engine_type;
-  dd->free = free_cb;
-  /* Perform user-side initialization, if needed. */
-  if (init_cb != nullptr) {
-    init_cb(dd);
-  }
-  /* Register in the list. */
-  BLI_addtail((ListBase *)drawdata, dd);
-  return dd;
 }
 
 void DRW_drawdata_free(ID *id)
@@ -908,11 +815,7 @@ static void drw_engines_cache_populate(blender::draw::ObjectRef &ref, Extraction
 
   DRWContext &ctx = drw_get();
   ctx.view_data_active->foreach_enabled_engine(
-      [&](ViewportEngineData *data, DrawEngineType *engine) {
-        if (engine->cache_populate) {
-          engine->cache_populate(data, ref);
-        }
-      });
+      [&](DrawEngine &instance) { instance.object_sync(ref, *DRW_manager_get()); });
 
   /* TODO: in the future it would be nice to generate once for all viewports.
    * But we need threaded DRW manager first. */
@@ -947,34 +850,24 @@ void DRWContext::sync(iter_callback_t iter_callback)
 
 void DRWContext::engines_init_and_sync(iter_callback_t iter_callback)
 {
-  view_data_active->foreach_enabled_engine([&](ViewportEngineData *data, DrawEngineType *engine) {
-    if (engine->engine_init) {
-      engine->engine_init(data);
-    }
-  });
+  view_data_active->foreach_enabled_engine([&](DrawEngine &instance) { instance.init(); });
 
-  view_data_active->foreach_enabled_engine([&](ViewportEngineData *data, DrawEngineType *engine) {
+  view_data_active->foreach_enabled_engine([&](DrawEngine &instance) {
     /* TODO(fclem): Remove. Only there for overlay engine. */
-    if (data->text_draw_cache) {
-      DRW_text_cache_destroy(data->text_draw_cache);
-      data->text_draw_cache = nullptr;
+    if (instance.text_draw_cache) {
+      DRW_text_cache_destroy(instance.text_draw_cache);
+      instance.text_draw_cache = nullptr;
     }
     if (drw_get().text_store_p == nullptr) {
-      drw_get().text_store_p = &data->text_draw_cache;
+      drw_get().text_store_p = &instance.text_draw_cache;
     }
 
-    if (engine->cache_init) {
-      engine->cache_init(data);
-    }
+    instance.begin_sync();
   });
 
   sync(iter_callback);
 
-  view_data_active->foreach_enabled_engine([&](ViewportEngineData *data, DrawEngineType *engine) {
-    if (engine->cache_finish) {
-      engine->cache_finish(data);
-    }
-  });
+  view_data_active->foreach_enabled_engine([&](DrawEngine &instance) { instance.end_sync(); });
 }
 
 void DRWContext::engines_draw_scene()
@@ -982,12 +875,10 @@ void DRWContext::engines_draw_scene()
   /* Start Drawing */
   blender::draw::command::StateSet::set();
 
-  view_data_active->foreach_enabled_engine([&](ViewportEngineData *data, DrawEngineType *engine) {
-    if (engine->draw_scene) {
-      GPU_debug_group_begin(engine->idname);
-      engine->draw_scene(data);
-      GPU_debug_group_end();
-    }
+  view_data_active->foreach_enabled_engine([&](DrawEngine &instance) {
+    GPU_debug_group_begin(instance.name_get().c_str());
+    instance.draw(*DRW_manager_get());
+    GPU_debug_group_end();
   });
 
   /* Reset state after drawing */
@@ -1002,30 +893,28 @@ void DRWContext::engines_draw_scene()
 static void drw_engines_draw_text()
 {
   DRWContext &ctx = drw_get();
-  ctx.view_data_active->foreach_enabled_engine(
-      [&](ViewportEngineData *data, DrawEngineType * /*engine*/) {
-        if (data->text_draw_cache) {
-          DRW_text_cache_draw(data->text_draw_cache, ctx.region, ctx.v3d);
-        }
-      });
+  ctx.view_data_active->foreach_enabled_engine([&](DrawEngine &instance) {
+    if (instance.text_draw_cache) {
+      DRW_text_cache_draw(instance.text_draw_cache, ctx.region, ctx.v3d);
+    }
+  });
 }
 
 void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height)
 {
   DRWContext &ctx = drw_get();
-  ctx.view_data_active->foreach_enabled_engine(
-      [&](ViewportEngineData *data, DrawEngineType * /*engine*/) {
-        if (data->info[0] != '\0') {
-          const char *buf_step = IFACE_(data->info);
-          do {
-            const char *buf = buf_step;
-            buf_step = BLI_strchr_or_end(buf, '\n');
-            const int buf_len = buf_step - buf;
-            *yoffset -= line_height;
-            BLF_draw_default(xoffset, *yoffset, 0.0f, buf, buf_len);
-          } while (*buf_step ? ((void)buf_step++, true) : false);
-        }
-      });
+  ctx.view_data_active->foreach_enabled_engine([&](DrawEngine &instance) {
+    if (instance.info[0] != '\0') {
+      const char *buf_step = IFACE_(instance.info);
+      do {
+        const char *buf = buf_step;
+        buf_step = BLI_strchr_or_end(buf, '\n');
+        const int buf_len = buf_step - buf;
+        *yoffset -= line_height;
+        BLF_draw_default(xoffset, *yoffset, 0.0f, buf, buf_len);
+      } while (*buf_step ? ((void)buf_step++, true) : false);
+    }
+  });
 }
 
 void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *render_engine_type)
@@ -1035,12 +924,12 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
   SpaceLink *space_data = this->space_data;
   if (space_data && space_data->spacetype == SPACE_IMAGE) {
     if (DRW_engine_external_acquire_for_image_editor()) {
-      view_data.external.used = true;
+      view_data.external.set_used(true);
     }
     else {
-      view_data.image.used = true;
+      view_data.image.set_used(true);
     }
-    view_data.overlay.used = true;
+    view_data.overlay.set_used(true);
     return;
   }
 
@@ -1048,26 +937,26 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
     /* Only enable when drawing the space image backdrop. */
     SpaceNode *snode = (SpaceNode *)space_data;
     if ((snode->flag & SNODE_BACKDRAW) != 0) {
-      view_data.image.used = true;
-      view_data.overlay.used = true;
+      view_data.image.set_used(true);
+      view_data.overlay.set_used(true);
     }
     return;
   }
 
   if (ELEM(this->mode, DRWContext::SELECT_OBJECT, DRWContext::SELECT_OBJECT_MATERIAL)) {
-    this->view_data_active->grease_pencil.used = gpencil_engine_needed;
-    this->view_data_active->object_select.used = true;
+    view_data.grease_pencil.set_used(gpencil_engine_needed);
+    view_data.object_select.set_used(true);
     return;
   }
 
   if (ELEM(this->mode, DRWContext::SELECT_EDIT_MESH)) {
-    this->view_data_active->edit_select.used = true;
+    view_data.edit_select.set_used(true);
     return;
   }
 
   if (ELEM(this->mode, DRWContext::DEPTH)) {
-    this->view_data_active->grease_pencil.used = gpencil_engine_needed;
-    this->view_data_active->overlay.used = true;
+    view_data.grease_pencil.set_used(gpencil_engine_needed);
+    view_data.overlay.set_used(true);
     return;
   }
 
@@ -1080,41 +969,39 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
     switch (drawtype) {
       case OB_WIRE:
       case OB_SOLID:
-        view_data.workbench.used = true;
+        view_data.workbench.set_used(true);
         break;
       case OB_MATERIAL:
       case OB_RENDER:
       default:
-        if (render_engine_type->draw_engine != nullptr) {
-          if (render_engine_type == &DRW_engine_viewport_eevee_next_type) {
-            view_data.eevee.used = true;
-          }
-          else if (render_engine_type == &DRW_engine_viewport_workbench_type) {
-            view_data.workbench.used = true;
-          }
-          else {
-            BLI_assert_unreachable();
-          }
+        if (render_engine_type == &DRW_engine_viewport_eevee_next_type) {
+          view_data.eevee.set_used(true);
+        }
+        else if (render_engine_type == &DRW_engine_viewport_workbench_type) {
+          view_data.workbench.set_used(true);
         }
         else if ((render_engine_type->flag & RE_INTERNAL) == 0) {
-          view_data.external.used = true;
+          view_data.external.set_used(true);
+        }
+        else {
+          BLI_assert_unreachable();
         }
         break;
     }
 
-    if (gpencil_engine_needed && ((drawtype >= OB_SOLID) || !use_xray)) {
-      view_data.grease_pencil.used = true;
+    if ((drawtype >= OB_SOLID) || !use_xray) {
+      view_data.grease_pencil.set_used(gpencil_engine_needed);
     }
 
     if (DRW_state_viewport_compositor_enabled()) {
-      view_data.compositor.used = true;
+      view_data.compositor.set_used(true);
     }
 
-    view_data.overlay.used = true;
+    view_data.overlay.set_used(true);
 
 #ifdef WITH_DRAW_DEBUG
     if (G.debug_value == 31) {
-      view_data_active.edit_select_debug.used = true;
+      view_data.edit_select_debug.set_used(true);
     }
 #endif
   }
@@ -1605,21 +1492,9 @@ bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
   return false;
 }
 
-static void drw_render_gpencil_to_image(RenderEngine *engine,
-                                        RenderLayer *render_layer,
-                                        const rcti *rect)
-{
-  DrawEngineType *draw_engine = &draw_engine_gpencil_type;
-
-  if (draw_engine->render_to_image) {
-    ViewportEngineData *gpdata = DRW_view_data_engine_data_get_ensure(drw_get().view_data_active,
-                                                                      draw_engine);
-    draw_engine->render_to_image(gpdata, engine, render_layer, rect);
-  }
-}
-
 void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
 {
+  using namespace blender::draw;
   /* This function should only be called if there are grease pencil objects,
    * especially important to avoid failing in background renders without GPU context. */
   BLI_assert(DRW_render_check_grease_pencil(depsgraph));
@@ -1655,10 +1530,10 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
        render_view = render_view->next)
   {
     RE_SetActiveRenderView(render, render_view->name);
-    drw_render_gpencil_to_image(engine, render_layer, &render_rect);
+    gpencil::Engine::render_to_image(engine, render_layer, render_rect);
   }
 
-  blender::draw::command::StateSet::set();
+  command::StateSet::set();
 
   GPU_depth_test(GPU_DEPTH_NONE);
 
@@ -1672,13 +1547,15 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
   DRW_render_context_disable(render);
 }
 
-void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
+void DRW_render_to_image(
+    RenderEngine *engine,
+    Depsgraph *depsgraph,
+    std::function<void(RenderEngine *, RenderLayer *, const rcti)> render_view_cb,
+    std::function<void(RenderResult *)> store_metadata_cb)
 {
   using namespace blender::draw;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  RenderEngineType *engine_type = engine->type;
-  DrawEngineType *draw_engine_type = engine_type->draw_engine;
   Render *render = engine->re;
 
   /* IMPORTANT: We don't support immediate mode in render mode!
@@ -1694,9 +1571,6 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
   /* Init modules ahead of time because the begin_sync happens before DRW_render_object_iter. */
   draw_ctx.data->modules_init();
 
-  ViewportEngineData *data = DRW_view_data_engine_data_get_ensure(drw_get().view_data_active,
-                                                                  draw_engine_type);
-
   /* Main rendering. */
   rctf view_rect;
   rcti render_rect;
@@ -1706,7 +1580,7 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
   }
 
   /* Reset state before drawing */
-  blender::draw::command::StateSet::set();
+  command::StateSet::set();
 
   /* set default viewport */
   GPU_viewport(0, 0, draw_ctx.size[0], draw_ctx.size[1]);
@@ -1725,15 +1599,12 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
        render_view = render_view->next)
   {
     RE_SetActiveRenderView(render, render_view->name);
-    engine_type->draw_engine->render_to_image(data, engine, render_layer, &render_rect);
+    render_view_cb(engine, render_layer, render_rect);
   }
 
   RE_engine_end_result(engine, render_result, false, false, false);
 
-  if (engine_type->draw_engine->store_metadata) {
-    RenderResult *final_render_result = RE_engine_get_result(engine);
-    engine_type->draw_engine->store_metadata(data, final_render_result);
-  }
+  store_metadata_cb(RE_engine_get_result(engine));
 
   GPU_framebuffer_restore();
 
@@ -1746,13 +1617,10 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
   GPU_render_end();
 }
 
-void DRW_render_object_iter(void *vedata,
-                            RenderEngine *engine,
-                            Depsgraph *depsgraph,
-                            void (*callback)(void *vedata,
-                                             blender::draw::ObjectRef &ob_ref,
-                                             RenderEngine *engine,
-                                             Depsgraph *depsgraph))
+void DRW_render_object_iter(
+    RenderEngine *engine,
+    Depsgraph *depsgraph,
+    std::function<void(blender::draw::ObjectRef &, RenderEngine *, Depsgraph *)> callback)
 {
   DRWContext &draw_ctx = drw_get();
 
@@ -1772,7 +1640,7 @@ void DRW_render_object_iter(void *vedata,
         if (ob_ref.is_dupli() == false) {
           drw_batch_cache_validate(ob);
         }
-        callback(vedata, ob_ref, engine, depsgraph);
+        callback(ob_ref, engine, depsgraph);
         if (ob_ref.is_dupli() == false) {
           drw_batch_cache_generate_requested(ob, *extraction.graph);
         }
@@ -1782,9 +1650,7 @@ void DRW_render_object_iter(void *vedata,
   });
 }
 
-void DRW_custom_pipeline_begin(DRWContext &draw_ctx,
-                               DrawEngineType * /*draw_engine_type*/,
-                               Depsgraph * /*depsgraph*/)
+void DRW_custom_pipeline_begin(DRWContext &draw_ctx, Depsgraph * /*depsgraph*/)
 {
   draw_ctx.acquire_data();
   draw_ctx.data->modules_init();
@@ -2245,15 +2111,15 @@ void DRW_engines_register()
 
 void DRW_engines_free()
 {
-  DRW_engine_viewport_eevee_next_type.draw_engine->engine_free();
-  DRW_engine_viewport_workbench_type.draw_engine->engine_free();
-  draw_engine_gpencil_type.engine_free();
-  draw_engine_image_type.engine_free();
-  draw_engine_overlay_next_type.engine_free();
+  blender::eevee::Engine::free_static();
+  blender::workbench::Engine::free_static();
+  blender::draw::gpencil::Engine::free_static();
+  blender::image_engine::Engine::free_static();
+  blender::draw::overlay::Engine::free_static();
+  blender::draw::edit_select::Engine::free_static();
 #ifdef WITH_DRAW_DEBUG
-  draw_engine_debug_select_type.engine_free();
+  blender::draw::edit_select_debug::Engine::free_static();
 #endif
-  draw_engine_select_type.engine_free();
 }
 
 /** \} */

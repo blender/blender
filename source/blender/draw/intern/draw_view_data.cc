@@ -23,30 +23,9 @@
 #include "draw_manager.hh"
 #include "draw_view_data.hh"
 
-#include "engines/compositor/compositor_engine.h"
-#include "engines/eevee_next/eevee_engine.h"
-#include "engines/external/external_engine.h"
-#include "engines/gpencil/gpencil_engine.h"
-#include "engines/image/image_engine.h"
-#include "engines/overlay/overlay_engine.h"
-#include "engines/select/select_engine.hh"
-#include "engines/workbench/workbench_engine.h"
-
 using namespace blender;
 
 DRWViewData::DRWViewData()
-    : eevee(DRW_engine_viewport_eevee_next_type.draw_engine),
-      workbench(DRW_engine_viewport_workbench_type.draw_engine),
-      external(&draw_engine_external_type),
-      image(&draw_engine_image_type),
-      grease_pencil(&draw_engine_gpencil_type),
-      overlay(&draw_engine_overlay_next_type),
-      object_select(&draw_engine_select_next_type),
-      edit_select(&draw_engine_select_type),
-#ifdef WITH_DRAW_DEBUG
-      edit_select_debug(DRW_engine_viewport_select_type.draw_engine),
-#endif
-      compositor(&draw_engine_compositor_type)
 {
   manager = new draw::Manager();
 };
@@ -56,13 +35,6 @@ DRWViewData::~DRWViewData()
   this->clear(true);
   delete manager;
 };
-
-draw::TextureFromPool &DRW_view_data_pass_texture_get(DRWViewData *view_data,
-                                                      const char *pass_name)
-{
-  return *view_data->viewport_compositor_passes.lookup_or_add_cb(
-      pass_name, [&]() { return std::make_unique<draw::TextureFromPool>(pass_name); });
-}
 
 void DRW_view_data_default_lists_from_viewport(DRWViewData *view_data, GPUViewport *viewport)
 {
@@ -103,22 +75,6 @@ void DRW_view_data_default_lists_from_viewport(DRWViewData *view_data, GPUViewpo
                                 });
 }
 
-static void draw_viewport_engines_data_clear(ViewportEngineData *data, bool clear_instance_data)
-{
-  DrawEngineType *engine_type = data->draw_engine;
-
-  if (clear_instance_data && data->instance_data) {
-    BLI_assert(engine_type->instance_free != nullptr);
-    engine_type->instance_free(data->instance_data);
-    data->instance_data = nullptr;
-  }
-
-  if (data->text_draw_cache) {
-    DRW_text_cache_destroy(data->text_draw_cache);
-    data->text_draw_cache = nullptr;
-  }
-}
-
 void DRWViewData::clear(bool free_instance_data)
 {
   GPU_FRAMEBUFFER_FREE_SAFE(this->dfbl.default_fb);
@@ -135,9 +91,15 @@ void DRWViewData::clear(bool free_instance_data)
   }
   GPU_TEXTURE_FREE_SAFE(this->dtxl.depth_in_front);
 
-  foreach_engine([&](ViewportEngineData *data, DrawEngineType * /*engine*/) {
-    draw_viewport_engines_data_clear(data, free_instance_data);
-  });
+  if (free_instance_data) {
+    foreach_engine([&](DrawEngine::Pointer &ptr) {
+      if (ptr.instance) {
+        /* TODO Move where it belongs. */
+        DRW_text_cache_destroy(ptr.instance->text_draw_cache);
+        ptr.free_instance();
+      }
+    });
+  }
 }
 
 void DRWViewData::texture_list_size_validate(const blender::int2 &size)
@@ -148,28 +110,9 @@ void DRWViewData::texture_list_size_validate(const blender::int2 &size)
   }
 }
 
-ViewportEngineData *DRW_view_data_engine_data_get_ensure(DRWViewData *view_data,
-                                                         DrawEngineType *engine_type)
-{
-  ViewportEngineData *result = nullptr;
-  view_data->foreach_engine([&](ViewportEngineData *data, DrawEngineType *engine) {
-    if (engine_type == engine) {
-      result = data;
-    }
-  });
-  return result;
-}
-
-void DRW_view_data_use_engine(DRWViewData *view_data, DrawEngineType *engine_type)
-{
-  ViewportEngineData *engine = DRW_view_data_engine_data_get_ensure(view_data, engine_type);
-  engine->used = true;
-}
-
 void DRW_view_data_reset(DRWViewData *view_data)
 {
-  view_data->foreach_enabled_engine(
-      [&](ViewportEngineData *data, DrawEngineType * /*engine*/) { data->used = false; });
+  view_data->foreach_enabled_engine([&](DrawEngine &instance) { instance.used = false; });
 
   for (std::unique_ptr<draw::TextureFromPool> &texture :
        view_data->viewport_compositor_passes.values())
@@ -181,21 +124,13 @@ void DRW_view_data_reset(DRWViewData *view_data)
 
 void DRW_view_data_free_unused(DRWViewData *view_data)
 {
-  view_data->foreach_engine([&](ViewportEngineData *data, DrawEngineType * /*engine*/) {
-    if (data->used == false) {
-      draw_viewport_engines_data_clear(data, false);
+  view_data->foreach_engine([&](DrawEngine::Pointer &ptr) {
+    if (ptr.instance && ptr.instance->used == false) {
+      /* TODO Move where it belongs. */
+      DRW_text_cache_destroy(ptr.instance->text_draw_cache);
+      ptr.free_instance();
     }
   });
-}
-
-DefaultFramebufferList *DRW_view_data_default_framebuffer_list_get(DRWViewData *view_data)
-{
-  return &view_data->dfbl;
-}
-
-DefaultTextureList *DRW_view_data_default_texture_list_get(DRWViewData *view_data)
-{
-  return &view_data->dtxl;
 }
 
 draw::Manager *DRW_manager_get()

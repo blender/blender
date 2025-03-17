@@ -19,19 +19,16 @@
 
 #include "IMB_imbuf_types.hh"
 
-#include "gpencil_engine.h"
+#include "gpencil_engine_private.hh"
 
-void GPENCIL_render_init(GPENCIL_Data *vedata,
-                         RenderEngine *engine,
-                         RenderLayer *render_layer,
-                         const Depsgraph *depsgraph,
-                         const rcti *rect)
+namespace blender::draw::gpencil {
+
+static void render_init(Instance &inst,
+                        RenderEngine *engine,
+                        RenderLayer *render_layer,
+                        const Depsgraph *depsgraph,
+                        const rcti *rect)
 {
-  if (vedata->instance == nullptr) {
-    vedata->instance = new GPENCIL_Instance();
-  }
-  GPENCIL_Instance &inst = *vedata->instance;
-
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   const int2 size = int2(DRW_viewport_size_get());
 
@@ -140,25 +137,10 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
   MEM_SAFE_FREE(pix_z);
 }
 
-/* render all objects and select only grease pencil */
-static void GPENCIL_render_cache(void *vedata,
-                                 blender::draw::ObjectRef &ob_ref,
-                                 RenderEngine * /*engine*/,
-                                 Depsgraph * /*depsgraph*/)
-{
-  if (!ELEM(ob_ref.object->type, OB_GREASE_PENCIL, OB_LAMP)) {
-    return;
-  }
-  if (!(DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF)) {
-    return;
-  }
-  GPENCIL_cache_populate(vedata, ob_ref);
-}
-
-static void GPENCIL_render_result_z(RenderLayer *rl,
-                                    const char *viewname,
-                                    GPENCIL_Data *vedata,
-                                    const rcti *rect)
+static void render_result_z(RenderLayer *rl,
+                            const char *viewname,
+                            Instance &instance,
+                            const rcti *rect)
 {
   const DRWContext *draw_ctx = DRW_context_get();
   ViewLayer *view_layer = draw_ctx->view_layer;
@@ -172,7 +154,7 @@ static void GPENCIL_render_result_z(RenderLayer *rl,
 
   float *ro_buffer_data = rp->ibuf->float_buffer.data;
 
-  GPU_framebuffer_read_depth(vedata->instance->render_fb,
+  GPU_framebuffer_read_depth(instance.render_fb,
                              rect->xmin,
                              rect->ymin,
                              BLI_rcti_size_x(rect),
@@ -213,15 +195,15 @@ static void GPENCIL_render_result_z(RenderLayer *rl,
   }
 }
 
-static void GPENCIL_render_result_combined(RenderLayer *rl,
-                                           const char *viewname,
-                                           GPENCIL_Data *vedata,
-                                           const rcti *rect)
+static void render_result_combined(RenderLayer *rl,
+                                   const char *viewname,
+                                   Instance &instance,
+                                   const rcti *rect)
 {
   RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
 
-  GPU_framebuffer_bind(vedata->instance->render_fb);
-  GPU_framebuffer_read_color(vedata->instance->render_fb,
+  GPU_framebuffer_bind(instance.render_fb);
+  GPU_framebuffer_read_color(instance.render_fb,
                              rect->xmin,
                              rect->ymin,
                              BLI_rcti_size_x(rect),
@@ -232,33 +214,45 @@ static void GPENCIL_render_result_combined(RenderLayer *rl,
                              rp->ibuf->float_buffer.data);
 }
 
-void GPENCIL_render_to_image(void *ved,
-                             RenderEngine *engine,
-                             RenderLayer *render_layer,
-                             const rcti *rect)
+void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, const rcti rect)
 {
-  GPENCIL_Data *vedata = (GPENCIL_Data *)ved;
   const char *viewname = RE_GetActiveRenderView(engine->re);
+
   const DRWContext *draw_ctx = DRW_context_get();
   Depsgraph *depsgraph = draw_ctx->depsgraph;
 
-  DRW_manager_get()->begin_sync();
+  blender::draw::gpencil::Instance inst;
 
-  GPENCIL_render_init(vedata, engine, render_layer, depsgraph, rect);
-  GPENCIL_engine_init(vedata);
+  Manager &manager = *DRW_manager_get();
 
-  vedata->instance->camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  render_init(inst, engine, render_layer, depsgraph, &rect);
+  inst.init();
+
+  inst.camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+
+  manager.begin_sync();
 
   /* Loop over all objects and create draw structure. */
-  GPENCIL_cache_init(vedata);
-  DRW_render_object_iter(vedata, engine, depsgraph, GPENCIL_render_cache);
-  GPENCIL_cache_finish(vedata);
+  inst.begin_sync();
+  DRW_render_object_iter(
+      engine, depsgraph, [&](blender::draw::ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
+        if (!ELEM(ob_ref.object->type, OB_GREASE_PENCIL, OB_LAMP)) {
+          return;
+        }
+        if (!(DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF)) {
+          return;
+        }
+        inst.object_sync(ob_ref, manager);
+      });
+  inst.end_sync();
 
-  DRW_manager_get()->end_sync();
+  manager.end_sync();
 
   /* Render the gpencil object and merge the result to the underlying render. */
-  GPENCIL_draw_scene(vedata);
+  inst.draw(manager);
 
-  GPENCIL_render_result_combined(render_layer, viewname, vedata, rect);
-  GPENCIL_render_result_z(render_layer, viewname, vedata, rect);
+  render_result_combined(render_layer, viewname, inst, &rect);
+  render_result_z(render_layer, viewname, inst, &rect);
 }
+
+}  // namespace blender::draw::gpencil

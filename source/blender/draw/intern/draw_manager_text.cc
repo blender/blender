@@ -81,6 +81,9 @@ DRWTextStore *DRW_text_cache_create()
 
 void DRW_text_cache_destroy(DRWTextStore *dt)
 {
+  if (dt == nullptr) {
+    return;
+  }
   BLI_memiter_destroy(dt->cache_strings);
   MEM_freeN(dt);
 }

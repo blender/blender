@@ -8,6 +8,14 @@
 
 #pragma once
 
-struct DrawEngineType;
+#include "DRW_render.hh"
 
-extern DrawEngineType draw_engine_image_type;
+namespace blender::image_engine {
+
+struct Engine : public DrawEngine::Pointer {
+  DrawEngine *create_instance() final;
+
+  static void free_static();
+};
+
+}  // namespace blender::image_engine

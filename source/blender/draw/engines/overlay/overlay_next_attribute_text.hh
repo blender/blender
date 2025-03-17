@@ -6,6 +6,8 @@
  * \ingroup draw_engine
  */
 
+#pragma once
+
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_string.h"
 
