@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2025-01-27 09:56+0000\n"
 "Last-Translator: Sander Spolspoel <sander@sworl.be>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2698,10 +2698,6 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
 msgid "Mirror"
 msgstr "Spiegel"
 
@@ -2740,6 +2736,10 @@ msgstr "Star Lichaam"
 
 msgid "Quick Effects"
 msgstr "Snelle Effecten"
+
+
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
 
 
 msgid "Convert"

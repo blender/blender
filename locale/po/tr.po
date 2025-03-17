@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -576,10 +576,6 @@ msgstr "Belleği aygıtlar arasında dağıt"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Belleği çoğaltmak yerine, birbirine bağlı aygıtlar arasında dağıtarak (örneğin NVLink aracılığıyla) büyük sahnelerin sığması için daha fazla yer açın"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (Deneysel)"
 
 
 msgid "Embree on GPU"
@@ -29209,14 +29205,6 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
 msgid "Pivot Point"
 msgstr "Pivot Noktası"
 
@@ -29335,6 +29323,14 @@ msgstr "İzlemek"
 
 msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
 
 
 msgid "Asset"
@@ -79164,20 +79160,20 @@ msgid "Curve Edit Mode"
 msgstr "Eğri Düzenleme Modu"
 
 
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
-
-
 msgid "Snapping"
 msgstr "Çıtlama"
 
 
 msgid "Transform Orientations"
 msgstr "Dönüştürme Yönlendirmeleri"
+
+
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
 
 
 msgid "Stroke Placement"
@@ -117350,10 +117346,6 @@ msgstr "Arka plan modunda OpenGL render'ı kullanamazsınız (OpenGL bağlamı y
 
 msgid "Scene has no camera"
 msgstr "Sahnede kamera yok"
-
-
-msgid "Movie format unsupported"
-msgstr "Film biçimi desteklenmiyor"
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"

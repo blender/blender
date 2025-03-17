@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23869,14 +23869,6 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
 msgid "Pivot Point"
 msgstr "피벗 포인트"
 
@@ -23983,6 +23975,14 @@ msgstr "트랙"
 
 msgid "Quick Effects"
 msgstr "빠른 이펙트"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Clean Up"
+msgstr "정리"
 
 
 msgid "Asset"
@@ -77069,10 +77069,6 @@ msgstr "배경 모드에서 OpenGL 렌더를 사용할 수 없습니다. (OpenGL
 
 msgid "Scene has no camera"
 msgstr "씬에 카메라가 없음"
-
-
-msgid "Movie format unsupported"
-msgstr "무비 포맷 지원되지 않음"
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"

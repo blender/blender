@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2025-03-03 11:29+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18871,14 +18871,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
 msgid "Pivot Point"
 msgstr "Drehpunkt"
 
@@ -18985,6 +18977,14 @@ msgstr "Spur"
 
 msgid "Quick Effects"
 msgstr "Schnelle Effekte"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
 
 
 msgid "Asset"
@@ -57619,10 +57619,6 @@ msgstr "Holz"
 
 msgid "Scene has no camera"
 msgstr "Szene hat keine Kamera"
-
-
-msgid "Movie format unsupported"
-msgstr "Filmformat nicht unterstützt"
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"

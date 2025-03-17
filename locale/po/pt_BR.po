@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2025-03-03 11:30+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -655,10 +655,6 @@ msgstr "Distribuir memória pelos dispositivos"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Distribuir a cena na memória de múltiplos dispositivos interconectados, por exemplo via NVLink, em vez de duplicá-la para cada dispositivo"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (experimental)"
 
 
 msgid "Embree on GPU"
@@ -21492,14 +21488,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
@@ -21598,6 +21586,14 @@ msgstr "Rastrear"
 
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Make Single User"
@@ -67739,10 +67735,6 @@ msgstr "Não é possível renderizar usando OpenGL no modo de plano de fundo (se
 
 msgid "Scene has no camera"
 msgstr "A cena não possui uma câmera definida."
-
-
-msgid "Movie format unsupported"
-msgstr "Formato de filme não suportado."
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"

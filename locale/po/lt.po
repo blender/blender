@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2024-11-14 16:56+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -378,10 +378,6 @@ msgstr "Įjungta/Įgalinta (-s)"
 
 msgid "Auto"
 msgstr "Automatinis/-iškas"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "„HIP RT“ (Eksperimentinis)"
 
 
 msgid "        Filter by Name"
@@ -3153,16 +3149,16 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Show/Hide"
-msgstr "Rodyti/Slėpti"
-
-
 msgid "Apply"
 msgstr "Pritaikyti"
 
 
 msgid "Track"
 msgstr "Sekti"
+
+
+msgid "Show/Hide"
+msgstr "Rodyti/Slėpti"
 
 
 msgid "Text"

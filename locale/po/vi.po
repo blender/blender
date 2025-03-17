@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2024-12-30 20:42+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -717,10 +717,6 @@ msgstr "Phân bổ bộ nhớ trên các thiết bị"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Tạo thêm không gian cho các cảnh lớn khít vừa vặn bằng cách phân phối bộ nhớ trên các thiết bị được kết nối với nhau (ví dụ: qua NVLink) thay vì sao chép nó"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (Thử nghiệm)"
 
 
 msgid "Embree on GPU"
@@ -33504,14 +33500,6 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Show/Hide"
-msgstr "Hiện/Ẩn Giấu"
-
-
-msgid "Clean Up"
-msgstr "Dọn Dẹp"
-
-
 msgid "Pivot Point"
 msgstr "Điểm Tựa"
 
@@ -33630,6 +33618,14 @@ msgstr "Giám Sát"
 
 msgid "Quick Effects"
 msgstr "Hiệu Ứng Nhanh"
+
+
+msgid "Show/Hide"
+msgstr "Hiện/Ẩn Giấu"
+
+
+msgid "Clean Up"
+msgstr "Dọn Dẹp"
 
 
 msgid "Asset"
@@ -88912,20 +88908,20 @@ msgid "Curves Edit Mode"
 msgstr "Chế Độ Biên Soạn Đường Cong"
 
 
-msgid "glTF Variants"
-msgstr "Biến Thể glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Biến Thể Nguyên Vật Liệu glTF"
-
-
 msgid "Snapping"
 msgstr "Bám Dính"
 
 
 msgid "Transform Orientations"
 msgstr "Các Định Hướng Biến Hóa"
+
+
+msgid "glTF Variants"
+msgstr "Biến Thể glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Biến Thể Nguyên Vật Liệu glTF"
 
 
 msgid "Stroke Placement"
@@ -88948,16 +88944,16 @@ msgid "Onion Skin"
 msgstr "Bóc Vỏ Hành"
 
 
-msgid "glTF Animations"
-msgstr "Hoạt Họa glTF"
-
-
 msgid "Stereoscopy"
 msgstr "Lập Thể"
 
 
 msgid "Multi Frame"
 msgstr "Đa Khung Hình"
+
+
+msgid "glTF Animations"
+msgstr "Hoạt Họa glTF"
 
 
 msgid "Auto-Masking"
@@ -127959,10 +127955,6 @@ msgid "Expression: {}"
 msgstr "Biểu thức: {}"
 
 
-msgid "Library: {}"
-msgstr "Thư Viện: {}"
-
-
 msgid "Disabled: {}"
 msgstr "Tắt: {}"
 
@@ -130846,10 +130838,6 @@ msgstr "Không thể sử dụng kết xuất OpenGL trong chế độ chạy ng
 
 msgid "Scene has no camera"
 msgstr "Cảnh không có máy quay phim"
-
-
-msgid "Movie format unsupported"
-msgstr "Định dạng phim chưa được hỗ trợ"
 
 
 msgid "Failed to create OpenGL off-screen buffer, %s"

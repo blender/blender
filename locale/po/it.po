@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'eceb81b21fa3')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 09:31+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2025-02-22 22:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -660,10 +660,6 @@ msgstr "Distribuisci la memoria tra i dispositivi"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Libera più spazio per ospitare scene di grandi dimensioni distribuendo la memoria tra dispositivi interconnessi (ad esempio tramite NVLink) anziché duplicarla"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (Sperimentale)"
 
 
 msgid "Embree on GPU"
@@ -23760,14 +23756,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
 msgid "Pivot Point"
 msgstr "Punto di Perno"
 
@@ -23866,6 +23854,14 @@ msgstr "Traccia"
 
 msgid "Quick Effects"
 msgstr "Effetti Veloci"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
 
 
 msgid "Make Single User"
@@ -63120,10 +63116,6 @@ msgstr "Mem:%.2fM, Picco: %.2fM"
 
 msgid "Scene has no camera"
 msgstr "La scena non ha camere"
-
-
-msgid "Movie format unsupported"
-msgstr "Formato video non supportato"
 
 
 msgid "Write error: cannot save %s"
