@@ -848,6 +848,7 @@ static int node_active_link_viewer_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
+  BKE_ntree_update_tag_active_output_changed(snode.edittree);
   BKE_main_ensure_invariants(*CTX_data_main(C), snode.edittree->id);
 
   return OPERATOR_FINISHED;
