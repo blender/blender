@@ -46,7 +46,7 @@ void main()
   normalView = to_float3x3(drw_view().viewmat) * nor;
 
   finalStateColor = data_buf[gl_InstanceID].state_color.xyz;
-  finalBoneColor = data_buf[gl_InstanceID].state_color.xyz;
+  finalBoneColor = data_buf[gl_InstanceID].bone_color_and_wire_width.xyz;
 
   view_clipping_distances(sp);
 
