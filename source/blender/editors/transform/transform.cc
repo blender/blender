@@ -1394,6 +1394,10 @@ int transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event)
      * `viewRedrawForce`. However, this may change in the future, and tagging
      * the region twice doesn't add any overhead. */
     WM_window_status_area_tag_redraw(CTX_wm_window(t->context));
+
+    if (t->helpline != HLP_ERROR && t->helpline != HLP_ERROR_DASH) {
+      ED_workspace_status_text(t->context, nullptr);
+    }
   }
 
   if (!is_navigating && t->redraw) {
