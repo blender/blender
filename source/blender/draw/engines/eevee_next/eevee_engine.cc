@@ -35,7 +35,7 @@ void Engine::free_static()
 
 using namespace blender::eevee;
 
-void eevee_render(RenderEngine *engine, Depsgraph *depsgraph)
+static void eevee_render(RenderEngine *engine, Depsgraph *depsgraph)
 {
   Instance *instance = nullptr;
 

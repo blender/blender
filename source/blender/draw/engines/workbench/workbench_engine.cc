@@ -748,7 +748,7 @@ static void workbench_render_update_passes(RenderEngine *engine,
   }
 }
 
-void workbench_render(RenderEngine *engine, Depsgraph *depsgraph)
+static void workbench_render(RenderEngine *engine, Depsgraph *depsgraph)
 {
   DRW_render_to_image(engine, depsgraph, workbench_render_to_image, [](RenderResult *) {});
 }
