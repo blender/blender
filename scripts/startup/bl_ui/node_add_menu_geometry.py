@@ -252,9 +252,8 @@ class NODE_MT_geometry_node_GEO_INPUT(Menu):
         if context.space_data.geometry_nodes_type != 'TOOL':
             layout.menu("NODE_MT_geometry_node_GEO_INPUT_GIZMO")
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_GROUP")
+        layout.menu("NODE_MT_category_import")
         layout.menu("NODE_MT_geometry_node_GEO_INPUT_SCENE")
-        if context.preferences.experimental.use_new_file_import_nodes:
-            layout.menu("NODE_MT_category_import")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -475,11 +474,11 @@ class NODE_MT_category_import(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeImportCSV")
-        node_add_menu.add_node_type(layout, "GeometryNodeImportOBJ")
-        node_add_menu.add_node_type(layout, "GeometryNodeImportPLY")
-        node_add_menu.add_node_type(layout, "GeometryNodeImportSTL")
-        node_add_menu.add_node_type(layout, "GeometryNodeImportText")
+        node_add_menu.add_node_type(layout, "GeometryNodeImportCSV", label="CSV (.csv)")
+        node_add_menu.add_node_type(layout, "GeometryNodeImportOBJ", label="Wavefront (.obj)")
+        node_add_menu.add_node_type(layout, "GeometryNodeImportPLY", label="Stanford PLY (.ply)")
+        node_add_menu.add_node_type(layout, "GeometryNodeImportSTL", label="STL (.stl)")
+        node_add_menu.add_node_type(layout, "GeometryNodeImportText", label="Text (.txt)")
         node_add_menu.draw_assets_for_catalog(layout, "Input/Import")
 
 

@@ -765,9 +765,8 @@ typedef struct UserDef_Experimental {
   char use_extended_asset_browser;
   char use_sculpt_texture_paint;
   char use_new_volume_nodes;
-  char use_new_file_import_nodes;
   char use_shader_node_previews;
-  char _pad[5];
+  char _pad[6];
 } UserDef_Experimental;
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) \

@@ -45,13 +45,6 @@ void search_link_ops_for_volume_grid_node(GatherLinkSearchOpParams &params)
   }
 }
 
-void search_link_ops_for_import_node(GatherLinkSearchOpParams &params)
-{
-  if (USER_EXPERIMENTAL_TEST(&U, use_new_file_import_nodes)) {
-    nodes::search_link_ops_for_basic_node(params);
-  }
-}
-
 namespace enums {
 
 const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
