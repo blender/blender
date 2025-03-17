@@ -1022,7 +1022,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
                                  info.layer_index,
                                  memory,
                                  lines_data,
-                                 &points_ibo_index,
+                                 &lines_ibo_index,
                                  &drawing_line_start_offset);
       index_buf_add_points(object,
                            info.drawing,
