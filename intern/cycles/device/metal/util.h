@@ -54,6 +54,7 @@ class MetalBufferPool {
   id<MTLBuffer> get_buffer(id<MTLDevice> device,
                            id<MTLCommandBuffer> command_buffer,
                            NSUInteger length,
+                           MTLResourceOptions options,
                            const void *pointer,
                            Stats &stats);
   void process_command_buffer_completion(id<MTLCommandBuffer> command_buffer);

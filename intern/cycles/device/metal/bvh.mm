@@ -196,21 +196,29 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       num_motion_steps = mesh->get_motion_steps();
     }
 
+    MTLResourceOptions storage_mode;
+    if (mtl_device.hasUnifiedMemory) {
+      storage_mode = MTLResourceStorageModeShared;
+    }
+    else {
+      storage_mode = MTLResourceStorageModeManaged;
+    }
+
     /* Upload the mesh data to the GPU */
     id<MTLBuffer> posBuf = nil;
     id<MTLBuffer> indexBuf = [mtl_device newBufferWithBytes:tris.data()
                                                      length:num_indices * sizeof(tris.data()[0])
-                                                    options:MTLResourceStorageModeShared];
+                                                    options:storage_mode];
 
     if (num_motion_steps == 1) {
       posBuf = [mtl_device newBufferWithBytes:verts.data()
                                        length:num_verts * sizeof(verts.data()[0])
-                                      options:MTLResourceStorageModeShared];
+                                      options:storage_mode];
     }
     else {
       posBuf = [mtl_device
           newBufferWithLength:num_verts * num_motion_steps * sizeof(verts.data()[0])
-                      options:MTLResourceStorageModeShared];
+                      options:storage_mode];
       float3 *dest_data = (float3 *)[posBuf contents];
       size_t center_step = (num_motion_steps - 1) / 2;
       for (size_t step = 0; step < num_motion_steps; ++step) {
@@ -221,6 +229,9 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
           verts = motion_keys->data_float3() + (step > center_step ? step - 1 : step) * num_verts;
         }
         std::copy_n(verts, num_verts, dest_data + num_verts * step);
+      }
+      if (storage_mode == MTLResourceStorageModeManaged) {
+        [posBuf didModifyRange:NSMakeRange(0, posBuf.length)];
       }
     }
 
@@ -401,6 +412,14 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       num_motion_steps = hair->get_motion_steps();
     }
 
+    MTLResourceOptions storage_mode;
+    if (mtl_device.hasUnifiedMemory) {
+      storage_mode = MTLResourceStorageModeShared;
+    }
+    else {
+      storage_mode = MTLResourceStorageModeManaged;
+    }
+
     id<MTLBuffer> cpBuffer = nil;
     id<MTLBuffer> radiusBuffer = nil;
     id<MTLBuffer> idxBuffer = nil;
@@ -459,15 +478,15 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       /* Allocate and populate MTLBuffers for geometry. */
       idxBuffer = [mtl_device newBufferWithBytes:idxData.data()
                                           length:idxData.size() * sizeof(int)
-                                         options:MTLResourceStorageModeShared];
+                                         options:storage_mode];
 
       cpBuffer = [mtl_device newBufferWithBytes:cpData.data()
                                          length:cpData.size() * sizeof(float3)
-                                        options:MTLResourceStorageModeShared];
+                                        options:storage_mode];
 
       radiusBuffer = [mtl_device newBufferWithBytes:radiusData.data()
                                              length:radiusData.size() * sizeof(float)
-                                            options:MTLResourceStorageModeShared];
+                                            options:storage_mode];
 
       std::vector<MTLMotionKeyframeData *> cp_ptrs;
       std::vector<MTLMotionKeyframeData *> radius_ptrs;
@@ -484,6 +503,12 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
         k.buffer = radiusBuffer;
         k.offset = step_offsets[step] * sizeof(float);
         radius_ptrs.push_back(k);
+      }
+
+      if (storage_mode == MTLResourceStorageModeManaged) {
+        [cpBuffer didModifyRange:NSMakeRange(0, cpBuffer.length)];
+        [idxBuffer didModifyRange:NSMakeRange(0, idxBuffer.length)];
+        [radiusBuffer didModifyRange:NSMakeRange(0, radiusBuffer.length)];
       }
 
       geomDescCrv.controlPointBuffers = [NSArray arrayWithObjects:cp_ptrs.data()
@@ -549,16 +574,21 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       /* Allocate and populate MTLBuffers for geometry. */
       idxBuffer = [mtl_device newBufferWithBytes:idxData.data()
                                           length:idxData.size() * sizeof(int)
-                                         options:MTLResourceStorageModeShared];
+                                         options:storage_mode];
 
       cpBuffer = [mtl_device newBufferWithBytes:cpData.data()
                                          length:cpData.size() * sizeof(float3)
-                                        options:MTLResourceStorageModeShared];
+                                        options:storage_mode];
 
       radiusBuffer = [mtl_device newBufferWithBytes:radiusData.data()
                                              length:radiusData.size() * sizeof(float)
-                                            options:MTLResourceStorageModeShared];
+                                            options:storage_mode];
 
+      if (storage_mode == MTLResourceStorageModeManaged) {
+        [cpBuffer didModifyRange:NSMakeRange(0, cpBuffer.length)];
+        [idxBuffer didModifyRange:NSMakeRange(0, idxBuffer.length)];
+        [radiusBuffer didModifyRange:NSMakeRange(0, radiusBuffer.length)];
+      }
       geomDescCrv.controlPointBuffer = cpBuffer;
       geomDescCrv.radiusBuffer = radiusBuffer;
       geomDescCrv.controlPointCount = cpData.size();
@@ -728,10 +758,18 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
 
     const size_t num_aabbs = num_motion_steps * num_points;
 
+    MTLResourceOptions storage_mode;
+    if (mtl_device.hasUnifiedMemory) {
+      storage_mode = MTLResourceStorageModeShared;
+    }
+    else {
+      storage_mode = MTLResourceStorageModeManaged;
+    }
+
     /* Allocate a GPU buffer for the AABB data and populate it */
     id<MTLBuffer> aabbBuf = [mtl_device
         newBufferWithLength:num_aabbs * sizeof(MTLAxisAlignedBoundingBox)
-                    options:MTLResourceStorageModeShared];
+                    options:storage_mode];
     MTLAxisAlignedBoundingBox *aabb_data = (MTLAxisAlignedBoundingBox *)[aabbBuf contents];
 
     /* Get AABBs for each motion step */
@@ -763,6 +801,10 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
           aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
         }
       }
+    }
+
+    if (storage_mode == MTLResourceStorageModeManaged) {
+      [aabbBuf didModifyRange:NSMakeRange(0, aabbBuf.length)];
     }
 
     MTLAccelerationStructureGeometryDescriptor *geomDesc;
@@ -945,8 +987,12 @@ bool BVHMetal::build_TLAS(Progress &progress,
     /* Defined inside available check, for return type to be available. */
     auto make_null_BLAS = [](id<MTLDevice> mtl_device,
                              id<MTLCommandQueue> queue) -> id<MTLAccelerationStructure> {
-      id<MTLBuffer> nullBuf = [mtl_device newBufferWithLength:sizeof(float3)
-                                                      options:MTLResourceStorageModeShared];
+      MTLResourceOptions storage_mode = MTLResourceStorageModeManaged;
+      if (mtl_device.hasUnifiedMemory) {
+        storage_mode = MTLResourceStorageModeShared;
+      }
+
+      id<MTLBuffer> nullBuf = [mtl_device newBufferWithLength:sizeof(float3) options:storage_mode];
 
       /* Create an acceleration structure. */
       MTLAccelerationStructureTriangleGeometryDescriptor *geomDesc =
@@ -1034,6 +1080,14 @@ bool BVHMetal::build_TLAS(Progress &progress,
       return blas_index;
     };
 
+    MTLResourceOptions storage_mode;
+    if (mtl_device.hasUnifiedMemory) {
+      storage_mode = MTLResourceStorageModeShared;
+    }
+    else {
+      storage_mode = MTLResourceStorageModeManaged;
+    }
+
     size_t instance_size;
     if (motion_blur) {
       instance_size = sizeof(MTLAccelerationStructureMotionInstanceDescriptor);
@@ -1044,13 +1098,13 @@ bool BVHMetal::build_TLAS(Progress &progress,
 
     /* Allocate a GPU buffer for the instance data and populate it */
     id<MTLBuffer> instanceBuf = [mtl_device newBufferWithLength:num_instances * instance_size
-                                                        options:MTLResourceStorageModeShared];
+                                                        options:storage_mode];
     id<MTLBuffer> motion_transforms_buf = nil;
     MTLPackedFloat4x3 *motion_transforms = nullptr;
     if (motion_blur && num_motion_transforms) {
       motion_transforms_buf = [mtl_device
           newBufferWithLength:num_motion_transforms * sizeof(MTLPackedFloat4x3)
-                      options:MTLResourceStorageModeShared];
+                      options:storage_mode];
       motion_transforms = (MTLPackedFloat4x3 *)motion_transforms_buf.contents;
     }
 
@@ -1184,6 +1238,14 @@ bool BVHMetal::build_TLAS(Progress &progress,
           /* Clear transform to identity matrix */
           t[0] = t[4] = t[8] = 1.0f;
         }
+      }
+    }
+
+    if (storage_mode == MTLResourceStorageModeManaged) {
+      [instanceBuf didModifyRange:NSMakeRange(0, instanceBuf.length)];
+      if (motion_transforms_buf) {
+        [motion_transforms_buf didModifyRange:NSMakeRange(0, motion_transforms_buf.length)];
+        assert(num_motion_transforms == motion_transform_index);
       }
     }
 

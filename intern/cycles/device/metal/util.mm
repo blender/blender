@@ -95,9 +95,7 @@ const vector<id<MTLDevice>> &MetalInfo::get_usable_devices()
           strstr(device_name_char, "Apple"))
       {
         /* TODO: Implement a better way to identify device vendor instead of relying on name. */
-        /* We only support Apple Silicon GPUs which all have unified memory, but explicitly check
-         * just in case it ever changes. */
-        usable = [device hasUnifiedMemory];
+        usable = true;
       }
     }
 
@@ -121,15 +119,24 @@ const vector<id<MTLDevice>> &MetalInfo::get_usable_devices()
 id<MTLBuffer> MetalBufferPool::get_buffer(id<MTLDevice> device,
                                           id<MTLCommandBuffer> command_buffer,
                                           NSUInteger length,
+                                          MTLResourceOptions options,
                                           const void *pointer,
                                           Stats &stats)
 {
   id<MTLBuffer> buffer = nil;
+
+  MTLStorageMode storageMode = MTLStorageMode((options & MTLResourceStorageModeMask) >>
+                                              MTLResourceStorageModeShift);
+  MTLCPUCacheMode cpuCacheMode = MTLCPUCacheMode((options & MTLResourceCPUCacheModeMask) >>
+                                                 MTLResourceCPUCacheModeShift);
+
   {
     thread_scoped_lock lock(buffer_mutex);
     /* Find an unused buffer with matching size and storage mode. */
     for (MetalBufferListEntry &bufferEntry : temp_buffers) {
-      if (bufferEntry.buffer.length == length && bufferEntry.command_buffer == nil) {
+      if (bufferEntry.buffer.length == length && storageMode == bufferEntry.buffer.storageMode &&
+          cpuCacheMode == bufferEntry.buffer.cpuCacheMode && bufferEntry.command_buffer == nil)
+      {
         buffer = bufferEntry.buffer;
         bufferEntry.command_buffer = command_buffer;
         break;
@@ -138,7 +145,7 @@ id<MTLBuffer> MetalBufferPool::get_buffer(id<MTLDevice> device,
     if (!buffer) {
       /* Create a new buffer and add it to the pool. Typically this pool will only grow to a
        * handful of entries. */
-      buffer = [device newBufferWithLength:length options:MTLResourceStorageModeShared];
+      buffer = [device newBufferWithLength:length options:options];
       stats.mem_alloc(buffer.allocatedSize);
       total_temp_mem_size += buffer.allocatedSize;
       temp_buffers.push_back(MetalBufferListEntry{buffer, command_buffer});
@@ -148,6 +155,9 @@ id<MTLBuffer> MetalBufferPool::get_buffer(id<MTLDevice> device,
   /* Copy over data */
   if (pointer) {
     memcpy(buffer.contents, pointer, length);
+    if (buffer.storageMode == MTLStorageModeManaged) {
+      [buffer didModifyRange:NSMakeRange(0, length)];
+    }
   }
 
   return buffer;
