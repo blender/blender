@@ -128,28 +128,106 @@ void ShaderOperation::construct_material(void *thunk, GPUMaterial *material)
 
 void ShaderOperation::link_node_inputs(DNode node)
 {
-  for (const bNodeSocket *input : node->input_sockets()) {
-    const DInputSocket dinput{node.context(), input};
+  for (int i = 0; i < node->input_sockets().size(); i++) {
+    const DInputSocket input{node.context(), node->input_sockets()[i]};
 
-    /* Get the output linked to the input. If it is null, that means the input is unlinked.
-     * Unlinked inputs are linked by the node compile method, so skip this here. */
-    const DOutputSocket doutput = get_output_linked_to_input(dinput);
-    if (!doutput) {
+    if (!input->is_available()) {
       continue;
     }
 
+    /* The origin socket is an input, that means the input is unlinked and we link a constant
+     * setter node for it. */
+    const DSocket origin = get_input_origin_socket(input);
+    if (origin->is_input()) {
+      this->link_node_input_constant(input, DInputSocket(origin));
+      continue;
+    }
+
+    /* Otherwise, the origin socket is an output, which means it is linked. */
+    const DOutputSocket output = DOutputSocket(origin);
+
     /* If the origin node is part of the shader operation, then the link is internal to the GPU
      * material graph and is linked appropriately. */
-    if (compile_unit_.contains(doutput.node())) {
-      link_node_input_internal(dinput, doutput);
+    if (compile_unit_.contains(output.node())) {
+      this->link_node_input_internal(input, output);
       continue;
     }
 
     /* Otherwise, the origin node is not part of the shader operation, then the link is external to
      * the GPU material graph and an input to the shader operation must be declared and linked to
      * the node input. */
-    link_node_input_external(dinput, doutput);
+    this->link_node_input_external(input, output);
   }
+}
+
+/* Initializes the vector value of the given GPU node stack from the default value of the given
+ * input socket. */
+static void initialize_input_stack_value(const DInputSocket input, GPUNodeStack &stack)
+{
+  switch (input->type) {
+    case SOCK_FLOAT: {
+      const float value = input->default_value_typed<bNodeSocketValueFloat>()->value;
+      stack.vec[0] = value;
+      break;
+    }
+    case SOCK_INT: {
+      /* GPUMaterial doesn't support int, so it is stored as a float. */
+      const int value = input->default_value_typed<bNodeSocketValueInt>()->value;
+      stack.vec[0] = int(value);
+      break;
+    }
+    case SOCK_VECTOR: {
+      const float3 value = float3(input->default_value_typed<bNodeSocketValueVector>()->value);
+      copy_v3_v3(stack.vec, value);
+      break;
+    }
+    case SOCK_RGBA: {
+      const float4 value = float4(input->default_value_typed<bNodeSocketValueRGBA>()->value);
+      copy_v4_v4(stack.vec, value);
+      break;
+    }
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+static const char *get_set_function_name(const ResultType type)
+{
+  switch (type) {
+    case ResultType::Float:
+      return "set_value";
+    case ResultType::Int:
+      /* GPUMaterial doesn't support int, so it is passed as a float. */
+      return "set_value";
+    case ResultType::Float3:
+      return "set_rgb";
+    case ResultType::Color:
+      return "set_rgba";
+    case ResultType::Float4:
+      return "set_rgba";
+    case ResultType::Float2:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+void ShaderOperation::link_node_input_constant(const DInputSocket input, const DInputSocket origin)
+{
+  ShaderNode &node = *shader_nodes_.lookup(input.node());
+  GPUNodeStack &stack = node.get_input(input->identifier);
+
+  /* Create a uniform link that carry the value of the origin. */
+  initialize_input_stack_value(origin, stack);
+  GPUNodeLink *link = GPU_uniform(stack.vec);
+
+  const ResultType type = get_node_socket_result_type(origin.bsocket());
+  const char *function_name = get_set_function_name(type);
+  GPU_link(material_, function_name, link, &stack.link);
 }
 
 void ShaderOperation::link_node_input_internal(DInputSocket input_socket,
@@ -194,30 +272,6 @@ void ShaderOperation::link_node_input_external(DInputSocket input_socket,
   /* Link the attribute representing the shader operation input corresponding to the given output
    * socket. */
   stack.link = output_to_material_attribute_map_.lookup(output_socket);
-}
-
-static const char *get_set_function_name(ResultType type)
-{
-  switch (type) {
-    case ResultType::Float:
-      return "set_value";
-    case ResultType::Int:
-      /* GPUMaterial doesn't support int, so it is passed as a float. */
-      return "set_value";
-    case ResultType::Float3:
-      return "set_rgb";
-    case ResultType::Color:
-      return "set_rgba";
-    case ResultType::Float4:
-      return "set_rgba";
-    case ResultType::Float2:
-    case ResultType::Int2:
-      /* Those types are internal and needn't be handled by operations. */
-      break;
-  }
-
-  BLI_assert_unreachable();
-  return nullptr;
 }
 
 void ShaderOperation::declare_operation_input(DInputSocket input_socket,
