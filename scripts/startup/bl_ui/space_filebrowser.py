@@ -25,7 +25,7 @@ class FILEBROWSER_HT_header(Header):
         layout.separator_spacer()
 
         if params.asset_library_reference not in {'LOCAL', 'ESSENTIALS'}:
-            layout.prop(params, "import_method", text="")
+            layout.popover("ASSETBROWSER_PT_import_settings", text="Import Settings")
 
         layout.separator_spacer()
 
@@ -716,6 +716,23 @@ class ASSETBROWSER_MT_catalog(AssetBrowserMenu, Menu):
         layout.operator("asset.catalog_new").parent_path = ""
 
 
+class ASSETBROWSER_PT_import_settings(asset_utils.AssetBrowserPanel, Panel):
+    bl_idname = "ASSETBROWSER_PT_import_settings"
+    bl_region_type = 'HEADER'
+    bl_label = "Import Settings"
+    bl_options = {'HIDE_HEADER'}
+    bl_ui_units_x = 12
+
+    def draw(self, context):
+        layout = self.layout
+        params = context.space_data.params
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        layout.prop(params, "import_method", text="Import Method")
+
+
 class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
     bl_region_type = 'TOOL_PROPS'
     bl_label = "Asset Metadata"
@@ -887,6 +904,7 @@ classes = (
     ASSETBROWSER_MT_view,
     ASSETBROWSER_MT_select,
     ASSETBROWSER_MT_catalog,
+    ASSETBROWSER_PT_import_settings,
     ASSETBROWSER_MT_metadata_preview_menu,
     ASSETBROWSER_PT_metadata,
     ASSETBROWSER_PT_metadata_preview,
