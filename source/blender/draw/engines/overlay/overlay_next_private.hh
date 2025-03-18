@@ -726,8 +726,8 @@ struct Resources : public select::SelectMap {
     this->color_overlay_tx.wrap(viewport_textures.color_overlay);
     this->color_render_tx.wrap(viewport_textures.color);
 
-    this->render_fb = DRW_viewport_framebuffer_list_get()->default_fb;
-    this->render_in_front_fb = DRW_viewport_framebuffer_list_get()->in_front_fb;
+    this->render_fb = DRW_context_get()->viewport_framebuffer_list_get()->default_fb;
+    this->render_in_front_fb = DRW_context_get()->viewport_framebuffer_list_get()->in_front_fb;
 
     int2 render_size = int2(this->depth_tx.size());
 

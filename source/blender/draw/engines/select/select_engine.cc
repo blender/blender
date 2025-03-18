@@ -371,7 +371,7 @@ struct Instance : public DrawEngine {
     }
 
     {
-      DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+      DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
       GPU_framebuffer_bind(dfbl->depth_only_fb);
       GPU_framebuffer_clear_depth(dfbl->depth_only_fb, 1.0f);
       manager.submit(depth_only_ps, view_faces);
@@ -396,7 +396,7 @@ struct Instance : public DrawEngine {
   void framebuffer_setup()
   {
     StaticData &e_data = StaticData::get();
-    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+    DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
     int size[2];
     size[0] = GPU_texture_width(dtxl->depth);
     size[1] = GPU_texture_height(dtxl->depth);

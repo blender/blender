@@ -792,8 +792,9 @@ void Film::update_sample_table()
 void Film::accumulate(View &view, GPUTexture *combined_final_tx)
 {
   if (inst_.is_viewport()) {
-    DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+    const DRWContext *draw_ctx = DRW_context_get();
+    DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
+    DefaultTextureList *dtxl = draw_ctx->viewport_texture_list_get();
     GPU_framebuffer_bind(dfbl->default_fb);
     /* Clear when using render borders. */
     if (data_.extent != int2(GPU_texture_width(dtxl->color), GPU_texture_height(dtxl->color))) {
@@ -829,7 +830,7 @@ void Film::display()
   /* Acquire dummy render buffers for correct binding. They will not be used. */
   inst_.render_buffers.acquire(int2(1));
 
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
   GPU_framebuffer_bind(dfbl->default_fb);
   GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data_.offset), UNPACK2(data_.extent));
 

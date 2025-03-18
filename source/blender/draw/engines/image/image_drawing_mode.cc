@@ -18,7 +18,7 @@ void ScreenSpaceDrawingMode::add_shgroups() const
   PassSimple &pass = instance_.state.image_ps;
   GPUShader *shader = ShaderModule::module_get().color.get();
   const ShaderParameters &sh_params = instance_.state.sh_params;
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+  DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
 
   pass.shader_set(shader);
   pass.push_constant("far_near_distances", sh_params.far_near);
@@ -328,7 +328,7 @@ void ScreenSpaceDrawingMode::do_full_update_texture_slot(const TextureInfo &text
 void ScreenSpaceDrawingMode::begin_sync() const
 {
   {
-    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+    DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
     instance_.state.depth_fb.ensure(GPU_ATTACHMENT_TEXTURE(dtxl->depth));
     instance_.state.color_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(dtxl->color));
   }

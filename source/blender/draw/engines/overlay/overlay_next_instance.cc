@@ -38,8 +38,8 @@ void Instance::init()
   state.object_active = BKE_view_layer_active_object_get(ctx->view_layer);
   state.object_mode = ctx->object_mode;
   state.cfra = DEG_get_ctime(state.depsgraph);
-  state.is_viewport_image_render = DRW_state_is_viewport_image_render();
-  state.is_image_render = DRW_state_is_image_render();
+  state.is_viewport_image_render = ctx->is_viewport_image_render();
+  state.is_image_render = ctx->is_image_render();
   state.is_depth_only_drawing = ctx->is_depth();
   state.is_material_select = ctx->is_material_select();
   state.draw_background = ctx->options.draw_background;
@@ -637,8 +637,8 @@ void Instance::end_sync()
    * Better find a solution to this chicken-egg problem. */
   {
     /* HACK we allocate the in front depth here to avoid the overhead when if is not needed. */
-    DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+    DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+    DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
 
     if (dtxl->depth_in_front == nullptr) {
       int2 size = int2(DRW_context_get()->viewport_size_get());
@@ -710,7 +710,7 @@ void Instance::draw(Manager &manager)
     outline.pre_draw(manager, view);
   }
 
-  resources.acquire(this->state, *DRW_viewport_texture_list_get());
+  resources.acquire(this->state, *DRW_context_get()->viewport_texture_list_get());
 
   /* TODO(fclem): Would be better to have a v2d overlay class instead of these conditions. */
   switch (state.space_type) {

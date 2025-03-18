@@ -205,7 +205,7 @@ void SceneState::init(bool scene_updated, Object *camera_ob /*=nullptr*/)
   if (v3d && ELEM(v3d->shading.type, OB_RENDER, OB_MATERIAL)) {
     _samples_len = scene->display.viewport_aa;
   }
-  else if (DRW_state_is_scene_render()) {
+  else if (DRW_context_get()->is_scene_render()) {
     _samples_len = scene->display.render_aa;
   }
   if (is_navigating || is_playback) {
@@ -284,7 +284,7 @@ ObjectState::ObjectState(const SceneState &scene_state,
   const bool is_active = (ob == draw_ctx->obact);
 
   sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
-                !DRW_state_is_image_render();
+                !draw_ctx->is_image_render();
   draw_shadow = scene_state.draw_shadows && (ob->dtx & OB_DRAW_NO_SHADOW_CAST) == 0 &&
                 !sculpt_pbvh && !(is_active && DRW_object_use_hide_faces(ob));
 
@@ -329,7 +329,7 @@ ObjectState::ObjectState(const SceneState &scene_state,
           C, &scene_state.scene->toolsettings->paint_mode, *ob, color_type);
     }
   }
-  else if (ob->type == OB_MESH && !DRW_state_is_scene_render()) {
+  else if (ob->type == OB_MESH && !DRW_context_get()->is_scene_render()) {
     /* Force texture or vertex mode if object is in paint mode. */
     const bool is_vertpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_VERTEX);
     const bool is_texpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_TEXTURE);

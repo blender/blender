@@ -168,7 +168,7 @@ class Instance : public DrawEngine {
      * already applied. */
     GPU_apply_state();
 
-    const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+    const DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
 
     /* Clear the depth buffer to the value used by the background overlay so that the overlay is
      * not happening outside of the drawn image.
@@ -224,7 +224,7 @@ class Instance : public DrawEngine {
   void draw(blender::draw::Manager & /*manager*/) final
   {
     const DRWContext *draw_ctx = DRW_context_get();
-    const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+    const DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
 
     /* Will be nullptr during OpenGL render.
      * OpenGL render is used for quick preview (thumbnails or sequencer preview)

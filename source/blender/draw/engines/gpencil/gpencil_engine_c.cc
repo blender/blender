@@ -800,7 +800,7 @@ static void GPENCIL_draw_object(Instance *inst, blender::draw::View &view, GPENC
 
 static void GPENCIL_fast_draw_start(Instance *inst)
 {
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
 
   if (!inst->snapshot_buffer_dirty) {
     /* Copy back cached render. */
@@ -814,7 +814,7 @@ static void GPENCIL_fast_draw_start(Instance *inst)
 
 static void GPENCIL_fast_draw_end(Instance *inst, blender::draw::View &view)
 {
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
 
   if (inst->snapshot_buffer_dirty) {
     /* Save to snapshot buffer. */
@@ -831,8 +831,8 @@ static void GPENCIL_fast_draw_end(Instance *inst, blender::draw::View &view)
 
 void Instance::draw(Manager & /*manager*/)
 {
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
+  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
 
   if (this->render_depth_tx.is_valid()) {
     this->scene_depth_tx = this->render_depth_tx;

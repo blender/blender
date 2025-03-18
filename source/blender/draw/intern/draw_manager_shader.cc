@@ -352,7 +352,7 @@ GPUMaterial *DRW_shader_from_world(World *wo,
                                                 callback,
                                                 thunk);
 
-  if (DRW_state_is_image_render()) {
+  if (DRW_context_get()->is_image_render()) {
     /* Do not deferred if doing render. */
     deferred = false;
   }
@@ -395,7 +395,7 @@ void DRW_shader_queue_optimize_material(GPUMaterial *mat)
 {
   /* Do not perform deferred optimization if performing render.
    * De-queue any queued optimization jobs. */
-  if (DRW_state_is_image_render()) {
+  if (DRW_context_get()->is_image_render()) {
     if (GPU_material_optimization_status(mat) == GPU_MAT_OPTIMIZATION_QUEUED) {
       /* Remove from pending optimization job queue. */
       DRW_deferred_shader_optimize_remove(mat);

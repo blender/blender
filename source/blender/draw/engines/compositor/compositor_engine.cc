@@ -95,19 +95,20 @@ class Context : public compositor::Context {
    * the viewport is already the camera region in that case. */
   rcti get_compositing_region() const override
   {
-    const int2 viewport_size = int2(DRW_context_get()->viewport_size_get());
+    const DRWContext *draw_ctx = DRW_context_get();
+    const int2 viewport_size = int2(draw_ctx->viewport_size_get());
     const rcti render_region = rcti{0, viewport_size.x, 0, viewport_size.y};
 
-    if (DRW_context_get()->rv3d->persp != RV3D_CAMOB || DRW_state_is_viewport_image_render()) {
+    if (draw_ctx->rv3d->persp != RV3D_CAMOB || draw_ctx->is_viewport_image_render()) {
       return render_region;
     }
 
     rctf camera_border;
-    ED_view3d_calc_camera_border(DRW_context_get()->scene,
-                                 DRW_context_get()->depsgraph,
-                                 DRW_context_get()->region,
-                                 DRW_context_get()->v3d,
-                                 DRW_context_get()->rv3d,
+    ED_view3d_calc_camera_border(draw_ctx->scene,
+                                 draw_ctx->depsgraph,
+                                 draw_ctx->region,
+                                 draw_ctx->v3d,
+                                 draw_ctx->rv3d,
                                  false,
                                  &camera_border);
 
@@ -124,7 +125,7 @@ class Context : public compositor::Context {
   {
     compositor::Result result = this->create_result(compositor::ResultType::Color,
                                                     compositor::ResultPrecision::Half);
-    result.wrap_external(DRW_viewport_texture_list_get()->color);
+    result.wrap_external(DRW_context_get()->viewport_texture_list_get()->color);
     return result;
   }
 
@@ -134,7 +135,7 @@ class Context : public compositor::Context {
   {
     compositor::Result result = this->create_result(compositor::ResultType::Color,
                                                     compositor::ResultPrecision::Half);
-    result.wrap_external(DRW_viewport_texture_list_get()->color);
+    result.wrap_external(DRW_context_get()->viewport_texture_list_get()->color);
     return result;
   }
 
@@ -153,7 +154,7 @@ class Context : public compositor::Context {
     /* The combined pass is a special case where we return the viewport color texture, because it
      * includes Grease Pencil objects since GP is drawn using their own engine. */
     if (STREQ(pass_name, RE_PASSNAME_COMBINED)) {
-      GPUTexture *combined_texture = DRW_viewport_texture_list_get()->color;
+      GPUTexture *combined_texture = DRW_context_get()->viewport_texture_list_get()->color;
       compositor::Result pass = compositor::Result(*this, GPU_texture_format(combined_texture));
       pass.wrap_external(combined_texture);
       return pass;

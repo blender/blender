@@ -63,7 +63,7 @@ void Instance::init()
   ARegion *region = ctx_state->region;
   RegionView3D *rv3d = ctx_state->rv3d;
 
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+  DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
   int2 size = int2(GPU_texture_width(dtxl->color), GPU_texture_height(dtxl->color));
 
   draw::View &default_view = draw::View::default_get();
@@ -102,8 +102,8 @@ void Instance::init()
       rect.ymax = v3d->render_border.ymax * size[1];
     }
 
-    if (DRW_state_is_viewport_image_render()) {
-      const float2 vp_size = DRW_context_get()->viewport_size_get();
+    if (ctx_state->is_viewport_image_render()) {
+      const float2 vp_size = ctx_state->viewport_size_get();
       visible_rect.xmax = vp_size[0];
       visible_rect.ymax = vp_size[1];
       visible_rect.xmin = visible_rect.ymin = 0;
@@ -141,8 +141,8 @@ void Instance::init(const int2 &output_res,
 
   if (is_viewport()) {
     const DRWContext &viewport_ctx = *DRW_context_get();
-    is_image_render = DRW_state_is_image_render();
-    is_viewport_image_render = DRW_state_is_viewport_image_render();
+    is_image_render = viewport_ctx.is_image_render();
+    is_viewport_image_render = viewport_ctx.is_viewport_image_render();
     is_viewport_compositor_enabled = viewport_ctx.is_viewport_compositor_enabled();
     is_playback = viewport_ctx.is_playback();
     is_navigating = viewport_ctx.is_navigating();
@@ -636,7 +636,7 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
 void Instance::draw_viewport()
 {
   if (skip_render_) {
-    DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+    DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
     GPU_framebuffer_clear_color_depth(dfbl->default_fb, float4(0.0f), 1.0f);
     if (!shaders_are_ready_) {
       info_append_i18n("Compiling EEVEE engine shaders");
@@ -693,14 +693,14 @@ void Instance::draw_viewport_image_render()
 
 void Instance::draw(Manager & /*manager*/)
 {
-  if (DRW_state_is_viewport_image_render()) {
+  if (is_viewport_image_render) {
     draw_viewport_image_render();
   }
   else {
     draw_viewport();
   }
   STRNCPY(info, info_get());
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
   GPU_framebuffer_viewport_reset(dfbl->default_fb);
 }
 
