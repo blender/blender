@@ -43,6 +43,7 @@ BLOCKLIST_METAL = [
     "light_path_is_transmission_ray.blend",
     "light_path_ray_depth.blend",
     "light_path_ray_length.blend",
+    "transparent_spatial_splits.blend",
     # Volume
     "light_link_surface_in_volume.blend",
     "openvdb.*.blend",
