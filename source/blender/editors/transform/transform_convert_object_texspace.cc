@@ -75,14 +75,14 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
   normalize_m3(td->axismtx);
   pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
-  if (BKE_object_obdata_texspace_get(ob, &texspace_flag, &td->loc, &td->ext->size)) {
+  if (BKE_object_obdata_texspace_get(ob, &texspace_flag, &td->loc, &td->ext->scale)) {
     ob->dtx |= OB_TEXSPACE;
     *texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO;
   }
 
   copy_v3_v3(td->iloc, td->loc);
   copy_v3_v3(td->center, td->loc);
-  copy_v3_v3(td->ext->isize, td->ext->size);
+  copy_v3_v3(td->ext->iscale, td->ext->scale);
 }
 
 /** \} */

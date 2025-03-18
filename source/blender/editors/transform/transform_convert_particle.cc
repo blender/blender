@@ -148,13 +148,13 @@ static void createTransParticleVerts(bContext * /*C*/, TransInfo *t)
         if (t->mode == TFM_BAKE_TIME) {
           td->val = key->time;
           td->ival = *(key->time);
-          /* Abuse size and quat for min/max values. */
+          /* Abuse scale and quat for min/max values. */
           td->flag |= TD_NO_EXT;
           if (k == 0) {
-            tx->size = nullptr;
+            tx->scale = nullptr;
           }
           else {
-            tx->size = (key - 1)->time;
+            tx->scale = (key - 1)->time;
           }
 
           if (k == point->totkey - 1) {

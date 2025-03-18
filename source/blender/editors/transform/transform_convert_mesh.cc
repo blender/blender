@@ -1474,7 +1474,7 @@ static void VertsToTransData(TransInfo *t,
   td->extra = eve;
   if (t->mode == TFM_SHRINKFATTEN) {
     td->ext = tx;
-    tx->isize[0] = BM_vert_calc_shell_factor_ex(eve, no, BM_ELEM_SELECT);
+    tx->iscale[0] = BM_vert_calc_shell_factor_ex(eve, no, BM_ELEM_SELECT);
   }
 }
 

@@ -414,8 +414,8 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   td->loc = pchan->loc;
   copy_v3_v3(td->iloc, pchan->loc);
 
-  td->ext->size = pchan->size;
-  copy_v3_v3(td->ext->isize, pchan->size);
+  td->ext->scale = pchan->size;
+  copy_v3_v3(td->ext->iscale, pchan->size);
 
   if (pchan->rotmode > 0) {
     td->ext->rot = pchan->eul;

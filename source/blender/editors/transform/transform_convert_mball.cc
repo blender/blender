@@ -80,7 +80,7 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
         quat_to_mat3(td->axismtx, ml->quat);
 
         if (ml->flag & SELECT) {
-          td->flag = TD_SELECTED | TD_USEQUAT | TD_SINGLESIZE;
+          td->flag = TD_SELECTED | TD_USEQUAT | TD_SINGLE_SCALE;
         }
         else {
           td->flag = TD_USEQUAT;
@@ -102,10 +102,10 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
         }
 
         /* `expx/expy/expz` determine "shape" of some MetaElem types. */
-        tx->size = &ml->expx;
-        tx->isize[0] = ml->expx;
-        tx->isize[1] = ml->expy;
-        tx->isize[2] = ml->expz;
+        tx->scale = &ml->expx;
+        tx->iscale[0] = ml->expx;
+        tx->iscale[1] = ml->expy;
+        tx->iscale[2] = ml->expz;
 
         /* `quat` is used for rotation of #MetaElem. */
         tx->quat = ml->quat;
