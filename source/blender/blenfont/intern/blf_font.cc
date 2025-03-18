@@ -1304,16 +1304,17 @@ static void blf_font_wrap_apply(FontBLF *font,
      * This is _only_ done when we know for sure the character is ascii (newline or a space).
      */
     pen_x_next = pen_x + advance_x;
-    if (UNLIKELY((int(mode) & int(BLFWrapMode::HardLimit)) && (pen_x_next >= wrap.wrap_width) &&
-                 (advance_x != 0)))
+
+    if (UNLIKELY((pen_x_next >= wrap.wrap_width) && (wrap.start != wrap.last[0]))) {
+      do_draw = true;
+    }
+    else if (UNLIKELY((int(mode) & int(BLFWrapMode::HardLimit)) &&
+                      (pen_x_next >= wrap.wrap_width) && (advance_x != 0)))
     {
       wrap.last[0] = i_curr;
       wrap.last[1] = i_curr;
       do_draw = true;
       clip_bytes = 0;
-    }
-    else if (UNLIKELY((pen_x_next >= wrap.wrap_width) && (wrap.start != wrap.last[0]))) {
-      do_draw = true;
     }
     else if (UNLIKELY(((i < str_len) && str[i]) == 0)) {
       /* Need check here for trailing newline, else we draw it. */
