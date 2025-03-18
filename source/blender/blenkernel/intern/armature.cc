@@ -2424,6 +2424,85 @@ void BKE_rotMode_change_values(
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Protected Transform Channel Assignment
+ * \{ */
+
+void BKE_pchan_protected_location_set(bPoseChannel *pchan, const float location[3])
+{
+  if ((pchan->protectflag & OB_LOCK_LOCX) == 0) {
+    pchan->loc[0] = location[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_LOCY) == 0) {
+    pchan->loc[1] = location[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_LOCZ) == 0) {
+    pchan->loc[2] = location[2];
+  }
+}
+
+void BKE_pchan_protected_scale_set(bPoseChannel *pchan, const float scale[3])
+{
+  if ((pchan->protectflag & OB_LOCK_SCALEX) == 0) {
+    pchan->size[0] = scale[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_SCALEY) == 0) {
+    pchan->size[1] = scale[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_SCALEZ) == 0) {
+    pchan->size[2] = scale[2];
+  }
+}
+
+void BKE_pchan_protected_rotation_quaternion_set(bPoseChannel *pchan, const float quat[4])
+{
+  if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
+    pchan->quat[0] = quat[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
+    pchan->quat[1] = quat[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
+    pchan->quat[2] = quat[2];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTW) == 0) {
+    pchan->quat[3] = quat[3];
+  }
+}
+
+void BKE_pchan_protected_rotation_euler_set(bPoseChannel *pchan, const float euler[3])
+{
+  if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
+    pchan->eul[0] = euler[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
+    pchan->eul[1] = euler[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
+    pchan->eul[2] = euler[2];
+  }
+}
+
+void BKE_pchan_protected_rotation_axisangle_set(bPoseChannel *pchan,
+                                                const float axis[3],
+                                                float angle)
+{
+  if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
+    pchan->rotAxis[0] = axis[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
+    pchan->rotAxis[1] = axis[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
+    pchan->rotAxis[2] = axis[2];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTW) == 0) {
+    pchan->rotAngle = angle;
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Bone Vector, Roll Conversion
  *
  * Used for Objects and Pose Channels, since both can have multiple rotation representations.
