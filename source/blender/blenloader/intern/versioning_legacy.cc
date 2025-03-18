@@ -91,8 +91,7 @@ static void vcol_to_fcol(Mesh *mesh)
     return;
   }
 
-  mcoln = mcolmain = static_cast<uint *>(
-      MEM_malloc_arrayN(mesh->totface_legacy, sizeof(int[4]), "mcoln"));
+  mcoln = mcolmain = MEM_malloc_arrayN<uint>(4 * mesh->totface_legacy, "mcoln");
   mcol = (uint *)mesh->mcol;
   mface = mesh->mface;
   for (a = mesh->totface_legacy; a > 0; a--, mface++) {
@@ -154,8 +153,7 @@ static void ntree_version_241(bNodeTree *ntree)
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type_legacy == CMP_NODE_BLUR) {
         if (node->storage == nullptr) {
-          NodeBlurData *nbd = static_cast<NodeBlurData *>(
-              MEM_callocN(sizeof(NodeBlurData), "node blur patch"));
+          NodeBlurData *nbd = MEM_callocN<NodeBlurData>("node blur patch");
           nbd->sizex = node->custom1;
           nbd->sizey = node->custom2;
           nbd->filtertype = R_FILTER_QUAD;
@@ -164,8 +162,7 @@ static void ntree_version_241(bNodeTree *ntree)
       }
       else if (node->type_legacy == CMP_NODE_VECBLUR) {
         if (node->storage == nullptr) {
-          NodeBlurData *nbd = static_cast<NodeBlurData *>(
-              MEM_callocN(sizeof(NodeBlurData), "node blur patch"));
+          NodeBlurData *nbd = MEM_callocN<NodeBlurData>("node blur patch");
           nbd->samples = node->custom1;
           nbd->maxspeed = node->custom2;
           nbd->fac = 1.0f;
@@ -203,7 +200,7 @@ static void ntree_version_245(FileData *fd, Library * /*lib*/, bNodeTree *ntree)
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type_legacy == CMP_NODE_ALPHAOVER) {
         if (!node->storage) {
-          ntf = static_cast<NodeTwoFloats *>(MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats"));
+          ntf = MEM_callocN<NodeTwoFloats>("NodeTwoFloats");
           node->storage = ntf;
           if (node->custom1) {
             ntf->x = 1.0f;
@@ -368,8 +365,7 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
         /* only image had storage */
         if (node->storage) {
           NodeImageAnim *nia = static_cast<NodeImageAnim *>(node->storage);
-          ImageUser *iuser = static_cast<ImageUser *>(
-              MEM_callocN(sizeof(ImageUser), "ima user node"));
+          ImageUser *iuser = MEM_callocN<ImageUser>("ima user node");
 
           iuser->frames = nia->frames;
           iuser->sfra = nia->sfra;
@@ -380,9 +376,9 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
           MEM_freeN(nia);
         }
         else {
-          ImageUser *iuser = static_cast<ImageUser *>(
-              node->storage = MEM_callocN(sizeof(ImageUser), "node image user"));
+          ImageUser *iuser = MEM_callocN<ImageUser>("node image user");
           iuser->sfra = 1;
+          node->storage = iuser;
         }
       }
     }
@@ -418,8 +414,7 @@ static void do_version_constraints_245(ListBase *lb)
       bPythonConstraint *data = (bPythonConstraint *)con->data;
       if (data->tar) {
         /* version patching needs to be done */
-        ct = static_cast<bConstraintTarget *>(
-            MEM_callocN(sizeof(bConstraintTarget), "PyConTarget"));
+        ct = MEM_callocN<bConstraintTarget>("PyConTarget");
 
         ct->tar = data->tar;
         STRNCPY(ct->subtarget, data->subtarget);
@@ -1372,8 +1367,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     while (sce) {
       if (sce->toolsettings == nullptr) {
-        sce->toolsettings = static_cast<ToolSettings *>(
-            MEM_callocN(sizeof(ToolSettings), "Tool Settings Struct"));
+        sce->toolsettings = MEM_callocN<ToolSettings>("Tool Settings Struct");
         sce->toolsettings->doublimit = 0.001f;
       }
       sce = static_cast<Scene *>(sce->id.next);
@@ -2256,8 +2250,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         ParticleSettings *part;
 
         /* create new particle system */
-        psys = static_cast<ParticleSystem *>(
-            MEM_callocN(sizeof(ParticleSystem), "particle_system"));
+        psys = MEM_callocN<ParticleSystem>("particle_system");
         psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 
         /* Bad, but better not try to change this prehistorical code nowadays. */

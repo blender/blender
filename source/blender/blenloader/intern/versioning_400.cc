@@ -2736,8 +2736,8 @@ static void versioning_convert_node_tree_socket_lists_to_interface(bNodeTree *nt
   const int num_inputs = BLI_listbase_count(&ntree->inputs_legacy);
   const int num_outputs = BLI_listbase_count(&ntree->outputs_legacy);
   tree_interface.root_panel.items_num = num_inputs + num_outputs;
-  tree_interface.root_panel.items_array = static_cast<bNodeTreeInterfaceItem **>(MEM_malloc_arrayN(
-      tree_interface.root_panel.items_num, sizeof(bNodeTreeInterfaceItem *), __func__));
+  tree_interface.root_panel.items_array = MEM_malloc_arrayN<bNodeTreeInterfaceItem *>(
+      size_t(tree_interface.root_panel.items_num), __func__);
 
   /* Convert outputs first to retain old outputs/inputs ordering. */
   int index;

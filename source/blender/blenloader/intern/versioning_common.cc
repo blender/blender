@@ -337,8 +337,8 @@ void version_node_socket_index_animdata(Main *bmain,
 
         const size_t node_name_length = strlen(node->name);
         const size_t node_name_escaped_max_length = (node_name_length * 2);
-        char *node_name_escaped = (char *)MEM_mallocN(node_name_escaped_max_length + 1,
-                                                      "escaped name");
+        char *node_name_escaped = MEM_malloc_arrayN<char>(node_name_escaped_max_length + 1,
+                                                          "escaped name");
         BLI_str_escape(node_name_escaped, node->name, node_name_escaped_max_length);
         char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
 

@@ -131,8 +131,7 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
   MemFile *memfile = mem_data->written_memfile;
   MemFileChunk **compchunk_step = &mem_data->reference_current_chunk;
 
-  MemFileChunk *curchunk = static_cast<MemFileChunk *>(
-      MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk"));
+  MemFileChunk *curchunk = MEM_mallocN<MemFileChunk>("MemFileChunk");
   curchunk->size = size;
   curchunk->buf = nullptr;
   curchunk->is_identical = false;
@@ -266,7 +265,7 @@ static void undo_close(FileReader *reader)
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction)
 {
-  UndoReader *undo = static_cast<UndoReader *>(MEM_callocN(sizeof(UndoReader), __func__));
+  UndoReader *undo = MEM_callocN<UndoReader>(__func__);
 
   undo->memfile = memfile;
   undo->undo_direction = undo_direction;

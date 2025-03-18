@@ -618,12 +618,11 @@ static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
   LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (ELEM(seq->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD) == 0) {
       if (seq->data->transform == nullptr) {
-        seq->data->transform = static_cast<StripTransform *>(
-            MEM_callocN(sizeof(StripTransform), "StripTransform"));
+        seq->data->transform = MEM_callocN<StripTransform>("StripTransform");
       }
 
       if (seq->data->crop == nullptr) {
-        seq->data->crop = static_cast<StripCrop *>(MEM_callocN(sizeof(StripCrop), "StripCrop"));
+        seq->data->crop = MEM_callocN<StripCrop>("StripCrop");
       }
 
       if (seq->seqbase.first != nullptr) {
@@ -2483,7 +2482,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
         }
 
         block->totelem = new_count;
-        block->data = MEM_callocN(sizeof(float[3]) * new_count, __func__);
+        block->data = MEM_calloc_arrayN<float[3]>(size_t(new_count), __func__);
 
         float *oldptr = static_cast<float *>(old_data);
         float(*newptr)[3] = static_cast<float(*)[3]>(block->data);
@@ -3784,8 +3783,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (Image *, ima, &bmain->images) {
         if (ima->type == IMA_TYPE_R_RESULT) {
           for (int i = 0; i < 8; i++) {
-            RenderSlot *slot = static_cast<RenderSlot *>(
-                MEM_callocN(sizeof(RenderSlot), "Image Render Slot Init"));
+            RenderSlot *slot = MEM_callocN<RenderSlot>("Image Render Slot Init");
             SNPRINTF(slot->name, "Slot %d", i + 1);
             BLI_addtail(&ima->renderslots, slot);
           }
@@ -3877,8 +3875,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         }
 
         if (rbw->shared == nullptr) {
-          rbw->shared = static_cast<RigidBodyWorld_Shared *>(
-              MEM_callocN(sizeof(*rbw->shared), "RigidBodyWorld_Shared"));
+          rbw->shared = MEM_callocN<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
         }
 
         /* Move shared pointers from deprecated location to current location */
@@ -3901,8 +3898,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
           continue;
         }
         if (sb->shared == nullptr) {
-          sb->shared = static_cast<SoftBody_Shared *>(
-              MEM_callocN(sizeof(*sb->shared), "SoftBody_Shared"));
+          sb->shared = MEM_callocN<SoftBody_Shared>("SoftBody_Shared");
         }
 
         /* Move shared pointers from deprecated location to current location */
@@ -5768,7 +5764,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Add primary tile to images. */
     if (!DNA_struct_member_exists(fd->filesdna, "Image", "ListBase", "tiles")) {
       LISTBASE_FOREACH (Image *, ima, &bmain->images) {
-        ImageTile *tile = static_cast<ImageTile *>(MEM_callocN(sizeof(ImageTile), "Image Tile"));
+        ImageTile *tile = MEM_callocN<ImageTile>("Image Tile");
         tile->tile_number = 1001;
         BLI_addtail(&ima->tiles, tile);
       }

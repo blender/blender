@@ -1706,8 +1706,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (node->type_legacy == GEO_NODE_OBJECT_INFO && node->storage == nullptr) {
-          NodeGeometryObjectInfo *data = (NodeGeometryObjectInfo *)MEM_callocN(
-              sizeof(NodeGeometryObjectInfo), __func__);
+          NodeGeometryObjectInfo *data = MEM_callocN<NodeGeometryObjectInfo>(__func__);
           data->transform_space = GEO_NODE_TRANSFORM_SPACE_RELATIVE;
           node->storage = data;
         }

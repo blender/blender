@@ -417,8 +417,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
 
   /* (Library.temp_index -> Main), lookup table */
   const uint lib_main_array_len = BLI_listbase_count(&main->libraries);
-  Main **lib_main_array = static_cast<Main **>(
-      MEM_malloc_arrayN(lib_main_array_len, sizeof(*lib_main_array), __func__));
+  Main **lib_main_array = MEM_malloc_arrayN<Main *>(lib_main_array_len, __func__);
 
   int i = 0;
   for (Library *lib = static_cast<Library *>(main->libraries.first); lib;
@@ -756,7 +755,7 @@ static BHeadN *get_bhead(FileData *fd)
 #ifdef USE_BHEAD_READ_ON_DEMAND
       else if (fd->file->seek != nullptr && BHEAD_USE_READ_ON_DEMAND(&bhead)) {
         /* Delay reading bhead content. */
-        new_bhead = static_cast<BHeadN *>(MEM_mallocN(sizeof(BHeadN), "new_bhead"));
+        new_bhead = MEM_mallocN<BHeadN>("new_bhead");
         if (new_bhead) {
           new_bhead->next = new_bhead->prev = nullptr;
           new_bhead->file_offset = fd->file->offset;
@@ -1667,8 +1666,7 @@ void blo_cache_storage_init(FileData *fd, Main *bmain)
 {
   if (fd->flags & FD_FLAGS_IS_MEMFILE) {
     BLI_assert(fd->cache_storage == nullptr);
-    fd->cache_storage = static_cast<BLOCacheStorage *>(
-        MEM_mallocN(sizeof(*fd->cache_storage), __func__));
+    fd->cache_storage = MEM_mallocN<BLOCacheStorage>(__func__);
     fd->cache_storage->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
     fd->cache_storage->cache_map = BLI_ghash_new(
         BKE_idtype_cache_key_hash, BKE_idtype_cache_key_cmp, __func__);
@@ -4384,7 +4382,7 @@ static Main *library_link_begin(Main *mainvar,
 
   fd->id_tag_extra = id_tag_extra;
 
-  fd->mainlist = static_cast<ListBase *>(MEM_callocN(sizeof(ListBase), "FileData.mainlist"));
+  fd->mainlist = MEM_callocN<ListBase>("FileData.mainlist");
 
   /* make mains */
   blo_split_main(fd->mainlist, mainvar);
