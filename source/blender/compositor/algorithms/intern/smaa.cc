@@ -1435,7 +1435,7 @@ static float3 get_luminance_coefficients(ResultType type)
 }
 
 static Result detect_edges_gpu(Context &context,
-                               Result &input,
+                               const Result &input,
                                const float threshold,
                                const float local_contrast_adaptation_factor)
 {
@@ -1465,7 +1465,7 @@ static Result detect_edges_gpu(Context &context,
 }
 
 static Result detect_edges_cpu(Context &context,
-                               Result &input,
+                               const Result &input,
                                const float threshold,
                                const float local_contrast_adaptation_factor)
 {
@@ -1494,7 +1494,7 @@ static Result detect_edges_cpu(Context &context,
 }
 
 static Result detect_edges(Context &context,
-                           Result &input,
+                           const Result &input,
                            const float threshold,
                            const float local_contrast_adaptation_factor)
 {
@@ -1506,7 +1506,7 @@ static Result detect_edges(Context &context,
 }
 
 static Result calculate_blending_weights_gpu(Context &context,
-                                             Result &edges,
+                                             const Result &edges,
                                              const int corner_rounding)
 {
   GPUShader *shader = context.get_shader("compositor_smaa_blending_weight_calculation");
@@ -1538,7 +1538,7 @@ static Result calculate_blending_weights_gpu(Context &context,
 }
 
 static Result calculate_blending_weights_cpu(Context &context,
-                                             Result &edges,
+                                             const Result &edges,
                                              const int corner_rounding)
 {
   const SMAAPrecomputedTextures &smaa_precomputed_textures =
@@ -1572,7 +1572,7 @@ static Result calculate_blending_weights_cpu(Context &context,
 }
 
 static Result calculate_blending_weights(Context &context,
-                                         Result &edges,
+                                         const Result &edges,
                                          const int corner_rounding)
 {
   if (context.use_gpu()) {
@@ -1605,8 +1605,8 @@ static const char *get_blend_shader_name(ResultType type)
 }
 
 static void blend_neighborhood_gpu(Context &context,
-                                   Result &input,
-                                   Result &weights,
+                                   const Result &input,
+                                   const Result &weights,
                                    Result &output)
 {
   GPUShader *shader = context.get_shader(get_blend_shader_name(input.type()));
@@ -1629,7 +1629,7 @@ static void blend_neighborhood_gpu(Context &context,
   output.unbind_as_image();
 }
 
-static void blend_neighborhood_cpu(Result &input, Result &weights, Result &output)
+static void blend_neighborhood_cpu(const Result &input, const Result &weights, Result &output)
 {
   output.allocate_texture(input.domain());
 
@@ -1645,7 +1645,10 @@ static void blend_neighborhood_cpu(Result &input, Result &weights, Result &outpu
   });
 }
 
-static void blend_neighborhood(Context &context, Result &input, Result &weights, Result &output)
+static void blend_neighborhood(Context &context,
+                               const Result &input,
+                               const Result &weights,
+                               Result &output)
 {
   if (context.use_gpu()) {
     blend_neighborhood_gpu(context, input, weights, output);
@@ -1655,43 +1658,15 @@ static void blend_neighborhood(Context &context, Result &input, Result &weights,
   }
 }
 
-static void compute_single_value(Result &input, Result &output)
-{
-  output.allocate_single_value();
-  switch (input.type()) {
-    case ResultType::Color:
-      output.set_single_value(input.get_single_value<float4>());
-      break;
-    case ResultType::Float4:
-      output.set_single_value(input.get_single_value<float4>());
-      break;
-    case ResultType::Float3:
-      output.set_single_value(input.get_single_value<float3>());
-      break;
-    case ResultType::Float2:
-      output.set_single_value(input.get_single_value<float2>());
-      break;
-    case ResultType::Float:
-      output.set_single_value(input.get_single_value<float>());
-      break;
-    case ResultType::Int:
-      output.set_single_value(input.get_single_value<int32_t>());
-      break;
-    case ResultType::Int2:
-      output.set_single_value(input.get_single_value<int2>());
-      break;
-  }
-}
-
 void smaa(Context &context,
-          Result &input,
+          const Result &input,
           Result &output,
           const float threshold,
           const float local_contrast_adaptation_factor,
           const int corner_rounding)
 {
   if (input.is_single_value()) {
-    compute_single_value(input, output);
+    output.share_data(input);
     return;
   }
 
