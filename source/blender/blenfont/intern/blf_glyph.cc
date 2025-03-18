@@ -267,7 +267,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
     }
 
     const int buffer_size = g->dims[0] * g->dims[1] * g->num_channels;
-    g->bitmap = static_cast<uchar *>(MEM_mallocN(size_t(buffer_size), "glyph bitmap"));
+    g->bitmap = MEM_malloc_arrayN<uchar>(size_t(buffer_size), "glyph bitmap");
 
     if (ELEM(glyph->bitmap.pixel_mode,
              FT_PIXEL_MODE_GRAY,
@@ -416,7 +416,7 @@ static GlyphBLF *blf_glyph_cache_add_svg(
   g->num_channels = color ? 4 : 1;
 
   const int buffer_size = g->dims[0] * g->dims[1] * g->num_channels;
-  g->bitmap = static_cast<uchar *>(MEM_mallocN(size_t(buffer_size), "glyph bitmap"));
+  g->bitmap = MEM_malloc_arrayN<uchar>(size_t(buffer_size), "glyph bitmap");
 
   if (color) {
     memcpy(g->bitmap, render_bmp.data(), size_t(buffer_size));
@@ -1678,8 +1678,7 @@ static void blf_glyph_to_curves(const FT_Outline &ftoutline,
   int contour_prev;
 
   /* Start converting the FT data */
-  int *onpoints = static_cast<int *>(
-      MEM_callocN(size_t(ftoutline.n_contours) * sizeof(int), "onpoints"));
+  int *onpoints = MEM_calloc_arrayN<int>(size_t(ftoutline.n_contours), "onpoints");
 
   /* Get number of on-curve points for bezier-triples (including conic virtual on-points). */
   for (j = 0, contour_prev = -1; j < ftoutline.n_contours; j++) {
@@ -1713,9 +1712,8 @@ static void blf_glyph_to_curves(const FT_Outline &ftoutline,
     contour_prev = ftoutline.contours[j];
 
     /* add new curve */
-    nu = (Nurb *)MEM_callocN(sizeof(Nurb), "objfnt_nurb");
-    bezt = static_cast<BezTriple *>(
-        MEM_callocN(size_t(onpoints[j]) * sizeof(BezTriple), "objfnt_bezt"));
+    nu = MEM_callocN<Nurb>("objfnt_nurb");
+    bezt = MEM_calloc_arrayN<BezTriple>(size_t(onpoints[j]), "objfnt_bezt");
     BLI_addtail(nurbsbase, nu);
 
     nu->type = CU_BEZIER;

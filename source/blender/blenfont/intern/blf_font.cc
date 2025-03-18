@@ -1839,8 +1839,7 @@ static bool blf_setup_face(FontBLF *font)
 
   if (FT_HAS_KERNING(font) && !font->kerning_cache) {
     /* Create kerning cache table and fill with value indicating "unset". */
-    font->kerning_cache = static_cast<KerningCacheBLF *>(
-        MEM_mallocN(sizeof(KerningCacheBLF), __func__));
+    font->kerning_cache = MEM_mallocN<KerningCacheBLF>(__func__);
     for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
       for (uint j = 0; j < KERNING_CACHE_TABLE_SIZE; j++) {
         font->kerning_cache->ascii_table[i][j] = KERNING_ENTRY_UNSET;
