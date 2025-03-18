@@ -67,7 +67,7 @@ shader node_texture_coordinate(
       Object = transform("object", P);
     }
     Camera = transform("camera", P);
-    Window = transform("NDC", P);
+    getattribute("NDC", Window);
     Normal = normalize(transform("world", "object", N));
     Reflection = -reflect(I, N);
   }
