@@ -387,15 +387,13 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (show_adaptive_options) {
-    PanelLayout adaptive_panel = uiLayoutPanel(C, layout, "adaptive_subdivision", true);
-    uiLayoutSetPropSep(adaptive_panel.header, false);
-    uiItemR(adaptive_panel.header,
-            &ob_cycles_ptr,
-            "use_adaptive_subdivision",
-            UI_ITEM_NONE,
-            "Adaptive Subdivision",
-            ICON_NONE);
-
+    PanelLayout adaptive_panel = uiLayoutPanelPropWithBoolHeader(C,
+                                                                 layout,
+                                                                 ptr,
+                                                                 "open_adaptive_subdivision_panel",
+                                                                 &ob_cycles_ptr,
+                                                                 "use_adaptive_subdivision",
+                                                                 IFACE_("Adaptive Subdivision"));
     if (adaptive_panel.body) {
       uiLayoutSetActive(adaptive_panel.body, ob_use_adaptive_subdivision);
       uiItemR(adaptive_panel.body,
@@ -420,7 +418,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  if (uiLayout *advanced_layout = uiLayoutPanel(C, layout, "advanced", true, IFACE_("Advanced"))) {
+  if (uiLayout *advanced_layout = uiLayoutPanelProp(
+          C, layout, ptr, "open_advanced_panel", IFACE_("Advanced")))
+  {
     uiLayoutSetPropSep(advanced_layout, true);
 
     uiItemR(advanced_layout, ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);

@@ -2545,6 +2545,9 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
                            "levels of subdivision (smoothest possible shape)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  rna_def_modifier_panel_open_prop(srna, "open_adaptive_subdivision_panel", 0);
+  rna_def_modifier_panel_open_prop(srna, "open_advanced_panel", 1);
+
   RNA_define_lib_overridable(false);
 }
 
