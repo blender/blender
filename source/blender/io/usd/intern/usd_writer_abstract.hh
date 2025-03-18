@@ -14,10 +14,10 @@
 
 #include "WM_types.hh"
 
-#include "DNA_material_types.h"
-
 #include <string>
 
+struct ID;
+struct IDProperty;
 struct Material;
 struct ReportList;
 

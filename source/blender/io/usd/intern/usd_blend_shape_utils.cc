@@ -341,8 +341,8 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
   for (const pxr::SdfPath &mesh_path : mesh_paths) {
 
     pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(mesh_path);
-    pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
-    if (!skel_api) {
+    pxr::UsdSkelBindingAPI mesh_skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
+    if (!mesh_skel_api) {
       CLOG_WARN(&LOG,
                 "Couldn't apply UsdSkelBindingAPI to mesh prim %s",
                 mesh_path.GetAsString().c_str());
@@ -350,14 +350,14 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
     }
 
     /* Get the blend shape names for this mesh. */
-    pxr::UsdAttribute blend_shapes_attr = skel_api.GetBlendShapesAttr();
+    pxr::UsdAttribute blend_shapes_attr = mesh_skel_api.GetBlendShapesAttr();
 
     if (!blend_shapes_attr) {
       continue;
     }
 
     pxr::VtTokenArray names;
-    if (!skel_api.GetBlendShapesAttr().Get(&names)) {
+    if (!mesh_skel_api.GetBlendShapesAttr().Get(&names)) {
       continue;
     }
 
@@ -370,7 +370,7 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
     }
 
     /* Set the unique names back on the mesh. */
-    skel_api.GetBlendShapesAttr().Set(unique_names);
+    mesh_skel_api.GetBlendShapesAttr().Set(unique_names);
 
     /* Look up the temporary weights time sample we wrote to the mesh. */
     const pxr::UsdAttribute temp_weights_attr = pxr::UsdGeomPrimvarsAPI(mesh_prim).GetPrimvar(
@@ -448,7 +448,7 @@ Mesh *get_shape_key_basis_mesh(Object *obj)
     return nullptr;
   }
 
-  KeyBlock *basis = reinterpret_cast<KeyBlock *>(mesh->key->block.first);
+  const KeyBlock *basis = reinterpret_cast<KeyBlock *>(mesh->key->block.first);
 
   if (mesh->verts_num != basis->totelem) {
     CLOG_WARN(&LOG, "Vertex and shape key element count mismatch for mesh %s", obj->id.name + 2);

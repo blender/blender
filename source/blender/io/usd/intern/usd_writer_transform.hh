@@ -5,7 +5,7 @@
 
 #include "usd_writer_abstract.hh"
 
-#include <pxr/usd/usdGeom/xform.h>
+#include <pxr/usd/usdGeom/xformable.h>
 
 namespace blender::io::usd {
 

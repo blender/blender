@@ -69,8 +69,7 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor)
     return;
   }
 
-  bArmature *armature = (bArmature *)ob_arm->data;
-
+  const bArmature *armature = (bArmature *)ob_arm->data;
   LISTBASE_FOREACH (const Bone *, bone, &armature->bonebase) {
     visit_bones(bone, visitor);
   }

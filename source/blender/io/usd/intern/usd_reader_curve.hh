@@ -10,6 +10,7 @@
 
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/basisCurves.h>
+#include <pxr/usd/usdGeom/curves.h>
 
 struct Curves;
 struct Main;

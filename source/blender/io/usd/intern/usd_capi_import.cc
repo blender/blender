@@ -314,7 +314,7 @@ static void import_endjob(void *customdata)
   /* Delete objects on cancellation. */
   if (data->was_canceled && data->archive) {
 
-    for (USDPrimReader *reader : data->archive->readers()) {
+    for (const USDPrimReader *reader : data->archive->readers()) {
 
       if (!reader) {
         continue;
@@ -341,7 +341,7 @@ static void import_endjob(void *customdata)
     data->archive->create_proto_collections(data->bmain, lc->collection);
 
     /* Add all objects to the collection. */
-    for (USDPrimReader *reader : data->archive->readers()) {
+    for (const USDPrimReader *reader : data->archive->readers()) {
       if (!reader) {
         continue;
       }
@@ -358,7 +358,7 @@ static void import_endjob(void *customdata)
 
     /* Sync and do the view layer operations. */
     BKE_view_layer_synced_ensure(scene, view_layer);
-    for (USDPrimReader *reader : data->archive->readers()) {
+    for (const USDPrimReader *reader : data->archive->readers()) {
       if (!reader) {
         continue;
       }
@@ -621,7 +621,7 @@ void USD_get_transform(CacheReader *reader, float r_mat_world[4][4], float time,
   if (!reader) {
     return;
   }
-  USDXformReader *usd_reader = reinterpret_cast<USDXformReader *>(reader);
+  const USDXformReader *usd_reader = reinterpret_cast<USDXformReader *>(reader);
 
   bool is_constant = false;
 

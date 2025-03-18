@@ -14,8 +14,6 @@
 #include <pxr/usd/usdGeom/imageable.h>
 #include <pxr/usd/usdLux/domeLight.h>
 
-#include <string>
-
 struct Collection;
 struct ImportSettings;
 struct Main;

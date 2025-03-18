@@ -13,6 +13,8 @@
 /* For #UsdGeomXformable. */
 #include <pxr/usd/usdGeom/xformable.h>
 
+struct Main;
+
 namespace blender::io::usd {
 
 /**

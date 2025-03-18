@@ -145,7 +145,7 @@ const EnumPropertyItem rna_enum_usd_xform_op_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-const EnumPropertyItem prop_usdz_downscale_size[] = {
+const EnumPropertyItem rna_enum_usdz_downscale_size[] = {
     {USD_TEXTURE_SIZE_KEEP, "KEEP", 0, "Keep", "Keep all current texture sizes"},
     {USD_TEXTURE_SIZE_256, "256", 0, "256", "Resize to a maximum of 256 pixels"},
     {USD_TEXTURE_SIZE_512, "512", 0, "512", "Resize to a maximum of 512 pixels"},
@@ -218,7 +218,7 @@ const EnumPropertyItem rna_enum_usd_convert_scene_units_items[] = {
 
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
-struct eUSDOperatorOptions {
+struct USDOperatorOptions {
   bool as_background_job;
 };
 
@@ -246,7 +246,7 @@ static void process_prim_path(char *prim_path)
 
 static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  eUSDOperatorOptions *options = MEM_callocN<eUSDOperatorOptions>("eUSDOperatorOptions");
+  USDOperatorOptions *options = MEM_callocN<USDOperatorOptions>("USDOperatorOptions");
   options->as_background_job = true;
   op->customdata = options;
 
@@ -267,7 +267,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  eUSDOperatorOptions *options = static_cast<eUSDOperatorOptions *>(op->customdata);
+  USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
   const bool as_background_job = (options != nullptr && options->as_background_job);
   MEM_SAFE_FREE(op->customdata);
 
@@ -868,7 +868,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
 
   RNA_def_enum(ot->srna,
                "usdz_downscale_size",
-               prop_usdz_downscale_size,
+               rna_enum_usdz_downscale_size,
                DAG_EVAL_VIEWPORT,
                "USDZ Texture Downsampling",
                "Choose a maximum size for all exported textures");
@@ -913,7 +913,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
 
 static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  eUSDOperatorOptions *options = MEM_callocN<eUSDOperatorOptions>("eUSDOperatorOptions");
+  USDOperatorOptions *options = MEM_callocN<USDOperatorOptions>("USDOperatorOptions");
   options->as_background_job = true;
   op->customdata = options;
 
@@ -930,7 +930,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  eUSDOperatorOptions *options = static_cast<eUSDOperatorOptions *>(op->customdata);
+  USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
   const bool as_background_job = (options != nullptr && options->as_background_job);
   MEM_SAFE_FREE(op->customdata);
 

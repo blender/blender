@@ -7,7 +7,6 @@
 #include "usd.hh"
 #include "usd_asset_utils.hh"
 #include "usd_private.hh"
-#include "usd_reader_prim.hh"
 #include "usd_writer_material.hh"
 
 #include <pxr/base/gf/rotation.h>
@@ -27,10 +26,10 @@
 #include "BKE_node_tree_update.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 
+#include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
@@ -552,14 +551,13 @@ void dome_light_to_world_material(const USDImportParams &params,
   }
 
   bNode *mapping = append_node(tex, SH_NODE_MAPPING, "Vector", "Vector", ntree, 200);
-
   if (!mapping) {
     CLOG_WARN(&LOG, "Couldn't create mapping node");
     return;
   }
 
-  bNode *tex_coord = append_node(mapping, SH_NODE_TEX_COORD, "Generated", "Vector", ntree, 200);
-
+  const bNode *tex_coord = append_node(
+      mapping, SH_NODE_TEX_COORD, "Generated", "Vector", ntree, 200);
   if (!tex_coord) {
     CLOG_WARN(&LOG, "Couldn't create texture coordinate node");
     return;

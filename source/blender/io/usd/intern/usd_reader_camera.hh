@@ -12,6 +12,8 @@
 
 #include <pxr/usd/usdGeom/camera.h>
 
+struct Main;
+
 namespace blender::io::usd {
 
 class USDCameraReader : public USDXformReader {

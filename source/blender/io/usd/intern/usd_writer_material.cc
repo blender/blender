@@ -38,15 +38,14 @@
 
 #include <pxr/base/tf/stringUtils.h>
 
-#include "CLG_log.h"
-static CLG_LogRef LOG = {"io.usd"};
-
 #ifdef WITH_MATERIALX
 #  include "shader/materialx/material.h"
 #  include <pxr/usd/sdf/copyUtils.h>
 #  include <pxr/usd/usdMtlx/reader.h>
-#  include <pxr/usd/usdMtlx/utils.h>
 #endif
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.usd"};
 
 /* `TfToken` objects are not cheap to construct, so we do it once. */
 namespace usdtokens {

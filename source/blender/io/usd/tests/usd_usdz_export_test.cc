@@ -18,8 +18,6 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "WM_api.hh"
-
 #include "usd.hh"
 
 namespace blender::io::usd {

@@ -788,7 +788,7 @@ void USDStageReader::create_proto_collections(Main *bmain, Collection *parent_co
       continue;
     }
 
-    for (USDPrimReader *reader : item.value) {
+    for (const USDPrimReader *reader : item.value) {
       Object *ob = reader->object();
 
       if (!ob) {
