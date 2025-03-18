@@ -1418,15 +1418,7 @@ static float3 get_luminance_coefficients(ResultType type)
     }
     case ResultType::Float:
       return float3(1.0f, 0.0f, 0.0f);
-    case ResultType::Float2:
-      return float3(1.0f, 1.0f, 0.0f);
-    case ResultType::Float3:
-      return float3(1.0f, 1.0f, 1.0f);
-    case ResultType::Float4:
-      return float3(1.0f, 1.0f, 1.0f);
-    case ResultType::Int:
-    case ResultType::Int2:
-      /* SMAA does not support integer types. */
+    default:
       break;
   }
 
@@ -1586,17 +1578,10 @@ static const char *get_blend_shader_name(ResultType type)
 {
   switch (type) {
     case ResultType::Color:
-    case ResultType::Float4:
       return "compositor_smaa_neighborhood_blending_float4";
-    case ResultType::Float2:
-      return "compositor_smaa_neighborhood_blending_float2";
     case ResultType::Float:
       return "compositor_smaa_neighborhood_blending_float";
-    case ResultType::Float3:
-      return "compositor_smaa_neighborhood_blending_float4";
-    case ResultType::Int:
-    case ResultType::Int2:
-      /* SMAA does not support integer types. */
+    default:
       break;
   }
 

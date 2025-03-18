@@ -52,12 +52,6 @@ IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_float2)
-ADDITIONAL_INFO(compositor_smaa_neighborhood_blending_shared)
-IMAGE(0, GPU_RG16F, WRITE, FLOAT_2D, output_img)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
 GPU_SHADER_CREATE_INFO(compositor_smaa_neighborhood_blending_float)
 ADDITIONAL_INFO(compositor_smaa_neighborhood_blending_shared)
 IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
