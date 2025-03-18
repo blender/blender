@@ -423,8 +423,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
 
   // Compute loop triangles
   int tottri = poly_to_tri_count(mesh->faces_num, mesh->corners_num);
-  blender::int3 *corner_tris = (blender::int3 *)MEM_malloc_arrayN(
-      tottri, sizeof(*corner_tris), __func__);
+  blender::int3 *corner_tris = MEM_malloc_arrayN<blender::int3>(size_t(tottri), __func__);
   blender::bke::mesh::corner_tris_calc(
       vert_positions, mesh_polys, corner_verts, {corner_tris, tottri});
   const blender::Span<int> tri_faces = mesh->corner_tri_faces();
