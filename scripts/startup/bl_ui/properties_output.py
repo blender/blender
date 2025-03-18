@@ -466,31 +466,41 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         if use_crf:
             layout.prop(ffmpeg, "constant_rate_factor")
 
-        # Encoding speed
-        layout.prop(ffmpeg, "ffmpeg_preset")
-        # I-frames
-        layout.prop(ffmpeg, "gopsize")
-        # B-Frames
-        row = layout.row(align=True, heading="Max B-frames")
-        row.prop(ffmpeg, "use_max_b_frames", text="")
-        sub = row.row(align=True)
-        sub.active = ffmpeg.use_max_b_frames
-        sub.prop(ffmpeg, "max_b_frames", text="")
+        use_encoding_speed = needs_codec and ffmpeg.codec not in {'DNXHD', 'FFV1', 'HUFFYUV', 'PNG', 'QTRLE'}
+        use_bitrate = needs_codec and ffmpeg.codec not in {'FFV1', 'HUFFYUV', 'PNG', 'QTRLE'}
+        use_min_max_bitrate = ffmpeg.codec not in {'DNXHD'}
+        use_gop = needs_codec and ffmpeg.codec not in {'DNXHD', 'HUFFYUV', 'PNG'}
+        use_b_frames = needs_codec and use_gop and ffmpeg.codec not in {'FFV1', 'QTRLE'}
 
-        if not use_crf or ffmpeg.constant_rate_factor == 'NONE':
+        # Encoding speed
+        if use_encoding_speed:
+            layout.prop(ffmpeg, "ffmpeg_preset")
+        # I-frames
+        if use_gop:
+            layout.prop(ffmpeg, "gopsize")
+        # B-Frames
+        if use_b_frames:
+            row = layout.row(align=True, heading="Max B-frames")
+            row.prop(ffmpeg, "use_max_b_frames", text="")
+            sub = row.row(align=True)
+            sub.active = ffmpeg.use_max_b_frames
+            sub.prop(ffmpeg, "max_b_frames", text="")
+
+        if (not use_crf or ffmpeg.constant_rate_factor == 'NONE') and use_bitrate:
             col = layout.column()
 
             sub = col.column(align=True)
             sub.prop(ffmpeg, "video_bitrate")
-            sub.prop(ffmpeg, "minrate", text="Minimum")
-            sub.prop(ffmpeg, "maxrate", text="Maximum")
+            if use_min_max_bitrate:
+                sub.prop(ffmpeg, "minrate", text="Minimum")
+                sub.prop(ffmpeg, "maxrate", text="Maximum")
 
-            col.prop(ffmpeg, "buffersize", text="Buffer")
+                col.prop(ffmpeg, "buffersize", text="Buffer")
 
-            col.separator()
+                col.separator()
 
-            col.prop(ffmpeg, "muxrate", text="Mux Rate")
-            col.prop(ffmpeg, "packetsize", text="Mux Packet Size")
+                col.prop(ffmpeg, "muxrate", text="Mux Rate")
+                col.prop(ffmpeg, "packetsize", text="Mux Packet Size")
 
 
 class RENDER_PT_encoding_audio(RenderOutputButtonsPanel, Panel):
