@@ -138,6 +138,8 @@ class Instance : public DrawEngine {
   const View3D *v3d;
   const RegionView3D *rv3d;
 
+  const DRWContext *draw_ctx = nullptr;
+
   /** True if the instance is created for light baking. */
   bool is_light_bake = false;
   /** True if the instance is created for either viewport image render or final image render. */

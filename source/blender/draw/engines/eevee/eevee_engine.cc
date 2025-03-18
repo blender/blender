@@ -41,7 +41,6 @@ static void eevee_render(RenderEngine *engine, Depsgraph *depsgraph)
 
   auto eevee_render_to_image = [&](RenderEngine *engine, RenderLayer *layer, const rcti /*rect*/) {
     Render *render = engine->re;
-    Depsgraph *depsgraph = DRW_context_get()->depsgraph;
     Object *camera_original_ob = RE_GetCamera(engine->re);
     const char *viewname = RE_GetActiveRenderView(engine->re);
     int size[2] = {engine->resolution_x, engine->resolution_y};

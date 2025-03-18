@@ -23,14 +23,15 @@
 
 namespace blender::draw::gpencil {
 
-static void render_init(Instance &inst,
+static void render_init(const DRWContext *draw_ctx,
+                        Instance &inst,
                         RenderEngine *engine,
                         RenderLayer *render_layer,
                         const Depsgraph *depsgraph,
                         const rcti *rect)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  const int2 size = int2(DRW_context_get()->viewport_size_get());
+  const int2 size = int2(draw_ctx->viewport_size_get());
 
   /* Set the perspective & view matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
@@ -137,12 +138,12 @@ static void render_init(Instance &inst,
   MEM_SAFE_FREE(pix_z);
 }
 
-static void render_result_z(RenderLayer *rl,
+static void render_result_z(const DRWContext *draw_ctx,
+                            RenderLayer *rl,
                             const char *viewname,
                             Instance &instance,
                             const rcti *rect)
 {
-  const DRWContext *draw_ctx = DRW_context_get();
   ViewLayer *view_layer = draw_ctx->view_layer;
   if ((view_layer->passflag & SCE_PASS_Z) == 0) {
     return;
@@ -225,7 +226,7 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
 
   Manager &manager = *DRW_manager_get();
 
-  render_init(inst, engine, render_layer, depsgraph, &rect);
+  render_init(draw_ctx, inst, engine, render_layer, depsgraph, &rect);
   inst.init();
 
   inst.camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
@@ -252,7 +253,7 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
   inst.draw(manager);
 
   render_result_combined(render_layer, viewname, inst, &rect);
-  render_result_z(render_layer, viewname, inst, &rect);
+  render_result_z(draw_ctx, render_layer, viewname, inst, &rect);
 }
 
 }  // namespace blender::draw::gpencil

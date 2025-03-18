@@ -225,6 +225,8 @@ struct Instance : public DrawEngine {
 
   ViewLayerData vldata;
 
+  const DRWContext *draw_ctx = nullptr;
+
   /* Pointers copied from blender::draw::gpencil::ViewLayerData. */
   struct BLI_memblock *gp_object_pool;
   GPENCIL_tLayer_Pool *gp_layer_pool;
@@ -344,6 +346,9 @@ struct Instance : public DrawEngine {
   void end_sync() final;
 
   void draw(blender::draw::Manager &manager) final;
+
+ private:
+  GPENCIL_tObject *object_sync_do(Object *ob, blender::draw::ResourceHandle res_handle);
 };
 
 struct GPENCIL_Data {

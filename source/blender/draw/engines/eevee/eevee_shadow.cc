@@ -1113,7 +1113,7 @@ void ShadowModule::debug_end_sync()
   /* Init but not filled if no active object. */
   debug_draw_ps_.init();
 
-  Object *object_active = DRW_context_get()->obact;
+  Object *object_active = inst_.draw_ctx->obact;
   if (object_active == nullptr) {
     return;
   }

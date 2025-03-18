@@ -93,7 +93,7 @@ void DofPass::setup_samples()
   samples_buf_.push_update();
 }
 
-void DofPass::init(const SceneState &scene_state)
+void DofPass::init(const SceneState &scene_state, const DRWContext *draw_ctx)
 {
   enabled_ = scene_state.draw_dof;
 
@@ -131,7 +131,7 @@ void DofPass::init(const SceneState &scene_state)
   float focal_len_scaled = scale_camera * focal_len;
   float sensor_scaled = scale_camera * sensor;
 
-  if (RegionView3D *rv3d = DRW_context_get()->rv3d) {
+  if (RegionView3D *rv3d = draw_ctx->rv3d) {
     sensor_scaled *= rv3d->viewcamtexcofac[0];
   }
 
@@ -154,7 +154,7 @@ void DofPass::init(const SceneState &scene_state)
   }
 }
 
-void DofPass::sync(SceneResources &resources)
+void DofPass::sync(SceneResources &resources, const DRWContext *draw_ctx)
 {
   if (!enabled_) {
     return;
@@ -162,7 +162,7 @@ void DofPass::sync(SceneResources &resources)
 
   GPUSamplerState sampler_state = {GPU_SAMPLER_FILTERING_LINEAR | GPU_SAMPLER_FILTERING_MIPMAP};
 
-  const float2 viewport_size_inv = 1.0f / DRW_context_get()->viewport_size_get();
+  const float2 viewport_size_inv = 1.0f / draw_ctx->viewport_size_get();
 
   down_ps_.init();
   down_ps_.state_set(DRW_STATE_WRITE_COLOR);

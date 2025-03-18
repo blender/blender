@@ -56,8 +56,9 @@ using namespace blender::draw;
 
 void Instance::init()
 {
-  const DRWContext *ctx = DRW_context_get();
-  const View3D *v3d = ctx->v3d;
+  this->draw_ctx = DRW_context_get();
+
+  const View3D *v3d = draw_ctx->v3d;
 
   if (!dummy_texture.is_valid()) {
     const float pixels[1][4] = {{1.0f, 0.0f, 1.0f, 1.0f}};
@@ -84,9 +85,9 @@ void Instance::init()
   this->gp_object_pool = vldata.gp_object_pool;
   this->gp_layer_pool = vldata.gp_layer_pool;
   this->gp_vfx_pool = vldata.gp_vfx_pool;
-  this->view_layer = ctx->view_layer;
-  this->scene = ctx->scene;
-  this->v3d = ctx->v3d;
+  this->view_layer = draw_ctx->view_layer;
+  this->scene = draw_ctx->scene;
+  this->v3d = draw_ctx->v3d;
   this->last_light_pool = nullptr;
   this->last_material_pool = nullptr;
   this->tobjects.first = nullptr;
@@ -117,8 +118,8 @@ void Instance::init()
 
     this->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
     /* Special case: If we're in Vertex Paint mode, enforce #V3D_SHADING_VERTEX_COLOR setting. */
-    if (v3d->shading.type == OB_SOLID && ctx->obact &&
-        (ctx->obact->mode & OB_MODE_VERTEX_GREASE_PENCIL) != 0)
+    if (v3d->shading.type == OB_SOLID && draw_ctx->obact &&
+        (draw_ctx->obact->mode & OB_MODE_VERTEX_GREASE_PENCIL) != 0)
     {
       this->v3d_color_type = V3D_SHADING_VERTEX_COLOR;
     }
@@ -148,7 +149,7 @@ void Instance::init()
 
   gpencil_light_ambient_add(this->shadeless_light_pool, blender::float3{1.0f, 1.0f, 1.0f});
 
-  World *world = ctx->scene->world;
+  World *world = draw_ctx->scene->world;
   if (world != nullptr && use_scene_world) {
     gpencil_light_ambient_add(this->global_light_pool, &world->horr);
   }
@@ -163,8 +164,8 @@ void Instance::init()
   copy_v3_v3(this->camera_pos, viewmatinv[3]);
   this->camera_z_offset = dot_v3v3(viewmatinv[3], viewmatinv[2]);
 
-  if (ctx && ctx->rv3d && v3d) {
-    this->camera = (ctx->rv3d->persp == RV3D_CAMOB) ? v3d->camera : nullptr;
+  if (draw_ctx && draw_ctx->rv3d && v3d) {
+    this->camera = (draw_ctx->rv3d->persp == RV3D_CAMOB) ? v3d->camera : nullptr;
   }
   else {
     this->camera = nullptr;
@@ -173,7 +174,6 @@ void Instance::init()
 
 void Instance::begin_sync()
 {
-  const DRWContext *draw_ctx = DRW_context_get();
   this->cfra = int(DEG_get_ctime(draw_ctx->depsgraph));
   this->simplify_antialias = GPENCIL_SIMPLIFY_AA(draw_ctx->scene);
   this->use_layer_fb = false;
@@ -233,7 +233,7 @@ void Instance::begin_sync()
 
   if (this->do_fast_drawing) {
     this->snapshot_buffer_dirty = !this->snapshot_depth_tx.is_valid();
-    const float2 size = DRW_context_get()->viewport_size_get();
+    const float2 size = draw_ctx->viewport_size_get();
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT;
     this->snapshot_depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, int2(size), usage);
@@ -274,7 +274,7 @@ void Instance::begin_sync()
 
   /* Pseudo DOF setup. */
   if (cam && (cam->dof.flag & CAM_DOF_ENABLED)) {
-    const float2 vp_size = DRW_context_get()->viewport_size_get();
+    const float2 vp_size = draw_ctx->viewport_size_get();
     float fstop = cam->dof.aperture_fstop;
     float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
     float focus_dist = BKE_camera_object_dof_distance(this->camera);
@@ -349,8 +349,7 @@ static bool use_layer_in_render(const GreasePencil &grease_pencil,
   return true;
 }
 
-static GPENCIL_tObject *grease_pencil_object_cache_populate(
-    Instance *inst, Object *ob, blender::draw::ResourceHandle res_handle)
+GPENCIL_tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHandle res_handle)
 {
   using namespace blender;
   using namespace blender::ed::greasepencil;
@@ -360,19 +359,19 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
   const blender::Bounds<float3> bounds = grease_pencil.bounds_min_max_eval().value_or(
       blender::Bounds(float3(0)));
 
-  const bool do_onion = !inst->is_render && inst->do_onion;
-  const bool do_multi_frame = (((inst->scene->toolsettings->gpencil_flags &
+  const bool do_onion = !this->is_render && this->do_onion;
+  const bool do_multi_frame = (((this->scene->toolsettings->gpencil_flags &
                                  GP_USE_MULTI_FRAME_EDITING) != 0) &&
                                (ob->mode != OB_MODE_OBJECT));
-  const bool use_stroke_order_3d = inst->force_stroke_order_3d ||
+  const bool use_stroke_order_3d = this->force_stroke_order_3d ||
                                    ((grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0);
-  GPENCIL_tObject *tgp_ob = gpencil_object_cache_add(inst, ob, use_stroke_order_3d, bounds);
+  GPENCIL_tObject *tgp_ob = gpencil_object_cache_add(this, ob, use_stroke_order_3d, bounds);
 
   int mat_ofs = 0;
-  GPENCIL_MaterialPool *matpool = gpencil_material_pool_create(inst, ob, &mat_ofs, is_vertex_mode);
+  GPENCIL_MaterialPool *matpool = gpencil_material_pool_create(this, ob, &mat_ofs, is_vertex_mode);
 
-  GPUTexture *tex_fill = inst->dummy_tx;
-  GPUTexture *tex_stroke = inst->dummy_tx;
+  GPUTexture *tex_fill = this->dummy_tx;
+  GPUTexture *tex_stroke = this->dummy_tx;
 
   blender::gpu::Batch *iter_geom = nullptr;
   PassSimple *last_pass = nullptr;
@@ -412,7 +411,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
   /* Note that we loop over all the drawings (including the onion skinned ones) to make sure we
    * match the offsets of the batch cache. */
   const Vector<DrawingInfo> drawings = retrieve_visible_drawings(
-      *inst->scene, grease_pencil, true);
+      *this->scene, grease_pencil, true);
   const Span<const Layer *> layers = grease_pencil.layers();
   for (const DrawingInfo info : drawings) {
     const Layer &layer = *layers[info.layer_index];
@@ -447,7 +446,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
 
     bool is_layer_used_as_mask = false;
     const bool show_drawing_in_render = use_layer_in_render(
-        grease_pencil, layer, *inst->view_layer, is_layer_used_as_mask);
+        grease_pencil, layer, *this->view_layer, is_layer_used_as_mask);
     if (!show_drawing_in_render) {
       /* Skip over the entire drawing. */
       t_offset += total_num_triangles;
@@ -460,16 +459,16 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
     }
 
     GPENCIL_tLayer *tgp_layer = grease_pencil_layer_cache_add(
-        inst, ob, layer, info.onion_id, is_layer_used_as_mask, tgp_ob);
+        this, ob, layer, info.onion_id, is_layer_used_as_mask, tgp_ob);
     PassSimple &pass = *tgp_layer->geom_ps;
     last_pass = &pass;
 
-    const bool use_lights = inst->use_lighting &&
+    const bool use_lights = this->use_lighting &&
                             ((layer.base.flag & GP_LAYER_TREE_NODE_USE_LIGHTS) != 0) &&
                             (ob->dtx & OB_USE_GPENCIL_LIGHTS);
 
-    GPUUniformBuf *lights_ubo = (use_lights) ? inst->global_light_pool->ubo :
-                                               inst->shadeless_light_pool->ubo;
+    GPUUniformBuf *lights_ubo = (use_lights) ? this->global_light_pool->ubo :
+                                               this->shadeless_light_pool->ubo;
 
     GPUUniformBuf *ubo_mat;
     gpencil_material_resources_get(matpool, 0, nullptr, nullptr, &ubo_mat);
@@ -481,7 +480,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
     pass.push_constant("gpMaterialOffset", mat_ofs);
     /* Since we don't use the sbuffer in GPv3, this is always 0. */
     pass.push_constant("gpStrokeIndexOffset", 0.0f);
-    pass.push_constant("viewportSize", float2(DRW_context_get()->viewport_size_get()));
+    pass.push_constant("viewportSize", float2(draw_ctx->viewport_size_get()));
 
     const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
@@ -490,7 +489,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
                                   OB_MODE_PAINT_GREASE_PENCIL,
                                   OB_MODE_WEIGHT_GREASE_PENCIL,
                                   OB_MODE_VERTEX_GREASE_PENCIL) &&
-                            info.frame_number != inst->cfra && inst->use_multiedit_lines_only &&
+                            info.frame_number != this->cfra && this->use_multiedit_lines_only &&
                             do_multi_frame;
     const bool is_onion = info.onion_id != 0;
 
@@ -506,7 +505,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
       const bool show_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0);
       const bool show_fill = (points.size() >= 3) &&
                              ((gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0) &&
-                             (!inst->simplify_fill);
+                             (!this->simplify_fill);
       const bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0 ||
                                            (!do_onion && !do_multi_frame));
       const bool skip_stroke = hide_material || (!show_stroke && !show_fill) ||
@@ -545,14 +544,14 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
         }
       }
 
-      blender::gpu::Batch *geom = draw::DRW_cache_grease_pencil_get(inst->scene, ob);
+      blender::gpu::Batch *geom = draw::DRW_cache_grease_pencil_get(this->scene, ob);
       if (iter_geom != geom) {
         drawcall_flush(pass);
 
         blender::gpu::VertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(
-            inst->scene, ob);
+            this->scene, ob);
         blender::gpu::VertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(
-            inst->scene, ob);
+            this->scene, ob);
         pass.bind_texture("gp_pos_tx", position_tx);
         pass.bind_texture("gp_col_tx", color_tx);
       }
@@ -594,7 +593,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   if (ob->data && (ob->type == OB_GREASE_PENCIL) && (ob->dt >= OB_SOLID)) {
     blender::draw::ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
-    GPENCIL_tObject *tgp_ob = grease_pencil_object_cache_populate(this, ob, res_handle);
+    GPENCIL_tObject *tgp_ob = object_sync_do(ob, res_handle);
     gpencil_vfx_cache_populate(
         this,
         ob,
@@ -631,7 +630,7 @@ void Instance::acquire_resources()
     return;
   }
 
-  const int2 size = int2(DRW_context_get()->viewport_size_get());
+  const int2 size = int2(draw_ctx->viewport_size_get());
 
   eGPUTextureFormat format = this->use_signed_fb ? GPU_RGBA16F : GPU_R11F_G11F_B10F;
 
@@ -800,7 +799,7 @@ static void GPENCIL_draw_object(Instance *inst, blender::draw::View &view, GPENC
 
 static void GPENCIL_fast_draw_start(Instance *inst)
 {
-  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+  DefaultFramebufferList *dfbl = inst->draw_ctx->viewport_framebuffer_list_get();
 
   if (!inst->snapshot_buffer_dirty) {
     /* Copy back cached render. */
@@ -814,7 +813,7 @@ static void GPENCIL_fast_draw_start(Instance *inst)
 
 static void GPENCIL_fast_draw_end(Instance *inst, blender::draw::View &view)
 {
-  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+  DefaultFramebufferList *dfbl = inst->draw_ctx->viewport_framebuffer_list_get();
 
   if (inst->snapshot_buffer_dirty) {
     /* Save to snapshot buffer. */
@@ -831,8 +830,8 @@ static void GPENCIL_fast_draw_end(Instance *inst, blender::draw::View &view)
 
 void Instance::draw(Manager & /*manager*/)
 {
-  DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
-  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+  DefaultTextureList *dtxl = draw_ctx->viewport_texture_list_get();
+  DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
 
   if (this->render_depth_tx.is_valid()) {
     this->scene_depth_tx = this->render_depth_tx;

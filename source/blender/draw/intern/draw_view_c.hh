@@ -8,6 +8,6 @@
 
 #pragma once
 
-void DRW_draw_region_info();
-void DRW_draw_gizmo_3d();
-void DRW_draw_gizmo_2d();
+void DRW_draw_region_info(const bContext *C, ARegion *region);
+void DRW_draw_gizmo_3d(const bContext *C, ARegion *region);
+void DRW_draw_gizmo_2d(const bContext *C, ARegion *region);

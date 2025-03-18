@@ -91,18 +91,19 @@ static bool operator!=(const View3DShading &a, const View3DShading &b)
   return false;
 }
 
-void SceneState::init(bool scene_updated, Object *camera_ob /*=nullptr*/)
+void SceneState::init(const DRWContext *context,
+                      bool scene_updated,
+                      Object *camera_ob /*=nullptr*/)
 {
   bool reset_taa = reset_taa_next_sample || scene_updated;
   reset_taa_next_sample = false;
 
-  const DRWContext *context = DRW_context_get();
   View3D *v3d = context->v3d;
   RegionView3D *rv3d = context->rv3d;
 
   scene = DEG_get_evaluated_scene(context->depsgraph);
 
-  if (assign_if_different(resolution, int2(DRW_context_get()->viewport_size_get()))) {
+  if (assign_if_different(resolution, int2(context->viewport_size_get()))) {
     /* In some cases, the viewport can change resolution without a call to `workbench_view_update`.
      * This is the case when dragging a window between two screen with different DPI settings.
      * (See #128712) */
@@ -205,7 +206,7 @@ void SceneState::init(bool scene_updated, Object *camera_ob /*=nullptr*/)
   if (v3d && ELEM(v3d->shading.type, OB_RENDER, OB_MATERIAL)) {
     _samples_len = scene->display.viewport_aa;
   }
-  else if (DRW_context_get()->is_scene_render()) {
+  else if (context->is_scene_render()) {
     _samples_len = scene->display.render_aa;
   }
   if (is_navigating || is_playback) {
@@ -276,11 +277,11 @@ static const CustomData *get_vert_custom_data(const Mesh *mesh)
   return &mesh->vert_data;
 }
 
-ObjectState::ObjectState(const SceneState &scene_state,
+ObjectState::ObjectState(const DRWContext *draw_ctx,
+                         const SceneState &scene_state,
                          const SceneResources &resources,
                          Object *ob)
 {
-  const DRWContext *draw_ctx = DRW_context_get();
   const bool is_active = (ob == draw_ctx->obact);
 
   sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
@@ -323,13 +324,13 @@ ObjectState::ObjectState(const SceneState &scene_state,
 
     /* Bad call C is required to access the tool system that is context aware. Cast to non-const
      * due to current API. */
-    bContext *C = (bContext *)DRW_context_get()->evil_C;
+    bContext *C = (bContext *)draw_ctx->evil_C;
     if (C != nullptr) {
       color_type = ED_paint_shading_color_override(
           C, &scene_state.scene->toolsettings->paint_mode, *ob, color_type);
     }
   }
-  else if (ob->type == OB_MESH && !DRW_context_get()->is_scene_render()) {
+  else if (ob->type == OB_MESH && !draw_ctx->is_scene_render()) {
     /* Force texture or vertex mode if object is in paint mode. */
     const bool is_vertpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_VERTEX);
     const bool is_texpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_TEXTURE);

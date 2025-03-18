@@ -115,7 +115,7 @@ void Instance::init()
     ED_space_image_get_aspect(space_image, &state.image_aspect.x, &state.image_aspect.y);
   }
 
-  resources.update_theme_settings(state);
+  resources.update_theme_settings(ctx, state);
   resources.update_clip_planes(state);
 
   ensure_weight_ramp_texture();
@@ -225,7 +225,7 @@ void Resources::update_clip_planes(const State &state)
   clip_planes_buf.push_update();
 }
 
-void Resources::update_theme_settings(const State &state)
+void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
 {
   using namespace math;
   GlobalsUboStorage *gb = &theme_settings;
@@ -376,8 +376,7 @@ void Resources::update_theme_settings(const State &state)
 
   gb->pixel_fac = (state.rv3d) ? state.rv3d->pixsize : 1.0f;
 
-  gb->size_viewport = float4(DRW_context_get()->viewport_size_get(),
-                             1.0f / DRW_context_get()->viewport_size_get());
+  gb->size_viewport = float4(ctx->viewport_size_get(), 1.0f / ctx->viewport_size_get());
 
   /* Color management. */
   {
@@ -636,12 +635,13 @@ void Instance::end_sync()
   /* WORKAROUND: This prevents bad frame-buffer config inside workbench when xray is enabled.
    * Better find a solution to this chicken-egg problem. */
   {
+    const DRWContext *draw_ctx = DRW_context_get();
     /* HACK we allocate the in front depth here to avoid the overhead when if is not needed. */
-    DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
-    DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
+    DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
+    DefaultTextureList *dtxl = draw_ctx->viewport_texture_list_get();
 
     if (dtxl->depth_in_front == nullptr) {
-      int2 size = int2(DRW_context_get()->viewport_size_get());
+      int2 size = int2(draw_ctx->viewport_size_get());
 
       dtxl->depth_in_front = GPU_texture_create_2d("txl.depth_in_front",
                                                    size.x,
@@ -710,7 +710,7 @@ void Instance::draw(Manager &manager)
     outline.pre_draw(manager, view);
   }
 
-  resources.acquire(this->state, *DRW_context_get()->viewport_texture_list_get());
+  resources.acquire(DRW_context_get(), this->state);
 
   /* TODO(fclem): Would be better to have a v2d overlay class instead of these conditions. */
   switch (state.space_type) {

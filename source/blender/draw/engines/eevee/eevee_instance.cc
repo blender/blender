@@ -56,14 +56,15 @@ void *Instance::debug_scope_irradiance_sample = nullptr;
 
 void Instance::init()
 {
-  const DRWContext *ctx_state = DRW_context_get();
-  Depsgraph *depsgraph = ctx_state->depsgraph;
-  Scene *scene = ctx_state->scene;
-  View3D *v3d = ctx_state->v3d;
-  ARegion *region = ctx_state->region;
-  RegionView3D *rv3d = ctx_state->rv3d;
+  this->draw_ctx = DRW_context_get();
 
-  DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
+  Depsgraph *depsgraph = draw_ctx->depsgraph;
+  Scene *scene = draw_ctx->scene;
+  View3D *v3d = draw_ctx->v3d;
+  ARegion *region = draw_ctx->region;
+  RegionView3D *rv3d = draw_ctx->rv3d;
+
+  DefaultTextureList *dtxl = draw_ctx->viewport_texture_list_get();
   int2 size = int2(GPU_texture_width(dtxl->color), GPU_texture_height(dtxl->color));
 
   draw::View &default_view = draw::View::default_get();
@@ -102,8 +103,8 @@ void Instance::init()
       rect.ymax = v3d->render_border.ymax * size[1];
     }
 
-    if (ctx_state->is_viewport_image_render()) {
-      const float2 vp_size = ctx_state->viewport_size_get();
+    if (draw_ctx->is_viewport_image_render()) {
+      const float2 vp_size = draw_ctx->viewport_size_get();
       visible_rect.xmax = vp_size[0];
       visible_rect.ymax = vp_size[1];
       visible_rect.xmin = visible_rect.ymin = 0;
@@ -127,6 +128,8 @@ void Instance::init(const int2 &output_res,
                     const View3D *v3d_,
                     const RegionView3D *rv3d_)
 {
+  this->draw_ctx = DRW_context_get();
+
   render = render_;
   depsgraph = depsgraph_;
   camera_orig_object = camera_object_;
@@ -140,14 +143,13 @@ void Instance::init(const int2 &output_res,
   info_ = "";
 
   if (is_viewport()) {
-    const DRWContext &viewport_ctx = *DRW_context_get();
-    is_image_render = viewport_ctx.is_image_render();
-    is_viewport_image_render = viewport_ctx.is_viewport_image_render();
-    is_viewport_compositor_enabled = viewport_ctx.is_viewport_compositor_enabled();
-    is_playback = viewport_ctx.is_playback();
-    is_navigating = viewport_ctx.is_navigating();
-    is_painting = viewport_ctx.is_painting();
-    is_transforming = viewport_ctx.is_transforming();
+    is_image_render = draw_ctx->is_image_render();
+    is_viewport_image_render = draw_ctx->is_viewport_image_render();
+    is_viewport_compositor_enabled = draw_ctx->is_viewport_compositor_enabled();
+    is_playback = draw_ctx->is_playback();
+    is_navigating = draw_ctx->is_navigating();
+    is_painting = draw_ctx->is_painting();
+    is_transforming = draw_ctx->is_transforming();
     draw_overlays = v3d && (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
 
     /* Note: Do not update the value here as we use it during sync for checking ID updates. */
@@ -353,7 +355,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager & /*manager*/)
 
   ObjectHandle &ob_handle = sync.sync_object(ob_ref);
 
-  if (partsys_is_visible && ob != DRW_context_get()->object_edit) {
+  if (partsys_is_visible && ob != draw_ctx->object_edit) {
     auto sync_hair =
         [&](ObjectHandle hair_handle, ModifierData &md, ParticleSystem &particle_sys) {
           ResourceHandle _res_handle = manager->resource_handle_for_psys(ob_ref,
@@ -636,7 +638,7 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
 void Instance::draw_viewport()
 {
   if (skip_render_) {
-    DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+    DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
     GPU_framebuffer_clear_color_depth(dfbl->default_fb, float4(0.0f), 1.0f);
     if (!shaders_are_ready_) {
       info_append_i18n("Compiling EEVEE engine shaders");
@@ -700,7 +702,7 @@ void Instance::draw(Manager & /*manager*/)
     draw_viewport();
   }
   STRNCPY(info, info_get());
-  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+  DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
   GPU_framebuffer_viewport_reset(dfbl->default_fb);
 }
 

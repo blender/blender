@@ -162,7 +162,7 @@ struct SceneState {
   /* When r == -1.0 the shader uses the vertex color */
   Material material_attribute_color = Material(float3(-1.0f));
 
-  void init(bool scene_updated, Object *camera_ob = nullptr);
+  void init(const DRWContext *context, bool scene_updated, Object *camera_ob = nullptr);
 };
 
 struct MaterialTexture {
@@ -187,7 +187,10 @@ struct ObjectState {
   bool use_per_material_batches = false;
   bool sculpt_pbvh = false;
 
-  ObjectState(const SceneState &scene_state, const SceneResources &resources, Object *ob);
+  ObjectState(const DRWContext *draw_ctx,
+              const SceneState &scene_state,
+              const SceneResources &resources,
+              Object *ob);
 };
 
 class CavityEffect {
@@ -292,7 +295,7 @@ struct SceneResources {
     GPU_BATCH_DISCARD_SAFE(volume_cube_batch);
   }
 
-  void init(const SceneState &scene_state);
+  void init(const SceneState &scene_state, const DRWContext *ctx);
   void load_jitter_tx(int total_samples);
 };
 
@@ -542,8 +545,8 @@ class DofPass {
   float ratio_ = 0;
 
  public:
-  void init(const SceneState &scene_state);
-  void sync(SceneResources &resources);
+  void init(const SceneState &scene_state, const DRWContext *draw_ctx);
+  void sync(SceneResources &resources, const DRWContext *draw_ctx);
   void draw(Manager &manager, View &view, SceneResources &resources, int2 resolution);
   bool is_enabled();
 
@@ -592,6 +595,7 @@ class AntiAliasingPass {
   void sync(const SceneState &scene_state, SceneResources &resources);
   void setup_view(View &view, const SceneState &scene_state);
   void draw(
+      const DRWContext *draw_ctx,
       Manager &manager,
       View &view,
       const SceneState &scene_state,

@@ -105,9 +105,8 @@ void SceneResources::load_jitter_tx(int total_samples)
       GPU_RGBA16F, int2(jitter_tx_size), GPU_TEXTURE_USAGE_SHADER_READ, jitter[0][0]);
 }
 
-void SceneResources::init(const SceneState &scene_state)
+void SceneResources::init(const SceneState &scene_state, const DRWContext *ctx)
 {
-  const DRWContext *ctx = DRW_context_get();
   const View3DShading &shading = scene_state.shading;
 
   world_buf.viewport_size = ctx->viewport_size_get();

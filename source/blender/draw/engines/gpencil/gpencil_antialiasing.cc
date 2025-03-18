@@ -17,7 +17,7 @@ namespace blender::draw::gpencil {
 
 void GPENCIL_antialiasing_init(Instance *inst)
 {
-  const float2 size_f = DRW_context_get()->viewport_size_get();
+  const float2 size_f = inst->draw_ctx->viewport_size_get();
   const int2 size(size_f[0], size_f[1]);
   const float4 metrics = {1.0f / size[0], 1.0f / size[1], float(size[0]), float(size[1])};
 

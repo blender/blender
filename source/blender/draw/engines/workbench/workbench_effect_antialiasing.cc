@@ -236,7 +236,8 @@ void AntiAliasingPass::setup_view(View &view, const SceneState &scene_state)
   view.sync(viewmat, winmat);
 }
 
-void AntiAliasingPass::draw(Manager &manager,
+void AntiAliasingPass::draw(const DRWContext *draw_ctx,
+                            Manager &manager,
                             View &view,
                             const SceneState &scene_state,
                             SceneResources &resources,
@@ -266,7 +267,7 @@ void AntiAliasingPass::draw(Manager &manager,
         sample0_depth_in_front_tx_.free();
       }
     }
-    else if (!DRW_context_get()->is_scene_render() || last_sample) {
+    else if (!draw_ctx->is_scene_render() || last_sample) {
       /* Copy back the saved depth buffer for correct overlays. */
       GPU_texture_copy(resources.depth_tx, sample0_depth_tx_);
       if (sample0_depth_in_front_tx_.is_valid()) {
@@ -300,7 +301,7 @@ void AntiAliasingPass::draw(Manager &manager,
                         GPU_RG8,
                         GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
 
-  if (!DRW_context_get()->is_image_render() || last_sample) {
+  if (!draw_ctx->is_image_render() || last_sample) {
     /* After a certain point SMAA is no longer necessary. */
     if (smaa_mix_factor_ > 0.0f) {
       smaa_edge_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(smaa_edge_tx_));

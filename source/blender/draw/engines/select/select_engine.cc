@@ -57,6 +57,8 @@ struct Instance : public DrawEngine {
   View view_edges = {"view_edges"};
   View view_verts = {"view_verts"};
 
+  const DRWContext *draw_ctx = nullptr;
+
  public:
   struct StaticData {
     GPUFrameBuffer *framebuffer_select_id;
@@ -84,8 +86,8 @@ struct Instance : public DrawEngine {
 
   void init() final
   {
+    this->draw_ctx = DRW_context_get();
     StaticData &e_data = StaticData::get();
-    const DRWContext *draw_ctx = DRW_context_get();
     eGPUShaderConfig sh_cfg = (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) ?
                                   GPU_SHADER_CFG_CLIPPED :
                                   GPU_SHADER_CFG_DEFAULT;
@@ -106,7 +108,6 @@ struct Instance : public DrawEngine {
   void begin_sync() final
   {
     StaticData &e_data = StaticData::get();
-    const DRWContext *draw_ctx = DRW_context_get();
     eGPUShaderConfig sh_cfg = (RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d)) ?
                                   GPU_SHADER_CFG_CLIPPED :
                                   GPU_SHADER_CFG_DEFAULT;
@@ -330,7 +331,6 @@ struct Instance : public DrawEngine {
     Object *ob = ob_ref.object;
     StaticData &e_data = StaticData::get();
     SELECTID_Context &sel_ctx = e_data.context;
-    const DRWContext *draw_ctx = DRW_context_get();
 
     if (!sel_ctx.objects.contains(ob) && ob->dt >= OB_SOLID) {
       /* This object is not selectable. It is here to participate in occlusion.
@@ -361,7 +361,6 @@ struct Instance : public DrawEngine {
 
     DRW_submission_start();
     {
-      const DRWContext *draw_ctx = DRW_context_get();
       View::OffsetData offset_data(*draw_ctx->rv3d);
       /* Create view with depth offset */
       const View &view = View::default_get();
@@ -371,7 +370,7 @@ struct Instance : public DrawEngine {
     }
 
     {
-      DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+      DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
       GPU_framebuffer_bind(dfbl->depth_only_fb);
       GPU_framebuffer_clear_depth(dfbl->depth_only_fb, 1.0f);
       manager.submit(depth_only_ps, view_faces);
@@ -396,7 +395,7 @@ struct Instance : public DrawEngine {
   void framebuffer_setup()
   {
     StaticData &e_data = StaticData::get();
-    DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
+    DefaultTextureList *dtxl = draw_ctx->viewport_texture_list_get();
     int size[2];
     size[0] = GPU_texture_width(dtxl->depth);
     size[1] = GPU_texture_height(dtxl->depth);

@@ -333,7 +333,7 @@ void LookdevModule::sync_display()
 {
   PassSimple &pass = display_ps_;
 
-  const float2 viewport_size = DRW_context_get()->viewport_size_get();
+  const float2 viewport_size = inst_.draw_ctx->viewport_size_get();
   const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
                          DRW_STATE_BLEND_ALPHA;
   pass.init();
@@ -371,7 +371,7 @@ void LookdevModule::display()
 
   BLI_assert(inst_.is_viewport());
 
-  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+  DefaultFramebufferList *dfbl = inst_.draw_ctx->viewport_framebuffer_list_get();
   /* The viewport of the framebuffer can be modified when border rendering is enabled. */
   GPU_framebuffer_viewport_reset(dfbl->default_fb);
   GPU_framebuffer_bind(dfbl->default_fb);

@@ -40,12 +40,17 @@
 
 namespace blender::draw::external {
 class Instance : public DrawEngine {
+  const DRWContext *draw_ctx = nullptr;
+
   blender::StringRefNull name_get() final
   {
     return "External";
   }
 
-  void init() final {}
+  void init() final
+  {
+    draw_ctx = DRW_context_get();
+  }
 
   void begin_sync() final {}
 
@@ -58,7 +63,6 @@ class Instance : public DrawEngine {
 
   void draw_scene_do_v3d()
   {
-    const DRWContext *draw_ctx = DRW_context_get();
     RegionView3D *rv3d = draw_ctx->rv3d;
     ARegion *region = draw_ctx->region;
 
@@ -114,11 +118,10 @@ class Instance : public DrawEngine {
    *
    * The engine draws result in the pixel space, and is applying render offset. For image editor we
    * need to switch from normalized space to pixel space, and "un-apply" offset. */
-  static void external_image_space_matrix_set(const RenderEngine *engine)
+  void external_image_space_matrix_set(const RenderEngine *engine)
   {
     BLI_assert(engine != nullptr);
 
-    const DRWContext *draw_ctx = DRW_context_get();
     SpaceImage *space_image = (SpaceImage *)draw_ctx->space_data;
 
     /* Apply current view as transformation matrix.
@@ -153,7 +156,6 @@ class Instance : public DrawEngine {
 
   void draw_scene_do_image()
   {
-    const DRWContext *draw_ctx = DRW_context_get();
     Scene *scene = draw_ctx->scene;
     Render *re = RE_GetSceneRender(scene);
     RenderEngine *engine = RE_engine_get(re);
@@ -168,7 +170,7 @@ class Instance : public DrawEngine {
      * already applied. */
     GPU_apply_state();
 
-    const DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+    const DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
 
     /* Clear the depth buffer to the value used by the background overlay so that the overlay is
      * not happening outside of the drawn image.
@@ -203,8 +205,6 @@ class Instance : public DrawEngine {
 
   void draw_scene_do()
   {
-    const DRWContext *draw_ctx = DRW_context_get();
-
     if (draw_ctx->v3d != nullptr) {
       draw_scene_do_v3d();
       return;
@@ -223,8 +223,7 @@ class Instance : public DrawEngine {
 
   void draw(blender::draw::Manager & /*manager*/) final
   {
-    const DRWContext *draw_ctx = DRW_context_get();
-    const DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+    const DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
 
     /* Will be nullptr during OpenGL render.
      * OpenGL render is used for quick preview (thumbnails or sequencer preview)
@@ -279,9 +278,8 @@ RenderEngineType DRW_engine_viewport_external_type = {
     },
 };
 
-bool DRW_engine_external_acquire_for_image_editor()
+bool DRW_engine_external_acquire_for_image_editor(const DRWContext *draw_ctx)
 {
-  const DRWContext *draw_ctx = DRW_context_get();
   const SpaceLink *space_data = draw_ctx->space_data;
   Scene *scene = draw_ctx->scene;
 

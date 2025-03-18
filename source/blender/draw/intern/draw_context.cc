@@ -816,7 +816,7 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
 
   SpaceLink *space_data = this->space_data;
   if (space_data && space_data->spacetype == SPACE_IMAGE) {
-    if (DRW_engine_external_acquire_for_image_editor()) {
+    if (DRW_engine_external_acquire_for_image_editor(this)) {
       view_data.external.set_used(true);
     }
     else {
@@ -1000,13 +1000,13 @@ static void drw_callbacks_post_scene(DRWContext &draw_ctx)
     /* Needed so gizmo isn't occluded. */
     if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
       GPU_depth_test(GPU_DEPTH_NONE);
-      DRW_draw_gizmo_3d();
+      DRW_draw_gizmo_3d(draw_ctx.evil_C, region);
     }
 
     GPU_depth_test(GPU_DEPTH_NONE);
     drw_engines_draw_text();
 
-    DRW_draw_region_info();
+    DRW_draw_region_info(draw_ctx.evil_C, region);
 
     /* Annotations - temporary drawing buffer (screen-space). */
     /* XXX: Or should we use a proper draw/overlay engine for this case? */
@@ -1020,7 +1020,7 @@ static void drw_callbacks_post_scene(DRWContext &draw_ctx)
       /* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
        * 'DRW_draw_region_info' sets the projection in pixel-space. */
       GPU_depth_test(GPU_DEPTH_NONE);
-      DRW_draw_gizmo_2d();
+      DRW_draw_gizmo_2d(draw_ctx.evil_C, region);
     }
 
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
@@ -1135,7 +1135,7 @@ static void drw_callbacks_post_scene_2D(DRWContext &draw_ctx, View2D &v2d)
 
   if (do_draw_gizmos) {
     GPU_depth_test(GPU_DEPTH_NONE);
-    DRW_draw_gizmo_2d();
+    DRW_draw_gizmo_2d(draw_ctx.evil_C, draw_ctx.region);
   }
 
   DRW_submission_end();

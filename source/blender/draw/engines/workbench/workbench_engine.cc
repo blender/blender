@@ -67,6 +67,8 @@ class Instance : public DrawEngine {
   uint64_t depsgraph_last_update_ = 0;
 
  public:
+  const DRWContext *draw_ctx = nullptr;
+
   blender::StringRefNull name_get() final
   {
     return "Workbench";
@@ -82,20 +84,22 @@ class Instance : public DrawEngine {
 
   void init() final
   {
-    init(DRW_context_get()->depsgraph);
+    this->draw_ctx = DRW_context_get();
+    init(draw_ctx->depsgraph);
   }
 
   void init(Depsgraph *depsgraph, Object *camera_ob = nullptr)
   {
+    this->draw_ctx = DRW_context_get();
     bool scene_updated = assign_if_different(depsgraph_last_update_,
                                              DEG_get_update_count(depsgraph));
 
-    scene_state_.init(scene_updated, camera_ob);
+    scene_state_.init(this->draw_ctx, scene_updated, camera_ob);
     shadow_ps_.init(scene_state_, resources_);
-    resources_.init(scene_state_);
+    resources_.init(scene_state_, this->draw_ctx);
 
     outline_ps_.init(scene_state_);
-    dof_ps_.init(scene_state_);
+    dof_ps_.init(scene_state_, this->draw_ctx);
     anti_aliasing_ps_.init(scene_state_);
   }
 
@@ -110,7 +114,7 @@ class Instance : public DrawEngine {
     shadow_ps_.sync();
     volume_ps_.sync(resources_);
     outline_ps_.sync(resources_);
-    dof_ps_.sync(resources_);
+    dof_ps_.sync(resources_, this->draw_ctx);
     anti_aliasing_ps_.sync(scene_state_, resources_);
   }
 
@@ -153,11 +157,11 @@ class Instance : public DrawEngine {
       return;
     }
 
-    const ObjectState object_state = ObjectState(scene_state_, resources_, ob);
+    const ObjectState object_state = ObjectState(this->draw_ctx, scene_state_, resources_, ob);
 
     bool is_object_data_visible = (DRW_object_visibility_in_active_context(ob) &
                                    OB_VISIBLE_SELF) &&
-                                  (ob->dt >= OB_SOLID || DRW_context_get()->is_scene_render());
+                                  (ob->dt >= OB_SOLID || draw_ctx->is_scene_render());
 
     if (!(ob->base_flag & BASE_FROM_DUPLI)) {
       ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
@@ -459,7 +463,7 @@ class Instance : public DrawEngine {
     if (scene_state_.render_finished) {
       /* Just copy back the already rendered result */
       anti_aliasing_ps_.draw(
-          manager, View::default_get(), scene_state_, resources_, depth_in_front_tx);
+          draw_ctx, manager, View::default_get(), scene_state_, resources_, depth_in_front_tx);
       return;
     }
 
@@ -487,7 +491,7 @@ class Instance : public DrawEngine {
     volume_ps_.draw(manager, view_, resources_);
     outline_ps_.draw(manager, resources_);
     dof_ps_.draw(manager, view_, resources_, resolution);
-    anti_aliasing_ps_.draw(manager, view_, scene_state_, resources_, depth_in_front_tx);
+    anti_aliasing_ps_.draw(draw_ctx, manager, view_, scene_state_, resources_, depth_in_front_tx);
 
     resources_.object_id_tx.release();
   }
@@ -506,10 +510,10 @@ class Instance : public DrawEngine {
 
   void draw(Manager &manager) final
   {
-    DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
+    DefaultTextureList *dtxl = draw_ctx->viewport_texture_list_get();
 
     DRW_submission_start();
-    if (DRW_context_get()->is_viewport_image_render()) {
+    if (draw_ctx->is_viewport_image_render()) {
       draw_image_render(manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
     }
     else {
@@ -532,8 +536,8 @@ class Instance : public DrawEngine {
       if (i != 0) {
         scene_state_.sample = i;
         /* Re-sync anything dependent on scene_state.sample. */
-        resources_.init(scene_state_);
-        dof_ps_.init(scene_state_);
+        resources_.init(scene_state_, draw_ctx);
+        dof_ps_.init(scene_state_, draw_ctx);
         anti_aliasing_ps_.sync(scene_state_, resources_);
       }
       this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
@@ -567,13 +571,13 @@ using namespace blender;
 
 /* RENDER */
 
-static bool workbench_render_framebuffers_init()
+static bool workbench_render_framebuffers_init(const DRWContext *draw_ctx)
 {
   /* For image render, allocate own buffers because we don't have a viewport. */
-  const float2 viewport_size = DRW_context_get()->viewport_size_get();
+  const float2 viewport_size = draw_ctx->viewport_size_get();
   const int2 size = {int(viewport_size.x), int(viewport_size.y)};
 
-  DefaultTextureList *dtxl = DRW_context_get()->viewport_texture_list_get();
+  DefaultTextureList *dtxl = draw_ctx->viewport_texture_list_get();
 
   /* When doing a multi view rendering the first view will allocate the buffers
    * the other views will reuse these buffers */
@@ -592,7 +596,7 @@ static bool workbench_render_framebuffers_init()
     return false;
   }
 
-  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
+  DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
 
   GPU_framebuffer_ensure_config(
       &dfbl->default_fb,
@@ -681,14 +685,15 @@ static void write_render_z_output(RenderLayer *layer,
 static void workbench_render_to_image(RenderEngine *engine, RenderLayer *layer, const rcti rect)
 {
   using namespace blender::draw;
-  if (!workbench_render_framebuffers_init()) {
+  const DRWContext *draw_ctx = DRW_context_get();
+
+  if (!workbench_render_framebuffers_init(draw_ctx)) {
     RE_engine_report(engine, RPT_ERROR, "Failed to allocate GPU buffers");
     return;
   }
 
   /* Setup */
-  DefaultFramebufferList *dfbl = DRW_context_get()->viewport_framebuffer_list_get();
-  const DRWContext *draw_ctx = DRW_context_get();
+  DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
   Depsgraph *depsgraph = draw_ctx->depsgraph;
 
   workbench::Instance instance;
@@ -725,7 +730,7 @@ static void workbench_render_to_image(RenderEngine *engine, RenderLayer *layer, 
 
   DRW_submission_start();
 
-  DefaultTextureList &dtxl = *DRW_context_get()->viewport_texture_list_get();
+  DefaultTextureList &dtxl = *draw_ctx->viewport_texture_list_get();
   instance.draw_image_render(manager, dtxl.depth, dtxl.depth_in_front, dtxl.color, engine);
 
   DRW_submission_end();
