@@ -571,13 +571,27 @@ class Report:
         if len(bpy.data.actions):
             desc.write(f"==== Actions: {len(bpy.data.actions)}\n")
             for act in sorted(bpy.data.actions, key=lambda a: a.name):
-                curves = sorted(act.fcurves, key=lambda c: f"{c.data_path}[{c.array_index}]")
+                layers = sorted(act.layers, key=lambda l: l.name)
                 desc.write(
-                    f"- Action '{act.name}' curverange:({act.curve_frame_range[0]:.1f} .. {act.curve_frame_range[1]:.1f}) curves:{len(curves)}\n")
-                for fcu in curves[:15]:
-                    desc.write(
-                        f"  - fcu '{fcu.data_path}[{fcu.array_index}]' smooth:{fcu.auto_smoothing} extra:{fcu.extrapolation} keyframes:{len(fcu.keyframe_points)}\n")
-                    Report._write_collection_multi(fcu.keyframe_points, desc)
+                    f"- Action '{act.name}' curverange:({act.curve_frame_range[0]:.1f} .. {act.curve_frame_range[1]:.1f}) layers:{len(layers)}\n")
+                for layer in layers:
+                    desc.write(f"- ActionLayer {layer.name} strips:{len(layer.strips)}\n")
+                    for strip in layer.strips:
+                        if strip.type == 'KEYFRAME':
+                            desc.write(f" - Keyframe strip channelbags:{len(strip.channelbags)}\n")
+                            for chbag in strip.channelbags:
+                                curves = sorted(chbag.fcurves, key=lambda c: f"{c.data_path}[{c.array_index}]")
+                                desc.write(f" - Channelbag ")
+                                if chbag.slot:
+                                    desc.write(f"slot '{chbag.slot.identifier}' ")
+                                desc.write(f"curves:{len(curves)}\n")
+                                for fcu in curves[:15]:
+                                    grp = ''
+                                    if fcu.group:
+                                        grp = f" grp:'{fcu.group.name}'"
+                                    desc.write(
+                                        f"  - fcu '{fcu.data_path}[{fcu.array_index}]' smooth:{fcu.auto_smoothing} extra:{fcu.extrapolation} keyframes:{len(fcu.keyframe_points)}{grp}\n")
+                                    Report._write_collection_multi(fcu.keyframe_points, desc)
                 Report._write_custom_props(act, desc)
                 desc.write(f"\n")
 
