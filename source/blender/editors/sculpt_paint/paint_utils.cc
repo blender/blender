@@ -358,7 +358,7 @@ void paint_sample_color(
             ".hide_poly", bke::AttrDomain::Face, false);
         const bool is_hit = imapaint_pick_face(
                                 &vc, mval, &tri_index, &faceindex, &bary_coord, *mesh_eval) &&
-                            hide_poly[faceindex];
+                            !hide_poly[faceindex];
 
         if (is_hit) {
           Image *image = nullptr;
