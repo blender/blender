@@ -626,6 +626,39 @@ GMutablePointer Result::single_value()
   return std::visit([](auto &value) { return GMutablePointer(&value); }, single_value_);
 }
 
+void Result::update_single_value_data()
+{
+  BLI_assert(this->is_single_value());
+  BLI_assert(this->is_allocated());
+
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      switch (type_) {
+        case ResultType::Float:
+        case ResultType::Float2:
+        case ResultType::Float4:
+        case ResultType::Color:
+          GPU_texture_update(this->gpu_texture(), GPU_DATA_FLOAT, this->single_value().get());
+          break;
+        case ResultType::Float3: {
+          /* Float3 results are stored in 4-component textures due to hardware limitations. So
+           * pad the value with a zero before updating. */
+          const float4 vector_value = float4(this->get_single_value<float3>(), 0.0f);
+          GPU_texture_update(this->gpu_texture(), GPU_DATA_FLOAT, vector_value);
+          break;
+        }
+        case ResultType::Int:
+        case ResultType::Int2:
+          GPU_texture_update(this->gpu_texture(), GPU_DATA_INT, this->single_value().get());
+          break;
+      }
+      break;
+    case ResultStorageType::CPU:
+      this->get_cpp_type().copy_assign(this->single_value().get(), this->cpu_data().data());
+      break;
+  }
+}
+
 void Result::allocate_data(int2 size, bool from_pool)
 {
   BLI_assert(!this->is_allocated());

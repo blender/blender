@@ -342,6 +342,8 @@ class Result {
   GSpan cpu_data() const;
   GMutableSpan cpu_data();
 
+  /* It is important to call update_single_value_data after adjusting the single value. See that
+   * method for more information. */
   GPointer single_value() const;
   GMutablePointer single_value();
 
@@ -358,6 +360,12 @@ class Result {
    * pixel in the image to that value. See the class description for more information. Assumes
    * the result stores a value of the given template type. */
   template<typename T> void set_single_value(const T &value);
+
+  /* Updates the single pixel in the image to the current single value in the result. This is
+   * called implicitly in the set_single_value method, but calling this explicitly is useful when
+   * the single value was adjusted through its data pointer returned by the single_value method.
+   * See the class description for more information. */
+  void update_single_value_data();
 
   /* Loads the pixel at the given texel coordinates. Assumes the result stores a value of the given
    * template type. If the CouldBeSingleValue template argument is true and the result is a single
@@ -500,38 +508,7 @@ template<typename T> BLI_INLINE_METHOD void Result::set_single_value(const T &va
   BLI_assert(this->is_single_value());
 
   single_value_ = value;
-
-  switch (storage_type_) {
-    case ResultStorageType::GPU:
-      if constexpr (is_same_any_v<T, int32_t, int2>) {
-        if constexpr (std::is_scalar_v<T>) {
-          GPU_texture_update(this->gpu_texture(), GPU_DATA_INT, &value);
-        }
-        else {
-          GPU_texture_update(this->gpu_texture(), GPU_DATA_INT, value);
-        }
-      }
-      else {
-        if constexpr (std::is_scalar_v<T>) {
-          GPU_texture_update(this->gpu_texture(), GPU_DATA_FLOAT, &value);
-        }
-        else {
-          if constexpr (std::is_same_v<T, float3>) {
-            /* Float3 results are stored in 4-component textures due to hardware limitations. So
-             * pad the value with a zero before updating. */
-            const float4 vector_value = float4(value, 0.0f);
-            GPU_texture_update(this->gpu_texture(), GPU_DATA_FLOAT, vector_value);
-          }
-          else {
-            GPU_texture_update(this->gpu_texture(), GPU_DATA_FLOAT, value);
-          }
-        }
-      }
-      break;
-    case ResultStorageType::CPU:
-      this->cpu_data().typed<T>()[0] = value;
-      break;
-  }
+  this->update_single_value_data();
 }
 
 template<typename T, bool CouldBeSingleValue>
