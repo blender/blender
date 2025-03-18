@@ -335,7 +335,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
                   "export_normals",
                   true,
                   "Export Normals",
-                  "Export per-face normals if the face is flat-shaded, per-face-per-loop "
+                  "Export per-face normals if the face is flat-shaded, per-face-corner "
                   "normals if smooth-shaded");
   RNA_def_boolean(ot->srna, "export_colors", false, "Export Colors", "Export per-vertex colors");
   RNA_def_boolean(ot->srna,
@@ -386,14 +386,20 @@ void WM_OT_obj_export(wmOperatorType *ot)
       "Export Vertex Groups",
       "Export the name of the vertex group of a face. It is approximated "
       "by choosing the vertex group with the most members among the vertices of a face");
+  RNA_def_boolean(ot->srna,
+                  "export_smooth_groups",
+                  false,
+                  "Export Smooth Groups",
+                  "Generate smooth groups identifiers for each group of smooth faces, as "
+                  "unique integer values by default");
   RNA_def_boolean(
       ot->srna,
-      "export_smooth_groups",
+      "smooth_group_bitflags",
       false,
-      "Export Smooth Groups",
-      "Every smooth-shaded face is assigned group \"1\" and every flat-shaded face \"off\"");
-  RNA_def_boolean(
-      ot->srna, "smooth_group_bitflags", false, "Generate Bitflags for Smooth Groups", "");
+      "Bitflags Smooth Groups",
+      "If exporting smoothgroups, generate 'bitflags' values for the groups, instead of "
+      "unique integer values. The same bitflag value can be re-used for different groups of "
+      "smooth faces, as long as they have no common sharp edges or vertices");
 
   /* Only show `.obj` or `.mtl` files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");

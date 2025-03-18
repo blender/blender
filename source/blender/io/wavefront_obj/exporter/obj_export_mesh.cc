@@ -214,7 +214,7 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
                                                               export_mesh_->corner_verts(),
                                                               sharp_edges,
                                                               sharp_faces,
-                                                              false,
+                                                              true,
                                                               &tot_smooth_groups_);
   }
   else {
