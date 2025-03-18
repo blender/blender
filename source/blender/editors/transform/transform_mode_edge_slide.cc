@@ -412,7 +412,7 @@ static eRedrawFlag handleEventEdgeSlide(TransInfo *t, const wmEvent *event)
   EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(t->custom.mode.data);
 
   if (slp) {
-    const bool is_event_handled = t->redraw;
+    bool is_event_handled = t->redraw && (event->type != MOUSEMOVE);
     slp->update_status_bar |= is_event_handled;
     switch (event->type) {
       case EVT_EKEY:
