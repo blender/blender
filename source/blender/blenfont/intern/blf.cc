@@ -916,12 +916,13 @@ void BLF_clipping(int fontid, int xmin, int ymin, int xmax, int ymax)
   }
 }
 
-void BLF_wordwrap(int fontid, int wrap_width)
+void BLF_wordwrap(int fontid, int wrap_width, BLFWrapMode mode)
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
     font->wrap_width = wrap_width;
+    font->wrap_mode = mode;
   }
 }
 
@@ -1049,13 +1050,14 @@ void BLF_draw_buffer(int fontid, const char *str, const size_t str_len, ResultBL
 
 blender::Vector<blender::StringRef> BLF_string_wrap(int fontid,
                                                     blender::StringRef str,
-                                                    const int max_pixel_width)
+                                                    const int max_pixel_width,
+                                                    BLFWrapMode mode)
 {
   FontBLF *font = blf_get(fontid);
   if (!font) {
     return {};
   }
-  return blf_font_string_wrap(font, str, max_pixel_width);
+  return blf_font_string_wrap(font, str, max_pixel_width, mode);
 }
 
 char *BLF_display_name_from_file(const char *filepath)

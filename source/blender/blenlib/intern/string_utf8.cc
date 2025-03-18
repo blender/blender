@@ -763,6 +763,76 @@ char32_t BLI_str_utf32_char_to_lower(const char32_t wc)
   return wc;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name UTF32 Text Boundary Analysis
+ *
+ * Helper functions to help locating linguistic boundaries, like word,
+ * sentence, and paragraph boundaries.
+ * \{ */
+
+bool BLI_str_utf32_char_is_breaking_space(char32_t codepoint)
+{
+  /* Invisible (and so can be removed at end of wrapped line) spacing characters
+   * according to the Unicode Line Breaking Algorithm (Standard Annex #14). Note
+   * to always ignore U+200B (zero-width space) and U+2060 (word joiner). */
+  return ELEM(codepoint,
+              ' ',     /* Space. */
+              0x1680,  /* Ogham space mark. */
+              0x2000,  /* En quad. */
+              0x2001,  /* Em quad. */
+              0x2002,  /* En space. */
+              0x2003,  /* Em space. */
+              0x2004,  /* Three-per-em space. */
+              0x2005,  /* Four-per-em space. */
+              0x2006,  /* Six-per-em space. */
+              0x2008,  /* Punctuation space. */
+              0x2009,  /* Thin space. */
+              0x200A,  /* Hair space. */
+              0x205F,  /* Medium mathematical space. */
+              0x3000); /* Ideographic space. */
+}
+
+bool BLI_str_utf32_char_is_optional_break(char32_t codepoint, char32_t codepoint_prev)
+{
+  /* Subset of the characters that are line breaking opportunities
+   * according to the Unicode Line Breaking Algorithm (Standard Annex #14).
+   * Can be expanded but please no rules that differ by language. */
+
+  /* Punctuation. Backslash can be used as path separator */
+  if (ELEM(codepoint, '\\', '_')) {
+    return true;
+  }
+
+  /* Do not break on solidus if previous is a number. */
+  if (codepoint == '/' && !(codepoint_prev >= '0' && codepoint_prev <= '9')) {
+    return true;
+  }
+
+  /* Do not break on dash, hyphen, em dash if previous is space */
+  if (ELEM(codepoint, '-', 0x2010, 0x2014) &&
+      !BLI_str_utf32_char_is_breaking_space(codepoint_prev))
+  {
+    return true;
+  }
+
+  if ((codepoint >= 0x2E80 && codepoint <= 0x2FFF) || /* CJK, Kangxi Radicals. */
+      (codepoint >= 0x3040 && codepoint <= 0x309F) || /* Hiragana (except small characters). */
+      (codepoint >= 0x30A2 && codepoint <= 0x30FA) || /* Katakana (except small characters). */
+      (codepoint >= 0x3400 && codepoint <= 0x4DBF) || /* CJK Unified Ideographs Extension A. */
+      (codepoint >= 0x4E00 && codepoint <= 0x9FFF) || /* CJK Unified Ideographs. */
+      (codepoint >= 0x3040 && codepoint <= 0x309F) || /* CJK Unified Ideographs. */
+      (codepoint >= 0x3130 && codepoint <= 0x318F))   /* Hangul Compatibility Jamo. */
+  {
+    return true;
+  }
+
+  if (ELEM(codepoint, 0x0F0D, 0x0F0B)) {
+    return true; /* Tibetan shad mark and intersyllabic tsheg. */
+  }
+
+  return false;
+}
+
 /** \} */ /* -------------------------------------------------------------------- */
 
 int BLI_str_utf8_size_or_error(const char *p)

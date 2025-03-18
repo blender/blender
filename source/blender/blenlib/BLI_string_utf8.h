@@ -195,6 +195,9 @@ char32_t BLI_str_utf32_char_to_upper(char32_t wc);
  */
 char32_t BLI_str_utf32_char_to_lower(char32_t wc);
 
+bool BLI_str_utf32_char_is_breaking_space(char32_t codepoint);
+bool BLI_str_utf32_char_is_optional_break(char32_t codepoint, char32_t codepoint_prev);
+
 /**
  * \warning can return -1 on bad chars.
  */

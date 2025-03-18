@@ -349,6 +349,7 @@ struct FontBLF {
 
   /** The width to wrap the text, see #BLF_WORD_WRAP. */
   int wrap_width;
+  BLFWrapMode wrap_mode;
 
   /** Font size. */
   float size;
