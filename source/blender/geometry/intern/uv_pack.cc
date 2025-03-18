@@ -1085,8 +1085,7 @@ static void pack_island_box_pack_2d(const Span<std::unique_ptr<UVAABBIsland>> aa
                                     rctf *r_extent)
 {
   /* Allocate storage. */
-  BoxPack *box_array = static_cast<BoxPack *>(
-      MEM_mallocN(sizeof(*box_array) * aabbs.size(), __func__));
+  BoxPack *box_array = MEM_malloc_arrayN<BoxPack>(size_t(aabbs.size()), __func__);
 
   /* Prepare for box_pack_2d. */
   for (const int64_t i : aabbs.index_range()) {
