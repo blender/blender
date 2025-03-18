@@ -71,13 +71,6 @@ class MetalDeviceQueue : public DeviceQueue {
   dispatch_queue_t event_queue_;
   dispatch_semaphore_t wait_semaphore_;
 
-  struct CopyBack {
-    void *host_pointer;
-    void *gpu_mem;
-    uint64_t size;
-  };
-  std::vector<CopyBack> copy_back_mem_;
-
   uint64_t shared_event_id_;
   uint64_t command_buffers_submitted_ = 0;
   uint64_t command_buffers_completed_ = 0;
