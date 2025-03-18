@@ -367,6 +367,10 @@ bool GPU_backend_type_selection_detect()
   backends_to_check.add(GPU_BACKEND_METAL);
 #endif
 
+#if defined(WITH_VULKAN_BACKEND)
+  backends_to_check.add(GPU_BACKEND_VULKAN);
+#endif
+
   for (const eGPUBackendType backend_type : backends_to_check) {
     GPU_backend_type_selection_set(backend_type);
     if (GPU_backend_supported()) {
