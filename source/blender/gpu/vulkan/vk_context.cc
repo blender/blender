@@ -335,7 +335,7 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
 {
   GPU_debug_group_begin("BackBuffer.Blit");
 
-  VKFrameBuffer &framebuffer = *unwrap(back_left);
+  VKFrameBuffer &framebuffer = *unwrap(active_fb);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
 
   render_graph::VKBlitImageNode::CreateInfo blit_image = {};
