@@ -3273,13 +3273,22 @@ static void ui_numedit_but_inc(uiBut *but, uiTextEdit &text_edit, const int mod 
 
     std::string str_num_incremented = std::to_string(result);
 
-    str_num_incremented = str_num_incremented.substr(0, str_num.length() - is_positive);
+    if (dot_pos == 0) {
+      str_num_incremented.erase(str_num_incremented.find_last_not_of('0') + 1, std::string::npos);
+      str_num_incremented.erase(str_num_incremented.find_last_not_of('.') + 1, std::string::npos);
+    }
+    else {
+      str_num_incremented = str_num_incremented.substr(0, str_num.length() - is_positive);
+    }
 
     std::string lstrip = str_edit.substr(0, num_str_start);
     std::string rstrip = str_edit.substr(but->pos + 1, str_edit.length() - but->pos);
 
     ui_textedit_string_set(but, text_edit, (lstrip + str_num_incremented + rstrip).c_str());
-    but->pos -= is_positive;
+
+    if (str_num_incremented.size() != str_num.size()) {
+      but->pos += int(str_num_incremented.size() > str_num.size()) * 2 - 1;
+    }
   }
 }
 
