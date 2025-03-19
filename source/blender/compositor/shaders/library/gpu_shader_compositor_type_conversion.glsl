@@ -138,11 +138,6 @@ vec4 float3_to_float4(vec3 value)
   return vec4(value, 0.0);
 }
 
-vec4 vector_to_float4(vec4 value)
-{
-  return value;
-}
-
 /* --------------------------------------------------------------------
  * Color to other.
  */
