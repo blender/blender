@@ -142,20 +142,22 @@ int ED_markers_post_apply_transform(
 
 /* --------------------------------- */
 
-TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x)
+TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, const float frame)
 {
-  TimeMarker *nearest = nullptr;
+  if (markers == nullptr || BLI_listbase_is_empty(markers)) {
+    return nullptr;
+  }
 
-  if (markers) {
-    /* Don't initialize with a large/infinite value since a non-finite `x` could
-     * fail to return a marker which can crash in some cases, see: #136059. */
-    float min_dist;
-    LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-      const float dist = fabsf(float(marker->frame) - x);
-      if (!nearest || (dist < min_dist)) {
-        min_dist = dist;
-        nearest = marker;
-      }
+  /* Always initialize the first so it's guaranteed to return a marker
+   * even if `frame` is NAN or the deltas are not finite. see: #136059. */
+  TimeMarker *marker = static_cast<TimeMarker *>(markers->first);
+  TimeMarker *nearest = marker;
+  float min_dist = fabsf(float(marker->frame) - frame);
+  for (marker = marker->next; marker; marker = marker->next) {
+    const float dist = fabsf(float(marker->frame) - frame);
+    if (dist < min_dist) {
+      min_dist = dist;
+      nearest = marker;
     }
   }
 
