@@ -1220,7 +1220,7 @@ int getTransformOrientation_ex(const Scene *scene,
         }
       }
       else {
-        const bool use_handle = v3d->overlay.handle_display != CURVE_HANDLE_NONE;
+        const bool use_handle = v3d ? (v3d->overlay.handle_display != CURVE_HANDLE_NONE) : true;
 
         for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next) {
           /* Only bezier has a normal. */
