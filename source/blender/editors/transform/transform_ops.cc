@@ -1485,6 +1485,7 @@ static void TRANSFORM_OT_from_gizmo(wmOperatorType *ot)
   ot->flag = 0;
 
   /* API callbacks. */
+  ot->poll = ED_operator_regionactive;
   ot->invoke = transform_from_gizmo_invoke;
 }
 
