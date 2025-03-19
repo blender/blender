@@ -128,7 +128,7 @@ static double compute_scaled_poles_variance_derivative(
  * half sigma, then iteratively improve the guess using Newton's method by computing the variance
  * and its derivative based on Equation (20). */
 static double find_scale_factor(const std::array<std::complex<double>, 4> &poles,
-                                float reference_sigma)
+                                double reference_sigma)
 {
   const double reference_variance = math::square(reference_sigma);
 
@@ -142,7 +142,7 @@ static double find_scale_factor(const std::array<std::complex<double>, 4> &poles
     const double variance = compute_scaled_poles_variance(poles, scale_factor);
 
     /* Close enough, we have found our scale factor. */
-    if (math::abs(reference_variance - variance) < 1.0e-8) {
+    if (math::abs(reference_variance - variance) < 1.0e-7) {
       return scale_factor;
     }
 
