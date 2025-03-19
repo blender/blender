@@ -761,7 +761,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
         writer, bNodePanelState, node->num_panel_states, node->panel_states_array);
 
     if (node->storage) {
-      if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY) &&
+      if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY, NTREE_COMPOSIT) &&
           ELEM(node->type_legacy, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB, SH_NODE_CURVE_FLOAT))
       {
         BKE_curvemapping_blend_write(writer, static_cast<const CurveMapping *>(node->storage));

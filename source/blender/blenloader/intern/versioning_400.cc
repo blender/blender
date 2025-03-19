@@ -1292,6 +1292,400 @@ static void do_version_color_to_float_conversion(bNodeTree *node_tree)
   }
 }
 
+/* The compositor Value, Color Ramp, Mix Color, Map Range, Map Value, Math, Combine XYZ, Separate
+ * XYZ, and Vector Curves nodes are now deprecated and should be replaced by their generic Shader
+ * node counterpart. */
+static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    switch (node->type_legacy) {
+      case CMP_NODE_VALUE:
+        node->type_legacy = SH_NODE_VALUE;
+        STRNCPY(node->idname, "ShaderNodeValue");
+        break;
+      case CMP_NODE_MATH:
+        node->type_legacy = SH_NODE_MATH;
+        STRNCPY(node->idname, "ShaderNodeMath");
+        break;
+      case CMP_NODE_COMBINE_XYZ:
+        node->type_legacy = SH_NODE_COMBXYZ;
+        STRNCPY(node->idname, "ShaderNodeCombineXYZ");
+        break;
+      case CMP_NODE_SEPARATE_XYZ:
+        node->type_legacy = SH_NODE_SEPXYZ;
+        STRNCPY(node->idname, "ShaderNodeSeparateXYZ");
+        break;
+      case CMP_NODE_CURVE_VEC:
+        node->type_legacy = SH_NODE_CURVE_VEC;
+        STRNCPY(node->idname, "ShaderNodeVectorCurve");
+        break;
+      case CMP_NODE_VALTORGB: {
+        node->type_legacy = SH_NODE_VALTORGB;
+        STRNCPY(node->idname, "ShaderNodeValToRGB");
+
+        /* Compositor node uses "Image" as the output name while the shader node uses "Color" as
+         * the output name. */
+        bNodeSocket *image_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Image");
+        STRNCPY(image_output->identifier, "Color");
+        STRNCPY(image_output->name, "Color");
+
+        break;
+      }
+      case CMP_NODE_MAP_RANGE: {
+        node->type_legacy = SH_NODE_MAP_RANGE;
+        STRNCPY(node->idname, "ShaderNodeMapRange");
+
+        /* Transfer options from node to NodeMapRange storage. */
+        NodeMapRange *data = MEM_callocN<NodeMapRange>(__func__);
+        data->clamp = node->custom1;
+        data->data_type = CD_PROP_FLOAT;
+        data->interpolation_type = NODE_MAP_RANGE_LINEAR;
+        node->storage = data;
+
+        /* Compositor node uses "Value" as the output name while the shader node uses "Result" as
+         * the output name. */
+        bNodeSocket *value_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Value");
+        STRNCPY(value_output->identifier, "Result");
+        STRNCPY(value_output->name, "Result");
+
+        break;
+      }
+      case CMP_NODE_MIX_RGB: {
+        node->type_legacy = SH_NODE_MIX;
+        STRNCPY(node->idname, "ShaderNodeMix");
+
+        /* Transfer options from node to NodeShaderMix storage. */
+        NodeShaderMix *data = MEM_callocN<NodeShaderMix>(__func__);
+        data->data_type = SOCK_RGBA;
+        data->factor_mode = NODE_MIX_MODE_UNIFORM;
+        data->clamp_factor = 0;
+        data->clamp_result = node->custom2 & SHD_MIXRGB_CLAMP ? 1 : 0;
+        data->blend_type = node->custom1;
+        node->storage = data;
+
+        /* Compositor node uses "Fac", "Image", and ("Image" "Image_001") as socket names and
+         * identifiers while the shader node uses ("Factor", "Factor_Float"), ("A", "A_Color"),
+         * ("B", "B_Color"), and ("Result", "Result_Color") as socket names and identifiers. */
+        bNodeSocket *factor_input = blender::bke::node_find_socket(*node, SOCK_IN, "Fac");
+        STRNCPY(factor_input->identifier, "Factor_Float");
+        STRNCPY(factor_input->name, "Factor");
+        bNodeSocket *first_input = blender::bke::node_find_socket(*node, SOCK_IN, "Image");
+        STRNCPY(first_input->identifier, "A_Color");
+        STRNCPY(first_input->name, "A");
+        bNodeSocket *second_input = blender::bke::node_find_socket(*node, SOCK_IN, "Image_001");
+        STRNCPY(second_input->identifier, "B_Color");
+        STRNCPY(second_input->name, "B");
+        bNodeSocket *image_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Image");
+        STRNCPY(image_output->identifier, "Result_Color");
+        STRNCPY(image_output->name, "Result");
+
+        break;
+      }
+      default:
+        break;
+    }
+  }
+}
+
+/* The Use Alpha option is does not exist in the new generic Mix node, it essentially just
+ * multiplied the factor by the alpha of the second input. */
+static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
+{
+  if (!(node->custom2 & SHD_MIXRGB_USE_ALPHA)) {
+    return;
+  }
+
+  bNodeSocket *factor_input = blender::bke::node_find_socket(*node, SOCK_IN, "Factor_Float");
+  bNodeSocket *b_input = blender::bke::node_find_socket(*node, SOCK_IN, "B_Color");
+
+  /* Find the links going into the factor and B input of the Mix node. */
+  bNodeLink *factor_link = nullptr;
+  bNodeLink *b_link = nullptr;
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
+    if (link->tosock == factor_input) {
+      factor_link = link;
+    }
+    else if (link->tosock == b_input) {
+      b_link = link;
+    }
+  }
+
+  /* If neither sockets are connected, just multiply the factor by the alpha of the B input. */
+  if (!factor_link && !b_link) {
+    static_cast<bNodeSocketValueFloat *>(factor_input->default_value)->value *=
+        static_cast<bNodeSocketValueRGBA *>(b_input->default_value)->value[3];
+    return;
+  }
+
+  /* Otherwise, add a multiply node to do the multiplication. */
+  bNode *multiply_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+  multiply_node->parent = node->parent;
+  multiply_node->custom1 = NODE_MATH_MULTIPLY;
+  multiply_node->location[0] = node->location[0] - node->width - 20.0f;
+  multiply_node->location[1] = node->location[1];
+  multiply_node->flag |= NODE_HIDDEN;
+
+  bNodeSocket *multiply_input_a = static_cast<bNodeSocket *>(
+      BLI_findlink(&multiply_node->inputs, 0));
+  bNodeSocket *multiply_input_b = static_cast<bNodeSocket *>(
+      BLI_findlink(&multiply_node->inputs, 1));
+  bNodeSocket *multiply_output = blender::bke::node_find_socket(*multiply_node, SOCK_OUT, "Value");
+
+  /* Connect the output of the multiply node to the math node. */
+  version_node_add_link(*node_tree, *multiply_node, *multiply_output, *node, *factor_input);
+
+  if (factor_link) {
+    /* The factor input is linked, so connect its origin to the first input of the multiply and
+     * remove the original link. */
+    version_node_add_link(*node_tree,
+                          *factor_link->fromnode,
+                          *factor_link->fromsock,
+                          *multiply_node,
+                          *multiply_input_a);
+    blender::bke::node_remove_link(node_tree, *factor_link);
+  }
+  else {
+    /* Otherwise, the factor is unlinked and we just copy the factor value to the first input in
+     * the multiply.*/
+    static_cast<bNodeSocketValueFloat *>(multiply_input_a->default_value)->value =
+        static_cast<bNodeSocketValueFloat *>(factor_input->default_value)->value;
+  }
+
+  if (b_link) {
+    /* The B input is linked, so extract the alpha of its origin and connect it to the second input
+     * of the multiply and remove the original link. */
+    bNode *separate_color_node = blender::bke::node_add_static_node(
+        nullptr, *node_tree, CMP_NODE_SEPARATE_COLOR);
+    separate_color_node->parent = node->parent;
+    separate_color_node->location[0] = multiply_node->location[0] - multiply_node->width - 20.0f;
+    separate_color_node->location[1] = multiply_node->location[1];
+    separate_color_node->flag |= NODE_HIDDEN;
+
+    bNodeSocket *image_input = blender::bke::node_find_socket(
+        *separate_color_node, SOCK_IN, "Image");
+    bNodeSocket *alpha_output = blender::bke::node_find_socket(
+        *separate_color_node, SOCK_OUT, "Alpha");
+
+    version_node_add_link(
+        *node_tree, *b_link->fromnode, *b_link->fromsock, *separate_color_node, *image_input);
+    version_node_add_link(
+        *node_tree, *separate_color_node, *alpha_output, *multiply_node, *multiply_input_b);
+  }
+  else {
+    /* Otherwise, the B input is unlinked and we just copy the alpha value to the second input in
+     * the multiply.*/
+    static_cast<bNodeSocketValueFloat *>(multiply_input_b->default_value)->value =
+        static_cast<bNodeSocketValueRGBA *>(b_input->default_value)->value[3];
+  }
+
+  version_socket_update_is_used(node_tree);
+}
+
+/* The Map Value node is now deprecated and should be replaced by other nodes. The node essentially
+ * just computes (value + offset) * size and clamps based on min and max. */
+static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
+{
+  const TexMapping &texture_mapping = *static_cast<TexMapping *>(node->storage);
+  const bool use_min = texture_mapping.flag & TEXMAP_CLIP_MIN;
+  const bool use_max = texture_mapping.flag & TEXMAP_CLIP_MAX;
+  const float offset = texture_mapping.loc[0];
+  const float size = texture_mapping.size[0];
+  const float min = texture_mapping.min[0];
+  const float max = texture_mapping.max[0];
+
+  bNodeSocket *value_input = blender::bke::node_find_socket(*node, SOCK_IN, "Value");
+
+  /* Find the link going into the value input Map Value node. */
+  bNodeLink *value_link = nullptr;
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
+    if (link->tosock == value_input) {
+      value_link = link;
+    }
+  }
+
+  /* If the value input is not connected, add a value node with the computed value. */
+  if (!value_link) {
+    const float value = static_cast<bNodeSocketValueFloat *>(value_input->default_value)->value;
+    const float mapped_value = (value + offset) * size;
+    const float min_clamped_value = use_min ? blender::math::max(mapped_value, min) : mapped_value;
+    const float clamped_value = use_max ? blender::math::min(min_clamped_value, max) :
+                                          min_clamped_value;
+
+    bNode *value_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_VALUE);
+    value_node->parent = node->parent;
+    value_node->location[0] = node->location[0];
+    value_node->location[1] = node->location[1];
+
+    bNodeSocket *value_output = blender::bke::node_find_socket(*value_node, SOCK_OUT, "Value");
+    static_cast<bNodeSocketValueFloat *>(value_output->default_value)->value = clamped_value;
+
+    /* Relink from the Map Value node to the value node. */
+    LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+      if (link->fromnode != node) {
+        continue;
+      }
+
+      version_node_add_link(*node_tree, *value_node, *value_output, *link->tonode, *link->tosock);
+      blender::bke::node_remove_link(node_tree, *link);
+    }
+
+    blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
+
+    version_socket_update_is_used(node_tree);
+    return;
+  }
+
+  /* Otherwise, add math nodes to do the computation, starting with an add node to add the offset
+   * of the range. */
+  bNode *add_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+  add_node->parent = node->parent;
+  add_node->custom1 = NODE_MATH_ADD;
+  add_node->location[0] = node->location[0];
+  add_node->location[1] = node->location[1];
+  add_node->flag |= NODE_HIDDEN;
+
+  bNodeSocket *add_input_a = static_cast<bNodeSocket *>(BLI_findlink(&add_node->inputs, 0));
+  bNodeSocket *add_input_b = static_cast<bNodeSocket *>(BLI_findlink(&add_node->inputs, 1));
+  bNodeSocket *add_output = blender::bke::node_find_socket(*add_node, SOCK_OUT, "Value");
+
+  /* Connect the origin of the node to the first input of the add node and remove the original
+   * link. */
+  version_node_add_link(
+      *node_tree, *value_link->fromnode, *value_link->fromsock, *add_node, *add_input_a);
+  blender::bke::node_remove_link(node_tree, *value_link);
+
+  /* Set the offset to the second input of the add node. */
+  static_cast<bNodeSocketValueFloat *>(add_input_b->default_value)->value = offset;
+
+  /* Add a multiply node to multiply by the size. */
+  bNode *multiply_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+  multiply_node->parent = node->parent;
+  multiply_node->custom1 = NODE_MATH_MULTIPLY;
+  multiply_node->location[0] = add_node->location[0];
+  multiply_node->location[1] = add_node->location[1] - 40.0f;
+  multiply_node->flag |= NODE_HIDDEN;
+
+  bNodeSocket *multiply_input_a = static_cast<bNodeSocket *>(
+      BLI_findlink(&multiply_node->inputs, 0));
+  bNodeSocket *multiply_input_b = static_cast<bNodeSocket *>(
+      BLI_findlink(&multiply_node->inputs, 1));
+  bNodeSocket *multiply_output = blender::bke::node_find_socket(*multiply_node, SOCK_OUT, "Value");
+
+  /* Connect the output of the add node to the first input of the multiply node. */
+  version_node_add_link(*node_tree, *add_node, *add_output, *multiply_node, *multiply_input_a);
+
+  /* Set the size to the second input of the multiply node. */
+  static_cast<bNodeSocketValueFloat *>(multiply_input_b->default_value)->value = size;
+
+  bNode *final_node = multiply_node;
+  bNodeSocket *final_output = multiply_output;
+
+  if (use_min) {
+    /* Add a maximum node to clamp by the minimum. */
+    bNode *max_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+    max_node->parent = node->parent;
+    max_node->custom1 = NODE_MATH_MAXIMUM;
+    max_node->location[0] = final_node->location[0];
+    max_node->location[1] = final_node->location[1] - 40.0f;
+    max_node->flag |= NODE_HIDDEN;
+
+    bNodeSocket *max_input_a = static_cast<bNodeSocket *>(BLI_findlink(&max_node->inputs, 0));
+    bNodeSocket *max_input_b = static_cast<bNodeSocket *>(BLI_findlink(&max_node->inputs, 1));
+    bNodeSocket *max_output = blender::bke::node_find_socket(*max_node, SOCK_OUT, "Value");
+
+    /* Connect the output of the final node to the first input of the maximum node. */
+    version_node_add_link(*node_tree, *final_node, *final_output, *max_node, *max_input_a);
+
+    /* Set the minimum to the second input of the maximum node. */
+    static_cast<bNodeSocketValueFloat *>(max_input_b->default_value)->value = min;
+
+    final_node = max_node;
+    final_output = max_output;
+  }
+
+  if (use_max) {
+    /* Add a minimum node to clamp by the maximum. */
+    bNode *min_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+    min_node->parent = node->parent;
+    min_node->custom1 = NODE_MATH_MINIMUM;
+    min_node->location[0] = final_node->location[0];
+    min_node->location[1] = final_node->location[1] - 40.0f;
+    min_node->flag |= NODE_HIDDEN;
+
+    bNodeSocket *min_input_a = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 0));
+    bNodeSocket *min_input_b = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 1));
+    bNodeSocket *min_output = blender::bke::node_find_socket(*min_node, SOCK_OUT, "Value");
+
+    /* Connect the output of the final node to the first input of the minimum node. */
+    version_node_add_link(*node_tree, *final_node, *final_output, *min_node, *min_input_a);
+
+    /* Set the maximum to the second input of the minimum node. */
+    static_cast<bNodeSocketValueFloat *>(min_input_b->default_value)->value = max;
+
+    final_node = min_node;
+    final_output = min_output;
+  }
+
+  /* Relink from the Map Value node to the final node. */
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+    if (link->fromnode != node) {
+      continue;
+    }
+
+    version_node_add_link(*node_tree, *final_node, *final_output, *link->tonode, *link->tosock);
+    blender::bke::node_remove_link(node_tree, *link);
+  }
+
+  blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
+
+  version_socket_update_is_used(node_tree);
+}
+
+/* Equivalent to do_version_convert_to_generic_nodes but performed after linking for handing things
+ * like animation or node construction. */
+static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
+                                                              bNodeTree *node_tree,
+                                                              ID *id)
+{
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
+    char escaped_node_name[sizeof(node->name) * 2 + 1];
+    BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+    const std::string rna_path_prefix = fmt::format("nodes[\"{}\"].inputs", escaped_node_name);
+
+    switch (node->type_legacy) {
+      /* Notice that we use the shader type because the node is already converted in versioning
+       * before linking. */
+      case SH_NODE_CURVE_VEC: {
+        /* The node gained a new Factor input as a first socket, so the vector socket moved to be
+         * the second socket and we need to transfer its animation as well. */
+        BKE_animdata_fix_paths_rename_all_ex(
+            bmain, id, rna_path_prefix.c_str(), nullptr, nullptr, 0, 1, false);
+        break;
+      }
+      /* Notice that we use the shader type because the node is already converted in versioning
+       * before linking. */
+      case SH_NODE_MIX: {
+        /* The node gained multiple new sockets after the factor socket, so the second and third
+         * sockets moved to be the 7th and 8th sockets. */
+        BKE_animdata_fix_paths_rename_all_ex(
+            bmain, id, rna_path_prefix.c_str(), nullptr, nullptr, 1, 6, false);
+        BKE_animdata_fix_paths_rename_all_ex(
+            bmain, id, rna_path_prefix.c_str(), nullptr, nullptr, 2, 7, false);
+
+        do_version_mix_color_use_alpha(node_tree, node);
+
+        break;
+      }
+      case CMP_NODE_MAP_VALUE: {
+        do_version_map_value_node(node_tree, node);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+}
+
 static void do_version_viewer_shortcut(bNodeTree *node_tree)
 {
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
@@ -1641,6 +2035,15 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
         do_version_color_to_float_conversion(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        do_version_convert_to_generic_nodes_after_linking(bmain, ntree, id);
       }
     }
     FOREACH_NODETREE_END;
@@ -6052,6 +6455,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        do_version_convert_to_generic_nodes(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to
