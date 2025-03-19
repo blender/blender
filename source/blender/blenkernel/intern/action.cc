@@ -1156,7 +1156,7 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
   /* init vars to prevent math errors */
   unit_qt(chan->quat);
   unit_axis_angle(chan->rotAxis, &chan->rotAngle);
-  chan->size[0] = chan->size[1] = chan->size[2] = 1.0f;
+  chan->scale[0] = chan->scale[1] = chan->scale[2] = 1.0f;
 
   copy_v3_fl(chan->scale_in, 1.0f);
   copy_v3_fl(chan->scale_out, 1.0f);
@@ -1856,7 +1856,7 @@ void BKE_pose_rest(bPose *pose, bool selected_bones_only)
     zero_v3(pchan->eul);
     unit_qt(pchan->quat);
     unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
-    pchan->size[0] = pchan->size[1] = pchan->size[2] = 1.0f;
+    pchan->scale[0] = pchan->scale[1] = pchan->scale[2] = 1.0f;
 
     pchan->roll1 = pchan->roll2 = 0.0f;
     pchan->curve_in_x = pchan->curve_in_z = 0.0f;
@@ -1866,7 +1866,7 @@ void BKE_pose_rest(bPose *pose, bool selected_bones_only)
     copy_v3_fl(pchan->scale_in, 1.0f);
     copy_v3_fl(pchan->scale_out, 1.0f);
 
-    pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE | POSE_BBONE_SHAPE);
+    pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SCALE | POSE_BBONE_SHAPE);
   }
 }
 
@@ -1879,7 +1879,7 @@ void BKE_pose_copy_pchan_result(bPoseChannel *pchanto, const bPoseChannel *pchan
   copy_v3_v3(pchanto->loc, pchanfrom->loc);
   copy_qt_qt(pchanto->quat, pchanfrom->quat);
   copy_v3_v3(pchanto->eul, pchanfrom->eul);
-  copy_v3_v3(pchanto->size, pchanfrom->size);
+  copy_v3_v3(pchanto->scale, pchanfrom->scale);
 
   copy_v3_v3(pchanto->pose_head, pchanfrom->pose_head);
   copy_v3_v3(pchanto->pose_tail, pchanfrom->pose_tail);

@@ -2352,7 +2352,7 @@ void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float r_mat[3][3])
 void BKE_pchan_apply_mat4(bPoseChannel *pchan, const float mat[4][4], bool use_compat)
 {
   float rot[3][3];
-  mat4_to_loc_rot_size(pchan->loc, rot, pchan->size, mat);
+  mat4_to_loc_rot_size(pchan->loc, rot, pchan->scale, mat);
   BKE_pchan_mat3_to_rot(pchan, rot, use_compat);
 }
 
@@ -2443,13 +2443,13 @@ void BKE_pchan_protected_location_set(bPoseChannel *pchan, const float location[
 void BKE_pchan_protected_scale_set(bPoseChannel *pchan, const float scale[3])
 {
   if ((pchan->protectflag & OB_LOCK_SCALEX) == 0) {
-    pchan->size[0] = scale[0];
+    pchan->scale[0] = scale[0];
   }
   if ((pchan->protectflag & OB_LOCK_SCALEY) == 0) {
-    pchan->size[1] = scale[1];
+    pchan->scale[1] = scale[1];
   }
   if ((pchan->protectflag & OB_LOCK_SCALEZ) == 0) {
-    pchan->size[2] = scale[2];
+    pchan->scale[2] = scale[2];
   }
 }
 
@@ -2914,7 +2914,7 @@ void BKE_pchan_to_mat4(const bPoseChannel *pchan, float r_chanmat[4][4])
   float tmat[3][3];
 
   /* get scaling matrix */
-  size_to_mat3(smat, pchan->size);
+  size_to_mat3(smat, pchan->scale);
 
   /* get rotation matrix */
   BKE_pchan_rot_to_mat3(pchan, rmat);

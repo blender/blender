@@ -194,7 +194,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
    * work well if the rotation happened to swap X/Y alignment, leave this for now.
    */
   struct {
-    FCurve_KeyCache loc[3], eul[3], quat[4], rotAxis[3], rotAngle, size[3], rotmode;
+    FCurve_KeyCache loc[3], eul[3], quat[4], rotAxis[3], rotAngle, scale[3], rotmode;
   } fkc_pchan = {{{nullptr}}};
 
 #define FCURVE_ASSIGN_VALUE(id, path_test_suffix, index) \
@@ -211,7 +211,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
   FCURVE_ASSIGN_ARRAY(quat, ".rotation_quaternion");
   FCURVE_ASSIGN_ARRAY(rotAxis, ".rotation_axis_angle");
   FCURVE_ASSIGN_VALUE(rotAngle, ".rotation_axis_angle", 3);
-  FCURVE_ASSIGN_ARRAY(size, ".scale");
+  FCURVE_ASSIGN_ARRAY(scale, ".scale");
   FCURVE_ASSIGN_VALUE(rotmode, ".rotation_mode", 0);
 
 #undef FCURVE_ASSIGN_VALUE
@@ -295,7 +295,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
     READ_ARRAY_FLT(quat);
     READ_ARRAY_FLT(rotAxis);
     READ_VALUE_FLT(rotAngle);
-    READ_ARRAY_FLT(size);
+    READ_ARRAY_FLT(scale);
     READ_VALUE_INT(rotmode);
 
 #undef READ_ARRAY_FLT
@@ -361,7 +361,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
     WRITE_ARRAY_FLT(quat);
     WRITE_ARRAY_FLT(rotAxis);
     WRITE_VALUE_FLT(rotAngle);
-    WRITE_ARRAY_FLT(size);
+    WRITE_ARRAY_FLT(scale);
     /* No need to write back 'rotmode' as it can't be transformed. */
 
 #undef WRITE_ARRAY_FLT

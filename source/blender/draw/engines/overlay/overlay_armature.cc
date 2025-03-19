@@ -1362,7 +1362,7 @@ static void draw_bone_degrees_of_freedom(const Armatures::DrawContext *ctx,
   /* ... but its own rest-space. */
   mul_m4_m4m3(posetrans, posetrans, pchan->bone->bone_mat);
 
-  float scale = pchan->bone->length * pchan->size[1];
+  float scale = pchan->bone->length * pchan->scale[1];
   scale_m4_fl(tmp, scale);
   tmp[1][1] = -tmp[1][1];
   mul_m4_m4m4(posetrans, posetrans, tmp);

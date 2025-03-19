@@ -344,7 +344,7 @@ typedef struct bPoseChannel {
 
   /** Transforms - written in by actions or transform. */
   float loc[3];
-  float size[3];
+  float scale[3];
 
   /**
    * Rotations - written in by actions or transform
@@ -431,7 +431,7 @@ typedef enum ePchan_Flag {
   /* has transforms */
   POSE_LOC = (1 << 0),
   POSE_ROT = (1 << 1),
-  POSE_SIZE = (1 << 2),
+  POSE_SCALE = (1 << 2),
 
   /* old IK/cache stuff
    * - used to be here from (1 << 3) to (1 << 8)

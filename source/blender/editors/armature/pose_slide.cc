@@ -100,7 +100,7 @@ enum ePoseSlide_Channels {
 
   PS_TFM_LOC, /* Loc/Rot/Scale */
   PS_TFM_ROT,
-  PS_TFM_SIZE,
+  PS_TFM_SCALE,
 
   PS_TFM_BBONE_SHAPE, /* Bendy Bones */
 
@@ -170,7 +170,8 @@ static const EnumPropertyItem prop_channels_types[] = {
      "All properties, including transforms, bendy bone shape, and custom properties"},
     {PS_TFM_LOC, "LOC", 0, "Location", "Location only"},
     {PS_TFM_ROT, "ROT", 0, "Rotation", "Rotation only"},
-    {PS_TFM_SIZE, "SIZE", 0, "Scale", "Scale only"},
+    /* NOTE: `SIZE` identifier is only used for compatibility, should be `SCALE`. */
+    {PS_TFM_SCALE, "SIZE", 0, "Scale", "Scale only"},
     {PS_TFM_BBONE_SHAPE, "BBONE", 0, "Bendy Bone", "Bendy Bone shape properties"},
     {PS_TFM_PROPS, "CUSTOM", 0, "Custom Properties", "Custom properties"},
     {0, nullptr, 0, nullptr, nullptr},
@@ -747,9 +748,9 @@ static void pose_slide_rest_pose_apply(bContext *C, tPoseSlideOp *pso)
       pose_slide_rest_pose_apply_vec3(pso, pchan->loc, 0.0f);
     }
 
-    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_SIZE) && (pchan->flag & POSE_SIZE)) {
+    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_SCALE) && (pchan->flag & POSE_SCALE)) {
       /* Calculate these for the 'scale' vector, and use scale curves. */
-      pose_slide_rest_pose_apply_vec3(pso, pchan->size, 1.0f);
+      pose_slide_rest_pose_apply_vec3(pso, pchan->scale, 1.0f);
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_ROT) && (pchan->flag & POSE_ROT)) {
@@ -823,9 +824,9 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
       pose_slide_apply_vec3(pso, pfl, pchan->loc, "location");
     }
 
-    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_SIZE) && (pchan->flag & POSE_SIZE)) {
+    if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_SCALE) && (pchan->flag & POSE_SCALE)) {
       /* Calculate these for the 'scale' vector, and use scale curves. */
-      pose_slide_apply_vec3(pso, pfl, pchan->size, "scale");
+      pose_slide_apply_vec3(pso, pfl, pchan->scale, "scale");
     }
 
     if (ELEM(pso->channels, PS_TFM_ALL, PS_TFM_ROT) && (pchan->flag & POSE_ROT)) {
@@ -916,7 +917,7 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 
   status.item_bool("", pso->channels == PS_TFM_LOC, ICON_EVENT_G);
   status.item_bool("", pso->channels == PS_TFM_ROT, ICON_EVENT_R);
-  status.item_bool("", pso->channels == PS_TFM_SIZE, ICON_EVENT_S);
+  status.item_bool("", pso->channels == PS_TFM_SCALE, ICON_EVENT_S);
   status.item_bool("", pso->channels == PS_TFM_BBONE_SHAPE, ICON_EVENT_B);
   status.item_bool("", pso->channels == PS_TFM_PROPS, ICON_EVENT_C);
 
@@ -927,7 +928,7 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
     case PS_TFM_ROT:
       status.item("Rotation Only", ICON_NONE);
       break;
-    case PS_TFM_SIZE:
+    case PS_TFM_SCALE:
       status.item("Scale Only", ICON_NONE);
       break;
     case PS_TFM_BBONE_SHAPE:
@@ -941,7 +942,7 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
       break;
   }
 
-  if (ELEM(pso->channels, PS_TFM_LOC, PS_TFM_ROT, PS_TFM_SIZE)) {
+  if (ELEM(pso->channels, PS_TFM_LOC, PS_TFM_ROT, PS_TFM_SCALE)) {
     status.item_bool("", pso->axislock & PS_LOCK_X, ICON_EVENT_X);
     status.item_bool("", pso->axislock & PS_LOCK_Y, ICON_EVENT_Y);
     status.item_bool("", pso->axislock & PS_LOCK_Z, ICON_EVENT_Z);
@@ -1214,7 +1215,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
           case EVT_SKEY: /* Scale */
           {
-            pose_slide_toggle_channels_mode(op, pso, PS_TFM_SIZE);
+            pose_slide_toggle_channels_mode(op, pso, PS_TFM_SCALE);
             do_pose_update = true;
             break;
           }

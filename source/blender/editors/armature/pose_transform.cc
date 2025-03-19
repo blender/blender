@@ -175,7 +175,7 @@ static void applyarmature_transfer_properties(EditBone *curbone,
   zero_v3(pchan->eul);
   unit_qt(pchan->quat);
   unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
-  pchan->size[0] = pchan->size[1] = pchan->size[2] = 1.0f;
+  pchan->scale[0] = pchan->scale[1] = pchan->scale[2] = 1.0f;
 }
 
 /* Adjust the current edit position of the bone using the pose space matrix. */
@@ -659,7 +659,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
    * - only copies transform info for the pose
    */
   copy_v3_v3(pchan->loc, chan->loc);
-  copy_v3_v3(pchan->size, chan->size);
+  copy_v3_v3(pchan->scale, chan->scale);
   pchan->flag = chan->flag;
 
   /* check if rotation modes are compatible (i.e. do they need any conversions) */
@@ -959,13 +959,13 @@ void POSE_OT_paste(wmOperatorType *ot)
 static void pchan_clear_scale(bPoseChannel *pchan)
 {
   if ((pchan->protectflag & OB_LOCK_SCALEX) == 0) {
-    pchan->size[0] = 1.0f;
+    pchan->scale[0] = 1.0f;
   }
   if ((pchan->protectflag & OB_LOCK_SCALEY) == 0) {
-    pchan->size[1] = 1.0f;
+    pchan->scale[1] = 1.0f;
   }
   if ((pchan->protectflag & OB_LOCK_SCALEZ) == 0) {
-    pchan->size[2] = 1.0f;
+    pchan->scale[2] = 1.0f;
   }
 
   pchan->ease1 = 0.0f;

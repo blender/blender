@@ -171,7 +171,7 @@ static void fcurves_to_pchan_links_get(ListBase &pfLinks, Object &ob, bPoseChann
   const eAction_TransformFlags transFlags = get_item_transform_flags_and_fcurves(
       ob, pchan, curves);
 
-  pchan.flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE | POSE_BBONE_SHAPE);
+  pchan.flag &= ~(POSE_LOC | POSE_ROT | POSE_SCALE | POSE_BBONE_SHAPE);
 
   if (!transFlags) {
     return;
@@ -198,7 +198,7 @@ static void fcurves_to_pchan_links_get(ListBase &pfLinks, Object &ob, bPoseChann
     pchan.flag |= POSE_ROT;
   }
   if (transFlags & ACT_TRANS_SCALE) {
-    pchan.flag |= POSE_SIZE;
+    pchan.flag |= POSE_SCALE;
   }
   if (transFlags & ACT_TRANS_BBONE) {
     pchan.flag |= POSE_BBONE_SHAPE;
@@ -206,7 +206,7 @@ static void fcurves_to_pchan_links_get(ListBase &pfLinks, Object &ob, bPoseChann
 
   copy_v3_v3(pfl->oldloc, pchan.loc);
   copy_v3_v3(pfl->oldrot, pchan.eul);
-  copy_v3_v3(pfl->oldscale, pchan.size);
+  copy_v3_v3(pfl->oldscale, pchan.scale);
   copy_qt_qt(pfl->oldquat, pchan.quat);
   copy_v3_v3(pfl->oldaxis, pchan.rotAxis);
   pfl->oldangle = pchan.rotAngle;
@@ -341,7 +341,7 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
     /* just copy all the values over regardless of whether they changed or not */
     copy_v3_v3(pchan->loc, pfl->oldloc);
     copy_v3_v3(pchan->eul, pfl->oldrot);
-    copy_v3_v3(pchan->size, pfl->oldscale);
+    copy_v3_v3(pchan->scale, pfl->oldscale);
     copy_qt_qt(pchan->quat, pfl->oldquat);
     copy_v3_v3(pchan->rotAxis, pfl->oldaxis);
     pchan->rotAngle = pfl->oldangle;
