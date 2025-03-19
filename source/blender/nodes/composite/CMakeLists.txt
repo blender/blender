@@ -63,6 +63,7 @@ set(SRC
   nodes/node_composite_huecorrect.cc
   nodes/node_composite_id_mask.cc
   nodes/node_composite_image.cc
+  nodes/node_composite_image_info.cc
   nodes/node_composite_inpaint.cc
   nodes/node_composite_invert.cc
   nodes/node_composite_keying.cc

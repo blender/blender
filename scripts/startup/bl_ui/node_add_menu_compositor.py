@@ -26,6 +26,7 @@ class NODE_MT_category_compositor_input(Menu):
         node_add_menu.add_node_type(layout, "CompositorNodeMask")
         node_add_menu.add_node_type(layout, "CompositorNodeMovieClip")
         node_add_menu.add_node_type(layout, "CompositorNodeTexture")
+        node_add_menu.add_node_type(layout, "CompositorNodeImageInfo")
 
         if is_group:
             layout.separator()

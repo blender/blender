@@ -28,6 +28,8 @@ void StaticCacheManager::reset()
   deriche_gaussian_coefficients.reset();
   van_vliet_gaussian_coefficients.reset();
   fog_glow_kernels.reset();
+  texture_coordinates.reset();
+  pixel_coordinates.reset();
 }
 
 void StaticCacheManager::skip_next_reset()

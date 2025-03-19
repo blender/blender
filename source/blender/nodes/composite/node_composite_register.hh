@@ -56,6 +56,7 @@ void register_node_type_cmp_hue_sat();
 void register_node_type_cmp_huecorrect();
 void register_node_type_cmp_idmask();
 void register_node_type_cmp_image();
+void register_node_type_cmp_image_info();
 void register_node_type_cmp_inpaint();
 void register_node_type_cmp_invert();
 void register_node_type_cmp_keying();

@@ -248,6 +248,7 @@
 #define CMP_NODE_COMBINE_XYZ 331
 #define CMP_NODE_COMBINE_COLOR 332
 #define CMP_NODE_SEPARATE_COLOR 333
+#define CMP_NODE_IMAGE_INFO 334
 
 /* channel toggles */
 #define CMP_CHAN_RGB 1
