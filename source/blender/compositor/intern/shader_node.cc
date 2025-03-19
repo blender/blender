@@ -14,7 +14,6 @@
 #include "COM_shader_node.hh"
 #include "COM_utilities.hh"
 #include "COM_utilities_gpu_material.hh"
-#include "COM_utilities_type_conversion.hh"
 
 namespace blender::compositor {
 

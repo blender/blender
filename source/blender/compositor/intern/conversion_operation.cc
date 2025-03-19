@@ -12,6 +12,8 @@
 
 #include "GPU_shader.hh"
 
+#include "IMB_colormanagement.hh"
+
 #include "BKE_type_conversions.hh"
 
 #include "COM_context.hh"
@@ -19,7 +21,6 @@
 #include "COM_input_descriptor.hh"
 #include "COM_result.hh"
 #include "COM_utilities.hh"
-#include "COM_utilities_type_conversion.hh"
 
 namespace blender::compositor {
 

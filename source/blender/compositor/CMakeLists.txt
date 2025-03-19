@@ -143,7 +143,6 @@ set(SRC
 
   utilities/COM_utilities_diagonals.hh
   utilities/COM_utilities_gpu_material.hh
-  utilities/COM_utilities_type_conversion.hh
 )
 
 set(LIB
