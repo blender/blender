@@ -782,6 +782,9 @@ static bool edit_constraint_invoke_properties(bContext *C,
     }
   }
 
+  if (r_retval != nullptr) {
+    *r_retval = OPERATOR_CANCELLED;
+  }
   return false;
 }
 
@@ -2759,7 +2762,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator * /*op*/)
     for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = next) {
       next = con->next;
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-        BKE_constraint_remove(&pchan->constraints, con);
+        BKE_constraint_remove_ex(&pchan->constraints, ob, con);
       }
     }
     pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET);

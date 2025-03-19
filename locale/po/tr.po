@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -69,10 +69,6 @@ msgstr "Yuva"
 
 msgid "Action F-Curves"
 msgstr "Eylem Kare Eğrileri"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Eylem Kare Eğrileri Koleksiyonu"
 
 
 msgid "Action Group"
@@ -580,14 +576,6 @@ msgstr "Belleği aygıtlar arasında dağıt"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Belleği çoğaltmak yerine, birbirine bağlı aygıtlar arasında dağıtarak (örneğin NVLink aracılığıyla) büyük sahnelerin sığması için daha fazla yer açın"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (Deneysel)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT, RDNA2 ve üzeri üzerinde AMD donanım ışın izlemeyi etkinleştirir ve eski kartlarda gölgelendirici geri dönüşü sağlar. Bu özellik deneyseldir ve bazı sahneler yanlış işlenebilir"
 
 
 msgid "Embree on GPU"
@@ -15116,10 +15104,6 @@ msgid "The combined frame range of all F-Curves within this action"
 msgstr "Bu eylemdeki tüm F-Eğrilerinin birleşik kare aralığı"
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "Aksiyonu oluşturan bireysel F-Eğrileri"
-
-
 msgid "The end frame of the manually set intended playback range"
 msgstr "Manuel olarak ayarlanan amaçlanan oynatma aralığının son karesi"
 
@@ -15134,10 +15118,6 @@ msgstr "Manuel olarak ayarlanan amaçlanan oynatma aralığının başlangıç k
 
 msgid "Groups"
 msgstr "Gruplar"
-
-
-msgid "Convenient groupings of F-Curves"
-msgstr "F-Eğrilerinin kullanışlı gruplandırmaları"
 
 
 msgctxt "ID"
@@ -15625,26 +15605,6 @@ msgstr "Fırça yarıçapına göre sınır kökeninin ofseti"
 
 msgid "Brush's capabilities"
 msgstr "Fırçanın yetenekleri"
-
-
-msgid "Clone Alpha"
-msgstr "Klon Alfa"
-
-
-msgid "Opacity of clone image display"
-msgstr "Klon görüntü görüntüsünün opaklığı"
-
-
-msgid "Clone Image"
-msgstr "Klon Görüntü"
-
-
-msgid "Image for clone brushes"
-msgstr "Klon fırçaları için görüntü"
-
-
-msgid "Clone Offset"
-msgstr "Klon Ofseti"
 
 
 msgid "Soft Body Plasticity"
@@ -24709,11 +24669,6 @@ msgid "Sequence playback mode"
 msgstr "Dizi oynatma modu"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Klip"
-
-
 msgid "Hide frames outside the specified frame range"
 msgstr "Belirtilen çerçeve aralığının dışındaki çerçeveleri gizle"
 
@@ -29250,12 +29205,36 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
 
 
 msgid "Snap"
 msgstr "Yakala"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
 
 
 msgid "UV Mapping"
@@ -29374,10 +29353,6 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
-
-
 msgid "Trim/Add"
 msgstr "Kırp/Ekle"
 
@@ -29460,26 +29435,6 @@ msgstr "Metin"
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
 
 
 msgid "Keyframe Insert Pie"
@@ -56984,6 +56939,10 @@ msgid "Set all stroke points to same opacity"
 msgstr "Tüm kontur noktalarını aynı opaklığa ayarlayın"
 
 
+msgid "Fill Opacity"
+msgstr "Dolgu Opaklığı"
+
+
 msgctxt "Operator"
 msgid "Set Uniform Thickness"
 msgstr "Tekdüze Kalınlık Ayarla"
@@ -74332,10 +74291,6 @@ msgid "Exports UVs from the modified mesh"
 msgstr "Değiştirilmiş ağdan UV'leri dışa aktarır"
 
 
-msgid "Fill Opacity"
-msgstr "Dolgu Opaklığı"
-
-
 msgid "Set amount of opacity for exported UV layout"
 msgstr "Dışa aktarılan UV düzeni için opaklık miktarını ayarlayın"
 
@@ -78809,8 +78764,24 @@ msgid "Image used as canvas"
 msgstr "Tuval olarak kullanılan görüntü"
 
 
+msgid "Clone Alpha"
+msgstr "Klon Alfa"
+
+
+msgid "Opacity of clone image display"
+msgstr "Klon görüntü görüntüsünün opaklığı"
+
+
+msgid "Clone Image"
+msgstr "Klon Görüntü"
+
+
 msgid "Image used as clone source"
 msgstr "Klon kaynağı olarak kullanılan görüntü"
+
+
+msgid "Clone Offset"
+msgstr "Klon Ofseti"
 
 
 msgid "Dither"
@@ -79129,6 +79100,10 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Active Tool"
+msgstr "Etkin Araç"
+
+
 msgid "View Lock"
 msgstr "Görünüm Kilidi"
 
@@ -79193,6 +79168,14 @@ msgid "Transform Orientations"
 msgstr "Dönüştürme Yönlendirmeleri"
 
 
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
+
+
 msgid "Stroke Placement"
 msgstr "İnme Yerleşimi"
 
@@ -79215,14 +79198,6 @@ msgstr "Stereoskopi"
 
 msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
-
-
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
 
 
 msgid "Auto-Masking"
@@ -79251,10 +79226,6 @@ msgstr "Sanal Gerçeklik"
 
 msgid "VR Info"
 msgstr "VR Bilgisi"
-
-
-msgid "Active Tool"
-msgstr "Etkin Araç"
 
 
 msgid "Chain Scaling"
@@ -93070,6 +93041,11 @@ msgstr "Film"
 
 
 msgctxt "Sequence"
+msgid "Clip"
+msgstr "Klip"
+
+
+msgctxt "Sequence"
 msgid "Mask"
 msgstr "Maske"
 
@@ -102741,10 +102717,6 @@ msgid "and NVIDIA driver version %s or newer"
 msgstr "ve NVIDIA sürücü sürümü %s veya daha yenisi"
 
 
-msgid "and AMD Radeon Pro %s driver or newer"
-msgstr "ve AMD Radeon Pro %s sürücüsü veya daha yenisi"
-
-
 msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Xe-HPG mimarisine sahip Intel GPU gerektirir"
 
@@ -104175,10 +104147,6 @@ msgstr "Buradaki ayarlar önemli bir etkiye sahip olabilir"
 
 msgid "performance impact!"
 msgstr "performans etkisi!"
-
-
-msgid "Built without VR/OpenXR features"
-msgstr "VR/OpenXR özellikleri olmadan oluşturuldu"
 
 
 msgid "Start VR Session"
@@ -114673,10 +114641,6 @@ msgid "OS"
 msgstr "İşletim Sistemi"
 
 
-msgid "Home"
-msgstr "Ev"
-
-
 msgid "Esc"
 msgstr "Esc"
 
@@ -117384,10 +117348,6 @@ msgid "Scene has no camera"
 msgstr "Sahnede kamera yok"
 
 
-msgid "Movie format unsupported"
-msgstr "Film biçimi desteklenmiyor"
-
-
 msgid "Failed to create OpenGL off-screen buffer, %s"
 msgstr "OpenGL ekran dışı arabelleği oluşturulamadı, %s"
 
@@ -118462,6 +118422,10 @@ msgstr "Varlık Katalogları"
 
 msgid "Date Modified"
 msgstr "Değiştirilme Tarihi"
+
+
+msgid "Home"
+msgstr "Ev"
 
 
 msgid "Desktop"

@@ -454,6 +454,7 @@ class NODE_OT_viewer_shortcut_set(Operator):
         del cls
         space = context.space_data
         return (
+            (space is not None) and
             space.type == 'NODE_EDITOR' and
             space.node_tree is not None and
             space.tree_type == 'CompositorNodeTree'
@@ -517,6 +518,7 @@ class NODE_OT_viewer_shortcut_get(Operator):
         del cls
         space = context.space_data
         return (
+            (space is not None) and
             space.type == 'NODE_EDITOR' and
             space.node_tree is not None and
             space.tree_type == 'CompositorNodeTree'

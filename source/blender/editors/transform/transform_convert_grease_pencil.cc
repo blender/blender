@@ -144,8 +144,8 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
         const IndexMask bezier_points = bke::curves::curve_to_point_selection(
             curves.points_by_curve(), bezier_curves[layer_offset], curves_transform_data->memory);
 
-        tc.data_len += curves.points_num() + 2 * bezier_points.size();
-        points_to_transform_per_attribute[layer_offset].append(curves.points_range());
+        tc.data_len += editable_points.size() + 2 * bezier_points.size();
+        points_to_transform_per_attribute[layer_offset].append(editable_points);
 
         if (selection_attribute_names.size() > 1) {
           points_to_transform_per_attribute[layer_offset].append(bezier_points);
@@ -249,10 +249,10 @@ static void recalcData_grease_pencil(TransInfo *t)
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
       if (t->mode == TFM_CURVE_SHRINKFATTEN) {
-        /* No cache to update currently. */
+        curves.tag_radii_changed();
       }
       else if (t->mode == TFM_TILT) {
-        /* No cache to update currently. */
+        curves.tag_normals_changed();
       }
       else {
         const Vector<MutableSpan<float3>> positions_per_selection_attr =

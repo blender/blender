@@ -1498,7 +1498,9 @@ static int filelist_intern_free_main_files(FileList *filelist)
     removed_counter++;
   }
 
-  MEM_SAFE_FREE(filelist_intern->filtered);
+  if (removed_counter > 0) {
+    MEM_SAFE_FREE(filelist_intern->filtered);
+  }
   return removed_counter;
 }
 
@@ -1911,14 +1913,20 @@ static void filelist_clear_main_files(FileList *filelist,
   if (!filelist || !(filelist->tags & FILELIST_TAGS_USES_MAIN_DATA)) {
     return;
   }
+  if (filelist->filelist.entries_num == FILEDIR_NBR_ENTRIES_UNSET) {
+    return;
+  }
+  const int removed_files = filelist_intern_free_main_files(filelist);
+  /* File list contains no main files to clear. */
+  if (removed_files == 0) {
+    return;
+  }
 
   filelist_tag_needs_filtering(filelist);
 
   if (do_cache) {
     filelist_cache_clear(&filelist->filelist_cache, filelist->filelist_cache.size);
   }
-
-  const int removed_files = filelist_intern_free_main_files(filelist);
 
   filelist->filelist.entries_num -= removed_files;
   filelist->filelist.entries_filtered_num = FILEDIR_NBR_ENTRIES_UNSET;
@@ -4232,7 +4240,9 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   flrj->filelist = filelist;
   flrj->current_main = bmain;
   STRNCPY(flrj->main_filepath, BKE_main_blendfile_path(bmain));
-  if ((filelist->flags & FL_FORCE_RESET_MAIN_FILES) && !(filelist->flags & FL_FORCE_RESET)) {
+  if ((filelist->flags & FL_FORCE_RESET_MAIN_FILES) && !(filelist->flags & FL_FORCE_RESET) &&
+      (filelist->filelist.entries_num != FILEDIR_NBR_ENTRIES_UNSET))
+  {
     flrj->only_main_data = true;
   }
 

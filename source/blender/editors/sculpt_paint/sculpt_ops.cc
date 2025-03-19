@@ -129,9 +129,11 @@ static int set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
     }
     case bke::pbvh::Type::Grids: {
       const SubdivCCG &subdiv_ccg = *ss->subdiv_ccg;
-      ss->sculpt_persistent_co = subdiv_ccg.positions;
-      ss->sculpt_persistent_no = subdiv_ccg.normals;
-      ss->sculpt_persistent_disp = {};
+      ss->persistent.sculpt_persistent_co = subdiv_ccg.positions;
+      ss->persistent.sculpt_persistent_no = subdiv_ccg.normals;
+      ss->persistent.sculpt_persistent_disp = Array<float>(subdiv_ccg.positions.size(), 0.0f);
+      ss->persistent.grid_size = subdiv_ccg.grid_size;
+      ss->persistent.grids_num = subdiv_ccg.grids_num;
       break;
     }
     case bke::pbvh::Type::BMesh: {
@@ -834,10 +836,6 @@ static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_CANCELLED;
   }
 
-  if (std::holds_alternative<std::monostate>(ss.active_vert())) {
-    return OPERATOR_CANCELLED;
-  }
-
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
@@ -845,6 +843,10 @@ static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *even
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+
+  if (std::holds_alternative<std::monostate>(ss.active_vert())) {
+    return OPERATOR_CANCELLED;
+  }
 
   undo::push_begin(scene, ob, op);
   BKE_sculpt_color_layer_create_if_needed(&ob);
@@ -1249,6 +1251,7 @@ static int mask_from_cavity_exec(bContext *C, wmOperator *op)
   undo::push_begin(scene, ob, op);
   undo::push_nodes(*depsgraph, ob, node_mask, undo::Type::Mask);
 
+  automasking->calc_cavity_factor(*depsgraph, ob, node_mask);
   apply_mask_from_settings(*depsgraph, ob, pbvh, node_mask, *automasking, mode, factor, false);
 
   undo::push_end(ob);

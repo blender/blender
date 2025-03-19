@@ -1080,6 +1080,7 @@ static void do_vpaint_brush_blur_loops(const bContext *C,
     tls.factors.resize(verts.size());
     const MutableSpan<float> factors = tls.factors;
     fill_factor_from_hide(hide_vert, verts, factors);
+    filter_region_clip_factors(ss, vert_positions, verts, factors);
     if (!select_vert.is_empty()) {
       filter_factors_with_selection(select_vert, verts, factors);
     }
@@ -1235,6 +1236,7 @@ static void do_vpaint_brush_blur_verts(const bContext *C,
     tls.factors.resize(verts.size());
     const MutableSpan<float> factors = tls.factors;
     fill_factor_from_hide(hide_vert, verts, factors);
+    filter_region_clip_factors(ss, vert_positions, verts, factors);
     if (!select_vert.is_empty()) {
       filter_factors_with_selection(select_vert, verts, factors);
     }
@@ -1393,6 +1395,7 @@ static void do_vpaint_brush_smear(const bContext *C,
     tls.factors.resize(verts.size());
     const MutableSpan<float> factors = tls.factors;
     fill_factor_from_hide(hide_vert, verts, factors);
+    filter_region_clip_factors(ss, vert_positions, verts, factors);
     if (!select_vert.is_empty()) {
       filter_factors_with_selection(select_vert, verts, factors);
     }
@@ -1564,17 +1567,16 @@ static void calculate_average_color(VPaintData &vpd,
     using Blend = typename Traits::BlendType;
     const Span<Color> colors = attribute.typed<T>().template cast<Color>();
 
-    Array<VPaintAverageAccum<Blend>> accum(nodes.size());
+    Array<VPaintAverageAccum<Blend>> accum(nodes.size(), {0, {0, 0, 0}});
     node_mask.foreach_index(GrainSize(1), [&](const int i) {
-      LocalData &tls = all_tls.local();
       VPaintAverageAccum<Blend> &accum2 = accum[i];
-      accum2.len = 0;
-      memset(accum2.value, 0, sizeof(accum2.value));
+      LocalData &tls = all_tls.local();
 
       const Span<int> verts = nodes[i].verts();
       tls.factors.resize(verts.size());
       const MutableSpan<float> factors = tls.factors;
       fill_factor_from_hide(hide_vert, verts, factors);
+      filter_region_clip_factors(ss, vert_positions, verts, factors);
       if (!select_vert.is_empty()) {
         filter_factors_with_selection(select_vert, verts, factors);
       }
@@ -1616,12 +1618,12 @@ static void calculate_average_color(VPaintData &vpd,
     Blend accum_value[3] = {0};
     Color blend(0, 0, 0, 0);
 
-    for (int i = 0; i < nodes.size(); i++) {
+    node_mask.foreach_index([&](const int i) {
       accum_len += accum[i].len;
       accum_value[0] += accum[i].value[0];
       accum_value[1] += accum[i].value[1];
       accum_value[2] += accum[i].value[2];
-    }
+    });
     if (accum_len != 0) {
       blend.r = Traits::round(sqrtf(Traits::divide_round(accum_value[0], accum_len)));
       blend.g = Traits::round(sqrtf(Traits::divide_round(accum_value[1], accum_len)));
@@ -1704,6 +1706,7 @@ static void vpaint_do_draw(const bContext *C,
     tls.factors.resize(verts.size());
     const MutableSpan<float> factors = tls.factors;
     fill_factor_from_hide(hide_vert, verts, factors);
+    filter_region_clip_factors(ss, vert_positions, verts, factors);
     if (!select_vert.is_empty()) {
       filter_factors_with_selection(select_vert, verts, factors);
     }

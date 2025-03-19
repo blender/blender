@@ -143,13 +143,56 @@ static bool bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
   return false;
 }
 
+/**
+ * Note that #bm_tag_untagged_neighbors requires #VERT_INDEX_DO_COLLAPSE & #VERT_INDEX_IGNORE
+ * are equal magnitude, opposite sign.
+ */
 enum {
   VERT_INDEX_DO_COLLAPSE = -1,
   VERT_INDEX_INIT = 0,
   VERT_INDEX_IGNORE = 1,
 };
 
-// #define USE_WALKER  /* gives uneven results, disable for now */
+/**
+ * Given a set of starting verts, find all the currently-untagged neighbors of those verts, tag
+ * them with the specified value, and return an array specifying all the newly-tagged verts.
+ *
+ * By using two arrays and two tag values, repeated alternating calls will expand the selection in
+ * an alternating tagging pattern. Dissolving one of the two tags will then reduce the density of
+ * the mesh, by half, in a regular diamond pattern.
+ *
+ * \param verts_start: The array of starting verts whose neighbors should be tagged.
+ * \param verts_start_num: The number of verts in the verts_start array.
+ * \param desired_tag: The value to set as a tag, on any currently-untagged neighbors.
+ * \param r_verts_tagged: Returned array of all the verts which were tagged in this call.
+ * \param r_verts_tagged_num: Returned number of verts in the r_verts_tagged array.
+ */
+static void bm_tag_untagged_neighbors(BMVert *verts_start[],
+                                      const uint verts_start_num,
+                                      const int desired_tag,
+                                      BMVert *r_verts_tagged[],
+                                      uint &r_verts_tagged_num)
+{
+
+  BMEdge *e;
+  BMIter iter;
+  r_verts_tagged_num = 0;
+
+  for (int i = 0; i < verts_start_num; i++) {
+    BMVert *v = verts_start[i];
+
+    /* Since DO_COLLAPSE and IGNORE are -1 and +1, inverting the sign finds the other. */
+    BLI_assert(BM_elem_index_get(v) == -desired_tag);
+
+    BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+      BMVert *v_other = BM_edge_other_vert(e, v);
+      if (BM_elem_index_get(v_other) == VERT_INDEX_INIT) {
+        BM_elem_index_set(v_other, desired_tag); /* set_dirty! */
+        r_verts_tagged[r_verts_tagged_num++] = v_other;
+      }
+    }
+  }
+}
 
 /* - BMVert.flag & BM_ELEM_TAG:  shows we touched this vert
  * - BMVert.index == -1:         shows we will remove this vert
@@ -157,21 +200,16 @@ enum {
 
 void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool tag_only)
 {
-#ifdef USE_WALKER
-#  define ELE_VERT_TAG 1
-#else
-  BMVert **vert_seek_a = static_cast<BMVert **>(
+  /* NOTE: while #BMWalker seems like a logical choice, it results in uneven geometry. */
+
+  BMVert **verts_collapse = static_cast<BMVert **>(
       MEM_mallocN(sizeof(BMVert *) * bm->totvert, __func__));
-  BMVert **vert_seek_b = static_cast<BMVert **>(
+  BMVert **verts_ignore = static_cast<BMVert **>(
       MEM_mallocN(sizeof(BMVert *) * bm->totvert, __func__));
-  uint vert_seek_a_tot = 0;
-  uint vert_seek_b_tot = 0;
-#endif
+  uint verts_collapse_num = 0;
+  uint verts_ignore_num = 0;
 
   BMIter iter;
-
-  const uint offset = 0;
-  const uint nth = 2;
 
   int iter_step;
 
@@ -184,152 +222,79 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
     }
   }
 
+  /* Perform the number of iteration steps which the user requested. */
   for (iter_step = 0; iter_step < iterations; iter_step++) {
     BMVert *v, *v_next;
-    bool iter_done;
+    bool verts_were_marked_for_dissolve = false;
 
+    /* Tag all verts which are eligible to be dissolved on this iteration. */
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (BM_elem_flag_test(v, BM_ELEM_TAG) && bm_vert_dissolve_fan_test(v)) {
-#ifdef USE_WALKER
-        BMO_vert_flag_enable(bm, v, ELE_VERT_TAG);
-#endif
         BM_elem_index_set(v, VERT_INDEX_INIT); /* set_dirty! */
       }
       else {
         BM_elem_index_set(v, VERT_INDEX_IGNORE); /* set_dirty! */
       }
     }
-    /* done with selecting tagged verts */
 
     /* main loop, keep tagging until we can't tag any more islands */
-    while (true) {
-#ifdef USE_WALKER
-      BMWalker walker;
-#else
-      uint depth = 1;
-      uint i;
-#endif
-      BMVert *v_first = nullptr;
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 
-      /* we could avoid iterating from the start each time */
-      BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-        if (v->e && (BM_elem_index_get(v) == VERT_INDEX_INIT)) {
-#ifdef USE_WALKER
-          if (BMO_vert_flag_test(bm, v, ELE_VERT_TAG))
-#endif
-          {
-            /* Check again in case the topology changed. */
-            if (bm_vert_dissolve_fan_test(v)) {
-              v_first = v;
-            }
-            break;
-          }
-        }
-      }
-      if (v_first == nullptr) {
-        break;
+      /* Only process verts which are eligible for dissolve and which have not yet been tagged. */
+      if (!(BM_elem_index_get(v) == VERT_INDEX_INIT)) {
+        continue;
       }
 
-#ifdef USE_WALKER
-      /* Walk over selected elements starting at active */
-      BMW_init(
-          &walker,
-          bm,
-          BMW_CONNECTED_VERTEX,
-          ELE_VERT_TAG,
-          BMW_MASK_NOP,
-          BMW_MASK_NOP,
-          BMW_FLAG_NOP, /* don't use #BMW_FLAG_TEST_HIDDEN here since we want to deselect all. */
-          BMW_NIL_LAY);
+      /* Set the first #VERT_INDEX_INIT vert as the first starting vert. */
+      BM_elem_index_set(v, VERT_INDEX_IGNORE); /* set_dirty! */
+      verts_ignore[0] = v;
+      verts_ignore_num = 1;
 
-      BLI_assert(walker.order == BMW_BREADTH_FIRST);
-      for (v = BMW_begin(&walker, v_first); v != nullptr; v = BMW_step(&walker)) {
-        /* Deselect elements that aren't at "nth" depth from active */
-        if (BM_elem_index_get(v) == VERT_INDEX_INIT) {
-          if ((offset + BMW_current_depth(&walker)) % nth) {
-            /* tag for removal */
-            BM_elem_index_set(v, VERT_INDEX_DO_COLLAPSE); /* set_dirty! */
-          }
-          else {
-            /* works better to allow these verts to be checked again */
-            // BM_elem_index_set(v, VERT_INDEX_IGNORE);  /* set_dirty! */
-          }
-        }
-      }
-      BMW_end(&walker);
-#else
-
-      BM_elem_index_set(v_first,
-                        ((offset + depth) % nth) ? VERT_INDEX_IGNORE :
-                                                   VERT_INDEX_DO_COLLAPSE); /* set_dirty! */
-
-      vert_seek_b_tot = 0;
-      vert_seek_b[vert_seek_b_tot++] = v_first;
-
+      /* Starting at v, expand outwards, tagging any currently untagged neighbors.
+       * verts will be alternately tagged for collapse or ignore.
+       * Stop when there are no neighbors left to expand to. */
       while (true) {
-        BMEdge *e;
 
-        if ((offset + depth) % nth) {
-          vert_seek_a_tot = 0;
-          for (i = 0; i < vert_seek_b_tot; i++) {
-            v = vert_seek_b[i];
-            BLI_assert(BM_elem_index_get(v) == VERT_INDEX_IGNORE);
-            BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
-              BMVert *v_other = BM_edge_other_vert(e, v);
-              if (BM_elem_index_get(v_other) == VERT_INDEX_INIT) {
-                BM_elem_index_set(v_other, VERT_INDEX_DO_COLLAPSE); /* set_dirty! */
-                vert_seek_a[vert_seek_a_tot++] = v_other;
-              }
-            }
-          }
-          if (vert_seek_a_tot == 0) {
-            break;
-          }
+        bm_tag_untagged_neighbors(verts_ignore,
+                                  verts_ignore_num,
+                                  VERT_INDEX_DO_COLLAPSE, /* set_dirty! */
+                                  verts_collapse,
+                                  verts_collapse_num);
+        if (verts_collapse_num == 0) {
+          break;
         }
-        else {
-          vert_seek_b_tot = 0;
-          for (i = 0; i < vert_seek_a_tot; i++) {
-            v = vert_seek_a[i];
-            BLI_assert(BM_elem_index_get(v) == VERT_INDEX_DO_COLLAPSE);
-            BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
-              BMVert *v_other = BM_edge_other_vert(e, v);
-              if (BM_elem_index_get(v_other) == VERT_INDEX_INIT) {
-                BM_elem_index_set(v_other, VERT_INDEX_IGNORE); /* set_dirty! */
-                vert_seek_b[vert_seek_b_tot++] = v_other;
-              }
-            }
-          }
-          if (vert_seek_b_tot == 0) {
-            break;
-          }
-        }
+        verts_were_marked_for_dissolve = true;
 
-        depth++;
+        bm_tag_untagged_neighbors(verts_collapse,
+                                  verts_collapse_num,
+                                  VERT_INDEX_IGNORE, /* set_dirty! */
+                                  verts_ignore,
+                                  verts_ignore_num);
+        if (verts_ignore_num == 0) {
+          break;
+        }
       }
-#endif /* USE_WALKER */
     }
 
-    /* now we tagged all verts -1 for removal, lets loop over and rebuild faces */
-    iter_done = false;
+    /* At high iteration levels, later steps can run out of verts that are eligible for dissolve.
+     * If this occurs, stop. Future iterations won't find any verts that this iteration didn't. */
+    if (!verts_were_marked_for_dissolve) {
+      break;
+    }
+
+    /* Remove all verts tagged for removal. */
     BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
       if (BM_elem_index_get(v) == VERT_INDEX_DO_COLLAPSE) {
-        if (bm_vert_dissolve_fan(bm, v)) {
-          iter_done = true;
-        }
+        bm_vert_dissolve_fan(bm, v);
       }
-    }
-
-    if (iter_done == false) {
-      break;
     }
   }
 
+  /* Ensure the vert index values will be recomputed. */
   bm->elem_index_dirty |= BM_VERT;
 
-#ifndef USE_WALKER
-  MEM_freeN(vert_seek_a);
-  MEM_freeN(vert_seek_b);
-#endif
+  MEM_freeN(verts_collapse);
+  MEM_freeN(verts_ignore);
 }
 
 void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations)

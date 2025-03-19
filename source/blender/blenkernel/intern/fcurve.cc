@@ -1607,10 +1607,9 @@ bool BKE_fcurve_bezt_subdivide_handles(BezTriple *bezt,
   return true;
 }
 
-void BKE_fcurve_bezt_shrink(FCurve *fcu, const int new_totvert)
+void BKE_fcurve_bezt_resize(FCurve *fcu, const int new_totvert)
 {
   BLI_assert(new_totvert >= 0);
-  BLI_assert(new_totvert <= fcu->totvert);
 
   /* No early return when new_totvert == fcu->totvert. There is no way to know the intention of the
    * caller, nor the history of the FCurve so far, so `fcu->bezt` may actually have allocated space
@@ -1623,6 +1622,14 @@ void BKE_fcurve_bezt_shrink(FCurve *fcu, const int new_totvert)
 
   fcu->bezt = static_cast<BezTriple *>(
       MEM_reallocN(fcu->bezt, new_totvert * sizeof(*(fcu->bezt))));
+
+  /* Zero out all the newly-allocated beztriples. This is necessary, as it is likely that only some
+   * of the fields will actually be updated by the caller. */
+  const int old_totvert = fcu->totvert;
+  if (new_totvert > old_totvert) {
+    memset(&fcu->bezt[old_totvert], 0, sizeof(fcu->bezt[0]) * (new_totvert - old_totvert));
+  }
+
   fcu->totvert = new_totvert;
 }
 
@@ -1939,7 +1946,7 @@ void BKE_fcurve_deduplicate_keys(FCurve *fcu)
     }
   }
 
-  BKE_fcurve_bezt_shrink(fcu, prev_bezt_index + 1);
+  BKE_fcurve_bezt_resize(fcu, prev_bezt_index + 1);
 }
 
 /** \} */

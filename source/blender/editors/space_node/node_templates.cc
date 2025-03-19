@@ -752,7 +752,7 @@ static void ui_node_draw_panel(uiLayout &layout,
   uiBlock *block = uiLayoutGetBlock(row);
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
   uiBut *but = uiDefIconTextBut(block,
-                                UI_BTYPE_BUT,
+                                UI_BTYPE_BUT_TOGGLE,
                                 0,
                                 panel_state.is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
                                 IFACE_(panel_decl.name.c_str()),
@@ -819,7 +819,7 @@ static void ui_node_draw_node(
       {
         if (socket_decl->in_out == SOCK_IN) {
           ui_node_draw_input(
-              layout, C, ntree, node, node.socket_by_decl(*socket_decl), depth, nullptr);
+              layout, C, ntree, node, node.socket_by_decl(*socket_decl), depth + 1, nullptr);
         }
       }
     }

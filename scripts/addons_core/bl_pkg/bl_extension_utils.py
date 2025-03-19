@@ -1402,7 +1402,7 @@ def pkg_manifest_params_compatible_or_error(
         blender_version_max: str,
         platforms: list[str],
         python_versions: list[str],
-        this_platform: tuple[int, int, int],
+        this_platform: str,
         this_blender_version: tuple[int, int, int],
         this_python_version: tuple[int, int, int],
         error_fn: Callable[[Exception], None],

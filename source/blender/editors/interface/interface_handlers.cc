@@ -3120,6 +3120,13 @@ static bool ui_textedit_delete_selection(uiBut *but, uiTextEdit &text_edit)
     changed = true;
   }
 
+  if (but->ofs > but->selsta) {
+    /* Decrease the ofset by the amount of the selection that is hidden. Without
+     * this adjustment, pasting text that doesn't fit in the text field would leave
+     * the pasted text scrolled out of the view (to the left), see: #134491. */
+    but->ofs -= (but->ofs - but->selsta);
+  }
+
   but->pos = but->selend = but->selsta;
   return changed;
 }
@@ -6933,6 +6940,7 @@ static int ui_do_but_HSVCUBE(
 
           ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, def_hsv, rgb);
           ui_but_v3_set(but, rgb);
+          ui_apply_but_func(C, but);
 
           RNA_property_update(C, &but->rnapoin, but->rnaprop);
           return WM_UI_HANDLER_BREAK;
@@ -7203,6 +7211,7 @@ static int ui_do_but_HSVCIRCLE(
 
         hsv_to_rgb_v(def_hsv, rgb);
         ui_but_v3_set(but, rgb);
+        ui_apply_but_func(C, but);
 
         RNA_property_update(C, &but->rnapoin, but->rnaprop);
 

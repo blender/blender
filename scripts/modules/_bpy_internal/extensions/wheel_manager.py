@@ -177,6 +177,168 @@ def _remove_safe(file_remove: str) -> Exception | None:
     return ex_result
 
 
+# -----------------------------------------------------------------------------
+# Support for Wheel: Binary distribution format
+
+def _wheel_parse_key_value(data: bytes) -> dict[bytes, bytes]:
+    # Parse: `{module}.dist-info/WHEEL` format, parse it inline as
+    # this doesn't seem to use an existing specification, it's simply key/value pairs.
+    result = {}
+    for line in data.split(b"\n"):
+        key, sep, value = line.partition(b":")
+        if not sep:
+            continue
+        if not key:
+            continue
+        result[key.strip()] = value.strip()
+    return result
+
+
+def _wheel_record_csv_remap(record_data: str, record_path_map: dict[str, str]) -> bytes:
+    import csv
+    from io import StringIO
+
+    lines_remap = []
+
+    for line in csv.reader(StringIO(record_data, newline="")):
+        # It's expected to be 3, in this case we only care about the first element (the path),
+        # however, if there are fewer items, this may be malformed or some unknown future format.
+        # - Only handle lines containing 3 elements.
+        # - Only manipulate the first element.
+        if len(line) < 3:
+            continue
+        # Items 1 and 2 are hash_sum & size respectively.
+        # If the files need to be modified these will need to be updated.
+        path = line[0]
+        if (path_remap := record_path_map.get(path)) is not None:
+            print(path_remap)
+            line = [path_remap, *line[0]]
+
+        lines_remap.append(line)
+
+    data = StringIO()
+    writer = csv.writer(data, delimiter=",", quotechar='"', lineterminator="\n")
+    writer.writerows(lines_remap)
+    return data.getvalue().encode("utf8")
+
+
+def _wheel_zipfile_normalize(
+        zip_fh: zipfile.ZipFile,
+        error_fn: Callable[[Exception], None],
+) -> dict[str, bytes] | None:
+    """
+    Modify the ZIP file to account for Python's binary format.
+    """
+
+    member_dict = {}
+    files_to_find = (".dist-info/WHEEL", ".dist-info/RECORD")
+
+    for member in zip_fh.infolist():
+        filename_orig = member.filename
+        if (
+                filename_orig.endswith(files_to_find) and
+                # Unlikely but possible the names also exist in nested directories.
+                (filename_orig.count("/") == 1)
+        ):
+            member_dict[os.path.basename(filename_orig)] = member
+            if len(member_dict) == len(files_to_find):
+                break
+
+    if (
+            ((member_wheel := member_dict.get("WHEEL")) is None) or
+            ((member_record := member_dict.get("RECORD")) is None)
+    ):
+        return None
+
+    try:
+        wheel_data = zip_fh.read(member_wheel.filename)
+    except Exception as ex:
+        error_fn(ex)
+        return None
+
+    wheel_key_values = _wheel_parse_key_value(wheel_data)
+    if wheel_key_values.get(b"Root-Is-Purelib", b"true").lower() != b"false":
+        return None
+    del wheel_key_values
+
+    # The setting has been found: `Root-Is-Purelib: false`.
+    # This requires the wheel to be mangled.
+    #
+    # - `{module-XXX}.dist-info/*` will have a:
+    #   `{module-XXX}.data/purelib/`
+    # - For a full list see:
+    #   https://docs.python.org/3/library/sysconfig.html#installation-paths
+    #
+    # Note that PIP's `wheel` package has a `wheel/wheelfile.py`  file which is a useful reference.
+
+    assert member_wheel.filename.endswith("/WHEEL")
+    dirpath_dist_info = member_wheel.filename.removesuffix("/WHEEL")
+    assert dirpath_dist_info.endswith(".dist-info")
+    dirpath_data = dirpath_dist_info.removesuffix("dist-info") + "data"
+    dirpath_data_with_slash = dirpath_data + "/"
+
+    # https://docs.python.org/3/library/sysconfig.html#user-scheme
+    user_scheme_map = {}
+    data_map = {}
+    record_path_map = {}
+
+    # Simply strip the prefix in the case of `purelib` & `platlib`
+    # so the modules are found in the expected directory.
+    #
+    # Note that we could support a "bin" and other directories however
+    # for the purpose of Blender scripts, installing command line programs
+    # for Blender's add-ons to access via `bin` is quite niche (although not impossible).
+    #
+    # For the time being this is *not* full support Python's "User scheme"
+    # just enough to import modules.
+    #
+    # Omitting other directories such as "includes" & "scripts" means these will remain in the
+    # `{module-XXX}.data/includes` sub-directory, support for them can always be added if needed.
+
+    user_scheme_map["purelib"] = ""
+    user_scheme_map["platlib"] = ""
+
+    for member in zip_fh.infolist():
+        filepath_orig = member.filename
+        if not filepath_orig.startswith(dirpath_data_with_slash):
+            continue
+
+        path_base, path_tail = filepath_orig[len(dirpath_data_with_slash):].partition("/")[0::2]
+        # The path may not contain a tail, skip these cases.
+        if not path_tail:
+            continue
+
+        if (path_base_remap := user_scheme_map.get(path_base)) is None:
+            continue
+
+        if path_base_remap:
+            filepath_remap = "{:s}/{:s}".format(path_base_remap, path_tail)
+        else:
+            filepath_remap = path_tail
+
+        member.filename = filepath_remap
+
+        record_path_map[filepath_orig] = filepath_remap
+
+    try:
+        data_map[member_record.filename] = _wheel_record_csv_remap(
+            zip_fh.read(member_record.filename).decode("utf8"),
+            record_path_map,
+        )
+    except Exception as ex:
+        error_fn(ex)
+        return None
+
+    # Nothing to remap.
+    if not record_path_map:
+        return None
+
+    return data_map
+
+
+# -----------------------------------------------------------------------------
+# Generic ZIP File Extractions
+
 def _zipfile_extractall_safe(
         zip_fh: zipfile.ZipFile,
         path: str,
@@ -184,6 +346,11 @@ def _zipfile_extractall_safe(
         *,
         error_fn: Callable[[Exception], None],
         remove_error_fn: Callable[[str, Exception], None],
+
+        # Map zip-file data to bytes.
+        # Only for small files as the mapped data needs to be held in memory.
+        # As it happens for this use case, it's only needed for the CSV file listing.
+        data_map: dict[str, bytes] | None,
 ) -> None:
     """
     A version of ``ZipFile.extractall`` that wont write to paths outside ``path_restrict``.
@@ -235,13 +402,20 @@ def _zipfile_extractall_safe(
 
         member.filename = filename_next
 
+        data_transform = None if data_map is None else data_map.get(filename_orig)
+
+        filepath_native = path_restrict + sep + filename_next.replace("/", sep)
+
         # Extraction can fail for many reasons, see: #132924.
         try:
-            zip_fh.extract(member, path_restrict)
+            if data_transform is not None:
+                with open(filepath_native, "wb") as fh:
+                    fh.write(data_transform)
+            else:
+                zip_fh.extract(member, path_restrict)
         except Exception as ex:
             error_fn(ex)
 
-            filepath_native = path_restrict + sep + filename_next.replace("/", sep)
             print("Failed to extract path:", filepath_native, "error", str(ex))
             remove_error_fn(filepath_native, ex)
             has_error = True
@@ -270,6 +444,10 @@ def _zipfile_extractall_safe(
                 os.unlink(filepath_native)
             except Exception as ex:
                 remove_error_fn(filepath_native, ex)
+
+
+# -----------------------------------------------------------------------------
+# Wheel Utilities
 
 
 WHEEL_VERSION_RE = re.compile(r"(\d+)?(?:\.(\d+))?(?:\.(\d+))")
@@ -359,6 +537,9 @@ def wheel_list_deduplicate_as_skip_set(
 
     return wheels_to_skip
 
+
+# -----------------------------------------------------------------------------
+# Public Function to Apply Wheels
 
 def apply_action(
         *,
@@ -484,10 +665,22 @@ def apply_action(
             continue
 
         with contextlib.closing(zip_fh_context) as zip_fh:
+
+            # Support non `Root-is-purelib` wheels, where the data needs to be remapped, see: .
+            # Typically `data_map` will be none, see: #132843 for the use case that requires this functionality.
+            #
+            # NOTE: these wheels should be included in tests (generated and checked to properly install).
+            # Unfortunately there doesn't seem to a be practical way to generate them using the `wheel` module.
+            data_map = _wheel_zipfile_normalize(
+                zip_fh,
+                error_fn=error_fn,
+            )
+
             _zipfile_extractall_safe(
                 zip_fh,
                 local_dir_site_packages,
                 local_dir,
                 error_fn=error_fn,
                 remove_error_fn=remove_error_fn,
+                data_map=data_map,
             )

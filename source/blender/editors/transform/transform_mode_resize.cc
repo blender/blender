@@ -312,17 +312,14 @@ static void initResize(TransInfo *t, wmOperator *op)
     zero_v3(mouse_dir_constraint);
   }
 
-  const bool only_location = (t->flag & T_V3D_ALIGN) && (t->options & CTX_OBJECT) &&
-                             (t->settings->transform_pivot_point != V3D_AROUND_CURSOR) &&
-                             t->context &&
-                             (CTX_DATA_COUNT(t->context, selected_editable_objects) == 1);
+  const bool only_location = transform_mode_affect_only_locations(t);
   if (only_location) {
     WorkspaceStatus status(t->context);
     status.item(TIP_("Transform is set to only affect location"), ICON_ERROR);
   }
 
   if (is_zero_v3(mouse_dir_constraint)) {
-    initMouseInputMode(t, &t->mouse, only_location ? INPUT_ERROR : INPUT_SPRING_FLIP);
+    initMouseInputMode(t, &t->mouse, only_location ? INPUT_ERROR_DASH : INPUT_SPRING_FLIP);
   }
   else {
     int mval_start[2], mval_end[2];
@@ -350,7 +347,7 @@ static void initResize(TransInfo *t, wmOperator *op)
 
     setCustomPoints(t, &t->mouse, mval_end, mval_start);
 
-    initMouseInputMode(t, &t->mouse, only_location ? INPUT_ERROR : INPUT_CUSTOM_RATIO);
+    initMouseInputMode(t, &t->mouse, only_location ? INPUT_ERROR_DASH : INPUT_CUSTOM_RATIO);
   }
 
   t->num.val_flag[0] |= NUM_NULL_ONE;

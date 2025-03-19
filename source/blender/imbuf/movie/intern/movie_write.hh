@@ -37,6 +37,7 @@ extern "C" {
 #  endif
 
 struct Scene;
+struct ReportList;
 struct StampData;
 
 struct MovieWriter {
@@ -81,8 +82,12 @@ struct MovieWriter {
 #  endif
 };
 
-bool movie_audio_open(
-    MovieWriter *context, const Scene *scene, int start_frame, int mixrate, float volume);
+bool movie_audio_open(MovieWriter *context,
+                      const Scene *scene,
+                      int start_frame,
+                      int mixrate,
+                      float volume,
+                      ReportList *reports);
 void movie_audio_close(MovieWriter *context, bool is_autosplit);
 
 AVStream *alloc_audio_stream(MovieWriter *context,

@@ -1299,13 +1299,14 @@ static int paint_2d_op(void *state,
                        const float pos[2])
 {
   ImagePaintState *s = ((ImagePaintState *)state);
+  const ImagePaintSettings &image_paint_settings = s->scene->toolsettings->imapaint;
   ImBuf *clonebuf = nullptr, *frombuf;
   ImBuf *canvas = tile->canvas;
   ImBuf *ibufb = tile->cache.ibuf;
   ImagePaintRegion region[4];
   short paint_tile = s->symmetry & (PAINT_TILE_X | PAINT_TILE_Y);
   short blend = s->blend;
-  const float *offset = s->brush->clone.offset;
+  const float *offset = image_paint_settings.clone_offset;
   float liftpos[2];
   float mask_max = BKE_brush_alpha_get(s->scene, s->brush);
   int bpos[2], blastpos[2], bliftpos[2];
@@ -1424,7 +1425,8 @@ static int paint_2d_canvas_set(ImagePaintState *s)
 {
   /* set clone canvas */
   if (s->brush_type == IMAGE_PAINT_BRUSH_TYPE_CLONE) {
-    Image *ima = s->brush->clone.image;
+    const ImagePaintSettings &image_paint_settings = s->scene->toolsettings->imapaint;
+    Image *ima = image_paint_settings.clone;
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
 
     if (!ima || !ibuf || !(ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
@@ -1454,7 +1456,8 @@ static void paint_2d_canvas_free(ImagePaintState *s)
   for (int i = 0; i < s->num_tiles; i++) {
     BKE_image_release_ibuf(s->image, s->tiles[i].canvas, nullptr);
   }
-  BKE_image_release_ibuf(s->brush->clone.image, s->clonecanvas, nullptr);
+  const ImagePaintSettings &image_paint_settings = s->scene->toolsettings->imapaint;
+  BKE_image_release_ibuf(image_paint_settings.clone, s->clonecanvas, nullptr);
 
   if (s->blurkernel) {
     paint_delete_blur_kernel(s->blurkernel);

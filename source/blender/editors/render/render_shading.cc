@@ -995,9 +995,17 @@ static int view_layer_add_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer_current = WM_window_get_active_view_layer(win);
+
+  ViewLayer *view_layer_current = win ? WM_window_get_active_view_layer(win) : nullptr;
+  int type = RNA_enum_get(op->ptr, "type");
+  /* Copy requires a source. */
+  if (type == VIEWLAYER_ADD_COPY) {
+    if (view_layer_current == nullptr) {
+      type = VIEWLAYER_ADD_NEW;
+    }
+  }
   ViewLayer *view_layer_new = BKE_view_layer_add(
-      scene, view_layer_current->name, view_layer_current, RNA_enum_get(op->ptr, "type"));
+      scene, view_layer_current ? view_layer_current->name : nullptr, view_layer_current, type);
 
   if (win) {
     WM_window_set_active_view_layer(win, view_layer_new);
@@ -1490,6 +1498,11 @@ static int lightprobe_cache_bake_invoke(bContext *C, wmOperator *op, const wmEve
 
   wmJob *wm_job = EEVEE_NEXT_lightbake_job_create(
       wm, win, bmain, view_layer, scene, probes, data->report, scene->r.cfra, 0);
+  if (wm_job == nullptr) {
+    MEM_delete(data);
+    BKE_report(op->reports, RPT_WARNING, "Can't bake light probe while rendering");
+    return OPERATOR_CANCELLED;
+  }
 
   WM_event_add_modal_handler(C, op);
 

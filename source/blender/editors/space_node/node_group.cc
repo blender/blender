@@ -320,10 +320,8 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
                   animation_basepath_change_new(*old_animation_basepath, *new_animation_basepath));
     }
 
-    if (!node->parent) {
-      node->location[0] += gnode->location[0];
-      node->location[1] += gnode->location[1];
-    }
+    node->location[0] += gnode->location[0];
+    node->location[1] += gnode->location[1];
 
     node->flag |= NODE_SELECT;
   }

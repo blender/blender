@@ -31,10 +31,12 @@ class MultiDevice : public Device {
   device_ptr unique_key = 1;
   vector<vector<SubDevice *>> peer_islands;
 
-  MultiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
-      : Device(info, stats, profiler, headless)
+  MultiDevice(const DeviceInfo &info_, Stats &stats, Profiler &profiler, bool headless)
+      : Device(info_, stats, profiler, headless)
   {
-    for (const DeviceInfo &subinfo : info.multi_devices) {
+    verify_hardware_raytracing();
+
+    for (const DeviceInfo &subinfo : this->info.multi_devices) {
       /* Always add CPU devices at the back since GPU devices can change
        * host memory pointers, which CPU uses as device pointer. */
       SubDevice *sub;
@@ -74,6 +76,34 @@ class MultiDevice : public Device {
           peer_sub.peer_island_index = sub.peer_island_index;
           peer_islands[sub.peer_island_index].push_back(&peer_sub);
         }
+      }
+    }
+  }
+
+  void verify_hardware_raytracing()
+  {
+    /* Determine if we can use hardware ray-tracing. It is only supported if all selected
+     * GPU devices support it. Both the backends and scene update code do not support mixed
+     * BVH2 and hardware raytracing. The CPU device will ignore this setting. */
+    bool have_disabled_hardware_rt = false;
+    bool have_enabled_hardware_rt = false;
+
+    for (const DeviceInfo &subinfo : info.multi_devices) {
+      if (subinfo.type != DEVICE_CPU) {
+        if (subinfo.use_hardware_raytracing) {
+          have_enabled_hardware_rt = true;
+        }
+        else {
+          have_disabled_hardware_rt = true;
+        }
+      }
+    }
+
+    info.use_hardware_raytracing = have_enabled_hardware_rt && !have_disabled_hardware_rt;
+
+    for (DeviceInfo &subinfo : info.multi_devices) {
+      if (subinfo.type != DEVICE_CPU) {
+        subinfo.use_hardware_raytracing = info.use_hardware_raytracing;
       }
     }
   }

@@ -208,7 +208,7 @@ static void modify_geometry_set(ModifierData *md,
           pointcloud->bounds_min_max(), pointcloud->mat, pointcloud->totcol);
     }
 
-    *geometry_set = bke::GeometrySet::from_mesh(bbox, bke::GeometryOwnershipType::Editable);
+    *geometry_set = bke::GeometrySet::from_mesh(bbox);
     return;
   }
 

@@ -932,6 +932,19 @@ static void GREASE_PENCIL_OT_layer_mask_add(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", nullptr, 0, "Layer", "Name of the layer");
 }
 
+static bool grease_pencil_layer_mask_poll(bContext *C)
+{
+  using namespace blender::bke::greasepencil;
+  if (!active_grease_pencil_layer_poll(C)) {
+    return false;
+  }
+
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
+  Layer &active_layer = *grease_pencil.get_active_layer();
+
+  return !BLI_listbase_is_empty(&active_layer.masks);
+}
+
 static int grease_pencil_layer_mask_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender::bke::greasepencil;
@@ -970,7 +983,20 @@ static void GREASE_PENCIL_OT_layer_mask_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_mask_remove_exec;
-  ot->poll = active_grease_pencil_layer_poll;
+  ot->poll = grease_pencil_layer_mask_poll;
+}
+
+static bool grease_pencil_layer_mask_reorder_poll(bContext *C)
+{
+  using namespace blender::bke::greasepencil;
+  if (!active_grease_pencil_layer_poll(C)) {
+    return false;
+  }
+
+  GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
+  Layer &active_layer = *grease_pencil.get_active_layer();
+
+  return BLI_listbase_count(&active_layer.masks) > 1;
 }
 
 static int grease_pencil_layer_mask_reorder_exec(bContext *C, wmOperator *op)
@@ -1014,7 +1040,7 @@ static void GREASE_PENCIL_OT_layer_mask_reorder(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = grease_pencil_layer_mask_reorder_exec;
-  ot->poll = active_grease_pencil_layer_poll;
+  ot->poll = grease_pencil_layer_mask_reorder_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

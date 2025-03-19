@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
-"PO-Revision-Date: 2015-03-03 16:21+0530\n"
-"Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
-"Language-Team: Hindi <www.anisecrets.com>\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: \n"
-"X-Generator: Poedit 1.6.9"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Valid"
@@ -181,10 +181,6 @@ msgstr "बंद"
 
 msgid "Full"
 msgstr "पूर्ण"
-
-
-msgid "Auto"
-msgstr "स्वत:"
 
 
 msgid "Never"
@@ -571,10 +567,6 @@ msgid "Volume"
 msgstr "आयतन"
 
 
-msgid "Automatic"
-msgstr "स्वत:"
-
-
 msgid "Relative"
 msgstr "सापेक्ष"
 
@@ -739,10 +731,6 @@ msgstr "क्षेत्र की गहनता"
 
 msgid "Ratio"
 msgstr "अनुपात"
-
-
-msgid "Pivot"
-msgstr "धुरी:"
 
 
 msgid "Left"
@@ -1639,14 +1627,6 @@ msgid "Loop"
 msgstr "कुण्डली"
 
 
-msgid "Clone Alpha"
-msgstr "प्रतिरूप पारदर्शिता"
-
-
-msgid "Clone Image"
-msgstr "प्रतिरूप छवि"
-
-
 msgid "Local"
 msgstr "स्थानीय"
 
@@ -2392,11 +2372,6 @@ msgid "fBM"
 msgstr "एफ़बीएम"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "छांटन"
-
-
 msgid "Window Manager"
 msgstr "खिडकी प्रबंधक"
 
@@ -2613,12 +2588,12 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
-
-
 msgid "Snap"
 msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Light"
@@ -4543,6 +4518,14 @@ msgid "Canvas"
 msgstr "चित्रपटी"
 
 
+msgid "Clone Alpha"
+msgstr "प्रतिरूप पारदर्शिता"
+
+
+msgid "Clone Image"
+msgstr "प्रतिरूप छवि"
+
+
 msgid "Single Image"
 msgstr "एकल छवि"
 
@@ -4992,6 +4975,11 @@ msgstr "चलचित्र"
 
 
 msgctxt "Sequence"
+msgid "Clip"
+msgstr "छांटन"
+
+
+msgctxt "Sequence"
 msgid "Mask"
 msgstr "आवरण"
 
@@ -5355,10 +5343,6 @@ msgstr "बहु"
 msgctxt "Operator"
 msgid "Selection to Cursor"
 msgstr "प्रसंकेतक के लिए चयन"
-
-
-msgid "Parent:"
-msgstr "कारण"
 
 
 msgid "Transform:"
@@ -6420,14 +6404,6 @@ msgid "Offset:"
 msgstr "विचलन:"
 
 
-msgid "Width:"
-msgstr "चौड़ाई"
-
-
-msgid "Height:"
-msgstr "ऊँचाई"
-
-
 msgid "Y-position of search at frame relative to marker's position"
 msgstr "बाएँ-नीचे शंकुे सापेक्ष सामान्यीकृत निर्देशांक में खोज क्षेत्र के चिन्हक की स्थिति"
 
@@ -6510,10 +6486,6 @@ msgstr "डब्ल्यु:"
 
 msgid "Weight:"
 msgstr "भार:"
-
-
-msgid "Radius:"
-msgstr "त्रिज्या"
 
 
 msgid "Tilt:"

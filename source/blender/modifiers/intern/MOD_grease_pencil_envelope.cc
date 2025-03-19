@@ -512,8 +512,8 @@ static void create_envelope_strokes(const EnvelopeInfo &info,
   const int src_points_num = src_curves.points_num();
 
   /* Count envelopes. */
-  Array<int> envelope_curves_by_curve(src_curves_num + 1);
-  Array<int> envelope_points_by_curve(src_curves_num + 1);
+  Array<int> envelope_curves_by_curve(src_curves_num + 1, 0);
+  Array<int> envelope_points_by_curve(src_curves_num + 1, 0);
   curves_mask.foreach_index([&](const int64_t src_curve_i) {
     const IndexRange points = src_curves.points_by_curve()[src_curve_i];
     const int curve_num = curve_envelope_strokes_num(info, points.size(), src_cyclic[src_curve_i]);

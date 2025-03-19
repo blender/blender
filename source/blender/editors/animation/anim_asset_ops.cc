@@ -528,7 +528,7 @@ static inline void replace_pose_key(Main &bmain,
                                     blender::animrig::StripKeyframeData &strip_data,
                                     const blender::animrig::Slot &slot,
                                     const float2 time_value,
-                                    const blender::animrig::FCurveDescriptor fcurve_descriptor)
+                                    const blender::animrig::FCurveDescriptor &fcurve_descriptor)
 {
   using namespace blender::animrig;
   Channelbag &channelbag = strip_data.channelbag_for_slot_ensure(slot);
@@ -746,6 +746,10 @@ static int pose_asset_delete_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const blender::asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  std::optional<AssetLibraryReference> library_ref =
+      asset->owner_asset_library().library_reference();
+
   if (ID_IS_LINKED(action)) {
     bke::asset_edit_id_delete(*CTX_data_main(C), action->id, *op->reports);
   }
@@ -753,8 +757,8 @@ static int pose_asset_delete_exec(bContext *C, wmOperator *op)
     asset::clear_id(&action->id);
   }
 
-  const blender::asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
-  asset::refresh_asset_library_from_asset(C, *asset);
+  asset::refresh_asset_library(C, library_ref.value());
+
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_REMOVED, nullptr);
 
   return OPERATOR_FINISHED;

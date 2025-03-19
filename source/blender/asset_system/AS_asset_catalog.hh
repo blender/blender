@@ -50,8 +50,11 @@ class AssetCatalogService {
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
   Vector<std::unique_ptr<AssetCatalogCollection>> redo_snapshots_;
 
-  const CatalogFilePath asset_library_root_;
-  const bool is_read_only_ = false;
+  CatalogFilePath asset_library_root_;
+  bool is_read_only_ = false;
+
+  friend class AssetLibraryService;
+  friend class AssetLibrary;
 
  public:
   static const CatalogFilePath DEFAULT_CATALOG_FILENAME;

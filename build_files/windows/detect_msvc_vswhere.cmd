@@ -13,11 +13,16 @@ if not exist "%vs_where%" (
 	goto FAIL
 )
 
-if NOT "%verbose%" == "" (
-		echo "%vs_where%" -latest %VSWHERE_ARGS% -version ^[%BUILD_VS_VER%.0^,%BUILD_VS_VER%.99^) -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64
-	)
+if "%BUILD_ARCH%" == "arm64" (
+	set VSWHERE_ARCH=ARM64
+) else (
+	set VSWHERE_ARCH=x86.x64
+)
 
-for /f "usebackq tokens=1* delims=: " %%i in (`"%vs_where%" -latest -version ^[%BUILD_VS_VER%.0^,%BUILD_VS_VER%.99^) %VSWHERE_ARGS% -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64`) do (
+if NOT "%verbose%" == "" (
+	echo "%vs_where%" -latest %VSWHERE_ARGS% -version ^[%BUILD_VS_VER%.0^,%BUILD_VS_VER%.99^) -requires Microsoft.VisualStudio.Component.VC.Tools.%VSWHERE_ARCH%
+)
+for /f "usebackq tokens=1* delims=: " %%i in (`"%vs_where%" -latest -version ^[%BUILD_VS_VER%.0^,%BUILD_VS_VER%.99^) %VSWHERE_ARGS% -requires Microsoft.VisualStudio.Component.VC.Tools.%VSWHERE_ARCH%`) do (
 	if /i "%%i"=="installationPath" set VS_InstallDir=%%j
 )
 
@@ -35,6 +40,34 @@ if "%VS_InstallDir%"=="" (
 		echo If you are attempting to use either Visual Studio Preview version or the Visual C++ Build tools, Please see 'make help' on how to opt in to those toolsets.
 		echo. 
 		goto FAIL
+	)
+)
+
+rem If we are using Clang + MSBuild, check to make sure the clang tools are installed
+if "%WITH_CLANG%" == "1" (
+	if NOT "%BUILD_WITH_NINJA%" == "1" (
+		if NOT "%verbose%" == "" (
+			echo "%vs_where%" -latest %VSWHERE_ARGS% -version ^[%BUILD_VS_VER%.0^,%BUILD_VS_VER%.99^) -requires Microsoft.VisualStudio.Component.VC.Llvm.ClangToolset
+		)
+
+		for /f "usebackq tokens=1* delims=: " %%i in (`"%vs_where%" -latest -version ^[%BUILD_VS_VER%.0^,%BUILD_VS_VER%.99^) %VSWHERE_ARGS% -requires Microsoft.VisualStudio.Component.VC.Llvm.ClangToolset`) do (
+			if /i "%%i"=="installationName" set VSWhere_ClangFound=%%j
+		)
+	)
+)
+
+REM This needs to be in a seperate block, due to no delayed expansion (which breaks other things if enabled)
+if "%WITH_CLANG%" == "1" (
+	if NOT "%BUILD_WITH_NINJA%" == "1" (
+		if "%VSWhere_ClangFound%"=="" (
+			echo.
+			echo Clang was specified whilst using the Visual Studio CMake generator, but the Clang Toolset was not found in Visual Studio.
+			echo.
+			echo Check the "MSBuild support for LLVM (clang-cl) toolset" component has been installed.
+			echo.
+			echo Alternatively use the Ninja generator via the "ninja" switch when calling make.bat
+			goto FAIL
+		)
 	)
 )
 

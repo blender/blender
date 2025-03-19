@@ -764,6 +764,42 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
         endforeach()
       endif()
 
+      # Overlay
+      if(WITH_GPU_RENDER_TESTS_HEADED)
+        if(WITH_OPENGL_BACKEND)
+          add_render_test(
+            overlay_opengl
+            ${CMAKE_CURRENT_LIST_DIR}/overlay_render_tests.py
+            --testdir "${TEST_SRC_DIR}/overlay"
+            --outdir "${TEST_OUT_DIR}/overlay"
+            --gpu-backend opengl
+            ${_gpu_render_tests_arguments}
+          )
+        endif()
+
+        if(WITH_METAL_BACKEND)
+          add_render_test(
+            overlay_metal
+            ${CMAKE_CURRENT_LIST_DIR}/overlay_render_tests.py
+            --testdir "${TEST_SRC_DIR}/overlay"
+            --outdir "${TEST_OUT_DIR}/overlay"
+            --gpu-backend metal
+            ${_gpu_render_tests_arguments}
+          )
+        endif()
+
+        if(WITH_VULKAN_BACKEND AND WITH_GPU_RENDER_TESTS_VULKAN)
+          add_render_test(
+            overlay_vulkan
+            ${CMAKE_CURRENT_LIST_DIR}/overlay_render_tests.py
+            --testdir "${TEST_SRC_DIR}/overlay"
+            --outdir "${TEST_OUT_DIR}/overlay"
+            --gpu-backend vulkan
+            ${_gpu_render_tests_arguments}
+          )
+        endif()
+      endif()
+      
       if(WITH_HYDRA)
         # Hydra Storm
         foreach(render_test ${gpu_render_tests})

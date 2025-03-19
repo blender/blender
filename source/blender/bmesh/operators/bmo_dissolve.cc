@@ -329,7 +329,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* Cleanup geometry. Remove any verts that are garbage collectible and that that have became
+  /* Cleanup geometry. Remove any verts that are garbage collectible and that have became
    * isolated verts (no edges) because of edge dissolves. */
   BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
     if ((v->e == nullptr) && BMO_vert_flag_test(bm, v, VERT_ISGC)) {

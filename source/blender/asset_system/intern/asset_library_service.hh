@@ -80,10 +80,16 @@ class AssetLibraryService {
   static bUserAssetLibrary *find_custom_preferences_asset_library_from_asset_weak_ref(
       const AssetWeakReference &asset_reference);
   /**
-   * Call when the .blend file is saved or unloaded to destroy the runtime library. It's not
-   * represented as a on disk library.
+   * Turn the runtime current file library into a on-disk current file library, preserving catalog
+   * data like undo/redo history, deleted catalog info, catalog saving state, etc. Note that this
+   * creates a new on-disk asset library and destroys the runtime one.
+   *
+   * Call when the .blend file is saved to disk.
+   *
+   * \return the new on-disk current file asset library (null in case of failure to find a path to
+   * store the library in, based on the #Main.filepath from \a main).
    */
-  static void destroy_runtime_current_file_library();
+  static AssetLibrary *move_runtime_current_file_into_on_disk_library(const Main &bmain);
 
   AssetLibrary *get_asset_library(const Main *bmain,
                                   const AssetLibraryReference &library_reference);
@@ -161,6 +167,8 @@ class AssetLibraryService {
   /** Allocate a new instance of the service and assign it to `instance_`. */
   static void allocate_service_instance();
 
+  OnDiskAssetLibrary *lookup_on_disk_library(eAssetLibraryType type, StringRefNull root_path);
+
   AssetLibrary *find_loaded_on_disk_asset_library_from_name(StringRef name) const;
 
   /**
@@ -170,7 +178,8 @@ class AssetLibraryService {
    */
   AssetLibrary *get_asset_library_on_disk(eAssetLibraryType library_type,
                                           StringRef name,
-                                          StringRefNull root_path);
+                                          StringRefNull root_path,
+                                          bool load_catalogs = true);
   /**
    * Ensure the AssetLibraryService instance is destroyed before a new blend file is loaded.
    * This makes memory management simple, and ensures a fresh start for every blend file. */

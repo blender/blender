@@ -959,7 +959,7 @@ float ED_view3d_grid_view_scale(const Scene *scene,
 
 static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 {
-  const float k = U.rvisize * U.pixelsize; /* axis size */
+  const float k = U.rvisize * UI_SCALE_FAC; /* axis size */
   /* axis alpha offset (rvibright has range 0-10) */
   const int bright = -20 * (10 - U.rvibright);
 

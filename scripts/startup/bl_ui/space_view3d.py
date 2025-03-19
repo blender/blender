@@ -1463,9 +1463,9 @@ class VIEW3D_MT_view(Menu):
         layout.separator()
 
         if context.mode in {'PAINT_TEXTURE', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'SCULPT'}:
-            layout.operator("view3d.view_selected", text="Frame Last Stroke").use_all_regions = False
+            layout.operator("view3d.view_selected", text="Frame Last Stroke")
         else:
-            layout.operator("view3d.view_selected", text="Frame Selected").use_all_regions = False
+            layout.operator("view3d.view_selected", text="Frame Selected")
         if view.region_quadviews:
             layout.operator("view3d.view_selected", text="Frame Selected (Quad View)").use_all_regions = True
 
@@ -3053,7 +3053,8 @@ class VIEW3D_MT_object_context_menu(Menu):
                 if selected_objects_len > 1:
                     layout.operator("object.join")
 
-            if obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD', 'META', 'FONT'}:
+            if obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD',
+                            'META', 'FONT', 'GREASEPENCIL'}:
                 layout.operator_menu_enum("object.convert", "target")
 
             if (obj.type in {'MESH',
@@ -3383,16 +3384,19 @@ class VIEW3D_MT_object_convert(Menu):
         layout = self.layout
         ob = context.active_object
 
-        if ob and ob.type != 'EMPTY':
-            layout.operator_enum("object.convert", "target")
+        layout.operator_enum("object.convert", "target")
 
-        else:
+        if ob and ob.type == 'EMPTY':
             # Potrace lib dependency.
             if bpy.app.build_options.potrace:
+                layout.separator()
+
                 layout.operator("image.convert_to_mesh_plane", text="Convert to Mesh Plane", icon='MESH_PLANE')
                 layout.operator("grease_pencil.trace_image", icon='OUTLINER_OB_GREASEPENCIL')
 
         if ob and ob.type == 'CURVES':
+            layout.separator()
+
             layout.operator("curves.convert_to_particle_system", text="Particle System")
 
         layout.template_node_operator_asset_menu_items(catalog_path="Object/Convert")

@@ -100,7 +100,7 @@ using namespace blender;
 
 /* Draw Backdrop ---------------------------------- */
 
-/* get backdrop color for top-level widgets (Scene and Object only) */
+/* get backdrop color for top-level widgets (Scene, Object and ActionSlot only) */
 static void acf_generic_root_color(bAnimContext * /*ac*/,
                                    bAnimListElem * /*ale*/,
                                    float r_color[3])
@@ -1502,9 +1502,9 @@ static bAnimChannelType ACF_ACTION_SLOT = {
     /*channel_type_name*/ "Action Slot",
     /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
-    /*get_backdrop_color*/ acf_generic_dataexpand_color,
+    /*get_backdrop_color*/ acf_generic_root_color,
     /*get_channel_color*/ nullptr,
-    /*draw_backdrop*/ nullptr,
+    /*draw_backdrop*/ acf_generic_root_backdrop,
     /*get_indent_level*/ acf_generic_indentation_0,
     /*get_offset*/ acf_generic_group_offset,
 
@@ -3946,8 +3946,8 @@ static void *layer_setting_ptr(bAnimListElem *ale,
 static bool layer_channel_color(const bAnimListElem *ale, uint8_t r_color[3])
 {
   using namespace bke::greasepencil;
-  GreasePencilLayerTreeNode &layer = *static_cast<GreasePencilLayerTreeNode *>(ale->data);
-  rgb_float_to_uchar(r_color, layer.color);
+  GreasePencilLayerTreeNode &node = *static_cast<GreasePencilLayerTreeNode *>(ale->data);
+  rgb_float_to_uchar(r_color, node.color);
   return true;
 }
 
@@ -4055,7 +4055,7 @@ static bAnimChannelType ACF_GPLGROUP = {
     /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
 
     /*get_backdrop_color*/ greasepencil::layer_group_color,
-    /*get_channel_color*/ nullptr,
+    /*get_channel_color*/ greasepencil::layer_channel_color,
     /*draw_backdrop*/ acf_group_backdrop,
     /*get_indent_level*/ acf_generic_indentation_0,
     /*get_offset*/ greasepencil::layer_offset,

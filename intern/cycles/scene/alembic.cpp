@@ -819,8 +819,6 @@ AlembicProcedural::~AlembicProcedural()
         geometries_set.insert(abc_object->get_object()->get_geometry());
       }
     }
-
-    delete_node(abc_object);
   }
 
   /* We may delete a Procedural before rendering started, so scene_ can be null. */

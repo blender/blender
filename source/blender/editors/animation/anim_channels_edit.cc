@@ -40,6 +40,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mask.h"
 #include "BKE_nla.hh"
+#include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"
@@ -3435,7 +3436,7 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator * /*op*/)
     ID *id = ale->id;
     AnimData *adt = static_cast<AnimData *>(ale->data);
 
-    bool action_empty = false;
+    bool action_empty;
     bool nla_empty = false;
     bool drivers_empty = false;
 
@@ -3445,12 +3446,17 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator * /*op*/)
     /* check if this is "empty" and can be deleted */
     /* (For now, there are only these 3 criteria) */
 
-    /* 1) Active Action is missing or empty */
-    if (ELEM(nullptr, adt->action, adt->action->curves.first)) {
-      action_empty = true;
+    /* 1) Assigned Action is empty, at least when it comes to this data-block. */
+    if (adt->action) {
+      using namespace blender::animrig;
+      const Action &action = adt->action->wrap();
+      /* This should not be using action.is_empty(), as this operator is not about cleaning up the
+       * Action itself, but rather disassociating it from the animated ID when that ID is not being
+       * animated by it. */
+      action_empty = fcurves_for_action_slot(action, adt->slot_handle).is_empty();
     }
     else {
-      /* TODO: check for keyframe + F-modifier data on these too. */
+      action_empty = true;
     }
 
     /* 2) No NLA Tracks and/or NLA Strips */
@@ -5445,7 +5451,7 @@ static void ANIM_OT_slot_channels_move_to_new_action(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int separate_slots_exec(bContext *C, wmOperator * /* op */)
+static int separate_slots_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
   Object *active_object = CTX_data_active_object(C);
@@ -5457,16 +5463,24 @@ static int separate_slots_exec(bContext *C, wmOperator * /* op */)
   BLI_assert(action != nullptr);
 
   Main *bmain = CTX_data_main(C);
+  int created_actions = 0;
   while (action->slot_array_num) {
     Slot *slot = action->slot(action->slot_array_num - 1);
     char actname[MAX_ID_NAME - 2];
     SNPRINTF(actname, DATA_("%sAction"), slot->identifier + 2);
     Action &target_action = action_add(*bmain, actname);
+    created_actions++;
     Layer &layer = target_action.layer_add(std::nullopt);
     layer.strip_add(target_action, Strip::Type::Keyframe);
     move_slot(*bmain, *slot, *action, target_action);
     DEG_id_tag_update(&target_action.id, ID_RECALC_ANIMATION_NO_FLUSH);
   }
+
+  BKE_reportf(op->reports,
+              RPT_INFO,
+              "Separated %s into %i new actions",
+              action->id.name + 2,
+              created_actions);
 
   DEG_id_tag_update(&action->id, ID_RECALC_ANIMATION_NO_FLUSH);
   DEG_relations_tag_update(CTX_data_main(C));

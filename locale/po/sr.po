@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
-"PO-Revision-Date: 2012-09-07 22:32+0100\n"
-"Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
-"Language-Team: Nikola Radovanovic\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
 "Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Virtaal 0.7.0"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Valid"
@@ -1865,10 +1865,6 @@ msgid "White Point"
 msgstr "Бела тачка"
 
 
-msgid "Color Mapping"
-msgstr "Бојење:"
-
-
 msgid "Blend Factor"
 msgstr "Фактор прелива"
 
@@ -3495,10 +3491,6 @@ msgid "Simulation start frame"
 msgstr "Симулација почиње у овом кадру"
 
 
-msgid "Sub-Steps"
-msgstr "Под-кораци:"
-
-
 msgid "File Format"
 msgstr "Формат датотеке"
 
@@ -3525,10 +3517,6 @@ msgstr "Резолуција излазне слике"
 
 msgid "Initial color of the surface"
 msgstr "Основна боја површине"
-
-
-msgid "Initial Color"
-msgstr "Почетне вредности:"
 
 
 msgid "UV Texture"
@@ -4892,10 +4880,6 @@ msgid "Users"
 msgstr "Корисници"
 
 
-msgid "Frame Range"
-msgstr "Опсег кадрова:"
-
-
 msgid "Groups"
 msgstr "Групе"
 
@@ -4978,14 +4962,6 @@ msgstr "Кутија"
 
 msgid "Loop"
 msgstr "Петље"
-
-
-msgid "Clone Alpha"
-msgstr "X алфа"
-
-
-msgid "Clone Image"
-msgstr "Клонирај слој"
 
 
 msgid "Local"
@@ -7712,10 +7688,6 @@ msgid "Use very clearly defined marble"
 msgstr "Користи врло јасно дефинисан мермер"
 
 
-msgid "Noise Basis 2"
-msgstr "Основа шума:"
-
-
 msgid "Sin"
 msgstr "Синус"
 
@@ -7858,11 +7830,6 @@ msgstr "Додај шум на прстење"
 
 msgid "Vector Font"
 msgstr "Векторски фонт"
-
-
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Исечак"
 
 
 msgid "Window Manager"
@@ -8638,12 +8605,12 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Mirror"
-msgstr "Огледало"
-
-
 msgid "Snap"
 msgstr "Лепљење"
+
+
+msgid "Mirror"
+msgstr "Огледало"
 
 
 msgid "UV Mapping"
@@ -9974,10 +9941,6 @@ msgstr "Оштрина"
 
 msgid "Smooth Shading"
 msgstr "Меко сенчење"
-
-
-msgid "Screw Modifier"
-msgstr "Модификатор шрафа:"
 
 
 msgid "Angle of revolution"
@@ -14601,6 +14564,10 @@ msgid "Select Mode"
 msgstr "Мод изабора"
 
 
+msgid "Fill Opacity"
+msgstr "Провидност испуне"
+
+
 msgctxt "Operator"
 msgid "Snap Selection to Cursor"
 msgstr "Изабор за курсор"
@@ -16664,11 +16631,6 @@ msgstr "Вишеструко сечење"
 
 
 msgctxt "Operator"
-msgid "Multires Subdivide"
-msgstr "Звук:"
-
-
-msgctxt "Operator"
 msgid "Bake Ocean"
 msgstr "Испеци океан"
 
@@ -17886,11 +17848,6 @@ msgid "Delete Screen"
 msgstr "Избриши екран"
 
 
-msgctxt "Operator"
-msgid "Jump to Endpoint"
-msgstr "Скочи до линије:"
-
-
 msgid "Last Frame"
 msgstr "Последњи кадар"
 
@@ -19012,10 +18969,6 @@ msgid "PNG Image (.png)"
 msgstr "PNG слика (.png)"
 
 
-msgid "Fill Opacity"
-msgstr "Провидност испуне"
-
-
 msgid "Edge Length Mode"
 msgstr "Режим дужине ивица"
 
@@ -19515,10 +19468,6 @@ msgid "Sort by Object name"
 msgstr "Поређак по имену објекта"
 
 
-msgid "Context Attributes"
-msgstr "Атрибути:"
-
-
 msgid "Cycle backwards"
 msgstr "Уназад"
 
@@ -19796,6 +19745,14 @@ msgid "Canvas"
 msgstr "Платно"
 
 
+msgid "Clone Alpha"
+msgstr "X алфа"
+
+
+msgid "Clone Image"
+msgstr "Клонирај слој"
+
+
 msgid "Dither"
 msgstr "Међутон"
 
@@ -19994,10 +19951,6 @@ msgstr "Филтер"
 
 msgid "Bookmarks"
 msgstr "Обележивачи"
-
-
-msgid "Fluid Presets"
-msgstr "Својства течности:"
 
 
 msgid "Texture Mask"
@@ -20245,10 +20198,6 @@ msgstr "Сунце"
 
 msgid "Make hairs less puffy"
 msgstr "Направи косу мање пуфнастом"
-
-
-msgid "Puff Volume"
-msgstr "Јачина:"
 
 
 msgid "Properties of particle editing mode"
@@ -20607,10 +20556,6 @@ msgid "Automatic keyframe insertion for Objects and Bones (default setting used 
 msgstr "Самостално умећи кључеве на ipo кривој објекта"
 
 
-msgid "Show Auto Keying Warning"
-msgstr "Аутоматски додај кључне кадрове:"
-
-
 msgid "Duplicate Action"
 msgstr "Дуплирај акцију"
 
@@ -20837,10 +20782,6 @@ msgstr "Поставља да тастери од 1 до 0 изигравају 
 
 msgid "Continuous Grab"
 msgstr "Континуално померање"
-
-
-msgid "Auto Depth"
-msgstr "Дубина:"
 
 
 msgid "Emulate 3 Button Mouse"
@@ -21121,10 +21062,6 @@ msgstr "Преводи описе"
 
 msgid "Base"
 msgstr "Основа"
-
-
-msgid "Group of ID properties"
-msgstr "Својства течности:"
 
 
 msgid "Case"
@@ -22048,10 +21985,6 @@ msgid "Backdrop zoom factor"
 msgstr "Фактор увећања приказа позадине"
 
 
-msgid "Cursor Location"
-msgstr "Позиција курсора:"
-
-
 msgid "Location for adding new nodes"
 msgstr "Локација новоформираних чворова"
 
@@ -22266,6 +22199,11 @@ msgstr "Сцена"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Филм"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Исечак"
 
 
 msgctxt "Sequence"
@@ -25171,10 +25109,6 @@ msgid "Reset Black/White point and curves"
 msgstr "Ресетуј црну и белу тачку и криве"
 
 
-msgid "ID-Block:"
-msgstr "ID-блок"
-
-
 msgid "Browse Scene to be linked"
 msgstr "Изаберите сцену за повезивање"
 
@@ -25742,14 +25676,6 @@ msgid "Offset:"
 msgstr "Одстојање:"
 
 
-msgid "Width:"
-msgstr "Ширина"
-
-
-msgid "Height:"
-msgstr "Висина"
-
-
 msgid "Marker is disabled at current frame"
 msgstr "Маркер је искључен на тернутном кадру"
 
@@ -25802,16 +25728,8 @@ msgid "Cursor X"
 msgstr "Курсор X"
 
 
-msgid "Prop:"
-msgstr "Својство"
-
-
 msgid "Driver Value:"
 msgstr "Вредност возача:"
-
-
-msgid "Value:"
-msgstr "Вредност"
 
 
 msgid "Update Dependencies"
@@ -25940,10 +25858,6 @@ msgstr "Полупречник:"
 
 msgid "Tilt:"
 msgstr "Нагиб:"
-
-
-msgid "Mean Radius:"
-msgstr "Главни полупречник"
 
 
 msgid "4L"

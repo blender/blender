@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
-"PO-Revision-Date: 2024-12-08 20:56+0000\n"
-"Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"PO-Revision-Date: 2025-03-03 11:29+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.8.3"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -69,10 +69,6 @@ msgstr "Position"
 
 msgid "Action F-Curves"
 msgstr "Aktion F-Kurve"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Gruppe von aktions F-Kurven"
 
 
 msgid "Action Group"
@@ -11402,17 +11398,9 @@ msgid "Groups"
 msgstr "Gruppen"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Beschränkung"
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "ID-Stammtyp"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "Typ des ID-Blocks, für den die Aktion verwendet werden kann - NICHT ÄNDERN, ES SEI DENN, SIE WISSEN, WAS SIE TUN"
 
 
 msgid "Layers"
@@ -11673,18 +11661,6 @@ msgstr "Schleife"
 
 msgid "Boundary Origin Offset"
 msgstr "Grenzursprungs-Versatz"
-
-
-msgid "Clone Alpha"
-msgstr "Alpha klonen"
-
-
-msgid "Clone Image"
-msgstr "Bild klonen"
-
-
-msgid "Clone Offset"
-msgstr "Versatz klonen"
 
 
 msgid "How much the cloth preserves the original shape, acting as a soft body"
@@ -16317,11 +16293,6 @@ msgid "Grids"
 msgstr "Raster"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Clip"
-
-
 msgid "Velocity X Grid"
 msgstr "Velocity X-Raster"
 
@@ -18900,12 +18871,28 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
+msgid "Pivot Point"
+msgstr "Drehpunkt"
 
 
 msgid "Snap"
 msgstr "Einrasten"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
 
 
 msgid "Local View"
@@ -19016,10 +19003,6 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
 msgid "Random Mask"
 msgstr "Zufällige Maske"
 
@@ -19070,18 +19053,6 @@ msgstr "Kerning"
 
 msgid "Text"
 msgstr "Text"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
 
 
 msgid "Assets"
@@ -40090,6 +40061,18 @@ msgid "Canvas"
 msgstr "Leinwand"
 
 
+msgid "Clone Alpha"
+msgstr "Alpha klonen"
+
+
+msgid "Clone Image"
+msgstr "Bild klonen"
+
+
+msgid "Clone Offset"
+msgstr "Versatz klonen"
+
+
 msgid "Texture filtering type"
 msgstr "Textur Filtertyp"
 
@@ -40222,6 +40205,10 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Active Tool"
+msgstr "Aktives Werkzeug"
+
+
 msgid "View Lock"
 msgstr "Ansicht sperren"
 
@@ -40300,10 +40287,6 @@ msgstr "Automatisches Maskieren"
 
 msgid "VR"
 msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "Aktives Werkzeug"
 
 
 msgid "Chain Scaling"
@@ -47162,6 +47145,11 @@ msgstr "Film"
 
 
 msgctxt "Sequence"
+msgid "Clip"
+msgstr "Clip"
+
+
+msgctxt "Sequence"
 msgid "Mask"
 msgstr "Maske"
 
@@ -47222,10 +47210,6 @@ msgstr "Input 2"
 
 msgid "Animation End Offset"
 msgstr "Animations-Endversatz"
-
-
-msgid "Animation end offset (trim end)"
-msgstr "Simulation:"
 
 
 msgid "Animation Start Offset"
@@ -50724,10 +50708,6 @@ msgstr "Diese Einstellungen haben einen signifikanten"
 
 msgid "performance impact!"
 msgstr "Performancebeeinflussung!"
-
-
-msgid "Built without VR/OpenXR features"
-msgstr "Baue ohne VR/OpenXR Eigenschaften"
 
 
 msgctxt "Operator"
@@ -56332,10 +56312,6 @@ msgid "OS"
 msgstr "OS"
 
 
-msgid "Home"
-msgstr "Home"
-
-
 msgid "Esc"
 msgstr "Esc"
 
@@ -57645,10 +57621,6 @@ msgid "Scene has no camera"
 msgstr "Szene hat keine Kamera"
 
 
-msgid "Movie format unsupported"
-msgstr "Filmformat nicht unterstützt"
-
-
 msgid "Failed to create OpenGL off-screen buffer, %s"
 msgstr "OpenGL off-screen Buffer konnte nicht erstellt werden, %s"
 
@@ -57984,6 +57956,10 @@ msgstr "Asset Kataloge"
 
 msgid "Date Modified"
 msgstr "Datum Modifiziert"
+
+
+msgid "Home"
+msgstr "Home"
 
 
 msgid "Desktop"

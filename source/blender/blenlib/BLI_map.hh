@@ -613,7 +613,8 @@ class Map {
    * the map, it will be newly added.
    *
    * The create_value callback is only called when the key did not exist yet. It is expected to
-   * take no parameters and return the value to be inserted.
+   * take no parameters and return the value to be inserted. The callback is called before the key
+   * is copied/moved into the map.
    */
   template<typename CreateValueF>
   Value &lookup_or_add_cb(const Key &key, const CreateValueF &create_value)

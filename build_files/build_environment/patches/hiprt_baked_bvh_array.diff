@@ -1,0 +1,21 @@
+diff --git a/hiprt/impl/Compiler.cpp b/hiprt/impl/Compiler.cpp
+index 514667a..509f3f4 100644
+--- a/hiprt/impl/Compiler.cpp
++++ b/hiprt/impl/Compiler.cpp
+@@ -776,7 +776,15 @@ oroFunction Compiler::getFunctionFromPrecompiledBinary( const std::string& funcN
+ 			// kernel.
+ 			if constexpr ( UseBakedCompiledKernel )
+ 			{
+-				checkOro( oroModuleLoadData( &module, &bvh_build_array_h ) );
++				// Copy the data into a heap memory.
++				//
++				// Otherwise it seems to be causing issues with access from the HIP SDK when the application binary is
++				// located in a directory with space in it.
++				//
++				// The speculation is that static global memory can not really be megabytes, and access to it requires
++				// mapping of the original file, and this is where things start to go wrong.
++				std::vector<char> binary(bvh_build_array_h, bvh_build_array_h + bvh_build_array_h_size);
++				checkOro( oroModuleLoadData( &module, binary.data() ) );
+ 			}
+ 			else
+ 			{

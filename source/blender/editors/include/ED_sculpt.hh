@@ -47,6 +47,7 @@ void keymap_sculpt(wmKeyConfig *keyconf);
 /* `sculpt_transform.cc` */
 
 void update_modal_transform(bContext *C, Object &ob);
+void cancel_modal_transform(bContext *C, Object &ob);
 void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char *undo_name);
 void end_transform(bContext *C, Object &ob);
 

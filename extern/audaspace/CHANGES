@@ -1,3 +1,36 @@
+Audaspace 1.6
+
+- Pipewire support (thanks Sebastian Parborg!)
+- AAC container (ADTS stream).
+- Update to C++17.
+- Improvements for PulseAudio backend.
+- Many (bug) fixes.
+
+Detailed list of changes:
+
+70b18a5 Port fix by Weizhen Huang from Blender.
+ecaa71c CoreAudio: closing issue fixed from Apple for newer MacOS versions.
+0035101 Port Blender changes to upstream.
+dd419af Blender bug fix #129162: High idle CPU usage with PulseAudio in Linux
+9220ab5 Set C++ version python plugin bulid to 17.
+9db9578 Add AAC container You could already use Matroska container with AAC codec, but if someone wants raw .aac file ("ADTS stream"), there was no container option to pick.
+d3b7471 Fix whitespace
+d1f1704 Fix rendering audio to Matroska container
+5aabc89 Pipewire support  (#43)
+f5e8ccc Audaspace: Update PulseAudio sync functions to be more accurate (#42)
+f4611c0 Porting ffmpeg compatibility back from Blender.
+6afeab2 Update to C++17.
+81b0d76 PulseAudio: try to play as much as possible of buffered data on playback stop.
+426dab5 Fix Sound.filter a argument default not a sequence
+d701d0b loadRight documented as duplicate of loadLeft
+4326b24 Fix for building python module without fftw.
+901f14e Bugfix for MacOS from Blender.
+ee59832 Fix a typo
+27bc641 Update AUTHORS.
+689d645 Windows: Use COM smart pointers in WASAPI plugin
+5efc5c4 Update FFmpeg code to avoid direct assignation of ch_layout
+56edbe4 Making the OpenCloseDevice thread safe.
+
 Audaspace 1.5
 
 - Performance improvements and two more quality presets for the JOS resampler.

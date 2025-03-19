@@ -62,7 +62,7 @@ class HIPRTDevice : public HIPDevice {
   hiprtGeometryBuildInput prepare_point_blas(BVHHIPRT *bvh, PointCloud *pointcloud);
   void build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions options);
   hiprtScene build_tlas(BVHHIPRT *bvh,
-                        vector<Object *> objects,
+                        const vector<Object *> &objects,
                         hiprtBuildOptions options,
                         bool refit);
 
@@ -73,6 +73,10 @@ class HIPRTDevice : public HIPDevice {
   thread_mutex hiprt_mutex;
   size_t scratch_buffer_size;
   device_vector<char> scratch_buffer;
+
+  /* Is this scene using motion blur? Note there might exist motion data even if
+   * motion blur is disabled, for render passes. */
+  bool use_motion_blur = false;
 
   /* The following vectors are to transfer scene information available on the host to the GPU
    * visibility, instance_transform_matrix, transform_headers, and hiprt_blas_ptr are passed to

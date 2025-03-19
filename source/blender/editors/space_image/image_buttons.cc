@@ -696,11 +696,16 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
   }
 }
 
+/* Prevent naming collision. */
+namespace {
+
 struct RNAUpdateCb {
   PointerRNA ptr = {};
   PropertyRNA *prop;
   ImageUser *iuser;
 };
+
+};  // namespace
 
 static void rna_update_cb(bContext *C, void *arg_cb, void * /*arg*/)
 {

@@ -13,6 +13,8 @@
 
 #include "MOV_write.hh"
 
+#include "BKE_report.hh"
+
 #ifdef WITH_FFMPEG
 #  include <cstdio>
 #  include <cstring>
@@ -30,7 +32,6 @@
 #  include "BKE_global.hh"
 #  include "BKE_image.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.hh"
 
 #  include "IMB_imbuf.hh"
 
@@ -1279,7 +1280,8 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
                                scene,
                                preview ? rd->psfra : rd->sfra,
                                rd->ffcodecdata.audio_mixrate,
-                               rd->ffcodecdata.audio_volume);
+                               rd->ffcodecdata.audio_volume,
+                               reports);
   }
 
   if (!success) {
@@ -1426,6 +1428,7 @@ MovieWriter *MOV_write_begin(const char imtype,
                              const char *suffix)
 {
   if (!is_imtype_ffmpeg(imtype)) {
+    BKE_report(reports, RPT_ERROR, "Image format is not a movie format");
     return nullptr;
   }
 

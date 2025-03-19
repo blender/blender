@@ -43,6 +43,13 @@ def gather_node(vnode, export_settings):
     else:
         mesh = None
 
+    # If mesh is skined, but failed to export
+    # We should ignore the skin too,
+    # As it will generate a not valid glTF file
+    if mesh is None and skin is not None:
+        skin = None
+        vnode.skin = None
+
     node = gltf2_io.Node(
         camera=__gather_camera(vnode, export_settings),
         children=__gather_children(vnode, export_settings),

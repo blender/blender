@@ -1446,9 +1446,6 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
         UI_UNIT_X * 5,
         UI_UNIT_Y,
         TIP_("Normalize weights of active vertex (if affected groups are unlocked)"));
-    if (lock_count) {
-      UI_but_flag_enable(but, UI_BUT_DISABLED);
-    }
 
     ot = WM_operatortype_find("OBJECT_OT_vertex_weight_copy", true);
     but = uiDefButO_ptr(

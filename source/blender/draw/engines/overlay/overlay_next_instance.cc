@@ -66,6 +66,10 @@ void Instance::init()
                                       (BKE_scene_uses_blender_eevee(state.scene) &&
                                        BKE_render_preview_pixel_size(&state.scene->r) == 1);
 
+    /* For depth only drawing, no other render engine is expected. Except for Grease Pencil which
+     * outputs valid depth. Otherwise depth is cleared and is valid. */
+    state.is_render_depth_available |= state.is_depth_only_drawing;
+
     if (!state.hide_overlays) {
       state.overlay = state.v3d->overlay;
       state.v3d_flag = state.v3d->flag;
@@ -730,12 +734,16 @@ bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
 
   if (in_paint_mode) {
     /* Allow paint overlays to draw with depth equal test. */
-    return object_is_rendered_transparent(ob_ref.object, state);
+    if (object_is_rendered_transparent(ob_ref.object, state)) {
+      return true;
+    }
   }
 
   if (!state.xray_enabled) {
     /* Force depth prepass if depth buffer form render engine is not available. */
-    return !state.is_render_depth_available && (ob_ref.object->dt >= OB_SOLID);
+    if (!state.is_render_depth_available && (ob_ref.object->dt >= OB_SOLID)) {
+      return true;
+    }
   }
 
   return false;

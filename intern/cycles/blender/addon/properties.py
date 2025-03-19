@@ -1583,9 +1583,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     )
 
     use_hiprt: BoolProperty(
-        name="HIP RT (Experimental)",
-        description="HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. "
-                    "This feature is experimental and some scenes may render incorrectly",
+        name="HIP RT",
+        description="HIP RT enables AMD hardware ray tracing on RDNA2 and above",
         default=False,
     )
 
@@ -1769,13 +1768,16 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'HIP':
                 import sys
                 if sys.platform[:3] == "win":
-                    driver_version = "21.Q4"
+                    adrenalin_driver_version = "24.6.1"
+                    pro_driver_version = "24.Q2"
                     col.label(
                         text=rpt_("Requires AMD GPU with RDNA architecture"),
                         icon='BLANK1',
                         translate=False)
-                    col.label(text=rpt_("and AMD Radeon Pro %s driver or newer") % driver_version,
-                              icon='BLANK1', translate=False)
+                    col.label(text=rpt_("and AMD Adrenalin driver %s or newer") %
+                              adrenalin_driver_version, icon='BLANK1', translate=False)
+                    col.label(text=rpt_("or AMD Radeon Pro %s driver or newer") %
+                              pro_driver_version, icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
                     driver_version = "23.40"
                     col.label(
@@ -1832,16 +1834,26 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         self._draw_devices(row, compute_device_type, devices)
 
         import _cycles
-        has_peer_memory = 0
-        has_rt_api_support = {'METAL': False, 'HIP': False, 'ONEAPI': False}
+        has_peer_memory = False
+        has_enabled_hardware_rt = False
+        has_disabled_hardware_rt = False
         for device in self.get_device_list(compute_device_type):
-            if device[3] and self.find_existing_device_entry(device).use:
-                has_peer_memory += 1
-            if device[4] and self.find_existing_device_entry(device).use:
-                device_type = device[1]
-                has_rt_api_support[device_type] = True
+            if not self.find_existing_device_entry(device).use:
+                continue
+            if device[1] != compute_device_type:
+                continue
 
-        if has_peer_memory > 1:
+            if device[3]:
+                has_peer_memory = True
+            if device[4]:
+                has_enabled_hardware_rt = True
+            else:
+                has_disabled_hardware_rt = True
+
+        # Any device without RT support will disable it for all.
+        has_hardware_rt = has_enabled_hardware_rt and not has_disabled_hardware_rt
+
+        if has_peer_memory:
             row = layout.row()
             row.use_property_split = True
             row.prop(self, "peer_memory")
@@ -1854,18 +1866,19 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 col = layout.column()
                 col.use_property_split = True
                 col.prop(self, "kernel_optimization_level")
-                if has_rt_api_support['METAL']:
-                    col.prop(self, "metalrt")
+                row = col.row()
+                row.active = has_hardware_rt
+                row.prop(self, "metalrt")
 
         if compute_device_type == 'HIP':
             import platform
             row = layout.row()
-            row.active = has_rt_api_support['HIP']
+            row.active = has_hardware_rt
             row.prop(self, "use_hiprt")
 
         elif compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
             row = layout.row()
-            row.active = has_rt_api_support['ONEAPI']
+            row.active = has_hardware_rt
             row.prop(self, "use_oneapirt")
 
     def draw(self, context):

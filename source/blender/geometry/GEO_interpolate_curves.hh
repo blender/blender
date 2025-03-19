@@ -19,7 +19,8 @@ void interpolate_curves(const bke::CurvesGeometry &from_curves,
                         const IndexMask &dst_curve_mask,
                         Span<bool> dst_curve_flip_direction,
                         float mix_factor,
-                        bke::CurvesGeometry &dst_curves);
+                        bke::CurvesGeometry &dst_curves,
+                        IndexMaskMemory &memory);
 
 void interpolate_curves_with_samples(const bke::CurvesGeometry &from_curves,
                                      const bke::CurvesGeometry &to_curves,
@@ -31,6 +32,7 @@ void interpolate_curves_with_samples(const bke::CurvesGeometry &from_curves,
                                      Span<float> to_sample_factors,
                                      const IndexMask &dst_curve_mask,
                                      float mix_factor,
-                                     bke::CurvesGeometry &dst_curves);
+                                     bke::CurvesGeometry &dst_curves,
+                                     IndexMaskMemory &memory);
 
 }  // namespace blender::geometry

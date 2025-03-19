@@ -565,7 +565,7 @@ class Preprocessor {
     /**
      * Example replacement:
      *
-     * `
+     * \code{.cc}
      * // Source
      * shared float bar[10];                                    // Source declaration.
      * shared float foo;                                        // Source declaration.
@@ -598,7 +598,7 @@ class Preprocessor {
      *
      * }                                                        // Added at runtime by backend.
      * // End of Backend Output
-     * `
+     * \endcode
      */
     std::stringstream args, assign, declare, pass;
 

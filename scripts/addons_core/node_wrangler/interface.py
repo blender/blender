@@ -131,7 +131,7 @@ class NWMergeGeometryMenu(Menu, NWBaseMenu):
         layout = self.layout
         # The boolean node + Join Geometry node
         for type, name, description in geo_combine_operations:
-            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.default)
+            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.id_nodetree)
             props.mode = type
             props.merge_type = 'GEOMETRY'
 
@@ -156,7 +156,7 @@ class NWMergeMixMenu(Menu, NWBaseMenu):
     def draw(self, context):
         layout = self.layout
         for type, name, description in blend_types:
-            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.default)
+            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.id_nodetree)
             props.mode = type
             props.merge_type = 'MIX'
 
@@ -213,7 +213,7 @@ class NWMergeMathMenu(Menu, NWBaseMenu):
     def draw(self, context):
         layout = self.layout
         for type, name, description in operations:
-            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.default)
+            props = layout.operator(operators.NWMergeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.id_nodetree)
             props.mode = type
             props.merge_type = 'MATH'
 
@@ -238,7 +238,7 @@ class NWBatchChangeBlendTypeMenu(Menu, NWBaseMenu):
             props = layout.operator(
                 operators.NWBatchChangeNodes.bl_idname,
                 text=name,
-                text_ctxt=i18n_contexts.default
+                text_ctxt=i18n_contexts.id_nodetree,
             )
             props.blend_type = type
             props.operation = 'CURRENT'
@@ -251,7 +251,7 @@ class NWBatchChangeOperationMenu(Menu, NWBaseMenu):
     def draw(self, context):
         layout = self.layout
         for type, name, description in operations:
-            props = layout.operator(operators.NWBatchChangeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.default)
+            props = layout.operator(operators.NWBatchChangeNodes.bl_idname, text=name, text_ctxt=i18n_contexts.id_nodetree)
             props.blend_type = 'CURRENT'
             props.operation = type
 

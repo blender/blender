@@ -316,4 +316,3 @@ def bake_data_animation(blender_type_data, blender_id, animation_key, slot_ident
     if animation is not None and animation.channels:
         link_samplers(animation, export_settings)
         return animation
-

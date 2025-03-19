@@ -172,6 +172,10 @@ void BKE_pose_backup_restore(const PoseBackup *pbd)
 
 void BKE_pose_backup_free(PoseBackup *pbd)
 {
+  if (!pbd) {
+    /* Can happen if initialization was aborted. */
+    return;
+  }
   LISTBASE_FOREACH_MUTABLE (PoseChannelBackup *, chan_bak, &pbd->backups) {
     if (chan_bak->oldprops) {
       IDP_FreeProperty(chan_bak->oldprops);

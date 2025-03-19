@@ -1037,6 +1037,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
   const CustomData_MeshMasks data_masks = CD_MASK_BAREMESH;
   const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
   *r_free_mesh = false;
+  Mesh *mesh;
 
   /* Write the display mesh into the dummy mesh */
   if (use_deform) {
@@ -1049,15 +1050,33 @@ static const Mesh *bvh_get_mesh(const char *funcname,
         return nullptr;
       }
 
+      mesh = blender::bke::mesh_create_eval_final(depsgraph, scene, ob, &data_masks);
+      if (mesh == nullptr) {
+        PyErr_Format(PyExc_ValueError,
+                     "%s(...): Cannot get a mesh from object '%s'",
+                     ob->id.name + 2,
+                     funcname);
+        return nullptr;
+      }
+
       *r_free_mesh = true;
-      return blender::bke::mesh_create_eval_final(depsgraph, scene, ob, &data_masks);
+      return mesh;
     }
     if (ob_eval != nullptr) {
       if (use_cage) {
-        return blender::bke::mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);
+        mesh = blender::bke::mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);
       }
-
-      return BKE_object_get_evaluated_mesh(ob_eval);
+      else {
+        mesh = BKE_object_get_evaluated_mesh(ob_eval);
+      }
+      if (mesh == nullptr) {
+        PyErr_Format(PyExc_ValueError,
+                     "%s(...): Cannot get a mesh from object '%s'",
+                     ob->id.name + 2,
+                     funcname);
+        return nullptr;
+      }
+      return mesh;
     }
 
     PyErr_Format(PyExc_ValueError,
@@ -1075,9 +1094,16 @@ static const Mesh *bvh_get_mesh(const char *funcname,
           funcname);
       return nullptr;
     }
-
+    mesh = blender::bke::mesh_create_eval_no_deform_render(depsgraph, scene, ob, &data_masks);
+    if (mesh == nullptr) {
+      PyErr_Format(PyExc_ValueError,
+                   "%s(...): Cannot get a mesh from object '%s'",
+                   ob->id.name + 2,
+                   funcname);
+      return nullptr;
+    }
     *r_free_mesh = true;
-    return blender::bke::mesh_create_eval_no_deform_render(depsgraph, scene, ob, &data_masks);
+    return mesh;
   }
 
   if (use_cage) {
@@ -1088,8 +1114,16 @@ static const Mesh *bvh_get_mesh(const char *funcname,
     return nullptr;
   }
 
+  mesh = blender::bke::mesh_create_eval_no_deform(depsgraph, scene, ob, &data_masks);
+  if (mesh == nullptr) {
+    PyErr_Format(PyExc_ValueError,
+                 "%s(...): Cannot get a mesh from object '%s'",
+                 ob->id.name + 2,
+                 funcname);
+    return nullptr;
+  }
   *r_free_mesh = true;
-  return blender::bke::mesh_create_eval_no_deform(depsgraph, scene, ob, &data_masks);
+  return mesh;
 }
 
 PyDoc_STRVAR(

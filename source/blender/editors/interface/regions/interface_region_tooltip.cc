@@ -25,6 +25,8 @@
 
 #include <fmt/format.h>
 
+#include "AS_essentials_library.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
@@ -1004,12 +1006,14 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     if (but->rnapoin.owner_id) {
       const ID *id = but->rnapoin.owner_id;
       if (ID_IS_LINKED(id)) {
+        blender::StringRefNull assets_path = blender::asset_system::essentials_directory_path();
+        const bool is_builtin = BLI_path_contains(assets_path.c_str(), id->lib->filepath);
+        const blender::StringRef title = is_builtin ? TIP_("Built-in Asset") : TIP_("Library");
+        const blender::StringRef lib_path = id->lib->filepath;
+        const blender::StringRef path = is_builtin ? lib_path.substr(assets_path.size()) :
+                                                     id->lib->filepath;
         UI_tooltip_text_field_add(
-            *data,
-            fmt::format(fmt::runtime(TIP_("Library: {}")), id->lib->filepath),
-            {},
-            UI_TIP_STYLE_NORMAL,
-            UI_TIP_LC_NORMAL);
+            *data, fmt::format("{}: {}", title, path), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
       }
     }
   }
@@ -1368,7 +1372,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 
   /* Clamp to window bounds. */
   {
-    /* Ensure at least 5 px above screen bounds.
+    /* Ensure at least 5 pixels above screen bounds.
      * #UI_UNIT_Y is just a guess to be above the menu item. */
     if (init_rect_overlap != nullptr) {
       const int pad = max_ff(1.0f, U.pixelsize) * 5;

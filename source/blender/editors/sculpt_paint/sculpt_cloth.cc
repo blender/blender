@@ -574,8 +574,10 @@ void ensure_nodes_constraints(const Sculpt &sd,
 
       Span<float3> init_positions;
       Span<float3> persistent_position;
-      if (brush != nullptr && brush->flag & BRUSH_PERSISTENT) {
-        persistent_position = ss.sculpt_persistent_co;
+      const std::optional<PersistentMultiresData> persistent_multires_data =
+          ss.persistent_multires_data();
+      if (brush != nullptr && brush->flag & BRUSH_PERSISTENT && persistent_multires_data) {
+        persistent_position = persistent_multires_data->positions;
       }
       if (persistent_position.is_empty()) {
         init_positions = cloth_sim.init_pos;
@@ -592,7 +594,7 @@ void ensure_nodes_constraints(const Sculpt &sd,
                                   brush,
                                   initial_location,
                                   radius,
-                                  cloth_sim.init_pos,
+                                  init_positions,
                                   cloth_sim.node_state_index.lookup(&nodes[i]),
                                   verts,
                                   neighbors,

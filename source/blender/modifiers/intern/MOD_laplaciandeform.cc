@@ -49,6 +49,9 @@ enum {
   LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP,
 };
 
+/* Prevent naming collision. */
+namespace {
+
 struct LaplacianSystem {
   bool is_matrix_computed;
   bool has_solution;
@@ -86,6 +89,8 @@ struct LaplacianSystem {
   /** Map of vertex per vertex. */
   MeshElemMap *ringv_map;
 };
+
+};  // namespace
 
 static LaplacianSystem *newLaplacianSystem()
 {

@@ -13,7 +13,7 @@ __all__ = (
 )
 
 import bpy
-from bpy.types import Action, ActionSlot
+from bpy.types import Action, ActionSlot, ActionChannelbag
 from dataclasses import dataclass
 
 from collections.abc import (
@@ -75,21 +75,32 @@ class BakeOptions:
     """Bake custom properties."""
 
 
-def _get_channelbag_for_slot(action: Action, slot: ActionSlot):
-    # This is on purpose limited to the first layer and strip. To support more
-    # than 1 layer, a rewrite of this operator is needed which ideally would
-    # happen in C++.
+def action_get_channelbag_for_slot(action: Action, slot: ActionSlot) -> ActionChannelbag | None:
+    """
+    Returns the first channelbag found for the slot.
+    In case there are multiple layers or strips they are iterated until a
+    channelbag for that slot is found. In case no matching channelbag is found, returns None.
+    """
     for layer in action.layers:
         for strip in layer.strips:
             channelbag = strip.channelbag(slot)
-            return channelbag
+            if channelbag:
+                return channelbag
+    return None
 
 
-def _ensure_channelbag_exists(action: Action, slot: ActionSlot):
-    for layer in action.layers:
-        for strip in layer.strips:
-            channelbag = strip.channelbag(slot, ensure=True)
-            return channelbag
+def _ensure_channelbag_exists(action: Action, slot: ActionSlot) -> ActionChannelbag:
+    try:
+        layer = action.layers[0]
+    except IndexError:
+        layer = action.layers.new("Layer")
+
+    try:
+        strip = layer.strips[0]
+    except IndexError:
+        strip = layer.strips.new(type='KEYFRAME')
+
+    return strip.channelbag(slot, ensure=True)
 
 
 def bake_action(
@@ -275,7 +286,10 @@ def bake_action_iter(
             if isinstance(obj[key], idprop.types.IDPropertyGroup):
                 continue
             obj[key] = value
-            if key in obj.bl_rna.properties:
+            # The check for `is_runtime` is needed in case the custom property has the same
+            # name as a built in property, e.g. `scale`. In that case the simple check
+            # `key in ...` would be true and the square brackets would never get added.
+            if key in obj.bl_rna.properties and obj.bl_rna.properties[key].is_runtime:
                 rna_path = key
             else:
                 rna_path = "[\"{:s}\"]".format(bpy.utils.escape_identifier(key))
@@ -382,22 +396,18 @@ def bake_action_iter(
     is_new_action = action is None
     if is_new_action:
         action = bpy.data.actions.new("Action")
-    else:
-        # When baking into the current action, a slot needs to be assigned.
-        if not atd.action_slot:
-            slot = action.slots.new(obj.id_type, obj.name)
-            atd.action_slot = slot
 
     # Only leave tweak mode if we actually need to modify the action (#57159)
     if action != atd.action:
         # Leave tweak mode before trying to modify the action (#48397)
         if atd.use_tweak_mode:
             atd.use_tweak_mode = False
-
         atd.action = action
-        if action.is_action_layered:
-            slot = action.slots.new(obj.id_type, obj.name)
-            atd.action_slot = slot
+
+    # A slot needs to be assigned.
+    if not atd.action_slot:
+        slot = action.slots.new(obj.id_type, obj.name)
+        atd.action_slot = slot
 
     # Baking the action only makes sense in Replace mode, so force it (#69105)
     if not atd.use_tweak_mode:
@@ -409,7 +419,7 @@ def bake_action_iter(
     # pose
     lookup_fcurves = {}
     assert action.is_action_layered
-    channelbag = _get_channelbag_for_slot(action, atd.action_slot)
+    channelbag = action_get_channelbag_for_slot(action, atd.action_slot)
     if channelbag:
         # channelbag can be None if no layers or strips exist in the action.
         lookup_fcurves = {(fcurve.data_path, fcurve.array_index): fcurve for fcurve in channelbag.fcurves}
@@ -715,9 +725,6 @@ class KeyframesCo:
                 data_path, array_index = fc_key
                 assert action.is_action_layered
                 channelbag = _ensure_channelbag_exists(action, action_slot)
-                if not channelbag:
-                    # Can happen if no layers or strips exist on the action.
-                    continue
                 fcurve = channelbag.fcurves.new(data_path, index=array_index)
 
             keyframe_points = fcurve.keyframe_points

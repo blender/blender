@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
-"PO-Revision-Date: 2025-02-15 12:56+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"PO-Revision-Date: 2025-03-17 15:45+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3;\n"
-"X-Generator: Weblate 5.9.2"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -87,6 +87,10 @@ msgid "Slot"
 msgstr "Polje"
 
 
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "Polje, ki mu je namenjena animacija žaklja kanalov"
+
+
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
 msgstr "Zbirka F-krivulj za posamezno akcijsko polje na posameznem traku"
 
@@ -105,10 +109,6 @@ msgstr "To je seznam animacijskih kanalov za vsako animacijsko polje posebej"
 
 msgid "Action F-Curves"
 msgstr "Akcijske F-krivulje"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Zbirka akcijskih F-krivulj"
 
 
 msgid "Action Group"
@@ -725,14 +725,6 @@ msgstr "Razporedi podatke med naprave"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Prihrani prostor pri večjih scenah tako, da pomnilniške podatke porazdeli med povezane naprave (npr. prek NVLinka), namesto da jih podvaja"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (poskusno)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "HIP RT omogoča AMD-jevo strojno sledenje žarkom na arhitekturi RDNA 2 in novejših arhitekturah, na starejših karticah pa izvaja sledenje žarkom s senčilniki. Ta funkcionalnost je poskusna in lahko nekatere scene upodobi nepravilno"
 
 
 msgid "Embree on GPU"
@@ -1701,7 +1693,7 @@ msgstr "Vrsta podatkovnega bloka, če ga sredstvo zastopa (sicer pa 'NONE')"
 
 
 msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
-msgstr "Lokalni podatkovni blok, ki ga to sredstvo zastopa. Veljaven je le, če je podatkovni blok v tej datoteki"
+msgstr "Krajevni podatkovni blok, ki ga to sredstvo zastopa. Veljaven je le, če je podatkovni blok v tej datoteki"
 
 
 msgid "Asset Metadata"
@@ -1813,7 +1805,7 @@ msgstr "Shrani omogočene kataloge v nastavitve"
 
 
 msgid "Store the shelf's enabled catalogs in the preferences rather than the local asset shelf settings"
-msgstr "Shrani omogočene kataloge na polici v nastavitve programa namesto v lokalne nastavitve police"
+msgstr "Shrani omogočene kataloge na polici v nastavitve programa namesto v krajevne nastavitve police"
 
 
 msgid "Space Type"
@@ -3357,11 +3349,11 @@ msgstr "Nastavi lažnega uporabnika na pripete ID-je"
 
 
 msgid "Append (make local) also indirect dependencies of appended IDs coming from other libraries. NOTE: All IDs (including indirectly linked ones) coming from the same initial library are always made local"
-msgstr "Pripne (pretvori v lokalne) tudi posredne odvisnosti pripetih ID-jev, ki prihajajo iz drugih knjižnic. POZOR: Vsi ID-ji (tudi posredno povezani), ki izhajajo iz iste knjižnice, so vedno pretvorjeni v lokalne"
+msgstr "Pripne (pretvori v krajevne) tudi posredne odvisnosti pripetih ID-jev, ki prihajajo iz drugih knjižnic. POZOR: Vsi ID-ji (tudi posredno povezani), ki izhajajo iz iste knjižnice, so vedno pretvorjeni v krajevne"
 
 
 msgid "Try to re-use previously appended matching IDs when appending them again, instead of creating local duplicates"
-msgstr "Poskusi ponovno uporabiti prej pripete ujemajoče ID-je, ko jih vnovič pripne, namesto da ustvari lokalne dvojnike"
+msgstr "Poskusi ponovno uporabiti prej pripete ujemajoče ID-je, ko jih vnovič pripne, namesto da ustvari krajevne dvojnike"
 
 
 msgid "Clear the asset data on append (it is always kept for linked data)"
@@ -3401,15 +3393,15 @@ msgstr "ID je ostal povezan"
 
 
 msgid "An existing matching local ID has been re-used"
-msgstr "Obstoječi ujemajoči se lokalni ID je bil ponovno uporabljen"
+msgstr "Obstoječi ujemajoči se krajevni ID je bil ponovno uporabljen"
 
 
 msgid "The newly linked ID has been made local"
-msgstr "Novo povezani ID je postal lokalen"
+msgstr "Novo povezani ID je postal krajeven"
 
 
 msgid "The linked ID had other unrelated usages, so it has been duplicated into a local copy"
-msgstr "Povezani ID je uporabljen za druge nesorodne namene, zato je bil podvojen v lokalno kopijo"
+msgstr "Povezani ID je uporabljen za druge nesorodne namene, zato je bil podvojen v krajevno kopijo"
 
 
 msgid "Imported ID"
@@ -3446,7 +3438,7 @@ msgstr "Ime ID elementa"
 
 
 msgid "Reusable Local ID"
-msgstr "Lokalni ID za večkratno uporabo"
+msgstr "Krajevni ID za večkratno uporabo"
 
 
 msgid "Source Libraries"
@@ -4068,7 +4060,7 @@ msgstr "Blaženje končne ročice"
 
 
 msgid "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. This is done after the Scale Easing option and isn't affected by it."
-msgstr "Zmnoži kanal blaženja nazaj, ki pripada U-kosti, z vrednostjo lokalnega skaliranja po osi Y na končni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
+msgstr "Zmnoži kanal blaženja nazaj, ki pripada U-kosti, z vrednostjo krajevnega skaliranja po osi Y na končni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
 
 
 msgid "Start Handle Ease"
@@ -4076,7 +4068,7 @@ msgstr "Blaženje začetne ročice"
 
 
 msgid "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. This is done after the Scale Easing option and isn't affected by it."
-msgstr "Zmnoži kanal blaženja naprej, ki pripada U-kosti, z vrednostjo lokalnega skaliranja po osi Y na začetni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
+msgstr "Zmnoži kanal blaženja naprej, ki pripada U-kosti, z vrednostjo krajevnega skaliranja po osi Y na začetni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
 
 
 msgid "End Handle Scale"
@@ -4084,7 +4076,7 @@ msgstr "Skaliranje končne ročice"
 
 
 msgid "Multiply B-Bone Scale Out channels by the local scale values of the end handle. This is done after the Scale Easing option and isn't affected by it."
-msgstr "Zmnoži kanale Skaliranja konca, ki pripadajo U-kosti, z vrednostmi lokalnega skaliranja na končni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
+msgstr "Zmnoži kanale Skaliranja konca, ki pripadajo U-kosti, z vrednostmi krajevnega skaliranja na končni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
 
 
 msgid "Start Handle Scale"
@@ -4092,7 +4084,7 @@ msgstr "Skaliranje začetne ročice"
 
 
 msgid "Multiply B-Bone Scale In channels by the local scale values of the start handle. This is done after the Scale Easing option and isn't affected by it."
-msgstr "Zmnoži kanale Skaliranja začetka, ki pripadajo U-kosti, z vrednostmi lokalnega skaliranja na začetni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
+msgstr "Zmnoži kanale Skaliranja začetka, ki pripadajo U-kosti, z vrednostmi krajevnega skaliranja na začetni ročici. Možnost Skaliranje blaženja se izvede pred tem in nima vpliva na ta zmnožek."
 
 
 msgid "B-Bone Vertex Mapping Mode"
@@ -4400,11 +4392,11 @@ msgstr "Kost podeduje rotacijo ali skaliranje od starševske kosti"
 
 
 msgid "Local Location"
-msgstr "Lokalna lega"
+msgstr "Krajevna lega"
 
 
 msgid "Bone location is set in local space"
-msgstr "Lega kosti je v lokalnem prostoru"
+msgstr "Lega kosti je v krajevnem prostoru"
 
 
 msgid "Relative Parenting"
@@ -4456,7 +4448,7 @@ msgstr "Dovoli urejanje"
 
 
 msgid "This collection is owned by a local Armature, or was added via a library override in the current blend file"
-msgstr "Ta zbirka je v lasti lokalnega skeleta ali pa je bila dodana v trenutno datoteko blend prek povožnje knjižnice"
+msgstr "Ta zbirka je v lasti krajevnega skeleta ali pa je bila dodana v trenutno datoteko blend prek povožnje knjižnice"
 
 
 msgid "This bone collection is expanded in the bone collections tree view"
@@ -4464,7 +4456,7 @@ msgstr "Zbirka kosti je razprta v drevesnem pogledu zbirk kosti"
 
 
 msgid "Is Local Override"
-msgstr "Je lokalna povožnja"
+msgstr "Je krajevna povožnja"
 
 
 msgid "This collection was added via a library override in the current blend file"
@@ -5776,7 +5768,7 @@ msgstr "Povožena slika ozadja"
 
 
 msgid "In a local override camera, whether this background image comes from the linked reference camera, or is local to the override"
-msgstr "Za lokalno povoženo kamero. Ali ta slika ozadja prihaja iz povezane kamere ali je lokalna glede na povožnjo"
+msgstr "Za krajevno povoženo kamero. Ali ta slika ozadja prihaja iz povezane kamere ali je krajevna glede na povožnjo"
 
 
 msgid "Offset"
@@ -7461,7 +7453,7 @@ msgstr "Povožen omejevalnik"
 
 
 msgid "In a local override object, whether this constraint comes from the linked reference object, or is local to the override"
-msgstr "Za lokalni povoženi objekt. Ali ta omejevalnik prihaja iz povezanega objekta ali je lokalen glede na povožnjo"
+msgstr "Za krajevni povoženi objekt. Ali ta omejevalnik prihaja iz povezanega objekta ali je krajeven glede na povožnjo"
 
 
 msgid "Constraint has valid settings and can be evaluated"
@@ -7501,7 +7493,7 @@ msgstr "Prostor po meri"
 
 
 msgid "The constraint is applied in local space of a custom object/bone/vertex group"
-msgstr "Omejevalnik se nanese v lokalnem prostoru posebnega objekta/kosti/skupine oglišč"
+msgstr "Omejevalnik se nanese v krajevnem prostoru posebnega objekta/kosti/skupine oglišč"
 
 
 msgid "Pose Space"
@@ -7513,19 +7505,19 @@ msgstr "Omejevalnik se nanese v prostoru poze. Ne upošteva transformacije objek
 
 
 msgid "Local With Parent"
-msgstr "Lokalni s staršem"
+msgstr "Krajevni s staršem"
 
 
 msgid "The constraint is applied relative to the rest pose local coordinate system of the bone, thus including the parent-induced transformation"
-msgstr "Omejevalnik se nanese glede na lokalni koordinatni sistem kosti v mirovalni pozi, zato upošteva tudi transformacijo, ki jo povzroči starš"
+msgstr "Omejevalnik se nanese glede na krajevni koordinatni sistem kosti v mirovalni pozi, zato upošteva tudi transformacijo, ki jo povzroči starš"
 
 
 msgid "Local Space"
-msgstr "Lokalni prostor"
+msgstr "Krajevni prostor"
 
 
 msgid "The constraint is applied relative to the local coordinate system of the object"
-msgstr "Omejevalnik se nanese glede na lokalni koordinatni sistem objekta"
+msgstr "Omejevalnik se nanese glede na krajevni koordinatni sistem objekta"
 
 
 msgid "Constraint's panel is expanded in UI"
@@ -7565,19 +7557,19 @@ msgstr "Transformacija tarče se ovrednoti samo v prostoru poze. Transformacija 
 
 
 msgid "The transformation of the target bone is evaluated relative to its rest pose local coordinate system, thus including the parent-induced transformation"
-msgstr "Transformacija tarčne kosti se ovrednoti glede na lokalni koordinatni sistem svoje mirovalne poze, zato upošteva tudi transformacijo, ki jo povzroči starš"
+msgstr "Transformacija tarčne kosti se ovrednoti glede na krajevni koordinatni sistem svoje mirovalne poze, zato upošteva tudi transformacijo, ki jo povzroči starš"
 
 
 msgid "The transformation of the target is evaluated relative to its local coordinate system"
-msgstr "Transformacija tarče se ovrednoti glede na svoj lokalni koordinatni sistem"
+msgstr "Transformacija tarče se ovrednoti glede na svoj krajevni koordinatni sistem"
 
 
 msgid "Local Space (Owner Orientation)"
-msgstr "Lokalni prostor (usmerjenost imetnika)"
+msgstr "Krajevni prostor (usmerjenost imetnika)"
 
 
 msgid "The transformation of the target bone is evaluated relative to its local coordinate system, followed by a correction for the difference in target and owner rest pose orientations. When applied as local transform to the owner produces the same global motion as the target if the parents are still in rest pose."
-msgstr "Transformacija tarčne kosti se ovrednoti glede na svoj lokalni koordinatni sistem, nato sledi popravek zaradi razlike med usmerjenostjo mirovalne poze tarče in imetnika. Kadar je v uporabi kot lokalna transformacija nad imetnikom, proizvede enak globalni premik kot tarča, če sta starša še vedno v mirovalni pozi."
+msgstr "Transformacija tarčne kosti se ovrednoti glede na svoj krajevni koordinatni sistem, nato sledi popravek zaradi razlike med usmerjenostjo mirovalne poze tarče in imetnika. Kadar je v uporabi kot krajevna transformacija nad imetnikom, proizvede enak globalni premik kot tarča, če sta starša še vedno v mirovalni pozi."
 
 
 msgid "Camera Solver"
@@ -9496,7 +9488,7 @@ msgstr "XZ"
 
 
 msgid "Rotate around local X, then Z"
-msgstr "Rotira okoli lokalnega X, potem še okoli Z"
+msgstr "Rotira okoli krajevnega X, potem še okoli Z"
 
 
 msgid "ZX"
@@ -9504,7 +9496,7 @@ msgstr "ZX"
 
 
 msgid "Rotate around local Z, then X"
-msgstr "Rotira okoli lokalnega Z, potem še okoli X"
+msgstr "Rotira okoli krajevnega Z, potem še okoli X"
 
 
 msgid "Swing"
@@ -10634,6 +10626,10 @@ msgstr "Pokaži filtre podatkovnih blokov"
 
 msgid "Show options for whether channels related to certain types of data are included"
 msgstr "Pokaže možnosti glede vključenosti kanalov, ki so povezani z določenimi tipi podatkov"
+
+
+msgid "Variable Fallback As Error"
+msgstr "Rezerva spremenljivke pri napaki"
 
 
 msgid "Collapse Summary"
@@ -12324,7 +12320,7 @@ msgstr "Dobro"
 
 
 msgid "Realtime"
-msgstr "Realnočasno"
+msgstr "Sprotno"
 
 
 msgid "Container"
@@ -12375,8 +12371,16 @@ msgid "Max Rate"
 msgstr "Največja hitrost"
 
 
+msgid "Rate control: max rate (kbit/s)"
+msgstr "Nadzor hitrosti: najvišja hitrost (kbit/s)"
+
+
 msgid "Min Rate"
 msgstr "Minimalna hitrost"
+
+
+msgid "Rate control: min rate (kbit/s)"
+msgstr "Nadzor hitrosti: najnižja hitrost (kbit/s)"
 
 
 msgid "Mux Rate"
@@ -12421,6 +12425,10 @@ msgstr "Preliv konca"
 
 msgid "Disabled"
 msgstr "Onemogočeno"
+
+
+msgid "F-Curve Modifier name"
+msgstr "Naziv modifikatorja F-krivulje"
 
 
 msgctxt "Action"
@@ -12504,8 +12512,16 @@ msgid "No Cycles"
 msgstr "Brez ciklov"
 
 
+msgid "Don't do anything"
+msgstr "Ne stori ničesar"
+
+
 msgid "Repeat Motion"
 msgstr "Ponavljanje gibanja"
+
+
+msgid "Repeat keyframe range as-is"
+msgstr "Ponavlja nespremenjen interval ključnih okvirjev"
 
 
 msgid "Repeat with Offset"
@@ -12635,6 +12651,10 @@ msgstr "Moč"
 
 msgid "Amplitude of the noise - the amount that it modifies the underlying curve"
 msgstr "Amplituda šuma - v kolikšni meri spremeni osnovno krivuljo"
+
+
+msgid "Legacy Noise"
+msgstr "Zastareli šum"
 
 
 msgid "Stepped Interpolation F-Modifier"
@@ -12821,6 +12841,10 @@ msgid "Seed"
 msgstr "Seme"
 
 
+msgid "Seed of the noise"
+msgstr "Seme šuma"
+
+
 msgid "Every Point"
 msgstr "Vse točke"
 
@@ -12913,6 +12937,10 @@ msgid "Gravity Falloff"
 msgstr "Slabljenje težnosti"
 
 
+msgid "Multiply force by 1/distance²"
+msgstr "Pomnoži silo z 1/razdalja²"
+
+
 msgid "Weights"
 msgstr "Uteži"
 
@@ -12957,44 +12985,188 @@ msgid "File Select Asset Filter"
 msgstr "Filter izbora sredstvenih datotek"
 
 
+msgid "Show Armature data-blocks"
+msgstr "Pokaže podatkovne bloke skeletov"
+
+
+msgid "Show Cache File data-blocks"
+msgstr "Pokaže podatkovne bloke predpomnilniških datotek"
+
+
+msgid "Show Camera data-blocks"
+msgstr "Pokaže podatkovne bloke kamer"
+
+
+msgid "Show Curve data-blocks"
+msgstr "Pokaže podatkovne bloke krivulj"
+
+
+msgid "Show/hide Curves data-blocks"
+msgstr "Pokaže/skrije podatkovne bloke krivulj"
+
+
 msgid "Fonts"
 msgstr "Pisave"
+
+
+msgid "Show Font data-blocks"
+msgstr "Pokaže podatkovne bloke pisav"
 
 
 msgid "Show Grease Pencil data-blocks"
 msgstr "Pokaže podatkovne bloke Grease Pencil"
 
 
+msgid "Show Image data-blocks"
+msgstr "Pokaže podatkovne bloke slik"
+
+
+msgid "Show Lattice data-blocks"
+msgstr "Pokaže podatkovne bloke kontrolnih rešetk"
+
+
+msgid "Show Light data-blocks"
+msgstr "Pokaže podatkovne bloke luči"
+
+
+msgid "Show Light Probe data-blocks"
+msgstr "Pokaže podatkovne bloke svetlobnih sond"
+
+
 msgid "Freestyle Linestyles"
 msgstr "Slogi potez Freestyle"
+
+
+msgid "Show Freestyle's Line Style data-blocks"
+msgstr "Pokaže podatkovne bloke slogov potez Freestyle"
+
+
+msgid "Show Mask data-blocks"
+msgstr "Pokaže podatkovne bloke mask"
+
+
+msgid "Show Mesh data-blocks"
+msgstr "Pokaže podatkovne bloke mrež"
+
+
+msgid "Show Metaball data-blocks"
+msgstr "Pokaže podatkovne bloke metažog"
+
+
+msgid "Show Movie Clip data-blocks"
+msgstr "Pokaže podatkovne bloke video izrezkov"
+
+
+msgid "Show Paint Curve data-blocks"
+msgstr "Pokaže podatkovne bloke risalnih krivulj"
+
+
+msgid "Show Palette data-blocks"
+msgstr "Pokaže podatkovne bloke palet"
 
 
 msgid "Particles Settings"
 msgstr "Nastavitve delcev"
 
 
+msgid "Show Particle Settings data-blocks"
+msgstr "Pokaže podatkovne bloke nastavitev delcev"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "Pokaže/skrije podatkovne bloke oblakov točk"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Pokaže podatkovne bloke scen"
+
+
+msgid "Show Sound data-blocks"
+msgstr "Pokaže podatkovne bloke zvokov"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "Pokaže podatkovne bloke zvočnikov"
+
+
+msgid "Show Text data-blocks"
+msgstr "Pokaže podatkovne bloke besedil"
+
+
+msgid "Show Texture data-blocks"
+msgstr "Pokaže podatkovne bloke tekstur"
+
+
+msgid "Show/hide Volume data-blocks"
+msgstr "Pokaže/skrije podatkovne bloke volumnov"
+
+
+msgid "Show workspace data-blocks"
+msgstr "Pokaže podatkovne bloke delovnih prostorov"
+
+
 msgid "Show Action data-blocks"
 msgstr "Pokaže podatkovne bloke akcije"
+
+
+msgid "Show Brushes data-blocks"
+msgstr "Pokaže podatkovne bloke čopičev"
+
+
+msgid "Show Collection data-blocks"
+msgstr "Pokaže podatkovne bloke zbirk"
+
+
+msgid "Show Material data-blocks"
+msgstr "Pokaže podatkovne bloke materialov"
 
 
 msgid "Node Trees"
 msgstr "Vozliščna drevesa"
 
 
+msgid "Show Node Tree data-blocks"
+msgstr "Pokaže podatkovne bloke vozliščnih dreves"
+
+
+msgid "Show Object data-blocks"
+msgstr "Pokaže podatkovne bloke objektov"
+
+
+msgid "Show World data-blocks"
+msgstr "Pokaže podatkovne bloke svetov"
+
+
 msgid "File Select Parameters"
 msgstr "Parametri izbire datotek"
+
+
+msgid "Whether this path is currently reachable"
+msgstr "Ali je ta pot trenutno dosegljiva"
 
 
 msgid "Save"
 msgstr "Shrani"
 
 
+msgid "Whether this path is saved in bookmarks, or generated from OS"
+msgstr "Ali je ta pot shranjena med zaznamki ali jo tvori operacijski sistem"
+
+
 msgid "File Handler Type"
 msgstr "Vrsta datotečnega krmilnika"
 
 
+msgid "Extends functionality to operators that manages files, such as adding drag and drop support"
+msgstr "Dopolnjuje operatorje, ki upravljajo z datotekami, na primer z dodajanjem vlečenja in spuščanja datotek"
+
+
 msgid "Operator"
 msgstr "Operator"
+
+
+msgid "Operator that can handle export for files with the extensions given in bl_file_extensions"
+msgstr "Operator, ki lahko izvaža datoteke s končnicami, navedenimi v bl_file_extensions"
 
 
 msgid "File Extensions"
@@ -13005,8 +13177,16 @@ msgid "If this is set, the file handler gets a custom ID, otherwise it takes the
 msgstr "Če je to nastavljeno, datotečni krmilnik dobi prilagojeni ID, sicer prevzame ime razreda, s katerim je bil datotečni krmilnik definiran (na primer, če je ime razreda \"OBJECT_FH_zivjo\" in noben program ne nastavi bl_idname, potem bl_idname = \"OBJECT_FH_zivjo\")"
 
 
+msgid "Operator that can handle import for files with the extensions given in bl_file_extensions"
+msgstr "Operator, ki lahko uvaža datoteke s končnicami, navedenimi v bl_file_extensions"
+
+
 msgid "Label"
 msgstr "Označba"
+
+
+msgid "The file handler label"
+msgstr "Oznaka datotečnega krmilnika"
 
 
 msgid "Open images"
@@ -13055,6 +13235,10 @@ msgstr "Vpis v datotečni izbiri"
 
 msgid "A file viewable in the File Browser"
 msgstr "Datoteka, ki jo je mogoče videti v datotečnem brskalniku"
+
+
+msgid "Asset data, valid if the file represents an asset"
+msgstr "Podatki sredstva. Veljavno le, če datoteka hrani sredstvo"
 
 
 msgid "Icon ID"
@@ -14967,7 +15151,7 @@ msgstr "Zanemari zaklepanje materialov"
 
 
 msgid "Local Matrix"
-msgstr "Lokalna matrika"
+msgstr "Krajevna matrika"
 
 
 msgid "Inverse Parent Matrix"
@@ -15309,10 +15493,6 @@ msgstr "Je akcija v plasteh"
 
 msgid "Is Legacy Action"
 msgstr "Je zastarela akcija"
-
-
-msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action."
-msgstr "Javi, ali gre za zastarelo akcijo. Zastarele akcije nimajo ne plasti ne polj. Za prazno akcijo javi, da je hkrati zastarela in v plasteh."
 
 
 msgid "Is Empty"
@@ -15669,18 +15849,6 @@ msgid "Brush's capabilities"
 msgstr "Zmožnosti čopiča"
 
 
-msgid "Clone Alpha"
-msgstr "Alfa klona"
-
-
-msgid "Clone Image"
-msgstr "Slika klona"
-
-
-msgid "Clone Offset"
-msgstr "Odmik klona"
-
-
 msgid "Soft Body Plasticity"
 msgstr "Gnetljivost mehkega telesa"
 
@@ -15735,7 +15903,7 @@ msgstr "Simulacijska površina"
 
 
 msgid "Local"
-msgstr "Lokalno"
+msgstr "Krajevno"
 
 
 msgid "Global"
@@ -20595,31 +20763,6 @@ msgid "Grids"
 msgstr "Regularne mreže"
 
 
-msgctxt "Sequence"
-msgid "Sequence Mode"
-msgstr "Sekvenčni način"
-
-
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Izrezek"
-
-
-msgctxt "Sequence"
-msgid "Extend"
-msgstr "Razširi"
-
-
-msgctxt "Sequence"
-msgid "Repeat"
-msgstr "Ponavljaj"
-
-
-msgctxt "Sequence"
-msgid "Ping-Pong"
-msgstr "Pingpong"
-
-
 msgid "Velocity X Grid"
 msgstr "Mreža hitrosti po X"
 
@@ -20893,15 +21036,15 @@ msgstr "Vstavi pred"
 
 
 msgid "Subitem Local ID"
-msgstr "Lokalni ID podelementa"
+msgstr "Krajevni ID podelementa"
 
 
 msgid "Subitem Local Index"
-msgstr "Lokalni indeks podelementa"
+msgstr "Krajevni indeks podelementa"
 
 
 msgid "Subitem Local Name"
-msgstr "Lokalno ime podelementa"
+msgstr "Krajevno ime podelementa"
 
 
 msgid "Subitem Reference ID"
@@ -23459,12 +23602,24 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Mirror"
-msgstr "Zrcali"
+msgid "Pivot Point"
+msgstr "Osišče"
 
 
 msgid "Snap"
 msgstr "Pritrdi"
+
+
+msgid "Mask Edit"
+msgstr "Urejanje maske"
+
+
+msgid "Automasking"
+msgstr "Samodejno maskiranje"
+
+
+msgid "Mirror"
+msgstr "Zrcali"
 
 
 msgid "UV Mapping"
@@ -23472,7 +23627,7 @@ msgstr "Preslikanje UV"
 
 
 msgid "Local View"
-msgstr "Lokalni pogled"
+msgstr "Krajevni pogled"
 
 
 msgid "Viewpoint"
@@ -23641,18 +23796,6 @@ msgstr "Besedilo"
 
 msgid "Bone Roll"
 msgstr "Zasukaj kost"
-
-
-msgid "Pivot Point"
-msgstr "Osišče"
-
-
-msgid "Mask Edit"
-msgstr "Urejanje maske"
-
-
-msgid "Automasking"
-msgstr "Samodejno maskiranje"
 
 
 msgid "Animals"
@@ -29290,15 +29433,15 @@ msgstr "Os obračanja"
 
 
 msgid "Rotate around the local X axis"
-msgstr "Rotira okoli lokalne osi X"
+msgstr "Rotira okoli krajevne osi X"
 
 
 msgid "Rotate around the local Y axis"
-msgstr "Rotira okoli lokalne osi Y"
+msgstr "Rotira okoli krajevne osi Y"
 
 
 msgid "Rotate around the local Z axis"
-msgstr "Rotira okoli lokalne osi Z"
+msgstr "Rotira okoli krajevne osi Z"
 
 
 msgid "Align Rotation to Vector"
@@ -30276,7 +30419,7 @@ msgstr "Način primerjave"
 
 
 msgid "Wildcard"
-msgstr "Slepi vzorec"
+msgstr "Nadomestni znak"
 
 
 msgid "Repeat Input"
@@ -30617,7 +30760,7 @@ msgstr "Ambientno zastiranje"
 
 
 msgid "Only Local"
-msgstr "Samo lokalno"
+msgstr "Samo krajevno"
 
 
 msgid "Attribute Name"
@@ -31933,7 +32076,7 @@ msgstr "Namesti razširitev"
 
 
 msgid "Install extensions from files into a locally managed repository"
-msgstr "Namesti razširitve iz datotek v lokalni repozitorij"
+msgstr "Namesti razširitve iz datotek v krajevni repozitorij"
 
 
 msgctxt "Operator"
@@ -31972,7 +32115,7 @@ msgstr "Razširitve in zastarele dodatke pregleda in preveri, ali je prišlo do 
 
 msgctxt "Operator"
 msgid "Refresh Local"
-msgstr "Osveži lokalno"
+msgstr "Osveži krajevno"
 
 
 msgctxt "Operator"
@@ -32822,7 +32965,7 @@ msgstr "Prejšnja plast"
 
 msgctxt "Operator"
 msgid "Make Markers Local"
-msgstr "Naredi oznake lokalne"
+msgstr "Naredi oznake krajevne"
 
 
 msgctxt "Operator"
@@ -33308,6 +33451,22 @@ msgid "Shortest Rotation"
 msgstr "Najkrajša rotacija"
 
 
+msgid "Local +X Tangent"
+msgstr "Krajevni +X tangente"
+
+
+msgid "Local +Z Tangent"
+msgstr "Krajevni +Z tangente"
+
+
+msgid "Local -X Tangent"
+msgstr "Krajevni -X tangente"
+
+
+msgid "Local -Z Tangent"
+msgstr "Krajevni -Z tangente"
+
+
 msgid "View Axis"
 msgstr "Os gledišča"
 
@@ -33515,6 +33674,15 @@ msgstr "Loči kosti"
 
 
 msgctxt "Operator"
+msgid "Pick Shortest Path"
+msgstr "Izberi najkrajšo pot"
+
+
+msgid "Select shortest path between two bones"
+msgstr "Izbere najkrajšo pot med dvema kostema"
+
+
+msgctxt "Operator"
 msgid "Split"
 msgstr "Razcepi"
 
@@ -33522,6 +33690,10 @@ msgstr "Razcepi"
 msgctxt "Operator"
 msgid "Subdivide"
 msgstr "Razdeli"
+
+
+msgid "Number of Cuts"
+msgstr "Število kosov"
 
 
 msgctxt "Operator"
@@ -34838,7 +35010,7 @@ msgstr "Nanesi skaliranja"
 
 
 msgid "All Local"
-msgstr "Vse lokalno"
+msgstr "Vse krajevno"
 
 
 msgid "FBX All"
@@ -36454,6 +36626,10 @@ msgid "Set Uniform Opacity"
 msgstr "Nastavi enakomerno neprosojnost"
 
 
+msgid "Fill Opacity"
+msgstr "Neprosojnost polnila"
+
+
 msgctxt "Operator"
 msgid "Set Uniform Thickness"
 msgstr "Nastavi enakomerno debelino"
@@ -36878,6 +37054,14 @@ msgstr "Razpakiraj sliko"
 
 msgid "Image Name"
 msgstr "Ime slike"
+
+
+msgid "Use Local File"
+msgstr "Uporabi krajevno datoteko"
+
+
+msgid "Write Local File (overwrite existing)"
+msgstr "Zapiši krajevno datoteko (prepiši obstoječo)"
 
 
 msgctxt "Operator"
@@ -39512,7 +39696,7 @@ msgstr "Poveži objekte s sceno"
 
 msgctxt "Operator"
 msgid "Make Local"
-msgstr "Nastavi lokalno"
+msgstr "Nastavi krajevno"
 
 
 msgid "Selected Objects and Data"
@@ -40311,7 +40495,7 @@ msgstr "Odveži"
 
 
 msgid "Make Local"
-msgstr "Naredi lokalno"
+msgstr "Naredi krajevno"
 
 
 msgid "Remap Users"
@@ -40446,7 +40630,7 @@ msgstr "Vključi nerabljene povezane podatkovne bloke v izbris"
 
 
 msgid "Local Data-blocks"
-msgstr "Lokalni podatkovni bloki"
+msgstr "Krajevni podatkovni bloki"
 
 
 msgid "Recursive Delete"
@@ -41012,7 +41196,7 @@ msgstr "Dodaj oddaljeni repozitorij"
 
 
 msgid "Add Local Repository"
-msgstr "Dodaj lokalni repozitorij"
+msgstr "Dodaj krajevni repozitorij"
 
 
 msgid "Requires Access Token"
@@ -42933,6 +43117,16 @@ msgstr "Kopiraj na izbor"
 
 
 msgctxt "Operator"
+msgid "Drop Color"
+msgstr "Odloži barvo"
+
+
+msgctxt "Operator"
+msgid "Drop Name"
+msgstr "Odloži ime"
+
+
+msgctxt "Operator"
 msgid "Edit Source"
 msgstr "Uredi izvor"
 
@@ -43134,10 +43328,6 @@ msgstr "UVTILE"
 msgctxt "Mesh"
 msgid "Modified"
 msgstr "Spremenjeno"
-
-
-msgid "Fill Opacity"
-msgstr "Neprosojnost polnila"
 
 
 msgid "Length Average"
@@ -43343,6 +43533,10 @@ msgid "Cursor (Offset)"
 msgstr "Kazalec (odmik)"
 
 
+msgid "Adjacent Unselected"
+msgstr "Sosednji neizbrani"
+
+
 msgctxt "Operator"
 msgid "Sphere Projection"
 msgstr "Sferna projekcija"
@@ -43487,7 +43681,7 @@ msgstr "Ikosfera"
 
 msgctxt "Operator"
 msgid "Local View"
-msgstr "Lokalni pogled"
+msgstr "Krajevni pogled"
 
 
 msgid "Toggle display of selected object(s) separately and centered in view"
@@ -43504,11 +43698,11 @@ msgstr "Premakne pogled tako, da so vsi izbrani objekti zajeti v njem"
 
 msgctxt "Operator"
 msgid "Remove from Local View"
-msgstr "Umakni iz lokalnega pogleda"
+msgstr "Umakni iz krajevnega pogleda"
 
 
 msgid "Move selected objects out of local view"
-msgstr "Premakne izbrane objekte ven iz lokalnega pogleda"
+msgstr "Premakne izbrane objekte ven iz krajevnega pogleda"
 
 
 msgid "Move the view"
@@ -43556,6 +43750,11 @@ msgid "Object Name"
 msgstr "Ime objekta"
 
 
+msgctxt "Operator"
+msgid "Smooth View"
+msgstr "Tekoč pogled"
+
+
 msgid "Snap 3D cursor to the active item"
 msgstr "Pritrdi 3D kazalec na izbrani element"
 
@@ -43574,6 +43773,15 @@ msgstr "Pritrdi 3D kazalec na sredino enega ali več izbranih elementov"
 
 msgid "Snap selected item(s) to the 3D cursor"
 msgstr "Pritrdi enega ali več izbranih elementov na 3D kazalec"
+
+
+msgctxt "Operator"
+msgid "Flip MatCap"
+msgstr "Preobrni MatCap"
+
+
+msgid "Flip MatCap"
+msgstr "Preobrne MatCap"
 
 
 msgid "Material Preview"
@@ -43595,6 +43803,15 @@ msgstr "Pokaže vse objekte na sceni"
 
 msgid "All Regions"
 msgstr "Vsa področja"
+
+
+msgctxt "Operator"
+msgid "View Axis"
+msgstr "Glediščna os"
+
+
+msgid "Align Active"
+msgstr "Poravnaj z aktivnim"
 
 
 msgctxt "View3D"
@@ -43684,6 +43901,11 @@ msgid "View Lock to Active"
 msgstr "Prikleni pogled na aktivno"
 
 
+msgctxt "Operator"
+msgid "View Orbit"
+msgstr "Kroženje"
+
+
 msgid "Orbit"
 msgstr "Krožnica"
 
@@ -43724,8 +43946,30 @@ msgid "Pan Down"
 msgstr "Premik dol"
 
 
+msgctxt "Operator"
+msgid "View Perspective/Orthographic"
+msgstr "Prikaži perspektivno / vzporedno"
+
+
 msgid "Switch the current view from perspective/orthographic projection"
 msgstr "Preklopi trenutni pogled med perspektivno in vzporedno projekcijo"
+
+
+msgctxt "Operator"
+msgid "View Roll"
+msgstr "Naklon pogleda"
+
+
+msgid "Roll Angle"
+msgstr "Kot naklona"
+
+
+msgid "Roll Left"
+msgstr "Naklon levo"
+
+
+msgid "Roll Right"
+msgstr "Naklon desno"
 
 
 msgid "Move the view to the selection center"
@@ -43887,6 +44131,10 @@ msgstr "Pripni"
 
 msgid "Append from a Library .blend file"
 msgstr "Pripne iz knjižnice datoteke .blend"
+
+
+msgid "Re-Use Local Data"
+msgstr "Ponovno uporabi krajevne podatke"
 
 
 msgid "Instance Collections"
@@ -44186,6 +44434,10 @@ msgstr "Besedilo glave"
 
 msgid "Assign value"
 msgstr "Dodeli vrednost"
+
+
+msgid "Always Step"
+msgstr "Vedno v korakih"
 
 
 msgid "Assignment value"
@@ -45022,6 +45274,10 @@ msgid "Export all volumes"
 msgstr "Izvozi vse volumne"
 
 
+msgid "MaterialX Network"
+msgstr "Omrežje MaterialX"
+
+
 msgid "Overwrite Textures"
 msgstr "Prepiši teksture"
 
@@ -45149,6 +45405,10 @@ msgstr "Maska poti"
 
 msgid "Mesh Attributes"
 msgstr "Atributi mreže"
+
+
+msgid "Scene Instancing"
+msgstr "Scena v primerke"
 
 
 msgid "File Name Collision"
@@ -45550,6 +45810,18 @@ msgid "Canvas"
 msgstr "Platno"
 
 
+msgid "Clone Alpha"
+msgstr "Alfa klona"
+
+
+msgid "Clone Image"
+msgstr "Slika klona"
+
+
+msgid "Clone Offset"
+msgstr "Odmik klona"
+
+
 msgid "Dither"
 msgstr "Stresanje"
 
@@ -45698,6 +45970,10 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
+msgid "Active Tool"
+msgstr "Aktivno orodje"
+
+
 msgid "View Lock"
 msgstr "Zaklep pogleda"
 
@@ -45794,14 +46070,6 @@ msgid "Multi Frame"
 msgstr "Multiokvir"
 
 
-msgid "Auto-Masking"
-msgstr "Samodejno maskiranje"
-
-
-msgid "Viewport Debug"
-msgstr "Razhroščevanje 3D pogleda"
-
-
 msgid "glTF"
 msgstr "glTF"
 
@@ -45810,16 +46078,20 @@ msgid "glTF Animations"
 msgstr "Animacije glTF"
 
 
+msgid "Auto-Masking"
+msgstr "Samodejno maskiranje"
+
+
+msgid "Viewport Debug"
+msgstr "Razhroščevanje 3D pogleda"
+
+
 msgid "VR"
 msgstr "VR"
 
 
 msgid "VR Info"
 msgstr "Informacije VR"
-
-
-msgid "Active Tool"
-msgstr "Aktivno orodje"
 
 
 msgid "Chain Scaling"
@@ -46361,6 +46633,11 @@ msgstr "Načini"
 
 msgid "Group Sockets"
 msgstr "Vtičnice skupine"
+
+
+msgctxt "Operator"
+msgid "Links Cut"
+msgstr "Poreži vezi"
 
 
 msgid "Delta Transform"
@@ -47344,6 +47621,10 @@ msgid "Pose Options"
 msgstr "Pozirne možnosti"
 
 
+msgid "Action Maps"
+msgstr "Nastavitve krmiljenja"
+
+
 msgid "Landmarks"
 msgstr "Orientacijske točke"
 
@@ -48260,6 +48541,10 @@ msgid "Manual"
 msgstr "Ročno"
 
 
+msgid "Solid Lights"
+msgstr "Luči polnega senčenja"
+
+
 msgid "Texture Time Out"
 msgstr "Iztečni čas teksture"
 
@@ -48544,6 +48829,14 @@ msgid "Translate Tooltips"
 msgstr "Prevedi namige"
 
 
+msgid "Zoom Keyframes"
+msgstr "Približanje ključnih okvirjev"
+
+
+msgid "Zoom Seconds"
+msgstr "Približanje sekund"
+
+
 msgid "Keep Range"
 msgstr "Ohrani interval"
 
@@ -48578,6 +48871,10 @@ msgstr "Se da animirati"
 
 msgid "Optional Argument"
 msgstr "Neobvezni argument"
+
+
+msgid "Enum Flag"
+msgstr "Naštevna zastavica"
 
 
 msgid "Library Editable"
@@ -48653,8 +48950,17 @@ msgstr "Ime datoteke"
 
 
 msgctxt "Unit"
+msgid "Byte String"
+msgstr "Bajtni niz"
+
+
+msgctxt "Unit"
 msgid "Password"
 msgstr "Geslo"
+
+
+msgid "A string that is displayed hidden ('********')"
+msgstr "Niz, ki je skrit za zvezdicami ('********')"
 
 
 msgctxt "Unit"
@@ -48680,6 +48986,11 @@ msgstr "Faktor"
 msgctxt "Unit"
 msgid "Angle"
 msgstr "Kot"
+
+
+msgctxt "Unit"
+msgid "Time (Absolute)"
+msgstr "Čas (absolutno)"
 
 
 msgctxt "Unit"
@@ -48770,6 +49081,11 @@ msgstr "XYZ"
 msgctxt "Unit"
 msgid "XYZ Length"
 msgstr "Dolžina XYZ"
+
+
+msgctxt "Unit"
+msgid "Gamma-Corrected Color"
+msgstr "Barva po gama korekciji"
 
 
 msgctxt "Unit"
@@ -48904,6 +49220,10 @@ msgid "Punctuation"
 msgstr "Ločila"
 
 
+msgid "Strip Part"
+msgstr "Del traku"
+
+
 msgid "Find/Replace"
 msgstr "Najdi / zamenjaj"
 
@@ -48996,6 +49316,10 @@ msgstr "Popravek preslikave izboklin"
 
 msgid "Volume Interpolation"
 msgstr "Interpolacija volumna"
+
+
+msgid "Interpolation method to use for smoke/fire volumes"
+msgstr "Interpolacijska metoda za dimne/ognjene volumne"
 
 
 msgid "Volume Sampling"
@@ -49146,6 +49470,10 @@ msgid "Diffuse Bounces"
 msgstr "Odboji razpršitve"
 
 
+msgid "Next-Event Estimation"
+msgstr "Ocena naslednjega dogodka"
+
+
 msgid "Cull Distance"
 msgstr "Razdalja izločanja"
 
@@ -49172,6 +49500,10 @@ msgstr "Odboji sijanja"
 
 msgid "Roughness-based"
 msgstr "Na podlagi hrapavosti"
+
+
+msgid "Parallax-Aware VMM"
+msgstr "VMM s paralakso"
 
 
 msgid "VMM"
@@ -49252,6 +49584,10 @@ msgstr "Dolžina vzorčne podmnožice"
 
 msgid "Sampling Pattern"
 msgstr "Vzorec vzorčenja"
+
+
+msgid "Scrambling Distance"
+msgstr "Jakost stepanja"
 
 
 msgid "No Limit"
@@ -49434,6 +49770,10 @@ msgid "Toe"
 msgstr "Nožni prst"
 
 
+msgid "IK Local Location"
+msgstr "Krajevna lega IK"
+
+
 msgid "Leg"
 msgstr "Noga"
 
@@ -49458,6 +49798,14 @@ msgid "pivot_position"
 msgstr "pivot_position"
 
 
+msgid "Copy Location (Local)"
+msgstr "Kopiraj lego (krajevno)"
+
+
+msgid "Copy Location (Local, Owner Orientation)"
+msgstr "Kopiraj lego (krajevno, usmerjenost imetnika)"
+
+
 msgid "X-Global"
 msgstr "Globalni X"
 
@@ -49470,8 +49818,20 @@ msgid "Z-Global"
 msgstr "Globalni Z"
 
 
+msgid "color picker"
+msgstr "Izbirnik barv"
+
+
 msgid "Face Index"
 msgstr "Indeks lica"
+
+
+msgid "Custom Pose"
+msgstr "Poza po meri"
+
+
+msgid "ID Property"
+msgstr "Lastnost ID"
 
 
 msgid "Bilateral Filter"
@@ -49494,6 +49854,10 @@ msgid "1:1"
 msgstr "1:1"
 
 
+msgid "Full resolution"
+msgstr "Polna ločljivost"
+
+
 msgid "1:2"
 msgstr "1:2"
 
@@ -49510,8 +49874,96 @@ msgid "1:16"
 msgstr "1:16"
 
 
+msgid "Screen-Trace Precision"
+msgstr "Natančnost zaslonskega sledenja"
+
+
+msgid "Screen-Trace Thickness"
+msgstr "Debelina zaslonskega sledenja"
+
+
+msgid "Read-only Integer"
+msgstr "Celo število samo za branje"
+
+
+msgid "Not Supported"
+msgstr "Nepodprto"
+
+
+msgid "Horizontal Split"
+msgstr "Vodoravni razcep"
+
+
+msgid "Vertical Split"
+msgstr "Navpični razcep"
+
+
+msgid "Quad Split"
+msgstr "Četverni razcep"
+
+
+msgid "Region Data"
+msgstr "Podatki področja"
+
+
+msgid "Region height"
+msgstr "Višina področja"
+
+
 msgid "View2D"
 msgstr "2D pogled"
+
+
+msgid "Region width"
+msgstr "Širina področja"
+
+
+msgid "Clip Planes"
+msgstr "Rezalne ravnine"
+
+
+msgid "Is Perspective"
+msgstr "Je perspektivna"
+
+
+msgid "Perspective Matrix"
+msgstr "Perspektivna matrika"
+
+
+msgid "Sync Zoom/Pan"
+msgstr "Uskladi zum / premik"
+
+
+msgid "Clip Contents"
+msgstr "Poreži vsebino"
+
+
+msgid "Camera Offset"
+msgstr "Odmik kamere"
+
+
+msgid "Camera Zoom"
+msgstr "Zum kamere"
+
+
+msgid "View Location"
+msgstr "Lega gledišča"
+
+
+msgid "View Matrix"
+msgstr "Matrika pogleda"
+
+
+msgid "View Perspective"
+msgstr "Perspektiva pogleda"
+
+
+msgid "View Rotation"
+msgstr "Rotacija pogleda"
+
+
+msgid "Window Matrix"
+msgstr "Okenska matrika"
 
 
 msgid "Render Ambient Occlusion in this Layer"
@@ -49522,12 +49974,33 @@ msgid "Deliver Ambient Occlusion pass"
 msgstr "Porodi obhod ambientnega zastiranja"
 
 
+msgctxt "Scene"
+msgid "Object Index"
+msgstr "Indeks objekta"
+
+
+msgid "Subsurface Color"
+msgstr "Podpovršinska barva"
+
+
+msgid "Subsurface Direct"
+msgstr "Neposredna podpovršina"
+
+
+msgid "Subsurface Indirect"
+msgstr "Posredna podpovršina"
+
+
 msgid "Sky"
 msgstr "Nebo"
 
 
 msgid "Strand"
 msgstr "Prameni"
+
+
+msgid "Render Passes"
+msgstr "Obhodi upodabljanja"
 
 
 msgid "Bias"
@@ -49538,8 +50011,32 @@ msgid "Number of samples used for ambient occlusion baking from multires"
 msgstr "Količina vzorcev za peko ambientnega zastiranja iz več ločljivosti"
 
 
+msgid "Bake normals"
+msgstr "Zapeče normale"
+
+
+msgid "Bake displacement"
+msgstr "Zapeče odmikanje"
+
+
+msgid "Compositor Device"
+msgstr "Naprava stavitelja"
+
+
 msgid "GPU"
 msgstr "GPE"
+
+
+msgid "Compositor Precision"
+msgstr "Natančnost stavitelja"
+
+
+msgid "Full precision"
+msgstr "Popolna natančnost"
+
+
+msgid "Dither Intensity"
+msgstr "Jakost stresanja"
 
 
 msgid "Engine"
@@ -49548,6 +50045,14 @@ msgstr "Pogon"
 
 msgid "FPS"
 msgstr "FPS"
+
+
+msgid "FPS Base"
+msgstr "Podlaga FPS"
+
+
+msgid "Framerate base"
+msgstr "Podlaga hitrosti predvajanja okvirjev"
 
 
 msgid "Additional Subdivision"
@@ -49562,6 +50067,14 @@ msgstr "Pramen"
 msgctxt "Curves"
 msgid "Strip"
 msgstr "Trak"
+
+
+msgid "Multiple Engines"
+msgstr "Več pogonov"
+
+
+msgid "Movie Format"
+msgstr "Format posnetka"
 
 
 msgid "Line Thickness Mode"
@@ -49600,6 +50113,10 @@ msgid "Antialiasing"
 msgstr "Glajenje robov"
 
 
+msgid "Display modifiers"
+msgstr "Prikaže modifikatorje"
+
+
 msgid "Playback Only"
 msgstr "Samo med predvajanjem"
 
@@ -49608,8 +50125,20 @@ msgid "Layers Tinting"
 msgstr "Niansiranje plasti"
 
 
+msgid "Simplify Subdivision"
+msgstr "Poenostavi delitev"
+
+
+msgid "Simplify Volumes"
+msgstr "Poenostavi volumne"
+
+
 msgid "Text Color"
 msgstr "Barva besedila"
+
+
+msgid "Render Views"
+msgstr "Upodabljalni pogledi"
 
 
 msgid "Threads Mode"
@@ -49624,12 +50153,20 @@ msgid "Bake from Multires"
 msgstr "Zapeci iz več ločljivosti"
 
 
+msgid "User Scale"
+msgstr "Merilo uporabnika"
+
+
 msgid "Render Region"
 msgstr "Upodobi območje po meri"
 
 
 msgid "Crop to Render Region"
 msgstr "Obreži na območje po meri"
+
+
+msgid "Use Freestyle"
+msgstr "Uporabi Freestyle"
 
 
 msgid "Lock Interface"
@@ -49650,6 +50187,14 @@ msgstr "Rezerviraj datoteke"
 
 msgid "Cache Result"
 msgstr "Rezultat predpomnilnika"
+
+
+msgid "Use Simplify"
+msgstr "Uporabi poenostavitev"
+
+
+msgid "Mesh Normals"
+msgstr "Normale mreže"
 
 
 msgid "Render Single Layer"
@@ -50332,7 +50877,7 @@ msgstr "Samodejno posodabljaj"
 
 
 msgid "Show Local Markers"
-msgstr "Pokaži lokalne oznake"
+msgstr "Pokaži krajevne oznake"
 
 
 msgid "Show Control F-Curves"
@@ -50982,15 +51527,15 @@ msgstr "Način, kako so obrisi prikazani v 3D pogledu"
 
 
 msgid "Use Local Camera"
-msgstr "Uporabi lokalno kamero"
+msgstr "Uporabi krajevno kamero"
 
 
 msgid "Use a local camera in this view, rather than scene's active camera"
-msgstr "V tem pogledu uporabi lokalno kamero namesto aktivne kamere na sceni"
+msgstr "V tem pogledu uporabi krajevno kamero namesto aktivne kamere na sceni"
 
 
 msgid "Local Collections"
-msgstr "Lokalne zbirke"
+msgstr "Krajevne zbirke"
 
 
 msgctxt "Mesh"
@@ -51081,6 +51626,11 @@ msgstr "Scena"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Posnetek"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Izrezek"
 
 
 msgctxt "Sequence"
@@ -51644,6 +52194,10 @@ msgstr "Gledišče kazalca"
 
 msgid "Start placement using a point projected onto the view plane at the 3D cursor position"
 msgstr "Začne postavljati glede na točko, projicirano na glediščno ravnino v 3D kazalcu"
+
+
+msgid "UV Local View"
+msgstr "Krajevni pogled UV"
 
 
 msgid "Rotation Increment"
@@ -52503,6 +53057,16 @@ msgstr "Dol"
 
 
 msgctxt "WindowManager"
+msgid "Local Up"
+msgstr "Krajevno gor"
+
+
+msgctxt "WindowManager"
+msgid "Local Down"
+msgstr "Krajevno dol"
+
+
+msgctxt "WindowManager"
 msgid "Teleport"
 msgstr "Teleportiraj"
 
@@ -53008,7 +53572,7 @@ msgstr "Aktivni repozitorij ima neveljavne nastavitve"
 
 
 msgid "Upgrade is not supported for local repositories"
-msgstr "Nadgradnja ni podprta za lokalne repozitorije"
+msgstr "Nadgradnja ni podprta za krajevne repozitorije"
 
 
 msgid "No user repositories"
@@ -53389,10 +53953,6 @@ msgstr "in gonilnik NVIDIA različice %s ali novejšega"
 
 msgid "Requires AMD GPU with RDNA architecture"
 msgstr "Zahteva GPE znamke AMD z arhitekturo RDNA"
-
-
-msgid "and AMD Radeon Pro %s driver or newer"
-msgstr "in gonilnik AMD Radeon Pro %s ali novejši"
 
 
 msgid "Requires Intel GPU with Xe-HPG architecture"
@@ -54180,10 +54740,6 @@ msgstr "Ni bilo mogoče najti poti do dodatkov {!r}"
 
 msgid "Installing keymap failed: {:s}"
 msgstr "Nameščanje bližnjic ni uspelo: {:s}"
-
-
-msgid "This script was written Blender version {:d}.{:d}.{:d} and might not function (correctly), though it is enabled"
-msgstr "Ta program je bil napisan za Blender {:d}.{:d}.{:d} in morda ne bo deloval (pravilno). Kljub temu je omogočen"
 
 
 msgid "File already installed to {!r}"
@@ -59377,7 +59933,7 @@ msgstr "Upodobi ključne okvirje 3D pogleda"
 
 msgctxt "Operator"
 msgid "Toggle Local View"
-msgstr "Preklopi lokalni pogled"
+msgstr "Preklopi krajevni pogled"
 
 
 msgctxt "Operator"
@@ -59690,7 +60246,7 @@ msgstr "Mrežna ravnina"
 
 msgctxt "Operator"
 msgid "Make Local..."
-msgstr "Naredi lokalno ..."
+msgstr "Naredi krajevno ..."
 
 
 msgctxt "Operator"
@@ -60410,7 +60966,7 @@ msgstr "Preklopi pomagala"
 
 
 msgid "Local Camera"
-msgstr "Lokalna kamera"
+msgstr "Krajevna kamera"
 
 
 msgid "Camera to View"
@@ -62718,10 +63274,6 @@ msgid "OS"
 msgstr "OS"
 
 
-msgid "Home"
-msgstr "Domov"
-
-
 msgid "Esc"
 msgstr "Ubež."
 
@@ -62851,10 +63403,6 @@ msgstr "Radiani: {}"
 
 msgid "Expression: {}"
 msgstr "Izraz: {}"
-
-
-msgid "Library: {}"
-msgstr "Knjižnica: {}"
 
 
 msgid "Disabled: {}"
@@ -63587,6 +64135,10 @@ msgid "Timber"
 msgstr "Les"
 
 
+msgid "3D Local View "
+msgstr "Krajevni pogled 3D "
+
+
 msgid "Frame:"
 msgstr "Okvir:"
 
@@ -63646,6 +64198,10 @@ msgstr "Prestavi na dno"
 msgctxt "Screen"
 msgid "Precision"
 msgstr "Natančnost"
+
+
+msgid "Object is a local library override"
+msgstr "Objekt je krajevna povožnja knjižnice"
 
 
 msgid "Quick Favorites"
@@ -63827,6 +64383,10 @@ msgid "Date Modified"
 msgstr "Čas spremembe"
 
 
+msgid "Home"
+msgstr "Domov"
+
+
 msgid "Desktop"
 msgstr "Namizje"
 
@@ -63987,12 +64547,28 @@ msgid "Playback Scale"
 msgstr "Skaliranje predvajanja"
 
 
+msgid "Active Strip Name"
+msgstr "Ime aktivnega traku"
+
+
 msgid "Frame: %d"
 msgstr "Okvir: %d"
 
 
+msgid "Add Crypto Layer"
+msgstr "Dodaj kriptoplast"
+
+
+msgid "Remove Crypto Layer"
+msgstr "Odstrani kriptoplast"
+
+
 msgid "Squash"
 msgstr "Stiskanje"
+
+
+msgid "Undefined Socket Type"
+msgstr "Nedefinirana vrsta vtičnice"
 
 
 msgid "(Rotation)"
@@ -64015,6 +64591,10 @@ msgid "Geometry:"
 msgstr "Geometrija:"
 
 
+msgid "• Instances: {}"
+msgstr "• Primerki: {}"
+
+
 msgid "positions"
 msgstr "položaji"
 
@@ -64027,8 +64607,16 @@ msgid "gizmos"
 msgstr "manipulatorji"
 
 
+msgid "Supported: All Types"
+msgstr "Podprto: vse vrste"
+
+
 msgid "Supported: "
 msgstr "Podprto: "
+
+
+msgid "Accessed named attributes:"
+msgstr "Pridobljeni imenovani atributi:"
 
 
 msgid "read"
@@ -64043,12 +64631,68 @@ msgid "remove"
 msgstr "odstranjevanje"
 
 
+msgid "Cannot separate nodes"
+msgstr "Ne morem ločiti vozlišč"
+
+
 msgid "Disconnect"
 msgstr "Odklopi"
 
 
+msgid "Unsupported Menu Socket"
+msgstr "Nepodprta menijska vtičnica"
+
+
+msgid "No active collection"
+msgstr "Ni aktivne zbirke"
+
+
 msgid "Reorder"
 msgstr "Preuredi"
+
+
+msgid "Copy to bone"
+msgstr "Kopira na kost"
+
+
+msgid "Copy to object"
+msgstr "Kopira na objekt"
+
+
+msgid "Link before collection"
+msgstr "Poveže pred zbirko"
+
+
+msgid "Move before collection"
+msgstr "Prestavi pred zbirko"
+
+
+msgid "Link between collections"
+msgstr "Poveže med zbirki"
+
+
+msgid "Move between collections"
+msgstr "Prestavi med zbirki"
+
+
+msgid "Link after collection"
+msgstr "Poveže za zbirko"
+
+
+msgid "Move after collection"
+msgstr "Prestavi za zbirko"
+
+
+msgid "Link inside collection"
+msgstr "Poveže v zbirko"
+
+
+msgid "Number of users"
+msgstr "Količina uporabnikov"
+
+
+msgid "Remap Data ID"
+msgstr "Preslika ID podatkov"
 
 
 msgid "Remap"
@@ -64059,16 +64703,74 @@ msgid "Manage Unused Data"
 msgstr "Upravljaj neuporabljene podatke"
 
 
+msgid "%d data-block(s) pasted"
+msgstr "Prilepljenih %d podatkovnih blokov"
+
+
+msgid "Deleted %d data-block(s)"
+msgstr "Izbrisanih %d podatkovnih blokov"
+
+
+msgid "Not yet implemented"
+msgstr "Ni še implementirano"
+
+
 msgid "No Library Overrides"
 msgstr "Ni povoženih knjižnic"
+
+
+msgid "Added through override"
+msgstr "Dodano prek povožnje"
+
+
+msgid "Protected from override"
+msgstr "Zaščiteno pred povožnjo"
 
 
 msgid "(empty)"
 msgstr "(prazno)"
 
 
+msgid "Mask not found"
+msgstr "Ne najdem maske"
+
+
+msgid "%d strips pasted"
+msgstr "Prilepljenih %d trakov"
+
+
+msgid "Slip offset: %s"
+msgstr "Prevrten čas: %s"
+
+
+msgid "Slip offset: %d"
+msgstr "Prevrten čas: %d"
+
+
+msgid "Separate Sequence Images"
+msgstr "Loči sekvenčne slike"
+
+
 msgid "MetaStrip"
 msgstr "MetaTrak"
+
+
+msgid "Cannot create transition"
+msgstr "Ne morem ustvariti prehoda"
+
+
+msgctxt "Operator"
+msgid "Select (Unconnected)"
+msgstr "Izberi (nepovezano)"
+
+
+msgctxt "Operator"
+msgid "Select (Linked Time)"
+msgstr "Izberi (povezan čas)"
+
+
+msgid "No active sequence!"
+msgstr "Ni aktivne sekvence!"
 
 
 msgid "Rows:"
@@ -64091,6 +64793,26 @@ msgid "(Geometry)"
 msgstr "(Geometrija)"
 
 
+msgid "Unsupported column type"
+msgstr "Nepodprta vrsta stolpca"
+
+
+msgid "Reload from disk (ignore local changes)"
+msgstr "Ponovno naloži z diska (zanemari krajevne spremembe)"
+
+
+msgid "Reload from disk"
+msgstr "Ponovno pridobi z diska"
+
+
+msgid "Make text internal"
+msgstr "Ponotranji besedilo"
+
+
+msgid "Saved text \"%s\""
+msgstr "Besedilo \"%s\" shranjeno"
+
+
 msgid "Clear Recent Files List..."
 msgstr "Počisti seznam nedavnih datotek ..."
 
@@ -64105,6 +64827,22 @@ msgstr "Odpri nedavno"
 
 msgid "Undo History"
 msgstr "Zgodovina razveljavitev"
+
+
+msgid "Remove, local files not found."
+msgstr "Odstranjujem, krajevnih datotek ni bilo mogoče najti."
+
+
+msgid "Remove, keeping local files."
+msgstr "Odstranjujem, ohranjam krajevne datoteke."
+
+
+msgid "File association registered"
+msgstr "Program je povezan z vrsto datoteke"
+
+
+msgid "File association unregistered"
+msgstr "Povezava programa z vrsto datoteke je odstranjena"
 
 
 msgid "Control Point:"
@@ -64215,8 +64953,20 @@ msgid "4L"
 msgstr "4L"
 
 
+msgid "No Bone Active"
+msgstr "Ni aktivne kosti"
+
+
 msgid "Size:"
 msgstr "Velikost:"
+
+
+msgid "Displays global values"
+msgstr "Prikaže globalne vrednosti"
+
+
+msgid "Displays local values"
+msgstr "Prikaže krajevne vrednosti"
 
 
 msgid "Front Orthographic"
@@ -64288,7 +65038,7 @@ msgstr "Perspektivno - uporabnik"
 
 
 msgid " (Local)"
-msgstr " (Lokalno)"
+msgstr " (krajevno)"
 
 
 msgid " (Clipped)"
@@ -64305,6 +65055,14 @@ msgstr "fps: %.2f"
 
 msgid "fps: %i"
 msgstr "fps: %i"
+
+
+msgid "Up/Down"
+msgstr "Gor / dol"
+
+
+msgid "Local Up/Down"
+msgstr "Krajevno gor/dol"
 
 
 msgid "Jump"
@@ -65271,6 +66029,10 @@ msgstr "Svetli toni"
 
 msgid "Midtones"
 msgstr "Srednji toni"
+
+
+msgid "Pick"
+msgstr "Izberi"
 
 
 msgid "Prefilter:"
@@ -67229,6 +67991,11 @@ msgstr "Na podlagi"
 msgctxt "Preferences"
 msgid "Light"
 msgstr "Svetla"
+
+
+msgctxt "Preferences"
+msgid "Print"
+msgstr "Tisk"
 
 
 msgid "camera"

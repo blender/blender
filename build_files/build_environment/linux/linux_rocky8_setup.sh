@@ -200,15 +200,27 @@ yum -y install jack-audio-connection-kit-devel
 # - "Install kernel driver".
 
 # Register ROCm packages
-rm -f /etc/yum.repos.d/rocm.repo
-tee --append /etc/yum.repos.d/rocm.repo <<EOF
-[ROCm-6.1.3]
-name=ROCm6.1.3
-baseurl=https://repo.radeon.com/rocm/rhel8/6.1.3/main
+sudo rpm --import https://repo.radeon.com/rocm/rocm.gpg.key
+rm -f /etc/yum.repos.d/amdgpu-6.3.1.repo
+rm -f /etc/yum.repos.d/rocm-6.3.1.repo
+tee --append /etc/yum.repos.d/amdgpu-6.3.1.repo <<EOF
+[amdgpu-6.3.1]
+name=amdgpu-6.3.1
+baseurl=https://repo.radeon.com/amdgpu/6.3.1/el/8.10/main/x86_64/
 enabled=1
 priority=50
 gpgcheck=1
 gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
 EOF
+tee --append /etc/yum.repos.d/rocm-6.3.1.repo <<EOF
+[ROCm-6.3.1]
+name=ROCm-6.3.1
+baseurl=https://repo.radeon.com/rocm/el8/6.3.1/main
+enabled=1
+gpgcheck=1
+exclude=rock-dkms
+gpgkey=https://repo.radeon.com/rocm/rocm.gpg.key
+EOF
 yum -y update
-yum -y install rocm
+sudo yum install -y hipcc6.3.1 hip-devel6.3.1 rocm-llvm6.3.1 rocm-core6.3.1 rocm-device-libs6.3.1
+sudo update-alternatives --set rocm /opt/rocm-6.3.1

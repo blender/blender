@@ -318,6 +318,12 @@ static bool reuse_bmain_move_id(ReuseOldBMainData *reuse_data,
                                 const bool reuse_existing)
 {
   id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
+  /* Nothing to move for embedded ID. */
+  if (id->flag & ID_FLAG_EMBEDDED_DATA) {
+    remapper.add(id, id);
+    return true;
+  }
+
   Main *new_bmain = reuse_data->new_bmain;
   Main *old_bmain = reuse_data->old_bmain;
   ListBase *new_lb = which_libbase(new_bmain, GS(id->name));
@@ -923,9 +929,11 @@ static void setup_app_data(bContext *C,
     mode = LOAD_UI;
   }
 
-  /* Free all render results, without this stale data gets displayed after loading files */
+  /* Free all render results and interactive compositor renders, without this stale data gets
+   * displayed after loading files */
   if (mode != LOAD_UNDO) {
     RE_FreeAllRenderResults();
+    RE_FreeInteractiveCompositorRenders();
   }
 
   /* Only make file-paths compatible when loading for real (not undo). */

@@ -47,7 +47,7 @@ BLOCKLIST_METAL = [
     "light_link_exclude.blend",
     "light_link_instanced_receiver.blend",
     # Blocked due to difference in volume lightprobe bakes(maybe?) (to be fixed).
-    "volume_zero_extinction.blend"
+    "volume_zero_extinction_channel.blend",
     # Blocked due to difference in screen space tracing (to be fixed).
     "sss_reflection_clamp.blend",
     # Blocked due to difference in volume rendering (to be fixed).

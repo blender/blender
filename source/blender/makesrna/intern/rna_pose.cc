@@ -388,7 +388,7 @@ static void rna_PoseChannel_constraints_remove(
     return;
   }
 
-  BKE_constraint_remove(&pchan->constraints, con);
+  BKE_constraint_remove_ex(&pchan->constraints, ob, con);
   RNA_POINTER_INVALIDATE(con_ptr);
 
   blender::ed::object::constraint_update(bmain, ob);

@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
-"PO-Revision-Date: 2025-02-14 05:56+0000\n"
-"Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.9.2\n"
+"X-Generator: Weblate 5.10.1\n"
 "X-Poedit-SourceCharset: utf-8"
 
 
@@ -106,10 +106,6 @@ msgstr "A lista de canais de animação para cada espaço de ação"
 
 msgid "Action F-Curves"
 msgstr "Curvas-f das ações"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Coleção de Curvas-F de ações"
 
 
 msgid "Action Group"
@@ -659,14 +655,6 @@ msgstr "Distribuir memória pelos dispositivos"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Distribuir a cena na memória de múltiplos dispositivos interconectados, por exemplo via NVLink, em vez de duplicá-la para cada dispositivo"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "HIP RT (experimental)"
-
-
-msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
-msgstr "O recurso HIP RT permite raytracing por hardware em placas AMD de arquiteturas a partir da RDNA2, com recuo de shader em placas mais antigas. Este recurso é experimental e pode resultar em renderizações incorretas"
 
 
 msgid "Embree on GPU"
@@ -11583,10 +11571,6 @@ msgid "A collection of F-Curves for animation"
 msgstr "Uma coleção de curvas-f para animação."
 
 
-msgid "The individual F-Curves that make up the action"
-msgstr "As curvas-f individuais que perfazem a ação."
-
-
 msgid "Frame Range"
 msgstr "Faixa de quadros"
 
@@ -11595,17 +11579,9 @@ msgid "Groups"
 msgstr "Grupos"
 
 
-msgid "Convenient groupings of F-Curves"
-msgstr "Agrupamentos convenientes de curvas-f."
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Tipo de identificador raiz"
-
-
-msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING"
-msgstr "Tipo de identificador de bloco em que a ação pode ser usada - NÃO ALTERE A MENOS QUE SAIBA O QUE ESTÁ FAZENDO."
 
 
 msgid "Layers"
@@ -11786,22 +11762,6 @@ msgstr "Cíclico(a)"
 
 msgid "Brush's capabilities"
 msgstr "Capacidades do pincel."
-
-
-msgid "Clone Alpha"
-msgstr "Alfa para clone"
-
-
-msgid "Opacity of clone image display"
-msgstr "Opacidade na qual mostrar a imagem clone."
-
-
-msgid "Clone Image"
-msgstr "Imagem para clonar"
-
-
-msgid "Clone Offset"
-msgstr "Deslocamento para clone"
 
 
 msgid "Cloth Damping"
@@ -17915,11 +17875,6 @@ msgid "Volume render settings for 3D viewport"
 msgstr "Configurações de renderização de volume para a janela de exibição 3D"
 
 
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Clipe"
-
-
 msgid "Window Manager"
 msgstr "Gerenciador de janelas"
 
@@ -21533,12 +21488,20 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
 msgid "Snap"
 msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Mapping"
@@ -21699,14 +21662,6 @@ msgstr "Texto"
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Basic"
@@ -36892,6 +36847,10 @@ msgid "Select Mode"
 msgstr "Modo de seleção"
 
 
+msgid "Fill Opacity"
+msgstr "Preencher opacidade"
+
+
 msgctxt "Operator"
 msgid "Snap Cursor to Selected Points"
 msgstr "Atrair o cursor para os pontos selecionados"
@@ -47791,10 +47750,6 @@ msgid "Exports UVs from the modified mesh"
 msgstr "Exporta as UVs a partir da malha modificada."
 
 
-msgid "Fill Opacity"
-msgstr "Preencher opacidade"
-
-
 msgid "Set amount of opacity for exported UV layout"
 msgstr "Define a quantidade de opacidade para o esquema de UV exportado."
 
@@ -50017,8 +49972,24 @@ msgid "Image used as canvas"
 msgstr "A imagem usada como lona"
 
 
+msgid "Clone Alpha"
+msgstr "Alfa para clone"
+
+
+msgid "Opacity of clone image display"
+msgstr "Opacidade na qual mostrar a imagem clone."
+
+
+msgid "Clone Image"
+msgstr "Imagem para clonar"
+
+
 msgid "Image used as clone source"
 msgstr "Imagem usada como fonte de clonagem"
+
+
+msgid "Clone Offset"
+msgstr "Deslocamento para clone"
 
 
 msgid "Dither"
@@ -58290,6 +58261,11 @@ msgstr "Filme"
 
 
 msgctxt "Sequence"
+msgid "Clip"
+msgstr "Clipe"
+
+
+msgctxt "Sequence"
 msgid "Mask"
 msgstr "Máscara"
 
@@ -65197,10 +65173,6 @@ msgid "Strand Lengths"
 msgstr "Comprimento do fio"
 
 
-msgid "Path Steps"
-msgstr "Passos de caminho:"
-
-
 msgid "No Brushes currently available"
 msgstr "Não há pincéis disponíveis atualmente."
 
@@ -65304,10 +65276,6 @@ msgstr "Não é possível criar o caminho das preferências de usuário para os 
 
 msgid "File written by newer Blender binary (%d.%d), expect loss of data!"
 msgstr "Arquivo escrito por um executável Blender mais novo: (%d.%d), espere por perda de dados !"
-
-
-msgid "Loading failed: "
-msgstr "Falha durante o carregamento:"
 
 
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
@@ -67769,10 +67737,6 @@ msgid "Scene has no camera"
 msgstr "A cena não possui uma câmera definida."
 
 
-msgid "Movie format unsupported"
-msgstr "Formato de filme não suportado."
-
-
 msgid "Failed to create OpenGL off-screen buffer, %s"
 msgstr "Falha ao criar buffer OpenGL fora-de-tela, %s"
 
@@ -69015,10 +68979,6 @@ msgid "Radius (Parent)"
 msgstr "Raio (parente)"
 
 
-msgid "Size:"
-msgstr "Tamanho"
-
-
 msgid "Displays global values"
 msgstr "Mostra valores globais."
 
@@ -69329,10 +69289,6 @@ msgstr "Encolher ou estufar: %s"
 
 msgid "Shrink/Fatten: %3f"
 msgstr "Encolher ou estufar: %3f"
-
-
-msgid "Edge Slide: "
-msgstr "Deslizar arestas:"
 
 
 msgid "Opacity: %s"

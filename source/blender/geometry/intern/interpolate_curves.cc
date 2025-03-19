@@ -308,7 +308,8 @@ void interpolate_curves_with_samples(const CurvesGeometry &from_curves,
                                      const Span<float> to_sample_factors,
                                      const IndexMask &dst_curve_mask,
                                      const float mix_factor,
-                                     CurvesGeometry &dst_curves)
+                                     CurvesGeometry &dst_curves,
+                                     IndexMaskMemory &memory)
 {
   BLI_assert(from_curve_indices.size() == dst_curve_mask.size());
   BLI_assert(to_curve_indices.size() == dst_curve_mask.size());
@@ -336,20 +337,39 @@ void interpolate_curves_with_samples(const CurvesGeometry &from_curves,
 
   const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
 
+  Array<bool> mix_from_to(dst_curves.curves_num());
+  Array<bool> exclusive_from(dst_curves.curves_num());
+  Array<bool> exclusive_to(dst_curves.curves_num());
   Array<float> mix_factors(dst_curves.curves_num());
   dst_curve_mask.foreach_index(GrainSize(512), [&](const int i_dst_curve, const int pos) {
     const int i_from_curve = from_curve_indices[pos];
     const int i_to_curve = to_curve_indices[pos];
     if (i_from_curve >= 0 && i_to_curve >= 0) {
       mix_factors[i_dst_curve] = mix_factor;
+      mix_from_to[i_dst_curve] = true;
+      exclusive_from[i_dst_curve] = false;
+      exclusive_to[i_dst_curve] = false;
     }
     else if (i_to_curve >= 0) {
       mix_factors[i_dst_curve] = 1.0f;
+      mix_from_to[i_dst_curve] = false;
+      exclusive_from[i_dst_curve] = false;
+      exclusive_to[i_dst_curve] = true;
     }
     else {
       mix_factors[i_dst_curve] = 0.0f;
+      mix_from_to[i_dst_curve] = false;
+      exclusive_from[i_dst_curve] = true;
+      exclusive_to[i_dst_curve] = false;
     }
   });
+
+  /* Curve mask contains indices that may not be valid for both "from" and "to" curves. These need
+   * to be filtered out before use with the generic array utils. These masks are exclusive so that
+   * each element is only mixed in by one mask. */
+  const IndexMask mix_curve_mask = IndexMask::from_bools(dst_curve_mask, mix_from_to, memory);
+  const IndexMask from_curve_mask = IndexMask::from_bools(dst_curve_mask, exclusive_from, memory);
+  const IndexMask to_curve_mask = IndexMask::from_bools(dst_curve_mask, exclusive_to, memory);
 
   /* For every attribute, evaluate attributes from every curve in the range in the original
    * curve's "evaluated points", then use linear interpolation to sample to the result. */
@@ -455,24 +475,22 @@ void interpolate_curves_with_samples(const CurvesGeometry &from_curves,
                                         CD_PROP_FLOAT2,
                                         CD_PROP_FLOAT3);
     if (can_mix_attribute && !src_from.is_empty() && !src_to.is_empty()) {
-      const int max_curves = std::min(dst_curve_mask.min_array_size(),
-                                      std::min(src_from.size(), src_to.size()));
-      const IndexMask safe_dst_curve_mask = dst_curve_mask.slice_content(0, max_curves);
+      array_utils::copy(GVArray::ForSpan(src_from), from_curve_mask, dst);
+      array_utils::copy(GVArray::ForSpan(src_to), to_curve_mask, dst);
+
       GArray<> from_samples(dst.type(), dst.size());
       GArray<> to_samples(dst.type(), dst.size());
-      array_utils::copy(GVArray::ForSpan(src_from), safe_dst_curve_mask, from_samples);
-      array_utils::copy(GVArray::ForSpan(src_to), safe_dst_curve_mask, to_samples);
-      mix_arrays(from_samples, to_samples, mix_factors, safe_dst_curve_mask, dst);
+      array_utils::copy(GVArray::ForSpan(src_from), mix_curve_mask, from_samples);
+      array_utils::copy(GVArray::ForSpan(src_to), mix_curve_mask, to_samples);
+      mix_arrays(from_samples, to_samples, mix_factors, mix_curve_mask, dst);
     }
     else if (!src_from.is_empty()) {
-      const int max_curves = std::min(dst_curve_mask.min_array_size(), src_from.size());
-      const IndexMask safe_dst_curve_mask = dst_curve_mask.slice_content(0, max_curves);
-      array_utils::copy(GVArray::ForSpan(src_from), safe_dst_curve_mask, dst);
+      array_utils::copy(GVArray::ForSpan(src_from), from_curve_mask, dst);
+      array_utils::copy(GVArray::ForSpan(src_from), mix_curve_mask, dst);
     }
     else if (!src_to.is_empty()) {
-      const int max_curves = std::min(dst_curve_mask.min_array_size(), src_to.size());
-      const IndexMask safe_dst_curve_mask = dst_curve_mask.slice_content(0, max_curves);
-      array_utils::copy(GVArray::ForSpan(src_to), safe_dst_curve_mask, dst);
+      array_utils::copy(GVArray::ForSpan(src_to), to_curve_mask, dst);
+      array_utils::copy(GVArray::ForSpan(src_to), mix_curve_mask, dst);
     }
   }
 
@@ -515,7 +533,8 @@ void interpolate_curves(const CurvesGeometry &from_curves,
                         const IndexMask &dst_curve_mask,
                         const Span<bool> dst_curve_flip_direction,
                         const float mix_factor,
-                        CurvesGeometry &dst_curves)
+                        CurvesGeometry &dst_curves,
+                        IndexMaskMemory &memory)
 {
   const VArray<bool> from_curves_cyclic = from_curves.cyclic();
   const VArray<bool> to_curves_cyclic = to_curves.cyclic();
@@ -565,7 +584,8 @@ void interpolate_curves(const CurvesGeometry &from_curves,
                                   to_sample_factors,
                                   dst_curve_mask,
                                   mix_factor,
-                                  dst_curves);
+                                  dst_curves,
+                                  memory);
 }
 
 }  // namespace blender::geometry

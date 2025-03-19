@@ -143,6 +143,12 @@ def copy_rigify_params(from_bone: bpy.types.PoseBone, to_bone: bpy.types.PoseBon
     else:
         rig_type = to_bone.rigify_type = from_type
 
+    # Delete any previously-existing parameters, before copying in the new ones.
+    # Direct assignment to this property, as happens in the code below, is only
+    # possible when there is no pre-existing value. See #135233 for more info.
+    if 'rigify_parameters' in to_bone:
+        del to_bone['rigify_parameters']
+
     from_params = from_bone.get('rigify_parameters')
     if from_params and rig_type:
         param_dict = property_to_python(from_params)
@@ -161,11 +167,7 @@ def copy_rigify_params(from_bone: bpy.types.PoseBone, to_bone: bpy.types.PoseBon
                         copy_ref_list(getattr(to_params_typed, prop_name), ref_list, mirror=True)
         else:
             to_bone['rigify_parameters'] = param_dict
-    else:
-        try:
-            del to_bone['rigify_parameters']
-        except KeyError:
-            pass
+
     return True
 
 

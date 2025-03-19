@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'ed5b077f929a')\n"
+"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-17 14:06+0000\n"
+"POT-Creation-Date: 2025-03-17 16:18+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -47,10 +47,6 @@ msgstr "F-Görbék"
 
 msgid "Action F-Curves"
 msgstr "Akció F-Görbék"
-
-
-msgid "Collection of action F-Curves"
-msgstr "Akció F-Görbék gyűjteménye"
 
 
 msgid "Action Group"
@@ -5526,11 +5522,6 @@ msgstr "Oktávok"
 
 msgid "Grids"
 msgstr "Rácsok"
-
-
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Klip"
 
 
 msgid "Window Manager"
@@ -14664,6 +14655,11 @@ msgstr "Jelenet"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Videó"
+
+
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Klip"
 
 
 msgctxt "Sequence"

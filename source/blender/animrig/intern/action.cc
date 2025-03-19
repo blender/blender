@@ -1431,9 +1431,22 @@ Slot *generic_slot_for_autoassign(const ID &animated_id,
 
   /* If there is only one slot, and it is not specific to any ID type, use that.
    *
-   * This should only trigger in some special cases, like legacy Actions that
-   * were converted to slotted Actions by the versioning code, where the legacy
-   * Action was never assigned to anything (and thus had idroot = 0). */
+   * This should only trigger in some special cases, like legacy Actions that were converted to
+   * slotted Actions by the versioning code, where the legacy Action was never assigned to anything
+   * (and thus had idroot = 0).
+   *
+   * This might seem overly specific, and for convenience of automatically auto-assigning a slot,
+   * it might be tempting to remove the "slot->has_idtype()" check. However, that would make the
+   * following workflow significantly more cumbersome:
+   *
+   * - Animate `Cube`. This creates `CubeAction` with a single slot `OBCube`.
+   * - Assign `CubeAction` to `Suzanne`, with the intent of animating both `Cube` and `Suzanne`
+   *   with the same Action.
+   * - This should **not** auto-assign the `OBCube` slot to `Suzanne`, as that will overwrite any
+   *   property of `Suzanne` with the animated values for the `OBCube` slot.
+   *
+   * Recovering from this will be hard, as an undo will revert both the overwriting of properties
+   * and the assignment of the Action. */
   if (action.slots().size() == 1) {
     Slot *slot = action.slot(0);
     if (!slot->has_idtype()) {
@@ -1831,19 +1844,19 @@ void StripKeyframeData::slot_data_remove(const slot_handle_t slot_handle)
   this->channelbag_remove(*channelbag);
 }
 
-const FCurve *Channelbag::fcurve_find(const FCurveDescriptor fcurve_descriptor) const
+const FCurve *Channelbag::fcurve_find(const FCurveDescriptor &fcurve_descriptor) const
 {
   return animrig::fcurve_find(this->fcurves(), fcurve_descriptor);
 }
 
-FCurve *Channelbag::fcurve_find(const FCurveDescriptor fcurve_descriptor)
+FCurve *Channelbag::fcurve_find(const FCurveDescriptor &fcurve_descriptor)
 {
   /* Intermediate variable needed to disambiguate const/non-const overloads. */
   Span<FCurve *> fcurves = this->fcurves();
   return animrig::fcurve_find(fcurves, fcurve_descriptor);
 }
 
-FCurve &Channelbag::fcurve_ensure(Main *bmain, const FCurveDescriptor fcurve_descriptor)
+FCurve &Channelbag::fcurve_ensure(Main *bmain, const FCurveDescriptor &fcurve_descriptor)
 {
   if (FCurve *existing_fcurve = this->fcurve_find(fcurve_descriptor)) {
     return *existing_fcurve;
@@ -1851,7 +1864,7 @@ FCurve &Channelbag::fcurve_ensure(Main *bmain, const FCurveDescriptor fcurve_des
   return this->fcurve_create(bmain, fcurve_descriptor);
 }
 
-FCurve *Channelbag::fcurve_create_unique(Main *bmain, FCurveDescriptor fcurve_descriptor)
+FCurve *Channelbag::fcurve_create_unique(Main *bmain, const FCurveDescriptor &fcurve_descriptor)
 {
   if (this->fcurve_find(fcurve_descriptor)) {
     return nullptr;
@@ -1859,7 +1872,7 @@ FCurve *Channelbag::fcurve_create_unique(Main *bmain, FCurveDescriptor fcurve_de
   return &this->fcurve_create(bmain, fcurve_descriptor);
 }
 
-FCurve &Channelbag::fcurve_create(Main *bmain, FCurveDescriptor fcurve_descriptor)
+FCurve &Channelbag::fcurve_create(Main *bmain, const FCurveDescriptor &fcurve_descriptor)
 {
   FCurve *new_fcurve = create_fcurve_for_channel(fcurve_descriptor);
 
@@ -2048,7 +2061,7 @@ static void cyclic_keying_ensure_cycle_range_exists(FCurve &fcurve, const float2
 
 SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
                                                       const Slot &slot,
-                                                      const FCurveDescriptor fcurve_descriptor,
+                                                      const FCurveDescriptor &fcurve_descriptor,
                                                       const float2 time_value,
                                                       const KeyframeSettings &settings,
                                                       const eInsertKeyFlags insert_key_flags,
@@ -2465,7 +2478,7 @@ Span<const FCurve *> fcurves_for_action_slot(const Action &action, const slot_ha
   return bag->fcurves();
 }
 
-FCurve *fcurve_find_in_action(bAction *act, FCurveDescriptor fcurve_descriptor)
+FCurve *fcurve_find_in_action(bAction *act, const FCurveDescriptor &fcurve_descriptor)
 {
   if (act == nullptr) {
     return nullptr;
@@ -2499,14 +2512,14 @@ FCurve *fcurve_find_in_action(bAction *act, FCurveDescriptor fcurve_descriptor)
   return nullptr;
 }
 
-FCurve *fcurve_find_in_assigned_slot(AnimData &adt, FCurveDescriptor fcurve_descriptor)
+FCurve *fcurve_find_in_assigned_slot(AnimData &adt, const FCurveDescriptor &fcurve_descriptor)
 {
   return fcurve_find_in_action_slot(adt.action, adt.slot_handle, fcurve_descriptor);
 }
 
 FCurve *fcurve_find_in_action_slot(bAction *act,
                                    const slot_handle_t slot_handle,
-                                   FCurveDescriptor fcurve_descriptor)
+                                   const FCurveDescriptor &fcurve_descriptor)
 {
   if (act == nullptr) {
     return nullptr;
@@ -2599,7 +2612,7 @@ FCurve *action_fcurve_ensure_ex(Main *bmain,
                                 bAction *act,
                                 const char group[],
                                 PointerRNA *ptr,
-                                FCurveDescriptor fcurve_descriptor)
+                                const FCurveDescriptor &fcurve_descriptor)
 {
   if (act == nullptr) {
     return nullptr;
@@ -2630,43 +2643,42 @@ FCurve *action_fcurve_ensure_ex(Main *bmain,
     return nullptr;
   }
 
-  return action_fcurve_ensure(bmain, *act, *ptr->owner_id, fcurve_descriptor);
+  return &action_fcurve_ensure(bmain, *act, *ptr->owner_id, fcurve_descriptor);
 }
 
-FCurve *action_fcurve_ensure(Main *bmain,
-                             bAction &dna_action,
-                             ID &animated_id,
-                             FCurveDescriptor fcurve_descriptor)
+Channelbag &action_channelbag_ensure(bAction &dna_action, ID &animated_id)
 {
   Action &action = dna_action.wrap();
-
   BLI_assert(get_action(animated_id) == &action);
-  if (get_action(animated_id) != &action) {
-    return nullptr;
-  }
 
   /* Ensure the id has an assigned slot. */
   Slot *slot = assign_action_ensure_slot_for_keying(action, animated_id);
-  if (!slot) {
-    /* This means the ID type is not animatable. How did an Action get assigned
-     * in the first place? */
-    BLI_assert_unreachable();
-    return nullptr;
-  }
+  /* A nullptr here means the ID type is not animatable. But since the Action is already assigned,
+   * it is certain that the ID is actually animatable. */
+  BLI_assert(slot);
 
   action.layer_keystrip_ensure();
 
   assert_baklava_phase_1_invariants(action);
   StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
 
-  return &strip_data.channelbag_for_slot_ensure(*slot).fcurve_ensure(bmain, fcurve_descriptor);
+  return strip_data.channelbag_for_slot_ensure(*slot);
+}
+
+FCurve &action_fcurve_ensure(Main *bmain,
+                             bAction &dna_action,
+                             ID &animated_id,
+                             const FCurveDescriptor &fcurve_descriptor)
+{
+  Channelbag &channelbag = action_channelbag_ensure(dna_action, animated_id);
+  return channelbag.fcurve_ensure(bmain, fcurve_descriptor);
 }
 
 FCurve *action_fcurve_ensure_legacy(Main *bmain,
                                     bAction *act,
                                     const char group[],
                                     PointerRNA *ptr,
-                                    FCurveDescriptor fcurve_descriptor)
+                                    const FCurveDescriptor &fcurve_descriptor)
 {
   if (!act) {
     return nullptr;
@@ -3071,23 +3083,25 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
   assert_baklava_phase_1_invariants(from_action);
   assert_baklava_phase_1_invariants(to_action);
 
-  StripKeyframeData &from_strip_data = from_action.layer(0)->strip(0)->data<StripKeyframeData>(
-      from_action);
-  StripKeyframeData &to_strip_data = to_action.layer(0)->strip(0)->data<StripKeyframeData>(
-      to_action);
-
   Slot &target_slot = to_action.slot_add();
   clone_slot(source_slot, target_slot);
   slot_identifier_ensure_unique(to_action, target_slot);
 
-  Channelbag *channelbag = from_strip_data.channelbag_for_slot(source_slot.handle);
-  BLI_assert(channelbag != nullptr);
-  channelbag->slot_handle = target_slot.handle;
-  grow_array_and_append<ActionChannelbag *>(
-      &to_strip_data.channelbag_array, &to_strip_data.channelbag_array_num, channelbag);
-  int index = from_strip_data.find_channelbag_index(*channelbag);
-  shrink_array_and_remove<ActionChannelbag *>(
-      &from_strip_data.channelbag_array, &from_strip_data.channelbag_array_num, index);
+  if (!from_action.layers().is_empty() && !from_action.layer(0)->strips().is_empty()) {
+    StripKeyframeData &from_strip_data = from_action.layer(0)->strip(0)->data<StripKeyframeData>(
+        from_action);
+    to_action.layer_keystrip_ensure();
+    StripKeyframeData &to_strip_data = to_action.layer(0)->strip(0)->data<StripKeyframeData>(
+        to_action);
+    Channelbag *channelbag = from_strip_data.channelbag_for_slot(source_slot.handle);
+    BLI_assert(channelbag != nullptr);
+    channelbag->slot_handle = target_slot.handle;
+    grow_array_and_append<ActionChannelbag *>(
+        &to_strip_data.channelbag_array, &to_strip_data.channelbag_array_num, channelbag);
+    int index = from_strip_data.find_channelbag_index(*channelbag);
+    shrink_array_and_remove<ActionChannelbag *>(
+        &from_strip_data.channelbag_array, &from_strip_data.channelbag_array_num, index);
+  }
 
   /* Reassign all users of `source_slot` to the action `to_action` and the slot `target_slot`. */
   for (ID *user : source_slot.users(bmain)) {

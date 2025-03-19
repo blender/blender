@@ -544,7 +544,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float4 input_color = input.load_pixel<float4>(texel);
+      float4 input_color = input.load_pixel<float4, true>(texel);
       float input_matte = matte.load_pixel<float>(texel);
 
       /* Premultiply the alpha to the image. */
