@@ -501,7 +501,7 @@ static int sequencer_retiming_transition_add_exec(bContext *C, wmOperator *op)
   }
   else {
     BKE_report(op->reports, RPT_WARNING, "Retiming key must be selected");
-    return false;
+    return OPERATOR_CANCELLED;
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
