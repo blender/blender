@@ -477,7 +477,7 @@ bool has_list_storage_for_library(const AssetLibraryReference *library_reference
 }
 
 bool has_asset_browser_storage_for_library(const AssetLibraryReference *library_reference,
-                                      const bContext *C)
+                                           const bContext *C)
 {
   bool has_asset_browser = false;
   foreach_visible_asset_browser_showing_library(
