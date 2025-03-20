@@ -17,6 +17,7 @@
 #include "BKE_object.hh"
 
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
 #include "BLT_translation.hh"
@@ -87,22 +88,37 @@ static bool view3d_drop_id_in_main_region_poll(bContext *C,
   return WM_drag_is_ID_type(drag, id_type);
 }
 
-static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
+static V3DSnapCursorState *view3d_drop_snap_init(wmDropBox *drop)
 {
   V3DSnapCursorState *state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (state) {
-    return;
+    return state;
   }
 
+  state = ED_view3d_cursor_snap_state_create();
+  drop->draw_data = state;
+  state->draw_plane = true;
+  return state;
+}
+
+static void view3d_drop_snap_exit(wmDropBox *drop, wmDrag * /*drag*/)
+{
+  V3DSnapCursorState *state = static_cast<V3DSnapCursorState *>(drop->draw_data);
+  if (state) {
+    ED_view3d_cursor_snap_state_free(state);
+    drop->draw_data = nullptr;
+  }
+}
+
+static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
+{
   /* Don't use the snap cursor when linking the object. Object transform isn't editable then and
    * would be reset on reload. */
   if (WM_drag_asset_will_import_linked(drag)) {
     return;
   }
 
-  state = ED_view3d_cursor_snap_state_create();
-  drop->draw_data = state;
-  state->draw_plane = true;
+  V3DSnapCursorState *state = view3d_drop_snap_init(drop);
 
   float dimensions[3] = {0.0f};
   if (drag->type == WM_DRAG_ID) {
@@ -121,15 +137,6 @@ static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
     mul_v3_v3fl(state->box_dimensions, dimensions, 0.5f);
     UI_GetThemeColor4ubv(TH_GIZMO_PRIMARY, state->color_box);
     state->draw_box = true;
-  }
-}
-
-static void view3d_ob_drop_on_exit(wmDropBox *drop, wmDrag * /*drag*/)
-{
-  V3DSnapCursorState *state = static_cast<V3DSnapCursorState *>(drop->draw_data);
-  if (state) {
-    ED_view3d_cursor_snap_state_free(state);
-    drop->draw_data = nullptr;
   }
 }
 
@@ -413,10 +420,35 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   }
 }
 
+static void view3d_collection_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
+{
+  view3d_drop_snap_init(drop);
+}
+
+static void view3d_collection_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
+                                                    float r_loc[3],
+                                                    float r_rot[3])
+{
+  using namespace blender;
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
+  BLI_assert(snap_state->draw_box || snap_state->draw_plane);
+  UNUSED_VARS_NDEBUG(snap_state);
+
+  mat3_normalized_to_eul(r_rot, snap_data->plane_omat);
+  copy_v3_v3(r_loc, snap_data->loc);
+}
+
 static void view3d_collection_drop_copy_local_id(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, ID_GR);
   RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
+
+  float loc[3], rot[3];
+  view3d_collection_drop_matrix_from_snap(snap_state, loc, rot);
+  RNA_float_set_array(drop->ptr, "location", loc);
+  RNA_float_set_array(drop->ptr, "rotation", rot);
 }
 
 /* Mostly the same logic as #view3d_ob_drop_copy_external_asset(), just different enough to make
@@ -459,6 +491,14 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   }
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   ED_outliner_select_sync_from_object_tag(C);
+
+  V3DSnapCursorState *snap_state = static_cast<V3DSnapCursorState *>(drop->draw_data);
+  if (snap_state) {
+    float loc[3], rot[3];
+    view3d_collection_drop_matrix_from_snap(snap_state, loc, rot);
+    RNA_float_set_array(drop->ptr, "location", loc);
+    RNA_float_set_array(drop->ptr, "rotation", rot);
+  }
 
   /* XXX Without an undo push here, there will be a crash when the user modifies operator
    * properties. The stuff we do in these drop callbacks just isn't safe over undo/redo. */
@@ -512,7 +552,7 @@ void view3d_dropboxes()
 
   drop->draw_droptip = WM_drag_draw_item_name_fn;
   drop->on_enter = view3d_ob_drop_on_enter;
-  drop->on_exit = view3d_ob_drop_on_exit;
+  drop->on_exit = view3d_drop_snap_exit;
 
   drop = WM_dropbox_add(lb,
                         "OBJECT_OT_transform_to_mouse",
@@ -523,20 +563,26 @@ void view3d_dropboxes()
 
   drop->draw_droptip = WM_drag_draw_item_name_fn;
   drop->on_enter = view3d_ob_drop_on_enter;
-  drop->on_exit = view3d_ob_drop_on_exit;
+  drop->on_exit = view3d_drop_snap_exit;
 
-  WM_dropbox_add(lb,
-                 "OBJECT_OT_collection_external_asset_drop",
-                 view3d_collection_drop_poll_external_asset,
-                 view3d_collection_drop_copy_external_asset,
-                 WM_drag_free_imported_drag_ID,
-                 nullptr);
-  WM_dropbox_add(lb,
-                 "OBJECT_OT_collection_instance_add",
-                 view3d_collection_drop_poll_local_id,
-                 view3d_collection_drop_copy_local_id,
-                 WM_drag_free_imported_drag_ID,
-                 nullptr);
+  drop = WM_dropbox_add(lb,
+                        "OBJECT_OT_collection_external_asset_drop",
+                        view3d_collection_drop_poll_external_asset,
+                        view3d_collection_drop_copy_external_asset,
+                        WM_drag_free_imported_drag_ID,
+                        nullptr);
+  drop->draw_droptip = WM_drag_draw_item_name_fn;
+  drop->on_enter = view3d_collection_drop_on_enter;
+  drop->on_exit = view3d_drop_snap_exit;
+  drop = WM_dropbox_add(lb,
+                        "OBJECT_OT_collection_instance_add",
+                        view3d_collection_drop_poll_local_id,
+                        view3d_collection_drop_copy_local_id,
+                        WM_drag_free_imported_drag_ID,
+                        nullptr);
+  drop->draw_droptip = WM_drag_draw_item_name_fn;
+  drop->on_enter = view3d_collection_drop_on_enter;
+  drop->on_exit = view3d_drop_snap_exit;
 
   WM_dropbox_add(lb,
                  "OBJECT_OT_drop_named_material",
