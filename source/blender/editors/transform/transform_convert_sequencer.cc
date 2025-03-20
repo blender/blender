@@ -596,8 +596,7 @@ static void flushTransSeq(TransInfo *t)
             max_offset = offset;
           }
         }
-        strip->machine = round_fl_to_int(td->loc[1] + edge_pan_offset[1]);
-        CLAMP(strip->machine, 1, seq::MAX_CHANNELS);
+        seq::strip_channel_set(strip, round_fl_to_int(td->loc[1] + edge_pan_offset[1]));
         break;
       }
       case SEQ_LEFTSEL: { /* No vertical transform. */

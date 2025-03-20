@@ -58,6 +58,10 @@ void transform_handle_overlap(Scene *scene,
                               blender::Span<Strip *> transformed_strips,
                               bool use_sync_markers);
 /**
+ * Set strip channel. This value is clamped to valid values.
+ */
+void strip_channel_set(Strip *strip, int channel);
+/**
  * Move strips and markers (if not locked) that start after timeline_frame by delta frames
  *
  * \param scene: Scene in which strips are located

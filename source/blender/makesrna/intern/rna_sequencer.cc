@@ -600,7 +600,7 @@ static void rna_Strip_channel_set(PointerRNA *ptr, int value)
 
   /* check channel increment or decrement */
   const int channel_delta = (value >= strip->machine) ? 1 : -1;
-  strip->machine = value;
+  blender::seq::strip_channel_set(strip, value);
 
   if (blender::seq::transform_test_overlap(scene, seqbase, strip)) {
     blender::seq::transform_seqbase_shuffle_ex(seqbase, strip, scene, channel_delta);

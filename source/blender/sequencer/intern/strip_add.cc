@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "BLI_math_base.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mask_types.h"

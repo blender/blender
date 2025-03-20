@@ -905,7 +905,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
           /* The video has sound, shift the video strip up a channel to make room for the sound
            * strip. */
           added_strips.append(strip_sound);
-          strip_movie->machine++;
+          seq::strip_channel_set(strip_movie, strip_movie->machine + 1);
         }
       }
 
@@ -967,7 +967,7 @@ static bool sequencer_add_movie_single_strip(bContext *C,
       added_strips.append(strip_sound);
       /* The video has sound, shift the video strip up a channel to make room for the sound
        * strip. */
-      strip_movie->machine++;
+      seq::strip_channel_set(strip_movie, strip_movie->machine + 1);
     }
   }
 
