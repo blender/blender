@@ -222,6 +222,7 @@ set(VULKAN_SRC
   vulkan/vk_descriptor_pools.cc
   vulkan/vk_descriptor_set.cc
   vulkan/vk_descriptor_set_layouts.cc
+  vulkan/vk_device_submission.cc
   vulkan/vk_device.cc
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
