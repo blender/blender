@@ -94,9 +94,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
   const int primitive_type = kernel_data_fetch(objects, local_object).primitive_type;
   if (!(primitive_type & PRIMITIVE_TRIANGLE)) {
-    /* Local intersection functions are only considering triangle and motion triangle orimitives.
+    /* Local intersection functions are only considering triangle and motion triangle primitives.
      * If the local intersection is requested from other primitives (curve or point cloud) perform
-     * an early return to avoid tree travsersal with no primitive intersection. */
+     * an early return to avoid tree traversal with no primitive intersection. */
     return false;
   }
 
