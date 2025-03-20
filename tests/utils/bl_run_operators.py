@@ -81,7 +81,6 @@ def temp_override_default_kwargs(
 
 def run_op(
         context,
-        setup_fn,
         op,
         area_type=None,
         region_type=None,
@@ -93,13 +92,6 @@ def run_op(
     sys.stdout.flush()  # in case of crash
 
     with context.temp_override(**temp_override_default_kwargs(context, area_type, region_type)):
-
-        # We can't be sure it will work (even if poll succeeds).
-        try:
-            setup_fn()
-        except:
-            pass
-
         for mode in {
                 'EXEC_DEFAULT',
                 'INVOKE_DEFAULT',
@@ -127,10 +119,12 @@ def ctx_clear_scene():  # copied from batch_import.py
 
 
 def ctx_editmode_mesh():
+    bpy.ops.wm.read_factory_settings(use_empty=False)
     bpy.ops.object.mode_set(mode='EDIT')
 
 
 def ctx_editmode_mesh_extra():
+    bpy.ops.wm.read_factory_settings(use_empty=False)
     bpy.ops.object.vertex_group_add()
     bpy.ops.object.shape_key_add(from_mix=False)
     bpy.ops.object.shape_key_add(from_mix=True)
@@ -141,17 +135,20 @@ def ctx_editmode_mesh_extra():
 
 
 def ctx_editmode_mesh_empty():
+    bpy.ops.wm.read_factory_settings(use_empty=False)
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.delete()
 
 
 def ctx_editmode_curves():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.curve.primitive_nurbs_circle_add()
     bpy.ops.object.mode_set(mode='EDIT')
 
 
 def ctx_editmode_curves_empty():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.curve.primitive_nurbs_circle_add()
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.curve.select_all(action='SELECT')
@@ -159,11 +156,13 @@ def ctx_editmode_curves_empty():
 
 
 def ctx_editmode_surface():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.surface.primitive_nurbs_surface_torus_add()
     bpy.ops.object.mode_set(mode='EDIT')
 
 
 def ctx_editmode_hair():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.mesh.primitive_plane_add()
     bpy.ops.object.curves_empty_hair_add()
     bpy.ops.object.mode_set(mode='EDIT')
@@ -171,12 +170,14 @@ def ctx_editmode_hair():
 
 
 def ctx_editmode_hair_empty():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.mesh.primitive_plane_add()
     bpy.ops.object.curves_empty_hair_add()
     bpy.ops.object.mode_set(mode='EDIT')
 
 
 def ctx_editmode_grease_pencil():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.grease_pencil_add(type='MONKEY')
     bpy.ops.object.mode_set(mode='EDIT')
 
@@ -187,21 +188,25 @@ def ctx_editmode_grease_pencil_empty():
 
 
 def ctx_editmode_mball():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.metaball_add()
     bpy.ops.object.mode_set(mode='EDIT')
 
 
 def ctx_editmode_text():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.text_add()
     bpy.ops.object.mode_set(mode='EDIT')
 
 
 def ctx_editmode_armature():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.armature_add()
     bpy.ops.object.mode_set(mode='EDIT')
 
 
 def ctx_editmode_armature_empty():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.armature_add()
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.armature.select_all(action='SELECT')
@@ -209,44 +214,56 @@ def ctx_editmode_armature_empty():
 
 
 def ctx_editmode_lattice():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.add(type='LATTICE')
     bpy.ops.object.mode_set(mode='EDIT')
     # bpy.ops.object.vertex_group_add()
 
 
 def ctx_object_empty():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.add(type='EMPTY')
 
 
 def ctx_object_pose():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.armature_add()
     bpy.ops.object.mode_set(mode='POSE')
     bpy.ops.pose.select_all(action='SELECT')
 
 
 def ctx_object_volume():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.add(type='VOLUME')
 
 
 def ctx_object_empty_as_camera():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.add(type='EMPTY')
-    bpy.context.scene.camera = bpy.context.active_object
-    bpy.context.active_object.data = bpy.data.images.new(name="Foo", width=1, height=1)
+    # Can't use the active object as it may not be valid in this context.
+    ob = bpy.data.objects[0]
+    bpy.context.scene.camera = ob
+    ob.data = bpy.data.images.new(name="Foo", width=1, height=1)
 
 
 def ctx_object_paint_weight():
+    bpy.ops.wm.read_factory_settings(use_empty=False)
     bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
 
 
 def ctx_object_paint_vertex():
+    bpy.ops.wm.read_factory_settings(use_empty=False)
     bpy.ops.object.mode_set(mode='VERTEX_PAINT')
 
 
 def ctx_object_paint_sculpt():
+    bpy.ops.wm.read_factory_settings(use_empty=False)
     bpy.ops.object.mode_set(mode='SCULPT')
 
 
 def ctx_object_paint_texture():
+    bpy.ops.wm.read_factory_settings(use_empty=False)
     bpy.ops.object.mode_set(mode='TEXTURE_PAINT')
 
 
@@ -254,85 +271,181 @@ def ctx_object_paint_texture():
 
 
 operator_pattern_exclude = (
-    "script.reload",
-    "export*.*",
-    "import*.*",
-    "*.save_*",
-    "*.read_*",
-    "*.open_*",
-    "*.link_append",
-    "render.render",
-    "render.play_rendered_anim",
-    "sound.bake_animation",    # OK but slow
-    "sound.mixdown",           # OK but slow
-    "object.bake_image",       # OK but slow
-    "object.paths_calculate",  # OK but slow
-    "object.paths_update",     # OK but slow
-    "ptcache.bake_all",        # OK but slow
-    "nla.bake",                # OK but slow
-    "*.*_export",
-    "*.*_import",
-    "ed.undo",
-    "ed.undo_push",
-    "image.external_edit",  # just annoying - but harmless (opens an app).
-    "image.project_edit",  # just annoying - but harmless (opens an app).
-    "object.quadriflow_remesh",  # OK but slow.
-    "preferences.studiolight_new",
-    "script.autoexec_warn_clear",
-    "screen.delete",           # already used for random screens
-    "wm.blenderplayer_start",
-    "wm.recover_auto_save",
-    "wm.quit_blender",
-    "wm.window_close",
-    "wm.url_open",
-    "wm.doc_view",
-    "wm.doc_edit",
-    "wm.doc_view_manual",
-    "wm.path_open",
-    "wm.copy_prev_settings",
-    "wm.theme_install",
+    "console.*",
+    "preferences.extension_url_drop",
     "wm.context_*",
+    "wm.path_open",
     "wm.properties_add",
     "wm.properties_remove",
     "wm.properties_edit",
     "wm.properties_context_change",
-    "wm.operator_cheat_sheet",
-    "wm.interface_theme_*",
-    "wm.previews_ensure",       # slow - but harmless
-    "wm.keyitem_add",           # just annoying - but harmless
-    "wm.keyconfig_activate",    # just annoying - but harmless
-    "wm.keyconfig_preset_add",  # just annoying - but harmless
-    "wm.keyconfig_test",        # just annoying - but harmless
-    "wm.memory_statistics",     # another annoying one
-    "wm.dependency_relations",  # another annoying one
-    "wm.keymap_restore",        # another annoying one
-    "wm.addon_*",               # harmless, but don't change state
-    "console.*",                # just annoying - but harmless
-    "wm.url_open_preset",       # Annoying but harmless (opens web pages).
-
-    "render.cycles_integrator_preset_add",
-    "render.cycles_performance_preset_add",
-    "render.cycles_sampling_preset_add",
-    "render.cycles_viewport_sampling_preset_add",
     "render.preset_add",
+    "wm.operator_cheat_sheet",
+)
 
-    # Don't manipulate installed extensions.
-    "extensions.*",
+# Harmless operators that get in the way of testing.
+# Try enabling once in a while.
+operator_pattern_exclude_for_performance = (
+    "nla.bake",
+    "object.bake_image",
+    "object.paths_calculate",
+    "object.paths_update",
+    "object.quadriflow_remesh",
+    "object.quick_fur",  # Actually quite slow.
+    "ptcache.bake_all",
+    "sound.bake_animation",
+    "sound.mixdown",
+    "wm.previews_ensure",
 
-    # FIXME:
-    # Crashes with non-trivial fixes.
-    #
+)
 
-    # Expects undo stack.
+# These operators may change Blender's run-time state,
+# don't use operators that would change Blender's preferences while it's running.
+operator_pattern_exclude_for_valid_state = (
+    "ed.undo",
+    "ed.undo_push",
+    "preferences.asset_library_remove",
+    "preferences.keyitem_add",
+    "preferences.studiolight_new",
+    "scene.new",
+    "screen.delete",
+    "script.reload",
+    "wm.keyconfig_preset_add",
+    "wm.quit_blender",
+    "wm.recover_auto_save",
+    "wm.window_close",
+)
+
+
+# These operators attempt IO which may cause problems.
+# Don't enable these as they could modify the installation.
+operator_pattern_exclude_for_io = (
+    "*.open_*",
+    "*.read_*",
+    "*.save_*",
+    "anim.keying_set_export",
+    "export*.*",
+    "extensions.*",  # Don't manipulate installed extensions.
+    "import*.*",
+    "outliner.id_paste",
+    "preferences.addon_*",
+    "preferences.associate_blend",
+    "preferences.copy_prev",
+    "preferences.keyconfig_export",
+    "preferences.studiolight_install",
+    "preferences.theme_install",
+    "preferences.unassociate_blend",
+    "view3d.pastebuffer",
+)
+
+# In rare cases, operators have noisy output, flooding the STDOUT.
+# Enabling is harmless, but leave disabled for usable output.
+operator_pattern_exclude_for_silence = (
+    "preferences.keyconfig_test",
+    "wm.memory_statistics",
+)
+
+# These operators are disruptive.
+operator_pattern_exclude_for_disruptive = (
+    "image.external_edit",
+    "image.project_edit",
+    "render.play_rendered_anim",
+    "render.render",
+    "wm.url_open",
+    "wm.doc_view",
+    "wm.doc_view_manual",
+    "wm.url_open_preset",
+)
+
+
+# Some operators crash or have problems (in background mode or not).
+operator_pattern_exclude_for_bugs = (
+    "brush.asset_save_as",  # Could report an error instead of asserting.
+)
+
+# Technically a regression as the regions type is no longer initialized in background mode, could be resolved.
+operator_pattern_exclude_for_bugs_region_type_null_in_bg_mode = (
+    "action.view_frame",
+    "view2d.pan",
+    "view2d.reset",
+    "view2d.scroll_down",
+    "view2d.scroll_left",
+    "view2d.scroll_right",
+    "view2d.scroll_up",
+    "view2d.zoom",
+    "view2d.zoom_border",
+    "view2d.zoom_in",
+    "view2d.zoom_out",
+)
+
+# If the undo stack is initialized in background mode, these could be enabled.
+operator_pattern_exclude_for_bugs_needs_undo_stack = (
     "object.voxel_remesh",
     "mesh.paint_mask_slice",
     "paint.mask_flood_fill",
+    "paint.vertex_color_brightness_contrast",
+    "paint.vertex_color_hsv",
+    "paint.vertex_color_invert",
+    "paint.vertex_color_levels",
+    "paint.vertex_color_set",
+    "sculpt.color_filter",
+    "sculpt.face_set_change_visibility",
+    "sculpt.face_sets_create",
+    "sculpt.face_sets_init",
+    "sculpt.mask_filter",
+    "sculpt.mask_from_boundary",
     "sculpt.mask_from_cavity",
-    # TODO: use empty temp dir to avoid behavior depending on local setup.
-    "view3d.pastebuffer",
-    # Needs active window.
-    "scene.new",
+    "sculpt.mask_init",
+    "sculpt.mesh_filter",
+    "sculpt.symmetrize",
 )
+
+
+# Crash in background.
+operator_pattern_exclude_for_bugs_without_gui = (
+    "buttons.clear_filter",  # Null `space->runtime` in background mode.
+    "buttons.toggle_pin",  # Technically a bug but doesn't make sense in background mode.
+    "gpencil.layer_annotation_remove",  # TODO: looks like this could be fixed.
+    "object.grease_pencil_add",  # reported #136156.
+    "outliner.animdata_operation",  # TODO: looks like poll should handle this.
+    "outliner.collection_new",  # `space_outliner->runtime` is null.
+    "outliner.delete",  # TODO: looks like poll should handle this.
+    "outliner.modifier_operation",
+    "screen.area_close",  # Hangs, could be investigated.
+    "uv.select",  # Assert as the region has no valid size, a bug but low priority (also for other UV picking).
+    "uv.select_edge_ring",
+    "uv.select_linked_pick",
+    "uv.select_loop",
+    "uv.stitch",  # TODO: looks like this could be fixed.
+    "view3d.object_mode_pie_or_toggle",
+    "view3d.ruler_*",  # Depends on the gizmo, fails checking the areas tool is valid.
+    "view3d.select",  # The region has no: RegionView3D.
+    "view3d.view_orbit",  # The region has no: RegionView3D.
+    "wm.toolbar",  # Technically a bug but doesn't make sense in background mode.
+
+    *operator_pattern_exclude_for_bugs_needs_undo_stack,
+    *operator_pattern_exclude_for_bugs_region_type_null_in_bg_mode,
+)
+
+operator_pattern_exclude_for_bugs_with_gui = (
+)
+
+operator_pattern_exclude_all = (
+    *operator_pattern_exclude,
+    *operator_pattern_exclude_for_disruptive,
+    *operator_pattern_exclude_for_valid_state,
+    *operator_pattern_exclude_for_performance,
+    *operator_pattern_exclude_for_io,
+    *operator_pattern_exclude_for_silence,
+
+    *operator_pattern_exclude_for_bugs,
+    *(
+        operator_pattern_exclude_for_bugs_without_gui if bpy.app.background else
+        operator_pattern_exclude_for_bugs_with_gui
+    ),
+)
+assert len(operator_pattern_exclude_all) == len(set(operator_pattern_exclude_all))
+operator_pattern_exclude_all_usage = [False] * len(operator_pattern_exclude_all)
 
 
 def blend_list(mainpath):
@@ -360,8 +473,9 @@ def filter_op_list(operators):
     from fnmatch import fnmatchcase
 
     def is_op_ok(op):
-        for op_match in operator_pattern_exclude:
+        for i, op_match in enumerate(operator_pattern_exclude_all):
             if fnmatchcase(op, op_match):
+                operator_pattern_exclude_all_usage[i] = True
                 print("    skipping: {:s} ({:s})".format(op, op_match))
                 return False
         return True
@@ -528,9 +642,16 @@ def run_ops(
                     else:
                         random_screen_int = -1
 
-                    if log_fn is not None:
-                        log_fn("reset_blend({:d})\n".format(random_screen_int))
-                    reset_blend(random_screen_int)
+                    if setup_fn is ctx_nop:
+                        # When setting up the context does nothing, simply reload the blend.
+                        if log_fn is not None:
+                            log_fn("reset_blend({:d})\n".format(random_screen_int))
+                        reset_blend(random_screen_int)
+                    else:
+                        # The setup function will reset the blend files state.
+                        if log_fn is not None:
+                            log_fn("{:s}()\n".format(setup_fn.__name__))
+                        setup_fn()
 
             window = context.window_manager.windows[0]
             screen = window.screen
@@ -565,14 +686,13 @@ def run_ops(
                     continue
 
             if log_fn is not None:
-                log_fn("run_op(context, {:s}, bpy.ops.{:s}, {!r}, {!r})\n".format(
-                    setup_fn.__name__,
+                log_fn("run_op(context, bpy.ops.{:s}, {!r}, {!r})\n".format(
                     op_id,
                     area_type,
                     region_type,
                 ))
 
-            run_op(context, setup_fn, op, area_type, region_type)
+            run_op(context, op, area_type, region_type)
 
 
 def bpy_check_type_duplicates():
@@ -624,6 +744,15 @@ def run_all(
             ))
             log_fn("\n")
 
+    # TODO: investigate having an undo stack in background mode.
+    undo_stack_ensure = False
+    if undo_stack_ensure:
+        import bpy
+        if bpy.app.background:
+            bpy.ops.ed.undo_push()
+            if log_fn is not None:
+                log_fn("bpy.ops.ed.undo_push()\n")
+
     bpy_check_type_duplicates()
 
     # reset_blend()
@@ -638,6 +767,10 @@ def run_all(
     operators.sort(key=lambda op: op[0])
 
     filter_op_list(operators)
+
+    for op_match, op_match_used in zip(operator_pattern_exclude_all, operator_pattern_exclude_all_usage):
+        if not op_match_used:
+            print("WARNING, exclude pattern not used:", op_match)
 
     if blend_files:
         setup_fn_list = [
