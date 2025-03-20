@@ -654,12 +654,12 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
 }
 
 wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
-                                       int import_method)
+                                       const AssetImportSettings &import_settings)
 {
   wmDragAsset *asset_drag = MEM_new<wmDragAsset>(__func__);
 
   asset_drag->asset = asset;
-  asset_drag->import_method = import_method;
+  asset_drag->import_settings = import_settings;
 
   return asset_drag;
 }
@@ -702,13 +702,17 @@ ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, const in
 {
   /* Only support passing in limited flags. */
   BLI_assert(flag_extra == (flag_extra & FILE_AUTOSELECT));
-  eFileSel_Params_Flag flag = static_cast<eFileSel_Params_Flag>(flag_extra) |
-                              FILE_ACTIVE_COLLECTION;
+  /* #eFileSel_Params_Flag + #eBLOLibLinkFlags */
+  int flag = flag_extra | FILE_ACTIVE_COLLECTION;
 
   const char *name = asset_drag->asset->get_name().c_str();
   const std::string blend_path = asset_drag->asset->full_library_path();
   const ID_Type idtype = asset_drag->asset->get_id_type();
   const bool use_relative_path = asset_drag->asset->get_use_relative_path();
+
+  if (asset_drag->import_settings.use_instance_collections) {
+    flag |= BLO_LIBLINK_COLLECTION_INSTANCE;
+  }
 
   /* FIXME: Link/Append should happens in the operator called at the end of drop process, not from
    * here. */
@@ -718,7 +722,7 @@ ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, const in
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *view3d = CTX_wm_view3d(C);
 
-  switch (eAssetImportMethod(asset_drag->import_method)) {
+  switch (eAssetImportMethod(asset_drag->import_settings.method)) {
     case ASSET_IMPORT_LINK:
       return WM_file_link_datablock(bmain,
                                     scene,
@@ -762,7 +766,7 @@ bool WM_drag_asset_will_import_linked(const wmDrag *drag)
   }
 
   const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
-  return asset_drag->import_method == ASSET_IMPORT_LINK;
+  return asset_drag->import_settings.method == ASSET_IMPORT_LINK;
 }
 
 ID *WM_drag_get_local_ID_or_import_from_asset(const bContext *C, const wmDrag *drag, int idcode)
@@ -834,7 +838,12 @@ void WM_drag_add_asset_list_item(wmDrag *drag,
   }
   else {
     drag_asset->is_external = true;
-    drag_asset->asset_data.external_info = WM_drag_create_asset_data(asset, ASSET_IMPORT_APPEND);
+
+    AssetImportSettings import_settings{};
+    import_settings.method = ASSET_IMPORT_APPEND;
+    import_settings.use_instance_collections = false;
+
+    drag_asset->asset_data.external_info = WM_drag_create_asset_data(asset, import_settings);
   }
   BLI_addtail(&drag->asset_items, drag_asset);
 }

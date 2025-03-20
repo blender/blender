@@ -721,7 +721,7 @@ class ASSETBROWSER_PT_import_settings(asset_utils.AssetBrowserPanel, Panel):
     bl_region_type = 'HEADER'
     bl_label = "Import Settings"
     bl_options = {'HIDE_HEADER'}
-    bl_ui_units_x = 12
+    bl_ui_units_x = 15
 
     def draw(self, context):
         layout = self.layout
@@ -731,6 +731,10 @@ class ASSETBROWSER_PT_import_settings(asset_utils.AssetBrowserPanel, Panel):
         layout.use_property_decorate = False  # No animation.
 
         layout.prop(params, "import_method", text="Import Method")
+
+        col = layout.column(heading="Instance Collections")
+        col.prop(params, "instance_collections_on_link", text="Link")
+        col.prop(params, "instance_collections_on_append", text="Append")
 
 
 class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):

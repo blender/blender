@@ -109,6 +109,7 @@ static void fileselect_ensure_updated_asset_params(SpaceFile *sfile)
     asset_params->asset_library_ref.type = ASSET_LIBRARY_ALL;
     asset_params->asset_library_ref.custom_library_index = -1;
     asset_params->import_method = FILE_ASSET_IMPORT_FOLLOW_PREFS;
+    asset_params->import_flags = FILE_ASSET_IMPORT_INSTANCE_COLLECTIONS_ON_LINK;
   }
 
   FileSelectParams *base_params = &asset_params->base_params;

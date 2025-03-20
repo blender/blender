@@ -54,10 +54,13 @@ static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
 
   const eAssetImportMethod import_method = asset->get_import_method().value_or(
       ASSET_IMPORT_APPEND_REUSE);
+  AssetImportSettings import_settings{};
+  import_settings.method = import_method;
+  import_settings.use_instance_collections = false;
 
   UI_but_drag_set_asset(but,
                         asset,
-                        import_method,
+                        import_settings,
                         asset::asset_preview_or_icon(*asset),
                         asset::asset_preview_icon_id(*asset));
 }
