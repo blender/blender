@@ -18,10 +18,9 @@
 #include "kernel/globals.h"
 #include "kernel/types.h"
 
+#include "kernel/geom/geom_intersect.h"
 #include "kernel/geom/motion_triangle.h"
 #include "kernel/geom/object.h"
-
-#include "kernel/sample/lcg.h"
 
 #include "util/math_intersect.h"
 
@@ -125,43 +124,13 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
     return true;
   }
 
-  int hit;
-  if (lcg_state) {
-    /* Record up to max_hits intersections. */
-    for (int i = min(max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
-      if (local_isect->hits[i].t == t) {
-        return false;
-      }
-    }
-
-    local_isect->num_hits++;
-
-    if (local_isect->num_hits <= max_hits) {
-      hit = local_isect->num_hits - 1;
-    }
-    else {
-      /* Reservoir sampling: if we are at the maximum number of
-       * hits, randomly replace element or skip it.
-       */
-      hit = lcg_step_uint(lcg_state) % local_isect->num_hits;
-
-      if (hit >= max_hits) {
-        return false;
-      }
-    }
-  }
-  else {
-    /* Record closest intersection only. */
-    if (local_isect->num_hits && t > local_isect->hits[0].t) {
-      return false;
-    }
-
-    hit = 0;
-    local_isect->num_hits = 1;
+  const int hit_index = local_intersect_get_record_index(local_isect, t, lcg_state, max_hits);
+  if (hit_index == -1) {
+    return false;
   }
 
   /* Record intersection. */
-  ccl_private Intersection *isect = &local_isect->hits[hit];
+  ccl_private Intersection *isect = &local_isect->hits[hit_index];
   isect->t = t;
   isect->u = u;
   isect->v = v;
@@ -170,7 +139,7 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
   isect->type = PRIMITIVE_MOTION_TRIANGLE;
 
   /* Record geometric normal. */
-  local_isect->Ng[hit] = normalize(cross(verts[1] - verts[0], verts[2] - verts[0]));
+  local_isect->Ng[hit_index] = normalize(cross(verts[1] - verts[0], verts[2] - verts[0]));
 
   return false;
 }
