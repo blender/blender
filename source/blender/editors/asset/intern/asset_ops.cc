@@ -411,31 +411,20 @@ static bool asset_library_refresh_poll(bContext *C)
     return false;
   }
 
-  return list::storage_has_list_for_library(library);
+  return list::has_list_storage_for_library(library) ||
+         list::has_asset_browser_storage_for_library(library, C);
 }
 
 static int asset_library_refresh_exec(bContext *C, wmOperator * /*unused*/)
 {
-  /* Execution mode #1: Inside the Asset Browser. */
-  if (ED_operator_asset_browsing_active(C)) {
-    SpaceFile *sfile = CTX_wm_space_file(C);
-    ED_fileselect_clear(CTX_wm_manager(C), sfile);
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
-  }
-  else {
-    /* Execution mode #2: Outside the Asset Browser, use the asset list. */
-    const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
-    list::clear(library, C);
-  }
+  const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
+  /* Handles both global asset list storage and asset browsers. */
+  list::clear(library, C);
+  WM_event_add_notifier(C, NC_ASSET | ND_ASSET_LIST_READING, nullptr);
 
   return OPERATOR_FINISHED;
 }
 
-/**
- * This operator currently covers both cases, the File/Asset Browser file list and the asset list
- * used for the asset-view template. Once the asset list design is used by the Asset Browser, this
- * can be simplified to just that case.
- */
 static void ASSET_OT_library_refresh(wmOperatorType *ot)
 {
   /* identifiers */
