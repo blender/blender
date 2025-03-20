@@ -2976,12 +2976,12 @@ static int image_clipboard_copy_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Image *ima = image_from_context(C);
   if (ima == nullptr) {
-    return false;
+    return OPERATOR_CANCELLED;
   }
 
   if (G.is_rendering && ima->source == IMA_SRC_VIEWER) {
     BKE_report(op->reports, RPT_ERROR, "Images cannot be copied while rendering");
-    return false;
+    return OPERATOR_CANCELLED;
   }
 
   ImageUser *iuser = image_user_from_context(C);
