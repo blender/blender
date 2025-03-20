@@ -100,7 +100,7 @@ void add_newell_cross_v3_v3v3(inout vec3 n, vec3 v_prev, vec3 v_curr)
 uint coarse_face_index_from_subdiv_quad_index(uint subdiv_quad_index, uint coarse_face_count)
 {
   uint first = 0;
-  uint last = coarse_face_count;
+  uint last = coarse_face_count - 1;
 
   while (first != last) {
     uint middle = (first + last) / 2;
