@@ -78,7 +78,17 @@ void clear(const AssetLibraryReference *library_reference, const bContext *C);
  * reload is necessary.
  */
 void clear_all_library(const bContext *C);
-bool storage_has_list_for_library(const AssetLibraryReference *library_reference);
+/**
+ * Returns if the given asset library in global asset list storage.
+ */
+bool has_list_storage_for_library(const AssetLibraryReference *library_reference);
+/**
+ * Returns if any asset browser is visible showing the given asset library. Asset browsers are not
+ * really handled by this API, but for convenience of managing clearing it's handled here together
+ * with #has_list_storage_for_library().
+ */
+bool has_asset_browser_storage_for_library(const AssetLibraryReference *library_reference,
+                                           const bContext *C);
 /**
  * Tag all asset lists in the storage that show main data as needing an update (re-fetch).
  *
