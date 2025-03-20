@@ -21,6 +21,12 @@ void channels_ensure(ListBase *channels);
 void channels_duplicate(ListBase *channels_dst, ListBase *channels_src);
 void channels_free(ListBase *channels);
 
+/**
+ * Returns SeqTimelineChannel by index
+ * Note: `Strip::machine` and `SeqTimelineChannel::index` are both counted from 0, but index of 0
+ * is never used. Therefore, it is valid to call `SeqTimelineChannel(channels, strip->machine)` to
+ * get channel corresponding to strip position.
+ */
 SeqTimelineChannel *channel_get_by_index(const ListBase *channels, int channel_index);
 char *channel_name_get(ListBase *channels, int channel_index);
 bool channel_is_locked(const SeqTimelineChannel *channel);
