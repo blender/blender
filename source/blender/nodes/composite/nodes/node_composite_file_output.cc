@@ -728,7 +728,7 @@ class FileOutputOperation : public NodeOperation {
         return buffer;
       }
       case ResultType::Int: {
-        const float value = float(result.get_single_value<int>());
+        const float value = float(result.get_single_value<int32_t>());
         CPPType::get<float>().fill_assign_n(&value, buffer, length);
         return buffer;
       }
