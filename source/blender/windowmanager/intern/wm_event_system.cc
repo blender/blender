@@ -1930,12 +1930,12 @@ void WM_menu_name_call(bContext *C, const char *menu_name, short context)
   WM_operator_properties_free(&ptr);
 }
 
-int WM_operator_call_py(bContext *C,
-                        wmOperatorType *ot,
-                        wmOperatorCallContext context,
-                        PointerRNA *properties,
-                        ReportList *reports,
-                        const bool is_undo)
+wmOperatorStatus WM_operator_call_py(bContext *C,
+                                     wmOperatorType *ot,
+                                     wmOperatorCallContext context,
+                                     PointerRNA *properties,
+                                     ReportList *reports,
+                                     const bool is_undo)
 {
   wmOperatorStatus retval = OPERATOR_CANCELLED;
   /* Not especially nice using undo depth here. It's used so Python never
@@ -2562,7 +2562,7 @@ static eHandlerActionFlag wm_handler_operator_call(bContext *C,
                                                    PointerRNA *properties,
                                                    const char *kmi_idname)
 {
-  int retval = OPERATOR_PASS_THROUGH;
+  wmOperatorStatus retval = OPERATOR_PASS_THROUGH;
 
   /* Derived, modal or blocking operator. */
   if ((handler_base->type == WM_HANDLER_TYPE_OP) &&

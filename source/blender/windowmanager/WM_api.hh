@@ -964,12 +964,12 @@ wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
  * - `poll()` must be called by python before this runs.
  * - reports can be passed to this function (so python can report them as exceptions).
  */
-int WM_operator_call_py(bContext *C,
-                        wmOperatorType *ot,
-                        wmOperatorCallContext context,
-                        PointerRNA *properties,
-                        ReportList *reports,
-                        bool is_undo);
+wmOperatorStatus WM_operator_call_py(bContext *C,
+                                     wmOperatorType *ot,
+                                     wmOperatorCallContext context,
+                                     PointerRNA *properties,
+                                     ReportList *reports,
+                                     bool is_undo);
 
 void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
                                                       wmOperatorType *ot,

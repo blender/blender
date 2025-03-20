@@ -1104,7 +1104,7 @@ bool ED_view3d_navigation_do(bContext *C,
     event = &event_tmp;
   }
 
-  int op_return = OPERATOR_CANCELLED;
+  wmOperatorStatus op_return = OPERATOR_CANCELLED;
 
   ViewOpsData_Utility *vod_intern = static_cast<ViewOpsData_Utility *>(vod);
   if (vod_intern->is_modal_event) {

@@ -132,7 +132,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
   wmOperatorType *ot;
   int error_val = 0;
   PointerRNA ptr;
-  int operator_ret = OPERATOR_CANCELLED;
+  wmOperatorStatus operator_ret = OPERATOR_CANCELLED;
 
   const char *opname;
   const char *context_str = nullptr;
@@ -301,7 +301,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
   BPY_modules_update();
 
   /* return operator_ret as a bpy enum */
-  return pyrna_enum_bitfield_as_set(rna_enum_operator_return_items, operator_ret);
+  return pyrna_enum_bitfield_as_set(rna_enum_operator_return_items, int(operator_ret));
 }
 
 static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
