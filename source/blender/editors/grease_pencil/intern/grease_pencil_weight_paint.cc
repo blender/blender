@@ -560,7 +560,7 @@ static void GREASE_PENCIL_OT_weight_sample(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 }
 
-static int toggle_weight_tool_direction(bContext *C, wmOperator * /*op*/)
+static int toggle_weight_tool_direction_exec(bContext *C, wmOperator * /*op*/)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
@@ -601,7 +601,7 @@ static void GREASE_PENCIL_OT_weight_toggle_direction(wmOperatorType *ot)
 
   /* Callbacks. */
   ot->poll = toggle_weight_tool_direction_poll;
-  ot->exec = toggle_weight_tool_direction;
+  ot->exec = toggle_weight_tool_direction_exec;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -554,7 +554,7 @@ void SEQUENCER_OT_text_line_break(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 }
 
-static int sequencer_text_select_all(bContext *C, wmOperator * /*op*/)
+static int sequencer_text_select_all_exec(bContext *C, wmOperator * /*op*/)
 {
   const Strip *strip = seq::select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
@@ -572,14 +572,14 @@ void SEQUENCER_OT_text_select_all(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_text_select_all";
 
   /* api callbacks */
-  ot->exec = sequencer_text_select_all;
+  ot->exec = sequencer_text_select_all_exec;
   ot->poll = sequencer_text_editing_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
 }
 
-static int sequencer_text_deselect_all(bContext *C, wmOperator * /*op*/)
+static int sequencer_text_deselect_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Strip *strip = seq::select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
@@ -604,14 +604,14 @@ void SEQUENCER_OT_text_deselect_all(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_text_deselect_all";
 
   /* api callbacks */
-  ot->exec = sequencer_text_deselect_all;
+  ot->exec = sequencer_text_deselect_all_exec;
   ot->poll = sequencer_text_editing_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
 }
 
-static int sequencer_text_edit_mode_toggle(bContext *C, wmOperator * /*op*/)
+static int sequencer_text_edit_mode_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   Strip *strip = seq::select_active_get(CTX_data_scene(C));
   if (sequencer_text_editing_active_poll(C)) {
@@ -633,7 +633,7 @@ void SEQUENCER_OT_text_edit_mode_toggle(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_text_edit_mode_toggle";
 
   /* api callbacks */
-  ot->exec = sequencer_text_edit_mode_toggle;
+  ot->exec = sequencer_text_edit_mode_toggle_exec;
   ot->poll = sequencer_text_editing_poll;
 
   /* flags */

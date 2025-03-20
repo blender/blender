@@ -42,7 +42,7 @@ static int wm_stl_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*e
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_stl_export_execute(bContext *C, wmOperator *op)
+static int wm_stl_export_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -138,7 +138,7 @@ void WM_OT_stl_export(wmOperatorType *ot)
   ot->idname = "WM_OT_stl_export";
 
   ot->invoke = wm_stl_export_invoke;
-  ot->exec = wm_stl_export_execute;
+  ot->exec = wm_stl_export_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_stl_export_draw;
   ot->check = wm_stl_export_check;
