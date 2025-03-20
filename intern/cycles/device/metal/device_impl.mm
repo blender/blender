@@ -86,6 +86,12 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     mtlDevice = usable_devices[mtlDevId];
     metal_printf("Creating new Cycles Metal device: %s\n", info.description.c_str());
 
+    /* Enable increased concurrent shader compiler limit.
+     * This is also done by MTLContext::MTLContext, but only in GUI mode. */
+    if (@available(macOS 13.3, *)) {
+      [mtlDevice setShouldMaximizeConcurrentCompilation:YES];
+    }
+
     max_threads_per_threadgroup = 512;
 
     use_metalrt = info.use_hardware_raytracing;
