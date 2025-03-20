@@ -392,7 +392,7 @@ MTex *BKE_texture_mtex_add()
 {
   MTex *mtex;
 
-  mtex = static_cast<MTex *>(MEM_callocN(sizeof(MTex), "BKE_texture_mtex_add"));
+  mtex = MEM_callocN<MTex>("BKE_texture_mtex_add");
 
   BKE_texture_mtex_default(mtex);
 
@@ -619,8 +619,7 @@ void BKE_texture_pointdensity_init_data(PointDensity *pd)
 
 PointDensity *BKE_texture_pointdensity_add()
 {
-  PointDensity *pd = static_cast<PointDensity *>(
-      MEM_callocN(sizeof(PointDensity), "pointdensity"));
+  PointDensity *pd = MEM_callocN<PointDensity>("pointdensity");
   BKE_texture_pointdensity_init_data(pd);
   return pd;
 }

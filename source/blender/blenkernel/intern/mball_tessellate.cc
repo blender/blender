@@ -767,7 +767,7 @@ static void makecubetable()
     for (e = 0; e < 12; e++) {
       if (!done[e] && (pos[corner1[e]] != pos[corner2[e]])) {
         INTLIST *ints = nullptr;
-        INTLISTS *lists = static_cast<INTLISTS *>(MEM_callocN(sizeof(INTLISTS), "mball_intlist"));
+        INTLISTS *lists = MEM_callocN<INTLISTS>("mball_intlist");
         int start = e, edge = e;
 
         /* get face that is to right of edge from pos to neg corner: */
@@ -779,7 +779,7 @@ static void makecubetable()
           if (pos[corner1[edge]] != pos[corner2[edge]]) {
             INTLIST *tmp = ints;
 
-            ints = static_cast<INTLIST *>(MEM_callocN(sizeof(INTLIST), "mball_intlist"));
+            ints = MEM_callocN<INTLIST>("mball_intlist");
             ints->i = edge;
             ints->next = tmp; /* add edge to head of list */
 
@@ -1136,14 +1136,11 @@ static void polygonize(PROCESS *process)
 {
   CUBE c;
 
-  process->centers = static_cast<CENTERLIST **>(
-      MEM_callocN(HASHSIZE * sizeof(CENTERLIST *), "mbproc->centers"));
-  process->corners = static_cast<CORNER **>(
-      MEM_callocN(HASHSIZE * sizeof(CORNER *), "mbproc->corners"));
-  process->edges = static_cast<EDGELIST **>(
-      MEM_callocN(2 * HASHSIZE * sizeof(EDGELIST *), "mbproc->edges"));
-  process->bvh_queue = static_cast<MetaballBVHNode **>(
-      MEM_callocN(sizeof(MetaballBVHNode *) * process->bvh_queue_size, "Metaball BVH Queue"));
+  process->centers = MEM_calloc_arrayN<CENTERLIST *>(HASHSIZE, "mbproc->centers");
+  process->corners = MEM_calloc_arrayN<CORNER *>(HASHSIZE, "mbproc->corners");
+  process->edges = MEM_calloc_arrayN<EDGELIST *>(2 * HASHSIZE, "mbproc->edges");
+  process->bvh_queue = MEM_calloc_arrayN<MetaballBVHNode *>(process->bvh_queue_size,
+                                                            "Metaball BVH Queue");
 
   makecubetable();
 

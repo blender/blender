@@ -191,10 +191,9 @@ static void linear_grids_allocate(LinearGrids *linear_grids, int num_grids, int 
   linear_grids->level = level;
   linear_grids->grid_size = grid_size;
 
-  linear_grids->grids = static_cast<LinearGrid *>(
-      MEM_malloc_arrayN(num_grids, sizeof(LinearGrid), __func__));
-  linear_grids->elements_storage = static_cast<LinearGridElement *>(
-      MEM_calloc_arrayN(num_grid_elements, sizeof(LinearGridElement), __func__));
+  linear_grids->grids = MEM_malloc_arrayN<LinearGrid>(size_t(num_grids), __func__);
+  linear_grids->elements_storage = MEM_calloc_arrayN<LinearGridElement>(num_grid_elements,
+                                                                        __func__);
 
   for (int i = 0; i < num_grids; ++i) {
     const size_t element_offset = grid_area * i;
@@ -259,12 +258,10 @@ static void base_surface_grids_allocate(MultiresReshapeSmoothContext *reshape_sm
   const int grid_size = reshape_context->top.grid_size;
   const int grid_area = grid_size * grid_size;
 
-  SurfaceGrid *surface_grid = static_cast<SurfaceGrid *>(
-      MEM_malloc_arrayN(num_grids, sizeof(SurfaceGrid), __func__));
+  SurfaceGrid *surface_grid = MEM_malloc_arrayN<SurfaceGrid>(size_t(num_grids), __func__);
 
   for (int grid_index = 0; grid_index < num_grids; ++grid_index) {
-    surface_grid[grid_index].points = static_cast<SurfacePoint *>(
-        MEM_calloc_arrayN(grid_area, sizeof(SurfacePoint), __func__));
+    surface_grid[grid_index].points = MEM_calloc_arrayN<SurfacePoint>(size_t(grid_area), __func__);
   }
 
   reshape_smooth_context->base_surface_grids = surface_grid;
@@ -554,16 +551,16 @@ static bool foreach_topology_info(const blender::bke::subdiv::ForeachContext *fo
 
   /* NOTE: Calloc so the counters are re-set to 0 "for free". */
   reshape_smooth_context->geometry.num_vertices = num_vertices;
-  reshape_smooth_context->geometry.vertices = static_cast<Vertex *>(
-      MEM_calloc_arrayN(num_vertices, sizeof(Vertex), "smooth vertices"));
+  reshape_smooth_context->geometry.vertices = MEM_calloc_arrayN<Vertex>(size_t(num_vertices),
+                                                                        "smooth vertices");
 
   reshape_smooth_context->geometry.max_edges = max_edges;
-  reshape_smooth_context->geometry.edges = static_cast<Edge *>(
-      MEM_malloc_arrayN(max_edges, sizeof(Edge), "smooth edges"));
+  reshape_smooth_context->geometry.edges = MEM_malloc_arrayN<Edge>(size_t(max_edges),
+                                                                   "smooth edges");
 
   reshape_smooth_context->geometry.num_corners = num_loops;
-  reshape_smooth_context->geometry.corners = static_cast<Corner *>(
-      MEM_malloc_arrayN(num_loops, sizeof(Corner), "smooth corners"));
+  reshape_smooth_context->geometry.corners = MEM_malloc_arrayN<Corner>(size_t(num_loops),
+                                                                       "smooth corners");
 
   reshape_smooth_context->geometry.num_faces = num_faces;
   reshape_smooth_context->geometry.face_offsets.reinitialize(num_faces + 1);

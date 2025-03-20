@@ -57,8 +57,8 @@ static void lattice_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(lattice, DNA_struct_default_get(Lattice), id);
 
-  lattice->def = static_cast<BPoint *>(MEM_callocN(sizeof(BPoint), "lattvert")); /* temporary */
-  BKE_lattice_resize(lattice, 2, 2, 2, nullptr); /* creates a uniform lattice */
+  lattice->def = MEM_callocN<BPoint>("lattvert"); /* temporary */
+  BKE_lattice_resize(lattice, 2, 2, 2, nullptr);  /* creates a uniform lattice */
 }
 
 static void lattice_copy_data(Main *bmain,
@@ -85,8 +85,7 @@ static void lattice_copy_data(Main *bmain,
 
   if (lattice_src->dvert) {
     int tot = lattice_src->pntsu * lattice_src->pntsv * lattice_src->pntsw;
-    lattice_dst->dvert = static_cast<MDeformVert *>(
-        MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert"));
+    lattice_dst->dvert = MEM_malloc_arrayN<MDeformVert>(size_t(tot), "Lattice MDeformVert");
     BKE_defvert_array_copy(lattice_dst->dvert, lattice_src->dvert, tot);
   }
 
@@ -300,8 +299,8 @@ void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt
     }
   }
 
-  vert_coords = static_cast<float(*)[3]>(
-      MEM_mallocN(sizeof(*vert_coords) * u_new * v_new * w_new, "tmp_vcos"));
+  vert_coords = MEM_malloc_arrayN<float[3]>(size_t(u_new) * size_t(v_new) * size_t(w_new),
+                                            "tmp_vcos");
 
   calc_lat_fudu(lt->flag, u_new, &fu, &du);
   calc_lat_fudu(lt->flag, v_new, &fv, &dv);
@@ -378,8 +377,8 @@ void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt
 
   lt->actbp = LT_ACTBP_NONE;
   MEM_freeN(lt->def);
-  lt->def = static_cast<BPoint *>(
-      MEM_callocN(lt->pntsu * lt->pntsv * lt->pntsw * sizeof(BPoint), "lattice bp"));
+  lt->def = MEM_calloc_arrayN<BPoint>(size_t(lt->pntsu) * size_t(lt->pntsv) * size_t(lt->pntsw),
+                                      "lattice bp");
 
   bp = lt->def;
 
@@ -521,8 +520,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   BKE_object_free_derived_caches(ob);
   if (ob->runtime->curve_cache == nullptr) {
-    ob->runtime->curve_cache = static_cast<CurveCache *>(
-        MEM_callocN(sizeof(CurveCache), "CurveCache for lattice"));
+    ob->runtime->curve_cache = MEM_callocN<CurveCache>("CurveCache for lattice");
   }
 
   Lattice *lt = static_cast<Lattice *>(ob->data);

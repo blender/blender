@@ -382,8 +382,7 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
   gridFaces = gridSize - 1;
 
   /* make a map from original faces to CCGFaces */
-  CCGFace **faceMap = static_cast<CCGFace **>(
-      MEM_mallocN(totface * sizeof(*faceMap), "facemapuv"));
+  CCGFace **faceMap = MEM_malloc_arrayN<CCGFace *>(size_t(totface), "facemapuv");
   for (ccgSubSurf_initFaceIterator(uvss, &fi); !ccgFaceIterator_isStopped(&fi);
        ccgFaceIterator_next(&fi))
   {
@@ -460,7 +459,8 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
   float *w, w1, w2, w4, fac, fac2, fx, fy;
 
   if (wtable->len <= faceLen) {
-    void *tmp = MEM_callocN(sizeof(FaceVertWeightEntry) * (faceLen + 1), "weight table alloc 2");
+    void *tmp = MEM_calloc_arrayN<FaceVertWeightEntry>(size_t(faceLen) + 1,
+                                                       "weight table alloc 2");
 
     if (wtable->len) {
       memcpy(tmp, wtable->weight_table, sizeof(FaceVertWeightEntry) * wtable->len);
@@ -473,9 +473,9 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
 
   if (!wtable->weight_table[faceLen].valid) {
     wtable->weight_table[faceLen].valid = 1;
-    wtable->weight_table[faceLen].w = w = static_cast<float *>(
-        MEM_callocN(sizeof(float) * faceLen * faceLen * (gridCuts + 2) * (gridCuts + 2),
-                    "weight table alloc"));
+    wtable->weight_table[faceLen].w = w = MEM_calloc_arrayN<float>(
+        size_t(faceLen) * size_t(faceLen) * size_t(gridCuts + 2) * size_t(gridCuts + 2),
+        "weight table alloc");
     fac = 1.0f / float(faceLen);
 
     for (i = 0; i < faceLen; i++) {
@@ -1131,7 +1131,7 @@ static void ccgdm_create_grids(DerivedMesh *dm)
   // gridSize = ccgDM_getGridSize(dm); /* UNUSED */
 
   /* compute offset into grid array for each face */
-  gridOffset = static_cast<int *>(MEM_mallocN(sizeof(int) * numFaces, "ccgdm.gridOffset"));
+  gridOffset = MEM_malloc_arrayN<int>(size_t(numFaces), "ccgdm.gridOffset");
 
   for (gIndex = 0, index = 0; index < numFaces; index++) {
     CCGFace *f = ccgdm->faceMap[index].face;
@@ -1142,12 +1142,10 @@ static void ccgdm_create_grids(DerivedMesh *dm)
   }
 
   /* compute grid data */
-  gridData = static_cast<CCGElem **>(MEM_mallocN(sizeof(CCGElem *) * numGrids, "ccgdm.gridData"));
-  gridFaces = static_cast<CCGFace **>(
-      MEM_mallocN(sizeof(CCGFace *) * numGrids, "ccgdm.gridFaces"));
+  gridData = MEM_malloc_arrayN<CCGElem *>(size_t(numGrids), "ccgdm.gridData");
+  gridFaces = MEM_malloc_arrayN<CCGFace *>(size_t(numGrids), "ccgdm.gridFaces");
 
-  ccgdm->gridHidden = static_cast<uint **>(
-      MEM_callocN(sizeof(*ccgdm->gridHidden) * numGrids, "ccgdm.gridHidden"));
+  ccgdm->gridHidden = MEM_calloc_arrayN<uint *>(size_t(numGrids), "ccgdm.gridHidden");
 
   for (gIndex = 0, index = 0; index < numFaces; index++) {
     CCGFace *f = ccgdm->faceMap[index].face;
@@ -1220,8 +1218,8 @@ static void create_ccgdm_maps(CCGDerivedMesh *ccgdm, CCGSubSurf *ss)
   int totvert, totedge, totface;
 
   totvert = ccgSubSurf_getNumVerts(ss);
-  ccgdm->vertMap = static_cast<decltype(CCGDerivedMesh::vertMap)>(
-      MEM_mallocN(totvert * sizeof(*ccgdm->vertMap), "vertMap"));
+  ccgdm->vertMap = MEM_malloc_arrayN<std::remove_pointer_t<decltype(CCGDerivedMesh::vertMap)>>(
+      size_t(totvert), "vertMap");
   for (ccgSubSurf_initVertIterator(ss, &vi); !ccgVertIterator_isStopped(&vi);
        ccgVertIterator_next(&vi))
   {
@@ -1231,8 +1229,8 @@ static void create_ccgdm_maps(CCGDerivedMesh *ccgdm, CCGSubSurf *ss)
   }
 
   totedge = ccgSubSurf_getNumEdges(ss);
-  ccgdm->edgeMap = static_cast<decltype(CCGDerivedMesh::edgeMap)>(
-      MEM_mallocN(totedge * sizeof(*ccgdm->edgeMap), "edgeMap"));
+  ccgdm->edgeMap = MEM_malloc_arrayN<std::remove_pointer_t<decltype(CCGDerivedMesh::edgeMap)>>(
+      size_t(totedge), "edgeMap");
   for (ccgSubSurf_initEdgeIterator(ss, &ei); !ccgEdgeIterator_isStopped(&ei);
        ccgEdgeIterator_next(&ei))
   {
@@ -1242,8 +1240,8 @@ static void create_ccgdm_maps(CCGDerivedMesh *ccgdm, CCGSubSurf *ss)
   }
 
   totface = ccgSubSurf_getNumFaces(ss);
-  ccgdm->faceMap = static_cast<decltype(CCGDerivedMesh::faceMap)>(
-      MEM_mallocN(totface * sizeof(*ccgdm->faceMap), "faceMap"));
+  ccgdm->faceMap = MEM_malloc_arrayN<std::remove_pointer_t<decltype(CCGDerivedMesh::faceMap)>>(
+      size_t(totface), "faceMap");
   for (ccgSubSurf_initFaceIterator(ss, &fi); !ccgFaceIterator_isStopped(&fi);
        ccgFaceIterator_next(&fi))
   {

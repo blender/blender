@@ -840,7 +840,7 @@ static void collection_object_cache_fill(ListBase *lb,
     Base *base = static_cast<Base *>(BLI_findptr(lb, cob->ob, offsetof(Base, object)));
 
     if (base == nullptr) {
-      base = static_cast<Base *>(MEM_callocN(sizeof(Base), "Object Base"));
+      base = MEM_callocN<Base>("Object Base");
       base->object = cob->ob;
       BLI_addtail(lb, base);
       if (with_instances && cob->ob->instance_collection) {
@@ -1395,8 +1395,7 @@ static bool collection_object_add(Main *bmain,
     return false;
   }
 
-  CollectionObject *cob = static_cast<CollectionObject *>(
-      MEM_callocN(sizeof(CollectionObject), __func__));
+  CollectionObject *cob = MEM_callocN<CollectionObject>(__func__);
   cob->ob = ob;
   if (light_linking) {
     cob->light_linking = *light_linking;
@@ -1891,7 +1890,7 @@ static bool collection_child_add(Main *bmain,
     return false;
   }
 
-  child = static_cast<CollectionChild *>(MEM_callocN(sizeof(CollectionChild), "CollectionChild"));
+  child = MEM_callocN<CollectionChild>("CollectionChild");
   child->collection = collection;
   if (light_linking) {
     child->light_linking = *light_linking;
@@ -1900,8 +1899,7 @@ static bool collection_child_add(Main *bmain,
 
   /* Don't add parent links for depsgraph datablocks, these are not kept in sync. */
   if ((id_create_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-    CollectionParent *cparent = static_cast<CollectionParent *>(
-        MEM_callocN(sizeof(CollectionParent), "CollectionParent"));
+    CollectionParent *cparent = MEM_callocN<CollectionParent>("CollectionParent");
     cparent->collection = parent;
     BLI_addtail(&collection->runtime.parents, cparent);
   }
@@ -1984,8 +1982,7 @@ void BKE_collection_parent_relations_rebuild(Collection *collection)
     }
 
     BLI_assert(collection_find_parent(child->collection, collection) == nullptr);
-    CollectionParent *cparent = static_cast<CollectionParent *>(
-        MEM_callocN(sizeof(CollectionParent), __func__));
+    CollectionParent *cparent = MEM_callocN<CollectionParent>(__func__);
     cparent->collection = collection;
     BLI_addtail(&child->collection->runtime.parents, cparent);
   }
@@ -2280,8 +2277,8 @@ static void scene_collections_array(Scene *scene,
 
   BLI_assert(*r_collections_array_len > 0);
 
-  Collection **array = static_cast<Collection **>(
-      MEM_malloc_arrayN(*r_collections_array_len, sizeof(Collection *), "CollectionArray"));
+  Collection **array = MEM_malloc_arrayN<Collection *>(size_t(*r_collections_array_len),
+                                                       "CollectionArray");
   *r_collections_array = array;
   scene_collection_callback(collection, scene_collections_build_array, &array);
 }
@@ -2289,8 +2286,7 @@ static void scene_collections_array(Scene *scene,
 void BKE_scene_collections_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
   Scene *scene = static_cast<Scene *>(data_in);
-  CollectionsIteratorData *data = static_cast<CollectionsIteratorData *>(
-      MEM_callocN(sizeof(CollectionsIteratorData), __func__));
+  CollectionsIteratorData *data = MEM_callocN<CollectionsIteratorData>(__func__);
 
   data->scene = scene;
 
@@ -2339,8 +2335,7 @@ struct SceneObjectsIteratorData {
 
 static void scene_objects_iterator_begin(BLI_Iterator *iter, Scene *scene, GSet *visited_objects)
 {
-  SceneObjectsIteratorData *data = static_cast<SceneObjectsIteratorData *>(
-      MEM_callocN(sizeof(SceneObjectsIteratorData), __func__));
+  SceneObjectsIteratorData *data = MEM_callocN<SceneObjectsIteratorData>(__func__);
 
   BLI_ITERATOR_INIT(iter);
   iter->data = data;

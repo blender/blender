@@ -265,8 +265,7 @@ IDTypeInfo IDType_ID_MA = {
 void BKE_gpencil_material_attr_init(Material *ma)
 {
   if ((ma) && (ma->gp_style == nullptr)) {
-    ma->gp_style = static_cast<MaterialGPencilStyle *>(
-        MEM_callocN(sizeof(MaterialGPencilStyle), "Grease Pencil Material Settings"));
+    ma->gp_style = MEM_callocN<MaterialGPencilStyle>("Grease Pencil Material Settings");
 
     MaterialGPencilStyle *gp_style = ma->gp_style;
     /* set basic settings */
@@ -1668,8 +1667,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *o
       ma->paint_clone_slot = 0;
     }
     else {
-      ma->texpaintslot = static_cast<TexPaintSlot *>(
-          MEM_callocN(sizeof(TexPaintSlot) * count, "texpaint_slots"));
+      ma->texpaintslot = MEM_calloc_arrayN<TexPaintSlot>(size_t(count), "texpaint_slots");
 
       bNode *active_node = blender::bke::node_get_active_paint_canvas(*ma->nodetree);
 

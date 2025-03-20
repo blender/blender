@@ -108,7 +108,7 @@ AnimData *BKE_animdata_ensure_id(ID *id)
       AnimData *adt;
 
       /* add animdata */
-      adt = iat->adt = static_cast<AnimData *>(MEM_callocN(sizeof(AnimData), "AnimData"));
+      adt = iat->adt = MEM_callocN<AnimData>("AnimData");
 
       /* set default settings */
       adt->act_influence = 1.0f;

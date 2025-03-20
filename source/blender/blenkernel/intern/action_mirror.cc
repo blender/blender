@@ -128,7 +128,7 @@ static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc,
   /* Cache the F-Curve values for `keyed_frames`. */
   const int fcurve_flag = fkc->fcurve->flag;
   fkc->fcurve->flag |= FCURVE_MOD_OFF;
-  fkc->fcurve_eval = static_cast<float *>(MEM_mallocN(sizeof(float) * keyed_frames_len, __func__));
+  fkc->fcurve_eval = MEM_malloc_arrayN<float>(size_t(keyed_frames_len), __func__);
   for (int frame_index = 0; frame_index < keyed_frames_len; frame_index++) {
     const float evaltime = keyed_frames[frame_index];
     fkc->fcurve_eval[frame_index] = evaluate_fcurve_only_curve(fkc->fcurve, evaltime);
@@ -136,8 +136,7 @@ static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc,
   fkc->fcurve->flag = fcurve_flag;
 
   /* Cache the #BezTriple for `keyed_frames`, or leave as nullptr. */
-  fkc->bezt_array = static_cast<BezTriple **>(
-      MEM_mallocN(sizeof(*fkc->bezt_array) * keyed_frames_len, __func__));
+  fkc->bezt_array = MEM_malloc_arrayN<BezTriple *>(size_t(keyed_frames_len), __func__);
   BezTriple *bezt = fkc->fcurve->bezt;
   BezTriple *bezt_end = fkc->fcurve->bezt + fkc->fcurve->totvert;
 

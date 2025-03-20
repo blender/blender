@@ -247,12 +247,12 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv, ForeachTaskContext *ctx)
   /* Allocate maps and offsets. */
   ctx->coarse_vertices_used_map = BLI_BITMAP_NEW(coarse_mesh->verts_num, "vertices used map");
   ctx->coarse_edges_used_map = BLI_BITMAP_NEW(coarse_mesh->edges_num, "edges used map");
-  ctx->subdiv_vertex_offset = static_cast<int *>(MEM_malloc_arrayN(
-      coarse_mesh->faces_num, sizeof(*ctx->subdiv_vertex_offset), "vertex_offset"));
-  ctx->subdiv_edge_offset = static_cast<int *>(MEM_malloc_arrayN(
-      coarse_mesh->faces_num, sizeof(*ctx->subdiv_edge_offset), "subdiv_edge_offset"));
-  ctx->subdiv_face_offset = static_cast<int *>(MEM_malloc_arrayN(
-      coarse_mesh->faces_num, sizeof(*ctx->subdiv_face_offset), "subdiv_edge_offset"));
+  ctx->subdiv_vertex_offset = MEM_malloc_arrayN<int>(size_t(coarse_mesh->faces_num),
+                                                     "vertex_offset");
+  ctx->subdiv_edge_offset = MEM_malloc_arrayN<int>(size_t(coarse_mesh->faces_num),
+                                                   "subdiv_edge_offset");
+  ctx->subdiv_face_offset = MEM_malloc_arrayN<int>(size_t(coarse_mesh->faces_num),
+                                                   "subdiv_edge_offset");
   /* Initialize all offsets. */
   subdiv_foreach_ctx_init_offsets(ctx);
   /* Calculate number of geometry in the result subdivision mesh. */

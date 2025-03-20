@@ -304,7 +304,7 @@ void curves_copy_parameters(const Curves &src, Curves &dst)
 {
   dst.flag = src.flag;
   MEM_SAFE_FREE(dst.mat);
-  dst.mat = static_cast<Material **>(MEM_malloc_arrayN(src.totcol, sizeof(Material *), __func__));
+  dst.mat = MEM_malloc_arrayN<Material *>(size_t(src.totcol), __func__);
   dst.totcol = src.totcol;
   MutableSpan(dst.mat, dst.totcol).copy_from(Span(src.mat, src.totcol));
   dst.symmetry = src.symmetry;

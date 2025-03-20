@@ -204,8 +204,8 @@ template<typename DataT, typename T> static void spherical_harmonic_copy(T &dst,
 
 LightProbeGridCacheFrame *BKE_lightprobe_grid_cache_frame_create()
 {
-  LightProbeGridCacheFrame *cache = static_cast<LightProbeGridCacheFrame *>(
-      MEM_callocN(sizeof(LightProbeGridCacheFrame), "LightProbeGridCacheFrame"));
+  LightProbeGridCacheFrame *cache = MEM_callocN<LightProbeGridCacheFrame>(
+      "LightProbeGridCacheFrame");
   return cache;
 }
 
@@ -245,8 +245,7 @@ void BKE_lightprobe_cache_create(Object *object)
 {
   BLI_assert(object->lightprobe_cache == nullptr);
 
-  object->lightprobe_cache = static_cast<LightProbeObjectCache *>(
-      MEM_callocN(sizeof(LightProbeObjectCache), "LightProbeObjectCache"));
+  object->lightprobe_cache = MEM_callocN<LightProbeObjectCache>("LightProbeObjectCache");
 }
 
 LightProbeObjectCache *BKE_lightprobe_cache_copy(LightProbeObjectCache *src_cache)

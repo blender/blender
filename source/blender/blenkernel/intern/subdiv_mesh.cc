@@ -126,8 +126,7 @@ static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vert
   if (!ctx->have_displacement) {
     return;
   }
-  ctx->accumulated_counters = static_cast<int *>(
-      MEM_calloc_arrayN(num_vertices, sizeof(*ctx->accumulated_counters), __func__));
+  ctx->accumulated_counters = MEM_calloc_arrayN<int>(size_t(num_vertices), __func__);
 }
 
 static void subdiv_mesh_context_free(SubdivMeshContext *ctx)
@@ -573,10 +572,8 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
                               num_loops);
 
   /* Allocate corner topology arrays which are added to the result at the end. */
-  subdiv_context->subdiv_corner_verts = static_cast<int *>(
-      MEM_malloc_arrayN(num_loops, sizeof(int), __func__));
-  subdiv_context->subdiv_corner_edges = static_cast<int *>(
-      MEM_malloc_arrayN(num_loops, sizeof(int), __func__));
+  subdiv_context->subdiv_corner_verts = MEM_malloc_arrayN<int>(size_t(num_loops), __func__);
+  subdiv_context->subdiv_corner_edges = MEM_malloc_arrayN<int>(size_t(num_loops), __func__);
 
   subdiv_mesh_ctx_cache_custom_data_layers(subdiv_context);
   subdiv_mesh_prepare_accumulator(subdiv_context, num_vertices);

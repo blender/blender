@@ -149,7 +149,7 @@ static void studiolight_free_temp_resources(StudioLight *sl)
 
 static StudioLight *studiolight_create(int flag)
 {
-  StudioLight *sl = static_cast<StudioLight *>(MEM_callocN(sizeof(*sl), __func__));
+  StudioLight *sl = MEM_callocN<StudioLight>(__func__);
   sl->filepath[0] = 0x00;
   sl->name[0] = 0x00;
   sl->free_function = nullptr;
@@ -301,8 +301,7 @@ static float *studiolight_multilayer_convert_pass(const ImBuf *ibuf,
     return rect;
   }
 
-  float *new_rect = static_cast<float *>(
-      MEM_callocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__));
+  float *new_rect = MEM_calloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
 
   IMB_buffer_float_from_float(new_rect,
                               rect,
@@ -450,8 +449,8 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
 {
   BLI_assert(sli->ibuf);
   ImBuf *ibuf = sli->ibuf;
-  float *gpu_matcap_3components = static_cast<float *>(
-      MEM_callocN(sizeof(float[3]) * ibuf->x * ibuf->y, __func__));
+  float *gpu_matcap_3components = MEM_calloc_arrayN<float>(3 * size_t(ibuf->x) * size_t(ibuf->y),
+                                                           __func__);
 
   const float(*offset4)[4] = (const float(*)[4])ibuf->float_buffer.data;
   float(*offset3)[3] = (float(*)[3])gpu_matcap_3components;

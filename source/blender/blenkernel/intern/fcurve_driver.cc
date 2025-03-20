@@ -1017,7 +1017,7 @@ DriverVar *driver_add_new_variable(ChannelDriver *driver)
   }
 
   /* Make a new variable. */
-  dvar = static_cast<DriverVar *>(MEM_callocN(sizeof(DriverVar), "DriverVar"));
+  dvar = MEM_callocN<DriverVar>("DriverVar");
   BLI_addtail(&driver->variables, dvar);
 
   /* Give the variable a 'unique' name. */

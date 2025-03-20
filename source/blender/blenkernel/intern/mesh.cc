@@ -680,8 +680,7 @@ void BKE_mesh_face_offsets_ensure_alloc(Mesh *mesh)
   if (mesh->faces_num == 0) {
     return;
   }
-  mesh->face_offset_indices = static_cast<int *>(
-      MEM_malloc_arrayN(mesh->faces_num + 1, sizeof(int), __func__));
+  mesh->face_offset_indices = MEM_malloc_arrayN<int>(size_t(mesh->faces_num) + 1, __func__);
   mesh->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
       mesh->face_offset_indices);
 
@@ -1478,8 +1477,7 @@ void BKE_mesh_mselect_validate(Mesh *mesh)
   }
 
   mselect_src = mesh->mselect;
-  mselect_dst = (MSelect *)MEM_malloc_arrayN(
-      (mesh->totselect), sizeof(MSelect), "Mesh selection history");
+  mselect_dst = MEM_malloc_arrayN<MSelect>(size_t(mesh->totselect), "Mesh selection history");
 
   const AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(

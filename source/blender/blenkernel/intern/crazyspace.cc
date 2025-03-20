@@ -454,7 +454,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
       }
     }
 
-    quats = static_cast<float(*)[4]>(MEM_mallocN(mesh->verts_num * sizeof(*quats), "crazy quats"));
+    quats = MEM_malloc_arrayN<float[4]>(size_t(mesh->verts_num), "crazy quats");
 
     BKE_crazyspace_set_quats_mesh(mesh, origVerts, deformedVerts, quats);
 

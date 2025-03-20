@@ -130,7 +130,7 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src);
 static void image_runtime_reset(Image *image)
 {
   memset(&image->runtime, 0, sizeof(image->runtime));
-  image->runtime.cache_mutex = MEM_mallocN(sizeof(ThreadMutex), "image runtime cache_mutex");
+  image->runtime.cache_mutex = MEM_mallocN<ThreadMutex>("image runtime cache_mutex");
   BLI_mutex_init(static_cast<ThreadMutex *>(image->runtime.cache_mutex));
   image->runtime.update_count = 0;
 }
@@ -138,7 +138,7 @@ static void image_runtime_reset(Image *image)
 /** Reset runtime image fields when data-block is being copied. */
 static void image_runtime_reset_on_copy(Image *image)
 {
-  image->runtime.cache_mutex = MEM_mallocN(sizeof(ThreadMutex), "image runtime cache_mutex");
+  image->runtime.cache_mutex = MEM_mallocN<ThreadMutex>("image runtime cache_mutex");
   BLI_mutex_init(static_cast<ThreadMutex *>(image->runtime.cache_mutex));
 
   image->runtime.partial_update_register = nullptr;
@@ -766,8 +766,7 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
   for (imapf_src = static_cast<const ImagePackedFile *>(lb_src->first); imapf_src;
        imapf_src = imapf_src->next)
   {
-    ImagePackedFile *imapf_dst = static_cast<ImagePackedFile *>(
-        MEM_mallocN(sizeof(ImagePackedFile), "Image Packed Files (copy)"));
+    ImagePackedFile *imapf_dst = MEM_mallocN<ImagePackedFile>("Image Packed Files (copy)");
 
     imapf_dst->view = imapf_src->view;
     imapf_dst->tile_number = imapf_src->tile_number;
@@ -1426,7 +1425,7 @@ static bool image_memorypack_imbuf(
   const int encoded_size = ibuf->encoded_size;
   PackedFile *pf = BKE_packedfile_new_from_memory(IMB_steal_encoded_buffer(ibuf), encoded_size);
 
-  imapf = static_cast<ImagePackedFile *>(MEM_mallocN(sizeof(ImagePackedFile), "Image PackedFile"));
+  imapf = MEM_mallocN<ImagePackedFile>("Image PackedFile");
   STRNCPY(imapf->filepath, filepath);
   imapf->packedfile = pf;
   imapf->view = view;
@@ -1518,8 +1517,7 @@ void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath)
       char filepath[FILE_MAX];
       BKE_image_user_file_path(&iuser, ima, filepath);
 
-      ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
-          MEM_mallocN(sizeof(ImagePackedFile), "Image packed file"));
+      ImagePackedFile *imapf = MEM_mallocN<ImagePackedFile>("Image packed file");
       BLI_addtail(&ima->packedfiles, imapf);
 
       imapf->packedfile = BKE_packedfile_new(reports, filepath, basepath);
@@ -1549,8 +1547,7 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
     BKE_report(reports, RPT_ERROR, "Cannot pack tiled images from raw data currently...");
   }
   else {
-    ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
-        MEM_mallocN(sizeof(ImagePackedFile), __func__));
+    ImagePackedFile *imapf = MEM_mallocN<ImagePackedFile>(__func__);
     BLI_addtail(&ima->packedfiles, imapf);
     imapf->packedfile = BKE_packedfile_new_from_memory(data, data_len);
     imapf->view = 0;
@@ -2562,8 +2559,7 @@ void BKE_render_result_stamp_data(RenderResult *rr, const char *key, const char 
     rr->stamp_data = MEM_callocN<StampData>("RenderResult.stamp_data");
   }
   stamp_data = rr->stamp_data;
-  StampDataCustomField *field = static_cast<StampDataCustomField *>(
-      MEM_mallocN(sizeof(StampDataCustomField), "StampData Custom Field"));
+  StampDataCustomField *field = MEM_mallocN<StampDataCustomField>("StampData Custom Field");
   STRNCPY(field->key, key);
   field->value = BLI_strdup(value);
   BLI_addtail(&stamp_data->custom_fields, field);
@@ -4022,7 +4018,7 @@ static void image_add_view(Image *ima, const char *viewname, const char *filepat
 {
   ImageView *iv;
 
-  iv = static_cast<ImageView *>(MEM_mallocN(sizeof(ImageView), "Viewer Image View"));
+  iv = MEM_mallocN<ImageView>("Viewer Image View");
   STRNCPY(iv->name, viewname);
   STRNCPY(iv->filepath, filepath);
 
@@ -4350,8 +4346,7 @@ static ImBuf *load_image_single(Image *ima,
 
       /* Make packed file for auto-pack. */
       if (!is_sequence && (has_packed == false) && (G.fileflags & G_FILE_AUTOPACK)) {
-        ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
-            MEM_mallocN(sizeof(ImagePackedFile), "Image Pack-file"));
+        ImagePackedFile *imapf = MEM_mallocN<ImagePackedFile>("Image Pack-file");
         BLI_addtail(&ima->packedfiles, imapf);
 
         STRNCPY(imapf->filepath, filepath);

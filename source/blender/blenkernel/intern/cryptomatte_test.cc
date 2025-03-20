@@ -134,8 +134,7 @@ static void validate_cryptomatte_session_from_stamp_data(void * /*data*/,
 TEST(cryptomatte, session_from_stamp_data)
 {
   /* Create CryptomatteSession from stamp data. */
-  RenderResult *render_result = static_cast<RenderResult *>(
-      MEM_callocN(sizeof(RenderResult), __func__));
+  RenderResult *render_result = MEM_callocN<RenderResult>(__func__);
   BKE_render_result_stamp_data(render_result, "cryptomatte/qwerty/name", "layer1");
   BKE_render_result_stamp_data(
       render_result, "cryptomatte/qwerty/manifest", R"({"Object":"12345678"})");
@@ -147,8 +146,7 @@ TEST(cryptomatte, session_from_stamp_data)
   RE_FreeRenderResult(render_result);
 
   /* Create StampData from CryptomatteSession. */
-  RenderResult *render_result2 = static_cast<RenderResult *>(
-      MEM_callocN(sizeof(RenderResult), __func__));
+  RenderResult *render_result2 = MEM_callocN<RenderResult>(__func__);
   BKE_cryptomatte_store_metadata(session.get(), render_result2);
 
   /* Validate StampData. */

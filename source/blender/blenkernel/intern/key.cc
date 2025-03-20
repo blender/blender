@@ -640,8 +640,8 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
 
       if (mesh->runtime->edit_mesh && mesh->runtime->edit_mesh->bm->totvert == kb->totelem) {
         a = 0;
-        co = static_cast<float(*)[3]>(MEM_mallocN(
-            sizeof(float[3]) * mesh->runtime->edit_mesh->bm->totvert, "key_block_get_data"));
+        co = MEM_malloc_arrayN<float[3]>(size_t(mesh->runtime->edit_mesh->bm->totvert),
+                                         "key_block_get_data");
 
         BM_ITER_MESH (eve, &iter, mesh->runtime->edit_mesh->bm, BM_VERTS_OF_MESH) {
           copy_v3_v3(co[a], eve->co);
@@ -1309,8 +1309,8 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
     if (cache) {
       if (cache->defgroup_weights == nullptr) {
         int num_defgroup = BKE_object_defgroup_count(ob);
-        cache->defgroup_weights = static_cast<float **>(MEM_callocN(
-            sizeof(*cache->defgroup_weights) * num_defgroup, "cached defgroup weights"));
+        cache->defgroup_weights = MEM_calloc_arrayN<float *>(size_t(num_defgroup),
+                                                             "cached defgroup weights");
         cache->num_defgroup_weights = num_defgroup;
       }
 
@@ -1319,7 +1319,7 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
       }
     }
 
-    weights = static_cast<float *>(MEM_mallocN(totvert * sizeof(float), "weights"));
+    weights = MEM_malloc_arrayN<float>(size_t(totvert), "weights");
 
     if (em) {
       int i;
@@ -1350,8 +1350,7 @@ static float **keyblock_get_per_block_weights(Object *ob, Key *key, WeightsArray
   float **per_keyblock_weights;
   int keyblock_index;
 
-  per_keyblock_weights = static_cast<float **>(
-      MEM_mallocN(sizeof(*per_keyblock_weights) * key->totkey, "per keyblock weights"));
+  per_keyblock_weights = MEM_malloc_arrayN<float *>(size_t(key->totkey), "per keyblock weights");
 
   for (keyblock = static_cast<KeyBlock *>(key->block.first), keyblock_index = 0; keyblock;
        keyblock = keyblock->next, keyblock_index++)
@@ -2004,7 +2003,7 @@ void BKE_keyblock_convert_from_lattice(const Lattice *lt, KeyBlock *kb)
 
   MEM_SAFE_FREE(kb->data);
 
-  kb->data = MEM_mallocN(lt->key->elemsize * tot, __func__);
+  kb->data = MEM_malloc_arrayN(size_t(tot), size_t(lt->key->elemsize), __func__);
   kb->totelem = tot;
 
   BKE_keyblock_update_from_lattice(lt, kb);
@@ -2130,7 +2129,7 @@ void BKE_keyblock_convert_from_curve(const Curve *cu, KeyBlock *kb, const ListBa
 
   MEM_SAFE_FREE(kb->data);
 
-  kb->data = MEM_mallocN(cu->key->elemsize * tot, __func__);
+  kb->data = MEM_malloc_arrayN(size_t(tot), size_t(cu->key->elemsize), __func__);
   kb->totelem = tot;
 
   BKE_keyblock_update_from_curve(cu, kb, nurb);
@@ -2241,13 +2240,11 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   bool free_vert_normals = false;
   bool free_face_normals = false;
   if (vert_normals_needed && r_vert_normals == nullptr) {
-    vert_normals = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(mesh->verts_num, sizeof(float[3]), __func__));
+    vert_normals = MEM_malloc_arrayN<float[3]>(size_t(mesh->verts_num), __func__);
     free_vert_normals = true;
   }
   if (face_normals_needed && r_face_normals == nullptr) {
-    face_normals = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(mesh->faces_num, sizeof(float[3]), __func__));
+    face_normals = MEM_malloc_arrayN<float[3]>(size_t(mesh->faces_num), __func__);
     free_face_normals = true;
   }
 

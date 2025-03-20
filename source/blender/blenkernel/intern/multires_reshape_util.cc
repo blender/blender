@@ -72,8 +72,8 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
 {
   const blender::OffsetIndices faces = reshape_context->base_faces;
 
-  reshape_context->face_start_grid_index = static_cast<int *>(
-      MEM_malloc_arrayN(faces.size(), sizeof(int), "face_start_grid_index"));
+  reshape_context->face_start_grid_index = MEM_malloc_arrayN<int>(size_t(faces.size()),
+                                                                  "face_start_grid_index");
   int num_grids = 0;
   int num_ptex_faces = 0;
   for (const int face_index : faces.index_range()) {
@@ -83,10 +83,10 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
     num_ptex_faces += (num_corners == 4) ? 1 : num_corners;
   }
 
-  reshape_context->grid_to_face_index = static_cast<int *>(
-      MEM_malloc_arrayN(num_grids, sizeof(int), "grid_to_face_index"));
-  reshape_context->ptex_start_grid_index = static_cast<int *>(
-      MEM_malloc_arrayN(num_ptex_faces, sizeof(int), "ptex_start_grid_index"));
+  reshape_context->grid_to_face_index = MEM_malloc_arrayN<int>(size_t(num_grids),
+                                                               "grid_to_face_index");
+  reshape_context->ptex_start_grid_index = MEM_malloc_arrayN<int>(size_t(num_ptex_faces),
+                                                                  "ptex_start_grid_index");
   for (int face_index = 0, grid_index = 0, ptex_index = 0; face_index < faces.size(); ++face_index)
   {
     const int num_corners = faces[face_index].size();
@@ -565,8 +565,7 @@ static void allocate_displacement_grid(MDisps *displacement_grid, const int leve
 {
   const int grid_size = blender::bke::subdiv::grid_size_from_level(level);
   const int grid_area = grid_size * grid_size;
-  float(*disps)[3] = static_cast<float(*)[3]>(
-      MEM_calloc_arrayN(grid_area, sizeof(float[3]), "multires disps"));
+  float(*disps)[3] = MEM_calloc_arrayN<float[3]>(size_t(grid_area), "multires disps");
   if (displacement_grid->disps != nullptr) {
     MEM_freeN(displacement_grid->disps);
   }
@@ -614,8 +613,7 @@ static void ensure_mask_grids(Mesh *mesh, const int level)
       MEM_freeN(grid_paint_mask->data);
     }
     /* TODO(sergey): Preserve data on the old level. */
-    grid_paint_mask->data = static_cast<float *>(
-        MEM_calloc_arrayN(grid_area, sizeof(float), "gpm.data"));
+    grid_paint_mask->data = MEM_calloc_arrayN<float>(size_t(grid_area), "gpm.data");
   }
 }
 

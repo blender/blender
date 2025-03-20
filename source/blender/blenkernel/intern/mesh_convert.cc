@@ -383,7 +383,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
   ListBase edges = {nullptr, nullptr};
 
   /* get boundary edges */
-  edge_users = (int *)MEM_calloc_arrayN(mesh_edges.size(), sizeof(int), __func__);
+  edge_users = MEM_calloc_arrayN<int>(size_t(mesh_edges.size()), __func__);
   for (const int i : polys.index_range()) {
     for (const int edge : corner_edges.slice(polys[i])) {
       edge_users[edge]++;
@@ -474,7 +474,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
         VertLink *vl;
 
         /* create new 'nurb' within the curve */
-        nu = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), __func__));
+        nu = MEM_callocN<Nurb>(__func__);
 
         nu->pntsu = faces_num;
         nu->pntsv = 1;
@@ -482,7 +482,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
         nu->flagu = CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC : 0); /* endpoint */
         nu->resolu = 12;
 
-        nu->bp = (BPoint *)MEM_calloc_arrayN(faces_num, sizeof(BPoint), "bpoints");
+        nu->bp = MEM_calloc_arrayN<BPoint>(size_t(faces_num), "bpoints");
 
         /* add points */
         vl = (VertLink *)polyline.first;
@@ -1035,7 +1035,7 @@ static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
     MEM_SAFE_FREE(kb->data);
 
     kb->totelem = mesh.verts_num;
-    kb->data = MEM_malloc_arrayN(kb->totelem, sizeof(float3), __func__);
+    kb->data = MEM_malloc_arrayN(size_t(kb->totelem), sizeof(float3), __func__);
     MutableSpan<float3> kb_coords(static_cast<float3 *>(kb->data), kb->totelem);
     if (kb->uid == actshape_uid) {
       mesh.attributes().lookup<float3>("position").varray.materialize(kb_coords);
@@ -1049,7 +1049,7 @@ static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
     if (kb->totelem != mesh.verts_num) {
       MEM_SAFE_FREE(kb->data);
       kb->totelem = mesh.verts_num;
-      kb->data = MEM_calloc_arrayN<float3>(kb->totelem, __func__);
+      kb->data = MEM_calloc_arrayN<float3>(size_t(kb->totelem), __func__);
       CLOG_ERROR(&LOG, "Data for shape key '%s' on mesh missing from evaluated mesh ", kb->name);
     }
   }
@@ -1131,7 +1131,8 @@ void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb)
   if (kb->data) {
     MEM_freeN(kb->data);
   }
-  kb->data = MEM_malloc_arrayN(mesh_dst->key->elemsize, mesh_dst->verts_num, "kb->data");
+  kb->data = MEM_malloc_arrayN(
+      size_t(mesh_dst->verts_num), size_t(mesh_dst->key->elemsize), "kb->data");
   kb->totelem = totvert;
   MutableSpan(static_cast<float3 *>(kb->data), kb->totelem).copy_from(mesh_src->vert_positions());
 }

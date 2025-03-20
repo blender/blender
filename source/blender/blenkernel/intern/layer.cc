@@ -2356,8 +2356,8 @@ static void layer_eval_view_layer(Depsgraph *depsgraph, Scene *scene, ViewLayer 
   BKE_view_layer_synced_ensure(scene, view_layer);
   const int num_object_bases = BLI_listbase_count(BKE_view_layer_object_bases_get(view_layer));
   MEM_SAFE_FREE(view_layer->object_bases_array);
-  view_layer->object_bases_array = static_cast<Base **>(
-      MEM_malloc_arrayN(num_object_bases, sizeof(Base *), "view_layer->object_bases_array"));
+  view_layer->object_bases_array = MEM_malloc_arrayN<Base *>(size_t(num_object_bases),
+                                                             "view_layer->object_bases_array");
   int base_index = 0;
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     view_layer->object_bases_array[base_index++] = base;

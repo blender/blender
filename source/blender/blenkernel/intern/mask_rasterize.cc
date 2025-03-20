@@ -987,8 +987,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         }
 
         if (sf_edge_array_num > 0) {
-          sf_edge_array = static_cast<ScanFillEdge **>(
-              MEM_mallocN(sizeof(ScanFillEdge **) * size_t(sf_edge_array_num), __func__));
+          sf_edge_array = MEM_malloc_arrayN<ScanFillEdge *>(size_t(sf_edge_array_num), __func__);
           uint edge_index = 0;
           for (int pass = 0; pass < 2; pass++) {
             LISTBASE_FOREACH (ScanFillEdge *, sf_edge, lb_array[pass]) {
@@ -1010,9 +1009,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
         BLI_movelisttolist(&sf_ctx.filledgebase, &isect_remedgebase);
       }
 
-      face_array = static_cast<uint(*)[4]>(
-          MEM_mallocN(sizeof(*face_array) * (size_t(sf_tri_tot) + size_t(tot_feather_quads)),
-                      "maskrast_face_index"));
+      face_array = MEM_malloc_arrayN<uint[4]>(size_t(sf_tri_tot) + size_t(tot_feather_quads),
+                                              "maskrast_face_index");
       face_index = 0;
 
       /* faces */

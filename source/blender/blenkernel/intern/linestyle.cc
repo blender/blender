@@ -70,7 +70,7 @@ static void linestyle_copy_data(Main *bmain,
 
   for (int a = 0; a < MAX_MTEX; a++) {
     if (linestyle_src->mtex[a]) {
-      linestyle_dst->mtex[a] = static_cast<MTex *>(MEM_callocN(sizeof(MTex), __func__));
+      linestyle_dst->mtex[a] = MEM_callocN<MTex>(__func__);
       *linestyle_dst->mtex[a] = blender::dna::shallow_copy(*linestyle_src->mtex[a]);
     }
   }
@@ -1841,7 +1841,7 @@ void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, List
       default:
         continue;
     }
-    link = (LinkData *)MEM_callocN(sizeof(LinkData), "link to color ramp");
+    link = MEM_callocN<LinkData>("link to color ramp");
     link->data = color_ramp;
     BLI_addtail(listbase, link);
   }

@@ -177,7 +177,7 @@ static void mesh_calc_eigen_matrix(const float (*positions)[3],
   int i;
 
   if (positions) {
-    cos = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*cos) * size_t(numverts), __func__));
+    cos = MEM_malloc_arrayN<float[3]>(size_t(numverts), __func__);
     memcpy(cos, positions, sizeof(float[3]) * size_t(numverts));
     /* TODO(sergey): For until we officially drop all compilers which
      * doesn't handle casting correct we use workaround to avoid explicit
@@ -556,11 +556,9 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       const blender::Span<int> tri_faces = me_src->corner_tri_faces();
 
       size_t tmp_buff_size = MREMAP_DEFAULT_BUFSIZE;
-      float(*vcos)[3] = static_cast<float(*)[3]>(
-          MEM_mallocN(sizeof(*vcos) * tmp_buff_size, __func__));
-      int *indices = static_cast<int *>(MEM_mallocN(sizeof(*indices) * tmp_buff_size, __func__));
-      float *weights = static_cast<float *>(
-          MEM_mallocN(sizeof(*weights) * tmp_buff_size, __func__));
+      float(*vcos)[3] = MEM_malloc_arrayN<float[3]>(tmp_buff_size, __func__);
+      int *indices = MEM_malloc_arrayN<int>(tmp_buff_size, __func__);
+      float *weights = MEM_malloc_arrayN<float>(tmp_buff_size, __func__);
 
       treedata = me_src->bvh_corner_tris();
 
@@ -708,8 +706,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         float hit_dist;
         int index;
       };
-      HitData *v_dst_to_src_map = static_cast<HitData *>(
-          MEM_mallocN(sizeof(*v_dst_to_src_map) * size_t(numverts_dst), __func__));
+      HitData *v_dst_to_src_map = MEM_malloc_arrayN<HitData>(size_t(numverts_dst), __func__);
 
       for (i = 0; i < numverts_dst; i++) {
         v_dst_to_src_map[i].hit_dist = -1.0f;
@@ -905,11 +902,9 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       const int numedges_src = me_src->edges_num;
 
       /* Subtleness - this one we can allocate only max number of cast rays per edges! */
-      int *indices = static_cast<int *>(
-          MEM_mallocN(sizeof(*indices) * size_t(min_ii(numedges_src, num_rays_max)), __func__));
+      int *indices = MEM_malloc_arrayN<int>(size_t(min_ii(numedges_src, num_rays_max)), __func__);
       /* Here it's simpler to just allocate for all edges :/ */
-      float *weights = static_cast<float *>(
-          MEM_mallocN(sizeof(*weights) * size_t(numedges_src), __func__));
+      float *weights = MEM_malloc_arrayN<float>(size_t(numedges_src), __func__);
 
       treedata = me_src->bvh_edges();
 
@@ -1092,8 +1087,7 @@ static void mesh_island_to_astar_graph(MeshIslandStore *islands,
   BLI_bitmap *done_edges = BLI_BITMAP_NEW(numedges, __func__);
 
   const int node_num = islands ? island_face_map->count : int(faces.size());
-  uchar *face_status = static_cast<uchar *>(
-      MEM_callocN(sizeof(*face_status) * size_t(node_num), __func__));
+  uchar *face_status = MEM_calloc_arrayN<uchar>(size_t(node_num), __func__);
   float(*face_centers)[3];
 
   int pidx_isld;
@@ -1292,12 +1286,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     size_t islands_res_buff_size = MREMAP_DEFAULT_BUFSIZE;
 
     if (!use_from_vert) {
-      vcos_interp = static_cast<float(*)[3]>(
-          MEM_mallocN(sizeof(*vcos_interp) * buff_size_interp, __func__));
-      indices_interp = static_cast<int *>(
-          MEM_mallocN(sizeof(*indices_interp) * buff_size_interp, __func__));
-      weights_interp = static_cast<float *>(
-          MEM_mallocN(sizeof(*weights_interp) * buff_size_interp, __func__));
+      vcos_interp = MEM_malloc_arrayN<float[3]>(buff_size_interp, __func__);
+      indices_interp = MEM_malloc_arrayN<int>(buff_size_interp, __func__);
+      weights_interp = MEM_malloc_arrayN<float>(buff_size_interp, __func__);
     }
 
     {
@@ -1369,8 +1360,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       num_trees = use_islands ? island_store.islands_num : 1;
       treedata.reinitialize(num_trees);
       if (isld_steps_src) {
-        as_graphdata = static_cast<BLI_AStarGraph *>(
-            MEM_callocN(sizeof(*as_graphdata) * size_t(num_trees), __func__));
+        as_graphdata = MEM_calloc_arrayN<BLI_AStarGraph>(size_t(num_trees), __func__);
       }
 
       if (use_islands) {
@@ -1386,7 +1376,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       num_trees = 1;
       treedata.reinitialize(1);
       if (isld_steps_src) {
-        as_graphdata = static_cast<BLI_AStarGraph *>(MEM_callocN(sizeof(*as_graphdata), __func__));
+        as_graphdata = MEM_callocN<BLI_AStarGraph>(__func__);
       }
     }
 
@@ -1460,11 +1450,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
 
     /* And check each dest face! */
-    islands_res = static_cast<IslandResult **>(
-        MEM_mallocN(sizeof(*islands_res) * size_t(num_trees), __func__));
+    islands_res = MEM_malloc_arrayN<IslandResult *>(size_t(num_trees), __func__);
     for (tindex = 0; tindex < num_trees; tindex++) {
-      islands_res[tindex] = static_cast<IslandResult *>(
-          MEM_mallocN(sizeof(**islands_res) * islands_res_buff_size, __func__));
+      islands_res[tindex] = MEM_malloc_arrayN<IslandResult>(islands_res_buff_size, __func__);
     }
     const blender::Span<int> tri_faces = me_src->corner_tri_faces();
 
@@ -2116,16 +2104,13 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
       const size_t numfaces_src = size_t(me_src->faces_num);
 
       /* Here it's simpler to just allocate for all faces :/ */
-      int *indices = static_cast<int *>(MEM_mallocN(sizeof(*indices) * numfaces_src, __func__));
-      float *weights = static_cast<float *>(
-          MEM_mallocN(sizeof(*weights) * numfaces_src, __func__));
+      int *indices = MEM_malloc_arrayN<int>(numfaces_src, __func__);
+      float *weights = MEM_malloc_arrayN<float>(numfaces_src, __func__);
 
       size_t tmp_face_size = MREMAP_DEFAULT_BUFSIZE;
-      float(*face_vcos_2d)[2] = static_cast<float(*)[2]>(
-          MEM_mallocN(sizeof(*face_vcos_2d) * tmp_face_size, __func__));
+      float(*face_vcos_2d)[2] = MEM_malloc_arrayN<float[2]>(tmp_face_size, __func__);
       /* Tessellated 2D face, always (num_loops - 2) triangles. */
-      int(*tri_vidx_2d)[3] = static_cast<int(*)[3]>(
-          MEM_mallocN(sizeof(*tri_vidx_2d) * (tmp_face_size - 2), __func__));
+      int(*tri_vidx_2d)[3] = MEM_malloc_arrayN<int[3]>(tmp_face_size - 2, __func__);
 
       for (const int64_t i : faces_dst.index_range()) {
         /* For each dst face, we sample some rays from it (2D grid in pnor space)

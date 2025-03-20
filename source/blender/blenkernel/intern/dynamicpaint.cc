@@ -272,7 +272,7 @@ void dynamicPaint_Modifier_free_runtime(DynamicPaintRuntime *runtime_data)
 static DynamicPaintRuntime *dynamicPaint_Modifier_runtime_ensure(DynamicPaintModifierData *pmd)
 {
   if (pmd->modifier.runtime == nullptr) {
-    pmd->modifier.runtime = MEM_callocN(sizeof(DynamicPaintRuntime), "dynamic paint runtime");
+    pmd->modifier.runtime = MEM_callocN<DynamicPaintRuntime>("dynamic paint runtime");
   }
   return (DynamicPaintRuntime *)pmd->modifier.runtime;
 }
@@ -798,18 +798,14 @@ static void surfaceGenerateGrid(DynamicPaintSurface *surface)
     grid_cells = grid->dim[0] * grid->dim[1] * grid->dim[2];
 
     /* allocate memory for grids */
-    grid->bounds = static_cast<Bounds3D *>(
-        MEM_callocN(sizeof(Bounds3D) * grid_cells, "Surface Grid Bounds"));
-    grid->s_pos = static_cast<int *>(
-        MEM_callocN(sizeof(int) * grid_cells, "Surface Grid Position"));
+    grid->bounds = MEM_calloc_arrayN<Bounds3D>(size_t(grid_cells), "Surface Grid Bounds");
+    grid->s_pos = MEM_calloc_arrayN<int>(size_t(grid_cells), "Surface Grid Position");
 
-    grid->s_num = static_cast<int *>(MEM_callocN(sizeof(int) * grid_cells, "Surface Grid Points"));
-    temp_s_num = static_cast<int *>(
-        MEM_callocN(sizeof(int) * grid_cells, "Temp Surface Grid Points"));
-    grid->t_index = static_cast<int *>(
-        MEM_callocN(sizeof(int) * sData->total_points, "Surface Grid Target Ids"));
-    grid->temp_t_index = temp_t_index = static_cast<int *>(
-        MEM_callocN(sizeof(int) * sData->total_points, "Temp Surface Grid Target Ids"));
+    grid->s_num = MEM_calloc_arrayN<int>(size_t(grid_cells), "Surface Grid Points");
+    temp_s_num = MEM_calloc_arrayN<int>(size_t(grid_cells), "Temp Surface Grid Points");
+    grid->t_index = MEM_calloc_arrayN<int>(size_t(sData->total_points), "Surface Grid Target Ids");
+    grid->temp_t_index = temp_t_index = MEM_calloc_arrayN<int>(size_t(sData->total_points),
+                                                               "Temp Surface Grid Target Ids");
 
     /* in case of an allocation failure abort here */
     if (!grid->bounds || !grid->s_pos || !grid->s_num || !grid->t_index || !temp_s_num ||
@@ -1342,20 +1338,20 @@ static void dynamicPaint_allocateSurfaceType(DynamicPaintSurface *surface)
 
   switch (surface->type) {
     case MOD_DPAINT_SURFACE_T_PAINT:
-      sData->type_data = MEM_callocN(sizeof(PaintPoint) * sData->total_points,
-                                     "DynamicPaintSurface Data");
+      sData->type_data = MEM_calloc_arrayN<PaintPoint>(size_t(sData->total_points),
+                                                       "DynamicPaintSurface Data");
       break;
     case MOD_DPAINT_SURFACE_T_DISPLACE:
-      sData->type_data = MEM_callocN(sizeof(float) * sData->total_points,
-                                     "DynamicPaintSurface DepthData");
+      sData->type_data = MEM_calloc_arrayN<float>(size_t(sData->total_points),
+                                                  "DynamicPaintSurface DepthData");
       break;
     case MOD_DPAINT_SURFACE_T_WEIGHT:
-      sData->type_data = MEM_callocN(sizeof(float) * sData->total_points,
-                                     "DynamicPaintSurface WeightData");
+      sData->type_data = MEM_calloc_arrayN<float>(size_t(sData->total_points),
+                                                  "DynamicPaintSurface WeightData");
       break;
     case MOD_DPAINT_SURFACE_T_WAVE:
-      sData->type_data = MEM_callocN(sizeof(PaintWavePoint) * sData->total_points,
-                                     "DynamicPaintSurface WaveData");
+      sData->type_data = MEM_calloc_arrayN<PaintWavePoint>(size_t(sData->total_points),
+                                                           "DynamicPaintSurface WaveData");
       break;
   }
 
@@ -1406,15 +1402,11 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
   if (!ad) {
     return;
   }
-  ad->n_index = static_cast<int *>(
-      MEM_callocN(sizeof(int) * sData->total_points, "Surface Adj Index"));
-  ad->n_num = static_cast<int *>(
-      MEM_callocN(sizeof(int) * sData->total_points, "Surface Adj Counts"));
-  temp_data = static_cast<int *>(MEM_callocN(sizeof(int) * sData->total_points, "Temp Adj Data"));
-  ad->n_target = static_cast<int *>(
-      MEM_callocN(sizeof(int) * neigh_points, "Surface Adj Targets"));
-  ad->flags = static_cast<int *>(
-      MEM_callocN(sizeof(int) * sData->total_points, "Surface Adj Flags"));
+  ad->n_index = MEM_calloc_arrayN<int>(size_t(sData->total_points), "Surface Adj Index");
+  ad->n_num = MEM_calloc_arrayN<int>(size_t(sData->total_points), "Surface Adj Counts");
+  temp_data = MEM_calloc_arrayN<int>(size_t(sData->total_points), "Temp Adj Data");
+  ad->n_target = MEM_calloc_arrayN<int>(size_t(neigh_points), "Surface Adj Targets");
+  ad->flags = MEM_calloc_arrayN<int>(size_t(sData->total_points), "Surface Adj Flags");
   ad->total_targets = neigh_points;
   ad->border = nullptr;
   ad->total_border = 0;
@@ -1943,8 +1935,8 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             const blender::Span<int> corner_verts = result->corner_verts();
 
             /* paint is stored on dry and wet layers, so mix final color first */
-            float(*fcolor)[4] = static_cast<float(*)[4]>(
-                MEM_callocN(sizeof(*fcolor) * sData->total_points, "Temp paint color"));
+            float(*fcolor)[4] = MEM_calloc_arrayN<float[4]>(size_t(sData->total_points),
+                                                            "Temp paint color");
 
             DynamicPaintModifierApplyData data{};
             data.surface = surface;
@@ -2722,10 +2714,8 @@ static bool dynamicPaint_pointHasNeighbor(PaintAdjData *ed, int index, int neigh
  * I.e. if A is neighbor of B, B is neighbor of A. */
 static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
 {
-  int *new_n_index = static_cast<int *>(
-      MEM_callocN(sizeof(int) * active_points, "Surface Adj Index"));
-  int *new_n_num = static_cast<int *>(
-      MEM_callocN(sizeof(int) * active_points, "Surface Adj Counts"));
+  int *new_n_index = MEM_calloc_arrayN<int>(size_t(active_points), "Surface Adj Index");
+  int *new_n_num = MEM_calloc_arrayN<int>(size_t(active_points), "Surface Adj Counts");
 
   if (new_n_num && new_n_index) {
     /* Count symmetrized neighbors */
@@ -2754,8 +2744,7 @@ static bool dynamicPaint_symmetrizeAdjData(PaintAdjData *ed, int active_points)
     }
 
     /* Allocate a new target map */
-    int *new_n_target = static_cast<int *>(
-        MEM_callocN(sizeof(int) * total_targets, "Surface Adj Targets"));
+    int *new_n_target = MEM_calloc_arrayN<int>(size_t(total_targets), "Surface Adj Targets");
 
     if (new_n_target) {
       /* Copy existing neighbors to the new map */
@@ -2884,20 +2873,18 @@ int dynamicPaint_createUVSurface(Scene *scene,
     return setError(canvas, N_("Not enough free memory"));
   }
 
-  tempPoints = static_cast<PaintUVPoint *>(
-      MEM_callocN(w * h * sizeof(*tempPoints), "Temp PaintUVPoint"));
+  tempPoints = MEM_calloc_arrayN<PaintUVPoint>(size_t(w) * size_t(h), "Temp PaintUVPoint");
   if (!tempPoints) {
     error = true;
   }
 
-  final_index = static_cast<int *>(
-      MEM_callocN(w * h * sizeof(*final_index), "Temp UV Final Indexes"));
+  final_index = MEM_calloc_arrayN<int>(size_t(w) * size_t(h), "Temp UV Final Indexes");
   if (!final_index) {
     error = true;
   }
 
-  tempWeights = static_cast<Vec3f *>(
-      MEM_mallocN(w * h * aa_samples * sizeof(*tempWeights), "Temp bWeights"));
+  tempWeights = MEM_malloc_arrayN<Vec3f>(size_t(w) * size_t(h) * size_t(aa_samples),
+                                         "Temp bWeights");
   if (!tempWeights) {
     error = true;
   }
@@ -2907,8 +2894,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
    * the pixel-inside-a-face search.
    */
   if (!error) {
-    faceBB = static_cast<Bounds2D *>(
-        MEM_malloc_arrayN(corner_tris.size(), sizeof(*faceBB), "MPCanvasFaceBB"));
+    faceBB = MEM_malloc_arrayN<Bounds2D>(size_t(corner_tris.size()), "MPCanvasFaceBB");
     if (!faceBB) {
       error = true;
     }
@@ -3045,8 +3031,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
         }
 
         /* Create a list of border pixels */
-        ed->border = static_cast<int *>(
-            MEM_callocN(sizeof(int) * total_border, "Border Pixel Index"));
+        ed->border = MEM_calloc_arrayN<int>(size_t(total_border), "Border Pixel Index");
 
         if (ed->border) {
           ed->total_border = total_border;
@@ -3063,7 +3048,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
          * For debug, write a dump of adjacency data to a file.
          * ----------------------------------------------------------------- */
         FILE *dump_file = fopen("dynpaint-adj-data.txt", "w");
-        int *tmp = MEM_callocN(sizeof(int) * active_points, "tmp");
+        int *tmp = MEM_calloc_arrayN<int>(active_points, "tmp");
         for (int ty = 0; ty < h; ty++) {
           for (int tx = 0; tx < w; tx++) {
             const int index = tx + w * ty;
@@ -3108,10 +3093,9 @@ int dynamicPaint_createUVSurface(Scene *scene,
     /* Create final surface data without inactive points */
     ImgSeqFormatData *f_data = MEM_callocN<ImgSeqFormatData>(__func__);
     if (f_data) {
-      f_data->uv_p = static_cast<PaintUVPoint *>(
-          MEM_callocN(active_points * sizeof(*f_data->uv_p), "PaintUVPoint"));
-      f_data->barycentricWeights = static_cast<Vec3f *>(MEM_callocN(
-          active_points * aa_samples * sizeof(*f_data->barycentricWeights), "PaintUVPoint"));
+      f_data->uv_p = MEM_calloc_arrayN<PaintUVPoint>(active_points, "PaintUVPoint");
+      f_data->barycentricWeights = MEM_calloc_arrayN<Vec3f>(active_points * size_t(aa_samples),
+                                                            "PaintUVPoint");
 
       if (!f_data->uv_p || !f_data->barycentricWeights) {
         error = true;
@@ -3846,7 +3830,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
   float(*positions_c)[3] = reinterpret_cast<float(*)[3]>(
       mesh_c->vert_positions_for_write().data());
 
-  (*brushVel) = (Vec3f *)MEM_mallocN(numOfVerts_c * sizeof(Vec3f), "Dynamic Paint brush velocity");
+  (*brushVel) = MEM_malloc_arrayN<Vec3f>(size_t(numOfVerts_c), "Dynamic Paint brush velocity");
   if (!(*brushVel)) {
     return;
   }
@@ -4882,8 +4866,8 @@ static void dynamicPaint_prepareAdjacencyData(DynamicPaintSurface *surface, cons
   if (bData->bNeighs) {
     MEM_freeN(bData->bNeighs);
   }
-  bNeighs = bData->bNeighs = static_cast<BakeAdjPoint *>(
-      MEM_mallocN(sData->adj_data->total_targets * sizeof(*bNeighs), "PaintEffectBake"));
+  bNeighs = bData->bNeighs = MEM_malloc_arrayN<BakeAdjPoint>(
+      size_t(sData->adj_data->total_targets), "PaintEffectBake");
   if (!bNeighs) {
     return;
   }
@@ -5175,8 +5159,7 @@ static int dynamicPaint_prepareEffectStep(Depsgraph *depsgraph,
         depsgraph, ob, nullptr, surface->effector_weights, false);
 
     /* allocate memory for force data (dir vector + strength) */
-    *force = static_cast<float *>(
-        MEM_mallocN(sizeof(float[4]) * sData->total_points, "PaintEffectForces"));
+    *force = MEM_malloc_arrayN<float>(4 * size_t(sData->total_points), "PaintEffectForces");
 
     if (*force) {
       DynamicPaintEffectData data{};
@@ -5538,8 +5521,7 @@ static void dynamicPaint_doEffectStep(
 
     /* Same as #BLI_bitmask, but handled atomically as 'ePoint' locks. */
     const size_t point_locks_size = (sData->total_points / 8) + 1;
-    uint8_t *point_locks = static_cast<uint8_t *>(
-        MEM_callocN(sizeof(*point_locks) * point_locks_size, __func__));
+    uint8_t *point_locks = MEM_calloc_arrayN<uint8_t>(point_locks_size, __func__);
 
     /* Copy current surface to the previous points array to read unmodified values */
     memcpy(prevPoint, sData->type_data, sData->total_points * sizeof(PaintPoint));
@@ -5755,8 +5737,8 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
   const float wave_scale = CANVAS_REL_SIZE / canvas_size;
 
   /* allocate memory */
-  PaintWavePoint *prevPoint = static_cast<PaintWavePoint *>(
-      MEM_mallocN(sData->total_points * sizeof(PaintWavePoint), __func__));
+  PaintWavePoint *prevPoint = MEM_malloc_arrayN<PaintWavePoint>(size_t(sData->total_points),
+                                                                __func__);
   if (!prevPoint) {
     return;
   }
@@ -6103,16 +6085,15 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
     }
   }
 
-  canvas_verts = (Vec3f *)MEM_mallocN(canvasNumOfVerts * sizeof(Vec3f),
-                                      "Dynamic Paint transformed canvas verts");
+  canvas_verts = MEM_malloc_arrayN<Vec3f>(size_t(canvasNumOfVerts),
+                                          "Dynamic Paint transformed canvas verts");
   if (!canvas_verts) {
     return false;
   }
 
   /* allocate memory if required */
   if (!bData) {
-    sData->bData = bData = (PaintBakeData *)MEM_callocN(sizeof(PaintBakeData),
-                                                        "Dynamic Paint bake data");
+    sData->bData = bData = MEM_callocN<PaintBakeData>("Dynamic Paint bake data");
     if (!bData) {
       if (canvas_verts) {
         MEM_freeN(canvas_verts);
@@ -6121,16 +6102,16 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
     }
 
     /* Init bdata */
-    bData->bNormal = (PaintBakeNormal *)MEM_mallocN(sData->total_points * sizeof(PaintBakeNormal),
-                                                    "Dynamic Paint step data");
-    bData->s_pos = static_cast<int *>(
-        MEM_mallocN(sData->total_points * sizeof(uint), "Dynamic Paint bData s_pos"));
-    bData->s_num = static_cast<int *>(
-        MEM_mallocN(sData->total_points * sizeof(uint), "Dynamic Paint bData s_num"));
-    bData->realCoord = (Vec3f *)MEM_mallocN(surface_totalSamples(surface) * sizeof(Vec3f),
-                                            "Dynamic Paint point coords");
-    bData->prev_positions = static_cast<float(*)[3]>(
-        MEM_mallocN(canvasNumOfVerts * sizeof(float[3]), "Dynamic Paint bData prev_positions"));
+    bData->bNormal = MEM_malloc_arrayN<PaintBakeNormal>(size_t(sData->total_points),
+                                                        "Dynamic Paint step data");
+    bData->s_pos = MEM_malloc_arrayN<int>(size_t(sData->total_points),
+                                          "Dynamic Paint bData s_pos");
+    bData->s_num = MEM_malloc_arrayN<int>(size_t(sData->total_points),
+                                          "Dynamic Paint bData s_num");
+    bData->realCoord = MEM_malloc_arrayN<Vec3f>(size_t(surface_totalSamples(surface)),
+                                                "Dynamic Paint point coords");
+    bData->prev_positions = MEM_malloc_arrayN<float[3]>(size_t(canvasNumOfVerts),
+                                                        "Dynamic Paint bData prev_positions");
 
     /* if any allocation failed, free everything */
     if (!bData->bNormal || !bData->s_pos || !bData->s_num || !bData->realCoord || !canvas_verts) {
@@ -6157,12 +6138,12 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   }
 
   if (do_velocity_data && !bData->velocity) {
-    bData->velocity = (Vec3f *)MEM_callocN(sData->total_points * sizeof(Vec3f),
-                                           "Dynamic Paint velocity");
+    bData->velocity = MEM_calloc_arrayN<Vec3f>(size_t(sData->total_points),
+                                               "Dynamic Paint velocity");
   }
   if (do_accel_data && !bData->prev_velocity) {
-    bData->prev_velocity = (Vec3f *)MEM_mallocN(sData->total_points * sizeof(Vec3f),
-                                                "Dynamic Paint prev velocity");
+    bData->prev_velocity = MEM_malloc_arrayN<Vec3f>(size_t(sData->total_points),
+                                                    "Dynamic Paint prev velocity");
     /* copy previous vel */
     if (bData->prev_velocity && bData->velocity) {
       memcpy(bData->prev_velocity, bData->velocity, sData->total_points * sizeof(Vec3f));
@@ -6270,8 +6251,8 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
 
           /* calculate brush speed vectors if required */
           if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && brush->flags & MOD_DPAINT_DO_SMUDGE) {
-            bData->brush_velocity = static_cast<float *>(MEM_callocN(
-                sizeof(float[4]) * sData->total_points, "Dynamic Paint brush velocity"));
+            bData->brush_velocity = MEM_calloc_arrayN<float>(4 * size_t(sData->total_points),
+                                                             "Dynamic Paint brush velocity");
             /* init adjacency data if not already */
             if (!sData->adj_data) {
               dynamicPaint_initAdjacencyData(surface, true);
@@ -6365,8 +6346,8 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
       float *force = nullptr;
 
       /* Allocate memory for surface previous points to read unchanged values from */
-      prevPoint = static_cast<PaintPoint *>(
-          MEM_mallocN(sData->total_points * sizeof(PaintPoint), "PaintSurfaceDataCopy"));
+      prevPoint = MEM_malloc_arrayN<PaintPoint>(size_t(sData->total_points),
+                                                "PaintSurfaceDataCopy");
       if (!prevPoint) {
         return setError(canvas, N_("Not enough free memory"));
       }

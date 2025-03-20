@@ -1169,7 +1169,7 @@ void strip_loose_faces_corners(Mesh *mesh, blender::BitSpan faces_to_remove)
 
   int a, b;
   /* New corners idx! */
-  int *new_idx = (int *)MEM_mallocN(sizeof(int) * mesh->corners_num, __func__);
+  int *new_idx = MEM_malloc_arrayN<int>(size_t(mesh->corners_num), __func__);
 
   for (a = b = 0; a < mesh->faces_num; a++) {
     bool invalid = false;
@@ -1243,7 +1243,7 @@ void mesh_strip_edges(Mesh *mesh)
 
   blender::int2 *e;
   int a, b;
-  uint *new_idx = (uint *)MEM_mallocN(sizeof(int) * mesh->edges_num, __func__);
+  uint *new_idx = MEM_malloc_arrayN<uint>(size_t(mesh->edges_num), __func__);
   MutableSpan<blender::int2> edges = mesh->edges_for_write();
 
   for (a = b = 0, e = edges.data(); a < mesh->edges_num; a++, e++) {

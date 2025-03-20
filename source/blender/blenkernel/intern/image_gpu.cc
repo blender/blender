@@ -94,7 +94,7 @@ static GPUTexture *gpu_texture_create_tile_mapping(Image *ima, const int multivi
 
   /* create image */
   int width = max_tile + 1;
-  float *data = (float *)MEM_callocN(width * 8 * sizeof(float), __func__);
+  float *data = MEM_calloc_arrayN<float>(size_t(width) * 8, __func__);
   for (int i = 0; i < width; i++) {
     data[4 * i] = -1.0f;
   }
@@ -767,7 +767,7 @@ static void gpu_texture_update_from_ibuf(
      * convention, no colorspace conversion needed. But we do require 4 channels
      * currently. */
     if (ibuf->channels != 4 || scaled || !store_premultiplied) {
-      rect_float = (float *)MEM_mallocN(sizeof(float[4]) * w * h, __func__);
+      rect_float = MEM_malloc_arrayN<float>(4 * size_t(w) * size_t(h), __func__);
       if (rect_float == nullptr) {
         return;
       }
@@ -790,7 +790,7 @@ static void gpu_texture_update_from_ibuf(
     {
       /* sRGB or scene linear or scaled down non-color data, store as byte texture that the GPU
        * can decode directly. */
-      rect = (uchar *)MEM_mallocN(sizeof(uchar[4]) * w * h, __func__);
+      rect = MEM_malloc_arrayN<uchar>(4 * size_t(w) * size_t(h), __func__);
       if (rect == nullptr) {
         return;
       }
@@ -804,7 +804,7 @@ static void gpu_texture_update_from_ibuf(
     }
     else {
       /* Other colorspace, store as float texture to avoid precision loss. */
-      rect_float = (float *)MEM_mallocN(sizeof(float[4]) * w * h, __func__);
+      rect_float = MEM_malloc_arrayN<float>(4 * size_t(w) * size_t(h), __func__);
       if (rect_float == nullptr) {
         return;
       }

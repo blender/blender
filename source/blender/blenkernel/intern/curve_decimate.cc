@@ -109,7 +109,7 @@ static void knot_remove_error_recalculate(
       r = static_cast<Removal *>(BLI_heap_node_ptr(k->heap_node));
     }
     else {
-      r = static_cast<Removal *>(MEM_mallocN(sizeof(*r), __func__));
+      r = MEM_mallocN<Removal>(__func__);
       r->knot_index = k->knot_index;
     }
 
@@ -196,8 +196,7 @@ uint BKE_curve_decimate_bezt_array(BezTriple *bezt_array,
   const uint bezt_array_last = bezt_array_len - 1;
   const uint points_len = BKE_curve_calc_coords_axis_len(bezt_array_len, resolu, is_cyclic, true);
 
-  float(*points)[3] = static_cast<float(*)[3]>(
-      MEM_mallocN((sizeof(float[3]) * points_len * (is_cyclic ? 2 : 1)), __func__));
+  float(*points)[3] = MEM_malloc_arrayN<float[3]>(points_len * (is_cyclic ? 2 : 1), __func__);
 
   BKE_curve_calc_coords_axis(
       bezt_array, bezt_array_len, resolu, is_cyclic, false, 0, sizeof(float[3]), &points[0][0]);
@@ -207,7 +206,7 @@ uint BKE_curve_decimate_bezt_array(BezTriple *bezt_array,
       bezt_array, bezt_array_len, resolu, is_cyclic, false, 2, sizeof(float[3]), &points[0][2]);
 
   const uint knots_len = bezt_array_len;
-  Knot *knots = static_cast<Knot *>(MEM_mallocN((sizeof(*knots) * bezt_array_len), __func__));
+  Knot *knots = MEM_malloc_arrayN<Knot>(bezt_array_len, __func__);
 
   if (is_cyclic) {
     memcpy(points[points_len], points[0], sizeof(float[3]) * points_len);
@@ -325,8 +324,7 @@ void BKE_curve_decimate_nurb(Nurb *nu,
   }
 
   BezTriple *bezt_src = nu->bezt;
-  BezTriple *bezt_dst = static_cast<BezTriple *>(
-      MEM_mallocN(sizeof(BezTriple) * pntsu_dst, __func__));
+  BezTriple *bezt_dst = MEM_malloc_arrayN<BezTriple>(pntsu_dst, __func__);
 
   int i_src = 0, i_dst = 0;
 

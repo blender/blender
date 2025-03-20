@@ -344,7 +344,7 @@ void BKE_nla_tracks_copy_from_adt(Main *bmain,
 NlaTrack *BKE_nlatrack_new()
 {
   /* allocate new track */
-  NlaTrack *nlt = static_cast<NlaTrack *>(MEM_callocN(sizeof(NlaTrack), "NlaTrack"));
+  NlaTrack *nlt = MEM_callocN<NlaTrack>("NlaTrack");
 
   /* set settings requiring the track to not be part of the stack yet */
   nlt->flag = NLATRACK_SELECTED | NLATRACK_OVERRIDELIBRARY_LOCAL;
@@ -483,7 +483,7 @@ static NlaStrip *nlastrip_new(bAction *act, ID &animated_id)
   }
 
   /* allocate new strip */
-  strip = static_cast<NlaStrip *>(MEM_callocN(sizeof(NlaStrip), "NlaStrip"));
+  strip = MEM_callocN<NlaStrip>("NlaStrip");
 
   /* generic settings
    * - selected flag to highlight this to the user
@@ -606,7 +606,7 @@ NlaStrip *BKE_nlastack_add_strip(const OwnedAnimData owned_adt, const bool is_li
 
 NlaStrip *BKE_nla_add_soundstrip(Main *bmain, Scene *scene, Speaker *speaker)
 {
-  NlaStrip *strip = static_cast<NlaStrip *>(MEM_callocN(sizeof(NlaStrip), "NlaSoundStrip"));
+  NlaStrip *strip = MEM_callocN<NlaStrip>("NlaSoundStrip");
 
 /* if speaker has a sound, set the strip length to the length of the sound,
  * otherwise default to length of 10 frames
@@ -968,7 +968,7 @@ void BKE_nlastrips_make_metas(ListBase *strips, bool is_temp)
       /* if there is an existing meta-strip, add this strip to it, otherwise, create a new one */
       if (mstrip == nullptr) {
         /* add a new meta-strip, and add it before the current strip that it will replace... */
-        mstrip = static_cast<NlaStrip *>(MEM_callocN(sizeof(NlaStrip), "Meta-NlaStrip"));
+        mstrip = MEM_callocN<NlaStrip>("Meta-NlaStrip");
         mstrip->type = NLASTRIP_TYPE_META;
         BLI_insertlinkbefore(strips, strip, mstrip);
 
@@ -1826,8 +1826,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
       fcu->rna_path = BLI_strdupn("influence", 9);
 
       /* insert keyframe to ensure current value stays on first refresh */
-      fcu->bezt = static_cast<BezTriple *>(
-          MEM_callocN(sizeof(BezTriple), "nlastrip influence bezt"));
+      fcu->bezt = MEM_callocN<BezTriple>("nlastrip influence bezt");
       fcu->totvert = 1;
 
       fcu->bezt->vec[1][0] = strip->start;

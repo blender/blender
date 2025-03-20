@@ -218,8 +218,8 @@ static void ntree_copy_data(Main * /*bmain*/,
   }
 
   if (ntree_src->nested_node_refs) {
-    ntree_dst->nested_node_refs = static_cast<bNestedNodeRef *>(
-        MEM_malloc_arrayN(ntree_src->nested_node_refs_num, sizeof(bNestedNodeRef), __func__));
+    ntree_dst->nested_node_refs = MEM_malloc_arrayN<bNestedNodeRef>(
+        size_t(ntree_src->nested_node_refs_num), __func__);
     uninitialized_copy_n(
         ntree_src->nested_node_refs, ntree_src->nested_node_refs_num, ntree_dst->nested_node_refs);
   }
@@ -2743,7 +2743,7 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               const bool use_unique,
                               Map<const bNodeSocket *, bNodeSocket *> &socket_map)
 {
-  bNode *node_dst = static_cast<bNode *>(MEM_mallocN(sizeof(bNode), __func__));
+  bNode *node_dst = MEM_mallocN<bNode>(__func__);
   *node_dst = node_src;
 
   node_dst->runtime = MEM_new<bNodeRuntime>(__func__);

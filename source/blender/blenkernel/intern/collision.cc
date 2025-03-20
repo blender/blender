@@ -1380,7 +1380,7 @@ static bool cloth_bvh_objcollisions_nearcheck(ClothModifierData *clmd,
                                               bool use_normal)
 {
   const bool is_hair = (clmd->hairdata != nullptr);
-  *collisions = (CollPair *)MEM_mallocN(sizeof(CollPair) * numresult, "collision array");
+  *collisions = MEM_malloc_arrayN<CollPair>(size_t(numresult), "collision array");
 
   ColDetectData data{};
   data.clmd = clmd;
@@ -1664,8 +1664,7 @@ int cloth_bvh_collision(
 
       if (cloth->bvhselftree) {
         if (coll_count_self && overlap_self) {
-          collisions = (CollPair *)MEM_mallocN(sizeof(CollPair) * coll_count_self,
-                                               "collision array");
+          collisions = MEM_malloc_arrayN<CollPair>(coll_count_self, "collision array");
 
           if (cloth_bvh_selfcollisions_nearcheck(clmd, collisions, coll_count_self, overlap_self))
           {

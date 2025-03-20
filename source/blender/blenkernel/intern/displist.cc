@@ -167,7 +167,7 @@ static void curve_to_displist(const Curve *cu,
 
       DispList *dl = MEM_callocN<DispList>(__func__);
       /* Add one to the length because of 'BKE_curve_forward_diff_bezier'. */
-      dl->verts = (float *)MEM_mallocN(sizeof(float[3]) * (samples_len + 1), __func__);
+      dl->verts = MEM_malloc_arrayN<float>(3 * size_t(samples_len + 1), __func__);
       BLI_addtail(r_dispbase, dl);
       dl->parts = 1;
       dl->nr = samples_len;
@@ -221,7 +221,7 @@ static void curve_to_displist(const Curve *cu,
     else if (nu->type == CU_NURBS) {
       const int len = (resolution * SEGMENTSU(nu));
       DispList *dl = MEM_callocN<DispList>(__func__);
-      dl->verts = (float *)MEM_mallocN(len * sizeof(float[3]), __func__);
+      dl->verts = MEM_malloc_arrayN<float>(3 * size_t(len), __func__);
       BLI_addtail(r_dispbase, dl);
       dl->parts = 1;
       dl->nr = len;
@@ -234,7 +234,7 @@ static void curve_to_displist(const Curve *cu,
     else if (nu->type == CU_POLY) {
       const int len = nu->pntsu;
       DispList *dl = MEM_callocN<DispList>(__func__);
-      dl->verts = (float *)MEM_mallocN(len * sizeof(float[3]), __func__);
+      dl->verts = MEM_malloc_arrayN<float>(3 * size_t(len), __func__);
       BLI_addtail(r_dispbase, dl);
       dl->parts = 1;
       dl->nr = len;
@@ -332,8 +332,8 @@ void BKE_displist_fill(const ListBase *dispbase,
       dlnew->nr = totvert;
       dlnew->parts = triangles_len;
 
-      dlnew->index = (int *)MEM_mallocN(sizeof(int[3]) * triangles_len, __func__);
-      dlnew->verts = (float *)MEM_mallocN(sizeof(float[3]) * totvert, __func__);
+      dlnew->index = MEM_malloc_arrayN<int>(3 * size_t(triangles_len), __func__);
+      dlnew->verts = MEM_malloc_arrayN<float>(3 * size_t(totvert), __func__);
 
       /* vert data */
       int i;
@@ -381,7 +381,7 @@ static void bevels_to_filledpoly(const Curve *cu, ListBase *dispbase)
         if ((cu->flag & CU_BACK) && (dl->flag & DL_BACK_CURVE)) {
           DispList *dlnew = MEM_callocN<DispList>(__func__);
           BLI_addtail(&front, dlnew);
-          dlnew->verts = (float *)MEM_mallocN(sizeof(float[3]) * dl->parts, __func__);
+          dlnew->verts = MEM_malloc_arrayN<float>(3 * size_t(dl->parts), __func__);
           dlnew->nr = dl->parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
@@ -400,7 +400,7 @@ static void bevels_to_filledpoly(const Curve *cu, ListBase *dispbase)
         if ((cu->flag & CU_FRONT) && (dl->flag & DL_FRONT_CURVE)) {
           DispList *dlnew = MEM_callocN<DispList>(__func__);
           BLI_addtail(&back, dlnew);
-          dlnew->verts = (float *)MEM_mallocN(sizeof(float[3]) * dl->parts, __func__);
+          dlnew->verts = MEM_malloc_arrayN<float>(3 * size_t(dl->parts), __func__);
           dlnew->nr = dl->parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
@@ -764,8 +764,8 @@ static void displist_surf_indices(DispList *dl)
 
   dl->totindex = 0;
 
-  int *index = dl->index = (int *)MEM_mallocN(sizeof(int[4]) * (dl->parts + 1) * (dl->nr + 1),
-                                              __func__);
+  int *index = dl->index = MEM_malloc_arrayN<int>(4 * size_t(dl->parts + 1) * size_t(dl->nr + 1),
+                                                  __func__);
 
   for (int a = 0; a < dl->parts; a++) {
 
@@ -821,7 +821,7 @@ static blender::bke::GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
       const int len = SEGMENTSU(nu) * resolu;
 
       DispList *dl = MEM_callocN<DispList>(__func__);
-      dl->verts = (float *)MEM_mallocN(len * sizeof(float[3]), __func__);
+      dl->verts = MEM_malloc_arrayN<float>(3 * size_t(len), __func__);
 
       BLI_addtail(r_dispbase, dl);
       dl->parts = 1;
@@ -844,7 +844,7 @@ static blender::bke::GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
       const int len = (nu->pntsu * resolu) * (nu->pntsv * resolv);
 
       DispList *dl = MEM_callocN<DispList>(__func__);
-      dl->verts = (float *)MEM_mallocN(len * sizeof(float[3]), __func__);
+      dl->verts = MEM_malloc_arrayN<float>(3 * size_t(len), __func__);
       BLI_addtail(r_dispbase, dl);
 
       dl->col = nu->mat_nr;
@@ -946,7 +946,7 @@ static void fillBevelCap(const Nurb *nu,
                          ListBase *dispbase)
 {
   DispList *dl = MEM_callocN<DispList>(__func__);
-  dl->verts = (float *)MEM_mallocN(sizeof(float[3]) * dlb->nr, __func__);
+  dl->verts = MEM_malloc_arrayN<float>(3 * size_t(dlb->nr), __func__);
   memcpy(dl->verts, prev_fp, sizeof(float[3]) * dlb->nr);
 
   dl->type = DL_POLY;
@@ -1148,7 +1148,7 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
       /* exception handling; curve without bevel or extrude, with width correction */
       if (BLI_listbase_is_empty(&dlbev)) {
         DispList *dl = MEM_callocN<DispList>("makeDispListbev");
-        dl->verts = (float *)MEM_mallocN(sizeof(float[3]) * bl->nr, "dlverts");
+        dl->verts = MEM_malloc_arrayN<float>(3 * size_t(bl->nr), "dlverts");
         BLI_addtail(r_dispbase, dl);
 
         if (bl->poly != -1) {
@@ -1198,7 +1198,8 @@ static blender::bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph
         LISTBASE_FOREACH (DispList *, dlb, &dlbev) {
           /* For each part of the bevel use a separate display-block. */
           DispList *dl = MEM_callocN<DispList>(__func__);
-          dl->verts = data = (float *)MEM_mallocN(sizeof(float[3]) * dlb->nr * steps, __func__);
+          dl->verts = data = MEM_malloc_arrayN<float>(3 * size_t(dlb->nr) * size_t(steps),
+                                                      __func__);
           BLI_addtail(r_dispbase, dl);
 
           dl->type = DL_SURF;

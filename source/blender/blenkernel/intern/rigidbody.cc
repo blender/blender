@@ -1138,9 +1138,8 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
   }
 
   /* create a new sim world */
-  rbw = static_cast<RigidBodyWorld *>(MEM_callocN(sizeof(RigidBodyWorld), "RigidBodyWorld"));
-  rbw->shared = static_cast<RigidBodyWorld_Shared *>(
-      MEM_callocN(sizeof(*rbw->shared), "RigidBodyWorld_Shared"));
+  rbw = MEM_callocN<RigidBodyWorld>("RigidBodyWorld");
+  rbw->shared = MEM_callocN<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
 
   /* set default settings */
   rbw->effector_weights = BKE_effector_add_weights(nullptr);
@@ -1181,8 +1180,7 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
 
   if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0) {
     /* This is a regular copy, and not an evaluated copy for depsgraph evaluation. */
-    rbw_copy->shared = static_cast<RigidBodyWorld_Shared *>(
-        MEM_callocN(sizeof(*rbw_copy->shared), "RigidBodyWorld_Shared"));
+    rbw_copy->shared = MEM_callocN<RigidBodyWorld_Shared>("RigidBodyWorld_Shared");
     BKE_ptcache_copy_list(&rbw_copy->shared->ptcaches, &rbw->shared->ptcaches, LIB_ID_COPY_CACHES);
     rbw_copy->shared->pointcache = static_cast<PointCache *>(rbw_copy->shared->ptcaches.first);
     BKE_rigidbody_world_init_runtime(rbw_copy);
@@ -1220,9 +1218,8 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
   }
 
   /* create new settings data, and link it up */
-  rbo = static_cast<RigidBodyOb *>(MEM_callocN(sizeof(RigidBodyOb), "RigidBodyOb"));
-  rbo->shared = static_cast<RigidBodyOb_Shared *>(
-      MEM_callocN(sizeof(*rbo->shared), "RigidBodyOb_Shared"));
+  rbo = MEM_callocN<RigidBodyOb>("RigidBodyOb");
+  rbo->shared = MEM_callocN<RigidBodyOb_Shared>("RigidBodyOb_Shared");
 
   /* set default settings */
   rbo->type = type;
@@ -1280,7 +1277,7 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
   }
 
   /* create new settings data, and link it up */
-  rbc = static_cast<RigidBodyCon *>(MEM_callocN(sizeof(RigidBodyCon), "RigidBodyCon"));
+  rbc = MEM_callocN<RigidBodyCon>("RigidBodyCon");
 
   /* set default settings */
   rbc->type = type;
@@ -1884,8 +1881,7 @@ static ListBase rigidbody_create_substep_data(RigidBodyWorld *rbw)
     if (rbo->flag & RBO_FLAG_KINEMATIC) {
       float loc[3], rot[4], scale[3];
 
-      KinematicSubstepData *data = static_cast<KinematicSubstepData *>(
-          MEM_callocN(sizeof(KinematicSubstepData), "RigidBody Substep data"));
+      KinematicSubstepData *data = MEM_callocN<KinematicSubstepData>("RigidBody Substep data");
 
       data->rbo = rbo;
 
@@ -2434,8 +2430,7 @@ static RigidBodyOb *rigidbody_copy_object(const Object *ob, const int flag)
 
     if (is_orig) {
       /* This is a regular copy, and not an evaluated copy for depsgraph evaluation */
-      rboN->shared = static_cast<RigidBodyOb_Shared *>(
-          MEM_callocN(sizeof(*rboN->shared), "RigidBodyOb_Shared"));
+      rboN->shared = MEM_callocN<RigidBodyOb_Shared>("RigidBodyOb_Shared");
     }
 
     /* tag object as needing to be verified */

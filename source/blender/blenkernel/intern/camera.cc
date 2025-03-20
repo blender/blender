@@ -1212,8 +1212,7 @@ void BKE_camera_multiview_params(const RenderData *rd,
 
 CameraBGImage *BKE_camera_background_image_new(Camera *cam)
 {
-  CameraBGImage *bgpic = static_cast<CameraBGImage *>(
-      MEM_callocN(sizeof(CameraBGImage), "Background Image"));
+  CameraBGImage *bgpic = MEM_callocN<CameraBGImage>("Background Image");
 
   bgpic->scale = 1.0f;
   bgpic->alpha = 0.5f;

@@ -439,8 +439,7 @@ CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepa
 
   const int num_layers = BLI_listbase_count(&cache_file->layers);
 
-  CacheFileLayer *layer = static_cast<CacheFileLayer *>(
-      MEM_callocN(sizeof(CacheFileLayer), "CacheFileLayer"));
+  CacheFileLayer *layer = MEM_callocN<CacheFileLayer>("CacheFileLayer");
   STRNCPY(layer->filepath, filepath);
 
   BLI_addtail(&cache_file->layers, layer);

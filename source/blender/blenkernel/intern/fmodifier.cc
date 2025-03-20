@@ -116,8 +116,7 @@ static void fcm_generator_new_data(void *mdata)
   /* set default generator to be linear 0-1 (gradient = 1, y-offset = 0) */
   data->poly_order = 1;
   data->arraysize = 2;
-  cp = data->coefficients = static_cast<float *>(
-      MEM_callocN(sizeof(float) * 2, "FMod_Generator_Coefs"));
+  cp = data->coefficients = MEM_calloc_arrayN<float>(2, "FMod_Generator_Coefs");
   cp[0] = 0; /* y-offset */
   cp[1] = 1; /* gradient */
 }
@@ -168,8 +167,7 @@ static void fcm_generator_evaluate(const FCurve * /*fcu*/,
     case FCM_GENERATOR_POLYNOMIAL: /* expanded polynomial expression */
     {
       /* we overwrite cvalue with the sum of the polynomial */
-      float *powers = static_cast<float *>(
-          MEM_callocN(sizeof(float) * data->arraysize, "Poly Powers"));
+      float *powers = MEM_calloc_arrayN<float>(data->arraysize, "Poly Powers");
       float value = 0.0f;
 
       /* for each x^n, precalculate value based on previous one first... this should be
@@ -1092,7 +1090,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
   }
 
   /* add modifier itself */
-  fcm = static_cast<FModifier *>(MEM_callocN(sizeof(FModifier), "F-Curve Modifier"));
+  fcm = MEM_callocN<FModifier>("F-Curve Modifier");
   fcm->type = type;
   fcm->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT; /* Expand the main panel, not the sub-panels. */
   fcm->curve = owner_fcu;

@@ -704,8 +704,8 @@ static float *image_exr_from_scene_linear_to_output(float *rect,
 static float *image_exr_from_rgb_to_bw(
     float *input_buffer, int width, int height, int channels, Vector<float *> &temporary_buffers)
 {
-  float *gray_scale_output = static_cast<float *>(
-      MEM_malloc_arrayN(width * height, sizeof(float), "Gray Scale Buffer For EXR"));
+  float *gray_scale_output = MEM_malloc_arrayN<float>(size_t(width) * size_t(height),
+                                                      "Gray Scale Buffer For EXR");
   temporary_buffers.append(gray_scale_output);
 
   blender::threading::parallel_for(
@@ -726,8 +726,8 @@ static float *image_exr_opaque_alpha_buffer(int width,
                                             int height,
                                             Vector<float *> &temporary_buffers)
 {
-  float *alpha_output = static_cast<float *>(
-      MEM_malloc_arrayN(width * height, sizeof(float), "Opaque Alpha Buffer For EXR"));
+  float *alpha_output = MEM_malloc_arrayN<float>(size_t(width) * size_t(height),
+                                                 "Opaque Alpha Buffer For EXR");
   temporary_buffers.append(alpha_output);
 
   blender::threading::parallel_for(

@@ -1601,8 +1601,7 @@ void BKE_mesh_normals_loop_to_vertex(const int numVerts,
                                      const float (*clnors)[3],
                                      float (*r_vert_clnors)[3])
 {
-  int *vert_loops_count = (int *)MEM_calloc_arrayN(
-      size_t(numVerts), sizeof(*vert_loops_count), __func__);
+  int *vert_loops_count = MEM_calloc_arrayN<int>(size_t(numVerts), __func__);
 
   copy_vn_fl((float *)r_vert_clnors, 3 * numVerts, 0.0f);
 

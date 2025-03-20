@@ -733,7 +733,7 @@ static void set_height_normalize_factor(Ocean *oc)
 
 Ocean *BKE_ocean_add()
 {
-  Ocean *oc = static_cast<Ocean *>(MEM_callocN(sizeof(Ocean), "ocean sim data"));
+  Ocean *oc = MEM_callocN<Ocean>("ocean sim data");
 
   BLI_rw_mutex_init(&oc->oceanmutex);
 
@@ -845,12 +845,11 @@ bool BKE_ocean_init(Ocean *o,
   /* NOTE: most modifiers don't account for failure to allocate.
    * In this case however a large resolution can easily perform large allocations that fail,
    * support early exiting in this case. */
-  if ((o->_k = (float *)MEM_mallocN(sizeof(float) * size_t(M) * (1 + N / 2), "ocean_k")) &&
-      (o->_h0 = (fftw_complex *)MEM_mallocN(sizeof(fftw_complex) * size_t(M) * N, "ocean_h0")) &&
-      (o->_h0_minus = (fftw_complex *)MEM_mallocN(sizeof(fftw_complex) * size_t(M) * N,
-                                                  "ocean_h0_minus")) &&
-      (o->_kx = (float *)MEM_mallocN(sizeof(float) * o->_M, "ocean_kx")) &&
-      (o->_kz = (float *)MEM_mallocN(sizeof(float) * o->_N, "ocean_kz")))
+  if ((o->_k = MEM_malloc_arrayN<float>(size_t(M) * (1 + size_t(N) / 2), "ocean_k")) &&
+      (o->_h0 = MEM_malloc_arrayN<fftw_complex>(size_t(M) * size_t(N), "ocean_h0")) &&
+      (o->_h0_minus = MEM_malloc_arrayN<fftw_complex>(size_t(M) * size_t(N), "ocean_h0_minus")) &&
+      (o->_kx = MEM_malloc_arrayN<float>(size_t(o->_M), "ocean_kx")) &&
+      (o->_kz = MEM_malloc_arrayN<float>(size_t(o->_N), "ocean_kz")))
   {
     /* Success. */
   }
@@ -962,55 +961,55 @@ bool BKE_ocean_init(Ocean *o,
     }
   }
 
-  o->_fft_in = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex),
-                                           "ocean_fft_in");
-  o->_htilda = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex),
-                                           "ocean_htilda");
+  o->_fft_in = MEM_malloc_arrayN<fftw_complex>(size_t(o->_M) * (1 + size_t(o->_N) / 2),
+                                               "ocean_fft_in");
+  o->_htilda = MEM_malloc_arrayN<fftw_complex>(size_t(o->_M) * (1 + size_t(o->_N) / 2),
+                                               "ocean_htilda");
 
   BLI_thread_lock(LOCK_FFTW);
 
   if (o->_do_disp_y) {
-    o->_disp_y = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_disp_y");
+    o->_disp_y = MEM_malloc_arrayN<double>(size_t(o->_M) * size_t(o->_N), "ocean_disp_y");
     o->_disp_y_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in, o->_disp_y, FFTW_ESTIMATE);
   }
 
   if (o->_do_normals) {
-    o->_fft_in_nx = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex),
-                                                "ocean_fft_in_nx");
-    o->_fft_in_nz = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex),
-                                                "ocean_fft_in_nz");
+    o->_fft_in_nx = MEM_malloc_arrayN<fftw_complex>(size_t(o->_M) * (1 + size_t(o->_N) / 2),
+                                                    "ocean_fft_in_nx");
+    o->_fft_in_nz = MEM_malloc_arrayN<fftw_complex>(size_t(o->_M) * (1 + size_t(o->_N) / 2),
+                                                    "ocean_fft_in_nz");
 
-    o->_N_x = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_N_x");
+    o->_N_x = MEM_malloc_arrayN<double>(size_t(o->_M) * size_t(o->_N), "ocean_N_x");
     // o->_N_y = (float *) fftwf_malloc(o->_M * o->_N * sizeof(float)); /* (MEM01) */
-    o->_N_z = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_N_z");
+    o->_N_z = MEM_malloc_arrayN<double>(size_t(o->_M) * size_t(o->_N), "ocean_N_z");
 
     o->_N_x_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_nx, o->_N_x, FFTW_ESTIMATE);
     o->_N_z_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_nz, o->_N_z, FFTW_ESTIMATE);
   }
 
   if (o->_do_chop) {
-    o->_fft_in_x = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex),
-                                               "ocean_fft_in_x");
-    o->_fft_in_z = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex),
-                                               "ocean_fft_in_z");
+    o->_fft_in_x = MEM_malloc_arrayN<fftw_complex>(size_t(o->_M) * (1 + size_t(o->_N) / 2),
+                                                   "ocean_fft_in_x");
+    o->_fft_in_z = MEM_malloc_arrayN<fftw_complex>(size_t(o->_M) * (1 + size_t(o->_N) / 2),
+                                                   "ocean_fft_in_z");
 
-    o->_disp_x = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_disp_x");
-    o->_disp_z = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_disp_z");
+    o->_disp_x = MEM_malloc_arrayN<double>(size_t(o->_M) * size_t(o->_N), "ocean_disp_x");
+    o->_disp_z = MEM_malloc_arrayN<double>(size_t(o->_M) * size_t(o->_N), "ocean_disp_z");
 
     o->_disp_x_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_x, o->_disp_x, FFTW_ESTIMATE);
     o->_disp_z_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_z, o->_disp_z, FFTW_ESTIMATE);
   }
   if (o->_do_jacobian) {
-    o->_fft_in_jxx = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex),
-                                                 "ocean_fft_in_jxx");
-    o->_fft_in_jzz = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex),
-                                                 "ocean_fft_in_jzz");
-    o->_fft_in_jxz = (fftw_complex *)MEM_mallocN(o->_M * (1 + o->_N / 2) * sizeof(fftw_complex),
-                                                 "ocean_fft_in_jxz");
+    o->_fft_in_jxx = MEM_malloc_arrayN<fftw_complex>(size_t(o->_M) * (1 + size_t(o->_N) / 2),
+                                                     "ocean_fft_in_jxx");
+    o->_fft_in_jzz = MEM_malloc_arrayN<fftw_complex>(size_t(o->_M) * (1 + size_t(o->_N) / 2),
+                                                     "ocean_fft_in_jzz");
+    o->_fft_in_jxz = MEM_malloc_arrayN<fftw_complex>(size_t(o->_M) * (1 + size_t(o->_N) / 2),
+                                                     "ocean_fft_in_jxz");
 
-    o->_Jxx = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_Jxx");
-    o->_Jzz = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_Jzz");
-    o->_Jxz = (double *)MEM_mallocN(o->_M * o->_N * sizeof(double), "ocean_Jxz");
+    o->_Jxx = MEM_malloc_arrayN<double>(size_t(o->_M) * size_t(o->_N), "ocean_Jxx");
+    o->_Jzz = MEM_malloc_arrayN<double>(size_t(o->_M) * size_t(o->_N), "ocean_Jzz");
+    o->_Jxz = MEM_malloc_arrayN<double>(size_t(o->_M) * size_t(o->_N), "ocean_Jxz");
 
     o->_Jxx_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_jxx, o->_Jxx, FFTW_ESTIMATE);
     o->_Jzz_plan = fftw_plan_dft_c2r_2d(o->_M, o->_N, o->_fft_in_jzz, o->_Jzz, FFTW_ESTIMATE);
@@ -1310,7 +1309,7 @@ OceanCache *BKE_ocean_init_cache(const char *bakepath,
                                  float foam_fade,
                                  int resolution)
 {
-  OceanCache *och = static_cast<OceanCache *>(MEM_callocN(sizeof(OceanCache), "ocean cache data"));
+  OceanCache *och = MEM_callocN<OceanCache>("ocean cache data");
 
   och->bakepath = bakepath;
   och->relbase = relbase;
@@ -1325,16 +1324,15 @@ OceanCache *BKE_ocean_init_cache(const char *bakepath,
   och->resolution_x = resolution * resolution;
   och->resolution_y = resolution * resolution;
 
-  och->ibufs_disp = static_cast<ImBuf **>(
-      MEM_callocN(sizeof(ImBuf *) * och->duration, "displacement imbuf pointer array"));
-  och->ibufs_foam = static_cast<ImBuf **>(
-      MEM_callocN(sizeof(ImBuf *) * och->duration, "foam imbuf pointer array"));
-  och->ibufs_spray = static_cast<ImBuf **>(
-      MEM_callocN(sizeof(ImBuf *) * och->duration, "spray imbuf pointer array"));
-  och->ibufs_spray_inverse = static_cast<ImBuf **>(
-      MEM_callocN(sizeof(ImBuf *) * och->duration, "spray_inverse imbuf pointer array"));
-  och->ibufs_norm = static_cast<ImBuf **>(
-      MEM_callocN(sizeof(ImBuf *) * och->duration, "normal imbuf pointer array"));
+  och->ibufs_disp = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration),
+                                               "displacement imbuf pointer array");
+  och->ibufs_foam = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration), "foam imbuf pointer array");
+  och->ibufs_spray = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration),
+                                                "spray imbuf pointer array");
+  och->ibufs_spray_inverse = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration),
+                                                        "spray_inverse imbuf pointer array");
+  och->ibufs_norm = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration),
+                                               "normal imbuf pointer array");
 
   och->time = nullptr;
 
@@ -1400,8 +1398,8 @@ void BKE_ocean_bake(Ocean *o,
   }
 
   if (o->_do_jacobian) {
-    prev_foam = static_cast<float *>(
-        MEM_callocN(res_x * res_y * sizeof(float), "previous frame foam bake data"));
+    prev_foam = MEM_calloc_arrayN<float>(size_t(res_x) * size_t(res_y),
+                                         "previous frame foam bake data");
   }
   else {
     prev_foam = nullptr;
@@ -1572,7 +1570,7 @@ void BKE_ocean_simulate(Ocean * /*o*/, float /*t*/, float /*scale*/, float /*cho
 
 Ocean *BKE_ocean_add()
 {
-  Ocean *oc = static_cast<Ocean *>(MEM_callocN(sizeof(Ocean), "ocean sim data"));
+  Ocean *oc = MEM_callocN<Ocean>("ocean sim data");
 
   return oc;
 }
@@ -1644,7 +1642,7 @@ OceanCache *BKE_ocean_init_cache(const char * /*bakepath*/,
                                  float /*foam_fade*/,
                                  int /*resolution*/)
 {
-  OceanCache *och = static_cast<OceanCache *>(MEM_callocN(sizeof(OceanCache), "ocean cache data"));
+  OceanCache *och = MEM_callocN<OceanCache>("ocean cache data");
 
   return och;
 }

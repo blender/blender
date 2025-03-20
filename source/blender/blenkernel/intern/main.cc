@@ -47,15 +47,16 @@ static CLG_LogRef LOG = {"bke.main"};
 
 Main *BKE_main_new()
 {
-  Main *bmain = static_cast<Main *>(MEM_callocN(sizeof(Main), "new main"));
+  Main *bmain = MEM_callocN<Main>("new main");
   BKE_main_init(*bmain);
   return bmain;
 }
 
 void BKE_main_init(Main &bmain)
 {
-  bmain.lock = static_cast<MainLock *>(MEM_mallocN(sizeof(SpinLock), "main lock"));
-  BLI_spin_init(reinterpret_cast<SpinLock *>(bmain.lock));
+  SpinLock *main_lock = MEM_mallocN<SpinLock>("main lock");
+  BLI_spin_init(main_lock);
+  bmain.lock = reinterpret_cast<MainLock *>(main_lock);
   bmain.is_global_main = false;
 
   /* Just rebuilding the Action Slot to ID* map once is likely cheaper than,
@@ -499,7 +500,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
       if (!BLI_ghash_ensure_p(
               bmain_relations->relations_from_pointers, self_id, (void ***)&entry_p))
       {
-        *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
+        *entry_p = MEM_callocN<MainIDRelationsEntry>(__func__);
         (*entry_p)->session_uid = self_id->session_uid;
       }
       else {
@@ -520,7 +521,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
       if (!BLI_ghash_ensure_p(
               bmain_relations->relations_from_pointers, *id_pointer, (void ***)&entry_p))
       {
-        *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
+        *entry_p = MEM_callocN<MainIDRelationsEntry>(__func__);
         (*entry_p)->session_uid = (*id_pointer)->session_uid;
       }
       else {
@@ -545,8 +546,7 @@ void BKE_main_relations_create(Main *bmain, const short flag)
     BKE_main_relations_free(bmain);
   }
 
-  bmain->relations = static_cast<MainIDRelations *>(
-      MEM_mallocN(sizeof(*bmain->relations), __func__));
+  bmain->relations = MEM_mallocN<MainIDRelations>(__func__);
   bmain->relations->relations_from_pointers = BLI_ghash_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
   bmain->relations->entry_items_pool = BLI_mempool_create(
@@ -564,7 +564,7 @@ void BKE_main_relations_create(Main *bmain, const short flag)
     /* Ensure all IDs do have an entry, even if they are not connected to any other. */
     MainIDRelationsEntry **entry_p;
     if (!BLI_ghash_ensure_p(bmain->relations->relations_from_pointers, id, (void ***)&entry_p)) {
-      *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
+      *entry_p = MEM_callocN<MainIDRelationsEntry>(__func__);
       (*entry_p)->session_uid = id->session_uid;
     }
     else {

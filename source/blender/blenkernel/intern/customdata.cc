@@ -214,8 +214,7 @@ static void layerCopy_mdeformvert(const void *source, void *dest, const int coun
     MDeformVert *dvert = static_cast<MDeformVert *>(POINTER_OFFSET(dest, i * size));
 
     if (dvert->totweight) {
-      MDeformWeight *dw = static_cast<MDeformWeight *>(
-          MEM_malloc_arrayN(dvert->totweight, sizeof(*dw), __func__));
+      MDeformWeight *dw = MEM_malloc_arrayN<MDeformWeight>(size_t(dvert->totweight), __func__);
 
       memcpy(dw, dvert->dw, dvert->totweight * sizeof(*dw));
       dvert->dw = dw;
@@ -305,8 +304,7 @@ static void layerInterp_mdeformvert(const void **sources,
     }
 
     if (totweight) {
-      dvert->dw = static_cast<MDeformWeight *>(
-          MEM_malloc_arrayN(totweight, sizeof(*dvert->dw), __func__));
+      dvert->dw = MEM_malloc_arrayN<MDeformWeight>(size_t(totweight), __func__);
     }
   }
 
@@ -629,11 +627,11 @@ static void layerSwap_mdisps(void *data, const int *ci)
 
       MEM_freeN(s->disps);
       s->totdisp = (s->totdisp / corners) * nverts;
-      s->disps = (float(*)[3])MEM_calloc_arrayN(s->totdisp, sizeof(float[3]), "mdisp swap");
+      s->disps = MEM_calloc_arrayN<float[3]>(size_t(s->totdisp), "mdisp swap");
       return;
     }
 
-    float(*d)[3] = (float(*)[3])MEM_calloc_arrayN(s->totdisp, sizeof(float[3]), "mdisps swap");
+    float(*d)[3] = MEM_calloc_arrayN<float[3]>(size_t(s->totdisp), "mdisps swap");
 
     for (int S = 0; S < corners; S++) {
       memcpy(d + cornersize * S, s->disps + cornersize * ci[S], sizeof(float[3]) * cornersize);
@@ -686,7 +684,7 @@ static bool layerRead_mdisps(CDataFile *cdf, void *data, const int count)
 
   for (int i = 0; i < count; i++) {
     if (!d[i].disps) {
-      d[i].disps = (float(*)[3])MEM_calloc_arrayN(d[i].totdisp, sizeof(float[3]), "mdisps read");
+      d[i].disps = MEM_calloc_arrayN<float[3]>(size_t(d[i].totdisp), "mdisps read");
     }
 
     if (!cdf_read_data(cdf, sizeof(float[3]) * d[i].totdisp, d[i].disps)) {
@@ -2495,8 +2493,7 @@ CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData 
   }
 
   CustomData dst = *src;
-  dst.layers = static_cast<CustomDataLayer *>(
-      MEM_calloc_arrayN(dst_layers.size(), sizeof(CustomDataLayer), __func__));
+  dst.layers = MEM_calloc_arrayN<CustomDataLayer>(size_t(dst_layers.size()), __func__);
   dst.maxlayer = dst.totlayer = dst_layers.size();
   memcpy(dst.layers, dst_layers.data(), dst_layers.as_span().size_in_bytes());
 
@@ -3501,7 +3498,7 @@ void CustomData_interp(const CustomData *source,
 
   /* Slow fallback in case we're interpolating a ridiculous number of elements. */
   if (count > SOURCE_BUF_SIZE) {
-    sources = static_cast<const void **>(MEM_malloc_arrayN(count, sizeof(*sources), __func__));
+    sources = MEM_malloc_arrayN<const void *>(size_t(count), __func__);
   }
 
   /* If no weights are given, generate default ones to produce an average result. */
@@ -3509,8 +3506,7 @@ void CustomData_interp(const CustomData *source,
   float *default_weights = nullptr;
   if (weights == nullptr) {
     default_weights = (count > SOURCE_BUF_SIZE) ?
-                          static_cast<float *>(
-                              MEM_mallocN(sizeof(*weights) * size_t(count), __func__)) :
+                          MEM_malloc_arrayN<float>(size_t(count), __func__) :
                           default_weights_buf;
     copy_vn_fl(default_weights, count, 1.0f / count);
     weights = default_weights;
@@ -4268,7 +4264,7 @@ void CustomData_bmesh_interp(CustomData *data,
 
   /* Slow fallback in case we're interpolating a ridiculous number of elements. */
   if (count > SOURCE_BUF_SIZE) {
-    sources = (const void **)MEM_malloc_arrayN(count, sizeof(*sources), __func__);
+    sources = MEM_malloc_arrayN<const void *>(size_t(count), __func__);
   }
 
   /* If no weights are given, generate default ones to produce an average result. */
@@ -4276,7 +4272,7 @@ void CustomData_bmesh_interp(CustomData *data,
   float *default_weights = nullptr;
   if (weights == nullptr) {
     default_weights = (count > SOURCE_BUF_SIZE) ?
-                          (float *)MEM_mallocN(sizeof(*weights) * size_t(count), __func__) :
+                          MEM_malloc_arrayN<float>(size_t(count), __func__) :
                           default_weights_buf;
     copy_vn_fl(default_weights, count, 1.0f / count);
     weights = default_weights;
@@ -5092,8 +5088,7 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
   }
 
   if (data_src) {
-    tmp_data_src = (const void **)MEM_malloc_arrayN(
-        tmp_buff_size, sizeof(*tmp_data_src), __func__);
+    tmp_data_src = MEM_malloc_arrayN<const void *>(tmp_buff_size, __func__);
   }
 
   if (int(data_type) & CD_FAKE) {

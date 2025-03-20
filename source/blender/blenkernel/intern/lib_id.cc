@@ -1251,7 +1251,7 @@ void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBase *lb)
   }
 
   /* Fill an array because renaming sorts. */
-  ID **id_array = static_cast<ID **>(MEM_mallocN(sizeof(*id_array) * lb_len, __func__));
+  ID **id_array = MEM_malloc_arrayN<ID *>(size_t(lb_len), __func__);
   GSet *gset = BLI_gset_str_new_ex(__func__, lb_len);
   int i = 0;
   LISTBASE_FOREACH (ID *, id, lb) {

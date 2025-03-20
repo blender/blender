@@ -1474,7 +1474,7 @@ ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool displa
 
   BKE_curvemapping_init(br->curve);
 
-  float *rect_float = (float *)MEM_callocN(sizeof(float) * side * side, "radial control rect");
+  float *rect_float = MEM_calloc_arrayN<float>(size_t(side) * size_t(side), "radial control rect");
   IMB_assign_float_buffer(im, rect_float, IB_DO_NOT_TAKE_OWNERSHIP);
 
   im->x = im->y = side;

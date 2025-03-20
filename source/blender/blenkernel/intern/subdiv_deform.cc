@@ -51,8 +51,7 @@ static void subdiv_mesh_prepare_accumulator(SubdivDeformContext *ctx, int num_ve
   if (!ctx->have_displacement) {
     return;
   }
-  ctx->accumulated_counters = static_cast<int *>(
-      MEM_calloc_arrayN(num_vertices, sizeof(*ctx->accumulated_counters), __func__));
+  ctx->accumulated_counters = MEM_calloc_arrayN<int>(size_t(num_vertices), __func__);
 }
 
 static void subdiv_mesh_context_free(SubdivDeformContext *ctx)

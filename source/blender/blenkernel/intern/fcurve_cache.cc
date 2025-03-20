@@ -65,8 +65,7 @@ static int fcurve_cmp_for_cache(const void *fcu_a_p, const void *fcu_b_p)
 FCurvePathCache *BKE_fcurve_pathcache_create(blender::Span<FCurve *> fcurves)
 {
   const uint fcurve_array_len = fcurves.size();
-  FCurve **fcurve_array = static_cast<FCurve **>(
-      MEM_mallocN(sizeof(*fcurve_array) * fcurve_array_len, __func__));
+  FCurve **fcurve_array = MEM_malloc_arrayN<FCurve *>(fcurve_array_len, __func__);
   for (const int i : fcurves.index_range()) {
     fcurve_array[i] = fcurves[i];
   }
@@ -75,8 +74,8 @@ FCurvePathCache *BKE_fcurve_pathcache_create(blender::Span<FCurve *> fcurves)
   /* Allow for the case no F-Curves share an RNA-path, otherwise this is over-allocated.
    * Although in practice it's likely to only be 3-4x as large as is needed
    * (with transform channels for e.g.). */
-  FCurvePathCache_Span *span_table = static_cast<FCurvePathCache_Span *>(
-      MEM_mallocN(sizeof(*span_table) * fcurve_array_len, __func__));
+  FCurvePathCache_Span *span_table = MEM_malloc_arrayN<FCurvePathCache_Span>(fcurve_array_len,
+                                                                             __func__);
 
   /* May over reserve, harmless. */
   GHash *span_from_rna_path = BLI_ghash_str_new_ex(__func__, fcurve_array_len);
@@ -102,8 +101,7 @@ FCurvePathCache *BKE_fcurve_pathcache_create(blender::Span<FCurve *> fcurves)
     i = i_end;
   }
 
-  FCurvePathCache *fcache = static_cast<FCurvePathCache *>(
-      MEM_callocN(sizeof(FCurvePathCache), __func__));
+  FCurvePathCache *fcache = MEM_callocN<FCurvePathCache>(__func__);
   fcache->fcurve_array = fcurve_array;
   fcache->fcurve_array_len = fcurve_array_len;
   fcache->span_table = span_table;

@@ -388,8 +388,8 @@ static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
   /* Read as listbase, but convert to an array on the armature. */
   BLO_read_struct_list(reader, BoneCollection, &arm->collections_legacy);
   arm->collection_array_num = BLI_listbase_count(&arm->collections_legacy);
-  arm->collection_array = (BoneCollection **)MEM_malloc_arrayN(
-      arm->collection_array_num, sizeof(BoneCollection *), __func__);
+  arm->collection_array = MEM_malloc_arrayN<BoneCollection *>(size_t(arm->collection_array_num),
+                                                              __func__);
   {
     int i;
     int min_child_index = 0;
@@ -1622,22 +1622,20 @@ static void allocate_bbone_cache(bPoseChannel *pchan,
     BKE_pose_channel_free_bbone_cache(runtime);
 
     runtime->bbone_segments = segments;
-    runtime->bbone_rest_mats = static_cast<Mat4 *>(MEM_malloc_arrayN(
-        1 + uint(segments), sizeof(Mat4), "bPoseChannel_Runtime::bbone_rest_mats"));
-    runtime->bbone_pose_mats = static_cast<Mat4 *>(MEM_malloc_arrayN(
-        1 + uint(segments), sizeof(Mat4), "bPoseChannel_Runtime::bbone_pose_mats"));
-    runtime->bbone_deform_mats = static_cast<Mat4 *>(MEM_malloc_arrayN(
-        2 + uint(segments), sizeof(Mat4), "bPoseChannel_Runtime::bbone_deform_mats"));
-    runtime->bbone_dual_quats = static_cast<DualQuat *>(MEM_malloc_arrayN(
-        1 + uint(segments), sizeof(DualQuat), "bPoseChannel_Runtime::bbone_dual_quats"));
+    runtime->bbone_rest_mats = MEM_malloc_arrayN<Mat4>(1 + uint(segments),
+                                                       "bPoseChannel_Runtime::bbone_rest_mats");
+    runtime->bbone_pose_mats = MEM_malloc_arrayN<Mat4>(1 + uint(segments),
+                                                       "bPoseChannel_Runtime::bbone_pose_mats");
+    runtime->bbone_deform_mats = MEM_malloc_arrayN<Mat4>(
+        2 + uint(segments), "bPoseChannel_Runtime::bbone_deform_mats");
+    runtime->bbone_dual_quats = MEM_malloc_arrayN<DualQuat>(
+        1 + uint(segments), "bPoseChannel_Runtime::bbone_dual_quats");
   }
 
   /* If the segment count changed, the array was deallocated and nulled above. */
   if (use_boundaries && !runtime->bbone_segment_boundaries) {
-    runtime->bbone_segment_boundaries = static_cast<bPoseChannel_BBoneSegmentBoundary *>(
-        MEM_malloc_arrayN(1 + uint(segments),
-                          sizeof(bPoseChannel_BBoneSegmentBoundary),
-                          "bPoseChannel_Runtime::bbone_segment_boundaries"));
+    runtime->bbone_segment_boundaries = MEM_malloc_arrayN<bPoseChannel_BBoneSegmentBoundary>(
+        1 + uint(segments), "bPoseChannel_Runtime::bbone_segment_boundaries");
   }
   else if (!use_boundaries) {
     MEM_SAFE_FREE(runtime->bbone_segment_boundaries);
@@ -2845,7 +2843,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   /* only done here */
   if (ob->pose == nullptr) {
     /* create new pose */
-    ob->pose = static_cast<bPose *>(MEM_callocN(sizeof(bPose), "new pose"));
+    ob->pose = MEM_callocN<bPose>("new pose");
 
     /* set default settings for animviz */
     animviz_settings_init(&ob->pose->avs);

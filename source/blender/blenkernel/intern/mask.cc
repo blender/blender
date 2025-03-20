@@ -1986,7 +1986,7 @@ void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
         if (point->parent.id) {
           if (!BLI_ghash_lookup(mask_clipboard.id_hash, point->parent.id)) {
             int len = strlen(point->parent.id->name);
-            char *name_copy = static_cast<char *>(MEM_mallocN(len + 1, "mask clipboard ID name"));
+            char *name_copy = MEM_malloc_arrayN<char>(size_t(len) + 1, "mask clipboard ID name");
             memcpy(name_copy, point->parent.id->name, len + 1);
             BLI_ghash_insert(mask_clipboard.id_hash, point->parent.id, name_copy);
           }

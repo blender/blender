@@ -690,7 +690,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
 
 void *BKE_bpath_list_backup(Main *bmain, const eBPathForeachFlag flag)
 {
-  ListBase *path_list = static_cast<ListBase *>(MEM_callocN(sizeof(ListBase), __func__));
+  ListBase *path_list = MEM_callocN<ListBase>(__func__);
 
   BPathForeachPathData path_data{};
   path_data.bmain = bmain;

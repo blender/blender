@@ -1311,13 +1311,13 @@ void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBase *regions)
     if (region->regiontype == RGN_TYPE_WINDOW && region->regiondata == nullptr) {
       RegionView3D *rv3d;
 
-      rv3d = static_cast<RegionView3D *>(
-          region->regiondata = MEM_callocN(sizeof(RegionView3D), "region v3d patch"));
+      rv3d = MEM_callocN<RegionView3D>("region v3d patch");
       rv3d->persp = char(v3d->persp);
       rv3d->view = char(v3d->view);
       rv3d->dist = v3d->dist;
       copy_v3_v3(rv3d->ofs, v3d->ofs);
       copy_qt_qt(rv3d->viewquat, v3d->viewquat);
+      region->regiondata = rv3d;
     }
   }
 
@@ -1362,7 +1362,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
   /* accident can happen when read/save new file with older version */
   /* 2.50: we now always add spacedata for info */
   if (area->spacedata.first == nullptr) {
-    SpaceInfo *sinfo = static_cast<SpaceInfo *>(MEM_callocN(sizeof(SpaceInfo), "spaceinfo"));
+    SpaceInfo *sinfo = MEM_callocN<SpaceInfo>("spaceinfo");
     area->spacetype = sinfo->spacetype = SPACE_INFO;
     BLI_addtail(&area->spacedata, sinfo);
   }

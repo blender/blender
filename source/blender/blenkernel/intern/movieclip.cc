@@ -771,8 +771,7 @@ static void *moviecache_getprioritydata(void *key_v)
   MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *)key_v;
   MovieClipCachePriorityData *priority_data;
 
-  priority_data = static_cast<MovieClipCachePriorityData *>(
-      MEM_callocN(sizeof(*priority_data), "movie cache clip priority data"));
+  priority_data = MEM_callocN<MovieClipCachePriorityData>("movie cache clip priority data");
   priority_data->framenr = key->framenr;
 
   return priority_data;
@@ -853,8 +852,7 @@ static bool put_imbuf_cache(
     // char cache_name[64];
     // SNPRINTF(cache_name, "movie %s", clip->id.name);
 
-    clip->cache = static_cast<MovieClipCache *>(
-        MEM_callocN(sizeof(MovieClipCache), "movieClipCache"));
+    clip->cache = MEM_callocN<MovieClipCache>("movieClipCache");
 
     moviecache = IMB_moviecache_create(
         "movieclip", sizeof(MovieClipImBufCacheKey), moviecache_hashhash, moviecache_hashcmp);
@@ -1995,8 +1993,7 @@ static GPUTexture **movieclip_get_gputexture_ptr(MovieClip *clip,
 
   /* If not, allocate a new one. */
   if (tex == nullptr) {
-    tex = (MovieClip_RuntimeGPUTexture *)MEM_mallocN(sizeof(MovieClip_RuntimeGPUTexture),
-                                                     __func__);
+    tex = MEM_mallocN<MovieClip_RuntimeGPUTexture>(__func__);
 
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
       tex->gputexture[i] = nullptr;
