@@ -70,7 +70,7 @@ enum class AreaDockTarget {
 /**
  * Expanded interaction influence of area borders.
  */
-#define BORDERPADDING ((3.0f * UI_SCALE_FAC) + U.pixelsize)
+#define BORDERPADDING ((4.0f * UI_SCALE_FAC) + U.pixelsize)
 
 /* `area.cc` */
 

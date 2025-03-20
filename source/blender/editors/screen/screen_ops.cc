@@ -1781,6 +1781,7 @@ static bool area_move_init(bContext *C, wmOperator *op)
 {
   bScreen *screen = CTX_wm_screen(C);
   wmWindow *win = CTX_wm_window(C);
+  ScrArea *area = CTX_wm_area(C);
 
   /* required properties */
   int x = RNA_int_get(op->ptr, "x");
@@ -1788,6 +1789,15 @@ static bool area_move_init(bContext *C, wmOperator *op)
 
   /* setup */
   ScrEdge *actedge = screen_geom_find_active_scredge(win, screen, x, y);
+
+  if (area) {
+    /* Favor scroll bars and action zones over expanded edge zone. */
+    const int xy[2] = {x, y};
+    if (ED_area_actionzone_find_xy(area, xy)) {
+      return false;
+    }
+  }
+
   if (actedge == nullptr) {
     return false;
   }
