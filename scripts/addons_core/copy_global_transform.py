@@ -29,7 +29,10 @@ from typing import Iterable, Optional, Union, Any, TypeAlias, Iterator
 
 import bpy
 from bpy.app.translations import contexts as i18n_contexts
-from bpy.types import Context, Object, Operator, Panel, PoseBone, UILayout, Camera, ID, ActionChannelbag
+from bpy.types import (
+    Context, Object, Operator, Panel, PoseBone,
+    UILayout, Camera, ID, ActionChannelbag, KeyingSet,
+)
 from mathutils import Matrix
 
 
@@ -111,6 +114,21 @@ class AutoKeying:
         return options
 
     @classmethod
+    def keying_options_from_keyingset(cls, context: Context, keyingset: KeyingSet) -> set[str]:
+        """Retrieve the general keyframing options from user preferences."""
+
+        ts = context.scene.tool_settings
+        options = set()
+
+        if keyingset.use_insertkey_visual:
+            options.add('INSERTKEY_VISUAL')
+        if keyingset.use_insertkey_needed:
+            options.add('INSERTKEY_NEEDED')
+        if ts.use_keyframe_cycle_aware:
+            options.add('INSERTKEY_CYCLE_AWARE')
+        return options
+
+    @classmethod
     def autokeying_options(cls, context: Context) -> Optional[set[str]]:
         """Retrieve the Auto Keyframe options, or None if disabled."""
 
@@ -119,9 +137,10 @@ class AutoKeying:
         if not (cls._force_autokey or ts.use_keyframe_insert_auto):
             return None
 
-        if ts.use_keyframe_insert_keyingset:
-            # No support for keying sets (yet).
-            return None
+        active_keyingset = context.scene.keying_sets_all.active
+        if ts.use_keyframe_insert_keyingset and active_keyingset:
+            # No support for keying sets in this function
+            raise RuntimeError("This function should not be called when there is an active keying set")
 
         prefs = context.preferences
         options = cls.keying_options(context)
@@ -193,9 +212,86 @@ class AutoKeying:
             keyframe("scale", target.lock_scale)
 
     @classmethod
+    def key_transformation_via_keyingset(cls,
+                                         context: Context,
+                                         target: Union[Object, PoseBone],
+                                         keyingset: KeyingSet) -> None:
+        """Auto-key transformation properties with the given keying set."""
+
+        keyingset.refresh()
+
+        is_bone = isinstance(target, PoseBone)
+        options = cls.keying_options_from_keyingset(context, keyingset)
+
+        paths_to_key = {keysetpath.data_path: keysetpath for keysetpath in keyingset.paths}
+
+        def keyframe(data_path: str, locks: Iterable[bool]) -> None:
+            # Keying sets are relative to the ID.
+            full_data_path = target.path_from_id(data_path)
+            try:
+                keysetpath = paths_to_key[full_data_path]
+            except KeyError:
+                # No biggie, just means this property shouldn't be keyed.
+                return
+
+            match keysetpath.group_method:
+                case 'NAMED':
+                    group = keysetpath.group
+                case 'KEYINGSET':
+                    group = keyingset.name
+                case 'NONE', _:
+                    group = ""
+
+            cls.keyframe_channels(target, options, data_path, group, locks)
+
+        if cls._use_loc and not (is_bone and target.bone.use_connect):
+            keyframe("location", target.lock_location)
+
+        if cls._use_rot:
+            if target.rotation_mode == 'QUATERNION':
+                keyframe("rotation_quaternion", cls.get_4d_rotlock(target))
+            elif target.rotation_mode == 'AXIS_ANGLE':
+                keyframe("rotation_axis_angle", cls.get_4d_rotlock(target))
+            else:
+                keyframe("rotation_euler", target.lock_rotation)
+
+        if cls._use_scale:
+            keyframe("scale", target.lock_scale)
+
+    @classmethod
+    def active_keyingset(cls, context: Context) -> KeyingSet | None:
+        """Return the active keying set, if it should be used.
+
+        Only returns the active keying set when the auto-key settings indicate
+        it should be used, and when it is not using absolute paths (because
+        that's not supported by the Copy Global Transform add-on).
+        """
+        ts = context.scene.tool_settings
+        if not ts.use_keyframe_insert_keyingset:
+            return None
+
+        active_keyingset = context.scene.keying_sets_all.active
+        if not active_keyingset:
+            return None
+
+        active_keyingset.refresh()
+        if active_keyingset.is_path_absolute:
+            # Absolute-path keying sets are not supported (yet?).
+            return None
+
+        return active_keyingset
+
+    @classmethod
     def autokey_transformation(cls, context: Context, target: Union[Object, PoseBone]) -> None:
         """Auto-key transformation properties."""
 
+        # See if the active keying set should be used.
+        keyingset = cls.active_keyingset(context)
+        if keyingset:
+            cls.key_transformation_via_keyingset(context, target, keyingset)
+            return
+
+        # Use regular autokeying options.
         options = cls.autokeying_options(context)
         if options is None:
             return
@@ -617,7 +713,7 @@ class OBJECT_OT_paste_transform(Operator):
             context.scene.frame_set(int(current_frame), subframe=current_frame % 1.0)
 
 
-# Mapping from frame number to the dominant key type.
+# Mapping from frame number to the dominant (in terms of genetics) key type.
 # GENERATED is the only recessive key type, others are dominant.
 KeyInfo: TypeAlias = dict[float, str]
 
@@ -968,6 +1064,16 @@ class VIEW3D_PT_copy_global_transform_fix_to_camera(PanelMixin, Panel):
         props_box.prop(scene, "addon_copy_global_transform_fix_cam_use_loc", text="Location")
         props_box.prop(scene, "addon_copy_global_transform_fix_cam_use_rot", text="Rotation")
         props_box.prop(scene, "addon_copy_global_transform_fix_cam_use_scale", text="Scale")
+
+        keyingset = AutoKeying.active_keyingset(context)
+        if keyingset:
+            # Show an explicit message here, even though the keying set affects
+            # the other operators as well. Fix to Camera is treated as a special
+            # case because it also has options for selecting what to key. The
+            # logical AND of the settings is used, so a property is only keyed
+            # when the keying set AND the above checkboxes say it's ok.
+            props_box.label(text="Keying set is active, which may")
+            props_box.label(text="reduce the effect of the above options")
 
         row = layout.row(align=True)
         props = row.operator("object.fix_to_camera")
