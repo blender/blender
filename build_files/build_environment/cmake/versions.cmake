@@ -435,6 +435,8 @@ set(PYCODESTYLE_VERSION 2.12.1)
 # Build system for other packages (not used by Blender at run-time).
 set(MESON_VERSION 0.63.0)
 
+# When this numpy version is bumped, please also change the limit value set for variable `install_requires`
+# in build_files/utils/make_bpy_wheel.py
 set(NUMPY_VERSION 1.26.4)
 set(NUMPY_SHORT_VERSION 1.26)
 set(NUMPY_URI https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.tar.gz)
