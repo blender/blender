@@ -222,7 +222,6 @@ def ctx_editmode_lattice():
 
 def ctx_object_empty():
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.object.add(type='EMPTY')
 
 
@@ -718,7 +717,7 @@ def extract_region_from_text_by_delimiters(text, mark_beg, mark_end):
 
 
 def run_all(
-        log_fn,  # `File | None`
+        log_fn,  # `Callable[[str], None] | None`
         *,
         use_random,  # `bool`
         random_reset,  # `float`
