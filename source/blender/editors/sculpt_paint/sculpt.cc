@@ -3045,6 +3045,7 @@ static IndexMask calc_plane_for_plane_brush(const Depsgraph &depsgraph,
                                             const StrokeCache &cache,
                                             const Brush &brush,
                                             Object &object,
+                                            IndexMaskMemory &memory,
                                             float3 &r_plane_normal,
                                             float3 &r_plane_center)
 {
@@ -3063,7 +3064,6 @@ static IndexMask calc_plane_for_plane_brush(const Depsgraph &depsgraph,
    * location. However, for the Plane brush, its effective center often deviates from the cursor
    * location. Calculating the affected nodes using the cursor location as the center can lead to
    * issues (see, for example, #123768). */
-  IndexMaskMemory memory;
   return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
     if (node_fully_masked_or_hidden(node)) {
       return false;
@@ -3251,7 +3251,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
   }
   else if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE) {
     node_mask = calc_plane_for_plane_brush(
-        depsgraph, *ss.cache, brush, ob, plane_normal, plane_center);
+        depsgraph, *ss.cache, brush, ob, memory, plane_normal, plane_center);
   }
   else if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) {
     node_mask = cloth::brush_affected_nodes_gather(ob, brush, memory);
