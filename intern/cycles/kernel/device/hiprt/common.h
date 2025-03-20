@@ -105,7 +105,7 @@ ccl_device_inline bool curve_custom_intersect(const hiprtRay &ray,
   int object_id = kernel_data_fetch(user_instance_id, hit.instanceID);
   int2 data_offset = kernel_data_fetch(custom_prim_info_offset, object_id);
   // data_offset.x: where the data (prim id, type )for the geometry of the current object begins
-  // the prim_id that is in hiprtHit hit is local to the partciular geometry so we add the above
+  // the prim_id that is in hiprtHit hit is local to the particular geometry so we add the above
   // ofstream
   // to map prim id in hiprtHit to the one compatible to what next stage expects
 
@@ -563,8 +563,8 @@ ccl_device_inline bool local_intersection_filter(const hiprtRay &ray,
   const uint max_hits = payload->max_hits;
 
   /* Triangle primitive uses hardware intersection, other primitives  do custom intersection
-   * which does reservoir samlping for intersections. For the custom primitives only check
-   * whether we can stop travsersal early on. The rest of the checks here only do for the
+   * which does reservoir sampling for intersections. For the custom primitives only check
+   * whether we can stop traversal early on. The rest of the checks here only do for the
    * regular triangles. */
   const int primitive_type = kernel_data_fetch(objects, object_id).primitive_type;
   if (primitive_type != PRIMITIVE_TRIANGLE) {
