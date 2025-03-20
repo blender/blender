@@ -594,7 +594,7 @@ static void eyedropper_cancel(bContext *C, wmOperator *op)
 }
 
 /* main modal status check */
-static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Eyedropper *eye = (Eyedropper *)op->customdata;
 
@@ -650,7 +650,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* Modal Operator init */
-static int eyedropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus eyedropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* init */
   if (eyedropper_init(C, op)) {
@@ -668,7 +668,7 @@ static int eyedropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*even
 }
 
 /* Repeat operator */
-static int eyedropper_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus eyedropper_exec(bContext *C, wmOperator *op)
 {
   /* init */
   if (eyedropper_init(C, op)) {

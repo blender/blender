@@ -261,7 +261,7 @@ static bool edbm_extrude_ex(Object *obedit,
 /** \name Extrude Repeat Operator
  * \{ */
 
-static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 {
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "offset");
@@ -425,7 +425,7 @@ static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 }
 
 /* extrude without transform */
-static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_extrude_region_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -481,7 +481,7 @@ void MESH_OT_extrude_region(wmOperatorType *ot)
  * \{ */
 
 /* extrude without transform */
-static int edbm_extrude_context_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_extrude_context_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -532,7 +532,7 @@ void MESH_OT_extrude_context(wmOperatorType *ot)
 /** \name Extrude Verts Operator
  * \{ */
 
-static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_extrude_verts_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -581,7 +581,7 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 /** \name Extrude Edges Operator
  * \{ */
 
-static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_extrude_edges_exec(bContext *C, wmOperator *op)
 {
   const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
   const Scene *scene = CTX_data_scene(C);
@@ -632,7 +632,7 @@ void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
 /** \name Extrude Faces Operator
  * \{ */
 
-static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_extrude_faces_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -682,7 +682,9 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
  * Add-click-mesh (extrude) operator.
  * \{ */
 
-static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus edbm_dupli_extrude_cursor_invoke(bContext *C,
+                                                         wmOperator *op,
+                                                         const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BMVert *v1;
@@ -893,7 +895,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
   }
 
   /* Support dragging to move after extrude, see: #114282. */
-  const int retval = OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  const wmOperatorStatus retval = OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 

@@ -290,9 +290,9 @@ static void gizmo_preselect_elem_free(wmGizmo *gz)
   gz_ele->bases.~Vector();
 }
 
-static int gizmo_preselect_elem_invoke(bContext * /*C*/,
-                                       wmGizmo * /*gz*/,
-                                       const wmEvent * /*event*/)
+static wmOperatorStatus gizmo_preselect_elem_invoke(bContext * /*C*/,
+                                                    wmGizmo * /*gz*/,
+                                                    const wmEvent * /*event*/)
 {
   return OPERATOR_PASS_THROUGH;
 }
@@ -451,9 +451,9 @@ static void gizmo_preselect_edgering_free(wmGizmo *gz)
   gz_ring->bases.~Vector();
 }
 
-static int gizmo_preselect_edgering_invoke(bContext * /*C*/,
-                                           wmGizmo * /*gz*/,
-                                           const wmEvent * /*event*/)
+static wmOperatorStatus gizmo_preselect_edgering_invoke(bContext * /*C*/,
+                                                        wmGizmo * /*gz*/,
+                                                        const wmEvent * /*event*/)
 {
   return OPERATOR_PASS_THROUGH;
 }

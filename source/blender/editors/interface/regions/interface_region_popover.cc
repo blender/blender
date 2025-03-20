@@ -302,7 +302,10 @@ uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
 /** \name Standard Popover Panels
  * \{ */
 
-int UI_popover_panel_invoke(bContext *C, const char *idname, bool keep_open, ReportList *reports)
+wmOperatorStatus UI_popover_panel_invoke(bContext *C,
+                                         const char *idname,
+                                         bool keep_open,
+                                         ReportList *reports)
 {
   uiLayout *layout;
   PanelType *pt = WM_paneltype_find(idname, true);

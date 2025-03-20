@@ -2288,7 +2288,7 @@ static int active_face_set_id_get(Object &object, Cache &expand_cache)
   return SCULPT_FACE_SET_NONE;
 }
 
-static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -2651,7 +2651,7 @@ static bool any_nonzero_mask(const Object &object)
   return false;
 }
 
-static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const Scene &scene = *CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);

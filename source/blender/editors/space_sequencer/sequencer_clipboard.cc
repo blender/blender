@@ -306,7 +306,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   return retval;
 }
 
-int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
+wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -392,7 +392,7 @@ static bool sequencer_paste_animation(Main *bmain_dst, Scene *scene_dst, Scene *
   return true;
 }
 
-int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
+wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
   sequencer_copybuffer_filepath_get(filepath, sizeof(filepath));

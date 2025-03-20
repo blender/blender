@@ -698,9 +698,12 @@ static void grease_pencil_primitive_update_view(bContext *C, PrimitiveToolOperat
 }
 
 /* Invoke handler: Initialize the operator. */
-static int grease_pencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus grease_pencil_primitive_invoke(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent *event)
 {
-  int return_value = ed::greasepencil::grease_pencil_draw_operator_invoke(C, op, false);
+  wmOperatorStatus return_value = ed::greasepencil::grease_pencil_draw_operator_invoke(
+      C, op, false);
   if (return_value != OPERATOR_RUNNING_MODAL) {
     return return_value;
   }
@@ -1188,10 +1191,10 @@ static void grease_pencil_primitive_cursor_update(bContext *C,
   WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
 }
 
-static int grease_pencil_primitive_event_modal_map(bContext *C,
-                                                   wmOperator *op,
-                                                   PrimitiveToolOperation &ptd,
-                                                   const wmEvent *event)
+static wmOperatorStatus grease_pencil_primitive_event_modal_map(bContext *C,
+                                                                wmOperator *op,
+                                                                PrimitiveToolOperation &ptd,
+                                                                const wmEvent *event)
 {
   switch (event->val) {
     case int(ModalKeyMode::Cancel): {
@@ -1316,7 +1319,8 @@ static int grease_pencil_primitive_event_modal_map(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int grease_pencil_primitive_mouse_event(PrimitiveToolOperation &ptd, const wmEvent *event)
+static wmOperatorStatus grease_pencil_primitive_mouse_event(PrimitiveToolOperation &ptd,
+                                                            const wmEvent *event)
 {
   if (event->val == KM_RELEASE && ELEM(ptd.mode,
                                        OperatorMode::Grab,
@@ -1434,7 +1438,9 @@ static void grease_pencil_primitive_operator_update(PrimitiveToolOperation &ptd,
 }
 
 /* Modal handler: Events handling during interactive part. */
-static int grease_pencil_primitive_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus grease_pencil_primitive_modal(bContext *C,
+                                                      wmOperator *op,
+                                                      const wmEvent *event)
 {
   PrimitiveToolOperation &ptd = *reinterpret_cast<PrimitiveToolOperation *>(op->customdata);
 
@@ -1463,7 +1469,7 @@ static int grease_pencil_primitive_modal(bContext *C, wmOperator *op, const wmEv
   grease_pencil_primitive_cursor_update(C, ptd, event);
 
   if (event->type == EVT_MODAL_MAP) {
-    const int return_val = grease_pencil_primitive_event_modal_map(C, op, ptd, event);
+    const wmOperatorStatus return_val = grease_pencil_primitive_event_modal_map(C, op, ptd, event);
     if (return_val != OPERATOR_RUNNING_MODAL) {
       return return_val;
     }
@@ -1471,7 +1477,7 @@ static int grease_pencil_primitive_modal(bContext *C, wmOperator *op, const wmEv
 
   switch (event->type) {
     case LEFTMOUSE: {
-      const int return_val = grease_pencil_primitive_mouse_event(ptd, event);
+      const wmOperatorStatus return_val = grease_pencil_primitive_mouse_event(ptd, event);
       if (return_val != OPERATOR_RUNNING_MODAL) {
         return return_val;
       }

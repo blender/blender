@@ -386,7 +386,7 @@ static void applyarmature_reset_constraints(bPose *pose, const bool use_selected
 }
 
 /* Set the current pose as the rest-pose. */
-static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -511,7 +511,7 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
  * Set the current pose as the rest-pose.
  * \{ */
 
-static int pose_visual_transform_apply_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -775,7 +775,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
 /** \name Copy Pose Operator
  * \{ */
 
-static int pose_copy_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::blendfile;
 
@@ -837,7 +837,7 @@ void POSE_OT_copy(wmOperatorType *ot)
 /** \name Paste Pose Operator
  * \{ */
 
-static int pose_paste_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_paste_exec(bContext *C, wmOperator *op)
 {
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
   Scene *scene = CTX_data_scene(C);
@@ -1165,10 +1165,11 @@ static void pchan_clear_transforms(const bPose *pose, bPoseChannel *pchan)
 /* --------------- */
 
 /* generic exec for clear-pose operators */
-static int pose_clear_transform_generic_exec(bContext *C,
-                                             wmOperator *op,
-                                             void (*clear_func)(const bPose *, bPoseChannel *),
-                                             const char default_ksName[])
+static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
+                                                          wmOperator *op,
+                                                          void (*clear_func)(const bPose *,
+                                                                             bPoseChannel *),
+                                                          const char default_ksName[])
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -1245,7 +1246,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
 /** \name Clear Pose Scale Operator
  * \{ */
 
-static int pose_clear_scale_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_scale_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
       C, op, pchan_clear_scale_with_mirrored, ANIM_KS_SCALING_ID);
@@ -1272,7 +1273,7 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 /** \name Clear Pose Rotation Operator
  * \{ */
 
-static int pose_clear_rot_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_rot_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
       C, op, pchan_clear_rot_with_mirrored, ANIM_KS_ROTATION_ID);
@@ -1299,7 +1300,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 /** \name Clear Pose Location Operator
  * \{ */
 
-static int pose_clear_loc_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_loc_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
       C, op, pchan_clear_loc_with_mirrored, ANIM_KS_LOCATION_ID);
@@ -1326,7 +1327,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 /** \name Clear Pose Transforms Operator
  * \{ */
 
-static int pose_clear_transforms_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_transforms_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
       C, op, pchan_clear_transforms, ANIM_KS_LOC_ROT_SCALE_ID);
@@ -1354,7 +1355,7 @@ void POSE_OT_transforms_clear(wmOperatorType *ot)
 /** \name Clear User Transforms Operator
  * \{ */
 
-static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);

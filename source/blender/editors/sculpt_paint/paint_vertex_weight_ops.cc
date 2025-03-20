@@ -104,7 +104,7 @@ static bool weight_from_bones_poll(bContext *C)
   return (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && BKE_modifiers_is_deformed_by_armature(ob));
 }
 
-static int weight_from_bones_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus weight_from_bones_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -166,7 +166,7 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
  *
  * \note we can't sample front-buffer, weight colors are interpolated too unpredictable.
  */
-static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Mesh *mesh;
@@ -313,7 +313,9 @@ static bool weight_paint_sample_mark_groups(const MDeformVert *dvert,
   return found;
 }
 
-static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus weight_sample_group_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
@@ -492,7 +494,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
   return true;
 }
 
-static int weight_paint_set_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus weight_paint_set_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
@@ -694,13 +696,15 @@ static void gradientVertInit__mapFunc(void *user_data,
   gradientVert_update(grad_data, index);
 }
 
-static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus paint_weight_gradient_modal(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
   WPGradient_vertStoreBase *vert_cache = static_cast<WPGradient_vertStoreBase *>(
       gesture->user_data.data);
   Object *ob = CTX_data_active_object(C);
-  int ret;
+  wmOperatorStatus ret;
 
   if (BKE_object_defgroup_active_is_locked(ob)) {
     BKE_report(op->reports, RPT_WARNING, "Active group is locked, aborting");
@@ -742,7 +746,7 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
   return ret;
 }
 
-static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
@@ -871,9 +875,11 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus paint_weight_gradient_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event)
 {
-  int ret;
+  wmOperatorStatus ret;
 
   if (ED_wpaint_ensure_data(C, op->reports, eWPaintFlag(0), nullptr) == false) {
     return OPERATOR_CANCELLED;

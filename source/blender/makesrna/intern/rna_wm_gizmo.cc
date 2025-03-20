@@ -110,10 +110,10 @@ static int rna_gizmo_test_select_cb(bContext *C, wmGizmo *gz, const int location
   return intersect_id;
 }
 
-static int rna_gizmo_modal_cb(bContext *C,
-                              wmGizmo *gz,
-                              const wmEvent *event,
-                              eWM_GizmoFlagTweak tweak_flag)
+static wmOperatorStatus rna_gizmo_modal_cb(bContext *C,
+                                           wmGizmo *gz,
+                                           const wmEvent *event,
+                                           eWM_GizmoFlagTweak tweak_flag)
 {
   extern FunctionRNA rna_Gizmo_modal_func;
   wmGizmoGroup *gzgroup = gz->parent_gzgroup;
@@ -134,7 +134,9 @@ static int rna_gizmo_modal_cb(bContext *C,
   int ret_enum = *(int *)ret;
 
   RNA_parameter_list_free(&list);
-  return ret_enum;
+
+  OPERATOR_RETVAL_CHECK(ret_enum);
+  return wmOperatorStatus(ret_enum);
 }
 
 static void rna_gizmo_setup_cb(wmGizmo *gz)
@@ -151,7 +153,7 @@ static void rna_gizmo_setup_cb(wmGizmo *gz)
   RNA_parameter_list_free(&list);
 }
 
-static int rna_gizmo_invoke_cb(bContext *C, wmGizmo *gz, const wmEvent *event)
+static wmOperatorStatus rna_gizmo_invoke_cb(bContext *C, wmGizmo *gz, const wmEvent *event)
 {
   extern FunctionRNA rna_Gizmo_invoke_func;
   wmGizmoGroup *gzgroup = gz->parent_gzgroup;
@@ -170,7 +172,9 @@ static int rna_gizmo_invoke_cb(bContext *C, wmGizmo *gz, const wmEvent *event)
   int ret_enum = *(int *)ret;
 
   RNA_parameter_list_free(&list);
-  return ret_enum;
+
+  OPERATOR_RETVAL_CHECK(ret_enum);
+  return wmOperatorStatus(ret_enum);
 }
 
 static void rna_gizmo_exit_cb(bContext *C, wmGizmo *gz, bool cancel)

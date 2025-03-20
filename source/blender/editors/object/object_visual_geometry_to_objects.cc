@@ -439,7 +439,7 @@ static Vector<Collection *> find_collections_containing_object(Main &bmain,
   return collections.extract_vector();
 }
 
-static int visual_geometry_to_objects_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus visual_geometry_to_objects_exec(bContext *C, wmOperator * /*op*/)
 {
   Main &bmain = *CTX_data_main(C);
   Scene &scene = *CTX_data_scene(C);

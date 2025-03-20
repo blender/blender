@@ -216,7 +216,7 @@ static bool action_new_poll(bContext *C)
   return false;
 }
 
-static int action_new_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus action_new_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
@@ -339,7 +339,7 @@ static bool action_pushdown_poll(bContext *C)
   return (adt->flag & ADT_NLA_EDIT_ON) == 0;
 }
 
-static int action_pushdown_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus action_pushdown_exec(bContext *C, wmOperator *op)
 {
   SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
   ID *adt_id_owner = nullptr;
@@ -399,7 +399,7 @@ void ACTION_OT_push_down(wmOperatorType *ot)
 /** \name Action Stash Operator
  * \{ */
 
-static int action_stash_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus action_stash_exec(bContext *C, wmOperator *op)
 {
   SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
   ID *adt_id_owner = nullptr;
@@ -502,7 +502,7 @@ static bool action_stash_create_poll(bContext *C)
   return false;
 }
 
-static int action_stash_create_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus action_stash_create_exec(bContext *C, wmOperator *op)
 {
   SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
   ID *adt_id_owner = nullptr;
@@ -691,7 +691,7 @@ static bool action_unlink_poll(bContext *C)
   return false;
 }
 
-static int action_unlink_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus action_unlink_exec(bContext *C, wmOperator *op)
 {
   ID *animated_id = nullptr;
   AnimData *adt = ED_actedit_animdata_from_context(C, &animated_id);
@@ -707,7 +707,7 @@ static int action_unlink_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* NOTE: this is hardcoded to match the behavior for the unlink button
    * (in `interface_templates.cc`). */
@@ -864,7 +864,7 @@ static bool action_layer_next_poll(bContext *C)
   return false;
 }
 
-static int action_layer_next_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus action_layer_next_exec(bContext *C, wmOperator *op)
 {
   ID *animated_id = nullptr;
   AnimData *adt = ED_actedit_animdata_from_context(C, &animated_id);
@@ -980,7 +980,7 @@ static bool action_layer_prev_poll(bContext *C)
   return false;
 }
 
-static int action_layer_prev_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus action_layer_prev_exec(bContext *C, wmOperator *op)
 {
   ID *animated_id = nullptr;
   AnimData *adt = ED_actedit_animdata_from_context(C, &animated_id);

@@ -352,7 +352,7 @@ bool composite_node_editable(bContext *C);
 bool node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(bNode *node, int set);
 bool node_is_previewable(const SpaceNode &snode, const bNodeTree &ntree, const bNode &node);
-int node_render_changed_exec(bContext *, wmOperator *);
+wmOperatorStatus node_render_changed_exec(bContext *, wmOperator *);
 bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
                                         ARegion &region,
                                         const float2 &cursor,

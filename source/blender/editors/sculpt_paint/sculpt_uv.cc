@@ -912,7 +912,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   return static_cast<UvSculptData *>(op->customdata);
 }
 
-static int uv_sculpt_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_sculpt_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   UvSculptData *data;
   Object *obedit = CTX_data_edit_object(C);
@@ -934,7 +934,7 @@ static int uv_sculpt_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int uv_sculpt_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_sculpt_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   UvSculptData *data = (UvSculptData *)op->customdata;
   Object *obedit = CTX_data_edit_object(C);

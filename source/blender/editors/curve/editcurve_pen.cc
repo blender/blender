@@ -1553,7 +1553,7 @@ wmKeyMap *curve_pen_modal_keymap(wmKeyConfig *keyconf)
   return keymap;
 }
 
-static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -1571,7 +1571,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
   params.sel_op = SEL_OP_SET;
   params.deselect_all = false;
 
-  int ret = OPERATOR_RUNNING_MODAL;
+  wmOperatorStatus ret = OPERATOR_RUNNING_MODAL;
 
   /* Distance threshold for mouse clicks to affect the spline or its points */
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
@@ -1743,7 +1743,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return ret;
 }
 
-static int curve_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus curve_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);

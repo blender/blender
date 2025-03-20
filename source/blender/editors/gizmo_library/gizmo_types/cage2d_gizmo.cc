@@ -1017,7 +1017,7 @@ static void gizmo_cage2d_setup(wmGizmo *gz)
   gz->flag |= WM_GIZMO_DRAW_MODAL | WM_GIZMO_DRAW_NO_SCALE;
 }
 
-static int gizmo_cage2d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
+static wmOperatorStatus gizmo_cage2d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 {
   RectTransformInteraction *data = static_cast<RectTransformInteraction *>(
       MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction"));
@@ -1092,10 +1092,10 @@ static void gizmo_pivot_from_scale_part(int part, float r_pt[2])
   }
 }
 
-static int gizmo_cage2d_modal(bContext *C,
-                              wmGizmo *gz,
-                              const wmEvent *event,
-                              eWM_GizmoFlagTweak /*tweak_flag*/)
+static wmOperatorStatus gizmo_cage2d_modal(bContext *C,
+                                           wmGizmo *gz,
+                                           const wmEvent *event,
+                                           eWM_GizmoFlagTweak /*tweak_flag*/)
 {
   RectTransformInteraction *data = static_cast<RectTransformInteraction *>(gz->interaction_data);
   int transform_flag = RNA_enum_get(gz->ptr, "transform");

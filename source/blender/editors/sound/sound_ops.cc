@@ -71,7 +71,7 @@ static void sound_open_init(bContext *C, wmOperator *op)
 }
 
 #ifdef WITH_AUDASPACE
-static int sound_open_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sound_open_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
   bSound *sound;
@@ -114,7 +114,7 @@ static int sound_open_exec(bContext *C, wmOperator *op)
 
 #else /* WITH_AUDASPACE */
 
-static int sound_open_exec(bContext * /*C*/, wmOperator *op)
+static wmOperatorStatus sound_open_exec(bContext * /*C*/, wmOperator *op)
 {
   BKE_report(op->reports, RPT_ERROR, "Compiled without sound support");
 
@@ -123,7 +123,7 @@ static int sound_open_exec(bContext * /*C*/, wmOperator *op)
 
 #endif
 
-static int sound_open_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sound_open_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return sound_open_exec(C, op);
@@ -255,7 +255,7 @@ static void sound_update_animation_flags(Scene *scene)
   }
 }
 
-static int sound_update_animation_flags_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus sound_update_animation_flags_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -288,7 +288,7 @@ static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 
 /* ******************************************************* */
 
-static int sound_bake_animation_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus sound_bake_animation_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   /* NOTE: We will be forcefully evaluating dependency graph at every frame, so no need to ensure
@@ -328,7 +328,7 @@ static void SOUND_OT_bake_animation(wmOperatorType *ot)
 
 /******************** mixdown operator ********************/
 
-static int sound_mixdown_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sound_mixdown_exec(bContext *C, wmOperator *op)
 {
 #ifdef WITH_AUDASPACE
   char filepath[FILE_MAX];
@@ -488,7 +488,7 @@ static bool sound_mixdown_check(bContext * /*C*/, wmOperator *op)
 
 #endif /* WITH_AUDASPACE */
 
-static int sound_mixdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sound_mixdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return sound_mixdown_exec(C, op);
@@ -785,7 +785,7 @@ static bool sound_poll(bContext *C)
 }
 /********************* pack operator *********************/
 
-static int sound_pack_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sound_pack_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Editing *ed = CTX_data_scene(C)->ed;
@@ -826,7 +826,7 @@ static void SOUND_OT_pack(wmOperatorType *ot)
 
 /********************* unpack operator *********************/
 
-static int sound_unpack_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sound_unpack_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   int method = RNA_enum_get(op->ptr, "method");
@@ -859,7 +859,7 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Editing *ed = CTX_data_scene(C)->ed;
   bSound *sound;

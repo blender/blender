@@ -106,7 +106,7 @@ static bool object_remesh_poll(bContext *C)
   return ED_operator_object_active_editable_mesh(C);
 }
 
-static int voxel_remesh_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus voxel_remesh_exec(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
@@ -366,7 +366,7 @@ static void voxel_size_edit_update_header(wmOperator *op, bContext *C)
   status.item_bool(IFACE_("Precision Mode"), cd->slow_mode, ICON_EVENT_SHIFT);
 }
 
-static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   VoxelSizeEditCustomData *cd = static_cast<VoxelSizeEditCustomData *>(op->customdata);
@@ -432,7 +432,7 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   Object *active_object = CTX_data_active_object(C);
@@ -949,7 +949,7 @@ static void quadriflow_end_job(void *customdata)
   }
 }
 
-static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus quadriflow_remesh_exec(bContext *C, wmOperator *op)
 {
   QuadriFlowJob *job = (QuadriFlowJob *)MEM_mallocN(sizeof(QuadriFlowJob), "QuadriFlowJob");
 
@@ -1112,7 +1112,7 @@ static const EnumPropertyItem mode_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int quadriflow_remesh_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus quadriflow_remesh_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   return WM_operator_props_popup_confirm_ex(
       C, op, event, IFACE_("QuadriFlow Remesh the Selected Mesh"), IFACE_("Remesh"));

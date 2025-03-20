@@ -257,7 +257,7 @@ static void datadropper_set_draw_callback_region(ScrArea *area, DataDropper *ddr
 }
 
 /* main modal status check */
-static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   DataDropper *ddr = (DataDropper *)op->customdata;
 
@@ -298,7 +298,7 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* Modal Operator init */
-static int datadropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus datadropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* init */
   if (datadropper_init(C, op)) {
@@ -316,7 +316,7 @@ static int datadropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*eve
 }
 
 /* Repeat operator */
-static int datadropper_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus datadropper_exec(bContext *C, wmOperator *op)
 {
   /* init */
   if (datadropper_init(C, op)) {

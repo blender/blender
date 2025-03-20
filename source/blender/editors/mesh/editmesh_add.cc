@@ -90,7 +90,7 @@ static void make_prim_finish(bContext *C,
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 }
 
-static int add_primitive_plane_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_plane_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;
   Object *obedit;
@@ -156,7 +156,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
   blender::ed::object::add_generic_props(ot, true);
 }
 
-static int add_primitive_cube_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_cube_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;
   Object *obedit;
@@ -227,7 +227,7 @@ static const EnumPropertyItem fill_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int add_primitive_circle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_circle_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;
   Object *obedit;
@@ -302,7 +302,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
   blender::ed::object::add_generic_props(ot, true);
 }
 
-static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;
   Object *obedit;
@@ -379,7 +379,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
   blender::ed::object::add_generic_props(ot, true);
 }
 
-static int add_primitive_cone_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_cone_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;
   Object *obedit;
@@ -459,7 +459,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
   blender::ed::object::add_generic_props(ot, true);
 }
 
-static int add_primitive_grid_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_grid_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;
   Object *obedit;
@@ -532,7 +532,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
   blender::ed::object::add_generic_props(ot, true);
 }
 
-static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;
   Object *obedit;
@@ -599,7 +599,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
   blender::ed::object::add_generic_props(ot, true);
 }
 
-static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;
   Object *obedit;
@@ -670,7 +670,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
   blender::ed::object::add_generic_props(ot, true);
 }
 
-static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 {
   MakePrimitiveData creation_data;
   Object *obedit;

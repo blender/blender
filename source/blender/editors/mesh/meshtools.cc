@@ -336,7 +336,7 @@ static void mesh_join_offset_face_sets_ID(Mesh *mesh, int *face_set_offset)
   face_sets.finish();
 }
 
-int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
+wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -720,7 +720,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
  * Append selected meshes vertex locations as shapes of the active mesh.
  * \{ */
 
-int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
+wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);

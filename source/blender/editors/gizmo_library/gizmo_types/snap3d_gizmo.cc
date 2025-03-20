@@ -278,15 +278,17 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   return -1;
 }
 
-static int snap_gizmo_modal(bContext * /*C*/,
-                            wmGizmo * /*gz*/,
-                            const wmEvent * /*event*/,
-                            eWM_GizmoFlagTweak /*tweak_flag*/)
+static wmOperatorStatus snap_gizmo_modal(bContext * /*C*/,
+                                         wmGizmo * /*gz*/,
+                                         const wmEvent * /*event*/,
+                                         eWM_GizmoFlagTweak /*tweak_flag*/)
 {
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int snap_gizmo_invoke(bContext * /*C*/, wmGizmo * /*gz*/, const wmEvent * /*event*/)
+static wmOperatorStatus snap_gizmo_invoke(bContext * /*C*/,
+                                          wmGizmo * /*gz*/,
+                                          const wmEvent * /*event*/)
 {
   return OPERATOR_RUNNING_MODAL;
 }

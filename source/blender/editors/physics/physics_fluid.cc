@@ -508,7 +508,7 @@ static void fluid_free_startjob(void *customdata, wmJobWorkerStatus *worker_stat
 
 /***************************** Operators ******************************/
 
-static int fluid_bake_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus fluid_bake_exec(bContext *C, wmOperator *op)
 {
   FluidJob *job = static_cast<FluidJob *>(MEM_mallocN(sizeof(FluidJob), "FluidJob"));
   char error_msg[256] = "\0";
@@ -534,7 +534,7 @@ static int fluid_bake_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int fluid_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*_event*/)
+static wmOperatorStatus fluid_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*_event*/)
 {
   Scene *scene = CTX_data_scene(C);
   FluidJob *job = static_cast<FluidJob *>(MEM_mallocN(sizeof(FluidJob), "FluidJob"));
@@ -575,7 +575,7 @@ static int fluid_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*_eve
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int fluid_bake_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+static wmOperatorStatus fluid_bake_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */
   if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID)) {
@@ -589,7 +589,7 @@ static int fluid_bake_modal(bContext *C, wmOperator * /*op*/, const wmEvent *eve
   return OPERATOR_PASS_THROUGH;
 }
 
-static int fluid_free_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus fluid_free_exec(bContext *C, wmOperator *op)
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;
@@ -654,7 +654,7 @@ static int fluid_free_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int fluid_pause_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus fluid_pause_exec(bContext *C, wmOperator *op)
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;

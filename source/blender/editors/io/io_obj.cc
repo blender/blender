@@ -59,7 +59,9 @@ static const EnumPropertyItem io_obj_path_mode[] = {
     {PATH_REFERENCE_COPY, "COPY", 0, "Copy", "Copy the file to the destination path"},
     {0, nullptr, 0, nullptr, nullptr}};
 
-static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_obj_export_invoke(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent * /*event*/)
 {
   ED_fileselect_ensure_default_filepath(C, op, ".obj");
 
@@ -67,7 +69,7 @@ static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*e
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_obj_export_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_obj_export_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
@@ -409,7 +411,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-static int wm_obj_import_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_obj_import_exec(bContext *C, wmOperator *op)
 {
   OBJImportParams import_params;
   import_params.global_scale = RNA_float_get(op->ptr, "global_scale");

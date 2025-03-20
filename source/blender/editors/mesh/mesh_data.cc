@@ -476,7 +476,7 @@ static bool uv_texture_remove_poll(bContext *C)
   return false;
 }
 
-static int mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -509,7 +509,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -550,9 +550,9 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 
 /* *** CustomData clear functions, we need an operator for each *** */
 
-static int mesh_customdata_clear_exec__internal(bContext *C,
-                                                char htype,
-                                                const eCustomDataType type)
+static wmOperatorStatus mesh_customdata_clear_exec__internal(bContext *C,
+                                                             char htype,
+                                                             const eCustomDataType type)
 {
   Mesh *mesh = ED_mesh_context(C);
 
@@ -601,7 +601,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
   }
   return false;
 }
-static int mesh_customdata_mask_clear_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mesh_customdata_mask_clear_exec(bContext *C, wmOperator *op)
 {
   Object *object = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(object->data);
@@ -655,7 +655,7 @@ static bool mesh_customdata_skin_add_poll(bContext *C)
   return (mesh_customdata_skin_state(C) == 0);
 }
 
-static int mesh_customdata_skin_add_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mesh_customdata_skin_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -688,7 +688,7 @@ static bool mesh_customdata_skin_clear_poll(bContext *C)
   return (mesh_customdata_skin_state(C) == 1);
 }
 
-static int mesh_customdata_skin_clear_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mesh_customdata_skin_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_MVERT_SKIN);
 }
@@ -709,7 +709,8 @@ void MESH_OT_customdata_skin_clear(wmOperatorType *ot)
 }
 
 /* Clear custom loop normals */
-static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mesh_customdata_custom_splitnormals_add_exec(bContext *C,
+                                                                     wmOperator * /*op*/)
 {
   using namespace blender;
   Mesh *mesh = ED_mesh_context(C);
@@ -750,7 +751,8 @@ void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mesh_customdata_custom_splitnormals_clear_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mesh_customdata_custom_splitnormals_clear_exec(bContext *C,
+                                                                       wmOperator * /*op*/)
 {
   Mesh *mesh = ED_mesh_context(C);
 

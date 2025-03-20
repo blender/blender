@@ -269,7 +269,7 @@ static const EnumPropertyItem *geometry_attribute_domain_itemf(bContext *C,
   return rna_enum_attribute_domain_itemf(owner, false, r_free);
 }
 
-static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
@@ -293,7 +293,9 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int geometry_attribute_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus geometry_attribute_add_invoke(bContext *C,
+                                                      wmOperator *op,
+                                                      const wmEvent *event)
 {
   PropertyRNA *prop;
   prop = RNA_struct_find_property(op->ptr, "name");
@@ -361,7 +363,7 @@ void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_attribute_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
@@ -398,7 +400,7 @@ void GEOMETRY_OT_attribute_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
@@ -431,7 +433,9 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int geometry_color_attribute_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus geometry_color_attribute_add_invoke(bContext *C,
+                                                            wmOperator *op,
+                                                            const wmEvent *event)
 {
   PropertyRNA *prop;
   prop = RNA_struct_find_property(op->ptr, "name");
@@ -499,7 +503,7 @@ bool convert_attribute(bke::MutableAttributeAccessor attributes,
   return true;
 }
 
-static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   ID *ob_data = static_cast<ID *>(ob->data);
@@ -645,7 +649,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
   RNA_def_property_float_array_default(prop, default_color);
 }
 
-static int geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
@@ -686,7 +690,7 @@ void GEOMETRY_OT_color_attribute_render_set(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
@@ -736,7 +740,7 @@ void GEOMETRY_OT_color_attribute_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
@@ -794,9 +798,9 @@ void GEOMETRY_OT_color_attribute_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int geometry_attribute_convert_invoke(bContext *C,
-                                             wmOperator *op,
-                                             const wmEvent * /*event*/)
+static wmOperatorStatus geometry_attribute_convert_invoke(bContext *C,
+                                                          wmOperator *op,
+                                                          const wmEvent * /*event*/)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
@@ -910,7 +914,7 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
   return true;
 }
 
-static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
 {
   Object *ob = object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -924,9 +928,9 @@ static int geometry_color_attribute_convert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int geometry_color_attribute_convert_invoke(bContext *C,
-                                                   wmOperator *op,
-                                                   const wmEvent * /*event*/)
+static wmOperatorStatus geometry_color_attribute_convert_invoke(bContext *C,
+                                                                wmOperator *op,
+                                                                const wmEvent * /*event*/)
 {
   Object *ob = object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);

@@ -30,7 +30,7 @@
 #  include "BPY_extern_run.hh"
 #endif
 
-static int run_pyfile_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus run_pyfile_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
@@ -89,7 +89,7 @@ static bool script_test_modal_operators(bContext *C)
 }
 #endif
 
-static int script_reload_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus script_reload_exec(bContext *C, wmOperator *op)
 {
 
 #ifdef WITH_PYTHON

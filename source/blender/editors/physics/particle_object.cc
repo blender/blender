@@ -66,7 +66,7 @@ static float I[4][4] = {
 
 /********************** particle system slot operators *********************/
 
-static int particle_system_add_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus particle_system_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = blender::ed::object::context_object(C);
@@ -99,7 +99,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int particle_system_remove_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus particle_system_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = blender::ed::object::context_object(C);
@@ -156,7 +156,7 @@ static bool psys_poll(bContext *C)
   return (ptr.data != nullptr);
 }
 
-static int new_particle_settings_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus new_particle_settings_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   ParticleSystem *psys;
@@ -212,7 +212,7 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 
 /********************** keyed particle target operators *********************/
 
-static int new_particle_target_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus new_particle_target_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
@@ -259,7 +259,7 @@ void PARTICLE_OT_new_target(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int remove_particle_target_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus remove_particle_target_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
@@ -310,7 +310,7 @@ void PARTICLE_OT_target_remove(wmOperatorType *ot)
 
 /************************ move up particle target operator *********************/
 
-static int target_move_up_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus target_move_up_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
@@ -350,7 +350,7 @@ void PARTICLE_OT_target_move_up(wmOperatorType *ot)
 
 /************************ move down particle target operator *********************/
 
-static int target_move_down_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus target_move_down_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
@@ -389,7 +389,7 @@ void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 
 /************************ refresh dupli objects *********************/
 
-static int dupliob_refresh_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus dupliob_refresh_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
@@ -419,7 +419,7 @@ void PARTICLE_OT_dupliob_refresh(wmOperatorType *ot)
 
 /************************ move up particle dupli-weight operator *********************/
 
-static int dupliob_move_up_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus dupliob_move_up_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
@@ -458,7 +458,7 @@ void PARTICLE_OT_dupliob_move_up(wmOperatorType *ot)
 
 /********************** particle dupliweight operators *********************/
 
-static int copy_particle_dupliob_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus copy_particle_dupliob_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
@@ -498,7 +498,7 @@ void PARTICLE_OT_dupliob_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int remove_particle_dupliob_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus remove_particle_dupliob_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
@@ -544,7 +544,7 @@ void PARTICLE_OT_dupliob_remove(wmOperatorType *ot)
 
 /************************ move down particle dupliweight operator *********************/
 
-static int dupliob_move_down_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus dupliob_move_down_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
   ParticleSystem *psys = static_cast<ParticleSystem *>(ptr.data);
@@ -637,7 +637,7 @@ static void disconnect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Part
   PE_update_object(depsgraph, scene, ob, 0);
 }
 
-static int disconnect_hair_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus disconnect_hair_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -933,7 +933,7 @@ static bool connect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Particl
   return ok;
 }
 
-static int connect_hair_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus connect_hair_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -1232,7 +1232,7 @@ static bool copy_particle_systems_poll(bContext *C)
   return true;
 }
 
-static int copy_particle_systems_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus copy_particle_systems_exec(bContext *C, wmOperator *op)
 {
   const int space = RNA_enum_get(op->ptr, "space");
   const bool remove_target_particles = RNA_boolean_get(op->ptr, "remove_target_particles");
@@ -1341,7 +1341,7 @@ static bool duplicate_particle_systems_poll(bContext *C)
   return true;
 }
 
-static int duplicate_particle_systems_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus duplicate_particle_systems_exec(bContext *C, wmOperator *op)
 {
   const bool duplicate_settings = RNA_boolean_get(op->ptr, "use_duplicate_settings");
   Scene *scene = CTX_data_scene(C);

@@ -554,7 +554,7 @@ static bool select_poll(bContext *C)
   return false;
 }
 
-static int select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus select_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -659,7 +659,7 @@ static int select_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
-static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
@@ -722,7 +722,7 @@ bool ED_clip_can_select(bContext *C)
 
 /********************** box select operator *********************/
 
-static int box_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
@@ -906,7 +906,7 @@ static int do_lasso_select_marker(bContext *C, const Span<int2> mcoords, bool se
   return changed;
 }
 
-static int clip_lasso_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus clip_lasso_select_exec(bContext *C, wmOperator *op)
 {
   const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
 
@@ -970,7 +970,7 @@ static int marker_inside_ellipse(const MovieTrackingMarker *marker,
   return point_inside_ellipse(marker->pos, offset, ellipse);
 }
 
-static int circle_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus circle_select_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
@@ -1084,7 +1084,7 @@ void CLIP_OT_select_circle(wmOperatorType *ot)
 
 /********************** select all operator *********************/
 
-static int select_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus select_all_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -1129,7 +1129,7 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 
 /********************** select grouped operator *********************/
 
-static int select_grouped_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus select_grouped_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);

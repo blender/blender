@@ -36,7 +36,7 @@ namespace blender::ed::vse {
 /** \name Add modifier operator
  * \{ */
 
-static int strip_modifier_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus strip_modifier_add_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Strip *strip = seq::select_active_get(scene);
@@ -97,7 +97,7 @@ void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
 /** \name Remove Modifier Operator
  * \{ */
 
-static int strip_modifier_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus strip_modifier_remove_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Strip *strip = seq::select_active_get(scene);
@@ -157,7 +157,7 @@ enum {
   SEQ_MODIFIER_MOVE_DOWN,
 };
 
-static int strip_modifier_move_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus strip_modifier_move_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Strip *strip = seq::select_active_get(scene);
@@ -238,7 +238,7 @@ enum {
   SEQ_MODIFIER_COPY_APPEND = 1,
 };
 
-static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus strip_modifier_copy_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = scene->ed;
@@ -329,7 +329,7 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
 /** \name Redefine Equalizer Graphs Operator
  * \{ */
 
-static int strip_modifier_equalizer_redefine_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus strip_modifier_equalizer_redefine_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Strip *strip = seq::select_active_get(scene);

@@ -251,7 +251,7 @@ static void wm_stereo3d_set_init(bContext *C, wmOperator *op)
   s3dd->stereo3d_format = *win->stereo3d_format;
 }
 
-int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
+wmOperatorStatus wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win_src = CTX_wm_window(C);
@@ -340,7 +340,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+wmOperatorStatus wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   wm_stereo3d_set_init(C, op);
 

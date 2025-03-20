@@ -895,7 +895,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
 /** \name UV Rip Operator
  * \{ */
 
-static int uv_rip_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_rip_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
@@ -941,7 +941,7 @@ static int uv_rip_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int uv_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   float co[2];

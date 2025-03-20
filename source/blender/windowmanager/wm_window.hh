@@ -124,11 +124,11 @@ void wm_window_timers_delete_removed(wmWindowManager *wm);
 
 /* *************** window operators ************** */
 
-int wm_window_close_exec(bContext *C, wmOperator *op);
+wmOperatorStatus wm_window_close_exec(bContext *C, wmOperator *op);
 /**
  * Full-screen operator callback.
  */
-int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *op);
+wmOperatorStatus wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *op);
 /**
  * Call the quit confirmation prompt or exit directly if needed. The use can
  * still cancel via the confirmation popup. Also, this may not quit Blender
@@ -138,8 +138,8 @@ int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *op);
  */
 void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win) ATTR_NONNULL();
 
-int wm_window_new_exec(bContext *C, wmOperator *op);
-int wm_window_new_main_exec(bContext *C, wmOperator *op);
+wmOperatorStatus wm_window_new_exec(bContext *C, wmOperator *op);
+wmOperatorStatus wm_window_new_main_exec(bContext *C, wmOperator *op);
 
 void wm_test_autorun_revert_action_set(wmOperatorType *ot, PointerRNA *ptr);
 void wm_test_autorun_warning(bContext *C);

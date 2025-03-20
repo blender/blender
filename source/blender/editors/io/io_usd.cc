@@ -244,7 +244,9 @@ static void process_prim_path(char *prim_path)
   }
 }
 
-static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_usd_export_invoke(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent * /*event*/)
 {
   USDOperatorOptions *options = MEM_callocN<USDOperatorOptions>("USDOperatorOptions");
   options->as_background_job = true;
@@ -257,7 +259,7 @@ static int wm_usd_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*e
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_usd_export_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
@@ -911,7 +913,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
 
 /* ====== USD Import ====== */
 
-static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   USDOperatorOptions *options = MEM_callocN<USDOperatorOptions>("USDOperatorOptions");
   options->as_background_job = true;
@@ -920,7 +922,7 @@ static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return blender::ed::io::filesel_drop_import_invoke(C, op, event);
 }
 
-static int wm_usd_import_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");

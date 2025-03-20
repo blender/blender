@@ -700,7 +700,7 @@ static bool decrease_contrast_mask_bmesh(const Depsgraph &depsgraph,
   return true;
 }
 
-static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);

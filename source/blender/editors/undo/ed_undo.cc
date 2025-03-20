@@ -234,7 +234,9 @@ static void ed_undo_step_post(bContext *C,
  * May undo or redo several steps at once only if the target step is a 'skipped' one.
  * The target step will be the one immediately before or after the active one.
  */
-static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportList *reports)
+static wmOperatorStatus ed_undo_step_direction(bContext *C,
+                                               enum eUndoStepDir step,
+                                               ReportList *reports)
 {
   BLI_assert(ELEM(step, STEP_UNDO, STEP_REDO));
 
@@ -461,18 +463,18 @@ static void ed_undo_refresh_for_op(bContext *C)
   ED_outliner_select_sync_from_all_tag(C);
 }
 
-static int ed_undo_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus ed_undo_exec(bContext *C, wmOperator *op)
 {
   /* "last operator" should disappear, later we can tie this with undo stack nicer */
   WM_operator_stack_clear(CTX_wm_manager(C));
-  int ret = ed_undo_step_direction(C, STEP_UNDO, op->reports);
+  wmOperatorStatus ret = ed_undo_step_direction(C, STEP_UNDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
     ed_undo_refresh_for_op(C);
   }
   return ret;
 }
 
-static int ed_undo_push_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus ed_undo_push_exec(bContext *C, wmOperator *op)
 {
   if (G.background) {
     /* Exception for background mode, see: #60934.
@@ -489,19 +491,20 @@ static int ed_undo_push_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int ed_redo_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus ed_redo_exec(bContext *C, wmOperator *op)
 {
-  int ret = ed_undo_step_direction(C, STEP_REDO, op->reports);
+  wmOperatorStatus ret = ed_undo_step_direction(C, STEP_REDO, op->reports);
   if (ret & OPERATOR_FINISHED) {
     ed_undo_refresh_for_op(C);
   }
   return ret;
 }
 
-static int ed_undo_redo_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus ed_undo_redo_exec(bContext *C, wmOperator * /*op*/)
 {
   wmOperator *last_op = WM_operator_last_redo(C);
-  const int ret = ED_undo_operator_repeat(C, last_op) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  wmOperatorStatus ret = ED_undo_operator_repeat(C, last_op) ? OPERATOR_FINISHED :
+                                                               OPERATOR_CANCELLED;
   if (ret & OPERATOR_FINISHED) {
     /* Keep button under the cursor active. */
     WM_event_add_mousemove(CTX_wm_window(C));
@@ -721,7 +724,7 @@ void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int /*arg_unused*
  * \{ */
 
 /* NOTE: also check #ed_undo_step() in top if you change notifiers. */
-static int undo_history_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus undo_history_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "item");
   if (RNA_property_is_set(op->ptr, prop)) {
@@ -737,7 +740,7 @@ static int undo_history_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus undo_history_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "item");
   if (RNA_property_is_set(op->ptr, prop)) {

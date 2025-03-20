@@ -375,7 +375,7 @@ bool ensure_active_keyframe(const Scene &scene,
   return true;
 }
 
-static int insert_blank_frame_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus insert_blank_frame_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
@@ -505,7 +505,7 @@ static bool curves_geometry_is_equal(const bke::CurvesGeometry &curves_a,
   return true;
 }
 
-static int frame_clean_duplicate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus frame_clean_duplicate_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
   Object *object = CTX_data_active_object(C);
@@ -796,7 +796,7 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
   return true;
 }
 
-static int grease_pencil_frame_duplicate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_frame_duplicate_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
@@ -857,7 +857,7 @@ static void GREASE_PENCIL_OT_frame_duplicate(wmOperatorType *ot)
       ot->srna, "all", false, "Duplicate all", "Duplicate active keyframes of all layer");
 }
 
-static int grease_pencil_active_frame_delete_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_active_frame_delete_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::greasepencil;
   Scene *scene = CTX_data_scene(C);
@@ -933,7 +933,8 @@ static bool grease_pencil_active_breakdown_frame_poll(bContext *C)
   return false;
 }
 
-static int grease_pencil_delete_breakdown_frames_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_delete_breakdown_frames_exec(bContext *C,
+                                                                   wmOperator * /*op*/)
 {
   const Object &ob = *CTX_data_active_object(C);
   const Scene &scene = *CTX_data_scene(C);

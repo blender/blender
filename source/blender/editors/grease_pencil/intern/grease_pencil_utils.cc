@@ -1536,9 +1536,9 @@ float opacity_from_input_sample(const float pressure,
   return opacity;
 }
 
-int grease_pencil_draw_operator_invoke(bContext *C,
-                                       wmOperator *op,
-                                       const bool use_duplicate_previous_key)
+wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const bool use_duplicate_previous_key)
 {
   const Scene *scene = CTX_data_scene(C);
   const Object *object = CTX_data_active_object(C);

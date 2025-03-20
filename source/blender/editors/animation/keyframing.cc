@@ -69,7 +69,7 @@ static KeyingSet *keyingset_get_from_op_with_error(wmOperator *op,
                                                    PropertyRNA *prop,
                                                    Scene *scene);
 
-static int delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *ks);
+static wmOperatorStatus delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *ks);
 
 /* ******************************************* */
 /* Animation Data Validation */
@@ -164,7 +164,7 @@ static bool modify_key_op_poll(bContext *C)
 
 /* Insert Key Operator ------------------------ */
 
-static int insert_key_with_keyingset(bContext *C, wmOperator *op, KeyingSet *ks)
+static wmOperatorStatus insert_key_with_keyingset(bContext *C, wmOperator *op, KeyingSet *ks)
 {
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -299,7 +299,7 @@ static bool get_selection(bContext *C, blender::Vector<PointerRNA> *r_selection)
   return true;
 }
 
-static int insert_key(bContext *C, wmOperator *op)
+static wmOperatorStatus insert_key(bContext *C, wmOperator *op)
 {
   using namespace blender;
 
@@ -368,7 +368,7 @@ static int insert_key(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int insert_key_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus insert_key_exec(bContext *C, wmOperator *op)
 {
   ANIM_deselect_keys_in_animation_editors(C);
 
@@ -382,7 +382,7 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   return insert_key(C, op);
 }
 
-static int insert_key_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus insert_key_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* The depsgraph needs to be in an evaluated state to ensure the values we get from the
    * properties are actually the values of the current frame. However we cannot do that in the exec
@@ -417,7 +417,7 @@ void ANIM_OT_keyframe_insert(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-static int keyframe_insert_with_keyingset_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus keyframe_insert_with_keyingset_exec(bContext *C, wmOperator *op)
 {
   ANIM_deselect_keys_in_animation_editors(C);
 
@@ -459,7 +459,9 @@ void ANIM_OT_keyframe_insert_by_name(wmOperatorType *ot)
  * then calls the menu if necessary before
  */
 
-static int insert_key_menu_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus insert_key_menu_invoke(bContext *C,
+                                               wmOperator *op,
+                                               const wmEvent * /*event*/)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -552,7 +554,7 @@ void ANIM_OT_keyframe_insert_menu(wmOperatorType *ot)
 
 /* Delete Key Operator ------------------------ */
 
-static int delete_key_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus delete_key_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   KeyingSet *ks = keyingset_get_from_op_with_error(op, op->type->prop, scene);
@@ -563,7 +565,7 @@ static int delete_key_exec(bContext *C, wmOperator *op)
   return delete_key_using_keying_set(C, op, ks);
 }
 
-static int delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *ks)
+static wmOperatorStatus delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *ks)
 {
   Scene *scene = CTX_data_scene(C);
   float cfra = BKE_scene_frame_get(scene);
@@ -689,7 +691,7 @@ static bool can_delete_fcurve(FCurve *fcu, Object *ob)
   return can_delete;
 }
 
-static int clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender::animrig;
   bool changed = false;
@@ -743,7 +745,9 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int clear_anim_v3d_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus clear_anim_v3d_invoke(bContext *C,
+                                              wmOperator *op,
+                                              const wmEvent * /*event*/)
 {
   if (RNA_boolean_get(op->ptr, "confirm")) {
     return WM_operator_confirm_ex(C,
@@ -827,7 +831,7 @@ static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
   return true;
 }
 
-static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
+static wmOperatorStatus delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
   Scene *scene = CTX_data_scene(C);
@@ -922,7 +926,7 @@ static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int delete_key_v3d_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus delete_key_v3d_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   KeyingSet *ks = blender::animrig::scene_get_active_keyingset(scene);
@@ -934,7 +938,9 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
   return delete_key_using_keying_set(C, op, ks);
 }
 
-static int delete_key_v3d_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus delete_key_v3d_invoke(bContext *C,
+                                              wmOperator *op,
+                                              const wmEvent * /*event*/)
 {
   if (RNA_boolean_get(op->ptr, "confirm")) {
     return WM_operator_confirm_ex(C,
@@ -968,7 +974,7 @@ void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
 
 /* Insert Key Button Operator ------------------------ */
 
-static int insert_key_button_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus insert_key_button_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
   Main *bmain = CTX_data_main(C);
@@ -1126,7 +1132,7 @@ void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
 
 /* Delete Key Button Operator ------------------------ */
 
-static int delete_key_button_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus delete_key_button_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   PointerRNA ptr = {};
@@ -1233,7 +1239,7 @@ void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
 
 /* Clear Key Button Operator ------------------------ */
 
-static int clear_key_button_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus clear_key_button_exec(bContext *C, wmOperator *op)
 {
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;

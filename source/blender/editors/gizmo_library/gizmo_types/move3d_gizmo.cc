@@ -61,10 +61,10 @@ static void gizmo_move_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4])
   add_v3_v3(r_matrix[3], move->prop_co);
 }
 
-static int gizmo_move_modal(bContext *C,
-                            wmGizmo *gz,
-                            const wmEvent *event,
-                            eWM_GizmoFlagTweak tweak_flag);
+static wmOperatorStatus gizmo_move_modal(bContext *C,
+                                         wmGizmo *gz,
+                                         const wmEvent *event,
+                                         eWM_GizmoFlagTweak tweak_flag);
 
 struct MoveInteraction {
   struct {
@@ -233,10 +233,10 @@ static void gizmo_move_draw(const bContext *C, wmGizmo *gz)
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static int gizmo_move_modal(bContext *C,
-                            wmGizmo *gz,
-                            const wmEvent *event,
-                            eWM_GizmoFlagTweak tweak_flag)
+static wmOperatorStatus gizmo_move_modal(bContext *C,
+                                         wmGizmo *gz,
+                                         const wmEvent *event,
+                                         eWM_GizmoFlagTweak tweak_flag)
 {
   using namespace blender::ed;
   MoveInteraction *inter = static_cast<MoveInteraction *>(gz->interaction_data);
@@ -352,7 +352,7 @@ static void gizmo_move_exit(bContext *C, wmGizmo *gz, const bool cancel)
   }
 }
 
-static int gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
+static wmOperatorStatus gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 {
   const bool use_snap = RNA_boolean_get(gz->ptr, "use_snap");
 

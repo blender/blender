@@ -4145,7 +4145,7 @@ static void knifetool_disable_orientation_locking(KnifeTool_OpData *kcd)
   kcd->axis_constrained = false;
 }
 
-static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   KnifeTool_OpData *kcd = static_cast<KnifeTool_OpData *>(op->customdata);
   bool do_refresh = false;
@@ -4496,7 +4496,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool only_select = RNA_boolean_get(op->ptr, "only_selected");
   const bool cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");

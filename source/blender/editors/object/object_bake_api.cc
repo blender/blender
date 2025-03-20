@@ -136,7 +136,7 @@ static void bake_progress_update(void *bjv, float progress)
 }
 
 /** Catch escape key to cancel. */
-static int bake_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+static wmOperatorStatus bake_modal(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   /* no running blender, remove handler and pass through */
   if (0 == WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_BAKE)) {
@@ -1393,10 +1393,10 @@ static void bake_targets_free(BakeTargets *targets)
 
 /* Main Bake Logic */
 
-static int bake(const BakeAPIRender *bkr,
-                Object *ob_low,
-                const Span<PointerRNA> selected_objects,
-                ReportList *reports)
+static wmOperatorStatus bake(const BakeAPIRender *bkr,
+                             Object *ob_low,
+                             const Span<PointerRNA> selected_objects,
+                             ReportList *reports)
 {
   Render *re = bkr->render;
   Main *bmain = bkr->main;
@@ -1412,7 +1412,7 @@ static int bake(const BakeAPIRender *bkr,
 
   DEG_graph_build_from_view_layer(depsgraph);
 
-  int op_result = OPERATOR_CANCELLED;
+  wmOperatorStatus op_result = OPERATOR_CANCELLED;
   bool ok = false;
 
   Object *ob_cage = nullptr;
@@ -1924,10 +1924,10 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
   }
 }
 
-static int bake_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus bake_exec(bContext *C, wmOperator *op)
 {
   Render *re;
-  int result = OPERATOR_CANCELLED;
+  wmOperatorStatus result = OPERATOR_CANCELLED;
   BakeAPIRender bkr = {nullptr};
   Scene *scene = CTX_data_scene(C);
 
@@ -2164,7 +2164,7 @@ static void bake_set_props(wmOperator *op, Scene *scene)
   }
 }
 
-static int bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   wmJob *wm_job;
   Render *re;

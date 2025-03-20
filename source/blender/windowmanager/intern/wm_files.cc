@@ -2483,7 +2483,7 @@ void wm_open_init_use_scripts(wmOperator *op, bool use_prefs)
  * \see #wm_file_write wraps #BLO_write_file in a similar way.
  * \return success.
  */
-static int wm_homefile_write_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_homefile_write_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -2549,7 +2549,9 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static int wm_homefile_write_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_homefile_write_invoke(bContext *C,
+                                                 wmOperator *op,
+                                                 const wmEvent * /*event*/)
 {
   if (!U.app_template[0]) {
     return WM_operator_confirm_ex(C,
@@ -2593,7 +2595,7 @@ void WM_OT_save_homefile(wmOperatorType *ot)
  * \{ */
 
 /* Only save the prefs block. operator entry. */
-static int wm_userpref_write_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_userpref_write_exec(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -2689,7 +2691,7 @@ static void wm_userpref_update_when_changed(bContext *C,
   userdef_curr->runtime.is_dirty = is_dirty;
 }
 
-static int wm_userpref_read_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_userpref_read_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   const bool use_data = false;
@@ -2742,7 +2744,9 @@ void WM_OT_read_userpref(wmOperatorType *ot)
   ot->exec = wm_userpref_read_exec;
 }
 
-static int wm_userpref_read_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_userpref_read_invoke(bContext *C,
+                                                wmOperator *op,
+                                                const wmEvent * /*event*/)
 {
   std::string title;
 
@@ -2789,7 +2793,7 @@ void WM_OT_read_factory_userpref(wmOperatorType *ot)
 /** \name Read File History Operator
  * \{ */
 
-static int wm_history_file_read_exec(bContext * /*C*/, wmOperator * /*op*/)
+static wmOperatorStatus wm_history_file_read_exec(bContext * /*C*/, wmOperator * /*op*/)
 {
   ED_file_read_bookmarks();
   wm_history_file_read();
@@ -2817,7 +2821,7 @@ void WM_OT_read_history(wmOperatorType *ot)
  * Both #WM_OT_read_homefile & #WM_OT_read_factory_settings.
  * \{ */
 
-static int wm_homefile_read_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_homefile_read_exec(bContext *C, wmOperator *op)
 {
   const bool use_factory_startup_and_userdef = STREQ(op->type->idname,
                                                      "WM_OT_read_factory_settings");
@@ -2931,7 +2935,9 @@ static void wm_homefile_read_after_dialog_callback(bContext *C, void *user_data)
       C, "WM_OT_read_homefile", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data, nullptr);
 }
 
-static int wm_homefile_read_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_homefile_read_invoke(bContext *C,
+                                                wmOperator *op,
+                                                const wmEvent * /*event*/)
 {
   if (wm_operator_close_file_dialog_if_needed(C, op, wm_homefile_read_after_dialog_callback)) {
     return OPERATOR_INTERFACE;
@@ -3001,7 +3007,9 @@ void WM_OT_read_homefile(wmOperatorType *ot)
   /* Omit poll to run in background mode. */
 }
 
-static int wm_read_factory_settings_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_read_factory_settings_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent * /*event*/)
 {
   const bool unsaved = wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C),
                                                                    CTX_wm_manager(C));
@@ -3095,10 +3103,12 @@ static void set_next_operator_state(wmOperator *op, int state)
 
 struct OperatorDispatchTarget {
   int state;
-  int (*run)(bContext *C, wmOperator *op);
+  wmOperatorStatus (*run)(bContext *C, wmOperator *op);
 };
 
-static int operator_state_dispatch(bContext *C, wmOperator *op, OperatorDispatchTarget *targets)
+static wmOperatorStatus operator_state_dispatch(bContext *C,
+                                                wmOperator *op,
+                                                OperatorDispatchTarget *targets)
 {
   int state = get_operator_state(op);
   for (int i = 0; targets[i].run; i++) {
@@ -3123,7 +3133,7 @@ enum {
   OPEN_MAINFILE_STATE_OPEN,
 };
 
-static int wm_open_mainfile_dispatch(bContext *C, wmOperator *op);
+static wmOperatorStatus wm_open_mainfile_dispatch(bContext *C, wmOperator *op);
 
 static void wm_open_mainfile_after_dialog_callback(bContext *C, void *user_data)
 {
@@ -3131,7 +3141,7 @@ static void wm_open_mainfile_after_dialog_callback(bContext *C, void *user_data)
       C, "WM_OT_open_mainfile", WM_OP_INVOKE_DEFAULT, (IDProperty *)user_data, nullptr);
 }
 
-static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_open_mainfile__discard_changes_exec(bContext *C, wmOperator *op)
 {
   if (RNA_boolean_get(op->ptr, "display_file_selector")) {
     set_next_operator_state(op, OPEN_MAINFILE_STATE_SELECT_FILE_PATH);
@@ -3146,7 +3156,7 @@ static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
   return wm_open_mainfile_dispatch(C, op);
 }
 
-static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_open_mainfile__select_file_path_exec(bContext *C, wmOperator *op)
 {
   set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
 
@@ -3177,7 +3187,7 @@ static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_open_mainfile__open(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_open_mainfile__open(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
   bool success;
@@ -3207,23 +3217,25 @@ static int wm_open_mainfile__open(bContext *C, wmOperator *op)
 }
 
 static OperatorDispatchTarget wm_open_mainfile_dispatch_targets[] = {
-    {OPEN_MAINFILE_STATE_DISCARD_CHANGES, wm_open_mainfile__discard_changes},
-    {OPEN_MAINFILE_STATE_SELECT_FILE_PATH, wm_open_mainfile__select_file_path},
+    {OPEN_MAINFILE_STATE_DISCARD_CHANGES, wm_open_mainfile__discard_changes_exec},
+    {OPEN_MAINFILE_STATE_SELECT_FILE_PATH, wm_open_mainfile__select_file_path_exec},
     {OPEN_MAINFILE_STATE_OPEN, wm_open_mainfile__open},
     {0, nullptr},
 };
 
-static int wm_open_mainfile_dispatch(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_open_mainfile_dispatch(bContext *C, wmOperator *op)
 {
   return operator_state_dispatch(C, op, wm_open_mainfile_dispatch_targets);
 }
 
-static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_open_mainfile_invoke(bContext *C,
+                                                wmOperator *op,
+                                                const wmEvent * /*event*/)
 {
   return wm_open_mainfile_dispatch(C, op);
 }
 
-static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
   return wm_open_mainfile__open(C, op);
 }
@@ -3373,7 +3385,9 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
 /** \name Reload (revert) Main .blend File Operator
  * \{ */
 
-static int wm_revert_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_revert_mainfile_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent * /*event*/)
 {
   std::string message = IFACE_("Any unsaved changes will be lost.");
   if (ED_image_should_save_modified(CTX_data_main(C))) {
@@ -3390,7 +3404,7 @@ static int wm_revert_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent 
                                 false);
 }
 
-static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   bool success;
@@ -3444,7 +3458,7 @@ bool WM_file_recover_last_session(bContext *C, ReportList *reports)
   return success;
 }
 
-static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_recover_last_session_exec(bContext *C, wmOperator *op)
 {
   wm_open_init_use_scripts(op, true);
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
@@ -3467,7 +3481,9 @@ static void wm_recover_last_session_after_dialog_callback(bContext *C, void *use
       C, "WM_OT_recover_last_session", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data, nullptr);
 }
 
-static int wm_recover_last_session_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_recover_last_session_invoke(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent * /*event*/)
 {
   /* Keep the current setting instead of using the preferences since a file selector
    * doesn't give us the option to change the setting. */
@@ -3499,7 +3515,7 @@ void WM_OT_recover_last_session(wmOperatorType *ot)
 /** \name Auto-Save Main .blend File Operator
  * \{ */
 
-static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
   bool success;
@@ -3529,7 +3545,9 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_recover_auto_save_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent * /*event*/)
 {
   char filepath[FILE_MAX];
 
@@ -3628,7 +3646,9 @@ static void save_set_filepath(bContext *C, wmOperator *op)
   }
 }
 
-static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_save_as_mainfile_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent * /*event*/)
 {
 
   save_set_compress(op);
@@ -3645,7 +3665,7 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent
 }
 
 /* Function used for #WM_OT_save_mainfile too. */
-static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   char filepath[FILE_MAX];
@@ -3837,9 +3857,11 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_save_mainfile_invoke(bContext *C,
+                                                wmOperator *op,
+                                                const wmEvent * /*event*/)
 {
-  int ret;
+  wmOperatorStatus ret;
 
   /* Cancel if no active window. */
   if (CTX_wm_window(C) == nullptr) {
@@ -3942,13 +3964,15 @@ static const EnumPropertyItem prop_clear_recent_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int wm_clear_recent_files_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus wm_clear_recent_files_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event)
 {
   return WM_operator_props_popup_confirm_ex(
       C, op, event, IFACE_("Clear Recent Files List"), IFACE_("Remove"));
 }
 
-static int wm_clear_recent_files_exec(bContext * /*C*/, wmOperator *op)
+static wmOperatorStatus wm_clear_recent_files_exec(bContext * /*C*/, wmOperator *op)
 {
   ClearRecentInclude include = static_cast<ClearRecentInclude>(RNA_enum_get(op->ptr, "remove"));
 

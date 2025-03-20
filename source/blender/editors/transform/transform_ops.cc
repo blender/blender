@@ -175,7 +175,7 @@ const EnumPropertyItem rna_enum_transform_mode_type_items[] = {
 
 namespace blender::ed::transform {
 
-static int select_orientation_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus select_orientation_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -192,7 +192,9 @@ static int select_orientation_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int select_orientation_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static wmOperatorStatus select_orientation_invoke(bContext *C,
+                                                  wmOperator * /*op*/,
+                                                  const wmEvent * /*event*/)
 {
   uiPopupMenu *pup;
   uiLayout *layout;
@@ -225,7 +227,7 @@ static void TRANSFORM_OT_select_orientation(wmOperatorType *ot)
   RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
 }
 
-static int delete_orientation_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus delete_orientation_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   BIF_removeTransformOrientationIndex(C,
@@ -239,7 +241,9 @@ static int delete_orientation_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int delete_orientation_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus delete_orientation_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent * /*event*/)
 {
   return delete_orientation_exec(C, op);
 }
@@ -269,7 +273,7 @@ static void TRANSFORM_OT_delete_orientation(wmOperatorType *ot)
   ot->poll = delete_orientation_poll;
 }
 
-static int create_orientation_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus create_orientation_exec(bContext *C, wmOperator *op)
 {
   char name[MAX_NAME];
   const bool use = RNA_boolean_get(op->ptr, "use");
@@ -420,9 +424,9 @@ static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
   return retval; /* Return 0 on error. */
 }
 
-static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int exit_code = OPERATOR_PASS_THROUGH;
+  wmOperatorStatus exit_code = OPERATOR_PASS_THROUGH;
 
   TransInfo *t = static_cast<TransInfo *>(op->customdata);
   const eTfmMode mode_prev = t->mode;
@@ -523,7 +527,7 @@ static void transform_cancel(bContext *C, wmOperator *op)
   transformops_exit(C, op);
 }
 
-static int transform_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus transform_exec(bContext *C, wmOperator *op)
 {
   TransInfo *t;
 
@@ -547,7 +551,7 @@ static int transform_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int transform_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus transform_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!transformops_data(C, op, event)) {
     G.moving = 0;
@@ -1435,7 +1439,9 @@ static void TRANSFORM_OT_transform(wmOperatorType *ot)
                           P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER | P_POST_TRANSFORM | P_OPTIONS);
 }
 
-static int transform_from_gizmo_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+static wmOperatorStatus transform_from_gizmo_invoke(bContext *C,
+                                                    wmOperator * /*op*/,
+                                                    const wmEvent *event)
 {
   bToolRef *tref = WM_toolsystem_ref_from_context(C);
   if (tref) {

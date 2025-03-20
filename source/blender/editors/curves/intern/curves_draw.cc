@@ -734,7 +734,7 @@ static void create_NURBS(bke::CurvesGeometry &curves,
   radii.finish();
 }
 
-static int curves_draw_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus curves_draw_exec(bContext *C, wmOperator *op)
 {
   if (op->customdata == nullptr) {
     if (!curve_draw_init(C, op, false)) {
@@ -1046,7 +1046,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int curves_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus curves_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (RNA_struct_property_is_set(op->ptr, "stroke")) {
     return curves_draw_exec(C, op);
@@ -1272,9 +1272,9 @@ static void curve_draw_exec_precalc(wmOperator *op)
   }
 }
 
-static int curves_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus curves_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int ret = OPERATOR_RUNNING_MODAL;
+  wmOperatorStatus ret = OPERATOR_RUNNING_MODAL;
   CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
 
   UNUSED_VARS(C, op);

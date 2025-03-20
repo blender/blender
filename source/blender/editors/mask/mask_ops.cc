@@ -95,7 +95,7 @@ MaskLayer *ED_mask_layer_ensure(bContext *C, bool *r_added_mask)
   return mask_layer;
 }
 
-static int mask_new_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mask_new_exec(bContext *C, wmOperator *op)
 {
   char name[MAX_ID_NAME - 2];
 
@@ -128,7 +128,7 @@ void MASK_OT_new(wmOperatorType *ot)
 
 /******************** create new mask layer *********************/
 
-static int mask_layer_new_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mask_layer_new_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
   char name[MAX_ID_NAME - 2];
@@ -164,7 +164,7 @@ void MASK_OT_layer_new(wmOperatorType *ot)
 
 /******************** remove mask layer *********************/
 
-static int mask_layer_remove_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mask_layer_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
   MaskLayer *mask_layer = BKE_mask_layer_active(mask);
@@ -558,7 +558,7 @@ static SlidePointData *slide_point_customdata(bContext *C, wmOperator *op, const
   return customdata;
 }
 
-static int slide_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus slide_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Mask *mask = CTX_data_edit_mask(C);
   SlidePointData *slidedata;
@@ -643,7 +643,7 @@ static void free_slide_point_data(SlidePointData *data)
   MEM_freeN(data);
 }
 
-static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SlidePointData *data = (SlidePointData *)op->customdata;
   BezTriple *bezt = &data->point->bezt;
@@ -1096,7 +1096,9 @@ static SlideSplineCurvatureData *slide_spline_curvature_customdata(bContext *C,
   return slide_data;
 }
 
-static int slide_spline_curvature_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus slide_spline_curvature_invoke(bContext *C,
+                                                      wmOperator *op,
+                                                      const wmEvent *event)
 {
   Mask *mask = CTX_data_edit_mask(C);
   SlideSplineCurvatureData *slide_data;
@@ -1153,7 +1155,9 @@ static void slide_spline_solve_P2(const float u,
   solution[1] = -(v3 * P0[1] + t * P1[1] + u3 * P3[1] - B[1]) * inv_divider;
 }
 
-static int slide_spline_curvature_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus slide_spline_curvature_modal(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event)
 {
   Scene *scene = CTX_data_scene(C);
   const float margin = 0.2f;
@@ -1324,7 +1328,7 @@ void MASK_OT_slide_spline_curvature(wmOperatorType *ot)
 
 /******************** toggle cyclic *********************/
 
-static int cyclic_toggle_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus cyclic_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
 
@@ -1401,7 +1405,7 @@ static void delete_feather_points(MaskSplinePoint *point)
   }
 }
 
-static int delete_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus delete_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
@@ -1508,7 +1512,7 @@ static int delete_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   if (RNA_boolean_get(op->ptr, "confirm")) {
     return WM_operator_confirm_ex(C,
@@ -1540,7 +1544,7 @@ void MASK_OT_delete(wmOperatorType *ot)
 }
 
 /* *** switch direction *** */
-static int mask_switch_direction_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mask_switch_direction_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Mask *mask = CTX_data_edit_mask(C);
@@ -1598,7 +1602,7 @@ void MASK_OT_switch_direction(wmOperatorType *ot)
 }
 
 /* *** recalc normals *** */
-static int mask_normals_make_consistent_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mask_normals_make_consistent_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Mask *mask = CTX_data_edit_mask(C);
@@ -1661,7 +1665,7 @@ void MASK_OT_normals_make_consistent(wmOperatorType *ot)
 
 /******************** set handle type *********************/
 
-static int set_handle_type_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus set_handle_type_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
   int handle_type = RNA_enum_get(op->ptr, "type");
@@ -1743,7 +1747,7 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 }
 
 /* ********* clear/set restrict view *********/
-static int mask_hide_view_clear_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mask_hide_view_clear_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
@@ -1785,7 +1789,7 @@ void MASK_OT_hide_view_clear(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
-static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mask_hide_view_set_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");
@@ -1846,7 +1850,7 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
       ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected layers");
 }
 
-static int mask_feather_weight_clear_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mask_feather_weight_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
@@ -1908,7 +1912,7 @@ static bool mask_layer_move_poll(bContext *C)
   return false;
 }
 
-static int mask_layer_move_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mask_layer_move_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
   MaskLayer *mask_layer = static_cast<MaskLayer *>(
@@ -1980,7 +1984,7 @@ void MASK_OT_layer_move(wmOperatorType *ot)
 
 /******************** duplicate *********************/
 
-static int mask_duplicate_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mask_duplicate_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
 
@@ -2115,7 +2119,7 @@ void MASK_OT_duplicate(wmOperatorType *ot)
 
 /********************** copy splines to clipboard operator *********************/
 
-static int copy_splines_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus copy_splines_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
   MaskLayer *mask_layer = BKE_mask_layer_active(mask);
@@ -2155,7 +2159,7 @@ static bool paste_splines_poll(bContext *C)
   return false;
 }
 
-static int paste_splines_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus paste_splines_exec(bContext *C, wmOperator * /*op*/)
 {
   Mask *mask = CTX_data_edit_mask(C);
   MaskLayer *mask_layer = BKE_mask_layer_active(mask);

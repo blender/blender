@@ -48,7 +48,7 @@
  * \note Almost a duplicate of the file browser operator #FILE_OT_start_filter.
  * \{ */
 
-static int buttons_start_filter_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus buttons_start_filter_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceProperties *space = CTX_wm_space_properties(C);
   ScrArea *area = CTX_wm_area(C);
@@ -71,7 +71,7 @@ void BUTTONS_OT_start_filter(wmOperatorType *ot)
   ot->poll = ED_operator_buttons_active;
 }
 
-static int buttons_clear_filter_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus buttons_clear_filter_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceProperties *space = CTX_wm_space_properties(C);
 
@@ -102,7 +102,7 @@ void BUTTONS_OT_clear_filter(wmOperatorType *ot)
 /** \name Pin ID Operator
  * \{ */
 
-static int toggle_pin_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus toggle_pin_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
 
@@ -141,7 +141,9 @@ void BUTTONS_OT_toggle_pin(wmOperatorType *ot)
 /** \name Context Menu Operator
  * \{ */
 
-static int context_menu_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static wmOperatorStatus context_menu_invoke(bContext *C,
+                                            wmOperator * /*op*/,
+                                            const wmEvent * /*event*/)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Context Menu"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
@@ -177,7 +179,7 @@ struct FileBrowseOp {
   bool is_userdef = false;
 };
 
-static int file_browse_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus file_browse_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   FileBrowseOp *fbo = static_cast<FileBrowseOp *>(op->customdata);
@@ -264,7 +266,7 @@ static void file_browse_cancel(bContext * /*C*/, wmOperator *op)
   op->customdata = nullptr;
 }
 
-static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   PointerRNA ptr;
   PropertyRNA *prop;

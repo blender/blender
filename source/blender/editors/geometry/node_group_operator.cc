@@ -518,7 +518,7 @@ static Vector<Object *> gather_supported_objects(const bContext &C,
   return objects;
 }
 
-static int run_node_group_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -688,7 +688,7 @@ static void store_input_node_values_rna_props(const bContext &C,
   RNA_boolean_set(op.ptr, "viewport_is_perspective", rv3d ? bool(rv3d->is_persp) : true);
 }
 
-static int run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bNodeTree *node_tree = get_node_group(*C, *op->ptr, op->reports);
   if (!node_tree) {

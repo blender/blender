@@ -415,7 +415,7 @@ bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
  * Move & Zoom the view to fit all of its contents.
  * \{ */
 
-static int view3d_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view3d_all_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -500,7 +500,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
  * Move & Zoom the view to fit selected contents.
  * \{ */
 
-static int viewselected_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus viewselected_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);

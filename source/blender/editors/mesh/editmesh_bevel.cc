@@ -439,7 +439,7 @@ static void edbm_bevel_cancel(bContext *C, wmOperator *op)
 }
 
 /* bevel! yay!! */
-static int edbm_bevel_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_bevel_exec(bContext *C, wmOperator *op)
 {
   if (!edbm_bevel_init(C, op, false)) {
     return OPERATOR_CANCELLED;
@@ -479,7 +479,7 @@ static void edbm_bevel_calc_initial_length(wmOperator *op, const wmEvent *event,
   opdata->initial_length[opdata->value_mode] = len;
 }
 
-static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
@@ -652,7 +652,7 @@ wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
   return keymap;
 }
 
-static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   BevelData *opdata = static_cast<BevelData *>(op->customdata);
   const bool has_numinput = hasNumInput(&opdata->num_input[opdata->value_mode]);

@@ -145,7 +145,7 @@ struct RerouteCutsForSocket {
   Map<bNodeLink *, float2> links;
 };
 
-static int add_reroute_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_reroute_exec(bContext *C, wmOperator *op)
 {
   const ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -294,7 +294,7 @@ static bool node_group_add_poll(const bNodeTree &node_tree,
   return true;
 }
 
-static int node_add_group_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_add_group_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -354,7 +354,7 @@ static bool node_add_group_poll(bContext *C)
   return true;
 }
 
-static int node_add_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -444,7 +444,9 @@ static bool add_node_group_asset(const bContext &C,
   return true;
 }
 
-static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_group_asset_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -515,7 +517,7 @@ void NODE_OT_add_group_asset(wmOperatorType *ot)
 /** \name Add Node Object Operator
  * \{ */
 
-static int node_add_object_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_add_object_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -554,7 +556,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int node_add_object_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_object_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -602,7 +604,7 @@ void NODE_OT_add_object(wmOperatorType *ot)
 /** \name Add Node Collection Operator
  * \{ */
 
-static int node_add_collection_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_add_collection_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -641,7 +643,9 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int node_add_collection_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_collection_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -702,7 +706,7 @@ struct NodeStackAnimationData {
   wmTimer *anim_timer;
 };
 
-static int node_add_nodes_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_nodes_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   NodeStackAnimationData *data = static_cast<NodeStackAnimationData *>(op->customdata);
 
@@ -744,7 +748,7 @@ static int node_add_nodes_modal(bContext *C, wmOperator *op, const wmEvent *even
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int node_add_file_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_add_file_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -846,7 +850,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -909,7 +913,7 @@ static bool node_add_mask_poll(bContext *C)
   return ED_operator_node_editable(C) && snode->nodetree->type == NTREE_COMPOSIT;
 }
 
-static int node_add_mask_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_add_mask_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -960,7 +964,7 @@ void NODE_OT_add_mask(wmOperatorType *ot)
 /** \name Add Material Operator
  * \{ */
 
-static int node_add_material_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_add_material_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -990,7 +994,7 @@ static int node_add_material_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int node_add_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1038,7 +1042,7 @@ void NODE_OT_add_material(wmOperatorType *ot)
 /** \name Add Import Node Operator
  * \{ */
 
-static int node_add_import_node_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_add_import_node_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1097,7 +1101,9 @@ static int node_add_import_node_exec(bContext *C, wmOperator *op)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int node_add_import_node_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_import_node_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1150,7 +1156,7 @@ void NODE_OT_add_import_node(wmOperatorType *ot)
 /** \name Add Color Operator
  * \{ */
 
-static int node_add_color_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_add_color_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1213,7 +1219,7 @@ static int node_add_color_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int node_add_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -1265,7 +1271,7 @@ void NODE_OT_add_color(wmOperatorType *ot)
 /** \name New Node Tree Operator
  * \{ */
 
-static int new_node_tree_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus new_node_tree_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   Main *bmain = CTX_data_main(C);

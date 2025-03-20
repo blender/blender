@@ -423,7 +423,7 @@ void append_strokes_from(bke::CurvesGeometry &&other, bke::CurvesGeometry &dst)
  * This operator builds a new stroke from the points/curves selected. It makes a copy of all the
  * selected points and joins them in a single stroke, which is added to the active layer.
  */
-int grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
+wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
 {
   using namespace bke::greasepencil;
 

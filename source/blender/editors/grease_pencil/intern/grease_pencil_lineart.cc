@@ -345,10 +345,10 @@ static void lineart_bake_job_free(void *customdata)
   MEM_delete(bj);
 }
 
-static int lineart_bake_common(bContext *C,
-                               wmOperator *op,
-                               bool bake_all_targets,
-                               bool do_background)
+static wmOperatorStatus lineart_bake_common(bContext *C,
+                                            wmOperator *op,
+                                            bool bake_all_targets,
+                                            bool do_background)
 {
   LineartBakeJob *bj = MEM_new<LineartBakeJob>(__func__);
 
@@ -412,19 +412,21 @@ static int lineart_bake_common(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-static int lineart_bake_strokes_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus lineart_bake_strokes_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent * /*event*/)
 {
   bool bake_all = RNA_boolean_get(op->ptr, "bake_all");
   return lineart_bake_common(C, op, bake_all, true);
 }
-static int lineart_bake_strokes_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus lineart_bake_strokes_exec(bContext *C, wmOperator *op)
 {
   bool bake_all = RNA_boolean_get(op->ptr, "bake_all");
   return lineart_bake_common(C, op, bake_all, false);
 }
-static int lineart_bake_strokes_common_modal(bContext *C,
-                                             wmOperator *op,
-                                             const wmEvent * /*event*/)
+static wmOperatorStatus lineart_bake_strokes_common_modal(bContext *C,
+                                                          wmOperator *op,
+                                                          const wmEvent * /*event*/)
 {
   Scene *scene = static_cast<Scene *>(op->customdata);
 
@@ -463,7 +465,7 @@ static void lineart_gpencil_clear_strokes_exec_common(Object *ob)
   DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
 }
 
-static int lineart_gpencil_clear_strokes_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus lineart_gpencil_clear_strokes_exec(bContext *C, wmOperator *op)
 {
   bool clear_all = RNA_boolean_get(op->ptr, "clear_all");
 

@@ -490,7 +490,7 @@ static bool armature_select_linked_impl(Object *ob, const bool select, const boo
 /** \name Select Linked Operator
  * \{ */
 
-static int armature_select_linked_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_select_linked_exec(bContext *C, wmOperator *op)
 {
   const bool all_forks = RNA_boolean_get(op->ptr, "all_forks");
 
@@ -552,7 +552,9 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 /** \name Select Linked (Cursor Pick) Operator
  * \{ */
 
-static int armature_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus armature_select_linked_pick_invoke(bContext *C,
+                                                           wmOperator *op,
+                                                           const wmEvent *event)
 {
   const bool select = !RNA_boolean_get(op->ptr, "deselect");
   const bool all_forks = RNA_boolean_get(op->ptr, "all_forks");
@@ -1321,7 +1323,7 @@ bool ED_armature_edit_select_op_from_tagged(bArmature *arm, const int sel_op)
 /** \name (De)Select All Operator
  * \{ */
 
-static int armature_de_select_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_de_select_all_exec(bContext *C, wmOperator *op)
 {
   int action = RNA_enum_get(op->ptr, "action");
 
@@ -1494,7 +1496,7 @@ static void armature_select_more_less(Object *ob, bool more)
 /** \name Select More Operator
  * \{ */
 
-static int armature_de_select_more_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_de_select_more_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1531,7 +1533,7 @@ void ARMATURE_OT_select_more(wmOperatorType *ot)
 /** \name Select Less Operator
  * \{ */
 
-static int armature_de_select_less_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_de_select_less_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1945,7 +1947,7 @@ static void select_similar_siblings(bContext *C)
   DEG_id_tag_update(&obedit->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
-static int armature_select_similar_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_select_similar_exec(bContext *C, wmOperator *op)
 {
   /* Get props */
   int type = RNA_enum_get(op->ptr, "type");
@@ -2028,7 +2030,7 @@ void ARMATURE_OT_select_similar(wmOperatorType *ot)
 
 /* No need to convert to multi-objects. Just like we keep the non-active bones
  * selected we then keep the non-active objects untouched (selected/unselected). */
-static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_edit_object(C);
   EditBone *ebone_active;
@@ -2139,7 +2141,7 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 /**
  * \note clone of #pose_select_mirror_exec keep in sync
  */
-static int armature_select_mirror_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_select_mirror_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2252,7 +2254,9 @@ static bool armature_shortest_path_select(
   return true;
 }
 
-static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus armature_shortest_path_pick_invoke(bContext *C,
+                                                           wmOperator *op,
+                                                           const wmEvent *event)
 {
   Object *obedit = CTX_data_edit_object(C);
   bArmature *arm = static_cast<bArmature *>(obedit->data);

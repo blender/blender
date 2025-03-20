@@ -907,7 +907,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
   return float3(0);
 }
 
-static int set_pivot_position_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
 {
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -963,7 +963,9 @@ static int set_pivot_position_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int set_pivot_position_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus set_pivot_position_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   RNA_float_set(op->ptr, "mouse_x", event->mval[0]);
   RNA_float_set(op->ptr, "mouse_y", event->mval[1]);

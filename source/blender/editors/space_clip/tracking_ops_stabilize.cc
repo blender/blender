@@ -38,7 +38,7 @@ static bool stabilize_2d_poll(bContext *C)
   return false;
 }
 
-static int stabilize_2d_add_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus stabilize_2d_add_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -80,7 +80,7 @@ void CLIP_OT_stabilize_2d_add(wmOperatorType *ot)
 
 /******************* remove 2d stabilization tracks operator ******************/
 
-static int stabilize_2d_remove_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus stabilize_2d_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -129,7 +129,7 @@ void CLIP_OT_stabilize_2d_remove(wmOperatorType *ot)
 
 /******************* select 2d stabilization tracks operator ******************/
 
-static int stabilize_2d_select_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus stabilize_2d_select_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -167,7 +167,7 @@ void CLIP_OT_stabilize_2d_select(wmOperatorType *ot)
 
 /********************** add 2d stabilization tracks for rotation operator ****************/
 
-static int stabilize_2d_rotation_add_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus stabilize_2d_rotation_add_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -209,7 +209,7 @@ void CLIP_OT_stabilize_2d_rotation_add(wmOperatorType *ot)
 
 /********************** remove 2d stabilization tracks for rotation operator *************/
 
-static int stabilize_2d_rotation_remove_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus stabilize_2d_rotation_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -258,7 +258,7 @@ void CLIP_OT_stabilize_2d_rotation_remove(wmOperatorType *ot)
 
 /********************** select 2d stabilization rotation tracks operator *****************/
 
-static int stabilize_2d_rotation_select_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus stabilize_2d_rotation_select_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);

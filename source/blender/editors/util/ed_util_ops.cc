@@ -124,7 +124,7 @@ static ID *lib_id_load_custom_preview_id_get(bContext *C, const wmOperator *op)
   return static_cast<ID *>(idptr.data);
 }
 
-static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
 
@@ -155,7 +155,9 @@ static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
  * confirmation, leading to failure to obtain the ID at that point. So get it before spawning the
  * File Browser (store it in the operator custom data).
  */
-static int lib_id_load_custom_preview_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus lib_id_load_custom_preview_invoke(bContext *C,
+                                                          wmOperator *op,
+                                                          const wmEvent *event)
 {
   op->customdata = lib_id_load_custom_preview_id_get(C, op);
   return WM_operator_filesel(C, op, event);
@@ -256,7 +258,7 @@ static bool lib_id_generate_preview_poll(bContext *C)
   });
 }
 
-static int lib_id_generate_preview_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus lib_id_generate_preview_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender::ed;
 
@@ -305,7 +307,7 @@ static bool lib_id_generate_preview_from_object_poll(bContext *C)
   return true;
 }
 
-static int lib_id_generate_preview_from_object_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus lib_id_generate_preview_from_object_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender::ed;
 
@@ -362,7 +364,7 @@ static bool lib_id_remove_preview_poll(bContext *C)
   return true;
 }
 
-static int lib_id_remove_preview_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus lib_id_remove_preview_exec(bContext *C, wmOperator * /*op*/)
 {
   lib_id_batch_edit_previews(C, [&](ID *id) { BKE_previewimg_id_free(id); });
 
@@ -392,7 +394,7 @@ static void ED_OT_lib_id_remove_preview(wmOperatorType *ot)
 /** \name Generic ID Operators
  * \{ */
 
-static int lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op)
 {
   PropertyPointerRNA pprop;
   PointerRNA idptr = PointerRNA_NULL;
@@ -442,7 +444,7 @@ static void ED_OT_lib_id_fake_user_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-static int lib_id_unlink_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus lib_id_unlink_exec(bContext *C, wmOperator *op)
 {
   PropertyPointerRNA pprop;
   PointerRNA idptr;
@@ -488,7 +490,7 @@ static bool lib_id_override_editable_toggle_poll(bContext *C)
   return id && ID_IS_OVERRIDE_LIBRARY_REAL(id) && !ID_IS_LINKED(id);
 }
 
-static int lib_id_override_editable_toggle_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus lib_id_override_editable_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   const PointerRNA id_ptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
@@ -533,7 +535,7 @@ static void ED_OT_lib_id_override_editable_toggle(wmOperatorType *ot)
 /** \name General editor utils.
  * \{ */
 
-static int ed_flush_edits_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus ed_flush_edits_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   ED_editors_flush_edits(bmain);

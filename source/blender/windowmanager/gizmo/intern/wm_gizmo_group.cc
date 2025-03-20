@@ -330,7 +330,7 @@ bool wm_gizmogroup_is_any_selected(const wmGizmoGroup *gzgroup)
  * Basic operators for gizmo interaction with user configurable keymaps.
  * \{ */
 
-static int gizmo_select_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus gizmo_select_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   ARegion *region = CTX_wm_region(C);
   wmGizmoMap *gzmap = region->runtime->gizmo_map;
@@ -476,11 +476,11 @@ static void gizmo_tweak_finish(bContext *C, wmOperator *op, const bool cancel, b
   MEM_freeN(mtweak);
 }
 
-static int gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   GizmoTweakData *mtweak = static_cast<GizmoTweakData *>(op->customdata);
   wmGizmo *gz = mtweak->gz_modal;
-  int retval = OPERATOR_PASS_THROUGH;
+  wmOperatorStatus retval = OPERATOR_PASS_THROUGH;
   bool clear_modal = true;
 
   if (gz == nullptr) {
@@ -560,7 +560,7 @@ static int gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_PASS_THROUGH;
 }
 
-static int gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   wmGizmoMap *gzmap = region->runtime->gizmo_map;

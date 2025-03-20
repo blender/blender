@@ -432,7 +432,7 @@ void ED_armature_bones_flip_names(Main *bmain,
 /** \name Flip Bone Names (Edit Mode Operator)
  * \{ */
 
-static int armature_flip_names_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
@@ -518,7 +518,7 @@ void ARMATURE_OT_flip_names(wmOperatorType *ot)
 /** \name Bone Auto Side Names (Edit Mode Operator)
  * \{ */
 
-static int armature_autoside_names_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_autoside_names_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

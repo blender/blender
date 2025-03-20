@@ -183,7 +183,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
 /** \name Automatic Preview-Range Operator
  * \{ */
 
-static int graphkeys_previewrange_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus graphkeys_previewrange_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
   Scene *scene;
@@ -234,10 +234,10 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 /** \name View-All Operator
  * \{ */
 
-static int graphkeys_viewall(bContext *C,
-                             const bool do_sel_only,
-                             const bool include_handles,
-                             const int smooth_viewtx)
+static wmOperatorStatus graphkeys_viewall(bContext *C,
+                                          const bool do_sel_only,
+                                          const bool include_handles,
+                                          const int smooth_viewtx)
 {
   bAnimContext ac;
   rctf cur_new;
@@ -273,7 +273,7 @@ static int graphkeys_viewall(bContext *C,
 
 /* ......... */
 
-static int graphkeys_viewall_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus graphkeys_viewall_exec(bContext *C, wmOperator *op)
 {
   const bool include_handles = RNA_boolean_get(op->ptr, "include_handles");
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
@@ -282,7 +282,7 @@ static int graphkeys_viewall_exec(bContext *C, wmOperator *op)
   return graphkeys_viewall(C, false, include_handles, smooth_viewtx);
 }
 
-static int graphkeys_view_selected_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus graphkeys_view_selected_exec(bContext *C, wmOperator *op)
 {
   const bool include_handles = RNA_boolean_get(op->ptr, "include_handles");
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
@@ -345,7 +345,7 @@ void GRAPH_OT_view_selected(wmOperatorType *ot)
 /** \name View Frame Operator
  * \{ */
 
-static int graphkeys_view_frame_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus graphkeys_view_frame_exec(bContext *C, wmOperator *op)
 {
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
   ANIM_center_frame(C, smooth_viewtx);
@@ -449,7 +449,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 
 /* ------------------- */
 
-static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus graphkeys_create_ghostcurves_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
   View2D *v2d;
@@ -501,7 +501,7 @@ void GRAPH_OT_ghost_curves_create(wmOperatorType *ot)
  * This operator clears the 'ghost curves' for the active Graph Editor.
  * \{ */
 
-static int graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus graphkeys_clear_ghostcurves_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
   SpaceGraph *sipo;

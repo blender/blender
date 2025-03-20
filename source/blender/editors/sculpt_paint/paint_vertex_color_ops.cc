@@ -126,7 +126,7 @@ static bool vertex_paint_from_weight(Object &ob)
   return true;
 }
 
-static int vertex_paint_from_weight_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus vertex_paint_from_weight_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obact = CTX_data_active_object(C);
   if (vertex_paint_from_weight(*obact)) {
@@ -220,7 +220,7 @@ static bool vertex_color_smooth(Object &ob)
   return true;
 }
 
-static int vertex_color_smooth_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus vertex_color_smooth_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obact = CTX_data_active_object(C);
   if (vertex_color_smooth(*obact)) {
@@ -330,7 +330,7 @@ static void transform_active_color(bContext *C,
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &obact);
 }
 
-static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
 
@@ -396,7 +396,7 @@ void PAINT_OT_vertex_color_brightness_contrast(wmOperatorType *ot)
   RNA_def_property_ui_range(prop, min, max, 1, 1);
 }
 
-static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus vertex_color_hsv_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
 
@@ -451,7 +451,7 @@ void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
   RNA_def_float(ot->srna, "v", 1.0f, 0.0f, 2.0f, "Value", "", 0.0f, 2.0f);
 }
 
-static int vertex_color_invert_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus vertex_color_invert_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
 
@@ -486,7 +486,7 @@ void PAINT_OT_vertex_color_invert(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int vertex_color_levels_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus vertex_color_levels_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
 

@@ -1794,7 +1794,7 @@ void view3d_buttons_register(ARegionType *art)
   WM_menutype_add(mt);
 }
 
-static int view3d_object_mode_menu_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view3d_object_mode_menu_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == nullptr) {

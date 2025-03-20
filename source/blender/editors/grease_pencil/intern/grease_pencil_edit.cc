@@ -83,7 +83,7 @@ namespace blender::ed::greasepencil {
 /** \name Smooth Stroke Operator
  * \{ */
 
-static int grease_pencil_stroke_smooth_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_stroke_smooth_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -265,7 +265,7 @@ static IndexMask simplify_fixed(const bke::CurvesGeometry &curves,
       {selected_to_keep, selected_points.complement(curves.points_range(), memory)}, memory);
 }
 
-static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -430,7 +430,7 @@ static void GREASE_PENCIL_OT_stroke_simplify(wmOperatorType *ot)
 /** \name Delete Operator
  * \{ */
 
-static int grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -571,7 +571,7 @@ static Array<bool> get_points_to_dissolve(bke::CurvesGeometry &curves,
   return points_to_dissolve;
 }
 
-static int grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -660,7 +660,7 @@ static const EnumPropertyItem prop_greasepencil_deleteframe_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int grease_pencil_delete_frame_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_delete_frame_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -721,7 +721,7 @@ static void GREASE_PENCIL_OT_delete_frame(wmOperatorType *ot)
 /** \name Stroke Material Set Operator
  * \{ */
 
-static int grease_pencil_stroke_material_set_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_stroke_material_set_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   Main *bmain = CTX_data_main(C);
@@ -840,7 +840,7 @@ static bke::CurvesGeometry subdivide_last_segement(const bke::CurvesGeometry &cu
   return geometry::subdivide_curves(curves, strokes, cuts);
 }
 
-static int grease_pencil_cyclical_set_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_cyclical_set_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -932,7 +932,7 @@ static void GREASE_PENCIL_OT_cyclical_set(wmOperatorType *ot)
 /** \name Set Active Material Operator
  * \{ */
 
-static int grease_pencil_set_active_material_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_set_active_material_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -980,7 +980,7 @@ static void GREASE_PENCIL_OT_set_active_material(wmOperatorType *ot)
 /** \name Set Uniform Thickness Operator
  * \{ */
 
-static int grease_pencil_set_uniform_thickness_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_set_uniform_thickness_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -1034,7 +1034,7 @@ static void GREASE_PENCIL_OT_set_uniform_thickness(wmOperatorType *ot)
 /** \name Set Uniform Opacity Operator
  * \{ */
 
-static int grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke;
 
@@ -1103,7 +1103,8 @@ static void GREASE_PENCIL_OT_set_uniform_opacity(wmOperatorType *ot)
 /** \name Switch Direction Operator
  * \{ */
 
-static int grease_pencil_stroke_switch_direction_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_stroke_switch_direction_exec(bContext *C,
+                                                                   wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -1217,7 +1218,7 @@ static bke::CurvesGeometry set_start_point(const bke::CurvesGeometry &curves,
   return dst_curves;
 }
 
-static int grease_pencil_set_start_point_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_set_start_point_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace bke::greasepencil;
   const Scene *scene = CTX_data_scene(C);
@@ -1288,7 +1289,7 @@ static void toggle_caps(MutableSpan<int8_t> caps, const IndexMask &strokes)
   });
 }
 
-static int grease_pencil_caps_set_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_caps_set_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -1425,7 +1426,7 @@ static const EnumPropertyItem *material_enum_itemf(bContext *C,
   return item;
 }
 
-static int grease_pencil_set_material_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_set_material_exec(bContext *C, wmOperator *op)
 {
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -1465,7 +1466,7 @@ static void GREASE_PENCIL_OT_set_material(wmOperatorType *ot)
 /** \name Duplicate Operator
  * \{ */
 
-static int grease_pencil_duplicate_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_duplicate_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -1514,7 +1515,7 @@ static void GREASE_PENCIL_OT_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int grease_pencil_clean_loose_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_clean_loose_exec(bContext *C, wmOperator *op)
 {
   Object *object = CTX_data_active_object(C);
   Scene &scene = *CTX_data_scene(C);
@@ -1545,7 +1546,9 @@ static int grease_pencil_clean_loose_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int grease_pencil_clean_loose_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus grease_pencil_clean_loose_invoke(bContext *C,
+                                                         wmOperator *op,
+                                                         const wmEvent *event)
 {
   return WM_operator_props_popup_confirm_ex(
       C, op, event, IFACE_("Remove Loose Points"), IFACE_("Delete"));
@@ -1580,7 +1583,7 @@ static void GREASE_PENCIL_OT_clean_loose(wmOperatorType *ot)
 /** \name Stroke Subdivide Operator
  * \{ */
 
-static int gpencil_stroke_subdivide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gpencil_stroke_subdivide_exec(bContext *C, wmOperator *op)
 {
   const int cuts = RNA_int_get(op->ptr, "number_cuts");
   const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
@@ -1777,7 +1780,7 @@ static Array<int> get_reordered_indices(const IndexRange universe,
   return indices;
 }
 
-static int grease_pencil_stroke_reorder_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_stroke_reorder_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -1846,7 +1849,7 @@ static void GREASE_PENCIL_OT_stroke_reorder(wmOperatorType *ot)
 /** \name Move To Layer Operator
  * \{ */
 
-static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
 {
   using namespace bke::greasepencil;
   const Scene *scene = CTX_data_scene(C);
@@ -1930,7 +1933,9 @@ static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int grease_pencil_move_to_layer_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus grease_pencil_move_to_layer_invoke(bContext *C,
+                                                           wmOperator *op,
+                                                           const wmEvent *event)
 {
   const bool add_new_layer = RNA_boolean_get(op->ptr, "add_new_layer");
   if (add_new_layer) {
@@ -2293,7 +2298,7 @@ static bool grease_pencil_separate_material(bContext &C,
   return changed;
 }
 
-static int grease_pencil_separate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_separate_exec(bContext *C, wmOperator *op)
 {
   using namespace bke::greasepencil;
   Main *bmain = CTX_data_main(C);
@@ -2481,7 +2486,7 @@ static bke::GeometrySet join_geometries_with_transform(Span<bke::GeometrySet> ge
       geometries, VArray<float4x4>::ForSingle(transform, geometries.size()));
 }
 
-static int grease_pencil_copy_strokes_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_copy_strokes_exec(bContext *C, wmOperator *op)
 {
   using bke::greasepencil::Layer;
 
@@ -2656,7 +2661,7 @@ enum class PasteType {
   ByLayer = 1,
 };
 
-static int grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
 {
   using namespace bke::greasepencil;
   Main *bmain = CTX_data_main(C);
@@ -2881,7 +2886,7 @@ IndexRange paste_all_strokes_from_clipboard(Main &bmain,
 /* -------------------------------------------------------------------- */
 /** \name Merge Stroke Operator
  * \{ */
-static int grease_pencil_stroke_merge_by_distance_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_stroke_merge_by_distance_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -3060,7 +3065,7 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
   return dst;
 }
 
-static int grease_pencil_extrude_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_extrude_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -3109,7 +3114,7 @@ static void GREASE_PENCIL_OT_extrude(wmOperatorType *ot)
 /** \name Reproject Strokes Operator
  * \{ */
 
-static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op)
 {
   Scene &scene = *CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -3358,7 +3363,7 @@ static bool grease_pencil_snap_poll(bContext *C)
   return (area != nullptr) && (area->spacetype == SPACE_VIEW3D);
 }
 
-static int grease_pencil_snap_to_grid_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_snap_to_grid_exec(bContext *C, wmOperator * /*op*/)
 {
   using bke::greasepencil::Layer;
 
@@ -3421,7 +3426,7 @@ static void GREASE_PENCIL_OT_snap_to_grid(wmOperatorType *ot)
 /** \name Snapping Selection to Cursor Operator
  * \{ */
 
-static int grease_pencil_snap_to_cursor_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_snap_to_cursor_exec(bContext *C, wmOperator *op)
 {
   using bke::greasepencil::Layer;
 
@@ -3560,7 +3565,7 @@ static bool grease_pencil_snap_compute_centroid(const Scene &scene,
   return true;
 }
 
-static int grease_pencil_snap_cursor_to_sel_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_snap_cursor_to_sel_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene &scene = *CTX_data_scene(C);
   const Object &object = *CTX_data_active_object(C);
@@ -3629,7 +3634,7 @@ static float4x3 expand_4x2_mat(float4x2 strokemat)
   return strokemat4x3;
 }
 
-static int grease_pencil_texture_gradient_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_texture_gradient_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -3738,9 +3743,11 @@ static int grease_pencil_texture_gradient_exec(bContext *C, wmOperator *op)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int grease_pencil_texture_gradient_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus grease_pencil_texture_gradient_modal(bContext *C,
+                                                             wmOperator *op,
+                                                             const wmEvent *event)
 {
-  int ret = WM_gesture_straightline_modal(C, op, event);
+  wmOperatorStatus ret = WM_gesture_straightline_modal(C, op, event);
 
   /* Check for mouse release. */
   if ((ret & OPERATOR_RUNNING_MODAL) != 0 && event->type == LEFTMOUSE && event->val == KM_RELEASE)
@@ -3753,10 +3760,12 @@ static int grease_pencil_texture_gradient_modal(bContext *C, wmOperator *op, con
   return ret;
 }
 
-static int grease_pencil_texture_gradient_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus grease_pencil_texture_gradient_invoke(bContext *C,
+                                                              wmOperator *op,
+                                                              const wmEvent *event)
 {
   /* Invoke interactive line drawing (representing the gradient) in viewport. */
-  const int ret = WM_gesture_straightline_invoke(C, op, event);
+  const wmOperatorStatus ret = WM_gesture_straightline_invoke(C, op, event);
 
   if ((ret & OPERATOR_RUNNING_MODAL) != 0) {
     ARegion *region = CTX_wm_region(C);
@@ -3797,7 +3806,7 @@ static void GREASE_PENCIL_OT_texture_gradient(wmOperatorType *ot)
 /** \name Set Curve Type Operator
  * \{ */
 
-static int grease_pencil_set_curve_type_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_set_curve_type_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -3865,7 +3874,7 @@ static void GREASE_PENCIL_OT_set_curve_type(wmOperatorType *ot)
 /** \name Set Handle Type Operator
  * \{ */
 
-static int grease_pencil_set_handle_type_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_set_handle_type_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -3946,7 +3955,7 @@ static void GREASE_PENCIL_OT_set_handle_type(wmOperatorType *ot)
 /** \name Set Curve Resolution Operator
  * \{ */
 
-static int grease_pencil_set_curve_resolution_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_set_curve_resolution_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -4010,7 +4019,7 @@ static void GREASE_PENCIL_OT_set_curve_resolution(wmOperatorType *ot)
 /** \name Set Curve Resolution Operator
  * \{ */
 
-static int grease_pencil_reset_uvs_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_reset_uvs_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -4102,7 +4111,7 @@ static void GREASE_PENCIL_OT_reset_uvs(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int grease_pencil_stroke_split_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_stroke_split_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
@@ -4501,7 +4510,7 @@ static void join_object_with_active(Main &bmain,
 
 }  // namespace blender::ed::greasepencil
 
-int ED_grease_pencil_join_objects_exec(bContext *C, wmOperator *op)
+wmOperatorStatus ED_grease_pencil_join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);

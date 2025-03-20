@@ -20,7 +20,7 @@
 /** \name View Center Cursor Operator
  * \{ */
 
-static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus viewcenter_cursor_exec(bContext *C, wmOperator *op)
 {
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);

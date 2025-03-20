@@ -179,7 +179,7 @@ static void change_frame_apply(bContext *C, wmOperator *op, const bool always_up
 /* ---- */
 
 /* Non-modal callback for running operator without user input */
-static int change_frame_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus change_frame_exec(bContext *C, wmOperator *op)
 {
   change_frame_apply(C, op, true);
 
@@ -259,7 +259,7 @@ static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *ev
 }
 
 /* Modal Operator init */
-static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);
 
@@ -330,9 +330,9 @@ static void change_frame_cancel(bContext *C, wmOperator *op)
 }
 
 /* Modal event handling of frame changing */
-static int change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus change_frame_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int ret = OPERATOR_RUNNING_MODAL;
+  wmOperatorStatus ret = OPERATOR_RUNNING_MODAL;
   /* execute the events */
   switch (event->type) {
     case EVT_ESCKEY:
@@ -461,7 +461,7 @@ static bool anim_set_end_frames_poll(bContext *C)
   return false;
 }
 
-static int anim_set_sfra_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus anim_set_sfra_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   int frame;
@@ -516,7 +516,7 @@ static void ANIM_OT_start_frame_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int anim_set_efra_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus anim_set_efra_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   int frame;
@@ -577,7 +577,7 @@ static void ANIM_OT_end_frame_set(wmOperatorType *ot)
 /** \name Set Preview Range Operator
  * \{ */
 
-static int previewrange_define_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus previewrange_define_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
@@ -641,7 +641,7 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 /** \name Clear Preview Range Operator
  * \{ */
 
-static int previewrange_clear_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus previewrange_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   ScrArea *curarea = CTX_wm_area(C);
@@ -687,7 +687,7 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
  * \{ */
 
 #ifndef NDEBUG
-static int debug_channel_list_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus debug_channel_list_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -736,7 +736,7 @@ static void ANIM_OT_debug_channel_list(wmOperatorType *ot)
 /** \name Frame Scene/Preview Range Operator
  * \{ */
 
-static int scene_range_frame_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus scene_range_frame_exec(bContext *C, wmOperator * /*op*/)
 {
   ARegion *region = CTX_wm_region(C);
   const Scene *scene = CTX_data_scene(C);
@@ -775,7 +775,7 @@ static void ANIM_OT_scene_range_frame(wmOperatorType *ot)
 /** \name Conversion
  * \{ */
 
-static int convert_action_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus convert_action_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender;
 
@@ -863,7 +863,7 @@ static bool merge_actions_selection_poll(bContext *C)
   return true;
 }
 
-static int merge_actions_selection_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus merge_actions_selection_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::animrig;
   Object *active_object = CTX_data_active_object(C);

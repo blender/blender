@@ -132,7 +132,7 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm,
  * If we want the support to be expanded we should something like the
  * offset we do for mesh click extrude.
  */
-static int armature_click_extrude_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_click_extrude_exec(bContext *C, wmOperator * /*op*/)
 {
   bArmature *arm;
   EditBone *ebone, *newbone, *flipbone;
@@ -228,7 +228,9 @@ static int armature_click_extrude_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus armature_click_extrude_invoke(bContext *C,
+                                                      wmOperator *op,
+                                                      const wmEvent *event)
 {
   /* TODO: most of this code is copied from set3dcursor_invoke,
    * it would be better to reuse code in set3dcursor_invoke */
@@ -252,7 +254,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, const wmEv
   copy_v3_v3(cursor->location, tvec);
 
   /* extrude to the where new cursor is and store the operation result */
-  int retval = armature_click_extrude_exec(C, op);
+  wmOperatorStatus retval = armature_click_extrude_exec(C, op);
 
   /* restore previous 3d cursor position */
   copy_v3_v3(cursor->location, oldcurs);
@@ -1098,7 +1100,7 @@ EditBone *duplicateEditBone(EditBone *cur_bone, const char *name, ListBase *edit
   return duplicateEditBoneObjects(cur_bone, name, editbones, ob, ob);
 }
 
-static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1272,7 +1274,7 @@ static EditBone *get_symmetrized_bone(bArmature *arm, EditBone *bone)
  * near duplicate of #armature_duplicate_selected_exec,
  * except for parenting part (keep in sync)
  */
-static int armature_symmetrize_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1543,7 +1545,7 @@ void ARMATURE_OT_symmetrize(wmOperatorType *ot)
 /* previously extrude_armature */
 /* context; editmode armature */
 /* if forked && mirror-edit: makes two bones with flipped names */
-static int armature_extrude_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1757,7 +1759,7 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 
 /* Op makes a new bone and returns it with its tip selected. */
 
-static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -1843,7 +1845,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
  * appropriate ways), and two separate ones.
  */
 
-static int armature_subdivide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_subdivide_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
   EditBone *newbone;

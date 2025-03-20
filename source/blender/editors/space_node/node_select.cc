@@ -398,7 +398,7 @@ enum {
   NODE_SELECT_GROUPED_SUFIX = 3,
 };
 
-static int node_select_grouped_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_select_grouped_exec(bContext *C, wmOperator *op)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
@@ -674,7 +674,7 @@ static bool node_mouse_select(bContext *C,
   return true;
 }
 
-static int node_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_select_exec(bContext *C, wmOperator *op)
 {
   /* Get settings from RNA properties for operator. */
   int2 mval;
@@ -693,11 +693,11 @@ static int node_select_exec(bContext *C, wmOperator *op)
   return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
 }
 
-static int node_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RNA_int_set_array(op->ptr, "location", event->mval);
 
-  const int retval = node_select_exec(C, op);
+  const wmOperatorStatus retval = node_select_exec(C, op);
 
   return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
@@ -750,7 +750,7 @@ void NODE_OT_select(wmOperatorType *ot)
 /** \name Box Select Operator
  * \{ */
 
-static int node_box_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_box_select_exec(bContext *C, wmOperator *op)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
@@ -800,7 +800,7 @@ static int node_box_select_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int node_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
@@ -846,7 +846,7 @@ void NODE_OT_select_box(wmOperatorType *ot)
 /** \name Circle Select Operator
  * \{ */
 
-static int node_circleselect_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_circleselect_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
@@ -929,7 +929,7 @@ void NODE_OT_select_circle(wmOperatorType *ot)
 /** \name Lasso Select Operator
  * \{ */
 
-static int node_lasso_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_lasso_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
@@ -1006,7 +1006,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
   return changed;
 }
 
-static int node_lasso_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_lasso_select_exec(bContext *C, wmOperator *op)
 {
   const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
 
@@ -1065,7 +1065,7 @@ static bool any_node_selected(const bNodeTree &node_tree)
   return false;
 }
 
-static int node_select_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_select_all_exec(bContext *C, wmOperator *op)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
@@ -1128,7 +1128,7 @@ void NODE_OT_select_all(wmOperatorType *ot)
 /** \name Select Linked To Operator
  * \{ */
 
-static int node_select_linked_to_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_select_linked_to_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
@@ -1178,7 +1178,7 @@ void NODE_OT_select_linked_to(wmOperatorType *ot)
 /** \name Select Linked From Operator
  * \{ */
 
-static int node_select_linked_from_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_select_linked_from_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
@@ -1233,7 +1233,7 @@ static bool nodes_are_same_type_for_select(const bNode &a, const bNode &b)
   return a.type_legacy == b.type_legacy;
 }
 
-static int node_select_same_type_step_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_select_same_type_step_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
@@ -1401,7 +1401,9 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_optype)
   return block;
 }
 
-static int node_find_node_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus node_find_node_invoke(bContext *C,
+                                              wmOperator *op,
+                                              const wmEvent * /*event*/)
 {
   UI_popup_block_invoke(C, node_find_menu, op->type, nullptr);
   return OPERATOR_CANCELLED;

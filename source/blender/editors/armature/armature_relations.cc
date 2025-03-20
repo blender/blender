@@ -295,7 +295,7 @@ static BoneCollection *join_armature_remap_collection(
   return new_bcoll;
 }
 
-int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
+wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -663,7 +663,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
 }
 
 /* separate selected bones into their armature */
-static int separate_armature_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus separate_armature_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -858,7 +858,7 @@ static const EnumPropertyItem prop_editarm_make_parent_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int armature_parent_set_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_parent_set_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_edit_object(C);
   bArmature *arm = static_cast<bArmature *>(ob->data);
@@ -947,7 +947,9 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int armature_parent_set_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static wmOperatorStatus armature_parent_set_invoke(bContext *C,
+                                                   wmOperator * /*op*/,
+                                                   const wmEvent * /*event*/)
 {
   /* False when all selected bones are parented to the active bone. */
   bool enable_offset = false;
@@ -1033,7 +1035,7 @@ static void editbone_clear_parent(EditBone *ebone, int mode)
   ebone->flag &= ~BONE_CONNECTED;
 }
 
-static int armature_parent_clear_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_parent_clear_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1069,9 +1071,9 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int armature_parent_clear_invoke(bContext *C,
-                                        wmOperator * /*op*/,
-                                        const wmEvent * /*event*/)
+static wmOperatorStatus armature_parent_clear_invoke(bContext *C,
+                                                     wmOperator * /*op*/,
+                                                     const wmEvent * /*event*/)
 {
   /* False when no selected bones are connected to the active bone. */
   bool enable_disconnect = false;

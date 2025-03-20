@@ -88,7 +88,7 @@ static void validate_value(const bke::AttributeAccessor attributes,
   type.copy_assign(validated_buffer, buffer);
 }
 
-static int set_attribute_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus set_attribute_exec(bContext *C, wmOperator *op)
 {
   Object *active_object = CTX_data_active_object(C);
   Curves &active_curves_id = *static_cast<Curves *>(active_object->data);
@@ -143,7 +143,7 @@ static int set_attribute_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int set_attribute_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus set_attribute_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *active_object = CTX_data_active_object(C);
   Curves &active_curves_id = *static_cast<Curves *>(active_object->data);

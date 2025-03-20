@@ -16,6 +16,7 @@
 #include "BLI_vector_set.hh"
 
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_enums.h"
 
 #include "ED_select_utils.hh"
 
@@ -453,7 +454,7 @@ void resize_curves(bke::CurvesGeometry &curves,
  */
 void reorder_curves(bke::CurvesGeometry &curves, Span<int> old_by_new_indices_map);
 
-int join_objects_exec(bContext *C, wmOperator *op);
+wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op);
 
 /** \} */
 

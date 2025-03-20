@@ -2238,9 +2238,9 @@ static void sculpt_mesh_filter_end(bContext *C)
   flush_update_done(C, ob, UpdateType::Position);
 }
 
-static int sculpt_mesh_filter_confirm(SculptSession &ss,
-                                      wmOperator *op,
-                                      const MeshFilterType filter_type)
+static wmOperatorStatus sculpt_mesh_filter_confirm(SculptSession &ss,
+                                                   wmOperator *op,
+                                                   const MeshFilterType filter_type)
 {
   float initial_strength = ss.filter_cache->start_filter_strength;
   /* Don't update strength property if we're storing an event history. */
@@ -2267,7 +2267,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
   pbvh->update_bounds(depsgraph, ob);
 }
 
-static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -2278,7 +2278,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   sculpt_mesh_update_status_bar(C, op);
 
   if (event->type == EVT_MODAL_MAP) {
-    int ret = OPERATOR_FINISHED;
+    wmOperatorStatus ret = OPERATOR_FINISHED;
     switch (event->val) {
       case FILTER_MESH_MODAL_CANCEL:
         sculpt_mesh_filter_cancel(C, op);
@@ -2379,7 +2379,7 @@ static void sculpt_filter_specific_init(const Depsgraph &depsgraph,
 }
 
 /* Returns OPERATOR_PASS_THROUGH on success. */
-static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
+static wmOperatorStatus sculpt_mesh_filter_start(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
@@ -2458,10 +2458,12 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   return OPERATOR_PASS_THROUGH;
 }
 
-static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sculpt_mesh_filter_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   RNA_int_set_array(op->ptr, "start_mouse", event->mval);
-  int ret = sculpt_mesh_filter_start(C, op);
+  wmOperatorStatus ret = sculpt_mesh_filter_start(C, op);
 
   if (ret == OPERATOR_PASS_THROUGH) {
     WM_event_add_modal_handler(C, op);
@@ -2471,9 +2473,9 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   return ret;
 }
 
-static int sculpt_mesh_filter_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sculpt_mesh_filter_exec(bContext *C, wmOperator *op)
 {
-  int ret = sculpt_mesh_filter_start(C, op);
+  wmOperatorStatus ret = sculpt_mesh_filter_start(C, op);
 
   if (ret == OPERATOR_PASS_THROUGH) {
     int iterations = RNA_int_get(op->ptr, "iteration_count");

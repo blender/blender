@@ -16,6 +16,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
+#include "DNA_windowmanager_enums.h"
+
 /**
  * Size of the sphere being dragged for trackball rotation within the view bounds.
  * also affects speed (smaller is faster).
@@ -93,8 +95,14 @@ struct ViewOpsType {
   eViewOpsFlag flag;
   const char *idname;
   bool (*poll_fn)(bContext *C);
-  int (*init_fn)(bContext *C, ViewOpsData *vod, const wmEvent *event, PointerRNA *ptr);
-  int (*apply_fn)(bContext *C, ViewOpsData *vod, const eV3D_OpEvent event_code, const int xy[2]);
+  wmOperatorStatus (*init_fn)(bContext *C,
+                              ViewOpsData *vod,
+                              const wmEvent *event,
+                              PointerRNA *ptr);
+  wmOperatorStatus (*apply_fn)(bContext *C,
+                               ViewOpsData *vod,
+                               const eV3D_OpEvent event_code,
+                               const int xy[2]);
 };
 
 /** Generic View Operator Custom-Data */
@@ -207,11 +215,11 @@ bool view3d_rotation_poll(bContext *C);
 bool view3d_zoom_or_dolly_poll(bContext *C);
 bool view3d_zoom_or_dolly_or_rotation_poll(bContext *C);
 
-int view3d_navigate_invoke_impl(bContext *C,
-                                wmOperator *op,
-                                const wmEvent *event,
-                                const ViewOpsType *nav_type);
-int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus view3d_navigate_invoke_impl(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent *event,
+                                             const ViewOpsType *nav_type);
+wmOperatorStatus view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event);
 void view3d_navigate_cancel_fn(bContext *C, wmOperator *op);
 
 void calctrackballvec(const rcti *rect, const int event_xy[2], float r_dir[3]);

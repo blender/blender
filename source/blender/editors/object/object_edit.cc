@@ -272,7 +272,7 @@ static bool object_hide_poll(bContext *C)
   return ED_operator_view3d_active(C);
 }
 
-static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus object_hide_view_clear_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -323,7 +323,7 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "select", true, "Select", "Select revealed objects");
 }
 
-static int object_hide_view_set_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus object_hide_view_set_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -392,7 +392,7 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
   RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
-static int object_hide_collection_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus object_hide_collection_exec(bContext *C, wmOperator *op)
 {
   View3D *v3d = CTX_wm_view3d(C);
 
@@ -470,7 +470,9 @@ void collection_hide_menu_draw(const bContext *C, uiLayout *layout)
   }
 }
 
-static int object_hide_collection_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus object_hide_collection_invoke(bContext *C,
+                                                      wmOperator *op,
+                                                      const wmEvent *event)
 {
   /* Immediately execute if collection index was specified. */
   int index = RNA_int_get(op->ptr, "collection_index");
@@ -924,7 +926,7 @@ bool editmode_enter(bContext *C, int flag)
   return editmode_enter_ex(bmain, scene, ob, flag);
 }
 
-static int editmode_toggle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus editmode_toggle_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -1017,7 +1019,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 /** \name Toggle Pose-Mode Operator
  * \{ */
 
-static int posemode_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus posemode_exec(bContext *C, wmOperator *op)
 {
   wmMsgBus *mbus = CTX_wm_message_bus(C);
   Main *bmain = CTX_data_main(C);
@@ -1133,7 +1135,7 @@ void check_force_modifiers(Main *bmain, Scene *scene, Object *object)
   }
 }
 
-static int forcefield_toggle_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus forcefield_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = CTX_data_active_object(C);
 
@@ -1296,7 +1298,9 @@ void motion_paths_recalc(bContext *C,
 }
 
 /* show popup to determine settings */
-static int object_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus object_calculate_paths_invoke(bContext *C,
+                                                      wmOperator *op,
+                                                      const wmEvent * /*event*/)
 {
   Object *ob = CTX_data_active_object(C);
 
@@ -1318,7 +1322,7 @@ static int object_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEv
 }
 
 /* Calculate/recalculate whole paths (avs.path_sf to avs.path_ef) */
-static int object_calculate_paths_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus object_calculate_paths_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   short path_type = RNA_enum_get(op->ptr, "display_type");
@@ -1395,7 +1399,7 @@ static bool object_update_paths_poll(bContext *C)
   return false;
 }
 
-static int object_update_paths_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus object_update_paths_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -1447,7 +1451,7 @@ static bool object_update_all_paths_poll(bContext * /*C*/)
   return true;
 }
 
-static int object_update_all_paths_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus object_update_all_paths_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -1515,7 +1519,7 @@ void motion_paths_clear(bContext *C, bool only_selected)
 }
 
 /* operator callback for this */
-static int object_clear_paths_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus object_clear_paths_exec(bContext *C, wmOperator *op)
 {
   bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
 
@@ -1587,7 +1591,7 @@ static bool is_smooth_by_angle_modifier(const ModifierData &md)
   return true;
 }
 
-static int shade_smooth_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
 {
   const bool use_flat = STREQ(op->idname, "OBJECT_OT_shade_flat");
   const bool use_smooth = STREQ(op->idname, "OBJECT_OT_shade_smooth");
@@ -1788,7 +1792,7 @@ static bool is_valid_smooth_by_angle_group(const bNodeTree &ntree)
   return true;
 }
 
-static int shade_auto_smooth_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
   Scene &scene = *CTX_data_scene(C);
@@ -1981,7 +1985,7 @@ static bool object_mode_set_poll(bContext *C)
   return ED_operator_object_active_editable_ex(C, ob);
 }
 
-static int object_mode_set_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus object_mode_set_exec(bContext *C, wmOperator *op)
 {
   const bool use_submode = STREQ(op->idname, "OBJECT_OT_mode_set_with_submode");
   Object *ob = CTX_data_active_object(C);
@@ -2148,7 +2152,7 @@ static bool move_to_collection_poll(bContext *C)
   return ED_operator_objectmode(C);
 }
 
-static int move_to_collection_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -2342,7 +2346,9 @@ static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionDat
 /* This is allocated statically because we need this available for the menus creation callback. */
 static MoveToCollectionData *master_collection_menu = nullptr;
 
-static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus move_to_collection_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent * /*event*/)
 {
   Scene *scene = CTX_data_scene(C);
 

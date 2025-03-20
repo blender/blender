@@ -49,7 +49,7 @@
 
 #include "physics_intern.hh" /* own include */
 
-static int surface_slot_add_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus surface_slot_add_exec(bContext *C, wmOperator * /*op*/)
 {
   DynamicPaintModifierData *pmd = nullptr;
   Object *cObject = blender::ed::object::context_active_object(C);
@@ -92,7 +92,7 @@ void DPAINT_OT_surface_slot_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int surface_slot_remove_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus surface_slot_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   DynamicPaintModifierData *pmd = nullptr;
   Object *obj_ctx = blender::ed::object::context_active_object(C);
@@ -140,7 +140,7 @@ void DPAINT_OT_surface_slot_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int type_toggle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus type_toggle_exec(bContext *C, wmOperator *op)
 {
 
   Object *cObject = blender::ed::object::context_active_object(C);
@@ -202,7 +202,7 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-static int output_toggle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus output_toggle_exec(bContext *C, wmOperator *op)
 {
   Object *ob = blender::ed::object::context_active_object(C);
   DynamicPaintSurface *surface;
@@ -456,7 +456,7 @@ static void dpaint_bake_startjob(void *customdata, wmJobWorkerStatus *worker_sta
 /*
  * Bake Dynamic Paint image sequence surface
  */
-static int dynamicpaint_bake_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus dynamicpaint_bake_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob_ = blender::ed::object::context_active_object(C);

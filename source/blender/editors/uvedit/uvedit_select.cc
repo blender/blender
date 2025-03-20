@@ -2065,7 +2065,7 @@ const float *uvedit_first_selected_uv_from_vertex(Scene *scene,
 /** \name Select More/Less Operator
  * \{ */
 
-static int uv_select_more_less(bContext *C, const bool select)
+static wmOperatorStatus uv_select_more_less(bContext *C, const bool select)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2212,7 +2212,7 @@ static int uv_select_more_less(bContext *C, const bool select)
   return OPERATOR_FINISHED;
 }
 
-static int uv_select_more_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus uv_select_more_exec(bContext *C, wmOperator * /*op*/)
 {
   return uv_select_more_less(C, true);
 }
@@ -2230,7 +2230,7 @@ void UV_OT_select_more(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit_space_image;
 }
 
-static int uv_select_less_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus uv_select_less_exec(bContext *C, wmOperator * /*op*/)
 {
   return uv_select_more_less(C, false);
 }
@@ -2423,7 +2423,7 @@ static void uv_select_all_perform_multi(const Scene *scene, Span<Object *> objec
   uv_select_all_perform_multi_ex(scene, objects, action, nullptr);
 }
 
-static int uv_select_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_all_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -2717,7 +2717,7 @@ static bool uv_mouse_select(bContext *C, const float co[2], const SelectPick_Par
   return changed;
 }
 
-static int uv_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_exec(bContext *C, wmOperator *op)
 {
   float co[2];
 
@@ -2734,7 +2734,7 @@ static int uv_select_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 }
 
-static int uv_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const ARegion *region = CTX_wm_region(C);
   float co[2];
@@ -2742,7 +2742,7 @@ static int uv_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
-  const int retval = uv_select_exec(C, op);
+  const wmOperatorStatus retval = uv_select_exec(C, op);
 
   return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
@@ -2791,11 +2791,11 @@ enum eUVLoopGenericType {
   UV_RING_SELECT = 2,
 };
 
-static int uv_mouse_select_loop_generic_multi(bContext *C,
-                                              const Span<Object *> objects,
-                                              const float co[2],
-                                              const bool extend,
-                                              enum eUVLoopGenericType loop_type)
+static wmOperatorStatus uv_mouse_select_loop_generic_multi(bContext *C,
+                                                           const Span<Object *> objects,
+                                                           const float co[2],
+                                                           const bool extend,
+                                                           enum eUVLoopGenericType loop_type)
 {
   const ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -2854,16 +2854,16 @@ static int uv_mouse_select_loop_generic_multi(bContext *C,
 
   return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
 }
-static int uv_mouse_select_loop_generic(bContext *C,
-                                        const float co[2],
-                                        const bool extend,
-                                        enum eUVLoopGenericType loop_type)
+static wmOperatorStatus uv_mouse_select_loop_generic(bContext *C,
+                                                     const float co[2],
+                                                     const bool extend,
+                                                     enum eUVLoopGenericType loop_type)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
-  int ret = uv_mouse_select_loop_generic_multi(C, objects, co, extend, loop_type);
+  wmOperatorStatus ret = uv_mouse_select_loop_generic_multi(C, objects, co, extend, loop_type);
   return ret;
 }
 
@@ -2873,7 +2873,7 @@ static int uv_mouse_select_loop_generic(bContext *C,
 /** \name Edge Loop Select Operator
  * \{ */
 
-static int uv_select_loop_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_loop_exec(bContext *C, wmOperator *op)
 {
   float co[2];
 
@@ -2883,7 +2883,7 @@ static int uv_select_loop_exec(bContext *C, wmOperator *op)
   return uv_mouse_select_loop_generic(C, co, extend, UV_LOOP_SELECT);
 }
 
-static int uv_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const ARegion *region = CTX_wm_region(C);
   float co[2];
@@ -2891,7 +2891,7 @@ static int uv_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
-  const int retval = uv_select_loop_exec(C, op);
+  const wmOperatorStatus retval = uv_select_loop_exec(C, op);
 
   return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
@@ -2937,7 +2937,7 @@ void UV_OT_select_loop(wmOperatorType *ot)
 /** \name Edge Ring Select Operator
  * \{ */
 
-static int uv_select_edge_ring_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_edge_ring_exec(bContext *C, wmOperator *op)
 {
   float co[2];
   RNA_float_get_array(op->ptr, "location", co);
@@ -2945,7 +2945,9 @@ static int uv_select_edge_ring_exec(bContext *C, wmOperator *op)
   return uv_mouse_select_loop_generic(C, co, extend, UV_RING_SELECT);
 }
 
-static int uv_select_edge_ring_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_select_edge_ring_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent *event)
 {
   const ARegion *region = CTX_wm_region(C);
   float co[2];
@@ -2953,7 +2955,7 @@ static int uv_select_edge_ring_invoke(bContext *C, wmOperator *op, const wmEvent
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
-  const int retval = uv_select_edge_ring_exec(C, op);
+  const wmOperatorStatus retval = uv_select_edge_ring_exec(C, op);
 
   return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
@@ -2999,7 +3001,10 @@ void UV_OT_select_edge_ring(wmOperatorType *ot)
 /** \name Select Linked Operator
  * \{ */
 
-static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent *event, bool pick)
+static wmOperatorStatus uv_select_linked_internal(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event,
+                                                  bool pick)
 {
   const ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
@@ -3060,7 +3065,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
   return OPERATOR_FINISHED;
 }
 
-static int uv_select_linked_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_linked_exec(bContext *C, wmOperator *op)
 {
   return uv_select_linked_internal(C, op, nullptr, false);
 }
@@ -3086,12 +3091,14 @@ void UV_OT_select_linked(wmOperatorType *ot)
 /** \name Select Linked (Cursor Pick) Operator
  * \{ */
 
-static int uv_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_select_linked_pick_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event)
 {
   return uv_select_linked_internal(C, op, event, true);
 }
 
-static int uv_select_linked_pick_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_linked_pick_exec(bContext *C, wmOperator *op)
 {
   return uv_select_linked_internal(C, op, nullptr, true);
 }
@@ -3151,7 +3158,7 @@ void UV_OT_select_linked_pick(wmOperatorType *ot)
  * (only having the behavior of being joined) so its best to call this #uv_select_split()
  * instead of just split(), but assigned to the same key as #MESH_OT_split.
  */
-static int uv_select_split_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_split_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -3560,7 +3567,7 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *
 /** \name Box Select Operator
  * \{ */
 
-static int uv_box_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -3806,7 +3813,7 @@ static bool uv_circle_select_is_edge_inside(const float uv_a[2],
   return dist_squared_to_line_segment_v2(co_zero, co_a, co_b) < 1.0f;
 }
 
-static int uv_circle_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -4191,7 +4198,7 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
   return changed_multi;
 }
 
-static int uv_lasso_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_lasso_select_exec(bContext *C, wmOperator *op)
 {
   Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
   if (mcoords.is_empty()) {
@@ -4230,7 +4237,7 @@ void UV_OT_select_lasso(wmOperatorType *ot)
 /** \name Select Pinned UVs Operator
  * \{ */
 
-static int uv_select_pinned_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_pinned_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
@@ -4388,7 +4395,7 @@ static bool overlap_tri_tri_uv_test(const float t1[3][2],
   return false;
 }
 
-static int uv_select_overlap(bContext *C, const bool extend)
+static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -4582,7 +4589,7 @@ static int uv_select_overlap(bContext *C, const bool extend)
   return OPERATOR_FINISHED;
 }
 
-static int uv_select_overlap_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_overlap_exec(bContext *C, wmOperator *op)
 {
   bool extend = RNA_boolean_get(op->ptr, "extend");
   return uv_select_overlap(C, extend);
@@ -4783,7 +4790,7 @@ static float get_uv_island_needle(const eUVSelectSimilar type,
   return result;
 }
 
-static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -4890,7 +4897,7 @@ static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -5000,7 +5007,7 @@ static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -5100,7 +5107,7 @@ static bool uv_island_selected(const Scene *scene, FaceIsland *island)
   return uvedit_face_select_test(scene, island->faces[0], island->offsets);
 }
 
-static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -5218,7 +5225,7 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
 }
 
 /* Select similar UV faces/edges/verts based on current selection. */
-static int uv_select_similar_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_similar_exec(bContext *C, wmOperator *op)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "threshold");
@@ -5634,7 +5641,7 @@ void ED_uvedit_selectmode_clean_multi(bContext *C)
   }
 }
 
-static int uv_select_mode_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_select_mode_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
@@ -5657,7 +5664,9 @@ static int uv_select_mode_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int uv_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus uv_select_mode_invoke(bContext *C,
+                                              wmOperator *op,
+                                              const wmEvent * /*event*/)
 {
   const ToolSettings *ts = CTX_data_tool_settings(C);
   const SpaceImage *sima = CTX_wm_space_image(C);

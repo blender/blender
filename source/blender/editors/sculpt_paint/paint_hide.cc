@@ -505,7 +505,7 @@ static void partialvis_all_update_bmesh(const Depsgraph &depsgraph,
       depsgraph, ob, node_mask, action, [](const BMVert * /*vert*/) { return true; });
 }
 
-static int hide_show_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus hide_show_all_exec(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
@@ -622,7 +622,7 @@ static void partialvis_masked_update_bmesh(const Depsgraph &depsgraph,
   partialvis_update_bmesh_nodes(depsgraph, ob, node_mask, action, mask_test_fn);
 }
 
-static int hide_show_masked_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus hide_show_masked_exec(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
@@ -783,7 +783,7 @@ static void invert_visibility_bmesh(const Depsgraph &depsgraph,
   pbvh.tag_visibility_changed(node_mask);
 }
 
-static int visibility_invert_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus visibility_invert_exec(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
@@ -1113,7 +1113,7 @@ static void grow_shrink_visibility_bmesh(const Depsgraph &depsgraph,
   }
 }
 
-static int visibility_filter_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus visibility_filter_exec(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
@@ -1331,7 +1331,7 @@ static void hide_show_init_properties(bContext & /*C*/,
   gesture_data.selection_type = gesture::SelectionType(RNA_enum_get(op.ptr, "area"));
 }
 
-static int hide_show_gesture_box_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus hide_show_gesture_box_exec(bContext *C, wmOperator *op)
 {
   std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_box(C, op);
   if (!gesture_data) {
@@ -1342,7 +1342,7 @@ static int hide_show_gesture_box_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int hide_show_gesture_lasso_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus hide_show_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
   std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_lasso(C, op);
   if (!gesture_data) {
@@ -1353,7 +1353,7 @@ static int hide_show_gesture_lasso_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int hide_show_gesture_line_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus hide_show_gesture_line_exec(bContext *C, wmOperator *op)
 {
   std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_line(C, op);
   if (!gesture_data) {
@@ -1364,7 +1364,7 @@ static int hide_show_gesture_line_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int hide_show_gesture_polyline_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus hide_show_gesture_polyline_exec(bContext *C, wmOperator *op)
 {
   std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_polyline(C, op);
   if (!gesture_data) {

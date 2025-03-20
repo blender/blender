@@ -134,7 +134,7 @@ bool space_node_view_flag(
   return true;
 }
 
-static int node_view_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_view_all_exec(bContext *C, wmOperator *op)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -171,7 +171,7 @@ void NODE_OT_view_all(wmOperatorType *ot)
 /** \name View Selected Operator
  * \{ */
 
-static int node_view_selected_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_view_selected_exec(bContext *C, wmOperator *op)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -211,7 +211,7 @@ struct NodeViewMove {
   float xof_orig, yof_orig;
 };
 
-static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
@@ -260,7 +260,7 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *e
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -330,7 +330,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 /** \name Background Image Zoom
  * \{ */
 
-static int backimage_zoom_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus backimage_zoom_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
@@ -369,7 +369,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 /** \name Background Image Fit
  * \{ */
 
-static int backimage_fit_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus backimage_fit_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -645,7 +645,7 @@ static void sample_exit(bContext *C, wmOperator *op)
   MEM_freeN(info);
 }
 
-static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
@@ -674,7 +674,7 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   switch (event->type) {
     case LEFTMOUSE:

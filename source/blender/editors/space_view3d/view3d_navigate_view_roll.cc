@@ -82,12 +82,12 @@ static void viewroll_apply(ViewOpsData *vod, int x, int y)
   ED_region_tag_redraw(vod->region);
 }
 
-static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
   short event_code = VIEW_PASS;
   bool use_autokey = false;
-  int ret = OPERATOR_RUNNING_MODAL;
+  wmOperatorStatus ret = OPERATOR_RUNNING_MODAL;
 
   /* Execute the events. */
   if (event->type == EVT_MODAL_MAP) {
@@ -170,7 +170,7 @@ static const EnumPropertyItem prop_view_roll_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int viewroll_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus viewroll_exec(bContext *C, wmOperator *op)
 {
   ViewOpsData *vod;
   if (op->customdata) {
@@ -228,7 +228,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod;
 

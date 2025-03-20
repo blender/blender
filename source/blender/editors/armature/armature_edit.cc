@@ -276,7 +276,7 @@ static const EnumPropertyItem prop_calc_roll_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int armature_calc_roll_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_calc_roll_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -482,7 +482,7 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
                   "Ignore the axis direction, use the shortest rotation to align");
 }
 
-static int armature_roll_clear_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_roll_clear_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -679,7 +679,7 @@ static void fill_add_joint(EditBone *ebo, short eb_tail, ListBase *points)
 }
 
 /* bone adding between selected joints */
-static int armature_fill_bones_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_fill_bones_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -899,7 +899,7 @@ static void armature_clear_swap_done_flags(bArmature *arm)
   }
 }
 
-static int armature_switch_direction_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_switch_direction_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1068,7 +1068,7 @@ static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actb
   fix_editbone_connected_children(edbo, selbone);
 }
 
-static int armature_align_bones_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_align_bones_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_edit_object(C);
   bArmature *arm = static_cast<bArmature *>(ob->data);
@@ -1168,7 +1168,7 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 /** \name Split Operator
  * \{ */
 
-static int armature_split_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_split_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1227,7 +1227,7 @@ static bool armature_delete_ebone_cb(const char *bone_name, void *arm_p)
 
 /* previously delete_armature */
 /* only editmode! */
-static int armature_delete_selected_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_delete_selected_exec(bContext *C, wmOperator * /*op*/)
 {
   EditBone *curBone, *ebone_next;
   bool changed_multi = false;
@@ -1280,7 +1280,9 @@ static int armature_delete_selected_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int armature_delete_selected_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus armature_delete_selected_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent * /*event*/)
 {
   if (RNA_boolean_get(op->ptr, "confirm")) {
     return WM_operator_confirm_ex(C,
@@ -1320,7 +1322,7 @@ static bool armature_dissolve_ebone_cb(const char *bone_name, void *arm_p)
   return (ebone && (ebone->flag & BONE_DONE));
 }
 
-static int armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1491,7 +1493,7 @@ void ARMATURE_OT_dissolve(wmOperatorType *ot)
 /** \name Hide Operator
  * \{ */
 
-static int armature_hide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_hide_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1554,7 +1556,7 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 /** \name Reveal Operator
  * \{ */
 
-static int armature_reveal_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_reveal_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

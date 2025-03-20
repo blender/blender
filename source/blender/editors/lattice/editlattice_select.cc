@@ -89,7 +89,7 @@ bool ED_lattice_deselect_all_multi(bContext *C)
 /** \name Select Random Operator
  * \{ */
 
-static int lattice_select_random_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus lattice_select_random_exec(bContext *C, wmOperator *op)
 {
   const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
   const float randfac = RNA_float_get(op->ptr, "ratio");
@@ -198,7 +198,7 @@ static void ed_lattice_select_mirrored(Lattice *lt, const int axis, const bool e
   MEM_freeN(selpoints);
 }
 
-static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus lattice_select_mirror_exec(bContext *C, wmOperator *op)
 {
   const int axis_flag = RNA_enum_get(op->ptr, "axis");
   const bool extend = RNA_boolean_get(op->ptr, "extend");
@@ -265,7 +265,7 @@ static bool lattice_test_bitmap_uvw(
   return false;
 }
 
-static int lattice_select_more_less(bContext *C, const bool select)
+static wmOperatorStatus lattice_select_more_less(bContext *C, const bool select)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -315,12 +315,12 @@ static int lattice_select_more_less(bContext *C, const bool select)
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int lattice_select_more_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus lattice_select_more_exec(bContext *C, wmOperator * /*op*/)
 {
   return lattice_select_more_less(C, true);
 }
 
-static int lattice_select_less_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus lattice_select_less_exec(bContext *C, wmOperator * /*op*/)
 {
   return lattice_select_more_less(C, false);
 }
@@ -389,7 +389,7 @@ bool ED_lattice_flags_set(Object *obedit, int flag)
   return changed;
 }
 
-static int lattice_select_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus lattice_select_all_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -474,7 +474,7 @@ void LATTICE_OT_select_all(wmOperatorType *ot)
 /** \name Select Ungrouped Verts Operator
  * \{ */
 
-static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

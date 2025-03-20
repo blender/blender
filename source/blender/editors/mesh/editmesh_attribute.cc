@@ -129,7 +129,7 @@ static void bmesh_loop_layer_selected_values_set(BMEditMesh &em,
   }
 }
 
-static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -205,7 +205,9 @@ static int mesh_set_attribute_exec(bContext *C, wmOperator *op)
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int mesh_set_attribute_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   Mesh *mesh = ED_mesh_context(C);
   BMesh *bm = mesh->runtime->edit_mesh->bm;

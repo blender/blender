@@ -826,7 +826,7 @@ static int node_link_viewer(const bContext &C, bNode &bnode_to_view, bNodeSocket
 /** \name Link to Viewer Node Operator
  * \{ */
 
-static int node_active_link_viewer_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_active_link_viewer_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNode *node = bke::node_get_active(*snode.edittree);
@@ -1365,7 +1365,7 @@ wmKeyMap *node_link_modal_keymap(wmKeyConfig *keyconf)
   return keymap;
 }
 
-static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bNodeLinkDrag &nldrag = *static_cast<bNodeLinkDrag *>(op->customdata);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -1524,7 +1524,7 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(ARegion &region,
   return {};
 }
 
-static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -1604,7 +1604,7 @@ void NODE_OT_link(wmOperatorType *ot)
  * \{ */
 
 /* Makes a link between selected output and input sockets. */
-static int node_make_link_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_make_link_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -1649,7 +1649,7 @@ void NODE_OT_link_make(wmOperatorType *ot)
 /** \name Cut Link Operator
  * \{ */
 
-static int cut_links_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus cut_links_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -1757,7 +1757,7 @@ bool all_links_muted(const bNodeSocket &socket)
   return true;
 }
 
-static int mute_links_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mute_links_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -1873,7 +1873,7 @@ void NODE_OT_links_mute(wmOperatorType *ot)
 /** \name Detach Links Operator
  * \{ */
 
-static int detach_links_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus detach_links_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
@@ -1910,7 +1910,7 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 /** \name Set Parent Operator
  * \{ */
 
-static int node_parent_set_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_parent_set_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
@@ -2034,7 +2034,7 @@ static const bNode *find_common_parent_node(const Span<const bNode *> nodes)
   return candidates.last();
 }
 
-static int node_join_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_join_exec(bContext *C, wmOperator * /*op*/)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -2103,7 +2103,7 @@ static bNode *node_find_frame_to_attach(ARegion &region, bNodeTree &ntree, const
   return nullptr;
 }
 
-static int node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+static wmOperatorStatus node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -2206,7 +2206,7 @@ static void node_detach_recursive(bNodeTree &ntree,
 }
 
 /* Detach the root nodes in the current selection. */
-static int node_detach_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_detach_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
@@ -2803,7 +2803,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
 /**
  * Modal handler for insert offset animation
  */
-static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   NodeInsertOfsData *iofsd = static_cast<NodeInsertOfsData *>(op->customdata);
@@ -2856,7 +2856,9 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
 
 #undef NODE_INSOFS_ANIM_DURATION
 
-static int node_insert_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_insert_offset_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
   NodeInsertOfsData *iofsd = snode->runtime->iofsd;

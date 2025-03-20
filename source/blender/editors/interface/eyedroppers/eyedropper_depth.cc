@@ -348,7 +348,7 @@ static void depthdropper_cancel(bContext *C, wmOperator *op)
 }
 
 /* main modal status check */
-static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   DepthDropper *ddr = static_cast<DepthDropper *>(op->customdata);
 
@@ -395,7 +395,7 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* Modal Operator init */
-static int depthdropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus depthdropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   if (!depthdropper_test(C, op)) {
     /* If the operator can't be executed, make sure to not consume the event. */
@@ -417,7 +417,7 @@ static int depthdropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
 }
 
 /* Repeat operator */
-static int depthdropper_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus depthdropper_exec(bContext *C, wmOperator *op)
 {
   /* init */
   if (depthdropper_init(C, op)) {

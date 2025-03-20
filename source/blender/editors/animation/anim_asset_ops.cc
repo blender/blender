@@ -223,10 +223,10 @@ static blender::Vector<Object *> get_selected_pose_objects(bContext *C)
   return selected_pose_objects;
 }
 
-static int create_pose_asset_local(bContext *C,
-                                   wmOperator *op,
-                                   const StringRefNull name,
-                                   const AssetLibraryReference lib_ref)
+static wmOperatorStatus create_pose_asset_local(bContext *C,
+                                                wmOperator *op,
+                                                const StringRefNull name,
+                                                const AssetLibraryReference lib_ref)
 {
   blender::Vector<Object *> selected_pose_objects = get_selected_pose_objects(C);
 
@@ -268,10 +268,10 @@ static int create_pose_asset_local(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-static int create_pose_asset_user_library(bContext *C,
-                                          wmOperator *op,
-                                          const char name[MAX_NAME],
-                                          const AssetLibraryReference lib_ref)
+static wmOperatorStatus create_pose_asset_user_library(bContext *C,
+                                                       wmOperator *op,
+                                                       const char name[MAX_NAME],
+                                                       const AssetLibraryReference lib_ref)
 {
   BLI_assert(lib_ref.type == ASSET_LIBRARY_CUSTOM);
   Main *bmain = CTX_data_main(C);
@@ -330,7 +330,7 @@ static int create_pose_asset_user_library(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-static int pose_asset_create_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_asset_create_exec(bContext *C, wmOperator *op)
 {
   char name[MAX_NAME] = "";
   PropertyRNA *name_prop = RNA_struct_find_property(op->ptr, "pose_name");
@@ -363,7 +363,9 @@ static int pose_asset_create_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int pose_asset_create_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus pose_asset_create_invoke(bContext *C,
+                                                 wmOperator *op,
+                                                 const wmEvent * /*event*/)
 {
   /* If the library isn't saved from the operator's last execution, use the first library. */
   if (!RNA_struct_property_is_set_ex(op->ptr, "asset_library_reference", false)) {
@@ -630,7 +632,7 @@ static void update_pose_action_from_scene(Main *bmain,
   }
 }
 
-static int pose_asset_modify_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_asset_modify_exec(bContext *C, wmOperator *op)
 {
   bAction *action = get_action_of_selected_asset(C);
   BLI_assert_msg(action, "Poll should have checked action exists");
@@ -741,7 +743,7 @@ static bool pose_asset_delete_poll(bContext *C)
   return true;
 }
 
-static int pose_asset_delete_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_asset_delete_exec(bContext *C, wmOperator *op)
 {
   bAction *action = get_action_of_selected_asset(C);
   if (!action) {
@@ -766,7 +768,9 @@ static int pose_asset_delete_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int pose_asset_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus pose_asset_delete_invoke(bContext *C,
+                                                 wmOperator *op,
+                                                 const wmEvent * /*event*/)
 {
   bAction *action = get_action_of_selected_asset(C);
 

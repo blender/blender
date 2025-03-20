@@ -61,7 +61,7 @@ static bool gpencil_data_add_poll(bContext *C)
 }
 
 /* add new datablock - wrapper around API */
-static int gpencil_data_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gpencil_data_add_exec(bContext *C, wmOperator *op)
 {
   PointerRNA gpd_owner = {};
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, &gpd_owner);
@@ -131,7 +131,7 @@ static bool gpencil_data_unlink_poll(bContext *C)
 }
 
 /* unlink datablock - wrapper around API */
-static int gpencil_data_unlink_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gpencil_data_unlink_exec(bContext *C, wmOperator *op)
 {
   bGPdata **gpd_ptr = ED_annotation_data_get_pointers(C, nullptr);
 
@@ -170,7 +170,7 @@ void GPENCIL_OT_data_unlink(wmOperatorType *ot)
 /* ******************* Add New Layer ************************ */
 
 /* add new layer - wrapper around API */
-static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gpencil_layer_add_exec(bContext *C, wmOperator *op)
 {
   PointerRNA gpd_owner = {};
   Main *bmain = CTX_data_main(C);
@@ -222,7 +222,7 @@ void GPENCIL_OT_layer_annotation_add(wmOperatorType *ot)
 }
 /* ******************* Remove Active Layer ************************* */
 
-static int gpencil_layer_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gpencil_layer_remove_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_annotation_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -305,7 +305,7 @@ enum {
   GP_LAYER_MOVE_DOWN = 1,
 };
 
-static int gpencil_layer_move_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gpencil_layer_move_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_annotation_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);

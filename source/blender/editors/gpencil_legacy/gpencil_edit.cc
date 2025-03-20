@@ -116,7 +116,7 @@ static bool annotation_actframe_delete_poll(bContext *C)
 }
 
 /* delete active frame - wrapper around API calls */
-static int gpencil_actframe_delete_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gpencil_actframe_delete_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_annotation_data_get_active(C);
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);

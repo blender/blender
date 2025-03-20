@@ -347,18 +347,18 @@ void SEQUENCER_OT_retiming_freeze_frame_add(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_key_delete(wmOperatorType *ot);
 void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot);
-int sequencer_retiming_key_select_exec(bContext *C,
-                                       wmOperator *op,
-                                       SeqRetimingKey *key,
-                                       const Strip *key_owner);
+wmOperatorStatus sequencer_retiming_key_select_exec(bContext *C,
+                                                    wmOperator *op,
+                                                    SeqRetimingKey *key,
+                                                    const Strip *key_owner);
 /* Select a key and all following keys. */
-int sequencer_retiming_select_linked_time(bContext *C,
-                                          wmOperator *op,
-                                          SeqRetimingKey *key,
-                                          const Strip *key_owner);
-int sequencer_select_exec(bContext *C, wmOperator *op);
-int sequencer_retiming_select_all_exec(bContext *C, wmOperator *op);
-int sequencer_retiming_box_select_exec(bContext *C, wmOperator *op);
+wmOperatorStatus sequencer_retiming_select_linked_time(bContext *C,
+                                                       wmOperator *op,
+                                                       SeqRetimingKey *key,
+                                                       const Strip *key_owner);
+wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op);
+wmOperatorStatus sequencer_retiming_select_all_exec(bContext *C, wmOperator *op);
+wmOperatorStatus sequencer_retiming_box_select_exec(bContext *C, wmOperator *op);
 
 /* `sequencer_retiming_draw.cc` */
 void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
@@ -396,7 +396,7 @@ blender::Vector<Strip *> sequencer_visible_strips_get(const bContext *C);
 blender::Vector<Strip *> sequencer_visible_strips_get(const Scene *scene, const View2D *v2d);
 
 /* `sequencer_clipboard.cc` */
-int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op);
-int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op);
+wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op);
+wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op);
 
 }  // namespace blender::ed::vse

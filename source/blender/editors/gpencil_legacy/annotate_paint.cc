@@ -2185,7 +2185,7 @@ static void annotation_draw_apply_event(
 /* ------------------------------- */
 
 /* operator 'redo' (i.e. after changing some properties, but also for repeat last) */
-static int annotation_draw_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus annotation_draw_exec(bContext *C, wmOperator *op)
 {
   tGPsdata *p = nullptr;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -2252,7 +2252,7 @@ static int annotation_draw_exec(bContext *C, wmOperator *op)
 /* ------------------------------- */
 
 /* start of interactive drawing part of operator */
-static int annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tGPsdata *p = nullptr;
 
@@ -2419,11 +2419,11 @@ static void annotation_add_missing_events(bContext *C,
 }
 
 /* events handling during interactive drawing part of operator */
-static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
   /* Default exit state - pass through to support MMB view navigation, etc. */
-  int estate = OPERATOR_PASS_THROUGH;
+  wmOperatorStatus estate = OPERATOR_PASS_THROUGH;
 
 /* NOTE(mike erwin): Not quite what I was looking for, but a good start!
  * grease-pencil continues to draw on the screen while the 3D mouse moves the viewpoint.
@@ -2708,8 +2708,10 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
       annotation_draw_exit(C, op);
       break;
 
-    case OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH:
-      /* event doesn't need to be handled */
+      /* Event doesn't need to be handled. */
+      /* `OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH` */
+    default:
+      /* Quiet warnings. */
       break;
   }
 

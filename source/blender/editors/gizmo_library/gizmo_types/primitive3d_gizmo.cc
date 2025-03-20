@@ -229,7 +229,9 @@ static void gizmo_primitive_setup(wmGizmo *gz)
   gz_prim->draw_inner = true;
 }
 
-static int gizmo_primitive_invoke(bContext * /*C*/, wmGizmo *gz, const wmEvent * /*event*/)
+static wmOperatorStatus gizmo_primitive_invoke(bContext * /*C*/,
+                                               wmGizmo *gz,
+                                               const wmEvent * /*event*/)
 {
   GizmoInteraction *inter = static_cast<GizmoInteraction *>(
       MEM_callocN(sizeof(GizmoInteraction), __func__));

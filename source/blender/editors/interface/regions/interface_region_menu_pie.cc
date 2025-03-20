@@ -194,7 +194,7 @@ uiLayout *UI_pie_menu_layout(uiPieMenu *pie)
   return pie->layout;
 }
 
-int UI_pie_menu_invoke(bContext *C, const char *idname, const wmEvent *event)
+wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEvent *event)
 {
   uiPieMenu *pie;
   uiLayout *layout;

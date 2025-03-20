@@ -84,7 +84,7 @@ using blender::Vector;
 /** \name Subdivide Operator
  * \{ */
 
-static int edbm_subdivide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_subdivide_exec(bContext *C, wmOperator *op)
 {
   const int cuts = RNA_int_get(op->ptr, "number_cuts");
   const float smooth = RNA_float_get(op->ptr, "smoothness");
@@ -288,7 +288,7 @@ static void mesh_operator_edgering_props_get(wmOperator *op, EdgeRingOpSubdProps
   op_props->profile_shape_factor = RNA_float_get(op->ptr, "profile_shape_factor");
 }
 
-static int edbm_subdivide_edge_ring_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_subdivide_edge_ring_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -353,7 +353,7 @@ void MESH_OT_subdivide_edgering(wmOperatorType *ot)
 /** \name Un-Subdivide Operator
  * \{ */
 
-static int edbm_unsubdivide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_unsubdivide_exec(bContext *C, wmOperator *op)
 {
   const int iterations = RNA_int_get(op->ptr, "iterations");
   const Scene *scene = CTX_data_scene(C);
@@ -437,7 +437,7 @@ static void edbm_report_delete_info(ReportList *reports,
               totelem_old[2] - totelem_new[2]);
 }
 
-static int edbm_delete_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_delete_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -576,7 +576,7 @@ static bool bm_face_is_loose(BMFace *f)
   return true;
 }
 
-static int edbm_delete_loose_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_delete_loose_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -680,7 +680,7 @@ void MESH_OT_delete_loose(wmOperatorType *ot)
 /** \name Collapse Edge Operator
  * \{ */
 
-static int edbm_collapse_edge_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_collapse_edge_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -910,7 +910,7 @@ static void edbm_add_edge_face_exec__tricky_finalize_sel(BMesh *bm, BMElem *ele_
 }
 #endif /* USE_FACE_CREATE_SEL_EXTEND */
 
-static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 {
   /* When this is used to dissolve we could avoid this, but checking isn't too slow. */
   bool changed_multi = false;
@@ -1025,7 +1025,7 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 /** \name Mark Edge (Seam) Operator
  * \{ */
 
-static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_mark_seam_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1103,7 +1103,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 /** \name Mark Edge (Sharp) Operator
  * \{ */
 
-static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_mark_sharp_exec(bContext *C, wmOperator *op)
 {
   BMEdge *eed;
   BMIter iter;
@@ -1288,7 +1288,7 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, Mesh *mesh, wmOperator *op)
   return len;
 }
 
-static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_vert_connect_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1535,7 +1535,7 @@ static bool bm_vert_connect_select_history_edge_to_vert_path(BMesh *bm, ListBase
   return true;
 }
 
-static int edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1627,7 +1627,7 @@ void MESH_OT_vert_connect_path(wmOperatorType *ot)
 /** \name Connect Concave Operator
  * \{ */
 
-static int edbm_vert_connect_concave_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_vert_connect_concave_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1676,7 +1676,7 @@ void MESH_OT_vert_connect_concave(wmOperatorType *ot)
 /** \name Split Non-Planar Faces Operator
  * \{ */
 
-static int edbm_vert_connect_nonplaner_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_vert_connect_nonplaner_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1748,7 +1748,7 @@ void MESH_OT_vert_connect_nonplanar(wmOperatorType *ot)
 /** \name Make Planar Faces Operator
  * \{ */
 
-static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_face_make_planar_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1916,7 +1916,7 @@ static bool edbm_edge_split_selected_verts(wmOperator *op, Object *obedit, BMEdi
   return true;
 }
 
-static int edbm_edge_split_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_edge_split_exec(bContext *C, wmOperator *op)
 {
   const int type = RNA_enum_get(op->ptr, "type");
 
@@ -1981,7 +1981,7 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 /** \name Duplicate Operator
  * \{ */
 
-static int edbm_duplicate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_duplicate_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2033,10 +2033,12 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
   return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int edbm_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus edbm_duplicate_invoke(bContext *C,
+                                              wmOperator *op,
+                                              const wmEvent * /*event*/)
 {
   WM_cursor_wait(true);
-  const int retval = edbm_duplicate_exec(C, op);
+  const wmOperatorStatus retval = edbm_duplicate_exec(C, op);
   WM_cursor_wait(false);
 
   return retval;
@@ -2224,7 +2226,7 @@ static void edbm_flip_normals_face_winding(wmOperator *op, Object *obedit, BMEdi
   }
 }
 
-static int edbm_flip_quad_tessellation_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_flip_quad_tessellation_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2242,7 +2244,7 @@ static int edbm_flip_quad_tessellation_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_flip_normals_exec(bContext *C, wmOperator *op)
 {
   const bool only_clnors = RNA_boolean_get(op->ptr, "only_clnors");
 
@@ -2301,7 +2303,7 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 /**
  * Rotate the edges between selected faces, otherwise rotate the selected edges.
  */
-static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 {
   BMEdge *eed;
   BMIter iter;
@@ -2430,7 +2432,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 /** \name Hide Operator
  * \{ */
 
-static int edbm_hide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_hide_exec(bContext *C, wmOperator *op)
 {
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");
   const Scene *scene = CTX_data_scene(C);
@@ -2508,7 +2510,7 @@ void MESH_OT_hide(wmOperatorType *ot)
 /** \name Reveal Operator
  * \{ */
 
-static int edbm_reveal_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_reveal_exec(bContext *C, wmOperator *op)
 {
   const bool select = RNA_boolean_get(op->ptr, "select");
   const Scene *scene = CTX_data_scene(C);
@@ -2554,7 +2556,7 @@ void MESH_OT_reveal(wmOperatorType *ot)
 /** \name Recalculate Normals Operator
  * \{ */
 
-static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2621,7 +2623,7 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 /** \name Smooth Vertices Operator
  * \{ */
 
-static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 {
   const float fac = RNA_float_get(op->ptr, "factor");
 
@@ -2764,7 +2766,7 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 /** \name Laplacian Smooth Vertices Operator
  * \{ */
 
-static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 {
   int tot_selected = 0, tot_locked = 0;
   const Scene *scene = CTX_data_scene(C);
@@ -2913,7 +2915,7 @@ static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
   }
 }
 
-static int edbm_faces_shade_smooth_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus edbm_faces_shade_smooth_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2958,7 +2960,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 /** \name Set Faces Flat Shading Operator
  * \{ */
 
-static int edbm_faces_shade_flat_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus edbm_faces_shade_flat_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3003,7 +3005,7 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 /** \name UV/Color Rotate/Reverse Operator
  * \{ */
 
-static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 {
   /* get the direction from RNA */
   const bool use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
@@ -3039,7 +3041,7 @@ static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int edbm_reverse_uvs_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_reverse_uvs_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3071,7 +3073,7 @@ static int edbm_reverse_uvs_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 {
   /* get the direction from RNA */
   const bool use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
@@ -3125,7 +3127,7 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_reverse_colors_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3365,7 +3367,7 @@ static bool merge_target(BMEditMesh *em,
   return true;
 }
 
-static int edbm_merge_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_merge_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3525,7 +3527,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 /** \name Merge By Distance Operator
  * \{ */
 
-static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 {
   const float threshold = RNA_float_get(op->ptr, "threshold");
   const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
@@ -3684,7 +3686,7 @@ static bool shape_propagate(BMEditMesh *em, bool use_symmetry)
   return true;
 }
 
-static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3769,7 +3771,7 @@ void MESH_OT_shape_propagate_to_all(wmOperatorType *ot)
  * \{ */
 
 /* BMESH_TODO this should be properly encapsulated in a bmop.  but later. */
-static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 {
   Object *obedit_ref = CTX_data_edit_object(C);
   Mesh *me_ref = static_cast<Mesh *>(obedit_ref->data);
@@ -3971,7 +3973,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 /** \name Solidify Mesh Operator
  * \{ */
 
-static int edbm_solidify_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_solidify_exec(bContext *C, wmOperator *op)
 {
   const float thickness = RNA_float_get(op->ptr, "thickness");
 
@@ -4360,7 +4362,7 @@ static bool mesh_separate_loose(
   return result;
 }
 
-static int edbm_separate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_separate_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -4510,7 +4512,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 /** \name Triangle Fill Operator
  * \{ */
 
-static int edbm_fill_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_fill_exec(bContext *C, wmOperator *op)
 {
   const bool use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
 
@@ -4895,7 +4897,7 @@ static void edbm_fill_grid_split_join_finish(BMEditMesh *em,
   MEM_freeN(split_join);
 }
 
-static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_fill_grid_exec(bContext *C, wmOperator *op)
 {
   const bool use_interp_simple = RNA_boolean_get(op->ptr, "use_interp_simple");
 
@@ -5037,7 +5039,7 @@ void MESH_OT_fill_grid(wmOperatorType *ot)
 /** \name Hole Fill Operator
  * \{ */
 
-static int edbm_fill_holes_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_fill_holes_exec(bContext *C, wmOperator *op)
 {
   const int sides = RNA_int_get(op->ptr, "sides");
 
@@ -5100,7 +5102,7 @@ void MESH_OT_fill_holes(wmOperatorType *ot)
 /** \name Beauty Fill Operator
  * \{ */
 
-static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -5186,7 +5188,7 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 /** \name Poke Face Operator
  * \{ */
 
-static int edbm_poke_face_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_poke_face_exec(bContext *C, wmOperator *op)
 {
   const float offset = RNA_float_get(op->ptr, "offset");
   const bool use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
@@ -5281,7 +5283,7 @@ void MESH_OT_poke(wmOperatorType *ot)
 /** \name Triangulate Face Operator
  * \{ */
 
-static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 {
   const int quad_method = RNA_enum_get(op->ptr, "quad_method");
   const int ngon_method = RNA_enum_get(op->ptr, "ngon_method");
@@ -5377,7 +5379,7 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 #  define USE_JOIN_TRIANGLE_TESTING_API
 #endif
 
-static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -5598,7 +5600,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
  *
  * \{ */
 
-static int edbm_decimate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_decimate_exec(bContext *C, wmOperator *op)
 {
   const float ratio = RNA_float_get(op->ptr, "ratio");
   bool use_vertex_group = RNA_boolean_get(op->ptr, "use_vertex_group");
@@ -5823,7 +5825,7 @@ static void edbm_dissolve_prop__use_boundary_tear(wmOperatorType *ot)
                   "Split off face corners instead of merging faces");
 }
 
-static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 {
   const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
   const bool use_boundary_tear = RNA_boolean_get(op->ptr, "use_boundary_tear");
@@ -5888,7 +5890,7 @@ void MESH_OT_dissolve_verts(wmOperatorType *ot)
 /** \name Dissolve Edges Operator
  * \{ */
 
-static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
 {
   const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
   const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
@@ -5952,7 +5954,7 @@ void MESH_OT_dissolve_edges(wmOperatorType *ot)
 /** \name Dissolve Faces Operator
  * \{ */
 
-static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
 {
   const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
   const Scene *scene = CTX_data_scene(C);
@@ -6014,7 +6016,7 @@ void MESH_OT_dissolve_faces(wmOperatorType *ot)
 /** \name Dissolve (Context Sensitive) Operator
  * \{ */
 
-static int edbm_dissolve_mode_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_dissolve_mode_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -6062,7 +6064,7 @@ void MESH_OT_dissolve_mode(wmOperatorType *ot)
 /** \name Limited Dissolve Operator
  * \{ */
 
-static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {
   const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
   const bool use_dissolve_boundaries = RNA_boolean_get(op->ptr, "use_dissolve_boundaries");
@@ -6185,7 +6187,7 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 /** \name Degenerate Dissolve Operator
  * \{ */
 
-static int edbm_dissolve_degenerate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_dissolve_degenerate_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -6264,7 +6266,7 @@ void MESH_OT_dissolve_degenerate(wmOperatorType *ot)
  * \{ */
 
 /* internally uses dissolve */
-static int edbm_delete_edgeloop_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_delete_edgeloop_exec(bContext *C, wmOperator *op)
 {
   const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
   const Scene *scene = CTX_data_scene(C);
@@ -6347,7 +6349,7 @@ void MESH_OT_delete_edgeloop(wmOperatorType *ot)
 /** \name Split Geometry Operator
  * \{ */
 
-static int edbm_split_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_split_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -6911,7 +6913,7 @@ static void sort_bmelem_flag(bContext *C,
   }
 }
 
-static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_sort_elements_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -7267,7 +7269,7 @@ static int edbm_bridge_edge_loops_for_single_editmesh(wmOperator *op,
   return OPERATOR_FINISHED;
 }
 
-static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 {
   const int type = RNA_enum_get(op->ptr, "type");
   const bool use_pairs = (type == MESH_BRIDGELOOP_PAIRS);
@@ -7348,7 +7350,7 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 /** \name Wire-Frame Operator
  * \{ */
 
-static int edbm_wireframe_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_wireframe_exec(bContext *C, wmOperator *op)
 {
   const bool use_boundary = RNA_boolean_get(op->ptr, "use_boundary");
   const bool use_even_offset = RNA_boolean_get(op->ptr, "use_even_offset");
@@ -7458,7 +7460,7 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 /** \name Offset Edge-Loop Operator
  * \{ */
 
-static int edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
 {
   const bool use_cap_endpoint = RNA_boolean_get(op->ptr, "use_cap_endpoint");
   bool changed_multi = false;
@@ -7541,7 +7543,7 @@ void MESH_OT_offset_edge_loops(wmOperatorType *ot)
  * \{ */
 
 #ifdef WITH_BULLET
-static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_convex_hull_exec(bContext *C, wmOperator *op)
 {
   const bool use_existing_faces = RNA_boolean_get(op->ptr, "use_existing_faces");
   const bool delete_unused = RNA_boolean_get(op->ptr, "delete_unused");
@@ -7681,7 +7683,7 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 /** \name Symmetrize Operator
  * \{ */
 
-static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mesh_symmetrize_exec(bContext *C, wmOperator *op)
 {
   const float thresh = RNA_float_get(op->ptr, "threshold");
   const Scene *scene = CTX_data_scene(C);
@@ -7762,7 +7764,7 @@ void MESH_OT_symmetrize(wmOperatorType *ot)
 /** \name Snap to Symmetry Operator
  * \{ */
 
-static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
 {
   const float eps = 0.00001f;
   const float eps_sq = eps * eps;
@@ -7944,7 +7946,7 @@ void MESH_OT_symmetry_snap(wmOperatorType *ot)
 /** \name Mark Edge (Freestyle) Operator
  * \{ */
 
-static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 {
   BMEdge *eed;
   BMIter iter;
@@ -8024,7 +8026,7 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 /** \name Mark Face (Freestyle) Operator
  * \{ */
 
-static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 {
   BMFace *efa;
   BMIter iter;
@@ -8354,7 +8356,7 @@ static void point_normals_apply(bContext *C, wmOperator *op, float target[3], co
   }
 }
 
-static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* As this operator passes events through, we can't be sure the user didn't exit edit-mode.
    * or performed some other operation. */
@@ -8371,7 +8373,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
 
   float target[3];
 
-  int ret = OPERATOR_PASS_THROUGH;
+  wmOperatorStatus ret = OPERATOR_PASS_THROUGH;
   int mode = RNA_enum_get(op->ptr, "mode");
   int new_mode = mode;
   bool force_mousemove = false;
@@ -8569,7 +8571,9 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
   return ret;
 }
 
-static int edbm_point_normals_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus edbm_point_normals_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent * /*event*/)
 {
   if (!point_normals_init(C, op)) {
     point_normals_cancel(C, op);
@@ -8585,7 +8589,7 @@ static int edbm_point_normals_invoke(bContext *C, wmOperator *op, const wmEvent 
 }
 
 /* TODO: make this work on multiple objects at once */
-static int edbm_point_normals_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_point_normals_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
 
@@ -8825,7 +8829,7 @@ static void normals_split(BMesh *bm)
   }
 }
 
-static int normals_split_merge(bContext *C, const bool do_merge)
+static wmOperatorStatus normals_split_merge(bContext *C, const bool do_merge)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -8879,7 +8883,7 @@ static int normals_split_merge(bContext *C, const bool do_merge)
   return OPERATOR_FINISHED;
 }
 
-static int edbm_merge_normals_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus edbm_merge_normals_exec(bContext *C, wmOperator * /*op*/)
 {
   return normals_split_merge(C, true);
 }
@@ -8899,7 +8903,7 @@ void MESH_OT_merge_normals(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int edbm_split_normals_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus edbm_split_normals_exec(bContext *C, wmOperator * /*op*/)
 {
   return normals_split_merge(C, false);
 }
@@ -8950,7 +8954,7 @@ static EnumPropertyItem average_method_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int edbm_average_normals_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_average_normals_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -9206,7 +9210,7 @@ static EnumPropertyItem normal_vector_tool_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int edbm_normals_tools_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_normals_tools_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -9424,7 +9428,7 @@ void MESH_OT_normals_tools(wmOperatorType *ot)
 /** \name Set Normals from Faces Operator
  * \{ */
 
-static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -9539,7 +9543,7 @@ void MESH_OT_set_normals_from_faces(wmOperatorType *ot)
 /** \name Smooth Normal Vectors Operator
  * \{ */
 
-static int edbm_smooth_normals_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_smooth_normals_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -9657,7 +9661,7 @@ void MESH_OT_smooth_normals(wmOperatorType *ot)
 /** \name Weighted Normal Modifier Face Strength
  * \{ */
 
-static int edbm_mod_weighted_strength_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_mod_weighted_strength_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

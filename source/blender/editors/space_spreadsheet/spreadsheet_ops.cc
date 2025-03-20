@@ -21,7 +21,7 @@
 
 namespace blender::ed::spreadsheet {
 
-static int row_filter_add_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus row_filter_add_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
 
@@ -45,7 +45,7 @@ static void SPREADSHEET_OT_add_row_filter_rule(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int row_filter_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus row_filter_remove_exec(bContext *C, wmOperator *op)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
 
@@ -77,7 +77,9 @@ static void SPREADSHEET_OT_remove_row_filter_rule(wmOperatorType *ot)
   RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, INT_MAX);
 }
 
-static int select_component_domain_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus select_component_domain_invoke(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent * /*event*/)
 {
   const auto component_type = bke::GeometryComponent::Type(RNA_int_get(op->ptr, "component_type"));
   bke::AttrDomain domain = bke::AttrDomain(RNA_int_get(op->ptr, "attribute_domain_type"));

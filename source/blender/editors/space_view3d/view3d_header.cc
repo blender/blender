@@ -36,7 +36,7 @@
 /** \name Toggle Matcap Flip Operator
  * \{ */
 
-static int toggle_matcap_flip_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus toggle_matcap_flip_exec(bContext *C, wmOperator * /*op*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
 

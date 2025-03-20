@@ -142,7 +142,7 @@ static bool execute_trim_on_drawing(const int layer_index,
 /**
  * Apply the stroke trim to all layers.
  */
-static int stroke_trim_execute(const bContext *C, const Span<int2> mcoords)
+static wmOperatorStatus stroke_trim_execute(const bContext *C, const Span<int2> mcoords)
 {
   const Scene *scene = CTX_data_scene(C);
   const ARegion *region = CTX_wm_region(C);
@@ -235,7 +235,7 @@ static int stroke_trim_execute(const bContext *C, const Span<int2> mcoords)
   return OPERATOR_FINISHED;
 }
 
-static int grease_pencil_stroke_trim_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_stroke_trim_exec(bContext *C, wmOperator *op)
 {
   const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
 

@@ -535,12 +535,12 @@ static eV3D_OpEvent view3d_navigate_event(ViewOpsData *vod, const wmEvent *event
   return VIEW_PASS;
 }
 
-static int view3d_navigation_invoke_generic(bContext *C,
-                                            ViewOpsData *vod,
-                                            const wmEvent *event,
-                                            PointerRNA *ptr,
-                                            const ViewOpsType *nav_type,
-                                            const float dyn_ofs_override[3])
+static wmOperatorStatus view3d_navigation_invoke_generic(bContext *C,
+                                                         ViewOpsData *vod,
+                                                         const wmEvent *event,
+                                                         PointerRNA *ptr,
+                                                         const ViewOpsType *nav_type,
+                                                         const float dyn_ofs_override[3])
 {
   if (!nav_type->init_fn) {
     return OPERATOR_CANCELLED;
@@ -557,14 +557,15 @@ static int view3d_navigation_invoke_generic(bContext *C,
   return nav_type->init_fn(C, vod, event, ptr);
 }
 
-int view3d_navigate_invoke_impl(bContext *C,
-                                wmOperator *op,
-                                const wmEvent *event,
-                                const ViewOpsType *nav_type)
+wmOperatorStatus view3d_navigate_invoke_impl(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent *event,
+                                             const ViewOpsType *nav_type)
 {
   ViewOpsData *vod = new ViewOpsData();
   vod->init_context(C);
-  int ret = view3d_navigation_invoke_generic(C, vod, event, op->ptr, nav_type, nullptr);
+  wmOperatorStatus ret = view3d_navigation_invoke_generic(
+      C, vod, event, op->ptr, nav_type, nullptr);
   op->customdata = (void *)vod;
 
   if (ret == OPERATOR_RUNNING_MODAL) {
@@ -605,7 +606,7 @@ bool view3d_zoom_or_dolly_or_rotation_poll(bContext *C)
   return view3d_navigation_poll_impl(C, RV3D_LOCK_ZOOM_AND_DOLLY | RV3D_LOCK_ROTATION);
 }
 
-int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event)
+wmOperatorStatus view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
 
@@ -618,7 +619,7 @@ int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event)
     return view3d_navigation_invoke_generic(C, vod, event, op->ptr, vod->nav_type, nullptr);
   }
 
-  int ret = vod->nav_type->apply_fn(C, vod, event_code, event->xy);
+  wmOperatorStatus ret = vod->nav_type->apply_fn(C, vod, event_code, event->xy);
 
   if ((ret & OPERATOR_RUNNING_MODAL) == 0) {
     if (ret & OPERATOR_FINISHED) {

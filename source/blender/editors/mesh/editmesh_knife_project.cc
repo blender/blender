@@ -101,7 +101,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
   return polys;
 }
 
-static int knifeproject_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus knifeproject_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   const bool cut_through = RNA_boolean_get(op->ptr, "cut_through");

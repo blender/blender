@@ -15,6 +15,7 @@
 #include "ED_view3d.hh"
 
 #include "DNA_listBase.h"
+#include "DNA_windowmanager_enums.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -906,9 +907,9 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
  * \see #initTransform which reads values from the operator.
  */
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op);
-int transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event);
+wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event);
 void transformApply(bContext *C, TransInfo *t);
-int transformEnd(bContext *C, TransInfo *t);
+wmOperatorStatus transformEnd(bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);
 void setTransformViewAspect(TransInfo *t, float r_aspect[3]);

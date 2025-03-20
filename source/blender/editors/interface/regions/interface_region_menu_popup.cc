@@ -629,7 +629,7 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
   }
 }
 
-int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
+wmOperatorStatus UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 {
   MenuType *mt = WM_menutype_find(idname, true);
 

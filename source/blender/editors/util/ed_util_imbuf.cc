@@ -445,7 +445,7 @@ void ED_imbuf_sample_exit(bContext *C, wmOperator *op)
   MEM_freeN(info);
 }
 
-int ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+wmOperatorStatus ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   ScrArea *area = CTX_wm_area(C);
@@ -486,7 +486,7 @@ int ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-int ED_imbuf_sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
+wmOperatorStatus ED_imbuf_sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   switch (event->type) {
     case LEFTMOUSE:

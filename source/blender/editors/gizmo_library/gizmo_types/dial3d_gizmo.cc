@@ -500,10 +500,10 @@ static void gizmo_dial_draw(const bContext *C, wmGizmo *gz)
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static int gizmo_dial_modal(bContext *C,
-                            wmGizmo *gz,
-                            const wmEvent *event,
-                            eWM_GizmoFlagTweak tweak_flag)
+static wmOperatorStatus gizmo_dial_modal(bContext *C,
+                                         wmGizmo *gz,
+                                         const wmEvent *event,
+                                         eWM_GizmoFlagTweak tweak_flag)
 {
   DialInteraction *inter = static_cast<DialInteraction *>(gz->interaction_data);
   if (!inter) {
@@ -596,7 +596,7 @@ static void gizmo_dial_setup(wmGizmo *gz)
   copy_v3_v3(gz->matrix_basis[2], dir_default);
 }
 
-static int gizmo_dial_invoke(bContext * /*C*/, wmGizmo *gz, const wmEvent *event)
+static wmOperatorStatus gizmo_dial_invoke(bContext * /*C*/, wmGizmo *gz, const wmEvent *event)
 {
   if (gz->custom_modal) {
     /* #DialInteraction is only used for the inner modal. */

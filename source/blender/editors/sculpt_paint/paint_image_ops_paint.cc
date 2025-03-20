@@ -451,7 +451,7 @@ static bool paint_stroke_test_start(bContext *C, wmOperator *op, const float mou
   return true;
 }
 
-static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int retval;
 
@@ -477,7 +477,7 @@ static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int paint_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus paint_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *strokeprop;
   PointerRNA firstpoint;
@@ -520,7 +520,7 @@ static int paint_exec(bContext *C, wmOperator *op)
   return paint_stroke_exec(C, op, static_cast<PaintStroke *>(op->customdata));
 }
 
-static int paint_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus paint_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   return paint_stroke_modal(C, op, event, reinterpret_cast<PaintStroke **>(&op->customdata));
 }

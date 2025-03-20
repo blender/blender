@@ -125,13 +125,13 @@ ENUM_OPERATORS(eHandlerActionFlag, WM_HANDLER_MODAL);
 static void wm_notifier_clear(wmNotifier *note);
 static bool wm_notifier_is_clear(const wmNotifier *note);
 
-static int wm_operator_call_internal(bContext *C,
-                                     wmOperatorType *ot,
-                                     PointerRNA *properties,
-                                     ReportList *reports,
-                                     const wmOperatorCallContext context,
-                                     const bool poll_only,
-                                     const wmEvent *event);
+static wmOperatorStatus wm_operator_call_internal(bContext *C,
+                                                  wmOperatorType *ot,
+                                                  PointerRNA *properties,
+                                                  ReportList *reports,
+                                                  const wmOperatorCallContext context,
+                                                  const bool poll_only,
+                                                  const wmEvent *event);
 
 static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot);
 static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win);
@@ -1311,10 +1311,13 @@ static void wm_operator_finished(bContext *C,
 /**
  * \param repeat: When true, it doesn't register again, nor does it free.
  */
-static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, const bool store)
+static wmOperatorStatus wm_operator_exec(bContext *C,
+                                         wmOperator *op,
+                                         const bool repeat,
+                                         const bool store)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  int retval = OPERATOR_CANCELLED;
+  wmOperatorStatus retval = OPERATOR_CANCELLED;
 
   CTX_wm_operator_poll_msg_clear(C);
 
@@ -1369,9 +1372,9 @@ static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, cons
 /**
  * Simply calls exec with basic checks.
  */
-static int wm_operator_exec_notest(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_operator_exec_notest(bContext *C, wmOperator *op)
 {
-  int retval = OPERATOR_CANCELLED;
+  wmOperatorStatus retval = OPERATOR_CANCELLED;
 
   if (op == nullptr || op->type == nullptr || op->type->exec == nullptr) {
     return retval;
@@ -1383,34 +1386,34 @@ static int wm_operator_exec_notest(bContext *C, wmOperator *op)
   return retval;
 }
 
-int WM_operator_call_ex(bContext *C, wmOperator *op, const bool store)
+wmOperatorStatus WM_operator_call_ex(bContext *C, wmOperator *op, const bool store)
 {
   return wm_operator_exec(C, op, false, store);
 }
 
-int WM_operator_call(bContext *C, wmOperator *op)
+wmOperatorStatus WM_operator_call(bContext *C, wmOperator *op)
 {
   return WM_operator_call_ex(C, op, false);
 }
 
-int WM_operator_call_notest(bContext *C, wmOperator *op)
+wmOperatorStatus WM_operator_call_notest(bContext *C, wmOperator *op)
 {
   return wm_operator_exec_notest(C, op);
 }
 
-int WM_operator_repeat(bContext *C, wmOperator *op)
+wmOperatorStatus WM_operator_repeat(bContext *C, wmOperator *op)
 {
   const int op_flag = OP_IS_REPEAT;
   op->flag |= op_flag;
-  const int ret = wm_operator_exec(C, op, true, true);
+  const wmOperatorStatus ret = wm_operator_exec(C, op, true, true);
   op->flag &= ~op_flag;
   return ret;
 }
-int WM_operator_repeat_last(bContext *C, wmOperator *op)
+wmOperatorStatus WM_operator_repeat_last(bContext *C, wmOperator *op)
 {
   const int op_flag = OP_IS_REPEAT_LAST;
   op->flag |= op_flag;
-  const int ret = wm_operator_exec(C, op, true, true);
+  const wmOperatorStatus ret = wm_operator_exec(C, op, true, true);
   op->flag &= ~op_flag;
   return ret;
 }
@@ -1577,20 +1580,20 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 /**
  * Also used for exec when 'event' is nullptr.
  */
-static int wm_operator_invoke(bContext *C,
-                              wmOperatorType *ot,
-                              const wmEvent *event,
-                              PointerRNA *properties,
-                              ReportList *reports,
-                              const bool poll_only,
-                              bool use_last_properties)
+static wmOperatorStatus wm_operator_invoke(bContext *C,
+                                           wmOperatorType *ot,
+                                           const wmEvent *event,
+                                           PointerRNA *properties,
+                                           ReportList *reports,
+                                           const bool poll_only,
+                                           bool use_last_properties)
 {
-  int retval = OPERATOR_PASS_THROUGH;
+  wmOperatorStatus retval = OPERATOR_PASS_THROUGH;
 
   /* This is done because complicated setup is done to call this function
    * that is better not duplicated. */
   if (poll_only) {
-    return WM_operator_poll(C, ot);
+    return wmOperatorStatus(WM_operator_poll(C, ot));
   }
 
   if (WM_operator_poll(C, ot)) {
@@ -1736,15 +1739,15 @@ static int wm_operator_invoke(bContext *C,
  * This is for python to access since its done the operator lookup
  * invokes operator in context.
  */
-static int wm_operator_call_internal(bContext *C,
-                                     wmOperatorType *ot,
-                                     PointerRNA *properties,
-                                     ReportList *reports,
-                                     const wmOperatorCallContext context,
-                                     const bool poll_only,
-                                     const wmEvent *event)
+static wmOperatorStatus wm_operator_call_internal(bContext *C,
+                                                  wmOperatorType *ot,
+                                                  PointerRNA *properties,
+                                                  ReportList *reports,
+                                                  const wmOperatorCallContext context,
+                                                  const bool poll_only,
+                                                  const wmEvent *event)
 {
-  int retval;
+  wmOperatorStatus retval;
 
   CTX_wm_operator_poll_msg_clear(C);
 
@@ -1765,7 +1768,7 @@ static int wm_operator_call_internal(bContext *C,
             if (poll_only) {
               CTX_wm_operator_poll_msg_set(C, "Missing 'window' in context");
             }
-            return 0;
+            return wmOperatorStatus(0);
           }
           else {
             event = window->eventstate;
@@ -1869,30 +1872,30 @@ static int wm_operator_call_internal(bContext *C,
     }
   }
 
-  return 0;
+  return wmOperatorStatus(0);
 }
 
-int WM_operator_name_call_ptr(bContext *C,
-                              wmOperatorType *ot,
-                              wmOperatorCallContext context,
-                              PointerRNA *properties,
-                              const wmEvent *event)
+wmOperatorStatus WM_operator_name_call_ptr(bContext *C,
+                                           wmOperatorType *ot,
+                                           wmOperatorCallContext context,
+                                           PointerRNA *properties,
+                                           const wmEvent *event)
 {
   BLI_assert(ot == WM_operatortype_find(ot->idname, true));
   return wm_operator_call_internal(C, ot, properties, nullptr, context, false, event);
 }
-int WM_operator_name_call(bContext *C,
-                          const char *opstring,
-                          wmOperatorCallContext context,
-                          PointerRNA *properties,
-                          const wmEvent *event)
+wmOperatorStatus WM_operator_name_call(bContext *C,
+                                       const char *opstring,
+                                       wmOperatorCallContext context,
+                                       PointerRNA *properties,
+                                       const wmEvent *event)
 {
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
   if (ot) {
     return WM_operator_name_call_ptr(C, ot, context, properties, event);
   }
 
-  return 0;
+  return wmOperatorStatus(0);
 }
 
 bool WM_operator_name_poll(bContext *C, const char *opstring)
@@ -1905,11 +1908,11 @@ bool WM_operator_name_poll(bContext *C, const char *opstring)
   return WM_operator_poll(C, ot);
 }
 
-int WM_operator_name_call_with_properties(bContext *C,
-                                          const char *opstring,
-                                          wmOperatorCallContext context,
-                                          IDProperty *properties,
-                                          const wmEvent *event)
+wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
+                                                       const char *opstring,
+                                                       wmOperatorCallContext context,
+                                                       IDProperty *properties,
+                                                       const wmEvent *event)
 {
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
   PointerRNA props_ptr = RNA_pointer_create_discrete(
@@ -1934,7 +1937,7 @@ int WM_operator_call_py(bContext *C,
                         ReportList *reports,
                         const bool is_undo)
 {
-  int retval = OPERATOR_CANCELLED;
+  wmOperatorStatus retval = OPERATOR_CANCELLED;
   /* Not especially nice using undo depth here. It's used so Python never
    * triggers undo or stores an operator's last used state. */
   wmWindowManager *wm = CTX_wm_manager(C);

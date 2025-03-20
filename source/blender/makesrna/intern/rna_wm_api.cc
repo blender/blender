@@ -118,6 +118,11 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
   WM_enum_search_invoke(C, op, nullptr);
 }
 
+static int rna_Operator_ui_popup(bContext *C, wmOperator *op, int width)
+{
+  return wmOperatorStatus(WM_operator_ui_popup(C, op, width));
+}
+
 static bool rna_event_modal_handler_add(bContext *C, ReportList *reports, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -983,7 +988,7 @@ void RNA_api_wm(StructRNA *srna)
   rna_generic_op_invoke(func, 0);
 
   /* invoke functions, for use with python */
-  func = RNA_def_function(srna, "invoke_popup", "WM_operator_ui_popup");
+  func = RNA_def_function(srna, "invoke_popup", "rna_Operator_ui_popup");
   RNA_def_function_ui_description(func,
                                   "Operator popup invoke "
                                   "(only shows operator's properties, without executing it)");

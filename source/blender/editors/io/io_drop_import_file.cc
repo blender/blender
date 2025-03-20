@@ -97,7 +97,7 @@ static PointerRNA file_handler_import_operator_create_ptr(
   return props;
 }
 
-static int wm_drop_import_file_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_drop_import_file_exec(bContext *C, wmOperator *op)
 {
   const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
   if (paths.is_empty()) {
@@ -117,7 +117,9 @@ static int wm_drop_import_file_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int wm_drop_import_file_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_drop_import_file_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent * /*event*/)
 {
   const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
   if (paths.is_empty()) {

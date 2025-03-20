@@ -474,7 +474,7 @@ static int mouse_mesh_uv_shortest_path_face(Scene *scene,
 /** \name Main Operator for vert/edge/face tag
  * \{ */
 
-static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op);
+static wmOperatorStatus uv_shortest_path_pick_exec(bContext *C, wmOperator *op);
 
 static bool uv_shortest_path_pick_ex(Scene *scene,
                                      Depsgraph *depsgraph,
@@ -537,7 +537,9 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
   return ok;
 }
 
-static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_shortest_path_pick_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event)
 {
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
@@ -679,7 +681,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -786,7 +788,7 @@ void UV_OT_shortest_path_pick(wmOperatorType *ot)
 /** \name Select Path Between Existing Selection
  * \{ */
 
-static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_shortest_path_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);

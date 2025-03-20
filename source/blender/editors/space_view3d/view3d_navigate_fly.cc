@@ -418,7 +418,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
   return true;
 }
 
-static int flyEnd(bContext *C, FlyInfo *fly)
+static wmOperatorStatus flyEnd(bContext *C, FlyInfo *fly)
 {
   wmWindow *win;
   RegionView3D *rv3d;
@@ -1099,7 +1099,7 @@ static void fly_draw_status(bContext *C, wmOperator *op)
   status.item(fmt::format("{} ({:.2f})", IFACE_("Acceleration"), fly->speed), ICON_NONE);
 }
 
-static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
@@ -1134,9 +1134,9 @@ static void fly_cancel(bContext *C, wmOperator *op)
   op->customdata = nullptr;
 }
 
-static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int exit_code;
+  wmOperatorStatus exit_code;
   bool do_draw = false;
   FlyInfo *fly = static_cast<FlyInfo *>(op->customdata);
   View3D *v3d = fly->v3d;

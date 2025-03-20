@@ -1061,13 +1061,13 @@ static int gizmo_ruler_test_select(bContext * /*C*/, wmGizmo *gz, const int mval
   return -1;
 }
 
-static int gizmo_ruler_modal(bContext *C,
-                             wmGizmo *gz,
-                             const wmEvent *event,
-                             eWM_GizmoFlagTweak tweak_flag)
+static wmOperatorStatus gizmo_ruler_modal(bContext *C,
+                                          wmGizmo *gz,
+                                          const wmEvent *event,
+                                          eWM_GizmoFlagTweak tweak_flag)
 {
   bool do_draw = false;
-  int exit_code = OPERATOR_RUNNING_MODAL;
+  wmOperatorStatus exit_code = OPERATOR_RUNNING_MODAL;
   RulerInfo *ruler_info = static_cast<RulerInfo *>(gz->parent_gzgroup->customdata);
   RulerItem *ruler_item = (RulerItem *)gz;
   ARegion *region = CTX_wm_region(C);
@@ -1137,7 +1137,7 @@ static int gizmo_ruler_modal(bContext *C,
   return exit_code;
 }
 
-static int gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
+static wmOperatorStatus gizmo_ruler_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 {
   wmGizmoGroup *gzgroup = gz->parent_gzgroup;
   RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
@@ -1360,7 +1360,7 @@ static bool view3d_ruler_poll(bContext *C)
   return true;
 }
 
-static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -1437,7 +1437,9 @@ void VIEW3D_OT_ruler_add(wmOperatorType *ot)
 /** \name Remove Ruler Operator
  * \{ */
 
-static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus view3d_ruler_remove_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent * /*event*/)
 {
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);

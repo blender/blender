@@ -509,7 +509,7 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph);
  * Toggle operator.
  */
 void ED_reset_audio_device(bContext *C);
-int ED_screen_animation_play(bContext *C, int sync, int mode);
+wmOperatorStatus ED_screen_animation_play(bContext *C, int sync, int mode);
 /**
  * Find window that owns the animation timer.
  */

@@ -101,7 +101,7 @@ void ED_rigidbody_object_remove(Main *bmain, Scene *scene, Object *ob)
 
 /* ************ Add Rigid Body ************** */
 
-static int rigidbody_object_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_object_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -148,7 +148,7 @@ void RIGIDBODY_OT_object_add(wmOperatorType *ot)
 
 /* ************ Remove Rigid Body ************** */
 
-static int rigidbody_object_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_object_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -194,7 +194,7 @@ void RIGIDBODY_OT_object_remove(wmOperatorType *ot)
 
 /* ************ Add Rigid Bodies ************** */
 
-static int rigidbody_objects_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_objects_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -243,7 +243,7 @@ void RIGIDBODY_OT_objects_add(wmOperatorType *ot)
 
 /* ************ Remove Rigid Bodies ************** */
 
-static int rigidbody_objects_remove_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus rigidbody_objects_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -289,7 +289,7 @@ void RIGIDBODY_OT_objects_remove(wmOperatorType *ot)
 
 /* ************ Change Collision Shapes ************** */
 
-static int rigidbody_objects_shape_change_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_objects_shape_change_exec(bContext *C, wmOperator *op)
 {
   int shape = RNA_enum_get(op->ptr, "type");
   bool changed = false;
@@ -449,7 +449,7 @@ static const EnumPropertyItem *rigidbody_materials_itemf(bContext * /*C*/,
 
 /* ------------------------------------------ */
 
-static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   int material = RNA_enum_get(op->ptr, "material");

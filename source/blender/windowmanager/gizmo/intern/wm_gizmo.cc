@@ -224,7 +224,10 @@ PointerRNA *WM_gizmo_operator_set(wmGizmo *gz,
   return &gzop.ptr;
 }
 
-int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop, const wmEvent *event)
+wmOperatorStatus WM_gizmo_operator_invoke(bContext *C,
+                                          wmGizmo *gz,
+                                          wmGizmoOpElem *gzop,
+                                          const wmEvent *event)
 {
   if (gz->flag & WM_GIZMO_OPERATOR_TOOL_INIT) {
     /* Merge tool-settings into the gizmo properties. */

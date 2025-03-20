@@ -318,7 +318,7 @@ static bool edbm_inset_calc(wmOperator *op)
   return changed;
 }
 
-static int edbm_inset_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_inset_exec(bContext *C, wmOperator *op)
 {
   if (!edbm_inset_init(C, op, false)) {
     return OPERATOR_CANCELLED;
@@ -333,7 +333,7 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int edbm_inset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus edbm_inset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   InsetData *opdata;
@@ -369,7 +369,7 @@ static int edbm_inset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   InsetData *opdata = static_cast<InsetData *>(op->customdata);
   const bool has_numinput = hasNumInput(&opdata->num_input);

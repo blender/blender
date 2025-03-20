@@ -119,7 +119,7 @@ void ED_rigidbody_constraint_remove(Main *bmain, Scene *scene, Object *ob)
 
 /* ************ Add Rigid Body Constraint ************** */
 
-static int rigidbody_con_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_con_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -173,7 +173,7 @@ void RIGIDBODY_OT_constraint_add(wmOperatorType *ot)
 
 /* ************ Remove Rigid Body Constraint ************** */
 
-static int rigidbody_con_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_con_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);

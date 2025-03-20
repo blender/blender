@@ -1020,7 +1020,7 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
  * \{ */
 
 /* based on mouse cursor position, it defines how is being ripped */
-static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

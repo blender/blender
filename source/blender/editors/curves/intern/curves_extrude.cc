@@ -231,7 +231,7 @@ static bke::CurvesGeometry extrude_curves(const bke::CurvesGeometry &curves,
   return new_curves;
 }
 
-static int curves_extrude_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus curves_extrude_exec(bContext *C, wmOperator * /*op*/)
 {
   bool extruded = false;
   for (Curves *curves_id : get_unique_editable_curves(*C)) {

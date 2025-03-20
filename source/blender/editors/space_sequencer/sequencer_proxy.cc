@@ -89,14 +89,16 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   ED_area_tag_redraw(area);
 }
 
-static int sequencer_rebuild_proxy_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus sequencer_rebuild_proxy_invoke(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent * /*event*/)
 {
   seq_proxy_build_job(C, op->reports);
 
   return OPERATOR_FINISHED;
 }
 
-static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /*o*/)
+static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /*o*/)
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -149,13 +151,15 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
 /** \name Set Selected Strip Proxies Operator
  * \{ */
 
-static int sequencer_enable_proxies_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus sequencer_enable_proxies_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent * /*event*/)
 {
   return WM_operator_props_dialog_popup(
       C, op, 200, IFACE_("Set Selected Strip Proxies"), IFACE_("Set"));
 }
 
-static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);

@@ -412,10 +412,10 @@ BLI_INLINE void gizmo2d_origin_to_region(ARegion *region, float *r_origin)
 /**
  * Custom handler for gizmo widgets
  */
-static int gizmo2d_modal(bContext *C,
-                         wmGizmo *widget,
-                         const wmEvent * /*event*/,
-                         eWM_GizmoFlagTweak /*tweak_flag*/)
+static wmOperatorStatus gizmo2d_modal(bContext *C,
+                                      wmGizmo *widget,
+                                      const wmEvent * /*event*/,
+                                      eWM_GizmoFlagTweak /*tweak_flag*/)
 {
   ARegion *region = CTX_wm_region(C);
   float origin[3];

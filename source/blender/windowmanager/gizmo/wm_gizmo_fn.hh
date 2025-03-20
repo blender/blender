@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "DNA_windowmanager_enums.h" /* For `wmOperatorStatus`. */
+
 struct bContext;
 struct rcti;
 struct wmEvent;
@@ -40,10 +42,13 @@ using wmGizmoFnSetup = void (*)(wmGizmo *);
 using wmGizmoFnDraw = void (*)(const bContext *, wmGizmo *);
 using wmGizmoFnDrawSelect = void (*)(const bContext *, wmGizmo *, int);
 using wmGizmoFnTestSelect = int (*)(bContext *, wmGizmo *, const int mval[2]);
-using wmGizmoFnModal = int (*)(bContext *, wmGizmo *, const wmEvent *, eWM_GizmoFlagTweak);
+using wmGizmoFnModal = wmOperatorStatus (*)(bContext *,
+                                            wmGizmo *,
+                                            const wmEvent *,
+                                            eWM_GizmoFlagTweak);
 using wmGizmoFnPropertyUpdate = void (*)(wmGizmo *, wmGizmoProperty *);
 using wmGizmoFnMatrixBasisGet = void (*)(const wmGizmo *, float[4][4]);
-using wmGizmoFnInvoke = int (*)(bContext *, wmGizmo *, const wmEvent *);
+using wmGizmoFnInvoke = wmOperatorStatus (*)(bContext *, wmGizmo *, const wmEvent *);
 using wmGizmoFnExit = void (*)(bContext *, wmGizmo *, const bool);
 using wmGizmoFnCursorGet = int (*)(wmGizmo *);
 using wmGizmoFnScreenBoundsGet = bool (*)(bContext *, wmGizmo *, rcti *r_bounding_box);

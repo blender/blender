@@ -21,7 +21,7 @@
 /** \name View Camera Operator
  * \{ */
 
-static int view_camera_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view_camera_exec(bContext *C, wmOperator *op)
 {
   View3D *v3d;
   ARegion *region;

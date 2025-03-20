@@ -102,7 +102,7 @@ static bool has_anything_selected(const Span<PointCloud *> pointclouds)
   });
 }
 
-static int select_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus select_all_exec(bContext *C, wmOperator *op)
 {
   int action = RNA_enum_get(op->ptr, "action");
 
@@ -139,7 +139,7 @@ static void POINTCLOUD_OT_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
-static int select_random_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus select_random_exec(bContext *C, wmOperator *op)
 {
   const int seed = RNA_int_get(op->ptr, "seed");
   const float probability = RNA_float_get(op->ptr, "probability");
@@ -209,7 +209,7 @@ static void POINTCLOUD_OT_select_random(wmOperatorType *ot)
 
 namespace pointcloud_delete {
 
-static int delete_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus delete_exec(bContext *C, wmOperator * /*op*/)
 {
   for (PointCloud *pointcloud : get_unique_editable_pointclouds(*C)) {
     if (remove_selection(*pointcloud)) {

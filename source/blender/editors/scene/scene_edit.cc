@@ -242,7 +242,7 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
 /** \name Scene New Operator
  * \{ */
 
-static int scene_new_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus scene_new_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   wmWindow *win = CTX_wm_window(C);
@@ -295,7 +295,7 @@ static void SCENE_OT_new(wmOperatorType *ot)
 /** \name Scene New Sequencer Operator
  * \{ */
 
-static int scene_new_sequencer_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   int type = RNA_enum_get(op->ptr, "type");
@@ -387,7 +387,7 @@ static bool scene_delete_poll(bContext *C)
   return BKE_scene_can_be_removed(bmain, scene);
 }
 
-static int scene_delete_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus scene_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
 

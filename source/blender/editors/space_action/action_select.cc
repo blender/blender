@@ -371,7 +371,7 @@ static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Se
 
 /* ------------------- */
 
-static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus actkeys_deselectall_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -601,7 +601,9 @@ static void box_select_action(bAnimContext *ac,
 
 /* ------------------- */
 
-static int actkeys_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus actkeys_box_select_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -620,7 +622,7 @@ static int actkeys_box_select_invoke(bContext *C, wmOperator *op, const wmEvent 
   return WM_gesture_box_invoke(C, op, event);
 }
 
-static int actkeys_box_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
   rcti rect;
@@ -899,7 +901,7 @@ static void region_select_action_keys(bAnimContext *ac,
 
 /* ----------------------------------- */
 
-static int actkeys_lassoselect_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus actkeys_lassoselect_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -963,7 +965,7 @@ void ACTION_OT_select_lasso(wmOperatorType *ot)
 
 /* ------------------- */
 
-static int action_circle_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus action_circle_select_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1234,7 +1236,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 
 /* ------------------- */
 
-static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus actkeys_columnselect_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
   short mode;
@@ -1287,7 +1289,7 @@ void ACTION_OT_select_column(wmOperatorType *ot)
 /** \name Select Linked Operator
  * \{ */
 
-static int actkeys_select_linked_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus actkeys_select_linked_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
 
@@ -1397,7 +1399,7 @@ static void select_moreless_action_keys(bAnimContext *ac, short mode)
 
 /* ----------------- */
 
-static int actkeys_select_more_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus actkeys_select_more_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
 
@@ -1434,7 +1436,7 @@ void ACTION_OT_select_more(wmOperatorType *ot)
 
 /* ----------------- */
 
-static int actkeys_select_less_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus actkeys_select_less_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
 
@@ -1586,7 +1588,7 @@ static void actkeys_select_leftright(bAnimContext *ac,
 
 /* ----------------- */
 
-static int actkeys_select_leftright_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus actkeys_select_leftright_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
   short leftright = RNA_enum_get(op->ptr, "mode");
@@ -1620,7 +1622,9 @@ static int actkeys_select_leftright_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus actkeys_select_leftright_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event)
 {
   bAnimContext ac;
   short leftright = RNA_enum_get(op->ptr, "mode");
@@ -1888,13 +1892,13 @@ static void actkeys_mselect_channel_only(bAnimContext *ac,
 
 /* ------------------- */
 
-static int mouse_action_keys(bAnimContext *ac,
-                             const int mval[2],
-                             eEditKeyframes_Select select_mode,
-                             const bool deselect_all,
-                             const bool column,
-                             const bool same_channel,
-                             bool wait_to_deselect_others)
+static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
+                                          const int mval[2],
+                                          eEditKeyframes_Select select_mode,
+                                          const bool deselect_all,
+                                          const bool column,
+                                          const bool same_channel,
+                                          bool wait_to_deselect_others)
 {
   /* NOTE: keep this functionality in sync with #MARKER_OT_select.
    * The logic here closely matches its internals.
@@ -1908,7 +1912,7 @@ static int mouse_action_keys(bAnimContext *ac,
   bool is_selected = false;
   float frame = 0.0f; /* frame of keyframe under mouse - NLA corrections not applied/included */
   float selx = 0.0f;  /* frame of keyframe under mouse */
-  int ret_value = OPERATOR_FINISHED;
+  wmOperatorStatus ret_value = OPERATOR_FINISHED;
 
   actkeys_find_key_at_position(
       ac, filter, mval[0], mval[1], &ale, &selx, &frame, &found, &is_selected);
@@ -2041,10 +2045,10 @@ static int mouse_action_keys(bAnimContext *ac,
 }
 
 /* handle clicking */
-static int actkeys_clickselect_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus actkeys_clickselect_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  int ret_value;
+  wmOperatorStatus ret_value;
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {

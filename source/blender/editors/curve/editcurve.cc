@@ -1386,7 +1386,7 @@ void ED_curve_editnurb_free(Object *obedit)
 /** \name Separate Operator
  * \{ */
 
-static int separate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus separate_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -1522,7 +1522,7 @@ void CURVE_OT_separate(wmOperatorType *ot)
 /** \name Split Operator
  * \{ */
 
-static int curve_split_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus curve_split_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
@@ -2606,7 +2606,7 @@ static void adduplicateflagNurb(
 /** \name Switch Direction Operator
  * \{ */
 
-static int switch_direction_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus switch_direction_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
@@ -2666,7 +2666,7 @@ void CURVE_OT_switch_direction(wmOperatorType *ot)
 /** \name Set Weight Operator
  * \{ */
 
-static int set_goal_weight_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus set_goal_weight_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2729,7 +2729,7 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 /** \name Set Radius Operator
  * \{ */
 
-static int set_radius_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus set_radius_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2845,7 +2845,7 @@ static void smooth_single_bp(BPoint *bp,
   }
 }
 
-static int smooth_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus smooth_exec(bContext *C, wmOperator *op)
 {
   const float factor = 1.0f / 6.0f;
   const Scene *scene = CTX_data_scene(C);
@@ -3147,7 +3147,7 @@ static void curve_smooth_value(ListBase *editnurb, const int bezt_offsetof, cons
 /** \name Smooth Weight Operator
  * \{ */
 
-static int curve_smooth_weight_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus curve_smooth_weight_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3187,7 +3187,7 @@ void CURVE_OT_smooth_weight(wmOperatorType *ot)
 /** \name Smooth Radius Operator
  * \{ */
 
-static int curve_smooth_radius_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus curve_smooth_radius_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3237,7 +3237,7 @@ void CURVE_OT_smooth_radius(wmOperatorType *ot)
 /** \name Smooth Tilt Operator
  * \{ */
 
-static int curve_smooth_tilt_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus curve_smooth_tilt_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3286,7 +3286,7 @@ void CURVE_OT_smooth_tilt(wmOperatorType *ot)
 /** \name Hide Operator
  * \{ */
 
-static int hide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus hide_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3387,7 +3387,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 /** \name Reveal Operator
  * \{ */
 
-static int reveal_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus reveal_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3860,7 +3860,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
   }
 }
 
-static int subdivide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus subdivide_exec(bContext *C, wmOperator *op)
 {
   const int number_cuts = RNA_int_get(op->ptr, "number_cuts");
 
@@ -3919,13 +3919,13 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 /** \name Set Spline Type Operator
  * \{ */
 
-static int set_spline_type_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus set_spline_type_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
-  int ret_value = OPERATOR_CANCELLED;
+  wmOperatorStatus ret_value = OPERATOR_CANCELLED;
 
   for (Object *obedit : objects) {
     Main *bmain = CTX_data_main(C);
@@ -4009,7 +4009,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 /** \name Set Handle Type Operator
  * \{ */
 
-static int set_handle_type_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus set_handle_type_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -4072,7 +4072,7 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 /** \name Recalculate Handles Operator
  * \{ */
 
-static int curve_normals_make_consistent_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus curve_normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -4519,7 +4519,7 @@ static int merge_nurb(View3D *v3d, Object *obedit)
   return ok ? CURVE_MERGE_OK : CURVE_MERGE_ERR_RESOLUTION_SOME;
 }
 
-static int make_segment_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus make_segment_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
@@ -5119,7 +5119,7 @@ bool ed_editnurb_spin(
   return changed;
 }
 
-static int spin_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus spin_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
@@ -5175,7 +5175,7 @@ static int spin_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int spin_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus spin_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Scene *scene = CTX_data_scene(C);
   RegionView3D *rv3d = ED_view3d_context_rv3d(C);
@@ -5616,7 +5616,7 @@ int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, const float
   return changed;
 }
 
-static int add_vertex_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_vertex_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -5646,7 +5646,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
@@ -5739,7 +5739,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* Support dragging to move after extrude, see: #114282. */
-  int retval = add_vertex_exec(C, op);
+  wmOperatorStatus retval = add_vertex_exec(C, op);
   if (retval & OPERATOR_FINISHED) {
     retval |= OPERATOR_PASS_THROUGH;
   }
@@ -5780,7 +5780,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 /** \name Extrude Operator
  * \{ */
 
-static int curve_extrude_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus curve_extrude_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
@@ -5924,7 +5924,7 @@ bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction)
   return changed;
 }
 
-static int toggle_cyclic_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus toggle_cyclic_exec(bContext *C, wmOperator *op)
 {
   const int direction = RNA_enum_get(op->ptr, "direction");
   View3D *v3d = CTX_wm_view3d(C);
@@ -5952,7 +5952,9 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
   return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int toggle_cyclic_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus toggle_cyclic_invoke(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent * /*event*/)
 {
   Object *obedit = CTX_data_edit_object(C);
   ListBase *editnurb = object_editcurve_get(obedit);
@@ -6012,7 +6014,7 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 /** \name Add Duplicate Operator
  * \{ */
 
-static int duplicate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus duplicate_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -6517,7 +6519,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
   return true;
 }
 
-static int curve_delete_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus curve_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -6694,7 +6696,7 @@ void ed_dissolve_bez_segment(BezTriple *bezt_prev,
   MEM_freeN(points);
 }
 
-static int curve_dissolve_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus curve_dissolve_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
@@ -6783,7 +6785,7 @@ static bool nurb_bezt_flag_any(const Nurb *nu, const char flag_test)
   return false;
 }
 
-static int curve_decimate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus curve_decimate_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   const float error_sq_max = FLT_MAX;
@@ -6864,7 +6866,7 @@ void CURVE_OT_decimate(wmOperatorType *ot)
 /** \name Shade Smooth/Flat Operator
  * \{ */
 
-static int shade_smooth_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
 {
   View3D *v3d = CTX_wm_view3d(C);
   const Scene *scene = CTX_data_scene(C);
@@ -6872,7 +6874,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   int clear = STREQ(op->idname, "CURVE_OT_shade_flat");
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
-  int ret_value = OPERATOR_CANCELLED;
+  wmOperatorStatus ret_value = OPERATOR_CANCELLED;
 
   for (Object *obedit : objects) {
     ListBase *editnurb = object_editcurve_get(obedit);
@@ -6936,7 +6938,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
 /** \name Join Operator
  * \{ */
 
-int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
+wmOperatorStatus ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -7056,7 +7058,7 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 /** \name Clear Tilt Operator
  * \{ */
 
-static int clear_tilt_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus clear_tilt_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -7154,7 +7156,7 @@ static bool match_texture_space_poll(bContext *C)
   return object && ELEM(object->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT);
 }
 
-static int match_texture_space_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus match_texture_space_exec(bContext *C, wmOperator * /*op*/)
 {
   /* Need to ensure the dependency graph is fully evaluated, so the display list is at a correct
    * state. */

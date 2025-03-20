@@ -6099,7 +6099,7 @@ void paint_proj_stroke_done(void *ps_handle_p)
   MEM_delete(ps_handle);
 }
 /* use project paint to re-apply an image */
-static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Image *image = static_cast<Image *>(
@@ -6251,7 +6251,7 @@ static bool texture_paint_image_from_view_poll(bContext *C)
   return true;
 }
 
-static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   Image *image;
@@ -6820,7 +6820,7 @@ static int get_texture_layer_type(wmOperator *op, const char *prop_name)
   return type;
 }
 
-static int texture_paint_add_texture_paint_slot_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus texture_paint_add_texture_paint_slot_exec(bContext *C, wmOperator *op)
 {
   if (proj_paint_add_slot(C, op)) {
     return OPERATOR_FINISHED;
@@ -6838,9 +6838,9 @@ static void get_default_texture_layer_name_for_object(Object *ob,
   BLI_snprintf(dst, dst_maxncpy, "%s %s", base_name, DATA_(layer_type_items[texture_type].name));
 }
 
-static int texture_paint_add_texture_paint_slot_invoke(bContext *C,
-                                                       wmOperator *op,
-                                                       const wmEvent * /*event*/)
+static wmOperatorStatus texture_paint_add_texture_paint_slot_invoke(bContext *C,
+                                                                    wmOperator *op,
+                                                                    const wmEvent * /*event*/)
 {
   Object *ob = blender::ed::object::context_active_object(C);
   Material *ma = BKE_object_material_get(ob, ob->actcol);
@@ -6987,7 +6987,7 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
                "Type of data stored in attribute");
 }
 
-static int add_simple_uvs_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus add_simple_uvs_exec(bContext *C, wmOperator * /*op*/)
 {
   /* no checks here, poll function does them for us */
   Main *bmain = CTX_data_main(C);

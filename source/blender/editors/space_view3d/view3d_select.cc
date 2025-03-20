@@ -1478,7 +1478,7 @@ static bool view3d_lasso_select(bContext *C,
 
 /* lasso operator gives properties, but since old code works
  * with short array we convert */
-static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view3d_lasso_select_exec(bContext *C, wmOperator *op)
 {
   Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
   if (mcoords.is_empty()) {
@@ -1567,7 +1567,7 @@ static const EnumPropertyItem *object_select_menu_enum_itemf(bContext *C,
   return item;
 }
 
-static int object_select_menu_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus object_select_menu_exec(bContext *C, wmOperator *op)
 {
   const int name_index = RNA_enum_get(op->ptr, "name");
   const bool extend = RNA_boolean_get(op->ptr, "extend");
@@ -1800,7 +1800,7 @@ static bool object_mouse_select_menu(bContext *C,
   return true;
 }
 
-static int bone_select_menu_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus bone_select_menu_exec(bContext *C, wmOperator *op)
 {
   const int name_index = RNA_enum_get(op->ptr, "name");
 
@@ -3481,7 +3481,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   return true;
 }
 
-static int view3d_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view3d_select_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -3599,11 +3599,11 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
 }
 
-static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RNA_int_set_array(op->ptr, "location", event->mval);
 
-  const int retval = view3d_select_exec(C, op);
+  const wmOperatorStatus retval = view3d_select_exec(C, op);
 
   return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
@@ -4433,7 +4433,7 @@ static bool do_grease_pencil_box_select(const ViewContext *vc,
       });
 }
 
-static int view3d_box_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -5471,9 +5471,11 @@ static void view3d_circle_select_recalc(void *user_data)
   }
 }
 
-static int view3d_circle_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus view3d_circle_select_modal(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent *event)
 {
-  int result = WM_gesture_circle_modal(C, op, event);
+  wmOperatorStatus result = WM_gesture_circle_modal(C, op, event);
   if (result & OPERATOR_FINISHED) {
     view3d_circle_select_recalc(C);
   }
@@ -5486,7 +5488,7 @@ static void view3d_circle_select_cancel(bContext *C, wmOperator *op)
   view3d_circle_select_recalc(C);
 }
 
-static int view3d_circle_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const int radius = RNA_int_get(op->ptr, "radius");

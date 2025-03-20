@@ -582,7 +582,7 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
   }
 }
 
-static int uv_align_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_align_exec(bContext *C, wmOperator *op)
 {
   uv_weld_align(C, eUVWeldAlign(RNA_enum_get(op->ptr, "axis")));
 
@@ -638,7 +638,7 @@ static void UV_OT_align(wmOperatorType *ot)
 /** \name Remove Doubles Operator
  * \{ */
 
-static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -754,7 +754,7 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -812,7 +812,7 @@ static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int uv_remove_doubles_to_selected_shared_vertex(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_remove_doubles_to_selected_shared_vertex(bContext *C, wmOperator *op)
 {
   /* NOTE: The calculation for the center-point of loops belonging to a vertex will be skewed
    * if one UV coordinate holds more loops than the others. */
@@ -922,7 +922,7 @@ static int uv_remove_doubles_to_selected_shared_vertex(bContext *C, wmOperator *
   return OPERATOR_FINISHED;
 }
 
-static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_remove_doubles_exec(bContext *C, wmOperator *op)
 {
   if (RNA_boolean_get(op->ptr, "use_unselected")) {
     return uv_remove_doubles_to_unselected(C, op);
@@ -970,7 +970,7 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
 /** \name Weld Near Operator
  * \{ */
 
-static int uv_weld_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus uv_weld_exec(bContext *C, wmOperator * /*op*/)
 {
   uv_weld_align(C, UV_WELD);
 
@@ -1023,7 +1023,7 @@ static void uv_snap_cursor_to_origin(float uvco[2])
   uvco[1] = 0;
 }
 
-static int uv_snap_cursor_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_snap_cursor_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
 
@@ -1189,7 +1189,7 @@ static bool uv_snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit
   return changed;
 }
 
-static int uv_snap_selection_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_snap_selection_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1274,7 +1274,7 @@ static void UV_OT_snap_selected(wmOperatorType *ot)
 /** \name Pin UVs Operator
  * \{ */
 
-static int uv_pin_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_pin_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1397,7 +1397,7 @@ static bool bm_face_is_all_uv_sel(BMFace *f, bool select_test, const BMUVOffsets
   return true;
 }
 
-static int uv_hide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_hide_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Scene *scene = CTX_data_scene(C);
@@ -1569,7 +1569,7 @@ static void UV_OT_hide(wmOperatorType *ot)
 /** \name Reveal Operator
  * \{ */
 
-static int uv_reveal_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_reveal_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Scene *scene = CTX_data_scene(C);
@@ -1719,7 +1719,7 @@ static void UV_OT_reveal(wmOperatorType *ot)
 /** \name Set 2D Cursor Operator
  * \{ */
 
-static int uv_set_2d_cursor_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_set_2d_cursor_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
 
@@ -1741,7 +1741,7 @@ static int uv_set_2d_cursor_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
-static int uv_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   float location[2];
@@ -1791,7 +1791,7 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
 /** \name Seam from UV Islands Operator
  * \{ */
 
-static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1888,7 +1888,7 @@ static void UV_OT_seams_from_islands(wmOperatorType *ot)
 /** \name Mark Seam Operator
  * \{ */
 
-static int uv_mark_seam_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_mark_seam_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1941,7 +1941,7 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int uv_mark_seam_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus uv_mark_seam_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   uiPopupMenu *pup;
   uiLayout *layout;

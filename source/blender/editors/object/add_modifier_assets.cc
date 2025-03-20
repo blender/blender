@@ -278,7 +278,7 @@ static bNodeTree *get_node_group(const bContext &C, PointerRNA &ptr, ReportList 
   return node_group;
 }
 
-static int modifier_add_asset_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus modifier_add_asset_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -322,7 +322,9 @@ static int modifier_add_asset_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_add_asset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus modifier_add_asset_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   if (event->modifier & KM_ALT || CTX_wm_view3d(C)) {
     RNA_boolean_set(op->ptr, "use_selected_objects", true);
