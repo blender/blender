@@ -2315,10 +2315,14 @@ static float brush_strength(const Sculpt &sd,
       return alpha * flip * pressure * overlap * feather;
 
     case SCULPT_BRUSH_TYPE_PLANE:
-      if (flip > 0.0f) {
+      if (flip > 0.0f || brush.plane_inversion_mode == BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH) {
         overlap = (1.0f + overlap) / 2.0f;
         return alpha * pressure * overlap * feather;
       }
+      /* When the brush is inverted with the Invert Displacement mode (i.e. when the brush adds
+       * contrast), use a different formula that results in a lower strength. This is done because,
+       * from an artistic point of view, the contrast would otherwise generally be too strong. Note
+       * that this behavior is coherent with the way Fill, Scrape and Flatten work. See #136211. */
       else {
         return 0.5f * alpha * pressure * overlap * feather;
       }
