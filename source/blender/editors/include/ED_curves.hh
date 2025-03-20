@@ -453,7 +453,7 @@ void resize_curves(bke::CurvesGeometry &curves,
  */
 void reorder_curves(bke::CurvesGeometry &curves, Span<int> old_by_new_indices_map);
 
-int join_objects(bContext *C, wmOperator *op);
+int join_objects_exec(bContext *C, wmOperator *op);
 
 /** \} */
 

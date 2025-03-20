@@ -4772,10 +4772,10 @@ static int object_join_exec(bContext *C, wmOperator *op)
     ret = ED_armature_join_objects_exec(C, op);
   }
   else if (ob->type == OB_POINTCLOUD) {
-    ret = pointcloud::join_objects(C, op);
+    ret = pointcloud::join_objects_exec(C, op);
   }
   else if (ob->type == OB_CURVES) {
-    ret = curves::join_objects(C, op);
+    ret = curves::join_objects_exec(C, op);
   }
   else if (ob->type == OB_GREASE_PENCIL) {
     ret = ED_grease_pencil_join_objects_exec(C, op);

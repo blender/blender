@@ -145,7 +145,7 @@ void POINTCLOUD_OT_attribute_set(wmOperatorType *ot);
 void POINTCLOUD_OT_duplicate(wmOperatorType *ot);
 void POINTCLOUD_OT_separate(wmOperatorType *ot);
 
-int join_objects(bContext *C, wmOperator *op);
+int join_objects_exec(bContext *C, wmOperator *op);
 
 /** \} */
 

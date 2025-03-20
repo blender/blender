@@ -1269,7 +1269,7 @@ static void console_cursor_set_to_pos(SpaceConsole *sc,
   }
 }
 
-static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEvent *event)
+static void console_select_set_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
   ScrArea *area = CTX_wm_area(C);
@@ -1296,7 +1296,7 @@ static void console_cursor_set_exit(bContext *C, wmOperator *op)
   MEM_freeN(scu);
 }
 
-static int console_modal_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int console_select_set_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
   ScrArea *area = CTX_wm_area(C);
@@ -1323,12 +1323,12 @@ static int console_modal_select_invoke(bContext *C, wmOperator *op, const wmEven
 
   WM_event_add_modal_handler(C, op);
 
-  console_modal_select_apply(C, op, event);
+  console_select_set_apply(C, op, event);
 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int console_modal_select(bContext *C, wmOperator *op, const wmEvent *event)
+static int console_select_set_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* Move text cursor to the last selection point. */
   switch (event->type) {
@@ -1336,25 +1336,25 @@ static int console_modal_select(bContext *C, wmOperator *op, const wmEvent *even
     case MIDDLEMOUSE:
     case RIGHTMOUSE:
       if (event->val == KM_PRESS) {
-        console_modal_select_apply(C, op, event);
+        console_select_set_apply(C, op, event);
         break;
       }
       else if (event->val == KM_RELEASE) {
-        console_modal_select_apply(C, op, event);
+        console_select_set_apply(C, op, event);
         ED_area_tag_redraw(CTX_wm_area(C));
         console_cursor_set_exit(C, op);
         return OPERATOR_FINISHED;
       }
       break;
     case MOUSEMOVE:
-      console_modal_select_apply(C, op, event);
+      console_select_set_apply(C, op, event);
       break;
   }
 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void console_modal_select_cancel(bContext *C, wmOperator *op)
+static void console_select_set_cancel(bContext *C, wmOperator *op)
 {
   console_cursor_set_exit(C, op);
 }
@@ -1367,15 +1367,15 @@ void CONSOLE_OT_select_set(wmOperatorType *ot)
   ot->description = "Set the console selection";
 
   /* api callbacks */
-  ot->invoke = console_modal_select_invoke;
-  ot->modal = console_modal_select;
-  ot->cancel = console_modal_select_cancel;
+  ot->invoke = console_select_set_invoke;
+  ot->modal = console_select_set_modal;
+  ot->cancel = console_select_set_cancel;
   ot->poll = ED_operator_console_active;
 }
 
-static int console_modal_select_all_invoke(bContext *C,
-                                           wmOperator * /*op*/,
-                                           const wmEvent * /*event*/)
+static int console_select_set_all_invoke(bContext *C,
+                                         wmOperator * /*op*/,
+                                         const wmEvent * /*event*/)
 {
   ScrArea *area = CTX_wm_area(C);
   SpaceConsole *sc = CTX_wm_space_console(C);
@@ -1407,7 +1407,7 @@ void CONSOLE_OT_select_all(wmOperatorType *ot)
   ot->description = "Select all the text";
 
   /* api callbacks */
-  ot->invoke = console_modal_select_all_invoke;
+  ot->invoke = console_select_set_all_invoke;
   ot->poll = ED_operator_console_active;
 }
 
