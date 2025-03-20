@@ -1503,7 +1503,7 @@ static int ed_marker_box_select_exec(bContext *C, wmOperator *op)
   UI_view2d_region_to_view_rctf(v2d, &rect, &rect);
 
   if (markers == nullptr) {
-    return 0;
+    return OPERATOR_CANCELLED;
   }
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
@@ -1521,7 +1521,7 @@ static int ed_marker_box_select_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, nullptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, nullptr);
 
-  return 1;
+  return OPERATOR_FINISHED;
 }
 
 static void MARKER_OT_select_box(wmOperatorType *ot)
