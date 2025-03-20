@@ -501,8 +501,7 @@ static int ed_redo_exec(bContext *C, wmOperator *op)
 static int ed_undo_redo_exec(bContext *C, wmOperator * /*op*/)
 {
   wmOperator *last_op = WM_operator_last_redo(C);
-  int ret = ED_undo_operator_repeat(C, last_op);
-  ret = ret ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  const int ret = ED_undo_operator_repeat(C, last_op) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
   if (ret & OPERATOR_FINISHED) {
     /* Keep button under the cursor active. */
     WM_event_add_mousemove(CTX_wm_window(C));
@@ -624,9 +623,9 @@ void ED_OT_undo_redo(wmOperatorType *ot)
 /** \name Operator Repeat
  * \{ */
 
-int ED_undo_operator_repeat(bContext *C, wmOperator *op)
+bool ED_undo_operator_repeat(bContext *C, wmOperator *op)
 {
-  int ret = 0;
+  bool success = false;
 
   if (op) {
     CLOG_INFO(&LOG, 1, "idname='%s'", op->type->idname);
@@ -684,7 +683,7 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
         ED_undo_redo(C);
       }
       else {
-        ret = 1;
+        success = true;
       }
     }
     else {
@@ -700,7 +699,7 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
     CLOG_WARN(&LOG, "called with nullptr 'op'");
   }
 
-  return ret;
+  return success;
 }
 
 void ED_undo_operator_repeat_cb(bContext *C, void *arg_op, void * /*arg_unused*/)

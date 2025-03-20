@@ -48,8 +48,10 @@ void ED_OT_undo_history(wmOperatorType *ot);
 
 /**
  * UI callbacks should call this rather than calling WM_operator_repeat() themselves.
+ *
+ * \return true when repeat succeeded.
  */
-int ED_undo_operator_repeat(bContext *C, wmOperator *op);
+bool ED_undo_operator_repeat(bContext *C, wmOperator *op);
 /**
  * Convenience since UI callbacks use this mostly.
  */
