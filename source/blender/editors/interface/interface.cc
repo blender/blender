@@ -4487,7 +4487,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   /* Calculate the maximum number of rows that can fit in half the height of this window. */
   const float row_height = float(UI_UNIT_Y) / but->block->aspect;
   const float vertical_space = (float(WM_window_native_pixel_y(win)) / 2.0f) - (UI_UNIT_Y * 3.0f);
-  const int max_rows = int(vertical_space / row_height) - 1;
+  const int max_rows = std::max(int(vertical_space / row_height) - 1, 1);
 
   float text_width = 0.0f;
   BLF_size(BLF_default(), UI_style_get()->widget.points * UI_SCALE_FAC);
