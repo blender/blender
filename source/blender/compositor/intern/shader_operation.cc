@@ -207,9 +207,11 @@ static const char *get_set_function_name(const ResultType type)
     case ResultType::Float4:
       return "set_rgba";
     case ResultType::Float2:
+      /* GPUMaterial doesn't support float2, so it is passed as a float3 with z ignored. */
+      return "set_rgb";
     case ResultType::Int2:
-      /* Those types are internal and needn't be handled by operations. */
-      break;
+      /* GPUMaterial doesn't support float2, so it is passed as a float3 with z ignored. */
+      return "set_rgb";
   }
 
   BLI_assert_unreachable();
@@ -350,9 +352,9 @@ static const char *get_store_function_name(ResultType type)
     case ResultType::Float4:
       return "node_compositor_store_output_float4";
     case ResultType::Float2:
+      return "node_compositor_store_output_float2";
     case ResultType::Int2:
-      /* Those types are internal and needn't be handled by operations. */
-      break;
+      return "node_compositor_store_output_int2";
   }
 
   BLI_assert_unreachable();
@@ -448,9 +450,13 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
     case ResultType::Float4:
       return "value";
     case ResultType::Float2:
+      /* GPUMaterial doesn't support float2, so it is passed as a float3, and we need to convert it
+       * back to float2 before writing it. */
+      return "vec4(value.xy, 0.0, 0.0)";
     case ResultType::Int2:
-      /* Those types are internal and needn't be handled by operations. */
-      break;
+      /* GPUMaterial doesn't support int2, so it is passed as a float3, and we need to convert it
+       * back to int2 before writing it. */
+      return "ivec4(ivec2(value.xy), 0, 0)";
   }
 
   BLI_assert_unreachable();
@@ -461,16 +467,14 @@ static ImageType gpu_image_type_from_result_type(const ResultType type)
 {
   switch (type) {
     case ResultType::Float:
+    case ResultType::Float2:
     case ResultType::Float3:
     case ResultType::Color:
     case ResultType::Float4:
       return ImageType::FLOAT_2D;
     case ResultType::Int:
-      return ImageType::INT_2D;
-    case ResultType::Float2:
     case ResultType::Int2:
-      /* Those types are internal and needn't be handled by operations. */
-      break;
+      return ImageType::INT_2D;
   }
 
   BLI_assert_unreachable();
@@ -485,6 +489,10 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
   const std::string store_float3_function_header = "void store_float3(const uint id, vec3 value)";
   const std::string store_color_function_header = "void store_color(const uint id, vec4 value)";
   const std::string store_float4_function_header = "void store_float4(const uint id, vec4 value)";
+  /* GPUMaterial doesn't support float2, so it is passed as a float3. */
+  const std::string store_float2_function_header = "void store_float2(const uint id, vec3 value)";
+  /* GPUMaterial doesn't support int2, so it is passed as a float3. */
+  const std::string store_int2_function_header = "void store_int2(const uint id, vec3 value)";
 
   /* The store functions are used by the node_compositor_store_output_[type] functions but are only
    * defined later as part of the compute source, so they need to be forward declared. NOTE(Metal):
@@ -495,6 +503,8 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
     shader_create_info.typedef_source_generated += store_float3_function_header + ";\n";
     shader_create_info.typedef_source_generated += store_color_function_header + ";\n";
     shader_create_info.typedef_source_generated += store_float4_function_header + ";\n";
+    shader_create_info.typedef_source_generated += store_float2_function_header + ";\n";
+    shader_create_info.typedef_source_generated += store_int2_function_header + ";\n";
   }
 
   /* Each of the store functions is essentially a single switch case on the given ID, so start by
@@ -505,12 +515,16 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
   std::stringstream store_float3_function;
   std::stringstream store_color_function;
   std::stringstream store_float4_function;
+  std::stringstream store_float2_function;
+  std::stringstream store_int2_function;
   const std::string store_function_start = "\n{\n  switch (id) {\n";
   store_float_function << store_float_function_header << store_function_start;
   store_int_function << store_int_function_header << store_function_start;
   store_float3_function << store_float3_function_header << store_function_start;
   store_color_function << store_color_function_header << store_function_start;
   store_float4_function << store_float4_function_header << store_function_start;
+  store_float2_function << store_float2_function_header << store_function_start;
+  store_int2_function << store_int2_function_header << store_function_start;
 
   int output_index = 0;
   for (StringRefNull output_identifier : output_sockets_to_output_identifiers_map_.values()) {
@@ -551,9 +565,10 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
         store_float4_function << case_code.str();
         break;
       case ResultType::Float2:
+        store_float2_function << case_code.str();
+        break;
       case ResultType::Int2:
-        /* Those types are internal and needn't be handled by operations. */
-        BLI_assert_unreachable();
+        store_int2_function << case_code.str();
         break;
     }
   }
@@ -565,12 +580,16 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
   store_float3_function << store_function_end;
   store_color_function << store_function_end;
   store_float4_function << store_function_end;
+  store_float2_function << store_function_end;
+  store_int2_function << store_function_end;
 
   shader_create_info.compute_source_generated += store_float_function.str() +
                                                  store_int_function.str() +
                                                  store_float3_function.str() +
                                                  store_color_function.str() +
-                                                 store_float4_function.str();
+                                                 store_float4_function.str() +
+                                                 store_float2_function.str() +
+                                                 store_int2_function.str();
 }
 
 static const char *glsl_type_from_result_type(ResultType type)
@@ -587,9 +606,11 @@ static const char *glsl_type_from_result_type(ResultType type)
     case ResultType::Float4:
       return "vec4";
     case ResultType::Float2:
+      /* GPUMaterial doesn't support float2, so it is passed as a float3 with z ignored. */
+      return "vec3";
     case ResultType::Int2:
-      /* Those types are internal and needn't be handled by operations. */
-      break;
+      /* GPUMaterial doesn't support int2, so it is passed as a float3 with z ignored. */
+      return "vec3";
   }
 
   BLI_assert_unreachable();
@@ -611,9 +632,11 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
     case ResultType::Float4:
       return "xyzw";
     case ResultType::Float2:
+      /* GPUMaterial doesn't support float2, so it is passed as a float3 with z ignored. */
+      return "xyz";
     case ResultType::Int2:
-      /* Those types are internal and needn't be handled by operations. */
-      break;
+      /* GPUMaterial doesn't support float2, so it is passed as a float3 with z ignored. */
+      return "xyz";
   }
 
   BLI_assert_unreachable();

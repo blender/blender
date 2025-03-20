@@ -41,3 +41,17 @@ void node_compositor_store_output_float4(const float id, vec4 value, out vec4 ou
   store_float4(floatBitsToUint(id), value);
   out_value = value;
 }
+
+/* GPUMaterial doesn't support float2, so it is passed as a float3 with z ignored. */
+void node_compositor_store_output_float2(const float id, vec3 value, out vec3 out_value)
+{
+  store_float2(floatBitsToUint(id), value);
+  out_value = value;
+}
+
+/* GPUMaterial doesn't support int2, so it is passed as a float3 with z ignored. */
+void node_compositor_store_output_int2(const float id, vec3 value, out vec3 out_value)
+{
+  store_int2(floatBitsToUint(id), value);
+  out_value = value;
+}
