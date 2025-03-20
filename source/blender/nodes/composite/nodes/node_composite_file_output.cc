@@ -9,6 +9,8 @@
 #include <cstring>
 
 #include "BLI_assert.h"
+#include "BLI_cpp_type.hh"
+#include "BLI_generic_pointer.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -694,10 +696,13 @@ class FileOutputOperation : public NodeOperation {
         file_output.add_pass(pass_name, view_name, "V", buffer);
         break;
       case ResultType::Float2:
+        file_output.add_pass(pass_name, view_name, "XY", buffer);
+        break;
       case ResultType::Int2:
+        file_output.add_pass(pass_name, view_name, "XY", buffer);
+        break;
       case ResultType::Int:
-        /* Not supported. */
-        BLI_assert_unreachable();
+        file_output.add_pass(pass_name, view_name, "V", buffer);
         break;
     }
   }
@@ -708,51 +713,30 @@ class FileOutputOperation : public NodeOperation {
   {
     BLI_assert(result.is_single_value());
 
+    const int64_t length = int64_t(size.x) * size.y;
+    const int64_t buffer_size = length * result.channels_count();
+    float *buffer = MEM_malloc_arrayN<float>(buffer_size, "File Output Inflated Buffer.");
+
     switch (result.type()) {
-      case ResultType::Float: {
-        float *buffer = MEM_malloc_arrayN<float>(size_t(size.x) * size_t(size.y),
-                                                 "File Output Inflated Buffer.");
-
-        const float value = result.get_single_value<float>();
-        parallel_for(
-            size, [&](const int2 texel) { buffer[int64_t(texel.y) * size.x + texel.x] = value; });
-        return buffer;
-      }
-      case ResultType::Color: {
-        float *buffer = MEM_malloc_arrayN<float>(4 * size_t(size.x) * size_t(size.y),
-                                                 "File Output Inflated Buffer.");
-
-        const float4 value = result.get_single_value<float4>();
-        parallel_for(size, [&](const int2 texel) {
-          copy_v4_v4(buffer + ((int64_t(texel.y) * size.x + texel.x) * 4), value);
-        });
-        return buffer;
-      }
-      case ResultType::Float4: {
-        float *buffer = MEM_malloc_arrayN<float>(4 * size_t(size.x) * size_t(size.y),
-                                                 "File Output Inflated Buffer.");
-
-        const float4 value = result.get_single_value<float4>();
-        parallel_for(size, [&](const int2 texel) {
-          copy_v4_v4(buffer + ((int64_t(texel.y) * size.x + texel.x) * 4), value);
-        });
-        return buffer;
-      }
-      case ResultType::Float3: {
-        float *buffer = MEM_malloc_arrayN<float>(3 * size_t(size.x) * size_t(size.y),
-                                                 "File Output Inflated Buffer.");
-
-        const float3 value = result.get_single_value<float3>();
-        parallel_for(size, [&](const int2 texel) {
-          copy_v3_v3(buffer + ((int64_t(texel.y) * size.x + texel.x) * 3), value);
-        });
-        return buffer;
-      }
-      case ResultType::Int:
-      case ResultType::Int2:
+      case ResultType::Float:
       case ResultType::Float2:
-        /* Not supported. */
-        break;
+      case ResultType::Float3:
+      case ResultType::Float4:
+      case ResultType::Color: {
+        const GPointer single_value = result.single_value();
+        single_value.type()->fill_assign_n(single_value.get(), buffer, length);
+        return buffer;
+      }
+      case ResultType::Int: {
+        const float value = float(result.get_single_value<int>());
+        CPPType::get<float>().fill_assign_n(&value, buffer, length);
+        return buffer;
+      }
+      case ResultType::Int2: {
+        const float2 value = float2(result.get_single_value<int2>());
+        CPPType::get<float2>().fill_assign_n(&value, buffer, length);
+        return buffer;
+      }
     }
 
     BLI_assert_unreachable();
