@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2025 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma once
 
 #include "GPU_storage_buffer.hh"
