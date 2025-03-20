@@ -75,7 +75,7 @@ static void sound_copy_data(Main * /*bmain*/,
   sound_dst->cache = nullptr;
   sound_dst->waveform = nullptr;
   sound_dst->playback_handle = nullptr;
-  sound_dst->spinlock = MEM_mallocN<SpinLock>("sound_spinlock");
+  sound_dst->spinlock = (void *)MEM_mallocN<SpinLock>("sound_spinlock");
   BLI_spin_init(static_cast<SpinLock *>(sound_dst->spinlock));
 
   /* Just to be sure, should not have any value actually after reading time. */
@@ -184,7 +184,7 @@ static void sound_blend_read_data(BlendDataReader *reader, ID *id)
     sound->tags |= SOUND_TAGS_WAVEFORM_NO_RELOAD;
   }
 
-  sound->spinlock = MEM_mallocN<SpinLock>("sound_spinlock");
+  sound->spinlock = (void *)MEM_mallocN<SpinLock>("sound_spinlock");
   BLI_spin_init(static_cast<SpinLock *>(sound->spinlock));
 
   /* clear waveform loading flag */
@@ -274,7 +274,7 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
     sound->audio_channels = info.specs.channels;
   }
 
-  sound->spinlock = MEM_mallocN<SpinLock>("sound_spinlock");
+  sound->spinlock = (void *)MEM_mallocN<SpinLock>("sound_spinlock");
   BLI_spin_init(static_cast<SpinLock *>(sound->spinlock));
 
   BKE_sound_reset_runtime(sound);

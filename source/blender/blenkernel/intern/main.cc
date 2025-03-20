@@ -56,7 +56,7 @@ void BKE_main_init(Main &bmain)
 {
   SpinLock *main_lock = MEM_mallocN<SpinLock>("main lock");
   BLI_spin_init(main_lock);
-  bmain.lock = reinterpret_cast<MainLock *>(main_lock);
+  bmain.lock = (MainLock *)main_lock;
   bmain.is_global_main = false;
 
   /* Just rebuilding the Action Slot to ID* map once is likely cheaper than,
