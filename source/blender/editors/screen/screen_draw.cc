@@ -278,17 +278,19 @@ void screen_draw_move_highlight(bScreen *screen, eScreenAxis dir_axis)
   }
 
   if (dir_axis == SCREEN_AXIS_H) {
-    BLI_rctf_pad(&rect, 0.0f, 2.5f * U.pixelsize);
+    BLI_rctf_pad(&rect, 0.0f, 5.0f * U.pixelsize);
   }
   else {
-    BLI_rctf_pad(&rect, 2.5f * U.pixelsize, 0.0f);
+    BLI_rctf_pad(&rect, 5.0f * U.pixelsize, 0.0f);
   }
 
-  float inner[4] = {1.0f, 1.0f, 1.0f, 0.7f};
-  float outline[4] = {0.0f, 0.0f, 0.0f, 0.8f};
+  float inner[4] = {1.0f, 1.0f, 1.0f, 0.4f};
+  float outline[4];
+  UI_GetThemeColor4fv(TH_EDITOR_BORDER, outline);
+
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv_ex(
-      &rect, inner, nullptr, 1.0f, outline, 2.0f * U.pixelsize, 2.5f * UI_SCALE_FAC);
+      &rect, inner, nullptr, 1.0f, outline, 4.0f * U.pixelsize, 2.5f * UI_SCALE_FAC);
 }
 
 static void screen_draw_area_drag_tip(
