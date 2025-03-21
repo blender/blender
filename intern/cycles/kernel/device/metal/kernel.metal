@@ -233,6 +233,8 @@ bool metalrt_shadow_all_hit(
   }
 
   MetalKernelContext context(launch_params_metal);
+  const IntegratorShadowState state = payload.state;
+  short num_hits = payload.num_hits;
 
   if (context.intersection_skip_self_shadow(payload.self, object, prim)) {
     /* continue search */
@@ -246,6 +248,10 @@ bool metalrt_shadow_all_hit(
   }
 #    endif
 
+  if (context.intersection_skip_shadow_already_recoded(nullptr, state, object, prim, num_hits)) {
+    return true;
+  }
+
 #    ifndef __TRANSPARENT_SHADOWS__
   /* No transparent shadows support compiled in, make opaque. */
   payload.result = true;
@@ -253,7 +259,6 @@ bool metalrt_shadow_all_hit(
   return false;
 #    else
   short max_hits = payload.max_hits;
-  short num_hits = payload.num_hits;
   short num_recorded_hits = payload.num_recorded_hits;
 
   /* If no transparent shadows, all light is blocked and we can stop immediately. */
@@ -288,8 +293,6 @@ bool metalrt_shadow_all_hit(
   payload.num_recorded_hits += 1;
 
   uint record_index = num_recorded_hits;
-
-  const IntegratorShadowState state = payload.state;
 
   const uint max_record_hits = min(uint(max_hits), INTEGRATOR_SHADOW_ISECT_SIZE);
   if (record_index >= max_record_hits) {

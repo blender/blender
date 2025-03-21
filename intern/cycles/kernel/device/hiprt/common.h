@@ -422,6 +422,10 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
     return true;  // no hit -continue traversal
   }
 
+  if (intersection_skip_shadow_already_recoded(kg, state, object, prim, num_hits)) {
+    return true;
+  }
+
   float u = hit.uv.x;
   float v = hit.uv.y;
   int type = kernel_data_fetch(objects, object).primitive_type;
@@ -513,6 +517,10 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
 
   if (intersection_skip_self_shadow(self, object, prim)) {
     return true;  // no hit -continue traversal
+  }
+
+  if (intersection_skip_shadow_already_recoded(kg, payload->in_state, object, prim, num_hits)) {
+    return true;
   }
 
   float u = hit.uv.x;

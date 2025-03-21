@@ -350,6 +350,13 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
     return;
   }
 
+  if (intersection_skip_shadow_already_recoded(
+          kg, ctx->isect_s, current_isect.object, current_isect.prim, ctx->num_hits))
+  {
+    *args->valid = 0;
+    return;
+  }
+
   ++ctx->num_hits;
 
   /* Always use baked shadow transparency for curves. */
