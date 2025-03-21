@@ -3040,7 +3040,7 @@ static void ob_parbone(const Object *ob, const Object *par, float r_mat[4][4])
   }
 }
 
-static void give_parvert(const Object *par, int nr, float vec[3])
+static void give_parvert(const Object *par, int nr, float vec[3], const bool use_evaluated_indices)
 {
   zero_v3(vec);
 
@@ -3082,7 +3082,8 @@ static void give_parvert(const Object *par, int nr, float vec[3])
           count++;
         }
       }
-      else if (CustomData_has_layer(&mesh_eval->vert_data, CD_ORIGINDEX)) {
+      else if (use_evaluated_indices && CustomData_has_layer(&mesh_eval->vert_data, CD_ORIGINDEX))
+      {
         const int *index = (const int *)CustomData_get_layer(&mesh_eval->vert_data, CD_ORIGINDEX);
         /* Get the average of all verts with (original index == nr). */
         for (int i = 0; i < numVerts; i++) {
@@ -3166,10 +3167,11 @@ static void ob_parvert3(const Object *ob, const Object *par, float r_mat[4][4])
   /* in local ob space */
   if (OB_TYPE_SUPPORT_PARVERT(par->type)) {
     float cmat[3][3], v1[3], v2[3], v3[3], q[4];
+    const bool use_evaluated_indices = !(ob->transflag & OB_PARENT_USE_FINAL_INDICES);
 
-    give_parvert(par, ob->par1, v1);
-    give_parvert(par, ob->par2, v2);
-    give_parvert(par, ob->par3, v3);
+    give_parvert(par, ob->par1, v1, use_evaluated_indices);
+    give_parvert(par, ob->par2, v2, use_evaluated_indices);
+    give_parvert(par, ob->par3, v3, use_evaluated_indices);
 
     tri_to_quat(q, v1, v2, v3);
     quat_to_mat3(cmat, q);
@@ -3186,7 +3188,7 @@ void BKE_object_get_parent_matrix(const Object *ob, Object *par, float r_parentm
 {
   float tmat[4][4];
   float vec[3];
-
+  const bool use_evaluated_indices = !(ob->transflag & OB_PARENT_USE_FINAL_INDICES);
   switch (ob->partype & PARTYPE) {
     case PAROBJECT: {
       bool ok = false;
@@ -3212,7 +3214,7 @@ void BKE_object_get_parent_matrix(const Object *ob, Object *par, float r_parentm
 
     case PARVERT1:
       unit_m4(r_parentmat);
-      give_parvert(par, ob->par1, vec);
+      give_parvert(par, ob->par1, vec, use_evaluated_indices);
       mul_v3_m4v3(r_parentmat[3], par->object_to_world().ptr(), vec);
       break;
     case PARVERT3:

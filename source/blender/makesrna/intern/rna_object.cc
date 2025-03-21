@@ -2955,6 +2955,14 @@ static void rna_def_object(BlenderRNA *brna)
       prop, "Parent Bone", "Name of parent bone in case of a bone parenting relation");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_dependency_update");
 
+  prop = RNA_def_property(srna, "use_parent_final_indices", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "transflag", OB_PARENT_USE_FINAL_INDICES);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Final Indices",
+      "Use the final evaluated indices rather than the original mesh indices");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
+
   prop = RNA_def_property(srna, "use_camera_lock_parent", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "transflag", OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK);

@@ -126,6 +126,12 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
         parent = ob.parent
         if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
             sub.prop_search(ob, "parent_bone", parent.data, "bones")
+        elif ob.parent_type == 'VERTEX':
+            col.prop(ob, "parent_vertices", text="Parent Vertex", index=0)
+            sub.prop(ob, "use_parent_final_indices")
+        elif ob.parent_type == 'VERTEX_3':
+            col.prop(ob, "parent_vertices", text="Parent Vertices")
+            sub.prop(ob, "use_parent_final_indices")
         sub.active = (parent is not None)
         sub.prop(ob, "use_camera_lock_parent")
 
