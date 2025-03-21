@@ -61,6 +61,7 @@ if(WITH_OPENSUBDIV)
     internal/evaluator/gpu_compute_evaluator.h
     internal/evaluator/gpu_patch_table.cc
     internal/evaluator/gpu_patch_table.hh
+    internal/evaluator/gpu_vertex_buffer_wrapper.hh
     internal/evaluator/patch_map.cc
     internal/evaluator/patch_map.h
 

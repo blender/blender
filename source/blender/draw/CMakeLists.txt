@@ -219,14 +219,15 @@ set(SRC
   engines/eevee/eevee_volume.hh
   engines/eevee/eevee_world.hh
   engines/external/external_engine.h
-  engines/gpencil/gpencil_engine_private.hh
   engines/gpencil/gpencil_engine.hh
+  engines/gpencil/gpencil_engine_private.hh
   engines/gpencil/gpencil_shader.hh
   engines/image/image_batches.hh
   engines/image/image_buffer_cache.hh
   engines/image/image_drawing_mode.hh
   engines/image/image_engine.h
   engines/image/image_enums.hh
+  engines/image/image_instance.hh
   engines/image/image_partial_updater.hh
   engines/image/image_private.hh
   engines/image/image_shader.hh
@@ -244,6 +245,7 @@ set(SRC
   engines/overlay/overlay_next_attribute_viewer.hh
   engines/overlay/overlay_next_axes.hh
   engines/overlay/overlay_next_background.hh
+  engines/overlay/overlay_next_base.hh
   engines/overlay/overlay_next_bounds.hh
   engines/overlay/overlay_next_camera.hh
   engines/overlay/overlay_next_cursor.hh
