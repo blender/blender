@@ -569,7 +569,6 @@ class NODE_OT_viewer_shortcut_set(Operator):
         )
 
     def execute(self, context):
-        nodes = context.space_data.edit_tree.nodes
         selected_nodes = context.selected_nodes
 
         if len(selected_nodes) == 0:
