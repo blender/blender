@@ -285,9 +285,9 @@ class IMAGE_MT_image_invert(Menu):
 
         layout.separator()
 
-        layout.operator("image.invert", text="Invert Red Channel", icon='COLOR_RED').invert_r = True
-        layout.operator("image.invert", text="Invert Green Channel", icon='COLOR_GREEN').invert_g = True
-        layout.operator("image.invert", text="Invert Blue Channel", icon='COLOR_BLUE').invert_b = True
+        layout.operator("image.invert", text="Invert Red Channel", icon='RGB_RED').invert_r = True
+        layout.operator("image.invert", text="Invert Green Channel", icon='RGB_GREEN').invert_g = True
+        layout.operator("image.invert", text="Invert Blue Channel", icon='RGB_BLUE').invert_b = True
         layout.operator("image.invert", text="Invert Alpha Channel", icon='IMAGE_ALPHA').invert_a = True
 
 

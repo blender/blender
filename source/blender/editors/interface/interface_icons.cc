@@ -16,6 +16,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
+#include "BLT_translation.hh"
+
 #include "DNA_collection_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -60,7 +62,7 @@ struct IconImage {
   int datatoc_size;
 };
 
-using VectorDrawFunc = void (*)(int x, int y, int w, int h, float alpha);
+using VectorDrawFunc = void (*)(int x, int y, int w, int h, float alpha, const uchar mono_rgba[4]);
 
 #define ICON_TYPE_PREVIEW 0
 #define ICON_TYPE_SVG_COLOR 1
@@ -196,6 +198,53 @@ static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 
 /* Vector Icon Drawing Routines */
 
+static void vicon_rgb_color_draw(int x, int y, int w, int h, const float color[4], float bg_alpha)
+{
+  rctf rect = {float(x), float(x + w), float(y), float(y + h)};
+  const float color_bg[4] = {color[0], color[1], color[2], bg_alpha};
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  UI_draw_roundbox_4fv_ex(&rect, color_bg, nullptr, 1.0f, color, U.pixelsize, 2 * UI_SCALE_FAC);
+}
+
+static void vicon_rgb_text_draw(
+    int x, int y, int w, int h, const char *str, const uchar mono_rgba[4])
+{
+  const int font_id = BLF_default();
+  const size_t len = strlen(str);
+  BLF_size(font_id, float(h - 3 * UI_SCALE_FAC));
+  float width, height;
+  BLF_width_and_height(font_id, str, len, &width, &height);
+  const float pos_x = float(x) + (float(w) - width) / 2.0f;
+  const float pos_y = float(y) + (float(h) - height) / 2.0f;
+  BLF_position(font_id, pos_x, pos_y, 0);
+  BLF_color4ubv(font_id, mono_rgba);
+  BLF_draw(font_id, str, len);
+}
+
+static void vicon_rgb_red_draw(int x, int y, int w, int h, float alpha, const uchar mono_rgba[4])
+{
+  const float color[4] = {0.5f, 0.0f, 0.0f, 1.0f * alpha};
+  vicon_rgb_color_draw(x, y, w, h, color, 0.25f * alpha);
+  const char *text = TIP_("R");
+  vicon_rgb_text_draw(x, y, w, h, text, mono_rgba);
+}
+
+static void vicon_rgb_green_draw(int x, int y, int w, int h, float alpha, const uchar mono_rgba[4])
+{
+  const float color[4] = {0.0f, 0.4f, 0.0f, 1.0f * alpha};
+  vicon_rgb_color_draw(x, y, w, h, color, 0.2f * alpha);
+  const char *text = TIP_("G");
+  vicon_rgb_text_draw(x, y, w, h, text, mono_rgba);
+}
+
+static void vicon_rgb_blue_draw(int x, int y, int w, int h, float alpha, const uchar mono_rgba[4])
+{
+  const float color[4] = {0.0f, 0.0f, 1.0f, 1.0f * alpha};
+  vicon_rgb_color_draw(x, y, w, h, color, 0.3f * alpha);
+  const char *text = TIP_("B");
+  vicon_rgb_text_draw(x, y, w, h, text, mono_rgba);
+}
+
 /* Utilities */
 
 static void vicon_keytype_draw_wrapper(const int x,
@@ -259,57 +308,68 @@ static void vicon_keytype_draw_wrapper(const int x,
   UI_Theme_Restore(&theme_state);
 }
 
-static void vicon_keytype_keyframe_draw(int x, int y, int w, int h, float alpha)
+static void vicon_keytype_keyframe_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_NONE);
 }
 
-static void vicon_keytype_breakdown_draw(int x, int y, int w, int h, float alpha)
+static void vicon_keytype_breakdown_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_BREAKDOWN, KEYFRAME_HANDLE_NONE);
 }
 
-static void vicon_keytype_extreme_draw(int x, int y, int w, int h, float alpha)
+static void vicon_keytype_extreme_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_EXTREME, KEYFRAME_HANDLE_NONE);
 }
 
-static void vicon_keytype_jitter_draw(int x, int y, int w, int h, float alpha)
+static void vicon_keytype_jitter_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_JITTER, KEYFRAME_HANDLE_NONE);
 }
 
-static void vicon_keytype_moving_hold_draw(int x, int y, int w, int h, float alpha)
+static void vicon_keytype_moving_hold_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_MOVEHOLD, KEYFRAME_HANDLE_NONE);
 }
 
-static void vicon_keytype_generated_draw(int x, int y, int w, int h, float alpha)
+static void vicon_keytype_generated_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_GENERATED, KEYFRAME_HANDLE_NONE);
 }
 
-static void vicon_handletype_free_draw(int x, int y, int w, int h, float alpha)
+static void vicon_handletype_free_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_FREE);
 }
 
-static void vicon_handletype_aligned_draw(int x, int y, int w, int h, float alpha)
+static void vicon_handletype_aligned_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_ALIGNED);
 }
 
-static void vicon_handletype_vector_draw(int x, int y, int w, int h, float alpha)
+static void vicon_handletype_vector_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_VECTOR);
 }
 
-static void vicon_handletype_auto_draw(int x, int y, int w, int h, float alpha)
+static void vicon_handletype_auto_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_AUTO);
 }
 
-static void vicon_handletype_auto_clamp_draw(int x, int y, int w, int h, float alpha)
+static void vicon_handletype_auto_clamp_draw(
+    int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_AUTO_CLAMP);
 }
@@ -349,7 +409,8 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float /*a
 }
 
 #  define DEF_ICON_VECTOR_COLORSET_DRAW_NTH(prefix, index) \
-    static void vicon_colorset_draw_##prefix(int x, int y, int w, int h, float alpha) \
+    static void vicon_colorset_draw_##prefix( \
+        int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/) \
     { \
       vicon_colorset_draw(index, x, y, w, h, alpha); \
     }
@@ -397,7 +458,8 @@ static void vicon_collection_color_draw(
 }
 
 #  define DEF_ICON_COLLECTION_COLOR_DRAW(index, color) \
-    static void vicon_collection_color_draw_##index(int x, int y, int w, int h, float alpha) \
+    static void vicon_collection_color_draw_##index( \
+        int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/) \
     { \
       vicon_collection_color_draw(color, x, y, w, h, alpha); \
     }
@@ -433,7 +495,8 @@ static void vicon_strip_color_draw(
 }
 
 #  define DEF_ICON_STRIP_COLOR_DRAW(index, color) \
-    static void vicon_strip_color_draw_##index(int x, int y, int w, int h, float alpha) \
+    static void vicon_strip_color_draw_##index( \
+        int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/) \
     { \
       vicon_strip_color_draw(color, x, y, w, h, alpha); \
     }
@@ -453,7 +516,7 @@ DEF_ICON_STRIP_COLOR_DRAW(09, STRIP_COLOR_09);
 #  define ICON_INDIRECT_DATA_ALPHA 0.6f
 
 static void vicon_strip_color_draw_library_data_indirect(
-    int x, int y, int w, int /*h*/, float alpha)
+    int x, int y, int w, int /*h*/, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
 
@@ -469,7 +532,7 @@ static void vicon_strip_color_draw_library_data_indirect(
 }
 
 static void vicon_strip_color_draw_library_data_override_noneditable(
-    int x, int y, int w, int /*h*/, float alpha)
+    int x, int y, int w, int /*h*/, float alpha, const uchar * /*mono_rgba[4]*/)
 {
   const float aspect = float(ICON_DEFAULT_WIDTH) / float(w);
 
@@ -504,7 +567,8 @@ static void vicon_layergroup_color_draw(
 }
 
 #  define DEF_ICON_LAYERGROUP_COLOR_DRAW(index, color) \
-    static void vicon_layergroup_color_draw_##index(int x, int y, int w, int h, float alpha) \
+    static void vicon_layergroup_color_draw_##index( \
+        int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/) \
     { \
       vicon_layergroup_color_draw(color, x, y, w, h, alpha); \
     }
@@ -819,6 +883,10 @@ static void init_internal_icons()
     }
     def_internal_icon(nullptr, x, 0, 0, 0, icontype.type, icontype.theme_color);
   }
+
+  def_internal_vicon(ICON_RGB_RED, vicon_rgb_red_draw);
+  def_internal_vicon(ICON_RGB_GREEN, vicon_rgb_green_draw);
+  def_internal_vicon(ICON_RGB_BLUE, vicon_rgb_blue_draw);
 
   def_internal_vicon(ICON_KEYTYPE_KEYFRAME_VEC, vicon_keytype_keyframe_draw);
   def_internal_vicon(ICON_KEYTYPE_BREAKDOWN_VEC, vicon_keytype_breakdown_draw);
@@ -1531,7 +1599,7 @@ static void icon_draw_size(float x,
   else if (di->type == ICON_TYPE_VECTOR) {
     /* vector icons use the uiBlock transformation, they are not drawn
      * with untransformed coordinates like the other icons */
-    di->data.vector.func(int(x), int(y), w, h, 1.0f);
+    di->data.vector.func(int(x), int(y), w, h, alpha, mono_rgba);
   }
   else if (di->type == ICON_TYPE_GEOM) {
 #ifdef USE_UI_TOOLBAR_HACK
