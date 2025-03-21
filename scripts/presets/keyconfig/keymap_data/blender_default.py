@@ -3132,17 +3132,21 @@ def _seq_preview_text_edit_cursor_move():
     for type, mod, prop in map:
         if mod:
             items.append(
-                ("sequencer.text_cursor_move", {"type": type, "value": 'PRESS', **{mod: True}, "repeat": True},
+                ("sequencer.text_cursor_move",
+                 {"type": type, "value": 'PRESS', **{mod: True}, "repeat": True},
                  {"properties": [prop]}))
             items.append(
-                ("sequencer.text_cursor_move", {"type": type, "value": 'PRESS', **{mod: True}, "shift": True, "repeat": True},
+                ("sequencer.text_cursor_move",
+                 {"type": type, "value": 'PRESS', **{mod: True}, "shift": True, "repeat": True},
                  {"properties": [prop, ('select_text', True)]}))
         else:
             items.append(
-                ("sequencer.text_cursor_move", {"type": type, "value": 'PRESS', "repeat": True},
+                ("sequencer.text_cursor_move",
+                 {"type": type, "value": 'PRESS', "repeat": True},
                  {"properties": [prop]}))
             items.append(
-                ("sequencer.text_cursor_move", {"type": type, "value": 'PRESS', "shift": True, "repeat": True},
+                ("sequencer.text_cursor_move",
+                 {"type": type, "value": 'PRESS', "shift": True, "repeat": True},
                  {"properties": [prop, ('select_text', True)]}))
     return items
 
@@ -4806,8 +4810,12 @@ def km_image_paint(params):
          {"properties": [("mode", 'SMOOTH')]}),
         ("paint.brush_colors_flip", {"type": 'X', "value": 'PRESS'}, None),
         ("paint.grab_clone", {"type": 'RIGHTMOUSE', "value": 'PRESS'}, None),
-        ("paint.sample_color", {"type": 'X', "value": 'PRESS', "shift": True}, {"properties": [("merged", False)]}),
-        ("paint.sample_color", {"type": 'X', "value": 'PRESS', "shift": True, "ctrl": True}, {"properties": [("merged", True)]}),
+        ("paint.sample_color",
+         {"type": 'X', "value": 'PRESS', "shift": True},
+         {"properties": [("merged", False)]}),
+        ("paint.sample_color",
+         {"type": 'X', "value": 'PRESS', "shift": True, "ctrl": True},
+         {"properties": [("merged", True)]}),
         ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 0.9)]}),
         ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},

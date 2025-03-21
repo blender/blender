@@ -135,19 +135,31 @@ def register():
         update=vr_actions_use_gamepad_update,
     )
     bpy.types.Scene.vr_actions_enable_huawei = bpy.props.BoolProperty(
-        description="Enable bindings for the Huawei controllers. Note that this may not be supported by all OpenXR runtimes",
+        description=(
+            "Enable bindings for the Huawei controllers. "
+            "Note that this may not be supported by all OpenXR runtimes"
+        ),
         default=False,
     )
     bpy.types.Scene.vr_actions_enable_reverb_g2 = bpy.props.BoolProperty(
-        description="Enable bindings for the HP Reverb G2 controllers. Note that this may not be supported by all OpenXR runtimes",
+        description=(
+            "Enable bindings for the HP Reverb G2 controllers. "
+            "Note that this may not be supported by all OpenXR runtimes"
+        ),
         default=False,
     )
     bpy.types.Scene.vr_actions_enable_vive_cosmos = bpy.props.BoolProperty(
-        description="Enable bindings for the HTC Vive Cosmos controllers. Note that this may not be supported by all OpenXR runtimes",
+        description=(
+            "Enable bindings for the HTC Vive Cosmos controllers. "
+            "Note that this may not be supported by all OpenXR runtimes"
+        ),
         default=False,
     )
     bpy.types.Scene.vr_actions_enable_vive_focus = bpy.props.BoolProperty(
-        description="Enable bindings for the HTC Vive Focus 3 controllers. Note that this may not be supported by all OpenXR runtimes",
+        description=(
+            "Enable bindings for the HTC Vive Focus 3 controllers. "
+            "Note that this may not be supported by all OpenXR runtimes"
+        ),
         default=False,
     )
 
