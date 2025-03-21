@@ -690,10 +690,10 @@ void NODE_OT_add_collection(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Add File Node Operator
+/** \name Add Image Node Operator
  * \{ */
 
-static bool node_add_file_poll(bContext *C)
+static bool node_add_image_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
   return ED_operator_node_editable(C) &&
@@ -748,7 +748,7 @@ static wmOperatorStatus node_add_nodes_modal(bContext *C, wmOperator *op, const 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static wmOperatorStatus node_add_file_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_add_image_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -850,7 +850,7 @@ static wmOperatorStatus node_add_file_exec(bContext *C, wmOperator *op)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static wmOperatorStatus node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_add_image_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -868,23 +868,23 @@ static wmOperatorStatus node_add_file_invoke(bContext *C, wmOperator *op, const 
   if (WM_operator_properties_id_lookup_is_set(op->ptr) ||
       RNA_struct_property_is_set(op->ptr, "filepath"))
   {
-    return node_add_file_exec(C, op);
+    return node_add_image_exec(C, op);
   }
   return WM_operator_filesel(C, op, event);
 }
 
-void NODE_OT_add_file(wmOperatorType *ot)
+void NODE_OT_add_image(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add File Node";
-  ot->description = "Add a file node to the current node editor";
-  ot->idname = "NODE_OT_add_file";
+  ot->name = "Add Image as Node";
+  ot->description = "Add a image/movie file as node to the current node editor";
+  ot->idname = "NODE_OT_add_image";
 
   /* callbacks */
-  ot->exec = node_add_file_exec;
+  ot->exec = node_add_image_exec;
   ot->modal = node_add_nodes_modal;
-  ot->invoke = node_add_file_invoke;
-  ot->poll = node_add_file_poll;
+  ot->invoke = node_add_image_invoke;
+  ot->poll = node_add_image_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

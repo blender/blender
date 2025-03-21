@@ -930,7 +930,7 @@ static void node_dropboxes()
                  WM_drag_free_imported_drag_ID,
                  nullptr);
   WM_dropbox_add(lb,
-                 "NODE_OT_add_file",
+                 "NODE_OT_add_image",
                  node_id_im_drop_poll,
                  node_id_im_drop_copy,
                  WM_drag_free_imported_drag_ID,
