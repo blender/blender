@@ -4,6 +4,7 @@
 
 set(INC
   ../include
+  ../interface
   ../../makesrna
   ../../../../intern/eigen
   # RNA_prototypes.hh

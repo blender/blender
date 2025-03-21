@@ -44,6 +44,7 @@
 #include "ED_view3d.hh"
 
 #include "UI_interface_icons.hh"
+#include "interface_intern.hh"
 
 /* own includes */
 #include "../gizmo_library_intern.hh"
@@ -134,17 +135,25 @@ static void button2d_draw_intern(const bContext *C,
   const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
   if (button->is_init == false) {
     button->is_init = true;
-    PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
     button->icon = -1;
-    if (RNA_property_is_set(gz->ptr, prop)) {
-      button->icon = RNA_property_enum_get(gz->ptr, prop);
+
+    PropertyRNA *icon_prop = RNA_struct_find_property(gz->ptr, "icon");
+    PropertyRNA *icon_value_prop = RNA_struct_find_property(gz->ptr, "icon_value");
+    PropertyRNA *shape_prop = RNA_struct_find_property(gz->ptr, "shape");
+
+    /* Same logic as in the RNA UI API, use icon_value only if icon is not defined. */
+    if (RNA_property_is_set(gz->ptr, icon_prop)) {
+      button->icon = RNA_property_enum_get(gz->ptr, icon_prop);
     }
-    else {
-      prop = RNA_struct_find_property(gz->ptr, "shape");
-      const uint polys_len = RNA_property_string_length(gz->ptr, prop);
+    else if (RNA_property_is_set(gz->ptr, icon_value_prop)) {
+      button->icon = RNA_property_int_get(gz->ptr, icon_value_prop);
+      ui_icon_ensure_deferred(C, button->icon, false);
+    }
+    else if (RNA_property_is_set(gz->ptr, shape_prop)) {
+      const uint polys_len = RNA_property_string_length(gz->ptr, shape_prop);
       /* We shouldn't need the +1, but a nullptr char is set. */
       char *polys = static_cast<char *>(MEM_mallocN(polys_len + 1, __func__));
-      RNA_property_string_get(gz->ptr, prop, polys);
+      RNA_property_string_get(gz->ptr, shape_prop, polys);
       button->shape_batch[0] = GPU_batch_tris_from_poly_2d_encoded(
           (uchar *)polys, polys_len, nullptr);
       button->shape_batch[1] = GPU_batch_wire_from_poly_2d_encoded(
@@ -413,6 +422,8 @@ static void GIZMO_GT_button_2d(wmGizmoType *gzt)
 
   prop = RNA_def_property(gzt->srna, "icon", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_icon_items);
+
+  RNA_def_property(gzt->srna, "icon_value", PROP_INT, PROP_UNSIGNED);
 
   /* Passed to 'GPU_batch_tris_from_poly_2d_encoded' */
   RNA_def_property(gzt->srna, "shape", PROP_STRING, PROP_BYTESTRING);
