@@ -2204,7 +2204,7 @@ def tags_current(wm, tags_attr):
     # Currently only add-ons can make use of enabled by type (usefully) for tags.
     if filter_by_type in {"", "add-on"}:
         addons_enabled = {addon.module for addon in prefs.addons}
-    elif filter_by_type in {"", "theme"}:
+    if filter_by_type in {"", "theme"}:
         active_theme_info = pkg_repo_and_id_from_theme_path(repos_all, prefs.themes[0].filepath)
 
     params = ExtensionUI_FilterParams(
