@@ -56,10 +56,6 @@ static void extract_tan_init_common(const MeshRenderData &mr,
     use_orco_tan = false;
   }
 
-  const Span<int3> corner_tris = mr.mesh->corner_tris();
-  const Span<int> corner_tri_faces = mr.mesh->corner_tri_faces();
-  const Span<float3> vert_normals = mr.mesh->vert_normals();
-
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (tan_layers & (1 << i)) {
       char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
@@ -124,15 +120,15 @@ static void extract_tan_init_common(const MeshRenderData &mr,
       BKE_mesh_calc_loop_tangent_ex(mr.vert_positions,
                                     mr.faces,
                                     mr.corner_verts.data(),
-                                    corner_tris.data(),
-                                    corner_tri_faces.data(),
+                                    mr.mesh->corner_tris().data(),
+                                    mr.mesh->corner_tri_faces().data(),
                                     mr.corner_tris_num,
                                     mr.sharp_faces,
                                     cd_ldata,
                                     calc_active_tangent,
                                     r_tangent_names,
                                     tan_len,
-                                    vert_normals,
+                                    mr.mesh->vert_normals(),
                                     mr.face_normals,
                                     mr.corner_normals,
                                     orco,
