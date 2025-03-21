@@ -725,6 +725,8 @@ def register():
     )
     WindowManager.extension_type = EnumProperty(
         items=(
+            ('ALL', "All", "Show all extension types"),
+            None,
             ('ADDON', "Add-ons", "Only show add-ons"),
             ('THEME', "Themes", "Only show themes"),
         ),

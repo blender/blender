@@ -3922,6 +3922,9 @@ class EXTENSIONS_OT_userpref_show_for_update(Operator):
 
         prefs.active_section = 'EXTENSIONS'
 
+        # Extensions may be of any type, so show all.
+        wm.extension_type = 'ALL'
+
         # Show only extensions that will be updated.
         wm.extension_show_panel_installed = True
         wm.extension_show_panel_available = False
