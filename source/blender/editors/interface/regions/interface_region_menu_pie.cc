@@ -220,11 +220,11 @@ wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEve
   return OPERATOR_INTERFACE;
 }
 
-int UI_pie_menu_invoke_from_operator_enum(bContext *C,
-                                          const StringRefNull title,
-                                          const StringRefNull opname,
-                                          const StringRefNull propname,
-                                          const wmEvent *event)
+wmOperatorStatus UI_pie_menu_invoke_from_operator_enum(bContext *C,
+                                                       const StringRefNull title,
+                                                       const StringRefNull opname,
+                                                       const StringRefNull propname,
+                                                       const wmEvent *event)
 {
   uiPieMenu *pie;
   uiLayout *layout;
@@ -240,10 +240,10 @@ int UI_pie_menu_invoke_from_operator_enum(bContext *C,
   return OPERATOR_INTERFACE;
 }
 
-int UI_pie_menu_invoke_from_rna_enum(bContext *C,
-                                     const char *title,
-                                     const char *path,
-                                     const wmEvent *event)
+wmOperatorStatus UI_pie_menu_invoke_from_rna_enum(bContext *C,
+                                                  const char *title,
+                                                  const char *path,
+                                                  const wmEvent *event)
 {
   PointerRNA r_ptr;
   PropertyRNA *r_prop;

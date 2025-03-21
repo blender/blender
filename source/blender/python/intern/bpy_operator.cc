@@ -132,7 +132,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
   wmOperatorType *ot;
   int error_val = 0;
   PointerRNA ptr;
-  wmOperatorStatus operator_ret = OPERATOR_CANCELLED;
+  wmOperatorStatus retval = OPERATOR_CANCELLED;
 
   const char *opname;
   const char *context_str = nullptr;
@@ -243,7 +243,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
         PyThreadState *ts = PyEval_SaveThread();
 #endif
 
-        operator_ret = WM_operator_call_py(C, ot, context, &ptr, reports, is_undo);
+        retval = WM_operator_call_py(C, ot, context, &ptr, reports, is_undo);
 
 #ifdef BPY_RELEASE_GIL
         /* regain GIL */
@@ -300,8 +300,8 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
    * function corrects bpy.data (internal Main pointer) */
   BPY_modules_update();
 
-  /* return operator_ret as a bpy enum */
-  return pyrna_enum_bitfield_as_set(rna_enum_operator_return_items, int(operator_ret));
+  /* Return `retval` flag as a set. */
+  return pyrna_enum_bitfield_as_set(rna_enum_operator_return_items, int(retval));
 }
 
 static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)

@@ -228,8 +228,10 @@ static wmOperatorStatus sculpt_curves_stroke_invoke(bContext *C,
                                      event->type);
   op->customdata = op_data;
 
-  int return_value = op->type->modal(C, op, event);
-  if (return_value == OPERATOR_FINISHED) {
+  const wmOperatorStatus retval = op->type->modal(C, op, event);
+  OPERATOR_RETVAL_CHECK(retval);
+
+  if (retval == OPERATOR_FINISHED) {
     if (op->customdata != nullptr) {
       paint_stroke_free(C, op, op_data->stroke);
       MEM_delete(op_data);
@@ -247,12 +249,12 @@ static wmOperatorStatus sculpt_curves_stroke_modal(bContext *C,
 {
   SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
       op->customdata);
-  wmOperatorStatus return_value = paint_stroke_modal(C, op, event, &op_data->stroke);
-  if (ELEM(return_value, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
+  wmOperatorStatus retval = paint_stroke_modal(C, op, event, &op_data->stroke);
+  if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(op_data);
     op->customdata = nullptr;
   }
-  return return_value;
+  return retval;
 }
 
 static void sculpt_curves_stroke_cancel(bContext *C, wmOperator *op)

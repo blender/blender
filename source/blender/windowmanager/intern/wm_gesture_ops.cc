@@ -152,8 +152,6 @@ static bool gesture_box_apply(bContext *C, wmOperator *op)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
 
-  int retval;
-
   if (!gesture_box_apply_rect(op)) {
     return false;
   }
@@ -162,7 +160,7 @@ static bool gesture_box_apply(bContext *C, wmOperator *op)
     gesture_modal_state_to_operator(op, gesture->modal_state);
   }
 
-  retval = op->type->exec(C, op);
+  const wmOperatorStatus retval = op->type->exec(C, op);
   OPERATOR_RETVAL_CHECK(retval);
 
   return (retval & OPERATOR_FINISHED) ? true : false;
@@ -344,8 +342,7 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
   }
 
   if (op->type->exec) {
-    int retval;
-    retval = op->type->exec(C, op);
+    const wmOperatorStatus retval = op->type->exec(C, op);
     OPERATOR_RETVAL_CHECK(retval);
   }
 }
@@ -990,7 +987,7 @@ static bool gesture_straightline_apply(bContext *C, wmOperator *op)
   RNA_boolean_set(op->ptr, "flip", gesture->use_flip);
 
   if (op->type->exec) {
-    int retval = op->type->exec(C, op);
+    const wmOperatorStatus retval = op->type->exec(C, op);
     OPERATOR_RETVAL_CHECK(retval);
   }
 

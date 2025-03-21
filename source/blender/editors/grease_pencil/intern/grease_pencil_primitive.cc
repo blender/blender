@@ -702,10 +702,10 @@ static wmOperatorStatus grease_pencil_primitive_invoke(bContext *C,
                                                        wmOperator *op,
                                                        const wmEvent *event)
 {
-  wmOperatorStatus return_value = ed::greasepencil::grease_pencil_draw_operator_invoke(
+  const wmOperatorStatus retval = ed::greasepencil::grease_pencil_draw_operator_invoke(
       C, op, false);
-  if (return_value != OPERATOR_RUNNING_MODAL) {
-    return return_value;
+  if (retval != OPERATOR_RUNNING_MODAL) {
+    return retval;
   }
 
   /* If in tools region, wait till we get to the main (3D-space)

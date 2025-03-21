@@ -268,10 +268,10 @@ static wmOperatorStatus grease_pencil_brush_stroke_invoke(bContext *C,
     }
     return false;
   }();
-  wmOperatorStatus return_value = ed::greasepencil::grease_pencil_draw_operator_invoke(
+  wmOperatorStatus retval = ed::greasepencil::grease_pencil_draw_operator_invoke(
       C, op, use_duplicate_previous_key);
-  if (return_value != OPERATOR_RUNNING_MODAL) {
-    return return_value;
+  if (retval != OPERATOR_RUNNING_MODAL) {
+    return retval;
   }
 
   op->customdata = paint_stroke_new(C,
@@ -283,8 +283,10 @@ static wmOperatorStatus grease_pencil_brush_stroke_invoke(bContext *C,
                                     stroke_done,
                                     event->type);
 
-  return_value = op->type->modal(C, op, event);
-  if (return_value == OPERATOR_FINISHED) {
+  retval = op->type->modal(C, op, event);
+  OPERATOR_RETVAL_CHECK(retval);
+
+  if (retval == OPERATOR_FINISHED) {
     return OPERATOR_FINISHED;
   }
 
@@ -393,8 +395,10 @@ static wmOperatorStatus grease_pencil_sculpt_paint_invoke(bContext *C,
                                     stroke_done,
                                     event->type);
 
-  const int return_value = op->type->modal(C, op, event);
-  if (return_value == OPERATOR_FINISHED) {
+  const wmOperatorStatus retval = op->type->modal(C, op, event);
+  OPERATOR_RETVAL_CHECK(retval);
+
+  if (retval == OPERATOR_FINISHED) {
     return OPERATOR_FINISHED;
   }
 
@@ -486,8 +490,10 @@ static wmOperatorStatus grease_pencil_weight_brush_stroke_invoke(bContext *C,
                                     stroke_done,
                                     event->type);
 
-  const int return_value = op->type->modal(C, op, event);
-  if (return_value == OPERATOR_FINISHED) {
+  const wmOperatorStatus retval = op->type->modal(C, op, event);
+  OPERATOR_RETVAL_CHECK(retval);
+
+  if (retval == OPERATOR_FINISHED) {
     return OPERATOR_FINISHED;
   }
 
@@ -592,8 +598,10 @@ static wmOperatorStatus grease_pencil_vertex_brush_stroke_invoke(bContext *C,
                                     stroke_done,
                                     event->type);
 
-  const int return_value = op->type->modal(C, op, event);
-  if (return_value == OPERATOR_FINISHED) {
+  const wmOperatorStatus retval = op->type->modal(C, op, event);
+  OPERATOR_RETVAL_CHECK(retval);
+
+  if (retval == OPERATOR_FINISHED) {
     return OPERATOR_FINISHED;
   }
 

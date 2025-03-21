@@ -131,12 +131,12 @@ static wmOperatorStatus rna_gizmo_modal_cb(bContext *C,
 
   void *ret;
   RNA_parameter_get_lookup(&list, "result", &ret);
-  int ret_enum = *(int *)ret;
+  wmOperatorStatus retval = wmOperatorStatus(*(int *)ret);
 
   RNA_parameter_list_free(&list);
 
-  OPERATOR_RETVAL_CHECK(ret_enum);
-  return wmOperatorStatus(ret_enum);
+  OPERATOR_RETVAL_CHECK(retval);
+  return retval;
 }
 
 static void rna_gizmo_setup_cb(wmGizmo *gz)
@@ -169,12 +169,12 @@ static wmOperatorStatus rna_gizmo_invoke_cb(bContext *C, wmGizmo *gz, const wmEv
 
   void *ret;
   RNA_parameter_get_lookup(&list, "result", &ret);
-  int ret_enum = *(int *)ret;
+  const wmOperatorStatus retval = wmOperatorStatus(*(int *)ret);
 
   RNA_parameter_list_free(&list);
 
-  OPERATOR_RETVAL_CHECK(ret_enum);
-  return wmOperatorStatus(ret_enum);
+  OPERATOR_RETVAL_CHECK(retval);
+  return retval;
 }
 
 static void rna_gizmo_exit_cb(bContext *C, wmGizmo *gz, bool cancel)

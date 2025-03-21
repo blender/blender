@@ -265,7 +265,7 @@ static wmOperatorStatus op_generic_value_modal(bContext *C, wmOperator *op, cons
         }
 
         wm->op_undo_depth++;
-        int retval = op->type->exec(C, op);
+        const wmOperatorStatus retval = op->type->exec(C, op);
         OPERATOR_RETVAL_CHECK(retval);
         wm->op_undo_depth--;
 

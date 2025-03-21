@@ -310,7 +310,7 @@ void WM_operatortype_idname_visit_for_search(
  * \{ */
 
 struct MacroData {
-  int retval;
+  wmOperatorStatus retval;
 };
 
 static void wm_macro_start(wmOperator *op)

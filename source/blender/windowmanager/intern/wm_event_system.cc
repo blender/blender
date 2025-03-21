@@ -1152,7 +1152,7 @@ void WM_operator_region_active_win_set(bContext *C)
  */
 static void wm_operator_reports(bContext *C,
                                 wmOperator *op,
-                                const int retval,
+                                const wmOperatorStatus retval,
                                 const bool caller_owns_reports)
 {
   if (G.background == 0 && caller_owns_reports == false) { /* Popup. */
@@ -2914,13 +2914,12 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
       /* Needed for #UI_popup_menu_reports. */
 
       if (val == EVT_FILESELECT_EXEC) {
-        int retval;
-
         if (handler->op->type->flag & OPTYPE_UNDO) {
           wm->op_undo_depth++;
         }
 
-        retval = handler->op->type->exec(C, handler->op);
+        const wmOperatorStatus retval = handler->op->type->exec(C, handler->op);
+        OPERATOR_RETVAL_CHECK(retval);
 
         /* XXX check this carefully, `CTX_wm_manager(C) == wm` is a bit hackish. */
         if (handler->op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm) {
@@ -3471,7 +3470,7 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
                   event->customdata = &single_lb;
 
                   const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
-                  int op_retval =
+                  const wmOperatorStatus op_retval =
                       drop->ot ? wm_operator_call_internal(
                                      C, drop->ot, drop->ptr, nullptr, opcontext, false, event) :
                                  OPERATOR_CANCELLED;

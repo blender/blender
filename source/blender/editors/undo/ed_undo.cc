@@ -658,8 +658,6 @@ bool ED_undo_operator_repeat(bContext *C, wmOperator *op)
          * NOTE: WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this. */
         (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY) == 0))
     {
-      int retval;
-
       if (G.debug & G_DEBUG) {
         printf("redo_cb: operator redo %s\n", op->type->name);
       }
@@ -678,7 +676,7 @@ bool ED_undo_operator_repeat(bContext *C, wmOperator *op)
         }
       }
 
-      retval = WM_operator_repeat(C, op);
+      const wmOperatorStatus retval = WM_operator_repeat(C, op);
       if ((retval & OPERATOR_FINISHED) == 0) {
         if (G.debug & G_DEBUG) {
           printf("redo_cb: operator redo failed: %s, return %d\n", op->type->name, retval);

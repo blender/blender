@@ -985,31 +985,32 @@ wmOperatorStatus WM_generic_select_modal(bContext *C, wmOperator *op, const wmEv
     if (event->val == KM_PRESS) {
       RNA_property_boolean_set(op->ptr, wait_to_deselect_prop, true);
 
-      wmOperatorStatus ret_value = op->type->exec(C, op);
-      OPERATOR_RETVAL_CHECK(ret_value);
+      wmOperatorStatus retval = op->type->exec(C, op);
+      OPERATOR_RETVAL_CHECK(retval);
+
       op->customdata = POINTER_FROM_INT(int(event->type));
-      if (ret_value & OPERATOR_RUNNING_MODAL) {
+      if (retval & OPERATOR_RUNNING_MODAL) {
         WM_event_add_modal_handler(C, op);
       }
-      return ret_value | OPERATOR_PASS_THROUGH;
+      return retval | OPERATOR_PASS_THROUGH;
     }
     /* If we are in init phase, and cannot validate init of modal operations,
      * just fall back to basic exec.
      */
     RNA_property_boolean_set(op->ptr, wait_to_deselect_prop, false);
 
-    wmOperatorStatus ret_value = op->type->exec(C, op);
-    OPERATOR_RETVAL_CHECK(ret_value);
+    wmOperatorStatus retval = op->type->exec(C, op);
+    OPERATOR_RETVAL_CHECK(retval);
 
-    return ret_value | OPERATOR_PASS_THROUGH;
+    return retval | OPERATOR_PASS_THROUGH;
   }
   if (event->type == init_event_type && event->val == KM_RELEASE) {
     RNA_property_boolean_set(op->ptr, wait_to_deselect_prop, false);
 
-    wmOperatorStatus ret_value = op->type->exec(C, op);
-    OPERATOR_RETVAL_CHECK(ret_value);
+    wmOperatorStatus retval = op->type->exec(C, op);
+    OPERATOR_RETVAL_CHECK(retval);
 
-    return ret_value | OPERATOR_PASS_THROUGH;
+    return retval | OPERATOR_PASS_THROUGH;
   }
   if (ISMOUSE_MOTION(event->type)) {
     const int drag_delta[2] = {
@@ -1042,7 +1043,9 @@ wmOperatorStatus WM_generic_select_invoke(bContext *C, wmOperator *op, const wmE
 
   op->customdata = POINTER_FROM_INT(0);
 
-  return op->type->modal(C, op, event);
+  wmOperatorStatus retval = op->type->modal(C, op, event);
+  OPERATOR_RETVAL_CHECK(retval);
+  return retval;
 }
 
 void WM_operator_view3d_unit_defaults(bContext *C, wmOperator *op)

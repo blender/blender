@@ -1307,9 +1307,10 @@ static wmOperatorStatus wm_xr_navigation_teleport_invoke(bContext *C,
 
   wm_xr_raycast_init(op);
 
-  wmOperatorStatus retval = op->type->modal(C, op, event);
+  const wmOperatorStatus retval = op->type->modal(C, op, event);
+  OPERATOR_RETVAL_CHECK(retval);
 
-  if ((retval & OPERATOR_RUNNING_MODAL) != 0) {
+  if (retval & OPERATOR_RUNNING_MODAL) {
     WM_event_add_modal_handler(C, op);
   }
 

@@ -33,7 +33,11 @@ enum wmOperatorStatus {
 
 /* sanity checks for debug mode only */
 #define OPERATOR_RETVAL_CHECK(ret) \
-  (void)ret, BLI_assert(ret != 0 && (ret & OPERATOR_FLAGS_ALL) == ret)
+  { \
+    CHECK_TYPE(ret, wmOperatorStatus); \
+    BLI_assert(ret != 0 && (ret & OPERATOR_FLAGS_ALL) == ret); \
+  } \
+  ((void)0)
 
 ENUM_OPERATORS(wmOperatorStatus, OPERATOR_INTERFACE);
 

@@ -755,10 +755,10 @@ static void COLLECTION_OT_export_all(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-static int collection_export_recursive(bContext *C,
-                                       wmOperator *op,
-                                       LayerCollection *layer_collection,
-                                       CollectionExportStats &stats)
+static wmOperatorStatus collection_export_recursive(bContext *C,
+                                                    wmOperator *op,
+                                                    LayerCollection *layer_collection,
+                                                    CollectionExportStats &stats)
 {
   /* Skip collections which have been Excluded in the View Layer. */
   if (layer_collection->flag & LAYER_COLLECTION_EXCLUDE) {
