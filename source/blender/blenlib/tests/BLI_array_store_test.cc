@@ -421,7 +421,7 @@ TEST(array_store, TextDupeIncreaseDecrease)
 /* Plain Text Tests */
 
 /**
- * Test that uses text input with different params for the array-store
+ * Test that uses text input with different parameters for the array-store
  * to ensure no corner cases fail.
  */
 static void plain_text_helper(const char *words,

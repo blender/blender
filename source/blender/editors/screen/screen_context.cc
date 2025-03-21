@@ -944,7 +944,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
   blender::Set<bAction *> seen_set;
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    /* In dopesheet check selection status of individual items, skipping
+    /* In dope-sheet check selection status of individual items, skipping
      * if not selected or has no selection flag. This is needed so that
      * selecting action or group rows without any channels works. */
     if (check_selected && ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_SELECT) <= 0) {

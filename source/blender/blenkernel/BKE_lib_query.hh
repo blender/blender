@@ -87,7 +87,7 @@ enum LibraryForeachIDCallbackFlag {
    * Note that all embedded IDs pointers (#IDWALK_CB_EMBEDDED and #IDWALK_CB_EMBEDDED_NOT_OWNING)
    * cases are also ignored during readfile.
    *
-   * Mainly used for some 'loopback' pointers like the 'owner_id' of the embedded IDs.
+   * Mainly used for some 'loop-back' pointers like the 'owner_id' of the embedded IDs.
    */
   IDWALK_CB_READFILE_IGNORE = (1 << 10),
 

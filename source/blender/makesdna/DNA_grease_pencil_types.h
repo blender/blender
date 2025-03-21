@@ -261,7 +261,7 @@ typedef struct GreasePencilLayerTreeNode {
   int8_t type;
   char _pad[7];
   /**
-   * Channel color for dopesheet.
+   * Channel color for dope-sheet.
    */
   float color[3];
   /**

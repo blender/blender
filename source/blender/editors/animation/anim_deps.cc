@@ -240,7 +240,7 @@ static void animchan_sync_gplayer(bAnimListElem *ale)
   bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
 
   /* Make sure the selection flags agree with the "active" flag.
-   * The selection flags are used in the Dopesheet only, whereas
+   * The selection flags are used in the Dope-sheet only, whereas
    * the active flag is used everywhere else. Hence, we try to
    * sync these here so that it all seems to be have as the user
    * expects - #50184

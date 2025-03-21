@@ -842,11 +842,11 @@ typedef enum eAction_Flags {
 } eAction_Flags;
 
 /* ************************************************ */
-/* Action/Dopesheet Editor */
+/* Action/Dope-sheet Editor */
 
-/** Storage for Dopesheet/Grease-Pencil Editor data. */
+/** Storage for Dope-sheet/Grease-Pencil Editor data. */
 typedef struct bDopeSheet {
-  /** Currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil). */
+  /** Currently ID_SCE (for Dope-sheet), and ID_SC (for Grease Pencil). */
   ID *source;
   /** Cache for channels (only initialized when pinned). */ /* XXX not used! */
   ListBase chanbase;

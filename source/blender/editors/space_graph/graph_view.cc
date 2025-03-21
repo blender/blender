@@ -52,7 +52,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
   ListBase anim_data = {nullptr, nullptr};
   int filter;
 
-  /* Get data to filter, from Dopesheet. */
+  /* Get data to filter, from Dope-sheet. */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
             ANIMFILTER_NODUPLIS);
   if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {

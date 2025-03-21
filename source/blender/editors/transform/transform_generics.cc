@@ -1184,8 +1184,8 @@ static void calculateZfac(TransInfo *t)
   }
   else if (t->region) {
     View2D *v2d = &t->region->v2d;
-    /* Get zoom fac the same way as in
-     * `ui_view2d_curRect_validate_resize` - better keep in sync! */
+    /* Get zoom factor the same way as in
+     * #ui_view2d_curRect_validate_resize - better keep in sync! */
     const float zoomx = float(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
     t->zfac = 1.0f / zoomx;
   }

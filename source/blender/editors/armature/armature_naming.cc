@@ -480,7 +480,7 @@ static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
     /* copied from #rna_Bone_update_renamed */
-    /* Redraw Outliner / Dopesheet. */
+    /* Redraw Outliner / Dope-sheet. */
     WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_RENAME, ob->data);
 
     /* update animation channels */

@@ -132,7 +132,7 @@ static void nla_init(wmWindowManager *wm, ScrArea *area)
 {
   SpaceNla *snla = static_cast<SpaceNla *>(area->spacedata.first);
 
-  /* init dopesheet data if non-existent (i.e. for old files) */
+  /* init dope-sheet data if non-existent (i.e. for old files). */
   if (snla->ads == nullptr) {
     snla->ads = MEM_callocN<bDopeSheet>("NlaEdit DopeSheet");
     wmWindow *win = WM_window_find_by_area(wm, area);
@@ -512,9 +512,8 @@ static void nla_track_region_message_subscribe(const wmRegionMessageSubscribePar
   msg_sub_value_region_tag_redraw.user_data = region;
   msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
 
-  /* All dopesheet filter settings, etc. affect the drawing of this editor,
-   * so just whitelist the entire struct for updates
-   */
+  /* All dope-sheet filter settings, etc. affect the drawing of this editor,
+   * so just whitelist the entire struct for updates. */
   {
     wmMsgParams_RNA msg_key_params = {{}};
     StructRNA *type_array[] = {

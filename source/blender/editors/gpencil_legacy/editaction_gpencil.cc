@@ -330,7 +330,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* This function only deals with grease pencil layer frames.
-     * This check is needed in the case of a call from the main dopesheet. */
+     * This check is needed in the case of a call from the main dope-sheet. */
     if (ale->type != ANIMTYPE_GPLAYER) {
       continue;
     }
@@ -421,7 +421,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 
   /* from selected channels */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    /* only deal with GPlayers (case of calls from general dopesheet) */
+    /* Only deal with GPlayers (case of calls from general dope-sheet). */
     if (ale->type != ANIMTYPE_GPLAYER) {
       continue;
     }

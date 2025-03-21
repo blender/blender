@@ -235,8 +235,9 @@ static void vicon_keytype_draw_wrapper(const int x,
   immBegin(GPU_PRIM_POINTS, 1);
 
   /* draw keyframe
-   * - size: (default icon size == 16, default dopesheet icon size == 10)
-   * - sel: true unless in handletype icons (so that "keyframe" state shows the iconic yellow icon)
+   * - size: (default icon size == 16, default dope-sheet icon size == 10)
+   * - sel: true unless in handle-type icons
+   *   (so that "keyframe" state shows the iconic yellow icon).
    */
   const bool sel = (handle_type == KEYFRAME_HANDLE_NONE);
 
@@ -1277,7 +1278,7 @@ static void icon_draw_rect(float x,
 
   float scale_x = 1.0f;
   float scale_y = 1.0f;
-  /* rect contains image in 'rendersize', we only scale if needed */
+  /* `rect` contains image in render-size, we only scale if needed. */
   if (rw != w || rh != h) {
     /* preserve aspect ratio and center */
     if (rw > rh) {

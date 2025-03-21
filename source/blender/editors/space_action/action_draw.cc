@@ -475,7 +475,7 @@ void draw_channel_strips(bAnimContext *ac,
 {
   View2D *v2d = &region->v2d;
 
-  /* Draw the manual frame ranges for actions in the background of the dopesheet.
+  /* Draw the manual frame ranges for actions in the background of the dope-sheet.
    * The action editor has already drawn the range for its action so it's not needed. */
   if (ac->datatype == ANIMCONT_DOPESHEET) {
     draw_channel_action_ranges(anim_data, v2d);

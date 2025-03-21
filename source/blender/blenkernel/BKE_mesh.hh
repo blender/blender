@@ -230,7 +230,7 @@ void normals_corner_custom_set_from_verts(Span<float3> vert_positions,
                                           MutableSpan<short2> r_clnors_data);
 
 /**
- * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
+ * Define sharp edges as needed to mimic "auto-smooth" from angle threshold.
  *
  * Used when defining an empty custom corner normals data layer,
  * to keep same shading as with auto-smooth!

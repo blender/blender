@@ -456,7 +456,7 @@ static void build_channel_keylist(ChannelListElement *elem, blender::float2 rang
       break;
     }
     case ChannelType::ACTION_LAYERED: {
-      /* This is only called for action summaries in the Dopesheet, *not* the
+      /* This is only called for action summaries in the Dope-sheet, *not* the
        * Action Editor. Therefore despite the name `ACTION_LAYERED`, this is
        * only used to show a *single slot* of the action: the slot used by the
        * ID the action is listed under.

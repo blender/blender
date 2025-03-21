@@ -58,7 +58,7 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
   }
   else {
     if (act) {
-      /* reddish color - same as dopesheet summary */
+      /* reddish color - same as dope-sheet summary */
       UI_GetThemeColor4fv(TH_ANIM_ACTIVE, color);
     }
     else {

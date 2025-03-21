@@ -3277,7 +3277,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-  /* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
+  /* WATCH IT 2!: #UserDef struct init see #do_versions_userdef() above! */
 
   /* don't forget to set version number in BKE_blender_version.h! */
 

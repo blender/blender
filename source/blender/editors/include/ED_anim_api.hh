@@ -411,7 +411,7 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 
 /* XXX check on all of these flags again. */
 
-/* Dopesheet only */
+/* Dope-sheet only. */
 /* 'Scene' channels */
 #define SEL_SCEC(sce) (CHECK_TYPE_INLINE(sce, Scene *), ((sce->flag & SCE_DS_SELECTED)))
 #define EXPANDED_SCEC(sce) (CHECK_TYPE_INLINE(sce, Scene *), ((sce->flag & SCE_DS_COLLAPSED) == 0))
@@ -452,7 +452,7 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 #define EXPANDED_DRVD(adt) ((adt->flag & ADT_DRIVERS_COLLAPSED) == 0)
 #define EXPANDED_ADT(adt) ((adt->flag & ADT_UI_EXPANDED) != 0)
 
-/* Actions (also used for Dopesheet) */
+/* Actions (also used for Dope-sheet). */
 /** Action Channel Group. */
 #define EDITABLE_AGRP(agrp) (((agrp)->flag & AGRP_PROTECTED) == 0)
 #define EXPANDED_AGRP(ac, agrp) \

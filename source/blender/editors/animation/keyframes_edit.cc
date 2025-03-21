@@ -426,7 +426,7 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
       return agrp_keyframes_loop(
           ked, static_cast<bActionGroup *>(ale->data), key_ok, key_cb, fcu_cb);
     case ALE_ACTION_LAYERED: { /* Layered Action. */
-      /* This assumes that the ALE_ACTION_LAYERED channel is shown in the dopesheet context,
+      /* This assumes that the ALE_ACTION_LAYERED channel is shown in the dope-sheet context,
        * underneath the data-block that owns `ale->adt`. So that means that the loop is limited to
        * the keys that belong to that slot. */
       animrig::Action &action = static_cast<bAction *>(ale->key_data)->wrap();

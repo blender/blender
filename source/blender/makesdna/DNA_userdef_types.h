@@ -322,7 +322,7 @@ typedef struct ThemeSpace {
   unsigned char handle_sel_free[4], handle_sel_auto[4], handle_sel_vect[4], handle_sel_align[4],
       handle_sel_auto_clamped[4];
 
-  /** Dopesheet. */
+  /** Dope-sheet. */
   unsigned char ds_channel[4], ds_subchannel[4], ds_ipoline[4];
   /** Keytypes. */
   unsigned char keytype_keyframe[4], keytype_extreme[4], keytype_breakdown[4], keytype_jitter[4],
@@ -366,7 +366,7 @@ typedef struct ThemeSpace {
   unsigned char effect[4], transition[4], meta[4], text_strip[4], color_strip[4];
   unsigned char active_strip[4], selected_strip[4], text_strip_cursor[4], selected_text[4];
 
-  /** For dopesheet - scale factor for size of keyframes (i.e. height of channels). */
+  /** For dope-sheet - scale factor for size of keyframes (i.e. height of channels). */
   float keyframe_scale_fac;
 
   unsigned char editmesh_active[4];

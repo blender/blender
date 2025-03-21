@@ -2955,7 +2955,7 @@ void BKE_tracking_disable_channels(
 }
 
 /* --------------------------------------------------------------------
- * Dopesheet functions.
+ * Dope-sheet functions.
  */
 
 /* ** Channels sort comparators ** */

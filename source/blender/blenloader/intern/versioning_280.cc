@@ -3796,7 +3796,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_ACTION) {
               SpaceAction *saction = (SpaceAction *)sl;
-              /* "Dopesheet" should be default here,
+              /* "Dope-sheet" should be default here,
                * unless it looks like the Action Editor was active instead. */
               if ((saction->mode_prev == 0) && (saction->action == nullptr)) {
                 saction->mode_prev = SACTCONT_DOPESHEET;
@@ -5015,7 +5015,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 57)) {
-    /* Enable Show Interpolation in dopesheet by default. */
+    /* Enable Show Interpolation in dope-sheet by default. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {

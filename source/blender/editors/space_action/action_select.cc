@@ -111,7 +111,7 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
         break;
       }
       case ALE_ACTION_LAYERED: {
-        /* This is only called for action summaries in the Dopesheet, *not* the
+        /* This is only called for action summaries in the Dope-sheet, *not* the
          * Action Editor. Therefore despite the name `ALE_ACTION_LAYERED`, this
          * is only used to show a *single slot* of the action: the slot used by
          * the ID the action is listed under.
@@ -158,7 +158,7 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
     }
   }
   else if (ale->type == ANIMTYPE_SUMMARY) {
-    /* dopesheet summary covers everything */
+    /* Dope-sheet summary covers everything. */
     summary_to_keylist(ac, keylist, 0, range);
   }
   else if (ale->type == ANIMTYPE_GROUP) {

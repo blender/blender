@@ -2419,7 +2419,7 @@ static bool animchannels_grouping_poll(bContext *C)
     case SPACE_ACTION: {
       SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
 
-      /* Dopesheet and action only - all others are for other data-types or have no groups. */
+      /* Dope-sheet and action only - all others are for other data-types or have no groups. */
       if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_DOPESHEET) == 0) {
         return false;
       }
@@ -3525,7 +3525,7 @@ static bool animchannels_enable_poll(bContext *C)
     return false;
   }
 
-  /* animation editor test - Action/Dopesheet/etc. and Graph only */
+  /* animation editor test - Action/Dope-sheet/etc. and Graph only */
   if (ELEM(area->spacetype, SPACE_ACTION, SPACE_GRAPH) == 0) {
     return false;
   }
@@ -3605,7 +3605,7 @@ static bool animchannels_select_filter_poll(bContext *C)
     return false;
   }
 
-  /* animation editor with dopesheet */
+  /* animation editor with dope-sheet */
   return ELEM(area->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA);
 }
 
@@ -4285,7 +4285,7 @@ static int click_select_channel_group(bAnimContext *ac,
    * things here easier for animators by mapping group selection to bone
    * selection.
    *
-   * Only do this if "Only Selected" dopesheet filter is not active, or else it
+   * Only do this if "Only Selected" dope-sheet filter is not active, or else it
    * becomes too unpredictable/tricky to manage
    */
   if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL) == 0) {

@@ -607,7 +607,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
 
   cfranext = cfraprev = float(scene->r.cfra);
 
-  /* seed up dummy dopesheet context with flags to perform necessary filtering */
+  /* Seed up dummy dope-sheet context with flags to perform necessary filtering. */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
     /* only selected channels are included */
     ads.filterflag |= ADS_FILTER_ONLYSEL;
@@ -628,7 +628,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
   }
   ED_keylist_prepare_for_direct_access(keylist);
 
-  /* TODO(jbakker): Keylists are ordered, no need to do any searching at all. */
+  /* TODO(jbakker): Key-lists are ordered, no need to do any searching at all. */
   /* find matching keyframe in the right direction */
   do {
     aknext = ED_keylist_find_next(keylist, cfranext);

@@ -104,7 +104,7 @@ ccl_device float3 background_map_sample(KernelGlobals kg,
 }
 
 /* TODO(sergey): Same as above, after the release we should consider using
- * 'noinline' for all devices.
+ * `noinline` for all devices.
  */
 ccl_device float background_map_pdf(KernelGlobals kg, const float3 direction)
 {

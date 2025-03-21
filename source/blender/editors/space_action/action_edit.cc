@@ -159,7 +159,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
   eAnimFilter_Flags filter;
   bool found = false;
 
-  /* get data to filter, from Action or Dopesheet */
+  /* Get data to filter, from Action or Dope-sheet. */
   /* XXX: what is sel doing here?!
    *      Commented it, was breaking things (eg. the "auto preview range" tool). */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_SEL */ |

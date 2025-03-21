@@ -10,7 +10,7 @@
 struct Main;
 
 /**
- * Called from #do_versions() in `readfile.cc` to convert the old 'IPO/adrcode'
+ * Called from #do_versions() in `readfile.cc` to convert the old `IPO/adrcode`
  * system to the new Layered Action system.
  *
  * Note: this *only* deals with animation data that is *pre-Animato*, and

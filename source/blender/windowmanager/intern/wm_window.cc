@@ -878,7 +878,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     /* Until screens get drawn, make it nice gray. */
     GPU_clear_color(0.25f, 0.25f, 0.25f, 1.0f);
 
-    /* Needed here, because it's used before it reads userdef. */
+    /* Needed here, because it's used before it reads #UserDef. */
     WM_window_set_dpi(win);
 
     wm_window_swap_buffers(win);
