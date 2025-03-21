@@ -836,11 +836,11 @@ void Instance::draw_v3d(Manager &manager, View &view)
       }
     }
 
+    regular.prepass.draw_line(resources.overlay_line_fb, manager, view);
+
     /* TODO(fclem): Split overlay and rename draw functions. */
     /* TODO(fclem): Draw on line framebuffer. */
     regular.empties.draw_images(resources.overlay_fb, manager, view);
-
-    regular.prepass.draw_line(resources.overlay_line_fb, manager, view);
 
     if (state.xray_enabled || (state.v3d && state.v3d->shading.type > OB_SOLID)) {
       /* If workbench is not enabled, the infront buffer might contain garbage. */
