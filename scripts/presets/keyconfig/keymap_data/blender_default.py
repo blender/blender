@@ -3116,7 +3116,8 @@ def km_sequencer(params):
 
 def _seq_preview_text_edit_cursor_move():
     items = []
-    map = [
+
+    for ty, mod, prop in (
         ('LEFT_ARROW', None, ("type", 'PREVIOUS_CHARACTER')),
         ('RIGHT_ARROW', None, ("type", 'NEXT_CHARACTER')),
         ('UP_ARROW', None, ("type", 'PREVIOUS_LINE')),
@@ -3127,26 +3128,24 @@ def _seq_preview_text_edit_cursor_move():
         ('RIGHT_ARROW', 'ctrl', ("type", 'NEXT_WORD')),
         ('PAGE_UP', None, ("type", 'TEXT_BEGIN')),
         ('PAGE_DOWN', None, ("type", 'TEXT_END')),
-    ]
-
-    for type, mod, prop in map:
-        if mod:
+    ):
+        if mod is not None:
             items.append(
                 ("sequencer.text_cursor_move",
-                 {"type": type, "value": 'PRESS', **{mod: True}, "repeat": True},
+                 {"type": ty, "value": 'PRESS', mod: True, "repeat": True},
                  {"properties": [prop]}))
             items.append(
                 ("sequencer.text_cursor_move",
-                 {"type": type, "value": 'PRESS', **{mod: True}, "shift": True, "repeat": True},
+                 {"type": ty, "value": 'PRESS', mod: True, "shift": True, "repeat": True},
                  {"properties": [prop, ('select_text', True)]}))
         else:
             items.append(
                 ("sequencer.text_cursor_move",
-                 {"type": type, "value": 'PRESS', "repeat": True},
+                 {"type": ty, "value": 'PRESS', "repeat": True},
                  {"properties": [prop]}))
             items.append(
                 ("sequencer.text_cursor_move",
-                 {"type": type, "value": 'PRESS', "shift": True, "repeat": True},
+                 {"type": ty, "value": 'PRESS', "shift": True, "repeat": True},
                  {"properties": [prop, ('select_text', True)]}))
     return items
 
