@@ -17,6 +17,8 @@
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_set.hh"
+#include "BLI_string_utils.hh"
 
 #include "DNA_ID.h"
 #include "DNA_layer_types.h"
@@ -206,6 +208,22 @@ std::string AbstractHierarchyIterator::get_id_name(const ID *id) const
   return make_valid_name(std::string(id->name + 2));
 }
 
+std::string AbstractHierarchyIterator::make_unique_name(const std::string &original_name,
+                                                        Set<std::string> &used_names)
+{
+  if (original_name.empty()) {
+    return "";
+  }
+
+  std::string name = BLI_uniquename_cb(
+      [&](const StringRef check_name) { return used_names.contains_as(check_name); },
+      '_',
+      make_valid_name(original_name));
+
+  used_names.add_new(name);
+  return name;
+}
+
 std::string AbstractHierarchyIterator::get_object_data_path(const HierarchyContext *context) const
 {
   BLI_assert(!context->export_path.empty());
@@ -388,6 +406,7 @@ void AbstractHierarchyIterator::export_graph_clear()
     }
   }
   export_graph_.clear();
+  used_names_.clear_and_keep_capacity();
 }
 
 void AbstractHierarchyIterator::visit_object(Object *object,
@@ -397,7 +416,7 @@ void AbstractHierarchyIterator::visit_object(Object *object,
   HierarchyContext *context = new HierarchyContext();
   context->object = object;
   context->is_object_data_context = false;
-  context->export_name = get_object_name(object);
+  context->export_name = get_object_name(object, export_parent);
   context->export_parent = export_parent;
   context->duplicator = nullptr;
   context->weak_export = weak_export;
@@ -450,7 +469,9 @@ void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
   /* Construct export name for the dupli-instance. */
   std::string export_name = get_object_name(context->object) + "-" +
                             context->persistent_id.as_object_name_suffix();
-  context->export_name = make_valid_name(export_name);
+
+  Set<std::string> &used_names = used_names_.lookup_or_add(duplicator->id.name, {});
+  context->export_name = make_unique_name(make_valid_name(export_name), used_names);
 
   ObjectIdentifier graph_index = determine_graph_index_dupli(
       context, dupli_object, dupli_parent_finder);
@@ -737,9 +758,15 @@ void AbstractHierarchyIterator::make_writers_particle_systems(
   }
 }
 
-std::string AbstractHierarchyIterator::get_object_name(const Object *object) const
+std::string AbstractHierarchyIterator::get_object_name(const Object *object)
 {
   return get_id_name(&object->id);
+}
+
+std::string AbstractHierarchyIterator::get_object_name(const Object *object, const Object *parent)
+{
+  Set<std::string> &used_names = used_names_.lookup_or_add(parent ? parent->id.name : "", {});
+  return make_unique_name(object->id.name + 2, used_names);
 }
 
 std::string AbstractHierarchyIterator::get_object_data_name(const Object *object) const

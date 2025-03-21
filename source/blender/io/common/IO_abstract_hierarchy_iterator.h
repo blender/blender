@@ -221,6 +221,9 @@ class AbstractHierarchyIterator {
   /* Mapping from ID to its export path. This is used for instancing; given an
    * instanced datablock, the export path of the original can be looked up. */
   using ExportPathMap = blender::Map<ID *, std::string>;
+  /* Mapping from ID name to a set of names logically residing "under" it. Used for unique
+   * name generation. */
+  using ExportUsedNameMap = blender::Map<std::string, blender::Set<std::string>>;
   /* IDs of all duplisource objects, used to identify instance prototypes. */
   using DupliSources = blender::Set<ID *>;
 
@@ -232,6 +235,7 @@ class AbstractHierarchyIterator {
   WriterMap writers_;
   ExportSubset export_subset_;
   DupliSources duplisources_;
+  ExportUsedNameMap used_names_;
 
  public:
   explicit AbstractHierarchyIterator(Main *bmain, Depsgraph *depsgraph);
@@ -257,6 +261,9 @@ class AbstractHierarchyIterator {
   /* Convert the given name to something that is valid for the exported file format.
    * This base implementation is a no-op; override in a concrete subclass. */
   virtual std::string make_valid_name(const std::string &name) const;
+
+  virtual std::string make_unique_name(const std::string &original_name,
+                                       Set<std::string> &used_names);
 
   /* Return the name of this ID datablock that is valid for the exported file format. Overriding is
    * only necessary if make_valid_name(id->name+2) is not suitable for the exported file format.
@@ -298,7 +305,8 @@ class AbstractHierarchyIterator {
   HierarchyContext context_for_object_data(const HierarchyContext *object_context) const;
 
   /* Convenience wrappers around get_id_name(). */
-  std::string get_object_name(const Object *object) const;
+  std::string get_object_name(const Object *object);
+  std::string get_object_name(const Object *object, const Object *parent);
   std::string get_object_data_name(const Object *object) const;
 
   using create_writer_func =
