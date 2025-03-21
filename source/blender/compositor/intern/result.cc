@@ -375,7 +375,6 @@ void Result::unbind_as_image() const
 void Result::share_data(const Result &source)
 {
   BLI_assert(type_ == source.type_);
-  BLI_assert(precision_ == source.precision_);
   BLI_assert(!this->is_allocated() && source.is_allocated());
 
   /* Overwrite everything except reference count. */
