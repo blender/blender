@@ -16,6 +16,7 @@ import pathlib
 
 from . import global_report
 from io import StringIO
+from mathutils import Matrix
 from typing import Callable
 
 
@@ -25,6 +26,11 @@ def fmtf(f: float) -> str:
     if abs(f) < 0.0005:
         return "0.000"
     return f"{f:.3f}"
+
+
+def is_approx_identity(mat: Matrix, tol=0.001):
+    identity = Matrix.Identity(4)
+    return all(abs(mat[i][j] - identity[i][j]) <= tol for i in range(4) for j in range(4))
 
 
 class Report:
@@ -307,7 +313,7 @@ class Report:
             Report._write_collection_multi(attr.data, desc)
 
     @staticmethod
-    def _write_custom_props(bid, desc: StringIO) -> None:
+    def _write_custom_props(bid, desc: StringIO, prefix='') -> None:
         items = bid.items()
         if not items:
             return
@@ -315,12 +321,12 @@ class Report:
         rna_properties = {prop.identifier for prop in bid.bl_rna.properties if prop.is_runtime}
 
         had_any = False
-        for k, v in items:
+        for k, v in sorted(items, key=lambda it: it[0]):
             if k in rna_properties:
                 continue
 
             if not had_any:
-                desc.write(f"  - props:")
+                desc.write(f"{prefix}  - props:")
                 had_any = True
 
             if isinstance(v, str):
@@ -465,6 +471,10 @@ class Report:
                     desc.write(f" data:'{obj.data.name}'")
                 if obj.parent:
                     desc.write(f" par:'{obj.parent.name}'")
+                if obj.parent_type != 'OBJECT':
+                    desc.write(f" par_type:{obj.parent_type}")
+                    if obj.parent_type == 'BONE':
+                        desc.write(f" par_bone:'{obj.parent_bone}'")
                 desc.write(f"\n")
                 desc.write(f"  - pos {fmtf(obj.location[0])}, {fmtf(obj.location[1])}, {fmtf(obj.location[2])}\n")
                 desc.write(
@@ -486,6 +496,27 @@ class Report:
                             desc.write(
                                 f" levels:{mod.levels}/{mod.render_levels} type:{mod.subdivision_type} crease:{mod.use_creases}")
                         desc.write(f"\n")
+                # for a pose, only print bones that either have non-identity pose matrix, or custom properties
+                if obj.pose:
+                    bones = sorted(obj.pose.bones, key=lambda b: b.name)
+                    for bone in bones:
+                        mtx = bone.matrix_basis
+                        mtx_identity = is_approx_identity(mtx)
+                        desc_props = StringIO()
+                        Report._write_custom_props(bone, desc_props, '  ')
+                        props_str = desc_props.getvalue()
+                        if not mtx_identity or len(props_str) > 0:
+                            desc.write(f"  - posed bone '{bone.name}'\n")
+                            if not mtx_identity:
+                                desc.write(
+                                    f"      {fmtf(mtx[0][0])} {fmtf(mtx[0][1])} {fmtf(mtx[0][2])} {fmtf(mtx[0][3])}\n")
+                                desc.write(
+                                    f"      {fmtf(mtx[1][0])} {fmtf(mtx[1][1])} {fmtf(mtx[1][2])} {fmtf(mtx[1][3])}\n")
+                                desc.write(
+                                    f"      {fmtf(mtx[2][0])} {fmtf(mtx[2][1])} {fmtf(mtx[2][2])} {fmtf(mtx[2][3])}\n")
+                            if len(props_str) > 0:
+                                desc.write(props_str)
+
                 Report._write_animdata_desc(obj.animation_data, desc)
                 Report._write_custom_props(obj, desc)
             desc.write(f"\n")
