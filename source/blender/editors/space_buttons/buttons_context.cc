@@ -437,9 +437,10 @@ static bool buttons_context_path_particle(ButsContextPath *path)
 
     if (ob && ob->type == OB_MESH) {
       ParticleSystem *psys = psys_get_current(ob);
-
-      path->ptr[path->len] = RNA_pointer_create_discrete(&ob->id, &RNA_ParticleSystem, psys);
-      path->len++;
+      if (psys != nullptr) {
+        path->ptr[path->len] = RNA_pointer_create_discrete(&ob->id, &RNA_ParticleSystem, psys);
+        path->len++;
+      }
       return true;
     }
   }
@@ -1226,13 +1227,13 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
       continue;
     }
 
+    if (ptr->data == nullptr) {
+      continue;
+    }
+
     /* Add > triangle. */
     if (!first) {
       uiItemL(row, "", ICON_RIGHTARROW);
-    }
-
-    if (ptr->data == nullptr) {
-      continue;
     }
 
     /* Add icon and name. */
