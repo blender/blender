@@ -219,6 +219,11 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(DInpu
       constant_function = &procedure_.construct_function<mf::CustomMF_Constant<int32_t>>(value);
       break;
     }
+    case SOCK_BOOLEAN: {
+      const bool value = input->default_value_typed<bNodeSocketValueBoolean>()->value;
+      constant_function = &procedure_.construct_function<mf::CustomMF_Constant<bool>>(value);
+      break;
+    }
     case SOCK_VECTOR: {
       const float3 value = float3(input->default_value_typed<bNodeSocketValueVector>()->value);
       constant_function = &procedure_.construct_function<mf::CustomMF_Constant<float3>>(value);

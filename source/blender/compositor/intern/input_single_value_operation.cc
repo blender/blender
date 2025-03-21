@@ -39,6 +39,11 @@ void InputSingleValueOperation::execute()
       result.set_single_value(value);
       break;
     }
+    case SOCK_BOOLEAN: {
+      const bool value = input_socket_->default_value_typed<bNodeSocketValueBoolean>()->value;
+      result.set_single_value(value);
+      break;
+    }
     case SOCK_VECTOR: {
       const float3 value = input_socket_->default_value_typed<bNodeSocketValueVector>()->value;
       result.set_single_value(value);

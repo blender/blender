@@ -36,6 +36,11 @@ vec4 float_to_float4(float value)
   return vec4(value);
 }
 
+bool float_to_bool(float value)
+{
+  return value > 0.0;
+}
+
 /* --------------------------------------------------------------------
  * Int to other.
  */
@@ -68,6 +73,11 @@ vec4 int_to_color(int value)
 vec4 int_to_float4(int value)
 {
   return float_to_float4(int_to_float(value));
+}
+
+bool int_to_bool(int value)
+{
+  return value > 0;
 }
 
 /* --------------------------------------------------------------------
@@ -104,6 +114,11 @@ vec4 float2_to_float4(vec2 value)
   return vec4(value, 0.0, 0.0);
 }
 
+bool float2_to_bool(vec2 value)
+{
+  return !all(equal(value, vec2(0.0)));
+}
+
 /* --------------------------------------------------------------------
  * Float3 to other.
  */
@@ -136,6 +151,11 @@ vec4 float3_to_color(vec3 value)
 vec4 float3_to_float4(vec3 value)
 {
   return vec4(value, 0.0);
+}
+
+bool float3_to_bool(vec3 value)
+{
+  return !all(equal(value, vec3(0.0)));
 }
 
 /* --------------------------------------------------------------------
@@ -172,6 +192,11 @@ vec4 color_to_float4(vec4 value)
   return value;
 }
 
+bool color_to_bool(vec4 value, vec3 luminance_coefficients)
+{
+  return color_to_float(value, luminance_coefficients) > 0.0;
+}
+
 /* --------------------------------------------------------------------
  * Float4 to other.
  */
@@ -206,6 +231,11 @@ vec4 float4_to_color(vec4 value)
   return value;
 }
 
+bool float4_to_bool(vec4 value)
+{
+  return !all(equal(value, vec4(0.0)));
+}
+
 /* --------------------------------------------------------------------
  * Int2 to other.
  */
@@ -238,6 +268,50 @@ vec4 int2_to_color(ivec2 value)
 vec4 int2_to_float4(ivec2 value)
 {
   return vec4(vec2(value), 0.0, 0.0);
+}
+
+bool int2_to_bool(ivec2 value)
+{
+  return !all(equal(value, ivec2(0)));
+}
+
+/* --------------------------------------------------------------------
+ * Bool to other.
+ */
+
+float bool_to_float(bool value)
+{
+  return float(value);
+}
+
+int bool_to_int(bool value)
+{
+  return int(value);
+}
+
+vec2 bool_to_float2(bool value)
+{
+  return vec2(value);
+}
+
+vec3 bool_to_float3(bool value)
+{
+  return vec3(value);
+}
+
+vec4 bool_to_color(bool value)
+{
+  return vec4(value);
+}
+
+vec4 bool_to_float4(bool value)
+{
+  return vec4(value);
+}
+
+ivec2 bool_to_int2(bool value)
+{
+  return ivec2(value);
 }
 
 /* --------------------------------------------------------------------

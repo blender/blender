@@ -53,7 +53,7 @@ void ConversionOperation::execute()
     GPU_shader_bind(shader);
 
     if (this->get_input().type() == ResultType::Color &&
-        ELEM(this->get_result().type(), ResultType::Float, ResultType::Int))
+        ELEM(this->get_result().type(), ResultType::Float, ResultType::Int, ResultType::Bool))
     {
       float luminance_coefficients[3];
       IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);

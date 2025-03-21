@@ -59,6 +59,9 @@ eGPUTextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision pr
           return GPU_R16I;
         case ResultType::Int2:
           return GPU_RG16I;
+        case ResultType::Bool:
+          /* No bool texture formats, so we store in an 8-bit integer. Precision doesn't matter. */
+          return GPU_R8I;
       }
       break;
     case ResultPrecision::Full:
@@ -78,6 +81,9 @@ eGPUTextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision pr
           return GPU_R32I;
         case ResultType::Int2:
           return GPU_RG32I;
+        case ResultType::Bool:
+          /* No bool texture formats, so we store in an 8-bit integer. Precision doesn't matter. */
+          return GPU_R8I;
       }
       break;
   }
@@ -98,6 +104,10 @@ eGPUTextureFormat Result::gpu_texture_format(eGPUTextureFormat format, ResultPre
         case GPU_RGBA16F:
         case GPU_R16I:
         case GPU_RG16I:
+          return format;
+
+        /* Used to store booleans where precision doesn't matter. */
+        case GPU_R8I:
           return format;
 
         case GPU_R32F:
@@ -125,6 +135,10 @@ eGPUTextureFormat Result::gpu_texture_format(eGPUTextureFormat format, ResultPre
         case GPU_RGBA32F:
         case GPU_R32I:
         case GPU_RG32I:
+          return format;
+
+        /* Used to store booleans where precision doesn't matter. */
+        case GPU_R8I:
           return format;
 
         case GPU_R16F:
@@ -166,6 +180,9 @@ ResultPrecision Result::precision(eGPUTextureFormat format)
     case GPU_R32I:
     case GPU_RG32I:
       return ResultPrecision::Full;
+    /* Used to store booleans where precision doesn't matter. */
+    case GPU_R8I:
+      return ResultPrecision::Full;
     default:
       break;
   }
@@ -195,6 +212,8 @@ ResultType Result::type(eGPUTextureFormat format)
     case GPU_RG16I:
     case GPU_RG32I:
       return ResultType::Int2;
+    case GPU_R8I:
+      return ResultType::Bool;
     default:
       break;
   }
@@ -239,6 +258,8 @@ const CPPType &Result::cpp_type(const ResultType type)
       return CPPType::get<float3>();
     case ResultType::Int2:
       return CPPType::get<int2>();
+    case ResultType::Bool:
+      return CPPType::get<bool>();
   }
 
   BLI_assert_unreachable();
@@ -262,6 +283,8 @@ const char *Result::type_name(const ResultType type)
       return "int2";
     case ResultType::Int:
       return "int";
+    case ResultType::Bool:
+      return "bool";
   }
 
   BLI_assert_unreachable();
@@ -327,6 +350,9 @@ void Result::allocate_single_value()
       break;
     case ResultType::Int2:
       this->set_single_value(int2(0));
+      break;
+    case ResultType::Bool:
+      this->set_single_value(false);
       break;
   }
 }
@@ -648,6 +674,7 @@ void Result::update_single_value_data()
         }
         case ResultType::Int:
         case ResultType::Int2:
+        case ResultType::Bool:
           GPU_texture_update(this->gpu_texture(), GPU_DATA_INT, this->single_value().get());
           break;
       }

@@ -55,3 +55,10 @@ void node_compositor_store_output_int2(const float id, vec3 value, out vec3 out_
   store_int2(floatBitsToUint(id), value);
   out_value = value;
 }
+
+/* GPUMaterial doesn't support bool, so it is passed as a float. */
+void node_compositor_store_output_bool(const float id, float value, out float out_value)
+{
+  store_bool(floatBitsToUint(id), value);
+  out_value = value;
+}

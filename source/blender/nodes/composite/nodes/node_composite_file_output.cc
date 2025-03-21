@@ -703,6 +703,8 @@ class FileOutputOperation : public NodeOperation {
         break;
       case ResultType::Int:
         file_output.add_pass(pass_name, view_name, "V", buffer);
+      case ResultType::Bool:
+        file_output.add_pass(pass_name, view_name, "V", buffer);
         break;
     }
   }
@@ -735,6 +737,11 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Int2: {
         const float2 value = float2(result.get_single_value<int2>());
         CPPType::get<float2>().fill_assign_n(&value, buffer, length);
+        return buffer;
+      }
+      case ResultType::Bool: {
+        const float value = float(result.get_single_value<bool>());
+        CPPType::get<float>().fill_assign_n(&value, buffer, length);
         return buffer;
       }
     }
@@ -782,6 +789,7 @@ class FileOutputOperation : public NodeOperation {
       case ResultType::Float2:
       case ResultType::Int2:
       case ResultType::Int:
+      case ResultType::Bool:
         /* Not supported. */
         BLI_assert_unreachable();
         break;

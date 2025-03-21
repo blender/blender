@@ -440,7 +440,7 @@ class CompositorNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroup
         self.do_test_sockets_in_out("NodeSocketFloat")
 
     def test_all_socket_types(self):
-        self.do_test_invalid_socket_type("NodeSocketBool")
+        self.do_test_socket_type("NodeSocketBool")
         self.do_test_invalid_socket_type("NodeSocketCollection")
         self.do_test_socket_type("NodeSocketColor")
         self.do_test_socket_type("NodeSocketFloat")

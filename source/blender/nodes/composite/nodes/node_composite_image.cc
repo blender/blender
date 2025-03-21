@@ -797,6 +797,7 @@ class RenderLayerOperation : public NodeOperation {
       case ResultType::Int:
       case ResultType::Int2:
       case ResultType::Float2:
+      case ResultType::Bool:
         /* Not supported. */
         break;
     }

@@ -176,6 +176,12 @@ static void initialize_input_stack_value(const DInputSocket input, GPUNodeStack 
       stack.vec[0] = int(value);
       break;
     }
+    case SOCK_BOOLEAN: {
+      /* GPUMaterial doesn't support bool, so it is stored as a float. */
+      const bool value = input->default_value_typed<bNodeSocketValueBoolean>()->value;
+      stack.vec[0] = float(value);
+      break;
+    }
     case SOCK_VECTOR: {
       const float3 value = float3(input->default_value_typed<bNodeSocketValueVector>()->value);
       copy_v3_v3(stack.vec, value);
@@ -199,6 +205,9 @@ static const char *get_set_function_name(const ResultType type)
       return "set_value";
     case ResultType::Int:
       /* GPUMaterial doesn't support int, so it is passed as a float. */
+      return "set_value";
+    case ResultType::Bool:
+      /* GPUMaterial doesn't support bool, so it is passed as a float. */
       return "set_value";
     case ResultType::Float3:
       return "set_rgb";
@@ -345,6 +354,8 @@ static const char *get_store_function_name(ResultType type)
       return "node_compositor_store_output_float";
     case ResultType::Int:
       return "node_compositor_store_output_int";
+    case ResultType::Bool:
+      return "node_compositor_store_output_bool";
     case ResultType::Float3:
       return "node_compositor_store_output_float3";
     case ResultType::Color:
@@ -443,6 +454,10 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
       /* GPUMaterial doesn't support int, so it is passed as a float, and we need to convert it
        * back to int before writing it. */
       return "ivec4(int(value))";
+    case ResultType::Bool:
+      /* GPUMaterial doesn't support bool, so it is passed as a float and stored as an int, and we
+       * need to convert it back to bool and then to an int before writing it. */
+      return "ivec4(bool(value))";
     case ResultType::Float3:
       return "vec4(value, 0.0)";
     case ResultType::Color:
@@ -474,6 +489,7 @@ static ImageType gpu_image_type_from_result_type(const ResultType type)
       return ImageType::FLOAT_2D;
     case ResultType::Int:
     case ResultType::Int2:
+    case ResultType::Bool:
       return ImageType::INT_2D;
   }
 
@@ -486,6 +502,8 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
   const std::string store_float_function_header = "void store_float(const uint id, float value)";
   /* GPUMaterial doesn't support int, so it is passed as a float. */
   const std::string store_int_function_header = "void store_int(const uint id, float value)";
+  /* GPUMaterial doesn't support bool, so it is passed as a float. */
+  const std::string store_bool_function_header = "void store_bool(const uint id, float value)";
   const std::string store_float3_function_header = "void store_float3(const uint id, vec3 value)";
   const std::string store_color_function_header = "void store_color(const uint id, vec4 value)";
   const std::string store_float4_function_header = "void store_float4(const uint id, vec4 value)";
@@ -500,6 +518,7 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
   if (GPU_backend_get_type() != GPU_BACKEND_METAL) {
     shader_create_info.typedef_source_generated += store_float_function_header + ";\n";
     shader_create_info.typedef_source_generated += store_int_function_header + ";\n";
+    shader_create_info.typedef_source_generated += store_bool_function_header + ";\n";
     shader_create_info.typedef_source_generated += store_float3_function_header + ";\n";
     shader_create_info.typedef_source_generated += store_color_function_header + ";\n";
     shader_create_info.typedef_source_generated += store_float4_function_header + ";\n";
@@ -512,6 +531,7 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
    * the functions. */
   std::stringstream store_float_function;
   std::stringstream store_int_function;
+  std::stringstream store_bool_function;
   std::stringstream store_float3_function;
   std::stringstream store_color_function;
   std::stringstream store_float4_function;
@@ -520,6 +540,7 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
   const std::string store_function_start = "\n{\n  switch (id) {\n";
   store_float_function << store_float_function_header << store_function_start;
   store_int_function << store_int_function_header << store_function_start;
+  store_bool_function << store_bool_function_header << store_function_start;
   store_float3_function << store_float3_function_header << store_function_start;
   store_color_function << store_color_function_header << store_function_start;
   store_float4_function << store_float4_function_header << store_function_start;
@@ -555,6 +576,9 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
       case ResultType::Int:
         store_int_function << case_code.str();
         break;
+      case ResultType::Bool:
+        store_bool_function << case_code.str();
+        break;
       case ResultType::Float3:
         store_float3_function << case_code.str();
         break;
@@ -577,19 +601,17 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
   const std::string store_function_end = "  }\n}\n\n";
   store_float_function << store_function_end;
   store_int_function << store_function_end;
+  store_bool_function << store_function_end;
   store_float3_function << store_function_end;
   store_color_function << store_function_end;
   store_float4_function << store_function_end;
   store_float2_function << store_function_end;
   store_int2_function << store_function_end;
 
-  shader_create_info.compute_source_generated += store_float_function.str() +
-                                                 store_int_function.str() +
-                                                 store_float3_function.str() +
-                                                 store_color_function.str() +
-                                                 store_float4_function.str() +
-                                                 store_float2_function.str() +
-                                                 store_int2_function.str();
+  shader_create_info.compute_source_generated +=
+      store_float_function.str() + store_int_function.str() + store_bool_function.str() +
+      store_float3_function.str() + store_color_function.str() + store_float4_function.str() +
+      store_float2_function.str() + store_int2_function.str();
 }
 
 static const char *glsl_type_from_result_type(ResultType type)
@@ -599,6 +621,9 @@ static const char *glsl_type_from_result_type(ResultType type)
       return "float";
     case ResultType::Int:
       /* GPUMaterial doesn't support int, so it is passed as a float. */
+      return "float";
+    case ResultType::Bool:
+      /* GPUMaterial doesn't support bool, so it is passed as a float. */
       return "float";
     case ResultType::Float3:
       return "vec3";
@@ -624,6 +649,7 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
   switch (type) {
     case ResultType::Float:
     case ResultType::Int:
+    case ResultType::Bool:
       return "x";
     case ResultType::Float3:
       return "xyz";
