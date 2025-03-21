@@ -1174,11 +1174,6 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   RNA_def_property_float_funcs(
       prop, "rna_GreasePencilLayer_matrix_parent_inverse_get", nullptr, nullptr);
 
-  prop = RNA_def_property(srna, "channel_color", PROP_FLOAT, PROP_COLOR);
-  RNA_def_property_float_sdna(prop, "GreasePencilLayerTreeNode", "color");
-  RNA_def_property_array(prop, 3);
-  RNA_def_property_update(prop, NC_GPENCIL | NA_EDITED, nullptr);
-
   RNA_api_grease_pencil_layer(srna);
 }
 
@@ -1243,11 +1238,6 @@ static void rna_def_grease_pencil_layer_group(BlenderRNA *brna)
   prop = RNA_def_property(srna, "color_tag", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_funcs(prop, "rna_group_color_tag_get", "rna_group_color_tag_set", nullptr);
   RNA_def_property_enum_items(prop, enum_layergroup_color_items);
-
-  prop = RNA_def_property(srna, "channel_color", PROP_FLOAT, PROP_COLOR);
-  RNA_def_property_float_sdna(prop, "GreasePencilLayerTreeNode", "color");
-  RNA_def_property_array(prop, 3);
-  RNA_def_property_update(prop, NC_GPENCIL | NA_EDITED, nullptr);
 }
 
 static void rna_def_grease_pencil_layer_groups(BlenderRNA *brna, PropertyRNA *cprop)
