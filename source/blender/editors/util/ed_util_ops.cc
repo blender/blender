@@ -298,12 +298,24 @@ static void ED_OT_lib_id_generate_preview(wmOperatorType *ot)
 
 static bool lib_id_generate_preview_from_object_poll(bContext *C)
 {
+  /* This already checks if the IDs in context (e.g. selected in the Asset browser) can generate
+   * previews... */
   if (!lib_id_batch_editing_preview_poll(C)) {
     return false;
   }
-  if (CTX_data_active_object(C) == nullptr) {
+
+  /* ... but we also need to check this for the active object (since this is what is being
+   * rendered). */
+  Object *object_to_render = CTX_data_active_object(C);
+  if (object_to_render == nullptr) {
     return false;
   }
+  const char *disabled_hint = nullptr;
+  if (!ED_preview_id_is_supported(&object_to_render->id, &disabled_hint)) {
+    CTX_wm_operator_poll_msg_set(C, disabled_hint);
+    return false;
+  }
+
   return true;
 }
 
