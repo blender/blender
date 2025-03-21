@@ -377,7 +377,7 @@ EXTRA_SOURCE_FILES = (
     "../../../scripts/templates_py/bmesh_simple.py",
     "../../../scripts/templates_py/gizmo_operator.py",
     "../../../scripts/templates_py/gizmo_operator_target.py",
-    "../../../scripts/templates_py/gizmo_simple.py",
+    "../../../scripts/templates_py/gizmo_simple_3d.py",
     "../../../scripts/templates_py/operator_simple.py",
     "../../../scripts/templates_py/ui_panel_simple.py",
     "../../../scripts/templates_py/ui_previews_custom_icon.py",
