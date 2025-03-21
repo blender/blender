@@ -160,7 +160,7 @@ void BLI_linklist_prepend_nlink(LinkNode **listp, void *ptr, LinkNode *nlink)
 
 void BLI_linklist_prepend(LinkNode **listp, void *ptr)
 {
-  LinkNode *nlink = static_cast<LinkNode *>(MEM_mallocN(sizeof(*nlink), __func__));
+  LinkNode *nlink = MEM_mallocN<LinkNode>(__func__);
   BLI_linklist_prepend_nlink(listp, ptr, nlink);
 }
 
@@ -195,7 +195,7 @@ void BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nli
 
 void BLI_linklist_append(LinkNodePair *list_pair, void *ptr)
 {
-  LinkNode *nlink = static_cast<LinkNode *>(MEM_mallocN(sizeof(*nlink), __func__));
+  LinkNode *nlink = MEM_mallocN<LinkNode>(__func__);
   BLI_linklist_append_nlink(list_pair, ptr, nlink);
 }
 

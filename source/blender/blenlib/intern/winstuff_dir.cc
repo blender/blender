@@ -58,7 +58,7 @@ DIR *opendir(const char *path)
   if ((GetFileAttributesW(path_16) & FILE_ATTRIBUTE_DIRECTORY) &&
       ((path_len = strlen(path)) < (sizeof(newd->path) - PATH_SUFFIX_LEN)))
   {
-    newd = static_cast<DIR *>(MEM_mallocN(sizeof(DIR), "opendir"));
+    newd = MEM_mallocN<DIR>("opendir");
     newd->handle = INVALID_HANDLE_VALUE;
     memcpy(newd->path, path, path_len);
     memcpy(newd->path + path_len, PATH_SUFFIX, PATH_SUFFIX_LEN + 1);
@@ -80,7 +80,7 @@ static char *BLI_alloc_utf_8_from_16(wchar_t *in16, size_t add)
   if (!bsize) {
     return nullptr;
   }
-  out8 = (char *)MEM_mallocN(sizeof(char) * (bsize + add), "UTF-8 String");
+  out8 = MEM_malloc_arrayN<char>(bsize + add, "UTF-8 String");
   conv_utf_16_to_8(in16, out8, bsize);
   return out8;
 }
@@ -92,7 +92,7 @@ static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8)(char *in8, size_t add)
   if (!bsize) {
     return nullptr;
   }
-  out16 = (wchar_t *)MEM_mallocN(sizeof(wchar_t) * (bsize + add), "UTF-16 String");
+  out16 = MEM_malloc_arrayN<wchar_t>(bsize + add, "UTF-16 String");
   conv_utf_8_to_16(in8, out16, bsize);
   return out16;
 }

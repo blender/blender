@@ -70,8 +70,8 @@ static int char_switch(char *string, char ch_src, char ch_dst)
 TEST(listbase, FindLinkOrIndex)
 {
   ListBase lb;
-  void *link1 = MEM_callocN(sizeof(Link), "link1");
-  void *link2 = MEM_callocN(sizeof(Link), "link2");
+  void *link1 = MEM_callocN<Link>("link1");
+  void *link2 = MEM_callocN<Link>("link2");
 
   /* Empty list */
   BLI_listbase_clear(&lb);
@@ -123,10 +123,10 @@ TEST(listbase, FindLinkFromStringOrPointer)
   const size_t ptr_offset = offsetof(TestLink, ptr);
 
   ListBase lb;
-  TestLink *link1 = (TestLink *)MEM_callocN(sizeof(TestLink), "link1");
+  TestLink *link1 = MEM_callocN<TestLink>("link1");
   STRNCPY(link1->name, link1_name);
   link1->ptr = link1_ptr;
-  TestLink *link2 = (TestLink *)MEM_callocN(sizeof(TestLink), "link2");
+  TestLink *link2 = MEM_callocN<TestLink>("link2");
   STRNCPY(link2->name, link2_name);
   link2->ptr = link2_ptr;
 
@@ -167,9 +167,9 @@ TEST(listbase, FindLinkFromStringOrPointer)
 TEST(listbase, FromLink)
 {
   ListBase lb = {nullptr, nullptr};
-  Link *link1 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link1"));
-  Link *link2 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link2"));
-  Link *link3 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link3"));
+  Link *link1 = MEM_callocN<Link>("link1");
+  Link *link2 = MEM_callocN<Link>("link2");
+  Link *link3 = MEM_callocN<Link>("link3");
 
   /* Null safety. */
   EXPECT_EQ(lb, BLI_listbase_from_link(nullptr));
@@ -193,8 +193,8 @@ TEST(listbase, SplitAfter)
 {
   ListBase lb;
   ListBase split_after_lb;
-  void *link1 = MEM_callocN(sizeof(Link), "link1");
-  void *link2 = MEM_callocN(sizeof(Link), "link2");
+  void *link1 = MEM_callocN<Link>("link1");
+  void *link2 = MEM_callocN<Link>("link2");
 
   /* Empty list */
   BLI_listbase_clear(&lb);
@@ -337,9 +337,9 @@ TEST(listbase, Sort)
   /* delimit words */
   words_num = 1 + char_switch(words, ' ', '\0');
 
-  words_arr = (char **)MEM_mallocN(sizeof(*words_arr) * words_num, __func__);
+  words_arr = MEM_malloc_arrayN<char *>(size_t(words_num), __func__);
 
-  words_linkdata_arr = (LinkData *)MEM_mallocN(sizeof(*words_linkdata_arr) * words_num, __func__);
+  words_linkdata_arr = MEM_malloc_arrayN<LinkData>(size_t(words_num), __func__);
 
   /* create array */
   w_step = words;

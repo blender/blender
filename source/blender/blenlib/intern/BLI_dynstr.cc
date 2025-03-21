@@ -141,7 +141,7 @@ void BLI_dynstr_get_cstring_ex(const DynStr *__restrict ds, char *__restrict ret
 
 char *BLI_dynstr_get_cstring(const DynStr *ds)
 {
-  char *rets = static_cast<char *>(MEM_mallocN(ds->curlen + 1, "dynstr_cstring"));
+  char *rets = MEM_malloc_arrayN<char>(size_t(ds->curlen) + 1, "dynstr_cstring");
   BLI_dynstr_get_cstring_ex(ds, rets);
   return rets;
 }

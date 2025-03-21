@@ -101,10 +101,8 @@ static bool zstd_read_seek_table(ZstdReader *zstd)
   }
 
   zstd->seek.frames_num = frames_num;
-  zstd->seek.compressed_ofs = static_cast<size_t *>(
-      MEM_malloc_arrayN(frames_num + 1, sizeof(size_t), __func__));
-  zstd->seek.uncompressed_ofs = static_cast<size_t *>(
-      MEM_malloc_arrayN(frames_num + 1, sizeof(size_t), __func__));
+  zstd->seek.compressed_ofs = MEM_malloc_arrayN<size_t>(frames_num + 1, __func__);
+  zstd->seek.uncompressed_ofs = MEM_malloc_arrayN<size_t>(frames_num + 1, __func__);
 
   size_t compressed_ofs = 0;
   size_t uncompressed_ofs = 0;

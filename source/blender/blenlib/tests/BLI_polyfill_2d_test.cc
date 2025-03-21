@@ -71,7 +71,7 @@ static void test_polyfill_simple(const float /*poly*/[][2],
                                  const uint tris_num)
 {
   uint i;
-  int *used_num = (int *)MEM_callocN(poly_num * sizeof(int), __func__);
+  int *used_num = MEM_calloc_arrayN<int>(poly_num, __func__);
   for (i = 0; i < tris_num; i++) {
     uint j;
     for (j = 0; j < 3; j++) {
@@ -238,7 +238,7 @@ static void test_polyfill_template_flip_sign(const char *id,
                                              uint tris[][3],
                                              const uint tris_num)
 {
-  float(*poly_copy)[2] = (float(*)[2])MEM_mallocN(sizeof(float[2]) * poly_num, id);
+  float(*poly_copy)[2] = MEM_malloc_arrayN<float[2]>(poly_num, id);
   for (int flip_x = 0; flip_x < 2; flip_x++) {
     for (int flip_y = 0; flip_y < 2; flip_y++) {
       float sign_x = flip_x ? -1.0f : 1.0f;
@@ -263,7 +263,7 @@ static void test_polyfill_template_main(const char *id,
 {
   /* overkill? - try at _every_ offset & reverse */
   uint poly_reverse;
-  float(*poly_copy)[2] = (float(*)[2])MEM_mallocN(sizeof(float[2]) * poly_num, id);
+  float(*poly_copy)[2] = MEM_malloc_arrayN<float[2]>(poly_num, id);
   float tmp[2];
 
   memcpy(poly_copy, poly, sizeof(float[2]) * poly_num);

@@ -40,7 +40,7 @@
 
 static void *buffer_alloc(const BLI_Buffer *buffer, const size_t len)
 {
-  return MEM_mallocN(buffer->elem_size * len, "BLI_Buffer.data");
+  return MEM_malloc_arrayN(len, buffer->elem_size, "BLI_Buffer.data");
 }
 
 static void *buffer_realloc(BLI_Buffer *buffer, const size_t len)

@@ -367,7 +367,7 @@ static BChunk *bchunk_new(BArrayMemory *bs_mem, const uchar *data, const size_t 
 
 static BChunk *bchunk_new_copydata(BArrayMemory *bs_mem, const uchar *data, const size_t data_len)
 {
-  uchar *data_copy = static_cast<uchar *>(MEM_mallocN(data_len, __func__));
+  uchar *data_copy = MEM_malloc_arrayN<uchar>(data_len, __func__);
   memcpy(data_copy, data, data_len);
   return bchunk_new(bs_mem, data_copy, data_len);
 }
@@ -492,7 +492,7 @@ static void bchunk_list_ensure_min_size_last(const BArrayInfo *info,
         chunk_list->chunk_refs.last = cref->prev;
         chunk_list->chunk_refs_len -= 1;
 
-        uchar *data_merge = static_cast<uchar *>(MEM_mallocN(data_merge_len, __func__));
+        uchar *data_merge = MEM_malloc_arrayN<uchar>(data_merge_len, __func__);
         memcpy(data_merge, chunk_prev->data, chunk_prev->data_len);
         memcpy(&data_merge[chunk_prev->data_len], chunk_curr->data, chunk_curr->data_len);
 
@@ -514,8 +514,8 @@ static void bchunk_list_ensure_min_size_last(const BArrayInfo *info,
         /* Merge and split. */
         const size_t data_prev_len = split;
         const size_t data_curr_len = data_merge_len - split;
-        uchar *data_prev = static_cast<uchar *>(MEM_mallocN(data_prev_len, __func__));
-        uchar *data_curr = static_cast<uchar *>(MEM_mallocN(data_curr_len, __func__));
+        uchar *data_prev = MEM_malloc_arrayN<uchar>(data_prev_len, __func__);
+        uchar *data_curr = MEM_malloc_arrayN<uchar>(data_curr_len, __func__);
 
         if (data_prev_len <= chunk_prev->data_len) {
           const size_t data_curr_shrink_len = chunk_prev->data_len - data_prev_len;
@@ -644,7 +644,7 @@ static void bchunk_list_append_data(const BArrayInfo *info,
         cref->link->data_len = data_merge_len;
       }
       else {
-        uchar *data_merge = static_cast<uchar *>(MEM_mallocN(data_merge_len, __func__));
+        uchar *data_merge = MEM_malloc_arrayN<uchar>(data_merge_len, __func__);
         memcpy(data_merge, chunk_prev->data, chunk_prev->data_len);
         memcpy(&data_merge[chunk_prev->data_len], data, data_len);
         cref->link = bchunk_new(bs_mem, data_merge, data_merge_len);
@@ -1264,8 +1264,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 #ifdef USE_HASH_TABLE_ACCUMULATE
     size_t i_table_start = i_prev;
     const size_t table_hash_array_len = (data_len - i_prev) / info->chunk_stride;
-    hash_key *table_hash_array = static_cast<hash_key *>(
-        MEM_mallocN(sizeof(*table_hash_array) * table_hash_array_len, __func__));
+    hash_key *table_hash_array = MEM_malloc_arrayN<hash_key>(table_hash_array_len, __func__);
     hash_array_from_data(info, &data[i_prev], data_len - i_prev, table_hash_array);
 
     hash_accum(table_hash_array, table_hash_array_len, info->accum_steps);
@@ -1278,21 +1277,19 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
     const uint chunk_list_reference_remaining_len = (chunk_list_reference->chunk_refs_len -
                                                      chunk_list_reference_skip_len) +
                                                     1;
-    BTableRef *table_ref_stack = static_cast<BTableRef *>(
-        MEM_mallocN(chunk_list_reference_remaining_len * sizeof(BTableRef), __func__));
+    BTableRef *table_ref_stack = MEM_malloc_arrayN<BTableRef>(chunk_list_reference_remaining_len,
+                                                              __func__);
     uint table_ref_stack_n = 0;
 
     const size_t table_len = chunk_list_reference_remaining_len * BCHUNK_HASH_TABLE_MUL;
-    BTableRef **table = static_cast<BTableRef **>(
-        MEM_callocN(table_len * sizeof(*table), __func__));
+    BTableRef **table = MEM_calloc_arrayN<BTableRef *>(table_len, __func__);
 
     /* Table_make - inline
      * include one matching chunk, to allow for repeating values. */
     {
 #ifdef USE_HASH_TABLE_ACCUMULATE
       const size_t hash_store_len = info->accum_read_ahead_len;
-      hash_key *hash_store = static_cast<hash_key *>(
-          MEM_mallocN(sizeof(hash_key) * hash_store_len, __func__));
+      hash_key *hash_store = MEM_malloc_arrayN<hash_key>(hash_store_len, __func__);
 #endif
 
       const BChunkRef *cref;

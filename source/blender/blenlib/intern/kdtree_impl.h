@@ -95,6 +95,10 @@ KDTree *BLI_kdtree_nd_(new)(uint nodes_len_capacity)
   KDTree *tree;
 
   tree = MEM_callocN<KDTree>("KDTree");
+  /* NOTE: Cannot use `MEM_malloc_arrayN<KDTreeNode>()` here, as `KDTreeNode` is not one type, but
+   * four (1D to 4D), differing by their `float co[KD_DIMS]` member. It seems like the code
+   * generating the templates does not distinguish these cases, and create a single code for all
+   * four cases, leading to invalid allocation sizes. */
   tree->nodes = static_cast<KDTreeNode *>(
       MEM_mallocN(sizeof(KDTreeNode) * nodes_len_capacity, "KDTreeNode"));
   tree->nodes_len = 0;
@@ -216,8 +220,8 @@ void BLI_kdtree_nd_(balance)(KDTree *tree)
 
 static uint *realloc_nodes(uint *stack, uint *stack_len_capacity, const bool is_alloc)
 {
-  uint *stack_new = static_cast<uint *>(
-      MEM_mallocN((*stack_len_capacity + KD_NEAR_ALLOC_INC) * sizeof(uint), "KDTree.treestack"));
+  uint *stack_new = MEM_malloc_arrayN<uint>(*stack_len_capacity + KD_NEAR_ALLOC_INC,
+                                            "KDTree.treestack");
   memcpy(stack_new, stack, *stack_len_capacity * sizeof(uint));
   // memset(stack_new + *stack_len_capacity, 0, sizeof(uint) * KD_NEAR_ALLOC_INC);
   if (is_alloc) {
