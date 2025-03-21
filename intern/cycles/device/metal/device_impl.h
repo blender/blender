@@ -30,6 +30,7 @@ class MetalDevice : public Device {
   id<MTLCommandQueue> mtlGeneralCommandQueue = nil;
   id<MTLArgumentEncoder> mtlAncillaryArgEncoder =
       nil; /* encoder used for fetching device pointers from MTLBuffers */
+  id<MTLCounterSampleBuffer> mtlCounterSampleBuffer = nil;
   string source[PSO_NUM];
   string kernels_md5[PSO_NUM];
   string global_defines_md5[PSO_NUM];

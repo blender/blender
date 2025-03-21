@@ -103,6 +103,26 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
       capture_enabled = true;
     }
 
+    /* Create a global counter sampling buffer when kernel profiling is enabled.
+     * There's a limit to the number of concurrent counter sampling buffers per device, so we
+     * create one that can be reused by successive device queues. */
+    if (auto str = getenv("CYCLES_METAL_PROFILING")) {
+      if (atoi(str) && [mtlDevice supportsCounterSampling:MTLCounterSamplingPointAtStageBoundary])
+      {
+        NSArray<id<MTLCounterSet>> *counterSets = [mtlDevice counterSets];
+
+        NSError *error = nil;
+        MTLCounterSampleBufferDescriptor *desc = [[MTLCounterSampleBufferDescriptor alloc] init];
+        [desc setStorageMode:MTLStorageModeShared];
+        [desc setLabel:@"CounterSampleBuffer"];
+        [desc setSampleCount:MAX_SAMPLE_BUFFER_LENGTH];
+        [desc setCounterSet:counterSets[0]];
+        mtlCounterSampleBuffer = [mtlDevice newCounterSampleBufferWithDescriptor:desc
+                                                                           error:&error];
+        [mtlCounterSampleBuffer retain];
+      }
+    }
+
     /* Set kernel_specialization_level based on user preferences. */
     switch (info.kernel_optimization_level) {
       case KERNEL_OPTIMIZATION_LEVEL_OFF:
@@ -286,6 +306,9 @@ MetalDevice::~MetalDevice()
   [mtlAncillaryArgEncoder release];
   [mtlComputeCommandQueue release];
   [mtlGeneralCommandQueue release];
+  if (mtlCounterSampleBuffer) {
+    [mtlCounterSampleBuffer release];
+  }
   [mtlDevice release];
 
   texture_info.free();

@@ -13,6 +13,8 @@
 #  include "device/metal/util.h"
 #  include "kernel/device/metal/globals.h"
 
+#  define MAX_SAMPLE_BUFFER_LENGTH 4096
+
 CCL_NAMESPACE_BEGIN
 
 class MetalDevice;
@@ -93,7 +95,6 @@ class MetalDeviceQueue : public DeviceQueue {
   bool profiling_enabled_ = false;
   uint64_t current_encoder_idx_ = 0;
 
-  id<MTLCounterSampleBuffer> counter_sample_buffer_ = nil;
   std::atomic<uint64_t> counter_sample_buffer_curr_idx_ = 0;
 
   void flush_timing_stats();

@@ -18,8 +18,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-#  define MAX_SAMPLE_BUFFER_LENGTH 4096
-
 /* MetalDeviceQueue */
 
 MetalDeviceQueue::MetalDeviceQueue(MetalDevice *device)
@@ -47,19 +45,6 @@ MetalDeviceQueue::MetalDeviceQueue(MetalDevice *device)
         /* Enable per-kernel timing breakdown (shown at end of render). */
         profiling_enabled_ = true;
         label_command_encoders_ = true;
-
-        /* Create a global counter sampling buffer. */
-        NSArray<id<MTLCounterSet>> *counterSets = [mtlDevice_ counterSets];
-
-        NSError *error = nil;
-        MTLCounterSampleBufferDescriptor *desc = [[MTLCounterSampleBufferDescriptor alloc] init];
-        [desc setStorageMode:MTLStorageModeShared];
-        [desc setLabel:@"CounterSampleBuffer"];
-        [desc setSampleCount:MAX_SAMPLE_BUFFER_LENGTH];
-        [desc setCounterSet:counterSets[0]];
-        counter_sample_buffer_ = [mtlDevice_ newCounterSampleBufferWithDescriptor:desc
-                                                                            error:&error];
-        [counter_sample_buffer_ retain];
       }
     }
     if (getenv("CYCLES_METAL_DEBUG")) {
@@ -221,10 +206,6 @@ MetalDeviceQueue::~MetalDeviceQueue()
   [shared_event_listener_ release];
   [shared_event_ release];
   [command_buffer_desc_ release];
-
-  if (counter_sample_buffer_) {
-    [counter_sample_buffer_ release];
-  }
 
   if (mtlCaptureScope_) {
     [mtlCaptureScope_ release];
@@ -635,7 +616,7 @@ void MetalDeviceQueue::flush_timing_stats()
     TimingStats &stat = timing_stats_[label.kernel];
 
     double completion_time_gpu;
-    NSData *computeTimeStamps = [counter_sample_buffer_
+    NSData *computeTimeStamps = [metal_device_->mtlCounterSampleBuffer
         resolveCounterRange:NSMakeRange(label.timing_id, 2)];
     MTLCounterResultTimestamp *timestamps = (MTLCounterResultTimestamp *)(computeTimeStamps.bytes);
 
@@ -812,7 +793,7 @@ id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel 
 
     current_encoder_idx_ = (counter_sample_buffer_curr_idx_.fetch_add(2) %
                             MAX_SAMPLE_BUFFER_LENGTH);
-    [desc.sampleBufferAttachments[0] setSampleBuffer:counter_sample_buffer_];
+    [desc.sampleBufferAttachments[0] setSampleBuffer:metal_device_->mtlCounterSampleBuffer];
     [desc.sampleBufferAttachments[0] setStartOfEncoderSampleIndex:current_encoder_idx_];
     [desc.sampleBufferAttachments[0] setEndOfEncoderSampleIndex:current_encoder_idx_ + 1];
 
