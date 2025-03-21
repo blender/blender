@@ -383,9 +383,9 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
  * Ensure View2D rects remain in a viable configuration
  * 'cur' is not allowed to be: larger than max, smaller than min, or outside of 'tot'
  */
-/* XXX pre2.5 -> this used to be called #test_view2d() */
 static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
 {
+  /* NOTE: #calculateZfac uses this logic, keep in sync. */
   float totwidth, totheight, curwidth, curheight, width, height;
   float winx, winy;
   rctf *cur, *tot;

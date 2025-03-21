@@ -118,7 +118,7 @@ typedef struct FluidsimSettings {
 
   int lastgoodframe;
 
-  /** Simulation/flow rate control (i.e. old "Fac-Time"). */
+  /** Simulation/flow rate control. */
   float animRate;
 } FluidsimSettings;
 

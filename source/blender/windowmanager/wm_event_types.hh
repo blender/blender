@@ -67,7 +67,7 @@ enum {
   /* Defaults from ghost. */
   WHEELUPMOUSE = 0x000a,
   WHEELDOWNMOUSE = 0x000b,
-  /* Mapped with userdef. */
+  /* Mapped based on #USER_WHEELZOOMDIR. */
   WHEELINMOUSE = 0x000c,
   WHEELOUTMOUSE = 0x000d,
   /* Successive MOUSEMOVE's are converted to this, so we can easily
