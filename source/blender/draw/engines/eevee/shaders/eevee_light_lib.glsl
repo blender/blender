@@ -125,38 +125,22 @@ float light_shape_radius(LightData light)
  * L is normalized vector to light shape center.
  * Ng is ideally the geometric normal.
  */
-float light_attenuation_facing(LightData light,
-                               vec3 L,
-                               float distance_to_light,
-                               vec3 Ng,
-                               const bool is_transmission,
-                               bool is_translucent_with_thickness)
+float light_attenuation_facing(
+    LightData light, vec3 L, float distance_to_light, vec3 Ng, const bool is_transmission)
 {
-  if (is_translucent_with_thickness) {
-    /* No attenuation in this case since we integrate the whole sphere. */
-    return 1.0;
-  }
-
   /* Sine of angle between light center and light edge. */
   float sin_solid_angle = light_shape_radius(light) / distance_to_light;
   /* Sine of angle between light center and shading plane. */
-  float sin_light_angle = dot(L, Ng);
+  float sin_light_angle = dot(L, is_transmission ? -Ng : Ng);
   /* Do attenuation after the horizon line to avoid harsh cut
    * or biasing of surfaces without light bleeding. */
   float dist = sin_solid_angle + (is_transmission ? -sin_light_angle : sin_light_angle);
   return saturate((dist + 0.1) * 10.0);
 }
 
-float light_attenuation_surface(LightData light,
-                                const bool is_directional,
-                                const bool is_transmission,
-                                bool is_translucency_with_thickness,
-                                vec3 Ng,
-                                LightVector lv)
+float light_attenuation_surface(LightData light, const bool is_directional, LightVector lv)
 {
-  float result = light_attenuation_facing(
-      light, lv.L, lv.dist, Ng, is_transmission, is_translucency_with_thickness);
-  result *= light_attenuation_common(light, is_directional, lv.L);
+  float result = light_attenuation_common(light, is_directional, lv.L);
   if (!is_directional) {
     result *= light_influence_attenuation(
         lv.dist, light_local_data_get(light).influence_radius_invsqr_surface);

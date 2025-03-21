@@ -405,7 +405,13 @@ float shadow_normal_offset(vec3 Ng, vec3 L)
 {
   /* Attenuate depending on light angle. */
   float cos_theta = abs(dot(Ng, L));
-  return sin_from_cos(cos_theta);
+  /* Ng might have been quantized. Compensate the error by scaling the offset. */
+  const float max_angular_quantization_error = 0.534; /* Radians. */
+  const float max_error_cos_inv = 1.0 / cos(max_angular_quantization_error);
+  /* The scaling is only to fix the self shadowing we need another bias for shadowing of adjacent
+   * polygons. */
+  const float max_error_adjacent_polygon = 0.195; /* Eye-balled. */
+  return sin_from_cos(cos_theta) * max_error_cos_inv + max_error_adjacent_polygon;
 }
 
 /**

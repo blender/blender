@@ -31,6 +31,7 @@ void main()
   samplerGBufferHeader header_tx = 0;
   samplerGBufferClosure closure_tx = 0;
   samplerGBufferNormal normal_tx = 0;
+  vec3 Ng = vec3(1.0, 0.0, 0.0);
 
   TEST(eevee_gbuffer, ClosureDiffuse)
   {
@@ -40,7 +41,7 @@ void main()
     data_in.closure[0].color = vec3(0.1, 0.2, 0.3);
     data_in.closure[0].N = normalize(vec3(0.2, 0.1, 0.3));
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
     data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 1);
@@ -63,7 +64,7 @@ void main()
     data_in.closure[0].data.rgb = vec3(0.2, 0.3, 0.4);
     data_in.closure[0].N = normalize(vec3(0.2, 0.1, 0.3));
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
     data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 2);
@@ -87,7 +88,7 @@ void main()
     data_in.closure[0].color = vec3(0.1, 0.2, 0.3);
     data_in.closure[0].N = normalize(vec3(0.2, 0.1, 0.3));
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
     data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 1);
@@ -110,7 +111,7 @@ void main()
     data_in.closure[0].data.x = 0.4;
     data_in.closure[0].N = normalize(vec3(0.2, 0.1, 0.3));
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
     data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 2);
@@ -135,7 +136,7 @@ void main()
     data_in.closure[0].data.y = 0.5;
     data_in.closure[0].N = normalize(vec3(0.2, 0.1, 0.3));
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
     data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 2);
@@ -170,7 +171,7 @@ void main()
     data_in.closure[0] = in_cl0;
     data_in.closure[1] = in_cl1;
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.data_len, 4);
 
@@ -211,7 +212,7 @@ void main()
     data_in.closure[1].data.x = 0.4;
     data_in.closure[1].N = normalize(vec3(0.2, 0.3, 0.4));
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.data_len, 2);
 

@@ -62,7 +62,7 @@ void main()
   depth -= bias;
 
   vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
-  vec3 Ng = gbuf.surface_N;
+  vec3 Ng = gbuffer_geometry_normal_unpack(gbuf.header, gbuf.surface_N);
   vec3 V = drw_world_incident_vector(P);
   float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
 

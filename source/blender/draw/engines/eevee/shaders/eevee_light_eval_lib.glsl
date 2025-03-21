@@ -148,8 +148,14 @@ void light_eval_single(uint l_idx,
   bool is_translucent_with_thickness = is_transmission &&
                                        (stack.cl[0].type == LIGHT_TRANSLUCENT_WITH_THICKNESS);
 
-  float attenuation = light_attenuation_surface(
-      light, is_directional, is_transmission, is_translucent_with_thickness, Ng, lv);
+  float attenuation = light_attenuation_surface(light, is_directional, lv);
+
+  if (!is_translucent_with_thickness) {
+    /* Only do attenuation for this case, since we integrate the whole sphere for translucency.
+     * Moreover, stack.cl[0].N is overwritten for is_translucent_with_thickness. */
+    attenuation *= light_attenuation_facing(light, lv.L, lv.dist, stack.cl[0].N, is_transmission);
+  }
+
   if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
     return;
   }

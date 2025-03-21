@@ -67,6 +67,8 @@ struct GBufferWriter {
   uchar data_len;
   /* Number of normal written in the normal array. */
   uchar normal_len;
+  /* First world normal stored in the gbuffer (uncompressed). */
+  packed_float3 surface_N;
 };
 
 /* Result of loading the GBuffer. */
@@ -327,6 +329,41 @@ uint gbuffer_light_link_receiver_unpack(uint data)
   return data >> 26u;
 }
 
+/* Quantize geometric normal to 6 bits. */
+uint gbuffer_geometry_normal_pack(vec3 Ng, vec3 N)
+{
+  /* This is a threshold that minimizes the error over the sphere. */
+  const float quantization_multiplier = 1.360;
+  /* Normalize for comparison. */
+  vec3 Ng_quantize = normalize(round(quantization_multiplier * Ng));
+  /* Note: Comparing the error using cosines. The greater the cosine value, the lower the error. */
+  if (dot(N, Ng) > dot(Ng, Ng_quantize)) {
+    /* If the error between the default shading normal and the geometric normal is smaller than the
+     * compression error, we do not encode the geometric normal and use the shading normal for
+     * biasing the shadow rays. This avoid precision issues that comes with the quantization. */
+    return 0;
+  }
+  uint data;
+  data = (Ng_quantize.x > 0.0) ? (1u << 0u) : 0u;
+  data |= (Ng_quantize.y > 0.0) ? (1u << 1u) : 0u;
+  data |= (Ng_quantize.z > 0.0) ? (1u << 2u) : 0u;
+  data |= (Ng_quantize.x < 0.0) ? (1u << 3u) : 0u;
+  data |= (Ng_quantize.y < 0.0) ? (1u << 4u) : 0u;
+  data |= (Ng_quantize.z < 0.0) ? (1u << 5u) : 0u;
+  return data << 20u;
+}
+
+vec3 gbuffer_geometry_normal_unpack(uint data, vec3 N)
+{
+  /* If data is 0 it means the shading normal is representative enough. */
+  if ((data & (63u << 20u)) == 0u) {
+    return N;
+  }
+  vec3 Ng = vec3((uint3(data) >> (uint3(0, 1, 2) + 20u)) & 1u) -
+            vec3((uint3(data) >> (uint3(3, 4, 5) + 20u)) & 1u);
+  return normalize(Ng);
+}
+
 uint gbuffer_header_pack(GBufferMode mode, uint bin)
 {
   return (mode << (4u * bin));
@@ -488,6 +525,7 @@ void gbuffer_append_normal(inout GBufferWriter gbuf, vec3 normal)
   switch (gbuf.normal_len) {
 #if GBUFFER_NORMAL_MAX > 0
     case 0:
+      gbuf.surface_N = normal;
       gbuf.N[0] = packed_N;
       break;
 #endif
@@ -816,7 +854,7 @@ void gbuffer_closure_metal_clear_coat_load(inout GBufferReader gbuf,
  *
  * \{ */
 
-GBufferWriter gbuffer_pack(GBufferData data_in)
+GBufferWriter gbuffer_pack(GBufferData data_in, vec3 Ng)
 {
   GBufferWriter gbuf;
   gbuf.header = 0u;
@@ -826,8 +864,6 @@ GBufferWriter gbuffer_pack(GBufferData data_in)
 
   /* Pack light linking data into header. */
   gbuf.header |= gbuffer_light_link_receiver_pack(data_in.receiver_light_set);
-
-  /* Check special configurations first. */
 
   bool has_additional_data = false;
   for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
@@ -878,6 +914,9 @@ GBufferWriter gbuffer_pack(GBufferData data_in)
     gbuf.bins_len = 0;
     gbuffer_closure_unlit_pack(gbuf, data_in.surface_N);
   }
+
+  /* Pack geometric normal into the header if needed. */
+  gbuf.header |= gbuffer_geometry_normal_pack(Ng, gbuf.surface_N);
 
   if (has_additional_data) {
     gbuffer_additional_info_pack(gbuf, data_in.thickness, data_in.object_id);

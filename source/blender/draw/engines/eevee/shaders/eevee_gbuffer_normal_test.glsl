@@ -26,6 +26,8 @@ GBufferData gbuffer_new()
 
 void main()
 {
+  vec3 Ng = vec3(1.0, 0.0, 0.0);
+
   TEST(eevee_gbuffer, NormalPack)
   {
     GBufferWriter gbuf;
@@ -122,7 +124,7 @@ void main()
     data_in.closure[0] = cl1;
     data_in.closure[1] = cl1;
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.data_len, 2);
     EXPECT_EQ(g_data_packed.normal_len, 1);
@@ -141,7 +143,7 @@ void main()
     data_in.closure[0] = cl1;
     data_in.closure[1] = cl2;
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.data_len, 2);
     EXPECT_EQ(g_data_packed.normal_len, 2);
@@ -161,7 +163,7 @@ void main()
     data_in.closure[1] = cl2;
     data_in.closure[2] = cl2;
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.normal_len, 2);
 
@@ -181,7 +183,7 @@ void main()
     data_in.closure[1] = cl1;
     data_in.closure[2] = cl2;
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.normal_len, 2);
 
@@ -201,7 +203,7 @@ void main()
     data_in.closure[1] = cl2;
     data_in.closure[2] = cl1;
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.normal_len, 2);
 
@@ -221,7 +223,7 @@ void main()
     data_in.closure[1] = cl2;
     data_in.closure[2] = cl3;
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.normal_len, 3);
 
@@ -241,7 +243,7 @@ void main()
     data_in.closure[1] = cl_none;
     data_in.closure[2] = cl3;
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.normal_len, 2);
 
@@ -261,7 +263,7 @@ void main()
     data_in.closure[1] = cl_none;
     data_in.closure[2] = cl3;
 
-    g_data_packed = gbuffer_pack(data_in);
+    g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.normal_len, 1);
 

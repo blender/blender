@@ -107,7 +107,7 @@ void main()
   gbuf_data.object_id = drw_resource_id();
   gbuf_data.receiver_light_set = receiver_light_set_get(object_infos);
 
-  GBufferWriter gbuf = gbuffer_pack(gbuf_data);
+  GBufferWriter gbuf = gbuffer_pack(gbuf_data, g_data.Ng);
 
   /* Output header and first closure using frame-buffer attachment. */
   out_gbuf_header = gbuf.header;
