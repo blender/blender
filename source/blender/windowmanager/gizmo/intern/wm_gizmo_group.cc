@@ -538,7 +538,8 @@ static wmOperatorStatus gizmo_tweak_modal(bContext *C, wmOperator *op, const wmE
       evil_event->val = evil_event->prev_val;
     }
 
-    int modal_retval = modal_fn(C, gz, event, eWM_GizmoFlagTweak(mtweak->flag));
+    const wmOperatorStatus modal_retval = modal_fn(C, gz, event, eWM_GizmoFlagTweak(mtweak->flag));
+    OPERATOR_RETVAL_CHECK(modal_retval);
 
     if (event_modal_val != 0) {
       evil_event->type = EVT_MODAL_MAP;
