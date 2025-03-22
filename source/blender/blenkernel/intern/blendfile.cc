@@ -1243,6 +1243,7 @@ static void setup_app_data(bContext *C,
 
     BKE_lib_override_library_main_resync(
         bmain,
+        nullptr,
         curscene,
         bfd->cur_view_layer ? bfd->cur_view_layer : BKE_view_layer_default_view(curscene),
         reports);

@@ -1894,8 +1894,10 @@ static void blendfile_relocate_postprocess_cleanup(BlendfileLinkAppendContext &l
 }
 
 /** Update and resync as needed liboverrides. */
-static void blendfile_relocate_postprocess_liboverrides(BlendfileLinkAppendContext &lapp_context,
-                                                        ReportList *reports)
+static void blendfile_relocate_postprocess_liboverrides(
+    BlendfileLinkAppendContext &lapp_context,
+    const blender::Map<Library *, Library *> &new_to_old_libraries_map,
+    ReportList *reports)
 {
   Main &bmain = *lapp_context.params->bmain;
 
@@ -1922,6 +1924,7 @@ static void blendfile_relocate_postprocess_liboverrides(BlendfileLinkAppendConte
     BlendFileReadReport report{};
     report.reports = reports;
     BKE_lib_override_library_main_resync(&bmain,
+                                         &new_to_old_libraries_map,
                                          lapp_context.params->context.scene,
                                          lapp_context.params->context.view_layer,
                                          &report);
@@ -2011,6 +2014,10 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
    * code is wrong, we need to redo it here after adding them back to main. */
   BKE_main_id_refcount_recompute(bmain, false);
 
+  /* Mapping from old to new libraries, needed to allow liboverride resync to map properly old and
+   * new data. */
+  blender::Map<Library *, Library *> new_to_old_libraries_map;
+
   BKE_layer_collection_resync_forbid();
   /* Note that in reload case, we also want to replace indirect usages. */
   const int remap_flags = ID_REMAP_SKIP_NEVER_NULL_USAGE |
@@ -2018,6 +2025,9 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   for (BlendfileLinkAppendContextItem &item : lapp_context->items) {
     ID *old_id = static_cast<ID *>(item.userdata);
     ID *new_id = item.new_id;
+    if (new_id) {
+      new_to_old_libraries_map.add(new_id->lib, old_id->lib);
+    }
     blendfile_library_relocate_id_remap(bmain, old_id, new_id, reports, do_reload, remap_flags);
   }
   BKE_layer_collection_resync_allow();
@@ -2029,7 +2039,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   blendfile_relocate_postprocess_cleanup(*lapp_context);
 
   /* Update and resync liboverrides of reloaded linked data-blocks. */
-  blendfile_relocate_postprocess_liboverrides(*lapp_context, reports);
+  blendfile_relocate_postprocess_liboverrides(*lapp_context, new_to_old_libraries_map, reports);
 
   BKE_main_collection_sync(bmain);
 }
@@ -2062,12 +2072,17 @@ void BKE_blendfile_id_relocate(BlendfileLinkAppendContext &lapp_context, ReportL
 
   /* Finalize relocation (remap ID usages, rebuild LibOverrides if needed, etc.). */
 
+  /* Mapping from old to new libraries, needed to allow liboverride resync to map properly old and
+   * new data. */
+  blender::Map<Library *, Library *> new_to_old_libraries_map{};
+
   /* The first item should be the root of the relocation, and the only one containing a non-null
    * `userdata`. */
   BlendfileLinkAppendContextItem &root_item = lapp_context.items.front();
   BLI_assert(root_item.userdata);
   ID *old_id = static_cast<ID *>(root_item.userdata);
   ID *new_id = root_item.new_id;
+  new_to_old_libraries_map.add(new_id->lib, old_id->lib);
   BLI_assert(GS(old_id->name) == GS(new_id->name));
 #ifndef NDEBUG
   for (BlendfileLinkAppendContextItem &item : lapp_context.items) {
@@ -2090,7 +2105,7 @@ void BKE_blendfile_id_relocate(BlendfileLinkAppendContext &lapp_context, ReportL
   blendfile_relocate_postprocess_cleanup(lapp_context);
 
   /* Update and resync liboverrides of reloaded linked data-blocks. */
-  blendfile_relocate_postprocess_liboverrides(lapp_context, reports);
+  blendfile_relocate_postprocess_liboverrides(lapp_context, new_to_old_libraries_map, reports);
 
   BKE_main_collection_sync(bmain);
 
