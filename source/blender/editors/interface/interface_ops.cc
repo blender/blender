@@ -2301,7 +2301,7 @@ static void UI_OT_button_string_clear(wmOperatorType *ot)
 
   ot->poll = ED_operator_regionactive;
   ot->exec = button_string_clear_exec;
-  ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
+  ot->flag = OPTYPE_INTERNAL;
 }
 
 /** \} */
