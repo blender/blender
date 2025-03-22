@@ -4563,7 +4563,9 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
    *   Make an exception for menus as they aren't typically refreshed during animation
    *   playback or other situations where the overhead would be noticeable.
    */
-  bool use_enum_copy_description = free && (RNA_property_py_data_get(but->rnaprop) != nullptr);
+  const bool use_enum_copy_description = free &&
+                                         ((RNA_property_is_idprop(but->rnaprop) == false) &&
+                                          (RNA_property_py_data_get(but->rnaprop) != nullptr));
 
   if (title && title[0] && (categories == 0) && (!but->str[0] || !prior_label)) {
     /* Show title when no categories and calling button has no text or prior label. */

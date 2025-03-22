@@ -1217,6 +1217,10 @@ bool RNA_property_builtin(PropertyRNA *prop)
 
 void *RNA_property_py_data_get(PropertyRNA *prop)
 {
+  /* This is only called in isolated situations (mainly by the Python API),
+   * so skip check for ID properties. Callers must use #RNA_property_is_idprop
+   * when it's not known if the property might be an ID Property. */
+  BLI_assert(prop->magic == RNA_MAGIC);
   return prop->py_data;
 }
 
