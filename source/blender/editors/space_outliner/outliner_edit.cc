@@ -1329,17 +1329,17 @@ void outliner_set_coordinates(const ARegion *region, const SpaceOutliner *space_
   });
 }
 
-/* return 1 when levels were opened */
-static int outliner_open_back(TreeElement *te)
+/** Return true when levels were opened. */
+static bool outliner_open_back(TreeElement *te)
 {
   TreeStoreElem *tselem;
-  int retval = 0;
+  bool retval = false;
 
   for (te = te->parent; te; te = te->parent) {
     tselem = TREESTORE(te);
     if (tselem->flag & TSE_CLOSED) {
       tselem->flag &= ~TSE_CLOSED;
-      retval = 1;
+      retval = true;
     }
   }
   return retval;
