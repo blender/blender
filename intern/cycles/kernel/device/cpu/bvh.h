@@ -345,7 +345,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
 
   /* If no transparent shadows or max number of hits exceeded, all light is blocked. */
   const int flags = intersection_get_shader_flags(kg, current_isect.prim, current_isect.type);
-  if (!(flags & (SD_HAS_TRANSPARENT_SHADOW)) || ctx->num_hits >= ctx->max_hits) {
+  if ((flags & SD_HAS_TRANSPARENT_SHADOW) == 0) {
     ctx->opaque_hit = true;
     return;
   }
@@ -358,6 +358,10 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
   }
 
   ++ctx->num_hits;
+  if (ctx->num_hits > ctx->max_hits) {
+    ctx->opaque_hit = true;
+    return;
+  }
 
   /* Always use baked shadow transparency for curves. */
   if (current_isect.type & PRIMITIVE_CURVE) {

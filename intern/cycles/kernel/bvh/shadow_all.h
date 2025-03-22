@@ -222,14 +222,12 @@ ccl_device_inline
 
             /* shadow ray early termination */
             if (hit) {
-              /* detect if this surface has a shader with transparent shadows */
-              /* todo: optimize so primitive visibility flag indicates if
-               * the primitive has a transparent shadow shader? */
+              /* Detect if this surface has a shader with transparent shadows. */
+              /* TODO: optimize so primitive visibility flag indicates if the primitive has a
+               * transparent shadow shader? */
               const int flags = intersection_get_shader_flags(kg, isect.prim, isect.type);
-
-              if (!(flags & SD_HAS_TRANSPARENT_SHADOW) || num_hits >= max_hits) {
-                /* If no transparent shadows, all light is blocked and we can
-                 * stop immediately. */
+              if ((flags & SD_HAS_TRANSPARENT_SHADOW) == 0) {
+                /* If no transparent shadows, all light is blocked and we can stop immediately. */
                 return true;
               }
 
@@ -244,6 +242,9 @@ ccl_device_inline
               }
 
               num_hits++;
+              if (num_hits > max_hits) {
+                return true;
+              }
 
               bool record_intersection = true;
 
