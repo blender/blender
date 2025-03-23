@@ -24,8 +24,6 @@
 
 namespace blender::draw::gpencil {
 
-using namespace blender::draw;
-
 /* verify if this fx is active */
 static bool effect_is_active(ShaderFxData *fx, bool is_edit, bool is_viewport)
 {
@@ -102,7 +100,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
 
   float4x4 winmat, persmat;
   float blur_size[2] = {fx->radius[0], fx->radius[1]};
-  persmat = blender::draw::View::default_get().persmat();
+  persmat = View::default_get().persmat();
   const float w = fabsf(mul_project_m4_v3_zfac(persmat.ptr(), ob->object_to_world().location()));
 
   if (fx->flag & FX_BLUR_DOF_MODE) {
@@ -112,7 +110,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
   }
   else {
     /* Modify by distance to camera and object scale. */
-    winmat = blender::draw::View::default_get().winmat();
+    winmat = View::default_get().winmat();
     const float2 vp_size = iter->inst->draw_ctx->viewport_size_get();
     float world_pixel_scale = 1.0f / GPENCIL_PIXEL_FACTOR;
     float scale = mat4_to_scale(ob->object_to_world().ptr());
@@ -171,8 +169,8 @@ static void gpencil_vfx_rim(RimShaderFxData *fx, Object *ob, gpIterVfxData *iter
   float4x4 winmat, persmat;
   float offset[2] = {float(fx->offset[0]), float(fx->offset[1])};
   float blur_size[2] = {float(fx->blur[0]), float(fx->blur[1])};
-  winmat = blender::draw::View::default_get().winmat();
-  persmat = blender::draw::View::default_get().persmat();
+  winmat = View::default_get().winmat();
+  persmat = View::default_get().persmat();
   const float2 vp_size = iter->inst->draw_ctx->viewport_size_get();
   const float2 vp_size_inv = 1.0f / vp_size;
 
@@ -243,8 +241,8 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
 {
   float4x4 persmat, winmat;
   float ob_center[3], pixsize_uniform[2];
-  winmat = blender::draw::View::default_get().winmat();
-  persmat = blender::draw::View::default_get().persmat();
+  winmat = View::default_get().winmat();
+  persmat = View::default_get().persmat();
   const float2 vp_size = iter->inst->draw_ctx->viewport_size_get();
   const float2 vp_size_inv = 1.0f / vp_size;
   float pixel_size[2] = {float(fx->size[0]), float(fx->size[1])};
@@ -311,8 +309,8 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
   float wave_ofs[3], wave_dir[3], wave_phase, blur_dir[2], tmp[2];
   float offset[2] = {float(fx->offset[0]), float(fx->offset[1])};
   float blur_size[2] = {float(fx->blur[0]), float(fx->blur[1])};
-  winmat = blender::draw::View::default_get().winmat();
-  persmat = blender::draw::View::default_get().persmat();
+  winmat = View::default_get().winmat();
+  persmat = View::default_get().persmat();
   const float2 vp_size = iter->inst->draw_ctx->viewport_size_get();
   const float2 vp_size_inv = 1.0f / vp_size;
   const float ratio = vp_size_inv[1] / vp_size_inv[0];
@@ -339,11 +337,11 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
   /* UV transform matrix. (loc, rot, scale) Sent to shader as 2x3 matrix. */
   unit_m4(uv_mat.ptr());
   translate_m4(uv_mat.ptr(), rot_center[0], rot_center[1], 0.0f);
-  rescale_m4(uv_mat.ptr(), blender::float3{1.0f / fx->scale[0], 1.0f / fx->scale[1], 1.0f});
+  rescale_m4(uv_mat.ptr(), float3{1.0f / fx->scale[0], 1.0f / fx->scale[1], 1.0f});
   translate_m4(uv_mat.ptr(), -offset[0], -offset[1], 0.0f);
-  rescale_m4(uv_mat.ptr(), blender::float3{1.0f / ratio, 1.0f, 1.0f});
+  rescale_m4(uv_mat.ptr(), float3{1.0f / ratio, 1.0f, 1.0f});
   rotate_m4(uv_mat.ptr(), 'Z', fx->rotation);
-  rescale_m4(uv_mat.ptr(), blender::float3{ratio, 1.0f, 1.0f});
+  rescale_m4(uv_mat.ptr(), float3{ratio, 1.0f, 1.0f});
   translate_m4(uv_mat.ptr(), -rot_center[0], -rot_center[1], 0.0f);
 
   if (use_wave) {
@@ -480,8 +478,8 @@ static void gpencil_vfx_glow(GlowShaderFxData *fx, Object * /*ob*/, gpIterVfxDat
     auto &grp = gpencil_vfx_pass_create("Fx Glow V", state, iter, sh);
     grp.push_constant("offset", float2(-fx->blur[1] * s, fx->blur[1] * c));
     grp.push_constant("sampCount", max_ii(1, min_ii(fx->samples, fx->blur[0])));
-    grp.push_constant("threshold", blender::float4{-1.0f, -1.0f, -1.0f, -1.0});
-    grp.push_constant("glowColor", blender::float4{1.0f, 1.0f, 1.0f, fx->glow_color[3]});
+    grp.push_constant("threshold", float4{-1.0f, -1.0f, -1.0f, -1.0});
+    grp.push_constant("glowColor", float4{1.0f, 1.0f, 1.0f, fx->glow_color[3]});
     grp.push_constant("firstPass", false);
     grp.push_constant("blendMode", fx->blend_mode);
     grp.draw_procedural(GPU_PRIM_TRIS, 1, 3);
@@ -493,8 +491,8 @@ static void gpencil_vfx_wave(WaveShaderFxData *fx, Object *ob, gpIterVfxData *it
   float4x4 winmat, persmat;
   float wave_center[3];
   float wave_ofs[3], wave_dir[3], wave_phase;
-  winmat = blender::draw::View::default_get().winmat();
-  persmat = blender::draw::View::default_get().persmat();
+  winmat = View::default_get().winmat();
+  persmat = View::default_get().persmat();
   const float2 vp_size = iter->inst->draw_ctx->viewport_size_get();
   const float2 vp_size_inv = 1.0f / vp_size;
 
@@ -550,8 +548,8 @@ static void gpencil_vfx_swirl(SwirlShaderFxData *fx, Object * /*ob*/, gpIterVfxD
 
   float4x4 winmat, persmat;
   float swirl_center[3];
-  winmat = blender::draw::View::default_get().winmat();
-  persmat = blender::draw::View::default_get().persmat();
+  winmat = View::default_get().winmat();
+  persmat = View::default_get().persmat();
   const float2 vp_size = iter->inst->draw_ctx->viewport_size_get();
 
   copy_v3_v3(swirl_center, fx->object->object_to_world().location());

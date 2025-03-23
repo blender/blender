@@ -52,8 +52,6 @@
 
 namespace blender::draw::gpencil {
 
-using namespace blender::draw;
-
 void Instance::init()
 {
   this->draw_ctx = DRW_context_get();
@@ -140,7 +138,7 @@ void Instance::init()
   this->use_lighting = (v3d && v3d->shading.type > OB_SOLID) || this->is_render;
   this->use_lights = use_scene_lights;
 
-  gpencil_light_ambient_add(this->shadeless_light_pool, blender::float3{1.0f, 1.0f, 1.0f});
+  gpencil_light_ambient_add(this->shadeless_light_pool, float3{1.0f, 1.0f, 1.0f});
 
   World *world = draw_ctx->scene->world;
   if (world != nullptr && use_scene_world) {
@@ -152,7 +150,7 @@ void Instance::init()
     gpencil_light_ambient_add(this->global_light_pool, world_light);
   }
 
-  float4x4 viewmatinv = blender::draw::View::default_get().viewinv();
+  float4x4 viewmatinv = View::default_get().viewinv();
   copy_v3_v3(this->camera_z_axis, viewmatinv[2]);
   copy_v3_v3(this->camera_pos, viewmatinv[3]);
   this->camera_z_offset = dot_v3v3(viewmatinv[3], viewmatinv[2]);
@@ -245,7 +243,7 @@ void Instance::begin_sync()
   }
 
   {
-    blender::draw::PassSimple &pass = this->merge_depth_ps;
+    PassSimple &pass = this->merge_depth_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
     pass.shader_set(ShaderCache::get().depth_merge.get());
@@ -255,7 +253,7 @@ void Instance::begin_sync()
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
   {
-    blender::draw::PassSimple &pass = this->mask_invert_ps;
+    PassSimple &pass = this->mask_invert_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_LOGIC_INVERT);
     pass.shader_set(ShaderCache::get().mask_invert.get());
@@ -295,12 +293,11 @@ void Instance::begin_sync()
 
 #define DISABLE_BATCHING 0
 
-bool Instance::is_used_as_layer_mask_in_viewlayer(
-    const GreasePencil &grease_pencil,
-    const blender::bke::greasepencil::Layer &mask_layer,
-    const ViewLayer &view_layer)
+bool Instance::is_used_as_layer_mask_in_viewlayer(const GreasePencil &grease_pencil,
+                                                  const bke::greasepencil::Layer &mask_layer,
+                                                  const ViewLayer &view_layer)
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   for (const Layer *layer : grease_pencil.layers()) {
     if (layer->view_layer_name().is_empty() ||
         !STREQ(view_layer.name, layer->view_layer_name().c_str()))
@@ -322,7 +319,7 @@ bool Instance::is_used_as_layer_mask_in_viewlayer(
 }
 
 bool Instance::use_layer_in_render(const GreasePencil &grease_pencil,
-                                   const blender::bke::greasepencil::Layer &layer,
+                                   const bke::greasepencil::Layer &layer,
                                    const ViewLayer &view_layer,
                                    bool &r_is_used_as_mask)
 {
@@ -341,15 +338,13 @@ bool Instance::use_layer_in_render(const GreasePencil &grease_pencil,
   return true;
 }
 
-tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHandle res_handle)
+tObject *Instance::object_sync_do(Object *ob, ResourceHandle res_handle)
 {
-  using namespace blender;
-  using namespace blender::ed::greasepencil;
-  using namespace blender::bke::greasepencil;
+  using namespace ed::greasepencil;
+  using namespace bke::greasepencil;
   GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<GreasePencil>(*ob);
   const bool is_vertex_mode = (ob->mode & OB_MODE_VERTEX_PAINT) != 0;
-  const blender::Bounds<float3> bounds = grease_pencil.bounds_min_max_eval().value_or(
-      blender::Bounds(float3(0)));
+  const Bounds<float3> bounds = grease_pencil.bounds_min_max_eval().value_or(Bounds(float3(0)));
 
   const bool do_onion = !this->is_render && this->do_onion;
   const bool do_multi_frame = (((this->scene->toolsettings->gpencil_flags &
@@ -365,7 +360,7 @@ tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHandle res_
   GPUTexture *tex_fill = this->dummy_tx;
   GPUTexture *tex_stroke = this->dummy_tx;
 
-  blender::gpu::Batch *iter_geom = nullptr;
+  gpu::Batch *iter_geom = nullptr;
   PassSimple *last_pass = nullptr;
   int vfirst = 0;
   int vcount = 0;
@@ -382,7 +377,7 @@ tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHandle res_
   };
 
   const auto drawcall_add =
-      [&](PassSimple &pass, blender::gpu::Batch *draw_geom, const int v_first, const int v_count) {
+      [&](PassSimple &pass, gpu::Batch *draw_geom, const int v_first, const int v_count) {
 #if DISABLE_BATCHING
         pass.draw(iter_geom, 1, vcount, vfirst, res_handle);
         return;
@@ -536,14 +531,12 @@ tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHandle res_
         }
       }
 
-      blender::gpu::Batch *geom = draw::DRW_cache_grease_pencil_get(this->scene, ob);
+      gpu::Batch *geom = DRW_cache_grease_pencil_get(this->scene, ob);
       if (iter_geom != geom) {
         drawcall_flush(pass);
 
-        blender::gpu::VertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(
-            this->scene, ob);
-        blender::gpu::VertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(
-            this->scene, ob);
+        gpu::VertBuf *position_tx = DRW_cache_grease_pencil_position_buffer_get(this->scene, ob);
+        gpu::VertBuf *color_tx = DRW_cache_grease_pencil_color_buffer_get(this->scene, ob);
         pass.bind_texture("gp_pos_tx", position_tx);
         pass.bind_texture("gp_col_tx", color_tx);
       }
@@ -583,7 +576,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   }
 
   if (ob->data && (ob->type == OB_GREASE_PENCIL) && (ob->dt >= OB_SOLID)) {
-    blender::draw::ResourceHandle res_handle = manager.unique_handle(ob_ref);
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     tObject *tgp_ob = object_sync_do(ob, res_handle);
     gpencil_vfx_cache_populate(
@@ -683,9 +676,9 @@ void Instance::release_resources()
   this->smaa_weight_tx.release();
 }
 
-void Instance::draw_mask(blender::draw::View &view, tObject *ob, tLayer *layer)
+void Instance::draw_mask(View &view, tObject *ob, tLayer *layer)
 {
-  blender::draw::Manager *manager = DRW_manager_get();
+  Manager *manager = DRW_manager_get();
 
   const float clear_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   float clear_depth = ob->is_drawmode3d ? 1.0f : 0.0f;
@@ -732,9 +725,9 @@ void Instance::draw_mask(blender::draw::View &view, tObject *ob, tLayer *layer)
   GPU_debug_group_end();
 }
 
-void Instance::draw_object(blender::draw::View &view, tObject *ob)
+void Instance::draw_object(View &view, tObject *ob)
 {
-  blender::draw::Manager *manager = DRW_manager_get();
+  Manager *manager = DRW_manager_get();
 
   const float clear_cols[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}};
 
@@ -800,7 +793,7 @@ void Instance::fast_draw_start()
   }
 }
 
-void Instance::fast_draw_end(blender::draw::View &view)
+void Instance::fast_draw_end(View &view)
 {
   DefaultFramebufferList *dfbl = this->draw_ctx->viewport_framebuffer_list_get();
 
@@ -868,7 +861,7 @@ void Instance::draw(Manager &manager)
     GPU_framebuffer_multi_clear(this->gpencil_fb, clear_cols);
   }
 
-  blender::draw::View &view = blender::draw::View::default_get();
+  View &view = View::default_get();
 
   LISTBASE_FOREACH (tObject *, ob, &this->tobjects) {
     draw_object(view, ob);

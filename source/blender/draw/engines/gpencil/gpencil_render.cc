@@ -42,8 +42,8 @@ static void render_init(const DRWContext *draw_ctx,
 
   invert_m4_m4(viewmat, viewinv);
 
-  blender::draw::View::default_set(float4x4(viewmat), float4x4(winmat));
-  blender::draw::View &view = blender::draw::View::default_get();
+  View::default_set(float4x4(viewmat), float4x4(winmat));
+  View &view = View::default_get();
 
   /* Create depth texture & color texture from render result. */
   const char *viewname = RE_GetActiveRenderView(engine->re);
@@ -163,12 +163,12 @@ static void render_result_z(const DRWContext *draw_ctx,
                              GPU_DATA_FLOAT,
                              ro_buffer_data);
 
-  float4x4 winmat = blender::draw::View::default_get().winmat();
+  float4x4 winmat = View::default_get().winmat();
 
   int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
   /* Convert GPU depth [0..1] to view Z [near..far] */
-  if (blender::draw::View::default_get().is_persp()) {
+  if (View::default_get().is_persp()) {
     for (int i = 0; i < pix_num; i++) {
       if (ro_buffer_data[i] == 1.0f) {
         ro_buffer_data[i] = 1e10f; /* Background */
@@ -181,8 +181,8 @@ static void render_result_z(const DRWContext *draw_ctx,
   }
   else {
     /* Keep in mind, near and far distance are negatives. */
-    float near = blender::draw::View::default_get().near_clip();
-    float far = blender::draw::View::default_get().far_clip();
+    float near = View::default_get().near_clip();
+    float far = View::default_get().far_clip();
     float range = fabsf(far - near);
 
     for (int i = 0; i < pix_num; i++) {
@@ -222,7 +222,7 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
   const DRWContext *draw_ctx = DRW_context_get();
   Depsgraph *depsgraph = draw_ctx->depsgraph;
 
-  blender::draw::gpencil::Instance inst;
+  gpencil::Instance inst;
 
   Manager &manager = *DRW_manager_get();
 
@@ -235,16 +235,15 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
 
   /* Loop over all objects and create draw structure. */
   inst.begin_sync();
-  DRW_render_object_iter(
-      engine, depsgraph, [&](blender::draw::ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
-        if (!ELEM(ob_ref.object->type, OB_GREASE_PENCIL, OB_LAMP)) {
-          return;
-        }
-        if (!(DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF)) {
-          return;
-        }
-        inst.object_sync(ob_ref, manager);
-      });
+  DRW_render_object_iter(engine, depsgraph, [&](ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
+    if (!ELEM(ob_ref.object->type, OB_GREASE_PENCIL, OB_LAMP)) {
+      return;
+    }
+    if (!(DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF)) {
+      return;
+    }
+    inst.object_sync(ob_ref, manager);
+  });
   inst.end_sync();
 
   manager.end_sync();

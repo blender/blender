@@ -172,8 +172,8 @@ struct Instance : public DrawEngine {
 
   /* NOTE: These do not preserve the PassSimple memory across frames.
    * If that becomes a bottleneck, these containers can be improved. */
-  using tVfx_Pool = blender::draw::detail::SubPassVector<tVfx>;
-  using tLayer_Pool = blender::draw::detail::SubPassVector<tLayer>;
+  using tVfx_Pool = draw::detail::SubPassVector<tVfx>;
+  using tLayer_Pool = draw::detail::SubPassVector<tLayer>;
 
   /* tObject */
   struct BLI_memblock *gp_object_pool = BLI_memblock_create(sizeof(tObject));
@@ -244,8 +244,8 @@ struct Instance : public DrawEngine {
     tObject *first, *last;
   } sbuffer_tobjects;
   /* Batches containing the temp stroke. */
-  blender::gpu::Batch *stroke_batch;
-  blender::gpu::Batch *fill_batch;
+  gpu::Batch *stroke_batch;
+  gpu::Batch *fill_batch;
   bool do_fast_drawing;
   bool snapshot_buffer_dirty;
 
@@ -300,7 +300,7 @@ struct Instance : public DrawEngine {
   void acquire_resources();
   void release_resources();
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "Grease Pencil";
   }
@@ -308,30 +308,30 @@ struct Instance : public DrawEngine {
   void init() final;
 
   void begin_sync() final;
-  void object_sync(blender::draw::ObjectRef &ob_ref, blender::draw::Manager &manager) final;
+  void object_sync(ObjectRef &ob_ref, Manager &manager) final;
   void end_sync() final;
 
-  void draw(blender::draw::Manager &manager) final;
+  void draw(Manager &manager) final;
 
  private:
-  tObject *object_sync_do(Object *ob, blender::draw::ResourceHandle res_handle);
+  tObject *object_sync_do(Object *ob, ResourceHandle res_handle);
 
   /* Check if the passed in layer is used by any other layer as a mask (in the viewlayer). */
   bool is_used_as_layer_mask_in_viewlayer(const GreasePencil &grease_pencil,
-                                          const blender::bke::greasepencil::Layer &mask_layer,
+                                          const bke::greasepencil::Layer &mask_layer,
                                           const ViewLayer &view_layer);
 
   /* Returns true if this layer should be rendered (as part of the viewlayer). */
   bool use_layer_in_render(const GreasePencil &grease_pencil,
-                           const blender::bke::greasepencil::Layer &layer,
+                           const bke::greasepencil::Layer &layer,
                            const ViewLayer &view_layer,
                            bool &r_is_used_as_mask);
 
-  void draw_mask(blender::draw::View &view, tObject *ob, tLayer *layer);
-  void draw_object(blender::draw::View &view, tObject *ob);
+  void draw_mask(View &view, tObject *ob, tLayer *layer);
+  void draw_object(View &view, tObject *ob);
 
   void fast_draw_start();
-  void fast_draw_end(blender::draw::View &view);
+  void fast_draw_end(View &view);
 
   void antialiasing_init();
   void antialiasing_draw(Manager &manager);
@@ -362,14 +362,14 @@ struct GpencilBatchCache *gpencil_batch_cache_get(struct Object *ob, int cfra);
 tObject *gpencil_object_cache_add(Instance *inst,
                                   Object *ob,
                                   bool is_stroke_order_3d,
-                                  blender::Bounds<float3> bounds);
+                                  Bounds<float3> bounds);
 void gpencil_object_cache_sort(Instance *inst);
 
 tLayer *grease_pencil_layer_cache_get(tObject *tgp_ob, int layer_id, bool skip_onion);
 
 tLayer *grease_pencil_layer_cache_add(Instance *inst,
                                       const Object *ob,
-                                      const blender::bke::greasepencil::Layer &layer,
+                                      const bke::greasepencil::Layer &layer,
                                       int onion_id,
                                       bool is_used_as_mask,
                                       tObject *tgp_ob);

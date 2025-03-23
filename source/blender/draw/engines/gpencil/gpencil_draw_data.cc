@@ -65,7 +65,7 @@ static void gpencil_uv_transform_get(const float ofs[2],
   /* Offset to center. */
   translate_m4(mat, 0.5f, 0.5f, 0.0f);
   /* Reversed order. */
-  rescale_m4(mat, blender::float3{1.0f / scale[0], 1.0f / scale[1], 0.0});
+  rescale_m4(mat, float3{1.0f / scale[0], 1.0f / scale[1], 0.0});
   rotate_m4(mat, 'Z', -rotation);
   translate_m4(mat, ofs[0], ofs[1], 0.0f);
   /* Convert to 3x2 */
@@ -110,7 +110,7 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(
       gp_style->fill_style = GP_MATERIAL_FILL_STYLE_SOLID;
       break;
     case V3D_SHADING_TEXTURE_COLOR:
-      gp_style_tmp = blender::dna::shallow_copy(*gp_style);
+      gp_style_tmp = dna::shallow_copy(*gp_style);
       gp_style = &gp_style_tmp;
       if ((gp_style->stroke_style == GP_MATERIAL_STROKE_STYLE_TEXTURE) && (gp_style->sima)) {
         copy_v4_fl(gp_style->stroke_rgba, 1.0f);

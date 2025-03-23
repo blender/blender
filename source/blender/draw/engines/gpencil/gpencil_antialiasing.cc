@@ -23,7 +23,7 @@ void Instance::antialiasing_init()
 
   if (this->simplify_antialias) {
     /* No AA fallback. */
-    blender::draw::PassSimple &pass = this->smaa_resolve_ps;
+    PassSimple &pass = this->smaa_resolve_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     pass.shader_set(ShaderCache::get().antialiasing[2].get());
@@ -60,7 +60,7 @@ void Instance::antialiasing_init()
 
   {
     /* Stage 1: Edge detection. */
-    blender::draw::PassSimple &pass = this->smaa_edge_ps;
+    PassSimple &pass = this->smaa_edge_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR);
     pass.shader_set(ShaderCache::get().antialiasing[0].get());
@@ -73,7 +73,7 @@ void Instance::antialiasing_init()
   }
   {
     /* Stage 2: Blend Weight/Coord. */
-    blender::draw::PassSimple &pass = this->smaa_weight_ps;
+    PassSimple &pass = this->smaa_weight_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR);
     pass.shader_set(ShaderCache::get().antialiasing[1].get());
@@ -86,7 +86,7 @@ void Instance::antialiasing_init()
   }
   {
     /* Stage 3: Resolve. */
-    blender::draw::PassSimple &pass = this->smaa_resolve_ps;
+    PassSimple &pass = this->smaa_resolve_ps;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
     pass.shader_set(ShaderCache::get().antialiasing[2].get());

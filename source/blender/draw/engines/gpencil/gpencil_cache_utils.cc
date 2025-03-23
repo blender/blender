@@ -42,9 +42,8 @@ namespace blender::draw::gpencil {
 tObject *gpencil_object_cache_add(Instance *inst,
                                   Object *ob,
                                   const bool is_stroke_order_3d,
-                                  const blender::Bounds<float3> bounds)
+                                  const Bounds<float3> bounds)
 {
-  using namespace blender;
   tObject *tgp_ob = static_cast<tObject *>(BLI_memblock_alloc(inst->gp_object_pool));
 
   tgp_ob->layers.first = tgp_ob->layers.last = nullptr;
@@ -81,7 +80,7 @@ tObject *gpencil_object_cache_add(Instance *inst,
   rescale_m4(mat, size);
   /* BBox space to World. */
   mul_m4_m4m4(mat, ob->object_to_world().ptr(), mat);
-  if (blender::draw::View::default_get().is_persp()) {
+  if (View::default_get().is_persp()) {
     /* BBox center to camera vector. */
     sub_v3_v3v3(tgp_ob->plane_normal, inst->camera_pos, mat[3]);
   }
@@ -108,7 +107,7 @@ tObject *gpencil_object_cache_add(Instance *inst,
   mul_mat3_m4_v3(ob->object_to_world().ptr(), size);
   float radius = len_v3(size);
   mul_m4_v3(ob->object_to_world().ptr(), center);
-  rescale_m4(tgp_ob->plane_mat, blender::float3{radius, radius, radius});
+  rescale_m4(tgp_ob->plane_mat, float3{radius, radius, radius});
   copy_v3_v3(tgp_ob->plane_mat[3], center);
 
   /* Add to corresponding list if is in front. */
@@ -188,7 +187,7 @@ void gpencil_object_cache_sort(Instance *inst)
 static float grease_pencil_layer_final_opacity_get(const Instance *inst,
                                                    const Object *ob,
                                                    const GreasePencil &grease_pencil,
-                                                   const blender::bke::greasepencil::Layer &layer)
+                                                   const bke::greasepencil::Layer &layer)
 {
   const bool is_obact = ((inst->obact) && (inst->obact == ob));
   const bool is_fade = (inst->fade_layer_opacity > -1.0f) && (is_obact) &&
@@ -258,7 +257,7 @@ static float4 grease_pencil_layer_final_tint_and_alpha_get(const Instance *inst,
 
 /* Random color by layer. */
 static void grease_pencil_layer_random_color_get(const Object *ob,
-                                                 const blender::bke::greasepencil::Layer &layer,
+                                                 const bke::greasepencil::Layer &layer,
                                                  float r_color[3])
 {
   const float hsv_saturation = 0.7f;
@@ -287,13 +286,13 @@ tLayer *grease_pencil_layer_cache_get(tObject *tgp_ob, int layer_id, const bool 
 
 tLayer *grease_pencil_layer_cache_add(Instance *inst,
                                       const Object *ob,
-                                      const blender::bke::greasepencil::Layer &layer,
+                                      const bke::greasepencil::Layer &layer,
                                       const int onion_id,
                                       const bool is_used_as_mask,
                                       tObject *tgp_ob)
 
 {
-  using namespace blender::bke::greasepencil;
+  using namespace bke::greasepencil;
   const GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<GreasePencil>(*ob);
 
   const bool is_in_front = (ob->dtx & OB_DRAW_IN_FRONT);
