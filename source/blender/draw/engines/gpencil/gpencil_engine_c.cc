@@ -348,7 +348,7 @@ bool Instance::use_layer_in_render(const GreasePencil &grease_pencil,
   return true;
 }
 
-GPENCIL_tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHandle res_handle)
+tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHandle res_handle)
 {
   using namespace blender;
   using namespace blender::ed::greasepencil;
@@ -364,10 +364,10 @@ GPENCIL_tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHan
                                (ob->mode != OB_MODE_OBJECT));
   const bool use_stroke_order_3d = this->force_stroke_order_3d ||
                                    ((grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0);
-  GPENCIL_tObject *tgp_ob = gpencil_object_cache_add(this, ob, use_stroke_order_3d, bounds);
+  tObject *tgp_ob = gpencil_object_cache_add(this, ob, use_stroke_order_3d, bounds);
 
   int mat_ofs = 0;
-  GPENCIL_MaterialPool *matpool = gpencil_material_pool_create(this, ob, &mat_ofs, is_vertex_mode);
+  MaterialPool *matpool = gpencil_material_pool_create(this, ob, &mat_ofs, is_vertex_mode);
 
   GPUTexture *tex_fill = this->dummy_tx;
   GPUTexture *tex_stroke = this->dummy_tx;
@@ -457,7 +457,7 @@ GPENCIL_tObject *Instance::object_sync_do(Object *ob, blender::draw::ResourceHan
       drawcall_flush(*last_pass);
     }
 
-    GPENCIL_tLayer *tgp_layer = grease_pencil_layer_cache_add(
+    tLayer *tgp_layer = grease_pencil_layer_cache_add(
         this, ob, layer, info.onion_id, is_layer_used_as_mask, tgp_ob);
     PassSimple &pass = *tgp_layer->geom_ps;
     last_pass = &pass;
@@ -592,7 +592,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   if (ob->data && (ob->type == OB_GREASE_PENCIL) && (ob->dt >= OB_SOLID)) {
     blender::draw::ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
-    GPENCIL_tObject *tgp_ob = object_sync_do(ob, res_handle);
+    tObject *tgp_ob = object_sync_do(ob, res_handle);
     gpencil_vfx_cache_populate(
         this,
         ob,
@@ -610,14 +610,14 @@ void Instance::end_sync()
   /* Upload UBO data. */
   BLI_memblock_iter iter;
   BLI_memblock_iternew(this->gp_material_pool, &iter);
-  GPENCIL_MaterialPool *pool;
-  while ((pool = (GPENCIL_MaterialPool *)BLI_memblock_iterstep(&iter))) {
+  MaterialPool *pool;
+  while ((pool = (MaterialPool *)BLI_memblock_iterstep(&iter))) {
     GPU_uniformbuf_update(pool->ubo, pool->mat_data);
   }
 
   BLI_memblock_iternew(this->gp_light_pool, &iter);
-  GPENCIL_LightPool *lpool;
-  while ((lpool = (GPENCIL_LightPool *)BLI_memblock_iterstep(&iter))) {
+  LightPool *lpool;
+  while ((lpool = (LightPool *)BLI_memblock_iterstep(&iter))) {
     GPU_uniformbuf_update(lpool->ubo, lpool->light_data);
   }
 }
@@ -690,7 +690,7 @@ void Instance::release_resources()
   this->smaa_weight_tx.release();
 }
 
-void Instance::draw_mask(blender::draw::View &view, GPENCIL_tObject *ob, GPENCIL_tLayer *layer)
+void Instance::draw_mask(blender::draw::View &view, tObject *ob, tLayer *layer)
 {
   blender::draw::Manager *manager = DRW_manager_get();
 
@@ -722,7 +722,7 @@ void Instance::draw_mask(blender::draw::View &view, GPENCIL_tObject *ob, GPENCIL
       GPU_framebuffer_clear_color_depth(this->mask_fb, clear_col, clear_depth);
     }
 
-    GPENCIL_tLayer *mask_layer = grease_pencil_layer_cache_get(ob, i, true);
+    tLayer *mask_layer = grease_pencil_layer_cache_get(ob, i, true);
     /* When filtering by view-layer, the mask could be null and must be ignored. */
     if (mask_layer == nullptr) {
       continue;
@@ -739,7 +739,7 @@ void Instance::draw_mask(blender::draw::View &view, GPENCIL_tObject *ob, GPENCIL
   GPU_debug_group_end();
 }
 
-void Instance::draw_object(blender::draw::View &view, GPENCIL_tObject *ob)
+void Instance::draw_object(blender::draw::View &view, tObject *ob)
 {
   blender::draw::Manager *manager = DRW_manager_get();
 
@@ -756,7 +756,7 @@ void Instance::draw_object(blender::draw::View &view, GPENCIL_tObject *ob)
     GPU_framebuffer_multi_clear(fb_object, clear_cols);
   }
 
-  LISTBASE_FOREACH (GPENCIL_tLayer *, layer, &ob->layers) {
+  LISTBASE_FOREACH (tLayer *, layer, &ob->layers) {
     if (layer->mask_bits) {
       draw_mask(view, ob, layer);
     }
@@ -777,7 +777,7 @@ void Instance::draw_object(blender::draw::View &view, GPENCIL_tObject *ob)
     }
   }
 
-  LISTBASE_FOREACH (GPENCIL_tVfx *, vfx, &ob->vfx) {
+  LISTBASE_FOREACH (tVfx *, vfx, &ob->vfx) {
     GPU_framebuffer_bind(*(vfx->target_fb));
     manager->submit(*vfx->vfx_ps);
   }
@@ -819,7 +819,7 @@ void Instance::fast_draw_end(blender::draw::View &view)
     this->snapshot_buffer_dirty = false;
   }
   /* Draw the sbuffer stroke(s). */
-  LISTBASE_FOREACH (GPENCIL_tObject *, ob, &this->sbuffer_tobjects) {
+  LISTBASE_FOREACH (tObject *, ob, &this->sbuffer_tobjects) {
     draw_object(view, ob);
   }
 }
@@ -877,7 +877,7 @@ void Instance::draw(Manager & /*manager*/)
 
   blender::draw::View &view = blender::draw::View::default_get();
 
-  LISTBASE_FOREACH (GPENCIL_tObject *, ob, &this->tobjects) {
+  LISTBASE_FOREACH (tObject *, ob, &this->tobjects) {
     draw_object(view, ob);
   }
 

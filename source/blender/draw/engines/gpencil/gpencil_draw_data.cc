@@ -30,10 +30,9 @@ namespace blender::draw::gpencil {
 /** \name Material
  * \{ */
 
-static GPENCIL_MaterialPool *gpencil_material_pool_add(Instance *inst)
+static MaterialPool *gpencil_material_pool_add(Instance *inst)
 {
-  GPENCIL_MaterialPool *matpool = static_cast<GPENCIL_MaterialPool *>(
-      BLI_memblock_alloc(inst->gp_material_pool));
+  MaterialPool *matpool = static_cast<MaterialPool *>(BLI_memblock_alloc(inst->gp_material_pool));
   matpool->next = nullptr;
   matpool->used_count = 0;
   if (matpool->ubo == nullptr) {
@@ -161,12 +160,12 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(
   return gp_style;
 }
 
-GPENCIL_MaterialPool *gpencil_material_pool_create(Instance *inst,
-                                                   Object *ob,
-                                                   int *ofs,
-                                                   const bool is_vertex_mode)
+MaterialPool *gpencil_material_pool_create(Instance *inst,
+                                           Object *ob,
+                                           int *ofs,
+                                           const bool is_vertex_mode)
 {
-  GPENCIL_MaterialPool *matpool = inst->last_material_pool;
+  MaterialPool *matpool = inst->last_material_pool;
 
   int mat_len = BKE_object_material_used_with_fallback_eval(*ob);
 
@@ -188,7 +187,7 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(Instance *inst,
       (inst->v3d != nullptr) ? eV3DShadingLightingMode(inst->v3d->shading.light) :
                                V3D_LIGHTING_STUDIO);
 
-  GPENCIL_MaterialPool *pool = matpool;
+  MaterialPool *pool = matpool;
   for (int i = 0; i < mat_len; i++) {
     if ((i > 0) && (pool->used_count == GPENCIL_MATERIAL_BUFFER_LEN)) {
       pool->next = gpencil_material_pool_add(inst);
@@ -301,13 +300,13 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(Instance *inst,
   return matpool;
 }
 
-void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
+void gpencil_material_resources_get(MaterialPool *first_pool,
                                     int mat_id,
                                     GPUTexture **r_tex_stroke,
                                     GPUTexture **r_tex_fill,
                                     GPUUniformBuf **r_ubo_mat)
 {
-  GPENCIL_MaterialPool *matpool = first_pool;
+  MaterialPool *matpool = first_pool;
   BLI_assert(mat_id >= 0);
   int pool_id = mat_id / GPENCIL_MATERIAL_BUFFER_LEN;
   for (int i = 0; i < pool_id; i++) {
@@ -329,10 +328,9 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
 /** \name Lights
  * \{ */
 
-GPENCIL_LightPool *gpencil_light_pool_add(Instance *inst)
+LightPool *gpencil_light_pool_add(Instance *inst)
 {
-  GPENCIL_LightPool *lightpool = static_cast<GPENCIL_LightPool *>(
-      BLI_memblock_alloc(inst->gp_light_pool));
+  LightPool *lightpool = static_cast<LightPool *>(BLI_memblock_alloc(inst->gp_light_pool));
   lightpool->light_used = 0;
   /* Tag light list end. */
   lightpool->light_data[0].color[0] = -1.0;
@@ -343,7 +341,7 @@ GPENCIL_LightPool *gpencil_light_pool_add(Instance *inst)
   return lightpool;
 }
 
-void gpencil_light_ambient_add(GPENCIL_LightPool *lightpool, const float color[3])
+void gpencil_light_ambient_add(LightPool *lightpool, const float color[3])
 {
   if (lightpool->light_used >= GPENCIL_LIGHT_BUFFER_LEN) {
     return;
@@ -372,7 +370,7 @@ static float light_power_get(const Light *la)
   return 1.0f / M_PI;
 }
 
-void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)
+void gpencil_light_pool_populate(LightPool *lightpool, Object *ob)
 {
   Light &light = DRW_object_get_data_for_drawing<Light>(*ob);
 
@@ -416,9 +414,9 @@ void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)
   }
 }
 
-GPENCIL_LightPool *gpencil_light_pool_create(Instance *inst, Object * /*ob*/)
+LightPool *gpencil_light_pool_create(Instance *inst, Object * /*ob*/)
 {
-  GPENCIL_LightPool *lightpool = inst->last_light_pool;
+  LightPool *lightpool = inst->last_light_pool;
 
   if (lightpool == nullptr) {
     lightpool = gpencil_light_pool_add(inst);

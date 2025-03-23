@@ -48,7 +48,7 @@ static bool effect_is_active(ShaderFxData *fx, bool is_edit, bool is_viewport)
 
 struct gpIterVfxData {
   Instance *inst;
-  GPENCIL_tObject *tgp_ob;
+  tObject *tgp_ob;
   GPUFrameBuffer **target_fb;
   GPUFrameBuffer **source_fb;
   GPUTexture **target_color_tx;
@@ -67,7 +67,7 @@ static PassSimple &gpencil_vfx_pass_create(
   UNUSED_VARS(name);
 
   int64_t id = iter->inst->gp_vfx_pool->append_and_get_index({});
-  GPENCIL_tVfx *tgp_vfx = &(*iter->inst->gp_vfx_pool)[id];
+  tVfx *tgp_vfx = &(*iter->inst->gp_vfx_pool)[id];
   tgp_vfx->target_fb = iter->target_fb;
 
   PassSimple &pass = *tgp_vfx->vfx_ps;
@@ -588,7 +588,7 @@ static void gpencil_vfx_swirl(SwirlShaderFxData *fx, Object * /*ob*/, gpIterVfxD
 
 void gpencil_vfx_cache_populate(Instance *inst,
                                 Object *ob,
-                                GPENCIL_tObject *tgp_ob,
+                                tObject *tgp_ob,
                                 const bool is_edit_mode)
 {
   /* These may not be allocated yet, use address of future pointer. */
