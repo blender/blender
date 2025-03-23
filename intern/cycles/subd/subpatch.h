@@ -75,8 +75,13 @@ class SubPatch {
  public:
   /* Patch this is a subpatch of. */
   const Patch *patch = nullptr;
+  /* Face and corner. */
+  int face_index = 0;
+  int corner = 0;
   /* Vertex indices for inner grid start at this index. */
   int inner_grid_vert_offset = 0;
+  /* Triangle indices. */
+  int triangles_offset = 0;
 
   /* Edge of patch. */
   struct Edge {
@@ -139,7 +144,10 @@ class SubPatch {
     };
   };
 
-  explicit SubPatch(const Patch *patch = nullptr) : patch(patch) {}
+  explicit SubPatch(const Patch *patch, const int face_index, const int corner = 0)
+      : patch(patch), face_index(face_index), corner(corner)
+  {
+  }
 
   int calc_num_inner_verts() const
   {
@@ -154,10 +162,10 @@ class SubPatch {
     const int Mv = max(edge_v0.edge->T, edge_v1.edge->T);
 
     if (Mu == 1) {
-      return Mv * 2;
+      return edge_v0.edge->T + edge_v1.edge->T;
     }
     if (Mv == 1) {
-      return Mu * 2;
+      return edge_u0.edge->T + edge_u1.edge->T;
     }
 
     const int inner_triangles = (Mu - 2) * (Mv - 2) * 2;
@@ -207,7 +215,7 @@ class SubPatch {
     return -1;
   }
 
-  float2 map_uv(float2 uv)
+  float2 map_uv(float2 uv) const
   {
     /* Map UV from subpatch to patch parametric coordinates. */
     const float2 d0 = interp(uv00, uv01, uv.y);

@@ -77,6 +77,7 @@ void DiagSplit::alloc_subpatch(SubPatch &&sub)
   assert(sub.edge_v0.edge->T >= 1);
 
   sub.inner_grid_vert_offset = alloc_verts(sub.calc_num_inner_verts());
+  sub.triangles_offset = num_triangles;
   num_triangles += sub.calc_num_triangles();
 
   subpatches.push_back(std::move(sub));
@@ -449,7 +450,7 @@ void DiagSplit::split(SubPatch &&sub, const int depth)
   split(std::move(sub_b), depth + 1);
 }
 
-void DiagSplit::split_quad(const Mesh::SubdFace &face, const Patch *patch)
+void DiagSplit::split_quad(const Mesh::SubdFace &face, const int face_index, const Patch *patch)
 {
   /*
    *                edge_u1
@@ -467,7 +468,7 @@ void DiagSplit::split_quad(const Mesh::SubdFace &face, const Patch *patch)
   const int v11 = subd_face_corners[face.start_corner + 2];
   const int v01 = subd_face_corners[face.start_corner + 3];
 
-  SubPatch subpatch(patch);
+  SubPatch subpatch(patch, face_index);
   alloc_edge(&subpatch.edge_u0, v00, v10, true, true);
   alloc_edge(&subpatch.edge_v1, v10, v11, true, true);
   alloc_edge(&subpatch.edge_u1, v11, v01, true, true);
@@ -483,6 +484,7 @@ void DiagSplit::split_quad(const Mesh::SubdFace &face, const Patch *patch)
 }
 
 void DiagSplit::split_ngon(const Mesh::SubdFace &face,
+                           const int face_index,
                            const Patch *patches,
                            const size_t patches_byte_stride)
 {
@@ -523,7 +525,7 @@ void DiagSplit::split_ngon(const Mesh::SubdFace &face,
     const int v10 = edge_u0.mid_vert_index();
     const int v01 = edge_v0.mid_vert_index();
 
-    SubPatch subpatch(patch);
+    SubPatch subpatch(patch, face_index, corner);
     alloc_edge(&subpatch.edge_u0, v00, v10, false, false);
     alloc_edge(&subpatch.edge_v1, v10, v11, true, false);
     alloc_edge(&subpatch.edge_u1, v11, v01, true, corner == 0);
@@ -541,7 +543,11 @@ void DiagSplit::split_ngon(const Mesh::SubdFace &face,
 
 void DiagSplit::split_patches(const Patch *patches, const size_t patches_byte_stride)
 {
-  /* Keep base mesh vertices, create new triangles. */
+  // TODO: reuse edge factor vertex position computations
+  // TODO: support not splitting n-gons if not needed
+  // TODO: multithreading
+
+  /* Keep base mesh vertices, create new triangels. */
   num_verts = params.mesh->get_num_subd_base_verts();
   num_triangles = 0;
 
@@ -555,31 +561,13 @@ void DiagSplit::split_patches(const Patch *patches, const size_t patches_byte_st
 
     if (face.is_quad()) {
       patch_index++;
-      split_quad(face, patch);
+      split_quad(face, f, patch);
     }
     else {
       patch_index += face.num_corners;
-      split_ngon(face, patch, patches_byte_stride);
+      split_ngon(face, f, patch, patches_byte_stride);
     }
   }
-
-  // TODO: reuse edge factor vertex position computations
-  // TODO: avoid multiple write for linear vert attributes
-  // TODO: avoid multiple write for smooth vert attributes
-  // TODO: support not splitting n-gons if not needed
-  // TODO: multithreading
-
-  /* Dice all patches. */
-  QuadDice dice(params);
-  dice.reserve(num_verts, num_triangles);
-
-  for (SubPatch &sub : subpatches) {
-    dice.dice(sub);
-  }
-
-  /* Cleanup */
-  subpatches.clear();
-  edges.clear();
 }
 
 CCL_NAMESPACE_END

@@ -19,6 +19,7 @@ CCL_NAMESPACE_BEGIN
 class Camera;
 class Mesh;
 class Patch;
+class DiagSplit;
 
 struct SubdParams {
   Mesh *mesh = nullptr;
@@ -34,23 +35,27 @@ struct SubdParams {
   SubdParams(Mesh *mesh_, bool ptex_ = false) : mesh(mesh_), ptex(ptex_) {}
 };
 
-/* EdgeDice Base */
-
 class EdgeDice {
  public:
   SubdParams params;
+  int *mesh_triangles = nullptr;
+  int *mesh_shader = nullptr;
+  bool *mesh_smooth = nullptr;
   float3 *mesh_P = nullptr;
   float3 *mesh_N = nullptr;
   float *mesh_ptex_face_id = nullptr;
   float2 *mesh_ptex_uv = nullptr;
 
-  explicit EdgeDice(const SubdParams &params);
+  explicit EdgeDice(const SubdParams &params, const int num_verts, const int num_triangles);
 
-  void reserve(const int num_verts, const int num_triangles);
+  void dice(const DiagSplit &split);
 
  protected:
-  void set_vert(const Patch *patch, const int index, const float2 uv);
-  void add_triangle(const Patch *patch,
+  void dice(const SubPatch &sub);
+
+  void set_vertex(const SubPatch &sub, const int index, const float2 uv);
+  void add_triangle(const SubPatch &sub,
+                    const int triangle_index,
                     const int v0,
                     const int v1,
                     const int v2,
@@ -58,29 +63,15 @@ class EdgeDice {
                     const float2 uv1,
                     const float2 uv2);
 
-  void stitch_triangles_to_inner_grid(SubPatch &sub, const int edge, const int Mu, const int Mv);
-  void stitch_triangles_across(SubPatch &sub, const int left_edge, const int right_edge);
-};
+  void add_grid_triangles_and_stitch(const SubPatch &sub, const int Mu, const int Mv);
+  void add_triangle_strip(const SubPatch &sub, const int left_edge, const int right_edge);
 
-/* Quad EdgeDice */
+  float3 eval_projected(const SubPatch &sub, const float2 uv);
 
-class QuadDice : public EdgeDice {
- public:
-  explicit QuadDice(const SubdParams &params);
-
-  void dice(SubPatch &sub);
-
- protected:
-  float3 eval_projected(SubPatch &sub, const float2 uv);
-
-  void set_vert(SubPatch &sub, const int index, const float2 uv);
-
-  void add_grid(SubPatch &sub, const int Mu, const int Mv, const int offset);
-
-  void set_side(SubPatch &sub, const int edge);
+  void set_sides(const SubPatch &sub);
 
   float quad_area(const float3 &a, const float3 &b, const float3 &c, const float3 &d);
-  float scale_factor(SubPatch &sub, const int Mu, const int Mv);
+  float scale_factor(const SubPatch &sub, const int Mu, const int Mv);
 };
 
 CCL_NAMESPACE_END

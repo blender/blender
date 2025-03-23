@@ -22,6 +22,7 @@ CCL_NAMESPACE_BEGIN
 
 class Mesh;
 class Patch;
+class SubdAttributeInterpolation;
 
 class DiagSplit {
  private:
@@ -62,8 +63,9 @@ class DiagSplit {
                     float2 Pend,
                     const int depth);
   void split(SubPatch &&sub, const int depth = 0);
-  void split_quad(const Mesh::SubdFace &face, const Patch *patch);
+  void split_quad(const Mesh::SubdFace &face, const int face_index, const Patch *patch);
   void split_ngon(const Mesh::SubdFace &face,
+                  const int face_index,
                   const Patch *patches,
                   const size_t patches_byte_stride);
 
@@ -71,6 +73,26 @@ class DiagSplit {
   explicit DiagSplit(const SubdParams &params);
 
   void split_patches(const Patch *patches, const size_t patches_byte_stride);
+
+  size_t get_num_subpatches() const
+  {
+    return subpatches.size();
+  }
+
+  const SubPatch &get_subpatch(const size_t i) const
+  {
+    return subpatches[i];
+  }
+
+  int get_num_verts() const
+  {
+    return num_verts;
+  }
+
+  int get_num_triangles() const
+  {
+    return num_triangles;
+  }
 };
 
 CCL_NAMESPACE_END

@@ -15,7 +15,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-void Mesh::tessellate(DiagSplit *split)
+void Mesh::tessellate(SubdParams &params)
 {
   /* reset the number of subdivision vertices, in case the Mesh was not cleared
    * between calls or data updates */
@@ -79,7 +79,12 @@ void Mesh::tessellate(DiagSplit *split)
     }
 
     /* Split patches. */
-    split->split_patches(osd_patches.data(), sizeof(OsdPatch));
+    DiagSplit split(params);
+    split.split_patches(osd_patches.data(), sizeof(OsdPatch));
+
+    /* Dice patches. */
+    EdgeDice dice(params, split.get_num_verts(), split.get_num_triangles());
+    dice.dice(split);
   }
   else
 #endif
@@ -138,7 +143,12 @@ void Mesh::tessellate(DiagSplit *split)
     }
 
     /* Split patches. */
-    split->split_patches(linear_patches.data(), sizeof(LinearQuadPatch));
+    DiagSplit split(params);
+    split.split_patches(linear_patches.data(), sizeof(LinearQuadPatch));
+
+    /* Dice patches. */
+    EdgeDice dice(params, split.get_num_verts(), split.get_num_triangles());
+    dice.dice(split);
   }
 
   if (get_num_subd_faces()) {

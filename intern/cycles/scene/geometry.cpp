@@ -792,8 +792,7 @@ void GeometryManager::device_update(Device *device,
         subd_params.objecttoworld = mesh->get_subd_objecttoworld();
         subd_params.camera = dicing_camera;
 
-        DiagSplit dsplit(subd_params);
-        mesh->tessellate(&dsplit);
+        mesh->tessellate(subd_params);
 
         i++;
 

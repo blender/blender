@@ -225,7 +225,7 @@ class Mesh : public Geometry {
   bool has_motion_blur() const override;
   PrimitiveType primitive_type() const override;
 
-  void tessellate(DiagSplit *split);
+  void tessellate(SubdParams &params);
 
   SubdFace get_subd_face(const size_t index) const;
   size_t get_num_subd_faces() const
