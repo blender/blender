@@ -29,15 +29,14 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
 
   if (!RNA_boolean_get(ptr, "from_instancer")) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
+    Object *object = static_cast<Object *>(obptr.data);
 
-    if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
-      PointerRNA eval_obptr;
-
+    if (object && object->type == OB_MESH) {
       Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
       if (depsgraph) {
-        DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
-        PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
+        Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+        PointerRNA dataptr = RNA_id_pointer_create(static_cast<ID *>(object_eval->data));
         uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
         return;
       }

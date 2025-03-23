@@ -25,13 +25,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
-  if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
-    PointerRNA eval_obptr;
+  Object *object = static_cast<Object *>(obptr.data);
 
+  if (object && object->type == OB_MESH) {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+
     if (depsgraph) {
-      DEG_get_evaluated_rna_pointer(depsgraph, &obptr, &eval_obptr);
-      PointerRNA dataptr = RNA_pointer_get(&eval_obptr, "data");
+      Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+      PointerRNA dataptr = RNA_id_pointer_create(static_cast<ID *>(object_eval->data));
       uiItemPointerR(layout, ptr, "layer_name", &dataptr, "color_attributes", "", ICON_GROUP_VCOL);
       return;
     }
