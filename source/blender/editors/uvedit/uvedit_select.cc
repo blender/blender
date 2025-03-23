@@ -227,19 +227,21 @@ static void uvedit_vertex_select_tagged(BMEditMesh *em,
   }
 }
 
-bool uvedit_face_visible_test_ex(const ToolSettings *ts, BMFace *efa)
+bool uvedit_face_visible_test_ex(const ToolSettings *ts, const BMFace *efa)
 {
   if (ts->uv_flag & UV_SYNC_SELECTION) {
     return (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) == 0);
   }
   return (BM_elem_flag_test(efa, BM_ELEM_HIDDEN) == 0 && BM_elem_flag_test(efa, BM_ELEM_SELECT));
 }
-bool uvedit_face_visible_test(const Scene *scene, BMFace *efa)
+bool uvedit_face_visible_test(const Scene *scene, const BMFace *efa)
 {
   return uvedit_face_visible_test_ex(scene->toolsettings, efa);
 }
 
-bool uvedit_face_select_test_ex(const ToolSettings *ts, BMFace *efa, const BMUVOffsets &offsets)
+bool uvedit_face_select_test_ex(const ToolSettings *ts,
+                                const BMFace *efa,
+                                const BMUVOffsets &offsets)
 {
   BLI_assert(offsets.select_vert >= 0);
   BLI_assert(offsets.select_edge >= 0);
@@ -247,24 +249,18 @@ bool uvedit_face_select_test_ex(const ToolSettings *ts, BMFace *efa, const BMUVO
     return BM_elem_flag_test(efa, BM_ELEM_SELECT);
   }
 
-  BMLoop *l;
-  BMIter liter;
-
-  BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-    if (ts->uv_selectmode & UV_SELECT_VERTEX) {
-      if (!BM_ELEM_CD_GET_BOOL(l, offsets.select_vert)) {
-        return false;
-      }
+  const int cd_offset = (ts->uv_selectmode & UV_SELECT_VERTEX) ? offsets.select_vert :
+                                                                 offsets.select_edge;
+  const BMLoop *l_first = BM_FACE_FIRST_LOOP(efa);
+  const BMLoop *l_iter = l_first;
+  do {
+    if (!BM_ELEM_CD_GET_BOOL(l_iter, cd_offset)) {
+      return false;
     }
-    else {
-      if (!BM_ELEM_CD_GET_BOOL(l, offsets.select_edge)) {
-        return false;
-      }
-    }
-  }
+  } while ((l_iter = l_iter->next) != l_first);
   return true;
 }
-bool uvedit_face_select_test(const Scene *scene, BMFace *efa, const BMUVOffsets &offsets)
+bool uvedit_face_select_test(const Scene *scene, const BMFace *efa, const BMUVOffsets &offsets)
 {
   return uvedit_face_select_test_ex(scene->toolsettings, efa, offsets);
 }
@@ -409,7 +405,7 @@ bool uvedit_edge_select_test_ex(const ToolSettings *ts,
   return BM_ELEM_CD_GET_BOOL(l, offsets.select_edge);
 }
 
-bool uvedit_edge_select_test(const Scene *scene, BMLoop *l, const BMUVOffsets &offsets)
+bool uvedit_edge_select_test(const Scene *scene, const BMLoop *l, const BMUVOffsets &offsets)
 {
   return uvedit_edge_select_test_ex(scene->toolsettings, l, offsets);
 }
@@ -608,7 +604,7 @@ bool uvedit_uv_select_test_ex(const ToolSettings *ts, const BMLoop *l, const BMU
   return BM_ELEM_CD_GET_BOOL(l, offsets.select_vert);
 }
 
-bool uvedit_uv_select_test(const Scene *scene, BMLoop *l, const BMUVOffsets &offsets)
+bool uvedit_uv_select_test(const Scene *scene, const BMLoop *l, const BMUVOffsets &offsets)
 {
   return uvedit_uv_select_test_ex(scene->toolsettings, l, offsets);
 }

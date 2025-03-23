@@ -37,7 +37,7 @@ void mesh_render_data_face_flag(const MeshRenderData &mr,
   if (efa == mr.efa_act_uv) {
     eattr.v_flag |= VFLAG_FACE_UV_ACTIVE;
   }
-  if ((offsets.uv != -1) && uvedit_face_select_test_ex(mr.toolsettings, (BMFace *)efa, offsets)) {
+  if ((offsets.uv != -1) && uvedit_face_select_test_ex(mr.toolsettings, efa, offsets)) {
     eattr.v_flag |= VFLAG_FACE_UV_SELECT;
   }
 
