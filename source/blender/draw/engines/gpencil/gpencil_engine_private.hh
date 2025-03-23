@@ -349,6 +349,23 @@ struct Instance : public DrawEngine {
 
  private:
   GPENCIL_tObject *object_sync_do(Object *ob, blender::draw::ResourceHandle res_handle);
+
+  /* Check if the passed in layer is used by any other layer as a mask (in the viewlayer). */
+  bool is_used_as_layer_mask_in_viewlayer(const GreasePencil &grease_pencil,
+                                          const blender::bke::greasepencil::Layer &mask_layer,
+                                          const ViewLayer &view_layer);
+
+  /* Returns true if this layer should be rendered (as part of the viewlayer). */
+  bool use_layer_in_render(const GreasePencil &grease_pencil,
+                           const blender::bke::greasepencil::Layer &layer,
+                           const ViewLayer &view_layer,
+                           bool &r_is_used_as_mask);
+
+  void draw_mask(blender::draw::View &view, GPENCIL_tObject *ob, GPENCIL_tLayer *layer);
+  void draw_object(blender::draw::View &view, GPENCIL_tObject *ob);
+
+  void fast_draw_start();
+  void fast_draw_end(blender::draw::View &view);
 };
 
 struct GPENCIL_Data {
