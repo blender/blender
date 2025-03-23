@@ -315,7 +315,7 @@ static void polar_decompose(const MatBase<T, 3, 3> &mat3,
 
     Eigen::Map<MatrixT>(W.base_ptr()) = svd.matrixU();
     (Eigen::Map<VectorT>(S_val)) = svd.singularValues();
-    Map<MatrixT>(V.base_ptr()) = svd.matrixV();
+    Eigen::Map<MatrixT>(V.base_ptr()) = svd.matrixV();
   }
 
   MatBase<T, 3, 3> S = from_scale<MatBase<T, 3, 3>>(S_val);
