@@ -726,7 +726,7 @@ void MetalDeviceQueue::copy_to_device(device_memory &mem)
   }
 }
 
-void MetalDeviceQueue::copy_from_device(device_memory &mem)
+void MetalDeviceQueue::copy_from_device(device_memory & /*mem*/)
 {
   /* No need to copy - Apple Silicon has Unified Memory Architecture. */
 }
