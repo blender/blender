@@ -333,6 +333,9 @@ struct Instance : public DrawEngine {
   void fast_draw_start();
   void fast_draw_end(blender::draw::View &view);
 
+  void antialiasing_init();
+  void antialiasing_draw(Manager &manager);
+
   static void material_pool_free(void *storage)
   {
     MaterialPool *matpool = (MaterialPool *)storage;
@@ -398,11 +401,5 @@ void gpencil_vfx_cache_populate(Instance *inst,
                                 Object *ob,
                                 tObject *tgp_ob,
                                 const bool is_edit_mode);
-
-/* Antialiasing */
-void GPENCIL_antialiasing_init(Instance *inst);
-void GPENCIL_antialiasing_draw(Instance *inst);
-
-/* render */
 
 }  // namespace blender::draw::gpencil

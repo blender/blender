@@ -817,7 +817,7 @@ void Instance::fast_draw_end(blender::draw::View &view)
   }
 }
 
-void Instance::draw(Manager & /*manager*/)
+void Instance::draw(Manager &manager)
 {
   DefaultTextureList *dtxl = draw_ctx->viewport_texture_list_get();
   DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
@@ -855,7 +855,7 @@ void Instance::draw(Manager & /*manager*/)
 
   DRW_submission_start();
 
-  GPENCIL_antialiasing_init(this);
+  antialiasing_init();
 
   this->acquire_resources();
 
@@ -879,7 +879,7 @@ void Instance::draw(Manager & /*manager*/)
   }
 
   if (this->scene_fb) {
-    GPENCIL_antialiasing_draw(this);
+    antialiasing_draw(manager);
   }
 
   this->release_resources();
