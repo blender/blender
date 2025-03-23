@@ -21,7 +21,7 @@
 #include <iosfwd>
 #include <optional>
 
-namespace blender::dot {
+namespace blender::dot_export {
 
 class Graph;
 class DirectedGraph;
@@ -293,4 +293,4 @@ class NodeWithSocketsRef {
   }
 };
 
-}  // namespace blender::dot
+}  // namespace blender::dot_export
