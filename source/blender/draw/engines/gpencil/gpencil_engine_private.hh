@@ -117,48 +117,6 @@ struct tObject {
   bool do_mat_holdout;
 };
 
-/* NOTE: These do not preserve the PassSimple memory across frames.
- * If that becomes a bottleneck, these containers can be improved. */
-using tVfx_Pool = blender::draw::detail::SubPassVector<tVfx>;
-using tLayer_Pool = blender::draw::detail::SubPassVector<tLayer>;
-
-struct ViewLayerData {
-  /* tObject */
-  struct BLI_memblock *gp_object_pool = BLI_memblock_create(sizeof(tObject));
-  /* tLayer */
-  tLayer_Pool *gp_layer_pool = new tLayer_Pool();
-  /* tVfx */
-  tVfx_Pool *gp_vfx_pool = new tVfx_Pool();
-  /* MaterialPool */
-  struct BLI_memblock *gp_material_pool = BLI_memblock_create(sizeof(MaterialPool));
-  /* LightPool */
-  struct BLI_memblock *gp_light_pool = BLI_memblock_create(sizeof(LightPool));
-  /* BLI_bitmap */
-  struct BLI_memblock *gp_maskbit_pool = BLI_memblock_create(BLI_BITMAP_SIZE(GP_MAX_MASKBITS));
-
-  ~ViewLayerData()
-  {
-    BLI_memblock_destroy(gp_light_pool, light_pool_free);
-    BLI_memblock_destroy(gp_material_pool, material_pool_free);
-    BLI_memblock_destroy(gp_maskbit_pool, nullptr);
-    BLI_memblock_destroy(gp_object_pool, nullptr);
-    delete gp_layer_pool;
-    delete gp_vfx_pool;
-  }
-
-  static void material_pool_free(void *storage)
-  {
-    MaterialPool *matpool = (MaterialPool *)storage;
-    GPU_UBO_FREE_SAFE(matpool->ubo);
-  }
-
-  static void light_pool_free(void *storage)
-  {
-    LightPool *lightpool = (LightPool *)storage;
-    GPU_UBO_FREE_SAFE(lightpool->ubo);
-  }
-};
-
 /* *********** LISTS *********** */
 
 struct Instance : public DrawEngine {
@@ -212,17 +170,26 @@ struct Instance : public DrawEngine {
   Framebuffer smaa_edge_fb = {"smaa_edge_fb"};
   Framebuffer smaa_weight_fb = {"smaa_weight_fb"};
 
-  ViewLayerData vldata;
+  /* NOTE: These do not preserve the PassSimple memory across frames.
+   * If that becomes a bottleneck, these containers can be improved. */
+  using tVfx_Pool = blender::draw::detail::SubPassVector<tVfx>;
+  using tLayer_Pool = blender::draw::detail::SubPassVector<tLayer>;
+
+  /* tObject */
+  struct BLI_memblock *gp_object_pool = BLI_memblock_create(sizeof(tObject));
+  /* tLayer */
+  tLayer_Pool *gp_layer_pool = new tLayer_Pool();
+  /* tVfx */
+  tVfx_Pool *gp_vfx_pool = new tVfx_Pool();
+  /* MaterialPool */
+  struct BLI_memblock *gp_material_pool = BLI_memblock_create(sizeof(MaterialPool));
+  /* LightPool */
+  struct BLI_memblock *gp_light_pool = BLI_memblock_create(sizeof(LightPool));
+  /* BLI_bitmap */
+  struct BLI_memblock *gp_maskbit_pool = BLI_memblock_create(BLI_BITMAP_SIZE(GP_MAX_MASKBITS));
 
   const DRWContext *draw_ctx = nullptr;
 
-  /* Pointers copied from blender::draw::gpencil::ViewLayerData. */
-  struct BLI_memblock *gp_object_pool;
-  tLayer_Pool *gp_layer_pool;
-  tVfx_Pool *gp_vfx_pool;
-  struct BLI_memblock *gp_material_pool;
-  struct BLI_memblock *gp_light_pool;
-  struct BLI_memblock *gp_maskbit_pool;
   /* Last used material pool. */
   MaterialPool *last_material_pool;
   /* Last used light pool. */
@@ -320,6 +287,16 @@ struct Instance : public DrawEngine {
   /* Force 3D depth rendering. */
   bool force_stroke_order_3d;
 
+  ~Instance() final
+  {
+    BLI_memblock_destroy(gp_light_pool, light_pool_free);
+    BLI_memblock_destroy(gp_material_pool, material_pool_free);
+    BLI_memblock_destroy(gp_maskbit_pool, nullptr);
+    BLI_memblock_destroy(gp_object_pool, nullptr);
+    delete gp_layer_pool;
+    delete gp_vfx_pool;
+  }
+
   void acquire_resources();
   void release_resources();
 
@@ -355,6 +332,18 @@ struct Instance : public DrawEngine {
 
   void fast_draw_start();
   void fast_draw_end(blender::draw::View &view);
+
+  static void material_pool_free(void *storage)
+  {
+    MaterialPool *matpool = (MaterialPool *)storage;
+    GPU_UBO_FREE_SAFE(matpool->ubo);
+  }
+
+  static void light_pool_free(void *storage)
+  {
+    LightPool *lightpool = (LightPool *)storage;
+    GPU_UBO_FREE_SAFE(lightpool->ubo);
+  }
 };
 
 struct GPENCIL_Data {

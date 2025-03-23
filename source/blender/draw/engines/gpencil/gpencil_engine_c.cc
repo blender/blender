@@ -71,20 +71,13 @@ void Instance::init()
   }
 
   /* Resize and reset memory-blocks. */
-  BLI_memblock_clear(vldata.gp_light_pool, ViewLayerData::light_pool_free);
-  BLI_memblock_clear(vldata.gp_material_pool, ViewLayerData::material_pool_free);
-  BLI_memblock_clear(vldata.gp_object_pool, nullptr);
-  vldata.gp_layer_pool->clear();
-  vldata.gp_vfx_pool->clear();
-  BLI_memblock_clear(vldata.gp_maskbit_pool, nullptr);
+  BLI_memblock_clear(this->gp_light_pool, light_pool_free);
+  BLI_memblock_clear(this->gp_material_pool, material_pool_free);
+  BLI_memblock_clear(this->gp_object_pool, nullptr);
+  this->gp_layer_pool->clear();
+  this->gp_vfx_pool->clear();
+  BLI_memblock_clear(this->gp_maskbit_pool, nullptr);
 
-  /* TODO remove */
-  this->gp_light_pool = vldata.gp_light_pool;
-  this->gp_material_pool = vldata.gp_material_pool;
-  this->gp_maskbit_pool = vldata.gp_maskbit_pool;
-  this->gp_object_pool = vldata.gp_object_pool;
-  this->gp_layer_pool = vldata.gp_layer_pool;
-  this->gp_vfx_pool = vldata.gp_vfx_pool;
   this->view_layer = draw_ctx->view_layer;
   this->scene = draw_ctx->scene;
   this->v3d = draw_ctx->v3d;
@@ -888,10 +881,6 @@ void Instance::draw(Manager & /*manager*/)
   if (this->scene_fb) {
     GPENCIL_antialiasing_draw(this);
   }
-
-  this->gp_object_pool = this->gp_maskbit_pool = nullptr;
-  this->gp_vfx_pool = nullptr;
-  this->gp_layer_pool = nullptr;
 
   this->release_resources();
 
