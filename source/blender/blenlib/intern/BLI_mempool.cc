@@ -23,6 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_asan.h"
+#include "BLI_math_base.h"
 #include "BLI_mempool.h"         /* own include */
 #include "BLI_mempool_private.h" /* own include */
 
@@ -159,19 +160,6 @@ static void mempool_asan_lock(BLI_mempool *pool)
   UNUSED_VARS(pool);
 #endif
 }
-
-#ifdef USE_CHUNK_POW2
-static uint power_of_2_max_u(uint x)
-{
-  x -= 1;
-  x = x | (x >> 1);
-  x = x | (x >> 2);
-  x = x | (x >> 4);
-  x = x | (x >> 8);
-  x = x | (x >> 16);
-  return x + 1;
-}
-#endif
 
 BLI_INLINE BLI_mempool_chunk *mempool_chunk_find(BLI_mempool_chunk *head, uint index)
 {

@@ -13,6 +13,7 @@
 
 #include "BLI_boxpack_2d.h" /* own include */
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_sort.h" /* qsort_r */
@@ -165,12 +166,6 @@ static bool box_isect(const BoxPack *box_a, const BoxPack *box_b)
 }
 
 /** \} */
-
-/* compiler should inline */
-static float max_ff(const float a, const float b)
-{
-  return b > a ? b : a;
-}
 
 #ifdef USE_PACK_BIAS
 /* set when used is enabled */
