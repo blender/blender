@@ -459,20 +459,31 @@ typedef struct wmKeyMapItem {
    * Set to #KM_DIRECTION_N, #KM_DIRECTION_S & related values, #KM_NOTHING for any direction.
    */
   int8_t direction;
-  /** `oskey` also known as apple, windows-key or super. */
-  short shift, ctrl, alt, oskey;
+
+  /* Modifier keys:
+   * Valid values:
+   * - #KM_ANY
+   * - #KM_NOTHING
+   * - #KM_MOD_HELD (not #KM_PRESS even though the values match).
+   */
+
+  int8_t shift;
+  int8_t ctrl;
+  int8_t alt;
+  /** Also known as "Apple", "Windows-Key" or "Super. */
+  int8_t oskey;
+
   /** Raw-key modifier. */
   short keymodifier;
 
   /* flag: inactive, expanded */
-  short flag;
+  uint8_t flag;
 
   /* runtime */
   /** Keymap editor. */
-  short maptype;
+  uint8_t maptype;
   /** Unique identifier. Positive for kmi that override builtins, negative otherwise. */
   short id;
-  char _pad[2];
   /**
    * RNA pointer to access properties.
    *

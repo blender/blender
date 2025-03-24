@@ -436,17 +436,23 @@ struct ViewOpsData_Utility : ViewOpsData {
 
       wmKeyMapItem *kmi_cpy = WM_keymap_add_item_copy(&keymap_tmp, kmi);
       if (kmi_merge) {
-        if (kmi_merge->shift == 1 || ELEM(kmi_merge->type, EVT_RIGHTSHIFTKEY, EVT_LEFTSHIFTKEY)) {
-          kmi_cpy->shift = 1;
+        if (kmi_merge->shift == KM_MOD_HELD ||
+            ELEM(kmi_merge->type, EVT_RIGHTSHIFTKEY, EVT_LEFTSHIFTKEY))
+        {
+          kmi_cpy->shift = KM_MOD_HELD;
         }
-        if (kmi_merge->ctrl == 1 || ELEM(kmi_merge->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
-          kmi_cpy->ctrl = 1;
+        if (kmi_merge->ctrl == KM_MOD_HELD ||
+            ELEM(kmi_merge->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY))
+        {
+          kmi_cpy->ctrl = KM_MOD_HELD;
         }
-        if (kmi_merge->alt == 1 || ELEM(kmi_merge->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY)) {
-          kmi_cpy->alt = 1;
+        if (kmi_merge->alt == KM_MOD_HELD ||
+            ELEM(kmi_merge->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY))
+        {
+          kmi_cpy->alt = KM_MOD_HELD;
         }
-        if (kmi_merge->oskey == 1 || ELEM(kmi_merge->type, EVT_OSKEY)) {
-          kmi_cpy->oskey = 1;
+        if (kmi_merge->oskey == KM_MOD_HELD || ELEM(kmi_merge->type, EVT_OSKEY)) {
+          kmi_cpy->oskey = KM_MOD_HELD;
         }
         if (!ISKEYMODIFIER(kmi_merge->type)) {
           kmi_cpy->keymodifier = kmi_merge->type;

@@ -177,10 +177,10 @@ int WM_keymap_item_map_type_get(const wmKeyMapItem *kmi);
 /* Key Event. */
 
 const char *WM_key_event_string(short type, bool compact);
-std::optional<std::string> WM_keymap_item_raw_to_string(short shift,
-                                                        short ctrl,
-                                                        short alt,
-                                                        short oskey,
+std::optional<std::string> WM_keymap_item_raw_to_string(int8_t shift,
+                                                        int8_t ctrl,
+                                                        int8_t alt,
+                                                        int8_t oskey,
                                                         short keymodifier,
                                                         short val,
                                                         short type,

@@ -1152,7 +1152,7 @@ static void rna_KeyMapItem_any_set(PointerRNA *ptr, bool value)
     kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = KM_ANY;
   }
   else {
-    kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = 0;
+    kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = KM_NOTHING;
   }
 }
 

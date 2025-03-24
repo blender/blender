@@ -1195,10 +1195,10 @@ const char *WM_key_event_string(const short type, const bool compact)
   return CTX_IFACE_(BLT_I18NCONTEXT_UI_EVENTS, it->name);
 }
 
-std::optional<std::string> WM_keymap_item_raw_to_string(const short shift,
-                                                        const short ctrl,
-                                                        const short alt,
-                                                        const short oskey,
+std::optional<std::string> WM_keymap_item_raw_to_string(const int8_t shift,
+                                                        const int8_t ctrl,
+                                                        const int8_t alt,
+                                                        const int8_t oskey,
                                                         const short keymodifier,
                                                         const short val,
                                                         const short type,

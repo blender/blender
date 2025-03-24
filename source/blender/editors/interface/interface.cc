@@ -4101,10 +4101,10 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         if (hotkey_but->modifier_key) {
           /* Rely on #KM_NOTHING being zero for `type`, `val` ... etc. */
           wmKeyMapItem kmi_dummy = {nullptr};
-          kmi_dummy.shift = (hotkey_but->modifier_key & KM_SHIFT) ? KM_PRESS : KM_NOTHING;
-          kmi_dummy.ctrl = (hotkey_but->modifier_key & KM_CTRL) ? KM_PRESS : KM_NOTHING;
-          kmi_dummy.alt = (hotkey_but->modifier_key & KM_ALT) ? KM_PRESS : KM_NOTHING;
-          kmi_dummy.oskey = (hotkey_but->modifier_key & KM_OSKEY) ? KM_PRESS : KM_NOTHING;
+          kmi_dummy.shift = (hotkey_but->modifier_key & KM_SHIFT) ? KM_MOD_HELD : KM_NOTHING;
+          kmi_dummy.ctrl = (hotkey_but->modifier_key & KM_CTRL) ? KM_MOD_HELD : KM_NOTHING;
+          kmi_dummy.alt = (hotkey_but->modifier_key & KM_ALT) ? KM_MOD_HELD : KM_NOTHING;
+          kmi_dummy.oskey = (hotkey_but->modifier_key & KM_OSKEY) ? KM_MOD_HELD : KM_NOTHING;
 
           but->drawstr = WM_keymap_item_to_string(&kmi_dummy, true).value_or("");
         }
