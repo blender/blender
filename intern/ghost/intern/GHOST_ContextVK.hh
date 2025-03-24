@@ -173,9 +173,6 @@ class GHOST_ContextVK : public GHOST_Context {
   const int m_debug;
   const GHOST_GPUDevice m_preferred_device;
 
-  VkCommandPool m_command_pool;
-  VkCommandBuffer m_command_buffer;
-
   VkQueue m_graphic_queue;
   VkQueue m_present_queue;
 
@@ -197,8 +194,4 @@ class GHOST_ContextVK : public GHOST_Context {
   const char *getPlatformSpecificSurfaceExtension() const;
   GHOST_TSuccess createSwapchain();
   GHOST_TSuccess destroySwapchain();
-  GHOST_TSuccess createCommandPools();
-  GHOST_TSuccess createGraphicsCommandBuffers();
-  GHOST_TSuccess createGraphicsCommandBuffer();
-  GHOST_TSuccess recordCommandBuffers();
 };
