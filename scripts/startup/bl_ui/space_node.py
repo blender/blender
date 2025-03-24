@@ -911,12 +911,11 @@ class NODE_MT_node_tree_interface_context_menu(Menu):
         active_item = tree.interface.active
 
         layout.operator("node.interface_item_duplicate", icon='DUPLICATE')
-        if tree.type in {'GEOMETRY', 'SHADER'}:
-            layout.separator()
-            if active_item.item_type == 'SOCKET':
-                layout.operator("node.interface_item_make_panel_toggle")
-            elif active_item.item_type == 'PANEL':
-                layout.operator("node.interface_item_unlink_panel_toggle")
+        layout.separator()
+        if active_item.item_type == 'SOCKET':
+            layout.operator("node.interface_item_make_panel_toggle")
+        elif active_item.item_type == 'PANEL':
+            layout.operator("node.interface_item_unlink_panel_toggle")
 
 
 class NODE_PT_node_tree_interface(Panel):
