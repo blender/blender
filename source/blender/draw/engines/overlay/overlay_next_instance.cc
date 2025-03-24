@@ -392,6 +392,13 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
     const View3DShading &shading = state.v3d->shading;
     gb->backface_culling = (shading.type == OB_SOLID) &&
                            (shading.flag & V3D_SHADING_BACKFACE_CULLING);
+
+    if (is_selection() || state.is_depth_only_drawing) {
+      /* This is bad as this makes a solid mode setting affect material preview / render mode
+       * selection and auto-depth. But users are relying on this to work in scene using backface
+       * culling in shading (see #136335 and #136418). */
+      gb->backface_culling = (shading.flag & V3D_SHADING_BACKFACE_CULLING);
+    }
   }
   else {
     gb->backface_culling = false;

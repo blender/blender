@@ -29,7 +29,7 @@ class Facing : Overlay {
   void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.v3d && state.show_face_orientation() && !state.xray_enabled &&
-               !res.is_selection();
+               !res.is_selection() && !state.is_depth_only_drawing;
     if (!enabled_) {
       /* Not used. But release the data. */
       ps_.init();
