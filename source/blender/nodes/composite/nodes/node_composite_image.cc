@@ -469,6 +469,10 @@ class ImageOperation : public NodeOperation {
   void execute() override
   {
     for (const bNodeSocket *output : this->node()->output_sockets()) {
+      if (!output->is_available()) {
+        continue;
+      }
+
       compute_output(output->identifier);
     }
   }
@@ -710,6 +714,10 @@ class RenderLayerOperation : public NodeOperation {
     }
 
     for (const bNodeSocket *output : this->node()->output_sockets()) {
+      if (!output->is_available()) {
+        continue;
+      }
+
       if (STR_ELEM(output->identifier, "Image", "Alpha")) {
         continue;
       }

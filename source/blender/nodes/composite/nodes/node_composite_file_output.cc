@@ -509,6 +509,10 @@ class FileOutputOperation : public NodeOperation {
   FileOutputOperation(Context &context, DNode node) : NodeOperation(context, node)
   {
     for (const bNodeSocket *input : node->input_sockets()) {
+      if (!input->is_available()) {
+        continue;
+      }
+
       InputDescriptor &descriptor = this->get_input_descriptor(input->identifier);
       /* Inputs for multi-layer files need to be the same size, while they can be different for
        * individual file outputs. */
@@ -536,6 +540,10 @@ class FileOutputOperation : public NodeOperation {
   void execute_single_layer()
   {
     for (const bNodeSocket *input : this->node()->input_sockets()) {
+      if (!input->is_available()) {
+        continue;
+      }
+
       const Result &result = get_input(input->identifier);
       /* We only write images, not single values. */
       if (result.is_single_value()) {
@@ -630,6 +638,10 @@ class FileOutputOperation : public NodeOperation {
     file_output.add_view(pass_view);
 
     for (const bNodeSocket *input : this->node()->input_sockets()) {
+      if (!input->is_available()) {
+        continue;
+      }
+
       const Result &input_result = get_input(input->identifier);
       const char *pass_name = (static_cast<NodeImageMultiFileSocket *>(input->storage))->layer;
       add_pass_for_result(file_output, input_result, pass_name, pass_view);

@@ -131,6 +131,10 @@ int CompileState::compute_pixel_node_operation_outputs_count(DNode node)
   for (const bNodeSocket *output : node->output_sockets()) {
     const DOutputSocket doutput{node.context(), output};
 
+    if (!output->is_available()) {
+      continue;
+    }
+
     /* If the output is used as the node preview, then an operation output will exist for it. */
     const bool is_preview_output = doutput == preview_output;
 
@@ -154,6 +158,10 @@ bool CompileState::is_pixel_node_single_value(DNode node)
   /* The pixel node is single value when all of its inputs are single values. */
   for (const bNodeSocket *input : node->input_sockets()) {
     const DInputSocket dinput{node.context(), input};
+
+    if (!input->is_available()) {
+      continue;
+    }
 
     /* Get the output linked to the input. If it is null, that means the input is unlinked, and is
      * thus single value. */
@@ -191,6 +199,10 @@ Domain CompileState::compute_pixel_node_domain(DNode node)
    * priority. */
   for (const bNodeSocket *input : node->input_sockets()) {
     const DInputSocket dinput{node.context(), input};
+
+    if (!input->is_available()) {
+      continue;
+    }
 
     /* Get the output linked to the input. If it is null, that means the input is unlinked, so skip
      * it. */

@@ -166,6 +166,10 @@ DOutputSocket find_preview_output_socket(const DNode &node)
   }
 
   for (const bNodeSocket *output : node->output_sockets()) {
+    if (!output->is_available()) {
+      continue;
+    }
+
     if (output->is_logically_linked()) {
       return DOutputSocket(node.context(), output);
     }

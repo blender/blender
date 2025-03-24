@@ -110,6 +110,10 @@ void Evaluator::map_node_operation_inputs_to_their_results(DNode node,
   for (const bNodeSocket *input : node->input_sockets()) {
     const DInputSocket dinput{node.context(), input};
 
+    if (!input->is_available()) {
+      continue;
+    }
+
     DSocket dorigin = get_input_origin_socket(dinput);
 
     /* The origin socket is an output, which means the input is linked. So map the input to the
