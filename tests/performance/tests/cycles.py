@@ -8,8 +8,12 @@ import api
 def _run(args):
     import bpy
 
-    device_type = args['device_type']
+    device_type, suffix = (args['device_type'].split("-") + [""])[:2]
+    use_hwrt = (suffix == "RT")
     device_index = args['device_index']
+
+    if suffix not in {"", "RT"}:
+        raise SystemExit(f"Unknown device type suffix {suffix}")
 
     scene = bpy.context.scene
     scene.render.engine = 'CYCLES'
@@ -44,6 +48,10 @@ def _run(args):
                     break
                 else:
                     index += 1
+
+        cprefs.use_hiprt = use_hwrt
+        cprefs.use_oneapirt = use_hwrt
+        cprefs.metalrt = 'ON' if use_hwrt else 'OFF'
 
     # Render
     bpy.ops.render.render(write_still=True)
