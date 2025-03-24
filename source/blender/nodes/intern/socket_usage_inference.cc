@@ -150,6 +150,10 @@ struct SocketUsageInferencer {
       return;
     }
     const bNode &node = socket->owner_node();
+    if (!socket->is_available()) {
+      all_socket_usages_.add_new(socket, false);
+      return;
+    }
     if (node.is_undefined() && !node.is_custom_group()) {
       all_socket_usages_.add_new(socket, false);
       return;
