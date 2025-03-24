@@ -212,6 +212,7 @@ class ShaderNode : public Node {
   int id = -1;
   /* for bump mapping utility */
   ShaderBump bump = SHADER_BUMP_NONE;
+  float bump_filter_width = 0.0f;
   /* special node type */
   ShaderNodeSpecialType special_type = SHADER_SPECIAL_TYPE_NONE;
 

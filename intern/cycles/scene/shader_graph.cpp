@@ -924,6 +924,7 @@ void ShaderGraph::refine_bump_nodes()
     ShaderNode *node = nodes[i];
 
     if (node->special_type == SHADER_SPECIAL_TYPE_BUMP && node->input("Height")->link) {
+      BumpNode *bump = static_cast<BumpNode *>(node);
       ShaderInput *bump_input = node->input("Height");
       ShaderNodeSet nodes_bump;
 
@@ -941,12 +942,15 @@ void ShaderGraph::refine_bump_nodes()
        * that any texture coordinates are shifted by dx/dy when sampling. */
       for (ShaderNode *node : nodes_bump) {
         node->bump = SHADER_BUMP_CENTER;
+        node->bump_filter_width = bump->get_filter_width();
       }
       for (const NodePair &pair : nodes_dx) {
         pair.second->bump = SHADER_BUMP_DX;
+        pair.second->bump_filter_width = bump->get_filter_width();
       }
       for (const NodePair &pair : nodes_dy) {
         pair.second->bump = SHADER_BUMP_DY;
+        pair.second->bump_filter_width = bump->get_filter_width();
       }
 
       ShaderOutput *out = bump_input->link;
@@ -992,6 +996,11 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
   ShaderNodeSet nodes_displace;
   find_dependencies(nodes_displace, displacement_in);
 
+  /* Add bump node. */
+  BumpNode *bump = create_node<BumpNode>();
+  bump->set_use_object_space(use_object_space);
+  bump->set_distance(1.0f);
+
   /* copy nodes for 3 bump samples */
   ShaderNodeMap nodes_center;
   ShaderNodeMap nodes_dx;
@@ -1005,12 +1014,15 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
    * that any texture coordinates are shifted by dx/dy when sampling */
   for (const NodePair &pair : nodes_center) {
     pair.second->bump = SHADER_BUMP_CENTER;
+    pair.second->bump_filter_width = bump->get_filter_width();
   }
   for (const NodePair &pair : nodes_dx) {
     pair.second->bump = SHADER_BUMP_DX;
+    pair.second->bump_filter_width = bump->get_filter_width();
   }
   for (const NodePair &pair : nodes_dy) {
     pair.second->bump = SHADER_BUMP_DY;
+    pair.second->bump_filter_width = bump->get_filter_width();
   }
 
   /* add set normal node and connect the bump normal output to the set normal
@@ -1019,11 +1031,7 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
    * overwrite the shader normal */
   ShaderNode *set_normal = create_node<SetNormalNode>();
 
-  /* add bump node and connect copied graphs to it */
-  BumpNode *bump = create_node<BumpNode>();
-  bump->set_use_object_space(use_object_space);
-  bump->set_distance(1.0f);
-
+  /* Connect copied graphs to bump node. */
   ShaderOutput *out = displacement_in->link;
   ShaderOutput *out_center = nodes_center[out->parent]->output(out->name());
   ShaderOutput *out_dx = nodes_dx[out->parent]->output(out->name());

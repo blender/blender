@@ -242,10 +242,8 @@ ccl_device_inline float3 motion_triangle_smooth_normal(KernelGlobals kg,
   motion_triangle_normals(kg, object, tri_vindex, numsteps, numverts, step, t, n);
 
   const float3 N = safe_normalize(triangle_interpolate(u, v, n[0], n[1], n[2]));
-  N_x = safe_normalize(
-      triangle_interpolate(u + du.dx * BUMP_DX, v + dv.dx * BUMP_DX, n[0], n[1], n[2]));
-  N_y = safe_normalize(
-      triangle_interpolate(u + du.dy * BUMP_DY, v + dv.dy * BUMP_DY, n[0], n[1], n[2]));
+  N_x = safe_normalize(triangle_interpolate(u + du.dx, v + dv.dx, n[0], n[1], n[2]));
+  N_y = safe_normalize(triangle_interpolate(u + du.dy, v + dv.dy, n[0], n[1], n[2]));
 
   N_x = is_zero(N_x) ? Ng : N_x;
   N_y = is_zero(N_y) ? Ng : N_y;
