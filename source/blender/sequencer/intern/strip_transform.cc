@@ -92,7 +92,7 @@ void transform_translate_sequence(Scene *evil_scene, Strip *strip, int delta)
   offset_animdata(evil_scene, strip, delta);
   blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(evil_scene->ed, strip);
   strip_time_update_effects_strip_range(evil_scene, effects);
-  time_update_meta_strip_range(evil_scene, SEQ_lookup_meta_by_strip(evil_scene->ed, strip));
+  time_update_meta_strip_range(evil_scene, lookup_meta_by_strip(evil_scene->ed, strip));
 }
 
 bool transform_seqbase_shuffle_ex(ListBase *seqbasep,

@@ -81,7 +81,7 @@ static void strip_add_generic_update(Scene *scene, Strip *strip)
   relations_invalidate_cache_composite(scene, strip);
   strip_lookup_invalidate(scene->ed);
   strip_time_effect_range_set(scene, strip);
-  time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
+  time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 }
 
 static void strip_add_set_name(Scene *scene, Strip *strip, LoadData *load_data)

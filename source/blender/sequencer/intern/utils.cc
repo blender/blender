@@ -367,7 +367,7 @@ ListBase *get_seqbase_by_seq(const Scene *scene, Strip *strip)
 {
   Editing *ed = editing_get(scene);
   ListBase *main_seqbase = &ed->seqbase;
-  Strip *strip_meta = SEQ_lookup_meta_by_strip(ed, strip);
+  Strip *strip_meta = lookup_meta_by_strip(ed, strip);
 
   if (strip_meta != nullptr) {
     return &strip_meta->seqbase;

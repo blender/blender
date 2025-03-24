@@ -132,7 +132,16 @@ Strip *lookup_strip_by_name(Editing *ed, const char *key);
  * channel.
  */
 Strip *lookup_strip_by_channel_owner(Editing *ed, const SeqTimelineChannel *channel);
-
+/**
+ * Find meta strip, that contains strip `key`.
+ * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
+ * rebuilt.
+ *
+ * \param key: pointer to Strip inside of meta strip
+ *
+ * \return pointer to meta strip
+ */
+ Strip *lookup_meta_by_strip(Editing *ed, const Strip *key);
 /**
  * Free lookup hash data.
  */

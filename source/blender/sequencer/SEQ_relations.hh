@@ -63,12 +63,6 @@ void cache_iterate(
     void *userdata,
     bool callback_init(void *userdata, size_t item_count),
     bool callback_iter(void *userdata, Strip *strip, int timeline_frame, int cache_type));
-/**
- * Return immediate parent meta of sequence.
- */
-Strip *find_metastrip_by_sequence(ListBase *seqbase /* = ed->seqbase */,
-                                  Strip *meta /* = NULL */,
-                                  Strip *strip);
 bool exists_in_seqbase(const Strip *strip, const ListBase *seqbase);
 
 }  // namespace blender::seq

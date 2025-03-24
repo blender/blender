@@ -185,7 +185,7 @@ void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)
   strip_update_sound_bounds_recursive(scene, strip_meta);
   blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip_meta);
   strip_time_update_effects_strip_range(scene, effects);
-  time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip_meta));
+  time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip_meta));
 }
 
 void strip_time_effect_range_set(const Scene *scene, Strip *strip)
@@ -470,7 +470,7 @@ void time_start_frame_set(const Scene *scene, Strip *strip, int timeline_frame)
   strip->start = timeline_frame;
   blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
+  time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 }
 
 float time_content_end_frame_get(const Scene *scene, const Strip *strip)
@@ -520,7 +520,7 @@ void time_left_handle_frame_set(const Scene *scene, Strip *strip, int timeline_f
 
   blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
+  time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 }
 
 void time_right_handle_frame_set(const Scene *scene, Strip *strip, int timeline_frame)
@@ -536,7 +536,7 @@ void time_right_handle_frame_set(const Scene *scene, Strip *strip, int timeline_
 
   blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
+  time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 }
 
 void strip_time_translate_handles(const Scene *scene, Strip *strip, const int offset)
@@ -548,7 +548,7 @@ void strip_time_translate_handles(const Scene *scene, Strip *strip, const int of
 
   blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene->ed, strip));
+  time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 }
 
 static void strip_time_slip_strip_ex(

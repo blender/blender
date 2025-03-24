@@ -13,6 +13,7 @@
 #include "SEQ_render.hh"
 #include "SEQ_time.hh"
 #include "SEQ_utils.hh"
+#include "SEQ_sequencer.hh"
 
 #include "effects.hh"
 #include "render.hh"
@@ -59,7 +60,7 @@ static ImBuf *do_adjustment_impl(const RenderData *context, Strip *strip, float 
   if (!i) {
     Strip *meta;
 
-    meta = find_metastrip_by_sequence(&ed->seqbase, nullptr, strip);
+    meta = lookup_meta_by_strip(ed, strip);
 
     if (meta) {
       i = do_adjustment_impl(context, meta, timeline_frame);

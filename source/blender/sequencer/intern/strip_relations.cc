@@ -32,6 +32,7 @@
 
 #include "effects/effects.hh"
 #include "image_cache.hh"
+#include "sequencer.hh"
 #include "utils.hh"
 
 namespace blender::seq {
@@ -120,33 +121,14 @@ static void sequence_invalidate_cache(Scene *scene,
 }
 
 /* Find meta-strips that contain invalidated_seq and invalidate them. */
-static bool strip_relations_find_and_invalidate_metas(Scene *scene,
-                                                      Strip *invalidated_seq,
-                                                      Strip *meta_seq)
+static void strip_relations_find_and_invalidate_metas(Scene *scene, Strip *strip)
 {
-  ListBase *seqbase;
-
-  if (meta_seq == nullptr) {
-    Editing *ed = editing_get(scene);
-    seqbase = &ed->seqbase;
-  }
-  else {
-    seqbase = &meta_seq->seqbase;
+  Strip *meta = lookup_meta_by_strip(editing_get(scene), strip);
+  if (meta == nullptr) {
+    return;
   }
 
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->type == STRIP_TYPE_META) {
-      if (strip_relations_find_and_invalidate_metas(scene, invalidated_seq, strip)) {
-        sequence_invalidate_cache(scene, strip, true, SEQ_CACHE_ALL_TYPES);
-        return true;
-      }
-    }
-    if (strip == invalidated_seq && meta_seq != nullptr) {
-      sequence_invalidate_cache(scene, meta_seq, true, SEQ_CACHE_ALL_TYPES);
-      return true;
-    }
-  }
-  return false;
+  relations_invalidate_cache_raw(scene, meta);
 }
 
 void relations_invalidate_cache_in_range(Scene *scene,
@@ -155,13 +137,13 @@ void relations_invalidate_cache_in_range(Scene *scene,
                                          int invalidate_types)
 {
   seq_cache_cleanup_sequence(scene, strip, range_mask, invalidate_types, true);
-  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip);
 }
 
 void relations_invalidate_cache_raw(Scene *scene, Strip *strip)
 {
   sequence_invalidate_cache(scene, strip, true, SEQ_CACHE_ALL_TYPES);
-  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip);
 }
 
 void relations_invalidate_cache_preprocessed(Scene *scene, Strip *strip)
@@ -171,7 +153,7 @@ void relations_invalidate_cache_preprocessed(Scene *scene, Strip *strip)
                             true,
                             SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_COMPOSITE |
                                 SEQ_CACHE_STORE_FINAL_OUT);
-  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip);
 }
 
 void relations_invalidate_cache_composite(Scene *scene, Strip *strip)
@@ -182,7 +164,7 @@ void relations_invalidate_cache_composite(Scene *scene, Strip *strip)
 
   sequence_invalidate_cache(
       scene, strip, true, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
-  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip);
 }
 
 void relations_invalidate_dependent(Scene *scene, Strip *strip)
@@ -193,7 +175,7 @@ void relations_invalidate_dependent(Scene *scene, Strip *strip)
 
   sequence_invalidate_cache(
       scene, strip, false, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
-  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip);
 }
 
 static void invalidate_scene_strips(Scene *scene, Scene *scene_target, ListBase *seqbase)
@@ -449,22 +431,6 @@ void relations_check_uids_unique_and_report(const Scene *scene)
   for_each_callback(&scene->ed->seqbase, get_uids_cb, used_uids);
 
   BLI_gset_free(used_uids, nullptr);
-}
-
-Strip *find_metastrip_by_sequence(ListBase *seqbase, Strip *meta, Strip *strip)
-{
-  LISTBASE_FOREACH (Strip *, iseq, seqbase) {
-    Strip *rval;
-
-    if (strip == iseq) {
-      return meta;
-    }
-    if (iseq->seqbase.first && (rval = find_metastrip_by_sequence(&iseq->seqbase, iseq, strip))) {
-      return rval;
-    }
-  }
-
-  return nullptr;
 }
 
 bool exists_in_seqbase(const Strip *strip, const ListBase *seqbase)

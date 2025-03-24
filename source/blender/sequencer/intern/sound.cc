@@ -29,10 +29,10 @@
 #  include "AUD_Sound.h"
 #endif
 
+#include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
 #include "SEQ_time.hh"
 
-#include "sequencer.hh"
 #include "strip_time.hh"
 
 namespace blender::seq {
@@ -148,7 +148,7 @@ void sound_update(Scene *scene, bSound *sound)
 
 float sound_pitch_get(const Scene *scene, const Strip *strip)
 {
-  const Strip *meta_parent = SEQ_lookup_meta_by_strip(scene->ed, strip);
+  const Strip *meta_parent = lookup_meta_by_strip(scene->ed, strip);
   if (meta_parent != nullptr) {
     return strip->speed_factor * sound_pitch_get(scene, meta_parent);
   }

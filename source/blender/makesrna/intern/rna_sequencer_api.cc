@@ -112,9 +112,7 @@ static Strip *rna_Strip_split(
 static Strip *rna_Strip_parent_meta(ID *id, Strip *strip_self)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = blender::seq::editing_get(scene);
-
-  return blender::seq::find_metastrip_by_sequence(&ed->seqbase, nullptr, strip_self);
+  return blender::seq::lookup_meta_by_strip(blender::seq::editing_get(scene), strip_self);
 }
 
 static Strip *rna_Strips_new_clip(ID *id,
