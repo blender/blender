@@ -661,6 +661,9 @@ void ED_view3d_gizmo_ruler_remove_by_gpencil_layer(bContext *C, bGPDlayer *gpl)
       wmGizmoMap *gzmap = region->runtime->gizmo_map;
       wmGizmoGroup *gzgroup = WM_gizmomap_group_find(gzmap, view3d_gzgt_ruler_id);
 
+      if (!gzgroup) {
+        continue;
+      }
       RulerItem *ruler_item;
       while ((ruler_item = gzgroup_ruler_item_first_get(gzgroup))) {
         ruler_item_remove(C, gzgroup, ruler_item);
