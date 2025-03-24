@@ -141,7 +141,7 @@ Strip *lookup_strip_by_channel_owner(Editing *ed, const SeqTimelineChannel *chan
  *
  * \return pointer to meta strip
  */
- Strip *lookup_meta_by_strip(Editing *ed, const Strip *key);
+Strip *lookup_meta_by_strip(Editing *ed, const Strip *key);
 /**
  * Free lookup hash data.
  */
