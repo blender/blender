@@ -24,6 +24,7 @@
  *   result in better performance, due to better cache utilization.
  */
 
+#include <cstdint>
 #include <type_traits>
 
 namespace blender {
