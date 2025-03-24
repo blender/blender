@@ -55,7 +55,7 @@ void ED_outliner_select_sync_from_pose_bone_tag(bContext *C)
   wm->outliner_sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE;
 }
 
-void ED_outliner_select_sync_from_sequence_tag(bContext *C)
+void ED_outliner_select_sync_from_sequence_tag(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wm->outliner_sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE;

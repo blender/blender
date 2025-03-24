@@ -339,6 +339,8 @@ static bool freeze_frame_add_new_for_seq(const bContext *C,
   }
 
   deselect_all_strips(scene);
+  sequencer_select_do_updates(C, scene);
+
   seq::retiming_selection_append(freeze);
 
   seq::relations_invalidate_cache_raw(scene, strip);
@@ -463,6 +465,8 @@ static bool transition_add_new_for_seq(const bContext *C,
   }
 
   deselect_all_strips(scene);
+  sequencer_select_do_updates(C, scene);
+
   seq::retiming_selection_append(transition);
 
   seq::relations_invalidate_cache_raw(scene, strip);

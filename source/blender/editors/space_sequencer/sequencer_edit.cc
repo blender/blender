@@ -1705,7 +1705,7 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator * /
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(CTX_data_main(C));
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  sequencer_select_do_updates(C, scene);
   return OPERATOR_FINISHED;
 }
 

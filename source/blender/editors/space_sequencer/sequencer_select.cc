@@ -385,7 +385,7 @@ bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point
                              strip_image_quad[3]);
 }
 
-static void sequencer_select_do_updates(bContext *C, Scene *scene)
+void sequencer_select_do_updates(const bContext *C, Scene *scene)
 {
   ED_outliner_select_sync_from_sequence_tag(C);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
@@ -1151,6 +1151,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   if (key != nullptr) {
     if (!was_retiming) {
       deselect_all_strips(scene);
+      sequencer_select_do_updates(C, scene);
     }
     /* Attempt to realize any other connected strips' fake keys. */
     if (seq::is_strip_connected(strip_key_owner)) {
