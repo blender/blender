@@ -145,7 +145,10 @@ void VKContext::end_frame()
 
 void VKContext::flush() {}
 
-TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags)
+TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags,
+                                            VkPipelineStageFlags wait_dst_stage_mask,
+                                            VkSemaphore wait_semaphore,
+                                            VkSemaphore signal_semaphore)
 {
   if (has_active_framebuffer()) {
     VKFrameBuffer &framebuffer = *active_framebuffer_get();
@@ -159,7 +162,10 @@ TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags)
       &render_graph_.value().get(),
       discard_pool,
       bool(flags & RenderGraphFlushFlags::SUBMIT),
-      bool(flags & RenderGraphFlushFlags::WAIT_FOR_COMPLETION));
+      bool(flags & RenderGraphFlushFlags::WAIT_FOR_COMPLETION),
+      wait_dst_stage_mask,
+      wait_semaphore,
+      signal_semaphore);
   render_graph_.reset();
   if (bool(flags & RenderGraphFlushFlags::RENEW_RENDER_GRAPH)) {
     render_graph_ = std::reference_wrapper<render_graph::VKRenderGraph>(
@@ -366,6 +372,8 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   device.resources.add_image(swap_chain_data.image, 1, "SwapchainImage");
 
   framebuffer.rendering_end(*this);
+  flush_render_graph(RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+
   render_graph::VKRenderGraph &render_graph = this->render_graph();
   render_graph.add_node(blit_image);
   GPU_debug_group_end();
@@ -375,8 +383,10 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
   synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   render_graph.add_node(synchronization);
-  flush_render_graph(RenderGraphFlushFlags::SUBMIT | RenderGraphFlushFlags::WAIT_FOR_COMPLETION |
-                     RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+  flush_render_graph(RenderGraphFlushFlags::SUBMIT | RenderGraphFlushFlags::RENEW_RENDER_GRAPH,
+                     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+                     swap_chain_data.acquire_semaphore,
+                     swap_chain_data.present_semaphore);
 
   device.resources.remove_image(swap_chain_data.image);
 #if 0
