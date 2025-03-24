@@ -703,6 +703,7 @@ class FileOutputOperation : public NodeOperation {
         break;
       case ResultType::Int:
         file_output.add_pass(pass_name, view_name, "V", buffer);
+        break;
       case ResultType::Bool:
         file_output.add_pass(pass_name, view_name, "V", buffer);
         break;
