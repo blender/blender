@@ -532,7 +532,7 @@ def addons_panel_draw_items(
             del value
 
             if show_expanded:
-                item_maintainer = value.split("<", 1)[0].rstrip() if (value := bl_info["author"]) else ""
+                item_maintainer = value if (value := bl_info["author"]) else ""
                 item_version = ".".join(str(x) for x in value) if (value := bl_info["version"]) else ""
                 item_doc_url = bl_info["doc_url"]
                 item_tracker_url = bl_info.get("tracker_url")
