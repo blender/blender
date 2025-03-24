@@ -865,13 +865,13 @@ GHOST_TSuccess GHOST_ContextVK::createSwapchain()
   }
 
   /* Driver can stall if only using minimal image count. */
-  uint32_t image_count = capabilities.minImageCount + 1;
+  uint32_t image_count = 3;
   /* NOTE: maxImageCount == 0 means no limit. */
-  if (image_count > capabilities.maxImageCount && capabilities.maxImageCount > 0) {
-    image_count = capabilities.maxImageCount;
+  if (capabilities.minImageCount != 0 && image_count < capabilities.minImageCount) {
+    image_count = capabilities.minImageCount;
   }
-  if (capabilities.minImageCount <= 3 && image_count > 3) {
-    image_count = 3;
+  if (capabilities.maxImageCount != 0 && image_count > capabilities.maxImageCount) {
+    image_count = capabilities.maxImageCount;
   }
 
   VkSwapchainCreateInfoKHR create_info = {};
