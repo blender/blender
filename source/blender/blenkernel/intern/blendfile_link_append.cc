@@ -1987,6 +1987,11 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
   BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
 
+  /* Since some IDs have been removed from Main, trying to rebuild collections hierarchy should not
+   * happen. It has to be done manually below once removed IDs have been added back to Main. Also
+   * see #136432. */
+  lapp_context->params->flag |= BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD;
+
   BKE_blendfile_link_append_context_init_done(lapp_context);
 
   /* We do not want any instantiation here! */
@@ -2009,6 +2014,11 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
       BLI_addtail(which_libbase(bmain, GS(old_key->id.name)), &old_key->id);
     }
   }
+
+  /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
+   * `BKE_lib_override_library_main_update`, see #103062.
+   * Proper fix involves first addressing #90610. */
+  BKE_main_collections_parent_relations_rebuild(bmain);
 
   /* Since our (old) reloaded IDs were removed from main, the user count done for them in linking
    * code is wrong, we need to redo it here after adding them back to main. */
