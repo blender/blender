@@ -282,10 +282,11 @@ static void region_draw_azone_tab_arrow(ScrArea *area, ARegion *region, AZone *a
   float alpha = WM_region_use_viewport(area, region) ? 0.6f : 0.4f;
   const float color[4] = {0.05f, 0.05f, 0.05f, alpha};
   rctf rect{};
-  rect.xmin = float(az->x1);
-  rect.xmax = float(az->x2);
-  rect.ymin = float(az->y1);
-  rect.ymax = float(az->y2);
+  /* Hit size is a bit larger than visible background. */
+  rect.xmin = float(az->x1) + U.pixelsize;
+  rect.xmax = float(az->x2) - U.pixelsize;
+  rect.ymin = float(az->y1) + U.pixelsize;
+  rect.ymax = float(az->y2) - U.pixelsize;
   UI_draw_roundbox_aa(&rect, true, 4.0f, color);
 
   draw_azone_arrow(float(az->x1), float(az->y1), float(az->x2), float(az->y2), az->edge);
@@ -1150,14 +1151,14 @@ static void region_azone_edge(const ScrArea *area, AZone *az, const ARegion *reg
 static void region_azone_tab_plus(ScrArea *area, AZone *az, ARegion *region)
 {
   float edge_offset = 1.0f;
-  const float tab_size_x = 0.7f * U.widget_unit;
-  const float tab_size_y = 0.4f * U.widget_unit;
+  const float tab_size_x = 1.0f * U.widget_unit;
+  const float tab_size_y = 0.5f * U.widget_unit;
 
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT: {
       int add = (region->winrct.ymax == area->totrct.ymin) ? 1 : 0;
       az->x1 = region->winrct.xmax - ((edge_offset + 1.0f) * tab_size_x);
-      az->y1 = region->winrct.ymax - add;
+      az->y1 = region->winrct.ymax - U.pixelsize;
       az->x2 = region->winrct.xmax - (edge_offset * tab_size_x);
       az->y2 = region->winrct.ymax - add + tab_size_y;
       break;
@@ -1166,16 +1167,16 @@ static void region_azone_tab_plus(ScrArea *area, AZone *az, ARegion *region)
       az->x1 = region->winrct.xmax - ((edge_offset + 1.0f) * tab_size_x);
       az->y1 = region->winrct.ymin - tab_size_y;
       az->x2 = region->winrct.xmax - (edge_offset * tab_size_x);
-      az->y2 = region->winrct.ymin;
+      az->y2 = region->winrct.ymin + U.pixelsize;
       break;
     case AE_LEFT_TO_TOPRIGHT:
       az->x1 = region->winrct.xmin - tab_size_y;
       az->y1 = region->winrct.ymax - ((edge_offset + 1.0f) * tab_size_x);
-      az->x2 = region->winrct.xmin;
+      az->x2 = region->winrct.xmin + U.pixelsize;
       az->y2 = region->winrct.ymax - (edge_offset * tab_size_x);
       break;
     case AE_RIGHT_TO_TOPLEFT:
-      az->x1 = region->winrct.xmax;
+      az->x1 = region->winrct.xmax - U.pixelsize;
       az->y1 = region->winrct.ymax - ((edge_offset + 1.0f) * tab_size_x);
       az->x2 = region->winrct.xmax + tab_size_y;
       az->y2 = region->winrct.ymax - (edge_offset * tab_size_x);
