@@ -24,6 +24,7 @@ using OCIO_GPUShader = struct OCIO_GPUShader;
 #define OCIO_ROLE_DEFAULT_BYTE "default_byte"
 #define OCIO_ROLE_DEFAULT_FLOAT "default_float"
 #define OCIO_ROLE_DEFAULT_SEQUENCER "default_sequencer"
+#define OCIO_ROLE_ACES_INTERCHANGE "aces_interchange"
 
 OCIO_DECLARE_HANDLE(OCIO_ConstConfigRc);
 OCIO_DECLARE_HANDLE(OCIO_ConstColorSpaceRc);

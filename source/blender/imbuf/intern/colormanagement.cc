@@ -68,6 +68,7 @@ static char global_role_texture_painting[MAX_COLORSPACE_NAME];
 static char global_role_default_byte[MAX_COLORSPACE_NAME];
 static char global_role_default_float[MAX_COLORSPACE_NAME];
 static char global_role_default_sequencer[MAX_COLORSPACE_NAME];
+static char global_role_aces_interchange[MAX_COLORSPACE_NAME];
 
 static ListBase global_colorspaces = {nullptr, nullptr};
 static ListBase global_displays = {nullptr, nullptr};
@@ -464,7 +465,8 @@ static void colormanage_cache_handle_release(void *cache_handle)
 static bool colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config,
                                                   char *colorspace_name,
                                                   const char *role,
-                                                  const char *backup_role)
+                                                  const char *backup_role,
+                                                  const bool optional = false)
 {
   OCIO_ConstColorSpaceRcPtr *ociocs;
 
@@ -480,9 +482,10 @@ static bool colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config,
   }
 
   if (ociocs == nullptr) {
-    if (!G.quiet) {
+    if (!optional && !G.quiet) {
       printf("Color management: Error, could not find role \"%s\"\n", role);
     }
+    colorspace_name[0] = '\0';
     return false;
   }
 
@@ -512,6 +515,9 @@ static bool colormanage_load_config(OCIO_ConstConfigRcPtr *config)
       config, global_role_default_byte, OCIO_ROLE_DEFAULT_BYTE, OCIO_ROLE_TEXTURE_PAINT);
   ok &= colormanage_role_color_space_name_get(
       config, global_role_default_float, OCIO_ROLE_DEFAULT_FLOAT, OCIO_ROLE_SCENE_LINEAR);
+
+  colormanage_role_color_space_name_get(
+      config, global_role_aces_interchange, OCIO_ROLE_ACES_INTERCHANGE, nullptr, true);
 
   /* load colorspaces */
   const int tot_colorspace = OCIO_configGetNumColorSpaces(config);
@@ -1367,6 +1373,8 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
       return global_role_default_float;
     case COLOR_ROLE_DEFAULT_BYTE:
       return global_role_default_byte;
+    case COLOR_ROLE_ACES_INTERCHANGE:
+      return global_role_aces_interchange;
     default:
       if (!G.quiet) {
         printf("Unknown role was passed to %s\n", __func__);
@@ -1453,6 +1461,11 @@ const char *IMB_colormanagement_get_rect_colorspace(ImBuf *ibuf)
   return IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
 }
 
+ColorSpace *IMB_colormanagement_space_get_named(const char *name)
+{
+  return colormanage_colorspace_get_named(name);
+}
+
 bool IMB_colormanagement_space_is_data(ColorSpace *colorspace)
 {
   return (colorspace && colorspace->is_data);
@@ -1505,14 +1518,6 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
 {
   ColorSpace *colorspace = colormanage_colorspace_get_named(name);
   return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
-}
-
-bool IMB_set_colorspace_name_if_exists(char dst_colorspace[], const char *name)
-{
-  ColorSpace *colorspace = colormanage_colorspace_get_named(name);
-  if (colorspace) {
-    BLI_strncpy(dst_colorspace, name, IM_MAX_SPACE);
-  }
 }
 
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear()

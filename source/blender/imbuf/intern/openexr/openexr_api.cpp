@@ -45,6 +45,7 @@
 #include <OpenEXR/ImfCompressionAttribute.h>
 #include <OpenEXR/ImfIO.h>
 #include <OpenEXR/ImfInputFile.h>
+#include <OpenEXR/ImfIntAttribute.h>
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfPixelType.h>
 #include <OpenEXR/ImfPreviewImage.h>
@@ -478,6 +479,21 @@ static void openexr_header_metadata(Header *header, ImBuf *ibuf)
   if (ibuf->ppm[0] > 0.0) {
     /* Convert meters to inches. */
     addXDensity(*header, ibuf->ppm[0] * 0.0254);
+  }
+
+  /* Write chromaticities for ACES-2065-1, as required by ACES container format. */
+  ColorSpace *colorspace = (ibuf->float_buffer.data) ? ibuf->float_buffer.colorspace :
+                           (ibuf->byte_buffer.data)  ? ibuf->byte_buffer.colorspace :
+                                                       nullptr;
+  if (colorspace) {
+    const char *aces_colorspace = IMB_colormanagement_role_colorspace_name_get(
+        COLOR_ROLE_ACES_INTERCHANGE);
+    const char *ibuf_colorspace = IMB_colormanagement_colorspace_get_name(colorspace);
+
+    if (aces_colorspace && STREQ(aces_colorspace, ibuf_colorspace)) {
+      header->insert("chromaticities", TypedAttribute<Chromaticities>(CHROMATICITIES_ACES_2065_1));
+      header->insert("adoptedNeutral", TypedAttribute<V2f>(CHROMATICITIES_ACES_2065_1.white));
+    }
   }
 }
 
@@ -2135,15 +2151,31 @@ static void imb_exr_set_known_colorspace(const Header &header, char colorspace[I
     return;
   }
 
+  /* Read ACES container format metadata. */
+  const IntAttribute *header_aces_container = header.findTypedAttribute<IntAttribute>(
+      "acesImageContainerFlag");
   const ChromaticitiesAttribute *header_chromaticities =
       header.findTypedAttribute<ChromaticitiesAttribute>("chromaticities");
-  if (header_chromaticities) {
-    const Chromaticities &val = header_chromaticities->value();
-    if (imb_check_chromaticity_matches(val, CHROMATICITIES_XYZ_E)) {
-      IMB_set_colorspace_name_if_exists(colorspace, "Linear CIE-XYZ E");
+
+  if ((header_aces_container && header_aces_container->value() == 1) ||
+      (header_chromaticities &&
+       imb_check_chromaticity_matches(header_chromaticities->value(), CHROMATICITIES_ACES_2065_1)))
+  {
+    const char *known_colorspace = IMB_colormanagement_role_colorspace_name_get(
+        COLOR_ROLE_ACES_INTERCHANGE);
+    if (known_colorspace) {
+      BLI_strncpy(colorspace, known_colorspace, IMA_MAX_SPACE);
+      return;
     }
-    else if (imb_check_chromaticity_matches(val, CHROMATICITIES_ACES_2065_1)) {
-      IMB_set_colorspace_name_if_exists(colorspace, "ACES2065-1");
+  }
+  else if (header_chromaticities &&
+           (imb_check_chromaticity_matches(header_chromaticities->value(), CHROMATICITIES_XYZ_E)))
+  {
+    /* Only works for the Blender default configuration due to fixed name. */
+    const char *known_colorspace = "Linear CIE-XYZ E";
+    if (IMB_colormanagement_space_get_named(known_colorspace)) {
+      BLI_strncpy(colorspace, known_colorspace, IMA_MAX_SPACE);
+      return;
     }
   }
 
