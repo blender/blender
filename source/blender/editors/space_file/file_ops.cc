@@ -2138,7 +2138,7 @@ static std::string file_execute_get_description(bContext *C,
                                                 PointerRNA * /*ptr*/)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  if (sfile->op && sfile->op->type) {
+  if (sfile->op && sfile->op->type && sfile->op->type->description) {
     /* Return the description of the executed operator. Don't use get_description
      * as that will return file details for WM_OT_open_mainfile. */
     return TIP_(sfile->op->type->description);
