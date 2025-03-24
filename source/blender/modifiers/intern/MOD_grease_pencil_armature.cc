@@ -235,20 +235,17 @@ static void modify_geometry_set(ModifierData *md,
   bke::GeometryComponentEditData::remember_deformed_positions_if_necessary(*geometry_set);
 
   GreasePencil &grease_pencil = *geometry_set->get_grease_pencil_for_write();
-  const GreasePencil &grease_pencil_orig = *reinterpret_cast<GreasePencil *>(
-      DEG_get_original_id(&grease_pencil.id));
   const int frame = grease_pencil.runtime->eval_frame;
 
   MutableSpan<bke::GreasePencilDrawingEditHints> edit_hints = {};
   if (geometry_set->has_component<bke::GeometryComponentEditData>()) {
     bke::GeometryComponentEditData &edit_component =
         geometry_set->get_component_for_write<bke::GeometryComponentEditData>();
-    if (edit_component.grease_pencil_edit_hints_) {
-      if (!edit_component.grease_pencil_edit_hints_->drawing_hints) {
-        edit_component.grease_pencil_edit_hints_->drawing_hints.emplace(
-            grease_pencil_orig.layers().size());
+    if (auto &hints = edit_component.grease_pencil_edit_hints_) {
+      if (!hints->drawing_hints) {
+        hints->drawing_hints.emplace(hints->grease_pencil_id_orig.layers().size());
       }
-      edit_hints = *edit_component.grease_pencil_edit_hints_->drawing_hints;
+      edit_hints = *hints->drawing_hints;
     }
   }
 
