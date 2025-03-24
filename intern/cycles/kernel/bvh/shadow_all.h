@@ -234,7 +234,7 @@ ccl_device_inline
               /* If the intersection is already recoded ignore it completely: don't update
                * throughput as it has been already updated. But also don't count it for num_hits
                * as that could result in situation when the same ray will be considered transparent
-               * when spacial split is off, and be opaque when spatial split is on. */
+               * when spatial split is off, and be opaque when spatial split is on. */
               if (intersection_skip_shadow_already_recoded(
                       kg, state, isect.object, isect.prim, *r_num_recorded_hits))
               {
