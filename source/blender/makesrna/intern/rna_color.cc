@@ -1320,7 +1320,10 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -32.0f, 32.0f);
   RNA_def_property_ui_range(prop, -10.0f, 10.0f, 1, 3);
-  RNA_def_property_ui_text(prop, "Exposure", "Exposure (stops) applied before display transform");
+  RNA_def_property_ui_text(
+      prop,
+      "Exposure",
+      "Exposure (stops) applied before display transform, multiplying by 2^exposure");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
   prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_FACTOR);
@@ -1328,7 +1331,9 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0.0f, 5.0f);
   RNA_def_property_ui_text(
-      prop, "Gamma", "Amount of gamma modification applied after display transform");
+      prop,
+      "Gamma",
+      "Additional gamma encoding after display transform, for output with custom gamma");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
   prop = RNA_def_property(srna, "curve_mapping", PROP_POINTER, PROP_NONE);

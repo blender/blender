@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(10.0f)
       .subtype(PROP_NONE)
       .description(
-          "Gamma correction value\n"
+          "Gamma correction value, applied as color^gamma.\n"
           "Gamma controls the relative intensity of the mid-tones compared to the full black and "
           "full white");
   b.add_output<decl::Color>("Color");

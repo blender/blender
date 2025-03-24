@@ -31,7 +31,11 @@ static void cmp_node_gamma_declare(NodeDeclarationBuilder &b)
       .min(0.001f)
       .max(10.0f)
       .subtype(PROP_UNSIGNED)
-      .compositor_domain_priority(1);
+      .compositor_domain_priority(1)
+      .description(
+          "Gamma correction value, applied as color^gamma.\n"
+          "Typically used to convert from gamma encoded to linear color space, or in the reverse "
+          "direction with 1/gamma");
   b.add_output<decl::Color>("Image");
 }
 
