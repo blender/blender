@@ -114,7 +114,7 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
         /* Fill tool keymap uses the paint operator as alternative mode. */
         return greasepencil::new_paint_operation(true);
       case GPAINT_BRUSH_TYPE_TINT:
-        return greasepencil::new_tint_operation();
+        return greasepencil::new_tint_operation(stroke_mode == BRUSH_STROKE_ERASE);
     }
   }
   else if (mode == PaintMode::SculptGPencil) {
