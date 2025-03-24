@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2025-01-31 04:04+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -6180,10 +6180,6 @@ msgid "Exposure"
 msgstr "Eksposur"
 
 
-msgid "Exposure (stops) applied before display transform"
-msgstr "Eksposur (berhenti) diterapkan sebelum transformasi tampilan"
-
-
 msgid "Gamma"
 msgstr "Gamma"
 
@@ -11080,58 +11076,6 @@ msgid "Grease Pencil Frames"
 msgstr "Frame Pensil Grease"
 
 
-msgid "Grease Pencil Layer"
-msgstr "Layer Pensil Grease"
-
-
-msgid "Blend Mode"
-msgstr "Mode Blend"
-
-
-msgid "Blend mode"
-msgstr "Mode blend"
-
-
-msgid "Regular"
-msgstr "Biasa"
-
-
-msgid "Hard Light"
-msgstr "Cahaya Keras"
-
-
-msgid "Layer Opacity"
-msgstr "Opasitas Layer"
-
-
-msgid "Parent object"
-msgstr "Objek induk"
-
-
-msgid "Parent Bone"
-msgstr "Tulang Induk"
-
-
-msgid "Pass Index"
-msgstr "Indeks Pass"
-
-
-msgid "Translation"
-msgstr "Terjemahan"
-
-
-msgid "Use Lights"
-msgstr "Gunakan Cahaya"
-
-
-msgid "Enable the use of lights on stroke and fill materials"
-msgstr "Aktifkan penggunaan cahaya di sapuan dan mengisi bahan"
-
-
-msgid "ViewLayer"
-msgstr "TampilkanLayer"
-
-
 msgid "Grease Pencil Masking Layers"
 msgstr "Layer Masking Pensil Grease"
 
@@ -11168,6 +11112,10 @@ msgid "Active Note"
 msgstr "Catatan Aktif"
 
 
+msgid "Regular"
+msgstr "Biasa"
+
+
 msgid "Reverse"
 msgstr "Membalik"
 
@@ -11178,6 +11126,54 @@ msgstr "Ulang"
 
 msgid "Frame Start"
 msgstr "Frame Mulai"
+
+
+msgid "Grease Pencil Layer"
+msgstr "Layer Pensil Grease"
+
+
+msgid "Blend Mode"
+msgstr "Mode Blend"
+
+
+msgid "Blend mode"
+msgstr "Mode blend"
+
+
+msgid "Hard Light"
+msgstr "Cahaya Keras"
+
+
+msgid "Layer Opacity"
+msgstr "Opasitas Layer"
+
+
+msgid "Parent object"
+msgstr "Objek induk"
+
+
+msgid "Parent Bone"
+msgstr "Tulang Induk"
+
+
+msgid "Pass Index"
+msgstr "Indeks Pass"
+
+
+msgid "Translation"
+msgstr "Terjemahan"
+
+
+msgid "Use Lights"
+msgstr "Gunakan Cahaya"
+
+
+msgid "Enable the use of lights on stroke and fill materials"
+msgstr "Aktifkan penggunaan cahaya di sapuan dan mengisi bahan"
+
+
+msgid "ViewLayer"
+msgstr "TampilkanLayer"
 
 
 msgid "Grease Pencil Layers"
@@ -15114,26 +15110,6 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
 msgid "Metaball"
 msgstr "Metabola"
 
@@ -15176,6 +15152,26 @@ msgstr "Menggabungkan"
 
 msgid "Text"
 msgstr "Teks"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
 msgctxt "MovieClip"
@@ -18130,6 +18126,10 @@ msgid "ID Mask"
 msgstr "Masker ID"
 
 
+msgid "Image Info"
+msgstr "Informasi Gambar"
+
+
 msgid "Post Blur"
 msgstr "Setelah Buram"
 
@@ -18610,10 +18610,6 @@ msgstr "Primer"
 
 msgid "Secondary"
 msgstr "Sekunder"
-
-
-msgid "Image Info"
-msgstr "Informasi Gambar"
 
 
 msgctxt "Image"
@@ -21653,15 +21649,6 @@ msgstr "Modus Sunting"
 msgctxt "Operator"
 msgid "Add Node Collection"
 msgstr "Tambah Koleksi Node"
-
-
-msgctxt "Operator"
-msgid "Add File Node"
-msgstr "Tambah Node Dokumen"
-
-
-msgid "Add a file node to the current node editor"
-msgstr "Tambah node dokumen ke editor node sekarang"
 
 
 msgctxt "Operator"
@@ -31379,10 +31366,6 @@ msgid "Open Recent"
 msgstr "Buka yang Belakangan Ini"
 
 
-msgid "Create object instance from object-data"
-msgstr "Buat contoh benda dari benda-data"
-
-
 msgid "Control Point:"
 msgstr "Titik Kontrol:"
 
@@ -31473,6 +31456,10 @@ msgstr "Perspektif Pengguna"
 
 msgid " (Viewer)"
 msgstr " (Penampil)"
+
+
+msgid "Create object instance from object-data"
+msgstr "Buat contoh benda dari benda-data"
 
 
 msgid "Cannot fly an object with constraints"

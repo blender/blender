@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -3411,20 +3411,20 @@ msgid "Type of keyframe"
 msgstr "Typ av keyframe"
 
 
-msgid "Blend Mode"
-msgstr "Blandningsläge"
-
-
-msgid "Blend mode"
-msgstr "Blandningsläge"
-
-
 msgid "Regular"
 msgstr "Vanlig"
 
 
 msgid "Repeat"
 msgstr "Upprepa"
+
+
+msgid "Blend Mode"
+msgstr "Blandningsläge"
+
+
+msgid "Blend mode"
+msgstr "Blandningsläge"
 
 
 msgid "Statistical view of the levels of color in an image"
@@ -5201,34 +5201,6 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Pivot Point"
-msgstr "Fast punkt"
-
-
-msgid "Snap"
-msgstr "Snäpp"
-
-
-msgid "Mirror"
-msgstr "Spegla"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
-
-
 msgid "Metaball"
 msgstr "Metaboll"
 
@@ -5279,6 +5251,34 @@ msgstr "Namn"
 
 msgid "Text"
 msgstr "Text"
+
+
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
 
 
 msgid "Catalog"
@@ -6148,6 +6148,10 @@ msgstr "Inputdata för simuleringszonen"
 
 msgid "Simulation Output"
 msgstr "Simulering output"
+
+
+msgid "Unknown"
+msgstr "Okänt"
 
 
 msgid "Align text to the center"
@@ -8408,6 +8412,11 @@ msgstr "Duplicera"
 
 
 msgctxt "Operator"
+msgid "Separate"
+msgstr "Separera"
+
+
+msgctxt "Operator"
 msgid "Duplicate Curve"
 msgstr "Duplicera kurva"
 
@@ -8460,11 +8469,6 @@ msgstr "Markera föregående"
 
 msgid "Select control points preceding already selected ones along the curves"
 msgstr "Markera kontrollpunkter som föregår de redan markerade längs kurvorna"
-
-
-msgctxt "Operator"
-msgid "Separate"
-msgstr "Separera"
 
 
 msgid "Subdivide selected segments"
@@ -10005,15 +10009,6 @@ msgstr "Lägg till nodsamling"
 
 msgid "Add a collection info node to the current node editor"
 msgstr "Lägg till en samlingsinfo-nod till den aktuella nodredigeraren"
-
-
-msgctxt "Operator"
-msgid "Add File Node"
-msgstr "Lägg till filnod"
-
-
-msgid "Add a file node to the current node editor"
-msgstr "Lägg till en filnod till den aktuella nodredigeraren"
 
 
 msgid "Settings to be applied on the newly created node"
@@ -11607,6 +11602,10 @@ msgstr "Rastrering"
 
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
+
+
+msgid "Cavity"
+msgstr "Hålrum"
 
 
 msgid "Bone Constraints"
@@ -13257,10 +13256,6 @@ msgid "Darkness of shadows"
 msgstr "Mörkhet av skuggor"
 
 
-msgid "Cavity"
-msgstr "Hålrum"
-
-
 msgid "Show Cavity"
 msgstr "Visa hålrum"
 
@@ -13756,10 +13751,6 @@ msgstr "Pensel/lar"
 msgctxt "Operator"
 msgid "Location"
 msgstr "Position"
-
-
-msgid "Unknown"
-msgstr "Okänt"
 
 
 msgid "After"
@@ -16148,10 +16139,6 @@ msgid "Cannot read '%s': %s"
 msgstr "Kan inte läsa '%s': %s"
 
 
-msgid "Could not rename: %s"
-msgstr "Kunde inte byta namn: %s"
-
-
 msgid "File does not exist"
 msgstr "Filen finns inte"
 
@@ -16337,10 +16324,6 @@ msgid "Adding node groups isn't supported for custom (Python defined) node trees
 msgstr "Att lägga till nodgrupper stöds inte för anpassade (Python-definierade) nodträd"
 
 
-msgid "{} (String)"
-msgstr "{} (Sträng)"
-
-
 msgid "{} (Integer)"
 msgstr "{} (Heltal)"
 
@@ -16355,6 +16338,10 @@ msgstr "({}, {}, {}) (Vektor)"
 
 msgid "({}, {}, {}, {}) (Color)"
 msgstr "({}, {}, {}, {}) (Färg)"
+
+
+msgid "{} (String)"
+msgstr "{} (Sträng)"
 
 
 msgid "This text has not been saved"

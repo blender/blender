@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -4564,16 +4564,8 @@ msgid "Exposure"
 msgstr "노출"
 
 
-msgid "Exposure (stops) applied before display transform"
-msgstr "디스플레이 변환 전에 적용된 노출 (중지)"
-
-
 msgid "Gamma"
 msgstr "감마"
-
-
-msgid "Amount of gamma modification applied after display transform"
-msgstr "디스플레이 변환 후에 적용된 감마 수정의 보정의 양"
 
 
 msgid "Look"
@@ -12586,6 +12578,46 @@ msgid "Grease Pencil Frames"
 msgstr "그리스 펜슬 프레임"
 
 
+msgid "Active Layer Index"
+msgstr "활성 레이어 인덱스"
+
+
+msgid "Active Note"
+msgstr "활성 노트"
+
+
+msgid "Note/Layer to add annotation strokes to"
+msgstr "주석 스트로크를 추가 할 노트/레이어"
+
+
+msgid "Regular"
+msgstr "정규"
+
+
+msgid "Apply offset in usual animation direction"
+msgstr "일반적인 애니메이션 방향으로 오프셋을 적용"
+
+
+msgid "Reverse"
+msgstr "반전"
+
+
+msgid "Apply offset in reverse animation direction"
+msgstr "역방향 애니메이션 방향으로 오프셋을 적용"
+
+
+msgid "Repeat"
+msgstr "반복"
+
+
+msgid "Frame Start"
+msgstr "프레임 시작"
+
+
+msgid "Display onion skins before and after the current frame"
+msgstr "현재 프레임 앞뒤에 어니언 스킨을 표시"
+
+
 msgid "Grease Pencil Layer"
 msgstr "그리스 펜슬 레이어"
 
@@ -12596,10 +12628,6 @@ msgstr "혼합 모드"
 
 msgid "Blend mode"
 msgstr "혼합 모드"
-
-
-msgid "Regular"
-msgstr "정규"
 
 
 msgid "Hard Light"
@@ -12630,48 +12658,12 @@ msgid "Translation"
 msgstr "옮기기"
 
 
-msgid "Display onion skins before and after the current frame"
-msgstr "현재 프레임 앞뒤에 어니언 스킨을 표시"
-
-
 msgid "ViewLayer"
 msgstr "뷰 레이어"
 
 
 msgid "Only include Layer in this View Layer render output (leave blank to include always)"
 msgstr "이 뷰 레이어 렌더 출력에만 레이어를 포함 (항상 비워 두십시오)"
-
-
-msgid "Active Layer Index"
-msgstr "활성 레이어 인덱스"
-
-
-msgid "Active Note"
-msgstr "활성 노트"
-
-
-msgid "Note/Layer to add annotation strokes to"
-msgstr "주석 스트로크를 추가 할 노트/레이어"
-
-
-msgid "Apply offset in usual animation direction"
-msgstr "일반적인 애니메이션 방향으로 오프셋을 적용"
-
-
-msgid "Reverse"
-msgstr "반전"
-
-
-msgid "Apply offset in reverse animation direction"
-msgstr "역방향 애니메이션 방향으로 오프셋을 적용"
-
-
-msgid "Repeat"
-msgstr "반복"
-
-
-msgid "Frame Start"
-msgstr "프레임 시작"
 
 
 msgid "Grease Pencil Layers"
@@ -23869,78 +23861,6 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Select Loops"
-msgstr "루프를 선택"
-
-
-msgid "Assign Material"
-msgstr "매테리얼을 할당"
-
-
 msgid "Metaball"
 msgstr "메타볼"
 
@@ -24063,6 +23983,78 @@ msgstr "텍스트"
 
 msgid "Bone Roll"
 msgstr "본 롤"
+
+
+msgid "Pivot Point"
+msgstr "피벗 포인트"
+
+
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Assign Material"
+msgstr "매테리얼을 할당"
 
 
 msgid "Basic"
@@ -31334,10 +31326,6 @@ msgid "If not set to high quality, the effect will be applied to a low-res copy 
 msgstr "고화질로 설정하지 않으면 효과가 원본 이미지의 저해상도 사본에 적용됩니다"
 
 
-msgid "Rotate 45"
-msgstr "45도를 회전"
-
-
 msgid "Simple star filter: add 45 degree rotation offset"
 msgstr "심플 스타 필터: 45도 회전 오프셋을 추가"
 
@@ -32125,6 +32113,10 @@ msgstr "오브젝트 정보"
 
 msgid "Z Up"
 msgstr "Z 위쪽"
+
+
+msgid "Unknown"
+msgstr "알 수 없는"
 
 
 msgid "Selection"
@@ -37892,6 +37884,11 @@ msgstr "랜덤 선택"
 
 
 msgctxt "Operator"
+msgid "Separate"
+msgstr "분리"
+
+
+msgctxt "Operator"
 msgid "Clear Tilt"
 msgstr "기울기를 지우기"
 
@@ -38215,11 +38212,6 @@ msgstr "더 큰"
 
 msgid "Less"
 msgstr "더 적게"
-
-
-msgctxt "Operator"
-msgid "Separate"
-msgstr "분리"
 
 
 msgid "Separate selected points from connected unselected points into a new object"
@@ -44525,15 +44517,6 @@ msgid "Gamma Corrected"
 msgstr "감마 보정됨"
 
 
-msgctxt "Operator"
-msgid "Add File Node"
-msgstr "파일 노드를 추가"
-
-
-msgid "Add a file node to the current node editor"
-msgstr "현재 노드 에디터에 파일 노드를 추가"
-
-
 msgid "Settings to be applied on the newly created node"
 msgstr "새로 생성된 노드에 적용하는 설정"
 
@@ -50415,10 +50398,6 @@ msgid "Multiply effect strip type"
 msgstr "곱하기 이펙트 스트립 유형"
 
 
-msgid "Alpha Over Drop effect strip type"
-msgstr "알파 오버 드롭 이펙트 스트립 유형"
-
-
 msgctxt "Sequence"
 msgid "Wipe"
 msgstr "웨이프"
@@ -55442,6 +55421,10 @@ msgid "SSAO Settings"
 msgstr "SSAO 설정"
 
 
+msgid "Cavity"
+msgstr "캐비티"
+
+
 msgid "Render Pass"
 msgstr "렌더 패스"
 
@@ -59134,10 +59117,6 @@ msgstr "도구 박스에 대해 세로줄 레이아웃을 사용"
 
 msgid "Developer Extras"
 msgstr "개발자 추가 정보"
-
-
-msgid "Show options for developers (edit source in context menu, geometry indices)"
-msgstr "개발자를 위한 옵션 표시 (컨텍스트 메뉴의 소스 편집, 지오메트리 인덱스)"
 
 
 msgid "Use transform gizmos by default"
@@ -65070,10 +65049,6 @@ msgid "Gamma Cross"
 msgstr "감마 교차"
 
 
-msgid "Over Drop"
-msgstr "오버 드롭"
-
-
 msgid "Y position of the sequence strip"
 msgstr "시퀀스 스트립의 Y 위치"
 
@@ -65176,11 +65151,6 @@ msgstr "사운드"
 msgctxt "Sequence"
 msgid "Cross"
 msgstr "교차"
-
-
-msgctxt "Sequence"
-msgid "Over Drop"
-msgstr "오버 드롭"
 
 
 msgid "Use Default Fade"
@@ -68837,10 +68807,6 @@ msgid "Darkness of shadows"
 msgstr "섀도우의 어두움"
 
 
-msgid "Cavity"
-msgstr "캐비티"
-
-
 msgid "Show Cavity"
 msgstr "캐비티을 표시합니다. (주변 폐색과 유사한 효과)"
 
@@ -70011,10 +69977,6 @@ msgstr "위치"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "회전"
-
-
-msgid "Unknown"
-msgstr "알 수 없는"
 
 
 msgid "Frame Numbers"
@@ -74071,6 +74033,18 @@ msgid "Specular Lighting"
 msgstr "반사 라이트닝"
 
 
+msgid "Ridge"
+msgstr "능선"
+
+
+msgid "Valley"
+msgstr "계곡"
+
+
+msgid "Screen Space"
+msgstr "화면 공간"
+
+
 msgid "Custom Location"
 msgstr "커스텀 위치"
 
@@ -74116,18 +74090,6 @@ msgstr "축적 반경"
 msgctxt "Operator"
 msgid "DOF Distance (Pick)"
 msgstr "DOF 거리 (선택)"
-
-
-msgid "Ridge"
-msgstr "능선"
-
-
-msgid "Valley"
-msgstr "계곡"
-
-
-msgid "Screen Space"
-msgstr "화면 공간"
 
 
 msgid "No object selected, using cursor"
@@ -74789,14 +74751,6 @@ msgid "Edge-rings are not connected"
 msgstr "연속되는 에지 링이 존재하지 않음"
 
 
-msgid "GpencilMode"
-msgstr "그리스모드"
-
-
-msgid "Select ID"
-msgstr "ID를 선택"
-
-
 msgid "Workbench"
 msgstr "Workbench"
 
@@ -75281,10 +75235,6 @@ msgstr "스트로크를 그릴 수 없습니다"
 
 msgid "Nothing to erase"
 msgstr "지울 내용이 없음"
-
-
-msgid "Annotation operator is already active"
-msgstr "주석 작업자가 이미 활성화되었습니다"
 
 
 msgid "Active region not set"

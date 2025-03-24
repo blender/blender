@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2025-02-18 05:56+0000\n"
 "Last-Translator: Krzysztof Chorzempa <Krzysztof-Chorzempa@users.noreply.translate.blender.org>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -4443,16 +4443,8 @@ msgid "Exposure"
 msgstr "Naświetlenie"
 
 
-msgid "Exposure (stops) applied before display transform"
-msgstr "Ekspozycja (w stopniach) stosowana przed transformacją wyświetlania"
-
-
 msgid "Gamma"
 msgstr "Gamma"
-
-
-msgid "Amount of gamma modification applied after display transform"
-msgstr "Modyfikacja parametru gamma stosowana po przekształceniach wyświetlania"
 
 
 msgid "Look"
@@ -9317,6 +9309,18 @@ msgid "Grease Pencil Frames"
 msgstr "Klatki Grease Pencil"
 
 
+msgid "Grease Pencil Masking Layers"
+msgstr "Maskowanie warstw Grease Pencil"
+
+
+msgid "Active Note"
+msgstr "Aktywny węzeł"
+
+
+msgid "First frame of the segment"
+msgstr "Pierwsza klatka segmentu"
+
+
 msgid "Blend Mode"
 msgstr "Tryb Mieszania"
 
@@ -9331,18 +9335,6 @@ msgstr "Tłumaczenia"
 
 msgid "ViewLayer"
 msgstr "WarstwaWidoku"
-
-
-msgid "Grease Pencil Masking Layers"
-msgstr "Maskowanie warstw Grease Pencil"
-
-
-msgid "Active Note"
-msgstr "Aktywny węzeł"
-
-
-msgid "First frame of the segment"
-msgstr "Pierwsza klatka segmentu"
 
 
 msgid "Grease Pencil Layers"
@@ -11572,38 +11564,6 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
 msgid "Metaball"
 msgstr "Metakula"
 
@@ -11662,6 +11622,38 @@ msgstr "Scal"
 
 msgid "Text"
 msgstr "Tekst"
+
+
+msgid "Snap"
+msgstr "Przyciągnij"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
 
 
 msgid "Catalog"
@@ -12887,6 +12879,10 @@ msgstr "Ustaw gładkie cieniowanie"
 
 msgid "Simulation Output"
 msgstr "Wyjście symulacji"
+
+
+msgid "Unknown"
+msgstr "Nieznany"
 
 
 msgid "Set Selection"
@@ -17719,10 +17715,6 @@ msgid "Developer Extras"
 msgstr "Dodatki dla programistów"
 
 
-msgid "Show options for developers (edit source in context menu, geometry indices)"
-msgstr "Pokazuje opcje dla deweloperów (edycja źródeł w menu kontekstowym, indeksy geometryczne)"
-
-
 msgid "Show Splash"
 msgstr "Pokaż ekran startowy"
 
@@ -20465,10 +20457,6 @@ msgstr "Dostępny"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "Obrót"
-
-
-msgid "Unknown"
-msgstr "Nieznany"
 
 
 msgctxt "Operator"
@@ -23791,10 +23779,6 @@ msgid "Online Python Reference"
 msgstr "Referencja Python online"
 
 
-msgid "Failed to find '%s'"
-msgstr "Nie można znaleść '%s'"
-
-
 msgctxt "UI_Events_KeyMaps"
 msgid "Space"
 msgstr "Spacja"
@@ -25838,10 +25822,6 @@ msgstr "Ścieżka pliku"
 
 msgid "seconds"
 msgstr "sekundy"
-
-
-msgid "Could not rename: %s"
-msgstr "Nie udało się zmienić nazwy: %s"
 
 
 msgid "Delete selected files?"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2025-03-03 11:30+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -4840,16 +4840,8 @@ msgid "Exposure"
 msgstr "Exposição"
 
 
-msgid "Exposure (stops) applied before display transform"
-msgstr "Os pontos de exposição (intervalos) aplicados antes de transformar as exibições."
-
-
 msgid "Gamma"
 msgstr "Gama"
-
-
-msgid "Amount of gamma modification applied after display transform"
-msgstr "Quantidade de modificação de gama aplicada após transformar as exibições."
 
 
 msgid "Look"
@@ -11422,16 +11414,36 @@ msgid "Grease Pencil Frames"
 msgstr "Quadros de lápis de cera"
 
 
+msgid "Invert mask"
+msgstr "Inverter máscara"
+
+
+msgid "Active Layer Index"
+msgstr "Índice de camada ativa"
+
+
+msgid "Regular"
+msgstr "Regular"
+
+
+msgid "Reverse"
+msgstr "Reverso"
+
+
+msgid "Repeat"
+msgstr "Repetir"
+
+
+msgid "Frame Start"
+msgstr "Quadro inicial"
+
+
 msgid "Grease Pencil Layer"
 msgstr "Camada de lápis de cera"
 
 
 msgid "Blend Mode"
 msgstr "Modo de mesclagem"
-
-
-msgid "Regular"
-msgstr "Regular"
 
 
 msgid "Hard Light"
@@ -11456,26 +11468,6 @@ msgstr "Índice de passo"
 
 msgid "Translation"
 msgstr "Movimento"
-
-
-msgid "Invert mask"
-msgstr "Inverter máscara"
-
-
-msgid "Active Layer Index"
-msgstr "Índice de camada ativa"
-
-
-msgid "Reverse"
-msgstr "Reverso"
-
-
-msgid "Repeat"
-msgstr "Repetir"
-
-
-msgid "Frame Start"
-msgstr "Quadro inicial"
 
 
 msgid "Grease Pencil Layers"
@@ -21488,70 +21480,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
 msgid "Metaball"
 msgstr "Meta-esfera"
 
@@ -21662,6 +21590,70 @@ msgstr "Texto"
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
 
 
 msgid "Basic"
@@ -28009,10 +28001,6 @@ msgid "If not set to high quality, the effect will be applied to a low-res copy 
 msgstr "Caso não configurado para alta qualidade, o efeito será aplicado para uma cópia de baixa-resolução da imagem fonte."
 
 
-msgid "Rotate 45"
-msgstr "Rotacionar 45 graus"
-
-
 msgid "Simple star filter: add 45 degree rotation offset"
 msgstr "Para o filtro de estrelas simples. Adiciona um deslocamento de 45 graus para a rotação."
 
@@ -28740,6 +28728,10 @@ msgstr "Repetir Resultado"
 
 msgid "Z Up"
 msgstr "Z Para cima"
+
+
+msgid "Unknown"
+msgstr "Desconhecido"
 
 
 msgid "Align text to the center"
@@ -34292,6 +34284,11 @@ msgstr "Selecionar aleatoriamente"
 
 
 msgctxt "Operator"
+msgid "Separate"
+msgstr "Separar"
+
+
+msgctxt "Operator"
 msgid "Clear Tilt"
 msgstr "Limpar inclinação"
 
@@ -34584,11 +34581,6 @@ msgstr "Maior"
 
 msgid "Less"
 msgstr "Menor"
-
-
-msgctxt "Operator"
-msgid "Separate"
-msgstr "Separar"
 
 
 msgid "Separate selected points from connected unselected points into a new object"
@@ -40283,15 +40275,6 @@ msgid "Gamma Corrected"
 msgstr "Usar correção de gama"
 
 
-msgctxt "Operator"
-msgid "Add File Node"
-msgstr "Adicionar nó de arquivo"
-
-
-msgid "Add a file node to the current node editor"
-msgstr "Adiciona um nó de arquivo ao editor de nó atual."
-
-
 msgid "Settings to be applied on the newly created node"
 msgstr "Configurações a ser aplicadas no nó recentemente criado."
 
@@ -45869,10 +45852,6 @@ msgstr "Multiplicar"
 
 msgid "Multiply effect strip type"
 msgstr "Faixa de efeito tipo multiplicar."
-
-
-msgid "Alpha Over Drop effect strip type"
-msgstr "Faixa de efeito tipo alfa por cima."
 
 
 msgctxt "Sequence"
@@ -53380,10 +53359,6 @@ msgid "Developer Extras"
 msgstr "Extras de Desenvolvedores"
 
 
-msgid "Show options for developers (edit source in context menu, geometry indices)"
-msgstr "Mostra opções para desenvolvedores (editar o código fonte no menu de contexto, índices de geometria)"
-
-
 msgid "Navigation Controls"
 msgstr "Controles de Navegação"
 
@@ -58184,10 +58159,6 @@ msgid "Gamma Cross"
 msgstr "Cruzar por gama"
 
 
-msgid "Over Drop"
-msgstr "Sobreposição"
-
-
 msgid "Y position of the sequence strip"
 msgstr "Posição Y da faixa de sequência "
 
@@ -58278,11 +58249,6 @@ msgstr "Som"
 msgctxt "Sequence"
 msgid "Cross"
 msgstr "Cruzar"
-
-
-msgctxt "Sequence"
-msgid "Over Drop"
-msgstr "Sobreposição"
 
 
 msgid "Use Default Fade"
@@ -62131,10 +62097,6 @@ msgid "Rotation"
 msgstr "Rotação"
 
 
-msgid "Unknown"
-msgstr "Desconhecido"
-
-
 msgctxt "Operator"
 msgid "Update All Paths"
 msgstr "Atualizar Todos os Caminhos"
@@ -65697,10 +65659,6 @@ msgid "Edge-rings are not connected"
 msgstr "Anéis de arestas não estão conectados."
 
 
-msgid "UV/Image"
-msgstr "UV/Imagem"
-
-
 msgid "NLA Strip Controls"
 msgstr "Controles das faixas de animação não linear"
 
@@ -68667,10 +68625,6 @@ msgid "Undefined Socket Type"
 msgstr "Tipo de soquete indefinido"
 
 
-msgid "{} (String)"
-msgstr "{} (String)"
-
-
 msgid "{} (Integer)"
 msgstr "{} (Inteiro)"
 
@@ -68689,6 +68643,10 @@ msgstr "Verdadeiro"
 
 msgid "False"
 msgstr "Falso"
+
+
+msgid "{} (String)"
+msgstr "{} (String)"
 
 
 msgid " Named Attribute"

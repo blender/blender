@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -1282,16 +1282,8 @@ msgid "Exposure"
 msgstr "Expozíció"
 
 
-msgid "Exposure (stops) applied before display transform"
-msgstr "Alkalmazott expozíció (lépések) a megjelenítés transzformációja előtt"
-
-
 msgid "Gamma"
 msgstr "Gamma"
-
-
-msgid "Amount of gamma modification applied after display transform"
-msgstr "Alkalmazott gamma módosítás mértéke a megjelenítés transzformációja után"
 
 
 msgid "Use Curves"
@@ -3977,6 +3969,22 @@ msgid "Grease Pencil Frames"
 msgstr "Zsírkréta képkockák"
 
 
+msgid "Grease Pencil Masking Layers"
+msgstr "Zsírkréta maszkoló réteg"
+
+
+msgid "Grease Pencil Mask Layers"
+msgstr "Zsírkréta maszkoló rétegek"
+
+
+msgid "Repeat"
+msgstr "Ismétlés"
+
+
+msgid "Frame Start"
+msgstr "Kezdő képkocka"
+
+
 msgid "Grease Pencil Layer"
 msgstr "Zsírkréta réteg"
 
@@ -3995,22 +4003,6 @@ msgstr "Szülőcsont"
 
 msgid "Pass Index"
 msgstr "Vezeték index"
-
-
-msgid "Grease Pencil Masking Layers"
-msgstr "Zsírkréta maszkoló réteg"
-
-
-msgid "Grease Pencil Mask Layers"
-msgstr "Zsírkréta maszkoló rétegek"
-
-
-msgid "Repeat"
-msgstr "Ismétlés"
-
-
-msgid "Frame Start"
-msgstr "Kezdő képkocka"
 
 
 msgid "Grease Pencil Layers"
@@ -6601,22 +6593,6 @@ msgid "Mask"
 msgstr "Maszk"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
 msgid "Metaball"
 msgstr "Meta test"
 
@@ -6655,6 +6631,22 @@ msgstr "Összefésülés"
 
 msgid "Text"
 msgstr "Szöveg"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
 
 
 msgctxt "MovieClip"
@@ -9244,10 +9236,6 @@ msgstr "Elmosás"
 
 msgid "Shadow"
 msgstr "Árnyék"
-
-
-msgid "Rotate 45"
-msgstr "Forgatás 45 fokkal"
 
 
 msgid "Keying Screen"
@@ -14634,10 +14622,6 @@ msgid "Gamma Cross"
 msgstr "Gamma keresztezés"
 
 
-msgid "Over Drop"
-msgstr "Felé dob"
-
-
 msgid "The length of the contents of this strip after the handles are applied"
 msgstr "A sáv hossza (a széleken lévő manipulátor fogantyúk alkalmazása után)"
 
@@ -14675,11 +14659,6 @@ msgstr "Hang"
 msgctxt "Sequence"
 msgid "Cross"
 msgstr "Keresztezés"
-
-
-msgctxt "Sequence"
-msgid "Over Drop"
-msgstr "Felé dob"
 
 
 msgid "Representation of alpha information in the RGBA pixels"
@@ -16479,10 +16458,6 @@ msgstr "objektumok"
 
 msgid "ParticleSystem"
 msgstr "Részecskerendszer"
-
-
-msgid "UV/Image"
-msgstr "UV/Kép"
 
 
 msgid "No active object"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2025-03-03 11:30+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -4804,12 +4804,24 @@ msgid "Grease Pencil Frame"
 msgstr "Skicirani kadar"
 
 
-msgid "Grease Pencil Layer"
-msgstr "Sloj skice"
-
-
 msgid "Regular"
 msgstr "Normalno"
+
+
+msgid "Reverse"
+msgstr "Obrnuto"
+
+
+msgid "Repeat"
+msgstr "Ponovi"
+
+
+msgid "Frame Start"
+msgstr "Početni kadar"
+
+
+msgid "Grease Pencil Layer"
+msgstr "Sloj skice"
 
 
 msgid "Local Matrix"
@@ -4826,18 +4838,6 @@ msgstr "Roditeljska kost"
 
 msgid "Translation"
 msgstr "Prelaz"
-
-
-msgid "Reverse"
-msgstr "Obrnuto"
-
-
-msgid "Repeat"
-msgstr "Ponovi"
-
-
-msgid "Frame Start"
-msgstr "Početni kadar"
 
 
 msgid "Red"
@@ -8605,34 +8605,6 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
 msgid "Metaball"
 msgstr "Meta lopta"
 
@@ -8711,6 +8683,34 @@ msgstr "Specijalni znaci"
 
 msgid "Bone Roll"
 msgstr "Rolna kostiju"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
 
 
 msgid "Basic"
@@ -10987,10 +10987,6 @@ msgid "Simple Star"
 msgstr "Jednostavna zvezda"
 
 
-msgid "Rotate 45"
-msgstr "Okretanje 45"
-
-
 msgid "Hue Correct"
 msgstr "Korekcija tona"
 
@@ -11297,6 +11293,10 @@ msgstr "Informacije o objektu"
 
 msgid "Z Up"
 msgstr "Gore po Z"
+
+
+msgid "Unknown"
+msgstr "Nepoznato"
 
 
 msgid "Selection"
@@ -15994,11 +15994,6 @@ msgstr "Pređi u režim doterivanja"
 msgctxt "Operator"
 msgid "Exit Tweak Mode"
 msgstr "Napusti režim doterivanja"
-
-
-msgctxt "Operator"
-msgid "Add File Node"
-msgstr "Dodaj čvor datoteke"
 
 
 msgctxt "Operator"
@@ -23614,10 +23609,6 @@ msgstr "Lokacija"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "Okretanje"
-
-
-msgid "Unknown"
-msgstr "Nepoznato"
 
 
 msgid "Frame Numbers"

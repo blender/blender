@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2025-02-25 15:56+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -5528,16 +5528,8 @@ msgid "Exposure"
 msgstr "曝光"
 
 
-msgid "Exposure (stops) applied before display transform"
-msgstr "在顯示轉換之前要套用的曝光量 (階數)"
-
-
 msgid "Gamma"
 msgstr "伽瑪"
-
-
-msgid "Amount of gamma modification applied after display transform"
-msgstr "在顯示轉換之前要套用的伽瑪修改量"
 
 
 msgid "Look"
@@ -12779,6 +12771,38 @@ msgid "Grease Pencil Frames"
 msgstr "蠟筆影格"
 
 
+msgid "Grease Pencil Masking Layers"
+msgstr "蠟筆遮罩分層"
+
+
+msgid "Invert mask"
+msgstr "反轉遮罩"
+
+
+msgid "Active Note"
+msgstr "作用中備註"
+
+
+msgid "Regular"
+msgstr "一般"
+
+
+msgid "Reverse"
+msgstr "反向"
+
+
+msgid "Ping Pong"
+msgstr "乒乓"
+
+
+msgid "Repeat"
+msgstr "重復"
+
+
+msgid "Frame Start"
+msgstr "影格起始"
+
+
 msgid "Grease Pencil Layer"
 msgstr "蠟筆分層"
 
@@ -12789,10 +12813,6 @@ msgstr "交混模式"
 
 msgid "Blend mode"
 msgstr "交混模式"
-
-
-msgid "Regular"
-msgstr "一般"
 
 
 msgid "List of Masking Layers"
@@ -12861,34 +12881,6 @@ msgstr "色彩標籤 7"
 
 msgid "Color tag 8"
 msgstr "色彩標籤 8"
-
-
-msgid "Grease Pencil Masking Layers"
-msgstr "蠟筆遮罩分層"
-
-
-msgid "Invert mask"
-msgstr "反轉遮罩"
-
-
-msgid "Active Note"
-msgstr "作用中備註"
-
-
-msgid "Reverse"
-msgstr "反向"
-
-
-msgid "Ping Pong"
-msgstr "乒乓"
-
-
-msgid "Repeat"
-msgstr "重復"
-
-
-msgid "Frame Start"
-msgstr "影格起始"
 
 
 msgid "Statistical view of the levels of color in an image"
@@ -22619,70 +22611,6 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
 msgid "Metaball"
 msgstr "變幻球"
 
@@ -22809,6 +22737,70 @@ msgstr "文字"
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
 
 
 msgid "Basic"
@@ -29086,10 +29078,6 @@ msgid "If not set to high quality, the effect will be applied to a low-res copy 
 msgstr "如果沒有設為高品質，效果會套用至來源影像的低解析度副本"
 
 
-msgid "Rotate 45"
-msgstr "旋轉 45"
-
-
 msgid "Simple star filter: add 45 degree rotation offset"
 msgstr "簡單星光過濾器：新增 45 度旋轉偏移"
 
@@ -30204,6 +30192,18 @@ msgstr "排序元素"
 
 msgid "Store Named Attribute"
 msgstr "儲存並命名屬性"
+
+
+msgid "Double precision"
+msgstr "雙倍精度"
+
+
+msgid "No data, boolean mask of active voxels"
+msgstr "無資料，作用中體素的布林遮罩"
+
+
+msgid "Unknown"
+msgstr "未知"
 
 
 msgid "Subdivide Mesh"
@@ -31782,15 +31782,6 @@ msgstr "關閉這個擴充套件"
 msgctxt "Operator"
 msgid "Disable extension"
 msgstr "停用擴充套件"
-
-
-msgid "Turn on this extension"
-msgstr "開啟這個擴充套件"
-
-
-msgctxt "Operator"
-msgid "Enable Extension"
-msgstr "啟用擴充套件"
 
 
 msgid "Download and install the extension"
@@ -35613,6 +35604,11 @@ msgstr "機率"
 
 
 msgctxt "Operator"
+msgid "Separate"
+msgstr "分離"
+
+
+msgctxt "Operator"
 msgid "Snap Curves to Surface"
 msgstr "曲線吸附至表面"
 
@@ -35886,11 +35882,6 @@ msgstr "大於"
 
 msgid "Less"
 msgstr "縮減"
-
-
-msgctxt "Operator"
-msgid "Separate"
-msgstr "分離"
 
 
 msgctxt "Operator"
@@ -40916,15 +40907,6 @@ msgstr "伽瑪已校正"
 
 msgid "The source color is gamma corrected"
 msgstr "來源色彩已經過伽碼校正"
-
-
-msgctxt "Operator"
-msgid "Add File Node"
-msgstr "新增檔案節點"
-
-
-msgid "Add a file node to the current node editor"
-msgstr "在目前節點編輯器中，新增檔案節點"
 
 
 msgid "Settings to be applied on the newly created node"
@@ -46056,10 +46038,6 @@ msgid "Multiply effect strip type"
 msgstr "相乘效果片段類型"
 
 
-msgid "Alpha Over Drop effect strip type"
-msgstr "背幕上 Alpha 效果片段類型"
-
-
 msgctxt "Sequence"
 msgid "Wipe"
 msgstr "擦除"
@@ -50049,12 +50027,24 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "作用中工具"
 
 
 msgid "Wire Color"
 msgstr "線色"
+
+
+msgid "Cavity"
+msgstr "坑腔"
 
 
 msgid "Render Pass"
@@ -50107,14 +50097,6 @@ msgstr "立體視覺"
 
 msgid "Multi Frame"
 msgstr "多重畫框"
-
-
-msgid "Auto-Masking"
-msgstr "自動遮罩"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -50212,10 +50194,6 @@ msgstr "追蹤預設集"
 
 msgid "Cloth Presets"
 msgstr "布料預設集"
-
-
-msgid "Restrictions"
-msgstr "限制"
 
 
 msgid "Exporters"
@@ -52435,14 +52413,6 @@ msgstr "EEVEE 除錯"
 
 msgid "Extensions Debug"
 msgstr "擴充套件除錯"
-
-
-msgid "New File Import Nodes"
-msgstr "新的檔案匯入節點"
-
-
-msgid "Enables visibility of the new File Import nodes in the UI"
-msgstr "在介面中顯示新的檔案匯入節點"
 
 
 msgid "Sculpt Texture Paint"
@@ -58135,10 +58105,6 @@ msgid "Gamma Cross"
 msgstr "伽瑪交錯"
 
 
-msgid "Over Drop"
-msgstr "後幕之上"
-
-
 msgid "Y position of the sequence strip"
 msgstr "序段片段的 Y 位置"
 
@@ -58217,11 +58183,6 @@ msgstr "聲音"
 msgctxt "Sequence"
 msgid "Cross"
 msgstr "交叉"
-
-
-msgctxt "Sequence"
-msgid "Over Drop"
-msgstr "上疊後幕"
 
 
 msgid "Use Default Fade"
@@ -61277,10 +61238,6 @@ msgid "Selected StudioLight"
 msgstr "選取的攝影棚燈"
 
 
-msgid "Cavity"
-msgstr "坑腔"
-
-
 msgid "Show Cavity"
 msgstr "顯示坑腔"
 
@@ -61460,10 +61417,6 @@ msgid "Double"
 msgstr "雙倍"
 
 
-msgid "Double precision"
-msgstr "雙倍精度"
-
-
 msgctxt "Volume"
 msgid "Integer"
 msgstr "整數"
@@ -61472,10 +61425,6 @@ msgstr "整數"
 msgctxt "Volume"
 msgid "Mask"
 msgstr "遮罩"
-
-
-msgid "No data, boolean mask of active voxels"
-msgstr "無資料，作用中體素的布林遮罩"
 
 
 msgctxt "Volume"
@@ -62523,10 +62472,6 @@ msgid "System extensions are read-only and cannot be uninstalled"
 msgstr "系統擴充套件唯讀，且無法解除安裝"
 
 
-msgid "Extension needs to be installed before it can be enabled"
-msgstr "在啟用擴充套件之前，需要先安裝"
-
-
 msgid "Refresh the list of extensions for the active repository"
 msgstr "重新整理作用中軟體庫的擴充套件列表"
 
@@ -63300,10 +63245,6 @@ msgstr "可用"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "旋轉"
-
-
-msgid "Unknown"
-msgstr "未知"
 
 
 msgid "Calculation Range"
@@ -66756,6 +66697,14 @@ msgid "Specular Lighting"
 msgstr "鏡面反射照明"
 
 
+msgid "Ridge"
+msgstr "脊線"
+
+
+msgid "Valley"
+msgstr "谷線"
+
+
 msgid "Include Active"
 msgstr "包括作用中的物體"
 
@@ -66817,14 +66766,6 @@ msgstr "縮放半徑"
 msgctxt "Operator"
 msgid "Adjust Empty Display Size"
 msgstr "調整空體顯示大小"
-
-
-msgid "Ridge"
-msgstr "脊線"
-
-
-msgid "Valley"
-msgstr "谷線"
 
 
 msgid "Affect Only"
@@ -67700,14 +67641,6 @@ msgstr "線環對並未連接"
 
 msgid "Edge-rings are not connected"
 msgstr "線環並未連接"
-
-
-msgid "UV/Image"
-msgstr "UV/影像"
-
-
-msgid "Select-Next"
-msgstr "選取下一項"
 
 
 msgid "Workbench"
@@ -69516,10 +69449,6 @@ msgid "Bake failed: invalid canvas"
 msgstr "烘焙失敗：無效的畫布"
 
 
-msgid "Baking canceled!"
-msgstr "烘焙取消！"
-
-
 msgid "Linked data-blocks do not allow editing caches"
 msgstr "連結中的資料組塊不允許編輯快取"
 
@@ -70578,10 +70507,6 @@ msgid "Node tree type %s undefined"
 msgstr "節點樹類型 %s 尚未定義"
 
 
-msgid "{} (String)"
-msgstr "{} (字串)"
-
-
 msgid "{} (Integer)"
 msgstr "{} (整數)"
 
@@ -70624,6 +70549,10 @@ msgstr "矩陣"
 
 msgid "Supported: "
 msgstr "已支援： "
+
+
+msgid "{} (String)"
+msgstr "{} (字串)"
 
 
 msgid "Accessed named attributes:"
@@ -70926,10 +70855,6 @@ msgid "There is no extension repository to remove"
 msgstr "沒有可移除的擴充套件軟體庫"
 
 
-msgid "Create object instance from object-data"
-msgstr "從物體資料建立物體實例"
-
-
 msgid "Control Point:"
 msgstr "控制點："
 
@@ -71140,6 +71065,10 @@ msgstr "fps：%.2f"
 
 msgid "fps: %i"
 msgstr "fps：%i"
+
+
+msgid "Create object instance from object-data"
+msgstr "從物體資料建立物體實例"
 
 
 msgid "Depth too large"
@@ -72381,6 +72310,10 @@ msgid "SimpleDeform"
 msgstr "簡單變形"
 
 
+msgid "Restrictions"
+msgstr "限制"
+
+
 msgid "Hull error"
 msgstr "淘選錯誤"
 
@@ -72699,6 +72632,10 @@ msgid "Top"
 msgstr "頂"
 
 
+msgid "Delimiter"
+msgstr "分隔符"
+
+
 msgid "Position 1"
 msgstr "位置 1"
 
@@ -72759,10 +72696,6 @@ msgstr "作為實例"
 
 msgid "Skip"
 msgstr "略過"
-
-
-msgid "Delimiter"
-msgstr "分隔符"
 
 
 msgid "Strings"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2025-03-03 11:30+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -1547,16 +1547,16 @@ msgid "Grease Pencil Frame"
 msgstr "तैलीय पेंसिल गठन"
 
 
-msgid "Grease Pencil Layer"
-msgstr "तैलीय पेंसिल परत"
-
-
 msgid "Regular"
 msgstr "नियमित"
 
 
 msgid "Repeat"
 msgstr "दोहराएँ"
+
+
+msgid "Grease Pencil Layer"
+msgstr "तैलीय पेंसिल परत"
 
 
 msgid "Red Green Blue"
@@ -2588,14 +2588,6 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
 msgid "Light"
 msgstr "प्रकाश"
 
@@ -2650,6 +2642,14 @@ msgstr "पाठ"
 
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -3163,6 +3163,10 @@ msgstr "भर्जन"
 
 msgid "Z Up"
 msgstr "Z ऊर्ध्व"
+
+
+msgid "Unknown"
+msgstr "अज्ञात"
 
 
 msgid "Warning"
@@ -5278,10 +5282,6 @@ msgstr "स्थिति"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "घूर्णन"
-
-
-msgid "Unknown"
-msgstr "अज्ञात"
 
 
 msgid "After"

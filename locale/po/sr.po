@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Release Candidate (b'f896f7ffc32a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-17 16:18+0000\n"
+"POT-Creation-Date: 2025-03-24 09:38+0000\n"
 "PO-Revision-Date: 2025-03-03 11:30+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -4804,12 +4804,24 @@ msgid "Grease Pencil Frame"
 msgstr "Скицирани кадар"
 
 
-msgid "Grease Pencil Layer"
-msgstr "Слој скице"
-
-
 msgid "Regular"
 msgstr "Нормално"
+
+
+msgid "Reverse"
+msgstr "Обрнуто"
+
+
+msgid "Repeat"
+msgstr "Понови"
+
+
+msgid "Frame Start"
+msgstr "Почетни кадар"
+
+
+msgid "Grease Pencil Layer"
+msgstr "Слој скице"
 
 
 msgid "Local Matrix"
@@ -4826,18 +4838,6 @@ msgstr "Родитељска кост"
 
 msgid "Translation"
 msgstr "Прелаз"
-
-
-msgid "Reverse"
-msgstr "Обрнуто"
-
-
-msgid "Repeat"
-msgstr "Понови"
-
-
-msgid "Frame Start"
-msgstr "Почетни кадар"
 
 
 msgid "Red"
@@ -8605,34 +8605,6 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
 msgid "Metaball"
 msgstr "Мета лопта"
 
@@ -8711,6 +8683,34 @@ msgstr "Специјални знаци"
 
 msgid "Bone Roll"
 msgstr "Ролна костију"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
 
 
 msgid "Basic"
@@ -10987,10 +10987,6 @@ msgid "Simple Star"
 msgstr "Једноставна звезда"
 
 
-msgid "Rotate 45"
-msgstr "Окретање 45"
-
-
 msgid "Hue Correct"
 msgstr "Корекција тона"
 
@@ -11297,6 +11293,10 @@ msgstr "Информације о објекту"
 
 msgid "Z Up"
 msgstr "Горе по Z"
+
+
+msgid "Unknown"
+msgstr "Непознато"
 
 
 msgid "Selection"
@@ -15994,11 +15994,6 @@ msgstr "Пређи у режим дотеривања"
 msgctxt "Operator"
 msgid "Exit Tweak Mode"
 msgstr "Напусти режим дотеривања"
-
-
-msgctxt "Operator"
-msgid "Add File Node"
-msgstr "Додај чвор датотеке"
 
 
 msgctxt "Operator"
@@ -23614,10 +23609,6 @@ msgstr "Локација"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "Окретање"
-
-
-msgid "Unknown"
-msgstr "Непознато"
 
 
 msgid "Frame Numbers"
