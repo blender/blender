@@ -16,14 +16,11 @@
 #include <cstdlib>
 
 #include "BLI_math_base.h"
+#include "BLI_math_matrix.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_vec_types.h"
-
-/* avoid including BLI_math */
-static void unit_m4(float m[4][4]);
-static void unit_m3(float m[3][3]);
 
 bool BLI_rcti_is_empty(const rcti *rect)
 {
@@ -1130,20 +1127,3 @@ void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
 #undef ROTATE_SINCOS
 
 /** \} */
-
-static void unit_m4(float m[4][4])
-{
-  m[0][0] = m[1][1] = m[2][2] = m[3][3] = 1.0f;
-  m[0][1] = m[0][2] = m[0][3] = 0.0f;
-  m[1][0] = m[1][2] = m[1][3] = 0.0f;
-  m[2][0] = m[2][1] = m[2][3] = 0.0f;
-  m[3][0] = m[3][1] = m[3][2] = 0.0f;
-}
-
-static void unit_m3(float m[3][3])
-{
-  m[0][0] = m[1][1] = m[2][2] = 1.0f;
-  m[0][1] = m[0][2] = 0.0f;
-  m[1][0] = m[1][2] = 0.0f;
-  m[2][0] = m[2][1] = 0.0f;
-}
