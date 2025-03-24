@@ -5,6 +5,7 @@
 #include "stdcycles.h"
 
 shader node_attribute(string bump_offset = "center",
+                      float bump_filter_width = BUMP_FILTER_WIDTH,
                       string name = "",
                       output point Vector = point(0.0, 0.0, 0.0),
                       output color Color = 0.0,
@@ -19,15 +20,15 @@ shader node_attribute(string bump_offset = "center",
   Alpha = data[3];
 
   if (bump_offset == "dx") {
-    Color += Dx(Color) * BUMP_DX;
-    Vector += Dx(Vector) * BUMP_DX;
-    Fac += Dx(Fac) * BUMP_DX;
-    Alpha += Dx(Alpha) * BUMP_DX;
+    Color += Dx(Color) * bump_filter_width;
+    Vector += Dx(Vector) * bump_filter_width;
+    Fac += Dx(Fac) * bump_filter_width;
+    Alpha += Dx(Alpha) * bump_filter_width;
   }
   else if (bump_offset == "dy") {
-    Color += Dy(Color) * BUMP_DY;
-    Vector += Dy(Vector) * BUMP_DY;
-    Fac += Dy(Fac) * BUMP_DY;
-    Alpha += Dy(Alpha) * BUMP_DY;
+    Color += Dy(Color) * bump_filter_width;
+    Vector += Dy(Vector) * bump_filter_width;
+    Fac += Dy(Fac) * bump_filter_width;
+    Alpha += Dy(Alpha) * bump_filter_width;
   }
 }

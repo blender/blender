@@ -151,7 +151,10 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
     case GPU_NODE_LINK_DIFFERENTIATE_FLOAT_FN:
       input->source = GPU_SOURCE_FUNCTION_CALL;
       /* NOTE(@fclem): End of function call is the return variable set during codegen. */
-      SNPRINTF(input->function_call, "dF_branch_incomplete(%s(), ", link->function_name);
+      SNPRINTF(input->function_call,
+               "dF_branch_incomplete(%s(), %g, ",
+               link->differentiate_float.function_name,
+               link->differentiate_float.filter_width);
       break;
     default:
       break;
@@ -638,11 +641,12 @@ GPUNodeLink *GPU_uniform(const float *num)
   return link;
 }
 
-GPUNodeLink *GPU_differentiate_float_function(const char *function_name)
+GPUNodeLink *GPU_differentiate_float_function(const char *function_name, const float filter_width)
 {
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_DIFFERENTIATE_FLOAT_FN;
-  link->function_name = function_name;
+  link->differentiate_float.function_name = function_name;
+  link->differentiate_float.filter_width = filter_width;
   return link;
 }
 

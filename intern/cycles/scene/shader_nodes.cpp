@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/shader_nodes.h"
+#include "kernel/svm/types.h"
 #include "scene/colorspace.h"
 #include "scene/constant_fold.h"
 #include "scene/film.h"
@@ -20,6 +21,7 @@
 #include "util/color.h"
 
 #include "util/log.h"
+#include "util/math_base.h"
 #include "util/transform.h"
 
 #include "kernel/svm/color_util.h"
@@ -3948,32 +3950,38 @@ void GeometryNode::compile(SVMCompiler &compiler)
 
   out = output("Position");
   if (!out->links.empty()) {
-    compiler.add_node(geom_node, NODE_GEOM_P, compiler.stack_assign(out));
+    compiler.add_node(
+        geom_node, NODE_GEOM_P, compiler.stack_assign(out), __float_as_uint(bump_filter_width));
   }
 
   out = output("Normal");
   if (!out->links.empty()) {
-    compiler.add_node(geom_node, NODE_GEOM_N, compiler.stack_assign(out));
+    compiler.add_node(
+        geom_node, NODE_GEOM_N, compiler.stack_assign(out), __float_as_uint(bump_filter_width));
   }
 
   out = output("Tangent");
   if (!out->links.empty()) {
-    compiler.add_node(geom_node, NODE_GEOM_T, compiler.stack_assign(out));
+    compiler.add_node(
+        geom_node, NODE_GEOM_T, compiler.stack_assign(out), __float_as_uint(bump_filter_width));
   }
 
   out = output("True Normal");
   if (!out->links.empty()) {
-    compiler.add_node(geom_node, NODE_GEOM_Ng, compiler.stack_assign(out));
+    compiler.add_node(
+        geom_node, NODE_GEOM_Ng, compiler.stack_assign(out), __float_as_uint(bump_filter_width));
   }
 
   out = output("Incoming");
   if (!out->links.empty()) {
-    compiler.add_node(geom_node, NODE_GEOM_I, compiler.stack_assign(out));
+    compiler.add_node(
+        geom_node, NODE_GEOM_I, compiler.stack_assign(out), __float_as_uint(bump_filter_width));
   }
 
   out = output("Parametric");
   if (!out->links.empty()) {
-    compiler.add_node(geom_node, NODE_GEOM_uv, compiler.stack_assign(out));
+    compiler.add_node(
+        geom_node, NODE_GEOM_uv, compiler.stack_assign(out), __float_as_uint(bump_filter_width));
   }
 
   out = output("Backfacing");
@@ -3984,8 +3992,10 @@ void GeometryNode::compile(SVMCompiler &compiler)
   out = output("Pointiness");
   if (!out->links.empty()) {
     if (compiler.output_type() != SHADER_TYPE_VOLUME) {
-      compiler.add_node(
-          attr_node, ATTR_STD_POINTINESS, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT);
+      compiler.add_node(attr_node,
+                        ATTR_STD_POINTINESS,
+                        compiler.encode_uchar4(compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT),
+                        __float_as_uint(bump_filter_width));
     }
     else {
       compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), compiler.stack_assign(out));
@@ -3997,8 +4007,8 @@ void GeometryNode::compile(SVMCompiler &compiler)
     if (compiler.output_type() != SHADER_TYPE_VOLUME) {
       compiler.add_node(attr_node,
                         ATTR_STD_RANDOM_PER_ISLAND,
-                        compiler.stack_assign(out),
-                        NODE_ATTR_OUTPUT_FLOAT);
+                        compiler.encode_uchar4(compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT),
+                        __float_as_uint(bump_filter_width));
     }
     else {
       compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), compiler.stack_assign(out));
@@ -4017,6 +4027,7 @@ void GeometryNode::compile(OSLCompiler &compiler)
   else {
     compiler.parameter("bump_offset", "center");
   }
+  compiler.parameter("bump_filter_width", bump_filter_width);
 
   compiler.add(this, "node_geometry");
 }
@@ -4089,41 +4100,65 @@ void TextureCoordinateNode::compile(SVMCompiler &compiler)
   out = output("Generated");
   if (!out->links.empty()) {
     if (compiler.background) {
-      compiler.add_node(geom_node, NODE_GEOM_P, compiler.stack_assign(out));
+      compiler.add_node(
+          geom_node, NODE_GEOM_P, compiler.stack_assign(out), __float_as_uint(bump_filter_width));
     }
     else {
       if (from_dupli) {
-        compiler.add_node(texco_node, NODE_TEXCO_DUPLI_GENERATED, compiler.stack_assign(out));
+        compiler.add_node(texco_node,
+                          NODE_TEXCO_DUPLI_GENERATED,
+                          compiler.stack_assign(out),
+                          __float_as_uint(bump_filter_width));
       }
       else if (compiler.output_type() == SHADER_TYPE_VOLUME) {
-        compiler.add_node(texco_node, NODE_TEXCO_VOLUME_GENERATED, compiler.stack_assign(out));
+        compiler.add_node(texco_node,
+                          NODE_TEXCO_VOLUME_GENERATED,
+                          compiler.stack_assign(out),
+                          __float_as_uint(bump_filter_width));
       }
       else {
         const int attr = compiler.attribute(ATTR_STD_GENERATED);
-        compiler.add_node(attr_node, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT3);
+        compiler.add_node(
+            attr_node,
+            attr,
+            compiler.encode_uchar4(compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT3),
+            __float_as_uint(bump_filter_width));
       }
     }
   }
 
   out = output("Normal");
   if (!out->links.empty()) {
-    compiler.add_node(texco_node, NODE_TEXCO_NORMAL, compiler.stack_assign(out));
+    compiler.add_node(texco_node,
+                      NODE_TEXCO_NORMAL,
+                      compiler.stack_assign(out),
+                      __float_as_uint(bump_filter_width));
   }
 
   out = output("UV");
   if (!out->links.empty()) {
     if (from_dupli) {
-      compiler.add_node(texco_node, NODE_TEXCO_DUPLI_UV, compiler.stack_assign(out));
+      compiler.add_node(texco_node,
+                        NODE_TEXCO_DUPLI_UV,
+                        compiler.stack_assign(out),
+                        __float_as_uint(bump_filter_width));
     }
     else {
       const int attr = compiler.attribute(ATTR_STD_UV);
-      compiler.add_node(attr_node, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT3);
+      compiler.add_node(
+          attr_node,
+          attr,
+          compiler.encode_uchar4(compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT3),
+          __float_as_uint(bump_filter_width));
     }
   }
 
   out = output("Object");
   if (!out->links.empty()) {
-    compiler.add_node(texco_node, NODE_TEXCO_OBJECT, compiler.stack_assign(out), use_transform);
+    compiler.add_node(texco_node,
+                      (use_transform) ? NODE_TEXCO_OBJECT_WITH_TRANSFORM : NODE_TEXCO_OBJECT,
+                      compiler.stack_assign(out),
+                      __float_as_uint(bump_filter_width));
     if (use_transform) {
       const Transform ob_itfm = transform_inverse(ob_tfm);
       compiler.add_node(ob_itfm.x);
@@ -4134,21 +4169,31 @@ void TextureCoordinateNode::compile(SVMCompiler &compiler)
 
   out = output("Camera");
   if (!out->links.empty()) {
-    compiler.add_node(texco_node, NODE_TEXCO_CAMERA, compiler.stack_assign(out));
+    compiler.add_node(texco_node,
+                      NODE_TEXCO_CAMERA,
+                      compiler.stack_assign(out),
+                      __float_as_uint(bump_filter_width));
   }
 
   out = output("Window");
   if (!out->links.empty()) {
-    compiler.add_node(texco_node, NODE_TEXCO_WINDOW, compiler.stack_assign(out));
+    compiler.add_node(texco_node,
+                      NODE_TEXCO_WINDOW,
+                      compiler.stack_assign(out),
+                      __float_as_uint(bump_filter_width));
   }
 
   out = output("Reflection");
   if (!out->links.empty()) {
     if (compiler.background) {
-      compiler.add_node(geom_node, NODE_GEOM_I, compiler.stack_assign(out));
+      compiler.add_node(
+          geom_node, NODE_GEOM_I, compiler.stack_assign(out), __float_as_uint(bump_filter_width));
     }
     else {
-      compiler.add_node(texco_node, NODE_TEXCO_REFLECTION, compiler.stack_assign(out));
+      compiler.add_node(texco_node,
+                        NODE_TEXCO_REFLECTION,
+                        compiler.stack_assign(out),
+                        __float_as_uint(bump_filter_width));
     }
   }
 }
@@ -4164,6 +4209,7 @@ void TextureCoordinateNode::compile(OSLCompiler &compiler)
   else {
     compiler.parameter("bump_offset", "center");
   }
+  compiler.parameter("bump_filter_width", bump_filter_width);
 
   if (compiler.background) {
     compiler.parameter("is_background", true);
@@ -4232,7 +4278,10 @@ void UVMapNode::compile(SVMCompiler &compiler)
 
   if (!out->links.empty()) {
     if (from_dupli) {
-      compiler.add_node(texco_node, NODE_TEXCO_DUPLI_UV, compiler.stack_assign(out));
+      compiler.add_node(texco_node,
+                        NODE_TEXCO_DUPLI_UV,
+                        compiler.stack_assign(out),
+                        __float_as_uint(bump_filter_width));
     }
     else {
       if (!attribute.empty()) {
@@ -4242,7 +4291,11 @@ void UVMapNode::compile(SVMCompiler &compiler)
         attr = compiler.attribute(ATTR_STD_UV);
       }
 
-      compiler.add_node(attr_node, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT3);
+      compiler.add_node(
+          attr_node,
+          attr,
+          compiler.encode_uchar4(compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT3),
+          __float_as_uint(bump_filter_width));
     }
   }
 }
@@ -4258,6 +4311,7 @@ void UVMapNode::compile(OSLCompiler &compiler)
   else {
     compiler.parameter("bump_offset", "center");
   }
+  compiler.parameter("bump_filter_width", bump_filter_width);
 
   compiler.parameter(this, "from_dupli");
   compiler.parameter(this, "attribute");
@@ -4857,8 +4911,11 @@ void VertexColorNode::compile(SVMCompiler &compiler)
     node = NODE_VERTEX_COLOR;
   }
 
-  compiler.add_node(
-      node, layer_id, compiler.stack_assign(color_out), compiler.stack_assign(alpha_out));
+  compiler.add_node(node,
+                    compiler.encode_uchar4(layer_id,
+                                           compiler.stack_assign(color_out),
+                                           compiler.stack_assign(alpha_out)),
+                    __float_as_uint(bump_filter_width));
 }
 
 void VertexColorNode::compile(OSLCompiler &compiler)
@@ -4872,6 +4929,7 @@ void VertexColorNode::compile(OSLCompiler &compiler)
   else {
     compiler.parameter("bump_offset", "center");
   }
+  compiler.parameter("bump_filter_width", bump_filter_width);
 
   if (layer_name.empty()) {
     compiler.parameter("layer_name", ustring("geom:vertex_color"));
@@ -6052,21 +6110,34 @@ void AttributeNode::compile(SVMCompiler &compiler)
   if (!color_out->links.empty() || !vector_out->links.empty()) {
     if (!color_out->links.empty()) {
       compiler.add_node(
-          attr_node, attr, compiler.stack_assign(color_out), NODE_ATTR_OUTPUT_FLOAT3);
+          attr_node,
+          attr,
+          compiler.encode_uchar4(compiler.stack_assign(color_out), NODE_ATTR_OUTPUT_FLOAT3),
+          __float_as_uint(bump_filter_width));
     }
     if (!vector_out->links.empty()) {
       compiler.add_node(
-          attr_node, attr, compiler.stack_assign(vector_out), NODE_ATTR_OUTPUT_FLOAT3);
+          attr_node,
+          attr,
+          compiler.encode_uchar4(compiler.stack_assign(vector_out), NODE_ATTR_OUTPUT_FLOAT3),
+          __float_as_uint(bump_filter_width));
     }
   }
 
   if (!fac_out->links.empty()) {
-    compiler.add_node(attr_node, attr, compiler.stack_assign(fac_out), NODE_ATTR_OUTPUT_FLOAT);
+    compiler.add_node(
+        attr_node,
+        attr,
+        compiler.encode_uchar4(compiler.stack_assign(fac_out), NODE_ATTR_OUTPUT_FLOAT),
+        __float_as_uint(bump_filter_width));
   }
 
   if (!alpha_out->links.empty()) {
     compiler.add_node(
-        attr_node, attr, compiler.stack_assign(alpha_out), NODE_ATTR_OUTPUT_FLOAT_ALPHA);
+        attr_node,
+        attr,
+        compiler.encode_uchar4(compiler.stack_assign(alpha_out), NODE_ATTR_OUTPUT_FLOAT_ALPHA),
+        __float_as_uint(bump_filter_width));
   }
 }
 
@@ -6081,6 +6152,7 @@ void AttributeNode::compile(OSLCompiler &compiler)
   else {
     compiler.parameter("bump_offset", "center");
   }
+  compiler.parameter("bump_filter_width", bump_filter_width);
 
   if (Attribute::name_standard(attribute.c_str()) != ATTR_STD_NONE) {
     compiler.parameter("name", (string("geom:") + attribute.c_str()).c_str());
@@ -6234,10 +6306,11 @@ void WireframeNode::compile(SVMCompiler &compiler)
   else if (bump == SHADER_BUMP_DY) {
     bump_offset = NODE_BUMP_OFFSET_DY;
   }
-  compiler.add_node(NODE_WIREFRAME,
-                    compiler.stack_assign(size_in),
-                    compiler.stack_assign(fac_out),
-                    compiler.encode_uchar4(use_pixel_size, bump_offset, 0, 0));
+  compiler.add_node(
+      NODE_WIREFRAME,
+      compiler.stack_assign(size_in),
+      __float_as_uint(bump_filter_width),
+      compiler.encode_uchar4(use_pixel_size, bump_offset, compiler.stack_assign(fac_out), 0));
 }
 
 void WireframeNode::compile(OSLCompiler &compiler)
@@ -6251,6 +6324,8 @@ void WireframeNode::compile(OSLCompiler &compiler)
   else {
     compiler.parameter("bump_offset", "center");
   }
+  compiler.parameter("bump_filter_width", bump_filter_width);
+
   compiler.parameter(this, "use_pixel_size");
   compiler.add(this, "node_wireframe");
 }
@@ -6976,6 +7051,7 @@ NODE_DEFINE(BumpNode)
   SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
   SOCKET_IN_FLOAT(strength, "Strength", 1.0f);
   SOCKET_IN_FLOAT(distance, "Distance", 0.1f);
+  SOCKET_IN_FLOAT(filter_width, "Filter Width", 0.1f);
 
   SOCKET_OUT_NORMAL(normal, "Normal");
 
@@ -7009,6 +7085,7 @@ void BumpNode::compile(SVMCompiler &compiler)
                              compiler.stack_assign(dy_in),
                              compiler.stack_assign(strength_in)),
       compiler.encode_uchar4(compiler.stack_assign(normal_out), compiler.get_bump_state_offset()));
+  compiler.add_node(__float_as_uint(filter_width));
 }
 
 void BumpNode::compile(OSLCompiler &compiler)

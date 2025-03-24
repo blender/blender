@@ -6,15 +6,16 @@
 #include "stdcycles.h"
 
 shader node_wireframe(string bump_offset = "center",
+                      float bump_filter_width = BUMP_FILTER_WIDTH,
                       int use_pixel_size = 0,
                       float Size = 0.01,
                       output float Fac = 0.0)
 {
   if (bump_offset == "dx") {
-    P += Dx(P) * BUMP_DX;
+    P += Dx(P) * bump_filter_width;
   }
   else if (bump_offset == "dy") {
-    P += Dy(P) * BUMP_DY;
+    P += Dy(P) * bump_filter_width;
   }
 
   Fac = wireframe("triangles", Size, use_pixel_size);

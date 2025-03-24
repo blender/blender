@@ -7,6 +7,7 @@
 shader node_uv_map(int from_dupli = 0,
                    string attribute = "",
                    string bump_offset = "center",
+                   float bump_filter_width = BUMP_FILTER_WIDTH,
                    output point UV = point(0.0, 0.0, 0.0))
 {
   if (from_dupli) {
@@ -21,12 +22,12 @@ shader node_uv_map(int from_dupli = 0,
 
   if (bump_offset == "dx") {
     if (!from_dupli) {
-      UV += Dx(UV) * BUMP_DX;
+      UV += Dx(UV) * bump_filter_width;
     }
   }
   else if (bump_offset == "dy") {
     if (!from_dupli) {
-      UV += Dy(UV) * BUMP_DY;
+      UV += Dy(UV) * bump_filter_width;
     }
   }
 }
