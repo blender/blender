@@ -119,7 +119,7 @@ struct tObject {
 
 /* *********** LISTS *********** */
 
-struct Instance : public DrawEngine {
+struct Instance final : public DrawEngine {
   PassSimple smaa_edge_ps = {"smaa_edge"};
   PassSimple smaa_weight_ps = {"smaa_weight"};
   PassSimple smaa_resolve_ps = {"smaa_resolve"};
