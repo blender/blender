@@ -19,6 +19,7 @@
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 
+#include "gpu_capabilities_private.hh"
 #include "gpu_material_library.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_dependency_private.hh"
@@ -54,6 +55,7 @@ struct GPUSource {
   StringRefNull fullpath;
   StringRefNull filename;
   StringRefNull source;
+  std::string patched_source;
   Vector<StringRef> dependencies_names;
   Vector<GPUSource *> dependencies;
   bool dependencies_init = false;
@@ -490,6 +492,18 @@ void gpu_shader_dependency_init()
     }
   }
 #endif
+
+  if (GCaps.line_directive_workaround) {
+    for (auto *value : g_sources->values()) {
+      value->patched_source = value->source;
+      value->source = value->patched_source.c_str();
+      size_t start_pos = 0;
+      while ((start_pos = value->patched_source.find("#line ", start_pos)) != std::string::npos) {
+        value->patched_source[start_pos] = '/';
+        value->patched_source[start_pos + 1] = '/';
+      }
+    }
+  }
 }
 
 void gpu_shader_dependency_exit()

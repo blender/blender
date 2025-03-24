@@ -311,6 +311,7 @@ static void detect_workarounds()
     GCaps.mip_render_workaround = true;
     GCaps.stencil_clasify_buffer_workaround = true;
     GCaps.node_link_instancing_workaround = true;
+    GCaps.line_directive_workaround = true;
     GLContext::debug_layer_workaround = true;
     /* Turn off Blender features. */
     GCaps.hdr_viewport_support = false;
@@ -401,6 +402,18 @@ static void detect_workarounds()
       GCaps.use_hq_normals_workaround = true;
     }
   }
+  /* See #132968: Legacy AMD drivers do not accept a hash after the line number and results into
+   * undefined behaviour. Users have reported that the issue can go away after doing a clean
+   * install of the driver.
+   */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    if (strstr(version, " 22.6.1 ") || strstr(version, " 21.Q1.2 ") ||
+        strstr(version, " 21.Q2.1 "))
+    {
+      GCaps.line_directive_workaround = true;
+    }
+  }
+
   /* Special fix for these specific GPUs.
    * Without this workaround, blender crashes on startup. (see #72098) */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
