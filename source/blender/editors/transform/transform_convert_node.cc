@@ -168,7 +168,6 @@ static void node_snap_grid_apply(TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     for (const int i : IndexRange(tc->data_len)) {
       TransData &td = tc->data[i];
-      float iloc[2], loc[2], tvec[2];
       if (td.flag & TD_SKIP) {
         continue;
       }
@@ -177,13 +176,20 @@ static void node_snap_grid_apply(TransInfo *t)
         continue;
       }
 
-      copy_v2_v2(iloc, td.loc);
+      /* Nodes are snapped to the grid by first aligning their inital position to the grid and then
+       * offsetting them in grid increments.
+       * This ensures that multiple unsnapped nodes snap to the grid in sync while moving.
+       */
 
-      loc[0] = roundf(iloc[0] / grid_size[0]) * grid_size[0];
-      loc[1] = roundf(iloc[1] / grid_size[1]) * grid_size[1];
+      const float2 inital_location = td.iloc;
+      const float2 target_location = td.loc;
+      const float2 offset = target_location - inital_location;
 
-      sub_v2_v2v2(tvec, loc, iloc);
-      add_v2_v2(td.loc, tvec);
+      const float2 snapped_inital_location = math::round(inital_location / grid_size) * grid_size;
+      const float2 snapped_offset = math::round(offset / grid_size) * grid_size;
+      const float2 snapped_target_location = snapped_inital_location + snapped_offset;
+
+      copy_v2_v2(td.loc, snapped_target_location);
     }
   }
 }
