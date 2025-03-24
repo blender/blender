@@ -182,7 +182,7 @@ class GHOST_ContextVK : public GHOST_Context {
   std::vector<VkImage> m_swapchain_images;
   std::vector<VkSemaphore> m_acquire_semaphores;
   std::vector<VkSemaphore> m_present_semaphores;
-  uint32_t m_render_frame;
+  uint64_t m_render_frame;
 
   VkExtent2D m_render_extent;
   VkExtent2D m_render_extent_min;

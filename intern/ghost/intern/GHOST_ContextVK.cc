@@ -559,13 +559,13 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
    * swapchain image. Other do it when calling vkQueuePresent. */
   VkResult result = VK_ERROR_OUT_OF_DATE_KHR;
   uint32_t image_index = 0;
-  int32_t render_frame = 0;
+  m_render_frame += 1;
+  int32_t semaphore_index = uint32_t(m_render_frame % m_acquire_semaphores.size());
   while (result == VK_ERROR_OUT_OF_DATE_KHR) {
-    render_frame = (m_render_frame + 1) % m_acquire_semaphores.size();
     result = vkAcquireNextImageKHR(device,
                                    m_swapchain,
                                    UINT64_MAX,
-                                   m_acquire_semaphores[render_frame],
+                                   m_acquire_semaphores[semaphore_index],
                                    VK_NULL_HANDLE,
                                    &image_index);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -578,8 +578,8 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   swap_chain_data.image = m_swapchain_images[image_index];
   swap_chain_data.surface_format = m_surface_format;
   swap_chain_data.extent = m_render_extent;
-  swap_chain_data.acquire_semaphore = m_acquire_semaphores[render_frame];
-  swap_chain_data.present_semaphore = m_present_semaphores[render_frame];
+  swap_chain_data.acquire_semaphore = m_acquire_semaphores[semaphore_index];
+  swap_chain_data.present_semaphore = m_present_semaphores[semaphore_index];
 
   if (swap_buffers_pre_callback_) {
     swap_buffers_pre_callback_(&swap_chain_data);
@@ -588,7 +588,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   VkPresentInfoKHR present_info = {};
   present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
   present_info.waitSemaphoreCount = 1;
-  present_info.pWaitSemaphores = &m_present_semaphores[render_frame];
+  present_info.pWaitSemaphores = &m_present_semaphores[semaphore_index];
   present_info.swapchainCount = 1;
   present_info.pSwapchains = &m_swapchain;
   present_info.pImageIndices = &image_index;
