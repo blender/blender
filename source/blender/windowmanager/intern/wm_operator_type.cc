@@ -50,36 +50,16 @@ static void wm_operatortype_free_macro(wmOperatorType *ot);
 
 using blender::StringRef;
 
-struct OperatorTypePointerHash {
-  uint64_t operator()(const wmOperatorType *value) const
-  {
-    return get_default_hash(StringRef(value->idname));
-  }
-  uint64_t operator()(const StringRef name) const
-  {
-    return get_default_hash(name);
-  }
-};
-
-struct OperatorTypePointerNameEqual {
-  bool operator()(const wmOperatorType *a, const wmOperatorType *b) const
-  {
-    return STREQ(a->idname, b->idname);
-  }
-  bool operator()(const StringRef idname, const wmOperatorType *a) const
-  {
-    return a->idname == idname;
-  }
-};
-
 static auto &get_operators_map()
 {
+  struct OperatorNameGetter {
+    StringRef operator()(const wmOperatorType *value) const
+    {
+      return StringRef(value->idname);
+    }
+  };
   static auto map = []() {
-    blender::VectorSet<wmOperatorType *,
-                       blender::DefaultProbingStrategy,
-                       OperatorTypePointerHash,
-                       OperatorTypePointerNameEqual>
-        map;
+    blender::CustomIDVectorSet<wmOperatorType *, OperatorNameGetter> map;
     /* Reserve size is set based on blender default setup. */
     map.reserve(2048);
     return map;
