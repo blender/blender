@@ -415,7 +415,7 @@ void Instance::begin_sync()
   state.camera_position = view.viewinv().location();
   state.camera_forward = view.viewinv().z_axis();
 
-  resources.begin_sync();
+  resources.begin_sync(state.clipping_plane_count);
 
   background.begin_sync(resources, state);
   cursor.begin_sync(resources, state);

@@ -713,9 +713,9 @@ struct Resources : public select::SelectMap {
     shaders = &overlay::ShaderModule::module_get(selection_type, clipping_enabled);
   }
 
-  void begin_sync()
+  void begin_sync(int clipping_plane_count)
   {
-    SelectMap::begin_sync();
+    SelectMap::begin_sync(clipping_plane_count);
     free_movieclips_textures();
   }
 
