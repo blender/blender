@@ -26,6 +26,7 @@ struct uiLayout;
 namespace blender::nodes {
 
 class NodeDeclarationBuilder;
+class PanelDeclaration;
 
 enum class InputSocketFieldType : int8_t {
   /** The input is required to be a single value. */
@@ -154,6 +155,8 @@ using ImplicitInputValueFn = std::function<void(const bNode &node, void *r_value
 /* Socket or panel declaration. */
 class ItemDeclaration {
  public:
+  const PanelDeclaration *parent = nullptr;
+
   virtual ~ItemDeclaration() = default;
 };
 
@@ -696,6 +699,7 @@ inline typename DeclType::Builder &DeclarationListBuilder::add_socket(StringRef 
   this->node_decl_builder.declaration_.all_items.append(std::move(socket_decl_ptr));
   this->items.append(&socket_decl);
 
+  socket_decl.parent = this->parent_panel_decl;
   socket_decl_builder.node_decl_builder_ = &this->node_decl_builder;
 
   socket_decl_builder.decl_ = &socket_decl;
