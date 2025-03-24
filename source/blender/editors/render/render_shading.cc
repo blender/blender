@@ -89,6 +89,7 @@
 #include "ED_render.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
+#include "ED_undo.hh"
 
 #include "RNA_define.hh"
 #include "RNA_prototypes.hh"
@@ -825,7 +826,7 @@ void MATERIAL_OT_new(wmOperatorType *ot)
 /** \name New Texture Operator
  * \{ */
 
-static wmOperatorStatus new_texture_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus new_texture_exec(bContext *C, wmOperator *op)
 {
   Tex *tex = static_cast<Tex *>(CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data);
   Main *bmain = CTX_data_main(C);
@@ -843,6 +844,7 @@ static wmOperatorStatus new_texture_exec(bContext *C, wmOperator * /*op*/)
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
+  bool linked_id_created = false;
   if (prop) {
     /* when creating new ID blocks, use is already 1, but RNA
      * pointer use also increases user, so this compensates it */
@@ -850,11 +852,16 @@ static wmOperatorStatus new_texture_exec(bContext *C, wmOperator * /*op*/)
 
     if (ptr.owner_id) {
       BKE_id_move_to_same_lib(*bmain, tex->id, *ptr.owner_id);
+      linked_id_created = ID_IS_LINKED(&tex->id);
     }
 
     PointerRNA idptr = RNA_id_pointer_create(&tex->id);
     RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
+  }
+
+  if (!linked_id_created) {
+    ED_undo_push_op(C, op);
   }
 
   WM_event_add_notifier(C, NC_TEXTURE | NA_ADDED, tex);
@@ -873,7 +880,7 @@ void TEXTURE_OT_new(wmOperatorType *ot)
   ot->exec = new_texture_exec;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL;
 }
 
 /** \} */
