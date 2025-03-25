@@ -20,13 +20,11 @@
 #include "MEM_guardedalloc.h"
 
 static ImBuf *imb_load_dpx_cineon(
-    const uchar *mem, size_t size, int use_cineon, int flags, char colorspace[IM_MAX_SPACE])
+    const uchar *mem, size_t size, int use_cineon, int flags, ImFileColorSpace &r_colorspace)
 {
   ImBuf *ibuf;
   LogImageFile *image;
   int width, height, depth;
-
-  colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
   logImageSetVerbose((G.debug & G_DEBUG) ? 1 : 0);
 
@@ -60,6 +58,8 @@ static ImBuf *imb_load_dpx_cineon(
   if (flags & IB_alphamode_detect) {
     ibuf->flags |= IB_alphamode_premul;
   }
+
+  r_colorspace.is_hdr_float = true;
 
   return ibuf;
 }
@@ -173,10 +173,10 @@ bool imb_is_a_cineon(const uchar *mem, size_t size)
   return logImageIsCineon(mem, size);
 }
 
-ImBuf *imb_load_cineon(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_cineon(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
 {
   if (!imb_is_a_cineon(mem, size)) {
     return nullptr;
   }
-  return imb_load_dpx_cineon(mem, size, 1, flags, colorspace);
+  return imb_load_dpx_cineon(mem, size, 1, flags, r_colorspace);
 }

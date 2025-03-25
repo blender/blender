@@ -19,7 +19,7 @@ bool imb_is_a_bmp(const uchar *mem, size_t size)
   return imb_oiio_check(mem, size, "bmp");
 }
 
-ImBuf *imb_load_bmp(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_bmp(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
 {
   ImageSpec config, spec;
 
@@ -27,7 +27,7 @@ ImBuf *imb_load_bmp(const uchar *mem, size_t size, int flags, char colorspace[IM
   config.attribute("bmp:monochrome_detect", 0);
 
   ReadContext ctx{mem, size, "bmp", IMB_FTYPE_BMP, flags};
-  return imb_oiio_read(ctx, config, colorspace, spec);
+  return imb_oiio_read(ctx, config, r_colorspace, spec);
 }
 
 bool imb_save_bmp(ImBuf *ibuf, const char *filepath, int flags)

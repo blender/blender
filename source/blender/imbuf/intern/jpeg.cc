@@ -438,7 +438,10 @@ static ImBuf *ibJpegImageFromCinfo(
   return ibuf;
 }
 
-ImBuf *imb_load_jpeg(const uchar *buffer, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_jpeg(const uchar *buffer,
+                     size_t size,
+                     int flags,
+                     ImFileColorSpace & /*r_colorspace*/)
 {
   jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
   my_error_mgr jerr;
@@ -447,8 +450,6 @@ ImBuf *imb_load_jpeg(const uchar *buffer, size_t size, int flags, char colorspac
   if (!imb_is_a_jpeg(buffer, size)) {
     return nullptr;
   }
-
-  colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
   cinfo->err = jpeg_std_error(&jerr.pub);
   jerr.pub.error_exit = jpeg_error;
@@ -479,15 +480,13 @@ ImBuf *imb_load_jpeg(const uchar *buffer, size_t size, int flags, char colorspac
 ImBuf *imb_thumbnail_jpeg(const char *filepath,
                           const int flags,
                           const size_t max_thumb_size,
-                          char colorspace[IM_MAX_SPACE],
+                          ImFileColorSpace &r_colorspace,
                           size_t *r_width,
                           size_t *r_height)
 {
   jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
   my_error_mgr jerr;
   FILE *infile = nullptr;
-
-  colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
   cinfo->err = jpeg_std_error(&jerr.pub);
   jerr.pub.error_exit = jpeg_error;
@@ -526,7 +525,7 @@ ImBuf *imb_thumbnail_jpeg(const char *filepath,
       buffer[0] = JPEG_MARKER_MSB;
       buffer[1] = JPEG_MARKER_SOI;
       if (fread(buffer + 2, JPEG_APP1_MAX - 2, 1, infile) == 1) {
-        ibuf = imb_load_jpeg(buffer, JPEG_APP1_MAX, flags, colorspace);
+        ibuf = imb_load_jpeg(buffer, JPEG_APP1_MAX, flags, r_colorspace);
       }
       MEM_SAFE_FREE(buffer);
       if (ibuf) {

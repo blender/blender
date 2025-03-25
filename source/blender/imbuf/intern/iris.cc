@@ -213,7 +213,7 @@ bool imb_is_a_iris(const uchar *mem, size_t size)
   return ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC));
 }
 
-ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace & /*r_colorspace*/)
 {
   uint *base, *lptr = nullptr;
   float *fbase, *fptr = nullptr;
@@ -234,9 +234,6 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
   if (size < HEADER_SIZE) {
     return nullptr;
   }
-
-  /* OCIO_TODO: only tested with 1 byte per pixel, not sure how to test with other settings */
-  colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
   readheader(inf, &image);
   if (image.imagic != IMAGIC) {

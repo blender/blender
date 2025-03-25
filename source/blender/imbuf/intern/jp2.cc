@@ -298,9 +298,9 @@ static opj_stream_t *opj_stream_create_from_file(const char *filepath,
 static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
                                   OPJ_CODEC_FORMAT p_format,
                                   int flags,
-                                  char colorspace[IM_MAX_SPACE]);
+                                  ImFileColorSpace &r_colorspace);
 
-ImBuf *imb_load_jp2(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_jp2(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
 {
   const OPJ_CODEC_FORMAT format = (size > JP2_FILEHEADER_SIZE) ? format_from_header(mem, size) :
                                                                  OPJ_CODEC_UNKNOWN;
@@ -310,12 +310,12 @@ ImBuf *imb_load_jp2(const uchar *mem, size_t size, int flags, char colorspace[IM
   buf_wrapper.len = OPJ_OFF_T(size);
   opj_stream_t *stream = opj_stream_create_from_buffer(
       &buf_wrapper, OPJ_J2K_STREAM_CHUNK_SIZE, true);
-  ImBuf *ibuf = imb_load_jp2_stream(stream, format, flags, colorspace);
+  ImBuf *ibuf = imb_load_jp2_stream(stream, format, flags, r_colorspace);
   opj_stream_destroy(stream);
   return ibuf;
 }
 
-ImBuf *imb_load_jp2_filepath(const char *filepath, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_jp2_filepath(const char *filepath, int flags, ImFileColorSpace &r_colorspace)
 {
   FILE *p_file = nullptr;
   uchar mem[JP2_FILEHEADER_SIZE];
@@ -333,7 +333,7 @@ ImBuf *imb_load_jp2_filepath(const char *filepath, int flags, char colorspace[IM
   fseek(p_file, 0, SEEK_SET);
 
   const OPJ_CODEC_FORMAT format = format_from_header(mem, sizeof(mem));
-  ImBuf *ibuf = imb_load_jp2_stream(stream, format, flags, colorspace);
+  ImBuf *ibuf = imb_load_jp2_stream(stream, format, flags, r_colorspace);
   opj_stream_destroy(stream);
   return ibuf;
 }
@@ -341,7 +341,7 @@ ImBuf *imb_load_jp2_filepath(const char *filepath, int flags, char colorspace[IM
 static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
                                   const OPJ_CODEC_FORMAT format,
                                   int flags,
-                                  char colorspace[IM_MAX_SPACE])
+                                  ImFileColorSpace & /*r_colorspace*/)
 {
   if (format == OPJ_CODEC_UNKNOWN) {
     return nullptr;
@@ -362,9 +362,6 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
 
   opj_image_t *image = nullptr;
   opj_codec_t *codec = nullptr; /* handle to a decompressor */
-
-  /* both 8, 12 and 16 bit JP2Ks are default to standard byte colorspace */
-  colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
   /* set decoding parameters to default values */
   opj_set_default_decoder_parameters(&parameters);

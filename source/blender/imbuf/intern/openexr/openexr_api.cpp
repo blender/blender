@@ -6,6 +6,7 @@
  * \ingroup openexr
  */
 
+#include "IMB_filetype.hh"
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
@@ -2174,11 +2175,9 @@ static bool imb_check_chromaticity_matches(const Imf::Chromaticities &a,
          imb_check_chromaticity_val(a.white.y, b.white.y);
 }
 
-static void imb_exr_set_known_colorspace(const Header &header, char colorspace[IMA_MAX_SPACE])
+static void imb_exr_set_known_colorspace(const Header &header, ImFileColorSpace &r_colorspace)
 {
-  if (colorspace == nullptr || colorspace[0] != '\0') {
-    return;
-  }
+  r_colorspace.is_hdr_float = true;
 
   /* Read ACES container format metadata. */
   const IntAttribute *header_aces_container = header.findTypedAttribute<IntAttribute>(
@@ -2193,25 +2192,18 @@ static void imb_exr_set_known_colorspace(const Header &header, char colorspace[I
     const char *known_colorspace = IMB_colormanagement_role_colorspace_name_get(
         COLOR_ROLE_ACES_INTERCHANGE);
     if (known_colorspace) {
-      BLI_strncpy(colorspace, known_colorspace, IMA_MAX_SPACE);
-      return;
+      STRNCPY(r_colorspace.metadata_colorspace, known_colorspace);
     }
   }
   else if (header_chromaticities &&
            (imb_check_chromaticity_matches(header_chromaticities->value(), CHROMATICITIES_XYZ_E)))
   {
     /* Only works for the Blender default configuration due to fixed name. */
-    const char *known_colorspace = "Linear CIE-XYZ E";
-    if (IMB_colormanagement_space_get_named(known_colorspace)) {
-      BLI_strncpy(colorspace, known_colorspace, IMA_MAX_SPACE);
-      return;
-    }
+    STRNCPY(r_colorspace.metadata_colorspace, "Linear CIE-XYZ E");
   }
-
-  colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 }
 
-ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
 {
   ImBuf *ibuf = nullptr;
   IMemStream *membuf = nullptr;
@@ -2258,7 +2250,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, char colorspac
         ibuf->ppm[1] = ibuf->ppm[0] * double(file_header.pixelAspectRatio());
       }
 
-      imb_exr_set_known_colorspace(file_header, colorspace);
+      imb_exr_set_known_colorspace(file_header, r_colorspace);
 
       ibuf->ftype = IMB_FTYPE_OPENEXR;
 
@@ -2416,7 +2408,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, char colorspac
 ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
                                            const int /*flags*/,
                                            const size_t max_thumb_size,
-                                           char colorspace[],
+                                           ImFileColorSpace &r_colorspace,
                                            size_t *r_width,
                                            size_t *r_height)
 {
@@ -2465,7 +2457,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     }
 
     /* No effect yet for thumbnails, but will work once it is supported. */
-    imb_exr_set_known_colorspace(file_header, colorspace);
+    imb_exr_set_known_colorspace(file_header, r_colorspace);
 
     /* Create a new thumbnail. */
     float scale_factor = std::min(float(max_thumb_size) / float(source_w),
