@@ -196,10 +196,6 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   GET_TRAVERSAL_ANY_HIT(table_shadow_intersect, 1, ray->time)
 
   const hiprtHit hit = traversal.getNextHit();
-
-  num_recorded_hits = payload.r_num_recorded_hits;
-  throughput = payload.r_throughput;
-
   return hit.hasHit();
 }
 #endif /* __SHADOW_RECORD_ALL__ */
