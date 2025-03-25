@@ -285,6 +285,9 @@ enum {
   KM_OSKEY_ANY = (1 << 7),
 };
 
+/** The number of modifiers #wmKeyMapItem & #wmEvent can use. */
+#define KM_MOD_NUM 4
+
 /* `KM_MOD_*` flags for #wmKeyMapItem and `wmEvent.alt/shift/oskey/ctrl`. */
 /* Note that #KM_ANY and #KM_NOTHING are used with these defines too. */
 #define KM_MOD_HELD 1

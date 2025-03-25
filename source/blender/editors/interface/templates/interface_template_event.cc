@@ -77,7 +77,7 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
     }
 
     if (xyz_label) {
-      int icon_mod[4] = {0};
+      int icon_mod[KM_MOD_NUM] = {0};
 #ifdef WITH_HEADLESS
       int icon = 0;
 #else
@@ -121,7 +121,7 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
 {
   bool ok = false;
 
-  int icon_mod[4];
+  int icon_mod[KM_MOD_NUM];
 #ifdef WITH_HEADLESS
   int icon = 0;
 #else

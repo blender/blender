@@ -693,10 +693,10 @@ int UI_icon_from_event_type(short event_type, short event_value)
   return ICON_NONE;
 }
 
-int UI_icon_from_keymap_item(const wmKeyMapItem *kmi, int r_icon_mod[4])
+int UI_icon_from_keymap_item(const wmKeyMapItem *kmi, int r_icon_mod[KM_MOD_NUM])
 {
   if (r_icon_mod) {
-    memset(r_icon_mod, 0x0, sizeof(int[4]));
+    memset(r_icon_mod, 0x0, sizeof(int[KM_MOD_NUM]));
     int i = 0;
     if (kmi->ctrl == KM_MOD_HELD) {
       r_icon_mod[i++] = ICON_EVENT_CTRL;
