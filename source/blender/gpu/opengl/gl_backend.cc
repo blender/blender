@@ -344,12 +344,6 @@ static void detect_workarounds()
     return;
   }
 
-  /* Only use main context when running inside RenderDoc.
-   * RenderDoc requires that all calls are* from the same context. */
-  if (G.debug & G_DEBUG_GPU_RENDERDOC) {
-    GCaps.use_main_context_workaround = true;
-  }
-
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(version, "4.5.13399") || strstr(version, "4.5.13417") ||
        strstr(version, "4.5.13422") || strstr(version, "4.5.13467")))

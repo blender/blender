@@ -624,7 +624,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
       iAttributes.push_back(0);
 
-      m_hGLRC = ::wglCreateContextAttribsARB(m_hDC, nullptr, &(iAttributes[0]));
+      m_hGLRC = ::wglCreateContextAttribsARB(m_hDC, s_sharedHGLRC, &(iAttributes[0]));
     }
   }
 
@@ -641,9 +641,6 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
   if (s_sharedHGLRC == nullptr) {
     s_sharedHGLRC = m_hGLRC;
-  }
-  else if (!WIN32_CHK(::wglShareLists(s_sharedHGLRC, m_hGLRC))) {
-    goto error;
   }
 
   if (!WIN32_CHK(::wglMakeCurrent(m_hDC, m_hGLRC))) {
