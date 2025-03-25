@@ -1130,7 +1130,7 @@ std::optional<std::string> UI_key_event_operator_string(const bContext *C,
 
   if ((event_val != KM_NOTHING) && (event_type != KM_NOTHING)) {
     return WM_keymap_item_raw_to_string(
-        false, false, false, false, 0, event_val, event_type, false);
+        KM_NOTHING, KM_NOTHING, KM_NOTHING, KM_NOTHING, 0, event_val, event_type, false);
   }
 
   return std::nullopt;

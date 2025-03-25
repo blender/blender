@@ -647,16 +647,16 @@ int UI_icon_from_keymap_item(const wmKeyMapItem *kmi, int r_icon_mod[4])
   if (r_icon_mod) {
     memset(r_icon_mod, 0x0, sizeof(int[4]));
     int i = 0;
-    if (!ELEM(kmi->ctrl, KM_NOTHING, KM_ANY)) {
+    if (kmi->ctrl == KM_MOD_HELD) {
       r_icon_mod[i++] = ICON_EVENT_CTRL;
     }
-    if (!ELEM(kmi->alt, KM_NOTHING, KM_ANY)) {
+    if (kmi->alt == KM_MOD_HELD) {
       r_icon_mod[i++] = ICON_EVENT_ALT;
     }
-    if (!ELEM(kmi->shift, KM_NOTHING, KM_ANY)) {
+    if (kmi->shift == KM_MOD_HELD) {
       r_icon_mod[i++] = ICON_EVENT_SHIFT;
     }
-    if (!ELEM(kmi->oskey, KM_NOTHING, KM_ANY)) {
+    if (kmi->oskey == KM_MOD_HELD) {
       r_icon_mod[i++] = ICON_EVENT_OS;
     }
   }

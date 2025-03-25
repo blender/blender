@@ -953,16 +953,16 @@ void WorkspaceStatus::opmodal(std::string text,
 #else
       int icon = UI_icon_from_event_type(kmi->type, kmi->val);
 #endif
-      if (!ELEM(kmi->shift, KM_NOTHING, KM_ANY)) {
+      if (kmi->shift == KM_MOD_HELD) {
         ed_workspace_status_item(workspace_, {}, ICON_EVENT_SHIFT, 0.0f, inverted);
       }
-      if (!ELEM(kmi->ctrl, KM_NOTHING, KM_ANY)) {
+      if (kmi->ctrl == KM_MOD_HELD) {
         ed_workspace_status_item(workspace_, {}, ICON_EVENT_CTRL, 0.0f, inverted);
       }
-      if (!ELEM(kmi->alt, KM_NOTHING, KM_ANY)) {
+      if (kmi->alt == KM_MOD_HELD) {
         ed_workspace_status_item(workspace_, {}, ICON_EVENT_ALT, 0.0f, inverted);
       }
-      if (!ELEM(kmi->oskey, KM_NOTHING, KM_ANY)) {
+      if (kmi->oskey == KM_MOD_HELD) {
         ed_workspace_status_item(workspace_, {}, ICON_EVENT_OS, 0.0f, inverted);
       }
       ed_workspace_status_icon_item(workspace_, icon, inverted);

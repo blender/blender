@@ -1137,10 +1137,10 @@ static bool rna_KeyMapItem_any_get(PointerRNA *ptr)
   wmKeyMapItem *kmi = (wmKeyMapItem *)ptr->data;
 
   if (kmi->shift == KM_ANY && kmi->ctrl == KM_ANY && kmi->alt == KM_ANY && kmi->oskey == KM_ANY) {
-    return 1;
+    return true;
   }
   else {
-    return 0;
+    return false;
   }
 }
 
@@ -1159,25 +1159,25 @@ static void rna_KeyMapItem_any_set(PointerRNA *ptr, bool value)
 static bool rna_KeyMapItem_shift_get(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = (wmKeyMapItem *)ptr->data;
-  return kmi->shift != 0;
+  return kmi->shift != KM_NOTHING;
 }
 
 static bool rna_KeyMapItem_ctrl_get(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = (wmKeyMapItem *)ptr->data;
-  return kmi->ctrl != 0;
+  return kmi->ctrl != KM_NOTHING;
 }
 
 static bool rna_KeyMapItem_alt_get(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = (wmKeyMapItem *)ptr->data;
-  return kmi->alt != 0;
+  return kmi->alt != KM_NOTHING;
 }
 
 static bool rna_KeyMapItem_oskey_get(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = (wmKeyMapItem *)ptr->data;
-  return kmi->oskey != 0;
+  return kmi->oskey != KM_NOTHING;
 }
 
 static PointerRNA rna_WindowManager_active_keyconfig_get(PointerRNA *ptr)
