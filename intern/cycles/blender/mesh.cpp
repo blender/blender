@@ -24,8 +24,6 @@
 #include "util/log.h"
 #include "util/math.h"
 
-#include "mikktspace.hh"
-
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
@@ -33,207 +31,6 @@
 #include "BKE_mesh.hh"
 
 CCL_NAMESPACE_BEGIN
-
-/* Tangent Space */
-
-template<bool is_subd> struct MikkMeshWrapper {
-  MikkMeshWrapper(const ::Mesh &b_mesh,
-                  const char *layer_name,
-                  const Mesh *mesh,
-                  float3 *tangent,
-                  float *tangent_sign)
-      : mesh(mesh), tangent(tangent), tangent_sign(tangent_sign)
-  {
-    const AttributeSet &attributes = is_subd ? mesh->subd_attributes : mesh->attributes;
-
-    Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
-    vertex_normal = attr_vN->data_float3();
-
-    if (layer_name == nullptr) {
-      Attribute *attr_orco = attributes.find(ATTR_STD_GENERATED);
-
-      if (attr_orco) {
-        orco = attr_orco->data_float3();
-        float3 orco_size;
-        mesh_texture_space(b_mesh, orco_loc, orco_size);
-        inv_orco_size = 1.0f / orco_size;
-      }
-    }
-    else {
-      Attribute *attr_uv = attributes.find(ustring(layer_name));
-      if (attr_uv != nullptr) {
-        uv = attr_uv->data_float2();
-      }
-    }
-  }
-
-  int GetNumFaces()
-  {
-    if constexpr (is_subd) {
-      return mesh->get_num_subd_faces();
-    }
-    else {
-      return mesh->num_triangles();
-    }
-  }
-
-  int GetNumVerticesOfFace(const int face_num)
-  {
-    if constexpr (is_subd) {
-      return mesh->get_subd_num_corners()[face_num];
-    }
-    else {
-      return 3;
-    }
-  }
-
-  int CornerIndex(const int face_num, const int vert_num)
-  {
-    if constexpr (is_subd) {
-      const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
-      return face.start_corner + vert_num;
-    }
-    else {
-      return face_num * 3 + vert_num;
-    }
-  }
-
-  int VertexIndex(const int face_num, const int vert_num)
-  {
-    const int corner = CornerIndex(face_num, vert_num);
-    if constexpr (is_subd) {
-      return mesh->get_subd_face_corners()[corner];
-    }
-    else {
-      return mesh->get_triangles()[corner];
-    }
-  }
-
-  mikk::float3 GetPosition(const int face_num, const int vert_num)
-  {
-    const float3 vP = mesh->get_verts()[VertexIndex(face_num, vert_num)];
-    return mikk::float3(vP.x, vP.y, vP.z);
-  }
-
-  mikk::float3 GetTexCoord(const int face_num, const int vert_num)
-  {
-    /* TODO: Check whether introducing a template boolean in order to
-     * turn this into a constexpr is worth it. */
-    if (uv != nullptr) {
-      const int corner_index = CornerIndex(face_num, vert_num);
-      const float2 tfuv = uv[corner_index];
-      return mikk::float3(tfuv.x, tfuv.y, 1.0f);
-    }
-    if (orco != nullptr) {
-      const int vertex_index = VertexIndex(face_num, vert_num);
-      const float2 uv = map_to_sphere((orco[vertex_index] + orco_loc) * inv_orco_size);
-      return mikk::float3(uv.x, uv.y, 1.0f);
-    }
-    return mikk::float3(0.0f, 0.0f, 1.0f);
-  }
-
-  mikk::float3 GetNormal(const int face_num, const int vert_num)
-  {
-    float3 vN;
-    if (is_subd) {
-      const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
-      if (face.smooth) {
-        const int vertex_index = VertexIndex(face_num, vert_num);
-        vN = vertex_normal[vertex_index];
-      }
-      else {
-        vN = face.normal(mesh);
-      }
-    }
-    else {
-      if (mesh->get_smooth()[face_num]) {
-        const int vertex_index = VertexIndex(face_num, vert_num);
-        vN = vertex_normal[vertex_index];
-      }
-      else {
-        const Mesh::Triangle tri = mesh->get_triangle(face_num);
-        vN = tri.compute_normal(mesh->get_verts().data());
-      }
-    }
-    return mikk::float3(vN.x, vN.y, vN.z);
-  }
-
-  void SetTangentSpace(const int face_num, const int vert_num, mikk::float3 T, bool orientation)
-  {
-    const int corner_index = CornerIndex(face_num, vert_num);
-    tangent[corner_index] = make_float3(T.x, T.y, T.z);
-    if (tangent_sign != nullptr) {
-      tangent_sign[corner_index] = orientation ? 1.0f : -1.0f;
-    }
-  }
-
-  const Mesh *mesh;
-  int num_faces;
-
-  float3 *vertex_normal;
-  float2 *texface;
-  float2 *uv = nullptr;
-  float3 *orco = nullptr;
-  float3 orco_loc, inv_orco_size;
-
-  float3 *tangent;
-  float *tangent_sign;
-};
-
-static void mikk_compute_tangents(
-    const ::Mesh &b_mesh, const char *layer_name, Mesh *mesh, bool need_sign, bool active_render)
-{
-  /* Create tangent attributes. */
-  const bool is_subd = mesh->get_num_subd_faces();
-  AttributeSet &attributes = is_subd ? mesh->subd_attributes : mesh->attributes;
-  Attribute *attr;
-  ustring name;
-  if (layer_name != nullptr) {
-    name = ustring((string(layer_name) + ".tangent").c_str());
-  }
-  else {
-    name = ustring("orco.tangent");
-  }
-  if (active_render) {
-    attr = attributes.add(ATTR_STD_UV_TANGENT, name);
-  }
-  else {
-    attr = attributes.add(name, TypeVector, ATTR_ELEMENT_CORNER);
-  }
-  float3 *tangent = attr->data_float3();
-  /* Create bitangent sign attribute. */
-  float *tangent_sign = nullptr;
-  if (need_sign) {
-    Attribute *attr_sign;
-    ustring name_sign;
-    if (layer_name != nullptr) {
-      name_sign = ustring((string(layer_name) + ".tangent_sign").c_str());
-    }
-    else {
-      name_sign = ustring("orco.tangent_sign");
-    }
-
-    if (active_render) {
-      attr_sign = attributes.add(ATTR_STD_UV_TANGENT_SIGN, name_sign);
-    }
-    else {
-      attr_sign = attributes.add(name_sign, TypeFloat, ATTR_ELEMENT_CORNER);
-    }
-    tangent_sign = attr_sign->data_float();
-  }
-
-  /* Setup userdata. */
-  if (is_subd) {
-    MikkMeshWrapper<true> userdata(b_mesh, layer_name, mesh, tangent, tangent_sign);
-    /* Compute tangents. */
-    mikk::Mikktspace(userdata).genTangSpace();
-  }
-  else {
-    MikkMeshWrapper<false> userdata(b_mesh, layer_name, mesh, tangent, tangent_sign);
-    /* Compute tangents. */
-    mikk::Mikktspace(userdata).genTangSpace();
-  }
-}
 
 static void attr_create_motion_from_velocity(Mesh *mesh,
                                              const blender::Span<blender::float3> b_attr,
@@ -442,64 +239,42 @@ static void attr_create_uv_map(Scene *scene,
   const blender::Span<blender::int3> corner_tris = b_mesh.corner_tris();
   const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
   const ustring render_name(CustomData_get_render_layer_name(&b_mesh.corner_data, CD_PROP_FLOAT2));
-  if (!blender_uv_names.empty()) {
-    for (const ustring &uv_name : blender_uv_names) {
-      const bool active_render = uv_name == render_name;
-      const AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
-      const AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
-      const ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
-
-      /* Denotes whether UV map was requested directly. */
-      const bool need_uv = mesh->need_attribute(scene, uv_name) ||
-                           mesh->need_attribute(scene, uv_std);
-      /* Denotes whether tangent was requested directly. */
-      const bool need_tangent = mesh->need_attribute(scene, tangent_name) ||
-                                (active_render && mesh->need_attribute(scene, tangent_std));
-
-      /* UV map */
-      /* NOTE: We create temporary UV layer if its needed for tangent but
-       * wasn't requested by other nodes in shaders.
-       */
-      Attribute *uv_attr = nullptr;
-      if (need_uv || need_tangent) {
-        if (active_render) {
-          uv_attr = mesh->attributes.add(uv_std, uv_name);
-        }
-        else {
-          uv_attr = mesh->attributes.add(uv_name, TypeFloat2, ATTR_ELEMENT_CORNER);
-        }
-
-        const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
-            uv_name.c_str(), blender::bke::AttrDomain::Corner);
-        float2 *fdata = uv_attr->data_float2();
-        for (const int i : corner_tris.index_range()) {
-          const blender::int3 &tri = corner_tris[i];
-          fdata[i * 3 + 0] = make_float2(b_uv_map[tri[0]][0], b_uv_map[tri[0]][1]);
-          fdata[i * 3 + 1] = make_float2(b_uv_map[tri[1]][0], b_uv_map[tri[1]][1]);
-          fdata[i * 3 + 2] = make_float2(b_uv_map[tri[2]][0], b_uv_map[tri[2]][1]);
-        }
-      }
-
-      /* UV tangent */
-      if (need_tangent) {
-        const AttributeStandard sign_std = (active_render) ? ATTR_STD_UV_TANGENT_SIGN :
-                                                             ATTR_STD_NONE;
-        const ustring sign_name = ustring((string(uv_name) + ".tangent_sign").c_str());
-        const bool need_sign = (mesh->need_attribute(scene, sign_name) ||
-                                mesh->need_attribute(scene, sign_std));
-        mikk_compute_tangents(b_mesh, uv_name.c_str(), mesh, need_sign, active_render);
-      }
-      /* Remove temporarily created UV attribute. */
-      if (!need_uv && uv_attr != nullptr) {
-        mesh->attributes.remove(uv_attr);
-      }
-    }
+  if (blender_uv_names.empty()) {
+    return;
   }
-  else if (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
-    const bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
-    mikk_compute_tangents(b_mesh, nullptr, mesh, need_sign, true);
-    if (!mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
-      mesh->attributes.remove(ATTR_STD_GENERATED);
+
+  for (const ustring &uv_name : blender_uv_names) {
+    const bool active_render = uv_name == render_name;
+    const AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
+    const AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
+    const ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
+
+    /* Denotes whether UV map was requested directly. */
+    const bool need_uv = mesh->need_attribute(scene, uv_name) ||
+                         mesh->need_attribute(scene, uv_std);
+    /* Denotes whether tangent was requested directly. */
+    const bool need_tangent = mesh->need_attribute(scene, tangent_name) ||
+                              (active_render && mesh->need_attribute(scene, tangent_std));
+
+    /* UV map */
+    Attribute *uv_attr = nullptr;
+    if (need_uv || need_tangent) {
+      if (active_render) {
+        uv_attr = mesh->attributes.add(uv_std, uv_name);
+      }
+      else {
+        uv_attr = mesh->attributes.add(uv_name, TypeFloat2, ATTR_ELEMENT_CORNER);
+      }
+
+      const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
+          uv_name.c_str(), blender::bke::AttrDomain::Corner);
+      float2 *fdata = uv_attr->data_float2();
+      for (const int i : corner_tris.index_range()) {
+        const blender::int3 &tri = corner_tris[i];
+        fdata[i * 3 + 0] = make_float2(b_uv_map[tri[0]][0], b_uv_map[tri[0]][1]);
+        fdata[i * 3 + 1] = make_float2(b_uv_map[tri[1]][0], b_uv_map[tri[1]][1]);
+        fdata[i * 3 + 2] = make_float2(b_uv_map[tri[2]][0], b_uv_map[tri[2]][1]);
+      }
     }
   }
 }
@@ -514,68 +289,48 @@ static void attr_create_subd_uv_map(Scene *scene,
     return;
   }
 
-  if (!blender_uv_names.empty()) {
-    const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
-    const ustring render_name(
-        CustomData_get_render_layer_name(&b_mesh.corner_data, CD_PROP_FLOAT2));
-    for (const ustring &uv_name : blender_uv_names) {
-      const bool active_render = uv_name == render_name;
-      const AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
-      const AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
-      const ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
-
-      /* Denotes whether UV map was requested directly. */
-      const bool need_uv = mesh->need_attribute(scene, uv_name) ||
-                           mesh->need_attribute(scene, uv_std);
-      /* Denotes whether tangent was requested directly. */
-      const bool need_tangent = mesh->need_attribute(scene, tangent_name) ||
-                                (active_render && mesh->need_attribute(scene, tangent_std));
-
-      Attribute *uv_attr = nullptr;
-
-      /* UV map */
-      if (need_uv || need_tangent) {
-        if (active_render) {
-          uv_attr = mesh->subd_attributes.add(uv_std, uv_name);
-        }
-        else {
-          uv_attr = mesh->subd_attributes.add(uv_name, TypeFloat2, ATTR_ELEMENT_CORNER);
-        }
-
-        uv_attr->flags |= ATTR_SUBDIVIDE_SMOOTH_FVAR;
-
-        const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
-            uv_name.c_str(), blender::bke::AttrDomain::Corner);
-        float2 *fdata = uv_attr->data_float2();
-
-        for (const int i : faces.index_range()) {
-          const blender::IndexRange face = faces[i];
-          for (const int corner : face) {
-            *(fdata++) = make_float2(b_uv_map[corner][0], b_uv_map[corner][1]);
-          }
-        }
-      }
-
-      /* UV tangent */
-      if (need_tangent) {
-        const AttributeStandard sign_std = (active_render) ? ATTR_STD_UV_TANGENT_SIGN :
-                                                             ATTR_STD_NONE;
-        const ustring sign_name = ustring((string(uv_name) + ".tangent_sign").c_str());
-        const bool need_sign = (mesh->need_attribute(scene, sign_name) ||
-                                mesh->need_attribute(scene, sign_std));
-        mikk_compute_tangents(b_mesh, uv_name.c_str(), mesh, need_sign, active_render);
-      }
-      /* Remove temporarily created UV attribute. */
-      if (!need_uv && uv_attr != nullptr) {
-        mesh->subd_attributes.remove(uv_attr);
-      }
-    }
+  if (blender_uv_names.empty()) {
+    return;
   }
-  else if (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
-    const bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
-    mikk_compute_tangents(b_mesh, nullptr, mesh, need_sign, true);
-    if (!mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
-      mesh->subd_attributes.remove(ATTR_STD_GENERATED);
+
+  const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
+  const ustring render_name(CustomData_get_render_layer_name(&b_mesh.corner_data, CD_PROP_FLOAT2));
+  for (const ustring &uv_name : blender_uv_names) {
+    const bool active_render = uv_name == render_name;
+    const AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
+    const AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
+    const ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
+
+    /* Denotes whether UV map was requested directly. */
+    const bool need_uv = mesh->need_attribute(scene, uv_name) ||
+                         mesh->need_attribute(scene, uv_std);
+    /* Denotes whether tangent was requested directly. */
+    const bool need_tangent = mesh->need_attribute(scene, tangent_name) ||
+                              (active_render && mesh->need_attribute(scene, tangent_std));
+
+    Attribute *uv_attr = nullptr;
+
+    /* UV map */
+    if (need_uv || need_tangent) {
+      if (active_render) {
+        uv_attr = mesh->subd_attributes.add(uv_std, uv_name);
+      }
+      else {
+        uv_attr = mesh->subd_attributes.add(uv_name, TypeFloat2, ATTR_ELEMENT_CORNER);
+      }
+
+      uv_attr->flags |= ATTR_SUBDIVIDE_SMOOTH_FVAR;
+
+      const blender::VArraySpan b_uv_map = *b_attributes.lookup<blender::float2>(
+          uv_name.c_str(), blender::bke::AttrDomain::Corner);
+      float2 *fdata = uv_attr->data_float2();
+
+      for (const int i : faces.index_range()) {
+        const blender::IndexRange face = faces[i];
+        for (const int corner : face) {
+          *(fdata++) = make_float2(b_uv_map[corner][0], b_uv_map[corner][1]);
+        }
+      }
     }
   }
 }

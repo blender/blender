@@ -696,7 +696,7 @@ void GeometryManager::device_update(Device *device,
 
   bool true_displacement_used = false;
   bool curve_shadow_transparency_used = false;
-  size_t total_tess_needed = 0;
+  size_t num_tessellation = 0;
 
   {
     const scoped_callback_timer timer([scene](double time) {
@@ -716,7 +716,7 @@ void GeometryManager::device_update(Device *device,
 
           /* Test if we need tessellation and setup normals if required. */
           if (mesh->need_tesselation()) {
-            total_tess_needed++;
+            num_tessellation++;
             /* OPENSUBDIV Catmull-Clark does not make use of input normals and will overwrite them.
              */
 #ifdef WITH_OPENSUBDIV
@@ -754,57 +754,65 @@ void GeometryManager::device_update(Device *device,
   }
 
   /* Tessellate meshes that are using subdivision */
-  if (total_tess_needed) {
-    const scoped_callback_timer timer([scene](double time) {
-      if (scene->update_stats) {
-        scene->update_stats->geometry.times.add_entry(
-            {"device_update (adaptive subdivision)", time});
-      }
-    });
+  const scoped_callback_timer timer([scene, num_tessellation](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->geometry.times.add_entry(
+          {(num_tessellation) ? "device_update (tessellation and tangents)" :
+                                "device_update (tangents)",
+           time});
+    }
+  });
 
-    Camera *dicing_camera = scene->dicing_camera;
+  Camera *dicing_camera = scene->dicing_camera;
+  if (num_tessellation) {
     dicing_camera->set_screen_size(dicing_camera->get_full_width(),
                                    dicing_camera->get_full_height());
     dicing_camera->update(scene);
+  }
 
-    size_t i = 0;
-    for (Geometry *geom : scene->geometry) {
-      if (!(geom->is_modified() && geom->is_mesh())) {
-        continue;
-      }
-
-      Mesh *mesh = static_cast<Mesh *>(geom);
-      if (mesh->need_tesselation()) {
-        string msg = "Tessellating ";
-        if (mesh->name.empty()) {
-          msg += string_printf("%u/%u", (uint)(i + 1), (uint)total_tess_needed);
-        }
-        else {
-          msg += string_printf(
-              "%s %u/%u", mesh->name.c_str(), (uint)(i + 1), (uint)total_tess_needed);
-        }
-
-        progress.set_status("Updating Mesh", msg);
-
-        SubdParams subd_params(mesh);
-        subd_params.dicing_rate = mesh->get_subd_dicing_rate();
-        subd_params.max_level = mesh->get_subd_max_level();
-        subd_params.objecttoworld = mesh->get_subd_objecttoworld();
-        subd_params.camera = dicing_camera;
-
-        mesh->tessellate(subd_params);
-
-        i++;
-
-        if (progress.get_cancel()) {
-          return;
-        }
-      }
+  size_t i = 0;
+  for (Geometry *geom : scene->geometry) {
+    if (!(geom->is_modified() && geom->is_mesh())) {
+      continue;
     }
+
+    Mesh *mesh = static_cast<Mesh *>(geom);
+
+    if (num_tessellation && mesh->need_tesselation()) {
+      string msg = "Tessellating ";
+      if (mesh->name.empty()) {
+        msg += string_printf("%u/%u", (uint)(i + 1), (uint)num_tessellation);
+      }
+      else {
+        msg += string_printf(
+            "%s %u/%u", mesh->name.c_str(), (uint)(i + 1), (uint)num_tessellation);
+      }
+
+      progress.set_status("Updating Mesh", msg);
+
+      SubdParams subd_params(mesh);
+      subd_params.dicing_rate = mesh->get_subd_dicing_rate();
+      subd_params.max_level = mesh->get_subd_max_level();
+      subd_params.objecttoworld = mesh->get_subd_objecttoworld();
+      subd_params.camera = dicing_camera;
+
+      mesh->tessellate(subd_params);
+
+      i++;
+    }
+
+    /* Apply generated attribute if needed or remove if not needed */
+    mesh->update_generated(scene);
+    /* Apply tangents for generated and UVs (if any need them) or remove if not needed */
+    mesh->update_tangents(scene);
 
     if (progress.get_cancel()) {
       return;
     }
+  }
+
+  if (progress.get_cancel()) {
+    return;
   }
 
   /* Update images needed for true displacement. */

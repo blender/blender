@@ -1574,6 +1574,8 @@ class OSLNode final : public ShaderNode {
 
   ShaderNode *clone(ShaderGraph *graph) const override;
 
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+
   char *input_default_value();
   void add_input(ustring name, SocketType::Type type, const int flags = 0);
   void add_output(ustring name, SocketType::Type type);

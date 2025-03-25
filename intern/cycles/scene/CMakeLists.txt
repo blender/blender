@@ -5,6 +5,7 @@
 set(INC
   ..
   ../../sky/include
+  ../../mikktspace
 )
 
 set(SRC

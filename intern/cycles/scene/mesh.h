@@ -211,6 +211,8 @@ class Mesh : public Geometry {
   void apply_transform(const Transform &tfm, const bool apply_to_motion) override;
   void add_vertex_normals();
   void add_undisplaced();
+  void update_generated(Scene *scene);
+  void update_tangents(Scene *scene);
 
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
 
