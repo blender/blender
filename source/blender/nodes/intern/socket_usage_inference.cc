@@ -1092,7 +1092,7 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
 }
 
 void infer_group_interface_inputs_usage(const bNodeTree &group,
-                                        const IDProperty *properties,
+                                        const PropertiesVectorSet &properties,
                                         MutableSpan<bool> r_input_usages)
 {
   const int inputs_num = group.interface_inputs().size();

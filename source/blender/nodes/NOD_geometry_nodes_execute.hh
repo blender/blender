@@ -30,7 +30,21 @@ namespace blender::nodes {
 constexpr StringRef input_use_attribute_suffix = "_use_attribute";
 constexpr StringRef input_attribute_name_suffix = "_attribute_name";
 
-std::optional<StringRef> input_attribute_name_get(const IDProperty &props,
+struct IDPropNameGetter {
+  StringRef operator()(const IDProperty *value) const
+  {
+    return StringRef(value->name);
+  }
+};
+
+/**
+ * Use a #VectorSet to store properties for constant time lookup, to avoid slowdown with many
+ * inputs.
+ */
+using PropertiesVectorSet = CustomIDVectorSet<IDProperty *, IDPropNameGetter>;
+PropertiesVectorSet build_properties_vector_set(const IDProperty *properties);
+
+std::optional<StringRef> input_attribute_name_get(const PropertiesVectorSet &properties,
                                                   const bNodeTreeInterfaceSocket &io_input);
 
 /**
@@ -52,7 +66,7 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
     const bNodeTreeInterfaceSocket &socket, bool use_name_for_ids);
 
 bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
-                                                    const IDProperty *properties,
+                                                    const PropertiesVectorSet &properties_set,
                                                     const ComputeContext &base_compute_context,
                                                     GeoNodesCallData &call_data,
                                                     bke::GeometrySet input_geometry);
@@ -73,7 +87,7 @@ void update_output_properties_from_node_tree(const bNodeTree &tree,
  * for attribute inputs).
  */
 void get_geometry_nodes_input_base_values(const bNodeTree &btree,
-                                          const IDProperty *properties,
+                                          const PropertiesVectorSet &properties,
                                           ResourceScope &scope,
                                           MutableSpan<GPointer> r_values);
 

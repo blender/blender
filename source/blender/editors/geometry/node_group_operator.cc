@@ -624,7 +624,11 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
         *depsgraph_active, *object, operator_eval_data, orig_mesh_states);
 
     bke::GeometrySet new_geometry = nodes::execute_geometry_nodes_on_geometry(
-        *node_tree, properties, compute_context, call_data, std::move(geometry_orig));
+        *node_tree,
+        nodes::build_properties_vector_set(properties),
+        compute_context,
+        call_data,
+        std::move(geometry_orig));
 
     store_result_geometry(
         *op, *depsgraph_active, *bmain, *scene, *object, rv3d, std::move(new_geometry));
@@ -768,7 +772,7 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
 
 static void draw_property_for_socket(const bNodeTree &node_tree,
                                      uiLayout *layout,
-                                     IDProperty *op_properties,
+                                     const nodes::PropertiesVectorSet &properties_set,
                                      PointerRNA *bmain_ptr,
                                      PointerRNA *op_ptr,
                                      const bNodeTreeInterfaceSocket &socket,
@@ -779,11 +783,11 @@ static void draw_property_for_socket(const bNodeTree &node_tree,
   const eNodeSocketDatatype socket_type = eNodeSocketDatatype(typeinfo->type);
 
   /* The property should be created in #MOD_nodes_update_interface with the correct type. */
-  IDProperty *property = IDP_GetPropertyFromGroup(op_properties, socket.identifier);
+  const IDProperty *property = properties_set.lookup_key_default_as(socket.identifier, nullptr);
 
   /* IDProperties can be removed with python, so there could be a situation where
    * there isn't a property for a socket or it doesn't have the correct type. */
-  if (property == nullptr || !nodes::id_property_type_matches_socket(socket, *property, true)) {
+  if (!property || !nodes::id_property_type_matches_socket(socket, *property, true)) {
     return;
   }
 
@@ -843,18 +847,20 @@ static void run_node_group_ui(bContext *C, wmOperator *op)
   if (!node_tree) {
     return;
   }
+  const nodes::PropertiesVectorSet properties_set = nodes::build_properties_vector_set(
+      op->properties);
 
   node_tree->ensure_interface_cache();
 
   Array<bool> input_usages(node_tree->interface_inputs().size());
   nodes::socket_usage_inference::infer_group_interface_inputs_usage(
-      *node_tree, op->properties, input_usages);
+      *node_tree, properties_set, input_usages);
 
   int input_index = 0;
   for (const bNodeTreeInterfaceSocket *io_socket : node_tree->interface_inputs()) {
     draw_property_for_socket(*node_tree,
                              layout,
-                             op->properties,
+                             properties_set,
                              &bmain_ptr,
                              op->ptr,
                              *io_socket,
