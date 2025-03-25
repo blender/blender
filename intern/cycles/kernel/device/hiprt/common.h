@@ -384,7 +384,7 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
   const uint num_hits = payload->num_hits;
   const uint max_hits = payload->max_hits;
   const int state = payload->in_state;
-  const RaySelfPrimitives self = payload->ray.self;
+  const RaySelfPrimitives &self = payload->ray.self;
 
   const int object = kernel_data_fetch(user_instance_id, hit.instanceID);
   const int prim_offset = kernel_data_fetch(object_prim_offset, object);
@@ -471,7 +471,7 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
   const uint num_hits = payload->num_hits;
   const uint num_recorded_hits = *(payload->r_num_recorded_hits);
   const uint max_hits = payload->max_hits;
-  const RaySelfPrimitives self = payload->ray.self;
+  const RaySelfPrimitives &self = payload->ray.self;
 
   const int object = kernel_data_fetch(user_instance_id, hit.instanceID);
   const int prim = hit.primID;
