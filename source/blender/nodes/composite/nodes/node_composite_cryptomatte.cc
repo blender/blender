@@ -749,7 +749,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   {
     Vector<Result> layers;
 
-    Image *image = get_image();
+    Image *image = this->get_image();
     if (!image || image->type != IMA_TYPE_MULTILAYER) {
       return layers;
     }
@@ -757,15 +757,19 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     /* The render result structure of the image is populated as a side effect of the acquisition of
      * an image buffer, so acquire an image buffer and immediately release it since it is not
      * actually needed. */
-    ImageUser image_user_for_layer = *get_image_user();
+    ImageUser image_user_for_layer = *this->get_image_user();
     ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_layer, nullptr);
     BKE_image_release_ibuf(image, image_buffer, nullptr);
     if (!image_buffer || !image->rr) {
       return layers;
     }
 
+    /* Gather all pass names first before retrieving the images because render layers might get
+     * freed when retrieving the images. */
+    Vector<std::string> pass_names;
+
     int layer_index;
-    const std::string type_name = get_type_name();
+    const std::string type_name = this->get_type_name();
     LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
       /* If the Cryptomatte type name doesn't start with the layer name, then it is not a
        * Cryptomatte layer. Unless it is an unnamed layer, in which case, we need to check its
@@ -775,26 +779,31 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
         continue;
       }
 
-      image_user_for_layer.layer = layer_index;
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
         /* If the combined pass name doesn't start with the Cryptomatte type name, then it is not a
          * Cryptomatte layer. Furthermore, if it is equal to the Cryptomatte type name with no
          * suffix, then it can be ignored, because it is a deprecated Cryptomatte preview layer
          * according to the "EXR File: Layer Naming" section of the Cryptomatte specification. */
-        const std::string combined_name = get_combined_layer_pass_name(render_layer, render_pass);
+        const std::string combined_name = this->get_combined_layer_pass_name(render_layer,
+                                                                             render_pass);
         if (combined_name == type_name || !StringRef(combined_name).startswith(type_name)) {
           continue;
         }
 
-        Result pass_result = context().cache_manager().cached_images.get(
-            context(), image, &image_user_for_layer, render_pass->name);
-        layers.append(pass_result);
+        pass_names.append(render_pass->name);
       }
 
       /* If we already found Cryptomatte layers, no need to check other render layers. */
-      if (!layers.is_empty()) {
-        return layers;
+      if (!pass_names.is_empty()) {
+        break;
       }
+    }
+
+    image_user_for_layer.layer = layer_index;
+    for (const std::string &pass_name : pass_names) {
+      Result pass_result = context().cache_manager().cached_images.get(
+          context(), image, &image_user_for_layer, pass_name.c_str());
+      layers.append(pass_result);
     }
 
     return layers;
