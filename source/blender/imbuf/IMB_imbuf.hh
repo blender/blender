@@ -33,7 +33,8 @@ ImBuf *IMB_ibImageFromMemory(const unsigned char *mem,
                              size_t size,
                              int flags,
                              char colorspace[IM_MAX_SPACE],
-                             const char *descr);
+                             const char *descr,
+                             const char *filepath = nullptr);
 
 ImBuf *IMB_testiffname(const char *filepath, int flags);
 
@@ -445,7 +446,7 @@ void IMB_convert_rgba_to_abgr(ImBuf *ibuf);
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3]);
 
-ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
+ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *filepath);
 
 ImBuf *IMB_half_x(ImBuf *ibuf1);
 ImBuf *IMB_half_y(ImBuf *ibuf1);

@@ -186,6 +186,22 @@ int OCIOImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const c
   return -1;
 }
 
+const char *OCIOImpl::getColorSpaceFromFilepath(OCIO_ConstConfigRcPtr *config,
+                                                const char *filepath)
+{
+  ConstConfigRcPtr &cfg = *(ConstConfigRcPtr *)config;
+
+  /* If Blender specific default_byte or default_float roles exist, don't use the
+   * default rule which can't distinguish between these two cases automatically. */
+  if (cfg->filepathOnlyMatchesDefaultRule(filepath) &&
+      (cfg->hasRole(OCIO_ROLE_DEFAULT_BYTE) || cfg->hasRole(OCIO_ROLE_DEFAULT_FLOAT)))
+  {
+    return nullptr;
+  }
+
+  return cfg->getColorSpaceFromFilepath(filepath);
+}
+
 const char *OCIOImpl::configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config)
 {
   try {

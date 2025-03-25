@@ -30,10 +30,12 @@
 #include "IMB_colormanagement_intern.hh"
 
 static void imb_handle_colorspace_and_alpha(ImBuf *ibuf,
-                                            int flags,
+                                            const int flags,
+                                            const char *filepath,
                                             const ImFileColorSpace &file_colorspace,
                                             char r_colorspace[IM_MAX_SPACE])
 {
+  /* Determine file colorspace. */
   char new_colorspace[IM_MAX_SPACE];
 
   if (r_colorspace && r_colorspace[0]) {
@@ -47,10 +49,23 @@ static void imb_handle_colorspace_and_alpha(ImBuf *ibuf,
     STRNCPY(new_colorspace, file_colorspace.metadata_colorspace);
   }
   else {
-    /* Use float colorspace if the image may contain HDR colors, byte otherwise. */
-    const char *role_colorspace = IMB_colormanagement_role_colorspace_name_get(
-        file_colorspace.is_hdr_float ? COLOR_ROLE_DEFAULT_FLOAT : COLOR_ROLE_DEFAULT_BYTE);
-    STRNCPY(new_colorspace, role_colorspace);
+    const char *filepath_colorspace = (filepath) ?
+                                          IMB_colormanagement_space_from_filepath_rules(filepath) :
+                                          nullptr;
+    if (filepath_colorspace) {
+      /* Use colorspace from OpenColorIO file rules. */
+      STRNCPY(new_colorspace, filepath_colorspace);
+    }
+    else {
+      /* Use float colorspace if the image may contain HDR colors, byte otherwise. */
+      const char *role_colorspace = IMB_colormanagement_role_colorspace_name_get(
+          file_colorspace.is_hdr_float ? COLOR_ROLE_DEFAULT_FLOAT : COLOR_ROLE_DEFAULT_BYTE);
+      STRNCPY(new_colorspace, role_colorspace);
+    }
+  }
+
+  if (r_colorspace) {
+    BLI_strncpy(r_colorspace, new_colorspace, IM_MAX_SPACE);
   }
 
   if (r_colorspace) {
@@ -94,13 +109,14 @@ static void imb_handle_colorspace_and_alpha(ImBuf *ibuf,
   }
 
   colormanage_imbuf_make_linear(ibuf, new_colorspace);
-  if (r_colorspace) {
-    BLI_strncpy(r_colorspace, new_colorspace, IM_MAX_SPACE);
-  }
 }
 
-ImBuf *IMB_ibImageFromMemory(
-    const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
+ImBuf *IMB_ibImageFromMemory(const uchar *mem,
+                             size_t size,
+                             int flags,
+                             char colorspace[IM_MAX_SPACE],
+                             const char *descr,
+                             const char *filepath)
 {
   ImBuf *ibuf;
   const ImFileType *type;
@@ -116,7 +132,7 @@ ImBuf *IMB_ibImageFromMemory(
     if (type->load) {
       ibuf = type->load(mem, size, flags, file_colorspace);
       if (ibuf) {
-        imb_handle_colorspace_and_alpha(ibuf, flags, file_colorspace, colorspace);
+        imb_handle_colorspace_and_alpha(ibuf, flags, filepath, file_colorspace, colorspace);
         return ibuf;
       }
     }
@@ -129,7 +145,7 @@ ImBuf *IMB_ibImageFromMemory(
   return nullptr;
 }
 
-ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
+ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *filepath)
 {
   ImBuf *ibuf;
 
@@ -141,14 +157,14 @@ ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const
   BLI_mmap_file *mmap_file = BLI_mmap_open(file);
   imb_mmap_unlock();
   if (mmap_file == nullptr) {
-    fprintf(stderr, "%s: couldn't get mapping %s\n", __func__, descr);
+    fprintf(stderr, "%s: couldn't get mapping %s\n", __func__, filepath);
     return nullptr;
   }
 
   const uchar *mem = static_cast<const uchar *>(BLI_mmap_get_pointer(mmap_file));
   const size_t size = BLI_mmap_get_length(mmap_file);
 
-  ibuf = IMB_ibImageFromMemory(mem, size, flags, colorspace, descr);
+  ibuf = IMB_ibImageFromMemory(mem, size, flags, colorspace, filepath, filepath);
 
   imb_mmap_lock();
   BLI_mmap_free(mmap_file);
@@ -201,7 +217,7 @@ ImBuf *IMB_thumb_load_image(const char *filepath,
     ibuf = type->load_filepath_thumbnail(
         filepath, flags, max_thumb_size, file_colorspace, &width, &height);
     if (ibuf) {
-      imb_handle_colorspace_and_alpha(ibuf, flags, file_colorspace, colorspace);
+      imb_handle_colorspace_and_alpha(ibuf, flags, filepath, file_colorspace, colorspace);
     }
   }
   else {

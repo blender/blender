@@ -1450,6 +1450,14 @@ const char *IMB_colormanagement_get_rect_colorspace(ImBuf *ibuf)
   return IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
 }
 
+const char *IMB_colormanagement_space_from_filepath_rules(const char *filepath)
+{
+  OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+  const char *colorspace = OCIO_getColorSpaceFromFilepath(config, filepath);
+  OCIO_configRelease(config);
+  return colorspace;
+}
+
 ColorSpace *IMB_colormanagement_space_get_named(const char *name)
 {
   return colormanage_colorspace_get_named(name);

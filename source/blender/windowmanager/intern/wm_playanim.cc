@@ -465,7 +465,8 @@ static ImBuf *ibuf_from_picture(PlayAnimPict *pic)
   }
   else if (pic->mem) {
     /* Use correct color-space here. */
-    ibuf = IMB_ibImageFromMemory(pic->mem, pic->size, pic->IB_flags, nullptr, pic->filepath);
+    ibuf = IMB_ibImageFromMemory(
+        pic->mem, pic->size, pic->IB_flags, nullptr, pic->filepath, pic->filepath);
   }
   else {
     /* Use correct color-space here. */

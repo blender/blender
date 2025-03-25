@@ -118,6 +118,8 @@ OCIO_ConstColorSpaceRcPtr *OCIO_configGetColorSpace(OCIO_ConstConfigRcPtr *confi
                                                     const char *name);
 int OCIO_configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
 
+const char *OCIO_getColorSpaceFromFilepath(OCIO_ConstConfigRcPtr *config, const char *filepath);
+
 int OCIO_colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs);
 int OCIO_colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs);
 void OCIO_colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
