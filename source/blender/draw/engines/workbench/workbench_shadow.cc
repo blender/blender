@@ -206,6 +206,8 @@ bool ShadowPass::ShadowView::debug_object_culling(Object *ob)
 void ShadowPass::ShadowView::set_mode(ShadowPass::PassType type)
 {
   current_pass_type_ = type;
+  /* Ensure compute_visibility runs again after updating the mode. */
+  manager_fingerprint_ = 0;
 }
 
 void ShadowPass::ShadowView::compute_visibility(ObjectBoundsBuf &bounds,
