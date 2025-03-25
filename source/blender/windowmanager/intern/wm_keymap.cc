@@ -1209,26 +1209,23 @@ std::optional<std::string> WM_keymap_item_raw_to_string(const int8_t shift,
 
   const char *space = " ";
 
-  if (shift == KM_ANY && ctrl == KM_ANY && alt == KM_ANY && oskey == KM_ANY) {
-    /* Don't show anything for any mapping. */
+  /* When a modifier is #KM_ANY, it isn't shown as this would end up being overly verbose. */
+
+  if (shift == KM_MOD_HELD) {
+    result_array.append(WM_key_event_string(EVT_LEFTSHIFTKEY, true));
+    result_array.append(space);
   }
-  else {
-    if (shift) {
-      result_array.append(WM_key_event_string(EVT_LEFTSHIFTKEY, true));
-      result_array.append(space);
-    }
-    if (ctrl) {
-      result_array.append(WM_key_event_string(EVT_LEFTCTRLKEY, true));
-      result_array.append(space);
-    }
-    if (alt) {
-      result_array.append(WM_key_event_string(EVT_LEFTALTKEY, true));
-      result_array.append(space);
-    }
-    if (oskey) {
-      result_array.append(WM_key_event_string(EVT_OSKEY, true));
-      result_array.append(space);
-    }
+  if (ctrl == KM_MOD_HELD) {
+    result_array.append(WM_key_event_string(EVT_LEFTCTRLKEY, true));
+    result_array.append(space);
+  }
+  if (alt == KM_MOD_HELD) {
+    result_array.append(WM_key_event_string(EVT_LEFTALTKEY, true));
+    result_array.append(space);
+  }
+  if (oskey == KM_MOD_HELD) {
+    result_array.append(WM_key_event_string(EVT_OSKEY, true));
+    result_array.append(space);
   }
 
   if (keymodifier) {
