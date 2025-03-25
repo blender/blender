@@ -111,8 +111,8 @@ bool key_insertion_may_create_fcurve(eInsertKeyFlags insert_key_flags);
 /** \name Key-Framing Management
  * \{ */
 
-/* Set the FCurve flag based on the property type of `prop`. */
-void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
+/** Ensure FCurve flags are correct for the property type it animates. */
+void update_autoflags_fcurve_direct(FCurve *fcu, PropertyType prop_type);
 
 /**
  * \brief Main key-frame insertion API.

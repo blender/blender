@@ -219,26 +219,12 @@ std::optional<StringRefNull> default_channel_group_for_path(const PointerRNA *an
   return std::nullopt;
 }
 
-void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
+void update_autoflags_fcurve_direct(FCurve *fcu, const PropertyType prop_type)
 {
-  /* Set additional flags for the F-Curve (i.e. only integer values). */
+  /* First clear out all the flags that should be updated by this function, before setting just the
+   * ones suitable for this property type. */
   fcu->flag &= ~(FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES);
-  switch (RNA_property_type(prop)) {
-    case PROP_FLOAT:
-      /* Do nothing. */
-      break;
-    case PROP_INT:
-      /* Do integer (only 'whole' numbers) interpolation between all points. */
-      fcu->flag |= FCURVE_INT_VALUES;
-      break;
-    default:
-      /* Do 'discrete' (i.e. enum, boolean values which cannot take any intermediate
-       * values at all) interpolation between all points.
-       *    - however, we must also ensure that evaluated values are only integers still.
-       */
-      fcu->flag |= (FCURVE_DISCRETE_VALUES | FCURVE_INT_VALUES);
-      break;
-  }
+  fcu->flag |= fcurve_flags_for_property_type(prop_type);
 }
 
 bool is_keying_flag(const Scene *scene, const eKeying_Flag flag)
@@ -546,7 +532,7 @@ bool insert_keyframe_direct(ReportList *reports,
   }
 
   /* Update F-Curve flags to ensure proper behavior for property type. */
-  update_autoflags_fcurve_direct(fcu, prop);
+  update_autoflags_fcurve_direct(fcu, RNA_property_type(prop));
 
   const int index = fcu->array_index;
   const bool visual_keyframing = flag & INSERTKEY_MATRIX;
@@ -625,7 +611,7 @@ static SingleKeyingResult insert_keyframe_fcurve_value(Main *bmain,
   }
 
   /* Update F-Curve flags to ensure proper behavior for property type. */
-  update_autoflags_fcurve_direct(fcu, prop);
+  update_autoflags_fcurve_direct(fcu, RNA_property_type(prop));
 
   const SingleKeyingResult result = insert_keyframe_value(
       fcu, fcurve_frame, curval, keytype, flag);
@@ -926,7 +912,7 @@ static SingleKeyingResult insert_key_layer(
     Layer &layer,
     const Slot &slot,
     const std::string &rna_path,
-    const std::optional<PropertySubType> prop_subtype,
+    PropertyRNA *prop,
     const std::optional<blender::StringRefNull> channel_group,
     const KeyInsertData &key_data,
     const KeyframeSettings &key_settings,
@@ -937,11 +923,14 @@ static SingleKeyingResult insert_key_layer(
 
   const bool do_cyclic = (insert_key_flags & INSERTKEY_CYCLE_AWARE) && action.is_cyclic();
 
+  const PropertyType prop_type = RNA_property_type(prop);
+  const PropertySubType prop_subtype = RNA_property_subtype(prop);
+
   Strip *strip = layer.strip(0);
   return strip->data<StripKeyframeData>(action).keyframe_insert(
       bmain,
       slot,
-      {rna_path, key_data.array_index, prop_subtype, channel_group},
+      {rna_path, key_data.array_index, prop_type, prop_subtype, channel_group},
       key_data.position,
       key_settings,
       insert_key_flags,
@@ -991,8 +980,6 @@ static CombinedKeyingResult insert_key_layered_action(
   BLI_assert(bmain != nullptr);
   BLI_assert(action.is_action_layered());
 
-  const PropertySubType prop_subtype = RNA_property_subtype(prop);
-
   int property_array_index = 0;
   CombinedKeyingResult combined_result;
   for (float value : values) {
@@ -1007,7 +994,7 @@ static CombinedKeyingResult insert_key_layered_action(
                                                        layer,
                                                        slot,
                                                        rna_path,
-                                                       prop_subtype,
+                                                       prop,
                                                        channel_group,
                                                        key_data,
                                                        key_settings,

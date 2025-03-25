@@ -100,7 +100,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
   }
 
   /* update F-Curve flags */
-  blender::animrig::update_autoflags_fcurve_direct(fcu, prop);
+  blender::animrig::update_autoflags_fcurve_direct(fcu, RNA_property_type(prop));
 
   if (old_flag != fcu->flag) {
     /* Same as if keyframes had been changed */

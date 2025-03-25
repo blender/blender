@@ -171,22 +171,22 @@ void import_skeleton_curves(Main *bmain,
 
     /* Add translation curves. */
     std::string rna_path = "pose.bones[\"" + *name + "\"].location";
-    loc_curves.append(create_fcurve(channelbag, {rna_path, 0, {}, *name}, num_samples));
-    loc_curves.append(create_fcurve(channelbag, {rna_path, 1, {}, *name}, num_samples));
-    loc_curves.append(create_fcurve(channelbag, {rna_path, 2, {}, *name}, num_samples));
+    loc_curves.append(create_fcurve(channelbag, {rna_path, 0, {}, {}, *name}, num_samples));
+    loc_curves.append(create_fcurve(channelbag, {rna_path, 1, {}, {}, *name}, num_samples));
+    loc_curves.append(create_fcurve(channelbag, {rna_path, 2, {}, {}, *name}, num_samples));
 
     /* Add rotation curves. */
     rna_path = "pose.bones[\"" + *name + "\"].rotation_quaternion";
-    rot_curves.append(create_fcurve(channelbag, {rna_path, 0, {}, *name}, num_samples));
-    rot_curves.append(create_fcurve(channelbag, {rna_path, 1, {}, *name}, num_samples));
-    rot_curves.append(create_fcurve(channelbag, {rna_path, 2, {}, *name}, num_samples));
-    rot_curves.append(create_fcurve(channelbag, {rna_path, 3, {}, *name}, num_samples));
+    rot_curves.append(create_fcurve(channelbag, {rna_path, 0, {}, {}, *name}, num_samples));
+    rot_curves.append(create_fcurve(channelbag, {rna_path, 1, {}, {}, *name}, num_samples));
+    rot_curves.append(create_fcurve(channelbag, {rna_path, 2, {}, {}, *name}, num_samples));
+    rot_curves.append(create_fcurve(channelbag, {rna_path, 3, {}, {}, *name}, num_samples));
 
     /* Add scale curves. */
     rna_path = "pose.bones[\"" + *name + "\"].scale";
-    scale_curves.append(create_fcurve(channelbag, {rna_path, 0, {}, *name}, num_samples));
-    scale_curves.append(create_fcurve(channelbag, {rna_path, 1, {}, *name}, num_samples));
-    scale_curves.append(create_fcurve(channelbag, {rna_path, 2, {}, *name}, num_samples));
+    scale_curves.append(create_fcurve(channelbag, {rna_path, 0, {}, {}, *name}, num_samples));
+    scale_curves.append(create_fcurve(channelbag, {rna_path, 1, {}, {}, *name}, num_samples));
+    scale_curves.append(create_fcurve(channelbag, {rna_path, 2, {}, {}, *name}, num_samples));
   }
 
   /* Sanity checks: make sure we have a curve entry for each joint. */

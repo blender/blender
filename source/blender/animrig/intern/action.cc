@@ -2128,6 +2128,10 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
     return insert_vert_result;
   }
 
+  if (fcurve_descriptor.prop_type) {
+    update_autoflags_fcurve_direct(fcurve, *fcurve_descriptor.prop_type);
+  }
+
   return SingleKeyingResult::SUCCESS;
 }
 
@@ -2696,7 +2700,8 @@ FCurve *action_fcurve_ensure_legacy(Main *bmain,
     return fcu;
   }
 
-  /* Determine the property subtype if we can. */
+  /* Determine the property (sub)type if we can. */
+  std::optional<PropertyType> prop_type = std::nullopt;
   std::optional<PropertySubType> prop_subtype = std::nullopt;
   if (ptr != nullptr) {
     PropertyRNA *resolved_prop;
@@ -2705,15 +2710,19 @@ FCurve *action_fcurve_ensure_legacy(Main *bmain,
     const bool resolved = RNA_path_resolve_property(
         &id_ptr, fcurve_descriptor.rna_path.c_str(), &resolved_ptr, &resolved_prop);
     if (resolved) {
+      prop_type = RNA_property_type(resolved_prop);
       prop_subtype = RNA_property_subtype(resolved_prop);
     }
   }
 
+  BLI_assert_msg(!fcurve_descriptor.prop_type.has_value(),
+                 "Did not expect a prop_type to be passed in. This is fine, but does need some "
+                 "changes to action_fcurve_ensure_legacy() to deal with it");
   BLI_assert_msg(!fcurve_descriptor.prop_subtype.has_value(),
                  "Did not expect a prop_subtype to be passed in. This is fine, but does need some "
                  "changes to action_fcurve_ensure_legacy() to deal with it");
   fcu = create_fcurve_for_channel(
-      {fcurve_descriptor.rna_path, fcurve_descriptor.array_index, prop_subtype});
+      {fcurve_descriptor.rna_path, fcurve_descriptor.array_index, prop_type, prop_subtype});
 
   if (BLI_listbase_is_empty(&act->curves)) {
     fcu->flag |= FCURVE_ACTIVE;

@@ -299,9 +299,9 @@ TEST_F(KeylistSummaryTest, slot_summary_bone_selection)
   Channelbag &channelbag = action_channelbag_ensure(*action, armature->id);
 
   FCurve &bone1_loc_x = channelbag.fcurve_ensure(
-      bmain, {"pose.bones[\"Bone.001\"].location", 0, std::nullopt, "Bone.001"});
+      bmain, {"pose.bones[\"Bone.001\"].location", 0, {}, {}, "Bone.001"});
   FCurve &bone2_loc_x = channelbag.fcurve_ensure(
-      bmain, {"pose.bones[\"Bone.002\"].location", 0, std::nullopt, "Bone.002"});
+      bmain, {"pose.bones[\"Bone.002\"].location", 0, {}, {}, "Bone.002"});
 
   ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&bone1_loc_x, {1.0, 0.0}, {}, {}));
   ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&bone1_loc_x, {2.0, 1.0}, {}, {}));
