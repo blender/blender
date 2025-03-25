@@ -1785,28 +1785,6 @@ void node_register_alias(bNodeType &nt, const StringRef alias)
   get_node_type_alias_map().add_new(alias, nt.idname);
 }
 
-bool node_type_is_undefined(const bNode &node)
-{
-  if (node.typeinfo == &NodeTypeUndefined) {
-    return true;
-  }
-
-  if (node.is_group()) {
-    const ID *group_tree = node.id;
-    if (group_tree == nullptr) {
-      return false;
-    }
-    if (!ID_IS_LINKED(group_tree)) {
-      return false;
-    }
-    if ((group_tree->tag & ID_TAG_MISSING) == 0) {
-      return false;
-    }
-    return true;
-  }
-  return false;
-}
-
 Span<bNodeSocketType *> node_socket_types_get()
 {
   return get_socket_type_map().as_span();

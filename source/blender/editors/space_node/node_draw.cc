@@ -3345,6 +3345,35 @@ static short get_viewer_shortcut_icon(const bNode &node)
   return node.typeinfo->ui_icon;
 }
 
+/* Returns true if the given node has an undefined type, a missing group node tree, or is
+ * unsupported in the given node tree. */
+static bool node_undefined_or_unsupported(const bNodeTree &node_tree, const bNode &node)
+{
+  if (node.typeinfo == &bke::NodeTypeUndefined) {
+    return true;
+  }
+
+  const char *disabled_hint = nullptr;
+  if (!node.typeinfo->poll(node.typeinfo, &node_tree, &disabled_hint)) {
+    return true;
+  }
+
+  if (node.is_group()) {
+    const ID *group_tree = node.id;
+    if (group_tree == nullptr) {
+      return false;
+    }
+    if (!ID_IS_LINKED(group_tree)) {
+      return false;
+    }
+    if ((group_tree->tag & ID_TAG_MISSING) == 0) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 static void node_draw_basis(const bContext &C,
                             TreeDrawContext &tree_draw_ctx,
                             const View2D &v2d,
@@ -3646,7 +3675,7 @@ static void node_draw_basis(const bContext &C,
   const float outline_width = U.pixelsize;
   {
     /* Use warning color to indicate undefined types. */
-    if (bke::node_type_is_undefined(node)) {
+    if (node_undefined_or_unsupported(ntree, node)) {
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
     /* Muted nodes get a mix of the background with the node color. */
@@ -3724,7 +3753,7 @@ static void node_draw_basis(const bContext &C,
     if (node.flag & SELECT) {
       UI_GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
-    else if (bke::node_type_is_undefined(node)) {
+    else if (node_undefined_or_unsupported(ntree, node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
     }
     else if (const bke::bNodeZoneType *zone_type = bke::zone_type_by_node_type(node.type_legacy)) {
@@ -3788,7 +3817,7 @@ static void node_draw_hidden(const bContext &C,
   /* Body. */
   float color[4];
   {
-    if (bke::node_type_is_undefined(node)) {
+    if (node_undefined_or_unsupported(ntree, node)) {
       /* Use warning color to indicate undefined types. */
       UI_GetThemeColorBlend4f(TH_REDALERT, TH_NODE, 0.4f, color);
     }
@@ -3889,7 +3918,7 @@ static void node_draw_hidden(const bContext &C,
     if (node.flag & SELECT) {
       UI_GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
-    else if (bke::node_type_is_undefined(node)) {
+    else if (node_undefined_or_unsupported(ntree, node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
     }
     else {

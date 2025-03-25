@@ -892,8 +892,6 @@ void node_tree_local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
  */
 void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree);
 
-bool node_type_is_undefined(const bNode &node);
-
 bool node_is_static_socket_type(const bNodeSocketType &stype);
 
 StringRefNull node_socket_sub_type_label(int subtype);
