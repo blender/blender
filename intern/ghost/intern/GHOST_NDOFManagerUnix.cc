@@ -116,7 +116,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
         }
         case SPNAV_EVENT_BUTTON:
           uint64_t now = system_.getMilliSeconds();
-          updateButton(e.button.bnum, e.button.press, now);
+          updateButtonRAW(e.button.bnum, e.button.press, now);
           break;
       }
       anyProcessed = true;

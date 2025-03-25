@@ -205,7 +205,7 @@ static void DeviceEvent(uint32_t /*unused*/, uint32_t msg_type, void *msg_arg)
 #ifdef DEBUG_NDOF_BUTTONS
           printf("button number: %d, pressed: %d\n", button_number, pressed);
 #endif
-          ndof_manager->updateButton(button_number, pressed, now);
+          ndof_manager->updateButton(GHOST_NDOF_ButtonT(button_number), pressed, now);
           ghost_system->notifyExternalEventProcessed();
           break;
         }
