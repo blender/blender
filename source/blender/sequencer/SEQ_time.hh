@@ -125,7 +125,8 @@ void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta);
 /**
  * Move contents of a strip without moving the strip handles.
  */
-void time_slip_strip(const Scene *scene, Strip *strip, int delta, float subframe_delta);
+void time_slip_strip(
+    const Scene *scene, Strip *strip, int delta, float subframe_delta, bool slip_keyframes);
 /**
  * Get difference between scene and movie strip frame-rate.
  */

@@ -22,7 +22,7 @@
 
 namespace blender::seq {
 
-bool animation_keyframes_exist(Scene *scene)
+bool animation_keyframes_exist(const Scene *scene)
 {
   return scene->adt != nullptr && scene->adt->action != nullptr &&
          scene->adt->action->wrap().has_keyframes(scene->adt->slot_handle);
@@ -39,9 +39,9 @@ bool fcurve_matches(const Strip &strip, const FCurve &fcurve)
       fcurve, "sequence_editor.strips_all[", strip.name + 2);
 }
 
-void offset_animdata(Scene *scene, Strip *strip, int ofs)
+void offset_animdata(const Scene *scene, Strip *strip, float ofs)
 {
-  if (!animation_keyframes_exist(scene) || ofs == 0) {
+  if (!animation_keyframes_exist(scene) || ofs == 0.0f) {
     return;
   }
 

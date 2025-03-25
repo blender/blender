@@ -16,13 +16,13 @@ struct ListBase;
 struct Scene;
 struct Strip;
 struct SeqAnimationBackup;
-
 namespace blender::seq {
 
-bool animation_keyframes_exist(Scene *scene);
+bool animation_keyframes_exist(const Scene *scene);
 bool animation_drivers_exist(Scene *scene);
 void free_animdata(Scene *scene, Strip *strip);
-void offset_animdata(Scene *scene, Strip *strip, int ofs);
+void offset_animdata(const Scene *scene, Strip *strip, float ofs);
+
 /**
  * Return whether the fcurve targets the given sequence.
  */

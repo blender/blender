@@ -548,7 +548,8 @@ static wmOperatorStatus sequencer_slip_invoke(bContext *C, wmOperator *op, const
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void sequencer_slip_strips(Scene *scene, SlipData *data, int delta, float subframe_delta)
+static void sequencer_slip_strips(
+    Scene *scene, SlipData *data, int delta, float subframe_delta, bool slip_keyframes)
 {
   for (int i = data->num_seq - 1; i >= 0; i--) {
     Strip *strip = data->strip_array[i];
@@ -558,7 +559,7 @@ static void sequencer_slip_strips(Scene *scene, SlipData *data, int delta, float
       continue;
     }
 
-    seq::time_slip_strip(scene, strip, delta, subframe_delta);
+    seq::time_slip_strip(scene, strip, delta, subframe_delta, slip_keyframes);
   }
 
   for (int i = data->num_seq - 1; i >= 0; i--) {
@@ -614,6 +615,7 @@ static wmOperatorStatus sequencer_slip_exec(bContext *C, wmOperator *op)
 
   slip_add_sequences(ed->seqbasep, data->strip_array);
 
+  bool slip_keyframes = RNA_boolean_get(op->ptr, "slip_keyframes");
   float offset_fl = RNA_float_get(op->ptr, "offset");
   int offset = round_fl_to_int(offset_fl);
 
@@ -624,7 +626,7 @@ static wmOperatorStatus sequencer_slip_exec(bContext *C, wmOperator *op)
   }
 
   sequencer_slip_apply_limits(scene, data, &offset);
-  sequencer_slip_strips(scene, data, offset, subframe_delta);
+  sequencer_slip_strips(scene, data, offset, subframe_delta, slip_keyframes);
 
   MEM_freeN(data->strip_array);
   MEM_freeN(data);
@@ -679,7 +681,9 @@ static void handle_number_input(
     data->subframe_restore += subframe_delta;
   }
   data->previous_subframe_offset = offset_fl;
-  sequencer_slip_strips(scene, data, delta_offset, subframe_delta);
+
+  bool slip_keyframes = RNA_boolean_get(op->ptr, "slip_keyframes");
+  sequencer_slip_strips(scene, data, delta_offset, subframe_delta, slip_keyframes);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 }
@@ -738,7 +742,9 @@ static wmOperatorStatus sequencer_slip_modal(bContext *C, wmOperator *op, const 
           data->subframe_restore = 0.0f;
         }
         data->previous_subframe_offset = offset_fl;
-        sequencer_slip_strips(scene, data, delta_offset, subframe_delta);
+
+        bool slip_keyframes = RNA_boolean_get(op->ptr, "slip_keyframes");
+        sequencer_slip_strips(scene, data, delta_offset, subframe_delta, slip_keyframes);
 
         WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
       }
@@ -764,7 +770,8 @@ static wmOperatorStatus sequencer_slip_modal(bContext *C, wmOperator *op, const 
     case RIGHTMOUSE: {
       int offset = data->previous_offset;
       float subframe_delta = data->subframe_restore;
-      sequencer_slip_strips(scene, data, -offset, -subframe_delta);
+      bool slip_keyframes = RNA_boolean_get(op->ptr, "slip_keyframes");
+      sequencer_slip_strips(scene, data, -offset, -subframe_delta, slip_keyframes);
 
       MEM_freeN(data->strip_array);
       MEM_freeN(data);
@@ -834,6 +841,11 @@ void SEQUENCER_OT_slip(wmOperatorType *ot)
                        -FLT_MAX,
                        FLT_MAX);
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, 0);
+  RNA_def_boolean(ot->srna,
+                  "slip_keyframes",
+                  false,
+                  "Slip Keyframes",
+                  "Move the keyframes alongside the media");
 }
 
 /** \} */
