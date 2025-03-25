@@ -2888,6 +2888,17 @@ static wmOperatorStatus region_scale_invoke(bContext *C, wmOperator *op, const w
       rmd->region->sizey = rmd->region->winy;
     }
 
+    /* Reset our saved widths if the region is hidden.
+     * Otherwise you can't drag it out a second time. */
+    if (rmd->region->flag & RGN_FLAG_HIDDEN) {
+      if (ELEM(rmd->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
+        rmd->region->winx = rmd->region->sizex = 0;
+      }
+      else {
+        rmd->region->winy = rmd->region->sizey = 0;
+      }
+    }
+
     /* Now copy to region-move-data. */
     if (ELEM(rmd->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
       rmd->origval = rmd->region->sizex;
