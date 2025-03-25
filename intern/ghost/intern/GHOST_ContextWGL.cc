@@ -120,7 +120,9 @@ GHOST_TSuccess GHOST_ContextWGL::activateDrawingContext()
 
 GHOST_TSuccess GHOST_ContextWGL::releaseDrawingContext()
 {
-  if (WIN32_CHK(::wglMakeCurrent(nullptr, nullptr))) {
+  /* Calling wglMakeCurrent(nullptr, nullptr) without an active context returns an error,
+   * so we always pass the device context handle. */
+  if (WIN32_CHK(::wglMakeCurrent(m_hDC, nullptr))) {
     return GHOST_kSuccess;
   }
   else {
