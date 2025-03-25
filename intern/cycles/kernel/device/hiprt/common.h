@@ -118,7 +118,7 @@ ccl_device_inline bool curve_custom_intersect(const hiprtRay &ray,
   const int key_value = prim_info.y;
 
 #  ifdef __SHADOW_LINKING__
-  if (intersection_skip_shadow_link(nullptr, payload->self, object_id)) {
+  if (intersection_skip_shadow_link(kg, payload->self, object_id)) {
     return false; /* Ignore hit - continue traversal. */
   }
 #  endif
@@ -304,7 +304,7 @@ ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
   const int primitive_type = prim_info.y;
 
 #    ifdef __SHADOW_LINKING__
-  if (intersection_skip_shadow_link(nullptr, payload->self, object_id)) {
+  if (intersection_skip_shadow_link(kg, payload->self, object_id)) {
     return false; /* Ignore hit - continue traversal */
   }
 #    endif
@@ -362,7 +362,7 @@ ccl_device_inline bool closest_intersection_filter(const hiprtRay &ray,
   const int prim = hit.primID + prim_offset;
 
 #  ifdef __SHADOW_LINKING__
-  if (intersection_skip_shadow_link(nullptr, payload->self, object_id)) {
+  if (intersection_skip_shadow_link(payload->kg, payload->self, object_id)) {
     return true; /* Ignore hit - continue traversal. */
   }
 #  endif
@@ -393,7 +393,7 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
   const float ray_tmax = hit.t;
 
 #  ifdef __SHADOW_LINKING__
-  if (intersection_skip_shadow_link(nullptr, self, object)) {
+  if (intersection_skip_shadow_link(kg, self, object)) {
     return true; /* Ignore hit - continue traversal */
   }
 #  endif
@@ -420,7 +420,7 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
   return false;
 #  else
   if (num_hits >= max_hits ||
-      !(intersection_get_shader_flags(nullptr, prim, primitive_type) & SD_HAS_TRANSPARENT_SHADOW))
+      !(intersection_get_shader_flags(kg, prim, primitive_type) & SD_HAS_TRANSPARENT_SHADOW))
   {
     return false;
   }
@@ -480,7 +480,7 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
 
 #  ifdef __SHADOW_LINKING__
   /* It doesn't seem like this is necessary. */
-  if (intersection_skip_shadow_link(nullptr, self, object)) {
+  if (intersection_skip_shadow_link(kg, self, object)) {
     return true; /* Ignore hit - continue traversal. */
   }
 #  endif
@@ -512,7 +512,7 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
   return false;
 #  else
   if (num_hits >= max_hits ||
-      !(intersection_get_shader_flags(nullptr, prim, primitive_type) & SD_HAS_TRANSPARENT_SHADOW))
+      !(intersection_get_shader_flags(kg, prim, primitive_type) & SD_HAS_TRANSPARENT_SHADOW))
   {
     return false;
   }
