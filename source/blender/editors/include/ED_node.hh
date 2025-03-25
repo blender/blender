@@ -20,6 +20,7 @@ struct bNodeSocket;
 struct bNodeTree;
 struct Object;
 struct rcti;
+struct rctf;
 struct NodesModifierData;
 struct uiLayout;
 
@@ -54,6 +55,14 @@ void node_insert_on_link_flags_clear(bNodeTree &node_tree);
  * Draw a single node socket at default size.
  */
 void node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[4], float scale);
+void node_draw_nodesocket(const rctf *rect,
+                          const float color_inner[4],
+                          const float color_outline[4],
+                          float outline_thickness,
+                          int shape,
+                          float aspect);
+
+void std_node_socket_colors_get(int socket_type, float *r_color);
 
 /**
  * Find the nested node id of a currently visible node in the root tree.

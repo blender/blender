@@ -1147,6 +1147,14 @@ static const float std_node_socket_colors[][4] = {
     {0.72, 0.20, 0.52, 1.0}, /* SOCK_MATRIX */
 };
 
+void std_node_socket_colors_get(int socket_type, float *r_color)
+{
+  BLI_assert(socket_type >= 0);
+  BLI_assert(socket_type < std::size(std_node_socket_colors));
+
+  copy_v4_v4(r_color, std_node_socket_colors[socket_type]);
+}
+
 /* Callback for colors that does not depend on the socket pointer argument to get the type. */
 template<int socket_type>
 void std_node_socket_color_fn(bContext * /*C*/,

@@ -238,12 +238,6 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
 void UI_node_socket_draw_cache_flush();
 void nodesocket_batch_start();
 void nodesocket_batch_end();
-void node_draw_nodesocket(const rctf *rect,
-                          const float color_inner[4],
-                          const float color_outline[4],
-                          float outline_thickness,
-                          int shape,
-                          float aspect);
 
 void nodelink_batch_start(SpaceNode &snode);
 void nodelink_batch_end(SpaceNode &snode);

@@ -931,6 +931,7 @@ static void rna_def_node_socket_float(BlenderRNA *brna,
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Float Node Socket", "Floating-point number socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_FLOAT);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueFloat", "default_value");
@@ -1032,6 +1033,7 @@ static void rna_def_node_socket_int(BlenderRNA *brna,
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Integer Node Socket", "Integer number socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_INT);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueInt", "default_value");
@@ -1102,6 +1104,7 @@ static void rna_def_node_socket_bool(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Boolean Node Socket", "Boolean value socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_BOOLEAN);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueBoolean", "default_value");
@@ -1145,6 +1148,7 @@ static void rna_def_node_socket_rotation(BlenderRNA *brna, const char *identifie
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Rotation Node Socket", "Rotation value socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_ROTATION);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueRotation", "default_value");
@@ -1188,6 +1192,7 @@ static void rna_def_node_socket_matrix(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Matrix Node Socket", "Matrix value socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_MATRIX);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocket", nullptr);
@@ -1215,6 +1220,7 @@ static void rna_def_node_socket_vector(BlenderRNA *brna,
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Vector Node Socket", "3D vector socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_VECTOR);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueVector", "default_value");
@@ -1284,6 +1290,7 @@ static void rna_def_node_socket_color(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Color Node Socket", "RGBA color socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_RGBA);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueRGBA", "default_value");
@@ -1329,6 +1336,7 @@ static void rna_def_node_socket_string(BlenderRNA *brna,
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "String Node Socket", "String socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_STRING);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueString", "default_value");
@@ -1387,6 +1395,7 @@ static void rna_def_node_socket_menu(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Menu Node Socket", "Menu socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_MENU);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueMenu", "default_value");
@@ -1432,6 +1441,7 @@ static void rna_def_node_socket_shader(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Shader Node Socket", "Shader socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_SHADER);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 }
 
@@ -1453,6 +1463,7 @@ static void rna_def_node_socket_object(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Object Node Socket", "Object socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_OBJECT);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueObject", "default_value");
@@ -1496,6 +1507,7 @@ static void rna_def_node_socket_image(BlenderRNA *brna, const char *identifier)
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Image Node Socket", "Image socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_IMAGE);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueImage", "default_value");
@@ -1538,6 +1550,7 @@ static void rna_def_node_socket_geometry(BlenderRNA *brna, const char *identifie
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Geometry Node Socket", "Geometry socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_GEOMETRY);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 }
 
@@ -1559,6 +1572,7 @@ static void rna_def_node_socket_collection(BlenderRNA *brna, const char *identif
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Collection Node Socket", "Collection socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_COLLECTION);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueCollection", "default_value");
@@ -1602,6 +1616,7 @@ static void rna_def_node_socket_texture(BlenderRNA *brna, const char *identifier
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Texture Node Socket", "Texture socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_TEXTURE);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueTexture", "default_value");
@@ -1645,6 +1660,7 @@ static void rna_def_node_socket_material(BlenderRNA *brna, const char *identifie
 
   srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
   RNA_def_struct_ui_text(srna, "Material Node Socket", "Material socket of a node");
+  RNA_def_struct_ui_icon(srna, ICON_NODE_SOCKET_MATERIAL);
   RNA_def_struct_sdna(srna, "bNodeSocket");
 
   RNA_def_struct_sdna_from(srna, "bNodeSocketValueMaterial", "default_value");

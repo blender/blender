@@ -14,6 +14,7 @@
 #include "BLF_api.hh"
 
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BLT_translation.hh"
@@ -43,6 +44,7 @@
 
 #include "ED_keyframes_draw.hh"
 #include "ED_keyframes_keylist.hh"
+#include "ED_node.hh"
 #include "ED_render.hh"
 
 #include "UI_interface.hh"
@@ -374,6 +376,30 @@ static void vicon_handletype_auto_clamp_draw(
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_AUTO_CLAMP);
 }
 
+static void icon_node_socket_draw(int socket_type, int x, int y, int w, int h, float /*alpha*/)
+{
+  /* Factor to account for the draw function of the node socket being based on the widget unit,
+   * which is 10 px by default, which differs from icons. */
+  constexpr float size_factor = 10.0f / float(ICON_DEFAULT_WIDTH);
+
+  const float socket_radius = w * 0.5f * size_factor;
+  const blender::float2 center = {x + 0.5f * w, y + 0.5f * h};
+  const rctf rect = {
+      center.x - socket_radius,
+      center.x + socket_radius,
+      center.y - socket_radius,
+      center.y + socket_radius,
+  };
+
+  float color_inner[4];
+  blender::ed::space_node::std_node_socket_colors_get(socket_type, color_inner);
+
+  float color_outer[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+
+  blender::ed::space_node::node_draw_nodesocket(
+      &rect, color_inner, color_outer, U.pixelsize, SOCK_DISPLAY_SHAPE_CIRCLE, 1.0f);
+}
+
 static void vicon_colorset_draw(int index, int x, int y, int w, int h, float /*alpha*/)
 {
   bTheme *btheme = UI_GetTheme();
@@ -583,6 +609,31 @@ DEF_ICON_LAYERGROUP_COLOR_DRAW(07, LAYERGROUP_COLOR_07);
 DEF_ICON_LAYERGROUP_COLOR_DRAW(08, LAYERGROUP_COLOR_08);
 
 #  undef DEF_ICON_LAYERGROUP_COLOR_DRAW
+
+#  define DEF_ICON_NODE_SOCKET_DRAW(name, socket_type) \
+    static void icon_node_socket_draw_##name( \
+        int x, int y, int w, int h, float alpha, const uchar * /*mono_rgba[4]*/) \
+    { \
+      icon_node_socket_draw(socket_type, x, y, w, h, alpha); \
+    }
+
+DEF_ICON_NODE_SOCKET_DRAW(float, eNodeSocketDatatype::SOCK_FLOAT)
+DEF_ICON_NODE_SOCKET_DRAW(vector, eNodeSocketDatatype::SOCK_VECTOR)
+DEF_ICON_NODE_SOCKET_DRAW(rgba, eNodeSocketDatatype::SOCK_RGBA)
+DEF_ICON_NODE_SOCKET_DRAW(shader, eNodeSocketDatatype::SOCK_SHADER)
+DEF_ICON_NODE_SOCKET_DRAW(boolean, eNodeSocketDatatype::SOCK_BOOLEAN)
+DEF_ICON_NODE_SOCKET_DRAW(int, eNodeSocketDatatype::SOCK_INT)
+DEF_ICON_NODE_SOCKET_DRAW(string, eNodeSocketDatatype::SOCK_STRING)
+DEF_ICON_NODE_SOCKET_DRAW(object, eNodeSocketDatatype::SOCK_OBJECT)
+DEF_ICON_NODE_SOCKET_DRAW(image, eNodeSocketDatatype::SOCK_IMAGE)
+DEF_ICON_NODE_SOCKET_DRAW(geometry, eNodeSocketDatatype::SOCK_GEOMETRY)
+DEF_ICON_NODE_SOCKET_DRAW(collection, eNodeSocketDatatype::SOCK_COLLECTION)
+DEF_ICON_NODE_SOCKET_DRAW(texture, eNodeSocketDatatype::SOCK_TEXTURE)
+DEF_ICON_NODE_SOCKET_DRAW(material, eNodeSocketDatatype::SOCK_MATERIAL)
+DEF_ICON_NODE_SOCKET_DRAW(rotation, eNodeSocketDatatype::SOCK_ROTATION)
+DEF_ICON_NODE_SOCKET_DRAW(menu, eNodeSocketDatatype::SOCK_MENU)
+DEF_ICON_NODE_SOCKET_DRAW(matrix, eNodeSocketDatatype::SOCK_MATRIX)
+
 /* Dynamically render icon instead of rendering a plain color to a texture/buffer
  * This is not strictly a "vicon", as it needs access to icon->obj to get the color info,
  * but it works in a very similar way.
@@ -953,6 +1004,23 @@ static void init_internal_icons()
   def_internal_vicon(ICON_LAYERGROUP_COLOR_06, vicon_layergroup_color_draw_06);
   def_internal_vicon(ICON_LAYERGROUP_COLOR_07, vicon_layergroup_color_draw_07);
   def_internal_vicon(ICON_LAYERGROUP_COLOR_08, vicon_layergroup_color_draw_08);
+
+  def_internal_vicon(ICON_NODE_SOCKET_FLOAT, icon_node_socket_draw_float);
+  def_internal_vicon(ICON_NODE_SOCKET_VECTOR, icon_node_socket_draw_vector);
+  def_internal_vicon(ICON_NODE_SOCKET_RGBA, icon_node_socket_draw_rgba);
+  def_internal_vicon(ICON_NODE_SOCKET_SHADER, icon_node_socket_draw_shader);
+  def_internal_vicon(ICON_NODE_SOCKET_BOOLEAN, icon_node_socket_draw_boolean);
+  def_internal_vicon(ICON_NODE_SOCKET_INT, icon_node_socket_draw_int);
+  def_internal_vicon(ICON_NODE_SOCKET_STRING, icon_node_socket_draw_string);
+  def_internal_vicon(ICON_NODE_SOCKET_OBJECT, icon_node_socket_draw_object);
+  def_internal_vicon(ICON_NODE_SOCKET_IMAGE, icon_node_socket_draw_image);
+  def_internal_vicon(ICON_NODE_SOCKET_GEOMETRY, icon_node_socket_draw_geometry);
+  def_internal_vicon(ICON_NODE_SOCKET_COLLECTION, icon_node_socket_draw_collection);
+  def_internal_vicon(ICON_NODE_SOCKET_TEXTURE, icon_node_socket_draw_texture);
+  def_internal_vicon(ICON_NODE_SOCKET_MATERIAL, icon_node_socket_draw_material);
+  def_internal_vicon(ICON_NODE_SOCKET_ROTATION, icon_node_socket_draw_rotation);
+  def_internal_vicon(ICON_NODE_SOCKET_MENU, icon_node_socket_draw_menu);
+  def_internal_vicon(ICON_NODE_SOCKET_MATRIX, icon_node_socket_draw_matrix);
 }
 
 #else
