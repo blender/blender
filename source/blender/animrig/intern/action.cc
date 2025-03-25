@@ -37,6 +37,7 @@
 
 #include "BLT_translation.hh"
 
+#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
 #include "ANIM_action.hh"
@@ -3136,6 +3137,14 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
         BLI_assert(result == ActionSlotAssignmentResult::OK);
         UNUSED_VARS_NDEBUG(result);
       }
+
+      /* TODO: move the tagging of animated IDs into generic_assign_action() and
+       * generic_assign_action_slot(), as that's closer to the modification of
+       * the animated ID.
+       *
+       * This line was added here for now, to fix #136388 with minimal impact on
+       * other code, so that the fix can be easily backported to Blender 4.4. */
+      DEG_id_tag_update(user, ID_RECALC_ANIMATION);
       return true;
     };
     foreach_action_slot_use_with_references(*user, assign_other_action);
