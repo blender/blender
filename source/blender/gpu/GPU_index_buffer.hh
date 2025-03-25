@@ -271,3 +271,15 @@ int GPU_indexbuf_primitive_len(GPUPrimType prim_type);
       elem = nullptr; \
     } \
   } while (0)
+
+namespace blender::gpu {
+
+class IndexBufDeleter {
+ public:
+  void operator()(IndexBuf *ibo)
+  {
+    GPU_indexbuf_discard(ibo);
+  }
+};
+
+}  // namespace blender::gpu

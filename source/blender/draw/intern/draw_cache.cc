@@ -175,27 +175,6 @@ blender::gpu::Batch *DRW_cache_object_surface_get(Object *ob)
   }
 }
 
-blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
-{
-  using namespace blender::draw;
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob);
-
-  if (mesh) {
-    /* For drawing we want either the base mesh if GPU subdivision is enabled, or the
-     * tessellated mesh if GPU subdivision is disabled. */
-    if (!BKE_subsurf_modifier_has_gpu_subdiv(mesh)) {
-      mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
-    }
-    return DRW_mesh_batch_cache_pos_vertbuf_get(*mesh);
-  }
-
-  if (ob->type == OB_MESH) {
-    return DRW_mesh_batch_cache_pos_vertbuf_get(DRW_object_get_data_for_drawing<Mesh>(*ob));
-  }
-
-  return nullptr;
-}
-
 Span<blender::gpu::Batch *> DRW_cache_object_surface_material_get(
     Object *ob, const Span<const GPUMaterial *> materials)
 {

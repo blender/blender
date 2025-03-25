@@ -198,8 +198,8 @@ bool VelocityModule::step_object_sync(ObjectKey &object_key,
         case OB_POINTCLOUD:
           data.pos_buf = DRW_pointcloud_position_and_radius_buffer_get(ob);
           break;
-        default:
-          data.pos_buf = DRW_cache_object_pos_vertbuf_get(ob);
+        case OB_MESH:
+          data.pos_buf = DRW_cache_mesh_surface_get(ob);
           break;
       }
       return data;
@@ -207,7 +207,7 @@ bool VelocityModule::step_object_sync(ObjectKey &object_key,
 
     const VelocityGeometryData &data = geometry_map.lookup_or_add_cb(vel.id, add_cb);
 
-    if (data.pos_buf == nullptr) {
+    if (!data.pos_buf_get()) {
       has_deform = false;
     }
   }
@@ -248,10 +248,11 @@ void VelocityModule::geometry_steps_fill()
 {
   uint dst_ofs = 0;
   for (VelocityGeometryData &geom : geometry_map.values()) {
-    if (!geom.pos_buf) {
+    gpu::VertBuf *pos_buf = geom.pos_buf_get();
+    if (!pos_buf) {
       continue;
     }
-    uint src_len = GPU_vertbuf_get_vertex_len(geom.pos_buf);
+    uint src_len = GPU_vertbuf_get_vertex_len(pos_buf);
     geom.len = src_len;
     geom.ofs = dst_ofs;
     dst_ofs += src_len;
@@ -269,20 +270,21 @@ void VelocityModule::geometry_steps_fill()
   copy_ps.bind_ssbo("out_buf", *geometry_steps[step_]);
 
   for (VelocityGeometryData &geom : geometry_map.values()) {
-    if (!geom.pos_buf || geom.len == 0) {
+    gpu::VertBuf *pos_buf = geom.pos_buf_get();
+    if (!pos_buf || geom.len == 0) {
       continue;
     }
-    const GPUVertFormat *format = GPU_vertbuf_get_format(geom.pos_buf);
+    const GPUVertFormat *format = GPU_vertbuf_get_format(pos_buf);
     if (format->stride == 16) {
       GPU_storagebuf_copy_sub_from_vertbuf(*geometry_steps[step_],
-                                           geom.pos_buf,
+                                           pos_buf,
                                            geom.ofs * sizeof(float4),
                                            0,
                                            geom.len * sizeof(float4));
     }
     else {
       BLI_assert(format->stride % 4 == 0);
-      copy_ps.bind_ssbo("in_buf", geom.pos_buf);
+      copy_ps.bind_ssbo("in_buf", pos_buf);
       copy_ps.push_constant("start_offset", geom.ofs);
       copy_ps.push_constant("vertex_stride", int(format->stride / 4));
       copy_ps.push_constant("vertex_count", geom.len);
@@ -382,7 +384,8 @@ void VelocityModule::end_sync()
       /* Current geometry step will be copied at the end of the frame.
        * Thus vel.geo.len[STEP_CURRENT] is not yet valid and the current length is manually
        * retrieved. */
-      gpu::VertBuf *pos_buf = geometry_map.lookup_default(vel.id, VelocityGeometryData()).pos_buf;
+      gpu::VertBuf *pos_buf =
+          geometry_map.lookup_default(vel.id, VelocityGeometryData()).pos_buf_get();
       vel.geo.do_deform = pos_buf != nullptr &&
                           (vel.geo.len[STEP_PREVIOUS] == GPU_vertbuf_get_vertex_len(pos_buf));
     }

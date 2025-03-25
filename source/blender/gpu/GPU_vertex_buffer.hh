@@ -295,3 +295,15 @@ uint GPU_vertbuf_get_memory_usage();
       verts = nullptr; \
     } \
   } while (0)
+
+namespace blender::gpu {
+
+class VertBufDeleter {
+ public:
+  void operator()(VertBuf *vbo)
+  {
+    GPU_vertbuf_discard(vbo);
+  }
+};
+
+}  // namespace blender::gpu

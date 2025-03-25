@@ -186,9 +186,9 @@ static const CustomData *get_custom_data_for_domain(const BMesh &bm, bke::AttrDo
   }
 }
 
-static void extract_attribute(const MeshRenderData &mr,
-                              const DRW_AttributeRequest &request,
-                              gpu::VertBuf &vbo)
+static void extract_attribute_no_init(const MeshRenderData &mr,
+                                      const DRW_AttributeRequest &request,
+                                      gpu::VertBuf &vbo)
 {
   if (mr.extract_type == MeshExtractType::BMesh) {
     const CustomData &custom_data = *get_custom_data_for_domain(*mr.bm, request.domain);
@@ -246,59 +246,48 @@ static void extract_attribute(const MeshRenderData &mr,
     });
   }
 }
-
-void extract_attributes(const MeshRenderData &mr,
-                        const Span<DRW_AttributeRequest> requests,
-                        const Span<gpu::VertBuf *> vbos)
+void extract_attribute(const MeshRenderData &mr,
+                       const DRW_AttributeRequest &request,
+                       gpu::VertBuf &vbo)
 {
-  for (const int i : vbos.index_range()) {
-    if (DRW_vbo_requested(vbos[i])) {
-      init_vbo_for_attribute(mr, *vbos[i], requests[i], false, uint32_t(mr.corners_num));
-      extract_attribute(mr, requests[i], *vbos[i]);
-    }
-  }
+  init_vbo_for_attribute(mr, vbo, request, false, uint32_t(mr.corners_num));
+  extract_attribute_no_init(mr, request, vbo);
 }
 
-void extract_attributes_subdiv(const MeshRenderData &mr,
-                               const DRWSubdivCache &subdiv_cache,
-                               const Span<DRW_AttributeRequest> requests,
-                               const Span<gpu::VertBuf *> vbos)
+void extract_attribute_subdiv(const MeshRenderData &mr,
+                              const DRWSubdivCache &subdiv_cache,
+                              const DRW_AttributeRequest &request,
+                              gpu::VertBuf &vbo)
 {
-  for (const int i : vbos.index_range()) {
-    if (DRW_vbo_requested(vbos[i])) {
-      const DRW_AttributeRequest &request = requests[i];
 
-      const Mesh *coarse_mesh = subdiv_cache.mesh;
+  const Mesh *coarse_mesh = subdiv_cache.mesh;
 
-      /* Prepare VBO for coarse data. The compute shader only expects floats. */
-      gpu::VertBuf *src_data = GPU_vertbuf_calloc();
-      GPUVertFormat coarse_format = draw::init_format_for_attribute(request.cd_type, "data");
-      GPU_vertbuf_init_with_format_ex(*src_data, coarse_format, GPU_USAGE_STATIC);
-      GPU_vertbuf_data_alloc(*src_data, uint32_t(coarse_mesh->corners_num));
+  /* Prepare VBO for coarse data. The compute shader only expects floats. */
+  gpu::VertBuf *src_data = GPU_vertbuf_calloc();
+  GPUVertFormat coarse_format = draw::init_format_for_attribute(request.cd_type, "data");
+  GPU_vertbuf_init_with_format_ex(*src_data, coarse_format, GPU_USAGE_STATIC);
+  GPU_vertbuf_data_alloc(*src_data, uint32_t(coarse_mesh->corners_num));
 
-      extract_attribute(mr, request, *src_data);
+  extract_attribute_no_init(mr, request, *src_data);
 
-      gpu::VertBuf &dst_buffer = *vbos[i];
-      init_vbo_for_attribute(mr, dst_buffer, request, true, subdiv_cache.num_subdiv_loops);
+  init_vbo_for_attribute(mr, vbo, request, true, subdiv_cache.num_subdiv_loops);
 
-      /* Ensure data is uploaded properly. */
-      GPU_vertbuf_tag_dirty(src_data);
-      bke::attribute_math::convert_to_static_type(request.cd_type, [&](auto dummy) {
-        using T = decltype(dummy);
-        using Converter = AttributeConverter<T>;
-        if constexpr (!std::is_void_v<typename Converter::VBOType>) {
-          draw_subdiv_interp_custom_data(subdiv_cache,
-                                         *src_data,
-                                         dst_buffer,
-                                         Converter::gpu_component_type,
-                                         Converter::gpu_component_len,
-                                         0);
-        }
-      });
-
-      GPU_vertbuf_discard(src_data);
+  /* Ensure data is uploaded properly. */
+  GPU_vertbuf_tag_dirty(src_data);
+  bke::attribute_math::convert_to_static_type(request.cd_type, [&](auto dummy) {
+    using T = decltype(dummy);
+    using Converter = AttributeConverter<T>;
+    if constexpr (!std::is_void_v<typename Converter::VBOType>) {
+      draw_subdiv_interp_custom_data(subdiv_cache,
+                                     *src_data,
+                                     vbo,
+                                     Converter::gpu_component_type,
+                                     Converter::gpu_component_len,
+                                     0);
     }
-  }
+  });
+
+  GPU_vertbuf_discard(src_data);
 }
 
 void extract_attr_viewer(const MeshRenderData &mr, gpu::VertBuf &vbo)

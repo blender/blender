@@ -522,18 +522,17 @@ static void retrieve_active_attribute_names(MeshRenderData &mr,
   mr.default_color_name = mesh_final.default_color_attribute;
 }
 
-std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
-                                                        Mesh &mesh,
-                                                        const bool is_editmode,
-                                                        const bool is_paint_mode,
-                                                        const float4x4 &object_to_world,
-                                                        const bool do_final,
-                                                        const bool do_uvedit,
-                                                        const bool use_hide,
-                                                        const ToolSettings *ts)
+MeshRenderData mesh_render_data_create(Object &object,
+                                       Mesh &mesh,
+                                       const bool is_editmode,
+                                       const bool is_paint_mode,
+                                       const float4x4 &object_to_world,
+                                       const bool do_final,
+                                       const bool do_uvedit,
+                                       const bool use_hide,
+                                       const ToolSettings *ts)
 {
-  std::unique_ptr<MeshRenderData> mr_ptr = std::make_unique<MeshRenderData>();
-  MeshRenderData &mr = *mr_ptr;
+  MeshRenderData mr{};
   mr.toolsettings = ts;
   mr.materials_num = BKE_object_material_used_with_fallback_eval(object);
 
@@ -683,7 +682,7 @@ std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
 
   retrieve_active_attribute_names(mr, object, *mr.mesh);
 
-  return mr_ptr;
+  return mr;
 }
 
 /** \} */

@@ -47,11 +47,6 @@ blender::Span<blender::gpu::Batch *> DRW_cache_object_surface_material_get(
     Object *ob, blender::Span<const GPUMaterial *> materials);
 blender::gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Object *ob);
 
-/**
- * Returns the vertbuf used by shaded surface batch.
- */
-blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob);
-
 /* Meshes */
 
 blender::gpu::Batch *DRW_cache_mesh_all_verts_get(Object *ob);

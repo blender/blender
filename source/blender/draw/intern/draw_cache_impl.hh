@@ -274,8 +274,6 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh &mesh);
 /** \name For Direct Data Access
  * \{ */
 
-gpu::VertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh &mesh);
-
 /* Edit mesh bit-flags (is this the right place?). */
 enum {
   VFLAG_VERT_ACTIVE = 1 << 0,
