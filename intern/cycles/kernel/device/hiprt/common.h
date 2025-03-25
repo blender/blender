@@ -594,12 +594,13 @@ ccl_device_inline bool volume_intersection_filter(const hiprtRay &ray,
   const int prim = hit.primID + prim_offset;
   const int object_flag = kernel_data_fetch(object_flag, object_id);
 
-  if (intersection_skip_self(payload->self, object_id, prim))
+  if (intersection_skip_self(payload->self, object_id, prim)) {
     return true;
-  else if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0)
+  }
+  if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
     return true;
-  else
-    return false;
+  }
+  return false;
 }
 
 HIPRT_DEVICE bool intersectFunc(const uint geom_type,
