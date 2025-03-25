@@ -30,6 +30,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
+#include "BKE_report.hh"
 
 #include "UI_interface.hh"
 
@@ -400,6 +401,7 @@ static wmOperatorStatus graph_slider_invoke(bContext *C, wmOperator *op, const w
     graph_slider_exit(C, op);
     return OPERATOR_CANCELLED;
   }
+  gso->ac.reports = op->reports;
 
   gso->scene = CTX_data_scene(C);
   gso->area = CTX_wm_area(C);
@@ -411,7 +413,7 @@ static wmOperatorStatus graph_slider_invoke(bContext *C, wmOperator *op, const w
   ED_slider_init(gso->slider, event);
 
   if (gso->bezt_arr_list.first == nullptr) {
-    WM_global_report(RPT_ERROR, "Cannot find keys to operate on");
+    BKE_report(op->reports, RPT_ERROR, "Cannot find keys to operate on");
     graph_slider_exit(C, op);
     return OPERATOR_CANCELLED;
   }
@@ -443,7 +445,7 @@ static void decimate_graph_keys(bAnimContext *ac, float factor, float error_sq_m
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     if (!decimate_fcurve(ale, factor, error_sq_max)) {
       /* The selection contains unsupported keyframe types! */
-      WM_global_report(RPT_WARNING, "Decimate: Skipping non linear/Bézier keyframes!");
+      BKE_report(ac->reports, RPT_WARNING, "Decimate: Skipping non linear/Bézier keyframes!");
     }
 
     ale->update |= ANIM_UPDATE_DEFAULT;
@@ -1319,10 +1321,12 @@ static void match_slope_graph_keys(bAnimContext *ac, const float factor)
 
   if (!all_segments_valid) {
     if (factor >= 0) {
-      WM_global_report(RPT_WARNING, "You need at least 2 keys to the right side of the selection");
+      BKE_report(
+          ac->reports, RPT_WARNING, "You need at least 2 keys to the right side of the selection");
     }
     else {
-      WM_global_report(RPT_WARNING, "You need at least 2 keys to the left side of the selection");
+      BKE_report(
+          ac->reports, RPT_WARNING, "You need at least 2 keys to the left side of the selection");
     }
   }
 
@@ -1375,6 +1379,7 @@ static wmOperatorStatus match_slope_exec(bContext *C, wmOperator *op)
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
+  ac.reports = op->reports;
 
   const float factor = RNA_float_get(op->ptr, "factor");
 

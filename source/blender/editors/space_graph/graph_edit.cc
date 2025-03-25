@@ -3293,7 +3293,7 @@ void GRAPH_OT_driver_variables_paste(wmOperatorType *ot)
 /** \name Delete Invalid Drivers Operator
  * \{ */
 
-static wmOperatorStatus graph_driver_delete_invalid_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
@@ -3338,10 +3338,10 @@ static wmOperatorStatus graph_driver_delete_invalid_exec(bContext *C, wmOperator
     /* Notify the world of any changes. */
     DEG_relations_tag_update(CTX_data_main(C));
     WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, nullptr);
-    WM_global_reportf(RPT_INFO, "Deleted %u drivers", deleted);
+    BKE_reportf(op->reports, RPT_INFO, "Deleted %u drivers", deleted);
   }
   else {
-    WM_global_report(RPT_INFO, "No drivers deleted");
+    BKE_report(op->reports, RPT_INFO, "No drivers deleted");
   }
 
   /* Successful or not? */

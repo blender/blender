@@ -34,6 +34,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_object_types.hh"
+#include "BKE_report.hh"
 
 #include "ANIM_action.hh"
 
@@ -1799,8 +1800,10 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
     BLI_assert_msg(bcoll_ref,
                    "Bone that is not visible due to its bone collections MUST be assigned to at "
                    "least one of them.");
-    WM_global_reportf(
-        RPT_WARNING, "Bone was added to a hidden collection '%s'", bcoll_ref->bcoll->name);
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "Bone was added to a hidden collection '%s'",
+                bcoll_ref->bcoll->name);
   }
 
   copy_v3_v3(bone->head, curs);
