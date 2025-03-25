@@ -1055,6 +1055,8 @@ static void obstacles_from_mesh(Object *coll_ob,
       bb_boundInsert(bb, positions[i]);
     }
 
+    mesh->tag_positions_changed();
+
     /* Set emission map.
      * Use 3 cell diagonals as margin (3 * 1.732 = 5.196). */
     int bounds_margin = int(ceil(5.196));
