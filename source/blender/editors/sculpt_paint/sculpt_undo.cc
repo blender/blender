@@ -4,7 +4,7 @@
 
 /** \file
  * \ingroup edsculpt
- * Implements the Sculpt Mode tools.
+ * Implements the Sculpt Mode undo system.
  *
  * Usage Guide
  * ===========
@@ -12,20 +12,15 @@
  * The sculpt undo system is a delta-based system. Each undo step stores the difference with the
  * prior one.
  *
- * To use the sculpt undo system, you must call push_begin inside an operator exec or invoke
- * callback (geometry_begin may be called if you wish to save a non-delta copy of the entire mesh).
- * This will initialize the sculpt undo stack and set up an undo step.
+ * To use the sculpt undo system, you must call #push_begin inside an operator exec or invoke
+ * callback (#geometry_begin may be called if you wish to save a non-delta copy of the entire
+ * mesh). This will initialize the sculpt undo stack and set up an undo step.
  *
- * At the end of the operator you should call push_end.
+ * At the end of the operator you should call #push_end.
  *
- * push_begin and geometry_begin both take a #wmOperatorType as an argument. There are _ex versions
- * that allow a custom name; try to avoid using them. These can break the redo panel since it
- * requires the undo push to have the same name as the calling operator.
- *
- * NOTE: Sculpt undo steps are not appended to the global undo stack until the operator finishes.
- * We use BKE_undosys_step_push_init_with_type to build a tentative undo step with is appended
- * later when the operator ends. Operators must have the OPTYPE_UNDO flag set for this to work
- * properly.
+ * #push_begin and #geometry_begin both take a #wmOperatorType as an argument. There are _ex
+ * versions that allow a custom name; try to avoid using them. These can break the redo panel since
+ * it requires the undo push to have the same name as the calling operator.
  */
 #include "sculpt_undo.hh"
 
