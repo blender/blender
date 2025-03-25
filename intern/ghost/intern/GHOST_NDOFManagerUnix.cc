@@ -125,7 +125,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
 #ifdef USE_FINISH_GLITCH_WORKAROUND
     if (motion_test_prev == true && motion_test == false) {
       const uint64_t now = system_.getMilliSeconds();
-      GHOST_ASSERT(motion_test_prev_time < now, "Invalid time offset");
+      GHOST_ASSERT(motion_test_prev_time <= now, "Invalid time offset");
       if ((now - motion_test_prev_time) < MOTION_TEST_IDLE_MS) {
         /* Re-run this check next time `processEvents` is called. */
         motion_test = true;
