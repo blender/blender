@@ -113,8 +113,9 @@ ccl_device_inline bool curve_custom_intersect(const hiprtRay &ray,
 
   const int prim_offset = data_offset.y;
 
-  const int curve_index = kernel_data_fetch(custom_prim_info, hit.primID + data_offset.x).x;
-  const int key_value = kernel_data_fetch(custom_prim_info, hit.primID + data_offset.x).y;
+  const int2 prim_info = kernel_data_fetch(custom_prim_info, hit.primID + data_offset.x);
+  const int curve_index = prim_info.x;
+  const int key_value = prim_info.y;
 
 #  ifdef __SHADOW_LINKING__
   if (intersection_skip_shadow_link(nullptr, payload->self, object_id)) {
