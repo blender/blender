@@ -1304,6 +1304,10 @@ std::optional<std::string> rna_ColorManagedDisplaySettings_path(const PointerRNA
   if (path) {
     return *path + ".display_settings";
   }
+  if (GS(ptr->owner_id->name) == ID_SCE) {
+    return "display_settings";
+  }
+
   return std::nullopt;
 }
 
@@ -1314,6 +1318,9 @@ std::optional<std::string> rna_ColorManagedViewSettings_path(const PointerRNA *p
       ptr, [&](ImageFormatData *imf) { return &imf->view_settings == data; });
   if (path) {
     return *path + ".view_settings";
+  }
+  if (GS(ptr->owner_id->name) == ID_SCE) {
+    return "view_settings";
   }
   return std::nullopt;
 }
