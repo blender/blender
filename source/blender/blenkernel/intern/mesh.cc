@@ -1386,7 +1386,9 @@ void BKE_mesh_transform(Mesh *mesh, const float mat[4][4], bool do_keys)
 std::optional<int> Mesh::material_index_max() const
 {
   this->runtime->max_material_index.ensure([&](std::optional<int> &value) {
-    if (this->runtime->edit_mesh && this->runtime->edit_mesh->bm) {
+    if (this->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH && this->runtime->edit_mesh &&
+        this->runtime->edit_mesh->bm)
+    {
       BMesh *bm = this->runtime->edit_mesh->bm;
       if (bm->totface == 0) {
         value = std::nullopt;
