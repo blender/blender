@@ -89,10 +89,7 @@ ccl_device_inline void set_intersect_point(KernelGlobals kg,
 
 // custom intersection functions
 
-ccl_device_inline bool curve_custom_intersect(const hiprtRay &ray,
-                                              const void *userPtr,
-                                              void *payload,
-                                              hiprtHit &hit)
+ccl_device_inline bool curve_custom_intersect(const hiprtRay &ray, void *payload, hiprtHit &hit)
 
 {
   Intersection isect;
@@ -160,7 +157,6 @@ ccl_device_inline bool curve_custom_intersect(const hiprtRay &ray,
 }
 
 ccl_device_inline bool motion_triangle_custom_intersect(const hiprtRay &ray,
-                                                        const void *userPtr,
                                                         void *payload,
                                                         hiprtHit &hit)
 {
@@ -201,7 +197,6 @@ ccl_device_inline bool motion_triangle_custom_intersect(const hiprtRay &ray,
 }
 
 ccl_device_inline bool motion_triangle_custom_local_intersect(const hiprtRay &ray,
-                                                              const void *userPtr,
                                                               void *payload,
                                                               hiprtHit &hit)
 {
@@ -240,7 +235,6 @@ ccl_device_inline bool motion_triangle_custom_local_intersect(const hiprtRay &ra
 }
 
 ccl_device_inline bool motion_triangle_custom_volume_intersect(const hiprtRay &ray,
-                                                               const void *userPtr,
                                                                void *payload,
                                                                hiprtHit &hit)
 {
@@ -289,10 +283,7 @@ ccl_device_inline bool motion_triangle_custom_volume_intersect(const hiprtRay &r
 #  endif
 }
 
-ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
-                                              const void *userPtr,
-                                              void *payload,
-                                              hiprtHit &hit)
+ccl_device_inline bool point_custom_intersect(const hiprtRay &ray, void *payload, hiprtHit &hit)
 {
 #  if defined(__POINTCLOUD__)
   RayPayload *local_payload = (RayPayload *)payload;
@@ -359,7 +350,6 @@ ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
 // intersection filters
 
 ccl_device_inline bool closest_intersection_filter(const hiprtRay &ray,
-                                                   const void *data,
                                                    void *user_data,
                                                    const hiprtHit &hit)
 {
@@ -384,7 +374,6 @@ ccl_device_inline bool closest_intersection_filter(const hiprtRay &ray,
 }
 
 ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
-                                                  const void *data,
                                                   void *user_data,
                                                   const hiprtHit &hit)
 
@@ -482,7 +471,6 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
 }
 
 ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
-                                                         const void *data,
                                                          void *user_data,
                                                          const hiprtHit &hit)
 
@@ -560,7 +548,6 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
 }
 
 ccl_device_inline bool local_intersection_filter(const hiprtRay &ray,
-                                                 const void *data,
                                                  void *user_data,
                                                  const hiprtHit &hit)
 {
@@ -617,7 +604,6 @@ ccl_device_inline bool local_intersection_filter(const hiprtRay &ray,
 }
 
 ccl_device_inline bool volume_intersection_filter(const hiprtRay &ray,
-                                                  const void *data,
                                                   void *user_data,
                                                   const hiprtHit &hit)
 {
@@ -643,21 +629,20 @@ HIPRT_DEVICE bool intersectFunc(const uint geomType,
                                 hiprtHit &hit)
 {
   const uint index = tableHeader.numGeomTypes * rayType + geomType;
-  const void *data = tableHeader.funcDataSets[index].filterFuncData;
   switch (index) {
     case Curve_Intersect_Function:
     case Curve_Intersect_Shadow:
-      return curve_custom_intersect(ray, data, payload, hit);
+      return curve_custom_intersect(ray, payload, hit);
     case Motion_Triangle_Intersect_Function:
     case Motion_Triangle_Intersect_Shadow:
-      return motion_triangle_custom_intersect(ray, data, payload, hit);
+      return motion_triangle_custom_intersect(ray, payload, hit);
     case Motion_Triangle_Intersect_Local:
-      return motion_triangle_custom_local_intersect(ray, data, payload, hit);
+      return motion_triangle_custom_local_intersect(ray, payload, hit);
     case Motion_Triangle_Intersect_Volume:
-      return motion_triangle_custom_volume_intersect(ray, data, payload, hit);
+      return motion_triangle_custom_volume_intersect(ray, payload, hit);
     case Point_Intersect_Function:
     case Point_Intersect_Shadow:
-      return point_custom_intersect(ray, data, payload, hit);
+      return point_custom_intersect(ray, payload, hit);
     default:
       break;
   }
@@ -672,22 +657,21 @@ HIPRT_DEVICE bool filterFunc(const uint geomType,
                              const hiprtHit &hit)
 {
   const uint index = tableHeader.numGeomTypes * rayType + geomType;
-  const void *data = tableHeader.funcDataSets[index].intersectFuncData;
   switch (index) {
     case Triangle_Filter_Closest:
-      return closest_intersection_filter(ray, data, payload, hit);
+      return closest_intersection_filter(ray, payload, hit);
     case Curve_Filter_Shadow:
-      return shadow_intersection_filter_curves(ray, data, payload, hit);
+      return shadow_intersection_filter_curves(ray, payload, hit);
     case Triangle_Filter_Shadow:
     case Motion_Triangle_Filter_Shadow:
     case Point_Filter_Shadow:
-      return shadow_intersection_filter(ray, data, payload, hit);
+      return shadow_intersection_filter(ray, payload, hit);
     case Triangle_Filter_Local:
     case Motion_Triangle_Filter_Local:
-      return local_intersection_filter(ray, data, payload, hit);
+      return local_intersection_filter(ray, payload, hit);
     case Triangle_Filter_Volume:
     case Motion_Triangle_Filter_Volume:
-      return volume_intersection_filter(ray, data, payload, hit);
+      return volume_intersection_filter(ray, payload, hit);
     default:
       break;
   }
