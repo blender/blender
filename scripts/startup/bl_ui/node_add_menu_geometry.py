@@ -119,9 +119,7 @@ class NODE_MT_geometry_node_GEO_CURVE_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeDeformCurvesOnSurface")
         node_add_menu.add_node_type(layout, "GeometryNodeFillCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeFilletCurve")
-        node_add_menu.add_node_type(layout, "GeometryNodeGreasePencilToCurves")
         node_add_menu.add_node_type(layout, "GeometryNodeInterpolateCurves")
-        node_add_menu.add_node_type(layout, "GeometryNodeMergeLayers")
         node_add_menu.add_node_type(layout, "GeometryNodeResampleCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeReverseCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeSubdivideCurve")
@@ -156,6 +154,39 @@ class NODE_MT_geometry_node_curve_topology(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeOffsetPointInCurve")
         node_add_menu.add_node_type(layout, "GeometryNodePointsOfCurve")
         node_add_menu.draw_assets_for_catalog(layout, "Curve/Topology")
+
+
+class NODE_MT_geometry_node_GEO_GREASE_PENCIL_READ(Menu):
+    bl_idname = "NODE_MT_geometry_node_GEO_GREASE_PENCIL_READ"
+    bl_label = "Read"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeInputNamedLayerSelection")
+        node_add_menu.draw_assets_for_catalog(layout, "Grease Pencil/Read")
+
+
+class NODE_MT_geometry_node_GEO_GREASE_PENCIL_OPERATIONS(Menu):
+    bl_idname = "NODE_MT_geometry_node_GEO_GREASE_PENCIL_OPERATIONS"
+    bl_label = "Operations"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeGreasePencilToCurves")
+        node_add_menu.add_node_type(layout, "GeometryNodeMergeLayers")
+        node_add_menu.draw_assets_for_catalog(layout, "Grease Pencil/Operations")
+
+
+class NODE_MT_geometry_node_GEO_GREASE_PENCIL(Menu):
+    bl_idname = "NODE_MT_geometry_node_GEO_GREASE_PENCIL"
+    bl_label = "Grease Pencil"
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.menu("NODE_MT_geometry_node_GEO_GREASE_PENCIL_READ")
+        layout.separator()
+        layout.menu("NODE_MT_geometry_node_GEO_GREASE_PENCIL_OPERATIONS")
+        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
 class NODE_MT_geometry_node_GEO_GEOMETRY(Menu):
@@ -300,7 +331,6 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeCollectionInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeImageInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeIsViewport")
-        node_add_menu.add_node_type(layout, "GeometryNodeInputNamedLayerSelection")
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolMousePosition")
         node_add_menu.add_node_type(layout, "GeometryNodeObjectInfo")
@@ -812,6 +842,7 @@ class NODE_MT_geometry_node_add_all(Menu):
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY")
         layout.separator()
         layout.menu("NODE_MT_geometry_node_GEO_CURVE")
+        layout.menu("NODE_MT_geometry_node_GEO_GREASE_PENCIL")
         layout.menu("NODE_MT_geometry_node_GEO_INSTANCE")
         layout.menu("NODE_MT_geometry_node_GEO_MESH")
         layout.menu("NODE_MT_category_GEO_POINT")
@@ -843,6 +874,9 @@ classes = (
     NODE_MT_geometry_node_GEO_CURVE_OPERATIONS,
     NODE_MT_geometry_node_GEO_PRIMITIVES_CURVE,
     NODE_MT_geometry_node_curve_topology,
+    NODE_MT_geometry_node_GEO_GREASE_PENCIL,
+    NODE_MT_geometry_node_GEO_GREASE_PENCIL_READ,
+    NODE_MT_geometry_node_GEO_GREASE_PENCIL_OPERATIONS,
     NODE_MT_geometry_node_GEO_GEOMETRY,
     NODE_MT_geometry_node_GEO_GEOMETRY_READ,
     NODE_MT_geometry_node_GEO_GEOMETRY_WRITE,
