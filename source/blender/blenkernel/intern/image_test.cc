@@ -8,6 +8,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_appdir.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.hh"
@@ -18,6 +19,7 @@
 #include "testing/testing.h"
 #include "gmock/gmock.h"
 
+#include "IMB_imbuf.hh"
 #include "IMB_moviecache.hh"
 
 #include "DNA_image_types.h"
@@ -242,6 +244,8 @@ class ImageTest : public ::testing::Test {
 
   void SetUp() override
   {
+    BKE_appdir_init();
+    IMB_init();
     IMB_moviecache_init();
 
     bmain_ = BKE_main_new();
@@ -254,6 +258,8 @@ class ImageTest : public ::testing::Test {
     G_MAIN = nullptr;
 
     IMB_moviecache_destruct();
+    IMB_exit();
+    BKE_appdir_exit();
   }
 
   Image *load_image(const char *path)
