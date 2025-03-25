@@ -205,10 +205,10 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
         km_id = "Sequencer";
         break;
       case SEQ_VIEW_PREVIEW:
-        km_id = "SequencerPreview";
+        km_id = "Preview";
         break;
       case SEQ_VIEW_SEQUENCE_PREVIEW:
-        km_id = "SequencerCommon";
+        km_id = "Video Sequence Editor";
         break;
     }
   }

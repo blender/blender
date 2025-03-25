@@ -141,13 +141,13 @@ void sequencer_operatortypes()
 void sequencer_keymap(wmKeyConfig *keyconf)
 {
   /* Common items ------------------------------------------------------------------ */
-  WM_keymap_ensure(keyconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
+  WM_keymap_ensure(keyconf, "Video Sequence Editor", SPACE_SEQ, RGN_TYPE_WINDOW);
 
   /* Strips Region --------------------------------------------------------------- */
   WM_keymap_ensure(keyconf, "Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
 
   /* Preview Region ----------------------------------------------------------- */
-  WM_keymap_ensure(keyconf, "SequencerPreview", SPACE_SEQ, RGN_TYPE_WINDOW);
+  WM_keymap_ensure(keyconf, "Preview", SPACE_SEQ, RGN_TYPE_WINDOW);
 
   /* Channels Region ----------------------------------------------------------- */
   WM_keymap_ensure(keyconf, "Sequencer Channels", SPACE_SEQ, RGN_TYPE_WINDOW);

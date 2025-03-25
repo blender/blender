@@ -1752,10 +1752,10 @@ def km_text(params):
     return keymap
 
 
-def km_sequencercommon(_params):
+def km_sequencer_generic(_params):
     items = []
     keymap = (
-        "SequencerCommon",
+        "Video Sequence Editor",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": items},
     )
@@ -1887,10 +1887,10 @@ def km_sequencer(params):
     return keymap
 
 
-def km_sequencerpreview(params):
+def km_sequencer_preview(params):
     items = []
     keymap = (
-        "SequencerPreview",
+        "Preview",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": items},
     )
@@ -3635,7 +3635,7 @@ def km_image_editor_tool_uv_select(params):
 
 def km_sequencer_editor_tool_select_preview(params):
     return (
-        "Sequencer Preview Tool: Select Box",
+        "Preview Tool: Select Box",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "sequencer.select", extend="toggle")}
     )
@@ -3643,7 +3643,7 @@ def km_sequencer_editor_tool_select_preview(params):
 
 def km_sequencer_editor_tool_select_timeline(params):
     return (
-        "Sequencer Timeline Tool: Select Box",
+        "Sequencer Tool: Select Box",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "sequencer.select", extend="toggle")}
     )
@@ -3759,9 +3759,9 @@ def generate_keymaps_impl(params=None):
         km_nla_editor(params),
         km_text_generic(params),
         km_text(params),
-        km_sequencercommon(params),
+        km_sequencer_generic(params),
         km_sequencer(params),
-        km_sequencerpreview(params),
+        km_sequencer_preview(params),
         km_sequencer_channels(params),
         km_console(params),
         km_clip(params),
