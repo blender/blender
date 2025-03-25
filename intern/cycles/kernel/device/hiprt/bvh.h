@@ -44,7 +44,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   payload.prim_type = PRIMITIVE_NONE;
   payload.ray_time = ray->time;
 
-  hiprtHit hit = {};
+  hiprtHit hit;
 
   GET_TRAVERSAL_STACK()
 
