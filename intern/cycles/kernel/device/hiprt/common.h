@@ -299,7 +299,7 @@ ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
   const int prim_id_local = prim_info.x;
   const int prim_id_global = prim_id_local + prim_offset;
 
-  const int type = prim_info.y;
+  const int primitive_type = prim_info.y;
 
 #    ifdef __SHADOW_LINKING__
   if (intersection_skip_shadow_link(nullptr, payload->self, object_id)) {
@@ -313,7 +313,7 @@ ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
 
   const float ray_time = payload->ray_time;
 
-  if ((type & PRIMITIVE_MOTION_POINT) && kernel_data.bvh.use_bvh_steps) {
+  if ((primitive_type & PRIMITIVE_MOTION_POINT) && kernel_data.bvh.use_bvh_steps) {
     const int time_offset = kernel_data_fetch(prim_time_offset, object_id);
     const float2 prims_time = kernel_data_fetch(prims_time, hit.primID + time_offset);
     if (ray_time < prims_time.x || ray_time > prims_time.y) {
@@ -331,7 +331,7 @@ ccl_device_inline bool point_custom_intersect(const hiprtRay &ray,
                                      object_id,
                                      prim_id_global,
                                      ray_time,
-                                     type);
+                                     primitive_type);
 
   if (b_hit) {
     hit.uv.x = isect.u;
@@ -412,13 +412,13 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
 
   const float u = hit.uv.x;
   const float v = hit.uv.y;
-  const int type = kernel_data_fetch(objects, object).primitive_type;
+  const int primitive_type = kernel_data_fetch(objects, object).primitive_type;
 
 #  ifndef __TRANSPARENT_SHADOWS__
   return false;
 #  else
   if (num_hits >= max_hits ||
-      !(intersection_get_shader_flags(nullptr, prim, type) & SD_HAS_TRANSPARENT_SHADOW))
+      !(intersection_get_shader_flags(nullptr, prim, primitive_type) & SD_HAS_TRANSPARENT_SHADOW))
   {
     return false;
   }
@@ -453,7 +453,7 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, t) = ray_tmax;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, prim) = prim;
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, object) = object;
-  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, type) = type;
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, record_index, type) = primitive_type;
 
   return true;
 #  endif /* __TRANSPARENT_SHADOWS__ */
@@ -504,19 +504,19 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
     return true; /* Continue traversal. */
   }
 
-  const int type = payload->prim_type;
+  const int primitive_type = payload->prim_type;
 
 #  ifndef __TRANSPARENT_SHADOWS__
   return false;
 #  else
   if (num_hits >= max_hits ||
-      !(intersection_get_shader_flags(nullptr, prim, type) & SD_HAS_TRANSPARENT_SHADOW))
+      !(intersection_get_shader_flags(nullptr, prim, primitive_type) & SD_HAS_TRANSPARENT_SHADOW))
   {
     return false;
   }
 
   float throughput = *payload->r_throughput;
-  throughput *= intersection_curve_shadow_transparency(kg, object, prim, type, u);
+  throughput *= intersection_curve_shadow_transparency(kg, object, prim, primitive_type, u);
   *payload->r_throughput = throughput;
   payload->num_hits += 1;
 
