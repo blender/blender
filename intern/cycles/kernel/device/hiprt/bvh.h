@@ -181,13 +181,13 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   SET_HIPRT_RAY(ray_hip, ray)
 
   ShadowPayload payload;
-  payload.kg = kg;
-  payload.self = ray->self;
+  payload.ray.kg = kg;
+  payload.ray.self = ray->self;
+  payload.ray.visibility = visibility;
+  payload.ray.prim_type = PRIMITIVE_NONE;
+  payload.ray.ray_time = ray->time;
   payload.in_state = state;
   payload.max_hits = max_hits;
-  payload.visibility = visibility;
-  payload.prim_type = PRIMITIVE_NONE;
-  payload.ray_time = ray->time;
   payload.num_hits = 0;
   payload.r_num_recorded_hits = num_recorded_hits;
   payload.r_throughput = throughput;
