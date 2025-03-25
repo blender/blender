@@ -858,25 +858,18 @@ static wmOperatorStatus sequencer_mute_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *channels = seq::channels_displayed_get(ed);
-
-  bool selected;
-
-  selected = !RNA_boolean_get(op->ptr, "unselected");
 
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if (!seq::transform_is_locked(channels, strip)) {
-      if (selected) {
-        if (strip->flag & SELECT) {
-          strip->flag |= SEQ_MUTE;
-          seq::relations_invalidate_dependent(scene, strip);
-        }
+    if (!RNA_boolean_get(op->ptr, "unselected")) {
+      if (strip->flag & SELECT) {
+        strip->flag |= SEQ_MUTE;
+        seq::relations_invalidate_dependent(scene, strip);
       }
-      else {
-        if ((strip->flag & SELECT) == 0) {
-          strip->flag |= SEQ_MUTE;
-          seq::relations_invalidate_dependent(scene, strip);
-        }
+    }
+    else {
+      if ((strip->flag & SELECT) == 0) {
+        strip->flag |= SEQ_MUTE;
+        seq::relations_invalidate_dependent(scene, strip);
       }
     }
   }
@@ -915,24 +908,18 @@ static wmOperatorStatus sequencer_unmute_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  ListBase *channels = seq::channels_displayed_get(ed);
-  bool selected;
-
-  selected = !RNA_boolean_get(op->ptr, "unselected");
 
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if (!seq::transform_is_locked(channels, strip)) {
-      if (selected) {
-        if (strip->flag & SELECT) {
-          strip->flag &= ~SEQ_MUTE;
-          seq::relations_invalidate_dependent(scene, strip);
-        }
+    if (!RNA_boolean_get(op->ptr, "unselected")) {
+      if (strip->flag & SELECT) {
+        strip->flag &= ~SEQ_MUTE;
+        seq::relations_invalidate_dependent(scene, strip);
       }
-      else {
-        if ((strip->flag & SELECT) == 0) {
-          strip->flag &= ~SEQ_MUTE;
-          seq::relations_invalidate_dependent(scene, strip);
-        }
+    }
+    else {
+      if ((strip->flag & SELECT) == 0) {
+        strip->flag &= ~SEQ_MUTE;
+        seq::relations_invalidate_dependent(scene, strip);
       }
     }
   }

@@ -48,7 +48,7 @@ static ImBuf *do_multicam(const RenderData *context,
     return nullptr;
   }
   ListBase *seqbasep = get_seqbase_by_seq(context->scene, strip);
-  ListBase *channels = get_channels_by_seq(&ed->seqbase, &ed->channels, strip);
+  ListBase *channels = get_channels_by_seq(ed, strip);
   if (!seqbasep) {
     return nullptr;
   }

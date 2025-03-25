@@ -32,6 +32,6 @@ char *channel_name_get(ListBase *channels, int channel_index);
 bool channel_is_locked(const SeqTimelineChannel *channel);
 bool channel_is_muted(const SeqTimelineChannel *channel);
 int channel_index_get(const SeqTimelineChannel *channel);
-ListBase *get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Strip *strip);
+ListBase *get_channels_by_seq(Editing *ed, const Strip *strip);
 
 }  // namespace blender::seq

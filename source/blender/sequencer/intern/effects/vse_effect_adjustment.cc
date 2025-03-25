@@ -39,7 +39,7 @@ static ImBuf *do_adjustment_impl(const RenderData *context, Strip *strip, float 
   ed = context->scene->ed;
 
   ListBase *seqbasep = get_seqbase_by_seq(context->scene, strip);
-  ListBase *channels = get_channels_by_seq(&ed->seqbase, &ed->channels, strip);
+  ListBase *channels = get_channels_by_seq(ed, strip);
 
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition
