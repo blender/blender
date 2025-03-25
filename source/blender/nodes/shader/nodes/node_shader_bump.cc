@@ -64,19 +64,19 @@ static int gpu_shader_bump(GPUMaterial *mat,
 {
   /* If there is no Height input, the node becomes a no-op. */
   if (!in[2].link) {
-    if (!in[3].link) {
+    if (!in[4].link) {
       return GPU_link(mat, "world_normals_get", &out[0].link);
     }
     /* Actually running the bump code would normalize, but Cycles handles it as total no-op. */
-    return GPU_link(mat, "vector_copy", in[3].link, &out[0].link);
+    return GPU_link(mat, "vector_copy", in[4].link, &out[0].link);
   }
 
-  if (!in[3].link) {
-    GPU_link(mat, "world_normals_get", &in[3].link);
+  if (!in[4].link) {
+    GPU_link(mat, "world_normals_get", &in[4].link);
   }
 
-  const float filter_width = in[4].vec[0];
-  const char *height_function = GPU_material_split_sub_function(mat, GPU_FLOAT, &in[2].link);
+  const float filter_width = in[2].vec[0];
+  const char *height_function = GPU_material_split_sub_function(mat, GPU_FLOAT, &in[3].link);
 
   /* TODO (Miguel Pozo):
    * Currently, this doesn't compute the actual differentials, just the height at dX and dY
