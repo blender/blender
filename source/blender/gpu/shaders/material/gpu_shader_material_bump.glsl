@@ -17,8 +17,8 @@ void differentiate_texco(vec4 v, out vec3 df)
 
 void node_bump(float strength,
                float dist,
-               float height,
                float filter_width,
+               float height,
                vec3 N,
                vec2 height_xy,
                float invert,
