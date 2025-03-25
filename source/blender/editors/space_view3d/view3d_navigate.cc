@@ -454,6 +454,9 @@ struct ViewOpsData_Utility : ViewOpsData {
         if (kmi_merge->oskey == KM_MOD_HELD || ELEM(kmi_merge->type, EVT_OSKEY)) {
           kmi_cpy->oskey = KM_MOD_HELD;
         }
+        if (kmi_merge->hyper == KM_MOD_HELD || ELEM(kmi_merge->type, EVT_HYPER)) {
+          kmi_cpy->hyper = KM_MOD_HELD;
+        }
         if (!ISKEYMODIFIER(kmi_merge->type)) {
           kmi_cpy->keymodifier = kmi_merge->type;
         }

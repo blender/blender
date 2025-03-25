@@ -253,6 +253,9 @@ void icon_draw_rect_input(const float x,
       icon_draw_rect_input_text(&rect, IFACE_("OS"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
     }
   }
+  else if (icon_id == ICON_EVENT_HYPER) {
+    icon_draw_rect_input_text(&rect, IFACE_("Hyp"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
+  }
   else if (icon_id == ICON_EVENT_DEL) {
     icon_draw_rect_input_text(&rect, IFACE_("Del"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }

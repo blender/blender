@@ -277,16 +277,28 @@ enum {
   KM_ALT = (1 << 2),
   /** Use for Windows-Key on MS-Windows, Command-key on macOS and Super on Linux. */
   KM_OSKEY = (1 << 3),
+  /**
+   * An additional modifier available on Unix systems (in addition to "Super").
+   * Even though standard keyboards don't have a "Hyper" key it is a valid modifier
+   * on Wayland and X11, where it is possible to map a key (typically CapsLock)
+   * to be a Hyper modifier, see !136340.
+   *
+   * Note that this is currently only supported on Wayland & X11
+   * but could could be supported on other platforms if desired.
+   */
+  KM_HYPER = (1 << 4),
 
   /* Used for key-map item creation function arguments. */
-  KM_SHIFT_ANY = (1 << 4),
-  KM_CTRL_ANY = (1 << 5),
-  KM_ALT_ANY = (1 << 6),
-  KM_OSKEY_ANY = (1 << 7),
+  KM_SHIFT_ANY = (1 << 5),
+  KM_CTRL_ANY = (1 << 6),
+  KM_ALT_ANY = (1 << 7),
+  KM_OSKEY_ANY = (1 << 8),
+  KM_HYPER_ANY = (1 << 9),
+
 };
 
 /** The number of modifiers #wmKeyMapItem & #wmEvent can use. */
-#define KM_MOD_NUM 4
+#define KM_MOD_NUM 5
 
 /* `KM_MOD_*` flags for #wmKeyMapItem and `wmEvent.alt/shift/oskey/ctrl`. */
 /* Note that #KM_ANY and #KM_NOTHING are used with these defines too. */
@@ -759,7 +771,7 @@ struct wmEvent {
    */
   char utf8_buf[6];
 
-  /** Modifier states: #KM_SHIFT, #KM_CTRL, #KM_ALT & #KM_OSKEY. */
+  /** Modifier states: #KM_SHIFT, #KM_CTRL, #KM_ALT, #KM_OSKEY & #KM_HYPER. */
   uint8_t modifier;
 
   /** The direction (for #KM_CLICK_DRAG events only). */

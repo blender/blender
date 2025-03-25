@@ -2397,6 +2397,12 @@ BLI_INLINE bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
       return false;
     }
   }
+  if (kmi->hyper != KM_ANY) {
+    const int8_t hyper = (winevent->modifier & KM_HYPER) ? KM_MOD_HELD : KM_NOTHING;
+    if ((hyper != kmi->hyper) && (winevent->type != EVT_HYPER)) {
+      return false;
+    }
+  }
 
   /* Only key-map entry with key-modifier is checked,
    * means all keys without modifier get handled too. */
@@ -5214,6 +5220,9 @@ static int wm_event_type_from_ghost_key(GHOST_TKey key)
     case GHOST_kKeyLeftOS:
     case GHOST_kKeyRightOS:
       return EVT_OSKEY;
+    case GHOST_kKeyLeftHyper:
+    case GHOST_kKeyRightHyper:
+      return EVT_HYPER;
     case GHOST_kKeyLeftAlt:
       return EVT_LEFTALTKEY;
     case GHOST_kKeyRightAlt:
@@ -6073,6 +6082,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
         }
         case EVT_OSKEY: {
           SET_FLAG_FROM_TEST(event.modifier, (event.val == KM_PRESS), KM_OSKEY);
+          break;
+        }
+        case EVT_HYPER: {
+          SET_FLAG_FROM_TEST(event.modifier, (event.val == KM_PRESS), KM_HYPER);
           break;
         }
         default: {

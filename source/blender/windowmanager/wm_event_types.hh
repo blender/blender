@@ -176,6 +176,9 @@ enum {
   /* Menu/App key. */
   EVT_APPKEY = 0x00b2, /* 178 */
 
+  /** Additional modifier, see: #KM_HYPER for details. */
+  EVT_HYPER = 0x00b3, /* 179 */
+
   EVT_PADPERIOD = 0x00c7, /* 199 */
 
   EVT_CAPSLOCKKEY = 0x00d3, /* 211 */
@@ -395,7 +398,7 @@ enum {
 /** Test whether the event is a modifier key. */
 #define ISKEYMODIFIER(event_type) \
   (((event_type) >= EVT_LEFTCTRLKEY && (event_type) <= EVT_LEFTSHIFTKEY) || \
-   (event_type) == EVT_OSKEY)
+   ELEM((event_type), EVT_OSKEY, EVT_HYPER))
 
 /**
  * Test whether the event is any kind:

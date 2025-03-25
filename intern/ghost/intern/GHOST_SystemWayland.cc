@@ -332,8 +332,9 @@ enum {
   MOD_INDEX_ALT = 1,
   MOD_INDEX_CTRL = 2,
   MOD_INDEX_OS = 3,
+  MOD_INDEX_HYPER = 4,
 };
-#define MOD_INDEX_NUM (MOD_INDEX_OS + 1)
+#define MOD_INDEX_NUM (MOD_INDEX_HYPER + 1)
 
 struct GWL_ModifierInfo {
   /** Only for printing messages. */
@@ -379,6 +380,15 @@ static const GWL_ModifierInfo g_modifier_info_table[MOD_INDEX_NUM] = {
         /*key_r*/ GHOST_kKeyRightOS,
         /*mod_l*/ GHOST_kModifierKeyLeftOS,
         /*mod_r*/ GHOST_kModifierKeyRightOS,
+    },
+    /*MOD_INDEX_HYPER*/
+    {
+        /*display_name*/ "Hyper",
+        /*xkb_id*/ XKB_VMOD_NAME_HYPER,
+        /*key_l*/ GHOST_kKeyLeftHyper,
+        /*key_r*/ GHOST_kKeyRightHyper,
+        /*mod_l*/ GHOST_kModifierKeyLeftHyper,
+        /*mod_r*/ GHOST_kModifierKeyRightHyper,
     },
 };
 
@@ -2107,6 +2117,8 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
       GXMAP(gkey, XKB_KEY_Alt_R, GHOST_kKeyRightAlt);
       GXMAP(gkey, XKB_KEY_Super_L, GHOST_kKeyLeftOS);
       GXMAP(gkey, XKB_KEY_Super_R, GHOST_kKeyRightOS);
+      GXMAP(gkey, XKB_KEY_Hyper_L, GHOST_kKeyLeftHyper);
+      GXMAP(gkey, XKB_KEY_Hyper_R, GHOST_kKeyRightHyper);
       GXMAP(gkey, XKB_KEY_Menu, GHOST_kKeyApp);
 
       GXMAP(gkey, XKB_KEY_Caps_Lock, GHOST_kKeyCapsLock);

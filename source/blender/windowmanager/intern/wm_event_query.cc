@@ -91,6 +91,8 @@ void WM_event_print(const wmEvent *event)
           {"CTRL", KM_CTRL},
           {"ALT", KM_ALT},
           {"OS", KM_OSKEY},
+          {"HYPER", KM_HYPER},
+
       };
       event_ids_from_flag(
           modifier_id, sizeof(modifier_id), flag_data, ARRAY_SIZE(flag_data), event->modifier);

@@ -710,6 +710,9 @@ int UI_icon_from_keymap_item(const wmKeyMapItem *kmi, int r_icon_mod[KM_MOD_NUM]
     if (kmi->oskey == KM_MOD_HELD) {
       r_icon_mod[i++] = ICON_EVENT_OS;
     }
+    if (!ELEM(kmi->hyper, KM_NOTHING, KM_ANY)) {
+      r_icon_mod[i++] = ICON_EVENT_HYPER;
+    }
   }
   return UI_icon_from_event_type(kmi->type, kmi->val);
 }
@@ -762,6 +765,7 @@ static void init_event_icons()
   INIT_EVENT_ICON(ICON_EVENT_CTRL, EVT_LEFTCTRLKEY, KM_ANY);
   INIT_EVENT_ICON(ICON_EVENT_ALT, EVT_LEFTALTKEY, KM_ANY);
   INIT_EVENT_ICON(ICON_EVENT_OS, EVT_OSKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_HYPER, EVT_HYPER, KM_ANY);
   INIT_EVENT_ICON(ICON_EVENT_F1, EVT_F1KEY, KM_ANY);
   INIT_EVENT_ICON(ICON_EVENT_F2, EVT_F2KEY, KM_ANY);
   INIT_EVENT_ICON(ICON_EVENT_F3, EVT_F3KEY, KM_ANY);

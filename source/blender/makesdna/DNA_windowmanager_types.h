@@ -472,6 +472,10 @@ typedef struct wmKeyMapItem {
   int8_t alt;
   /** Also known as "Apple", "Windows-Key" or "Super. */
   int8_t oskey;
+  /** See #KM_HYPER for details. */
+  int8_t hyper;
+
+  char _pad0[7];
 
   /** Raw-key modifier. */
   short keymodifier;

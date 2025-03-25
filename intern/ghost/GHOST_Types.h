@@ -187,6 +187,8 @@ typedef enum {
   GHOST_kModifierKeyRightControl,
   GHOST_kModifierKeyLeftOS,
   GHOST_kModifierKeyRightOS,
+  GHOST_kModifierKeyLeftHyper,
+  GHOST_kModifierKeyRightHyper,
   GHOST_kModifierKeyNum
 } GHOST_TModifierKey;
 
@@ -444,7 +446,10 @@ typedef enum {
   GHOST_kKeyRightAlt,
   GHOST_kKeyLeftOS, /* Command key on Apple, Windows key(s) on Windows. */
   GHOST_kKeyRightOS,
-#define _GHOST_KEY_MODIFIER_MAX GHOST_kKeyRightOS
+
+  GHOST_kKeyLeftHyper, /* Additional modifier on Wayland & X11, see !136340. */
+  GHOST_kKeyRightHyper,
+#define _GHOST_KEY_MODIFIER_MAX GHOST_kKeyRightHyper
 
   GHOST_kKeyGrLess, /* German PC only! */
   GHOST_kKeyApp,    /* Also known as menu key. */

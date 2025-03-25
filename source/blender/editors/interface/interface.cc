@@ -4105,6 +4105,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
           kmi_dummy.ctrl = (hotkey_but->modifier_key & KM_CTRL) ? KM_MOD_HELD : KM_NOTHING;
           kmi_dummy.alt = (hotkey_but->modifier_key & KM_ALT) ? KM_MOD_HELD : KM_NOTHING;
           kmi_dummy.oskey = (hotkey_but->modifier_key & KM_OSKEY) ? KM_MOD_HELD : KM_NOTHING;
+          kmi_dummy.hyper = (hotkey_but->modifier_key & KM_HYPER) ? KM_MOD_HELD : KM_NOTHING;
 
           but->drawstr = WM_keymap_item_to_string(&kmi_dummy, true).value_or("");
         }

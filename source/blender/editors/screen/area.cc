@@ -965,6 +965,9 @@ void WorkspaceStatus::opmodal(std::string text,
       if (kmi->oskey == KM_MOD_HELD) {
         ed_workspace_status_item(workspace_, {}, ICON_EVENT_OS, 0.0f, inverted);
       }
+      if (!ELEM(kmi->hyper, KM_NOTHING, KM_ANY)) {
+        ed_workspace_status_item(workspace_, {}, ICON_EVENT_HYPER, 0.0f, inverted);
+      }
       ed_workspace_status_icon_item(workspace_, icon, inverted);
       ed_workspace_status_text_item(workspace_, std::move(text));
     }

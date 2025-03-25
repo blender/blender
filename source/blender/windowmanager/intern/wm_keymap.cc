@@ -197,7 +197,7 @@ static bool wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
 {
   return (wm_keymap_item_equals_result(a, b) && a->type == b->type && a->val == b->val &&
           a->shift == b->shift && a->ctrl == b->ctrl && a->alt == b->alt && a->oskey == b->oskey &&
-          a->keymodifier == b->keymodifier && a->maptype == b->maptype &&
+          a->hyper == b->hyper && a->keymodifier == b->keymodifier && a->maptype == b->maptype &&
           ((a->val != KM_CLICK_DRAG) || (a->direction == b->direction)) &&
           ((ISKEYBOARD(a->type) == 0) ||
            (a->flag & KMI_REPEAT_IGNORE) == (b->flag & KMI_REPEAT_IGNORE)));
@@ -515,14 +515,15 @@ static void keymap_event_set(wmKeyMapItem *kmi, const KeyMapItem_Params *params)
   kmi->direction = params->direction;
 
   if (params->modifier == KM_ANY) {
-    kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = KM_ANY;
+    kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = kmi->hyper = KM_ANY;
   }
   else {
     /* Only one of the flags should be set. */
     BLI_assert(((params->modifier & (KM_SHIFT | KM_SHIFT_ANY)) != (KM_SHIFT | KM_SHIFT_ANY)) &&
                ((params->modifier & (KM_CTRL | KM_CTRL_ANY)) != (KM_CTRL | KM_CTRL_ANY)) &&
                ((params->modifier & (KM_ALT | KM_ALT_ANY)) != (KM_ALT | KM_ALT_ANY)) &&
-               ((params->modifier & (KM_OSKEY | KM_OSKEY_ANY)) != (KM_OSKEY | KM_OSKEY_ANY)));
+               ((params->modifier & (KM_OSKEY | KM_OSKEY_ANY)) != (KM_OSKEY | KM_OSKEY_ANY)) &&
+               ((params->modifier & (KM_HYPER | KM_HYPER_ANY)) != (KM_HYPER | KM_HYPER_ANY)));
 
     kmi->shift = ((params->modifier & KM_SHIFT) ?
                       KM_MOD_HELD :
@@ -536,6 +537,9 @@ static void keymap_event_set(wmKeyMapItem *kmi, const KeyMapItem_Params *params)
     kmi->oskey = ((params->modifier & KM_OSKEY) ?
                       KM_MOD_HELD :
                       ((params->modifier & KM_OSKEY_ANY) ? KM_ANY : KM_NOTHING));
+    kmi->hyper = ((params->modifier & KM_HYPER) ?
+                      KM_MOD_HELD :
+                      ((params->modifier & KM_HYPER_ANY) ? KM_ANY : KM_NOTHING));
   }
 }
 
@@ -1199,6 +1203,7 @@ std::optional<std::string> WM_keymap_item_raw_to_string(const int8_t shift,
                                                         const int8_t ctrl,
                                                         const int8_t alt,
                                                         const int8_t oskey,
+                                                        const int8_t hyper,
                                                         const short keymodifier,
                                                         const short val,
                                                         const short type,
@@ -1227,6 +1232,10 @@ std::optional<std::string> WM_keymap_item_raw_to_string(const int8_t shift,
     result_array.append(WM_key_event_string(EVT_OSKEY, true));
     result_array.append(space);
   }
+  if (hyper == KM_MOD_HELD) {
+    result_array.append(WM_key_event_string(EVT_HYPER, true));
+    result_array.append(space);
+  }
 
   if (keymodifier) {
     result_array.append(WM_key_event_string(keymodifier, compact));
@@ -1252,8 +1261,15 @@ std::optional<std::string> WM_keymap_item_raw_to_string(const int8_t shift,
 
 std::optional<std::string> WM_keymap_item_to_string(const wmKeyMapItem *kmi, const bool compact)
 {
-  return WM_keymap_item_raw_to_string(
-      kmi->shift, kmi->ctrl, kmi->alt, kmi->oskey, kmi->keymodifier, kmi->val, kmi->type, compact);
+  return WM_keymap_item_raw_to_string(kmi->shift,
+                                      kmi->ctrl,
+                                      kmi->alt,
+                                      kmi->oskey,
+                                      kmi->hyper,
+                                      kmi->keymodifier,
+                                      kmi->val,
+                                      kmi->type,
+                                      compact);
 }
 
 std::optional<std::string> WM_modalkeymap_items_to_string(const wmKeyMap *km,
@@ -1736,6 +1752,10 @@ bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2)
     return false;
   }
 
+  if (k1->hyper != KM_ANY && k2->hyper != KM_ANY && k1->hyper != k2->hyper) {
+    return false;
+  }
+
   if (k1->keymodifier != k2->keymodifier) {
     return false;
   }
@@ -2072,6 +2092,7 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
     kmi->ctrl = orig->ctrl;
     kmi->alt = orig->alt;
     kmi->oskey = orig->oskey;
+    kmi->hyper = orig->hyper;
     kmi->keymodifier = orig->keymodifier;
     kmi->maptype = orig->maptype;
     kmi->flag = (kmi->flag & ~(KMI_REPEAT_IGNORE | KMI_INACTIVE)) |

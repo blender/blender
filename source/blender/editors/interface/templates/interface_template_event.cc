@@ -37,7 +37,7 @@ static const wmKeyMapItem *keymap_item_from_enum_item(const wmKeyMap *keymap,
 static bool keymap_item_can_collapse(const wmKeyMapItem *kmi_a, const wmKeyMapItem *kmi_b)
 {
   return (kmi_a->shift == kmi_b->shift && kmi_a->ctrl == kmi_b->ctrl && kmi_a->alt == kmi_b->alt &&
-          kmi_a->oskey == kmi_b->oskey);
+          kmi_a->oskey == kmi_b->oskey && kmi_a->hyper == kmi_b->hyper);
 }
 
 int uiTemplateStatusBarModalItem(uiLayout *layout,

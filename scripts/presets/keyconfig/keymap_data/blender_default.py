@@ -259,7 +259,7 @@ def _fallback_id(text, fallback):
 
 
 def any_except(*args):
-    mod = {"ctrl": -1, "alt": -1, "shift": -1, "oskey": -1}
+    mod = {"ctrl": -1, "alt": -1, "shift": -1, "oskey": -1, "hyper": -1}
     for arg in args:
         del mod[arg]
     return mod

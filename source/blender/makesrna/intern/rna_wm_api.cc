@@ -273,7 +273,8 @@ static int rna_Operator_props_dialog_popup(bContext *C,
       cancel_default);
 }
 
-static int keymap_item_modifier_flag_from_args(bool any, int shift, int ctrl, int alt, int oskey)
+static int keymap_item_modifier_flag_from_args(
+    bool any, int shift, int ctrl, int alt, int oskey, int hyper)
 {
   int modifier = 0;
   if (any) {
@@ -307,6 +308,13 @@ static int keymap_item_modifier_flag_from_args(bool any, int shift, int ctrl, in
     else if (oskey == KM_ANY) {
       modifier |= KM_OSKEY_ANY;
     }
+
+    if (hyper == KM_MOD_HELD) {
+      modifier |= KM_HYPER;
+    }
+    else if (hyper == KM_ANY) {
+      modifier |= KM_HYPER_ANY;
+    }
   }
   return modifier;
 }
@@ -321,6 +329,7 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km,
                                          int ctrl,
                                          int alt,
                                          int oskey,
+                                         int hyper,
                                          int keymodifier,
                                          int direction,
                                          bool repeat,
@@ -335,7 +344,7 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km,
   // wmWindowManager *wm = CTX_wm_manager(C);
   wmKeyMapItem *kmi = nullptr;
   char idname_bl[OP_MAX_TYPENAME];
-  const int modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey);
+  const int modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey, hyper);
 
   WM_operator_bl_idname(idname_bl, idname);
 
@@ -395,6 +404,7 @@ static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km,
                                                int ctrl,
                                                int alt,
                                                int oskey,
+                                               int hyper,
                                                int keymodifier,
                                                int direction,
                                                bool repeat)
@@ -406,7 +416,7 @@ static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km,
   }
 
   wmKeyMapItem *kmi = nullptr;
-  const int modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey);
+  const int modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey, hyper);
   int propvalue = 0;
 
   KeyMapItem_Params params{};
@@ -716,7 +726,8 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
                                               bool shift,
                                               bool ctrl,
                                               bool alt,
-                                              bool oskey)
+                                              bool oskey,
+                                              bool hyper)
 {
   if ((G.f & G_FLAG_EVENT_SIMULATE) == 0) {
     BKE_report(reports, RPT_ERROR, "Not running with '--enable-event-simulate' enabled");
@@ -774,6 +785,9 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   }
   if (oskey) {
     e.modifier |= KM_OSKEY;
+  }
+  if (hyper) {
+    e.modifier |= KM_HYPER;
   }
 
   e.utf8_buf[0] = '\0';
@@ -862,6 +876,7 @@ void RNA_api_window(StructRNA *srna)
   RNA_def_boolean(func, "ctrl", false, "Ctrl", "");
   RNA_def_boolean(func, "alt", false, "Alt", "");
   RNA_def_boolean(func, "oskey", false, "OS Key", "");
+  RNA_def_boolean(func, "hyper", false, "Hyper", "");
   parm = RNA_def_pointer(func, "event", "Event", "Item", "Added key map item");
   RNA_def_function_return(func, parm);
 }
@@ -1304,6 +1319,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_int(func, "ctrl", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Ctrl", "", KM_ANY, KM_MOD_HELD);
   RNA_def_int(func, "alt", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Alt", "", KM_ANY, KM_MOD_HELD);
   RNA_def_int(func, "oskey", KM_NOTHING, KM_ANY, KM_MOD_HELD, "OS Key", "", KM_ANY, KM_MOD_HELD);
+  RNA_def_int(func, "hyper", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Hyper", "", KM_ANY, KM_MOD_HELD);
   RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
   RNA_def_enum(func, "direction", rna_enum_event_direction_items, KM_ANY, "Direction", "");
   RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");
@@ -1329,6 +1345,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_int(func, "ctrl", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Ctrl", "", KM_ANY, KM_MOD_HELD);
   RNA_def_int(func, "alt", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Alt", "", KM_ANY, KM_MOD_HELD);
   RNA_def_int(func, "oskey", KM_NOTHING, KM_ANY, KM_MOD_HELD, "OS Key", "", KM_ANY, KM_MOD_HELD);
+  RNA_def_int(func, "hyper", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Hyper", "", KM_ANY, KM_MOD_HELD);
   RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
   RNA_def_enum(func, "direction", rna_enum_event_direction_items, KM_ANY, "Direction", "");
   RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");

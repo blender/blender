@@ -248,6 +248,8 @@ const char *GHOST_EventPrinter::getKeyString(const GHOST_TKey key) const
     CASE_KEY(GHOST_kKeyRightAlt, "RightAlt");
     CASE_KEY(GHOST_kKeyLeftOS, "LeftOS");
     CASE_KEY(GHOST_kKeyRightOS, "RightOS");
+    CASE_KEY(GHOST_kKeyLeftHyper, "LeftHyper");
+    CASE_KEY(GHOST_kKeyRightHyper, "RightHyper");
     CASE_KEY(GHOST_kKeyApp, "App");
     CASE_KEY(GHOST_kKeyGrLess, "GrLess");
     CASE_KEY(GHOST_kKeyCapsLock, "CapsLock");

@@ -545,6 +545,12 @@ static bool wm_keymap_item_uses_modifier(const wmKeyMapItem *kmi, const int even
       return false;
     }
   }
+  if (kmi->hyper != KM_ANY) {
+    if ((kmi->hyper == KM_NOTHING) != ((event_modifier & KM_HYPER) == 0)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
