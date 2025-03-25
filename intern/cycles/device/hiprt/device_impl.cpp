@@ -5,6 +5,7 @@
 #ifdef WITH_HIPRT
 
 #  include "device/hiprt/device_impl.h"
+#  include "device/hip/util.h"
 #  include "kernel/device/hiprt/globals.h"
 
 #  include "util/log.h"
@@ -225,6 +226,11 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   options.append(
       "-Wno-parentheses-equality -Wno-unused-value -ffast-math -O3 -std=c++17 -D __HIPRT__");
   options.append(" --offload-arch=").append(arch.c_str());
+  if (hipNeedPreciseMath(arch)) {
+    options.append(
+        " -fhip-fp32-correctly-rounded-divide-sqrt -fno-gpu-approx-transcendentals "
+        "-fgpu-flush-denormals-to-zero -ffp-contract=off");
+  }
 #  ifdef WITH_NANOVDB
   options.append(" -D WITH_NANOVDB");
 #  endif

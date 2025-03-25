@@ -77,6 +77,18 @@ static inline bool hipIsRDNA2OrNewer(const int hipDevId)
   return (major > 10 || (major == 10 && minor >= 3));
 }
 
+static inline bool hipNeedPreciseMath(const std::string &arch)
+{
+#  ifdef _WIN32
+  /* Enable stricter math options for RDNA2 GPUs (compiler bug on Windows). */
+  return (arch == "gfx1030" || arch == "gfx1031" || arch == "gfx1032" || arch == "gfx1033" ||
+          arch == "gfx1034" || arch == "gfx1035" || arch == "gfx1036");
+#  else
+  (void)arch;
+  return false;
+#  endif
+}
+
 static inline bool hipSupportsDeviceOIDN(const int hipDevId)
 {
   /* Matches HIPDevice::getArch in HIP. */
