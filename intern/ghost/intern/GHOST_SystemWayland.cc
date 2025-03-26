@@ -319,6 +319,11 @@ enum {
 #endif
 };
 
+/* Only defined in XKB 1.8x and newer, it seems XKB doesn't provide a version define. */
+#ifndef XKB_VMOD_NAME_HYPER
+#  define XKB_VMOD_NAME_HYPER "Hyper"
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
