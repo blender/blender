@@ -12,7 +12,6 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_uvproject.h"
 
 #include "BLT_translation.hh"
 
@@ -27,6 +26,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
+#include "BKE_uvproject.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -148,8 +148,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     if (projectors[i].ob->type == OB_CAMERA) {
       const Camera *cam = (const Camera *)projectors[i].ob->data;
       if (cam->type == CAM_PANO) {
-        projectors[i].uci = BLI_uvproject_camera_info(projectors[i].ob, nullptr, aspx, aspy);
-        BLI_uvproject_camera_info_scale(
+        projectors[i].uci = BKE_uvproject_camera_info(projectors[i].ob, nullptr, aspx, aspy);
+        BKE_uvproject_camera_info_scale(
             static_cast<ProjCameraInfo *>(projectors[i].uci), scax, scay);
         free_uci = true;
       }
@@ -215,7 +215,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       if (projectors[0].uci) {
         for (const int corner : face) {
           const int vert = corner_verts[corner];
-          BLI_uvproject_from_camera(
+          BKE_uvproject_from_camera(
               mloop_uv[corner], coords[vert], static_cast<ProjCameraInfo *>(projectors[0].uci));
         }
       }
@@ -254,7 +254,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       if (best_projector->uci) {
         for (const int corner : face) {
           const int vert = corner_verts[corner];
-          BLI_uvproject_from_camera(
+          BKE_uvproject_from_camera(
               mloop_uv[corner], coords[vert], static_cast<ProjCameraInfo *>(best_projector->uci));
         }
       }

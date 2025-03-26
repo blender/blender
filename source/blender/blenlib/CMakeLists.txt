@@ -159,7 +159,6 @@ set(SRC
   intern/timecode.cc
   intern/timeit.cc
   intern/uuid.cc
-  intern/uvproject.cc
   intern/vector.cc
   intern/virtual_array.cc
   intern/voxel.cc
@@ -398,7 +397,6 @@ set(SRC
   BLI_utildefines_variadic.h
   BLI_utility_mixins.hh
   BLI_uuid.h
-  BLI_uvproject.h
   BLI_vector.hh
   BLI_vector_list.hh
   BLI_vector_set.hh

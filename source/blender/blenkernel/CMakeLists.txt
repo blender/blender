@@ -302,6 +302,7 @@ set(SRC
   intern/type_conversions.cc
   intern/undo_system.cc
   intern/unit.cc
+  intern/uvproject.cc
   intern/vfont.cc
   intern/vfont_curve.cc
   intern/vfontdata_freetype.cc
@@ -513,6 +514,7 @@ set(SRC
   BKE_type_conversions.hh
   BKE_undo_system.hh
   BKE_unit.hh
+  BKE_uvproject.h
   BKE_vfont.hh
   BKE_vfontdata.hh
   BKE_viewer_path.hh

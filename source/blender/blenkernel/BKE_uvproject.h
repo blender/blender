@@ -4,7 +4,7 @@
 #pragma once
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 struct Object;
@@ -16,7 +16,7 @@ struct ProjCameraInfo;
  * \param rotmat: can be `obedit->object_to_world().ptr()` when uv project is used.
  * \param winx, winy: can be from `scene->r.xsch / ysch`.
  */
-struct ProjCameraInfo *BLI_uvproject_camera_info(const struct Object *ob,
+struct ProjCameraInfo *BKE_uvproject_camera_info(const struct Object *ob,
                                                  const float rotmat[4][4],
                                                  float winx,
                                                  float winy);
@@ -24,13 +24,13 @@ struct ProjCameraInfo *BLI_uvproject_camera_info(const struct Object *ob,
 /**
  * Apply UV from #ProjCameraInfo (camera).
  */
-void BLI_uvproject_from_camera(float target[2], float source[3], struct ProjCameraInfo *uci);
+void BKE_uvproject_from_camera(float target[2], float source[3], struct ProjCameraInfo *uci);
 
 /**
  * Apply uv from perspective matrix.
  * \param persmat: Can be `rv3d->persmat`.
  */
-void BLI_uvproject_from_view(float target[2],
+void BKE_uvproject_from_view(float target[2],
                              float source[3],
                              float persmat[4][4],
                              float rotmat[4][4],
@@ -40,13 +40,13 @@ void BLI_uvproject_from_view(float target[2],
 /**
  * Apply orthographic UVs.
  */
-void BLI_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4]);
+void BKE_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4]);
 
 /**
  * So we can adjust scale with keeping the struct private.
  */
-void BLI_uvproject_camera_info_scale(ProjCameraInfo *uci, float scale_x, float scale_y);
+void BKE_uvproject_camera_info_scale(ProjCameraInfo *uci, float scale_x, float scale_y);
 
 /*
  * Free info. */
-void BLI_uvproject_camera_info_free(ProjCameraInfo *uci);
+void BKE_uvproject_camera_info_free(ProjCameraInfo *uci);

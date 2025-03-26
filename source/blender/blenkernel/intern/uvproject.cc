@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bli
+ * \ingroup bke
  */
 
 #include <cmath>
@@ -16,7 +16,8 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_uvproject.h"
+
+#include "BKE_uvproject.h"
 
 struct ProjCameraInfo {
   float camangle;
@@ -28,7 +29,7 @@ struct ProjCameraInfo {
   bool do_persp, do_pano, do_rotmat;
 };
 
-void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo *uci)
+void BKE_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo *uci)
 {
   float pv4[4];
 
@@ -80,7 +81,7 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
   target[1] += uci->shifty;
 }
 
-void BLI_uvproject_from_view(float target[2],
+void BKE_uvproject_from_view(float target[2],
                              float source[3],
                              float persmat[4][4],
                              float rotmat[4][4],
@@ -121,7 +122,7 @@ void BLI_uvproject_from_view(float target[2],
   target[1] = (y + target[1]) / winy;
 }
 
-ProjCameraInfo *BLI_uvproject_camera_info(const Object *ob,
+ProjCameraInfo *BKE_uvproject_camera_info(const Object *ob,
                                           const float rotmat[4][4],
                                           float winx,
                                           float winy)
@@ -173,12 +174,12 @@ ProjCameraInfo *BLI_uvproject_camera_info(const Object *ob,
   return nullptr;
 }
 
-void BLI_uvproject_camera_info_free(ProjCameraInfo *uci)
+void BKE_uvproject_camera_info_free(ProjCameraInfo *uci)
 {
   MEM_freeN(uci);
 }
 
-void BLI_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4])
+void BKE_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4])
 {
   float pv[3];
 
@@ -189,7 +190,7 @@ void BLI_uvproject_from_view_ortho(float target[2], float source[3], const float
   target[1] = pv[2];
 }
 
-void BLI_uvproject_camera_info_scale(ProjCameraInfo *uci, float scale_x, float scale_y)
+void BKE_uvproject_camera_info_scale(ProjCameraInfo *uci, float scale_x, float scale_y)
 {
   uci->xasp *= scale_x;
   uci->yasp *= scale_y;
