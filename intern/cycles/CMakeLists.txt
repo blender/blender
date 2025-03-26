@@ -287,7 +287,23 @@ endif()
 if(WITH_CYCLES_EMBREE)
   add_definitions(-DWITH_EMBREE)
   if(WITH_CYCLES_DEVICE_ONEAPI AND EMBREE_SYCL_SUPPORT)
-    add_definitions(-DWITH_EMBREE_GPU)
+    # NOTE: The debug version of Embree is built without SYCL support on Windows
+    # since 7fb480095e371f8f5ac4f647f0ba2fd78da486f7. This is not reflected in
+    # EMBREE_SYCL_SUPPORT which is coming from Embree headers that aren't
+    # differentiated for release and debug, so we handle this case here by
+    # disabling its use when embree4_sycl_d.lib doesn't exist.
+    set(EMBREE_SYCL_DEBUG_LIBRARY ${EMBREE_LIBRARIES})
+    list(FILTER EMBREE_SYCL_DEBUG_LIBRARY INCLUDE REGEX "_sycl_d\\.lib$")
+    if(WIN32 AND NOT EMBREE_SYCL_DEBUG_LIBRARY)
+      add_compile_definitions("$<$<CONFIG:Release>:WITH_EMBREE_GPU>")
+      add_compile_definitions("$<$<CONFIG:RelWithDebInfo>:WITH_EMBREE_GPU>")
+      add_compile_definitions("$<$<CONFIG:MinSizeRel>:WITH_EMBREE_GPU>")
+      if(CMAKE_BUILD_TYPE MATCHES "Debug" OR GENERATOR_IS_MULTI_CONFIG)
+        message(STATUS "The use of Embree GPU is disabled for the Debug configuration as embree${EMBREE_MAJOR_VERSION}_sycl_d.lib is not found.")
+      endif()
+    else()
+      add_definitions(-DWITH_EMBREE_GPU)
+    endif()
   endif()
   add_definitions(-DEMBREE_MAJOR_VERSION=${EMBREE_MAJOR_VERSION})
   include_directories(
