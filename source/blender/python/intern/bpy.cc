@@ -613,6 +613,10 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
   PyObject *result = nullptr;
   switch (PyObject_GetOptionalAttr(self, py_id_capabilities, &result)) {
     case 1: {
+      BLI_assert(result != nullptr);
+      break;
+    }
+    case 0: {
       result = PyDict_New();
 
       const eWM_CapabilitiesFlag flag = WM_capabilities_flag();
@@ -633,9 +637,6 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
       PyObject_SetAttr(self, py_id_capabilities, result);
       break;
     }
-    case 0:
-      BLI_assert(result != nullptr);
-      break;
     default:
       /* Unlikely, but there may be an error, forward it. */
       BLI_assert(result == nullptr);
