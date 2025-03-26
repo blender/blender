@@ -1591,7 +1591,7 @@ int OneapiDevice::get_num_multiprocessors()
   if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
     return device.get_info<sycl::ext::intel::info::device::gpu_eu_count>();
   }
-  return 0;
+  return device.get_info<sycl::info::device::max_compute_units>();
 }
 
 int OneapiDevice::get_max_num_threads_per_multiprocessor()
