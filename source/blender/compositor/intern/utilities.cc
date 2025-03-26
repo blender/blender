@@ -118,19 +118,35 @@ static ImplicitInput get_implicit_input(const nodes::SocketDeclaration *socket_d
   return ImplicitInput::None;
 }
 
+static int get_domain_priority(const bNodeSocket *input,
+                               const nodes::SocketDeclaration *socket_declaration)
+{
+  /* Negative priority means no priority is set and we fallback to the index, that is, we
+   * prioritize inputs according to their order. */
+  if (socket_declaration->compositor_domain_priority() < 0) {
+    return input->index();
+  }
+  return socket_declaration->compositor_domain_priority();
+}
+
 InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
 {
   using namespace nodes;
   InputDescriptor input_descriptor;
   input_descriptor.type = get_node_socket_result_type(socket);
-  const NodeDeclaration *node_declaration = socket->owner_node().declaration();
+
+  /* Default to the index of the input as its domain priority in case the node does not have a
+   * declaration. */
+  input_descriptor.domain_priority = socket->index();
+
   /* Not every node has a declaration, in which case we assume the default values for the rest of
    * the properties. */
+  const NodeDeclaration *node_declaration = socket->owner_node().declaration();
   if (!node_declaration) {
     return input_descriptor;
   }
   const SocketDeclaration *socket_declaration = node_declaration->inputs[socket->index()];
-  input_descriptor.domain_priority = socket_declaration->compositor_domain_priority();
+  input_descriptor.domain_priority = get_domain_priority(socket, socket_declaration);
   input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();
   input_descriptor.realization_mode = static_cast<InputRealizationMode>(
       socket_declaration->compositor_realization_mode());

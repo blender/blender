@@ -205,9 +205,10 @@ class SocketDeclaration : public ItemDeclaration {
   CompositorInputRealizationMode compositor_realization_mode_ =
       CompositorInputRealizationMode::OperationDomain;
 
-  /** The priority of the input for determining the domain of the node. See
-   * compositor::InputDescriptor for more information. */
-  int compositor_domain_priority_ = 0;
+  /** The priority of the input for determining the domain of the node. If negative, then the
+   * domain priority is not set and the index of the input is assumed to be the priority instead.
+   * See compositor::InputDescriptor for more information. */
+  int compositor_domain_priority_ = -1;
 
   /** This input expects a single value and can't operate on non-single values. See
    * compositor::InputDescriptor for more information. */
@@ -361,7 +362,7 @@ class BaseSocketDeclarationBuilder {
   BaseSocketDeclarationBuilder &compositor_realization_mode(CompositorInputRealizationMode value);
 
   /**
-   * The priority of the input for determining the domain of the node. See
+   * The priority of the input for determining the domain of the node. Needs to be positive. See
    * compositor::InputDescriptor for more information.
    */
   BaseSocketDeclarationBuilder &compositor_domain_priority(int priority);
