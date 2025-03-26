@@ -93,7 +93,7 @@ static const char *vulkan_error_as_string(VkResult result)
     VkResult r = (__expression); \
     if (r != VK_SUCCESS) { \
       fprintf(stderr, \
-              "Vulkan Error : %s:%d : %s failled with %s\n", \
+              "Vulkan Error : %s:%d : %s failed with %s\n", \
               __FILE__, \
               __LINE__, \
               __STR(__expression), \
