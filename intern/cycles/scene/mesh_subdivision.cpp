@@ -153,7 +153,7 @@ void Mesh::tessellate(SubdParams &params)
 #ifdef WITH_OPENSUBDIV
     SubdAttributeInterpolation interpolation(*this, osd_mesh, osd_data);
 #else
-    SubdAttributeInterpolation interpolation(*this, num_patches);
+    SubdAttributeInterpolation interpolation(*this);
 #endif
 
     /* Dice patches. */

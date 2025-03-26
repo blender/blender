@@ -6,6 +6,7 @@
 
 #include "subd/osd.h"
 
+#include "util/types.h"
 #include "util/vector.h"
 
 #include <cstddef>
