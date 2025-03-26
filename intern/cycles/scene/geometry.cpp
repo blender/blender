@@ -834,6 +834,24 @@ void GeometryManager::device_update(Device *device,
     });
     device_update_mesh(device, dscene, scene, progress);
   }
+
+  if (progress.get_cancel()) {
+    return;
+  }
+
+  /* Apply transforms, to prepare for static BVH building. */
+  if (scene->params.bvh_type == BVH_TYPE_STATIC) {
+    const scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->object.times.add_entry(
+            {"device_update (apply static transforms)", time});
+      }
+    });
+
+    progress.set_status("Updating Objects", "Applying Static Transformations");
+    scene->object_manager->apply_static_transforms(dscene, scene, progress);
+  }
+
   if (progress.get_cancel()) {
     return;
   }
@@ -853,7 +871,6 @@ void GeometryManager::device_update(Device *device,
   /* Update displacement and hair shadow transparency. */
   bool displacement_done = false;
   bool curve_shadow_transparency_done = false;
-  size_t num_bvh = 0;
 
   {
     /* Copy constant data needed by shader evaluation. */
@@ -881,12 +898,6 @@ void GeometryManager::device_update(Device *device,
         }
       }
 
-      if (geom->is_modified() || geom->need_update_bvh_for_offset) {
-        if (geom->need_build_bvh(bvh_layout)) {
-          num_bvh++;
-        }
-      }
-
       if (progress.get_cancel()) {
         return;
       }
@@ -897,7 +908,7 @@ void GeometryManager::device_update(Device *device,
     return;
   }
 
-  /* Device re-update after displacement. */
+  /* Device re-update after applying transforms and displacement. */
   if (displacement_done || curve_shadow_transparency_done) {
     const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
@@ -934,19 +945,23 @@ void GeometryManager::device_update(Device *device,
     first_bvh_build = false;
 
     size_t i = 0;
+    size_t num_bvh = 0;
     for (Geometry *geom : scene->geometry) {
       if (geom->is_modified() || geom->need_update_bvh_for_offset) {
         need_update_scene_bvh = true;
+
+        if (geom->need_build_bvh(bvh_layout)) {
+          i++;
+          num_bvh++;
+        }
+
         if (use_multithreaded_build) {
-          pool.push([geom, device, dscene, scene, &progress, i, num_bvh] {
+          pool.push([geom, device, dscene, scene, &progress, i, &num_bvh] {
             geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
           });
         }
         else {
           geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
-        }
-        if (geom->need_build_bvh(bvh_layout)) {
-          i++;
         }
       }
     }

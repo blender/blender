@@ -837,24 +837,6 @@ void ObjectManager::device_update(Device *device,
     device_update_transforms(dscene, scene, progress);
   }
 
-  if (progress.get_cancel()) {
-    return;
-  }
-
-  /* prepare for static BVH building */
-  /* todo: do before to support getting object level coords? */
-  if (scene->params.bvh_type == BVH_TYPE_STATIC) {
-    const scoped_callback_timer timer([scene](double time) {
-      if (scene->update_stats) {
-        scene->update_stats->object.times.add_entry(
-            {"device_update (apply static transforms)", time});
-      }
-    });
-
-    progress.set_status("Updating Objects", "Applying Static Transformations");
-    apply_static_transforms(dscene, scene, progress);
-  }
-
   for (Object *object : scene->objects) {
     object->clear_modified();
   }
