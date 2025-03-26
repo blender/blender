@@ -269,6 +269,26 @@ class NODE_MT_category_compositor_transform(Menu):
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
+class NODE_MT_category_compositor_texture(Menu):
+    bl_idname = "NODE_MT_category_compositor_texture"
+    bl_label = "Texture"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        node_add_menu.add_node_type(layout, "ShaderNodeTexBrick")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexChecker")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexGabor")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexGradient")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexMagic")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexNoise")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexVoronoi")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexWave")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexWhiteNoise")
+
+        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
+
 class NODE_MT_category_compositor_utilities(Menu):
     bl_idname = "NODE_MT_category_compositor_utilities"
     bl_label = "Utilities"
@@ -332,6 +352,7 @@ class NODE_MT_compositor_node_add_all(Menu):
         layout.menu("NODE_MT_category_compositor_tracking")
         layout.separator()
         layout.menu("NODE_MT_category_compositor_transform")
+        layout.menu("NODE_MT_category_compositor_texture")
         layout.menu("NODE_MT_category_compositor_utilities")
         layout.menu("NODE_MT_category_compositor_vector")
         layout.separator()
@@ -352,6 +373,7 @@ classes = (
     NODE_MT_category_compositor_color_mix,
     NODE_MT_category_compositor_filter,
     NODE_MT_category_compositor_filter_blur,
+    NODE_MT_category_compositor_texture,
     NODE_MT_category_compositor_keying,
     NODE_MT_category_compositor_mask,
     NODE_MT_category_compositor_tracking,
