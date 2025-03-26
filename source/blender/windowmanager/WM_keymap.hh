@@ -53,8 +53,14 @@ struct KeyMapItem_Params {
   int16_t type;
   /** #wmKeyMapItem.val. */
   int8_t value;
-  /** #wmKeyMapItem `ctrl, shift, alt, oskey`. */
-  int8_t modifier;
+  /**
+   * #wmKeyMapItem `ctrl, shift, alt, oskey, hyper`.
+   *
+   * Use a larger size than `uint8_t` because it needs to store
+   * the "Any" versions of the modifier flags are used.
+   */
+  int16_t modifier;
+
   /** #wmKeyMapItem.keymodifier. */
   int16_t keymodifier;
   /** #wmKeyMapItem.direction. */
