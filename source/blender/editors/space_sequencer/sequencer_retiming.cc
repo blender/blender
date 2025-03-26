@@ -607,7 +607,7 @@ void SEQUENCER_OT_retiming_key_delete(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Delete Retiming Keys";
   ot->idname = "SEQUENCER_OT_retiming_key_delete";
-  ot->description = "Delete selected strips from the sequencer";
+  ot->description = "Delete selected retiming keys from the sequencer";
 
   /* Api callbacks. */
   ot->invoke = sequencer_retiming_key_delete_invoke;

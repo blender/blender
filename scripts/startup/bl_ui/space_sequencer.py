@@ -1329,7 +1329,7 @@ class SEQUENCER_MT_context_menu(Menu):
             layout.operator("sequencer.retiming_segment_speed_set")
             layout.separator()
 
-            layout.operator("sequencer.delete", text="Delete Retiming Keys")
+            layout.operator("sequencer.retiming_key_delete", text="Delete Retiming Keys")
 
     def draw(self, context):
         ed = context.scene.sequence_editor
