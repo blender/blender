@@ -11,6 +11,7 @@
 #include "NOD_derived_node_tree.hh"
 
 #include "COM_compile_state.hh"
+#include "COM_context.hh"
 #include "COM_domain.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_node_operation.hh"
@@ -23,7 +24,10 @@ namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
-CompileState::CompileState(const Schedule &schedule) : schedule_(schedule) {}
+CompileState::CompileState(const Context &context, const Schedule &schedule)
+    : context_(context), schedule_(schedule)
+{
+}
 
 const Schedule &CompileState::get_schedule()
 {
@@ -156,19 +160,30 @@ int CompileState::compute_pixel_node_operation_outputs_count(DNode node)
 bool CompileState::is_pixel_node_single_value(DNode node)
 {
   /* The pixel node is single value when all of its inputs are single values. */
-  for (const bNodeSocket *input : node->input_sockets()) {
-    const DInputSocket dinput{node.context(), input};
+  for (int i = 0; i < node->input_sockets().size(); i++) {
+    const DInputSocket input{node.context(), node->input_sockets()[i]};
 
     if (!input->is_available()) {
       continue;
     }
 
-    /* Get the output linked to the input. If it is null, that means the input is unlinked, and is
-     * thus single value. */
-    const DOutputSocket output = get_output_linked_to_input(dinput);
-    if (!output) {
-      continue;
+    /* The origin socket is an input, that means the input is unlinked. */
+    const DSocket origin = get_input_origin_socket(input);
+    if (origin->is_input()) {
+      const InputDescriptor origin_descriptor = input_descriptor_from_input_socket(
+          origin.bsocket());
+
+      /* The input does not have an implicit input, so it is a single value. */
+      if (origin_descriptor.implicit_input == ImplicitInput::None) {
+        continue;
+      }
+
+      /* Otherwise, it has an implicit input, which is never a single value. */
+      return false;
     }
+
+    /* Otherwise, the origin socket is an output, which means it is linked. */
+    const DOutputSocket output = DOutputSocket(origin);
 
     /* If the output belongs to a node that is part of the pixel compile unit and that compile unit
      * is not single value, then the node is not single value. */
@@ -197,21 +212,39 @@ Domain CompileState::compute_pixel_node_domain(DNode node)
 
   /* Go over the inputs and find the domain of the non single value input with the highest domain
    * priority. */
-  for (const bNodeSocket *input : node->input_sockets()) {
-    const DInputSocket dinput{node.context(), input};
+  for (int i = 0; i < node->input_sockets().size(); i++) {
+    const DInputSocket input{node.context(), node->input_sockets()[i]};
 
     if (!input->is_available()) {
       continue;
     }
 
-    /* Get the output linked to the input. If it is null, that means the input is unlinked, so skip
-     * it. */
-    const DOutputSocket output = get_output_linked_to_input(dinput);
-    if (!output) {
+    const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input.bsocket());
+
+    /* The origin socket is an input, that means the input is unlinked. */
+    const DSocket origin = get_input_origin_socket(input);
+    if (origin->is_input()) {
+      const InputDescriptor origin_descriptor = input_descriptor_from_input_socket(
+          origin.bsocket());
+
+      /* The input does not have an implicit input, so it is a single that can't be a domain input
+       * and we skip it. */
+      if (origin_descriptor.implicit_input == ImplicitInput::None) {
+        continue;
+      }
+
+      /* Otherwise, the input has the domain of the implicit input, which is the domain of the
+       * compositing region. Notice that the lower the domain priority value is, the higher the
+       * priority is, hence the less than comparison. */
+      if (input_descriptor.domain_priority < current_domain_priority) {
+        node_domain = Domain(context_.get_compositing_region_size());
+        current_domain_priority = input_descriptor.domain_priority;
+      }
       continue;
     }
 
-    const InputDescriptor input_descriptor = input_descriptor_from_input_socket(input);
+    /* Otherwise, the origin socket is an output, which means it is linked. */
+    const DOutputSocket output = DOutputSocket(origin);
 
     /* If the output belongs to a node that is part of the pixel compile unit, then the domain of
      * the input is the domain of the compile unit itself. */

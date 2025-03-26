@@ -140,6 +140,9 @@ void MultiFunctionProcedureOperation::build_procedure()
       procedure_builder_.add_destruct(*variable);
     }
   }
+  for (mf::Variable *variable : implicit_input_to_variable_map_.values()) {
+    procedure_builder_.add_destruct(*variable);
+  }
 
   mf::ReturnInstruction &return_instruction = procedure_builder_.add_return();
   mf::procedure_optimization::move_destructs_up(procedure_, return_instruction);
@@ -158,11 +161,19 @@ Vector<mf::Variable *> MultiFunctionProcedureOperation::get_input_variables(
       continue;
     }
 
-    /* The origin socket is an input, that means the input is unlinked and we generate a constant
-     * variable for it. */
+    /* The origin socket is an input, that means the input is unlinked. */
     const DSocket origin = get_input_origin_socket(input);
     if (origin->is_input()) {
-      input_variables.append(this->get_constant_input_variable(DInputSocket(origin)));
+      const InputDescriptor origin_descriptor = input_descriptor_from_input_socket(
+          origin.bsocket());
+
+      if (origin_descriptor.implicit_input == ImplicitInput::None) {
+        /* No implicit input, so get a constant variable that holds the socket value. */
+        input_variables.append(this->get_constant_input_variable(DInputSocket(origin)));
+      }
+      else {
+        input_variables.append(this->get_implicit_input_variable(input, DInputSocket(origin)));
+      }
     }
     else {
       /* Otherwise, the origin socket is an output, which means it is linked. */
@@ -242,6 +253,50 @@ mf::Variable *MultiFunctionProcedureOperation::get_constant_input_variable(DInpu
   mf::Variable *constant_variable = procedure_builder_.add_call<1>(*constant_function)[0];
   implicit_variables_.append(constant_variable);
   return constant_variable;
+}
+
+mf::Variable *MultiFunctionProcedureOperation::get_implicit_input_variable(
+    const DInputSocket input, const DInputSocket origin)
+{
+  const InputDescriptor origin_descriptor = input_descriptor_from_input_socket(origin.bsocket());
+  const ImplicitInput implicit_input = origin_descriptor.implicit_input;
+
+  /* Inherit the type and implicit input of the origin input since doing implicit conversion inside
+   * the multi-function operation is much cheaper. */
+  InputDescriptor input_descriptor = input_descriptor_from_input_socket(input.bsocket());
+  input_descriptor.type = origin_descriptor.type;
+  input_descriptor.implicit_input = implicit_input;
+
+  /* An input was already declared for that implicit input, so no need to declare it again and we
+   * just return its variable.  */
+  if (implicit_input_to_variable_map_.contains(implicit_input)) {
+    /* But first we update the domain priority of the input descriptor to be the higher priority of
+     * the existing descriptor and the descriptor of the new input socket. That's because the same
+     * implicit input might be used in inputs inside the multi-function procedure operation which
+     * have different priorities. */
+    InputDescriptor &existing_input_descriptor = this->get_input_descriptor(
+        implicit_inputs_to_input_identifiers_map_.lookup(implicit_input));
+    existing_input_descriptor.domain_priority = math::min(
+        existing_input_descriptor.domain_priority, input_descriptor.domain_priority);
+
+    return implicit_input_to_variable_map_.lookup(implicit_input);
+  }
+
+  const int implicit_input_index = implicit_inputs_to_input_identifiers_map_.size();
+  const std::string input_identifier = "implicit_input" + std::to_string(implicit_input_index);
+  declare_input_descriptor(input_identifier, input_descriptor);
+
+  /* Map the implicit input to the identifier of the operation input that was declared for it. */
+  implicit_inputs_to_input_identifiers_map_.add_new(implicit_input, input_identifier);
+
+  mf::Variable &variable = procedure_builder_.add_input_parameter(
+      mf::DataType::ForSingle(Result::cpp_type(input_descriptor.type)), input_identifier);
+  parameter_identifiers_.append(input_identifier);
+
+  /* Map the implicit input to the variable that was created for it. */
+  implicit_input_to_variable_map_.add(implicit_input, &variable);
+
+  return &variable;
 }
 
 mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable(

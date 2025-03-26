@@ -135,11 +135,19 @@ void ShaderOperation::link_node_inputs(DNode node)
       continue;
     }
 
-    /* The origin socket is an input, that means the input is unlinked and we link a constant
-     * setter node for it. */
+    /* The origin socket is an input, that means the input is unlinked and . */
     const DSocket origin = get_input_origin_socket(input);
     if (origin->is_input()) {
-      this->link_node_input_constant(input, DInputSocket(origin));
+      const InputDescriptor origin_descriptor = input_descriptor_from_input_socket(
+          origin.bsocket());
+
+      if (origin_descriptor.implicit_input == ImplicitInput::None) {
+        /* No implicit input, so link a constant setter node for it that holds the input value. */
+        this->link_node_input_constant(input, DInputSocket(origin));
+      }
+      else {
+        this->link_node_input_implicit(input, DInputSocket(origin));
+      }
       continue;
     }
 
@@ -239,6 +247,63 @@ void ShaderOperation::link_node_input_constant(const DInputSocket input, const D
   const ResultType type = get_node_socket_result_type(origin.bsocket());
   const char *function_name = get_set_function_name(type);
   GPU_link(material_, function_name, link, &stack.link);
+}
+
+void ShaderOperation::link_node_input_implicit(const DInputSocket input, const DInputSocket origin)
+{
+  ShaderNode &node = *shader_nodes_.lookup(input.node());
+  GPUNodeStack &stack = node.get_input(input->identifier);
+
+  const InputDescriptor origin_descriptor = input_descriptor_from_input_socket(origin.bsocket());
+  const ImplicitInput implicit_input = origin_descriptor.implicit_input;
+
+  /* Inherit the type and implicit input of the origin input since doing implicit conversion inside
+   * the shader operation is much cheaper. */
+  InputDescriptor input_descriptor = input_descriptor_from_input_socket(input.bsocket());
+  input_descriptor.type = origin_descriptor.type;
+  input_descriptor.implicit_input = implicit_input;
+
+  /* An input was already declared for that implicit input, so no need to declare it again and we
+   * just link it.  */
+  if (implicit_input_to_material_attribute_map_.contains(implicit_input)) {
+    /* But first we update the domain priority of the input descriptor to be the higher priority of
+     * the existing descriptor and the descriptor of the new input socket. That's because the same
+     * implicit input might be used in inputs inside the shader operation which have different
+     * priorities. */
+    InputDescriptor &existing_input_descriptor = this->get_input_descriptor(
+        implicit_inputs_to_input_identifiers_map_.lookup(implicit_input));
+    existing_input_descriptor.domain_priority = math::min(
+        existing_input_descriptor.domain_priority, input_descriptor.domain_priority);
+
+    /* Link the attribute representing the shader operation input corresponding to the implicit
+     * input. */
+    stack.link = implicit_input_to_material_attribute_map_.lookup(implicit_input);
+    return;
+  }
+
+  const int implicit_input_index = implicit_inputs_to_input_identifiers_map_.size();
+  const std::string input_identifier = "implicit_input" + std::to_string(implicit_input_index);
+  declare_input_descriptor(input_identifier, input_descriptor);
+
+  /* Map the implicit input to the identifier of the operation input that was declared for it. */
+  implicit_inputs_to_input_identifiers_map_.add_new(implicit_input, input_identifier);
+
+  /* Add a new GPU attribute representing an input to the GPU material. Instead of using the
+   * attribute directly, we link it to an appropriate set function and use its output link instead.
+   * This is needed because the `gputype` member of the attribute is only initialized if it is
+   * linked to a GPU node. */
+  GPUNodeLink *attribute_link;
+  GPU_link(material_,
+           get_set_function_name(input_descriptor.type),
+           GPU_attribute(material_, CD_AUTO_FROM_NAME, input_identifier.c_str()),
+           &attribute_link);
+
+  /* Map the implicit input to the attribute that was created for it. */
+  implicit_input_to_material_attribute_map_.add(implicit_input, attribute_link);
+
+  /* Link the attribute representing the shader operation input corresponding to the implicit
+   * input. */
+  stack.link = attribute_link;
 }
 
 void ShaderOperation::link_node_input_internal(DInputSocket input_socket,

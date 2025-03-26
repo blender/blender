@@ -25,6 +25,7 @@ set(SRC
   COM_derived_resources.hh
   COM_domain.hh
   COM_evaluator.hh
+  COM_implicit_input_operation.hh
   COM_input_descriptor.hh
   COM_input_single_value_operation.hh
   COM_meta_data.hh
@@ -49,6 +50,7 @@ set(SRC
   intern/conversion_operation.cc
   intern/domain.cc
   intern/evaluator.cc
+  intern/implicit_input_operation.cc
   intern/input_single_value_operation.cc
   intern/meta_data.cc
   intern/multi_function_procedure_operation.cc

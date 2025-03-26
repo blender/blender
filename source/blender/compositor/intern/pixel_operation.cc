@@ -63,6 +63,11 @@ Map<std::string, DOutputSocket> &PixelOperation::get_inputs_to_linked_outputs_ma
   return inputs_to_linked_outputs_map_;
 }
 
+Map<ImplicitInput, std::string> &PixelOperation::get_implicit_inputs_to_input_identifiers_map()
+{
+  return implicit_inputs_to_input_identifiers_map_;
+}
+
 int PixelOperation::get_internal_input_reference_count(const StringRef &identifier)
 {
   return inputs_to_reference_counts_map_.lookup(identifier);

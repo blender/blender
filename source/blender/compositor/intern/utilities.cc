@@ -109,6 +109,15 @@ bool is_pixel_node(DNode node)
   return node->typeinfo->gpu_fn && node->typeinfo->build_multi_function;
 }
 
+static ImplicitInput get_implicit_input(const nodes::SocketDeclaration *socket_declaration)
+{
+  /* We only support implicit textures coordinates, though this can be expanded in the future. */
+  if (socket_declaration->input_field_type == nodes::InputSocketFieldType::Implicit) {
+    return ImplicitInput::TextureCoordinates;
+  }
+  return ImplicitInput::None;
+}
+
 InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
 {
   using namespace nodes;
@@ -125,6 +134,7 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();
   input_descriptor.realization_mode = static_cast<InputRealizationMode>(
       socket_declaration->compositor_realization_mode());
+  input_descriptor.implicit_input = get_implicit_input(socket_declaration);
 
   return input_descriptor;
 }

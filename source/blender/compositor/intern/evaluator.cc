@@ -12,6 +12,7 @@
 #include "COM_compile_state.hh"
 #include "COM_context.hh"
 #include "COM_evaluator.hh"
+#include "COM_implicit_input_operation.hh"
 #include "COM_input_single_value_operation.hh"
 #include "COM_multi_function_procedure_operation.hh"
 #include "COM_node_operation.hh"
@@ -50,7 +51,7 @@ void Evaluator::evaluate()
 
   const Schedule schedule = compute_schedule(context_, *derived_node_tree_);
 
-  CompileState compile_state(schedule);
+  CompileState compile_state(context_, schedule);
 
   for (const DNode &node : schedule) {
     if (context_.is_canceled()) {
@@ -241,6 +242,15 @@ void Evaluator::map_pixel_operation_inputs_to_their_results(PixelOperation *oper
      * inputs_to_reference_counts_map_ variable for more information. */
     const int internal_reference_count = operation->get_internal_input_reference_count(item.key);
     result.decrement_reference_count(internal_reference_count - 1);
+  }
+
+  for (const auto item : operation->get_implicit_inputs_to_input_identifiers_map().items()) {
+    ImplicitInputOperation *input_operation = new ImplicitInputOperation(context_, item.key);
+    operation->map_input_to_result(item.value, &input_operation->get_result());
+
+    operations_stream_.append(std::unique_ptr<ImplicitInputOperation>(input_operation));
+
+    input_operation->evaluate();
   }
 }
 
