@@ -268,7 +268,7 @@ enum eOperatorPropTags {
 
 /**
  * Modifier keys, not actually used for #wmKeyMapItem (never stored in DNA), used for:
- * - #wmEvent.modifier without the `KM_*_ANY` flags.
+ * - #wmEvent.modifier.
  * - #WM_keymap_add_item & #WM_modalkeymap_add_item
  */
 enum {
@@ -287,14 +287,6 @@ enum {
    * but could could be supported on other platforms if desired.
    */
   KM_HYPER = (1 << 4),
-
-  /* Used for key-map item creation function arguments. */
-  KM_SHIFT_ANY = (1 << 5),
-  KM_CTRL_ANY = (1 << 6),
-  KM_ALT_ANY = (1 << 7),
-  KM_OSKEY_ANY = (1 << 8),
-  KM_HYPER_ANY = (1 << 9),
-
 };
 
 /** The number of modifiers #wmKeyMapItem & #wmEvent can use. */

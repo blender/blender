@@ -285,35 +285,35 @@ static int keymap_item_modifier_flag_from_args(
       modifier |= KM_SHIFT;
     }
     else if (shift == KM_ANY) {
-      modifier |= KM_SHIFT_ANY;
+      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_SHIFT);
     }
 
     if (ctrl == KM_MOD_HELD) {
       modifier |= KM_CTRL;
     }
     else if (ctrl == KM_ANY) {
-      modifier |= KM_CTRL_ANY;
+      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_CTRL);
     }
 
     if (alt == KM_MOD_HELD) {
       modifier |= KM_ALT;
     }
     else if (alt == KM_ANY) {
-      modifier |= KM_ALT_ANY;
+      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_ALT);
     }
 
     if (oskey == KM_MOD_HELD) {
       modifier |= KM_OSKEY;
     }
     else if (oskey == KM_ANY) {
-      modifier |= KM_OSKEY_ANY;
+      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_OSKEY);
     }
 
     if (hyper == KM_MOD_HELD) {
       modifier |= KM_HYPER;
     }
     else if (hyper == KM_ANY) {
-      modifier |= KM_HYPER_ANY;
+      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_HYPER);
     }
   }
   return modifier;

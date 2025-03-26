@@ -58,10 +58,15 @@ struct KeyMapItem_Params {
   /** #wmKeyMapItem.val. */
   int8_t value;
   /**
-   * #wmKeyMapItem `ctrl, shift, alt, oskey, hyper`.
+   * This value is used to initialize #wmKeyMapItem `ctrl, shift, alt, oskey, hyper`.
    *
-   * Use a larger size than `uint8_t` because it needs to store
-   * the "Any" versions of the modifier flags are used.
+   * Valid values:
+   *
+   * - Combinations of: #KM_SHIFT, #KM_CTRL, #KM_ALT, #KM_OSKEY, #KM_HYPER.
+   *   Are mapped to #KM_MOD_HELD.
+   * - Combinations of the modifier flags bit-shifted using #KMI_PARAMS_MOD_TO_ANY.
+   *   Are mapped to #KM_ANY.
+   * - The value #KM_ANY is represents all modifiers being set to #KM_ANY.
    */
   int16_t modifier;
 
@@ -70,6 +75,17 @@ struct KeyMapItem_Params {
   /** #wmKeyMapItem.direction. */
   int8_t direction;
 };
+
+/**
+ * Use to assign modifiers to #KeyMapItem_Params::modifier
+ * which can have any state (held or released).
+ */
+#define KMI_PARAMS_MOD_TO_ANY(mod) ((mod) << 8)
+/**
+ * Use to read modifiers from #KeyMapItem_Params::modifier
+ * which can have any state (held or released).
+ */
+#define KMI_PARAMS_MOD_FROM_ANY(mod) ((mod) >> 8)
 
 void WM_keymap_clear(wmKeyMap *keymap);
 

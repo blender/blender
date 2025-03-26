@@ -518,28 +518,17 @@ static void keymap_event_set(wmKeyMapItem *kmi, const KeyMapItem_Params *params)
     kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = kmi->hyper = KM_ANY;
   }
   else {
-    /* Only one of the flags should be set. */
-    BLI_assert(((params->modifier & (KM_SHIFT | KM_SHIFT_ANY)) != (KM_SHIFT | KM_SHIFT_ANY)) &&
-               ((params->modifier & (KM_CTRL | KM_CTRL_ANY)) != (KM_CTRL | KM_CTRL_ANY)) &&
-               ((params->modifier & (KM_ALT | KM_ALT_ANY)) != (KM_ALT | KM_ALT_ANY)) &&
-               ((params->modifier & (KM_OSKEY | KM_OSKEY_ANY)) != (KM_OSKEY | KM_OSKEY_ANY)) &&
-               ((params->modifier & (KM_HYPER | KM_HYPER_ANY)) != (KM_HYPER | KM_HYPER_ANY)));
+    const int8_t mod = params->modifier & 0xff;
+    const int8_t mod_any = KMI_PARAMS_MOD_FROM_ANY(params->modifier);
 
-    kmi->shift = ((params->modifier & KM_SHIFT) ?
-                      KM_MOD_HELD :
-                      ((params->modifier & KM_SHIFT_ANY) ? KM_ANY : KM_NOTHING));
-    kmi->ctrl = ((params->modifier & KM_CTRL) ?
-                     KM_MOD_HELD :
-                     ((params->modifier & KM_CTRL_ANY) ? KM_ANY : KM_NOTHING));
-    kmi->alt = ((params->modifier & KM_ALT) ?
-                    KM_MOD_HELD :
-                    ((params->modifier & KM_ALT_ANY) ? KM_ANY : KM_NOTHING));
-    kmi->oskey = ((params->modifier & KM_OSKEY) ?
-                      KM_MOD_HELD :
-                      ((params->modifier & KM_OSKEY_ANY) ? KM_ANY : KM_NOTHING));
-    kmi->hyper = ((params->modifier & KM_HYPER) ?
-                      KM_MOD_HELD :
-                      ((params->modifier & KM_HYPER_ANY) ? KM_ANY : KM_NOTHING));
+    /* Only one of the flags should be set. */
+    BLI_assert((mod & mod_any) == 0);
+
+    kmi->shift = ((mod & KM_SHIFT) ? KM_MOD_HELD : ((mod_any & KM_SHIFT) ? KM_ANY : KM_NOTHING));
+    kmi->ctrl = ((mod & KM_CTRL) ? KM_MOD_HELD : ((mod_any & KM_CTRL) ? KM_ANY : KM_NOTHING));
+    kmi->alt = ((mod & KM_ALT) ? KM_MOD_HELD : ((mod_any & KM_ALT) ? KM_ANY : KM_NOTHING));
+    kmi->oskey = ((mod & KM_OSKEY) ? KM_MOD_HELD : ((mod_any & KM_OSKEY) ? KM_ANY : KM_NOTHING));
+    kmi->hyper = ((mod & KM_HYPER) ? KM_MOD_HELD : ((mod_any & KM_HYPER) ? KM_ANY : KM_NOTHING));
   }
 }
 
