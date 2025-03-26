@@ -14,6 +14,10 @@
 #include "DNA_windowmanager_types.h"
 #include "WM_types.hh"
 
+#ifdef hyper /* MSVC defines. */
+#  undef hyper
+#endif
+
 struct EnumPropertyItem;
 
 /* Key Configuration. */

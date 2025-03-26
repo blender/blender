@@ -36,6 +36,10 @@ typedef struct WindowManagerRuntimeHandle WindowManagerRuntimeHandle;
 typedef struct WindowRuntimeHandle WindowRuntimeHandle;
 #endif  // __cplusplus
 
+#ifdef hyper /* MSVC defines. */
+#  undef hyper
+#endif
+
 /* Defined here: */
 
 struct wmNotifier;
