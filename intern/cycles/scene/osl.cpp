@@ -778,6 +778,29 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
           if (metadata.name == "widget" && metadata.sdefault[0] == "null") {
             socket_flags |= SocketType::LINK_OSL_INITIALIZER;
           }
+          else if (metadata.name == "defaultgeomprop") {
+            /* the following match up to MaterialX default geometry properties
+             * that we use to help set socket flags to the corresponding
+             * geometry link equivalents. */
+            if (metadata.sdefault[0] == "Nobject") {
+              socket_flags |= SocketType::LINK_TEXTURE_NORMAL;
+            }
+            else if (metadata.sdefault[0] == "Nworld") {
+              socket_flags |= SocketType::LINK_NORMAL;
+            }
+            else if (metadata.sdefault[0] == "Pobject") {
+              socket_flags |= SocketType::LINK_TEXTURE_GENERATED;
+            }
+            else if (metadata.sdefault[0] == "Pworld") {
+              socket_flags |= SocketType::LINK_POSITION;
+            }
+            else if (metadata.sdefault[0] == "Tworld") {
+              socket_flags |= SocketType::LINK_TANGENT;
+            }
+            else if (metadata.sdefault[0] == "UV0") {
+              socket_flags |= SocketType::LINK_TEXTURE_UV;
+            }
+          }
         }
       }
 
