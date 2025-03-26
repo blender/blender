@@ -1706,6 +1706,10 @@ static void rna_def_ui_layout(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_operator_context_items);
   RNA_def_property_enum_funcs(
       prop, "rna_UILayout_op_context_get", "rna_UILayout_op_context_set", nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Operator Context",
+                           "Typically set to 'INVOKE_REGION_WIN', except some cases "
+                           "in :class:`bpy.types.Menu` when it's set to 'EXEC_REGION_WIN'.");
 
   prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");

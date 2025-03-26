@@ -9,6 +9,13 @@ execute().
 Some operators don't have an execute() function, removing the ability to be
 repeated from a script or macro.
 
+When an operator is called via :mod:`bpy.ops`, the execution context depends
+on the argument provided to :mod:`bpy.ops`. By default, it uses execute().
+When an operator is activated from a button or menu item, it follows
+the setting in :class:`UILayout.operator_context`. In most cases, invoke() is used.
+Running an operator via a key shortcut always uses invoke(),
+and this behavior cannot be changed.
+
 This example shows how to define an operator which gets mouse input to
 execute a function and that this operator can be invoked or executed from
 the python api.

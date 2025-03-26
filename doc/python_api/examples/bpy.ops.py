@@ -14,6 +14,10 @@ Common return values are ``{'FINISHED'}`` and ``{'CANCELLED'}``, the latter
 meaning that the operator execution was aborted without making any changes or
 saving an undo history entry.
 
+If operator was cancelled but there wasn't any reports from it with ``{'ERROR'}`` type,
+it will just return ``{'CANCELLED'}`` without raising any exceptions.
+If it had error reports, then it will raise a ``RuntimeError`` including all report messages.
+
 Calling an operator in the wrong context will raise a ``RuntimeError``,
 there is a poll() method to avoid this problem.
 
