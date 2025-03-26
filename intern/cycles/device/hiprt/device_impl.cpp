@@ -284,7 +284,7 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
    * This is necessary since objects may be reported to have motion if the Vector pass is
    * active, but may still need to be rendered without motion blur if that isn't active as well.
    */
-  use_motion_blur |= kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
+  use_motion_blur = use_motion_blur || (kernel_features & KERNEL_FEATURE_OBJECT_MOTION);
 
   /* get kernel */
   const char *kernel_name = "kernel";
