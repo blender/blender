@@ -2522,6 +2522,7 @@ static wmOperatorStatus image_reload_exec(bContext *C, wmOperator * /*op*/)
 
   BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_RELOAD);
   DEG_id_tag_update(&ima->id, 0);
+  DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS | ID_RECALC_SOURCE);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
