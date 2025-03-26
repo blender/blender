@@ -10,7 +10,7 @@ convention for menus.
 
 .. note::
 
-   Menu subclasses must be registered before referencing them from blender.
+   Menu subclasses must be registered before referencing them from Blender.
 
 .. note::
 

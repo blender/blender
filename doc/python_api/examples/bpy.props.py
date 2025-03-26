@@ -5,7 +5,7 @@ Assigning to Existing Classes
 Custom properties can be added to any subclass of an :class:`ID`,
 :class:`Bone` and :class:`PoseBone`.
 
-These properties can be animated, accessed by the user interface and python
+These properties can be animated, accessed by the user interface and Python
 like Blender's existing properties.
 
 .. warning::

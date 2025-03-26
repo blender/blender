@@ -196,7 +196,7 @@ class InfoStructRNA:
         import types
         functions = []
         for identifier, attr in self._get_py_visible_attrs():
-            # Methods may be python wrappers to C functions.
+            # Methods may be Python wrappers to C-API functions.
             ok = False
             if (attr_func := getattr(attr, "__func__", None)) is not None:
                 if type(attr_func) == types.FunctionType:
@@ -212,7 +212,7 @@ class InfoStructRNA:
         import types
         functions = []
         for identifier, attr in self._get_py_visible_attrs():
-            # Methods may be python wrappers to C functions.
+            # Methods may be Python wrappers to C-API functions.
             ok = False
             if (attr_func := getattr(attr, "__func__", None)) is not None:
                 if type(attr_func) == types.BuiltinFunctionType:

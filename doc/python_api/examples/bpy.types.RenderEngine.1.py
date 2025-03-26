@@ -8,7 +8,7 @@ import array
 
 
 class CustomRenderEngine(bpy.types.RenderEngine):
-    # These three members are used by blender to set up the
+    # These three members are used by Blender to set up the
     # RenderEngine; define its internal name, visible name and capabilities.
     bl_idname = "CUSTOM"
     bl_label = "Custom"

@@ -20,7 +20,7 @@ Notice ``__init__()`` and ``__del__()`` are declared.
 For other operator types they are not useful but for modal operators they will
 be called before the :class:`Operator.invoke` and after the operator finishes.
 Also see the
-:ref:`class construction and destruction section <info_overview_class_construction_destruction>`
+:ref:`class construction and destruction section <info_overview_class_construction_destruction>`.
 """
 import bpy
 

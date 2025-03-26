@@ -1,9 +1,9 @@
 """
-This function is for advanced use only, misuse can crash blender since the user
+This function is for advanced use only, misuse can crash Blender since the user
 count is used to prevent data being removed when it is used.
 """
 
-# This example shows what _not_ to do, and will crash blender.
+# This example shows what _not_ to do, and will crash Blender.
 import bpy
 
 # object which is in the scene.

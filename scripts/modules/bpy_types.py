@@ -14,7 +14,7 @@ _StructMetaPropGroup = _types.bpy_struct_meta_idprop
 # Private dummy object use for comparison only.
 _sentinel = object()
 
-# Note that methods extended in C are defined in: `bpy_rna_types_capi.cc`.
+# Note that methods extended in the C-API are defined in: `bpy_rna_types_capi.cc`.
 
 
 class Context(_StructRNA):

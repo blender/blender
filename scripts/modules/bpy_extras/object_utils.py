@@ -208,7 +208,7 @@ def object_add_grid_scale_apply_operator(operator, context):
     """
     Scale an operators distance values by the grid size.
     """
-    # This is a Python version of the C function `WM_operator_view3d_unit_defaults`.
+    # This is a Python version of the C++ function `WM_operator_view3d_unit_defaults`.
     grid_scale = object_add_grid_scale(context)
 
     properties = operator.properties

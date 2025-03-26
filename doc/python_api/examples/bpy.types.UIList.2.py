@@ -103,7 +103,7 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
     def filter_items_empty_vgroups(self, context, vgroups):
         # This helper function checks vgroups to find out whether they are empty, and what's their average weights.
         # TODO: This should be RNA helper actually (a vgroup prop like "raw_data: ((vidx, vweight), etc.)").
-        #       Too slow for python!
+        #       Too slow for Python!
         obj_data = context.active_object.data
         ret = {vg.index: [True, 0.0] for vg in vgroups}
         if hasattr(obj_data, "vertices"):  # Mesh data

@@ -2,8 +2,8 @@
 Calling Operators
 -----------------
 
-Provides python access to calling operators, this includes operators written in
-C, Python or macros.
+Provides Python access to calling operators, this includes operators written in
+C++, Python or macros.
 
 Only keyword arguments can be used to pass operator properties.
 
@@ -22,7 +22,7 @@ Calling an operator in the wrong context will raise a ``RuntimeError``,
 there is a poll() method to avoid this problem.
 
 Note that the operator ID (bl_idname) in this example is ``mesh.subdivide``,
-``bpy.ops`` is just the access path for python.
+``bpy.ops`` is just the access path for Python.
 
 
 Keywords and Positional Arguments

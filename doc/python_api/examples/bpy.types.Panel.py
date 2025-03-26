@@ -10,7 +10,7 @@ convention for panels.
 
 .. note::
 
-   Panel subclasses must be registered for blender to use them.
+   Panel subclasses must be registered for Blender to use them.
 """
 import bpy
 

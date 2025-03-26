@@ -9,8 +9,8 @@ API dump in RST files
 
     blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py
 
-  This will generate python files in doc/python_api/sphinx-in/
-  providing ./blender is or links to the blender executable
+  This will generate Python files in doc/python_api/sphinx-in/
+  providing ./blender is or links to the Blender executable
 
   To choose sphinx-in directory:
     blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py -- --output=../python_api
@@ -450,7 +450,7 @@ RNA_BLACKLIST = {
 RST_NOINDEX_ATTR = {
     # Render is both a method and an attribute, from looking into this
     # having both doesn't cause problems in practice since the `render` method
-    # is registered and called from C code where the attribute is accessed from the instance.
+    # is registered and called from C++ code where the attribute is accessed from the instance.
     ("bpy.types", "RenderEngine", "render"),
 }
 
@@ -585,7 +585,8 @@ def generate_changelog():
 
 # --------------------------------API DUMP--------------------------------------
 
-# Lame, python won't give some access.
+# Unfortunately Python doesn't expose direct access to these types.
+# Access them indirectly.
 ClassMethodDescriptorType = type(dict.__dict__["fromkeys"])
 MethodDescriptorType = type(dict.get)
 GetSetDescriptorType = type(int.real)
@@ -865,7 +866,7 @@ def py_descr2sphinx(ident, fw, descr, module_name, type_name, identifier):
 
 def py_c_func2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_class=True):
     """
-    C defined function to sphinx.
+    C/C++ defined function to Sphinx.
     """
 
     # Dump the doc-string, assume its formatted correctly.
@@ -1990,7 +1991,7 @@ def write_rst_index(basepath):
         "bpy.path",
         "bpy.app",
 
-        # C modules.
+        # Python C-API modules.
         "bpy.props",
     )
 
@@ -2028,7 +2029,7 @@ def write_rst_index(basepath):
     fw("* :ref:`genindex`\n")
     fw("* :ref:`modindex`\n\n")
 
-    # Special case, this `bmesh.ops.rst` is extracted from C source.
+    # Special case, this `bmesh.ops.rst` is extracted from C++ source.
     if "bmesh.ops" not in EXCLUDE_MODULES:
         execfile(os.path.join(SCRIPT_DIR, "rst_from_bmesh_opdefines.py"))
 

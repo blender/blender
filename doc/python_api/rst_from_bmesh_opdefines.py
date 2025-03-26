@@ -2,16 +2,16 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# This is a quite stupid script which extracts bmesh api docs from
-# 'bmesh_opdefines.cc' in order to avoid having to add a lot of introspection
-# data access into the api.
+# This is a quite stupid script which extracts BMesh API docs from
+# `bmesh_opdefines.cc` in order to avoid having to add a lot of introspection
+# data access into the API.
 #
 # The script is stupid because it makes assumptions about formatting...
-# that each arg has its own line, that comments above or directly after will be __doc__ etc...
+# that each argument has its own line, that comments above or directly after will be __doc__ etc...
 #
 # We may want to replace this script with something else one day but for now its good enough.
 # if it needs large updates it may be better to rewrite using a real parser or
-# add introspection into bmesh.ops.
+# add introspection into `bmesh.ops`.
 # - campbell
 
 import os
@@ -149,7 +149,7 @@ def main():
 
     blocks_py = []
     for comment, b in blocks:
-        # magic, translate into python
+        # Magic, translate into Python.
         b[0] = b[0].replace("static BMOpDefine ", "")
         is_enum = False
 
@@ -358,7 +358,7 @@ def main():
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_ELEM:
                             tp_str += ":class:`bmesh.types.BMVert`/:class:`bmesh.types.BMEdge`/:class:`bmesh.types.BMFace`"
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
-                            tp_str += "unknown internal data, not compatible with python"
+                            tp_str += "unknown internal data, not compatible with Python"
                         else:
                             assert False, "unreachable, unknown type {!r}".format(vars_dict_reverse[tp_sub])
                 else:

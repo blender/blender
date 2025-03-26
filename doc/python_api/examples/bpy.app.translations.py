@@ -9,7 +9,7 @@ Introduction
    and the :func:`register`/:func:`unregister` functions! The :func:`pgettext` family of functions
    should only be used in rare, specific cases (like e.g. complex "composited" UI strings...).
 
-To add translations to your python script, you must define a dictionary formatted like that:
+To add translations to your Python script, you must define a dictionary formatted like that:
 ``{locale: {msg_key: msg_translation, ...}, ...}`` where:
 
 - locale is either a lang iso code (e.g. ``fr``), a lang+country code (e.g. ``pt_BR``),
@@ -21,7 +21,7 @@ Then, call ``bpy.app.translations.register(__name__, your_dict)`` in your ``regi
 ``bpy.app.translations.unregister(__name__)`` in your ``unregister()`` one.
 
 The ``Manage UI translations`` add-on has several functions to help you collect strings to translate, and
-generate the needed python code (the translation dictionary), as well as optional intermediary po files
+generate the needed Python code (the translation dictionary), as well as optional intermediary po files
 if you want some... See
 `How to Translate Blender <https://developer.blender.org/docs/handbook/translating/translator_guide/>`_ and
 `Using i18n in Blender Code <https://developer.blender.org/docs/handbook/translating/developer_guide/>`_

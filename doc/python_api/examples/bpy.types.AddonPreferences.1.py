@@ -19,7 +19,7 @@ from bpy.props import StringProperty, IntProperty, BoolProperty
 
 class ExampleAddonPreferences(AddonPreferences):
     # This must match the add-on name, use `__package__`
-    # when defining this for add-on extensions or a sub-module of a python package.
+    # when defining this for add-on extensions or a sub-module of a Python package.
     bl_idname = __name__
 
     filepath: StringProperty(

@@ -8,7 +8,7 @@ Notice the name of the class, this naming convention is similar as the one for p
 
 .. note::
 
-   UIList subclasses must be registered for blender to use them.
+   UIList subclasses must be registered for Blender to use them.
 """
 import bpy
 

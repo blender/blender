@@ -1,5 +1,5 @@
 """
-This is the most simple example of inserting a keyframe from python.
+This is the most simple example of inserting a keyframe from Python.
 """
 
 import bpy

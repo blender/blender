@@ -18,10 +18,10 @@ and this behavior cannot be changed.
 
 This example shows how to define an operator which gets mouse input to
 execute a function and that this operator can be invoked or executed from
-the python api.
+the Python API.
 
 Also notice this operator defines its own properties, these are different
-to typical class properties because blender registers them with the
+to typical class properties because Blender registers them with the
 operator, to use as arguments when called, saved for operator undo/redo and
 automatically added into the user interface.
 """
