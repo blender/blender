@@ -53,7 +53,9 @@ BLI_INLINE float overhang_remap(float fac, float min, float max, float minmax_ir
   return fac;
 }
 
-static void statvis_calc_overhang(const MeshRenderData &mr, MutableSpan<float> r_overhang)
+static void statvis_calc_overhang(const MeshRenderData &mr,
+                                  const float4x4 &object_to_world,
+                                  MutableSpan<float> r_overhang)
 {
   const MeshStatVis *statvis = &mr.toolsettings->statvis;
   const float min = statvis->overhang_min / float(M_PI);
@@ -71,7 +73,7 @@ static void statvis_calc_overhang(const MeshRenderData &mr, MutableSpan<float> r
   axis_from_enum_v3(dir, axis);
 
   /* now convert into global space */
-  mul_transposed_mat3_m4_v3(mr.object_to_world.ptr(), dir);
+  mul_transposed_mat3_m4_v3(object_to_world.ptr(), dir);
   normalize_v3(dir);
 
   if (mr.extract_type == MeshExtractType::BMesh) {
@@ -124,13 +126,15 @@ BLI_INLINE float thickness_remap(float fac, float min, float max, float minmax_i
   return fac;
 }
 
-static void statvis_calc_thickness(const MeshRenderData &mr, MutableSpan<float> r_thickness)
+static void statvis_calc_thickness(const MeshRenderData &mr,
+                                   const float4x4 &object_to_world,
+                                   MutableSpan<float> r_thickness)
 {
   const float eps_offset = 0.00002f; /* values <= 0.00001 give errors */
   /* cheating to avoid another allocation */
   float *face_dists = r_thickness.data() + (mr.corners_num - mr.faces_num);
   BMEditMesh *em = mr.edit_bmesh;
-  const float scale = 1.0f / mat4_to_scale(mr.object_to_world.ptr());
+  const float scale = 1.0f / mat4_to_scale(object_to_world.ptr());
   const MeshStatVis *statvis = &mr.toolsettings->statvis;
   const float min = statvis->thickness_min * scale;
   const float max = statvis->thickness_max * scale;
@@ -567,7 +571,9 @@ static void statvis_calc_sharp(const MeshRenderData &mr, MutableSpan<float> r_sh
   MEM_freeN(vert_angles);
 }
 
-void extract_mesh_analysis(const MeshRenderData &mr, gpu::VertBuf &vbo)
+void extract_mesh_analysis(const MeshRenderData &mr,
+                           const float4x4 &object_to_world,
+                           gpu::VertBuf &vbo)
 {
   BLI_assert(mr.edit_bmesh);
 
@@ -580,10 +586,10 @@ void extract_mesh_analysis(const MeshRenderData &mr, gpu::VertBuf &vbo)
 
   switch (mr.toolsettings->statvis.type) {
     case SCE_STATVIS_OVERHANG:
-      statvis_calc_overhang(mr, vbo_data);
+      statvis_calc_overhang(mr, object_to_world, vbo_data);
       break;
     case SCE_STATVIS_THICKNESS:
-      statvis_calc_thickness(mr, vbo_data);
+      statvis_calc_thickness(mr, object_to_world, vbo_data);
       break;
     case SCE_STATVIS_INTERSECT:
       statvis_calc_intersect(mr, vbo_data);

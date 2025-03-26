@@ -526,7 +526,6 @@ MeshRenderData mesh_render_data_create(Object &object,
                                        Mesh &mesh,
                                        const bool is_editmode,
                                        const bool is_paint_mode,
-                                       const float4x4 &object_to_world,
                                        const bool do_final,
                                        const bool do_uvedit,
                                        const bool use_hide,
@@ -535,8 +534,6 @@ MeshRenderData mesh_render_data_create(Object &object,
   MeshRenderData mr{};
   mr.toolsettings = ts;
   mr.materials_num = BKE_object_material_used_with_fallback_eval(object);
-
-  mr.object_to_world = object_to_world;
 
   mr.use_hide = use_hide;
 

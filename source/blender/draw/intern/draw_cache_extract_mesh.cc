@@ -96,15 +96,8 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
 
   MeshBufferList &buffers = mbc.buff;
 
-  MeshRenderData mr = mesh_render_data_create(object,
-                                              mesh,
-                                              is_editmode,
-                                              is_paint_mode,
-                                              object.object_to_world(),
-                                              do_final,
-                                              do_uvedit,
-                                              use_hide,
-                                              scene.toolsettings);
+  MeshRenderData mr = mesh_render_data_create(
+      object, mesh, is_editmode, is_paint_mode, do_final, do_uvedit, use_hide, scene.toolsettings);
 
   ensure_dependency_data(mr, ibo_requests, vbo_requests, mbc);
 
@@ -233,7 +226,7 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
         extract_edituv_stretch_angle(mr, *item.value);
         break;
       case VBOType::MeshAnalysis:
-        extract_mesh_analysis(mr, *item.value);
+        extract_mesh_analysis(mr, object.object_to_world(), *item.value);
         break;
       case VBOType::FaceDotPosition:
         extract_face_dots_position(mr, *item.value);

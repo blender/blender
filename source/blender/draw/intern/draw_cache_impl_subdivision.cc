@@ -1593,7 +1593,6 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
                                                  const Span<VBOType> vbo_requests,
                                                  const bool is_editmode,
                                                  const bool is_paint_mode,
-                                                 const float4x4 &object_to_world,
                                                  const bool do_final,
                                                  const bool do_uvedit,
                                                  const bool do_cage,
@@ -1687,7 +1686,7 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
   }
 
   MeshRenderData mr = mesh_render_data_create(
-      ob, mesh, is_editmode, is_paint_mode, object_to_world, do_final, do_uvedit, use_hide, ts);
+      ob, mesh, is_editmode, is_paint_mode, do_final, do_uvedit, use_hide, ts);
   draw_cache.use_hide = use_hide;
 
   /* Used for setting loop normals flags. Mapped extraction is only used during edit mode.
@@ -1768,7 +1767,6 @@ void DRW_create_subdivision(Object &ob,
                             const Span<VBOType> vbo_requests,
                             const bool is_editmode,
                             const bool is_paint_mode,
-                            const float4x4 &object_to_world,
                             const bool do_final,
                             const bool do_uvedit,
                             const bool do_cage,
@@ -1790,7 +1788,6 @@ void DRW_create_subdivision(Object &ob,
                                             vbo_requests,
                                             is_editmode,
                                             is_paint_mode,
-                                            object_to_world,
                                             do_final,
                                             do_uvedit,
                                             do_cage,
