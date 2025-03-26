@@ -3281,8 +3281,9 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
     CLAMP(x, rect->xmin + margin, rect->xmax - margin);
     CLAMP(y, rect->ymin + margin, rect->ymax - margin);
     rectf.ymax += 1;
-    rectf.xmin = x - (4.0f * UI_SCALE_FAC) - U.pixelsize;
-    rectf.xmax = x + (4.0f * UI_SCALE_FAC) + U.pixelsize;
+    const float cursor_width = std::max(BLI_rctf_size_y(&rectf) * 0.35f, 1.0f);
+    rectf.xmin = x - cursor_width;
+    rectf.xmax = x + cursor_width;
 
     if (but->flag & UI_SELECT) {
       /* Make the indicator larger while the mouse button is pressed. */
@@ -3332,13 +3333,16 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   const float inner1[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   const float inner2[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   const float outline[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-  UI_draw_roundbox_4fv_ex(&rectf, inner1, inner2, U.pixelsize, outline, 1.0f, 0.0f);
+
+  const float outline_width = (BLI_rctf_size_x(&rectf) < 4.0f) ? 0.0f : 1.0f;
+  UI_draw_roundbox_4fv_ex(&rectf, inner1, inner2, U.pixelsize, outline, outline_width, 0.0f);
 
   /* cursor */
   float y = rect->ymin + v * BLI_rcti_size_y(rect);
   CLAMP(y, float(rect->ymin) + (2.0f * UI_SCALE_FAC), float(rect->ymax) - (2.0f * UI_SCALE_FAC));
-  rectf.ymin = y - (4.0f * UI_SCALE_FAC) - U.pixelsize;
-  rectf.ymax = y + (4.0f * UI_SCALE_FAC) + U.pixelsize;
+  const float cursor_height = std::max(BLI_rctf_size_x(&rectf) * 0.35f, 1.0f);
+  rectf.ymin = y - cursor_height;
+  rectf.ymax = y + cursor_height;
   float col[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
   if (but->flag & UI_SELECT) {
