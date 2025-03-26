@@ -8,6 +8,7 @@
 #include "scene/light_tree.h"
 #include "scene/object.h"
 #include "scene/scene.h"
+
 #include "util/path.h"
 #include "util/string.h"
 
