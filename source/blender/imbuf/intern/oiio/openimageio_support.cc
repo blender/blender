@@ -203,7 +203,7 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
   /* Fill in common ibuf properties. */
   if (ibuf) {
     ibuf->ftype = ctx.file_type;
-    ibuf->flags |= (spec.format == TypeDesc::HALF) ? IB_halffloat : 0;
+    ibuf->foptions.flag |= (spec.format == TypeDesc::HALF) ? OPENEXR_HALF : 0;
 
     set_colorspace_name(colorspace, ctx, spec, is_float);
 

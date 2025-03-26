@@ -283,7 +283,7 @@ CachedImage::CachedImage(Context &context,
   ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_pass, nullptr);
   ImBuf *linear_image_buffer = compute_linear_buffer(image_buffer);
 
-  const bool use_half_float = linear_image_buffer->flags & IB_halffloat;
+  const bool use_half_float = linear_image_buffer->foptions.flag & OPENEXR_HALF;
   this->result.set_precision(use_half_float ? ResultPrecision::Half : ResultPrecision::Full);
 
   this->result.set_type(get_result_type(render_result, image_user_for_pass, linear_image_buffer));

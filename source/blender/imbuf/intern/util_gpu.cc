@@ -59,7 +59,7 @@ static void imb_gpu_get_format(const ImBuf *ibuf,
 
   if (float_rect) {
     /* Float. */
-    const bool use_high_bitdepth = (!(ibuf->flags & IB_halffloat) && high_bitdepth);
+    const bool use_high_bitdepth = (!(ibuf->foptions.flag & OPENEXR_HALF) && high_bitdepth);
     *r_texture_format = is_grayscale ? (use_high_bitdepth ? GPU_R32F : GPU_R16F) :
                                        (use_high_bitdepth ? GPU_RGBA32F : GPU_RGBA16F);
   }

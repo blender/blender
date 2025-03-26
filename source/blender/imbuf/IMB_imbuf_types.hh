@@ -102,7 +102,6 @@ enum eImBufFlags {
   /** ignore alpha on load and substitute it with 1.0f */
   IB_alphamode_ignore = 1 << 15,
   IB_thumbnail = 1 << 16,
-  IB_halffloat = 1 << 18,
 };
 
 /** \} */
