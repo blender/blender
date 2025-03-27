@@ -15,7 +15,6 @@
 
 #include "attribute_convert.hh"
 #include "draw_attributes.hh"
-#include "draw_cache_inline.hh"
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"
 
@@ -246,18 +245,18 @@ static void extract_attribute_no_init(const MeshRenderData &mr,
     });
   }
 }
-void extract_attribute(const MeshRenderData &mr,
-                       const DRW_AttributeRequest &request,
-                       gpu::VertBuf &vbo)
+
+gpu::VertBufPtr extract_attribute(const MeshRenderData &mr, const DRW_AttributeRequest &request)
 {
-  init_vbo_for_attribute(mr, vbo, request, false, uint32_t(mr.corners_num));
-  extract_attribute_no_init(mr, request, vbo);
+  gpu::VertBuf *vbo = GPU_vertbuf_calloc();
+  init_vbo_for_attribute(mr, *vbo, request, false, uint32_t(mr.corners_num));
+  extract_attribute_no_init(mr, request, *vbo);
+  return gpu::VertBufPtr(vbo);
 }
 
-void extract_attribute_subdiv(const MeshRenderData &mr,
-                              const DRWSubdivCache &subdiv_cache,
-                              const DRW_AttributeRequest &request,
-                              gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_attribute_subdiv(const MeshRenderData &mr,
+                                         const DRWSubdivCache &subdiv_cache,
+                                         const DRW_AttributeRequest &request)
 {
 
   const Mesh *coarse_mesh = subdiv_cache.mesh;
@@ -270,7 +269,8 @@ void extract_attribute_subdiv(const MeshRenderData &mr,
 
   extract_attribute_no_init(mr, request, *src_data);
 
-  init_vbo_for_attribute(mr, vbo, request, true, subdiv_cache.num_subdiv_loops);
+  gpu::VertBuf *vbo = GPU_vertbuf_calloc();
+  init_vbo_for_attribute(mr, *vbo, request, true, subdiv_cache.num_subdiv_loops);
 
   /* Ensure data is uploaded properly. */
   GPU_vertbuf_tag_dirty(src_data);
@@ -280,7 +280,7 @@ void extract_attribute_subdiv(const MeshRenderData &mr,
     if constexpr (!std::is_void_v<typename Converter::VBOType>) {
       draw_subdiv_interp_custom_data(subdiv_cache,
                                      *src_data,
-                                     vbo,
+                                     *vbo,
                                      Converter::gpu_component_type,
                                      Converter::gpu_component_len,
                                      0);
@@ -288,22 +288,24 @@ void extract_attribute_subdiv(const MeshRenderData &mr,
   });
 
   GPU_vertbuf_discard(src_data);
+  return gpu::VertBufPtr(vbo);
 }
 
-void extract_attr_viewer(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr)
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
       "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan vbo_data = vbo.data<ColorGeometry4f>();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
+  MutableSpan vbo_data = vbo->data<ColorGeometry4f>();
 
   const StringRefNull attr_name = ".viewer";
   const bke::AttributeAccessor attributes = mr.mesh->attributes();
   const bke::AttributeReader attribute = attributes.lookup_or_default<ColorGeometry4f>(
       attr_name, bke::AttrDomain::Corner, {1.0f, 0.0f, 1.0f, 1.0f});
   attribute.varray.materialize(vbo_data);
+  return vbo;
 }
 
 /** \} */

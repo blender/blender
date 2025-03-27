@@ -499,7 +499,7 @@ static void mesh_batch_cache_init(Mesh &mesh)
 
   cache->mat_len = BKE_id_material_used_with_fallback_eval(mesh.id);
   cache->surface_per_mat = Array<gpu::Batch *>(cache->mat_len, nullptr);
-  cache->tris_per_mat = Array<gpu::IndexBuf *>(cache->mat_len, nullptr);
+  cache->tris_per_mat.reinitialize(cache->mat_len);
 
   cache->is_dirty = false;
   cache->batch_ready = (DRWBatchFlag)0;
@@ -640,9 +640,6 @@ static void mesh_batch_cache_clear(MeshBatchCache &cache)
     mesh_buffer_cache_clear(mbc);
   }
 
-  for (int i = 0; i < cache.mat_len; i++) {
-    GPU_INDEXBUF_DISCARD_SAFE(cache.tris_per_mat[i]);
-  }
   cache.tris_per_mat = {};
 
   for (int i = 0; i < sizeof(cache.batch) / sizeof(void *); i++) {
@@ -1727,7 +1724,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     create_material_subranges(cache.final.face_sorted, tris_ibo, cache.tris_per_mat);
     for (const int material : IndexRange(cache.mat_len)) {
       gpu::Batch *batch = cache.surface_per_mat[material];
-      GPU_batch_init(batch, GPU_PRIM_TRIS, nullptr, cache.tris_per_mat[material]);
+      GPU_batch_init(batch, GPU_PRIM_TRIS, nullptr, cache.tris_per_mat[material].get());
       GPU_batch_vertbuf_add(batch, buffers.vbos.lookup(VBOType::CornerNormal).get(), false);
       GPU_batch_vertbuf_add(batch, buffers.vbos.lookup(VBOType::Position).get(), false);
       if (cache.cd_used.uv != 0) {

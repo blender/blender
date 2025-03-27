@@ -240,160 +240,131 @@ void extract_mesh_loose_edge_data(const Span<T> vert_data,
   });
 }
 
-void extract_positions(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
-                              const MeshRenderData &mr,
-                              gpu::VertBuf &vbo,
-                              gpu::VertBuf *orco_vbo);
+gpu::VertBufPtr extract_positions(const MeshRenderData &mr);
+gpu::VertBufPtr extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
+                                         const MeshRenderData &mr,
+                                         gpu::VertBufPtr *orco_vbo);
 
-void extract_face_dots_position(const MeshRenderData &mr, gpu::VertBuf &vbo);
+gpu::VertBufPtr extract_face_dots_position(const MeshRenderData &mr);
 void extract_face_dots_subdiv(const DRWSubdivCache &subdiv_cache,
-                              gpu::VertBuf &fdots_pos,
-                              gpu::VertBuf *fdots_nor,
-                              gpu::IndexBuf &fdots);
+                              gpu::VertBufPtr &fdots_pos,
+                              gpu::VertBufPtr *fdots_nor,
+                              gpu::IndexBufPtr &fdots);
 
-void extract_normals(const MeshRenderData &mr, bool use_hq, gpu::VertBuf &vbo);
-void extract_normals_subdiv(const MeshRenderData &mr,
-                            const DRWSubdivCache &subdiv_cache,
-                            gpu::VertBuf &pos_nor,
-                            gpu::VertBuf &lnor);
-void extract_vert_normals(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_face_dot_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &vbo);
-void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
-                                const MeshRenderData &mr,
-                                gpu::VertBuf &pos_nor,
-                                gpu::VertBuf &vbo);
+gpu::VertBufPtr extract_normals(const MeshRenderData &mr, bool use_hq);
+gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
+                                       const DRWSubdivCache &subdiv_cache,
+                                       gpu::VertBuf &pos_nor);
+gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr);
+gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, bool use_hq);
+gpu::VertBufPtr extract_edge_factor(const MeshRenderData &mr);
+gpu::VertBufPtr extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
+                                           const MeshRenderData &mr,
+                                           gpu::VertBuf &pos_nor);
 
-void extract_tris(const MeshRenderData &mr, const SortedFaceData &face_sorted, gpu::IndexBuf &ibo);
+gpu::IndexBufPtr extract_tris(const MeshRenderData &mr, const SortedFaceData &face_sorted);
 void create_material_subranges(const SortedFaceData &face_sorted,
                                gpu::IndexBuf &tris_ibo,
-                               MutableSpan<gpu::IndexBuf *> ibos);
-void extract_tris_subdiv(const DRWSubdivCache &subdiv_cache,
-                         MeshBatchCache &cache,
-                         gpu::IndexBuf &ibo);
+                               MutableSpan<gpu::IndexBufPtr> ibos);
+gpu::IndexBufPtr extract_tris_subdiv(const DRWSubdivCache &subdiv_cache, MeshBatchCache &cache);
 
 void extract_lines(const MeshRenderData &mr,
-                   gpu::IndexBuf *lines,
-                   gpu::IndexBuf *lines_loose,
+                   gpu::IndexBufPtr *lines,
+                   gpu::IndexBufPtr *lines_loose,
                    bool &no_loose_wire);
 void extract_lines_subdiv(const DRWSubdivCache &subdiv_cache,
                           const MeshRenderData &mr,
-                          gpu::IndexBuf *lines,
-                          gpu::IndexBuf *lines_loose,
+                          gpu::IndexBufPtr *lines,
+                          gpu::IndexBufPtr *lines_loose,
                           bool &no_loose_wire);
 
-void extract_points(const MeshRenderData &mr, gpu::IndexBuf &points);
-void extract_points_subdiv(const MeshRenderData &mr,
-                           const DRWSubdivCache &subdiv_cache,
-                           gpu::IndexBuf &points);
+gpu::IndexBufPtr extract_points(const MeshRenderData &mr);
+gpu::IndexBufPtr extract_points_subdiv(const MeshRenderData &mr,
+                                       const DRWSubdivCache &subdiv_cache);
 
-void extract_edit_data(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_edit_data_subdiv(const MeshRenderData &mr,
-                              const DRWSubdivCache &subdiv_cache,
-                              gpu::VertBuf &vbo);
+gpu::VertBufPtr extract_edit_data(const MeshRenderData &mr);
+gpu::VertBufPtr extract_edit_data_subdiv(const MeshRenderData &mr,
+                                         const DRWSubdivCache &subdiv_cache);
 
-void extract_tangents(const MeshRenderData &mr,
-                      const MeshBatchCache &cache,
-                      const bool use_hq,
-                      gpu::VertBuf &vbo);
-void extract_tangents_subdiv(const MeshRenderData &mr,
-                             const DRWSubdivCache &subdiv_cache,
-                             const MeshBatchCache &cache,
-                             gpu::VertBuf &vbo);
-
-void extract_vert_index(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_edge_index(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_face_index(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_face_dot_index(const MeshRenderData &mr, gpu::VertBuf &vbo);
-
-void extract_vert_index_subdiv(const DRWSubdivCache &subdiv_cache,
-                               const MeshRenderData &mr,
-                               gpu::VertBuf &vbo);
-void extract_edge_index_subdiv(const DRWSubdivCache &subdiv_cache,
-                               const MeshRenderData &mr,
-                               gpu::VertBuf &vbo);
-void extract_face_index_subdiv(const DRWSubdivCache &subdiv_cache,
-                               const MeshRenderData &mr,
-                               gpu::VertBuf &vbo);
-
-void extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache, gpu::VertBuf &vbo);
-void extract_weights_subdiv(const MeshRenderData &mr,
-                            const DRWSubdivCache &subdiv_cache,
-                            const MeshBatchCache &cache,
-                            gpu::VertBuf &vbo);
-
-void extract_face_dots(const MeshRenderData &mr, gpu::IndexBuf &face_dots);
-
-void extract_face_dots_uv(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_face_dots_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo);
-
-void extract_lines_paint_mask(const MeshRenderData &mr, gpu::IndexBuf &lines);
-void extract_lines_paint_mask_subdiv(const MeshRenderData &mr,
-                                     const DRWSubdivCache &subdiv_cache,
-                                     gpu::IndexBuf &lines);
-
-void extract_lines_adjacency(const MeshRenderData &mr, gpu::IndexBuf &ibo, bool &r_is_manifold);
-void extract_lines_adjacency_subdiv(const DRWSubdivCache &subdiv_cache,
-                                    gpu::IndexBuf &ibo,
-                                    bool &r_is_manifold);
-
-void extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &cache, gpu::VertBuf &vbo);
-void extract_uv_maps_subdiv(const DRWSubdivCache &subdiv_cache,
-                            const MeshBatchCache &cache,
-                            gpu::VertBuf &vbo);
-void extract_edituv_stretch_area(const MeshRenderData &mr,
-                                 gpu::VertBuf &vbo,
-                                 float &tot_area,
-                                 float &tot_uv_area);
-void extract_edituv_stretch_area_subdiv(const MeshRenderData &mr,
+gpu::VertBufPtr extract_tangents(const MeshRenderData &mr,
+                                 const MeshBatchCache &cache,
+                                 bool use_hq);
+gpu::VertBufPtr extract_tangents_subdiv(const MeshRenderData &mr,
                                         const DRWSubdivCache &subdiv_cache,
-                                        gpu::VertBuf &vbo,
-                                        float &tot_area,
-                                        float &tot_uv_area);
-void extract_edituv_stretch_angle(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
+                                        const MeshBatchCache &cache);
+
+gpu::VertBufPtr extract_vert_index(const MeshRenderData &mr);
+gpu::VertBufPtr extract_edge_index(const MeshRenderData &mr);
+gpu::VertBufPtr extract_face_index(const MeshRenderData &mr);
+gpu::VertBufPtr extract_face_dot_index(const MeshRenderData &mr);
+
+gpu::VertBufPtr extract_vert_index_subdiv(const DRWSubdivCache &subdiv_cache,
+                                          const MeshRenderData &mr);
+gpu::VertBufPtr extract_edge_index_subdiv(const DRWSubdivCache &subdiv_cache,
+                                          const MeshRenderData &mr);
+gpu::VertBufPtr extract_face_index_subdiv(const DRWSubdivCache &subdiv_cache,
+                                          const MeshRenderData &mr);
+
+gpu::VertBufPtr extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache);
+gpu::VertBufPtr extract_weights_subdiv(const MeshRenderData &mr,
+                                       const DRWSubdivCache &subdiv_cache,
+                                       const MeshBatchCache &cache);
+
+gpu::IndexBufPtr extract_face_dots(const MeshRenderData &mr);
+
+gpu::VertBufPtr extract_face_dots_uv(const MeshRenderData &mr);
+gpu::VertBufPtr extract_face_dots_edituv_data(const MeshRenderData &mr);
+
+gpu::IndexBufPtr extract_lines_paint_mask(const MeshRenderData &mr);
+gpu::IndexBufPtr extract_lines_paint_mask_subdiv(const MeshRenderData &mr,
+                                                 const DRWSubdivCache &subdiv_cache);
+
+gpu::IndexBufPtr extract_lines_adjacency(const MeshRenderData &mr, bool &r_is_manifold);
+gpu::IndexBufPtr extract_lines_adjacency_subdiv(const DRWSubdivCache &subdiv_cache,
+                                                bool &r_is_manifold);
+
+gpu::VertBufPtr extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &cache);
+gpu::VertBufPtr extract_uv_maps_subdiv(const DRWSubdivCache &subdiv_cache,
+                                       const MeshBatchCache &cache);
+gpu::VertBufPtr extract_edituv_stretch_area(const MeshRenderData &mr,
+                                            float &tot_area,
+                                            float &tot_uv_area);
+gpu::VertBufPtr extract_edituv_stretch_area_subdiv(const MeshRenderData &mr,
+                                                   const DRWSubdivCache &subdiv_cache,
+                                                   float &tot_area,
+                                                   float &tot_uv_area);
+gpu::VertBufPtr extract_edituv_stretch_angle(const MeshRenderData &mr);
+gpu::VertBufPtr extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
+                                                    const DRWSubdivCache &subdiv_cache,
+                                                    const MeshBatchCache &cache);
+gpu::VertBufPtr extract_edituv_data(const MeshRenderData &mr);
+gpu::VertBufPtr extract_edituv_data_subdiv(const MeshRenderData &mr,
+                                           const DRWSubdivCache &subdiv_cache);
+gpu::IndexBufPtr extract_edituv_tris(const MeshRenderData &mr);
+gpu::IndexBufPtr extract_edituv_tris_subdiv(const MeshRenderData &mr,
+                                            const DRWSubdivCache &subdiv_cache);
+gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr);
+gpu::IndexBufPtr extract_edituv_lines_subdiv(const MeshRenderData &mr,
+                                             const DRWSubdivCache &subdiv_cache);
+gpu::IndexBufPtr extract_edituv_points(const MeshRenderData &mr);
+gpu::IndexBufPtr extract_edituv_points_subdiv(const MeshRenderData &mr,
+                                              const DRWSubdivCache &subdiv_cache);
+gpu::IndexBufPtr extract_edituv_face_dots(const MeshRenderData &mr);
+
+gpu::VertBufPtr extract_mesh_analysis(const MeshRenderData &mr, const float4x4 &object_to_world);
+
+gpu::VertBufPtr extract_skin_roots(const MeshRenderData &mr);
+
+gpu::VertBufPtr extract_sculpt_data(const MeshRenderData &mr);
+gpu::VertBufPtr extract_sculpt_data_subdiv(const MeshRenderData &mr,
+                                           const DRWSubdivCache &subdiv_cache);
+
+gpu::VertBufPtr extract_orco(const MeshRenderData &mr);
+
+gpu::VertBufPtr extract_attribute(const MeshRenderData &mr, const DRW_AttributeRequest &request);
+gpu::VertBufPtr extract_attribute_subdiv(const MeshRenderData &mr,
                                          const DRWSubdivCache &subdiv_cache,
-                                         const MeshBatchCache &cache,
-                                         gpu::VertBuf &vbo);
-void extract_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_edituv_data_subdiv(const MeshRenderData &mr,
-                                const DRWSubdivCache &subdiv_cache,
-                                gpu::VertBuf &vbo);
-void extract_edituv_tris(const MeshRenderData &mr, gpu::IndexBuf &ibo);
-void extract_edituv_tris_subdiv(const MeshRenderData &mr,
-                                const DRWSubdivCache &subdiv_cache,
-                                gpu::IndexBuf &ibo);
-void extract_edituv_lines(const MeshRenderData &mr, gpu::IndexBuf &ibo);
-void extract_edituv_lines_subdiv(const MeshRenderData &mr,
-                                 const DRWSubdivCache &subdiv_cache,
-                                 gpu::IndexBuf &ibo);
-void extract_edituv_points(const MeshRenderData &mr, gpu::IndexBuf &ibo);
-void extract_edituv_points_subdiv(const MeshRenderData &mr,
-                                  const DRWSubdivCache &subdiv_cache,
-                                  gpu::IndexBuf &ibo);
-void extract_edituv_face_dots(const MeshRenderData &mr, gpu::IndexBuf &ibo);
-
-void extract_skin_roots(const MeshRenderData &mr, gpu::VertBuf &vbo);
-
-void extract_sculpt_data(const MeshRenderData &mr, gpu::VertBuf &vbo);
-void extract_sculpt_data_subdiv(const MeshRenderData &mr,
-                                const DRWSubdivCache &subdiv_cache,
-                                gpu::VertBuf &vbo);
-
-void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo);
-
-void extract_mesh_analysis(const MeshRenderData &mr,
-                           const float4x4 &object_to_world,
-                           gpu::VertBuf &vbo);
-
-void extract_attribute(const MeshRenderData &mr,
-                       const DRW_AttributeRequest &request,
-                       gpu::VertBuf &vbo);
-void extract_attribute_subdiv(const MeshRenderData &mr,
-                              const DRWSubdivCache &subdiv_cache,
-                              const DRW_AttributeRequest &request,
-                              gpu::VertBuf &vbo);
-void extract_attr_viewer(const MeshRenderData &mr, gpu::VertBuf &vbo);
+                                         const DRW_AttributeRequest &request);
+gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr);
 
 }  // namespace blender::draw

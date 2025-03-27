@@ -17,7 +17,7 @@ struct SkinRootData {
   float3 local_pos;
 };
 
-void extract_skin_roots(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_skin_roots(const MeshRenderData &mr)
 {
   /* Exclusively for edit mode. */
   BLI_assert(mr.bm);
@@ -40,9 +40,10 @@ void extract_skin_roots(const MeshRenderData &mr, gpu::VertBuf &vbo)
     }
   }
 
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, skin_roots.size());
-  vbo.data<SkinRootData>().copy_from(skin_roots);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, skin_roots.size());
+  vbo->data<SkinRootData>().copy_from(skin_roots);
+  return vbo;
 }
 
 }  // namespace blender::draw

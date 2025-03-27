@@ -148,22 +148,21 @@ static uint tris_count_from_number_of_loops(const uint number_of_loops)
 /** \name Utilities to build a gpu::VertBuf from an origindex buffer.
  * \{ */
 
-void draw_subdiv_init_origindex_buffer(gpu::VertBuf &buffer,
-                                       int32_t *vert_origindex,
-                                       uint num_loops,
-                                       uint loose_len)
+gpu::VertBufPtr draw_subdiv_init_origindex_buffer(int32_t *vert_origindex,
+                                                  uint num_loops,
+                                                  uint loose_len)
 {
-  GPU_vertbuf_init_with_format_ex(buffer, get_origindex_format(), GPU_USAGE_STATIC);
-  GPU_vertbuf_data_alloc(buffer, num_loops + loose_len);
+  gpu::VertBufPtr buffer = gpu::VertBufPtr(
+      GPU_vertbuf_create_with_format_ex(get_origindex_format(), GPU_USAGE_STATIC));
+  GPU_vertbuf_data_alloc(*buffer, num_loops + loose_len);
 
-  buffer.data<int32_t>().take_front(num_loops).copy_from({vert_origindex, num_loops});
+  buffer->data<int32_t>().take_front(num_loops).copy_from({vert_origindex, num_loops});
+  return buffer;
 }
 
 gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops)
 {
-  gpu::VertBuf *buffer = GPU_vertbuf_calloc();
-  draw_subdiv_init_origindex_buffer(*buffer, vert_origindex, num_loops, 0);
-  return buffer;
+  return draw_subdiv_init_origindex_buffer(vert_origindex, num_loops, 0).release();
 }
 
 /** \} */

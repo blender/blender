@@ -169,10 +169,9 @@ void DRW_subdivide_loose_geom(DRWSubdivCache &subdiv_cache, const MeshBufferCach
 
 void DRW_subdiv_cache_free(bke::subdiv::Subdiv *subdiv);
 
-void draw_subdiv_init_origindex_buffer(gpu::VertBuf &buffer,
-                                       int32_t *vert_origindex,
-                                       uint num_loops,
-                                       uint loose_len);
+gpu::VertBufPtr draw_subdiv_init_origindex_buffer(int32_t *vert_origindex,
+                                                  uint num_loops,
+                                                  uint loose_len);
 
 gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops);
 

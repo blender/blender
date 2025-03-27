@@ -12,7 +12,7 @@
 
 namespace blender::draw {
 
-void extract_face_dots_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_face_dots_edituv_data(const MeshRenderData &mr)
 {
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
@@ -20,9 +20,9 @@ void extract_face_dots_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
     GPU_vertformat_alias_add(&format, "flag");
     return format;
   }();
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
-  MutableSpan vbo_data = vbo.data<EditLoopData>();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, mr.faces_num);
+  MutableSpan vbo_data = vbo->data<EditLoopData>();
   const BMesh &bm = *mr.bm;
   const BMUVOffsets offsets = BM_uv_map_offsets_get(&bm);
   if (mr.extract_type == MeshExtractType::BMesh) {
@@ -52,6 +52,7 @@ void extract_face_dots_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
       vbo_data.fill({});
     }
   }
+  return vbo;
 }
 
 }  // namespace blender::draw

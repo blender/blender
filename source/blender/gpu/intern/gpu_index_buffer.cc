@@ -471,13 +471,22 @@ void GPU_indexbuf_build_in_place_ex(GPUIndexBufBuilder *builder,
   builder->data = nullptr;
 }
 
-void GPU_indexbuf_build_in_place_from_memory(IndexBuf *ibo,
-                                             const GPUPrimType prim_type,
-                                             const uint32_t *data,
-                                             const int32_t data_len,
-                                             const int32_t index_min,
-                                             const int32_t index_max,
-                                             const bool uses_restart_indices)
+IndexBuf *GPU_indexbuf_build_ex(GPUIndexBufBuilder *builder,
+                                const uint index_min,
+                                const uint index_max,
+                                const bool uses_restart_indices)
+{
+  IndexBuf *elem = GPU_indexbuf_calloc();
+  GPU_indexbuf_build_in_place_ex(builder, index_min, index_max, uses_restart_indices, elem);
+  return elem;
+}
+
+IndexBuf *GPU_indexbuf_build_from_memory(const GPUPrimType prim_type,
+                                         const uint32_t *data,
+                                         const int32_t data_len,
+                                         const int32_t index_min,
+                                         const int32_t index_max,
+                                         const bool uses_restart_indices)
 {
   const uint32_t indices_num = data_len * indices_per_primitive(prim_type);
   /* TODO: The need for this copy is meant to be temporary. The data should be uploaded directly to
@@ -487,7 +496,9 @@ void GPU_indexbuf_build_in_place_from_memory(IndexBuf *ibo,
   threading::memory_bandwidth_bound_task(sizeof(uint32_t) * indices_num * 2, [&]() {
     array_utils::copy(Span(data, indices_num), MutableSpan(copy, indices_num));
   });
+  IndexBuf *ibo = GPU_indexbuf_calloc();
   ibo->init(indices_num, copy, index_min, index_max, prim_type, uses_restart_indices);
+  return ibo;
 }
 
 void GPU_indexbuf_create_subrange_in_place(IndexBuf *elem,

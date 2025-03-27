@@ -199,6 +199,10 @@ void GPU_indexbuf_set_line_restart(GPUIndexBufBuilder *builder, uint elem);
 void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem);
 
 blender::gpu::IndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *);
+blender::gpu::IndexBuf *GPU_indexbuf_build_ex(GPUIndexBufBuilder *builder,
+                                              uint index_min,
+                                              uint index_max,
+                                              bool uses_restart_indices);
 void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *, blender::gpu::IndexBuf *);
 void GPU_indexbuf_build_in_place_ex(GPUIndexBufBuilder *builder,
                                     uint index_min,
@@ -213,13 +217,12 @@ void GPU_indexbuf_build_in_place_ex(GPUIndexBufBuilder *builder,
  *
  * \todo The optimization to avoid the local copy currently isn't implemented.
  */
-void GPU_indexbuf_build_in_place_from_memory(blender::gpu::IndexBuf *ibo,
-                                             GPUPrimType prim_type,
-                                             const uint32_t *data,
-                                             int32_t data_len,
-                                             int32_t index_min,
-                                             int32_t index_max,
-                                             bool uses_restart_indices);
+blender::gpu::IndexBuf *GPU_indexbuf_build_from_memory(GPUPrimType prim_type,
+                                                       const uint32_t *data,
+                                                       int32_t data_len,
+                                                       int32_t index_min,
+                                                       int32_t index_max,
+                                                       bool uses_restart_indices);
 
 /**
  * \note Sub-ranges are not taken into account, the whole buffer will be bound without any offset.
@@ -281,5 +284,7 @@ class IndexBufDeleter {
     GPU_indexbuf_discard(ibo);
   }
 };
+
+using IndexBufPtr = std::unique_ptr<IndexBuf, IndexBufDeleter>;
 
 }  // namespace blender::gpu

@@ -68,20 +68,22 @@ static void extract_positions_bm(const MeshRenderData &mr, MutableSpan<float3> v
   });
 }
 
-void extract_positions(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_positions(const MeshRenderData &mr)
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
       "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num + mr.loose_indices_num);
 
-  MutableSpan vbo_data = vbo.data<float3>();
+  MutableSpan vbo_data = vbo->data<float3>();
   if (mr.extract_type == MeshExtractType::Mesh) {
     extract_positions_mesh(mr, vbo_data);
   }
   else {
     extract_positions_bm(mr, vbo_data);
   }
+
+  return vbo;
 }
 
 static const GPUVertFormat &get_normals_format()
@@ -180,17 +182,16 @@ static void extract_loose_positions_subdiv(const DRWSubdivCache &subdiv_cache,
   }
 }
 
-void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
-                              const MeshRenderData &mr,
-                              gpu::VertBuf &vbo,
-                              gpu::VertBuf *orco_vbo)
+gpu::VertBufPtr extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
+                                         const MeshRenderData &mr,
+                                         gpu::VertBufPtr *orco_vbo)
 {
-  GPU_vertbuf_init_build_on_device(
-      vbo, draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache));
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(
+      draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache)));
 
   if (subdiv_cache.num_subdiv_loops == 0) {
-    extract_loose_positions_subdiv(subdiv_cache, mr, vbo);
-    return;
+    extract_loose_positions_subdiv(subdiv_cache, mr, *vbo);
+    return vbo;
   }
 
   static const GPUVertFormat flag_format = []() {
@@ -214,10 +215,12 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
      * alternative. */
     static const GPUVertFormat format = GPU_vertformat_from_attribute(
         "orco", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    GPU_vertbuf_init_build_on_device(*orco_vbo, format, subdiv_cache.num_subdiv_loops);
+    *orco_vbo = gpu::VertBufPtr(
+        GPU_vertbuf_create_on_device(format, subdiv_cache.num_subdiv_loops));
   }
 
-  draw_subdiv_extract_pos_nor(subdiv_cache, flags_buffer, &vbo, orco_vbo);
+  draw_subdiv_extract_pos_nor(
+      subdiv_cache, flags_buffer, vbo.get(), orco_vbo ? orco_vbo->get() : nullptr);
 
   if (subdiv_cache.use_custom_loop_normals) {
     const Mesh *coarse_mesh = subdiv_cache.mesh;
@@ -235,7 +238,7 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
     draw_subdiv_interp_custom_data(
         subdiv_cache, *src_custom_normals, *dst_custom_normals, GPU_COMP_F32, 3, 0);
 
-    draw_subdiv_finalize_custom_normals(subdiv_cache, dst_custom_normals, &vbo);
+    draw_subdiv_finalize_custom_normals(subdiv_cache, dst_custom_normals, vbo.get());
 
     GPU_vertbuf_discard(src_custom_normals);
     GPU_vertbuf_discard(dst_custom_normals);
@@ -245,26 +248,26 @@ void extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
     gpu::VertBuf *subdiv_loop_subdiv_vert_index = draw_subdiv_build_origindex_buffer(
         subdiv_cache.subdiv_loop_subdiv_vert_index, subdiv_cache.num_subdiv_loops);
 
-    gpu::VertBuf *vert_normals = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_build_on_device(
-        *vert_normals, get_normals_format(), subdiv_cache.num_subdiv_verts);
+    gpu::VertBufPtr vert_normals = gpu::VertBufPtr(
+        GPU_vertbuf_create_on_device(get_normals_format(), subdiv_cache.num_subdiv_verts));
 
     draw_subdiv_accumulate_normals(subdiv_cache,
-                                   &vbo,
+                                   vbo.get(),
                                    subdiv_cache.subdiv_vertex_face_adjacency_offsets,
                                    subdiv_cache.subdiv_vertex_face_adjacency,
                                    subdiv_loop_subdiv_vert_index,
-                                   vert_normals);
+                                   vert_normals.get());
 
-    draw_subdiv_finalize_normals(subdiv_cache, vert_normals, subdiv_loop_subdiv_vert_index, &vbo);
+    draw_subdiv_finalize_normals(
+        subdiv_cache, vert_normals.get(), subdiv_loop_subdiv_vert_index, vbo.get());
 
-    GPU_vertbuf_discard(vert_normals);
     GPU_vertbuf_discard(subdiv_loop_subdiv_vert_index);
   }
 
   GPU_vertbuf_discard(flags_buffer);
 
-  extract_loose_positions_subdiv(subdiv_cache, mr, vbo);
+  extract_loose_positions_subdiv(subdiv_cache, mr, *vbo);
+  return vbo;
 }
 
 }  // namespace blender::draw

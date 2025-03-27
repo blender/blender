@@ -70,15 +70,14 @@ static void extract_vert_normals_bm(const MeshRenderData &mr,
   });
 }
 
-void extract_vert_normals(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr)
 {
   static GPUVertFormat format = GPU_vertformat_from_attribute(
       "vnor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-  const int size = mr.corners_num + mr.loose_indices_num;
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, size);
-  MutableSpan vbo_data = vbo.data<gpu::PackedNormal>();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num + mr.loose_indices_num);
+  MutableSpan vbo_data = vbo->data<gpu::PackedNormal>();
 
   if (mr.extract_type == MeshExtractType::Mesh) {
     extract_vert_normals_mesh(mr, vbo_data);
@@ -86,6 +85,7 @@ void extract_vert_normals(const MeshRenderData &mr, gpu::VertBuf &vbo)
   else {
     extract_vert_normals_bm(mr, vbo_data);
   }
+  return vbo;
 }
 
 }  // namespace blender::draw

@@ -188,6 +188,8 @@ void GPU_vertbuf_init_build_on_device(blender::gpu::VertBuf &verts,
                                       const GPUVertFormat &format,
                                       uint v_len);
 
+blender::gpu::VertBuf *GPU_vertbuf_create_on_device(const GPUVertFormat &format, uint v_len);
+
 #define GPU_vertbuf_init_with_format(verts, format) \
   GPU_vertbuf_init_with_format_ex(verts, format, GPU_USAGE_STATIC)
 
@@ -305,5 +307,7 @@ class VertBufDeleter {
     GPU_vertbuf_discard(vbo);
   }
 };
+
+using VertBufPtr = std::unique_ptr<gpu::VertBuf, gpu::VertBufDeleter>;
 
 }  // namespace blender::gpu

@@ -18,7 +18,7 @@
 
 namespace blender::draw {
 
-void extract_lines_paint_mask(const MeshRenderData &mr, gpu::IndexBuf &lines)
+gpu::IndexBufPtr extract_lines_paint_mask(const MeshRenderData &mr)
 {
   const OffsetIndices faces = mr.faces;
   const Span<int> corner_edges = mr.corner_edges;
@@ -67,14 +67,12 @@ void extract_lines_paint_mask(const MeshRenderData &mr, gpu::IndexBuf &lines)
     }
   });
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, true, &lines);
-
   MEM_freeN(select_map);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, true));
 }
 
-void extract_lines_paint_mask_subdiv(const MeshRenderData &mr,
-                                     const DRWSubdivCache &subdiv_cache,
-                                     gpu::IndexBuf &lines)
+gpu::IndexBufPtr extract_lines_paint_mask_subdiv(const MeshRenderData &mr,
+                                                 const DRWSubdivCache &subdiv_cache)
 {
   const Span<bool> hide_edge = mr.hide_edge;
   const Span<bool> select_poly = mr.select_poly;
@@ -134,9 +132,8 @@ void extract_lines_paint_mask_subdiv(const MeshRenderData &mr,
     }
   });
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, true, &lines);
-
   MEM_freeN(select_map);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, true));
 }
 
 }  // namespace blender::draw

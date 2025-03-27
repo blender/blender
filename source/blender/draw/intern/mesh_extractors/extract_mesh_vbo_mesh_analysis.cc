@@ -571,18 +571,16 @@ static void statvis_calc_sharp(const MeshRenderData &mr, MutableSpan<float> r_sh
   MEM_freeN(vert_angles);
 }
 
-void extract_mesh_analysis(const MeshRenderData &mr,
-                           const float4x4 &object_to_world,
-                           gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_mesh_analysis(const MeshRenderData &mr, const float4x4 &object_to_world)
 {
   BLI_assert(mr.edit_bmesh);
 
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
       "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan<float> vbo_data = vbo.data<float>();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
+  MutableSpan<float> vbo_data = vbo->data<float>();
 
   switch (mr.toolsettings->statvis.type) {
     case SCE_STATVIS_OVERHANG:
@@ -601,6 +599,7 @@ void extract_mesh_analysis(const MeshRenderData &mr,
       statvis_calc_sharp(mr, vbo_data);
       break;
   }
+  return vbo;
 }
 
 }  // namespace blender::draw

@@ -97,11 +97,11 @@ static void extract_edituv_data_mesh(const MeshRenderData &mr, MutableSpan<EditL
   });
 }
 
-void extract_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_edituv_data(const MeshRenderData &mr)
 {
-  GPU_vertbuf_init_with_format(vbo, edituv_data_format());
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan vbo_data = vbo.data<EditLoopData>();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(edituv_data_format()));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
+  MutableSpan vbo_data = vbo->data<EditLoopData>();
 
   if (mr.extract_type == MeshExtractType::BMesh) {
     extract_edituv_data_bm(mr, vbo_data);
@@ -109,6 +109,7 @@ void extract_edituv_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
   else {
     extract_edituv_data_mesh(mr, vbo_data);
   }
+  return vbo;
 }
 
 static void extract_edituv_data_iter_subdiv_bm(const MeshRenderData &mr,
@@ -205,14 +206,13 @@ static void extract_edituv_subdiv_data_mesh(const MeshRenderData &mr,
   });
 }
 
-void extract_edituv_data_subdiv(const MeshRenderData &mr,
-                                const DRWSubdivCache &subdiv_cache,
-                                gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_edituv_data_subdiv(const MeshRenderData &mr,
+                                           const DRWSubdivCache &subdiv_cache)
 {
-  GPU_vertbuf_init_with_format(vbo, edituv_data_format());
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(edituv_data_format()));
   const int size = subdiv_cache.num_subdiv_loops;
-  GPU_vertbuf_data_alloc(vbo, size);
-  MutableSpan vbo_data = vbo.data<EditLoopData>();
+  GPU_vertbuf_data_alloc(*vbo, size);
+  MutableSpan vbo_data = vbo->data<EditLoopData>();
 
   if (mr.extract_type == MeshExtractType::BMesh) {
     extract_edituv_subdiv_data_bm(mr, subdiv_cache, vbo_data);
@@ -220,6 +220,7 @@ void extract_edituv_data_subdiv(const MeshRenderData &mr,
   else {
     extract_edituv_subdiv_data_mesh(mr, subdiv_cache, vbo_data);
   }
+  return vbo;
 }
 
 }  // namespace blender::draw

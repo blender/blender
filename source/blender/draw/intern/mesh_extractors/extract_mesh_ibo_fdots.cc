@@ -32,24 +32,24 @@ static IndexMask calc_face_visibility_mesh(const MeshRenderData &mr, IndexMaskMe
   return visible;
 }
 
-static void index_mask_to_ibo(const IndexMask &mask, gpu::IndexBuf &ibo)
+static gpu::IndexBufPtr index_mask_to_ibo(const IndexMask &mask)
 {
   const int max_index = mask.min_array_size();
   GPUIndexBufBuilder builder;
   GPU_indexbuf_init(&builder, GPU_PRIM_POINTS, mask.size(), max_index);
   MutableSpan<uint> data = GPU_indexbuf_get_data(&builder);
   mask.to_indices<int>(data.cast<int>());
-  GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, false, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, false));
 }
 
-static void extract_face_dots_mesh(const MeshRenderData &mr, gpu::IndexBuf &face_dots)
+static gpu::IndexBufPtr extract_face_dots_mesh(const MeshRenderData &mr)
 {
   IndexMaskMemory memory;
   const IndexMask visible_faces = calc_face_visibility_mesh(mr, memory);
-  index_mask_to_ibo(visible_faces, face_dots);
+  return index_mask_to_ibo(visible_faces);
 }
 
-static void extract_face_dots_bm(const MeshRenderData &mr, gpu::IndexBuf &face_dots)
+static gpu::IndexBufPtr extract_face_dots_bm(const MeshRenderData &mr)
 {
   BMesh &bm = *mr.bm;
   IndexMaskMemory memory;
@@ -57,17 +57,15 @@ static void extract_face_dots_bm(const MeshRenderData &mr, gpu::IndexBuf &face_d
       IndexRange(bm.totface), GrainSize(4096), memory, [&](const int i) {
         return !BM_elem_flag_test_bool(BM_face_at_index(&bm, i), BM_ELEM_HIDDEN);
       });
-  index_mask_to_ibo(visible_faces, face_dots);
+  return index_mask_to_ibo(visible_faces);
 }
 
-void extract_face_dots(const MeshRenderData &mr, gpu::IndexBuf &face_dots)
+gpu::IndexBufPtr extract_face_dots(const MeshRenderData &mr)
 {
   if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_face_dots_mesh(mr, face_dots);
+    return extract_face_dots_mesh(mr);
   }
-  else {
-    extract_face_dots_bm(mr, face_dots);
-  }
+  return extract_face_dots_bm(mr);
 }
 
 }  // namespace blender::draw

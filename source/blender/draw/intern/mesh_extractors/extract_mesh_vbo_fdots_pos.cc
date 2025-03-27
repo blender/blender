@@ -75,35 +75,36 @@ static void extract_face_dot_positions_bm(const MeshRenderData &mr, MutableSpan<
   });
 }
 
-void extract_face_dots_position(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_face_dots_position(const MeshRenderData &mr)
 {
-  GPU_vertbuf_init_with_format(vbo, get_fdots_pos_format());
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
-
-  MutableSpan vbo_data = vbo.data<float3>();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(get_fdots_pos_format()));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num + mr.loose_indices_num);
+  MutableSpan vbo_data = vbo->data<float3>();
   if (mr.extract_type == MeshExtractType::Mesh) {
     extract_face_dot_positions_mesh(mr, vbo_data);
   }
   else {
     extract_face_dot_positions_bm(mr, vbo_data);
   }
+  return vbo;
 }
 
 void extract_face_dots_subdiv(const DRWSubdivCache &subdiv_cache,
-                              gpu::VertBuf &fdots_pos,
-                              gpu::VertBuf *fdots_nor,
-                              gpu::IndexBuf &fdots)
+                              gpu::VertBufPtr &fdots_pos,
+                              gpu::VertBufPtr *fdots_nor,
+                              gpu::IndexBufPtr &fdots)
 {
   /* We "extract" positions, normals, and indices at once. */
   /* The normals may not be requested. */
   if (fdots_nor) {
-    GPU_vertbuf_init_build_on_device(
-        *fdots_nor, get_fdots_nor_format_subdiv(), subdiv_cache.num_coarse_faces);
+    *fdots_nor = gpu::VertBufPtr(GPU_vertbuf_create_on_device(get_fdots_nor_format_subdiv(),
+                                                              subdiv_cache.num_coarse_faces));
   }
-  GPU_vertbuf_init_build_on_device(
-      fdots_pos, get_fdots_pos_format(), subdiv_cache.num_coarse_faces);
-  GPU_indexbuf_init_build_on_device(&fdots, subdiv_cache.num_coarse_faces);
-  draw_subdiv_build_fdots_buffers(subdiv_cache, &fdots_pos, fdots_nor, &fdots);
+  fdots_pos = gpu::VertBufPtr(
+      GPU_vertbuf_create_on_device(get_fdots_pos_format(), subdiv_cache.num_coarse_faces));
+  fdots = gpu::IndexBufPtr(GPU_indexbuf_build_on_device(subdiv_cache.num_coarse_faces));
+  draw_subdiv_build_fdots_buffers(
+      subdiv_cache, fdots_pos.get(), fdots_nor ? fdots_nor->get() : nullptr, fdots.get());
 }
 
 }  // namespace blender::draw
