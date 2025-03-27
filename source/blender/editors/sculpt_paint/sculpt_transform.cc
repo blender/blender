@@ -581,9 +581,12 @@ void cancel_modal_transform(bContext *C, Object &ob)
   /* Canceling "Elastic" transforms (due to its #TransformDisplacementMode::Incremental nature),
    * requires restoring positions from undo. For "All Vertices" there is no benefit in using the
    * transform system to update to original positions either. */
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
+  undo::restore_position_from_undo_step(depsgraph, ob);
 
-  undo::restore_position_from_undo_step(*depsgraph, ob);
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+  bke::pbvh::update_normals(depsgraph, ob, pbvh);
+  pbvh.update_bounds(depsgraph, ob);
 }
 
 void end_transform(bContext *C, Object &ob)
