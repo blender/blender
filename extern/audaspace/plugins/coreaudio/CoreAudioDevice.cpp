@@ -148,12 +148,14 @@ void CoreAudioDevice::open()
 void CoreAudioDevice::close()
 {
 	// NOTE: Keep the device open for buggy MacOS versions (see blender issue #121911).
-	if(__builtin_available(macOS 15.2, *))
+	if(!__builtin_available(macOS 15.2, *))
 	{
-		AudioOutputUnitStop(m_audio_unit);
-		AudioUnitUninitialize(m_audio_unit);
-		AudioComponentInstanceDispose(m_audio_unit);
+		return;
 	}
+
+	AudioOutputUnitStop(m_audio_unit);
+	AudioUnitUninitialize(m_audio_unit);
+	AudioComponentInstanceDispose(m_audio_unit);
 }
 
 CoreAudioDevice::CoreAudioDevice(DeviceSpecs specs, int buffersize) :
