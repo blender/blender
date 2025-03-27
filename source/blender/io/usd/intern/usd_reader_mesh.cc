@@ -167,7 +167,7 @@ static void assign_materials(Main *bmain,
 
 }  // namespace utils
 
-void USDMeshReader::create_object(Main *bmain, const double /*motionSampleTime*/)
+void USDMeshReader::create_object(Main *bmain)
 {
   Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
 

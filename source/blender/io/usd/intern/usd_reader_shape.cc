@@ -40,7 +40,7 @@ USDShapeReader::USDShapeReader(const pxr::UsdPrim &prim,
 {
 }
 
-void USDShapeReader::create_object(Main *bmain, double /*motionSampleTime*/)
+void USDShapeReader::create_object(Main *bmain)
 {
   Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
   object_ = BKE_object_add_only_object(bmain, OB_MESH, name_.c_str());

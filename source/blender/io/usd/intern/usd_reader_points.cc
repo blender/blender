@@ -19,7 +19,7 @@
 
 namespace blender::io::usd {
 
-void USDPointsReader::create_object(Main *bmain, double /*motionSampleTime*/)
+void USDPointsReader::create_object(Main *bmain)
 {
   PointCloud *pointcloud = BKE_pointcloud_add(bmain, name_.c_str());
   object_ = BKE_object_add_only_object(bmain, OB_POINTCLOUD, name_.c_str());

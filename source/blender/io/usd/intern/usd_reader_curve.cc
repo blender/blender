@@ -130,7 +130,7 @@ static std::optional<bke::AttrDomain> convert_usd_interp_to_blender(const pxr::T
   return *value;
 }
 
-void USDCurvesReader::create_object(Main *bmain, const double /*motionSampleTime*/)
+void USDCurvesReader::create_object(Main *bmain)
 {
   Curves *curve = BKE_curves_add(bmain, name_.c_str());
 

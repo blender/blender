@@ -27,7 +27,7 @@ class USDSkeletonReader : public USDXformReader {
     return bool(skel_);
   }
 
-  void create_object(Main *bmain, double motionSampleTime) override;
+  void create_object(Main *bmain) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
 };
 

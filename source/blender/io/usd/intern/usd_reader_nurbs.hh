@@ -33,7 +33,7 @@ class USDNurbsReader : public USDGeomReader {
     return bool(curve_prim_);
   }
 
-  void create_object(Main *bmain, double motionSampleTime) override;
+  void create_object(Main *bmain) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
 
   void read_curve_sample(Curve *cu, double motionSampleTime);

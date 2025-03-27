@@ -263,7 +263,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     if (!reader) {
       continue;
     }
-    reader->create_object(data->bmain, 0.0);
+    reader->create_object(data->bmain);
     if ((++i & 1023) == 0) {
       *data->do_update = true;
       *data->progress = 0.25f + 0.25f * (i / size);
