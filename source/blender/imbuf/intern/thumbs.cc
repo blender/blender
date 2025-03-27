@@ -444,7 +444,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
     IMB_byte_from_float(img);
     IMB_free_float_pixels(img);
 
-    if (IMB_saveiff(img, temp, IB_byte_data | IB_metadata)) {
+    if (IMB_save_image(img, temp, IB_byte_data | IB_metadata)) {
 #ifndef WIN32
       chmod(temp, S_IRUSR | S_IWUSR);
 #endif
@@ -507,7 +507,7 @@ ImBuf *IMB_thumb_read(const char *file_or_lib_path, ThumbSize size)
     return nullptr;
   }
   if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
-    img = IMB_loadiffname(thumb, IB_byte_data | IB_metadata, nullptr);
+    img = IMB_load_image_from_filepath(thumb, IB_byte_data | IB_metadata);
   }
 
   return img;
@@ -565,7 +565,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
   if (file_attributes & FILE_ATTR_OFFLINE) {
     char thumb_path[FILE_MAX];
     if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), size)) {
-      return IMB_loadiffname(thumb_path, IB_byte_data | IB_metadata, nullptr);
+      return IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata);
     }
     return nullptr;
   }
@@ -592,10 +592,10 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
     /* The requested path points to a generated thumbnail already (path into the thumbnail cache
      * directory). Attempt to load that, there's nothing we can recreate. */
     if (BLI_path_ncmp(file_or_lib_path, thumb_path, sizeof(thumb_path)) == 0) {
-      img = IMB_loadiffname(file_or_lib_path, IB_byte_data, nullptr);
+      img = IMB_load_image_from_filepath(file_or_lib_path, IB_byte_data);
     }
     else {
-      img = IMB_loadiffname(thumb_path, IB_byte_data | IB_metadata, nullptr);
+      img = IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata);
       if (img) {
         bool regenerate = false;
 

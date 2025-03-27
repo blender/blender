@@ -2307,7 +2307,7 @@ static wmOperatorStatus image_save_sequence_exec(bContext *C, wmOperator *op)
     ibuf = IMB_moviecacheIter_getImBuf(iter);
 
     if (ibuf != nullptr && ibuf->userflags & IB_BITMAPDIRTY) {
-      if (0 == IMB_saveiff(ibuf, ibuf->filepath, IB_byte_data)) {
+      if (0 == IMB_save_image(ibuf, ibuf->filepath, IB_byte_data)) {
         BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
         break;
       }

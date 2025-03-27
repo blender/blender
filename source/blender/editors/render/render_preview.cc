@@ -1351,7 +1351,7 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
     BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
 
     /* Use default color-spaces for brushes. */
-    brush->icon_imbuf = IMB_loadiffname(filepath, flags, nullptr);
+    brush->icon_imbuf = IMB_load_image_from_filepath(filepath, flags);
 
     if (brush->icon_imbuf) {
       BKE_icon_changed(BKE_icon_id_ensure(&brush->id));

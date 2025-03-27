@@ -1357,19 +1357,19 @@ void BKE_ocean_simulate_cache(OceanCache *och, int frame)
    * files were saved with default settings too. */
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_DISPLACE);
-  och->ibufs_disp[f] = IMB_loadiffname(filepath, 0, nullptr);
+  och->ibufs_disp[f] = IMB_load_image_from_filepath(filepath, 0);
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_FOAM);
-  och->ibufs_foam[f] = IMB_loadiffname(filepath, 0, nullptr);
+  och->ibufs_foam[f] = IMB_load_image_from_filepath(filepath, 0);
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_SPRAY);
-  och->ibufs_spray[f] = IMB_loadiffname(filepath, 0, nullptr);
+  och->ibufs_spray[f] = IMB_load_image_from_filepath(filepath, 0);
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_SPRAY_INVERSE);
-  och->ibufs_spray_inverse[f] = IMB_loadiffname(filepath, 0, nullptr);
+  och->ibufs_spray_inverse[f] = IMB_load_image_from_filepath(filepath, 0);
 
   cache_filepath(filepath, och->bakepath, och->relbase, frame, CACHE_TYPE_NORMAL);
-  och->ibufs_norm[f] = IMB_loadiffname(filepath, 0, nullptr);
+  och->ibufs_norm[f] = IMB_load_image_from_filepath(filepath, 0);
 }
 
 void BKE_ocean_bake(Ocean *o,

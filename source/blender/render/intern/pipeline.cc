@@ -2752,7 +2752,7 @@ void RE_layer_load_from_file(
   }
 
   /* OCIO_TODO: assume layer was saved in default color space */
-  ImBuf *ibuf = IMB_loadiffname(filepath, IB_byte_data, nullptr);
+  ImBuf *ibuf = IMB_load_image_from_filepath(filepath, IB_byte_data);
   RenderPass *rpass = nullptr;
 
   /* multi-view: since the API takes no 'view', we use the first combined pass found */

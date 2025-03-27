@@ -338,7 +338,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
   qimg = &newMap;
 #endif
   /* OCIO_TODO: support different input color space */
-  ImBuf *qimg = IMB_loadiffname(filePath.c_str(), 0, nullptr);
+  ImBuf *qimg = IMB_load_image_from_filepath(filePath.c_str(), 0);
   if (qimg == nullptr) {
     cerr << "Could not load image file " << filePath << endl;
     return;
@@ -430,7 +430,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
     filepath << base;
     filepath << i << ".bmp";
     qtmp->ftype = IMB_FTYPE_BMP;
-    IMB_saveiff(qtmp, const_cast<char *>(filepath.str().c_str()), 0);
+    IMB_save_image(qtmp, const_cast<char *>(filepath.str().c_str()), 0);
   }
 
 #if 0

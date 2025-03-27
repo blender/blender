@@ -859,7 +859,7 @@ static void export_packed_texture(Image *ima,
        * a file extension based on the file magic. */
 
       enum eImbFileType ftype = eImbFileType(
-          IMB_ispic_type_from_memory(static_cast<const uchar *>(pf->data), pf->size));
+          IMB_test_image_type_from_memory(static_cast<const uchar *>(pf->data), pf->size));
       if (ima->source == IMA_SRC_TILED) {
         char tile_number[6];
         SNPRINTF(tile_number, ".%d", imapf->tile_number);

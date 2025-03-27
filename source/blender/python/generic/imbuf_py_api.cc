@@ -512,7 +512,7 @@ static PyObject *imbuf_load_impl(const char *filepath)
     return nullptr;
   }
 
-  ImBuf *ibuf = IMB_loadifffile(file, IB_byte_data, nullptr, filepath);
+  ImBuf *ibuf = IMB_load_image_from_file_descriptor(file, IB_byte_data, filepath);
 
   close(file);
 
@@ -563,7 +563,7 @@ static PyObject *M_imbuf_load(PyObject * /*self*/, PyObject *args, PyObject *kw)
 
 static PyObject *imbuf_write_impl(ImBuf *ibuf, const char *filepath)
 {
-  const bool ok = IMB_saveiff(ibuf, filepath, IB_byte_data);
+  const bool ok = IMB_save_image(ibuf, filepath, IB_byte_data);
   if (ok == false) {
     PyErr_Format(
         PyExc_IOError, "write: Unable to write image file (%s) '%s'", strerror(errno), filepath);

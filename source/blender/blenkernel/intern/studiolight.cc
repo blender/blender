@@ -346,7 +346,7 @@ static void studiolight_multilayer_addpass(void *base,
 static void studiolight_load_equirect_image(StudioLight *sl)
 {
   if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
-    ImBuf *ibuf = IMB_loadiffname(sl->filepath, IB_multilayer | IB_alphamode_ignore, nullptr);
+    ImBuf *ibuf = IMB_load_image_from_filepath(sl->filepath, IB_multilayer | IB_alphamode_ignore);
     ImBuf *specular_ibuf = nullptr;
     ImBuf *diffuse_ibuf = nullptr;
     const bool failed = (ibuf == nullptr);

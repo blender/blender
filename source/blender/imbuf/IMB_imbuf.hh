@@ -26,20 +26,47 @@ struct GSet;
 struct ImageFormatData;
 struct Stereo3dFormat;
 
+/**
+ * Module init/exit.
+ */
 void IMB_init();
 void IMB_exit();
 
-ImBuf *IMB_ibImageFromMemory(const unsigned char *mem,
-                             size_t size,
-                             int flags,
-                             char colorspace[IM_MAX_SPACE],
-                             const char *descr,
-                             const char *filepath = nullptr);
+/**
+ * Load image.
+ */
+ImBuf *IMB_load_image_from_memory(const unsigned char *mem,
+                                  const size_t size,
+                                  const int flags,
+                                  const char *descr,
+                                  const char *filepath = nullptr,
+                                  char r_colorspace[IM_MAX_SPACE] = nullptr);
 
-ImBuf *IMB_testiffname(const char *filepath, int flags);
+ImBuf *IMB_load_image_from_file_descriptor(const int file,
+                                           const int flags,
+                                           const char *filepath = nullptr,
+                                           char r_colorspace[IM_MAX_SPACE] = nullptr);
 
-ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
+ImBuf *IMB_load_image_from_filepath(const char *filepath,
+                                    const int flags,
+                                    char r_colorspace[IM_MAX_SPACE] = nullptr);
 
+/**
+ * Save image.
+ */
+bool IMB_save_image(ImBuf *ibuf, const char *filepath, const int flags);
+
+/*
+ * Test image file.
+ */
+bool IMB_test_image(const char *filepath);
+bool IMB_test_image_type_matches(const char *filepath, int filetype);
+int IMB_test_image_type_from_memory(const unsigned char *buf, size_t buf_size);
+int IMB_test_image_type(const char *filepath);
+
+/*
+ * Load thumbnail image.
+ */
 enum class IMBThumbLoadFlags {
   Zero = 0,
   /** Normally files larger than 100MB are not loaded for thumbnails, except when this flag is set.
@@ -51,11 +78,13 @@ ENUM_OPERATORS(IMBThumbLoadFlags, IMBThumbLoadFlags::LoadLargeFiles);
 ImBuf *IMB_thumb_load_image(const char *filepath,
                             const size_t max_thumb_size,
                             char colorspace[IM_MAX_SPACE],
-                            IMBThumbLoadFlags load_flags = IMBThumbLoadFlags::Zero);
+                            const IMBThumbLoadFlags load_flags = IMBThumbLoadFlags::Zero);
 
-void IMB_freeImBuf(ImBuf *ibuf);
-
+/*
+ * Allocate and free image buffer.
+ */
 ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, unsigned char planes, unsigned int flags);
+void IMB_freeImBuf(ImBuf *ibuf);
 
 /**
  * Initialize given ImBuf.
@@ -322,13 +351,6 @@ ImBuf *IMB_scale_into_new(const ImBuf *ibuf,
                           IMBScaleFilter filter,
                           bool threaded = true);
 
-bool IMB_saveiff(ImBuf *ibuf, const char *filepath, int flags);
-
-bool IMB_ispic(const char *filepath);
-bool IMB_ispic_type_matches(const char *filepath, int filetype);
-int IMB_ispic_type_from_memory(const unsigned char *buf, size_t buf_size);
-int IMB_ispic_type(const char *filepath);
-
 /**
  * Test if color-space conversions of pixels in buffer need to take into account alpha.
  */
@@ -445,8 +467,6 @@ void IMB_convert_rgba_to_abgr(ImBuf *ibuf);
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3]);
-
-ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *filepath);
 
 ImBuf *IMB_half_x(ImBuf *ibuf1);
 ImBuf *IMB_half_y(ImBuf *ibuf1);

@@ -864,13 +864,14 @@ static ImBuf *seq_render_image_strip_view(const RenderData *context,
   }
 
   if (prefix[0] == '\0') {
-    ibuf = IMB_loadiffname(filepath, flag, strip->data->colorspace_settings.name);
+    ibuf = IMB_load_image_from_filepath(filepath, flag, strip->data->colorspace_settings.name);
   }
   else {
     char filepath_view[FILE_MAX];
     BKE_scene_multiview_view_prefix_get(context->scene, filepath, prefix, &ext);
     seq_multiview_name(context->scene, view_id, prefix, ext, filepath_view, FILE_MAX);
-    ibuf = IMB_loadiffname(filepath_view, flag, strip->data->colorspace_settings.name);
+    ibuf = IMB_load_image_from_filepath(
+        filepath_view, flag, strip->data->colorspace_settings.name);
   }
 
   if (ibuf == nullptr) {

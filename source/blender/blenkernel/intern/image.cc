@@ -1016,7 +1016,8 @@ static void image_init_color_management(Image *ima)
   BKE_image_user_file_path(nullptr, ima, filepath);
 
   /* Will set input color space to image format default's. */
-  ibuf = IMB_loadiffname(filepath, IB_test | IB_alphamode_detect, ima->colorspace_settings.name);
+  ibuf = IMB_load_image_from_filepath(
+      filepath, IB_test | IB_alphamode_detect, ima->colorspace_settings.name);
 
   if (ibuf) {
     if (ibuf->flags & IB_alphamode_premul) {
@@ -1412,7 +1413,7 @@ static bool image_memorypack_imbuf(
 {
   ibuf->ftype = (ibuf->float_buffer.data) ? IMB_FTYPE_OPENEXR : IMB_FTYPE_PNG;
 
-  IMB_saveiff(ibuf, filepath, IB_byte_data | IB_mem);
+  IMB_save_image(ibuf, filepath, IB_byte_data | IB_mem);
 
   if (ibuf->encoded_buffer.data == nullptr) {
     CLOG_STR_ERROR(&LOG, "memory save for pack error");
@@ -2671,7 +2672,7 @@ bool BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *i
 
   BLI_file_ensure_parent_dir_exists(filepath);
 
-  const bool ok = IMB_saveiff(ibuf, filepath, IB_byte_data);
+  const bool ok = IMB_save_image(ibuf, filepath, IB_byte_data);
   if (ok == 0) {
     perror(filepath);
   }
@@ -4287,11 +4288,12 @@ static ImBuf *load_image_single(Image *ima,
     LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
       if (imapf->view == view_id && imapf->tile_number == tile_number) {
         if (imapf->packedfile) {
-          ibuf = IMB_ibImageFromMemory((uchar *)imapf->packedfile->data,
-                                       imapf->packedfile->size,
-                                       flag,
-                                       ima->colorspace_settings.name,
-                                       "<packed data>");
+          ibuf = IMB_load_image_from_memory((uchar *)imapf->packedfile->data,
+                                            imapf->packedfile->size,
+                                            flag,
+                                            "<packed data>",
+                                            nullptr,
+                                            ima->colorspace_settings.name);
         }
         break;
       }
@@ -4321,7 +4323,7 @@ static ImBuf *load_image_single(Image *ima,
     BKE_image_user_file_path(&iuser_t, ima, filepath);
 
     /* read ibuf */
-    ibuf = IMB_loadiffname(filepath, flag, ima->colorspace_settings.name);
+    ibuf = IMB_load_image_from_filepath(filepath, flag, ima->colorspace_settings.name);
   }
 
   if (ibuf) {

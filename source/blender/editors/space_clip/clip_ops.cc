@@ -1368,11 +1368,12 @@ static void proxy_task_func(TaskPool *__restrict pool, void *task_data)
   while ((mem = proxy_thread_next_frame(queue, data->clip, &size, &cfra))) {
     ImBuf *ibuf;
 
-    ibuf = IMB_ibImageFromMemory(mem,
-                                 size,
-                                 IB_byte_data | IB_multilayer | IB_alphamode_detect,
-                                 data->clip->colorspace_settings.name,
-                                 "proxy frame");
+    ibuf = IMB_load_image_from_memory(mem,
+                                      size,
+                                      IB_byte_data | IB_multilayer | IB_alphamode_detect,
+                                      "proxy frame",
+                                      nullptr,
+                                      data->clip->colorspace_settings.name);
 
     BKE_movieclip_build_proxy_frame_for_ibuf(
         data->clip, ibuf, nullptr, cfra, data->build_sizes, data->build_count, false);

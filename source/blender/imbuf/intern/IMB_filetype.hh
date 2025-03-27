@@ -28,7 +28,7 @@ struct ImFileType {
   /**
    * Check if the data matches this file types 'magic',
    * \note that this may only read in a small part of the files header,
-   * see: #IMB_ispic_type for details.
+   * see: #IMB_test_image_type for details.
    */
   bool (*is_a)(const unsigned char *buf, size_t size);
 

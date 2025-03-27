@@ -74,7 +74,8 @@ const char *imb_ext_audio[] = {
 /* OIIO will validate the entire header of some files and DPX requires 2048 */
 #define HEADER_SIZE 2048
 
-static int64_t imb_ispic_read_header_from_filepath(const char *filepath, uchar buf[HEADER_SIZE])
+static int64_t imb_test_image_read_header_from_filepath(const char *filepath,
+                                                        uchar buf[HEADER_SIZE])
 {
   BLI_stat_t st;
   int fp;
@@ -102,7 +103,7 @@ static int64_t imb_ispic_read_header_from_filepath(const char *filepath, uchar b
   return size;
 }
 
-int IMB_ispic_type_from_memory(const uchar *buf, const size_t buf_size)
+int IMB_test_image_type_from_memory(const uchar *buf, const size_t buf_size)
 {
   for (const ImFileType *type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
     if (type->is_a != nullptr) {
@@ -115,20 +116,20 @@ int IMB_ispic_type_from_memory(const uchar *buf, const size_t buf_size)
   return IMB_FTYPE_NONE;
 }
 
-int IMB_ispic_type(const char *filepath)
+int IMB_test_image_type(const char *filepath)
 {
   uchar buf[HEADER_SIZE];
-  const int64_t buf_size = imb_ispic_read_header_from_filepath(filepath, buf);
+  const int64_t buf_size = imb_test_image_read_header_from_filepath(filepath, buf);
   if (buf_size <= 0) {
     return IMB_FTYPE_NONE;
   }
-  return IMB_ispic_type_from_memory(buf, size_t(buf_size));
+  return IMB_test_image_type_from_memory(buf, size_t(buf_size));
 }
 
-bool IMB_ispic_type_matches(const char *filepath, int filetype)
+bool IMB_test_image_type_matches(const char *filepath, int filetype)
 {
   uchar buf[HEADER_SIZE];
-  const int64_t buf_size = imb_ispic_read_header_from_filepath(filepath, buf);
+  const int64_t buf_size = imb_test_image_read_header_from_filepath(filepath, buf);
   if (buf_size <= 0) {
     return false;
   }
@@ -147,7 +148,7 @@ bool IMB_ispic_type_matches(const char *filepath, int filetype)
 
 #undef HEADER_SIZE
 
-bool IMB_ispic(const char *filepath)
+bool IMB_test_image(const char *filepath)
 {
-  return (IMB_ispic_type(filepath) != IMB_FTYPE_NONE);
+  return (IMB_test_image_type(filepath) != IMB_FTYPE_NONE);
 }
