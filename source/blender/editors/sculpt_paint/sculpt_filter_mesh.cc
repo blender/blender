@@ -1989,7 +1989,7 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
     max_factor = std::max(sharpen_factors[i], max_factor);
   }
 
-  max_factor = 1.0f / max_factor;
+  max_factor = math::safe_rcp(max_factor);
   for (int i = 0; i < totvert; i++) {
     sharpen_factors[i] *= max_factor;
     sharpen_factors[i] = 1.0f - pow2f(1.0f - sharpen_factors[i]);
