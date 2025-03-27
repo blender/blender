@@ -8,6 +8,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
 #include "DNA_collection_types.h"
@@ -18,18 +19,27 @@
 
 namespace blender::bke {
 
-static void add_final_mesh_as_geometry_component(const Object &object, GeometrySet &geometry_set)
+static void add_final_mesh_as_geometry_component(const Object &object,
+                                                 GeometrySet &geometry_set,
+                                                 const bool apply_subdiv)
 {
-  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(
-      &const_cast<Object &>(object));
+  if (apply_subdiv) {
+    Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(
+        &const_cast<Object &>(object));
 
+    if (mesh != nullptr) {
+      BKE_mesh_wrapper_ensure_mdata(mesh);
+      geometry_set.replace_mesh(mesh, GeometryOwnershipType::ReadOnly);
+    }
+    return;
+  }
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(&object);
   if (mesh != nullptr) {
-    BKE_mesh_wrapper_ensure_mdata(mesh);
     geometry_set.replace_mesh(mesh, GeometryOwnershipType::ReadOnly);
   }
 }
 
-GeometrySet object_get_evaluated_geometry_set(const Object &object)
+GeometrySet object_get_evaluated_geometry_set(const Object &object, const bool apply_subdiv)
 {
   if (!DEG_object_geometry_is_evaluated(object)) {
     return {};
@@ -40,14 +50,14 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
       /* `geometry_set_eval` only contains non-mesh components, see `editbmesh_build_data`. */
       geometry_set = *object.runtime->geometry_set_eval;
     }
-    add_final_mesh_as_geometry_component(object, geometry_set);
+    add_final_mesh_as_geometry_component(object, geometry_set, apply_subdiv);
     return geometry_set;
   }
   if (object.runtime->geometry_set_eval != nullptr) {
     GeometrySet geometry_set = *object.runtime->geometry_set_eval;
     /* Ensure that subdivision is performed on the CPU. */
     if (geometry_set.has_mesh()) {
-      add_final_mesh_as_geometry_component(object, geometry_set);
+      add_final_mesh_as_geometry_component(object, geometry_set, apply_subdiv);
     }
     return geometry_set;
   }
@@ -55,7 +65,7 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
   /* Otherwise, construct a new geometry set with the component based on the object type. */
   if (object.type == OB_MESH) {
     GeometrySet geometry_set;
-    add_final_mesh_as_geometry_component(object, geometry_set);
+    add_final_mesh_as_geometry_component(object, geometry_set, apply_subdiv);
     return geometry_set;
   }
   if (object.type == OB_EMPTY && object.instance_collection != nullptr) {
