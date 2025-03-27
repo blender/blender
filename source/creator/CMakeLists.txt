@@ -1284,6 +1284,7 @@ elseif(WIN32)
       install(
         FILES
           ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
+          ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3.dll
           ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python.exe
         DESTINATION ${BLENDER_VERSION}/python/bin
         CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
@@ -1291,6 +1292,7 @@ elseif(WIN32)
       install(
         FILES
           ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
+          ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3_d.dll
           ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python_d.exe
         DESTINATION ${BLENDER_VERSION}/python/bin
         CONFIGURATIONS Debug
