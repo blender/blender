@@ -273,48 +273,30 @@ static int rna_Operator_props_dialog_popup(bContext *C,
       cancel_default);
 }
 
-static int keymap_item_modifier_flag_from_args(
+static int16_t keymap_item_modifier_flag_from_args(
     bool any, int shift, int ctrl, int alt, int oskey, int hyper)
 {
-  int modifier = 0;
+  int16_t modifier = 0;
   if (any) {
     modifier = KM_ANY;
   }
   else {
-    if (shift == KM_MOD_HELD) {
-      modifier |= KM_SHIFT;
-    }
-    else if (shift == KM_ANY) {
-      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_SHIFT);
-    }
+#  define MOD_VAR_ASSIGN_FLAG(mod_var, mod_flag) \
+    if (mod_var == KM_MOD_HELD) { \
+      modifier |= mod_flag; \
+    } \
+    else if (mod_var == KM_ANY) { \
+      modifier |= KMI_PARAMS_MOD_TO_ANY(mod_flag); \
+    } \
+    ((void)0)
 
-    if (ctrl == KM_MOD_HELD) {
-      modifier |= KM_CTRL;
-    }
-    else if (ctrl == KM_ANY) {
-      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_CTRL);
-    }
+    MOD_VAR_ASSIGN_FLAG(shift, KM_SHIFT);
+    MOD_VAR_ASSIGN_FLAG(ctrl, KM_CTRL);
+    MOD_VAR_ASSIGN_FLAG(alt, KM_ALT);
+    MOD_VAR_ASSIGN_FLAG(oskey, KM_OSKEY);
+    MOD_VAR_ASSIGN_FLAG(hyper, KM_HYPER);
 
-    if (alt == KM_MOD_HELD) {
-      modifier |= KM_ALT;
-    }
-    else if (alt == KM_ANY) {
-      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_ALT);
-    }
-
-    if (oskey == KM_MOD_HELD) {
-      modifier |= KM_OSKEY;
-    }
-    else if (oskey == KM_ANY) {
-      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_OSKEY);
-    }
-
-    if (hyper == KM_MOD_HELD) {
-      modifier |= KM_HYPER;
-    }
-    else if (hyper == KM_ANY) {
-      modifier |= KMI_PARAMS_MOD_TO_ANY(KM_HYPER);
-    }
+#  undef MOD_VAR_ASSIGN_FLAG
   }
   return modifier;
 }
@@ -344,19 +326,18 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km,
   // wmWindowManager *wm = CTX_wm_manager(C);
   wmKeyMapItem *kmi = nullptr;
   char idname_bl[OP_MAX_TYPENAME];
-  const int modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey, hyper);
 
   WM_operator_bl_idname(idname_bl, idname);
 
-  KeyMapItem_Params keymap_item_params{};
-  keymap_item_params.type = type;
-  keymap_item_params.value = value;
-  keymap_item_params.modifier = modifier;
-  keymap_item_params.keymodifier = keymodifier;
-  keymap_item_params.direction = direction;
+  KeyMapItem_Params params{};
+  params.type = type;
+  params.value = value;
+  params.modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey, hyper);
+  params.keymodifier = keymodifier;
+  params.direction = direction;
 
   /* create keymap item */
-  kmi = WM_keymap_add_item(km, idname_bl, &keymap_item_params);
+  kmi = WM_keymap_add_item(km, idname_bl, &params);
 
   if (!repeat) {
     kmi->flag |= KMI_REPEAT_IGNORE;
@@ -416,13 +397,12 @@ static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km,
   }
 
   wmKeyMapItem *kmi = nullptr;
-  const int modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey, hyper);
   int propvalue = 0;
 
   KeyMapItem_Params params{};
   params.type = type;
   params.value = value;
-  params.modifier = modifier;
+  params.modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey, hyper);
   params.keymodifier = keymodifier;
   params.direction = direction;
 
