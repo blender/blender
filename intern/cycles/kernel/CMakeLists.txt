@@ -968,12 +968,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -shared
     -DWITH_ONEAPI
     -O2
-    -fno-fast-math
-    -ffp-contract=fast
-    -fassociative-math
-    -freciprocal-math
-    -fno-signed-zeros
-    -ffinite-math-only
+    -ffast-math
     -D__KERNEL_LOCAL_ATOMIC_SORT__
     -o"${cycles_kernel_oneapi_lib}"
     -I"${CMAKE_CURRENT_SOURCE_DIR}/.."
