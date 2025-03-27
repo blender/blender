@@ -1189,27 +1189,6 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
 
 /*** BVH Tree ***/
 
-static void extend_redraw_rect_previous(Object &ob, rcti &rect)
-{
-  /* Expand redraw \a rect with redraw \a rect from previous step to
-   * prevent partial-redraw issues caused by fast strokes. This is
-   * needed here (not in sculpt_flush_update) as it was before
-   * because redraw rectangle should be the same in both of
-   * optimized bke::pbvh::Tree draw function and 3d view redraw, if not -- some
-   * mesh parts could disappear from screen (sergey). */
-  SculptSession &ss = *ob.sculpt;
-
-  if (!ss.cache) {
-    return;
-  }
-
-  if (BLI_rcti_is_empty(&ss.cache->previous_r)) {
-    return;
-  }
-
-  BLI_rcti_union(&rect, &ss.cache->previous_r);
-}
-
 bool SCULPT_get_redraw_rect(const ARegion &region,
                             const RegionView3D &rv3d,
                             const Object &ob,
@@ -5253,14 +5232,6 @@ void flush_update_step(const bContext *C, const UpdateType update_type)
     rcti r;
 
     if (rv3d && SCULPT_get_redraw_rect(region, *rv3d, ob, r)) {
-      if (ss.cache) {
-        ss.cache->current_r = r;
-      }
-
-      /* previous is not set in the current cache else
-       * the partial rect will always grow */
-      extend_redraw_rect_previous(ob, r);
-
       r.xmin += region.winrct.xmin - 2;
       r.xmax += region.winrct.xmin + 2;
       r.ymin += region.winrct.ymin - 2;
