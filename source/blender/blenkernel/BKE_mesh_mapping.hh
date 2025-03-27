@@ -253,7 +253,7 @@ bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
  * \param sharp_faces: Optional (possibly empty) span.
  * \param r_totgroup: The total number of groups, 1 or more.
  * \return Face aligned array of group index values, starting at 1 (0 being used as 'invalid'
- * flag). Note that it's the callers's responsibility to MEM_freeN the returned array.
+ * flag). Note that it's the callers responsibility to MEM_freeN the returned array.
  */
 int *BKE_mesh_calc_smoothgroups(int edges_num,
                                 blender::OffsetIndices<int> faces,
@@ -262,7 +262,7 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
                                 blender::Span<bool> sharp_faces,
                                 int *r_totgroup);
 /**
- * Same as #BKE_mesh_calc_smoothgroups, but use bitflags instead of increasing numbers for each
+ * Same as #BKE_mesh_calc_smoothgroups, but use bit-flags instead of increasing numbers for each
  * group.
  *
  * This means that the same value (bit) can be re-used for different groups, as long as they are
@@ -281,7 +281,7 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
  * \param sharp_faces: Optional (possibly empty) span.
  * \param r_totgroup: The total number of groups, 1 or more.
  * \return Face aligned array of group bit-flags values (i.e. always powers of 2), starting at 1 (0
- * being used as 'invalid' flag). Note that it's the callers's responsibility to MEM_freeN the
+ * being used as 'invalid' flag). Note that it's the callers responsibility to MEM_freeN the
  * returned array.
  */
 int *BKE_mesh_calc_smoothgroups_bitflags(int edges_num,

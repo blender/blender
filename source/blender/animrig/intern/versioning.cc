@@ -258,7 +258,7 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
 
   /* Note that the code below does not remove the `action_assignment_needs_slot` tag. One ID can
    * use multiple Actions (via NLA, Action constraints, etc.); if one of those Action is an ancient
-   * one one from before 2.50 (just to name one example case) this ID may needs to be re-visited
+   * one from before 2.50 (just to name one example case) this ID may needs to be re-visited
    * after those were versioned. Rather than trying to figure out if re-visiting is necessary, this
    * function is safe to call multiple times, and all that's lost is a little bit of CPU time. */
 

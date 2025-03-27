@@ -1221,13 +1221,13 @@ bool strip_effect_get_new_inputs(Scene *scene,
   }
 
   blender::VectorSet<Strip *> new_inputs = seq::query_selected_strips(ed->seqbasep);
-  // Ignore sound strips for now (avoids unnecessary errors when connected strips are
-  // selected together, and the intent to operate on strips with video content is clear).
+  /* Ignore sound strips for now (avoids unnecessary errors when connected strips are
+   * selected together, and the intent to operate on strips with video content is clear). */
   new_inputs.remove_if([&](Strip *strip) { return strip->type == STRIP_TYPE_SOUND_RAM; });
 
   if (ignore_active) {
-    // If `ignore_active` is true, this function is being called from the reassign inputs
-    // operator, meaning the active strip must be the effect strip to reassign.
+    /* If `ignore_active` is true, this function is being called from the reassign inputs
+     * operator, meaning the active strip must be the effect strip to reassign. */
     Strip *active_strip = seq::select_active_get(scene);
     new_inputs.remove_if([&](Strip *strip) { return strip == active_strip; });
   }

@@ -379,7 +379,7 @@ static void vicon_handletype_auto_clamp_draw(
 static void icon_node_socket_draw(int socket_type, int x, int y, int w, int h, float /*alpha*/)
 {
   /* Factor to account for the draw function of the node socket being based on the widget unit,
-   * which is 10 px by default, which differs from icons. */
+   * which is 10 pixels by default, which differs from icons. */
   constexpr float size_factor = 10.0f / float(ICON_DEFAULT_WIDTH);
 
   const float socket_radius = w * 0.5f * size_factor;

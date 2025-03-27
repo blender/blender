@@ -183,7 +183,7 @@ bool VKBackend::is_supported()
     return false;
   }
 
-  // go over all the devices
+  /* Go over all the devices. */
   uint32_t physical_devices_count = 0;
   vkEnumeratePhysicalDevices(vk_instance, &physical_devices_count, nullptr);
   Array<VkPhysicalDevice> vk_physical_devices(physical_devices_count);

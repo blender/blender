@@ -397,7 +397,7 @@ static void detect_workarounds()
     }
   }
   /* See #132968: Legacy AMD drivers do not accept a hash after the line number and results into
-   * undefined behaviour. Users have reported that the issue can go away after doing a clean
+   * undefined behavior. Users have reported that the issue can go away after doing a clean
    * install of the driver.
    */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {

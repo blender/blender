@@ -134,7 +134,7 @@ enum class IBOType : int8_t {
 
 struct MeshBufferList {
   /* Though using maps here may add some overhead compared to just indexed arrays, it's a bit more
-   * conventient currently, because the "buffer exists" test is very clear, it's just whether the
+   * convenient currently, because the "buffer exists" test is very clear, it's just whether the
    * map contains it (e.g. compared to "buffer is allocated but not filled with data"). The
    * sparseness *may* be useful for reducing memory usage when only few buffers are used. */
 

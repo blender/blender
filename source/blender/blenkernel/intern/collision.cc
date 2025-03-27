@@ -1454,7 +1454,7 @@ static int cloth_bvh_objcollisions_resolve(ClothModifierData *clmd,
     /* Apply impulses in parallel. */
     if (result) {
       for (i = 0; i < mvert_num; i++) {
-        // calculate "velocities" (just xnew = xold + v; no dt in v)
+        /* Calculate "velocities" (just `xnew = xold + v`; no `dt` in `v`). */
         if (verts[i].impulse_count) {
           add_v3_v3(verts[i].tv, verts[i].impulse);
           add_v3_v3(verts[i].dcvel, verts[i].impulse);

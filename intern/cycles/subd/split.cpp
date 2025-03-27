@@ -507,14 +507,14 @@ void DiagSplit::split_ngon(const Mesh::SubdFace &face,
   for (int corner = 0; corner < face.num_corners; corner++) {
     const Patch *patch = (const Patch *)(((char *)patches) + (corner * patches_byte_stride));
 
-    /*         vprev         .
+    /*         v_prev        .
      *           .           .
      *           .  edge_u1  .
      *          v01 ←------ v11 . . .
      *           |           ↑
      *  edge_v0  |           | edge_v1
      *           ↓           |
-     *          v00 ------→ v10 . . vnext
+     *          v00 ------→ v10 . . v_next
      *              edge_u0
      */
     SubPatch::Edge &edge_v0 = edges[mod(corner + face.num_corners - 1, face.num_corners)];
@@ -543,11 +543,11 @@ void DiagSplit::split_ngon(const Mesh::SubdFace &face,
 
 void DiagSplit::split_patches(const Patch *patches, const size_t patches_byte_stride)
 {
-  // TODO: reuse edge factor vertex position computations
-  // TODO: support not splitting n-gons if not needed
-  // TODO: multithreading
+  /* TODO: reuse edge factor vertex position computations. */
+  /* TODO: support not splitting n-gons if not needed. */
+  /* TODO: multi-threading. */
 
-  /* Keep base mesh vertices, create new triangels. */
+  /* Keep base mesh vertices, create new triangles. */
   num_verts = params.mesh->get_num_subd_base_verts();
   num_triangles = 0;
 

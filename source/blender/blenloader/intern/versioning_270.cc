@@ -1024,9 +1024,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
       bool enabled = false;
 
-      /* Ensure that the datablock's onion-skinning toggle flag
-       * stays in sync with the status of the actual layers
-       */
+      /* Ensure that the data-block's onion-skinning toggle flag
+       * stays in sync with the status of the actual layers. */
       LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
         if (gpl->flag & GP_LAYER_ONIONSKIN) {
           enabled = true;

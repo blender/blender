@@ -104,11 +104,11 @@ ccl_device_inline bool curve_custom_intersect(const hiprtRay &ray,
 
   const int object_id = kernel_data_fetch(user_instance_id, hit.instanceID);
 
-  /* data_offset.x: where the data (prim id, type )for the geometry of the current object begins
+  /* `data_offset.x`: where the data (prim id, type )for the geometry of the current object begins
    * the prim_id that is in hiprtHit hit is local to the particular geometry so we add the above
-   * ofstream to map prim id in hiprtHit to the one compatible to what next stage expects
-   * data_offset.y: the offset that has to be added to a local primitive to get the global
-   * primitive id = kernel_data_fetch(object_prim_offset, object_id); */
+   * `ofstream` to map prim id in hiprtHit to the one compatible to what next stage expects
+   * `data_offset.y`: the offset that has to be added to a local primitive to get the global
+   * `primitive id = kernel_data_fetch(object_prim_offset, object_id);` */
   const int2 data_offset = kernel_data_fetch(custom_prim_info_offset, object_id);
 
   const int prim_offset = data_offset.y;

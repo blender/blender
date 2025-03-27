@@ -296,7 +296,7 @@ void VKCommandBuilder::groups_build_commands(VKRenderGraph &render_graph,
                 << group_node_handles.last() << ", node_pre_barrier=(" << to_string_barrier(barrier)
                 << ")\n";
 #endif
-        // TODO: Barrier should already contain the changes for local read.
+        /* TODO: Barrier should already contain the changes for local read. */
         send_pipeline_barriers(command_buffer, barrier, true);
       }
 

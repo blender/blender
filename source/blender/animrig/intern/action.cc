@@ -3143,7 +3143,7 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
        * the animated ID.
        *
        * This line was added here for now, to fix #136388 with minimal impact on
-       * other code, so that the fix can be easily backported to Blender 4.4. */
+       * other code, so that the fix can be easily back-ported to Blender 4.4. */
       DEG_id_tag_update(user, ID_RECALC_ANIMATION);
       return true;
     };

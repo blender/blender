@@ -533,8 +533,8 @@ class MaterialImportPollInvoker : public USDHookInvoker {
 
   void call_hook(PyObject *hook_obj) override
   {
-    // If we already know that one of the registered hook classes can import the material
-    // because it returned true in a previous invocation of the callback, we skip the call.
+    /* If we already know that one of the registered hook classes can import the material
+     * because it returned true in a previous invocation of the callback, we skip the call. */
     if (!result_) {
       result_ = python::call_method<bool>(
           hook_obj, function_name(), REF(hook_context_), usd_material_);

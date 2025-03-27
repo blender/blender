@@ -284,7 +284,7 @@ enum {
    * to be a Hyper modifier, see !136340.
    *
    * Note that this is currently only supported on Wayland & X11
-   * but could could be supported on other platforms if desired.
+   * but could be supported on other platforms if desired.
    */
   KM_HYPER = (1 << 4),
 };

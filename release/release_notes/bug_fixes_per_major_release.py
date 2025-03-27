@@ -541,7 +541,7 @@ def version_extraction(report_body: str) -> tuple[list[str], list[str]]:
         if lower_line.startswith('work'):
             # Use `work` to be able to detect both "worked" and "working".
             if (not example_in_line) and not ("brok" in lower_line):
-                # Don't add the line to the working_lines if it contains the letters "brok"
+                # Don't add the line to the working_lines if it contains the letters `brok`.
                 # because it means the user probably wrote something like "Worked: It was also broken in X.X"
                 # which lead to incorrect information.
                 working_lines += f'{line}\n'
