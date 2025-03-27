@@ -245,6 +245,13 @@ struct GeometrySet {
    * instances so that they can be owned.
    */
   void ensure_owns_all_data();
+  /**
+   * Typically, multiple #GeometrySet may share the same #GeometryComponent. This is fine as long
+   * as we can guarantee that the data is read-only. However, if some geometry is available in
+   * Python, that guarantee is not possible currently. For that case it can make sense that the
+   * #GeometrySet is the unique owner of the geometries it contains.
+   */
+  void ensure_no_shared_components();
 
   using AttributeForeachCallback = FunctionRef<void(StringRef attribute_id,
                                                     const AttributeMetaData &meta_data,

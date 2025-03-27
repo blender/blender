@@ -296,6 +296,15 @@ bool GeometrySet::owns_direct_data() const
   return true;
 }
 
+void GeometrySet::ensure_no_shared_components()
+{
+  for (const int i : IndexRange(this->components_.size())) {
+    if (components_[i]) {
+      this->get_component_for_write(GeometryComponent::Type(i));
+    }
+  }
+}
+
 const Mesh *GeometrySet::get_mesh() const
 {
   const MeshComponent *component = this->get_component<MeshComponent>();
