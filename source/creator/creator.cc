@@ -28,6 +28,7 @@
 
 #include "DNA_genfile.h"
 
+#include "BLI_fftw.hh"
 #include "BLI_string.h"
 #include "BLI_system.h"
 #include "BLI_task.h"
@@ -474,6 +475,9 @@ int main(int argc,
 
   /* After parsing number of threads argument. */
   BLI_task_scheduler_init();
+
+  /* Initialize FFTW threading support. */
+  blender::fftw::initialize_float();
 
 #ifndef WITH_PYTHON_MODULE
   /* The settings pass includes:

@@ -472,7 +472,9 @@ if(WITH_FFTW3)
       ${FFTW3}/lib/fftw3_threads.lib
       ${FFTW3}/lib/fftw3f_threads.lib
     )
-    set(WITH_FFTW3_THREADS_SUPPORT ON)
+    set(WITH_FFTW3_THREADS_F_SUPPORT ON)
+  else()
+    set(WITH_FFTW3_THREADS_F_SUPPORT OFF)
   endif()
   set(FFTW3_INCLUDE_DIRS ${FFTW3}/include)
   set(FFTW3_LIBPATH ${FFTW3}/lib)

@@ -1949,7 +1949,6 @@ class GlareOperation : public NodeOperation {
   Result execute_fog_glow(const Result &highlights)
   {
 #if defined(WITH_FFTW3)
-    fftw::initialize_float();
 
     const int kernel_size = compute_fog_glow_kernel_size(highlights);
 
