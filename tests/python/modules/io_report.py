@@ -337,9 +337,13 @@ class Report:
             elif isinstance(v, int):
                 desc.write(f" int:{k}={v}")
             elif isinstance(v, float):
-                desc.write(f" fl:{k}={v:.3f}")
+                desc.write(f" fl:{k}={fmtf(v)}")
+            elif len(v) == 2:
+                desc.write(f" f2:{k}=({fmtf(v[0])}, {fmtf(v[1])})")
             elif len(v) == 3:
-                desc.write(f" f3:{k}=({v[0]:.3f}, {v[1]:.3f}, {v[2]:.3f})")
+                desc.write(f" f3:{k}=({fmtf(v[0])}, {fmtf(v[1])}, {fmtf(v[2])})")
+            elif len(v) == 4:
+                desc.write(f" f4:{k}=({fmtf(v[0])}, {fmtf(v[1])}, {fmtf(v[2])}, {fmtf(v[3])})")
             else:
                 desc.write(f" o:{k}={str(v)}")
         if had_any:
@@ -641,6 +645,10 @@ class Report:
                         desc.write(f" parent:'{bone.parent.name}'")
                     desc.write(
                         f" h:({fmtf(bone.head[0])}, {fmtf(bone.head[1])}, {fmtf(bone.head[2])}) t:({fmtf(bone.tail[0])}, {fmtf(bone.tail[1])}, {fmtf(bone.tail[2])})")
+                    if bone.use_connect:
+                        desc.write(f" connect")
+                    if not bone.use_deform:
+                        desc.write(f" no-deform")
                     if bone.inherit_scale != 'FULL':
                         desc.write(f" inh_scale:{bone.inherit_scale}")
                     if bone.head_radius > 0.0 or bone.tail_radius > 0.0:
