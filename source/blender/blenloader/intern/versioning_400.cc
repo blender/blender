@@ -100,6 +100,8 @@
 
 #include "BLT_translation.hh"
 
+#include "RNA_access.hh"
+
 #include "BLO_read_write.hh"
 #include "BLO_readfile.hh"
 
@@ -2097,6 +2099,41 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  /* For each F-Curve, set the F-Curve flags based on the property type it animates. This is to
+   * correct F-Curves created while the bug (#136347) was in active use. Since this bug did not
+   * appear before 4.4, and this versioning code has a bit of a performance impact (going over all
+   * F-Curves of all Actions, and resolving them all to their RNA properties), it will be skipped
+   * if the blend file is old enough to not be affected. */
+  if (MAIN_VERSION_FILE_ATLEAST(bmain, 404, 0) && !MAIN_VERSION_FILE_ATLEAST(bmain, 405, 13)) {
+    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
+      blender::animrig::Action &action = dna_action->wrap();
+      for (const blender::animrig::Slot *slot : action.slots()) {
+        blender::Span<ID *> slot_users = slot->users(*bmain);
+        if (slot_users.is_empty()) {
+          /* If nothing is using this slot, the RNA paths cannot be resolved, and so there
+           * is no way to find the animated property type. */
+          continue;
+        }
+        blender::animrig::foreach_fcurve_in_action_slot(action, slot->handle, [&](FCurve &fcurve) {
+          /* Loop over all slot users, because when the slot is shared, not all F-Curves may
+           * resolve on all users. For example, a custom property might only exist on a subset of
+           * the users.*/
+          for (ID *slot_user : slot_users) {
+            PointerRNA slot_user_ptr = RNA_id_pointer_create(slot_user);
+            PointerRNA ptr;
+            PropertyRNA *prop;
+            if (!RNA_path_resolve_property(&slot_user_ptr, fcurve.rna_path, &ptr, &prop)) {
+              continue;
+            }
+
+            blender::animrig::update_autoflags_fcurve_direct(&fcurve, RNA_property_type(prop));
+            break;
+          }
+        });
+      }
+    }
   }
 
   /**
