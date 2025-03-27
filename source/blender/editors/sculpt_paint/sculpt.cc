@@ -6597,21 +6597,41 @@ void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
                                       Vector<float> &r_factors,
                                       Vector<float> &r_distances)
 {
+  const Span<int> verts = node.verts();
+  r_factors.resize(verts.size());
+  r_distances.resize(verts.size());
+
+  calc_factors_common_mesh_indexed(depsgraph,
+                                   brush,
+                                   object,
+                                   attribute_data,
+                                   vert_positions,
+                                   vert_normals,
+                                   node,
+                                   r_factors.as_mutable_span(),
+                                   r_distances.as_mutable_span());
+}
+void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
+                                      const Brush &brush,
+                                      const Object &object,
+                                      const MeshAttributeData &attribute_data,
+                                      const Span<float3> vert_positions,
+                                      const Span<float3> vert_normals,
+                                      const bke::pbvh::MeshNode &node,
+                                      const MutableSpan<float> factors,
+                                      const MutableSpan<float> distances)
+{
   const SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
 
-  r_factors.resize(verts.size());
-  const MutableSpan<float> factors = r_factors;
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
-  r_distances.resize(verts.size());
-  const MutableSpan<float> distances = r_distances;
   calc_brush_distances(
       ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -7765,16 +7785,21 @@ GroupedSpan<BMVert *> calc_vert_neighbors(Set<BMVert *, 0> verts,
   return GroupedSpan<BMVert *>(r_offset_data.as_span(), r_data.as_span());
 }
 
-GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
-                                              const Span<int> corner_verts,
-                                              const GroupedSpan<int> vert_to_face,
-                                              const BitSpan boundary_verts,
-                                              const Span<bool> hide_poly,
-                                              const Span<int> verts,
-                                              Vector<int> &r_offset_data,
-                                              Vector<int> &r_data)
+template<bool use_factors>
+static GroupedSpan<int> calc_vert_neighbors_interior_impl(const OffsetIndices<int> faces,
+                                                          const Span<int> corner_verts,
+                                                          const GroupedSpan<int> vert_to_face,
+                                                          const BitSpan boundary_verts,
+                                                          const Span<bool> hide_poly,
+                                                          const Span<int> verts,
+                                                          const Span<float> factors,
+                                                          Vector<int> &r_offset_data,
+                                                          Vector<int> &r_data)
 {
   BLI_assert(corner_verts.size() == faces.total_size());
+  if constexpr (use_factors) {
+    BLI_assert(verts.size() == factors.size());
+  }
 
   r_offset_data.resize(verts.size() + 1);
   r_data.clear();
@@ -7783,6 +7808,11 @@ GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
     const int vert = verts[i];
     const int vert_start = r_data.size();
     r_offset_data[i] = vert_start;
+    if constexpr (use_factors) {
+      if (factors[i] == 0.0f) {
+        continue;
+      }
+    }
     append_neighbors_to_vector(faces, corner_verts, vert_to_face, hide_poly, vert, r_data);
 
     if (boundary_verts[vert]) {
@@ -7802,6 +7832,47 @@ GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
   }
   r_offset_data.last() = r_data.size();
   return GroupedSpan<int>(r_offset_data.as_span(), r_data.as_span());
+}
+
+GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
+                                              const Span<int> corner_verts,
+                                              const GroupedSpan<int> vert_to_face,
+                                              const BitSpan boundary_verts,
+                                              const Span<bool> hide_poly,
+                                              const Span<int> verts,
+                                              const Span<float> factors,
+                                              Vector<int> &r_offset_data,
+                                              Vector<int> &r_data)
+{
+  return calc_vert_neighbors_interior_impl<true>(faces,
+                                                 corner_verts,
+                                                 vert_to_face,
+                                                 boundary_verts,
+                                                 hide_poly,
+                                                 verts,
+                                                 factors,
+                                                 r_offset_data,
+                                                 r_data);
+}
+
+GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
+                                              const Span<int> corner_verts,
+                                              const GroupedSpan<int> vert_to_face,
+                                              const BitSpan boundary_verts,
+                                              const Span<bool> hide_poly,
+                                              const Span<int> verts,
+                                              Vector<int> &r_offset_data,
+                                              Vector<int> &r_data)
+{
+  return calc_vert_neighbors_interior_impl<false>(faces,
+                                                  corner_verts,
+                                                  vert_to_face,
+                                                  boundary_verts,
+                                                  hide_poly,
+                                                  verts,
+                                                  {},
+                                                  r_offset_data,
+                                                  r_data);
 }
 
 void calc_vert_neighbors_interior(const OffsetIndices<int> faces,
