@@ -6,6 +6,8 @@
  * \ingroup spseq
  */
 
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
@@ -71,6 +73,7 @@
 
 /* Own include. */
 #include "sequencer_intern.hh"
+#include <cstddef>
 
 namespace blender::ed::vse {
 
@@ -1203,23 +1206,24 @@ void SEQUENCER_OT_refresh_all(wmOperatorType *ot)
 /** \name Reassign Inputs Operator
  * \{ */
 
-bool strip_effect_get_new_inputs(Scene *scene,
-                                 bool ignore_active,
-                                 int num_inputs,
-                                 Strip **r_seq1,
-                                 Strip **r_seq2,
-                                 const char **r_error_str)
+StringRef effect_inputs_validate(const VectorSet<Strip *> &inputs, int num_inputs)
 {
-  Editing *ed = seq::editing_get(scene);
-  Strip *seq1 = nullptr, *seq2 = nullptr;
-
-  *r_error_str = nullptr;
-
-  if (num_inputs == 0) {
-    *r_seq1 = *r_seq2 = nullptr;
-    return true;
+  if (inputs.size() > 2) {
+    return "Cannot apply effect to more than 2 sequence strips with video content";
   }
 
+  if (num_inputs == 2 && inputs.size() != 2) {
+    return "Exactly 2 selected sequence strips with video content are needed";
+  }
+  if (num_inputs == 1 && inputs.size() != 1) {
+    return "Exactly one selected sequence strip with video content is needed";
+  }
+  return "";
+}
+
+VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene, bool ignore_active)
+{
+  Editing *ed = seq::editing_get(scene);
   blender::VectorSet<Strip *> new_inputs = seq::query_selected_strips(ed->seqbasep);
   /* Ignore sound strips for now (avoids unnecessary errors when connected strips are
    * selected together, and the intent to operate on strips with video content is clear). */
@@ -1232,39 +1236,13 @@ bool strip_effect_get_new_inputs(Scene *scene,
     new_inputs.remove_if([&](Strip *strip) { return strip == active_strip; });
   }
 
-  if (new_inputs.size() > 2) {
-    *r_error_str = N_("Cannot apply effect to more than 2 sequence strips with video content");
-    return false;
-  }
-
-  if (num_inputs == 2) {
-    if (new_inputs.size() != 2) {
-      *r_error_str = N_("Exactly 2 selected sequence strips with video content are needed");
-      return false;
-    }
-    seq1 = new_inputs[0];
-    seq2 = new_inputs[1];
-  }
-  else if (num_inputs == 1) {
-    if (new_inputs.size() != 1) {
-      *r_error_str = N_("Exactly one selected sequence strip with video content is needed");
-      return false;
-    }
-    seq1 = new_inputs[0];
-  }
-
-  *r_seq1 = seq1;
-  *r_seq2 = seq2;
-
-  return true;
+  return new_inputs;
 }
 
 static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Strip *seq1, *seq2;
   Strip *active_strip = seq::select_active_get(scene);
-  const char *error_msg;
   const int num_inputs = seq::effect_get_num_inputs(active_strip->type);
 
   if (num_inputs == 0) {
@@ -1272,10 +1250,17 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  if (!strip_effect_get_new_inputs(scene, true, num_inputs, &seq1, &seq2, &error_msg)) {
-    BKE_report(op->reports, RPT_ERROR, error_msg);
+  VectorSet<Strip *> inputs = strip_effect_get_new_inputs(scene, true);
+  StringRef error_msg = effect_inputs_validate(inputs, num_inputs);
+
+  if (!error_msg.is_empty()) {
+    BKE_report(op->reports, RPT_ERROR, error_msg.data());
     return OPERATOR_CANCELLED;
   }
+
+  Strip *seq1 = inputs[0];
+  Strip *seq2 = inputs.size() == 2 ? inputs[1] : nullptr;
+
   /* Check if reassigning would create recursivity. */
   if (seq::relations_render_loop_check(seq1, active_strip) ||
       seq::relations_render_loop_check(seq2, active_strip))
@@ -1290,8 +1275,8 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
   int old_start = active_strip->start;
 
   /* Force time position update for reassigned effects.
-   * TODO(Richard): This is because internally startdisp is still used, due to poor performance of
-   * mapping effect range to inputs. This mapping could be cached though. */
+   * TODO(Richard): This is because internally startdisp is still used, due to poor performance
+   * of mapping effect range to inputs. This mapping could be cached though. */
   seq::strip_lookup_invalidate(scene->ed);
   seq::time_left_handle_frame_set(scene, seq1, seq::time_left_handle_frame_get(scene, seq1));
 
@@ -1795,7 +1780,6 @@ static wmOperatorStatus sequencer_delete_invoke(bContext *C, wmOperator *op, con
 
 void SEQUENCER_OT_delete(wmOperatorType *ot)
 {
-
   /* Identifiers. */
   ot->name = "Delete Strips";
   ot->idname = "SEQUENCER_OT_delete";
@@ -1868,7 +1852,6 @@ static wmOperatorStatus sequencer_offset_clear_exec(bContext *C, wmOperator * /*
 
 void SEQUENCER_OT_offset_clear(wmOperatorType *ot)
 {
-
   /* Identifiers. */
   ot->name = "Clear Strip Offset";
   ot->idname = "SEQUENCER_OT_offset_clear";
