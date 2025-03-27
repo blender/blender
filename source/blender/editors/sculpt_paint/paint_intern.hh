@@ -484,6 +484,19 @@ bool facemask_paint_poll(bContext *C);
 
 namespace blender::ed::sculpt_paint {
 
+/**
+ * Determines whether a given symmetry pass is valid.
+ *
+ * Uses the #ePaintSymmetryFlags enum.
+ *
+ * symm is a bit combination of XYZ.
+ * 1 is X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ
+ */
+inline bool is_symmetry_iteration_valid(const char i, const char symm)
+{
+  return i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5)));
+}
+
 inline float3 symmetry_flip(const float3 &src, const ePaintSymmetryFlags symm)
 {
   float3 dst;

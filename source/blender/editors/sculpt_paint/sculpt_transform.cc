@@ -478,7 +478,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
 
   threading::EnumerableThreadSpecific<TransformLocalData> all_tls;
   for (ePaintSymmetryFlags symmpass = PAINT_SYMM_NONE; symmpass <= symm; symmpass++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symmpass, symm)) {
+    if (!is_symmetry_iteration_valid(symmpass, symm)) {
       continue;
     }
 

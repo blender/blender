@@ -574,7 +574,7 @@ Vector<int> find_symm_verts_mesh(const Depsgraph &depsgraph,
 
   const float3 location = positions[original_vert];
   for (int symm_it = 1; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+    if (!is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
     const float3 symm_location = symmetry_flip(location, ePaintSymmetryFlags(symm_it));
@@ -607,7 +607,7 @@ Vector<int> find_symm_verts_grids(const Object &object,
   const Span<float3> positions = subdiv_ccg.positions;
   const float3 location = positions[original_vert];
   for (int symm_it = 1; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+    if (!is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
     const float3 symm_location = symmetry_flip(location, ePaintSymmetryFlags(symm_it));
@@ -639,7 +639,7 @@ Vector<int> find_symm_verts_bmesh(const Object &object,
   const BMVert *original_bm_vert = BM_vert_at_index(&bm, original_vert);
   const float3 location = original_bm_vert->co;
   for (int symm_it = 1; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+    if (!is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
     const float3 symm_location = symmetry_flip(location, ePaintSymmetryFlags(symm_it));
@@ -2162,7 +2162,7 @@ static void find_active_connected_components_from_vert(const Depsgraph &depsgrap
 
   int valid_index = 0;
   for (int symm_it = 0; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+    if (!is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
     expand_cache.active_connected_islands[symm_it] = islands::vert_id_get(ss,

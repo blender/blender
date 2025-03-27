@@ -648,7 +648,7 @@ static bool vert_inside_brush_radius(const float3 &vertex,
                                      char symm)
 {
   for (char i = 0; i <= symm; ++i) {
-    if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
+    if (is_symmetry_iteration_valid(i, symm)) {
       const float3 location = symmetry_flip(br_co, ePaintSymmetryFlags(i));
       if (math::distance(location, vertex) < radius) {
         return true;

@@ -1940,10 +1940,8 @@ static void vpaint_do_symmetrical_brush_actions(bContext *C,
 
   cache.symmetry = symm;
 
-  /* symm is a bit combination of XYZ - 1 is mirror
-   * X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   for (i = 1; i <= symm; i++) {
-    if (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5))) {
+    if (is_symmetry_iteration_valid(i, symm)) {
       const ePaintSymmetryFlags symm_pass = ePaintSymmetryFlags(i);
       cache.mirror_symmetry_pass = symm_pass;
       cache.radial_symmetry_pass = 0;

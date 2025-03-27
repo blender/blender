@@ -1121,7 +1121,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
   float symm_rot_mat[4][4];
 
   for (int i = 0; i <= symm; i++) {
-    if (i == 0 || (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5)))) {
+    if (is_symmetry_iteration_valid(i, symm)) {
 
       /* Axis Symmetry. */
       location = symmetry_flip(true_location, ePaintSymmetryFlags(i));
