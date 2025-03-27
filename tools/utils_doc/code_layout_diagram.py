@@ -83,7 +83,8 @@ ARROW_DOWN_AND_SIDEWAYS = (
 class SectionData:
     heading: str
     source_code_base: str
-    source_code_call_sibling_modules: bool
+    # Don't draw any arrows when None.
+    source_code_call_sibling_modules: bool | None
     source_code_dirs: list
 
 
@@ -164,7 +165,7 @@ SECTIONS = (
             ("scene", "Tools for scene manipulation (add/copy/remove)."),
             ("sculpt_paint", "Tools for sculpting and painting."),
             ("sound", "Tools for sound manipulation, packing, unpacking & mixing down audio."),
-            ("transform", "Interactive transform and transform implementations (rotate, scal, move ... etc)."),
+            ("transform", "Interactive transform and transform implementations (rotate, scale, move ... etc)."),
             ("uvedit", "Mesh UV editing tools for copy/paste, selection & packing."),
         ],
     ),
@@ -352,7 +353,7 @@ SECTIONS = (
     ),
     SectionData(
         heading="Operating system",
-        source_code_call_sibling_modules=False,
+        source_code_call_sibling_modules=None,
         source_code_base="",
         source_code_dirs=[
             ("GPU Driver", "OpenGL (or Metal on Apple)."),
@@ -364,7 +365,7 @@ SECTIONS = (
 
     SectionData(
         heading="Other Directories",
-        source_code_call_sibling_modules=False,
+        source_code_call_sibling_modules=None,
         source_code_base="",
         source_code_dirs=[
             ("build_files", "Files used by CMake, the build-bot & utilities for packaging blender builds."),
@@ -864,7 +865,7 @@ def draw_legend(scene, *, step_y, legend_data, text):
     return box_body
 
 
-def draw_sub_section(scene, *, step_y, section_data, is_last):
+def draw_sub_section(scene, *, step_y, section_data,):
 
     box_sub_heading, _ = draw_text_centered(
         scene,
@@ -901,7 +902,7 @@ def draw_sub_section(scene, *, step_y, section_data, is_last):
     box_dirs = draw_directories(scene, box_body, section_data.source_code_dirs)
 
     # Draw an arrow on the right hand side.
-    if not is_last:
+    if section_data.source_code_call_sibling_modules is not None:
         draw_arrow(
             scene,
             location=(PAGE_WIDTH_HALF - 0.175, step_y - 0.25),
@@ -1120,7 +1121,6 @@ def main():
             scene,
             step_y=step_y,
             section_data=section_data,
-            is_last=section_data is SECTIONS[-1],
         )
         step_y = box.min_y - sub_section_gap_y
 
