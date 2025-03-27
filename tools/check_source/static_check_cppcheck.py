@@ -51,7 +51,7 @@ CHECKER_EXCLUDE_SOURCE_FILES_EXT = (
 
 # To add files use a relative path.
 CHECKER_EXCLUDE_SOURCE_FILES = set(os.path.join(*f.split("/")) for f in (
-    "source/blender/draw/engines/eevee_next/eevee_lut.cc",
+    "source/blender/draw/engines/eevee/eevee_lut.cc",
     # Hangs for hours CPPCHECK-2.14.0.
     "intern/cycles/blender/output_driver.cpp",
 ))
