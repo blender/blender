@@ -244,6 +244,9 @@ static void translate_gizmos_edit_hints(bke::GizmoEditHints &edit_hints, const f
 
 void translate_geometry(bke::GeometrySet &geometry, const float3 translation)
 {
+  if (math::is_zero(translation)) {
+    return;
+  }
   if (Curves *curves = geometry.get_curves_for_write()) {
     curves->geometry.wrap().translate(translation);
   }
@@ -273,6 +276,9 @@ void translate_geometry(bke::GeometrySet &geometry, const float3 translation)
 std::optional<TransformGeometryErrors> transform_geometry(bke::GeometrySet &geometry,
                                                           const float4x4 &transform)
 {
+  if (transform == float4x4::identity()) {
+    return std::nullopt;
+  }
   TransformGeometryErrors errors;
   if (Curves *curves = geometry.get_curves_for_write()) {
     curves->geometry.wrap().transform(transform);
