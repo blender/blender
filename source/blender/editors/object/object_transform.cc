@@ -974,7 +974,7 @@ static wmOperatorStatus apply_objects_internal(bContext *C,
        *    sacrifice for having an easy way to do this.
        */
 
-      if ((apply_loc == false) && (apply_rot == false) && (apply_scale == true)) {
+      if (apply_scale) {
         float max_scale = max_fff(fabsf(ob->scale[0]), fabsf(ob->scale[1]), fabsf(ob->scale[2]));
         ob->empty_drawsize *= max_scale;
       }
