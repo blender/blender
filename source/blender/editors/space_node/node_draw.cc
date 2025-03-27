@@ -2203,7 +2203,9 @@ void node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[4],
       center.y - radius,
       center.y + radius,
   };
-  float outline_color[4] = {0};
+
+  ColorTheme4f outline_color;
+  node_socket_outline_color_get(sock->flag & SELECT, sock->type, outline_color);
 
   node_draw_nodesocket(&draw_rect,
                        color,
