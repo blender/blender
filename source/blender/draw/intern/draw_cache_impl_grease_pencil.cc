@@ -389,12 +389,8 @@ static void grease_pencil_weight_batch_ensure(Object &object,
     drawing_start_offset += curves.points_num();
   }
 
-  cache->edit_line_indices = GPU_indexbuf_calloc();
-  GPU_indexbuf_build_in_place_ex(
-      &lines_builder, 0, total_points_num, true, cache->edit_line_indices);
-  cache->edit_points_indices = GPU_indexbuf_calloc();
-  GPU_indexbuf_build_in_place_ex(
-      &points_builder, 0, total_points_num, false, cache->edit_points_indices);
+  cache->edit_line_indices = GPU_indexbuf_build_ex(&lines_builder, 0, total_points_num, true);
+  cache->edit_points_indices = GPU_indexbuf_build_ex(&points_builder, 0, total_points_num, false);
 
   /* Create the batches. */
   cache->edit_points = GPU_batch_create(
@@ -1041,12 +1037,8 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     }
   }
 
-  cache->edit_line_indices = GPU_indexbuf_calloc();
-  GPU_indexbuf_build_in_place_ex(
-      &lines_builder, 0, total_points_num, true, cache->edit_line_indices);
-  cache->edit_points_indices = GPU_indexbuf_calloc();
-  GPU_indexbuf_build_in_place_ex(
-      &points_builder, 0, total_points_num, false, cache->edit_points_indices);
+  cache->edit_line_indices = GPU_indexbuf_build_ex(&lines_builder, 0, total_points_num, true);
+  cache->edit_points_indices = GPU_indexbuf_build_ex(&points_builder, 0, total_points_num, false);
 
   /* Create the batches */
   cache->edit_points = GPU_batch_create(
@@ -1438,8 +1430,7 @@ static void grease_pencil_wire_batch_ensure(Object &object,
     }
   });
 
-  gpu::IndexBuf *ibo = GPU_indexbuf_calloc();
-  GPU_indexbuf_build_in_place_ex(&elb, 0, max_index, true, ibo);
+  gpu::IndexBuf *ibo = GPU_indexbuf_build_ex(&elb, 0, max_index, true);
 
   cache->lines_batch = GPU_batch_create_ex(
       GPU_PRIM_LINE_STRIP, cache->vbo, ibo, GPU_BATCH_OWNS_INDEX);

@@ -399,8 +399,7 @@ static gpu::IndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
       BLI_assert(line_index == edge_len);
     }
 
-    cache->edges = GPU_indexbuf_calloc();
-    GPU_indexbuf_build_in_place_ex(&builder, 0, vert_len, false, cache->edges);
+    cache->edges = GPU_indexbuf_build_ex(&builder, 0, vert_len, false);
   }
 
   return cache->edges;
