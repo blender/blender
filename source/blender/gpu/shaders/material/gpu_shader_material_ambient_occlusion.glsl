@@ -10,6 +10,6 @@ void node_ambient_occlusion(vec4 color,
                             out vec4 result_color,
                             out float result_ao)
 {
-  result_ao = ambient_occlusion_eval(normal, dist, inverted, sample_count);
+  result_ao = ambient_occlusion_eval(safe_normalize(normal), dist, inverted, sample_count);
   result_color = result_ao * color;
 }
