@@ -402,26 +402,6 @@ VKThreadData &VKDevice::current_thread_data()
   return *thread_data;
 }
 
-#if 0
-VKDiscardPool &VKDevice::discard_pool_for_current_thread(bool thread_safe)
-{
-  std::unique_lock lock(resources.mutex, std::defer_lock);
-  if (!thread_safe) {
-    lock.lock();
-  }
-  pthread_t current_thread_id = pthread_self();
-  if (BLI_thread_is_main()) {
-    for (VKThreadData *thread_data : thread_data_) {
-      if (pthread_equal(thread_data->thread_id, current_thread_id)) {
-        return thread_data->resource_pool_get().discard_pool;
-      }
-    }
-  }
-
-  return orphaned_data;
-}
-#endif
-
 void VKDevice::context_register(VKContext &context)
 {
   contexts_.append(std::reference_wrapper(context));
