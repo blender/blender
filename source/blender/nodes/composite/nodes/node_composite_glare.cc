@@ -91,12 +91,19 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description("The smoothness of the extracted highlights")
       .compositor_expects_single_value();
-  highlights_panel.add_input<decl::Float>("Maximum", "Maximum Highlights")
-      .default_value(0.0f)
+
+  PanelDeclarationBuilder &supress_highlights_panel =
+      highlights_panel.add_panel("Suppress").default_closed(true);
+  supress_highlights_panel.add_input<decl::Bool>("Suppress", "Suppress Highlights")
+      .default_value(false)
+      .panel_toggle()
+      .description("Suppress bright highlights")
+      .compositor_expects_single_value();
+  supress_highlights_panel.add_input<decl::Float>("Maximum", "Maximum Highlights")
+      .default_value(10.0f)
       .min(0.0f)
       .description(
-          "Suppresses bright highlights such that their brightness are not larger than this "
-          "value. Zero disables suppression and has no effect")
+          "Suppresses bright highlights such that their brightness are not larger than this value")
       .compositor_expects_single_value();
 
   PanelDeclarationBuilder &mix_panel = b.add_panel("Adjust");
@@ -346,16 +353,15 @@ class GlareOperation : public NodeOperation {
 
   float get_maximum_brightness()
   {
-    const float max_highlights = this->get_max_highlights();
-    /* Disabled when zero. Return the maximum possible brightness. */
-    if (max_highlights == 0.0f) {
+    /* Suppression disabled, return the maximum possible brightness. */
+    if (!this->get_suppress_highlights()) {
       return std::numeric_limits<float>::max();
     }
 
     /* Brightness of the highlights are relative to the threshold, see execute_highlights_cpu, so
      * we add the threshold such that the maximum brightness corresponds to the actual brightness
      * of the computed highlights. */
-    return this->get_threshold() + max_highlights;
+    return this->get_threshold() + this->get_max_highlights();
   }
 
   /* A Quadratic Polynomial smooth minimum function *without* normalization, based on:
@@ -430,6 +436,11 @@ class GlareOperation : public NodeOperation {
   {
     return math::max(0.0f,
                      this->get_input("Highlights Smoothness").get_single_value_default(0.1f));
+  }
+
+  bool get_suppress_highlights()
+  {
+    return this->get_input("Suppress Highlights").get_single_value_default(false);
   }
 
   float get_max_highlights()
