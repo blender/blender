@@ -12,7 +12,6 @@
 #endif
 
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_fftw.hh"
 #include "BLI_hash.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_base.h"
@@ -71,7 +70,6 @@ bool operator==(const FogGlowKernelKey &a, const FogGlowKernelKey &b)
 FogGlowKernel::FogGlowKernel(int kernel_size, int2 spatial_size)
 {
 #if defined(WITH_FFTW3)
-  fftw::initialize_float();
 
   /* The FFTW real to complex transforms utilizes the hermitian symmetry of real transforms and
    * stores only half the output since the other half is redundant, so we only allocate half of
