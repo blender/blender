@@ -79,14 +79,21 @@ class GHOST_IContext {
    * \param context: GHOST context handle of a vulkan context to
    *     get the Vulkan handles from.
    * \param swap_buffers_pre_callback: Function pointer to be called at the beginning of
-   * swapBuffers. Inside this callback the next swap chain image needs to be acquired and filled.
-   * \param swap_buffers_post_callback: Function to be called at th end of swapBuffers. swapBuffers
-   *     can recreate the swap chain. When this is done the application should be informed by those
-   *     changes.
+   *     swapBuffers. Inside this callback the next swap chain image needs to be acquired and
+   *     filled.
+   * \param swap_buffers_post_callback: Function to be called at th end of swapBuffers.
+   *     swapBuffers can recreate the swap chain. When this is done the application should be
+   *     informed by those changes.
+   * \param openxr_acquire_image_callback: Function to be called when an
+   *     image needs to be acquired to be drawn to an OpenXR swap chain.
+   * \param openxr_release_image_callback: Function to be called after an image has been drawn to
+   *     the OpenXR swap chain.
    */
   virtual GHOST_TSuccess setVulkanSwapBuffersCallbacks(
       std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback,
-      std::function<void(void)> swap_buffers_post_callback) = 0;
+      std::function<void(void)> swap_buffers_post_callback,
+      std::function<void(GHOST_VulkanOpenXRData *)> openxr_acquire_framebuffer_image_callback,
+      std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback) = 0;
 #endif
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IContext")

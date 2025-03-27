@@ -24,6 +24,10 @@
 #  include "GHOST_ContextWGL.hh"
 #  include "GHOST_SystemWin32.hh"
 #endif
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_XrGraphicsBindingVulkan.hh"
+#endif
+
 #include "GHOST_C-api.h"
 #include "GHOST_XrException.hh"
 #include "GHOST_Xr_intern.hh"
@@ -123,7 +127,9 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
            (gl_version <= gpu_requirements.maxApiVersionSupported);
   }
 
-  void initFromGhostContext(GHOST_Context &ghost_ctx) override
+  void initFromGhostContext(GHOST_Context &ghost_ctx,
+                            XrInstance /*instance*/,
+                            XrSystemId /*system_id*/) override
   {
 #if defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
     /* WAYLAND/X11 may be dynamically selected at load time but both may also be
@@ -384,7 +390,9 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
   }
 
   void initFromGhostContext(
-      GHOST_Context & /*ghost_ctx*/ /* Remember: This is the OpenGL context! */
+      GHOST_Context & /*ghost_ctx*/ /* Remember: This is the OpenGL context! */,
+      XrInstance /*instance*/,
+      XrSystemId /*system_id*/
       ) override
   {
     oxr_binding.d3d11.type = XR_TYPE_GRAPHICS_BINDING_D3D11_KHR;
@@ -519,6 +527,10 @@ std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
   switch (type) {
     case GHOST_kXrGraphicsOpenGL:
       return std::make_unique<GHOST_XrGraphicsBindingOpenGL>();
+#ifdef WITH_VULKAN_BACKEND
+    case GHOST_kXrGraphicsVulkan:
+      return std::make_unique<GHOST_XrGraphicsBindingVulkan>();
+#endif
 #ifdef WIN32
     case GHOST_kXrGraphicsD3D11:
       return std::make_unique<GHOST_XrGraphicsBindingD3D>(context);

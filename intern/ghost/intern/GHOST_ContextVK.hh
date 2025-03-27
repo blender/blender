@@ -59,6 +59,8 @@ struct GHOST_ContextVK_WindowInfo {
 };
 
 class GHOST_ContextVK : public GHOST_Context {
+  friend class GHOST_XrGraphicsBindingVulkan;
+
  public:
   /**
    * Constructor.
@@ -130,7 +132,10 @@ class GHOST_ContextVK : public GHOST_Context {
 
   GHOST_TSuccess setVulkanSwapBuffersCallbacks(
       std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback,
-      std::function<void(void)> swap_buffers_post_callback) override;
+      std::function<void(void)> swap_buffers_post_callback,
+      std::function<void(GHOST_VulkanOpenXRData *)> openxr_acquire_framebuffer_image_callback,
+      std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback)
+      override;
 
   /**
    * Sets the swap interval for `swapBuffers`.
@@ -151,6 +156,16 @@ class GHOST_ContextVK : public GHOST_Context {
   {
     return GHOST_kFailure;
   };
+
+  /**
+   * Returns if the context is rendered upside down compared to OpenGL.
+   *
+   * Vulkan is always rendered upside down.
+   */
+  bool isUpsideDown() const override
+  {
+    return true;
+  }
 
  private:
 #ifdef _WIN32
@@ -190,6 +205,8 @@ class GHOST_ContextVK : public GHOST_Context {
 
   std::function<void(const GHOST_VulkanSwapChainData *)> swap_buffers_pre_callback_;
   std::function<void(void)> swap_buffers_post_callback_;
+  std::function<void(GHOST_VulkanOpenXRData *)> openxr_acquire_framebuffer_image_callback_;
+  std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback_;
 
   const char *getPlatformSpecificSurfaceExtension() const;
   GHOST_TSuccess createSwapchain();

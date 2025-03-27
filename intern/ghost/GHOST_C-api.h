@@ -1300,11 +1300,17 @@ void GHOST_GetVulkanHandles(GHOST_ContextHandle context, GHOST_VulkanHandles *r_
  * \param swap_buffers_post_callback: Function to be called at th end of swapBuffers. swapBuffers
  *     can recreate the swap chain. When this is done the application should be informed by those
  *     changes.
+ * \param openxr_acquire_image_callback: Function to be called when an image needs to be acquired
+ *     to be drawn to an OpenXR swap chain.
+ * \param openxr_release_image_callback: Function to be called after an image has been drawn to the
+ *     OpenXR swap chain.
  */
 void GHOST_SetVulkanSwapBuffersCallbacks(
     GHOST_ContextHandle context,
     void (*swap_buffers_pre_callback)(const GHOST_VulkanSwapChainData *),
-    void (*swap_buffers_post_callback)(void));
+    void (*swap_buffers_post_callback)(void),
+    void (*openxr_acquire_image_callback)(GHOST_VulkanOpenXRData *),
+    void (*openxr_release_image_callback)(GHOST_VulkanOpenXRData *));
 
 /**
  * Acquire the current swap chain format.

@@ -758,6 +758,20 @@ typedef struct {
 } GHOST_VulkanSwapChainData;
 
 typedef struct {
+  /** Resolution of the framebuffer image. */
+  VkExtent2D extent;
+  /**
+   * Host accessible data containing the image data. Data is stored in the selected swapchain
+   * format.
+   */
+  // NOTE: This is a temporary solution with quite a large performance overhead. The solution we
+  // would like to implement would use VK_KHR_external_memory. The documentation/samples around
+  // using this in our situation is scarce. We will start prototyping in a smaller scale and when
+  // experience is gained, we will implement the solution.
+  void *image_data;
+} GHOST_VulkanOpenXRData;
+
+typedef struct {
   VkInstance instance;
   VkPhysicalDevice physical_device;
   VkDevice device;
@@ -815,6 +829,7 @@ struct GHOST_XrError;
 typedef enum GHOST_TXrGraphicsBinding {
   GHOST_kXrGraphicsUnknown = 0,
   GHOST_kXrGraphicsOpenGL,
+  GHOST_kXrGraphicsVulkan,
 #  ifdef WIN32
   GHOST_kXrGraphicsD3D11,
 #  endif

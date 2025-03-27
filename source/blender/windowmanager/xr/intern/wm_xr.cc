@@ -22,9 +22,7 @@
 
 #include "GHOST_C-api.h"
 
-#ifdef WIN32
-#  include "GPU_platform.hh"
-#endif
+#include "GPU_context.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -67,15 +65,30 @@ bool wm_xr_init(wmWindowManager *wm)
   GHOST_XrErrorHandler(wm_xr_error_handler, &error_customdata);
 
   {
-    const GHOST_TXrGraphicsBinding gpu_bindings_candidates[] = {
-        GHOST_kXrGraphicsOpenGL,
-#ifdef WIN32
-        GHOST_kXrGraphicsD3D11,
+    blender::Vector<GHOST_TXrGraphicsBinding> gpu_bindings_candidates;
+    switch (GPU_backend_get_type()) {
+#ifdef WITH_OPENGL_BACKEND
+      case GPU_BACKEND_OPENGL:
+        gpu_bindings_candidates.append(GHOST_kXrGraphicsOpenGL);
+#  ifdef WIN32
+        gpu_bindings_candidates.append(GHOST_kXrGraphicsD3D11);
+#  endif
+        break;
 #endif
-    };
+
+#ifdef WITH_VULKAN_BACKEND
+      case GPU_BACKEND_VULKAN:
+        gpu_bindings_candidates.append(GHOST_kXrGraphicsVulkan);
+        break;
+#endif
+
+      default:
+        break;
+    }
+
     GHOST_XrContextCreateInfo create_info{
-        /*gpu_binding_candidates*/ gpu_bindings_candidates,
-        /*gpu_binding_candidates_count*/ ARRAY_SIZE(gpu_bindings_candidates),
+        /*gpu_binding_candidates*/ gpu_bindings_candidates.data(),
+        /*gpu_binding_candidates_count*/ uint32_t(gpu_bindings_candidates.size()),
     };
     GHOST_XrContextHandle context;
 

@@ -107,7 +107,9 @@ if(WITH_VULKAN_BACKEND)
 
     intern/GHOST_ContextVK.hh
   )
-
+  list(APPEND INC
+    ../../extern/vulkan_memory_allocator/
+  )
   list(APPEND INC_SYS
     PUBLIC ${VULKAN_INCLUDE_DIRS}
   )
@@ -601,7 +603,19 @@ if(WITH_XR_OPENXR)
     ${XR_OPENXR_SDK_LIBRARIES}
   )
 
-  set(XR_PLATFORM_DEFINES -DXR_USE_GRAPHICS_API_OPENGL)
+  set(XR_PLATFORM_DEFINES
+  )
+  if(WITH_OPENGL_BACKEND)
+    list(APPEND XR_PLATFORM_DEFINES -DXR_USE_GRAPHICS_API_OPENGL)
+  endif()
+  if(WITH_VULKAN_BACKEND)
+    list(APPEND XR_PLATFORM_DEFINES -DXR_USE_GRAPHICS_API_VULKAN)
+    list(APPEND SRC
+      intern/GHOST_XrGraphicsBindingVulkan.cc
+
+      intern/GHOST_XrGraphicsBindingVulkan.hh
+    )
+  endif()
 
   # Add compiler defines as required by the OpenXR specification.
   if(WIN32)

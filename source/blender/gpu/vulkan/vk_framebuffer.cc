@@ -73,12 +73,14 @@ void VKFrameBuffer::bind(bool enabled_srgb)
   }
 
   context.activate_framebuffer(*this);
+  update_size();
+  viewport_reset();
+  scissor_reset();
+
   enabled_srgb_ = enabled_srgb;
   Shader::set_framebuffer_srgb_target(enabled_srgb && srgb_);
   load_stores.fill(default_load_store());
   attachment_states_.fill(GPU_ATTACHMENT_WRITE);
-  viewport_reset();
-  scissor_reset();
 }
 
 void VKFrameBuffer::vk_viewports_append(Vector<VkViewport> &r_viewports) const

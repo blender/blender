@@ -241,7 +241,7 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
               << requirement_str;
     throw GHOST_XrException(strstream.str().data());
   }
-  m_gpu_binding->initFromGhostContext(*m_gpu_ctx);
+  m_gpu_binding->initFromGhostContext(*m_gpu_ctx, m_context->getInstance(), m_oxr->system_id);
 
   XrSessionCreateInfo create_info = {};
   create_info.type = XR_TYPE_SESSION_CREATE_INFO;
