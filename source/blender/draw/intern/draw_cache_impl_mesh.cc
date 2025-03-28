@@ -609,7 +609,7 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode)
       mesh_batch_cache_discard_uvedit(cache);
       break;
     case BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT:
-      discard_buffers(cache, {VBOType::EditData, VBOType::FaceDotEditUVData}, {});
+      discard_buffers(cache, {VBOType::EditUVData, VBOType::FaceDotEditUVData}, {});
       break;
     default:
       BLI_assert(0);
