@@ -539,8 +539,9 @@ void GreasePencilExporter::foreach_stroke_in_layer(const Object &object,
         /* Sample the outline stroke. */
         if (params_.outline_resample_length > 0.0f) {
           VArray<float> resample_lengths = VArray<float>::ForSingle(
-              params_.outline_resample_length, curves.curves_num());
-          outline = geometry::resample_to_length(outline, single_curve_mask, resample_lengths);
+              params_.outline_resample_length, outline.curves_num());
+          outline = geometry::resample_to_length(
+              outline, outline.curves_range(), resample_lengths);
         }
 
         const OffsetIndices outline_points_by_curve = outline.points_by_curve();
