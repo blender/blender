@@ -521,21 +521,18 @@ index a93c58ac2a7..8c682b6d9f2 100644
                      VectorXi &V2E, VectorXi &E2E, VectorXi &boundary, VectorXi &nonmanifold,
                      std::vector<Vector2i> &edge_diff, std::vector<DEdge> &edge_values,
                      std::vector<Vector3i> &face_edgeOrients, std::vector<Vector3i> &face_edgeIds,
-diff --git a/intern/quadriflow/quadriflow_capi.cpp b/intern/quadriflow/quadriflow_capi.cpp
-index fad604f679a..014ac2a5613 100644
---- a/intern/quadriflow/quadriflow_capi.cpp
-+++ b/intern/quadriflow/quadriflow_capi.cpp
-@@ -190,8 +190,11 @@ void QFLOW_quadriflow_remesh(QuadriflowRemeshData *qrd,
-     return;
-   }
+diff --git a/extern/quadriflow/src/optimizer.cpp b/extern/quadriflow/src/optimizer.cpp
+index 1c59ad0f70c..f8836ed0d0e 100644
+--- a/extern/quadriflow/src/optimizer.cpp
++++ b/extern/quadriflow/src/optimizer.cpp
+@@ -1296,7 +1296,9 @@ void Optimizer::optimize_integer_constraints(Hierarchy& mRes, std::map<int, int>
+                 solver = std::make_unique<GurobiFlowHelper>();
+             }
+ #endif
+-            solver->resize(initial.size() + 2, arc_ids.size());
++            /* This used to be arc_ids.size() which is wrong, the loop below adds
++             * exactly arcs.size() edges. */
++            solver->resize(initial.size() + 2, arcs.size());
  
--  /* Compute the final quad geomtry using a maxflow solver */
--  field.ComputeIndexMap();
-+  /* Compute the final quad geometry using a maxflow solver */
-+  if (!field.ComputeIndexMap()) {
-+    /* Error computing the result. */
-+    return;
-+  }
- 
-   if (check_if_canceled(0.9f, update_cb, update_cb_data)) {
-     return;
+             std::set<int> ids;
+             for (int i = 0; i < arcs.size(); ++i) {
