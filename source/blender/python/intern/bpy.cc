@@ -632,6 +632,7 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
       SetFlagItem(DESKTOP_SAMPLE);
       SetFlagItem(INPUT_IME);
       SetFlagItem(TRACKPAD_PHYSICAL_DIRECTION);
+      SetFlagItem(KEYBOARD_HYPER_KEY);
 
 #undef SetFlagItem
       PyObject_SetAttr(self, py_id_capabilities, result);

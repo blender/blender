@@ -164,6 +164,9 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
 
     # Expanded, additional event settings
     if kmi.show_expanded:
+        from _bpy import _wm_capabilities
+        capabilities = _wm_capabilities()
+
         box = col.box()
 
         split = box.split(factor=0.4)
@@ -215,7 +218,7 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
 
             # On systems that don't support Hyper, only show if it's enabled.
             # Otherwise the user may have a key binding that doesn't work and can't be changed.
-            if _platform_supports_hyper_key() or kmi.hyper == 1:
+            if capabilities['KEYBOARD_HYPER_KEY'] or kmi.hyper == 1:
                 subrow.prop(kmi, "hyper_ui", text="Hyper", toggle=True)
 
             subrow.prop(kmi, "key_modifier", text="", event=True)
@@ -234,16 +237,6 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
 _EVENT_TYPES = set()
 _EVENT_TYPE_MAP = {}
 _EVENT_TYPE_MAP_EXTRA = {}
-
-_HAS_HYPER_KEY = None
-
-
-def _platform_supports_hyper_key():
-    global _HAS_HYPER_KEY
-    if _HAS_HYPER_KEY is None:
-        from _bpy import _ghost_backend
-        _HAS_HYPER_KEY = _ghost_backend() in {'WAYLAND', 'X11'}
-    return _HAS_HYPER_KEY
 
 
 def draw_filtered(display_keymaps, filter_type, filter_text, layout):

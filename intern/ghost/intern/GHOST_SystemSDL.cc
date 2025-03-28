@@ -793,7 +793,9 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
           /* No support yet for IME input methods. */
           GHOST_kCapabilityInputIME |
           /* No support for window decoration styles. */
-          GHOST_kCapabilityWindowDecorationStyles));
+          GHOST_kCapabilityWindowDecorationStyles |
+          /* No support for a Hyper modifier key. */
+          GHOST_kCapabilityKeyboardHyperKey));
 }
 
 char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const

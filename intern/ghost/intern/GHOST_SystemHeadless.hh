@@ -49,13 +49,13 @@ class GHOST_SystemHeadless : public GHOST_System {
   }
   GHOST_TCapabilityFlag getCapabilities() const override
   {
-    return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
-                                 /* No windowing functionality supported. */
-                                 ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
-                                   GHOST_kCapabilityPrimaryClipboard |
-                                   GHOST_kCapabilityDesktopSample |
-                                   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityInputIME |
-                                   GHOST_kCapabilityWindowDecorationStyles));
+    return GHOST_TCapabilityFlag(
+        GHOST_CAPABILITY_FLAG_ALL &
+        /* No windowing functionality supported. */
+        ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
+          GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityDesktopSample |
+          GHOST_kCapabilityClipboardImages | GHOST_kCapabilityInputIME |
+          GHOST_kCapabilityWindowDecorationStyles | GHOST_kCapabilityKeyboardHyperKey));
   }
   char *getClipboard(bool /*selection*/) const override
   {

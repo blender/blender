@@ -2274,6 +2274,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityWindowDecorationStyles) {
     flag |= WM_CAPABILITY_WINDOW_DECORATION_STYLES;
   }
+  if (ghost_flag & GHOST_kCapabilityKeyboardHyperKey) {
+    flag |= WM_CAPABILITY_KEYBOARD_HYPER_KEY;
+  }
 
   return flag;
 }
