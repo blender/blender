@@ -65,6 +65,7 @@ static void datadropper_draw_cb(const bContext * /*C*/, ARegion * /*region*/, vo
 {
   DataDropper *ddr = static_cast<DataDropper *>(arg);
   eyedropper_draw_cursor_text_region(ddr->name_pos, ddr->name);
+  ddr->name[0] = '\0';
 }
 
 static int datadropper_init(bContext *C, wmOperator *op)
@@ -140,8 +141,6 @@ static void datadropper_id_sample_pt(
   wmWindow *win_prev = CTX_wm_window(C);
   ScrArea *area_prev = CTX_wm_area(C);
   ARegion *region_prev = CTX_wm_region(C);
-
-  ddr->name[0] = '\0';
 
   if (area) {
     if (ELEM(area->spacetype, SPACE_VIEW3D, SPACE_OUTLINER)) {
@@ -237,14 +236,13 @@ static void datadropper_set_draw_callback_region(ScrArea *area, DataDropper *ddr
 {
   if (area) {
     /* If spacetype changed */
-    if (area->spacetype != ddr->cursor_area->spacetype) {
-      /* Remove old callback */
-      ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
-
+    if (area != ddr->cursor_area) {
       /* Redraw old area */
       ARegion *region = BKE_area_find_region_type(ddr->cursor_area, RGN_TYPE_WINDOW);
       ED_region_tag_redraw(region);
 
+      /* Remove old callback */
+      ED_region_draw_cb_exit(ddr->art, ddr->draw_handle_pixel);
       /* Set draw callback in new region */
       ARegionType *art = BKE_regiontype_from_id(area->type, RGN_TYPE_WINDOW);
 
