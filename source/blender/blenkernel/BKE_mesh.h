@@ -205,10 +205,6 @@ void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb);
 
 /* Vertex level transformations & checks (no evaluated mesh). */
 
-/* basic vertex data functions */
-void BKE_mesh_transform(Mesh *mesh, const float mat[4][4], bool do_keys);
-void BKE_mesh_translate(Mesh *mesh, const float offset[3], bool do_keys);
-
 void BKE_mesh_tessface_clear(Mesh *mesh);
 
 void BKE_mesh_mselect_clear(Mesh *mesh);

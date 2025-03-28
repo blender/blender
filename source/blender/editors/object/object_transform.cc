@@ -869,7 +869,7 @@ static wmOperatorStatus apply_objects_internal(bContext *C,
       }
 
       /* adjust data */
-      BKE_mesh_transform(mesh, mat, true);
+      bke::mesh_transform(*mesh, float4x4(mat), true);
     }
     else if (ob->type == OB_ARMATURE) {
       bArmature *arm = static_cast<bArmature *>(ob->data);
@@ -1451,7 +1451,7 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
         }
 
         negate_v3_v3(cent_neg, cent);
-        BKE_mesh_translate(mesh, cent_neg, true);
+        bke::mesh_translate(*mesh, cent_neg, true);
 
         tot_change++;
         mesh->id.tag |= ID_TAG_DOIT;

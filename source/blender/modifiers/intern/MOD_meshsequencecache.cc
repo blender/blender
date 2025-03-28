@@ -157,7 +157,7 @@ static Mesh *generate_bounding_box_mesh(const std::optional<Bounds<float3>> &bou
     result->totcol = totcol;
   }
 
-  BKE_mesh_translate(result, math::midpoint(bounds->min, bounds->max), false);
+  bke::mesh_translate(*result, math::midpoint(bounds->min, bounds->max), false);
 
   return result;
 }
