@@ -489,7 +489,7 @@ ID *BKE_main_library_weak_reference_find(Main *bmain,
 /**
  * Add library weak reference to ID, referencing the specified library and ID name.
  * For cases where creating a full MainLibraryWeakReferenceMap is unnecessary.*/
-void BKE_main_library_weak_reference_add(ID *id,
+void BKE_main_library_weak_reference_add(ID *local_id,
                                          const char *library_filepath,
                                          const char *library_id_name);
 

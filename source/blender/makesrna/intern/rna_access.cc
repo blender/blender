@@ -1245,13 +1245,13 @@ int RNA_property_array_dimension(const PointerRNA *ptr, PropertyRNA *prop, int l
   return rprop->arraydimension;
 }
 
-int RNA_property_multi_array_length(PointerRNA *ptr, PropertyRNA *prop, int dim)
+int RNA_property_multi_array_length(PointerRNA *ptr, PropertyRNA *prop, int dimension)
 {
   int len[RNA_MAX_ARRAY_DIMENSION];
 
   rna_ensure_property_multi_array_length(ptr, prop, len);
 
-  return len[dim];
+  return len[dimension];
 }
 
 char RNA_property_array_item_char(PropertyRNA *prop, int index)

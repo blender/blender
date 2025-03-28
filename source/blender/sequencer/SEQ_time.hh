@@ -130,7 +130,7 @@ void time_slip_strip(
 /**
  * Get difference between scene and movie strip frame-rate.
  */
-float time_media_playback_rate_factor_get(const Strip *strip, float frames_per_second);
+float time_media_playback_rate_factor_get(const Strip *strip, float scene_fps);
 /**
  * Get the sound offset (if any) and round it to the nearest integer.
  * This is mostly used in places where subframe data is not allowed (like re-timing key positions).
