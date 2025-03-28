@@ -377,7 +377,7 @@ void *imb_alloc_pixels(
   return initialize_pixels ? MEM_callocN(size, alloc_name) : MEM_mallocN(size, alloc_name);
 }
 
-bool IMB_alloc_float_pixels(ImBuf *ibuf, const unsigned int channels, bool initialize_pixels)
+bool IMB_alloc_float_pixels(ImBuf *ibuf, const uint channels, bool initialize_pixels)
 {
   if (ibuf == nullptr) {
     return false;

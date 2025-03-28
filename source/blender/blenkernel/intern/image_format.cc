@@ -917,7 +917,7 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
       im_format->depth = R_IMF_CHAN_DEPTH_16;
       is_depth_set = true;
     }
-    else if (exr_codec == R_IMF_EXR_CODEC_B44 || exr_codec == R_IMF_EXR_CODEC_B44A) {
+    else if (ELEM(exr_codec, R_IMF_EXR_CODEC_B44, R_IMF_EXR_CODEC_B44A)) {
       /* B44 and B44A are only selectable for half precision images, default to ZIP compression */
       exr_codec = R_IMF_EXR_CODEC_ZIP;
     }

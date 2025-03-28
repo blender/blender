@@ -1254,7 +1254,7 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
     /* We could convert only the current gizmo, for now just re-generate. */
     if (view3d_ruler_to_gpencil(C, gzgroup)) {
       /* For immediate update when a ruler annotation layer was added. */
-      WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
+      WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
     }
   }
 

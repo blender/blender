@@ -4729,7 +4729,7 @@ static bool edbm_fill_grid_prepare(BMesh *bm, int offset, int *span_p, const boo
         ele_sort[i].data = v_link;
 
         /* Do not allow the best corner or the diagonally opposite corner to be detected.*/
-        if (i == 0 || i == verts_len / 2) {
+        if (ELEM(i, 0, verts_len / 2)) {
           ele_sort[i].sort_value = 0;
         }
       }
