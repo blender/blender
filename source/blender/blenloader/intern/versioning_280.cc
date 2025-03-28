@@ -3171,12 +3171,12 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       {
         LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
           /* sculpt brushes */
-          GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
-          if ((gset) && (gset->cur_falloff == nullptr)) {
-            gset->cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-            BKE_curvemapping_init(gset->cur_falloff);
-            BKE_curvemap_reset(gset->cur_falloff->cm,
-                               &gset->cur_falloff->clipr,
+          GP_Sculpt_Settings &gset = scene->toolsettings->gp_sculpt;
+          if (gset.cur_falloff == nullptr) {
+            gset.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+            BKE_curvemapping_init(gset.cur_falloff);
+            BKE_curvemap_reset(gset.cur_falloff->cm,
+                               &gset.cur_falloff->clipr,
                                CURVE_PRESET_GAUSS,
                                CURVEMAP_SLOPE_POSITIVE);
           }
@@ -3996,10 +3996,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "GP_Sculpt_Settings", "int", "lock_axis")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         /* lock axis */
-        GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
-        if (gset) {
-          gset->lock_axis = GP_LOCKAXIS_Y;
-        }
+        GP_Sculpt_Settings &gset = scene->toolsettings->gp_sculpt;
+        gset.lock_axis = GP_LOCKAXIS_Y;
       }
     }
 
@@ -4561,12 +4559,12 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             fd->filesdna, "GP_Sculpt_Settings", "CurveMapping", "cur_primitive"))
     {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
-        if ((gset) && (gset->cur_primitive == nullptr)) {
-          gset->cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-          BKE_curvemapping_init(gset->cur_primitive);
-          BKE_curvemap_reset(gset->cur_primitive->cm,
-                             &gset->cur_primitive->clipr,
+        GP_Sculpt_Settings &gset = scene->toolsettings->gp_sculpt;
+        if (gset.cur_primitive == nullptr) {
+          gset.cur_primitive = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+          BKE_curvemapping_init(gset.cur_primitive);
+          BKE_curvemap_reset(gset.cur_primitive->cm,
+                             &gset.cur_primitive->clipr,
                              CURVE_PRESET_BELL,
                              CURVEMAP_SLOPE_POSITIVE);
         }
@@ -4724,10 +4722,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "GP_Sculpt_Settings", "float", "isect_threshold"))
     {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        GP_Sculpt_Settings *gset = &scene->toolsettings->gp_sculpt;
-        if (gset) {
-          gset->isect_threshold = 0.1f;
-        }
+        GP_Sculpt_Settings &gset = scene->toolsettings->gp_sculpt;
+        gset.isect_threshold = 0.1f;
       }
     }
 

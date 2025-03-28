@@ -895,20 +895,17 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     ob = static_cast<Object *>(bmain->objects.first);
 
     while (ob) {
-      ListBase *list;
-      list = &ob->constraints;
+      ListBase &list = ob->constraints;
 
       /* check for already existing TrackTo constraint
        * set their track and up flag correctly
        */
 
-      if (list) {
-        LISTBASE_FOREACH (bConstraint *, curcon, list) {
-          if (curcon->type == CONSTRAINT_TYPE_TRACKTO) {
-            bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
-            data->reserved1 = ob->trackflag;
-            data->reserved2 = ob->upflag;
-          }
+      LISTBASE_FOREACH (bConstraint *, curcon, &list) {
+        if (curcon->type == CONSTRAINT_TYPE_TRACKTO) {
+          bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
+          data->reserved1 = ob->trackflag;
+          data->reserved2 = ob->upflag;
         }
       }
 
@@ -968,19 +965,16 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     ob = static_cast<Object *>(bmain->objects.first);
 
     while (ob) {
-      ListBase *list;
-      list = &ob->constraints;
+      ListBase &list = ob->constraints;
 
       /* check for already existing TrackTo constraint
        * set their track and up flag correctly */
 
-      if (list) {
-        LISTBASE_FOREACH (bConstraint *, curcon, list) {
-          if (curcon->type == CONSTRAINT_TYPE_TRACKTO) {
-            bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
-            data->reserved1 = ob->trackflag;
-            data->reserved2 = ob->upflag;
-          }
+      LISTBASE_FOREACH (bConstraint *, curcon, &list) {
+        if (curcon->type == CONSTRAINT_TYPE_TRACKTO) {
+          bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
+          data->reserved1 = ob->trackflag;
+          data->reserved2 = ob->upflag;
         }
       }
 
@@ -1712,25 +1706,22 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next))
     {
-      ListBase *list;
-      list = &ob->constraints;
+      ListBase &list = ob->constraints;
 
       /* check for already existing MinMax (floor) constraint
        * and update the sticky flagging */
 
-      if (list) {
-        LISTBASE_FOREACH (bConstraint *, curcon, list) {
-          switch (curcon->type) {
-            case CONSTRAINT_TYPE_ROTLIKE: {
-              bRotateLikeConstraint *data = static_cast<bRotateLikeConstraint *>(curcon->data);
+      LISTBASE_FOREACH (bConstraint *, curcon, &list) {
+        switch (curcon->type) {
+          case CONSTRAINT_TYPE_ROTLIKE: {
+            bRotateLikeConstraint *data = static_cast<bRotateLikeConstraint *>(curcon->data);
 
-              /* version patch from buttons_object.c */
-              if (data->flag == 0) {
-                data->flag = ROTLIKE_X | ROTLIKE_Y | ROTLIKE_Z;
-              }
-
-              break;
+            /* version patch from buttons_object.c */
+            if (data->flag == 0) {
+              data->flag = ROTLIKE_X | ROTLIKE_Y | ROTLIKE_Z;
             }
+
+            break;
           }
         }
       }
@@ -1965,28 +1956,25 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       for (ob = static_cast<Object *>(bmain->objects.first); ob;
            ob = static_cast<Object *>(ob->id.next))
       {
-        ListBase *list;
-        list = &ob->constraints;
+        ListBase &list = ob->constraints;
 
         /* fix up constraints due to constraint recode changes (originally at 2.44.3) */
-        if (list) {
-          LISTBASE_FOREACH (bConstraint *, curcon, list) {
-            /* old CONSTRAINT_LOCAL check -> convert to CONSTRAINT_SPACE_LOCAL */
-            if (curcon->flag & 0x20) {
-              curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
-              curcon->tarspace = CONSTRAINT_SPACE_LOCAL;
-            }
+        LISTBASE_FOREACH (bConstraint *, curcon, &list) {
+          /* old CONSTRAINT_LOCAL check -> convert to CONSTRAINT_SPACE_LOCAL */
+          if (curcon->flag & 0x20) {
+            curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
+            curcon->tarspace = CONSTRAINT_SPACE_LOCAL;
+          }
 
-            switch (curcon->type) {
-              case CONSTRAINT_TYPE_LOCLIMIT: {
-                bLocLimitConstraint *data = (bLocLimitConstraint *)curcon->data;
+          switch (curcon->type) {
+            case CONSTRAINT_TYPE_LOCLIMIT: {
+              bLocLimitConstraint *data = (bLocLimitConstraint *)curcon->data;
 
-                /* old limit without parent option for objects */
-                if (data->flag2) {
-                  curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
-                }
-                break;
+              /* old limit without parent option for objects */
+              if (data->flag2) {
+                curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
               }
+              break;
             }
           }
         }
