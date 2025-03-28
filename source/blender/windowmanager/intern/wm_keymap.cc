@@ -1134,6 +1134,7 @@ const char *WM_key_event_string(const short type, const bool compact)
         return key_event_glyph_or_text(font_id, IFACE_("Alt"), single_glyph);
       }
       case EVT_OSKEY: {
+        /* Keep these labels in sync with: `scripts/modules/rna_keymap_ui.py`. */
         if (platform == MACOS) {
           return key_event_glyph_or_text(
               font_id, IFACE_("Cmd"), BLI_STR_UTF8_PLACE_OF_INTEREST_SIGN);
