@@ -1464,8 +1464,18 @@ static void std_node_socket_draw(
       }
       break;
     }
-    case SOCK_OBJECT: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
+    case SOCK_COLLECTION:
+    case SOCK_OBJECT:
+    case SOCK_MATERIAL: {
+      uiItemFullR(layout,
+                  ptr,
+                  RNA_struct_find_property(ptr, "default_value"),
+                  -1,
+                  0,
+                  DEFAULT_FLAGS,
+                  text,
+                  ICON_NONE,
+                  text.is_empty() ? std::optional(label) : std::nullopt);
       break;
     }
     case SOCK_IMAGE: {
@@ -1486,10 +1496,6 @@ static void std_node_socket_draw(
       }
       break;
     }
-    case SOCK_COLLECTION: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
-      break;
-    }
     case SOCK_TEXTURE: {
       if (text.is_empty()) {
         uiTemplateID(layout, C, ptr, "default_value", "texture.new", nullptr, nullptr);
@@ -1501,10 +1507,6 @@ static void std_node_socket_draw(
         uiTemplateID(row, C, ptr, "default_value", "texture.new", nullptr, nullptr);
       }
 
-      break;
-    }
-    case SOCK_MATERIAL: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
       break;
     }
     default:
