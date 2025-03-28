@@ -1110,7 +1110,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   if(WIN32) # Add Windows specific compiler flags.
     list(APPEND sycl_compiler_flags
-      -fuse-ld=link
       -fms-extensions
       -fms-compatibility
       -D_WINDLL
