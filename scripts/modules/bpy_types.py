@@ -254,6 +254,17 @@ class Object(_types.ID):
         return tuple(scene for scene in bpy.data.scenes
                      if self in scene.objects[:])
 
+    def evaluated_geometry(self):
+        """
+        Get the evaluated geometry set of this evaluated object. This only works for
+        objects that contain geometry data like meshes and curves but not e.g. cameras.
+
+        :return: The evaluated geometry.
+        :rtype: :class:`bpy.types.GeometrySet`
+        """
+        from bpy.types import GeometrySet
+        return GeometrySet.from_evaluated_object(self)
+
 
 class WindowManager(_types.ID):
     __slots__ = ()

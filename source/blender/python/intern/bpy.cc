@@ -36,6 +36,7 @@
 #include "bpy_app.hh"
 #include "bpy_cli_command.hh"
 #include "bpy_driver.hh"
+#include "bpy_geometry_set.hh"
 #include "bpy_library.hh"
 #include "bpy_operator.hh"
 #include "bpy_props.hh"
@@ -744,6 +745,7 @@ void BPy_init_modules(bContext *C)
 
   /* needs to be first so bpy_types can run */
   PyObject *bpy_types = BPY_rna_types();
+  PyModule_AddObject(bpy_types, "GeometrySet", BPyInit_geometry_set_type());
   PyModule_AddObject(mod, "types", bpy_types);
 
   /* needs to be first so bpy_types can run */

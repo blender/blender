@@ -271,6 +271,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
   dob->type = ctx->gen == nullptr ? 0 : ctx->dupli_gen_type_stack->last();
   dob->preview_base_geometry = ctx->preview_base_geometry;
   dob->preview_instance_index = ctx->preview_instance_index;
+  dob->level = ctx->level;
 
   /* Set persistent id, which is an array with a persistent index for each level
    * (particle number, vertex number, ..). by comparing this we can find the same
@@ -1834,6 +1835,80 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
     }
   }
   return duplilist;
+}
+
+blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
+                                                          Scene &scene,
+                                                          Object &ob)
+{
+  using namespace blender;
+
+  ListBase *duplilist = MEM_callocN<ListBase>("duplilist");
+  DupliContext ctx;
+  Vector<Object *> instance_stack({&ob});
+  Vector<short> dupli_gen_type_stack({0});
+
+  init_context(&ctx, &depsgraph, &scene, &ob, nullptr, instance_stack, dupli_gen_type_stack);
+  if (ctx.gen == &gen_dupli_geometry_set) {
+    /* These are not legacy instances. */
+    return {};
+  }
+  if (ctx.gen) {
+    ctx.duplilist = duplilist;
+    ctx.gen->make_duplis(&ctx);
+  }
+  const bool is_particle_duplis = ctx.gen == &gen_dupli_particles;
+  /* Particle instances are on the second level, because the first level is the particle system
+   * itself. */
+  const int level_to_use = is_particle_duplis ? 1 : 0;
+
+  Vector<DupliObject *> top_level_duplis;
+  LISTBASE_FOREACH (DupliObject *, dob, duplilist) {
+    BLI_assert(dob->ob != &ob);
+    /* We only need the top level instances in the end, because when #Instances references an
+     * object, it implicitly also references all instances of that object. */
+    if (dob->level == level_to_use) {
+      top_level_duplis.append(dob);
+    }
+  }
+
+  bke::Instances top_level_instances;
+  const float4x4 &world_to_object = ob.world_to_object();
+
+  VectorSet<Object *> referenced_objects;
+  const int instances_num = top_level_duplis.size();
+  top_level_instances.resize(instances_num);
+  MutableSpan<float4x4> instances_transforms = top_level_instances.transforms_for_write();
+  MutableSpan<int> instances_reference_handles = top_level_instances.reference_handles_for_write();
+  bke::SpanAttributeWriter<int> instances_ids =
+      top_level_instances.attributes_for_write().lookup_or_add_for_write_only_span<int>(
+          "id", bke::AttrDomain::Instance);
+  for (const int i : IndexRange(instances_num)) {
+    DupliObject &dob = *top_level_duplis[i];
+    Object &instanced_object = *dob.ob;
+    if (referenced_objects.add(&instanced_object)) {
+      top_level_instances.add_new_reference(instanced_object);
+    }
+    const int handle = referenced_objects.index_of(&instanced_object);
+    instances_transforms[i] = world_to_object * float4x4(dob.mat);
+    instances_reference_handles[i] = handle;
+
+    int id = dob.persistent_id[0];
+    if (is_particle_duplis) {
+      const int particle_system_i = dob.persistent_id[0];
+      const int particle_i = dob.persistent_id[1];
+      /* Attempt to build a unique ID for each particle. This allows for unique ids as long as
+       * there are not more than <= 2^26 = 67.108.864 particles per particle system and there are
+       * <= 2^6 = 64 particle systems. Otherwise there will be duplicate IDs but this is quite
+       * unlikely in the legacy particle system. */
+      id = (particle_system_i << 26) + particle_i;
+    }
+    instances_ids.span[i] = id;
+  }
+  instances_ids.finish();
+
+  free_object_duplilist(duplilist);
+  return top_level_instances;
 }
 
 void free_object_duplilist(ListBase *lb)

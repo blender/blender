@@ -1123,47 +1123,50 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             if heading:
                 fw(title_string(heading, heading_char))
 
-        # May need to be its own function.
-        if value.__doc__:
-            if value.__doc__.startswith(".. class::"):
-                fw(value.__doc__)
-            else:
-                fw(".. class:: {:s}\n\n".format(type_name))
-                write_indented_lines("   ", fw, value.__doc__, True)
-        else:
-            fw(".. class:: {:s}\n\n".format(type_name))
-        fw("\n")
-
-        write_example_ref("   ", fw, module_name + "." + type_name)
-
-        descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("_")]
-
-        for key, descr in descr_items:
-            if type(descr) == ClassMethodDescriptorType:
-                py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
-
-        # Needed for pure Python classes.
-        for key, descr in descr_items:
-            if type(descr) == FunctionType:
-                pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
-
-        for key, descr in descr_items:
-            if type(descr) == MethodDescriptorType:
-                py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
-
-        for key, descr in descr_items:
-            if type(descr) == GetSetDescriptorType:
-                py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
-
-        for key, descr in descr_items:
-            if type(descr) == StaticMethodType:
-                descr = getattr(value, key)
-                write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
-                fw("\n")
-
-        fw("\n\n")
+        pyclass2sphinx(fw, module_name, type_name, value)
 
     file.close()
+
+
+def pyclass2sphinx(fw, module_name, type_name, value):
+    if value.__doc__:
+        if value.__doc__.startswith(".. class::"):
+            fw(value.__doc__)
+        else:
+            fw(".. class:: {:s}.{:s}\n\n".format(module_name, type_name))
+            write_indented_lines("   ", fw, value.__doc__, True)
+    else:
+        fw(".. class:: {:s}.{:s}\n\n".format(module_name, type_name))
+    fw("\n")
+
+    write_example_ref("   ", fw, module_name + "." + type_name)
+
+    descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("_")]
+
+    for key, descr in descr_items:
+        if type(descr) == ClassMethodDescriptorType:
+            py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+
+    # Needed for pure Python classes.
+    for key, descr in descr_items:
+        if type(descr) == FunctionType:
+            pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, is_class=True)
+
+    for key, descr in descr_items:
+        if type(descr) == MethodDescriptorType:
+            py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+
+    for key, descr in descr_items:
+        if type(descr) == GetSetDescriptorType:
+            py_descr2sphinx("   ", fw, descr, module_name, type_name, key)
+
+    for key, descr in descr_items:
+        if type(descr) == StaticMethodType:
+            descr = getattr(value, key)
+            write_indented_lines("   ", fw, descr.__doc__ or "Undocumented", False)
+            fw("\n")
+
+    fw("\n\n")
 
 
 # Changes In Blender will force errors here.
@@ -2101,6 +2104,23 @@ def write_rst_ops_index(basepath):
         file.close()
 
 
+def write_rst_geometry_set(basepath):
+    """
+    Write the RST file for ``bpy.types.GeometrySet``.
+    """
+    if 'bpy.types.GeometrySet' in EXCLUDE_MODULES:
+        return
+
+    # Write the index.
+    filepath = os.path.join(basepath, "bpy.types.GeometrySet.rst")
+    file = open(filepath, "w", encoding="utf-8")
+    fw = file.write
+    fw(title_string("GeometrySet", "="))
+    pyclass2sphinx(fw, "bpy.types", "GeometrySet", bpy.types.GeometrySet)
+
+    EXAMPLE_SET_USED.add("bpy.types.GeometrySet")
+
+
 def write_rst_msgbus(basepath):
     """
     Write the RST files of ``bpy.msgbus`` module
@@ -2410,6 +2430,7 @@ def rna2sphinx(basepath):
     write_rst_types_index(basepath)         # `bpy.types`.
     write_rst_ops_index(basepath)           # `bpy.ops`.
     write_rst_msgbus(basepath)              # `bpy.msgbus`.
+    write_rst_geometry_set(basepath)        # `bpy.types.GeometrySet`.
     pyrna2sphinx(basepath)                  # `bpy.types.*` & `bpy.ops.*`.
     write_rst_data(basepath)                # `bpy.data`.
     write_rst_importable_modules(basepath)
