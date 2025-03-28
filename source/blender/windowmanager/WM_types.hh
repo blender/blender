@@ -865,7 +865,12 @@ struct wmNDOFMotionData {
    * </pre>
    */
   float rvec[3];
-  /** Time since previous NDOF Motion event. */
+  /**
+   * Time since previous NDOF Motion event (in seconds).
+   *
+   * This is reset when motion begins: when progress changes from #P_NOT_STARTED to #P_STARTING.
+   * In this case a dummy value is used, see #GHOST_NDOF_TIME_DELTA_STARTING.
+   */
   float dt;
   /** Is this the first event, the last, or one of many in between? */
   wmProgress progress;

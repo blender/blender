@@ -166,8 +166,9 @@ enum {
   EVT_ENDKEY = 0x00aa,      /* 170 */
   /* Note that 'PADPERIOD' is defined out-of-order. */
   EVT_UNKNOWNKEY = 0x00ab, /* 171 */
-  EVT_OSKEY = 0x00ac,      /* 172 */
-  EVT_GRLESSKEY = 0x00ad,  /* 173 */
+  /** OS modifier, see: #KM_OSKEY for details. */
+  EVT_OSKEY = 0x00ac,     /* 172 */
+  EVT_GRLESSKEY = 0x00ad, /* 173 */
   /* Media keys. */
   EVT_MEDIAPLAY = 0x00ae,  /* 174 */
   EVT_MEDIASTOP = 0x00af,  /* 175 */

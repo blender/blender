@@ -728,7 +728,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
         data->progress = GHOST_kStarting;
         motion_state_ = GHOST_kInProgress;
         /* Previous motion time will be ancient, so just make up a reasonable time delta. */
-        data->dt = 0.0125f;
+        data->dt = NDOF_TIME_DELTA_STARTING;
       }
       else {
         /* Send no event and keep current state. */

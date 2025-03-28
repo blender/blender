@@ -33,6 +33,12 @@ enum NDOF_DeviceT {
 
 };
 
+/**
+ * The dummy time delta to use for starting events.
+ * 1/80th of a second (12.5ms).
+ */
+#define NDOF_TIME_DELTA_STARTING 0.0125f
+
 using NDOF_Button_Array = std::array<GHOST_NDOF_ButtonT, 6>;
 
 enum NDOF_Button_Type { ShortButton, LongButton };
