@@ -1381,6 +1381,9 @@ GHOST_Event *GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type,
   if (type == GHOST_kEventWindowActivate) {
     system->getWindowManager()->setActiveWindow(window);
   }
+  else if (type == GHOST_kEventWindowDeactivate) {
+    system->getWindowManager()->setWindowInactive(window);
+  }
 
   return new GHOST_Event(getMessageTime(system), type, window);
 }
