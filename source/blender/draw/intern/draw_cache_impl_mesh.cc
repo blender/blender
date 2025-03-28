@@ -1369,6 +1369,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
       if (cache.cd_used.uv != 0) {
         batch.vbos.append(VBOType::UVs);
       }
+      batch_info.append(std::move(batch));
     }
     if (batches_to_create & MBC_EDIT_MESH_ANALYSIS) {
       batch_info.append({*cache.batch.edit_mesh_analysis,
