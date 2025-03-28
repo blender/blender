@@ -440,6 +440,13 @@ void BKE_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode)
   if (mesh->runtime->batch_cache) {
     BKE_mesh_batch_cache_dirty_tag_cb(mesh, mode);
   }
+
+  /* Also tag batch cache for subdivided mesh, if it exists this will be
+   * the mesh that is actually being drawn. */
+  Mesh *mesh_eval = mesh->runtime->mesh_eval;
+  if (mesh_eval && mesh_eval->runtime->batch_cache) {
+    BKE_mesh_batch_cache_dirty_tag_cb(mesh_eval, mode);
+  }
 }
 void BKE_mesh_batch_cache_free(void *batch_cache)
 {
