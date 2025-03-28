@@ -305,7 +305,7 @@ IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create)
   return *property_ptr;
 }
 
-bool RNA_struct_idprops_check(StructRNA *srna)
+bool RNA_struct_idprops_check(const StructRNA *srna)
 {
   return (srna && srna->idproperties);
 }

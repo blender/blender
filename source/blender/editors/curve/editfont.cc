@@ -2389,10 +2389,9 @@ static wmOperatorStatus toggle_case_exec(bContext *C, wmOperator * /*op*/)
   Object *obedit = CTX_data_edit_object(C);
   Curve *cu = static_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
-  char32_t *str;
   int ccase = CASE_UPPER;
 
-  str = ef->textbuf;
+  const char32_t *str = ef->textbuf;
   while (*str) {
     if (*str >= 'a' && *str <= 'z') {
       ccase = CASE_LOWER;

@@ -1681,7 +1681,7 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   }
 
   FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
-  PreviewImage *preview_in_memory = intern_entry->local_data.preview_image;
+  const PreviewImage *preview_in_memory = intern_entry->local_data.preview_image;
   if (preview_in_memory && !BKE_previewimg_is_finished(preview_in_memory, ICON_SIZE_PREVIEW)) {
     /* Nothing to set yet. Wait for next call. */
     return false;

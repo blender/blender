@@ -2659,7 +2659,7 @@ static void rna_def_object_lineart(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static EnumPropertyItem prop_feature_line_usage_items[] = {
+  static const EnumPropertyItem prop_feature_line_usage_items[] = {
       {OBJECT_LRT_INHERIT, "INHERIT", 0, "Inherit", "Use settings from the parent collection"},
       {OBJECT_LRT_INCLUDE,
        "INCLUDE",
@@ -3351,7 +3351,7 @@ static void rna_def_object(BlenderRNA *brna)
       "Use alpha blending instead of alpha test (can produce sorting artifacts)");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
 
-  static EnumPropertyItem prop_empty_image_side_items[] = {
+  static const EnumPropertyItem prop_empty_image_side_items[] = {
       {0, "DOUBLE_SIDED", 0, "Both", ""},
       {OB_EMPTY_IMAGE_HIDE_BACK, "FRONT", 0, "Front", ""},
       {OB_EMPTY_IMAGE_HIDE_FRONT, "BACK", 0, "Back", ""},

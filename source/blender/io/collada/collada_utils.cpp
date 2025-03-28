@@ -481,7 +481,7 @@ bool bc_is_leaf_bone(Bone *bone)
   return true;
 }
 
-EditBone *bc_get_edit_bone(bArmature *armature, char *name)
+EditBone *bc_get_edit_bone(bArmature *armature, const char *name)
 {
   LISTBASE_FOREACH (EditBone *, eBone, armature->edbo) {
     if (STREQ(name, eBone->name)) {
@@ -559,7 +559,7 @@ char *BoneExtended::get_name()
   return name;
 }
 
-void BoneExtended::set_name(char *aName)
+void BoneExtended::set_name(const char *aName)
 {
   STRNCPY(name, aName);
 }
@@ -747,7 +747,7 @@ static bool has_custom_props(Bone *bone, bool enabled, std::string key)
           bc_get_IDProperty(bone, key + "_z"));
 }
 
-void bc_enable_fcurves(AnimData *adt, char *bone_name)
+void bc_enable_fcurves(AnimData *adt, const char *bone_name)
 {
   if (adt == nullptr) {
     return;
@@ -1281,7 +1281,7 @@ bool bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid)
 
 COLLADASW::ColorOrTexture bc_get_cot_from_shader(bNode *shader,
                                                  std::string nodeid,
-                                                 Color &default_color,
+                                                 const Color &default_color,
                                                  bool with_alpha)
 {
   bNodeSocket *socket = blender::bke::node_find_socket(*shader, SOCK_IN, nodeid);
@@ -1314,7 +1314,7 @@ COLLADASW::ColorOrTexture bc_get_cot(float r, float g, float b, float a)
   return cot;
 }
 
-COLLADASW::ColorOrTexture bc_get_cot(Color col, bool with_alpha)
+COLLADASW::ColorOrTexture bc_get_cot(const Color col, bool with_alpha)
 {
   COLLADASW::Color color(col[0], col[1], col[2], (with_alpha) ? col[3] : 1.0);
   COLLADASW::ColorOrTexture cot(color);

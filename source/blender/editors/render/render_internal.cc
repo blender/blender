@@ -173,8 +173,8 @@ static void image_buffer_rect_update(RenderJob *rj,
   Scene *scene = rj->scene;
   const float *rectf = nullptr;
   int linear_stride, linear_offset_x, linear_offset_y;
-  ColorManagedViewSettings *view_settings;
-  ColorManagedDisplaySettings *display_settings;
+  const ColorManagedViewSettings *view_settings;
+  const ColorManagedDisplaySettings *display_settings;
 
   if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
     /* The whole image buffer is to be color managed again anyway. */

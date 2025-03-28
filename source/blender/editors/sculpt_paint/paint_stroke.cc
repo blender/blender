@@ -1167,7 +1167,7 @@ bool paint_supports_dynamic_tex_coords(const Brush &br, const PaintMode mode)
 
 wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf)
 {
-  static EnumPropertyItem modal_items[] = {
+  static const EnumPropertyItem modal_items[] = {
       {PAINT_STROKE_MODAL_CANCEL, "CANCEL", 0, "Cancel", "Cancel and undo a stroke in progress"},
       {0}};
 

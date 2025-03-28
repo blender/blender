@@ -663,7 +663,7 @@ static const char *idp_format_from_array_type(int type)
 
 static IDProperty *idp_from_PySequence_Buffer(IDProperty *prop_exist,
                                               const char *name,
-                                              Py_buffer &buffer,
+                                              const Py_buffer &buffer,
                                               const int idp_type,
                                               const bool /*do_conversion*/,
                                               const bool can_create)

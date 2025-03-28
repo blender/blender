@@ -1147,7 +1147,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
       if (EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
         EditBone *ebone;
         char new_bone_name_buff[MAXBONENAME];
-        char *new_bone_name = ebone_iter->name;
+        const char *new_bone_name = ebone_iter->name;
 
         if (do_flip_names) {
           BLI_string_flip_side_name(

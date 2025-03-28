@@ -1025,7 +1025,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static EnumPropertyItem vmesh_method_items[] = {
+  static const EnumPropertyItem vmesh_method_items[] = {
       {BEVEL_VMESH_ADJ, "ADJ", 0, "Grid Fill", "Default patterned fill"},
       {BEVEL_VMESH_CUTOFF,
        "CUTOFF",

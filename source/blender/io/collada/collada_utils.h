@@ -230,7 +230,7 @@ extern void bc_triangulate_mesh(Mesh *mesh);
  * A bone is a leaf when it has no children or all children are not connected.
  */
 extern bool bc_is_leaf_bone(Bone *bone);
-extern EditBone *bc_get_edit_bone(bArmature *armature, char *name);
+extern EditBone *bc_get_edit_bone(bArmature *armature, const char *name);
 extern int bc_set_layer(int bitfield, int layer, bool enable);
 extern int bc_set_layer(int bitfield, int layer);
 
@@ -277,7 +277,7 @@ extern void bc_get_property_vector(Bone *bone, std::string key, float val[3], co
  */
 extern bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4]);
 
-extern void bc_enable_fcurves(bAction *act, char *bone_name);
+extern void bc_enable_fcurves(bAction *act, const char *bone_name);
 extern bool bc_bone_matrix_local_get(Object *ob, Bone *bone, Matrix &mat, bool for_opensim);
 extern bool bc_is_animated(BCMatrixSampleMap &values);
 extern bool bc_has_animations(Scene *sce, LinkNode *export_set);
@@ -375,7 +375,7 @@ class BoneExtended {
  public:
   BoneExtended(EditBone *aBone);
 
-  void set_name(char *aName);
+  void set_name(const char *aName);
   char *get_name();
 
   void set_chain_length(int aLength);
@@ -441,8 +441,8 @@ double bc_get_shininess(Material *ma);
 bool bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid);
 COLLADASW::ColorOrTexture bc_get_cot_from_shader(bNode *shader,
                                                  std::string nodeid,
-                                                 Color &default_color,
+                                                 const Color &default_color,
                                                  bool with_alpha = true);
 
 COLLADASW::ColorOrTexture bc_get_cot(float r, float g, float b, float a);
-COLLADASW::ColorOrTexture bc_get_cot(Color col, bool with_alpha = true);
+COLLADASW::ColorOrTexture bc_get_cot(const Color col, bool with_alpha = true);

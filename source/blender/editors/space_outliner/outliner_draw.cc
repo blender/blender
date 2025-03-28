@@ -319,7 +319,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
 static void outliner__object_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   Object *ob = static_cast<Object *>(poin);
-  char *propname = static_cast<char *>(poin2);
+  const char *propname = static_cast<const char *>(poin2);
   outliner_object_set_flag_recursive_fn(C, nullptr, ob, propname);
 }
 
@@ -329,7 +329,7 @@ static void outliner__object_set_flag_recursive_fn(bContext *C, void *poin, void
 static void outliner__base_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   Base *base = static_cast<Base *>(poin);
-  char *propname = static_cast<char *>(poin2);
+  const char *propname = static_cast<const char *>(poin2);
   outliner_object_set_flag_recursive_fn(C, base, nullptr, propname);
 }
 
@@ -662,7 +662,7 @@ static void view_layer__layer_collection_set_flag_recursive_fn(bContext *C,
                                                                void *poin2)
 {
   LayerCollection *layer_collection = static_cast<LayerCollection *>(poin);
-  char *propname = static_cast<char *>(poin2);
+  const char *propname = static_cast<const char *>(poin2);
   outliner_collection_set_flag_recursive_fn(C, layer_collection, nullptr, propname);
 }
 
@@ -673,7 +673,7 @@ static void view_layer__layer_collection_set_flag_recursive_fn(bContext *C,
 static void view_layer__collection_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   LayerCollection *layer_collection = static_cast<LayerCollection *>(poin);
-  char *propname = static_cast<char *>(poin2);
+  const char *propname = static_cast<const char *>(poin2);
   outliner_collection_set_flag_recursive_fn(
       C, layer_collection, layer_collection->collection, propname);
 }
@@ -685,7 +685,7 @@ static void view_layer__collection_set_flag_recursive_fn(bContext *C, void *poin
 static void scenes__collection_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
   Collection *collection = static_cast<Collection *>(poin);
-  char *propname = static_cast<char *>(poin2);
+  const char *propname = static_cast<const char *>(poin2);
   outliner_collection_set_flag_recursive_fn(C, nullptr, collection, propname);
 }
 

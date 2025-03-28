@@ -102,7 +102,7 @@ static void dt_add_vcol_layers(const CustomData *cdata,
                                EnumPropertyItem **r_item,
                                int *r_totitem)
 {
-  int types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
+  const int types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
   int idx = 0;
   for (int i = 0; i < 2; i++) {
     eCustomDataType type = eCustomDataType(types[i]);

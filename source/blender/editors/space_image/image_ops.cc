@@ -2722,7 +2722,7 @@ static void image_new_cancel(bContext * /*C*/, wmOperator *op)
 void IMAGE_OT_new(wmOperatorType *ot)
 {
   PropertyRNA *prop;
-  static float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  static const float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
   /* identifiers */
   ot->name = "New Image";
@@ -4281,7 +4281,7 @@ static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
 static void def_fill_tile(StructOrFunctionRNA *srna)
 {
   PropertyRNA *prop;
-  static float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  static const float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   prop = RNA_def_float_color(
       srna, "color", 4, nullptr, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
