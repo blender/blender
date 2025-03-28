@@ -246,14 +246,18 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
+  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  UI_ThemeClearColor(minimized ? TH_TIME_SCRUB_BACKGROUND : TH_BACK);
 
   UI_view2d_view_ortho(v2d);
 
   /* time grid */
-  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, snla->flag & SNLA_DRAWTIME, true);
+  if (!minimized) {
+    UI_view2d_draw_lines_x__discrete_frames_or_seconds(
+        v2d, scene, snla->flag & SNLA_DRAWTIME, true);
+  }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
@@ -296,12 +300,13 @@ static void nla_main_region_draw_overlay(const bContext *C, ARegion *region)
   const SpaceNla *snla = CTX_wm_space_nla(C);
   const Scene *scene = CTX_data_scene(C);
   View2D *v2d = &region->v2d;
+  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
 
   /* scrubbing region */
-  ED_time_scrub_draw_current_frame(region, scene, snla->flag & SNLA_DRAWTIME);
+  ED_time_scrub_draw_current_frame(region, scene, snla->flag & SNLA_DRAWTIME, !minimized);
 
   /* scrollers */
-  if (region->winy > HEADERY * UI_SCALE_FAC) {
+  if (!minimized) {
     UI_view2d_scrollers_draw(v2d, nullptr);
   }
 }

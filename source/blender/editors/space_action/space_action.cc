@@ -185,8 +185,10 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   short marker_flag = 0;
 
+  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
+
   /* scrollers */
-  if (region->winy > HEADERY * UI_SCALE_FAC) {
+  if (!minimized) {
     region->v2d.scroll |= V2D_SCROLL_BOTTOM;
   }
   else {
@@ -209,7 +211,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_ortho(v2d);
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  UI_ThemeClearColor(minimized ? TH_TIME_SCRUB_BACKGROUND : TH_BACK);
 
   UI_view2d_view_ortho(v2d);
 
@@ -270,6 +272,8 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
   const Object *obact = CTX_data_active_object(C);
   View2D *v2d = &region->v2d;
 
+  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
+
   /* caches */
   if (saction->mode == SACTCONT_TIMELINE) {
     GPU_matrix_push_projection();
@@ -279,7 +283,7 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
   }
 
   /* scrubbing region */
-  ED_time_scrub_draw_current_frame(region, scene, saction->flag & SACTION_DRAWTIME);
+  ED_time_scrub_draw_current_frame(region, scene, saction->flag & SACTION_DRAWTIME, !minimized);
 
   /* scrollers */
   const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
