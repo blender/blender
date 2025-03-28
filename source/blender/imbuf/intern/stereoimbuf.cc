@@ -622,8 +622,9 @@ ImBuf *IMB_stereo3d_ImBuf(const ImageFormatData *im_format, ImBuf *ibuf_left, Im
   ImBuf *ibuf_stereo = nullptr;
   Stereo3DData s3d_data = {{nullptr}};
   size_t width, height;
-  const bool is_float = ibuf_left->float_buffer.data && ibuf_right->float_buffer.data;
   const bool is_byte = ibuf_left->byte_buffer.data && ibuf_right->byte_buffer.data;
+  const bool is_float = ibuf_left->float_buffer.data && ibuf_right->float_buffer.data &&
+                        !(is_byte && im_format->depth <= 8);
 
   if (!(is_float || is_byte)) {
     return nullptr;
