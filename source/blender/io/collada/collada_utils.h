@@ -101,11 +101,11 @@ inline AnimData *bc_getSceneMaterialAnimData(Material *ma)
   return ma->adt;
 }
 
-std::string bc_get_action_id(std::string action_name,
-                             std::string ob_name,
-                             std::string channel_type,
-                             std::string axis_name,
-                             std::string axis_separator = "_");
+std::string bc_get_action_id(const std::string &action_name,
+                             const std::string &ob_name,
+                             const std::string &channel_type,
+                             const std::string &axis_name,
+                             const std::string &axis_separator = "_");
 
 extern float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, unsigned int index);
 extern int bc_test_parent_loop(Object *par, Object *ob);
@@ -195,7 +195,7 @@ inline bool bc_endswith(std::string const &value, std::string const &ending)
 extern std::string bc_replace_string(std::string data,
                                      const std::string &pattern,
                                      const std::string &replacement);
-extern std::string bc_url_encode(std::string data);
+extern std::string bc_url_encode(const std::string &data);
 /**
  * Calculate a re-scale factor such that the imported scene's scale
  * is preserved. I.e. 1 meter in the import will also be
@@ -251,7 +251,7 @@ void bc_sanitize_v3(float v[3], int precision);
  * Get a custom property when it exists.
  * This function is also used to check if a property exists.
  */
-extern IDProperty *bc_get_IDProperty(Bone *bone, std::string key);
+extern IDProperty *bc_get_IDProperty(Bone *bone, const std::string &key);
 extern void bc_set_IDProperty(EditBone *ebone, const char *key, float value);
 /**
  * Stores a 4*4 matrix as a custom bone property array of size 16.
@@ -262,11 +262,14 @@ extern void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[
  * Read a custom bone property and convert to float
  * Return def if the property does not exist.
  */
-extern float bc_get_property(Bone *bone, std::string key, float def);
+extern float bc_get_property(Bone *bone, const std::string &key, float def);
 /**
  * Get a vector that is stored in 3 custom properties (used in Blender <= 2.78).
  */
-extern void bc_get_property_vector(Bone *bone, std::string key, float val[3], const float def[3]);
+extern void bc_get_property_vector(Bone *bone,
+                                   const std::string &key,
+                                   float val[3],
+                                   const float def[3]);
 /**
  * Read a custom bone property and convert to matrix
  * Return true if conversion was successful
@@ -275,7 +278,7 @@ extern void bc_get_property_vector(Bone *bone, std::string key, float val[3], co
  * - the property does not exist
  * - is not an array of size 16
  */
-extern bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4]);
+extern bool bc_get_property_matrix(Bone *bone, const std::string &key, float mat[4][4]);
 
 extern void bc_enable_fcurves(bAction *act, const char *bone_name);
 extern bool bc_bone_matrix_local_get(Object *ob, Bone *bone, Matrix &mat, bool for_opensim);

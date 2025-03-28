@@ -164,11 +164,11 @@ std::vector<bAction *> bc_getSceneActions(const bContext *C, Object *ob, bool al
   return actions;
 }
 
-std::string bc_get_action_id(std::string action_name,
-                             std::string ob_name,
-                             std::string channel_type,
-                             std::string axis_name,
-                             std::string axis_separator)
+std::string bc_get_action_id(const std::string &action_name,
+                             const std::string &ob_name,
+                             const std::string &channel_type,
+                             const std::string &axis_name,
+                             const std::string &axis_separator)
 {
   std::string result = action_name + "_" + channel_type;
   if (ob_name.length() > 0) {
@@ -371,7 +371,7 @@ int bc_get_active_UVLayer(Object *ob)
   return CustomData_get_active_layer_index(&mesh->corner_data, CD_PROP_FLOAT2);
 }
 
-std::string bc_url_encode(std::string data)
+std::string bc_url_encode(const std::string &data)
 {
   /* XXX We probably do not need to do a full encoding.
    * But in case that is necessary,then it can be added here.
@@ -682,12 +682,12 @@ static void bc_set_IDProperty(EditBone *ebone, const char *key, float value)
 }
 #endif
 
-IDProperty *bc_get_IDProperty(Bone *bone, std::string key)
+IDProperty *bc_get_IDProperty(Bone *bone, const std::string &key)
 {
   return (bone->prop == nullptr) ? nullptr : IDP_GetPropertyFromGroup(bone->prop, key.c_str());
 }
 
-float bc_get_property(Bone *bone, std::string key, float def)
+float bc_get_property(Bone *bone, const std::string &key, float def)
 {
   float result = def;
   IDProperty *property = bc_get_IDProperty(bone, key);
@@ -712,7 +712,7 @@ float bc_get_property(Bone *bone, std::string key, float def)
   return result;
 }
 
-bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4])
+bool bc_get_property_matrix(Bone *bone, const std::string &key, float mat[4][4])
 {
   IDProperty *property = bc_get_IDProperty(bone, key);
   if (property && property->type == IDP_ARRAY && property->len == 16) {
@@ -727,7 +727,7 @@ bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4])
   return false;
 }
 
-void bc_get_property_vector(Bone *bone, std::string key, float val[3], const float def[3])
+void bc_get_property_vector(Bone *bone, const std::string &key, float val[3], const float def[3])
 {
   val[0] = bc_get_property(bone, key + "_x", def[0]);
   val[1] = bc_get_property(bone, key + "_y", def[1]);
@@ -737,7 +737,7 @@ void bc_get_property_vector(Bone *bone, std::string key, float val[3], const flo
 /**
  * Check if vector exist stored in 3 custom properties (used in Blender <= 2.78)
  */
-static bool has_custom_props(Bone *bone, bool enabled, std::string key)
+static bool has_custom_props(Bone *bone, bool enabled, const std::string &key)
 {
   if (!enabled) {
     return false;
@@ -1110,7 +1110,7 @@ static bNodeTree *prepare_material_nodetree(Material *ma)
 }
 
 static bNode *bc_add_node(
-    bContext *C, bNodeTree *ntree, int node_type, int locx, int locy, std::string label)
+    bContext *C, bNodeTree *ntree, int node_type, int locx, int locy, const std::string &label)
 {
   bNode *node = blender::bke::node_add_static_node(C, *ntree, node_type);
   if (node) {
