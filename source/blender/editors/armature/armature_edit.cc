@@ -736,7 +736,7 @@ static wmOperatorStatus armature_fill_bones_exec(bContext *C, wmOperator *op)
         obedit = ob_iter;
       }
     }
-    FOREACH_OBJECT_IN_MODE_END;
+    FOREACH_OBJECT_IN_EDIT_MODE_END;
   }
   BLI_assert(obedit != nullptr);
 
