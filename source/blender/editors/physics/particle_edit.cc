@@ -2799,9 +2799,7 @@ static void rekey_particle(PEData *data, int pa_index)
   }
 
   /* replace keys */
-  if (pa->hair) {
-    MEM_freeN(pa->hair);
-  }
+  MEM_freeN(pa->hair);
   pa->hair = new_keys;
 
   point->totkey = pa->totkey = data->totrekey;
@@ -3184,9 +3182,7 @@ static void subdivide_particle(PEData *data, int pa_index)
   nekey->co = nkey->co;
   nekey->time = &nkey->time;
 
-  if (pa->hair) {
-    MEM_freeN(pa->hair);
-  }
+  MEM_freeN(pa->hair);
   pa->hair = new_keys;
 
   if (point->keys) {

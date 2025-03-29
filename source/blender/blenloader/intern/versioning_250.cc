@@ -1367,9 +1367,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
               LISTBASE_FOREACH (ARegion *, region_preview, regionbase) {
                 if (region_preview->regiontype == RGN_TYPE_PREVIEW) {
-                  if (region_preview && (region_preview->regiontype == RGN_TYPE_PREVIEW)) {
-                    sequencer_init_preview_region(region_preview);
-                  }
+                  sequencer_init_preview_region(region_preview);
                   break;
                 }
               }
