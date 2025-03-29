@@ -382,7 +382,7 @@ bool vert_has_unique_face_set(const int /*face_set_offset*/, const BMVert & /*ve
 
 }  // namespace face_set
 
-Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_neighbors)
+Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, BMeshNeighborVerts &r_neighbors)
 {
   r_neighbors.clear();
   BMIter liter;
@@ -397,7 +397,7 @@ Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_ne
   return r_neighbors;
 }
 
-Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_neighbors)
+Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, BMeshNeighborVerts &r_neighbors)
 {
   r_neighbors.clear();
   BMIter liter;
@@ -7769,7 +7769,7 @@ GroupedSpan<BMVert *> calc_vert_neighbors(Set<BMVert *, 0> verts,
   r_offset_data.resize(verts.size() + 1);
   r_data.clear();
 
-  Vector<BMVert *, 64> neighbor_data;
+  BMeshNeighborVerts neighbor_data;
   int i = 0;
   for (BMVert *vert : verts) {
     r_offset_data[i] = r_data.size();
@@ -7925,7 +7925,7 @@ void calc_vert_neighbors_interior(const Set<BMVert *, 0> &verts,
                                   MutableSpan<Vector<BMVert *>> result)
 {
   BLI_assert(verts.size() == result.size());
-  Vector<BMVert *, 64> neighbor_data;
+  BMeshNeighborVerts neighbor_data;
 
   int i = 0;
   for (BMVert *vert : verts) {

@@ -242,7 +242,7 @@ void average_data_grids(const SubdivCCG &subdiv_ccg,
 template<typename T>
 void average_data_bmesh(const Span<T> src, const Set<BMVert *, 0> &verts, const MutableSpan<T> dst)
 {
-  Vector<BMVert *, 64> neighbor_data;
+  BMeshNeighborVerts neighbor_data;
 
   int i = 0;
   for (BMVert *vert : verts) {
@@ -285,7 +285,7 @@ void neighbor_position_average_bmesh(const Set<BMVert *, 0> &verts,
                                      const MutableSpan<float3> new_positions)
 {
   BLI_assert(verts.size() == new_positions.size());
-  Vector<BMVert *, 64> neighbor_data;
+  BMeshNeighborVerts neighbor_data;
 
   int i = 0;
   for (BMVert *vert : verts) {
@@ -304,7 +304,7 @@ static void neighbor_position_average_interior_bmesh_impl(const Set<BMVert *, 0>
   if constexpr (use_factors) {
     BLI_assert(new_positions.size() == factors.size());
   }
-  Vector<BMVert *, 64> neighbor_data;
+  BMeshNeighborVerts neighbor_data;
 
   int i = 0;
   for (BMVert *vert : verts) {
@@ -598,7 +598,7 @@ void calc_relaxed_translations_grids(const SubdivCCG &subdiv_ccg,
 
         SubdivCCGNeighbors neighbor_storage;
         BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbor_storage);
-        Vector<SubdivCCGCoord, 256> &neighbors = neighbor_storage.coords;
+        SubdivCCGNeighborCoords &neighbors = neighbor_storage.coords;
 
         /* Don't modify corner vertices */
         if (neighbors.size() <= 2) {
@@ -662,7 +662,7 @@ void calc_relaxed_translations_bmesh(const Set<BMVert *, 0> &verts,
   BLI_assert(verts.size() == factors.size());
   BLI_assert(verts.size() == translations.size());
 
-  Vector<BMVert *, 64> neighbors;
+  BMeshNeighborVerts neighbors;
 
   int i = 0;
   for (BMVert *vert : verts) {

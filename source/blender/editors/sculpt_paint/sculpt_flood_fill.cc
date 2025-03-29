@@ -165,7 +165,7 @@ void FillDataGrids::execute(
 void FillDataBMesh::execute(Object &object, FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func)
 {
   BMesh *bm = object.sculpt->bm;
-  Vector<BMVert *, 64> neighbors;
+  BMeshNeighborVerts neighbors;
   while (!this->queue.empty()) {
     BMVert *from_v = this->queue.front();
     this->queue.pop();

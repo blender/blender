@@ -1752,7 +1752,7 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
         tls.translations.resize(verts.size());
         const MutableSpan<float3> translations = tls.translations;
 
-        Vector<BMVert *, 64> neighbors;
+        BMeshNeighborVerts neighbors;
 
         int i = 0;
         for (BMVert *vert : verts) {

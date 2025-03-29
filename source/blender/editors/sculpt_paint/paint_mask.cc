@@ -178,7 +178,7 @@ void average_neighbor_mask_bmesh(const int mask_offset,
                                  const Set<BMVert *, 0> &verts,
                                  const MutableSpan<float> new_masks)
 {
-  Vector<BMVert *, 64> neighbors;
+  BMeshNeighborVerts neighbors;
   int i = 0;
   for (BMVert *vert : verts) {
     new_masks[i] = average_masks(mask_offset, vert_neighbors_get_bmesh(*vert, neighbors));

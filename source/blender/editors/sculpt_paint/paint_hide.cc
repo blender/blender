@@ -1102,7 +1102,7 @@ static void grow_shrink_visibility_bmesh(const Depsgraph &depsgraph,
     UNUSED_VARS(i);
     const Array<bool> prev_visibility = duplicate_visibility_bmesh(object);
     partialvis_update_bmesh_nodes(depsgraph, object, node_mask, action, [&](BMVert *vert) {
-      Vector<BMVert *, 64> neighbors;
+      BMeshNeighborVerts neighbors;
       for (BMVert *neighbor : vert_neighbors_get_bmesh(*vert, neighbors)) {
         if (prev_visibility[BM_elem_index_get(neighbor)] == action_to_hide(action)) {
           return true;

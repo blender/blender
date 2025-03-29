@@ -633,7 +633,7 @@ static void dyntopo_detail_size_sample_from_surface(Object &ob,
   BMVert *active_vertex = std::get<BMVert *>(ss.active_vert());
 
   float len_accum = 0;
-  Vector<BMVert *, 64> neighbors;
+  BMeshNeighborVerts neighbors;
   for (BMVert *neighbor : vert_neighbors_get_bmesh(*active_vertex, neighbors)) {
     len_accum += len_v3v3(active_vertex->co, neighbor->co);
   }

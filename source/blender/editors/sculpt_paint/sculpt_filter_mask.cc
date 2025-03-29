@@ -606,7 +606,7 @@ static void grow_mask_bmesh(const int mask_offset,
 {
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
-  Vector<BMVert *, 64> neighbors;
+  BMeshNeighborVerts neighbors;
   int i = 0;
   for (BMVert *vert : verts) {
     new_mask[i] = BM_ELEM_CD_GET_FLOAT(vert, mask_offset);
@@ -625,7 +625,7 @@ static void shrink_mask_bmesh(const int mask_offset,
 {
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
 
-  Vector<BMVert *, 64> neighbors;
+  BMeshNeighborVerts neighbors;
   int i = 0;
   for (BMVert *vert : verts) {
     new_mask[i] = BM_ELEM_CD_GET_FLOAT(vert, mask_offset);

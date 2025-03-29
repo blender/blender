@@ -551,8 +551,9 @@ namespace blender::ed::sculpt_paint {
  */
 Span<float3> vert_positions_for_grab_active_get(const Depsgraph &depsgraph, const Object &object);
 
-Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_neighbors);
-Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, Vector<BMVert *, 64> &r_neighbors);
+using BMeshNeighborVerts = Vector<BMVert *, 64>;
+Span<BMVert *> vert_neighbors_get_bmesh(BMVert &vert, BMeshNeighborVerts &r_neighbors);
+Span<BMVert *> vert_neighbors_get_interior_bmesh(BMVert &vert, BMeshNeighborVerts &r_neighbors);
 
 Span<int> vert_neighbors_get_mesh(OffsetIndices<int> faces,
                                   Span<int> corner_verts,

@@ -509,7 +509,7 @@ static void calc_blurred_cavity_bmesh(const Cache &automasking,
 
   const float3 starting_position = vert->co;
 
-  Vector<BMVert *, 64> neighbors;
+  BMeshNeighborVerts neighbors;
   while (!queue.empty()) {
     const CavityBlurVert blurvert = queue.front();
     queue.pop();
@@ -1472,7 +1472,7 @@ static void init_boundary_masking_bmesh(Object &object,
     }
   }
 
-  Vector<BMVert *, 64> neighbors;
+  BMeshNeighborVerts neighbors;
   for (const int propagation_it : IndexRange(propagation_steps)) {
     for (const int i : IndexRange(num_verts)) {
       if (edge_distance[i] != EDGE_DISTANCE_INF) {

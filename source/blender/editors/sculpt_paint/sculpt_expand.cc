@@ -513,7 +513,7 @@ static IndexMask boundary_from_enabled(Object &object,
     case bke::pbvh::Type::BMesh: {
       return IndexMask::from_predicate(enabled_mask, GrainSize(1024), memory, [&](const int vert) {
         BMVert *bm_vert = BM_vert_at_index(ss.bm, vert);
-        Vector<BMVert *, 64> neighbors;
+        BMeshNeighborVerts neighbors;
         for (const BMVert *neighbor : vert_neighbors_get_bmesh(*bm_vert, neighbors)) {
           if (!enabled_verts[BM_elem_index_get(neighbor)]) {
             return true;
