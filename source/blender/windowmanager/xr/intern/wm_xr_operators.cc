@@ -775,7 +775,6 @@ static void wm_xr_raycast(Scene *scene,
  * \{ */
 
 #define XR_DEFAULT_FLY_SPEED_MOVE 0.054f
-#define XR_DEFAULT_FLY_SPEED_TURN 0.03f
 
 enum eXrFlyMode {
   XR_FLY_FORWARD = 0,

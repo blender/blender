@@ -26,8 +26,6 @@
 #include <algorithm> /* For `min/max`. */
 #include <cstring>
 
-#define KEEP_SINGLE_COPY 1
-
 /* -------------------------------------------------------------------- */
 /** \name IndexBufBuilder
  * \{ */

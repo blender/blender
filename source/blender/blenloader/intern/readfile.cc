@@ -170,9 +170,6 @@
  */
 #define USE_BHEAD_READ_ON_DEMAND
 
-/** Use #GHash for restoring pointers by name. */
-#define USE_GHASH_RESTORE_POINTER
-
 static CLG_LogRef LOG = {"blo.readfile"};
 static CLG_LogRef LOG_UNDO = {"blo.readfile.undo"};
 
