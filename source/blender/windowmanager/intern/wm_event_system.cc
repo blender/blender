@@ -5623,7 +5623,6 @@ static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win)
   BLI_remlink(&win->runtime->event_queue, event_new);
   BLI_addhead(&win->runtime->event_queue, event_new);
 
-  copy_v2_v2_int(event_new->prev_xy, event_last->xy);
   return event_new;
 }
 
