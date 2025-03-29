@@ -139,7 +139,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       BKE_modifier_set_error(ctx->object, md, "Zero voxel size cannot be solved");
       return nullptr;
     }
-    result = BKE_mesh_remesh_voxel(mesh, rmd->voxel_size, rmd->adaptivity, 0.0f);
+    result = BKE_mesh_remesh_voxel(mesh, rmd->voxel_size, rmd->adaptivity, 0.0f, ctx->object, md);
     if (result == nullptr) {
       return nullptr;
     }
