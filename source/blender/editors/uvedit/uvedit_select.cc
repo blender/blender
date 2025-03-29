@@ -2250,10 +2250,9 @@ void UV_OT_select_less(wmOperatorType *ot)
 /** \name (De)Select All Operator
  * \{ */
 
-bool uvedit_select_is_any_selected(const Scene *scene, Object *obedit)
+bool uvedit_select_is_any_selected(const Scene *scene, BMEditMesh *em)
 {
   const ToolSettings *ts = scene->toolsettings;
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMFace *efa;
   BMLoop *l;
   BMIter iter, liter;
@@ -2281,7 +2280,8 @@ bool uvedit_select_is_any_selected_multi(const Scene *scene, const Span<Object *
 {
   bool found = false;
   for (Object *obedit : objects) {
-    if (uvedit_select_is_any_selected(scene, obedit)) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    if (uvedit_select_is_any_selected(scene, em)) {
       found = true;
       break;
     }
@@ -2292,8 +2292,15 @@ bool uvedit_select_is_any_selected_multi(const Scene *scene, const Span<Object *
 static void uv_select_all(const Scene *scene, BMEditMesh *em, bool select_all)
 {
   const ToolSettings *ts = scene->toolsettings;
-  BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
-  UNUSED_VARS_NDEBUG(ts);
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
+    if (select_all) {
+      EDBM_flag_enable_all(em, BM_ELEM_SELECT);
+    }
+    else {
+      EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+    }
+    return;
+  }
 
   BMFace *efa;
   BMLoop *l;
@@ -2314,10 +2321,26 @@ static void uv_select_all(const Scene *scene, BMEditMesh *em, bool select_all)
   }
 }
 
+static void uv_select_toggle_all(const Scene *scene, BMEditMesh *em)
+{
+  const ToolSettings *ts = scene->toolsettings;
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
+    EDBM_select_toggle_all(em);
+    return;
+  }
+
+  bool select_any = uvedit_select_is_any_selected(scene, em);
+  uv_select_all(scene, em, !select_any);
+}
+
 static void uv_select_invert(const Scene *scene, BMEditMesh *em)
 {
   const ToolSettings *ts = scene->toolsettings;
-  BLI_assert((ts->uv_flag & UV_SYNC_SELECTION) == 0);
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
+    EDBM_select_swap(em);
+    EDBM_selectmode_flush(em);
+    return;
+  }
 
   const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
   BM_uv_map_attr_vert_select_ensure(em->bm, active_uv_name);
@@ -2358,41 +2381,24 @@ static void uv_select_invert(const Scene *scene, BMEditMesh *em)
 
 static void uv_select_all_perform(const Scene *scene, Object *obedit, int action)
 {
-  const ToolSettings *ts = scene->toolsettings;
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-  if (ts->uv_flag & UV_SYNC_SELECTION) {
-    switch (action) {
-      case SEL_TOGGLE:
-        EDBM_select_toggle_all(em);
-        break;
-      case SEL_SELECT:
-        EDBM_flag_enable_all(em, BM_ELEM_SELECT);
-        break;
-      case SEL_DESELECT:
-        EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-        break;
-      case SEL_INVERT:
-        EDBM_select_swap(em);
-        EDBM_selectmode_flush(em);
-        break;
+  switch (action) {
+    case SEL_TOGGLE: {
+      uv_select_toggle_all(scene, em);
+      break;
     }
-  }
-  else {
-    if (action == SEL_TOGGLE) {
-      action = uvedit_select_is_any_selected(scene, obedit) ? SEL_DESELECT : SEL_SELECT;
+    case SEL_SELECT: {
+      uv_select_all(scene, em, true);
+      break;
     }
-
-    switch (action) {
-      case SEL_SELECT:
-        uv_select_all(scene, em, true);
-        break;
-      case SEL_DESELECT:
-        uv_select_all(scene, em, false);
-        break;
-      case SEL_INVERT:
-        uv_select_invert(scene, em);
-        break;
+    case SEL_DESELECT: {
+      uv_select_all(scene, em, false);
+      break;
+    }
+    case SEL_INVERT: {
+      uv_select_invert(scene, em);
+      break;
     }
   }
 }

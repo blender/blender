@@ -125,7 +125,7 @@ void UV_OT_shortest_path_select(wmOperatorType *ot);
 
 /* `uvedit_select.cc` */
 
-bool uvedit_select_is_any_selected(const Scene *scene, Object *obedit);
+bool uvedit_select_is_any_selected(const Scene *scene, BMEditMesh *em);
 bool uvedit_select_is_any_selected_multi(const Scene *scene, blender::Span<Object *> objects);
 /**
  * \warning This returns first selected UV,

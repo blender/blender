@@ -146,10 +146,10 @@ void BM_face_uv_minmax(const BMFace *f, float min[2], float max[2], const int cd
 bool BM_loop_uv_share_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->e == l_b->e);
-  float *luv_a_curr = BM_ELEM_CD_GET_FLOAT_P(l_a, cd_loop_uv_offset);
-  float *luv_a_next = BM_ELEM_CD_GET_FLOAT_P(l_a->next, cd_loop_uv_offset);
-  float *luv_b_curr = BM_ELEM_CD_GET_FLOAT_P(l_b, cd_loop_uv_offset);
-  float *luv_b_next = BM_ELEM_CD_GET_FLOAT_P(l_b->next, cd_loop_uv_offset);
+  const float *luv_a_curr = BM_ELEM_CD_GET_FLOAT_P(l_a, cd_loop_uv_offset);
+  const float *luv_a_next = BM_ELEM_CD_GET_FLOAT_P(l_a->next, cd_loop_uv_offset);
+  const float *luv_b_curr = BM_ELEM_CD_GET_FLOAT_P(l_b, cd_loop_uv_offset);
+  const float *luv_b_next = BM_ELEM_CD_GET_FLOAT_P(l_b->next, cd_loop_uv_offset);
   if (l_a->v != l_b->v) {
     std::swap(luv_b_curr, luv_b_next);
   }
