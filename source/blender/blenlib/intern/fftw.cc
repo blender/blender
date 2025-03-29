@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bli
+ */
+
 #if defined(WITH_FFTW3_THREADS_F_SUPPORT)
 #  include <fftw3.h>
 #endif

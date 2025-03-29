@@ -2,13 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma once
-
-struct Mesh;
-
 /** \file
  * \ingroup bke
  */
+
+#pragma once
+
+struct Mesh;
 
 #include "BLI_virtual_array_fwd.hh"
 

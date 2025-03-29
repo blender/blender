@@ -4,6 +4,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later AND BSD-3-Clause */
 
+/** \file
+ * \ingroup bli
+ */
+
 #include <algorithm>
 #include <cfloat>
 #include <cmath>

@@ -6,6 +6,10 @@
  *
  * SPDX-License-Identifier: MIT */
 
+/** \file
+ * \ingroup bli
+ */
+
 #include "BLI_smaa_textures.h"
 
 /* Don't re-wrap large data definitions. */

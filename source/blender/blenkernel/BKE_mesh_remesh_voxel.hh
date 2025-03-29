@@ -2,15 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma once
-struct ModifierData;
-struct ReportList;
-
 /** \file
  * \ingroup bke
  */
 
+#pragma once
+
 struct Mesh;
+struct ModifierData;
+struct ReportList;
 
 Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh);
 Mesh *BKE_mesh_remesh_voxel(const Mesh *mesh,

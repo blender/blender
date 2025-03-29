@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bli
+ */
+
 /**
  * Expression evaluation has multiple phases:
  * 1. A coarse evaluation that tries to find segments which can be trivially evaluated. For

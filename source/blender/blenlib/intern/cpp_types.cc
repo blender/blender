@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bli
+ */
+
 #include "BLI_color.hh"
 #include "BLI_cpp_type_make.hh"
 #include "BLI_cpp_types_make.hh"

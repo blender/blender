@@ -2,14 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma once
-
-/**
+/** \file
+ * \ingroup bli
+ *
  * Language grammar: https://www.graphviz.org/doc/info/lang.html
  * Attributes: https://www.graphviz.org/doc/info/attrs.html
  * Node Shapes: https://www.graphviz.org/doc/info/shapes.html
  * Preview: https://dreampuf.github.io/GraphvizOnline
  */
+
+#pragma once
 
 #include "BLI_map.hh"
 #include "BLI_set.hh"
