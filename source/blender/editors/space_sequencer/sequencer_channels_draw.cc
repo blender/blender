@@ -110,7 +110,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
       &context->scene->id, &RNA_SequenceTimelineChannel, channel);
   PropertyRNA *hide_prop = RNA_struct_type_find_property(&RNA_SequenceTimelineChannel, "mute");
 
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, blender::ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
                                   UI_BTYPE_TOGGLE,
                                   1,
@@ -149,7 +149,7 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
       &context->scene->id, &RNA_SequenceTimelineChannel, channel);
   PropertyRNA *hide_prop = RNA_struct_type_find_property(&RNA_SequenceTimelineChannel, "lock");
 
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, blender::ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
                                   UI_BTYPE_TOGGLE,
                                   1,
@@ -226,7 +226,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
         &context->scene->id, &RNA_SequenceTimelineChannel, channel);
     PropertyRNA *prop = RNA_struct_name_property(ptr.type);
 
-    UI_block_emboss_set(block, UI_EMBOSS);
+    UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
     uiBut *but = uiDefButR(block,
                            UI_BTYPE_TEXT,
                            1,
@@ -241,7 +241,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
                            0,
                            0,
                            std::nullopt);
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
+    UI_block_emboss_set(block, blender::ui::EmbossType::None);
 
     if (UI_but_active_only(context->C, context->region, block, but) == false) {
       sseq->runtime->rename_channel_index = 0;
@@ -271,7 +271,8 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
   GPU_matrix_push();
   wmOrtho2_pixelspace(context->region->winx / context->scale,
                       context->region->winy / context->scale);
-  uiBlock *block = UI_block_begin(context->C, context->region, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(
+      context->C, context->region, __func__, blender::ui::EmbossType::Emboss);
 
   int channel_range[2];
   displayed_channel_range_get(context, channel_range);

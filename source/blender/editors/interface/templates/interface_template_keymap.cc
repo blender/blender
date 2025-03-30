@@ -58,7 +58,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
     if (is_set) {
       /* unset operator */
       uiBlock *block = uiLayoutGetBlock(row);
-      UI_block_emboss_set(block, UI_EMBOSS_NONE);
+      UI_block_emboss_set(block, blender::ui::EmbossType::None);
       but = uiDefIconButO(block,
                           UI_BTYPE_BUT,
                           "UI_OT_unset_property_button",
@@ -71,7 +71,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
                           std::nullopt);
       but->rnapoin = *ptr;
       but->rnaprop = prop;
-      UI_block_emboss_set(block, UI_EMBOSS);
+      UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
     }
   }
   RNA_STRUCT_END;

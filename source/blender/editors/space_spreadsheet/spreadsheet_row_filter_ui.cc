@@ -143,7 +143,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   }
 
   uiLayout *row = uiLayoutRow(layout, true);
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
   uiItemR(row, filter_ptr, "enabled", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   if (column_name.is_empty()) {
@@ -164,7 +164,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   }
 
   row = uiLayoutRow(layout, true);
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
   const int current_index = BLI_findindex(&sspreadsheet->row_filters, filter);
   uiItemIntO(row, "", ICON_X, "SPREADSHEET_OT_remove_row_filter_rule", "index", current_index);
 

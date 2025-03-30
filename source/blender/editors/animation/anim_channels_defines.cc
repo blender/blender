@@ -5807,7 +5807,7 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
 
   /* Layer onion skinning switch. */
   offset -= ICON_WIDTH;
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, blender::ui::EmbossType::None);
   PropertyRNA *onion_skinning_prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
 
   const std::optional<std::string> onion_skinning_rna_path = RNA_path_from_ID_to_property(
@@ -5829,7 +5829,7 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
 
   /* Mask layer. */
   offset -= ICON_WIDTH;
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, blender::ui::EmbossType::None);
   PropertyRNA *layer_mask_prop = RNA_struct_find_property(&ptr, "use_masks");
 
   const std::optional<std::string> layer_mask_rna_path = RNA_path_from_ID_to_property(
@@ -5850,7 +5850,7 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
   /* Layer opacity. */
   const short width = SLIDER_WIDTH * 0.6;
   offset -= width;
-  UI_block_emboss_set(block, UI_EMBOSS);
+  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
   PropertyRNA *opacity_prop = RNA_struct_find_property(&ptr, "opacity");
   const std::optional<std::string> opacity_rna_path = RNA_path_from_ID_to_property(&ptr,
                                                                                    opacity_prop);
@@ -5896,7 +5896,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
   ymid = BLI_rctf_cent_y(rect) - 0.5f * ICON_WIDTH;
 
   /* no button backdrop behind icons */
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, blender::ui::EmbossType::None);
 
   /* step 1) draw expand widget ....................................... */
   if (acf->has_setting(ac, ale, ACHANNEL_SETTING_EXPAND)) {
@@ -5955,7 +5955,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
       const short width = ac->region->winx - offset - (margin_x * 2);
       uiBut *but;
 
-      UI_block_emboss_set(block, UI_EMBOSS);
+      UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
       but = uiDefButR(block,
                       UI_BTYPE_TEXT,
@@ -5980,7 +5980,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
         WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, nullptr);
       }
 
-      UI_block_emboss_set(block, UI_EMBOSS_NONE);
+      UI_block_emboss_set(block, blender::ui::EmbossType::None);
     }
     else {
       /* Cannot get property/cannot or rename for some reason, so clear rename index
@@ -6105,7 +6105,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
         uiBut *but;
         PointerRNA *opptr_b;
 
-        UI_block_emboss_set(block, UI_EMBOSS);
+        UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
         offset -= UI_UNIT_X;
         but = uiDefIconButO(block,
@@ -6122,7 +6122,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
         opptr_b = UI_but_operator_ptr_ensure(but);
         RNA_int_set(opptr_b, "track_index", channel_index);
 
-        UI_block_emboss_set(block, UI_EMBOSS_NONE);
+        UI_block_emboss_set(block, blender::ui::EmbossType::None);
       }
 
       /* Slot ID type indicator. */
@@ -6159,7 +6159,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
       offset -= SLIDER_WIDTH;
 
       /* need backdrop behind sliders... */
-      UI_block_emboss_set(block, UI_EMBOSS);
+      UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
       if (ale->owner) { /* Slider using custom RNA Access ---------- */
         if (ale->type == ANIMTYPE_NLACURVE) {
@@ -6226,7 +6226,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
             /* Layer onion skinning switch. */
             offset -= ICON_WIDTH;
-            UI_block_emboss_set(block, UI_EMBOSS_NONE);
+            UI_block_emboss_set(block, blender::ui::EmbossType::None);
             prop = RNA_struct_find_property(&ptr, "use_annotation_onion_skinning");
             if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
                                                                                             prop))
@@ -6250,7 +6250,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
             /* Layer opacity. */
             const short width = SLIDER_WIDTH * 0.6;
             offset -= width;
-            UI_block_emboss_set(block, UI_EMBOSS);
+            UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
             prop = RNA_struct_find_property(&ptr, "annotation_opacity");
             if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
                                                                                             prop))

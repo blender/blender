@@ -4887,7 +4887,9 @@ static int ui_do_but_TEX(
       if (ELEM(event->type, EVT_PADENTER, EVT_RETKEY) && !UI_but_is_utf8(but)) {
         /* Pass, allow file-selector, enter to execute. */
       }
-      else if (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) &&
+      else if (ELEM(but->emboss,
+                    blender::ui::EmbossType::None,
+                    blender::ui::EmbossType::NoneOrStatus) &&
                (event->modifier != KM_CTRL))
       {
         /* Pass. */

@@ -406,7 +406,7 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
 {
   LinkDragSearchStorage &storage = *(LinkDragSearchStorage *)arg_op;
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 

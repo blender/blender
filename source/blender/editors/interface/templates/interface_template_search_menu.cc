@@ -655,7 +655,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
         continue;
       }
 
-      uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+      uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
       uiLayout *layout = UI_block_layout(
           block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
 
@@ -755,7 +755,8 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           /* A non 'MenuType' menu button. */
 
           /* +1 to avoid overlap with the current 'block'. */
-          uiBlock *sub_block = UI_block_begin(C, region, __func__ + 1, UI_EMBOSS);
+          uiBlock *sub_block = UI_block_begin(
+              C, region, __func__ + 1, blender::ui::EmbossType::Emboss);
           uiLayout *sub_layout = UI_block_layout(
               sub_block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
 

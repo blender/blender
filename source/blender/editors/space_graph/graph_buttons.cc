@@ -1171,7 +1171,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     uiItemR(sub, &dvar_ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 
     /* 1.2) invalid name? */
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
+    UI_block_emboss_set(block, blender::ui::EmbossType::None);
 
     if (dvar->flag & DVAR_FLAG_INVALID_NAME) {
       but = uiDefIconBut(block,
@@ -1203,7 +1203,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                        0.0,
                        TIP_("Delete target variable"));
     UI_but_func_set(but, driver_delete_var_cb, driver, dvar);
-    UI_block_emboss_set(block, UI_EMBOSS);
+    UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
     /* 2) variable type settings */
     box = uiLayoutBox(col);

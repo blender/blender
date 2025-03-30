@@ -391,9 +391,9 @@ static void nla_panel_stripname(const bContext *C, Panel *panel)
 
   uiItemR(row, &strip_ptr, "name", UI_ITEM_NONE, "", ICON_NLA);
 
-  UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
+  UI_block_emboss_set(block, blender::ui::EmbossType::NoneOrStatus);
   uiItemR(row, &strip_ptr, "mute", UI_ITEM_NONE, "", ICON_NONE);
-  UI_block_emboss_set(block, UI_EMBOSS);
+  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 }
 
 /* generic settings for active NLA-Strip */

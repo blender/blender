@@ -319,7 +319,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   /* Right align. */
   sub = uiLayoutRow(layout, true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
-  uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
+  uiLayoutSetEmboss(sub, blender::ui::EmbossType::None);
 
   /* 'Mute' button. */
   uiItemR(sub, ptr, "mute", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);

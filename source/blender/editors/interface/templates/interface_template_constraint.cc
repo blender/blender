@@ -124,11 +124,11 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
 
   /* Constraint type icon. */
   uiLayout *sub = uiLayoutRow(layout, false);
-  uiLayoutSetEmboss(sub, UI_EMBOSS);
+  uiLayoutSetEmboss(sub, blender::ui::EmbossType::Emboss);
   uiLayoutSetRedAlert(sub, (con->flag & CONSTRAINT_DISABLE));
   uiItemL(sub, "", RNA_struct_ui_icon(ptr.type));
 
-  UI_block_emboss_set(block, UI_EMBOSS);
+  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
   uiLayout *row = uiLayoutRow(layout, true);
 
@@ -142,7 +142,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
 
   /* Close 'button' - emboss calls here disable drawing of 'button' behind X */
   sub = uiLayoutRow(row, false);
-  uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
+  uiLayoutSetEmboss(sub, blender::ui::EmbossType::None);
   uiLayoutSetOperatorContext(sub, WM_OP_INVOKE_DEFAULT);
   uiItemO(sub, "", ICON_X, "CONSTRAINT_OT_delete");
 

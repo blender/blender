@@ -64,7 +64,7 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
     return;
   }
 
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, blender::ui::EmbossType::None);
 
   uiBut *but = uiDefBut(
       block, UI_BTYPE_LABEL, 0, label, 0, y, x, UI_UNIT_Y, nullptr, 0, 0, std::nullopt);
@@ -75,7 +75,7 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
   uchar color[4] = {255, 255, 255, 255};
   UI_but_color_set(but, color);
 
-  UI_block_emboss_set(block, UI_EMBOSS);
+  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 }
 
 #ifndef WITH_HEADLESS
@@ -287,7 +287,7 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
 {
   const uiStyle *style = UI_style_get_dpi();
 
-  uiBlock *block = UI_block_begin(C, region, "splash", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "splash", blender::ui::EmbossType::Emboss);
 
   /* Note on #UI_BLOCK_NO_WIN_CLIP, the window size is not always synchronized
    * with the OS when the splash shows, window clipping in this case gives
@@ -438,7 +438,7 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
   const uiStyle *style = UI_style_get_dpi();
   const int dialog_width = style->widget.points * 42 * UI_SCALE_FAC;
 
-  uiBlock *block = UI_block_begin(C, region, "about", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "about", blender::ui::EmbossType::Emboss);
 
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);

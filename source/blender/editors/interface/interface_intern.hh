@@ -248,7 +248,7 @@ struct uiBut {
 
   BIFIconID icon = ICON_NONE;
   /** Copied from the #uiBlock.emboss */
-  eUIEmbossType emboss = UI_EMBOSS;
+  blender::ui::EmbossType emboss = blender::ui::EmbossType::Emboss;
   /** direction in a pie menu, used for collision detection. */
   RadialDirection pie_dir = UI_RADIAL_NONE;
   /** could be made into a single flag */
@@ -621,7 +621,7 @@ struct uiBlock {
   /** UI_BLOCK_THEME_STYLE_* */
   char theme_style;
   /** Copied to #uiBut.emboss */
-  eUIEmbossType emboss;
+  blender::ui::EmbossType emboss;
   bool auto_open;
   char _pad[5];
   double auto_open_last;

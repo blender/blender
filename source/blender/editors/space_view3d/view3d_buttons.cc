@@ -1482,7 +1482,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
   colsub = uiLayoutColumn(split, true);
   uiItemR(colsub, ptr, "location", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   colsub = uiLayoutColumn(split, true);
-  uiLayoutSetEmboss(colsub, UI_EMBOSS_NONE_OR_STATUS);
+  uiLayoutSetEmboss(colsub, blender::ui::EmbossType::NoneOrStatus);
   uiItemL(colsub, "", ICON_NONE);
   uiItemR(colsub,
           ptr,
@@ -1498,7 +1498,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
       colsub = uiLayoutColumn(split, true);
       uiItemR(colsub, ptr, "rotation_quaternion", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
       colsub = uiLayoutColumn(split, true);
-      uiLayoutSetEmboss(colsub, UI_EMBOSS_NONE_OR_STATUS);
+      uiLayoutSetEmboss(colsub, blender::ui::EmbossType::NoneOrStatus);
       uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, IFACE_("4L"), ICON_NONE);
       if (RNA_boolean_get(ptr, "lock_rotations_4d")) {
         uiItemR(colsub,
@@ -1522,7 +1522,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
       colsub = uiLayoutColumn(split, true);
       uiItemR(colsub, ptr, "rotation_axis_angle", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
       colsub = uiLayoutColumn(split, true);
-      uiLayoutSetEmboss(colsub, UI_EMBOSS_NONE_OR_STATUS);
+      uiLayoutSetEmboss(colsub, blender::ui::EmbossType::NoneOrStatus);
       uiItemR(colsub, ptr, "lock_rotations_4d", UI_ITEM_R_TOGGLE, IFACE_("4L"), ICON_NONE);
       if (RNA_boolean_get(ptr, "lock_rotations_4d")) {
         uiItemR(colsub,
@@ -1546,7 +1546,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
       colsub = uiLayoutColumn(split, true);
       uiItemR(colsub, ptr, "rotation_euler", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
       colsub = uiLayoutColumn(split, true);
-      uiLayoutSetEmboss(colsub, UI_EMBOSS_NONE_OR_STATUS);
+      uiLayoutSetEmboss(colsub, blender::ui::EmbossType::NoneOrStatus);
       uiItemL(colsub, "", ICON_NONE);
       uiItemR(colsub,
               ptr,
@@ -1562,7 +1562,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
   colsub = uiLayoutColumn(split, true);
   uiItemR(colsub, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   colsub = uiLayoutColumn(split, true);
-  uiLayoutSetEmboss(colsub, UI_EMBOSS_NONE_OR_STATUS);
+  uiLayoutSetEmboss(colsub, blender::ui::EmbossType::NoneOrStatus);
   uiItemL(colsub, "", ICON_NONE);
   uiItemR(colsub,
           ptr,

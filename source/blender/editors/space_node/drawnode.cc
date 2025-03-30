@@ -1230,9 +1230,9 @@ static void node_file_output_socket_draw(bContext *C,
     RNA_property_enum_name(
         C, &imfptr, imtype_prop, RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
     block = uiLayoutGetBlock(row);
-    UI_block_emboss_set(block, UI_EMBOSS_PULLDOWN);
+    UI_block_emboss_set(block, blender::ui::EmbossType::Pulldown);
     uiItemL(row, imtype_name, ICON_NONE);
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
+    UI_block_emboss_set(block, blender::ui::EmbossType::None);
   }
 }
 
@@ -1263,7 +1263,7 @@ static void draw_node_socket_name_editable(uiLayout *layout,
 {
   if (sock->runtime->declaration) {
     if (sock->runtime->declaration->socket_name_rna) {
-      uiLayoutSetEmboss(layout, UI_EMBOSS_NONE);
+      uiLayoutSetEmboss(layout, blender::ui::EmbossType::None);
       uiItemR(layout,
               (&sock->runtime->declaration->socket_name_rna->owner),
               sock->runtime->declaration->socket_name_rna->property_name,

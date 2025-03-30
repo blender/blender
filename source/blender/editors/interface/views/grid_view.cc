@@ -508,7 +508,7 @@ void PreviewGridItem::build_grid_tile_button(uiLayout &layout,
                   icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
-  but->emboss = UI_EMBOSS_NONE;
+  but->emboss = blender::ui::EmbossType::None;
 }
 
 void PreviewGridItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) const

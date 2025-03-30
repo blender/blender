@@ -61,7 +61,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 
   uiLayout *ui_abs = uiLayoutAbsolute(layout, false);
   uiBlock *block = uiLayoutGetBlock(ui_abs);
-  eUIEmbossType previous_emboss = UI_block_emboss_get(block);
+  blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
   uchar report_icon_color[4];
   uchar report_text_color[4];
@@ -120,7 +120,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
   but->col[3] = 64;
 
   UI_block_align_end(block);
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, blender::ui::EmbossType::None);
 
   /* The report icon itself. */
   but = uiDefIconButO(block,
@@ -420,7 +420,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         uiItemL(row, "|", ICON_NONE);
         uiItemS_ex(row, -0.5f);
       }
-      uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+      uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
       /* This operator also works fine for blocked extensions. */
       uiItemO(row, "", ICON_ERROR, "EXTENSIONS_OT_userpref_show_for_update");
       uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
@@ -446,7 +446,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         uiItemL(row, "", ICON_INTERNET_OFFLINE);
       }
       else {
-        uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+        uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
         uiItemO(row, "", ICON_INTERNET_OFFLINE, "EXTENSIONS_OT_userpref_show_online");
         uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
         uchar color[4];
@@ -470,7 +470,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         uiItemL(row, "|", ICON_NONE);
         uiItemS_ex(row, -0.5f);
       }
-      uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+      uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
       uiItemO(row, "", icon, "EXTENSIONS_OT_userpref_show_for_update");
       uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
       uchar color[4];
@@ -520,7 +520,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   const uiStyle *style = UI_style_get();
   uiLayout *ui_abs = uiLayoutAbsolute(layout, false);
   uiBlock *block = uiLayoutGetBlock(ui_abs);
-  eUIEmbossType previous_emboss = UI_block_emboss_get(block);
+  blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
   UI_fontstyle_set(&style->widget);
   const int width = max_ii(
@@ -566,7 +566,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   }
 
   UI_block_align_end(block);
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, blender::ui::EmbossType::None);
 
   /* The warning icon itself. */
   but = uiDefIconBut(block,

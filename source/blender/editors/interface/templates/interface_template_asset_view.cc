@@ -111,7 +111,7 @@ static void asset_view_draw_item(uiList *ui_list,
                   asset::asset_preview_icon_id(*asset),
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
-  but->emboss = UI_EMBOSS_NONE;
+  but->emboss = blender::ui::EmbossType::None;
   if (!ui_list->dyn_data->custom_drag_optype) {
     asset_view_item_but_drag_set(but, &asset_handle);
   }

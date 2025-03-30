@@ -101,7 +101,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap
   uiBut *bt;
   const float width = 8 * UI_UNIT_X;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
@@ -193,7 +193,7 @@ static uiBlock *curvemap_tools_func(
   short yco = 0;
   const short menuwidth = 10 * UI_UNIT_X;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
 
   {
     uiBut *but = uiDefIconTextBut(block,
@@ -343,7 +343,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
   uiBlock *block = uiLayoutGetBlock(layout);
 
-  UI_block_emboss_set(block, UI_EMBOSS);
+  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
   if (tone) {
     uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
@@ -598,7 +598,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
       bounds.xmax = bounds.ymax = 1000.0;
     }
 
-    UI_block_emboss_set(block, UI_EMBOSS);
+    UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
     uiLayoutRow(layout, true);
 

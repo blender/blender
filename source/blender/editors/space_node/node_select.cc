@@ -1362,7 +1362,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_optype)
   uiBut *but;
   wmOperatorType *optype = (wmOperatorType *)arg_optype;
 
-  block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
+  block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 

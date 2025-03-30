@@ -352,7 +352,7 @@ static void draw_export_controls(
   uiItemL(layout, label, ICON_NONE);
   if (valid) {
     uiLayout *row = uiLayoutRow(layout, false);
-    uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+    uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
     uiItemPopoverPanel(row, C, "WM_PT_operator_presets", "", ICON_PRESET);
     uiItemIntO(row, "", ICON_EXPORT, "COLLECTION_OT_exporter_export", "index", index);
   }
@@ -396,7 +396,7 @@ static void draw_exporter_item(uiList * /*ui_list*/,
                                int /*flt_flag*/)
 {
   uiLayout *row = uiLayoutRow(layout, false);
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
   uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
 

@@ -861,7 +861,7 @@ static void ui_node_draw_input(uiLayout &layout,
     uiLayout *sub = uiLayoutRow(split_wrapper.label_column, true);
 
     if (depth > 0) {
-      UI_block_emboss_set(block, UI_EMBOSS_NONE);
+      UI_block_emboss_set(block, blender::ui::EmbossType::None);
 
       if (lnode && (lnode->inputs.first ||
                     (lnode->typeinfo->draw_buttons && lnode->type_legacy != NODE_GROUP)))
@@ -870,7 +870,7 @@ static void ui_node_draw_input(uiLayout &layout,
         uiItemR(sub, &inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
       }
 
-      UI_block_emboss_set(block, UI_EMBOSS);
+      UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
     }
 
     sub = uiLayoutRow(sub, true);

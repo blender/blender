@@ -84,7 +84,7 @@ static void ui_popover_create_block(bContext *C,
 
   const uiStyle *style = UI_style_get_dpi();
 
-  pup->block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  pup->block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
 
   UI_block_flag_enable(pup->block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
 #ifdef USE_UI_POPOVER_ONCE

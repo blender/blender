@@ -168,7 +168,7 @@ struct uiLayout : uiItem {
   /** For layouts inside grid-flow, they and their items shall never have a fixed maximal size. */
   bool variable_size;
   char alignment;
-  eUIEmbossType emboss;
+  blender::ui::EmbossType emboss;
   /** for fixed width or height to avoid UI size changes */
   float units[2];
   /** Is copied to uiButs created in this layout. */
@@ -710,8 +710,9 @@ static void ui_item_array(uiLayout *layout,
 
       /* Show check-boxes for rna on a non-emboss block (menu for eg). */
       bool *boolarr = nullptr;
-      if (type == PROP_BOOLEAN &&
-          ELEM(layout->root->block->emboss, UI_EMBOSS_NONE, UI_EMBOSS_PULLDOWN))
+      if (type == PROP_BOOLEAN && ELEM(layout->root->block->emboss,
+                                       blender::ui::EmbossType::None,
+                                       blender::ui::EmbossType::Pulldown))
       {
         boolarr = static_cast<bool *>(MEM_callocN(sizeof(bool) * len, __func__));
         RNA_property_boolean_get_array(ptr, prop, boolarr);
@@ -1255,9 +1256,9 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
 
   const int w = ui_text_icon_width(layout, *name, icon, false);
 
-  const eUIEmbossType prev_emboss = layout->emboss;
+  const blender::ui::EmbossType prev_emboss = layout->emboss;
   if (flag & UI_ITEM_R_NO_BG) {
-    layout->emboss = UI_EMBOSS_NONE_OR_STATUS;
+    layout->emboss = blender::ui::EmbossType::NoneOrStatus;
   }
 
   /* create the button */
@@ -2229,9 +2230,9 @@ void uiItemFullR(uiLayout *layout,
   int w, h;
   ui_item_rna_size(layout, name, icon, ptr, prop, index, icon_only, compact, &w, &h);
 
-  const eUIEmbossType prev_emboss = layout->emboss;
+  const blender::ui::EmbossType prev_emboss = layout->emboss;
   if (no_bg) {
-    layout->emboss = UI_EMBOSS_NONE_OR_STATUS;
+    layout->emboss = blender::ui::EmbossType::NoneOrStatus;
   }
 
   uiBut *but = nullptr;
@@ -2478,7 +2479,7 @@ void uiItemFullR(uiLayout *layout,
 
   /* Mark non-embossed text-fields inside a list-box. */
   if (but && (block->flag & UI_BLOCK_LIST_ITEM) && (but->type == UI_BTYPE_TEXT) &&
-      ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS))
+      ELEM(but->emboss, blender::ui::EmbossType::None, blender::ui::EmbossType::NoneOrStatus))
   {
     UI_but_flag_enable(but, UI_BUT_LIST_ITEM);
   }
@@ -2505,7 +2506,7 @@ void uiItemFullR(uiLayout *layout,
     const bool use_blank_decorator = (flag & UI_ITEM_R_FORCE_BLANK_DECORATE);
     uiLayout *layout_col = uiLayoutColumn(ui_decorate.layout, false);
     layout_col->space = 0;
-    layout_col->emboss = UI_EMBOSS_NONE;
+    layout_col->emboss = blender::ui::EmbossType::None;
 
     int i;
     for (i = 0; i < ui_decorate.len && but_decorate; i++) {
@@ -3119,7 +3120,7 @@ void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop,
   UI_block_layout_set_current(block, layout);
   uiLayout *col = uiLayoutColumn(layout, false);
   col->space = 0;
-  col->emboss = UI_EMBOSS_NONE;
+  col->emboss = blender::ui::EmbossType::None;
 
   if (ELEM(nullptr, ptr, prop) || !RNA_property_animateable(ptr, prop)) {
     uiBut *but = uiDefIconBut(block,
@@ -4111,7 +4112,7 @@ static void ui_litem_layout_radial(uiLayout *litem)
       bitem->but->rect.xmax += 1.5f * UI_UNIT_X;
       /* Enable drawing as pie item if supported by widget. */
       if (ui_item_is_radial_drawable(bitem)) {
-        bitem->but->emboss = UI_EMBOSS_PIE_MENU;
+        bitem->but->emboss = blender::ui::EmbossType::PieMenu;
         bitem->but->drawflag |= UI_BUT_ICON_LEFT;
       }
 
@@ -5328,7 +5329,7 @@ void uiLayoutSetUnitsY(uiLayout *layout, float unit)
   layout->units[1] = unit;
 }
 
-void uiLayoutSetEmboss(uiLayout *layout, eUIEmbossType emboss)
+void uiLayoutSetEmboss(uiLayout *layout, blender::ui::EmbossType emboss)
 {
   layout->emboss = emboss;
 }
@@ -5428,9 +5429,9 @@ float uiLayoutGetUnitsY(uiLayout *layout)
   return layout->units[1];
 }
 
-eUIEmbossType uiLayoutGetEmboss(uiLayout *layout)
+blender::ui::EmbossType uiLayoutGetEmboss(uiLayout *layout)
 {
-  if (layout->emboss == UI_EMBOSS_UNDEFINED) {
+  if (layout->emboss == blender::ui::EmbossType::Undefined) {
     return layout->root->block->emboss;
   }
   return layout->emboss;
@@ -5911,7 +5912,7 @@ uiLayout *UI_block_layout(uiBlock *block,
   layout->active = true;
   layout->enabled = true;
   layout->context = nullptr;
-  layout->emboss = UI_EMBOSS_UNDEFINED;
+  layout->emboss = blender::ui::EmbossType::Undefined;
 
   if (ELEM(type, UI_LAYOUT_MENU, UI_LAYOUT_PIEMENU)) {
     layout->space = 0;
@@ -5978,7 +5979,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
     layout->context->used = true;
   }
 
-  if (layout->emboss != UI_EMBOSS_UNDEFINED) {
+  if (layout->emboss != blender::ui::EmbossType::Undefined) {
     but->emboss = layout->emboss;
   }
 

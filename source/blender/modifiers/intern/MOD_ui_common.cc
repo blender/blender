@@ -341,7 +341,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
 
   /* Modifier Icon. */
   sub = uiLayoutRow(layout, true);
-  uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
+  uiLayoutSetEmboss(sub, blender::ui::EmbossType::None);
   if (mti->is_disabled && mti->is_disabled(scene, md, false)) {
     uiLayoutSetRedAlert(sub, true);
   }
@@ -445,7 +445,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   /* Delete button. */
   if (modifier_can_delete(md) && !modifier_is_simulation(md)) {
     sub = uiLayoutRow(row, false);
-    uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
+    uiLayoutSetEmboss(sub, blender::ui::EmbossType::None);
     uiItemO(sub, "", ICON_X, "OBJECT_OT_modifier_remove");
     buttons_number++;
   }

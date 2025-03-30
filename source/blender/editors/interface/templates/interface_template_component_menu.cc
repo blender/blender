@@ -26,7 +26,7 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
 {
   ComponentMenuArgs *args = (ComponentMenuArgs *)args_v;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN);
 
   uiLayout *layout = uiLayoutColumn(UI_block_layout(block,

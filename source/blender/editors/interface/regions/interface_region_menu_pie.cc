@@ -98,7 +98,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
 
   uiPieMenu *pie = MEM_callocN<uiPieMenu>(__func__);
 
-  pie->pie_block = UI_block_begin(C, nullptr, __func__, UI_EMBOSS);
+  pie->pie_block = UI_block_begin(C, nullptr, __func__, blender::ui::EmbossType::Emboss);
   /* may be useful later to allow spawning pies
    * from old positions */
   // pie->pie_block->flag |= UI_BLOCK_POPUP_MEMORY;

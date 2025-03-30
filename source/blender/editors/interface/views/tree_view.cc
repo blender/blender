@@ -531,11 +531,11 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
 void AbstractTreeViewItem::add_rename_button(uiLayout &row)
 {
   uiBlock *block = uiLayoutGetBlock(&row);
-  eUIEmbossType previous_emboss = UI_block_emboss_get(block);
+  blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
   uiLayoutRow(&row, false);
   /* Enable emboss for the text button. */
-  UI_block_emboss_set(block, UI_EMBOSS);
+  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
   AbstractViewItem::add_rename_button(*block);
 
@@ -881,7 +881,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   uiBlock &block_ = block();
 
   uiLayout &prev_layout = current_layout();
-  eUIEmbossType previous_emboss = UI_block_emboss_get(&block_);
+  blender::ui::EmbossType previous_emboss = UI_block_emboss_get(&block_);
 
   uiLayout *overlap = uiLayoutOverlap(&prev_layout);
 
@@ -891,12 +891,12 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
 
   uiLayout *row = uiLayoutRow(overlap, false);
   /* Enable emboss for mouse hover highlight. */
-  uiLayoutSetEmboss(row, UI_EMBOSS);
+  uiLayoutSetEmboss(row, blender::ui::EmbossType::Emboss);
   /* Every item gets one! Other buttons can be overlapped on top. */
   item.add_treerow_button(block_);
 
   /* After adding tree-row button (would disable hover highlighting). */
-  UI_block_emboss_set(&block_, UI_EMBOSS_NONE_OR_STATUS);
+  UI_block_emboss_set(&block_, blender::ui::EmbossType::NoneOrStatus);
 
   /* Add little margin to align actual contents vertically. */
   uiLayout *content_col = uiLayoutColumn(overlap, true);

@@ -125,24 +125,27 @@ struct uiTooltipData;
 /** Use for clamping popups within the screen. */
 #define UI_SCREEN_MARGIN 10
 
+namespace blender::ui {
 /** #uiBlock.emboss and #uiBut.emboss */
-enum eUIEmbossType {
+enum class EmbossType : uint8_t {
   /** Use widget style for drawing. */
-  UI_EMBOSS = 0,
+  Emboss = 0,
   /** Nothing, only icon and/or text */
-  UI_EMBOSS_NONE = 1,
+  None = 1,
   /** Pull-down menu style */
-  UI_EMBOSS_PULLDOWN = 2,
+  Pulldown = 2,
   /** Pie Menu */
-  UI_EMBOSS_PIE_MENU = 3,
+  PieMenu = 3,
   /**
-   * The same as #UI_EMBOSS_NONE, unless the button has
+   * The same as #EmbossType::None, unless the button has
    * a coloring status like an animation state or red alert.
    */
-  UI_EMBOSS_NONE_OR_STATUS = 4,
+  NoneOrStatus = 4,
   /** For layout engine, use emboss from block. */
-  UI_EMBOSS_UNDEFINED = 255,
+  Undefined = 255,
 };
+
+}  // namespace blender::ui
 
 /** #uiBlock::direction */
 enum {
@@ -886,13 +889,13 @@ bool UI_popup_block_name_exists(const bScreen *screen, blender::StringRef name);
 uiBlock *UI_block_begin(const bContext *C,
                         ARegion *region,
                         std::string name,
-                        eUIEmbossType emboss);
+                        blender::ui::EmbossType emboss);
 uiBlock *UI_block_begin(const bContext *C,
                         Scene *scene,
                         wmWindow *window,
                         ARegion *region,
                         std::string name,
-                        eUIEmbossType emboss);
+                        blender::ui::EmbossType emboss);
 void UI_block_end_ex(const bContext *C,
                      Main *bmain,
                      wmWindow *window,
@@ -917,8 +920,8 @@ enum {
   UI_BLOCK_THEME_STYLE_POPUP = 1,
 };
 void UI_block_theme_style_set(uiBlock *block, char theme_style);
-eUIEmbossType UI_block_emboss_get(uiBlock *block);
-void UI_block_emboss_set(uiBlock *block, eUIEmbossType emboss);
+blender::ui::EmbossType UI_block_emboss_get(uiBlock *block);
+void UI_block_emboss_set(uiBlock *block, blender::ui::EmbossType emboss);
 bool UI_block_is_search_only(const uiBlock *block);
 /**
  * Use when a block must be searched to give accurate results
@@ -2371,7 +2374,7 @@ void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 void uiLayoutSetUnitsX(uiLayout *layout, float unit);
 void uiLayoutSetUnitsY(uiLayout *layout, float unit);
-void uiLayoutSetEmboss(uiLayout *layout, eUIEmbossType emboss);
+void uiLayoutSetEmboss(uiLayout *layout, blender::ui::EmbossType emboss);
 void uiLayoutSetPropSep(uiLayout *layout, bool is_sep);
 void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep);
 int uiLayoutGetLocalDir(const uiLayout *layout);
@@ -2391,7 +2394,7 @@ float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
 float uiLayoutGetUnitsX(uiLayout *layout);
 float uiLayoutGetUnitsY(uiLayout *layout);
-eUIEmbossType uiLayoutGetEmboss(uiLayout *layout);
+blender::ui::EmbossType uiLayoutGetEmboss(uiLayout *layout);
 bool uiLayoutGetPropSep(uiLayout *layout);
 bool uiLayoutGetPropDecorate(uiLayout *layout);
 Panel *uiLayoutGetRootPanel(uiLayout *layout);
