@@ -20,6 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
+class Object;
 class Progress;
 class Scene;
 class Shader;
@@ -64,7 +65,7 @@ class Light : public Geometry {
   void tag_update(Scene *scene);
 
   /* Check whether the light has contribution the scene. */
-  bool has_contribution(Scene *scene);
+  bool has_contribution(const Scene *scene, const Object *object);
 
   /* Shader */
   Shader *get_shader() const;
