@@ -86,6 +86,7 @@
 #include "RNA_prototypes.hh"
 
 #include "ED_armature.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_node.hh"
 #include "ED_object.hh"
 #include "ED_object_vgroup.hh"
@@ -944,223 +945,6 @@ static bool modifier_apply_shape(Main *bmain,
   return true;
 }
 
-static void apply_eval_grease_pencil_data(const GreasePencil &src_grease_pencil,
-                                          const int eval_frame,
-                                          const IndexMask &orig_layers,
-                                          GreasePencil &orig_grease_pencil)
-{
-  using namespace bke;
-  using namespace bke::greasepencil;
-  /* Build a set of pointers to the layers that we want to apply. */
-  Set<const Layer *> orig_layers_to_apply;
-  orig_layers.foreach_index([&](const int layer_i) {
-    const Layer &layer = orig_grease_pencil.layer(layer_i);
-    orig_layers_to_apply.add(&layer);
-  });
-
-  /* Ensure that the layer names are unique by merging layers with the same name. */
-  const int old_layers_num = src_grease_pencil.layers().size();
-  Vector<Vector<int>> layers_map;
-  Map<StringRef, int> new_layer_index_by_name;
-  for (const int layer_i : IndexRange(old_layers_num)) {
-    const Layer &layer = src_grease_pencil.layer(layer_i);
-    const int new_layer_index = new_layer_index_by_name.lookup_or_add_cb(
-        layer.name(), [&]() { return layers_map.append_and_get_index_as(); });
-    layers_map[new_layer_index].append(layer_i);
-  }
-  GreasePencil &merged_layers_grease_pencil = *geometry::merge_layers(
-      src_grease_pencil, layers_map, {});
-
-  Map<const Layer *, const Layer *> eval_to_orig_layer_map;
-  {
-    /* Keep track of the last layer in each group to ensure layers get added to the same groups in
-     * the same order as the original. This is better than using the layer cache since it avoids
-     * updating the cache every time a new layer is added. */
-    Map<const LayerGroup *, TreeNode *> last_node_by_group;
-    /* Set of orig layers that require the drawing on `eval_frame` to be cleared. These are layers
-     * that existed in original geometry but were removed during the modifier evaluation. */
-    Set<Layer *> orig_layers_to_clear;
-    for (Layer *layer : orig_grease_pencil.layers_for_write()) {
-      /* Only allow clearing a layer if it is visible. */
-      if (layer->is_visible()) {
-        orig_layers_to_clear.add(layer);
-      }
-    }
-    for (const TreeNode *node_eval : merged_layers_grease_pencil.nodes()) {
-      /* Check if the original geometry has a layer with the same name. */
-      TreeNode *node_orig = orig_grease_pencil.find_node_by_name(node_eval->name());
-
-      BLI_assert(node_eval != nullptr);
-      if (node_eval->is_layer()) {
-        /* If the orig layer isn't valid then a new layer with a unique name will be generated. */
-        const bool has_valid_orig_layer = (node_orig != nullptr && node_orig->is_layer());
-        if (!has_valid_orig_layer) {
-          /* Note: This name might be empty! This has to be resolved at a later stage! */
-          Layer &layer_orig = orig_grease_pencil.add_layer(node_eval->name(), true);
-          orig_layers_to_apply.add(&layer_orig);
-          /* Make sure to add a new keyframe with a new drawing. */
-          orig_grease_pencil.insert_frame(layer_orig, eval_frame);
-          node_orig = &layer_orig.as_node();
-        }
-        BLI_assert(node_orig != nullptr);
-        Layer &layer_orig = node_orig->as_layer();
-        /* This layer has a matching evaluated layer, so don't clear its keyframe. */
-        orig_layers_to_clear.remove(&layer_orig);
-        /* Only map layers in `eval_to_orig_layer_map` that we want to apply. */
-        if (orig_layers_to_apply.contains(&layer_orig)) {
-          /* Copy layer properties to original geometry. */
-          const Layer &layer_eval = node_eval->as_layer();
-          layer_orig.opacity = layer_eval.opacity;
-          layer_orig.set_local_transform(layer_eval.local_transform());
-
-          /* Add new mapping for `layer_eval` -> `layer_orig`. */
-          eval_to_orig_layer_map.add_new(&layer_eval, &layer_orig);
-        }
-      }
-
-      /* Insert the updated node after the last node in the same group.
-       * This keeps the layer order consistent. */
-      if (node_orig && node_orig->parent_group()) {
-        last_node_by_group.add_or_modify(
-            node_orig->parent_group(),
-            [&](TreeNode **node_ptr) {
-              /* First layer in the group, set the last-layer pointer. */
-              *node_ptr = node_orig;
-            },
-            [&](TreeNode **node_ptr) {
-              orig_grease_pencil.move_node_after(*node_orig, **node_ptr);
-              *node_ptr = node_orig;
-            });
-      }
-    }
-
-    /* Clear the keyframe of all the original layers that don't have a matching evaluated layer,
-     * e.g. the ones that were "deleted" in the modifier. */
-    for (Layer *layer_orig : orig_layers_to_clear) {
-      /* Try inserting a frame. */
-      Drawing *drawing_orig = orig_grease_pencil.insert_frame(*layer_orig, eval_frame);
-      if (drawing_orig == nullptr) {
-        /* If that fails, get the drawing for this frame. */
-        drawing_orig = orig_grease_pencil.get_drawing_at(*layer_orig, eval_frame);
-      }
-      /* Clear the existing drawing. */
-      drawing_orig->strokes_for_write() = {};
-      drawing_orig->tag_topology_changed();
-    }
-  }
-
-  /* Update the drawings. */
-  VectorSet<Drawing *> all_updated_drawings;
-  for (auto [layer_eval, layer_orig] : eval_to_orig_layer_map.items()) {
-    const Drawing *drawing_eval = merged_layers_grease_pencil.get_drawing_at(*layer_eval,
-                                                                             eval_frame);
-    Drawing *drawing_orig = orig_grease_pencil.get_drawing_at(*layer_orig, eval_frame);
-    if (drawing_orig && drawing_eval) {
-      /* Write the data to the original drawing. */
-      drawing_orig->strokes_for_write() = std::move(drawing_eval->strokes());
-      /* Anonymous attributes shouldn't be available on original geometry. */
-      drawing_orig->strokes_for_write().attributes_for_write().remove_anonymous();
-      drawing_orig->tag_topology_changed();
-      all_updated_drawings.add_new(drawing_orig);
-    }
-  }
-
-  /* Get the original material pointers from the result geometry. */
-  VectorSet<Material *> original_materials;
-  const Span<Material *> eval_materials = Span{merged_layers_grease_pencil.material_array,
-                                               merged_layers_grease_pencil.material_array_num};
-  for (Material *eval_material : eval_materials) {
-    if (eval_material != nullptr && eval_material->id.orig_id != nullptr) {
-      original_materials.add_new(reinterpret_cast<Material *>(eval_material->id.orig_id));
-    }
-  }
-
-  /* Build material indices mapping. This maps the materials indices on the original geometry to
-   * the material indices used in the result geometry. The material indices for the drawings in the
-   * result geometry are already correct, but this might not be the case for all drawings in the
-   * original geometry (like for drawings that are not visible on the frame that the modifier is
-   * being applied on). */
-  Array<int> material_indices_map(orig_grease_pencil.material_array_num);
-  for (const int mat_i : IndexRange(orig_grease_pencil.material_array_num)) {
-    Material *material = orig_grease_pencil.material_array[mat_i];
-    const int map_index = original_materials.index_of_try(material);
-    if (map_index != -1) {
-      material_indices_map[mat_i] = map_index;
-    }
-  }
-
-  /* Remap material indices for all other drawings. */
-  if (!material_indices_map.is_empty() &&
-      !array_utils::indices_are_range(material_indices_map,
-                                      IndexRange(orig_grease_pencil.material_array_num)))
-  {
-    for (GreasePencilDrawingBase *base : orig_grease_pencil.drawings()) {
-      if (base->type != GP_DRAWING) {
-        continue;
-      }
-      Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
-      if (all_updated_drawings.contains(&drawing)) {
-        /* Skip remapping drawings that already have been updated. */
-        continue;
-      }
-      MutableAttributeAccessor attributes = drawing.strokes_for_write().attributes_for_write();
-      if (!attributes.contains("material_index")) {
-        continue;
-      }
-      SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
-          "material_index", AttrDomain::Curve);
-      for (int &material_index : material_indices.span) {
-        if (material_index >= 0 && material_index < material_indices_map.size()) {
-          material_index = material_indices_map[material_index];
-        }
-      }
-      material_indices.finish();
-    }
-  }
-
-  /* Convert the layer map into an index mapping. */
-  Map<int, int> eval_to_orig_layer_indices_map;
-  for (const int layer_eval_i : merged_layers_grease_pencil.layers().index_range()) {
-    const Layer *layer_eval = &merged_layers_grease_pencil.layer(layer_eval_i);
-    if (eval_to_orig_layer_map.contains(layer_eval)) {
-      const Layer *layer_orig = eval_to_orig_layer_map.lookup(layer_eval);
-      const int layer_orig_index = *orig_grease_pencil.get_layer_index(*layer_orig);
-      eval_to_orig_layer_indices_map.add(layer_eval_i, layer_orig_index);
-    }
-  }
-
-  /* Propagate layer attributes. */
-  AttributeAccessor src_attributes = merged_layers_grease_pencil.attributes();
-  MutableAttributeAccessor dst_attributes = orig_grease_pencil.attributes_for_write();
-  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    /* Anonymous attributes shouldn't be available on original geometry. */
-    if (attribute_name_is_anonymous(iter.name)) {
-      return;
-    }
-    if (iter.data_type == CD_PROP_STRING) {
-      return;
-    }
-    const GVArraySpan src = *iter.get(AttrDomain::Layer);
-    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-        iter.name, AttrDomain::Layer, iter.data_type);
-    if (!dst) {
-      return;
-    }
-    attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-      using T = decltype(dummy);
-      Span<T> src_span = src.typed<T>();
-      MutableSpan<T> dst_span = dst.span.typed<T>();
-      for (const auto [src_i, dst_i] : eval_to_orig_layer_indices_map.items()) {
-        dst_span[dst_i] = src_span[src_i];
-      }
-    });
-    dst.finish();
-  });
-
-  /* Free temporary grease pencil struct. */
-  BKE_id_free(nullptr, &merged_layers_grease_pencil);
-}
-
 static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
                                              Object *ob,
                                              GreasePencil &grease_pencil_orig,
@@ -1190,10 +974,10 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
   GreasePencil &grease_pencil_result =
       *eval_geometry_set.get_component_for_write<GreasePencilComponent>().get_for_write();
 
-  apply_eval_grease_pencil_data(grease_pencil_result,
-                                eval_frame,
-                                grease_pencil_orig.layers().index_range(),
-                                grease_pencil_orig);
+  ed::greasepencil::apply_eval_grease_pencil_data(grease_pencil_result,
+                                                  eval_frame,
+                                                  grease_pencil_orig.layers().index_range(),
+                                                  grease_pencil_orig);
 
   Main *bmain = DEG_get_bmain(depsgraph);
   /* There might be layers with empty names after evaluation. Make sure to rename them. */
@@ -1270,7 +1054,7 @@ static bool apply_grease_pencil_for_modifier_all_keyframes(Depsgraph *depsgraph,
 
     IndexMaskMemory memory;
     const IndexMask orig_layers_to_apply = IndexMask::from_indices(layer_indices, memory);
-    apply_eval_grease_pencil_data(
+    ed::greasepencil::apply_eval_grease_pencil_data(
         grease_pencil_result, eval_frame, orig_layers_to_apply, grease_pencil_orig);
 
     BKE_object_material_from_eval_data(bmain, ob, &grease_pencil_result.id);

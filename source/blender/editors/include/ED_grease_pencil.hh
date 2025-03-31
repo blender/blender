@@ -993,4 +993,18 @@ ColorGeometry4f randomize_color(const BrushGpencilSettings &settings,
                                 ColorGeometry4f color,
                                 float pressure);
 
+/**
+ * Applies the \a eval_grease_pencil onto the \a orig_grease_pencil at the \a eval_frame.
+ * The \a orig_grease_pencil is modified in-place.
+ * The mapping between the layers is created based on the layer name.
+ * \param eval_grease_pencil: The source Grease Pencil data.
+ * \param eval_frame: The frame at which to apply the data.
+ * \param orig_layers: Selection of original layers to modify.
+ * \param orig_grease_pencil: The destination Grease Pencil data.
+ */
+void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
+                                   int eval_frame,
+                                   const IndexMask &orig_layers,
+                                   GreasePencil &orig_grease_pencil);
+
 }  // namespace blender::ed::greasepencil
