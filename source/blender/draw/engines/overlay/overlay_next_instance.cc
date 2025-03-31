@@ -805,7 +805,8 @@ void Instance::draw_v3d(Manager &manager, View &view)
     layer.armatures.draw_line(framebuffer, manager, view);
     layer.sculpts.draw_line(framebuffer, manager, view);
     layer.grease_pencil.draw_line(framebuffer, manager, view);
-    layer.meshes.draw_line(framebuffer, manager, view);
+    /* NOTE: Temporarily moved after grid drawing (See #136764). */
+    // layer.meshes.draw_line(framebuffer, manager, view);
     layer.curves.draw_line(framebuffer, manager, view);
   };
 
@@ -889,6 +890,9 @@ void Instance::draw_v3d(Manager &manager, View &view)
     motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
     xray_fade.draw_color_only(resources.overlay_color_only_fb, manager, view);
     grid.draw_color_only(resources.overlay_color_only_fb, manager, view);
+
+    regular.meshes.draw_line(resources.overlay_line_fb, manager, view);
+    infront.meshes.draw_line(resources.overlay_line_in_front_fb, manager, view);
 
     draw_color_only(regular, resources.overlay_color_only_fb);
     draw_color_only(infront, resources.overlay_color_only_fb);
