@@ -25,6 +25,13 @@ static int segments_num_no_duplicate_edge(const int points_num, const bool cycli
   return curves::segments_num(points_num, cyclic);
 }
 
+static inline bool has_caps(const bool main_cyclic,
+                            const bool profile_cyclic,
+                            const int profile_segment_num)
+{
+  return !main_cyclic && profile_cyclic && profile_segment_num > 2;
+}
+
 static void fill_mesh_topology(const int vert_offset,
                                const int edge_offset,
                                const int face_offset,
@@ -124,8 +131,7 @@ static void fill_mesh_topology(const int vert_offset,
     }
   }
 
-  const bool has_caps = fill_caps && !main_cyclic && profile_cyclic && profile_point_num > 2;
-  if (has_caps) {
+  if (fill_caps & has_caps(main_cyclic, profile_cyclic, profile_segment_num)) {
     const int face_num = main_segment_num * profile_segment_num;
     const int cap_loop_offset = loop_offset + face_num * 4;
     const int cap_face_offset = face_offset + face_num;
@@ -296,8 +302,8 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
             const int profile_segment_num = curves::segments_num(profile_point_num,
                                                                  profile_cyclic);
 
-            const bool has_caps = fill_caps && !main_cyclic && profile_cyclic &&
-                                  profile_point_num > 2;
+            const bool caps = fill_caps &
+                              has_caps(main_cyclic, profile_cyclic, profile_segment_num);
             const int tube_face_num = main_segment_num * profile_segment_num;
 
             vert_offset += main_point_num * profile_point_num;
@@ -308,11 +314,11 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
                            main_segment_num * profile_point_num;
 
             /* Add two cap N-gons for every ending. */
-            face_offset += tube_face_num + (has_caps ? 2 : 0);
+            face_offset += tube_face_num + (caps ? 2 : 0);
 
             /* All faces on the tube are quads, and all cap faces are N-gons with an edge for each
              * profile edge. */
-            loop_offset += tube_face_num * 4 + (has_caps ? profile_segment_num * 2 : 0);
+            loop_offset += tube_face_num * 4 + (caps ? profile_segment_num * 2 : 0);
 
             mesh_index++;
           }
@@ -862,8 +868,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     SpanAttributeWriter<bool> sharp_faces = mesh_attributes.lookup_or_add_for_write_span<bool>(
         "sharp_face", AttrDomain::Face);
     foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
-      const bool has_caps = fill_caps && !info.main_cyclic && info.profile_cyclic;
-      if (has_caps) {
+      if (has_caps(info.main_cyclic, info.profile_cyclic, info.profile_segment_num)) {
         const int face_num = info.main_segment_num * info.profile_segment_num;
         const int cap_face_offset = info.face_range.start() + face_num;
         sharp_faces.span[cap_face_offset] = true;
