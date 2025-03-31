@@ -761,6 +761,12 @@ static int grease_pencil_merge_layer_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
     LayerGroup &active_group = *grease_pencil.get_active_group();
+
+    if (active_group.layers().is_empty()) {
+      BKE_report(op->reports, RPT_INFO, "No child layers to merge");
+      return OPERATOR_CANCELLED;
+    }
+
     /* Remove all sub groups of the active group since they won't be needed anymore, but keep the
      * layers. */
     Array<LayerGroup *> groups = active_group.groups_for_write();
