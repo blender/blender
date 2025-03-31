@@ -204,7 +204,7 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *
  * Function used in operator polls, checks whether the markers region is currently drawn in the
  * editor in which the operator is called.
  */
-static bool ED_operator_markers_region_active(bContext *C)
+static bool operator_markers_region_active(bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
   if (area == nullptr) {
@@ -683,7 +683,7 @@ static bool ed_markers_poll_selected_markers(bContext *C)
 {
   ListBase *markers = ED_context_get_markers(C);
 
-  if (!ED_operator_markers_region_active(C)) {
+  if (!operator_markers_region_active(C)) {
     return false;
   }
 
@@ -701,7 +701,7 @@ static bool ed_markers_poll_selected_no_locked_markers(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  if (!ED_operator_markers_region_active(C)) {
+  if (!operator_markers_region_active(C)) {
     return false;
   }
 
@@ -725,7 +725,7 @@ static bool ed_markers_poll_markers_exist(bContext *C)
   ListBase *markers = ED_context_get_markers(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  if (ts->lock_markers || !ED_operator_markers_region_active(C)) {
+  if (ts->lock_markers || !operator_markers_region_active(C)) {
     return false;
   }
 
@@ -784,7 +784,7 @@ static void MARKER_OT_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = ed_marker_add_exec;
-  ot->poll = ED_operator_markers_region_active;
+  ot->poll = operator_markers_region_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1613,9 +1613,9 @@ static const EnumPropertyItem prop_markers_select_leftright_modes[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void ED_markers_select_leftright(bAnimContext *ac,
-                                        const eMarkers_LeftRightSelect_Mode mode,
-                                        const bool extend)
+static void markers_select_leftright(bAnimContext *ac,
+                                     const eMarkers_LeftRightSelect_Mode mode,
+                                     const bool extend)
 {
   ListBase *markers = ac->markers;
   Scene *scene = ac->scene;
@@ -1648,7 +1648,7 @@ static wmOperatorStatus ed_marker_select_leftright_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
-  ED_markers_select_leftright(&ac, mode, extend);
+  markers_select_leftright(&ac, mode, extend);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
 
@@ -1945,7 +1945,7 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = ed_marker_camera_bind_exec;
-  ot->poll = ED_operator_markers_region_active;
+  ot->poll = operator_markers_region_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

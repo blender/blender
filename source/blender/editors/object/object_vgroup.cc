@@ -523,7 +523,7 @@ static void mesh_defvert_mirror_update_internal(Object *ob,
   }
 }
 
-static void ED_mesh_defvert_mirror_update_em(
+static void mesh_defvert_mirror_update_em(
     Object *ob, BMVert *eve, int def_nr, int vidx, const int cd_dvert_offset)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -542,7 +542,7 @@ static void ED_mesh_defvert_mirror_update_em(
   }
 }
 
-static void ED_mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
+static void mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
 {
   int vidx_mirr;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -574,14 +574,14 @@ void vgroup_vert_active_mirror(Object *ob, int def_nr)
       dvert_act = ED_mesh_active_dvert_get_em(ob, &eve_act);
       if (dvert_act) {
         const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
-        ED_mesh_defvert_mirror_update_em(ob, eve_act, def_nr, -1, cd_dvert_offset);
+        mesh_defvert_mirror_update_em(ob, eve_act, def_nr, -1, cd_dvert_offset);
       }
     }
     else {
       int v_act;
       dvert_act = ED_mesh_active_dvert_get_ob(ob, &v_act);
       if (dvert_act) {
-        ED_mesh_defvert_mirror_update_ob(ob, def_nr, v_act);
+        mesh_defvert_mirror_update_ob(ob, def_nr, v_act);
       }
     }
   }
@@ -640,10 +640,10 @@ static bool vgroup_normalize_active_vertex(Object *ob, eVGroupSelect subset_type
   if (mesh->symmetry & ME_SYMMETRY_X) {
     if (em) {
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
-      ED_mesh_defvert_mirror_update_em(ob, eve_act, -1, -1, cd_dvert_offset);
+      mesh_defvert_mirror_update_em(ob, eve_act, -1, -1, cd_dvert_offset);
     }
     else {
-      ED_mesh_defvert_mirror_update_ob(ob, -1, v_act);
+      mesh_defvert_mirror_update_ob(ob, -1, v_act);
     }
   }
 
@@ -671,7 +671,7 @@ static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
               BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset));
           BKE_defvert_copy_subset(dv, dvert_act, vgroup_validmap, vgroup_tot);
           if (mesh->symmetry & ME_SYMMETRY_X) {
-            ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
+            mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
           }
         }
       }
@@ -691,7 +691,7 @@ static void vgroup_copy_active_to_sel(Object *ob, eVGroupSelect subset_type)
         if (select_vert[i] && &dverts[i] != dvert_act) {
           BKE_defvert_copy_subset(&dverts[i], dvert_act, vgroup_validmap, vgroup_tot);
           if (mesh->symmetry & ME_SYMMETRY_X) {
-            ED_mesh_defvert_mirror_update_ob(ob, -1, i);
+            mesh_defvert_mirror_update_ob(ob, -1, i);
           }
         }
       }
@@ -4057,13 +4057,13 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
         BKE_defvert_copy_index(dvert_dst, def_nr, dvert_act, def_nr);
 
         if (mesh->symmetry & ME_SYMMETRY_X) {
-          ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
+          mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
         }
       }
     }
 
     if (mesh->symmetry & ME_SYMMETRY_X) {
-      ED_mesh_defvert_mirror_update_em(ob, eve_act, -1, -1, cd_dvert_offset);
+      mesh_defvert_mirror_update_em(ob, eve_act, -1, -1, cd_dvert_offset);
     }
   }
   else {
@@ -4084,13 +4084,13 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
         BKE_defvert_copy_index(&dverts[i], def_nr, dvert_act, def_nr);
 
         if (mesh->symmetry & ME_SYMMETRY_X) {
-          ED_mesh_defvert_mirror_update_ob(ob, -1, i);
+          mesh_defvert_mirror_update_ob(ob, -1, i);
         }
       }
     }
 
     if (mesh->symmetry & ME_SYMMETRY_X) {
-      ED_mesh_defvert_mirror_update_ob(ob, -1, v_act);
+      mesh_defvert_mirror_update_ob(ob, -1, v_act);
     }
   }
 }

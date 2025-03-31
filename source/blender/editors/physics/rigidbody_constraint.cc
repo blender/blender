@@ -54,7 +54,7 @@ static bool operator_rigidbody_constraints_editable_poll(Scene *scene)
   return true;
 }
 
-static bool ED_operator_rigidbody_con_active_poll(bContext *C)
+static bool operator_rigidbody_con_active_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   if (!operator_rigidbody_constraints_editable_poll(scene)) {
@@ -68,7 +68,7 @@ static bool ED_operator_rigidbody_con_active_poll(bContext *C)
   return false;
 }
 
-static bool ED_operator_rigidbody_con_add_poll(bContext *C)
+static bool operator_rigidbody_con_add_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   if (!operator_rigidbody_constraints_editable_poll(scene)) {
@@ -157,7 +157,7 @@ void RIGIDBODY_OT_constraint_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_con_add_exec;
-  ot->poll = ED_operator_rigidbody_con_add_poll;
+  ot->poll = operator_rigidbody_con_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -204,7 +204,7 @@ void RIGIDBODY_OT_constraint_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_con_remove_exec;
-  ot->poll = ED_operator_rigidbody_con_active_poll;
+  ot->poll = operator_rigidbody_con_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

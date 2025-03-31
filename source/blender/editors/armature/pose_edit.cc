@@ -374,7 +374,7 @@ void POSE_OT_paths_update(wmOperatorType *ot)
 /* --------- */
 
 /* for the object with pose/action: clear path curves for selected bones only */
-static void ED_pose_clear_paths(Object *ob, bool only_selected)
+static void pose_clear_paths(Object *ob, bool only_selected)
 {
   bool skipped = false;
 
@@ -416,7 +416,7 @@ static wmOperatorStatus pose_clear_paths_exec(bContext *C, wmOperator *op)
   }
 
   /* use the backend function for this */
-  ED_pose_clear_paths(ob, only_selected);
+  pose_clear_paths(ob, only_selected);
 
   /* notifiers for updates */
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);

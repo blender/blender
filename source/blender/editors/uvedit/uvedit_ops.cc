@@ -270,9 +270,7 @@ void ED_uvedit_select_all(BMesh *bm)
   }
 }
 
-static bool ED_uvedit_median_multi(const Scene *scene,
-                                   const Span<Object *> objects_edit,
-                                   float co[2])
+static bool uvedit_median_multi(const Scene *scene, const Span<Object *> objects_edit, float co[2])
 {
   uint sel = 0;
   zero_v2(co);
@@ -302,7 +300,7 @@ bool ED_uvedit_center_multi(const Scene *scene,
     }
   }
   else {
-    if (ED_uvedit_median_multi(scene, objects_edit, cent)) {
+    if (uvedit_median_multi(scene, objects_edit, cent)) {
       changed = true;
     }
   }

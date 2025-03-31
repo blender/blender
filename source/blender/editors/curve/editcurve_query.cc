@@ -37,13 +37,13 @@ struct PickUserData {
   bool is_changed;
 };
 
-static void ED_curve_pick_vert__do_closest(void *user_data,
-                                           Nurb *nu,
-                                           BPoint *bp,
-                                           BezTriple *bezt,
-                                           int beztindex,
-                                           bool handles_visible,
-                                           const float screen_co[2])
+static void curve_pick_vert__do_closest(void *user_data,
+                                        Nurb *nu,
+                                        BPoint *bp,
+                                        BezTriple *bezt,
+                                        int beztindex,
+                                        bool handles_visible,
+                                        const float screen_co[2])
 {
   PickUserData *data = static_cast<PickUserData *>(user_data);
 
@@ -112,7 +112,7 @@ bool ED_curve_pick_vert_ex(ViewContext *vc,
 
     ED_view3d_viewcontext_init_object(vc, base->object);
     ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-    nurbs_foreachScreenVert(vc, ED_curve_pick_vert__do_closest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+    nurbs_foreachScreenVert(vc, curve_pick_vert__do_closest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
     if (r_base && data.is_changed) {
       *r_base = base;

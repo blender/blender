@@ -141,7 +141,7 @@ bool ED_operator_screenactive_nobackground(bContext *C)
 }
 
 /* XXX added this to prevent anim state to change during renders */
-static bool ED_operator_screenactive_norender(bContext *C)
+static bool operator_screenactive_norender(bContext *C)
 {
   if (G.is_rendering) {
     return false;
@@ -3224,7 +3224,7 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 
   ot->exec = frame_offset_exec;
 
-  ot->poll = ED_operator_screenactive_norender;
+  ot->poll = operator_screenactive_norender;
   ot->flag = OPTYPE_UNDO_GROUPED;
   ot->undo_group = "Frame Change";
 
@@ -3286,7 +3286,7 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 
   ot->exec = frame_jump_exec;
 
-  ot->poll = ED_operator_screenactive_norender;
+  ot->poll = operator_screenactive_norender;
   ot->flag = OPTYPE_UNDO_GROUPED;
   ot->undo_group = "Frame Change";
 
@@ -3399,7 +3399,7 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
 static bool keyframe_jump_poll(bContext *C)
 {
   /* There is a keyframe jump operator specifically for the Graph Editor. */
-  return ED_operator_screenactive_norender(C) && !ED_operator_graphedit_active(C);
+  return operator_screenactive_norender(C) && !ED_operator_graphedit_active(C);
 }
 
 static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
@@ -3474,7 +3474,7 @@ static void SCREEN_OT_marker_jump(wmOperatorType *ot)
 
   ot->exec = marker_jump_exec;
 
-  ot->poll = ED_operator_screenactive_norender;
+  ot->poll = operator_screenactive_norender;
   ot->flag = OPTYPE_UNDO_GROUPED;
   ot->undo_group = "Frame Change";
 
@@ -5651,7 +5651,7 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = screen_animation_step_invoke;
 
-  ot->poll = ED_operator_screenactive_norender;
+  ot->poll = operator_screenactive_norender;
 }
 
 /** \} */
@@ -5793,7 +5793,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = screen_animation_play_exec;
 
-  ot->poll = ED_operator_screenactive_norender;
+  ot->poll = operator_screenactive_norender;
 
   prop = RNA_def_boolean(
       ot->srna, "reverse", false, "Play in Reverse", "Animation is played backwards");

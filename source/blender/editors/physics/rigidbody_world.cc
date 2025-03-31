@@ -37,12 +37,12 @@
 /* API */
 
 /* check if there is an active rigid body world */
-static bool ED_rigidbody_world_active_poll(bContext *C)
+static bool rigidbody_world_active_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   return (scene && scene->rigidbody_world);
 }
-static bool ED_rigidbody_world_add_poll(bContext *C)
+static bool rigidbody_world_add_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   return (scene && scene->rigidbody_world == nullptr);
@@ -79,7 +79,7 @@ void RIGIDBODY_OT_world_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_world_add_exec;
-  ot->poll = ED_rigidbody_world_add_poll;
+  ot->poll = rigidbody_world_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -118,7 +118,7 @@ void RIGIDBODY_OT_world_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_world_remove_exec;
-  ot->poll = ED_rigidbody_world_active_poll;
+  ot->poll = rigidbody_world_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -185,7 +185,7 @@ void RIGIDBODY_OT_world_export(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = rigidbody_world_export_invoke;
   ot->exec = rigidbody_world_export_exec;
-  ot->poll = ED_rigidbody_world_active_poll;
+  ot->poll = rigidbody_world_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

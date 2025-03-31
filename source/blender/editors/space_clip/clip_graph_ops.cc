@@ -40,7 +40,7 @@
 
 /******************** common graph-editing utilities ********************/
 
-static bool ED_space_clip_graph_poll(bContext *C)
+static bool space_clip_graph_poll(bContext *C)
 {
   if (ED_space_clip_tracking_poll(C)) {
     SpaceClip *sc = CTX_wm_space_clip(C);
@@ -53,7 +53,7 @@ static bool ED_space_clip_graph_poll(bContext *C)
 
 static bool clip_graph_knots_poll(bContext *C)
 {
-  if (ED_space_clip_graph_poll(C)) {
+  if (space_clip_graph_poll(C)) {
     SpaceClip *sc = CTX_wm_space_clip(C);
 
     return (sc->flag & (SC_SHOW_GRAPH_TRACKS_MOTION | SC_SHOW_GRAPH_TRACKS_ERROR)) != 0;
@@ -680,7 +680,7 @@ void CLIP_OT_graph_view_all(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = view_all_exec;
-  ot->poll = ED_space_clip_graph_poll;
+  ot->poll = space_clip_graph_poll;
 }
 
 /******************** jump to current frame operator ********************/
@@ -716,7 +716,7 @@ void CLIP_OT_graph_center_current_frame(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = center_current_frame_exec;
-  ot->poll = ED_space_clip_graph_poll;
+  ot->poll = space_clip_graph_poll;
 }
 
 /********************** disable markers operator *********************/
@@ -772,7 +772,7 @@ void CLIP_OT_graph_disable_markers(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = graph_disable_markers_exec;
-  ot->poll = ED_space_clip_graph_poll;
+  ot->poll = space_clip_graph_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
