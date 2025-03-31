@@ -321,7 +321,10 @@ InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmO
   const Object &object = *CTX_data_active_object(&C);
   const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
-  BLI_assert(grease_pencil.has_active_layer());
+  if (!grease_pencil.has_active_layer()) {
+    return nullptr;
+  }
+
   const Layer &active_layer = *grease_pencil.get_active_layer();
 
   InterpolateOpData *data = MEM_new<InterpolateOpData>(__func__);
