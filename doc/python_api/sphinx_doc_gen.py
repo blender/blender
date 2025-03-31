@@ -1123,12 +1123,12 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             if heading:
                 fw(title_string(heading, heading_char))
 
-        pyclass2sphinx(fw, module_name, type_name, value)
+        pyclass2sphinx(fw, module_name, type_name, value, True)
 
     file.close()
 
 
-def pyclass2sphinx(fw, module_name, type_name, value):
+def pyclass2sphinx(fw, module_name, type_name, value, write_class_examples):
     if value.__doc__:
         if value.__doc__.startswith(".. class::"):
             fw(value.__doc__)
@@ -1139,7 +1139,8 @@ def pyclass2sphinx(fw, module_name, type_name, value):
         fw(".. class:: {:s}.{:s}\n\n".format(module_name, type_name))
     fw("\n")
 
-    write_example_ref("   ", fw, module_name + "." + type_name)
+    if write_class_examples:
+        write_example_ref("   ", fw, module_name + "." + type_name)
 
     descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("_")]
 
@@ -2116,7 +2117,8 @@ def write_rst_geometry_set(basepath):
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
     fw(title_string("GeometrySet", "="))
-    pyclass2sphinx(fw, "bpy.types", "GeometrySet", bpy.types.GeometrySet)
+    write_example_ref("", fw, "bpy.types.GeometrySet")
+    pyclass2sphinx(fw, "bpy.types", "GeometrySet", bpy.types.GeometrySet, False)
 
     EXAMPLE_SET_USED.add("bpy.types.GeometrySet")
 
