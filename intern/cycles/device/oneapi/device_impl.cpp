@@ -1611,7 +1611,9 @@ int OneapiDevice::get_max_num_threads_per_multiprocessor()
     return device.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>() *
            device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
   }
-  return 0;
+  /* We'd want sycl::info::device::max_threads_per_compute_unit which doesn't exist yet.
+   * max_work_group_size is the closest approximation but it can still be several times off. */
+  return device.get_info<sycl::info::device::max_work_group_size>();
 }
 
 CCL_NAMESPACE_END
