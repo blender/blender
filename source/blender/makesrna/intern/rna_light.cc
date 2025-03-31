@@ -198,27 +198,28 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
       break;
     }
     case LA_SPOT: {
-      /* Lights with a location have power in Watts,
+      /* Lights with a location have radiometric ppower in Watts,
        * which is sensitive to scene unit scale. */
-      prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_POWER);
+      prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
       RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 5);
-      RNA_def_property_ui_text(prop,
-                               "Power",
-                               "The energy this light would emit over its entire area "
-                               "if it wasn't limited by the spot angle");
+      RNA_def_property_ui_text(
+          prop,
+          "Power",
+          "The energy this light would emit over its entire area "
+          "if it wasn't limited by the spot angle, in units of radiant power (W)");
       RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
       RNA_def_property_update(prop, 0, "rna_Light_draw_update");
       break;
     }
     default: {
-      /* Lights with a location have power in Watts,
+      /* Lights with a location have radiometric power in Watts,
        * which is sensitive to scene unit scale. */
-      prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_POWER);
+      prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
       RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 5);
-      RNA_def_property_ui_text(
-          prop,
-          "Power",
-          "Light energy emitted over the entire area of the light in all directions");
+      RNA_def_property_ui_text(prop,
+                               "Power",
+                               "Light energy emitted over the entire area of the light in all "
+                               "directions, in units of radiant power (W)");
       RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
       RNA_def_property_update(prop, 0, "rna_Light_draw_update");
       break;
