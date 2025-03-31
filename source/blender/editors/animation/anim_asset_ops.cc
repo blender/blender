@@ -244,22 +244,23 @@ static wmOperatorStatus create_pose_asset_local(bContext *C,
   BKE_id_rename(*bmain, pose_action.id, name);
 
   /* Add asset to catalog. */
-  char catalog_path[MAX_NAME];
-  RNA_string_get(op->ptr, "catalog_path", catalog_path);
+  char catalog_path_c[MAX_NAME];
+  RNA_string_get(op->ptr, "catalog_path", catalog_path_c);
 
   AssetMetaData &meta_data = *pose_action.id.asset_data;
   asset_system::AssetLibrary *library = AS_asset_library_load(bmain, lib_ref);
   /* NOTE(@ChrisLend): I don't know if a local library can fail to load.
    * Just being defensive here. */
   BLI_assert(library);
-  if (catalog_path[0] && library) {
-    const asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(
-        *library, catalog_path);
+  if (catalog_path_c[0] && library) {
+    const asset_system::AssetCatalogPath catalog_path(catalog_path_c);
+    asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(*library,
+                                                                                 catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());
   }
 
   ensure_asset_ui_visible(*C);
-  asset::shelf::show_catalog_in_visible_shelves(*C, catalog_path);
+  asset::shelf::show_catalog_in_visible_shelves(*C, catalog_path_c);
 
   asset::refresh_asset_library(C, lib_ref);
 
@@ -303,11 +304,12 @@ static wmOperatorStatus create_pose_asset_user_library(bContext *C,
   }
 
   /* Add asset to catalog. */
-  char catalog_path[MAX_NAME];
-  RNA_string_get(op->ptr, "catalog_path", catalog_path);
+  char catalog_path_c[MAX_NAME];
+  RNA_string_get(op->ptr, "catalog_path", catalog_path_c);
 
   AssetMetaData &meta_data = *pose_action.id.asset_data;
-  if (catalog_path[0]) {
+  if (catalog_path_c[0]) {
+    const asset_system::AssetCatalogPath catalog_path(catalog_path_c);
     const asset_system::AssetCatalog &catalog = asset::library_ensure_catalogs_in_path(
         *library, catalog_path);
     BKE_asset_metadata_catalog_id_set(&meta_data, catalog.catalog_id, catalog.simple_name.c_str());
@@ -319,7 +321,7 @@ static wmOperatorStatus create_pose_asset_user_library(bContext *C,
 
   library->catalog_service().write_to_disk(*final_full_asset_filepath);
   ensure_asset_ui_visible(*C);
-  asset::shelf::show_catalog_in_visible_shelves(*C, catalog_path);
+  asset::shelf::show_catalog_in_visible_shelves(*C, catalog_path_c);
 
   BKE_id_free(bmain, &pose_action.id);
 
