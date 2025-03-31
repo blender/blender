@@ -466,16 +466,9 @@ if(WITH_FFTW3)
   set(FFTW3_LIBRARIES
     ${FFTW3}/lib/fftw3.lib
     ${FFTW3}/lib/fftw3f.lib
+    ${FFTW3}/lib/fftw3_threads.lib
+    ${FFTW3}/lib/fftw3f_threads.lib
   )
-  if(EXISTS ${FFTW3}/lib/fftw3_threads.lib)
-    list(APPEND FFTW3_LIBRARIES
-      ${FFTW3}/lib/fftw3_threads.lib
-      ${FFTW3}/lib/fftw3f_threads.lib
-    )
-    set(WITH_FFTW3_THREADS_F_SUPPORT ON)
-  else()
-    set(WITH_FFTW3_THREADS_F_SUPPORT OFF)
-  endif()
   set(FFTW3_INCLUDE_DIRS ${FFTW3}/include)
   set(FFTW3_LIBPATH ${FFTW3}/lib)
 endif()
