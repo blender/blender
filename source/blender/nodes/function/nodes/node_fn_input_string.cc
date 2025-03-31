@@ -4,6 +4,8 @@
 
 #include "node_function_util.hh"
 
+#include "BLT_translation.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -17,7 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "string", UI_ITEM_NONE, "", ICON_NONE);
+  PropertyRNA *prop = RNA_struct_find_property(ptr, "string");
+  uiItemFullR(layout, ptr, prop, -1, 0, UI_ITEM_NONE, "", ICON_NONE, IFACE_("String"));
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
