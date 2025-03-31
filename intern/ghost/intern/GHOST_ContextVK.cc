@@ -728,22 +728,15 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
   vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, presents.data());
   /* MAILBOX is the lowest latency V-Sync enabled mode so use it if available */
   for (auto present_mode : presents) {
-    if (present_mode == VK_PRESENT_MODE_FIFO_KHR) {
-      *r_presentMode = present_mode;
-      return GHOST_kSuccess;
-    }
-  }
-  /* FIFO present mode is always available. */
-  for (auto present_mode : presents) {
     if (present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
       *r_presentMode = present_mode;
       return GHOST_kSuccess;
     }
   }
 
-  fprintf(stderr, "Error: FIFO present mode is not supported by the swap chain!\n");
-
-  return GHOST_kFailure;
+  /* FIFO present mode is always available. */
+  *r_presentMode = VK_PRESENT_MODE_FIFO_KHR;
+  return GHOST_kSuccess;
 }
 
 /**
