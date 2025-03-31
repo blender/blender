@@ -34,6 +34,7 @@
 #include "ED_anim_api.hh"
 #include "ED_keyframes_keylist.hh"
 
+#include "ANIM_action.hh"
 #include "ANIM_action_legacy.hh"
 #include "ANIM_bone_collections.hh"
 
@@ -409,6 +410,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               bool restore)
 {
   /* TODO: include reports pointer? */
+  using namespace blender::animrig;
 
   if (targets.is_empty()) {
     return;
@@ -472,7 +474,15 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
        * unless an option is set to always use the whole action.
        */
       if ((mpt->pchan) && (avs->path_viewflag & MOTIONPATH_VIEW_KFACT) == 0) {
-        bActionGroup *agrp = BKE_action_group_find_name(adt->action, mpt->pchan->name);
+        Action &action = adt->action->wrap();
+        bActionGroup *agrp = nullptr;
+        if (action.is_action_layered()) {
+          Channelbag *cbag = channelbag_for_action_slot(action, adt->slot_handle);
+          agrp = cbag ? cbag->channel_group_find(mpt->pchan->name) : nullptr;
+        }
+        else {
+          agrp = BKE_action_group_find_name(adt->action, mpt->pchan->name);
+        }
 
         if (agrp) {
           fcurve_list = &agrp->channels;
