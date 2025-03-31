@@ -747,13 +747,13 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   }
 
   wmEvent e = *win->eventstate;
-  e.type = type;
+  e.type = wmEventType(type);
   e.val = value;
   e.flag = eWM_EventFlag(0);
   e.xy[0] = x;
   e.xy[1] = y;
 
-  e.modifier = 0;
+  e.modifier = wmEventModifierFlag(0);
   if (shift) {
     e.modifier |= KM_SHIFT;
   }

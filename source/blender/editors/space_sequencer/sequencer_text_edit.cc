@@ -716,6 +716,9 @@ static wmOperatorStatus sequencer_text_cursor_set_modal(bContext *C,
       cursor_set_by_mouse_position(C, event);
       data->selection_end_offset = data->cursor_offset;
       break;
+    default: {
+      break;
+    }
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, CTX_data_scene(C));

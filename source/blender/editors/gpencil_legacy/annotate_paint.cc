@@ -2667,6 +2667,9 @@ static wmOperatorStatus annotation_draw_modal(bContext *C, wmOperator *op, const
             p->radius = 1;
           }
           break;
+        default: {
+          break;
+        }
       }
 
       /* force refresh */

@@ -750,7 +750,10 @@ void wm_event_init_from_window(wmWindow *win, wmEvent *event);
 /**
  * At maximum, every time_step seconds it triggers `event_type` events.
  */
-wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double time_step);
+wmTimer *WM_event_timer_add(wmWindowManager *wm,
+                            wmWindow *win,
+                            wmEventType event_type,
+                            double time_step);
 wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      wmWindow *win,
                                      unsigned int type,

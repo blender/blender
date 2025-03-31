@@ -1123,6 +1123,9 @@ static wmOperatorStatus node_resize_modal(bContext *C, wmOperator *op, const wmE
       }
       break;
     }
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

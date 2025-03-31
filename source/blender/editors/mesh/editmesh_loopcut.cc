@@ -659,6 +659,9 @@ static wmOperatorStatus loopcut_modal(bContext *C, wmOperator *op, const wmEvent
         }
         break;
       }
+      default: {
+        break;
+      }
     }
 
     /* Modal numinput inactive, try to handle numeric inputs last... */

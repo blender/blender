@@ -4418,6 +4418,9 @@ static wmOperatorStatus knifetool_modal(bContext *C, wmOperator *op, const wmEve
         }
 
         break;
+      default: {
+        break;
+      }
     }
   }
 

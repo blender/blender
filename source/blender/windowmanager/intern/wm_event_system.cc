@@ -2024,6 +2024,9 @@ static int ui_handler_wait_for_input(bContext *C, const wmEvent *event, void *us
       }
       break;
     }
+    default: {
+      break;
+    }
   }
 
   if (state != CONTINUE) {
@@ -2433,7 +2436,7 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
 }
 
 struct wmEvent_ModalMapStore {
-  short prev_type;
+  wmEventType prev_type;
   short prev_val;
 
   bool dbl_click_disabled;
@@ -3600,9 +3603,9 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
           /* Intentionally leave `event->xy` as-is, event users are expected to use
            * `event->prev_press_xy` if they need to access the drag start location. */
           const short prev_val = event->val;
-          const short prev_type = event->type;
-          const uint8_t prev_modifier = event->modifier;
-          const short prev_keymodifier = event->keymodifier;
+          const wmEventType prev_type = event->type;
+          const wmEventModifierFlag prev_modifier = event->modifier;
+          const wmEventType prev_keymodifier = event->keymodifier;
 
           event->val = KM_CLICK_DRAG;
           event->type = event->prev_press_type;
@@ -5052,7 +5055,7 @@ void WM_event_add_mousemove(wmWindow *win)
 /**
  * \return The WM enum for NDOF button or #EVENT_NONE (which should be ignored)
  */
-static int wm_event_type_from_ndof_button(GHOST_NDOF_ButtonT button)
+static wmEventType wm_event_type_from_ndof_button(GHOST_NDOF_ButtonT button)
 {
 #  define CASE_NDOF_BUTTON(button) \
     case GHOST_NDOF_BUTTON_##button: \
@@ -5151,19 +5154,19 @@ static int wm_event_type_from_ndof_button(GHOST_NDOF_ButtonT button)
 /**
  * \return The WM enum for key or #EVENT_NONE (which should be ignored).
  */
-static int wm_event_type_from_ghost_key(GHOST_TKey key)
+static wmEventType wm_event_type_from_ghost_key(GHOST_TKey key)
 {
   if (key >= GHOST_kKeyA && key <= GHOST_kKeyZ) {
-    return (EVT_AKEY + (int(key) - GHOST_kKeyA));
+    return wmEventType(EVT_AKEY + (int(key) - GHOST_kKeyA));
   }
   if (key >= GHOST_kKey0 && key <= GHOST_kKey9) {
-    return (EVT_ZEROKEY + (int(key) - GHOST_kKey0));
+    return wmEventType(EVT_ZEROKEY + (int(key) - GHOST_kKey0));
   }
   if (key >= GHOST_kKeyNumpad0 && key <= GHOST_kKeyNumpad9) {
-    return (EVT_PAD0 + (int(key) - GHOST_kKeyNumpad0));
+    return wmEventType(EVT_PAD0 + (int(key) - GHOST_kKeyNumpad0));
   }
   if (key >= GHOST_kKeyF1 && key <= GHOST_kKeyF24) {
-    return (EVT_F1KEY + (int(key) - GHOST_kKeyF1));
+    return wmEventType(EVT_F1KEY + (int(key) - GHOST_kKeyF1));
   }
 
   switch (key) {
@@ -5316,7 +5319,8 @@ static int wm_event_type_from_ghost_key(GHOST_TKey key)
 /**
  * \return The WM enum for button or `fallback`.
  */
-static int wm_event_type_from_ghost_button(const GHOST_TButton button, const int fallback)
+static wmEventType wm_event_type_from_ghost_button(const GHOST_TButton button,
+                                                   const wmEventType fallback)
 {
 #define CASE_BUTTON(ghost_button, type) \
   case ghost_button: \
@@ -5352,7 +5356,7 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
   if (U.flag & USER_TWOBUTTONMOUSE) {
 
     if (event->type == LEFTMOUSE) {
-      const uint8_t mod_test = (
+      const wmEventModifierFlag mod_test = (
 #if !defined(WIN32)
           (U.mouse_emulate_3_button_modifier == USER_EMU_MMB_MOD_OSKEY) ? KM_OSKEY : KM_ALT
 #else
@@ -5427,6 +5431,9 @@ static void wm_eventemulation(wmEvent *event, bool test_only)
       case EVT_BACKSLASHKEY:
         event->type = EVT_PADSLASHKEY;
         break;
+      default: {
+        break;
+      }
     }
   }
 }
@@ -6097,21 +6104,21 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
           else {
             BLI_assert(event.val == KM_RELEASE);
             if (event.keymodifier == event.type) {
-              event.keymodifier = event_state->keymodifier = 0;
+              event.keymodifier = event_state->keymodifier = EVENT_NONE;
             }
           }
 
           /* This case happens on holding a key pressed,
            * it should not generate press events with the same key as modifier. */
           if (event.keymodifier == event.type) {
-            event.keymodifier = 0;
+            event.keymodifier = EVENT_NONE;
           }
           else if (event.keymodifier == EVT_UNKNOWNKEY) {
             /* This case happens with an external number-pad, and also when using 'dead keys'
              * (to compose complex Latin characters e.g.), it's not really clear why.
              * Since it's impossible to map a key modifier to an unknown key,
              * it shouldn't harm to clear it. */
-            event_state->keymodifier = event.keymodifier = 0;
+            event_state->keymodifier = event.keymodifier = EVENT_NONE;
           }
           break;
         }
@@ -6555,7 +6562,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
   const struct {
     int button_index;
     int type_index; /* 0: press or click, 1: drag. */
-    int event_type;
+    wmEventType event_type;
     int event_value;
   } event_data[] = {
       {0, 0, LEFTMOUSE, KM_PRESS},

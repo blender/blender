@@ -5053,6 +5053,9 @@ static wmOperatorStatus brush_edit_modal(bContext *C, wmOperator *op, const wmEv
     case MOUSEMOVE:
       brush_edit_apply_event(C, op, event);
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

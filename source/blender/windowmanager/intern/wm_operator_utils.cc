@@ -314,6 +314,9 @@ static wmOperatorStatus op_generic_value_modal(bContext *C, wmOperator *op, cons
       }
       break;
     }
+    default: {
+      break;
+    }
   }
   return OPERATOR_RUNNING_MODAL;
 }

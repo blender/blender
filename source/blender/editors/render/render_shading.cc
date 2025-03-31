@@ -1501,6 +1501,9 @@ static wmOperatorStatus lightprobe_cache_bake_modal(bContext *C,
   switch (event->type) {
     case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
+    default: {
+      break;
+    }
   }
   return OPERATOR_PASS_THROUGH;
 }

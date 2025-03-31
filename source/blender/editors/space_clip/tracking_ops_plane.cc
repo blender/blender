@@ -329,6 +329,9 @@ static wmOperatorStatus slide_plane_marker_modal(bContext *C, wmOperator *op, co
       WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
       return OPERATOR_CANCELLED;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

@@ -1250,6 +1250,9 @@ static wmOperatorStatus minimize_stretch_modal(bContext *C, wmOperator *op, cons
         } while (BLI_time_now_seconds() - start < 0.01);
       }
       break;
+    default: {
+      break;
+    }
   }
 
   if (ms->iterations && ms->i >= ms->iterations) {

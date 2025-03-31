@@ -1551,7 +1551,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       win->active = 1;
 
       /* Zero the `keymodifier`, it hangs on hotkeys that open windows otherwise. */
-      win->eventstate->keymodifier = 0;
+      win->eventstate->keymodifier = EVENT_NONE;
 
       win->addmousemove = 1; /* Enables highlighted buttons. */
 
@@ -1879,7 +1879,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
 
       event.type = wt->event_type;
       event.val = KM_NOTHING;
-      event.keymodifier = 0;
+      event.keymodifier = EVENT_NONE;
       event.flag = eWM_EventFlag(0);
       event.custom = EVT_DATA_TIMER;
       event.customdata = wt;
@@ -2305,7 +2305,7 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *time
 
 wmTimer *WM_event_timer_add(wmWindowManager *wm,
                             wmWindow *win,
-                            const int event_type,
+                            const wmEventType event_type,
                             const double time_step)
 {
   BLI_assert(ISTIMER(event_type));

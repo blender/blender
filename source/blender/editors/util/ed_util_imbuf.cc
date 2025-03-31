@@ -499,6 +499,9 @@ wmOperatorStatus ED_imbuf_sample_modal(bContext *C, wmOperator *op, const wmEven
     case MOUSEMOVE:
       ed_imbuf_sample_apply(C, op, event);
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

@@ -285,6 +285,9 @@ static wmOperatorStatus poselib_blend_handle_event(bContext * /*C*/,
       pbd->state = pbd->state == POSE_BLEND_BLENDING ? POSE_BLEND_ORIGINAL : POSE_BLEND_BLENDING;
       pbd->needs_redraw = true;
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

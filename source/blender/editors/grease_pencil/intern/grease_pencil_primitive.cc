@@ -1507,6 +1507,9 @@ static wmOperatorStatus grease_pencil_primitive_modal(bContext *C,
       grease_pencil_primitive_load(ptd);
       break;
     }
+    default: {
+      break;
+    }
   }
 
   /* Updating is done every event not just `MOUSEMOVE`. */

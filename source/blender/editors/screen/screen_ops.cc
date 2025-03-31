@@ -1250,6 +1250,9 @@ static wmOperatorStatus actionzone_modal(bContext *C, wmOperator *op, const wmEv
     case LEFTMOUSE:
       actionzone_exit(op);
       return OPERATOR_CANCELLED;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -1432,6 +1435,9 @@ static wmOperatorStatus area_swap_modal(bContext *C, wmOperator *op, const wmEve
     case EVT_ESCKEY:
       area_swap_cancel(C, op);
       return OPERATOR_CANCELLED;
+    default: {
+      break;
+    }
   }
   return OPERATOR_RUNNING_MODAL;
 }
@@ -2139,6 +2145,9 @@ static wmOperatorStatus area_move_modal(bContext *C, wmOperator *op, const wmEve
           IFACE_("Snap"), md->snap_type == SNAP_FRACTION_AND_ADJACENT, ICON_EVENT_CTRL);
       break;
     }
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -2641,6 +2650,9 @@ static wmOperatorStatus area_split_modal(bContext *C, wmOperator *op, const wmEv
       sd->do_snap = event->val == KM_PRESS;
       update_factor = true;
       break;
+    default: {
+      break;
+    }
   }
 
   if (update_factor) {
@@ -3107,6 +3119,9 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
 
     case EVT_ESCKEY:
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -4392,6 +4407,9 @@ static wmOperatorStatus area_join_modal(bContext *C, wmOperator *op, const wmEve
     case EVT_ESCKEY:
       area_join_cancel(C, op);
       return OPERATOR_CANCELLED;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

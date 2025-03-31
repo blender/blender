@@ -1030,6 +1030,9 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
         do_cursor_update = true;
         break;
       }
+      default: {
+        break;
+      }
     }
   }
 

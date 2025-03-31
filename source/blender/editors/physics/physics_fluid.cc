@@ -585,6 +585,9 @@ static wmOperatorStatus fluid_bake_modal(bContext *C, wmOperator * /*op*/, const
   switch (event->type) {
     case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
+    default: {
+      break;
+    }
   }
   return OPERATOR_PASS_THROUGH;
 }

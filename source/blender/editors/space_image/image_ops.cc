@@ -4041,6 +4041,9 @@ static wmOperatorStatus change_frame_modal(bContext *C, wmOperator *op, const wm
         return OPERATOR_FINISHED;
       }
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

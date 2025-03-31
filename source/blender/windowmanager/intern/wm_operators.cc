@@ -3426,6 +3426,9 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
       }
       break;
     }
+    default: {
+      break;
+    }
   }
 
   /* Modal numinput inactive, try to handle numeric inputs last... */

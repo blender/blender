@@ -795,6 +795,9 @@ static wmOperatorStatus select_grow_modal(bContext *C, wmOperator *op, const wmE
       MEM_delete(&op_data);
       return OPERATOR_CANCELLED;
     }
+    default: {
+      break;
+    }
   }
   return OPERATOR_RUNNING_MODAL;
 }
@@ -1146,6 +1149,9 @@ static wmOperatorStatus min_distance_edit_modal(bContext *C, wmOperator *op, con
       finish();
       WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
       return OPERATOR_CANCELLED;
+    }
+    default: {
+      break;
     }
   }
 

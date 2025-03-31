@@ -2883,6 +2883,9 @@ static wmOperatorStatus text_scroll_modal(bContext *C, wmOperator *op, const wmE
         scroll_exit(C, op);
         return OPERATOR_FINISHED;
       }
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -3431,6 +3434,9 @@ static wmOperatorStatus text_selection_set_modal(bContext *C, wmOperator *op, co
     case MOUSEMOVE:
       text_cursor_set_apply(C, op, event);
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

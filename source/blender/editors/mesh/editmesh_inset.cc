@@ -547,6 +547,9 @@ static wmOperatorStatus edbm_inset_modal(bContext *C, wmOperator *op, const wmEv
         handled = true;
       }
       break;
+    default: {
+      break;
+    }
   }
 
   /* Modal numinput inactive, try to handle numeric inputs last... */

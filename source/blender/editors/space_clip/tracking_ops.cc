@@ -195,6 +195,9 @@ static wmOperatorStatus add_marker_at_click_modal(bContext *C,
     case EVT_ESCKEY:
       ED_workspace_status_text(C, nullptr);
       return OPERATOR_CANCELLED;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_PASS_THROUGH;
@@ -830,6 +833,9 @@ static wmOperatorStatus slide_marker_modal(bContext *C, wmOperator *op, const wm
       WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, nullptr);
 
       return OPERATOR_CANCELLED;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

@@ -2098,6 +2098,9 @@ static wmOperatorStatus font_selection_set_modal(bContext *C,
     case MOUSEMOVE:
       font_cursor_set_apply(C, event);
       break;
+    default: {
+      break;
+    }
   }
   return OPERATOR_RUNNING_MODAL;
 }

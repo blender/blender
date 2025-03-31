@@ -377,6 +377,9 @@ static wmOperatorStatus track_markers_modal(bContext *C, wmOperator * /*op*/, co
   switch (event->type) {
     case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_PASS_THROUGH;

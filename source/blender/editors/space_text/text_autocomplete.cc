@@ -512,13 +512,15 @@ static wmOperatorStatus text_autocomplete_modal(bContext *C, wmOperator *op, con
     case EVT_RIGHTSHIFTKEY:
     case EVT_LEFTSHIFTKEY:
       break;
+    default: {
 #if 0
-    default:
       if (tools & TOOL_SUGG_LIST) {
         texttool_suggest_clear();
         draw = 1;
       }
 #endif
+      break;
+    }
   }
 
   if (draw) {

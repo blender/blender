@@ -260,10 +260,11 @@ wmOperatorStatus WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent
       }
 #endif
 
-#if 0 /* This allows view navigation, keep disabled as it's too unpredictable. */
       default:
+#if 0 /* This allows view navigation, keep disabled as it's too unpredictable. */
         return OPERATOR_PASS_THROUGH;
 #endif
+        break;
     }
   }
 
@@ -628,6 +629,9 @@ wmOperatorStatus WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEve
         gesture_modal_end(C, op);
         return OPERATOR_CANCELLED;
       }
+      default: {
+        break;
+      }
     }
   }
 
@@ -890,6 +894,9 @@ wmOperatorStatus WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wm
         }
         break;
       }
+      default: {
+        break;
+      }
     }
   }
 
@@ -1144,6 +1151,9 @@ wmOperatorStatus WM_gesture_straightline_modal(bContext *C, wmOperator *op, cons
 
         break;
       }
+      default: {
+        break;
+      }
     }
   }
 
@@ -1230,6 +1240,9 @@ wmOperatorStatus WM_gesture_straightline_oneshot_modal(bContext *C,
 
         wm_gesture_tag_redraw(win);
 
+        break;
+      }
+      default: {
         break;
       }
     }

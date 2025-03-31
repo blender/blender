@@ -1369,6 +1369,9 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
           t->redraw |= TREDRAW_HARD;
         }
         break;
+      default: {
+        break;
+      }
     }
 
     /* Confirm transform if launch key is released after mouse move. */

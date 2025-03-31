@@ -458,7 +458,7 @@ struct uiButCurveMapping : public uiBut {
 
 /** Derived struct for #UI_BTYPE_HOTKEY_EVENT. */
 struct uiButHotkeyEvent : public uiBut {
-  uint8_t modifier_key = 0;
+  wmEventModifierFlag modifier_key = wmEventModifierFlag(0);
 };
 
 /**

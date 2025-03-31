@@ -1104,6 +1104,9 @@ static wmOperatorStatus ed_marker_move_modal(bContext *C, wmOperator *op, const 
           }
         }
         break;
+      default: {
+        break;
+      }
     }
 
     if (!handled && event->val == KM_PRESS && handleNumInput(C, &mm->num, event)) {

@@ -906,6 +906,9 @@ static wmOperatorStatus slide_point_modal(bContext *C, wmOperator *op, const wmE
 
       free_slide_point_data(data); /* keep this last! */
       return OPERATOR_CANCELLED;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -1305,6 +1308,9 @@ static wmOperatorStatus slide_spline_curvature_modal(bContext *C,
 
       free_slide_spline_curvature_data(slide_data); /* keep this last! */
       return OPERATOR_CANCELLED;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

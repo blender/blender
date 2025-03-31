@@ -2142,6 +2142,9 @@ static wmOperatorStatus scroller_activate_modal(bContext *C, wmOperator *op, con
         }
       }
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

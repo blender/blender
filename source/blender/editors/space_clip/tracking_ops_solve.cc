@@ -258,6 +258,9 @@ static wmOperatorStatus solve_camera_modal(bContext *C, wmOperator * /*op*/, con
   switch (event->type) {
     case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_PASS_THROUGH;

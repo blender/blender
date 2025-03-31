@@ -584,6 +584,9 @@ static wmOperatorStatus grab_clone_modal(bContext *C, wmOperator *op, const wmEv
 
       grab_clone_apply(C, op);
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -770,6 +773,9 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
         WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
       }
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

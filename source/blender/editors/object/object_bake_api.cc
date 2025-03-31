@@ -149,6 +149,9 @@ static wmOperatorStatus bake_modal(bContext *C, wmOperator * /*op*/, const wmEve
       G.is_break = true;
       return OPERATOR_RUNNING_MODAL;
     }
+    default: {
+      break;
+    }
   }
   return OPERATOR_PASS_THROUGH;
 }

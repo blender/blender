@@ -184,6 +184,9 @@ static wmOperatorStatus graphview_cursor_modal(bContext *C, wmOperator *op, cons
         return OPERATOR_FINISHED;
       }
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

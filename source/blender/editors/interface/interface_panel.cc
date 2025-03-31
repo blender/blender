@@ -2146,6 +2146,9 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
       /* Don't let any left-mouse event fall through! */
       retval = WM_UI_HANDLER_BREAK;
       break;
+    default: {
+      break;
+    }
   }
 
   return retval;

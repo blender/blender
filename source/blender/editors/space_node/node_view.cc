@@ -255,6 +255,9 @@ static wmOperatorStatus snode_bg_viewmove_modal(bContext *C, wmOperator *op, con
       op->customdata = nullptr;
 
       return OPERATOR_CANCELLED;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -687,6 +690,9 @@ static wmOperatorStatus sample_modal(bContext *C, wmOperator *op, const wmEvent 
     case MOUSEMOVE:
       sample_apply(C, op, event);
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

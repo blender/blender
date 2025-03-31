@@ -401,6 +401,9 @@ static wmOperatorStatus sculpt_sample_detail_size_modal(bContext *C,
 
       return OPERATOR_CANCELLED;
     }
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;

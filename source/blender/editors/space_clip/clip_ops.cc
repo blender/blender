@@ -1143,6 +1143,9 @@ static wmOperatorStatus change_frame_modal(bContext *C, wmOperator *op, const wm
         return OPERATOR_FINISHED;
       }
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -1700,6 +1703,9 @@ static wmOperatorStatus clip_prefetch_modal(bContext *C, wmOperator * /*op*/, co
   switch (event->type) {
     case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_PASS_THROUGH;

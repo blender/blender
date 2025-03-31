@@ -1351,6 +1351,9 @@ static wmOperatorStatus console_select_set_modal(bContext *C, wmOperator *op, co
     case MOUSEMOVE:
       console_modal_select_apply(C, op, event);
       break;
+    default: {
+      break;
+    }
   }
 
   return OPERATOR_RUNNING_MODAL;
