@@ -572,7 +572,13 @@ macro(TEST_SSE_SUPPORT
     check_c_source_runs("
       #include <nmmintrin.h>
       #include <emmintrin.h>
-      int main(void) { __m128i v = _mm_setzero_si128(); v = _mm_cmpgt_epi64(v,v); return 0; }"
+      #include <smmintrin.h>
+      int main(void) {
+        __m128i v = _mm_setzero_si128();
+        v = _mm_cmpgt_epi64(v,v);
+        if (_mm_test_all_zeros(v, v)) return 0;
+        return 1;
+      }"
     SUPPORT_SSE42_BUILD)
   endif()
 
