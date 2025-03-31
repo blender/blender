@@ -672,7 +672,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   /* No need to call this early, rather do it late so that other
    * pieces of Blender using sound may exit cleanly, see also #50676. */
-  BKE_sound_exit();
+  BKE_sound_exit_once();
 
   BKE_appdir_exit();
 

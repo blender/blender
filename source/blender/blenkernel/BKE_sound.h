@@ -27,11 +27,9 @@ typedef struct SoundWaveform {
 void BKE_sound_init_once();
 void BKE_sound_exit_once();
 
-void *BKE_sound_get_device();
-
 void BKE_sound_init(struct Main *bmain);
 
-void BKE_sound_init_main(struct Main *bmain);
+void BKE_sound_refresh_callback_bmain(struct Main *bmain);
 
 void BKE_sound_exit();
 
