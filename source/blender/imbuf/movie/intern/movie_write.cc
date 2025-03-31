@@ -761,6 +761,14 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     c->codec_tag = (('D' << 24) + ('I' << 16) + ('V' << 8) + 'X');
   }
 
+  if (codec_id == AV_CODEC_ID_H265) {
+    /* H.265 needs hvc1 tag for Apple compatibility, see
+     * https://trac.ffmpeg.org/wiki/Encode/H.265#FinalCutandApplestuffcompatibility
+     * Note that in case we are doing H.265 into an XviD container,
+     * this overwrites the tag set above. But that should not be what anyone does. */
+    c->codec_tag = MKTAG('h', 'v', 'c', '1');
+  }
+
   /* Keep lossless encodes in the RGB domain. */
   if (codec_id == AV_CODEC_ID_HUFFYUV) {
     if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
