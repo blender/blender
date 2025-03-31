@@ -143,7 +143,10 @@ void VKContext::end_frame()
   device.orphaned_data.destroy_discarded_resources(device);
 }
 
-void VKContext::flush() {}
+void VKContext::flush()
+{
+  flush_render_graph(RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+}
 
 TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags,
                                             VkPipelineStageFlags wait_dst_stage_mask,
