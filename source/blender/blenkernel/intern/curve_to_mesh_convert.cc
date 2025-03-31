@@ -856,7 +856,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                        face_offsets);
   });
 
-  if (fill_caps && mesh->faces_num != 0) {
+  if (fill_caps) {
     /* TODO: This is used to keep the tests passing after refactoring mesh shade smooth flags. It
      * can be removed if the tests are updated and the final shading results will be the same. */
     SpanAttributeWriter<bool> sharp_faces = mesh_attributes.lookup_or_add_for_write_span<bool>(
