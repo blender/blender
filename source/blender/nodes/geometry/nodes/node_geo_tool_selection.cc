@@ -150,14 +150,16 @@ static GField get_selection_field(const eObjectMode object_mode, const eCustomDa
 {
   switch (object_mode) {
     case OB_MODE_OBJECT:
-      return fn::make_constant_field<bool>(true);
+      return fn::make_constant_field(*bke::custom_data_type_to_cpp_type(data_type),
+                                     true_value(data_type));
     case OB_MODE_EDIT:
       return GField(std::make_shared<EditSelectionFieldInput>(data_type));
     case OB_MODE_SCULPT:
     case OB_MODE_SCULPT_CURVES:
       return GField(std::make_shared<SculptSelectionFieldInput>(data_type));
     default:
-      return fn::make_constant_field<bool>(false);
+      return fn::make_constant_field(*bke::custom_data_type_to_cpp_type(data_type),
+                                     false_value(data_type));
   }
 }
 
