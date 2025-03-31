@@ -8,13 +8,14 @@
  * \ingroup bke
  */
 
+#define DNA_DEPRECATED_ALLOW
+
 #include "BKE_duplilist.hh"
 #include "BLI_assert.h"
 #include "BLI_map.hh"
 #include "DNA_listBase.h"
 #include "SEQ_transform.hh"
 #include <cstddef>
-#define DNA_DEPRECATED_ALLOW
 
 #include "MEM_guardedalloc.h"
 
