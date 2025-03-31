@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_memblock.h"
+#include "DNA_shader_fx_types.h"
 #include "DRW_render.hh"
 
 #include "BLI_bitmap.h"
@@ -336,6 +337,33 @@ struct Instance final : public DrawEngine {
   void antialiasing_init();
   void antialiasing_draw(Manager &manager);
 
+  struct VfxFramebufferRef {
+    /* These may not be allocated yet, use address of future pointer. */
+    GPUFrameBuffer **fb;
+    GPUTexture **color_tx;
+    GPUTexture **reveal_tx;
+  };
+
+  SwapChain<VfxFramebufferRef, 2> vfx_swapchain_;
+
+  PassSimple &vfx_pass_create(const char *name,
+                              DRWState state,
+                              GPUShader *sh,
+                              tObject *tgp_ob,
+                              GPUSamplerState sampler = GPUSamplerState::internal_sampler());
+
+  void vfx_blur_sync(BlurShaderFxData *fx, Object *ob, tObject *tgp_ob);
+  void vfx_colorize_sync(ColorizeShaderFxData *fx, Object *ob, tObject *tgp_ob);
+  void vfx_flip_sync(FlipShaderFxData *fx, Object *ob, tObject *tgp_ob);
+  void vfx_rim_sync(RimShaderFxData *fx, Object *ob, tObject *tgp_ob);
+  void vfx_pixelize_sync(PixelShaderFxData *fx, Object *ob, tObject *tgp_ob);
+  void vfx_shadow_sync(ShadowShaderFxData *fx, Object *ob, tObject *tgp_ob);
+  void vfx_glow_sync(GlowShaderFxData *fx, Object *ob, tObject *tgp_ob);
+  void vfx_wave_sync(WaveShaderFxData *fx, Object *ob, tObject *tgp_ob);
+  void vfx_swirl_sync(SwirlShaderFxData *fx, Object *ob, tObject *tgp_ob);
+
+  void vfx_sync(Object *ob, tObject *tgp_ob);
+
   static void material_pool_free(void *storage)
   {
     MaterialPool *matpool = (MaterialPool *)storage;
@@ -395,11 +423,5 @@ LightPool *gpencil_light_pool_add(Instance *inst);
  * Creates a single pool containing all lights assigned (light linked) for a given object.
  */
 LightPool *gpencil_light_pool_create(Instance *inst, Object *ob);
-
-/* effects */
-void gpencil_vfx_cache_populate(Instance *inst,
-                                Object *ob,
-                                tObject *tgp_ob,
-                                const bool is_edit_mode);
 
 }  // namespace blender::draw::gpencil

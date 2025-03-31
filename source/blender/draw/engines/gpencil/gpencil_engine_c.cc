@@ -579,11 +579,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     tObject *tgp_ob = object_sync_do(ob, res_handle);
-    gpencil_vfx_cache_populate(
-        this,
-        ob,
-        tgp_ob,
-        ELEM(ob->mode, OB_MODE_EDIT, OB_MODE_SCULPT_GREASE_PENCIL, OB_MODE_WEIGHT_GREASE_PENCIL));
+    vfx_sync(ob, tgp_ob);
   }
 
   if (ob->type == OB_LAMP && this->use_lights) {
