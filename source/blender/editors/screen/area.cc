@@ -3164,7 +3164,15 @@ void ED_region_panels_layout_ex(const bContext *C,
   v2d->keepofs |= V2D_LOCKOFS_X | V2D_KEEPOFS_Y;
   v2d->keepofs &= ~(V2D_LOCKOFS_Y | V2D_KEEPOFS_X);
   v2d->scroll &= ~V2D_SCROLL_BOTTOM;
-  v2d->scroll |= V2D_SCROLL_RIGHT;
+
+  if (region->alignment & RGN_ALIGN_LEFT) {
+    region->v2d.scroll &= ~V2D_SCROLL_RIGHT;
+    region->v2d.scroll |= V2D_SCROLL_LEFT;
+  }
+  else {
+    region->v2d.scroll &= ~V2D_SCROLL_LEFT;
+    region->v2d.scroll |= V2D_SCROLL_RIGHT;
+  }
 
   /* collect categories */
   if (use_category_tabs) {
