@@ -121,6 +121,17 @@ void Instance::init()
       GPU_texture_update_sub(resources.dummy_depth_tx, GPU_DATA_FLOAT, &data, 0, 0, 0, 1, 1, 1);
     }
   }
+
+  if (state.v3d) {
+    if (resources.is_selection() || state.is_depth_only_drawing) {
+      const View3DShading &shading = state.v3d->shading;
+      /* This is bad as this makes a solid mode setting affect material preview / render mode
+       * selection and auto-depth. But users are relying on this to work in scene using backface
+       * culling in shading (see #136335 and #136418). */
+      resources.theme_settings.backface_culling = (shading.flag & V3D_SHADING_BACKFACE_CULLING);
+      GPU_uniformbuf_update(resources.globals_buf, &resources.theme_settings);
+    }
+  }
 }
 
 void Instance::begin_sync()
