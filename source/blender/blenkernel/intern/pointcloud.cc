@@ -351,10 +351,14 @@ std::optional<int> PointCloud::material_index_max() const
   if (this->totpoint == 0) {
     return std::nullopt;
   }
-  return blender::bounds::max<int>(
+  std::optional<int> max_material_index = blender::bounds::max<int>(
       this->attributes()
           .lookup_or_default<int>("material_index", blender::bke::AttrDomain::Point, 0)
           .varray);
+  if (max_material_index.has_value()) {
+    max_material_index = std::clamp(*max_material_index, 0, MAXMAT);
+  }
+  return max_material_index;
 }
 
 void PointCloud::count_memory(blender::MemoryCounter &memory) const

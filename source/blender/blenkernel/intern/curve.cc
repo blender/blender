@@ -5484,7 +5484,7 @@ std::optional<int> Curve::material_index_max() const
   LISTBASE_FOREACH (const Nurb *, nurb, &this->nurb) {
     max_index = std::max<int>(max_index, nurb->mat_nr);
   }
-  return max_index;
+  return clamp_i(max_index, 0, MAXMAT);
 }
 
 /* **** Depsgraph evaluation **** */
