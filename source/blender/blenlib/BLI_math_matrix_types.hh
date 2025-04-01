@@ -691,7 +691,7 @@ struct MatView : NonCopyable, NonMovable {
 
   friend std::ostream &operator<<(std::ostream &stream, const MatView &mat)
   {
-    return stream << mat->mat;
+    return stream << mat.mat;
   }
 };
 
