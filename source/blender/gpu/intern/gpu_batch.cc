@@ -245,6 +245,15 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
   uint16_t bound_attr = 0u;
   for (uint a_idx = 0; a_idx < format->attr_len; a_idx++) {
     const GPUVertAttr *a = &format->attrs[a_idx];
+
+    if (format->deinterleaved) {
+      offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].size) * vbo->vertex_len;
+      stride = a->size;
+    }
+    else {
+      offset = a->offset;
+    }
+
     for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
       const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
       const ShaderInput *input = interface->ssbo_get(name);
@@ -257,14 +266,6 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
       /* WORKAROUND: This is to support complex format. But ideally this should not be supported.
        */
       uniform_name[9] = '0' + input->location;
-
-      if (format->deinterleaved) {
-        offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].size) * vbo->vertex_len;
-        stride = a->size;
-      }
-      else {
-        offset = a->offset;
-      }
 
       /* Only support 4byte aligned attributes. */
       BLI_assert((stride % 4) == 0);
