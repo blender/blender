@@ -724,7 +724,6 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
   Object &active_object = *CTX_data_active_object(C);
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
   Mesh &active_mesh = *static_cast<Mesh *>(active_object.data);
@@ -778,8 +777,8 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
     BKE_keyblock_convert_from_mesh(deformed_mesh, active_mesh.key, kb);
   }
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+  DEG_id_tag_update(&active_mesh.id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, &active_mesh.id);
 
   return OPERATOR_FINISHED;
 }
