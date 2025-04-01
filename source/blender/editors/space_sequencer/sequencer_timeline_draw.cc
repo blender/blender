@@ -1546,8 +1546,6 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
 
   /* Draw thumbnails. */
   draw_strip_thumbnails(timeline_ctx, strips_batch, strips);
-  /* Draw retiming continuity ranges. */
-  draw_retiming_continuity_ranges(timeline_ctx, strips);
 
   /* Draw parts of strips above thumbnails. */
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1560,8 +1558,11 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
     draw_seq_text_overlay(timeline_ctx, &strip_ctx);
     sequencer_retiming_speed_draw(timeline_ctx, strip_ctx);
   }
-  sequencer_retiming_keys_draw(timeline_ctx, strips);
   timeline_ctx->quads->draw();
+
+  /* Draw retiming continuity ranges. */
+  draw_retiming_continuity_ranges(timeline_ctx, strips);
+  sequencer_retiming_keys_draw(timeline_ctx, strips);
 
   draw_strips_foreground(timeline_ctx, strips_batch, strips);
 
