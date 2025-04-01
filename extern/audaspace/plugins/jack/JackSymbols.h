@@ -14,6 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
+JACK_SYMBOL(jack_frames_since_cycle_start);
 JACK_SYMBOL(jack_transport_query);
 JACK_SYMBOL(jack_transport_locate);
 

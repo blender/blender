@@ -136,7 +136,38 @@ void CoreAudioDevice::open()
 
 	try
 	{
-		m_synchronizer = std::unique_ptr<CoreAudioSynchronizer>(new CoreAudioSynchronizer(m_audio_unit));
+		OSStatus status = CAClockNew(0, &m_clock_ref);
+
+		if(status != noErr)
+			AUD_THROW(DeviceException, "Could not create a CoreAudio clock.");
+
+		CAClockTimebase timebase = kCAClockTimebase_AudioOutputUnit;
+
+		status = CAClockSetProperty(m_clock_ref, kCAClockProperty_InternalTimebase, sizeof(timebase), &timebase);
+
+		if(status != noErr)
+		{
+			CAClockDispose(m_clock_ref);
+			AUD_THROW(DeviceException, "Could not create a CoreAudio clock.");
+		}
+
+		status = CAClockSetProperty(m_clock_ref, kCAClockProperty_TimebaseSource, sizeof(m_audio_unit), &m_audio_unit);
+
+		if(status != noErr)
+		{
+			CAClockDispose(m_clock_ref);
+			AUD_THROW(DeviceException, "Could not create a CoreAudio clock.");
+		}
+
+		CAClockSyncMode sync_mode = kCAClockSyncMode_Internal;
+
+		status = CAClockSetProperty(m_clock_ref, kCAClockProperty_SyncMode, sizeof(sync_mode), &sync_mode);
+
+		if(status != noErr)
+		{
+			CAClockDispose(m_clock_ref);
+			AUD_THROW(DeviceException, "Could not create a CoreAudio clock.");
+		}
 	}
 	catch(Exception&)
 	{
@@ -150,6 +181,7 @@ void CoreAudioDevice::close()
 	// NOTE: Keep the device open for buggy MacOS versions (see blender issue #121911).
 	if(__builtin_available(macOS 15.2, *))
 	{
+		CAClockDispose(m_clock_ref);
 		AudioOutputUnitStop(m_audio_unit);
 		AudioUnitUninitialize(m_audio_unit);
 		AudioComponentInstanceDispose(m_audio_unit);
@@ -179,9 +211,57 @@ CoreAudioDevice::~CoreAudioDevice()
 	closeNow();
 }
 
-ISynchronizer* CoreAudioDevice::getSynchronizer()
+void CoreAudioDevice::seekSynchronizer(double time)
 {
-	return m_synchronizer.get();
+	if(isSynchronizerPlaying())
+		CAClockStop(m_clock_ref);
+
+	CAClockTime clock_time;
+	clock_time.format = kCAClockTimeFormat_Seconds;
+	clock_time.time.seconds = time;
+	CAClockSetCurrentTime(m_clock_ref, &clock_time);
+
+	if(isSynchronizerPlaying())
+		CAClockStart(m_clock_ref);
+
+	SoftwareDevice::seekSynchronizer(time);
+}
+
+double CoreAudioDevice::getSynchronizerPosition()
+{
+	CAClockTime clock_time;
+
+	OSStatus status;
+
+	if(isSynchronizerPlaying())
+		status = CAClockGetCurrentTime(m_clock_ref, kCAClockTimeFormat_Seconds, &clock_time);
+	else
+		status = CAClockGetStartTime(m_clock_ref, kCAClockTimeFormat_Seconds, &clock_time);
+
+	if(status != noErr)
+		return 0;
+
+	return clock_time.time.seconds;
+}
+
+void CoreAudioDevice::playSynchronizer()
+{
+	if(isSynchronizerPlaying())
+		return;
+
+	CAClockStart(m_clock_ref);
+
+	SoftwareDevice::playSynchronizer();
+}
+
+void CoreAudioDevice::stopSynchronizer()
+{
+	if(!isSynchronizerPlaying())
+		return;
+
+	CAClockStop(m_clock_ref);
+
+	SoftwareDevice::stopSynchronizer();
 }
 
 class CoreAudioDeviceFactory : public IDeviceFactory

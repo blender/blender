@@ -19,68 +19,12 @@
 #include <spa/param/audio/format-utils.h>
 
 #include "Exception.h"
-#include "IReader.h"
 #include "PipeWireLibrary.h"
 
 #include "devices/DeviceManager.h"
 #include "devices/IDeviceFactory.h"
 
 AUD_NAMESPACE_BEGIN
-
-PipeWireDevice::PipeWireSynchronizer::PipeWireSynchronizer(PipeWireDevice* device) : m_device(device)
-{
-}
-
-void PipeWireDevice::PipeWireSynchronizer::updateTickStart()
-{
-	if (!m_get_tick_start)
-	{
-		return;
-	}
-	pw_time tm;
-	AUD_pw_stream_get_time_n(m_device->m_stream, &tm, sizeof(tm));
-	m_tick_start = tm.ticks;
-	m_get_tick_start = false;
-}
-
-void PipeWireDevice::PipeWireSynchronizer::play()
-{
-	m_playing = true;
-	m_get_tick_start = true;
-}
-
-void PipeWireDevice::PipeWireSynchronizer::stop()
-{
-	std::shared_ptr<IHandle> dummy_handle;
-	m_seek_pos = getPosition(dummy_handle);
-	m_playing = false;
-}
-
-void PipeWireDevice::PipeWireSynchronizer::seek(std::shared_ptr<IHandle> handle, double time)
-{
-	/* Update start time here as we might update the seek position while playing back. */
-	m_get_tick_start = true;
-	m_seek_pos = time;
-	handle->seek(time);
-}
-
-double PipeWireDevice::PipeWireSynchronizer::getPosition(std::shared_ptr<IHandle> handle)
-{
-	if (!m_playing || m_get_tick_start)
-	{
-		return m_seek_pos;
-	}
-	pw_time tm;
-	AUD_pw_stream_get_time_n(m_device->m_stream, &tm, sizeof(tm));
-	uint64_t now = AUD_pw_stream_get_nsec(m_device->m_stream);
-	int64_t diff = now - tm.now;
-	/* Elapsed time since the last sample was queued. */
-	int64_t elapsed = (tm.rate.denom * diff) / (tm.rate.num * SPA_NSEC_PER_SEC);
-
-	/* Calculate the elapsed time in seconds from the last seek position. */
-	double elapsed_time = (tm.ticks - m_tick_start + elapsed) * tm.rate.num / double(tm.rate.denom);
-	return elapsed_time + m_seek_pos;
-}
 
 void PipeWireDevice::handleStateChanged(void* device_ptr, enum pw_stream_state old, enum pw_stream_state state, const char* error)
 {
@@ -139,10 +83,16 @@ void PipeWireDevice::mixAudioBuffer(void* device_ptr)
 		return;
 	}
 
-	/* We call this here as the tick is not guaranteed to be up to date
+	/* We compute this here as the tick is not guaranteed to be up to date
 	 * until the "process" callback is triggered.
 	 */
-	device->m_synchronizer.updateTickStart();
+	if(device->m_getSynchronizerStartTime)
+	{
+		pw_time tm;
+		AUD_pw_stream_get_time_n(device->m_stream, &tm, sizeof(tm));
+		device->m_synchronizerStartTime = tm.ticks;
+		device->m_getSynchronizerStartTime = false;
+	}
 
 	spa_data& spa_data = pw_buf->buffer->datas[0];
 	spa_chunk* chunk = spa_data.chunk;
@@ -202,10 +152,7 @@ void PipeWireDevice::playing(bool playing)
 	m_mixingCondition.notify_all();
 }
 
-PipeWireDevice::PipeWireDevice(const std::string& name, DeviceSpecs specs, int buffersize) :
-	m_synchronizer(this),
-	m_fill_ringbuffer(false),
-	m_run_mixing_thread(true)
+PipeWireDevice::PipeWireDevice(const std::string& name, DeviceSpecs specs, int buffersize) : m_fill_ringbuffer(false), m_run_mixing_thread(true)
 {
 	if(specs.channels == CHANNELS_INVALID)
 		specs.channels = CHANNELS_STEREO;
@@ -320,9 +267,45 @@ PipeWireDevice::~PipeWireDevice()
 	m_mixingThread.join();
 }
 
-ISynchronizer* PipeWireDevice::getSynchronizer()
+void PipeWireDevice::seekSynchronizer(double time)
 {
-	return &m_synchronizer;
+	/* Update start time here as we might update the seek position while playing back. */
+	m_getSynchronizerStartTime = true;
+	m_synchronizerStartPosition = time;
+
+	SoftwareDevice::seekSynchronizer(time);
+}
+
+double PipeWireDevice::getSynchronizerPosition()
+{
+	if(!isSynchronizerPlaying() || m_getSynchronizerStartTime)
+	{
+		return m_synchronizerStartPosition;
+	}
+
+	pw_time tm;
+	AUD_pw_stream_get_time_n(m_stream, &tm, sizeof(tm));
+	uint64_t now = AUD_pw_stream_get_nsec(m_stream);
+	int64_t diff = now - tm.now;
+	/* Elapsed time since the last sample was queued. */
+	int64_t elapsed = (tm.rate.denom * diff) / (tm.rate.num * SPA_NSEC_PER_SEC);
+
+	/* Calculate the elapsed time in seconds from the last seek position. */
+	double elapsed_time = (tm.ticks - m_synchronizerStartTime + elapsed) * tm.rate.num / double(tm.rate.denom);
+	return elapsed_time + m_synchronizerStartPosition;
+}
+
+void PipeWireDevice::playSynchronizer()
+{
+	/* Make sure that our start time is up to date. */
+	m_getSynchronizerStartTime = true;
+	SoftwareDevice::playSynchronizer();
+}
+
+void PipeWireDevice::stopSynchronizer()
+{
+	m_synchronizerStartPosition = getSynchronizerPosition();
+	SoftwareDevice::stopSynchronizer();
 }
 
 class PipeWireDeviceFactory : public IDeviceFactory

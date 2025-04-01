@@ -150,9 +150,30 @@ void NULLDevice::setVolume(float volume)
 {
 }
 
-ISynchronizer* NULLDevice::getSynchronizer()
+void NULLDevice::seekSynchronizer(double time)
 {
-	return nullptr;
+}
+
+double NULLDevice::getSynchronizerPosition()
+{
+	return std::numeric_limits<double>::quiet_NaN();
+}
+
+void NULLDevice::playSynchronizer()
+{
+}
+
+void NULLDevice::stopSynchronizer()
+{
+}
+
+void NULLDevice::setSyncCallback(syncFunction function, void* data)
+{
+}
+
+int NULLDevice::isSynchronizerPlaying()
+{
+	return 0;
 }
 
 class NULLDeviceFactory : public IDeviceFactory

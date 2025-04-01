@@ -41,27 +41,6 @@ AUD_NAMESPACE_BEGIN
 class AUD_PLUGIN_API PipeWireDevice : public SoftwareDevice
 {
 private:
-	class PipeWireSynchronizer : public DefaultSynchronizer
-	{
-		PipeWireDevice* m_device;
-		bool m_playing = false;
-		bool m_get_tick_start = false;
-		int64_t m_tick_start = 0.0f;
-		double m_seek_pos = 0.0f;
-
-	public:
-		PipeWireSynchronizer(PipeWireDevice* device);
-
-		void updateTickStart();
-		virtual void play();
-		virtual void stop();
-		virtual void seek(std::shared_ptr<IHandle> handle, double time);
-		virtual double getPosition(std::shared_ptr<IHandle> handle);
-	};
-
-	/// Synchronizer.
-	PipeWireSynchronizer m_synchronizer;
-
 	/**
 	 * Whether we should start filling our ringbuffer with audio.
 	 */
@@ -88,6 +67,11 @@ private:
 	spa_ringbuffer m_ringbuffer;
 	Buffer m_ringbuffer_data;
 	std::condition_variable m_mixingCondition;
+
+	/// Synchronizer.
+	bool m_getSynchronizerStartTime{false};
+	int64_t m_synchronizerStartTime{0};
+	double m_synchronizerStartPosition{0.0};
 
 	AUD_LOCAL static void handleStateChanged(void* device_ptr, enum pw_stream_state old, enum pw_stream_state state, const char* error);
 
@@ -124,7 +108,11 @@ public:
 	 */
 	virtual ~PipeWireDevice();
 
-	virtual ISynchronizer* getSynchronizer();
+	virtual void seekSynchronizer(double time);
+	virtual double getSynchronizerPosition();
+	virtual void playSynchronizer();
+	virtual void stopSynchronizer();
+
 	/**
 	 * Registers this plugin.
 	 */

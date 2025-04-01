@@ -950,7 +950,8 @@ void BKE_sound_play_scene(Scene *scene)
   if (status != AUD_STATUS_PLAYING) {
     /* Seeking the synchronizer will also seek the playback handle.
      * Even if we don't have A/V sync on, keep the synchronizer and handle seek time in sync. */
-    AUD_seekSynchronizer(scene->playback_handle, cur_time);
+    AUD_seekSynchronizer(cur_time);
+    AUD_Handle_setPosition(scene->playback_handle, cur_time);
     AUD_Handle_resume(scene->playback_handle);
   }
 
@@ -1031,7 +1032,8 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
      * Even if we don't have A/V sync on, keep the synchronizer and handle
      * seek time in sync.
      */
-    AUD_seekSynchronizer(scene->playback_handle, cur_time);
+    AUD_seekSynchronizer(cur_time);
+    AUD_Handle_setPosition(scene->playback_handle, cur_time);
   }
 
   AUD_Device_unlock(sound_device);
@@ -1048,7 +1050,7 @@ double BKE_sound_sync_scene(Scene *scene)
 
   if (scene->playback_handle) {
     if (scene->audio.flag & AUDIO_SYNC) {
-      return AUD_getSynchronizerPosition(scene->playback_handle);
+      return AUD_getSynchronizerPosition();
     }
 
     return AUD_Handle_getPosition(scene->playback_handle);
