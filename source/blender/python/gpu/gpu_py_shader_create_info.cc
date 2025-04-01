@@ -357,7 +357,7 @@ PyDoc_STRVAR(
 static PyObject *pygpu_interface_info_name_get(BPyGPUStageInterfaceInfo *self, void * /*closure*/)
 {
   StageInterfaceInfo *interface = reinterpret_cast<StageInterfaceInfo *>(self->interface);
-  return PyUnicode_FromString(interface->name.c_str());
+  return PyC_UnicodeFromStdStr(interface->name);
 }
 
 static PyGetSetDef pygpu_interface_info__tp_getseters[] = {

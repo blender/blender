@@ -27,6 +27,8 @@
 #include "bpy_geometry_set.hh"
 #include "bpy_rna.hh"
 
+#include "../generic/py_capi_utils.hh"
+
 using blender::bke::GeometrySet;
 
 extern PyTypeObject bpy_geometry_set_Type;
@@ -155,7 +157,7 @@ static PyObject *BPy_GeometrySet_repr(BPy_GeometrySet *self)
   std::stringstream ss;
   ss << self->geometry;
   std::string str = ss.str();
-  return PyUnicode_FromString(str.c_str());
+  return PyC_UnicodeFromStdStr(str);
 }
 
 PyDoc_STRVAR(
@@ -247,7 +249,7 @@ PyDoc_STRVAR(
     ":type: str\n");
 static PyObject *BPy_GeometrySet_get_name(BPy_GeometrySet *self, void * /*closure*/)
 {
-  return PyUnicode_FromString(self->geometry.name.c_str());
+  return PyC_UnicodeFromStdStr(self->geometry.name);
 }
 
 static int BPy_GeometrySet_set_name(BPy_GeometrySet *self, PyObject *value, void * /*closure*/)

@@ -15,6 +15,8 @@
 
 #include "BLI_sys_types.h"
 
+#include "../generic/py_capi_utils.hh"
+
 using namespace Freestyle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -315,7 +317,7 @@ PyDoc_STRVAR(
 
 static PyObject *ViewShape_name_get(BPy_ViewShape *self, void * /*closure*/)
 {
-  return PyUnicode_FromString(self->vs->getName().c_str());
+  return PyC_UnicodeFromStdStr(self->vs->getName());
 }
 
 PyDoc_STRVAR(
@@ -327,7 +329,7 @@ PyDoc_STRVAR(
 
 static PyObject *ViewShape_library_path_get(BPy_ViewShape *self, void * /*closure*/)
 {
-  return PyUnicode_FromString(self->vs->getLibraryPath().c_str());
+  return PyC_UnicodeFromStdStr(self->vs->getLibraryPath());
 }
 
 PyDoc_STRVAR(

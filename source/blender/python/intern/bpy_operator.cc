@@ -314,8 +314,6 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
   bool macro_args = true;
   int error_val = 0;
 
-  PyObject *pybuf;
-
   bContext *C = BPY_context_get();
 
   if (C == nullptr) {
@@ -381,14 +379,7 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  if (!op_string.empty()) {
-    pybuf = PyUnicode_FromString(op_string.c_str());
-  }
-  else {
-    pybuf = PyUnicode_FromString("");
-  }
-
-  return pybuf;
+  return PyC_UnicodeFromStdStr(op_string);
 }
 
 static PyObject *pyop_dir(PyObject * /*self*/)

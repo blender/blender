@@ -16,6 +16,8 @@
 
 #include "BLI_sys_types.h"
 
+#include "../generic/py_capi_utils.hh"
+
 using namespace Freestyle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -204,7 +206,7 @@ PyDoc_STRVAR(
 
 static PyObject *SShape_name_get(BPy_SShape *self, void * /*closure*/)
 {
-  return PyUnicode_FromString(self->ss->getName().c_str());
+  return PyC_UnicodeFromStdStr(self->ss->getName());
 }
 
 static int SShape_name_set(BPy_SShape *self, PyObject *value, void * /*closure*/)

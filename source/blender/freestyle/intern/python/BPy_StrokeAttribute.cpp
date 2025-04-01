@@ -10,6 +10,8 @@
 
 #include "BPy_Convert.h"
 
+#include "../generic/py_capi_utils.hh"
+
 using namespace Freestyle;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -139,7 +141,7 @@ static PyObject *StrokeAttribute_repr(BPy_StrokeAttribute *self)
        << " b: " << self->sa->getColorB() << " a: " << self->sa->getAlpha()
        << " - R: " << self->sa->getThicknessR() << " L: " << self->sa->getThicknessL();
 
-  return PyUnicode_FromString(repr.str().c_str());
+  return PyC_UnicodeFromStdStr(repr.str());
 }
 
 PyDoc_STRVAR(
