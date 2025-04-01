@@ -417,9 +417,10 @@ bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id, PointerRNA &
     BKE_view_layer_synced_ensure(scene, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
     if (obact != nullptr) {
-      if (obact->mode & (OB_MODE_ALL_PAINT & ~OB_MODE_WEIGHT_PAINT)) {
+      if (obact->mode & (OB_MODE_ALL_PAINT & ~(OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT))) {
         /* For all non-weight-paint paint modes: Don't store property changes when painting.
-         * Weight Paint uses global undo, and thus doesn't need to be special-cased here. */
+         * Weight Paint and Vertex Paint use global undo, and thus don't need to be special-cased
+         * here. */
         CLOG_INFO(&LOG, 1, "skipping undo for paint-mode");
         return false;
       }
