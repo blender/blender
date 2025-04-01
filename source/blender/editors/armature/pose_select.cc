@@ -53,10 +53,6 @@
 using blender::Span;
 using blender::Vector;
 
-/* utility macros for storing a temp int in the bone (selection flag) */
-#define PBONE_PREV_FLAG_GET(pchan) ((void)0, POINTER_AS_INT((pchan)->temp))
-#define PBONE_PREV_FLAG_SET(pchan, val) ((pchan)->temp = POINTER_FROM_INT(val))
-
 /* ***************** Pose Select Utilities ********************* */
 
 /* NOTE: SEL_TOGGLE is assumed to have already been handled! */
@@ -1106,6 +1102,19 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
 
 /* -------------------------------------- */
 
+/* Add the given selection flags to the bone flags. */
+static void bone_selection_flags_add(bPoseChannel *pchan, const eBone_Flag new_selection_flags)
+{
+  pchan->bone->flag |= (new_selection_flags & BONE_SELECTED);
+}
+
+/* Set the bone flags to the given selection flags. */
+static void bone_selection_flags_set(bPoseChannel *pchan, const eBone_Flag new_selection_flags)
+{
+  pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+  pchan->bone->flag |= (new_selection_flags & BONE_SELECTED);
+}
+
 /**
  * \note clone of #armature_select_mirror_exec keep in sync
  */
@@ -1119,40 +1128,42 @@ static wmOperatorStatus pose_select_mirror_exec(bContext *C, wmOperator *op)
   const bool active_only = RNA_boolean_get(op->ptr, "only_active");
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
+  const auto set_bone_selection_flags = extend ? bone_selection_flags_add :
+                                                 bone_selection_flags_set;
+
   Vector<Object *> objects = BKE_object_pose_array_get_unique(scene, view_layer, CTX_wm_view3d(C));
   for (Object *ob : objects) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
     bPoseChannel *pchan_mirror_act = nullptr;
 
+    /* Remember the pre-mirroring selection flags of the bones. */
+    blender::Map<bPoseChannel *, eBone_Flag> old_selection_flags;
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-      const int flag = (pchan->bone->flag & BONE_SELECTED);
-      PBONE_PREV_FLAG_SET(pchan, flag);
+      old_selection_flags.add_new(pchan, eBone_Flag(pchan->bone->flag));
     }
 
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-      if (PBONE_SELECTABLE(arm, pchan->bone)) {
-        bPoseChannel *pchan_mirror;
-        int flag_new = extend ? PBONE_PREV_FLAG_GET(pchan) : 0;
-
-        if ((pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name)) &&
-            PBONE_VISIBLE(arm, pchan_mirror->bone))
-        {
-          const int flag_mirror = PBONE_PREV_FLAG_GET(pchan_mirror);
-          flag_new |= flag_mirror;
-
-          if (pchan->bone == arm->act_bone) {
-            pchan_mirror_act = pchan_mirror;
-          }
-
-          /* Skip all but the active or its mirror. */
-          if (active_only && !ELEM(arm->act_bone, pchan->bone, pchan_mirror->bone)) {
-            continue;
-          }
-        }
-
-        pchan->bone->flag = (pchan->bone->flag & ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)) |
-                            flag_new;
+      if (!PBONE_SELECTABLE(arm, pchan->bone)) {
+        continue;
       }
+
+      bPoseChannel *pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name);
+      if (!pchan_mirror || !PBONE_VISIBLE(arm, pchan_mirror->bone)) {
+        set_bone_selection_flags(pchan, eBone_Flag(0));
+        continue;
+      }
+
+      if (pchan->bone == arm->act_bone) {
+        pchan_mirror_act = pchan_mirror;
+      }
+
+      /* Skip all but the active or its mirror. */
+      if (active_only && !ELEM(arm->act_bone, pchan->bone, pchan_mirror->bone)) {
+        continue;
+      }
+
+      const eBone_Flag flags_mirror = old_selection_flags.lookup(pchan_mirror);
+      set_bone_selection_flags(pchan, flags_mirror);
     }
 
     if (pchan_mirror_act) {
