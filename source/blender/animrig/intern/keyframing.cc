@@ -200,7 +200,6 @@ std::optional<StringRefNull> default_channel_group_for_path(const PointerRNA *an
 {
   if (animated_struct->type == &RNA_PoseBone) {
     bPoseChannel *pose_channel = static_cast<bPoseChannel *>(animated_struct->data);
-    BLI_assert(pose_channel->name != nullptr);
     return pose_channel->name;
   }
 
