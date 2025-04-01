@@ -34,7 +34,6 @@
 
 #include "paint_intern.hh" /* own include */
 #include "sculpt_intern.hh"
-#include "sculpt_undo.hh"
 
 using blender::Array;
 using blender::ColorGeometry4f;
@@ -301,32 +300,25 @@ static void transform_active_color_data(
 }
 
 static void transform_active_color(bContext *C,
-                                   wmOperator *op,
                                    const FunctionRef<void(ColorGeometry4f &color)> transform_fn)
 {
   using namespace blender;
   using namespace blender::ed::sculpt_paint;
-  const Scene &scene = *CTX_data_scene(C);
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &obact = *CTX_data_active_object(C);
 
   /* Ensure valid sculpt state. */
   BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), &obact, true);
 
-  undo::push_begin(scene, obact, op);
-
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(obact);
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
-  undo::push_nodes(depsgraph, obact, node_mask, undo::Type::Color);
 
   Mesh &mesh = *static_cast<Mesh *>(obact.data);
   transform_active_color_data(mesh, transform_fn);
 
   pbvh.tag_attribute_changed(node_mask, mesh.active_color_attribute);
 
-  undo::push_end(obact);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &obact);
 }
 
@@ -364,7 +356,7 @@ static wmOperatorStatus vertex_color_brightness_contrast_exec(bContext *C, wmOpe
     return OPERATOR_CANCELLED;
   }
 
-  transform_active_color(C, op, [&](ColorGeometry4f &color) {
+  transform_active_color(C, [&](ColorGeometry4f &color) {
     for (int i = 0; i < 3; i++) {
       color[i] = gain * color[i] + offset;
     }
@@ -411,7 +403,7 @@ static wmOperatorStatus vertex_color_hsv_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  transform_active_color(C, op, [&](ColorGeometry4f &color) {
+  transform_active_color(C, [&](ColorGeometry4f &color) {
     float hsv[3];
     rgb_to_hsv_v(color, hsv);
 
@@ -451,7 +443,7 @@ void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
   RNA_def_float(ot->srna, "v", 1.0f, 0.0f, 2.0f, "Value", "", 0.0f, 2.0f);
 }
 
-static wmOperatorStatus vertex_color_invert_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus vertex_color_invert_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *obact = CTX_data_active_object(C);
 
@@ -462,7 +454,7 @@ static wmOperatorStatus vertex_color_invert_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  transform_active_color(C, op, [&](ColorGeometry4f &color) {
+  transform_active_color(C, [&](ColorGeometry4f &color) {
     for (int i = 0; i < 3; i++) {
       color[i] = 1.0f - color[i];
     }
@@ -500,7 +492,7 @@ static wmOperatorStatus vertex_color_levels_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  transform_active_color(C, op, [&](ColorGeometry4f &color) {
+  transform_active_color(C, [&](ColorGeometry4f &color) {
     for (int i = 0; i < 3; i++) {
       color[i] = gain * (color[i] + offset);
     }
