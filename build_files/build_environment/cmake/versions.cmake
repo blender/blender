@@ -274,19 +274,6 @@ set(LLVM_HOMEPAGE https://github.com/llvm/llvm-project/)
 set(LLVM_LICENSE SPDX:Apache-2.0 WITH LLVM-exception)
 set(LLVM_COPYRIGHT "Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.")
 
-if(APPLE)
-  # Cloth physics test is crashing due to this bug:
-  # https://bugs.llvm.org/show_bug.cgi?id=50579
-  set(OPENMP_VERSION 9.0.1)
-  set(OPENMP_HASH 6eade16057edbdecb3c4eef9daa2bfcf)
-else()
-  set(OPENMP_VERSION ${LLVM_VERSION})
-  set(OPENMP_HASH 5cc01d151821c546bb4ec6fb03d86c29)
-endif()
-set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${OPENMP_VERSION}/openmp-${OPENMP_VERSION}.src.tar.xz)
-set(OPENMP_HASH_TYPE MD5)
-set(OPENMP_FILE openmp-${OPENMP_VERSION}.src.tar.xz)
-
 set(OPENIMAGEIO_VERSION v3.0.3.1)
 set(OPENIMAGEIO_NAME OpenImageIO)
 set(OPENIMAGEIO_URI https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/${OPENIMAGEIO_VERSION}.tar.gz)

@@ -407,23 +407,6 @@ mark_as_advanced(WITH_SYSTEM_AUDASPACE)
 
 set_and_warn_dependency(WITH_AUDASPACE WITH_SYSTEM_AUDASPACE OFF)
 
-option(WITH_OPENMP "Enable OpenMP (has to be supported by the compiler)" ON)
-if(UNIX AND NOT APPLE)
-  option(WITH_OPENMP_STATIC "Link OpenMP statically (only used by the release environment)" OFF)
-  mark_as_advanced(WITH_OPENMP_STATIC)
-elseif(WIN32 AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.1)
-  # Prior to LLVM 19.1, OpenMP was not included in public LLVM builds for Windows ARM64
-  if(WITH_OPENMP)
-    if(WITH_STRICT_BUILD_OPTIONS)
-      message(SEND_ERROR "OpenMP enabled, but LLVM ${CMAKE_CXX_COMPILER_VERSION} detected, minimum of 19.1 required for OpenMP functionality")
-    else()
-      message(STATUS "Disabling OpenMP, LLVM ${CMAKE_CXX_COMPILER_VERSION} detected, minimum of 19.1 required for OpenMP functionality")
-    endif()
-    set(WITH_OPENMP OFF)
-    set(WITH_OPENMP_STATIC OFF)
-  endif()
-endif()
-
 if(WITH_GHOST_X11)
   option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)" ON)
   option(WITH_X11_XF86VMODE "Enable X11 video mode switching" ON)
@@ -1667,45 +1650,6 @@ endif()
 
 
 # -----------------------------------------------------------------------------
-# Configure OpenMP
-
-if(WITH_OPENMP)
-  if(NOT OPENMP_CUSTOM)
-    find_package(OpenMP)
-  endif()
-
-  set_and_warn_library_found("OpenMP" OPENMP_FOUND WITH_OPENMP)
-
-  if(OPENMP_FOUND)
-    if(NOT WITH_OPENMP_STATIC)
-      string(APPEND CMAKE_C_FLAGS " ${OpenMP_C_FLAGS}")
-      string(APPEND CMAKE_CXX_FLAGS " ${OpenMP_CXX_FLAGS}")
-      if(DEFINED OpenMP_LINKER_FLAGS)
-        string(APPEND CMAKE_EXE_LINKER_FLAGS " ${OpenMP_LINKER_FLAGS}")
-        string(APPEND CMAKE_MODULE_LINKER_FLAGS " ${OpenMP_LINKER_FLAGS}")
-      endif()
-    else()
-      # Typically avoid adding flags as defines but we can't
-      # pass OpenMP flags to the linker for static builds, meaning
-      # we can't add any OpenMP related flags to CFLAGS variables
-      # since they're passed to the linker as well.
-      add_definitions("${OpenMP_C_FLAGS}")
-
-      find_library_static(OpenMP_LIBRARIES gomp ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES})
-      mark_as_advanced(
-        OpenMP_LIBRARIES
-      )
-    endif()
-  endif()
-
-  mark_as_advanced(
-    OpenMP_C_FLAGS
-    OpenMP_CXX_FLAGS
-  )
-endif()
-
-
-# -----------------------------------------------------------------------------
 # Configure Bullet
 
 if(WITH_BULLET)
@@ -2727,14 +2671,6 @@ include(build_files/cmake/packaging.cmake)
 
 
 # -----------------------------------------------------------------------------
-# Use Dynamic Loading for OpenMP
-
-if(WITH_BLENDER)
-  openmp_delayload(blender)
-endif()
-
-
-# -----------------------------------------------------------------------------
 # Print Final Configuration
 
 if(FIRST_RUN)
@@ -2794,7 +2730,6 @@ if(FIRST_RUN)
 
   info_cfg_text("Compiler Options:")
   info_cfg_option(WITH_BUILDINFO)
-  info_cfg_option(WITH_OPENMP)
 
   info_cfg_text("System Options:")
   info_cfg_option(WITH_INSTALL_PORTABLE)

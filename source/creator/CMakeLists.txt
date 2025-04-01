@@ -40,12 +40,6 @@ if(WITH_TBB)
   list(INSERT LIB 0 bf_blenkernel)
 endif()
 
-if(WITH_OPENMP AND WITH_OPENMP_STATIC)
-  list(APPEND LIB
-    ${OpenMP_LIBRARIES}
-  )
-endif()
-
 if(WIN32)
   list(APPEND INC ../../intern/utfconv)
 endif()
@@ -1032,12 +1026,6 @@ elseif(WIN32)
     )
   endif()
 
-  if(WITH_OPENMP AND MSVC_CLANG)
-    windows_install_shared_manifest(
-      FILES ${CLANG_OPENMP_DLL}
-      ALL
-    )
-  endif()
   # 4.1 FFTW libs need to be installed, in 4.2 FFTW got turned into a static lib
   # and the files below no longer exist.
   if(EXISTS ${LIBDIR}/fftw3/lib/fftw3.dll)

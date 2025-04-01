@@ -88,16 +88,3 @@ endif()
 # Language Support.
 
 set(WITH_INTERNATIONAL       OFF CACHE BOOL "" FORCE)
-
-# -----------------------------------------------------------------------------
-# OpenMP Support.
-
-# OpenMP doesn't work on Windows ARM64 devices due to using an external manifest
-# Note: This only applies to the bpy module, it works for regular builds.
-
-# We can't use CMAKE_SYSTEM_PROCESSOR here as it's not set yet,
-# so fall back to checking the env for vcvarsall's VSCMD_ARG_TGT_ARCH
-if(WIN32 AND "$ENV{VSCMD_ARG_TGT_ARCH}" STREQUAL "arm64")
-  set(WITH_OPENMP                OFF CACHE BOOL "" FORCE)
-  set(WITH_OPENMP_STATIC         OFF CACHE BOOL "" FORCE)
-endif()

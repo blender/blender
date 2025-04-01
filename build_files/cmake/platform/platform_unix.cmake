@@ -95,11 +95,6 @@ if(DEFINED LIBDIR)
   include(platform_old_libs_update)
 
   set(WITH_STATIC_LIBS ON)
-  # OpenMP usually can't be statically linked into shared libraries,
-  # due to not being compiled with position independent code.
-  if(NOT WITH_PYTHON_MODULE)
-    set(WITH_OPENMP_STATIC ON)
-  endif()
   set(Boost_NO_BOOST_CMAKE ON)
   set(Boost_ROOT ${LIBDIR}/boost)
   set(BOOST_LIBRARYDIR ${LIBDIR}/boost/lib)

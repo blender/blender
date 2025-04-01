@@ -70,7 +70,6 @@ graph[autosize = false, size = "25.7,8.3!", resolution = 300];
 	external_openimageio -- external_robinmap;
 	external_openimageio -- external_openjpeg;
 	external_openimageio -- external_webp;
-	external_openmp -- ll;
 	external_openpgl -- external_tbb;
 	external_opensubdiv -- external_tbb;
 	openvdb -- external_tbb;

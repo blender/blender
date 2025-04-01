@@ -80,12 +80,6 @@ if(WITH_OPENSUBDIV)
     ${Epoxy_LIBRARIES}
   )
 
-  if(WITH_OPENMP AND WITH_OPENMP_STATIC)
-    list(APPEND LIB
-      ${OpenMP_LIBRARIES}
-    )
-  endif()
-
   if(WIN32)
     add_definitions(-DNOMINMAX)
     add_definitions(-D_USE_MATH_DEFINES)

@@ -23,25 +23,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   else()
     message("Unable to detect the Visual Studio redist directory, copying of the runtime dlls will not work, try running from the visual studio developer prompt.")
   endif()
-  # 1) CMake has issues detecting openmp support in clang-cl so we have to provide
-  #    the right switches here.
-  # 2) While the /openmp switch *should* work, it currently doesn't as for clang 9.0.0
-  # 3) Using the registry to locate llvmroot doesn't work on some installs. When this happens,
-  #    attempt to locate openmp in the lib directory of the parent of the clang-cl binary
-  if(WITH_OPENMP)
-    set(OPENMP_CUSTOM ON)
-    set(OPENMP_FOUND ON)
-    set(OpenMP_C_FLAGS "/clang:-fopenmp")
-    set(OpenMP_CXX_FLAGS "/clang:-fopenmp")
-    get_filename_component(LLVMBIN ${CMAKE_CXX_COMPILER} DIRECTORY)
-    get_filename_component(LLVMROOT ${LLVMBIN} DIRECTORY)
-    set(CLANG_OPENMP_DLL "${LLVMROOT}/bin/libomp.dll")
-    set(CLANG_OPENMP_LIB "${LLVMROOT}/lib/libomp.lib")
-    if(NOT EXISTS "${CLANG_OPENMP_DLL}")
-      message(FATAL_ERROR "Clang OpenMP library (${CLANG_OPENMP_DLL}) not found.")
-    endif()
-    set(OpenMP_LINKER_FLAGS "\"${CLANG_OPENMP_LIB}\"")
-  endif()
   if(WITH_WINDOWS_STRIPPED_PDB)
     message(WARNING "stripped pdb not supported with clang, disabling..")
     set(WITH_WINDOWS_STRIPPED_PDB OFF)
@@ -153,7 +134,6 @@ configure_file(
 # Always detect CRT paths, but only manually install with WITH_WINDOWS_BUNDLE_CRT.
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
 include(InstallRequiredSystemLibraries)
 
 if(WITH_WINDOWS_BUNDLE_CRT)

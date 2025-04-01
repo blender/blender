@@ -1275,36 +1275,6 @@ function(print_all_vars)
   endforeach()
 endfunction()
 
-macro(openmp_delayload
-  projectname
-  )
-  if(MSVC)
-    if(WITH_OPENMP)
-      if(MSVC_CLANG)
-        set(OPENMP_DLL_NAME "libomp")
-      else()
-        set(OPENMP_DLL_NAME "vcomp140")
-      endif()
-      set_property(
-        TARGET ${projectname} APPEND_STRING PROPERTY
-        LINK_FLAGS_RELEASE " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib"
-      )
-      set_property(
-        TARGET ${projectname} APPEND_STRING PROPERTY
-        LINK_FLAGS_DEBUG " /DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib"
-      )
-      set_property(
-        TARGET ${projectname} APPEND_STRING PROPERTY
-        LINK_FLAGS_RELWITHDEBINFO " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib"
-      )
-      set_property(
-        TARGET ${projectname} APPEND_STRING PROPERTY
-        LINK_FLAGS_MINSIZEREL " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib"
-      )
-    endif()
-  endif()
-endmacro()
-
 macro(set_and_warn_dependency
   _dependency _setting _val)
   # when $_dependency is disabled, forces $_setting = $_val
