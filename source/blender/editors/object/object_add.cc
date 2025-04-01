@@ -4873,7 +4873,7 @@ static wmOperatorStatus join_shapes_exec(bContext *C, wmOperator *op)
   }
 
   if (ob->type == OB_MESH) {
-    return ED_mesh_shapes_join_objects_exec(C, op);
+    return ED_mesh_shapes_join_objects_exec(C, op->reports);
   }
 
   return OPERATOR_CANCELLED;

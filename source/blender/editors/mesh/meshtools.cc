@@ -720,7 +720,7 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
  * Add vertex positions of selected meshes as shape keys to the active mesh.
  * \{ */
 
-wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
+wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, ReportList *reports)
 {
   using namespace blender;
   Main *bmain = CTX_data_main(C);
@@ -747,13 +747,13 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
 
   if (found_non_equal_verts_num) {
-    BKE_report(op->reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices");
+    BKE_report(reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices");
     return OPERATOR_CANCELLED;
   }
 
   if (compatible_objects.is_empty()) {
     BKE_report(
-        op->reports, RPT_WARNING, "No additional selected meshes with equal vertex count to join");
+        reports, RPT_WARNING, "No additional selected meshes with equal vertex count to join");
     return OPERATOR_CANCELLED;
   }
 
