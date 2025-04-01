@@ -163,9 +163,10 @@ Information
 endef
 # HELP_TEXT (end)
 
-# This makefile is not meant for Windows
+# This makefile is not meant for Windows,
+# Note that a TAB indent prevents the message from showing, no indentation is intended.
 ifeq ($(OS),Windows_NT)
-	$(error On Windows, use "cmd //c make.bat" instead of "make")
+$(error On Windows, use "cmd //c make.bat" instead of "make")
 endif
 
 # System Vars
