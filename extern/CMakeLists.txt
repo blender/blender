@@ -17,6 +17,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   remove_cc_flag(
     "-Weverything"
+    "-Wextra"
   )
 endif()
 
