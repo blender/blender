@@ -76,6 +76,52 @@ static void curve_offsets_from_selection(const Span<IndexRange> selected_points,
                               curves_added);
 }
 
+static void append_point_knots(const Span<IndexRange> src_ranges,
+                               const OffsetIndices<int> dst_offsets,
+                               const Span<int> dst_to_src_curve,
+                               bke::CurvesGeometry &curves)
+{
+  curves.nurbs_custom_knots_update_size();
+
+  const VArray<int8_t> knot_modes = curves.nurbs_knots_modes();
+  const VArray<int8_t> orders = curves.nurbs_orders();
+  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+  const OffsetIndices<int> knots_by_curve = curves.nurbs_custom_knots_by_curve();
+  MutableSpan<float> knots = curves.nurbs_custom_knots_for_write();
+
+  const int old_curves_num = curves.curves_num() - dst_to_src_curve.size();
+
+  int range = 0;
+  for (const int appended_curve : dst_to_src_curve.index_range()) {
+    const int dst_curve = appended_curve + old_curves_num;
+    if (knot_modes[dst_curve] != NURBS_KNOT_MODE_CUSTOM) {
+      continue;
+    }
+    const int src_curve = dst_to_src_curve[appended_curve];
+    const int order = orders[src_curve];
+    const int first_curve_point = points_by_curve.data()[src_curve];
+    const int first_curve_knot = knots_by_curve.data()[src_curve];
+    const int point_to_knot = -first_curve_point + first_curve_knot;
+    const IndexRange src_range = src_ranges[range];
+    const IndexRange src_knots = IndexRange::from_begin_size(src_range.first() + point_to_knot,
+                                                             src_range.size() + order);
+    const IndexRange dst_knots = knots_by_curve[dst_curve];
+    knots.slice(dst_knots.take_front(src_knots.size())).copy_from(knots.slice(src_knots));
+    if (dst_offsets[range].size() != points_by_curve[dst_curve].size()) {
+      range++;
+      const IndexRange merged_tail = src_ranges[range];
+      const IndexRange src_tail_knots = merged_tail.shift(point_to_knot + order);
+      const IndexRange dst_tail_knots = dst_knots.take_back(src_tail_knots.size());
+      const float knot_shift = knots[dst_tail_knots.one_before_start()] -
+                               knots[src_tail_knots.one_before_start()];
+      for (const int i : src_tail_knots.index_range()) {
+        knots[dst_tail_knots[i]] = knots[src_tail_knots[i]] + knot_shift;
+      }
+    }
+    range++;
+  }
+}
+
 void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
 {
   if (curves.is_empty()) {
@@ -170,12 +216,28 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
   curves.update_curve_types();
   curves.tag_topology_changed();
 
+  if (curves.nurbs_has_custom_knots()) {
+    append_point_knots(src_ranges, dst_offsets.as_span(), dst_to_src_curve, curves);
+  }
+
   for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
     bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
         selection_name, bke::AttrDomain::Point);
     selection.span.take_back(num_points_to_add).fill(true);
     selection.finish();
   }
+}
+
+static void append_curve_knots(const IndexMask &mask, bke::CurvesGeometry &curves)
+{
+  curves.nurbs_custom_knots_update_size();
+  const int old_curves_num = curves.curves_num() - mask.size();
+  const OffsetIndices<int> knots_by_curve = curves.nurbs_custom_knots_by_curve();
+  MutableSpan<float> knots = curves.nurbs_custom_knots_for_write();
+  mask.foreach_index(GrainSize(512), [&](const int src_curve, const int appended_curve) {
+    const int dst_curve = old_curves_num + appended_curve;
+    knots.slice(knots_by_curve[dst_curve]).copy_from(knots.slice(knots_by_curve[src_curve]));
+  });
 }
 
 void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
@@ -225,6 +287,10 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
 
   curves.update_curve_types();
   curves.tag_topology_changed();
+
+  if (curves.nurbs_has_custom_knots()) {
+    append_curve_knots(mask, curves);
+  }
 
   for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
     bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(

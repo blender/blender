@@ -163,6 +163,7 @@ struct RealizeCurveInfo {
 struct CurvesElementStartIndices {
   int point = 0;
   int curve = 0;
+  int custom_knot = 0;
 };
 
 struct RealizeCurveTask {
@@ -702,6 +703,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
                                                   base_instance_context.id});
           gather_info.r_offsets.curves_offsets.point += curves->geometry.point_num;
           gather_info.r_offsets.curves_offsets.curve += curves->geometry.curve_num;
+          gather_info.r_offsets.curves_offsets.custom_knot += curves->geometry.custom_knot_num;
         }
         break;
       }
@@ -1816,6 +1818,8 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
 
   const IndexRange dst_point_range{task.start_indices.point, curves.points_num()};
   const IndexRange dst_curve_range{task.start_indices.curve, curves.curves_num()};
+  const IndexRange dst_custom_knot_range{task.start_indices.custom_knot,
+                                         curves.nurbs_custom_knots_by_curve().total_size()};
 
   copy_transformed_positions(
       curves.positions(), task.transform, dst_curves.positions_for_write().slice(dst_point_range));
@@ -1865,6 +1869,10 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       dst_offsets[i] = task.start_indices.point + src_offsets[i];
     }
   });
+
+  dst_curves.nurbs_custom_knots_for_write()
+      .slice(dst_custom_knot_range)
+      .copy_from(curves.nurbs_custom_knots());
 
   if (!all_dst_ids.is_empty()) {
     create_result_ids(
@@ -1916,10 +1924,15 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   const Curves &last_curves = *last_task.curve_info->curves;
   const int points_num = last_task.start_indices.point + last_curves.geometry.point_num;
   const int curves_num = last_task.start_indices.curve + last_curves.geometry.curve_num;
+  const int custom_knot_num = last_task.start_indices.custom_knot +
+                              last_curves.geometry.custom_knot_num;
 
   /* Allocate new curves data-block. */
   Curves *dst_curves_id = bke::curves_new_nomain(points_num, curves_num);
   bke::CurvesGeometry &dst_curves = dst_curves_id->geometry.wrap();
+  if (custom_knot_num) {
+    dst_curves.nurbs_custom_knots_resize(custom_knot_num);
+  }
   dst_curves.offsets_for_write().last() = points_num;
   r_realized_geometry.replace_curves(dst_curves_id);
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
