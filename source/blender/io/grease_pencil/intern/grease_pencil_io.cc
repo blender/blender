@@ -322,8 +322,8 @@ void GreasePencilExporter::prepare_render_params(Scene &scene, const int frame_n
   const bool use_camera_view = (context_.rv3d->persp == RV3D_CAMOB) &&
                                (context_.v3d->camera != nullptr);
 
-  /* Camera rectangle. */
   if (use_camera_view) {
+    /* Camera rectangle (in screen space). */
     rctf camera_rect;
     ED_view3d_calc_camera_border(&scene,
                                  context_.depsgraph,
@@ -332,14 +332,22 @@ void GreasePencilExporter::prepare_render_params(Scene &scene, const int frame_n
                                  context_.rv3d,
                                  true,
                                  &camera_rect);
-    render_rect_ = {{camera_rect.xmin, camera_rect.ymin}, {camera_rect.xmax, camera_rect.ymax}};
+    screen_rect_ = {{camera_rect.xmin, camera_rect.ymin}, {camera_rect.xmax, camera_rect.ymax}};
     camera_persmat_ = persmat_from_camera_object(scene);
+
+    /* Output resolution (when in camera view). */
+    int width, height;
+    BKE_render_resolution(&scene.r, false, &width, &height);
+    camera_rect_ = {{0.0f, 0.0f}, {float(width), float(height)}};
+    /* Compute factor that remaps screen_rect to final output resolution. */
+    BLI_assert(screen_rect_.size() != float2(0.0f));
+    camera_fac_ = float2(camera_rect_.size()) / float2(screen_rect_.size());
   }
   else {
     Vector<ObjectInfo> objects = this->retrieve_objects();
     std::optional<Bounds<float2>> full_bounds = compute_objects_bounds(
         *context_.region, *context_.rv3d, *context_.depsgraph, objects, frame_number);
-    render_rect_ = full_bounds ? *full_bounds : Bounds<float2>{float2(0.0f), float2(0.0f)};
+    screen_rect_ = full_bounds ? *full_bounds : Bounds<float2>(float2(0.0f));
     camera_persmat_ = std::nullopt;
   }
 }
@@ -570,8 +578,9 @@ float2 GreasePencilExporter::project_to_screen(const float4x4 &transform,
 
   if (camera_persmat_) {
     /* Use camera render space. */
-    return (float2(math::project_point(*camera_persmat_, world_pos)) + 1.0f) / 2.0f *
-           float2(render_rect_.size());
+    const float2 cam_space = (float2(math::project_point(*camera_persmat_, world_pos)) + 1.0f) /
+                             2.0f * float2(screen_rect_.size());
+    return cam_space * camera_fac_;
   }
 
   /* Use 3D view screen space. */
@@ -581,7 +590,7 @@ float2 GreasePencilExporter::project_to_screen(const float4x4 &transform,
   {
     if (!ELEM(V2D_IS_CLIPPED, screen_co.x, screen_co.y)) {
       /* Apply offset and scale. */
-      return screen_co - render_rect_.min;
+      return screen_co - screen_rect_.min;
     }
   }
 

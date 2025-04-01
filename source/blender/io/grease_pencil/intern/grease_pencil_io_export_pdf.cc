@@ -186,8 +186,14 @@ bool PDFExporter::add_page()
     return false;
   }
 
-  HPDF_Page_SetWidth(page_, render_rect_.size().x);
-  HPDF_Page_SetHeight(page_, render_rect_.size().y);
+  if (camera_persmat_) {
+    HPDF_Page_SetWidth(page_, camera_rect_.size().x);
+    HPDF_Page_SetHeight(page_, camera_rect_.size().y);
+  }
+  else {
+    HPDF_Page_SetWidth(page_, screen_rect_.size().x);
+    HPDF_Page_SetHeight(page_, screen_rect_.size().y);
+  }
 
   return true;
 }
