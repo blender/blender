@@ -648,8 +648,8 @@ static bool rna_BrushCapabilitiesSculpt_has_tilt_get(PointerRNA *ptr)
               SCULPT_BRUSH_TYPE_FLATTEN,
               SCULPT_BRUSH_TYPE_FILL,
               SCULPT_BRUSH_TYPE_SCRAPE,
-              SCULPT_BRUSH_TYPE_CLAY_STRIPS,
-              SCULPT_BRUSH_TYPE_CLAY_THUMB);
+              SCULPT_BRUSH_TYPE_PLANE,
+              SCULPT_BRUSH_TYPE_CLAY_STRIPS);
 }
 
 static bool rna_TextureCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
