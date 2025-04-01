@@ -24,6 +24,7 @@ struct VKRenderGraphSubmitTask {
   VkPipelineStageFlags wait_dst_stage_mask;
   VkSemaphore wait_semaphore;
   VkSemaphore signal_semaphore;
+  VkFence signal_fence;
   bool *is_submitted_ptr;
 };
 
@@ -33,7 +34,8 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
                                             bool wait_for_completion,
                                             VkPipelineStageFlags wait_dst_stage_mask,
                                             VkSemaphore wait_semaphore,
-                                            VkSemaphore signal_semaphore)
+                                            VkSemaphore signal_semaphore,
+                                            VkFence signal_fence)
 {
   if (render_graph->is_empty()) {
     render_graph->reset();
@@ -47,6 +49,7 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
   submit_task->wait_dst_stage_mask = wait_dst_stage_mask;
   submit_task->wait_semaphore = wait_semaphore;
   submit_task->signal_semaphore = signal_semaphore;
+  submit_task->signal_fence = signal_fence;
   submit_task->is_submitted_ptr = nullptr;
   /* We need to wait for submission as otherwise the signal semaphore can still not be in an
    * initial state. */
@@ -224,7 +227,10 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
 
       {
         std::scoped_lock lock_queue(*device->queue_mutex_);
-        vkQueueSubmit(device->vk_queue_, submit_infos.size(), submit_infos.data(), VK_NULL_HANDLE);
+        vkQueueSubmit(device->vk_queue_,
+                      submit_infos.size(),
+                      submit_infos.data(),
+                      submit_task->signal_fence);
       }
       if (submit_task->is_submitted_ptr != nullptr) {
         *submit_task->is_submitted_ptr = true;

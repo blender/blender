@@ -354,7 +354,8 @@ class VKDevice : public NonCopyable {
                                     bool wait_for_completion,
                                     VkPipelineStageFlags wait_dst_stage_mask,
                                     VkSemaphore wait_semaphore,
-                                    VkSemaphore signal_semaphore);
+                                    VkSemaphore signal_semaphore,
+                                    VkFence signal_fence);
   void wait_for_timeline(TimelineValue timeline);
 
   /**

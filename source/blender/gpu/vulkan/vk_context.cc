@@ -151,7 +151,8 @@ void VKContext::flush()
 TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags,
                                             VkPipelineStageFlags wait_dst_stage_mask,
                                             VkSemaphore wait_semaphore,
-                                            VkSemaphore signal_semaphore)
+                                            VkSemaphore signal_semaphore,
+                                            VkFence signal_fence)
 {
   if (has_active_framebuffer()) {
     VKFrameBuffer &framebuffer = *active_framebuffer_get();
@@ -168,7 +169,8 @@ TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags,
       bool(flags & RenderGraphFlushFlags::WAIT_FOR_COMPLETION),
       wait_dst_stage_mask,
       wait_semaphore,
-      signal_semaphore);
+      signal_semaphore,
+      signal_fence);
   render_graph_.reset();
   if (bool(flags & RenderGraphFlushFlags::RENEW_RENDER_GRAPH)) {
     render_graph_ = std::reference_wrapper<render_graph::VKRenderGraph>(
@@ -389,7 +391,8 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   flush_render_graph(RenderGraphFlushFlags::SUBMIT | RenderGraphFlushFlags::RENEW_RENDER_GRAPH,
                      VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
                      swap_chain_data.acquire_semaphore,
-                     swap_chain_data.present_semaphore);
+                     swap_chain_data.present_semaphore,
+                     swap_chain_data.submission_fence);
 
   device.resources.remove_image(swap_chain_data.image);
 #if 0

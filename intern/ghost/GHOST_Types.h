@@ -760,6 +760,8 @@ typedef struct {
   VkSemaphore acquire_semaphore;
   /** Semaphore to signal after the image has been updated. */
   VkSemaphore present_semaphore;
+  /** Fence to signal after the image has been updated. */
+  VkFence submission_fence;
 } GHOST_VulkanSwapChainData;
 
 typedef struct {
