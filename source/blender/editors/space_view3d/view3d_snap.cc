@@ -14,6 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
@@ -288,16 +289,22 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
  *
  * \param snap_target_global: a location in global space to snap to
  * (eg. 3D cursor or active object).
+ * \param snap_orientation: a 3d cursor which will provides rotation.
+ * When non-null objects are rotated to match the rotation of the 3d cursor,
+ * otherwise, keep their original rotation.
+ * Note that a more generic orientation parameter could be supported in future, but for now,
+ * only the 3d cursor is used.
  * \param use_offset: if the selected objects should maintain their relative offsets
  * and be snapped by the selection pivot point (median, active),
  * or if every object origin should be snapped to the given location.
  */
-static bool snap_selected_to_location(bContext *C,
-                                      wmOperator *op,
-                                      const float snap_target_global[3],
-                                      const bool use_offset,
-                                      const int pivot_point,
-                                      const bool use_toolsettings)
+static bool snap_selected_to_location_rotation(bContext *C,
+                                               wmOperator *op,
+                                               const float snap_target_global[3],
+                                               const View3DCursor *snap_orientation,
+                                               const bool use_offset,
+                                               const int pivot_point,
+                                               const bool use_toolsettings)
 {
   using namespace blender::ed;
   Scene *scene = CTX_data_scene(C);
@@ -310,6 +317,12 @@ static bool snap_selected_to_location(bContext *C,
   float center_global[3];
   float offset_global[3];
   int a;
+
+  /* Some use of this needs to transform into local-space. */
+  const bool use_rotation = snap_orientation != nullptr;
+  const blender::float3x3 target_rot_global = snap_orientation ?
+                                                  snap_orientation->matrix<blender::float3x3>() :
+                                                  blender::float3x3::zero();
 
   if (use_offset) {
     if ((pivot_point == V3D_AROUND_ACTIVE) && snap_calc_active_center(C, true, center_global)) {
@@ -378,6 +391,9 @@ static bool snap_selected_to_location(bContext *C,
     KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Vector<Object *> objects = BKE_object_pose_array_get(scene, view_layer, v3d);
+    Main *bmain = CTX_data_main(C);
+    Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
     for (Object *ob : objects) {
       bArmature *arm = static_cast<bArmature *>(ob->data);
@@ -413,11 +429,57 @@ static bool snap_selected_to_location(bContext *C,
             mul_v3_m4v3(cursor_pose, ob->object_to_world().ptr(), pchan->pose_mat[3]);
             add_v3_v3(cursor_pose, offset_global);
 
+            if (use_rotation) {
+              sub_v3_v3(cursor_pose, snap_target_global);
+              mul_m3_v3(target_rot_global.ptr(), cursor_pose);
+              add_v3_v3(cursor_pose, snap_target_global);
+            }
+
             mul_m4_v3(ob->world_to_object().ptr(), cursor_pose);
             BKE_armature_loc_pose_to_bone(pchan, cursor_pose, cursor_pose);
           }
           else {
             BKE_armature_loc_pose_to_bone(pchan, snap_target_local, cursor_pose);
+          }
+
+          if (use_rotation) {
+            BKE_pchan_mat3_to_rot(pchan, target_rot_global.ptr(), false);
+
+            if (pchan->rotmode == ROT_MODE_QUAT) {
+              float quat[4];
+              mat3_normalized_to_quat(quat, target_rot_global.ptr());
+
+              if (use_toolsettings) {
+                BKE_pchan_protected_rotation_quaternion_set(pchan, quat);
+              }
+              else {
+                copy_v4_v4(pchan->quat, quat);
+              }
+            }
+            else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+              float rot_axis[3];
+              float rot_angle;
+              mat3_to_axis_angle(rot_axis, &rot_angle, target_rot_global.ptr());
+
+              if (use_toolsettings) {
+                BKE_pchan_protected_rotation_axisangle_set(pchan, rot_axis, rot_angle);
+              }
+              else {
+                copy_v3_v3(pchan->rotAxis, rot_axis);
+                pchan->rotAngle = rot_angle;
+              }
+            }
+            else {
+              float rot_euler[3];
+              mat3_to_eulO(rot_euler, pchan->rotmode, target_rot_global.ptr());
+
+              if (use_toolsettings) {
+                BKE_pchan_protected_rotation_euler_set(pchan, rot_euler);
+              }
+              else {
+                copy_v3_v3(pchan->eul, rot_euler);
+              }
+            }
           }
 
           /* copy new position */
@@ -503,6 +565,12 @@ static bool snap_selected_to_location(bContext *C,
 
       if (use_offset) {
         add_v3_v3v3(cursor_parent, ob->object_to_world().location(), offset_global);
+
+        if (use_rotation) {
+          sub_v3_v3(cursor_parent, snap_target_global);
+          mul_m3_v3(target_rot_global.ptr(), cursor_parent);
+          add_v3_v3(cursor_parent, snap_target_global);
+        }
       }
       else {
         copy_v3_v3(cursor_parent, snap_target_global);
@@ -510,6 +578,8 @@ static bool snap_selected_to_location(bContext *C,
 
       sub_v3_v3(cursor_parent, ob->object_to_world().location());
 
+      /* Calculate a parent relative copy. */
+      blender::float3x3 target_rot = target_rot_global;
       if (ob->parent) {
         float originmat[3][3], parentmat[4][4];
         /* Use the evaluated object here because sometimes
@@ -521,6 +591,7 @@ static bool snap_selected_to_location(bContext *C,
         mul_m3_m4m4(originmat, parentmat, ob->parentinv);
         invert_m3_m3(imat, originmat);
         mul_m3_v3(imat, cursor_parent);
+        mul_m3_m3m3(target_rot.ptr(), imat, target_rot.ptr());
       }
       if (use_toolsettings) {
         const blender::float3 loc_final = blender::float3(ob->loc) +
@@ -532,6 +603,63 @@ static bool snap_selected_to_location(bContext *C,
       }
       else {
         add_v3_v3(ob->loc, cursor_parent);
+      }
+
+      if (use_rotation) {
+        const bool assign_rotation_directly = (ob->rotmode == snap_orientation->rotation_mode &&
+                                               ob->parent == nullptr);
+
+        if (ob->rotmode == ROT_MODE_QUAT) {
+          float quat[4];
+          if (assign_rotation_directly) {
+            copy_v4_v4(quat, snap_orientation->rotation_quaternion);
+          }
+          else {
+            mat3_normalized_to_quat(quat, target_rot.ptr());
+          }
+          if (use_toolsettings) {
+            BKE_object_protected_rotation_quaternion_set(ob, quat);
+          }
+          else {
+            copy_v4_v4(ob->quat, quat);
+          }
+        }
+        else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+          float rot_axis[3];
+          float rot_angle;
+          if (assign_rotation_directly) {
+            copy_v3_v3(rot_axis, snap_orientation->rotation_axis);
+            rot_angle = snap_orientation->rotation_angle;
+          }
+          else {
+            mat3_to_axis_angle(rot_axis, &rot_angle, target_rot.ptr());
+          }
+          if (use_toolsettings) {
+            BKE_object_protected_rotation_axisangle_set(ob, rot_axis, rot_angle);
+          }
+          else {
+            copy_v3_v3(ob->rotAxis, rot_axis);
+            ob->rotAngle = rot_angle;
+          }
+        }
+        else {
+          float rot_euler[3];
+          if (assign_rotation_directly) {
+            copy_v3_v3(rot_euler, snap_orientation->rotation_euler);
+          }
+          else {
+            mat3_to_eulO(rot_euler, ob->rotmode, target_rot.ptr());
+          }
+          if (use_toolsettings) {
+            BKE_object_protected_rotation_euler_set(ob, rot_euler);
+          }
+          else {
+            copy_v3_v3(ob->rot, rot_euler);
+          }
+        }
+
+        /* auto-keyframing */
+        blender::animrig::autokeyframe_object(C, scene, ob, ks);
       }
 
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
@@ -563,8 +691,8 @@ bool ED_view3d_snap_selected_to_location(bContext *C,
   /* Disable object protected flags & auto-keyframing,
    * so this can be used as a low level function. */
   const bool use_toolsettings = false;
-  return snap_selected_to_location(
-      C, op, snap_target_global, use_offset, pivot_point, use_toolsettings);
+  return snap_selected_to_location_rotation(
+      C, op, snap_target_global, nullptr, use_offset, pivot_point, use_toolsettings);
 }
 
 /** \} */
@@ -576,13 +704,17 @@ bool ED_view3d_snap_selected_to_location(bContext *C,
 static wmOperatorStatus snap_selected_to_cursor_exec(bContext *C, wmOperator *op)
 {
   const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
+  const bool use_rotation = RNA_boolean_get(op->ptr, "use_rotation");
 
   Scene *scene = CTX_data_scene(C);
 
   const float *snap_target_global = scene->cursor.location;
+  const View3DCursor *snap_orientation = use_rotation ? &scene->cursor : nullptr;
   const int pivot_point = scene->toolsettings->transform_pivot_point;
 
-  if (snap_selected_to_location(C, op, snap_target_global, use_offset, pivot_point, true)) {
+  if (snap_selected_to_location_rotation(
+          C, op, snap_target_global, snap_orientation, use_offset, pivot_point, true))
+  {
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
@@ -608,6 +740,11 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
                   true,
                   "Offset",
                   "If the selection should be snapped as a whole or by each object center");
+  RNA_def_boolean(ot->srna,
+                  "use_rotation",
+                  false,
+                  "Rotation",
+                  "If the selection should be rotated to match the cursor");
 }
 
 /** \} */
@@ -626,7 +763,7 @@ static wmOperatorStatus snap_selected_to_active_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
-  if (!snap_selected_to_location(C, op, snap_target_global, false, -1, true)) {
+  if (!snap_selected_to_location_rotation(C, op, snap_target_global, nullptr, false, -1, true)) {
     return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;
