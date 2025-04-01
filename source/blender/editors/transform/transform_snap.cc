@@ -1697,6 +1697,11 @@ bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float
     return false;
   }
 
+  if (t->spacetype == SPACE_SEQ) {
+    /* Sequencer has its own dedicated enum for snap_mode with increment snap bit overridden.  */
+    return false;
+  }
+
   if (!(t->tsnap.mode & SCE_SNAP_TO_INCREMENT)) {
     return false;
   }
