@@ -57,9 +57,9 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
   VkCommandPool m_vk_command_pool = VK_NULL_HANDLE;
 
   /**
-   * Single VkCommandBuffer that is used for all views/swapchains.
+   * Single VkCommandBuffer that is used for all views/swap-chains.
    *
-   * This can be improved by having a single command buffer per swapchain image.
+   * This can be improved by having a single command buffer per swap-chain image.
    */
   VkCommandBuffer m_vk_command_buffer = VK_NULL_HANDLE;
 

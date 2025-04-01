@@ -9,7 +9,7 @@ This script generates a graphic of Blender's code layout:
 ./blender.bin -b --factory-startup --python ./tools/utils_doc/code_layout_diagram.py
 """
 # This is an update to the historic: https://download.blender.org/ftp/ideasman42/pics/code_layout_historic.jpg
-# Originally located ar: `www.blender.org/bf/codelayout.jpg` (now broken).
+# Originally located at: `www.blender.org/bf/codelayout.jpg` (now broken).
 
 __all__ = (
     "main",
@@ -1091,7 +1091,7 @@ def main():
     scene = bpy.context.scene
     scene.render.engine = 'BLENDER_EEVEE_NEXT'
 
-    # Without this, the whites are grey.
+    # Without this, the whites are gray.
     scene.view_settings.view_transform = "Standard"
 
     sub_section_gap_y = 0.1

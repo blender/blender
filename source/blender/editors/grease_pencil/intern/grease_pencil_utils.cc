@@ -1849,7 +1849,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
     }
 
     /* Clear the keyframe of all the original layers that don't have a matching evaluated layer,
-     * e.g. the ones that were "deleted" in the evalauted data. */
+     * e.g. the ones that were "deleted" in the evaluated data. */
     for (Layer *layer_orig : orig_layers_to_clear) {
       /* Try inserting a frame. */
       Drawing *drawing_orig = orig_grease_pencil.insert_frame(*layer_orig, eval_frame);

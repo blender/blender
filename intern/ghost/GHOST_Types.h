@@ -763,7 +763,7 @@ typedef struct {
 } GHOST_VulkanSwapChainData;
 
 typedef struct {
-  /** Resolution of the framebuffer image. */
+  /** Resolution of the frame-buffer image. */
   VkExtent2D extent;
   /**
    * Host accessible data containing the image data. Data is stored in the selected swapchain

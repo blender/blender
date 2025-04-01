@@ -133,7 +133,7 @@ static CursorSize window_size_calc()
 {
 #if (OS_MAC)
   /* MacOS always scales up this type of cursor for high-dpi displays.
-   * The mid-sized 24x24 versions are a nice compromize size. */
+   * The mid-sized 24x24 versions are a nice compromise size. */
   return CURSOR_SIZE_24;
 #endif
 
