@@ -373,7 +373,7 @@ void do_plane_brush(const Depsgraph &depsgraph,
   float3 normal = plane_normal;
   float3 center = plane_center;
 
-  SCULPT_tilt_apply_to_normal(normal, ss.cache, brush.tilt_strength_factor);
+  normal = tilt_apply_to_normal(normal, *ss.cache, brush.tilt_strength_factor);
 
   const bool flip = ss.cache->initial_direction_flipped;
   const float offset = SCULPT_brush_plane_offset_get(sd, ss);

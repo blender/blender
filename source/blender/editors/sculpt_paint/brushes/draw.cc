@@ -183,8 +183,7 @@ void do_draw_brush(const Depsgraph &depsgraph,
   const SculptSession &ss = *object.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  float3 effective_normal;
-  SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
+  const float3 effective_normal = tilt_effective_normal_get(ss, brush);
 
   const float3 offset = effective_normal * ss.cache->radius * ss.cache->scale *
                         ss.cache->bstrength;

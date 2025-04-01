@@ -62,6 +62,7 @@
 #include "BKE_report.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
+#include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.hh"
 
 #include "NOD_texture.h"
@@ -2680,32 +2681,32 @@ static void calc_brush_local_mat(const float rotation,
   invert_m4_m4(local_mat, tmat);
 }
 
-}  // namespace blender::ed::sculpt_paint
-
-#define SCULPT_TILT_SENSITIVITY 0.7f
-void SCULPT_tilt_apply_to_normal(float r_normal[3],
-                                 blender::ed::sculpt_paint::StrokeCache *cache,
-                                 const float tilt_strength)
+float3 tilt_apply_to_normal(const float3 &normal,
+                            const StrokeCache &cache,
+                            const float tilt_strength)
 {
   if (!USER_EXPERIMENTAL_TEST(&U, use_sculpt_tools_tilt)) {
-    return;
+    return normal;
   }
-  const float rot_max = M_PI_2 * tilt_strength * SCULPT_TILT_SENSITIVITY;
-  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->object_to_world().ptr(), r_normal);
-  float normal_tilt_y[3];
-  rotate_v3_v3v3fl(normal_tilt_y, r_normal, cache->vc->rv3d->viewinv[0], cache->tilt.y * rot_max);
-  float normal_tilt_xy[3];
-  rotate_v3_v3v3fl(
-      normal_tilt_xy, normal_tilt_y, cache->vc->rv3d->viewinv[1], cache->tilt.x * rot_max);
-  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->world_to_object().ptr(), normal_tilt_xy);
-  normalize_v3(r_normal);
+  const float3 world_space = math::transform_direction(cache.vc->obact->object_to_world(), normal);
+
+  constexpr float tilt_sensitivity = 0.7f;
+  const float rot_max = M_PI_2 * tilt_strength * tilt_sensitivity;
+  const float3 normal_tilt_y = math::rotate_direction_around_axis(
+      world_space, cache.vc->rv3d->viewinv[0], cache.tilt.y * rot_max);
+  const float3 normal_tilt_xy = math::rotate_direction_around_axis(
+      normal_tilt_y, cache.vc->rv3d->viewinv[1], cache.tilt.x * rot_max);
+
+  return math::normalize(
+      math::transform_direction(cache.vc->obact->world_to_object(), normal_tilt_xy));
 }
 
-void SCULPT_tilt_effective_normal_get(const SculptSession &ss, const Brush &brush, float r_no[3])
+float3 tilt_effective_normal_get(const SculptSession &ss, const Brush &brush)
 {
-  copy_v3_v3(r_no, ss.cache->sculpt_normal_symm);
-  SCULPT_tilt_apply_to_normal(r_no, ss.cache, brush.tilt_strength_factor);
+  return tilt_apply_to_normal(ss.cache->sculpt_normal_symm, *ss.cache, brush.tilt_strength_factor);
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 static void update_brush_local_mat(const Sculpt &sd, Object &ob)
 {

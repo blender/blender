@@ -269,7 +269,7 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   float3 area_position;
   float3 plane_normal;
   calc_brush_plane(depsgraph, brush, object, node_mask, plane_normal, area_position);
-  SCULPT_tilt_apply_to_normal(plane_normal, ss.cache, brush.tilt_strength_factor);
+  plane_normal = tilt_apply_to_normal(plane_normal, *ss.cache, brush.tilt_strength_factor);
   area_position += plane_normal * ss.cache->scale * displace;
 
   float3 area_normal;
