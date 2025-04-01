@@ -360,7 +360,7 @@ endif()
 
 # CMake FindOpenMP doesn't know about AppleClang before 3.12, so provide custom flags.
 if(WITH_OPENMP)
-  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  if(CMAKE_C_COMPILER_ID MATCHES "AppleClang")
     if(${CMAKE_C_COMPILER_VERSION} VERSION_GREATER_EQUAL 17.0)
       if(WITH_STRICT_BUILD_OPTIONS)
         message(SEND_ERROR "OpenMP library is not compatible with the current Clang version")
