@@ -1059,7 +1059,7 @@ size_t BLI_str_partition_ex(const char *str,
         }
       }
       else {
-        tmp = (from_right) ? strrchr(str, *d) : strchr(str, *d);
+        tmp = strchr(str, *d);
         if (tmp >= end) {
           tmp = nullptr;
         }
