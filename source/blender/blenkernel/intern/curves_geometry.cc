@@ -1370,7 +1370,7 @@ void CurvesGeometry::count_memory(MemoryCounter &memory) const
   CustomData_count_memory(this->curve_data, this->curve_num, memory);
 }
 
-void curves_copy_point_selection_custom_knots(const CurvesGeometry &curves,
+static void copy_point_selection_custom_knots(const CurvesGeometry &curves,
                                               const IndexMask &points_to_copy,
                                               const Span<int> curve_point_counts,
                                               CurvesGeometry &dst_curves)
@@ -1471,8 +1471,7 @@ CurvesGeometry curves_copy_point_selection(const CurvesGeometry &curves,
       });
 
   if (curves.nurbs_has_custom_knots()) {
-    curves_copy_point_selection_custom_knots(
-        curves, points_to_copy, curve_point_counts, dst_curves);
+    copy_point_selection_custom_knots(curves, points_to_copy, curve_point_counts, dst_curves);
   }
 
   if (dst_curves.curves_num() == curves.curves_num()) {
@@ -1500,7 +1499,7 @@ void CurvesGeometry::remove_points(const IndexMask &points_to_delete,
   *this = curves_copy_point_selection(*this, points_to_copy, attribute_filter);
 }
 
-void curves_copy_curve_selection_custom_knots(const CurvesGeometry &curves,
+static void copy_curve_selection_custom_knots(const CurvesGeometry &curves,
                                               const IndexMask &curves_to_copy,
                                               CurvesGeometry &dst_curves)
 {
@@ -1555,7 +1554,7 @@ CurvesGeometry curves_copy_curve_selection(const CurvesGeometry &curves,
                     dst_attributes);
 
   if (curves.nurbs_has_custom_knots()) {
-    curves_copy_curve_selection_custom_knots(curves, curves_to_copy, dst_curves);
+    copy_curve_selection_custom_knots(curves, curves_to_copy, dst_curves);
   }
 
   dst_curves.update_curve_types();
