@@ -60,6 +60,7 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout = self.layout
 
         layout.operator("object.shape_key_add", icon='ADD', text="New Shape from Mix").from_mix = True
+        layout.operator("object.shape_key_copy", icon='DUPLICATE', text="Duplicate Shape Key")
         layout.separator()
         layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT').use_topology = False
         layout.operator("object.shape_key_mirror", text="Mirror Shape Key (Topology)").use_topology = True

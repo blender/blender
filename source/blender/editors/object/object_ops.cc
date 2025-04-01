@@ -221,6 +221,7 @@ void operatortypes_object()
   WM_operatortype_append(OBJECT_OT_link_to_collection);
 
   WM_operatortype_append(OBJECT_OT_shape_key_add);
+  WM_operatortype_append(OBJECT_OT_shape_key_copy);
   WM_operatortype_append(OBJECT_OT_shape_key_remove);
   WM_operatortype_append(OBJECT_OT_shape_key_clear);
   WM_operatortype_append(OBJECT_OT_shape_key_retime);

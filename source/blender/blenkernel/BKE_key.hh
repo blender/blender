@@ -81,6 +81,10 @@ KeyBlock *BKE_keyblock_from_object(Object *ob);
 KeyBlock *BKE_keyblock_from_object_reference(Object *ob);
 
 KeyBlock *BKE_keyblock_add(Key *key, const char *name);
+
+/** Add a copy of the source key-block with a copy of its data array. */
+KeyBlock *BKE_keyblock_duplicate(Key *key, const KeyBlock *kb_src);
+
 /**
  * \note sorting is a problematic side effect in some cases,
  * better only do this explicitly by having its own function,
