@@ -79,20 +79,6 @@ namespace blender::bke {
 
 static void mesh_init_origspace(Mesh &mesh);
 
-void mesh_eval_to_meshkey(const Mesh *me_deformed, Mesh *mesh, KeyBlock *kb)
-{
-  /* Just a shallow wrapper around #BKE_keyblock_convert_from_mesh,
-   * that ensures both evaluated mesh and original one has same number of vertices. */
-
-  const int totvert = me_deformed->verts_num;
-
-  if (totvert == 0 || mesh->verts_num == 0 || mesh->verts_num != totvert) {
-    return;
-  }
-
-  BKE_keyblock_convert_from_mesh(me_deformed, mesh->key, kb);
-}
-
 static void mesh_set_only_copy(Mesh *mesh, const CustomData_MeshMasks *mask)
 {
   CustomData_set_only_copy(&mesh->vert_data, mask->vmask);

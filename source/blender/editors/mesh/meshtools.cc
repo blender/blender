@@ -717,88 +717,66 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 /* -------------------------------------------------------------------- */
 /** \name Join as Shapes
  *
- * Append selected meshes vertex locations as shapes of the active mesh.
+ * Add vertex positions of selected meshes as shape keys to the active mesh.
  * \{ */
 
 wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Object *ob_active = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mesh *mesh = (Mesh *)ob_active->data;
-  Mesh *selme = nullptr;
-  Mesh *me_deformed = nullptr;
-  Key *key = mesh->key;
-  KeyBlock *kb;
-  bool ok = false, nonequal_verts = false;
+  Object &active_object = *CTX_data_active_object(C);
+  Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
+  Mesh &active_mesh = *static_cast<Mesh *>(active_object.data);
 
+  bool found_non_equal_verts_num = false;
+  Vector<Object *> compatible_objects;
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
-    if (ob_iter == ob_active) {
+    if (ob_iter == &active_object) {
       continue;
     }
-
-    if (ob_iter->type == OB_MESH) {
-      selme = (Mesh *)ob_iter->data;
-
-      if (selme->verts_num == mesh->verts_num) {
-        ok = true;
-      }
-      else {
-        nonequal_verts = true;
-      }
+    if (ob_iter->type != OB_MESH) {
+      continue;
     }
+    const Mesh &mesh = *static_cast<Mesh *>(ob_iter->data);
+    if (mesh.verts_num != active_mesh.verts_num) {
+      found_non_equal_verts_num = true;
+      continue;
+    }
+    compatible_objects.append(ob_iter);
   }
   CTX_DATA_END;
 
-  if (!ok) {
-    if (nonequal_verts) {
-      BKE_report(op->reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices");
-    }
-    else {
-      BKE_report(op->reports,
-                 RPT_WARNING,
-                 "No additional selected meshes with equal vertex count to join");
-    }
+  if (found_non_equal_verts_num) {
+    BKE_report(op->reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices");
     return OPERATOR_CANCELLED;
   }
 
-  if (key == nullptr) {
-    key = mesh->key = BKE_key_add(bmain, (ID *)mesh);
-    key->type = KEY_RELATIVE;
-
-    /* first key added, so it was the basis. initialize it with the existing mesh */
-    kb = BKE_keyblock_add(key, nullptr);
-    BKE_keyblock_convert_from_mesh(mesh, key, kb);
+  if (compatible_objects.is_empty()) {
+    BKE_report(
+        op->reports, RPT_WARNING, "No additional selected meshes with equal vertex count to join");
+    return OPERATOR_CANCELLED;
   }
 
-  /* now ready to add new keys from selected meshes */
-  CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
-    if (ob_iter == ob_active) {
+  if (!active_mesh.key) {
+    /* Initialize basis shape key with existing mesh. */
+    active_mesh.key = BKE_key_add(bmain, &active_mesh.id);
+    active_mesh.key->type = KEY_RELATIVE;
+    BKE_keyblock_convert_from_mesh(
+        &active_mesh, active_mesh.key, BKE_keyblock_add(active_mesh.key, nullptr));
+  }
+
+  Scene *scene_eval = DEG_get_evaluated_scene(&depsgraph);
+  for (Object *object : compatible_objects) {
+    Object *object_eval = DEG_get_evaluated_object(&depsgraph, object);
+    Mesh *deformed_mesh = blender::bke::mesh_get_eval_deform(
+        &depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
+    if (!deformed_mesh) {
       continue;
     }
-
-    if (ob_iter->type == OB_MESH) {
-      selme = (Mesh *)ob_iter->data;
-
-      if (selme->verts_num == mesh->verts_num) {
-        Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-        Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
-
-        me_deformed = blender::bke::mesh_get_eval_deform(
-            depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
-
-        if (!me_deformed) {
-          continue;
-        }
-
-        kb = BKE_keyblock_add(key, ob_iter->id.name + 2);
-
-        blender::bke::mesh_eval_to_meshkey(me_deformed, mesh, kb);
-      }
-    }
+    KeyBlock *kb = BKE_keyblock_add(active_mesh.key, object->id.name + 2);
+    BKE_keyblock_convert_from_mesh(deformed_mesh, active_mesh.key, kb);
   }
-  CTX_DATA_END;
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);

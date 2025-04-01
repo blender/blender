@@ -84,8 +84,6 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
                                         Object *ob,
                                         const CustomData_MeshMasks *dataMask);
 
-void mesh_eval_to_meshkey(const Mesh *me_deformed, Mesh *mesh, KeyBlock *kb);
-
 }  // namespace blender::bke
 
 #ifndef NDEBUG
