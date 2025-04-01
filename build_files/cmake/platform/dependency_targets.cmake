@@ -31,3 +31,9 @@ add_library(bf_deps_eigen INTERFACE)
 add_library(bf::dependencies::eigen ALIAS bf_deps_eigen)
 
 target_include_directories(bf_deps_eigen SYSTEM INTERFACE ${EIGEN3_INCLUDE_DIRS})
+
+if(WITH_TBB)
+  target_compile_definitions(bf_deps_eigen INTERFACE WITH_TBB)
+  target_include_directories(bf_deps_eigen SYSTEM INTERFACE ${TBB_INCLUDE_DIRS})
+  target_link_libraries(bf_deps_eigen INTERFACE ${TBB_LIBRARIES})
+endif()
