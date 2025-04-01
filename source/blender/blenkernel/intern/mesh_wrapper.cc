@@ -82,6 +82,7 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
     return;
   }
 
+  /* Double checked lock. */
   std::lock_guard lock{mesh->runtime->eval_mutex};
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     return;
@@ -373,15 +374,20 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
 
 Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *mesh)
 {
-  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_SUBD) {
-    /* Subdiv evaluation might have been skipped, in which case the original mesh is ok. */
-    return (mesh->runtime->mesh_eval) ? mesh->runtime->mesh_eval : mesh;
-  }
   if (mesh->runtime->subsurf_runtime_data == nullptr) {
     return mesh;
   }
 
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_SUBD) {
+    /* Subdiv evaluation might have been skipped, in which case the original mesh is ok. */
+    return (mesh->runtime->mesh_eval) ? mesh->runtime->mesh_eval : mesh;
+  }
+
+  /* Double checked lock. */
   std::lock_guard lock{mesh->runtime->eval_mutex};
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_SUBD) {
+    return (mesh->runtime->mesh_eval) ? mesh->runtime->mesh_eval : mesh;
+  }
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
   Mesh *result;
