@@ -247,6 +247,9 @@ static void edgetag_add_adjacent_uv(HeapSimple *heap,
       BMEdge *e_b;
       BMIter eiter;
       BM_ITER_ELEM (e_b, &eiter, l_a_verts[i]->v, BM_EDGES_OF_VERT) {
+        if (e_b->l == nullptr) {
+          continue;
+        }
         BMLoop *l_first, *l_b;
         l_first = l_b = e_b->l;
         do {
