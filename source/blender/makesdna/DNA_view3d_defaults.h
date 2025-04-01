@@ -33,6 +33,7 @@
     .background_color = {0.05f, 0.05f, 0.05f}, \
     .studiolight_intensity = 1.0f, \
     .render_pass = SCE_PASS_COMBINED, \
+    .wire_color_type = V3D_SHADING_SINGLE_COLOR, \
   }
 
 #define _DNA_DEFAULT_View3DOverlay \
