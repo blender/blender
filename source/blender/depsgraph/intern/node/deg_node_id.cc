@@ -8,9 +8,6 @@
 
 #include "intern/node/deg_node_id.hh"
 
-#include <cstring> /* required for STREQ later on. */
-
-#include "BLI_ghash.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -36,20 +33,6 @@ const char *linkedStateAsString(eDepsNode_LinkedState_Type linked_state)
   }
   BLI_assert_msg(0, "Unhandled linked state, should never happen.");
   return "UNKNOWN";
-}
-
-IDNode::ComponentIDKey::ComponentIDKey(NodeType type, const char *name) : type(type), name(name) {}
-
-bool IDNode::ComponentIDKey::operator==(const ComponentIDKey &other) const
-{
-  return type == other.type && STREQ(name, other.name);
-}
-
-uint64_t IDNode::ComponentIDKey::hash() const
-{
-  const int type_as_int = int(type);
-  return BLI_ghashutil_combine_hash(BLI_ghashutil_uinthash(type_as_int),
-                                    BLI_ghashutil_strhash_p(name));
 }
 
 void IDNode::init(const ID *id, const char * /*subdata*/)
@@ -139,13 +122,13 @@ std::string IDNode::identifier() const
          (is_visible_on_build ? "true" : "false") + ")";
 }
 
-ComponentNode *IDNode::find_component(NodeType type, const char *name) const
+ComponentNode *IDNode::find_component(NodeType type, const StringRef name) const
 {
   ComponentIDKey key(type, name);
   return components.lookup_default(key, nullptr);
 }
 
-ComponentNode *IDNode::add_component(NodeType type, const char *name)
+ComponentNode *IDNode::add_component(NodeType type, const StringRef name)
 {
   ComponentNode *comp_node = find_component(type, name);
   if (!comp_node) {
@@ -154,7 +137,7 @@ ComponentNode *IDNode::add_component(NodeType type, const char *name)
     comp_node = (ComponentNode *)factory->create_node(this->id_orig, "", name);
 
     /* Register. */
-    ComponentIDKey key(type, comp_node->name.c_str());
+    ComponentIDKey key(type, comp_node->name);
     components.add_new(key, comp_node);
     comp_node->owner = this;
   }

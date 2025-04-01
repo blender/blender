@@ -32,7 +32,7 @@ template<class ModeObjectType> int DepsNodeFactoryImpl<ModeObjectType>::id_recal
 template<class ModeObjectType>
 Node *DepsNodeFactoryImpl<ModeObjectType>::create_node(const ID *id,
                                                        const char *subdata,
-                                                       const char *name) const
+                                                       const StringRef name) const
 {
   Node *node = new ModeObjectType();
   node->type = type();
