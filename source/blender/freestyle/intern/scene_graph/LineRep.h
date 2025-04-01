@@ -73,7 +73,7 @@ class LineRep : public Rep {
   }
 
   /** accessors */
-  inline const LINES_STYLE style() const
+  inline LINES_STYLE style() const
   {
     return _Style;
   }

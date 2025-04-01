@@ -2901,7 +2901,7 @@ bool GHOST_WindowWayland::outputs_leave(GWL_Output *output)
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
 
-const void GHOST_WindowWayland::pending_actions_handle()
+void GHOST_WindowWayland::pending_actions_handle()
 {
   /* Caller must lock `server_mutex`, while individual actions could lock,
    * it's simpler to lock once when handling all window actions. */

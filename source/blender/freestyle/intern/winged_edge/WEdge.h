@@ -406,7 +406,7 @@ class WOEdge {
     return _vec;
   }
 
-  inline const float GetAngle()
+  inline float GetAngle()
   {
     return _angle;
   }

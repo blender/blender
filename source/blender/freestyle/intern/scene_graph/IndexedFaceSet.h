@@ -186,27 +186,27 @@ class IndexedFaceSet : public Rep {
     return _TexCoords;
   }
 
-  virtual const uint vsize() const
+  virtual uint vsize() const
   {
     return _VSize;
   }
 
-  virtual const uint nsize() const
+  virtual uint nsize() const
   {
     return _NSize;
   }
 
-  virtual const uint msize() const
+  virtual uint msize() const
   {
     return _MSize;
   }
 
-  virtual const uint tsize() const
+  virtual uint tsize() const
   {
     return _TSize;
   }
 
-  virtual const uint numFaces() const
+  virtual uint numFaces() const
   {
     return _NumFaces;
   }
@@ -246,22 +246,22 @@ class IndexedFaceSet : public Rep {
     return _TIndices;
   }
 
-  virtual const uint visize() const
+  virtual uint visize() const
   {
     return _VISize;
   }
 
-  virtual const uint nisize() const
+  virtual uint nisize() const
   {
     return _NISize;
   }
 
-  virtual const uint misize() const
+  virtual uint misize() const
   {
     return _MISize;
   }
 
-  virtual const uint tisize() const
+  virtual uint tisize() const
   {
     return _TISize;
   }
