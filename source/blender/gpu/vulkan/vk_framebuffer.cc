@@ -469,12 +469,13 @@ static void blit_aspect(VKContext &context,
   region.dstSubresource.mipLevel = 0;
   region.dstSubresource.baseArrayLayer = 0;
   region.dstSubresource.layerCount = 1;
-  region.dstOffsets[0].x = min_ii(dst_offset_x, dst_texture.width_get());
-  region.dstOffsets[0].y = min_ii(dst_offset_y, dst_texture.height_get());
+  region.dstOffsets[0].x = clamp_i(dst_offset_x, 0, dst_texture.width_get());
+  region.dstOffsets[0].y = clamp_i(dst_offset_y, 0, dst_texture.height_get());
   region.dstOffsets[0].z = 0;
-  region.dstOffsets[1].x = min_ii(dst_offset_x + src_texture.width_get(), dst_texture.width_get());
-  region.dstOffsets[1].y = min_ii(dst_offset_y + src_texture.height_get(),
-                                  dst_texture.height_get());
+  region.dstOffsets[1].x = clamp_i(
+      dst_offset_x + src_texture.width_get(), 0, dst_texture.width_get());
+  region.dstOffsets[1].y = clamp_i(
+      dst_offset_y + src_texture.height_get(), 0, dst_texture.height_get());
   region.dstOffsets[1].z = 1;
 
   context.render_graph().add_node(blit_image);
