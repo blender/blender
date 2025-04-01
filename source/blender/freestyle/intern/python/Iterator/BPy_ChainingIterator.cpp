@@ -166,6 +166,16 @@ static PyObject *ChainingIterator_traverse(BPy_ChainingIterator *self,
   Py_RETURN_NONE;
 }
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyMethodDef BPy_ChainingIterator_methods[] = {
     {"init", (PyCFunction)ChainingIterator_init, METH_NOARGS, ChainingIterator_init_doc},
     {"traverse",
@@ -174,6 +184,14 @@ static PyMethodDef BPy_ChainingIterator_methods[] = {
      ChainingIterator_traverse_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 /*----------------------ChainingIterator get/setters ----------------------------*/
 

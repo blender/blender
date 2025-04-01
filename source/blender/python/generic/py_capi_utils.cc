@@ -1698,6 +1698,7 @@ bool PyC_RunString_AsStringOrNone(const char *imports[],
 #if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wtype-limits"
+
 #endif
 
 /* #PyLong_AsUnsignedLong, unlike #PyLong_AsLong, does not fall back to calling #PyNumber_Index

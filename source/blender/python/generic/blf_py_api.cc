@@ -572,9 +572,14 @@ static int py_blf_bind_imbuf_clear(BPyBLFImBufContext *self)
   return 0;
 }
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 static PyMethodDef py_blf_bind_imbuf_methods[] = {
@@ -583,8 +588,12 @@ static PyMethodDef py_blf_bind_imbuf_methods[] = {
     {nullptr},
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 static PyTypeObject BPyBLFImBufContext_Type = {
@@ -724,6 +733,16 @@ static PyObject *py_blf_bind_imbuf(PyObject * /*self*/, PyObject *args, PyObject
 
 /** \} */
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 /*----------------------------MODULE INIT-------------------------*/
 static PyMethodDef BLF_methods[] = {
     {"aspect", (PyCFunction)py_blf_aspect, METH_VARARGS, py_blf_aspect_doc},
@@ -750,6 +769,14 @@ static PyMethodDef BLF_methods[] = {
 
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 PyDoc_STRVAR(
     /* Wrap. */

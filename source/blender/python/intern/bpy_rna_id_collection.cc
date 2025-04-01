@@ -634,9 +634,14 @@ static PyObject *bpy_orphans_purge(PyObject *self, PyObject *args, PyObject *kwd
   return PyLong_FromSize_t(num_datablocks_deleted);
 }
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 PyMethodDef BPY_rna_id_collection_user_map_method_def = {
@@ -664,6 +669,10 @@ PyMethodDef BPY_rna_id_collection_orphans_purge_method_def = {
     bpy_orphans_purge_doc,
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif

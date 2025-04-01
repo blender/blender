@@ -738,6 +738,16 @@ static PyObject *set_device_override_func(PyObject * /*self*/, PyObject *arg)
   Py_RETURN_TRUE;
 }
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyMethodDef methods[] = {
     {"init", init_func, METH_VARARGS, ""},
     {"exit", exit_func, METH_VARARGS, ""},
@@ -773,6 +783,14 @@ static PyMethodDef methods[] = {
 
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 static struct PyModuleDef module = {
     /*m_base*/ PyModuleDef_HEAD_INIT,

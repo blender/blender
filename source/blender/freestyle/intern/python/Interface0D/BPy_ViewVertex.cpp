@@ -107,6 +107,16 @@ static PyObject *ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args,
   return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, false);
 }
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyMethodDef BPy_ViewVertex_methods[] = {
     {"edges_begin", (PyCFunction)ViewVertex_edges_begin, METH_NOARGS, ViewVertex_edges_begin_doc},
     {"edges_end", (PyCFunction)ViewVertex_edges_end, METH_NOARGS, ViewVertex_edges_end_doc},
@@ -116,6 +126,14 @@ static PyMethodDef BPy_ViewVertex_methods[] = {
      ViewVertex_edges_iterator_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 /*----------------------ViewVertex get/setters ----------------------------*/
 

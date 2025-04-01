@@ -190,6 +190,16 @@ static PyObject *StrokeVertexIterator_reversed(BPy_StrokeVertexIterator *self)
   return BPy_StrokeVertexIterator_from_StrokeVertexIterator(*self->sv_it, !self->reversed);
 }
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyMethodDef BPy_StrokeVertexIterator_methods[] = {
     {"incremented",
      (PyCFunction)StrokeVertexIterator_incremented,
@@ -205,6 +215,14 @@ static PyMethodDef BPy_StrokeVertexIterator_methods[] = {
      StrokeVertexIterator_reversed_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 /*----------------------StrokeVertexIterator get/setters ----------------------------*/
 
@@ -266,6 +284,16 @@ static PyObject *StrokeVertexIterator_at_last_get(BPy_StrokeVertexIterator *self
   return PyBool_from_bool(self->sv_it->atLast());
 }
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyGetSetDef BPy_StrokeVertexIterator_getseters[] = {
     {"object",
      (getter)StrokeVertexIterator_object_get,
@@ -289,6 +317,14 @@ static PyGetSetDef BPy_StrokeVertexIterator_getseters[] = {
      nullptr},
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 /*-----------------------BPy_StrokeVertexIterator type definition ------------------------------*/
 

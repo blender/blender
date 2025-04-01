@@ -386,6 +386,16 @@ static PyGetSetDef BPy_GeometrySet_getseters[] = {
 
 };
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyMethodDef BPy_GeometrySet_methods[] = {
     {"from_evaluated_object",
      reinterpret_cast<PyCFunction>(BPy_GeometrySet_static_from_evaluated_object),
@@ -401,6 +411,14 @@ static PyMethodDef BPy_GeometrySet_methods[] = {
      bpy_geometry_set_get_instance_references_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 PyDoc_STRVAR(
     /* Wrap. */

@@ -150,6 +150,16 @@ static PyObject *ViewShape_add_vertex(BPy_ViewShape *self, PyObject *args, PyObj
 
 // virtual ViewShape *duplicate()
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyMethodDef BPy_ViewShape_methods[] = {
     {"add_edge",
      (PyCFunction)ViewShape_add_edge,
@@ -161,6 +171,14 @@ static PyMethodDef BPy_ViewShape_methods[] = {
      ViewShape_add_vertex_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 /*----------------------ViewShape get/setters ----------------------------*/
 
