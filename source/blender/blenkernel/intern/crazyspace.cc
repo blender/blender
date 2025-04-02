@@ -419,8 +419,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
       deformmats.fill(blender::float3x3::identity());
     }
 
-    blender::Array<blender::float3, 0> deformedVerts = deformcos;
-    blender::Array<blender::float3, 0> origVerts = deformedVerts;
+    blender::Array<blender::float3, 0> origVerts = deformcos;
     float(*quats)[4];
     int i, deformed = 0;
     VirtualModifierData virtual_modifier_data;
@@ -449,14 +448,14 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
           mesh_eval = BKE_mesh_copy_for_eval(*mesh);
         }
 
-        mti->deform_verts(md, &mectx, mesh_eval, deformedVerts);
+        mti->deform_verts(md, &mectx, mesh_eval, deformcos);
         deformed = 1;
       }
     }
 
     quats = MEM_malloc_arrayN<float[4]>(size_t(mesh->verts_num), "crazy quats");
 
-    BKE_crazyspace_set_quats_mesh(mesh, origVerts, deformedVerts, quats);
+    BKE_crazyspace_set_quats_mesh(mesh, origVerts, deformcos, quats);
 
     for (i = 0; i < mesh->verts_num; i++) {
       float qmat[3][3], tmat[3][3];
