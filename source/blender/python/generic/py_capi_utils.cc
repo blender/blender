@@ -1698,13 +1698,13 @@ void PyC_StdFilesFlush()
    * different because the original code uses some internal APIs.
    *
    * This is approximately equivalent to:
-   * ```
+   * \code{.py}
    * try:
    *     sys.stdout.flush()
    *     sys.stderr.flush()
    * except Exception:
    *     pass
-   * ```
+   * \endcode
    */
   PyObject *py_flush = PyUnicode_FromString("flush");
   BLI_assert(py_flush);

@@ -317,7 +317,7 @@ class GHOST_DeviceVK {
       device_create_info_p_next = &maintenance_4;
     }
 
-    /* Swapchain maintenance 1 is optional. */
+    /* Swap-chain maintenance 1 is optional. */
     VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchain_maintenance_1 = {
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT, nullptr, VK_TRUE};
     if (extension_requested(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME)) {
@@ -553,7 +553,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   GHOST_Frame &frame_data = m_frame_data[m_render_frame];
   /* Wait for the previous time this frame was used to be finished rendering. Presenting can still
    * happen in parallel, but acquiring needs can only happen when the frame acquire semaphore has
-   * been signalled and waited for. */
+   * been signaled and waited for. */
   vkWaitForFences(device, 1, &frame_data.submission_fence, true, UINT64_MAX);
   frame_data.discard_pile.destroy(device);
 
@@ -751,7 +751,7 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
   }
 
   /*FIFO present mode is always available and we (should) prefer it as it will keep the main loop
-   * running along the monitor refresh rate. Mailbox and Fifo relaxed can generate a lot of frames
+   * running along the monitor refresh rate. Mailbox and FIFO relaxed can generate a lot of frames
    * that will never be displayed. */
   *r_presentMode = VK_PRESENT_MODE_FIFO_KHR;
   return GHOST_kSuccess;

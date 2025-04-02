@@ -650,7 +650,7 @@ GLFence::~GLFence()
 
 void GLFence::signal()
 {
-  /* If fence is already signalled, create a newly signalled fence primitive. */
+  /* If fence is already signaled, create a newly signaled fence primitive. */
   if (gl_sync_) {
     glDeleteSync(gl_sync_);
   }

@@ -73,14 +73,14 @@ struct GHOST_FrameDiscard {
 
 struct GHOST_Frame {
   /**
-   * Fence signalled when "previous" use of the frame has finished rendering. When signalled the
+   * Fence signaled when "previous" use of the frame has finished rendering. When signaled the
    * frame can acquire a new image and the semaphores can be reused.
    */
   VkFence submission_fence = VK_NULL_HANDLE;
-  /** Semaphore for acquiring; being signalled when the swap chain image is ready to be updated. */
+  /** Semaphore for acquiring; being signaled when the swap chain image is ready to be updated. */
   VkSemaphore acquire_semaphore = VK_NULL_HANDLE;
   /**
-   * Semaphore for presenting; being signalled when the swap chain image is ready to be presented.
+   * Semaphore for presenting; being signaled when the swap chain image is ready to be presented.
    */
   VkSemaphore present_semaphore = VK_NULL_HANDLE;
 
