@@ -171,10 +171,11 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->eventstate_prev_press_time_ms = 0;
     win->event_last_handled = nullptr;
     win->cursor_keymap_status = nullptr;
-#ifdef WITH_INPUT_IME
+
+    /* Some files could be saved with ime_data still present.
+     * See https://projects.blender.org/blender/blender/issues/136829 */
     win->ime_data = nullptr;
     win->ime_data_is_composing = false;
-#endif
 
     BLI_listbase_clear(&win->handlers);
     BLI_listbase_clear(&win->modalhandlers);
