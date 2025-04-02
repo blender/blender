@@ -3631,7 +3631,8 @@ void node_tree_set_output(bNodeTree &ntree)
         }
       }
 
-      if (output == 0) {
+      /* The compositor must always have an active viewer, if viewer nodes exist. */
+      if (output == 0 && is_compositor) {
         node->flag |= NODE_DO_OUTPUT;
       }
     }
