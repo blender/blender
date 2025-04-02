@@ -264,6 +264,10 @@ void LightManager::test_enabled_lights(Scene *scene)
     }
 
     Light *light = static_cast<Light *>(object->get_geometry());
+    if (!light->is_enabled) {
+      continue;
+    }
+
     light->is_enabled = light->has_contribution(scene, object);
     has_portal |= light->is_portal;
 
