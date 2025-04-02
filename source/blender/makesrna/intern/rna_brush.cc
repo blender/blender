@@ -3277,10 +3277,12 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "tilt_strength_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "tilt_strength_factor");
   RNA_def_property_float_default(prop, 0);
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
-  RNA_def_property_ui_text(
-      prop, "Tilt Strength", "How much the tilt of the pen will affect the brush");
+  RNA_def_property_range(prop, -1.0f, 1.0f);
+  RNA_def_property_ui_range(prop, -1.0f, 1.0f, 0.001, 3);
+  RNA_def_property_ui_text(prop,
+                           "Tilt Strength",
+                           "How much the tilt of the pen will affect the brush. Negative values "
+                           "indicate inverting the tilt directions. ");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "normal_radius_factor", PROP_FLOAT, PROP_FACTOR);
