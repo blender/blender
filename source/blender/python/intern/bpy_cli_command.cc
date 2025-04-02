@@ -201,6 +201,9 @@ PyDoc_STRVAR(
     "(specific error codes from the ``os`` module can also be used).\n"
     "   :type execute: callable\n"
     "   :return: The command handle which can be passed to :func:`unregister_cli_command`.\n"
+    "\n"
+    "      This uses Python's capsule type "
+    "however the result should be considered an opaque handle only used for unregistering.\n"
     "   :rtype: capsule\n");
 static PyObject *bpy_cli_command_register(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
