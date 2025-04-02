@@ -853,12 +853,21 @@ Enable user-interface tests (Experimental)"
   OFF
 )
 if(UNIX AND NOT (APPLE OR HAIKU))
+  # Headless is preferable as opening windows on the developers computer
+  # prevents the system being used while tests run. It's also unreliable,
+  # where tiling compositors ignore the window size causing some tests to fail.
+  set(_option_default OFF)
+  if(WITH_GHOST_WAYLAND)
+    set(_option_default ON)
+  endif()
   option(WITH_UI_TESTS_HEADLESS "\
 Enable user-interface tests using a headless display server. \
 Currently this depends on WITH_GHOST_WAYLAND and the weston compositor \
 (Experimental)"
-    OFF
+    ${_option_default}
   )
+  unset(_option_default)
+
   option(WITH_LINUX_OFFICIAL_RELEASE_TESTS "\
 Enable sanity check tests for the linux official release. \
 These test are only relevant for checking that our official Linux releases are portable and \
