@@ -293,10 +293,6 @@ ENUM_OPERATORS(wmEventModifierFlag, KM_HYPER);
 /** The number of modifiers #wmKeyMapItem & #wmEvent can use. */
 #define KM_MOD_NUM 5
 
-/* `KM_MOD_*` flags for #wmKeyMapItem and `wmEvent.alt/shift/oskey/ctrl`. */
-/* Note that #KM_ANY and #KM_NOTHING are used with these defines too. */
-#define KM_MOD_HELD 1
-
 /**
  * #wmKeyMapItem.type
  * NOTE: most types are defined in `wm_event_types.hh`.
@@ -319,6 +315,12 @@ enum {
    */
   KM_CLICK_DRAG = 5,
 };
+/**
+ * Alternate define for #wmKeyMapItem::shift and other modifiers.
+ * While this matches the value of #KM_PRESS, modifiers should only be compared with:
+ * (#KM_ANY, #KM_NOTHING, #KM_MOD_HELD).
+ */
+#define KM_MOD_HELD 1
 
 /**
  * #wmKeyMapItem.direction
