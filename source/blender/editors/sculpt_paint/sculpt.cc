@@ -5220,21 +5220,9 @@ void flush_update_step(const bContext *C, const UpdateType update_type)
     /* Slow update with full dependency graph update and all that comes with it.
      * Needed when there are modifiers or full shading in the 3D viewport. */
     DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
-    ED_region_tag_redraw(&region);
   }
-  else {
-    /* Fast path where we just update the BVH nodes that changed, and redraw
-     * only the part of the 3D viewport where changes happened. */
-    rcti r;
 
-    if (rv3d && SCULPT_get_redraw_rect(region, *rv3d, ob, r)) {
-      r.xmin += region.winrct.xmin - 2;
-      r.xmax += region.winrct.xmin + 2;
-      r.ymin += region.winrct.ymin - 2;
-      r.ymax += region.winrct.ymin + 2;
-      ED_region_tag_redraw_partial(&region, &r, true);
-    }
-  }
+  ED_region_tag_redraw(&region);
 
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   if (update_type == UpdateType::Position && !ss.shapekey_active) {
