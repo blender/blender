@@ -4235,6 +4235,7 @@ static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent 
     {
       /* We haven't moved enough to start a split. */
       jd->dir = SCREEN_DIR_NONE;
+      jd->split_fac = 0.0f;
       jd->dock_target = AreaDockTarget::None;
       return;
     }
@@ -4289,17 +4290,23 @@ static wmOperatorStatus area_join_modal(bContext *C, wmOperator *op, const wmEve
 
       WorkspaceStatus status(C);
       if (jd->sa1 && jd->sa1 == jd->sa2) {
-        status.item(IFACE_("Select Split"), ICON_MOUSE_LMB);
-        status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
-        status.item_bool(IFACE_("Snap"), event->modifier & KM_CTRL, ICON_EVENT_CTRL);
-      }
-      else {
-        if (jd->dock_target == AreaDockTarget::None) {
-          status.item(IFACE_("Select Area"), ICON_MOUSE_LMB);
+        if (jd->split_fac == 0.0f) {
+          status.item(IFACE_("Split/Dock"), ICON_MOUSE_LMB_DRAG);
           status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
         }
         else {
-          status.item(IFACE_("Select Location"), ICON_MOUSE_LMB);
+          status.item(IFACE_("Select Split"), ICON_MOUSE_LMB_DRAG);
+          status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+          status.item_bool(IFACE_("Snap"), event->modifier & KM_CTRL, ICON_EVENT_CTRL);
+        }
+      }
+      else {
+        if (jd->dock_target == AreaDockTarget::None) {
+          status.item(IFACE_("Select Area"), ICON_MOUSE_LMB_DRAG);
+          status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
+        }
+        else {
+          status.item(IFACE_("Select Location"), ICON_MOUSE_LMB_DRAG);
           status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
           status.item_bool(CTX_IFACE_(BLT_I18NCONTEXT_ID_SCREEN, "Precision"),
                            event->modifier & KM_ALT,
