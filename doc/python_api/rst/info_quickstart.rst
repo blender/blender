@@ -363,8 +363,8 @@ so these are accessed as normal Python types.
 
   .. code-block:: python
 
-     # setting multiple camera overlay guides
-     bpy.context.scene.camera.data.show_guide = {'GOLDEN', 'CENTER'}
+     # setting multiple snap targets
+     bpy.context.scene.tool_settings.snap_elements_base = {'VERTEX', 'EDGE'}
 
      # passing as an operator argument for report types
      self.report({'WARNING', 'INFO'}, "Some message!")
