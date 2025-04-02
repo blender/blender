@@ -331,8 +331,6 @@ def __get_nla_tracks_obj(obj_uuid: str, export_settings):
     if len(obj.animation_data.nla_tracks) == 0:
         return TracksData()
 
-    exported_tracks = []
-
     current_exported_tracks = []
 
     tracks_data = TracksData()
@@ -356,15 +354,14 @@ def __get_nla_tracks_obj(obj_uuid: str, export_settings):
         else:
             # The previous one(s) can go to the list, if any (not for first track)
             if len(current_exported_tracks) != 0:
-                exported_tracks.append(current_exported_tracks)
-                current_exported_tracks = []
 
                 # Store data
                 track_data = TrackData(
                     current_exported_tracks,
-                    obj.animation_data.nla_tracks[exported_tracks[-1][0].idx].name,
+                    obj.animation_data.nla_tracks[current_exported_tracks[0].idx].name,
                     "OBJECT"
                 )
+                current_exported_tracks = []
 
                 tracks_data.add(track_data)
 
@@ -373,13 +370,11 @@ def __get_nla_tracks_obj(obj_uuid: str, export_settings):
 
     # End of loop. Keep the last one(s), if any
     if len(current_exported_tracks) != 0:
-        exported_tracks.append(current_exported_tracks)
 
-    if len(exported_tracks) != 0:
         # Store data for the last one
         track_data = TrackData(
             current_exported_tracks,
-            obj.animation_data.nla_tracks[exported_tracks[-1][0].idx].name,
+            obj.animation_data.nla_tracks[current_exported_tracks[0].idx].name,
             "OBJECT"
         )
         tracks_data.add(track_data)
