@@ -10,10 +10,10 @@ import bpy
 
 view_layer = bpy.context.view_layer
 
-# Create new light datablock.
+# Create new light data-block.
 light_data = bpy.data.lights.new(name="New Light", type='POINT')
 
-# Create new object with our light datablock.
+# Create new object with our light data-block.
 light_object = bpy.data.objects.new(name="New Light", object_data=light_data)
 
 # Link light object to the active collection of current view layer,

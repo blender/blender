@@ -19,7 +19,7 @@ bpy.utils.register_class(MaterialSettings)
 
 bpy.types.Material.my_settings = bpy.props.PointerProperty(type=MaterialSettings)
 
-# test the new settings work
+# Test the new settings work.
 material = bpy.data.materials[0]
 
 material.my_settings.my_int = 5

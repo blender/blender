@@ -902,12 +902,12 @@ including advanced features.
 
         import bgl
         xval, yval= 100, 40
-        # Get the scale of the view matrix
+        # Get the scale of the view matrix.
         view_matrix = bgl.Buffer(bgl.GL_FLOAT, 16)
         bgl.glGetFloatv(bgl.GL_MODELVIEW_MATRIX, view_matrix)
         f = 1.0 / view_matrix[0]
 
-        # Instead of the usual glRasterPos2i(xval, yval)
+        # Instead of the usual `glRasterPos2i(xval, yval)`.
         bgl.glRasterPos2f(xval * f, yval * f)
 
 

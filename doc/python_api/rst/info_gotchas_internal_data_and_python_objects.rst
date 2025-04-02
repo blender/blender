@@ -42,7 +42,7 @@ This can cause bugs when you add data (normally imported) then reference it late
 
    bpy.data.meshes.new(name=meshid)
 
-   # normally some code, function calls...
+   # Normally some code, function calls, etc.
    bpy.data.meshes[meshid]
 
 
@@ -52,7 +52,7 @@ Or with name assignment:
 
    obj.name = objname
 
-   # normally some code, function calls...
+   # Normally some code, function calls, etc.
    obj = bpy.data.meshes[objname]
 
 
@@ -69,15 +69,15 @@ this way you don't run this risk of referencing existing data from the blend-fil
 
 .. code-block:: python
 
-   # typically declared in the main body of the function.
+   # Typically declared in the main body of the function.
    mesh_name_mapping = {}
 
    mesh = bpy.data.meshes.new(name=meshid)
    mesh_name_mapping[meshid] = mesh
 
-   # normally some code, or function calls...
+   # Normally some code, or function calls, etc.
 
-   # use own dictionary rather than bpy.data
+   # Use own dictionary rather than `bpy.data`.
    mesh = mesh_name_mapping[meshid]
 
 
@@ -96,18 +96,18 @@ If you need to select between local and library data, there is a feature in ``bp
 
 .. code-block:: python
 
-   # typical name lookup, could be local or library.
+   # Typical name lookup, could be local or library.
    obj = bpy.data.objects["my_obj"]
 
-   # library object name look up using a pair
-   # where the second argument is the library path matching bpy.types.Library.filepath
+   # Library object name lookup using a pair,
+   # where the second argument is the library path matching bpy.types.Library.filepath.
    obj = bpy.data.objects["my_obj", "//my_lib.blend"]
 
-   # local object name look up using a pair
+   # Local object name look up using a pair,
    # where the second argument excludes library data from being returned.
    obj = bpy.data.objects["my_obj", None]
 
-   # both the examples above also works for 'get'
+   # Both the examples above also works for `get`.
    obj = bpy.data.objects.get(("my_obj", None))
 
 

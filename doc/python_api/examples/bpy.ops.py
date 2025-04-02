@@ -45,10 +45,10 @@ Each of these arguments is optional, but must be given in the order above.
 """
 import bpy
 
-# calling an operator
+# Calling an operator.
 bpy.ops.mesh.subdivide(number_cuts=3, smoothness=0.5)
 
 
-# check poll() to avoid exception.
+# Check poll() to avoid exception.
 if bpy.ops.object.mode_set.poll():
     bpy.ops.object.mode_set(mode='EDIT')

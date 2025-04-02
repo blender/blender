@@ -22,7 +22,7 @@ with offscreen.bind():
     fb = gpu.state.active_framebuffer_get()
     fb.clear(color=(0.0, 0.0, 0.0, 0.0))
     with gpu.matrix.push_pop():
-        # reset matrices -> use normalized device coordinates [-1, 1]
+        # Reset matrices -> use normalized device coordinates [-1, 1].
         gpu.matrix.load_matrix(Matrix.Identity(4))
         gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 

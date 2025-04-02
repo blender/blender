@@ -33,7 +33,7 @@ def add_box(width, height, depth):
         (4, 0, 3, 7),
     ]
 
-    # apply size
+    # Apply size.
     for i, v in enumerate(verts):
         verts[i] = v[0] * width, v[1] * depth, v[2] * height
 
@@ -87,7 +87,7 @@ class AddBox(bpy.types.Operator, AddObjectHelper):
         bm.to_mesh(mesh)
         mesh.update()
 
-        # add the mesh as an object into the scene with this utility module
+        # Add the mesh as an object into the scene with this utility module.
         from bpy_extras import object_utils
         object_utils.object_data_add(context, mesh, operator=self)
 
@@ -112,5 +112,5 @@ def unregister():
 if __name__ == "__main__":
     register()
 
-    # test call
+    # Test call.
     bpy.ops.mesh.primitive_box_add()

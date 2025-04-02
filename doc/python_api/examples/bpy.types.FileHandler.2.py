@@ -64,7 +64,7 @@ class ShaderScriptImport(bpy.types.Operator, ImportHelper):
                 text_node.filepath = filepath
                 text_node.location = Vector((x, y))
 
-                # Set the node's title to the file name
+                # Set the node's title to the file name.
                 if self.set_label:
                     text_node.label = file.name
 

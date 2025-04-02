@@ -19,7 +19,7 @@ class OBJECT_OT_simple_exporter(bpy.types.Operator):
         depsgraph = context.evaluated_depsgraph_get()
         for object_instance in depsgraph.object_instances:
             if not self.is_object_instance_from_selected(object_instance):
-                # We only export selected objects
+                # We only export selected objects.
                 continue
             # NOTE: This will create a mesh for every instance, which is not ideal at all. In
             # reality destination format will support some sort of instancing mechanism, so the

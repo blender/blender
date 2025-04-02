@@ -29,12 +29,12 @@ class AddPresetObjectDisplay(AddPresetBase, Operator):
     bl_label = "Add Object Display Preset"
     preset_menu = "OBJECT_MT_display_presets"
 
-    # variable used for all preset values
+    # Variable used for all preset values.
     preset_defines = [
         "obj = bpy.context.object"
     ]
 
-    # properties to store in the preset
+    # Properties to store in the preset.
     preset_values = [
         "obj.display_type",
         "obj.show_bounds",
@@ -44,11 +44,11 @@ class AddPresetObjectDisplay(AddPresetBase, Operator):
         "obj.show_wire",
     ]
 
-    # where to store the preset
+    # Where to store the preset.
     preset_subdir = "object/display"
 
 
-# Display into an existing panel
+# Display into an existing panel.
 def panel_func(self, context):
     layout = self.layout
 
