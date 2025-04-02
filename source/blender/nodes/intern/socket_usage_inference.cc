@@ -600,6 +600,7 @@ struct SocketUsageInferencer {
       all_socket_values_.add_new(socket, nullptr);
       return;
     }
+    group->ensure_topology_cache();
     if (group->has_available_link_cycle()) {
       all_socket_values_.add_new(socket, nullptr);
       return;
