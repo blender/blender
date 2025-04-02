@@ -10,7 +10,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${EIGEN3_INCLUDE_DIRS}
   ${GFLAGS_INCLUDE_DIRS}
   ${GLOG_INCLUDE_DIRS}
 )
@@ -314,6 +313,8 @@ set(SRC
 set(LIB
   ${GLOG_LIBRARIES}
   ${GFLAGS_LIBRARIES}
+
+  PRIVATE bf::dependencies::eigen
 )
 
 if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)

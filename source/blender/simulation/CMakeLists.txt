@@ -9,7 +9,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${EIGEN3_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -34,6 +33,7 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::nodes
+  PRIVATE bf::dependencies::eigen
 )
 
 

@@ -596,11 +596,11 @@ if(WITH_XR_OPENXR)
     ../../extern/tinygltf
   )
   list(APPEND INC_SYS
-    ${EIGEN3_INCLUDE_DIRS}
     ${XR_OPENXR_SDK_INCLUDE_DIR}
   )
   list(APPEND LIB
     ${XR_OPENXR_SDK_LIBRARIES}
+    PRIVATE bf::dependencies::eigen
   )
 
   set(XR_PLATFORM_DEFINES
