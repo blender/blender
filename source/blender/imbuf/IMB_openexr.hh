@@ -52,12 +52,6 @@ bool IMB_exr_begin_write(void *handle,
                          int compress,
                          int quality,
                          const StampData *stamp);
-/**
- * Only used for writing temp. render results (not image files)
- * (FSA and Save Buffers).
- */
-void IMB_exrtile_begin_write(
-    void *handle, const char *filepath, int mipmap, int width, int height, int tilex, int tiley);
 
 /**
  * Still clumsy name handling, layers/channels can be ordered as list in list later.
@@ -70,20 +64,9 @@ bool IMB_exr_set_channel(void *handle,
                          int xstride,
                          int ystride,
                          float *rect);
-float *IMB_exr_channel_rect(void *handle,
-                            const char *layname,
-                            const char *passname,
-                            const char *viewname);
 
 void IMB_exr_read_channels(void *handle);
 void IMB_exr_write_channels(void *handle);
-/**
- * Temporary function, used for FSA and Save Buffers.
- * called once per `tile * view`.
- */
-void IMB_exrtile_write_channels(
-    void *handle, int partx, int party, int level, const char *viewname, bool empty);
-void IMB_exr_clear_channels(void *handle);
 
 void IMB_exr_multilayer_convert(void *handle,
                                 void *base,

@@ -1021,70 +1021,6 @@ bool IMB_exr_begin_write(void *handle,
   return (data->ofile != nullptr);
 }
 
-void IMB_exrtile_begin_write(
-    void *handle, const char *filepath, int mipmap, int width, int height, int tilex, int tiley)
-{
-  ExrHandle *data = (ExrHandle *)handle;
-  Header header(width, height);
-  std::vector<Header> headers;
-
-  data->tilex = tilex;
-  data->tiley = tiley;
-  data->width = width;
-  data->height = height;
-  data->mipmap = mipmap;
-
-  header.setTileDescription(TileDescription(tilex, tiley, (mipmap) ? MIPMAP_LEVELS : ONE_LEVEL));
-  header.compression() = RLE_COMPRESSION;
-  header.setType(TILEDIMAGE);
-
-  header.insert("BlenderMultiChannel", StringAttribute("Blender V2.43"));
-
-  int numparts = data->multiView->size();
-
-  /* copy header from all parts of input to our header array
-   * those temporary files have one part per view */
-  for (int i = 0; i < numparts; i++) {
-    headers.push_back(header);
-    headers[headers.size() - 1].setView((*(data->multiView))[i]);
-    headers[headers.size() - 1].setName((*(data->multiView))[i]);
-  }
-
-  exr_printf("\nIMB_exrtile_begin_write\n");
-  exr_printf("%s %-6s %-22s \"%s\"\n", "p", "view", "name", "internal_name");
-  exr_printf("---------------------------------------------------------------\n");
-
-  /* Assign channels. */
-  LISTBASE_FOREACH (ExrChannel *, echan, &data->channels) {
-    /* Tiles are expected to be saved with full float currently. */
-    BLI_assert(echan->use_half_float == 0);
-
-    echan->m->internal_name = echan->m->name;
-    echan->m->part_number = echan->view_id;
-
-    headers[echan->view_id].channels().insert(echan->m->internal_name, Channel(Imf::FLOAT));
-    exr_printf("%d %-6s %-22s \"%s\"\n",
-               echan->m->part_number,
-               echan->m->view.c_str(),
-               echan->m->name.c_str(),
-               echan->m->internal_name.c_str());
-  }
-
-  /* avoid crash/abort when we don't have permission to write here */
-  /* manually create ofstream, so we can handle utf-8 filepaths on windows */
-  try {
-    data->ofile_stream = new OFileStream(filepath);
-    data->mpofile = new MultiPartOutputFile(*(data->ofile_stream), headers.data(), headers.size());
-  }
-  catch (...) { /* Catch-all for edge cases or compiler bugs. */
-    delete data->mpofile;
-    delete data->ofile_stream;
-
-    data->mpofile = nullptr;
-    data->ofile_stream = nullptr;
-  }
-}
-
 bool IMB_exr_begin_read(
     void *handle, const char *filepath, int *width, int *height, const bool parse_channels)
 {
@@ -1175,58 +1111,6 @@ bool IMB_exr_set_channel(
   return true;
 }
 
-float *IMB_exr_channel_rect(void *handle,
-                            const char *layname,
-                            const char *passname,
-                            const char *viewname)
-{
-  ExrHandle *data = (ExrHandle *)handle;
-  ExrChannel *echan;
-  char name[EXR_TOT_MAXNAME + 1];
-
-  if (layname) {
-    char lay[EXR_LAY_MAXNAME + 1], pass[EXR_PASS_MAXNAME + 1];
-    BLI_strncpy(lay, layname, EXR_LAY_MAXNAME);
-    BLI_strncpy(pass, passname, EXR_PASS_MAXNAME);
-
-    SNPRINTF(name, "%s.%s", lay, pass);
-  }
-  else {
-    BLI_strncpy(name, passname, EXR_TOT_MAXNAME - 1);
-  }
-
-  /* name has to be unique, thus it's a combination of layer, pass, view, and channel */
-  if (layname && layname[0] != '\0') {
-    char temp_buf[EXR_TOT_MAXNAME + 1];
-    imb_exr_insert_view_name(temp_buf, name, viewname);
-    STRNCPY(name, temp_buf);
-  }
-  else if (!data->multiView->empty()) {
-    const int view_id = std::max(0, imb_exr_get_multiView_id(*data->multiView, viewname));
-    std::string raw_name = insertViewName(name, *data->multiView, view_id);
-    STRNCPY(name, raw_name.c_str());
-  }
-
-  echan = (ExrChannel *)BLI_findstring(&data->channels, name, offsetof(ExrChannel, name));
-
-  if (echan) {
-    return echan->rect;
-  }
-
-  return nullptr;
-}
-
-void IMB_exr_clear_channels(void *handle)
-{
-  ExrHandle *data = (ExrHandle *)handle;
-
-  LISTBASE_FOREACH (ExrChannel *, chan, &data->channels) {
-    delete chan->m;
-  }
-
-  BLI_freelistN(&data->channels);
-}
-
 void IMB_exr_write_channels(void *handle)
 {
   ExrHandle *data = (ExrHandle *)handle;
@@ -1283,57 +1167,6 @@ void IMB_exr_write_channels(void *handle)
   }
   else {
     printf("Error: attempt to save MultiLayer without layers.\n");
-  }
-}
-
-void IMB_exrtile_write_channels(
-    void *handle, int partx, int party, int level, const char *viewname, bool empty)
-{
-  /* Can write empty channels for incomplete renders. */
-  ExrHandle *data = (ExrHandle *)handle;
-  FrameBuffer frameBuffer;
-  std::string view(viewname);
-  const int view_id = imb_exr_get_multiView_id(*data->multiView, view);
-
-  exr_printf("\nIMB_exrtile_write_channels(view: %s)\n", viewname);
-  exr_printf("%s %-6s %-22s \"%s\"\n", "p", "view", "name", "internal_name");
-  exr_printf("---------------------------------------------------------------------\n");
-
-  if (!empty) {
-    LISTBASE_FOREACH (ExrChannel *, echan, &data->channels) {
-      /* eventually we can make the parts' channels to include
-       * only the current view TODO */
-      if (!STREQ(viewname, echan->m->view.c_str())) {
-        continue;
-      }
-
-      exr_printf("%d %-6s %-22s \"%s\"\n",
-                 echan->m->part_number,
-                 echan->m->view.c_str(),
-                 echan->m->name.c_str(),
-                 echan->m->internal_name.c_str());
-
-      float *rect = echan->rect - echan->xstride * partx - echan->ystride * party;
-      frameBuffer.insert(echan->m->internal_name,
-                         Slice(Imf::FLOAT,
-                               (char *)rect,
-                               echan->xstride * sizeof(float),
-                               echan->ystride * sizeof(float)));
-    }
-  }
-
-  TiledOutputPart out(*data->mpofile, view_id);
-  out.setFrameBuffer(frameBuffer);
-
-  try {
-    // printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
-    out.writeTile(partx / data->tilex, party / data->tiley, level);
-  }
-  catch (const std::exception &exc) {
-    std::cerr << "OpenEXR-writeTile: ERROR: " << exc.what() << std::endl;
-  }
-  catch (...) { /* Catch-all for edge cases or compiler bugs. */
-    std::cerr << "OpenEXR-writeTile: UNKNOWN ERROR" << std::endl;
   }
 }
 
