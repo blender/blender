@@ -3152,24 +3152,19 @@ void psys_cache_child_paths(ParticleSimulationData *sim,
                             const bool editupdate,
                             const bool use_render_params)
 {
-  TaskPool *task_pool;
-  ParticleThreadContext ctx;
-  ParticleTask *tasks_parent, *tasks_child;
-  int numtasks_parent, numtasks_child;
-  int i, totchild, totparent;
-
   if (sim->psys->flag & PSYS_GLOBAL_HAIR) {
     return;
   }
 
   /* create a task pool for child path tasks */
+  ParticleThreadContext ctx;
   if (!psys_thread_context_init_path(&ctx, sim, sim->scene, cfra, editupdate, use_render_params)) {
     return;
   }
 
-  task_pool = BLI_task_pool_create(&ctx, TASK_PRIORITY_HIGH);
-  totchild = ctx.totchild;
-  totparent = ctx.totparent;
+  TaskPool *task_pool = BLI_task_pool_create(&ctx, TASK_PRIORITY_HIGH);
+  const int totchild = ctx.totchild;
+  const int totparent = ctx.totparent;
 
   if (editupdate && sim->psys->childcache && totchild == sim->psys->totchildcache) {
     /* just overwrite the existing cache */
@@ -3185,30 +3180,26 @@ void psys_cache_child_paths(ParticleSimulationData *sim,
 
   /* cache parent paths */
   ctx.parent_pass = 1;
-  psys_tasks_create(&ctx, 0, totparent, &tasks_parent, &numtasks_parent);
-  for (i = 0; i < numtasks_parent; i++) {
-    ParticleTask *task = &tasks_parent[i];
-
-    psys_task_init_path(task, sim);
-    BLI_task_pool_push(task_pool, exec_child_path_cache, task, false, nullptr);
+  blender::Vector<ParticleTask> tasks_parent = psys_tasks_create(&ctx, 0, totparent);
+  for (ParticleTask &task : tasks_parent) {
+    psys_task_init_path(&task, sim);
+    BLI_task_pool_push(task_pool, exec_child_path_cache, &task, false, nullptr);
   }
   BLI_task_pool_work_and_wait(task_pool);
 
   /* cache child paths */
   ctx.parent_pass = 0;
-  psys_tasks_create(&ctx, totparent, totchild, &tasks_child, &numtasks_child);
-  for (i = 0; i < numtasks_child; i++) {
-    ParticleTask *task = &tasks_child[i];
-
-    psys_task_init_path(task, sim);
-    BLI_task_pool_push(task_pool, exec_child_path_cache, task, false, nullptr);
+  blender::Vector<ParticleTask> tasks_child = psys_tasks_create(&ctx, totparent, totchild);
+  for (ParticleTask &task : tasks_child) {
+    psys_task_init_path(&task, sim);
+    BLI_task_pool_push(task_pool, exec_child_path_cache, &task, false, nullptr);
   }
   BLI_task_pool_work_and_wait(task_pool);
 
   BLI_task_pool_free(task_pool);
 
-  psys_tasks_free(tasks_parent, numtasks_parent);
-  psys_tasks_free(tasks_child, numtasks_child);
+  psys_tasks_free(tasks_parent);
+  psys_tasks_free(tasks_child);
 
   psys_thread_context_free(&ctx);
 }

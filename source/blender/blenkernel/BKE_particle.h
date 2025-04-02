@@ -15,6 +15,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_map.hh"
 #include "BLI_ordered_edge.hh"
+#include "BLI_vector.hh"
 
 #include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag. */
 
@@ -165,9 +166,9 @@ typedef struct ParticleThreadContext {
 } ParticleThreadContext;
 
 typedef struct ParticleTask {
-  ParticleThreadContext *ctx;
-  struct RNG *rng, *rng_path;
-  int begin, end;
+  ParticleThreadContext *ctx = nullptr;
+  struct RNG *rng = nullptr, *rng_path = nullptr;
+  int begin = 0, end = 0;
 } ParticleTask;
 
 typedef struct ParticleCollisionElement {
@@ -477,12 +478,10 @@ void psys_get_dupli_path_transform(struct ParticleSimulationData *sim,
 void psys_thread_context_init(struct ParticleThreadContext *ctx,
                               struct ParticleSimulationData *sim);
 void psys_thread_context_free(struct ParticleThreadContext *ctx);
-void psys_tasks_create(struct ParticleThreadContext *ctx,
-                       int startpart,
-                       int endpart,
-                       struct ParticleTask **r_tasks,
-                       int *r_numtasks);
-void psys_tasks_free(struct ParticleTask *tasks, int numtasks);
+blender::Vector<ParticleTask> psys_tasks_create(struct ParticleThreadContext *ctx,
+                                                int startpart,
+                                                int endpart);
+void psys_tasks_free(blender::Vector<ParticleTask> &tasks);
 
 void psys_apply_hair_lattice(struct Depsgraph *depsgraph,
                              struct Scene *scene,
