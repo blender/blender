@@ -82,9 +82,6 @@ class LookupWarpGrid {
   // This will tag the grid for update without re-computing it.
   void Reset();
 
-  // Set number of threads used for threaded buffer distortion/undistortion.
-  void SetThreads(int threads);
-
  private:
   // This structure contains an offset in both x,y directions
   // in an optimized way sawing some bytes per pixel in the memory.
@@ -120,9 +117,6 @@ class LookupWarpGrid {
 
   // Overscan of the image being processed by this grid.
   double overscan_;
-
-  // Number of threads which will be used for buffer istortion/undistortion.
-  int threads_;
 };
 
 }  // namespace internal
@@ -159,9 +153,6 @@ class CameraIntrinsics {
 
   // Set principal point in pixels.
   void SetPrincipalPoint(double cx, double cy);
-
-  // Set number of threads used for threaded buffer distortion/undistortion.
-  void SetThreads(int threads);
 
   // Convert image space coordinates to normalized.
   void ImageSpaceToNormalized(double image_x,

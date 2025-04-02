@@ -2304,11 +2304,6 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion,
   libmv_cameraIntrinsicsUpdate(&camera_intrinsics_options, distortion->intrinsics);
 }
 
-void BKE_tracking_distortion_set_threads(MovieDistortion *distortion, int threads)
-{
-  libmv_cameraIntrinsicsSetThreads(distortion->intrinsics, threads);
-}
-
 MovieDistortion *BKE_tracking_distortion_copy(MovieDistortion *distortion)
 {
   MovieDistortion *new_distortion;

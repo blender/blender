@@ -1253,13 +1253,11 @@ static void do_movie_proxy(void *pjv,
   const int efra = clip->len;
 
   if (build_undistort_count) {
-    int threads = BLI_system_thread_count();
     int width, height;
 
     BKE_movieclip_get_size(clip, nullptr, &width, &height);
 
     distortion = BKE_tracking_distortion_new(&clip->tracking, width, height);
-    BKE_tracking_distortion_set_threads(distortion, threads);
   }
 
   for (int cfra = sfra; cfra <= efra; cfra++) {

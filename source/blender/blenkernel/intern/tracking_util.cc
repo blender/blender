@@ -493,8 +493,6 @@ void tracking_cameraIntrinscisOptionsFromTracking(
   tracking_principal_point_normalized_to_pixel(
       camera->principal_point, calibration_width, calibration_height, principal_px);
 
-  camera_intrinsics_options->num_threads = BLI_system_thread_count();
-
   camera_intrinsics_options->focal_length = camera->focal;
 
   camera_intrinsics_options->principal_point_x = principal_px[0];

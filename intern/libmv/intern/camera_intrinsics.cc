@@ -74,10 +74,7 @@ void libmv_cameraIntrinsicsUpdate(
   int image_height = libmv_camera_intrinsics_options->image_height;
 
   /* Try avoid unnecessary updates, so pre-computed distortion grids
-   * are not freed.
-   */
-
-  camera_intrinsics->SetThreads(libmv_camera_intrinsics_options->num_threads);
+   * are not freed. */
 
   if (camera_intrinsics->focal_length() != focal_length) {
     camera_intrinsics->SetFocalLength(focal_length, focal_length);
@@ -175,12 +172,6 @@ void libmv_cameraIntrinsicsUpdate(
 
     default: assert(!"Unknown distortion model");
   }
-}
-
-void libmv_cameraIntrinsicsSetThreads(libmv_CameraIntrinsics* libmv_intrinsics,
-                                      int threads) {
-  CameraIntrinsics* camera_intrinsics = (CameraIntrinsics*)libmv_intrinsics;
-  camera_intrinsics->SetThreads(threads);
 }
 
 void libmv_cameraIntrinsicsExtractOptions(

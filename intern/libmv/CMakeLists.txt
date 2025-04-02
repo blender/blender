@@ -29,6 +29,10 @@ if(WITH_LIBMV)
   add_definitions(${GLOG_DEFINES})
   add_definitions(-DLIBMV_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
 
+  if(WITH_TBB)
+    add_definitions(-DLIBMV_USE_TBB_THREADS)
+  endif()
+
   list(APPEND INC
     ${GFLAGS_INCLUDE_DIRS}
     ${GLOG_INCLUDE_DIRS}
@@ -45,6 +49,7 @@ if(WITH_LIBMV)
 
   list(APPEND LIB
     extern_ceres
+    PUBLIC bf::dependencies::optional::tbb
 
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
@@ -182,6 +187,7 @@ if(WITH_LIBMV)
     libmv/simple_pipeline/resect.h
     libmv/simple_pipeline/tracks.h
     libmv/threading/threading.h
+    libmv/threading/parallel_for.h
     libmv/tracking/brute_region_tracker.h
     libmv/tracking/hybrid_region_tracker.h
     libmv/tracking/kalman_filter.h
@@ -231,6 +237,7 @@ if(WITH_LIBMV)
     blender_add_test_executable("libmv_brute_region_tracker" "./libmv/tracking/brute_region_tracker_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
     blender_add_test_executable("libmv_klt_region_tracker" "./libmv/tracking/klt_region_tracker_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
     blender_add_test_executable("libmv_pyramid_region_tracker" "./libmv/tracking/pyramid_region_tracker_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
+    blender_add_test_executable("libmv_parallel_for" "./libmv/threading/parallel_for_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
   endif()
 else()
   list(APPEND SRC

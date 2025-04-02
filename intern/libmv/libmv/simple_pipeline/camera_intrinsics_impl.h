@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/threading/parallel_for.h"
+
 namespace libmv {
 
 namespace {
@@ -59,15 +61,12 @@ void LookupWarpGrid::Compute(const CameraIntrinsics& intrinsics,
                              int width,
                              int height,
                              double overscan) {
-  double w = (double)width / (1.0 + overscan);
-  double h = (double)height / (1.0 + overscan);
-  double aspx = (double)w / intrinsics.image_width();
-  double aspy = (double)h / intrinsics.image_height();
-#if defined(_OPENMP)
-#  pragma omp parallel for schedule(static)                                    \
-      num_threads(threads_) if (threads_ > 1 && height > 100)
-#endif
-  for (int y = 0; y < height; y++) {
+  const double w = (double)width / (1.0 + overscan);
+  const double h = (double)height / (1.0 + overscan);
+  const double aspx = (double)w / intrinsics.image_width();
+  const double aspy = (double)h / intrinsics.image_height();
+
+  parallel_for(0, height, [&](const int y) {
     for (int x = 0; x < width; x++) {
       double src_x = (x - 0.5 * overscan * w) / aspx,
              src_y = (y - 0.5 * overscan * h) / aspy;
@@ -80,18 +79,18 @@ void LookupWarpGrid::Compute(const CameraIntrinsics& intrinsics,
       if (fx == 256) {
         fx = 0;
         ix++;
-      }  // NOLINT
+      }
       if (fy == 256) {
         fy = 0;
         iy++;
-      }  // NOLINT
+      }
       // Use nearest border pixel
       if (ix < 0) {
         ix = 0, fx = 0;
-      }  // NOLINT
+      }
       if (iy < 0) {
         iy = 0, fy = 0;
-      }  // NOLINT
+      }
       if (ix >= width - 2)
         ix = width - 2;
       if (iy >= height - 2)
@@ -103,7 +102,7 @@ void LookupWarpGrid::Compute(const CameraIntrinsics& intrinsics,
                        (unsigned char)fy};
       offset_[y * width + x] = offset;
     }
-  }
+  });
 }
 
 template <typename WarpFunction>
@@ -132,11 +131,7 @@ void LookupWarpGrid::Apply(const PixelType* input_buffer,
                            int height,
                            int channels,
                            PixelType* output_buffer) {
-#if defined(_OPENMP)
-#  pragma omp parallel for schedule(static)                                    \
-      num_threads(threads_) if (threads_ > 1 && height > 100)
-#endif
-  for (int y = 0; y < height; y++) {
+  parallel_for(0, height, [&](const int y) {
     for (int x = 0; x < width; x++) {
       Offset offset = offset_[y * width + x];
       const int pixel_index =
@@ -152,7 +147,7 @@ void LookupWarpGrid::Apply(const PixelType* input_buffer,
             (256 * 256);
       }
     }
-  }
+  });
 }
 
 }  // namespace internal
