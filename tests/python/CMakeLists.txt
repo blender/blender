@@ -823,7 +823,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
           )
         endif()
       endif()
-      
+
       if(WITH_HYDRA)
         # Hydra Storm
         foreach(render_test ${gpu_render_tests})

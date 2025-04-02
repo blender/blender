@@ -34,6 +34,6 @@ if(WITH_USD)
   add_subdirectory(usd)
 endif()
 
-if (WITH_IO_CSV)
+if(WITH_IO_CSV)
   add_subdirectory(csv)
 endif()

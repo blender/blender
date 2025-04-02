@@ -17,7 +17,7 @@ set(INC_GLSL
   ../../../../gpu/shaders
   ../../../../gpu/shaders/common
   ../../../../gpu/shaders/infos
-  
+
   ../../gpencil
   ../../gpencil/shaders/infos
 

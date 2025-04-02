@@ -647,13 +647,13 @@ endif()
 # Issue #136138
 function(get_hip_math_flag arch math_flag)
   if(WIN32 AND (${arch} MATCHES "gfx1030|gfx1031|gfx1032|gfx1033|gfx1034|gfx1035|gfx1036"))
-      set(result
-        -fhip-fp32-correctly-rounded-divide-sqrt
-        -fno-gpu-approx-transcendentals
-        -fgpu-flush-denormals-to-zero
-        -ffp-contract=off)
+    set(result
+      -fhip-fp32-correctly-rounded-divide-sqrt
+      -fno-gpu-approx-transcendentals
+      -fgpu-flush-denormals-to-zero
+      -ffp-contract=off)
   else()
-      set(result "")
+    set(result "")
   endif()
   set(${math_flag} "${result}" PARENT_SCOPE)
 endfunction()
