@@ -171,7 +171,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->eventstate_prev_press_time_ms = 0;
     win->event_last_handled = nullptr;
     win->cursor_keymap_status = nullptr;
-#if defined(WIN32) || defined(__APPLE__)
+#ifdef WITH_INPUT_IME
     win->ime_data = nullptr;
     win->ime_data_is_composing = false;
 #endif
