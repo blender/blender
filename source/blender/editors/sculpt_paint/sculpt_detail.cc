@@ -148,7 +148,7 @@ static wmOperatorStatus sculpt_detail_flood_fill_exec(bContext *C, wmOperator *o
                                           min_edge_len,
                                           max_edge_len,
                                           center,
-                                          nullptr,
+                                          std::nullopt,
                                           size,
                                           false,
                                           false))
