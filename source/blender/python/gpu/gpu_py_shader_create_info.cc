@@ -660,14 +660,15 @@ PyDoc_STRVAR(
     "   This function alters the behavior of the optimization to allow those operations\n"
     "   to be performed.\n"
     "\n"
-    "   :arg value: Depth write value. It can be 'UNCHANGED', 'ANY', 'GREATER' or 'LESS'.\n"
-    "       'UNCHANGED' disables depth write in a fragment shader and execution of the\n"
-    "                   fragments can be optimized away. (Default)"
-    "       'ANY'       enables depth write in a fragment shader for any fragments\n"
-    "       'GREATER'   enables depth write in a fragment shader for depth values that\n"
-    "                   are greater than the depth value in the output buffer.\n"
-    "       'LESS'      enables depth write in a fragment shader for depth values that\n"
-    "                   are less than the depth value in the output buffer.\n"
+    "   :arg value: Depth write value. "
+    "It can be 'UNCHANGED' (default), 'ANY', 'GREATER' or 'LESS'.\n"
+    "      :UNCHANGED: disables depth write in a fragment shader and execution of the"
+    "fragments can be optimized away.\n"
+    "      :ANY: enables depth write in a fragment shader for any fragments\n"
+    "      :GREATER: enables depth write in a fragment shader for depth values that"
+    "are greater than the depth value in the output buffer.\n"
+    "      :LESS: enables depth write in a fragment shader for depth values that"
+    "are less than the depth value in the output buffer.\n"
     "   :type blend: str\n");
 static PyObject *pygpu_shader_info_depth_write(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
