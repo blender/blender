@@ -78,7 +78,10 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
         return std::make_unique<VolumeGridBakeItem>(
             std::make_unique<bke::GVolumeGrid>(std::move(grid)));
       }
+#else
+      UNUSED_VARS(name);
 #endif
+
       value_variant.convert_to_single();
       GPointer value = value_variant.get_single_ptr();
       return std::make_unique<PrimitiveBakeItem>(*value.type(), value.get());

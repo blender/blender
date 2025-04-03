@@ -158,7 +158,7 @@ static const char *to_string(const Type &type)
   return "unknown";
 }
 
-static Type to_component_type(const Type &type)
+static Type UNUSED_FUNCTION(to_component_type)(const Type &type)
 {
   switch (type) {
     case Type::FLOAT:
