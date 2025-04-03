@@ -2877,87 +2877,78 @@ void calc_brush_plane(const Depsgraph &depsgraph,
 {
   const SculptSession &ss = *ob.sculpt;
 
-  zero_v3(r_area_co);
-  zero_v3(r_area_no);
+  r_area_no = float3(0.0f);
+  r_area_co = float3(0.0f);
 
   const bool use_original_plane = (brush.flag & BRUSH_ORIGINAL_PLANE) &&
                                   brush.sculpt_brush_type != SCULPT_BRUSH_TYPE_PLANE;
   const bool use_original_normal = (brush.flag & BRUSH_ORIGINAL_NORMAL) &&
                                    brush.sculpt_brush_type != SCULPT_BRUSH_TYPE_PLANE;
 
-  if (SCULPT_stroke_is_main_symmetry_pass(*ss.cache) &&
-      (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) || !use_original_plane ||
-       !use_original_normal))
-  {
+  const bool needs_recalculation = SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) ||
+                                   !use_original_plane || !use_original_normal;
+
+  if (SCULPT_stroke_is_main_symmetry_pass(*ss.cache) && needs_recalculation) {
     switch (brush.sculpt_plane) {
       case SCULPT_DISP_DIR_VIEW:
-        copy_v3_v3(r_area_no, ss.cache->view_normal);
+        r_area_no = ss.cache->view_normal;
         break;
 
       case SCULPT_DISP_DIR_X:
-        ARRAY_SET_ITEMS(r_area_no, 1.0f, 0.0f, 0.0f);
+        r_area_no = float3(1.0f, 0.0f, 0.0f);
         break;
 
       case SCULPT_DISP_DIR_Y:
-        ARRAY_SET_ITEMS(r_area_no, 0.0f, 1.0f, 0.0f);
+        r_area_no = float3(0.0f, 1.0f, 0.0f);
         break;
 
       case SCULPT_DISP_DIR_Z:
-        ARRAY_SET_ITEMS(r_area_no, 0.0f, 0.0f, 1.0f);
+        r_area_no = float3(0.0f, 0.0f, 1.0f);
         break;
 
       case SCULPT_DISP_DIR_AREA:
         calc_area_normal_and_center(depsgraph, brush, ob, node_mask, r_area_no, r_area_co);
         if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
           project_plane_v3_v3v3(r_area_no, r_area_no, ss.cache->view_normal_symm);
-          normalize_v3(r_area_no);
+          r_area_no = math::normalize(r_area_no);
         }
         break;
     }
 
-    /* For flatten center. */
     /* Flatten center has not been calculated yet if we are not using the area normal. */
     if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA) {
+      BLI_assert(r_area_co == float3(0.0f));
       calc_area_center(depsgraph, brush, ob, node_mask, r_area_co);
     }
 
-    /* For area normal. */
     if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) && use_original_normal) {
-      copy_v3_v3(r_area_no, ss.cache->sculpt_normal);
+      r_area_no = ss.cache->sculpt_normal;
     }
     else {
-      copy_v3_v3(ss.cache->sculpt_normal, r_area_no);
+      ss.cache->sculpt_normal = r_area_no;
     }
 
-    /* For flatten center. */
     if (!SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache) && use_original_plane) {
-      copy_v3_v3(r_area_co, ss.cache->last_center);
+      r_area_co = ss.cache->last_center;
     }
     else {
-      copy_v3_v3(ss.cache->last_center, r_area_co);
+      ss.cache->last_center = r_area_co;
     }
   }
   else {
-    /* For area normal. */
-    copy_v3_v3(r_area_no, ss.cache->sculpt_normal);
+    BLI_assert(ss.cache->symm_rot_mat.location().xyz() == float3(0.0f, 0.0f, 0.0f));
 
-    /* For flatten center. */
-    copy_v3_v3(r_area_co, ss.cache->last_center);
-
-    /* For area normal. */
+    r_area_no = ss.cache->sculpt_normal;
     r_area_no = symmetry_flip(r_area_no, ss.cache->mirror_symmetry_pass);
+    r_area_no = math::transform_direction(ss.cache->symm_rot_mat, r_area_no);
 
-    /* For flatten center. */
+    r_area_co = ss.cache->last_center;
     r_area_co = symmetry_flip(r_area_co, ss.cache->mirror_symmetry_pass);
-
-    /* For area normal. */
-    mul_m4_v3(ss.cache->symm_rot_mat.ptr(), r_area_no);
-
-    /* For flatten center. */
+    r_area_co = math::transform_point(ss.cache->symm_rot_mat, r_area_co);
     mul_m4_v3(ss.cache->symm_rot_mat.ptr(), r_area_co);
 
     /* Shift the plane for the current tile. */
-    add_v3_v3(r_area_co, ss.cache->plane_offset);
+    r_area_co += ss.cache->plane_offset;
   }
 }
 
