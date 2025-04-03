@@ -87,6 +87,9 @@ class Cursor : Overlay {
     pass.push_constant("viewportSize", float2(state.region->winx, state.region->winy));
     pass.push_constant("lineWidth", U.pixelsize);
     pass.push_constant("lineSmooth", true);
+    /* WORKAROUND: This is normally set by the GPUBatch or IMM API but we don't use them here.
+     * So make sure it is set otherwise it can be in undefined state (see #136911). */
+    pass.push_constant("gpu_attr_0_fetch_int", false);
     /* See `polyline_draw_workaround`. */
     int3 vert_stride_count_line = {2, 9999 /* Doesn't matter. */, 0};
     int3 vert_stride_count_circle = {1, 9999 /* Doesn't matter. */, 0};
