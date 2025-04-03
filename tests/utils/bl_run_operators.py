@@ -405,7 +405,6 @@ operator_pattern_exclude_for_bugs_without_gui = (
     "buttons.clear_filter",  # Null `space->runtime` in background mode.
     "buttons.toggle_pin",  # Technically a bug but doesn't make sense in background mode.
     "gpencil.layer_annotation_remove",  # TODO: looks like this could be fixed.
-    "object.grease_pencil_add",  # reported #136156.
     "outliner.animdata_operation",  # TODO: looks like poll should handle this.
     "outliner.collection_new",  # `space_outliner->runtime` is null.
     "outliner.delete",  # TODO: looks like poll should handle this.
