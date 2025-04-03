@@ -63,9 +63,8 @@ class Node : NonCopyable {
 
  public:
   enum Flags : uint32_t {
+    None = 0,
     Leaf = 1 << 0,
-
-    UpdateRedraw = 1 << 5,
 
     FullyHidden = 1 << 10,
     FullyMasked = 1 << 11,
@@ -89,7 +88,7 @@ class Node : NonCopyable {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  Flags flag_ = UpdateRedraw;
+  Flags flag_ = None;
 
   /**
    * Used for ray-casting: how close the bounding-box is to the ray point.
@@ -545,7 +544,6 @@ void update_normals_from_eval(Object &object_eval, Tree &pbvh);
 
 }  // namespace blender::bke::pbvh
 
-blender::Bounds<blender::float3> BKE_pbvh_redraw_BB(const blender::bke::pbvh::Tree &pbvh);
 namespace blender::bke::pbvh {
 IndexMask nodes_to_face_selection_grids(const SubdivCCG &subdiv_ccg,
                                         Span<GridsNode> nodes,

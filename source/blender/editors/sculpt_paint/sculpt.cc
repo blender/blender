@@ -1183,29 +1183,6 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
 
 }  // namespace blender::ed::sculpt_paint
 
-/*** BVH Tree ***/
-
-bool SCULPT_get_redraw_rect(const ARegion &region,
-                            const RegionView3D &rv3d,
-                            const Object &ob,
-                            rcti &rect)
-{
-  using namespace blender;
-  const bke::pbvh::Tree *pbvh = bke::object::pbvh_get(ob);
-  if (!pbvh) {
-    return false;
-  }
-
-  const Bounds<float3> bounds = BKE_pbvh_redraw_BB(*pbvh);
-
-  /* Convert 3D bounding box to screen space. */
-  if (!paint_convert_bb_to_rect(&rect, bounds.min, bounds.max, region, rv3d, ob)) {
-    return false;
-  }
-
-  return true;
-}
-
 const float *SCULPT_brush_frontface_normal_from_falloff_shape(const SculptSession &ss,
                                                               char falloff_shape)
 {

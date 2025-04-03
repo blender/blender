@@ -802,14 +802,6 @@ std::optional<Span<float>> orig_mask_data_lookup_grids(const Object &object,
 
 /** \} */
 
-/**
- * Get a screen-space rectangle of the modified area.
- */
-bool SCULPT_get_redraw_rect(const ARegion &region,
-                            const RegionView3D &rv3d,
-                            const Object &ob,
-                            rcti &rect);
-
 /* Operators. */
 
 /* -------------------------------------------------------------------- */
