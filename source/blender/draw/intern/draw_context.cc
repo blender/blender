@@ -736,7 +736,6 @@ static void drw_engines_cache_populate(blender::draw::ObjectRef &ref, Extraction
 
 void DRWContext::sync(iter_callback_t iter_callback)
 {
-  DRW_manager_begin_sync();
   /* Enable modules and init for next sync. */
   data->modules_init();
 
@@ -749,8 +748,6 @@ void DRWContext::sync(iter_callback_t iter_callback)
   dupli_handler.extract_all(extraction);
   extraction.work_and_wait(this->delayed_extraction);
 
-  DRW_manager_end_sync();
-
   DRW_curves_update(*view_data_active->manager);
 }
 
@@ -758,14 +755,16 @@ void DRWContext::engines_init_and_sync(iter_callback_t iter_callback)
 {
   view_data_active->foreach_enabled_engine([&](DrawEngine &instance) { instance.init(); });
 
+  view_data_active->manager->begin_sync();
+
   view_data_active->foreach_enabled_engine([&](DrawEngine &instance) {
     /* TODO(fclem): Remove. Only there for overlay engine. */
     if (instance.text_draw_cache) {
       DRW_text_cache_destroy(instance.text_draw_cache);
       instance.text_draw_cache = nullptr;
     }
-    if (drw_get().text_store_p == nullptr) {
-      drw_get().text_store_p = &instance.text_draw_cache;
+    if (text_store_p == nullptr) {
+      text_store_p = &instance.text_draw_cache;
     }
 
     instance.begin_sync();
@@ -774,6 +773,8 @@ void DRWContext::engines_init_and_sync(iter_callback_t iter_callback)
   sync(iter_callback);
 
   view_data_active->foreach_enabled_engine([&](DrawEngine &instance) { instance.end_sync(); });
+
+  view_data_active->manager->end_sync();
 }
 
 void DRWContext::engines_draw_scene()

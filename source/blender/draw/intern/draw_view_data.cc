@@ -138,19 +138,3 @@ draw::Manager *DRW_manager_get()
   BLI_assert(drw_get().view_data_active->manager);
   return drw_get().view_data_active->manager;
 }
-
-void DRW_manager_begin_sync()
-{
-  if (drw_get().view_data_active->manager == nullptr) {
-    return;
-  }
-  drw_get().view_data_active->manager->begin_sync();
-}
-
-void DRW_manager_end_sync()
-{
-  if (drw_get().view_data_active->manager == nullptr) {
-    return;
-  }
-  drw_get().view_data_active->manager->end_sync();
-}

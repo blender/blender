@@ -98,7 +98,4 @@ void DRW_mesh_get_attributes(const Object &object,
 
 }  // namespace blender::draw
 
-void DRW_manager_begin_sync();
-void DRW_manager_end_sync();
-
 /** \} */
