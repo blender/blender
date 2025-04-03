@@ -102,7 +102,7 @@ bool GHOST_XrGraphicsBindingVulkan::checkVersionRequirements(GHOST_Context &ghos
 #undef LOAD_PFN
 
   XrGraphicsRequirementsVulkanKHR xr_graphics_requirements{
-      /* type */ XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR,
+      /*type*/ XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR,
   };
   if (XR_FAILED(s_xrGetVulkanGraphicsRequirements2KHR_fn(
           instance, system_id, &xr_graphics_requirements)))

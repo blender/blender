@@ -2258,8 +2258,10 @@ static const GWL_Cursor_ShapeInfo ghost_wl_cursors = []() -> GWL_Cursor_ShapeInf
   GWL_Cursor_ShapeInfo info{};
 
 #define CASE_CURSOR(shape_id, shape_name_in_theme) \
-  case shape_id: \
-    info.names[int(shape_id)] = shape_name_in_theme;
+  case shape_id: { \
+    info.names[int(shape_id)] = shape_name_in_theme; \
+  } \
+    ((void)0)
 
   /* Use a switch to ensure missing values show a compiler warning. */
   switch (GHOST_kStandardCursorDefault) {
@@ -3788,9 +3790,7 @@ static bool update_cursor_scale(GWL_Cursor &cursor,
       output_scale_floor = std::max(1, output->scale_fractional / FRACTIONAL_DENOMINATOR);
     }
 
-    if (output_scale_floor > scale) {
-      scale = output_scale_floor;
-    }
+    scale = std::max(output_scale_floor, scale);
   }
 
   if (scale > 0 && seat_state_pointer->theme_scale != scale) {
