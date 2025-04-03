@@ -10,8 +10,10 @@ namespace blender::nodes::node_geo_join_geometry_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Geometry").multi_input();
-  b.add_output<decl::Geometry>("Geometry").propagate_all();
+  b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

@@ -14,7 +14,10 @@ namespace blender::nodes::node_geo_realize_instances_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection")
       .default_value(true)
       .hide_value()
@@ -28,7 +31,6 @@ static void node_declare(NodeDeclarationBuilder &b)
           "of the Depth input");
   b.add_input<decl::Int>("Depth").default_value(0).min(0).field_on_all().description(
       "Number of levels of nested instances to realize for each top-level instance");
-  b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

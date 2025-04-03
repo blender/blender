@@ -22,8 +22,12 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+  b.add_default_layout();
   b.add_input<decl::Geometry>("Curve").supported_type(
       {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
+  b.add_output<decl::Geometry>("Curve").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().supports_field();
   auto &start_fac = b.add_input<decl::Float>("Start")
                         .min(0.0f)
@@ -57,7 +61,6 @@ static void node_declare(NodeDeclarationBuilder &b)
                         node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
                       })
                       .field_on_all();
-  b.add_output<decl::Geometry>("Curve").propagate_all();
 
   const bNode *node = b.node_or_null();
   if (node != nullptr) {

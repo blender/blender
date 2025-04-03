@@ -20,9 +20,12 @@ namespace blender::nodes::node_geo_store_named_grid_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+  b.add_default_layout();
   b.add_input<decl::Geometry>("Volume");
+  b.add_output<decl::Geometry>("Volume").align_with_previous();
   b.add_input<decl::String>("Name").hide_label();
-  b.add_output<decl::Geometry>("Volume");
 
   const bNode *node = b.node_or_null();
   if (!node) {
