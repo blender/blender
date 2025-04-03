@@ -195,9 +195,6 @@ static void scene_init_data(ID *id)
   scene->unit.temperature_unit = uchar(
       BKE_unit_base_of_type_get(USER_UNIT_METRIC, B_UNIT_TEMPERATURE));
 
-  /* Anti-Aliasing threshold. */
-  scene->grease_pencil_settings.smaa_threshold = 1.0f;
-
   {
     ParticleEditSettings *pset;
     pset = &scene->toolsettings->particle;

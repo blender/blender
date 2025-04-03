@@ -181,4 +181,14 @@ ADDITIONAL_INFO(gpencil_antialiasing)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
+GPU_SHADER_CREATE_INFO(gpencil_antialiasing_accumulation)
+IMAGE(0, GPENCIL_RENDER_FORMAT, READ, FLOAT_2D, src_img)
+IMAGE(1, GPENCIL_ACCUM_FORMAT, READ_WRITE, FLOAT_2D, dst_img)
+PUSH_CONSTANT(FLOAT, weight_src)
+PUSH_CONSTANT(FLOAT, weight_dst)
+FRAGMENT_SOURCE("gpencil_antialiasing_accumulation_frag.glsl")
+ADDITIONAL_INFO(draw_fullscreen)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
 /** \} */

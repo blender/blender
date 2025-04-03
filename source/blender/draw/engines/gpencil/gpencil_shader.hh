@@ -36,6 +36,8 @@ class ShaderCache {
   StaticShader antialiasing[3] = {{"gpencil_antialiasing_stage_0"},
                                   {"gpencil_antialiasing_stage_1"},
                                   {"gpencil_antialiasing_stage_2"}};
+  /* Accumulation antialiasing */
+  StaticShader accumulation = {"gpencil_antialiasing_accumulation"};
   /* GPencil Object rendering */
   StaticShader geometry = {"gpencil_geometry"};
   /* All layer blend types in one shader! */
