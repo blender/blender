@@ -2917,7 +2917,7 @@ void calc_brush_plane(const Depsgraph &depsgraph,
 
     /* Flatten center has not been calculated yet if we are not using the area normal. */
     if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA) {
-      BLI_assert(r_area_co == float3(0.0f));
+      BLI_assert(math::is_zero(r_area_co));
       calc_area_center(depsgraph, brush, ob, node_mask, r_area_co);
     }
 
@@ -2936,7 +2936,7 @@ void calc_brush_plane(const Depsgraph &depsgraph,
     }
   }
   else {
-    BLI_assert(ss.cache->symm_rot_mat.location().xyz() == float3(0.0f, 0.0f, 0.0f));
+    BLI_assert(math::is_zero(ss.cache->symm_rot_mat.location().xyz()));
 
     r_area_no = ss.cache->sculpt_normal;
     r_area_no = symmetry_flip(r_area_no, ss.cache->mirror_symmetry_pass);
