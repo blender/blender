@@ -1064,6 +1064,8 @@ static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
     SET_FLAG_FROM_TEST(
         new_layer.base.flag, (gpl->flag & GP_LAYER_USE_MASK) == 0, GP_LAYER_TREE_NODE_HIDE_MASKS);
 
+    /* Copy Dopesheet channel color. */
+    copy_v4_v4(new_layer.base.color, gpl->color);
     new_layer.blend_mode = int8_t(gpl->blend_mode);
 
     new_layer.parent = gpl->parent;
