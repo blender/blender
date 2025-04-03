@@ -1026,23 +1026,20 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     else()
       string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${gen_devices_string} ")
     endif()
-
-    # Iterate over all targets and their options.
-    list(JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
-    list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
-    foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
-      if(DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_${target})
-        list(APPEND sycl_compiler_flags
-          "-Xsycl-target-backend=${target} \"${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}\""
-        )
-      endif()
-    endforeach()
   else()
-    # If AOT is disabled, build for spir64
-    list(APPEND sycl_compiler_flags
-      -fsycl-targets=spir64
-      "-Xsycl-target-backend=spir64 \"${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}\"")
+      list(REMOVE_ITEM CYCLES_ONEAPI_SYCL_TARGETS spir64_gen)
   endif()
+
+  # Iterate over all targets and their options.
+  list(JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
+  list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
+  foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
+    if(DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_${target})
+      list(APPEND sycl_compiler_flags
+        "-Xsycl-target-backend=${target} \"${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}\""
+      )
+    endif()
+  endforeach()
 
   if(WITH_NANOVDB)
     list(APPEND sycl_compiler_flags
