@@ -100,6 +100,11 @@ class DebugFlags {
 
     /* Whether async PSO creation is enabled or not. */
     bool use_async_pso_creation = true;
+
+    /* Whether to use per-component motion interpolation.
+     * TODO: Enable by default when "multi step velocity motion blur" fail is fixed.
+     */
+    bool use_metalrt_pcmi = false;
   };
 
   /* Get instance of debug flags registry. */
