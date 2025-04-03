@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@
 #include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/export.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // Detect static blocks in the problem sparsity. For rows containing
 // e_blocks, we are interested in detecting if the size of the row
@@ -63,8 +62,7 @@ void CERES_NO_EXPORT DetectStructure(const CompressedRowBlockStructure& bs,
                                      int* e_block_size,
                                      int* f_block_size);
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

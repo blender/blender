@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -47,8 +47,7 @@
 
 #include "ceres/internal/export.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class ResidualBlock;
 
@@ -64,7 +63,6 @@ void InvalidateEvaluation(const ResidualBlock& block,
 CERES_NO_EXPORT
 bool IsEvaluationValid(const ResidualBlock& block,
                        double const* const* parameters,
-                       double* cost,
                        double* residuals,
                        double** jacobians);
 
@@ -78,7 +76,6 @@ std::string EvaluationToString(const ResidualBlock& block,
                                double* residuals,
                                double** jacobians);
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_RESIDUAL_BLOCK_UTILS_H_

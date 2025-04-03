@@ -50,9 +50,6 @@
 // If defined, Ceres was compiled without SuiteSparse.
 #define CERES_NO_SUITESPARSE
 
-// If defined, Ceres was compiled without CXSparse.
-#define CERES_NO_CXSPARSE
-
 // If defined, Ceres was compiled without CUDA.
 #define CERES_NO_CUDA
 
@@ -61,7 +58,6 @@
 
 #if defined(CERES_NO_SUITESPARSE) &&              \
     defined(CERES_NO_ACCELERATE_SPARSE) &&        \
-    defined(CERES_NO_CXSPARSE) &&                 \
     !defined(CERES_USE_EIGEN_SPARSE)  // NOLINT
 // If defined Ceres was compiled without any sparse linear algebra support.
 #define CERES_NO_SPARSE
@@ -74,12 +70,11 @@
 // routines.
 // #define CERES_NO_CUSTOM_BLAS
 
-// If defined, Ceres was compiled without multithreading support.
-// #define CERES_NO_THREADS
-// If defined Ceres was compiled with OpenMP multithreading.
-// #define CERES_USE_OPENMP
-// If defined Ceres was compiled with modern C++ multithreading.
-#define CERES_USE_CXX_THREADS
+// If defined, Ceres was compiled with a version of SuiteSparse/CHOLMOD without
+// the Partition module (requires METIS).
+#define CERES_NO_CHOLMOD_PARTITION
+// If defined Ceres was compiled without support for METIS via Eigen.
+#define CERES_NO_EIGEN_METIS
 
 // If defined, Ceres was compiled with a version MSVC >= 2005 which
 // deprecated the standard POSIX names for bessel functions, replacing them
@@ -88,31 +83,12 @@
 #define CERES_MSVC_USE_UNDERSCORE_PREFIXED_BESSEL_FUNCTIONS
 #endif
 
-#if defined(CERES_USE_OPENMP)
-#if defined(CERES_USE_CXX_THREADS) || defined(CERES_NO_THREADS)
-#error CERES_USE_OPENMP is mutually exclusive to CERES_USE_CXX_THREADS and CERES_NO_THREADS
-#endif
-#elif defined(CERES_USE_CXX_THREADS)
-#if defined(CERES_USE_OPENMP) || defined(CERES_NO_THREADS)
-#error CERES_USE_CXX_THREADS is mutually exclusive to CERES_USE_OPENMP, CERES_USE_CXX_THREADS and CERES_NO_THREADS
-#endif
-#elif defined(CERES_NO_THREADS)
-#if defined(CERES_USE_OPENMP) || defined(CERES_USE_CXX_THREADS)
-#error CERES_NO_THREADS is mutually exclusive to CERES_USE_OPENMP and CERES_USE_CXX_THREADS
-#endif
-#else
-#  error One of CERES_USE_OPENMP, CERES_USE_CXX_THREADS or CERES_NO_THREADS must be defined.
-#endif
-
 // CERES_NO_SPARSE should be automatically defined by config.h if Ceres was
 // compiled without any sparse back-end.  Verify that it has not subsequently
 // been inconsistently redefined.
 #if defined(CERES_NO_SPARSE)
 #if !defined(CERES_NO_SUITESPARSE)
 #error CERES_NO_SPARSE requires CERES_NO_SUITESPARSE.
-#endif
-#if !defined(CERES_NO_CXSPARSE)
-#error CERES_NO_SPARSE requires CERES_NO_CXSPARSE
 #endif
 #if !defined(CERES_NO_ACCELERATE_SPARSE)
 #error CERES_NO_SPARSE requires CERES_NO_ACCELERATE_SPARSE

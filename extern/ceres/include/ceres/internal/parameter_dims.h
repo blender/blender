@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,22 +36,7 @@
 
 #include "ceres/internal/integer_sequence_algorithm.h"
 
-namespace ceres {
-namespace internal {
-
-// Checks, whether the given parameter block sizes are valid. Valid means every
-// dimension is bigger than zero.
-constexpr bool IsValidParameterDimensionSequence(std::integer_sequence<int>) {
-  return true;
-}
-
-template <int N, int... Ts>
-constexpr bool IsValidParameterDimensionSequence(
-    std::integer_sequence<int, N, Ts...>) {
-  return (N <= 0) ? false
-                  : IsValidParameterDimensionSequence(
-                        std::integer_sequence<int, Ts...>());
-}
+namespace ceres::internal {
 
 // Helper class that represents the parameter dimensions. The parameter
 // dimensions are either dynamic or the sizes are known at compile time. It is
@@ -70,8 +55,7 @@ class ParameterDims {
 
   // The parameter dimensions are only valid if all parameter block dimensions
   // are greater than zero.
-  static constexpr bool kIsValid =
-      IsValidParameterDimensionSequence(Parameters());
+  static constexpr bool kIsValid = ((Ns > 0) && ...);
   static_assert(kIsValid,
                 "Invalid parameter block dimension detected. Each parameter "
                 "block dimension must be bigger than zero.");
@@ -81,8 +65,7 @@ class ParameterDims {
   static_assert(kIsDynamic || kNumParameterBlocks > 0,
                 "At least one parameter block must be specified.");
 
-  static constexpr int kNumParameters =
-      Sum<std::integer_sequence<int, Ns...>>::Value;
+  static constexpr int kNumParameters = (Ns + ... + 0);
 
   static constexpr int GetDim(int dim) { return params_[dim]; }
 
@@ -118,7 +101,6 @@ template <int... Ns>
 using StaticParameterDims = ParameterDims<false, Ns...>;
 using DynamicParameterDims = ParameterDims<true>;
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_PUBLIC_INTERNAL_PARAMETER_DIMS_H_

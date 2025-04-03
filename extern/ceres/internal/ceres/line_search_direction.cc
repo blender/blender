@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,11 @@
 #include "ceres/low_rank_inverse_hessian.h"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class CERES_NO_EXPORT SteepestDescent final : public LineSearchDirection {
  public:
-  bool NextDirection(const LineSearchMinimizer::State& previous,
+  bool NextDirection(const LineSearchMinimizer::State& /*previous*/,
                      const LineSearchMinimizer::State& current,
                      Vector* search_direction) override {
     *search_direction = -current.gradient;
@@ -121,8 +120,8 @@ class CERES_NO_EXPORT LBFGS final : public LineSearchDirection {
         current.gradient - previous.gradient);
 
     search_direction->setZero();
-    low_rank_inverse_hessian_.RightMultiply(current.gradient.data(),
-                                            search_direction->data());
+    low_rank_inverse_hessian_.RightMultiplyAndAccumulate(
+        current.gradient.data(), search_direction->data());
     *search_direction *= -1.0;
 
     if (search_direction->dot(current.gradient) >= 0.0) {
@@ -242,7 +241,7 @@ class CERES_NO_EXPORT BFGS final : public LineSearchDirection {
         //
         // The original origin of this rescaling trick is somewhat unclear, the
         // earliest reference appears to be Oren [1], however it is widely
-        // discussed without specific attributation in various texts including
+        // discussed without specific attribution in various texts including
         // [2] (p143).
         //
         // [1] Oren S.S., Self-scaling variable metric (SSVM) algorithms
@@ -367,5 +366,4 @@ std::unique_ptr<LineSearchDirection> LineSearchDirection::Create(
   return nullptr;
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

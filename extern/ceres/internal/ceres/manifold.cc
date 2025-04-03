@@ -30,13 +30,11 @@ inline void QuaternionPlusImpl(const double* x,
                                double* x_plus_delta) {
   // x_plus_delta = QuaternionProduct(q_delta, x), where q_delta is the
   // quaternion constructed from delta.
-  const double norm_delta = std::sqrt(
-      delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]);
+  const double norm_delta = std::hypot(delta[0], delta[1], delta[2]);
 
-  if (norm_delta == 0.0) {
-    for (int i = 0; i < 4; ++i) {
-      x_plus_delta[i] = x[i];
-    }
+  if (std::fpclassify(norm_delta) == FP_ZERO) {
+    // No change in rotation: return the quaternion as is.
+    std::copy_n(x, 4, x_plus_delta);
     return;
   }
 
@@ -100,19 +98,16 @@ inline void QuaternionMinusImpl(const double* y,
       -y[Order::kW] * x[Order::kZ] - y[Order::kX] * x[Order::kY] +
       y[Order::kY] * x[Order::kX] + y[Order::kZ] * x[Order::kW];
 
-  const double u_norm =
-      std::sqrt(ambient_y_minus_x[Order::kX] * ambient_y_minus_x[Order::kX] +
-                ambient_y_minus_x[Order::kY] * ambient_y_minus_x[Order::kY] +
-                ambient_y_minus_x[Order::kZ] * ambient_y_minus_x[Order::kZ]);
-  if (u_norm > 0.0) {
+  const double u_norm = std::hypot(ambient_y_minus_x[Order::kX],
+                                   ambient_y_minus_x[Order::kY],
+                                   ambient_y_minus_x[Order::kZ]);
+  if (std::fpclassify(u_norm) != FP_ZERO) {
     const double theta = std::atan2(u_norm, ambient_y_minus_x[Order::kW]);
     y_minus_x[0] = theta * ambient_y_minus_x[Order::kX] / u_norm;
     y_minus_x[1] = theta * ambient_y_minus_x[Order::kY] / u_norm;
     y_minus_x[2] = theta * ambient_y_minus_x[Order::kZ] / u_norm;
   } else {
-    y_minus_x[0] = 0.0;
-    y_minus_x[1] = 0.0;
-    y_minus_x[2] = 0.0;
+    std::fill_n(y_minus_x, 3, 0.0);
   }
 }
 
@@ -201,7 +196,7 @@ bool SubsetManifold::Plus(const double* x,
   return true;
 }
 
-bool SubsetManifold::PlusJacobian(const double* x,
+bool SubsetManifold::PlusJacobian(const double* /*x*/,
                                   double* plus_jacobian) const {
   if (tangent_size_ == 0) {
     return true;
@@ -218,7 +213,7 @@ bool SubsetManifold::PlusJacobian(const double* x,
   return true;
 }
 
-bool SubsetManifold::RightMultiplyByPlusJacobian(const double* x,
+bool SubsetManifold::RightMultiplyByPlusJacobian(const double* /*x*/,
                                                  const int num_rows,
                                                  const double* ambient_matrix,
                                                  double* tangent_matrix) const {
@@ -254,7 +249,7 @@ bool SubsetManifold::Minus(const double* y,
   return true;
 }
 
-bool SubsetManifold::MinusJacobian(const double* x,
+bool SubsetManifold::MinusJacobian(const double* /*x*/,
                                    double* minus_jacobian) const {
   const int ambient_size = AmbientSize();
   MatrixRef m(minus_jacobian, tangent_size_, ambient_size);

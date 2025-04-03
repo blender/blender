@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,13 +39,10 @@
 #include "ceres/stringprintf.h"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
-// Returns time, in seconds, from some arbitrary starting point. If
-// OpenMP is available then the high precision openmp_get_wtime()
-// function is used. Otherwise on unixes, gettimeofday is used. The
-// granularity is in seconds on windows systems.
+// Returns time, in seconds, from some arbitrary starting point. On unixes,
+// gettimeofday is used. The granularity is microseconds.
 CERES_NO_EXPORT double WallTimeInSeconds();
 
 // Log a series of events, recording for each event the time elapsed
@@ -84,8 +81,7 @@ class CERES_NO_EXPORT EventLogger {
   std::string events_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

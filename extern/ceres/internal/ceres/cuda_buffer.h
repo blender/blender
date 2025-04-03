@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 #ifndef CERES_INTERNAL_CUDA_BUFFER_H_
 #define CERES_INTERNAL_CUDA_BUFFER_H_
 
+#include "ceres/context_impl.h"
 #include "ceres/internal/config.h"
 
 #ifndef CERES_NO_CUDA
@@ -40,17 +41,27 @@
 #include "cuda_runtime.h"
 #include "glog/logging.h"
 
+namespace ceres::internal {
 // An encapsulated buffer to maintain GPU memory, and handle transfers between
 // GPU and system memory. It is the responsibility of the user to ensure that
 // the appropriate GPU device is selected before each subroutine is called. This
 // is particularly important when using multiple GPU devices on different CPU
 // threads, since active Cuda devices are determined by the cuda runtime on a
-// per-thread basis. Note that unless otherwise specified, all methods use the
-// default stream, and are synchronous.
+// per-thread basis.
 template <typename T>
 class CudaBuffer {
  public:
-  CudaBuffer() = default;
+  explicit CudaBuffer(ContextImpl* context) : context_(context) {}
+  CudaBuffer(ContextImpl* context, int size) : context_(context) {
+    Reserve(size);
+  }
+
+  CudaBuffer(CudaBuffer&& other)
+      : data_(other.data_), size_(other.size_), context_(other.context_) {
+    other.data_ = nullptr;
+    other.size_ = 0;
+  }
+
   CudaBuffer(const CudaBuffer&) = delete;
   CudaBuffer& operator=(const CudaBuffer&) = delete;
 
@@ -67,40 +78,94 @@ class CudaBuffer {
       if (data_ != nullptr) {
         CHECK_EQ(cudaFree(data_), cudaSuccess);
       }
-      CHECK_EQ(cudaMalloc(&data_, size * sizeof(T)), cudaSuccess);
+      CHECK_EQ(cudaMalloc(&data_, size * sizeof(T)), cudaSuccess)
+          << "Failed to allocate " << size * sizeof(T)
+          << " bytes of GPU memory";
       size_ = size;
     }
   }
 
-  // Perform an asynchronous copy from CPU memory to GPU memory using the stream
-  // provided.
-  void CopyToGpuAsync(const T* data, const size_t size, cudaStream_t stream) {
+  // Perform an asynchronous copy from CPU memory to GPU memory managed by this
+  // CudaBuffer instance using the stream provided.
+  void CopyFromCpu(const T* data, const size_t size) {
     Reserve(size);
-    CHECK_EQ(cudaMemcpyAsync(
-                 data_, data, size * sizeof(T), cudaMemcpyHostToDevice, stream),
+    CHECK_EQ(cudaMemcpyAsync(data_,
+                             data,
+                             size * sizeof(T),
+                             cudaMemcpyHostToDevice,
+                             context_->DefaultStream()),
              cudaSuccess);
   }
 
-  // Copy data from the GPU to CPU memory. This is necessarily synchronous since
-  // any potential GPU kernels that may be writing to the buffer must finish
-  // before the transfer happens.
-  void CopyToHost(T* data, const size_t size) {
+  // Perform an asynchronous copy from a vector in CPU memory to GPU memory
+  // managed by this CudaBuffer instance.
+  void CopyFromCpuVector(const std::vector<T>& data) {
+    Reserve(data.size());
+    CHECK_EQ(cudaMemcpyAsync(data_,
+                             data.data(),
+                             data.size() * sizeof(T),
+                             cudaMemcpyHostToDevice,
+                             context_->DefaultStream()),
+             cudaSuccess);
+  }
+
+  // Perform an asynchronous copy from another GPU memory array to the GPU
+  // memory managed by this CudaBuffer instance using the stream provided.
+  void CopyFromGPUArray(const T* data, const size_t size) {
+    Reserve(size);
+    CHECK_EQ(cudaMemcpyAsync(data_,
+                             data,
+                             size * sizeof(T),
+                             cudaMemcpyDeviceToDevice,
+                             context_->DefaultStream()),
+             cudaSuccess);
+  }
+
+  // Copy data from the GPU memory managed by this CudaBuffer instance to CPU
+  // memory. It is the caller's responsibility to ensure that the CPU memory
+  // pointer is valid, i.e. it is not null, and that it points to memory of
+  // at least this->size() size. This method ensures all previously dispatched
+  // GPU operations on the specified stream have completed before copying the
+  // data to CPU memory.
+  void CopyToCpu(T* data, const size_t size) const {
     CHECK(data_ != nullptr);
-    CHECK_EQ(cudaMemcpy(data, data_, size * sizeof(T), cudaMemcpyDeviceToHost),
+    CHECK_EQ(cudaMemcpyAsync(data,
+                             data_,
+                             size * sizeof(T),
+                             cudaMemcpyDeviceToHost,
+                             context_->DefaultStream()),
+             cudaSuccess);
+    CHECK_EQ(cudaStreamSynchronize(context_->DefaultStream()), cudaSuccess);
+  }
+
+  // Copy N items from another GPU memory array to the GPU memory managed by
+  // this CudaBuffer instance, growing this buffer's size if needed. This copy
+  // is asynchronous, and operates on the stream provided.
+  void CopyNItemsFrom(int n, const CudaBuffer<T>& other) {
+    Reserve(n);
+    CHECK(other.data_ != nullptr);
+    CHECK(data_ != nullptr);
+    CHECK_EQ(cudaMemcpyAsync(data_,
+                             other.data_,
+                             size_ * sizeof(T),
+                             cudaMemcpyDeviceToDevice,
+                             context_->DefaultStream()),
              cudaSuccess);
   }
 
-  void CopyToGpu(const std::vector<T>& data) {
-    CopyToGpu(data.data(), data.size());
-  }
-
+  // Return a pointer to the GPU memory managed by this CudaBuffer instance.
   T* data() { return data_; }
+  const T* data() const { return data_; }
+  // Return the number of items of type T that can fit in the GPU memory
+  // allocated so far by this CudaBuffer instance.
   size_t size() const { return size_; }
 
  private:
   T* data_ = nullptr;
   size_t size_ = 0;
+  ContextImpl* context_ = nullptr;
 };
+}  // namespace ceres::internal
 
 #endif  // CERES_NO_CUDA
 

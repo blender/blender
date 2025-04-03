@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #ifndef CERES_PUBLIC_INTERNAL_SPHERE_MANIFOLD_HELPERS_H_
 #define CERES_PUBLIC_INTERNAL_SPHERE_MANIFOLD_HELPERS_H_
 
+#include "ceres/constants.h"
 #include "ceres/internal/householder_vector.h"
 
 // This module contains functions to compute the SphereManifold plus and minus
@@ -58,26 +59,23 @@
 // used in order to allow also Eigen::Ref and Eigen block expressions to
 // be passed to the function.
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 template <typename VT, typename XT, typename DeltaT, typename XPlusDeltaT>
 inline void ComputeSphereManifoldPlus(const VT& v,
                                       double beta,
                                       const XT& x,
                                       const DeltaT& delta,
-                                      double norm_delta,
+                                      const double norm_delta,
                                       XPlusDeltaT* x_plus_delta) {
   constexpr int AmbientDim = VT::RowsAtCompileTime;
 
   // Map the delta from the minimum representation to the over parameterized
   // homogeneous vector. See B.2 p.25 equation (106) - (107) for more details.
-  const double norm_delta_div_2 = 0.5 * norm_delta;
-  const double sin_delta_by_delta =
-      std::sin(norm_delta_div_2) / norm_delta_div_2;
+  const double sin_delta_by_delta = std::sin(norm_delta) / norm_delta;
 
   Eigen::Matrix<double, AmbientDim, 1> y(v.size());
-  y << 0.5 * sin_delta_by_delta * delta, std::cos(norm_delta_div_2);
+  y << sin_delta_by_delta * delta, std::cos(norm_delta);
 
   // Apply the delta update to remain on the sphere.
   *x_plus_delta = x.norm() * ApplyHouseholderVector(y, v, beta);
@@ -99,11 +97,11 @@ inline void ComputeSphereManifoldPlusJacobian(const VT& x,
   // have trouble deducing the type of v automatically.
   ComputeHouseholderVector<VT, double, AmbientSpaceDim>(x, &v, &beta);
 
-  // The Jacobian is equal to J = 0.5 * H.leftCols(size_ - 1) where H is the
+  // The Jacobian is equal to J = H.leftCols(size_ - 1) where H is the
   // Householder matrix (H = I - beta * v * v').
   for (int i = 0; i < tangent_size; ++i) {
-    (*jacobian).col(i) = -0.5 * beta * v(i) * v;
-    (*jacobian)(i, i) += 0.5;
+    (*jacobian).col(i) = -beta * v(i) * v;
+    (*jacobian)(i, i) += 1.0;
   }
   (*jacobian) *= x.norm();
 }
@@ -116,18 +114,19 @@ inline void ComputeSphereManifoldMinus(
       AmbientSpaceDim == Eigen::Dynamic ? Eigen::Dynamic : AmbientSpaceDim - 1;
   using AmbientVector = Eigen::Matrix<double, AmbientSpaceDim, 1>;
 
-  const int tanget_size = v.size() - 1;
+  const int tangent_size = v.size() - 1;
 
   const AmbientVector hy = ApplyHouseholderVector(y, v, beta) / x.norm();
 
   // Calculate y - x. See B.2 p.25 equation (108).
-  double y_last = hy[tanget_size];
-  double hy_norm = hy.template head<TangentSpaceDim>(tanget_size).norm();
+  const double y_last = hy[tangent_size];
+  const double hy_norm = hy.template head<TangentSpaceDim>(tangent_size).norm();
   if (hy_norm == 0.0) {
     y_minus_x->setZero();
+    y_minus_x->data()[tangent_size - 1] = y_last >= 0 ? 0.0 : constants::pi;
   } else {
-    *y_minus_x = 2.0 * std::atan2(hy_norm, y_last) / hy_norm *
-                 hy.template head<TangentSpaceDim>(tanget_size);
+    *y_minus_x = std::atan2(hy_norm, y_last) / hy_norm *
+                 hy.template head<TangentSpaceDim>(tangent_size);
   }
 }
 
@@ -147,16 +146,18 @@ inline void ComputeSphereManifoldMinusJacobian(const VT& x,
   // have trouble deducing the type of v automatically.
   ComputeHouseholderVector<VT, double, AmbientSpaceDim>(x, &v, &beta);
 
-  // The Jacobian is equal to J = 2.0 * H.leftCols(size_ - 1) where H is the
+  // The Jacobian is equal to J = H.leftCols(size_ - 1) where H is the
   // Householder matrix (H = I - beta * v * v').
   for (int i = 0; i < tangent_size; ++i) {
-    (*jacobian).row(i) = -2.0 * beta * v(i) * v;
-    (*jacobian)(i, i) += 2.0;
+    // NOTE: The transpose is used for correctness (the product is expected to
+    // be a row vector), although here there seems to be no difference between
+    // transposing or not for Eigen (possibly a compile-time auto fix).
+    (*jacobian).row(i) = -beta * v(i) * v.transpose();
+    (*jacobian)(i, i) += 1.0;
   }
   (*jacobian) /= x.norm();
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif

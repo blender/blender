@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -47,14 +47,6 @@
 #define CERES_GET_FLAG(X) X
 #endif
 
-// Indicates whether C++17 is currently active
-#ifndef CERES_HAS_CPP17
-#if __cplusplus >= 201703L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201703L)
-#define CERES_HAS_CPP17
-#endif  // __cplusplus >= 201703L || (defined(_MSVC_LANG) && _MSVC_LANG >=
-        // 201703L)
-#endif  // !defined(CERES_HAS_CPP17)
-
 // Indicates whether C++20 is currently active
 #ifndef CERES_HAS_CPP20
 #if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
@@ -84,5 +76,16 @@
 // general case, because it will prevent argument-dependent lookup (ADL).
 //
 #define CERES_PREVENT_MACRO_SUBSTITUTION  // Yes, it's empty
+
+// CERES_DISABLE_DEPRECATED_WARNING and CERES_RESTORE_DEPRECATED_WARNING allow
+// to temporarily disable deprecation warnings
+#if defined(_MSC_VER)
+#define CERES_DISABLE_DEPRECATED_WARNING \
+  _Pragma("warning(push)") _Pragma("warning(disable : 4996)")
+#define CERES_RESTORE_DEPRECATED_WARNING _Pragma("warning(pop)")
+#else  // defined(_MSC_VER)
+#define CERES_DISABLE_DEPRECATED_WARNING
+#define CERES_RESTORE_DEPRECATED_WARNING
+#endif  // defined(_MSC_VER)
 
 #endif  // CERES_PUBLIC_INTERNAL_PORT_H_

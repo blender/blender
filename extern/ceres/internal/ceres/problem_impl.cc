@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,6 @@
 #include "ceres/internal/fixed_array.h"
 #include "ceres/loss_function.h"
 #include "ceres/manifold.h"
-#include "ceres/manifold_adapter.h"
 #include "ceres/map_util.h"
 #include "ceres/parameter_block.h"
 #include "ceres/program.h"
@@ -64,8 +63,7 @@
 #include "ceres/stringprintf.h"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 namespace {
 // Returns true if two regions of memory, a and b, with sizes size_a and size_b
 // respectively, overlap.
@@ -257,10 +255,6 @@ ProblemImpl::~ProblemImpl() {
     DeleteBlock(parameter_block);
   }
 
-  // Delete the owned parameterizations.
-  STLDeleteUniqueContainerPointers(local_parameterizations_to_delete_.begin(),
-                                   local_parameterizations_to_delete_.end());
-
   // Delete the owned manifolds.
   STLDeleteUniqueContainerPointers(manifolds_to_delete_.begin(),
                                    manifolds_to_delete_.end());
@@ -365,43 +359,13 @@ void ProblemImpl::AddParameterBlock(double* values, int size) {
   InternalAddParameterBlock(values, size);
 }
 
-void ProblemImpl::InternalSetParameterization(
-    double* values,
-    ParameterBlock* parameter_block,
-    LocalParameterization* local_parameterization) {
-  parameter_block_to_local_param_[values] = local_parameterization;
-  Manifold* manifold = nullptr;
-  if (local_parameterization != nullptr) {
-    if (options_.local_parameterization_ownership == TAKE_OWNERSHIP) {
-      local_parameterizations_to_delete_.push_back(local_parameterization);
-    }
-
-    manifold = new ManifoldAdapter(local_parameterization);
-    // Add the manifold to manifolds_to_delete_ unconditionally since
-    // we own it and it will need to be deleted.
-    manifolds_to_delete_.push_back(manifold);
-  }
-
-  parameter_block->SetManifold(manifold);
-}
-
-void ProblemImpl::InternalSetManifold(double* values,
+void ProblemImpl::InternalSetManifold(double* /*values*/,
                                       ParameterBlock* parameter_block,
                                       Manifold* manifold) {
-  // Reset any association between this parameter block and a local
-  // parameterization. This only needs done while we are in the transition from
-  // LocalParameterization to Manifold.
-  parameter_block_to_local_param_[values] = nullptr;
   if (manifold != nullptr && options_.manifold_ownership == TAKE_OWNERSHIP) {
     manifolds_to_delete_.push_back(manifold);
   }
   parameter_block->SetManifold(manifold);
-}
-
-void ProblemImpl::AddParameterBlock(
-    double* values, int size, LocalParameterization* local_parameterization) {
-  ParameterBlock* parameter_block = InternalAddParameterBlock(values, size);
-  InternalSetParameterization(values, parameter_block, local_parameterization);
 }
 
 void ProblemImpl::AddParameterBlock(double* values,
@@ -539,19 +503,6 @@ void ProblemImpl::SetParameterBlockVariable(double* values) {
   parameter_block->SetVarying();
 }
 
-void ProblemImpl::SetParameterization(
-    double* values, LocalParameterization* local_parameterization) {
-  ParameterBlock* parameter_block =
-      FindWithDefault(parameter_block_map_, values, nullptr);
-  if (parameter_block == nullptr) {
-    LOG(FATAL) << "Parameter block not found: " << values
-               << ". You must add the parameter block to the problem before "
-               << "you can set its local parameterization.";
-  }
-
-  InternalSetParameterization(values, parameter_block, local_parameterization);
-}
-
 void ProblemImpl::SetManifold(double* values, Manifold* manifold) {
   ParameterBlock* parameter_block =
       FindWithDefault(parameter_block_map_, values, nullptr);
@@ -564,22 +515,13 @@ void ProblemImpl::SetManifold(double* values, Manifold* manifold) {
   InternalSetManifold(values, parameter_block, manifold);
 }
 
-const LocalParameterization* ProblemImpl::GetParameterization(
-    const double* values) const {
-  return FindWithDefault(parameter_block_to_local_param_, values, nullptr);
-}
-
-bool ProblemImpl::HasParameterization(const double* values) const {
-  return GetParameterization(values) != nullptr;
-}
-
 const Manifold* ProblemImpl::GetManifold(const double* values) const {
   ParameterBlock* parameter_block = FindWithDefault(
       parameter_block_map_, const_cast<double*>(values), nullptr);
   if (parameter_block == nullptr) {
     LOG(FATAL) << "Parameter block not found: " << values
                << ". You must add the parameter block to the problem before "
-               << "you can get its local parameterization.";
+               << "you can get its manifold.";
   }
 
   return parameter_block->manifold();
@@ -730,17 +672,7 @@ bool ProblemImpl::Evaluate(const Problem::EvaluateOptions& evaluate_options,
   // the Evaluator decides the storage for the Jacobian based on the
   // type of linear solver being used.
   evaluator_options.linear_solver_type = SPARSE_NORMAL_CHOLESKY;
-#ifdef CERES_NO_THREADS
-  if (evaluate_options.num_threads > 1) {
-    LOG(WARNING)
-        << "No threading support is compiled into this binary; "
-        << "only evaluate_options.num_threads = 1 is supported. Switching "
-        << "to single threaded mode.";
-  }
-  evaluator_options.num_threads = 1;
-#else
   evaluator_options.num_threads = evaluate_options.num_threads;
-#endif  // CERES_NO_THREADS
 
   // The main thread also does work so we only need to launch num_threads - 1.
   context_impl_->EnsureMinimumThreads(evaluator_options.num_threads - 1);
@@ -968,5 +900,4 @@ void ProblemImpl::GetResidualBlocksForParameterBlock(
   }
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

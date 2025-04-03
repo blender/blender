@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,14 +39,12 @@
 
 namespace ceres {
 
-using std::string;
-
 // clang-format off
 #define CASESTR(x) case x: return #x
 #define STRENUM(x) if (value == #x) { *type = x; return true; }
 // clang-format on
 
-static void UpperCase(string* input) {
+static void UpperCase(std::string* input) {
   std::transform(input->begin(), input->end(), input->begin(), ::toupper);
 }
 
@@ -64,7 +62,7 @@ const char* LinearSolverTypeToString(LinearSolverType type) {
   }
 }
 
-bool StringToLinearSolverType(string value, LinearSolverType* type) {
+bool StringToLinearSolverType(std::string value, LinearSolverType* type) {
   UpperCase(&value);
   STRENUM(DENSE_NORMAL_CHOLESKY);
   STRENUM(DENSE_QR);
@@ -81,6 +79,7 @@ const char* PreconditionerTypeToString(PreconditionerType type) {
     CASESTR(IDENTITY);
     CASESTR(JACOBI);
     CASESTR(SCHUR_JACOBI);
+    CASESTR(SCHUR_POWER_SERIES_EXPANSION);
     CASESTR(CLUSTER_JACOBI);
     CASESTR(CLUSTER_TRIDIAGONAL);
     CASESTR(SUBSET);
@@ -89,11 +88,12 @@ const char* PreconditionerTypeToString(PreconditionerType type) {
   }
 }
 
-bool StringToPreconditionerType(string value, PreconditionerType* type) {
+bool StringToPreconditionerType(std::string value, PreconditionerType* type) {
   UpperCase(&value);
   STRENUM(IDENTITY);
   STRENUM(JACOBI);
   STRENUM(SCHUR_JACOBI);
+  STRENUM(SCHUR_POWER_SERIES_EXPANSION);
   STRENUM(CLUSTER_JACOBI);
   STRENUM(CLUSTER_TRIDIAGONAL);
   STRENUM(SUBSET);
@@ -104,9 +104,9 @@ const char* SparseLinearAlgebraLibraryTypeToString(
     SparseLinearAlgebraLibraryType type) {
   switch (type) {
     CASESTR(SUITE_SPARSE);
-    CASESTR(CX_SPARSE);
     CASESTR(EIGEN_SPARSE);
     CASESTR(ACCELERATE_SPARSE);
+    CASESTR(CUDA_SPARSE);
     CASESTR(NO_SPARSE);
     default:
       return "UNKNOWN";
@@ -114,13 +114,30 @@ const char* SparseLinearAlgebraLibraryTypeToString(
 }
 
 bool StringToSparseLinearAlgebraLibraryType(
-    string value, SparseLinearAlgebraLibraryType* type) {
+    std::string value, SparseLinearAlgebraLibraryType* type) {
   UpperCase(&value);
   STRENUM(SUITE_SPARSE);
-  STRENUM(CX_SPARSE);
   STRENUM(EIGEN_SPARSE);
   STRENUM(ACCELERATE_SPARSE);
+  STRENUM(CUDA_SPARSE);
   STRENUM(NO_SPARSE);
+  return false;
+}
+
+const char* LinearSolverOrderingTypeToString(LinearSolverOrderingType type) {
+  switch (type) {
+    CASESTR(AMD);
+    CASESTR(NESDIS);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+bool StringToLinearSolverOrderingType(std::string value,
+                                      LinearSolverOrderingType* type) {
+  UpperCase(&value);
+  STRENUM(AMD);
+  STRENUM(NESDIS);
   return false;
 }
 
@@ -136,7 +153,7 @@ const char* DenseLinearAlgebraLibraryTypeToString(
 }
 
 bool StringToDenseLinearAlgebraLibraryType(
-    string value, DenseLinearAlgebraLibraryType* type) {
+    std::string value, DenseLinearAlgebraLibraryType* type) {
   UpperCase(&value);
   STRENUM(EIGEN);
   STRENUM(LAPACK);
@@ -153,7 +170,7 @@ const char* TrustRegionStrategyTypeToString(TrustRegionStrategyType type) {
   }
 }
 
-bool StringToTrustRegionStrategyType(string value,
+bool StringToTrustRegionStrategyType(std::string value,
                                      TrustRegionStrategyType* type) {
   UpperCase(&value);
   STRENUM(LEVENBERG_MARQUARDT);
@@ -170,7 +187,7 @@ const char* DoglegTypeToString(DoglegType type) {
   }
 }
 
-bool StringToDoglegType(string value, DoglegType* type) {
+bool StringToDoglegType(std::string value, DoglegType* type) {
   UpperCase(&value);
   STRENUM(TRADITIONAL_DOGLEG);
   STRENUM(SUBSPACE_DOGLEG);
@@ -186,7 +203,7 @@ const char* MinimizerTypeToString(MinimizerType type) {
   }
 }
 
-bool StringToMinimizerType(string value, MinimizerType* type) {
+bool StringToMinimizerType(std::string value, MinimizerType* type) {
   UpperCase(&value);
   STRENUM(TRUST_REGION);
   STRENUM(LINE_SEARCH);
@@ -204,7 +221,7 @@ const char* LineSearchDirectionTypeToString(LineSearchDirectionType type) {
   }
 }
 
-bool StringToLineSearchDirectionType(string value,
+bool StringToLineSearchDirectionType(std::string value,
                                      LineSearchDirectionType* type) {
   UpperCase(&value);
   STRENUM(STEEPEST_DESCENT);
@@ -223,7 +240,7 @@ const char* LineSearchTypeToString(LineSearchType type) {
   }
 }
 
-bool StringToLineSearchType(string value, LineSearchType* type) {
+bool StringToLineSearchType(std::string value, LineSearchType* type) {
   UpperCase(&value);
   STRENUM(ARMIJO);
   STRENUM(WOLFE);
@@ -241,7 +258,7 @@ const char* LineSearchInterpolationTypeToString(
   }
 }
 
-bool StringToLineSearchInterpolationType(string value,
+bool StringToLineSearchInterpolationType(std::string value,
                                          LineSearchInterpolationType* type) {
   UpperCase(&value);
   STRENUM(BISECTION);
@@ -262,7 +279,7 @@ const char* NonlinearConjugateGradientTypeToString(
 }
 
 bool StringToNonlinearConjugateGradientType(
-    string value, NonlinearConjugateGradientType* type) {
+    std::string value, NonlinearConjugateGradientType* type) {
   UpperCase(&value);
   STRENUM(FLETCHER_REEVES);
   STRENUM(POLAK_RIBIERE);
@@ -279,7 +296,7 @@ const char* CovarianceAlgorithmTypeToString(CovarianceAlgorithmType type) {
   }
 }
 
-bool StringToCovarianceAlgorithmType(string value,
+bool StringToCovarianceAlgorithmType(std::string value,
                                      CovarianceAlgorithmType* type) {
   UpperCase(&value);
   STRENUM(DENSE_SVD);
@@ -297,7 +314,8 @@ const char* NumericDiffMethodTypeToString(NumericDiffMethodType type) {
   }
 }
 
-bool StringToNumericDiffMethodType(string value, NumericDiffMethodType* type) {
+bool StringToNumericDiffMethodType(std::string value,
+                                   NumericDiffMethodType* type) {
   UpperCase(&value);
   STRENUM(CENTRAL);
   STRENUM(FORWARD);
@@ -314,7 +332,7 @@ const char* VisibilityClusteringTypeToString(VisibilityClusteringType type) {
   }
 }
 
-bool StringToVisibilityClusteringType(string value,
+bool StringToVisibilityClusteringType(std::string value,
                                       VisibilityClusteringType* type) {
   UpperCase(&value);
   STRENUM(CANONICAL_VIEWS);
@@ -387,14 +405,6 @@ bool IsSparseLinearAlgebraLibraryTypeAvailable(
 #endif
   }
 
-  if (type == CX_SPARSE) {
-#ifdef CERES_NO_CXSPARSE
-    return false;
-#else
-    return true;
-#endif
-  }
-
   if (type == ACCELERATE_SPARSE) {
 #ifdef CERES_NO_ACCELERATE_SPARSE
     return false;
@@ -409,6 +419,18 @@ bool IsSparseLinearAlgebraLibraryTypeAvailable(
 #else
     return false;
 #endif
+  }
+
+  if (type == CUDA_SPARSE) {
+#ifdef CERES_NO_CUDA
+    return false;
+#else
+    return true;
+#endif
+  }
+
+  if (type == NO_SPARSE) {
+    return true;
   }
 
   LOG(WARNING) << "Unknown sparse linear algebra library " << type;

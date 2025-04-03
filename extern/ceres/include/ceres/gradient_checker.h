@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// Copyright 2007 Google Inc. All Rights Reserved.
+// Copyright 2023 Google Inc. All Rights Reserved.
 //
 // Authors: wjr@google.com (William Rucklidge),
 //          keir@google.com (Keir Mierle),
@@ -44,7 +44,6 @@
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/export.h"
 #include "ceres/internal/fixed_array.h"
-#include "ceres/local_parameterization.h"
 #include "ceres/manifold.h"
 #include "glog/logging.h"
 
@@ -59,37 +58,15 @@ namespace ceres {
 //   ------------------------------------  <  relative_precision
 //   max(J_actual(i, j), J_numeric(i, j))
 //
-// where J_actual(i, j) is the jacobian as computed by the supplied cost
-// function (by the user) multiplied by the local parameterization Jacobian
-// and J_numeric is the jacobian as computed by finite differences, multiplied
-// by the local parameterization Jacobian as well.
+// where J_actual(i, j) is the Jacobian as computed by the supplied cost
+// function (by the user) multiplied by the manifold Jacobian and J_numeric is
+// the Jacobian as computed by finite differences, multiplied by the manifold
+// Jacobian as well.
 //
 // How to use: Fill in an array of pointers to parameter blocks for your
 // CostFunction, and then call Probe(). Check that the return value is 'true'.
 class CERES_EXPORT GradientChecker {
  public:
-  // This constructor will not take ownership of the cost function or local
-  // parameterizations.
-  //
-  // function: The cost function to probe.
-  //
-  // local_parameterizations: A vector of local parameterizations, one for each
-  // parameter block. May be nullptr or contain nullptrs to indicate that the
-  // respective parameter does not have a local parameterization.
-  //
-  // options: Options to use for numerical differentiation.
-  //
-  // NOTE: This constructor is deprecated and will be removed in the next public
-  // release of Ceres Solver. Please transition to using the Manifold based
-  // version.
-  CERES_DEPRECATED_WITH_MSG(
-      "Local Parameterizations are deprecated. Use the constructor that uses "
-      "Manifolds instead.")
-  GradientChecker(
-      const CostFunction* function,
-      const std::vector<const LocalParameterization*>* local_parameterizations,
-      const NumericDiffOptions& options);
-
   // This will not take ownership of the cost function or manifolds.
   //
   // function: The cost function to probe.
@@ -102,7 +79,6 @@ class CERES_EXPORT GradientChecker {
   GradientChecker(const CostFunction* function,
                   const std::vector<const Manifold*>* manifolds,
                   const NumericDiffOptions& options);
-  ~GradientChecker();
 
   // Contains results from a call to Probe for later inspection.
   struct CERES_EXPORT ProbeResults {
@@ -165,17 +141,6 @@ class CERES_EXPORT GradientChecker {
   GradientChecker() = delete;
   GradientChecker(const GradientChecker&) = delete;
   void operator=(const GradientChecker&) = delete;
-
-  // This bool is used to determine whether the constructor with the
-  // LocalParameterizations is called or the one with Manifolds is called. If
-  // the former, then the vector of manifolds is a vector of ManifoldAdapter
-  // objects which we own and should be deleted. If the latter then they are
-  // real Manifold objects owned by the caller and will not be deleted.
-  //
-  // This bool is only needed during the LocalParameterization to Manifold
-  // transition, once this transition is complete the LocalParameterization
-  // based constructor and this bool will be removed.
-  const bool delete_manifolds_ = false;
 
   std::vector<const Manifold*> manifolds_;
   const CostFunction* function_;

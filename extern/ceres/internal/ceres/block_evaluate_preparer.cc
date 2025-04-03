@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,7 @@
 #include "ceres/residual_block.h"
 #include "ceres/sparse_matrix.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 void BlockEvaluatePreparer::Init(int const* const* jacobian_layout,
                                  int max_derivatives_per_residual_block) {
@@ -78,5 +77,4 @@ void BlockEvaluatePreparer::Prepare(const ResidualBlock* residual_block,
   }
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

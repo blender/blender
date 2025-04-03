@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -146,7 +146,7 @@ class CovarianceImpl;
 //   a. The rank deficiency arises from overparameterization. e.g., a
 //   four dimensional quaternion used to parameterize SO(3), which is
 //   a three dimensional manifold. In cases like this, the user should
-//   use an appropriate LocalParameterization/Manifold. Not only will this lead
+//   use an appropriate Manifold. Not only will this lead
 //   to better numerical behaviour of the Solver, it will also expose
 //   the rank deficiency to the Covariance object so that it can
 //   handle it correctly.
@@ -246,6 +246,20 @@ class CERES_EXPORT Covariance {
     // used.
     CovarianceAlgorithmType algorithm_type = SPARSE_QR;
 
+    // During QR factorization, if a column with Euclidean norm less
+    // than column_pivot_threshold is encountered it is treated as
+    // zero.
+    //
+    // If column_pivot_threshold < 0, then an automatic default value
+    // of 20*(m+n)*eps*sqrt(max(diag(J’*J))) is used. Here m and n are
+    // the number of rows and columns of the Jacobian (J)
+    // respectively.
+    //
+    // This is an advanced option meant for users who know enough
+    // about their Jacobian matrices that they can determine a value
+    // better than the default.
+    double column_pivot_threshold = -1;
+
     // If the Jacobian matrix is near singular, then inverting J'J
     // will result in unreliable results, e.g, if
     //
@@ -266,7 +280,7 @@ class CERES_EXPORT Covariance {
     //
     //      min_sigma / max_sigma < sqrt(min_reciprocal_condition_number)
     //
-    //    where min_sigma and max_sigma are the minimum and maxiumum
+    //    where min_sigma and max_sigma are the minimum and maximum
     //    singular values of J respectively.
     //
     // 2. SPARSE_QR
@@ -394,11 +408,9 @@ class CERES_EXPORT Covariance {
                           const double* parameter_block2,
                           double* covariance_block) const;
 
-  // Return the block of the cross-covariance matrix corresponding to
-  // parameter_block1 and parameter_block2.
-  // Returns cross-covariance in the tangent space if a local
-  // parameterization is associated with either parameter block;
-  // else returns cross-covariance in the ambient space.
+  // Returns the block of the cross-covariance in the tangent space if a
+  // manifold is associated with either parameter block; else returns
+  // cross-covariance in the ambient space.
   //
   // Compute must be called before the first call to
   // GetCovarianceBlock and the pair <parameter_block1,
@@ -430,9 +442,8 @@ class CERES_EXPORT Covariance {
                            double* covariance_matrix) const;
 
   // Return the covariance matrix corresponding to parameter_blocks
-  // in the tangent space if a local parameterization is associated
-  // with one of the parameter blocks else returns the covariance
-  // matrix in the ambient space.
+  // in the tangent space if a manifold is associated with one of the parameter
+  // blocks else returns the covariance matrix in the ambient space.
   //
   // Compute must be called before calling GetCovarianceMatrix and all
   // parameter_blocks must have been present in the vector

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2017 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -55,14 +55,14 @@
 #include <utility>
 #include <vector>
 
+#include "ceres/block_structure.h"
 #include "ceres/graph.h"
 #include "ceres/linear_solver.h"
 #include "ceres/pair_hash.h"
 #include "ceres/preconditioner.h"
 #include "ceres/sparse_cholesky.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class BlockRandomAccessSparseMatrix;
 class BlockSparseMatrix;
@@ -123,7 +123,7 @@ class SchurEliminatorBase;
 //   VisibilityBasedPreconditioner preconditioner(
 //      *A.block_structure(), options);
 //   preconditioner.Update(A, nullptr);
-//   preconditioner.RightMultiply(x, y);
+//   preconditioner.RightMultiplyAndAccumulate(x, y);
 class CERES_NO_EXPORT VisibilityBasedPreconditioner
     : public BlockSparseMatrixPreconditioner {
  public:
@@ -141,7 +141,7 @@ class CERES_NO_EXPORT VisibilityBasedPreconditioner
   ~VisibilityBasedPreconditioner() override;
 
   // Preconditioner interface
-  void RightMultiply(const double* x, double* y) const final;
+  void RightMultiplyAndAccumulate(const double* x, double* y) const final;
   int num_rows() const final;
 
   friend class VisibilityBasedPreconditionerTest;
@@ -177,7 +177,7 @@ class CERES_NO_EXPORT VisibilityBasedPreconditioner
   int num_clusters_;
 
   // Sizes of the blocks in the schur complement.
-  std::vector<int> block_size_;
+  std::vector<Block> blocks_;
 
   // Mapping from cameras to clusters.
   std::vector<int> cluster_membership_;
@@ -194,10 +194,10 @@ class CERES_NO_EXPORT VisibilityBasedPreconditioner
 
   // Preconditioner matrix.
   std::unique_ptr<BlockRandomAccessSparseMatrix> m_;
+  std::unique_ptr<CompressedRowSparseMatrix> m_crs_;
   std::unique_ptr<SparseCholesky> sparse_cholesky_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_VISIBILITY_BASED_PRECONDITIONER_H_

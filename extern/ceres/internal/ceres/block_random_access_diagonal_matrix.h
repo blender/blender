@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,33 +32,30 @@
 #define CERES_INTERNAL_BLOCK_RANDOM_ACCESS_DIAGONAL_MATRIX_H_
 
 #include <memory>
-#include <set>
 #include <utility>
 #include <vector>
 
 #include "ceres/block_random_access_matrix.h"
+#include "ceres/block_structure.h"
+#include "ceres/compressed_row_sparse_matrix.h"
+#include "ceres/context_impl.h"
 #include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/export.h"
-#include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
-// A thread safe block diagonal matrix implementation of
-// BlockRandomAccessMatrix.
+// A BlockRandomAccessMatrix which only stores the block diagonal.
+// BlockRandomAccessSparseMatrix can also be used to do this, but this class is
+// more efficient in time and in space.
 class CERES_NO_EXPORT BlockRandomAccessDiagonalMatrix
     : public BlockRandomAccessMatrix {
  public:
   // blocks is an array of block sizes.
-  explicit BlockRandomAccessDiagonalMatrix(const std::vector<int>& blocks);
-  BlockRandomAccessDiagonalMatrix(const BlockRandomAccessDiagonalMatrix&) =
-      delete;
-  void operator=(const BlockRandomAccessDiagonalMatrix&) = delete;
-
-  // The destructor is not thread safe. It assumes that no one is
-  // modifying any cells when the matrix is being destroyed.
-  ~BlockRandomAccessDiagonalMatrix() override;
+  BlockRandomAccessDiagonalMatrix(const std::vector<Block>& blocks,
+                                  ContextImpl* context,
+                                  int num_threads);
+  ~BlockRandomAccessDiagonalMatrix() override = default;
 
   // BlockRandomAccessMatrix Interface.
   CellInfo* GetCell(int row_block_id,
@@ -68,36 +65,30 @@ class CERES_NO_EXPORT BlockRandomAccessDiagonalMatrix
                     int* row_stride,
                     int* col_stride) final;
 
-  // This is not a thread safe method, it assumes that no cell is
-  // locked.
+  // m = 0
   void SetZero() final;
 
-  // Invert the matrix assuming that each block is positive definite.
+  // m = m^{-1}
   void Invert();
 
-  // y += S * x
-  void RightMultiply(const double* x, double* y) const;
+  // y += m * x
+  void RightMultiplyAndAccumulate(const double* x, double* y) const;
 
   // Since the matrix is square, num_rows() == num_cols().
-  int num_rows() const final { return tsm_->num_rows(); }
-  int num_cols() const final { return tsm_->num_cols(); }
+  int num_rows() const final { return m_->num_rows(); }
+  int num_cols() const final { return m_->num_cols(); }
 
-  const TripletSparseMatrix* matrix() const { return tsm_.get(); }
-  TripletSparseMatrix* mutable_matrix() { return tsm_.get(); }
+  const CompressedRowSparseMatrix* matrix() const { return m_.get(); }
+  CompressedRowSparseMatrix* mutable_matrix() { return m_.get(); }
 
  private:
-  // row/column block sizes.
-  const std::vector<int> blocks_;
-  std::vector<CellInfo*> layout_;
-
-  // The underlying matrix object which actually stores the cells.
-  std::unique_ptr<TripletSparseMatrix> tsm_;
-
-  friend class BlockRandomAccessDiagonalMatrixTest;
+  ContextImpl* context_ = nullptr;
+  const int num_threads_ = 1;
+  std::unique_ptr<CompressedRowSparseMatrix> m_;
+  std::vector<std::unique_ptr<CellInfo>> layout_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

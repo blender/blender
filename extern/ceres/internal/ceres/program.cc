@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -45,14 +45,14 @@
 #include "ceres/loss_function.h"
 #include "ceres/manifold.h"
 #include "ceres/map_util.h"
+#include "ceres/parallel_for.h"
 #include "ceres/parameter_block.h"
 #include "ceres/problem.h"
 #include "ceres/residual_block.h"
 #include "ceres/stl_util.h"
 #include "ceres/triplet_sparse_matrix.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 const std::vector<ParameterBlock*>& Program::parameter_blocks() const {
   return parameter_blocks_;
@@ -109,16 +109,32 @@ bool Program::SetParameterBlockStatePtrsToUserStatePtrs() {
 
 bool Program::Plus(const double* state,
                    const double* delta,
-                   double* state_plus_delta) const {
-  for (auto* parameter_block : parameter_blocks_) {
-    if (!parameter_block->Plus(state, delta, state_plus_delta)) {
-      return false;
-    }
-    state += parameter_block->Size();
-    delta += parameter_block->TangentSize();
-    state_plus_delta += parameter_block->Size();
-  }
-  return true;
+                   double* state_plus_delta,
+                   ContextImpl* context,
+                   int num_threads) const {
+  std::atomic<bool> abort(false);
+  auto* parameter_blocks = parameter_blocks_.data();
+  ParallelFor(
+      context,
+      0,
+      parameter_blocks_.size(),
+      num_threads,
+      [&abort, state, delta, state_plus_delta, parameter_blocks](int block_id) {
+        if (abort) {
+          return;
+        }
+        auto parameter_block = parameter_blocks[block_id];
+
+        auto block_state = state + parameter_block->state_offset();
+        auto block_delta = delta + parameter_block->delta_offset();
+        auto block_state_plus_delta =
+            state_plus_delta + parameter_block->state_offset();
+        if (!parameter_block->Plus(
+                block_state, block_delta, block_state_plus_delta)) {
+          abort = true;
+        }
+      });
+  return abort == false;
 }
 
 void Program::SetParameterOffsetsAndIndex() {
@@ -545,5 +561,4 @@ std::string Program::ToString() const {
   return ret;
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

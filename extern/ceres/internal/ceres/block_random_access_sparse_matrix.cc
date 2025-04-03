@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,87 +37,63 @@
 #include <vector>
 
 #include "ceres/internal/export.h"
+#include "ceres/parallel_vector_ops.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
-
-using std::make_pair;
-using std::pair;
-using std::set;
-using std::vector;
+namespace ceres::internal {
 
 BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
-    const vector<int>& blocks, const set<pair<int, int>>& block_pairs)
-    : kMaxRowBlocks(10 * 1000 * 1000), blocks_(blocks) {
-  CHECK_LT(blocks.size(), kMaxRowBlocks);
+    const std::vector<Block>& blocks,
+    const std::set<std::pair<int, int>>& block_pairs,
+    ContextImpl* context,
+    int num_threads)
+    : blocks_(blocks), context_(context), num_threads_(num_threads) {
+  CHECK_LE(blocks.size(), std::numeric_limits<std::int32_t>::max());
 
-  // Build the row/column layout vector and count the number of scalar
-  // rows/columns.
-  int num_cols = 0;
-  block_positions_.reserve(blocks_.size());
-  for (int block_size : blocks_) {
-    block_positions_.push_back(num_cols);
-    num_cols += block_size;
+  const int num_cols = NumScalarEntries(blocks);
+  const int num_blocks = blocks.size();
+
+  std::vector<int> num_cells_at_row(num_blocks);
+  for (auto& p : block_pairs) {
+    ++num_cells_at_row[p.first];
   }
-
-  // Count the number of scalar non-zero entries and build the layout
-  // object for looking into the values array of the
-  // TripletSparseMatrix.
+  auto block_structure_ = new CompressedRowBlockStructure;
+  block_structure_->cols = blocks;
+  block_structure_->rows.resize(num_blocks);
+  auto p = block_pairs.begin();
   int num_nonzeros = 0;
-  for (const auto& block_pair : block_pairs) {
-    const int row_block_size = blocks_[block_pair.first];
-    const int col_block_size = blocks_[block_pair.second];
-    num_nonzeros += row_block_size * col_block_size;
-  }
-
-  VLOG(1) << "Matrix Size [" << num_cols << "," << num_cols << "] "
-          << num_nonzeros;
-
-  tsm_ =
-      std::make_unique<TripletSparseMatrix>(num_cols, num_cols, num_nonzeros);
-  tsm_->set_num_nonzeros(num_nonzeros);
-  int* rows = tsm_->mutable_rows();
-  int* cols = tsm_->mutable_cols();
-  double* values = tsm_->mutable_values();
-
-  int pos = 0;
-  for (const auto& block_pair : block_pairs) {
-    const int row_block_size = blocks_[block_pair.first];
-    const int col_block_size = blocks_[block_pair.second];
-    cell_values_.emplace_back(block_pair, values + pos);
-    layout_[IntPairToLong(block_pair.first, block_pair.second)] =
-        new CellInfo(values + pos);
-    pos += row_block_size * col_block_size;
-  }
-
-  // Fill the sparsity pattern of the underlying matrix.
-  for (const auto& block_pair : block_pairs) {
-    const int row_block_id = block_pair.first;
-    const int col_block_id = block_pair.second;
-    const int row_block_size = blocks_[row_block_id];
-    const int col_block_size = blocks_[col_block_id];
-    int pos =
-        layout_[IntPairToLong(row_block_id, col_block_id)]->values - values;
-    for (int r = 0; r < row_block_size; ++r) {
-      for (int c = 0; c < col_block_size; ++c, ++pos) {
-        rows[pos] = block_positions_[row_block_id] + r;
-        cols[pos] = block_positions_[col_block_id] + c;
-        values[pos] = 1.0;
-        DCHECK_LT(rows[pos], tsm_->num_rows());
-        DCHECK_LT(cols[pos], tsm_->num_rows());
-      }
+  // Pairs of block indices are sorted lexicographically, thus pairs
+  // corresponding to a single row-block are stored in segments of index pairs
+  // with constant row-block index and increasing column-block index.
+  // CompressedRowBlockStructure is created by traversing block_pairs set.
+  for (int row_block_id = 0; row_block_id < num_blocks; ++row_block_id) {
+    auto& row = block_structure_->rows[row_block_id];
+    row.block = blocks[row_block_id];
+    row.cells.reserve(num_cells_at_row[row_block_id]);
+    const int row_block_size = blocks[row_block_id].size;
+    // Process all index pairs corresponding to the current row block. Because
+    // index pairs are sorted lexicographically, cells are being appended to the
+    // current row-block till the first change in row-block index
+    for (; p != block_pairs.end() && row_block_id == p->first; ++p) {
+      const int col_block_id = p->second;
+      row.cells.emplace_back(col_block_id, num_nonzeros);
+      num_nonzeros += row_block_size * blocks[col_block_id].size;
     }
   }
-}
-
-// Assume that the user does not hold any locks on any cell blocks
-// when they are calling SetZero.
-BlockRandomAccessSparseMatrix::~BlockRandomAccessSparseMatrix() {
-  for (const auto& entry : layout_) {
-    delete entry.second;
+  bsm_ = std::make_unique<BlockSparseMatrix>(block_structure_);
+  VLOG(1) << "Matrix Size [" << num_cols << "," << num_cols << "] "
+          << num_nonzeros;
+  double* values = bsm_->mutable_values();
+  for (int row_block_id = 0; row_block_id < num_blocks; ++row_block_id) {
+    const auto& cells = block_structure_->rows[row_block_id].cells;
+    for (auto& c : cells) {
+      const int col_block_id = c.block_id;
+      double* const data = values + c.position;
+      layout_[IntPairToInt64(row_block_id, col_block_id)] =
+          std::make_unique<CellInfo>(data);
+    }
   }
 }
 
@@ -127,8 +103,7 @@ CellInfo* BlockRandomAccessSparseMatrix::GetCell(int row_block_id,
                                                  int* col,
                                                  int* row_stride,
                                                  int* col_stride) {
-  const LayoutType::iterator it =
-      layout_.find(IntPairToLong(row_block_id, col_block_id));
+  const auto it = layout_.find(IntPairToInt64(row_block_id, col_block_id));
   if (it == layout_.end()) {
     return nullptr;
   }
@@ -136,44 +111,49 @@ CellInfo* BlockRandomAccessSparseMatrix::GetCell(int row_block_id,
   // Each cell is stored contiguously as its own little dense matrix.
   *row = 0;
   *col = 0;
-  *row_stride = blocks_[row_block_id];
-  *col_stride = blocks_[col_block_id];
-  return it->second;
+  *row_stride = blocks_[row_block_id].size;
+  *col_stride = blocks_[col_block_id].size;
+  return it->second.get();
 }
 
 // Assume that the user does not hold any locks on any cell blocks
 // when they are calling SetZero.
 void BlockRandomAccessSparseMatrix::SetZero() {
-  if (tsm_->num_nonzeros()) {
-    VectorRef(tsm_->mutable_values(), tsm_->num_nonzeros()).setZero();
-  }
+  bsm_->SetZero(context_, num_threads_);
 }
 
-void BlockRandomAccessSparseMatrix::SymmetricRightMultiply(const double* x,
-                                                           double* y) const {
-  for (const auto& cell_position_and_data : cell_values_) {
-    const int row = cell_position_and_data.first.first;
-    const int row_block_size = blocks_[row];
-    const int row_block_pos = block_positions_[row];
+void BlockRandomAccessSparseMatrix::SymmetricRightMultiplyAndAccumulate(
+    const double* x, double* y) const {
+  const auto bs = bsm_->block_structure();
+  const auto values = bsm_->values();
+  const int num_blocks = blocks_.size();
 
-    const int col = cell_position_and_data.first.second;
-    const int col_block_size = blocks_[col];
-    const int col_block_pos = block_positions_[col];
+  for (int row_block_id = 0; row_block_id < num_blocks; ++row_block_id) {
+    const auto& row_block = bs->rows[row_block_id];
+    const int row_block_size = row_block.block.size;
+    const int row_block_pos = row_block.block.position;
 
-    MatrixVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
-        cell_position_and_data.second,
-        row_block_size,
-        col_block_size,
-        x + col_block_pos,
-        y + row_block_pos);
+    for (auto& c : row_block.cells) {
+      const int col_block_id = c.block_id;
+      const int col_block_size = blocks_[col_block_id].size;
+      const int col_block_pos = blocks_[col_block_id].position;
 
-    // Since the matrix is symmetric, but only the upper triangular
-    // part is stored, if the block being accessed is not a diagonal
-    // block, then use the same block to do the corresponding lower
-    // triangular multiply also.
-    if (row != col) {
+      MatrixVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
+          values + c.position,
+          row_block_size,
+          col_block_size,
+          x + col_block_pos,
+          y + row_block_pos);
+      if (col_block_id == row_block_id) {
+        continue;
+      }
+
+      // Since the matrix is symmetric, but only the upper triangular
+      // part is stored, if the block being accessed is not a diagonal
+      // block, then use the same block to do the corresponding lower
+      // triangular multiply also
       MatrixTransposeVectorMultiply<Eigen::Dynamic, Eigen::Dynamic, 1>(
-          cell_position_and_data.second,
+          values + c.position,
           row_block_size,
           col_block_size,
           x + row_block_pos,
@@ -182,5 +162,4 @@ void BlockRandomAccessSparseMatrix::SymmetricRightMultiply(const double* x,
   }
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

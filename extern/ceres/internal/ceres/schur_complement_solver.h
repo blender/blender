@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -54,8 +54,7 @@
 
 #include "ceres/internal/disable_warnings.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class BlockSparseMatrix;
 class SparseCholesky;
@@ -66,7 +65,7 @@ class SparseCholesky;
 //
 //  E y + F z = b
 //
-// Where x = [y;z] is a partition of the variables.  The paritioning
+// Where x = [y;z] is a partition of the variables.  The partitioning
 // of the variables is such that, E'E is a block diagonal
 // matrix. Further, the rows of A are ordered so that for every
 // variable block in y, all the rows containing that variable block
@@ -131,9 +130,8 @@ class CERES_NO_EXPORT SchurComplementSolver : public BlockSparseMatrixSolver {
   }
   const BlockRandomAccessMatrix* lhs() const { return lhs_.get(); }
   BlockRandomAccessMatrix* mutable_lhs() { return lhs_.get(); }
-
-  void set_rhs(std::unique_ptr<double[]> rhs) { rhs_ = std::move(rhs); }
-  const double* rhs() const { return rhs_.get(); }
+  void ResizeRhs(int n) { rhs_.resize(n); }
+  const Vector& rhs() const { return rhs_; }
 
  private:
   virtual void InitStorage(const CompressedRowBlockStructure* bs) = 0;
@@ -145,7 +143,7 @@ class CERES_NO_EXPORT SchurComplementSolver : public BlockSparseMatrixSolver {
 
   std::unique_ptr<SchurEliminatorBase> eliminator_;
   std::unique_ptr<BlockRandomAccessMatrix> lhs_;
-  std::unique_ptr<double[]> rhs_;
+  Vector rhs_;
 };
 
 // Dense Cholesky factorization based solver.
@@ -185,14 +183,15 @@ class CERES_NO_EXPORT SparseSchurComplementSolver final
   LinearSolver::Summary SolveReducedLinearSystemUsingConjugateGradients(
       const LinearSolver::PerSolveOptions& per_solve_options, double* solution);
 
-  // Size of the blocks in the Schur complement.
-  std::vector<int> blocks_;
+  std::vector<Block> blocks_;
   std::unique_ptr<SparseCholesky> sparse_cholesky_;
   std::unique_ptr<BlockRandomAccessDiagonalMatrix> preconditioner_;
+  std::unique_ptr<CompressedRowSparseMatrix> crs_lhs_;
+  Vector cg_solution_;
+  Vector* scratch_[4] = {nullptr, nullptr, nullptr, nullptr};
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

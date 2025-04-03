@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ class CERES_EXPORT NormalPrior final : public CostFunction {
  public:
   // Check that the number of rows in the vector b are the same as the
   // number of columns in the matrix A, crash otherwise.
-  NormalPrior(const Matrix& A, const Vector& b);
+  NormalPrior(const Matrix& A, Vector b);
   bool Evaluate(double const* const* parameters,
                 double* residuals,
                 double** jacobians) const override;

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,7 @@
 #include "ceres/partitioned_matrix_view.h"
 #include "ceres/types.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class BlockSparseMatrix;
 
@@ -82,13 +81,13 @@ class BlockSparseMatrix;
 // (which for our purposes is an easily inverted block diagonal
 // matrix), it can be done in terms of matrix vector products with E,
 // F and (E'E)^-1. This class implements this functionality and other
-// auxilliary bits needed to implement a CG solver on the Schur
+// auxiliary bits needed to implement a CG solver on the Schur
 // complement using the PartitionedMatrixView object.
 //
-// THREAD SAFETY: This class is nqot thread safe. In particular, the
-// RightMultiply (and the LeftMultiply) methods are not thread safe as
-// they depend on mutable arrays used for the temporaries needed to
-// compute the product y += Sx;
+// THREAD SAFETY: This class is not thread safe. In particular, the
+// RightMultiplyAndAccumulate (and the LeftMultiplyAndAccumulate) methods are
+// not thread safe as they depend on mutable arrays used for the temporaries
+// needed to compute the product y += Sx;
 class CERES_NO_EXPORT ImplicitSchurComplement final : public LinearOperator {
  public:
   // num_eliminate_blocks is the number of E blocks in the matrix
@@ -115,13 +114,19 @@ class CERES_NO_EXPORT ImplicitSchurComplement final : public LinearOperator {
   void Init(const BlockSparseMatrix& A, const double* D, const double* b);
 
   // y += Sx, where S is the Schur complement.
-  void RightMultiply(const double* x, double* y) const final;
+  void RightMultiplyAndAccumulate(const double* x, double* y) const final;
 
   // The Schur complement is a symmetric positive definite matrix,
   // thus the left and right multiply operators are the same.
-  void LeftMultiply(const double* x, double* y) const final {
-    RightMultiply(x, y);
+  void LeftMultiplyAndAccumulate(const double* x, double* y) const final {
+    RightMultiplyAndAccumulate(x, y);
   }
+
+  // Following is useful for approximation of S^-1 via power series expansion.
+  // Z = (F'F)^-1 F'E (E'E)^-1 E'F
+  // y += Zx
+  void InversePowerSeriesOperatorRightMultiplyAccumulate(const double* x,
+                                                         double* y) const;
 
   // y = (E'E)^-1 (E'b - E'F x). Given an estimate of the solution to
   // the Schur complement system, this method computes the value of
@@ -138,6 +143,7 @@ class CERES_NO_EXPORT ImplicitSchurComplement final : public LinearOperator {
   }
 
   const BlockSparseMatrix* block_diagonal_FtF_inverse() const {
+    CHECK(compute_ftf_inverse_);
     return block_diagonal_FtF_inverse_.get();
   }
 
@@ -146,25 +152,24 @@ class CERES_NO_EXPORT ImplicitSchurComplement final : public LinearOperator {
   void UpdateRhs();
 
   const LinearSolver::Options& options_;
-
+  bool compute_ftf_inverse_ = false;
   std::unique_ptr<PartitionedMatrixViewBase> A_;
-  const double* D_;
-  const double* b_;
+  const double* D_ = nullptr;
+  const double* b_ = nullptr;
 
   std::unique_ptr<BlockSparseMatrix> block_diagonal_EtE_inverse_;
   std::unique_ptr<BlockSparseMatrix> block_diagonal_FtF_inverse_;
 
   Vector rhs_;
 
-  // Temporary storage vectors used to implement RightMultiply.
+  // Temporary storage vectors used to implement RightMultiplyAndAccumulate.
   mutable Vector tmp_rows_;
   mutable Vector tmp_e_cols_;
   mutable Vector tmp_e_cols_2_;
   mutable Vector tmp_f_cols_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "Eigen/Dense"
+#include "ceres/context_impl.h"
 #include "ceres/cuda_buffer.h"
 #include "ceres/linear_solver.h"
 #include "glog/logging.h"
@@ -49,8 +50,7 @@
 #include "cusolverDn.h"
 #endif  // CERES_NO_CUDA
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // An interface that abstracts away the internal details of various dense linear
 // algebra libraries and offers a simple API for solving dense symmetric
@@ -88,7 +88,7 @@ class CERES_NO_EXPORT DenseCholesky {
                                             std::string* message) = 0;
 
   // Convenience method which combines a call to Factorize and Solve. Solve is
-  // only called if Factorize returns LINEAR_SOLVER_SUCCESS.
+  // only called if Factorize returns LinearSolverTerminationType::SUCCESS.
   //
   // The input matrix lhs may be modified by the implementation to store the
   // factorization, irrespective of whether the method succeeds or not. It is
@@ -115,6 +115,23 @@ class CERES_NO_EXPORT EigenDenseCholesky final : public DenseCholesky {
   std::unique_ptr<LLTType> llt_;
 };
 
+class CERES_NO_EXPORT FloatEigenDenseCholesky final : public DenseCholesky {
+ public:
+  LinearSolverTerminationType Factorize(int num_cols,
+                                        double* lhs,
+                                        std::string* message) override;
+  LinearSolverTerminationType Solve(const double* rhs,
+                                    double* solution,
+                                    std::string* message) override;
+
+ private:
+  Eigen::MatrixXf lhs_;
+  Eigen::VectorXf rhs_;
+  Eigen::VectorXf solution_;
+  using LLTType = Eigen::LLT<Eigen::MatrixXf, Eigen::Lower>;
+  std::unique_ptr<LLTType> llt_;
+};
+
 #ifndef CERES_NO_LAPACK
 class CERES_NO_EXPORT LAPACKDenseCholesky final : public DenseCholesky {
  public:
@@ -128,9 +145,52 @@ class CERES_NO_EXPORT LAPACKDenseCholesky final : public DenseCholesky {
  private:
   double* lhs_ = nullptr;
   int num_cols_ = -1;
-  LinearSolverTerminationType termination_type_ = LINEAR_SOLVER_FATAL_ERROR;
+  LinearSolverTerminationType termination_type_ =
+      LinearSolverTerminationType::FATAL_ERROR;
+};
+
+class CERES_NO_EXPORT FloatLAPACKDenseCholesky final : public DenseCholesky {
+ public:
+  LinearSolverTerminationType Factorize(int num_cols,
+                                        double* lhs,
+                                        std::string* message) override;
+  LinearSolverTerminationType Solve(const double* rhs,
+                                    double* solution,
+                                    std::string* message) override;
+
+ private:
+  Eigen::MatrixXf lhs_;
+  Eigen::VectorXf rhs_and_solution_;
+  int num_cols_ = -1;
+  LinearSolverTerminationType termination_type_ =
+      LinearSolverTerminationType::FATAL_ERROR;
 };
 #endif  // CERES_NO_LAPACK
+
+class DenseIterativeRefiner;
+
+// Computes an initial solution using the given instance of
+// DenseCholesky, and then refines it using the DenseIterativeRefiner.
+class CERES_NO_EXPORT RefinedDenseCholesky final : public DenseCholesky {
+ public:
+  RefinedDenseCholesky(
+      std::unique_ptr<DenseCholesky> dense_cholesky,
+      std::unique_ptr<DenseIterativeRefiner> iterative_refiner);
+  ~RefinedDenseCholesky() override;
+
+  LinearSolverTerminationType Factorize(int num_cols,
+                                        double* lhs,
+                                        std::string* message) override;
+  LinearSolverTerminationType Solve(const double* rhs,
+                                    double* solution,
+                                    std::string* message) override;
+
+ private:
+  std::unique_ptr<DenseCholesky> dense_cholesky_;
+  std::unique_ptr<DenseIterativeRefiner> iterative_refiner_;
+  double* lhs_ = nullptr;
+  int num_cols_;
+};
 
 #ifndef CERES_NO_CUDA
 // CUDA implementation of DenseCholesky using the cuSolverDN library using the
@@ -149,16 +209,9 @@ class CERES_NO_EXPORT CUDADenseCholesky final : public DenseCholesky {
                                     std::string* message) override;
 
  private:
-  CUDADenseCholesky() = default;
-  // Picks up the cuSolverDN and cuStream handles from the context. If
-  // the context is unable to initialize CUDA, returns false with a
-  // human-readable message indicating the reason.
-  bool Init(ContextImpl* context, std::string* message);
+  explicit CUDADenseCholesky(ContextImpl* context);
 
-  // Handle to the cuSOLVER context.
-  cusolverDnHandle_t cusolver_handle_ = nullptr;
-  // CUDA device stream.
-  cudaStream_t stream_ = nullptr;
+  ContextImpl* context_ = nullptr;
   // Number of columns in the A matrix, to be cached between calls to *Factorize
   // and *Solve.
   size_t num_cols_ = 0;
@@ -171,13 +224,85 @@ class CERES_NO_EXPORT CUDADenseCholesky final : public DenseCholesky {
   // Required for error handling with cuSOLVER.
   CudaBuffer<int> error_;
   // Cache the result of Factorize to ensure that when Solve is called, the
-  // factiorization of lhs is valid.
-  LinearSolverTerminationType factorize_result_ = LINEAR_SOLVER_FATAL_ERROR;
+  // factorization of lhs is valid.
+  LinearSolverTerminationType factorize_result_ =
+      LinearSolverTerminationType::FATAL_ERROR;
+};
+
+// A mixed-precision iterative refinement dense Cholesky solver using FP32 CUDA
+// Dense Cholesky for inner iterations, and FP64 outer refinements.
+// This class implements a modified version of the  "Classical iterative
+// refinement" (Algorithm 4.1) from the following paper:
+// Haidar, Azzam, Harun Bayraktar, Stanimire Tomov, Jack Dongarra, and Nicholas
+// J. Higham. "Mixed-precision iterative refinement using tensor cores on GPUs
+// to accelerate solution of linear systems." Proceedings of the Royal Society A
+// 476, no. 2243 (2020): 20200110.
+//
+// The three key modifications from Algorithm 4.1 in the paper are:
+// 1. We use Cholesky factorization instead of LU factorization since our A is
+//    symmetric positive definite.
+// 2. During the solution update, the up-cast and accumulation is performed in
+//    one step with a custom kernel.
+class CERES_NO_EXPORT CUDADenseCholeskyMixedPrecision final
+    : public DenseCholesky {
+ public:
+  static std::unique_ptr<CUDADenseCholeskyMixedPrecision> Create(
+      const LinearSolver::Options& options);
+  CUDADenseCholeskyMixedPrecision(const CUDADenseCholeskyMixedPrecision&) =
+      delete;
+  CUDADenseCholeskyMixedPrecision& operator=(
+      const CUDADenseCholeskyMixedPrecision&) = delete;
+  LinearSolverTerminationType Factorize(int num_cols,
+                                        double* lhs,
+                                        std::string* message) override;
+  LinearSolverTerminationType Solve(const double* rhs,
+                                    double* solution,
+                                    std::string* message) override;
+
+ private:
+  CUDADenseCholeskyMixedPrecision(ContextImpl* context,
+                                  int max_num_refinement_iterations);
+
+  // Helper function to wrap Cuda boilerplate needed to call Spotrf.
+  LinearSolverTerminationType CudaCholeskyFactorize(std::string* message);
+  // Helper function to wrap Cuda boilerplate needed to call Spotrs.
+  LinearSolverTerminationType CudaCholeskySolve(std::string* message);
+  // Picks up the cuSolverDN and cuStream handles from the context in the
+  // options, and the number of refinement iterations from the options. If
+  // the context is unable to initialize CUDA, returns false with a
+  // human-readable message indicating the reason.
+  bool Init(const LinearSolver::Options& options, std::string* message);
+
+  ContextImpl* context_ = nullptr;
+  // Number of columns in the A matrix, to be cached between calls to *Factorize
+  // and *Solve.
+  size_t num_cols_ = 0;
+  CudaBuffer<double> lhs_fp64_;
+  CudaBuffer<double> rhs_fp64_;
+  CudaBuffer<float> lhs_fp32_;
+  // Scratch space for cuSOLVER on the GPU.
+  CudaBuffer<float> device_workspace_;
+  // Required for error handling with cuSOLVER.
+  CudaBuffer<int> error_;
+
+  // Solution to lhs * x = rhs.
+  CudaBuffer<double> x_fp64_;
+  // Incremental correction to x.
+  CudaBuffer<float> correction_fp32_;
+  // Residual to iterative refinement.
+  CudaBuffer<float> residual_fp32_;
+  CudaBuffer<double> residual_fp64_;
+
+  // Number of inner refinement iterations to perform.
+  int max_num_refinement_iterations_ = 0;
+  // Cache the result of Factorize to ensure that when Solve is called, the
+  // factorization of lhs is valid.
+  LinearSolverTerminationType factorize_result_ =
+      LinearSolverTerminationType::FATAL_ERROR;
 };
 
 #endif  // CERES_NO_CUDA
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_DENSE_CHOLESKY_H_

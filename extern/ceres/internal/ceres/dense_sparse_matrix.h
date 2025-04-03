@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,7 @@
 #include "ceres/sparse_matrix.h"
 #include "ceres/types.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class TripletSparseMatrix;
 
@@ -54,8 +53,8 @@ class CERES_NO_EXPORT DenseSparseMatrix final : public SparseMatrix {
 
   // SparseMatrix interface.
   void SetZero() final;
-  void RightMultiply(const double* x, double* y) const final;
-  void LeftMultiply(const double* x, double* y) const final;
+  void RightMultiplyAndAccumulate(const double* x, double* y) const final;
+  void LeftMultiplyAndAccumulate(const double* x, double* y) const final;
   void SquaredColumnNorm(double* x) const final;
   void ScaleColumns(const double* scale) final;
   void ToDenseMatrix(Matrix* dense_matrix) const final;
@@ -73,8 +72,7 @@ class CERES_NO_EXPORT DenseSparseMatrix final : public SparseMatrix {
   Matrix m_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

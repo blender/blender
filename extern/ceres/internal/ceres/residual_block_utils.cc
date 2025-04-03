@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <string>
 
 #include "ceres/array_utils.h"
 #include "ceres/internal/eigen.h"
@@ -42,10 +43,7 @@
 #include "ceres/stringprintf.h"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
-
-using std::string;
+namespace ceres::internal {
 
 void InvalidateEvaluation(const ResidualBlock& block,
                           double* cost,
@@ -64,17 +62,17 @@ void InvalidateEvaluation(const ResidualBlock& block,
   }
 }
 
-string EvaluationToString(const ResidualBlock& block,
-                          double const* const* parameters,
-                          double* cost,
-                          double* residuals,
-                          double** jacobians) {
+std::string EvaluationToString(const ResidualBlock& block,
+                               double const* const* parameters,
+                               double* cost,
+                               double* residuals,
+                               double** jacobians) {
   CHECK(cost != nullptr);
   CHECK(residuals != nullptr);
 
   const int num_parameter_blocks = block.NumParameterBlocks();
   const int num_residuals = block.NumResiduals();
-  string result = "";
+  std::string result = "";
 
   // clang-format off
   StringAppendF(&result,
@@ -89,7 +87,7 @@ string EvaluationToString(const ResidualBlock& block,
       "to Inf or NaN is also an error.  \n\n"; // NOLINT
   // clang-format on
 
-  string space = "Residuals:     ";
+  std::string space = "Residuals:     ";
   result += space;
   AppendArrayToString(num_residuals, residuals, &result);
   StringAppendF(&result, "\n\n");
@@ -117,9 +115,11 @@ string EvaluationToString(const ResidualBlock& block,
   return result;
 }
 
+// TODO(sameeragarwal) Check cost value validness here
+// Cost value is a part of evaluation but not checked here since according to
+// residual_block.cc cost is not valid at the time this method is called
 bool IsEvaluationValid(const ResidualBlock& block,
-                       double const* const* parameters,
-                       double* cost,
+                       double const* const* /*parameters*/,
                        double* residuals,
                        double** jacobians) {
   const int num_parameter_blocks = block.NumParameterBlocks();
@@ -141,5 +141,4 @@ bool IsEvaluationValid(const ResidualBlock& block,
   return true;
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

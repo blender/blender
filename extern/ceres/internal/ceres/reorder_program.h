@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,12 @@
 
 #include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/export.h"
+#include "ceres/linear_solver.h"
 #include "ceres/parameter_block_ordering.h"
 #include "ceres/problem_impl.h"
 #include "ceres/types.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class Program;
 
@@ -76,6 +76,7 @@ CERES_NO_EXPORT bool LexicographicallyOrderResidualBlocks(
 CERES_NO_EXPORT bool ReorderProgramForSchurTypeLinearSolver(
     LinearSolverType linear_solver_type,
     SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type,
+    LinearSolverOrderingType linear_solver_ordering_type,
     const ProblemImpl::ParameterMap& parameter_map,
     ParameterBlockOrdering* parameter_block_ordering,
     Program* program,
@@ -93,6 +94,7 @@ CERES_NO_EXPORT bool ReorderProgramForSchurTypeLinearSolver(
 // ordering will take it into account, otherwise it will be ignored.
 CERES_NO_EXPORT bool ReorderProgramForSparseCholesky(
     SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type,
+    LinearSolverOrderingType linear_solver_ordering_type,
     const ParameterBlockOrdering& parameter_block_ordering,
     int start_row_block,
     Program* program,
@@ -112,8 +114,15 @@ CERES_NO_EXPORT int ReorderResidualBlocksByPartition(
     const std::unordered_set<ResidualBlockId>& bottom_residual_blocks,
     Program* program);
 
-}  // namespace internal
-}  // namespace ceres
+// The return value of this function indicates whether the columns of
+// the Jacobian can be reordered using a fill reducing ordering.
+CERES_NO_EXPORT bool AreJacobianColumnsOrdered(
+    LinearSolverType linear_solver_type,
+    PreconditionerType preconditioner_type,
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type,
+    LinearSolverOrderingType linear_solver_ordering_type);
+
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

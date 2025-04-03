@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2016 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -42,9 +42,11 @@
 #include "Eigen/Core"
 #include "ceres/array_utils.h"
 #include "ceres/coordinate_descent_minimizer.h"
+#include "ceres/eigen_vector_ops.h"
 #include "ceres/evaluator.h"
 #include "ceres/file.h"
 #include "ceres/line_search.h"
+#include "ceres/parallel_for.h"
 #include "ceres/stringprintf.h"
 #include "ceres/types.h"
 #include "ceres/wall_time.h"
@@ -59,8 +61,7 @@
     }                                                            \
   } while (0)
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
                                     double* parameters,
@@ -79,6 +80,7 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
           ? options_.max_consecutive_nonmonotonic_steps
           : 0);
 
+  bool atleast_one_successful_step = false;
   while (FinalizeIterationAndCheckIfMinimizerCanContinue()) {
     iteration_start_time_in_secs_ = WallTimeInSeconds();
 
@@ -106,7 +108,7 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
     ComputeCandidatePointAndEvaluateCost();
     DoInnerIterationsIfNeeded();
 
-    if (ParameterToleranceReached()) {
+    if (atleast_one_successful_step && ParameterToleranceReached()) {
       return;
     }
 
@@ -115,6 +117,7 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
     }
 
     if (IsStepSuccessful()) {
+      atleast_one_successful_step = true;
       RETURN_IF_ERROR_AND_LOG(HandleSuccessfulStep());
     } else {
       // Declare the step unsuccessful and inform the trust region strategy.
@@ -137,8 +140,8 @@ void TrustRegionMinimizer::Init(const Minimizer::Options& options,
                                 double* parameters,
                                 Solver::Summary* solver_summary) {
   options_ = options;
-  sort(options_.trust_region_minimizer_iterations_to_dump.begin(),
-       options_.trust_region_minimizer_iterations_to_dump.end());
+  std::sort(options_.trust_region_minimizer_iterations_to_dump.begin(),
+            options_.trust_region_minimizer_iterations_to_dump.end());
 
   parameters_ = parameters;
 
@@ -166,7 +169,6 @@ void TrustRegionMinimizer::Init(const Minimizer::Options& options,
   num_consecutive_invalid_steps_ = 0;
 
   x_ = ConstVectorRef(parameters_, num_parameters_);
-  x_norm_ = x_.norm();
   residuals_.resize(num_residuals_);
   trust_region_step_.resize(num_effective_parameters_);
   delta_.resize(num_effective_parameters_);
@@ -180,7 +182,6 @@ void TrustRegionMinimizer::Init(const Minimizer::Options& options,
   // the Jacobian, we will compute and overwrite this vector.
   jacobian_scaling_ = Vector::Ones(num_effective_parameters_);
 
-  x_norm_ = -1;  // Invalid value
   x_cost_ = std::numeric_limits<double>::max();
   minimum_cost_ = x_cost_;
   model_cost_change_ = 0.0;
@@ -214,10 +215,11 @@ bool TrustRegionMinimizer::IterationZero() {
     }
 
     x_ = candidate_x_;
-    x_norm_ = x_.norm();
   }
 
   if (!EvaluateGradientAndJacobian(/*new_evaluation_point=*/true)) {
+    solver_summary_->message =
+        "Initial residual and Jacobian evaluation failed.";
     return false;
   }
 
@@ -270,7 +272,8 @@ bool TrustRegionMinimizer::EvaluateGradientAndJacobian(
     }
 
     // jacobian = jacobian * diag(J'J) ^{-1}
-    jacobian_->ScaleColumns(jacobian_scaling_.data());
+    jacobian_->ScaleColumns(
+        jacobian_scaling_.data(), options_.context, options_.num_threads);
   }
 
   // The gradient exists in the local tangent space. To account for
@@ -357,13 +360,13 @@ bool TrustRegionMinimizer::FinalizeIterationAndCheckIfMinimizerCanContinue() {
 // Compute the trust region step using the TrustRegionStrategy chosen
 // by the user.
 //
-// If the strategy returns with LINEAR_SOLVER_FATAL_ERROR, which
+// If the strategy returns with LinearSolverTerminationType::FATAL_ERROR, which
 // indicates an unrecoverable error, return false. This is the only
 // condition that returns false.
 //
-// If the strategy returns with LINEAR_SOLVER_FAILURE, which indicates
-// a numerical failure that could be recovered from by retrying
-// (e.g. by increasing the strength of the regularization), we set
+// If the strategy returns with LinearSolverTerminationType::FAILURE, which
+// indicates a numerical failure that could be recovered from by retrying (e.g.
+// by increasing the strength of the regularization), we set
 // iteration_summary_.step_is_valid to false and return true.
 //
 // In all other cases, we compute the decrease in the trust region
@@ -395,7 +398,8 @@ bool TrustRegionMinimizer::ComputeTrustRegionStep() {
                              residuals_.data(),
                              trust_region_step_.data());
 
-  if (strategy_summary.termination_type == LINEAR_SOLVER_FATAL_ERROR) {
+  if (strategy_summary.termination_type ==
+      LinearSolverTerminationType::FATAL_ERROR) {
     solver_summary_->message =
         "Linear solver failed due to unrecoverable "
         "non-numeric causes. Please see the error log for clues. ";
@@ -407,7 +411,8 @@ bool TrustRegionMinimizer::ComputeTrustRegionStep() {
       WallTimeInSeconds() - strategy_start_time;
   iteration_summary_.linear_solver_iterations = strategy_summary.num_iterations;
 
-  if (strategy_summary.termination_type == LINEAR_SOLVER_FAILURE) {
+  if (strategy_summary.termination_type ==
+      LinearSolverTerminationType::FAILURE) {
     return true;
   }
 
@@ -419,10 +424,15 @@ bool TrustRegionMinimizer::ComputeTrustRegionStep() {
   //  = f'f/2  - 1/2 [ f'f + 2f'J * step + step' * J' * J * step]
   //  = -f'J * step - step' * J' * J * step / 2
   //  = -(J * step)'(f + J * step / 2)
-  model_residuals_.setZero();
-  jacobian_->RightMultiply(trust_region_step_.data(), model_residuals_.data());
-  model_cost_change_ =
-      -model_residuals_.dot(residuals_ + model_residuals_ / 2.0);
+  ParallelSetZero(options_.context, options_.num_threads, model_residuals_);
+  jacobian_->RightMultiplyAndAccumulate(trust_region_step_.data(),
+                                        model_residuals_.data(),
+                                        options_.context,
+                                        options_.num_threads);
+  model_cost_change_ = -Dot(model_residuals_,
+                            residuals_ + model_residuals_ / 2.0,
+                            options_.context,
+                            options_.num_threads);
 
   // TODO(sameeragarwal)
   //
@@ -432,7 +442,10 @@ bool TrustRegionMinimizer::ComputeTrustRegionStep() {
   iteration_summary_.step_is_valid = (model_cost_change_ > 0.0);
   if (iteration_summary_.step_is_valid) {
     // Undo the Jacobian column scaling.
-    delta_ = (trust_region_step_.array() * jacobian_scaling_.array()).matrix();
+    ParallelAssign(options_.context,
+                   options_.num_threads,
+                   delta_,
+                   (trust_region_step_.array() * jacobian_scaling_.array()));
     num_consecutive_invalid_steps_ = 0;
   }
 
@@ -702,10 +715,12 @@ bool TrustRegionMinimizer::MinTrustRegionRadiusReached() {
 
 // Solver::Options::parameter_tolerance based convergence check.
 bool TrustRegionMinimizer::ParameterToleranceReached() {
+  const double x_norm = x_.norm();
+
   // Compute the norm of the step in the ambient space.
   iteration_summary_.step_norm = (x_ - candidate_x_).norm();
   const double step_size_tolerance =
-      options_.parameter_tolerance * (x_norm_ + options_.parameter_tolerance);
+      options_.parameter_tolerance * (x_norm + options_.parameter_tolerance);
 
   if (iteration_summary_.step_norm > step_size_tolerance) {
     return false;
@@ -714,7 +729,7 @@ bool TrustRegionMinimizer::ParameterToleranceReached() {
   solver_summary_->message = StringPrintf(
       "Parameter tolerance reached. "
       "Relative step_norm: %e <= %e.",
-      (iteration_summary_.step_norm / (x_norm_ + options_.parameter_tolerance)),
+      (iteration_summary_.step_norm / (x_norm + options_.parameter_tolerance)),
       options_.parameter_tolerance);
   solver_summary_->termination_type = CONVERGENCE;
   if (is_not_silent_) {
@@ -807,7 +822,6 @@ bool TrustRegionMinimizer::IsStepSuccessful() {
 // evaluator know that the step has been accepted.
 bool TrustRegionMinimizer::HandleSuccessfulStep() {
   x_ = candidate_x_;
-  x_norm_ = x_.norm();
 
   // Since the step was successful, this point has already had the residual
   // evaluated (but not the jacobian). So indicate that to the evaluator.
@@ -821,5 +835,4 @@ bool TrustRegionMinimizer::HandleSuccessfulStep() {
   return true;
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,30 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-//
-// Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#include "ceres/float_cxsparse.h"
+#include "ceres/parallel_vector_ops.h"
 
-#include <memory>
+#include <algorithm>
+#include <tuple>
 
-#if !defined(CERES_NO_CXSPARSE)
+#include "ceres/context_impl.h"
+#include "ceres/parallel_for.h"
 
-namespace ceres {
-namespace internal {
-
-std::unique_ptr<SparseCholesky> FloatCXSparseCholesky::Create(
-    OrderingType ordering_type) {
-  LOG(FATAL) << "FloatCXSparseCholesky is not available.";
-  return {};
+namespace ceres::internal {
+void ParallelSetZero(ContextImpl* context,
+                     int num_threads,
+                     double* values,
+                     int num_values) {
+  ParallelFor(
+      context,
+      0,
+      num_values,
+      num_threads,
+      [values](std::tuple<int, int> range) {
+        auto [start, end] = range;
+        std::fill(values + start, values + end, 0.);
+      },
+      kMinBlockSizeParallelVectorOps);
 }
 
-}  // namespace internal
-}  // namespace ceres
-
-#endif  // !defined(CERES_NO_CXSPARSE)
+}  // namespace ceres::internal

@@ -41,8 +41,7 @@
 #include "ceres/internal/memory.h"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 constexpr static auto kFixedArrayUseDefault = static_cast<size_t>(-1);
 
@@ -372,8 +371,8 @@ class FixedArray {
     return std::addressof(ptr->array);
   }
 
-  static_assert(sizeof(StorageElement) == sizeof(value_type), "");
-  static_assert(alignof(StorageElement) == alignof(value_type), "");
+  static_assert(sizeof(StorageElement) == sizeof(value_type));
+  static_assert(alignof(StorageElement) == alignof(value_type));
 
   class NonEmptyInlinedStorage {
    public:
@@ -461,7 +460,6 @@ template <typename T, size_t N, typename A>
 constexpr typename FixedArray<T, N, A>::size_type
     FixedArray<T, N, A>::inline_elements;
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_PUBLIC_INTERNAL_FIXED_ARRAY_H_

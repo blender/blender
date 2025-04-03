@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,34 +26,17 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: sameeragarwal@google.com (Sameer Agarwal)
+// Author: hellston20a@gmail.com (H S Helson Go)
 
-#ifndef CERES_INTERNAL_FLOAT_CXSPARSE_H_
-#define CERES_INTERNAL_FLOAT_CXSPARSE_H_
+#ifndef CERES_PUBLIC_CONSTANTS_H_
+#define CERES_PUBLIC_CONSTANTS_H_
 
-// This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/config.h"
+// TODO(HSHelson): This header should no longer be necessary once C++20's
+// <numbers> (e.g. std::numbers::pi_v) becomes usable
+namespace ceres::constants {
+template <typename T>
+inline constexpr T pi_v(3.141592653589793238462643383279502884);
+inline constexpr double pi = pi_v<double>;
+}  // namespace ceres::constants
 
-#if !defined(CERES_NO_CXSPARSE)
-
-#include <memory>
-
-#include "ceres/internal/export.h"
-#include "ceres/sparse_cholesky.h"
-
-namespace ceres {
-namespace internal {
-
-// Fake implementation of a single precision Sparse Cholesky using
-// CXSparse.
-class CERES_NO_EXPORT FloatCXSparseCholesky : public SparseCholesky {
- public:
-  static std::unique_ptr<SparseCholesky> Create(OrderingType ordering_type);
-};
-
-}  // namespace internal
-}  // namespace ceres
-
-#endif  // !defined(CERES_NO_CXSPARSE)
-
-#endif  // CERES_INTERNAL_FLOAT_CXSPARSE_H_
+#endif  // CERES_PUBLIC_CONSTANTS_H_

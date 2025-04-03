@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "Eigen/Dense"
+#include "ceres/context_impl.h"
 #include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/export.h"
@@ -54,8 +55,7 @@
 #include "cusolverDn.h"
 #endif  // CERES_NO_CUDA
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // An interface that abstracts away the internal details of various dense linear
 // algebra libraries and offers a simple API for solving dense linear systems
@@ -92,7 +92,7 @@ class CERES_NO_EXPORT DenseQR {
                                             std::string* message) = 0;
 
   // Convenience method which combines a call to Factorize and Solve. Solve is
-  // only called if Factorize returns LINEAR_SOLVER_SUCCESS.
+  // only called if Factorize returns LinearSolverTerminationType::SUCCESS.
   //
   // The input matrix lhs may be modified by the implementation to store the
   // factorization, irrespective of whether the method succeeds or not. It is
@@ -136,7 +136,8 @@ class CERES_NO_EXPORT LAPACKDenseQR final : public DenseQR {
   double* lhs_ = nullptr;
   int num_rows_;
   int num_cols_;
-  LinearSolverTerminationType termination_type_ = LINEAR_SOLVER_FATAL_ERROR;
+  LinearSolverTerminationType termination_type_ =
+      LinearSolverTerminationType::FATAL_ERROR;
   Vector work_;
   Vector tau_;
   Vector q_transpose_rhs_;
@@ -164,18 +165,9 @@ class CERES_NO_EXPORT CUDADenseQR final : public DenseQR {
                                     std::string* message) override;
 
  private:
-  CUDADenseQR();
-  // Picks up the cuSolverDN, cuBLAS, and cuStream handles from the context. If
-  // the context is unable to initialize CUDA, returns false with a
-  // human-readable message indicating the reason.
-  bool Init(ContextImpl* context, std::string* message);
+  explicit CUDADenseQR(ContextImpl* context);
 
-  // Handle to the cuSOLVER context.
-  cusolverDnHandle_t cusolver_handle_ = nullptr;
-  // Handle to cuBLAS context.
-  cublasHandle_t cublas_handle_ = nullptr;
-  // CUDA device stream.
-  cudaStream_t stream_ = nullptr;
+  ContextImpl* context_ = nullptr;
   // Number of rowns in the A matrix, to be cached between calls to *Factorize
   // and *Solve.
   size_t num_rows_ = 0;
@@ -194,13 +186,13 @@ class CERES_NO_EXPORT CUDADenseQR final : public DenseQR {
   CudaBuffer<int> error_;
   // Cache the result of Factorize to ensure that when Solve is called, the
   // factiorization of lhs is valid.
-  LinearSolverTerminationType factorize_result_ = LINEAR_SOLVER_FATAL_ERROR;
+  LinearSolverTerminationType factorize_result_ =
+      LinearSolverTerminationType::FATAL_ERROR;
 };
 
 #endif  // CERES_NO_CUDA
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

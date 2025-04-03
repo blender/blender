@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2016 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@
 #include <vector>
 
 #include "ceres/is_close.h"
-#include "ceres/manifold_adapter.h"
 #include "ceres/stringprintf.h"
 #include "ceres/types.h"
 
@@ -49,8 +48,6 @@ namespace ceres {
 using internal::IsClose;
 using internal::StringAppendF;
 using internal::StringPrintf;
-using std::string;
-using std::vector;
 
 namespace {
 // Evaluate the cost function and transform the returned Jacobians to
@@ -65,12 +62,12 @@ bool EvaluateCostFunction(const CostFunction* function,
   CHECK(jacobians != nullptr);
   CHECK(local_jacobians != nullptr);
 
-  const vector<int32_t>& block_sizes = function->parameter_block_sizes();
+  const std::vector<int32_t>& block_sizes = function->parameter_block_sizes();
   const int num_parameter_blocks = block_sizes.size();
 
   // Allocate Jacobian matrices in tangent space.
   local_jacobians->resize(num_parameter_blocks);
-  vector<double*> local_jacobian_data(num_parameter_blocks);
+  std::vector<double*> local_jacobian_data(num_parameter_blocks);
   for (int i = 0; i < num_parameter_blocks; ++i) {
     int block_size = block_sizes.at(i);
     if (manifolds.at(i) != nullptr) {
@@ -83,7 +80,7 @@ bool EvaluateCostFunction(const CostFunction* function,
 
   // Allocate Jacobian matrices in ambient space.
   jacobians->resize(num_parameter_blocks);
-  vector<double*> jacobian_data(num_parameter_blocks);
+  std::vector<double*> jacobian_data(num_parameter_blocks);
   for (int i = 0; i < num_parameter_blocks; ++i) {
     jacobians->at(i).resize(function->num_residuals(), block_sizes.at(i));
     jacobians->at(i).setZero();
@@ -116,39 +113,8 @@ bool EvaluateCostFunction(const CostFunction* function,
 }
 }  // namespace
 
-GradientChecker::GradientChecker(
-    const CostFunction* function,
-    const vector<const LocalParameterization*>* local_parameterizations,
-    const NumericDiffOptions& options)
-    : delete_manifolds_(true), function_(function) {
-  CHECK(function != nullptr);
-  manifolds_.resize(function->parameter_block_sizes().size(), nullptr);
-
-  // Wrap the local parameterization into manifold objects using
-  // ManifoldAdapter.
-  for (int i = 0; i < manifolds_.size(); ++i) {
-    const LocalParameterization* local_param = local_parameterizations->at(i);
-    if (local_param == nullptr) {
-      continue;
-    }
-    manifolds_[i] = new internal::ManifoldAdapter(local_param);
-  }
-
-  auto finite_diff_cost_function =
-      std::make_unique<DynamicNumericDiffCostFunction<CostFunction, RIDDERS>>(
-          function, DO_NOT_TAKE_OWNERSHIP, options);
-  const vector<int32_t>& parameter_block_sizes =
-      function->parameter_block_sizes();
-  for (int32_t parameter_block_size : parameter_block_sizes) {
-    finite_diff_cost_function->AddParameterBlock(parameter_block_size);
-  }
-  finite_diff_cost_function->SetNumResiduals(function->num_residuals());
-
-  finite_diff_cost_function_ = std::move(finite_diff_cost_function);
-}
-
 GradientChecker::GradientChecker(const CostFunction* function,
-                                 const vector<const Manifold*>* manifolds,
+                                 const std::vector<const Manifold*>* manifolds,
                                  const NumericDiffOptions& options)
     : function_(function) {
   CHECK(function != nullptr);
@@ -161,7 +127,7 @@ GradientChecker::GradientChecker(const CostFunction* function,
   auto finite_diff_cost_function =
       std::make_unique<DynamicNumericDiffCostFunction<CostFunction, RIDDERS>>(
           function, DO_NOT_TAKE_OWNERSHIP, options);
-  const vector<int32_t>& parameter_block_sizes =
+  const std::vector<int32_t>& parameter_block_sizes =
       function->parameter_block_sizes();
   const int num_parameter_blocks = parameter_block_sizes.size();
   for (int i = 0; i < num_parameter_blocks; ++i) {
@@ -170,14 +136,6 @@ GradientChecker::GradientChecker(const CostFunction* function,
   finite_diff_cost_function->SetNumResiduals(function->num_residuals());
 
   finite_diff_cost_function_ = std::move(finite_diff_cost_function);
-}
-
-GradientChecker::~GradientChecker() {
-  if (delete_manifolds_) {
-    for (const auto m : manifolds_) {
-      delete m;
-    }
-  }
 }
 
 bool GradientChecker::Probe(double const* const* parameters,
@@ -204,8 +162,8 @@ bool GradientChecker::Probe(double const* const* parameters,
   results->return_value = true;
 
   // Evaluate the derivative using the user supplied code.
-  vector<Matrix>& jacobians = results->jacobians;
-  vector<Matrix>& local_jacobians = results->local_jacobians;
+  std::vector<Matrix>& jacobians = results->jacobians;
+  std::vector<Matrix>& local_jacobians = results->local_jacobians;
   if (!EvaluateCostFunction(function_,
                             parameters,
                             manifolds_,
@@ -217,8 +175,9 @@ bool GradientChecker::Probe(double const* const* parameters,
   }
 
   // Evaluate the derivative using numeric derivatives.
-  vector<Matrix>& numeric_jacobians = results->numeric_jacobians;
-  vector<Matrix>& local_numeric_jacobians = results->local_numeric_jacobians;
+  std::vector<Matrix>& numeric_jacobians = results->numeric_jacobians;
+  std::vector<Matrix>& local_numeric_jacobians =
+      results->local_numeric_jacobians;
   Vector finite_diff_residuals;
   if (!EvaluateCostFunction(finite_diff_cost_function_.get(),
                             parameters,
@@ -258,7 +217,7 @@ bool GradientChecker::Probe(double const* const* parameters,
 
   // Accumulate the error message for all the jacobians, since it won't get
   // output if there are no bad jacobian components.
-  string error_log;
+  std::string error_log;
   for (int k = 0; k < function_->parameter_block_sizes().size(); k++) {
     StringAppendF(&error_log,
                   "========== "
@@ -312,7 +271,7 @@ bool GradientChecker::Probe(double const* const* parameters,
 
   // Since there were some bad errors, dump comprehensive debug info.
   if (num_bad_jacobian_components) {
-    string header = StringPrintf(
+    std::string header = StringPrintf(
         "\nDetected %d bad Jacobian component(s). "
         "Worst relative error was %g.\n",
         num_bad_jacobian_components,

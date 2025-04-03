@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,13 @@
 
 #include <algorithm>
 #include <iostream>  // NO LINT
+#include <string>
 
 #include "ceres/program.h"
 #include "ceres/stringprintf.h"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
-
-using std::string;
+namespace ceres::internal {
 
 StateUpdatingCallback::StateUpdatingCallback(Program* program,
                                              double* parameters)
@@ -49,7 +47,7 @@ StateUpdatingCallback::StateUpdatingCallback(Program* program,
 StateUpdatingCallback::~StateUpdatingCallback() = default;
 
 CallbackReturnType StateUpdatingCallback::operator()(
-    const IterationSummary& summary) {
+    const IterationSummary& /*summary*/) {
   program_->StateVectorToParameterBlocks(parameters_);
   program_->CopyParameterBlockStateToUserState();
   return SOLVER_CONTINUE;
@@ -83,7 +81,7 @@ LoggingCallback::~LoggingCallback() = default;
 
 CallbackReturnType LoggingCallback::operator()(
     const IterationSummary& summary) {
-  string output;
+  std::string output;
   if (minimizer_type == LINE_SEARCH) {
     output = StringPrintf(
         "% 4d: f:% 8e d:% 3.2e g:% 3.2e h:% 3.2e s:% 3.2e e:% 3d it:% 3.2e "
@@ -127,5 +125,4 @@ CallbackReturnType LoggingCallback::operator()(
   return SOLVER_CONTINUE;
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

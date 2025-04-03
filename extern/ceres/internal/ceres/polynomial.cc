@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,7 @@
 #include "ceres/internal/export.h"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
-
-using std::vector;
+namespace ceres::internal {
 
 namespace {
 
@@ -326,7 +323,7 @@ void MinimizePolynomial(const Vector& polynomial,
   }
 }
 
-Vector FindInterpolatingPolynomial(const vector<FunctionSample>& samples) {
+Vector FindInterpolatingPolynomial(const std::vector<FunctionSample>& samples) {
   const int num_samples = samples.size();
   int num_constraints = 0;
   for (int i = 0; i < num_samples; ++i) {
@@ -369,7 +366,7 @@ Vector FindInterpolatingPolynomial(const vector<FunctionSample>& samples) {
   return lu.setThreshold(0.0).solve(rhs);
 }
 
-void MinimizeInterpolatingPolynomial(const vector<FunctionSample>& samples,
+void MinimizeInterpolatingPolynomial(const std::vector<FunctionSample>& samples,
                                      double x_min,
                                      double x_max,
                                      double* optimal_x,
@@ -389,5 +386,4 @@ void MinimizeInterpolatingPolynomial(const vector<FunctionSample>& samples,
   }
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

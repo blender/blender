@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,60 +26,58 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: vitus@google.com (Michael Vitus)
+// Author: joydeepb@cs.utexas.edu (Joydeep Biswas)
 
-// This include must come before any #ifndef check on Ceres compile options.
+#ifndef CERES_INTERNAL_CUDA_KERNELS_VECTOR_OPS_H_
+#define CERES_INTERNAL_CUDA_KERNELS_VECTOR_OPS_H_
+
 #include "ceres/internal/config.h"
 
-#if defined(CERES_USE_OPENMP)
+#ifndef CERES_NO_CUDA
 
-#include "ceres/parallel_for.h"
-#include "ceres/scoped_thread_token.h"
-#include "ceres/thread_token_provider.h"
-#include "glog/logging.h"
-#include "omp.h"
+#include "cuda_runtime.h"
 
 namespace ceres {
 namespace internal {
+class Block;
+class Cell;
 
-int MaxNumThreadsAvailable() { return omp_get_max_threads(); }
+// Convert an array of double (FP64) values to float (FP32). Both arrays must
+// already be on GPU memory.
+void CudaFP64ToFP32(const double* input,
+                    float* output,
+                    const int size,
+                    cudaStream_t stream);
 
-void ParallelFor(ContextImpl* context,
-                 int start,
-                 int end,
-                 int num_threads,
-                 const std::function<void(int)>& function) {
-  CHECK_GT(num_threads, 0);
-  CHECK(context != nullptr);
-  if (end <= start) {
-    return;
-  }
+// Convert an array of float (FP32) values to double (FP64). Both arrays must
+// already be on GPU memory.
+void CudaFP32ToFP64(const float* input,
+                    double* output,
+                    const int size,
+                    cudaStream_t stream);
 
-#ifdef CERES_USE_OPENMP
-#pragma omp parallel for num_threads(num_threads) \
-    schedule(dynamic) if (num_threads > 1)
-#endif  // CERES_USE_OPENMP
-  for (int i = start; i < end; ++i) {
-    function(i);
-  }
-}
+// Set all elements of the array to the FP32 value 0. The array must be in GPU
+// memory.
+void CudaSetZeroFP32(float* output, const int size, cudaStream_t stream);
 
-void ParallelFor(ContextImpl* context,
-                 int start,
-                 int end,
-                 int num_threads,
-                 const std::function<void(int thread_id, int i)>& function) {
-  CHECK(context != nullptr);
+// Set all elements of the array to the FP64 value 0. The array must be in GPU
+// memory.
+void CudaSetZeroFP64(double* output, const int size, cudaStream_t stream);
 
-  ThreadTokenProvider thread_token_provider(num_threads);
-  ParallelFor(context, start, end, num_threads, [&](int i) {
-    const ScopedThreadToken scoped_thread_token(&thread_token_provider);
-    const int thread_id = scoped_thread_token.token();
-    function(thread_id, i);
-  });
-}
+// Compute x = x + double(y). Input array is float (FP32), output array is
+// double (FP64). Both arrays must already be on GPU memory.
+void CudaDsxpy(double* x, float* y, const int size, cudaStream_t stream);
+
+// Compute y[i] = y[i] + d[i]^2 x[i]. All arrays must already be on GPU memory.
+void CudaDtDxpy(double* y,
+                const double* D,
+                const double* x,
+                const int size,
+                cudaStream_t stream);
 
 }  // namespace internal
 }  // namespace ceres
 
-#endif  // defined(CERES_USE_OPENMP)
+#endif  // CERES_NO_CUDA
+
+#endif  // CERES_INTERNAL_CUDA_KERNELS_VECTOR_OPS_H_

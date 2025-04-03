@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,9 @@
 
 #include "ceres/gradient_problem_solver.h"
 
+#include <map>
 #include <memory>
+#include <string>
 
 #include "ceres/callbacks.h"
 #include "ceres/gradient_problem.h"
@@ -48,7 +50,6 @@
 namespace ceres {
 using internal::StringAppendF;
 using internal::StringPrintf;
-using std::string;
 
 namespace {
 
@@ -112,7 +113,7 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
   *summary = Summary();
   // clang-format off
   summary->num_parameters                    = problem.NumParameters();
-  summary->num_local_parameters              = problem.NumLocalParameters();
+  summary->num_tangent_parameters            = problem.NumTangentParameters();
   summary->line_search_direction_type        = options.line_search_direction_type;         //  NOLINT
   summary->line_search_interpolation_type    = options.line_search_interpolation_type;     //  NOLINT
   summary->line_search_type                  = options.line_search_type;
@@ -180,7 +181,7 @@ void GradientProblemSolver::Solve(const GradientProblemSolver::Options& options,
     SetSummaryFinalCost(summary);
   }
 
-  const std::map<string, CallStatistics>& evaluator_statistics =
+  const std::map<std::string, CallStatistics>& evaluator_statistics =
       minimizer_options.evaluator->Statistics();
   {
     const CallStatistics& call_stats = FindWithDefault(
@@ -203,7 +204,7 @@ bool GradientProblemSolver::Summary::IsSolutionUsable() const {
   return internal::IsSolutionUsable(*this);
 }
 
-string GradientProblemSolver::Summary::BriefReport() const {
+std::string GradientProblemSolver::Summary::BriefReport() const {
   return StringPrintf(
       "Ceres GradientProblemSolver Report: "
       "Iterations: %d, "
@@ -216,17 +217,20 @@ string GradientProblemSolver::Summary::BriefReport() const {
       TerminationTypeToString(termination_type));
 }
 
-string GradientProblemSolver::Summary::FullReport() const {
+std::string GradientProblemSolver::Summary::FullReport() const {
   using internal::VersionString;
 
-  string report = string("\nSolver Summary (v " + VersionString() + ")\n\n");
+  // NOTE operator+ is not usable for concatenating a string and a string_view.
+  std::string report =
+      std::string{"\nSolver Summary (v "}.append(VersionString()) + ")\n\n";
 
   StringAppendF(&report, "Parameters          % 25d\n", num_parameters);
-  if (num_local_parameters != num_parameters) {
-    StringAppendF(&report, "Local parameters    % 25d\n", num_local_parameters);
+  if (num_tangent_parameters != num_parameters) {
+    StringAppendF(
+        &report, "Tangent parameters   % 25d\n", num_tangent_parameters);
   }
 
-  string line_search_direction_string;
+  std::string line_search_direction_string;
   if (line_search_direction_type == LBFGS) {
     line_search_direction_string = StringPrintf("LBFGS (%d)", max_lbfgs_rank);
   } else if (line_search_direction_type == NONLINEAR_CONJUGATE_GRADIENT) {
@@ -241,7 +245,7 @@ string GradientProblemSolver::Summary::FullReport() const {
                 "Line search direction     %19s\n",
                 line_search_direction_string.c_str());
 
-  const string line_search_type_string = StringPrintf(
+  const std::string line_search_type_string = StringPrintf(
       "%s %s",
       LineSearchInterpolationTypeToString(line_search_interpolation_type),
       LineSearchTypeToString(line_search_type));

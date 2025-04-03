@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,48 +26,52 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: keir@google.com (Keir Mierle)
-//         sameeragarwal@google.com (Sameer Agarwal)
+// Author: vitus@google.com (Michael Vitus)
 
-#ifndef CERES_INTERNAL_RANDOM_H_
-#define CERES_INTERNAL_RANDOM_H_
-
+#include <algorithm>
+#include <atomic>
 #include <cmath>
-#include <cstdlib>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <tuple>
 
-#include "ceres/internal/export.h"
+#include "ceres/internal/config.h"
+#include "ceres/parallel_for.h"
+#include "ceres/parallel_vector_ops.h"
+#include "glog/logging.h"
 
-namespace ceres {
+namespace ceres::internal {
 
-inline void SetRandomState(int state) { srand(state); }
+BlockUntilFinished::BlockUntilFinished(int num_total_jobs)
+    : num_total_jobs_finished_(0), num_total_jobs_(num_total_jobs) {}
 
-inline int Uniform(int n) {
-  if (n) {
-    return rand() % n;
-  } else {
-    return 0;
+void BlockUntilFinished::Finished(int num_jobs_finished) {
+  if (num_jobs_finished == 0) return;
+  std::lock_guard<std::mutex> lock(mutex_);
+  num_total_jobs_finished_ += num_jobs_finished;
+  CHECK_LE(num_total_jobs_finished_, num_total_jobs_);
+  if (num_total_jobs_finished_ == num_total_jobs_) {
+    condition_.notify_one();
   }
 }
 
-inline double RandDouble() {
-  auto r = static_cast<double>(rand());
-  return r / RAND_MAX;
+void BlockUntilFinished::Block() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  condition_.wait(
+      lock, [this]() { return num_total_jobs_finished_ == num_total_jobs_; });
 }
 
-// Box-Muller algorithm for normal random number generation.
-// http://en.wikipedia.org/wiki/Box-Muller_transform
-inline double RandNormal() {
-  double x1, x2, w;
-  do {
-    x1 = 2.0 * RandDouble() - 1.0;
-    x2 = 2.0 * RandDouble() - 1.0;
-    w = x1 * x1 + x2 * x2;
-  } while (w >= 1.0 || w == 0.0);
+ParallelInvokeState::ParallelInvokeState(int start,
+                                         int end,
+                                         int num_work_blocks)
+    : start(start),
+      end(end),
+      num_work_blocks(num_work_blocks),
+      base_block_size((end - start) / num_work_blocks),
+      num_base_p1_sized_blocks((end - start) % num_work_blocks),
+      block_id(0),
+      thread_id(0),
+      block_until_finished(num_work_blocks) {}
 
-  w = sqrt((-2.0 * log(w)) / w);
-  return x1 * w;
-}
-
-}  // namespace ceres
-
-#endif  // CERES_INTERNAL_RANDOM_H_
+}  // namespace ceres::internal

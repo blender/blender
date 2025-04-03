@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,7 @@
 
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // A thread-safe multi-producer, multi-consumer queue for queueing items that
 // are typically handled asynchronously by multiple threads. The ConcurrentQueue
@@ -152,7 +151,6 @@ class ConcurrentQueue {
   bool wait_{true};
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_CONCURRENT_QUEUE_H_

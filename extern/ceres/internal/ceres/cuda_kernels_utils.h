@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,53 +26,31 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: alexs.mac@gmail.com (Alex Stewart)
+// Author: joydeepb@cs.utexas.edu (Joydeep Biswas)
 
-// This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/config.h"
-
-#ifdef CERES_NO_THREADS
-
-#include "ceres/parallel_for.h"
-#include "glog/logging.h"
+#ifndef CERES_INTERNAL_CUDA_KERNELS_UTILS_H_
+#define CERES_INTERNAL_CUDA_KERNELS_UTILS_H_
 
 namespace ceres {
 namespace internal {
 
-int MaxNumThreadsAvailable() { return 1; }
+// Parallel execution on CUDA device requires splitting job into blocks of a
+// fixed size. We use block-size of kCudaBlockSize for all kernels that do not
+// require any specific block size. As the CUDA Toolkit documentation says,
+// "although arbitrary in this case, is a common choice". This is determined by
+// the warp size, max block size, and multiprocessor sizes of recent GPUs. For
+// complex kernels with significant register usage and unusual memory patterns,
+// the occupancy calculator API might provide better performance. See "Occupancy
+// Calculator" under the CUDA toolkit documentation.
+constexpr int kCudaBlockSize = 256;
 
-void ParallelFor(ContextImpl* context,
-                 int start,
-                 int end,
-                 int num_threads,
-                 const std::function<void(int)>& function) {
-  CHECK_GT(num_threads, 0);
-  CHECK(context != nullptr);
-  if (end <= start) {
-    return;
-  }
-  for (int i = start; i < end; ++i) {
-    function(i);
-  }
+// Compute number of blocks of kCudaBlockSize that span over 1-d grid with
+// dimension size. Note that 1-d grid dimension is limited by 2^31-1 in CUDA,
+// thus a signed int is used as an argument.
+inline int NumBlocksInGrid(int size) {
+  return (size + kCudaBlockSize - 1) / kCudaBlockSize;
 }
-
-void ParallelFor(ContextImpl* context,
-                 int start,
-                 int end,
-                 int num_threads,
-                 const std::function<void(int thread_id, int i)>& function) {
-  CHECK_GT(num_threads, 0);
-  CHECK(context != nullptr);
-  if (end <= start) {
-    return;
-  }
-  const int thread_id = 0;
-  for (int i = start; i < end; ++i) {
-    function(thread_id, i);
-  }
-}
-
 }  // namespace internal
 }  // namespace ceres
 
-#endif  // CERES_NO_THREADS
+#endif  // CERES_INTERNAL_CUDA_KERNELS_UTILS_H_

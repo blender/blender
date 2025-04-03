@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2016 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,7 @@
 #include "ceres/trust_region_strategy.h"
 #include "ceres/types.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // Generic trust region minimization algorithm.
 //
@@ -139,8 +138,6 @@ class CERES_NO_EXPORT TrustRegionMinimizer final : public Minimizer {
   // Scaling vector to scale the columns of the Jacobian.
   Vector jacobian_scaling_;
 
-  // Euclidean norm of x_.
-  double x_norm_;
   // Cost at x_.
   double x_cost_;
   // Minimum cost encountered up till now.
@@ -160,8 +157,7 @@ class CERES_NO_EXPORT TrustRegionMinimizer final : public Minimizer {
   int num_consecutive_invalid_steps_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

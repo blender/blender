@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -156,7 +156,7 @@ bool LineManifold<AmbientSpaceDimension>::Plus(const double* x_ptr,
   //
   // The direction update function Plus_d is the same as as the SphereManifold:
   //
-  //   d* = H_{v(d)} [0.5 sinc(0.5 |delta_d|) delta_d, cos(0.5 |delta_d|)]^T
+  //   d* = H_{v(d)} [sinc(|delta_d|) delta_d, cos(|delta_d|)]^T
   //
   // where H is the householder matrix
   //   H_{v} = I - (2 / |v|^2) v v^T
@@ -165,7 +165,7 @@ bool LineManifold<AmbientSpaceDimension>::Plus(const double* x_ptr,
   //
   // The origin point update function Plus_o is defined as
   //
-  //   o* = o + H_{v(d)} [0.5 delta_o, 0]^T.
+  //   o* = o + H_{v(d)} [delta_o, 0]^T.
 
   Eigen::Map<const AmbientVector> o(x_ptr, size_);
   Eigen::Map<const AmbientVector> d(x_ptr + size_, size_);
@@ -208,11 +208,8 @@ bool LineManifold<AmbientSpaceDimension>::Plus(const double* x_ptr,
   // perpendicular to the line direction. This is achieved by using the
   // householder matrix of the direction and allow only movements
   // perpendicular to e_n.
-  //
-  // The factor of 0.5 is used to be consistent with the line direction
-  // update.
   AmbientVector y(size_);
-  y << 0.5 * delta_o, 0;
+  y << delta_o, 0;
   o_plus_delta += internal::ApplyHouseholderVector(y, v, beta);
 
   return true;
@@ -266,7 +263,7 @@ bool LineManifold<AmbientSpaceDimension>::Minus(const double* y_ptr,
 
   AmbientVector delta_o = y_o - x_o;
   const AmbientVector h_delta_o =
-      2.0 * internal::ApplyHouseholderVector(delta_o, v, beta);
+      internal::ApplyHouseholderVector(delta_o, v, beta);
   y_minus_x_o = h_delta_o.template head<TangentSpaceDimension>(size_ - 1);
 
   return true;

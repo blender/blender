@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,17 @@
 #include "ceres/solver.h"
 
 #include <algorithm>
+#include <map>
 #include <memory>
 #include <sstream>  // NOLINT
+#include <string>
 #include <vector>
 
 #include "ceres/casts.h"
 #include "ceres/context.h"
 #include "ceres/context_impl.h"
 #include "ceres/detect_structure.h"
+#include "ceres/eigensparse.h"
 #include "ceres/gradient_checking_cost_function.h"
 #include "ceres/internal/export.h"
 #include "ceres/parameter_block_ordering.h"
@@ -50,6 +53,7 @@
 #include "ceres/schur_templates.h"
 #include "ceres/solver_utils.h"
 #include "ceres/stringprintf.h"
+#include "ceres/suitesparse.h"
 #include "ceres/types.h"
 #include "ceres/wall_time.h"
 
@@ -58,32 +62,29 @@ namespace {
 
 using internal::StringAppendF;
 using internal::StringPrintf;
-using std::map;
-using std::string;
-using std::vector;
 
-#define OPTION_OP(x, y, OP)                                          \
-  if (!(options.x OP y)) {                                           \
-    std::stringstream ss;                                            \
-    ss << "Invalid configuration. ";                                 \
-    ss << string("Solver::Options::" #x " = ") << options.x << ". "; \
-    ss << "Violated constraint: ";                                   \
-    ss << string("Solver::Options::" #x " " #OP " " #y);             \
-    *error = ss.str();                                               \
-    return false;                                                    \
+#define OPTION_OP(x, y, OP)                                               \
+  if (!(options.x OP y)) {                                                \
+    std::stringstream ss;                                                 \
+    ss << "Invalid configuration. ";                                      \
+    ss << std::string("Solver::Options::" #x " = ") << options.x << ". "; \
+    ss << "Violated constraint: ";                                        \
+    ss << std::string("Solver::Options::" #x " " #OP " " #y);             \
+    *error = ss.str();                                                    \
+    return false;                                                         \
   }
 
-#define OPTION_OP_OPTION(x, y, OP)                                   \
-  if (!(options.x OP options.y)) {                                   \
-    std::stringstream ss;                                            \
-    ss << "Invalid configuration. ";                                 \
-    ss << string("Solver::Options::" #x " = ") << options.x << ". "; \
-    ss << string("Solver::Options::" #y " = ") << options.y << ". "; \
-    ss << "Violated constraint: ";                                   \
-    ss << string("Solver::Options::" #x);                            \
-    ss << string(#OP " Solver::Options::" #y ".");                   \
-    *error = ss.str();                                               \
-    return false;                                                    \
+#define OPTION_OP_OPTION(x, y, OP)                                        \
+  if (!(options.x OP options.y)) {                                        \
+    std::stringstream ss;                                                 \
+    ss << "Invalid configuration. ";                                      \
+    ss << std::string("Solver::Options::" #x " = ") << options.x << ". "; \
+    ss << std::string("Solver::Options::" #y " = ") << options.y << ". "; \
+    ss << "Violated constraint: ";                                        \
+    ss << std::string("Solver::Options::" #x);                            \
+    ss << std::string(#OP " Solver::Options::" #y ".");                   \
+    *error = ss.str();                                                    \
+    return false;                                                         \
   }
 
 #define OPTION_GE(x, y) OPTION_OP(x, y, >=);
@@ -93,7 +94,7 @@ using std::vector;
 #define OPTION_LE_OPTION(x, y) OPTION_OP_OPTION(x, y, <=)
 #define OPTION_LT_OPTION(x, y) OPTION_OP_OPTION(x, y, <)
 
-bool CommonOptionsAreValid(const Solver::Options& options, string* error) {
+bool CommonOptionsAreValid(const Solver::Options& options, std::string* error) {
   OPTION_GE(max_num_iterations, 0);
   OPTION_GE(max_solver_time_in_seconds, 0.0);
   OPTION_GE(function_tolerance, 0.0);
@@ -107,7 +108,286 @@ bool CommonOptionsAreValid(const Solver::Options& options, string* error) {
   return true;
 }
 
-bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
+bool IsNestedDissectionAvailable(SparseLinearAlgebraLibraryType type) {
+  return (((type == SUITE_SPARSE) &&
+           internal::SuiteSparse::IsNestedDissectionAvailable()) ||
+          (type == ACCELERATE_SPARSE) ||
+          ((type == EIGEN_SPARSE) &&
+           internal::EigenSparse::IsNestedDissectionAvailable()));
+}
+
+bool IsIterativeSolver(LinearSolverType type) {
+  return (type == CGNR || type == ITERATIVE_SCHUR);
+}
+
+bool OptionsAreValidForDenseSolver(const Solver::Options& options,
+                                   std::string* error) {
+  const char* library_name = DenseLinearAlgebraLibraryTypeToString(
+      options.dense_linear_algebra_library_type);
+  const char* solver_name =
+      LinearSolverTypeToString(options.linear_solver_type);
+  constexpr char kFormat[] =
+      "Can't use %s with dense_linear_algebra_library_type = %s "
+      "because support not enabled when Ceres was built.";
+
+  if (!IsDenseLinearAlgebraLibraryTypeAvailable(
+          options.dense_linear_algebra_library_type)) {
+    *error = StringPrintf(kFormat, solver_name, library_name);
+    return false;
+  }
+  return true;
+}
+
+bool OptionsAreValidForSparseCholeskyBasedSolver(const Solver::Options& options,
+                                                 std::string* error) {
+  const char* library_name = SparseLinearAlgebraLibraryTypeToString(
+      options.sparse_linear_algebra_library_type);
+  // Sparse factorization based solvers and some preconditioners require a
+  // sparse Cholesky factorization.
+  const char* solver_name =
+      IsIterativeSolver(options.linear_solver_type)
+          ? PreconditionerTypeToString(options.preconditioner_type)
+          : LinearSolverTypeToString(options.linear_solver_type);
+
+  constexpr char kNoSparseFormat[] =
+      "Can't use %s with sparse_linear_algebra_library_type = %s.";
+  constexpr char kNoLibraryFormat[] =
+      "Can't use %s sparse_linear_algebra_library_type = %s, because support "
+      "was not enabled when Ceres Solver was built.";
+  constexpr char kNoNesdisFormat[] =
+      "NESDIS is not available with sparse_linear_algebra_library_type = %s.";
+  constexpr char kMixedFormat[] =
+      "use_mixed_precision_solves with %s is not supported with "
+      "sparse_linear_algebra_library_type = %s";
+  constexpr char kDynamicSparsityFormat[] =
+      "dynamic sparsity is not supported with "
+      "sparse_linear_algebra_library_type = %s";
+
+  if (options.sparse_linear_algebra_library_type == NO_SPARSE) {
+    *error = StringPrintf(kNoSparseFormat, solver_name, library_name);
+    return false;
+  }
+
+  if (!IsSparseLinearAlgebraLibraryTypeAvailable(
+          options.sparse_linear_algebra_library_type)) {
+    *error = StringPrintf(kNoLibraryFormat, solver_name, library_name);
+    return false;
+  }
+
+  if (options.linear_solver_ordering_type == ceres::NESDIS &&
+      !IsNestedDissectionAvailable(
+          options.sparse_linear_algebra_library_type)) {
+    *error = StringPrintf(kNoNesdisFormat, library_name);
+    return false;
+  }
+
+  if (options.use_mixed_precision_solves &&
+      options.sparse_linear_algebra_library_type == SUITE_SPARSE) {
+    *error = StringPrintf(kMixedFormat, solver_name, library_name);
+    return false;
+  }
+
+  if (options.dynamic_sparsity &&
+      options.sparse_linear_algebra_library_type == ACCELERATE_SPARSE) {
+    *error = StringPrintf(kDynamicSparsityFormat, library_name);
+    return false;
+  }
+
+  return true;
+}
+
+bool OptionsAreValidForDenseNormalCholesky(const Solver::Options& options,
+                                           std::string* error) {
+  CHECK_EQ(options.linear_solver_type, DENSE_NORMAL_CHOLESKY);
+  return OptionsAreValidForDenseSolver(options, error);
+}
+
+bool OptionsAreValidForDenseQr(const Solver::Options& options,
+                               std::string* error) {
+  CHECK_EQ(options.linear_solver_type, DENSE_QR);
+
+  if (!OptionsAreValidForDenseSolver(options, error)) {
+    return false;
+  }
+
+  if (options.use_mixed_precision_solves) {
+    *error = "Can't use use_mixed_precision_solves with DENSE_QR.";
+    return false;
+  }
+
+  return true;
+}
+
+bool OptionsAreValidForSparseNormalCholesky(const Solver::Options& options,
+                                            std::string* error) {
+  CHECK_EQ(options.linear_solver_type, SPARSE_NORMAL_CHOLESKY);
+  return OptionsAreValidForSparseCholeskyBasedSolver(options, error);
+}
+
+bool OptionsAreValidForDenseSchur(const Solver::Options& options,
+                                  std::string* error) {
+  CHECK_EQ(options.linear_solver_type, DENSE_SCHUR);
+
+  if (options.dynamic_sparsity) {
+    *error = "dynamic sparsity is only supported with SPARSE_NORMAL_CHOLESKY";
+    return false;
+  }
+
+  if (!OptionsAreValidForDenseSolver(options, error)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool OptionsAreValidForSparseSchur(const Solver::Options& options,
+                                   std::string* error) {
+  CHECK_EQ(options.linear_solver_type, SPARSE_SCHUR);
+  if (options.dynamic_sparsity) {
+    *error = "Dynamic sparsity is only supported with SPARSE_NORMAL_CHOLESKY.";
+    return false;
+  }
+  return OptionsAreValidForSparseCholeskyBasedSolver(options, error);
+}
+
+bool OptionsAreValidForIterativeSchur(const Solver::Options& options,
+                                      std::string* error) {
+  CHECK_EQ(options.linear_solver_type, ITERATIVE_SCHUR);
+  if (options.dynamic_sparsity) {
+    *error = "Dynamic sparsity is only supported with SPARSE_NORMAL_CHOLESKY.";
+    return false;
+  }
+
+  if (options.use_explicit_schur_complement) {
+    if (options.preconditioner_type != SCHUR_JACOBI) {
+      *error =
+          "use_explicit_schur_complement only supports "
+          "SCHUR_JACOBI as the preconditioner.";
+      return false;
+    }
+    if (options.use_spse_initialization) {
+      *error =
+          "use_explicit_schur_complement does not support "
+          "use_spse_initialization.";
+      return false;
+    }
+  }
+
+  if (options.use_spse_initialization ||
+      options.preconditioner_type == SCHUR_POWER_SERIES_EXPANSION) {
+    OPTION_GE(max_num_spse_iterations, 1)
+    OPTION_GE(spse_tolerance, 0.0)
+  }
+
+  if (options.use_mixed_precision_solves) {
+    *error = "Can't use use_mixed_precision_solves with ITERATIVE_SCHUR";
+    return false;
+  }
+
+  if (options.dynamic_sparsity) {
+    *error = "Dynamic sparsity is only supported with SPARSE_NORMAL_CHOLESKY.";
+    return false;
+  }
+
+  if (options.preconditioner_type == SUBSET) {
+    *error = "Can't use SUBSET preconditioner with ITERATIVE_SCHUR";
+    return false;
+  }
+
+  // CLUSTER_JACOBI and CLUSTER_TRIDIAGONAL require sparse Cholesky
+  // factorization.
+  if (options.preconditioner_type == CLUSTER_JACOBI ||
+      options.preconditioner_type == CLUSTER_TRIDIAGONAL) {
+    return OptionsAreValidForSparseCholeskyBasedSolver(options, error);
+  }
+
+  return true;
+}
+
+bool OptionsAreValidForCgnr(const Solver::Options& options,
+                            std::string* error) {
+  CHECK_EQ(options.linear_solver_type, CGNR);
+
+  if (options.preconditioner_type != IDENTITY &&
+      options.preconditioner_type != JACOBI &&
+      options.preconditioner_type != SUBSET) {
+    *error =
+        StringPrintf("Can't use CGNR with preconditioner_type = %s.",
+                     PreconditionerTypeToString(options.preconditioner_type));
+    return false;
+  }
+
+  if (options.use_mixed_precision_solves) {
+    *error = "use_mixed_precision_solves cannot be used with CGNR";
+    return false;
+  }
+
+  if (options.dynamic_sparsity) {
+    *error = "Dynamic sparsity is only supported with SPARSE_NORMAL_CHOLESKY.";
+    return false;
+  }
+
+  if (options.preconditioner_type == SUBSET) {
+    if (options.sparse_linear_algebra_library_type == CUDA_SPARSE) {
+      *error =
+          "Can't use CGNR with preconditioner_type = SUBSET when "
+          "sparse_linear_algebra_library_type = CUDA_SPARSE.";
+      return false;
+    }
+
+    if (options.residual_blocks_for_subset_preconditioner.empty()) {
+      *error =
+          "When using SUBSET preconditioner, "
+          "residual_blocks_for_subset_preconditioner cannot be empty";
+      return false;
+    }
+
+    // SUBSET preconditioner requires sparse Cholesky factorization.
+    if (!OptionsAreValidForSparseCholeskyBasedSolver(options, error)) {
+      return false;
+    }
+  }
+
+  // Check options for CGNR with CUDA_SPARSE.
+  if (options.sparse_linear_algebra_library_type == CUDA_SPARSE) {
+    if (!IsSparseLinearAlgebraLibraryTypeAvailable(CUDA_SPARSE)) {
+      *error =
+          "Can't use CGNR with sparse_linear_algebra_library_type = "
+          "CUDA_SPARSE because support was not enabled when Ceres was built.";
+      return false;
+    }
+  }
+  return true;
+}
+
+bool OptionsAreValidForLinearSolver(const Solver::Options& options,
+                                    std::string* error) {
+  switch (options.linear_solver_type) {
+    case DENSE_NORMAL_CHOLESKY:
+      return OptionsAreValidForDenseNormalCholesky(options, error);
+    case DENSE_QR:
+      return OptionsAreValidForDenseQr(options, error);
+    case SPARSE_NORMAL_CHOLESKY:
+      return OptionsAreValidForSparseNormalCholesky(options, error);
+    case DENSE_SCHUR:
+      return OptionsAreValidForDenseSchur(options, error);
+    case SPARSE_SCHUR:
+      return OptionsAreValidForSparseSchur(options, error);
+    case ITERATIVE_SCHUR:
+      return OptionsAreValidForIterativeSchur(options, error);
+    case CGNR:
+      return OptionsAreValidForCgnr(options, error);
+    default:
+      LOG(FATAL) << "Congratulations you have found a bug. Please report "
+                    "this to the "
+                    "Ceres Solver developers. Unknown linear solver type: "
+                 << LinearSolverTypeToString(options.linear_solver_type);
+  }
+  return false;
+}
+
+bool TrustRegionOptionsAreValid(const Solver::Options& options,
+                                std::string* error) {
   OPTION_GT(initial_trust_region_radius, 0.0);
   OPTION_GT(min_trust_region_radius, 0.0);
   OPTION_GT(max_trust_region_radius, 0.0);
@@ -121,7 +401,7 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
   OPTION_GE(max_num_consecutive_invalid_steps, 0);
   OPTION_GT(eta, 0.0);
   OPTION_GE(min_linear_solver_iterations, 0);
-  OPTION_GE(max_linear_solver_iterations, 1);
+  OPTION_GE(max_linear_solver_iterations, 0);
   OPTION_LE_OPTION(min_linear_solver_iterations, max_linear_solver_iterations);
 
   if (options.use_inner_iterations) {
@@ -132,78 +412,17 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
     OPTION_GT(max_consecutive_nonmonotonic_steps, 0);
   }
 
-  if (options.linear_solver_type == ITERATIVE_SCHUR &&
-      options.use_explicit_schur_complement &&
-      options.preconditioner_type != SCHUR_JACOBI) {
+  if ((options.trust_region_strategy_type == DOGLEG) &&
+      IsIterativeSolver(options.linear_solver_type)) {
     *error =
-        "use_explicit_schur_complement only supports "
-        "SCHUR_JACOBI as the preconditioner.";
+        "DOGLEG only supports exact factorization based linear "
+        "solvers. If you want to use an iterative solver please "
+        "use LEVENBERG_MARQUARDT as the trust_region_strategy_type";
     return false;
   }
 
-  if (!IsDenseLinearAlgebraLibraryTypeAvailable(
-          options.dense_linear_algebra_library_type) &&
-      (options.linear_solver_type == DENSE_NORMAL_CHOLESKY ||
-       options.linear_solver_type == DENSE_QR ||
-       options.linear_solver_type == DENSE_SCHUR)) {
-    *error = StringPrintf(
-        "Can't use %s with "
-        "Solver::Options::dense_linear_algebra_library_type = %s "
-        "because %s was not enabled when Ceres was built.",
-        LinearSolverTypeToString(options.linear_solver_type),
-        DenseLinearAlgebraLibraryTypeToString(
-            options.dense_linear_algebra_library_type),
-        DenseLinearAlgebraLibraryTypeToString(
-            options.dense_linear_algebra_library_type));
+  if (!OptionsAreValidForLinearSolver(options, error)) {
     return false;
-  }
-
-  {
-    const char* sparse_linear_algebra_library_name =
-        SparseLinearAlgebraLibraryTypeToString(
-            options.sparse_linear_algebra_library_type);
-    const char* name = nullptr;
-    if (options.linear_solver_type == SPARSE_NORMAL_CHOLESKY ||
-        options.linear_solver_type == SPARSE_SCHUR) {
-      name = LinearSolverTypeToString(options.linear_solver_type);
-    } else if ((options.linear_solver_type == ITERATIVE_SCHUR &&
-                (options.preconditioner_type == CLUSTER_JACOBI ||
-                 options.preconditioner_type == CLUSTER_TRIDIAGONAL)) ||
-               (options.linear_solver_type == CGNR &&
-                options.preconditioner_type == SUBSET)) {
-      name = PreconditionerTypeToString(options.preconditioner_type);
-    }
-
-    if (name) {
-      if (options.sparse_linear_algebra_library_type == NO_SPARSE) {
-        *error = StringPrintf(
-            "Can't use %s with "
-            "Solver::Options::sparse_linear_algebra_library_type = %s.",
-            name,
-            sparse_linear_algebra_library_name);
-        return false;
-      } else if (!IsSparseLinearAlgebraLibraryTypeAvailable(
-                     options.sparse_linear_algebra_library_type)) {
-        *error = StringPrintf(
-            "Can't use %s with "
-            "Solver::Options::sparse_linear_algebra_library_type = %s, "
-            "because support was not enabled when Ceres Solver was built.",
-            name,
-            sparse_linear_algebra_library_name);
-        return false;
-      }
-    }
-  }
-
-  if (options.trust_region_strategy_type == DOGLEG) {
-    if (options.linear_solver_type == ITERATIVE_SCHUR ||
-        options.linear_solver_type == CGNR) {
-      *error =
-          "DOGLEG only supports exact factorization based linear "
-          "solvers. If you want to use an iterative solver please "
-          "use LEVENBERG_MARQUARDT as the trust_region_strategy_type";
-      return false;
-    }
   }
 
   if (!options.trust_region_minimizer_iterations_to_dump.empty() &&
@@ -213,33 +432,11 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
     return false;
   }
 
-  if (options.dynamic_sparsity) {
-    if (options.linear_solver_type != SPARSE_NORMAL_CHOLESKY) {
-      *error =
-          "Dynamic sparsity is only supported with SPARSE_NORMAL_CHOLESKY.";
-      return false;
-    }
-    if (options.sparse_linear_algebra_library_type == ACCELERATE_SPARSE) {
-      *error =
-          "ACCELERATE_SPARSE is not currently supported with dynamic sparsity.";
-      return false;
-    }
-  }
-
-  if (options.linear_solver_type == CGNR &&
-      options.preconditioner_type == SUBSET &&
-      options.residual_blocks_for_subset_preconditioner.empty()) {
-    *error =
-        "When using SUBSET preconditioner, "
-        "Solver::Options::residual_blocks_for_subset_preconditioner cannot be "
-        "empty";
-    return false;
-  }
-
   return true;
 }
 
-bool LineSearchOptionsAreValid(const Solver::Options& options, string* error) {
+bool LineSearchOptionsAreValid(const Solver::Options& options,
+                               std::string* error) {
   OPTION_GT(max_lbfgs_rank, 0);
   OPTION_GT(min_line_search_step_size, 0.0);
   OPTION_GT(max_line_search_step_contraction, 0.0);
@@ -259,9 +456,10 @@ bool LineSearchOptionsAreValid(const Solver::Options& options, string* error) {
        options.line_search_direction_type == ceres::LBFGS) &&
       options.line_search_type != ceres::WOLFE) {
     *error =
-        string("Invalid configuration: Solver::Options::line_search_type = ") +
-        string(LineSearchTypeToString(options.line_search_type)) +
-        string(
+        std::string(
+            "Invalid configuration: Solver::Options::line_search_type = ") +
+        std::string(LineSearchTypeToString(options.line_search_type)) +
+        std::string(
             ". When using (L)BFGS, "
             "Solver::Options::line_search_type must be set to WOLFE.");
     return false;
@@ -269,8 +467,8 @@ bool LineSearchOptionsAreValid(const Solver::Options& options, string* error) {
 
   // Warn user if they have requested BISECTION interpolation, but constraints
   // on max/min step size change during line search prevent bisection scaling
-  // from occurring. Warn only, as this is likely a user mistake, but one which
-  // does not prevent us from continuing.
+  // from occurring. Warn only, as this is likely a user mistake, but one
+  // which does not prevent us from continuing.
   if (options.line_search_interpolation_type == ceres::BISECTION &&
       (options.max_line_search_step_contraction > 0.5 ||
        options.min_line_search_step_contraction < 0.5)) {
@@ -295,7 +493,7 @@ bool LineSearchOptionsAreValid(const Solver::Options& options, string* error) {
 #undef OPTION_LE_OPTION
 #undef OPTION_LT_OPTION
 
-void StringifyOrdering(const vector<int>& ordering, string* report) {
+void StringifyOrdering(const std::vector<int>& ordering, std::string* report) {
   if (ordering.empty()) {
     internal::StringAppendF(report, "AUTOMATIC");
     return;
@@ -339,7 +537,7 @@ void PreSolveSummarize(const Solver::Options& options,
                                  &(summary->inner_iteration_ordering_given));
 
   // clang-format off
-  summary->dense_linear_algebra_library_type  = options.dense_linear_algebra_library_type;  //  NOLINT
+  summary->dense_linear_algebra_library_type  = options.dense_linear_algebra_library_type;
   summary->dogleg_type                        = options.dogleg_type;
   summary->inner_iteration_time_in_seconds    = 0.0;
   summary->num_line_search_steps              = 0;
@@ -348,18 +546,19 @@ void PreSolveSummarize(const Solver::Options& options,
   summary->line_search_polynomial_minimization_time_in_seconds = 0.0;
   summary->line_search_total_time_in_seconds  = 0.0;
   summary->inner_iterations_given             = options.use_inner_iterations;
-  summary->line_search_direction_type         = options.line_search_direction_type;         //  NOLINT
-  summary->line_search_interpolation_type     = options.line_search_interpolation_type;     //  NOLINT
+  summary->line_search_direction_type         = options.line_search_direction_type;
+  summary->line_search_interpolation_type     = options.line_search_interpolation_type;
   summary->line_search_type                   = options.line_search_type;
   summary->linear_solver_type_given           = options.linear_solver_type;
   summary->max_lbfgs_rank                     = options.max_lbfgs_rank;
   summary->minimizer_type                     = options.minimizer_type;
-  summary->nonlinear_conjugate_gradient_type  = options.nonlinear_conjugate_gradient_type;  //  NOLINT
+  summary->nonlinear_conjugate_gradient_type  = options.nonlinear_conjugate_gradient_type;
   summary->num_threads_given                  = options.num_threads;
   summary->preconditioner_type_given          = options.preconditioner_type;
-  summary->sparse_linear_algebra_library_type = options.sparse_linear_algebra_library_type; //  NOLINT
-  summary->trust_region_strategy_type         = options.trust_region_strategy_type;         //  NOLINT
-  summary->visibility_clustering_type         = options.visibility_clustering_type;         //  NOLINT
+  summary->sparse_linear_algebra_library_type = options.sparse_linear_algebra_library_type;
+  summary->linear_solver_ordering_type        = options.linear_solver_ordering_type;
+  summary->trust_region_strategy_type         = options.trust_region_strategy_type;
+  summary->visibility_clustering_type         = options.visibility_clustering_type;
   // clang-format on
 }
 
@@ -367,19 +566,23 @@ void PostSolveSummarize(const internal::PreprocessedProblem& pp,
                         Solver::Summary* summary) {
   internal::OrderingToGroupSizes(pp.options.linear_solver_ordering.get(),
                                  &(summary->linear_solver_ordering_used));
+  // TODO(sameeragarwal): Update the preprocessor to collapse the
+  // second and higher groups into one group when nested dissection is
+  // used.
   internal::OrderingToGroupSizes(pp.options.inner_iteration_ordering.get(),
                                  &(summary->inner_iteration_ordering_used));
 
   // clang-format off
-  summary->inner_iterations_used          = pp.inner_iteration_minimizer.get() != nullptr;     // NOLINT
+  summary->inner_iterations_used          = pp.inner_iteration_minimizer != nullptr;
   summary->linear_solver_type_used        = pp.linear_solver_options.type;
+  summary->mixed_precision_solves_used    = pp.options.use_mixed_precision_solves;
   summary->num_threads_used               = pp.options.num_threads;
   summary->preconditioner_type_used       = pp.options.preconditioner_type;
   // clang-format on
 
   internal::SetSummaryFinalCost(summary);
 
-  if (pp.reduced_program.get() != nullptr) {
+  if (pp.reduced_program != nullptr) {
     SummarizeReducedProgram(*pp.reduced_program, summary);
   }
 
@@ -389,8 +592,8 @@ void PostSolveSummarize(const internal::PreprocessedProblem& pp,
   // case if the preprocessor failed, or if the reduced problem did
   // not contain any parameter blocks. Thus, only extract the
   // evaluator statistics if one exists.
-  if (pp.evaluator.get() != nullptr) {
-    const map<string, CallStatistics>& evaluator_statistics =
+  if (pp.evaluator != nullptr) {
+    const std::map<std::string, CallStatistics>& evaluator_statistics =
         pp.evaluator->Statistics();
     {
       const CallStatistics& call_stats = FindWithDefault(
@@ -411,8 +614,8 @@ void PostSolveSummarize(const internal::PreprocessedProblem& pp,
   // Again, like the evaluator, there may or may not be a linear
   // solver from which we can extract run time statistics. In
   // particular the line search solver does not use a linear solver.
-  if (pp.linear_solver.get() != nullptr) {
-    const map<string, CallStatistics>& linear_solver_statistics =
+  if (pp.linear_solver != nullptr) {
+    const std::map<std::string, CallStatistics>& linear_solver_statistics =
         pp.linear_solver->Statistics();
     const CallStatistics& call_stats = FindWithDefault(
         linear_solver_statistics, "LinearSolver::Solve", CallStatistics());
@@ -468,9 +671,23 @@ std::string SchurStructureToString(const int row_block_size,
   return internal::StringPrintf("%s,%s,%s", row.c_str(), e.c_str(), f.c_str());
 }
 
+#ifndef CERES_NO_CUDA
+bool IsCudaRequired(const Solver::Options& options) {
+  if (options.linear_solver_type == DENSE_NORMAL_CHOLESKY ||
+      options.linear_solver_type == DENSE_SCHUR ||
+      options.linear_solver_type == DENSE_QR) {
+    return (options.dense_linear_algebra_library_type == CUDA);
+  }
+  if (options.linear_solver_type == CGNR) {
+    return (options.sparse_linear_algebra_library_type == CUDA_SPARSE);
+  }
+  return false;
+}
+#endif
+
 }  // namespace
 
-bool Solver::Options::IsValid(string* error) const {
+bool Solver::Options::IsValid(std::string* error) const {
   if (!CommonOptionsAreValid(*this, error)) {
     return false;
   }
@@ -509,9 +726,18 @@ void Solver::Solve(const Solver::Options& options,
     return;
   }
 
-  ProblemImpl* problem_impl = problem->impl_.get();
+  ProblemImpl* problem_impl = problem->mutable_impl();
   Program* program = problem_impl->mutable_program();
   PreSolveSummarize(options, problem_impl, summary);
+
+#ifndef CERES_NO_CUDA
+  if (IsCudaRequired(options)) {
+    if (!problem_impl->context()->InitCuda(&summary->message)) {
+      LOG(ERROR) << "Terminating: " << summary->message;
+      return;
+    }
+  }
+#endif  // CERES_NO_CUDA
 
   // If gradient_checking is enabled, wrap all cost functions in a
   // gradient checker and install a callback that terminates if any gradient
@@ -582,7 +808,7 @@ void Solver::Solve(const Solver::Options& options,
   }
 
   const double postprocessor_start_time = WallTimeInSeconds();
-  problem_impl = problem->impl_.get();
+  problem_impl = problem->mutable_impl();
   program = problem_impl->mutable_program();
   // On exit, ensure that the parameter blocks again point at the user
   // provided values and the parameter blocks are numbered according
@@ -610,7 +836,7 @@ void Solve(const Solver::Options& options,
   solver.Solve(options, problem, summary);
 }
 
-string Solver::Summary::BriefReport() const {
+std::string Solver::Summary::BriefReport() const {
   return StringPrintf(
       "Ceres Solver Report: "
       "Iterations: %d, "
@@ -623,10 +849,12 @@ string Solver::Summary::BriefReport() const {
       TerminationTypeToString(termination_type));
 }
 
-string Solver::Summary::FullReport() const {
+std::string Solver::Summary::FullReport() const {
   using internal::VersionString;
 
-  string report = string("\nSolver Summary (v " + VersionString() + ")\n\n");
+  // NOTE operator+ is not usable for concatenating a string and a string_view.
+  std::string report =
+      std::string{"\nSolver Summary (v "}.append(VersionString()) + ")\n\n";
 
   StringAppendF(&report, "%45s    %21s\n", "Original", "Reduced");
   StringAppendF(&report,
@@ -660,21 +888,13 @@ string Solver::Summary::FullReport() const {
     if (linear_solver_type_used == DENSE_NORMAL_CHOLESKY ||
         linear_solver_type_used == DENSE_SCHUR ||
         linear_solver_type_used == DENSE_QR) {
+      const char* mixed_precision_suffix =
+          (mixed_precision_solves_used ? "(Mixed Precision)" : "");
       StringAppendF(&report,
-                    "\nDense linear algebra library  %15s\n",
+                    "\nDense linear algebra library  %15s %s\n",
                     DenseLinearAlgebraLibraryTypeToString(
-                        dense_linear_algebra_library_type));
-    }
-
-    if (linear_solver_type_used == SPARSE_NORMAL_CHOLESKY ||
-        linear_solver_type_used == SPARSE_SCHUR ||
-        (linear_solver_type_used == ITERATIVE_SCHUR &&
-         (preconditioner_type_used == CLUSTER_JACOBI ||
-          preconditioner_type_used == CLUSTER_TRIDIAGONAL))) {
-      StringAppendF(&report,
-                    "\nSparse linear algebra library %15s\n",
-                    SparseLinearAlgebraLibraryTypeToString(
-                        sparse_linear_algebra_library_type));
+                        dense_linear_algebra_library_type),
+                    mixed_precision_suffix);
     }
 
     StringAppendF(&report,
@@ -687,17 +907,50 @@ string Solver::Summary::FullReport() const {
         StringAppendF(&report, " (SUBSPACE)");
       }
     }
-    StringAppendF(&report, "\n");
-    StringAppendF(&report, "\n");
 
+    const bool used_sparse_linear_algebra_library =
+        linear_solver_type_used == SPARSE_NORMAL_CHOLESKY ||
+        linear_solver_type_used == SPARSE_SCHUR ||
+        linear_solver_type_used == CGNR ||
+        (linear_solver_type_used == ITERATIVE_SCHUR &&
+         (preconditioner_type_used == CLUSTER_JACOBI ||
+          preconditioner_type_used == CLUSTER_TRIDIAGONAL));
+
+    const bool linear_solver_ordering_required =
+        linear_solver_type_used == SPARSE_SCHUR ||
+        (linear_solver_type_used == ITERATIVE_SCHUR &&
+         (preconditioner_type_used == CLUSTER_JACOBI ||
+          preconditioner_type_used == CLUSTER_TRIDIAGONAL)) ||
+        (linear_solver_type_used == CGNR && preconditioner_type_used == SUBSET);
+
+    if (used_sparse_linear_algebra_library) {
+      const char* mixed_precision_suffix =
+          (mixed_precision_solves_used ? "(Mixed Precision)" : "");
+      if (linear_solver_ordering_required) {
+        StringAppendF(
+            &report,
+            "\nSparse linear algebra library %15s + %s %s\n",
+            SparseLinearAlgebraLibraryTypeToString(
+                sparse_linear_algebra_library_type),
+            LinearSolverOrderingTypeToString(linear_solver_ordering_type),
+            mixed_precision_suffix);
+      } else {
+        StringAppendF(&report,
+                      "\nSparse linear algebra library %15s %s\n",
+                      SparseLinearAlgebraLibraryTypeToString(
+                          sparse_linear_algebra_library_type),
+                      mixed_precision_suffix);
+      }
+    }
+
+    StringAppendF(&report, "\n");
     StringAppendF(&report, "%45s    %21s\n", "Given", "Used");
     StringAppendF(&report,
                   "Linear solver       %25s%25s\n",
                   LinearSolverTypeToString(linear_solver_type_given),
                   LinearSolverTypeToString(linear_solver_type_used));
 
-    if (linear_solver_type_given == CGNR ||
-        linear_solver_type_given == ITERATIVE_SCHUR) {
+    if (IsIterativeSolver(linear_solver_type_given)) {
       StringAppendF(&report,
                     "Preconditioner      %25s%25s\n",
                     PreconditionerTypeToString(preconditioner_type_given),
@@ -717,9 +970,9 @@ string Solver::Summary::FullReport() const {
                   num_threads_given,
                   num_threads_used);
 
-    string given;
+    std::string given;
     StringifyOrdering(linear_solver_ordering_given, &given);
-    string used;
+    std::string used;
     StringifyOrdering(linear_solver_ordering_used, &used);
     StringAppendF(&report,
                   "Linear solver ordering %22s %24s\n",
@@ -740,9 +993,9 @@ string Solver::Summary::FullReport() const {
     }
 
     if (inner_iterations_used) {
-      string given;
+      std::string given;
       StringifyOrdering(inner_iteration_ordering_given, &given);
-      string used;
+      std::string used;
       StringifyOrdering(inner_iteration_ordering_used, &used);
       StringAppendF(&report,
                     "Inner iteration ordering %20s %24s\n",
@@ -753,7 +1006,7 @@ string Solver::Summary::FullReport() const {
     // LINE_SEARCH HEADER
     StringAppendF(&report, "\nMinimizer                 %19s\n", "LINE_SEARCH");
 
-    string line_search_direction_string;
+    std::string line_search_direction_string;
     if (line_search_direction_type == LBFGS) {
       line_search_direction_string = StringPrintf("LBFGS (%d)", max_lbfgs_rank);
     } else if (line_search_direction_type == NONLINEAR_CONJUGATE_GRADIENT) {
@@ -768,7 +1021,7 @@ string Solver::Summary::FullReport() const {
                   "Line search direction     %19s\n",
                   line_search_direction_string.c_str());
 
-    const string line_search_type_string = StringPrintf(
+    const std::string line_search_type_string = StringPrintf(
         "%s %s",
         LineSearchInterpolationTypeToString(line_search_interpolation_type),
         LineSearchTypeToString(line_search_type));
