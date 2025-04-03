@@ -56,4 +56,15 @@ std::string make_safe_name(const StringRef name, bool allow_unicode)
   return {buf.data(), offset};
 }
 
+pxr::SdfPath get_unique_path(pxr::UsdStageRefPtr stage, const std::string &path)
+{
+  std::string unique_path = path;
+  int suffix = 2;
+  while (stage->GetPrimAtPath(pxr::SdfPath(unique_path)).IsValid()) {
+    unique_path = path + std::to_string(suffix++);
+  }
+
+  return pxr::SdfPath(unique_path);
+}
+
 }  // namespace blender::io::usd

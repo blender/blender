@@ -18,4 +18,14 @@ namespace blender::io::usd {
  */
 std::string make_safe_name(StringRef name, bool allow_unicode);
 
+/* Return a unique USD `SdfPath`. If the given path already exists on the given stage, return
+ * the path with a numerical suffix appended to the name that ensures the path is unique.
+ * If the path does not exist on the stage, it will be returned unchanged.
+ *
+ * \param stage: The stage
+ * \param path: The original path
+ * \return A valid, and unique, USD `SdfPath`
+ */
+pxr::SdfPath get_unique_path(pxr::UsdStageRefPtr stage, const std::string &path);
+
 }  // namespace blender::io::usd
