@@ -180,6 +180,7 @@ void main()
           break;
         }
         /* Fall-through to the hemispheric case. */
+        ATTR_FALLTHROUGH;
       }
       case LIGHT_RECT:
       case LIGHT_ELLIPSE: {

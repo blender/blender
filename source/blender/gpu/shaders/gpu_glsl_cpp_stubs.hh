@@ -1030,6 +1030,15 @@ void groupMemoryBarrier() {}
 
 /** \} */
 
+/* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */
+#ifndef ATTR_FALLTHROUGH
+#  ifdef __GNUC__
+#    define ATTR_FALLTHROUGH __attribute__((fallthrough))
+#  else
+#    define ATTR_FALLTHROUGH ((void)0)
+#  endif
+#endif
+
 /* GLSL main function must return void. C++ need to return int.
  * Inject real main (C++) inside the GLSL main definition. */
 #define main() \

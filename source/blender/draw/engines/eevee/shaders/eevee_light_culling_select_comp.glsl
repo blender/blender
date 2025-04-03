@@ -65,6 +65,7 @@ void main()
           return;
         }
       }
+      ATTR_FALLTHROUGH;
     }
     case LIGHT_RECT:
     case LIGHT_ELLIPSE:
