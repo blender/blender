@@ -298,7 +298,7 @@ class GeometryAttribute {
         if (in_value < kOutMin || in_value > std::numeric_limits<OutT>::max()) {
           return false;
         }
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #  pragma GCC diagnostic pop
 #endif
 #ifdef _MSC_VER
