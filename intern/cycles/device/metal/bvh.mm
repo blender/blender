@@ -1299,7 +1299,8 @@ bool BVHMetal::build_TLAS(Progress &progress,
 #  if defined(MAC_OS_VERSION_15_0)
       if (@available(macos 15.0, *)) {
         accelDesc.motionTransformStride = 0;
-        accelDesc.motionTransformType = use_pcmi ? MTLTransformTypeComponent : MTLTransformTypePackedFloat4x3;
+        accelDesc.motionTransformType = use_pcmi ? MTLTransformTypeComponent :
+                                                   MTLTransformTypePackedFloat4x3;
       }
 #  endif
     }
