@@ -31,8 +31,8 @@ static void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
   const Span<int> corner_verts = mesh.corner_verts();
   const OffsetIndices<int> faces = mesh.faces();
 
-  threading::parallel_for(vert_to_face_map.index_range(), 2048, [&](const IndexRange sub_range) {
-    for (const int64_t vert : sub_range) {
+  threading::parallel_for(vert_to_face_map.index_range(), 2048, [&](const IndexRange range) {
+    for (const int64_t vert : range) {
       const Span<int> vert_faces = vert_to_face_map[vert];
 
       attribute_math::DefaultMixer<T> mixer({&r_dst[vert], 1});
@@ -55,10 +55,9 @@ void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
   const Span<int> corner_verts = mesh.corner_verts();
 
   r_dst.fill(true);
-  threading::parallel_for(IndexRange(mesh.corners_num), 4096, [&](const IndexRange sub_range) {
-    for (const int64_t corner : sub_range) {
+  threading::parallel_for(IndexRange(mesh.corners_num), 4096, [&](const IndexRange range) {
+    for (const int corner : range) {
       const int vert = corner_verts[corner];
-
       if (!src[corner]) {
         r_dst[vert] = false;
       }
@@ -227,43 +226,37 @@ static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray 
 
 template<typename T>
 void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
-                                          const VArray<T> &old_values,
-                                          MutableSpan<T> r_values)
+                                          const VArray<T> &src,
+                                          MutableSpan<T> r_dst)
 {
-  BLI_assert(r_values.size() == mesh.verts_num);
-  const OffsetIndices faces = mesh.faces();
-  const Span<int> corner_verts = mesh.corner_verts();
+  BLI_assert(r_dst.size() == mesh.verts_num);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
 
-  attribute_math::DefaultMixer<T> mixer(r_values);
-
-  for (const int face_index : faces.index_range()) {
-    const T value = old_values[face_index];
-    for (const int vert : corner_verts.slice(faces[face_index])) {
-      mixer.mix_in(vert, value);
+  threading::parallel_for(vert_to_face_map.index_range(), 2048, [&](const IndexRange range) {
+    for (const int vert : range) {
+      attribute_math::DefaultMixer<T> mixer({&r_dst[vert], 1});
+      for (const int face : vert_to_face_map[vert]) {
+        mixer.mix_in(0, src[face]);
+      }
+      mixer.finalize();
     }
-  }
-
-  mixer.finalize();
+  });
 }
 
 /* A vertex is selected if any of the connected faces were selected. */
 template<>
 void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
-                                          const VArray<bool> &old_values,
-                                          MutableSpan<bool> r_values)
+                                          const VArray<bool> &src,
+                                          MutableSpan<bool> r_dst)
 {
-  BLI_assert(r_values.size() == mesh.verts_num);
-  const OffsetIndices faces = mesh.faces();
-  const Span<int> corner_verts = mesh.corner_verts();
+  BLI_assert(r_dst.size() == mesh.verts_num);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
 
-  r_values.fill(false);
-  threading::parallel_for(faces.index_range(), 2048, [&](const IndexRange range) {
-    for (const int face_index : range) {
-      if (old_values[face_index]) {
-        for (const int vert : corner_verts.slice(faces[face_index])) {
-          r_values[vert] = true;
-        }
-      }
+  threading::parallel_for(vert_to_face_map.index_range(), 2048, [&](const IndexRange range) {
+    for (const int vert : range) {
+      const Span<int> vert_faces = vert_to_face_map[vert];
+      r_dst[vert] = std::any_of(
+          vert_faces.begin(), vert_faces.end(), [&](const int face) { return src[face]; });
     }
   });
 }
