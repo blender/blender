@@ -125,6 +125,8 @@ void UV_OT_shortest_path_select(wmOperatorType *ot);
 
 /* `uvedit_select.cc` */
 
+void uvedit_select_prepare_custom_data(const Scene *scene, BMesh *bm);
+
 bool uvedit_select_is_any_selected(const Scene *scene, BMEditMesh *em);
 bool uvedit_select_is_any_selected_multi(const Scene *scene, blender::Span<Object *> objects);
 /**
