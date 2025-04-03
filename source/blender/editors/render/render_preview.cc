@@ -2171,6 +2171,14 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main * /*bmain*/)
   }
 }
 
+void ED_preview_kill_jobs_for_id(wmWindowManager *wm, const ID *id)
+{
+  const PreviewImage *preview = BKE_previewimg_id_get(id);
+  if (wm && preview) {
+    WM_jobs_kill_type(wm, preview, WM_JOB_TYPE_RENDER_PREVIEW);
+  }
+}
+
 struct PreviewRestartQueueEntry {
   PreviewRestartQueueEntry *next, *prev;
 
