@@ -743,6 +743,9 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
   vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, presents.data());
   /* MAILBOX is the lowest latency V-Sync enabled mode. We will use it if available as it fixes
    * some lag on NVIDIA/Intel GPUs. */
+  /* TODO: select the correct presentation mode based on the actual being performed by the user.
+   * When low latency is required (paint cursor) we should select mailbox, otherwise we can do FIFO
+   * to reduce CPU/GPU usage.*/
   for (auto present_mode : presents) {
     if (present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
       *r_presentMode = present_mode;
@@ -750,7 +753,7 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
     }
   }
 
-  /*FIFO present mode is always available and we (should) prefer it as it will keep the main loop
+  /* FIFO present mode is always available and we (should) prefer it as it will keep the main loop
    * running along the monitor refresh rate. Mailbox and FIFO relaxed can generate a lot of frames
    * that will never be displayed. */
   *r_presentMode = VK_PRESENT_MODE_FIFO_KHR;
@@ -877,8 +880,10 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
     }
   }
 
-  /* Driver can stall if only using minimal image count. */
-  uint32_t image_count_requested = 4;
+  /* Use double buffering when using FIFO. Increasing the number of images could stall when doing
+   * actions that require low latency (paint cursor, UI resizing). MAILBOX prefers tripple
+   * buffering. */
+  uint32_t image_count_requested = present_mode == VK_PRESENT_MODE_MAILBOX_KHR ? 3 : 2;
   /* NOTE: maxImageCount == 0 means no limit. */
   if (capabilities.minImageCount != 0 && image_count_requested < capabilities.minImageCount) {
     image_count_requested = capabilities.minImageCount;
