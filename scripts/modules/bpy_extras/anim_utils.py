@@ -393,6 +393,7 @@ def bake_action_iter(
 
     # in case animation data hasn't been created
     atd = obj.animation_data_create()
+    old_slot_name = atd.last_slot_identifier[2:]
     is_new_action = action is None
     if is_new_action:
         action = bpy.data.actions.new("Action")
@@ -406,7 +407,7 @@ def bake_action_iter(
 
     # A slot needs to be assigned.
     if not atd.action_slot:
-        slot = action.slots.new(obj.id_type, obj.name)
+        slot = action.slots.new(obj.id_type, old_slot_name or obj.name)
         atd.action_slot = slot
 
     # Baking the action only makes sense in Replace mode, so force it (#69105)

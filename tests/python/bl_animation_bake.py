@@ -76,6 +76,7 @@ class ObjectBakeTest(unittest.TestCase):
         self.assertNotEqual(action, self.obj.animation_data.action, "Expected baking to result in a new action")
         baked_action = self.obj.animation_data.action
         self.assertEqual(len(baked_action.slots), 1)
+        self.assertEqual(baked_action.slots[0].name_display, action.slots[0].name_display)
         channelbag = anim_utils.action_get_channelbag_for_slot(baked_action, self.obj.animation_data.action_slot)
 
         self.assertIsNotNone(channelbag)
@@ -137,12 +138,14 @@ class ObjectBakeTest(unittest.TestCase):
 
         self.assertIsNotNone(self.obj.animation_data.action_slot)
         self.assertIsNotNone(obj2.animation_data.action_slot)
-
+        self.assertNotEqual(self.obj.animation_data.action_slot, obj2.animation_data.action_slot)
+        original_slot = obj2.animation_data.action_slot
         anim_utils.bake_action_objects([(obj2, None)], frames=range(0, 10), bake_options=OBJECT_BAKE_OPTIONS)
 
         self.assertNotEqual(action, obj2.animation_data.action, "Expected baking to result in a new action")
         baked_action = obj2.animation_data.action
         self.assertEqual(len(baked_action.slots), 1)
+        self.assertEqual(original_slot.name_display, baked_action.slots[0].name_display)
         channelbag = anim_utils.action_get_channelbag_for_slot(baked_action, baked_action.slots[0])
 
         for fcurve in channelbag.fcurves:
