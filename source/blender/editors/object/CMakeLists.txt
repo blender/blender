@@ -7,6 +7,7 @@ set(INC
   ../../ikplugin
   ../../makesrna
   ../../modifiers
+  ../../nodes
   ../../python
   ../../shader_fx
 

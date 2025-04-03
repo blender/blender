@@ -122,6 +122,11 @@ class GraphExecutor : public LazyFunction {
 
  public:
   GraphExecutor(const Graph &graph,
+                const Logger *logger,
+                const SideEffectProvider *side_effect_provider,
+                const NodeExecuteWrapper *node_execute_wrapper);
+
+  GraphExecutor(const Graph &graph,
                 Vector<const GraphInputSocket *> graph_inputs,
                 Vector<const GraphOutputSocket *> graph_outputs,
                 const Logger *logger,

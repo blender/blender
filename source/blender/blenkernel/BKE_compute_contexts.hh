@@ -156,6 +156,34 @@ class ForeachGeometryElementZoneComputeContext : public ComputeContext {
   void print_current_in_line(std::ostream &stream) const override;
 };
 
+class EvaluateClosureComputeContext : public ComputeContext {
+ private:
+  static constexpr const char *s_static_type = "CLOSURE";
+
+  int32_t node_id_;
+
+  /**
+   * Extra information that might not always be available.
+   */
+  const bNode *evaluate_node_ = nullptr;
+
+ public:
+  EvaluateClosureComputeContext(const ComputeContext *parent, int32_t node_id);
+  EvaluateClosureComputeContext(const ComputeContext *parent, const bNode &evaluate_node);
+
+  int32_t node_id() const
+  {
+    return node_id_;
+  }
+  const bNode *evaluate_node() const
+  {
+    return evaluate_node_;
+  }
+
+ private:
+  void print_current_in_line(std::ostream &stream) const override;
+};
+
 class OperatorComputeContext : public ComputeContext {
  private:
   static constexpr const char *s_static_type = "OPERATOR";

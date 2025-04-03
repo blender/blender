@@ -57,6 +57,8 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
     {SOCK_COLLECTION, "COLLECTION", ICON_NODE_SOCKET_COLLECTION, "Collection", ""},
     {SOCK_TEXTURE, "TEXTURE", ICON_NODE_SOCKET_TEXTURE, "Texture", ""},
     {SOCK_MATERIAL, "MATERIAL", ICON_NODE_SOCKET_MATERIAL, "Material", ""},
+    {SOCK_BUNDLE, "BUNDLE", ICON_NODE_SOCKET_BUNDLE, "Bundle", ""},
+    {SOCK_CLOSURE, "CLOSURE", ICON_NODE_SOCKET_CLOSURE, "Closure", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -627,7 +629,9 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "NOD_common.hh"
 #  include "NOD_composite.hh"
 #  include "NOD_geo_bake.hh"
+#  include "NOD_geo_bundle.hh"
 #  include "NOD_geo_capture_attribute.hh"
+#  include "NOD_geo_closure.hh"
 #  include "NOD_geo_foreach_geometry_element.hh"
 #  include "NOD_geo_index_switch.hh"
 #  include "NOD_geo_menu_switch.hh"
@@ -654,12 +658,18 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 using blender::float2;
 using blender::nodes::BakeItemsAccessor;
 using blender::nodes::CaptureAttributeItemsAccessor;
+using blender::nodes::ClosureInputItemsAccessor;
+using blender::nodes::ClosureOutputItemsAccessor;
+using blender::nodes::CombineBundleItemsAccessor;
+using blender::nodes::EvaluateClosureInputItemsAccessor;
+using blender::nodes::EvaluateClosureOutputItemsAccessor;
 using blender::nodes::ForeachGeometryElementGenerationItemsAccessor;
 using blender::nodes::ForeachGeometryElementInputItemsAccessor;
 using blender::nodes::ForeachGeometryElementMainItemsAccessor;
 using blender::nodes::IndexSwitchItemsAccessor;
 using blender::nodes::MenuSwitchItemsAccessor;
 using blender::nodes::RepeatItemsAccessor;
+using blender::nodes::SeparateBundleItemsAccessor;
 using blender::nodes::SimulationItemsAccessor;
 
 extern FunctionRNA rna_NodeTree_poll_func;
@@ -10022,6 +10032,13 @@ static void def_geo_foreach_geometry_element_input(BlenderRNA *brna, StructRNA *
   def_common_zone_input(brna, srna);
 }
 
+static void def_geo_closure_input(BlenderRNA *brna, StructRNA *srna)
+{
+  RNA_def_struct_sdna_from(srna, "NodeGeometryClosureInput", "storage");
+
+  def_common_zone_input(brna, srna);
+}
+
 static void rna_def_node_item_array_socket_item_common(StructRNA *srna,
                                                        const char *accessor,
                                                        const bool add_socket_type)
@@ -10404,6 +10421,79 @@ static void def_geo_foreach_geometry_element_output(BlenderRNA * /*brna*/, Struc
   RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 }
 
+static void rna_def_geo_closure_input_item(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "NodeGeometryClosureInputItem", nullptr);
+  RNA_def_struct_ui_text(srna, "Closure Input Item", "");
+  RNA_def_struct_sdna(srna, "NodeGeometryClosureInputItem");
+
+  rna_def_node_item_array_socket_item_common(srna, "ClosureInputItemsAccessor", true);
+}
+
+static void rna_def_geo_closure_input_items(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "NodeGeometryClosureInputItems", nullptr);
+  RNA_def_struct_ui_text(srna, "Closure Input Items", "");
+  RNA_def_struct_sdna(srna, "bNode");
+
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "NodeGeometryClosureInputItem", "ClosureInputItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "NodeGeometryClosureInputItem", "ClosureInputItemsAccessor");
+}
+
+static void rna_def_geo_closure_output_item(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "NodeGeometryClosureOutputItem", nullptr);
+  RNA_def_struct_ui_text(srna, "Closure Output Item", "");
+  RNA_def_struct_sdna(srna, "NodeGeometryClosureOutputItem");
+
+  rna_def_node_item_array_socket_item_common(srna, "ClosureOutputItemsAccessor", true);
+}
+
+static void rna_def_geo_closure_output_items(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "NodeGeometryClosureOutputItems", nullptr);
+  RNA_def_struct_ui_text(srna, "Closure Output Items", "");
+  RNA_def_struct_sdna(srna, "bNode");
+
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "NodeGeometryClosureOutputItem", "ClosureOutputItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "NodeGeometryClosureOutputItem", "ClosureOutputItemsAccessor");
+}
+
+static void def_geo_closure_output(BlenderRNA * /*brna*/, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryClosureOutput", "storage");
+
+  prop = RNA_def_property(srna, "input_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "input_items.items", "input_items.items_num");
+  RNA_def_property_struct_type(prop, "NodeGeometryClosureInputItem");
+  RNA_def_property_srna(prop, "NodeGeometryClosureInputItems");
+
+  prop = RNA_def_property(srna, "output_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "output_items.items", "output_items.items_num");
+  RNA_def_property_struct_type(prop, "NodeGeometryClosureOutputItem");
+  RNA_def_property_srna(prop, "NodeGeometryClosureOutputItems");
+
+  prop = RNA_def_property(srna, "active_input_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "input_items.active_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+
+  prop = RNA_def_property(srna, "active_output_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "output_items.active_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+}
+
 static void rna_def_geo_capture_attribute_item(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "NodeGeometryCaptureAttributeItem", nullptr);
@@ -10469,6 +10559,87 @@ static void rna_def_geo_capture_attribute(BlenderRNA * /*brna*/, StructRNA *srna
   RNA_def_property_enum_funcs(
       prop, nullptr, nullptr, "rna_GeometryNodeAttributeDomain_attribute_domain_itemf");
   RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
+}
+
+static void rna_def_geo_evaluate_closure_input_item(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "NodeGeometryEvaluateClosureInputItem", nullptr);
+  RNA_def_struct_ui_text(srna, "Input Item", "");
+
+  rna_def_node_item_array_socket_item_common(srna, "EvaluateClosureInputItemsAccessor", true);
+}
+
+static void rna_def_geo_evaluate_closure_input_items(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "NodeGeometryEvaluateClosureInputItems", nullptr);
+  RNA_def_struct_ui_text(srna, "Input Items", "");
+  RNA_def_struct_sdna(srna, "bNode");
+
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "NodeGeometryEvaluateClosureInputItem", "EvaluateClosureInputItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "NodeGeometryEvaluateClosureInputItem", "EvaluateClosureInputItemsAccessor");
+}
+
+static void rna_def_geo_evaluate_closure_output_item(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "NodeGeometryEvaluateClosureOutputItem", nullptr);
+  RNA_def_struct_ui_text(srna, "Output Item", "");
+
+  rna_def_node_item_array_socket_item_common(srna, "EvaluateClosureOutputItemsAccessor", true);
+}
+
+static void rna_def_geo_evaluate_closure_output_items(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "NodeGeometryEvaluateClosureOutputItems", nullptr);
+  RNA_def_struct_ui_text(srna, "Output Items", "");
+  RNA_def_struct_sdna(srna, "bNode");
+
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "NodeGeometryEvaluateClosureOutputItem", "EvaluateClosureOutputItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "NodeGeometryEvaluateClosureOutputItem", "EvaluateClosureOutputItemsAccessor");
+}
+
+static void def_geo_evaluate_closure(BlenderRNA * /*brna*/, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryEvaluateClosure", "storage");
+
+  prop = RNA_def_property(srna, "input_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "input_items.items", "input_items.items_num");
+  RNA_def_property_struct_type(prop, "NodeGeometryEvaluateClosureInputItem");
+  RNA_def_property_ui_text(prop, "Input Items", "");
+  RNA_def_property_srna(prop, "NodeGeometryEvaluateClosureInputItems");
+
+  prop = RNA_def_property(srna, "output_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "output_items.items", "output_items.items_num");
+  RNA_def_property_struct_type(prop, "NodeGeometryEvaluateClosureOutputItem");
+  RNA_def_property_ui_text(prop, "Output Items", "");
+  RNA_def_property_srna(prop, "NodeGeometryEvaluateClosureOutputItems");
+
+  prop = RNA_def_property(srna, "active_input_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "input_items.active_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+
+  prop = RNA_def_property(srna, "active_output_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "output_items.active_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_NODE, nullptr);
 }
 
 static void rna_def_geo_bake_item(BlenderRNA *brna)
@@ -10540,6 +10711,86 @@ static void rna_def_geo_bake(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NO_DEG_UPDATE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+}
+
+static void rna_def_geo_combine_bundle_item(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "NodeGeometryCombineBundleItem", nullptr);
+  RNA_def_struct_ui_text(srna, "Combine Bundle Item", "");
+
+  rna_def_node_item_array_socket_item_common(srna, "CombineBundleItemsAccessor", true);
+}
+
+static void rna_def_geo_combine_bundle_items(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "NodeGeometryCombineBundleItems", nullptr);
+  RNA_def_struct_sdna(srna, "bNode");
+  RNA_def_struct_ui_text(srna, "Items", "Collection of combine bundle items");
+
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "NodeGeometryCombineBundleItem", "CombineBundleItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "NodeGeometryCombineBundleItem", "CombineBundleItemsAccessor");
+}
+
+static void rna_def_geo_combine_bundle(BlenderRNA * /*brna*/, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryCombineBundle", "storage");
+
+  prop = RNA_def_property(srna, "bundle_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "items", "items_num");
+  RNA_def_property_struct_type(prop, "NodeGeometryCombineBundleItem");
+  RNA_def_property_ui_text(prop, "Items", "");
+  RNA_def_property_srna(prop, "NodeGeometryCombineBundleItems");
+
+  prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "active_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+}
+
+static void rna_def_geo_separate_bundle_item(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "NodeGeometrySeparateBundleItem", nullptr);
+  RNA_def_struct_ui_text(srna, "Separate Bundle Item", "");
+
+  rna_def_node_item_array_socket_item_common(srna, "SeparateBundleItemsAccessor", true);
+}
+
+static void rna_def_geo_separate_bundle_items(BlenderRNA *brna)
+{
+  StructRNA *srna = RNA_def_struct(brna, "NodeGeometrySeparateBundleItems", nullptr);
+  RNA_def_struct_sdna(srna, "bNode");
+  RNA_def_struct_ui_text(srna, "Items", "Collection of separate bundle items");
+
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "NodeGeometrySeparateBundleItem", "SeparateBundleItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "NodeGeometrySeparateBundleItem", "SeparateBundleItemsAccessor");
+}
+
+static void rna_def_geo_separate_bundle(BlenderRNA * /*brna*/, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometrySeparateBundle", "storage");
+
+  prop = RNA_def_property(srna, "bundle_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "items", "items_num");
+  RNA_def_property_struct_type(prop, "NodeGeometrySeparateBundleItem");
+  RNA_def_property_ui_text(prop, "Items", "");
+  RNA_def_property_srna(prop, "NodeGeometrySeparateBundleItems");
+
+  prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "active_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_update(prop, NC_NODE, nullptr);
 }
 
@@ -12650,6 +12901,12 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeVolumeCube");
   define("GeometryNode", "GeometryNodeVolumeToMesh");
   define("GeometryNode", "GeometryNodeWarning");
+  define("GeometryNode", "GeometryNodeSeparateBundle", rna_def_geo_separate_bundle);
+  define("GeometryNode", "GeometryNodeCombineBundle", rna_def_geo_combine_bundle);
+  define("GeometryNode", "GeometryNodeClosureInput", def_geo_closure_input);
+  define("GeometryNode", "GeometryNodeClosureOutput", def_geo_closure_output);
+  define("GeometryNode", "GeometryNodeEvaluateClosure", def_geo_evaluate_closure);
+
 
   /* Node group types are currently defined for each tree type individually. */
   define("ShaderNode", "ShaderNodeGroup", def_group);
@@ -12687,6 +12944,12 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_index_switch_item(brna);
   rna_def_menu_switch_item(brna);
   rna_def_geo_bake_item(brna);
+  rna_def_geo_combine_bundle_item(brna);
+  rna_def_geo_separate_bundle_item(brna);
+  rna_def_geo_closure_input_item(brna);
+  rna_def_geo_closure_output_item(brna);
+  rna_def_geo_evaluate_closure_input_item(brna);
+  rna_def_geo_evaluate_closure_output_item(brna);
   rna_def_geo_capture_attribute_item(brna);
 
   rna_def_nodes(brna);
@@ -12727,6 +12990,12 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_geo_index_switch_items(brna);
   rna_def_geo_menu_switch_items(brna);
   rna_def_bake_items(brna);
+  rna_def_geo_combine_bundle_items(brna);
+  rna_def_geo_separate_bundle_items(brna);
+  rna_def_geo_closure_input_items(brna);
+  rna_def_geo_closure_output_items(brna);
+  rna_def_geo_evaluate_closure_input_items(brna);
+  rna_def_geo_evaluate_closure_output_items(brna);
   rna_def_geo_capture_attribute_items(brna);
 
   rna_def_node_instance_hash(brna);

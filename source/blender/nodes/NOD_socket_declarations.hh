@@ -238,6 +238,42 @@ class MenuBuilder : public SocketDeclarationBuilder<Menu> {
   MenuBuilder &default_value(int32_t value);
 };
 
+class BundleBuilder;
+
+class Bundle : public SocketDeclaration {
+ public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_BUNDLE;
+
+  friend BundleBuilder;
+
+  using Builder = BundleBuilder;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
+};
+
+class BundleBuilder : public SocketDeclarationBuilder<Bundle> {};
+
+class ClosureBuilder;
+
+class Closure : public SocketDeclaration {
+ public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_CLOSURE;
+
+  friend ClosureBuilder;
+
+  using Builder = ClosureBuilder;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
+};
+
+class ClosureBuilder : public SocketDeclarationBuilder<Closure> {};
+
 class IDSocketDeclaration : public SocketDeclaration {
  public:
   const char *idname;

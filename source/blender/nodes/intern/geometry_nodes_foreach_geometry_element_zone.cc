@@ -269,7 +269,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
   {
     debug_name_ = "Foreach Geometry Element";
 
-    initialize_zone_wrapper(zone, zone_info, body_fn, inputs_, outputs_);
+    initialize_zone_wrapper(zone, zone_info, body_fn, true, inputs_, outputs_);
     /* All main inputs are always used for now. */
     for (const int i : zone_info.indices.inputs.main) {
       inputs_[i].usage = lf::ValueUsage::Used;

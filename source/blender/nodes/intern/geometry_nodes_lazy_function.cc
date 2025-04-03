@@ -413,18 +413,24 @@ class LazyFunctionForUndefinedNode : public LazyFunction {
   }
 };
 
+void construct_socket_default_value(const bke::bNodeSocketType &stype, void *r_value)
+{
+  const CPPType *cpp_type = stype.geometry_nodes_cpp_type;
+  BLI_assert(cpp_type);
+  if (stype.geometry_nodes_default_cpp_value) {
+    cpp_type->copy_construct(stype.geometry_nodes_default_cpp_value, r_value);
+  }
+  else {
+    cpp_type->value_initialize(r_value);
+  }
+}
+
 void set_default_value_for_output_socket(lf::Params &params,
                                          const int lf_index,
                                          const bNodeSocket &bsocket)
 {
-  const CPPType &cpp_type = *bsocket.typeinfo->geometry_nodes_cpp_type;
   void *output_value = params.get_output_data_ptr(lf_index);
-  if (bsocket.typeinfo->geometry_nodes_default_cpp_value) {
-    cpp_type.copy_construct(bsocket.typeinfo->geometry_nodes_default_cpp_value, output_value);
-  }
-  else {
-    cpp_type.value_initialize(output_value);
-  }
+  construct_socket_default_value(*bsocket.typeinfo, output_value);
   params.output_set(lf_index);
 }
 
@@ -546,6 +552,77 @@ static void execute_multi_function_on_value_variant(const MultiFunction &fn,
   }
 }
 
+bool implicitly_convert_socket_value(const bke::bNodeSocketType &from_type,
+                                     const void *from_value,
+                                     const bke::bNodeSocketType &to_type,
+                                     void *r_to_value)
+{
+  BLI_assert(from_value != r_to_value);
+  if (&from_type == &to_type) {
+    from_type.geometry_nodes_cpp_type->copy_construct(from_value, r_to_value);
+    return true;
+  }
+  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+  const CPPType *from_cpp_type = from_type.base_cpp_type;
+  const CPPType *to_cpp_type = to_type.base_cpp_type;
+  if (!from_cpp_type || !to_cpp_type) {
+    return false;
+  }
+  if (conversions.is_convertible(*from_cpp_type, *to_cpp_type)) {
+    const MultiFunction &multi_fn = *conversions.get_conversion_multi_function(
+        mf::DataType::ForSingle(*from_cpp_type), mf::DataType::ForSingle(*to_cpp_type));
+    SocketValueVariant input_variant = *static_cast<const SocketValueVariant *>(from_value);
+    SocketValueVariant *output_variant = new (r_to_value) SocketValueVariant();
+    execute_multi_function_on_value_variant(multi_fn, {}, {&input_variant}, {output_variant});
+    return true;
+  }
+  return false;
+}
+
+class LazyFunctionForImplicitConversion : public LazyFunction {
+ private:
+  const MultiFunction &fn_;
+
+ public:
+  LazyFunctionForImplicitConversion(const MultiFunction &fn) : fn_(fn)
+  {
+    debug_name_ = "Convert";
+    inputs_.append_as("From", CPPType::get<SocketValueVariant>());
+    outputs_.append_as("To", CPPType::get<SocketValueVariant>());
+  }
+
+  void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
+  {
+    SocketValueVariant *from_value = params.try_get_input_data_ptr<SocketValueVariant>(0);
+    SocketValueVariant *to_value = new (params.get_output_data_ptr(0)) SocketValueVariant();
+    BLI_assert(from_value != nullptr);
+    BLI_assert(to_value != nullptr);
+    execute_multi_function_on_value_variant(fn_, {}, {from_value}, {to_value});
+    params.output_set(0);
+  }
+};
+
+const LazyFunction *build_implicit_conversion_lazy_function(const bke::bNodeSocketType &from_type,
+                                                            const bke::bNodeSocketType &to_type,
+                                                            ResourceScope &scope)
+{
+  if (!from_type.geometry_nodes_cpp_type || !to_type.geometry_nodes_cpp_type) {
+    return nullptr;
+  }
+  if (&from_type == &to_type) {
+    return &scope.construct<LazyFunctionForRerouteNode>(*from_type.geometry_nodes_cpp_type);
+  }
+  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+  const CPPType &from_base_type = *from_type.base_cpp_type;
+  const CPPType &to_base_type = *to_type.base_cpp_type;
+  if (conversions.is_convertible(from_base_type, to_base_type)) {
+    const MultiFunction &multi_fn = *conversions.get_conversion_multi_function(
+        mf::DataType::ForSingle(from_base_type), mf::DataType::ForSingle(to_base_type));
+    return &scope.construct<LazyFunctionForImplicitConversion>(multi_fn);
+  }
+  return nullptr;
+}
+
 /**
  * Behavior of muted nodes:
  * - Some inputs are forwarded to outputs without changes.
@@ -610,55 +687,14 @@ class LazyFunctionForMutedNode : public LazyFunction {
         continue;
       }
       void *output_value = params.get_output_data_ptr(lf_output_index);
-      if (input_bsocket->type == output_bsocket->type) {
-        inputs_[lf_input_index].type->copy_construct(input_value, output_value);
-        params.output_set(lf_output_index);
-        continue;
-      }
-      const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-      if (conversions.is_convertible(*input_bsocket->typeinfo->base_cpp_type,
-                                     *output_bsocket->typeinfo->base_cpp_type))
+      if (implicitly_convert_socket_value(
+              *input_bsocket->typeinfo, input_value, *output_bsocket->typeinfo, output_value))
       {
-        const MultiFunction &multi_fn = *conversions.get_conversion_multi_function(
-            mf::DataType::ForSingle(*input_bsocket->typeinfo->base_cpp_type),
-            mf::DataType::ForSingle(*output_bsocket->typeinfo->base_cpp_type));
-        SocketValueVariant input_variant = *static_cast<const SocketValueVariant *>(input_value);
-        SocketValueVariant *output_variant = new (output_value) SocketValueVariant();
-        execute_multi_function_on_value_variant(multi_fn, {}, {&input_variant}, {output_variant});
         params.output_set(lf_output_index);
         continue;
       }
       set_default_value_for_output_socket(params, lf_output_index, *output_bsocket);
     }
-  }
-};
-
-/**
- * Type conversions are generally implemented as multi-functions. This node checks if the input is
- * a field or single value and outputs a field or single value respectively.
- */
-class LazyFunctionForMultiFunctionConversion : public LazyFunction {
- private:
-  const MultiFunction &fn_;
-
- public:
-  LazyFunctionForMultiFunctionConversion(const MultiFunction &fn) : fn_(fn)
-  {
-    debug_name_ = "Convert";
-    inputs_.append_as("From", CPPType::get<SocketValueVariant>());
-    outputs_.append_as("To", CPPType::get<SocketValueVariant>());
-  }
-
-  void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
-  {
-    SocketValueVariant *from_value = params.try_get_input_data_ptr<SocketValueVariant>(0);
-    SocketValueVariant *to_value = new (params.get_output_data_ptr(0)) SocketValueVariant();
-    BLI_assert(from_value != nullptr);
-    BLI_assert(to_value != nullptr);
-
-    execute_multi_function_on_value_variant(fn_, {}, {from_value}, {to_value});
-
-    params.output_set(0);
   }
 };
 
@@ -1556,6 +1592,7 @@ static bool ignore_zone_bsocket(const bNodeSocket &bsocket)
 void initialize_zone_wrapper(const bNodeTreeZone &zone,
                              ZoneBuildInfo &zone_info,
                              const ZoneBodyFunction &body_fn,
+                             const bool expose_all_reference_sets,
                              Vector<lf::Input> &r_inputs,
                              Vector<lf::Output> &r_outputs)
 {
@@ -1598,11 +1635,14 @@ void initialize_zone_wrapper(const bNodeTreeZone &zone,
         r_outputs.append_and_get_index_as("Border Link Usage", CPPType::get<bool>()));
   }
 
-  for (const auto item : body_fn.indices.inputs.reference_sets.items()) {
-    zone_info.indices.inputs.reference_sets.add_new(
-        item.key,
-        r_inputs.append_and_get_index_as(
-            "Reference Set", CPPType::get<GeometryNodesReferenceSet>(), lf::ValueUsage::Maybe));
+  /* Some zone types (e.g. the closure zone) do not expose all reference sets. */
+  if (expose_all_reference_sets) {
+    for (const auto item : body_fn.indices.inputs.reference_sets.items()) {
+      zone_info.indices.inputs.reference_sets.add_new(
+          item.key,
+          r_inputs.append_and_get_index_as(
+              "Reference Set", CPPType::get<GeometryNodesReferenceSet>(), lf::ValueUsage::Maybe));
+    }
   }
 }
 
@@ -1922,6 +1962,9 @@ struct GeometryNodesLazyFunctionBuilder {
         case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT:
           this->build_foreach_geometry_element_zone_function(zone);
           break;
+        case GEO_NODE_CLOSURE_OUTPUT:
+          this->build_closure_zone_function(zone);
+          break;
         default: {
           BLI_assert_unreachable();
           break;
@@ -2081,7 +2124,8 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     ZoneBuildInfo &zone_info = zone_build_infos_[zone.index];
     /* Build a function for the loop body. */
-    ZoneBodyFunction &body_fn = this->build_zone_body_function(zone, "Repeat Body");
+    ZoneBodyFunction &body_fn = this->build_zone_body_function(
+        zone, "Repeat Body", &scope_.construct<GeometryNodesLazyFunctionSideEffectProvider>());
     /* Wrap the loop body by another function that implements the repeat behavior. */
     auto &zone_fn = build_repeat_zone_lazy_function(scope_, btree_, zone, zone_info, body_fn);
     zone_info.lazy_function = &zone_fn;
@@ -2091,17 +2135,30 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     ZoneBuildInfo &zone_info = zone_build_infos_[zone.index];
     /* Build a function for the loop body. */
-    ZoneBodyFunction &body_fn = this->build_zone_body_function(zone, "Foreach Body");
+    ZoneBodyFunction &body_fn = this->build_zone_body_function(
+        zone, "Foreach Body", &scope_.construct<GeometryNodesLazyFunctionSideEffectProvider>());
     /* Wrap the loop body in another function that implements the foreach behavior. */
     auto &zone_fn = build_foreach_geometry_element_zone_lazy_function(
         scope_, btree_, zone, zone_info, body_fn);
     zone_info.lazy_function = &zone_fn;
   }
 
+  void build_closure_zone_function(const bNodeTreeZone &zone)
+  {
+    ZoneBuildInfo &zone_info = zone_build_infos_[zone.index];
+    /* Build a function for the closure body. */
+    ZoneBodyFunction &body_fn = this->build_zone_body_function(zone, "Closure Body", nullptr);
+    auto &zone_fn = build_closure_zone_lazy_function(scope_, btree_, zone, zone_info, body_fn);
+    zone_info.lazy_function = &zone_fn;
+  }
+
   /**
    * Build a lazy-function for the "body" of a zone, i.e. for all the nodes within the zone.
    */
-  ZoneBodyFunction &build_zone_body_function(const bNodeTreeZone &zone, const StringRef name)
+  ZoneBodyFunction &build_zone_body_function(
+      const bNodeTreeZone &zone,
+      const StringRef name,
+      const lf::GraphExecutorSideEffectProvider *side_effect_provider)
   {
     lf::Graph &lf_body_graph = scope_.construct<lf::Graph>(name);
 
@@ -2198,13 +2255,12 @@ struct GeometryNodesLazyFunctionBuilder {
     lf_body_graph.update_node_indices();
 
     auto &logger = scope_.construct<GeometryNodesLazyFunctionLogger>(*lf_graph_info_);
-    auto &side_effect_provider = scope_.construct<GeometryNodesLazyFunctionSideEffectProvider>();
 
     body_fn.function = &scope_.construct<lf::GraphExecutor>(lf_body_graph,
                                                             lf_body_inputs.as_span(),
                                                             lf_body_outputs.as_span(),
                                                             &logger,
-                                                            &side_effect_provider,
+                                                            side_effect_provider,
                                                             nullptr);
 
     lf_graph_info_->debug_zone_body_graphs.add(zone.output_node->identifier, &lf_body_graph);
@@ -2259,7 +2315,9 @@ struct GeometryNodesLazyFunctionBuilder {
           add_reference_set_zone_input(reference_set_i);
           break;
         }
-        case ReferenceSetType::LocalReferenceSet: {
+        case ReferenceSetType::LocalReferenceSet:
+        case ReferenceSetType::ClosureOutputData:
+        case ReferenceSetType::ClosureInputReferenceSet: {
           const bNodeSocket &bsocket = *reference_set.socket;
           if (lf::OutputSocket *lf_socket = graph_params.lf_output_by_bsocket.lookup_default(
                   &bsocket, nullptr))
@@ -2436,6 +2494,12 @@ struct GeometryNodesLazyFunctionBuilder {
           lf::GraphInputSocket *lf_reference_set_socket = reference_set_by_output_.lookup(
               group_output_i);
           lf_reference_sets.add_new(reference_set_i, lf_reference_set_socket);
+          break;
+        }
+        case ReferenceSetType::ClosureOutputData:
+        case ReferenceSetType::ClosureInputReferenceSet: {
+          /* These reference sets are not used outside of zones. */
+          BLI_assert_unreachable();
           break;
         }
       }
@@ -2786,6 +2850,10 @@ struct GeometryNodesLazyFunctionBuilder {
       }
       case GEO_NODE_MENU_SWITCH: {
         this->build_menu_switch_node(bnode, graph_params);
+        break;
+      }
+      case GEO_NODE_EVALUATE_CLOSURE: {
+        this->build_evaluate_closure_node(bnode, graph_params);
         break;
       }
       default: {
@@ -3541,6 +3609,50 @@ struct GeometryNodesLazyFunctionBuilder {
     }
   }
 
+  void build_evaluate_closure_node(const bNode &bnode, BuildGraphParams &graph_params)
+  {
+    const EvaluateClosureFunction function = build_evaluate_closure_node_lazy_function(scope_,
+                                                                                       bnode);
+    lf::FunctionNode &lf_node = graph_params.lf_graph.add_function(*function.lazy_function);
+    const int inputs_num = bnode.input_sockets().size() - 1;
+    const int outputs_num = bnode.output_sockets().size() - 1;
+    BLI_assert(inputs_num == function.indices.inputs.main.size());
+    BLI_assert(inputs_num == function.indices.outputs.input_usages.size());
+    BLI_assert(outputs_num == function.indices.outputs.main.size());
+    BLI_assert(outputs_num == function.indices.inputs.output_usages.size());
+
+    for (const int i : IndexRange(inputs_num)) {
+      const bNodeSocket &bsocket = bnode.input_socket(i);
+      lf::InputSocket &lf_socket = lf_node.input(function.indices.inputs.main[i]);
+      graph_params.lf_inputs_by_bsocket.add(&bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+      graph_params.usage_by_bsocket.add(&bsocket,
+                                        &lf_node.output(function.indices.outputs.input_usages[i]));
+    }
+    for (const int i : IndexRange(outputs_num)) {
+      const bNodeSocket &bsocket = bnode.output_socket(i);
+      lf::OutputSocket &lf_socket = lf_node.output(function.indices.outputs.main[i]);
+      graph_params.lf_output_by_bsocket.add(&bsocket, &lf_socket);
+      mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
+      lf::InputSocket &lf_usage_socket = lf_node.input(function.indices.inputs.output_usages[i]);
+      graph_params.socket_usage_inputs.add(&lf_usage_socket);
+      if (lf::OutputSocket *output_is_used = graph_params.usage_by_bsocket.lookup(&bsocket)) {
+        graph_params.lf_graph.add_link(*output_is_used, lf_usage_socket);
+      }
+      else {
+        static const bool static_false = false;
+        lf_usage_socket.set_default_value(&static_false);
+      }
+    }
+    for (const auto item : function.indices.inputs.reference_set_by_output.items()) {
+      const bNodeSocket &bsocket = bnode.output_socket(item.key);
+      lf_graph_info_->mapping
+          .lf_input_index_for_reference_set_for_output[bsocket.index_in_all_outputs()] =
+          item.value;
+      graph_params.lf_reference_set_input_by_output.add(&bsocket, &lf_node.input(item.value));
+    }
+  }
+
   void build_undefined_node(const bNode &bnode, BuildGraphParams &graph_params)
   {
     auto &lazy_function = scope_.construct<LazyFunctionForUndefinedNode>(
@@ -3688,16 +3800,12 @@ struct GeometryNodesLazyFunctionBuilder {
     if (from_typeinfo.type == to_typeinfo.type) {
       return &from_socket;
     }
-    if (from_typeinfo.base_cpp_type && to_typeinfo.base_cpp_type) {
-      if (conversions_->is_convertible(*from_typeinfo.base_cpp_type, *to_typeinfo.base_cpp_type)) {
-        const MultiFunction &multi_fn = *conversions_->get_conversion_multi_function(
-            mf::DataType::ForSingle(*from_typeinfo.base_cpp_type),
-            mf::DataType::ForSingle(*to_typeinfo.base_cpp_type));
-        auto &fn = scope_.construct<LazyFunctionForMultiFunctionConversion>(multi_fn);
-        lf::Node &conversion_node = lf_graph.add_function(fn);
-        lf_graph.add_link(from_socket, conversion_node.input(0));
-        return &conversion_node.output(0);
-      }
+    if (const LazyFunction *conversion_fn = build_implicit_conversion_lazy_function(
+            from_typeinfo, to_typeinfo, scope_))
+    {
+      lf::Node &conversion_node = lf_graph.add_function(*conversion_fn);
+      lf_graph.add_link(from_socket, conversion_node.input(0));
+      return &conversion_node.output(0);
     }
     return nullptr;
   }
@@ -4108,6 +4216,9 @@ std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesLFUserData &u
              nullptr)
     {
       found.is_in_loop = true;
+    }
+    else if (dynamic_cast<const bke::EvaluateClosureComputeContext *>(context) != nullptr) {
+      found.is_in_closure = true;
     }
   }
   std::reverse(node_ids.begin(), node_ids.end());

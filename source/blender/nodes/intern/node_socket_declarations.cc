@@ -594,6 +594,102 @@ bNodeSocket &Menu::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &s
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name #Bundle
+ * \{ */
+
+bNodeSocket &Bundle::build(bNodeTree &ntree, bNode &node) const
+{
+  bNodeSocket &socket = *bke::node_add_static_socket(ntree,
+                                                     node,
+                                                     this->in_out,
+                                                     SOCK_BUNDLE,
+                                                     PROP_NONE,
+                                                     this->identifier.c_str(),
+                                                     this->name.c_str());
+  this->set_common_flags(socket);
+  return socket;
+}
+
+bool Bundle::matches(const bNodeSocket &socket) const
+{
+  if (!this->matches_common_data(socket)) {
+    return false;
+  }
+  if (socket.type != SOCK_BUNDLE) {
+    return false;
+  }
+  return true;
+}
+
+bool Bundle::can_connect(const bNodeSocket &socket) const
+{
+  if (!sockets_can_connect(*this, socket)) {
+    return false;
+  }
+  return ELEM(socket.type, SOCK_BUNDLE);
+}
+
+bNodeSocket &Bundle::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const
+{
+  if (socket.type != SOCK_BUNDLE) {
+    BLI_assert(socket.in_out == this->in_out);
+    return this->build(ntree, node);
+  }
+  this->set_common_flags(socket);
+  return socket;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Closure
+ * \{ */
+
+bNodeSocket &Closure::build(bNodeTree &ntree, bNode &node) const
+{
+  bNodeSocket &socket = *bke::node_add_static_socket(ntree,
+                                                     node,
+                                                     this->in_out,
+                                                     SOCK_CLOSURE,
+                                                     PROP_NONE,
+                                                     this->identifier.c_str(),
+                                                     this->name.c_str());
+  this->set_common_flags(socket);
+  return socket;
+}
+
+bool Closure::matches(const bNodeSocket &socket) const
+{
+  if (!this->matches_common_data(socket)) {
+    return false;
+  }
+  if (socket.type != SOCK_CLOSURE) {
+    return false;
+  }
+  return true;
+}
+
+bool Closure::can_connect(const bNodeSocket &socket) const
+{
+  if (!sockets_can_connect(*this, socket)) {
+    return false;
+  }
+  return ELEM(socket.type, SOCK_CLOSURE);
+}
+
+bNodeSocket &Closure::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const
+{
+  if (socket.type != SOCK_CLOSURE) {
+    BLI_assert(socket.in_out == this->in_out);
+    return this->build(ntree, node);
+  }
+  this->set_common_flags(socket);
+  return socket;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name #IDSocketDeclaration
  * \{ */
 

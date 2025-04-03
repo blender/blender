@@ -1145,6 +1145,8 @@ static const float std_node_socket_colors[][4] = {
     {0.65, 0.39, 0.78, 1.0}, /* SOCK_ROTATION */
     {0.40, 0.40, 0.40, 1.0}, /* SOCK_MENU */
     {0.72, 0.20, 0.52, 1.0}, /* SOCK_MATRIX */
+    {0.30, 0.50, 0.50, 1.0}, /* SOCK_BUNDLE */
+    {0.50, 0.60, 0.40, 1.0}, /* SOCK_CLOSURE */
 };
 
 void std_node_socket_colors_get(int socket_type, float *r_color)
@@ -1172,23 +1174,16 @@ static void std_node_socket_color_simple_fn(const bke::bNodeSocketType *type, fl
 using SocketColorFn = void (*)(bContext *C, PointerRNA *ptr, PointerRNA *node_ptr, float *r_color);
 /* Callbacks for all built-in socket types. */
 static const SocketColorFn std_node_socket_color_funcs[] = {
-    std_node_socket_color_fn<SOCK_FLOAT>,
-    std_node_socket_color_fn<SOCK_VECTOR>,
-    std_node_socket_color_fn<SOCK_RGBA>,
-    std_node_socket_color_fn<SOCK_SHADER>,
-    std_node_socket_color_fn<SOCK_BOOLEAN>,
-    nullptr /* UNUSED. */,
-    std_node_socket_color_fn<SOCK_INT>,
-    std_node_socket_color_fn<SOCK_STRING>,
-    std_node_socket_color_fn<SOCK_OBJECT>,
-    std_node_socket_color_fn<SOCK_IMAGE>,
-    std_node_socket_color_fn<SOCK_GEOMETRY>,
-    std_node_socket_color_fn<SOCK_COLLECTION>,
-    std_node_socket_color_fn<SOCK_TEXTURE>,
-    std_node_socket_color_fn<SOCK_MATERIAL>,
-    std_node_socket_color_fn<SOCK_ROTATION>,
-    std_node_socket_color_fn<SOCK_MENU>,
-    std_node_socket_color_fn<SOCK_MATRIX>,
+    std_node_socket_color_fn<SOCK_FLOAT>,    std_node_socket_color_fn<SOCK_VECTOR>,
+    std_node_socket_color_fn<SOCK_RGBA>,     std_node_socket_color_fn<SOCK_SHADER>,
+    std_node_socket_color_fn<SOCK_BOOLEAN>,  nullptr /* UNUSED. */,
+    std_node_socket_color_fn<SOCK_INT>,      std_node_socket_color_fn<SOCK_STRING>,
+    std_node_socket_color_fn<SOCK_OBJECT>,   std_node_socket_color_fn<SOCK_IMAGE>,
+    std_node_socket_color_fn<SOCK_GEOMETRY>, std_node_socket_color_fn<SOCK_COLLECTION>,
+    std_node_socket_color_fn<SOCK_TEXTURE>,  std_node_socket_color_fn<SOCK_MATERIAL>,
+    std_node_socket_color_fn<SOCK_ROTATION>, std_node_socket_color_fn<SOCK_MENU>,
+    std_node_socket_color_fn<SOCK_MATRIX>,   std_node_socket_color_fn<SOCK_BUNDLE>,
+    std_node_socket_color_fn<SOCK_CLOSURE>,
 };
 
 /* draw function for file output node sockets,
@@ -1580,6 +1575,8 @@ static void std_node_socket_interface_draw(ID *id,
     case SOCK_SHADER:
     case SOCK_GEOMETRY:
     case SOCK_MATRIX:
+    case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
       break;
 
     case SOCK_CUSTOM:

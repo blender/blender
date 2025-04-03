@@ -1818,6 +1818,48 @@ static void create_inspection_string_for_geometry_socket(fmt::memory_buffer &buf
   }
 }
 
+static void create_inspection_string_for_bundle(const geo_log::BundleValueLog &value_log,
+                                                fmt::memory_buffer &buf)
+{
+  if (value_log.items.is_empty()) {
+    fmt::format_to(fmt::appender(buf), "{}", TIP_("Empty Bundle"));
+    return;
+  }
+  fmt::format_to(fmt::appender(buf), "{}", TIP_("Bundle values:\n"));
+  for (const geo_log::BundleValueLog::Item &item : value_log.items) {
+    fmt::format_to(fmt::appender(buf),
+                   fmt::runtime("\u2022 \"{}\" ({})\n"),
+                   item.key.identifiers().first(),
+                   TIP_(item.type->label));
+  }
+}
+
+static void create_inspection_string_for_closure(const geo_log::ClosureValueLog &value_log,
+                                                 fmt::memory_buffer &buf)
+{
+  if (value_log.inputs.is_empty() && value_log.outputs.is_empty()) {
+    fmt::format_to(fmt::appender(buf), "{}", TIP_("Empty Closure"));
+  }
+  if (!value_log.inputs.is_empty()) {
+    fmt::format_to(fmt::appender(buf), "{}:\n", TIP_("Inputs"));
+    for (const geo_log::ClosureValueLog::Item &item : value_log.inputs) {
+      fmt::format_to(fmt::appender(buf),
+                     fmt::runtime("\u2022 {} ({})\n"),
+                     item.key.identifiers().first(),
+                     IFACE_(item.type->label));
+    }
+  }
+  if (!value_log.outputs.is_empty()) {
+    fmt::format_to(fmt::appender(buf), "{}:\n", TIP_("Outputs"));
+    for (const geo_log::ClosureValueLog::Item &item : value_log.outputs) {
+      fmt::format_to(fmt::appender(buf),
+                     fmt::runtime("\u2022 {} ({})\n"),
+                     item.key.identifiers().first(),
+                     IFACE_(item.type->label));
+    }
+  }
+}
+
 static void create_inspection_string_for_default_socket_value(const bNodeSocket &socket,
                                                               fmt::memory_buffer &buf)
 {
@@ -1904,6 +1946,16 @@ static std::optional<std::string> create_log_inspection_string(geo_log::GeoTreeL
                dynamic_cast<const geo_log::GeometryInfoLog *>(value_log))
   {
     create_inspection_string_for_geometry_info(*geo_value_log, buf);
+  }
+  else if (const geo_log::BundleValueLog *bundle_value_log =
+               dynamic_cast<const geo_log::BundleValueLog *>(value_log))
+  {
+    create_inspection_string_for_bundle(*bundle_value_log, buf);
+  }
+  else if (const geo_log::ClosureValueLog *closure_value_log =
+               dynamic_cast<const geo_log::ClosureValueLog *>(value_log))
+  {
+    create_inspection_string_for_closure(*closure_value_log, buf);
   }
 
   std::string str = fmt::to_string(buf);
@@ -3117,7 +3169,8 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
             NODE_GROUP_OUTPUT,
             GEO_NODE_SIMULATION_OUTPUT,
             GEO_NODE_REPEAT_OUTPUT,
-            GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT)))
+            GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT,
+            GEO_NODE_EVALUATE_CLOSURE)))
   {
     std::optional<NodeExtraInfoRow> row = node_get_execution_time_label_row(
         tree_draw_ctx, snode, node);

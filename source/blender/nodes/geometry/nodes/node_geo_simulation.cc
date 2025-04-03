@@ -301,7 +301,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       this->set_default_outputs(params);
       return;
     }
-    if (found_id->is_in_loop) {
+    if (found_id->is_in_loop || found_id->is_in_closure) {
       this->set_default_outputs(params);
       return;
     }
@@ -573,7 +573,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       this->set_default_outputs(params);
       return;
     }
-    if (found_id->is_in_loop) {
+    if (found_id->is_in_loop || found_id->is_in_closure) {
       this->set_default_outputs(params);
       return;
     }

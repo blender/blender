@@ -127,7 +127,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
   {
     debug_name_ = "Repeat Zone";
 
-    initialize_zone_wrapper(zone, zone_info, body_fn, inputs_, outputs_);
+    initialize_zone_wrapper(zone, zone_info, body_fn, true, inputs_, outputs_);
     /* Iterations input is always used. */
     inputs_[zone_info.indices.inputs.main[0]].usage = lf::ValueUsage::Used;
   }

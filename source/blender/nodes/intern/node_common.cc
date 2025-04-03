@@ -356,6 +356,14 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
                     .default_value_fn(get_default_id_getter(tree.tree_interface, io_socket));
         break;
       }
+      case SOCK_BUNDLE: {
+        decl = &b.add_socket<decl::Bundle>(name, identifier, in_out);
+        break;
+      }
+      case SOCK_CLOSURE: {
+        decl = &b.add_socket<decl::Closure>(name, identifier, in_out);
+        break;
+      }
       case SOCK_CUSTOM: {
         decl = &b.add_socket<decl::Custom>(name, identifier, in_out)
                     .idname(io_socket.socket_type)

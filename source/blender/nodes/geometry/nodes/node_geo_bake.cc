@@ -251,7 +251,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
       this->set_default_outputs(params);
       return;
     }
-    if (found_id->is_in_loop) {
+    if (found_id->is_in_loop || found_id->is_in_closure) {
       DummyDataBlockMap data_block_map;
       this->pass_through(params, user_data, &data_block_map);
       return;

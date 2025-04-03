@@ -233,6 +233,17 @@ class NODE_OT_add_foreach_geometry_element_zone(NodeAddZoneOperator, Operator):
     add_default_geometry_link = False
 
 
+class NODE_OT_add_closure_zone(NodeAddZoneOperator, Operator):
+    """Add a Closure zone"""
+    bl_idname = "node.add_closure_zone"
+    bl_label = "Add Closure Zone"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type = "GeometryNodeClosureInput"
+    output_node_type = "GeometryNodeClosureOutput"
+    add_default_geometry_link = False
+
+
 class NODE_OT_collapse_hide_unused_toggle(Operator):
     """Toggle collapsed nodes and hide unused sockets"""
     bl_idname = "node.collapse_hide_unused_toggle"
@@ -672,6 +683,7 @@ classes = (
     NODE_OT_add_simulation_zone,
     NODE_OT_add_repeat_zone,
     NODE_OT_add_foreach_geometry_element_zone,
+    NODE_OT_add_closure_zone,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_interface_item_new,
     NODE_OT_interface_item_duplicate,
