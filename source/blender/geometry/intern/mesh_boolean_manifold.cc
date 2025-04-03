@@ -36,7 +36,7 @@
 
 #include "mesh_boolean_manifold.hh"
 
-#include "manifold.h"
+#include "manifold/manifold.h"
 
 using manifold::Manifold;
 using manifold::MeshGL;

@@ -23,6 +23,20 @@ if(WITH_TBB)
   target_link_libraries(bf_deps_optional_tbb INTERFACE ${TBB_LIBRARIES})
 endif()
 
+add_library(bf_deps_optional_manifold INTERFACE)
+add_library(bf::dependencies::optional::manifold ALIAS bf_deps_optional_manifold)
+if(WITH_MANIFOLD)
+  if(WIN32)
+    target_compile_definitions(bf_deps_optional_manifold INTERFACE WITH_MANIFOLD)
+    target_include_directories(bf_deps_optional_manifold SYSTEM INTERFACE ${MANIFOLD_INCLUDE_DIRS})
+    target_link_libraries(bf_deps_optional_tbb INTERFACE ${MANIFOLD_LIBRARIES} bf::dependencies::optional::tbb)
+  else()
+    if(TARGET manifold::manifold)
+      target_compile_definitions(bf_deps_optional_manifold INTERFACE WITH_MANIFOLD)
+      target_link_libraries(bf_deps_optional_tbb INTERFACE manifold::manifold)
+    endif()
+  endif()
+endif()
 
 # -----------------------------------------------------------------------------
 # Configure Eigen

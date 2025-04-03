@@ -109,6 +109,7 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::dependencies::optional::manifold
 )
 
 if(WITH_UV_SLIM)
@@ -144,7 +145,7 @@ if(WITH_GMP)
   )
 endif()
 
-if(WITH_MANIFOLD)
+if(WITH_MANIFOLD_EXTERN)
   add_definitions(-DWITH_MANIFOLD)
 #TODO -- do this properly
   list (APPEND INC
