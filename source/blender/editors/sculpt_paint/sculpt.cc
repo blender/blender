@@ -2473,8 +2473,11 @@ static IndexMask pbvh_gather_cursor_update(Object &ob, bool use_original, IndexM
 }
 
 /** \return All nodes that are potentially within the cursor or brush's area of influence. */
-static IndexMask pbvh_gather_generic(
-    Object &ob, const Brush &brush, bool use_original, float radius_scale, IndexMaskMemory &memory)
+static IndexMask pbvh_gather_generic(Object &ob,
+                                     const Brush &brush,
+                                     const bool use_original,
+                                     const float radius_scale,
+                                     IndexMaskMemory &memory)
 {
   SculptSession &ss = *ob.sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
@@ -2863,39 +2866,6 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
   }
 }
 
-bool SCULPT_brush_type_needs_all_pbvh_nodes(const Brush &brush)
-{
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ELASTIC_DEFORM) {
-    /* Elastic deformations in any brush need all nodes to avoid artifacts as the effect
-     * of the Kelvinlet is not constrained by the radius. */
-    return true;
-  }
-
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE) {
-    /* Pose needs all nodes because it applies all symmetry iterations at the same time
-     * and the IK chain can grow to any area of the model. */
-    /* TODO: This can be optimized by filtering the nodes after calculating the chain. */
-    return true;
-  }
-
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_BOUNDARY) {
-    /* Boundary needs all nodes because it is not possible to know where the boundary
-     * deformation is going to be propagated before calculating it. */
-    /* TODO: after calculating the boundary info in the first iteration, it should be
-     * possible to get the nodes that have vertices included in any boundary deformation
-     * and cache them. */
-    return true;
-  }
-
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SNAKE_HOOK &&
-      brush.snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC)
-  {
-    /* Snake hook in elastic deform type has same requirements as the elastic deform brush. */
-    return true;
-  }
-  return false;
-}
-
 namespace blender::ed::sculpt_paint {
 
 void calc_brush_plane(const Depsgraph &depsgraph,
@@ -2989,37 +2959,6 @@ void calc_brush_plane(const Depsgraph &depsgraph,
     /* Shift the plane for the current tile. */
     add_v3_v3(r_area_co, ss.cache->plane_offset);
   }
-}
-
-static IndexMask calc_plane_for_plane_brush(const Depsgraph &depsgraph,
-                                            const StrokeCache &cache,
-                                            const Brush &brush,
-                                            Object &object,
-                                            IndexMaskMemory &memory,
-                                            float3 &r_plane_normal,
-                                            float3 &r_plane_center)
-{
-  const bool use_original = !cache.accum;
-
-  IndexMaskMemory cursor_mask_memory;
-  const IndexMask cursor_node_mask = pbvh_gather_generic(
-      object, brush, use_original, 1.0f, cursor_mask_memory);
-  calc_brush_plane(depsgraph, brush, object, cursor_node_mask, r_plane_normal, r_plane_center);
-
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-
-  /* Recompute the node mask using the center of the brush plane as the center.
-   *
-   * The indices of the nodes in `cursor_node_mask` have been calculated based on the cursor
-   * location. However, for the Plane brush, its effective center often deviates from the cursor
-   * location. Calculating the affected nodes using the cursor location as the center can lead to
-   * issues (see, for example, #123768). */
-  return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
-    if (node_fully_masked_or_hidden(node)) {
-      return false;
-    }
-    return node_in_sphere(node, r_plane_center, pow2f(cache.radius), use_original);
-  });
 }
 
 }  // namespace blender::ed::sculpt_paint
@@ -3131,6 +3070,111 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
   mul_m4_v3(ob.object_to_world().ptr(), location);
 }
 
+static bool brush_type_needs_all_pbvh_nodes(const Brush &brush)
+{
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ELASTIC_DEFORM) {
+    /* Elastic deformations in any brush need all nodes to avoid artifacts as the effect
+     * of the Kelvinlet is not constrained by the radius. */
+    return true;
+  }
+
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE) {
+    /* Pose needs all nodes because it applies all symmetry iterations at the same time
+     * and the IK chain can grow to any area of the model. */
+    /* TODO: This can be optimized by filtering the nodes after calculating the chain. */
+    return true;
+  }
+
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_BOUNDARY) {
+    /* Boundary needs all nodes because it is not possible to know where the boundary
+     * deformation is going to be propagated before calculating it. */
+    /* TODO: after calculating the boundary info in the first iteration, it should be
+     * possible to get the nodes that have vertices included in any boundary deformation
+     * and cache them. */
+    return true;
+  }
+
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SNAKE_HOOK &&
+      brush.snake_hook_deform_type == BRUSH_SNAKE_HOOK_DEFORM_ELASTIC)
+  {
+    /* Snake hook in elastic deform type has same requirements as the elastic deform brush. */
+    return true;
+  }
+  return false;
+}
+
+struct NodeMaskResult {
+  IndexMask node_mask;
+
+  /* For planar brushes, the plane center and normal are calculated based on the original cursor
+   * position and needed for further calculations when performing brush strokes.
+   */
+  std::optional<float3> plane_center;
+  std::optional<float3> plane_normal;
+};
+
+/** Calculates the nodes that a brush will influence. */
+static NodeMaskResult calc_brush_node_mask(const Depsgraph &depsgraph,
+                                           Object &ob,
+                                           const Brush &brush,
+                                           IndexMaskMemory &memory)
+{
+  const SculptSession &ss = *ob.sculpt;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+
+  const bool use_original = brush_type_needs_original(brush.sculpt_brush_type) ? true :
+                                                                                 !ss.cache->accum;
+  /* Build a list of all nodes that are potentially within the brush's area of influence */
+
+  if (brush_type_needs_all_pbvh_nodes(brush)) {
+    /* These brushes need to update all nodes as they are not constrained by the brush radius */
+    return {all_leaf_nodes(pbvh, memory), std::nullopt, std::nullopt};
+  }
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE) {
+    IndexMaskMemory cursor_mask_memory;
+    const IndexMask cursor_node_mask = pbvh_gather_generic(
+        ob, brush, use_original, 1.0f, cursor_mask_memory);
+
+    float3 plane_center;
+    float3 plane_normal;
+    calc_brush_plane(depsgraph, brush, ob, cursor_node_mask, plane_normal, plane_center);
+
+    /* Recompute the node mask using the center of the brush plane as the center.
+     *
+     * The indices of the nodes in `cursor_node_mask` have been calculated based on the cursor
+     * location. However, for the Plane brush, its effective center often deviates from the cursor
+     * location. Calculating the affected nodes using the cursor location as the center can lead to
+     * issues (see, for example, #123768). */
+    const IndexMask plane_mask = bke::pbvh::search_nodes(
+        pbvh, memory, [&](const bke::pbvh::Node &node) {
+          if (node_fully_masked_or_hidden(node)) {
+            return false;
+          }
+          return node_in_sphere(node, plane_center, pow2f(ss.cache->radius), use_original);
+        });
+
+    return {plane_mask, plane_center, plane_normal};
+  }
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) {
+    return {cloth::brush_affected_nodes_gather(ob, brush, memory), std::nullopt, std::nullopt};
+  }
+
+  float radius_scale = 1.0f;
+  /* Corners of square brushes can go outside the brush radius. */
+  if (BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt)) {
+    radius_scale = M_SQRT2;
+  }
+
+  /* With these options enabled not all required nodes are inside the original brush radius, so
+   * the brush can produce artifacts in some situations. */
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW && brush.flag & BRUSH_ORIGINAL_NORMAL) {
+    radius_scale = 2.0f;
+  }
+  return {pbvh_gather_generic(ob, brush, use_original, radius_scale, memory),
+          std::nullopt,
+          std::nullopt};
+}
+
 static void push_undo_nodes(const Depsgraph &depsgraph,
                             Object &ob,
                             const Brush &brush,
@@ -3172,9 +3216,8 @@ static void do_brush_action(const Depsgraph &depsgraph,
                             PaintModeSettings &paint_mode_settings)
 {
   SculptSession &ss = *ob.sculpt;
-  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   IndexMaskMemory memory;
-  IndexMask node_mask, texnode_mask;
+  IndexMask texnode_mask;
 
   const bool use_original = brush_type_needs_original(brush.sculpt_brush_type) ? true :
                                                                                  !ss.cache->accum;
@@ -3190,37 +3233,8 @@ static void do_brush_action(const Depsgraph &depsgraph,
     }
   }
 
-  float3 plane_normal;
-  float3 plane_center;
-
-  /* Build a list of all nodes that are potentially within the brush's area of influence */
-
-  if (SCULPT_brush_type_needs_all_pbvh_nodes(brush)) {
-    /* These brushes need to update all nodes as they are not constrained by the brush radius */
-    node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
-  }
-  else if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE) {
-    node_mask = calc_plane_for_plane_brush(
-        depsgraph, *ss.cache, brush, ob, memory, plane_normal, plane_center);
-  }
-  else if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) {
-    node_mask = cloth::brush_affected_nodes_gather(ob, brush, memory);
-  }
-  else {
-    float radius_scale = 1.0f;
-
-    /* Corners of square brushes can go outside the brush radius. */
-    if (BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt)) {
-      radius_scale = M_SQRT2;
-    }
-
-    /* With these options enabled not all required nodes are inside the original brush radius, so
-     * the brush can produce artifacts in some situations. */
-    if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW && brush.flag & BRUSH_ORIGINAL_NORMAL) {
-      radius_scale = 2.0f;
-    }
-    node_mask = pbvh_gather_generic(ob, brush, use_original, radius_scale, memory);
-  }
+  const NodeMaskResult node_mask_result = calc_brush_node_mask(depsgraph, ob, brush, memory);
+  const IndexMask node_mask = node_mask_result.node_mask;
 
   /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
    * vertices and uses regular coords undo. */
@@ -3452,7 +3466,13 @@ static void do_brush_action(const Depsgraph &depsgraph,
       color::do_smear_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_PLANE:
-      do_plane_brush(depsgraph, sd, ob, node_mask, plane_normal, plane_center);
+      BLI_assert(node_mask_result.plane_normal && node_mask_result.plane_center);
+      do_plane_brush(depsgraph,
+                     sd,
+                     ob,
+                     node_mask,
+                     *node_mask_result.plane_normal,
+                     *node_mask_result.plane_center);
       break;
   }
 
