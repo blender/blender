@@ -545,7 +545,6 @@ if ARGS.sphinx_build_pdf:
             SPHINX_IN, SPHINX_OUT_PDF,
         ]
         sphinx_make_pdf_log = os.path.join(ARGS.output_dir, ".latex_make.log")
-        SPHINX_MAKE_PDF_STDOUT = open(sphinx_make_pdf_log, "w", encoding="utf-8")
 
 
 # --------------------------------CHANGELOG GENERATION--------------------------------------
@@ -2626,7 +2625,9 @@ def main():
     if ARGS.sphinx_build_pdf:
         import subprocess
         subprocess.call(SPHINX_BUILD_PDF)
-        subprocess.call(SPHINX_MAKE_PDF, stdout=SPHINX_MAKE_PDF_STDOUT)
+
+        with open(sphinx_make_pdf_log, "w", encoding="utf-8") as fh:
+            subprocess.call(SPHINX_MAKE_PDF, stdout=fh)
 
         # Sphinx-build log cleanup+sort.
         if ARGS.log:
@@ -2668,8 +2669,8 @@ def main():
 
     teardown_blender(setup_data)
 
-    sys.exit()
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
