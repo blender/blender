@@ -310,6 +310,8 @@ struct MSLFragmentOutputAttribute {
    * subsequent draws. If a subsequent draw requires reading data from a GBuffer, raster order
    * groups should be used to ensure all writes occur before reading. */
   int raster_order_group;
+  /* Used for lack of ROG support workaround. */
+  bool is_layered_input;
 
   bool operator==(const MSLFragmentOutputAttribute &right) const
   {

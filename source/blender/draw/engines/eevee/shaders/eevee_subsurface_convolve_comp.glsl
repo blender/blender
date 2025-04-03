@@ -88,7 +88,7 @@ void main()
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
-  vec2 center_uv = (vec2(texel) + 0.5) / vec2(textureSize(gbuf_header_tx, 0));
+  vec2 center_uv = (vec2(texel) + 0.5) / vec2(textureSize(gbuf_header_tx, 0).xy);
 
 #ifdef GROUPSHARED_CACHE
   cache_populate(center_uv);
@@ -101,6 +101,8 @@ void main()
   if (gbuffer_closure_get(gbuf, 0).type != CLOSURE_BSSRDF_BURLEY_ID) {
     return;
   }
+
+  uint object_id = texelFetch(gbuf_header_tx, ivec3(texel, 1), 0).x;
 
   ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
   float max_radius = reduce_max(closure.sss_radius);
@@ -138,7 +140,7 @@ void main()
 
     SubSurfaceSample samp = sample_neighborhood(sample_uv);
     /* Reject radiance from other surfaces. Avoids light leak between objects. */
-    if (samp.sss_id != gbuf.object_id) {
+    if (samp.sss_id != object_id) {
       continue;
     }
     /* Slide 34. */

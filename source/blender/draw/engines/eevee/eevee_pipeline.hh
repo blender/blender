@@ -213,6 +213,18 @@ struct DeferredLayerBase {
   };
 
   /* Return the amount of gbuffer layer needed. */
+  int header_layer_count() const
+  {
+    /* Default header. */
+    int count = 1;
+    /* SSS, light linking, shadow offset all require an additional layer to store the object ID.
+     * Since tracking these are not part of the closure bits and are rather common features,
+     * always require one layer for it. */
+    count += 1;
+    return count;
+  }
+
+  /* Return the amount of gbuffer layer needed. */
   int closure_layer_count() const
   {
     /* Diffuse and translucent require only one layer. */
@@ -235,7 +247,8 @@ struct DeferredLayerBase {
                              (CLOSURE_REFRACTION | CLOSURE_REFLECTION | CLOSURE_CLEARCOAT |
                               CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
     /* Count the additional infos layer needed by some closures. */
-    count += count_bits_i(closure_bits_ & (CLOSURE_SSS | CLOSURE_TRANSLUCENT));
+    count += count_bits_i(closure_bits_ &
+                          (CLOSURE_SSS | CLOSURE_TRANSLUCENT | CLOSURE_REFRACTION));
     return count;
   }
 
@@ -362,6 +375,12 @@ class DeferredPipeline {
               int2 extent,
               RayTraceBuffer &rt_buffer_opaque_layer,
               RayTraceBuffer &rt_buffer_refract_layer);
+
+  /* Return the maximum amount of gbuffer layer needed. */
+  int header_layer_count() const
+  {
+    return max_ii(opaque_layer_.header_layer_count(), refraction_layer_.header_layer_count());
+  }
 
   /* Return the maximum amount of gbuffer layer needed. */
   int closure_layer_count() const
@@ -524,6 +543,12 @@ class DeferredProbePipeline {
               Framebuffer &combined_fb,
               Framebuffer &gbuffer_fb,
               int2 extent);
+
+  /* Return the maximum amount of gbuffer layer needed. */
+  int header_layer_count() const
+  {
+    return opaque_layer_.header_layer_count();
+  }
 
   /* Return the maximum amount of gbuffer layer needed. */
   int closure_layer_count() const

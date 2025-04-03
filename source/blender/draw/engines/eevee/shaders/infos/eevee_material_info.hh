@@ -167,6 +167,8 @@ FRAGMENT_OUT(4, VEC4, out_gbuf_closure2)
  * limitation of the number of images we can bind on a single shader. */
 IMAGE_FREQ(GBUF_CLOSURE_SLOT, GPU_RGB10_A2, WRITE, FLOAT_2D_ARRAY, out_gbuf_closure_img, PASS)
 IMAGE_FREQ(GBUF_NORMAL_SLOT, GPU_RG16, WRITE, FLOAT_2D_ARRAY, out_gbuf_normal_img, PASS)
+/* Storage for additional infos that are shared across closures. */
+IMAGE_FREQ(GBUF_HEADER_SLOT, GPU_R32UI, WRITE, UINT_2D_ARRAY, out_gbuf_header_img, PASS)
 /* Added at runtime because of test shaders not having `node_tree`. */
 // ADDITIONAL_INFO(eevee_render_pass_out)
 // ADDITIONAL_INFO(eevee_cryptomatte_out)

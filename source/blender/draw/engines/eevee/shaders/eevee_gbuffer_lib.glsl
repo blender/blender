@@ -43,13 +43,12 @@
 
 struct GBufferData {
   ClosureUndetermined closure[GBUFFER_LAYER_MAX];
+  /* True if surface uses a dedicated light linking group. Otherwise, assume group is 0. */
+  bool use_light_linking;
   /* Additional object information if any closure needs it. */
   float thickness;
-  uint object_id;
   /* First world normal stored in the gbuffer. Only valid if `has_any_surface` is true. */
   packed_float3 surface_N;
-  /* Index into `light_set_membership` bitmask of Lights for light linking. */
-  uchar receiver_light_set;
 };
 
 /* Result of Packing the GBuffer. */
@@ -77,7 +76,6 @@ struct GBufferReader {
   /* Texel of the gbuffer being read. */
   ivec2 texel;
 
-  uint object_id;
   uint header;
 
   /* First world normal stored in the gbuffer. Only valid if `has_any_surface` is true. */
@@ -122,13 +120,13 @@ ClosureType gbuffer_mode_to_closure_type(uint mode)
 
 #if defined(GBUFFER_LOAD) || defined(GLSL_CPP_STUBS)
 /* Read only shader. Use correct types and functions. */
-#  define samplerGBufferHeader usampler2D
+#  define samplerGBufferHeader usampler2DArray
 #  define samplerGBufferClosure sampler2DArray
 #  define samplerGBufferNormal sampler2DArray
 
-uint fetchGBuffer(usampler2D tx, ivec2 texel)
+uint fetchGBuffer(usampler2DArray tx, ivec2 texel, uchar layer)
 {
-  return texelFetch(tx, texel, 0).r;
+  return texelFetch(tx, ivec3(texel, layer), 0).r;
 }
 vec4 fetchGBuffer(sampler2DArray tx, ivec2 texel, uchar layer)
 {
@@ -142,7 +140,7 @@ vec4 fetchGBuffer(sampler2DArray tx, ivec2 texel, uchar layer)
 
 #  ifdef GBUFFER_WRITE
 /* Write only shader. Use dummy load functions. */
-uint fetchGBuffer(samplerGBufferHeader tx, ivec2 texel)
+uint fetchGBuffer(samplerGBufferHeader tx, ivec2 texel, uchar layer)
 {
   return uint(0);
 }
@@ -159,7 +157,7 @@ vec4 fetchGBuffer(samplerGBufferNormal tx, ivec2 texel, uchar layer)
 /* Unit testing setup. Allow read and write in the same shader. */
 GBufferWriter g_data_packed;
 
-uint fetchGBuffer(samplerGBufferHeader tx, ivec2 texel)
+uint fetchGBuffer(samplerGBufferHeader tx, ivec2 texel, uchar layer)
 {
   return g_data_packed.header;
 }
@@ -292,16 +290,6 @@ float gbuffer_closure_intensity_unpack(vec2 value_packed)
   return value_packed.r * exp2(exponent);
 }
 
-float gbuffer_object_id_unorm16_pack(uint object_id)
-{
-  return float(object_id & 0xFFFFu) / float(0xFFFF);
-}
-
-uint gbuffer_object_id_unorm16_unpack(float object_id_packed)
-{
-  return uint(object_id_packed * float(0xFFFF));
-}
-
 float gbuffer_object_id_f16_pack(uint object_id)
 {
   /* TODO(fclem): Make use of all the 16 bits in a half float.
@@ -317,16 +305,6 @@ uint gbuffer_object_id_f16_unpack(float object_id_packed)
 bool gbuffer_is_refraction(vec4 gbuffer)
 {
   return gbuffer.w < 1.0;
-}
-
-uint gbuffer_light_link_receiver_pack(uchar receiver_light_set)
-{
-  return receiver_light_set << 26u;
-}
-
-uint gbuffer_light_link_receiver_unpack(uint data)
-{
-  return data >> 26u;
 }
 
 /* Quantize geometric normal to 6 bits. */
@@ -362,6 +340,17 @@ vec3 gbuffer_geometry_normal_unpack(uint data, vec3 N)
   vec3 Ng = vec3((uint3(data) >> (uint3(0, 1, 2) + 20u)) & 1u) -
             vec3((uint3(data) >> (uint3(3, 4, 5) + 20u)) & 1u);
   return normalize(Ng);
+}
+
+/* Light Linking flag. */
+uint gbuffer_light_linking_pack(bool use_light_linking)
+{
+  return int(use_light_linking) << 31u;
+}
+
+bool gbuffer_light_linking_unpack(uint header)
+{
+  return flag_test(header, 1u << 31u);
 }
 
 uint gbuffer_header_pack(GBufferMode mode, uint bin)
@@ -555,10 +544,9 @@ void gbuffer_skip_normal(inout GBufferReader gbuf)
 }
 
 /* Pack geometry additional infos onto the normal stack. Needs to be run last. */
-void gbuffer_additional_info_pack(inout GBufferWriter gbuf, float thickness, uint object_id)
+void gbuffer_additional_info_pack(inout GBufferWriter gbuf, float thickness)
 {
-  gbuf.N[gbuf.normal_len] = vec2(gbuffer_thickness_pack(thickness),
-                                 gbuffer_object_id_unorm16_pack(object_id));
+  gbuf.N[gbuf.normal_len] = vec2(gbuffer_thickness_pack(thickness), 0.0 /* UNUSED */);
   gbuf.normal_len++;
 }
 void gbuffer_additional_info_load(inout GBufferReader gbuf, samplerGBufferNormal normal_tx)
@@ -566,7 +554,6 @@ void gbuffer_additional_info_load(inout GBufferReader gbuf, samplerGBufferNormal
   vec2 data_packed = fetchGBuffer(normal_tx, gbuf.texel, int(gbuf.normal_len)).rg;
   gbuf.normal_len++;
   gbuf.thickness = gbuffer_thickness_unpack(data_packed.x);
-  gbuf.object_id = gbuffer_object_id_unorm16_unpack(data_packed.y);
 }
 
 /** \} */
@@ -862,9 +849,6 @@ GBufferWriter gbuffer_pack(GBufferData data_in, vec3 Ng)
   gbuf.data_len = 0;
   gbuf.normal_len = 0;
 
-  /* Pack light linking data into header. */
-  gbuf.header |= gbuffer_light_link_receiver_pack(data_in.receiver_light_set);
-
   bool has_additional_data = false;
   for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
     ClosureUndetermined cl = data_in.closure[i];
@@ -917,9 +901,10 @@ GBufferWriter gbuffer_pack(GBufferData data_in, vec3 Ng)
 
   /* Pack geometric normal into the header if needed. */
   gbuf.header |= gbuffer_geometry_normal_pack(Ng, gbuf.surface_N);
+  gbuf.header |= gbuffer_light_linking_pack(data_in.use_light_linking);
 
   if (has_additional_data) {
-    gbuffer_additional_info_pack(gbuf, data_in.thickness, data_in.object_id);
+    gbuffer_additional_info_pack(gbuf, data_in.thickness);
   }
 
   return gbuf;
@@ -1014,7 +999,6 @@ GBufferReader gbuffer_read(samplerGBufferHeader header_tx,
   gbuf.texel = texel;
   gbuf.thickness = 0.0;
   gbuf.closure_count = 0;
-  gbuf.object_id = 0u;
   gbuf.data_len = 0;
   gbuf.normal_len = 0;
   gbuf.surface_N = vec3(0.0);
@@ -1022,7 +1006,7 @@ GBufferReader gbuffer_read(samplerGBufferHeader header_tx,
     gbuffer_register_closure(gbuf, closure_new(CLOSURE_NONE_ID), bin);
   }
 
-  gbuf.header = fetchGBuffer(header_tx, texel);
+  gbuf.header = fetchGBuffer(header_tx, texel, 0);
 
   if (gbuf.header == 0u) {
     return gbuf;
@@ -1174,7 +1158,8 @@ ClosureUndetermined gbuffer_read_bin(samplerGBufferHeader header_tx,
                                      ivec2 texel,
                                      uchar bin_index)
 {
-  return gbuffer_read_bin(fetchGBuffer(header_tx, texel), closure_tx, normal_tx, texel, bin_index);
+  return gbuffer_read_bin(
+      fetchGBuffer(header_tx, texel, 0), closure_tx, normal_tx, texel, bin_index);
 }
 
 /* Load thickness data only if available. Return 0 otherwise. */

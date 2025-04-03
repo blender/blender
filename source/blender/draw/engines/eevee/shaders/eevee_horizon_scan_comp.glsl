@@ -32,7 +32,7 @@ void main()
   texel_fullres = min(texel_fullres, extent - 1);
 
   /* Do not trace where nothing was rendered. */
-  if (texelFetch(gbuf_header_tx, texel_fullres, 0).r == 0u) {
+  if (texelFetch(gbuf_header_tx, ivec3(texel_fullres, 0), 0).r == 0u) {
 #if 0 /* This is not needed as the next stage doesn't do bilinear filtering. */
     imageStore(horizon_radiance_0_img, texel, vec4(0.0));
     imageStore(horizon_radiance_1_img, texel, vec4(0.0));

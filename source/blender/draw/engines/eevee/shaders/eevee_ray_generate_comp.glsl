@@ -25,7 +25,7 @@ void main()
   ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
                         uniform_buf.raytrace.resolution_bias;
 
-  uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
+  uint gbuf_header = texelFetch(gbuf_header_tx, ivec3(texel_fullres, 0), 0).r;
   ClosureUndetermined closure = gbuffer_read_bin(
       gbuf_header, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
 

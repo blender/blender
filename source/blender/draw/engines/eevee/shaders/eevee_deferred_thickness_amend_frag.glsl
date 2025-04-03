@@ -124,7 +124,7 @@ void main()
   vec3 Ng = gbuffer_normal_unpack(imageLoad(gbuf_normal_img, ivec3(texel, 0)).rg);
 
   /* Use manual fetch because gbuffer_read_thickness expect a read only texture input. */
-  uint header = texelFetch(gbuf_header_tx, texel, 0).r;
+  uint header = texelFetch(gbuf_header_tx, ivec3(texel, 0), 0).r;
   int data_layer = gbuffer_normal_count(header);
   vec2 data_packed = imageLoad(gbuf_normal_img, ivec3(texel, data_layer)).rg;
   float gbuffer_thickness = gbuffer_thickness_unpack(data_packed.x);

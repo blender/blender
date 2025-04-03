@@ -72,9 +72,15 @@ void main()
     closure_light_set(stack, i, closure_light_new(gbuffer_closure_get(gbuf, i), V));
   }
 
+  uchar receiver_light_set = 0;
+  if (gbuffer_light_linking_unpack(gbuf.header)) {
+    uint object_id = texelFetch(gbuf_header_tx, ivec3(texel, 1), 0).x;
+    ObjectInfos object_infos = drw_infos[object_id];
+    receiver_light_set = receiver_light_set_get(object_infos);
+  }
+
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  uchar receiver_light_set = gbuffer_light_link_receiver_unpack(gbuf.header);
   light_eval_reflection(stack, P, Ng, V, vPz, receiver_light_set);
 
   if (use_transmission) {

@@ -78,6 +78,15 @@ void main()
 
   ivec2 out_texel = ivec2(gl_FragCoord.xy);
 
+#ifdef MAT_SUBSURFACE
+  const bool use_sss = true;
+#else
+  const bool use_sss = false;
+#endif
+
+  ObjectInfos object_infos = drw_infos[drw_resource_id()];
+  bool use_light_linking = receiver_light_set_get(object_infos) != 0;
+
   /* ----- Render Passes output ----- */
 
 #ifdef MAT_RENDER_PASS_SUPPORT /* Needed because node_tree isn't present in test shaders. */
@@ -101,11 +110,9 @@ void main()
 #if CLOSURE_BIN_COUNT > 2
   gbuf_data.closure[2] = g_closure_get_resolved(2, alpha_rcp);
 #endif
-  ObjectInfos object_infos = drw_infos[drw_resource_id()];
   gbuf_data.surface_N = g_data.N;
   gbuf_data.thickness = g_thickness;
-  gbuf_data.object_id = drw_resource_id();
-  gbuf_data.receiver_light_set = receiver_light_set_get(object_infos);
+  gbuf_data.use_light_linking = use_light_linking;
 
   GBufferWriter gbuf = gbuffer_pack(gbuf_data, g_data.Ng);
 
@@ -116,13 +123,32 @@ void main()
   out_gbuf_normal = gbuf.N[0];
 
   /* Output remaining closures using image store. */
-  /* NOTE: The image view start at layer 2 so all destination layer is `layer - 2`. */
-  for (int layer = 2; layer < GBUFFER_DATA_MAX && layer < gbuf.data_len; layer++) {
-    imageStoreFast(out_gbuf_closure_img, ivec3(out_texel, layer - 2), gbuf.data[layer]);
+  for (int layer = GBUF_CLOSURE_FB_LAYER_COUNT; layer < GBUFFER_DATA_MAX && layer < gbuf.data_len;
+       layer++)
+  {
+    /* NOTE: The image view start at layer GBUF_CLOSURE_FB_LAYER_COUNT so all destination layer is
+     * `layer - GBUF_CLOSURE_FB_LAYER_COUNT`. */
+    imageStoreFast(out_gbuf_closure_img,
+                   ivec3(out_texel, layer - GBUF_CLOSURE_FB_LAYER_COUNT),
+                   gbuf.data[layer]);
   }
-  /* NOTE: The image view start at layer 1 so all destination layer is `layer - 1`. */
-  for (int layer = 1; layer < GBUFFER_NORMAL_MAX && layer < gbuf.normal_len; layer++) {
-    imageStoreFast(out_gbuf_normal_img, ivec3(out_texel, layer - 1), gbuf.N[layer].xyyy);
+  for (int layer = GBUF_NORMAL_FB_LAYER_COUNT;
+       layer < GBUFFER_NORMAL_MAX && layer < gbuf.normal_len;
+       layer++)
+  {
+    /* NOTE: The image view start at layer GBUF_NORMAL_FB_LAYER_COUNT so all destination layer is
+     * `layer - GBUF_NORMAL_FB_LAYER_COUNT`. */
+    imageStoreFast(out_gbuf_normal_img,
+                   ivec3(out_texel, layer - GBUF_NORMAL_FB_LAYER_COUNT),
+                   gbuf.N[layer].xyyy);
+  }
+  if (use_sss || use_light_linking) {
+    const int layer = GBUF_HEADER_FB_LAYER_COUNT;
+    /* NOTE: The image view start at layer GBUF_HEADER_FB_LAYER_COUNT so all destination layer is
+     * `layer - GBUF_HEADER_FB_LAYER_COUNT`. */
+    imageStoreFast(out_gbuf_header_img,
+                   ivec3(out_texel, layer - GBUF_HEADER_FB_LAYER_COUNT),
+                   uvec4(drw_resource_id()));
   }
 
   /* ----- Radiance output ----- */

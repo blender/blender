@@ -37,8 +37,10 @@ void main()
     ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
     float max_radius = reduce_max(closure.sss_radius);
 
+    uint object_id = texelFetch(gbuf_header_tx, ivec3(texel, 1), 0).x;
+
     imageStoreFast(radiance_img, texel, vec4(radiance, 0.0));
-    imageStoreFast(object_id_img, texel, uvec4(gbuf.object_id));
+    imageStoreFast(object_id_img, texel, uvec4(object_id));
 
     float depth = texelFetch(depth_tx, texel, 0).r;
     /* TODO(fclem): Check if this simplifies. */

@@ -46,7 +46,7 @@ void main()
   ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
                         uniform_buf.raytrace.resolution_bias;
 
-  uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
+  uint gbuf_header = texelFetch(gbuf_header_tx, ivec3(texel_fullres, 0), 0).r;
   ClosureType closure_type = gbuffer_closure_type_get_by_bin(gbuf_header, closure_index);
 
   if ((closure_type == CLOSURE_BSDF_TRANSLUCENT_ID) ||

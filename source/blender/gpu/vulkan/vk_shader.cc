@@ -997,28 +997,16 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
       /* IMPORTANT: We assume that the frame-buffer will be layered or not based on the layer
        * built-in flag. */
       bool is_layered_fb = bool(info.builtins_ & BuiltinBits::LAYER);
-
-      /* Start with invalid value to detect failure cases. */
-      ImageType image_type = ImageType::FLOAT_BUFFER;
-      switch (to_component_type(input.type)) {
-        case Type::FLOAT:
-          image_type = is_layered_fb ? ImageType::FLOAT_2D_ARRAY : ImageType::FLOAT_2D;
-          break;
-        case Type::INT:
-          image_type = is_layered_fb ? ImageType::INT_2D_ARRAY : ImageType::INT_2D;
-          break;
-        case Type::UINT:
-          image_type = is_layered_fb ? ImageType::UINT_2D_ARRAY : ImageType::UINT_2D;
-          break;
-        default:
-          break;
-      }
+      bool is_layered_input = ELEM(input.img_type,
+                                   ImageType::UINT_2D_ARRAY,
+                                   ImageType::INT_2D_ARRAY,
+                                   ImageType::FLOAT_2D_ARRAY);
       /* Declare image. */
       using Resource = ShaderCreateInfo::Resource;
       /* NOTE(fclem): Using the attachment index as resource index might be problematic as it might
        * collide with other resources. */
       Resource res(Resource::BindType::SAMPLER, input.index);
-      res.sampler.type = image_type;
+      res.sampler.type = input.img_type;
       res.sampler.sampler = GPUSamplerState::default_sampler();
       res.sampler.name = image_name;
       print_resource(ss, interface, res);
@@ -1026,8 +1014,13 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
       char swizzle[] = "xyzw";
       swizzle[to_component_count(input.type)] = '\0';
 
-      std::string texel_co = (is_layered_fb) ? "ivec3(gl_FragCoord.xy, gpu_Layer)" :
-                                               "ivec2(gl_FragCoord.xy)";
+      std::string texel_co = (is_layered_input) ?
+                                 ((is_layered_fb)  ? "ivec3(gl_FragCoord.xy, gpu_Layer)" :
+                                                     /* This should fetch the attached layer.
+                                                      * But this is not simple to set. For now
+                                                      * assume it is always the first layer. */
+                                                     "ivec3(gl_FragCoord.xy, 0)") :
+                                 "ivec2(gl_FragCoord.xy)";
 
       std::stringstream ss_pre;
       /* Populate the global before main using imageLoad. */

@@ -29,7 +29,7 @@ void main()
 
   float shade = saturate(drw_normal_world_to_view(gbuf.surface_N).z);
 
-  uint header = texelFetch(gbuf_header_tx, texel, 0).x;
+  uint header = texelFetch(gbuf_header_tx, ivec3(texel, 0), 0).x;
   uvec4 closure_types = (uvec4(header) >> uvec4(0u, 4u, 8u, 12u)) & 15u;
   float storage_cost = reduce_add(vec4(not(equal(closure_types, uvec4(0u)))));
 
