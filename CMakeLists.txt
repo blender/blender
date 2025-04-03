@@ -1981,7 +1981,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
     CXX_WARN_NO_COMMENT -Wno-comment
     CXX_WARN_NO_UNUSED_TYPEDEFS -Wno-unused-local-typedefs
     CXX_WARN_NO_UNUSED_VARIABLE -Wno-unused-variable
-    CXX_WARN_NO_UNUSED_VARIABLE -Wno-uninitialized
+    CXX_WARN_NO_UNINITIALIZED -Wno-uninitialized
+    CXX_WARN_NO_REORDER -Wno-reorder
   )
 
 

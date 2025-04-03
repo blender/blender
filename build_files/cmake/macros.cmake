@@ -694,6 +694,10 @@ macro(remove_strict_flags)
   endif()
 
   if(MSVC)
+    add_cxx_flag(
+      # Warning C5038: data member 'foo' will be initialized after data member 'bar'.
+      "/wd5038"
+    )
     remove_cc_flag(
       # Restore warn C4100 (unreferenced formal parameter) back to w4.
       "/w34100"
