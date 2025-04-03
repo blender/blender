@@ -923,7 +923,7 @@ void register_node_type_cmp_cryptomatte()
   ntype.ui_name = "Cryptomatte";
   ntype.ui_description =
       "Generate matte for individual objects and materials using Cryptomatte render passes";
-  ntype.enum_name_legacy = "CRYPTOMATTE";
+  ntype.enum_name_legacy = "CRYPTOMATTE_V2";
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_cryptomatte_declare;
   blender::bke::node_type_size(ntype, 240, 100, 700);

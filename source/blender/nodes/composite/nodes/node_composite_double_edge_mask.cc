@@ -323,7 +323,7 @@ void register_node_type_cmp_doubleedgemask()
   cmp_node_type_base(&ntype, "CompositorNodeDoubleEdgeMask", CMP_NODE_DOUBLEEDGEMASK);
   ntype.ui_name = "Double Edge Mask";
   ntype.ui_description = "Create a gradient between two masks";
-  ntype.enum_name_legacy = "DOUBLE_EDGE_MASK";
+  ntype.enum_name_legacy = "DOUBLEEDGEMASK";
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_double_edge_mask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_double_edge_mask;
