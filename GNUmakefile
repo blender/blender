@@ -142,10 +142,18 @@ Environment Variables
 Documentation Targets
    Not associated with building Blender.
 
-   * doc_py:        Generate sphinx python api docs.
-   * doc_doxy:      Generate doxygen C/C++ docs.
-   * doc_dna:       Generate blender file format reference.
-   * doc_man:       Generate manpage.
+   * doc_py:
+     Generate sphinx Python API docs.
+
+     Set the environment variable BLENDER_DOC_OFFLINE=1
+     to prevent download data at build time.
+
+   * doc_doxy:
+     Generate doxygen C/C++ docs.
+   * doc_dna:
+     Generate blender file format reference.
+   * doc_man:
+     Generate manpage.
 
 Information
 
