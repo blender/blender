@@ -1395,11 +1395,6 @@ static size_t animfilter_fcurves_span(bAnimContext *ac,
       continue;
     }
 
-    if (filter_mode & ANIMFILTER_TMP_PEEK) {
-      /* Found an animation channel, which is good enough for the 'TMP_PEEK' mode. */
-      return 1;
-    }
-
     bAnimListElem *ale = make_new_animlistelem(
         ac->bmain, fcu, ANIMTYPE_FCURVE, animated_id, fcurve_owner_id);
 
@@ -1408,6 +1403,12 @@ static size_t animfilter_fcurves_span(bAnimContext *ac,
     if (filter_by_name && !ale_name_matches_dopesheet_filter(*ac->ads, *ale)) {
       MEM_freeN(ale);
       continue;
+    }
+
+    if (filter_mode & ANIMFILTER_TMP_PEEK) {
+      /* Found an animation channel, which is good enough for the 'TMP_PEEK' mode. */
+      MEM_freeN(ale);
+      return 1;
     }
 
     /* bAnimListElem::slot_handle is exposed as int32_t and not as slot_handle_t, so better
