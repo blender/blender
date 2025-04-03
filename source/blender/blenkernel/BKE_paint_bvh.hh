@@ -105,6 +105,9 @@ class Node : NonCopyable {
 
   /** \todo Move storage of image painting data to #Tree or elsewhere. */
   pixels::NodeData *pixels_ = nullptr;
+
+  const Bounds<float3> &bounds() const;
+  const Bounds<float3> &bounds_orig() const;
 };
 
 ENUM_OPERATORS(Node::Flags, Node::Flags::TopologyUpdated);
@@ -496,12 +499,7 @@ Span<int> node_face_indices_calc_grids(const SubdivCCG &subdiv_ccg,
                                        const GridsNode &node,
                                        Vector<int> &faces);
 
-Bounds<float3> node_bounds(const Node &node);
-
 }  // namespace blender::bke::pbvh
-
-blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(
-    const blender::bke::pbvh::Node *node);
 
 float BKE_pbvh_node_get_tmin(const blender::bke::pbvh::Node *node);
 
@@ -610,6 +608,16 @@ void node_update_visibility_bmesh(BMeshNode &node);
 void update_node_bounds_mesh(Span<float3> positions, MeshNode &node);
 void update_node_bounds_grids(int grid_area, Span<float3> positions, GridsNode &node);
 void update_node_bounds_bmesh(BMeshNode &node);
+
+inline const Bounds<float3> &Node::bounds() const
+{
+  return bounds_;
+}
+
+inline const Bounds<float3> &Node::bounds_orig() const
+{
+  return bounds_orig_;
+}
 
 inline Span<int> MeshNode::faces() const
 {
