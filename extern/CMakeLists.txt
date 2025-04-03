@@ -18,6 +18,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   remove_cc_flag(
     "-Weverything"
     "-Wextra"
+    "-Wnull-pointer-subtraction"
+    "-Wcast-function-type-mismatch"
+    "-Wignored-qualifiers"
   )
 endif()
 
