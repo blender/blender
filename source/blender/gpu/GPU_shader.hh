@@ -335,9 +335,6 @@ void GPU_shader_warm_cache(GPUShader *shader, int limit);
  * called. */
 void GPU_shader_set_parent(GPUShader *shader, GPUShader *parent);
 
-/** DEPRECATED: Kept only because of BGL API. */
-int GPU_shader_get_program(GPUShader *shader);
-
 /**
  * Indexed commonly used uniform name for faster lookup into the uniform cache.
  */

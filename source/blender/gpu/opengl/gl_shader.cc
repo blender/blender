@@ -1358,18 +1358,6 @@ void GLShader::uniform_int(int location, int comp_len, int array_size, const int
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name GPUVertFormat from Shader
- * \{ */
-
-int GLShader::program_handle_get() const
-{
-  BLI_assert(program_active_);
-  return program_active_->program_id;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Sources
  * \{ */
 GLSource::GLSource(StringRefNull other)

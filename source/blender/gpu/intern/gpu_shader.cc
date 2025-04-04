@@ -663,17 +663,6 @@ bool GPU_shader_get_ssbo_input_info(const GPUShader *shader, int ssbo_location, 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Getters
- * \{ */
-
-int GPU_shader_get_program(GPUShader *shader)
-{
-  return unwrap(shader)->program_handle_get();
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Uniforms setters
  * \{ */
 

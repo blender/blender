@@ -1355,11 +1355,6 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   return vk_pipeline;
 }
 
-int VKShader::program_handle_get() const
-{
-  return -1;
-}
-
 const VKShaderInterface &VKShader::interface_get() const
 {
   BLI_assert_msg(interface != nullptr,

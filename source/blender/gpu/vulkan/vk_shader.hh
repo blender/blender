@@ -89,9 +89,6 @@ class VKShader : public Shader {
   std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
   std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const override;
 
-  /* DEPRECATED: Kept only because of BGL API. */
-  int program_handle_get() const override;
-
   VkPipeline ensure_and_get_compute_pipeline();
   VkPipeline ensure_and_get_graphics_pipeline(GPUPrimType primitive,
                                               VKVertexAttributeObject &vao,

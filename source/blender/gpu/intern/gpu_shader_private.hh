@@ -115,9 +115,6 @@ class Shader {
   virtual std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const = 0;
   virtual std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const = 0;
 
-  /* DEPRECATED: Kept only because of BGL API. */
-  virtual int program_handle_get() const = 0;
-
   StringRefNull name_get() const
   {
     return name;

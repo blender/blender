@@ -290,12 +290,6 @@ class MTLShader : public Shader {
   bool get_push_constant_is_dirty();
   void push_constant_bindstate_mark_dirty(bool is_dirty);
 
-  /* DEPRECATED: Kept only because of BGL API. (Returning -1 in METAL). */
-  int program_handle_get() const override
-  {
-    return -1;
-  }
-
   /* Metal shader properties and source mapping. */
   void set_vertex_function_name(NSString *vetex_function_name);
   void set_fragment_function_name(NSString *fragment_function_name);

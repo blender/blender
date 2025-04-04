@@ -865,11 +865,14 @@ PyDoc_STRVAR(
     /* Wrap. */
     pygpu_shader_program_doc,
     "The name of the program object for use by the OpenGL API (read-only).\n"
+    "This is deprecated and will always return -1.\n"
     "\n"
     ":type: int");
-static PyObject *pygpu_shader_program_get(BPyGPUShader *self, void * /*closure*/)
+static PyObject *pygpu_shader_program_get(BPyGPUShader * /*self*/, void * /*closure*/)
 {
-  return PyLong_FromLong(GPU_shader_get_program(self->shader));
+  PyErr_WarnEx(
+      PyExc_DeprecationWarning, "'program' is deprecated. No valid handle will be returned.", 1);
+  return PyLong_FromLong(-1);
 }
 
 static PyGetSetDef pygpu_shader__tp_getseters[] = {
