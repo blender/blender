@@ -256,10 +256,6 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.sculpt;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  if (math::is_zero(ss.cache->grab_delta_symm)) {
-    return;
-  }
-
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const bool flip = (ss.cache->bstrength < 0.0f);
   const float radius = flip ? -ss.cache->radius : ss.cache->radius;
@@ -278,6 +274,12 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   }
   else {
     area_normal = plane_normal;
+  }
+
+  /* Note: This return has to happen *after* the call to calc_brush_plane for now, as
+   * the method is not idempotent and sets variables inside the stroke cache. */
+  if (math::is_zero(ss.cache->grab_delta_symm)) {
+    return;
   }
 
   float4x4 mat = float4x4::identity();
