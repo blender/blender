@@ -3055,6 +3055,15 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
       ComponentKey vfont_key(id, NodeType::GENERIC_DATABLOCK);
       add_relation(vfont_key, ntree_output_key, "VFont -> Node");
     }
+    else if (id_type == ID_GR) {
+      /* Build relations in the collection itself, but don't hook it up to the tree.
+       * Relations from the collection to the tree are handled by the modifier's update_depsgraph()
+       * callback.
+       *
+       * Other node trees do not currently support references to collections. Once they do this
+       * code needs to be reconsidered. */
+      build_collection(nullptr, reinterpret_cast<Collection *>(id));
+    }
     else if (bnode->is_group()) {
       bNodeTree *group_ntree = (bNodeTree *)id;
       build_nodetree(group_ntree);

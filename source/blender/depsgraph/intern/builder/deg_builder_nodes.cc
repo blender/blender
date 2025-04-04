@@ -2008,6 +2008,9 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
     else if (id_type == ID_VF) {
       build_vfont((VFont *)id);
     }
+    else if (id_type == ID_GR) {
+      build_collection(nullptr, reinterpret_cast<Collection *>(id));
+    }
     else if (bnode->is_group()) {
       bNodeTree *group_ntree = (bNodeTree *)id;
       build_nodetree(group_ntree);
