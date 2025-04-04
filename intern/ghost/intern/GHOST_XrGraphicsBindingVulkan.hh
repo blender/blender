@@ -52,9 +52,16 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
   VmaAllocation m_vk_buffer_allocation = VK_NULL_HANDLE;
   VkBuffer m_vk_buffer = VK_NULL_HANDLE;
   VmaAllocationInfo m_vk_buffer_allocation_info = {};
+  GHOST_TVulkanXRModes m_data_transfer_mode = GHOST_kVulkanXRModeCPU;
 
   std::list<std::vector<XrSwapchainImageVulkan2KHR>> m_image_cache;
   VkCommandPool m_vk_command_pool = VK_NULL_HANDLE;
+
+  GHOST_TVulkanXRModes choseDataTransferMode();
+  void submitToSwapchainImageCpu(XrSwapchainImageVulkan2KHR &swapchain_image,
+                                 const GHOST_XrDrawViewInfo &draw_info);
+  void submitToSwapchainImageFd(XrSwapchainImageVulkan2KHR &swapchain_image,
+                                const GHOST_XrDrawViewInfo &draw_info);
 
   /**
    * Single VkCommandBuffer that is used for all views/swap-chains.

@@ -429,15 +429,44 @@ void VKContext::openxr_acquire_framebuffer_image_handler(GHOST_VulkanOpenXRData 
 {
   VKFrameBuffer &framebuffer = *unwrap(active_fb);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
-  openxr_data.image_data = color_attachment->read(0, GPU_DATA_HALF_FLOAT);
   openxr_data.extent.width = color_attachment->width_get();
   openxr_data.extent.height = color_attachment->height_get();
+
+  switch (openxr_data.data_transfer_mode) {
+    case GHOST_kVulkanXRModeCPU:
+      openxr_data.cpu.image_data = color_attachment->read(0, GPU_DATA_HALF_FLOAT);
+      break;
+
+    case GHOST_kVulkanXRModeFD: {
+      flush_render_graph(RenderGraphFlushFlags::SUBMIT |
+                         RenderGraphFlushFlags::WAIT_FOR_COMPLETION |
+                         RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+      VKMemoryExport exported_memory = color_attachment->export_memory(
+          VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT);
+      openxr_data.gpu.image_handle = exported_memory.handle;
+      openxr_data.gpu.image_format = to_vk_format(color_attachment->device_format_get());
+      openxr_data.gpu.memory_size = exported_memory.memory_size;
+      openxr_data.gpu.memory_offset = exported_memory.memory_offset;
+      break;
+    }
+  }
 }
 
 void VKContext::openxr_release_framebuffer_image_handler(GHOST_VulkanOpenXRData &openxr_data)
 {
-  MEM_freeN(openxr_data.image_data);
-  openxr_data.image_data = nullptr;
+  switch (openxr_data.data_transfer_mode) {
+    case GHOST_kVulkanXRModeCPU:
+      MEM_freeN(openxr_data.cpu.image_data);
+      openxr_data.cpu.image_data = nullptr;
+      break;
+
+    case GHOST_kVulkanXRModeFD:
+      /* Nothing to do as import of the handle by the XrInstance removes the ownership of the
+       * handle. Ref
+       * https://registry.khronos.org/vulkan/specs/latest/man/html/VK_KHR_external_memory_fd.html#_issues
+       */
+      break;
+  }
 }
 
 /** \} */

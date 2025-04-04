@@ -278,6 +278,7 @@ set(VULKAN_SRC
   vulkan/vk_immediate.hh
   vulkan/vk_index_buffer.hh
   vulkan/vk_memory_layout.hh
+  vulkan/vk_memory.hh
   vulkan/vk_pipeline_pool.hh
   vulkan/vk_pixel_buffer.hh
   vulkan/vk_push_constants.hh

@@ -393,6 +393,24 @@ uint VKTexture::gl_bindcode_get() const
   return 0;
 }
 
+VKMemoryExport VKTexture::export_memory(VkExternalMemoryHandleTypeFlagBits handle_type)
+{
+  BLI_assert_msg(
+      bool(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MEMORY_EXPORT),
+      "Can only import external memory when usage flag contains GPU_TEXTURE_USAGE_MEMORY_EXPORT.");
+  BLI_assert_msg(allocation_ != nullptr,
+                 "Cannot export memory when the texture is not backed by any device memory.");
+  const VKDevice &device = VKBackend::get().device;
+  VkMemoryGetFdInfoKHR vk_memory_get_fd_info = {VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
+                                                nullptr,
+                                                allocation_info_.deviceMemory,
+                                                handle_type};
+
+  int fd_handle = 0;
+  device.functions.vkGetMemoryFd(device.vk_handle(), &vk_memory_get_fd_info, &fd_handle);
+  return {uint64_t(fd_handle), allocation_info_.size, allocation_info_.offset};
+}
+
 bool VKTexture::init_internal()
 {
   const VKDevice &device = VKBackend::get().device;
@@ -529,10 +547,12 @@ bool VKTexture::allocate()
     return false;
   }
 
+  const eGPUTextureUsage texture_usage = usage_get();
+
   VKDevice &device = VKBackend::get().device;
   VkImageCreateInfo image_info = {};
   image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-  image_info.flags = to_vk_image_create(type_, format_flag_, usage_get());
+  image_info.flags = to_vk_image_create(type_, format_flag_, texture_usage);
   image_info.imageType = to_vk_image_type(type_);
   image_info.extent = vk_extent;
   image_info.mipLevels = max_ii(mipmaps_, 1);
@@ -564,15 +584,25 @@ bool VKTexture::allocate()
     }
   }
 
+  VkExternalMemoryImageCreateInfo external_memory_create_info = {
+      VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
+      nullptr,
+      VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT};
+
   VmaAllocationCreateInfo allocCreateInfo = {};
   allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
   allocCreateInfo.priority = 1.0f;
+
+  if (bool(texture_usage & GPU_TEXTURE_USAGE_MEMORY_EXPORT)) {
+    image_info.pNext = &external_memory_create_info;
+    allocCreateInfo.pool = device.vma_pools.external_memory;
+  }
   result = vmaCreateImage(device.mem_allocator_get(),
                           &image_info,
                           &allocCreateInfo,
                           &vk_image_,
                           &allocation_,
-                          nullptr);
+                          &allocation_info_);
   if (result != VK_SUCCESS) {
     return false;
   }

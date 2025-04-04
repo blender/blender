@@ -764,18 +764,69 @@ typedef struct {
   VkFence submission_fence;
 } GHOST_VulkanSwapChainData;
 
-typedef struct {
-  /** Resolution of the frame-buffer image. */
-  VkExtent2D extent;
+typedef enum {
   /**
-   * Host accessible data containing the image data. Data is stored in the selected swapchain
-   * format.
+   * Use RAM to transfer the render result to the XR swapchain.
+   *
+   * Application renders a view, downloads the result to CPU RAM, GHOST_XrGraphicsBindingVulkan
+   * will upload it to a GPU buffer and copy the buffer to the XR swapchain.
    */
-  // NOTE: This is a temporary solution with quite a large performance overhead. The solution we
-  // would like to implement would use VK_KHR_external_memory. The documentation/samples around
-  // using this in our situation is scarce. We will start prototyping in a smaller scale and when
-  // experience is gained, we will implement the solution.
-  void *image_data;
+  GHOST_kVulkanXRModeCPU,
+
+  /**
+   * Use Linux FD to transfer the render result to the XR swapchain.
+   *
+   * Application renders a view, export the memory in an FD handle. GHOST_XrGraphicsBindingVulkan
+   * will import the memory and copy the image to the swapchain.
+   */
+  GHOST_kVulkanXRModeFD,
+} GHOST_TVulkanXRModes;
+
+typedef struct {
+  /**
+   * Mode to use for data transfer between the application rendered result and the OpenXR
+   * swapchain. This is set by the GHOST and should be respected by the application.
+   */
+  GHOST_TVulkanXRModes data_transfer_mode;
+
+  /**
+   * Resolution of view render result.
+   */
+  VkExtent2D extent;
+
+  union {
+    struct {
+
+      /**
+       * Host accessible data containing the image data. Data is stored in the selected swapchain
+       * format. Only used when data_transfer_mode == GHOST_kVulkanXRModeCPU.
+       */
+      void *image_data;
+    } cpu;
+    struct {
+      /**
+       * Handle of the exported GPU memory. Depending on the data_transfer_mode the actual handle
+       * type can be different (voidptr/int/..).
+       */
+      uint64_t image_handle;
+
+      /**
+       * Data format of the image.
+       */
+      VkFormat image_format;
+
+      /**
+       * Allocation size of the exported memory.
+       */
+      VkDeviceSize memory_size;
+
+      /**
+       * Offset of the texture/buffer inside the allocated memory.
+       */
+      VkDeviceSize memory_offset;
+    } gpu;
+  };
+
 } GHOST_VulkanOpenXRData;
 
 typedef struct {

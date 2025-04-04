@@ -232,7 +232,18 @@ class VKDevice : public NonCopyable {
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectName = nullptr;
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = nullptr;
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = nullptr;
+
+    /* Extension: VK_KHR_external_memory_fd */
+    PFN_vkGetMemoryFdKHR vkGetMemoryFd = nullptr;
   } functions;
+
+  struct {
+    /* NOTE: This attribute needs to be kept alive as it will be read by VMA when allocating from
+     * `external_memory` pool. */
+    VkExportMemoryAllocateInfoKHR external_memory_info = {
+        VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_KHR};
+    VmaPool external_memory = VK_NULL_HANDLE;
+  } vma_pools;
 
   const char *extension_name_get(int index) const
   {
