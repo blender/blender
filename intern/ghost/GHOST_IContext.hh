@@ -30,6 +30,11 @@ class GHOST_IContext {
   virtual ~GHOST_IContext() = default;
 
   /**
+   * Returns the thread's currently active drawing context.
+   */
+  static GHOST_IContext *getActiveDrawingContext();
+
+  /**
    * Activates the drawing context.
    * \return A boolean success indicator.
    */

@@ -772,6 +772,11 @@ GHOST_TSuccess GHOST_ReleaseGPUContext(GHOST_ContextHandle contexthandle)
   return context->releaseDrawingContext();
 }
 
+GHOST_ContextHandle GHOST_GetActiveGPUContext()
+{
+  return (GHOST_ContextHandle)GHOST_IContext::getActiveDrawingContext();
+}
+
 uint GHOST_GetContextDefaultGPUFramebuffer(GHOST_ContextHandle contexthandle)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;

@@ -775,6 +775,11 @@ extern GHOST_TSuccess GHOST_ActivateGPUContext(GHOST_ContextHandle contexthandle
 extern GHOST_TSuccess GHOST_ReleaseGPUContext(GHOST_ContextHandle contexthandle);
 
 /**
+ * Return the thread's currently active drawing context.
+ */
+extern GHOST_ContextHandle GHOST_GetActiveGPUContext();
+
+/**
  * Get the GPU frame-buffer handle that serves as a default frame-buffer.
  */
 extern unsigned int GHOST_GetContextDefaultGPUFramebuffer(GHOST_ContextHandle contexthandle);

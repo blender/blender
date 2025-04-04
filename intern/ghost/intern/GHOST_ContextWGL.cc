@@ -111,6 +111,7 @@ GHOST_TSuccess GHOST_ContextWGL::getSwapInterval(int &intervalOut)
 GHOST_TSuccess GHOST_ContextWGL::activateDrawingContext()
 {
   if (WIN32_CHK(::wglMakeCurrent(m_hDC, m_hGLRC))) {
+    active_context_ = this;
     return GHOST_kSuccess;
   }
   else {
@@ -123,6 +124,7 @@ GHOST_TSuccess GHOST_ContextWGL::releaseDrawingContext()
   /* Calling wglMakeCurrent(nullptr, nullptr) without an active context returns an error,
    * so we always pass the device context handle. */
   if (WIN32_CHK(::wglMakeCurrent(m_hDC, nullptr))) {
+    active_context_ = nullptr;
     return GHOST_kSuccess;
   }
   else {
@@ -675,6 +677,7 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
   }
 #endif
 
+  active_context_ = this;
   return GHOST_kSuccess;
 error:
   ::wglMakeCurrent(prevHDC, prevHGLRC);
