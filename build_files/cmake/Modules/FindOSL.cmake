@@ -82,7 +82,6 @@ find_program(OSL_COMPILER oslc
              PATH_SUFFIXES bin)
 
 get_filename_component(OSL_SHADER_HINT ${OSL_COMPILER} DIRECTORY)
-get_filename_component(OSL_SHADER_HINT ${OSL_SHADER_DIR}/../ ABSOLUTE)
 
 find_path(OSL_SHADER_DIR
   NAMES
