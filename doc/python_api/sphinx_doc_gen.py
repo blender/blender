@@ -1823,7 +1823,15 @@ def pyrna2sphinx(basepath):
                 continue
             write_struct(struct)
 
-        def fake_bpy_type(class_module_name, class_value, class_name, descr_str, use_subclasses=True):
+        def fake_bpy_type(
+                class_module_name,
+                class_value,
+                class_name,
+                descr_str,
+                *,
+                use_subclasses,  # `bool`
+                base_class,  # `str | None`
+        ):
             filepath = os.path.join(basepath, "{:s}.{:s}.rst".format(class_module_name, class_name))
             file = open(filepath, "w", encoding="utf-8")
             fw = file.write
@@ -1831,6 +1839,9 @@ def pyrna2sphinx(basepath):
             fw(title_string(class_name, "="))
 
             fw(".. currentmodule:: {:s}\n\n".format(class_module_name))
+
+            if base_class is not None:
+                fw("base classes --- :class:`{:s}`\n\n".format(base_class))
 
             if use_subclasses:
                 subclass_ids = [
@@ -1868,21 +1879,27 @@ def pyrna2sphinx(basepath):
             class_value = bpy_struct
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_STRUCT_FAKE,
-                "built-in base class for all classes in bpy.types.", use_subclasses=True,
+                "built-in base class for all classes in bpy.types.",
+                use_subclasses=True,
+                base_class=None,
             )
 
         if _BPY_PROP_COLLECTION_FAKE:
             class_value = bpy.types.bpy_prop_collection
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_PROP_COLLECTION_FAKE,
-                "built-in class used for all collections.", use_subclasses=False,
+                "built-in class used for all collections.",
+                use_subclasses=False,
+                base_class=None,
             )
 
         if _BPY_PROP_COLLECTION_IDPROP_FAKE:
             class_value = bpy.types.bpy_prop_collection_idprop
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_PROP_COLLECTION_IDPROP_FAKE,
-                "built-in class used for user defined collections.", use_subclasses=False,
+                "built-in class used for user defined collections.",
+                use_subclasses=False,
+                base_class=_BPY_PROP_COLLECTION_FAKE,
             )
 
     # Operators.
