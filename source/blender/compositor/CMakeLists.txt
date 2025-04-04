@@ -142,9 +142,11 @@ set(SRC
   derived_resources/COM_denoised_auxiliary_pass.hh
 
   utilities/intern/gpu_material.cc
+  utilities/intern/oidn.cc
 
   utilities/COM_utilities_diagonals.hh
   utilities/COM_utilities_gpu_material.hh
+  utilities/COM_utilities_oidn.hh
 )
 
 set(LIB

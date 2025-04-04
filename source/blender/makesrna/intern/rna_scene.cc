@@ -6826,6 +6826,25 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem compositor_denoise_device_items[] = {
+      {SCE_COMPOSITOR_DENOISE_DEVICE_AUTO,
+       "AUTO",
+       0,
+       "Auto",
+       "Use the same device used by the compositor to process the denoise node"},
+      {SCE_COMPOSITOR_DENOISE_DEVICE_CPU,
+       "CPU",
+       0,
+       "CPU",
+       "Use the CPU to process the denoise node"},
+      {SCE_COMPOSITOR_DENOISE_DEVICE_GPU,
+       "GPU",
+       0,
+       "GPU",
+       "Use the GPU to process the denoise node if available, otherwise fallback to CPU"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem compositor_denoise_quality_items[] = {
       {SCE_COMPOSITOR_DENOISE_HIGH, "HIGH", 0, "High", "High quality"},
       {SCE_COMPOSITOR_DENOISE_BALANCED,
@@ -7576,6 +7595,15 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, compositor_precision_items);
   RNA_def_property_ui_text(
       prop, "Compositor Precision", "The precision of compositor intermediate result");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
+
+  prop = RNA_def_property(srna, "compositor_denoise_device", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "compositor_denoise_device");
+  RNA_def_property_enum_items(prop, compositor_denoise_device_items);
+  RNA_def_property_enum_default(prop, SCE_COMPOSITOR_DENOISE_DEVICE_AUTO);
+  RNA_def_property_ui_text(prop,
+                           "Compositor Denoise Node Device",
+                           "The device to use to process the denoise nodes in the compositor");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_Scene_compositor_update");
 
   prop = RNA_def_property(srna, "compositor_denoise_preview_quality", PROP_ENUM, PROP_NONE);

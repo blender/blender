@@ -331,6 +331,19 @@ void VKBackend::platform_init(const VKDevice &device)
            GPU_ARCHITECTURE_IMR);
   GPG.devices = devices;
 
+  const VkPhysicalDeviceIDProperties &id_properties = device.physical_device_id_properties_get();
+
+  GPG.device_uuid = Array<uint8_t, 16>(Span<uint8_t>(id_properties.deviceUUID, VK_UUID_SIZE));
+
+  if (id_properties.deviceLUIDValid) {
+    GPG.device_luid = Array<uint8_t, 8>(Span<uint8_t>(id_properties.deviceUUID, VK_LUID_SIZE));
+    GPG.device_luid_node_mask = id_properties.deviceNodeMask;
+  }
+  else {
+    GPG.device_luid.reinitialize(0);
+    GPG.device_luid_node_mask = 0;
+  }
+
   CLOG_INFO(&LOG,
             0,
             "Using vendor [%s] device [%s] driver version [%s].",

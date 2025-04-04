@@ -6,12 +6,15 @@
  * \ingroup gpu
  */
 
+#include <cstdint>
 #include <string>
 
 #include "BKE_global.hh"
 #if defined(WIN32)
 #  include "BLI_winstuff.h"
 #endif
+#include "BLI_array.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_subprocess.hh"
 #include "BLI_threads.h"
@@ -230,6 +233,33 @@ void GLBackend::platform_init()
            renderer,
            version,
            GPU_ARCHITECTURE_IMR);
+
+  GPG.device_uuid.reinitialize(0);
+  GPG.device_luid.reinitialize(0);
+  GPG.device_luid_node_mask = 0;
+
+  if (epoxy_has_gl_extension("GL_EXT_memory_object")) {
+    GLint number_of_devices = 0;
+    glGetIntegerv(GL_NUM_DEVICE_UUIDS_EXT, &number_of_devices);
+    /* Multiple devices could be used by the context if certain extensions like multi-cast is used.
+     * But this is not used by Blender, so this should always be 1. */
+    BLI_assert(number_of_devices == 1);
+
+    GLubyte device_uuid[GL_UUID_SIZE_EXT] = {0};
+    glGetUnsignedBytei_vEXT(GL_DEVICE_UUID_EXT, 0, device_uuid);
+    GPG.device_uuid = Array<uint8_t, 16>(Span<uint8_t>(device_uuid, GL_UUID_SIZE_EXT));
+
+    /* LUID is only supported on Windows. */
+    if (epoxy_has_gl_extension("GL_EXT_memory_object_win32") && (os & GPU_OS_WIN)) {
+      GLubyte device_luid[GL_LUID_SIZE_EXT] = {0};
+      glGetUnsignedBytevEXT(GL_DEVICE_LUID_EXT, device_luid);
+      GPG.device_luid = Array<uint8_t, 8>(Span<uint8_t>(device_luid, GL_LUID_SIZE_EXT));
+
+      GLint node_mask = 0;
+      glGetIntegerv(GL_DEVICE_NODE_MASK_EXT, &node_mask);
+      GPG.device_luid_node_mask = uint32_t(node_mask);
+    }
+  }
 }
 
 void GLBackend::platform_exit()
