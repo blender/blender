@@ -352,9 +352,10 @@ gpu::VertBufPtr extract_edituv_data_subdiv(const MeshRenderData &mr,
 gpu::IndexBufPtr extract_edituv_tris(const MeshRenderData &mr);
 gpu::IndexBufPtr extract_edituv_tris_subdiv(const MeshRenderData &mr,
                                             const DRWSubdivCache &subdiv_cache);
-gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr);
+gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr, bool edit_uvs);
 gpu::IndexBufPtr extract_edituv_lines_subdiv(const MeshRenderData &mr,
-                                             const DRWSubdivCache &subdiv_cache);
+                                             const DRWSubdivCache &subdiv_cache,
+                                             bool edit_uvs);
 gpu::IndexBufPtr extract_edituv_points(const MeshRenderData &mr);
 gpu::IndexBufPtr extract_edituv_points_subdiv(const MeshRenderData &mr,
                                               const DRWSubdivCache &subdiv_cache);

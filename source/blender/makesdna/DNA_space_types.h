@@ -1297,6 +1297,8 @@ typedef struct SpaceImage {
   int flag;
 
   float uv_opacity;
+  float uv_face_opacity;
+  char _pad2[4];
 
   float stretch_opacity;
 
@@ -1378,7 +1380,9 @@ typedef enum eSpaceImage_Flag {
 
   SI_FLAG_UNUSED_24 = (1 << 24),
 
-  SI_NO_DRAW_TEXPAINT = (1 << 25),
+#ifdef DNA_DEPRECATED_ALLOW
+  SI_NO_DRAW_TEXPAINT = (1 << 25), /* deprecated - use SI_NO_DRAW_UV_GUIDE instead, see #135102 */
+#endif
   SI_DRAW_METADATA = (1 << 26),
 
   SI_SHOW_R = (1 << 27),
@@ -1386,6 +1390,8 @@ typedef enum eSpaceImage_Flag {
   SI_SHOW_B = (1 << 29),
 
   SI_GRID_OVER_IMAGE = (1 << 30),
+
+  SI_NO_DRAW_UV_GUIDE = (1 << 31),
 } eSpaceImage_Flag;
 
 typedef enum eSpaceImageOverlay_Flag {

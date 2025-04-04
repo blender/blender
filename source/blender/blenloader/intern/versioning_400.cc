@@ -4431,6 +4431,43 @@ static void asset_browser_add_list_view(Main *bmain)
   }
 }
 
+static void version_show_texpaint_to_show_uv(Main *bmain)
+{
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype == SPACE_IMAGE) {
+          SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+          if (sima->flag & SI_NO_DRAW_TEXPAINT) {
+            sima->flag |= SI_NO_DRAW_UV_GUIDE;
+          }
+        }
+      }
+    }
+  }
+}
+
+static void version_set_uv_face_overlay_defaults(Main *bmain)
+{
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype == SPACE_IMAGE) {
+          SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+          /* Remove ID Code from screen name */
+          const char *workspace_name = screen->id.name + 2;
+          /* Don't set uv_face_opacity for Texture Paint or Shading since these are workspaces
+           * where it's important to have unobstructed view of the Image Editor to see Image
+           * Textures. UV Editing is the only other default workspace with an Image Editor.*/
+          if (STREQ(workspace_name, "UV Editing")) {
+            sima->uv_face_opacity = 1.0f;
+          }
+        }
+      }
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -6640,6 +6677,11 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
           scene->grease_pencil_settings.smaa_threshold;
       scene->grease_pencil_settings.aa_samples = 1;
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 17)) {
+    version_show_texpaint_to_show_uv(bmain);
+    version_set_uv_face_overlay_defaults(bmain);
   }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to

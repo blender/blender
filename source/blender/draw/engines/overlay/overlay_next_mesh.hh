@@ -552,12 +552,10 @@ class MeshUVs : Overlay {
     const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(state.space_data);
     ::Image *image = space_image->image;
     const bool space_mode_is_paint = space_image->mode == SI_MODE_PAINT;
-    const bool space_mode_is_view = space_image->mode == SI_MODE_VIEW;
     const bool space_mode_is_mask = space_image->mode == SI_MODE_MASK;
     const bool space_mode_is_uv = space_image->mode == SI_MODE_UV;
 
     const bool object_mode_is_edit = state.object_mode & OB_MODE_EDIT;
-    const bool object_mode_is_paint = state.object_mode & OB_MODE_TEXTURE_PAINT;
 
     const bool is_viewer = image && ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE);
     const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
@@ -618,22 +616,16 @@ class MeshUVs : Overlay {
     {
       /* Wireframe UV Overlay. */
       const bool show_wireframe_uv_edit = space_image->flag & SI_DRAWSHADOW;
-      const bool show_wireframe_tex_paint = !(space_image->flag & SI_NO_DRAW_TEXPAINT);
+      const bool show_wireframe_uv_guide = !(space_image->flag & SI_NO_DRAW_UV_GUIDE);
 
       if (space_mode_is_uv && object_mode_is_edit) {
         show_wireframe_ = show_wireframe_uv_edit;
       }
-      else if (space_mode_is_uv && object_mode_is_paint) {
-        show_wireframe_ = show_wireframe_tex_paint;
-      }
-      else if (space_mode_is_paint && (object_mode_is_paint || object_mode_is_edit)) {
-        show_wireframe_ = show_wireframe_tex_paint;
-      }
-      else if (space_mode_is_view && object_mode_is_paint) {
-        show_wireframe_ = show_wireframe_tex_paint;
-      }
       else {
-        show_wireframe_ = false;
+        show_wireframe_ = show_wireframe_uv_guide;
+        if (!show_face_) {
+          show_face_ = show_wireframe_;
+        }
       }
     }
     {
@@ -716,13 +708,17 @@ class MeshUVs : Overlay {
     }
 
     if (show_face_) {
+      const float opacity = (object_mode_is_edit && space_mode_is_uv) ?
+                                space_image->uv_opacity :
+                                space_image->uv_face_opacity;
+
       auto &pass = faces_ps_;
       pass.init();
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS | DRW_STATE_BLEND_ALPHA);
       pass.shader_set(res.shaders->uv_edit_face.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.push_constant("uvOpacity", space_image->uv_opacity);
+      pass.push_constant("uvOpacity", opacity);
     }
 
     if (show_mesh_analysis_) {
@@ -743,10 +739,40 @@ class MeshUVs : Overlay {
     per_mesh_area_2d_.clear();
   }
 
+  void object_sync(Manager &manager,
+                   const ObjectRef &ob_ref,
+                   Resources & /*res*/,
+                   const State &state) final
+  {
+    if (!enabled_ || ob_ref.object->type != OB_MESH ||
+        !((ob_ref.object->base_flag & BASE_SELECTED) || (ob_ref.object == state.object_active)))
+    {
+      return;
+    }
+
+    Object *ob = ob_ref.object;
+    Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
+
+    const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(state.space_data);
+    const bool has_active_object_uvmap = CustomData_get_active_layer(&mesh.corner_data,
+                                                                     CD_PROP_FLOAT2) != -1;
+
+    ResourceHandle res_handle = manager.unique_handle(ob_ref);
+
+    if (show_wireframe_ && has_active_object_uvmap) {
+      gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_wireframe(*ob, mesh);
+      wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
+    }
+    if (show_face_ && has_active_object_uvmap && space_image->uv_face_opacity > 0.0f) {
+      gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_faces(*ob, mesh);
+      faces_ps_.draw(geom, res_handle);
+    }
+  }
+
   void edit_object_sync(Manager &manager,
                         const ObjectRef &ob_ref,
                         Resources & /*res*/,
-                        const State & /*state*/) final
+                        const State &state) final
   {
     if (!enabled_ || ob_ref.object->type != OB_MESH) {
       return;
@@ -755,7 +781,9 @@ class MeshUVs : Overlay {
     Object &ob = *ob_ref.object;
     Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(ob);
 
+    const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(state.space_data);
     const bool is_edit_object = DRW_object_is_in_edit_mode(&ob);
+    const bool is_uv_editable = is_edit_object && space_image->mode == SI_MODE_UV;
     const bool has_active_object_uvmap = CustomData_get_active_layer(&mesh.corner_data,
                                                                      CD_PROP_FLOAT2) != -1;
     const bool has_active_edit_uvmap = is_edit_object && (CustomData_get_active_layer(
@@ -764,7 +792,7 @@ class MeshUVs : Overlay {
 
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
-    if (has_active_edit_uvmap) {
+    if (has_active_edit_uvmap && is_uv_editable) {
       if (show_uv_edit) {
         gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
         edges_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
@@ -780,6 +808,10 @@ class MeshUVs : Overlay {
       if (show_face_) {
         gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_faces(ob, mesh);
         faces_ps_.draw(geom, res_handle);
+      }
+      if (show_wireframe_) {
+        gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_wireframe(ob, mesh);
+        wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
       }
 
       if (show_mesh_analysis_) {
@@ -799,9 +831,15 @@ class MeshUVs : Overlay {
       }
     }
 
-    if (show_wireframe_ && (has_active_object_uvmap || has_active_edit_uvmap)) {
-      gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_edges(ob, mesh);
-      wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
+    if ((has_active_object_uvmap || has_active_edit_uvmap) && !is_uv_editable) {
+      if (show_wireframe_) {
+        gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_wireframe(ob, mesh);
+        wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
+      }
+      if (show_face_ && space_image->uv_face_opacity > 0.0f) {
+        gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_faces(ob, mesh);
+        faces_ps_.draw(geom, res_handle);
+      }
     }
   }
 

@@ -467,6 +467,7 @@ void Instance::begin_sync()
 
 void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
 {
+  const bool in_object_mode = ob_ref.object->mode == OB_MODE_OBJECT;
   const bool in_edit_mode = ob_ref.object->mode == OB_MODE_EDIT;
   const bool in_paint_mode = object_is_paint_mode(ob_ref.object);
   const bool in_sculpt_mode = object_is_sculpt_mode(ob_ref);
@@ -487,13 +488,27 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     layer.particles.edit_object_sync(manager, ob_ref, resources, state);
   }
 
+  /* For 2D UV overlays. */
+  if (!state.hide_overlays && state.is_space_image()) {
+    switch (ob_ref.object->type) {
+      case OB_MESH:
+        if (in_edit_paint_mode) {
+          /* TODO(fclem): Find a better place / condition. */
+          layer.mesh_uvs.edit_object_sync(manager, ob_ref, resources, state);
+        }
+        else if (in_object_mode) {
+          layer.mesh_uvs.object_sync(manager, ob_ref, resources, state);
+        }
+      default:
+        break;
+    }
+  }
+
   if (in_paint_mode && !state.hide_overlays) {
     switch (ob_ref.object->type) {
       case OB_MESH:
         /* TODO(fclem): Make it part of a #Meshes. */
         layer.paints.object_sync(manager, ob_ref, resources, state);
-        /* For wire-frames. */
-        layer.mesh_uvs.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_GREASE_PENCIL:
         layer.grease_pencil.paint_object_sync(manager, ob_ref, resources, state);
@@ -522,8 +537,6 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
     switch (ob_ref.object->type) {
       case OB_MESH:
         layer.meshes.edit_object_sync(manager, ob_ref, resources, state);
-        /* TODO(fclem): Find a better place / condition. */
-        layer.mesh_uvs.edit_object_sync(manager, ob_ref, resources, state);
         break;
       case OB_ARMATURE:
         layer.armatures.edit_object_sync(manager, ob_ref, resources, state);

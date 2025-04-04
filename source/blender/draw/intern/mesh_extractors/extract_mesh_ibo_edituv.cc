@@ -239,9 +239,9 @@ static gpu::IndexBufPtr extract_edituv_lines_mesh(const MeshRenderData &mr,
   return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, mr.corners_num, false));
 }
 
-gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr)
+gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr, bool edit_uvs)
 {
-  const bool sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
+  const bool sync_selection = ((mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0) || !edit_uvs;
 
   if (mr.extract_type == MeshExtractType::BMesh) {
     return extract_edituv_lines_bm(mr, sync_selection);
@@ -334,9 +334,10 @@ static gpu::IndexBufPtr extract_edituv_lines_subdiv_mesh(const MeshRenderData &m
 }
 
 gpu::IndexBufPtr extract_edituv_lines_subdiv(const MeshRenderData &mr,
-                                             const DRWSubdivCache &subdiv_cache)
+                                             const DRWSubdivCache &subdiv_cache,
+                                             bool edit_uvs)
 {
-  const bool sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
+  const bool sync_selection = ((mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0) || !edit_uvs;
 
   if (mr.extract_type == MeshExtractType::BMesh) {
     return extract_edituv_lines_subdiv_bm(mr, subdiv_cache, sync_selection);

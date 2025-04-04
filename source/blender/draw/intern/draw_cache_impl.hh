@@ -255,6 +255,7 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(Object &
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_angle(Object &object,
                                                                          Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_wireframe(Object &object, Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_edges(Object &object, Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_verts(Object &object, Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_facedots(Object &object, Mesh &mesh);
@@ -265,7 +266,8 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_facedots(Object &object, Me
 /** \name For Image UV Editor
  * \{ */
 
-blender::gpu::Batch *DRW_mesh_batch_cache_get_uv_edges(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_uv_faces(Object &object, Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_uv_wireframe(Object &object, Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh &mesh);
 
 /** \} */

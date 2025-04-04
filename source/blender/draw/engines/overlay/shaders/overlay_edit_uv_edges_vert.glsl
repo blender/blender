@@ -184,6 +184,8 @@ void main()
   vert_out[0] = vertex_main(vert_in[0]);
   vert_out[1] = vertex_main(vert_in[1]);
 
+  drw_ResourceID_iface.resource_index = drw_resource_id();
+
   /* Discard by default. */
   gl_Position = vec4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);

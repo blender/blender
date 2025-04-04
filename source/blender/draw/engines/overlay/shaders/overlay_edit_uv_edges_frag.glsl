@@ -18,6 +18,8 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_edit_uv_edges)
 #define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)
 
+#include "draw_object_infos_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 #include "overlay_common_lib.glsl"
 
 void main()
@@ -73,7 +75,10 @@ void main()
 
   vec4 final_color = mix(outer_color, inner_color, 1.0 - mix_w * outer_color.a);
   final_color.a *= 1.0 - (outer_color.a > 0.0 ? mix_w_outer : mix_w);
-  final_color.a *= alpha;
+
+  eObjectInfoFlag ob_flag = drw_object_infos().flag;
+  bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
+  final_color.a *= is_active ? alpha : (alpha * 0.25);
 
   fragColor = final_color;
 }
