@@ -68,6 +68,7 @@ void register_node_type_cmp_separate_xyz()
   ntype.declare = file_ns::cmp_node_separate_xyz_declare;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.gather_link_search_ops = nullptr;
 
   blender::bke::node_register_type(ntype);
 }
@@ -120,6 +121,7 @@ void register_node_type_cmp_combine_xyz()
   ntype.declare = file_ns::cmp_node_combine_xyz_declare;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.gather_link_search_ops = nullptr;
 
   blender::bke::node_register_type(ntype);
 }
