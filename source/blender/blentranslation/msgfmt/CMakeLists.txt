@@ -12,6 +12,11 @@ set(SRC
   msgfmt.cc
 )
 
+# Manifest required for selecting comctl32 v6 required by the crash popup.
+if(WIN32 AND NOT WITH_WINDOWS_EXTERNAL_MANIFEST)
+  LIST(APPEND SRC "${CMAKE_BINARY_DIR}/tests.exe.manifest")
+endif()
+
 set(LIB
   PRIVATE PRIVATE bf::blenlib
   PRIVATE bf::intern::guardedalloc
@@ -29,3 +34,10 @@ add_executable(msgfmt ${SRC})
 setup_platform_linker_flags(msgfmt)
 blender_target_include_dirs(msgfmt ${INC})
 target_link_libraries(msgfmt ${LIB})
+
+# If using an external manifest, copy it to the output directory after building.
+if(WITH_WINDOWS_EXTERNAL_MANIFEST)
+  add_custom_command(TARGET msgfmt POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/tests.exe.manifest  $<TARGET_FILE_DIR:msgfmt>/$<TARGET_FILE_NAME:msgfmt>.manifest
+  )
+endif()

@@ -5,14 +5,19 @@
 /** \file
  * \ingroup bli
  */
+
 #include <Windows.h>
-#include <stdio.h>
+#include <commctrl.h>
+#include <sstream>
 
 #include <dbghelp.h>
 #include <shlwapi.h>
 #include <tlhelp32.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "uri_convert.hh"
+#include "utfconv.hh"
 
 #include "BLI_string.h"
 
@@ -397,22 +402,276 @@ void BLI_system_backtrace_with_os_info(FILE *fp, const void *os_info)
   bli_windows_system_backtrace_modules(fp);
 }
 
-void BLI_windows_handle_exception(void *exception)
+static void bli_windows_exception_message_get(const EXCEPTION_POINTERS *exception,
+                                              char r_message[512])
 {
-  const EXCEPTION_POINTERS *exception_info = static_cast<EXCEPTION_POINTERS *>(exception);
-  if (exception_info) {
-    fprintf(stderr,
-            "Error   : %s\n",
-            bli_windows_get_exception_description(exception_info->ExceptionRecord->ExceptionCode));
-    fflush(stderr);
-
-    LPVOID address = exception_info->ExceptionRecord->ExceptionAddress;
-    fprintf(stderr, "Address : 0x%p\n", address);
-
-    CHAR modulename[MAX_PATH];
-    bli_windows_get_module_name(address, modulename, sizeof(modulename));
-    fprintf(stderr, "Module  : %s\n", modulename);
-    fprintf(stderr, "Thread  : %.8x\n", GetCurrentThreadId());
+  if (!exception) {
+    r_message[0] = '\0';
+    return;
   }
-  fflush(stderr);
+
+  const char *exception_name = bli_windows_get_exception_description(
+      exception->ExceptionRecord->ExceptionCode);
+  LPVOID address = exception->ExceptionRecord->ExceptionAddress;
+  CHAR modulename[MAX_PATH];
+  bli_windows_get_module_name(address, modulename, sizeof(modulename));
+  DWORD threadId = GetCurrentThreadId();
+
+  snprintf(r_message,
+           512,
+           "Error   : %s\n"
+           "Address : 0x%p\n"
+           "Module  : %s\n"
+           "Thread  : %.8x\n",
+           exception_name,
+           address,
+           modulename,
+           threadId);
 }
+
+/* -------------------------------------------------------------------- */
+/** \name bli_show_message_box
+ * \{ */
+
+static std::string get_os_info()
+{
+  OSVERSIONINFOEX osvi;
+  ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+  osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+  if (!GetVersionEx((OSVERSIONINFO *)&osvi)) {
+    return "Unknown System";
+  }
+
+  std::string version = std::to_string(osvi.dwMajorVersion) + "-" +
+                        std::to_string(osvi.dwMajorVersion) + "." +
+                        std::to_string(osvi.dwMinorVersion) + "." +
+                        std::to_string(osvi.dwBuildNumber) + "-SP" +
+                        std::to_string(osvi.wServicePackMajor);
+
+  SYSTEM_INFO si;
+  GetSystemInfo(&si);
+  std::string architecture;
+  switch (si.wProcessorArchitecture) {
+    case PROCESSOR_ARCHITECTURE_AMD64:
+      architecture = "64 Bits";
+      break;
+    case PROCESSOR_ARCHITECTURE_INTEL:
+      architecture = "32 Bits";
+      break;
+    case PROCESSOR_ARCHITECTURE_ARM:
+      architecture = "ARM Architecture";
+      break;
+    case PROCESSOR_ARCHITECTURE_ARM64:
+      architecture = "ARM64 Architecture";
+      break;
+    case PROCESSOR_ARCHITECTURE_ARM32_ON_WIN64:
+      architecture = "ARM32 on Windows 64-bit";
+      break;
+    case PROCESSOR_ARCHITECTURE_IA32_ON_ARM64:
+      architecture = "IA32 on ARM64";
+      break;
+    default:
+      architecture = "Unknown Architecture";
+  }
+
+  return "Windows-" + version + " " + architecture;
+}
+
+/**
+ * Retrieve the path to "blender-launcher.exe" if it exists; otherwise, return the current
+ * executable path.
+ */
+static bool bli_executable_path_get(LPWSTR path, DWORD size)
+{
+  wchar_t executable_path[MAX_PATH];
+  DWORD nSize = GetModuleFileNameW(nullptr, executable_path, MAX_PATH);
+  if (nSize == 0 || nSize == MAX_PATH) {
+    return false;
+  }
+
+  if (size <= nSize) {
+    return false;
+  }
+
+  /* Copy the path to the output buffer. */
+  if (wcscpy_s(path, size, executable_path) != 0) {
+    return false;
+  }
+
+  /* Replace the filename "blender.exe" with "blender-launcher.exe". */
+  if (!PathRemoveFileSpecW(executable_path)) {
+    /* Failed to remove the file spec. Use the original path. */
+    return true;
+  }
+  if (!PathAppendW(executable_path, L"blender-launcher.exe")) {
+    /* Failed to append the new filename. Use the original path. */
+    return true;
+  }
+
+  /* Check if "blender-launcher.exe" exists at this path. */
+  DWORD attributes = GetFileAttributesW(executable_path);
+  if (attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_DIRECTORY)) {
+    /* "blender-launcher.exe" does not exist. Use the original executable path. */
+    return true;
+  }
+
+  if (wcslen(executable_path) + 1 > size) {
+    /* The output buffer is not large enough for the new path. Use the original path. */
+    return true;
+  }
+
+  /* The file exists. Copy the path to the output buffer. */
+  if (wcscpy_s(path, size, executable_path) != 0) {
+    /* Error: It's not supposed to happen. Return false since the buffer has been modified. */
+    return false;
+  }
+
+  return true;
+}
+
+/* Wrapper function for url_encode. */
+static std::wstring url_encode_wstring(const std::string &str)
+{
+  size_t len = str.length();
+
+  /* Maximum encoded length is 3 times the original length +1 for null terminator. */
+  size_t encoded_len_max = len * 3 + 1;
+
+  char *encoded_str = new char[encoded_len_max];
+  url_encode(str.c_str(), encoded_str, encoded_len_max);
+
+  /* Convert the encoded char *to a std::wstring (assuming the encoded string is ASCII). */
+  std::wstring result(encoded_str, encoded_str + strlen(encoded_str));
+
+  delete[] encoded_str;
+
+  return result;
+}
+
+/**
+ * Displays a crash report dialog with options to open the crash log, restart the application, and
+ * report a bug. This is based on the `showMessageBox` function in `GHOST_SystemWin32.cc`.
+ */
+static void bli_show_crash_report_dialog(const char *filepath_crashlog,
+                                         const char *filepath_relaunch,
+                                         const char *gpu_name,
+                                         const char *build_version)
+{
+  /* Redundant: InitCommonControls is already called during GHOST System initialization. */
+  // InitCommonControls();
+
+  /* Convert file paths to UTF-16 to handle non-ASCII characters. */
+  wchar_t *filepath_crashlog_utf16 = alloc_utf16_from_8(filepath_crashlog, 0);
+  wchar_t *filepath_relaunch_utf16 = filepath_relaunch[0] ?
+                                         alloc_utf16_from_8(filepath_relaunch, 0) :
+                                         nullptr;
+
+  std::wstring full_message_16 =
+      L"A problem has caused the program to stop functioning correctly. If you know the steps to "
+      L"reproduce this issue, please submit a bug report.\n"
+      "\n"
+      L"The crash log can be found at:\n" +
+      std::wstring(filepath_crashlog_utf16);
+
+  TASKDIALOGCONFIG config = {0};
+  const TASKDIALOG_BUTTON buttons[] = {{IDRETRY, L"Restart"},
+                                       {IDOK, L"Report a Bug"},
+                                       {IDHELP, L"View Crash Log"},
+                                       {IDCLOSE, L"Close"}};
+
+  config.cbSize = sizeof(config);
+  config.hwndParent = GetActiveWindow();
+  config.hInstance = 0;
+  config.dwCommonButtons = 0;
+  config.pszMainIcon = TD_ERROR_ICON;
+  config.pszWindowTitle = L"Blender";
+  config.pszMainInstruction = L"Blender has stopped working";
+  config.pszContent = full_message_16.c_str();
+  config.pButtons = buttons;
+  config.cButtons = ARRAY_SIZE(buttons);
+
+  /* Data passed to the callback function for handling button events. */
+  const struct Data {
+    const wchar_t *filepath_crashlog_utf16;
+    const wchar_t *filepath_relaunch_utf16;
+    const char *gpu_name;
+    const char *build_version;
+  } data = {filepath_crashlog_utf16, filepath_relaunch_utf16, gpu_name, build_version};
+  config.lpCallbackData = reinterpret_cast<LONG_PTR>(&data);
+
+  /* Callback for handling button events. */
+  config.pfCallback = [](HWND /*hwnd*/,
+                         UINT uNotification,
+                         WPARAM wParam,
+                         LPARAM /*lParam*/,
+                         LONG_PTR dwRefData) -> HRESULT {
+    const Data *data_ptr = reinterpret_cast<const Data *>(dwRefData);
+    if (uNotification != TDN_BUTTON_CLICKED) {
+      return S_OK;
+    }
+    int pnButton = static_cast<int>(wParam);
+    switch (pnButton) {
+      case IDCLOSE:
+        return S_OK;
+      case IDRETRY: {
+        /* Relaunch the application. */
+        wchar_t executable_path[MAX_PATH];
+        if (bli_executable_path_get(executable_path, ARRAYSIZE(executable_path))) {
+          std::wstring parameters;
+          if (data_ptr->filepath_relaunch_utf16) {
+            /* Properly quote the argument to handle spaces and special characters. */
+            parameters = L"\"" + std::wstring(data_ptr->filepath_relaunch_utf16) + L"\"";
+          }
+          else {
+            /* Proceeding without parameters. */
+            parameters = L"";
+          }
+          ShellExecuteW(
+              nullptr, L"open", executable_path, parameters.c_str(), nullptr, SW_SHOWNORMAL);
+        }
+        return S_OK;
+      }
+      case IDHELP:
+        /* Open the crash log. */
+        ShellExecuteW(
+            nullptr, L"open", data_ptr->filepath_crashlog_utf16, nullptr, nullptr, SW_SHOWNORMAL);
+        return S_FALSE;
+      case IDOK: {
+        /* Open the bug report form with pre-filled data. */
+        /* clang-format off */
+        std::wstring link =
+            L"https://redirect.blender.org/"
+            L"?type=bug_report"
+            L"&project=blender"
+            L"&os=" + url_encode_wstring(get_os_info()) +
+            L"&gpu=" + url_encode_wstring(data_ptr->gpu_name) +
+            L"&broken_version=" + url_encode_wstring(data_ptr->build_version);
+        /* clang-format on */
+        ShellExecuteW(nullptr, L"open", link.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        return S_FALSE;
+      }
+      default:
+        return S_FALSE;
+    }
+  };
+
+  TaskDialogIndirect(&config, nullptr, nullptr, nullptr);
+  free((void *)filepath_crashlog_utf16);
+  free((void *)filepath_relaunch_utf16);
+}
+
+void BLI_windows_exception_show_dialog(const void *exception,
+                                       const char *filepath_crashlog,
+                                       const char *filepath_relaunch,
+                                       const char *gpu_name,
+                                       const char *build_version)
+{
+  char message[512];
+  bli_windows_exception_message_get(static_cast<const EXCEPTION_POINTERS *>(exception), message);
+  fprintf(stderr, message);
+  fflush(stderr);
+
+  bli_show_crash_report_dialog(filepath_crashlog, filepath_relaunch, gpu_name, build_version);
+}
+
+/** \} */

@@ -1771,7 +1771,10 @@ static bool BLO_write_file_impl(Main *mainvar,
   }
 
   write_file_main_validate_post(mainvar, reports);
-
+  if (mainvar->is_global_main && !params->use_save_as_copy) {
+    /* It is used to reload Blender after a crash on Windows OS. */
+    STRNCPY(G.filepath_last_blend, filepath);
+  }
   return true;
 }
 

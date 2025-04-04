@@ -29,6 +29,8 @@ void BKE_blender_globals_main_replace(Main *bmain);
  */
 Main *BKE_blender_globals_main_swap(Main *new_gmain);
 
+void BKE_blender_globals_crash_path_get(char *filepath);
+
 void BKE_blender_userdef_data_swap(UserDef *userdef_a, UserDef *userdef_b);
 void BKE_blender_userdef_data_set(UserDef *userdef);
 void BKE_blender_userdef_data_set_and_free(UserDef *userdef);
