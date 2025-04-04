@@ -90,6 +90,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_endian_defines.h"
+#include "BLI_endian_switch.h"
 #include "BLI_fileops.hh"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_math_base.h"
@@ -308,11 +309,11 @@ bool ZstdWriteWrap::open(const char *filepath)
   return true;
 }
 
-void ZstdWriteWrap::write_u32_le(const uint32_t val)
+void ZstdWriteWrap::write_u32_le(uint32_t val)
 {
-#ifdef __BIG_ENDIAN__
-  BLI_endian_switch_uint32(&val);
-#endif
+  if (ENDIAN_ORDER == B_ENDIAN) {
+    BLI_endian_switch_uint32(&val);
+  }
   base_wrap.write(&val, sizeof(uint32_t));
 }
 
