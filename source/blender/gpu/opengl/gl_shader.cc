@@ -1272,12 +1272,8 @@ bool GLShader::post_finalize(const shader::ShaderCreateInfo *info)
   async_compilation_ = false;
 
   GLuint program_id = program_get();
-  if (info != nullptr && info->legacy_resource_location_ == false) {
-    interface = new GLShaderInterface(program_id, *info);
-  }
-  else {
-    interface = new GLShaderInterface(program_id);
-  }
+
+  interface = new GLShaderInterface(program_id, *info);
 
   return true;
 }

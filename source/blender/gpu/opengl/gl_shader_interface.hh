@@ -34,7 +34,6 @@ class GLShaderInterface : public ShaderInterface {
 
  public:
   GLShaderInterface(GLuint program, const shader::ShaderCreateInfo &info);
-  GLShaderInterface(GLuint program);
   ~GLShaderInterface();
 
   void ref_add(GLVaoCache *ref);
