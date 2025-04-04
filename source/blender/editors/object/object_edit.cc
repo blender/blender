@@ -501,7 +501,7 @@ static wmOperatorStatus object_hide_collection_invoke(bContext *C,
 void OBJECT_OT_hide_collection(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Hide Collection";
+  ot->name = "Hide Other Collections";
   ot->description = "Show only objects in collection (Shift to extend)";
   ot->idname = "OBJECT_OT_hide_collection";
 
