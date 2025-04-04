@@ -149,7 +149,9 @@ ccl_device_inline Spectrum volume_sample_channel_pdf(Spectrum albedo, Spectrum t
   const Spectrum weights = fabs(throughput * albedo);
   const float sum_weights = reduce_add(weights);
 
-  if (sum_weights > 0.0f) {
+  if ((1.0f - sum_weights) < 1.0f) {
+    /* The same as `sum_weights > 0.0f`, but avoids the case where `sum_weight` is denormal, which
+     * could produce `nan` after division. */
     return weights / sum_weights;
   }
 
