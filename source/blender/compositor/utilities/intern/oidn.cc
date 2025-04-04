@@ -19,7 +19,7 @@
 
 namespace blender::compositor {
 
-oidn::DeviceRef create_oidn_gpu_device(const Context &context)
+static oidn::DeviceRef create_oidn_gpu_device(const Context &context)
 {
 
   /* The compositor uses CPU execution and does not have an active GPU context or device, so let
