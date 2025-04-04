@@ -363,6 +363,8 @@ void CLIP_OT_reload(wmOperatorType *ot)
 /** \name View Pan Operator
  * \{ */
 
+namespace {
+
 struct ViewPanData {
   float x, y;
   float xof, yof, xorig, yorig;
@@ -370,6 +372,8 @@ struct ViewPanData {
   bool own_cursor;
   float *vec;
 };
+
+}  // namespace
 
 static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -536,6 +540,8 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
 /** \name View Zoom Operator
  * \{ */
 
+namespace {
+
 struct ViewZoomData {
   float x, y;
   float zoom;
@@ -545,6 +551,8 @@ struct ViewZoomData {
   double timer_lastdraw;
   bool own_cursor;
 };
+
+}  // namespace
 
 static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 {

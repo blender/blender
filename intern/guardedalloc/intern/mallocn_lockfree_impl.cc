@@ -31,6 +31,8 @@
 
 using namespace mem_guarded::internal;
 
+namespace {
+
 typedef struct MemHead {
   /* Length of allocated memory block. */
   size_t len;
@@ -44,6 +46,8 @@ typedef struct MemHeadAligned {
 } MemHeadAligned;
 static_assert(MEM_MIN_CPP_ALIGNMENT <= alignof(MemHeadAligned), "Bad alignment of MemHeadAligned");
 static_assert(MEM_MIN_CPP_ALIGNMENT <= sizeof(MemHeadAligned), "Bad size of MemHeadAligned");
+
+}  // namespace
 
 static bool malloc_debug_memset = false;
 

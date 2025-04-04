@@ -60,6 +60,8 @@ using blender::Vector;
 
 /* ********************** smart stitch operator *********************** */
 
+namespace {
+
 /* object that stores display data for previewing before confirming stitching */
 struct StitchPreviewer {
   /* here we'll store the preview triangle indices of the mesh */
@@ -230,6 +232,8 @@ struct StitchStateInit {
   int uv_selected_count;
   UvElementID *to_select;
 };
+
+}  // namespace
 
 /* constructor */
 static StitchPreviewer *stitch_preview_init()

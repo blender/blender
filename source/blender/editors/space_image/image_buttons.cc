@@ -698,7 +698,6 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
   }
 }
 
-/* Prevent naming collision. */
 namespace {
 
 struct RNAUpdateCb {

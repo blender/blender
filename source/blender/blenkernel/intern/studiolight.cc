@@ -274,12 +274,16 @@ static void direction_to_equirect(float r[2], const float dir[3])
   r[1] = (acosf(dir[2] / 1.0) - M_PI) / -M_PI;
 }
 
+namespace {
+
 struct MultilayerConvertContext {
   int num_diffuse_channels;
   float *diffuse_pass;
   int num_specular_channels;
   float *specular_pass;
 };
+
+}  // namespace
 
 static void *studiolight_multilayer_addview(void * /*base*/, const char * /*view_name*/)
 {

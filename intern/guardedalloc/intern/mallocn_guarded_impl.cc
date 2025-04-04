@@ -107,6 +107,8 @@ typedef struct localListBase {
   void *first, *last;
 } localListBase;
 
+namespace {
+
 /* NOTE(@hos): keep this struct aligned (e.g., IRIX/GCC). */
 typedef struct MemHead {
   int tag1;
@@ -136,6 +138,8 @@ static_assert(MEM_MIN_CPP_ALIGNMENT <= alignof(MemHead), "Bad alignment of MemHe
 static_assert(MEM_MIN_CPP_ALIGNMENT <= sizeof(MemHead), "Bad size of MemHead");
 
 typedef MemHead MemHeadAligned;
+
+}  // namespace
 
 /* #MemHead::flag. */
 enum MemHeadFlag {

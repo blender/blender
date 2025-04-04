@@ -31,7 +31,6 @@
 
 #include "eigen_capi.h"
 
-/* Prevent naming collision. */
 namespace {
 
 struct LaplacianSystem {

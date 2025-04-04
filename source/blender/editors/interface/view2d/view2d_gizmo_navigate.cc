@@ -39,6 +39,8 @@
 /* How much mini buttons offset from the primary. */
 #define GIZMO_MINI_OFFSET_FAC 0.38f
 
+namespace {
+
 enum {
   GZ_INDEX_MOVE = 0,
   GZ_INDEX_ZOOM = 1,
@@ -51,6 +53,16 @@ struct NavigateGizmoInfo {
   const char *gizmo;
   uint icon;
 };
+
+struct NavigateWidgetGroup {
+  wmGizmo *gz_array[GZ_INDEX_TOTAL];
+  /* Store the view state to check for changes. */
+  struct {
+    rcti rect_visible;
+  } state;
+};
+
+}  // namespace
 
 static NavigateGizmoInfo g_navigate_params_for_space_image[GZ_INDEX_TOTAL] = {
     {
@@ -103,14 +115,6 @@ static NavigateGizmoInfo *navigate_params_from_space_type(short space_type)
       return g_navigate_params_for_view2d;
   }
 }
-
-struct NavigateWidgetGroup {
-  wmGizmo *gz_array[GZ_INDEX_TOTAL];
-  /* Store the view state to check for changes. */
-  struct {
-    rcti rect_visible;
-  } state;
-};
 
 static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {

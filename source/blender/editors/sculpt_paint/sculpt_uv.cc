@@ -46,6 +46,8 @@
 
 #include "UI_view2d.hh"
 
+namespace {
+
 enum eBrushUVSculptTool {
   UV_SCULPT_BRUSH_TYPE_GRAB = 0,
   UV_SCULPT_BRUSH_TYPE_RELAX = 1,
@@ -144,6 +146,8 @@ struct UvSculptData {
   /** Base for constrain_to_bounds. */
   float uv_base_offset[2];
 };
+
+}  // namespace
 
 static void apply_sculpt_data_constraints(UvSculptData *sculptdata, float uv[2])
 {

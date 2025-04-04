@@ -992,6 +992,8 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   return -1;
 }
 
+namespace {
+
 struct RectTransformInteraction {
   float orig_mouse[2];
   float orig_matrix_offset[4][4];
@@ -999,6 +1001,8 @@ struct RectTransformInteraction {
   Dial *dial;
   bool use_temp_uniform;
 };
+
+}  // namespace
 
 static int gizmo_cage2d_transform_flag_get(const wmGizmo *gz)
 {

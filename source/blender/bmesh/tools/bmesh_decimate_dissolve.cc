@@ -25,7 +25,16 @@
 
 #define COST_INVALID FLT_MAX
 
-struct DelimitData;
+namespace {
+
+struct DelimitData {
+  int cd_loop_type;
+  int cd_loop_size;
+  int cd_loop_offset;
+  int cd_loop_offset_end;
+};
+
+}  // namespace
 
 static bool bm_edge_is_delimiter(const BMEdge *e,
                                  const BMO_Delimit delimit,
@@ -63,13 +72,6 @@ static float bm_vert_edge_face_angle(BMVert *v,
 #undef UNIT_TO_ANGLE
 #undef ANGLE_TO_UNIT
 }
-
-struct DelimitData {
-  int cd_loop_type;
-  int cd_loop_size;
-  int cd_loop_offset;
-  int cd_loop_offset_end;
-};
 
 static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e, const DelimitData *delimit_data)
 {
