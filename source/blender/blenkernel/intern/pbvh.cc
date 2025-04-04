@@ -817,11 +817,11 @@ static const SharedCache<Vector<float3>> &vert_normals_cache_eval(const Object &
   if (object_orig.mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
     if (const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(&object_eval)) {
       if (mesh_topology_count_matches(*mesh_eval, mesh_orig)) {
-        return mesh_eval->runtime->vert_normals_cache;
+        return mesh_eval->runtime->vert_normals_true_cache;
       }
     }
     if (const Mesh *mesh_eval = BKE_object_get_mesh_deform_eval(&object_eval)) {
-      return mesh_eval->runtime->vert_normals_cache;
+      return mesh_eval->runtime->vert_normals_true_cache;
     }
   }
 
@@ -830,7 +830,7 @@ static const SharedCache<Vector<float3>> &vert_normals_cache_eval(const Object &
     return ss.vert_normals_deform;
   }
 
-  return mesh_orig.runtime->vert_normals_cache;
+  return mesh_orig.runtime->vert_normals_true_cache;
 }
 static SharedCache<Vector<float3>> &vert_normals_cache_eval_for_write(Object &object_orig,
                                                                       Object &object_eval)
@@ -848,11 +848,11 @@ static const SharedCache<Vector<float3>> &face_normals_cache_eval(const Object &
   if (object_orig.mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
     if (const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(&object_eval)) {
       if (mesh_topology_count_matches(*mesh_eval, mesh_orig)) {
-        return mesh_eval->runtime->face_normals_cache;
+        return mesh_eval->runtime->face_normals_true_cache;
       }
     }
     if (const Mesh *mesh_eval = BKE_object_get_mesh_deform_eval(&object_eval)) {
-      return mesh_eval->runtime->face_normals_cache;
+      return mesh_eval->runtime->face_normals_true_cache;
     }
   }
 
@@ -861,7 +861,7 @@ static const SharedCache<Vector<float3>> &face_normals_cache_eval(const Object &
     return ss.face_normals_deform;
   }
 
-  return mesh_orig.runtime->face_normals_cache;
+  return mesh_orig.runtime->face_normals_true_cache;
 }
 static SharedCache<Vector<float3>> &face_normals_cache_eval_for_write(Object &object_orig,
                                                                       Object &object_eval)

@@ -718,7 +718,8 @@ GVArray NormalFieldInput::get_varray_for_context(const GeometryFieldContext &con
                                                  const IndexMask &mask) const
 {
   if (const Mesh *mesh = context.mesh()) {
-    return mesh_normals_varray(*mesh, mask, context.domain(), legacy_corner_normals_);
+    return mesh_normals_varray(
+        *mesh, mask, context.domain(), legacy_corner_normals_, true_normals_);
   }
   if (const CurvesGeometry *curves = context.curves_or_strokes()) {
     return curve_normals_varray(*curves, context.domain());
@@ -728,17 +729,21 @@ GVArray NormalFieldInput::get_varray_for_context(const GeometryFieldContext &con
 
 std::string NormalFieldInput::socket_inspection_name() const
 {
-  return TIP_("Normal");
+  return true_normals_ ? TIP_("True Normal") : TIP_("Normal");
 }
 
 uint64_t NormalFieldInput::hash() const
 {
-  return 213980475983;
+  return get_default_hash(2980541, legacy_corner_normals_, true_normals_);
 }
 
 bool NormalFieldInput::is_equal_to(const fn::FieldNode &other) const
 {
-  return dynamic_cast<const NormalFieldInput *>(&other) != nullptr;
+  if (const NormalFieldInput *other_typed = dynamic_cast<const NormalFieldInput *>(&other)) {
+    return legacy_corner_normals_ == other_typed->legacy_corner_normals_ &&
+           true_normals_ == other_typed->true_normals_;
+  }
+  return false;
 }
 
 static std::optional<StringRefNull> try_get_field_direct_attribute_id(const fn::GField &any_field)

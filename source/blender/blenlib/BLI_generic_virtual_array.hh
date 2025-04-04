@@ -268,6 +268,7 @@ class GVArraySpan : public GSpan {
  public:
   GVArraySpan();
   GVArraySpan(GVArray varray);
+  template<typename T> GVArraySpan(VArray<T> varray) : GVArraySpan(GVArray(varray)) {}
   GVArraySpan(GVArraySpan &&other);
   ~GVArraySpan();
   GVArraySpan &operator=(GVArraySpan &&other);

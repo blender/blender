@@ -48,13 +48,53 @@ namespace blender::bke {
 
 void mesh_vert_normals_assign(Mesh &mesh, Span<float3> vert_normals)
 {
-  mesh.runtime->vert_normals_cache.ensure([&](Vector<float3> &r_data) { r_data = vert_normals; });
+  mesh.runtime->vert_normals_true_cache.ensure(
+      [&](Vector<float3> &r_data) { r_data = vert_normals; });
 }
 
 void mesh_vert_normals_assign(Mesh &mesh, Vector<float3> vert_normals)
 {
-  mesh.runtime->vert_normals_cache.ensure(
+  mesh.runtime->vert_normals_true_cache.ensure(
       [&](Vector<float3> &r_data) { r_data = std::move(vert_normals); });
+}
+
+MutableSpan<float3> NormalsCache::ensure_vector_size(const int size)
+{
+  if (auto *vector = std::get_if<Vector<float3>>(&data_)) {
+    vector->resize(size);
+  }
+  else {
+    data_ = Vector<float3>(size);
+  }
+  return std::get<Vector<float3>>(data_).as_mutable_span();
+}
+
+Span<float3> NormalsCache::get_span() const
+{
+  if (const auto *vector = std::get_if<Vector<float3>>(&data_)) {
+    return vector->as_span();
+  }
+  return std::get<Span<float3>>(data_);
+}
+
+void NormalsCache::store_varray(const VArray<float3> &data)
+{
+  if (data.is_span()) {
+    data_ = data.get_internal_span();
+  }
+  else {
+    data.materialize(this->ensure_vector_size(data.size()));
+  }
+}
+
+void NormalsCache::store_span(const Span<float3> data)
+{
+  data_ = data;
+}
+
+void NormalsCache::store_vector(Vector<float3> &&data)
+{
+  data_ = std::move(data);
 }
 
 }  // namespace blender::bke
@@ -187,6 +227,70 @@ void normals_calc_verts(const Span<float3> vert_positions,
 
 /** \} */
 
+static void mix_normals_corner_to_vert(const Span<float3> vert_positions,
+                                       const OffsetIndices<int> faces,
+                                       const Span<int> corner_verts,
+                                       const GroupedSpan<int> vert_to_face_map,
+                                       const Span<float3> corner_normals,
+                                       MutableSpan<float3> vert_normals)
+{
+  const Span<float3> positions = vert_positions;
+  threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
+    for (const int vert : range) {
+      const Span<int> vert_faces = vert_to_face_map[vert];
+      if (vert_faces.is_empty()) {
+        vert_normals[vert] = math::normalize(positions[vert]);
+        continue;
+      }
+
+      float3 vert_normal(0);
+      for (const int face : vert_faces) {
+        const int corner = mesh::face_find_corner_from_vert(faces[face], corner_verts, vert);
+        const int2 adjacent_verts{corner_verts[mesh::face_corner_prev(faces[face], corner)],
+                                  corner_verts[mesh::face_corner_next(faces[face], corner)]};
+
+        const float3 dir_prev = math::normalize(positions[adjacent_verts[0]] - positions[vert]);
+        const float3 dir_next = math::normalize(positions[adjacent_verts[1]] - positions[vert]);
+        const float factor = math::safe_acos_approx(math::dot(dir_prev, dir_next));
+
+        vert_normal += corner_normals[corner] * factor;
+      }
+
+      vert_normals[vert] = math::normalize(vert_normal);
+    }
+  });
+}
+
+static void mix_normals_vert_to_face(const OffsetIndices<int> faces,
+                                     const Span<int> corner_verts,
+                                     const Span<float3> vert_normals,
+                                     MutableSpan<float3> face_normals)
+{
+  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int face : range) {
+      float3 sum(0);
+      for (const int vert : corner_verts.slice(faces[face])) {
+        sum += vert_normals[vert];
+      }
+      face_normals[face] = math::normalize(sum);
+    }
+  });
+}
+
+static void mix_normals_corner_to_face(const OffsetIndices<int> faces,
+                                       const Span<float3> corner_normals,
+                                       MutableSpan<float3> face_normals)
+{
+  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int face : range) {
+      const Span<float3> face_corner_normals = corner_normals.slice(faces[face]);
+      const float3 sum = std::accumulate(
+          face_corner_normals.begin(), face_corner_normals.end(), float3(0));
+      face_normals[face] = math::normalize(sum);
+    }
+  });
+}
+
 }  // namespace blender::bke::mesh
 
 /* -------------------------------------------------------------------- */
@@ -197,19 +301,16 @@ blender::bke::MeshNormalDomain Mesh::normals_domain(const bool support_sharp_fac
 {
   using namespace blender;
   using namespace blender::bke;
-  if (this->faces_num == 0) {
-    return MeshNormalDomain::Point;
-  }
-
   const bke::AttributeAccessor attributes = this->attributes();
   if (const std::optional<AttributeMetaData> custom = attributes.lookup_meta_data("custom_normal"))
   {
     switch (custom->domain) {
       case AttrDomain::Point:
+        return MeshNormalDomain::Point;
       case AttrDomain::Edge:
-      case AttrDomain::Face:
-        /* Not supported yet. */
         break;
+      case AttrDomain::Face:
+        return MeshNormalDomain::Face;
       case AttrDomain::Corner:
         return MeshNormalDomain::Corner;
       default:
@@ -245,78 +346,157 @@ blender::Span<blender::float3> Mesh::vert_normals() const
 {
   using namespace blender;
   using namespace blender::bke;
-  if (this->runtime->vert_normals_cache.is_cached()) {
-    return this->runtime->vert_normals_cache.data();
-  }
-  const Span<float3> positions = this->vert_positions();
-  const OffsetIndices faces = this->faces();
-  const Span<int> corner_verts = this->corner_verts();
-  const Span<float3> face_normals = this->face_normals();
-  const GroupedSpan<int> vert_to_face = this->vert_to_face_map();
-  this->runtime->vert_normals_cache.ensure([&](Vector<float3> &r_data) {
-    r_data.reinitialize(positions.size());
-    mesh::normals_calc_verts(positions, faces, corner_verts, vert_to_face, face_normals, r_data);
+  this->runtime->vert_normals_cache.ensure([&](NormalsCache &r_data) {
+    if (const GAttributeReader custom = this->attributes().lookup("custom_normal")) {
+      if (custom.varray.type().is<float3>()) {
+        if (custom.domain == AttrDomain::Point) {
+          r_data.store_varray(custom.varray.typed<float3>());
+          return;
+        }
+        if (custom.domain == AttrDomain::Face) {
+          mesh::normals_calc_verts(this->vert_positions(),
+                                   this->faces(),
+                                   this->corner_verts(),
+                                   this->vert_to_face_map(),
+                                   VArraySpan<float3>(custom.varray.typed<float3>()),
+                                   r_data.ensure_vector_size(this->verts_num));
+
+          return;
+        }
+        if (custom.domain == AttrDomain::Corner) {
+          mesh::mix_normals_corner_to_vert(this->vert_positions(),
+                                           this->faces(),
+                                           this->corner_verts(),
+                                           this->vert_to_face_map(),
+                                           VArraySpan<float3>(custom.varray.typed<float3>()),
+                                           r_data.ensure_vector_size(this->verts_num));
+          return;
+        }
+      }
+      else if (custom.varray.type().is<short2>() && custom.domain == AttrDomain::Corner) {
+        mesh::mix_normals_corner_to_vert(this->vert_positions(),
+                                         this->faces(),
+                                         this->corner_verts(),
+                                         this->vert_to_face_map(),
+                                         this->corner_normals(),
+                                         r_data.ensure_vector_size(this->verts_num));
+        return;
+      }
+    }
+    r_data.store_span(this->vert_normals_true());
   });
-  return this->runtime->vert_normals_cache.data();
+  return this->runtime->vert_normals_cache.data().get_span();
+}
+
+blender::Span<blender::float3> Mesh::vert_normals_true() const
+{
+  using namespace blender;
+  using namespace blender::bke;
+  this->runtime->vert_normals_true_cache.ensure([&](Vector<float3> &r_data) {
+    r_data.reinitialize(this->verts_num);
+    mesh::normals_calc_verts(this->vert_positions(),
+                             this->faces(),
+                             this->corner_verts(),
+                             this->vert_to_face_map(),
+                             this->face_normals(),
+                             r_data);
+  });
+  return this->runtime->vert_normals_true_cache.data();
 }
 
 blender::Span<blender::float3> Mesh::face_normals() const
 {
   using namespace blender;
-  this->runtime->face_normals_cache.ensure([&](Vector<float3> &r_data) {
-    const Span<float3> positions = this->vert_positions();
-    const OffsetIndices faces = this->faces();
-    const Span<int> corner_verts = this->corner_verts();
-    r_data.reinitialize(faces.size());
-    bke::mesh::normals_calc_faces(positions, faces, corner_verts, r_data);
+  using namespace blender::bke;
+  this->runtime->face_normals_cache.ensure([&](NormalsCache &r_data) {
+    if (const GAttributeReader custom = this->attributes().lookup("custom_normal")) {
+      if (custom.varray.type().is<float3>()) {
+        if (custom.domain == AttrDomain::Face) {
+          r_data.store_varray(custom.varray.typed<float3>());
+          return;
+        }
+        if (custom.domain == AttrDomain::Point) {
+          mesh::mix_normals_vert_to_face(this->faces(),
+                                         this->corner_verts(),
+                                         VArraySpan<float3>(custom.varray.typed<float3>()),
+                                         r_data.ensure_vector_size(this->faces_num));
+          return;
+        }
+        if (custom.domain == AttrDomain::Corner) {
+          mesh::mix_normals_corner_to_face(this->faces(),
+                                           VArraySpan<float3>(custom.varray.typed<float3>()),
+                                           r_data.ensure_vector_size(this->faces_num));
+          return;
+        }
+      }
+      else if (custom.varray.type().is<short2>() && custom.domain == AttrDomain::Corner) {
+        mesh::mix_normals_corner_to_face(
+            this->faces(), this->corner_normals(), r_data.ensure_vector_size(this->faces_num));
+        return;
+      }
+    }
+    r_data.store_span(this->face_normals_true());
   });
-  return this->runtime->face_normals_cache.data();
+  return this->runtime->face_normals_cache.data().get_span();
+}
+
+blender::Span<blender::float3> Mesh::face_normals_true() const
+{
+  using namespace blender;
+  using namespace blender::bke;
+  this->runtime->face_normals_true_cache.ensure([&](Vector<float3> &r_data) {
+    r_data.reinitialize(this->faces_num);
+    mesh::normals_calc_faces(this->vert_positions(), this->faces(), this->corner_verts(), r_data);
+  });
+  return this->runtime->face_normals_true_cache.data();
 }
 
 blender::Span<blender::float3> Mesh::corner_normals() const
 {
   using namespace blender;
   using namespace blender::bke;
-  this->runtime->corner_normals_cache.ensure([&](Vector<float3> &r_data) {
-    r_data.reinitialize(this->corners_num);
+  this->runtime->corner_normals_cache.ensure([&](NormalsCache &r_data) {
     const OffsetIndices<int> faces = this->faces();
     switch (this->normals_domain()) {
       case MeshNormalDomain::Point: {
-        array_utils::gather(this->vert_normals(), this->corner_verts(), r_data.as_mutable_span());
+        MutableSpan<float3> data = r_data.ensure_vector_size(this->corners_num);
+        array_utils::gather(this->vert_normals(), this->corner_verts(), data);
         break;
       }
       case MeshNormalDomain::Face: {
+        MutableSpan<float3> data = r_data.ensure_vector_size(this->corners_num);
         const Span<float3> face_normals = this->face_normals();
-        threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
-          for (const int i : range) {
-            r_data.as_mutable_span().slice(faces[i]).fill(face_normals[i]);
-          }
-        });
+        array_utils::gather_to_groups(faces, faces.index_range(), face_normals, data);
         break;
       }
       case MeshNormalDomain::Corner: {
         const AttributeAccessor attributes = this->attributes();
+        const GAttributeReader custom = attributes.lookup("custom_normal");
+        if (custom && custom.varray.type().is<float3>()) {
+          if (custom.domain == bke::AttrDomain::Corner) {
+            r_data.store_varray(custom.varray.typed<float3>());
+          }
+          return;
+        }
+        MutableSpan<float3> data = r_data.ensure_vector_size(this->corners_num);
         const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
         const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
-        const VArraySpan custom_normals = *attributes.lookup<short2>("custom_normal",
-                                                                     AttrDomain::Corner);
         mesh::normals_calc_corners(this->vert_positions(),
                                    this->edges(),
                                    this->faces(),
                                    this->corner_verts(),
                                    this->corner_edges(),
                                    this->corner_to_face_map(),
-                                   this->face_normals(),
+                                   this->face_normals_true(),
                                    sharp_edges,
                                    sharp_faces,
-                                   custom_normals,
+                                   VArraySpan<short2>(custom.varray.typed<short2>()),
                                    nullptr,
-                                   r_data);
-        break;
+                                   data);
       }
     }
   });
-  return this->runtime->corner_normals_cache.data();
+  return this->runtime->corner_normals_cache.data().get_span();
 }
 
 void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
@@ -1548,8 +1728,8 @@ static void mesh_set_custom_normals(Mesh &mesh,
                                  mesh.faces(),
                                  mesh.corner_verts(),
                                  mesh.corner_edges(),
-                                 mesh.vert_normals(),
-                                 mesh.face_normals(),
+                                 mesh.vert_normals_true(),
+                                 mesh.face_normals_true(),
                                  sharp_faces,
                                  use_vertices,
                                  r_custom_nors,

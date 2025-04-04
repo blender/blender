@@ -75,6 +75,9 @@ struct MeshRenderData {
   Span<float3> bm_vert_normals;
   Span<float3> bm_face_normals;
   Array<float3> bm_loop_normals;
+  int bm_free_normal_offset_vert = -1;
+  int bm_free_normal_offset_face = -1;
+  int bm_free_normal_offset_corner = -1;
 
   const int *orig_index_vert;
   const int *orig_index_edge;
@@ -157,6 +160,9 @@ BLI_INLINE const float *bm_vert_co_get(const MeshRenderData &mr, const BMVert *e
 
 BLI_INLINE const float *bm_vert_no_get(const MeshRenderData &mr, const BMVert *eve)
 {
+  if (mr.bm_free_normal_offset_vert != -1) {
+    return BM_ELEM_CD_GET_FLOAT_P(eve, mr.bm_free_normal_offset_vert);
+  }
   if (!mr.bm_vert_normals.is_empty()) {
     return mr.bm_vert_normals[BM_elem_index_get(eve)];
   }
@@ -165,6 +171,9 @@ BLI_INLINE const float *bm_vert_no_get(const MeshRenderData &mr, const BMVert *e
 
 BLI_INLINE const float *bm_face_no_get(const MeshRenderData &mr, const BMFace *efa)
 {
+  if (mr.bm_free_normal_offset_face != -1) {
+    return BM_ELEM_CD_GET_FLOAT_P(efa, mr.bm_free_normal_offset_face);
+  }
   if (!mr.bm_face_normals.is_empty()) {
     return mr.bm_face_normals[BM_elem_index_get(efa)];
   }
