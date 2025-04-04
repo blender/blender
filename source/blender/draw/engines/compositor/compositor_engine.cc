@@ -43,18 +43,24 @@ class Context : public compositor::Context {
   /* A pointer to the info message of the compositor engine. This is a char array of size
    * GPU_INFO_SIZE. The message is cleared prior to updating or evaluating the compositor. */
   char *info_message_;
+  const Scene *scene_;
 
  public:
   Context(char *info_message) : compositor::Context(), info_message_(info_message) {}
 
+  void set_scene(const Scene *scene)
+  {
+    scene_ = scene;
+  }
+
   const Scene &get_scene() const override
   {
-    return *DRW_context_get()->scene;
+    return *scene_;
   }
 
   const bNodeTree &get_node_tree() const override
   {
-    return *DRW_context_get()->scene->nodetree;
+    return *scene_->nodetree;
   }
 
   bool use_gpu() const override
@@ -82,7 +88,7 @@ class Context : public compositor::Context {
 
   const RenderData &get_render_data() const override
   {
-    return DRW_context_get()->scene->r;
+    return scene_->r;
   }
 
   int2 get_render_size() const override
@@ -142,7 +148,7 @@ class Context : public compositor::Context {
   compositor::Result get_pass(const Scene *scene, int view_layer, const char *pass_name) override
   {
     if (DEG_get_original_id(const_cast<ID *>(&scene->id)) !=
-        DEG_get_original_id(&DRW_context_get()->scene->id))
+        DEG_get_original_id(const_cast<ID *>(&scene_->id)))
     {
       return compositor::Result(*this);
     }
@@ -230,6 +236,7 @@ class Instance : public DrawEngine {
 
     /* Execute Compositor render commands. */
     {
+      context_.set_scene(DRW_context_get()->scene);
       compositor::Evaluator evaluator(context_);
       evaluator.evaluate();
     }
