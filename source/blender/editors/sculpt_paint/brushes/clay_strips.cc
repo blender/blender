@@ -249,6 +249,13 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
 }  // namespace clay_strips_cc
 
+/**
+ * Basic principles of the clay strips brush:
+ * * Calculate a brush plane from an initial node mask
+ * * Use this center position and normal to create a brush-local matrix
+ * * Use this matrix and the plane to calculate and use cube distances for
+ * * the affected area
+ */
 void do_clay_strips_brush(const Depsgraph &depsgraph,
                           const Sculpt &sd,
                           Object &object,
@@ -263,18 +270,17 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   const float displace = radius * (0.18f + offset);
 
   float3 area_position;
-  float3 plane_normal;
-  calc_brush_plane(depsgraph, brush, object, node_mask, plane_normal, area_position);
-  plane_normal = tilt_apply_to_normal(plane_normal, *ss.cache, brush.tilt_strength_factor);
-  area_position += plane_normal * ss.cache->scale * displace;
+  float3 sculpt_plane_normal;
+  calc_brush_plane(depsgraph, brush, object, node_mask, sculpt_plane_normal, area_position);
 
-  float3 area_normal;
+  float3 area_normal = sculpt_plane_normal;
+  /* Ignore brush settings and recalculate the area normal. */
   if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
     area_normal = calc_area_normal(depsgraph, brush, object, node_mask).value_or(float3(0));
   }
-  else {
-    area_normal = plane_normal;
-  }
+
+  area_normal = tilt_apply_to_normal(area_normal, *ss.cache, brush.tilt_strength_factor);
+  area_position += area_normal * ss.cache->scale * displace;
 
   /* Note: This return has to happen *after* the call to calc_brush_plane for now, as
    * the method is not idempotent and sets variables inside the stroke cache. */
@@ -292,13 +298,11 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   /* Scale brush local space matrix. */
   const float4x4 scale = math::from_scale<float4x4>(float3(ss.cache->radius));
   float4x4 tmat = mat * scale;
-
   tmat.y_axis() *= brush.tip_scale_x;
-
   mat = math::invert(tmat);
 
   float4 plane;
-  plane_from_point_normal_v3(plane, area_position, plane_normal);
+  plane_from_point_normal_v3(plane, area_position, area_normal);
 
   const float strength = std::abs(ss.cache->bstrength);
 
