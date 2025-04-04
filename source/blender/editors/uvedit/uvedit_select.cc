@@ -458,21 +458,26 @@ void uvedit_edge_select_shared_vert(const Scene *scene,
   /* Vert selections. */
   BMLoop *l_iter = l;
   do {
-    if (select && BM_ELEM_CD_GET_BOOL(l_iter, offsets.select_edge)) {
-      uvedit_uv_select_shared_vert(scene, bm, l_iter, true, SI_STICKY_LOC, do_history, offsets);
-      uvedit_uv_select_shared_vert(
-          scene, bm, l_iter->next, true, SI_STICKY_LOC, do_history, offsets);
+    if (select) {
+      if (BM_ELEM_CD_GET_BOOL(l_iter, offsets.select_edge)) {
+        uvedit_uv_select_shared_vert(scene, bm, l_iter, true, SI_STICKY_LOC, do_history, offsets);
+        uvedit_uv_select_shared_vert(
+            scene, bm, l_iter->next, true, SI_STICKY_LOC, do_history, offsets);
+      }
+    }
+    else {
+      if (!BM_ELEM_CD_GET_BOOL(l_iter, offsets.select_edge)) {
+        if (!uvedit_vert_is_edge_select_any_other(scene, l, offsets)) {
+          uvedit_uv_select_shared_vert(
+              scene, bm, l_iter, false, SI_STICKY_LOC, do_history, offsets);
+        }
+        if (!uvedit_vert_is_edge_select_any_other(scene, l->next, offsets)) {
+          uvedit_uv_select_shared_vert(
+              scene, bm, l_iter->next, false, SI_STICKY_LOC, do_history, offsets);
+        }
+      }
     }
 
-    else if (!select && !BM_ELEM_CD_GET_BOOL(l_iter, offsets.select_edge)) {
-      if (!uvedit_vert_is_edge_select_any_other(scene, l, offsets)) {
-        uvedit_uv_select_shared_vert(scene, bm, l_iter, false, SI_STICKY_LOC, do_history, offsets);
-      }
-      if (!uvedit_vert_is_edge_select_any_other(scene, l->next, offsets)) {
-        uvedit_uv_select_shared_vert(
-            scene, bm, l_iter->next, false, SI_STICKY_LOC, do_history, offsets);
-      }
-    }
   } while (((l_iter = l_iter->radial_next) != l) && (sticky_flag != SI_STICKY_LOC));
 }
 
