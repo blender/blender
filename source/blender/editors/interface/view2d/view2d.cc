@@ -1097,7 +1097,7 @@ void UI_view2d_view_ortho(const View2D *v2d)
    * correspondence with pixels for smooth UI drawing,
    * but only applied where requested.
    */
-  /* XXX brecht: instead of zero at least use a tiny offset, otherwise
+  /* XXX(@brecht): instead of zero at least use a tiny offset, otherwise
    * pixel rounding is effectively random due to float inaccuracy */
   if (sizex > 0) {
     xofs = eps * BLI_rctf_size_x(&v2d->cur) / sizex;

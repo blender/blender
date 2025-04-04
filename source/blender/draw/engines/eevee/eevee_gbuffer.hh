@@ -141,12 +141,12 @@ struct GBuffer {
   /* References to optional GBuffer layers that are not always required or written to.
    * These will point to either the dummy textures bellow or to a layer range view of the above
    * textures. In the later case, these layers are written with imageStore instead of being part
-   * of the Framebuffer. */
+   * of the #Framebuffer. */
   GPUTexture *closure_opt_layers_ = nullptr;
   GPUTexture *normal_opt_layers_ = nullptr;
   GPUTexture *header_opt_layers_ = nullptr;
 
-  /* Textures used to fullfil the GBuffer optional layers binding when textures do not have enough
+  /* Textures used to fulfill the GBuffer optional layers binding when textures do not have enough
    * layers for the optional layers image views. The shader are then expected to never write to
    * them. */
   Texture dummy_header_tx_ = {"GBufferDummyHeader"};
@@ -156,7 +156,7 @@ struct GBuffer {
  public:
   void acquire(int2 extent, int header_count, int data_count, int normal_count)
   {
-    /* Always allocate enough layers so that the framebuffer attachments are always valid. */
+    /* Always allocate enough layers so that the frame-buffer attachments are always valid. */
     header_count = max_ii(header_fb_layer_count, header_count);
     data_count = max_ii(closure_fb_layer_count, data_count);
     normal_count = max_ii(normal_fb_layer_count, normal_count);

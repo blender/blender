@@ -108,9 +108,9 @@ static void gizmo_properties_init(wmGizmoType *gzt)
 
   /* Extract target property definitions from 'bl_target_properties' */
   {
-    /* Picky developers will notice that 'bl_targets' won't work with inheritance
-     * get direct from the dict to avoid raising a load of attribute errors
-     * (yes this isn't ideal) - campbell. */
+    /* NOTE(@ideasman42): Picky developers will notice that `bl_targets`
+     * won't work with inheritance get direct from the dict to avoid
+     * raising a load of attribute errors (yes this isn't ideal). */
     PyObject *py_class_dict = py_class->tp_dict;
     PyObject *bl_target_properties = PyDict_GetItem(py_class_dict,
                                                     bpy_intern_str_bl_target_properties);
@@ -146,7 +146,7 @@ static void gizmo_properties_init(wmGizmoType *gzt)
 void BPY_RNA_gizmo_wrapper(wmGizmoType *gzt, void *userdata)
 {
   /* take care not to overwrite anything set in
-   * WM_gizmomaptype_group_link_ptr before opfunc() is called */
+   * #WM_gizmomaptype_group_link_ptr before `opfunc()` is called. */
   StructRNA *srna = gzt->srna;
   *gzt = *((wmGizmoType *)userdata);
   gzt->srna = srna; /* restore */

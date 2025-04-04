@@ -43,7 +43,7 @@ struct ClosureFunctionIndices {
      * A #GeometryNodesReferenceSet input for a subset of the outputs. This is used to tell the
      * closure which attributes it has to propagate to the outputs.
      *
-     * Main output index -> input lf socket index.
+     * Main output index -> input `lf` socket index.
      */
     Map<int, int> output_data_reference_sets;
   } inputs;

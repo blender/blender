@@ -125,7 +125,7 @@
 #define SHADOW_ROG_ID 0
 
 /* Gbuffer. */
-/** IMPORTANT: Make sure all Gbuffer framebuffer setup matches this. */
+/** IMPORTANT: Make sure all Gbuffer frame-buffer setup matches this. */
 #define GBUF_HEADER_FB_LAYER_COUNT 1
 #define GBUF_CLOSURE_FB_LAYER_COUNT 2
 #define GBUF_NORMAL_FB_LAYER_COUNT 1

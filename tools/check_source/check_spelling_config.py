@@ -48,6 +48,7 @@ dict_custom = {
     "adjugate",
     "affectable",
     "alignable",
+    "bakeable",
     "bindable",
     "branchless",
     "allocatable",

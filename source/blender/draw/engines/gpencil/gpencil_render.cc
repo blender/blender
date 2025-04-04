@@ -24,7 +24,7 @@
 
 namespace blender::draw::gpencil {
 
-/* Remap depth from viewspace to [0..1] to be able to use it with as GPU depth buffer. */
+/* Remap depth from views-pace to [0..1] to be able to use it with as GPU depth buffer. */
 static void remap_depth(const View &view, MutableSpan<float> pix_z)
 {
   if (view.is_persp()) {
@@ -274,7 +274,7 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
     /* Weight of this render SSAA sample. The sum of previous samples is weighted by `1 - weight`.
      * This diminishes after each new sample as we want all samples to be equally weighted inside
      * the final result (inside the combined buffer). This weighting scheme allows to always store
-     * the resolved result making it ready for in-progress display or readback. */
+     * the resolved result making it ready for in-progress display or read-back. */
     const float weight = 1.0f / (1.0f + i);
     inst.antialiasing_accumulate(manager, weight);
   }

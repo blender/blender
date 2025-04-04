@@ -881,7 +881,7 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
   }
 
   /* Use double buffering when using FIFO. Increasing the number of images could stall when doing
-   * actions that require low latency (paint cursor, UI resizing). MAILBOX prefers tripple
+   * actions that require low latency (paint cursor, UI resizing). MAILBOX prefers triple
    * buffering. */
   uint32_t image_count_requested = present_mode == VK_PRESENT_MODE_MAILBOX_KHR ? 3 : 2;
   /* NOTE: maxImageCount == 0 means no limit. */
