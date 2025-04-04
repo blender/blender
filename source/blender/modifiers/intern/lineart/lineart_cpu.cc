@@ -2430,9 +2430,12 @@ static bool lineart_geometry_check_visible(double model_view_proj[4][4],
   if (!use_mesh) {
     return false;
   }
-  const Bounds<float3> bounds = *use_mesh->bounds_min_max();
+  const std::optional<Bounds<float3>> bounds = use_mesh->bounds_min_max();
+  if (!bounds.has_value()) {
+    return false;
+  }
   BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
+  BKE_boundbox_init_from_minmax(&bb, bounds.value().min, bounds.value().max);
 
   double co[8][4];
   double tmp[3];
