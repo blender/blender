@@ -35,10 +35,12 @@ void DRW_submission_start()
   bool locked = BLI_ticket_mutex_lock_check_recursive(submission_mutex);
   BLI_assert(locked);
   UNUSED_VARS_NDEBUG(locked);
+  GPU_render_begin();
 }
 
 void DRW_submission_end()
 {
+  GPU_render_end();
   BLI_ticket_mutex_unlock(submission_mutex);
 }
 
