@@ -3266,51 +3266,33 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
 /**
  * helper function for #uv_select_flush_from_tag_loop and uv_select_flush_from_tag_face
  */
-static void uv_select_flush_from_tag_sticky_loc_internal(const Scene *scene,
-                                                         BMesh *bm,
-                                                         UvVertMap *vmap,
-                                                         const uint efa_index,
-                                                         BMLoop *l,
-                                                         const bool select,
-                                                         const BMUVOffsets &offsets)
+static void uv_select_flush_from_tag_sticky_loc_internal(
+    const Scene *scene, BMesh *bm, BMLoop *l, const bool select, const BMUVOffsets &offsets)
 {
-  UvMapVert *start_vlist = nullptr, *vlist_iter;
-  BMFace *efa_vlist;
-
   uvedit_uv_select_set(scene, bm, l, select, false, offsets);
 
-  vlist_iter = BM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
-
-  while (vlist_iter) {
-    if (vlist_iter->separate) {
-      start_vlist = vlist_iter;
+  BMVert *v = l->v;
+  BLI_assert(v->e);
+  const BMEdge *e_iter, *e_first;
+  e_iter = e_first = v->e;
+  do {
+    if (e_iter->l == nullptr) {
+      continue;
     }
-
-    if (efa_index == vlist_iter->face_index) {
-      break;
-    }
-
-    vlist_iter = vlist_iter->next;
-  }
-
-  vlist_iter = start_vlist;
-  while (vlist_iter) {
-    if (vlist_iter != start_vlist && vlist_iter->separate) {
-      break;
-    }
-
-    if (efa_index != vlist_iter->face_index) {
-      BMLoop *l_other;
-      efa_vlist = BM_face_at_index(bm, vlist_iter->face_index);
-      // tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); /* UNUSED */
-
-      l_other = static_cast<BMLoop *>(
-          BM_iter_at_index(bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->loop_of_face_index));
-
-      uvedit_uv_select_set(scene, bm, l_other, select, false, offsets);
-    }
-    vlist_iter = vlist_iter->next;
-  }
+    BMLoop *l_first = e_iter->l;
+    BMLoop *l_iter = l_first;
+    do {
+      if (!(l_iter->v == v && l_iter != l)) {
+        continue;
+      }
+      if (!uvedit_face_visible_test(scene, l_iter->f)) {
+        continue;
+      }
+      if (BM_loop_uv_share_vert_check(l, l_iter, offsets.uv)) {
+        uvedit_uv_select_set(scene, bm, l_iter, select, false, offsets);
+      }
+    } while ((l_iter = l_iter->radial_next) != l_first);
+  } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
 }
 
 /**
@@ -3345,43 +3327,42 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
   }
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
-  if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
-      ELEM(ts->uv_sticky, SI_STICKY_VERTEX, SI_STICKY_LOC))
-  {
+  bool use_sticky = true;
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
+    /* Use the mesh selection directly. */
+    use_sticky = false;
+  }
+  if (ts->uv_sticky == SI_STICKY_DISABLE) {
+    /* No need for sticky calculation when it's disabled. */
+    use_sticky = false;
+  }
 
-    uint efa_index;
+  if (use_sticky) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+      if (!BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+        continue;
+      }
 
-    BM_mesh_elem_table_ensure(bm, BM_FACE);
-    UvVertMap *vmap = BM_uv_vert_map_create(bm, false);
-    if (vmap == nullptr) {
-      return;
-    }
-
-    BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, efa_index) {
-      if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (select) {
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, true);
-            uv_select_flush_from_tag_sticky_loc_internal(
-                scene, bm, vmap, efa_index, l, select, offsets);
-          }
-          else {
-            BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
-            if (!uvedit_vert_is_face_select_any_other(scene, l, offsets)) {
-              uv_select_flush_from_tag_sticky_loc_internal(
-                  scene, bm, vmap, efa_index, l, select, offsets);
-            }
+      BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+        if (select) {
+          BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, true);
+          uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
+        }
+        else {
+          BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
+          if (!uvedit_vert_is_face_select_any_other(scene, l, offsets)) {
+            uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
           }
         }
       }
     }
-    BM_uv_vert_map_free(vmap);
   }
-  else { /* SI_STICKY_DISABLE or ts->uv_flag & UV_SYNC_SELECTION */
+  else {
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-        uvedit_face_select_set(scene, bm, efa, select, false, offsets);
+      if (!BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+        continue;
       }
+      uvedit_face_select_set(scene, bm, efa, select, false, offsets);
     }
   }
 }
@@ -3441,23 +3422,13 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
     }
   }
   else if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && ts->uv_sticky == SI_STICKY_LOC) {
-    uint efa_index;
-
-    BM_mesh_elem_table_ensure(bm, BM_FACE);
-    UvVertMap *vmap = BM_uv_vert_map_create(bm, false);
-    if (vmap == nullptr) {
-      return;
-    }
-
-    BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, efa_index) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
-          uv_select_flush_from_tag_sticky_loc_internal(
-              scene, bm, vmap, efa_index, l, select, offsets);
+          uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
         }
       }
     }
-    BM_uv_vert_map_free(vmap);
   }
   else { /* SI_STICKY_DISABLE or ts->uv_flag & UV_SYNC_SELECTION */
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -3495,20 +3466,23 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMesh *bm)
   }
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
-  if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 &&
-      ELEM(ts->uv_sticky, SI_STICKY_LOC, SI_STICKY_VERTEX))
-  {
+  bool use_sticky = true;
+  if (ts->uv_flag & UV_SYNC_SELECTION) {
+    /* Use the mesh selection directly. */
+    use_sticky = false;
+  }
+  if (ts->uv_sticky == SI_STICKY_DISABLE) {
+    /* No need for sticky calculation when it's disabled. */
+    use_sticky = false;
+  }
+
+  if (use_sticky) {
     /* Use UV edge selection to identify which verts must to be selected */
-    uint efa_index;
+
     /* Clear UV vert flags */
     bm_clear_uv_vert_selection(scene, bm, offsets);
 
-    BM_mesh_elem_table_ensure(bm, BM_FACE);
-    UvVertMap *vmap = BM_uv_vert_map_create(bm, false);
-    if (vmap == nullptr) {
-      return;
-    }
-    BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, efa_index) {
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       if (!uvedit_face_visible_test(scene, efa)) {
         /* This visibility check could be removed? Simply relying on edge flags to ensure
          * visibility might be sufficient. */
@@ -3517,14 +3491,11 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMesh *bm)
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         /* Select verts based on UV edge flag. */
         if (BM_ELEM_CD_GET_BOOL(l, offsets.select_edge)) {
-          uv_select_flush_from_tag_sticky_loc_internal(
-              scene, bm, vmap, efa_index, l, true, offsets);
-          uv_select_flush_from_tag_sticky_loc_internal(
-              scene, bm, vmap, efa_index, l->next, true, offsets);
+          uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, true, offsets);
+          uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l->next, true, offsets);
         }
       }
     }
-    BM_uv_vert_map_free(vmap);
   }
   else {
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
