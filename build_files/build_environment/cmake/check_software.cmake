@@ -47,7 +47,7 @@ if(UNIX)
   endif()
 
   if(_software_missing)
-    message(
+    message(WARNING
       "\n"
       "Missing software for building Blender dependencies:\n"
       "  ${_software_missing}\n"

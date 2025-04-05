@@ -1275,7 +1275,7 @@ endmacro()
 function(print_all_vars)
   get_cmake_property(_vars VARIABLES)
   foreach(_var ${_vars})
-    message("${_var}=${${_var}}")
+    message(STATUS "${_var}=${${_var}}")
   endforeach()
 endfunction()
 

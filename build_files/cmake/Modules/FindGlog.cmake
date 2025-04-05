@@ -83,7 +83,7 @@ macro(GLOG_REPORT_NOT_FOUND REASON_MSG)
   else()
     # Neither QUIETLY nor REQUIRED, use no priority which emits a message
     # but continues configuration and allows generation.
-    message("-- Failed to find glog - " ${REASON_MSG} ${ARGN})
+    message(STATUS "Failed to find glog - " ${REASON_MSG} ${ARGN})
   endif()
   return()
 endmacro()

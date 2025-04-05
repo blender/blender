@@ -21,7 +21,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(DEFINED MSVC_REDIST_DIR)
     file(TO_CMAKE_PATH ${MSVC_REDIST_DIR} MSVC_REDIST_DIR)
   else()
-    message(
+    message(WARNING
       "Unable to detect the Visual Studio redist directory, "
       "copying of the runtime dlls will not work, "
       "try running from the visual studio developer prompt."

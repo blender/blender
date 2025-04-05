@@ -1025,7 +1025,7 @@ mark_as_advanced(WITH_COMPILER_CODE_COVERAGE)
 
 if(WITH_COMPILER_CODE_COVERAGE)
   if(NOT CMAKE_COMPILER_IS_GNUCC)
-    message("WITH_COMPILER_CODE_COVERAGE only works with GCC currently.")
+    message(WARNING "WITH_COMPILER_CODE_COVERAGE only works with GCC currently.")
     set(WITH_COMPILER_CODE_COVERAGE OFF)
   endif()
 endif()
@@ -2825,7 +2825,7 @@ if(FIRST_RUN)
 
   info_cfg_text("")
 
-  message("${_config_msg}")
+  message(STATUS "${_config_msg}")
 endif()
 
 if(0)

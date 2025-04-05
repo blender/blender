@@ -31,9 +31,9 @@ function(download_source dep)
     message(FATAL_ERROR "${dep}_URI variable not set")
   endif()
   set(TARGET_FILE ${PACKAGE_DIR}/${TARGET_FILE})
-  message("Checking source : ${dep} (${TARGET_FILE})")
+  message(STATUS "Checking source : ${dep} (${TARGET_FILE})")
   if(NOT EXISTS ${TARGET_FILE})
-    message("Checking source : ${dep} - source not found downloading from ${TARGET_URI}")
+    message(STATUS "Checking source : ${dep} - source not found downloading from ${TARGET_URI}")
     file(
       DOWNLOAD ${TARGET_URI} ${TARGET_FILE}
       TIMEOUT 1800  # seconds
