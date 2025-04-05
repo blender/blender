@@ -404,7 +404,6 @@ function(blender_link_libraries
   endif()
 endfunction()
 
-# only MSVC uses SOURCE_GROUP
 function(blender_add_lib__impl
   name
   sources

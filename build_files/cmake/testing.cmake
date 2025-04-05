@@ -287,6 +287,7 @@ function(blender_add_test_executable_impl
 
   blender_target_include_dirs(${name}_test ${includes})
   blender_target_include_dirs_sys(${name}_test ${includes_sys})
+  blender_source_group("${name}_test" "${sources}")
 endfunction()
 
 # Add tests for a Blender library, to be called in tandem with blender_add_lib().
