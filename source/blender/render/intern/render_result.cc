@@ -210,6 +210,7 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
 
   rp->ibuf = IMB_allocImBuf(rr->rectx, rr->recty, get_num_planes_for_pass_ibuf(*rp), 0);
   rp->ibuf->channels = rp->channels;
+  copy_v2_v2_db(rp->ibuf->ppm, rr->ppm);
   IMB_assign_float_buffer(rp->ibuf, buffer_data, IB_TAKE_OWNERSHIP);
   assign_render_pass_ibuf_colorspace(*rp);
 
@@ -290,6 +291,8 @@ RenderResult *render_result_new(Render *re,
   rr = MEM_callocN<RenderResult>("new render result");
   rr->rectx = rectx;
   rr->recty = recty;
+
+  BKE_scene_ppm_get(&re->r, rr->ppm);
 
   /* tilerect is relative coordinates within render disprect. do not subtract crop yet */
   rr->tilerect.xmin = partrct->xmin - re->disprect.xmin;
@@ -715,6 +718,8 @@ RenderResult *render_result_new_from_exr(
   rr->rectx = rectx;
   rr->recty = recty;
 
+  IMB_exr_get_ppm(exrhandle, rr->ppm);
+
   IMB_exr_multilayer_convert(exrhandle, rr, ml_addview_cb, ml_addlayer_cb, ml_addpass_cb);
 
   LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
@@ -726,6 +731,8 @@ RenderResult *render_result_new_from_exr(
     LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
       rpass->rectx = rectx;
       rpass->recty = recty;
+
+      copy_v2_v2_db(rpass->ibuf->ppm, rr->ppm);
 
       if (RE_RenderPassIsColor(rpass)) {
         IMB_colormanagement_transform_float(rpass->ibuf->float_buffer.data,
@@ -1104,6 +1111,8 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   /* float factor for random dither, imbuf takes care of it */
   ibuf->dither = dither;
 
+  copy_v2_v2_db(ibuf->ppm, rr->ppm);
+
   /* prepare to gamma correct to sRGB color space
    * note that sequence editor can generate 8bpc render buffers
    */
@@ -1343,6 +1352,9 @@ RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
   new_rr->ibuf = IMB_dupImBuf(rr->ibuf);
 
   new_rr->stamp_data = BKE_stamp_data_copy(new_rr->stamp_data);
+
+  copy_v2_v2_db(new_rr->ppm, rr->ppm);
+
   return new_rr;
 }
 

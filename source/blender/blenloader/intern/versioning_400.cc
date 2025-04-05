@@ -6693,6 +6693,16 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     rename_mesh_uv_seam_attribute(*mesh);
   }
 
+  /* TODO: define version bump. */
+  {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->r.ppm_factor == 0.0f && scene->r.ppm_base == 0.0f) {
+        scene->r.ppm_factor = 72.0f;
+        scene->r.ppm_base = 0.0254f;
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

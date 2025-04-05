@@ -32,6 +32,13 @@ class RENDER_MT_framerate_presets(Menu):
     draw = Menu.draw_preset
 
 
+class RENDER_MT_pixeldensity_presets(Menu):
+    bl_label = "Pixel Density Presets"
+    preset_subdir = "pixel_density"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
+
+
 class RenderOutputButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -375,6 +382,83 @@ class RENDER_PT_output_color_management(RenderOutputButtonsPanel, Panel):
             col.template_colormanaged_view_settings(owner, "view_settings")
 
 
+class RENDER_PT_output_pixel_density(RenderOutputButtonsPanel, Panel):
+    bl_label = "Pixel Density"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "RENDER_PT_output"
+
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+    }
+
+    _pixel_density_args_prev = None
+    _preset_class = None
+
+    @staticmethod
+    def _draw_pixeldensity_label(*args):
+        # Avoids re-creating text string each draw.
+        if RENDER_PT_output_pixel_density._pixel_density_args_prev == args:
+            return RENDER_PT_output_pixel_density._pixel_density_ret
+
+        ppm_base, preset_label = args
+
+        # NOTE: `as_float_32` is needed because Blender stores this value as a 32bit float.
+        # Which won't match Python's 64bit float.
+        def as_float_32(f):
+            from struct import pack, unpack
+            return unpack("f", pack("f", f))[0]
+
+        # NOTE: Values here are duplicated from presets, ideally this could be avoided.
+        unit_name = {
+            as_float_32(0.0254): iface_("Inch"),
+            as_float_32(0.01): iface_("Centimeter"),
+            as_float_32(1.0): iface_("Meter"),
+        }.get(ppm_base)
+
+        if unit_name is None:
+            pixeldensity_label_text = iface_("Custom")
+            show_pixeldensity = True
+        else:
+            pixeldensity_label_text = iface_("Pixels/{:s}").format(unit_name)
+            show_pixeldensity = (preset_label == "Custom")
+
+        RENDER_PT_output_pixel_density._pixel_density_args_prev = args
+        RENDER_PT_output_pixel_density._pixel_density_ret = args = (pixeldensity_label_text, show_pixeldensity)
+        return args
+
+    @staticmethod
+    def draw_pixeldensity(layout, rd):
+        if RENDER_PT_output_pixel_density._preset_class is None:
+            RENDER_PT_output_pixel_density._preset_class = bpy.types.RENDER_MT_pixeldensity_presets
+
+        args = rd.ppm_base, RENDER_PT_output_pixel_density._preset_class.bl_label
+        pixeldensity_label_text, show_pixeldensity = RENDER_PT_output_pixel_density._draw_pixeldensity_label(*args)
+
+        layout.prop(rd, "ppm_factor", text="Pixels")
+
+        row = layout.split(factor=0.4)
+        row.alignment = 'RIGHT'
+        row.label(text="Unit")
+        row.menu("RENDER_MT_pixeldensity_presets", text=pixeldensity_label_text)
+
+        if show_pixeldensity:
+            col = layout.column(align=True)
+            col.prop(rd, "ppm_base", text="Base")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        rd = scene.render
+
+        self.draw_pixeldensity(layout, rd)
+
+
 class RENDER_PT_encoding(RenderOutputButtonsPanel, Panel):
     bl_label = "Encoding"
     bl_parent_id = "RENDER_PT_output"
@@ -603,6 +687,7 @@ classes = (
     RENDER_PT_format_presets,
     RENDER_PT_ffmpeg_presets,
     RENDER_MT_framerate_presets,
+    RENDER_MT_pixeldensity_presets,
     RENDER_PT_format,
     RENDER_PT_frame_range,
     RENDER_PT_time_stretching,
@@ -610,6 +695,7 @@ classes = (
     RENDER_PT_output,
     RENDER_PT_output_views,
     RENDER_PT_output_color_management,
+    RENDER_PT_output_pixel_density,
     RENDER_PT_encoding,
     RENDER_PT_encoding_video,
     RENDER_PT_encoding_audio,

@@ -66,6 +66,8 @@
     .ysch = 1080, \
     .xasp = 1, \
     .yasp = 1, \
+    .ppm_factor = 72.0f, \
+    .ppm_base = 0.0254f, \
     .tilex = 256, \
     .tiley = 256, \
     .size = 100, \

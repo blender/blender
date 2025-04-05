@@ -961,6 +961,7 @@ bool IMB_exr_begin_write(void *handle,
                          const char *filepath,
                          int width,
                          int height,
+                         const double ppm[2],
                          int compress,
                          int quality,
                          const StampData *stamp)
@@ -991,6 +992,11 @@ bool IMB_exr_begin_write(void *handle,
 
   if (is_multiview) {
     addMultiView(header, *data->multiView);
+  }
+
+  if (ppm[0] != 0.0 && ppm[1] != 0.0) {
+    addXDensity(header, ppm[0] * 0.0254);
+    header.pixelAspectRatio() = blender::math::safe_divide(ppm[1], ppm[0]);
   }
 
   /* avoid crash/abort when we don't have permission to write here */
@@ -2036,6 +2042,23 @@ static void imb_exr_set_known_colorspace(const Header &header, ImFileColorSpace 
   }
 }
 
+static bool exr_get_ppm(MultiPartInputFile &file, double ppm[2])
+{
+  const Header &header = file.header(0);
+  if (!hasXDensity(header)) {
+    return false;
+  }
+  ppm[0] = double(xDensity(header)) / 0.0254;
+  ppm[1] = ppm[0] * double(header.pixelAspectRatio());
+  return true;
+}
+
+bool IMB_exr_get_ppm(void *handle, double ppm[2])
+{
+  ExrHandle *data = (ExrHandle *)handle;
+  return exr_get_ppm(*data->ifile, ppm);
+}
+
 ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
 {
   ImBuf *ibuf = nullptr;
@@ -2077,11 +2100,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
       ibuf->foptions.flag |= exr_is_half_float(*file) ? OPENEXR_HALF : 0;
       ibuf->foptions.flag |= openexr_header_get_compression(file_header);
 
-      if (hasXDensity(file_header)) {
-        /* Convert inches to meters. */
-        ibuf->ppm[0] = double(xDensity(file_header)) / 0.0254;
-        ibuf->ppm[1] = ibuf->ppm[0] * double(file_header.pixelAspectRatio());
-      }
+      exr_get_ppm(*file, ibuf->ppm);
 
       imb_exr_set_known_colorspace(file_header, r_colorspace);
 

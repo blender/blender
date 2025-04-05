@@ -377,11 +377,35 @@ static bool image_save_single(ReportList *reports,
     BKE_imbuf_stamp_info(rr, ibuf);
   }
 
+  /* Don't write permanently into the render-result. */
+  double rr_ppm_prev[2] = {0, 0};
+
+  if (save_as_render && rr) {
+    /* These could be used in the case of a null `rr`, currently they're not though.
+     * Note that setting zero when there is no `rr` is intentional,
+     * this signifies no valid PPM is set. */
+    double ppm[2] = {0, 0};
+    if (opts->scene) {
+      BKE_scene_ppm_get(&opts->scene->r, ppm);
+    }
+    copy_v2_v2_db(rr_ppm_prev, rr->ppm);
+    copy_v2_v2_db(rr->ppm, ppm);
+  }
+
+  /* From now on, calls to #BKE_image_release_renderresult must restore the PPM beforehand. */
+  auto render_result_restore_ppm = [rr, save_as_render, rr_ppm_prev]() {
+    if (save_as_render && rr) {
+      copy_v2_v2_db(rr->ppm, rr_ppm_prev);
+    }
+  };
+
   /* fancy multiview OpenEXR */
   if (imf->views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
     /* save render result */
     ok = BKE_image_render_write_exr(
         reports, rr, opts->filepath, imf, save_as_render, nullptr, layer);
+
+    render_result_restore_ppm();
     BKE_image_release_renderresult(opts->scene, ima, rr);
     image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
     BKE_image_release_ibuf(ima, ibuf, lock);
@@ -397,6 +421,8 @@ static bool image_save_single(ReportList *reports,
       ok = BKE_imbuf_write_as(colormanaged_ibuf, opts->filepath, imf, save_copy);
       imbuf_save_post(ibuf, colormanaged_ibuf);
     }
+
+    render_result_restore_ppm();
     BKE_image_release_renderresult(opts->scene, ima, rr);
     image_save_post(reports,
                     ima,
@@ -465,6 +491,7 @@ static bool image_save_single(ReportList *reports,
       ok &= ok_view;
     }
 
+    render_result_restore_ppm();
     BKE_image_release_renderresult(opts->scene, ima, rr);
 
     if (is_exr_rr) {
@@ -476,6 +503,8 @@ static bool image_save_single(ReportList *reports,
     if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
       ok = BKE_image_render_write_exr(
           reports, rr, opts->filepath, imf, save_as_render, nullptr, layer);
+
+      render_result_restore_ppm();
       BKE_image_release_renderresult(opts->scene, ima, rr);
       image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
       BKE_image_release_ibuf(ima, ibuf, lock);
@@ -552,10 +581,12 @@ static bool image_save_single(ReportList *reports,
         IMB_freeImBuf(ibuf_stereo[i]);
       }
 
+      render_result_restore_ppm();
       BKE_image_release_renderresult(opts->scene, ima, rr);
     }
   }
   else {
+    render_result_restore_ppm();
     BKE_image_release_renderresult(opts->scene, ima, rr);
     BKE_image_release_ibuf(ima, ibuf, lock);
   }
@@ -967,7 +998,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
   const int compress = (imf ? imf->exr_codec : 0);
   const int quality = (imf ? imf->quality : 90);
   bool success = IMB_exr_begin_write(
-      exrhandle, filepath, rr->rectx, rr->recty, compress, quality, rr->stamp_data);
+      exrhandle, filepath, rr->rectx, rr->recty, rr->ppm, compress, quality, rr->stamp_data);
   if (success) {
     IMB_exr_write_channels(exrhandle);
   }
