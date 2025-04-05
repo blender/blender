@@ -806,7 +806,7 @@ typedef struct {
     struct {
       /**
        * Handle of the exported GPU memory. Depending on the data_transfer_mode the actual handle
-       * type can be different (voidptr/int/..).
+       * type can be different (void-pointer/int/..).
        */
       uint64_t image_handle;
 

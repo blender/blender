@@ -38,9 +38,9 @@ if(WIN32)
   add_library(BlendThumb SHARED ${SRC} ${SRC_WIN32})
 
   target_link_libraries(BlendThumb bf_blenlib dbghelp.lib Version.lib Comctl32.lib)
-  # Blenlib drags in a whole bunch of dependencies on shared libs, none of which are used by
-  # blenthumb, but will cause load issues since the debug linker will not eleminate them.
-  # Link with /OPT:ref to force elmination of those unused dependencies this is already
+  # `blenlib` drags in a whole bunch of dependencies on shared libraries, none of which are used
+  # by `blenthumb`, but will cause load issues since the debug linker will not eliminate them.
+  # Link with /OPT:ref to force elimination of those unused dependencies this is already
   # enabled by default on the release mode flags.
   set_target_properties(BlendThumb PROPERTIES LINK_FLAGS "/OPT:ref")
   set_target_properties(BlendThumb PROPERTIES LINK_FLAGS_DEBUG "/NODEFAULTLIB:msvcrt")
