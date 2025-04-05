@@ -98,6 +98,7 @@ static bool is_AMD_between_20_11_and_22(const char *version)
 
   char *after_third = nullptr;
   long third = std::strtol(after_second, &after_third, 10);
+  UNUSED_VARS(third);
   if (after_third == after_second) {
     return false;
   }
