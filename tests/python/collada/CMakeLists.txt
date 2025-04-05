@@ -23,12 +23,29 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
 # all calls to blender use this
 if(APPLE)
   if(${CMAKE_GENERATOR} MATCHES "Xcode")
-    set(TEST_BLENDER_EXE_PARAMS --background --factory-startup --debug-memory --debug-exit-on-error)
+    set(TEST_BLENDER_EXE_PARAMS
+      --background
+      --factory-startup
+      --debug-memory
+      --debug-exit-on-error
+    )
   else()
-    set(TEST_BLENDER_EXE_PARAMS --background --factory-startup --debug-memory --debug-exit-on-error --env-system-scripts ${CMAKE_SOURCE_DIR}/scripts)
+    set(TEST_BLENDER_EXE_PARAMS
+      --background
+      --factory-startup
+      --debug-memory
+      --debug-exit-on-error
+      --env-system-scripts ${CMAKE_SOURCE_DIR}/scripts
+    )
   endif()
 else()
-  set(TEST_BLENDER_EXE_PARAMS --background --factory-startup --debug-memory --debug-exit-on-error --env-system-scripts ${CMAKE_SOURCE_DIR}/scripts)
+  set(TEST_BLENDER_EXE_PARAMS
+    --background
+    --factory-startup
+    --debug-memory
+    --debug-exit-on-error
+    --env-system-scripts ${CMAKE_SOURCE_DIR}/scripts
+  )
 endif()
 
 # for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no
@@ -40,9 +57,11 @@ endif()
 macro(COLLADA_TEST module test_name blend_file)
   add_test(
     NAME bf_io_collada_${module}_${test_name}
-    COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} ${TEST_SRC_DIR}/collada/${module}/${blend_file}
-    --python ${CMAKE_CURRENT_LIST_DIR}/${module}/test_${module}_${test_name}.py --
-    --testdir ${TEST_SRC_DIR}/collada/${module}
+    COMMAND "$<TARGET_FILE:blender>"
+      ${TEST_BLENDER_EXE_PARAMS}
+      ${TEST_SRC_DIR}/collada/${module}/${blend_file}
+      --python ${CMAKE_CURRENT_LIST_DIR}/${module}/test_${module}_${test_name}.py --
+      --testdir ${TEST_SRC_DIR}/collada/${module}
   )
 endmacro()
 

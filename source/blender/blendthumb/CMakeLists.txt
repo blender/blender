@@ -76,8 +76,9 @@ elseif(APPLE)
   # Command taken from XCode build process.
   add_custom_command(
     TARGET blender-thumbnailer POST_BUILD
-    COMMAND codesign --deep --force --sign - --entitlements "${CMAKE_SOURCE_DIR}/release/darwin/thumbnailer_entitlements.plist"
-    --timestamp=none $<TARGET_BUNDLE_DIR:blender-thumbnailer>
+    COMMAND codesign --deep --force --sign -
+      --entitlements "${CMAKE_SOURCE_DIR}/release/darwin/thumbnailer_entitlements.plist"
+      --timestamp=none $<TARGET_BUNDLE_DIR:blender-thumbnailer>
   )
 elseif(UNIX)
   # -----------------------------------------------------------------------------

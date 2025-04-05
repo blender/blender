@@ -13,7 +13,9 @@ else()
   if(NOT WINDOWS_PYTHON_DEBUG)
     set(CYCLES_INSTALL_PATH "scripts/addons_core/cycles")
   else()
-    set(CYCLES_INSTALL_PATH "$ENV{appdata}/blender foundation/blender/${BLENDER_VERSION}/scripts/addons_core/cycles")
+    set(CYCLES_INSTALL_PATH
+      "$ENV{appdata}/blender foundation/blender/${BLENDER_VERSION}/scripts/addons_core/cycles"
+    )
   endif()
 endif()
 
@@ -299,7 +301,10 @@ if(WITH_CYCLES_EMBREE)
       add_compile_definitions("$<$<CONFIG:RelWithDebInfo>:WITH_EMBREE_GPU>")
       add_compile_definitions("$<$<CONFIG:MinSizeRel>:WITH_EMBREE_GPU>")
       if(CMAKE_BUILD_TYPE MATCHES "Debug" OR GENERATOR_IS_MULTI_CONFIG)
-        message(STATUS "The use of Embree GPU is disabled for the Debug configuration as embree${EMBREE_MAJOR_VERSION}_sycl_d.lib is not found.")
+        message(STATUS
+          "The use of Embree GPU is disabled for the Debug configuration "
+          "as embree${EMBREE_MAJOR_VERSION}_sycl_d.lib is not found."
+        )
       endif()
     else()
       add_definitions(-DWITH_EMBREE_GPU)

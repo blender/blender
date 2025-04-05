@@ -56,7 +56,10 @@ file(GLOB EMBREE_INSTALLED_VCTOOLS RELATIVE ${EMBREE_VCTOOLSDIR_PATH} ${EMBREE_V
 # Check that at least one the installed tool versions
 # (there may be different subversions) is present.
 if(NOT EMBREE_INSTALLED_VCTOOLS)
-  message(FATAL_ERROR "When building for Windows ARM64 platforms, embree requires VC Tools ${EMBREE_VCTOOLS_REQUIRED_VERSION} to be installed alongside the current version.")
+  message(FATAL_ERROR
+    "When building for Windows ARM64 platforms, embree requires VC Tools "
+    "${EMBREE_VCTOOLS_REQUIRED_VERSION} to be installed alongside the current version."
+  )
 endif()
 
 # Get the last item in the list (latest, when list is sorted)

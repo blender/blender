@@ -68,7 +68,10 @@ function(download_source dep)
     if(NOT PACKAGE_USE_UPSTREAM_SOURCES OR FORCE_CHECK_HASH)
       file(${TARGET_HASH_TYPE} ${TARGET_FILE} LOCAL_HASH)
       if(NOT ${TARGET_HASH} STREQUAL ${LOCAL_HASH})
-        message(FATAL_ERROR "${TARGET_FILE} ${TARGET_HASH_TYPE} mismatch\nExpected\t: ${TARGET_HASH}\nActual\t: ${LOCAL_HASH}")
+        message(FATAL_ERROR
+          "${TARGET_FILE} ${TARGET_HASH_TYPE} mismatch\n"
+          "Expected\t: ${TARGET_HASH}\nActual\t: ${LOCAL_HASH}"
+        )
       endif()
     endif()
   endif()

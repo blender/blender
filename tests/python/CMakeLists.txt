@@ -23,7 +23,10 @@ file(MAKE_DIRECTORY ${TEST_OUT_DIR}/blendfile_io)
 
 if(WITH_SYSTEM_PYTHON_TESTS)
   if(NOT EXISTS "${TEST_SYSTEM_PYTHON_EXE}")
-    message(ERROR "'System Python' tests requested but no valid system python path, set TEST_SYSTEM_PYTHON_EXE.")
+    message(ERROR
+      "'System Python' tests requested but no valid system python path, "
+      "set TEST_SYSTEM_PYTHON_EXE."
+    )
     set(WITH_SYSTEM_PYTHON_TESTS OFF)
   endif()
 endif()
@@ -677,7 +680,8 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
           if(WITH_CYCLES_TEST_OSL AND WITH_CYCLES_OSL)
             # OSL is only supported with CPU and OptiX
             # TODO: Enable OptiX support once it's more stable
-            if(("${_cycles_device_lower}" STREQUAL "cpu") OR ("${_cycles_device_lower}" STREQUAL "optix"))
+            if(("${_cycles_device_lower}" STREQUAL "cpu") OR
+               ("${_cycles_device_lower}" STREQUAL "optix"))
               add_render_test(
                 ${_cycles_test_name}_osl
                 ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
@@ -1016,7 +1020,10 @@ foreach(geo_node_test ${geo_node_tests})
       )
     endforeach()
   else()
-    message(STATUS "Directory named ${TEST_SRC_DIR}/modeling/geometry_nodes/${geo_node_test}/ Not Found, disabling test.")
+    message(STATUS
+      "Directory named ${TEST_SRC_DIR}/modeling/geometry_nodes/${geo_node_test}/ "
+      "Not Found, disabling test."
+    )
   endif()
 endforeach()
 
@@ -1032,7 +1039,10 @@ if(EXISTS "${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/")
     )
   endforeach()
 else()
-  message(STATUS "Directory named ${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/ not found, disabling tests")
+  message(STATUS
+    "Directory named ${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/ "
+    "Not found, disabling tests."
+  )
 endif()
 
 if(WITH_GPU_RENDER_TESTS)
