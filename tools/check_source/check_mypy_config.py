@@ -85,8 +85,6 @@ PATHS_EXCLUDE = set(
         "tools/utils_ide/qtcreator/externaltools/qtc_sort_paths.py",
         "tools/utils_maintenance/blender_menu_search_coverage.py",  # Uses `bpy`.
         "tools/utils_maintenance/blender_update_themes.py",  # Uses `bpy`.
-        "tools/utils_maintenance/trailing_space_clean.py",
-        "tools/utils_maintenance/trailing_space_clean_config.py",
     )
 )
 
