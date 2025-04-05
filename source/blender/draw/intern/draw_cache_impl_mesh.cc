@@ -1313,7 +1313,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                             GPU_PRIM_TRIS,
                             list,
                             IBOType::Tris,
-                            {VBOType::Position, VBOType::CornerNormal}};
+                            {VBOType::CornerNormal, VBOType::Position}};
       if (cache.cd_used.uv != 0) {
         batch.vbos.append(VBOType::UVs);
       }
