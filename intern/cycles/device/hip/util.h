@@ -77,6 +77,14 @@ static inline bool hipIsRDNA2OrNewer(const int hipDevId)
   return (major > 10 || (major == 10 && minor >= 3));
 }
 
+static inline bool hipIsRDNA4OrNewer(const int hipDevId)
+{
+  int major;
+  hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
+
+  return (major >= 12);
+}
+
 static inline bool hipNeedPreciseMath(const std::string &arch)
 {
 #  ifdef _WIN32
