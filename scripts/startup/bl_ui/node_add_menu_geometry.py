@@ -166,6 +166,16 @@ class NODE_MT_geometry_node_GEO_GREASE_PENCIL_READ(Menu):
         node_add_menu.draw_assets_for_catalog(layout, "Grease Pencil/Read")
 
 
+class NODE_MT_geometry_node_GEO_GREASE_PENCIL_WRITE(Menu):
+    bl_idname = "NODE_MT_geometry_node_GEO_GREASE_PENCIL_WRITE"
+    bl_label = "Write"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeSetGreasePencilColor")
+        node_add_menu.draw_assets_for_catalog(layout, "Grease Pencil/Write")
+
+
 class NODE_MT_geometry_node_GEO_GREASE_PENCIL_OPERATIONS(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_GREASE_PENCIL_OPERATIONS"
     bl_label = "Operations"
@@ -184,6 +194,7 @@ class NODE_MT_geometry_node_GEO_GREASE_PENCIL(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_GREASE_PENCIL_READ")
+        layout.menu("NODE_MT_geometry_node_GEO_GREASE_PENCIL_WRITE")
         layout.separator()
         layout.menu("NODE_MT_geometry_node_GEO_GREASE_PENCIL_OPERATIONS")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
@@ -885,6 +896,7 @@ classes = (
     NODE_MT_geometry_node_curve_topology,
     NODE_MT_geometry_node_GEO_GREASE_PENCIL,
     NODE_MT_geometry_node_GEO_GREASE_PENCIL_READ,
+    NODE_MT_geometry_node_GEO_GREASE_PENCIL_WRITE,
     NODE_MT_geometry_node_GEO_GREASE_PENCIL_OPERATIONS,
     NODE_MT_geometry_node_GEO_GEOMETRY,
     NODE_MT_geometry_node_GEO_GEOMETRY_READ,
