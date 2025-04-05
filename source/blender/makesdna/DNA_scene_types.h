@@ -746,7 +746,7 @@ typedef struct RenderData {
    * (Inch CM, MM... etc).
    *
    * Once calculated the final PPM is stored in the #ImBuf & #RenderResult
-   * which are saved/loaded through #ImBuf API's or multi-layer EXR images 
+   * which are saved/loaded through #ImBuf API's or multi-layer EXR images
    * in the case of the render-result.
    *
    * Note that storing the X/Y density means it's possible know the aspect
