@@ -1666,13 +1666,14 @@ static int pyrna_py_to_prop(
         break;
       }
       case PROP_STRING: {
+        const int flag = RNA_property_flag(prop);
         const int subtype = RNA_property_subtype(prop);
         const char *param;
 
         if (value == Py_None) {
-          if ((RNA_property_flag(prop) & PROP_NEVER_NULL) == 0) {
+          if ((flag & PROP_NEVER_NULL) == 0) {
             if (data) {
-              if (RNA_property_flag(prop) & PROP_THICK_WRAP) {
+              if (flag & PROP_THICK_WRAP) {
                 *(char *)data = 0;
               }
               else {
@@ -1722,7 +1723,7 @@ static int pyrna_py_to_prop(
           }
 
           if (data) {
-            if (RNA_property_flag(prop) & PROP_THICK_WRAP) {
+            if (flag & PROP_THICK_WRAP) {
               BLI_strncpy((char *)data, param, RNA_property_string_maxlength(prop));
             }
             else {
@@ -1775,7 +1776,7 @@ static int pyrna_py_to_prop(
           /* XXX, this is suspect, but needed for function calls,
            * need to see if there's a better way. */
           if (data) {
-            if (RNA_property_flag(prop) & PROP_THICK_WRAP) {
+            if (flag & PROP_THICK_WRAP) {
               BLI_strncpy_utf8((char *)data, param, RNA_property_string_maxlength(prop));
             }
             else {
