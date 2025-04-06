@@ -1723,7 +1723,7 @@ static int pyrna_py_to_prop(
 
           if (data) {
             if (RNA_property_flag(prop) & PROP_THICK_WRAP) {
-              BLI_strncpy((char *)data, (char *)param, RNA_property_string_maxlength(prop));
+              BLI_strncpy((char *)data, param, RNA_property_string_maxlength(prop));
             }
             else {
               *((char **)data) = (char *)param;
@@ -1776,7 +1776,7 @@ static int pyrna_py_to_prop(
            * need to see if there's a better way. */
           if (data) {
             if (RNA_property_flag(prop) & PROP_THICK_WRAP) {
-              BLI_strncpy_utf8((char *)data, (char *)param, RNA_property_string_maxlength(prop));
+              BLI_strncpy_utf8((char *)data, param, RNA_property_string_maxlength(prop));
             }
             else {
               *((char **)data) = (char *)param;
