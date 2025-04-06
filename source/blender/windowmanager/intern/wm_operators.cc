@@ -3297,6 +3297,8 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
     case EVT_PADENTER:
     case EVT_RETKEY:
       /* Done; value already set. */
+      /* Keep the RNA update separate from setting the value, for some properties this could lead
+       * to a continues flickering due to invalidating the overlay texture. */
       RNA_property_update(C, &rc->ptr, rc->prop);
       ret = OPERATOR_FINISHED;
       break;
@@ -3455,6 +3457,9 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
   if (!handled && (event->val == KM_RELEASE) && (rc->init_event == event->type) &&
       RNA_boolean_get(op->ptr, "release_confirm"))
   {
+    /* Keep the RNA update separate from setting the value, for some properties this could lead to
+     * a continues flickering due to invalidating the overlay texture. */
+    RNA_property_update(C, &rc->ptr, rc->prop);
     ret = OPERATOR_FINISHED;
   }
 
