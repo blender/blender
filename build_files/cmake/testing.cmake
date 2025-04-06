@@ -139,6 +139,9 @@ function(blender_add_ctests)
   if(ARGC LESS 1)
     message(FATAL_ERROR "No arguments supplied to blender_add_ctests()")
   endif()
+  if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/data/render")
+    return()
+  endif()
 
   # Parse the arguments
   set(oneValueArgs DISCOVER_TESTS TARGET SUITE_NAME)
