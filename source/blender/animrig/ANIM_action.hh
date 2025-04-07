@@ -1045,6 +1045,13 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
   void slot_data_remove(slot_handle_t slot_handle);
 
   /**
+   * Clone the channelbag belonging to the source slot, and assign it to the target slot.
+   *
+   * This is typically only called from #duplicate_slot().
+   */
+  void slot_data_duplicate(slot_handle_t source_slot_handle, slot_handle_t target_slot_handle);
+
+  /**
    * Return the index of `channelbag` in this strip data's channelbag array, or
    * -1 if `channelbag` doesn't exist in this strip data.
    */
@@ -1961,6 +1968,15 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action);
  * users which means it will not be saved (unless it has a fake user).
  */
 void move_slot(Main &bmain, Slot &slot, Action &from_action, Action &to_action);
+
+/**
+ * Duplicate a slot, and all its animation data.
+ *
+ * Data-blocks using the slot are not updated, so the returned slot will be unused.
+ *
+ * The `action` MUST own `slot`.
+ */
+Slot &duplicate_slot(Action &action, const Slot &slot);
 
 /**
  * Deselect the keys of all actions in the Span. Duplicate entries are only visited once.

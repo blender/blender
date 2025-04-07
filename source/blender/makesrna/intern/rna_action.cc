@@ -391,6 +391,15 @@ static CollectionVector rna_ActionSlot_users(struct ActionSlot *self, Main *bmai
   return vector;
 }
 
+static ActionSlot *rna_ActionSlot_duplicate(ID *action_id, const ActionSlot *self)
+{
+  animrig::Action &action = reinterpret_cast<bAction *>(action_id)->wrap();
+  const animrig::Slot &source_slot = self->wrap();
+
+  animrig::Slot &dupli_slot = animrig::duplicate_slot(action, source_slot);
+  return &dupli_slot;
+}
+
 static std::optional<std::string> rna_ActionLayer_path(const PointerRNA *ptr)
 {
   animrig::Layer &layer = rna_data_layer(ptr);
@@ -2194,6 +2203,16 @@ static void rna_def_action_slot(BlenderRNA *brna)
   /* Return value. */
   parm = RNA_def_property(func, "users", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(parm, "ID");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "duplicate", "rna_ActionSlot_duplicate");
+  RNA_def_function_ui_description(
+      func, "Duplicate this slot, including all the animation data associated with it");
+  /* Return value. */
+  parm = RNA_def_property(func, "slot", PROP_POINTER, PROP_NONE);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_property_struct_type(parm, "ActionSlot");
+  RNA_def_property_ui_text(parm, "Duplicated Slot", "The slot created by duplicating this one");
   RNA_def_function_return(func, parm);
 }
 

@@ -1846,6 +1846,23 @@ void StripKeyframeData::slot_data_remove(const slot_handle_t slot_handle)
   this->channelbag_remove(*channelbag);
 }
 
+void StripKeyframeData::slot_data_duplicate(const slot_handle_t source_slot_handle,
+                                            const slot_handle_t target_slot_handle)
+{
+  BLI_assert(!this->channelbag_for_slot(target_slot_handle));
+
+  const Channelbag *source_cbag = this->channelbag_for_slot(source_slot_handle);
+  if (!source_cbag) {
+    return;
+  }
+
+  Channelbag &target_cbag = *MEM_new<animrig::Channelbag>(__func__, *source_cbag);
+  target_cbag.slot_handle = target_slot_handle;
+
+  grow_array_and_append<ActionChannelbag *>(
+      &this->channelbag_array, &this->channelbag_array_num, &target_cbag);
+}
+
 const FCurve *Channelbag::fcurve_find(const FCurveDescriptor &fcurve_descriptor) const
 {
   return animrig::fcurve_find(this->fcurves(), fcurve_descriptor);
@@ -3075,11 +3092,11 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
  * slot handle and runtime data. This copies the identifier which might clash with other
  * identifiers on the action. Call `slot_identifier_ensure_unique` after.
  */
-static void clone_slot(Slot &from, Slot &to)
+static void clone_slot(const Slot &from, Slot &to)
 {
   ActionSlotRuntimeHandle *runtime = to.runtime;
   slot_handle_t handle = to.handle;
-  *reinterpret_cast<ActionSlot *>(&to) = *reinterpret_cast<ActionSlot *>(&from);
+  *reinterpret_cast<ActionSlot *>(&to) = *reinterpret_cast<const ActionSlot *>(&from);
   to.runtime = runtime;
   to.handle = handle;
 }
@@ -3156,6 +3173,28 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
   }
 
   from_action.slot_remove(source_slot);
+}
+
+Slot &duplicate_slot(Action &action, const Slot &slot)
+{
+  BLI_assert(action.slots().contains(const_cast<Slot *>(&slot)));
+
+  /* Duplicate the slot itself. */
+  Slot &cloned_slot = action.slot_add();
+  clone_slot(slot, cloned_slot);
+  slot_identifier_ensure_unique(action, cloned_slot);
+
+  /* Duplicate each Channelbag for the source slot. */
+  for (int i = 0; i < action.strip_keyframe_data_array_num; i++) {
+    StripKeyframeData &strip_data = action.strip_keyframe_data_array[i]->wrap();
+    strip_data.slot_data_duplicate(slot.handle, cloned_slot.handle);
+  }
+
+  /* The ID has changed, and so it needs to be re-evaluated. Animation does not
+   * have to be flushed since nothing is using this slot yet. */
+  DEG_id_tag_update(&action.id, ID_RECALC_ANIMATION_NO_FLUSH);
+
+  return cloned_slot;
 }
 
 }  // namespace blender::animrig
