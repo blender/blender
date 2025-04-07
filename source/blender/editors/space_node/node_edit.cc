@@ -1686,9 +1686,10 @@ void NODE_OT_render_changed(wmOperatorType *ot)
 
 /**
  * Toggles the flag on all selected nodes. If the flag is set on all nodes it is unset.
- * If the flag is not set on all nodes, it is set.
+ * If the flag is not set on all nodes, it is set. If tag_update is true, the nodes will be tagged
+ * for a property change update.
  */
-static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
+static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag, const bool tag_update = false)
 {
   int tot_eq = 0, tot_neq = 0;
 
@@ -1729,6 +1730,10 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
       }
       else {
         node->flag &= ~toggle_flag;
+      }
+
+      if (tag_update) {
+        BKE_ntree_update_tag_node_property(snode->edittree, node);
       }
     }
   }
@@ -1774,7 +1779,10 @@ static wmOperatorStatus node_preview_toggle_exec(bContext *C, wmOperator * /*op*
     return OPERATOR_CANCELLED;
   }
 
-  node_flag_toggle_exec(snode, NODE_PREVIEW);
+  node_flag_toggle_exec(snode, NODE_PREVIEW, true);
+
+  WM_event_add_notifier(C, NC_NODE | NA_EDITED, &snode->edittree->id);
+  WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, &snode->edittree->id);
 
   BKE_main_ensure_invariants(*CTX_data_main(C), snode->edittree->id);
 
