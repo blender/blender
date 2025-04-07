@@ -351,18 +351,6 @@ void BKE_lnor_space_custom_normal_to_data(const MLoopNorSpace *lnor_space,
                                           short r_clnor_data[2]);
 
 /**
- * Computes average per-vertex normals from given custom loop normals.
- *
- * \param clnors: The computed custom loop normals.
- * \param r_vert_clnors: The (already allocated) array where to store averaged per-vertex normals.
- */
-void BKE_mesh_normals_loop_to_vertex(int numVerts,
-                                     const int *corner_verts,
-                                     int numLoops,
-                                     const float (*clnors)[3],
-                                     float (*r_vert_clnors)[3]);
-
-/**
  * High-level custom normals functions.
  */
 bool BKE_mesh_has_custom_loop_normals(Mesh *mesh);

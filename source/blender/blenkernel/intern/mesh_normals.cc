@@ -1775,30 +1775,6 @@ void mesh_set_custom_normals_from_verts_normalized(Mesh &mesh, MutableSpan<float
 
 }  // namespace blender::bke
 
-void BKE_mesh_normals_loop_to_vertex(const int numVerts,
-                                     const int *corner_verts,
-                                     const int numLoops,
-                                     const float (*clnors)[3],
-                                     float (*r_vert_clnors)[3])
-{
-  int *vert_loops_count = MEM_calloc_arrayN<int>(size_t(numVerts), __func__);
-
-  copy_vn_fl((float *)r_vert_clnors, 3 * numVerts, 0.0f);
-
-  int i;
-  for (i = 0; i < numLoops; i++) {
-    const int vert = corner_verts[i];
-    add_v3_v3(r_vert_clnors[vert], clnors[i]);
-    vert_loops_count[vert]++;
-  }
-
-  for (i = 0; i < numVerts; i++) {
-    mul_v3_fl(r_vert_clnors[i], 1.0f / float(vert_loops_count[i]));
-  }
-
-  MEM_freeN(vert_loops_count);
-}
-
 #undef LNOR_SPACE_TRIGO_THRESHOLD
 
 /** \} */

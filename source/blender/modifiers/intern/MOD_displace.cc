@@ -21,7 +21,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 
-#include "BKE_attribute.hh"
 #include "BKE_deform.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_query.hh"
@@ -146,7 +145,6 @@ struct DisplaceUserdata {
   blender::MutableSpan<blender::float3> positions;
   float local_mat[4][4];
   blender::Span<blender::float3> vert_normals;
-  float (*vert_clnors)[3];
 };
 
 static void displaceModifier_do_task(void *__restrict userdata,
@@ -163,7 +161,6 @@ static void displaceModifier_do_task(void *__restrict userdata,
   bool use_global_direction = data->use_global_direction;
   float(*tex_co)[3] = data->tex_co;
   blender::MutableSpan<blender::float3> positions = data->positions;
-  float(*vert_clnors)[3] = data->vert_clnors;
 
   /* When no texture is used, we fallback to white. */
   const float delta_fixed = 1.0f - dmd->midlevel;
@@ -238,10 +235,8 @@ static void displaceModifier_do_task(void *__restrict userdata,
       add_v3_v3(positions[iter], local_vec);
       break;
     case MOD_DISP_DIR_NOR:
-      madd_v3_v3fl(positions[iter], data->vert_normals[iter], delta);
-      break;
     case MOD_DISP_DIR_CLNOR:
-      madd_v3_v3fl(positions[iter], vert_clnors[iter], delta);
+      madd_v3_v3fl(positions[iter], data->vert_normals[iter], delta);
       break;
   }
 }
@@ -257,8 +252,6 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   int defgrp_index;
   float(*tex_co)[3];
   float weight = 1.0f; /* init value unused but some compilers may complain */
-  float(*vert_clnors)[3] = nullptr;
-  float local_mat[4][4] = {{0}};
   const bool use_global_direction = dmd->space == MOD_DISP_SPACE_GLOBAL;
 
   if (dmd->texture == nullptr && dmd->direction == MOD_DISP_DIR_RGB_XYZ) {
@@ -291,26 +284,6 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
     tex_co = nullptr;
   }
 
-  if (direction == MOD_DISP_DIR_CLNOR) {
-    if (mesh->attributes().contains("custom_normal")) {
-      vert_clnors = MEM_malloc_arrayN<float[3]>(size_t(positions.size()), __func__);
-      BKE_mesh_normals_loop_to_vertex(
-          positions.size(),
-          mesh->corner_verts().data(),
-          mesh->corners_num,
-          reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
-          vert_clnors);
-    }
-    else {
-      direction = MOD_DISP_DIR_NOR;
-    }
-  }
-  else if (ELEM(direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
-           use_global_direction)
-  {
-    copy_m4_m4(local_mat, ob->object_to_world().ptr());
-  }
-
   DisplaceUserdata data = {nullptr};
   data.scene = DEG_get_evaluated_scene(ctx->depsgraph);
   data.dmd = dmd;
@@ -322,11 +295,17 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.tex_target = tex_target;
   data.tex_co = tex_co;
   data.positions = positions;
-  copy_m4_m4(data.local_mat, local_mat);
   if (direction == MOD_DISP_DIR_NOR) {
-    data.vert_normals = mesh->vert_normals();
+    data.vert_normals = mesh->vert_normals_true();
   }
-  data.vert_clnors = vert_clnors;
+  else if (direction == MOD_DISP_DIR_CLNOR) {
+    data.vert_normals = mesh->corner_normals();
+  }
+  else if (ELEM(direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
+           use_global_direction)
+  {
+    copy_m4_m4(data.local_mat, ob->object_to_world().ptr());
+  }
   if (tex_target != nullptr) {
     data.pool = BKE_image_pool_new();
     BKE_texture_fetch_images_for_pool(tex_target, data.pool);
@@ -342,10 +321,6 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 
   if (tex_co) {
     MEM_freeN(tex_co);
-  }
-
-  if (vert_clnors) {
-    MEM_freeN(vert_clnors);
   }
 }
 
