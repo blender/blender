@@ -109,6 +109,11 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject * /*type*/, PyObject *args, P
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
+  PyErr_WarnEx(PyExc_DeprecationWarning,
+               "Direct shader creation is deprecated. "
+               "Use gpu.shader.create_from_info(shader_info) instead.",
+               1);
+
   struct {
     const char *vertexcode;
     const char *fragcode;
