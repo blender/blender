@@ -6806,6 +6806,12 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
     zwp_primary_selection_device_v1_destroy(seat->wp.primary_selection_device);
   }
 
+#ifdef WITH_INPUT_IME
+  if (seat->wp.text_input) {
+    zwp_text_input_v3_destroy(seat->wp.text_input);
+  }
+#endif
+
   if (seat->wl.data_device) {
     wl_data_device_release(seat->wl.data_device);
   }
