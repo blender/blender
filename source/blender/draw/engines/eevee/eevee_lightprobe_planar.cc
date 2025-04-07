@@ -15,7 +15,9 @@ using namespace blender::math;
 
 void PlanarProbe::set_view(const draw::View &view, int layer_id)
 {
-  this->viewmat = view.viewmat() * reflection_matrix_get();
+  /* Invert the up axis to avoid changing handedness (see #137022). */
+  this->viewmat = from_scale<float4x4>(float3(1, -1, 1)) * view.viewmat() *
+                  reflection_matrix_get();
   this->winmat = view.winmat();
   this->world_to_object_transposed = float3x4(transpose(world_to_plane));
   this->normal = normalize(plane_to_world.z_axis());

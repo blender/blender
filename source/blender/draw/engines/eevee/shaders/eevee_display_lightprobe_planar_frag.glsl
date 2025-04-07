@@ -9,10 +9,17 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_display_lightprobe_planar)
 #include "draw_view_lib.glsl"
 #include "eevee_lightprobe_sphere_lib.glsl"
 
+vec2 sampling_uv(vec2 screen_uv)
+{
+  /* Render is inverted in Y. */
+  screen_uv.y = 1.0 - screen_uv.y;
+  return screen_uv;
+}
+
 void main()
 {
   vec2 uv = gl_FragCoord.xy / vec2(textureSize(planar_radiance_tx, 0).xy);
-  float depth = texture(planar_depth_tx, vec3(uv, probe_index)).r;
+  float depth = texture(planar_depth_tx, vec3(sampling_uv(uv), probe_index)).r;
   if (depth == 1.0) {
     vec3 ndc = drw_screen_to_ndc(vec3(uv, 0.0));
     vec3 wP = drw_point_ndc_to_world(ndc);
@@ -23,7 +30,7 @@ void main()
     out_color = lightprobe_spheres_sample(R, 0.0, world_atlas_coord);
   }
   else {
-    out_color = texture(planar_radiance_tx, vec3(uv, probe_index));
+    out_color = texture(planar_radiance_tx, vec3(sampling_uv(uv), probe_index));
   }
   out_color.a = 0.0;
 }
