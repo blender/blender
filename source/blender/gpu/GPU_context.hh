@@ -85,3 +85,23 @@ void GPU_render_step(bool force_resource_release = false);
 /* For when we need access to a system context in order to create a GPU context. */
 void GPU_backend_ghost_system_set(void *ghost_system_handle);
 void *GPU_backend_ghost_system_get();
+
+namespace blender::gpu {
+
+/* Abstracts secondary GHOST and GPU context creation, activation and deletion.
+ * Must be created from the main thread and destructed from the thread they where activated in.
+ * (See GPUWorker for an usage example) */
+class GPUSecondaryContext {
+ private:
+  void *ghost_context_;
+  GPUContext *gpu_context_;
+
+ public:
+  GPUSecondaryContext();
+  ~GPUSecondaryContext();
+
+  /* Must be called from a secondary thread.*/
+  void activate();
+};
+
+}  // namespace blender::gpu

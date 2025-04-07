@@ -16,8 +16,12 @@
 #include "BKE_global.hh"
 
 #include "BLI_assert.h"
+#include "BLI_threads.h"
 #include "BLI_vector_set.hh"
 
+#include "DNA_userdef_types.h"
+
+#include "GHOST_C-api.h"
 #include "GHOST_Types.h"
 
 #include "GPU_context.hh"
@@ -450,6 +454,12 @@ static void gpu_backend_create()
   }
 }
 
+void gpu_backend_init_resources()
+{
+  BLI_assert(g_backend);
+  g_backend->init_resources();
+}
+
 void gpu_backend_delete_resources()
 {
   BLI_assert(g_backend);
@@ -490,6 +500,99 @@ eGPUBackendType GPU_backend_get_type()
 GPUBackend *GPUBackend::get()
 {
   return g_backend;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GPUSecondaryContext
+ * \{ */
+
+static GHOST_TDrawingContextType ghost_context_type()
+{
+  switch (GPU_backend_type_selection_get()) {
+#ifdef WITH_OPENGL_BACKEND
+    case GPU_BACKEND_OPENGL:
+      return GHOST_kDrawingContextTypeOpenGL;
+#endif
+#ifdef WITH_VULKAN_BACKEND
+    case GPU_BACKEND_VULKAN:
+      return GHOST_kDrawingContextTypeVulkan;
+#endif
+#ifdef WITH_METAL_BACKEND
+    case GPU_BACKEND_METAL:
+      return GHOST_kDrawingContextTypeMetal;
+#endif
+    default:
+      BLI_assert_unreachable();
+      return GHOST_kDrawingContextTypeNone;
+  }
+}
+
+GPUSecondaryContext::GPUSecondaryContext()
+{
+  /* Contexts can only be created on the main thread. */
+  BLI_assert(BLI_thread_is_main());
+
+  GHOST_ContextHandle main_thread_ghost_context = GHOST_GetActiveGPUContext();
+  GPUContext *main_thread_gpu_context = GPU_context_active_get();
+
+  /* GPU settings for context creation. */
+  GHOST_GPUSettings gpu_settings = {0};
+  gpu_settings.context_type = ghost_context_type();
+  if (G.debug & G_DEBUG_GPU) {
+    gpu_settings.flags |= GHOST_gpuDebugContext;
+  }
+  gpu_settings.preferred_device.index = U.gpu_preferred_index;
+  gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
+  gpu_settings.preferred_device.device_id = U.gpu_preferred_device_id;
+
+  /* Grab the system handle.  */
+  GHOST_SystemHandle ghost_system = reinterpret_cast<GHOST_SystemHandle>(
+      GPU_backend_ghost_system_get());
+  BLI_assert(ghost_system);
+
+  /* Create a Ghost GPU Context using the system handle. */
+  ghost_context_ = GHOST_CreateGPUContext(ghost_system, gpu_settings);
+  BLI_assert(ghost_context_);
+
+  /* Create a GPU context for the secondary thread to use. */
+  gpu_context_ = GPU_context_create(nullptr, ghost_context_);
+  BLI_assert(gpu_context_);
+
+  /* Release the Ghost GPU Context from this thread. */
+  GHOST_TSuccess success = GHOST_ReleaseGPUContext(
+      reinterpret_cast<GHOST_ContextHandle>(ghost_context_));
+  BLI_assert(success);
+
+  /* Restore the main thread contexts.
+   * (required as the above context creation also makes it active). */
+  GHOST_ActivateGPUContext(main_thread_ghost_context);
+  GPU_context_active_set(main_thread_gpu_context);
+}
+
+GPUSecondaryContext::~GPUSecondaryContext()
+{
+  /* Contexts should be destructed on the thread they were activated. */
+  BLI_assert(!BLI_thread_is_main());
+
+  GPU_context_discard(gpu_context_);
+
+  GHOST_ReleaseGPUContext(reinterpret_cast<GHOST_ContextHandle>(ghost_context_));
+
+  GHOST_SystemHandle ghost_system = reinterpret_cast<GHOST_SystemHandle>(
+      GPU_backend_ghost_system_get());
+  BLI_assert(ghost_system);
+  GHOST_DisposeGPUContext(ghost_system, reinterpret_cast<GHOST_ContextHandle>(ghost_context_));
+}
+
+void GPUSecondaryContext::activate()
+{
+  /* Contexts need to be activated in the thread they're going to be used. */
+  BLI_assert(!BLI_thread_is_main());
+
+  GHOST_ActivateGPUContext(reinterpret_cast<GHOST_ContextHandle>(ghost_context_));
+  GPU_context_active_set(gpu_context_);
 }
 
 /** \} */

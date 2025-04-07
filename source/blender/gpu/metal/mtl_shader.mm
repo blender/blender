@@ -1695,7 +1695,8 @@ void MTLParallelShaderCompiler::parallel_compilation_thread_func(
   GPU_context_active_set(blender_gpu_context);
 
   MTLContext *metal_context = static_cast<MTLContext *>(unwrap(blender_gpu_context));
-  MTLShaderCompiler *shader_compiler = static_cast<MTLShaderCompiler *>(metal_context->compiler);
+  MTLShaderCompiler *shader_compiler = static_cast<MTLShaderCompiler *>(
+      metal_context->get_compiler());
 
   /* This context is only for compilation, it does not need it's own instance of the compiler */
   shader_compiler->release_parallel_shader_compiler();
