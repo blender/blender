@@ -49,23 +49,13 @@
 
 static int gizmo_cage2d_transform_flag_get(const wmGizmo *gz);
 
-static void gizmo_calc_rect_view_scale(const wmGizmo *gz, const float dims[2], float scale[2])
+static void gizmo_calc_rect_view_scale(const wmGizmo *gz, float scale[2])
 {
   float matrix_final_no_offset[4][4];
-  float asp[2] = {1.0f, 1.0f};
-  if (dims[0] > dims[1]) {
-    asp[0] = dims[1] / dims[0];
-  }
-  else {
-    asp[1] = dims[0] / dims[1];
-  }
   float x_axis[3], y_axis[3];
   WM_gizmo_calc_matrix_final_no_offset(gz, matrix_final_no_offset);
   mul_v3_mat3_m4v3(x_axis, matrix_final_no_offset, gz->matrix_offset[0]);
   mul_v3_mat3_m4v3(y_axis, matrix_final_no_offset, gz->matrix_offset[1]);
-
-  mul_v2_v2(x_axis, asp);
-  mul_v2_v2(y_axis, asp);
 
   float len_x_axis = len_v3(x_axis);
   float len_y_axis = len_v3(y_axis);
@@ -75,13 +65,13 @@ static void gizmo_calc_rect_view_scale(const wmGizmo *gz, const float dims[2], f
   scale[1] = safe_divide(1.0f, len_y_axis);
 }
 
-static void gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[2], float margin[2])
+static void gizmo_calc_rect_view_margin(const wmGizmo *gz, float margin[2])
 {
   float handle_size;
   handle_size = 0.15f;
   handle_size *= gz->scale_final;
   float scale_xy[2];
-  gizmo_calc_rect_view_scale(gz, dims, scale_xy);
+  gizmo_calc_rect_view_scale(gz, scale_xy);
 
   margin[0] = (handle_size * scale_xy[0]);
   margin[1] = (handle_size * scale_xy[1]);
@@ -693,7 +683,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
   GPU_matrix_mul(matrix_final);
 
   float margin[2];
-  gizmo_calc_rect_view_margin(gz, dims, margin);
+  gizmo_calc_rect_view_margin(gz, margin);
 
   /* Handy for quick testing draw (if it's outside bounds). */
   if (false) {
@@ -892,7 +882,7 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   }
 
   float margin[2];
-  gizmo_calc_rect_view_margin(gz, dims, margin);
+  gizmo_calc_rect_view_margin(gz, margin);
 
   /* Expand for hots-pot. */
   const float size[2] = {size_real[0] + margin[0] / 2, size_real[1] + margin[1] / 2};
