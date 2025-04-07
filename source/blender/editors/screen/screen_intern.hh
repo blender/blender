@@ -70,7 +70,15 @@ enum class AreaDockTarget {
 /**
  * Expanded interaction influence of area borders.
  */
-#define BORDERPADDING ((4.0f * UI_SCALE_FAC) + U.pixelsize)
+#define BORDERPADDING (U.border_width * UI_SCALE_FAC + 3.0f * UI_SCALE_FAC)
+
+/**
+ * Number of pixels of the area border corner radius.
+ */
+#define EDITORRADIUS (6.0f * UI_SCALE_FAC)
+
+/* Less expansion needed for global edges. */
+#define BORDERPADDING_GLOBAL (3.0f * UI_SCALE_FAC)
 
 /* `area.cc` */
 
@@ -100,7 +108,7 @@ void screen_draw_dock_preview(const wmWindow *win,
                               int y);
 void screen_draw_split_preview(ScrArea *area, eScreenAxis dir_axis, float factor);
 
-void screen_draw_move_highlight(bScreen *screen, eScreenAxis dir_axis);
+void screen_draw_move_highlight(const wmWindow *win, bScreen *screen, eScreenAxis dir_axis);
 
 /* `screen_edit.cc` */
 
@@ -166,7 +174,8 @@ bool screen_geom_edge_is_horizontal(ScrEdge *se);
 ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
                                                   const rcti *bounds_rect,
                                                   int mx,
-                                                  int my);
+                                                  int my,
+                                                  int safety = BORDERPADDING);
 /**
  * Need win size to make sure not to include edges along screen edge.
  */

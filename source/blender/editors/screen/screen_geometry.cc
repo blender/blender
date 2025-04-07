@@ -71,13 +71,9 @@ bool screen_geom_edge_is_horizontal(ScrEdge *se)
   return (se->v1->vec.y == se->v2->vec.y);
 }
 
-ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
-                                                  const rcti *bounds_rect,
-                                                  const int mx,
-                                                  const int my)
+ScrEdge *screen_geom_area_map_find_active_scredge(
+    const ScrAreaMap *area_map, const rcti *bounds_rect, const int mx, const int my, int safety)
 {
-  int safety = BORDERPADDING;
-
   CLAMP_MIN(safety, 2);
 
   LISTBASE_FOREACH (ScrEdge *, se, &area_map->edgebase) {
@@ -121,13 +117,14 @@ ScrEdge *screen_geom_find_active_scredge(const wmWindow *win,
   rcti screen_rect;
   WM_window_screen_rect_calc(win, &screen_rect);
   ScrEdge *se = screen_geom_area_map_find_active_scredge(
-      AREAMAP_FROM_SCREEN(screen), &screen_rect, mx, my);
+      AREAMAP_FROM_SCREEN(screen), &screen_rect, mx, my, BORDERPADDING);
 
   if (!se) {
     /* Use entire window size (screen including global areas) for global area edges */
     rcti win_rect;
     WM_window_rect_calc(win, &win_rect);
-    se = screen_geom_area_map_find_active_scredge(&win->global_areas, &win_rect, mx, my);
+    se = screen_geom_area_map_find_active_scredge(
+        &win->global_areas, &win_rect, mx, my, int(BORDERPADDING_GLOBAL));
   }
   return se;
 }
@@ -173,13 +170,13 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
     /* test for collapsed areas. This could happen in some blender version... */
     /* ton: removed option now, it needs Context... */
 
-    int headery = ED_area_headersize() + (U.pixelsize * 2);
+    int headery = ED_area_headersize();
 
     if (facy > 1) {
       /* Keep timeline small in video edit workspace. */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area->spacetype == SPACE_ACTION && area->v1->vec.y == screen_rect->ymin &&
-            screen_geom_area_height(area) <= headery * facy + 1)
+            area->winy <= headery * facy)
         {
           ScrEdge *se = BKE_screen_find_edge(screen, area->v2, area->v3);
           if (se) {
@@ -205,7 +202,7 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
     if (facy < 1) {
       /* make each window at least ED_area_headersize() high */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        if (screen_geom_area_height(area) < headery) {
+        if (area->winy < headery) {
           /* lower edge */
           ScrEdge *se = BKE_screen_find_edge(screen, area->v4, area->v1);
           if (se && area->v1 != area->v2) {

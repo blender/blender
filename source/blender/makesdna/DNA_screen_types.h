@@ -576,7 +576,7 @@ enum {
   AREA_FLAG_OFFSCREEN = (1 << 9),
 };
 
-#define AREAGRID 4
+#define AREAGRID 1
 #define AREAMINX 29
 #define HEADER_PADDING_Y 6
 #define HEADERY (20 + HEADER_PADDING_Y)

@@ -281,6 +281,7 @@ class USERPREF_PT_interface_editors(InterfacePanel, CenterAlignMixIn, Panel):
         col = layout.column()
         col.prop(system, "use_region_overlap")
         col.prop(view, "show_navigate_ui")
+        col.prop(view, "border_width")
         col.prop(view, "color_picker_type")
         col.row().prop(view, "header_align")
         col.prop(view, "factor_display_type")

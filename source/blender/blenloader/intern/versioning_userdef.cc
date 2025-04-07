@@ -1417,6 +1417,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->ndof_flag |= NDOF_SHOW_GUIDE_ORBIT_CENTER | NDOF_ORBIT_CENTER_AUTO;
   }
 
+  if (userdef->border_width == 0) {
+    userdef->border_width = 2;
+  }
+
   if (!USER_VERSION_ATLEAST(405, 10)) {
     static const blender::Map<std::string, std::string> keymap_renames = {
         {"SequencerCommon", "Video Sequence Editor"},
