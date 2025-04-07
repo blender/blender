@@ -531,13 +531,16 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
 
         # Color depth. List of codecs needs to be in sync with
         # `IMB_ffmpeg_valid_bit_depths` in source code.
-        use_bpp = needs_codec and ffmpeg.codec in {'H264', 'H265', 'AV1'}
+        use_bpp = needs_codec and ffmpeg.codec in {'H264', 'H265', 'AV1', 'PRORES'}
         if use_bpp:
             image_settings = context.scene.render.image_settings
             layout.prop(image_settings, "color_depth", expand=True)
 
         if ffmpeg.codec == 'DNXHD':
             layout.prop(ffmpeg, "use_lossless_output")
+
+        if ffmpeg.codec == 'PRORES':
+            layout.prop(ffmpeg, "ffmpeg_prores_profile")
 
         # Output quality
         use_crf = needs_codec and ffmpeg.codec in {
@@ -550,10 +553,10 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         if use_crf:
             layout.prop(ffmpeg, "constant_rate_factor")
 
-        use_encoding_speed = needs_codec and ffmpeg.codec not in {'DNXHD', 'FFV1', 'HUFFYUV', 'PNG', 'QTRLE'}
-        use_bitrate = needs_codec and ffmpeg.codec not in {'FFV1', 'HUFFYUV', 'PNG', 'QTRLE'}
+        use_encoding_speed = needs_codec and ffmpeg.codec not in {'DNXHD', 'FFV1', 'HUFFYUV', 'PNG', 'PRORES', 'QTRLE'}
+        use_bitrate = needs_codec and ffmpeg.codec not in {'FFV1', 'HUFFYUV', 'PNG', 'PRORES', 'QTRLE'}
         use_min_max_bitrate = ffmpeg.codec not in {'DNXHD'}
-        use_gop = needs_codec and ffmpeg.codec not in {'DNXHD', 'HUFFYUV', 'PNG'}
+        use_gop = needs_codec and ffmpeg.codec not in {'DNXHD', 'HUFFYUV', 'PNG', 'PRORES'}
         use_b_frames = needs_codec and use_gop and ffmpeg.codec not in {'FFV1', 'QTRLE'}
 
         # Encoding speed
