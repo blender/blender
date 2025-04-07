@@ -79,7 +79,7 @@ const ImFileType IMB_FILE_TYPES[] = {
         /*load_filepath_thumbnail*/ nullptr,
         /*save*/ imb_saveiris,
         /*flag*/ 0,
-        /*filetype*/ IMB_FTYPE_IMAGIC,
+        /*filetype*/ IMB_FTYPE_IRIS,
         /*default_save_role*/ COLOR_ROLE_DEFAULT_BYTE,
     },
 #ifdef WITH_CINEON

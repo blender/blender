@@ -106,7 +106,7 @@ bool imb_save_tga(ImBuf *ibuf, const char *filepath, int flags);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Format: IRIS (#IMB_FTYPE_IMAGIC)
+/** \name Format: IRIS (#IMB_FTYPE_IRIS)
  * \{ */
 
 bool imb_is_a_iris(const unsigned char *mem, size_t size);

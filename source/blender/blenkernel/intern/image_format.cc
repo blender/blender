@@ -135,7 +135,7 @@ int BKE_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
     return IMB_FTYPE_TGA;
   }
   if (imtype == R_IMF_IMTYPE_IRIS) {
-    return IMB_FTYPE_IMAGIC;
+    return IMB_FTYPE_IRIS;
   }
   if (imtype == R_IMF_IMTYPE_RADHDR) {
     return IMB_FTYPE_RADHDR;
@@ -188,7 +188,7 @@ char BKE_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
   if (ftype == IMB_FTYPE_NONE) {
     return R_IMF_IMTYPE_TARGA;
   }
-  if (ftype == IMB_FTYPE_IMAGIC) {
+  if (ftype == IMB_FTYPE_IRIS) {
     return R_IMF_IMTYPE_IRIS;
   }
   if (ftype == IMB_FTYPE_RADHDR) {
@@ -668,7 +668,7 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
   ibuf->foptions.flag = 0;
 
   if (imtype == R_IMF_IMTYPE_IRIS) {
-    ibuf->ftype = IMB_FTYPE_IMAGIC;
+    ibuf->ftype = IMB_FTYPE_IRIS;
   }
   else if (imtype == R_IMF_IMTYPE_RADHDR) {
     ibuf->ftype = IMB_FTYPE_RADHDR;
@@ -867,7 +867,7 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
   BKE_image_format_init(im_format, false);
 
   /* file type */
-  if (ftype == IMB_FTYPE_IMAGIC) {
+  if (ftype == IMB_FTYPE_IRIS) {
     im_format->imtype = R_IMF_IMTYPE_IRIS;
   }
   else if (ftype == IMB_FTYPE_RADHDR) {

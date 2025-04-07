@@ -261,7 +261,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   if (flags & IB_test) {
     ibuf = IMB_allocImBuf(image.xsize, image.ysize, 8 * image.zsize, 0);
     if (ibuf) {
-      ibuf->ftype = IMB_FTYPE_IMAGIC;
+      ibuf->ftype = IMB_FTYPE_IRIS;
     }
     return ibuf;
   }
@@ -539,7 +539,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   if (dirty_flag) {
     fprintf(stderr, "longimagedata: corrupt file content (%d)\n", dirty_flag);
   }
-  ibuf->ftype = IMB_FTYPE_IMAGIC;
+  ibuf->ftype = IMB_FTYPE_IRIS;
 
   if (ibuf->byte_buffer.data) {
     IMB_convert_rgba_to_abgr(ibuf);
