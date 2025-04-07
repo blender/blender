@@ -18,6 +18,7 @@
 #include "BLI_dial_2d.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
@@ -1210,6 +1211,26 @@ static wmOperatorStatus gizmo_cage2d_modal(bContext *C,
       zero_v2(pivot);
     }
 
+    float curr_mouse[2];
+    copy_v2_v2(curr_mouse, data->orig_mouse);
+
+    /* Rotate current and original mouse coordinates around gizmo center. */
+    if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_ROTATE) {
+      float rot[3][3];
+      float loc[3];
+      float size[3];
+      mat4_to_loc_rot_size(loc, rot, size, gz->matrix_offset);
+
+      invert_m3(rot);
+      sub_v2_v2(point_local, loc);
+      mul_m3_v2(rot, point_local);
+      add_v2_v2(point_local, loc);
+
+      sub_v2_v2(curr_mouse, loc);
+      mul_m3_v2(rot, curr_mouse);
+      add_v2_v2(curr_mouse, loc);
+    }
+
     bool constrain_axis[2] = {false};
     gizmo_constrain_from_scale_part(gz->highlight_part, constrain_axis);
 
@@ -1219,7 +1240,7 @@ static wmOperatorStatus gizmo_cage2d_modal(bContext *C,
       size_new[i] = size_orig[i];
       if (constrain_axis[i] == false) {
         /* Original cursor position relative to pivot. */
-        const float delta_orig = data->orig_mouse[i] - data->orig_matrix_offset[3][i] -
+        const float delta_orig = curr_mouse[i] - data->orig_matrix_offset[3][i] -
                                  pivot[i] * size_orig[i];
         const float delta_curr = point_local[i] - data->orig_matrix_offset[3][i] -
                                  pivot[i] * size_orig[i];
@@ -1230,7 +1251,6 @@ static wmOperatorStatus gizmo_cage2d_modal(bContext *C,
             continue;
           }
         }
-
         /* Original cursor position does not exactly lie on the cage boundary due to margin. */
         size_new[i] = delta_curr / (signf(delta_orig) * 0.5f * dims[i] - pivot[i]);
       }

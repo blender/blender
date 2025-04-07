@@ -595,51 +595,6 @@ static void node_composit_buts_combsep_color(uiLayout *layout, bContext * /*C*/,
   }
 }
 
-static void node_composit_backdrop_boxmask(
-    SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
-{
-  NodeBoxMask *boxmask = (NodeBoxMask *)node->storage;
-  const float backdropWidth = backdrop->x;
-  const float backdropHeight = backdrop->y;
-  const float aspect = backdropWidth / backdropHeight;
-  const float rad = -boxmask->rotation;
-  const float cosine = cosf(rad);
-  const float sine = sinf(rad);
-  const float halveBoxWidth = backdropWidth * (boxmask->width / 2.0f);
-  const float halveBoxHeight = backdropHeight * (boxmask->height / 2.0f) * aspect;
-
-  float cx, cy, x1, x2, x3, x4;
-  float y1, y2, y3, y4;
-
-  cx = x + snode->zoom * backdropWidth * boxmask->x;
-  cy = y + snode->zoom * backdropHeight * boxmask->y;
-
-  x1 = cx - (cosine * halveBoxWidth + sine * halveBoxHeight) * snode->zoom;
-  x2 = cx - (cosine * -halveBoxWidth + sine * halveBoxHeight) * snode->zoom;
-  x3 = cx - (cosine * -halveBoxWidth + sine * -halveBoxHeight) * snode->zoom;
-  x4 = cx - (cosine * halveBoxWidth + sine * -halveBoxHeight) * snode->zoom;
-  y1 = cy - (-sine * halveBoxWidth + cosine * halveBoxHeight) * snode->zoom;
-  y2 = cy - (-sine * -halveBoxWidth + cosine * halveBoxHeight) * snode->zoom;
-  y3 = cy - (-sine * -halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
-  y4 = cy - (-sine * halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
-
-  GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-  immUniformColor3f(1.0f, 1.0f, 1.0f);
-
-  immBegin(GPU_PRIM_LINE_LOOP, 4);
-  immVertex2f(pos, x1, y1);
-  immVertex2f(pos, x2, y2);
-  immVertex2f(pos, x3, y3);
-  immVertex2f(pos, x4, y4);
-  immEnd();
-
-  immUnbindProgram();
-}
-
 static void node_composit_backdrop_ellipsemask(
     SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
 {
@@ -787,9 +742,6 @@ static void node_composit_set_butfunc(blender::bke::bNodeType *ntype)
     case CMP_NODE_COMBYCCA_LEGACY:
     case CMP_NODE_SEPYCCA_LEGACY:
       ntype->draw_buttons = node_composit_buts_ycc;
-      break;
-    case CMP_NODE_MASK_BOX:
-      ntype->draw_backdrop = node_composit_backdrop_boxmask;
       break;
     case CMP_NODE_MASK_ELLIPSE:
       ntype->draw_backdrop = node_composit_backdrop_ellipsemask;
