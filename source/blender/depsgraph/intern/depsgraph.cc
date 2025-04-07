@@ -53,6 +53,7 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       ctime(BKE_scene_ctime_get(scene)),
       scene_cow(nullptr),
       is_active(false),
+      sync_writeback(DEG_EVALUATE_SYNC_WRITEBACK_NO),
       use_visibility_optimization(true),
       is_evaluating(false),
       is_render_pipeline_depsgraph(false),

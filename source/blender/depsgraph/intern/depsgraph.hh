@@ -178,6 +178,8 @@ struct Depsgraph {
   /* The number of times this graph has been evaluated. */
   uint64_t update_count;
 
+  /* If this mode does not allow writing back to original data any callbacks will be discarded. */
+  DepsgraphEvaluateSyncWriteback sync_writeback;
   /**
    * Stores functions that can be called after depsgraph evaluation to writeback some changes to
    * original data. Also see `DEG_depsgraph_writeback_sync.hh`.
