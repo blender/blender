@@ -19,6 +19,7 @@
 #include "BKE_scene.hh"
 
 #include "BLI_array_utils.hh"
+#include "BLI_bounds.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
@@ -455,7 +456,7 @@ float4x4 DrawingPlacement::to_world_space() const
 }
 
 static float get_multi_frame_falloff(const int frame_number,
-                                     const int center_frame,
+                                     const int active_frame,
                                      const int min_frame,
                                      const int max_frame,
                                      const CurveMapping *falloff_curve)
@@ -465,40 +466,45 @@ static float get_multi_frame_falloff(const int frame_number,
   }
 
   /* Frame right of the center frame. */
-  if (frame_number > center_frame) {
-    const float frame_factor = 0.5f * float(center_frame - min_frame) / (frame_number - min_frame);
+  if (frame_number < active_frame) {
+    const float frame_factor = 0.5f * float(frame_number - min_frame) / (active_frame - min_frame);
     return BKE_curvemapping_evaluateF(falloff_curve, 0, frame_factor);
   }
   /* Frame left of the center frame. */
-  if (frame_number < center_frame) {
-    const float frame_factor = 0.5f * float(center_frame - frame_number) /
-                               (max_frame - frame_number);
+  if (frame_number > active_frame) {
+    const float frame_factor = 0.5f * float(frame_number - active_frame) /
+                               (max_frame - active_frame);
     return BKE_curvemapping_evaluateF(falloff_curve, 0, frame_factor + 0.5f);
   }
   /* Frame at center. */
   return BKE_curvemapping_evaluateF(falloff_curve, 0, 0.5f);
 }
 
-static std::pair<int, int> get_minmax_selected_frame_numbers(const GreasePencil &grease_pencil,
-                                                             const int current_frame)
+static std::optional<Bounds<int>> get_selected_frame_number_bounds(
+    const bke::greasepencil::Layer &layer)
 {
   using namespace blender::bke::greasepencil;
-  int frame_min = current_frame;
-  int frame_max = current_frame;
-  Span<const Layer *> layers = grease_pencil.layers();
-  for (const int layer_i : layers.index_range()) {
-    const Layer &layer = *layers[layer_i];
-    if (!layer.is_editable()) {
-      continue;
-    }
-    for (const auto [frame_number, frame] : layer.frames().items()) {
-      if (frame_number != current_frame && frame.is_selected()) {
-        frame_min = math::min(frame_min, frame_number);
-        frame_max = math::max(frame_max, frame_number);
-      }
+  if (!layer.is_editable()) {
+    return {};
+  }
+  Vector<int> frame_numbers;
+  for (const auto [frame_number, frame] : layer.frames().items()) {
+    if (frame.is_selected()) {
+      frame_numbers.append(frame_number);
     }
   }
-  return std::pair<int, int>(frame_min, frame_max);
+  return bounds::min_max<int>(frame_numbers);
+}
+
+static int get_active_frame_for_falloff(const bke::greasepencil::Layer &layer,
+                                        const std::optional<Bounds<int>> frame_bounds,
+                                        const int current_frame)
+{
+  std::optional<int> current_start_frame = layer.start_frame_at(current_frame);
+  if (!current_start_frame && frame_bounds) {
+    return math::clamp(current_frame, frame_bounds->min, frame_bounds->max);
+  }
+  return *current_start_frame;
 }
 
 static std::optional<int> get_frame_id(const bke::greasepencil::Layer &layer,
@@ -686,12 +692,8 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &
   const bool use_multi_frame_falloff = use_multi_frame_editing &&
                                        (toolsettings->gp_sculpt.flag &
                                         GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
-  int center_frame;
-  std::pair<int, int> minmax_frame;
   if (use_multi_frame_falloff) {
     BKE_curvemapping_init(toolsettings->gp_sculpt.cur_falloff);
-    minmax_frame = get_minmax_selected_frame_numbers(grease_pencil, current_frame);
-    center_frame = math::clamp(current_frame, minmax_frame.first, minmax_frame.second);
   }
 
   Vector<MutableDrawingInfo> editable_drawings;
@@ -701,15 +703,17 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &
     if (!layer.is_editable()) {
       continue;
     }
+    const std::optional<Bounds<int>> frame_bounds = get_selected_frame_number_bounds(layer);
+    const int active_frame = get_active_frame_for_falloff(layer, frame_bounds, current_frame);
     const Array<int> frame_numbers = get_editable_frames_for_layer(
         grease_pencil, layer, current_frame, use_multi_frame_editing);
     for (const int frame_number : frame_numbers) {
       if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
-        const float falloff = use_multi_frame_falloff ?
+        const float falloff = use_multi_frame_falloff && frame_bounds ?
                                   get_multi_frame_falloff(frame_number,
-                                                          center_frame,
-                                                          minmax_frame.first,
-                                                          minmax_frame.second,
+                                                          active_frame,
+                                                          frame_bounds->min,
+                                                          frame_bounds->max,
                                                           toolsettings->gp_sculpt.cur_falloff) :
                                   1.0f;
         editable_drawings.append({*drawing, layer_i, frame_number, falloff});
@@ -737,7 +741,6 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
 
   /* Get a set of unique frame numbers with editable drawings on them. */
   VectorSet<int> selected_frames;
-  int frame_min = current_frame, frame_max = current_frame;
   Span<const Layer *> layers = grease_pencil.layers();
   if (use_multi_frame_editing) {
     for (const int layer_i : layers.index_range()) {
@@ -748,24 +751,11 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
       for (const auto [frame_number, frame] : layer.frames().items()) {
         if (frame_number != current_frame && frame.is_selected()) {
           selected_frames.add(frame_number);
-          frame_min = math::min(frame_min, frame_number);
-          frame_max = math::max(frame_max, frame_number);
         }
       }
     }
   }
   selected_frames.add(current_frame);
-
-  /* Get multi frame falloff factor per selected frame. */
-  Array<float> falloff_per_selected_frame(selected_frames.size(), 1.0f);
-  if (use_multi_frame_falloff) {
-    int frame_group = 0;
-    for (const int frame_number : selected_frames) {
-      falloff_per_selected_frame[frame_group] = get_multi_frame_falloff(
-          frame_number, current_frame, frame_min, frame_max, toolsettings->gp_sculpt.cur_falloff);
-      frame_group++;
-    }
-  }
 
   /* Get drawings grouped per frame. */
   Array<Vector<MutableDrawingInfo>> drawings_grouped_per_frame(selected_frames.size());
@@ -775,6 +765,9 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
     if (!layer.is_editable()) {
       continue;
     }
+    const std::optional<Bounds<int>> frame_bounds = get_selected_frame_number_bounds(layer);
+    const int active_frame = get_active_frame_for_falloff(layer, frame_bounds, current_frame);
+
     /* In multi frame editing mode, add drawings at selected frames. */
     if (use_multi_frame_editing) {
       for (const auto [frame_number, frame] : layer.frames().items()) {
@@ -782,9 +775,15 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
         if (!frame.is_selected() || drawing == nullptr || added_drawings.contains(drawing)) {
           continue;
         }
+        const float falloff = frame_bounds ?
+                                  get_multi_frame_falloff(frame_number,
+                                                          active_frame,
+                                                          frame_bounds->min,
+                                                          frame_bounds->max,
+                                                          toolsettings->gp_sculpt.cur_falloff) :
+                                  1.0f;
         const int frame_group = selected_frames.index_of(frame_number);
-        drawings_grouped_per_frame[frame_group].append(
-            {*drawing, layer_i, frame_number, falloff_per_selected_frame[frame_group]});
+        drawings_grouped_per_frame[frame_group].append({*drawing, layer_i, frame_number, falloff});
         added_drawings.add_new(drawing);
       }
     }
@@ -792,9 +791,16 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
     /* Add drawing at current frame. */
     Drawing *current_drawing = grease_pencil.get_drawing_at(layer, current_frame);
     if (current_drawing != nullptr && !added_drawings.contains(current_drawing)) {
+      const float falloff = frame_bounds ?
+                                get_multi_frame_falloff(current_frame,
+                                                        active_frame,
+                                                        frame_bounds->min,
+                                                        frame_bounds->max,
+                                                        toolsettings->gp_sculpt.cur_falloff) :
+                                1.0f;
       const int frame_group = selected_frames.index_of(current_frame);
       drawings_grouped_per_frame[frame_group].append(
-          {*current_drawing, layer_i, current_frame, falloff_per_selected_frame[frame_group]});
+          {*current_drawing, layer_i, current_frame, falloff});
       added_drawings.add_new(current_drawing);
     }
   }
@@ -840,24 +846,24 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer_with_falloff(
                                        (toolsettings->gp_sculpt.flag &
                                         GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
   const int layer_index = *grease_pencil.get_layer_index(layer);
-  int center_frame;
-  std::pair<int, int> minmax_frame;
+  std::optional<Bounds<int>> frame_bounds;
   if (use_multi_frame_falloff) {
     BKE_curvemapping_init(toolsettings->gp_sculpt.cur_falloff);
-    minmax_frame = get_minmax_selected_frame_numbers(grease_pencil, current_frame);
-    center_frame = math::clamp(current_frame, minmax_frame.first, minmax_frame.second);
+    frame_bounds = get_selected_frame_number_bounds(layer);
   }
+
+  const int active_frame = get_active_frame_for_falloff(layer, frame_bounds, current_frame);
 
   Vector<MutableDrawingInfo> editable_drawings;
   const Array<int> frame_numbers = get_editable_frames_for_layer(
       grease_pencil, layer, current_frame, use_multi_frame_editing);
   for (const int frame_number : frame_numbers) {
     if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
-      const float falloff = use_multi_frame_falloff ?
+      const float falloff = use_multi_frame_falloff && frame_bounds ?
                                 get_multi_frame_falloff(frame_number,
-                                                        center_frame,
-                                                        minmax_frame.first,
-                                                        minmax_frame.second,
+                                                        active_frame,
+                                                        frame_bounds->min,
+                                                        frame_bounds->max,
                                                         toolsettings->gp_sculpt.cur_falloff) :
                                 1.0f;
       editable_drawings.append({*drawing, layer_index, frame_number, falloff});
