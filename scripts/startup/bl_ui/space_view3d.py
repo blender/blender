@@ -874,7 +874,7 @@ class VIEW3D_HT_header(Header):
                     depress=(domain == 'CURVE'),
                 ).domain = 'CURVE'
 
-        # Grease Pencil v3
+        # Grease Pencil
         if obj and obj.type == 'GREASEPENCIL':
             # Select mode for Editing
             if object_mode == 'EDIT':

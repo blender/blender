@@ -3279,7 +3279,7 @@ static Object *convert_mesh_to_grease_pencil(Base &base,
   const int thickness = RNA_int_get(info.op_props, "thickness");
   const float offset = RNA_float_get(info.op_props, "offset");
 
-  /* To be compatible with the thickness value prior to Grease Pencil v3. */
+  /* To be compatible with the thickness value of legacy Grease Pencil. */
   const float stroke_radius = float(thickness) / 2 *
                               bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
 
