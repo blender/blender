@@ -3449,6 +3449,8 @@ static Object *convert_curves_to_grease_pencil(Base &base,
     bke::greasepencil::Drawing *drawing = grease_pencil->insert_frame(layer, frame_number);
     BLI_assert(drawing != nullptr);
     drawing->strokes_for_write() = curves_eval->geometry.wrap();
+    /* Default radius (1.0 unit) is too thick for converted strokes. */
+    drawing->radii_for_write().fill(0.01f);
 
     BKE_grease_pencil_nomain_to_grease_pencil(grease_pencil, new_grease_pencil);
     BKE_object_material_from_eval_data(info.bmain, newob, &curves_eval->id);
