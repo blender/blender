@@ -103,18 +103,6 @@ struct VKGraphicsInfo {
         return false;
       }
 
-      if (memcmp(viewports.data(),
-                 other.viewports.data(),
-                 viewports.size() * sizeof(VkViewport)) != 0)
-      {
-        return false;
-      }
-
-      if (memcmp(scissors.data(), other.scissors.data(), scissors.size() * sizeof(VkRect2D)) != 0)
-      {
-        return false;
-      }
-
       return true;
     }
 
@@ -135,8 +123,8 @@ struct VKGraphicsInfo {
     uint64_t calc_hash() const
     {
       uint64_t hash = uint64_t(vk_fragment_module);
-      hash = hash * 33 ^ XXH3_64bits(viewports.data(), viewports.size() * sizeof(VkViewport));
-      hash = hash * 33 ^ XXH3_64bits(scissors.data(), scissors.size() * sizeof(VkRect2D));
+      hash = hash * 33 ^ uint64_t(viewports.size());
+      hash = hash * 33 ^ uint64_t(scissors.size());
 
       return hash;
     }
@@ -286,6 +274,10 @@ class VKPipelinePool : public NonCopyable {
   VkPipelineRasterizationStateCreateInfo vk_pipeline_rasterization_state_create_info_;
   VkPipelineRasterizationProvokingVertexStateCreateInfoEXT
       vk_pipeline_rasterization_provoking_vertex_state_info_;
+
+  Vector<VkDynamicState> vk_dynamic_states_;
+  VkPipelineDynamicStateCreateInfo vk_pipeline_dynamic_state_create_info_;
+
   VkPipelineViewportStateCreateInfo vk_pipeline_viewport_state_create_info_;
   VkPipelineDepthStencilStateCreateInfo vk_pipeline_depth_stencil_state_create_info_;
 

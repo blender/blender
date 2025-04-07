@@ -256,6 +256,16 @@ void VKCommandBufferWrapper::push_constants(VkPipelineLayout layout,
   vkCmdPushConstants(vk_command_buffer_, layout, stage_flags, offset, size, p_values);
 }
 
+void VKCommandBufferWrapper::set_viewport(const Vector<VkViewport> viewports)
+{
+  vkCmdSetViewport(vk_command_buffer_, 0, viewports.size(), viewports.data());
+}
+
+void VKCommandBufferWrapper::set_scissor(const Vector<VkRect2D> scissors)
+{
+  vkCmdSetScissor(vk_command_buffer_, 0, scissors.size(), scissors.data());
+}
+
 void VKCommandBufferWrapper::begin_render_pass(const VkRenderPassBeginInfo *render_pass_begin_info)
 {
   vkCmdBeginRenderPass(vk_command_buffer_, render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);

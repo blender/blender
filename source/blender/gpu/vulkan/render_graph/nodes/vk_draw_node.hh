@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "render_graph/nodes/vk_pipeline_data.hh"
 #include "render_graph/vk_resource_access_info.hh"
 #include "vk_node_info.hh"
 
@@ -19,6 +20,7 @@ namespace blender::gpu::render_graph {
 struct VKDrawData {
   VKPipelineData pipeline_data;
   VKVertexBufferBindings vertex_buffers;
+  VKViewportData viewport_data;
   uint32_t vertex_count;
   uint32_t instance_count;
   uint32_t first_vertex;
@@ -71,6 +73,8 @@ class VKDrawNode : public VKNodeInfo<VKNodeType::DRAW,
                       Data &data,
                       VKBoundPipelines &r_bound_pipelines) override
   {
+    vk_pipeline_viewport_set_commands(
+        command_buffer, data.viewport_data, r_bound_pipelines.graphics.viewport_state);
     vk_pipeline_data_build_commands(command_buffer,
                                     data.pipeline_data,
                                     r_bound_pipelines.graphics.pipeline,

@@ -457,6 +457,23 @@ class CommandBufferLog : public VKCommandBufferInterface {
                         uint32_t /*query_count*/) override
   {
   }
+
+  void set_viewport(const Vector<VkViewport> viewports) override
+  {
+    EXPECT_TRUE(is_recording_);
+    std::stringstream ss;
+    ss << "set_viewport(num_viewports=" << viewports.size() << ")";
+    log_.append(ss.str());
+  }
+
+  void set_scissor(const Vector<VkRect2D> scissors) override
+  {
+    EXPECT_TRUE(is_recording_);
+    std::stringstream ss;
+    ss << "set_scissor(num_scissors=" << scissors.size() << ")";
+    log_.append(ss.str());
+  }
+
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT * /*vk_debug_utils_label*/) override {}
   void end_debug_utils_label() override {}
 };

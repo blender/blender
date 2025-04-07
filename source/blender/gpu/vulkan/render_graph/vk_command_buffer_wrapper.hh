@@ -130,6 +130,8 @@ class VKCommandBufferInterface {
   virtual void reset_query_pool(VkQueryPool vk_query_pool,
                                 uint32_t first_query,
                                 uint32_t query_count) = 0;
+  virtual void set_viewport(const Vector<VkViewport> viewports) = 0;
+  virtual void set_scissor(const Vector<VkRect2D> scissors) = 0;
 
   virtual void begin_render_pass(const VkRenderPassBeginInfo *render_pass_begin_info) = 0;
   virtual void end_render_pass() = 0;
@@ -246,6 +248,8 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
                       uint32_t offset,
                       uint32_t size,
                       const void *p_values) override;
+  void set_viewport(const Vector<VkViewport> viewports) override;
+  void set_scissor(const Vector<VkRect2D> scissors) override;
   void begin_query(VkQueryPool vk_query_pool,
                    uint32_t query_index,
                    VkQueryControlFlags vk_query_control_flags) override;
