@@ -2931,6 +2931,14 @@ typedef enum CMPNodeInterpolation {
   CMP_NODE_INTERPOLATION_BICUBIC = 2,
 } CMPNodeInterpolation;
 
+/* CornerPin node interpolation option. */
+typedef enum CMPNodeCornerPinInterpolation {
+  CMP_NODE_CORNER_PIN_INTERPOLATION_NEAREST = 0,
+  CMP_NODE_CORNER_PIN_INTERPOLATION_BILINEAR = 1,
+  CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC = 2,
+  CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC = 3,
+} CMPNodeCornerPinInterpolation;
+
 /* Stabilize 2D node. Stored in custom2. */
 typedef enum CMPNodeStabilizeInverse {
   CMP_NODE_STABILIZE_FLAG_INVERSE = 1,

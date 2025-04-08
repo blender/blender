@@ -6684,6 +6684,19 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     version_set_uv_face_overlay_defaults(bmain);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 18)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type_legacy == CMP_NODE_CORNERPIN) {
+            node->custom1 = CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
    * breaking release. */

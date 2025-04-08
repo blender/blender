@@ -16,6 +16,8 @@
 
 #include "BKE_tracking.h"
 
+#include "UI_interface.hh"
+
 #include "COM_algorithm_smaa.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
@@ -51,6 +53,16 @@ static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
       .compositor_expects_single_value();
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Plane");
+}
+
+static void node_composit_init_cornerpin(bNodeTree * /*ntree*/, bNode *node)
+{
+  node->custom1 = CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC;
+}
+
+static void node_composit_buts_cornerpin(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -106,14 +118,23 @@ class CornerPinOperation : public NodeOperation {
 
   void compute_plane_gpu(const float3x3 &homography_matrix, Result &plane_mask)
   {
-    GPUShader *shader = context().get_shader("compositor_plane_deform");
+    GPUShader *shader = this->context().get_shader(this->get_realization_shader_name());
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_mat3_as_mat4(shader, "homography_matrix", homography_matrix.ptr());
 
     Result &input_image = get_input("Image");
     GPU_texture_mipmap_mode(input_image, true, true);
-    GPU_texture_anisotropic_filter(input_image, true);
+    /* The texture sampler should use bilinear interpolation for both the bilinear and bicubic
+     * cases, as the logic used by the bicubic realization shader expects textures to use bilinear
+     * interpolation. */
+    const CMPNodeCornerPinInterpolation interpolation = this->get_interpolation();
+    const bool use_bilinear = ELEM(interpolation,
+                                   CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC,
+                                   CMP_NODE_CORNER_PIN_INTERPOLATION_BILINEAR);
+    const bool use_anisotropic = interpolation == CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC;
+    GPU_texture_filter_mode(input_image, use_bilinear);
+    GPU_texture_anisotropic_filter(input_image, use_anisotropic);
     GPU_texture_extend_mode(input_image, GPU_SAMPLER_EXTEND_MODE_EXTEND);
     input_image.bind_as_texture(shader, "input_tx");
 
@@ -150,17 +171,30 @@ class CornerPinOperation : public NodeOperation {
         output.store_pixel(texel, float4(0.0f));
         return;
       }
+
       float2 projected_coordinates = transformed_coordinates.xy() / transformed_coordinates.z;
 
-      /* The derivatives of the projected coordinates with respect to x and y are the first and
-       * second columns respectively, divided by the z projection factor as can be shown by
-       * differentiating the above matrix multiplication with respect to x and y. Divide by the
-       * output size since sample_ewa assumes derivatives with respect to texel coordinates. */
-      float2 x_gradient = (homography_matrix[0].xy() / transformed_coordinates.z) / size.x;
-      float2 y_gradient = (homography_matrix[1].xy() / transformed_coordinates.z) / size.y;
-
-      float4 sampled_color = input.sample_ewa_extended(
-          projected_coordinates, x_gradient, y_gradient);
+      float4 sampled_color;
+      switch (this->get_interpolation()) {
+        case CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC:
+          sampled_color = input.sample_cubic_extended(projected_coordinates);
+          break;
+        case CMP_NODE_CORNER_PIN_INTERPOLATION_BILINEAR:
+          sampled_color = input.sample_bilinear_extended(projected_coordinates);
+          break;
+        case CMP_NODE_CORNER_PIN_INTERPOLATION_NEAREST:
+          sampled_color = input.sample_nearest_extended(projected_coordinates);
+          break;
+        case CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC:
+          /* The derivatives of the projected coordinates with respect to x and y are the first and
+           * second columns respectively, divided by the z projection factor as can be shown by
+           * differentiating the above matrix multiplication with respect to x and y. Divide by the
+           * output size since sample_ewa assumes derivatives with respect to texel coordinates. */
+          float2 x_gradient = (homography_matrix[0].xy() / transformed_coordinates.z) / size.x;
+          float2 y_gradient = (homography_matrix[1].xy() / transformed_coordinates.z) / size.y;
+          sampled_color = input.sample_ewa_extended(projected_coordinates, x_gradient, y_gradient);
+          break;
+      }
 
       /* Premultiply the mask value as an alpha. */
       float4 plane_color = sampled_color * plane_mask.load_pixel<float>(texel);
@@ -250,6 +284,27 @@ class CornerPinOperation : public NodeOperation {
     BKE_tracking_homography_between_two_quads(corners, identity_corners, homography_matrix.ptr());
     return homography_matrix;
   }
+
+  const char *get_realization_shader_name() const
+  {
+    switch (this->get_interpolation()) {
+      case CMP_NODE_CORNER_PIN_INTERPOLATION_NEAREST:
+      case CMP_NODE_CORNER_PIN_INTERPOLATION_BILINEAR:
+        return "compositor_plane_deform";
+      case CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC:
+        return "compositor_plane_deform_bicubic";
+      case CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC:
+        return "compositor_plane_deform_anisotropic";
+    }
+
+    BLI_assert_unreachable();
+    return "compositor_plane_deform_anisotropic";
+  }
+
+  CMPNodeCornerPinInterpolation get_interpolation() const
+  {
+    return static_cast<CMPNodeCornerPinInterpolation>(bnode().custom1);
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
@@ -271,6 +326,8 @@ void register_node_type_cmp_cornerpin()
   ntype.enum_name_legacy = "CORNERPIN";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_cornerpin_declare;
+  ntype.initfunc = file_ns::node_composit_init_cornerpin;
+  ntype.draw_buttons = file_ns::node_composit_buts_cornerpin;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);
