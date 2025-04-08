@@ -1107,43 +1107,41 @@ static bool region_background_is_transparent(const ScrArea *area, const ARegion 
 
 static void region_azone_edge(const ScrArea *area, AZone *az, const ARegion *region)
 {
-  const int azonepad_edge = (0.1f * U.widget_unit);
+  const bool is_header = RGN_TYPE_IS_HEADER_ANY(region->regiontype);
+  const bool transparent = !is_header && region->overlap &&
+                           region_background_is_transparent(area, region);
 
-  /* If there is no visible region background, users typically expect the #AZone to be closer to
-   * the content, so move it a bit. */
-  const int overlap_padding =
-      /* Header-like regions are usually thin and there's not much padding around them,
-       * applying an offset would make the edge overlap buttons. */
-      (!RGN_TYPE_IS_HEADER_ANY(region->regiontype) &&
-       /* Is the region background transparent? */
-       region->overlap && region_background_is_transparent(area, region)) ?
-          /* Note that this is an arbitrary amount that matches nicely with numbers elsewhere. */
-          int(0.4f * U.widget_unit) :
-          0;
+  /* Only scale the padding inside the region, not outside. */
+  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
+
+  /* Different padding inside and outside the region. */
+  const int pad_out = (is_header ? 2.0f : 3.0f) * UI_SCALE_FAC;
+  const int pad_in = (is_header ? 1.0f : (transparent ? 8.0f : 4.0f)) * UI_SCALE_FAC / aspect;
 
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT:
       az->x1 = region->winrct.xmin;
-      az->y1 = region->winrct.ymax - azonepad_edge - overlap_padding;
+      az->y1 = region->winrct.ymax + pad_out;
       az->x2 = region->winrct.xmax;
-      az->y2 = region->winrct.ymax + azonepad_edge - overlap_padding;
+      az->y2 = region->winrct.ymax - pad_in;
       break;
     case AE_BOTTOM_TO_TOPLEFT:
       az->x1 = region->winrct.xmin;
-      az->y1 = region->winrct.ymin + azonepad_edge + overlap_padding;
+      az->y1 = region->winrct.ymin + pad_out;
       az->x2 = region->winrct.xmax;
-      az->y2 = region->winrct.ymin - azonepad_edge + overlap_padding;
+      az->y2 = region->winrct.ymin - pad_in;
       break;
     case AE_LEFT_TO_TOPRIGHT:
-      az->x1 = region->winrct.xmin - azonepad_edge + overlap_padding;
+      az->x1 = region->winrct.xmin - pad_out;
       az->y1 = region->winrct.ymin;
-      az->x2 = region->winrct.xmin + azonepad_edge + overlap_padding;
+      az->x2 = region->winrct.xmin + pad_in;
       az->y2 = region->winrct.ymax;
       break;
     case AE_RIGHT_TO_TOPLEFT:
-      az->x1 = region->winrct.xmax + azonepad_edge - overlap_padding;
+      az->x1 = region->winrct.xmax - pad_in;
       az->y1 = region->winrct.ymin;
-      az->x2 = region->winrct.xmax - azonepad_edge - overlap_padding;
+      az->x2 = region->winrct.xmax + pad_out;
       az->y2 = region->winrct.ymax;
       break;
   }

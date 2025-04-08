@@ -2753,6 +2753,8 @@ struct RegionMoveData {
   AZone *az;
   ARegion *region;
   ScrArea *area;
+  wmWindow *win;
+  void *draw_callback;
   int bigger, smaller, origval;
   int orig_xy[2];
   int maxsize;
@@ -2830,8 +2832,18 @@ static bool is_split_edge(const int alignment, const AZEdge edge)
          ((alignment == RGN_ALIGN_RIGHT) && (edge == AE_LEFT_TO_TOPRIGHT));
 }
 
+static void region_scale_draw_cb(const wmWindow * /*win*/, void *userdata)
+{
+  const wmOperator *op = static_cast<const wmOperator *>(userdata);
+  RegionMoveData *rmd = static_cast<RegionMoveData *>(op->customdata);
+  screen_draw_region_scale_highlight(rmd->region);
+}
+
 static void region_scale_exit(wmOperator *op)
 {
+  RegionMoveData *rmd = static_cast<RegionMoveData *>(op->customdata);
+  WM_draw_cb_exit(rmd->win, rmd->draw_callback);
+
   MEM_freeN(op->customdata);
   op->customdata = nullptr;
 
@@ -2904,6 +2916,10 @@ static wmOperatorStatus region_scale_invoke(bContext *C, wmOperator *op, const w
     }
 
     CLAMP(rmd->maxsize, 0, 1000);
+
+    rmd->win = CTX_wm_window(C);
+    rmd->draw_callback = WM_draw_cb_activate(CTX_wm_window(C), region_scale_draw_cb, op);
+    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
 
     /* add temp handler */
     G.moving |= G_TRANSFORM_WM;
@@ -3073,6 +3089,14 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
       if (size_changed && rmd->region->runtime->type->on_user_resize) {
         rmd->region->runtime->type->on_user_resize(rmd->region);
       }
+      if (size_changed) {
+        if (ELEM(rmd->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
+          WM_cursor_set(CTX_wm_window(C), WM_CURSOR_X_MOVE);
+        }
+        else {
+          WM_cursor_set(CTX_wm_window(C), WM_CURSOR_Y_MOVE);
+        }
+      }
       ED_area_tag_redraw(rmd->area);
       WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
 
@@ -3080,7 +3104,7 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
     }
     case LEFTMOUSE:
       if (event->val == KM_RELEASE) {
-        if (len_manhattan_v2v2_int(event->xy, rmd->orig_xy) <= WM_EVENT_CURSOR_MOTION_THRESHOLD) {
+        if (len_manhattan_v2v2_int(event->xy, rmd->orig_xy) <= WM_event_drag_threshold(event)) {
           if (rmd->region->flag & RGN_FLAG_HIDDEN) {
             region_scale_toggle_hidden(C, rmd);
           }
@@ -3099,7 +3123,9 @@ static wmOperatorStatus region_scale_modal(bContext *C, wmOperator *op, const wm
       break;
 
     case EVT_ESCKEY:
-      break;
+      region_scale_exit(op);
+      WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
+      return OPERATOR_CANCELLED;
     default: {
       break;
     }
