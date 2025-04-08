@@ -506,9 +506,10 @@ static void openexr_header_metadata(Header *header, ImBuf *ibuf)
     }
   }
 
-  if (ibuf->ppm[0] > 0.0) {
+  if (ibuf->ppm[0] > 0.0 && ibuf->ppm[1] > 0.0) {
     /* Convert meters to inches. */
     addXDensity(*header, ibuf->ppm[0] * 0.0254);
+    header->pixelAspectRatio() = blender::math::safe_divide(ibuf->ppm[1], ibuf->ppm[0]);
   }
 
   /* Write chromaticities for ACES-2065-1, as required by ACES container format. */
