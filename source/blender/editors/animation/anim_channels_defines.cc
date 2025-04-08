@@ -4696,7 +4696,7 @@ void ANIM_channel_debug_print_info(bAnimContext &ac, bAnimListElem *ale, short i
     STRNCPY(name, "<No name>");
   }
 
-  printf("ChanType: <%-25s> Name: \"%-32s\"\n       ", acf->channel_type_name, name);
+  printf("ChanType: <%-25s> Name: \"%s\"\n       ", acf->channel_type_name, name);
 
   /* Print settings. */
   blender::Vector<eAnimChannel_Settings> settings = {
