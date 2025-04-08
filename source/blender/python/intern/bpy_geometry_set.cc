@@ -250,7 +250,7 @@ static PyObject *BPy_GeometrySet_get_instance_references(BPy_GeometrySet *self)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_geometry_set_name_doc,
-    "The name of the geometry set.\n"
+    "The name of the geometry set. It can be used for debugging purposes and is not unique.\n"
     "\n"
     ":type: str\n");
 static PyObject *BPy_GeometrySet_get_name(BPy_GeometrySet *self, void * /*closure*/)
