@@ -154,10 +154,6 @@ class GHOST_WindowX11 : public GHOST_Window {
   bool m_post_init;
   GHOST_TWindowState m_post_state;
 
-  GHOST_TSuccess beginFullScreen() const override;
-
-  GHOST_TSuccess endFullScreen() const override;
-
   GHOST_TSuccess setDialogHints(GHOST_WindowX11 *parentWindow);
 
   uint16_t getDPIHint() override;

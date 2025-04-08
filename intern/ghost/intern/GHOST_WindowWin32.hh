@@ -291,16 +291,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
    */
   GHOST_TabletData getTabletData();
 
-  GHOST_TSuccess beginFullScreen() const
-  {
-    return GHOST_kFailure;
-  }
-
-  GHOST_TSuccess endFullScreen() const
-  {
-    return GHOST_kFailure;
-  }
-
   void updateDPI();
 
   uint16_t getDPIHint() override;

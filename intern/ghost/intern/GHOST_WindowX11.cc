@@ -1496,58 +1496,6 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(uint8_t *bitmap,
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_WindowX11::beginFullScreen() const
-{
-  {
-    Window root_return;
-    int x_return, y_return;
-    uint w_return, h_return, border_w_return, depth_return;
-
-    XGetGeometry(m_display,
-                 m_window,
-                 &root_return,
-                 &x_return,
-                 &y_return,
-                 &w_return,
-                 &h_return,
-                 &border_w_return,
-                 &depth_return);
-
-    m_system->setCursorPosition(w_return / 2, h_return / 2);
-  }
-
-  /* Grab Keyboard & Mouse */
-  int err;
-
-  err = XGrabKeyboard(m_display, m_window, False, GrabModeAsync, GrabModeAsync, CurrentTime);
-  if (err != GrabSuccess) {
-    printf("XGrabKeyboard failed %d\n", err);
-  }
-
-  err = XGrabPointer(m_display,
-                     m_window,
-                     False,
-                     PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
-                     GrabModeAsync,
-                     GrabModeAsync,
-                     m_window,
-                     None,
-                     CurrentTime);
-  if (err != GrabSuccess) {
-    printf("XGrabPointer failed %d\n", err);
-  }
-
-  return GHOST_kSuccess;
-}
-
-GHOST_TSuccess GHOST_WindowX11::endFullScreen() const
-{
-  XUngrabKeyboard(m_display, CurrentTime);
-  XUngrabPointer(m_display, CurrentTime);
-
-  return GHOST_kSuccess;
-}
-
 uint16_t GHOST_WindowX11::getDPIHint()
 {
   /* Try to read DPI setting set using xrdb */

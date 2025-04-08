@@ -226,16 +226,6 @@ class GHOST_WindowCocoa : public GHOST_Window {
 
   void setNativePixelSize();
 
-  GHOST_TSuccess beginFullScreen() const override
-  {
-    return GHOST_kFailure;
-  }
-
-  GHOST_TSuccess endFullScreen() const override
-  {
-    return GHOST_kFailure;
-  }
-
   /** public function to get the window containing the view */
   BlenderWindow *getViewWindow() const
   {

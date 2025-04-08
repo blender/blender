@@ -2452,43 +2452,6 @@ GHOST_TSuccess GHOST_WindowWayland::setOrder(GHOST_TWindowOrder order)
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_WindowWayland::beginFullScreen() const
-{
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  std::lock_guard lock_server_guard{*system_->server_mutex};
-#endif
-
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (use_libdecor) {
-    libdecor_frame_set_fullscreen(window_->libdecor->frame, nullptr);
-  }
-  else
-#endif
-  {
-    xdg_toplevel_set_fullscreen(window_->xdg_decor->toplevel, nullptr);
-  }
-
-  return GHOST_kSuccess;
-}
-
-GHOST_TSuccess GHOST_WindowWayland::endFullScreen() const
-{
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  std::lock_guard lock_server_guard{*system_->server_mutex};
-#endif
-
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  if (use_libdecor) {
-    libdecor_frame_unset_fullscreen(window_->libdecor->frame);
-  }
-  else
-#endif
-  {
-    xdg_toplevel_unset_fullscreen(window_->xdg_decor->toplevel);
-  }
-  return GHOST_kSuccess;
-}
-
 bool GHOST_WindowWayland::isDialog() const
 {
   return window_->is_dialog;

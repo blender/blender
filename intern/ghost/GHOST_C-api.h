@@ -229,32 +229,6 @@ extern GHOST_TSuccess GHOST_DisposeWindow(GHOST_SystemHandle systemhandle,
 extern bool GHOST_ValidWindow(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhandle);
 
 /**
- * Begins full screen mode.
- * \param systemhandle: The handle to the system.
- * \param setting: The new setting of the display.
- * \param stereoVisual: Option for stereo display.
- * \return A handle to the window displayed in full screen.
- *         This window is invalid after full screen has been ended.
- */
-extern GHOST_WindowHandle GHOST_BeginFullScreen(GHOST_SystemHandle systemhandle,
-                                                const GHOST_DisplaySetting *setting,
-                                                const bool stereoVisual);
-
-/**
- * Ends full screen mode.
- * \param systemhandle: The handle to the system.
- * \return Indication of success.
- */
-extern GHOST_TSuccess GHOST_EndFullScreen(GHOST_SystemHandle systemhandle);
-
-/**
- * Returns current full screen mode status.
- * \param systemhandle: The handle to the system.
- * \return The current status.
- */
-extern bool GHOST_GetFullScreen(GHOST_SystemHandle systemhandle);
-
-/**
  * Get the Window under the cursor. Although coordinates of the mouse are supplied, platform-
  * specific implementations are free to ignore these and query the mouse location themselves, due
  * to them possibly being incorrect under certain conditions, for example when using multiple

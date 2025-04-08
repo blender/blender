@@ -29,7 +29,6 @@ GHOST_System::GHOST_System()
 #ifdef WITH_INPUT_NDOF
       m_ndofManager(nullptr),
 #endif
-      m_preFullScreenSetting{0},
       m_multitouchGestures(true),
       m_tabletAPI(GHOST_kTabletAutomatic),
       m_is_debug_enabled(false)
@@ -97,19 +96,14 @@ GHOST_TSuccess GHOST_System::disposeWindow(GHOST_IWindow *window)
   if (m_windowManager->getWindowFound(window)) {
     m_eventManager->removeWindowEvents(window);
   }
-  if (window == m_windowManager->getFullScreenWindow()) {
-    success = endFullScreen();
+  if (m_windowManager->getWindowFound(window)) {
+    success = m_windowManager->removeWindow(window);
+    if (success) {
+      delete window;
+    }
   }
   else {
-    if (m_windowManager->getWindowFound(window)) {
-      success = m_windowManager->removeWindow(window);
-      if (success) {
-        delete window;
-      }
-    }
-    else {
-      success = GHOST_kFailure;
-    }
+    success = GHOST_kFailure;
   }
   return success;
 }
@@ -117,83 +111,6 @@ GHOST_TSuccess GHOST_System::disposeWindow(GHOST_IWindow *window)
 bool GHOST_System::validWindow(GHOST_IWindow *window)
 {
   return m_windowManager->getWindowFound(window);
-}
-
-GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting &setting,
-                                             GHOST_IWindow **window,
-                                             const bool stereoVisual)
-{
-  GHOST_TSuccess success = GHOST_kFailure;
-  GHOST_ASSERT(m_windowManager, "GHOST_System::beginFullScreen(): invalid window manager");
-  if (m_displayManager) {
-    if (!m_windowManager->getFullScreen()) {
-      m_displayManager->getCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay,
-                                                 m_preFullScreenSetting);
-
-      // GHOST_PRINT("GHOST_System::beginFullScreen(): activating new display settings\n");
-      success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay,
-                                                           setting);
-      if (success == GHOST_kSuccess) {
-        // GHOST_PRINT("GHOST_System::beginFullScreen(): creating full-screen window\n");
-        success = createFullScreenWindow((GHOST_Window **)window, setting, stereoVisual);
-        if (success == GHOST_kSuccess) {
-          m_windowManager->beginFullScreen(*window, stereoVisual);
-        }
-        else {
-          m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay,
-                                                     m_preFullScreenSetting);
-        }
-      }
-    }
-  }
-  if (success == GHOST_kFailure) {
-    GHOST_PRINT("GHOST_System::beginFullScreen(): could not enter full-screen mode\n");
-  }
-  return success;
-}
-
-GHOST_TSuccess GHOST_System::updateFullScreen(const GHOST_DisplaySetting &setting,
-                                              GHOST_IWindow ** /*window*/)
-{
-  GHOST_TSuccess success = GHOST_kFailure;
-  GHOST_ASSERT(m_windowManager, "GHOST_System::updateFullScreen(): invalid window manager");
-  if (m_displayManager) {
-    if (m_windowManager->getFullScreen()) {
-      success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay,
-                                                           setting);
-    }
-  }
-
-  return success;
-}
-
-GHOST_TSuccess GHOST_System::endFullScreen()
-{
-  GHOST_TSuccess success = GHOST_kFailure;
-  GHOST_ASSERT(m_windowManager, "GHOST_System::endFullScreen(): invalid window manager");
-  if (m_windowManager->getFullScreen()) {
-    // GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
-    // GHOST_PRINT("GHOST_System::endFullScreen(): leaving window manager full-screen mode\n");
-    if (m_windowManager->endFullScreen() == GHOST_kSuccess) {
-      GHOST_ASSERT(m_displayManager, "GHOST_System::endFullScreen(): invalid display manager");
-      // GHOST_PRINT("GHOST_System::endFullScreen(): leaving full-screen mode\n");
-      success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay,
-                                                           m_preFullScreenSetting);
-    }
-  }
-  return success;
-}
-
-bool GHOST_System::getFullScreen()
-{
-  bool fullScreen;
-  if (m_windowManager) {
-    fullScreen = m_windowManager->getFullScreen();
-  }
-  else {
-    fullScreen = false;
-  }
-  return fullScreen;
 }
 
 GHOST_IWindow *GHOST_System::getWindowUnderCursor(int32_t x, int32_t y)
@@ -375,10 +292,6 @@ GHOST_TSuccess GHOST_System::init()
 
 GHOST_TSuccess GHOST_System::exit()
 {
-  if (getFullScreen()) {
-    endFullScreen();
-  }
-
   delete m_displayManager;
   m_displayManager = nullptr;
 
@@ -397,40 +310,6 @@ GHOST_TSuccess GHOST_System::exit()
 #endif
 
   return GHOST_kSuccess;
-}
-
-GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
-                                                    const GHOST_DisplaySetting &settings,
-                                                    const bool stereoVisual)
-{
-  GHOST_GPUSettings gpuSettings = {0};
-
-  if (stereoVisual) {
-    gpuSettings.flags |= GHOST_gpuStereoVisual;
-  }
-#if defined(WITH_OPENGL_BACKEND)
-  gpuSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
-#elif defined(WITH_METAL_BACKEND)
-  gpuSettings.context_type = GHOST_kDrawingContextTypeMetal;
-#elif defined(WITH_VULKAN_BACKEND)
-  gpuSettings.context_type = GHOST_kDrawingContextTypeVulkan;
-#else
-#  error
-#endif
-  /* NOTE: don't use #getCurrentDisplaySetting() because on X11 we may
-   * be zoomed in and the desktop may be bigger than the viewport. */
-  GHOST_ASSERT(m_displayManager,
-               "GHOST_System::createFullScreenWindow(): invalid display manager");
-  // GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");
-  *window = (GHOST_Window *)createWindow("",
-                                         0,
-                                         0,
-                                         settings.xPixels,
-                                         settings.yPixels,
-                                         GHOST_kWindowStateNormal,
-                                         gpuSettings,
-                                         true /*exclusive*/);
-  return (*window == nullptr) ? GHOST_kFailure : GHOST_kSuccess;
 }
 
 bool GHOST_System::useNativePixel()

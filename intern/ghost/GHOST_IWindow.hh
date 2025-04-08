@@ -354,10 +354,6 @@ class GHOST_IWindow {
     return GHOST_kSuccess;
   }
 
-  /** */
-  virtual GHOST_TSuccess beginFullScreen() const = 0;
-  virtual GHOST_TSuccess endFullScreen() const = 0;
-
   virtual float getNativePixelSize() = 0;
 
   /**
