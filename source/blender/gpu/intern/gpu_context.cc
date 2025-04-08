@@ -33,12 +33,12 @@
 #include "gpu_private.hh"
 #include "gpu_shader_private.hh"
 
+#ifdef WITH_VULKAN_BACKEND
+#  include "vk_backend.hh"
+#endif
 #ifdef WITH_OPENGL_BACKEND
 #  include "gl_backend.hh"
 #  include "gl_context.hh"
-#endif
-#ifdef WITH_VULKAN_BACKEND
-#  include "vk_backend.hh"
 #endif
 #ifdef WITH_METAL_BACKEND
 #  include "mtl_backend.hh"
