@@ -270,7 +270,6 @@ void UI_view2d_draw_scale_x__frames_or_seconds(const ARegion *region,
 /**
  * Draw scroll-bars in the given 2D-region.
  */
-void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_full_hide);
 void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom);
 
 /** \} */

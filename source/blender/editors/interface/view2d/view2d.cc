@@ -1493,7 +1493,7 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
   }
 }
 
-void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_full_hide)
+void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 {
   View2DScrollers scrollers;
   view2d_scrollers_calc(v2d, mask_custom, &scrollers);
@@ -1501,7 +1501,7 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
   rcti vert, hor;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   const char emboss_alpha = btheme->tui.widget_emboss[3];
-  const float alpha_min = use_full_hide ? 0.0f : V2D_SCROLL_MIN_ALPHA;
+  const float alpha_min = V2D_SCROLL_MIN_ALPHA;
 
   uchar scrollers_back_color[4];
 
@@ -1602,11 +1602,6 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
 
   /* Was changed above, so reset. */
   btheme->tui.widget_emboss[3] = emboss_alpha;
-}
-
-void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
-{
-  UI_view2d_scrollers_draw_ex(v2d, mask_custom, false);
 }
 
 /** \} */
