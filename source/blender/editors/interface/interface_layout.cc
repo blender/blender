@@ -955,6 +955,11 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
   const int start_size = block->buttons.size();
 
   ui_item_enum_expand_exec(layout, block, ptr, prop, uiname, h, UI_BTYPE_TAB, icon_only);
+
+  if (block->buttons.is_empty()) {
+    return;
+  }
+
   BLI_assert(start_size != block->buttons.size());
 
   for (int i = start_size; i < block->buttons.size(); i++) {

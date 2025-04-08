@@ -10,9 +10,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_scene_types.h"
+#include "DNA_space_types.h"
+#include "DNA_view2d_types.h"
+
 #include "BLI_bitmap.h"
 #include "BLI_listbase.h"
+#include "BLI_span.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -32,8 +38,11 @@
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
+#include "RNA_prototypes.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_c.hh"
+#include "UI_view2d.hh"
 
 #include "BLO_read_write.hh"
 
@@ -155,99 +164,88 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 /** \name Property Editor Layout
  * \{ */
 
-int ED_buttons_tabs_list(SpaceProperties *sbuts, short *context_tabs_array)
+void ED_buttons_visible_tabs_menu(bContext *C, uiLayout *layout, void * /*arg*/)
 {
-  int length = 0;
-  if (sbuts->pathflag & (1 << BCONTEXT_TOOL)) {
-    context_tabs_array[length] = BCONTEXT_TOOL;
-    length++;
-  }
-  if (length != 0) {
-    context_tabs_array[length] = -1;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_RENDER)) {
-    context_tabs_array[length] = BCONTEXT_RENDER;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_OUTPUT)) {
-    context_tabs_array[length] = BCONTEXT_OUTPUT;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_VIEW_LAYER)) {
-    context_tabs_array[length] = BCONTEXT_VIEW_LAYER;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_SCENE)) {
-    context_tabs_array[length] = BCONTEXT_SCENE;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_WORLD)) {
-    context_tabs_array[length] = BCONTEXT_WORLD;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_COLLECTION)) {
-    if (length != 0) {
-      context_tabs_array[length] = -1;
-      length++;
-    }
-    context_tabs_array[length] = BCONTEXT_COLLECTION;
-    length++;
-  }
-  if (length != 0) {
-    context_tabs_array[length] = -1;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_OBJECT)) {
-    context_tabs_array[length] = BCONTEXT_OBJECT;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_MODIFIER)) {
-    context_tabs_array[length] = BCONTEXT_MODIFIER;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_SHADERFX)) {
-    context_tabs_array[length] = BCONTEXT_SHADERFX;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_PARTICLE)) {
-    context_tabs_array[length] = BCONTEXT_PARTICLE;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_PHYSICS)) {
-    context_tabs_array[length] = BCONTEXT_PHYSICS;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_CONSTRAINT)) {
-    context_tabs_array[length] = BCONTEXT_CONSTRAINT;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_DATA)) {
-    context_tabs_array[length] = BCONTEXT_DATA;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_BONE)) {
-    context_tabs_array[length] = BCONTEXT_BONE;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_BONE_CONSTRAINT)) {
-    context_tabs_array[length] = BCONTEXT_BONE_CONSTRAINT;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_MATERIAL)) {
-    context_tabs_array[length] = BCONTEXT_MATERIAL;
-    length++;
-  }
-  if (length != 0) {
-    context_tabs_array[length] = -1;
-    length++;
-  }
-  if (sbuts->pathflag & (1 << BCONTEXT_TEXTURE)) {
-    context_tabs_array[length] = BCONTEXT_TEXTURE;
-    length++;
-  }
+  PointerRNA ptr = RNA_pointer_create_discrete(
+      reinterpret_cast<ID *>(CTX_wm_screen(C)), &RNA_SpaceProperties, CTX_wm_space_properties(C));
 
-  return length;
+  /* These can be reordered freely. */
+  constexpr std::array<blender::StringRefNull, BCONTEXT_TOT> filter_items = {
+      "show_properties_tool",
+      "show_properties_render",
+      "show_properties_output",
+      "show_properties_view_layer",
+      "show_properties_scene",
+      "show_properties_world",
+      "show_properties_collection",
+      "show_properties_object",
+      "show_properties_modifiers",
+      "show_properties_effects",
+      "show_properties_particles",
+      "show_properties_physics",
+      "show_properties_constraints",
+      "show_properties_data",
+      "show_properties_bone",
+      "show_properties_bone_constraints",
+      "show_properties_material",
+      "show_properties_texture",
+  };
+
+  for (blender::StringRefNull item : filter_items) {
+    uiItemR(layout, &ptr, item, UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
+  }
+}
+
+blender::Vector<eSpaceButtons_Context> ED_buttons_tabs_list(const SpaceProperties *sbuts,
+                                                            bool apply_filter)
+{
+  blender::Vector<eSpaceButtons_Context> tabs;
+  const int filter = sbuts->visible_tabs;
+
+  auto add_spacer = [&]() {
+    if (!tabs.is_empty() && tabs.last() != BCONTEXT_SEPARATOR) {
+      tabs.append(BCONTEXT_SEPARATOR);
+    }
+  };
+
+  auto add_tab = [&](eSpaceButtons_Context tab) {
+    if (sbuts->pathflag & (1 << tab) && (!apply_filter || filter & (1 << tab))) {
+      tabs.append(tab);
+    }
+  };
+
+  add_tab(BCONTEXT_TOOL);
+
+  add_spacer();
+
+  add_tab(BCONTEXT_RENDER);
+  add_tab(BCONTEXT_OUTPUT);
+  add_tab(BCONTEXT_VIEW_LAYER);
+  add_tab(BCONTEXT_SCENE);
+  add_tab(BCONTEXT_WORLD);
+
+  add_spacer();
+
+  add_tab(BCONTEXT_COLLECTION);
+
+  add_spacer();
+
+  add_tab(BCONTEXT_OBJECT);
+  add_tab(BCONTEXT_MODIFIER);
+  add_tab(BCONTEXT_SHADERFX);
+  add_tab(BCONTEXT_PARTICLE);
+  add_tab(BCONTEXT_PHYSICS);
+  add_tab(BCONTEXT_CONSTRAINT);
+  add_tab(BCONTEXT_DATA);
+  add_tab(BCONTEXT_BONE);
+  add_tab(BCONTEXT_BONE_CONSTRAINT);
+  add_tab(BCONTEXT_MATERIAL);
+
+  add_spacer();
+
+  add_tab(BCONTEXT_TEXTURE);
+
+  return tabs;
 }
 
 static const char *buttons_main_region_context_string(const short mainb)
@@ -355,14 +353,12 @@ static bool property_search_for_context(const bContext *C, ARegion *region, Spac
     return false;
   }
 
-  buttons_context_compute(C, sbuts);
   return ED_region_property_search(
       C, region, &region->runtime->type->paneltypes, contexts, nullptr);
 }
 
-static void property_search_move_to_next_tab_with_results(SpaceProperties *sbuts,
-                                                          const short *context_tabs_array,
-                                                          const int tabs_len)
+static void property_search_move_to_next_tab_with_results(
+    SpaceProperties *sbuts, blender::Span<eSpaceButtons_Context> context_tabs_array)
 {
   /* As long as all-tab search in the tool is disabled in the tool context, don't move from it. */
   if (sbuts->mainb == BCONTEXT_TOOL) {
@@ -370,7 +366,7 @@ static void property_search_move_to_next_tab_with_results(SpaceProperties *sbuts
   }
 
   int current_tab_index = 0;
-  for (int i = 0; i < tabs_len; i++) {
+  for (int i = 0; i < context_tabs_array.size(); i++) {
     if (sbuts->mainb == context_tabs_array[i]) {
       current_tab_index = i;
       break;
@@ -378,7 +374,7 @@ static void property_search_move_to_next_tab_with_results(SpaceProperties *sbuts
   }
 
   /* Try the tabs after the current tab. */
-  for (int i = current_tab_index; i < tabs_len; i++) {
+  for (int i = current_tab_index; i < context_tabs_array.size(); i++) {
     if (BLI_BITMAP_TEST(sbuts->runtime->tab_search_results, i)) {
       sbuts->mainbuser = context_tabs_array[i];
       return;
@@ -397,8 +393,7 @@ static void property_search_move_to_next_tab_with_results(SpaceProperties *sbuts
 static void property_search_all_tabs(const bContext *C,
                                      SpaceProperties *sbuts,
                                      ARegion *region_original,
-                                     const short *context_tabs_array,
-                                     const int tabs_len)
+                                     blender::Span<eSpaceButtons_Context> context_tabs_array)
 {
   /* Use local copies of the area and duplicate the region as a mainly-paranoid protection
    * against changing any of the space / region data while running the search. */
@@ -420,7 +415,7 @@ static void property_search_all_tabs(const bContext *C,
   BLI_addtail(&area_copy.spacedata, &sbuts_copy);
 
   /* Loop through the tabs added to the properties editor. */
-  for (int i = 0; i < tabs_len; i++) {
+  for (int i = 0; i < context_tabs_array.size(); i++) {
     /* -1 corresponds to a spacer. */
     if (context_tabs_array[i] == -1) {
       continue;
@@ -458,10 +453,9 @@ static void buttons_main_region_property_search(const bContext *C,
                                                 ARegion *region)
 {
   /* Theoretical maximum of every context shown with a spacer between every tab. */
-  short context_tabs_array[BCONTEXT_TOT * 2];
-  int tabs_len = ED_buttons_tabs_list(sbuts, context_tabs_array);
+  const blender::Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
 
-  property_search_all_tabs(C, sbuts, region, context_tabs_array, tabs_len);
+  property_search_all_tabs(C, sbuts, region, context_tabs_array);
 
   /* Check whether the current tab has a search match. */
   bool current_tab_has_search_match = false;
@@ -473,7 +467,7 @@ static void buttons_main_region_property_search(const bContext *C,
 
   /* Find which index in the list the current tab corresponds to. */
   int current_tab_index = -1;
-  for (int i = 0; i < tabs_len; i++) {
+  for (const int i : context_tabs_array.index_range()) {
     if (context_tabs_array[i] == sbuts->mainb) {
       current_tab_index = i;
     }
@@ -487,7 +481,7 @@ static void buttons_main_region_property_search(const bContext *C,
   /* Move to the next tab with a result */
   if (!current_tab_has_search_match) {
     if (region->flag & RGN_FLAG_SEARCH_FILTER_UPDATE) {
-      property_search_move_to_next_tab_with_results(sbuts, context_tabs_array, tabs_len);
+      property_search_move_to_next_tab_with_results(sbuts, context_tabs_array);
     }
   }
 }
@@ -498,10 +492,73 @@ static void buttons_main_region_property_search(const bContext *C,
 /** \name Main Region Layout and Listener
  * \{ */
 
+static eSpaceButtons_Context find_new_properties_tab(const SpaceProperties *sbuts, int iter_step)
+{
+  using namespace blender;
+  const Vector<eSpaceButtons_Context> tabs_array_no_filter = ED_buttons_tabs_list(sbuts, false);
+  const Vector<eSpaceButtons_Context> tabs_array = ED_buttons_tabs_list(sbuts);
+
+  const int old_index = tabs_array_no_filter.first_index_of(eSpaceButtons_Context(sbuts->mainb));
+
+  /* Try to find next tab to switch to. */
+  eSpaceButtons_Context new_tab = BCONTEXT_SEPARATOR;
+  for (int i = old_index; i < tabs_array_no_filter.size(); i += iter_step) {
+    const eSpaceButtons_Context candidate_tab = tabs_array_no_filter[i];
+
+    if (candidate_tab == BCONTEXT_SEPARATOR) {
+      continue;
+    }
+
+    const int found_tab_index = tabs_array.first_index_of_try(candidate_tab);
+
+    if (found_tab_index != -1) {
+      new_tab = tabs_array[found_tab_index];
+      break;
+    }
+  }
+
+  return new_tab;
+}
+
+/* Change active tab, if it was hidden. */
+static void buttons_apply_filter(SpaceProperties *sbuts)
+{
+  const bool tab_was_hidden = ((1 << sbuts->mainb) & sbuts->visible_tabs) == 0;
+  if (!tab_was_hidden) {
+    return;
+  }
+
+  eSpaceButtons_Context new_tab = find_new_properties_tab(sbuts, +1);
+
+  /* Try to find previous tab to switch to. */
+  if (int(new_tab) == -1) {
+    new_tab = find_new_properties_tab(sbuts, -1);
+  }
+
+  if (int(new_tab) == -1) {
+    new_tab = eSpaceButtons_Context(1 << BCONTEXT_TOOL);
+    BLI_assert_unreachable();
+  }
+
+  sbuts->mainb = new_tab;
+  sbuts->mainbuser = new_tab;
+}
+
 static void buttons_main_region_layout(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
+
+  /* Needed for RNA to get the good values! */
+  buttons_context_compute(C, sbuts);
+
+  if (ED_buttons_tabs_list(sbuts).is_empty()) {
+    View2D *v2d = UI_view2d_fromcontext(C);
+    v2d->scroll &= ~V2D_SCROLL_VERTICAL;
+    return;
+  }
+
+  buttons_apply_filter(sbuts);
 
   if (sbuts->mainb == BCONTEXT_TOOL) {
     ED_view3d_buttons_region_layout_ex(C, region, "Tool");

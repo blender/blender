@@ -56,6 +56,7 @@
 
 #include "ED_anim_api.hh"
 #include "ED_armature.hh"
+#include "ED_buttons.hh"
 #include "ED_fileselect.hh"
 #include "ED_image.hh"
 #include "ED_keyframes_keylist.hh"
@@ -5243,6 +5244,11 @@ static wmOperatorStatus screen_context_menu_invoke(bContext *C,
       uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Navigation Bar"), ICON_NONE);
       uiLayout *layout = UI_popup_menu_layout(pup);
       ED_screens_region_flip_menu_create(C, layout, nullptr);
+      const ScrArea *area = CTX_wm_area(C);
+      if (area && area->spacetype == SPACE_PROPERTIES) {
+        uiItemMenuF(
+            layout, IFACE_("Visible Tabs"), ICON_NONE, ED_buttons_visible_tabs_menu, nullptr);
+      }
       UI_popup_menu_end(C, pup);
     }
   }

@@ -33,6 +33,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_space_types.h"
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
@@ -6695,6 +6696,20 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 19)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_PROPERTIES) {
+            SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(sl);
+            /* Translates to 0xFFFFFFFF, so other tabs can be added without versioning. */
+            sbuts->visible_tabs = uint(-1);
+          }
+        }
+      }
+    }
   }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to

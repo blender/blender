@@ -26,6 +26,7 @@
 #include "BKE_screen.hh"
 
 #include "ED_asset.hh"
+#include "ED_buttons.hh"
 #include "ED_keyframing.hh"
 #include "ED_screen.hh"
 
@@ -1377,6 +1378,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                   ICON_NONE,
                   ED_screens_region_flip_menu_create,
                   nullptr);
+      const ScrArea *area = CTX_wm_area(C);
+      if (area && area->spacetype == SPACE_PROPERTIES) {
+        uiItemMenuF(
+            layout, IFACE_("Visible Tabs"), ICON_NONE, ED_buttons_visible_tabs_menu, nullptr);
+      }
     }
     else if (region->regiontype == RGN_TYPE_FOOTER) {
       uiItemMenuF(
