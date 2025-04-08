@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BLI_bounds.hh"
 #include "BLI_map.hh"
 #include "BLI_memory_counter.hh"
@@ -219,6 +221,9 @@ std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances(
 std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
 {
   Vector<std::string> parts;
+  if (!geometry_set.name.empty()) {
+    parts.append(fmt::format("\"{}\"", geometry_set.name));
+  }
   if (const Mesh *mesh = geometry_set.get_mesh()) {
     parts.append(std::to_string(mesh->verts_num) + " verts");
     parts.append(std::to_string(mesh->edges_num) + " edges");
