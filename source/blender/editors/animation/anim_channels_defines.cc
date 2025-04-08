@@ -4641,7 +4641,33 @@ const bAnimChannelType *ANIM_channel_get_typeinfo(const bAnimListElem *ale)
 
 /* --------------------------- */
 
-void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
+static blender::StringRefNull setting_name(const eAnimChannel_Settings setting)
+{
+  switch (setting) {
+    case ACHANNEL_SETTING_SELECT:
+      return "SELECT";
+    case ACHANNEL_SETTING_PROTECT:
+      return "PROTECT";
+    case ACHANNEL_SETTING_MUTE:
+      return "MUTE";
+    case ACHANNEL_SETTING_EXPAND:
+      return "EXPAND";
+    case ACHANNEL_SETTING_VISIBLE:
+      return "VISIBLE";
+    case ACHANNEL_SETTING_SOLO:
+      return "SOLO";
+    case ACHANNEL_SETTING_PINNED:
+      return "PINNED";
+    case ACHANNEL_SETTING_MOD_OFF:
+      return "MOD_OFF";
+    case ACHANNEL_SETTING_ALWAYS_VISIBLE:
+      return "ALWAYS_VISIBLE";
+  }
+
+  return "unknown setting";
+}
+
+void ANIM_channel_debug_print_info(bAnimContext &ac, bAnimListElem *ale, short indent_level)
 {
   const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 
@@ -4651,26 +4677,73 @@ void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
   }
 
   /* print info */
-  if (acf) {
-    char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
-
-    /* get UI name */
-    if (acf->name) {
-      acf->name(ale, name);
-    }
-    else {
-      STRNCPY(name, "<No name>");
-    }
-
-    /* print type name + ui name */
-    printf("ChanType: <%s> Name: \"%s\"\n", acf->channel_type_name, name);
+  if (!ale) {
+    printf("<Invalid channel - nullptr>\n");
+    return;
   }
-  else if (ale) {
+
+  if (!acf) {
     printf("ChanType: <Unknown - %d>\n", ale->type);
+    return;
+  }
+
+  /* Get UI name. */
+  char name[ANIM_CHAN_NAME_SIZE];
+  if (acf->name) {
+    acf->name(ale, name);
   }
   else {
-    printf("<Invalid channel - nullptr>\n");
+    STRNCPY(name, "<No name>");
   }
+
+  printf("ChanType: <%-25s> Name: \"%-32s\"\n       ", acf->channel_type_name, name);
+
+  /* Print settings. */
+  blender::Vector<eAnimChannel_Settings> settings = {
+      ACHANNEL_SETTING_SELECT,
+      ACHANNEL_SETTING_PROTECT,
+      ACHANNEL_SETTING_MUTE,
+      ACHANNEL_SETTING_EXPAND,
+      ACHANNEL_SETTING_VISIBLE,
+      ACHANNEL_SETTING_SOLO,
+      ACHANNEL_SETTING_PINNED,
+      ACHANNEL_SETTING_MOD_OFF,
+      ACHANNEL_SETTING_ALWAYS_VISIBLE,
+  };
+  for (const eAnimChannel_Settings setting : settings) {
+    if (!acf->has_setting(&ac, ale, setting)) {
+      continue;
+    }
+
+    bool is_neg = false;
+    const int setting_flag = acf->setting_flag(&ac, setting, &is_neg);
+
+    short setting_type = 0;
+    const void *setting_ptr = acf->setting_ptr(ale, setting, &setting_type);
+
+    bool setting_value = false;
+    switch (setting_type) {
+      case sizeof(int): {
+        const int as_int = *static_cast<const int *>(setting_ptr);
+        setting_value = bool(as_int & setting_flag) != is_neg;
+        break;
+      }
+      case sizeof(short): {
+        const short as_short = *static_cast<const short *>(setting_ptr);
+        setting_value = bool(as_short & static_cast<short>(setting_flag)) != is_neg;
+        break;
+      }
+      default:
+        BLI_assert_unreachable();
+    }
+
+    std::string show_name = setting_name(setting);
+    if (!setting_value) {
+      BLI_str_tolower_ascii(show_name.data(), show_name.length());
+    }
+    printf("%-15s", show_name.c_str());
+  }
+  printf("\n");
 }
 
 bAction *ANIM_channel_action_get(const bAnimListElem *ale)

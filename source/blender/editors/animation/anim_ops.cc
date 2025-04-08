@@ -709,7 +709,7 @@ static wmOperatorStatus debug_channel_list_exec(bContext *C, wmOperator * /*op*/
   printf("----------------------------------------------\n");
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    ANIM_channel_debug_print_info(ale, 1);
+    ANIM_channel_debug_print_info(ac, ale, 1);
   }
 
   printf("==============================================\n");
