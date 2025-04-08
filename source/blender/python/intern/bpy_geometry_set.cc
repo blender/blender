@@ -276,6 +276,9 @@ PyDoc_STRVAR(
 static PyObject *BPy_GeometrySet_get_mesh(BPy_GeometrySet *self, void * /*closure*/)
 {
   Mesh *base_mesh = self->geometry.get_mesh_for_write();
+  if (!base_mesh) {
+    Py_RETURN_NONE;
+  }
   Mesh *mesh = BKE_mesh_wrapper_ensure_subdivision(base_mesh);
   return pyrna_id_CreatePyObject(reinterpret_cast<ID *>(mesh));
 }
