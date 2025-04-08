@@ -564,6 +564,7 @@ GPUSecondaryContext::GPUSecondaryContext()
   GHOST_TSuccess success = GHOST_ReleaseGPUContext(
       reinterpret_cast<GHOST_ContextHandle>(ghost_context_));
   BLI_assert(success);
+  UNUSED_VARS_NDEBUG(success);
 
   /* Restore the main thread contexts.
    * (required as the above context creation also makes it active). */
