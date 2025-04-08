@@ -9,6 +9,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_report.hh"
 
 #include "DNA_scene_types.h"
 
@@ -433,6 +434,7 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
       scene->toolsettings, object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   if (!grease_pencil.has_active_layer()) {
+    BKE_report(op->reports, RPT_ERROR, "No active layer");
     return OPERATOR_CANCELLED;
   }
 
