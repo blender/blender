@@ -16,6 +16,7 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_rotation_legacy.hh"
@@ -182,14 +183,18 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
   mat.y_axis() = math::cross(area_normal, mat.x_axis());
   mat.z_axis() = area_normal;
   mat.location() = ss.cache->location_symm;
-  mat = math::normalize(mat);
+  /* NOTE: #math::normalize behaves differently for some reason. */
+  normalize_m4(mat.ptr());
 
   /* Scale brush local space matrix. */
   float4x4 scale = math::from_scale<float4x4>(float3(ss.cache->radius));
   const float4x4 tmat = mat * scale;
 
-  const float3 normal_tilt = math::rotate_direction_around_axis(
-      area_position, tmat.x_axis(), DEG2RADF(-ss.cache->clay_thumb_brush.front_angle));
+  float3 normal_tilt;
+  rotate_v3_v3v3fl(normal_tilt,
+                   area_position,
+                   tmat.x_axis(),
+                   DEG2RADF(-ss.cache->clay_thumb_brush.front_angle));
 
   /* Tilted plane (front part of the brush). */
   float4 plane_tilt;
