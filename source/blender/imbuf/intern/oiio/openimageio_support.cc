@@ -189,8 +189,14 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, ImFileColorS
 
     set_file_colorspace(r_colorspace, ctx, spec, is_float);
 
-    float x_res = spec.get_float_attribute("XResolution", 0.0f);
-    float y_res = spec.get_float_attribute("YResolution", 0.0f);
+    double x_res = spec.get_float_attribute("XResolution", 0.0f);
+    double y_res = spec.get_float_attribute("YResolution", 0.0f);
+    /* Some formats store the resolution as integers. */
+    if (!(x_res > 0.0f && y_res > 0.0f)) {
+      x_res = spec.get_int_attribute("XResolution", 0);
+      y_res = spec.get_int_attribute("XResolution", 0);
+    }
+
     if (x_res > 0.0f && y_res > 0.0f) {
       double scale = 1.0;
       auto unit = spec.get_string_attribute("ResolutionUnit", "");
@@ -427,10 +433,18 @@ ImageSpec imb_create_write_spec(const WriteContext &ctx, int file_channels, Type
   }
 
   if (ctx.ibuf->ppm[0] > 0.0 && ctx.ibuf->ppm[1] > 0.0) {
-    /* More OIIO formats support inch than meter. */
-    file_spec.attribute("ResolutionUnit", "in");
-    file_spec.attribute("XResolution", float(ctx.ibuf->ppm[0] * 0.0254));
-    file_spec.attribute("YResolution", float(ctx.ibuf->ppm[1] * 0.0254));
+    if (STREQ(ctx.file_format, "bmp")) {
+      /* BMP only supports meters as integers. */
+      file_spec.attribute("ResolutionUnit", "m");
+      file_spec.attribute("XResolution", int(round(ctx.ibuf->ppm[0])));
+      file_spec.attribute("YResolution", int(round(ctx.ibuf->ppm[1])));
+    }
+    else {
+      /* More OIIO formats support inch than meter. */
+      file_spec.attribute("ResolutionUnit", "in");
+      file_spec.attribute("XResolution", float(ctx.ibuf->ppm[0] * 0.0254));
+      file_spec.attribute("YResolution", float(ctx.ibuf->ppm[1] * 0.0254));
+    }
   }
 
   return file_spec;
