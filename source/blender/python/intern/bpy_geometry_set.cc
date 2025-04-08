@@ -4,6 +4,13 @@
 
 /** \file
  * \ingroup pythonintern
+ *
+ * This file contains the `bpy.types.GeometrySet` Python API which is a wrapper for the internal
+ * `GeometrySet` type.
+ *
+ * It's not implemented as RNA type because a `GeometrySet` is standalone (i.e. is not necessarily
+ * owned by anything else in Blender like an ID), is wrapping a DNA type and is itself a
+ * non-trivial owner of other data (like sub-geometries).
  */
 
 #include <sstream>
