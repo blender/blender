@@ -1065,6 +1065,7 @@ static wmOperatorStatus node_resize_modal(bContext *C, wmOperator *op, const wmE
 
       if (node) {
         float *pwidth = &node->width;
+        float *pheight = &node->height;
         float oldwidth = nsw->oldwidth;
         float widthmin = node->typeinfo->minwidth;
         float widthmax = node->typeinfo->maxwidth;
@@ -1096,14 +1097,21 @@ static wmOperatorStatus node_resize_modal(bContext *C, wmOperator *op, const wmE
           float heightmax = UI_SCALE_FAC * node->typeinfo->maxheight;
           if (nsw->directions & NODE_RESIZE_TOP) {
             float locmin = nsw->oldlocy - nsw->oldheight;
+            *pheight = nsw->oldheight + dy;
 
-            node->location[1] = nsw->oldlocy + dy;
-            CLAMP(node->location[1], locmin + heightmin, locmin + heightmax);
-            node->height = node->location[1] - locmin;
+            if (nsw->snap_to_grid) {
+              *pheight = nearest_node_grid_coord(*pheight);
+            }
+            CLAMP(*pheight, heightmin, heightmax);
+            node->location[1] = locmin + *pheight;
           }
           if (nsw->directions & NODE_RESIZE_BOTTOM) {
-            node->height = nsw->oldheight - dy;
-            CLAMP(node->height, heightmin, heightmax);
+            *pheight = nsw->oldheight - dy;
+
+            if (nsw->snap_to_grid) {
+              *pheight = nearest_node_grid_coord(*pheight);
+            }
+            CLAMP(*pheight, heightmin, heightmax);
           }
         }
       }
