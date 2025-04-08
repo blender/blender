@@ -93,7 +93,7 @@ void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype)
 
   const bool is_render = (owner_id && GS(owner_id->name) == ID_SCE);
   /* see note below on why this is */
-  const char chan_flag = BKE_imtype_valid_channels(imf->imtype, true) |
+  const char chan_flag = BKE_imtype_valid_channels(imf->imtype) |
                          (is_render ? IMA_CHAN_FLAG_BW : 0);
 
   /* ensure depth and color settings match */
@@ -287,17 +287,13 @@ bool BKE_imtype_requires_linear_float(const char imtype)
   return false;
 }
 
-char BKE_imtype_valid_channels(const char imtype, bool write_file)
+char BKE_imtype_valid_channels(const char imtype)
 {
   char chan_flag = IMA_CHAN_FLAG_RGB; /* Assume all support RGB. */
 
   /* Alpha. */
   switch (imtype) {
     case R_IMF_IMTYPE_BMP:
-      if (write_file) {
-        break;
-      }
-      ATTR_FALLTHROUGH;
     case R_IMF_IMTYPE_TARGA:
     case R_IMF_IMTYPE_RAWTGA:
     case R_IMF_IMTYPE_IRIS:

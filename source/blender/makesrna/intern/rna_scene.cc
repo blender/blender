@@ -1393,8 +1393,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
    * where 'BW' will force grayscale even if the output format writes
    * as RGBA, this is age old blender convention and not sure how useful
    * it really is but keep it for now. */
-  char chan_flag = BKE_imtype_valid_channels(imf->imtype, true) |
-                   (is_render ? IMA_CHAN_FLAG_BW : 0);
+  char chan_flag = BKE_imtype_valid_channels(imf->imtype) | (is_render ? IMA_CHAN_FLAG_BW : 0);
 
   /* a WAY more crappy case than B&W flag: depending on codec, file format MIGHT support
    * alpha channel. for example MPEG format with h264 codec can't do alpha channel, but
