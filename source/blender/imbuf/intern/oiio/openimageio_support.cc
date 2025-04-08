@@ -194,7 +194,7 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, ImFileColorS
     /* Some formats store the resolution as integers. */
     if (!(x_res > 0.0f && y_res > 0.0f)) {
       x_res = spec.get_int_attribute("XResolution", 0);
-      y_res = spec.get_int_attribute("XResolution", 0);
+      y_res = spec.get_int_attribute("YResolution", 0);
     }
 
     if (x_res > 0.0f && y_res > 0.0f) {
