@@ -174,12 +174,10 @@ extern LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
     std::string version;
 #    ifndef BUILD_DATE
     const char *build_hash = G_MAIN ? G_MAIN->build_hash : "unknown";
-    version = std::string("version: ") + BKE_blender_version_string() + ", hash: `" + build_hash +
-              "`";
+    version = std::string(BKE_blender_version_string()) + ", hash: `" + build_hash + "`";
 #    else
-    version = std::string("version: ") + BKE_blender_version_string() +
-              ", Commit date: " + build_commit_date + " " + build_commit_time + ", hash: `" +
-              build_hash + "`";
+    version = std::string(BKE_blender_version_string()) + ", Commit date: " + build_commit_date +
+              " " + build_commit_time + ", hash: `" + build_hash + "`";
 #    endif
 
     char filepath_crashlog[FILE_MAX];
