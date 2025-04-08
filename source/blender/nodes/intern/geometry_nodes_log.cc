@@ -666,6 +666,11 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
   {
     tree_logger.parent_node_id.emplace(typed_compute_context->output_node_id());
   }
+  else if (const bke::EvaluateClosureComputeContext *typed_compute_context =
+               dynamic_cast<const bke::EvaluateClosureComputeContext *>(&compute_context))
+  {
+    tree_logger.parent_node_id.emplace(typed_compute_context->node_id());
+  }
   return tree_logger;
 }
 
