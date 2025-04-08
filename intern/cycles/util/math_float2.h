@@ -143,6 +143,18 @@ ccl_device_inline bool isequal(const float2 a, const float2 b)
 #endif
 }
 
+template<class MaskType>
+ccl_device_inline float2 select(const MaskType mask, const float2 a, const float2 b)
+{
+  return make_float2((mask.x) ? a.x : b.x, (mask.y) ? a.y : b.y);
+}
+
+template<class MaskType> ccl_device_inline float2 mask(const MaskType mask, const float2 a)
+{
+  /* Replace elements of x with zero where mask isn't set. */
+  return select(mask, a, zero_float2());
+}
+
 ccl_device_inline float len(const float2 a)
 {
   return sqrtf(dot(a, a));

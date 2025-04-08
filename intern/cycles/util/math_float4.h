@@ -533,27 +533,31 @@ ccl_device_inline bool isequal(const float4 a, const float4 b)
 #endif
 }
 
-#ifndef __KERNEL_GPU__
-ccl_device_inline float4 select(const int4 mask, const float4 a, const float4 b)
+template<class MaskType>
+ccl_device_inline float4 select(const MaskType mask, const float4 a, const float4 b)
 {
-#  ifdef __KERNEL_SSE__
-#    ifdef __KERNEL_SSE42__
+#if defined(__KERNEL_METAL__)
+  return metal::select(b, a, bool4(mask));
+#elif defined(__KERNEL_SSE__)
+#  ifdef __KERNEL_SSE42__
   return float4(_mm_blendv_ps(b.m128, a.m128, _mm_castsi128_ps(mask.m128)));
-#    else
+#  else
   return float4(
       _mm_or_ps(_mm_and_ps(_mm_castsi128_ps(mask), a), _mm_andnot_ps(_mm_castsi128_ps(mask), b)));
-#    endif
-#  else
+#  endif
+#else
   return make_float4(
       (mask.x) ? a.x : b.x, (mask.y) ? a.y : b.y, (mask.z) ? a.z : b.z, (mask.w) ? a.w : b.w);
-#  endif
+#endif
 }
 
-ccl_device_inline float4 mask(const int4 mask, const float4 a)
+template<class MaskType> ccl_device_inline float4 mask(const MaskType mask, const float4 a)
 {
   /* Replace elements of x with zero where mask isn't set. */
   return select(mask, a, zero_float4());
 }
+
+#ifndef __KERNEL_GPU__
 
 ccl_device_inline float4 load_float4(const ccl_private float *v)
 {
