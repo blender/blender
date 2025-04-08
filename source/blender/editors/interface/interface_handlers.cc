@@ -12038,6 +12038,28 @@ static int ui_handle_region_semi_modal_buttons(bContext *C, const wmEvent *event
   return retval;
 }
 
+/* Return true if we should open another menu while one is already open. */
+static bool ui_can_activate_other_menu(uiBut *but, uiBut *but_other)
+{
+  if (but_other->flag & UI_BUT_DISABLED) {
+    return false;
+  }
+
+  uiHandleButtonData *data = but->active;
+  if (!(data->menu->direction & (UI_DIR_DOWN | UI_DIR_UP))) {
+    return true;
+  }
+
+  if (data->menu && data->menu->region &&
+      (BLI_rcti_size_x(&data->menu->region->winrct) > (600.0f * UI_SCALE_FAC)))
+  {
+    /* If the open menu is super wide then don't switch to any neighbors. */
+    return false;
+  }
+
+  return true;
+}
+
 /* handle buttons at the window level, modal, for example while
  * number sliding, text editing, or when a menu block is open */
 static int ui_handler_region_menu(bContext *C, const wmEvent *event, void * /*userdata*/)
@@ -12074,7 +12096,7 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void * /*us
     {
       /* if mouse moves to a different root-level menu button,
        * open it to replace the current menu */
-      if ((but_other->flag & UI_BUT_DISABLED) == 0) {
+      if (ui_can_activate_other_menu(but, but_other)) {
         ui_handle_button_activate(C, region, but_other, BUTTON_ACTIVATE_OVER);
         button_activate_state(C, but_other, BUTTON_STATE_MENU_OPEN);
         retval = WM_UI_HANDLER_BREAK;
