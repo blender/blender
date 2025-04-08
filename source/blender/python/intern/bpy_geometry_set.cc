@@ -59,10 +59,12 @@ static BPy_GeometrySet *python_object_from_geometry_set(GeometrySet geometry = {
   return self;
 }
 
-static PyObject *BPy_GeometrySet_new(PyTypeObject * /*type*/,
-                                     PyObject * /*args*/,
-                                     PyObject * /*kwds*/)
+static PyObject *BPy_GeometrySet_new(PyTypeObject * /*type*/, PyObject *args, PyObject *kwds)
 {
+  static const char *kwlist[] = {nullptr};
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", const_cast<char **>(kwlist))) {
+    return nullptr;
+  }
   return reinterpret_cast<PyObject *>(python_object_from_geometry_set());
 }
 
