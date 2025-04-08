@@ -540,16 +540,14 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
   const float offset = SCULPT_brush_plane_offset_get(sd, ss);
   const float displace = -radius * offset;
 
-  float3 area_no_sp;
-  float3 area_co;
-  calc_brush_plane(depsgraph, brush, object, node_mask, area_no_sp, area_co);
+  float3 sculpt_plane_normal;
+  float3 area_position;
+  calc_brush_plane(depsgraph, brush, object, node_mask, sculpt_plane_normal, area_position);
 
-  float3 area_no;
+  float3 area_normal = sculpt_plane_normal;
+  /* Ignore brush settings and recalculate the area normal. */
   if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    area_no = calc_area_normal(depsgraph, brush, object, node_mask).value_or(float3(0));
-  }
-  else {
-    area_no = area_no_sp;
+    area_normal = calc_area_normal(depsgraph, brush, object, node_mask).value_or(float3(0));
   }
 
   /* Delay the first daub because grab delta is not setup. */
@@ -562,13 +560,13 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
     return;
   }
 
-  area_co += area_no_sp * ss.cache->scale * displace;
+  area_position += area_normal * ss.cache->scale * displace;
 
   /* Init brush local space matrix. */
   float4x4 mat = float4x4::identity();
-  mat.x_axis() = math::cross(area_no, ss.cache->grab_delta_symm);
-  mat.y_axis() = math::cross(area_no, mat.x_axis());
-  mat.z_axis() = area_no;
+  mat.x_axis() = math::cross(area_normal, ss.cache->grab_delta_symm);
+  mat.y_axis() = math::cross(area_normal, mat.x_axis());
+  mat.z_axis() = area_normal;
   mat.location() = ss.cache->location_symm;
   /* NOTE: #math::normalize behaves differently for some reason. */
   normalize_m4(mat.ptr());
@@ -603,7 +601,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
         math::normalize(sample->area_nos[1] * 1.0f / float(sample->area_count[1]))};
 
     float sampled_angle = angle_v3v3(sampled_plane_normals[0], sampled_plane_normals[1]);
-    const std::array<float3, 2> sampled_cv{area_no, ss.cache->location_symm - mid_co};
+    const std::array<float3, 2> sampled_cv{area_normal, ss.cache->location_symm - mid_co};
 
     sampled_angle += DEG2RADF(brush.multiplane_scrape_angle) * ss.cache->pressure;
 
@@ -618,7 +616,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
       sampled_angle = 0.0f;
     }
     else {
-      area_co = ss.cache->location_symm;
+      area_position = ss.cache->location_symm;
     }
 
     /* Interpolate between the previous and new sampled angles to avoid artifacts when if angle
@@ -628,7 +626,7 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
   }
   else {
     /* Standard mode: Scrape with the brush property fixed angle. */
-    area_co = ss.cache->location_symm;
+    area_position = ss.cache->location_symm;
     ss.cache->multiplane_scrape_angle = brush.multiplane_scrape_angle;
     if (flip) {
       ss.cache->multiplane_scrape_angle *= -1.0f;
@@ -643,19 +641,19 @@ void do_multiplane_scrape_brush(const Depsgraph &depsgraph,
 
   std::array<float4, 2> multiplane_scrape_planes;
 
-  mul_v3_mat3_m4v3(plane_no, mat.ptr(), area_no);
+  mul_v3_mat3_m4v3(plane_no, mat.ptr(), area_normal);
   rotate_v3_v3v3fl(
       plane_no_rot, plane_no, y_axis, DEG2RADF(-ss.cache->multiplane_scrape_angle * 0.5f));
   mul_v3_mat3_m4v3(plane_no, mat_inv.ptr(), plane_no_rot);
   normalize_v3(plane_no);
-  plane_from_point_normal_v3(multiplane_scrape_planes[1], area_co, plane_no);
+  plane_from_point_normal_v3(multiplane_scrape_planes[1], area_position, plane_no);
 
-  mul_v3_mat3_m4v3(plane_no, mat.ptr(), area_no);
+  mul_v3_mat3_m4v3(plane_no, mat.ptr(), area_normal);
   rotate_v3_v3v3fl(
       plane_no_rot, plane_no, y_axis, DEG2RADF(ss.cache->multiplane_scrape_angle * 0.5f));
   mul_v3_mat3_m4v3(plane_no, mat_inv.ptr(), plane_no_rot);
   normalize_v3(plane_no);
-  plane_from_point_normal_v3(multiplane_scrape_planes[0], area_co, plane_no);
+  plane_from_point_normal_v3(multiplane_scrape_planes[0], area_position, plane_no);
 
   const float strength = std::abs(ss.cache->bstrength);
 
