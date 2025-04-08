@@ -677,6 +677,9 @@ class NODE_MT_category_GEO_UTILITIES_FIELD(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeAccumulateField")
         node_add_menu.add_node_type(layout, "GeometryNodeFieldAtIndex")
         node_add_menu.add_node_type(layout, "GeometryNodeFieldOnDomain")
+        node_add_menu.add_node_type(layout, "GeometryNodeFieldAverage")
+        node_add_menu.add_node_type(layout, "GeometryNodeFieldMinAndMax")
+        node_add_menu.add_node_type(layout, "GeometryNodeFieldVariance")
         node_add_menu.draw_assets_for_catalog(layout, "Utilities/Field")
 
 
