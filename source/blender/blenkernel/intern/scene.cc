@@ -3197,12 +3197,15 @@ void BKE_scene_ppm_get(const RenderData *rd, double r_ppm[2])
     r_ppm[0] = 0.0;
     r_ppm[1] = 0.0;
   }
+  /* Non-square aspects result in a lower density on one dimension to indicate
+   * the image should be stretched to match the original size causing the pixel
+   * density to be lower on that dimension. */
   double xasp = 1.0, yasp = 1.0;
   if (rd->xasp < rd->yasp) {
-    yasp = double(rd->yasp) / double(rd->xasp);
+    yasp = double(rd->xasp) / double(rd->yasp);
   }
   else if (rd->xasp > rd->yasp) {
-    xasp = double(rd->xasp) / double(rd->yasp);
+    xasp = double(rd->yasp) / double(rd->xasp);
   }
 
   const double ppm_base = rd->ppm_base;
