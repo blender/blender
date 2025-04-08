@@ -17,6 +17,7 @@ are supported.
 import bpy
 import keyingsets_utils
 from bpy.types import KeyingSetInfo
+from bpy_extras import anim_utils
 
 ###############################
 # Built-In KeyingSets
@@ -355,7 +356,13 @@ class BUILTIN_KSI_Available(KeyingSetInfo):
         ob = context.active_object
         if ob:
             # TODO: this fails if one animation-less object is active, but many others are selected
-            return ob.animation_data and ob.animation_data.action
+            adt = ob.animation_data
+            if not adt:
+                return False
+            cbag = anim_utils.action_get_channelbag_for_slot(adt.action, adt.action_slot)
+            if not cbag:
+                return False
+            return bool(cbag.fcurves)
         else:
             return bool(context.selected_objects)
 

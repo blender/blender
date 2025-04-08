@@ -75,12 +75,19 @@ class BakeOptions:
     """Bake custom properties."""
 
 
-def action_get_channelbag_for_slot(action: Action, slot: ActionSlot) -> ActionChannelbag | None:
+def action_get_channelbag_for_slot(action: Action | None, slot: ActionSlot | None) -> ActionChannelbag | None:
     """
     Returns the first channelbag found for the slot.
     In case there are multiple layers or strips they are iterated until a
     channelbag for that slot is found. In case no matching channelbag is found, returns None.
     """
+    if not action or not slot:
+        # This is just for convenience so that you can call
+        # action_get_channelbag_for_slot(adt.action, adt.action_slot) and check
+        # the return value for None, without having to also check the action and
+        # the slot for None.
+        return None
+
     for layer in action.layers:
         for strip in layer.strips:
             channelbag = strip.channelbag(slot)
