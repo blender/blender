@@ -169,7 +169,9 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ct
   /* Physical device selection */
   XrVulkanGraphicsDeviceGetInfoKHR xr_device_get_info = {
       XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR, nullptr, system_id, m_vk_instance};
-  s_xrGetVulkanGraphicsDevice2KHR_fn(instance, &xr_device_get_info, &m_vk_physical_device);
+  CHECK_XR(
+      s_xrGetVulkanGraphicsDevice2KHR_fn(instance, &xr_device_get_info, &m_vk_physical_device),
+      "Unable to create an OpenXR compatible Vulkan physical device.");
 
   /* Queue family */
   uint32_t vk_queue_family_count = 0;
@@ -214,7 +216,7 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ct
                                                        nullptr};
   CHECK_XR(
       s_xrCreateVulkanDeviceKHR_fn(instance, &xr_device_create_info, &m_vk_device, &vk_result),
-      "Unable to create an OpenXR compatible Vulkan device.");
+      "Unable to create an OpenXR compatible Vulkan logical device.");
 
   vkGetDeviceQueue(m_vk_device, m_graphics_queue_family, 0, &m_vk_queue);
 
