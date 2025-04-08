@@ -947,7 +947,9 @@ class ThemePanel:
 
 
 class USERPREF_MT_interface_theme_presets(Menu):
+    # NOTE: this label is currently not used, see: !134844.
     bl_label = "Presets"
+
     preset_subdir = "interface_theme"
     preset_operator = "script.execute_preset"
     preset_type = 'XML'
@@ -1021,7 +1023,12 @@ class USERPREF_PT_theme(ThemePanel, Panel):
         if filepath := context.preferences.themes[0].filepath:
             preset_label = bpy.path.display_name(os.path.basename(filepath))
         else:
-            preset_label = USERPREF_MT_interface_theme_presets.bl_label
+            # If the `filepath` is empty, assume the theme was reset and use the default theme name as a label.
+            # This would typically be:
+            # `preset_label = USERPREF_MT_interface_theme_presets.bl_label`
+            # However the operator to reset the preferences doesn't clear the value,
+            # so it's simplest to hard-code "Presets" here.
+            preset_label = "Presets"
 
         row.menu("USERPREF_MT_interface_theme_presets", text=preset_label)
         del filepath, preset_label
