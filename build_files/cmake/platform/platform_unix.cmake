@@ -855,19 +855,6 @@ if(WITH_GHOST_X11)
     endif()
   endif()
 
-  if(WITH_X11_XF86VMODE)
-    # XXX, why doesn't cmake make this available?
-    find_library(X11_Xxf86vmode_LIB Xxf86vm   ${X11_LIB_SEARCH_PATH})
-    mark_as_advanced(X11_Xxf86vmode_LIB)
-    if(NOT X11_Xxf86vmode_LIB)
-      message(
-        FATAL_ERROR
-        "libXxf86vm not found. "
-        "Disable WITH_X11_XF86VMODE if you want to build without"
-      )
-    endif()
-  endif()
-
   if(WITH_X11_XFIXES)
     if(NOT X11_Xfixes_LIB)
       message(
