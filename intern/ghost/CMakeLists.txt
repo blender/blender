@@ -210,13 +210,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     list(APPEND SRC
       intern/GHOST_DisplayManagerX11.cc
       intern/GHOST_SystemX11.cc
-      intern/GHOST_TaskbarX11.cc
       intern/GHOST_WindowX11.cc
 
       intern/GHOST_DisplayManagerX11.hh
       intern/GHOST_IconX11.hh
       intern/GHOST_SystemX11.hh
-      intern/GHOST_TaskbarX11.hh
       intern/GHOST_WindowX11.hh
     )
 
