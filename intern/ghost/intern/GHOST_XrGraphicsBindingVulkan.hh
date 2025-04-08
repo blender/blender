@@ -60,8 +60,8 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
   GHOST_TVulkanXRModes choseDataTransferMode();
   void submitToSwapchainImageCpu(XrSwapchainImageVulkan2KHR &swapchain_image,
                                  const GHOST_XrDrawViewInfo &draw_info);
-  void submitToSwapchainImageFd(XrSwapchainImageVulkan2KHR &swapchain_image,
-                                const GHOST_XrDrawViewInfo &draw_info);
+  void submitToSwapchainImageGpu(XrSwapchainImageVulkan2KHR &swapchain_image,
+                                 const GHOST_XrDrawViewInfo &draw_info);
 
   /**
    * Single VkCommandBuffer that is used for all views/swap-chains.

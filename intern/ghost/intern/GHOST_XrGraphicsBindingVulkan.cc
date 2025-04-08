@@ -408,7 +408,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImage(
 
   switch (m_data_transfer_mode) {
     case GHOST_kVulkanXRModeFD:
-      submitToSwapchainImageFd(vulkan_image, draw_info);
+      submitToSwapchainImageGpu(vulkan_image, draw_info);
       break;
 
     case GHOST_kVulkanXRModeCPU:
@@ -545,10 +545,10 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageCpu(
 /** \name Data transfer FD
  * \{ */
 
-void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageFd(
+void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
     XrSwapchainImageVulkan2KHR &swapchain_image, const GHOST_XrDrawViewInfo &draw_info)
 {
-  GHOST_VulkanOpenXRData openxr_data = {GHOST_kVulkanXRModeFD};
+  GHOST_VulkanOpenXRData openxr_data = {m_data_transfer_mode};
   m_ghost_ctx->openxr_acquire_framebuffer_image_callback_(&openxr_data);
 
   /* Create an image handle */
@@ -576,6 +576,10 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageFd(
   VkImage vk_image;
   vkCreateImage(m_vk_device, &vk_image_info, nullptr, &vk_image);
 
+  /* Get the memory requirements */
+  VkMemoryRequirements vk_memory_requirements = {};
+  vkGetImageMemoryRequirements(m_vk_device, vk_image, &vk_memory_requirements);
+
   /* Import the memory */
   VkMemoryDedicatedAllocateInfo vk_memory_dedicated_allocation_info = {
       VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO, nullptr, vk_image, VK_NULL_HANDLE};
@@ -584,7 +588,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageFd(
                                                 VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
                                                 int(openxr_data.gpu.image_handle)};
   VkMemoryAllocateInfo allocate_info = {
-      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, &import_memory_info, openxr_data.gpu.memory_size};
+      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, &import_memory_info, vk_memory_requirements.size};
   VkDeviceMemory device_memory;
   vkAllocateMemory(m_vk_device, &allocate_info, nullptr, &device_memory);
 
@@ -624,7 +628,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageFd(
                                                      swapchain_image.image,
                                                      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}}};
   vkCmdPipelineBarrier(vk_command_buffer,
-                       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                        VK_PIPELINE_STAGE_TRANSFER_BIT,
                        0,
                        0,
@@ -647,6 +651,28 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageFd(
                  VK_IMAGE_LAYOUT_GENERAL,
                  1,
                  &vk_image_copy);
+
+  /* Swapchain needs to be in an VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL compatible layout. */
+  VkImageMemoryBarrier vk_image_memory_barrier2 = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                                                   nullptr,
+                                                   VK_ACCESS_TRANSFER_WRITE_BIT,
+                                                   0,
+                                                   VK_IMAGE_LAYOUT_GENERAL,
+                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                   VK_QUEUE_FAMILY_IGNORED,
+                                                   VK_QUEUE_FAMILY_IGNORED,
+                                                   swapchain_image.image,
+                                                   {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
+  vkCmdPipelineBarrier(vk_command_buffer,
+                       VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                       0,
+                       0,
+                       nullptr,
+                       0,
+                       nullptr,
+                       1,
+                       &vk_image_memory_barrier2);
 
   /* End command recording. */
   vkEndCommandBuffer(vk_command_buffer);
