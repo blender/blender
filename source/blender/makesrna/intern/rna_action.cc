@@ -745,9 +745,15 @@ static void rna_Channelbag_group_remove(ActionChannelbag *dna_channelbag,
 
 static ActionChannelbag *rna_ActionStrip_channelbag(ID *dna_action_id,
                                                     ActionStrip *self,
+                                                    ReportList *reports,
                                                     const ActionSlot *dna_slot,
                                                     const bool ensure)
 {
+  if (!dna_slot) {
+    BKE_report(reports, RPT_ERROR, "Cannot return channelbag when slot is None");
+    return nullptr;
+  }
+
   animrig::Action &action = reinterpret_cast<bAction *>(dna_action_id)->wrap();
   animrig::StripKeyframeData &strip_data = self->wrap().data<animrig::StripKeyframeData>(action);
   const animrig::Slot &slot = dna_slot->wrap();
@@ -2377,7 +2383,7 @@ static void rna_def_action_keyframe_strip(BlenderRNA *brna)
 
     /* Strip.channelbag(...). */
     func = RNA_def_function(srna, "channelbag", "rna_ActionStrip_channelbag");
-    RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+    RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
     RNA_def_function_ui_description(func, "Find the ActionChannelbag for a specific Slot");
     parm = RNA_def_pointer(
         func, "slot", "ActionSlot", "Slot", "The slot for which to find the channelbag");
