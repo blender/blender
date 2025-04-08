@@ -16,15 +16,13 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
+#include "BLI_math_rotation_legacy.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh_brush_common.hh"
-#include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 
 #include "bmesh.hh"
@@ -150,20 +148,14 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const float3 &location = ss.cache->location_symm;
 
-  /* Sampled geometry normal and area center. */
-  float3 area_no_sp;
-  float3 area_no;
-  float3 area_co_tmp;
+  float3 area_position;
+  float3 sculpt_plane_normal;
+  calc_brush_plane(depsgraph, brush, object, node_mask, area_position, sculpt_plane_normal);
 
-  float4x4 tmat;
-
-  calc_brush_plane(depsgraph, brush, object, node_mask, area_no_sp, area_co_tmp);
-
+  float3 area_normal = area_position;
+  /* Ignore brush settings and recalculate the area normal. */
   if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    area_no = calc_area_normal(depsgraph, brush, object, node_mask).value_or(float3(0));
-  }
-  else {
-    area_no = area_no_sp;
+    area_normal = calc_area_normal(depsgraph, brush, object, node_mask).value_or(float3(0));
   }
 
   /* Delay the first daub because grab delta is not setup. */
@@ -186,30 +178,24 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
 
   /* Initialize brush local-space matrix. */
   float4x4 mat = float4x4::identity();
-  mat.x_axis() = math::cross(area_no, ss.cache->grab_delta_symm);
-  mat.y_axis() = math::cross(area_no, mat.x_axis());
-  mat.z_axis() = area_no;
+  mat.x_axis() = math::cross(area_normal, ss.cache->grab_delta_symm);
+  mat.y_axis() = math::cross(area_normal, mat.x_axis());
+  mat.z_axis() = area_normal;
   mat.location() = ss.cache->location_symm;
-  normalize_m4(mat.ptr());
+  mat = math::normalize(mat);
 
   /* Scale brush local space matrix. */
   float4x4 scale = math::from_scale<float4x4>(float3(ss.cache->radius));
-  mul_m4_m4m4(tmat.ptr(), mat.ptr(), scale.ptr());
-  invert_m4_m4(mat.ptr(), tmat.ptr());
+  const float4x4 tmat = mat * scale;
 
-  float clay_strength = ss.cache->bstrength * clay_thumb_get_stabilized_pressure(*ss.cache);
-
-  float4 plane_tilt;
-  float3 normal_tilt;
-  float4x4 imat;
-
-  invert_m4_m4(imat.ptr(), mat.ptr());
-  rotate_v3_v3v3fl(
-      normal_tilt, area_no_sp, imat[0], DEG2RADF(-ss.cache->clay_thumb_brush.front_angle));
+  const float3 normal_tilt = math::rotate_direction_around_axis(
+      area_position, tmat.x_axis(), DEG2RADF(-ss.cache->clay_thumb_brush.front_angle));
 
   /* Tilted plane (front part of the brush). */
+  float4 plane_tilt;
   plane_from_point_normal_v3(plane_tilt, location, normal_tilt);
 
+  const float clay_strength = ss.cache->bstrength * clay_thumb_get_stabilized_pressure(*ss.cache);
   threading::EnumerableThreadSpecific<LocalData> all_tls;
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh: {
