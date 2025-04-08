@@ -2393,7 +2393,7 @@ Span<float3> vert_positions_eval(const Depsgraph &depsgraph, const Object &objec
 Span<float3> vert_positions_eval_from_eval(const Object &object_eval)
 {
   BLI_assert(!DEG_is_original_object(&object_eval));
-  const Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object_eval));
+  const Object &object_orig = *DEG_get_original_object(&object_eval);
   return vert_positions_eval(object_orig, object_eval);
 }
 
@@ -2405,22 +2405,21 @@ MutableSpan<float3> vert_positions_eval_for_write(const Depsgraph &depsgraph, Ob
 
 Span<float3> vert_normals_eval(const Depsgraph &depsgraph, const Object &object_orig)
 {
-  const Object &object_eval = *DEG_get_evaluated_object(&depsgraph,
-                                                        &const_cast<Object &>(object_orig));
+  const Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object_orig);
   return vert_normals_cache_eval(object_orig, object_eval).data();
 }
 
 Span<float3> vert_normals_eval_from_eval(const Object &object_eval)
 {
   BLI_assert(!DEG_is_original_object(&object_eval));
-  Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object_eval));
+  const Object &object_orig = *DEG_get_original_object(&object_eval);
   return vert_normals_cache_eval(object_orig, object_eval).data();
 }
 
 Span<float3> face_normals_eval_from_eval(const Object &object_eval)
 {
   BLI_assert(!DEG_is_original_object(&object_eval));
-  Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object_eval));
+  const Object &object_orig = *DEG_get_original_object(&object_eval);
   return face_normals_cache_eval(object_orig, object_eval).data();
 }
 

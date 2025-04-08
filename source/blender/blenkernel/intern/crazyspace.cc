@@ -620,7 +620,7 @@ GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, cons
 GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
                                                      const Object &ob_orig)
 {
-  const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, const_cast<Object *>(&ob_orig));
+  const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, &ob_orig);
   return get_evaluated_curves_deformation(ob_eval, ob_orig);
 }
 
@@ -706,7 +706,7 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Depsgr
                                                                     const int layer_index,
                                                                     const int frame)
 {
-  const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, const_cast<Object *>(&ob_orig));
+  const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, &ob_orig);
   return get_evaluated_grease_pencil_drawing_deformation(ob_eval, ob_orig, layer_index, frame);
 }
 

@@ -214,9 +214,19 @@ Object *DEG_get_evaluated_object(const Depsgraph *depsgraph, Object *object)
   return (Object *)DEG_get_evaluated_id(depsgraph, &object->id);
 }
 
+const Object *DEG_get_evaluated_object(const Depsgraph *depsgraph, const Object *object)
+{
+  return DEG_get_evaluated_object(depsgraph, const_cast<Object *>(object));
+}
+
 ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, ID *id)
 {
   return deg::get_evaluated_id(reinterpret_cast<const deg::Depsgraph *>(depsgraph), id);
+}
+
+const ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, const ID *id)
+{
+  return DEG_get_evaluated_id(depsgraph, const_cast<ID *>(id));
 }
 
 void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
@@ -276,10 +286,20 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
 
 Object *DEG_get_original_object(Object *object)
 {
-  return (Object *)DEG_get_original_id(&object->id);
+  return reinterpret_cast<Object *>(DEG_get_original_id(&object->id));
+}
+
+const Object *DEG_get_original_object(const Object *object)
+{
+  return reinterpret_cast<const Object *>(DEG_get_original_id(&object->id));
 }
 
 ID *DEG_get_original_id(ID *id)
+{
+  return deg::get_original_id(id);
+}
+
+const ID *DEG_get_original_id(const ID *id)
 {
   return deg::get_original_id(id);
 }

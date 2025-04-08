@@ -54,7 +54,7 @@ template<class T> inline const T *get_original(const T *id)
   if (!id) {
     return nullptr;
   }
-  return reinterpret_cast<T *>(DEG_get_original_id(const_cast<ID *>(&id->id)));
+  return reinterpret_cast<const T *>(DEG_get_original_id(&id->id));
 }
 
 /* Check whether the ID is suitable to be an input of the dependency graph. */

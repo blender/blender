@@ -175,7 +175,7 @@ void SVGExporter::export_grease_pencil_objects(pugi::xml_node node, const int fr
     ob_node.append_attribute("id").set_value(obtxt);
 
     /* Use evaluated version to get strokes with modifiers. */
-    Object *ob_eval = DEG_get_evaluated_object(context_.depsgraph, const_cast<Object *>(ob));
+    const Object *ob_eval = DEG_get_evaluated_object(context_.depsgraph, ob);
     BLI_assert(ob_eval->type == OB_GREASE_PENCIL);
     const GreasePencil *grease_pencil_eval = static_cast<const GreasePencil *>(ob_eval->data);
 

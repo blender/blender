@@ -228,7 +228,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   tvs->transverts_tot = 0;
 
   if (obedit->type == OB_MESH) {
-    const Object *object_orig = DEG_get_original_object(const_cast<Object *>(obedit));
+    const Object *object_orig = DEG_get_original_object(obedit);
     const Mesh &mesh = *static_cast<Mesh *>(object_orig->data);
     BMEditMesh *em = mesh.runtime->edit_mesh.get();
     BMesh *bm = em->bm;

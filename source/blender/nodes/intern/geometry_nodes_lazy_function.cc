@@ -4144,7 +4144,7 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
       return nullptr;
     }
   }
-  if (const ID *id_orig = DEG_get_original_id(const_cast<ID *>(&btree.id))) {
+  if (const ID *id_orig = DEG_get_original_id(&btree.id)) {
     if (id_orig->tag & ID_TAG_MISSING) {
       return nullptr;
     }
@@ -4241,7 +4241,7 @@ GeoNodesOperatorDepsgraphs::~GeoNodesOperatorDepsgraphs()
 
 static const ID *get_only_evaluated_id(const Depsgraph &depsgraph, const ID &id_orig)
 {
-  const ID *id = DEG_get_evaluated_id(&depsgraph, const_cast<ID *>(&id_orig));
+  const ID *id = DEG_get_evaluated_id(&depsgraph, &id_orig);
   if (id == &id_orig) {
     return nullptr;
   }
