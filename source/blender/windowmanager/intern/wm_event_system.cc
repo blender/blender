@@ -3270,6 +3270,12 @@ static eHandlerActionFlag wm_handlers_do_gizmo_handler(bContext *C,
     }
   }
 
+  if (prev.gz_modal == nullptr) {
+    if (handle_highlight == false && wm_gizmomap_highlight_pending(gzmap)) {
+      handle_highlight = true;
+    }
+  }
+
   if (handle_highlight) {
     int part = -1;
     gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
@@ -3288,6 +3294,8 @@ static eHandlerActionFlag wm_handlers_do_gizmo_handler(bContext *C,
         }
       }
     }
+
+    wm_gizmomap_highlight_handled(gzmap);
   }
 
   /* Don't use from now on. */
