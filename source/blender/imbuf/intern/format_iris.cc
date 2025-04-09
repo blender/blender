@@ -246,6 +246,10 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     fprintf(stderr, "longimagedata: channels over 8 not supported\n");
     return nullptr;
   }
+  if (image.zsize == 0 || image.ysize == 0) {
+    fprintf(stderr, "longimagedata: zero size image found\n");
+    return nullptr;
+  }
 
   const int xsize = image.xsize;
   const int ysize = image.ysize;
@@ -919,6 +923,12 @@ static int compressrow(const uchar *lbuf, uchar *rlebuf, const int z, const int 
 
 bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
 {
+  const uint limit = std::numeric_limits<ushort>::max();
+  if (ibuf->x > limit || ibuf->y > limit) {
+    fprintf(stderr, "output_iris: image x/y exceeds %u\n", limit);
+    return false;
+  }
+
   const short zsize = (ibuf->planes + 7) >> 3;
 
   IMB_convert_rgba_to_abgr(ibuf);
