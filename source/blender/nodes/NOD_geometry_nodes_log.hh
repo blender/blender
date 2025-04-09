@@ -34,6 +34,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator_chunked_list.hh"
+#include "BLI_multi_value_map.hh"
 
 #include "BKE_geometry_set.hh"
 #include "BKE_node.hh"
@@ -375,6 +376,26 @@ class GeoTreeLog {
   }
 };
 
+class ContextualGeoTreeLogs {
+ private:
+  Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone_;
+
+ public:
+  ContextualGeoTreeLogs(Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone = {});
+
+  /**
+   * Get a tree log for the given zone/node/socket if available.
+   */
+  GeoTreeLog *get_main_tree_log(const bke::bNodeTreeZone *zone) const;
+  GeoTreeLog *get_main_tree_log(const bNode &node) const;
+  GeoTreeLog *get_main_tree_log(const bNodeSocket &socket) const;
+
+  /**
+   * Runs a callback for each tree log that may be returned above.
+   */
+  void foreach_tree_log(FunctionRef<void(GeoTreeLog &)> callback) const;
+};
+
 /**
  * There is one #GeoModifierLog for every modifier that evaluates geometry nodes. It contains all
  * the loggers that are used during evaluation as well as the preprocessed logs that are used by UI
@@ -423,8 +444,7 @@ class GeoModifierLog {
   get_context_hash_by_zone_for_node_editor(const SpaceNode &snode,
                                            ComputeContextBuilder &compute_context_builder);
 
-  static Map<const bke::bNodeTreeZone *, GeoTreeLog *> get_tree_log_by_zone_for_node_editor(
-      const SpaceNode &snode);
+  static ContextualGeoTreeLogs get_contextual_tree_logs(const SpaceNode &snode);
   static const ViewerNodeLog *find_viewer_node_log_for_path(const ViewerPath &viewer_path);
 };
 

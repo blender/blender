@@ -134,7 +134,7 @@ struct TreeDrawContext {
    * Geometry nodes logs various data during execution. The logged data that corresponds to the
    * currently drawn node tree can be retrieved from the log below.
    */
-  Map<const bNodeTreeZone *, geo_log::GeoTreeLog *> geo_log_by_zone;
+  geo_log::ContextualGeoTreeLogs tree_logs;
 
   NestedTreePreviews *nested_group_infos = nullptr;
   /**
@@ -1981,18 +1981,6 @@ static std::optional<std::string> create_declaration_inspection_string(const bNo
   return str;
 }
 
-static geo_log::GeoTreeLog *geo_tree_log_for_socket(const bNodeTree &ntree,
-                                                    const bNodeSocket &socket,
-                                                    TreeDrawContext &tree_draw_ctx)
-{
-  const bNodeTreeZones *zones = ntree.zones();
-  if (!zones) {
-    return nullptr;
-  }
-  const bNodeTreeZone *zone = zones->get_zone_by_socket(socket);
-  return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
-}
-
 static Vector<std::string> lines_of_text(std::string text)
 {
   Vector<std::string> result;
@@ -2004,7 +1992,7 @@ static Vector<std::string> lines_of_text(std::string text)
 }
 
 static std::optional<std::string> create_multi_input_log_inspection_string(
-    const bNodeTree &ntree, const bNodeSocket &socket, TreeDrawContext &tree_draw_ctx)
+    const bNodeSocket &socket, TreeDrawContext &tree_draw_ctx)
 {
   if (!socket.is_multi_input()) {
     return std::nullopt;
@@ -2026,8 +2014,8 @@ static std::optional<std::string> create_multi_input_log_inspection_string(
       continue;
     }
     const bNodeSocket &connected_socket = *link->fromsock;
-    geo_log::GeoTreeLog *geo_tree_log = geo_tree_log_for_socket(
-        ntree, connected_socket, tree_draw_ctx);
+    geo_log::GeoTreeLog *geo_tree_log = tree_draw_ctx.tree_logs.get_main_tree_log(
+        connected_socket);
     const std::optional<std::string> input_log = create_log_inspection_string(geo_tree_log,
                                                                               connected_socket);
     if (!input_log.has_value()) {
@@ -2141,12 +2129,11 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
   TreeDrawContext tree_draw_ctx;
   if (snode != nullptr) {
     if (ntree.type == NTREE_GEOMETRY) {
-      tree_draw_ctx.geo_log_by_zone =
-          geo_log::GeoModifierLog::get_tree_log_by_zone_for_node_editor(*snode);
+      tree_draw_ctx.tree_logs = geo_log::GeoModifierLog::get_contextual_tree_logs(*snode);
     }
   }
 
-  geo_log::GeoTreeLog *geo_tree_log = geo_tree_log_for_socket(ntree, socket, tree_draw_ctx);
+  geo_log::GeoTreeLog *geo_tree_log = tree_draw_ctx.tree_logs.get_main_tree_log(socket);
 
   Vector<std::string> inspection_strings;
 
@@ -2165,7 +2152,7 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
     inspection_strings.append(std::move(*info));
   }
   else if (std::optional<std::string> info = create_multi_input_log_inspection_string(
-               ntree, socket, tree_draw_ctx))
+               socket, tree_draw_ctx))
   {
     inspection_strings.append(std::move(*info));
   }
@@ -2741,7 +2728,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
     if (zone && ELEM(&node, zone->input_node, zone->output_node)) {
       zone = zone->parent_zone;
     }
-    return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
+    return tree_draw_ctx.tree_logs.get_main_tree_log(zone);
   }();
 
   Span<geo_log::NodeWarning> warnings;
@@ -2793,7 +2780,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
     if (zone && ELEM(&node, zone->input_node, zone->output_node)) {
       zone = zone->parent_zone;
     }
-    return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
+    return tree_draw_ctx.tree_logs.get_main_tree_log(zone);
   }();
 
   if (tree_log == nullptr) {
@@ -3022,14 +3009,7 @@ static NodeExtraInfoRow row_from_used_named_attribute(
 static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(
     TreeDrawContext &tree_draw_ctx, const bNode &node)
 {
-  geo_log::GeoTreeLog *geo_tree_log = [&]() -> geo_log::GeoTreeLog * {
-    const bNodeTreeZones *zones = node.owner_tree().zones();
-    if (!zones) {
-      return nullptr;
-    }
-    const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
-    return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
-  }();
+  geo_log::GeoTreeLog *geo_tree_log = tree_draw_ctx.tree_logs.get_main_tree_log(node);
   if (geo_tree_log == nullptr) {
     return std::nullopt;
   }
@@ -3179,14 +3159,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
     }
   }
 
-  geo_log::GeoTreeLog *tree_log = [&]() -> geo_log::GeoTreeLog * {
-    const bNodeTreeZones *tree_zones = node.owner_tree().zones();
-    if (!tree_zones) {
-      return nullptr;
-    }
-    const bNodeTreeZone *zone = tree_zones->get_zone_by_node(node.identifier);
-    return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
-  }();
+  geo_log::GeoTreeLog *tree_log = tree_draw_ctx.tree_logs.get_main_tree_log(node);
 
   if (tree_log) {
     tree_log->ensure_debug_messages();
@@ -5021,12 +4994,11 @@ static void draw_nodetree(const bContext &C,
 
   BLI_SCOPED_DEFER([&]() { ntree.runtime->sockets_on_active_gizmo_paths.clear(); });
   if (ntree.type == NTREE_GEOMETRY) {
-    tree_draw_ctx.geo_log_by_zone = geo_log::GeoModifierLog::get_tree_log_by_zone_for_node_editor(
-        *snode);
-    for (geo_log::GeoTreeLog *log : tree_draw_ctx.geo_log_by_zone.values()) {
-      log->ensure_node_warnings(&ntree);
-      log->ensure_execution_times();
-    }
+    tree_draw_ctx.tree_logs = geo_log::GeoModifierLog::get_contextual_tree_logs(*snode);
+    tree_draw_ctx.tree_logs.foreach_tree_log([&](geo_log::GeoTreeLog &log) {
+      log.ensure_node_warnings(&ntree);
+      log.ensure_execution_times();
+    });
     const WorkSpace *workspace = CTX_wm_workspace(&C);
     tree_draw_ctx.active_geometry_nodes_viewer = viewer_path::find_geometry_nodes_viewer(
         workspace->viewer_path, *snode);

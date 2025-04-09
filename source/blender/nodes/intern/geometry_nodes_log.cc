@@ -755,8 +755,7 @@ Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
   return get_context_hash_by_zone_for_node_editor(snode, compute_context_builder);
 }
 
-Map<const bNodeTreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_for_node_editor(
-    const SpaceNode &snode)
+ContextualGeoTreeLogs GeoModifierLog::get_contextual_tree_logs(const SpaceNode &snode)
 {
   switch (SpaceNodeGeometryNodesType(snode.geometry_nodes_type)) {
     case SNODE_GEOMETRY_MODIFIER: {
@@ -772,12 +771,12 @@ Map<const bNodeTreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_fo
       const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
           GeoModifierLog::get_context_hash_by_zone_for_node_editor(
               snode, object_and_modifier->nmd->modifier.name);
-      Map<const bNodeTreeZone *, GeoTreeLog *> log_by_zone;
+      Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone;
       for (const auto item : hash_by_zone.items()) {
         GeoTreeLog &tree_log = modifier_log->get_tree_log(item.value);
-        log_by_zone.add(item.key, &tree_log);
+        tree_logs_by_zone.add(item.key, &tree_log);
       }
-      return log_by_zone;
+      return {tree_logs_by_zone};
     }
     case SNODE_GEOMETRY_TOOL: {
       const ed::geometry::GeoOperatorLog &log =
@@ -789,12 +788,12 @@ Map<const bNodeTreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_fo
       compute_context_builder.push<bke::OperatorComputeContext>();
       const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
           GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode, compute_context_builder);
-      Map<const bNodeTreeZone *, GeoTreeLog *> log_by_zone;
+      Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone;
       for (const auto item : hash_by_zone.items()) {
         GeoTreeLog &tree_log = log.log->get_tree_log(item.value);
-        log_by_zone.add(item.key, &tree_log);
+        tree_logs_by_zone.add(item.key, &tree_log);
       }
-      return log_by_zone;
+      return {tree_logs_by_zone};
     }
   }
   BLI_assert_unreachable();
@@ -868,6 +867,48 @@ int node_warning_type_severity(const NodeWarningType type)
   }
   BLI_assert_unreachable();
   return 0;
+}
+
+ContextualGeoTreeLogs::ContextualGeoTreeLogs(
+    Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone)
+    : tree_logs_by_zone_(std::move(tree_logs_by_zone))
+{
+}
+
+GeoTreeLog *ContextualGeoTreeLogs::get_main_tree_log(const bke::bNodeTreeZone *zone) const
+{
+  return tree_logs_by_zone_.lookup_default(zone, nullptr);
+}
+
+GeoTreeLog *ContextualGeoTreeLogs::get_main_tree_log(const bNode &node) const
+{
+  const bNodeTree &tree = node.owner_tree();
+  const bke::bNodeTreeZones *zones = tree.zones();
+  if (!zones) {
+    return nullptr;
+  }
+  const bke::bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
+  return this->get_main_tree_log(zone);
+}
+
+GeoTreeLog *ContextualGeoTreeLogs::get_main_tree_log(const bNodeSocket &socket) const
+{
+  const bNodeTree &tree = socket.owner_tree();
+  const bke::bNodeTreeZones *zones = tree.zones();
+  if (!zones) {
+    return nullptr;
+  }
+  const bke::bNodeTreeZone *zone = zones->get_zone_by_socket(socket);
+  return this->get_main_tree_log(zone);
+}
+
+void ContextualGeoTreeLogs::foreach_tree_log(FunctionRef<void(GeoTreeLog &)> callback) const
+{
+  for (GeoTreeLog *tree_log : tree_logs_by_zone_.values()) {
+    if (tree_log) {
+      callback(*tree_log);
+    }
+  }
 }
 
 }  // namespace blender::nodes::geo_eval_log
