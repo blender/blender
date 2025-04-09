@@ -213,7 +213,7 @@ class Camera : public Node {
 
  private:
   /* Private utility functions. */
-  float3 transform_raster_to_world(const float raster_x, const float raster_y);
+  float3 transform_full_raster_to_world(const float raster_x, const float raster_y);
 };
 
 CCL_NAMESPACE_END
