@@ -469,9 +469,6 @@ void Camera::update(Scene *scene)
   kcam->nearclip = nearclip;
   kcam->cliplength = (farclip == FLT_MAX) ? FLT_MAX : farclip - nearclip;
 
-  /* Camera in volume. */
-  kcam->is_inside_volume = 0;
-
   /* Rolling shutter effect */
   kcam->rolling_shutter_type = rolling_shutter_type;
   kcam->rolling_shutter_duration = rolling_shutter_duration;
@@ -530,9 +527,10 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
     return;
   }
 
+  kernel_camera.is_inside_volume = 0;
+
   KernelIntegrator *kintegrator = &dscene->data.integrator;
   if (kintegrator->use_volumes) {
-    KernelCamera *kcam = &dscene->data.cam;
     BoundBox viewplane_boundbox = viewplane_bounds_get();
 
     /* Parallel object update, with grain size to avoid too much threading overhead
@@ -546,17 +544,19 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
                          viewplane_boundbox.intersects(object->bounds)) {
                        /* TODO(sergey): Consider adding more grained check. */
                        VLOG_INFO << "Detected camera inside volume.";
-                       kcam->is_inside_volume = 1;
+                       kernel_camera.is_inside_volume = 1;
                        parallel_for_cancel();
                        break;
                      }
                    }
                  });
 
-    if (!kcam->is_inside_volume) {
+    if (!kernel_camera.is_inside_volume) {
       VLOG_INFO << "Camera is outside of the volume.";
     }
   }
+
+  dscene->data.cam.is_inside_volume = kernel_camera.is_inside_volume;
 
   need_device_update = false;
   need_flags_update = false;
@@ -824,13 +824,16 @@ bool Camera::use_motion() const
   return motion.size() > 1;
 }
 
-void Camera::set_screen_size(const int width_, int height_)
+bool Camera::set_screen_size(const int width_, int height_)
 {
   if (width_ != width || height_ != height) {
     width = width_;
     height = height_;
     tag_modified();
+    return true;
   }
+
+  return false;
 }
 
 float Camera::motion_time(const int step) const

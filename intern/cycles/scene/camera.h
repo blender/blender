@@ -209,7 +209,7 @@ class Camera : public Node {
   int motion_step(const float time) const;
   bool use_motion() const;
 
-  void set_screen_size(const int width_, int height_);
+  bool set_screen_size(const int width_, int height_);
 
  private:
   /* Private utility functions. */

@@ -120,6 +120,8 @@ NODE_DEFINE(Film)
 
   SOCKET_BOOLEAN(use_approximate_shadow_catcher, "Use Approximate Shadow Catcher", false);
 
+  SOCKET_BOOLEAN(use_sample_count, "Use Sample Count Pass", false);
+
   return type;
 }
 
@@ -468,7 +470,7 @@ bool Film::update_lightgroups(Scene *scene)
   return false;
 }
 
-void Film::update_passes(Scene *scene, bool add_sample_count_pass)
+void Film::update_passes(Scene *scene)
 {
   const Background *background = scene->background;
   const BakeManager *bake_manager = scene->bake_manager.get();
@@ -561,7 +563,8 @@ void Film::update_passes(Scene *scene, bool add_sample_count_pass)
     }
   }
 
-  if (add_sample_count_pass) {
+  /* Add sample count pass for tiled rendering. */
+  if (use_sample_count) {
     if (!Pass::contains(scene->passes, PASS_SAMPLE_COUNT)) {
       add_auto_pass(scene, PASS_SAMPLE_COUNT);
     }
