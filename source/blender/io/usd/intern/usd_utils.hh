@@ -5,6 +5,9 @@
 
 #include "BLI_string_ref.hh"
 
+#include <pxr/usd/sdf/path.h>
+#include <pxr/usd/usd/common.h>
+
 #include <string>
 
 namespace blender::io::usd {

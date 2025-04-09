@@ -10,6 +10,8 @@
 
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/base/tf/unicodeUtils.h>
+#include <pxr/usd/usd/prim.h>
+#include <pxr/usd/usd/stage.h>
 
 namespace blender::io::usd {
 
