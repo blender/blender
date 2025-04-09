@@ -60,41 +60,36 @@ void mesh_vert_normals_assign(Mesh &mesh, Vector<float3> vert_normals)
 
 MutableSpan<float3> NormalsCache::ensure_vector_size(const int size)
 {
-  if (auto *vector = std::get_if<Vector<float3>>(&data_)) {
+  if (auto *vector = std::get_if<Vector<float3>>(&this->data)) {
     vector->resize(size);
   }
   else {
-    data_ = Vector<float3>(size);
+    this->data = Vector<float3>(size);
   }
-  return std::get<Vector<float3>>(data_).as_mutable_span();
+  return std::get<Vector<float3>>(this->data).as_mutable_span();
 }
 
 Span<float3> NormalsCache::get_span() const
 {
-  if (const auto *vector = std::get_if<Vector<float3>>(&data_)) {
+  if (const auto *vector = std::get_if<Vector<float3>>(&this->data)) {
     return vector->as_span();
   }
-  return std::get<Span<float3>>(data_);
+  return std::get<Span<float3>>(this->data);
 }
 
 void NormalsCache::store_varray(const VArray<float3> &data)
 {
   if (data.is_span()) {
-    data_ = data.get_internal_span();
+    this->data = data.get_internal_span();
   }
   else {
     data.materialize(this->ensure_vector_size(data.size()));
   }
 }
 
-void NormalsCache::store_span(const Span<float3> data)
-{
-  data_ = data;
-}
-
 void NormalsCache::store_vector(Vector<float3> &&data)
 {
-  data_ = std::move(data);
+  this->data = std::move(data);
 }
 
 }  // namespace blender::bke
@@ -383,8 +378,14 @@ blender::Span<blender::float3> Mesh::vert_normals() const
         return;
       }
     }
-    r_data.store_span(this->vert_normals_true());
+    r_data.data = NormalsCache::UseTrueCache();
   });
+  if (std::holds_alternative<NormalsCache::UseTrueCache>(
+          this->runtime->vert_normals_cache.data().data))
+  {
+    return this->vert_normals_true();
+  }
+
   return this->runtime->vert_normals_cache.data().get_span();
 }
 
@@ -435,8 +436,13 @@ blender::Span<blender::float3> Mesh::face_normals() const
         return;
       }
     }
-    r_data.store_span(this->face_normals_true());
+    r_data.data = NormalsCache::UseTrueCache();
   });
+  if (std::holds_alternative<NormalsCache::UseTrueCache>(
+          this->runtime->face_normals_cache.data().data))
+  {
+    return this->face_normals_true();
+  }
   return this->runtime->face_normals_cache.data().get_span();
 }
 

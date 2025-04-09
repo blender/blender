@@ -99,13 +99,19 @@ struct LooseVertCache : public LooseGeomCache {};
 
 /** Similar to #VArraySpan but with the ability to be resized and updated. */
 class NormalsCache {
-  std::variant<Vector<float3>, Span<float3>> data_;
-
  public:
+  /**
+   * Signals that the data from the corresponding "true normals" cache can be used instead. Used to
+   * avoid referencing the data from another shared cache while not still not fetching the custom
+   * normal attribute on every cache request.
+   */
+  struct UseTrueCache {};
+  std::variant<UseTrueCache, Vector<float3>, Span<float3>> data;
+
   MutableSpan<float3> ensure_vector_size(const int size);
   Span<float3> get_span() const;
+  /** \note The caller must ensure that the data is valid as long as the cache. */
   void store_varray(const VArray<float3> &data);
-  void store_span(Span<float3> data);
   void store_vector(Vector<float3> &&data);
 };
 
