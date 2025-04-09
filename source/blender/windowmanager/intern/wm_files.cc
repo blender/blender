@@ -3340,7 +3340,7 @@ static void wm_open_mainfile_def_property_use_scripts(wmOperatorType *ot)
 {
   RNA_def_boolean(ot->srna,
                   "use_scripts",
-                  true,
+                  false,
                   "Trusted Source",
                   "Allow .blend file to execute scripts automatically, default available from "
                   "system preferences");
