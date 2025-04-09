@@ -422,7 +422,7 @@ class StaticShader : NonCopyable {
   std::string info_name_;
   std::atomic<GPUShader *> shader_ = nullptr;
   /* TODO: Failed compilation detection should be supported by the GPUShader API. */
-  std::atomic_bool failed_ = false;
+  std::atomic<bool> failed_ = false;
   std::mutex mutex_;
 
   void move(StaticShader &&other)
