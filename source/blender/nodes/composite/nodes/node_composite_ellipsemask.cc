@@ -126,6 +126,11 @@ class EllipseMaskOperation : public NodeOperation {
   {
     const Result &input_mask = get_input("Mask");
     Result &output_mask = get_result("Mask");
+    const float2 size = this->get_size();
+    if (size.x == 0 || size.y == 0) {
+      output_mask.share_data(input_mask);
+      return;
+    }
     /* For single value masks, the output will assume the compositing region, so ensure it is valid
      * first. See the compute_domain method. */
     if (input_mask.is_single_value() && !context().is_valid_compositing_region()) {
