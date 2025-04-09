@@ -239,7 +239,7 @@ if(WITH_IMAGE_OPENJPEG)
   add_definitions(-DWITH_OPENJPEG)
 endif()
 
-if(WITH_WEBP)
+if(WITH_IMAGE_WEBP)
   add_definitions(-DWITH_WEBP)
 endif()
 
