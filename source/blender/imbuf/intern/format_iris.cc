@@ -202,15 +202,12 @@ static void readtab(MFileOffset *inf, uint *tab, int len)
 /* From misc_util: flip the bytes from x. */
 #define GS(x) (((uchar *)(x))[0] << 8 | ((uchar *)(x))[1])
 
-/* This one is only def-ed once, strangely... */
-#define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
-
 bool imb_is_a_iris(const uchar *mem, size_t size)
 {
   if (size < 2) {
     return false;
   }
-  return ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC));
+  return GS(mem) == IMAGIC;
 }
 
 ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace & /*r_colorspace*/)
@@ -236,10 +233,8 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   }
 
   readheader(inf, &image);
-  if (image.imagic != IMAGIC) {
-    fprintf(stderr, "longimagedata: bad magic number in image file\n");
-    return nullptr;
-  }
+  /* The call to `imb_is_a_iris` ensures this. */
+  BLI_assert(image.imagic == IMAGIC);
 
   rle = ISRLE(image.type);
   bpp = BPP(image.type);
