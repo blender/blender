@@ -74,11 +74,6 @@ struct DRWData {
 /* Get thread local draw context. */
 DRWContext &drw_get();
 
-void drw_debug_draw();
-void drw_debug_init();
-void drw_debug_module_free(DRWDebugModule *module);
-GPUStorageBuf *drw_debug_gpu_draw_buf_get();
-
 void drw_batch_cache_validate(Object *ob);
 void drw_batch_cache_generate_requested(Object *ob, TaskGraph &task_graph);
 

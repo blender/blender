@@ -978,8 +978,6 @@ static void drw_callbacks_post_scene(DRWContext &draw_ctx)
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     }
 
-    drw_debug_draw();
-
     GPU_depth_test(GPU_DEPTH_NONE);
     /* Apply state for callbacks. */
     GPU_apply_state();
@@ -1194,7 +1192,6 @@ static void drw_draw_render_loop_3d(DRWContext &draw_ctx, RenderEngineType *engi
 
   draw_ctx.enable_engines(gpencil_engine_needed, engine_type);
   draw_ctx.engines_data_validate();
-  drw_debug_init();
   draw_ctx.engines_init_and_sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
     /* Only iterate over objects for internal engines or when overlays are enabled */
     if (do_populate_loop) {
@@ -1249,7 +1246,6 @@ static void drw_draw_render_loop_2d(DRWContext &draw_ctx)
 
   draw_ctx.enable_engines();
   draw_ctx.engines_data_validate();
-  drw_debug_init();
   draw_ctx.engines_init_and_sync([&](DupliCacheManager & /*duplis*/, ExtractionGraph &extraction) {
     /* Only iterate over objects when overlay uses object data. */
     if (do_populate_loop) {

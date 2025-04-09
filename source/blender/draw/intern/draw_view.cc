@@ -18,9 +18,7 @@
 #include "draw_shader.hh"
 #include "draw_view.hh"
 
-#ifdef _DEBUG
-#  include "draw_debug.hh"
-#endif
+#include "draw_debug.hh"
 
 namespace blender::draw {
 
@@ -267,12 +265,10 @@ void View::compute_visibility(ObjectBoundsBuf &bounds,
     culling_freeze_[0] = static_cast<ViewCullingData>(culling_[0]);
     culling_freeze_.push_update();
   }
-#ifdef WITH_DRAW_DEBUG
   if (debug_freeze) {
     float4x4 persmat = data_freeze_[0].winmat * data_freeze_[0].viewmat;
     drw_debug_matrix_as_bbox(math::invert(persmat), float4(0, 1, 0, 1));
   }
-#endif
   frozen_ = debug_freeze;
 
   GPU_debug_group_begin("View.compute_visibility");

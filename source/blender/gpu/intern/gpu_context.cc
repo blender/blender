@@ -45,6 +45,8 @@
 #endif
 #include "dummy_backend.hh"
 
+#include "draw_debug.hh"
+
 #include <mutex>
 
 using namespace blender::gpu;
@@ -194,6 +196,9 @@ GPUContext *GPU_context_create(void *ghost_window, void *ghost_context)
   Context *ctx = GPUBackend::get()->context_alloc(ghost_window, ghost_context);
 
   GPU_context_active_set(wrap(ctx));
+
+  blender::draw::DebugDraw::get().acquire();
+
   return wrap(ctx);
 }
 
@@ -201,6 +206,8 @@ void GPU_context_discard(GPUContext *ctx_)
 {
   Context *ctx = unwrap(ctx_);
   BLI_assert(active_ctx == ctx);
+
+  blender::draw::DebugDraw::get().release();
 
   GPUBackend *backend = GPUBackend::get();
   /* Flush any remaining printf while making sure we are inside render boundaries. */

@@ -9,6 +9,7 @@
  */
 
 #include "BKE_object.hh"
+#include "BLI_math_bits.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "GPU_batch.hh"
@@ -25,66 +26,58 @@ namespace blender::draw {
 /** \name Init and state
  * \{ */
 
-DebugDraw::DebugDraw()
+void DebugDraw::reset()
 {
-  constexpr int circle_resolution = 16;
-  for (auto axis : IndexRange(3)) {
-    for (auto edge : IndexRange(circle_resolution)) {
-      for (auto vert : IndexRange(2)) {
-        const float angle = (2 * M_PI) * (edge + vert) / float(circle_resolution);
-        const float point[3] = {cosf(angle), sinf(angle), 0.0f};
-        sphere_verts_.append(
-            float3(point[(0 + axis) % 3], point[(1 + axis) % 3], point[(2 + axis) % 3]));
-      }
+  for (int i = 0; i < 2; i++) {
+    vertex_len_.store(0);
+
+    if (cpu_draw_buf_.current() == nullptr) {
+      cpu_draw_buf_.current() = MEM_new<DebugDrawBuf>("DebugDrawBuf-CPU", "DebugDrawBuf-CPU");
+      gpu_draw_buf_.current() = MEM_new<DebugDrawBuf>("DebugDrawBuf-GPU", "DebugDrawBuf-GPU");
     }
+
+    cpu_draw_buf_.current()->command.vertex_len = 0;
+    cpu_draw_buf_.current()->command.vertex_first = 0;
+    cpu_draw_buf_.current()->command.instance_len = 1;
+    cpu_draw_buf_.current()->command.instance_first_array = 0;
+
+    gpu_draw_buf_.current()->command.vertex_len = 0;
+    gpu_draw_buf_.current()->command.vertex_first = 0;
+    gpu_draw_buf_.current()->command.instance_len = 1;
+    gpu_draw_buf_.current()->command.instance_first_array = 0;
+    gpu_draw_buf_.current()->push_update();
+
+    cpu_draw_buf_.swap();
+    gpu_draw_buf_.swap();
   }
 
-  constexpr int point_resolution = 4;
-  for (auto axis : IndexRange(3)) {
-    for (auto edge : IndexRange(point_resolution)) {
-      for (auto vert : IndexRange(2)) {
-        const float angle = (2 * M_PI) * (edge + vert) / float(point_resolution);
-        const float point[3] = {cosf(angle), sinf(angle), 0.0f};
-        point_verts_.append(
-            float3(point[(0 + axis) % 3], point[(1 + axis) % 3], point[(2 + axis) % 3]));
-      }
-    }
-  }
-};
-
-void DebugDraw::init()
-{
-  cpu_draw_buf_.command.vertex_len = 0;
-  cpu_draw_buf_.command.vertex_first = 0;
-  cpu_draw_buf_.command.instance_len = 1;
-  cpu_draw_buf_.command.instance_first_array = 0;
-
-  gpu_draw_buf_.command.vertex_len = 0;
-  gpu_draw_buf_.command.vertex_first = 0;
-  gpu_draw_buf_.command.instance_len = 1;
-  gpu_draw_buf_.command.instance_first_array = 0;
   gpu_draw_buf_used = false;
-
-  modelmat_reset();
-}
-
-void DebugDraw::modelmat_reset()
-{
-  model_mat_ = float4x4::identity();
-}
-
-void DebugDraw::modelmat_set(const float modelmat[4][4])
-{
-  model_mat_ = float4x4_view(modelmat);
 }
 
 GPUStorageBuf *DebugDraw::gpu_draw_buf_get()
 {
-  if (!gpu_draw_buf_used) {
-    gpu_draw_buf_used = true;
-    gpu_draw_buf_.push_update();
+#ifdef WITH_DRAW_DEBUG
+  gpu_draw_buf_used = true;
+  return *gpu_draw_buf_.current();
+#else
+  return nullptr;
+#endif
+}
+
+void DebugDraw::clear_gpu_data()
+{
+  for (int i = 0; i < 2; i++) {
+    MEM_SAFE_DELETE(cpu_draw_buf_.current());
+    MEM_SAFE_DELETE(gpu_draw_buf_.current());
+
+    cpu_draw_buf_.swap();
+    gpu_draw_buf_.swap();
   }
-  return gpu_draw_buf_;
+}
+
+void drw_debug_clear()
+{
+  DebugDraw::get().reset();
 }
 
 /** \} */
@@ -93,61 +86,101 @@ GPUStorageBuf *DebugDraw::gpu_draw_buf_get()
 /** \name Draw functions
  * \{ */
 
-void DebugDraw::draw_line(float3 v1, float3 v2, float4 color)
+void drw_debug_line(const float3 v1, const float3 v2, const float4 color, const uint lifetime)
 {
-  draw_line(v1, v2, color_pack(color));
+  DebugDraw &dd = DebugDraw::get();
+  dd.draw_line(v1, v2, debug_color_pack(color), lifetime);
 }
 
-void DebugDraw::draw_polygon(Span<float3> face_verts, float4 color)
+void drw_debug_polygon(Span<float3> face_verts, const float4 color, const uint lifetime)
 {
   BLI_assert(!face_verts.is_empty());
-
-  uint col = color_pack(color);
-  float3 v0 = math::transform_point(model_mat_, face_verts.last());
+  DebugDraw &dd = DebugDraw::get();
+  uint col = debug_color_pack(color);
+  float3 v0 = face_verts.last();
   for (auto vert : face_verts) {
-    float3 v1 = math::transform_point(model_mat_, vert);
-    draw_line(v0, v1, col);
+    float3 v1 = vert;
+    dd.draw_line(v0, v1, col, lifetime);
     v0 = v1;
   }
 }
 
-void DebugDraw::draw_matrix(const float4x4 &m4)
+void drw_debug_bbox(const BoundBox &bbox, const float4 color, const uint lifetime)
 {
-  float3 v0 = float3(0.0f, 0.0f, 0.0f);
-  float3 v1 = float3(1.0f, 0.0f, 0.0f);
-  float3 v2 = float3(0.0f, 1.0f, 0.0f);
-  float3 v3 = float3(0.0f, 0.0f, 1.0f);
+  DebugDraw &dd = DebugDraw::get();
+  uint col = debug_color_pack(color);
+  dd.draw_line(bbox.vec[0], bbox.vec[1], col, lifetime);
+  dd.draw_line(bbox.vec[1], bbox.vec[2], col, lifetime);
+  dd.draw_line(bbox.vec[2], bbox.vec[3], col, lifetime);
+  dd.draw_line(bbox.vec[3], bbox.vec[0], col, lifetime);
 
-  mul_project_m4_v3(m4.ptr(), v0);
-  mul_project_m4_v3(m4.ptr(), v1);
-  mul_project_m4_v3(m4.ptr(), v2);
-  mul_project_m4_v3(m4.ptr(), v3);
+  dd.draw_line(bbox.vec[4], bbox.vec[5], col, lifetime);
+  dd.draw_line(bbox.vec[5], bbox.vec[6], col, lifetime);
+  dd.draw_line(bbox.vec[6], bbox.vec[7], col, lifetime);
+  dd.draw_line(bbox.vec[7], bbox.vec[4], col, lifetime);
 
-  draw_line(v0, v1, float4(1.0f, 0.0f, 0.0f, 1.0f));
-  draw_line(v0, v2, float4(0.0f, 1.0f, 0.0f, 1.0f));
-  draw_line(v0, v3, float4(0.0f, 0.0f, 1.0f, 1.0f));
+  dd.draw_line(bbox.vec[0], bbox.vec[4], col, lifetime);
+  dd.draw_line(bbox.vec[1], bbox.vec[5], col, lifetime);
+  dd.draw_line(bbox.vec[2], bbox.vec[6], col, lifetime);
+  dd.draw_line(bbox.vec[3], bbox.vec[7], col, lifetime);
 }
 
-void DebugDraw::draw_bbox(const BoundBox &bbox, const float4 color)
+static Vector<float3> precompute_sphere_points(int circle_resolution)
 {
-  uint col = color_pack(color);
-  draw_line(bbox.vec[0], bbox.vec[1], col);
-  draw_line(bbox.vec[1], bbox.vec[2], col);
-  draw_line(bbox.vec[2], bbox.vec[3], col);
-  draw_line(bbox.vec[3], bbox.vec[0], col);
-
-  draw_line(bbox.vec[4], bbox.vec[5], col);
-  draw_line(bbox.vec[5], bbox.vec[6], col);
-  draw_line(bbox.vec[6], bbox.vec[7], col);
-  draw_line(bbox.vec[7], bbox.vec[4], col);
-
-  draw_line(bbox.vec[0], bbox.vec[4], col);
-  draw_line(bbox.vec[1], bbox.vec[5], col);
-  draw_line(bbox.vec[2], bbox.vec[6], col);
-  draw_line(bbox.vec[3], bbox.vec[7], col);
+  Vector<float3> result;
+  for (auto axis : IndexRange(3)) {
+    for (auto edge : IndexRange(circle_resolution)) {
+      for (auto vert : IndexRange(2)) {
+        const float angle = (2 * M_PI) * (edge + vert) / float(circle_resolution);
+        const float point[3] = {cosf(angle), sinf(angle), 0.0f};
+        result.append(float3(point[(0 + axis) % 3], point[(1 + axis) % 3], point[(2 + axis) % 3]));
+      }
+    }
+  }
+  return result;
 }
 
-void DebugDraw::draw_matrix_as_bbox(const float4x4 &mat, const float4 color)
+void drw_debug_sphere(const float3 center, float radius, const float4 color, const uint lifetime)
+{
+  /** Precomputed shapes verts. */
+  static Vector<float3> sphere_verts = precompute_sphere_points(16);
+
+  DebugDraw &dd = DebugDraw::get();
+  uint col = debug_color_pack(color);
+  for (auto i : IndexRange(sphere_verts.size() / 2)) {
+    float3 v0 = sphere_verts[i * 2] * radius + center;
+    float3 v1 = sphere_verts[i * 2 + 1] * radius + center;
+    dd.draw_line(v0, v1, col, lifetime);
+  }
+}
+
+void drw_debug_point(const float3 pos, float rad, const float4 col, const uint lifetime)
+{
+  static Vector<float3> point_verts = precompute_sphere_points(4);
+
+  DebugDraw &dd = DebugDraw::get();
+  uint color = debug_color_pack(col);
+  for (auto i : IndexRange(point_verts.size() / 2)) {
+    float3 v0 = point_verts[i * 2] * rad + pos;
+    float3 v1 = point_verts[i * 2 + 1] * rad + pos;
+    dd.draw_line(v0, v1, color, lifetime);
+  }
+}
+
+void drw_debug_matrix(const float4x4 &m4, const uint lifetime)
+{
+  float3 v0 = math::transform_point(m4, float3(0.0f, 0.0f, 0.0f));
+  float3 v1 = math::transform_point(m4, float3(1.0f, 0.0f, 0.0f));
+  float3 v2 = math::transform_point(m4, float3(0.0f, 1.0f, 0.0f));
+  float3 v3 = math::transform_point(m4, float3(0.0f, 0.0f, 1.0f));
+
+  DebugDraw &dd = DebugDraw::get();
+  dd.draw_line(v0, v1, debug_color_pack(float4(1.0f, 0.0f, 0.0f, 1.0f)), lifetime);
+  dd.draw_line(v0, v2, debug_color_pack(float4(0.0f, 1.0f, 0.0f, 1.0f)), lifetime);
+  dd.draw_line(v0, v3, debug_color_pack(float4(0.0f, 0.0f, 1.0f, 1.0f)), lifetime);
+}
+
+void drw_debug_matrix_as_bbox(const float4x4 &mat, const float4 color, const uint lifetime)
 {
   BoundBox bb;
   const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
@@ -155,27 +188,7 @@ void DebugDraw::draw_matrix_as_bbox(const float4x4 &mat, const float4 color)
   for (auto i : IndexRange(8)) {
     mul_project_m4_v3(mat.ptr(), bb.vec[i]);
   }
-  draw_bbox(bb, color);
-}
-
-void DebugDraw::draw_sphere(const float3 center, float radius, const float4 color)
-{
-  uint col = color_pack(color);
-  for (auto i : IndexRange(sphere_verts_.size() / 2)) {
-    float3 v0 = sphere_verts_[i * 2] * radius + center;
-    float3 v1 = sphere_verts_[i * 2 + 1] * radius + center;
-    draw_line(v0, v1, col);
-  }
-}
-
-void DebugDraw::draw_point(const float3 center, float radius, const float4 color)
-{
-  uint col = color_pack(color);
-  for (auto i : IndexRange(point_verts_.size() / 2)) {
-    float3 v0 = point_verts_[i * 2] * radius + center;
-    float3 v1 = point_verts_[i * 2 + 1] * radius + center;
-    draw_line(v0, v1, col);
-  }
+  drw_debug_bbox(bb, color, lifetime);
 }
 
 /** \} */
@@ -183,42 +196,23 @@ void DebugDraw::draw_point(const float3 center, float radius, const float4 color
 /* -------------------------------------------------------------------- */
 /** \name Internals
  *
- * IMPORTANT: All of these are copied from the shader libraries (`common_debug_draw_lib.glsl`).
- * They need to be kept in sync to write the same data.
  * \{ */
 
-void DebugDraw::draw_line(float3 v1, float3 v2, uint color)
+void DebugDraw::draw_line(float3 v1, float3 v2, uint color, const uint lifetime)
 {
-  DebugDrawBuf &buf = cpu_draw_buf_;
-  uint index = buf.command.vertex_len;
+  DebugDrawBuf &buf = *cpu_draw_buf_.current();
+  uint index = vertex_len_.fetch_add(2);
   if (index + 2 < DRW_DEBUG_DRAW_VERT_MAX) {
-    buf.verts[index + 0] = vert_pack(math::transform_point(model_mat_, v1), color);
-    buf.verts[index + 1] = vert_pack(math::transform_point(model_mat_, v2), color);
+    buf.verts[index / 2] = debug_line_make(float_as_uint(v1.x),
+                                           float_as_uint(v1.y),
+                                           float_as_uint(v1.z),
+                                           float_as_uint(v2.x),
+                                           float_as_uint(v2.y),
+                                           float_as_uint(v2.z),
+                                           color,
+                                           lifetime);
     buf.command.vertex_len += 2;
   }
-}
-
-uint DebugDraw::color_pack(float4 color)
-{
-  /* NOTE: keep in sync with #drw_debug_color_pack(). */
-
-  color = math::clamp(color, 0.0f, 1.0f);
-  uint result = 0;
-  result |= uint(color.x * 255.0f) << 0u;
-  result |= uint(color.y * 255.0f) << 8u;
-  result |= uint(color.z * 255.0f) << 16u;
-  result |= uint(color.w * 255.0f) << 24u;
-  return result;
-}
-
-DRWDebugVert DebugDraw::vert_pack(float3 pos, uint color)
-{
-  DRWDebugVert vert;
-  vert.pos0 = *reinterpret_cast<uint32_t *>(&pos.x);
-  vert.pos1 = *reinterpret_cast<uint32_t *>(&pos.y);
-  vert.pos2 = *reinterpret_cast<uint32_t *>(&pos.z);
-  vert.vert_color = color;
-  return vert;
 }
 
 /** \} */
@@ -227,47 +221,71 @@ DRWDebugVert DebugDraw::vert_pack(float3 pos, uint color)
 /** \name Display
  * \{ */
 
-void DebugDraw::display_lines()
+void DebugDraw::display_lines(View &view)
 {
-  if (cpu_draw_buf_.command.vertex_len == 0 && gpu_draw_buf_used == false) {
+  const bool cpu_draw_buf_used = vertex_len_.load() != 0;
+
+  if (!cpu_draw_buf_used && !gpu_draw_buf_used) {
     return;
   }
-  GPU_debug_group_begin("Lines");
-  cpu_draw_buf_.push_update();
-
-  float4x4 persmat = View::default_get().persmat();
 
   command::StateSet::set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+
+  float viewport_size[4];
+  GPU_viewport_size_get_f(viewport_size);
 
   gpu::Batch *batch = GPU_batch_procedural_lines_get();
   GPUShader *shader = DRW_shader_debug_draw_display_get();
   GPU_batch_set_shader(batch, shader);
-  GPU_shader_uniform_mat4(shader, "persmat", persmat.ptr());
+  GPU_shader_uniform_mat4(shader, "persmat", view.persmat().ptr());
+  GPU_shader_uniform_2f(shader, "size_viewport", viewport_size[2], viewport_size[3]);
 
   if (gpu_draw_buf_used) {
-    GPU_debug_group_begin("GPU");
-    GPU_storagebuf_bind(gpu_draw_buf_, DRW_DEBUG_DRAW_SLOT);
-    GPU_batch_draw_indirect(batch, gpu_draw_buf_, 0);
-    GPU_storagebuf_unbind(gpu_draw_buf_);
-    GPU_debug_group_end();
+    gpu::DebugScope debug_scope("GPU");
+    /* Reset buffer. */
+    gpu_draw_buf_.next()->command.vertex_len = 0;
+    gpu_draw_buf_.next()->push_update();
+
+    GPU_storagebuf_bind(*gpu_draw_buf_.current(), DRW_DEBUG_DRAW_SLOT);
+    GPU_storagebuf_bind(*gpu_draw_buf_.next(), DRW_DEBUG_DRAW_FEEDBACK_SLOT);
+    GPU_batch_draw_indirect(batch, *gpu_draw_buf_.current(), 0);
+    GPU_storagebuf_unbind(*gpu_draw_buf_.current());
+    GPU_storagebuf_unbind(*gpu_draw_buf_.next());
   }
 
-  GPU_debug_group_begin("CPU");
-  GPU_storagebuf_bind(cpu_draw_buf_, DRW_DEBUG_DRAW_SLOT);
-  GPU_batch_draw_indirect(batch, cpu_draw_buf_, 0);
-  GPU_storagebuf_unbind(cpu_draw_buf_);
-  GPU_debug_group_end();
+  {
+    gpu::DebugScope debug_scope("CPU");
+    /* We might have race condition here (a writer thread might still be outputing vertices).
+     * But that is ok. At worse, we will be missing some vertex data and show 1 corrupted line. */
+    cpu_draw_buf_.current()->command.vertex_len = vertex_len_.load();
+    cpu_draw_buf_.current()->push_update();
+    /* Reset buffer. */
+    cpu_draw_buf_.next()->command.vertex_len = 0;
+    cpu_draw_buf_.next()->push_update();
 
-  GPU_debug_group_end();
+    GPU_storagebuf_bind(*cpu_draw_buf_.current(), DRW_DEBUG_DRAW_SLOT);
+    GPU_storagebuf_bind(*cpu_draw_buf_.next(), DRW_DEBUG_DRAW_FEEDBACK_SLOT);
+    GPU_batch_draw_indirect(batch, *cpu_draw_buf_.current(), 0);
+    GPU_storagebuf_unbind(*cpu_draw_buf_.current());
+    GPU_storagebuf_unbind(*cpu_draw_buf_.next());
+
+    /* Read result of lifetime management. */
+    cpu_draw_buf_.next()->read();
+    vertex_len_.store(min_ii(DRW_DEBUG_DRAW_VERT_MAX, cpu_draw_buf_.next()->command.vertex_len));
+  }
+
+  gpu_draw_buf_.swap();
+  cpu_draw_buf_.swap();
 }
 
-void DebugDraw::display_to_view()
+void DebugDraw::display_to_view(View &view)
 {
+  /* Display only on the main thread. Avoid concurent usage of the resource. */
+  BLI_assert(BLI_thread_is_main());
+
   GPU_debug_group_begin("DebugDraw");
 
-  display_lines();
-  /* Init again so we don't draw the same thing twice. */
-  init();
+  display_lines(view);
 
   GPU_debug_group_end();
 }
@@ -275,66 +293,3 @@ void DebugDraw::display_to_view()
 /** \} */
 
 }  // namespace blender::draw
-
-/* -------------------------------------------------------------------- */
-/** \name DebugDraw Access
- * \{ */
-
-blender::draw::DebugDraw *DRW_debug_get()
-{
-  /* This module is currently not in working state. Some refactor is needed (see #135521). */
-  BLI_assert_unreachable();
-#ifdef WITH_DRAW_DEBUG
-  return reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug);
-#endif
-  return nullptr;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name C-API private
- * \{ */
-
-void drw_debug_draw()
-{
-#ifdef WITH_DRAW_DEBUG
-  if (drw_get().debug == nullptr) {
-    return;
-  }
-  /* TODO(@fclem): Convenience for now. Will have to move to #DRWContext. */
-  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->display_to_view();
-#endif
-}
-
-void drw_debug_init()
-{
-  /* NOTE: Init is once per draw manager cycle. */
-
-  /* Module should not be used in release builds. */
-  /* TODO(@fclem): Hide the functions declarations without using `ifdefs` everywhere. */
-#ifdef WITH_DRAW_DEBUG
-  /* TODO(@fclem): Convenience for now. Will have to move to #DRWContext. */
-  if (drw_get().debug == nullptr) {
-    drw_get().debug = reinterpret_cast<DRWDebugModule *>(new blender::draw::DebugDraw());
-  }
-  reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->init();
-#endif
-}
-
-void drw_debug_module_free(DRWDebugModule *module)
-{
-  if (module != nullptr) {
-    delete reinterpret_cast<blender::draw::DebugDraw *>(module);
-  }
-}
-
-GPUStorageBuf *drw_debug_gpu_draw_buf_get()
-{
-#ifdef WITH_DRAW_DEBUG
-  return reinterpret_cast<blender::draw::DebugDraw *>(drw_get().debug)->gpu_draw_buf_get();
-#endif
-  return nullptr;
-}
-
-/** \} */
