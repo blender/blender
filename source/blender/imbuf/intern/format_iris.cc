@@ -239,15 +239,15 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   rle = ISRLE(image.type);
   bpp = BPP(image.type);
   if (!ELEM(bpp, 1, 2)) {
-    fprintf(stderr, "longimagedata: image must have 1 or 2 byte per pix chan\n");
+    fprintf(stderr, "%s: image must have 1 or 2 byte per pix chan\n", __func__);
     return nullptr;
   }
   if (uint(image.zsize) > 8) {
-    fprintf(stderr, "longimagedata: channels over 8 not supported\n");
+    fprintf(stderr, "%s: channels over 8 not supported\n", __func__);
     return nullptr;
   }
   if (image.zsize == 0 || image.ysize == 0) {
-    fprintf(stderr, "longimagedata: zero size image found\n");
+    fprintf(stderr, "%s: zero size image found\n", __func__);
     return nullptr;
   }
 
@@ -536,7 +536,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   }
 
   if (dirty_flag) {
-    fprintf(stderr, "longimagedata: corrupt file content (%d)\n", dirty_flag);
+    fprintf(stderr, "%s: corrupt file content (%d)\n", __func__, dirty_flag);
   }
   ibuf->ftype = IMB_FTYPE_IRIS;
 
@@ -844,7 +844,7 @@ static bool output_iris(const char *filepath,
     return true;
   }
 
-  fprintf(stderr, "output_iris: not enough space for image!!\n");
+  fprintf(stderr, "%s: not enough space for image!!\n", __func__);
   return false;
 }
 
@@ -925,7 +925,7 @@ bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
 {
   const uint limit = std::numeric_limits<ushort>::max();
   if (ibuf->x > limit || ibuf->y > limit) {
-    fprintf(stderr, "output_iris: image x/y exceeds %u\n", limit);
+    fprintf(stderr, "%s: image x/y exceeds %u\n", __func__, limit);
     return false;
   }
 
