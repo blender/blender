@@ -7,6 +7,7 @@ from bpy.types import (
     Header,
     Menu,
     Panel,
+    SurfaceCurve
 )
 from bl_ui.properties_paint_common import (
     UnifiedPaintPanel,
@@ -8122,6 +8123,95 @@ class VIEW3D_PT_context_properties(Panel):
             rna_prop_ui.draw(self.layout, context, member, object, use_edit=False)
 
 
+class VIEW3D_PT_active_spline(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Item"
+    bl_label = "Active Spline"
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        if ob is None or ob.type != 'CURVE' or ob.mode != 'EDIT':
+            return False
+        curve = ob.data
+        return curve.splines.active is not None
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        curve = context.object.data
+        act_spline = curve.splines.active
+        is_surf = type(curve) is SurfaceCurve
+        is_poly = (act_spline.type == 'POLY')
+
+        col = layout.column()
+
+        if is_poly:
+            # These settings are below but its easier to have
+            # polys set aside since they use so few settings
+
+            col.prop(act_spline, "use_cyclic_u")
+            col.prop(act_spline, "use_smooth")
+        else:
+
+            sub = col.column(heading="Cyclic", align=True)
+            sub.prop(act_spline, "use_cyclic_u", text="U")
+            if is_surf:
+                sub.prop(act_spline, "use_cyclic_v", text="V")
+
+            if act_spline.type == 'NURBS':
+                sub = col.column(heading="Bézier", align=True)
+                # sub.active = (not act_spline.use_cyclic_u)
+                sub.prop(act_spline, "use_bezier_u", text="U")
+
+                if is_surf:
+                    subsub = sub.column()
+                    subsub.prop(act_spline, "use_bezier_v", text="V")
+
+                sub = col.column(heading="Endpoint", align=True)
+                sub.prop(act_spline, "use_endpoint_u", text="U")
+
+                if is_surf:
+                    subsub = sub.column()
+                    subsub.prop(act_spline, "use_endpoint_v", text="V")
+
+                sub = col.column(align=True)
+                sub.prop(act_spline, "order_u", text="Order U")
+
+                if is_surf:
+                    sub.prop(act_spline, "order_v", text="V")
+
+            sub = col.column(align=True)
+            sub.prop(act_spline, "resolution_u", text="Resolution U")
+            if is_surf:
+                sub.prop(act_spline, "resolution_v", text="V")
+
+            if act_spline.type == 'BEZIER':
+
+                col.separator()
+
+                sub = col.column()
+                sub.active = (curve.dimensions == '3D')
+                sub.prop(act_spline, "tilt_interpolation", text="Interpolation Tilt")
+
+                col.prop(act_spline, "radius_interpolation", text="Radius")
+
+            layout.prop(act_spline, "use_smooth")
+            if act_spline.type == 'NURBS':
+                col = None
+                for direction in range(2):
+                    message = act_spline.valid_message(direction)
+                    if not message:
+                        continue
+                    if col is None:
+                        layout.separator()
+                        col = layout.column(align=True)
+                    col.label(text=message, icon='INFO')
+                del col
+
+
 class VIEW3D_PT_grease_pencil_multi_frame(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -9231,6 +9321,7 @@ classes = (
     VIEW3D_PT_curves_sculpt_parameter_falloff,
     VIEW3D_PT_curves_sculpt_grow_shrink_scaling,
     VIEW3D_PT_viewport_debug,
+    VIEW3D_PT_active_spline,
     VIEW3D_AST_brush_sculpt,
     VIEW3D_AST_brush_sculpt_curves,
     VIEW3D_AST_brush_vertex_paint,
