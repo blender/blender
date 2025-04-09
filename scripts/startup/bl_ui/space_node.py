@@ -1007,7 +1007,7 @@ class NODE_PT_node_tree_interface_panel_toggle(Panel):
         if not active_item.interface_items:
             return False
         first_item = active_item.interface_items[0]
-        return first_item.is_panel_toggle
+        return getattr(first_item, "is_panel_toggle", False)
 
     def draw(self, context):
         layout = self.layout
