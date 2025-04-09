@@ -112,7 +112,7 @@ void ED_screen_draw_edges(wmWindow *win)
   bScreen *screen = WM_window_get_active_screen(win);
   screen->do_draw = false;
 
-  if (screen->state == SCREENFULL) {
+  if (screen->state != SCREENNORMAL) {
     return;
   }
 

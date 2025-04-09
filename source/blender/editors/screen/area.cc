@@ -1827,7 +1827,7 @@ static void area_calc_totrct(const bScreen *screen, ScrArea *area, const rcti *w
     if (area->totrct.ymax < (window_rect->ymax - 1)) {
       area->totrct.ymax -= px;
     }
-    else if (!BLI_listbase_is_single(&screen->areabase)) {
+    else if (!BLI_listbase_is_single(&screen->areabase) || screen->state == SCREENMAXIMIZED) {
       /* Small gap below Top Bar. */
       area->totrct.ymax -= U.pixelsize;
     }
