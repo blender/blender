@@ -27,6 +27,8 @@ set(SRC
   intern/format_bmp.cc
   intern/format_dds.cc
   intern/format_hdr.cc
+  intern/format_iris.cc
+  intern/format_jpeg.cc
   intern/format_png.cc
   intern/format_psd.cc
   intern/format_svg.cc
@@ -34,8 +36,6 @@ set(SRC
   intern/format_tiff.cc
   intern/imageprocess.cc
   intern/interp.cc
-  intern/iris.cc
-  intern/jpeg.cc
   intern/metadata.cc
   intern/module.cc
   intern/moviecache.cc
@@ -109,7 +109,7 @@ if(WITH_IMAGE_OPENJPEG)
     ${OPENJPEG_INCLUDE_DIRS}
   )
   list(APPEND SRC
-    intern/jp2.cc
+    intern/format_jp2.cc
   )
   list(APPEND LIB
     ${OPENJPEG_LIBRARIES}
@@ -130,7 +130,7 @@ endif()
 
 if(WITH_IMAGE_WEBP)
   list(APPEND SRC
-    intern/webp.cc
+    intern/format_webp.cc
   )
   list(APPEND INC_SYS
     ${WEBP_INCLUDE_DIRS}
