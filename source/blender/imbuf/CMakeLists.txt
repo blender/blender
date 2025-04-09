@@ -88,7 +88,7 @@ if(WITH_IMAGE_OPENEXR)
   list(APPEND LIB
     bf_imbuf_openexr
   )
-  add_definitions(-DWITH_OPENEXR)
+  add_definitions(-DWITH_IMAGE_OPENEXR)
 else()
   list(APPEND SRC
     intern/openexr/openexr_stub.cpp
@@ -115,7 +115,7 @@ if(WITH_IMAGE_OPENJPEG)
     ${OPENJPEG_LIBRARIES}
   )
 
-  add_definitions(-DWITH_OPENJPEG ${OPENJPEG_DEFINES})
+  add_definitions(-DWITH_IMAGE_OPENJPEG ${OPENJPEG_DEFINES})
 endif()
 
 if(WITH_IMAGE_CINEON)
@@ -125,7 +125,7 @@ if(WITH_IMAGE_CINEON)
   list(APPEND LIB
     bf_imbuf_cineon
   )
-  add_definitions(-DWITH_CINEON)
+  add_definitions(-DWITH_IMAGE_CINEON)
 endif()
 
 if(WITH_IMAGE_WEBP)
@@ -138,7 +138,7 @@ if(WITH_IMAGE_WEBP)
   list(APPEND LIB
     ${WEBP_LIBRARIES}
   )
-  add_definitions(-DWITH_WEBP)
+  add_definitions(-DWITH_IMAGE_WEBP)
 endif()
 
 list(APPEND INC
