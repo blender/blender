@@ -539,11 +539,9 @@ static int remap_crf_to_h265_crf(int crf, bool is_10_or_12_bpp)
 
 static const AVCodec *get_prores_encoder(RenderData *rd, int rectx, int recty)
 {
-  /* prores_aw currently (April 2025) have issue when encoding alpha with high resolution
-   but in all cases is faster for similar quality use it instead of prores_ks if
-   possible
-   https://trac.ffmpeg.org/ticket/11536
-   */
+  /* The prores_aw encoder currently (April 2025) has issues when encoding alpha with high
+   * resolution but is faster in most cases for similar quality. Use it instead of prores_ks
+   * if possible. (Upstream issue https://trac.ffmpeg.org/ticket/11536) */
   if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
     if ((rectx * recty) > (3840 * 2160)) {
       return avcodec_find_encoder_by_name("prores_ks");

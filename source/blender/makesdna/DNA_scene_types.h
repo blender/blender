@@ -143,7 +143,6 @@ typedef struct FFMpegCodecData {
   int mux_packet_size;
   int mux_rate;
   char _pad0[4];
-  void *_pad1;
 } FFMpegCodecData;
 
 /** \} */
@@ -664,7 +663,6 @@ typedef enum eBakePassFilter {
 typedef struct RenderData {
   struct ImageFormatData im_format;
 
-  void *_pad;
   struct FFMpegCodecData ffcodecdata;
 
   /** Frames as in 'images'. */
