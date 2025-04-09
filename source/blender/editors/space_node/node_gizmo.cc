@@ -99,7 +99,7 @@ static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmGizmoGroupType 
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
     return false;
   }
 
@@ -296,7 +296,7 @@ static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType * /*g
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
     return false;
   }
 
@@ -478,7 +478,7 @@ static bool WIDGETGROUP_node_box_mask_poll(const bContext *C, wmGizmoGroupType *
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
     return false;
   }
 
@@ -592,7 +592,7 @@ static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
     return false;
   }
 
@@ -699,7 +699,7 @@ static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmGizmoGroupType
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
     return false;
   }
 
