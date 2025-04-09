@@ -127,7 +127,7 @@ class EllipseMaskOperation : public NodeOperation {
     const Result &input_mask = get_input("Mask");
     Result &output_mask = get_result("Mask");
     const float2 size = this->get_size();
-    if (size.x == 0 || size.y == 0) {
+    if (math::is_any_zero(size)) {
       output_mask.share_data(input_mask);
       return;
     }
