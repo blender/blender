@@ -206,6 +206,10 @@ void Manager::ensure_visibility(View &view)
 
 void Manager::generate_commands(PassMain &pass, View &view)
 {
+  if (pass.is_empty()) {
+    return;
+  }
+
   BLI_assert_msg((pass.manager_fingerprint_ != this->fingerprint_get()) ||
                      (pass.view_fingerprint_ != view.fingerprint_get()),
                  "Resources and view did not changed no need to update");
@@ -226,12 +230,20 @@ void Manager::generate_commands(PassMain &pass, View &view)
 
 void Manager::generate_commands(PassSortable &pass, View &view)
 {
+  if (pass.is_empty()) {
+    return;
+  }
+
   pass.sort();
   generate_commands(static_cast<PassMain &>(pass), view);
 }
 
 void Manager::generate_commands(PassSimple &pass)
 {
+  if (pass.is_empty()) {
+    return;
+  }
+
   BLI_assert_msg(pass.manager_fingerprint_ != this->fingerprint_get(),
                  "Resources did not changed since last generate_command, no need to update");
   pass.manager_fingerprint_ = this->fingerprint_get();
@@ -241,6 +253,10 @@ void Manager::generate_commands(PassSimple &pass)
 
 void Manager::submit_only(PassMain &pass, View &view)
 {
+  if (pass.is_empty()) {
+    return;
+  }
+
   BLI_assert_msg(view.manager_fingerprint_ != 0, "compute_visibility was not called on this view");
   BLI_assert_msg(view.manager_fingerprint_ == this->fingerprint_get(),
                  "Resources changed since last compute_visibility");
@@ -270,6 +286,10 @@ void Manager::submit_only(PassMain &pass, View &view)
 
 void Manager::submit(PassMain &pass, View &view)
 {
+  if (pass.is_empty()) {
+    return;
+  }
+
   if (view.manager_fingerprint_ != this->fingerprint_get()) {
     compute_visibility(view);
   }
@@ -285,6 +305,10 @@ void Manager::submit(PassMain &pass, View &view)
 
 void Manager::submit(PassSortable &pass, View &view)
 {
+  if (pass.is_empty()) {
+    return;
+  }
+
   pass.sort();
 
   this->submit(static_cast<PassMain &>(pass), view);
@@ -292,6 +316,10 @@ void Manager::submit(PassSortable &pass, View &view)
 
 void Manager::submit(PassSimple &pass, bool inverted_view)
 {
+  if (pass.is_empty()) {
+    return;
+  }
+
   if (!pass.has_generated_commands()) {
     generate_commands(pass);
   }
@@ -312,6 +340,10 @@ void Manager::submit(PassSimple &pass, bool inverted_view)
 
 void Manager::submit(PassSimple &pass, View &view)
 {
+  if (pass.is_empty()) {
+    return;
+  }
+
   debug_bind();
 
   view.bind();
