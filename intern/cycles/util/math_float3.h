@@ -207,6 +207,15 @@ ccl_device_inline bool operator!=(const float3 a, const float3 b)
   return !(a == b);
 }
 
+ccl_device_inline int3 operator>=(const float3 a, const float3 b)
+{
+#  ifdef __KERNEL_SSE__
+  return int3(_mm_castps_si128(_mm_cmpge_ps(a.m128, b.m128)));
+#  else
+  return make_int3(a.x >= b.x, a.y >= b.y, a.z >= b.z);
+#  endif
+}
+
 ccl_device_inline float dot(const float3 a, const float3 b)
 {
 #  if defined(__KERNEL_SSE42__) && defined(__KERNEL_SSE__)
@@ -318,9 +327,24 @@ ccl_device_inline float3 fabs(const float3 a)
 #  endif
 }
 
+/* The floating-point remainder of the division operation a / b calculated by this function is
+ * exactly the value a - iquot * b, where iquot is a / b with its fractional part truncated.
+ *
+ * The returned value has the same sign as a and is less than b in magnitude. */
 ccl_device_inline float3 fmod(const float3 a, const float b)
 {
+#  if defined(__KERNEL_NEON__)
+  /* Use native Neon instructions.
+   * The logic is the same as the SSE code below, but on Apple M2 Ultra this seems to be faster.
+   * Possibly due to some runtime checks in _mm_round_ps which do not get properly inlined. */
+  const float32x4_t iquot = vrndq_f32(a / b);
+  return float3(vsubq_f32(a, vmulq_f32(iquot, vdupq_n_f32(b))));
+#  elif defined(__KERNEL_SSE42__) && defined(__KERNEL_SSE__)
+  const __m128 iquot = _mm_round_ps(a / b, _MM_FROUND_TRUNC);
+  return float3(_mm_sub_ps(a, _mm_mul_ps(iquot, _mm_set1_ps(b))));
+#  else
   return make_float3(fmodf(a.x, b), fmodf(a.y, b), fmodf(a.z, b));
+#  endif
 }
 
 ccl_device_inline float3 sqrt(const float3 a)

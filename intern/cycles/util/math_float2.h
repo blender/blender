@@ -118,6 +118,11 @@ ccl_device_inline bool operator!=(const float2 a, const float2 b)
   return !(a == b);
 }
 
+ccl_device_inline int2 operator>=(const float2 a, const float2 b)
+{
+  return make_int2(a.x >= b.x, a.y >= b.y);
+}
+
 ccl_device_inline bool is_zero(const float2 a)
 {
   return (a.x == 0.0f && a.y == 0.0f);
