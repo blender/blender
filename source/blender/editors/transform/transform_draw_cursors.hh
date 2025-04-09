@@ -23,6 +23,7 @@ bool transform_draw_cursor_poll(bContext *C);
  * Cursor and help-line drawing, callback for:
  * #WM_paint_cursor_activate
  */
-void transform_draw_cursor_draw(bContext *C, int x, int y, void *customdata);
+void transform_draw_cursor_draw(
+    bContext *C, int x, int y, float x_tilt, float y_tilt, void *customdata);
 
 }  // namespace blender::ed::transform

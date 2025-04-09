@@ -2133,7 +2133,8 @@ static void paint_cursor_restore_drawing_state()
   GPU_line_smooth(false);
 }
 
-static void paint_draw_cursor(bContext *C, int x, int y, void * /*unused*/)
+static void paint_draw_cursor(
+    bContext *C, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void * /*unused*/)
 {
   PaintCursorContext pcontext;
   if (!paint_cursor_context_init(C, x, y, &pcontext)) {

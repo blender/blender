@@ -1188,7 +1188,8 @@ struct wmIMEData {
 
 /* **************** Paint Cursor ******************* */
 
-using wmPaintCursorDraw = void (*)(bContext *C, int, int, void *customdata);
+using wmPaintCursorDraw =
+    void (*)(bContext *C, int x, int y, float x_tilt, float y_tilt, void *customdata);
 
 /* *************** Drag and drop *************** */
 

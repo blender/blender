@@ -22,7 +22,7 @@ struct wmPaintCursor {
   void *customdata;
 
   bool (*poll)(bContext *C);
-  void (*draw)(bContext *C, int, int, void *customdata);
+  void (*draw)(bContext *C, int, int, float, float, void *customdata);
 
   short space_type;
   short region_type;

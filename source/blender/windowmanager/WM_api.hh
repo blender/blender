@@ -487,7 +487,7 @@ void WM_cursor_time(wmWindow *win, int nr);
 wmPaintCursor *WM_paint_cursor_activate(short space_type,
                                         short region_type,
                                         bool (*poll)(bContext *C),
-                                        void (*draw)(bContext *C, int, int, void *customdata),
+                                        wmPaintCursorDraw draw,
                                         void *customdata);
 
 bool WM_paint_cursor_end(wmPaintCursor *handle);

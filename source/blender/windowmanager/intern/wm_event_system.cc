@@ -5857,6 +5857,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
         copy_v2_v2_int(event_state->xy, event_new->xy);
         event_state->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
+        event_state->tablet.x_tilt = event.tablet.x_tilt;
+        event_state->tablet.y_tilt = event.tablet.y_tilt;
       }
 
       /* Also add to other window if event is there, this makes overdraws disappear nicely. */

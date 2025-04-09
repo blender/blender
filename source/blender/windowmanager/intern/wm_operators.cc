@@ -2766,7 +2766,8 @@ static void radial_control_paint_curve(uint pos, Brush *br, float radius, int li
   immEnd();
 }
 
-static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *customdata)
+static void radial_control_paint_cursor(
+    bContext * /*C*/, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
 {
   RadialControl *rc = static_cast<RadialControl *>(customdata);
   const uiStyle *style = UI_style_get();

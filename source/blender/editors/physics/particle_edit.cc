@@ -3399,7 +3399,8 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
 /** \name Cursor Drawing
  * \{ */
 
-static void brush_drawcursor(bContext *C, int x, int y, void * /*customdata*/)
+static void brush_drawcursor(
+    bContext *C, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void * /*customdata*/)
 {
   Scene *scene = CTX_data_scene(C);
   ParticleEditSettings *pset = PE_settings(scene);
