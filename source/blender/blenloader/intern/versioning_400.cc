@@ -55,6 +55,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BKE_action.hh"
@@ -6721,13 +6722,19 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     rename_mesh_uv_seam_attribute(*mesh);
   }
 
-  /* TODO: define version bump. */
-  {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->r.ppm_factor == 0.0f && scene->r.ppm_base == 0.0f) {
-        scene->r.ppm_factor = 72.0f;
-        scene->r.ppm_base = 0.0254f;
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 20)) {
+    /* Older files uses non-UTF8 aware string copy, ensure names are valid UTF8.
+     * The slot names are not unique so no further changes are needed. */
+    LISTBASE_FOREACH (Image *, image, &bmain->images) {
+      LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
+        if (slot->name[0]) {
+          BLI_str_utf8_invalid_strip(slot->name, sizeof(slot->name));
+        }
       }
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.ppm_factor = 72.0f;
+      scene->r.ppm_base = 0.0254f;
     }
   }
 
