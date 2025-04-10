@@ -24,6 +24,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
@@ -1770,6 +1771,19 @@ static int pyrna_py_to_prop(
             }
 
             return -1;
+          }
+
+          if ((flag & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
+            if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
+              if (BLI_path_is_rel(param)) {
+                char warning_buf[256];
+                SNPRINTF(warning_buf,
+                         "%.200s.%.200s: does not support blend relative \"//\" prefix",
+                         RNA_struct_identifier(ptr->type),
+                         RNA_property_identifier(prop));
+                PyErr_WarnEx(PyExc_RuntimeWarning, warning_buf, 1);
+              }
+            }
           }
 
           /* Same as bytes (except for UTF8 string copy). */

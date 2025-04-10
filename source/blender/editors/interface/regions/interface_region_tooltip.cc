@@ -1028,6 +1028,25 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     }
   }
 
+  /* Warn if relative paths are used when unsupported (will already display red-alert). */
+  if (ELEM(but->type, UI_BTYPE_TEXT)) {
+    if (rnaprop) {
+      PropertySubType subtype = RNA_property_subtype(rnaprop);
+      if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
+        if ((RNA_property_flag(rnaprop) & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
+          if (BLI_path_is_rel(but->drawstr.c_str())) {
+            UI_tooltip_text_field_add(*data,
+                                      "Warning: the blend-file relative path prefix \"//\" "
+                                      "is not supported for this property.",
+                                      {},
+                                      UI_TIP_STYLE_NORMAL,
+                                      UI_TIP_LC_ALERT);
+          }
+        }
+      }
+    }
+  }
+
   /* Button is disabled, we may be able to tell user why. */
   if ((but->flag & UI_BUT_DISABLED) || extra_icon) {
     const char *disabled_msg_orig = nullptr;

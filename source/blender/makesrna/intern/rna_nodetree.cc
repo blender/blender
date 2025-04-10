@@ -6698,6 +6698,7 @@ static void def_sh_tex_ies(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_ui_text(prop, "File Path", "IES light path");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -6771,6 +6772,7 @@ static void def_sh_script(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_ui_text(prop, "File Path", "Shader script path");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodeScript_update");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -7336,7 +7338,7 @@ static void def_cmp_output_file(BlenderRNA *brna, StructRNA *srna)
   prop = RNA_def_property(srna, "base_path", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "base_path");
   RNA_def_property_ui_text(prop, "Base Path", "Base output path for the image");
-  RNA_def_property_flag(prop, PROP_PATH_OUTPUT);
+  RNA_def_property_flag(prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "active_input_index", PROP_INT, PROP_NONE);

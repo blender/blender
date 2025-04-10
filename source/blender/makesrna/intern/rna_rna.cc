@@ -172,6 +172,9 @@ static constexpr auto PROP_LIB_EXCEPTION_DESCR =
 static constexpr auto PROP_PROPORTIONAL_DESCR = "";
 static constexpr auto PROP_TEXTEDIT_UPDATE_DESCR = "";
 static constexpr auto PROP_PATH_OUTPUT_DESCR = "";
+static constexpr auto PROP_PATH_RELATIVE_DESCR =
+    "This path supports relative prefix \"//\" which is expanded the the directory "
+    "where the current \".blend\" file is located.";
 static constexpr auto PROP_ENUM_FLAG_DESCR = "";
 
 const EnumPropertyItem rna_enum_property_flag_items[] = {
@@ -191,6 +194,11 @@ const EnumPropertyItem rna_enum_property_flag_items[] = {
      "Update on every keystroke in textedit 'mode'",
      PROP_TEXTEDIT_UPDATE_DESCR},
     {PROP_PATH_OUTPUT, "OUTPUT_PATH", 0, "Output Path", PROP_PATH_OUTPUT_DESCR},
+    {PROP_PATH_SUPPORTS_BLEND_RELATIVE,
+     "RELATIVE_PATH",
+     0,
+     "Relative Path Support",
+     PROP_PATH_RELATIVE_DESCR},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -785,6 +793,12 @@ static bool rna_Property_is_path_output_flag_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
   return (prop->flag & PROP_PATH_OUTPUT) != 0;
+}
+
+static bool rna_Property_is_path_supports_blend_relative_flag_get(PointerRNA *ptr)
+{
+  PropertyRNA *prop = (PropertyRNA *)ptr->data;
+  return (prop->flag & PROP_PATH_SUPPORTS_BLEND_RELATIVE) != 0;
 }
 
 static int rna_Property_tags_get(PointerRNA *ptr)
@@ -3289,6 +3303,16 @@ static void rna_def_property(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_Property_is_path_output_flag_get", nullptr);
   RNA_def_property_ui_text(
       prop, "Path Output", "Property is a filename, filepath or directory output");
+
+  prop = RNA_def_property(srna, "is_path_supports_blend_relative", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_Property_is_path_supports_blend_relative_flag_get", nullptr);
+  RNA_def_property_ui_text(
+      prop,
+      "Path Relative",
+      "Property is a path which supports the \"//\" prefix, "
+      "signifying the location as relative to the \".blend\" files directory");
 
   prop = RNA_def_property(srna, "tags", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -7334,11 +7334,13 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "texture_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "textudir");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_ui_text(
       prop, "Textures Directory", "The default directory to search for textures");
 
   prop = RNA_def_property(srna, "render_output_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "renderdir");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_ui_text(prop,
                            "Render Output Directory",
                            "The default directory for rendering output, for new scenes");
@@ -7361,6 +7363,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sound_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "sounddir");
   RNA_def_property_ui_text(prop, "Sounds Directory", "The default directory to search for sounds");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
 
   prop = RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "tempdir");
@@ -7373,6 +7376,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   prop = RNA_def_property(srna, "render_cache_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "render_cachedir");
   RNA_def_property_ui_text(prop, "Render Cache Path", "Where to cache raw render results");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
 
   prop = RNA_def_property(srna, "image_editor", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "image_editor");

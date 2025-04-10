@@ -863,7 +863,7 @@ void RNA_api_main(StructRNA * /*srna*/)
   RNA_def_function_ui_description(func, "Add a new image");
   parm = RNA_def_string_file_path(
       func, "filepath", nullptr, 0, "", "File path to load image from");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_PATH_SUPPORTS_BLEND_RELATIVE, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "image", "Image", "", "New image");
   RNA_def_function_return(func, parm);
 #  endif
@@ -1303,7 +1303,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Load a new image into the main database");
   parm = RNA_def_string_file_path(
       func, "filepath", "File Path", 0, "", "Path of the file to load");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_PATH_SUPPORTS_BLEND_RELATIVE, PARM_REQUIRED);
   RNA_def_boolean(func,
                   "check_existing",
                   false,
@@ -1479,7 +1479,7 @@ void RNA_def_main_fonts(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Load a new font into the main database");
   parm = RNA_def_string_file_path(
       func, "filepath", "File Path", 0, "", "path of the font to load");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_PATH_SUPPORTS_BLEND_RELATIVE, PARM_REQUIRED);
   RNA_def_boolean(func,
                   "check_existing",
                   false,
@@ -1755,7 +1755,7 @@ void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Add a new text to the main database from a file");
   parm = RNA_def_string_file_path(
       func, "filepath", "Path", FILE_MAX, "", "path for the data-block");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_PATH_SUPPORTS_BLEND_RELATIVE, PARM_REQUIRED);
   parm = RNA_def_boolean(
       func, "internal", false, "Make internal", "Make text file internal after loading");
   /* return type */
@@ -1783,7 +1783,7 @@ void RNA_def_main_sounds(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Add a new sound to the main database from a file");
   parm = RNA_def_string_file_path(
       func, "filepath", "Path", FILE_MAX, "", "path for the data-block");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_PATH_SUPPORTS_BLEND_RELATIVE, PARM_REQUIRED);
   RNA_def_boolean(func,
                   "check_existing",
                   false,
@@ -2135,7 +2135,7 @@ void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)
       "behavior with multiple movie-clips using the same file may incorrectly generate proxies)");
   parm = RNA_def_string_file_path(
       func, "filepath", "Path", FILE_MAX, "", "path for the data-block");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_PATH_SUPPORTS_BLEND_RELATIVE, PARM_REQUIRED);
   RNA_def_boolean(func,
                   "check_existing",
                   false,
