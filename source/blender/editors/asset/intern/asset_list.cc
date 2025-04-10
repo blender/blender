@@ -94,6 +94,7 @@ class AssetList : NonCopyable {
 
   void setup();
   void fetch(const bContext &C);
+  void ensure_blocking(const bContext &C);
   void clear(wmWindowManager *wm);
   void clear_current_file_assets(wmWindowManager *wm);
 
@@ -159,6 +160,22 @@ void AssetList::fetch(const bContext &C)
       filelist_readjob_start(files, NC_ASSET | ND_ASSET_LIST_READING, &C);
     }
   }
+  filelist_sort(files);
+  filelist_filter(files);
+}
+
+void AssetList::ensure_blocking(const bContext &C)
+{
+  FileList *files = filelist_;
+
+  if (filelist_needs_force_reset(files)) {
+    filelist_clear_from_reset_tag(files);
+  }
+
+  if (filelist_needs_reading(files)) {
+    filelist_readjob_blocking_run(files, NC_ASSET | ND_ASSET_LIST_READING, &C);
+  }
+
   filelist_sort(files);
   filelist_filter(files);
 }
@@ -419,6 +436,21 @@ void storage_fetch(const AssetLibraryReference *library_reference, const bContex
   if (is_new || list.needs_refetch()) {
     list.setup();
     list.fetch(*C);
+  }
+}
+
+void storage_fetch_blocking(const AssetLibraryReference &library_reference, const bContext &C)
+{
+  std::optional filesel_type = asset_library_reference_to_fileselect_type(library_reference);
+  if (!filesel_type) {
+    /* TODO: Warn? */
+    return;
+  }
+
+  auto [list, is_new] = ensure_list_storage(library_reference, *filesel_type);
+  if (is_new || list.needs_refetch()) {
+    list.setup();
+    list.ensure_blocking(C);
   }
 }
 

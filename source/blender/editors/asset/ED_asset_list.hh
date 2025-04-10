@@ -61,10 +61,17 @@ void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
  * Invoke asset list reading, potentially in a parallel job. Won't wait until the job is done,
  * and may return earlier.
  *
+ * \see: #storage_fetch_blocking for a blocking version.
  * \warning: Asset list reading involves an #AS_asset_library_load() call which may reload asset
  *           library data like catalogs (invalidating pointers). Refer to its warning for details.
  */
 void storage_fetch(const AssetLibraryReference *library_reference, const bContext *C);
+/**
+ * Invoke asset list reading, guaranteed to execute on the same thread.
+ *
+ * \see #storage_fetch for an async version.
+ */
+void storage_fetch_blocking(const AssetLibraryReference &library_reference, const bContext &C);
 bool is_loaded(const AssetLibraryReference *library_reference);
 /**
  * Clears this asset library and the "All" asset library for reload in both the static asset list

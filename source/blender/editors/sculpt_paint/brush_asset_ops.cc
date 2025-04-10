@@ -17,6 +17,7 @@
 #include "BKE_blendfile.hh"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_paint.hh"
 #include "BKE_preferences.h"
 #include "BKE_preview_image.hh"
@@ -54,6 +55,14 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
    * used for the asset-view template. Once the asset list design is used by the Asset Browser,
    * this can be simplified to just that case. */
   Main *bmain = CTX_data_main(C);
+
+  if (G.background) {
+    /* As asset loading can take upwards of a few minutes on production libraries, we typically
+     * do not want this to execute in a blocking fashion. However, for testing / profiling
+     * purposes, this is an acceptable workaround for now until a proper python API is created
+     * for this usecase. */
+    asset::list::storage_fetch_blocking(asset_system::all_library_reference(), *C);
+  }
   const asset_system::AssetRepresentation *asset =
       asset::operator_asset_reference_props_get_asset_from_all_library(*C, *op->ptr, op->reports);
   if (!asset) {

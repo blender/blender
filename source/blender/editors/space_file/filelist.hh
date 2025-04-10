@@ -231,6 +231,10 @@ void filelist_freelib(FileList *filelist);
  */
 int filelist_files_num_entries(FileList *filelist);
 
+/** Forcibly run the job as a blocking task on the main thread. */
+void filelist_readjob_blocking_run(FileList *filelist, int space_notifier, const bContext *C);
+
+/** May run the job in either the main thread or asynchronously. */
 void filelist_readjob_start(FileList *filelist, int space_notifier, const bContext *C);
 void filelist_readjob_stop(FileList *filelist, wmWindowManager *wm);
 int filelist_readjob_running(FileList *filelist, wmWindowManager *wm);
