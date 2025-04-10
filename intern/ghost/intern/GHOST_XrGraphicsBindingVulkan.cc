@@ -29,13 +29,22 @@ PFN_xrCreateVulkanInstanceKHR GHOST_XrGraphicsBindingVulkan::s_xrCreateVulkanIns
 PFN_xrCreateVulkanDeviceKHR GHOST_XrGraphicsBindingVulkan::s_xrCreateVulkanDeviceKHR_fn = nullptr;
 
 /* -------------------------------------------------------------------- */
+/** \name Constructor
+ * \{ */
+
+GHOST_XrGraphicsBindingVulkan::GHOST_XrGraphicsBindingVulkan(GHOST_Context &ghost_ctx)
+    : GHOST_IXrGraphicsBinding(), m_ghost_ctx(static_cast<GHOST_ContextVK &>(ghost_ctx))
+{
+}
+
+/* \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Destroying resources.
  * \{ */
 
 GHOST_XrGraphicsBindingVulkan::~GHOST_XrGraphicsBindingVulkan()
 {
-  m_ghost_ctx = nullptr;
-
   /* Destroy buffer */
   if (m_vk_buffer != VK_NULL_HANDLE) {
     vmaUnmapMemory(m_vma_allocator, m_vk_buffer_allocation);
@@ -137,11 +146,10 @@ bool GHOST_XrGraphicsBindingVulkan::checkVersionRequirements(GHOST_Context &ghos
   return true;
 }
 
-void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ctx,
+void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context & /*ghost_ctx*/,
                                                          XrInstance instance,
                                                          XrSystemId system_id)
 {
-  m_ghost_ctx = static_cast<GHOST_ContextVK *>(&ghost_ctx);
   /* Create a new VkInstance that is compatible with OpenXR */
   VkApplicationInfo vk_application_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO,
                                            nullptr,
@@ -268,7 +276,7 @@ void GHOST_XrGraphicsBindingVulkan::initFromGhostContext(GHOST_Context &ghost_ct
 GHOST_TVulkanXRModes GHOST_XrGraphicsBindingVulkan::choseDataTransferMode()
 {
   GHOST_VulkanHandles vulkan_handles;
-  m_ghost_ctx->getVulkanHandles(vulkan_handles);
+  m_ghost_ctx.getVulkanHandles(vulkan_handles);
 
   /* Retrieve the Context physical device properties. */
   VkPhysicalDeviceVulkan11Properties vk_physical_device_vulkan11_properties = {
@@ -436,7 +444,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageCpu(
 {
   /* Acquire frame buffer image. */
   GHOST_VulkanOpenXRData openxr_data = {GHOST_kVulkanXRModeCPU};
-  m_ghost_ctx->openxr_acquire_framebuffer_image_callback_(&openxr_data);
+  m_ghost_ctx.openxr_acquire_framebuffer_image_callback_(&openxr_data);
 
   /* Import render result. */
   VkDeviceSize component_size = 4 * sizeof(uint8_t);
@@ -542,7 +550,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageCpu(
   vkResetCommandBuffer(vk_command_buffer, 0);
 
   /* Release frame buffer image. */
-  m_ghost_ctx->openxr_release_framebuffer_image_callback_(&openxr_data);
+  m_ghost_ctx.openxr_release_framebuffer_image_callback_(&openxr_data);
 }
 
 /* \} */
@@ -555,7 +563,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
     XrSwapchainImageVulkan2KHR &swapchain_image, const GHOST_XrDrawViewInfo &draw_info)
 {
   GHOST_VulkanOpenXRData openxr_data = {m_data_transfer_mode};
-  m_ghost_ctx->openxr_acquire_framebuffer_image_callback_(&openxr_data);
+  m_ghost_ctx.openxr_acquire_framebuffer_image_callback_(&openxr_data);
 
   /* Create an image handle */
   VkExternalMemoryImageCreateInfo vk_external_memory_image_info = {
