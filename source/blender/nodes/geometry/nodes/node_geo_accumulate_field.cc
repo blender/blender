@@ -99,7 +99,7 @@ static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSoc
     case SOCK_MATRIX:
       return CD_PROP_FLOAT4X4;
     default:
-      return {};
+      return std::nullopt;
   }
 }
 
@@ -184,8 +184,8 @@ class AccumulateFieldInput final : public bke::GeometryFieldInput {
                        Field<int> group_index,
                        AccumulationMode accumulation_mode)
       : bke::GeometryFieldInput(input.cpp_type(), "Accumulation"),
-        input_(input),
-        group_index_(group_index),
+        input_(std::move(input)),
+        group_index_(std::move(group_index)),
         source_domain_(source_domain),
         accumulation_mode_(accumulation_mode)
   {
@@ -292,8 +292,8 @@ class TotalFieldInput final : public bke::GeometryFieldInput {
  public:
   TotalFieldInput(const AttrDomain source_domain, GField input, Field<int> group_index)
       : bke::GeometryFieldInput(input.cpp_type(), "Total Value"),
-        input_(input),
-        group_index_(group_index),
+        input_(std::move(input)),
+        group_index_(std::move(group_index)),
         source_domain_(source_domain)
   {
   }
