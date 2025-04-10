@@ -189,8 +189,10 @@ struct StrokeCache {
   float3 last_location_symm = float3(0);
   float stroke_distance = 0.0f;
 
-  /* Used for alternating between deformation in brushes that need to apply different ones to
-   * achieve certain effects. */
+  /**
+   * Used for alternating between deformations in brushes that need to apply different ones to
+   * achieve certain effects.
+   */
   int iteration_count = 0;
 
   /* Original pixel radius with the pressure curve applied for dyntopo detail size */
@@ -201,7 +203,7 @@ struct StrokeCache {
   bool pen_flip = false;
 
   /**
-   * Whether or not the modifier key that controls inverting brush behavior is active currently.
+   * Whether the modifier key that controls inverting brush behavior is active currently.
    * Generally signals a change in behavior for brushes.
    *
    * \see BrushStrokeMode::BRUSH_STROKE_INVERT.
@@ -219,8 +221,10 @@ struct StrokeCache {
   float normal_weight = 0.0f; /* from brush (with optional override) */
   float2 tilt = float2(0);
 
-  /* Position of the mouse corresponding to the stroke location, modified by the paint_stroke
-   * operator according to the stroke type. */
+  /**
+   * Position of the mouse corresponding to the stroke location, modified by the paint_stroke
+   * operator according to the stroke type.
+   */
   float2 mouse = float2(0);
   /* Position of the mouse event in screen space, not modified by the stroke type. */
   float2 mouse_event = float2(0);
@@ -232,12 +236,13 @@ struct StrokeCache {
 
   /* The rest is temporary storage that isn't saved as a property */
 
-  bool first_time = false; /* Beginning of stroke may do some things special */
+  /* Beginning of stroke may do some things special. */
+  bool first_time = false;
 
-  /* from ED_view3d_ob_project_mat_get() */
+  /* from ED_view3d_ob_project_mat_get(). */
   float4x4 projection_mat = float4x4::identity();
 
-  /* Clean this up! */
+  /* TODO: Clean this up! */
   ViewContext *vc = nullptr;
   const Brush *brush = nullptr;
 
@@ -247,35 +252,46 @@ struct StrokeCache {
   float3 old_grab_location = float3(0);
   float3 orig_grab_location = float3(0);
 
-  /* screen-space rotation defined by mouse motion */
+  /* Screen-space rotation defined by mouse motion. */
   std::optional<math::Quaternion> rake_rotation;
   std::optional<math::Quaternion> rake_rotation_symm;
   SculptRakeData rake_data;
 
-  /* Face Sets */
+  /* The face set being painted. */
   int paint_face_set = 0;
 
-  /* Symmetry index between 0 and 7 bit combo 0 is Brush only;
-   * 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
+  /**
+   * Symmetry index between 0 and 7 bit combo.
+   *
+   * 0 is Brush only; 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ.
+   */
   int symmetry = 0;
   /* The symmetry pass we are currently on between 0 and 7. */
   ePaintSymmetryFlags mirror_symmetry_pass = ePaintSymmetryFlags(0);
   float3 view_normal = float3(0);
   float3 view_normal_symm = float3(0);
 
-  /* sculpt_normal gets calculated by calc_sculpt_normal(), then the
-   * sculpt_normal_symm gets updated quickly with the usual symmetry
-   * transforms */
+  /**
+   * The primary direction of influence for a brush stroke.
+   *
+   * May be unused for some brushes (e.g. Smooth)
+   * May be only calculated at the beginning of a stroke (e.g. Grab)
+   *
+   * Calculated by either #calc_sculpt_normal or #calc_brush_plane.
+   */
   float3 sculpt_normal = float3(0);
   float3 sculpt_normal_symm = float3(0);
 
-  /* Used for area texture mode, local_mat gets calculated by
+  /**
+   * Used for area texture mode, local_mat gets calculated by
    * calc_brush_local_mat() and used in sculpt_apply_texture().
    * Transforms from model-space coords to local area coords.
    */
   float4x4 brush_local_mat = float4x4::identity();
-  /* The matrix from local area coords to model-space coords is used to calculate the vector
-   * displacement in area plane mode. */
+  /**
+   * The matrix from local area coords to model-space coords is used to calculate the vector
+   * displacement in area plane mode.
+   */
   float4x4 brush_local_mat_inv = float4x4::identity();
 
   /* used to shift the plane around when doing tiled strokes */
@@ -322,7 +338,7 @@ struct StrokeCache {
   struct {
     /* Angle of the front tilting plane of the brush to simulate clay accumulation. */
     float front_angle;
-    /* Stores the last 10 pressure samples to get an stabilized strength and radius variation. */
+    /* Stores the last 10 pressure samples to get a stabilized strength and radius variation. */
     std::array<float, 10> pressure_stabilizer;
     int stabilizer_index = 0;
 
@@ -365,17 +381,17 @@ struct StrokeCache {
   /* Layer brush */
   Array<float> layer_displacement_factor;
 
-  /* amount to rotate the vertices when using rotate brush */
+  /* Amount to rotate the vertices when using rotate brush. */
   float vertex_rotation = 0.0f;
   Dial *dial = nullptr;
 
   Brush *saved_active_brush = nullptr;
   char saved_mask_brush_tool = 0;
-  /* smooth tool copies the size of the current tool */
+  /* Smooth tool copies the size of the current tool. */
   int saved_smooth_size = 0;
 
   /**
-   * Whether or not the modifier key that controls smoothing is active currently.
+   * Whether the modifier key that controls smoothing is active currently.
    * Generally signals a change in behavior for different brushes.
    *
    * \see BrushStrokeMode::BRUSH_STROKE_SMOOTH.
@@ -383,7 +399,6 @@ struct StrokeCache {
   bool alt_smooth = false;
 
   float plane_trim_squared = 0.0f;
-  ;
 
   bool supports_gravity = false;
   float3 gravity_direction = float3(0);
