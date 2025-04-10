@@ -576,6 +576,8 @@ void GeoTreeLog::ensure_evaluated_gizmo_nodes()
       this->evaluated_gizmo_nodes.add(evaluated_gizmo.node_id);
     }
   }
+
+  reduced_evaluated_gizmo_nodes_ = true;
 }
 
 ValueLog *GeoTreeLog::find_socket_value_log(const bNodeSocket &query_socket)
