@@ -62,6 +62,7 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
+#include "BLI_string_utf8.h"
 #include "BLI_system.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
@@ -5738,7 +5739,7 @@ RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
 {
   RenderSlot *slot = MEM_callocN<RenderSlot>("Image new Render Slot");
   if (name && name[0]) {
-    STRNCPY(slot->name, name);
+    STRNCPY_UTF8(slot->name, name);
   }
   else {
     int n = BLI_listbase_count(&ima->renderslots) + 1;
