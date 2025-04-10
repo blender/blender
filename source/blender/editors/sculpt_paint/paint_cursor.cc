@@ -1341,7 +1341,7 @@ static bool paint_cursor_context_init(bContext *C,
   /* There is currently no way to check if the direction is inverted before starting the stroke,
    * so this does not reflect the state of the brush in the UI. */
   if (((pcontext.ups->draw_inverted == 0) ^ ((pcontext.brush->flag & BRUSH_DIR_IN) == 0)) &&
-      BKE_brush_sculpt_has_secondary_color(pcontext.brush))
+      bke::brush::supports_secondary_cursor_color(*pcontext.brush))
   {
     pcontext.outline_col = float3(pcontext.brush->sub_col);
   }

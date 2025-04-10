@@ -1079,7 +1079,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
             size = True
             strength = True
             strength_pressure = brush.sculpt_capabilities.has_strength_pressure
-            direction = not brush.sculpt_capabilities.has_direction
+            direction = brush.sculpt_capabilities.has_direction
 
     # Vertex Paint #
     if mode == 'PAINT_VERTEX':

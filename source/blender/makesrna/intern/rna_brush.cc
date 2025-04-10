@@ -442,195 +442,134 @@ static bool rna_BrushCapabilities_has_spacing_get(PointerRNA *ptr)
 
 static bool rna_BrushCapabilitiesSculpt_has_accumulate_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return SCULPT_BRUSH_TYPE_HAS_ACCUMULATE(br->sculpt_brush_type);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_accumulate(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_topology_rake_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return SCULPT_BRUSH_TYPE_HAS_TOPOLOGY_RAKE(br->sculpt_brush_type);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_topology_rake(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_auto_smooth_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return !ELEM(br->sculpt_brush_type,
-               SCULPT_BRUSH_TYPE_MASK,
-               SCULPT_BRUSH_TYPE_SMOOTH,
-               SCULPT_BRUSH_TYPE_PAINT,
-               SCULPT_BRUSH_TYPE_SMEAR);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_auto_smooth(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_height_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return br->sculpt_brush_type == SCULPT_BRUSH_TYPE_LAYER;
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_height(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_plane_height_get(PointerRNA *ptr)
 {
   const Brush *br = static_cast<const Brush *>(ptr->data);
-  return ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_PLANE);
+  return blender::bke::brush::supports_plane_height(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_plane_depth_get(PointerRNA *ptr)
 {
   const Brush *br = static_cast<const Brush *>(ptr->data);
-  return ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_PLANE);
+  return blender::bke::brush::supports_plane_depth(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_jitter_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return (!(br->flag & BRUSH_ANCHORED) && !(br->flag & BRUSH_DRAG_DOT) &&
-          !ELEM(br->sculpt_brush_type,
-                SCULPT_BRUSH_TYPE_GRAB,
-                SCULPT_BRUSH_TYPE_ROTATE,
-                SCULPT_BRUSH_TYPE_SNAKE_HOOK,
-                SCULPT_BRUSH_TYPE_THUMB));
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_jitter(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_normal_weight_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return SCULPT_BRUSH_TYPE_HAS_NORMAL_WEIGHT(br->sculpt_brush_type);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_normal_weight(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_rake_factor_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return SCULPT_BRUSH_TYPE_HAS_RAKE(br->sculpt_brush_type);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_rake_factor(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_persistence_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_LAYER, SCULPT_BRUSH_TYPE_CLOTH);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_persistence(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_pinch_factor_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return ELEM(br->sculpt_brush_type,
-              SCULPT_BRUSH_TYPE_BLOB,
-              SCULPT_BRUSH_TYPE_CREASE,
-              SCULPT_BRUSH_TYPE_SNAKE_HOOK);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_pinch_factor(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_plane_offset_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return ELEM(br->sculpt_brush_type,
-              SCULPT_BRUSH_TYPE_CLAY,
-              SCULPT_BRUSH_TYPE_CLAY_STRIPS,
-              SCULPT_BRUSH_TYPE_CLAY_THUMB,
-              SCULPT_BRUSH_TYPE_PLANE,
-              SCULPT_BRUSH_TYPE_FILL,
-              SCULPT_BRUSH_TYPE_FLATTEN,
-              SCULPT_BRUSH_TYPE_SCRAPE);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_plane_offset(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_random_texture_angle_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return !ELEM(br->sculpt_brush_type,
-               SCULPT_BRUSH_TYPE_GRAB,
-               SCULPT_BRUSH_TYPE_ROTATE,
-               SCULPT_BRUSH_TYPE_SNAKE_HOOK,
-               SCULPT_BRUSH_TYPE_THUMB);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_random_texture_angle(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_sculpt_plane_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return !ELEM(br->sculpt_brush_type,
-               SCULPT_BRUSH_TYPE_INFLATE,
-               SCULPT_BRUSH_TYPE_MASK,
-               SCULPT_BRUSH_TYPE_PINCH,
-               SCULPT_BRUSH_TYPE_SMOOTH);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_sculpt_plane(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_color_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_PAINT);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_color(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_secondary_color_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return BKE_brush_sculpt_has_secondary_color(br);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_secondary_cursor_color(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_smooth_stroke_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return (!(br->flag & BRUSH_ANCHORED) && !(br->flag & BRUSH_DRAG_DOT) &&
-          !(br->flag & BRUSH_LINE) && !(br->flag & BRUSH_CURVE) &&
-          !ELEM(br->sculpt_brush_type,
-                SCULPT_BRUSH_TYPE_GRAB,
-                SCULPT_BRUSH_TYPE_ROTATE,
-                SCULPT_BRUSH_TYPE_SNAKE_HOOK,
-                SCULPT_BRUSH_TYPE_THUMB));
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_smooth_stroke(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_space_attenuation_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return ((br->flag & (BRUSH_SPACE | BRUSH_LINE | BRUSH_CURVE)) &&
-          !ELEM(br->sculpt_brush_type,
-                SCULPT_BRUSH_TYPE_GRAB,
-                SCULPT_BRUSH_TYPE_ROTATE,
-                SCULPT_BRUSH_TYPE_SMOOTH,
-                SCULPT_BRUSH_TYPE_SNAKE_HOOK));
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_space_attenuation(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_strength_pressure_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return !ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_GRAB, SCULPT_BRUSH_TYPE_SNAKE_HOOK);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_strength_pressure(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_direction_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return !ELEM(br->sculpt_brush_type,
-               SCULPT_BRUSH_TYPE_DRAW,
-               SCULPT_BRUSH_TYPE_DRAW_SHARP,
-               SCULPT_BRUSH_TYPE_CLAY,
-               SCULPT_BRUSH_TYPE_CLAY_STRIPS,
-               SCULPT_BRUSH_TYPE_SMOOTH,
-               SCULPT_BRUSH_TYPE_LAYER,
-               SCULPT_BRUSH_TYPE_INFLATE,
-               SCULPT_BRUSH_TYPE_BLOB,
-               SCULPT_BRUSH_TYPE_CREASE,
-               SCULPT_BRUSH_TYPE_PLANE,
-               SCULPT_BRUSH_TYPE_FLATTEN,
-               SCULPT_BRUSH_TYPE_FILL,
-               SCULPT_BRUSH_TYPE_SCRAPE,
-               SCULPT_BRUSH_TYPE_CLAY,
-               SCULPT_BRUSH_TYPE_PINCH,
-               SCULPT_BRUSH_TYPE_MASK);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_inverted_direction(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_gravity_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return !ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_MASK, SCULPT_BRUSH_TYPE_SMOOTH);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_gravity(*br);
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_tilt_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
-  return ELEM(br->sculpt_brush_type,
-              SCULPT_BRUSH_TYPE_DRAW,
-              SCULPT_BRUSH_TYPE_DRAW_SHARP,
-              SCULPT_BRUSH_TYPE_FLATTEN,
-              SCULPT_BRUSH_TYPE_FILL,
-              SCULPT_BRUSH_TYPE_SCRAPE,
-              SCULPT_BRUSH_TYPE_PLANE,
-              SCULPT_BRUSH_TYPE_CLAY_STRIPS);
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_tilt(*br);
 }
 
 static bool rna_BrushCapabilitiesImagePaint_has_accumulate_get(PointerRNA *ptr)

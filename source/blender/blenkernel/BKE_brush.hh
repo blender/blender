@@ -166,8 +166,6 @@ bool BKE_brush_use_locked_size(const Scene *scene, const Brush *brush);
 bool BKE_brush_use_alpha_pressure(const Brush *brush);
 bool BKE_brush_use_size_pressure(const Brush *brush);
 
-bool BKE_brush_sculpt_has_secondary_color(const Brush *brush);
-
 /**
  * Scale unprojected radius to reflect a change in the brush's 2D size.
  */
@@ -189,3 +187,36 @@ bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode);
 
 /* debugging only */
 void BKE_brush_debug_print_state(Brush *br);
+
+/* -------------------------------------------------------------------- */
+/** \name Brush Capabilities
+ * Common boolean checks used during both brush evaluation and in UI drawing
+ * via BrushCapabilities inside rna_brush.cc.
+ * \{ */
+
+namespace blender::bke::brush {
+bool supports_accumulate(const Brush &brush);
+bool supports_topology_rake(const Brush &brush);
+bool supports_auto_smooth(const Brush &brush);
+bool supports_height(const Brush &brush);
+bool supports_plane_height(const Brush &brush);
+bool supports_plane_depth(const Brush &brush);
+bool supports_jitter(const Brush &brush);
+bool supports_normal_weight(const Brush &brush);
+bool supports_rake_factor(const Brush &brush);
+bool supports_persistence(const Brush &brush);
+bool supports_pinch_factor(const Brush &brush);
+bool supports_plane_offset(const Brush &brush);
+bool supports_random_texture_angle(const Brush &brush);
+bool supports_sculpt_plane(const Brush &brush);
+bool supports_color(const Brush &brush);
+bool supports_secondary_cursor_color(const Brush &brush);
+bool supports_smooth_stroke(const Brush &brush);
+bool supports_space_attenuation(const Brush &brush);
+bool supports_strength_pressure(const Brush &brush);
+bool supports_inverted_direction(const Brush &brush);
+bool supports_gravity(const Brush &brush);
+bool supports_tilt(const Brush &brush);
+}  // namespace blender::bke::brush
+
+/** \} */

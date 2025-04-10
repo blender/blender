@@ -1083,25 +1083,6 @@ bool BKE_brush_use_alpha_pressure(const Brush *brush)
   return brush->flag & BRUSH_ALPHA_PRESSURE;
 }
 
-bool BKE_brush_sculpt_has_secondary_color(const Brush *brush)
-{
-  return ELEM(brush->sculpt_brush_type,
-              SCULPT_BRUSH_TYPE_BLOB,
-              SCULPT_BRUSH_TYPE_DRAW,
-              SCULPT_BRUSH_TYPE_DRAW_SHARP,
-              SCULPT_BRUSH_TYPE_INFLATE,
-              SCULPT_BRUSH_TYPE_CLAY,
-              SCULPT_BRUSH_TYPE_CLAY_STRIPS,
-              SCULPT_BRUSH_TYPE_CLAY_THUMB,
-              SCULPT_BRUSH_TYPE_PINCH,
-              SCULPT_BRUSH_TYPE_CREASE,
-              SCULPT_BRUSH_TYPE_LAYER,
-              SCULPT_BRUSH_TYPE_FLATTEN,
-              SCULPT_BRUSH_TYPE_FILL,
-              SCULPT_BRUSH_TYPE_SCRAPE,
-              SCULPT_BRUSH_TYPE_MASK);
-}
-
 void BKE_brush_unprojected_radius_set(Scene *scene, Brush *brush, float unprojected_radius)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -1519,3 +1500,201 @@ bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode)
 
   return false;
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Brush Capabilities
+ * \{ */
+
+namespace blender::bke::brush {
+bool supports_accumulate(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_DRAW,
+              SCULPT_BRUSH_TYPE_DRAW_SHARP,
+              SCULPT_BRUSH_TYPE_SLIDE_RELAX,
+              SCULPT_BRUSH_TYPE_CREASE,
+              SCULPT_BRUSH_TYPE_BLOB,
+              SCULPT_BRUSH_TYPE_INFLATE,
+              SCULPT_BRUSH_TYPE_CLAY,
+              SCULPT_BRUSH_TYPE_CLAY_STRIPS,
+              SCULPT_BRUSH_TYPE_CLAY_THUMB,
+              SCULPT_BRUSH_TYPE_ROTATE,
+              SCULPT_BRUSH_TYPE_PLANE,
+              SCULPT_BRUSH_TYPE_SCRAPE,
+              SCULPT_BRUSH_TYPE_FLATTEN);
+}
+bool supports_topology_rake(const Brush &brush)
+{
+  return !ELEM(brush.sculpt_brush_type,
+               SCULPT_BRUSH_TYPE_GRAB,
+               SCULPT_BRUSH_TYPE_ROTATE,
+               SCULPT_BRUSH_TYPE_THUMB,
+               SCULPT_BRUSH_TYPE_DRAW_SHARP,
+               SCULPT_BRUSH_TYPE_DISPLACEMENT_ERASER,
+               SCULPT_BRUSH_TYPE_SLIDE_RELAX,
+               SCULPT_BRUSH_TYPE_MASK);
+}
+bool supports_auto_smooth(const Brush &brush)
+{
+  /* TODO: Should this support Face Sets...? */
+  return !ELEM(brush.sculpt_brush_type,
+               SCULPT_BRUSH_TYPE_MASK,
+               SCULPT_BRUSH_TYPE_SMOOTH,
+               SCULPT_BRUSH_TYPE_PAINT,
+               SCULPT_BRUSH_TYPE_SMEAR);
+}
+bool supports_height(const Brush &brush)
+{
+  return brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_LAYER;
+}
+bool supports_plane_height(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_PLANE);
+}
+bool supports_plane_depth(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_PLANE);
+}
+bool supports_jitter(const Brush &brush)
+{
+  return !(brush.flag & BRUSH_ANCHORED) && !(brush.flag & BRUSH_DRAG_DOT) &&
+         !ELEM(brush.sculpt_brush_type,
+               SCULPT_BRUSH_TYPE_GRAB,
+               SCULPT_BRUSH_TYPE_ROTATE,
+               SCULPT_BRUSH_TYPE_SNAKE_HOOK,
+               SCULPT_BRUSH_TYPE_THUMB);
+}
+bool supports_normal_weight(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_GRAB,
+              SCULPT_BRUSH_TYPE_SNAKE_HOOK,
+              SCULPT_BRUSH_TYPE_ELASTIC_DEFORM);
+}
+bool supports_rake_factor(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_SNAKE_HOOK);
+}
+bool supports_persistence(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_LAYER, SCULPT_BRUSH_TYPE_CLOTH);
+}
+bool supports_pinch_factor(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_BLOB,
+              SCULPT_BRUSH_TYPE_CREASE,
+              SCULPT_BRUSH_TYPE_SNAKE_HOOK);
+}
+bool supports_plane_offset(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_CLAY,
+              SCULPT_BRUSH_TYPE_CLAY_STRIPS,
+              SCULPT_BRUSH_TYPE_CLAY_THUMB,
+              SCULPT_BRUSH_TYPE_PLANE,
+              SCULPT_BRUSH_TYPE_FILL,
+              SCULPT_BRUSH_TYPE_FLATTEN,
+              SCULPT_BRUSH_TYPE_SCRAPE);
+}
+bool supports_random_texture_angle(const Brush &brush)
+{
+  return !ELEM(brush.sculpt_brush_type,
+               SCULPT_BRUSH_TYPE_GRAB,
+               SCULPT_BRUSH_TYPE_ROTATE,
+               SCULPT_BRUSH_TYPE_SNAKE_HOOK,
+               SCULPT_BRUSH_TYPE_THUMB);
+}
+bool supports_sculpt_plane(const Brush &brush)
+{
+  /* TODO: Should the face set brush be here...? */
+  return !ELEM(brush.sculpt_brush_type,
+               SCULPT_BRUSH_TYPE_INFLATE,
+               SCULPT_BRUSH_TYPE_MASK,
+               SCULPT_BRUSH_TYPE_PINCH,
+               SCULPT_BRUSH_TYPE_SMOOTH);
+}
+bool supports_color(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_PAINT);
+}
+bool supports_secondary_cursor_color(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_BLOB,
+              SCULPT_BRUSH_TYPE_DRAW,
+              SCULPT_BRUSH_TYPE_DRAW_SHARP,
+              SCULPT_BRUSH_TYPE_INFLATE,
+              SCULPT_BRUSH_TYPE_CLAY,
+              SCULPT_BRUSH_TYPE_CLAY_STRIPS,
+              SCULPT_BRUSH_TYPE_CLAY_THUMB,
+              SCULPT_BRUSH_TYPE_PINCH,
+              SCULPT_BRUSH_TYPE_CREASE,
+              SCULPT_BRUSH_TYPE_LAYER,
+              SCULPT_BRUSH_TYPE_FLATTEN,
+              SCULPT_BRUSH_TYPE_FILL,
+              SCULPT_BRUSH_TYPE_SCRAPE,
+              SCULPT_BRUSH_TYPE_MASK);
+}
+bool supports_smooth_stroke(const Brush &brush)
+{
+  return !(brush.flag & BRUSH_ANCHORED) && !(brush.flag & BRUSH_DRAG_DOT) &&
+         !(brush.flag & BRUSH_LINE) && !(brush.flag & BRUSH_CURVE) &&
+         !ELEM(brush.sculpt_brush_type,
+               SCULPT_BRUSH_TYPE_GRAB,
+               SCULPT_BRUSH_TYPE_ROTATE,
+               SCULPT_BRUSH_TYPE_SNAKE_HOOK,
+               SCULPT_BRUSH_TYPE_THUMB);
+}
+bool supports_space_attenuation(const Brush &brush)
+{
+  return brush.flag & (BRUSH_SPACE | BRUSH_LINE | BRUSH_CURVE) &&
+         !ELEM(brush.sculpt_brush_type,
+               SCULPT_BRUSH_TYPE_GRAB,
+               SCULPT_BRUSH_TYPE_ROTATE,
+               SCULPT_BRUSH_TYPE_SMOOTH,
+               SCULPT_BRUSH_TYPE_SNAKE_HOOK);
+}
+bool supports_strength_pressure(const Brush &brush)
+{
+  return !ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_GRAB, SCULPT_BRUSH_TYPE_SNAKE_HOOK);
+}
+bool supports_inverted_direction(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_DRAW,
+              SCULPT_BRUSH_TYPE_DRAW_SHARP,
+              SCULPT_BRUSH_TYPE_CLAY,
+              SCULPT_BRUSH_TYPE_CLAY_STRIPS,
+              SCULPT_BRUSH_TYPE_SMOOTH,
+              SCULPT_BRUSH_TYPE_LAYER,
+              SCULPT_BRUSH_TYPE_INFLATE,
+              SCULPT_BRUSH_TYPE_BLOB,
+              SCULPT_BRUSH_TYPE_CREASE,
+              SCULPT_BRUSH_TYPE_PLANE,
+              SCULPT_BRUSH_TYPE_FLATTEN,
+              SCULPT_BRUSH_TYPE_FILL,
+              SCULPT_BRUSH_TYPE_SCRAPE,
+              SCULPT_BRUSH_TYPE_CLAY,
+              SCULPT_BRUSH_TYPE_PINCH,
+              SCULPT_BRUSH_TYPE_MASK);
+}
+bool supports_gravity(const Brush &brush)
+{
+  /* TODO: This is incorrect, match with the StrokeCache.supports_gravity field */
+  return !ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_MASK, SCULPT_BRUSH_TYPE_SMOOTH);
+}
+bool supports_tilt(const Brush &brush)
+{
+  return ELEM(brush.sculpt_brush_type,
+              SCULPT_BRUSH_TYPE_DRAW,
+              SCULPT_BRUSH_TYPE_DRAW_SHARP,
+              SCULPT_BRUSH_TYPE_FLATTEN,
+              SCULPT_BRUSH_TYPE_FILL,
+              SCULPT_BRUSH_TYPE_SCRAPE,
+              SCULPT_BRUSH_TYPE_PLANE,
+              SCULPT_BRUSH_TYPE_CLAY_STRIPS);
+}
+}  // namespace blender::bke::brush
+
+/** \} */
