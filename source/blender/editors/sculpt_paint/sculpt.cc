@@ -3861,6 +3861,8 @@ static const char *sculpt_brush_type_name(const Sculpt &sd)
 
 namespace blender::ed::sculpt_paint {
 
+StrokeCache::StrokeCache() = default;
+
 StrokeCache::~StrokeCache()
 {
   if (this->dial) {
