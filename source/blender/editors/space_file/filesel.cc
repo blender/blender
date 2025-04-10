@@ -1309,6 +1309,22 @@ void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile)
   WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
 }
 
+void ED_fileselect_clear_main_assets(wmWindowManager *wm, SpaceFile *sfile)
+{
+  /* Only null in rare cases, see: #29734. */
+  if (sfile->files) {
+    filelist_readjob_stop(sfile->files, wm);
+    filelist_freelib(sfile->files);
+    filelist_tag_force_reset_mainfiles(sfile->files);
+    filelist_tag_reload_asset_library(sfile->files);
+    filelist_clear_from_reset_tag(sfile->files);
+  }
+
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  params->highlight_file = -1;
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_FILE_LIST, nullptr);
+}
+
 void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
 {
   if (!sfile) {

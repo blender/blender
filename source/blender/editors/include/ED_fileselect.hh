@@ -141,6 +141,7 @@ void ED_fileselect_layout_tilepos(const FileLayout *layout, int tile, int *x, in
 void ED_operatormacros_file();
 
 void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile);
+void ED_fileselect_clear_main_assets(wmWindowManager *wm, SpaceFile *sfile);
 
 void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile);
 
