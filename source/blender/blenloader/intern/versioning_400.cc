@@ -6713,15 +6713,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  /* Always run this versioning; meshes are written with the legacy format which always needs to
-   * be converted to the new format on file load. Can be moved to a subversion check in a larger
-   * breaking release. */
-  LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
-    blender::bke::mesh_sculpt_mask_to_generic(*mesh);
-    blender::bke::mesh_custom_normals_to_generic(*mesh);
-    rename_mesh_uv_seam_attribute(*mesh);
-  }
-
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 20)) {
     /* Older files uses non-UTF8 aware string copy, ensure names are valid UTF8.
      * The slot names are not unique so no further changes are needed. */
@@ -6736,6 +6727,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       scene->r.ppm_factor = 72.0f;
       scene->r.ppm_base = 0.0254f;
     }
+  }
+
+  /* Always run this versioning (keep at the bottom of the function). Meshes are written with the
+   * legacy format which always needs to be converted to the new format on file load. To be moved
+   * to a subversion check in 5.0. */
+  LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+    blender::bke::mesh_sculpt_mask_to_generic(*mesh);
+    blender::bke::mesh_custom_normals_to_generic(*mesh);
+    rename_mesh_uv_seam_attribute(*mesh);
   }
 
   /**
