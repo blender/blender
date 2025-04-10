@@ -59,8 +59,8 @@ static SpaceLink *buttons_create(const ScrArea * /*area*/, const Scene * /*scene
 
   sbuts = static_cast<SpaceProperties *>(MEM_callocN(sizeof(SpaceProperties), "initbuts"));
   sbuts->spacetype = SPACE_PROPERTIES;
-
   sbuts->mainb = sbuts->mainbuser = BCONTEXT_OBJECT;
+  sbuts->visible_tabs = uint(-1); /* 0xFFFFFFFF - All tabs visible by default. */
 
   /* header */
   region = BKE_area_region_new();
