@@ -1021,8 +1021,10 @@ class NODE_PT_node_tree_interface_panel_toggle(Panel):
         layout.use_property_decorate = False
 
         layout.prop(panel_toggle_item, "default_value", text="Default")
-        layout.prop(panel_toggle_item, "hide_in_modifier")
-        layout.prop(panel_toggle_item, "force_non_field")
+
+        col = layout.column()
+        col.prop(panel_toggle_item, "hide_in_modifier")
+        col.prop(panel_toggle_item, "force_non_field")
 
         layout.use_property_split = False
 
