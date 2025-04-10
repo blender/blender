@@ -898,6 +898,7 @@ typedef enum GHOST_TXrGraphicsBinding {
   GHOST_kXrGraphicsVulkan,
 #  ifdef WIN32
   GHOST_kXrGraphicsOpenGLD3D11,
+  GHOST_kXrGraphicsVulkanD3D11,
 #  endif
   /* For later */
   //  GHOST_kXrGraphicsVulkan,

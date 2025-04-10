@@ -308,15 +308,23 @@ std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
     GHOST_TXrGraphicsBinding type, GHOST_Context &context)
 {
   switch (type) {
+#ifdef WITH_OPENGL_BACKEND
     case GHOST_kXrGraphicsOpenGL:
       return std::make_unique<GHOST_XrGraphicsBindingOpenGL>();
+#endif
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kXrGraphicsVulkan:
       return std::make_unique<GHOST_XrGraphicsBindingVulkan>(context);
 #endif
 #ifdef WIN32
+#  ifdef WITH_OPENGL_BACKEND
     case GHOST_kXrGraphicsOpenGLD3D11:
       return std::make_unique<GHOST_XrGraphicsBindingOpenGLD3D>(context);
+#  endif
+#  ifdef WITH_VULKAN_BACKEND
+    case GHOST_kXrGraphicsVulkanD3D11:
+      return std::make_unique<GHOST_XrGraphicsBindingVulkanD3D>(context);
+#  endif
 #endif
     default:
       return nullptr;

@@ -13,6 +13,9 @@
 
 #include "GHOST_ContextD3D.hh"
 #include "GHOST_ContextWGL.hh"
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.hh"
+#endif
 #include "GHOST_IXrGraphicsBinding.hh"
 
 /**
@@ -69,3 +72,21 @@ class GHOST_XrGraphicsBindingOpenGLD3D : public GHOST_XrGraphicsBindingD3D {
   /** Handle to shared resource object. */
   GHOST_SharedOpenGLResource *m_shared_resource = nullptr;
 };
+
+#ifdef WITH_VULKAN_BACKEND
+/**
+ * OpenXR bridge between Vulkan and D3D.
+ */
+class GHOST_XrGraphicsBindingVulkanD3D : public GHOST_XrGraphicsBindingD3D {
+ public:
+  GHOST_XrGraphicsBindingVulkanD3D(GHOST_Context &ghost_ctx);
+  ~GHOST_XrGraphicsBindingVulkanD3D();
+
+  void submitToSwapchainImage(XrSwapchainImageBaseHeader &swapchain_image,
+                              const GHOST_XrDrawViewInfo &draw_info) override;
+
+ private:
+  /** Primary Vulkan context for Blender to use for drawing. */
+  GHOST_ContextVK &m_ghost_ctx;
+};
+#endif

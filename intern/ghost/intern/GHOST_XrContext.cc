@@ -394,7 +394,12 @@ static const char *openxr_ext_name_from_wm_gpu_binding(GHOST_TXrGraphicsBinding 
 #endif
 
 #ifdef WIN32
+#  ifdef WITH_OPENGL_BACKEND
     case GHOST_kXrGraphicsOpenGLD3D11:
+#  endif
+#  ifdef WITH_VULKAN_BACKEND
+    case GHOST_kXrGraphicsVulkanD3D11:
+#  endif
       return XR_KHR_D3D11_ENABLE_EXTENSION_NAME;
 #endif
     case GHOST_kXrGraphicsUnknown:

@@ -261,3 +261,76 @@ void GHOST_XrGraphicsBindingOpenGLD3D::submitToSwapchainImage(
 }
 
 /* \} */
+
+#ifdef WITH_VULKAN_BACKEND
+
+/* -------------------------------------------------------------------- */
+/** \name Vulkan-Direct3D bridge
+ * \{ */
+
+GHOST_XrGraphicsBindingVulkanD3D::GHOST_XrGraphicsBindingVulkanD3D(GHOST_Context &ghost_ctx)
+
+    : GHOST_XrGraphicsBindingD3D(), m_ghost_ctx(static_cast<GHOST_ContextVK &>(ghost_ctx))
+{
+}
+
+GHOST_XrGraphicsBindingVulkanD3D::~GHOST_XrGraphicsBindingVulkanD3D() {}
+
+void GHOST_XrGraphicsBindingVulkanD3D::submitToSwapchainImage(
+    XrSwapchainImageBaseHeader &swapchain_image, const GHOST_XrDrawViewInfo &draw_info)
+{
+  XrSwapchainImageD3D11KHR &d3d_swapchain_image = reinterpret_cast<XrSwapchainImageD3D11KHR &>(
+      swapchain_image);
+
+  VkDeviceSize component_size = 4 * sizeof(uint8_t);
+  if (draw_info.swapchain_format == GHOST_kXrSwapchainFormatRGBA16F ||
+      draw_info.swapchain_format == GHOST_kXrSwapchainFormatRGBA16)
+  {
+    component_size = 4 * sizeof(uint16_t);
+  }
+
+  ID3D11Device *d3d_device = m_ghost_d3d_ctx->m_device;
+  ID3D11DeviceContext *d3d_device_ctx = m_ghost_d3d_ctx->m_device_ctx;
+  DXGI_FORMAT format;
+  ghost_format_to_dx_format(draw_info.swapchain_format, draw_info.expects_srgb_buffer, format);
+
+  /* Acquire frame buffer image. */
+  GHOST_VulkanOpenXRData openxr_data = {GHOST_kVulkanXRModeCPU};
+  m_ghost_ctx.openxr_acquire_framebuffer_image_callback_(&openxr_data);
+
+  /* Upload the data to a D3D Texture */
+  D3D11_TEXTURE2D_DESC desc;
+  desc.Width = openxr_data.extent.width;
+  desc.Height = openxr_data.extent.height;
+  desc.MipLevels = 1;
+  desc.ArraySize = 1;
+  desc.Format = format;
+  desc.SampleDesc.Count = 1;
+  desc.SampleDesc.Quality = 0;
+  desc.Usage = D3D11_USAGE_IMMUTABLE;
+  desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+  desc.CPUAccessFlags = 0;
+  desc.MiscFlags = 0;
+
+  D3D11_SUBRESOURCE_DATA data;
+  data.pSysMem = openxr_data.cpu.image_data;
+  data.SysMemPitch = component_size * openxr_data.extent.width;
+  data.SysMemSlicePitch = 0;
+
+  ID3D11Texture2D *texture = nullptr;
+  d3d_device->CreateTexture2D(&desc, &data, &texture);
+
+  /* Copy subresource of the uploaded texture to the swapchain texture. */
+  d3d_device_ctx->CopySubresourceRegion(
+      d3d_swapchain_image.texture, 0, draw_info.ofsx, draw_info.ofsy, 0, texture, 0, nullptr);
+
+  /* Release the texture. */
+  texture->Release();
+
+  /* Release frame buffer image. */
+  m_ghost_ctx.openxr_release_framebuffer_image_callback_(&openxr_data);
+}
+
+/* \} */
+
+#endif
