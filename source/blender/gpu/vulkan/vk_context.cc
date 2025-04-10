@@ -434,9 +434,16 @@ void VKContext::openxr_acquire_framebuffer_image_handler(GHOST_VulkanOpenXRData 
   openxr_data.extent.width = color_attachment->width_get();
   openxr_data.extent.height = color_attachment->height_get();
 
+  /* Determine the data format for data transfer. */
+  const eGPUTextureFormat device_format = color_attachment->device_format_get();
+  eGPUDataFormat data_format = GPU_DATA_HALF_FLOAT;
+  if (ELEM(device_format, GPU_RGBA8)) {
+    data_format = GPU_DATA_UBYTE;
+  }
+
   switch (openxr_data.data_transfer_mode) {
     case GHOST_kVulkanXRModeCPU:
-      openxr_data.cpu.image_data = color_attachment->read(0, GPU_DATA_HALF_FLOAT);
+      openxr_data.cpu.image_data = color_attachment->read(0, data_format);
       break;
 
     case GHOST_kVulkanXRModeFD: {
