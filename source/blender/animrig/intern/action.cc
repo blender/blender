@@ -373,30 +373,20 @@ const Slot *Action::slot_for_handle(const slot_handle_t handle) const
 
 static void slot_identifier_ensure_unique(Action &action, Slot &slot)
 {
-  /* Cannot capture parameters by reference in the lambda, as that would change its signature
-   * and no longer be compatible with BLI_uniquename_cb(). That's why this struct is necessary. */
-  struct DupNameCheckData {
-    Action &action;
-    Slot &slot;
-  };
-  DupNameCheckData check_data = {action, slot};
-
-  auto check_name_is_used = [](void *arg, const char *name) -> bool {
-    DupNameCheckData *data = static_cast<DupNameCheckData *>(arg);
-    for (const Slot *slot : data->action.slots()) {
-      if (slot == &data->slot) {
+  auto check_name_is_used = [&](const StringRef name) -> bool {
+    for (const Slot *slot_iter : action.slots()) {
+      if (slot_iter == &slot) {
         /* Don't compare against the slot that's being renamed. */
         continue;
       }
-      if (STREQ(slot->identifier, name)) {
+      if (slot_iter->identifier == name) {
         return true;
       }
     }
     return false;
   };
 
-  BLI_uniquename_cb(
-      check_name_is_used, &check_data, "", '.', slot.identifier, sizeof(slot.identifier));
+  BLI_uniquename_cb(check_name_is_used, "", '.', slot.identifier, sizeof(slot.identifier));
 }
 
 void Action::slot_display_name_set(Main &bmain, Slot &slot, StringRefNull new_display_name)

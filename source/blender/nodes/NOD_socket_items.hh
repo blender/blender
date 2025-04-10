@@ -103,23 +103,17 @@ inline void set_item_name_and_make_unique(bNode &node,
   char unique_name[MAX_NAME + 4];
   STRNCPY(unique_name, value);
 
-  struct Args {
-    SocketItemsRef<ItemT> array;
-    ItemT *item;
-  } args = {array, &item};
   BLI_uniquename_cb(
-      [](void *arg, const char *name) {
-        const Args &args = *static_cast<Args *>(arg);
-        for (ItemT &item : blender::MutableSpan(*args.array.items, *args.array.items_num)) {
-          if (&item != args.item) {
-            if (STREQ(*Accessor::get_name(item), name)) {
+      [&](const StringRef name) {
+        for (ItemT &item_iter : blender::MutableSpan(*array.items, *array.items_num)) {
+          if (&item_iter != &item) {
+            if (*Accessor::get_name(item_iter) == name) {
               return true;
             }
           }
         }
         return false;
       },
-      &args,
       default_name.c_str(),
       '.',
       unique_name,

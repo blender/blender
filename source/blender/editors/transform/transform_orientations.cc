@@ -77,19 +77,16 @@ static TransformOrientation *findOrientationName(ListBase *lb, const char *name)
       BLI_findstring(lb, name, offsetof(TransformOrientation, name)));
 }
 
-static bool uniqueOrientationNameCheck(void *arg, const char *name)
-{
-  return findOrientationName((ListBase *)arg, name) != nullptr;
-}
-
 static void uniqueOrientationName(ListBase *lb, char *name)
 {
-  BLI_uniquename_cb(uniqueOrientationNameCheck,
-                    lb,
-                    CTX_DATA_(BLT_I18NCONTEXT_ID_SCENE, "Space"),
-                    '.',
-                    name,
-                    sizeof(TransformOrientation::name));
+  BLI_uniquename_cb(
+      [&](const StringRefNull check_name) {
+        return findOrientationName(lb, check_name.c_str()) != nullptr;
+      },
+      CTX_DATA_(BLT_I18NCONTEXT_ID_SCENE, "Space"),
+      '.',
+      name,
+      sizeof(TransformOrientation::name));
 }
 
 static TransformOrientation *createViewSpace(bContext *C,

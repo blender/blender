@@ -56,18 +56,14 @@
 /* **************** OUTPUT FILE ******************** */
 
 /* find unique path */
-static bool unique_path_unique_check(void *arg, const char *name)
+static bool unique_path_unique_check(ListBase *lb,
+                                     bNodeSocket *sock,
+                                     const blender::StringRef name)
 {
-  struct Args {
-    ListBase *lb;
-    bNodeSocket *sock;
-  };
-  Args *data = (Args *)arg;
-
-  LISTBASE_FOREACH (bNodeSocket *, sock, data->lb) {
-    if (sock != data->sock) {
-      NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-      if (STREQ(sockdata->path, name)) {
+  LISTBASE_FOREACH (bNodeSocket *, sock_iter, lb) {
+    if (sock_iter != sock) {
+      NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock_iter->storage;
+      if (sockdata->path == name) {
         return true;
       }
     }
@@ -79,37 +75,30 @@ void ntreeCompositOutputFileUniquePath(ListBase *list,
                                        const char defname[],
                                        char delim)
 {
-  NodeImageMultiFileSocket *sockdata;
-  struct {
-    ListBase *lb;
-    bNodeSocket *sock;
-  } data;
-  data.lb = list;
-  data.sock = sock;
-
   /* See if we are given an empty string */
   if (ELEM(nullptr, sock, defname)) {
     return;
   }
-
-  sockdata = (NodeImageMultiFileSocket *)sock->storage;
+  NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
   BLI_uniquename_cb(
-      unique_path_unique_check, &data, defname, delim, sockdata->path, sizeof(sockdata->path));
+      [&](const blender::StringRef check_name) {
+        return unique_path_unique_check(list, sock, check_name);
+      },
+      defname,
+      delim,
+      sockdata->path,
+      sizeof(sockdata->path));
 }
 
 /* find unique EXR layer */
-static bool unique_layer_unique_check(void *arg, const char *name)
+static bool unique_layer_unique_check(ListBase *lb,
+                                      bNodeSocket *sock,
+                                      const blender::StringRef name)
 {
-  struct Args {
-    ListBase *lb;
-    bNodeSocket *sock;
-  };
-  Args *data = (Args *)arg;
-
-  LISTBASE_FOREACH (bNodeSocket *, sock, data->lb) {
-    if (sock != data->sock) {
-      NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-      if (STREQ(sockdata->layer, name)) {
+  LISTBASE_FOREACH (bNodeSocket *, sock_iter, lb) {
+    if (sock_iter != sock) {
+      NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock_iter->storage;
+      if (sockdata->layer == name) {
         return true;
       }
     }
@@ -121,21 +110,19 @@ void ntreeCompositOutputFileUniqueLayer(ListBase *list,
                                         const char defname[],
                                         char delim)
 {
-  struct {
-    ListBase *lb;
-    bNodeSocket *sock;
-  } data;
-  data.lb = list;
-  data.sock = sock;
-
   /* See if we are given an empty string */
   if (ELEM(nullptr, sock, defname)) {
     return;
   }
-
   NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
   BLI_uniquename_cb(
-      unique_layer_unique_check, &data, defname, delim, sockdata->layer, sizeof(sockdata->layer));
+      [&](const blender::StringRef check_name) {
+        return unique_layer_unique_check(list, sock, check_name);
+      },
+      defname,
+      delim,
+      sockdata->layer,
+      sizeof(sockdata->layer));
 }
 
 bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,

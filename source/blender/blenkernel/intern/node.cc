@@ -1952,17 +1952,6 @@ bNodeSocket *node_find_enabled_output_socket(bNode &node, const StringRef name)
   return node_find_enabled_socket(node, SOCK_OUT, name);
 }
 
-static bool unique_identifier_check(void *arg, const char *identifier)
-{
-  const ListBase *lb = static_cast<const ListBase *>(arg);
-  LISTBASE_FOREACH (bNodeSocket *, sock, lb) {
-    if (STREQ(sock->identifier, identifier)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 static bNodeSocket *make_socket(bNodeTree *ntree,
                                 bNode * /*node*/,
                                 const int in_out,
@@ -1983,7 +1972,18 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   }
   /* Make the identifier unique. */
   BLI_uniquename_cb(
-      unique_identifier_check, lb, "socket", '_', auto_identifier, sizeof(auto_identifier));
+      [&](const StringRef check_name) {
+        LISTBASE_FOREACH (bNodeSocket *, sock, lb) {
+          if (sock->identifier == check_name) {
+            return true;
+          }
+        }
+        return false;
+      },
+      "socket",
+      '_',
+      auto_identifier,
+      sizeof(auto_identifier));
 
   bNodeSocket *sock = MEM_callocN<bNodeSocket>(__func__);
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
@@ -4432,42 +4432,26 @@ std::optional<eNodeSocketDatatype> grid_type_to_socket_type(const VolumeGridType
   }
 }
 
-struct SocketTemplateIdentifierCallbackData {
-  bNodeSocketTemplate *list;
-  bNodeSocketTemplate *ntemp;
-};
-
-static bool unique_socket_template_identifier_check(void *arg, const char *name)
-{
-  const SocketTemplateIdentifierCallbackData *data =
-      static_cast<const SocketTemplateIdentifierCallbackData *>(arg);
-
-  for (bNodeSocketTemplate *ntemp = data->list; ntemp->type >= 0; ntemp++) {
-    if (ntemp != data->ntemp) {
-      if (STREQ(ntemp->identifier, name)) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 static void unique_socket_template_identifier(bNodeSocketTemplate *list,
                                               bNodeSocketTemplate *ntemp,
                                               const char defname[],
                                               const char delim)
 {
-  SocketTemplateIdentifierCallbackData data;
-  data.list = list;
-  data.ntemp = ntemp;
-
-  BLI_uniquename_cb(unique_socket_template_identifier_check,
-                    &data,
-                    defname,
-                    delim,
-                    ntemp->identifier,
-                    sizeof(ntemp->identifier));
+  BLI_uniquename_cb(
+      [&](const StringRef check_name) {
+        for (bNodeSocketTemplate *ntemp_iter = list; ntemp_iter->type >= 0; ntemp_iter++) {
+          if (ntemp_iter != ntemp) {
+            if (ntemp_iter->identifier == check_name) {
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+      defname,
+      delim,
+      ntemp->identifier,
+      sizeof(ntemp->identifier));
 }
 
 void node_type_socket_templates(bNodeType *ntype,

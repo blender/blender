@@ -123,26 +123,18 @@ void ANIM_armature_runtime_free(bArmature *armature)
  */
 static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bcoll)
 {
-  struct DupNameCheckData {
-    bArmature *arm;
-    BoneCollection *bcoll;
-  };
-
   /* Cannot capture armature & bcoll by reference in the lambda, as that would change its signature
    * and no longer be compatible with BLI_uniquename_cb(). */
-  auto bonecoll_name_is_duplicate = [](void *arg, const char *name) -> bool {
-    DupNameCheckData *data = static_cast<DupNameCheckData *>(arg);
-    for (BoneCollection *bcoll : data->arm->collections_span()) {
-      if (bcoll != data->bcoll && STREQ(bcoll->name, name)) {
+  auto bonecoll_name_is_duplicate = [&](const blender::StringRef name) -> bool {
+    for (BoneCollection *bcoll_iter : armature->collections_span()) {
+      if (bcoll_iter != bcoll && bcoll_iter->name == name) {
         return true;
       }
     }
     return false;
   };
 
-  DupNameCheckData check_data = {armature, bcoll};
   BLI_uniquename_cb(bonecoll_name_is_duplicate,
-                    &check_data,
                     DATA_(bonecoll_default_name),
                     '.',
                     bcoll->name,

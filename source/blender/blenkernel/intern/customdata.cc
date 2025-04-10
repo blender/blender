@@ -4404,18 +4404,6 @@ static bool cd_layer_find_dupe(CustomData *data,
   return false;
 }
 
-struct CustomDataUniqueCheckData {
-  CustomData *data;
-  eCustomDataType type;
-  int index;
-};
-
-static bool customdata_unique_check(void *arg, const char *name)
-{
-  CustomDataUniqueCheckData *data_arg = static_cast<CustomDataUniqueCheckData *>(arg);
-  return cd_layer_find_dupe(data_arg->data, name, data_arg->type, data_arg->index);
-}
-
 int CustomData_name_maxncpy_calc(const blender::StringRef name)
 {
   if (name.startswith(".")) {
@@ -4436,8 +4424,6 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
   CustomDataLayer *nlayer = &data->layers[index];
   const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(nlayer->type));
 
-  CustomDataUniqueCheckData data_arg{data, eCustomDataType(nlayer->type), index};
-
   if (!typeInfo->defaultname) {
     return;
   }
@@ -4451,7 +4437,14 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
   }
 
   const char *defname = ""; /* Dummy argument, never used as `name` is never zero length. */
-  BLI_uniquename_cb(customdata_unique_check, &data_arg, defname, '.', nlayer->name, name_maxncpy);
+  BLI_uniquename_cb(
+      [&](const StringRef name) {
+        return cd_layer_find_dupe(data, name, eCustomDataType(nlayer->type), index);
+      },
+      defname,
+      '.',
+      nlayer->name,
+      name_maxncpy);
 }
 
 void CustomData_validate_layer_name(const CustomData *data,

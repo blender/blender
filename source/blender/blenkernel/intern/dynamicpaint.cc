@@ -353,9 +353,9 @@ bool dynamicPaint_outputLayerExists(DynamicPaintSurface *surface, Object *ob, in
   return false;
 }
 
-static bool surface_duplicateOutputExists(void *arg, const char *name)
+static bool surface_duplicateOutputExists(DynamicPaintSurface *t_surface,
+                                          const blender::StringRefNull name)
 {
-  DynamicPaintSurface *t_surface = static_cast<DynamicPaintSurface *>(arg);
   DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
       t_surface->canvas->surfaces.first);
 
@@ -363,8 +363,8 @@ static bool surface_duplicateOutputExists(void *arg, const char *name)
     if (surface != t_surface && surface->type == t_surface->type &&
         surface->format == t_surface->format)
     {
-      if ((surface->output_name[0] != '\0' && !BLI_path_cmp(name, surface->output_name)) ||
-          (surface->output_name2[0] != '\0' && !BLI_path_cmp(name, surface->output_name2)))
+      if ((surface->output_name[0] != '\0' && !BLI_path_cmp(name.c_str(), surface->output_name)) ||
+          (surface->output_name2[0] != '\0' && !BLI_path_cmp(name.c_str(), surface->output_name2)))
       {
         return true;
       }
@@ -375,34 +375,29 @@ static bool surface_duplicateOutputExists(void *arg, const char *name)
 
 static void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
 {
+  auto is_unique_fn = [&](const blender::StringRefNull check_name) {
+    return surface_duplicateOutputExists(surface, check_name);
+  };
+
   char name[64];
   STRNCPY(name, basename); /* in case basename is surface->name use a copy */
   if (output == 0) {
-    BLI_uniquename_cb(surface_duplicateOutputExists,
-                      surface,
-                      name,
-                      '.',
-                      surface->output_name,
-                      sizeof(surface->output_name));
+    BLI_uniquename_cb(is_unique_fn, name, '.', surface->output_name, sizeof(surface->output_name));
   }
   else if (output == 1) {
-    BLI_uniquename_cb(surface_duplicateOutputExists,
-                      surface,
-                      name,
-                      '.',
-                      surface->output_name2,
-                      sizeof(surface->output_name2));
+    BLI_uniquename_cb(
+        is_unique_fn, name, '.', surface->output_name2, sizeof(surface->output_name2));
   }
 }
 
-static bool surface_duplicateNameExists(void *arg, const char *name)
+static bool surface_duplicateNameExists(DynamicPaintSurface *t_surface,
+                                        const blender::StringRefNull name)
 {
-  DynamicPaintSurface *t_surface = static_cast<DynamicPaintSurface *>(arg);
   DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
       t_surface->canvas->surfaces.first);
 
   for (; surface; surface = surface->next) {
-    if (surface != t_surface && STREQ(name, surface->name)) {
+    if (surface != t_surface && STREQ(name.c_str(), surface->name)) {
       return true;
     }
   }
@@ -414,7 +409,13 @@ void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, const char 
   char name[64];
   STRNCPY_UTF8(name, basename); /* in case basename is surface->name use a copy */
   BLI_uniquename_cb(
-      surface_duplicateNameExists, surface, name, '.', surface->name, sizeof(surface->name));
+      [&](const blender::StringRefNull check_name) {
+        return surface_duplicateNameExists(surface, check_name);
+      },
+      name,
+      '.',
+      surface->name,
+      sizeof(surface->name));
 }
 
 void dynamicPaintSurface_updateType(DynamicPaintSurface *surface)
