@@ -455,15 +455,18 @@ float4x4 DrawingPlacement::to_world_space() const
   return layer_space_to_world_space_;
 }
 
-static float get_multi_frame_falloff(const int frame_number,
-                                     const int active_frame,
-                                     const int min_frame,
-                                     const int max_frame,
-                                     const CurveMapping *falloff_curve)
+static float get_frame_falloff(const bool use_multi_frame_falloff,
+                               const int frame_number,
+                               const int active_frame,
+                               const std::optional<Bounds<int>> frame_bounds,
+                               const CurveMapping *falloff_curve)
 {
-  if (falloff_curve == nullptr) {
+  if (!use_multi_frame_falloff || !frame_bounds.has_value() || falloff_curve == nullptr) {
     return 1.0f;
   }
+
+  const int min_frame = frame_bounds->min;
+  const int max_frame = frame_bounds->max;
 
   /* Frame right of the center frame. */
   if (frame_number < active_frame) {
@@ -709,13 +712,11 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &
         grease_pencil, layer, current_frame, use_multi_frame_editing);
     for (const int frame_number : frame_numbers) {
       if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
-        const float falloff = use_multi_frame_falloff && frame_bounds ?
-                                  get_multi_frame_falloff(frame_number,
-                                                          active_frame,
-                                                          frame_bounds->min,
-                                                          frame_bounds->max,
-                                                          toolsettings->gp_sculpt.cur_falloff) :
-                                  1.0f;
+        const float falloff = get_frame_falloff(use_multi_frame_falloff,
+                                                frame_number,
+                                                active_frame,
+                                                frame_bounds,
+                                                toolsettings->gp_sculpt.cur_falloff);
         editable_drawings.append({*drawing, layer_i, frame_number, falloff});
       }
     }
@@ -775,13 +776,11 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
         if (!frame.is_selected() || drawing == nullptr || added_drawings.contains(drawing)) {
           continue;
         }
-        const float falloff = frame_bounds ?
-                                  get_multi_frame_falloff(frame_number,
-                                                          active_frame,
-                                                          frame_bounds->min,
-                                                          frame_bounds->max,
-                                                          toolsettings->gp_sculpt.cur_falloff) :
-                                  1.0f;
+        const float falloff = get_frame_falloff(use_multi_frame_falloff,
+                                                frame_number,
+                                                active_frame,
+                                                frame_bounds,
+                                                toolsettings->gp_sculpt.cur_falloff);
         const int frame_group = selected_frames.index_of(frame_number);
         drawings_grouped_per_frame[frame_group].append({*drawing, layer_i, frame_number, falloff});
         added_drawings.add_new(drawing);
@@ -791,13 +790,11 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
     /* Add drawing at current frame. */
     Drawing *current_drawing = grease_pencil.get_drawing_at(layer, current_frame);
     if (current_drawing != nullptr && !added_drawings.contains(current_drawing)) {
-      const float falloff = frame_bounds ?
-                                get_multi_frame_falloff(current_frame,
-                                                        active_frame,
-                                                        frame_bounds->min,
-                                                        frame_bounds->max,
-                                                        toolsettings->gp_sculpt.cur_falloff) :
-                                1.0f;
+      const float falloff = get_frame_falloff(use_multi_frame_falloff,
+                                              current_frame,
+                                              active_frame,
+                                              frame_bounds,
+                                              toolsettings->gp_sculpt.cur_falloff);
       const int frame_group = selected_frames.index_of(current_frame);
       drawings_grouped_per_frame[frame_group].append(
           {*current_drawing, layer_i, current_frame, falloff});
@@ -859,13 +856,11 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer_with_falloff(
       grease_pencil, layer, current_frame, use_multi_frame_editing);
   for (const int frame_number : frame_numbers) {
     if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
-      const float falloff = use_multi_frame_falloff && frame_bounds ?
-                                get_multi_frame_falloff(frame_number,
-                                                        active_frame,
-                                                        frame_bounds->min,
-                                                        frame_bounds->max,
-                                                        toolsettings->gp_sculpt.cur_falloff) :
-                                1.0f;
+      const float falloff = get_frame_falloff(use_multi_frame_falloff,
+                                              frame_number,
+                                              active_frame,
+                                              frame_bounds,
+                                              toolsettings->gp_sculpt.cur_falloff);
       editable_drawings.append({*drawing, layer_index, frame_number, falloff});
     }
   }
