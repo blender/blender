@@ -396,6 +396,50 @@ static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
 
 #  include "WM_api.hh"
 
+static bool rna_TextureCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
+{
+  MTex *mtex = (MTex *)ptr->data;
+  return ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_AREA, MTEX_MAP_MODE_RANDOM);
+}
+
+static bool rna_TextureCapabilities_has_texture_angle_get(PointerRNA *ptr)
+{
+  MTex *mtex = (MTex *)ptr->data;
+  return mtex->brush_map_mode != MTEX_MAP_MODE_3D;
+}
+
+static bool rna_TextureCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
+{
+  MTex *mtex = (MTex *)ptr->data;
+  return ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_AREA, MTEX_MAP_MODE_RANDOM);
+}
+
+static bool rna_BrushCapabilities_has_overlay_get(PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+  return ELEM(
+      br->mtex.brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL);
+}
+
+static bool rna_BrushCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+  return !(br->flag & BRUSH_ANCHORED);
+}
+
+static bool rna_BrushCapabilities_has_smooth_stroke_get(PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+  return (!(br->flag & BRUSH_ANCHORED) && !(br->flag & BRUSH_DRAG_DOT) &&
+          !(br->flag & BRUSH_LINE) && !(br->flag & BRUSH_CURVE));
+}
+
+static bool rna_BrushCapabilities_has_spacing_get(PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+  return (!(br->flag & BRUSH_ANCHORED));
+}
+
 static bool rna_BrushCapabilitiesSculpt_has_accumulate_get(PointerRNA *ptr)
 {
   Brush *br = (Brush *)ptr->data;
@@ -459,13 +503,6 @@ static bool rna_BrushCapabilitiesSculpt_has_rake_factor_get(PointerRNA *ptr)
   return SCULPT_BRUSH_TYPE_HAS_RAKE(br->sculpt_brush_type);
 }
 
-static bool rna_BrushCapabilities_has_overlay_get(PointerRNA *ptr)
-{
-  Brush *br = (Brush *)ptr->data;
-  return ELEM(
-      br->mtex.brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL);
-}
-
 static bool rna_BrushCapabilitiesSculpt_has_persistence_get(PointerRNA *ptr)
 {
   Brush *br = (Brush *)ptr->data;
@@ -504,18 +541,6 @@ static bool rna_BrushCapabilitiesSculpt_has_random_texture_angle_get(PointerRNA 
                SCULPT_BRUSH_TYPE_THUMB);
 }
 
-static bool rna_TextureCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
-{
-  MTex *mtex = (MTex *)ptr->data;
-  return ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_AREA, MTEX_MAP_MODE_RANDOM);
-}
-
-static bool rna_BrushCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
-{
-  Brush *br = (Brush *)ptr->data;
-  return !(br->flag & BRUSH_ANCHORED);
-}
-
 static bool rna_BrushCapabilitiesSculpt_has_sculpt_plane_get(PointerRNA *ptr)
 {
   Brush *br = (Brush *)ptr->data;
@@ -550,13 +575,6 @@ static bool rna_BrushCapabilitiesSculpt_has_smooth_stroke_get(PointerRNA *ptr)
                 SCULPT_BRUSH_TYPE_THUMB));
 }
 
-static bool rna_BrushCapabilities_has_smooth_stroke_get(PointerRNA *ptr)
-{
-  Brush *br = (Brush *)ptr->data;
-  return (!(br->flag & BRUSH_ANCHORED) && !(br->flag & BRUSH_DRAG_DOT) &&
-          !(br->flag & BRUSH_LINE) && !(br->flag & BRUSH_CURVE));
-}
-
 static bool rna_BrushCapabilitiesSculpt_has_space_attenuation_get(PointerRNA *ptr)
 {
   Brush *br = (Brush *)ptr->data;
@@ -568,47 +586,10 @@ static bool rna_BrushCapabilitiesSculpt_has_space_attenuation_get(PointerRNA *pt
                 SCULPT_BRUSH_TYPE_SNAKE_HOOK));
 }
 
-static bool rna_BrushCapabilitiesImagePaint_has_space_attenuation_get(PointerRNA *ptr)
-{
-  Brush *br = (Brush *)ptr->data;
-  return (br->flag & (BRUSH_SPACE | BRUSH_LINE | BRUSH_CURVE)) &&
-         br->image_brush_type != IMAGE_PAINT_BRUSH_TYPE_FILL;
-}
-
-static bool rna_BrushCapabilitiesImagePaint_has_color_get(PointerRNA *ptr)
-{
-  Brush *br = (Brush *)ptr->data;
-  return ELEM(br->image_brush_type, IMAGE_PAINT_BRUSH_TYPE_DRAW, IMAGE_PAINT_BRUSH_TYPE_FILL);
-}
-
-static bool rna_BrushCapabilitiesVertexPaint_has_color_get(PointerRNA *ptr)
-{
-  Brush *br = (Brush *)ptr->data;
-  return ELEM(br->vertex_brush_type, VPAINT_BRUSH_TYPE_DRAW);
-}
-
-static bool rna_BrushCapabilitiesWeightPaint_has_weight_get(PointerRNA *ptr)
-{
-  Brush *br = (Brush *)ptr->data;
-  return ELEM(br->weight_brush_type, WPAINT_BRUSH_TYPE_DRAW);
-}
-
-static bool rna_BrushCapabilities_has_spacing_get(PointerRNA *ptr)
-{
-  Brush *br = (Brush *)ptr->data;
-  return (!(br->flag & BRUSH_ANCHORED));
-}
-
 static bool rna_BrushCapabilitiesSculpt_has_strength_pressure_get(PointerRNA *ptr)
 {
   Brush *br = (Brush *)ptr->data;
   return !ELEM(br->sculpt_brush_type, SCULPT_BRUSH_TYPE_GRAB, SCULPT_BRUSH_TYPE_SNAKE_HOOK);
-}
-
-static bool rna_TextureCapabilities_has_texture_angle_get(PointerRNA *ptr)
-{
-  MTex *mtex = (MTex *)ptr->data;
-  return mtex->brush_map_mode != MTEX_MAP_MODE_3D;
 }
 
 static bool rna_BrushCapabilitiesSculpt_has_direction_get(PointerRNA *ptr)
@@ -652,12 +633,6 @@ static bool rna_BrushCapabilitiesSculpt_has_tilt_get(PointerRNA *ptr)
               SCULPT_BRUSH_TYPE_CLAY_STRIPS);
 }
 
-static bool rna_TextureCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
-{
-  MTex *mtex = (MTex *)ptr->data;
-  return ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_AREA, MTEX_MAP_MODE_RANDOM);
-}
-
 static bool rna_BrushCapabilitiesImagePaint_has_accumulate_get(PointerRNA *ptr)
 {
   /* only support for draw brush */
@@ -681,6 +656,31 @@ static bool rna_BrushCapabilitiesImagePaint_has_radius_get(PointerRNA *ptr)
   Brush *br = (Brush *)ptr->data;
 
   return (br->image_brush_type != IMAGE_PAINT_BRUSH_TYPE_FILL);
+}
+
+static bool rna_BrushCapabilitiesImagePaint_has_space_attenuation_get(PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+  return (br->flag & (BRUSH_SPACE | BRUSH_LINE | BRUSH_CURVE)) &&
+         br->image_brush_type != IMAGE_PAINT_BRUSH_TYPE_FILL;
+}
+
+static bool rna_BrushCapabilitiesImagePaint_has_color_get(PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+  return ELEM(br->image_brush_type, IMAGE_PAINT_BRUSH_TYPE_DRAW, IMAGE_PAINT_BRUSH_TYPE_FILL);
+}
+
+static bool rna_BrushCapabilitiesVertexPaint_has_color_get(PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+  return ELEM(br->vertex_brush_type, VPAINT_BRUSH_TYPE_DRAW);
+}
+
+static bool rna_BrushCapabilitiesWeightPaint_has_weight_get(PointerRNA *ptr)
+{
+  Brush *br = (Brush *)ptr->data;
+  return ELEM(br->weight_brush_type, WPAINT_BRUSH_TYPE_DRAW);
 }
 
 static PointerRNA rna_Sculpt_brush_capabilities_get(PointerRNA *ptr)
@@ -1237,6 +1237,8 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
   TEXTURE_CAPABILITY(has_texture_angle_source, "Has Texture Angle Source");
   TEXTURE_CAPABILITY(has_random_texture_angle, "Has Random Texture Angle");
   TEXTURE_CAPABILITY(has_texture_angle, "Has Texture Angle Source");
+
+#  undef TEXTURE_CAPABILITY
 }
 
 static void rna_def_sculpt_capabilities(BlenderRNA *brna)
