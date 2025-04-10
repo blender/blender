@@ -112,7 +112,6 @@ add_custom_command(
     ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.cc
     ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
   DEPENDS makesdna
-  VERBATIM # Correct escaping with spaces in PLATFORM_ENV_BUILD paths
 )
 
 

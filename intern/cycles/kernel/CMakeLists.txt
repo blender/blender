@@ -1015,7 +1015,10 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       endif()
       if(NOT oclocids_ret EQUAL 0)
         list(REMOVE_ITEM CYCLES_ONEAPI_INTEL_BINARIES_ARCH ${device})
-        message(STATUS "Cycles oneAPI: binaries for ${device} not supported by Intel Graphics Compiler/ocloc, skipped.")
+        message(STATUS
+          "Cycles oneAPI: "
+          "binaries for ${device} not supported by Intel Graphics Compiler/ocloc, skipped."
+        )
       endif()
     endforeach()
     list(JOIN CYCLES_ONEAPI_INTEL_BINARIES_ARCH "," gen_devices_string)

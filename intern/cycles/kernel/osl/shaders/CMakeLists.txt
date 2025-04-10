@@ -141,14 +141,13 @@ foreach(_file ${SRC_OSL})
   add_custom_command(
     OUTPUT ${_OSO_FILE}
     COMMAND
-      ${CMAKE_COMMAND} -E env "${PLATFORM_ENV_BUILD}"
+      ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
       ${OSL_COMPILER} -q -O2
         -I"${CMAKE_CURRENT_SOURCE_DIR}"
         -I"${OSL_SHADER_DIR}"
         -o ${_OSO_FILE}
         ${_OSL_FILE}
     DEPENDS ${_OSL_FILE} ${SRC_OSL_HEADERS} ${OSL_COMPILER}
-    VERBATIM # Correct escaping with spaces in PLATFORM_ENV_BUILD paths
   )
   list(APPEND SRC_OSO
     ${_OSO_FILE}

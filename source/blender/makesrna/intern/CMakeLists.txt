@@ -462,7 +462,6 @@ add_custom_command(
     ${CMAKE_COMMAND} -E env ${PLATFORM_ENV_BUILD}
     "$<TARGET_FILE:makesrna>" ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/../
   DEPENDS makesrna
-  VERBATIM # Correct escaping with spaces in PLATFORM_ENV_BUILD paths
 )
 
 # Build bf_rna
