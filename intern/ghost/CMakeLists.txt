@@ -579,6 +579,14 @@ if(WITH_XR_OPENXR)
     # Header only library.
     ../../extern/tinygltf/tiny_gltf.h
   )
+  if(WIN32)
+    list(APPEND SRC
+      intern/GHOST_XrGraphicsBindingD3D.cc
+      
+      intern/GHOST_XrGraphicsBindingD3D.hh
+    )
+  endif()
+
   list(APPEND INC_SYS
     ../../extern/json/include
     ../../extern/tinygltf
