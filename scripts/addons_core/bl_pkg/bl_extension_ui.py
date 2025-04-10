@@ -2119,7 +2119,14 @@ def extensions_repo_active_draw(self, _context):
     if (repo := repo_active_or_none()) is not None:
         layout.context_pointer_set("extension_repo", repo)
 
-    layout.operator("extensions.repo_sync_all", text="", icon='FILE_REFRESH').use_active_only = True
+    if repo is not None and repo.use_remote_url:
+        layout.operator("extensions.repo_sync_all", text="", icon='FILE_REFRESH').use_active_only = True
+    else:
+        # NOTE: this could be exposed for remote repositories, as it's possible users manipulate
+        # extensions on the file-system, then want to see the result of those changes locally.
+        # At the moment this can only be done by refreshing all local repositories from the top-level menu.
+        # Since it's a fairly obscure use case, leave this as-is.
+        layout.operator("extensions.repo_refresh_all", text="", icon='FILE_REFRESH').use_active_only = True
 
     layout.separator()
 
