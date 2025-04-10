@@ -901,19 +901,6 @@ static void rna_Userdef_memcache_update(Main * /*bmain*/, Scene * /*scene*/, Poi
   USERDEF_TAG_DIRTY;
 }
 
-static void rna_Userdef_disk_cache_dir_update(Main * /*bmain*/,
-                                              Scene * /*scene*/,
-                                              PointerRNA * /*ptr*/)
-{
-  if (U.sequencer_disk_cache_dir[0] != '\0') {
-    BLI_path_abs(U.sequencer_disk_cache_dir, BKE_main_blendfile_path_from_global());
-    BLI_path_slash_ensure(U.sequencer_disk_cache_dir, sizeof(U.sequencer_disk_cache_dir));
-    BLI_path_make_safe(U.sequencer_disk_cache_dir);
-  }
-
-  USERDEF_TAG_DIRTY;
-}
-
 static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   Object *ob;
@@ -6217,7 +6204,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "sequencer_disk_cache_dir", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "sequencer_disk_cache_dir");
-  RNA_def_property_update(prop, 0, "rna_Userdef_disk_cache_dir_update");
   RNA_def_property_ui_text(prop, "Disk Cache Directory", "Override default directory");
 
   prop = RNA_def_property(srna, "sequencer_disk_cache_size_limit", PROP_INT, PROP_NONE);
