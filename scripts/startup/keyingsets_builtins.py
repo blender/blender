@@ -17,7 +17,6 @@ are supported.
 import bpy
 import keyingsets_utils
 from bpy.types import KeyingSetInfo
-from bpy_extras import anim_utils
 
 ###############################
 # Built-In KeyingSets
@@ -353,6 +352,7 @@ class BUILTIN_KSI_Available(KeyingSetInfo):
 
     # poll - selected objects or selected object with animation data
     def poll(self, context):
+        from bpy_extras import anim_utils
         ob = context.active_object
         if ob:
             # TODO: this fails if one animation-less object is active, but many others are selected
