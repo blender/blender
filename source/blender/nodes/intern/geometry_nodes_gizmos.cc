@@ -265,7 +265,7 @@ static void foreach_active_gizmo_in_open_node_editor(
   }
 
   const ComputeContext *prev_compute_context = compute_context_builder.current();
-  compute_context_builder.push<bke::ModifierComputeContext>(nmd.modifier.name);
+  compute_context_builder.push<bke::ModifierComputeContext>(nmd);
   BLI_SCOPED_DEFER([&]() { compute_context_builder.pop_until(prev_compute_context); });
 
   if (!ed::space_node::push_compute_context_for_tree_path(snode, compute_context_builder)) {
@@ -369,7 +369,7 @@ static void foreach_active_gizmo_exposed_to_modifier(
   if (!tree.runtime->gizmo_propagation) {
     return;
   }
-  compute_context_builder.push<bke::ModifierComputeContext>(nmd.modifier.name);
+  compute_context_builder.push<bke::ModifierComputeContext>(nmd);
   BLI_SCOPED_DEFER([&]() { compute_context_builder.pop(); });
 
   for (auto &&item : tree.runtime->gizmo_propagation->gizmo_inputs_by_group_inputs.items()) {

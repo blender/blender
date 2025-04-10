@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
 #include "BKE_compute_contexts.hh"
@@ -9,6 +10,13 @@
 #include <ostream>
 
 namespace blender::bke {
+
+ModifierComputeContext::ModifierComputeContext(const ComputeContext *parent,
+                                               const NodesModifierData &nmd)
+    : ModifierComputeContext(parent, nmd.modifier.name)
+{
+  nmd_ = &nmd;
+}
 
 ModifierComputeContext::ModifierComputeContext(const ComputeContext *parent,
                                                std::string modifier_name)
@@ -45,12 +53,14 @@ GroupNodeComputeContext::GroupNodeComputeContext(
   }
 }
 
-GroupNodeComputeContext::GroupNodeComputeContext(const ComputeContext *parent,
-                                                 const bNode &node,
-                                                 const bNodeTree &caller_tree)
-    : GroupNodeComputeContext(parent, node.identifier)
+GroupNodeComputeContext::GroupNodeComputeContext(
+    const ComputeContext *parent,
+    const bNode &caller_group_node,
+    const bNodeTree &caller_tree,
+    const std::optional<ComputeContextHash> &cached_hash)
+    : GroupNodeComputeContext(parent, caller_group_node.identifier, cached_hash)
 {
-  caller_group_node_ = &node;
+  caller_group_node_ = &caller_group_node;
   caller_tree_ = &caller_tree;
 }
 
@@ -180,6 +190,12 @@ OperatorComputeContext::OperatorComputeContext(const ComputeContext *parent)
     : ComputeContext(s_static_type, parent)
 {
   hash_.mix_in(s_static_type, strlen(s_static_type));
+}
+
+OperatorComputeContext::OperatorComputeContext(const ComputeContext *parent, const bNodeTree &tree)
+    : OperatorComputeContext(parent)
+{
+  tree_ = &tree;
 }
 
 void OperatorComputeContext::print_current_in_line(std::ostream &stream) const

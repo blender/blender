@@ -672,7 +672,7 @@ static void find_side_effect_nodes_for_viewer_path(
   }
 
   ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);
+  compute_context_builder.push<bke::ModifierComputeContext>(nmd);
 
   for (const ViewerPathElem *elem : parsed_path->node_path) {
     if (!ed::viewer_path::add_compute_context_for_viewer_path_elem(*elem, compute_context_builder))
@@ -691,7 +691,7 @@ static void find_side_effect_nodes_for_nested_node(
     nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
 {
   ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(nmd.modifier.name);
+  compute_context_builder.push<bke::ModifierComputeContext>(nmd);
 
   int nested_node_id = root_nested_node_id;
   const bNodeTree *tree = nmd.node_group;
@@ -835,8 +835,7 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
           continue;
         }
         const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode,
-                                                                              nmd.modifier.name);
+            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode, nmd);
         for (const ComputeContextHash &hash : hash_by_zone.values()) {
           r_socket_log_contexts.add(hash);
         }
@@ -1834,7 +1833,7 @@ static void modifyGeometry(ModifierData *md,
   find_side_effect_nodes(*nmd, *ctx, side_effect_nodes, socket_log_contexts);
   call_data.side_effect_nodes = &side_effect_nodes;
 
-  bke::ModifierComputeContext modifier_compute_context{nullptr, nmd->modifier.name};
+  bke::ModifierComputeContext modifier_compute_context{nullptr, *nmd};
 
   geometry_set = nodes::execute_geometry_nodes_on_geometry(
       tree, properties, modifier_compute_context, call_data, std::move(geometry_set));
@@ -1931,7 +1930,7 @@ static geo_log::GeoTreeLog *get_root_tree_log(const NodesModifierData &nmd)
   if (!nmd.runtime->eval_log) {
     return nullptr;
   }
-  bke::ModifierComputeContext compute_context{nullptr, nmd.modifier.name};
+  bke::ModifierComputeContext compute_context{nullptr, nmd};
   return &nmd.runtime->eval_log->get_tree_log(compute_context.hash());
 }
 
@@ -2518,7 +2517,7 @@ static void draw_warnings(const bContext *C,
   if (!tree_log) {
     return;
   }
-  tree_log->ensure_node_warnings(nmd.node_group);
+  tree_log->ensure_node_warnings(*CTX_data_main(C));
   const int warnings_num = tree_log->all_warnings.size();
   if (warnings_num == 0) {
     return;

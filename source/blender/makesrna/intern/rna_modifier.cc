@@ -1959,7 +1959,7 @@ static blender::nodes::geo_eval_log::GeoTreeLog *get_nodes_modifier_log(NodesMod
   if (!nmd.runtime->eval_log) {
     return nullptr;
   }
-  blender::bke::ModifierComputeContext compute_context{nullptr, nmd.modifier.name};
+  blender::bke::ModifierComputeContext compute_context{nullptr, nmd};
   return &nmd.runtime->eval_log->get_tree_log(compute_context.hash());
 }
 
@@ -1967,7 +1967,7 @@ static blender::Span<blender::nodes::geo_eval_log::NodeWarning> get_node_modifie
     NodesModifierData &nmd)
 {
   if (auto *log = get_nodes_modifier_log(nmd)) {
-    log->ensure_node_warnings(nmd.node_group);
+    log->ensure_node_warnings(nmd);
     return log->all_warnings;
   }
   return {};

@@ -773,7 +773,7 @@ bool backpropagate_socket_values(bContext &C,
     }
   }
   /* Set new values for modifier inputs. */
-  const bke::ModifierComputeContext modifier_context{nullptr, nmd.modifier.name};
+  const bke::ModifierComputeContext modifier_context{nullptr, nmd};
   for (const bNode *group_input_node : nmd.node_group->group_input_nodes()) {
     for (const bNodeSocket *socket : group_input_node->output_sockets().drop_back(1)) {
       if (const SocketValueVariant *value = value_by_socket.lookup_ptr(

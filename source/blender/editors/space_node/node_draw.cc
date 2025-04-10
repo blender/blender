@@ -4367,8 +4367,7 @@ static Set<const bNodeSocket *> find_sockets_on_active_gizmo_paths(const bContex
   std::optional<ComputeContextHash> current_compute_context_hash =
       [&]() -> std::optional<ComputeContextHash> {
     ComputeContextBuilder compute_context_builder;
-    compute_context_builder.push<bke::ModifierComputeContext>(
-        object_and_modifier->nmd->modifier.name);
+    compute_context_builder.push<bke::ModifierComputeContext>(*object_and_modifier->nmd);
     if (!ed::space_node::push_compute_context_for_tree_path(snode, compute_context_builder)) {
       return std::nullopt;
     }
@@ -4996,7 +4995,7 @@ static void draw_nodetree(const bContext &C,
   if (ntree.type == NTREE_GEOMETRY) {
     tree_draw_ctx.tree_logs = geo_log::GeoModifierLog::get_contextual_tree_logs(*snode);
     tree_draw_ctx.tree_logs.foreach_tree_log([&](geo_log::GeoTreeLog &log) {
-      log.ensure_node_warnings(&ntree);
+      log.ensure_node_warnings(*tree_draw_ctx.bmain);
       log.ensure_execution_times();
     });
     const WorkSpace *workspace = CTX_wm_workspace(&C);

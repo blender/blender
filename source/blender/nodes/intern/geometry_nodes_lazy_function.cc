@@ -1175,8 +1175,10 @@ class LazyFunctionForGroupNode : public LazyFunction {
     Storage *storage = static_cast<Storage *>(context.storage);
 
     /* The compute context changes when entering a node group. */
-    bke::GroupNodeComputeContext compute_context{
-        user_data->compute_context, group_node_.identifier, storage->context_hash_cache};
+    bke::GroupNodeComputeContext compute_context{user_data->compute_context,
+                                                 group_node_,
+                                                 group_node_.owner_tree(),
+                                                 storage->context_hash_cache};
     storage->context_hash_cache = compute_context.hash();
 
     GeoNodesLFUserData group_user_data = *user_data;

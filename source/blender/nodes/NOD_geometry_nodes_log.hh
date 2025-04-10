@@ -34,20 +34,20 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator_chunked_list.hh"
-#include "BLI_multi_value_map.hh"
 
 #include "BKE_geometry_set.hh"
 #include "BKE_node.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_volume_grid_fwd.hh"
 
-#include "NOD_geometry_nodes_bundle.hh"
+#include "NOD_socket_interface_key.hh"
 
 #include "FN_field.hh"
 
 #include "DNA_node_types.h"
 
 struct SpaceNode;
+struct NodesModifierData;
 
 namespace blender::nodes::geo_eval_log {
 
@@ -233,6 +233,11 @@ class GeoTreeLogger {
   std::optional<ComputeContextHash> parent_hash;
   std::optional<int32_t> parent_node_id;
   Vector<ComputeContextHash> children_hashes;
+  /**
+   * The #ID.session_uid of the tree that this logger is for. It's an optional value because under
+   * some circumstances it's not possible to know this exactly currently (e.g. for closures).
+   */
+  std::optional<uint32_t> tree_orig_session_uid;
   /** The time spend in the compute context that this logger corresponds to. */
   std::chrono::nanoseconds execution_time{};
 
@@ -347,7 +352,15 @@ class GeoTreeLog {
   GeoTreeLog(GeoModifierLog *modifier_log, Vector<GeoTreeLogger *> tree_loggers);
   ~GeoTreeLog();
 
-  void ensure_node_warnings(const bNodeTree *tree);
+  /**
+   * Propagate node warnings. This needs access to the node group pointers, because propagation
+   * settings are stored on the nodes. However, the log can only store weak pointers (in the form
+   * of e.g. session ids) to original data to avoid dangling pointers.
+   */
+  void ensure_node_warnings(const NodesModifierData &nmd);
+  void ensure_node_warnings(const Main &bmain);
+  void ensure_node_warnings(const Map<uint32_t, const bNodeTree *> &orig_tree_by_session_uid);
+
   void ensure_execution_times();
   void ensure_socket_values();
   void ensure_viewer_node_logs();
@@ -439,7 +452,7 @@ class GeoModifierLog {
    * Utility accessor to logged data.
    */
   static Map<const bke::bNodeTreeZone *, ComputeContextHash>
-  get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name);
+  get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, const NodesModifierData &nmd);
   static Map<const bke::bNodeTreeZone *, ComputeContextHash>
   get_context_hash_by_zone_for_node_editor(const SpaceNode &snode,
                                            ComputeContextBuilder &compute_context_builder);
