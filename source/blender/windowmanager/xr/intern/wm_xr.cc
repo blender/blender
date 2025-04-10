@@ -71,7 +71,7 @@ bool wm_xr_init(wmWindowManager *wm)
       case GPU_BACKEND_OPENGL:
         gpu_bindings_candidates.append(GHOST_kXrGraphicsOpenGL);
 #  ifdef WIN32
-        gpu_bindings_candidates.append(GHOST_kXrGraphicsD3D11);
+        gpu_bindings_candidates.append(GHOST_kXrGraphicsOpenGLD3D11);
 #  endif
         break;
 #endif

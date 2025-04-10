@@ -333,16 +333,12 @@ static void ghost_format_to_dx_format(GHOST_TXrSwapchainFormat ghost_format,
 
 class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
  public:
-  GHOST_XrGraphicsBindingD3D(GHOST_Context &ghost_ctx)
-      : GHOST_IXrGraphicsBinding(), m_ghost_wgl_ctx(static_cast<GHOST_ContextWGL &>(ghost_ctx))
+  GHOST_XrGraphicsBindingD3D() : GHOST_IXrGraphicsBinding()
   {
     m_ghost_d3d_ctx = GHOST_SystemWin32::createOffscreenContextD3D();
   }
-  ~GHOST_XrGraphicsBindingD3D()
+  virtual ~GHOST_XrGraphicsBindingD3D()
   {
-    if (m_shared_resource) {
-      m_ghost_d3d_ctx->disposeSharedOpenGLResource(m_shared_resource);
-    }
     if (m_ghost_d3d_ctx) {
       GHOST_SystemWin32::disposeContextD3D(m_ghost_d3d_ctx);
     }
@@ -464,6 +460,32 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
     return base_images;
   }
 
+  bool needsUpsideDownDrawing(GHOST_Context &) const
+  {
+    return m_ghost_d3d_ctx->isUpsideDown();
+  }
+
+ protected:
+  /** Secondary DirectX 11 context used by OpenXR. */
+  GHOST_ContextD3D *m_ghost_d3d_ctx = nullptr;
+
+  std::list<std::vector<XrSwapchainImageD3D11KHR>> m_image_cache;
+};
+
+class GHOST_XrGraphicsBindingOpenGLD3D : public GHOST_XrGraphicsBindingD3D {
+ public:
+  GHOST_XrGraphicsBindingOpenGLD3D(GHOST_Context &ghost_ctx)
+      : GHOST_XrGraphicsBindingD3D(), m_ghost_wgl_ctx(static_cast<GHOST_ContextWGL &>(ghost_ctx))
+  {
+  }
+  ~GHOST_XrGraphicsBindingOpenGLD3D()
+  {
+    if (m_shared_resource) {
+      m_ghost_d3d_ctx->disposeSharedOpenGLResource(m_shared_resource);
+      m_shared_resource = nullptr;
+    }
+  }
+
   void submitToSwapchainImage(XrSwapchainImageBaseHeader &swapchain_image,
                               const GHOST_XrDrawViewInfo &draw_info) override
   {
@@ -504,20 +526,11 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
 #  endif
   }
 
-  bool needsUpsideDownDrawing(GHOST_Context &) const
-  {
-    return m_ghost_d3d_ctx->isUpsideDown();
-  }
-
  private:
   /** Primary OpenGL context for Blender to use for drawing. */
   GHOST_ContextWGL &m_ghost_wgl_ctx;
-  /** Secondary DirectX 11 context to share with OpenGL context. */
-  GHOST_ContextD3D *m_ghost_d3d_ctx = nullptr;
   /** Handle to shared resource object. */
   GHOST_SharedOpenGLResource *m_shared_resource = nullptr;
-
-  std::list<std::vector<XrSwapchainImageD3D11KHR>> m_image_cache;
 };
 #endif  // WIN32
 
@@ -532,8 +545,8 @@ std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
       return std::make_unique<GHOST_XrGraphicsBindingVulkan>();
 #endif
 #ifdef WIN32
-    case GHOST_kXrGraphicsD3D11:
-      return std::make_unique<GHOST_XrGraphicsBindingD3D>(context);
+    case GHOST_kXrGraphicsOpenGLD3D11:
+      return std::make_unique<GHOST_XrGraphicsBindingOpenGLD3D>(context);
 #endif
     default:
       return nullptr;

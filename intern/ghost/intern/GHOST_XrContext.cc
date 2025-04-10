@@ -394,7 +394,7 @@ static const char *openxr_ext_name_from_wm_gpu_binding(GHOST_TXrGraphicsBinding 
 #endif
 
 #ifdef WIN32
-    case GHOST_kXrGraphicsD3D11:
+    case GHOST_kXrGraphicsOpenGLD3D11:
       return XR_KHR_D3D11_ENABLE_EXTENSION_NAME;
 #endif
     case GHOST_kXrGraphicsUnknown:
