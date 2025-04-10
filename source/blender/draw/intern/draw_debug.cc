@@ -255,7 +255,7 @@ void DebugDraw::display_lines(View &view)
 
   {
     gpu::DebugScope debug_scope("CPU");
-    /* We might have race condition here (a writer thread might still be outputing vertices).
+    /* We might have race condition here (a writer thread might still be outputting vertices).
      * But that is ok. At worse, we will be missing some vertex data and show 1 corrupted line. */
     cpu_draw_buf_.current()->command.vertex_len = vertex_len_.load();
     cpu_draw_buf_.current()->push_update();
@@ -280,7 +280,7 @@ void DebugDraw::display_lines(View &view)
 
 void DebugDraw::display_to_view(View &view)
 {
-  /* Display only on the main thread. Avoid concurent usage of the resource. */
+  /* Display only on the main thread. Avoid concurrent usage of the resource. */
   BLI_assert(BLI_thread_is_main());
 
   GPU_debug_group_begin("DebugDraw");

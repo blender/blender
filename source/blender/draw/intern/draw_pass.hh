@@ -135,9 +135,9 @@ class PassBase {
   Vector<command::Header, 0> headers_;
   /** Commands referenced by headers (which contains their types). */
   Vector<command::Undetermined, 0> commands_;
-  /* Reference to draw commands buffer. Either own or from parent pass. */
+  /** Reference to draw commands buffer. Either own or from parent pass. */
   DrawCommandBufType &draw_commands_buf_;
-  /* Reference to sub-pass commands buffer. Either own or from parent pass. */
+  /** Reference to sub-pass commands buffer. Either own or from parent pass. */
   SubPassVector<PassBase<DrawCommandBufType>> &sub_passes_;
   /** Currently bound shader. Used for interface queries. */
   GPUShader *shader_;
@@ -170,7 +170,7 @@ class PassBase {
   void init();
 
   /**
-   * Returns true if the pass and its subpasses don't contain any draw or dispatch command.
+   * Returns true if the pass and its sub-passes don't contain any draw or dispatch command.
    */
   bool is_empty() const;
 

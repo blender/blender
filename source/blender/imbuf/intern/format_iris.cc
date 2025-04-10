@@ -561,7 +561,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   return ibuf;
 }
 
-/* static utility functions for longimagedata */
+/* Static utility functions for loading image data. */
 
 static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n)
 {

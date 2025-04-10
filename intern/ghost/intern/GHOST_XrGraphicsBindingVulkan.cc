@@ -677,7 +677,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
                        2,
                        vk_image_memory_barrier);
 
-  /* Copy image to swapchain */
+  /* Copy image to swap-chain. */
   VkImageCopy vk_image_copy = {{VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
                                {0, 0, 0},
                                {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
@@ -691,7 +691,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
                  1,
                  &vk_image_copy);
 
-  /* Swapchain needs to be in an VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL compatible layout. */
+  /* Swap-chain needs to be in an VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL compatible layout. */
   VkImageMemoryBarrier vk_image_memory_barrier2 = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                                    nullptr,
                                                    VK_ACCESS_TRANSFER_WRITE_BIT,

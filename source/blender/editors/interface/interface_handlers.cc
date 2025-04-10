@@ -12080,7 +12080,7 @@ static bool ui_can_activate_other_menu(uiBut *but, uiBut *but_other, const wmEve
     right = but->rect.xmax;
     left = but_other->rect.xmax;
     if (ELEM(but_other->type, UI_BTYPE_POPOVER, UI_BTYPE_MENU)) {
-      /* Skip the dropdown arrow on the right of it. */
+      /* Skip the drop-down arrow on the right of it. */
       safety += 8.0f * UI_SCALE_FAC;
     }
     left -= safety;

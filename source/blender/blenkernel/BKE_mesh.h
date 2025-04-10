@@ -280,11 +280,14 @@ enum {
  * Collection of #MLoopNorSpace basic storage & pre-allocation.
  */
 struct MLoopNorSpaceArray {
-  MLoopNorSpace **lspacearr; /* Face corner aligned array */
-  struct LinkNode
-      *loops_pool; /* Allocated once, avoids to call BLI_linklist_prepend_arena() for each loop! */
-  char data_type;  /* Whether we store loop indices, or pointers to BMLoop. */
-  int spaces_num;  /* Number of clnors spaces defined in this array. */
+  /** Face corner aligned array. */
+  MLoopNorSpace **lspacearr;
+  /** Allocated once, avoids to call #BLI_linklist_prepend_arena() for each loop! */
+  struct LinkNode *loops_pool;
+  /** Whether we store loop indices, or pointers to #BMLoop. */
+  char data_type;
+  /** Number of `clnors` spaces defined in this array. */
+  int spaces_num;
   struct MemArena *mem;
 };
 /**
