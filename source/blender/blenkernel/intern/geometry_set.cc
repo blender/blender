@@ -651,6 +651,18 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponent::Type> componen
         callback(iter.name, {iter.domain, iter.data_type}, component);
       });
     }
+    /* For Grease Pencil, we also need to iterate over the attributes of the evaluated drawings. */
+    if (component_type == GeometryComponent::Type::GreasePencil) {
+      const GreasePencil &grease_pencil = *this->get_grease_pencil();
+      for (const bke::greasepencil::Layer *layer : grease_pencil.layers()) {
+        if (const bke::greasepencil::Drawing *drawing = grease_pencil.get_eval_drawing(*layer)) {
+          const AttributeAccessor attributes = drawing->strokes().attributes();
+          attributes.foreach_attribute([&](const AttributeIter &iter) {
+            callback(iter.name, {iter.domain, iter.data_type}, component);
+          });
+        }
+      }
+    }
   }
   if (include_instances && this->has_instances()) {
     const Instances &instances = *this->get_instances();
