@@ -51,6 +51,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Int>("Group ID", "Group Index")
       .supports_field()
+      .hide_value()
       .description("An index used to group values together for multiple separate accumulations");
 
   if (node != nullptr) {
