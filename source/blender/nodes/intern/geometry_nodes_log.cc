@@ -220,8 +220,14 @@ GeometryInfoLog::GeometryInfoLog(const bke::GVolumeGrid &grid)
 
 BundleValueLog::BundleValueLog(Vector<Item> items) : items(std::move(items)) {}
 
-ClosureValueLog::ClosureValueLog(Vector<Item> inputs, Vector<Item> outputs)
-    : inputs(std::move(inputs)), outputs(std::move(outputs))
+ClosureValueLog::ClosureValueLog(Vector<Item> inputs,
+                                 Vector<Item> outputs,
+                                 const std::optional<ClosureSourceLocation> &source_location,
+                                 std::shared_ptr<ClosureEvalLog> eval_log)
+    : inputs(std::move(inputs)),
+      outputs(std::move(outputs)),
+      source_location(source_location),
+      eval_log(std::move(eval_log))
 {
 }
 
@@ -292,6 +298,8 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     else if (value_variant.valid_for_socket(SOCK_CLOSURE)) {
       Vector<ClosureValueLog::Item> inputs;
       Vector<ClosureValueLog::Item> outputs;
+      std::optional<ClosureSourceLocation> source_location;
+      std::shared_ptr<ClosureEvalLog> eval_log;
       if (const ClosurePtr closure = value_variant.extract<ClosurePtr>()) {
         const ClosureSignature &signature = closure->signature();
         for (const ClosureSignature::Item &item : signature.inputs) {
@@ -300,9 +308,11 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
         for (const ClosureSignature::Item &item : signature.outputs) {
           outputs.append({item.key, item.type});
         }
+        source_location = closure->source_location();
+        eval_log = closure->eval_log_ptr();
       }
-      store_logged_value(
-          this->allocator->construct<ClosureValueLog>(std::move(inputs), std::move(outputs)));
+      store_logged_value(this->allocator->construct<ClosureValueLog>(
+          std::move(inputs), std::move(outputs), source_location, eval_log));
     }
     else {
       value_variant.convert_to_single();
@@ -736,6 +746,11 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
                &compute_context))
   {
     tree_logger.parent_node_id.emplace(context->node_id());
+    const std::optional<nodes::ClosureSourceLocation> &location =
+        context->closure_source_location();
+    if (location.has_value()) {
+      tree_logger.tree_orig_session_uid = location->orig_node_tree_session_uid;
+    }
   }
   else if (const auto *context = dynamic_cast<const bke::ModifierComputeContext *>(
                &compute_context))

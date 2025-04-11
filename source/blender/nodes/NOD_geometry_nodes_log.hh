@@ -40,6 +40,7 @@
 #include "BKE_node_tree_zones.hh"
 #include "BKE_volume_grid_fwd.hh"
 
+#include "NOD_geometry_nodes_closure_location.hh"
 #include "NOD_socket_interface_key.hh"
 
 #include "FN_field.hh"
@@ -208,8 +209,13 @@ class ClosureValueLog : public ValueLog {
 
   Vector<Item> inputs;
   Vector<Item> outputs;
+  std::optional<ClosureSourceLocation> source_location;
+  std::shared_ptr<ClosureEvalLog> eval_log;
 
-  ClosureValueLog(Vector<Item> inputs, Vector<Item> outputs);
+  ClosureValueLog(Vector<Item> inputs,
+                  Vector<Item> outputs,
+                  const std::optional<ClosureSourceLocation> &source_location,
+                  std::shared_ptr<ClosureEvalLog> eval_log);
 };
 
 /**

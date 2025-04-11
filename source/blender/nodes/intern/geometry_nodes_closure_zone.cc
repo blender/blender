@@ -88,8 +88,10 @@ class LazyFunctionForClosureZone : public LazyFunction {
     }
   }
 
-  void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
+  void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
+    auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+
     /* All border links are captured currently. */
     for (const int i : zone_.border_links.index_range()) {
       params.set_output(zone_info_.indices.outputs.border_link_usages[i], true);
@@ -201,13 +203,19 @@ class LazyFunctionForClosureZone : public LazyFunction {
 
     lf::GraphExecutor &lf_graph_executor = closure_scope->construct<lf::GraphExecutor>(
         lf_graph, nullptr, nullptr, nullptr);
-
+    ClosureSourceLocation source_location{
+        btree_orig.id.session_uid,
+        output_bnode_.identifier,
+        user_data.compute_context->hash(),
+    };
     ClosurePtr closure{MEM_new<Closure>(__func__,
                                         closure_signature_,
                                         std::move(closure_scope),
                                         lf_graph_executor,
                                         closure_indices,
-                                        std::move(default_input_values))};
+                                        std::move(default_input_values),
+                                        source_location,
+                                        std::make_shared<ClosureEvalLog>())};
 
     params.set_output(zone_info_.indices.outputs.main[0],
                       bke::SocketValueVariant(std::move(closure)));
@@ -302,9 +310,16 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
       }
       this->generate_closure_compatibility_warnings(*eval_storage.closure, context);
       this->initialize_execution_graph(eval_storage);
+
+      const bNodeTree &btree_orig = *reinterpret_cast<const bNodeTree *>(
+          DEG_get_original_id(&btree_.id));
+      ClosureEvalLocation eval_location{
+          btree_orig.id.session_uid, bnode_.identifier, user_data.compute_context->hash()};
+      eval_storage.closure->log_evaluation(eval_location);
     }
 
-    bke::EvaluateClosureComputeContext closure_compute_context{user_data.compute_context, bnode_};
+    bke::EvaluateClosureComputeContext closure_compute_context{
+        user_data.compute_context, bnode_, eval_storage.closure->source_location()};
     GeoNodesLFUserData closure_user_data = user_data;
     closure_user_data.compute_context = &closure_compute_context;
     GeoNodesLFLocalUserData closure_local_user_data{closure_user_data};

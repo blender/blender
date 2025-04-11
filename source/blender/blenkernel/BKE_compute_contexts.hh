@@ -20,9 +20,15 @@
 
 #include "BLI_compute_context.hh"
 
+#include "NOD_geometry_nodes_closure_location.hh"
+
 struct bNode;
 struct bNodeTree;
 struct NodesModifierData;
+
+namespace blender::nodes {
+class Closure;
+}
 
 namespace blender::bke {
 
@@ -180,10 +186,14 @@ class EvaluateClosureComputeContext : public ComputeContext {
    * Extra information that might not always be available.
    */
   const bNode *evaluate_node_ = nullptr;
+  std::optional<nodes::ClosureSourceLocation> closure_source_location_;
 
  public:
   EvaluateClosureComputeContext(const ComputeContext *parent, int32_t node_id);
-  EvaluateClosureComputeContext(const ComputeContext *parent, const bNode &evaluate_node);
+  EvaluateClosureComputeContext(
+      const ComputeContext *parent,
+      const bNode &evaluate_node,
+      const std::optional<nodes::ClosureSourceLocation> &closure_source_location);
 
   int32_t node_id() const
   {
@@ -192,6 +202,11 @@ class EvaluateClosureComputeContext : public ComputeContext {
   const bNode *evaluate_node() const
   {
     return evaluate_node_;
+  }
+
+  std::optional<nodes::ClosureSourceLocation> closure_source_location() const
+  {
+    return closure_source_location_;
   }
 
  private:

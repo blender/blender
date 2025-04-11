@@ -169,11 +169,14 @@ EvaluateClosureComputeContext::EvaluateClosureComputeContext(const ComputeContex
   hash_.mix_in(buffer, buffer_size);
 }
 
-EvaluateClosureComputeContext::EvaluateClosureComputeContext(const ComputeContext *parent,
-                                                             const bNode &node)
+EvaluateClosureComputeContext::EvaluateClosureComputeContext(
+    const ComputeContext *parent,
+    const bNode &node,
+    const std::optional<nodes::ClosureSourceLocation> &closure_source_location)
     : EvaluateClosureComputeContext(parent, node.identifier)
 {
   evaluate_node_ = &node;
+  closure_source_location_ = closure_source_location;
 }
 
 void EvaluateClosureComputeContext::print_current_in_line(std::ostream &stream) const
