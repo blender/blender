@@ -1681,8 +1681,16 @@ bool supports_inverted_direction(const Brush &brush)
 }
 bool supports_gravity(const Brush &brush)
 {
-  /* TODO: This is incorrect, match with the StrokeCache.supports_gravity field */
-  return !ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_MASK, SCULPT_BRUSH_TYPE_SMOOTH);
+  return !ELEM(brush.sculpt_brush_type,
+               SCULPT_BRUSH_TYPE_PAINT,
+               SCULPT_BRUSH_TYPE_SMEAR,
+               SCULPT_BRUSH_TYPE_MASK,
+               SCULPT_BRUSH_TYPE_DRAW_FACE_SETS,
+               SCULPT_BRUSH_TYPE_BOUNDARY,
+               SCULPT_BRUSH_TYPE_SMOOTH,
+               SCULPT_BRUSH_TYPE_SIMPLIFY,
+               SCULPT_BRUSH_TYPE_DISPLACEMENT_SMEAR,
+               SCULPT_BRUSH_TYPE_DISPLACEMENT_ERASER);
 }
 bool supports_tilt(const Brush &brush)
 {

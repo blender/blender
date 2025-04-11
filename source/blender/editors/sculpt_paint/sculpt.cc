@@ -4084,8 +4084,7 @@ static void sculpt_update_cache_invariants(
   mul_m3_v3(mat, viewDir);
   normalize_v3_v3(cache->view_normal, viewDir);
 
-  cache->supports_gravity = brush_type_supports_gravity(brush->sculpt_brush_type) &&
-                            (sd.gravity_factor > 0.0f);
+  cache->supports_gravity = bke::brush::supports_gravity(*brush) && sd.gravity_factor > 0.0f;
   /* Get gravity vector in world space. */
   if (cache->supports_gravity) {
     if (sd.gravity_object) {
