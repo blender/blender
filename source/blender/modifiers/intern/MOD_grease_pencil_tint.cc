@@ -182,8 +182,10 @@ static void modify_stroke_color(Object &ob,
   auto get_material_color = [&](const int64_t curve_i) {
     const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i] + 1);
     const MaterialGPencilStyle *gp_style = ma ? ma->gp_style : nullptr;
-    return (gp_style ? ColorGeometry4f(gp_style->stroke_rgba) :
-                       ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+    if (!gp_style) {
+      return ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    return ColorGeometry4f(gp_style->stroke_rgba);
   };
 
   auto get_point_factor = [&](const int64_t point_i) {
@@ -271,8 +273,13 @@ static void modify_fill_color(Object &ob,
   auto get_material_color = [&](const int64_t curve_i) {
     const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i] + 1);
     const MaterialGPencilStyle *gp_style = ma ? ma->gp_style : nullptr;
-    return (gp_style ? ColorGeometry4f(gp_style->fill_rgba) :
-                       ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+    if (!gp_style) {
+      return ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    const bool is_gradient = gp_style->fill_style == GP_MATERIAL_FILL_STYLE_GRADIENT;
+    const float4 average_color = math::interpolate(
+        float4(gp_style->fill_rgba), float4(gp_style->mix_rgba), is_gradient ? 0.5f : 0.0f);
+    return ColorGeometry4f(average_color);
   };
 
   auto get_curve_factor = [&](const int64_t curve_i) {
