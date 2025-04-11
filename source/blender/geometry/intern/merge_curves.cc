@@ -5,6 +5,8 @@
 #include "BLI_array_utils.hh"
 #include "BLI_stack.hh"
 
+#include "BKE_deform.hh"
+
 #include "GEO_merge_curves.hh"
 
 namespace blender::geometry {
@@ -247,6 +249,9 @@ static bke::CurvesGeometry join_curves_ranges(const bke::CurvesGeometry &src_cur
 {
   bke::CurvesGeometry dst_curves = bke::CurvesGeometry(src_curves.points_num(),
                                                        old_curves_by_new.size());
+  /* Copy vertex group names. */
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
+  dst_curves.attributes_active_index = src_curves.attributes_active_index;
 
   /* NOTE: using the offsets as an index map means the first curve of each range is used for
    * attributes. */
