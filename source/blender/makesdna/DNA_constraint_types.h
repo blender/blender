@@ -1069,12 +1069,6 @@ typedef enum eDistLimit_Modes {
   LIMITDIST_ONSURFACE = 2,
 } eDistLimit_Modes;
 
-/* python constraint -> flag */
-typedef enum ePyConstraint_Flags {
-  PYCON_USETARGETS = (1 << 0),
-  PYCON_SCRIPTERROR = (1 << 1),
-} ePyConstraint_Flags;
-
 /* ChildOf Constraint -> flag */
 typedef enum eChildOf_Flags {
   CHILDOF_LOCX = (1 << 0),
