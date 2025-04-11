@@ -364,6 +364,7 @@ set(SRC
   BKE_colorband.hh
   BKE_colortools.hh
   BKE_compositor.hh
+  BKE_compute_context_cache.hh
   BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.hh

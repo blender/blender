@@ -5,6 +5,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 
 #include <ostream>
@@ -204,6 +205,41 @@ OperatorComputeContext::OperatorComputeContext(const ComputeContext *parent, con
 void OperatorComputeContext::print_current_in_line(std::ostream &stream) const
 {
   stream << "Operator";
+}
+
+const ModifierComputeContext &ComputeContextCache::for_modifier(const ComputeContext *parent,
+                                                                const NodesModifierData &nmd)
+{
+  return *modifier_contexts_cache_.lookup_or_add_cb(
+      std::pair{parent, StringRef(nmd.modifier.name)},
+      [&]() { return &this->for_any_uncached<ModifierComputeContext>(parent, nmd); });
+}
+
+const ModifierComputeContext &ComputeContextCache::for_modifier(const ComputeContext *parent,
+                                                                StringRef modifier_name)
+{
+  return *modifier_contexts_cache_.lookup_or_add_cb(std::pair{parent, modifier_name}, [&]() {
+    return &this->for_any_uncached<ModifierComputeContext>(parent, modifier_name);
+  });
+}
+
+const GroupNodeComputeContext &ComputeContextCache::for_group_node(const ComputeContext *parent,
+                                                                   const int32_t node_id)
+{
+  return *group_node_contexts_cache_.lookup_or_add_cb(std::pair{parent, node_id}, [&]() {
+    return &this->for_any_uncached<GroupNodeComputeContext>(parent, node_id);
+  });
+}
+
+const GroupNodeComputeContext &ComputeContextCache::for_group_node(const ComputeContext *parent,
+                                                                   const bNode &caller_group_node,
+                                                                   const bNodeTree &caller_tree)
+{
+  return *group_node_contexts_cache_.lookup_or_add_cb(
+      std::pair{parent, caller_group_node.identifier}, [&]() {
+        return &this->for_any_uncached<GroupNodeComputeContext>(
+            parent, caller_group_node, caller_tree);
+      });
 }
 
 }  // namespace blender::bke

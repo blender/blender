@@ -14,6 +14,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -32,6 +33,7 @@ struct SocketUsageInferencer {
  private:
   /** Owns e.g. intermediate evaluated values. */
   ResourceScope scope_;
+  bke::ComputeContextCache compute_context_cache_;
 
   /** Root node tree. */
   const bNodeTree &root_tree_;
@@ -319,7 +321,7 @@ struct SocketUsageInferencer {
 
     /* The group node input is used if any of the matching group inputs within the group is
      * used. */
-    const ComputeContext &group_context = scope_.construct<bke::GroupNodeComputeContext>(
+    const ComputeContext &group_context = compute_context_cache_.for_group_node(
         socket.context, *node, node->owner_tree());
     Vector<const bNodeSocket *> dependent_sockets;
     for (const bNode *group_input_node : group->group_input_nodes()) {
@@ -612,7 +614,7 @@ struct SocketUsageInferencer {
       all_socket_values_.add_new(socket, nullptr);
       return;
     }
-    const ComputeContext &group_context = scope_.construct<bke::GroupNodeComputeContext>(
+    const ComputeContext &group_context = compute_context_cache_.for_group_node(
         socket.context, *node, node->owner_tree());
     const SocketInContext socket_in_group{&group_context,
                                           &group_output_node->input_socket(socket->index())};

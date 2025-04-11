@@ -131,13 +131,13 @@ LocalInverseEvalTargets find_local_inverse_eval_targets(const bNodeTree &tree,
 
   tree.ensure_topology_cache();
 
-  ResourceScope scope;
+  bke::ComputeContextCache compute_context_cache;
   Map<SocketInContext, ElemVariant> elem_by_socket;
   elem_by_socket.add({nullptr, initial_socket_elem.socket}, initial_socket_elem.elem);
 
   const partial_eval::UpstreamEvalTargets upstream_eval_targets = partial_eval::eval_upstream(
       {{nullptr, initial_socket_elem.socket}},
-      scope,
+      compute_context_cache,
       /* Evaluate node. */
       [&](const NodeInContext &ctx_node, Vector<const bNodeSocket *> &r_modified_inputs) {
         evaluate_node_elem_upstream(ctx_node, r_modified_inputs, elem_by_socket);
@@ -282,7 +282,7 @@ void foreach_element_on_inverse_eval_path(
   if (!initial_socket_elem.elem) {
     return;
   }
-  ResourceScope scope;
+  bke::ComputeContextCache compute_context_cache;
   Map<SocketInContext, ElemVariant> upstream_elem_by_socket;
   upstream_elem_by_socket.add({&initial_context, initial_socket_elem.socket},
                               initial_socket_elem.elem);
@@ -290,7 +290,7 @@ void foreach_element_on_inverse_eval_path(
   /* In a first pass, propagate upstream to find the upstream targets. */
   const partial_eval::UpstreamEvalTargets upstream_eval_targets = partial_eval::eval_upstream(
       {{&initial_context, initial_socket_elem.socket}},
-      scope,
+      compute_context_cache,
       /* Evaluate node. */
       [&](const NodeInContext &ctx_node, Vector<const bNodeSocket *> &r_modified_inputs) {
         evaluate_node_elem_upstream(ctx_node, r_modified_inputs, upstream_elem_by_socket);
@@ -329,7 +329,7 @@ void foreach_element_on_inverse_eval_path(
 
   partial_eval::eval_downstream(
       initial_downstream_evaluation_sockets,
-      scope,
+      compute_context_cache,
       /* Evaluate node. */
       [&](const NodeInContext &ctx_node, Vector<const bNodeSocket *> &r_outputs_to_propagate) {
         evaluate_node_elem_downstream_filtered(
@@ -690,7 +690,7 @@ bool backpropagate_socket_values(bContext &C,
 {
   nmd.node_group->ensure_topology_cache();
 
-  ResourceScope scope;
+  bke::ComputeContextCache compute_context_cache;
   Map<SocketInContext, SocketValueVariant> value_by_socket;
 
   Vector<SocketInContext> initial_sockets;
@@ -726,7 +726,7 @@ bool backpropagate_socket_values(bContext &C,
   /* Actually backpropagate the socket values as far as possible in the node tree. */
   const partial_eval::UpstreamEvalTargets upstream_eval_targets = partial_eval::eval_upstream(
       initial_sockets,
-      scope,
+      compute_context_cache,
       /* Evaluate node. */
       [&](const NodeInContext &ctx_node, Vector<const bNodeSocket *> &r_modified_inputs) {
         backpropagate_socket_values_through_node(
