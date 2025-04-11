@@ -2992,20 +2992,13 @@ void calc_brush_plane(const Depsgraph &depsgraph,
   }
 }
 
-}  // namespace blender::ed::sculpt_paint
-
-float SCULPT_brush_plane_offset_get(const Sculpt &sd, const SculptSession &ss)
+float brush_plane_offset_get(const Brush &brush, const SculptSession &ss)
 {
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-
-  float rv = brush.plane_offset;
-
-  if (brush.flag & BRUSH_OFFSET_PRESSURE) {
-    rv *= ss.cache->pressure;
-  }
-
-  return rv;
+  return brush.flag & BRUSH_OFFSET_PRESSURE ? brush.plane_offset * ss.cache->pressure :
+                                              brush.plane_offset;
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 /** \} */
 

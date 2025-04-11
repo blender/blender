@@ -266,7 +266,7 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const bool flip = (ss.cache->bstrength < 0.0f);
   const float radius = flip ? -ss.cache->radius : ss.cache->radius;
-  const float offset = SCULPT_brush_plane_offset_get(sd, ss);
+  const float offset = brush_plane_offset_get(brush, ss);
   const float displace = radius * (0.18f + offset);
 
   float3 area_position;

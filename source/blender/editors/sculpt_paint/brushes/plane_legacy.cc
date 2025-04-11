@@ -170,7 +170,7 @@ static void do_plane_brush(const Depsgraph &depsgraph,
   calc_brush_plane(depsgraph, brush, object, node_mask, area_no, area_co);
   area_no = tilt_apply_to_normal(area_no, *ss.cache, brush.tilt_strength_factor);
 
-  const float offset = SCULPT_brush_plane_offset_get(sd, ss);
+  const float offset = brush_plane_offset_get(brush, ss);
   const float displace = direction * ss.cache->radius * offset;
   area_co += area_no * ss.cache->scale * displace;
 
