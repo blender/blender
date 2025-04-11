@@ -85,17 +85,23 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
     return 0;
   }
 
-  if (ibuf->foptions.flag & CINEON_10BIT) {
+  if (use_cineon) {
+    /* Only 10bit is supported. */
     bitspersample = 10;
   }
-  else if (ibuf->foptions.flag & CINEON_12BIT) {
-    bitspersample = 12;
-  }
-  else if (ibuf->foptions.flag & CINEON_16BIT) {
-    bitspersample = 16;
-  }
   else {
-    bitspersample = 8;
+    if (ibuf->foptions.flag & CINEON_10BIT) {
+      bitspersample = 10;
+    }
+    else if (ibuf->foptions.flag & CINEON_12BIT) {
+      bitspersample = 12;
+    }
+    else if (ibuf->foptions.flag & CINEON_16BIT) {
+      bitspersample = 16;
+    }
+    else {
+      bitspersample = 8;
+    }
   }
 
   logImage = logImageCreate(filepath,
