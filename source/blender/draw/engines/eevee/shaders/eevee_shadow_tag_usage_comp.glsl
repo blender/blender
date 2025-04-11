@@ -26,11 +26,11 @@ void main()
   }
 
   float depth = texelFetch(hiz_tx, texel, 0).r;
-  if (depth == 1.0) {
+  if (depth == 1.0f) {
     return;
   }
 
-  vec2 uv = (vec2(texel) + 0.5) / vec2(tex_size);
+  vec2 uv = (vec2(texel) + 0.5f) / vec2(tex_size);
   vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
   vec3 P = drw_point_view_to_world(vP);
   vec2 pixel = vec2(gl_GlobalInvocationID.xy);

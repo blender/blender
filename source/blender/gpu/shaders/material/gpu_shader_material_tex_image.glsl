@@ -6,53 +6,53 @@
 
 void point_texco_remap_square(vec3 vin, out vec3 vout)
 {
-  vout = vin * 2.0 - 1.0;
+  vout = vin * 2.0f - 1.0f;
 }
 
 void point_texco_clamp(vec3 vin, sampler2D ima, out vec3 vout)
 {
-  vec2 half_texel_size = 0.5 / vec2(textureSize(ima, 0).xy);
-  vout = clamp(vin, half_texel_size.xyy, 1.0 - half_texel_size.xyy);
+  vec2 half_texel_size = 0.5f / vec2(textureSize(ima, 0).xy);
+  vout = clamp(vin, half_texel_size.xyy, 1.0f - half_texel_size.xyy);
 }
 
 void point_map_to_sphere(vec3 vin, out vec3 vout)
 {
   float len = length(vin);
   float v, u;
-  if (len > 0.0) {
-    if (vin.x == 0.0 && vin.y == 0.0) {
-      u = 0.0;
+  if (len > 0.0f) {
+    if (vin.x == 0.0f && vin.y == 0.0f) {
+      u = 0.0f;
     }
     else {
-      u = (1.0 - atan(vin.x, vin.y) / M_PI) / 2.0;
+      u = (1.0f - atan(vin.x, vin.y) / M_PI) / 2.0f;
     }
 
-    v = 1.0 - acos(vin.z / len) / M_PI;
+    v = 1.0f - acos(vin.z / len) / M_PI;
   }
   else {
-    v = u = 0.0;
+    v = u = 0.0f;
   }
 
-  vout = vec3(u, v, 0.0);
+  vout = vec3(u, v, 0.0f);
 }
 
 void point_map_to_tube(vec3 vin, out vec3 vout)
 {
   float u, v;
-  v = (vin.z + 1.0) * 0.5;
+  v = (vin.z + 1.0f) * 0.5f;
   float len = sqrt(vin.x * vin.x + vin.y * vin[1]);
-  if (len > 0.0) {
-    u = (1.0 - (atan(vin.x / len, vin.y / len) / M_PI)) * 0.5;
+  if (len > 0.0f) {
+    u = (1.0f - (atan(vin.x / len, vin.y / len) / M_PI)) * 0.5f;
   }
   else {
-    v = u = 0.0;
+    v = u = 0.0f;
   }
 
-  vout = vec3(u, v, 0.0);
+  vout = vec3(u, v, 0.0f);
 }
 
 /* 16bits floats limits. Higher/Lower values produce +/-inf. */
-#define safe_color(a) (clamp(a, -65520.0, 65520.0))
+#define safe_color(a) (clamp(a, -65520.0f, 65520.0f))
 
 void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
@@ -79,20 +79,20 @@ void tex_box_sample_linear(
 {
   /* X projection */
   vec2 uv = texco.yz;
-  if (N.x < 0.0) {
-    uv.x = 1.0 - uv.x;
+  if (N.x < 0.0f) {
+    uv.x = 1.0f - uv.x;
   }
   color1 = texture(ima, uv);
   /* Y projection */
   uv = texco.xz;
-  if (N.y > 0.0) {
-    uv.x = 1.0 - uv.x;
+  if (N.y > 0.0f) {
+    uv.x = 1.0f - uv.x;
   }
   color2 = texture(ima, uv);
   /* Z projection */
   uv = texco.yx;
-  if (N.z > 0.0) {
-    uv.x = 1.0 - uv.x;
+  if (N.z > 0.0f) {
+    uv.x = 1.0f - uv.x;
   }
   color3 = texture(ima, uv);
 }
@@ -103,20 +103,20 @@ void tex_box_sample_cubic(
   float alpha;
   /* X projection */
   vec2 uv = texco.yz;
-  if (N.x < 0.0) {
-    uv.x = 1.0 - uv.x;
+  if (N.x < 0.0f) {
+    uv.x = 1.0f - uv.x;
   }
   node_tex_image_cubic(uv.xyy, ima, color1, alpha);
   /* Y projection */
   uv = texco.xz;
-  if (N.y > 0.0) {
-    uv.x = 1.0 - uv.x;
+  if (N.y > 0.0f) {
+    uv.x = 1.0f - uv.x;
   }
   node_tex_image_cubic(uv.xyy, ima, color2, alpha);
   /* Z projection */
   uv = texco.yx;
-  if (N.z > 0.0) {
-    uv.x = 1.0 - uv.x;
+  if (N.z > 0.0f) {
+    uv.x = 1.0f - uv.x;
   }
   node_tex_image_cubic(uv.xyy, ima, color3, alpha);
 }
@@ -126,7 +126,7 @@ void tex_box_blend(
 {
   /* project from direction vector to barycentric coordinates in triangles */
   N = abs(N);
-  N /= dot(N, vec3(1.0));
+  N /= dot(N, vec3(1.0f));
 
   /* basic idea is to think of this as a triangle, each corner representing
    * one of the 3 faces of the cube. in the corners we have single textures,
@@ -139,28 +139,28 @@ void tex_box_blend(
    * 7 zones, with an if () test for each zone
    * EDIT: Now there is only 4 if's. */
 
-  float limit = 0.5 + 0.5 * blend;
+  float limit = 0.5f + 0.5f * blend;
 
   vec3 weight;
   weight = N.xyz / (N.xyx + N.yzz);
-  weight = clamp((weight - 0.5 * (1.0 - blend)) / max(1e-8, blend), 0.0, 1.0);
+  weight = clamp((weight - 0.5f * (1.0f - blend)) / max(1e-8f, blend), 0.0f, 1.0f);
 
   /* test for mixes between two textures */
-  if (N.z < (1.0 - limit) * (N.y + N.x)) {
-    weight.z = 0.0;
-    weight.y = 1.0 - weight.x;
+  if (N.z < (1.0f - limit) * (N.y + N.x)) {
+    weight.z = 0.0f;
+    weight.y = 1.0f - weight.x;
   }
-  else if (N.x < (1.0 - limit) * (N.y + N.z)) {
-    weight.x = 0.0;
-    weight.z = 1.0 - weight.y;
+  else if (N.x < (1.0f - limit) * (N.y + N.z)) {
+    weight.x = 0.0f;
+    weight.z = 1.0f - weight.y;
   }
-  else if (N.y < (1.0 - limit) * (N.x + N.z)) {
-    weight.y = 0.0;
-    weight.x = 1.0 - weight.z;
+  else if (N.y < (1.0f - limit) * (N.x + N.z)) {
+    weight.y = 0.0f;
+    weight.x = 1.0f - weight.z;
   }
   else {
     /* last case, we have a mix between three */
-    weight = ((2.0 - limit) * N + (limit - 1.0)) / max(1e-8, blend);
+    weight = ((2.0f - limit) * N + (limit - 1.0f)) / max(1e-8f, blend);
   }
 
   color = weight.x * color1 + weight.y * color2 + weight.z * color3;
@@ -169,8 +169,8 @@ void tex_box_blend(
 
 void node_tex_image_empty(vec3 co, out vec4 color, out float alpha)
 {
-  color = vec4(0.0);
-  alpha = 0.0;
+  color = vec4(0.0f);
+  alpha = 0.0f;
 }
 
 bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
@@ -202,7 +202,7 @@ void node_tex_tile_linear(
     color = safe_color(texture(ima, co));
   }
   else {
-    color = vec4(1.0, 0.0, 1.0, 1.0);
+    color = vec4(1.0f, 0.0f, 1.0f, 1.0f);
   }
 
   alpha = color.a;
@@ -216,7 +216,7 @@ void node_tex_tile_cubic(
 
     co.xy *= tex_size;
     /* texel center */
-    vec2 tc = floor(co.xy - 0.5) + 0.5;
+    vec2 tc = floor(co.xy - 0.5f) + 0.5f;
     vec2 w0, w1, w2, w3;
     cubic_bspline_coefficients(co.xy - tc, w0, w1, w2, w3);
 
@@ -227,17 +227,17 @@ void node_tex_tile_cubic(
     vec2 f1 = w3 / (w2 + w3);
 
     vec4 final_co;
-    final_co.xy = tc - 1.0 + f0;
-    final_co.zw = tc + 1.0 + f1;
+    final_co.xy = tc - 1.0f + f0;
+    final_co.zw = tc + 1.0f + f1;
     final_co /= tex_size.xyxy;
 
-    color = safe_color(textureLod(ima, vec3(final_co.xy, co.z), 0.0)) * s0.x * s0.y;
-    color += safe_color(textureLod(ima, vec3(final_co.zy, co.z), 0.0)) * s1.x * s0.y;
-    color += safe_color(textureLod(ima, vec3(final_co.xw, co.z), 0.0)) * s0.x * s1.y;
-    color += safe_color(textureLod(ima, vec3(final_co.zw, co.z), 0.0)) * s1.x * s1.y;
+    color = safe_color(textureLod(ima, vec3(final_co.xy, co.z), 0.0f)) * s0.x * s0.y;
+    color += safe_color(textureLod(ima, vec3(final_co.zy, co.z), 0.0f)) * s1.x * s0.y;
+    color += safe_color(textureLod(ima, vec3(final_co.xw, co.z), 0.0f)) * s0.x * s1.y;
+    color += safe_color(textureLod(ima, vec3(final_co.zw, co.z), 0.0f)) * s1.x * s1.y;
   }
   else {
-    color = vec4(1.0, 0.0, 1.0, 1.0);
+    color = vec4(1.0f, 0.0f, 1.0f, 1.0f);
   }
 
   alpha = color.a;

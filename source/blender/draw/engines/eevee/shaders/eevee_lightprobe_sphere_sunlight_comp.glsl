@@ -21,8 +21,8 @@ shared vec4 local_direction[gl_WorkGroupSize.x];
 void main()
 {
   SphereProbeSunLight sun;
-  sun.radiance = vec3(0.0);
-  sun.direction = vec4(0.0);
+  sun.radiance = vec3(0.0f);
+  sun.direction = vec4(0.0f);
 
   /* First sum onto the local memory. */
   uint valid_data_len = probe_remap_dispatch_size.x * probe_remap_dispatch_size.y;
@@ -65,20 +65,20 @@ void main()
 
     mat3x3 tx = transpose(from_up_axis(direction));
     /* Convert to transform. */
-    sunlight_buf.object_to_world.x = vec4(tx[0], 0.0);
-    sunlight_buf.object_to_world.y = vec4(tx[1], 0.0);
-    sunlight_buf.object_to_world.z = vec4(tx[2], 0.0);
+    sunlight_buf.object_to_world.x = vec4(tx[0], 0.0f);
+    sunlight_buf.object_to_world.y = vec4(tx[1], 0.0f);
+    sunlight_buf.object_to_world.z = vec4(tx[2], 0.0f);
 
     /* Auto sun angle. */
-    float sun_angle_cos = 2.0 * len - 1.0;
+    float sun_angle_cos = 2.0f * len - 1.0f;
     /* Compute tangent from cosine.  */
-    float sun_angle_tan = sqrt(-1.0 + 1.0 / square(sun_angle_cos));
+    float sun_angle_tan = sqrt(-1.0f + 1.0f / square(sun_angle_cos));
     /* Clamp value to avoid float imprecision artifacts. */
-    float sun_radius = clamp(sun_angle_tan, 0.001, 20.0);
+    float sun_radius = clamp(sun_angle_tan, 0.001f, 20.0f);
 
     /* Convert irradiance to radiance. */
-    float shape_power = M_1_PI * (1.0 + 1.0 / square(sun_radius));
-    float point_power = 1.0;
+    float shape_power = M_1_PI * (1.0f + 1.0f / square(sun_radius));
+    float point_power = 1.0f;
 
     sunlight_buf.power[LIGHT_DIFFUSE] = shape_power;
     sunlight_buf.power[LIGHT_SPECULAR] = shape_power;

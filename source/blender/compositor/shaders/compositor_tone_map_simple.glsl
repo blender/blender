@@ -23,8 +23,8 @@ void main()
   vec4 denominator = luminance_scale_blend_factor + scaled_color;
   vec4 tone_mapped_color = safe_divide(scaled_color, denominator);
 
-  if (inverse_gamma != 0.0) {
-    tone_mapped_color = pow(max(tone_mapped_color, vec4(0.0)), vec4(inverse_gamma));
+  if (inverse_gamma != 0.0f) {
+    tone_mapped_color = pow(max(tone_mapped_color, vec4(0.0f)), vec4(inverse_gamma));
   }
 
   imageStore(output_img, texel, vec4(tone_mapped_color.rgb, input_color.a));

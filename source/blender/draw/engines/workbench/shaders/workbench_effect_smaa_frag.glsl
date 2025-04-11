@@ -15,7 +15,7 @@ void main()
   /* Detect edges in color and revealage buffer. */
   out_edges = SMAALumaEdgeDetectionPS(uvs, offset, colorTex);
   /* Discard if there is no edge. */
-  if (dot(out_edges, float2(1.0, 1.0)) == 0.0) {
+  if (dot(out_edges, float2(1.0f, 1.0f)) == 0.0f) {
     discard;
     return;
   }
@@ -25,20 +25,20 @@ void main()
       uvs, pixcoord, offset, edgesTex, areaTex, searchTex, vec4(0));
 
 #elif SMAA_STAGE == 2
-  out_color = vec4(0.0);
-  if (mixFactor > 0.0) {
+  out_color = vec4(0.0f);
+  if (mixFactor > 0.0f) {
     out_color += SMAANeighborhoodBlendingPS(uvs, offset[0], colorTex, blendTex) * mixFactor;
   }
-  if (mixFactor < 1.0) {
-    out_color += texture(colorTex, uvs) * (1.0 - mixFactor);
+  if (mixFactor < 1.0f) {
+    out_color += texture(colorTex, uvs) * (1.0f - mixFactor);
   }
   out_color /= taaAccumulatedWeight;
   /* Exit log2 space used for Anti-aliasing. */
-  out_color = exp2(out_color) - 0.5;
+  out_color = exp2(out_color) - 0.5f;
 
   /* Avoid float precision issue. */
-  if (out_color.a > 0.999) {
-    out_color.a = 1.0;
+  if (out_color.a > 0.999f) {
+    out_color.a = 1.0f;
   }
 #endif
 }

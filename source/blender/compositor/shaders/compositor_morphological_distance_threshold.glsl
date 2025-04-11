@@ -58,7 +58,7 @@ void main()
 
   /* Apply a threshold operation on the center pixel, where the threshold is currently hard-coded
    * at 0.5. The pixels with values larger than the threshold are said to be masked. */
-  bool is_center_masked = texture_load(input_tx, texel).x > 0.5;
+  bool is_center_masked = texture_load(input_tx, texel).x > 0.5f;
 
   /* Since the distance search window is limited to the given radius, the maximum possible squared
    * distance to the center is double the squared radius. */
@@ -74,7 +74,7 @@ void main()
   for (int y = start.y; y < end.y; y++) {
     int yy = y * y;
     for (int x = start.x; x < end.x; x++) {
-      bool is_sample_masked = texture_load(input_tx, texel + ivec2(x, y)).x > 0.5;
+      bool is_sample_masked = texture_load(input_tx, texel + ivec2(x, y)).x > 0.5f;
       if (is_center_masked != is_sample_masked) {
         minimum_squared_distance = min(minimum_squared_distance, x * x + yy);
       }
@@ -84,11 +84,11 @@ void main()
   /* Compute the actual distance from the squared distance and assign it an appropriate sign
    * depending on whether it lies in a masked region or not. */
   float signed_minimum_distance = sqrt(float(minimum_squared_distance)) *
-                                  (is_center_masked ? 1.0 : -1.0);
+                                  (is_center_masked ? 1.0f : -1.0f);
 
   /* Add the erode/dilate distance and divide by the inset amount as described in the discussion,
    * then clamp to the [0, 1] range. */
-  float value = clamp((signed_minimum_distance + distance) / inset, 0.0, 1.0);
+  float value = clamp((signed_minimum_distance + distance) / inset, 0.0f, 1.0f);
 
   imageStore(output_img, texel, vec4(value));
 }

@@ -26,7 +26,7 @@ void main()
   /* Sun lights are packed at the end of the array. Perform early copy. */
   if (is_sun_light(light.type)) {
     /* First sun-light is reserved for world light. Perform copy from dedicated buffer. */
-    bool is_world_sun_light = light.color.r < 0.0;
+    bool is_world_sun_light = light.color.r < 0.0f;
     if (is_world_sun_light) {
       light.color = sunlight_buf.color;
       light.object_to_world = sunlight_buf.object_to_world;
@@ -42,7 +42,7 @@ void main()
   }
 
   /* Do not select 0 power lights. */
-  if (light_local_data_get(light).influence_radius_max < 1e-8) {
+  if (light_local_data_get(light).influence_radius_max < 1e-8f) {
     return;
   }
 
@@ -52,7 +52,7 @@ void main()
     case LIGHT_SPOT_DISK: {
       LightSpotData spot = light_spot_data_get(light);
       /* Only for < ~170 degree Cone due to plane extraction precision. */
-      if (spot.spot_tan < 10.0) {
+      if (spot.spot_tan < 10.0f) {
         vec3 x_axis = light_x_axis(light);
         vec3 y_axis = light_y_axis(light);
         vec3 z_axis = light_z_axis(light);

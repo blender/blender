@@ -22,13 +22,13 @@ float ltc_diffuse_sphere_integral(sampler2DArray utility_tx, float avg_dir_z, fl
 {
 #if 1
   /* use tabulated horizon-clipped sphere */
-  vec2 uv = vec2(avg_dir_z * 0.5 + 0.5, form_factor);
+  vec2 uv = vec2(avg_dir_z * 0.5f + 0.5f, form_factor);
   uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
 
   return texture(utility_tx, vec3(uv, UTIL_DISK_INTEGRAL_LAYER))[UTIL_DISK_INTEGRAL_COMP];
 #else
   /* Cheap approximation. Less smooth and have energy issues. */
-  return max((form_factor * form_factor + avg_dir_z) / (form_factor + 1.0), 0.0);
+  return max((form_factor * form_factor + avg_dir_z) / (form_factor + 1.0f), 0.0f);
 #endif
 }
 
@@ -42,7 +42,7 @@ vec3 ltc_solve_cubic(vec4 coefs)
   /* Normalize the polynomial */
   coefs.xyz /= coefs.w;
   /* Divide middle coefficients by three */
-  coefs.yz /= 3.0;
+  coefs.yz /= 3.0f;
 
   float A = coefs.w;
   float B = coefs.z;
@@ -53,27 +53,27 @@ vec3 ltc_solve_cubic(vec4 coefs)
   vec3 delta = vec3(-coefs.zy * coefs.zz + coefs.yx, dot(vec2(coefs.z, -coefs.y), coefs.xy));
 
   /* Discriminant */
-  float discr = dot(vec2(4.0 * delta.x, -delta.y), delta.zy);
+  float discr = dot(vec2(4.0f * delta.x, -delta.y), delta.zy);
 
   /* Clamping avoid NaN output on some platform. (see #67060) */
-  float sqrt_discr = sqrt(clamp(discr, 0.0, FLT_MAX));
+  float sqrt_discr = sqrt(clamp(discr, 0.0f, FLT_MAX));
 
   vec2 xlc, xsc;
 
   /* Algorithm A */
   {
     float C_a = delta.x;
-    float D_a = -2.0 * B * delta.x + delta.y;
+    float D_a = -2.0f * B * delta.x + delta.y;
 
     /* Take the cubic root of a normalized complex number */
-    float theta = atan(sqrt_discr, -D_a) / 3.0;
+    float theta = atan(sqrt_discr, -D_a) / 3.0f;
 
-    float _2_sqrt_C_a = 2.0 * sqrt(-C_a);
+    float _2_sqrt_C_a = 2.0f * sqrt(-C_a);
     float x_1a = _2_sqrt_C_a * cos(theta);
-    float x_3a = _2_sqrt_C_a * cos(theta + (2.0 / 3.0) * M_PI);
+    float x_3a = _2_sqrt_C_a * cos(theta + (2.0f / 3.0f) * M_PI);
 
     float xl;
-    if ((x_1a + x_3a) > 2.0 * B) {
+    if ((x_1a + x_3a) > 2.0f * B) {
       xl = x_1a;
     }
     else {
@@ -86,17 +86,17 @@ vec3 ltc_solve_cubic(vec4 coefs)
   /* Algorithm D */
   {
     float C_d = delta.z;
-    float D_d = -D * delta.y + 2.0 * C * delta.z;
+    float D_d = -D * delta.y + 2.0f * C * delta.z;
 
     /* Take the cubic root of a normalized complex number */
-    float theta = atan(D * sqrt_discr, -D_d) / 3.0;
+    float theta = atan(D * sqrt_discr, -D_d) / 3.0f;
 
-    float _2_sqrt_C_d = 2.0 * sqrt(-C_d);
+    float _2_sqrt_C_d = 2.0f * sqrt(-C_d);
     float x_1d = _2_sqrt_C_d * cos(theta);
-    float x_3d = _2_sqrt_C_d * cos(theta + (2.0 / 3.0) * M_PI);
+    float x_3d = _2_sqrt_C_d * cos(theta + (2.0f / 3.0f) * M_PI);
 
     float xs;
-    if (x_1d + x_3d < 2.0 * C) {
+    if (x_1d + x_3d < 2.0f * C) {
       xs = x_1d;
     }
     else {
@@ -131,11 +131,11 @@ vec3 ltc_edge_integral_vec(vec3 v1, vec3 v2)
   float x = dot(v1, v2);
   float y = abs(x);
 
-  float a = 0.8543985 + (0.4965155 + 0.0145206 * y) * y;
-  float b = 3.4175940 + (4.1616724 + y) * y;
+  float a = 0.8543985f + (0.4965155f + 0.0145206f * y) * y;
+  float b = 3.4175940f + (4.1616724f + y) * y;
   float v = a / b;
 
-  float theta_sintheta = (x > 0.0) ? v : 0.5 * inversesqrt(max(1.0 - x * x, 1e-7)) - v;
+  float theta_sintheta = (x > 0.0f) ? v : 0.5f * inversesqrt(max(1.0f - x * x, 1e-7f)) - v;
 
   return cross(v1, v2) * theta_sintheta;
 }
@@ -149,7 +149,7 @@ mat3 ltc_matrix(vec4 lut)
 mat3x3 ltc_tangent_basis(vec3 N, vec3 V)
 {
   float NV = dot(N, V);
-  if (NV > 0.999999) {
+  if (NV > 0.999999f) {
     /* Mostly for orthographic view and surfel light eval. */
     return from_up_axis(N);
   }
@@ -175,7 +175,7 @@ void ltc_transform_quad(vec3 N, vec3 V, mat3 Minv, inout vec3 corners[4])
 }
 
 /* If corners have already pass through ltc_transform_quad(),
- * then N **MUST** be vec3(0.0, 0.0, 1.0), corresponding to the Up axis of the shading basis. */
+ * then N **MUST** be vec3(0.0f, 0.0f, 1.0f), corresponding to the Up axis of the shading basis. */
 float ltc_evaluate_quad(sampler2DArray utility_tx, vec3 corners[4], vec3 N)
 {
   /* Approximation using a sphere of the same solid angle than the quad.
@@ -195,7 +195,7 @@ float ltc_evaluate_quad(sampler2DArray utility_tx, vec3 corners[4], vec3 N)
 float ltc_evaluate_disk_simple(sampler2DArray utility_tx, float disk_radius, float NL)
 {
   float r_sqr = disk_radius * disk_radius;
-  float form_factor = r_sqr / (1.0 + r_sqr);
+  float form_factor = r_sqr / (1.0f + r_sqr);
   return form_factor * ltc_diffuse_sphere_integral(utility_tx, NL, form_factor);
 }
 
@@ -214,9 +214,9 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
   L_[1] = R * disk_points[1];
   L_[2] = R * disk_points[2];
 
-  vec3 C = 0.5 * (L_[0] + L_[2]);
-  vec3 V1 = 0.5 * (L_[1] - L_[2]);
-  vec3 V2 = 0.5 * (L_[1] - L_[0]);
+  vec3 C = 0.5f * (L_[0] + L_[2]);
+  vec3 V1 = 0.5f * (L_[1] - L_[2]);
+  vec3 V2 = 0.5f * (L_[1] - L_[0]);
 
   /* Transform ellipse by Minv. */
   C = Minv * C;
@@ -228,16 +228,16 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
   float d11 = dot(V1, V1);
   float d22 = dot(V2, V2);
   float d12 = dot(V1, V2);
-  float a, inv_b;                 /* Eigenvalues */
-  const float threshold = 0.0007; /* Can be adjusted. Fix artifacts. */
+  float a, inv_b;                  /* Eigenvalues */
+  const float threshold = 0.0007f; /* Can be adjusted. Fix artifacts. */
   if (abs(d12) / sqrt(d11 * d22) > threshold) {
     float tr = d11 + d22;
     float det = -d12 * d12 + d11 * d22;
 
     /* use sqrt matrix to solve for eigenvalues */
     det = sqrt(det);
-    float u = 0.5 * sqrt(tr - 2.0 * det);
-    float v = 0.5 * sqrt(tr + 2.0 * det);
+    float u = 0.5f * sqrt(tr - 2.0f * det);
+    float v = 0.5f * sqrt(tr + 2.0f * det);
     float e_max = (u + v);
     float e_min = (u - v);
     e_max *= e_max;
@@ -253,13 +253,13 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
       V2_ = d12 * V2 + (e_min - d22) * V1;
     }
 
-    a = 1.0 / e_max;
+    a = 1.0f / e_max;
     inv_b = e_min;
     V1 = normalize(V1_);
     V2 = normalize(V2_);
   }
   else {
-    a = 1.0 / d11;
+    a = 1.0f / d11;
     inv_b = d22;
     V1 *= sqrt(a);
     V2 *= inversesqrt(inv_b);
@@ -268,18 +268,18 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
   /* Now find front facing ellipse with same solid angle. */
 
   vec3 V3 = normalize(cross(V1, V2));
-  if (dot(C, V3) < 0.0) {
-    V3 *= -1.0;
+  if (dot(C, V3) < 0.0f) {
+    V3 *= -1.0f;
   }
 
   float L = dot(V3, C);
-  float inv_L = 1.0 / L;
+  float inv_L = 1.0f / L;
   float x0 = dot(V1, C) * inv_L;
   float y0 = dot(V2, C) * inv_L;
 
   float ab = a * inv_b;
   inv_b *= square(inv_L);
-  float t = 1.0 + x0 * x0;
+  float t = 1.0f + x0 * x0;
 
   /* Compared to the original LTC implementation, we scale the polynomial by `b` to avoid numerical
    * issues when light size is small.
@@ -287,8 +287,8 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
    * we solve `c0/b^3 * (be)^3 + c1/b^2 * (be)^2 + c2/b * be + c3 = 0`. */
   float c0 = ab * inv_b;
   float c1 = ab * (t + y0 * y0) - c0 - inv_b;
-  float c2 = inv_b - ab * t - (1.0 + y0 * y0);
-  float c3 = 1.0;
+  float c2 = inv_b - ab * t - (1.0f + y0 * y0);
+  float c3 = 1.0f;
 
   vec3 roots = ltc_solve_cubic(vec4(c0, c1, c2, c3));
   float e1 = roots.x;
@@ -297,8 +297,8 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
 
   /* Scale the root back by multiplying `b`.
    * `a * x0 / (a - b * e2)` simplifies to `a/b * x0 / (a/b - e2)`,
-   * `b * y0 / (b - b * e2)` simplifies to `y0 / (1.0 - e2)`. */
-  vec3 avg_dir = vec3(ab * x0 / (ab - e2), y0 / (1.0 - e2), 1.0);
+   * `b * y0 / (b - b * e2)` simplifies to `y0 / (1.0f - e2)`. */
+  vec3 avg_dir = vec3(ab * x0 / (ab - e2), y0 / (1.0f - e2), 1.0f);
 
   mat3 rotate = mat3(V1, V2, V3);
 
@@ -310,6 +310,6 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
   float L2 = sqrt(-e2 / e1);
 
   /* Find the sphere and compute lighting. */
-  float form_factor = max(0.0, L1 * L2 * inversesqrt((1.0 + L1 * L1) * (1.0 + L2 * L2)));
+  float form_factor = max(0.0f, L1 * L2 * inversesqrt((1.0f + L1 * L1) * (1.0f + L2 * L2)));
   return form_factor * ltc_diffuse_sphere_integral(utility_tx, avg_dir.z, form_factor);
 }

@@ -133,10 +133,10 @@ PatchHandle find_patch(int face_index, float u, float v)
     return bogus_patch_handle();
   }
 
-  float median = 0.5;
+  float median = 0.5f;
   bool tri_rotated = false;
 
-  for (int depth = 0; depth <= shader_data.max_depth; ++depth, median *= 0.5) {
+  for (int depth = 0; depth <= shader_data.max_depth; ++depth, median *= 0.5f) {
     int quadrant = shader_data.patches_are_triangular ?
                        transformUVToTriQuadrant(median, u, v, tri_rotated) :
                        transformUVToQuadQuadrant(median, u, v);
@@ -272,7 +272,7 @@ void main()
   uint start_loop_index = quad_index * 4;
 
   for (uint loop_index = start_loop_index; loop_index < start_loop_index + 4; loop_index++) {
-    vec2 fvar = vec2(0.0);
+    vec2 fvar = vec2(0.0f);
 
     BlenderPatchCoord patch_co = patch_coords[loop_index];
     vec2 uv = decode_uv(patch_co.encoded_uv);
@@ -295,14 +295,14 @@ bool is_face_active(uint coarse_quad_index)
 float get_face_flag(uint coarse_quad_index)
 {
   if (is_face_active(coarse_quad_index)) {
-    return -1.0;
+    return -1.0f;
   }
 
   if (is_face_selected(coarse_quad_index)) {
-    return 1.0;
+    return 1.0f;
   }
 
-  return 0.0;
+  return 0.0f;
 }
 
 bool is_face_hidden(uint coarse_quad_index)
@@ -321,9 +321,9 @@ void main()
   BlenderPatchCoord patch_co = patch_coords[coarse_quad_index];
   vec2 uv = decode_uv(patch_co.encoded_uv);
 
-  vec3 pos = vec3(0.0);
-  vec3 du = vec3(0.0);
-  vec3 dv = vec3(0.0);
+  vec3 pos = vec3(0.0f);
+  vec3 du = vec3(0.0f);
+  vec3 dv = vec3(0.0f);
   evaluate_patches_limits(patch_co.patch_index, uv.x, uv.y, pos, du, dv);
   vec3 nor = normalize(cross(du, dv));
 
@@ -362,9 +362,9 @@ void main()
   uint start_loop_index = quad_index * 4;
 
   for (uint loop_index = start_loop_index; loop_index < start_loop_index + 4; loop_index++) {
-    vec3 pos = vec3(0.0);
-    vec3 du = vec3(0.0);
-    vec3 dv = vec3(0.0);
+    vec3 pos = vec3(0.0f);
+    vec3 du = vec3(0.0f);
+    vec3 dv = vec3(0.0f);
 
     BlenderPatchCoord patch_co = patch_coords[loop_index];
     vec2 uv = decode_uv(patch_co.encoded_uv);
@@ -372,12 +372,12 @@ void main()
     evaluate_patches_limits(patch_co.patch_index, uv.x, uv.y, pos, du, dv);
 
     /* This will be computed later. */
-    vec3 nor = vec3(0.0);
+    vec3 nor = vec3(0.0f);
 
     int origindex = input_vert_origindex[loop_index];
-    float flag = 0.0;
+    float flag = 0.0f;
     if (origindex == -1) {
-      flag = -1.0;
+      flag = -1.0f;
     }
     else {
       flag = get_flag(origindex);
@@ -390,12 +390,12 @@ void main()
     output_verts[loop_index] = vertex_data;
 
 #  if defined(ORCO_EVALUATION)
-    pos = vec3(0.0);
+    pos = vec3(0.0f);
     evaluate_patches_limits_extra(patch_co.patch_index, uv.x, uv.y, pos);
 
-    /* Set w = 0.0 to indicate that this is not a generic attribute.
+    /* Set w = 0.0f to indicate that this is not a generic attribute.
      * See comments in `extract_mesh_vbo_orco.cc`. */
-    vec4 orco_data = vec4(pos, 0.0);
+    vec4 orco_data = vec4(pos, 0.0f);
     output_orcos[loop_index] = orco_data;
 #  endif
   }

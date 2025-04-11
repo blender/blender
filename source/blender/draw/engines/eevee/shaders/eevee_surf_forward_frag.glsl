@@ -35,7 +35,7 @@ vec4 closure_to_rgba(Closure cl_unused)
   float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
   closure_weights_reset(closure_rand);
 
-  return vec4(radiance, saturate(1.0 - average(transmittance)));
+  return vec4(radiance, saturate(1.0f - average(transmittance)));
 }
 
 void main()
@@ -56,7 +56,7 @@ void main()
 
   eObjectInfoFlag ob_flag = drw_object_infos().flag;
   if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
-    g_holdout = 1.0 - average(g_transmittance);
+    g_holdout = 1.0f - average(g_transmittance);
   }
 
   g_holdout = saturate(g_holdout);
@@ -74,7 +74,7 @@ void main()
   vol.scattering -= vol.scattering * g_transmittance;
   radiance = radiance * vol.transmittance + vol.scattering;
 
-  radiance *= 1.0 - saturate(g_holdout);
+  radiance *= 1.0f - saturate(g_holdout);
 
   out_radiance = vec4(radiance, g_holdout);
   out_transmittance = vec4(transmittance, saturate(average(transmittance)));

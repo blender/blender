@@ -56,15 +56,15 @@ void main()
 
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-  vec3 diffuse_color = vec3(0.0);
-  vec3 diffuse_direct = vec3(0.0);
-  vec3 diffuse_indirect = vec3(0.0);
-  vec3 specular_color = vec3(0.0);
-  vec3 specular_direct = vec3(0.0);
-  vec3 specular_indirect = vec3(0.0);
-  vec3 out_direct = vec3(0.0);
-  vec3 out_indirect = vec3(0.0);
-  vec3 average_normal = vec3(0.0);
+  vec3 diffuse_color = vec3(0.0f);
+  vec3 diffuse_direct = vec3(0.0f);
+  vec3 diffuse_indirect = vec3(0.0f);
+  vec3 specular_color = vec3(0.0f);
+  vec3 specular_direct = vec3(0.0f);
+  vec3 specular_indirect = vec3(0.0f);
+  vec3 out_direct = vec3(0.0f);
+  vec3 out_indirect = vec3(0.0f);
+  vec3 average_normal = vec3(0.0f);
 
   for (uchar i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
@@ -73,7 +73,7 @@ void main()
     }
     uchar layer_index = gbuffer_closure_get_bin_index(gbuf, i);
     vec3 closure_direct_light = load_radiance_direct(texel, layer_index);
-    vec3 closure_indirect_light = vec3(0.0);
+    vec3 closure_indirect_light = vec3(0.0f);
 
     if (use_split_radiance) {
       closure_indirect_light = load_radiance_indirect(texel, layer_index);
@@ -99,7 +99,7 @@ void main()
 
     if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
          cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
-        (gbuf.thickness != 0.0))
+        (gbuf.thickness != 0.0f))
     {
       /* We model two transmission event, so the surface color need to be applied twice. */
       cl.color *= cl.color;
@@ -113,7 +113,7 @@ void main()
     /* Output unmodified radiance for indirect lighting. */
     vec3 out_radiance = imageLoad(radiance_feedback_img, texel).rgb;
     out_radiance += out_direct + out_indirect;
-    imageStore(radiance_feedback_img, texel, vec4(out_radiance, 0.0));
+    imageStore(radiance_feedback_img, texel, vec4(out_radiance, 0.0f));
   }
 
   /* Light clamping. */
@@ -130,22 +130,22 @@ void main()
   /* Light passes. */
   if (render_pass_diffuse_light_enabled) {
     vec3 diffuse_light = diffuse_direct + diffuse_indirect;
-    output_renderpass_color(uniform_buf.render_pass.diffuse_color_id, vec4(diffuse_color, 1.0));
-    output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, vec4(diffuse_light, 1.0));
+    output_renderpass_color(uniform_buf.render_pass.diffuse_color_id, vec4(diffuse_color, 1.0f));
+    output_renderpass_color(uniform_buf.render_pass.diffuse_light_id, vec4(diffuse_light, 1.0f));
   }
   if (render_pass_specular_light_enabled) {
     vec3 specular_light = specular_direct + specular_indirect;
-    output_renderpass_color(uniform_buf.render_pass.specular_color_id, vec4(specular_color, 1.0));
-    output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(specular_light, 1.0));
+    output_renderpass_color(uniform_buf.render_pass.specular_color_id, vec4(specular_color, 1.0f));
+    output_renderpass_color(uniform_buf.render_pass.specular_light_id, vec4(specular_light, 1.0f));
   }
   if (render_pass_normal_enabled) {
     float normal_len = length(average_normal);
     /* Normalize or fallback to default normal. */
-    average_normal = (normal_len < 1e-5) ? gbuf.surface_N : (average_normal / normal_len);
-    output_renderpass_color(uniform_buf.render_pass.normal_id, vec4(average_normal, 1.0));
+    average_normal = (normal_len < 1e-5f) ? gbuf.surface_N : (average_normal / normal_len);
+    output_renderpass_color(uniform_buf.render_pass.normal_id, vec4(average_normal, 1.0f));
   }
 
-  out_combined = vec4(out_direct + out_indirect, 0.0);
-  out_combined = any(isnan(out_combined)) ? vec4(1.0, 0.0, 1.0, 0.0) : out_combined;
+  out_combined = vec4(out_direct + out_indirect, 0.0f);
+  out_combined = any(isnan(out_combined)) ? vec4(1.0f, 0.0f, 1.0f, 0.0f) : out_combined;
   out_combined = colorspace_safe_color(out_combined);
 }

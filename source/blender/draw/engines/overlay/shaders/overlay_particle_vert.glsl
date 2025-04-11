@@ -26,11 +26,11 @@ void main()
                  gl_Position.w;
 
   /* Coloring */
-  if (part_val < 0.0) {
-    finalColor = vec4(ucolor.rgb, 1.0);
+  if (part_val < 0.0f) {
+    finalColor = vec4(ucolor.rgb, 1.0f);
   }
   else {
-    finalColor = vec4(texture(weightTex, part_val).rgb, 1.0);
+    finalColor = vec4(texture(weightTex, part_val).rgb, 1.0f);
   }
 
   view_clipping_distances(world_pos);

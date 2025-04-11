@@ -13,7 +13,7 @@
 #  include "GPU_shader_shared.hh"
 #  include "gpu_index_load_info.hh"
 #  include "gpu_srgb_to_framebuffer_space_info.hh"
-#  define SMOOTH_WIDTH 1.0
+#  define SMOOTH_WIDTH 1.0f
 #endif
 
 #include "gpu_interface_info.hh"
@@ -26,7 +26,7 @@ NO_PERSPECTIVE(FLOAT, smoothline)
 GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_polyline)
-DEFINE_VALUE("SMOOTH_WIDTH", "1.0")
+DEFINE_VALUE("SMOOTH_WIDTH", "1.0f")
 PUSH_CONSTANT(MAT4, ModelViewProjectionMatrix)
 PUSH_CONSTANT(VEC2, viewportSize)
 PUSH_CONSTANT(FLOAT, lineWidth)

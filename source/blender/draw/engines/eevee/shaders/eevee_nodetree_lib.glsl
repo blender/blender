@@ -28,7 +28,7 @@ packed_float3 g_volume_absorption;
 
 /* The Closure type is never used. Use float as dummy type. */
 #define Closure float
-#define CLOSURE_DEFAULT 0.0
+#define CLOSURE_DEFAULT 0.0f
 
 /* Maximum number of picked closure. */
 #ifndef CLOSURE_BIN_COUNT
@@ -95,7 +95,7 @@ ClosureType closure_type_get(ClosureSubsurface cl)
  */
 bool closure_select_check(float weight, inout float total_weight, inout float r)
 {
-  if (weight < 1e-5) {
+  if (weight < 1e-5f) {
     return false;
   }
   total_weight += weight;
@@ -103,7 +103,7 @@ bool closure_select_check(float weight, inout float total_weight, inout float r)
   bool chosen = (r < x);
   /* Assuming that if r is in the interval [0,x] or [x,1], it's still uniformly distributed within
    * that interval, so remapping to [0,1] again to explore this space of probability. */
-  r = (chosen) ? (r / x) : ((r - x) / (1.0 - x));
+  r = (chosen) ? (r / x) : ((r - x) / (1.0f - x));
   return chosen;
 }
 
@@ -127,25 +127,25 @@ void closure_select(inout ClosureUndetermined destination,
 void closure_weights_reset(float closure_rand)
 {
   g_closure_rand[0] = closure_rand;
-  g_closure_bins[0].weight = 0.0;
+  g_closure_bins[0].weight = 0.0f;
 #if CLOSURE_BIN_COUNT > 1
   g_closure_rand[1] = closure_rand;
-  g_closure_bins[1].weight = 0.0;
+  g_closure_bins[1].weight = 0.0f;
 #endif
 #if CLOSURE_BIN_COUNT > 2
   g_closure_rand[2] = closure_rand;
-  g_closure_bins[2].weight = 0.0;
+  g_closure_bins[2].weight = 0.0f;
 #endif
 
-  g_volume_scattering = vec3(0.0);
-  g_volume_anisotropy = 0.0;
-  g_volume_absorption = vec3(0.0);
+  g_volume_scattering = vec3(0.0f);
+  g_volume_anisotropy = 0.0f;
+  g_volume_absorption = vec3(0.0f);
 
-  g_emission = vec3(0.0);
-  g_transmittance = vec3(0.0);
-  g_volume_scattering = vec3(0.0);
-  g_volume_absorption = vec3(0.0);
-  g_holdout = 0.0;
+  g_emission = vec3(0.0f);
+  g_transmittance = vec3(0.0f);
+  g_volume_scattering = vec3(0.0f);
+  g_volume_absorption = vec3(0.0f);
+  g_holdout = 0.0f;
 }
 
 #define closure_base_copy(cl, in_cl) \
@@ -367,12 +367,12 @@ float ambient_occlusion_eval(vec3 normal,
 
   ivec2 texel = ivec2(gl_FragCoord.xy);
   vec2 noise;
-  noise.x = interlieved_gradient_noise(vec2(texel), 3.0, 0.0);
+  noise.x = interlieved_gradient_noise(vec2(texel), 3.0f, 0.0f);
   noise.y = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).r;
   noise = fract(noise + sampling_rng_2D_get(SAMPLING_AO_U));
 
   ClosureOcclusion occlusion;
-  occlusion.N = (inverted != 0.0) ? -vN : vN;
+  occlusion.N = (inverted != 0.0f) ? -vN : vN;
 
   HorizonScanContext ctx;
   ctx.occlusion = occlusion;
@@ -387,7 +387,7 @@ float ambient_occlusion_eval(vec3 normal,
                     uniform_buf.ao.angle_bias,
                     2,
                     10,
-                    inverted != 0.0,
+                    inverted != 0.0f,
                     true);
 
   return saturate(ctx.occlusion_result.r);
@@ -407,7 +407,7 @@ float ambient_occlusion_eval(vec3 normal,
   return visibility;
 #  endif
 #else
-  return 1.0;
+  return 1.0f;
 #endif
 }
 
@@ -423,7 +423,7 @@ vec4 closure_to_rgba(Closure cl);
 /* Simplified form of F_eta(eta, 1.0). */
 float F0_from_ior(float eta)
 {
-  float A = (eta - 1.0) / (eta + 1.0);
+  float A = (eta - 1.0f) / (eta + 1.0f);
   return A * A;
 }
 
@@ -441,8 +441,8 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
   vec3 FssEss = F_brdf_single_scatter(f0, f90, lut);
 
   float Ess = lut.x + lut.y;
-  float Ems = 1.0 - Ess;
-  vec3 Favg = f0 + (f90 - f0) / 21.0;
+  float Ems = 1.0f - Ess;
+  vec3 Favg = f0 + (f90 - f0) / 21.0f;
 
   /* The original paper uses `FssEss * radiance + Fms*Ems * irradiance`, but
    * "A Journey Through Implementing Multi-scattering BRDFs and Area Lights" by Steve McAuley
@@ -451,7 +451,7 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
    * `FssEss + Fms*Ems = FssEss * (1 + Ems*Favg / (1 - Ems*Favg)) = FssEss / (1 - Ems*Favg)`.
    * This is a simple albedo scaling very similar to the approach used by Cycles:
    * "Practical multiple scattering compensation for microfacet model". */
-  return FssEss / (1.0 - Ems * Favg);
+  return FssEss / (1.0f - Ems * Favg);
 }
 
 vec2 brdf_lut(float cos_theta, float roughness)
@@ -459,7 +459,7 @@ vec2 brdf_lut(float cos_theta, float roughness)
 #ifdef EEVEE_UTILITY_TX
   return utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rg;
 #else
-  return vec2(1.0, 0.0);
+  return vec2(1.0f, 0.0f);
 #endif
 }
 
@@ -473,11 +473,11 @@ void brdf_f82_tint_lut(vec3 F0,
 #ifdef EEVEE_UTILITY_TX
   vec3 split_sum = utility_tx_sample_lut(utility_tx, cos_theta, roughness, UTIL_BSDF_LAYER).rgb;
 #else
-  vec3 split_sum = vec3(1.0, 0.0, 0.0);
+  vec3 split_sum = vec3(1.0f, 0.0f, 0.0f);
 #endif
 
-  reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, vec3(1.0), split_sum.xy) :
-                                  F_brdf_single_scatter(F0, vec3(1.0), split_sum.xy);
+  reflectance = do_multiscatter ? F_brdf_multi_scatter(F0, vec3(1.0f), split_sum.xy) :
+                                  F_brdf_single_scatter(F0, vec3(1.0f), split_sum.xy);
 
   /* Precompute the F82 term factor for the Fresnel model.
    * In the classic F82 model, the F82 input directly determines the value of the Fresnel
@@ -486,11 +486,11 @@ void brdf_f82_tint_lut(vec3 F0,
    * model multiplied by the tint input.
    * Therefore, the factor follows by setting `F82Tint(cosI) = FSchlick(cosI) - b*cosI*(1-cosI)^6`
    * and `F82Tint(acos(1/7)) = FSchlick(acos(1/7)) * f82_tint` and solving for `b`. */
-  const float f = 6.0 / 7.0;
+  const float f = 6.0f / 7.0f;
   const float f5 = (f * f) * (f * f) * f;
   const float f6 = (f * f) * (f * f) * (f * f);
-  vec3 F_schlick = mix(F0, vec3(1.0), f5);
-  vec3 b = F_schlick * (7.0 / f6) * (1.0 - F82);
+  vec3 F_schlick = mix(F0, vec3(1.0f), f5);
+  vec3 b = F_schlick * (7.0f / f6) * (1.0f - F82);
   reflectance -= b * split_sum.z;
 }
 
@@ -498,14 +498,14 @@ void brdf_f82_tint_lut(vec3 F0,
 vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
 {
   /* IOR is the sine of the critical angle. */
-  float critical_cos = sqrt(1.0 - ior * ior);
+  float critical_cos = sqrt(1.0f - ior * ior);
 
   vec3 coords;
   coords.x = square(ior);
   coords.y = cos_theta;
   coords.y -= critical_cos;
-  coords.y /= (coords.y > 0.0) ? (1.0 - critical_cos) : critical_cos;
-  coords.y = coords.y * 0.5 + 0.5;
+  coords.y /= (coords.y > 0.0f) ? (1.0f - critical_cos) : critical_cos;
+  coords.y = coords.y * 0.5f + 0.5f;
   coords.z = roughness;
 
   return saturate(coords);
@@ -514,7 +514,7 @@ vec3 lut_coords_bsdf(float cos_theta, float roughness, float ior)
 /* Return texture coordinates to sample Surface LUT. */
 vec3 lut_coords_btdf(float cos_theta, float roughness, float ior)
 {
-  return vec3(sqrt((ior - 1.0) / (ior + 1.0)), sqrt(1.0 - cos_theta), roughness);
+  return vec3(sqrt((ior - 1.0f) / (ior + 1.0f)), sqrt(1.0f - cos_theta), roughness);
 }
 
 /* Computes the reflectance and transmittance based on the tint (`f0`, `f90`, `transmission_tint`)
@@ -530,8 +530,8 @@ void bsdf_lut(vec3 F0,
               out vec3 transmittance)
 {
 #ifdef EEVEE_UTILITY_TX
-  if (ior == 1.0) {
-    reflectance = vec3(0.0);
+  if (ior == 1.0f) {
+    reflectance = vec3(0.0f);
     transmittance = transmission_tint;
     return;
   }
@@ -539,14 +539,14 @@ void bsdf_lut(vec3 F0,
   vec2 split_sum;
   float transmission_factor;
 
-  if (ior > 1.0) {
+  if (ior > 1.0f) {
     split_sum = brdf_lut(cos_theta, roughness);
     vec3 coords = lut_coords_btdf(cos_theta, roughness, ior);
     transmission_factor = utility_tx_sample_bsdf_lut(utility_tx, coords.xy, coords.z).a;
-    /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0, 1.33], to avoid harsh
-     * transition at `IOR == 1`. */
-    if (all(equal(F90, vec3(1.0)))) {
-      F90 = vec3(saturate(2.33 / 0.33 * (ior - 1.0) / (ior + 1.0)));
+    /* Gradually increase `f90` from 0 to 1 when IOR is in the range of [1.0f, 1.33f], to avoid
+     * harsh transition at `IOR == 1`. */
+    if (all(equal(F90, vec3(1.0f)))) {
+      F90 = vec3(saturate(2.33f / 0.33f * (ior - 1.0f) / (ior + 1.0f)));
     }
   }
   else {
@@ -557,23 +557,23 @@ void bsdf_lut(vec3 F0,
   }
 
   reflectance = F_brdf_single_scatter(F0, F90, split_sum);
-  transmittance = (vec3(1.0) - F0) * transmission_factor * transmission_tint;
+  transmittance = (vec3(1.0f) - F0) * transmission_factor * transmission_tint;
 
   if (do_multiscatter) {
     float real_F0 = F0_from_ior(ior);
-    float Ess = real_F0 * split_sum.x + split_sum.y + (1.0 - real_F0) * transmission_factor;
-    float Ems = 1.0 - Ess;
+    float Ess = real_F0 * split_sum.x + split_sum.y + (1.0f - real_F0) * transmission_factor;
+    float Ems = 1.0f - Ess;
     /* Assume that the transmissive tint makes up most of the overall color if it's not zero. */
-    vec3 Favg = all(equal(transmission_tint, vec3(0.0))) ? F0 + (F90 - F0) / 21.0 :
-                                                           transmission_tint;
+    vec3 Favg = all(equal(transmission_tint, vec3(0.0f))) ? F0 + (F90 - F0) / 21.0f :
+                                                            transmission_tint;
 
-    vec3 scale = 1.0 / (1.0 - Ems * Favg);
+    vec3 scale = 1.0f / (1.0f - Ems * Favg);
     reflectance *= scale;
     transmittance *= scale;
   }
 #else
-  reflectance = vec3(0.0);
-  transmittance = vec3(0.0);
+  reflectance = vec3(0.0f);
+  transmittance = vec3(0.0f);
 #endif
   return;
 }
@@ -582,7 +582,7 @@ void bsdf_lut(vec3 F0,
 vec2 bsdf_lut(float cos_theta, float roughness, float ior, bool do_multiscatter)
 {
   float F0 = F0_from_ior(ior);
-  vec3 color = vec3(1.0);
+  vec3 color = vec3(1.0f);
   vec3 reflectance, transmittance;
   bsdf_lut(vec3(F0),
            color,
@@ -598,15 +598,15 @@ vec2 bsdf_lut(float cos_theta, float roughness, float ior, bool do_multiscatter)
 
 #ifdef EEVEE_MATERIAL_STUBS
 #  define attrib_load()
-#  define nodetree_displacement() vec3(0.0)
+#  define nodetree_displacement() vec3(0.0f)
 #  define nodetree_surface(closure_rand) Closure(0)
 #  define nodetree_volume() Closure(0)
-#  define nodetree_thickness() 0.1
-#  define thickness_mode 1.0
+#  define nodetree_thickness() 0.1f
+#  define thickness_mode 1.0f
 #endif
 
 #ifdef GPU_VERTEX_SHADER
-#  define closure_to_rgba(a) vec4(0.0)
+#  define closure_to_rgba(a) vec4(0.0f)
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -624,7 +624,7 @@ vec3 displacement_bump()
 #  if defined(GPU_FRAGMENT_SHADER) && !defined(MAT_GEOM_CURVES)
   /* This is the filter width for automatic displacement + bump mapping, which is fixed.
    * NOTE: keep the same as default bump node filter width. */
-  const float bump_filter_width = 0.1;
+  const float bump_filter_width = 0.1f;
 
   vec2 dHd;
   dF_branch(dot(nodetree_displacement(), g_data.N + dF_impl(g_data.N)), bump_filter_width, dHd);
@@ -641,7 +641,7 @@ vec3 displacement_bump()
 
   vec3 surfgrad = dHd.x * Rx + dHd.y * Ry;
 
-  float facing = FrontFacing ? 1.0 : -1.0;
+  float facing = FrontFacing ? 1.0f : -1.0f;
   return normalize(bump_filter_width * abs(det) * g_data.N - facing * sign(det) * surfgrad);
 #  else
   return g_data.N;
@@ -685,10 +685,10 @@ vec3 coordinate_camera(vec3 P)
 
 vec3 coordinate_screen(vec3 P)
 {
-  vec3 window = vec3(0.0);
+  vec3 window = vec3(0.0f);
   if (false /* Probe. */) {
     /* Unsupported. It would make the probe camera-dependent. */
-    window.xy = vec2(0.5);
+    window.xy = vec2(0.5f);
   }
   else {
 #ifdef MAT_GEOM_WORLD
@@ -757,7 +757,7 @@ float attr_load_temperature_post(float attr)
 {
 #ifdef GRID_ATTRIBUTES_LOAD_POST
   /* Bring the value into standard range without having to modify the grid values */
-  attr = (attr > 0.01) ? (attr * drw_volume.temperature_mul + drw_volume.temperature_bias) : 0.0;
+  attr = (attr > 0.01f) ? (attr * drw_volume.temperature_mul + drw_volume.temperature_bias) : 0.0f;
 #endif
   return attr;
 }
@@ -767,7 +767,7 @@ vec4 attr_load_color_post(vec4 attr)
   /* Density is premultiplied for interpolation, divide it out here. */
   attr.rgb *= safe_rcp(attr.a);
   attr.rgb *= drw_volume.color_mul.rgb;
-  attr.a = 1.0;
+  attr.a = 1.0f;
 #endif
   return attr;
 }

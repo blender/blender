@@ -75,7 +75,7 @@ bool is_valid_surfel_link(int a, int b)
 {
   vec3 link_vector = normalize(surfel_buf[b].position - surfel_buf[a].position);
   float link_angle_cos = dot(surfel_buf[a].normal, link_vector);
-  bool is_coplanar = abs(link_angle_cos) < 1.0e-3;
+  bool is_coplanar = abs(link_angle_cos) < 1.0e-3f;
   return !is_coplanar;
 }
 

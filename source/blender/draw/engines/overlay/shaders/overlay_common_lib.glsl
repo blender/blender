@@ -24,15 +24,15 @@
 
 mat4 extract_matrix_packed_data(mat4 mat, out vec4 dataA, out vec4 dataB)
 {
-  const float div = 1.0 / 255.0;
+  const float div = 1.0f / 255.0f;
   int a = int(mat[0][3]);
   int b = int(mat[1][3]);
   int c = int(mat[2][3]);
   int d = int(mat[3][3]);
   dataA = vec4(a & 0xFF, a >> 8, b & 0xFF, b >> 8) * div;
   dataB = vec4(c & 0xFF, c >> 8, d & 0xFF, d >> 8) * div;
-  mat[0][3] = mat[1][3] = mat[2][3] = 0.0;
-  mat[3][3] = 1.0;
+  mat[0][3] = mat[1][3] = mat[2][3] = 0.0f;
+  mat[3][3] = 1.0f;
   return mat;
 }
 
@@ -41,16 +41,16 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
 {
   vec2 edge = edge_start - edge_pos;
   float len = length(edge);
-  if (len > 0.0) {
+  if (len > 0.0f) {
     edge /= len;
     vec2 perp = vec2(-edge.y, edge.x);
     float dist = dot(perp, frag_co - edge_start);
-    /* Add 0.1 to differentiate with cleared pixels. */
-    return vec4(perp * 0.5 + 0.5, dist * 0.25 + 0.5 + 0.1, 1.0);
+    /* Add 0.1f to differentiate with cleared pixels. */
+    return vec4(perp * 0.5f + 0.5f, dist * 0.25f + 0.5f + 0.1f, 1.0f);
   }
   else {
     /* Default line if the origin is perfectly aligned with a pixel. */
-    return vec4(1.0, 0.0, 0.5 + 0.1, 1.0);
+    return vec4(1.0f, 0.0f, 0.5f + 0.1f, 1.0f);
   }
 }
 
@@ -59,13 +59,13 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
  * Offset is in view-space, so positive values are closer to the camera. */
 float get_homogenous_z_offset(mat4x4 winmat, float vs_z, float hs_w, float vs_offset)
 {
-  if (vs_offset == 0.0) {
+  if (vs_offset == 0.0f) {
     /* Don't calculate homogenous offset if view-space offset is zero. */
-    return 0.0;
+    return 0.0f;
   }
-  else if (winmat[3][3] == 0.0) {
+  else if (winmat[3][3] == 0.0f) {
     /* Clamp offset to half of Z to avoid floating point precision errors. */
-    vs_offset = min(vs_offset, vs_z * -0.5);
+    vs_offset = min(vs_offset, vs_z * -0.5f);
     /* From "Projection Matrix Tricks" by Eric Lengyel:
      * http://www.terathon.com/gdc07_lengyel.pdf (p. 24 Depth Modification) */
     return winmat[3][2] * (vs_offset / (vs_z * (vs_z + vs_offset))) * hs_w;

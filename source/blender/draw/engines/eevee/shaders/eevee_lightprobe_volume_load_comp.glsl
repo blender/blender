@@ -81,7 +81,7 @@ void main()
     /* Grid sample is invalid. Dilate adjacent samples inside the search region. */
     /* NOTE: Still load the center sample and give it low weight in case there is not valid sample
      * in the neighborhood. */
-    float weight_accum = 1e-8;
+    float weight_accum = 1e-8f;
     sh_local = spherical_harmonics_mul(irradiance_load(input_coord), weight_accum);
     int radius = int(dilation_radius);
     for (int x = -radius; x <= radius; x++) {
@@ -101,7 +101,7 @@ void main()
           if (dist_sqr > square(dilation_radius)) {
             continue;
           }
-          float weight = 1.0 / dist_sqr;
+          float weight = 1.0f / dist_sqr;
           sh_local = spherical_harmonics_madd(irradiance_load(neighbor_coord), weight, sh_local);
           weight_accum += weight;
         }

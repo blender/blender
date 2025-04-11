@@ -18,7 +18,7 @@ ivec3 compute_saturation_indices(vec3 v)
 float compute_saturation(vec4 color, ivec3 indices)
 {
   float weighted_average = mix(color[indices.y], color[indices.z], key_balance);
-  return (color[indices.x] - weighted_average) * abs(1.0 - weighted_average);
+  return (color[indices.x] - weighted_average) * abs(1.0f - weighted_average);
 }
 
 void main()
@@ -30,7 +30,7 @@ void main()
   /* We assume that the keying screen will not be overexposed in the image, so if the input
    * brightness is high, we assume the pixel is opaque. */
   if (reduce_min(input_color) > 1.0f) {
-    imageStore(output_img, texel, vec4(1.0));
+    imageStore(output_img, texel, vec4(1.0f));
     return;
   }
 
@@ -50,7 +50,7 @@ void main()
     matte = 0.0f;
   }
   else {
-    matte = 1.0f - clamp(input_saturation / key_saturation, 0.0, 1.0);
+    matte = 1.0f - clamp(input_saturation / key_saturation, 0.0f, 1.0f);
   }
 
   imageStore(output_img, texel, vec4(matte));

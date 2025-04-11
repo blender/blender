@@ -43,11 +43,11 @@ VertOut vertex_main(VertIn v_in)
 {
   VertOut vert_out;
 
-  vec3 world_pos = vec3(v_in.uv, 0.0);
+  vec3 world_pos = vec3(v_in.uv, 0.0f);
   vert_out.hs_P = drw_point_world_to_homogenous(world_pos);
   /* Snap vertices to the pixel grid to reduce artifacts. */
-  vec2 half_viewport_res = sizeViewport * 0.5;
-  vec2 half_pixel_offset = sizeViewportInv * 0.5;
+  vec2 half_viewport_res = sizeViewport * 0.5f;
+  vec2 half_pixel_offset = sizeViewportInv * 0.5f;
   vert_out.hs_P.xy = floor(vert_out.hs_P.xy * half_viewport_res) / half_viewport_res +
                      half_pixel_offset;
 
@@ -59,10 +59,10 @@ VertOut vertex_main(VertIn v_in)
    * - Edges between 0.2 and 0.4 depth.
    * - Image pixels are at 0.75 depth.
    * - 1.0 is used for the background. */
-  vert_out.hs_P.z = vert_out.selected ? 0.25 : 0.35;
+  vert_out.hs_P.z = vert_out.selected ? 0.25f : 0.35f;
 
   /* Avoid precision loss. */
-  vert_out.stipple_pos = 500.0 + 500.0 * (vert_out.hs_P.xy / vert_out.hs_P.w);
+  vert_out.stipple_pos = 500.0f + 500.0f * (vert_out.hs_P.xy / vert_out.hs_P.w);
   vert_out.stipple_start = vert_out.stipple_pos;
 
   return vert_out;
@@ -112,18 +112,18 @@ void geometry_main(VertOut geom_in[2],
   /* Enlarge edge for outline drawing. */
   /* Factor of 3.0 out of nowhere! Seems to fix issues with float imprecision. */
   half_size += (lineStyle == OVERLAY_UV_LINE_STYLE_OUTLINE) ?
-                   max(sizeEdge * (doSmoothWire ? 1.0 : 3.0), 1.0) :
-                   0.0;
+                   max(sizeEdge * (doSmoothWire ? 1.0f : 3.0f), 1.0f) :
+                   0.0f;
   /* Add 1 PX for AA. */
   if (doSmoothWire) {
-    half_size += 0.5;
+    half_size += 0.5f;
   }
 
   vec2 line_dir = normalize(ss_pos0 - ss_pos1);
   vec2 line_perp = vec2(-line_dir.y, line_dir.x);
   vec2 edge_ofs = line_perp * sizeViewportInv * ceil(half_size);
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
-  edge_ofs *= 2.0;
+  edge_ofs *= 2.0f;
 
   bool select_0 = geom_in[0].selected;
   /* No blending with edge selection. */
@@ -132,23 +132,23 @@ void geometry_main(VertOut geom_in[2],
   GeomOut geom_out;
   geom_out.stipple_start = geom_in[0].stipple_start;
   geom_out.stipple_pos = geom_in[0].stipple_pos;
-  geom_out.gpu_position = geom_in[0].hs_P + vec4(edge_ofs, 0.0, 0.0);
+  geom_out.gpu_position = geom_in[0].hs_P + vec4(edge_ofs, 0.0f, 0.0f);
   geom_out.edge_coord = half_size;
   geom_out.selected = select_0;
   strip_EmitVertex(0, out_vertex_id, out_primitive_id, geom_out);
 
-  geom_out.gpu_position = geom_in[0].hs_P - vec4(edge_ofs, 0.0, 0.0);
+  geom_out.gpu_position = geom_in[0].hs_P - vec4(edge_ofs, 0.0f, 0.0f);
   geom_out.edge_coord = -half_size;
   strip_EmitVertex(1, out_vertex_id, out_primitive_id, geom_out);
 
   geom_out.stipple_start = geom_in[1].stipple_start;
   geom_out.stipple_pos = geom_in[1].stipple_pos;
-  geom_out.gpu_position = geom_in[1].hs_P + vec4(edge_ofs, 0.0, 0.0);
+  geom_out.gpu_position = geom_in[1].hs_P + vec4(edge_ofs, 0.0f, 0.0f);
   geom_out.edge_coord = half_size;
   geom_out.selected = select_1;
   strip_EmitVertex(2, out_vertex_id, out_primitive_id, geom_out);
 
-  geom_out.gpu_position = geom_in[1].hs_P - vec4(edge_ofs, 0.0, 0.0);
+  geom_out.gpu_position = geom_in[1].hs_P - vec4(edge_ofs, 0.0f, 0.0f);
   geom_out.edge_coord = -half_size;
   strip_EmitVertex(3, out_vertex_id, out_primitive_id, geom_out);
 }

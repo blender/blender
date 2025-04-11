@@ -32,20 +32,20 @@ void main()
 
   vec4 debug_data = texelFetch(debug_data_tx, grid_sample, 0);
   if (debug_mode == DEBUG_IRRADIANCE_CACHE_VALIDITY) {
-    interp_color = vec4(1.0 - debug_data.r, debug_data.r, 0.0, 0.0);
-    gl_PointSize = 3.0;
+    interp_color = vec4(1.0f - debug_data.r, debug_data.r, 0.0f, 0.0f);
+    gl_PointSize = 3.0f;
     if (debug_data.r > debug_value) {
       /* Only render points that are below threshold. */
-      gl_Position = vec4(0.0);
-      gl_PointSize = 0.0;
+      gl_Position = vec4(0.0f);
+      gl_PointSize = 0.0f;
       return;
     }
   }
   else if (debug_mode == DEBUG_IRRADIANCE_CACHE_VIRTUAL_OFFSET) {
     if (is_zero(debug_data.xyz)) {
       /* Only render points that have offset. */
-      gl_Position = vec4(0.0);
-      gl_PointSize = 0.0;
+      gl_Position = vec4(0.0f);
+      gl_PointSize = 0.0f;
       return;
     }
 
@@ -55,6 +55,6 @@ void main()
   }
 
   gl_Position = drw_point_world_to_homogenous(P);
-  gl_Position.z -= 2.5e-5;
-  gl_PointSize = 3.0;
+  gl_Position.z -= 2.5e-5f;
+  gl_PointSize = 3.0f;
 }

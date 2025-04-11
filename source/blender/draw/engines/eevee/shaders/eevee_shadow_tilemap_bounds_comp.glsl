@@ -43,10 +43,10 @@ void main()
   }
   else {
     /* Create a dummy box so initialization happens even when there are no shadow casters. */
-    box = shape_box(vec3(-1.0),
-                    vec3(-1.0) + vec3(1.0, 0.0, 0.0),
-                    vec3(-1.0) + vec3(0.0, 1.0, 0.0),
-                    vec3(-1.0) + vec3(0.0, 0.0, 1.0));
+    box = shape_box(vec3(-1.0f),
+                    vec3(-1.0f) + vec3(1.0f, 0.0f, 0.0f),
+                    vec3(-1.0f) + vec3(0.0f, 1.0f, 0.0f),
+                    vec3(-1.0f) + vec3(0.0f, 0.0f, 1.0f));
   }
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
@@ -72,8 +72,8 @@ void main()
     barrier();
 
     /* Quantization bias. */
-    local_min -= abs(local_min) * 0.01;
-    local_max += abs(local_max) * 0.01;
+    local_min -= abs(local_min) * 0.01f;
+    local_max += abs(local_max) * 0.01f;
 
     if (is_valid) {
       /* Intermediate result. Min/Max of a compute group. */

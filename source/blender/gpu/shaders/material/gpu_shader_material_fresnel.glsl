@@ -7,17 +7,17 @@ float fresnel_dielectric_cos(float cosi, float eta)
   /* compute fresnel reflectance without explicitly computing
    * the refracted direction */
   float c = abs(cosi);
-  float g = eta * eta - 1.0 + c * c;
+  float g = eta * eta - 1.0f + c * c;
   float result;
 
-  if (g > 0.0) {
+  if (g > 0.0f) {
     g = sqrt(g);
     float A = (g - c) / (g + c);
-    float B = (c * (g + c) - 1.0) / (c * (g - c) + 1.0);
-    result = 0.5 * A * A * (1.0 + B * B);
+    float B = (c * (g + c) - 1.0f) / (c * (g - c) + 1.0f);
+    result = 0.5f * A * A * (1.0f + B * B);
   }
   else {
-    result = 1.0; /* TIR (no refracted component) */
+    result = 1.0f; /* TIR (no refracted component) */
   }
 
   return result;
@@ -35,6 +35,6 @@ void node_fresnel(float ior, vec3 N, out float result)
   N = normalize(N);
   vec3 V = coordinate_incoming(g_data.P);
 
-  float eta = max(ior, 0.00001);
-  result = fresnel_dielectric(V, N, (FrontFacing) ? eta : 1.0 / eta);
+  float eta = max(ior, 0.00001f);
+  result = fresnel_dielectric(V, N, (FrontFacing) ? eta : 1.0f / eta);
 }

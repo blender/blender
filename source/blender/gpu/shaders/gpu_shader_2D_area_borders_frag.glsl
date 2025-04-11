@@ -8,9 +8,9 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_area_borders)
 
 void main()
 {
-  /* Should be 1.0 but minimize the AA on the edges. */
-  float dist = (length(uv) - (0.98 - width)) * scale;
+  /* Should be 1.0f but minimize the AA on the edges. */
+  float dist = (length(uv) - (0.98f - width)) * scale;
 
   fragColor = color;
-  fragColor.a *= smoothstep(-0.09, 1.09, dist);
+  fragColor.a *= smoothstep(-0.09f, 1.09f, dist);
 }

@@ -41,7 +41,7 @@ shared vec4 local_radiance[gl_WorkGroupSize.x * gl_WorkGroupSize.y];
 
 float triangle_solid_angle(vec3 A, vec3 B, vec3 C)
 {
-  return 2.0 * atan(abs(dot(A, cross(B, C))), (1.0 + dot(B, C) + dot(A, C) + dot(A, B)));
+  return 2.0f * atan(abs(dot(A, cross(B, C))), (1.0f + dot(B, C) + dot(A, C) + dot(A, B)));
 }
 
 float quad_solid_angle(vec3 A, vec3 B, vec3 C, vec3 D)
@@ -55,7 +55,7 @@ float octahedral_texel_solid_angle(ivec2 local_texel,
 {
   if (any(equal(local_texel, ivec2(write_co.extent - 1)))) {
     /* Do not weight these border pixels that are redundant. */
-    return 0.0;
+    return 0.0f;
   }
   /* Since we are putting texel centers on the edges of the octahedron, the shape of a texel can be
    * anything from a simple quad (at the Z=0 poles), to a 4 pointed start (at the Z=+-1 poles)
@@ -77,15 +77,15 @@ float octahedral_texel_solid_angle(ivec2 local_texel,
   wrapped_texel.x = (local_texel.x >= half_size) ? (padded_size - local_texel.x) : local_texel.x;
   wrapped_texel.y = (local_texel.y >= half_size) ? (padded_size - local_texel.y) : local_texel.y;
 
-  vec2 texel_corner_v00 = vec2(wrapped_texel) + vec2(-0.5, -0.5);
-  vec2 texel_corner_v10 = vec2(wrapped_texel) + vec2(+0.5, -0.5);
-  vec2 texel_corner_v01 = vec2(wrapped_texel) + vec2(-0.5, +0.5);
-  vec2 texel_corner_v11 = vec2(wrapped_texel) + vec2(+0.5, +0.5);
+  vec2 texel_corner_v00 = vec2(wrapped_texel) + vec2(-0.5f, -0.5f);
+  vec2 texel_corner_v10 = vec2(wrapped_texel) + vec2(+0.5f, -0.5f);
+  vec2 texel_corner_v01 = vec2(wrapped_texel) + vec2(-0.5f, +0.5f);
+  vec2 texel_corner_v11 = vec2(wrapped_texel) + vec2(+0.5f, +0.5f);
   /* Clamp to well defined shape in spherical domain. */
-  texel_corner_v00 = clamp(texel_corner_v00, vec2(0.0), vec2(half_size - 1));
-  texel_corner_v10 = clamp(texel_corner_v10, vec2(0.0), vec2(half_size - 1));
-  texel_corner_v01 = clamp(texel_corner_v01, vec2(0.0), vec2(half_size - 1));
-  texel_corner_v11 = clamp(texel_corner_v11, vec2(0.0), vec2(half_size - 1));
+  texel_corner_v00 = clamp(texel_corner_v00, vec2(0.0f), vec2(half_size - 1));
+  texel_corner_v10 = clamp(texel_corner_v10, vec2(0.0f), vec2(half_size - 1));
+  texel_corner_v01 = clamp(texel_corner_v01, vec2(0.0f), vec2(half_size - 1));
+  texel_corner_v11 = clamp(texel_corner_v11, vec2(0.0f), vec2(half_size - 1));
   /* Convert to point on sphere. */
   vec3 v00 = sphere_probe_texel_to_direction(texel_corner_v00, write_co, sample_co);
   vec3 v10 = sphere_probe_texel_to_direction(texel_corner_v10, write_co, sample_co);
@@ -103,10 +103,10 @@ float octahedral_texel_solid_angle(ivec2 local_texel,
    * footprint if it is duplicated in another pixel of the map. So border pixels do not require any
    * special treatment. Only the center cross needs it. */
   if (wrapped_texel.x == half_size - 1) {
-    texel_clipped_solid_angle *= 2.0;
+    texel_clipped_solid_angle *= 2.0f;
   }
   if (wrapped_texel.y == half_size - 1) {
-    texel_clipped_solid_angle *= 2.0;
+    texel_clipped_solid_angle *= 2.0f;
   }
   return texel_clipped_solid_angle;
 }
@@ -130,14 +130,14 @@ void main()
   vec4 radiance_and_transmittance = texture(cubemap_tx, direction);
   vec3 radiance = radiance_and_transmittance.xyz;
 
-  float opacity = 1.0 - radiance_and_transmittance.a;
+  float opacity = 1.0f - radiance_and_transmittance.a;
 
   /* Composite world into reflection probes. */
   bool is_world = all(equal(probe_coord_packed, world_coord_packed));
-  if (!is_world && opacity != 1.0) {
-    vec2 biased_uv = sphere_probe_miplvl_scale_bias(0.0, world_coord, saturate(wrapped_uv));
+  if (!is_world && opacity != 1.0f) {
+    vec2 biased_uv = sphere_probe_miplvl_scale_bias(0.0f, world_coord, saturate(wrapped_uv));
     vec2 world_uv = biased_uv * world_coord.scale + world_coord.offset;
-    vec4 world_radiance = textureLod(atlas_tx, vec3(world_uv, world_coord.layer), 0.0);
+    vec4 world_radiance = textureLod(atlas_tx, vec3(world_uv, world_coord.layer), 0.0f);
     radiance.rgb = mix(world_radiance.rgb, radiance.rgb, opacity);
   }
 
@@ -151,7 +151,7 @@ void main()
     vec3 out_radiance = colorspace_brightness_clamp_max(radiance, clamp_indirect);
 
     ivec3 texel = ivec3(local_texel + write_coord.offset, write_coord.layer);
-    imageStore(atlas_img, texel, vec4(out_radiance, 1.0));
+    imageStore(atlas_img, texel, vec4(out_radiance, 1.0f));
   }
 
   float sample_weight = octahedral_texel_solid_angle(local_texel, write_coord, sample_coord);
@@ -167,7 +167,7 @@ void main()
     barrier();
 
     /* Reusing local_radiance for directions. */
-    local_radiance[local_index] = vec4(normalize(direction), 1.0) * sample_weight *
+    local_radiance[local_index] = vec4(normalize(direction), 1.0f) * sample_weight *
                                   length(radiance_sun.xyz);
     PARALLEL_SUM
 
@@ -196,10 +196,10 @@ void main()
       vec3 L = normalize(min_direction + max_direction);
       /* Convert radiance to spherical harmonics. */
       SphericalHarmonicL1 sh;
-      sh.L0.M0 = vec4(0.0);
-      sh.L1.Mn1 = vec4(0.0);
-      sh.L1.M0 = vec4(0.0);
-      sh.L1.Mp1 = vec4(0.0);
+      sh.L0.M0 = vec4(0.0f);
+      sh.L1.Mn1 = vec4(0.0f);
+      sh.L1.M0 = vec4(0.0f);
+      sh.L1.Mp1 = vec4(0.0f);
       /* TODO(fclem): Cleanup: Should spherical_harmonics_encode_signal_sample return a new sh
        * instead of adding to it? */
       spherical_harmonics_encode_signal_sample(L, local_radiance[0], sh);

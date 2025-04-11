@@ -10,9 +10,9 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_extra_grid_base)
 
 void main()
 {
-  vec2 centered = gl_PointCoord - vec2(0.5);
+  vec2 centered = gl_PointCoord - vec2(0.5f);
   float dist_squared = dot(centered, centered);
-  const float rad_squared = 0.25;
+  const float rad_squared = 0.25f;
 
   /* Round point with jagged edges. */
   if (dist_squared > rad_squared) {
@@ -23,8 +23,8 @@ void main()
 #if defined(VERT)
   fragColor = finalColor;
 
-  float midStroke = 0.5 * rad_squared;
-  if (vertexCrease > 0.0 && dist_squared > midStroke) {
+  float midStroke = 0.5f * rad_squared;
+  if (vertexCrease > 0.0f && dist_squared > midStroke) {
     fragColor.rgb = mix(finalColor.rgb, colorEdgeCrease.rgb, vertexCrease);
   }
 #else
@@ -32,7 +32,7 @@ void main()
 #endif
 
 #ifdef LINE_OUTPUT
-  lineOutput = vec4(0.0);
+  lineOutput = vec4(0.0f);
 #endif
   select_id_output(select_id);
 }

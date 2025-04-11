@@ -17,15 +17,15 @@ void main()
 
 #ifdef GPU_METAL
   /* Small bias to always be on top of the geom. */
-  gl_Position.z -= 5e-5;
+  gl_Position.z -= 5e-5f;
 #endif
 
-  bool is_select = (nor.w > 0.0);
-  bool is_hidden = (nor.w < 0.0);
+  bool is_select = (nor.w > 0.0f);
+  bool is_hidden = (nor.w < 0.0f);
 
   /* Don't draw faces that are selected. */
   if (is_hidden || is_select) {
-    gl_Position = vec4(-2.0, -2.0, -2.0, 1.0);
+    gl_Position = vec4(-2.0f, -2.0f, -2.0f, 1.0f);
   }
   else {
     view_clipping_distances(world_pos);

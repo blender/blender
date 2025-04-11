@@ -4,10 +4,10 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
-#define CMP_NODE_CHANNEL_MATTE_CS_RGB 1.0
-#define CMP_NODE_CHANNEL_MATTE_CS_HSV 2.0
-#define CMP_NODE_CHANNEL_MATTE_CS_YUV 3.0
-#define CMP_NODE_CHANNEL_MATTE_CS_YCC 4.0
+#define CMP_NODE_CHANNEL_MATTE_CS_RGB 1.0f
+#define CMP_NODE_CHANNEL_MATTE_CS_HSV 2.0f
+#define CMP_NODE_CHANNEL_MATTE_CS_YUV 3.0f
+#define CMP_NODE_CHANNEL_MATTE_CS_YCC 4.0f
 
 void node_composite_channel_matte(vec4 color,
                                   const float color_space,
@@ -35,12 +35,12 @@ void node_composite_channel_matte(vec4 color,
   float matte_value = channels[int(matte_channel)];
   float limit_value = max(channels[int(limit_channels.x)], channels[int(limit_channels.y)]);
 
-  float alpha = 1.0 - (matte_value - limit_value);
+  float alpha = 1.0f - (matte_value - limit_value);
   if (alpha > max_limit) {
     alpha = color.a;
   }
   else if (alpha < min_limit) {
-    alpha = 0.0;
+    alpha = 0.0f;
   }
   else {
     alpha = (alpha - min_limit) / (max_limit - min_limit);

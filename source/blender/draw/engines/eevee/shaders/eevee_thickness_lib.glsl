@@ -23,7 +23,7 @@ ThicknessIsect thickness_sphere_intersect(float diameter, vec3 N, vec3 L)
 {
   ThicknessIsect isect;
   float cos_alpha = dot(L, -N);
-  isect.hit_N = normalize(N + L * (cos_alpha * 2.0));
+  isect.hit_N = normalize(N + L * (cos_alpha * 2.0f));
   isect.hit_P = L * (cos_alpha * diameter);
   return isect;
 }
@@ -45,7 +45,7 @@ ThicknessIsect thickness_plane_intersect(float plane_distance, vec3 N, vec3 L)
 
 ThicknessIsect thickness_shape_intersect(float thickness, vec3 N, vec3 L)
 {
-  if (thickness < 0.0) {
+  if (thickness < 0.0f) {
     return thickness_plane_intersect(-thickness, N, L);
   }
   return thickness_sphere_intersect(thickness, N, L);

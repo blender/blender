@@ -11,14 +11,14 @@
  * compute_distorted_uv function for more details. */
 float compute_distortion_scale(float distortion, float distance_squared)
 {
-  return 1.0 / (1.0 + sqrt(max(0.0, 1.0 - distortion * distance_squared)));
+  return 1.0f / (1.0f + sqrt(max(0.0f, 1.0f - distortion * distance_squared)));
 }
 
 /* A vectorized version of compute_distortion_scale that is applied on the chromatic distortion
  * parameters passed to the shader. */
 vec3 compute_chromatic_distortion_scale(float distance_squared)
 {
-  return 1.0 / (1.0 + sqrt(max(vec3(0.0), 1.0 - chromatic_distortion * distance_squared)));
+  return 1.0f / (1.0f + sqrt(max(vec3(0.0f), 1.0f - chromatic_distortion * distance_squared)));
 }
 
 /* Compute the image coordinates after distortion by the given distortion scale computed by the
@@ -26,7 +26,7 @@ vec3 compute_chromatic_distortion_scale(float distance_squared)
  * coordinates but outputs non-centered image coordinates. */
 vec2 compute_distorted_uv(vec2 uv, float uv_scale)
 {
-  return (uv * uv_scale + 0.5) * vec2(texture_size(input_tx));
+  return (uv * uv_scale + 0.5f) * vec2(texture_size(input_tx));
 }
 
 /* Compute the number of integration steps that should be used to approximate the distorted pixel
@@ -37,9 +37,9 @@ vec2 compute_distorted_uv(vec2 uv, float uv_scale)
 int compute_number_of_integration_steps_heuristic(float distortion)
 {
 #if defined(JITTER)
-  return distortion < 4.0 ? 2 : int(sqrt(distortion + 1.0));
+  return distortion < 4.0f ? 2 : int(sqrt(distortion + 1.0f));
 #else
-  return int(distortion + 1.0);
+  return int(distortion + 1.0f);
 #endif
 }
 
@@ -78,7 +78,7 @@ float get_jitter(int seed)
 #if defined(JITTER)
   return hash_uint3_to_float(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y, seed);
 #else
-  return 0.5;
+  return 0.5f;
 #endif
 }
 
@@ -95,7 +95,7 @@ float get_jitter(int seed)
  * and end channels in reverse directions for more efficient computation. */
 vec3 integrate_distortion(int start, int end, float distance_squared, vec2 uv, int steps)
 {
-  vec3 accumulated_color = vec3(0.0);
+  vec3 accumulated_color = vec3(0.0f);
   float distortion_amount = chromatic_distortion[end] - chromatic_distortion[start];
   for (int i = 0; i < steps; i++) {
     /* The increment will be in the [0, 1) range across iterations. Include the start channel in
@@ -108,7 +108,7 @@ vec3 integrate_distortion(int start, int end, float distance_squared, vec2 uv, i
      * value for both the start and end channels. */
     vec2 distorted_uv = compute_distorted_uv(uv, distortion_scale);
     vec4 color = texture(input_tx, distorted_uv / vec2(texture_size(input_tx)));
-    accumulated_color[start] += (1.0 - increment) * color[start];
+    accumulated_color[start] += (1.0f - increment) * color[start];
     accumulated_color[end] += increment * color[end];
   }
   return accumulated_color;
@@ -120,14 +120,14 @@ void main()
 
   /* Compute the UV image coordinates in the range [-1, 1] as well as the squared distance to the
    * center of the image, which is at (0, 0) in the UV coordinates. */
-  vec2 center = vec2(texture_size(input_tx)) / 2.0;
-  vec2 uv = scale * (vec2(texel) + vec2(0.5) - center) / center;
+  vec2 center = vec2(texture_size(input_tx)) / 2.0f;
+  vec2 uv = scale * (vec2(texel) + vec2(0.5f) - center) / center;
   float distance_squared = dot(uv, uv);
 
   /* If any of the color channels will get distorted outside of the screen beyond what is possible,
    * write a zero transparent color and return. */
-  if (any(greaterThan(chromatic_distortion * distance_squared, vec3(1.0)))) {
-    imageStore(output_img, texel, vec4(0.0));
+  if (any(greaterThan(chromatic_distortion * distance_squared, vec3(1.0f)))) {
+    imageStore(output_img, texel, vec4(0.0f));
     return;
   }
 
@@ -139,7 +139,7 @@ void main()
    * the green will be integrated twice, but this is accounted for in the number of steps which the
    * color will later be divided by. See the compute_number_of_integration_steps function for more
    * details. */
-  vec3 color = vec3(0.0);
+  vec3 color = vec3(0.0f);
   color += integrate_distortion(0, 1, distance_squared, uv, number_of_steps.r);
   color += integrate_distortion(1, 2, distance_squared, uv, number_of_steps.b);
 
@@ -150,7 +150,7 @@ void main()
    * end reduces to (n / 2). So the color should be multiplied by 2 / n. The jitter sequence
    * approximately sums to the same value because it is a uniform random value whose mean value is
    * 0.5, so the expression doesn't change regardless of jitter. */
-  color *= 2.0 / vec3(number_of_steps);
+  color *= 2.0f / vec3(number_of_steps);
 
-  imageStore(output_img, texel, vec4(color, 1.0));
+  imageStore(output_img, texel, vec4(color, 1.0f));
 }

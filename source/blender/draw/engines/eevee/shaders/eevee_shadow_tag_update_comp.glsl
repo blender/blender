@@ -24,9 +24,9 @@ COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_update)
 
 vec3 safe_project(mat4 winmat, mat4 viewmat, inout int clipped, vec3 v)
 {
-  vec4 tmp = winmat * (viewmat * vec4(v, 1.0));
+  vec4 tmp = winmat * (viewmat * vec4(v, 1.0f));
   /* Detect case when point is behind the camera. */
-  clipped += int(tmp.w < 0.0);
+  clipped += int(tmp.w < 0.0f);
   return tmp.xyz / tmp.w;
 }
 
@@ -68,8 +68,8 @@ void main()
       /* Not all verts are behind the near clip plane. */
       if (intersect(frustum, box)) {
         /* We cannot correctly handle this case so we fallback by covering the whole view. */
-        aabb_ndc.max = vec3(1.0);
-        aabb_ndc.min = vec3(-1.0);
+        aabb_ndc.max = vec3(1.0f);
+        aabb_ndc.min = vec3(-1.0f);
       }
       else {
         /* Still out of the frustum. Ignore. */
@@ -82,7 +82,7 @@ void main()
   }
 
   AABB aabb_tag;
-  AABB aabb_map = shape_aabb(vec3(-0.99999), vec3(0.99999));
+  AABB aabb_map = shape_aabb(vec3(-0.99999f), vec3(0.99999f));
 
   /* Directional `winmat` have no correct near/far in the Z dimension at this point.
    * Do not clip in this dimension. */

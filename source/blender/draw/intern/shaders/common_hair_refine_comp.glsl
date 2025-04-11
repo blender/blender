@@ -10,7 +10,7 @@ COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
 
 void main()
 {
-  float interp_time = 0.0;
+  float interp_time = 0.0f;
   vec4 data0, data1, data2, data3;
   hair_get_interp_attrs(data0, data1, data2, data3, interp_time);
 

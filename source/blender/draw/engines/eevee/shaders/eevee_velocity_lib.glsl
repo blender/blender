@@ -14,12 +14,12 @@ SHADER_LIBRARY_CREATE_INFO(eevee_velocity_camera)
 
 vec4 velocity_pack(vec4 data)
 {
-  return data * 0.01;
+  return data * 0.01f;
 }
 
 vec4 velocity_unpack(vec4 data)
 {
-  return data * 100.0;
+  return data * 100.0f;
 }
 
 #ifdef VELOCITY_CAMERA
@@ -46,7 +46,7 @@ vec4 velocity_surface(vec3 P_prv, vec3 P, vec3 P_nxt)
    * with RGRG swizzle in viewport. */
   vec4 motion = vec4(prev_uv - curr_uv, curr_uv - next_uv);
   /* Convert NDC velocity to UV velocity */
-  motion *= 0.5;
+  motion *= 0.5f;
 
   return motion;
 }
@@ -68,7 +68,7 @@ vec4 velocity_background(vec3 vV)
    * with RGRG swizzle in viewport. */
   vec4 motion = vec4(prev_uv - curr_uv, curr_uv - next_uv);
   /* Convert NDC velocity to UV velocity */
-  motion *= 0.5;
+  motion *= 0.5f;
 
   return motion;
 }
@@ -76,10 +76,10 @@ vec4 velocity_background(vec3 vV)
 vec4 velocity_resolve(vec4 vector, vec2 uv, float depth)
 {
   if (vector.x == VELOCITY_INVALID) {
-    bool is_background = (depth == 1.0);
+    bool is_background = (depth == 1.0f);
     if (is_background) {
       /* NOTE: Use view vector to avoid imprecision if camera is far from origin. */
-      vec3 vV = -drw_view_incident_vector(drw_point_screen_to_view(vec3(uv, 1.0)));
+      vec3 vV = -drw_view_incident_vector(drw_point_screen_to_view(vec3(uv, 1.0f)));
       return velocity_background(vV);
     }
     else {
@@ -98,7 +98,7 @@ vec4 velocity_resolve(vec4 vector, vec2 uv, float depth)
  */
 vec4 velocity_resolve(sampler2D vector_tx, ivec2 texel, float depth)
 {
-  vec2 uv = (vec2(texel) + 0.5) / vec2(textureSize(vector_tx, 0).xy);
+  vec2 uv = (vec2(texel) + 0.5f) / vec2(textureSize(vector_tx, 0).xy);
   vec4 vector = texelFetch(vector_tx, texel, 0);
   return velocity_resolve(vector, uv, depth);
 }

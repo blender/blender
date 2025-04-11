@@ -9,16 +9,16 @@ void main()
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
   vec2 input_size = vec2(texture_size(input_tx));
 
-  vec2 coordinates = vec2(texel) + vec2(0.5);
+  vec2 coordinates = vec2(texel) + vec2(0.5f);
 
-  float current_sin = 0.0;
-  float current_cos = 1.0;
-  float current_scale = 1.0;
-  vec2 current_translation = vec2(0.0);
+  float current_sin = 0.0f;
+  float current_cos = 1.0f;
+  float current_scale = 1.0f;
+  vec2 current_translation = vec2(0.0f);
 
   /* For each iteration, accumulate the input at the transformed coordinates, then increment the
    * transformations for the next iteration. */
-  vec4 accumulated_color = vec4(0.0);
+  vec4 accumulated_color = vec4(0.0f);
   for (int i = 0; i < iterations; i++) {
     /* Transform the coordinates by first offsetting the origin, scaling, translating, rotating,
      * then finally restoring the origin. Notice that we do the inverse of each of the transforms,

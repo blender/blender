@@ -54,10 +54,10 @@ void main()
       float ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, roughness);
 
       /* We don't care about race condition here. */
-      if (ray_roughness_fac > 0.0) {
+      if (ray_roughness_fac > 0.0f) {
         tile_contains_horizon_scan = 1;
       }
-      if (ray_roughness_fac < 1.0) {
+      if (ray_roughness_fac < 1.0f) {
         tile_contains_ray_tracing[i] = 1;
       }
     }

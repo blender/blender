@@ -146,11 +146,11 @@ uint fetchGBuffer(samplerGBufferHeader tx, ivec2 texel, uchar layer)
 }
 vec4 fetchGBuffer(samplerGBufferClosure tx, ivec2 texel, uchar layer)
 {
-  return vec4(0.0);
+  return vec4(0.0f);
 }
 vec4 fetchGBuffer(samplerGBufferNormal tx, ivec2 texel, uchar layer)
 {
-  return vec4(0.0);
+  return vec4(0.0f);
 }
 
 #  else
@@ -190,31 +190,31 @@ vec2 gbuffer_normal_pack(vec3 N)
 {
   N /= length_manhattan(N);
   vec2 _sign = sign(N.xy);
-  _sign.x = _sign.x == 0.0 ? 1.0 : _sign.x;
-  _sign.y = _sign.y == 0.0 ? 1.0 : _sign.y;
-  N.xy = (N.z >= 0.0) ? N.xy : ((1.0 - abs(N.yx)) * _sign);
-  N.xy = N.xy * 0.5 + 0.5;
+  _sign.x = _sign.x == 0.0f ? 1.0f : _sign.x;
+  _sign.y = _sign.y == 0.0f ? 1.0f : _sign.y;
+  N.xy = (N.z >= 0.0f) ? N.xy : ((1.0f - abs(N.yx)) * _sign);
+  N.xy = N.xy * 0.5f + 0.5f;
   return N.xy;
 }
 
 vec3 gbuffer_normal_unpack(vec2 N_packed)
 {
-  N_packed = N_packed * 2.0 - 1.0;
-  vec3 N = vec3(N_packed.x, N_packed.y, 1.0 - abs(N_packed.x) - abs(N_packed.y));
-  float t = clamp(-N.z, 0.0, 1.0);
-  N.x += (N.x >= 0.0) ? -t : t;
-  N.y += (N.y >= 0.0) ? -t : t;
+  N_packed = N_packed * 2.0f - 1.0f;
+  vec3 N = vec3(N_packed.x, N_packed.y, 1.0f - abs(N_packed.x) - abs(N_packed.y));
+  float t = clamp(-N.z, 0.0f, 1.0f);
+  N.x += (N.x >= 0.0f) ? -t : t;
+  N.y += (N.y >= 0.0f) ? -t : t;
   return normalize(N);
 }
 
 float gbuffer_ior_pack(float ior)
 {
-  return (ior > 1.0) ? (1.0 - 0.5 / ior) : (0.5 * ior);
+  return (ior > 1.0f) ? (1.0f - 0.5f / ior) : (0.5f * ior);
 }
 
 float gbuffer_ior_unpack(float ior_packed)
 {
-  return (ior_packed > 0.5) ? (0.5 / (1.0 - ior_packed)) : (2.0 * ior_packed);
+  return (ior_packed > 0.5f) ? (0.5f / (1.0f - ior_packed)) : (2.0f * ior_packed);
 }
 
 float gbuffer_thickness_pack(float thickness)
@@ -223,18 +223,18 @@ float gbuffer_thickness_pack(float thickness)
    * distance and remap to it. Or tweak the hyperbole eq. */
   /* NOTE: Sign encodes the thickness mode. */
   /* Remap [0..+inf) to [0..1/2]. */
-  float thickness_packed = abs(thickness) / (1.0 + 2.0 * abs(thickness));
+  float thickness_packed = abs(thickness) / (1.0f + 2.0f * abs(thickness));
   /* Mirror the negative from [0..1/2] to [1..1/2]. O is mapped to 0 for precision. */
-  return (thickness < 0.0) ? 1.0 - thickness_packed : thickness_packed;
+  return (thickness < 0.0f) ? 1.0f - thickness_packed : thickness_packed;
 }
 float gbuffer_thickness_unpack(float thickness_packed)
 {
   /* Undo mirroring. */
-  float thickness = (thickness_packed > 0.5) ? 1.0 - thickness_packed : thickness_packed;
+  float thickness = (thickness_packed > 0.5f) ? 1.0f - thickness_packed : thickness_packed;
   /* Remap [0..1/2] to [0..+inf). */
-  thickness = thickness / (1.0 - 2.0 * thickness);
+  thickness = thickness / (1.0f - 2.0f * thickness);
   /* Retrieve sign. */
-  return (thickness_packed > 0.5) ? -thickness : thickness;
+  return (thickness_packed > 0.5f) ? -thickness : thickness;
 }
 
 /**
@@ -246,13 +246,14 @@ float gbuffer_thickness_unpack(float thickness_packed)
 vec4 gbuffer_closure_color_pack(vec3 color)
 {
   float max_comp = max(color.x, max(color.y, color.z));
-  float exponent = (max_comp > 1) ? ((max_comp > 2) ? ((max_comp > 4) ? 3.0 : 2.0) : 1.0) : 0.0;
+  float exponent = (max_comp > 1) ? ((max_comp > 2) ? ((max_comp > 4) ? 3.0f : 2.0f) : 1.0f) :
+                                    0.0f;
   /* TODO(fclem): Could try dithering to avoid banding artifacts on higher exponents. */
-  return vec4(color / exp2(exponent), exponent / 3.0);
+  return vec4(color / exp2(exponent), exponent / 3.0f);
 }
 vec3 gbuffer_closure_color_unpack(vec4 color_packed)
 {
-  float exponent = color_packed.a * 3.0;
+  float exponent = color_packed.a * 3.0f;
   return color_packed.rgb * exp2(exponent);
 }
 
@@ -280,13 +281,13 @@ vec3 gbuffer_sss_radii_unpack(vec4 sss_radii_packed)
  */
 vec2 gbuffer_closure_intensity_pack(float value)
 {
-  float exponent = (value > 1) ? ((value > 2) ? ((value > 4) ? 3.0 : 2.0) : 1.0) : 0.0;
+  float exponent = (value > 1) ? ((value > 2) ? ((value > 4) ? 3.0f : 2.0f) : 1.0f) : 0.0f;
   /* TODO(fclem): Could try dithering to avoid banding artifacts on higher exponents. */
-  return vec2(value / exp2(exponent), exponent / 3.0);
+  return vec2(value / exp2(exponent), exponent / 3.0f);
 }
 float gbuffer_closure_intensity_unpack(vec2 value_packed)
 {
-  float exponent = value_packed.g * 3.0;
+  float exponent = value_packed.g * 3.0f;
   return value_packed.r * exp2(exponent);
 }
 
@@ -304,14 +305,14 @@ uint gbuffer_object_id_f16_unpack(float object_id_packed)
 
 bool gbuffer_is_refraction(vec4 gbuffer)
 {
-  return gbuffer.w < 1.0;
+  return gbuffer.w < 1.0f;
 }
 
 /* Quantize geometric normal to 6 bits. */
 uint gbuffer_geometry_normal_pack(vec3 Ng, vec3 N)
 {
   /* This is a threshold that minimizes the error over the sphere. */
-  const float quantization_multiplier = 1.360;
+  const float quantization_multiplier = 1.360f;
   /* Normalize for comparison. */
   vec3 Ng_quantize = normalize(round(quantization_multiplier * Ng));
   /* Note: Comparing the error using cosines. The greater the cosine value, the lower the error. */
@@ -322,12 +323,12 @@ uint gbuffer_geometry_normal_pack(vec3 Ng, vec3 N)
     return 0;
   }
   uint data;
-  data = (Ng_quantize.x > 0.0) ? (1u << 0u) : 0u;
-  data |= (Ng_quantize.y > 0.0) ? (1u << 1u) : 0u;
-  data |= (Ng_quantize.z > 0.0) ? (1u << 2u) : 0u;
-  data |= (Ng_quantize.x < 0.0) ? (1u << 3u) : 0u;
-  data |= (Ng_quantize.y < 0.0) ? (1u << 4u) : 0u;
-  data |= (Ng_quantize.z < 0.0) ? (1u << 5u) : 0u;
+  data = (Ng_quantize.x > 0.0f) ? (1u << 0u) : 0u;
+  data |= (Ng_quantize.y > 0.0f) ? (1u << 1u) : 0u;
+  data |= (Ng_quantize.z > 0.0f) ? (1u << 2u) : 0u;
+  data |= (Ng_quantize.x < 0.0f) ? (1u << 3u) : 0u;
+  data |= (Ng_quantize.y < 0.0f) ? (1u << 4u) : 0u;
+  data |= (Ng_quantize.z < 0.0f) ? (1u << 5u) : 0u;
   return data << 20u;
 }
 
@@ -546,7 +547,7 @@ void gbuffer_skip_normal(inout GBufferReader gbuf)
 /* Pack geometry additional infos onto the normal stack. Needs to be run last. */
 void gbuffer_additional_info_pack(inout GBufferWriter gbuf, float thickness)
 {
-  gbuf.N[gbuf.normal_len] = vec2(gbuffer_thickness_pack(thickness), 0.0 /* UNUSED */);
+  gbuf.N[gbuf.normal_len] = vec2(gbuffer_thickness_pack(thickness), 0.0f /* UNUSED */);
   gbuf.normal_len++;
 }
 void gbuffer_additional_info_load(inout GBufferReader gbuf, samplerGBufferNormal normal_tx)
@@ -567,7 +568,7 @@ void gbuffer_additional_info_load(inout GBufferReader gbuf, samplerGBufferNormal
 void gbuffer_closure_unlit_pack(inout GBufferWriter gbuf, vec3 N)
 {
   gbuffer_append_closure(gbuf, GBUF_UNLIT);
-  gbuffer_append_data(gbuf, vec4(0.0));
+  gbuffer_append_data(gbuf, vec4(0.0f));
   gbuffer_append_normal(gbuf, N);
 }
 
@@ -660,7 +661,7 @@ void gbuffer_closure_reflection_pack(inout GBufferWriter gbuf, ClosureUndetermin
 {
   gbuffer_append_closure(gbuf, GBUF_REFLECTION);
   gbuffer_append_data(gbuf, gbuffer_closure_color_pack(cl.color));
-  gbuffer_append_data(gbuf, vec4(cl.data.x, 0.0, 0.0, 0.0));
+  gbuffer_append_data(gbuf, vec4(cl.data.x, 0.0f, 0.0f, 0.0f));
   gbuffer_append_normal(gbuf, cl.N);
 }
 void gbuffer_closure_reflection_skip(inout GBufferReader gbuf)
@@ -691,7 +692,7 @@ void gbuffer_closure_refraction_pack(inout GBufferWriter gbuf, ClosureUndetermin
 {
   gbuffer_append_closure(gbuf, GBUF_REFRACTION);
   gbuffer_append_data(gbuf, gbuffer_closure_color_pack(cl.color));
-  gbuffer_append_data(gbuf, vec4(cl.data.x, gbuffer_ior_pack(cl.data.y), 0.0, 0.0));
+  gbuffer_append_data(gbuf, vec4(cl.data.x, gbuffer_ior_pack(cl.data.y), 0.0f, 0.0f));
   gbuffer_append_normal(gbuf, cl.N);
 }
 void gbuffer_closure_refraction_skip(inout GBufferReader gbuf)
@@ -731,7 +732,7 @@ void gbuffer_closure_reflection_colorless_pack(inout GBufferWriter gbuf, Closure
 {
   vec2 intensity_packed = gbuffer_closure_intensity_pack(cl.color.r);
   gbuffer_append_closure(gbuf, GBUF_REFLECTION_COLORLESS);
-  gbuffer_append_data(gbuf, vec4(cl.data.x, 0.0, intensity_packed));
+  gbuffer_append_data(gbuf, vec4(cl.data.x, 0.0f, intensity_packed));
   gbuffer_append_normal(gbuf, cl.N);
 }
 void gbuffer_closure_reflection_colorless_skip(inout GBufferReader gbuf)
@@ -853,7 +854,7 @@ GBufferWriter gbuffer_pack(GBufferData data_in, vec3 Ng)
   for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
     ClosureUndetermined cl = data_in.closure[i];
 
-    if (cl.weight <= 1e-5) {
+    if (cl.weight <= 1e-5f) {
       gbuf.bins_len++;
       continue;
     }
@@ -997,11 +998,11 @@ GBufferReader gbuffer_read(samplerGBufferHeader header_tx,
 {
   GBufferReader gbuf;
   gbuf.texel = texel;
-  gbuf.thickness = 0.0;
+  gbuf.thickness = 0.0f;
   gbuf.closure_count = 0;
   gbuf.data_len = 0;
   gbuf.normal_len = 0;
-  gbuf.surface_N = vec3(0.0);
+  gbuf.surface_N = vec3(0.0f);
   for (uchar bin = 0; bin < GBUFFER_LAYER_MAX; bin++) {
     gbuffer_register_closure(gbuf, closure_new(CLOSURE_NONE_ID), bin);
   }
@@ -1175,7 +1176,7 @@ float gbuffer_read_thickness(uint header, samplerGBufferNormal normal_tx, ivec2 
       return gbuffer_thickness_unpack(data_packed.x);
     }
     default:
-      return 0.0;
+      return 0.0f;
   }
 }
 

@@ -14,7 +14,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_volume_occupancy_convert)
 
 bool is_front_face_hit(float stored_hit_depth)
 {
-  return stored_hit_depth < 0.0;
+  return stored_hit_depth < 0.0f;
 }
 
 void main()
@@ -63,7 +63,7 @@ void main()
   bool last_frontfacing = !is_front_face_hit(hit_ordered[0]);
   /* Add artificial back-facing hit to close volumes we entered but never exited.
    * Fixes issues with non-manifold meshes or things like water planes. */
-  hit_ordered[hit_count] = -1.0;
+  hit_ordered[hit_count] = -1.0f;
   /* Bit index of the last interface. */
   int last_bit = 0;
   for (int i = 0; i <= hit_count; i++) {

@@ -12,11 +12,11 @@ void main()
   /* A 3x3 weights kernel whose weights are the inverse of the distance to the center of the
    * kernel. So the center weight is zero, the corners weights are (1 / sqrt(2)), and the rest
    * of the weights are 1. The total sum of weights is 4 plus quadruple the corner weight. */
-  float corner_weight = 1.0 / sqrt(2.0);
-  float sum_of_weights = 4.0 + corner_weight * 4.0;
-  mat3 weights = mat3(vec3(corner_weight, 1.0, corner_weight),
-                      vec3(1.0, 0.0, 1.0),
-                      vec3(corner_weight, 1.0, corner_weight));
+  float corner_weight = 1.0f / sqrt(2.0f);
+  float sum_of_weights = 4.0f + corner_weight * 4.0f;
+  mat3 weights = mat3(vec3(corner_weight, 1.0f, corner_weight),
+                      vec3(1.0f, 0.0f, 1.0f),
+                      vec3(corner_weight, 1.0f, corner_weight));
 
   vec4 center_color = texture_load(input_tx, texel);
 
@@ -24,7 +24,7 @@ void main()
    * their colors multiplied by their weights. Additionally, for pixels whose colors are not close
    * enough to the color of the center pixel, accumulate their color as well as their weights. */
   vec4 sum_of_colors = vec4(0);
-  float accumulated_weight = 0.0;
+  float accumulated_weight = 0.0f;
   vec4 accumulated_color = vec4(0);
   for (int j = 0; j < 3; j++) {
     for (int i = 0; i < 3; i++) {
@@ -40,7 +40,7 @@ void main()
 
   /* If the accumulated weight is zero, that means all pixels in the 3x3 window are similar and no
    * need to despeckle anything, so write the original center color and return. */
-  if (accumulated_weight == 0.0) {
+  if (accumulated_weight == 0.0f) {
     imageStore(output_img, texel, center_color);
     return;
   }

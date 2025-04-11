@@ -88,7 +88,7 @@ void main()
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
-  vec2 center_uv = (vec2(texel) + 0.5) / vec2(textureSize(gbuf_header_tx, 0).xy);
+  vec2 center_uv = (vec2(texel) + 0.5f) / vec2(textureSize(gbuf_header_tx, 0).xy);
 
 #ifdef GROUPSHARED_CACHE
   cache_populate(center_uv);
@@ -109,10 +109,10 @@ void main()
 
   float homcoord = drw_view().winmat[2][3] * vP.z + drw_view().winmat[3][3];
   vec2 sample_scale = vec2(drw_view().winmat[0][0], drw_view().winmat[1][1]) *
-                      (0.5 * max_radius / homcoord);
+                      (0.5f * max_radius / homcoord);
 
   float pixel_footprint = sample_scale.x * textureSize(depth_tx, 0).x;
-  if (pixel_footprint <= 1.0) {
+  if (pixel_footprint <= 1.0f) {
     /* Early out, avoid divisions by zero. */
     return;
   }
@@ -122,17 +122,17 @@ void main()
                                 closure.sss_radius / max_radius) *
                             max_radius;
   /* Scale albedo because we can have HDR value caused by BSDF sampling. */
-  vec3 albedo = closure.color / max(1e-6, reduce_max(closure.color));
+  vec3 albedo = closure.color / max(1e-6f, reduce_max(closure.color));
   vec3 d = burley_setup(clamped_sss_radius, albedo);
 
   /* Do not rotate too much to avoid too much cache misses. */
-  float golden_angle = M_PI * (3.0 - sqrt(5.0));
-  float theta = interlieved_gradient_noise(vec2(texel), 0, 0.0) * golden_angle;
+  float golden_angle = M_PI * (3.0f - sqrt(5.0f));
+  float theta = interlieved_gradient_noise(vec2(texel), 0, 0.0f) * golden_angle;
 
   mat2 sample_space = from_scale(sample_scale) * from_rotation(Angle(theta));
 
-  vec3 accum_weight = vec3(0.0);
-  vec3 accum_radiance = vec3(0.0);
+  vec3 accum_weight = vec3(0.0f);
+  vec3 accum_radiance = vec3(0.0f);
 
   for (int i = 0; i < uniform_buf.subsurface.sample_len; i++) {
     vec2 sample_uv = center_uv + sample_space * uniform_buf.subsurface.samples[i].xy;
@@ -157,5 +157,5 @@ void main()
   /* Put result in direct diffuse. */
   imageStoreFast(out_direct_light_img, texel, uvec4(rgb9e5_encode(accum_radiance)));
   /* Clear the indirect pass since its content has been merged and convolved with direct light. */
-  imageStoreFast(out_indirect_light_img, texel, vec4(0.0, 0.0, 0.0, 0.0));
+  imageStoreFast(out_indirect_light_img, texel, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 }

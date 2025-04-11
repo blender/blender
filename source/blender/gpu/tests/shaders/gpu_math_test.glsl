@@ -61,52 +61,52 @@ void main()
 
     mat4x4 m = from_location(vec3(1, 2, 3));
     expect = mat4x4(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0), vec4(0, 0, 1, 0), vec4(1, 2, 3, 1));
-    EXPECT_TRUE(is_equal(m, expect, 0.00001));
+    EXPECT_TRUE(is_equal(m, expect, 0.00001f));
 
-    expect = transpose(mat4x4(vec4(0.411982, -0.833738, -0.36763, 0),
-                              vec4(-0.0587266, -0.426918, 0.902382, 0),
-                              vec4(-0.909297, -0.350175, -0.224845, 0),
+    expect = transpose(mat4x4(vec4(0.411982f, -0.833738f, -0.36763f, 0),
+                              vec4(-0.0587266f, -0.426918f, 0.902382f, 0),
+                              vec4(-0.909297f, -0.350175f, -0.224845f, 0),
                               vec4(0, 0, 0, 1)));
     EulerXYZ euler = EulerXYZ(1, 2, 3);
     Quaternion quat = to_quaternion(euler);
     AxisAngle axis_angle = to_axis_angle(euler);
     m = to_float4x4(from_rotation(euler));
-    EXPECT_NEAR(m, expect, 1e-5);
+    EXPECT_NEAR(m, expect, 1e-5f);
     m = to_float4x4(from_rotation(quat));
-    EXPECT_NEAR(m, expect, 1e-5);
+    EXPECT_NEAR(m, expect, 1e-5f);
     m = to_float4x4(from_rotation(axis_angle));
-    EXPECT_NEAR(m, expect, 3e-4); /* Has some precision issue on some platform. */
+    EXPECT_NEAR(m, expect, 3e-4f); /* Has some precision issue on some platform. */
 
     m = from_scale(vec4(1, 2, 3, 4));
     expect = mat4x4(vec4(1, 0, 0, 0), vec4(0, 2, 0, 0), vec4(0, 0, 3, 0), vec4(0, 0, 0, 4));
-    EXPECT_TRUE(is_equal(m, expect, 0.00001));
+    EXPECT_TRUE(is_equal(m, expect, 0.00001f));
 
     m = to_float4x4(from_scale(vec3(1, 2, 3)));
     expect = mat4x4(vec4(1, 0, 0, 0), vec4(0, 2, 0, 0), vec4(0, 0, 3, 0), vec4(0, 0, 0, 1));
-    EXPECT_TRUE(is_equal(m, expect, 0.00001));
+    EXPECT_TRUE(is_equal(m, expect, 0.00001f));
 
     m = to_float4x4(from_scale(vec2(1, 2)));
     expect = mat4x4(vec4(1, 0, 0, 0), vec4(0, 2, 0, 0), vec4(0, 0, 1, 0), vec4(0, 0, 0, 1));
-    EXPECT_TRUE(is_equal(m, expect, 0.00001));
+    EXPECT_TRUE(is_equal(m, expect, 0.00001f));
 
     m = from_loc_rot(vec3(1, 2, 3), EulerXYZ(1, 2, 3));
-    expect = mat4x4(vec4(0.411982, -0.0587266, -0.909297, 0),
-                    vec4(-0.833738, -0.426918, -0.350175, 0),
-                    vec4(-0.36763, 0.902382, -0.224845, 0),
+    expect = mat4x4(vec4(0.411982f, -0.0587266f, -0.909297f, 0),
+                    vec4(-0.833738f, -0.426918f, -0.350175f, 0),
+                    vec4(-0.36763f, 0.902382f, -0.224845f, 0),
                     vec4(1, 2, 3, 1));
-    EXPECT_TRUE(is_equal(m, expect, 0.00001));
+    EXPECT_TRUE(is_equal(m, expect, 0.00001f));
 
     m = from_loc_rot_scale(vec3(1, 2, 3), EulerXYZ(1, 2, 3), vec3(1, 2, 3));
-    expect = mat4x4(vec4(0.411982, -0.0587266, -0.909297, 0),
-                    vec4(-1.66748, -0.853835, -0.700351, 0),
-                    vec4(-1.10289, 2.70714, -0.674535, 0),
+    expect = mat4x4(vec4(0.411982f, -0.0587266f, -0.909297f, 0),
+                    vec4(-1.66748f, -0.853835f, -0.700351f, 0),
+                    vec4(-1.10289f, 2.70714f, -0.674535f, 0),
                     vec4(1, 2, 3, 1));
-    EXPECT_TRUE(is_equal(m, expect, 0.00001));
+    EXPECT_TRUE(is_equal(m, expect, 0.00001f));
   }
 
   TEST(math_matrix, MatrixModify)
   {
-    const float epsilon = 1e-6;
+    const float epsilon = 1e-6f;
     mat4x4 result, expect;
     mat4x4 m1 = mat4x4(vec4(0, 3, 0, 0), vec4(2, 0, 0, 0), vec4(0, 0, 2, 0), vec4(0, 0, 0, 1));
 
@@ -134,10 +134,12 @@ void main()
   TEST(math_matrix, MatrixCompareTest)
   {
     mat4x4 m1 = mat4x4(vec4(0, 3, 0, 0), vec4(2, 0, 0, 0), vec4(0, 0, 2, 0), vec4(0, 0, 0, 1));
-    mat4x4 m2 = mat4x4(
-        vec4(0, 3.001, 0, 0), vec4(1.999, 0, 0, 0), vec4(0, 0, 2.001, 0), vec4(0, 0, 0, 1.001));
+    mat4x4 m2 = mat4x4(vec4(0, 3.001f, 0, 0),
+                       vec4(1.999f, 0, 0, 0),
+                       vec4(0, 0, 2.001f, 0),
+                       vec4(0, 0, 0, 1.001f));
     mat4x4 m3 = mat4x4(
-        vec4(0, 3.001, 0, 0), vec4(1, 1, 0, 0), vec4(0, 0, 2.001, 0), vec4(0, 0, 0, 1.001));
+        vec4(0, 3.001f, 0, 0), vec4(1, 1, 0, 0), vec4(0, 0, 2.001f, 0), vec4(0, 0, 0, 1.001f));
     mat4x4 m4 = mat4x4(vec4(0, 1, 0, 0), vec4(1, 0, 0, 0), vec4(0, 0, 1, 0), vec4(0, 0, 0, 1));
     mat4x4 m5 = mat4x4(vec4(0, 0, 0, 0), vec4(0, 0, 0, 0), vec4(0, 0, 0, 0), vec4(0, 0, 0, 0));
     mat4x4 m6 = mat4x4(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0), vec4(0, 0, 1, 0), vec4(0, 0, 0, 1));
@@ -166,15 +168,15 @@ void main()
     vec3 expect_scale = vec3(3, 2, 2);
     vec3 expect_location = vec3(0, 1, 0);
 
-    EXPECT_NEAR(as_vec3(to_euler(m)), as_vec3(expect_eul), 0.0002);
-    EXPECT_NEAR(as_vec4(to_quaternion(m)), as_vec4(expect_qt), 0.0002);
-    EXPECT_NEAR(to_scale(m), expect_scale, 0.00001);
+    EXPECT_NEAR(as_vec3(to_euler(m)), as_vec3(expect_eul), 0.0002f);
+    EXPECT_NEAR(as_vec4(to_quaternion(m)), as_vec4(expect_qt), 0.0002f);
+    EXPECT_NEAR(to_scale(m), expect_scale, 0.00001f);
 
     vec4 expect_size = vec4(3, 2, 2, M_SQRT2);
     vec4 size;
     mat4x4 m1 = normalize_and_get_size(m, size);
     EXPECT_TRUE(is_unit_scale(m1));
-    EXPECT_NEAR(size, expect_size, 0.0002);
+    EXPECT_NEAR(size, expect_size, 0.0002f);
 
     mat4x4 m2 = normalize(m);
     EXPECT_TRUE(is_unit_scale(m2));
@@ -184,17 +186,17 @@ void main()
     vec3 scale;
     to_rot_scale(to_float3x3(m), eul, scale);
     to_rot_scale(to_float3x3(m), qt, scale);
-    EXPECT_NEAR(scale, expect_scale, 0.00001);
-    EXPECT_NEAR(as_vec4(qt), as_vec4(expect_qt), 0.0002);
-    EXPECT_NEAR(as_vec3(eul), as_vec3(expect_eul), 0.0002);
+    EXPECT_NEAR(scale, expect_scale, 0.00001f);
+    EXPECT_NEAR(as_vec4(qt), as_vec4(expect_qt), 0.0002f);
+    EXPECT_NEAR(as_vec3(eul), as_vec3(expect_eul), 0.0002f);
 
     vec3 loc;
     to_loc_rot_scale(m, loc, eul, scale);
     to_loc_rot_scale(m, loc, qt, scale);
-    EXPECT_NEAR(scale, expect_scale, 0.00001);
-    EXPECT_NEAR(loc, expect_location, 0.00001);
-    EXPECT_NEAR(as_vec4(qt), as_vec4(expect_qt), 0.0002);
-    EXPECT_NEAR(as_vec3(eul), as_vec3(expect_eul), 0.0002);
+    EXPECT_NEAR(scale, expect_scale, 0.00001f);
+    EXPECT_NEAR(loc, expect_location, 0.00001f);
+    EXPECT_NEAR(as_vec4(qt), as_vec4(expect_qt), 0.0002f);
+    EXPECT_NEAR(as_vec3(eul), as_vec3(expect_eul), 0.0002f);
   }
 
   TEST(math_matrix, MatrixTranspose)
@@ -217,7 +219,7 @@ void main()
                                  vec4(0.000000f, 0.000000f, 0.000000f, 1.000000f)));
     mat4x4 m1 = mat4x4_identity();
     mat4x4 result;
-    const float epsilon = 2e-5;
+    const float epsilon = 2e-5f;
     result = interpolate_fast(m1, m2, 0.0f);
     EXPECT_NEAR(result, m1, epsilon);
     result = interpolate_fast(m1, m2, 1.0f);
@@ -244,25 +246,25 @@ void main()
 
     expect = vec3(13, 2, -1);
     result = transform_point(m4, p);
-    EXPECT_NEAR(result, expect, 1e-2);
+    EXPECT_NEAR(result, expect, 1e-2f);
 
     expect = vec3(3, 2, -1);
     result = transform_point(m3, p);
-    EXPECT_NEAR(result, expect, 1e-5);
+    EXPECT_NEAR(result, expect, 1e-5f);
 
     result = transform_direction(m4, p);
-    EXPECT_NEAR(result, expect, 1e-5);
+    EXPECT_NEAR(result, expect, 1e-5f);
 
     result = transform_direction(m3, p);
-    EXPECT_NEAR(result, expect, 1e-5);
+    EXPECT_NEAR(result, expect, 1e-5f);
 
-    expect = vec3(-0.333333, -0.666667, -1.14815);
+    expect = vec3(-0.333333f, -0.666667f, -1.14815f);
     result = project_point(pers4, p);
-    EXPECT_NEAR(result, expect, 1e-5);
+    EXPECT_NEAR(result, expect, 1e-5f);
 
-    vec2 expect2 = vec2(0.76923, 1.61538);
+    vec2 expect2 = vec2(0.76923f, 1.61538f);
     vec2 result2 = project_point(pers3, p.xy);
-    EXPECT_NEAR(result2, expect2, 1e-5);
+    EXPECT_NEAR(result2, expect2, 1e-5f);
   }
 
   TEST(math_matrix, MatrixProjection)
@@ -277,33 +279,33 @@ void main()
                               vec4(0.0f, 3.33333f, 0.0f, -0.333333f),
                               vec4(0.0f, 0.0f, 6.66667f, -2.33333f),
                               vec4(0.0f, 0.0f, 0.0f, 1.0f)));
-    EXPECT_NEAR(ortho, expect, 1e-5);
+    EXPECT_NEAR(ortho, expect, 1e-5f);
 
     expect = transpose(mat4x4(vec4(-0.8f, 0.0f, 0.2f, 0.0f),
                               vec4(0.0f, -0.666667f, 0.333333f, 0.0f),
                               vec4(0.0f, 0.0f, -2.33333f, 0.666667f),
                               vec4(0.0f, 0.0f, -1.0f, 0.0f)));
-    EXPECT_NEAR(pers1, expect, 1e-4);
+    EXPECT_NEAR(pers1, expect, 1e-4f);
 
     expect = transpose(mat4x4(vec4(4.0f, 0.0f, 0.2f, 0.0f),
                               vec4(0.0f, 3.33333f, 0.333333f, 0.0f),
                               vec4(0.0f, 0.0f, -2.33333f, 0.666667f),
                               vec4(0.0f, 0.0f, -1.0f, 0.0f)));
-    EXPECT_NEAR(pers2, expect, 1e-4);
+    EXPECT_NEAR(pers2, expect, 1e-4f);
   }
 
   TEST(math_matrix, OrderedInt)
   {
     /* Identity. */
-    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(0.5)), 0.5);
-    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(-0.5)), -0.5);
-    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(0.0)), 0.0);
-    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(-0.0)), -0.0);
+    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(0.5f)), 0.5f);
+    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(-0.5f)), -0.5f);
+    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(0.0f)), 0.0f);
+    EXPECT_EQ(orderedIntBitsToFloat(floatBitsToOrderedInt(-0.0f)), -0.0f);
 
-    EXPECT_GE(floatBitsToOrderedInt(-0.5), floatBitsToOrderedInt(-1.0));
-    EXPECT_LE(floatBitsToOrderedInt(0.5), floatBitsToOrderedInt(1.0));
-    EXPECT_LE(floatBitsToOrderedInt(-0.5), floatBitsToOrderedInt(1.0));
-    EXPECT_GE(floatBitsToOrderedInt(0.5), floatBitsToOrderedInt(-1.0));
-    EXPECT_LE(floatBitsToOrderedInt(-0.0), floatBitsToOrderedInt(0.0));
+    EXPECT_GE(floatBitsToOrderedInt(-0.5f), floatBitsToOrderedInt(-1.0f));
+    EXPECT_LE(floatBitsToOrderedInt(0.5f), floatBitsToOrderedInt(1.0f));
+    EXPECT_LE(floatBitsToOrderedInt(-0.5f), floatBitsToOrderedInt(1.0f));
+    EXPECT_GE(floatBitsToOrderedInt(0.5f), floatBitsToOrderedInt(-1.0f));
+    EXPECT_LE(floatBitsToOrderedInt(-0.0f), floatBitsToOrderedInt(0.0f));
   }
 }

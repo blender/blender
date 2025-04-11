@@ -11,7 +11,7 @@ void main()
   vec4 color = texture_load(input_tx, texel);
 
   /* An opaque pixel, not part of the inpainting region, write the original color. */
-  if (color.a == 1.0) {
+  if (color.a == 1.0f) {
     imageStore(output_img, texel, color);
     return;
   }
@@ -28,5 +28,5 @@ void main()
   /* Mix the inpainted color with the original color using its alpha because semi-transparent areas
    * are considered to be partially inpainted. */
   vec4 inpainted_color = texture_load(inpainted_region_tx, texel);
-  imageStore(output_img, texel, vec4(mix(inpainted_color.rgb, color.rgb, color.a), 1.0));
+  imageStore(output_img, texel, vec4(mix(inpainted_color.rgb, color.rgb, color.a), 1.0f));
 }

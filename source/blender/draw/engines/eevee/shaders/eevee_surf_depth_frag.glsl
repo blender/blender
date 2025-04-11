@@ -24,10 +24,10 @@ vec4 closure_to_rgba(Closure cl)
 {
   vec4 out_color;
   out_color.rgb = g_emission;
-  out_color.a = saturate(1.0 - average(g_transmittance));
+  out_color.a = saturate(1.0f - average(g_transmittance));
 
   /* Reset for the next closure tree. */
-  closure_weights_reset(0.0);
+  closure_weights_reset(0.0f);
 
   return out_color;
 }
@@ -37,11 +37,11 @@ void main()
 #ifdef MAT_TRANSPARENT
   init_globals();
 
-  nodetree_surface(0.0);
+  nodetree_surface(0.0f);
 
 #  ifdef MAT_FORWARD
   /* Pre-pass only allows fully opaque areas to cut through all transparent layers. */
-  float threshold = 0.0;
+  float threshold = 0.0f;
 #  else
   float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
   float threshold = transparency_hashed_alpha_threshold(
@@ -59,7 +59,7 @@ void main()
   /* Do not use hardware clip planes as they modify the rasterization (some GPUs add vertices).
    * This would in turn create a discrepancy between the pre-pass depth and the G-buffer depth
    * which exhibits missing pixels data. */
-  if (clip_interp.clip_distance > 0.0) {
+  if (clip_interp.clip_distance > 0.0f) {
     discard;
     return;
   }

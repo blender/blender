@@ -13,7 +13,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_faces)
 
 void main()
 {
-  vec3 world_pos = vec3(au, 0.0);
+  vec3 world_pos = vec3(au, 0.0f);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   bool is_selected = (flag & FACE_UV_SELECT) != 0u;
@@ -23,5 +23,5 @@ void main()
 
   finalColor = (is_selected) ? colorFaceSelect : colorFace;
   finalColor = (is_active) ? colorEditMeshActive : finalColor;
-  finalColor.a *= is_object_active ? uvOpacity : (uvOpacity * 0.25);
+  finalColor.a *= is_object_active ? uvOpacity : (uvOpacity * 0.25f);
 }

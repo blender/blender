@@ -39,13 +39,13 @@ void write_radiance_indirect(uchar layer_index, ivec2 texel, vec3 radiance)
 {
   /* TODO(fclem): Layered texture. */
   if (layer_index == 0u) {
-    imageStore(indirect_radiance_1_img, texel, vec4(radiance, 1.0));
+    imageStore(indirect_radiance_1_img, texel, vec4(radiance, 1.0f));
   }
   else if (layer_index == 1u) {
-    imageStore(indirect_radiance_2_img, texel, vec4(radiance, 1.0));
+    imageStore(indirect_radiance_2_img, texel, vec4(radiance, 1.0f));
   }
   else if (layer_index == 2u) {
-    imageStore(indirect_radiance_3_img, texel, vec4(radiance, 1.0));
+    imageStore(indirect_radiance_3_img, texel, vec4(radiance, 1.0f));
   }
 }
 
@@ -58,7 +58,7 @@ void main()
 
   /* Bias the shading point position because of depth buffer precision.
    * Constant is taken from https://www.terathon.com/gdc07_lengyel.pdf. */
-  const float bias = 2.4e-7;
+  const float bias = 2.4e-7f;
   depth -= bias;
 
   vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));

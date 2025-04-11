@@ -9,7 +9,7 @@
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire. */
 float transparency_hash(vec2 a)
 {
-  return fract(1e4 * sin(17.0 * a.x + 0.1 * a.y) * (0.1 + abs(sin(13.0 * a.y + a.x))));
+  return fract(1e4f * sin(17.0f * a.x + 0.1f * a.y) * (0.1f + abs(sin(13.0f * a.y + a.x))));
 }
 
 float transparency_hash_3d(vec3 a)
@@ -21,7 +21,7 @@ float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, v
 {
   /* Find the discretized derivatives of our coordinates. */
   float max_deriv = max(length(dFdx(P)), length(dFdy(P)));
-  float pix_scale = 1.0 / (hash_scale * max_deriv);
+  float pix_scale = 1.0f / (hash_scale * max_deriv);
   /* Find two nearest log-discretized noise scales. */
   float pix_scale_log = log2(pix_scale);
   vec2 pix_scales;
@@ -36,16 +36,16 @@ float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, v
   /* Interpolate alpha threshold from noise at two scales. */
   float x = mix(alpha.x, alpha.y, fac);
   /* Pass into CDF to compute uniformly distributed threshold. */
-  float a = min(fac, 1.0 - fac);
-  float one_a = 1.0 - a;
-  float denom = 1.0 / (2 * a * one_a);
+  float a = min(fac, 1.0f - fac);
+  float one_a = 1.0f - a;
+  float denom = 1.0f / (2 * a * one_a);
   float one_x = (1 - x);
-  vec3 cases = vec3((x * x) * denom, (x - 0.5 * a) / one_a, 1.0 - (one_x * one_x * denom));
+  vec3 cases = vec3((x * x) * denom, (x - 0.5f * a) / one_a, 1.0f - (one_x * one_x * denom));
   /* Find our final, uniformly distributed alpha threshold. */
   float threshold = (x < one_a) ? ((x < a) ? cases.x : cases.y) : cases.z;
   /* Jitter the threshold for TAA accumulation. */
   threshold = fract(threshold + hash_offset);
   /* Avoids threshold == 0. */
-  threshold = clamp(threshold, 1.0e-6, 1.0);
+  threshold = clamp(threshold, 1.0e-6f, 1.0f);
   return threshold;
 }

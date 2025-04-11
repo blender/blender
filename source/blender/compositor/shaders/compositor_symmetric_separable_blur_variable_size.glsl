@@ -8,8 +8,8 @@ void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  float accumulated_weight = 0.0;
-  vec4 accumulated_color = vec4(0.0);
+  float accumulated_weight = 0.0f;
+  vec4 accumulated_color = vec4(0.0f);
 
   /* First, compute the contribution of the center pixel. */
   vec4 center_color = texture_load(input_tx, texel);
@@ -28,10 +28,10 @@ void main()
    * contributions. */
   for (int i = 1; i <= radius; i++) {
     /* Add 0.5 to evaluate at the center of the pixels. */
-    float weight = texture(weights_tx, vec2((float(i) + 0.5) / float(radius + 1), 0.0)).x;
+    float weight = texture(weights_tx, vec2((float(i) + 0.5f) / float(radius + 1), 0.0f)).x;
     accumulated_color += texture_load(input_tx, texel + ivec2(i, 0)) * weight;
     accumulated_color += texture_load(input_tx, texel + ivec2(-i, 0)) * weight;
-    accumulated_weight += weight * 2.0;
+    accumulated_weight += weight * 2.0f;
   }
 
   /* Write the color using the transposed texel. See the horizontal_pass function mentioned above

@@ -42,15 +42,15 @@ void main()
   /* FIXME: This is zero for opaque layer when we are processing the refraction layer. */
   if (is_zero(N)) {
     /* Avoid NaN. But should be fixed in any case. */
-    N = vec3(1.0, 0.0, 0.0);
+    N = vec3(1.0f, 0.0f, 0.0f);
   }
   vec3 vN = drw_normal_world_to_view(N);
   /* Tag processed pixel in the normal buffer for denoising speed. */
   bool is_processed = gbuf.header != 0u;
-  imageStore(out_normal_img, texel, vec4(vN * 0.5 + 0.5, float(is_processed)));
+  imageStore(out_normal_img, texel, vec4(vN * 0.5f + 0.5f, float(is_processed)));
 
   /* Re-project radiance. */
-  vec2 uv = (vec2(texel_fullres) + 0.5) / vec2(textureSize(depth_tx, 0).xy);
+  vec2 uv = (vec2(texel_fullres) + 0.5f) / vec2(textureSize(depth_tx, 0).xy);
   float depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec3 P = drw_point_screen_to_world(vec3(uv, depth));
 

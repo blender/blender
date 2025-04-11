@@ -65,7 +65,7 @@ VertOut vertex_main(VertIn v_in)
   vert_out.vs_P = drw_point_world_to_view(vert_out.ws_P);
 
   /* Small bias to always be on top of the geom. */
-  vert_out.hs_P.z -= 1e-3;
+  vert_out.hs_P.z -= 1e-3f;
 
   /* ID 0 is nothing (background) */
   vert_out.ob_id = uint(drw_resource_id() + 1);

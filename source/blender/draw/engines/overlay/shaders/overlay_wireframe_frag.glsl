@@ -15,25 +15,25 @@ void main()
 #if !defined(POINTS) && !defined(CURVES)
   /* Needed only because of wireframe slider.
    * If we could get rid of it would be nice because of performance drain of discard. */
-  if (edgeStart.r == -1.0) {
+  if (edgeStart.r == -1.0f) {
     discard;
     return;
   }
 #endif
 
-  lineOutput = vec4(0.0);
+  lineOutput = vec4(0.0f);
 
 #if defined(POINTS)
-  vec2 centered = abs(gl_PointCoord - vec2(0.5));
+  vec2 centered = abs(gl_PointCoord - vec2(0.5f));
   float dist = max(centered.x, centered.y);
 
-  float fac = dist * dist * 4.0;
+  float fac = dist * dist * 4.0f;
   /* Create a small gradient so that dense objects have a small fresnel effect. */
   /* Non linear blend. */
   vec3 rim_col = sqrt(finalColorInner.rgb);
   vec3 wire_col = sqrt(finalColor.rgb);
-  vec3 final_front_col = mix(rim_col, wire_col, 0.35);
-  fragColor = vec4(mix(final_front_col, rim_col, saturate(fac)), 1.0);
+  vec3 final_front_col = mix(rim_col, wire_col, 0.35f);
+  fragColor = vec4(mix(final_front_col, rim_col, saturate(fac)), 1.0f);
   fragColor *= fragColor;
 
 #elif !defined(SELECT_ENABLE)
@@ -42,7 +42,7 @@ void main()
 
 #  if !defined(CURVES)
   if (use_custom_depth_bias) {
-    vec2 dir = lineOutput.xy * 2.0 - 1.0;
+    vec2 dir = lineOutput.xy * 2.0f - 1.0f;
     bool dir_horiz = abs(dir.x) > abs(dir.y);
 
     vec2 uv = gl_FragCoord.xy * sizeViewportInv;
@@ -50,10 +50,10 @@ void main()
     float depth_min = depth_occluder;
     vec2 uv_offset = sizeViewportInv;
     if (dir_horiz) {
-      uv_offset.y = 0.0;
+      uv_offset.y = 0.0f;
     }
     else {
-      uv_offset.x = 0.0;
+      uv_offset.x = 0.0f;
     }
 
     depth_min = min(depth_min, texture(depthTex, uv - uv_offset).r);

@@ -18,15 +18,15 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_bokeh_lut)
 
 void main()
 {
-  vec2 gather_uv = ((vec2(gl_GlobalInvocationID.xy) + 0.5) / float(DOF_BOKEH_LUT_SIZE));
+  vec2 gather_uv = ((vec2(gl_GlobalInvocationID.xy) + 0.5f) / float(DOF_BOKEH_LUT_SIZE));
   /* Center uv in range [-1..1]. */
-  gather_uv = gather_uv * 2.0 - 1.0;
+  gather_uv = gather_uv * 2.0f - 1.0f;
 
   vec2 slight_focus_texel = vec2(gl_GlobalInvocationID.xy) - float(dof_max_slight_focus_radius);
 
   float radius = length(gather_uv);
 
-  if (dof_buf.bokeh_blades > 0.0) {
+  if (dof_buf.bokeh_blades > 0.0f) {
     /* NOTE: atan(y,x) has output range [-M_PI..M_PI], so add 2pi to avoid negative angles. */
     float theta = atan(gather_uv.y, gather_uv.x) + M_TAU;
 

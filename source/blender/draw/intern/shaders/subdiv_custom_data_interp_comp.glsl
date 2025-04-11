@@ -23,7 +23,7 @@ struct Vertex {
 void clear(inout Vertex v)
 {
   for (int i = 0; i < DIMENSIONS; i++) {
-    v.vertex_data[i] = 0.0;
+    v.vertex_data[i] = 0.0f;
   }
 }
 
@@ -36,10 +36,10 @@ Vertex read_vertex(uint index)
     uint xy = src_data[base_index];
     uint zw = src_data[base_index + 1];
 
-    float x = float((xy >> 16) & 0xffff) / 65535.0;
-    float y = float(xy & 0xffff) / 65535.0;
-    float z = float((zw >> 16) & 0xffff) / 65535.0;
-    float w = float(zw & 0xffff) / 65535.0;
+    float x = float((xy >> 16) & 0xffff) / 65535.0f;
+    float y = float(xy & 0xffff) / 65535.0f;
+    float z = float((zw >> 16) & 0xffff) / 65535.0f;
+    float w = float(zw & 0xffff) / 65535.0f;
 
     result.vertex_data[0] = x;
     result.vertex_data[1] = y;
@@ -69,10 +69,10 @@ void write_vertex(uint index, Vertex v)
 #if defined(GPU_COMP_U16)
   uint base_index = shader_data.dst_offset + index * 2;
   if (DIMENSIONS == 4) {
-    uint x = uint(v.vertex_data[0] * 65535.0);
-    uint y = uint(v.vertex_data[1] * 65535.0);
-    uint z = uint(v.vertex_data[2] * 65535.0);
-    uint w = uint(v.vertex_data[3] * 65535.0);
+    uint x = uint(v.vertex_data[0] * 65535.0f);
+    uint y = uint(v.vertex_data[1] * 65535.0f);
+    uint z = uint(v.vertex_data[2] * 65535.0f);
+    uint w = uint(v.vertex_data[3] * 65535.0f);
 
     uint xy = x << 16 | y;
     uint zw = z << 16 | w;
@@ -119,7 +119,7 @@ Vertex average(Vertex v0, Vertex v1)
 {
   Vertex result;
   for (int i = 0; i < DIMENSIONS; i++) {
-    result.vertex_data[i] = (v0.vertex_data[i] + v1.vertex_data[i]) * 0.5;
+    result.vertex_data[i] = (v0.vertex_data[i] + v1.vertex_data[i]) * 0.5f;
   }
   return result;
 }
@@ -182,7 +182,7 @@ void main()
     Vertex center_value;
     clear(center_value);
 
-    float weight = 1.0 / float(number_of_vertices);
+    float weight = 1.0f / float(number_of_vertices);
 
     for (uint l = loop_start; l < loop_end; l++) {
       add_with_weight(center_value, read_vertex(l), weight);
@@ -215,7 +215,7 @@ void main()
      *    |     |
      * v0 +-----+ v1
      *
-     * otherwise, weight would be `1.0 - uv.x` for `v2 <-> v3`, but `uv.x` for `v0 <-> v1`.
+     * otherwise, weight would be `1.0f - uv.x` for `v2 <-> v3`, but `uv.x` for `v0 <-> v1`.
      */
     Vertex result = interp_vertex(v0, v1, v3, v2, uv);
     write_vertex(loop_index, result);

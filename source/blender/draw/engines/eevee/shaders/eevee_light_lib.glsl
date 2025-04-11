@@ -9,7 +9,7 @@
 #include "eevee_ltc_lib.glsl"
 
 /* Attenuation cutoff needs to be the same in the shadow loop and the light eval loop. */
-#define LIGHT_ATTENUATION_THRESHOLD 1e-6
+#define LIGHT_ATTENUATION_THRESHOLD 1e-6f
 
 /* ---------------------------------------------------------------------- */
 /** \name Light Functions
@@ -27,13 +27,13 @@ LightVector light_vector_get(LightData light, const bool is_directional, vec3 P)
   LightVector lv;
   if (is_directional) {
     lv.L = light_sun_data_get(light).direction;
-    lv.dist = 1.0;
+    lv.dist = 1.0f;
   }
   else {
     lv.L = light_position_get(light) - P;
     float inv_distance = inversesqrt(length_squared(lv.L));
     lv.L *= inv_distance;
-    lv.dist = 1.0 / inv_distance;
+    lv.dist = 1.0f / inv_distance;
   }
   return lv;
 }
@@ -47,18 +47,18 @@ LightVector light_shape_vector_get(LightData light, const bool is_directional, v
     vec3 lP = transform_point_inversed(light.object_to_world, P);
     vec2 ls_closest_point = lP.xy;
     if (light.type == LIGHT_ELLIPSE) {
-      ls_closest_point /= max(1.0, length(ls_closest_point / area.size));
+      ls_closest_point /= max(1.0f, length(ls_closest_point / area.size));
     }
     else {
       ls_closest_point = clamp(ls_closest_point, -area.size, area.size);
     }
-    vec3 ws_closest_point = transform_point(light.object_to_world, vec3(ls_closest_point, 0.0));
+    vec3 ws_closest_point = transform_point(light.object_to_world, vec3(ls_closest_point, 0.0f));
 
     vec3 L = ws_closest_point - P;
     float inv_distance = inversesqrt(length_squared(L));
     LightVector lv;
     lv.L = L * inv_distance;
-    lv.dist = 1.0 / inv_distance;
+    lv.dist = 1.0f / inv_distance;
     return lv;
   }
   /* TODO(@fclem): other light shape? */
@@ -80,7 +80,7 @@ vec3 light_world_to_local_point(LightData light, vec3 point)
 float light_influence_attenuation(float dist, float inv_sqr_influence)
 {
   float factor = square(dist) * inv_sqr_influence;
-  float fac = saturate(1.0 - square(factor));
+  float fac = saturate(1.0f - square(factor));
   return square(fac);
 }
 
@@ -88,23 +88,23 @@ float light_spot_attenuation(LightData light, vec3 L)
 {
   LightSpotData spot = light_spot_data_get(light);
   vec3 lL = light_world_to_local_direction(light, L);
-  float ellipse = inversesqrt(1.0 + length_squared(lL.xy * spot.spot_size_inv / lL.z));
-  float spotmask = smoothstep(0.0, 1.0, ellipse * spot.spot_mul + spot.spot_bias);
-  return (lL.z > 0.0) ? spotmask : 0.0;
+  float ellipse = inversesqrt(1.0f + length_squared(lL.xy * spot.spot_size_inv / lL.z));
+  float spotmask = smoothstep(0.0f, 1.0f, ellipse * spot.spot_mul + spot.spot_bias);
+  return (lL.z > 0.0f) ? spotmask : 0.0f;
 }
 
 float light_attenuation_common(LightData light, const bool is_directional, vec3 L)
 {
   if (is_directional) {
-    return 1.0;
+    return 1.0f;
   }
   if (is_spot_light(light.type)) {
     return light_spot_attenuation(light, L);
   }
   if (is_area_light(light.type)) {
-    return float(dot(L, light_z_axis(light)) > 0.0);
+    return float(dot(L, light_z_axis(light)) > 0.0f);
   }
-  return 1.0;
+  return 1.0f;
 }
 
 float light_shape_radius(LightData light)
@@ -135,7 +135,7 @@ float light_attenuation_facing(
   /* Do attenuation after the horizon line to avoid harsh cut
    * or biasing of surfaces without light bleeding. */
   float dist = sin_solid_angle + (is_transmission ? -sin_light_angle : sin_light_angle);
-  return saturate((dist + 0.1) * 10.0);
+  return saturate((dist + 0.1f) * 10.0f);
 }
 
 float light_attenuation_surface(LightData light, const bool is_directional, LightVector lv)
@@ -163,7 +163,7 @@ float light_attenuation_volume(LightData light, const bool is_directional, Light
 float light_point_light(LightData light, const bool is_directional, LightVector lv)
 {
   if (is_directional) {
-    return 1.0;
+    return 1.0f;
   }
   /* Using "Point Light Attenuation Without Singularity" from Cem Yuksel
    * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
@@ -172,7 +172,7 @@ float light_point_light(LightData light, const bool is_directional, LightVector 
   float d_sqr = square(lv.dist);
   float r_sqr = square(light_local_data_get(light).shape_radius);
   /* Using reformulation that has better numerical precision. */
-  float power = 2.0 / (d_sqr + r_sqr + lv.dist * sqrt(d_sqr + r_sqr));
+  float power = 2.0f / (d_sqr + r_sqr + lv.dist * sqrt(d_sqr + r_sqr));
 
   if (is_area_light(light.type)) {
     /* Modulate by light plane orientation / solid angle. */
@@ -190,7 +190,8 @@ float light_sphere_disk_radius(float sphere_radius, float distance_to_sphere)
 {
   /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
    * half-angle spanned by a disk light with the same radius. */
-  return sphere_radius * inversesqrt(max(1e-8, 1.0 - square(sphere_radius / distance_to_sphere)));
+  return sphere_radius *
+         inversesqrt(max(1e-8f, 1.0f - square(sphere_radius / distance_to_sphere)));
 }
 
 float light_ltc(
@@ -198,7 +199,7 @@ float light_ltc(
 {
   if (is_sphere_light(light.type) && lv.dist < light_local_data_get(light).shape_radius) {
     /* Inside the sphere light, integrate over the hemisphere. */
-    return 1.0;
+    return 1.0f;
   }
 
   vec3 Px = light_x_axis(light);
@@ -221,7 +222,7 @@ float light_ltc(
 
     ltc_transform_quad(N, V, ltc_matrix(ltc_mat), corners);
 
-    return ltc_evaluate_quad(utility_tx, corners, vec3(0.0, 0.0, 1.0));
+    return ltc_evaluate_quad(utility_tx, corners, vec3(0.0f, 0.0f, 1.0f));
   }
   else {
     if (!is_area_light(light.type)) {

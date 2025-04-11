@@ -4,12 +4,12 @@
 
 void node_bsdf_transparent(vec4 color, float weight, out Closure result)
 {
-  color = max(color, vec4(0.0));
+  color = max(color, vec4(0.0f));
 
   ClosureTransparency transparency_data;
   transparency_data.weight = weight;
   transparency_data.transmittance = color.rgb;
-  transparency_data.holdout = 0.0;
+  transparency_data.holdout = 0.0f;
 
   result = closure_eval(transparency_data);
 }

@@ -17,7 +17,7 @@ vec4 load_input(ivec2 texel)
     /* Notice that we subtract 1 because the weights texture have an extra center weight, see the
      * SymmetricBlurWeights class for more information. */
     ivec2 blur_radius = texture_size(weights_tx) - 1;
-    color = texture_load(input_tx, texel - blur_radius, vec4(0.0));
+    color = texture_load(input_tx, texel - blur_radius, vec4(0.0f));
   }
   else {
     color = texture_load(input_tx, texel);
@@ -30,7 +30,7 @@ void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  vec4 accumulated_color = vec4(0.0);
+  vec4 accumulated_color = vec4(0.0f);
 
   /* First, compute the contribution of the center pixel. */
   vec4 center_color = load_input(texel);

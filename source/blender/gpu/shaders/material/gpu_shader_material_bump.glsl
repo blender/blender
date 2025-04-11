@@ -41,7 +41,7 @@ void node_bump(float strength,
   vec2 dHd = height_xy - vec2(height);
   vec3 surfgrad = dHd.x * Rx + dHd.y * Ry;
 
-  strength = max(strength, 0.0);
+  strength = max(strength, 0.0f);
 
   result = normalize(filter_width * abs(det) * N - dist * sign(det) * surfgrad);
   result = normalize(mix(N, result, strength));

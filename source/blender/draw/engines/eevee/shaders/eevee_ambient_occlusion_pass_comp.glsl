@@ -17,12 +17,12 @@ void main()
     return;
   }
 
-  vec2 uv = (vec2(texel) + vec2(0.5)) / vec2(extent);
+  vec2 uv = (vec2(texel) + vec2(0.5f)) / vec2(extent);
   float depth = texelFetch(hiz_tx, texel, 0).r;
 
-  if (depth == 1.0) {
+  if (depth == 1.0f) {
     /* Do not trace for background */
-    imageStoreFast(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(0.0));
+    imageStoreFast(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(0.0f));
     return;
   }
 

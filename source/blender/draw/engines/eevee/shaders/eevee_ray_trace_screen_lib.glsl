@@ -73,44 +73,44 @@ METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
                                               Ray ray)
 {
   /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
-  if (drw_view().winmat[3][3] == 0.0) {
+  if (drw_view().winmat[3][3] == 0.0f) {
     raytrace_clip_ray_to_near_plane(ray);
   }
 
   /* NOTE: The 2.0 factor here is because we are applying it in NDC space. */
   ScreenSpaceRay ssray = raytrace_screenspace_ray_create(
-      ray, 2.0 * rt_data.full_resolution_inv, rt_data.thickness);
+      ray, 2.0f * rt_data.full_resolution_inv, rt_data.thickness);
 
   /* Avoid no iteration. */
-  if (!allow_self_intersection && ssray.max_time < 1.1) {
+  if (!allow_self_intersection && ssray.max_time < 1.1f) {
     /* Still output the clipped ray. */
     vec3 hit_ssP = ssray.origin.xyz + ssray.direction.xyz * ssray.max_time;
     vec3 hit_P = drw_point_screen_to_world(vec3(hit_ssP.xy, saturate(hit_ssP.z)));
     ray.direction = hit_P - ray.origin;
 
     ScreenTraceHitData no_hit;
-    no_hit.time = 0.0;
+    no_hit.time = 0.0f;
     no_hit.valid = false;
     return no_hit;
   }
 
-  ssray.max_time = max(1.1, ssray.max_time);
+  ssray.max_time = max(1.1f, ssray.max_time);
 
-  float prev_delta = 0.0, prev_time = 0.0;
+  float prev_delta = 0.0f, prev_time = 0.0f;
   float depth_sample = drw_depth_view_to_screen(ray.origin.z);
   float delta = depth_sample - ssray.origin.z;
 
-  float lod_fac = saturate(sqrt_fast(roughness) * 2.0 - 0.4);
+  float lod_fac = saturate(sqrt_fast(roughness) * 2.0f - 0.4f);
 
   /* Cross at least one pixel. */
-  float t = 1.001, time = 1.001;
+  float t = 1.001f, time = 1.001f;
   bool hit = false;
 #ifdef METAL_AMD_RAYTRACE_WORKAROUND
   bool hit_failsafe = true;
 #endif
   const int max_steps = 255;
   for (int iter = 1; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
-    float stride = 1.0 + float(iter) * rt_data.quality;
+    float stride = 1.0f + float(iter) * rt_data.quality;
     float lod = log2(stride) * lod_fac;
 
     prev_time = time;
@@ -124,15 +124,15 @@ METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
 
     delta = depth_sample - ss_p.z;
     /* Check if the ray is below the surface ... */
-    hit = (delta < 0.0);
+    hit = (delta < 0.0f);
     /* ... and above it with the added thickness. */
-    hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0));
+    hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0f));
 
 #ifdef METAL_AMD_RAYTRACE_WORKAROUND
     /* For workaround, perform discard back-face and background check only within
      * the iteration where the first successful ray intersection is registered.
      * We flag failures to discard ray hits later. */
-    bool hit_valid = !(discard_backface && prev_delta < 0.0) && (depth_sample != 1.0);
+    bool hit_valid = !(discard_backface && prev_delta < 0.0f) && (depth_sample != 1.0f);
     if (hit && !hit_valid) {
       hit_failsafe = false;
     }
@@ -140,9 +140,9 @@ METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
   }
 #ifndef METAL_AMD_RAYTRACE_WORKAROUND
   /* Discard back-face hits. */
-  hit = hit && !(discard_backface && prev_delta < 0.0);
+  hit = hit && !(discard_backface && prev_delta < 0.0f);
   /* Reject hit if background. */
-  hit = hit && (depth_sample != 1.0);
+  hit = hit && (depth_sample != 1.0f);
 #endif
   /* Refine hit using intersection between the sampled height-field and the ray.
    * This simplifies nicely to this single line. */
@@ -175,25 +175,25 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
                                    Ray ray)
 {
   /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
-  if (drw_view().winmat[3][3] == 0.0) {
+  if (drw_view().winmat[3][3] == 0.0f) {
     raytrace_clip_ray_to_near_plane(ray);
   }
 
-  vec2 inv_texture_size = 1.0 / vec2(textureSize(planar_depth_tx, 0).xy);
+  vec2 inv_texture_size = 1.0f / vec2(textureSize(planar_depth_tx, 0).xy);
   /* NOTE: The 2.0 factor here is because we are applying it in NDC space. */
   /* TODO(@fclem): This uses the main view's projection matrix, not the planar's one.
    * This works fine for reflection, but this prevent the use of any other projection capture. */
-  ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray, 2.0 * inv_texture_size);
+  ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray, 2.0f * inv_texture_size);
 
-  float prev_delta = 0.0, prev_time = 0.0;
+  float prev_delta = 0.0f, prev_time = 0.0f;
   float depth_sample = texture(planar_depth_tx, vec3(ssray.origin.xy, planar.layer_id)).r;
   float delta = depth_sample - ssray.origin.z;
 
-  float t = 0.0, time = 0.0;
+  float t = 0.0f, time = 0.0f;
   bool hit = false;
   const int max_steps = 32;
   for (int iter = 1; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
-    float stride = 1.0 + float(iter) * rt_data.quality;
+    float stride = 1.0f + float(iter) * rt_data.quality;
 
     prev_time = time;
     prev_delta = delta;
@@ -207,10 +207,10 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
 
     delta = depth_sample - ss_ray.z;
     /* Check if the ray is below the surface. */
-    hit = (delta < 0.0);
+    hit = (delta < 0.0f);
   }
   /* Reject hit if background. */
-  hit = hit && (depth_sample != 1.0);
+  hit = hit && (depth_sample != 1.0f);
   /* Refine hit using intersection between the sampled height-field and the ray.
    * This simplifies nicely to this single line. */
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));

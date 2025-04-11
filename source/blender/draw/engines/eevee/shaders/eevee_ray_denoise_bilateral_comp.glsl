@@ -31,11 +31,11 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_denoise_bilateral)
 /* In order to remove some more fireflies, "tone-map" the color samples during the accumulation. */
 vec3 to_accumulation_space(vec3 color)
 {
-  return color / (1.0 + reduce_add(color));
+  return color / (1.0f + reduce_add(color));
 }
 vec3 from_accumulation_space(vec3 color)
 {
-  return color / (1.0 - reduce_add(color));
+  return color / (1.0f - reduce_add(color));
 }
 
 void main()
@@ -43,7 +43,7 @@ void main()
   const uint tile_size = RAYTRACE_GROUP_SIZE;
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel_fullres = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
-  vec2 center_uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
+  vec2 center_uv = (vec2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
 
   float center_depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec3 center_P = drw_point_screen_to_world(vec3(center_uv, center_depth));
@@ -60,33 +60,34 @@ void main()
   float variance = imageLoadFast(in_variance_img, texel_fullres).r;
   vec3 in_radiance = imageLoadFast(in_radiance_img, texel_fullres).rgb;
 
-  bool is_background = (center_depth == 0.0);
-  bool is_smooth = (roughness < 0.05);
-  bool is_low_variance = (variance < 0.05);
-  bool is_high_variance = (variance > 0.5);
+  bool is_background = (center_depth == 0.0f);
+  bool is_smooth = (roughness < 0.05f);
+  bool is_low_variance = (variance < 0.05f);
+  bool is_high_variance = (variance > 0.5f);
 
   /* Width of the box filter in pixels. */
-  float filter_size_factor = saturate(roughness * 8.0);
-  float filter_size = mix(0.0, 9.0, filter_size_factor);
-  uint sample_count = uint(mix(1.0, 10.0, filter_size_factor) * (is_high_variance ? 1.5 : 1.0));
+  float filter_size_factor = saturate(roughness * 8.0f);
+  float filter_size = mix(0.0f, 9.0f, filter_size_factor);
+  uint sample_count = uint(mix(1.0f, 10.0f, filter_size_factor) *
+                           (is_high_variance ? 1.5f : 1.0f));
 
   if (is_smooth || is_background || is_low_variance) {
     /* Early out cases. */
-    imageStoreFast(out_radiance_img, texel_fullres, vec4(in_radiance, 0.0));
+    imageStoreFast(out_radiance_img, texel_fullres, vec4(in_radiance, 0.0f));
     return;
   }
 
-  vec2 noise = interlieved_gradient_noise(vec2(texel_fullres) + 0.5, vec2(3, 5), vec2(0.0));
+  vec2 noise = interlieved_gradient_noise(vec2(texel_fullres) + 0.5f, vec2(3, 5), vec2(0.0f));
   noise += sampling_rng_2D_get(SAMPLING_RAYTRACE_W);
 
   vec3 accum_radiance = to_accumulation_space(in_radiance);
-  float accum_weight = 1.0;
+  float accum_weight = 1.0f;
   /* We want to resize the blur depending on the roughness and keep the amount of sample low.
    * So we do a random sampling around the center point. */
   for (uint i = 0u; i < sample_count; i++) {
     /* Essentially a box radius overtime. */
-    vec2 offset_f = (fract(hammersley_2d(i, sample_count) + noise) - 0.5) * filter_size;
-    ivec2 offset = ivec2(floor(offset_f + 0.5));
+    vec2 offset_f = (fract(hammersley_2d(i, sample_count) + noise) - 0.5f) * filter_size;
+    ivec2 offset = ivec2(floor(offset_f + 0.5f));
 
     ivec2 sample_texel = texel_fullres + offset;
     ivec3 sample_tile = ivec3(sample_texel / RAYTRACE_GROUP_SIZE, closure_index);
@@ -96,11 +97,11 @@ void main()
     }
 
     float sample_depth = texelFetch(depth_tx, sample_texel, 0).r;
-    vec2 sample_uv = (vec2(sample_texel) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
+    vec2 sample_uv = (vec2(sample_texel) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
     vec3 sample_P = drw_point_screen_to_world(vec3(sample_uv, sample_depth));
 
     /* Background case. */
-    if (sample_depth == 0.0) {
+    if (sample_depth == 0.0f) {
       continue;
     }
 
@@ -118,10 +119,10 @@ void main()
       continue;
     }
 
-    float gauss = filter_gaussian_factor(filter_size, 1.5);
+    float gauss = filter_gaussian_factor(filter_size, 1.5f);
 
-    /* TODO(fclem): Scene parameter. 10000.0 is dependent on scene scale. */
-    float depth_weight = filter_planar_weight(center_closure.N, center_P, sample_P, 10000.0);
+    /* TODO(fclem): Scene parameter. 10000.0f is dependent on scene scale. */
+    float depth_weight = filter_planar_weight(center_closure.N, center_P, sample_P, 10000.0f);
     float spatial_weight = filter_gaussian_weight(gauss, length_squared(vec2(offset)));
     float normal_weight = filter_angle_weight(center_closure.N, sample_closure.N);
     float weight = depth_weight * spatial_weight * normal_weight;
@@ -133,5 +134,5 @@ void main()
   vec3 out_radiance = accum_radiance * safe_rcp(accum_weight);
   out_radiance = from_accumulation_space(out_radiance);
 
-  imageStoreFast(out_radiance_img, texel_fullres, vec4(out_radiance, 0.0));
+  imageStoreFast(out_radiance_img, texel_fullres, vec4(out_radiance, 0.0f));
 }

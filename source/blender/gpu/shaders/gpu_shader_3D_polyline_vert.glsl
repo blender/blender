@@ -18,7 +18,7 @@ VertIn input_assembly(uint in_vertex_id)
   uint ofs = uint(gpu_vert_stride_count_offset.z);
 
   VertIn vert_in;
-  vert_in.ls_P = vec3(0.0, 0.0, 0.0);
+  vert_in.ls_P = vec3(0.0f, 0.0f, 0.0f);
   /* Need to support 1, 2 and 3 dimensional input (sigh). */
   vert_in.ls_P.x = pos[gpu_attr_load_index(v_i, gpu_attr_0) + 0 + ofs];
   if (gpu_attr_0_len >= 2) {
@@ -32,7 +32,7 @@ VertIn input_assembly(uint in_vertex_id)
     vert_in.ls_P = vec3(floatBitsToInt(vert_in.ls_P));
   }
 #ifndef UNIFORM
-  vert_in.final_color = vec4(0.0, 0.0, 0.0, 1.0);
+  vert_in.final_color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
   /* Need to support 1, 2, 3 and 4 dimensional input (sigh). */
   vert_in.final_color.x = color[gpu_attr_load_index(v_i, gpu_attr_1) + 0 + ofs];
   if (gpu_attr_1_fetch_unorm8) {
@@ -62,12 +62,12 @@ struct VertOut {
 VertOut vertex_main(VertIn vert_in)
 {
   VertOut vert_out;
-  vert_out.gpu_position = ModelViewProjectionMatrix * vec4(vert_in.ls_P, 1.0);
+  vert_out.gpu_position = ModelViewProjectionMatrix * vec4(vert_in.ls_P, 1.0f);
 #ifndef UNIFORM
   vert_out.final_color = vert_in.final_color;
 #endif
 #ifdef CLIP
-  vert_out.clip = dot(ModelMatrix * vec4(vert_in.ls_P, 1.0), ClipPlane);
+  vert_out.clip = dot(ModelMatrix * vec4(vert_in.ls_P, 1.0f), ClipPlane);
 #endif
   return vert_out;
 }
@@ -76,9 +76,9 @@ VertOut vertex_main(VertIn vert_in)
 vec4 clip_line_point_homogeneous_space(vec4 p, vec4 q)
 {
   if (p.z < -p.w) {
-    /* Just solves p + (q - p) * A; for A when p.z / p.w = -1.0. */
+    /* Just solves p + (q - p) * A; for A when p.z / p.w = -1.0f. */
     float denom = q.z - p.z + q.w - p.w;
-    if (denom == 0.0) {
+    if (denom == 0.0f) {
       /* No solution. */
       return p;
     }
@@ -141,12 +141,12 @@ void do_vertex(const uint i,
   geom_out.clip = geom_in[i].clip;
 #endif
 
-  geom_out.smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  geom_out.smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5f;
   geom_out.gpu_position = position;
   geom_out.gpu_position.xy += ofs * position.w;
   strip_EmitVertex(i * 2u + 0u, out_vertex_id, out_primitive_id, geom_out);
 
-  geom_out.smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  geom_out.smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5f;
   geom_out.gpu_position = position;
   geom_out.gpu_position.xy -= ofs * position.w;
   strip_EmitVertex(i * 2u + 1u, out_vertex_id, out_primitive_id, geom_out);
@@ -163,7 +163,7 @@ void geometry_main(VertOut geom_in[2],
 
 #if 0 /* Hard turn when line direction changes quadrant. */
   e = abs(e);
-  vec2 ofs = (e.x > e.y) ? vec2(0.0, 1.0 / e.x) : vec2(1.0 / e.y, 0.0);
+  vec2 ofs = (e.x > e.y) ? vec2(0.0f, 1.0f / e.x) : vec2(1.0f / e.y, 0.0f);
 #else /* Use perpendicular direction. */
   vec2 ofs = vec2(-e.y, e.x);
 #endif

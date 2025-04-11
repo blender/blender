@@ -39,7 +39,7 @@ uint outline_colorid_get()
 
 void main()
 {
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
   float time, thickness;
   vec3 center_wpos, tangent, binor;
 
@@ -54,14 +54,14 @@ void main()
   vec3 world_pos;
   if (hairThicknessRes > 1) {
     /* Calculate the thickness, thick-time, world-position taken into account the outline. */
-    float outline_width = drw_point_world_to_homogenous(center_wpos).w * 1.25 *
+    float outline_width = drw_point_world_to_homogenous(center_wpos).w * 1.25f *
                           globalsBlock.size_viewport.w * drw_view().wininv[1][1];
     thickness += outline_width;
     float thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
-    thick_time = thickness * (thick_time * 2.0 - 1.0);
+    thick_time = thickness * (thick_time * 2.0f - 1.0f);
     /* Take object scale into account.
      * NOTE: This only works fine with uniform scaling. */
-    float scale = 1.0 / length(to_float3x3(drw_modelinv()) * binor);
+    float scale = 1.0f / length(to_float3x3(drw_modelinv()) * binor);
     world_pos = center_wpos + binor * thick_time * scale;
   }
   else {
@@ -75,7 +75,7 @@ void main()
 #endif
 
   /* Small bias to always be on top of the geom. */
-  gl_Position.z -= 1e-3;
+  gl_Position.z -= 1e-3f;
 
   /* ID 0 is nothing (background) */
   interp.ob_id = uint(drw_resource_id() + 1);

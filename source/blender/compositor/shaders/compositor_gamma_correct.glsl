@@ -8,7 +8,7 @@ void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
   vec4 color = texture_load(input_tx, texel);
-  float alpha = color.a > 0.0 ? color.a : 1.0;
-  vec3 corrected_color = FUNCTION(max(color.rgb / alpha, vec3(0.0))) * alpha;
+  float alpha = color.a > 0.0f ? color.a : 1.0f;
+  vec3 corrected_color = FUNCTION(max(color.rgb / alpha, vec3(0.0f))) * alpha;
   imageStore(output_img, texel, vec4(corrected_color, color.a));
 }

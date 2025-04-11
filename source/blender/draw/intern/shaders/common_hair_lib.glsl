@@ -81,7 +81,7 @@ COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
 
 int hair_get_base_id(float local_time, int strand_segments, out float interp_time)
 {
-  float time_per_strand_seg = 1.0 / float(strand_segments);
+  float time_per_strand_seg = 1.0f / float(strand_segments);
 
   float ratio = local_time / time_per_strand_seg;
   interp_time = fract(ratio);
@@ -109,11 +109,11 @@ void hair_get_interp_attrs(
 
   if (id <= 0) {
     /* root points. Need to reconstruct previous data. */
-    data0 = data1 * 2.0 - data2;
+    data0 = data1 * 2.0f - data2;
   }
   if (id + 1 >= strand_segments) {
     /* tip points. Need to reconstruct next data. */
-    data3 = data2 * 2.0 - data1;
+    data3 = data2 * 2.0f - data1;
   }
 }
 #  endif
@@ -139,17 +139,17 @@ int hair_get_base_id()
 /* Copied from cycles. */
 float hair_shaperadius(float shape, float root, float tip, float time)
 {
-  float radius = 1.0 - time;
+  float radius = 1.0f - time;
 
-  if (shape < 0.0) {
-    radius = pow(radius, 1.0 + shape);
+  if (shape < 0.0f) {
+    radius = pow(radius, 1.0f + shape);
   }
   else {
-    radius = pow(radius, 1.0 / (1.0 - shape));
+    radius = pow(radius, 1.0f / (1.0f - shape));
   }
 
-  if (hairCloseTip && (time > 0.99)) {
-    return 0.0;
+  if (hairCloseTip && (time > 0.99f)) {
+    return 0.0f;
   }
 
   return (radius * (root - tip)) + tip;
@@ -176,10 +176,10 @@ void hair_get_center_pos_tan_binor_time(bool is_persp,
 #    if defined(OS_MAC) && defined(GPU_OPENGL)
   /* Generate a dummy read to avoid the driver bug with shaders having no
    * vertex reads on macOS (#60171) */
-  wpos.y += dummy * 0.0;
+  wpos.y += dummy * 0.0f;
 #    endif
 
-  if (time == 0.0) {
+  if (time == 0.0f) {
     /* Hair root */
     wtan = hair_get_point(id + 1).position - wpos;
   }
@@ -188,7 +188,7 @@ void hair_get_center_pos_tan_binor_time(bool is_persp,
   }
 
   mat4 obmat = hairDupliMatrix;
-  wpos = (obmat * vec4(wpos, 1.0)).xyz;
+  wpos = (obmat * vec4(wpos, 1.0f)).xyz;
   wtan = -normalize(to_float3x3(obmat) * wtan);
 
   vec3 camera_vec = (is_persp) ? camera_pos - wpos : camera_z;
@@ -212,16 +212,16 @@ void hair_get_pos_tan_binor_time(bool is_persp,
       is_persp, camera_pos, camera_z, wpos, wtan, wbinor, time, thickness);
   if (hairThicknessRes > 1) {
     thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
-    thick_time = thickness * (thick_time * 2.0 - 1.0);
+    thick_time = thickness * (thick_time * 2.0f - 1.0f);
     /* Take object scale into account.
      * NOTE: This only works fine with uniform scaling. */
-    float scale = 1.0 / length(to_float3x3(invmodel_mat) * wbinor);
+    float scale = 1.0f / length(to_float3x3(invmodel_mat) * wbinor);
     wpos += wbinor * thick_time * scale;
   }
   else {
     /* NOTE: Ensures 'hairThickTime' is initialized -
      * avoids undefined behavior on certain macOS configurations. */
-    thick_time = 0.0;
+    thick_time = 0.0f;
   }
 }
 
@@ -269,11 +269,11 @@ vec2 hair_get_barycentric()
 /* To be fed the result of hair_get_barycentric from vertex shader. */
 vec2 hair_resolve_barycentric(vec2 vert_barycentric)
 {
-  if (fract(vert_barycentric.y) != 0.0) {
-    return vec2(vert_barycentric.x, 0.0);
+  if (fract(vert_barycentric.y) != 0.0f) {
+    return vec2(vert_barycentric.x, 0.0f);
   }
   else {
-    return vec2(1.0 - vert_barycentric.x, 0.0);
+    return vec2(1.0f - vert_barycentric.x, 0.0f);
   }
 }
 
@@ -283,9 +283,9 @@ vec4 hair_get_weights_cardinal(float t)
   float t2 = t * t;
   float t3 = t2 * t;
 #  if defined(CARDINAL)
-  float fc = 0.71;
+  float fc = 0.71f;
 #  else /* defined(CATMULL_ROM) */
-  float fc = 0.5;
+  float fc = 0.5f;
 #  endif
 
   vec4 weights;
@@ -293,9 +293,9 @@ vec4 hair_get_weights_cardinal(float t)
   float fct = t * fc;
   float fct2 = t2 * fc;
   float fct3 = t3 * fc;
-  weights.x = (fct2 * 2.0 - fct3) - fct;
-  weights.y = (t3 * 2.0 - fct3) + (-t2 * 3.0 + fct2) + 1.0;
-  weights.z = (-t3 * 2.0 + fct3) + (t2 * 3.0 - (2.0 * fct2)) + fct;
+  weights.x = (fct2 * 2.0f - fct3) - fct;
+  weights.y = (t3 * 2.0f - fct3) + (-t2 * 3.0f + fct2) + 1.0f;
+  weights.z = (-t3 * 2.0f + fct3) + (t2 * 3.0f - (2.0f * fct2)) + fct;
   weights.w = fct3 - fct2;
   return weights;
 }
@@ -308,9 +308,9 @@ vec4 hair_get_weights_bspline(float t)
 
   vec4 weights;
   /* GLSL Optimized version of key_curve_position_weights() */
-  weights.xz = vec2(-0.16666666, -0.5) * t3 + (0.5 * t2 + 0.5 * vec2(-t, t) + 0.16666666);
-  weights.y = (0.5 * t3 - t2 + 0.66666666);
-  weights.w = (0.16666666 * t3);
+  weights.xz = vec2(-0.16666666f, -0.5f) * t3 + (0.5f * t2 + 0.5f * vec2(-t, t) + 0.16666666f);
+  weights.y = (0.5f * t3 - t2 + 0.66666666f);
+  weights.w = (0.16666666f * t3);
   return weights;
 }
 

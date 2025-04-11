@@ -26,43 +26,43 @@
 /* L0 Band. */
 float spherical_harmonics_L0_M0(vec3 v)
 {
-  return 0.282094792;
+  return 0.282094792f;
 }
 
 /* L1 Band. */
 float spherical_harmonics_L1_Mn1(vec3 v)
 {
-  return -0.488602512 * v.y;
+  return -0.488602512f * v.y;
 }
 float spherical_harmonics_L1_M0(vec3 v)
 {
-  return 0.488602512 * v.z;
+  return 0.488602512f * v.z;
 }
 float spherical_harmonics_L1_Mp1(vec3 v)
 {
-  return -0.488602512 * v.x;
+  return -0.488602512f * v.x;
 }
 
 /* L2 Band. */
 float spherical_harmonics_L2_Mn2(vec3 v)
 {
-  return 1.092548431 * (v.x * v.y);
+  return 1.092548431f * (v.x * v.y);
 }
 float spherical_harmonics_L2_Mn1(vec3 v)
 {
-  return -1.092548431 * (v.y * v.z);
+  return -1.092548431f * (v.y * v.z);
 }
 float spherical_harmonics_L2_M0(vec3 v)
 {
-  return 0.315391565 * (3.0 * v.z * v.z - 1.0);
+  return 0.315391565f * (3.0f * v.z * v.z - 1.0f);
 }
 float spherical_harmonics_L2_Mp1(vec3 v)
 {
-  return -1.092548431 * (v.x * v.z);
+  return -1.092548431f * (v.x * v.z);
 }
 float spherical_harmonics_L2_Mp2(vec3 v)
 {
-  return 0.546274215 * (v.x * v.x - v.y * v.y);
+  return 0.546274215f * (v.x * v.x - v.y * v.y);
 }
 
 /** \} */
@@ -107,27 +107,27 @@ struct SphericalHarmonicL2 {
 SphericalHarmonicBandL0 spherical_harmonics_band_L0_new()
 {
   SphericalHarmonicBandL0 L0;
-  L0.M0 = vec4(0.0);
+  L0.M0 = vec4(0.0f);
   return L0;
 }
 
 SphericalHarmonicBandL1 spherical_harmonics_band_L1_new()
 {
   SphericalHarmonicBandL1 L1;
-  L1.Mn1 = vec4(0.0);
-  L1.M0 = vec4(0.0);
-  L1.Mp1 = vec4(0.0);
+  L1.Mn1 = vec4(0.0f);
+  L1.M0 = vec4(0.0f);
+  L1.Mp1 = vec4(0.0f);
   return L1;
 }
 
 SphericalHarmonicBandL2 spherical_harmonics_band_L2_new()
 {
   SphericalHarmonicBandL2 L2;
-  L2.Mn2 = vec4(0.0);
-  L2.Mn1 = vec4(0.0);
-  L2.M0 = vec4(0.0);
-  L2.Mp1 = vec4(0.0);
-  L2.Mp2 = vec4(0.0);
+  L2.Mn2 = vec4(0.0f);
+  L2.Mn1 = vec4(0.0f);
+  L2.M0 = vec4(0.0f);
+  L2.Mp1 = vec4(0.0f);
+  L2.Mp2 = vec4(0.0f);
   return L2;
 }
 
@@ -292,14 +292,14 @@ vec4 spherical_harmonics_L2_evaluate(vec3 direction, SphericalHarmonicBandL2 L2)
 vec3 spherical_harmonics_evaluate(vec3 direction, SphericalHarmonicL0 sh)
 {
   vec3 radiance = spherical_harmonics_L0_evaluate(direction, sh.L0).rgb;
-  return max(vec3(0.0), radiance);
+  return max(vec3(0.0f), radiance);
 }
 
 vec3 spherical_harmonics_evaluate(vec3 direction, SphericalHarmonicL1 sh)
 {
   vec3 radiance = spherical_harmonics_L0_evaluate(direction, sh.L0).rgb +
                   spherical_harmonics_L1_evaluate(direction, sh.L1).rgb;
-  return max(vec3(0.0), radiance);
+  return max(vec3(0.0f), radiance);
 }
 
 vec3 spherical_harmonics_evaluate(vec3 direction, SphericalHarmonicL2 sh)
@@ -307,7 +307,7 @@ vec3 spherical_harmonics_evaluate(vec3 direction, SphericalHarmonicL2 sh)
   vec3 radiance = spherical_harmonics_L0_evaluate(direction, sh.L0).rgb +
                   spherical_harmonics_L1_evaluate(direction, sh.L1).rgb +
                   spherical_harmonics_L2_evaluate(direction, sh.L2).rgb;
-  return max(vec3(0.0), radiance);
+  return max(vec3(0.0f), radiance);
 }
 
 /** \} */
@@ -364,20 +364,20 @@ SphericalHarmonicL1 spherical_harmonics_rotate(mat3x3 rotation, SphericalHarmoni
 vec3 spherical_harmonics_evaluate_lambert(vec3 N, SphericalHarmonicL0 sh)
 {
   vec3 radiance = spherical_harmonics_L0_evaluate(N, sh.L0).rgb;
-  return max(vec3(0.0), radiance);
+  return max(vec3(0.0f), radiance);
 }
 vec3 spherical_harmonics_evaluate_lambert(vec3 N, SphericalHarmonicL1 sh)
 {
   vec3 radiance = spherical_harmonics_L0_evaluate(N, sh.L0).rgb +
-                  spherical_harmonics_L1_evaluate(N, sh.L1).rgb * (2.0 / 3.0);
-  return max(vec3(0.0), radiance);
+                  spherical_harmonics_L1_evaluate(N, sh.L1).rgb * (2.0f / 3.0f);
+  return max(vec3(0.0f), radiance);
 }
 vec3 spherical_harmonics_evaluate_lambert(vec3 N, SphericalHarmonicL2 sh)
 {
   vec3 radiance = spherical_harmonics_L0_evaluate(N, sh.L0).rgb +
-                  spherical_harmonics_L1_evaluate(N, sh.L1).rgb * (2.0 / 3.0) +
-                  spherical_harmonics_L2_evaluate(N, sh.L2).rgb * (1.0 / 4.0);
-  return max(vec3(0.0), radiance);
+                  spherical_harmonics_L1_evaluate(N, sh.L1).rgb * (2.0f / 3.0f) +
+                  spherical_harmonics_L2_evaluate(N, sh.L2).rgb * (1.0f / 4.0f);
+  return max(vec3(0.0f), radiance);
 }
 
 /**
@@ -388,17 +388,17 @@ vec3 spherical_harmonics_evaluate_lambert(vec3 N, SphericalHarmonicL2 sh)
 float spherical_harmonics_evaluate_non_linear(vec3 N, float R0, vec3 R1)
 {
   /* No idea why this is needed. */
-  R1 /= 2.0;
+  R1 /= 2.0f;
 
   float R1_len;
   vec3 R1_dir = normalize_and_get_length(R1, R1_len);
   float rcp_R0 = safe_rcp(R0);
 
-  float q = (1.0 + dot(R1_dir, N)) / 2.0;
-  float p = 1.0 + 2.0 * R1_len * rcp_R0;
-  float a = (1.0 - R1_len * rcp_R0) * safe_rcp(1.0 + R1_len * rcp_R0);
+  float q = (1.0f + dot(R1_dir, N)) / 2.0f;
+  float p = 1.0f + 2.0f * R1_len * rcp_R0;
+  float a = (1.0f - R1_len * rcp_R0) * safe_rcp(1.0f + R1_len * rcp_R0);
 
-  return R0 * (a + (1.0 - a) * (p + 1.0) * pow(q, p));
+  return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 }
 vec3 spherical_harmonics_evaluate_lambert_non_linear(vec3 N, SphericalHarmonicL1 sh)
 {
@@ -466,7 +466,7 @@ SphericalHarmonicL1 spherical_harmonics_triple_product(SphericalHarmonicL1 a,
   /* Adapted from:
    * "Code Generation and Factoring for Fast Evaluation of Low-order Spherical Harmonic Products
    * and Squares" Function "SH_product_3". */
-  const float L0_M0_coef = 0.282094792;
+  const float L0_M0_coef = 0.282094792f;
   SphericalHarmonicL1 sh;
   sh.L0.M0 = a.L0.M0 * b.L0.M0;
   sh.L0.M0 += a.L1.Mn1 * b.L1.Mn1;
@@ -691,9 +691,9 @@ SphericalHarmonicL1 spherical_harmonics_compress(SphericalHarmonicL1 sh)
   SphericalHarmonicL1 result;
   result.L0 = sh.L0;
   vec4 fac = safe_rcp(sh.L0.M0 * M_SQRT3);
-  result.L1.Mn1 = (sh.L1.Mn1 * fac) * 0.5 + 0.5;
-  result.L1.M0 = (sh.L1.M0 * fac) * 0.5 + 0.5;
-  result.L1.Mp1 = (sh.L1.Mp1 * fac) * 0.5 + 0.5;
+  result.L1.Mn1 = (sh.L1.Mn1 * fac) * 0.5f + 0.5f;
+  result.L1.M0 = (sh.L1.M0 * fac) * 0.5f + 0.5f;
+  result.L1.Mp1 = (sh.L1.Mp1 * fac) * 0.5f + 0.5f;
   return result;
 }
 
@@ -702,9 +702,9 @@ SphericalHarmonicL1 spherical_harmonics_decompress(SphericalHarmonicL1 sh)
   SphericalHarmonicL1 result;
   result.L0 = sh.L0;
   vec4 fac = sh.L0.M0 * M_SQRT3;
-  result.L1.Mn1 = (sh.L1.Mn1 * 2.0 - 1.0) * fac;
-  result.L1.M0 = (sh.L1.M0 * 2.0 - 1.0) * fac;
-  result.L1.Mp1 = (sh.L1.Mp1 * 2.0 - 1.0) * fac;
+  result.L1.Mn1 = (sh.L1.Mn1 * 2.0f - 1.0f) * fac;
+  result.L1.M0 = (sh.L1.M0 * 2.0f - 1.0f) * fac;
+  result.L1.Mp1 = (sh.L1.Mp1 * 2.0f - 1.0f) * fac;
   return result;
 }
 
@@ -721,15 +721,15 @@ SphericalHarmonicL1 spherical_harmonics_dering(SphericalHarmonicL1 sh)
   /* Convert coefficients to per channel column. */
   mat4x4 m = transpose(mat4x4(sh.L0.M0, sh.L1.Mn1, sh.L1.M0, sh.L1.Mp1));
   /* Find maximum value the L1 band can contain that doesn't exhibit ringing artifacts. */
-  float fac_r = abs(m[0].x) / max(1e-8, reduce_max(abs(m[0].yzw)));
-  float fac_g = abs(m[1].x) / max(1e-8, reduce_max(abs(m[1].yzw)));
-  float fac_b = abs(m[2].x) / max(1e-8, reduce_max(abs(m[2].yzw)));
+  float fac_r = abs(m[0].x) / max(1e-8f, reduce_max(abs(m[0].yzw)));
+  float fac_g = abs(m[1].x) / max(1e-8f, reduce_max(abs(m[1].yzw)));
+  float fac_b = abs(m[2].x) / max(1e-8f, reduce_max(abs(m[2].yzw)));
   /* Find the factor for the biggest component. We don't want to have color drift. */
   float fac = reduce_min(vec3(fac_r, fac_g, fac_b));
   /* Multiply by each band's weight. */
-  fac *= 0.282094792 / 0.488602512;
+  fac *= 0.282094792f / 0.488602512f;
 
-  if (fac > 1.0) {
+  if (fac > 1.0f) {
     return sh;
   }
 
@@ -756,10 +756,10 @@ SphericalHarmonicL1 spherical_harmonics_clamp(SphericalHarmonicL1 sh, float clam
   mag_L1.g = length(per_channel[1].yzw);
   mag_L1.b = length(per_channel[2].yzw);
   /* Find maximum of the sh function over all channels. */
-  vec3 max_sh = abs(sh.L0.M0.rgb) * 0.282094792 + mag_L1 * 0.488602512;
+  vec3 max_sh = abs(sh.L0.M0.rgb) * 0.282094792f + mag_L1 * 0.488602512f;
 
   float fac = clamp_value * safe_rcp(reduce_max(max_sh));
-  if (fac > 1.0) {
+  if (fac > 1.0f) {
     return sh;
   }
   return spherical_harmonics_mul(sh, fac);

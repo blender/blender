@@ -7,8 +7,8 @@
 
 vec3 tint_from_color(vec3 color)
 {
-  float lum = dot(color, vec3(0.3, 0.6, 0.1));  /* luminance approx. */
-  return (lum > 0.0) ? color / lum : vec3(1.0); /* normalize lum. to isolate hue+sat */
+  float lum = dot(color, vec3(0.3f, 0.6f, 0.1f)); /* luminance approx. */
+  return (lum > 0.0f) ? color / lum : vec3(1.0f); /* normalize lum. to isolate hue+sat */
 }
 
 float principled_sheen(float NV, float rough)
@@ -23,8 +23,8 @@ float principled_sheen(float NV, float rough)
 
 float ior_from_F0(float F0)
 {
-  float f = sqrt(clamp(F0, 0.0, 0.99));
-  return (-f - 1.0) / (f - 1.0);
+  float f = sqrt(clamp(F0, 0.0f, 0.99f));
+  return (-f - 1.0f) / (f - 1.0f);
 }
 
 void node_bsdf_principled(vec4 base_color,
@@ -64,27 +64,27 @@ void node_bsdf_principled(vec4 base_color,
   /* Match cycles. */
   metallic = saturate(metallic);
   roughness = saturate(roughness);
-  ior = max(ior, 1e-5);
+  ior = max(ior, 1e-5f);
   alpha = saturate(alpha);
   subsurface_weight = saturate(subsurface_weight);
   /* Not used by EEVEE */
-  /* subsurface_anisotropy = clamp(subsurface_anisotropy, 0.0, 0.9); */
-  /* subsurface_ior = clamp(subsurface_ior, 1.01, 3.8); */
-  specular_ior_level = max(specular_ior_level, 0.0);
-  specular_tint = max(specular_tint, vec4(0.0));
+  /* subsurface_anisotropy = clamp(subsurface_anisotropy, 0.0f, 0.9f); */
+  /* subsurface_ior = clamp(subsurface_ior, 1.01f, 3.8f); */
+  specular_ior_level = max(specular_ior_level, 0.0f);
+  specular_tint = max(specular_tint, vec4(0.0f));
   /* Not used by EEVEE */
   /* anisotropic = saturate(anisotropic); */
   transmission_weight = saturate(transmission_weight);
-  coat_weight = max(coat_weight, 0.0);
+  coat_weight = max(coat_weight, 0.0f);
   coat_roughness = saturate(coat_roughness);
-  coat_ior = max(coat_ior, 1.0);
-  coat_tint = max(coat_tint, vec4(0.0));
-  sheen_weight = max(sheen_weight, 0.0);
+  coat_ior = max(coat_ior, 1.0f);
+  coat_tint = max(coat_tint, vec4(0.0f));
+  sheen_weight = max(sheen_weight, 0.0f);
   sheen_roughness = saturate(sheen_roughness);
-  sheen_tint = max(sheen_tint, vec4(0.0));
+  sheen_tint = max(sheen_tint, vec4(0.0f));
 
-  base_color = max(base_color, vec4(0.0));
-  vec4 clamped_base_color = min(base_color, vec4(1.0));
+  base_color = max(base_color, vec4(0.0f));
+  vec4 clamped_base_color = min(base_color, vec4(1.0f));
 
   N = safe_normalize(N);
   CN = safe_normalize(CN);
@@ -95,47 +95,47 @@ void node_bsdf_principled(vec4 base_color,
   if (true) {
     ClosureTransparency transparency_data;
     transparency_data.weight = weight;
-    transparency_data.transmittance = vec3(1.0 - alpha);
-    transparency_data.holdout = 0.0;
+    transparency_data.transmittance = vec3(1.0f - alpha);
+    transparency_data.holdout = 0.0f;
     closure_eval(transparency_data);
 
     weight *= alpha;
   }
 
   /* First layer: Sheen */
-  vec3 sheen_data_color = vec3(0.0);
-  if (sheen_weight > 0.0) {
+  vec3 sheen_data_color = vec3(0.0f);
+  if (sheen_weight > 0.0f) {
     /* TODO: Maybe sheen_weight should be specular. */
     vec3 sheen_color = sheen_weight * sheen_tint.rgb * principled_sheen(NV, sheen_roughness);
     sheen_data_color = weight * sheen_color;
     /* Attenuate lower layers */
-    weight *= max((1.0 - math_reduce_max(sheen_color)), 0.0);
+    weight *= max((1.0f - math_reduce_max(sheen_color)), 0.0f);
   }
 
   /* Second layer: Coat */
-  if (coat_weight > 0.0) {
+  if (coat_weight > 0.0f) {
     float coat_NV = dot(CN, V);
     float reflectance = bsdf_lut(coat_NV, coat_roughness, coat_ior, false).x;
 
     ClosureReflection coat_data;
     coat_data.N = CN;
     coat_data.roughness = coat_roughness;
-    coat_data.color = vec3(1.0);
+    coat_data.color = vec3(1.0f);
     coat_data.weight = weight * coat_weight * reflectance;
     closure_eval(coat_data);
 
     /* Attenuate lower layers */
-    weight *= max((1.0 - reflectance * coat_weight), 0.0);
+    weight *= max((1.0f - reflectance * coat_weight), 0.0f);
 
-    if (!all(equal(coat_tint.rgb, vec3(1.0)))) {
-      float coat_neta = 1.0 / coat_ior;
-      float NT = sqrt_fast(1.0 - coat_neta * coat_neta * (1 - NV * NV));
+    if (!all(equal(coat_tint.rgb, vec3(1.0f)))) {
+      float coat_neta = 1.0f / coat_ior;
+      float NT = sqrt_fast(1.0f - coat_neta * coat_neta * (1 - NV * NV));
       /* Tint lower layers. */
-      coat_tint.rgb = mix(vec3(1.0), pow(coat_tint.rgb, vec3(1.0 / NT)), saturate(coat_weight));
+      coat_tint.rgb = mix(vec3(1.0f), pow(coat_tint.rgb, vec3(1.0f / NT)), saturate(coat_weight));
     }
   }
   else {
-    coat_tint.rgb = vec3(1.0);
+    coat_tint.rgb = vec3(1.0f);
   }
 
   /* Emission component.
@@ -150,21 +150,21 @@ void node_bsdf_principled(vec4 base_color,
 
   /* Metallic component */
   vec3 reflection_tint = specular_tint.rgb;
-  vec3 reflection_color = vec3(0.0);
-  if (metallic > 0.0) {
+  vec3 reflection_color = vec3(0.0f);
+  if (metallic > 0.0f) {
     vec3 F0 = clamped_base_color.rgb;
-    vec3 F82 = min(reflection_tint, vec3(1.0));
+    vec3 F82 = min(reflection_tint, vec3(1.0f));
     vec3 metallic_brdf;
-    brdf_f82_tint_lut(F0, F82, NV, roughness, do_multiscatter != 0.0, metallic_brdf);
+    brdf_f82_tint_lut(F0, F82, NV, roughness, do_multiscatter != 0.0f, metallic_brdf);
     reflection_color = weight * metallic * metallic_brdf;
     /* Attenuate lower layers */
-    weight *= max((1.0 - metallic), 0.0);
+    weight *= max((1.0f - metallic), 0.0f);
   }
 
   /* Transmission component */
-  if (transmission_weight > 0.0) {
+  if (transmission_weight > 0.0f) {
     vec3 F0 = vec3(F0_from_ior(ior)) * reflection_tint;
-    vec3 F90 = vec3(1.0);
+    vec3 F90 = vec3(1.0f);
     vec3 reflectance, transmittance;
     bsdf_lut(F0,
              F90,
@@ -172,7 +172,7 @@ void node_bsdf_principled(vec4 base_color,
              NV,
              roughness,
              ior,
-             do_multiscatter != 0.0,
+             do_multiscatter != 0.0f,
              reflectance,
              transmittance);
 
@@ -187,26 +187,27 @@ void node_bsdf_principled(vec4 base_color,
     closure_eval(refraction_data);
 
     /* Attenuate lower layers */
-    weight *= max((1.0 - transmission_weight), 0.0);
+    weight *= max((1.0f - transmission_weight), 0.0f);
   }
 
   /* Specular component */
   if (true) {
     float eta = ior;
     float f0 = F0_from_ior(eta);
-    if (specular_ior_level != 0.5) {
-      f0 *= 2.0 * specular_ior_level;
+    if (specular_ior_level != 0.5f) {
+      f0 *= 2.0f * specular_ior_level;
       eta = ior_from_F0(f0);
-      if (ior < 1.0) {
-        eta = 1.0 / eta;
+      if (ior < 1.0f) {
+        eta = 1.0f / eta;
       }
     }
 
     vec3 F0 = vec3(f0) * reflection_tint;
-    F0 = clamp(F0, vec3(0.0), vec3(1.0));
-    vec3 F90 = vec3(1.0);
+    F0 = clamp(F0, vec3(0.0f), vec3(1.0f));
+    vec3 F90 = vec3(1.0f);
     vec3 reflectance, unused;
-    bsdf_lut(F0, F90, vec3(0.0), NV, roughness, eta, do_multiscatter != 0.0, reflectance, unused);
+    bsdf_lut(
+        F0, F90, vec3(0.0f), NV, roughness, eta, do_multiscatter != 0.0f, reflectance, unused);
 
     ClosureReflection reflection_data;
     reflection_data.N = N;
@@ -217,14 +218,14 @@ void node_bsdf_principled(vec4 base_color,
     closure_eval(reflection_data);
 
     /* Attenuate lower layers */
-    weight *= max((1.0 - math_reduce_max(reflectance)), 0.0);
+    weight *= max((1.0f - math_reduce_max(reflectance)), 0.0f);
   }
 
   /* Subsurface component */
-  if (subsurface_weight > 0.0) {
+  if (subsurface_weight > 0.0f) {
     ClosureSubsurface sss_data;
     sss_data.N = N;
-    sss_data.sss_radius = max(subsurface_radius * subsurface_scale, vec3(0.0));
+    sss_data.sss_radius = max(subsurface_radius * subsurface_scale, vec3(0.0f));
     /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
      * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
     sss_data.color = (subsurface_weight * weight) * clamped_base_color.rgb * coat_tint.rgb;
@@ -235,7 +236,7 @@ void node_bsdf_principled(vec4 base_color,
     closure_eval(sss_data);
 
     /* Attenuate lower layers */
-    weight *= max((1.0 - subsurface_weight), 0.0);
+    weight *= max((1.0f - subsurface_weight), 0.0f);
   }
 
   /* Diffuse component */

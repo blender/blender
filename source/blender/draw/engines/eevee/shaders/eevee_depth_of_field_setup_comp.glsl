@@ -25,7 +25,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_setup)
 
 void main()
 {
-  vec2 fullres_texel_size = 1.0 / vec2(textureSize(color_tx, 0).xy);
+  vec2 fullres_texel_size = 1.0f / vec2(textureSize(color_tx, 0).xy);
   /* Center uv around the 4 full-resolution pixels. */
   vec2 quad_center = vec2(gl_GlobalInvocationID.xy * 2 + 1) * fullres_texel_size;
 
@@ -34,8 +34,8 @@ void main()
   for (int i = 0; i < 4; i++) {
     vec2 sample_uv = quad_center + quad_offsets[i] * fullres_texel_size;
     /* NOTE: We use samplers without filtering. */
-    colors[i] = colorspace_safe_color(textureLod(color_tx, sample_uv, 0.0));
-    cocs[i] = dof_coc_from_depth(dof_buf, sample_uv, textureLod(depth_tx, sample_uv, 0.0).r);
+    colors[i] = colorspace_safe_color(textureLod(color_tx, sample_uv, 0.0f));
+    cocs[i] = dof_coc_from_depth(dof_buf, sample_uv, textureLod(depth_tx, sample_uv, 0.0f).r);
   }
 
   cocs = clamp(cocs, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);

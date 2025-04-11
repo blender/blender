@@ -19,30 +19,30 @@ void set_rgba(vec4 col, out vec4 outcol)
 
 void set_value_zero(out float outval)
 {
-  outval = 0.0;
+  outval = 0.0f;
 }
 
 void set_value_one(out float outval)
 {
-  outval = 1.0;
+  outval = 1.0f;
 }
 
 void set_rgb_zero(out vec3 outval)
 {
-  outval = vec3(0.0);
+  outval = vec3(0.0f);
 }
 
 void set_rgb_one(out vec3 outval)
 {
-  outval = vec3(1.0);
+  outval = vec3(1.0f);
 }
 
 void set_rgba_zero(out vec4 outval)
 {
-  outval = vec4(0.0);
+  outval = vec4(0.0f);
 }
 
 void set_rgba_one(out vec4 outval)
 {
-  outval = vec4(1.0);
+  outval = vec4(1.0f);
 }

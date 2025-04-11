@@ -16,9 +16,6 @@
  * casting is always explicit. This is because implicit casts are not always supported on all
  * implementations.
  *
- * Float types are set to double to accept float literals without trailing f and avoid casting
- * issues.
- *
  * Some of the features of GLSL are omitted by design. They are either:
  * - Not needed (e.g. per component matrix multiplication).
  * - Against our code-style (e.g. `stpq` swizzle).
@@ -303,7 +300,7 @@ template<> struct VecBase<bool, 2> : VecOp<bool, 2> {
   explicit VecBase(bool) {}
   explicit VecBase(bool, bool) {}
   /* Should be forbidden, but is used by SMAA. */
-  explicit VecBase(VecOp<double, 2>) {}
+  explicit VecBase(VecOp<float, 2>) {}
 };
 
 template<> struct VecBase<bool, 3> : VecOp<bool, 3> {
@@ -343,9 +340,9 @@ template<> struct VecBase<bool, 4> : VecOp<bool, 4> {
 using uint = unsigned int;
 using uint32_t = unsigned int; /* For typed enums. */
 
-using float2 = VecBase<double, 2>;
-using float3 = VecBase<double, 3>;
-using float4 = VecBase<double, 4>;
+using float2 = VecBase<float, 2>;
+using float3 = VecBase<float, 3>;
+using float4 = VecBase<float, 4>;
 
 using uint2 = VecBase<uint, 2>;
 using uint3 = VecBase<uint, 3>;
@@ -373,7 +370,7 @@ using short2 = VecBase<short, 2>;
 using short3 = VecBase<short, 3>;
 using short4 = VecBase<short, 4>;
 
-using half = double;
+using half = float;
 using half2 = VecBase<half, 2>;
 using half3 = VecBase<half, 3>;
 using half4 = VecBase<half, 4>;
@@ -441,8 +438,8 @@ template<int C, int R> struct MatBase {};
 
 template<int C, int R> struct MatOp {
   using MatT = MatBase<C, R>;
-  using ColT = VecBase<double, R>;
-  using RowT = VecBase<double, C>;
+  using ColT = VecBase<float, R>;
+  using RowT = VecBase<float, C>;
 
   const ColT &operator[](int) const
   {
@@ -463,8 +460,8 @@ template<int C, int R> struct MatOp {
 };
 
 template<int R> struct MatBase<2, R> : MatOp<2, R> {
-  using T = double;
-  using ColT = VecBase<double, R>;
+  using T = float;
+  using ColT = VecBase<float, R>;
   ColT x, y;
 
   MatBase() = default;
@@ -475,8 +472,8 @@ template<int R> struct MatBase<2, R> : MatOp<2, R> {
 };
 
 template<int R> struct MatBase<3, R> : MatOp<3, R> {
-  using T = double;
-  using ColT = VecBase<double, R>;
+  using T = float;
+  using ColT = VecBase<float, R>;
   ColT x, y, z;
 
   MatBase() = default;
@@ -487,8 +484,8 @@ template<int R> struct MatBase<3, R> : MatOp<3, R> {
 };
 
 template<int R> struct MatBase<4, R> : MatOp<4, R> {
-  using T = double;
-  using ColT = VecBase<double, R>;
+  using T = float;
+  using ColT = VecBase<float, R>;
   ColT x, y, z, w;
 
   MatBase() = default;
@@ -557,8 +554,8 @@ struct SamplerBase {
   static constexpr int extent_dim = Dimensions + int(Array);
 
   using int_coord_type = VecBase<int, coord_dim>;
-  using flt_coord_type = VecBase<double, coord_dim>;
-  using derivative_type = VecBase<double, deriv_dim>;
+  using flt_coord_type = VecBase<float, coord_dim>;
+  using derivative_type = VecBase<float, deriv_dim>;
   using data_vec_type = VecBase<T, 4>;
   using size_vec_type = VecBase<int, extent_dim>;
 };
@@ -574,18 +571,18 @@ struct SamplerBase {
 TEX_TEMPLATE SizeVec textureSize(T, int) RET;
 TEX_TEMPLATE DataVec texelFetch(T, IntCoord, int) RET;
 TEX_TEMPLATE DataVec texelFetchOffset(T, IntCoord, int, IntCoord) RET;
-TEX_TEMPLATE DataVec texture(T, FltCoord, double /*bias*/ = 0.0) RET;
+TEX_TEMPLATE DataVec texture(T, FltCoord, float /*bias*/ = 0.0f) RET;
 TEX_TEMPLATE DataVec textureGather(T, FltCoord) RET;
 TEX_TEMPLATE DataVec textureGrad(T, FltCoord, DerivVec, DerivVec) RET;
-TEX_TEMPLATE DataVec textureLod(T, FltCoord, double) RET;
-TEX_TEMPLATE DataVec textureLodOffset(T, FltCoord, double, IntCoord) RET;
+TEX_TEMPLATE DataVec textureLod(T, FltCoord, float) RET;
+TEX_TEMPLATE DataVec textureLodOffset(T, FltCoord, float, IntCoord) RET;
 
 #undef TEX_TEMPLATE
 
-using samplerBuffer = SamplerBase<double, 1>;
-using sampler1D = SamplerBase<double, 1>;
-using sampler2D = SamplerBase<double, 2>;
-using sampler3D = SamplerBase<double, 3>;
+using samplerBuffer = SamplerBase<float, 1>;
+using sampler1D = SamplerBase<float, 1>;
+using sampler2D = SamplerBase<float, 2>;
+using sampler3D = SamplerBase<float, 3>;
 using isamplerBuffer = SamplerBase<int, 1>;
 using isampler1D = SamplerBase<int, 1>;
 using isampler2D = SamplerBase<int, 2>;
@@ -595,18 +592,18 @@ using usampler1D = SamplerBase<uint, 1>;
 using usampler2D = SamplerBase<uint, 2>;
 using usampler3D = SamplerBase<uint, 3>;
 
-using sampler1DArray = SamplerBase<double, 1, false, true>;
-using sampler2DArray = SamplerBase<double, 2, false, true>;
+using sampler1DArray = SamplerBase<float, 1, false, true>;
+using sampler2DArray = SamplerBase<float, 2, false, true>;
 using isampler1DArray = SamplerBase<int, 1, false, true>;
 using isampler2DArray = SamplerBase<int, 2, false, true>;
 using usampler1DArray = SamplerBase<uint, 1, false, true>;
 using usampler2DArray = SamplerBase<uint, 2, false, true>;
 
-using samplerCube = SamplerBase<double, 2, true>;
+using samplerCube = SamplerBase<float, 2, true>;
 using isamplerCube = SamplerBase<int, 2, true>;
 using usamplerCube = SamplerBase<uint, 2, true>;
 
-using samplerCubeArray = SamplerBase<double, 2, true, true>;
+using samplerCubeArray = SamplerBase<float, 2, true, true>;
 using isamplerCubeArray = SamplerBase<int, 2, true, true>;
 using usamplerCubeArray = SamplerBase<uint, 2, true, true>;
 
@@ -681,9 +678,9 @@ IMG_TEMPLATE uint imageAtomicCompSwap(const T &, IntCoord, uint, uint) = delete;
 
 #undef IMG_TEMPLATE
 
-using image1D = ImageBase<double, 1>;
-using image2D = ImageBase<double, 2>;
-using image3D = ImageBase<double, 3>;
+using image1D = ImageBase<float, 1>;
+using image2D = ImageBase<float, 2>;
+using image3D = ImageBase<float, 3>;
 using iimage1D = ImageBase<int, 1>;
 using iimage2D = ImageBase<int, 2>;
 using iimage3D = ImageBase<int, 3>;
@@ -691,8 +688,8 @@ using uimage1D = ImageBase<uint, 1>;
 using uimage2D = ImageBase<uint, 2>;
 using uimage3D = ImageBase<uint, 3>;
 
-using image1DArray = ImageBase<double, 1, true>;
-using image2DArray = ImageBase<double, 2, true>;
+using image1DArray = ImageBase<float, 1, true>;
+using image2DArray = ImageBase<float, 2, true>;
 using iimage1DArray = ImageBase<int, 1, true>;
 using iimage2DArray = ImageBase<int, 2, true>;
 using uimage1DArray = ImageBase<uint, 1, true>;
@@ -755,12 +752,12 @@ template<typename T> T exp(T) RET;
 template<typename T> T exp2(T) RET;
 template<typename T> T floor(T) RET;
 template<typename T> T fma(T, T, T) RET;
-double fma(double, double, double) RET;
+float fma(float, float, float) RET;
 template<typename T> T frexp(T, T) RET;
-bool isinf(double) RET;
-template<int D> VecBase<bool, D> isinf(VecOp<double, D>) RET;
-bool isnan(double) RET;
-template<int D> VecBase<bool, D> isnan(VecOp<double, D>) RET;
+bool isinf(float) RET;
+template<int D> VecBase<bool, D> isinf(VecOp<float, D>) RET;
+bool isnan(float) RET;
+template<int D> VecBase<bool, D> isnan(VecOp<float, D>) RET;
 template<typename T> T log(T) RET;
 template<typename T> T log2(T) RET;
 template<typename T> T modf(T, T);
@@ -819,47 +816,47 @@ template<typename T> T max(T, T) RET;
 template<typename T> T min(T, T) RET;
 template<typename T> T sign(T) RET;
 template<typename T, typename U> T clamp(T, U, U) RET;
-template<typename T> T clamp(T, double, double) RET;
+template<typename T> T clamp(T, float, float) RET;
 template<typename T, typename U> T max(T, U) RET;
 template<typename T, typename U> T min(T, U) RET;
 /* TODO(fclem): These should be restricted to floats. */
 template<typename T> T fract(T) RET;
 template<typename T> T inversesqrt(T) RET;
-double mod(double, double) RET;
-template<int D> VecBase<double, D> mod(VecOp<double, D>, double) RET;
-template<int D> VecBase<double, D> mod(VecOp<double, D>, VecOp<double, D>) RET;
+float mod(float, float) RET;
+template<int D> VecBase<float, D> mod(VecOp<float, D>, float) RET;
+template<int D> VecBase<float, D> mod(VecOp<float, D>, VecOp<float, D>) RET;
 template<typename T> T smoothstep(T, T, T) RET;
-double step(double, double) RET;
-template<int D> VecBase<double, D> step(VecOp<double, D>, VecOp<double, D>) RET;
-template<int D> VecBase<double, D> step(double, VecOp<double, D>) RET;
-double smoothstep(double, double, double) RET;
-template<int D> VecBase<double, D> smoothstep(double, double, VecOp<double, D>) RET;
+float step(float, float) RET;
+template<int D> VecBase<float, D> step(VecOp<float, D>, VecOp<float, D>) RET;
+template<int D> VecBase<float, D> step(float, VecOp<float, D>) RET;
+float smoothstep(float, float, float) RET;
+template<int D> VecBase<float, D> smoothstep(float, float, VecOp<float, D>) RET;
 
 template<typename T> T degrees(T) RET;
 template<typename T> T radians(T) RET;
 
 /* Declared explicitly to avoid type errors. */
-double mix(double, double, double) RET;
-template<int D> VecBase<double, D> mix(VecOp<double, D>, VecOp<double, D>, double) RET;
-template<int D> VecBase<double, D> mix(VecOp<double, D>, VecOp<double, D>, VecOp<double, D>) RET;
+float mix(float, float, float) RET;
+template<int D> VecBase<float, D> mix(VecOp<float, D>, VecOp<float, D>, float) RET;
+template<int D> VecBase<float, D> mix(VecOp<float, D>, VecOp<float, D>, VecOp<float, D>) RET;
 template<typename T, int D> VecBase<T, D> mix(VecOp<T, D>, VecOp<T, D>, VecOp<bool, D>) RET;
 
 #define select(A, B, C) mix(A, B, C)
 
-VecBase<double, 3> cross(VecOp<double, 3>, VecOp<double, 3>) RET;
-template<int D> double dot(VecOp<double, D>, VecOp<double, D>) RET;
-template<int D> double distance(VecOp<double, D>, VecOp<double, D>) RET;
-template<int D> double length(VecOp<double, D>) RET;
-template<int D> VecBase<double, D> normalize(VecOp<double, D>) RET;
+VecBase<float, 3> cross(VecOp<float, 3>, VecOp<float, 3>) RET;
+template<int D> float dot(VecOp<float, D>, VecOp<float, D>) RET;
+template<int D> float distance(VecOp<float, D>, VecOp<float, D>) RET;
+template<int D> float length(VecOp<float, D>) RET;
+template<int D> VecBase<float, D> normalize(VecOp<float, D>) RET;
 
-template<int D> VecBase<int, D> floatBitsToInt(VecOp<double, D>) RET;
-template<int D> VecBase<uint, D> floatBitsToUint(VecOp<double, D>) RET;
-template<int D> VecBase<double, D> intBitsToFloat(VecOp<int, D>) RET;
-template<int D> VecBase<double, D> uintBitsToFloat(VecOp<uint, D>) RET;
-int floatBitsToInt(double) RET;
-uint floatBitsToUint(double) RET;
-double intBitsToFloat(int) RET;
-double uintBitsToFloat(uint) RET;
+template<int D> VecBase<int, D> floatBitsToInt(VecOp<float, D>) RET;
+template<int D> VecBase<uint, D> floatBitsToUint(VecOp<float, D>) RET;
+template<int D> VecBase<float, D> intBitsToFloat(VecOp<int, D>) RET;
+template<int D> VecBase<float, D> uintBitsToFloat(VecOp<uint, D>) RET;
+int floatBitsToInt(float) RET;
+uint floatBitsToUint(float) RET;
+float intBitsToFloat(int) RET;
+float uintBitsToFloat(uint) RET;
 
 namespace gl_FragmentShader {
 /* Derivative functions. */
@@ -871,7 +868,7 @@ template<typename T> T fwidth(T) RET;
 /* Geometric functions. */
 template<typename T, int D> VecBase<T, D> faceforward(VecOp<T, D>, VecOp<T, D>, VecOp<T, D>) RET;
 template<typename T, int D> VecBase<T, D> reflect(VecOp<T, D>, VecOp<T, D>) RET;
-template<typename T, int D> VecBase<T, D> refract(VecOp<T, D>, VecOp<T, D>, double) RET;
+template<typename T, int D> VecBase<T, D> refract(VecOp<T, D>, VecOp<T, D>, float) RET;
 
 /* Atomic operations. */
 int atomicAdd(int &, int) RET;
@@ -924,7 +921,7 @@ extern const int gl_BaseVertex;
 extern const int gpu_BaseInstance;
 extern const int gpu_InstanceIndex;
 float4 gl_Position = float4(0);
-double gl_PointSize = 0;
+float gl_PointSize = 0;
 float gl_ClipDistance[6] = {0};
 int gpu_Layer = 0;
 int gpu_ViewportIndex = 0;

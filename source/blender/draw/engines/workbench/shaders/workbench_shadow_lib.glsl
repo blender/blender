@@ -46,11 +46,11 @@ VertOut vertex_main(VertIn vert_in)
   vec3 ws_P = drw_point_object_to_world(vert_in.lP);
   float extrude_distance = 1e5f;
   float L_FP = dot(L, pass_data.far_plane.xyz);
-  if (L_FP > 0.0) {
+  if (L_FP > 0.0f) {
     float signed_distance = dot(pass_data.far_plane.xyz, ws_P) - pass_data.far_plane.w;
     extrude_distance = -signed_distance / L_FP;
     /* Ensure we don't overlap the far plane. */
-    extrude_distance -= 1e-3;
+    extrude_distance -= 1e-3f;
   }
   vert_out.backPosition = drw_point_world_to_homogenous(ws_P + L * extrude_distance);
   vert_out.frontPosition = drw_point_world_to_homogenous(drw_point_object_to_world(vert_in.lP));
@@ -66,7 +66,7 @@ void export_vertex(GeomOut geom_out)
   gl_Position = geom_out.gpu_position;
 #ifdef GPU_METAL
   /* Apply depth bias. Prevents Z-fighting artifacts when fast-math is enabled. */
-  gl_Position.z += 0.00005;
+  gl_Position.z += 0.00005f;
 #endif
 }
 

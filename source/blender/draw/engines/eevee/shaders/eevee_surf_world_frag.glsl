@@ -24,7 +24,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_world)
 
 vec4 closure_to_rgba(Closure cl)
 {
-  return vec4(0.0);
+  return vec4(0.0f);
 }
 
 void main()
@@ -39,23 +39,23 @@ void main()
   g_data.P = -g_data.N;
   attrib_load();
 
-  nodetree_surface(0.0);
+  nodetree_surface(0.0f);
 
   g_holdout = saturate(g_holdout);
 
-  out_background.rgb = colorspace_safe_color(g_emission) * (1.0 - g_holdout);
+  out_background.rgb = colorspace_safe_color(g_emission) * (1.0f - g_holdout);
   out_background.a = saturate(average(g_transmittance)) * g_holdout;
 
-  if (g_data.ray_type == RAY_TYPE_CAMERA && world_background_blur != 0.0) {
+  if (g_data.ray_type == RAY_TYPE_CAMERA && world_background_blur != 0.0f) {
     float base_lod = sphere_probe_roughness_to_lod(world_background_blur);
-    float lod = max(1.0, base_lod);
-    float mix_factor = min(1.0, base_lod);
+    float lod = max(1.0f, base_lod);
+    float mix_factor = min(1.0f, base_lod);
     SphereProbeUvArea world_atlas_coord = reinterpret_as_atlas_coord(world_coord_packed);
     vec4 probe_color = lightprobe_spheres_sample(-g_data.N, lod, world_atlas_coord);
     out_background.rgb = mix(out_background.rgb, probe_color.rgb, mix_factor);
 
     SphericalHarmonicL1 volume_irradiance = lightprobe_volume_sample(
-        g_data.P, vec3(0.0), g_data.Ng);
+        g_data.P, vec3(0.0f), g_data.Ng);
     vec3 radiance_sh = spherical_harmonics_evaluate_lambert(-g_data.N, volume_irradiance);
     float radiance_mix_factor = sphere_probe_roughness_to_mix_fac(world_background_blur);
     out_background.rgb = mix(out_background.rgb, radiance_sh, radiance_mix_factor);
@@ -64,10 +64,10 @@ void main()
   /* Output environment pass. */
 #ifdef MAT_RENDER_PASS_SUPPORT
   vec4 environment = out_background;
-  environment.a = 1.0 - environment.a;
+  environment.a = 1.0f - environment.a;
   environment.rgb *= environment.a;
   output_renderpass_color(uniform_buf.render_pass.environment_id, environment);
 #endif
 
-  out_background = mix(vec4(0.0, 0.0, 0.0, 1.0), out_background, world_opacity_fade);
+  out_background = mix(vec4(0.0f, 0.0f, 0.0f, 1.0f), out_background, world_opacity_fade);
 }

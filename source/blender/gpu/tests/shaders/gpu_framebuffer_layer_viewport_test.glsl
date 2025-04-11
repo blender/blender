@@ -7,10 +7,10 @@ void main()
 {
   /* Full-screen triangle. */
   int v = gl_VertexID % 3;
-  float x = -1.0 + float((v & 1) << 2);
-  float y = -1.0 + float((v & 2) << 1);
+  float x = -1.0f + float((v & 1) << 2);
+  float y = -1.0f + float((v & 2) << 1);
   /* NOTE: Make it cover more than one viewport to test default scissors. */
-  gl_Position = vec4(x * 2.0, y * 2.0, 1.0, 1.0);
+  gl_Position = vec4(x * 2.0f, y * 2.0f, 1.0f, 1.0f);
 
   int index = gl_VertexID / 3;
   gpu_ViewportIndex = index % 16;

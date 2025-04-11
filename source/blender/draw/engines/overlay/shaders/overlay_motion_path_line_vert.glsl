@@ -55,7 +55,7 @@ VertOut vertex_main(VertIn vert_in)
   vec3 blend_base = (abs(frame - frameCurrent) == 0) ?
                         colorCurrentFrame.rgb :
                         colorBackground.rgb; /* "bleed" CFRAME color to ease color blending */
-  bool use_custom_color = customColorPre.x >= 0.0;
+  bool use_custom_color = customColorPre.x >= 0.0f;
 
   if (frame < frameCurrent) {
     vert_out.color.rgb = use_custom_color ? customColorPre : colorBeforeFrame.rgb;
@@ -66,7 +66,7 @@ VertOut vertex_main(VertIn vert_in)
   else /* if (frame == frameCurrent) */ {
     vert_out.color.rgb = use_custom_color ? colorCurrentFrame.rgb : blend_base;
   }
-  vert_out.color.a = 1.0;
+  vert_out.color.a = 1.0f;
 
   return vert_out;
 }
@@ -105,29 +105,29 @@ void geometry_main(VertOut geom_in[2],
   vec2 ss_P0 = geom_in[0].ss_P;
   vec2 ss_P1 = geom_in[1].ss_P;
 
-  vec2 edge_dir = orthogonal(normalize(ss_P1 - ss_P0 + 1e-8)) * sizeViewportInv;
+  vec2 edge_dir = orthogonal(normalize(ss_P1 - ss_P0 + 1e-8f)) * sizeViewportInv;
 
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
   float line_size = float(lineThickness) * sizePixel;
 
   GeomOut geom_out;
 
-  vec2 t0 = edge_dir * (line_size * (is_persp ? geom_in[0].hs_P.w : 1.0));
-  geom_out.gpu_position = geom_in[0].hs_P + vec4(t0, 0.0, 0.0);
+  vec2 t0 = edge_dir * (line_size * (is_persp ? geom_in[0].hs_P.w : 1.0f));
+  geom_out.gpu_position = geom_in[0].hs_P + vec4(t0, 0.0f, 0.0f);
   geom_out.color = geom_in[0].color;
   geom_out.ws_P = geom_in[0].ws_P;
   strip_EmitVertex(0, out_vertex_id, out_primitive_id, geom_out);
 
-  geom_out.gpu_position = geom_in[0].hs_P - vec4(t0, 0.0, 0.0);
+  geom_out.gpu_position = geom_in[0].hs_P - vec4(t0, 0.0f, 0.0f);
   strip_EmitVertex(1, out_vertex_id, out_primitive_id, geom_out);
 
-  vec2 t1 = edge_dir * (line_size * (is_persp ? geom_in[1].hs_P.w : 1.0));
-  geom_out.gpu_position = geom_in[1].hs_P + vec4(t1, 0.0, 0.0);
+  vec2 t1 = edge_dir * (line_size * (is_persp ? geom_in[1].hs_P.w : 1.0f));
+  geom_out.gpu_position = geom_in[1].hs_P + vec4(t1, 0.0f, 0.0f);
   geom_out.ws_P = geom_in[1].ws_P;
   geom_out.color = geom_in[1].color;
   strip_EmitVertex(2, out_vertex_id, out_primitive_id, geom_out);
 
-  geom_out.gpu_position = geom_in[1].hs_P - vec4(t1, 0.0, 0.0);
+  geom_out.gpu_position = geom_in[1].hs_P - vec4(t1, 0.0f, 0.0f);
   strip_EmitVertex(3, out_vertex_id, out_primitive_id, geom_out);
 }
 

@@ -44,7 +44,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_occupancy)
 
 vec4 closure_to_rgba(Closure cl)
 {
-  return vec4(0.0);
+  return vec4(0.0f);
 }
 
 void main()
@@ -69,7 +69,7 @@ void main()
     }
   }
   else {
-    if (volume_z > 0.0) {
+    if (volume_z > 0.0f) {
       uint hit_id = imageAtomicAdd(hit_count_img, texel, 1u);
       if (hit_id < VOLUME_HIT_DEPTH_MAX) {
         float value = gl_FrontFacing ? volume_z : -volume_z;

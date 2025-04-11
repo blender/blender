@@ -62,40 +62,40 @@ void main()
   float4 color = data_buf[gl_InstanceID].color_;
   float inst_color_data = color.a;
   mat4 obmat = input_mat;
-  obmat[0][3] = obmat[1][3] = obmat[2][3] = 0.0;
-  obmat[3][3] = 1.0;
+  obmat[0][3] = obmat[1][3] = obmat[2][3] = 0.0f;
+  obmat[3][3] = 1.0f;
 
   finalColor = color;
-  if (color.a < 0.0) {
-    finalColor.a = 1.0;
+  if (color.a < 0.0f) {
+    finalColor.a = 1.0f;
   }
 
   float lamp_spot_sine;
   vec3 vpos = pos;
-  vec3 vofs = vec3(0.0);
+  vec3 vofs = vec3(0.0f);
   /* Lights */
   if ((vclass & VCLASS_LIGHT_AREA_SHAPE) != 0) {
     /* HACK: use alpha color for spots to pass the area_size. */
-    if (inst_color_data < 0.0) {
+    if (inst_color_data < 0.0f) {
       lamp_area_size = vec2(-inst_color_data);
     }
     vpos.xy *= lamp_area_size;
   }
   else if ((vclass & VCLASS_LIGHT_SPOT_SHAPE) != 0) {
-    lamp_spot_sine = sqrt(1.0 - lamp_spot_cosine * lamp_spot_cosine);
-    lamp_spot_sine *= ((vclass & VCLASS_LIGHT_SPOT_BLEND) != 0) ? lamp_spot_blend : 1.0;
+    lamp_spot_sine = sqrt(1.0f - lamp_spot_cosine * lamp_spot_cosine);
+    lamp_spot_sine *= ((vclass & VCLASS_LIGHT_SPOT_BLEND) != 0) ? lamp_spot_blend : 1.0f;
     vpos = vec3(pos.xy * lamp_spot_sine, -lamp_spot_cosine);
   }
   else if ((vclass & VCLASS_LIGHT_DIST) != 0) {
     /* Meh nasty mess. Select one of the 6 axes to display on. (see light_distance_z_get()) */
     int dist_axis = int(pos.z);
-    float dist = pos.z - floor(pos.z) - 0.5;
+    float dist = pos.z - floor(pos.z) - 0.5f;
     float inv = sign(dist);
-    dist = (abs(dist) > 0.15) ? lamp_clip_end : lamp_clip_sta;
+    dist = (abs(dist) > 0.15f) ? lamp_clip_end : lamp_clip_sta;
     vofs[dist_axis] = inv * dist / length(obmat[dist_axis].xyz);
-    vpos.z = 0.0;
-    if (lamp_clip_end < 0.0) {
-      vpos = vofs = vec3(0.0);
+    vpos.z = 0.0f;
+    if (lamp_clip_end < 0.0f) {
+      vpos = vofs = vec3(0.0f);
     }
   }
   /* Camera */
@@ -103,7 +103,7 @@ void main()
     if ((vclass & VCLASS_CAMERA_VOLUME) != 0) {
       vpos.z = mix(color.b, color.a, pos.z);
     }
-    else if (camera_dist > 0.0) {
+    else if (camera_dist > 0.0f) {
       vpos.z = -abs(camera_dist);
     }
     else {
@@ -112,36 +112,36 @@ void main()
     vpos.xy = (camera_center + camera_corner * vpos.xy) * abs(vpos.z);
   }
   else if ((vclass & VCLASS_CAMERA_DIST) != 0) {
-    vofs.xy = vec2(0.0);
+    vofs.xy = vec2(0.0f);
     vofs.z = -mix(camera_dist_sta, camera_dist_end, pos.z);
-    vpos.z = 0.0;
+    vpos.z = 0.0f;
     /* Distance line endpoints color */
-    if (any(notEqual(pos.xy, vec2(0.0)))) {
+    if (any(notEqual(pos.xy, vec2(0.0f)))) {
       /* Override color. */
       switch (int(camera_distance_color)) {
         case 0: /* Mist */
-          finalColor = vec4(0.5, 0.5, 0.5, 1.0);
+          finalColor = vec4(0.5f, 0.5f, 0.5f, 1.0f);
           break;
         case 1: /* Mist Active */
-          finalColor = vec4(1.0, 1.0, 1.0, 1.0);
+          finalColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
           break;
         case 2: /* Clip */
-          finalColor = vec4(0.5, 0.5, 0.25, 1.0);
+          finalColor = vec4(0.5f, 0.5f, 0.25f, 1.0f);
           break;
         case 3: /* Clip Active */
-          finalColor = vec4(1.0, 1.0, 0.5, 1.0);
+          finalColor = vec4(1.0f, 1.0f, 0.5f, 1.0f);
           break;
       }
     }
     /* Focus cross */
-    if (pos.z == 2.0) {
-      vofs.z = 0.0;
-      if (camera_dist < 0.0) {
+    if (pos.z == 2.0f) {
+      vofs.z = 0.0f;
+      if (camera_dist < 0.0f) {
         vpos.z = -abs(camera_dist);
       }
       else {
         /* Disabled */
-        vpos = vec3(0.0);
+        vpos = vec3(0.0f);
       }
     }
   }
@@ -156,14 +156,14 @@ void main()
   }
   else if ((vclass & VCLASS_EMPTY_AXES) != 0) {
     float axis = vpos.z;
-    vofs[int(axis)] = (1.0 + fract(axis)) * empty_scale;
+    vofs[int(axis)] = (1.0f + fract(axis)) * empty_scale;
     /* Scale uniformly by axis length */
     vpos *= length(obmat[int(axis)].xyz) * empty_scale;
 
-    vec3 axis_color = vec3(0.0);
-    axis_color[int(axis)] = 1.0;
+    vec3 axis_color = vec3(0.0f);
+    axis_color[int(axis)] = 1.0f;
     finalColor.rgb = mix(axis_color + fract(axis), color.rgb, color.a);
-    finalColor.a = 1.0;
+    finalColor.a = 1.0f;
   }
 
   /* Not exclusive with previous flags. */
@@ -173,13 +173,13 @@ void main()
     float color_intensity = fract(color.r);
     switch (color_class) {
       case 0: /* No eye (convergence plane). */
-        finalColor = vec4(1.0, 1.0, 1.0, 1.0);
+        finalColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
         break;
       case 1: /* Left eye. */
-        finalColor = vec4(0.0, 1.0, 1.0, 1.0);
+        finalColor = vec4(0.0f, 1.0f, 1.0f, 1.0f);
         break;
       case 2: /* Right eye. */
-        finalColor = vec4(1.0, 0.0, 0.0, 1.0);
+        finalColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
         break;
     }
     finalColor *= vec4(vec3(color_intensity), color.g);
@@ -189,38 +189,38 @@ void main()
   if ((vclass & VCLASS_SCREENSPACE) != 0) {
     /* Relative to DPI scaling. Have constant screen size. */
     vec3 screen_pos = drw_view().viewinv[0].xyz * vpos.x + drw_view().viewinv[1].xyz * vpos.y;
-    vec3 p = (obmat * vec4(vofs, 1.0)).xyz;
+    vec3 p = (obmat * vec4(vofs, 1.0f)).xyz;
     float screen_size = mul_project_m4_v3_zfac(globalsBlock.pixel_fac, p) * sizePixel;
     world_pos = p + screen_pos * screen_size;
   }
   else if ((vclass & VCLASS_SCREENALIGNED) != 0) {
     /* World sized, camera facing geometry. */
     vec3 screen_pos = drw_view().viewinv[0].xyz * vpos.x + drw_view().viewinv[1].xyz * vpos.y;
-    world_pos = (obmat * vec4(vofs, 1.0)).xyz + screen_pos;
+    world_pos = (obmat * vec4(vofs, 1.0f)).xyz + screen_pos;
   }
   else {
-    world_pos = (obmat * vec4(vofs + vpos, 1.0)).xyz;
+    world_pos = (obmat * vec4(vofs + vpos, 1.0f)).xyz;
   }
 
   if ((vclass & VCLASS_LIGHT_SPOT_CONE) != 0) {
     /* Compute point on the cone before and after this one. */
     vec2 perp = vec2(pos.y, -pos.x);
-    const float incr_angle = 2.0 * 3.1415 / 32.0;
+    const float incr_angle = 2.0f * 3.1415f / 32.0f;
     const vec2 slope = vec2(cos(incr_angle), sin(incr_angle));
     vec3 p0 = vec3((pos.xy * slope.x + perp * slope.y) * lamp_spot_sine, -lamp_spot_cosine);
     vec3 p1 = vec3((pos.xy * slope.x - perp * slope.y) * lamp_spot_sine, -lamp_spot_cosine);
-    p0 = (obmat * vec4(p0, 1.0)).xyz;
-    p1 = (obmat * vec4(p1, 1.0)).xyz;
+    p0 = (obmat * vec4(p0, 1.0f)).xyz;
+    p1 = (obmat * vec4(p1, 1.0f)).xyz;
     /* Compute normals of each side. */
     vec3 edge = obmat[3].xyz - world_pos;
     vec3 n0 = normalize(cross(edge, p0 - world_pos));
     vec3 n1 = normalize(cross(edge, world_pos - p1));
-    bool persp = (drw_view().winmat[3][3] == 0.0);
+    bool persp = (drw_view().winmat[3][3] == 0.0f);
     vec3 V = (persp) ? normalize(drw_view().viewinv[3].xyz - world_pos) :
                        drw_view().viewinv[2].xyz;
     /* Discard non-silhouette edges. */
-    bool facing0 = dot(n0, V) > 0.0;
-    bool facing1 = dot(n1, V) > 0.0;
+    bool facing0 = dot(n0, V) > 0.0f;
+    bool facing1 = dot(n1, V) > 0.0f;
     if (facing0 == facing1) {
       /* Hide line by making it cover 0 pixels. */
       world_pos = obmat[3].xyz;
@@ -230,13 +230,13 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Convert to screen position [0..sizeVp]. */
-  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
+  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 
 #if defined(SELECT_ENABLE)
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
   /* TODO(fclem): Limit this workaround to selection. It's not very noticeable but still... */
-  gl_Position.xy += sizeViewportInv * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
+  gl_Position.xy += sizeViewportInv * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0f : 1.0f);
 #endif
 
   view_clipping_distances(world_pos);

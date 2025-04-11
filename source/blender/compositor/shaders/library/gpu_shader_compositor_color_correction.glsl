@@ -33,28 +33,28 @@ void node_composite_color_correction(vec4 color,
                                      const vec3 luminance_coefficients,
                                      out vec4 result)
 {
-  const float margin = 0.10;
-  const float margin_divider = 0.5 / margin;
-  float level = (color.r + color.g + color.b) / 3.0;
-  float level_shadows = 0.0;
-  float level_midtones = 0.0;
-  float level_highlights = 0.0;
+  const float margin = 0.10f;
+  const float margin_divider = 0.5f / margin;
+  float level = (color.r + color.g + color.b) / 3.0f;
+  float level_shadows = 0.0f;
+  float level_midtones = 0.0f;
+  float level_highlights = 0.0f;
   if (level < (start_midtones - margin)) {
-    level_shadows = 1.0;
+    level_shadows = 1.0f;
   }
   else if (level < (start_midtones + margin)) {
-    level_midtones = ((level - start_midtones) * margin_divider) + 0.5;
-    level_shadows = 1.0 - level_midtones;
+    level_midtones = ((level - start_midtones) * margin_divider) + 0.5f;
+    level_shadows = 1.0f - level_midtones;
   }
   else if (level < (end_midtones - margin)) {
-    level_midtones = 1.0;
+    level_midtones = 1.0f;
   }
   else if (level < (end_midtones + margin)) {
-    level_highlights = ((level - end_midtones) * margin_divider) + 0.5;
-    level_midtones = 1.0 - level_highlights;
+    level_highlights = ((level - end_midtones) * margin_divider) + 0.5f;
+    level_midtones = 1.0f - level_highlights;
   }
   else {
-    level_highlights = 1.0;
+    level_highlights = 1.0f;
   }
 
   float contrast = level_shadows * shadows_contrast;
@@ -78,14 +78,14 @@ void node_composite_color_correction(vec4 color,
   lift += level_highlights * highlights_lift;
   lift += master_lift;
 
-  float inverse_gamma = 1.0 / gamma;
+  float inverse_gamma = 1.0f / gamma;
   float luma = get_luminance(color.rgb, luminance_coefficients);
 
   vec3 corrected = luma + saturation * (color.rgb - luma);
-  corrected = 0.5 + (corrected - 0.5) * contrast;
+  corrected = 0.5f + (corrected - 0.5f) * contrast;
   corrected = fallback_pow(corrected * gain + lift, inverse_gamma, corrected);
-  corrected = mix(color.rgb, corrected, min(mask, 1.0));
+  corrected = mix(color.rgb, corrected, min(mask, 1.0f));
 
-  result.rgb = mix(corrected, color.rgb, equal(enabled_channels, vec3(0.0)));
+  result.rgb = mix(corrected, color.rgb, equal(enabled_channels, vec3(0.0f)));
   result.a = color.a;
 }

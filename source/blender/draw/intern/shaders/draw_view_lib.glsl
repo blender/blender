@@ -21,7 +21,7 @@ ViewMatrices drw_view()
 /* Returns true if the current view has a perspective projection matrix. */
 bool drw_view_is_perspective()
 {
-  return drw_view().winmat[3][3] == 0.0;
+  return drw_view().winmat[3][3] == 0.0f;
 }
 
 /* Returns the view forward vector, going towards the viewer. */
@@ -46,18 +46,18 @@ float drw_view_z_distance(vec3 P)
 float drw_view_far()
 {
   if (drw_view_is_perspective()) {
-    return -drw_view().winmat[3][2] / (drw_view().winmat[2][2] + 1.0);
+    return -drw_view().winmat[3][2] / (drw_view().winmat[2][2] + 1.0f);
   }
-  return -(drw_view().winmat[3][2] - 1.0) / drw_view().winmat[2][2];
+  return -(drw_view().winmat[3][2] - 1.0f) / drw_view().winmat[2][2];
 }
 
 /* Returns the projection matrix near clip distance. */
 float drw_view_near()
 {
   if (drw_view_is_perspective()) {
-    return -drw_view().winmat[3][2] / (drw_view().winmat[2][2] - 1.0);
+    return -drw_view().winmat[3][2] / (drw_view().winmat[2][2] - 1.0f);
   }
-  return -(drw_view().winmat[3][2] + 1.0) / drw_view().winmat[2][2];
+  return -(drw_view().winmat[3][2] + 1.0f) / drw_view().winmat[2][2];
 }
 
 /**
@@ -75,7 +75,7 @@ vec3 drw_world_incident_vector(vec3 P)
  */
 vec3 drw_view_incident_vector(vec3 vP)
 {
-  return drw_view_is_perspective() ? normalize(-vP) : vec3(0.0, 0.0, 1.0);
+  return drw_view_is_perspective() ? normalize(-vP) : vec3(0.0f, 0.0f, 1.0f);
 }
 
 /**
@@ -83,15 +83,15 @@ vec3 drw_view_incident_vector(vec3 vP)
  */
 vec3 drw_screen_to_ndc(vec3 ss_P)
 {
-  return ss_P * 2.0 - 1.0;
+  return ss_P * 2.0f - 1.0f;
 }
 vec2 drw_screen_to_ndc(vec2 ss_P)
 {
-  return ss_P * 2.0 - 1.0;
+  return ss_P * 2.0f - 1.0f;
 }
 float drw_screen_to_ndc(float ss_P)
 {
-  return ss_P * 2.0 - 1.0;
+  return ss_P * 2.0f - 1.0f;
 }
 
 /**
@@ -99,15 +99,15 @@ float drw_screen_to_ndc(float ss_P)
  */
 vec3 drw_ndc_to_screen(vec3 ndc_P)
 {
-  return ndc_P * 0.5 + 0.5;
+  return ndc_P * 0.5f + 0.5f;
 }
 vec2 drw_ndc_to_screen(vec2 ndc_P)
 {
-  return ndc_P * 0.5 + 0.5;
+  return ndc_P * 0.5f + 0.5f;
 }
 float drw_ndc_to_screen(float ndc_P)
 {
-  return ndc_P * 0.5 + 0.5;
+  return ndc_P * 0.5f + 0.5f;
 }
 
 /* -------------------------------------------------------------------- */
@@ -137,11 +137,11 @@ vec3 drw_perspective_divide(vec4 hs_P)
 
 vec3 drw_point_view_to_world(vec3 vP)
 {
-  return (drw_view().viewinv * vec4(vP, 1.0)).xyz;
+  return (drw_view().viewinv * vec4(vP, 1.0f)).xyz;
 }
 vec4 drw_point_view_to_homogenous(vec3 vP)
 {
-  return (drw_view().winmat * vec4(vP, 1.0));
+  return (drw_view().winmat * vec4(vP, 1.0f));
 }
 vec3 drw_point_view_to_ndc(vec3 vP)
 {
@@ -150,11 +150,11 @@ vec3 drw_point_view_to_ndc(vec3 vP)
 
 vec3 drw_point_world_to_view(vec3 P)
 {
-  return (drw_view().viewmat * vec4(P, 1.0)).xyz;
+  return (drw_view().viewmat * vec4(P, 1.0f)).xyz;
 }
 vec4 drw_point_world_to_homogenous(vec3 P)
 {
-  return (drw_view().winmat * (drw_view().viewmat * vec4(P, 1.0)));
+  return (drw_view().winmat * (drw_view().viewmat * vec4(P, 1.0f)));
 }
 vec3 drw_point_world_to_ndc(vec3 P)
 {
@@ -163,7 +163,7 @@ vec3 drw_point_world_to_ndc(vec3 P)
 
 vec3 drw_point_ndc_to_view(vec3 ssP)
 {
-  return drw_perspective_divide(drw_view().wininv * vec4(ssP, 1.0));
+  return drw_perspective_divide(drw_view().wininv * vec4(ssP, 1.0f));
 }
 vec3 drw_point_ndc_to_world(vec3 ssP)
 {
@@ -196,11 +196,11 @@ vec3 drw_point_screen_to_world(vec3 ssP)
 
 float drw_depth_view_to_screen(float v_depth)
 {
-  return drw_point_view_to_screen(vec3(0.0, 0.0, v_depth)).z;
+  return drw_point_view_to_screen(vec3(0.0f, 0.0f, v_depth)).z;
 }
 float drw_depth_screen_to_view(float ss_depth)
 {
-  return drw_point_screen_to_view(vec3(0.0, 0.0, ss_depth)).z;
+  return drw_point_screen_to_view(vec3(0.0f, 0.0f, ss_depth)).z;
 }
 
 /** \} */

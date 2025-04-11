@@ -45,7 +45,7 @@ vec2 calc_barycentric_co(int vertid)
 vec3 orco_get(vec3 local_pos, mat4 modelmatinv, vec4 orco_madd[2], const samplerBuffer orco_samp)
 {
   /* TODO: fix ORCO with modifiers. */
-  vec3 orco = (modelmatinv * vec4(local_pos, 1.0)).xyz;
+  vec3 orco = (modelmatinv * vec4(local_pos, 1.0f)).xyz;
   return orco_madd[0].xyz + orco * orco_madd[1].xyz;
 }
 
@@ -57,7 +57,7 @@ float hair_len_get(int id, const samplerBuffer len)
 vec4 tangent_get(const samplerBuffer attr, mat3 normalmat)
 {
   /* Unsupported */
-  return vec4(0.0);
+  return vec4(0.0f);
 }
 
 #else /* MESH_SHADER */
@@ -75,8 +75,8 @@ vec3 orco_get(vec3 local_pos, mat4 modelmatinv, vec4 orco_madd[2], vec4 orco)
    * using the orco_madd factors.
    * We know when there is no orco layer when orco.w is 1.0 because it uses the generic vertex
    * attribute (which is [0,0,0,1]). */
-  if (orco.w == 0.0) {
-    return orco.xyz * 0.5 + 0.5;
+  if (orco.w == 0.0f) {
+    return orco.xyz * 0.5f + 0.5f;
   }
   else {
     return orco_madd[0].xyz + local_pos * orco_madd[1].xyz;
@@ -95,7 +95,7 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
   tangent.w = attr.w;
   float len_sqr = dot(tangent.xyz, tangent.xyz);
   /* Normalize only if vector is not null. */
-  if (len_sqr > 0.0) {
+  if (len_sqr > 0.0f) {
     tangent.xyz *= inversesqrt(len_sqr);
   }
   return tangent;
@@ -105,20 +105,20 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 
 /* Assumes GPU_VEC4 is color data, special case that needs luminance coefficients from OCIO. */
 #define float_from_vec4(v, luminance_coefficients) dot(v.rgb, luminance_coefficients)
-#define float_from_vec3(v) ((v.r + v.g + v.b) * (1.0 / 3.0))
+#define float_from_vec3(v) ((v.r + v.g + v.b) * (1.0f / 3.0f))
 #define float_from_vec2(v) v.r
 
-#define vec2_from_vec4(v) vec2(((v.r + v.g + v.b) * (1.0 / 3.0)), v.a)
-#define vec2_from_vec3(v) vec2(((v.r + v.g + v.b) * (1.0 / 3.0)), 1.0)
+#define vec2_from_vec4(v) vec2(((v.r + v.g + v.b) * (1.0f / 3.0f)), v.a)
+#define vec2_from_vec3(v) vec2(((v.r + v.g + v.b) * (1.0f / 3.0f)), 1.0f)
 #define vec2_from_float(v) vec2(v)
 
 #define vec3_from_vec4(v) v.rgb
 #define vec3_from_vec2(v) v.rrr
 #define vec3_from_float(v) vec3(v)
 
-#define vec4_from_vec3(v) vec4(v, 1.0)
+#define vec4_from_vec3(v) vec4(v, 1.0f)
 #define vec4_from_vec2(v) v.rrrg
-#define vec4_from_float(v) vec4(vec3(v), 1.0)
+#define vec4_from_float(v) vec4(vec3(v), 1.0f)
 
 /* TODO: Move to shader_shared. */
 #define RAY_TYPE_CAMERA 0
@@ -321,15 +321,15 @@ GlobalData g_data;
 #ifndef GPU_FRAGMENT_SHADER
 /* Stubs. */
 
-#  define dF_impl(a) (vec3(0.0))
-#  define dF_branch(a, b, c) (c = vec2(0.0))
-#  define dF_branch_incomplete(a, b, c) (c = vec2(0.0))
+#  define dF_impl(a) (vec3(0.0f))
+#  define dF_branch(a, b, c) (c = vec2(0.0f))
+#  define dF_branch_incomplete(a, b, c) (c = vec2(0.0f))
 
 #elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
 /* Fast derivatives */
 vec3 dF_impl(vec3 v)
 {
-  return vec3(0.0);
+  return vec3(0.0f);
 }
 
 void dF_branch(float fn, out vec2 result)
@@ -343,7 +343,7 @@ void dF_branch(float fn, out vec2 result)
 #else
 
 /* Offset of coordinates for evaluating bump node. Unit in pixel. */
-float g_derivative_filter_width = 0.0;
+float g_derivative_filter_width = 0.0f;
 /* Precise derivatives */
 int g_derivative_flag = 0;
 
@@ -355,7 +355,7 @@ vec3 dF_impl(vec3 v)
   else if (g_derivative_flag < 0) {
     return dFdy(v) * g_derivative_filter_width;
   }
-  return vec3(0.0);
+  return vec3(0.0f);
 }
 
 #  define dF_branch(fn, filter_width, result) \

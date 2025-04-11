@@ -27,21 +27,21 @@ float dof_scatter_neighborhood_rejection(vec3 color)
 {
   color = min(vec3(dof_buf.scatter_neighbor_max_color), color);
 
-  float validity = 0.0;
+  float validity = 0.0f;
 
   /* Centered in the middle of 4 quarter res texel. */
-  vec2 texel_size = 1.0 / vec2(textureSize(downsample_tx, 0).xy);
-  vec2 uv = ((vec2(gl_GlobalInvocationID.xy) + 0.5) * 0.5) * texel_size;
+  vec2 texel_size = 1.0f / vec2(textureSize(downsample_tx, 0).xy);
+  vec2 uv = ((vec2(gl_GlobalInvocationID.xy) + 0.5f) * 0.5f) * texel_size;
 
   for (int i = 0; i < 4; i++) {
     vec2 sample_uv = uv + quad_offsets[i] * texel_size;
-    vec3 ref = textureLod(downsample_tx, sample_uv, 0.0).rgb;
+    vec3 ref = textureLod(downsample_tx, sample_uv, 0.0f).rgb;
 
     ref = min(vec3(dof_buf.scatter_neighbor_max_color), ref);
-    float diff = reduce_max(max(vec3(0.0), abs(ref - color)));
+    float diff = reduce_max(max(vec3(0.0f), abs(ref - color)));
 
-    const float rejection_threshold = 0.7;
-    diff = saturate(diff / rejection_threshold - 1.0);
+    const float rejection_threshold = 0.7f;
+    diff = saturate(diff / rejection_threshold - 1.0f);
     validity = max(validity, diff);
   }
 
@@ -53,31 +53,31 @@ float dof_scatter_neighborhood_rejection(vec3 color)
 float dof_scatter_screen_border_rejection(float coc, ivec2 texel)
 {
   vec2 screen_size = vec2(imageSize(inout_color_lod0_img));
-  vec2 uv = (vec2(texel) + 0.5) / screen_size;
+  vec2 uv = (vec2(texel) + 0.5f) / screen_size;
   vec2 screen_pos = uv * screen_size;
   float min_screen_border_distance = reduce_min(min(screen_pos, screen_size - screen_pos));
   /* Full-resolution to half-resolution CoC. */
-  coc *= 0.5;
+  coc *= 0.5f;
   /* Allow 10px transition. */
-  const float rejection_hardness = 1.0 / 10.0;
-  return saturate((min_screen_border_distance - abs(coc)) * rejection_hardness + 1.0);
+  const float rejection_hardness = 1.0f / 10.0f;
+  return saturate((min_screen_border_distance - abs(coc)) * rejection_hardness + 1.0f);
 }
 
 float dof_scatter_luminosity_rejection(vec3 color)
 {
-  const float rejection_hardness = 1.0;
+  const float rejection_hardness = 1.0f;
   return saturate(reduce_max(color - dof_buf.scatter_color_threshold) * rejection_hardness);
 }
 
 float dof_scatter_coc_radius_rejection(float coc)
 {
-  const float rejection_hardness = 0.3;
+  const float rejection_hardness = 0.3f;
   return saturate((abs(coc) - dof_buf.scatter_coc_threshold) * rejection_hardness);
 }
 
 float fast_luma(vec3 color)
 {
-  return (2.0 * color.g) + color.r + color.b;
+  return (2.0f * color.g) + color.r + color.b;
 }
 
 #define cache_size (gl_WorkGroupSize.x)
@@ -127,7 +127,7 @@ void main()
   do_scatter *= dof_scatter_neighborhood_rejection(local_color.rgb);
   /* For debugging. */
   if (no_scatter_pass) {
-    do_scatter = 0.0;
+    do_scatter = 0.0f;
   }
 
   /* Use coc_cache for broadcasting the do_scatter result. */
@@ -144,36 +144,36 @@ void main()
   barrier();
 
   /* Add a scatter sprite for each 2x2 pixel neighborhood passing the threshold. */
-  bool any_scatter = any(greaterThan(do_scatter4, vec4(0.0)));
+  bool any_scatter = any(greaterThan(do_scatter4, vec4(0.0f)));
   if (all(equal(thread_co & 1u, uvec2(0))) && any_scatter) {
     /* Apply energy conservation to anamorphic scattered bokeh. */
     do_scatter4 *= reduce_max(dof_buf.bokeh_anisotropic_scale_inv);
     /* Circle of Confusion. */
     vec4 coc4 = load4_coc_cache(thread_co);
     /* We are scattering at half resolution, so divide CoC by 2. */
-    coc4 *= 0.5;
+    coc4 *= 0.5f;
     /* Sprite center position. Center sprite around the 4 texture taps. */
     vec2 offset = vec2(gl_GlobalInvocationID.xy) + 1;
     /* Add 2.5 to max_coc because the max_coc may not be centered on the sprite origin
      * and because we smooth the bokeh shape a bit in the pixel shader. */
-    vec2 half_extent = reduce_max(abs(coc4)) * dof_buf.bokeh_anisotropic_scale + 2.5;
+    vec2 half_extent = reduce_max(abs(coc4)) * dof_buf.bokeh_anisotropic_scale + 2.5f;
     /* Follows quad_offsets order. */
     vec3 color4_0 = load_color_cache(thread_co + quad_offsets_u[0]).rgb;
     vec3 color4_1 = load_color_cache(thread_co + quad_offsets_u[1]).rgb;
     vec3 color4_2 = load_color_cache(thread_co + quad_offsets_u[2]).rgb;
     vec3 color4_3 = load_color_cache(thread_co + quad_offsets_u[3]).rgb;
     /* Issue a sprite for each field if any CoC matches. */
-    if (any(lessThan(do_scatter4 * sign(coc4), vec4(0.0)))) {
+    if (any(lessThan(do_scatter4 * sign(coc4), vec4(0.0f)))) {
       /* Same value for all threads. Not an issue if we don't sync access to it. */
       scatter_fg_indirect_buf.vertex_len = 4u;
       /* Issue 1 strip instance per sprite. */
       uint rect_id = atomicAdd(scatter_fg_indirect_buf.instance_len, 1u);
       if (rect_id < dof_buf.scatter_max_rect) {
 
-        vec4 coc4_fg = max(vec4(0.0), -coc4);
+        vec4 coc4_fg = max(vec4(0.0f), -coc4);
         vec4 fg_weights = dof_layer_weight(coc4_fg) * dof_sample_weight(coc4_fg) * do_scatter4;
         /* Filter NaNs. */
-        fg_weights = select(fg_weights, vec4(0.0), equal(coc4_fg, vec4(0.0)));
+        fg_weights = select(fg_weights, vec4(0.0f), equal(coc4_fg, vec4(0.0f)));
 
         ScatterRect rect_fg;
         rect_fg.offset = offset;
@@ -196,16 +196,16 @@ void main()
         scatter_fg_list_buf[rect_id] = rect_fg;
       }
     }
-    if (any(greaterThan(do_scatter4 * sign(coc4), vec4(0.0)))) {
+    if (any(greaterThan(do_scatter4 * sign(coc4), vec4(0.0f)))) {
       /* Same value for all threads. Not an issue if we don't sync access to it. */
       scatter_bg_indirect_buf.vertex_len = 4u;
       /* Issue 1 strip instance per sprite. */
       uint rect_id = atomicAdd(scatter_bg_indirect_buf.instance_len, 1u);
       if (rect_id < dof_buf.scatter_max_rect) {
-        vec4 coc4_bg = max(vec4(0.0), coc4);
+        vec4 coc4_bg = max(vec4(0.0f), coc4);
         vec4 bg_weights = dof_layer_weight(coc4_bg) * dof_sample_weight(coc4_bg) * do_scatter4;
         /* Filter NaNs. */
-        bg_weights = select(bg_weights, vec4(0.0), equal(coc4_bg, vec4(0.0)));
+        bg_weights = select(bg_weights, vec4(0.0f), equal(coc4_bg, vec4(0.0f)));
 
         ScatterRect rect_bg;
         rect_bg.offset = offset;
@@ -228,7 +228,7 @@ void main()
   }
 
   /* Remove scatter color from gather. */
-  vec4 color_lod0 = load_color_cache(thread_co) * (1.0 - do_scatter);
+  vec4 color_lod0 = load_color_cache(thread_co) * (1.0f - do_scatter);
   store_color_cache(thread_co, color_lod0);
 
   imageStore(inout_color_lod0_img, texel, color_lod0);

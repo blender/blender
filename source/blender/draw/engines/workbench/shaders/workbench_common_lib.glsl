@@ -6,17 +6,17 @@
 
 #include "gpu_glsl_cpp_stubs.hh"
 
-#define EPSILON 0.00001
+#define EPSILON 0.00001f
 
-#define CAVITY_BUFFER_RANGE 4.0
+#define CAVITY_BUFFER_RANGE 4.0f
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Sphere-map Transform */
 vec3 workbench_normal_decode(vec4 enc)
 {
-  vec2 fenc = enc.xy * 4.0 - 2.0;
+  vec2 fenc = enc.xy * 4.0f - 2.0f;
   float f = dot(fenc, fenc);
-  float g = sqrt(1.0 - f / 4.0);
+  float g = sqrt(1.0f - f / 4.0f);
   vec3 n;
   n.xy = fenc * g;
   n.z = 1 - f / 2;
@@ -28,8 +28,8 @@ vec3 workbench_normal_decode(vec4 enc)
 vec2 workbench_normal_encode(bool front_face, vec3 n)
 {
   n = normalize(front_face ? n : -n);
-  float p = sqrt(n.z * 8.0 + 8.0);
-  n.xy = clamp(n.xy / p + 0.5, 0.0, 1.0);
+  float p = sqrt(n.z * 8.0f + 8.0f);
+  n.xy = clamp(n.xy / p + 0.5f, 0.0f, 1.0f);
   return n.xy;
 }
 
@@ -59,6 +59,6 @@ void workbench_float_pair_decode(float data, out float v1, out float v2)
   const int v1_mask = 0x1F;
   const int v2_mask = 0x7;
   int idata = int(data);
-  v1 = float(idata & v1_mask) * (1.0 / float(v1_mask));
-  v2 = float(idata >> int(ROUGHNESS_BITS)) * (1.0 / float(v2_mask));
+  v1 = float(idata & v1_mask) * (1.0f / float(v1_mask));
+  v2 = float(idata >> int(ROUGHNESS_BITS)) * (1.0f / float(v2_mask));
 }

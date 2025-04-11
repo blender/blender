@@ -13,11 +13,11 @@
  * intentionally not normalized. */
 float smooth_min(float a, float b, float smoothness)
 {
-  if (smoothness == 0.0) {
+  if (smoothness == 0.0f) {
     return min(a, b);
   }
-  float h = max(smoothness - abs(a - b), 0.0) / smoothness;
-  return min(a, b) - h * h * smoothness * (1.0 / 4.0);
+  float h = max(smoothness - abs(a - b), 0.0f) / smoothness;
+  return min(a, b) - h * h * smoothness * (1.0f / 4.0f);
 }
 
 float smooth_max(float a, float b, float smoothness)
@@ -48,8 +48,8 @@ float smooth_clamp(
 float adaptive_smooth_clamp(float x, float min_value, float max_value, float smoothness)
 {
   float range_distance = distance(min_value, max_value);
-  float distance_from_min_to_zero = distance(min_value, 0.0);
-  float distance_from_max_to_zero = distance(max_value, 0.0);
+  float distance_from_min_to_zero = distance(min_value, 0.0f);
+  float distance_from_max_to_zero = distance(max_value, 0.0f);
 
   float max_safe_smoothness_for_min = min(distance_from_min_to_zero, range_distance);
   float max_safe_smoothness_for_max = min(distance_from_max_to_zero, range_distance);
@@ -64,7 +64,7 @@ void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  vec2 normalized_coordinates = (vec2(texel) + vec2(0.5)) / vec2(imageSize(output_img));
+  vec2 normalized_coordinates = (vec2(texel) + vec2(0.5f)) / vec2(imageSize(output_img));
 
   vec4 hsva;
   rgb_to_hsv(texture(input_tx, normalized_coordinates), hsva);
@@ -87,5 +87,5 @@ void main()
   vec4 rgba;
   hsv_to_rgb(hsva, rgba);
 
-  imageStore(output_img, texel, vec4(rgba.rgb, 1.0));
+  imageStore(output_img, texel, vec4(rgba.rgb, 1.0f));
 }

@@ -34,15 +34,15 @@ void main()
   /* Do not trace where nothing was rendered. */
   if (texelFetch(gbuf_header_tx, ivec3(texel_fullres, 0), 0).r == 0u) {
 #if 0 /* This is not needed as the next stage doesn't do bilinear filtering. */
-    imageStore(horizon_radiance_0_img, texel, vec4(0.0));
-    imageStore(horizon_radiance_1_img, texel, vec4(0.0));
-    imageStore(horizon_radiance_2_img, texel, vec4(0.0));
-    imageStore(horizon_radiance_3_img, texel, vec4(0.0));
+    imageStore(horizon_radiance_0_img, texel, vec4(0.0f));
+    imageStore(horizon_radiance_1_img, texel, vec4(0.0f));
+    imageStore(horizon_radiance_2_img, texel, vec4(0.0f));
+    imageStore(horizon_radiance_3_img, texel, vec4(0.0f));
 #endif
     return;
   }
 
-  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
+  vec2 uv = (vec2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
   float depth = texelFetch(hiz_tx, texel_fullres, 0).r;
   vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
   vec3 vN = horizon_scan_sample_normal(uv);

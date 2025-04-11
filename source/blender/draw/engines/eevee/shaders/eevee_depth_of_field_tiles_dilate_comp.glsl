@@ -17,7 +17,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_dilate)
 #include "eevee_depth_of_field_lib.glsl"
 
 /* Error introduced by the random offset of the gathering kernel's center. */
-#define bluring_radius_error float(1.0 + 1.0 / (float(DOF_GATHER_RING_COUNT) + 0.5))
+#define bluring_radius_error float(1.0f + 1.0f / (float(DOF_GATHER_RING_COUNT) + 0.5f))
 #define tile_to_fullres_factor float(float(DOF_TILES_SIZE * 2))
 
 void main()
@@ -50,7 +50,7 @@ void main()
           ring_buckets[ring].bg_min_coc = min(ring_buckets[ring].bg_min_coc, adj_tile.bg_min_coc);
 
           /* Should be tight as possible to reduce gather overhead (see slide 61). */
-          float closest_neighbor_distance = length(max(abs(vec2(offset)) - 1.0, 0.0)) *
+          float closest_neighbor_distance = length(max(abs(vec2(offset)) - 1.0f, 0.0f)) *
                                             tile_to_fullres_factor;
 
           ring_buckets[ring].fg_max_intersectable_coc = max(

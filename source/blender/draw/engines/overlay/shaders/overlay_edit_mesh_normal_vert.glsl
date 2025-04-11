@@ -18,15 +18,15 @@ VERTEX_SHADER_CREATE_INFO(overlay_mesh_loop_normal)
 
 bool test_occlusion()
 {
-  vec3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5 + 0.5;
-  return (ndc.z - 0.00035) > texture(depthTex, ndc.xy).r;
+  vec3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5f + 0.5f;
+  return (ndc.z - 0.00035f) > texture(depthTex, ndc.xy).r;
 }
 
 void main()
 {
   /* Avoid undefined behavior after return. */
-  finalColor = vec4(0.0);
-  gl_Position = vec4(0.0);
+  finalColor = vec4(0.0f);
+  gl_Position = vec4(0.0f);
 
 #if defined(FACE_NORMAL) || defined(VERT_NORMAL) || defined(LOOP_NORMAL)
   /* Point primitive. */
@@ -92,14 +92,14 @@ void main()
 
   /* Select the right normal by checking if the generic attribute is used. */
   if (!all(equal(lnor.xyz, vec3(0)))) {
-    if (lnor.w < 0.0) {
+    if (lnor.w < 0.0f) {
       return;
     }
     nor = lnor.xyz;
     finalColor = colorLNormal;
   }
   else if (!all(equal(vnor.xyz, vec3(0)))) {
-    if (vnor.w < 0.0) {
+    if (vnor.w < 0.0f) {
       return;
     }
     nor = vnor.xyz;
@@ -120,7 +120,7 @@ void main()
 
   if ((gl_VertexID & 1) == 0) {
     if (isConstantScreenSizeNormals) {
-      bool is_persp = (drw_view().winmat[3][3] == 0.0);
+      bool is_persp = (drw_view().winmat[3][3] == 0.0f);
       if (is_persp) {
         float dist_fac = length(drw_view_position() - world_pos);
         float cos_fac = dot(drw_view_forward(), drw_world_incident_vector(world_pos));
@@ -139,7 +139,7 @@ void main()
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  finalColor.a *= (test_occlusion()) ? alpha : 1.0;
+  finalColor.a *= (test_occlusion()) ? alpha : 1.0f;
 
   view_clipping_distances(world_pos);
 }

@@ -16,7 +16,7 @@ void main()
 {
   select_id_set(drw_custom_id());
 
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
   float time, thick_time, thickness;
   vec3 world_pos, tangent, binor;
   hair_get_pos_tan_binor_time(is_persp,

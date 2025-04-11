@@ -15,7 +15,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_armature_stick)
 /* project to screen space */
 vec2 proj(vec4 hs_P)
 {
-  return (0.5 * (hs_P.xy / hs_P.w) + 0.5) * sizeViewport;
+  return (0.5f * (hs_P.xy / hs_P.w) + 0.5f) * sizeViewport;
 }
 
 void main()
@@ -27,21 +27,22 @@ void main()
                                                      data_buf[gl_InstanceID].tail_color;
   finalInnerColor = flag_test(bone_flag, COL_BONE) ? data_buf[gl_InstanceID].bone_color :
                                                      finalInnerColor;
-  finalWireColor = (data_buf[gl_InstanceID].wire_color.a > 0.0) ?
+  finalWireColor = (data_buf[gl_InstanceID].wire_color.a > 0.0f) ?
                        data_buf[gl_InstanceID].wire_color :
                        finalInnerColor;
-  colorFac = flag_test(bone_flag, COL_WIRE) ? 0.0 : (flag_test(bone_flag, COL_BONE) ? 1.0 : 2.0);
+  colorFac = flag_test(bone_flag, COL_WIRE) ? 0.0f :
+                                              (flag_test(bone_flag, COL_BONE) ? 1.0f : 2.0f);
 
-  vec4 boneStart_4d = vec4(data_buf[gl_InstanceID].bone_start.xyz, 1.0);
-  vec4 boneEnd_4d = vec4(data_buf[gl_InstanceID].bone_end.xyz, 1.0);
+  vec4 boneStart_4d = vec4(data_buf[gl_InstanceID].bone_start.xyz, 1.0f);
+  vec4 boneEnd_4d = vec4(data_buf[gl_InstanceID].bone_end.xyz, 1.0f);
   vec4 v0 = drw_view().viewmat * boneStart_4d;
   vec4 v1 = drw_view().viewmat * boneEnd_4d;
 
   /* Clip the bone to the camera origin plane (not the clip plane)
    * to avoid glitches if one end is behind the camera origin (in perspective mode). */
-  float clip_dist = (drw_view().winmat[3][3] == 0.0) ?
-                        -1e-7 :
-                        1e20; /* hard-coded, -1e-8 is giving glitches. */
+  float clip_dist = (drw_view().winmat[3][3] == 0.0f) ?
+                        -1e-7f :
+                        1e20f; /* hard-coded, -1e-8f is giving glitches. */
   vec3 bvec = v1.xyz - v0.xyz;
   vec3 clip_pt = v0.xyz + bvec * ((v0.z - clip_dist) / -bvec.z);
   if (v0.z > clip_dist) {
@@ -59,22 +60,22 @@ void main()
 
   float h = (is_head) ? p0.w : p1.w;
 
-  vec2 x_screen_vec = normalize(proj(p1) - proj(p0) + 1e-8);
+  vec2 x_screen_vec = normalize(proj(p1) - proj(p0) + 1e-8f);
   vec2 y_screen_vec = vec2(x_screen_vec.y, -x_screen_vec.x);
 
   /* 2D screen aligned pos at the point */
   vec2 vpos = pos.x * x_screen_vec + pos.y * y_screen_vec;
-  vpos *= (drw_view().winmat[3][3] == 0.0) ? h : 1.0;
-  vpos *= (data_buf[gl_InstanceID].wire_color.a > 0.0) ? 1.0 : 0.5;
+  vpos *= (drw_view().winmat[3][3] == 0.0f) ? h : 1.0f;
+  vpos *= (data_buf[gl_InstanceID].wire_color.a > 0.0f) ? 1.0f : 0.5f;
 
-  if (finalInnerColor.a > 0.0) {
-    float stick_size = sizePixel * 5.0;
+  if (finalInnerColor.a > 0.0f) {
+    float stick_size = sizePixel * 5.0f;
     gl_Position = (is_head) ? p0 : p1;
     gl_Position.xy += stick_size * (vpos * sizeViewportInv);
-    gl_Position.z += (is_bone) ? 0.0 : 1e-6; /* Avoid Z fighting of head/tails. */
+    gl_Position.z += (is_bone) ? 0.0f : 1e-6f; /* Avoid Z fighting of head/tails. */
     view_clipping_distances((is_head ? boneStart_4d : boneEnd_4d).xyz);
   }
   else {
-    gl_Position = vec4(0.0);
+    gl_Position = vec4(0.0f);
   }
 }

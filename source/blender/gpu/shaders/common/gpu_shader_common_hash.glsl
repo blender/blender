@@ -177,13 +177,13 @@ float hash_vec4_to_float(vec4 k)
 
 vec2 hash_vec2_to_vec2(vec2 k)
 {
-  return vec2(hash_vec2_to_float(k), hash_vec3_to_float(vec3(k, 1.0)));
+  return vec2(hash_vec2_to_float(k), hash_vec3_to_float(vec3(k, 1.0f)));
 }
 
 vec3 hash_vec3_to_vec3(vec3 k)
 {
   return vec3(
-      hash_vec3_to_float(k), hash_vec4_to_float(vec4(k, 1.0)), hash_vec4_to_float(vec4(k, 2.0)));
+      hash_vec3_to_float(k), hash_vec4_to_float(vec4(k, 1.0f)), hash_vec4_to_float(vec4(k, 2.0f)));
 }
 
 vec4 hash_vec4_to_vec4(vec4 k)
@@ -198,14 +198,15 @@ vec4 hash_vec4_to_vec4(vec4 k)
 
 vec3 hash_float_to_vec3(float k)
 {
-  return vec3(
-      hash_float_to_float(k), hash_vec2_to_float(vec2(k, 1.0)), hash_vec2_to_float(vec2(k, 2.0)));
+  return vec3(hash_float_to_float(k),
+              hash_vec2_to_float(vec2(k, 1.0f)),
+              hash_vec2_to_float(vec2(k, 2.0f)));
 }
 
 vec3 hash_vec2_to_vec3(vec2 k)
 {
   return vec3(
-      hash_vec2_to_float(k), hash_vec3_to_float(vec3(k, 1.0)), hash_vec3_to_float(vec3(k, 2.0)));
+      hash_vec2_to_float(k), hash_vec3_to_float(vec3(k, 1.0f)), hash_vec3_to_float(vec3(k, 2.0f)));
 }
 
 vec3 hash_vec4_to_vec3(vec4 k)
@@ -217,7 +218,7 @@ vec3 hash_vec4_to_vec3(vec4 k)
 
 vec2 hash_float_to_vec2(float k)
 {
-  return vec2(hash_float_to_float(k), hash_vec2_to_float(vec2(k, 1.0)));
+  return vec2(hash_float_to_float(k), hash_vec2_to_float(vec2(k, 1.0f)));
 }
 
 vec2 hash_vec3_to_vec2(vec3 k)
@@ -240,7 +241,7 @@ float integer_noise(int n)
   nn = (uint(n) + 1013u) & 0x7fffffffu;
   nn = (nn >> 13u) ^ nn;
   nn = (uint(nn * (nn * nn * 60493u + 19990303u)) + 1376312589u) & 0x7fffffffu;
-  return 0.5 * (float(nn) / 1073741824.0);
+  return 0.5f * (float(nn) / 1073741824.0f);
 }
 
 float wang_hash_noise(uint s)
@@ -251,5 +252,5 @@ float wang_hash_noise(uint s)
   s *= 0x27d4eb2du;
   s = s ^ (s >> 15u);
 
-  return fract(float(s) / 4294967296.0);
+  return fract(float(s) / 4294967296.0f);
 }

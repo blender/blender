@@ -6,9 +6,9 @@
 
 vec3 vector_math_safe_normalize(vec3 a)
 {
-  /* Match the safe normalize function in Cycles by defaulting to vec3(0.0) */
+  /* Match the safe normalize function in Cycles by defaulting to vec3(0.0f) */
   float length_sqr = length_squared(a);
-  return (length_sqr > 1e-35f) ? a * inversesqrt(length_sqr) : vec3(0.0);
+  return (length_sqr > 1e-35f) ? a * inversesqrt(length_sqr) : vec3(0.0f);
 }
 
 void vector_math_add(vec3 a, vec3 b, vec3 c, float scale, out vec3 outVector, out float outValue)
@@ -43,7 +43,7 @@ void vector_math_project(
     vec3 a, vec3 b, vec3 c, float scale, out vec3 outVector, out float outValue)
 {
   float lenSquared = dot(b, b);
-  outVector = (lenSquared != 0.0) ? (dot(a, b) / lenSquared) * b : vec3(0.0);
+  outVector = (lenSquared != 0.0f) ? (dot(a, b) / lenSquared) * b : vec3(0.0f);
 }
 
 void vector_math_reflect(
@@ -80,7 +80,7 @@ void vector_math_normalize(
   outVector = a;
   /* Safe version of normalize(a). */
   float lenSquared = dot(a, a);
-  if (lenSquared > 0.0) {
+  if (lenSquared > 0.0f) {
     outVector *= inversesqrt(lenSquared);
   }
 }

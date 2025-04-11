@@ -20,8 +20,8 @@ vec3 brdf_approx(vec3 spec_color, float roughness, float NV)
 {
   /* Very rough approximation. We don't need it to be correct, just fast.
    * Just simulate fresnel effect with roughness attenuation. */
-  float fresnel = exp2(-8.35 * NV) * (1.0 - roughness);
-  return mix(spec_color, vec3(1.0), fresnel);
+  float fresnel = exp2(-8.35f * NV) * (1.0f - roughness);
+  return mix(spec_color, vec3(1.0f), fresnel);
 }
 
 void prep_specular(
@@ -29,16 +29,16 @@ void prep_specular(
 {
   wrapped_NL = dot(L, R);
   vec3 half_dir = normalize(L + I);
-  spec_angle = clamp(dot(half_dir, N), 0.0, 1.0);
-  NL = clamp(dot(L, N), 0.0, 1.0);
+  spec_angle = clamp(dot(half_dir, N), 0.0f, 1.0f);
+  NL = clamp(dot(L, N), 0.0f, 1.0f);
 }
 
 /* Normalized Blinn shading */
 vec4 blinn_specular(vec4 shininess, vec4 spec_angle, vec4 NL)
 {
   /* Pi is already divided in the light power.
-   * normalization_factor = (shininess + 8.0) / (8.0 * M_PI) */
-  vec4 normalization_factor = shininess * 0.125 + 1.0;
+   * normalization_factor = (shininess + 8.0f) / (8.0f * M_PI) */
+  vec4 normalization_factor = shininess * 0.125f + 1.0f;
   vec4 spec_light = pow(spec_angle, shininess) * NL * normalization_factor;
 
   return spec_light;
@@ -47,9 +47,9 @@ vec4 blinn_specular(vec4 shininess, vec4 spec_angle, vec4 NL)
 /* NL need to be unclamped. w in [0..1] range. */
 vec4 wrapped_lighting(vec4 NL, vec4 w)
 {
-  vec4 w_1 = w + 1.0;
+  vec4 w_1 = w + 1.0f;
   vec4 denom = fast_rcp(w_1 * w_1);
-  return clamp((NL + w) * denom, 0.0, 1.0);
+  return clamp((NL + w) * denom, 0.0f, 1.0f);
 }
 
 vec3 get_world_lighting(vec3 base_color, float roughness, float metallic, vec3 N, vec3 I)
@@ -57,12 +57,12 @@ vec3 get_world_lighting(vec3 base_color, float roughness, float metallic, vec3 N
   vec3 specular_color, diffuse_color;
 
   if (world_data.use_specular) {
-    diffuse_color = mix(base_color, vec3(0.0), metallic);
-    specular_color = mix(vec3(0.05), base_color, metallic);
+    diffuse_color = mix(base_color, vec3(0.0f), metallic);
+    specular_color = mix(vec3(0.05f), base_color, metallic);
   }
   else {
     diffuse_color = base_color;
-    specular_color = vec3(0.0);
+    specular_color = vec3(0.0f);
   }
 
   vec3 specular_light = world_data.ambient_color.rgb;
@@ -93,15 +93,15 @@ vec3 get_world_lighting(vec3 base_color, float roughness, float metallic, vec3 N
     prep_specular(
         world_data.lights[3].direction.xyz, I, N, R, spec_NL[3], wrap_NL[3], spec_angle[3]);
 
-    vec4 gloss = vec4(1.0 - roughness);
+    vec4 gloss = vec4(1.0f - roughness);
     /* Reduce gloss for smooth light. (simulate bigger light) */
-    gloss *= 1.0 - wrap;
-    vec4 shininess = exp2(10.0 * gloss + 1.0);
+    gloss *= 1.0f - wrap;
+    vec4 shininess = exp2(10.0f * gloss + 1.0f);
 
     vec4 spec_light = blinn_specular(shininess, AS_VEC4(spec_angle), AS_VEC4(spec_NL));
 
     /* Simulate Env. light. */
-    vec4 w = mix(wrap, vec4(1.0), roughness);
+    vec4 w = mix(wrap, vec4(1.0f), roughness);
     vec4 spec_env = wrapped_lighting(AS_VEC4(wrap_NL), w);
 #undef AS_VEC4
 
@@ -113,7 +113,7 @@ vec3 get_world_lighting(vec3 base_color, float roughness, float metallic, vec3 N
     specular_light += spec_light.z * world_data.lights[2].specular_color.rgb;
     specular_light += spec_light.w * world_data.lights[3].specular_color.rgb;
 
-    float NV = clamp(dot(N, I), 0.0, 1.0);
+    float NV = clamp(dot(N, I), 0.0f, 1.0f);
     specular_color = brdf_approx(specular_color, roughness, NV);
   }
   specular_light *= specular_color;
@@ -135,9 +135,9 @@ vec3 get_world_lighting(vec3 base_color, float roughness, float metallic, vec3 N
 
   /* Energy conservation with colored specular look strange.
    * Limit this strangeness by using mono-chromatic specular intensity. */
-  float spec_energy = dot(specular_color, vec3(0.33333));
+  float spec_energy = dot(specular_color, vec3(0.33333f));
 
-  diffuse_light *= diffuse_color * (1.0 - spec_energy);
+  diffuse_light *= diffuse_color * (1.0f - spec_energy);
 
   return diffuse_light + specular_light;
 }
@@ -146,6 +146,6 @@ float get_shadow(vec3 N, bool force_shadowing)
 {
   float light_factor = -dot(N, world_data.shadow_direction_vs.xyz);
   float shadow_mix = smoothstep(world_data.shadow_shift, world_data.shadow_focus, light_factor);
-  shadow_mix *= force_shadowing ? 0.0 : world_data.shadow_mul;
+  shadow_mix *= force_shadowing ? 0.0f : world_data.shadow_mul;
   return shadow_mix + world_data.shadow_add;
 }

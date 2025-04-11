@@ -28,7 +28,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_shadow_atomic)
 
 vec4 closure_to_rgba(Closure cl)
 {
-  return vec4(0.0);
+  return vec4(0.0f);
 }
 
 void main()
@@ -40,7 +40,7 @@ void main()
 /* We need to write to `gl_FragDepth` un-conditionally. So we cannot early exit or use discard. */
 #  define discard_result \
     linear_depth = FLT_MAX; \
-    ndc_depth = 1.0;
+    ndc_depth = 1.0f;
 #else
 #  define discard_result \
     discard; \
@@ -48,14 +48,14 @@ void main()
 #endif
 
   /* Clip to light shape. */
-  if (length_squared(shadow_clip.vector) < 1.0) {
+  if (length_squared(shadow_clip.vector) < 1.0f) {
     discard_result;
   }
 
 #ifdef MAT_TRANSPARENT
   init_globals();
 
-  nodetree_surface(0.0);
+  nodetree_surface(0.0f);
 
   float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
   float random_threshold = pcg4d(vec4(g_data.P, noise_offset)).x;

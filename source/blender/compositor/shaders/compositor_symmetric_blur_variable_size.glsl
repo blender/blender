@@ -18,7 +18,7 @@ vec4 load_input(ivec2 texel)
     /* Notice that we subtract 1 because the weights texture have an extra center weight, see the
      * SymmetricBlurWeights class for more information. */
     ivec2 blur_radius = texture_size(weights_tx) - 1;
-    color = texture_load(input_tx, texel - blur_radius, vec4(0.0));
+    color = texture_load(input_tx, texel - blur_radius, vec4(0.0f));
   }
   else {
     color = texture_load(input_tx, texel);
@@ -33,15 +33,15 @@ float load_size(ivec2 texel)
 {
   ivec2 blur_radius = texture_size(weights_tx) - 1;
   ivec2 offset = extend_bounds ? blur_radius : ivec2(0);
-  return clamp(texture_load(size_tx, texel - offset).x, 0.0, 1.0);
+  return clamp(texture_load(size_tx, texel - offset).x, 0.0f, 1.0f);
 }
 
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  vec4 accumulated_color = vec4(0.0);
-  vec4 accumulated_weight = vec4(0.0);
+  vec4 accumulated_color = vec4(0.0f);
+  vec4 accumulated_weight = vec4(0.0f);
 
   /* The weights texture only stores the weights for the first quadrant, but since the weights are
    * symmetric, other quadrants can be found using mirroring. It follows that the base blur radius
@@ -49,7 +49,7 @@ void main()
   ivec2 weights_size = texture_size(weights_tx);
   ivec2 base_radius = weights_size - ivec2(1);
   ivec2 radius = ivec2(ceil(vec2(base_radius) * load_size(texel)));
-  vec2 coordinates_scale = vec2(1.0) / vec2(radius + ivec2(1));
+  vec2 coordinates_scale = vec2(1.0f) / vec2(radius + ivec2(1));
 
   /* First, compute the contribution of the center pixel. */
   vec4 center_color = load_input(texel);
@@ -62,11 +62,11 @@ void main()
    * symmetric, the same weight is used for the negative half and we add both of their
    * contributions. */
   for (int x = 1; x <= radius.x; x++) {
-    float weight_coordinates = (x + 0.5) * coordinates_scale.x;
-    float weight = texture(weights_tx, vec2(weight_coordinates, 0.0)).x;
+    float weight_coordinates = (x + 0.5f) * coordinates_scale.x;
+    float weight = texture(weights_tx, vec2(weight_coordinates, 0.0f)).x;
     accumulated_color += load_input(texel + ivec2(x, 0)) * weight;
     accumulated_color += load_input(texel + ivec2(-x, 0)) * weight;
-    accumulated_weight += weight * 2.0;
+    accumulated_weight += weight * 2.0f;
   }
 
   /* Then, compute the contributions of the pixels along the y axis of the filter, noting that the
@@ -74,11 +74,11 @@ void main()
    * symmetric, the same weight is used for the negative half and we add both of their
    * contributions. */
   for (int y = 1; y <= radius.y; y++) {
-    float weight_coordinates = (y + 0.5) * coordinates_scale.y;
-    float weight = texture(weights_tx, vec2(0.0, weight_coordinates)).x;
+    float weight_coordinates = (y + 0.5f) * coordinates_scale.y;
+    float weight = texture(weights_tx, vec2(0.0f, weight_coordinates)).x;
     accumulated_color += load_input(texel + ivec2(0, y)) * weight;
     accumulated_color += load_input(texel + ivec2(0, -y)) * weight;
-    accumulated_weight += weight * 2.0;
+    accumulated_weight += weight * 2.0f;
   }
 
   /* Finally, compute the contributions of the pixels in the four quadrants of the filter, noting
@@ -87,13 +87,13 @@ void main()
    * of their contributions. */
   for (int y = 1; y <= radius.y; y++) {
     for (int x = 1; x <= radius.x; x++) {
-      vec2 weight_coordinates = (vec2(x, y) + vec2(0.5)) * coordinates_scale;
+      vec2 weight_coordinates = (vec2(x, y) + vec2(0.5f)) * coordinates_scale;
       float weight = texture(weights_tx, weight_coordinates).x;
       accumulated_color += load_input(texel + ivec2(x, y)) * weight;
       accumulated_color += load_input(texel + ivec2(-x, y)) * weight;
       accumulated_color += load_input(texel + ivec2(x, -y)) * weight;
       accumulated_color += load_input(texel + ivec2(-x, -y)) * weight;
-      accumulated_weight += weight * 4.0;
+      accumulated_weight += weight * 4.0f;
     }
   }
 

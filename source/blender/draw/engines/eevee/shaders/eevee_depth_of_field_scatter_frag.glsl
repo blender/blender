@@ -16,7 +16,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_depth_of_field_scatter)
 #include "eevee_depth_of_field_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
-#define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0, 1.0))
+#define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0f, 1.0f))
 
 void main()
 {
@@ -41,9 +41,9 @@ void main()
   /* Becomes signed distance field in pixel units. */
   shapes -= coc4;
   /* Smooth the edges a bit to fade out the undersampling artifacts. */
-  shapes = saturate(1.0 - linearstep(-0.8, 0.8, shapes));
+  shapes = saturate(1.0f - linearstep(-0.8f, 0.8f, shapes));
   /* Outside of bokeh shape. Try to avoid overloading ROPs. */
-  if (reduce_max(shapes) == 0.0) {
+  if (reduce_max(shapes) == 0.0f) {
     discard;
     return;
   }
@@ -53,19 +53,19 @@ void main()
     vec2 uv = gl_FragCoord.xy / vec2(textureSize(occlusion_tx, 0).xy);
     vec2 occlusion_data = texture(occlusion_tx, uv).rg;
     /* Fix tilling artifacts. (Slide 90) */
-    const float correction_fac = 1.0 - DOF_FAST_GATHER_COC_ERROR;
+    const float correction_fac = 1.0f - DOF_FAST_GATHER_COC_ERROR;
     /* Occlude the sprite with geometry from the same field using a chebychev test (slide 85). */
     float mean = occlusion_data.x;
     float variance = occlusion_data.y;
-    shapes *= variance * safe_rcp(variance + square(max(coc4 * correction_fac - mean, 0.0)));
+    shapes *= variance * safe_rcp(variance + square(max(coc4 * correction_fac - mean, 0.0f)));
   }
 
   out_color = (interp_flat.color_and_coc1 * shapes[0] + interp_flat.color_and_coc2 * shapes[1] +
                interp_flat.color_and_coc3 * shapes[2] + interp_flat.color_and_coc4 * shapes[3]);
   /* Do not accumulate alpha. This has already been accumulated by the gather pass. */
-  out_color.a = 0.0;
+  out_color.a = 0.0f;
 
   if (debug_scatter_perf) {
-    out_color.rgb = average(out_color.rgb) * vec3(1.0, 0.0, 0.0);
+    out_color.rgb = average(out_color.rgb) * vec3(1.0f, 0.0f, 0.0f);
   }
 }

@@ -21,7 +21,7 @@ void main()
    * corner of the border. */
   ivec2 input_bounds = textureSize(input_tx, 0).xy - ivec2(1);
   if (any(lessThan(texel, offset)) || any(greaterThan(texel, offset + input_bounds))) {
-    imageStoreFast(output_img, texel, vec4(0.0));
+    imageStoreFast(output_img, texel, vec4(0.0f));
     return;
   }
 

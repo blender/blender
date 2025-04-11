@@ -19,7 +19,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_debug_draw)
 
 /** Global switch option. */
 bool drw_debug_draw_enable = true;
-#  define drw_debug_default_color vec4(1.0, 0.0, 0.0, 1.0)
+#  define drw_debug_default_color vec4(1.0f, 0.0f, 0.0f, 1.0f)
 #  define drw_debug_default_lifetime 1
 #  define drw_debug_persistent_lifetime (~0u)
 
@@ -147,7 +147,7 @@ void drw_debug_point(vec3 p, float radius)
 }
 void drw_debug_point(vec3 p)
 {
-  drw_debug_point(p, 0.01);
+  drw_debug_point(p, 0.01f);
 }
 
 /**
@@ -165,12 +165,12 @@ void drw_debug_sphere(vec3 p, float radius, vec4 v_color, uint lifetime)
     uint pcolor = debug_color_pack(v_color);
     for (int axis = 0; axis < 3; axis++) {
       for (int edge = 0; edge < circle_resolution; edge++) {
-        float angle1 = (2.0 * 3.141592) * float(edge + 0) / float(circle_resolution);
-        vec3 p1 = vec3(cos(angle1), sin(angle1), 0.0) * radius;
+        float angle1 = (2.0f * 3.141592f) * float(edge + 0) / float(circle_resolution);
+        vec3 p1 = vec3(cos(angle1), sin(angle1), 0.0f) * radius;
         p1 = vec3(p1[(0 + axis) % 3], p1[(1 + axis) % 3], p1[(2 + axis) % 3]);
 
-        float angle2 = (2.0 * 3.141592) * float(edge + 1) / float(circle_resolution);
-        vec3 p2 = vec3(cos(angle2), sin(angle2), 0.0) * radius;
+        float angle2 = (2.0f * 3.141592f) * float(edge + 1) / float(circle_resolution);
+        vec3 p2 = vec3(cos(angle2), sin(angle2), 0.0f) * radius;
         p2 = vec3(p2[(0 + axis) % 3], p2[(1 + axis) % 3], p2[(2 + axis) % 3]);
 
         drw_debug_line(vertid, p + p1, p + p2, pcolor, lifetime);

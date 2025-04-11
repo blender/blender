@@ -80,17 +80,17 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect_sh);
 
   /* Combine all radiance. */
-  vec3 radiance_direct = vec3(0.0);
-  vec3 radiance_indirect = vec3(0.0);
+  vec3 radiance_direct = vec3(0.0f);
+  vec3 radiance_indirect = vec3(0.0f);
   for (uchar i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
-    ClosureUndetermined cl = g_closure_get_resolved(i, 1.0);
-    if (cl.weight > 1e-5) {
+    ClosureUndetermined cl = g_closure_get_resolved(i, 1.0f);
+    if (cl.weight > 1e-5f) {
       vec3 direct_light = closure_light_get(stack, i).light_shadowed;
       vec3 indirect_light = lightprobe_eval(samp, cl, g_data.P, V, thickness);
 
       if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
            cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
-          (thickness != 0.0))
+          (thickness != 0.0f))
       {
         /* We model two transmission event, so the surface color need to be applied twice. */
         cl.color *= cl.color;

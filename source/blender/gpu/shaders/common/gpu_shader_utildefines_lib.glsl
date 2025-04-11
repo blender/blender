@@ -33,7 +33,7 @@
 /**
  * Clamp input into [0..1] range.
  */
-#  define saturate(a) clamp(a, 0.0, 1.0)
+#  define saturate(a) clamp(a, 0.0f, 1.0f)
 
 #  define isfinite(a) (!isinf(a) && !isnan(a))
 
@@ -147,14 +147,14 @@ float orderedIntBitsToFloat(int int_value)
  */
 vec3 offset_ray(vec3 P, vec3 Ng)
 {
-  const float origin = 1.0 / 32.0;
-  const float float_scale = 1.0 / 65536.0;
-  const float int_scale = 256.0;
+  const float origin = 1.0f / 32.0f;
+  const float float_scale = 1.0f / 65536.0f;
+  const float int_scale = 256.0f;
 
   ivec3 of_i = ivec3(int_scale * Ng);
-  of_i = ivec3((P.x < 0.0) ? -of_i.x : of_i.x,
-               (P.y < 0.0) ? -of_i.y : of_i.y,
-               (P.z < 0.0) ? -of_i.z : of_i.z);
+  of_i = ivec3((P.x < 0.0f) ? -of_i.x : of_i.x,
+               (P.y < 0.0f) ? -of_i.y : of_i.y,
+               (P.z < 0.0f) ? -of_i.z : of_i.z);
   vec3 P_i = intBitsToFloat(floatBitsToInt(P) + of_i);
 
   vec3 uf = P + float_scale * Ng;

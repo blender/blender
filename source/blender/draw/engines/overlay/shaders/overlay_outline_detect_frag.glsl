@@ -44,11 +44,11 @@ bvec4 gather_edges(vec2 uv, uint ref)
 #ifdef GPU_ARB_texture_gather
   ids = textureGather(outlineId, uv);
 #else
-  vec3 ofs = vec3(0.5, 0.5, -0.5) * sizeViewportInv.xyy;
-  ids.x = textureLod(outlineId, uv - ofs.xz, 0.0).r;
-  ids.y = textureLod(outlineId, uv + ofs.xy, 0.0).r;
-  ids.z = textureLod(outlineId, uv + ofs.xz, 0.0).r;
-  ids.w = textureLod(outlineId, uv - ofs.xy, 0.0).r;
+  vec3 ofs = vec3(0.5f, 0.5f, -0.5f) * sizeViewportInv.xyy;
+  ids.x = textureLod(outlineId, uv - ofs.xz, 0.0f).r;
+  ids.y = textureLod(outlineId, uv + ofs.xy, 0.0f).r;
+  ids.z = textureLod(outlineId, uv + ofs.xz, 0.0f).r;
+  ids.w = textureLod(outlineId, uv - ofs.xy, 0.0f).r;
 #endif
 
   return notEqual(ids, uvec4(ref));
@@ -99,16 +99,16 @@ bool line_offset(bvec2 edges, vec2 ofs, inout vec2 line_point)
 }
 
 /* Changes Anti-aliasing pattern and makes line thicker. 0.0 is thin. */
-#define PROXIMITY_OFS -0.35
+#define PROXIMITY_OFS -0.35f
 
 /* Use surrounding edges to approximate the outline direction to create smooth lines. */
 void straight_line_dir(bvec4 edges1, bvec4 edges2, out vec2 line_start, out vec2 line_end)
 {
   /* Y_POS as reference. Other cases are rotated to match reference. */
-  line_end = vec2(1.5, 0.5 + PROXIMITY_OFS);
+  line_end = vec2(1.5f, 0.5f + PROXIMITY_OFS);
   line_start = vec2(-line_end.x, line_end.y);
 
-  vec2 line_ofs = vec2(1.0, 0.5);
+  vec2 line_ofs = vec2(1.0f, 0.5f);
   if (line_offset(edges1.xw, line_ofs, line_end)) {
     line_offset(edges1.yz, line_ofs, line_end);
   }
@@ -124,19 +124,19 @@ vec2 diag_offset(bvec4 edges)
    * So the line is coming from bottom left. */
   if (all(edges.wz)) {
     /* Horizontal line. */
-    return vec2(2.5, 0.5);
+    return vec2(2.5f, 0.5f);
   }
   else if (all(not(edges.xw))) {
     /* Vertical line. */
-    return vec2(0.5, 2.5);
+    return vec2(0.5f, 2.5f);
   }
   else if (edges.w) {
     /* Less horizontal Line. */
-    return vec2(2.5, 0.5);
+    return vec2(2.5f, 0.5f);
   }
   else {
     /* Less vertical Line. */
-    return vec2(0.5, 2.5);
+    return vec2(0.5f, 2.5f);
   }
 }
 
@@ -151,26 +151,26 @@ void diag_dir(bvec4 edges1, bvec4 edges2, out vec2 line_start, out vec2 line_end
 
   if (line_end.x == line_end.y) {
     /* Perfect diagonal line. Push line start towards edge. */
-    line_start = vec2(-1.0, 1.0) * PROXIMITY_OFS * 0.4;
+    line_start = vec2(-1.0f, 1.0f) * PROXIMITY_OFS * 0.4f;
   }
   else if (line_end.x > line_end.y) {
     /* Horizontal Line. Lower line start. */
-    line_start = vec2(0.0, PROXIMITY_OFS);
+    line_start = vec2(0.0f, PROXIMITY_OFS);
   }
   else {
     /* Vertical Line. Push line start to the right. */
-    line_start = -vec2(PROXIMITY_OFS, 0.0);
+    line_start = -vec2(PROXIMITY_OFS, 0.0f);
   }
   line_end += line_start;
 }
 
 void main()
 {
-  uint ref = textureLod(outlineId, uvcoordsvar.xy, 0.0).r;
+  uint ref = textureLod(outlineId, uvcoordsvar.xy, 0.0f).r;
   uint ref_col = ref;
 
   vec2 uvs = gl_FragCoord.xy * sizeViewportInv;
-  vec3 ofs = vec3(sizeViewportInv, 0.0);
+  vec3 ofs = vec3(sizeViewportInv, 0.0f);
 
   vec2 depth_uv = uvs;
 
@@ -179,24 +179,24 @@ void main()
   /* Reminder: Samples order is CW starting from top left. */
   uvec2 tmp1, tmp2, tmp3, tmp4;
   if (doThickOutlines) {
-    tmp1 = textureGather(outlineId, uvs + ofs.xy * vec2(1.5, -0.5)).xy;
-    tmp2 = textureGather(outlineId, uvs + ofs.xy * vec2(-1.5, -0.5)).yx;
-    tmp3 = textureGather(outlineId, uvs + ofs.xy * vec2(0.5, 1.5)).wx;
-    tmp4 = textureGather(outlineId, uvs + ofs.xy * vec2(0.5, -1.5)).xw;
+    tmp1 = textureGather(outlineId, uvs + ofs.xy * vec2(1.5f, -0.5f)).xy;
+    tmp2 = textureGather(outlineId, uvs + ofs.xy * vec2(-1.5f, -0.5f)).yx;
+    tmp3 = textureGather(outlineId, uvs + ofs.xy * vec2(0.5f, 1.5f)).wx;
+    tmp4 = textureGather(outlineId, uvs + ofs.xy * vec2(0.5f, -1.5f)).xw;
     ids.x = tmp1.x;
     ids.y = tmp2.x;
     ids.z = tmp3.x;
     ids.w = tmp4.x;
   }
   else {
-    ids.xz = textureGather(outlineId, uvs + ofs.xy * 0.5).zx;
-    ids.yw = textureGather(outlineId, uvs - ofs.xy * 0.5).xz;
+    ids.xz = textureGather(outlineId, uvs + ofs.xy * 0.5f).zx;
+    ids.yw = textureGather(outlineId, uvs - ofs.xy * 0.5f).xz;
   }
 #else
-  ids.x = textureLod(outlineId, uvs + ofs.xz, 0.0).r;
-  ids.y = textureLod(outlineId, uvs - ofs.xz, 0.0).r;
-  ids.z = textureLod(outlineId, uvs + ofs.zy, 0.0).r;
-  ids.w = textureLod(outlineId, uvs - ofs.zy, 0.0).r;
+  ids.x = textureLod(outlineId, uvs + ofs.xz, 0.0f).r;
+  ids.y = textureLod(outlineId, uvs - ofs.xz, 0.0f).r;
+  ids.z = textureLod(outlineId, uvs + ofs.zy, 0.0f).r;
+  ids.w = textureLod(outlineId, uvs - ofs.zy, 0.0f).r;
 #endif
 
   bool has_edge_pos_x = has_edge(ids.x, uvs + ofs.xz, ref, ref_col, depth_uv);
@@ -212,16 +212,16 @@ void main()
       ids.z = tmp3.y;
       ids.w = tmp4.y;
 #else
-      ids.x = textureLod(outlineId, uvs + 2.0 * ofs.xz, 0.0).r;
-      ids.y = textureLod(outlineId, uvs - 2.0 * ofs.xz, 0.0).r;
-      ids.z = textureLod(outlineId, uvs + 2.0 * ofs.zy, 0.0).r;
-      ids.w = textureLod(outlineId, uvs - 2.0 * ofs.zy, 0.0).r;
+      ids.x = textureLod(outlineId, uvs + 2.0f * ofs.xz, 0.0f).r;
+      ids.y = textureLod(outlineId, uvs - 2.0f * ofs.xz, 0.0f).r;
+      ids.z = textureLod(outlineId, uvs + 2.0f * ofs.zy, 0.0f).r;
+      ids.w = textureLod(outlineId, uvs - 2.0f * ofs.zy, 0.0f).r;
 #endif
 
-      has_edge_pos_x = has_edge(ids.x, uvs + 2.0 * ofs.xz, ref, ref_col, depth_uv);
-      has_edge_neg_x = has_edge(ids.y, uvs - 2.0 * ofs.xz, ref, ref_col, depth_uv);
-      has_edge_pos_y = has_edge(ids.z, uvs + 2.0 * ofs.zy, ref, ref_col, depth_uv);
-      has_edge_neg_y = has_edge(ids.w, uvs - 2.0 * ofs.zy, ref, ref_col, depth_uv);
+      has_edge_pos_x = has_edge(ids.x, uvs + 2.0f * ofs.xz, ref, ref_col, depth_uv);
+      has_edge_neg_x = has_edge(ids.y, uvs - 2.0f * ofs.xz, ref, ref_col, depth_uv);
+      has_edge_pos_y = has_edge(ids.z, uvs + 2.0f * ofs.zy, ref, ref_col, depth_uv);
+      has_edge_neg_y = has_edge(ids.w, uvs - 2.0f * ofs.zy, ref, ref_col, depth_uv);
     }
   }
 
@@ -233,7 +233,7 @@ void main()
   /* WATCH: Keep in sync with outlineId of the pre-pass. */
   uint color_id = ref_col >> 14u;
   if (ref_col == 0u) {
-    fragColor = vec4(0.0);
+    fragColor = vec4(0.0f);
   }
   else if (color_id == 1u) {
     fragColor = colorSelect;
@@ -245,15 +245,15 @@ void main()
     fragColor = colorTransform;
   }
 
-  float ref_depth = textureLod(outlineDepth, depth_uv, 0.0).r;
-  float scene_depth = textureLod(sceneDepth, depth_uv, 0.0).r;
+  float ref_depth = textureLod(outlineDepth, depth_uv, 0.0f).r;
+  float scene_depth = textureLod(sceneDepth, depth_uv, 0.0f).r;
 
   /* Avoid bad cases of Z-fighting for occlusion only. */
-  const float epsilon = 3.0 / 8388608.0;
+  const float epsilon = 3.0f / 8388608.0f;
   bool occluded = (ref_depth > scene_depth + epsilon);
 
   /* NOTE: We never set alpha to 1.0 to avoid Anti-aliasing destroying the line. */
-  fragColor *= (occluded ? alphaOcclu : 1.0) * (254.0 / 255.0);
+  fragColor *= (occluded ? alphaOcclu : 1.0f) * (254.0f / 255.0f);
 
   int edge_case = 0;
   edge_case += int(has_edge_pos_x) * XPOS;
@@ -270,7 +270,7 @@ void main()
   }
 
   if (!doAntiAliasing) {
-    lineOutput = vec4(0.0);
+    lineOutput = vec4(0.0f);
     return;
   }
 
@@ -280,13 +280,13 @@ void main()
   switch (edge_case) {
       /* Straight lines. */
     case YPOS:
-      extra_edges = gather_edges(uvs + sizeViewportInv * vec2(2.5, 0.5), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv * vec2(-2.5, 0.5), ref);
+      extra_edges = gather_edges(uvs + sizeViewportInv * vec2(2.5f, 0.5f), ref);
+      extra_edges2 = gather_edges(uvs + sizeViewportInv * vec2(-2.5f, 0.5f), ref);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
       break;
     case YNEG:
-      extra_edges = gather_edges(uvs + sizeViewportInv * vec2(-2.5, -0.5), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv * vec2(2.5, -0.5), ref);
+      extra_edges = gather_edges(uvs + sizeViewportInv * vec2(-2.5f, -0.5f), ref);
+      extra_edges2 = gather_edges(uvs + sizeViewportInv * vec2(2.5f, -0.5f), ref);
       extra_edges = rotate_180(extra_edges);
       extra_edges2 = rotate_180(extra_edges2);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -294,8 +294,8 @@ void main()
       line_end = rotate_180(line_end);
       break;
     case XPOS:
-      extra_edges = gather_edges(uvs + sizeViewportInv * vec2(0.5, 2.5), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv * vec2(0.5, -2.5), ref);
+      extra_edges = gather_edges(uvs + sizeViewportInv * vec2(0.5f, 2.5f), ref);
+      extra_edges2 = gather_edges(uvs + sizeViewportInv * vec2(0.5f, -2.5f), ref);
       extra_edges = rotate_90(extra_edges);
       extra_edges2 = rotate_90(extra_edges2);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -303,8 +303,8 @@ void main()
       line_end = rotate_90(line_end);
       break;
     case XNEG:
-      extra_edges = gather_edges(uvs + sizeViewportInv * vec2(-0.5, 2.5), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv * vec2(-0.5, -2.5), ref);
+      extra_edges = gather_edges(uvs + sizeViewportInv * vec2(-0.5f, 2.5f), ref);
+      extra_edges2 = gather_edges(uvs + sizeViewportInv * vec2(-0.5f, -2.5f), ref);
       extra_edges = rotate_270(extra_edges);
       extra_edges2 = rotate_270(extra_edges2);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -314,13 +314,13 @@ void main()
 
       /* Diagonal */
     case DIAG_XNEG_YPOS:
-      extra_edges = gather_edges(uvs + ofs.xy * vec2(1.5), ref);
-      extra_edges2 = gather_edges(uvs + ofs.xy * vec2(-1.5), ref);
+      extra_edges = gather_edges(uvs + ofs.xy * vec2(1.5f), ref);
+      extra_edges2 = gather_edges(uvs + ofs.xy * vec2(-1.5f), ref);
       diag_dir(extra_edges, extra_edges2, line_start, line_end);
       break;
     case DIAG_XPOS_YNEG:
-      extra_edges = gather_edges(uvs - ofs.xy * vec2(1.5), ref);
-      extra_edges2 = gather_edges(uvs - ofs.xy * vec2(-1.5), ref);
+      extra_edges = gather_edges(uvs - ofs.xy * vec2(1.5f), ref);
+      extra_edges2 = gather_edges(uvs - ofs.xy * vec2(-1.5f), ref);
       extra_edges = rotate_180(extra_edges);
       extra_edges2 = rotate_180(extra_edges2);
       diag_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -328,8 +328,8 @@ void main()
       line_end = rotate_180(line_end);
       break;
     case DIAG_XPOS_YPOS:
-      extra_edges = gather_edges(uvs + ofs.xy * vec2(1.5, -1.5), ref);
-      extra_edges2 = gather_edges(uvs - ofs.xy * vec2(1.5, -1.5), ref);
+      extra_edges = gather_edges(uvs + ofs.xy * vec2(1.5f, -1.5f), ref);
+      extra_edges2 = gather_edges(uvs - ofs.xy * vec2(1.5f, -1.5f), ref);
       extra_edges = rotate_90(extra_edges);
       extra_edges2 = rotate_90(extra_edges2);
       diag_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -337,8 +337,8 @@ void main()
       line_end = rotate_90(line_end);
       break;
     case DIAG_XNEG_YNEG:
-      extra_edges = gather_edges(uvs - ofs.xy * vec2(1.5, -1.5), ref);
-      extra_edges2 = gather_edges(uvs + ofs.xy * vec2(1.5, -1.5), ref);
+      extra_edges = gather_edges(uvs - ofs.xy * vec2(1.5f, -1.5f), ref);
+      extra_edges2 = gather_edges(uvs + ofs.xy * vec2(1.5f, -1.5f), ref);
       extra_edges = rotate_270(extra_edges);
       extra_edges2 = rotate_270(extra_edges2);
       diag_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -349,23 +349,23 @@ void main()
       /* Apex */
     case APEX_XPOS:
     case APEX_XNEG:
-      line_start = vec2(-0.5, 0.0);
-      line_end = vec2(0.5, 0.0);
+      line_start = vec2(-0.5f, 0.0f);
+      line_end = vec2(0.5f, 0.0f);
       break;
     case APEX_YPOS:
     case APEX_YNEG:
-      line_start = vec2(0.0, -0.5);
-      line_end = vec2(0.0, 0.5);
+      line_start = vec2(0.0f, -0.5f);
+      line_end = vec2(0.0f, 0.5f);
       break;
     default:
       /* Ensure values are assigned to, avoids undefined behavior for
        * divergent control-flow. This can occur if discard is called
        * as discard is not treated as a return in Metal 2.2. So
        * side-effects can still cause problems. */
-      line_start = vec2(0.0);
-      line_end = vec2(0.0);
+      line_start = vec2(0.0f);
+      line_end = vec2(0.0f);
       break;
   }
 
-  lineOutput = pack_line_data(vec2(0.0), line_start, line_end);
+  lineOutput = pack_line_data(vec2(0.0f), line_start, line_end);
 }

@@ -17,8 +17,9 @@ void main()
 #endif
 
   vec4 mean_of_squared_color_of_quadrants[4] = float4_array(
-      vec4(0.0), vec4(0.0), vec4(0.0), vec4(0.0));
-  vec4 mean_of_color_of_quadrants[4] = float4_array(vec4(0.0), vec4(0.0), vec4(0.0), vec4(0.0));
+      vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f));
+  vec4 mean_of_color_of_quadrants[4] = float4_array(
+      vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f));
 
   /* Compute the above statistics for each of the quadrants around the current pixel. */
   for (int q = 0; q < 4; q++) {
@@ -42,7 +43,7 @@ void main()
 #else
     for (int j = 0; j <= radius; j++) {
       for (int i = 0; i <= radius; i++) {
-        vec4 color = texture_load(input_tx, texel + ivec2(i, j) * sign, vec4(0.0));
+        vec4 color = texture_load(input_tx, texel + ivec2(i, j) * sign, vec4(0.0f));
         mean_of_color_of_quadrants[q] += color;
         mean_of_squared_color_of_quadrants[q] += color * color;
       }
@@ -60,7 +61,7 @@ void main()
     vec4 squared_color_mean = mean_of_squared_color_of_quadrants[q];
     vec4 color_variance = squared_color_mean - color_mean * color_mean;
 
-    float variance = dot(color_variance.rgb, vec3(1.0));
+    float variance = dot(color_variance.rgb, vec3(1.0f));
     if (variance < minimum_variance) {
       minimum_variance = variance;
       mean_color_of_chosen_quadrant = color_mean;

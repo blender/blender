@@ -27,7 +27,7 @@ void main()
   /* For each of the previously flooded pixels in the 3x3 window of the given step size around the
    * center pixel, find the position of the closest seed pixel that is closest to the current
    * center pixel. */
-  ivec2 closest_seed_texel = ivec2(0.0);
+  ivec2 closest_seed_texel = ivec2(0.0f);
   float minimum_squared_distance = FLT_MAX;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {

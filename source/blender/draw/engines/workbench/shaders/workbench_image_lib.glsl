@@ -17,14 +17,14 @@ bool node_tex_tile_lookup(inout vec3 co, sampler1DArray map)
     return false;
   }
 
-  float tile = 10.0 * tile_pos.y + tile_pos.x;
+  float tile = 10.0f * tile_pos.y + tile_pos.x;
   if (tile >= textureSize(map, 0).x) {
     return false;
   }
 
   /* Fetch tile information. */
   float tile_layer = texelFetch(map, ivec2(tile, 0), 0).x;
-  if (tile_layer < 0.0) {
+  if (tile_layer < 0.0f) {
     return false;
   }
 
@@ -39,13 +39,13 @@ vec3 workbench_image_color(vec2 uvs)
 #ifdef WORKBENCH_COLOR_TEXTURE
   vec4 color;
 
-  vec3 co = vec3(uvs, 0.0);
+  vec3 co = vec3(uvs, 0.0f);
   if (isImageTile) {
     if (node_tex_tile_lookup(co, imageTileData)) {
       color = texture(imageTileArray, co);
     }
     else {
-      color = vec4(1.0, 0.0, 1.0, 1.0);
+      color = vec4(1.0f, 0.0f, 1.0f, 1.0f);
     }
   }
   else {
@@ -53,7 +53,7 @@ vec3 workbench_image_color(vec2 uvs)
   }
 
   /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
-  if (imagePremult && !(color.a == 0.0 || color.a == 1.0)) {
+  if (imagePremult && !(color.a == 0.0f || color.a == 1.0f)) {
     color.rgb /= color.a;
   }
 
@@ -66,6 +66,6 @@ vec3 workbench_image_color(vec2 uvs)
   return color.rgb;
 #else
 
-  return vec3(1.0);
+  return vec3(1.0f);
 #endif
 }

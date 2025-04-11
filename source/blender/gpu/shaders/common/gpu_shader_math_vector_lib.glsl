@@ -268,28 +268,28 @@ float average(vec4 a);
 
 bool is_zero(vec2 vec)
 {
-  return all(equal(vec, vec2(0.0)));
+  return all(equal(vec, vec2(0.0f)));
 }
 bool is_zero(vec3 vec)
 {
-  return all(equal(vec, vec3(0.0)));
+  return all(equal(vec, vec3(0.0f)));
 }
 bool is_zero(vec4 vec)
 {
-  return all(equal(vec, vec4(0.0)));
+  return all(equal(vec, vec4(0.0f)));
 }
 
 bool is_any_zero(vec2 vec)
 {
-  return any(equal(vec, vec2(0.0)));
+  return any(equal(vec, vec2(0.0f)));
 }
 bool is_any_zero(vec3 vec)
 {
-  return any(equal(vec, vec3(0.0)));
+  return any(equal(vec, vec3(0.0f)));
 }
 bool is_any_zero(vec4 vec)
 {
-  return any(equal(vec, vec4(0.0)));
+  return any(equal(vec, vec4(0.0f)));
 }
 
 bool almost_equal_relative(vec2 a, vec2 b, const float epsilon_factor)
@@ -335,15 +335,15 @@ vec4 safe_mod(vec4 a, vec4 b)
 
 vec2 safe_mod(vec2 a, float b)
 {
-  return (b != 0.0) ? mod(a, vec2(b)) : vec2(0);
+  return (b != 0.0f) ? mod(a, vec2(b)) : vec2(0);
 }
 vec3 safe_mod(vec3 a, float b)
 {
-  return (b != 0.0) ? mod(a, vec3(b)) : vec3(0);
+  return (b != 0.0f) ? mod(a, vec3(b)) : vec3(0);
 }
 vec4 safe_mod(vec4 a, float b)
 {
-  return (b != 0.0) ? mod(a, vec4(b)) : vec4(0);
+  return (b != 0.0f) ? mod(a, vec4(b)) : vec4(0);
 }
 
 vec2 compatible_mod(vec2 a, float b)
@@ -472,15 +472,15 @@ vec4 safe_divide(vec4 a, vec4 b)
 
 vec2 safe_divide(vec2 a, float b)
 {
-  return (b != 0.0) ? (a / b) : vec2(0);
+  return (b != 0.0f) ? (a / b) : vec2(0);
 }
 vec3 safe_divide(vec3 a, float b)
 {
-  return (b != 0.0) ? (a / b) : vec3(0);
+  return (b != 0.0f) ? (a / b) : vec3(0);
 }
 vec4 safe_divide(vec4 a, float b)
 {
-  return (b != 0.0) ? (a / b) : vec4(0);
+  return (b != 0.0f) ? (a / b) : vec4(0);
 }
 
 float length_manhattan(vec2 a)
@@ -552,8 +552,8 @@ vec2 normalize_and_get_length(vec2 vector, out float out_length)
     return vector / out_length;
   }
   /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0;
-  return vec2(0.0);
+  out_length = 0.0f;
+  return vec2(0.0f);
 }
 vec3 normalize_and_get_length(vec3 vector, out float out_length)
 {
@@ -564,8 +564,8 @@ vec3 normalize_and_get_length(vec3 vector, out float out_length)
     return vector / out_length;
   }
   /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0;
-  return vec3(0.0);
+  out_length = 0.0f;
+  return vec3(0.0f);
 }
 vec4 normalize_and_get_length(vec4 vector, out float out_length)
 {
@@ -576,8 +576,8 @@ vec4 normalize_and_get_length(vec4 vector, out float out_length)
     return vector / out_length;
   }
   /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0;
-  return vec4(0.0);
+  out_length = 0.0f;
+  return vec4(0.0f);
 }
 
 vec2 safe_normalize_and_get_length(vec2 vector, out float out_length)
@@ -589,8 +589,8 @@ vec2 safe_normalize_and_get_length(vec2 vector, out float out_length)
     return vector / out_length;
   }
   /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0;
-  return vec2(1.0, 0.0);
+  out_length = 0.0f;
+  return vec2(1.0f, 0.0f);
 }
 vec3 safe_normalize_and_get_length(vec3 vector, out float out_length)
 {
@@ -601,8 +601,8 @@ vec3 safe_normalize_and_get_length(vec3 vector, out float out_length)
     return vector / out_length;
   }
   /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0;
-  return vec3(1.0, 0.0, 0.0);
+  out_length = 0.0f;
+  return vec3(1.0f, 0.0f, 0.0f);
 }
 vec4 safe_normalize_and_get_length(vec4 vector, out float out_length)
 {
@@ -613,37 +613,37 @@ vec4 safe_normalize_and_get_length(vec4 vector, out float out_length)
     return vector / out_length;
   }
   /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0;
-  return vec4(1.0, 0.0, 0.0, 0.0);
+  out_length = 0.0f;
+  return vec4(1.0f, 0.0f, 0.0f, 0.0f);
 }
 
 vec2 safe_normalize(vec2 vector)
 {
-  float unused_length = 0.0;
+  float unused_length = 0.0f;
   return safe_normalize_and_get_length(vector, unused_length);
 }
 vec3 safe_normalize(vec3 vector)
 {
-  float unused_length = 0.0;
+  float unused_length = 0.0f;
   return safe_normalize_and_get_length(vector, unused_length);
 }
 vec4 safe_normalize(vec4 vector)
 {
-  float unused_length = 0.0;
+  float unused_length = 0.0f;
   return safe_normalize_and_get_length(vector, unused_length);
 }
 
 vec2 safe_rcp(vec2 a)
 {
-  return select(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0)));
+  return select(vec2(0.0f), (1.0f / a), notEqual(a, vec2(0.0f)));
 }
 vec3 safe_rcp(vec3 a)
 {
-  return select(vec3(0.0), (1.0 / a), notEqual(a, vec3(0.0)));
+  return select(vec3(0.0f), (1.0f / a), notEqual(a, vec3(0.0f)));
 }
 vec4 safe_rcp(vec4 a)
 {
-  return select(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0)));
+  return select(vec4(0.0f), (1.0f / a), notEqual(a, vec4(0.0f)));
 }
 
 vec2 fallback_pow(vec2 a, float b, vec2 fallback)
@@ -679,15 +679,15 @@ vec4 interpolate(vec4 a, vec4 b, float t)
 
 vec2 midpoint(vec2 a, vec2 b)
 {
-  return (a + b) * 0.5;
+  return (a + b) * 0.5f;
 }
 vec3 midpoint(vec3 a, vec3 b)
 {
-  return (a + b) * 0.5;
+  return (a + b) * 0.5f;
 }
 vec4 midpoint(vec4 a, vec4 b)
 {
-  return (a + b) * 0.5;
+  return (a + b) * 0.5f;
 }
 
 int dominant_axis(vec3 a)
@@ -833,18 +833,18 @@ int reduce_mul(ivec4 a)
 
 float average(vec2 a)
 {
-  return reduce_add(a) * (1.0 / 2.0);
+  return reduce_add(a) * (1.0f / 2.0f);
 }
 float average(vec3 a)
 {
-  return reduce_add(a) * (1.0 / 3.0);
+  return reduce_add(a) * (1.0f / 3.0f);
 }
 float average(vec4 a)
 {
-  return reduce_add(a) * (1.0 / 4.0);
+  return reduce_add(a) * (1.0f / 4.0f);
 }
 
-#  define ASSERT_UNIT_EPSILON 0.0002
+#  define ASSERT_UNIT_EPSILON 0.0002f
 
 /* Checks are flipped so NAN doesn't assert because we're making sure the value was
  * normalized and in the case we don't want NAN to be raising asserts since there
@@ -852,19 +852,19 @@ float average(vec4 a)
 bool is_unit_scale(vec2 v)
 {
   float test_unit = length_squared(v);
-  return (!(abs(test_unit - 1.0) >= ASSERT_UNIT_EPSILON) ||
+  return (!(abs(test_unit - 1.0f) >= ASSERT_UNIT_EPSILON) ||
           !(abs(test_unit) >= ASSERT_UNIT_EPSILON));
 }
 bool is_unit_scale(vec3 v)
 {
   float test_unit = length_squared(v);
-  return (!(abs(test_unit - 1.0) >= ASSERT_UNIT_EPSILON) ||
+  return (!(abs(test_unit - 1.0f) >= ASSERT_UNIT_EPSILON) ||
           !(abs(test_unit) >= ASSERT_UNIT_EPSILON));
 }
 bool is_unit_scale(vec4 v)
 {
   float test_unit = length_squared(v);
-  return (!(abs(test_unit - 1.0) >= ASSERT_UNIT_EPSILON) ||
+  return (!(abs(test_unit - 1.0f) >= ASSERT_UNIT_EPSILON) ||
           !(abs(test_unit) >= ASSERT_UNIT_EPSILON));
 }
 

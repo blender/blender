@@ -34,7 +34,7 @@ vec3 colorspace_scene_linear_from_YCoCg(vec3 ycocg_color)
   rgb_color.r = Y + Co - Cg;
   rgb_color.g = Y + Cg;
   rgb_color.b = Y - Co - Cg;
-  return rgb_color * 0.25;
+  return rgb_color * 0.25f;
 }
 
 vec4 colorspace_scene_linear_from_YCoCg(vec4 ycocg_color)
@@ -50,11 +50,11 @@ vec4 colorspace_scene_linear_from_YCoCg(vec4 ycocg_color)
  */
 vec4 colorspace_safe_color(vec4 c)
 {
-  return clamp(c, vec4(0.0), vec4(1e20));
+  return clamp(c, vec4(0.0f), vec4(1e20f));
 }
 vec3 colorspace_safe_color(vec3 c)
 {
-  return clamp(c, vec3(0.0), vec3(1e20));
+  return clamp(c, vec3(0.0f), vec3(1e20f));
 }
 
 /**
@@ -62,7 +62,7 @@ vec3 colorspace_safe_color(vec3 c)
  */
 vec3 colorspace_brightness_clamp_max(vec3 color, float limit)
 {
-  return color * saturate(limit / max(1e-8, reduce_max(abs(color))));
+  return color * saturate(limit / max(1e-8f, reduce_max(abs(color))));
 }
 vec4 colorspace_brightness_clamp_max(vec4 color, float limit)
 {

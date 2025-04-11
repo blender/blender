@@ -45,9 +45,9 @@ void transmission_thickness_amend_closure(inout ClosureUndetermined cl,
 /* Tag pixel radiance as invalid. */
 void invalid_pixel_write(ivec2 texel)
 {
-  imageStoreFast(out_radiance_img, texel, vec4(FLT_11_11_10_MAX, 0.0));
-  imageStoreFast(out_variance_img, texel, vec4(0.0));
-  imageStoreFast(out_hit_depth_img, texel, vec4(0.0));
+  imageStoreFast(out_radiance_img, texel, vec4(FLT_11_11_10_MAX, 0.0f));
+  imageStoreFast(out_variance_img, texel, vec4(0.0f));
+  imageStoreFast(out_hit_depth_img, texel, vec4(0.0f));
 }
 
 void main()
@@ -103,39 +103,39 @@ void main()
     return;
   }
 
-  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
-  vec3 P = drw_point_screen_to_world(vec3(uv, 0.5));
+  vec2 uv = (vec2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
+  vec3 P = drw_point_screen_to_world(vec3(uv, 0.5f));
   vec3 V = drw_world_incident_vector(P);
 
   float thickness = gbuffer_read_thickness(gbuf_header, gbuf_normal_tx, texel_fullres);
-  if (thickness != 0.0) {
+  if (thickness != 0.0f) {
     transmission_thickness_amend_closure(closure, V, thickness);
   }
 
   /* Compute filter size and needed sample count */
   float apparent_roughness = closure_apparent_roughness_get(closure);
-  float filter_size_factor = saturate(apparent_roughness * 8.0);
-  uint sample_count = 1u + uint(15.0 * filter_size_factor + 0.5);
+  float filter_size_factor = saturate(apparent_roughness * 8.0f);
+  uint sample_count = 1u + uint(15.0f * filter_size_factor + 0.5f);
   /* NOTE: filter_size should never be greater than twice RAYTRACE_GROUP_SIZE. Otherwise, the
    * reconstruction can becomes ill defined since we don't know if further tiles are valid. */
-  float filter_size = 12.0 * sqrt(filter_size_factor);
+  float filter_size = 12.0f * sqrt(filter_size_factor);
   if (raytrace_resolution_scale > 1) {
     /* Filter at least 1 trace pixel to fight the undersampling. */
-    filter_size = max(filter_size, 3.0);
+    filter_size = max(filter_size, 3.0f);
     sample_count = max(sample_count, 5u);
   }
 
   vec2 noise = utility_tx_fetch(utility_tx, vec2(texel_fullres), UTIL_BLUE_NOISE_LAYER).ba;
   noise += sampling_rng_1D_get(SAMPLING_CLOSURE);
 
-  vec3 rgb_moment = vec3(0.0);
-  vec3 radiance_accum = vec3(0.0);
-  float weight_accum = 0.0;
-  float closest_hit_time = 1.0e10;
+  vec3 rgb_moment = vec3(0.0f);
+  vec3 radiance_accum = vec3(0.0f);
+  float weight_accum = 0.0f;
+  float closest_hit_time = 1.0e10f;
 
   for (uint i = 0u; i < sample_count; i++) {
-    vec2 offset_f = (fract(hammersley_2d(i, sample_count) + noise) - 0.5) * filter_size;
-    ivec2 offset = ivec2(floor(offset_f + 0.5));
+    vec2 offset_f = (fract(hammersley_2d(i, sample_count) + noise) - 0.5f) * filter_size;
+    ivec2 offset = ivec2(floor(offset_f + 0.5f));
     ivec2 sample_texel = texel + offset;
 
     vec4 ray_data = imageLoad(ray_data_img, sample_texel);
@@ -145,7 +145,7 @@ void main()
     vec3 ray_direction = ray_data.xyz;
     float ray_pdf_inv = abs(ray_data.w);
     /* Skip invalid pixels. */
-    if (ray_pdf_inv == 0.0) {
+    if (ray_pdf_inv == 0.0f) {
       continue;
     }
 
@@ -175,7 +175,7 @@ void main()
   float scene_z = drw_depth_screen_to_view(texelFetch(depth_tx, texel_fullres, 0).r);
   float hit_depth = drw_depth_view_to_screen(scene_z - closest_hit_time);
 
-  imageStoreFast(out_radiance_img, texel_fullres, vec4(radiance_accum, 0.0));
+  imageStoreFast(out_radiance_img, texel_fullres, vec4(radiance_accum, 0.0f));
   imageStoreFast(out_variance_img, texel_fullres, vec4(hit_variance));
   imageStoreFast(out_hit_depth_img, texel_fullres, vec4(hit_depth));
 }

@@ -14,7 +14,7 @@ int occupancy_bit_index_from_depth(float depth, int bit_count)
 {
   /* We want the occupancy at the center of each range a bit covers.
    * So we round the depth to the nearest bit. */
-  return int(depth * float(bit_count) + 0.5);
+  return int(depth * float(bit_count) + 0.5f);
 }
 
 /**

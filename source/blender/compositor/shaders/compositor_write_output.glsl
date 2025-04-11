@@ -17,7 +17,7 @@ void main()
 #if defined(DIRECT_OUTPUT)
   vec4 output_color = input_color;
 #elif defined(OPAQUE_OUTPUT)
-  vec4 output_color = vec4(input_color.rgb, 1.0);
+  vec4 output_color = vec4(input_color.rgb, 1.0f);
 #elif defined(ALPHA_OUTPUT)
   float alpha = texture_load(alpha_tx, texel).x;
   vec4 output_color = vec4(input_color.rgb, alpha);

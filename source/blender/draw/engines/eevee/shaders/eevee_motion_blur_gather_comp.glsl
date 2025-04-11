@@ -35,22 +35,22 @@ vec4 motion_blur_sample_velocity(sampler2D velocity_tx, vec2 uv)
 
 vec2 spread_compare(float center_motion_length, float sample_motion_length, float offset_length)
 {
-  return saturate(vec2(center_motion_length, sample_motion_length) - offset_length + 1.0);
+  return saturate(vec2(center_motion_length, sample_motion_length) - offset_length + 1.0f);
 }
 
 vec2 depth_compare(float center_depth, float sample_depth)
 {
   vec2 depth_scale = vec2(-motion_blur_buf.depth_scale, motion_blur_buf.depth_scale);
-  return saturate(0.5 + depth_scale * (sample_depth - center_depth));
+  return saturate(0.5f + depth_scale * (sample_depth - center_depth));
 }
 
 /* Kill contribution if not going the same direction. */
 float dir_compare(vec2 offset, vec2 sample_motion, float sample_motion_length)
 {
-  if (sample_motion_length < 0.5) {
-    return 1.0;
+  if (sample_motion_length < 0.5f) {
+    return 1.0f;
   }
-  return (dot(offset, sample_motion) > 0.0) ? 1.0 : 0.0;
+  return (dot(offset, sample_motion) > 0.0f) ? 1.0f : 0.0f;
 }
 
 /* Return background (x) and foreground (y) weights. */
@@ -87,7 +87,7 @@ void gather_sample(vec2 screen_uv,
   vec2 sample_motion = (next) ? sample_vectors.zw : sample_vectors.xy;
   float sample_motion_len = length(sample_motion);
   float sample_depth = texture(depth_tx, sample_uv).r;
-  vec4 sample_color = textureLod(in_color_tx, sample_uv, 0.0);
+  vec4 sample_color = textureLod(in_color_tx, sample_uv, 0.0f);
 
   sample_depth = drw_depth_screen_to_view(sample_depth);
 
@@ -120,12 +120,12 @@ void gather_blur(vec2 screen_uv,
     max_motion = center_motion;
   }
 
-  if (max_motion_len < 0.5) {
+  if (max_motion_len < 0.5f) {
     return;
   }
 
   int i;
-  float t, inc = 1.0 / float(gather_sample_count);
+  float t, inc = 1.0f / float(gather_sample_count);
   for (i = 0, t = ofs * inc; i < gather_sample_count; i++, t += inc) {
     gather_sample(screen_uv,
                   center_depth,
@@ -136,7 +136,7 @@ void gather_blur(vec2 screen_uv,
                   accum);
   }
 
-  if (center_motion_len < 0.5) {
+  if (center_motion_len < 0.5f) {
     return;
   }
 
@@ -157,7 +157,7 @@ void gather_blur(vec2 screen_uv,
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  vec2 uv = (vec2(texel) + 0.5) / vec2(textureSize(depth_tx, 0).xy);
+  vec2 uv = (vec2(texel) + 0.5f) / vec2(textureSize(depth_tx, 0).xy);
 
   if (!in_texture_range(texel, depth_tx)) {
     return;
@@ -167,7 +167,7 @@ void main()
   float center_depth = drw_depth_screen_to_view(texelFetch(depth_tx, texel, 0).r);
   vec4 center_motion = motion_blur_sample_velocity(velocity_tx, uv);
 
-  vec4 center_color = textureLod(in_color_tx, uv, 0.0);
+  vec4 center_color = textureLod(in_color_tx, uv, 0.0f);
 
   float noise_offset = sampling_rng_1D_get(SAMPLING_TIME);
   /** TODO(fclem) Blue noise. */
@@ -176,8 +176,8 @@ void main()
 
   /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
    * Note this randomize only in one direction but in practice it's enough. */
-  rand.x = rand.x * 2.0 - 1.0;
-  ivec2 tile = (texel + ivec2(rand.x * float(MOTION_BLUR_TILE_SIZE) * 0.25)) /
+  rand.x = rand.x * 2.0f - 1.0f;
+  ivec2 tile = (texel + ivec2(rand.x * float(MOTION_BLUR_TILE_SIZE) * 0.25f)) /
                MOTION_BLUR_TILE_SIZE;
   tile = clamp(tile, ivec2(0), imageSize(in_tiles_img) - 1);
   /* NOTE: Tile velocity is already in pixel space and with correct zw sign. */
@@ -191,9 +191,9 @@ void main()
   max_motion.zw = imageLoad(in_tiles_img, tile_next).zw;
 
   Accumulator accum;
-  accum.weight = vec3(0.0, 0.0, 1.0);
-  accum.bg = vec4(0.0);
-  accum.fg = vec4(0.0);
+  accum.weight = vec3(0.0f, 0.0f, 1.0f);
+  accum.bg = vec4(0.0f);
+  accum.fg = vec4(0.0f);
   /* First linear gather. time = [T - delta, T] */
   gather_blur(uv, center_motion.xy, center_depth, max_motion.xy, rand.y, false, accum);
   /* Second linear gather. time = [T, T + delta] */
@@ -201,7 +201,7 @@ void main()
 
 #if 1 /* Own addition. Not present in reference implementation. */
   /* Avoid division by 0.0. */
-  float w = 1.0 / (50.0 * float(gather_sample_count) * 4.0);
+  float w = 1.0f / (50.0f * float(gather_sample_count) * 4.0f);
   accum.bg += center_color * w;
   accum.weight.x += w;
   /* NOTE: In Jimenez's presentation, they used center sample.
@@ -215,7 +215,7 @@ void main()
   accum.weight.y += accum.weight.x;
   /* Balance accumulation for failed samples.
    * We replace the missing foreground by the background. */
-  float blend_fac = saturate(1.0 - accum.weight.y / accum.weight.z);
+  float blend_fac = saturate(1.0f - accum.weight.y / accum.weight.z);
   vec4 out_color = (accum.fg / accum.weight.z) + center_color * blend_fac;
 
 #if 0 /* For debugging. */

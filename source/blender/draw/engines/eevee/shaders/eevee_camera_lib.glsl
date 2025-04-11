@@ -39,21 +39,21 @@ vec2 camera_fisheye_from_direction(CameraData cam, vec3 dir)
 {
   float r = atan(length(dir.xy), -dir.z) / cam.fisheye_fov;
   float phi = atan(dir.y, dir.x);
-  vec2 uv = r * vec2(cos(phi), sin(phi)) + 0.5;
+  vec2 uv = r * vec2(cos(phi), sin(phi)) + 0.5f;
   return (uv - cam.uv_bias) / cam.uv_scale;
 }
 
 vec3 camera_fisheye_to_direction(CameraData cam, vec2 uv)
 {
   uv = uv * cam.uv_scale + cam.uv_bias;
-  uv = (uv - 0.5) * 2.0;
+  uv = (uv - 0.5f) * 2.0f;
   float r = length(uv);
-  if (r > 1.0) {
-    return vec3(0.0);
+  if (r > 1.0f) {
+    return vec3(0.0f);
   }
   float phi = safe_acos(uv.x * safe_rcp(r));
-  float theta = r * cam.fisheye_fov * 0.5;
-  if (uv.y < 0.0) {
+  float theta = r * cam.fisheye_fov * 0.5f;
+  if (uv.y < 0.0f) {
     phi = -phi;
   }
   return vec3(cos(phi) * sin(theta), sin(phi) * sin(theta), -cos(theta));
@@ -62,9 +62,9 @@ vec3 camera_fisheye_to_direction(CameraData cam, vec2 uv)
 vec2 camera_mirror_ball_from_direction(CameraData cam, vec3 dir)
 {
   dir = normalize(dir);
-  dir.z -= 1.0;
-  dir *= safe_rcp(2.0 * safe_sqrt(-0.5 * dir.z));
-  vec2 uv = 0.5 * dir.xy + 0.5;
+  dir.z -= 1.0f;
+  dir *= safe_rcp(2.0f * safe_sqrt(-0.5f * dir.z));
+  vec2 uv = 0.5f * dir.xy + 0.5f;
   return (uv - cam.uv_bias) / cam.uv_scale;
 }
 
@@ -72,12 +72,12 @@ vec3 camera_mirror_ball_to_direction(CameraData cam, vec2 uv)
 {
   uv = uv * cam.uv_scale + cam.uv_bias;
   vec3 dir;
-  dir.xy = uv * 2.0 - 1.0;
-  if (length_squared(dir.xy) > 1.0) {
-    return vec3(0.0);
+  dir.xy = uv * 2.0f - 1.0f;
+  if (length_squared(dir.xy) > 1.0f) {
+    return vec3(0.0f);
   }
-  dir.z = -safe_sqrt(1.0 - square(dir.x) - square(dir.y));
-  const vec3 I = vec3(0.0, 0.0, 1.0);
+  dir.z = -safe_sqrt(1.0f - square(dir.x) - square(dir.y));
+  const vec3 I = vec3(0.0f, 0.0f, 1.0f);
   return reflect(I, dir);
 }
 
@@ -89,18 +89,18 @@ vec3 camera_mirror_ball_to_direction(CameraData cam, vec2 uv)
 
 vec3 camera_view_from_uv(mat4 projmat, vec2 uv)
 {
-  return project_point(projmat, vec3(uv * 2.0 - 1.0, 0.0));
+  return project_point(projmat, vec3(uv * 2.0f - 1.0f, 0.0f));
 }
 
 vec2 camera_uv_from_view(mat4 projmat, bool is_persp, vec3 vV)
 {
-  vec4 tmp = projmat * vec4(vV, 1.0);
-  if (is_persp && tmp.w <= 0.0) {
+  vec4 tmp = projmat * vec4(vV, 1.0f);
+  if (is_persp && tmp.w <= 0.0f) {
     /* Return invalid coordinates for points behind the camera.
      * This can happen with panoramic projections. */
-    return vec2(-1.0);
+    return vec2(-1.0f);
   }
-  return (tmp.xy / tmp.w) * 0.5 + 0.5;
+  return (tmp.xy / tmp.w) * 0.5f + 0.5f;
 }
 
 /** \} */

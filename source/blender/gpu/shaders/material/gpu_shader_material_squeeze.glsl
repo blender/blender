@@ -4,5 +4,5 @@
 
 void squeeze(float val, float width, float center, out float outval)
 {
-  outval = 1.0 / (1.0 + pow(2.71828183, -((val - center) * width)));
+  outval = 1.0f / (1.0f + pow(2.71828183f, -((val - center) * width)));
 }

@@ -29,8 +29,8 @@ void node_geometry(vec3 orco_attr,
     node_tangent(orco_attr, tangent);
   }
 
-  parametric = vec3(g_data.barycentric_coords, 0.0);
-  backfacing = (FrontFacing) ? 0.0 : 1.0;
-  pointiness = 0.5;
-  random_per_island = 0.0;
+  parametric = vec3(g_data.barycentric_coords, 0.0f);
+  backfacing = (FrontFacing) ? 0.0f : 1.0f;
+  pointiness = 0.5f;
+  random_per_island = 0.0f;
 }

@@ -25,8 +25,8 @@ AABB shape_aabb(vec3 min, vec3 max)
 AABB aabb_init_min_max()
 {
   AABB aabb;
-  aabb.min = vec3(1.0e30);
-  aabb.max = vec3(-1.0e30);
+  aabb.min = vec3(1.0e30f);
+  aabb.max = vec3(-1.0e30f);
   return aabb;
 }
 

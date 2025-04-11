@@ -6,17 +6,17 @@
 
 void tangent_orco_x(vec3 orco_in, out vec3 orco_out)
 {
-  orco_out = orco_in.xzy * vec3(0.0, -0.5, 0.5) + vec3(0.0, 0.25, -0.25);
+  orco_out = orco_in.xzy * vec3(0.0f, -0.5f, 0.5f) + vec3(0.0f, 0.25f, -0.25f);
 }
 
 void tangent_orco_y(vec3 orco_in, out vec3 orco_out)
 {
-  orco_out = orco_in.zyx * vec3(-0.5, 0.0, 0.5) + vec3(0.25, 0.0, -0.25);
+  orco_out = orco_in.zyx * vec3(-0.5f, 0.0f, 0.5f) + vec3(0.25f, 0.0f, -0.25f);
 }
 
 void tangent_orco_z(vec3 orco_in, out vec3 orco_out)
 {
-  orco_out = orco_in.yxz * vec3(-0.5, 0.5, 0.0) + vec3(0.25, -0.25, 0.0);
+  orco_out = orco_in.yxz * vec3(-0.5f, 0.5f, 0.0f) + vec3(0.25f, -0.25f, 0.0f);
 }
 
 void node_tangentmap(vec4 attr_tangent, out vec3 tangent)

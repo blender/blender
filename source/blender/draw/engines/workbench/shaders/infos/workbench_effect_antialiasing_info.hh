@@ -13,7 +13,7 @@
 #  define SMAA_PRESET_HIGH
 #  define SMAA_NO_DISCARD
 #  define SMAA_RT_METRICS viewportMetrics
-#  define SMAA_LUMA_WEIGHT float4(1.0, 1.0, 1.0, 1.0)
+#  define SMAA_LUMA_WEIGHT float4(1.0f, 1.0f, 1.0f, 1.0f)
 #endif
 
 #include "gpu_shader_create_info.hh"
@@ -47,7 +47,7 @@ GPU_SHADER_CREATE_INFO(workbench_smaa)
 DEFINE("SMAA_GLSL_3")
 DEFINE_VALUE("SMAA_RT_METRICS", "viewportMetrics")
 DEFINE("SMAA_PRESET_HIGH")
-DEFINE_VALUE("SMAA_LUMA_WEIGHT", "float4(1.0, 1.0, 1.0, 1.0)")
+DEFINE_VALUE("SMAA_LUMA_WEIGHT", "float4(1.0f, 1.0f, 1.0f, 1.0f)")
 DEFINE("SMAA_NO_DISCARD")
 VERTEX_OUT(workbench_smaa_iface)
 PUSH_CONSTANT(VEC4, viewportMetrics)

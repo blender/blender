@@ -55,8 +55,8 @@ vec3 sampling_rng_3D_get(const eSamplingDimension dimension)
  * Seeding found by Epic Game. */
 float interlieved_gradient_noise(vec2 pixel, float seed, float offset)
 {
-  pixel += seed * (vec2(47, 17) * 0.695);
-  return fract(offset + 52.9829189 * fract(0.06711056 * pixel.x + 0.00583715 * pixel.y));
+  pixel += seed * (vec2(47, 17) * 0.695f);
+  return fract(offset + 52.9829189f * fract(0.06711056f * pixel.x + 0.00583715f * pixel.y));
 }
 
 vec2 interlieved_gradient_noise(vec2 pixel, vec2 seed, vec2 offset)
@@ -85,7 +85,7 @@ float van_der_corput_radical_inverse(uint bits)
   bits = bitfieldReverse(bits);
 #endif
   /* Same as dividing by 0x100000000. */
-  return float(bits) * 2.3283064365386963e-10;
+  return float(bits) * 2.3283064365386963e-10f;
 }
 
 vec2 hammersley_2d(float i, float sample_count)
@@ -113,7 +113,7 @@ vec2 hammersley_2d(int i, int sample_count)
 vec2 regular_grid_2d(int i, int sample_count)
 {
   int sample_per_dim = int(sqrt(float(sample_count)));
-  return (vec2(i % sample_per_dim, i / sample_per_dim) + 0.5) / float(sample_per_dim);
+  return (vec2(i % sample_per_dim, i / sample_per_dim) + 0.5f) / float(sample_per_dim);
 }
 
 /* PCG */
@@ -191,9 +191,9 @@ vec4 pcg4d(vec4 v)
 /* Given 1 random number in [0..1] range, return a random unit circle sample. */
 vec2 sample_circle(float rand)
 {
-  float phi = (rand - 0.5) * M_TAU;
+  float phi = (rand - 0.5f) * M_TAU;
   float cos_phi = cos(phi);
-  float sin_phi = sqrt(1.0 - square(cos_phi)) * sign(phi);
+  float sin_phi = sqrt(1.0f - square(cos_phi)) * sign(phi);
   return vec2(cos_phi, sin_phi);
 }
 
@@ -219,8 +219,8 @@ vec3 sample_cylinder(vec2 rand)
  */
 vec3 sample_sphere(vec2 rand)
 {
-  float cos_theta = rand.x * 2.0 - 1.0;
-  float sin_theta = safe_sqrt(1.0 - cos_theta * cos_theta);
+  float cos_theta = rand.x * 2.0f - 1.0f;
+  float sin_theta = safe_sqrt(1.0f - cos_theta * cos_theta);
   return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
@@ -243,7 +243,7 @@ vec3 sample_ball(vec3 rand)
 vec3 sample_hemisphere(vec2 rand)
 {
   float cos_theta = rand.x;
-  float sin_theta = safe_sqrt(1.0 - square(cos_theta));
+  float sin_theta = safe_sqrt(1.0f - square(cos_theta));
   return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
@@ -256,8 +256,8 @@ vec3 sample_hemisphere(vec2 rand)
  */
 vec3 sample_uniform_cone(vec2 rand, float cos_angle)
 {
-  float cos_theta = mix(cos_angle, 1.0, rand.x);
-  float sin_theta = safe_sqrt(1.0 - square(cos_theta));
+  float cos_theta = mix(cos_angle, 1.0f, rand.x);
+  float sin_theta = safe_sqrt(1.0f - square(cos_theta));
   return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 

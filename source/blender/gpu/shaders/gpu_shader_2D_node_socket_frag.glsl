@@ -20,11 +20,11 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_node_socket_inst)
 float square_sdf(vec2 absCo, vec2 half_size)
 {
   vec2 extruded_co = absCo - half_size;
-  vec2 clamped_extruded_co = vec2(max(0.0, extruded_co.x), max(0.0, extruded_co.y));
+  vec2 clamped_extruded_co = vec2(max(0.0f, extruded_co.x), max(0.0f, extruded_co.y));
 
   float exterior_distance_squared = dot(clamped_extruded_co, clamped_extruded_co);
 
-  float interior_distance = min(max(extruded_co.x, extruded_co.y), 0.0);
+  float interior_distance = min(max(extruded_co.x, extruded_co.y), 0.0f);
   float interior_distance_squared = interior_distance * interior_distance;
 
   return exterior_distance_squared - interior_distance_squared;
@@ -32,31 +32,31 @@ float square_sdf(vec2 absCo, vec2 half_size)
 
 vec2 rotate_45(vec2 co)
 {
-  return from_rotation(Angle(M_PI * 0.25)) * co;
+  return from_rotation(Angle(M_PI * 0.25f)) * co;
 }
 
 /* Calculates an upper and lower limit for an anti-aliased cutoff of the squared distance. */
 vec2 calculate_thresholds(float threshold)
 {
   /* Use the absolute on one of the factors to preserve the sign. */
-  float inner_threshold = (threshold - 0.5 * AAsize) * abs(threshold - 0.5 * AAsize);
-  float outer_threshold = (threshold + 0.5 * AAsize) * abs(threshold + 0.5 * AAsize);
+  float inner_threshold = (threshold - 0.5f * AAsize) * abs(threshold - 0.5f * AAsize);
+  float outer_threshold = (threshold + 0.5f * AAsize) * abs(threshold + 0.5f * AAsize);
   return vec2(inner_threshold, outer_threshold);
 }
 
 void main()
 {
   vec2 absUV = abs(uv);
-  vec2 co = vec2(max(absUV.x - extrusion.x, 0.0), max(absUV.y - extrusion.y, 0.0));
+  vec2 co = vec2(max(absUV.x - extrusion.x, 0.0f), max(absUV.y - extrusion.y, 0.0f));
 
-  float distance_squared = 0.0;
-  float alpha_threshold = 0.0;
-  float dot_threshold = -1.0;
+  float distance_squared = 0.0f;
+  float alpha_threshold = 0.0f;
+  float dot_threshold = -1.0f;
 
-  const float circle_radius = 0.5;
-  const float square_radius = 0.5 / sqrt(2.0 / M_PI) * M_SQRT1_2;
-  const float diamond_radius = 0.5 / sqrt(2.0 / M_PI) * M_SQRT1_2;
-  const float corner_rounding = 0.0;
+  const float circle_radius = 0.5f;
+  const float square_radius = 0.5f / sqrt(2.0f / M_PI) * M_SQRT1_2;
+  const float diamond_radius = 0.5f / sqrt(2.0f / M_PI) * M_SQRT1_2;
+  const float corner_rounding = 0.0f;
 
   switch (finalShape) {
     default:

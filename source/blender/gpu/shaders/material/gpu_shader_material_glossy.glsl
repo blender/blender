@@ -12,10 +12,10 @@ void node_bsdf_glossy(vec4 color,
                       const float do_multiscatter,
                       out Closure result)
 {
-  color = max(color, vec4(0.0));
+  color = max(color, vec4(0.0f));
   roughness = saturate(roughness);
   N = safe_normalize(N);
-  /* anisotropy = clamp(anisotropy, -0.99, 0.99) */
+  /* anisotropy = clamp(anisotropy, -0.99f, 0.99f) */
 
   vec3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);
@@ -24,7 +24,7 @@ void node_bsdf_glossy(vec4 color,
 
   ClosureReflection reflection_data;
   reflection_data.weight = weight;
-  reflection_data.color = (do_multiscatter != 0.0) ?
+  reflection_data.color = (do_multiscatter != 0.0f) ?
                               F_brdf_multi_scatter(color.rgb, color.rgb, split_sum) :
                               F_brdf_single_scatter(color.rgb, color.rgb, split_sum);
   reflection_data.N = N;

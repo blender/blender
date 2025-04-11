@@ -16,13 +16,13 @@ void main()
 
   vec3 bone_vec = data_buf[gl_InstanceID].tail_sphere.xyz -
                   data_buf[gl_InstanceID].head_sphere.xyz;
-  float bone_len = max(1e-8, sqrt(dot(bone_vec, bone_vec)));
-  float bone_lenrcp = 1.0 / bone_len;
+  float bone_len = max(1e-8f, sqrt(dot(bone_vec, bone_vec)));
+  float bone_lenrcp = 1.0f / bone_len;
 #ifdef SMOOTH_ENVELOPE
   float sinb = (data_buf[gl_InstanceID].tail_sphere.w - data_buf[gl_InstanceID].head_sphere.w) *
                bone_lenrcp;
 #else
-  const float sinb = 0.0;
+  const float sinb = 0.0f;
 #endif
 
   vec3 y_axis = bone_vec * bone_lenrcp;
@@ -36,7 +36,7 @@ void main()
   /* In bone space */
   bool is_head = (pos.z < -sinb);
   sp *= (is_head) ? data_buf[gl_InstanceID].head_sphere.w : data_buf[gl_InstanceID].tail_sphere.w;
-  sp.z += (is_head) ? 0.0 : bone_len;
+  sp.z += (is_head) ? 0.0f : bone_len;
 
   /* Convert to world space */
   mat3 bone_mat = mat3(x_axis, y_axis, z_axis);
@@ -50,6 +50,6 @@ void main()
 
   view_clipping_distances(sp);
 
-  vec4 pos_4d = vec4(sp, 1.0);
+  vec4 pos_4d = vec4(sp, 1.0f);
   gl_Position = drw_view().winmat * (drw_view().viewmat * pos_4d);
 }

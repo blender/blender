@@ -164,37 +164,37 @@ void geometry_main(VertOut geom_in[2],
   }
 
   /* Minimize active color bleeding on inner_color. */
-  vec4 active_color = mix(colorActiveSpline, inner_color, 0.25);
-  vec4 outer_color = is_active ? active_color : vec4(inner_color.rgb, 0.0);
+  vec4 active_color = mix(colorActiveSpline, inner_color, 0.25f);
+  vec4 outer_color = is_active ? active_color : vec4(inner_color.rgb, 0.0f);
 
   vec2 v1_2 = (v2.xy / v2.w - v1.xy / v1.w);
-  vec2 offset = sizeEdge * 4.0 * sizeViewportInv; /* 4.0 is eyeballed */
+  vec2 offset = sizeEdge * 4.0f * sizeViewportInv; /* 4.0f is eyeballed */
 
   if (abs(v1_2.x) <= M_TAN_PI_BY_8 * abs(v1_2.y)) {
-    offset.y = 0.0;
+    offset.y = 0.0f;
   }
   else if (abs(v1_2.x) <= M_TAN_3_PI_BY_8 * abs(v1_2.y)) {
     offset = offset * vec2(-M_SQRT2_BY_2 * sign(v1_2.x), M_SQRT2_BY_2 * sign(v1_2.y));
   }
   else {
-    offset.x = 0.0;
+    offset.x = 0.0f;
   }
 
-  vec4 border_color = vec4(colorActiveSpline.rgb, 0.0);
+  vec4 border_color = vec4(colorActiveSpline.rgb, 0.0f);
   /* Draw the transparent border (AA). */
   if (is_active) {
-    offset *= 0.75; /* Don't make the active "halo" appear very thick. */
-    output_vertex_pair(0, out_vertex_id, out_primitive_id, geom_in, offset * 2.0, border_color);
+    offset *= 0.75f; /* Don't make the active "halo" appear very thick. */
+    output_vertex_pair(0, out_vertex_id, out_primitive_id, geom_in, offset * 2.0f, border_color);
   }
   /* Draw the outline. */
   output_vertex_pair(1, out_vertex_id, out_primitive_id, geom_in, offset, outer_color);
   /* Draw the core of the line. */
-  output_vertex_pair(2, out_vertex_id, out_primitive_id, geom_in, vec2(0.0), inner_color);
+  output_vertex_pair(2, out_vertex_id, out_primitive_id, geom_in, vec2(0.0f), inner_color);
   /* Draw the outline. */
   output_vertex_pair(3, out_vertex_id, out_primitive_id, geom_in, -offset, outer_color);
   /* Draw the transparent border (AA). */
   if (is_active) {
-    output_vertex_pair(4, out_vertex_id, out_primitive_id, geom_in, -offset * 2.0, border_color);
+    output_vertex_pair(4, out_vertex_id, out_primitive_id, geom_in, -offset * 2.0f, border_color);
   }
 }
 

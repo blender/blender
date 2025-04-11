@@ -32,12 +32,12 @@ void main()
   bool do_fast_gather = dof_do_fast_gather(base_radius, min_radius, IS_FOREGROUND);
 
   /* Gather at half resolution. Divide CoC by 2. */
-  base_radius *= 0.5;
-  min_intersectable_radius *= 0.5;
+  base_radius *= 0.5f;
+  min_intersectable_radius *= 0.5f;
 
-  vec4 out_color = vec4(0.0);
-  float out_weight = 0.0;
-  vec2 unused_occlusion = vec2(0.0, 0.0);
+  vec4 out_color = vec4(0.0f);
+  float out_weight = 0.0f;
+  vec2 unused_occlusion = vec2(0.0f, 0.0f);
 
   if (can_early_out) {
     /* Early out. */

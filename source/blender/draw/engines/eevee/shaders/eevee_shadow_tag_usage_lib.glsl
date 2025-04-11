@@ -63,7 +63,7 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
 
   LightSunData sun = light_sun_data_get(light);
 
-  if (radius == 0.0) {
+  if (radius == 0.0f) {
     int level = shadow_directional_level(light, lP - light_position_get(light));
     level = clamp(level + lod_bias, sun.clipmap_lod_min, sun.clipmap_lod_max);
     ShadowCoordinates coord = shadow_directional_coordinates_at_level(light, lP, level);
@@ -79,9 +79,9 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
 
     for (int level = min_level; level <= max_level; level++) {
       ShadowCoordinates coord_min = shadow_directional_coordinates_at_level(
-          light, lP - vec3(radius, radius, 0.0), level);
+          light, lP - vec3(radius, radius, 0.0f), level);
       ShadowCoordinates coord_max = shadow_directional_coordinates_at_level(
-          light, lP + vec3(radius, radius, 0.0), level);
+          light, lP + vec3(radius, radius, 0.0f), level);
 
       for (uint x = coord_min.tilemap_tile.x; x <= coord_max.tilemap_tile.x; x++) {
         for (uint y = coord_min.tilemap_tile.y; y <= coord_max.tilemap_tile.y; y++) {
@@ -101,7 +101,7 @@ void shadow_tag_usage_tilemap_punctual(uint l_idx, vec3 P, float radius, int lod
   }
 
   vec3 lP = light_world_to_local_point(light, P);
-  float dist_to_light = max(length(lP) - radius, 1e-5);
+  float dist_to_light = max(length(lP) - radius, 1e-5f);
   if (dist_to_light > light_local_data_get(light).influence_radius_max) {
     return;
   }
@@ -114,7 +114,7 @@ void shadow_tag_usage_tilemap_punctual(uint l_idx, vec3 P, float radius, int lod
   }
   else if (is_area_light(light.type)) {
     /* Early out if on the wrong side. */
-    if (lP.z - radius > 0.0) {
+    if (lP.z - radius > 0.0f) {
       return;
     }
   }

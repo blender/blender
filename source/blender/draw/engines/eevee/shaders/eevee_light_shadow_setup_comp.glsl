@@ -27,9 +27,9 @@ void orthographic_sync(int tilemap_id,
                        eShadowProjectionType projection_type)
 {
   /* Do not check translation. */
-  object_to_world.x.w = 0.0;
-  object_to_world.y.w = 0.0;
-  object_to_world.z.w = 0.0;
+  object_to_world.x.w = 0.0f;
+  object_to_world.y.w = 0.0f;
+  object_to_world.z.w = 0.0f;
 
   int clip_index = tilemaps_buf[tilemap_id].clip_data_index;
   /* Avoid qualifier problems on NVidia (see #121968). */
@@ -52,16 +52,16 @@ void orthographic_sync(int tilemap_id,
   tilemaps_buf[tilemap_id].grid_offset = origin_offset;
 
   float level_size = shadow_directional_coverage_get(clipmap_level);
-  float half_size = level_size / 2.0;
+  float half_size = level_size / 2.0f;
   float tile_size = level_size / float(SHADOW_TILEMAP_RES);
   vec2 center_offset = vec2(origin_offset) * tile_size;
 
   /* object_mat is a rotation matrix. Reduce imprecision by taking the transpose which is also the
    * inverse in this particular case. */
-  tilemaps_buf[tilemap_id].viewmat[0] = vec4(object_to_world.x.xyz, 0.0);
-  tilemaps_buf[tilemap_id].viewmat[1] = vec4(object_to_world.y.xyz, 0.0);
-  tilemaps_buf[tilemap_id].viewmat[2] = vec4(object_to_world.z.xyz, 0.0);
-  tilemaps_buf[tilemap_id].viewmat[3] = vec4(0.0, 0.0, 0.0, 1.0);
+  tilemaps_buf[tilemap_id].viewmat[0] = vec4(object_to_world.x.xyz, 0.0f);
+  tilemaps_buf[tilemap_id].viewmat[1] = vec4(object_to_world.y.xyz, 0.0f);
+  tilemaps_buf[tilemap_id].viewmat[2] = vec4(object_to_world.z.xyz, 0.0f);
+  tilemaps_buf[tilemap_id].viewmat[3] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
   tilemaps_buf[tilemap_id].projection_type = projection_type;
   tilemaps_buf[tilemap_id].half_size = half_size;
@@ -72,8 +72,8 @@ void orthographic_sync(int tilemap_id,
       -half_size + center_offset.y,
       half_size + center_offset.y,
       /* Near/far is computed on GPU using casters bounds. */
-      -1.0,
-      1.0);
+      -1.0f,
+      1.0f);
 }
 
 void cascade_sync(inout LightData light)
@@ -90,7 +90,7 @@ void cascade_sync(inout LightData light)
 
   /* All tile-maps use the first level size. */
   float level_size = shadow_directional_coverage_get(level_min);
-  float half_size = level_size / 2.0;
+  float half_size = level_size / 2.0f;
   float tile_size = level_size / float(SHADOW_TILEMAP_RES);
 
   /* Ideally we should only take the intersection with the scene bounds. */
@@ -279,12 +279,12 @@ void main()
       float shape_angle = atan_fast(light_sun_data_get(light).shape_radius);
 
       /* Reverse to that first sample is straight up. */
-      vec2 rand = 1.0 - sampling_rng_2D_get(SAMPLING_SHADOW_I);
+      vec2 rand = 1.0f - sampling_rng_2D_get(SAMPLING_SHADOW_I);
       vec3 shadow_direction = sample_uniform_cone(rand, cos(shape_angle));
 
       shadow_direction = transform_direction(light.object_to_world, shadow_direction);
 
-      if (light_sun_data_get(light).shadow_angle == 0.0) {
+      if (light_sun_data_get(light).shadow_angle == 0.0f) {
         /* The shape is a point. There is nothing to jitter.
          * `shape_radius` is clamped to a minimum for precision reasons, so `shadow_angle` is
          * set to 0 only when the light radius is also 0 to detect this case. */
@@ -303,18 +303,18 @@ void main()
   }
   else {
     /* Local lights. */
-    vec3 position_on_light = vec3(0.0);
+    vec3 position_on_light = vec3(0.0f);
 
     if (light.shadow_jitter && uniform_buf.shadow.use_jitter) {
       vec3 rand = sampling_rng_3D_get(SAMPLING_SHADOW_I);
 
       if (is_area_light(light.type)) {
-        vec2 point_on_unit_shape = (light.type == LIGHT_RECT) ? rand.xy * 2.0 - 1.0 :
+        vec2 point_on_unit_shape = (light.type == LIGHT_RECT) ? rand.xy * 2.0f - 1.0f :
                                                                 sample_disk(rand.xy);
-        position_on_light = vec3(point_on_unit_shape * light_area_data_get(light).size, 0.0);
+        position_on_light = vec3(point_on_unit_shape * light_area_data_get(light).size, 0.0f);
       }
       else {
-        if (light_local_data_get(light).shadow_radius == 0.0) {
+        if (light_local_data_get(light).shadow_radius == 0.0f) {
           /* The shape is a point. There is nothing to jitter.
            * `shape_radius` is clamped to a minimum for precision reasons, so `shadow_radius` is
            * set to 0 only when the light radius is also 0 to detect this case. */

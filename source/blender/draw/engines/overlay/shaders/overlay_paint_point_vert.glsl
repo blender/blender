@@ -12,23 +12,23 @@ VERTEX_SHADER_CREATE_INFO(overlay_paint_point)
 
 void main()
 {
-  bool is_select = (nor.w > 0.0);
-  bool is_hidden = (nor.w < 0.0);
+  bool is_select = (nor.w > 0.0f);
+  bool is_hidden = (nor.w < 0.0f);
 
   vec3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
   /* Add offset in Z to avoid Z-fighting and render selected wires on top. */
   /* TODO: scale this bias using Z-near and Z-far range. */
-  gl_Position.z -= (is_select ? 2e-4 : 1e-4);
+  gl_Position.z -= (is_select ? 2e-4f : 1e-4f);
 
   if (is_hidden) {
-    gl_Position = vec4(-2.0, -2.0, -2.0, 1.0);
+    gl_Position = vec4(-2.0f, -2.0f, -2.0f, 1.0f);
   }
 
-  finalColor = (is_select) ? vec4(1.0) : colorWire;
+  finalColor = (is_select) ? vec4(1.0f) : colorWire;
   finalColor.a = nor.w;
 
-  gl_PointSize = sizeVertex * 2.0;
+  gl_PointSize = sizeVertex * 2.0f;
 
   view_clipping_distances(world_pos);
 }

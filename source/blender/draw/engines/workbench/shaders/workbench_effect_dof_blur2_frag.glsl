@@ -29,13 +29,13 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_effect_dof_blur2)
 void main()
 {
   /* Half Res pass */
-  vec2 pixel_size = 1.0 / vec2(textureSize(blurTex, 0).xy);
+  vec2 pixel_size = 1.0f / vec2(textureSize(blurTex, 0).xy);
   vec2 uv = gl_FragCoord.xy * pixel_size.xy;
   float coc = dof_decode_coc(texture(inputCocTex, uv).rg);
-  /* Only use this filter if coc is > 9.0
+  /* Only use this filter if coc is > 9.0f
    * since this filter is not weighted by CoC
    * and can bleed a bit. */
-  float rad = clamp(coc - 9.0, 0.0, 1.0);
+  float rad = clamp(coc - 9.0f, 0.0f, 1.0f);
 
 #define vec vec4
 #define toVec(x) x.rgba

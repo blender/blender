@@ -40,7 +40,7 @@ void main()
   uint number_of_adjacent_faces = face_adjacency_offsets[vertex_index + 1] -
                                   first_adjacent_face_offset;
 
-  vec3 accumulated_normal = vec3(0.0);
+  vec3 accumulated_normal = vec3(0.0f);
 
   /* For each adjacent face. */
   for (uint i = 0; i < number_of_adjacent_faces; i++) {
@@ -54,7 +54,7 @@ void main()
       verts[j] = subdiv_get_vertex_pos(vertex_data);
     }
 
-    vec3 face_normal = vec3(0.0);
+    vec3 face_normal = vec3(0.0f);
     add_newell_cross_v3_v3v3(face_normal, verts[0], verts[1]);
     add_newell_cross_v3_v3v3(face_normal, verts[1], verts[2]);
     add_newell_cross_v3_v3v3(face_normal, verts[2], verts[3]);

@@ -14,7 +14,7 @@ void main()
 {
   vec3 final_pos = pos;
 
-  float flip = (gl_InstanceID != 0) ? -1.0 : 1.0;
+  float flip = (gl_InstanceID != 0) ? -1.0f : 1.0f;
 
   if (gl_VertexID % 2 == 0) {
     final_pos += normalSize * rad * (flip * nor - tangent);

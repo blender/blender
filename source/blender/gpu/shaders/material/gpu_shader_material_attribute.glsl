@@ -15,7 +15,7 @@ void node_attribute_temperature(vec4 attr, out vec4 out_attr)
   out_attr.x = temperature;
   out_attr.y = temperature;
   out_attr.z = temperature;
-  out_attr.w = 1.0;
+  out_attr.w = 1.0f;
 }
 
 void node_attribute_density(vec4 attr, out float out_attr)
@@ -57,13 +57,13 @@ vec4 attr_load_layer(const uint attr_hash)
   }
 #endif
 
-  return vec4(0.0);
+  return vec4(0.0f);
 }
 
 void node_attribute(
     vec4 attr, out vec4 outcol, out vec3 outvec, out float outf, out float outalpha)
 {
-  outcol = vec4(attr.xyz, 1.0);
+  outcol = vec4(attr.xyz, 1.0f);
   outvec = attr.xyz;
   outf = math_average(attr.xyz);
   outalpha = attr.w;

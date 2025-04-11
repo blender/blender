@@ -45,8 +45,8 @@ void main()
   bool do_fast_gather = dof_do_fast_gather(base_radius, min_radius, IS_FOREGROUND);
 
   /* Gather at half resolution. Divide CoC by 2. */
-  base_radius *= 0.5;
-  min_intersectable_radius *= 0.5;
+  base_radius *= 0.5f;
+  min_intersectable_radius *= 0.5f;
 
   bool do_density_change = dof_do_density_change(base_radius, min_intersectable_radius);
 
@@ -55,9 +55,9 @@ void main()
   vec2 out_occlusion;
 
   if (can_early_out) {
-    out_color = vec4(0.0);
-    out_weight = 0.0;
-    out_occlusion = vec2(0.0, 0.0);
+    out_color = vec4(0.0f);
+    out_weight = 0.0f;
+    out_occlusion = vec2(0.0f, 0.0f);
   }
   else if (do_fast_gather) {
     dof_gather_accumulator(color_tx,

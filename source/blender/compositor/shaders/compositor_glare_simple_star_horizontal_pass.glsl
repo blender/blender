@@ -19,7 +19,7 @@ void main()
       vec4 current_input = imageLoad(horizontal_img, texel);
       vec4 next_input = imageLoad(horizontal_img, texel + ivec2(i, 0));
 
-      vec4 neighbor_average = (previous_output + next_input) / 2.0;
+      vec4 neighbor_average = (previous_output + next_input) / 2.0f;
       vec4 causal_output = mix(current_input, neighbor_average, fade_factor);
       imageStore(horizontal_img, texel, causal_output);
       imageFence(horizontal_img);
@@ -35,7 +35,7 @@ void main()
       vec4 current_input = imageLoad(horizontal_img, texel);
       vec4 next_input = imageLoad(horizontal_img, texel - ivec2(i, 0));
 
-      vec4 neighbor_average = (previous_output + next_input) / 2.0;
+      vec4 neighbor_average = (previous_output + next_input) / 2.0f;
       vec4 non_causal_output = mix(current_input, neighbor_average, fade_factor);
       imageStore(horizontal_img, texel, non_causal_output);
       imageFence(horizontal_img);

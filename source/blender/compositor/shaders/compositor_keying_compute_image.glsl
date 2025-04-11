@@ -27,7 +27,7 @@ void main()
   /* Color despill. */
   ivec3 indices = compute_saturation_indices(key.rgb);
   float weighted_average = mix(color[indices.y], color[indices.z], despill_balance);
-  color[indices.x] -= max(0.0, (color[indices.x] - weighted_average) * despill_factor);
+  color[indices.x] -= max(0.0f, (color[indices.x] - weighted_average) * despill_factor);
 
   imageStore(output_img, texel, color);
 }

@@ -16,15 +16,15 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
 {
   vec2 edge = edge_start - edge_pos;
   float len = length(edge);
-  if (len > 0.0) {
+  if (len > 0.0f) {
     edge /= len;
     vec2 perp = vec2(-edge.y, edge.x);
     float dist = dot(perp, frag_co - edge_start);
-    /* Add 0.1 to differentiate with cleared pixels. */
-    return vec4(perp * 0.5 + 0.5, dist * 0.25 + 0.5 + 0.1, 1.0);
+    /* Add 0.1f to differentiate with cleared pixels. */
+    return vec4(perp * 0.5f + 0.5f, dist * 0.25f + 0.5f + 0.1f, 1.0f);
   }
   /* Default line if the origin is perfectly aligned with a pixel. */
-  return vec4(1.0, 0.0, 0.5 + 0.1, 1.0);
+  return vec4(1.0f, 0.0f, 0.5f + 0.1f, 1.0f);
 }
 
 void main()

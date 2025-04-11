@@ -137,7 +137,7 @@
  *         SMAA_PRESET_ULTRA        (%99 of the quality)
  *
  *     For example:
- *         #define SMAA_RT_METRICS float4(1.0 / 1280.0, 1.0 / 720.0, 1280.0, 720.0)
+ *         #define SMAA_RT_METRICS float4(1.0f / 1280.0f, 1.0f / 720.0f, 1280.0f, 720.0f)
  *         #define SMAA_HLSL_4
  *         #define SMAA_PRESET_HIGH
  *         #include "SMAA.h"
@@ -201,8 +201,8 @@
  *
  *    | S# |  Camera Jitter   |  subsampleIndices    |
  *    +----+------------------+---------------------+
- *    |  0 |  ( 0.25, -0.25)  |  float4(1, 1, 1, 0)  |
- *    |  1 |  (-0.25,  0.25)  |  float4(2, 2, 2, 0)  |
+ *    |  0 |  ( 0.25f, -0.25f)  |  float4(1, 1, 1, 0)  |
+ *    |  1 |  (-0.25f,  0.25f)  |  float4(2, 2, 2, 0)  |
  *
  *    These jitter positions assume a bottom-to-top y axis. S# stands for the
  *    sample number.
@@ -250,11 +250,11 @@
  *
  *    | F# | S# |   Camera Jitter    |    Net Jitter     |   subsampleIndices   |
  *    +----+----+--------------------+-------------------+----------------------+
- *    |  0 |  0 |  ( 0.125,  0.125)  |  ( 0.375, -0.125) |  float4(5, 3, 1, 3)  |
- *    |  0 |  1 |  ( 0.125,  0.125)  |  (-0.125,  0.375) |  float4(4, 6, 2, 3)  |
+ *    |  0 |  0 |  ( 0.125f,  0.125f)  |  ( 0.375f, -0.125f) |  float4(5, 3, 1, 3)  |
+ *    |  0 |  1 |  ( 0.125f,  0.125f)  |  (-0.125f,  0.375f) |  float4(4, 6, 2, 3)  |
  *    +----+----+--------------------+-------------------+----------------------+
- *    |  1 |  2 |  (-0.125, -0.125)  |  ( 0.125, -0.375) |  float4(3, 5, 1, 4)  |
- *    |  1 |  3 |  (-0.125, -0.125)  |  (-0.375,  0.125) |  float4(6, 4, 2, 4)  |
+ *    |  1 |  2 |  (-0.125f, -0.125f)  |  ( 0.125f, -0.375f) |  float4(3, 5, 1, 4)  |
+ *    |  1 |  3 |  (-0.125f, -0.125f)  |  (-0.375f,  0.125f) |  float4(6, 4, 2, 4)  |
  *
  *    These jitter positions assume a bottom-to-top y axis. F# stands for the
  *    frame number. S# stands for the sample number.
@@ -286,22 +286,22 @@
  */
 
 #if defined(SMAA_PRESET_LOW)
-#  define SMAA_THRESHOLD 0.15
+#  define SMAA_THRESHOLD 0.15f
 #  define SMAA_MAX_SEARCH_STEPS 4
 #  define SMAA_DISABLE_DIAG_DETECTION
 #  define SMAA_DISABLE_CORNER_DETECTION
 #elif defined(SMAA_PRESET_MEDIUM)
-#  define SMAA_THRESHOLD 0.1
+#  define SMAA_THRESHOLD 0.1f
 #  define SMAA_MAX_SEARCH_STEPS 8
 #  define SMAA_DISABLE_DIAG_DETECTION
 #  define SMAA_DISABLE_CORNER_DETECTION
 #elif defined(SMAA_PRESET_HIGH)
-#  define SMAA_THRESHOLD 0.1
+#  define SMAA_THRESHOLD 0.1f
 #  define SMAA_MAX_SEARCH_STEPS 16
 #  define SMAA_MAX_SEARCH_STEPS_DIAG 8
 #  define SMAA_CORNER_ROUNDING 25
 #elif defined(SMAA_PRESET_ULTRA)
-#  define SMAA_THRESHOLD 0.05
+#  define SMAA_THRESHOLD 0.05f
 #  define SMAA_MAX_SEARCH_STEPS 32
 #  define SMAA_MAX_SEARCH_STEPS_DIAG 16
 #  define SMAA_CORNER_ROUNDING 25
@@ -315,7 +315,7 @@
  * Lowering this value you will be able to detect more edges at the expense of
  * performance.
  *
- * Range: [0, 0.5]
+ * Range: [0, 0.5f]
  *   0.1 is a reasonable value, and allows to catch most visible edges.
  *   0.05 is a rather overkill value, that allows to catch 'em all.
  *
@@ -323,7 +323,7 @@
  *   contrast edges are properly filtered by just 2x.
  */
 #ifndef SMAA_THRESHOLD
-#  define SMAA_THRESHOLD 0.1
+#  define SMAA_THRESHOLD 0.1f
 #endif
 
 /**
@@ -332,7 +332,7 @@
  * Range: depends on the depth range of the scene.
  */
 #ifndef SMAA_DEPTH_THRESHOLD
-#  define SMAA_DEPTH_THRESHOLD (0.1 * SMAA_THRESHOLD)
+#  define SMAA_DEPTH_THRESHOLD (0.1f * SMAA_THRESHOLD)
 #endif
 
 /**
@@ -385,7 +385,7 @@
  * perceptually contrast in the other neighbors.
  */
 #ifndef SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR
-#  define SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR 2.0
+#  define SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR 2.0f
 #endif
 
 /**
@@ -413,7 +413,7 @@
  * works for you.
  */
 #ifndef SMAA_PREDICATION_THRESHOLD
-#  define SMAA_PREDICATION_THRESHOLD 0.01
+#  define SMAA_PREDICATION_THRESHOLD 0.01f
 #endif
 
 /**
@@ -423,7 +423,7 @@
  * Range: [1, 5]
  */
 #ifndef SMAA_PREDICATION_SCALE
-#  define SMAA_PREDICATION_SCALE 2.0
+#  define SMAA_PREDICATION_SCALE 2.0f
 #endif
 
 /**
@@ -432,7 +432,7 @@
  * Range: [0, 1]
  */
 #ifndef SMAA_PREDICATION_STRENGTH
-#  define SMAA_PREDICATION_STRENGTH 0.4
+#  define SMAA_PREDICATION_STRENGTH 0.4f
 #endif
 
 /**
@@ -462,7 +462,7 @@
  * Range: [0, 80]
  */
 #ifndef SMAA_REPROJECTION_WEIGHT_SCALE
-#  define SMAA_REPROJECTION_WEIGHT_SCALE 30.0
+#  define SMAA_REPROJECTION_WEIGHT_SCALE 30.0f
 #endif
 
 /**
@@ -500,11 +500,11 @@
 
 #define SMAA_AREATEX_MAX_DISTANCE 16
 #define SMAA_AREATEX_MAX_DISTANCE_DIAG 20
-#define SMAA_AREATEX_PIXEL_SIZE (1.0 / float2(160.0, 560.0))
-#define SMAA_AREATEX_SUBTEX_SIZE (1.0 / 7.0)
-#define SMAA_SEARCHTEX_SIZE float2(66.0, 33.0)
-#define SMAA_SEARCHTEX_PACKED_SIZE float2(64.0, 16.0)
-#define SMAA_CORNER_ROUNDING_NORM (float(SMAA_CORNER_ROUNDING) / 100.0)
+#define SMAA_AREATEX_PIXEL_SIZE (1.0f / float2(160.0f, 560.0f))
+#define SMAA_AREATEX_SUBTEX_SIZE (1.0f / 7.0f)
+#define SMAA_SEARCHTEX_SIZE float2(66.0f, 33.0f)
+#define SMAA_SEARCHTEX_PACKED_SIZE float2(64.0f, 16.0f)
+#define SMAA_CORNER_ROUNDING_NORM (float(SMAA_CORNER_ROUNDING) / 100.0f)
 
 /* ----------------------------------------------------------------------------
  * Porting Functions */
@@ -512,10 +512,10 @@
 #if defined(SMAA_HLSL_3)
 #  define SMAATexture2D(tex) sampler2D tex
 #  define SMAATexturePass2D(tex) tex
-#  define SMAASampleLevelZero(tex, coord) tex2Dlod(tex, float4(coord, 0.0, 0.0))
-#  define SMAASampleLevelZeroPoint(tex, coord) tex2Dlod(tex, float4(coord, 0.0, 0.0))
+#  define SMAASampleLevelZero(tex, coord) tex2Dlod(tex, float4(coord, 0.0f, 0.0f))
+#  define SMAASampleLevelZeroPoint(tex, coord) tex2Dlod(tex, float4(coord, 0.0f, 0.0f))
 /* clang-format off */
-#  define SMAASampleLevelZeroOffset(tex, coord, offset) tex2Dlod(tex, float4(coord + offset * SMAA_RT_METRICS.xy, 0.0, 0.0))
+#  define SMAASampleLevelZeroOffset(tex, coord, offset) tex2Dlod(tex, float4(coord + offset * SMAA_RT_METRICS.xy, 0.0f, 0.0f))
 /* clang-format on */
 #  define SMAASample(tex, coord) tex2D(tex, coord)
 #  define SMAASamplePoint(tex, coord) tex2D(tex, coord)
@@ -557,16 +557,16 @@ SamplerState PointSampler
 #if defined(SMAA_GLSL_3) || defined(SMAA_GLSL_4) || defined(GPU_METAL) || defined(GPU_VULKAN)
 #  define SMAATexture2D(tex) sampler2D tex
 #  define SMAATexturePass2D(tex) tex
-#  define SMAASampleLevelZero(tex, coord) textureLod(tex, coord, 0.0)
-#  define SMAASampleLevelZeroPoint(tex, coord) textureLod(tex, coord, 0.0)
-#  define SMAASampleLevelZeroOffset(tex, coord, offset) textureLodOffset(tex, coord, 0.0, offset)
+#  define SMAASampleLevelZero(tex, coord) textureLod(tex, coord, 0.0f)
+#  define SMAASampleLevelZeroPoint(tex, coord) textureLod(tex, coord, 0.0f)
+#  define SMAASampleLevelZeroOffset(tex, coord, offset) textureLodOffset(tex, coord, 0.0f, offset)
 #  define SMAASample(tex, coord) texture(tex, coord)
 #  define SMAASamplePoint(tex, coord) texture(tex, coord)
 #  define SMAASampleOffset(tex, coord, offset) texture(tex, coord, offset)
 #  define SMAA_FLATTEN
 #  define SMAA_BRANCH
 #  define lerp(a, b, t) mix(a, b, t)
-#  define saturate(a) clamp(a, 0.0, 1.0)
+#  define saturate(a) clamp(a, 0.0f, 1.0f)
 #  if defined(SMAA_GLSL_4)
 #    define SMAAGather(tex, coord) textureGather(tex, coord)
 #  endif
@@ -622,7 +622,7 @@ float mad(float a, float b, float c)
 float3 SMAAGatherNeighbors(float2 texcoord, float4 offset[3], SMAATexture2D(tex))
 {
 #ifdef SMAAGather
-  return SMAAGather(tex, texcoord + SMAA_RT_METRICS.xy * float2(-0.5, -0.5)).grb;
+  return SMAAGather(tex, texcoord + SMAA_RT_METRICS.xy * float2(-0.5f, -0.5f)).grb;
 #else
   float P = SMAASamplePoint(tex, texcoord).r;
   float Pleft = SMAASamplePoint(tex, offset[0].xy).r;
@@ -641,7 +641,7 @@ float2 SMAACalculatePredicatedThreshold(float2 texcoord,
   float3 neighbors = SMAAGatherNeighbors(texcoord, offset, SMAATexturePass2D(predicationTex));
   float2 delta = abs(neighbors.xx - neighbors.yz);
   float2 edges = step(SMAA_PREDICATION_THRESHOLD, delta);
-  return SMAA_PREDICATION_SCALE * SMAA_THRESHOLD * (1.0 - SMAA_PREDICATION_STRENGTH * edges);
+  return SMAA_PREDICATION_SCALE * SMAA_THRESHOLD * (1.0f - SMAA_PREDICATION_STRENGTH * edges);
 }
 
 /**
@@ -675,9 +675,9 @@ void SMAAEdgeDetectionVS(float2 texcoord, thread float4 *offset)
 void SMAAEdgeDetectionVS(float2 texcoord, out float4 offset[3])
 #  endif
 {
-  offset[0] = mad(SMAA_RT_METRICS.xyxy, float4(-1.0, 0.0, 0.0, -1.0), texcoord.xyxy);
-  offset[1] = mad(SMAA_RT_METRICS.xyxy, float4(1.0, 0.0, 0.0, 1.0), texcoord.xyxy);
-  offset[2] = mad(SMAA_RT_METRICS.xyxy, float4(-2.0, 0.0, 0.0, -2.0), texcoord.xyxy);
+  offset[0] = mad(SMAA_RT_METRICS.xyxy, float4(-1.0f, 0.0f, 0.0f, -1.0f), texcoord.xyxy);
+  offset[1] = mad(SMAA_RT_METRICS.xyxy, float4(1.0f, 0.0f, 0.0f, 1.0f), texcoord.xyxy);
+  offset[2] = mad(SMAA_RT_METRICS.xyxy, float4(-2.0f, 0.0f, 0.0f, -2.0f), texcoord.xyxy);
 }
 
 /**
@@ -697,12 +697,12 @@ void SMAABlendingWeightCalculationVS(float2 texcoord, out float2 pixcoord, out f
   pixcoord = texcoord * SMAA_RT_METRICS.zw;
 
   // We will use these offsets for the searches later on (see @PSEUDO_GATHER4):
-  offset[0] = mad(SMAA_RT_METRICS.xyxy, float4(-0.25, -0.125, 1.25, -0.125), texcoord.xyxy);
-  offset[1] = mad(SMAA_RT_METRICS.xyxy, float4(-0.125, -0.25, -0.125, 1.25), texcoord.xyxy);
+  offset[0] = mad(SMAA_RT_METRICS.xyxy, float4(-0.25f, -0.125f, 1.25f, -0.125f), texcoord.xyxy);
+  offset[1] = mad(SMAA_RT_METRICS.xyxy, float4(-0.125f, -0.25f, -0.125f, 1.25f), texcoord.xyxy);
 
   // And these for the searches, they indicate the ends of the loops:
   offset[2] = mad(SMAA_RT_METRICS.xxyy,
-                  float4(-2.0, 2.0, -2.0, 2.0) * float(SMAA_MAX_SEARCH_STEPS),
+                  float4(-2.0f, 2.0f, -2.0f, 2.0f) * float(SMAA_MAX_SEARCH_STEPS),
                   float4(offset[0].xz, offset[1].yw));
 }
 
@@ -711,7 +711,7 @@ void SMAABlendingWeightCalculationVS(float2 texcoord, out float2 pixcoord, out f
  */
 void SMAANeighborhoodBlendingVS(float2 texcoord, out float4 offset)
 {
-  offset = mad(SMAA_RT_METRICS.xyxy, float4(1.0, 0.0, 0.0, 1.0), texcoord.xyxy);
+  offset = mad(SMAA_RT_METRICS.xyxy, float4(1.0f, 0.0f, 0.0f, 1.0f), texcoord.xyxy);
 }
 #endif  // SMAA_INCLUDE_VS
 
@@ -720,7 +720,7 @@ void SMAANeighborhoodBlendingVS(float2 texcoord, out float4 offset)
  * Edge Detection Pixel Shaders (First Pass) */
 
 #  ifndef SMAA_LUMA_WEIGHT
-#    define SMAA_LUMA_WEIGHT float4(0.2126, 0.7152, 0.0722, 0.0)
+#    define SMAA_LUMA_WEIGHT float4(0.2126f, 0.7152f, 0.0722f, 0.0f)
 #  endif
 
 /**
@@ -747,7 +747,7 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
 #  endif
 
   // Calculate lumas:
-  // float4 weights = float4(0.2126, 0.7152, 0.0722, 0.0);
+  // float4 weights = float4(0.2126f, 0.7152f, 0.0722f, 0.0f);
   float4 weights = SMAA_LUMA_WEIGHT;
   float L = dot(SMAASamplePoint(colorTex, texcoord).rgba, weights);
 
@@ -762,15 +762,15 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
 #  ifdef GPU_FRAGMENT_SHADER
 #    ifndef SMAA_NO_DISCARD
   // Then discard if there is no edge:
-  if (dot(edges, float2(1.0, 1.0)) == 0.0) {
+  if (dot(edges, float2(1.0f, 1.0f)) == 0.0f) {
     discard;
-    return float2(0.0, 0.0);
+    return float2(0.0f, 0.0f);
   }
 #    endif
 #  elif defined(GPU_COMPUTE_SHADER)
   // Then return early if there is no edge:
-  if (dot(edges, float2(1.0, 1.0)) == 0.0) {
-    return float2(0.0);
+  if (dot(edges, float2(1.0f, 1.0f)) == 0.0f) {
+    return float2(0.0f);
   }
 #  endif
 
@@ -837,9 +837,9 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
 #  ifndef SMAA_NO_DISCARD
 #    ifdef GPU_FRAGMENT_SHADER
   // Then discard if there is no edge:
-  if (dot(edges, float2(1.0, 1.0)) == 0.0) {
+  if (dot(edges, float2(1.0f, 1.0f)) == 0.0f) {
     discard;
-    return float2(0.0, 0.0);
+    return float2(0.0f, 0.0f);
   }
 #    endif
 #  endif
@@ -885,9 +885,9 @@ float2 SMAADepthEdgeDetectionPS(float2 texcoord, float4 offset[3], SMAATexture2D
   float2 edges = step(SMAA_DEPTH_THRESHOLD, delta);
 
 #  ifdef GPU_FRAGMENT_SHADER
-  if (dot(edges, float2(1.0, 1.0)) == 0.0) {
+  if (dot(edges, float2(1.0f, 1.0f)) == 0.0f) {
     discard;
-    return float2(0.0, 0.0);
+    return float2(0.0f, 0.0f);
   }
 #  endif
 
@@ -904,7 +904,7 @@ float2 SMAADepthEdgeDetectionPS(float2 texcoord, float4 offset[3], SMAATexture2D
  */
 float2 SMAADecodeDiagBilinearAccess(float2 e)
 {
-  // Bilinear access for fetching 'e' have a 0.25 offset, and we are
+  // Bilinear access for fetching 'e' have a 0.25f offset, and we are
   // interested in the R and G edges:
   //
   // +---G---+-------+
@@ -912,18 +912,18 @@ float2 SMAADecodeDiagBilinearAccess(float2 e)
   // +-------+-------+
   //
   // Then, if one of these edge is enabled:
-  //   Red:   (0.75 * X + 0.25 * 1) => 0.25 or 1.0
-  //   Green: (0.75 * 1 + 0.25 * X) => 0.75 or 1.0
+  //   Red:   (0.75f * X + 0.25f * 1) => 0.25f or 1.0f
+  //   Green: (0.75f * 1 + 0.25f * X) => 0.75f or 1.0f
   //
   // This function will unpack the values (mad + mul + round):
-  // wolframalpha.com: round(x * abs(5 * x - 5 * 0.75)) plot 0 to 1
-  e.r = e.r * abs(5.0 * e.r - 5.0 * 0.75);
+  // wolframalpha.com: round(x * abs(5 * x - 5 * 0.75f)) plot 0 to 1
+  e.r = e.r * abs(5.0f * e.r - 5.0f * 0.75f);
   return round(e);
 }
 
 float4 SMAADecodeDiagBilinearAccess(float4 e)
 {
-  e.rb = e.rb * abs(5.0 * e.rb - 5.0 * 0.75);
+  e.rb = e.rb * abs(5.0f * e.rb - 5.0f * 0.75f);
   return round(e);
 }
 
@@ -932,23 +932,23 @@ float4 SMAADecodeDiagBilinearAccess(float4 e)
  */
 float2 SMAASearchDiag1(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out float2 e)
 {
-  float4 coord = float4(texcoord, -1.0, 1.0);
-  float3 t = float3(SMAA_RT_METRICS.xy, 1.0);
-  while (coord.z < float(SMAA_MAX_SEARCH_STEPS_DIAG - 1) && coord.w > 0.9) {
-    coord.xyz = mad(t, float3(dir, 1.0), coord.xyz);
+  float4 coord = float4(texcoord, -1.0f, 1.0f);
+  float3 t = float3(SMAA_RT_METRICS.xy, 1.0f);
+  while (coord.z < float(SMAA_MAX_SEARCH_STEPS_DIAG - 1) && coord.w > 0.9f) {
+    coord.xyz = mad(t, float3(dir, 1.0f), coord.xyz);
     e = SMAASampleLevelZero(edgesTex, coord.xy).rg;
-    coord.w = dot(e, float2(0.5, 0.5));
+    coord.w = dot(e, float2(0.5f, 0.5f));
   }
   return coord.zw;
 }
 
 float2 SMAASearchDiag2(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out float2 e)
 {
-  float4 coord = float4(texcoord, -1.0, 1.0);
-  coord.x += 0.25 * SMAA_RT_METRICS.x;  // See @SearchDiag2Optimization
-  float3 t = float3(SMAA_RT_METRICS.xy, 1.0);
-  while (coord.z < float(SMAA_MAX_SEARCH_STEPS_DIAG - 1) && coord.w > 0.9) {
-    coord.xyz = mad(t, float3(dir, 1.0), coord.xyz);
+  float4 coord = float4(texcoord, -1.0f, 1.0f);
+  coord.x += 0.25f * SMAA_RT_METRICS.x;  // See @SearchDiag2Optimization
+  float3 t = float3(SMAA_RT_METRICS.xy, 1.0f);
+  while (coord.z < float(SMAA_MAX_SEARCH_STEPS_DIAG - 1) && coord.w > 0.9f) {
+    coord.xyz = mad(t, float3(dir, 1.0f), coord.xyz);
 
     // @SearchDiag2Optimization
     // Fetch both edges at once using bilinear filtering:
@@ -959,7 +959,7 @@ float2 SMAASearchDiag2(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out
     // e.g = SMAASampleLevelZero(edgesTex, coord.xy).g;
     // e.r = SMAASampleLevelZeroOffset(edgesTex, coord.xy, int2(1, 0)).r;
 
-    coord.w = dot(e, float2(0.5, 0.5));
+    coord.w = dot(e, float2(0.5f, 0.5f));
   }
   return coord.zw;
 }
@@ -974,10 +974,10 @@ float2 SMAAAreaDiag(SMAATexture2D(areaTex), float2 dist, float2 e, float offset)
       float2(SMAA_AREATEX_MAX_DISTANCE_DIAG, SMAA_AREATEX_MAX_DISTANCE_DIAG), e, dist);
 
   // We do a scale and bias for mapping to texel space:
-  texcoord = mad(SMAA_AREATEX_PIXEL_SIZE, texcoord, 0.5 * SMAA_AREATEX_PIXEL_SIZE);
+  texcoord = mad(SMAA_AREATEX_PIXEL_SIZE, texcoord, 0.5f * SMAA_AREATEX_PIXEL_SIZE);
 
   // Diagonal areas are on the second half of the texture:
-  texcoord.x += 0.5;
+  texcoord.x += 0.5f;
 
   // Move to proper place, according to the subpixel offset:
   texcoord.y += SMAA_AREATEX_SUBTEX_SIZE * offset;
@@ -995,24 +995,24 @@ float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
                                 float2 e,
                                 float4 subsampleIndices)
 {
-  float2 weights = float2(0.0, 0.0);
+  float2 weights = float2(0.0f, 0.0f);
 
   // Search for the line ends:
   float4 d;
   float2 end;
-  if (e.r > 0.0) {
-    d.xz = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0, 1.0), end);
-    d.x += float(end.y > 0.9);
+  if (e.r > 0.0f) {
+    d.xz = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0f, 1.0f), end);
+    d.x += float(end.y > 0.9f);
   }
   else
-    d.xz = float2(0.0, 0.0);
-  d.yw = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(1.0, -1.0), end);
+    d.xz = float2(0.0f, 0.0f);
+  d.yw = SMAASearchDiag1(SMAATexturePass2D(edgesTex), texcoord, float2(1.0f, -1.0f), end);
 
   SMAA_BRANCH
-  if (d.x + d.y > 2.0) {  // d.x + d.y + 1 > 3
+  if (d.x + d.y > 2.0f) {  // d.x + d.y + 1 > 3
     // Fetch the crossing edges:
     float4 coords = mad(
-        float4(-d.x + 0.25, d.x, d.y, -d.y - 0.25), SMAA_RT_METRICS.xyxy, texcoord.xyxy);
+        float4(-d.x + 0.25f, d.x, d.y, -d.y - 0.25f), SMAA_RT_METRICS.xyxy, texcoord.xyxy);
     float4 c;
     c.xy = SMAASampleLevelZeroOffset(edgesTex, coords.xy, int2(-1, 0)).rg;
     c.zw = SMAASampleLevelZeroOffset(edgesTex, coords.zw, int2(1, 0)).rg;
@@ -1027,36 +1027,36 @@ float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
     // c.w = SMAASampleLevelZeroOffset(edgesTex, coords.zw, int2( 1, -1)).r;
 
     // Merge crossing edges at each side into a single value:
-    float2 cc = mad(float2(2.0, 2.0), c.xz, c.yw);
+    float2 cc = mad(float2(2.0f, 2.0f), c.xz, c.yw);
 
     // Remove the crossing edge if we didn't found the end of the line:
-    SMAAMovc(bool2(step(0.9, d.zw)), cc, float2(0.0, 0.0));
+    SMAAMovc(bool2(step(0.9f, d.zw)), cc, float2(0.0f, 0.0f));
 
     // Fetch the areas for this line:
     weights += SMAAAreaDiag(SMAATexturePass2D(areaTex), d.xy, cc, subsampleIndices.z);
   }
 
   // Search for the line ends:
-  d.xz = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0, -1.0), end);
-  if (SMAASampleLevelZeroOffset(edgesTex, texcoord, int2(1, 0)).r > 0.0) {
-    d.yw = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(1.0, 1.0), end);
-    d.y += float(end.y > 0.9);
+  d.xz = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(-1.0f, -1.0f), end);
+  if (SMAASampleLevelZeroOffset(edgesTex, texcoord, int2(1, 0)).r > 0.0f) {
+    d.yw = SMAASearchDiag2(SMAATexturePass2D(edgesTex), texcoord, float2(1.0f, 1.0f), end);
+    d.y += float(end.y > 0.9f);
   }
   else
-    d.yw = float2(0.0, 0.0);
+    d.yw = float2(0.0f, 0.0f);
 
   SMAA_BRANCH
-  if (d.x + d.y > 2.0) {  // d.x + d.y + 1 > 3
+  if (d.x + d.y > 2.0f) {  // d.x + d.y + 1 > 3
     // Fetch the crossing edges:
     float4 coords = mad(float4(-d.x, -d.x, d.y, d.y), SMAA_RT_METRICS.xyxy, texcoord.xyxy);
     float4 c;
     c.x = SMAASampleLevelZeroOffset(edgesTex, coords.xy, int2(-1, 0)).g;
     c.y = SMAASampleLevelZeroOffset(edgesTex, coords.xy, int2(0, -1)).r;
     c.zw = SMAASampleLevelZeroOffset(edgesTex, coords.zw, int2(1, 0)).gr;
-    float2 cc = mad(float2(2.0, 2.0), c.xz, c.yw);
+    float2 cc = mad(float2(2.0f, 2.0f), c.xz, c.yw);
 
     // Remove the crossing edge if we didn't found the end of the line:
-    SMAAMovc(bool2(step(0.9, d.zw)), cc, float2(0.0, 0.0));
+    SMAAMovc(bool2(step(0.9f, d.zw)), cc, float2(0.0f, 0.0f));
 
     // Fetch the areas for this line:
     weights += SMAAAreaDiag(SMAATexturePass2D(areaTex), d.xy, cc, subsampleIndices.w).gr;
@@ -1079,17 +1079,17 @@ float SMAASearchLength(SMAATexture2D(searchTex), float2 e, float offset)
 {
   // The texture is flipped vertically, with left and right cases taking half
   // of the space horizontally:
-  float2 scale = SMAA_SEARCHTEX_SIZE * float2(0.5, -1.0);
-  float2 bias = SMAA_SEARCHTEX_SIZE * float2(offset, 1.0);
+  float2 scale = SMAA_SEARCHTEX_SIZE * float2(0.5f, -1.0f);
+  float2 bias = SMAA_SEARCHTEX_SIZE * float2(offset, 1.0f);
 
   // Scale and bias to access texel centers:
-  scale += float2(-1.0, 1.0);
-  bias += float2(0.5, -0.5);
+  scale += float2(-1.0f, 1.0f);
+  bias += float2(0.5f, -0.5f);
 
   // Convert from pixel coordinates to texcoords:
   // (We use SMAA_SEARCHTEX_PACKED_SIZE because the texture is cropped)
-  scale *= 1.0 / SMAA_SEARCHTEX_PACKED_SIZE;
-  bias *= 1.0 / SMAA_SEARCHTEX_PACKED_SIZE;
+  scale *= 1.0f / SMAA_SEARCHTEX_PACKED_SIZE;
+  bias *= 1.0f / SMAA_SEARCHTEX_PACKED_SIZE;
 
   // Lookup the search texture:
   return SMAA_SEARCHTEX_SELECT(SMAASampleLevelZero(searchTex, mad(scale, e, bias)));
@@ -1110,29 +1110,29 @@ float SMAASearchXLeft(SMAATexture2D(edgesTex),
    * Sampling with different offsets in each direction allows to disambiguate
    * which edges are active from the four fetched ones.
    */
-  float2 e = float2(0.0, 1.0);
-  while (texcoord.x > end && e.g > 0.8281 &&  // Is there some edge not activated?
-         e.r == 0.0)                          // Or is there a crossing edge that breaks the line?
+  float2 e = float2(0.0f, 1.0f);
+  while (texcoord.x > end && e.g > 0.8281f &&  // Is there some edge not activated?
+         e.r == 0.0f)                          // Or is there a crossing edge that breaks the line?
   {
     e = SMAASampleLevelZero(edgesTex, texcoord).rg;
-    texcoord = mad(-float2(2.0, 0.0), SMAA_RT_METRICS.xy, texcoord);
+    texcoord = mad(-float2(2.0f, 0.0f), SMAA_RT_METRICS.xy, texcoord);
   }
 
   float offset = mad(
-      -(255.0 / 127.0), SMAASearchLength(SMAATexturePass2D(searchTex), e, 0.0), 3.25);
+      -(255.0f / 127.0f), SMAASearchLength(SMAATexturePass2D(searchTex), e, 0.0f), 3.25f);
   return mad(SMAA_RT_METRICS.x, offset, texcoord.x);
 
   // Non-optimized version:
-  // We correct the previous (-0.25, -0.125) offset we applied:
-  // texcoord.x += 0.25 * SMAA_RT_METRICS.x;
+  // We correct the previous (-0.25f, -0.125f) offset we applied:
+  // texcoord.x += 0.25f * SMAA_RT_METRICS.x;
 
   // The searches are bias by 1, so adjust the coords accordingly:
   // texcoord.x += SMAA_RT_METRICS.x;
 
   // Disambiguate the length added by the last step:
-  // texcoord.x += 2.0 * SMAA_RT_METRICS.x; // Undo last step
-  // texcoord.x -= SMAA_RT_METRICS.x * (255.0 / 127.0) *
-  // SMAASearchLength(SMAATexturePass2D(searchTex), e, 0.0); return mad(SMAA_RT_METRICS.x, offset,
+  // texcoord.x += 2.0f * SMAA_RT_METRICS.x; // Undo last step
+  // texcoord.x -= SMAA_RT_METRICS.x * (255.0f / 127.0f) *
+  // SMAASearchLength(SMAATexturePass2D(searchTex), e, 0.0f); return mad(SMAA_RT_METRICS.x, offset,
   // texcoord.x);
 }
 
@@ -1141,29 +1141,29 @@ float SMAASearchXRight(SMAATexture2D(edgesTex),
                        float2 texcoord,
                        float end)
 {
-  float2 e = float2(0.0, 1.0);
-  while (texcoord.x < end && e.g > 0.8281 &&  // Is there some edge not activated?
-         e.r == 0.0)                          // Or is there a crossing edge that breaks the line?
+  float2 e = float2(0.0f, 1.0f);
+  while (texcoord.x < end && e.g > 0.8281f &&  // Is there some edge not activated?
+         e.r == 0.0f)                          // Or is there a crossing edge that breaks the line?
   {
     e = SMAASampleLevelZero(edgesTex, texcoord).rg;
-    texcoord = mad(float2(2.0, 0.0), SMAA_RT_METRICS.xy, texcoord);
+    texcoord = mad(float2(2.0f, 0.0f), SMAA_RT_METRICS.xy, texcoord);
   }
   float offset = mad(
-      -(255.0 / 127.0), SMAASearchLength(SMAATexturePass2D(searchTex), e, 0.5), 3.25);
+      -(255.0f / 127.0f), SMAASearchLength(SMAATexturePass2D(searchTex), e, 0.5f), 3.25f);
   return mad(-SMAA_RT_METRICS.x, offset, texcoord.x);
 }
 
 float SMAASearchYUp(SMAATexture2D(edgesTex), SMAATexture2D(searchTex), float2 texcoord, float end)
 {
-  float2 e = float2(1.0, 0.0);
-  while (texcoord.y > end && e.r > 0.8281 &&  // Is there some edge not activated?
-         e.g == 0.0)                          // Or is there a crossing edge that breaks the line?
+  float2 e = float2(1.0f, 0.0f);
+  while (texcoord.y > end && e.r > 0.8281f &&  // Is there some edge not activated?
+         e.g == 0.0f)                          // Or is there a crossing edge that breaks the line?
   {
     e = SMAASampleLevelZero(edgesTex, texcoord).rg;
-    texcoord = mad(-float2(0.0, 2.0), SMAA_RT_METRICS.xy, texcoord);
+    texcoord = mad(-float2(0.0f, 2.0f), SMAA_RT_METRICS.xy, texcoord);
   }
   float offset = mad(
-      -(255.0 / 127.0), SMAASearchLength(SMAATexturePass2D(searchTex), e.gr, 0.0), 3.25);
+      -(255.0f / 127.0f), SMAASearchLength(SMAATexturePass2D(searchTex), e.gr, 0.0f), 3.25f);
   return mad(SMAA_RT_METRICS.y, offset, texcoord.y);
 }
 
@@ -1172,15 +1172,15 @@ float SMAASearchYDown(SMAATexture2D(edgesTex),
                       float2 texcoord,
                       float end)
 {
-  float2 e = float2(1.0, 0.0);
-  while (texcoord.y < end && e.r > 0.8281 &&  // Is there some edge not activated?
-         e.g == 0.0)                          // Or is there a crossing edge that breaks the line?
+  float2 e = float2(1.0f, 0.0f);
+  while (texcoord.y < end && e.r > 0.8281f &&  // Is there some edge not activated?
+         e.g == 0.0f)                          // Or is there a crossing edge that breaks the line?
   {
     e = SMAASampleLevelZero(edgesTex, texcoord).rg;
-    texcoord = mad(float2(0.0, 2.0), SMAA_RT_METRICS.xy, texcoord);
+    texcoord = mad(float2(0.0f, 2.0f), SMAA_RT_METRICS.xy, texcoord);
   }
   float offset = mad(
-      -(255.0 / 127.0), SMAASearchLength(SMAATexturePass2D(searchTex), e.gr, 0.5), 3.25);
+      -(255.0f / 127.0f), SMAASearchLength(SMAATexturePass2D(searchTex), e.gr, 0.5f), 3.25f);
   return mad(-SMAA_RT_METRICS.y, offset, texcoord.y);
 }
 
@@ -1192,11 +1192,11 @@ float2 SMAAArea(SMAATexture2D(areaTex), float2 dist, float e1, float e2, float o
 {
   // Rounding prevents precision errors of bilinear filtering:
   float2 texcoord = mad(float2(SMAA_AREATEX_MAX_DISTANCE, SMAA_AREATEX_MAX_DISTANCE),
-                        round(4.0 * float2(e1, e2)),
+                        round(4.0f * float2(e1, e2)),
                         dist);
 
   // We do a scale and bias for mapping to texel space:
-  texcoord = mad(SMAA_AREATEX_PIXEL_SIZE, texcoord, 0.5 * SMAA_AREATEX_PIXEL_SIZE);
+  texcoord = mad(SMAA_AREATEX_PIXEL_SIZE, texcoord, 0.5f * SMAA_AREATEX_PIXEL_SIZE);
 
   // Move to proper place, according to the subpixel offset:
   texcoord.y = mad(SMAA_AREATEX_SUBTEX_SIZE, offset, texcoord.y);
@@ -1215,11 +1215,11 @@ void SMAADetectHorizontalCornerPattern(SMAATexture2D(edgesTex),
 {
 #  if !defined(SMAA_DISABLE_CORNER_DETECTION)
   float2 leftRight = step(d.xy, d.yx);
-  float2 rounding = (1.0 - SMAA_CORNER_ROUNDING_NORM) * leftRight;
+  float2 rounding = (1.0f - SMAA_CORNER_ROUNDING_NORM) * leftRight;
 
   rounding /= leftRight.x + leftRight.y;  // Reduce blending for pixels in the center of a line.
 
-  float2 factor = float2(1.0, 1.0);
+  float2 factor = float2(1.0f, 1.0f);
   factor.x -= rounding.x * SMAASampleLevelZeroOffset(edgesTex, texcoord.xy, int2(0, 1)).r;
   factor.x -= rounding.y * SMAASampleLevelZeroOffset(edgesTex, texcoord.zw, int2(1, 1)).r;
   factor.y -= rounding.x * SMAASampleLevelZeroOffset(edgesTex, texcoord.xy, int2(0, -2)).r;
@@ -1236,11 +1236,11 @@ void SMAADetectVerticalCornerPattern(SMAATexture2D(edgesTex),
 {
 #  if !defined(SMAA_DISABLE_CORNER_DETECTION)
   float2 leftRight = step(d.xy, d.yx);
-  float2 rounding = (1.0 - SMAA_CORNER_ROUNDING_NORM) * leftRight;
+  float2 rounding = (1.0f - SMAA_CORNER_ROUNDING_NORM) * leftRight;
 
   rounding /= leftRight.x + leftRight.y;
 
-  float2 factor = float2(1.0, 1.0);
+  float2 factor = float2(1.0f, 1.0f);
   factor.x -= rounding.x * SMAASampleLevelZeroOffset(edgesTex, texcoord.xy, int2(1, 0)).g;
   factor.x -= rounding.y * SMAASampleLevelZeroOffset(edgesTex, texcoord.zw, int2(1, 1)).g;
   factor.y -= rounding.x * SMAASampleLevelZeroOffset(edgesTex, texcoord.xy, int2(-2, 0)).g;
@@ -1261,12 +1261,12 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
                                        SMAATexture2D(searchTex),
                                        float4 subsampleIndices)
 {  // Just pass zero for SMAA 1x, see @SUBSAMPLE_INDICES.
-  float4 weights = float4(0.0, 0.0, 0.0, 0.0);
+  float4 weights = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
   float2 e = SMAASample(edgesTex, texcoord).rg;
 
   SMAA_BRANCH
-  if (e.g > 0.0) {  // Edge at north
+  if (e.g > 0.0f) {  // Edge at north
 #  if !defined(SMAA_DISABLE_DIAG_DETECTION)
     // Diagonals have both north and west edges, so searching for them in
     // one of the boundaries is enough.
@@ -1276,7 +1276,7 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
     // We give priority to diagonals, so if we find a diagonal we skip
     // horizontal/vertical processing.
     SMAA_BRANCH
-    if (weights.r == -weights.g) {  // weights.r + weights.g == 0.0
+    if (weights.r == -weights.g) {  // weights.r + weights.g == 0.0f
 #  endif
 
       float2 d;
@@ -1286,11 +1286,11 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
       coords.x = SMAASearchXLeft(
           SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[0].xy, offset[2].x);
       coords.y =
-          offset[1].y;  // offset[1].y = texcoord.y - 0.25 * SMAA_RT_METRICS.y (@CROSSING_OFFSET)
+          offset[1].y;  // offset[1].y = texcoord.y - 0.25f * SMAA_RT_METRICS.y (@CROSSING_OFFSET)
       d.x = coords.x;
 
       // Now fetch the left crossing edges, two at a time using bilinear
-      // filtering. Sampling at -0.25 (see @CROSSING_OFFSET) enables to
+      // filtering. Sampling at -0.25f (see @CROSSING_OFFSET) enables to
       // discern what value each edge has:
       float e1 = SMAASampleLevelZero(edgesTex, coords.xy).r;
 
@@ -1329,19 +1329,19 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
 #  if !defined(SMAA_DISABLE_DIAG_DETECTION)
     }
     else
-      e.r = 0.0;  // Skip vertical processing.
+      e.r = 0.0f;  // Skip vertical processing.
 #  endif
   }
 
   SMAA_BRANCH
-  if (e.r > 0.0) {  // Edge at west
+  if (e.r > 0.0f) {  // Edge at west
     float2 d;
 
     // Find the distance to the top:
     float3 coords;
     coords.y = SMAASearchYUp(
         SMAATexturePass2D(edgesTex), SMAATexturePass2D(searchTex), offset[1].xy, offset[2].z);
-    coords.x = offset[0].x;  // offset[1].x = texcoord.x - 0.25 * SMAA_RT_METRICS.x;
+    coords.x = offset[0].x;  // offset[1].x = texcoord.x - 0.25f * SMAA_RT_METRICS.x;
     d.x = coords.y;
 
     // Fetch the top crossing edges:
@@ -1400,16 +1400,16 @@ float4 SMAANeighborhoodBlendingPS(float2 texcoord,
   a.y = SMAASample(blendTex, offset.zw).g;   // Top
   a.wz = SMAASample(blendTex, texcoord).xz;  // Bottom / Left
 
-  // Is there any blending weight with a value greater than 0.0?
+  // Is there any blending weight with a value greater than 0.0f?
   SMAA_BRANCH
-  if (dot(a, float4(1.0, 1.0, 1.0, 1.0)) < 1e-5) {
+  if (dot(a, float4(1.0f, 1.0f, 1.0f, 1.0f)) < 1e-5f) {
     float4 color = SMAASampleLevelZero(colorTex, texcoord);
 
 #  if SMAA_REPROJECTION
     float2 velocity = SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, texcoord));
 
     // Pack velocity into the alpha channel:
-    color.a = sqrt(5.0 * length(velocity));
+    color.a = sqrt(5.0f * length(velocity));
 #  endif
 
     return color;
@@ -1418,11 +1418,11 @@ float4 SMAANeighborhoodBlendingPS(float2 texcoord,
     bool h = max(a.x, a.z) > max(a.y, a.w);  // max(horizontal) > max(vertical)
 
     // Calculate the blending offsets:
-    float4 blendingOffset = float4(0.0, a.y, 0.0, a.w);
+    float4 blendingOffset = float4(0.0f, a.y, 0.0f, a.w);
     float2 blendingWeight = a.yw;
-    SMAAMovc(bool4(h, h, h, h), blendingOffset, float4(a.x, 0.0, a.z, 0.0));
+    SMAAMovc(bool4(h, h, h, h), blendingOffset, float4(a.x, 0.0f, a.z, 0.0f));
     SMAAMovc(bool2(h, h), blendingWeight, a.xz);
-    blendingWeight /= dot(blendingWeight, float2(1.0, 1.0));
+    blendingWeight /= dot(blendingWeight, float2(1.0f, 1.0f));
 
     // Calculate the texture coordinates:
     float4 blendingCoord = mad(
@@ -1441,7 +1441,7 @@ float4 SMAANeighborhoodBlendingPS(float2 texcoord,
                 SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, blendingCoord.zw));
 
     // Pack velocity into the alpha channel:
-    color.a = sqrt(5.0 * length(velocity));
+    color.a = sqrt(5.0f * length(velocity));
 #  endif
 
     return color;
@@ -1472,8 +1472,8 @@ float4 SMAAResolvePS(float2 texcoord,
   float4 previous = SMAASamplePoint(previousColorTex, texcoord + velocity);
 
   // Attenuate the previous pixel if the velocity is different:
-  float delta = abs(current.a * current.a - previous.a * previous.a) / 5.0;
-  float weight = 0.5 * saturate(1.0 - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
+  float delta = abs(current.a * current.a - previous.a * previous.a) / 5.0f;
+  float weight = 0.5f * saturate(1.0f - sqrt(delta) * SMAA_REPROJECTION_WEIGHT_SCALE);
 
   // Blend the pixels according to the calculated weight:
   return lerp(current, previous, weight);
@@ -1481,7 +1481,7 @@ float4 SMAAResolvePS(float2 texcoord,
   // Just blend the pixels:
   float4 current = SMAASamplePoint(currentColorTex, texcoord);
   float4 previous = SMAASamplePoint(previousColorTex, texcoord);
-  return lerp(current, previous, 0.5);
+  return lerp(current, previous, 0.5f);
 #  endif
 }
 

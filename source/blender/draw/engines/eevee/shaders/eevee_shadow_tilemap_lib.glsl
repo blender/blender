@@ -132,9 +132,9 @@ int shadow_directional_tilemap_index(LightData light, vec3 lP)
   int lvl;
   if (light.type == LIGHT_SUN) {
     /* We need to hide one tile worth of data to hide the moving transition. */
-    const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001);
+    const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001f);
     /* Avoid using log2 when we can just get the exponent from the floating point. */
-    frexp(reduce_max(abs(lP)) * narrowing * 2.0, lvl);
+    frexp(reduce_max(abs(lP)) * narrowing * 2.0f, lvl);
   }
   else {
     /* Since we want half of the size, bias the level by -1. */
@@ -158,17 +158,17 @@ float shadow_directional_level_fractional(LightData light, vec3 lP)
   float lod;
   if (light.type == LIGHT_SUN) {
     /* We need to hide one tile worth of data to hide the moving transition. */
-    const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001);
+    const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001f);
     /* Since the distance is centered around the camera (and thus by extension the tile-map),
      * we need to multiply by 2 to get the lod level which covers the following range:
      * [-coverage_get(lod)/2..coverage_get(lod)/2] */
-    lod = log2(length(lP) * narrowing * 2.0);
+    lod = log2(length(lP) * narrowing * 2.0f);
     /* Apply light LOD bias. */
     lod = max(lod + light.lod_bias, light.lod_min);
   }
   else {
     /* The narrowing need to be stronger since the tile-map position is not rounded but floored. */
-    const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 2.5001);
+    const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 2.5001f);
     /* Since we want half of the size, bias the level by -1. */
     float clipmap_lod_min_minus_one = float(light_sun_data_get(light).clipmap_lod_min - 1);
     float lod_min_half_size = exp2(clipmap_lod_min_minus_one);
@@ -214,7 +214,7 @@ float shadow_punctual_pixel_ratio(LightData light,
   /* Clamp in shadow space. */
   film_pixel_footprint = max(film_pixel_footprint, -light.lod_min);
   /* Cube-face diagonal divided by LOD0 resolution. */
-  const float shadow_pixel_radius = (2.0 * M_SQRT2) / SHADOW_MAP_MAX_RES;
+  const float shadow_pixel_radius = (2.0f * M_SQRT2) / SHADOW_MAP_MAX_RES;
   return saturate(shadow_pixel_radius / film_pixel_footprint);
 }
 
@@ -230,7 +230,7 @@ float shadow_punctual_level_fractional(LightData light,
 {
   float ratio = shadow_punctual_pixel_ratio(
       light, lP, is_perspective, distance_to_camera, film_pixel_radius);
-  return clamp(-log2(ratio), 0.0, float(SHADOW_TILEMAP_LOD));
+  return clamp(-log2(ratio), 0.0f, float(SHADOW_TILEMAP_LOD));
 }
 
 int shadow_punctual_level(LightData light,
@@ -258,7 +258,7 @@ ShadowCoordinates shadow_coordinate_from_uvs(int tilemap_index, vec2 tilemap_uv)
 {
   ShadowCoordinates ret;
   ret.tilemap_index = tilemap_index;
-  ret.tilemap_texel = uvec2(tilemap_uv * (float(SHADOW_MAP_MAX_RES) - 1e-2));
+  ret.tilemap_texel = uvec2(tilemap_uv * (float(SHADOW_MAP_MAX_RES) - 1e-2f));
   ret.tilemap_tile = ret.tilemap_texel >> uint(SHADOW_PAGE_LOD);
   return ret;
 }
@@ -296,8 +296,8 @@ ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, vec3 
   /* UV in [0..1] range over the tilemap. */
   vec2 tilemap_uv = lP.xy - light_sun_data_get(light).clipmap_origin;
   tilemap_uv *= exp2(float(-lod_relative));
-  tilemap_uv -= vec2(clipmap_offset) * (1.0 / float(SHADOW_TILEMAP_RES));
-  tilemap_uv = saturate(tilemap_uv + 0.5);
+  tilemap_uv -= vec2(clipmap_offset) * (1.0f / float(SHADOW_TILEMAP_RES));
+  tilemap_uv = saturate(tilemap_uv + 0.5f);
 
   return shadow_coordinate_from_uvs(light.tilemap_index + level_relative, tilemap_uv);
 }
@@ -354,13 +354,13 @@ int shadow_punctual_face_index_get(vec3 lL)
 {
   vec3 aP = abs(lL);
   if (all(greaterThan(aP.xx, aP.yz))) {
-    return (lL.x > 0.0) ? 1 : 2;
+    return (lL.x > 0.0f) ? 1 : 2;
   }
   else if (all(greaterThan(aP.yy, aP.xz))) {
-    return (lL.y > 0.0) ? 3 : 4;
+    return (lL.y > 0.0f) ? 3 : 4;
   }
   else {
-    return (lL.z > 0.0) ? 5 : 0;
+    return (lL.z > 0.0f) ? 5 : 0;
   }
 }
 
@@ -373,7 +373,7 @@ ShadowCoordinates shadow_punctual_coordinates(LightData light, vec3 lP, int face
   /* UVs in [-1..+1] range. */
   vec2 tilemap_uv = lP.xy / abs(lP.z);
   /* UVs in [0..1] range. */
-  tilemap_uv = saturate(tilemap_uv * 0.5 + 0.5);
+  tilemap_uv = saturate(tilemap_uv * 0.5f + 0.5f);
 
   return shadow_coordinate_from_uvs(light.tilemap_index + face_id, tilemap_uv);
 }

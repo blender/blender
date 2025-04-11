@@ -11,9 +11,9 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_face_dots)
 
 void main()
 {
-  vec3 world_pos = vec3(au, 0.0);
+  vec3 world_pos = vec3(au, 0.0f);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  finalColor = ((flag & FACE_UV_SELECT) != 0u) ? colorFaceDot : vec4(colorWire.rgb, 1.0);
+  finalColor = ((flag & FACE_UV_SELECT) != 0u) ? colorFaceDot : vec4(colorWire.rgb, 1.0f);
   gl_PointSize = pointSize;
 }

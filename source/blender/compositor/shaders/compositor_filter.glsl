@@ -20,5 +20,5 @@ void main()
   color = mix(texture_load(input_tx, texel), color, texture_load(factor_tx, texel).x);
 
   /* Store the color making sure it is not negative. */
-  imageStore(output_img, texel, max(color, 0.0));
+  imageStore(output_img, texel, max(color, 0.0f));
 }

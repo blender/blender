@@ -16,7 +16,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_clip_planes)
 
 void world_clip_planes_calc_clip_distance(vec3 wpos)
 {
-  vec4 pos = vec4(wpos, 1.0);
+  vec4 pos = vec4(wpos, 1.0f);
 
   gl_ClipDistance[0] = dot(clipPlanes.world[0], pos);
   gl_ClipDistance[1] = dot(clipPlanes.world[1], pos);

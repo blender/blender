@@ -17,15 +17,15 @@ void main()
 
   float depth0 = texelFetch(hiz_tx, texel, 0).r;
 
-  vec4 color = vec4(0.1, 0.1, 1.0, 1.0);
+  vec4 color = vec4(0.1f, 0.1f, 1.0f, 1.0f);
   for (int i = 1; i < HIZ_MIP_COUNT; i++) {
     ivec2 lvl_texel = texel / ivec2(uvec2(1) << uint(i));
     lvl_texel = min(lvl_texel, textureSize(hiz_tx, i) - 1);
     if (texelFetch(hiz_tx, lvl_texel, i).r < depth0) {
-      color = vec4(1.0, 0.1, 0.1, 1.0);
+      color = vec4(1.0f, 0.1f, 0.1f, 1.0f);
       break;
     }
   }
-  out_debug_color_add = vec4(color.rgb, 0.0) * 0.2;
+  out_debug_color_add = vec4(color.rgb, 0.0f) * 0.2f;
   out_debug_color_mul = color;
 }

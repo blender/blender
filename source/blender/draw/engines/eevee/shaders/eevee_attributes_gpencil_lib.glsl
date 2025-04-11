@@ -35,11 +35,11 @@ vec3 attr_load_orco(vec4 orco)
 #endif
 vec4 attr_load_tangent(vec4 tangent)
 {
-  return vec4(0.0, 0.0, 0.0, 1.0);
+  return vec4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 vec3 attr_load_uv(vec3 dummy)
 {
-  return vec3(g_uvs, 0.0);
+  return vec3(g_uvs, 0.0f);
 }
 vec4 attr_load_color(vec4 dummy)
 {
@@ -47,19 +47,19 @@ vec4 attr_load_color(vec4 dummy)
 }
 vec4 attr_load_vec4(vec4 attr)
 {
-  return vec4(0.0);
+  return vec4(0.0f);
 }
 vec3 attr_load_vec3(vec3 attr)
 {
-  return vec3(0.0);
+  return vec3(0.0f);
 }
 vec2 attr_load_vec2(vec2 attr)
 {
-  return vec2(0.0);
+  return vec2(0.0f);
 }
 float attr_load_float(float attr)
 {
-  return 0.0;
+  return 0.0f;
 }
 
 /** \} */

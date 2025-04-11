@@ -21,7 +21,7 @@ void main()
     }
     else if (uniform_buf.film.display_storage_type == PASS_STORAGE_VALUE) {
       out_color.rgb = imageLoadFast(value_accum_img, ivec3(texel_film, display_id)).rrr;
-      out_color.a = 1.0;
+      out_color.a = 1.0f;
     }
     else if (uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
       out_color = imageLoadFast(color_accum_img, ivec3(texel_film, display_id));

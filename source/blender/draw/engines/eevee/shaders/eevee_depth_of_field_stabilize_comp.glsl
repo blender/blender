@@ -113,8 +113,8 @@ float dof_luma_weight(float luma)
 {
   /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
-  const float exposure_scale = 1.0; /* TODO. */
-  return 1.0 / (4.0 + luma * exposure_scale);
+  const float exposure_scale = 1.0f; /* TODO. */
+  return 1.0f / (4.0f + luma * exposure_scale);
 }
 
 float dof_bilateral_weight(float reference_coc, float sample_coc)
@@ -123,7 +123,7 @@ float dof_bilateral_weight(float reference_coc, float sample_coc)
    * but we follow UE4 implementation to improve how dithered transparency looks (see slide 19).
    * Effectively bleed background into foreground.
    * Compared to dof_bilateral_coc_weights() this saturates as 2x the reference CoC. */
-  return saturate(1.0 - (sample_coc - reference_coc) / max(1.0, abs(reference_coc)));
+  return saturate(1.0f - (sample_coc - reference_coc) / max(1.0f, abs(reference_coc)));
 }
 
 DofSample dof_spatial_filtering()
@@ -131,8 +131,8 @@ DofSample dof_spatial_filtering()
   /* Plus (+) shape offsets. */
   const ivec2 plus_offsets[4] = int2_array(ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
   DofSample center = dof_fetch_input_sample(ivec2(0));
-  DofSample accum = DofSample(vec4(0.0), 0.0);
-  float accum_weight = 0.0;
+  DofSample accum = DofSample(vec4(0.0f), 0.0f);
+  float accum_weight = 0.0f;
   for (int i = 0; i < 4; i++) {
     DofSample samp = dof_fetch_input_sample(plus_offsets[i]);
     float weight = dof_buf.filter_samples_weight[i] * dof_luma_weight(samp.color.x) *
@@ -148,7 +148,7 @@ DofSample dof_spatial_filtering()
   accum.coc += center.coc * weight;
   accum_weight += weight;
 
-  float rcp_weight = 1.0 / accum_weight;
+  float rcp_weight = 1.0f / accum_weight;
   accum.color *= rcp_weight;
   accum.coc *= rcp_weight;
   return accum;
@@ -195,10 +195,10 @@ DofNeighborhoodMinMax dof_neighbor_boundbox()
     min_c_3x3.coc = min(min_c_3x3.coc, samp.coc);
     max_c_3x3.coc = max(max_c_3x3.coc, samp.coc);
   }
-  min_c.color = (min_c.color + min_c_3x3.color) * 0.5;
-  max_c.color = (max_c.color + max_c_3x3.color) * 0.5;
-  min_c.coc = (min_c.coc + min_c_3x3.coc) * 0.5;
-  max_c.coc = (max_c.coc + max_c_3x3.coc) * 0.5;
+  min_c.color = (min_c.color + min_c_3x3.color) * 0.5f;
+  max_c.color = (max_c.color + max_c_3x3.color) * 0.5f;
+  min_c.coc = (min_c.coc + min_c_3x3.coc) * 0.5f;
+  max_c.coc = (max_c.coc + max_c_3x3.coc) * 0.5f;
 
   return DofNeighborhoodMinMax(min_c, max_c);
 }
@@ -233,8 +233,8 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
 DofSample dof_sample_history(vec2 input_texel)
 {
 #if 1 /* Bilinar. */
-  vec2 uv = vec2(input_texel + 0.5) / vec2(textureSize(in_history_tx, 0));
-  vec4 color = textureLod(in_history_tx, uv, 0.0);
+  vec2 uv = vec2(input_texel + 0.5f) / vec2(textureSize(in_history_tx, 0));
+  vec4 color = textureLod(in_history_tx, uv, 0.0f);
 
 #else /* Catmull Rom interpolation. 5 Bilinear Taps. */
   vec2 center_texel;
@@ -248,23 +248,23 @@ DofSample dof_sample_history(vec2 input_texel)
    * From "Filmic SMAA" by Jorge Jimenez at SIGGRAPH 2016
    * http://advances.realtimerendering.com/s2016/Filmic%20SMAA%20v7.pptx
    */
-  center_texel += 0.5;
+  center_texel += 0.5f;
 
   /* Slide 92. */
   vec2 weight_12 = weights[1] + weights[2];
   vec2 uv_12 = (center_texel + weights[2] / weight_12) * uniform_buf.film.extent_inv;
-  vec2 uv_0 = (center_texel - 1.0) * uniform_buf.film.extent_inv;
-  vec2 uv_3 = (center_texel + 2.0) * uniform_buf.film.extent_inv;
+  vec2 uv_0 = (center_texel - 1.0f) * uniform_buf.film.extent_inv;
+  vec2 uv_3 = (center_texel + 2.0f) * uniform_buf.film.extent_inv;
 
   vec4 color;
   vec4 weight_cross = weight_12.xyyx * vec4(weights[0].yx, weights[3].xy);
   float weight_center = weight_12.x * weight_12.y;
 
-  color = textureLod(in_history_tx, uv_12, 0.0) * weight_center;
-  color += textureLod(in_history_tx, vec2(uv_12.x, uv_0.y), 0.0) * weight_cross.x;
-  color += textureLod(in_history_tx, vec2(uv_0.x, uv_12.y), 0.0) * weight_cross.y;
-  color += textureLod(in_history_tx, vec2(uv_3.x, uv_12.y), 0.0) * weight_cross.z;
-  color += textureLod(in_history_tx, vec2(uv_12.x, uv_3.y), 0.0) * weight_cross.w;
+  color = textureLod(in_history_tx, uv_12, 0.0f) * weight_center;
+  color += textureLod(in_history_tx, vec2(uv_12.x, uv_0.y), 0.0f) * weight_cross.x;
+  color += textureLod(in_history_tx, vec2(uv_0.x, uv_12.y), 0.0f) * weight_cross.y;
+  color += textureLod(in_history_tx, vec2(uv_3.x, uv_12.y), 0.0f) * weight_cross.z;
+  color += textureLod(in_history_tx, vec2(uv_12.x, uv_3.y), 0.0f) * weight_cross.w;
   /* Re-normalize for the removed corners. */
   color /= (weight_center + reduce_add(weight_cross));
 #endif
@@ -300,33 +300,33 @@ float dof_history_blend_factor(
   float luma_history = dst.color.x;
 
   /* 5% of incoming color by default. */
-  float blend = 0.05;
+  float blend = 0.05f;
   /* Blend less history if the pixel has substantial velocity. */
   /* NOTE(fclem): velocity threshold multiplied by 2 because of half resolution. */
-  blend = mix(blend, 0.20, saturate(velocity * 0.02 * 2.0));
+  blend = mix(blend, 0.20f, saturate(velocity * 0.02f * 2.0f));
   /**
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
   float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));
   /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
-  distance_to_luma_clip *= 2.0 * safe_rcp(luma_max - luma_min);
+  distance_to_luma_clip *= 2.0f * safe_rcp(luma_max - luma_min);
   /* Linearly blend when history gets below to 25% of the bbox size. */
-  blend *= saturate(distance_to_luma_clip * 4.0 + 0.1);
+  blend *= saturate(distance_to_luma_clip * 4.0f + 0.1f);
   /* Progressively discard history until history CoC is twice as big as the filtered CoC.
    * Note we use absolute diff here because we are not comparing neighbors and thus do not risk to
    * dilate thin features like hair (slide 19). */
-  float coc_diff_ratio = saturate(abs(src.coc - dst.coc) / max(1.0, abs(src.coc)));
-  blend = mix(blend, 1.0, coc_diff_ratio);
+  float coc_diff_ratio = saturate(abs(src.coc - dst.coc) / max(1.0f, abs(src.coc)));
+  blend = mix(blend, 1.0f, coc_diff_ratio);
   /* Discard out of view history. */
   if (any(lessThan(texel, vec2(0))) ||
       any(greaterThanEqual(texel, vec2(imageSize(out_history_img)))))
   {
-    blend = 1.0;
+    blend = 1.0f;
   }
   /* Discard history if invalid. */
   if (u_use_history == false) {
-    blend = 1.0;
+    blend = 1.0f;
   }
   return blend;
 }
@@ -360,7 +360,7 @@ void main()
   dst = dof_amend_history(bbox, dst, src);
 
   /* Luma weighted blend to reduce flickering. */
-  float weight_dst = dof_luma_weight(dst.color.x) * (1.0 - blend);
+  float weight_dst = dof_luma_weight(dst.color.x) * (1.0f - blend);
   float weight_src = dof_luma_weight(src.color.x) * (blend);
 
   DofSample result;

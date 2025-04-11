@@ -17,7 +17,7 @@ void main()
 {
   ivec2 uvs_clamped = ivec2(uv_screen);
   float depth = texelFetch(depth_tx, uvs_clamped, 0).r;
-  if (depth == 1.0) {
+  if (depth == 1.0f) {
     discard;
     return;
   }
@@ -37,7 +37,7 @@ void main()
     tex_color = vec4(dot(tex_color, shuffle));
   }
   if ((draw_flags & IMAGE_DRAW_FLAG_SHOW_ALPHA) == 0) {
-    tex_color.a = 1.0;
+    tex_color.a = 1.0f;
   }
   out_color = tex_color;
 }

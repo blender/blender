@@ -26,7 +26,7 @@ void node_output_material_thickness(float thickness, out float out_thickness)
   ob_scale.y = length(drw_modelmat()[1].xyz);
   ob_scale.z = length(drw_modelmat()[2].xyz);
 
-  vec3 thickness_vec = abs(max(thickness, 0.0) * ob_scale);
+  vec3 thickness_vec = abs(max(thickness, 0.0f) * ob_scale);
   /* Contrary to displacement we need to output a scalar quantity.
    * We arbitrarily choose to output the axis with the minimum extent since it is the axis along
    * which the object is usually viewed at. */

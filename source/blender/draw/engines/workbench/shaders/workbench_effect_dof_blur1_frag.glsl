@@ -26,47 +26,47 @@ vec2 get_random_vector(float offset)
 {
   /* Interleaved gradient noise by Jorge Jimenez
    * http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare */
-  float ign = fract(offset +
-                    52.9829189 * fract(0.06711056 * gl_FragCoord.x + 0.00583715 * gl_FragCoord.y));
+  float ign = fract(
+      offset + 52.9829189f * fract(0.06711056f * gl_FragCoord.x + 0.00583715f * gl_FragCoord.y));
   float bn = texelFetch(noiseTex, ivec2(gl_FragCoord.xy) % 64, 0).a;
-  float ang = M_PI * 2.0 * fract(bn + offset);
+  float ang = M_PI * 2.0f * fract(bn + offset);
   return vec2(cos(ang), sin(ang)) * sqrt(ign);
   // return noise.rg * sqrt(ign);
 }
 
 void main()
 {
-  vec2 uv = gl_FragCoord.xy * invertedViewportSize * 2.0;
+  vec2 uv = gl_FragCoord.xy * invertedViewportSize * 2.0f;
 
   vec2 size = vec2(textureSize(halfResColorTex, 0).xy);
   ivec2 texel = ivec2(uv * size);
 
-  vec4 color = vec4(0.0);
-  float tot = 0.0;
+  vec4 color = vec4(0.0f);
+  float tot = 0.0f;
 
   float coc = dof_decode_coc(texelFetch(inputCocTex, texel, 0).rg);
   float max_radius = coc;
-  vec2 noise = get_random_vector(noiseOffset) * 0.2 * clamp(max_radius * 0.2 - 4.0, 0.0, 1.0);
+  vec2 noise = get_random_vector(noiseOffset) * 0.2f * clamp(max_radius * 0.2f - 4.0f, 0.0f, 1.0f);
   for (int i = 0; i < NUM_SAMPLES; i++) {
     vec2 tc = uv + (noise + samples[i].xy) * invertedViewportSize * max_radius;
 
     /* decode_signed_coc return biggest coc. */
     coc = abs(dof_decode_signed_coc(texture(inputCocTex, tc).rg));
 
-    float lod = log2(clamp((coc + min(coc, max_radius)) * 0.5 - 21.0, 0.0, 16.0) * 0.25);
+    float lod = log2(clamp((coc + min(coc, max_radius)) * 0.5f - 21.0f, 0.0f, 16.0f) * 0.25f);
     vec4 samp = textureLod(halfResColorTex, tc, lod);
 
     float radius = samples[i].z * max_radius;
-    float weight = abs(coc) * smoothstep(radius - 0.5, radius + 0.5, abs(coc));
+    float weight = abs(coc) * smoothstep(radius - 0.5f, radius + 0.5f, abs(coc));
 
     color += samp * weight;
     tot += weight;
   }
 
-  if (tot > 0.0) {
+  if (tot > 0.0f) {
     blurColor = color / tot;
   }
   else {
-    blurColor = textureLod(halfResColorTex, uv, 0.0);
+    blurColor = textureLod(halfResColorTex, uv, 0.0f);
   }
 }

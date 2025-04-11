@@ -29,10 +29,10 @@ void main()
 
   view_clipping_distances(world_pos);
 
-  uv_interp = vec2(0.0);
+  uv_interp = vec2(0.0f);
 
   workbench_material_data_get(
-      int(drw_custom_id()), vec3(1.0), color_interp, alpha_interp, _roughness, metallic);
+      int(drw_custom_id()), vec3(1.0f), color_interp, alpha_interp, _roughness, metallic);
 
   object_id = int(uint(drw_resource_id()) & 0xFFFFu) + 1;
 }

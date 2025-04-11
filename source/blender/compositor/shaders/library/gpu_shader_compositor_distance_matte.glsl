@@ -9,7 +9,7 @@ void node_composite_distance_matte_rgba(
 {
   float difference = distance(color.rgb, key.rgb);
   bool is_opaque = difference > tolerance + falloff;
-  float alpha = is_opaque ? color.a : max(0.0, difference - tolerance) / falloff;
+  float alpha = is_opaque ? color.a : max(0.0f, difference - tolerance) / falloff;
   matte = min(alpha, color.a);
   result = color * matte;
 }
@@ -24,7 +24,7 @@ void node_composite_distance_matte_ycca(
 
   float difference = distance(color_ycca.yz, key_ycca.yz);
   bool is_opaque = difference > tolerance + falloff;
-  float alpha = is_opaque ? color.a : max(0.0, difference - tolerance) / falloff;
+  float alpha = is_opaque ? color.a : max(0.0f, difference - tolerance) / falloff;
   matte = min(alpha, color.a);
   result = color * matte;
 }

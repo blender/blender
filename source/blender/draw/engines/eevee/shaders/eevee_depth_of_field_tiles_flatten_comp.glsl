@@ -39,11 +39,11 @@ void main()
 {
   if (gl_LocalInvocationIndex == 0u) {
     /* NOTE: Min/Max flipped because of inverted fg_coc sign. */
-    fg_min_coc = floatBitsToUint(0.0);
+    fg_min_coc = floatBitsToUint(0.0f);
     fg_max_coc = dof_tile_large_coc_uint;
     fg_max_intersectable_coc = dof_tile_large_coc_uint;
     bg_min_coc = dof_tile_large_coc_uint;
-    bg_max_coc = floatBitsToUint(0.0);
+    bg_max_coc = floatBitsToUint(0.0f);
     bg_min_intersectable_coc = dof_tile_large_coc_uint;
   }
   barrier();
@@ -52,22 +52,22 @@ void main()
   vec2 sample_data = texelFetch(coc_tx, sample_texel, 0).rg;
 
   float sample_coc = sample_data.x;
-  uint fg_coc = floatBitsToUint(max(-sample_coc, 0.0));
+  uint fg_coc = floatBitsToUint(max(-sample_coc, 0.0f));
   /* NOTE: atomicMin/Max flipped because of inverted fg_coc sign. */
   atomicMax(fg_min_coc, fg_coc);
   atomicMin(fg_max_coc, fg_coc);
-  atomicMin(fg_max_intersectable_coc, (sample_coc < 0.0) ? fg_coc : dof_tile_large_coc_uint);
+  atomicMin(fg_max_intersectable_coc, (sample_coc < 0.0f) ? fg_coc : dof_tile_large_coc_uint);
 
-  uint bg_coc = floatBitsToUint(max(sample_coc, 0.0));
+  uint bg_coc = floatBitsToUint(max(sample_coc, 0.0f));
   atomicMin(bg_min_coc, bg_coc);
   atomicMax(bg_max_coc, bg_coc);
-  atomicMin(bg_min_intersectable_coc, (sample_coc > 0.0) ? bg_coc : dof_tile_large_coc_uint);
+  atomicMin(bg_min_intersectable_coc, (sample_coc > 0.0f) ? bg_coc : dof_tile_large_coc_uint);
 
   barrier();
 
   if (gl_LocalInvocationIndex == 0u) {
     if (fg_max_intersectable_coc == dof_tile_large_coc_uint) {
-      fg_max_intersectable_coc = floatBitsToUint(0.0);
+      fg_max_intersectable_coc = floatBitsToUint(0.0f);
     }
 
     CocTile tile;

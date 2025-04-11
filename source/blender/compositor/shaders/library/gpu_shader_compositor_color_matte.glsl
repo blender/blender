@@ -24,8 +24,8 @@ void node_composite_color_matte(vec4 color,
   /* Hue wraps around, so check the distance around the boundary. */
   float min_hue = min(color_hsva.x, key_hsva.x);
   float max_hue = max(color_hsva.x, key_hsva.x);
-  is_within_hue = is_within_hue || ((min_hue + (1.0 - max_hue)) < hue_epsilon);
+  is_within_hue = is_within_hue || ((min_hue + (1.0f - max_hue)) < hue_epsilon);
 
-  matte = (is_within_hue && is_within_saturation && is_within_value) ? 0.0 : color.a;
+  matte = (is_within_hue && is_within_saturation && is_within_value) ? 0.0f : color.a;
   result = color * matte;
 }

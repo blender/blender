@@ -10,12 +10,12 @@ void node_composite_hue_saturation_value(
   vec4 hsv;
   rgb_to_hsv(color, hsv);
 
-  hsv.x = fract(hsv.x + hue + 0.5);
+  hsv.x = fract(hsv.x + hue + 0.5f);
   hsv.y = hsv.y * saturation;
   hsv.z = hsv.z * value;
 
   hsv_to_rgb(hsv, result);
-  result.rgb = max(result.rgb, vec3(0.0));
+  result.rgb = max(result.rgb, vec3(0.0f));
 
   result = mix(color, result, factor);
 }

@@ -85,10 +85,10 @@ EulerXYZ EulerXYZ_identity()
  */
 vec2 interpolate_dot_slerp(float t, float cosom)
 {
-  vec2 w = vec2(1.0 - t, t);
+  vec2 w = vec2(1.0f - t, t);
   /* Within [-1..1] range, avoid aligned axis. */
-  const float eps = 1e-4;
-  if (abs(cosom) < 1.0 - eps) {
+  const float eps = 1e-4f;
+  if (abs(cosom) < 1.0f - eps) {
     float omega = acos(cosom);
     w = sin(w * omega) / sin(omega);
   }
@@ -100,7 +100,7 @@ Quaternion interpolate(Quaternion a, Quaternion b, float t)
   vec4 quat = as_vec4(a);
   float cosom = dot(as_vec4(a), as_vec4(b));
   /* Rotate around shortest angle. */
-  if (cosom < 0.0) {
+  if (cosom < 0.0f) {
     cosom = -cosom;
     quat = -quat;
   }
@@ -111,9 +111,9 @@ Quaternion interpolate(Quaternion a, Quaternion b, float t)
 
 Quaternion to_quaternion(EulerXYZ eul)
 {
-  float ti = eul.x * 0.5;
-  float tj = eul.y * 0.5;
-  float th = eul.z * 0.5;
+  float ti = eul.x * 0.5f;
+  float tj = eul.y * 0.5f;
+  float th = eul.z * 0.5f;
   float ci = cos(ti);
   float cj = cos(tj);
   float ch = cos(th);
@@ -137,12 +137,12 @@ Quaternion to_axis_angle(AxisAngle axis_angle)
 {
   float angle_cos = cos(axis_angle.angle);
   /** Using half angle identities: sin(angle / 2) = sqrt((1 - angle_cos) / 2) */
-  float sine = sqrt(0.5 - angle_cos * 0.5);
-  float cosine = sqrt(0.5 + angle_cos * 0.5);
+  float sine = sqrt(0.5f - angle_cos * 0.5f);
+  float cosine = sqrt(0.5f + angle_cos * 0.5f);
 
   /* TODO(fclem): Optimize. */
   float angle_sin = sin(axis_angle.angle);
-  if (angle_sin < 0.0) {
+  if (angle_sin < 0.0f) {
     sine = -sine;
   }
 
@@ -163,13 +163,13 @@ AxisAngle to_axis_angle(Quaternion quat)
   /* From half-angle to angle. */
   float angle = ha * 2;
   /* Prevent division by zero for axis conversion. */
-  if (abs(si) < 0.0005) {
-    si = 1.0;
+  if (abs(si) < 0.0005f) {
+    si = 1.0f;
   }
 
   vec3 axis = vec3(quat.y, quat.z, quat.w) / si;
   if (is_zero(axis)) {
-    axis[1] = 1.0;
+    axis[1] = 1.0f;
   }
   return AxisAngle(axis, angle);
 }

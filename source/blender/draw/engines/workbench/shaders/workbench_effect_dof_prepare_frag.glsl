@@ -40,19 +40,19 @@ void main()
   vec4 cocs_near = dof_calculate_coc(zdepths);
   vec4 cocs_far = -cocs_near;
 
-  float coc_near = max(reduce_max(cocs_near), 0.0);
-  float coc_far = max(reduce_max(cocs_far), 0.0);
+  float coc_near = max(reduce_max(cocs_near), 0.0f);
+  float coc_far = max(reduce_max(cocs_far), 0.0f);
 
   /* now we need to write the near-far fields premultiplied by the coc
    * also use bilateral weighting by each coc values to avoid bleeding. */
-  vec4 near_weights = step(0.0, cocs_near) * clamp(1.0 - abs(coc_near - cocs_near), 0.0, 1.0);
-  vec4 far_weights = step(0.0, cocs_far) * clamp(1.0 - abs(coc_far - cocs_far), 0.0, 1.0);
+  vec4 near_weights = step(0.0f, cocs_near) * clamp(1.0f - abs(coc_near - cocs_near), 0.0f, 1.0f);
+  vec4 far_weights = step(0.0f, cocs_far) * clamp(1.0f - abs(coc_far - cocs_far), 0.0f, 1.0f);
 
   /* now write output to weighted buffers. */
   /* Take far plane pixels in priority. */
-  vec4 w = any(notEqual(far_weights, vec4(0.0))) ? far_weights : near_weights;
+  vec4 w = any(notEqual(far_weights, vec4(0.0f))) ? far_weights : near_weights;
   halfResColor = weighted_sum(color1, color2, color3, color4, w);
-  halfResColor = clamp(halfResColor, 0.0, 3.0);
+  halfResColor = clamp(halfResColor, 0.0f, 3.0f);
 
   normalizedCoc = dof_encode_coc(coc_near, coc_far);
 }

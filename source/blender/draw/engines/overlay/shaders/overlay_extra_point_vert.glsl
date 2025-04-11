@@ -20,12 +20,12 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   gl_PointSize = sizeObjectCenter;
-  float radius = 0.5 * sizeObjectCenter;
+  float radius = 0.5f * sizeObjectCenter;
   float outline_width = sizePixel;
   radii[0] = radius;
-  radii[1] = radius - 1.0;
+  radii[1] = radius - 1.0f;
   radii[2] = radius - outline_width;
-  radii[3] = radius - outline_width - 1.0;
+  radii[3] = radius - outline_width - 1.0f;
   radii /= sizeObjectCenter;
 
   fillColor = data_buf[gl_VertexID].color_;
@@ -34,7 +34,7 @@ void main()
 #ifdef SELECT_ENABLE
   /* Selection frame-buffer can be very small.
    * Make sure to only rasterize one pixel to avoid making the selection radius very big. */
-  gl_PointSize = 1.0;
+  gl_PointSize = 1.0f;
 #endif
 
   view_clipping_distances(world_pos);

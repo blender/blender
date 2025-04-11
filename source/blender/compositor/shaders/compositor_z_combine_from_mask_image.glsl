@@ -17,7 +17,7 @@ void main()
    * background using the alpha of the foreground. */
   vec4 foreground_color = mix(second_color, first_color, mask_value);
   vec4 background_color = mix(first_color, second_color, mask_value);
-  float mix_factor = use_alpha ? foreground_color.a : 1.0;
+  float mix_factor = use_alpha ? foreground_color.a : 1.0f;
   vec4 combined_color = mix(background_color, foreground_color, mix_factor);
 
   /* Use the more opaque alpha from the two images. */

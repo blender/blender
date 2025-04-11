@@ -26,7 +26,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
  * Wrapped so that changing it is easier. */
 float volume_froxel_jitter(ivec2 froxel, float offset)
 {
-  return interlieved_gradient_noise(vec2(froxel), 0.0, offset);
+  return interlieved_gradient_noise(vec2(froxel), 0.0f, offset);
 }
 
 /* Volume froxel texture normalized linear Z to view space Z.
@@ -78,10 +78,10 @@ vec3 volume_jitter_to_view(vec3 coord)
   /* Input coordinates are in jittered volume texture space. */
   float view_z = volume_z_to_view_z(coord.z);
   /* We need to recover the NDC position for correct perspective divide. */
-  float ndc_z = drw_perspective_divide(winmat * vec4(0.0, 0.0, view_z, 1.0)).z;
+  float ndc_z = drw_perspective_divide(winmat * vec4(0.0f, 0.0f, view_z, 1.0f)).z;
   vec2 ndc_xy = drw_screen_to_ndc(coord.xy);
   /* NDC to view. */
-  return drw_perspective_divide(wininv * vec4(ndc_xy, ndc_z, 1.0)).xyz;
+  return drw_perspective_divide(wininv * vec4(ndc_xy, ndc_z, 1.0f)).xyz;
 }
 
 /* View space position to jittered volume texture normalized coordinates. */
@@ -92,7 +92,7 @@ vec3 volume_view_to_jitter(vec3 vP)
    * always invertible. */
   mat4x4 winmat = uniform_buf.volumes.winmat_finite;
   /* View to ndc. */
-  vec3 ndc_P = drw_perspective_divide(winmat * vec4(vP, 1.0));
+  vec3 ndc_P = drw_perspective_divide(winmat * vec4(vP, 1.0f));
   /* Here, screen is the same as volume texture UVW space. */
   return vec3(drw_ndc_to_screen(ndc_P.xy), view_z_to_volume_z(vP.z));
 }
@@ -124,11 +124,11 @@ vec3 volume_history_uvw_get(ivec3 froxel)
   mat4x4 winmat = uniform_buf.volumes.winmat_stable;
   /* We can't reproject by a simple matrix multiplication. We first need to remap to the view Z,
    * then transform, then remap back to Volume range. */
-  vec3 uvw = (vec3(froxel) + 0.5) * uniform_buf.volumes.inv_tex_size;
+  vec3 uvw = (vec3(froxel) + 0.5f) * uniform_buf.volumes.inv_tex_size;
   vec3 ndc_P = drw_screen_to_ndc(uvw);
   /* We need to recover the NDC position for correct perspective divide. */
   float view_z = volume_z_to_view_z(uvw.z);
-  ndc_P.z = drw_perspective_divide(winmat * vec4(0.0, 0.0, view_z, 1.0)).z;
+  ndc_P.z = drw_perspective_divide(winmat * vec4(0.0f, 0.0f, view_z, 1.0f)).z;
   /* NDC to view. */
   vec3 vs_P = project_point(wininv, ndc_P);
 
@@ -136,11 +136,11 @@ vec3 volume_history_uvw_get(ivec3 froxel)
   vec3 vs_P_history = transform_point(uniform_buf.volumes.curr_view_to_past_view, vs_P);
 
   /* View to NDC. */
-  vec4 hs_P_history = uniform_buf.volumes.history_winmat_stable * vec4(vs_P_history, 1.0);
+  vec4 hs_P_history = uniform_buf.volumes.history_winmat_stable * vec4(vs_P_history, 1.0f);
   vec3 ndc_P_history = drw_perspective_divide(hs_P_history);
 
-  if (hs_P_history.w < 0.0 || any(greaterThan(abs(ndc_P_history.xy), vec2(1.0)))) {
-    return vec3(-1.0);
+  if (hs_P_history.w < 0.0f || any(greaterThan(abs(ndc_P_history.xy), vec2(1.0f)))) {
+    return vec3(-1.0f);
   }
 
   vec3 uvw_history;
@@ -150,24 +150,24 @@ vec3 volume_history_uvw_get(ivec3 froxel)
                                      uniform_buf.volumes.history_depth_far,
                                      uniform_buf.volumes.history_depth_distribution);
 
-  if (uvw_history.z < 0.0 || uvw_history.z > 1.0) {
-    return vec3(-1.0);
+  if (uvw_history.z < 0.0f || uvw_history.z > 1.0f) {
+    return vec3(-1.0f);
   }
   return uvw_history;
 }
 
 float volume_phase_function_isotropic()
 {
-  return 1.0 / (4.0 * M_PI);
+  return 1.0f / (4.0f * M_PI);
 }
 
 float volume_phase_function(vec3 V, vec3 L, float g)
 {
   /* Henyey-Greenstein. */
   float cos_theta = dot(V, L);
-  g = clamp(g, -1.0 + 1e-3, 1.0 - 1e-3);
+  g = clamp(g, -1.0f + 1e-3f, 1.0f - 1e-3f);
   float sqr_g = g * g;
-  return (1 - sqr_g) / max(1e-8, 4.0 * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0 / 2.0));
+  return (1 - sqr_g) / max(1e-8f, 4.0f * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0f / 2.0f));
 }
 
 SphericalHarmonicL1 volume_phase_function_as_sh_L1(vec3 V, float g)
@@ -179,7 +179,7 @@ SphericalHarmonicL1 volume_phase_function_as_sh_L1(vec3 V, float g)
    * https://bartwronski.files.wordpress.com/2014/08/bwronski_volumetric_fog_siggraph2014.pdf
    */
   SphericalHarmonicL1 sh;
-  sh.L0.M0 = spherical_harmonics_L0_M0(V) * vec4(1.0);
+  sh.L0.M0 = spherical_harmonics_L0_M0(V) * vec4(1.0f);
   sh.L1.Mn1 = spherical_harmonics_L1_Mn1(V) * vec4(g);
   sh.L1.M0 = spherical_harmonics_L1_M0(V) * vec4(g);
   sh.L1.Mp1 = spherical_harmonics_L1_Mp1(V) * vec4(g);
@@ -188,7 +188,7 @@ SphericalHarmonicL1 volume_phase_function_as_sh_L1(vec3 V, float g)
 
 vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
 {
-  float power = 1.0;
+  float power = 1.0f;
   if (!is_directional) {
     float light_radius = light_local_data_get(light).shape_radius;
     /**
@@ -201,7 +201,7 @@ vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
     float r_sqr = square(light_radius);
 
     /* Using reformulation that has better numerical precision. */
-    power = 2.0 / (d_sqr + r_sqr + d * sqrt(d_sqr + r_sqr));
+    power = 2.0f / (d_sqr + r_sqr + d * sqrt(d_sqr + r_sqr));
 
     if (light.type == LIGHT_RECT || light.type == LIGHT_ELLIPSE) {
       /* Modulate by light plane orientation / solid angle. */
@@ -211,14 +211,14 @@ vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
   return light.color * light.power[LIGHT_VOLUME] * power;
 }
 
-#define VOLUMETRIC_SHADOW_MAX_STEP 128.0
+#define VOLUMETRIC_SHADOW_MAX_STEP 128.0f
 
 vec3 volume_shadow(
     LightData ld, const bool is_directional, vec3 P, LightVector lv, sampler3D extinction_tx)
 {
 #if defined(VOLUME_SHADOW)
   if (uniform_buf.volumes.shadow_steps == 0) {
-    return vec3(1.0);
+    return vec3(1.0f);
   }
 
   /* Heterogeneous volume shadows. */
@@ -238,9 +238,9 @@ vec3 volume_shadow(
   }
 
   /* TODO use shadow maps instead. */
-  vec3 shadow = vec3(1.0);
-  for (float t = 1.0; t < VOLUMETRIC_SHADOW_MAX_STEP && t <= uniform_buf.volumes.shadow_steps;
-       t += 1.0)
+  vec3 shadow = vec3(1.0f);
+  for (float t = 1.0f; t < VOLUMETRIC_SHADOW_MAX_STEP && t <= uniform_buf.volumes.shadow_steps;
+       t += 1.0f)
   {
     vec3 w_pos = P + L * t;
 
@@ -253,7 +253,7 @@ vec3 volume_shadow(
   }
   return shadow;
 #else
-  return vec3(1.0);
+  return vec3(1.0f);
 #endif /* VOLUME_SHADOW */
 }
 

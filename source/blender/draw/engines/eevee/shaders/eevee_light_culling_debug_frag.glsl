@@ -25,12 +25,12 @@ void main()
   float vP_z = drw_depth_screen_to_view(depth);
   vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
 
-  float light_count = 0.0;
+  float light_count = 0.0f;
   uint light_cull = 0u;
   vec2 px = gl_FragCoord.xy;
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, px, vP_z, l_idx) {
     light_cull |= 1u << l_idx;
-    light_count += 1.0;
+    light_count += 1.0f;
   }
   LIGHT_FOREACH_END
 
@@ -45,13 +45,13 @@ void main()
   }
   LIGHT_FOREACH_END
 
-  vec4 color = vec4(heatmap_gradient(light_count / 4.0), 1.0);
+  vec4 color = vec4(heatmap_gradient(light_count / 4.0f), 1.0f);
 
   if ((light_cull & light_nocull) != light_nocull) {
     /* ERROR. Some lights were culled incorrectly. */
-    color = vec4(0.0, 1.0, 0.0, 1.0);
+    color = vec4(0.0f, 1.0f, 0.0f, 1.0f);
   }
 
-  out_debug_color_add = vec4(color.rgb, 0.0) * 0.2;
+  out_debug_color_add = vec4(color.rgb, 0.0f) * 0.2f;
   out_debug_color_mul = color;
 }

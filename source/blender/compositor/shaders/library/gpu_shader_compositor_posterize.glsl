@@ -4,6 +4,6 @@
 
 void node_composite_posterize(vec4 color, float steps, out vec4 result)
 {
-  float sanitized_steps = clamp(steps, 2.0, 1024.0);
+  float sanitized_steps = clamp(steps, 2.0f, 1024.0f);
   result = vec4(floor(color.rgb * sanitized_steps) / sanitized_steps, color.a);
 }

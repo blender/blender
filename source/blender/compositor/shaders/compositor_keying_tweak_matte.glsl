@@ -17,7 +17,7 @@ void main()
 #if defined(COMPUTE_EDGES)
   if (true) {
 #else
-  if (black_level != 0.0 || white_level != 1.0) {
+  if (black_level != 0.0f || white_level != 1.0f) {
 #endif
     /* Count the number of neighbors whose matte is sufficiently similar to the current matte,
      * as controlled by the edge_tolerance factor. */
@@ -32,7 +32,7 @@ void main()
     /* If the number of neighbors that are sufficiently similar to the center matte is less that
      * 90% of the total number of neighbors, then that means the variance is high in that areas
      * and it is considered an edge. */
-    is_edge = count < ((edge_search_radius * 2 + 1) * (edge_search_radius * 2 + 1)) * 0.9;
+    is_edge = count < ((edge_search_radius * 2 + 1) * (edge_search_radius * 2 + 1)) * 0.9f;
   }
 
   float tweaked_matte = matte;
@@ -41,14 +41,14 @@ void main()
    * of the matte to preserve details. Also check for equality between levels to avoid zero
    * division. */
   if (!is_edge && white_level != black_level) {
-    tweaked_matte = clamp((matte - black_level) / (white_level - black_level), 0.0, 1.0);
+    tweaked_matte = clamp((matte - black_level) / (white_level - black_level), 0.0f, 1.0f);
   }
 
   /* Exclude unwanted areas using the provided garbage matte, 1 means unwanted, so invert the
    * garbage matte and take the minimum. */
   if (apply_garbage_matte) {
     float garbage_matte = texture_load(garbage_matte_tx, texel).x;
-    tweaked_matte = min(tweaked_matte, 1.0 - garbage_matte);
+    tweaked_matte = min(tweaked_matte, 1.0f - garbage_matte);
   }
 
   /* Include wanted areas that were incorrectly keyed using the provided core matte. */
@@ -59,6 +59,6 @@ void main()
 
   imageStore(output_matte_img, texel, vec4(tweaked_matte));
 #if defined(COMPUTE_EDGES)
-  imageStore(output_edges_img, texel, vec4(is_edge ? 1.0 : 0.0));
+  imageStore(output_edges_img, texel, vec4(is_edge ? 1.0f : 0.0f));
 #endif
 }

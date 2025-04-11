@@ -22,7 +22,7 @@ float shadow_read_depth(SHADOW_ATLAS_TYPE atlas_tx,
 {
   ShadowSamplingTile tile = shadow_tile_load(tilemaps_tx, coord.tilemap_tile, coord.tilemap_index);
   if (!tile.is_valid) {
-    return -1.0;
+    return -1.0f;
   }
   /* Using bitwise ops is way faster than integer ops. */
   const uint page_shift = uint(SHADOW_PAGE_LOD);
@@ -55,8 +55,8 @@ float shadow_punctual_sample_get(SHADOW_ATLAS_TYPE atlas_tx,
   ShadowCoordinates coord = shadow_punctual_coordinates(light, lP, face_id);
 
   float radial_dist = shadow_read_depth(atlas_tx, tilemaps_tx, coord);
-  if (radial_dist == -1.0) {
-    return 1e10;
+  if (radial_dist == -1.0f) {
+    return 1e10f;
   }
   float receiver_dist = length(lP);
   float occluder_dist = radial_dist;
@@ -72,8 +72,8 @@ float shadow_directional_sample_get(SHADOW_ATLAS_TYPE atlas_tx,
   ShadowCoordinates coord = shadow_directional_coordinates(light, lP);
 
   float depth = shadow_read_depth(atlas_tx, tilemaps_tx, coord);
-  if (depth == -1.0) {
-    return 1e10;
+  if (depth == -1.0f) {
+    return 1e10f;
   }
   /* Use increasing distance from the light. */
   float receiver_dist = -lP.z - orderedIntBitsToFloat(light.clip_near);

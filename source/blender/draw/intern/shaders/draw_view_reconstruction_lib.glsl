@@ -25,20 +25,20 @@ vec3 view_position_derivative_from_depth(sampler2D scene_depth_tx,
   H.w = texelFetch(scene_depth_tx, texel + offset * 2, 0).r;
 
   vec2 uv_offset = vec2(offset) / vec2(extent);
-  vec2 uv1 = uv - uv_offset * 2.0;
+  vec2 uv1 = uv - uv_offset * 2.0f;
   vec2 uv2 = uv - uv_offset;
   vec2 uv3 = uv + uv_offset;
-  vec2 uv4 = uv + uv_offset * 2.0;
+  vec2 uv4 = uv + uv_offset * 2.0f;
 
   /* Fix issue with depth precision. Take even larger diff. */
   vec4 diff = abs(vec4(depth_center, H.yzw) - H.x);
-  if (reduce_max(diff) < 2.4e-7 && all(lessThan(diff.xyz, diff.www))) {
+  if (reduce_max(diff) < 2.4e-7f && all(lessThan(diff.xyz, diff.www))) {
     vec3 P1 = drw_point_screen_to_view(vec3(uv1, H.x));
     vec3 P3 = drw_point_screen_to_view(vec3(uv3, H.w));
-    return 0.25 * (P3 - P1);
+    return 0.25f * (P3 - P1);
   }
-  /* Simplified (H.xw + 2.0 * (H.yz - H.xw)) - depth_center */
-  vec2 deltas = abs((2.0 * H.yz - H.xw) - depth_center);
+  /* Simplified (H.xw + 2.0f * (H.yz - H.xw)) - depth_center */
+  vec2 deltas = abs((2.0f * H.yz - H.xw) - depth_center);
   if (deltas.x < deltas.y) {
     return vP - drw_point_screen_to_view(vec3(uv2, H.y));
   }
@@ -69,8 +69,8 @@ SurfaceReconstructResult view_reconstruct_from_depth(sampler2D scene_depth_tx,
 {
   SurfaceReconstructResult result;
   result.depth = texelFetch(scene_depth_tx, texel, 0).r;
-  result.is_background = (result.depth == 1.0);
-  vec2 uv = (vec2(texel) + vec2(0.5)) / vec2(extent);
+  result.is_background = (result.depth == 1.0f);
+  vec2 uv = (vec2(texel) + vec2(0.5f)) / vec2(extent);
   result.vP = drw_point_screen_to_view(vec3(uv, result.depth));
   if (result.is_background) {
     result.vNg = drw_view_incident_vector(result.vP);

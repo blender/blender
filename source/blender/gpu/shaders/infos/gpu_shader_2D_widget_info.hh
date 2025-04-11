@@ -49,7 +49,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(gpu_shader_2D_widget_base)
 DO_STATIC_COMPILATION()
 /* gl_InstanceID is supposed to be 0 if not drawing instances, but this seems
- * to be violated in some drivers. For example, macOS 10.15.4 and Intel Iris
+ * to be violated in some drivers. For example, macOS 10.15f.4 and Intel Iris
  * causes #78307 when using gl_InstanceID outside of instance. */
 DEFINE_VALUE("widgetID", "0")
 PUSH_CONSTANT_ARRAY(VEC4, parameters, MAX_PARAM)

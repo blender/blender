@@ -115,7 +115,7 @@ void main()
     if (lod_min > 0) {
       /* Override the effective lod min distance in absolute mode (negative).
        * Note that this only changes the sampling for this AA sample. */
-      const float projection_diagonal = 2.0 * M_SQRT2;
+      const float projection_diagonal = 2.0f * M_SQRT2;
       light_buf[l_idx].lod_min = -(projection_diagonal / float(SHADOW_MAP_MAX_RES >> lod_min));
     }
   }

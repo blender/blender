@@ -26,7 +26,7 @@ void main()
   /* Avoid expense of geometry shader by ensuring rastered point-cloud primitive
    * covers at least a whole pixel. */
   int i = gl_VertexID % 3;
-  vec2 ofs = (i == 0) ? vec2(-1.0) : ((i == 1) ? vec2(2.0, -1.0) : vec2(-1.0, 2.0));
+  vec2 ofs = (i == 0) ? vec2(-1.0f) : ((i == 1) ? vec2(2.0f, -1.0f) : vec2(-1.0f, 2.0f));
   gl_Position.xy += sizeViewportInv * gl_Position.w * ofs;
 #endif
 

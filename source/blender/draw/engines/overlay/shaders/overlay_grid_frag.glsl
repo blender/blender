@@ -19,15 +19,15 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_grid_next)
  * intersection area. The overlap area is a circular segment.
  * https://en.wikipedia.org/wiki/Circular_segment The formula for the area uses inverse trig
  * function and is quite complex. Instead, we approximate it by using the smoothstep function and
- * a 1.05 factor to the disc radius.
+ * a 1.05f factor to the disc radius.
  *
  * For an alternate approach, see:
  * https://developer.nvidia.com/gpugems/gpugems2/part-iii-high-quality-rendering/chapter-22-fast-prefiltered-lines
  */
-#define M_1_SQRTPI 0.5641895835477563 /* `1/sqrt(pi)`. */
-#define DISC_RADIUS (M_1_SQRTPI * 1.05)
-#define GRID_LINE_SMOOTH_START (0.5 + DISC_RADIUS)
-#define GRID_LINE_SMOOTH_END (0.5 - DISC_RADIUS)
+#define M_1_SQRTPI 0.5641895835477563f /* `1/sqrt(pi)`. */
+#define DISC_RADIUS (M_1_SQRTPI * 1.05f)
+#define GRID_LINE_SMOOTH_START (0.5f + DISC_RADIUS)
+#define GRID_LINE_SMOOTH_END (0.5f - DISC_RADIUS)
 #define GRID_LINE_STEP(dist) smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist)
 
 #include "draw_view_lib.glsl"
@@ -35,7 +35,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_grid_next)
 
 float get_grid(vec2 co, vec2 fwidthCos, vec2 grid_scale)
 {
-  vec2 half_size = grid_scale / 2.0;
+  vec2 half_size = grid_scale / 2.0f;
   /* Triangular wave pattern, amplitude is [0, half_size]. */
   vec2 grid_domain = abs(mod(co + half_size, grid_scale) - half_size);
   /* Modulate by the absolute rate of change of the coordinates
@@ -55,7 +55,7 @@ vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
   return GRID_LINE_STEP(axes_domain - (line_size + grid_buf.line_size));
 }
 
-#define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0, 1.0))
+#define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0f, 1.0f))
 
 void main()
 {
@@ -66,7 +66,7 @@ void main()
   P += drw_view_position() * plane_axes;
 
   float dist, fade;
-  bool is_persp = drw_view().winmat[3][3] == 0.0;
+  bool is_persp = drw_view().winmat[3][3] == 0.0f;
   if (is_persp) {
     vec3 V = drw_view_position() - P;
     dist = length(V);
@@ -83,23 +83,23 @@ void main()
       angle = V.z;
     }
 
-    angle = 1.0 - abs(angle);
+    angle = 1.0f - abs(angle);
     angle *= angle;
-    fade = 1.0 - angle * angle;
-    fade *= 1.0 - smoothstep(0.0, grid_buf.distance, dist - grid_buf.distance);
+    fade = 1.0f - angle * angle;
+    fade *= 1.0f - smoothstep(0.0f, grid_buf.distance, dist - grid_buf.distance);
   }
   else {
-    dist = gl_FragCoord.z * 2.0 - 1.0;
+    dist = gl_FragCoord.z * 2.0f - 1.0f;
     /* Avoid fading in +Z direction in camera view (see #70193). */
-    dist = flag_test(grid_flag, GRID_CAMERA) ? clamp(dist, 0.0, 1.0) : abs(dist);
-    fade = 1.0 - smoothstep(0.0, 0.5, dist - 0.5);
-    dist = 1.0; /* Avoid branch after. */
+    dist = flag_test(grid_flag, GRID_CAMERA) ? clamp(dist, 0.0f, 1.0f) : abs(dist);
+    fade = 1.0f - smoothstep(0.0f, 0.5f, dist - 0.5f);
+    dist = 1.0f; /* Avoid branch after. */
 
     if (flag_test(grid_flag, PLANE_XY)) {
-      float angle = 1.0 - abs(drw_view().viewinv[2].z);
-      dist = 1.0 + angle * 2.0;
+      float angle = 1.0f - abs(drw_view().viewinv[2].z);
+      dist = 1.0f + angle * 2.0f;
       angle *= angle;
-      fade *= 1.0 - angle * angle;
+      fade *= 1.0f - angle * angle;
     }
   }
 
@@ -132,18 +132,18 @@ void main()
     }
 
     /* From biggest to smallest. */
-    float scale0x = step_id_x > 0 ? grid_buf.steps[step_id_x - 1].x : 0.0;
+    float scale0x = step_id_x > 0 ? grid_buf.steps[step_id_x - 1].x : 0.0f;
     float scaleAx = grid_buf.steps[step_id_x].x;
     float scaleBx = grid_buf.steps[min(step_id_x + 1, STEPS_LEN - 1)].x;
     float scaleCx = grid_buf.steps[min(step_id_x + 2, STEPS_LEN - 1)].x;
 
-    float scale0y = step_id_y > 0 ? grid_buf.steps[step_id_y - 1].y : 0.0;
+    float scale0y = step_id_y > 0 ? grid_buf.steps[step_id_y - 1].y : 0.0f;
     float scaleAy = grid_buf.steps[step_id_y].y;
     float scaleBy = grid_buf.steps[min(step_id_y + 1, STEPS_LEN - 1)].y;
     float scaleCy = grid_buf.steps[min(step_id_y + 2, STEPS_LEN - 1)].y;
 
     /* Subtract from 1.0 to fix blending when `scale0x == scaleAx`. */
-    float blend = 1.0 - linearstep(scale0x + scale0y, scaleAx + scaleAy, grid_res + grid_res);
+    float blend = 1.0f - linearstep(scale0x + scale0y, scaleAx + scaleAy, grid_res + grid_res);
     blend = blend * blend * blend;
 
     vec2 grid_pos, grid_fwidth;
@@ -170,7 +170,7 @@ void main()
     out_color = mix(out_color, colorGridEmphasis, gridC);
   }
   else {
-    out_color = vec4(colorGrid.rgb, 0.0);
+    out_color = vec4(colorGrid.rgb, 0.0f);
   }
 
   if (flag_test(grid_flag, (SHOW_AXIS_X | SHOW_AXIS_Y | SHOW_AXIS_Z))) {
@@ -191,19 +191,19 @@ void main()
     }
 
     /* Computing all axes at once using vec3 */
-    vec3 axes = get_axes(axes_dist, axes_fwidth, 0.1);
+    vec3 axes = get_axes(axes_dist, axes_fwidth, 0.1f);
 
     if (flag_test(grid_flag, SHOW_AXIS_X)) {
       out_color.a = max(out_color.a, axes.x);
-      out_color.rgb = (axes.x < 1e-8) ? out_color.rgb : colorGridAxisX.rgb;
+      out_color.rgb = (axes.x < 1e-8f) ? out_color.rgb : colorGridAxisX.rgb;
     }
     if (flag_test(grid_flag, SHOW_AXIS_Y)) {
       out_color.a = max(out_color.a, axes.y);
-      out_color.rgb = (axes.y < 1e-8) ? out_color.rgb : colorGridAxisY.rgb;
+      out_color.rgb = (axes.y < 1e-8f) ? out_color.rgb : colorGridAxisY.rgb;
     }
     if (flag_test(grid_flag, SHOW_AXIS_Z)) {
       out_color.a = max(out_color.a, axes.z);
-      out_color.rgb = (axes.z < 1e-8) ? out_color.rgb : colorGridAxisZ.rgb;
+      out_color.rgb = (axes.z < 1e-8f) ? out_color.rgb : colorGridAxisZ.rgb;
     }
   }
 
@@ -211,23 +211,23 @@ void main()
   float scene_depth = texture(depth_tx, uv, 0).r;
 
   float scene_depth_infront = texture(depth_infront_tx, uv, 0).r;
-  if (scene_depth_infront != 1.0) {
+  if (scene_depth_infront != 1.0f) {
     /* Treat in front objects as if they were on the near plane to occlude the grid. */
-    scene_depth = 0.0;
+    scene_depth = 0.0f;
   }
 
   if (flag_test(grid_flag, GRID_BACK)) {
-    fade *= (scene_depth == 1.0) ? 1.0 : 0.0;
+    fade *= (scene_depth == 1.0f) ? 1.0f : 0.0f;
   }
   else {
     /* Add a small bias so the grid will always be below of a mesh with the same depth. */
-    float grid_depth = gl_FragCoord.z + 4.8e-7;
+    float grid_depth = gl_FragCoord.z + 4.8e-7f;
     /* Manual, non hard, depth test:
      * Progressively fade the grid below occluders
      * (avoids popping visuals due to depth buffer precision) */
     /* Harder settings tend to flicker more,
      * but have less "see through" appearance. */
-    float bias = max(fwidth(gl_FragCoord.z), 2.4e-7);
+    float bias = max(fwidth(gl_FragCoord.z), 2.4e-7f);
     fade *= linearstep(grid_depth, grid_depth + bias, scene_depth);
   }
 

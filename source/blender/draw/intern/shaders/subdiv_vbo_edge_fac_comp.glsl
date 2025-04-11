@@ -35,22 +35,22 @@ float loop_edge_factor_get(vec3 fa_no, vec3 fb_no)
   float cosine = dot(fa_no, fb_no);
 
   /* Re-scale to the slider range. */
-  float fac = (200 * (cosine - 1.0)) + 1.0;
+  float fac = (200 * (cosine - 1.0f)) + 1.0f;
 
   /* The maximum value (255) is unreachable through the UI. */
-  return clamp(fac, 0.0, 1.0) * (254.0 / 255.0);
+  return clamp(fac, 0.0f, 1.0f) * (254.0f / 255.0f);
 }
 
 float compute_line_factor(uint corner_index, vec3 face_normal)
 {
   if (input_edge_draw_flag[corner_index] == 0) {
-    return 1.0;
+    return 1.0f;
   }
 
   int quad_other = input_poly_other_map[corner_index];
   if (quad_other == -1) {
     /* Boundary edge or non-manifold. */
-    return 0.0;
+    return 0.0f;
   }
 
   uint start_corner_index_other = quad_other * 4;
@@ -85,7 +85,7 @@ void main()
   vec3 v2 = subdiv_get_vertex_pos(pos_nor2);
   vec3 face_normal = normalize(cross(v1 - v0, v2 - v0));
 
-  vec4 edge_facs = vec4(0.0);
+  vec4 edge_facs = vec4(0.0f);
   for (uint i = 0; i < 4; i++) {
     edge_facs[i] = compute_line_factor(start_loop_index + i, face_normal);
   }

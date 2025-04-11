@@ -10,5 +10,5 @@ void main()
   vec4 attenuated_streak = texture_load(streak_tx, texel) * attenuation_factor;
   vec4 current_accumulated_streaks = imageLoad(accumulated_streaks_img, texel);
   vec4 combined_streaks = current_accumulated_streaks + attenuated_streak;
-  imageStore(accumulated_streaks_img, texel, vec4(combined_streaks.rgb, 1.0));
+  imageStore(accumulated_streaks_img, texel, vec4(combined_streaks.rgb, 1.0f));
 }

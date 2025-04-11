@@ -51,25 +51,25 @@ VertOut vertex_main(VertIn v_in)
     /* Keep in sync with the arrows shape batch creation. */
     /* Adapted from `overlay_extra_vert.glsl`. */
     vec3 vpos = v_in.lP;
-    vec3 vofs = vec3(0.0);
+    vec3 vofs = vec3(0.0f);
     uint axis = uint(vpos.z);
     /* Assumes origin vertices are the only one at Z=0. */
-    if (vpos.z > 0.0) {
-      vofs[axis] = (1.0 + fract(vpos.z));
+    if (vpos.z > 0.0f) {
+      vofs[axis] = (1.0f + fract(vpos.z));
     }
     /* Scale uniformly by axis length */
     vpos *= length(model_mat[axis].xyz);
     /* World sized, camera facing geometry. */
     vec3 screen_pos = drw_view().viewinv[0].xyz * vpos.x + drw_view().viewinv[1].xyz * vpos.y;
-    v_out.world_pos = (model_mat * vec4(vofs, 1.0)).xyz + screen_pos;
+    v_out.world_pos = (model_mat * vec4(vofs, 1.0f)).xyz + screen_pos;
   }
   else {
-    v_out.world_pos = (model_mat * vec4(v_in.lP, 1.0)).xyz;
+    v_out.world_pos = (model_mat * vec4(v_in.lP, 1.0f)).xyz;
   }
   v_out.gpu_position = drw_point_world_to_homogenous(v_out.world_pos);
 
-  v_out.finalColor.rgb = mix(state_color.rgb, bone_color.rgb, 0.5);
-  v_out.finalColor.a = 1.0;
+  v_out.finalColor.rgb = mix(state_color.rgb, bone_color.rgb, 0.5f);
+  v_out.finalColor.a = 1.0f;
   /* Because the packing clamps the value, the wire width is passed in compressed. */
   v_out.wire_width = bone_color.a * WIRE_WIDTH_COMPRESSION;
 
@@ -98,7 +98,7 @@ void do_vertex(const uint strip_index,
   edgeCoord = coord;
   gl_Position = hs_P;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
-  gl_Position.xy += offset * 2.0 * hs_P.w;
+  gl_Position.xy += offset * 2.0f * hs_P.w;
 
   view_clipping_distances(ws_P);
 }
@@ -112,19 +112,19 @@ void geometry_main(VertOut geom_in[2],
   vec4 pos0 = geom_in[0].gpu_position;
   vec4 pos1 = geom_in[1].gpu_position;
   vec2 pz_ndc = vec2(pos0.z / pos0.w, pos1.z / pos1.w);
-  bvec2 clipped = lessThan(pz_ndc, vec2(-1.0));
+  bvec2 clipped = lessThan(pz_ndc, vec2(-1.0f));
   if (all(clipped)) {
     /* Totally clipped. */
     return;
   }
 
   vec4 pos01 = pos0 - pos1;
-  float ofs = abs((pz_ndc.y + 1.0) / (pz_ndc.x - pz_ndc.y));
+  float ofs = abs((pz_ndc.y + 1.0f) / (pz_ndc.x - pz_ndc.y));
   if (clipped.y) {
     pos1 += pos01 * ofs;
   }
   else if (clipped.x) {
-    pos0 -= pos01 * (1.0 - ofs);
+    pos0 -= pos01 * (1.0f - ofs);
   }
 
   vec2 screen_space_pos[2];
@@ -134,11 +134,11 @@ void geometry_main(VertOut geom_in[2],
   /* `sizeEdge` is defined as the distance from the center to the outer edge. As such to get the
    total width it needs to be doubled. */
   wire_width = geom_in[0].wire_width * (sizeEdge * 2);
-  float half_size = max(wire_width / 2.0, 0.5);
+  float half_size = max(wire_width / 2.0f, 0.5f);
 
   if (do_smooth_wire) {
     /* Add 1px for AA */
-    half_size += 0.5;
+    half_size += 0.5f;
   }
 
   vec2 line = (screen_space_pos[0] - screen_space_pos[1]) * sizeViewport;

@@ -6,15 +6,15 @@
 
 void combine_color_rgb(float r, float g, float b, out vec4 col)
 {
-  col = vec4(r, g, b, 1.0);
+  col = vec4(r, g, b, 1.0f);
 }
 
 void combine_color_hsv(float h, float s, float v, out vec4 col)
 {
-  hsv_to_rgb(vec4(h, s, v, 1.0), col);
+  hsv_to_rgb(vec4(h, s, v, 1.0f), col);
 }
 
 void combine_color_hsl(float h, float s, float l, out vec4 col)
 {
-  hsl_to_rgb(vec4(h, s, l, 1.0), col);
+  hsl_to_rgb(vec4(h, s, l, 1.0f), col);
 }

@@ -21,30 +21,30 @@ void projmat_dimensions(mat4 winmat,
                         out float r_near,
                         out float r_far)
 {
-  const bool is_persp = winmat[3][3] == 0.0;
+  const bool is_persp = winmat[3][3] == 0.0f;
   if (is_persp) {
-    float near = winmat[3][2] / (winmat[2][2] - 1.0);
-    r_left = near * ((winmat[2][0] - 1.0) / winmat[0][0]);
-    r_right = near * ((winmat[2][0] + 1.0) / winmat[0][0]);
-    r_bottom = near * ((winmat[2][1] - 1.0) / winmat[1][1]);
-    r_top = near * ((winmat[2][1] + 1.0) / winmat[1][1]);
+    float near = winmat[3][2] / (winmat[2][2] - 1.0f);
+    r_left = near * ((winmat[2][0] - 1.0f) / winmat[0][0]);
+    r_right = near * ((winmat[2][0] + 1.0f) / winmat[0][0]);
+    r_bottom = near * ((winmat[2][1] - 1.0f) / winmat[1][1]);
+    r_top = near * ((winmat[2][1] + 1.0f) / winmat[1][1]);
     r_near = near;
-    r_far = winmat[3][2] / (winmat[2][2] + 1.0);
+    r_far = winmat[3][2] / (winmat[2][2] + 1.0f);
   }
   else {
-    r_left = (-winmat[3][0] - 1.0) / winmat[0][0];
-    r_right = (-winmat[3][0] + 1.0) / winmat[0][0];
-    r_bottom = (-winmat[3][1] - 1.0) / winmat[1][1];
-    r_top = (-winmat[3][1] + 1.0) / winmat[1][1];
-    r_near = (winmat[3][2] + 1.0) / winmat[2][2];
-    r_far = (winmat[3][2] - 1.0) / winmat[2][2];
+    r_left = (-winmat[3][0] - 1.0f) / winmat[0][0];
+    r_right = (-winmat[3][0] + 1.0f) / winmat[0][0];
+    r_bottom = (-winmat[3][1] - 1.0f) / winmat[1][1];
+    r_top = (-winmat[3][1] + 1.0f) / winmat[1][1];
+    r_near = (winmat[3][2] + 1.0f) / winmat[2][2];
+    r_far = (winmat[3][2] - 1.0f) / winmat[2][2];
   }
 }
 
 void frustum_boundbox_calc(mat4 winmat, mat4 viewinv, out FrustumCorners frustum_corners)
 {
-  float left = 0.0, right = 0.0, bottom = 0.0, top = 0.0, near = 0.0, far = 0.0;
-  bool is_persp = winmat[3][3] == 0.0;
+  float left = 0.0f, right = 0.0f, bottom = 0.0f, top = 0.0f, near = 0.0f, far = 0.0f;
+  bool is_persp = winmat[3][3] == 0.0f;
 
   projmat_dimensions(winmat, left, right, bottom, top, near, far);
 
@@ -110,8 +110,8 @@ vec4 frustum_culling_sphere_calc(FrustumCorners frustum_corners)
   /* TODO(fclem): This is significantly less precise than CPU, but it isn't used in most cases. */
 
   vec4 bsphere;
-  bsphere.xyz = (frustum_corners.corners[0].xyz + frustum_corners.corners[6].xyz) * 0.5;
-  bsphere.w = 0.0;
+  bsphere.xyz = (frustum_corners.corners[0].xyz + frustum_corners.corners[6].xyz) * 0.5f;
+  bsphere.w = 0.0f;
   for (int i = 0; i < 8; i++) {
     bsphere.w = max(bsphere.w, distance(bsphere.xyz, frustum_corners.corners[i].xyz));
   }
@@ -123,9 +123,9 @@ void main()
   drw_view_id = gl_LocalInvocationID.x;
 
   /* Invalid views are disabled. */
-  if (all(equal(drw_view().viewinv[2].xyz, vec3(0.0)))) {
+  if (all(equal(drw_view().viewinv[2].xyz, vec3(0.0f)))) {
     /* Views with negative radius are treated as disabled. */
-    view_culling_buf[drw_view_id].bound_sphere = vec4(-1.0);
+    view_culling_buf[drw_view_id].bound_sphere = vec4(-1.0f);
     return;
   }
 

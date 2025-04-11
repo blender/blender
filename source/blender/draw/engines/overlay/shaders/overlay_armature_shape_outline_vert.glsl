@@ -49,7 +49,7 @@ VertOut vertex_main(VertIn v_in)
   v_out.vs_P = drw_point_world_to_view(v_out.ws_P);
   v_out.hs_P = drw_point_view_to_homogenous(v_out.vs_P);
   v_out.ss_P = drw_perspective_divide(v_out.hs_P).xy * sizeViewport;
-  v_out.inverted = int(dot(cross(model_mat[0].xyz, model_mat[1].xyz), model_mat[2].xyz) < 0.0);
+  v_out.inverted = int(dot(cross(model_mat[0].xyz, model_mat[1].xyz), model_mat[2].xyz) < 0.0f);
   v_out.color_size = bone_color;
 
   return v_out;
@@ -79,9 +79,9 @@ void emit_vertex(const uint strip_index,
   /* Offset away from the center to avoid overlap with solid shape. */
   gl_Position.xy += offset * sizeViewportInv * gl_Position.w;
   /* Improve AA bleeding inside bone silhouette. */
-  gl_Position.z -= (is_persp) ? 1e-4 : 1e-6;
+  gl_Position.z -= (is_persp) ? 1e-4f : 1e-6f;
 
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
+  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 
   view_clipping_distances(ws_P);
 }
@@ -91,9 +91,9 @@ void geometry_main(VertOut geom_in[4],
                    uint out_primitive_id,
                    uint out_invocation_id)
 {
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
 
-  vec3 view_vec = (is_persp) ? normalize(geom_in[1].vs_P) : vec3(0.0, 0.0, -1.0);
+  vec3 view_vec = (is_persp) ? normalize(geom_in[1].vs_P) : vec3(0.0f, 0.0f, -1.0f);
   vec3 v10 = geom_in[0].vs_P - geom_in[1].vs_P;
   vec3 v12 = geom_in[2].vs_P - geom_in[1].vs_P;
   vec3 v13 = geom_in[3].vs_P - geom_in[1].vs_P;
@@ -106,7 +106,7 @@ void geometry_main(VertOut geom_in[4],
 
   /* If one of the face is perpendicular to the view,
    * consider it and outline edge. */
-  if (abs(fac0) > 1e-5 && abs(fac3) > 1e-5) {
+  if (abs(fac0) > 1e-5f && abs(fac3) > 1e-5f) {
     /* If both adjacent verts are facing the camera the same way,
      * then it isn't an outline edge. */
     if (sign(fac0) == sign(fac3)) {
@@ -116,7 +116,7 @@ void geometry_main(VertOut geom_in[4],
 
   n0 = (geom_in[0].inverted == 1) ? -n0 : n0;
   /* Don't outline if concave edge. */
-  if (dot(n0, v13) > 0.0001) {
+  if (dot(n0, v13) > 0.0001f) {
     return;
   }
 
@@ -130,20 +130,20 @@ void geometry_main(VertOut geom_in[4],
    * choose the other point anyway.
    * This fixes some issue with cubes in orthographic views. */
   if (geom_in[0].vs_P.z < geom_in[3].vs_P.z) {
-    hidden_point = (abs(fac0) > 1e-5) ? geom_in[0].ss_P : geom_in[3].ss_P;
+    hidden_point = (abs(fac0) > 1e-5f) ? geom_in[0].ss_P : geom_in[3].ss_P;
   }
   else {
-    hidden_point = (abs(fac3) > 1e-5) ? geom_in[3].ss_P : geom_in[0].ss_P;
+    hidden_point = (abs(fac3) > 1e-5f) ? geom_in[3].ss_P : geom_in[0].ss_P;
   }
   vec2 hidden_dir = normalize(hidden_point - geom_in[1].ss_P);
 
   float fac = dot(-hidden_dir, edge_dir);
-  edge_dir *= (fac < 0.0) ? -1.0 : 1.0;
+  edge_dir *= (fac < 0.0f) ? -1.0f : 1.0f;
 
   emit_vertex(0,
               out_vertex_id,
               out_primitive_id,
-              vec4(geom_in[0].color_size.rgb, 1.0),
+              vec4(geom_in[0].color_size.rgb, 1.0f),
               geom_in[1].hs_P,
               geom_in[1].ws_P,
               edge_dir - perp,
@@ -152,7 +152,7 @@ void geometry_main(VertOut geom_in[4],
   emit_vertex(1,
               out_vertex_id,
               out_primitive_id,
-              vec4(geom_in[0].color_size.rgb, 1.0),
+              vec4(geom_in[0].color_size.rgb, 1.0f),
               geom_in[2].hs_P,
               geom_in[2].ws_P,
               edge_dir + perp,

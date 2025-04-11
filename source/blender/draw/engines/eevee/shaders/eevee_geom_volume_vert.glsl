@@ -19,7 +19,7 @@ void main()
 
   /* TODO(fclem): Find a better way? This is reverting what draw_resource_finalize does. */
   ObjectInfos info = drw_object_infos();
-  vec3 size = safe_rcp(info.orco_mul * 2.0);          /* Box half-extent. */
+  vec3 size = safe_rcp(info.orco_mul * 2.0f);         /* Box half-extent. */
   vec3 loc = size + (info.orco_add / -info.orco_mul); /* Box center. */
 
   /* Use bounding box geometry for now. */

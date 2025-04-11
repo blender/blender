@@ -29,7 +29,7 @@ void inflate_bounds(vec3 ls_center, inout vec3 P, inout vec3 lP)
     inflate_scale *= -vP.z;
   }
   /* Half-pixel. */
-  inflate_scale *= 0.5;
+  inflate_scale *= 0.5f;
 
   vec3 vs_inflate_vector = drw_normal_object_to_view(sign(lP - ls_center));
   vs_inflate_vector.z = 0;

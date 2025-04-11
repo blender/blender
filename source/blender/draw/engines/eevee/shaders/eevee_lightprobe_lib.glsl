@@ -33,8 +33,8 @@ vec3 lightprobe_volume_grid_sample_position(mat4 grid_local_to_world_mat,
                                             ivec3 cell_coord)
 {
   vec3 ls_cell_pos = (vec3(cell_coord + 1)) / vec3(grid_res + 1);
-  ls_cell_pos = ls_cell_pos * 2.0 - 1.0;
-  vec3 ws_cell_pos = (grid_local_to_world_mat * vec4(ls_cell_pos, 1.0)).xyz;
+  ls_cell_pos = ls_cell_pos * 2.0f - 1.0f;
+  vec3 ws_cell_pos = (grid_local_to_world_mat * vec4(ls_cell_pos, 1.0f)).xyz;
   return ws_cell_pos;
 }
 
@@ -46,8 +46,8 @@ bool lightprobe_volume_grid_local_coord(VolumeProbeData grid_data, vec3 P, out v
 {
   /* Position in cell units. */
   /* NOTE: The vector-matrix multiplication swapped on purpose to cancel the matrix transpose. */
-  vec3 lP = (vec4(P, 1.0) * grid_data.world_to_grid_transposed).xyz;
-  r_lP = clamp(lP, vec3(0.5), vec3(grid_data.grid_size_padded) - 0.5);
+  vec3 lP = (vec4(P, 1.0f) * grid_data.world_to_grid_transposed).xyz;
+  r_lP = clamp(lP, vec3(0.5f), vec3(grid_data.grid_size_padded) - 0.5f);
   /* Sample is valid if position wasn't clamped. */
   return all(equal(lP, r_lP));
 }
@@ -71,10 +71,10 @@ ivec3 lightprobe_volume_grid_cell_corner(int cell_corner_id)
 
 float lightprobe_planar_score(PlanarProbeData planar, vec3 P, vec3 V, vec3 L)
 {
-  vec3 lP = vec4(P, 1.0) * planar.world_to_object_transposed;
-  if (any(greaterThan(abs(lP), vec3(1.0)))) {
+  vec3 lP = vec4(P, 1.0f) * planar.world_to_object_transposed;
+  if (any(greaterThan(abs(lP), vec3(1.0f)))) {
     /* TODO: Transition in Z. Dither? */
-    return 0.0;
+    return 0.0f;
   }
   /* Return how much the ray is lined up with the captured ray. */
   vec3 R = -reflect(V, planar.normal);

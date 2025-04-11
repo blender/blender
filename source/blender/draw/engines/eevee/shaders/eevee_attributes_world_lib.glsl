@@ -36,7 +36,7 @@ vec2 attr_load_vec2(vec2 attr)
 }
 float attr_load_float(float attr)
 {
-  return 0.0;
+  return 0.0f;
 }
 vec4 attr_load_color(vec4 attr)
 {

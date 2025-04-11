@@ -57,7 +57,7 @@ void geometry_main(VertOut geom_in[3], uint out_vertex_id, uint out_invocation_i
 
   float facing = dot(Ng, ls_light_direction);
 
-  bool backface = facing > 0.0;
+  bool backface = facing > 0.0f;
 
 #ifdef DOUBLE_MANIFOLD
   /* In case of non manifold geom, we only increase/decrease

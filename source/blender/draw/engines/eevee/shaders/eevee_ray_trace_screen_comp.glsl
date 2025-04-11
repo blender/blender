@@ -35,15 +35,15 @@ void main()
   vec4 ray_data_im = imageLoadFast(ray_data_img, texel);
   float ray_pdf_inv = ray_data_im.w;
 
-  if (ray_pdf_inv < 0.0) {
+  if (ray_pdf_inv < 0.0f) {
     /* Ray destined to planar trace. */
     return;
   }
 
-  if (ray_pdf_inv == 0.0) {
+  if (ray_pdf_inv == 0.0f) {
     /* Invalid ray or pixels without ray. Do not trace. */
-    imageStoreFast(ray_time_img, texel, vec4(0.0));
-    imageStoreFast(ray_radiance_img, texel, vec4(0.0));
+    imageStoreFast(ray_time_img, texel, vec4(0.0f));
+    imageStoreFast(ray_radiance_img, texel, vec4(0.0f));
     return;
   }
 
@@ -61,7 +61,7 @@ void main()
   }
 
   float depth = texelFetch(depth_tx, texel_fullres, 0).r;
-  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
+  vec2 uv = (vec2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
 
   vec3 P = drw_point_screen_to_world(vec3(uv, depth));
   vec3 V = drw_world_incident_vector(P);
@@ -72,16 +72,16 @@ void main()
   /* Only closure 0 can be a transmission closure. */
   if (closure_index == 0) {
     float thickness = gbuffer_read_thickness(gbuf_header, gbuf_normal_tx, texel_fullres);
-    if (thickness != 0.0) {
+    if (thickness != 0.0f) {
       ClosureUndetermined cl = gbuffer_read_bin(
           gbuf_header, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
       ray = raytrace_thickness_ray_amend(ray, cl, V, thickness);
     }
   }
 
-  vec3 radiance = vec3(0.0);
+  vec3 radiance = vec3(0.0f);
   float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
-  float rand_trace = interlieved_gradient_noise(vec2(texel), 5.0, noise_offset);
+  float rand_trace = interlieved_gradient_noise(vec2(texel), 5.0f, noise_offset);
 
   ClosureUndetermined cl = gbuffer_read_bin(
       gbuf_header, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
@@ -92,7 +92,7 @@ void main()
   ray_view.origin = transform_point(drw_view().viewmat, ray.origin);
   ray_view.direction = transform_direction(drw_view().viewmat, ray.direction);
   /* Extend the ray to cover the whole view. */
-  ray_view.max_time = 1000.0;
+  ray_view.max_time = 1000.0f;
 
   ScreenTraceHitData hit;
   hit.valid = false;
@@ -114,9 +114,9 @@ void main()
       vec3 hit_P = transform_point(drw_view().viewinv, hit.v_hit_P);
       /* TODO(@fclem): Split matrix multiply for precision. */
       vec3 history_ndc_hit_P = project_point(uniform_buf.raytrace.radiance_persmat, hit_P);
-      vec3 history_ss_hit_P = history_ndc_hit_P * 0.5 + 0.5;
+      vec3 history_ss_hit_P = history_ndc_hit_P * 0.5f + 0.5f;
       /* Fetch radiance at hit-point. */
-      radiance = textureLod(radiance_front_tx, history_ss_hit_P.xy, 0.0).rgb;
+      radiance = textureLod(radiance_front_tx, history_ss_hit_P.xy, 0.0f).rgb;
     }
   }
   else if (trace_refraction) {
@@ -130,7 +130,7 @@ void main()
                           ray_view);
 
     if (hit.valid) {
-      radiance = textureLod(radiance_back_tx, hit.ss_hit_P.xy, 0.0).rgb;
+      radiance = textureLod(radiance_back_tx, hit.ss_hit_P.xy, 0.0f).rgb;
     }
   }
 
@@ -147,11 +147,11 @@ void main()
 
     radiance = lightprobe_eval_direction(samp, ray.origin, ray.direction, ray_pdf_inv);
     /* Set point really far for correct reprojection of background. */
-    hit.time = 10000.0;
+    hit.time = 10000.0f;
   }
 
   radiance = colorspace_brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
 
   imageStoreFast(ray_time_img, texel, vec4(hit.time));
-  imageStoreFast(ray_radiance_img, texel, vec4(radiance, 0.0));
+  imageStoreFast(ray_radiance_img, texel, vec4(radiance, 0.0f));
 }

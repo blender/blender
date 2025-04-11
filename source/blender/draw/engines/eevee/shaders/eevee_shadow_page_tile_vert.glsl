@@ -36,10 +36,10 @@ void main()
   uvec3 src_page_co = unpackUvec4x8(src_coord_buf[tile_id]).xyz;
 
   vec2 uv_pos = (tile_corner + vec2(src_page_co.xy)) / float(SHADOW_TILEMAP_RES);
-  vec2 ndc_pos = uv_pos * 2.0 - 1.0;
+  vec2 ndc_pos = uv_pos * 2.0f - 1.0f;
   /* We initially clear depth to 1.0 only for update fragments.
    * Non-updated tile depth will remain at 0.0 to ensure fragments are discarded. */
-  gl_Position = vec4(ndc_pos.x, ndc_pos.y, 1.0, 1.0);
+  gl_Position = vec4(ndc_pos.x, ndc_pos.y, 1.0f, 1.0f);
   gpu_Layer = int(src_page_co.z);
   /* Assumes last viewport will always cover the whole frame-buffer. */
   gpu_ViewportIndex = 15;

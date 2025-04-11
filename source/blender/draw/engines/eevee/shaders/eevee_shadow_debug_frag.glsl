@@ -20,7 +20,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_shadow_debug)
 #include "gpu_shader_debug_gradients_lib.glsl"
 
 /** Control the scaling of the tile-map splat. */
-#define pixel_scale float(4.0)
+#define pixel_scale float(4.0f)
 
 ShadowSamplingTile shadow_tile_data_get(usampler2D tilemaps_tx, ShadowCoordinates coord)
 {
@@ -29,7 +29,7 @@ ShadowSamplingTile shadow_tile_data_get(usampler2D tilemaps_tx, ShadowCoordinate
 
 vec3 debug_random_color(ivec2 v)
 {
-  float r = interlieved_gradient_noise(vec2(v), 0.0, 0.0);
+  float r = interlieved_gradient_noise(vec2(v), 0.0f, 0.0f);
   return hue_gradient(r);
 }
 
@@ -51,7 +51,7 @@ vec3 debug_tile_state_color(ShadowTileData tile)
 {
   if (tile.do_update && tile.is_used) {
     /* Updated. */
-    return vec3(0.5, 1, 0);
+    return vec3(0.5f, 1, 0);
   }
   if (tile.is_used) {
     /* Used but was cached. */
@@ -59,9 +59,9 @@ vec3 debug_tile_state_color(ShadowTileData tile)
   }
   vec3 col = vec3(0);
   if (tile.is_cached) {
-    col += vec3(0.2, 0, 0.5);
+    col += vec3(0.2f, 0, 0.5f);
     if (tile.do_update) {
-      col += vec3(0.8, 0, 0);
+      col += vec3(0.8f, 0, 0);
     }
   }
   return col;
@@ -139,9 +139,9 @@ bool debug_tilemaps(vec3 P, LightData light, bool do_debug_sample_tile)
       if (!any(
               equal(ivec2(gl_FragCoord.xy) % (SHADOW_TILEMAP_RES * debug_tile_size_px), ivec2(0))))
       {
-        gl_FragDepth = 0.0;
-        out_color_add = vec4(debug_tile_lod(light.type, tile), 0.0);
-        out_color_mul = vec4(0.0);
+        gl_FragDepth = 0.0f;
+        out_color_add = vec4(debug_tile_lod(light.type, tile), 0.0f);
+        out_color_mul = vec4(0.0f);
 
         return true;
       }
@@ -156,9 +156,9 @@ bool debug_tilemaps(vec3 P, LightData light, bool do_debug_sample_tile)
       if (!any(
               equal(ivec2(gl_FragCoord.xy) % (SHADOW_TILEMAP_RES * debug_tile_size_px), ivec2(0))))
       {
-        gl_FragDepth = 0.0;
-        out_color_add = vec4(debug_tile_state_color(tile), 0.0);
-        out_color_mul = vec4(0.0);
+        gl_FragDepth = 0.0f;
+        out_color_add = vec4(debug_tile_state_color(tile), 0.0f);
+        out_color_mul = vec4(0.0f);
 
         return true;
       }
@@ -175,43 +175,43 @@ void debug_tile_state(vec3 P, LightData light)
   int tile_index = shadow_tile_offset(
       uvec2(coord.tilemap_tile >> tile_samp.lod), tilemap.tiles_index, int(tile_samp.lod));
   ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
-  out_color_add = vec4(debug_tile_state_color(tile), 0) * 0.5;
-  out_color_mul = vec4(0.5);
+  out_color_add = vec4(debug_tile_state_color(tile), 0) * 0.5f;
+  out_color_mul = vec4(0.5f);
 }
 
 void debug_atlas_values(vec3 P, LightData light)
 {
   ShadowCoordinates coord = debug_coord_get(P, light);
   float depth = shadow_read_depth(shadow_atlas_tx, shadow_tilemaps_tx, coord);
-  out_color_add = vec4((depth == -1) ? vec3(1.0, 0.0, 0.0) : float3(1.0 / depth), 0.0);
-  out_color_mul = vec4(0.5);
+  out_color_add = vec4((depth == -1) ? vec3(1.0f, 0.0f, 0.0f) : float3(1.0f / depth), 0.0f);
+  out_color_mul = vec4(0.5f);
 }
 
 void debug_random_tile_color(vec3 P, LightData light)
 {
   ShadowSamplingTile tile = debug_tile_get(P, light);
-  out_color_add = vec4(debug_random_color(ivec2(tile.page.xy)), 0) * 0.5;
-  out_color_mul = vec4(0.5);
+  out_color_add = vec4(debug_random_color(ivec2(tile.page.xy)), 0) * 0.5f;
+  out_color_mul = vec4(0.5f);
 }
 
 void debug_random_tilemap_color(vec3 P, LightData light)
 {
   ShadowCoordinates coord = debug_coord_get(P, light);
-  out_color_add = vec4(debug_random_color(ivec2(coord.tilemap_index)), 0) * 0.5;
-  out_color_mul = vec4(0.5);
+  out_color_add = vec4(debug_random_color(ivec2(coord.tilemap_index)), 0) * 0.5f;
+  out_color_mul = vec4(0.5f);
 }
 
 void main()
 {
   /* Default to no output. */
-  gl_FragDepth = 1.0;
-  out_color_add = vec4(0.0);
-  out_color_mul = vec4(1.0);
+  gl_FragDepth = 1.0f;
+  out_color_add = vec4(0.0f);
+  out_color_mul = vec4(1.0f);
 
   float depth = texelFetch(hiz_tx, ivec2(gl_FragCoord.xy), 0).r;
   vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
   /* Make it pass the depth test. */
-  gl_FragDepth = depth - 1e-6;
+  gl_FragDepth = depth - 1e-6f;
 
   LightData light = debug_light_get();
 
@@ -220,7 +220,7 @@ void main()
     return;
   }
 
-  if (depth != 1.0) {
+  if (depth != 1.0f) {
     switch (eDebugMode(debug_mode)) {
       case DEBUG_SHADOW_TILEMAPS:
         debug_tile_state(P, light);

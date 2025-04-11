@@ -24,7 +24,7 @@ float film_depth_convert_to_scene(float depth)
 {
   if (false /* Panoramic. */) {
     /* TODO */
-    return 1.0;
+    return 1.0f;
   }
   return -drw_depth_screen_to_view(depth);
 }
@@ -34,7 +34,7 @@ vec4 film_texelfetch_as_YCoCg_opacity(sampler2D tx, ivec2 texel)
 {
   vec4 color = texelFetch(combined_tx, texel, 0);
   /* Convert transmittance to opacity. */
-  color.a = saturate(1.0 - color.a);
+  color.a = saturate(1.0f - color.a);
   /* Transform to YCoCg for accumulation. */
   color.rgb = colorspace_YCoCg_from_scene_linear(color.rgb);
   return color;
@@ -45,7 +45,7 @@ float film_luma_weight(float luma)
 {
   /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
-  return 1.0 / (4.0 + luma * uniform_buf.film.exposure_scale);
+  return 1.0f / (4.0f + luma * uniform_buf.film.exposure_scale);
 }
 
 /**
@@ -81,9 +81,9 @@ FilmSample film_sample_get(int sample_n, ivec2 texel_film)
   if (scaling_factor > 1) {
     /* We are working in the render pixel region on the film. We use film pixel units. */
 
-    vec2 film_coord = 0.5 + vec2(texel_film % scaling_factor);
+    vec2 film_coord = 0.5f + vec2(texel_film % scaling_factor);
     /* Sample position inside the render pixel region. */
-    vec2 jittered_sample_coord = (0.5 - uniform_buf.film.subpixel_offset) * float(scaling_factor);
+    vec2 jittered_sample_coord = (0.5f - uniform_buf.film.subpixel_offset) * float(scaling_factor);
     /* Offset the film samples to always sample the 4 nearest neighbors in the render target.
      * `film_sample.texel` is set to visit all 4 neighbors in [0..1] region. */
     ivec2 quad_offset = -ivec2(lessThan(film_coord, jittered_sample_coord));
@@ -94,7 +94,7 @@ FilmSample film_sample_get(int sample_n, ivec2 texel_film)
     float sample_dist_sqr = length_squared(jittered_sample_coord - film_coord);
     film_sample.weight = film_filter_weight(uniform_buf.film.filter_radius, sample_dist_sqr);
     /* Ensure a minimum weight for each sample to avoid missing data at 4x or 8x up-scaling. */
-    film_sample.weight = max(film_sample.weight, 1e-8);
+    film_sample.weight = max(film_sample.weight, 1e-8f);
   }
 
   film_sample.texel += (texel_film / scaling_factor) + uniform_buf.film.overscan;
@@ -112,7 +112,7 @@ float film_weight_accumulation(ivec2 texel_film)
 {
   /* TODO(fclem): Reference implementation, also needed for panoramic cameras. */
   if (scaling_factor > 1) {
-    float weight = 0.0;
+    float weight = 0.0f;
     for (int i = 0; i < samples_len; i++) {
       weight += film_sample_get(i, texel_film).weight;
     }
@@ -145,9 +145,9 @@ void film_sample_accum_mist(FilmSample samp, inout float accum)
     return;
   }
   float depth = texelFetch(depth_tx, samp.texel, 0).x;
-  vec2 uv = (vec2(samp.texel) + 0.5) / vec2(textureSize(depth_tx, 0).xy);
+  vec2 uv = (vec2(samp.texel) + 0.5f) / vec2(textureSize(depth_tx, 0).xy);
   vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
-  bool is_persp = drw_view().winmat[3][3] == 0.0;
+  bool is_persp = drw_view().winmat[3][3] == 0.0f;
   float mist = (is_persp) ? length(vP) : abs(vP.z);
   /* Remap to 0..1 range. */
   mist = saturate(mist * uniform_buf.film.mist_scale + uniform_buf.film.mist_bias);
@@ -199,12 +199,12 @@ void film_cryptomatte_layer_accum_and_store(
     return;
   }
   /* x = hash, y = accumulated weight. Only keep track of 4 highest weighted samples. */
-  vec2 crypto_samples[4] = float2_array(vec2(0.0), vec2(0.0), vec2(0.0), vec2(0.0));
+  vec2 crypto_samples[4] = float2_array(vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f));
   for (int i = 0; i < samples_len; i++) {
     FilmSample src = film_sample_get(i, texel_film);
     film_sample_cryptomatte_accum(src, layer_component, cryptomatte_tx, crypto_samples);
   }
-  vec4 display_color = vec4(0.0);
+  vec4 display_color = vec4(0.0f);
   for (int i = 0; i < 4; i++) {
     cryptomatte_store_film_sample(dst, pass_id, crypto_samples[i], display_color);
   }
@@ -227,7 +227,7 @@ float film_distance_load(ivec2 texel)
   texel = texel % imageSize(in_weight_img).xy;
 
   if (!uniform_buf.film.use_history || use_reprojection) {
-    return 0.0;
+    return 0.0f;
   }
   return imageLoadFast(in_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_DISTANCE)).x;
 }
@@ -238,7 +238,7 @@ float film_weight_load(ivec2 texel)
   texel = texel % imageSize(in_weight_img).xy;
 
   if (!uniform_buf.film.use_history || use_reprojection) {
-    return 0.0;
+    return 0.0f;
   }
   return imageLoadFast(in_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_ACCUMULATION)).x;
 }
@@ -277,14 +277,14 @@ void film_get_catmull_rom_weights(vec2 t, out vec2 weights[4])
 {
   vec2 t2 = t * t;
   vec2 t3 = t2 * t;
-  float fc = 0.5; /* Catmull-Rom. */
+  float fc = 0.5f; /* Catmull-Rom. */
 
   vec2 fct = t * fc;
   vec2 fct2 = t2 * fc;
   vec2 fct3 = t3 * fc;
-  weights[0] = (fct2 * 2.0 - fct3) - fct;
-  weights[1] = (t3 * 2.0 - fct3) + (-t2 * 3.0 + fct2) + 1.0;
-  weights[2] = (-t3 * 2.0 + fct3) + (t2 * 3.0 - (2.0 * fct2)) + fct;
+  weights[0] = (fct2 * 2.0f - fct3) - fct;
+  weights[1] = (t3 * 2.0f - fct3) + (-t2 * 3.0f + fct2) + 1.0f;
+  weights[2] = (-t3 * 2.0f + fct3) + (t2 * 3.0f - (2.0f * fct2)) + fct;
   weights[3] = fct3 - fct2;
 }
 
@@ -298,7 +298,7 @@ vec4 film_sample_catmull_rom(sampler2D color_tx, vec2 input_texel)
   film_get_catmull_rom_weights(inter_texel, weights);
 
 #if 0 /* Reference. 16 Taps. */
-  vec4 color = vec4(0.0);
+  vec4 color = vec4(0.0f);
   for (int y = 0; y < 4; y++) {
     for (int x = 0; x < 4; x++) {
       ivec2 texel = ivec2(center_texel) + ivec2(x, y) - 1;
@@ -315,28 +315,28 @@ vec4 film_sample_catmull_rom(sampler2D color_tx, vec2 input_texel)
    * From "Filmic SMAA" by Jorge Jimenez at SIGGRAPH 2016
    * http://advances.realtimerendering.com/s2016/Filmic%20SMAA%20v7.pptx
    */
-  center_texel += 0.5;
+  center_texel += 0.5f;
 
   /* Slide 92. */
   vec2 weight_12 = weights[1] + weights[2];
   vec2 uv_12 = (center_texel + weights[2] / weight_12) * uniform_buf.film.extent_inv;
-  vec2 uv_0 = (center_texel - 1.0) * uniform_buf.film.extent_inv;
-  vec2 uv_3 = (center_texel + 2.0) * uniform_buf.film.extent_inv;
+  vec2 uv_0 = (center_texel - 1.0f) * uniform_buf.film.extent_inv;
+  vec2 uv_3 = (center_texel + 2.0f) * uniform_buf.film.extent_inv;
 
   vec4 color;
   vec4 weight_cross = weight_12.xyyx * vec4(weights[0].yx, weights[3].xy);
   float weight_center = weight_12.x * weight_12.y;
 
-  color = textureLod(color_tx, uv_12, 0.0) * weight_center;
-  color += textureLod(color_tx, vec2(uv_12.x, uv_0.y), 0.0) * weight_cross.x;
-  color += textureLod(color_tx, vec2(uv_0.x, uv_12.y), 0.0) * weight_cross.y;
-  color += textureLod(color_tx, vec2(uv_3.x, uv_12.y), 0.0) * weight_cross.z;
-  color += textureLod(color_tx, vec2(uv_12.x, uv_3.y), 0.0) * weight_cross.w;
+  color = textureLod(color_tx, uv_12, 0.0f) * weight_center;
+  color += textureLod(color_tx, vec2(uv_12.x, uv_0.y), 0.0f) * weight_cross.x;
+  color += textureLod(color_tx, vec2(uv_0.x, uv_12.y), 0.0f) * weight_cross.y;
+  color += textureLod(color_tx, vec2(uv_3.x, uv_12.y), 0.0f) * weight_cross.z;
+  color += textureLod(color_tx, vec2(uv_12.x, uv_3.y), 0.0f) * weight_cross.w;
   /* Re-normalize for the removed corners. */
   return color / (weight_center + reduce_add(weight_cross));
 
 #else /* Nearest interpolation for debugging. 1 Tap. */
-  ivec2 texel = ivec2(center_texel) + ivec2(greaterThan(inter_texel, vec2(0.5)));
+  ivec2 texel = ivec2(center_texel) + ivec2(greaterThan(inter_texel, vec2(0.5f)));
   texel = clamp(texel, ivec2(0), textureSize(color_tx, 0).xy - 1);
   return texelFetch(color_tx, texel, 0);
 #endif
@@ -366,12 +366,12 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
     mu1 += color;
     mu2 += square(color);
   }
-  mu1 *= (1.0 / 5.0);
-  mu2 *= (1.0 / 5.0);
+  mu1 *= (1.0f / 5.0f);
+  mu2 *= (1.0f / 5.0f);
 
   /* Extent scaling. Range [0.75..1.25].
    * Balance between more flickering (0.75) or more ghosting (1.25). */
-  const float gamma = 1.25;
+  const float gamma = 1.25f;
   /* Standard deviation. */
   vec4 sigma = sqrt(abs(mu2 - square(mu1)));
   /* eq. 6 in "A Survey of Temporal Anti-aliasing Techniques". */
@@ -382,8 +382,8 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
    * Simple bounding box calculation in YCoCg as described in:
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
    */
-  min_c = vec4(1e16);
-  max_c = vec4(-1e16);
+  min_c = vec4(1e16f);
+  max_c = vec4(-1e16f);
   for (int i = 0; i < 5; i++) {
     vec4 color = film_texelfetch_as_YCoCg_opacity(combined_tx, texel + plus_offsets[i]);
     min_c = min(min_c, color);
@@ -399,18 +399,18 @@ void film_combined_neighbor_boundbox(ivec2 texel, out vec4 min_c, out vec4 max_c
     min_c_3x3 = min(min_c_3x3, color);
     max_c_3x3 = max(max_c_3x3, color);
   }
-  min_c = (min_c + min_c_3x3) * 0.5;
-  max_c = (max_c + max_c_3x3) * 0.5;
+  min_c = (min_c + min_c_3x3) * 0.5f;
+  max_c = (max_c + max_c_3x3) * 0.5f;
 #endif
 }
 
 /* 1D equivalent of line_aabb_clipping_dist(). */
 float film_aabb_clipping_dist_alpha(float origin, float direction, float aabb_min, float aabb_max)
 {
-  if (abs(direction) < 1e-5) {
-    return 0.0;
+  if (abs(direction) < 1e-5f) {
+    return 0.0f;
   }
-  float nearest_plane = (direction > 0.0) ? aabb_min : aabb_max;
+  float nearest_plane = (direction > 0.0f) ? aabb_min : aabb_max;
   return (nearest_plane - origin) / direction;
 }
 
@@ -439,26 +439,26 @@ float film_history_blend_factor(float velocity,
                                 float luma_history)
 {
   /* 5% of incoming color by default. */
-  float blend = 0.05;
+  float blend = 0.05f;
   /* Blend less history if the pixel has substantial velocity. */
-  blend = mix(blend, 0.20, saturate(velocity * 0.02));
+  blend = mix(blend, 0.20f, saturate(velocity * 0.02f));
   /**
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
   float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));
   /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
-  distance_to_luma_clip *= 2.0 * safe_rcp(luma_max - luma_min);
+  distance_to_luma_clip *= 2.0f * safe_rcp(luma_max - luma_min);
   /* Linearly blend when history gets below to 25% of the bbox size. */
-  blend *= saturate(distance_to_luma_clip * 4.0 + 0.1);
+  blend *= saturate(distance_to_luma_clip * 4.0f + 0.1f);
   /* Discard out of view history. */
   if (any(lessThan(texel, vec2(0))) || any(greaterThanEqual(texel, vec2(uniform_buf.film.extent))))
   {
-    blend = 1.0;
+    blend = 1.0f;
   }
   /* Discard history if invalid. */
   if (uniform_buf.film.use_history == false) {
-    blend = 1.0;
+    blend = 1.0f;
   }
   return blend;
 }
@@ -502,7 +502,7 @@ void film_store_combined(
     color_dst = film_amend_combined_history(min_color, max_color, color_dst, color_src, src_texel);
 
     /* Luma weighted blend to avoid flickering. */
-    weight_dst = film_luma_weight(color_dst.x) * (1.0 - blend);
+    weight_dst = film_luma_weight(color_dst.x) * (1.0f - blend);
     weight_src = film_luma_weight(color_src.x) * (blend);
   }
   else {
@@ -521,13 +521,13 @@ void film_store_combined(
   color.rgb = colorspace_scene_linear_from_YCoCg(color.rgb);
 
   /* Fix alpha not accumulating to 1 because of float imprecision. */
-  if (color.a > 0.995) {
-    color.a = 1.0;
+  if (color.a > 0.995f) {
+    color.a = 1.0f;
   }
 
   /* Filter NaNs. */
   if (any(isnan(color))) {
-    color = vec4(0.0, 0.0, 0.0, 1.0);
+    color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
   }
 
   if (display_id == -1) {
@@ -549,13 +549,13 @@ void film_store_color(FilmSample dst, int pass_id, vec4 color, inout vec4 displa
 
   /* Filter NaNs. */
   if (any(isnan(color))) {
-    color = vec4(0.0, 0.0, 0.0, 1.0);
+    color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
   }
 
   /* Fix alpha not accumulating to 1 because of float imprecision. But here we cannot assume that
    * the alpha contains actual transparency and not user data. Only bias if very close to 1. */
-  if (color.a > 0.9999 && color.a < 1.0) {
-    color.a = 1.0;
+  if (color.a > 0.9999f && color.a < 1.0f) {
+    color.a = 1.0f;
   }
 
   if (display_id == pass_id) {
@@ -577,11 +577,11 @@ void film_store_value(FilmSample dst, int pass_id, float value, inout vec4 displ
 
   /* Filter NaNs. */
   if (isnan(value)) {
-    value = 0.0;
+    value = 0.0f;
   }
 
   if (display_id == pass_id) {
-    display = vec4(value, value, value, 1.0);
+    display = vec4(value, value, value, 1.0f);
   }
   value = film_patch_float_for_16f_storage(value);
   imageStoreFast(value_accum_img, ivec3(dst.texel, pass_id), vec4(value));
@@ -631,7 +631,7 @@ float film_display_depth_amend(ivec2 texel, float depth)
   depth += fwidth(depth);
 #endif
   /* Small offset to avoid depth test lessEqual failing because of all the conversions loss. */
-  depth += 2.4e-7 * 4.0;
+  depth += 2.4e-7f * 4.0f;
   return saturate(depth);
 }
 
@@ -640,8 +640,8 @@ float film_display_depth_amend(ivec2 texel, float depth)
 /** NOTE: out_depth is scene linear depth from the camera origin. */
 void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth)
 {
-  out_color = vec4(0.0);
-  out_depth = 0.0;
+  out_color = vec4(0.0f);
+  out_depth = 0.0f;
 
   float weight_accum = film_weight_accumulation(texel_film);
   float film_weight = film_weight_load(texel_film);
@@ -651,15 +651,15 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
   FilmSample dst;
   dst.texel = texel_film;
   dst.weight = film_weight;
-  dst.weight_sum_inv = 1.0 / weight_sum;
+  dst.weight_sum_inv = 1.0f / weight_sum;
 
   /* NOTE: We split the accumulations into separate loops to avoid using too much registers and
    * maximize occupancy. */
 
   if (combined_id != -1) {
     /* NOTE: Do weight accumulation again since we use custom weights. */
-    float weight_accum = 0.0;
-    vec4 combined_accum = vec4(0.0);
+    float weight_accum = 0.0f;
+    vec4 combined_accum = vec4(0.0f);
 
     FilmSample src;
     for (int i = samples_len - 1; i >= 0; i--) {
@@ -706,10 +706,10 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
   }
 
   if (flag_test(enabled_categories, PASS_CATEGORY_COLOR_1)) {
-    vec4 diffuse_light_accum = vec4(0.0);
-    vec4 specular_light_accum = vec4(0.0);
-    vec4 volume_light_accum = vec4(0.0);
-    vec4 emission_accum = vec4(0.0);
+    vec4 diffuse_light_accum = vec4(0.0f);
+    vec4 specular_light_accum = vec4(0.0f);
+    vec4 volume_light_accum = vec4(0.0f);
+    vec4 emission_accum = vec4(0.0f);
 
     for (int i = 0; i < samples_len; i++) {
       FilmSample src = film_sample_get(i, texel_film);
@@ -741,12 +741,12 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
   }
 
   if (flag_test(enabled_categories, PASS_CATEGORY_COLOR_2)) {
-    vec4 diffuse_color_accum = vec4(0.0);
-    vec4 specular_color_accum = vec4(0.0);
-    vec4 environment_accum = vec4(0.0);
-    float mist_accum = 0.0;
-    float shadow_accum = 0.0;
-    float ao_accum = 0.0;
+    vec4 diffuse_color_accum = vec4(0.0f);
+    vec4 specular_color_accum = vec4(0.0f);
+    vec4 environment_accum = vec4(0.0f);
+    float mist_accum = 0.0f;
+    float shadow_accum = 0.0f;
+    float ao_accum = 0.0f;
 
     for (int i = 0; i < samples_len; i++) {
       FilmSample src = film_sample_get(i, texel_film);
@@ -790,7 +790,7 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
   }
 
   if (flag_test(enabled_categories, PASS_CATEGORY_COLOR_3)) {
-    vec4 transparent_accum = vec4(0.0);
+    vec4 transparent_accum = vec4(0.0f);
 
     for (int i = 0; i < samples_len; i++) {
       FilmSample src = film_sample_get(i, texel_film);
@@ -808,7 +808,7 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
 
   if (flag_test(enabled_categories, PASS_CATEGORY_AOV)) {
     for (int aov = 0; aov < uniform_buf.film.aov_color_len; aov++) {
-      vec4 aov_accum = vec4(0.0);
+      vec4 aov_accum = vec4(0.0f);
 
       for (int i = 0; i < samples_len; i++) {
         FilmSample src = film_sample_get(i, texel_film);
@@ -818,7 +818,7 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     }
 
     for (int aov = 0; aov < uniform_buf.film.aov_value_len; aov++) {
-      float aov_accum = 0.0;
+      float aov_accum = 0.0f;
 
       for (int i = 0; i < samples_len; i++) {
         FilmSample src = film_sample_get(i, texel_film);

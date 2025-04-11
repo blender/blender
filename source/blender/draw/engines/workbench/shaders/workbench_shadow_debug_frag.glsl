@@ -8,9 +8,9 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_shadow_debug)
 
 void main()
 {
-  const float a = 0.1;
+  const float a = 0.1f;
 #ifdef SHADOW_PASS
-  out_debug_color.rgb = gl_FrontFacing ? vec3(a, -a, 0.0) : vec3(-a, a, 0.0);
+  out_debug_color.rgb = gl_FrontFacing ? vec3(a, -a, 0.0f) : vec3(-a, a, 0.0f);
 #else
   out_debug_color.rgb = gl_FrontFacing ? vec3(a, a, -a) : vec3(-a, -a, a);
 #endif

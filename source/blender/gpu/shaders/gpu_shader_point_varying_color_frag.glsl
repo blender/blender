@@ -8,9 +8,9 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_point_varying_size_varying_color)
 
 void main()
 {
-  vec2 centered = gl_PointCoord - vec2(0.5);
+  vec2 centered = gl_PointCoord - vec2(0.5f);
   float dist_squared = dot(centered, centered);
-  const float rad_squared = 0.25;
+  const float rad_squared = 0.25f;
 
   /* Round point with jagged edges. */
   if (dist_squared > rad_squared) {

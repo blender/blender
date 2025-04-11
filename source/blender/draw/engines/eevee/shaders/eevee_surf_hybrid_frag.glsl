@@ -39,7 +39,7 @@ vec4 closure_to_rgba(Closure cl_unused)
   float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
   closure_weights_reset(closure_rand);
 
-  return vec4(radiance, saturate(1.0 - average(transmittance)));
+  return vec4(radiance, saturate(1.0f - average(transmittance)));
 }
 
 void main()
@@ -61,17 +61,17 @@ void main()
   g_holdout = saturate(g_holdout);
 
   /** Transparency weight is already applied through dithering, remove it from other closures. */
-  float alpha = 1.0 - average(g_transmittance);
+  float alpha = 1.0f - average(g_transmittance);
   float alpha_rcp = safe_rcp(alpha);
 
   /* Object holdout. */
   eObjectInfoFlag ob_flag = drw_object_infos().flag;
   if (flag_test(ob_flag, OBJECT_HOLDOUT)) {
     /* alpha is set from rejected pixels / dithering. */
-    g_holdout = 1.0;
+    g_holdout = 1.0f;
 
     /* Set alpha to 0.0 so that lighting is not computed. */
-    alpha_rcp = 0.0;
+    alpha_rcp = 0.0f;
   }
 
   g_emission *= alpha_rcp;
@@ -93,11 +93,11 @@ void main()
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
   if (imageSize(rp_cryptomatte_img).x > 1) {
     vec4 cryptomatte_output = vec4(
-        cryptomatte_object_buf[drw_resource_id()], node_tree.crypto_hash, 0.0);
+        cryptomatte_object_buf[drw_resource_id()], node_tree.crypto_hash, 0.0f);
     imageStoreFast(rp_cryptomatte_img, out_texel, cryptomatte_output);
   }
-  output_renderpass_color(uniform_buf.render_pass.position_id, vec4(g_data.P, 1.0));
-  output_renderpass_color(uniform_buf.render_pass.emission_id, vec4(g_emission, 1.0));
+  output_renderpass_color(uniform_buf.render_pass.position_id, vec4(g_data.P, 1.0f));
+  output_renderpass_color(uniform_buf.render_pass.emission_id, vec4(g_emission, 1.0f));
 #endif
 
   /* ----- GBuffer output ----- */
@@ -154,7 +154,7 @@ void main()
   /* ----- Radiance output ----- */
 
   /* Only output emission during the gbuffer pass. */
-  out_radiance = vec4(g_emission, 0.0);
-  out_radiance.rgb *= 1.0 - g_holdout;
+  out_radiance = vec4(g_emission, 0.0f);
+  out_radiance.rgb *= 1.0f - g_holdout;
   out_radiance.a = g_holdout;
 }

@@ -12,13 +12,13 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_mesh_analysis)
 
 vec3 weight_to_rgb(float t)
 {
-  if (t < 0.0) {
+  if (t < 0.0f) {
     /* Minimum color, gray */
-    return vec3(0.25, 0.25, 0.25);
+    return vec3(0.25f, 0.25f, 0.25f);
   }
-  else if (t > 1.0) {
+  else if (t > 1.0f) {
     /* Error color. */
-    return vec3(1.0, 0.0, 1.0);
+    return vec3(1.0f, 0.0f, 1.0f);
   }
   else {
     return texture(weightTex, t).rgb;
@@ -29,7 +29,7 @@ void main()
 {
   vec3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
-  weightColor = vec4(weight_to_rgb(weight), 1.0);
+  weightColor = vec4(weight_to_rgb(weight), 1.0f);
 
   view_clipping_distances(world_pos);
 }

@@ -98,10 +98,10 @@ void main()
           float lod_res = float(SHADOW_TILEMAP_RES >> lod);
 
           /* TODO(fclem): These should be the culling planes. */
-          // vec2 cull_region_start = (vec2(rect_min) / lod_res) * 2.0 - 1.0;
-          // vec2 cull_region_end = (vec2(rect_max) / lod_res) * 2.0 - 1.0;
-          vec2 view_start = (vec2(rect_min) / lod_res) * 2.0 - 1.0;
-          vec2 view_end = (vec2(rect_min + viewport_size) / lod_res) * 2.0 - 1.0;
+          // vec2 cull_region_start = (vec2(rect_min) / lod_res) * 2.0f - 1.0f;
+          // vec2 cull_region_end = (vec2(rect_max) / lod_res) * 2.0f - 1.0f;
+          vec2 view_start = (vec2(rect_min) / lod_res) * 2.0f - 1.0f;
+          vec2 view_end = (vec2(rect_min + viewport_size) / lod_res) * 2.0f - 1.0f;
 
           int clip_index = tilemap_data.clip_data_index;
           float clip_far = tilemaps_clip_buf[clip_index].clip_far_stored;
@@ -133,7 +133,7 @@ void main()
           }
           else {
             /* Disable local clipping. */
-            render_view_buf[view_index].clip_distance_inv = 0.0;
+            render_view_buf[view_index].clip_distance_inv = 0.0f;
           }
           /* For building the render map. */
           render_view_buf[view_index].tilemap_tiles_index = tilemap_data.tiles_index;

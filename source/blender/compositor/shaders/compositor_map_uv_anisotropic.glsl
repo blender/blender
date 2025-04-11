@@ -58,8 +58,8 @@ void main()
    * of one and the out of bound values are zero. Additionally, the user supplied gradient
    * attenuation factor can be used to control this attenuation or even disable it when it is zero,
    * ranging between zero and one. */
-  float gradient_magnitude = (length(x_gradient) + length(y_gradient)) / 2.0;
-  float gradient_attenuation = max(0.0, 1.0 - gradient_attenuation_factor * gradient_magnitude);
+  float gradient_magnitude = (length(x_gradient) + length(y_gradient)) / 2.0f;
+  float gradient_attenuation = max(0.0f, 1.0f - gradient_attenuation_factor * gradient_magnitude);
 
   /* The UV texture is assumed to contain an alpha channel as its third channel, since the UV
    * coordinates might be defined in only a subset area of the UV texture as mentioned. In that

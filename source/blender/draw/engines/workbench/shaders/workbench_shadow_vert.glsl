@@ -77,7 +77,7 @@ void geometry_main(VertOut geom_in[4],
   /* WATCH: maybe unpredictable in some cases. */
   bool is_manifold = any(notEqual(geom_in[0].lP, geom_in[3].lP));
 
-  bvec2 backface = greaterThan(facing, vec2(0.0));
+  bvec2 backface = greaterThan(facing, vec2(0.0f));
 
 #ifdef DEGENERATE_TRIS_WORKAROUND
 #  ifndef DOUBLE_MANIFOLD

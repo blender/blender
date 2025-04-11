@@ -6,10 +6,10 @@ float sky_angle_between(float thetav, float phiv, float theta, float phi)
 {
   float cospsi = sin(thetav) * sin(theta) * cos(phi - phiv) + cos(thetav) * cos(theta);
 
-  if (cospsi > 1.0) {
-    return 0.0;
+  if (cospsi > 1.0f) {
+    return 0.0f;
   }
-  if (cospsi < -1.0) {
+  if (cospsi < -1.0f) {
     return M_PI;
   }
 
@@ -18,7 +18,7 @@ float sky_angle_between(float thetav, float phiv, float theta, float phi)
 
 vec3 sky_spherical_coordinates(vec3 dir)
 {
-  return vec3(M_PI_2 - atan(dir.z, length(dir.xy)), atan(dir.x, dir.y), 0.0);
+  return vec3(M_PI_2 - atan(dir.z, length(dir.xy)), atan(dir.x, dir.y), 0.0f);
 }
 
 /* Preetham */
@@ -28,26 +28,26 @@ float sky_perez_function(vec4 lam03, float lam4, float theta, float gamma)
   float ctheta = cos(theta);
   float cgamma = cos(gamma);
 
-  return (1.0 + lam03[0] * exp(lam03[1] / ctheta)) *
-         (1.0 + lam03[2] * exp(lam03[3] * gamma) + lam4 * cgamma * cgamma);
+  return (1.0f + lam03[0] * exp(lam03[1] / ctheta)) *
+         (1.0f + lam03[2] * exp(lam03[3] * gamma) + lam4 * cgamma * cgamma);
 }
 
 vec3 xyY_to_xyz(float x, float y, float Y)
 {
   float X, Z;
 
-  if (y != 0.0) {
+  if (y != 0.0f) {
     X = (x / y) * Y;
   }
   else {
-    X = 0.0;
+    X = 0.0f;
   }
 
-  if (y != 0.0 && Y != 0.0) {
-    Z = ((1.0 - x - y) / y) * Y;
+  if (y != 0.0f && Y != 0.0f) {
+    Z = ((1.0f - x - y) / y) * Y;
   }
   else {
-    Z = 0.0;
+    Z = 0.0f;
   }
 
   return vec3(X, Y, Z);
@@ -79,7 +79,7 @@ void node_tex_sky_preetham(vec3 co,
   float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
 
   /* clamp theta to horizon */
-  theta = min(theta, M_PI_2 - 0.001);
+  theta = min(theta, M_PI_2 - 0.001f);
 
   /* compute xyY color space values */
   float Y = radiance[0] * sky_perez_function(config_Y03, config_Y4, theta, gamma);
@@ -100,10 +100,10 @@ float sky_radiance_hosekwilkie(
 
   float expM = exp(config47[0] * gamma);
   float rayM = cgamma * cgamma;
-  float mieM = (1.0 + rayM) / pow((1.0 + config8 * config8 - 2.0 * config8 * cgamma), 1.5);
+  float mieM = (1.0f + rayM) / pow((1.0f + config8 * config8 - 2.0f * config8 * cgamma), 1.5f);
   float zenith = sqrt(ctheta);
 
-  return (1.0 + config03[0] * exp(config03[1] / (ctheta + 0.01))) *
+  return (1.0f + config03[0] * exp(config03[1] / (ctheta + 0.01f))) *
          (config03[2] + config03[3] * expM + config47[1] * rayM + config47[2] * mieM +
           config47[3] * zenith);
 }
@@ -135,7 +135,7 @@ void node_tex_sky_hosekwilkie(vec3 co,
   float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
 
   /* clamp theta to horizon */
-  theta = min(theta, M_PI_2 - 0.001);
+  theta = min(theta, M_PI_2 - 0.001f);
 
   vec3 xyz;
   xyz.x = sky_radiance_hosekwilkie(config_x03, config_x47, config_xyz8[0], theta, gamma) *
@@ -160,31 +160,31 @@ void node_tex_sky_nishita(vec3 co,
   vec3 spherical = sky_spherical_coordinates(co);
 
   vec3 xyz;
-  if (co.z < -0.4) {
+  if (co.z < -0.4f) {
     /* too far below the horizon, just return black */
     color = vec4(0, 0, 0, 1);
   }
   else {
     /* evaluate longitudinal position on the map */
-    const float tau = 6.28318530717958647692;
+    const float tau = 6.28318530717958647692f;
     float x = (spherical.y + M_PI + sun_rotation) / tau;
-    if (x > 1.0) {
-      x -= 1.0;
+    if (x > 1.0f) {
+      x -= 1.0f;
     }
 
     float fade;
     float y;
-    if (co.z < 0.0) {
+    if (co.z < 0.0f) {
       /* we're below the horizon, so extend the map by blending from values at the horizon
        * to zero according to a cubic falloff */
-      fade = 1.0 + co.z * 2.5;
+      fade = 1.0f + co.z * 2.5f;
       fade = fade * fade * fade;
-      y = 0.0;
+      y = 0.0f;
     }
     else {
       /* we're above the horizon, so compute the lateral position by inverting the remapped
        * coordinates that are preserve to have more detail near the horizon. */
-      fade = 1.0;
+      fade = 1.0f;
       y = sqrt((M_PI_2 - spherical.x) / M_PI_2);
     }
 

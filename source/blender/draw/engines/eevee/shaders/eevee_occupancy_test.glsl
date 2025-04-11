@@ -19,62 +19,62 @@ void main()
     OccupancyBits occup;
 
     /* occupancy_from_depth */
-    occup = occupancy_from_depth(0.1, 1);
+    occup = occupancy_from_depth(0.1f, 1);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0xFFFFFFFFu, ~0u, ~0u, ~0u));
 
-    occup = occupancy_from_depth(0.6, 1);
+    occup = occupancy_from_depth(0.6f, 1);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0xFFFFFFFEu, ~0u, ~0u, ~0u));
 
-    occup = occupancy_from_depth(0.5, 32);
+    occup = occupancy_from_depth(0.5f, 32);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0xFFFF0000u, ~0u, ~0u, ~0u));
 
-    occup = occupancy_from_depth(0.5, 64);
+    occup = occupancy_from_depth(0.5f, 64);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0u, ~0u, ~0u, ~0u));
 
-    occup = occupancy_from_depth(0.5, 128);
+    occup = occupancy_from_depth(0.5f, 128);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0u, 0u, ~0u, ~0u));
 
-    occup = occupancy_from_depth(33.0 / 64.0, 64);
+    occup = occupancy_from_depth(33.0f / 64.0f, 64);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0u, 0xFFFFFFFEu, ~0u, ~0u));
 
     /* occupancy_bit_from_depth */
-    occup = occupancy_bit_from_depth(0.1, 1);
+    occup = occupancy_bit_from_depth(0.1f, 1);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000001u, 0u, 0u, 0u));
 
-    occup = occupancy_bit_from_depth(0.6, 1);
+    occup = occupancy_bit_from_depth(0.6f, 1);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000002u, 0u, 0u, 0u));
 
-    occup = occupancy_bit_from_depth(0.5, 32);
+    occup = occupancy_bit_from_depth(0.5f, 32);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00010000u, 0u, 0u, 0u));
 
-    occup = occupancy_bit_from_depth(0.5, 64);
+    occup = occupancy_bit_from_depth(0.5f, 64);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000000u, 0x00000001u, 0u, 0u));
 
-    occup = occupancy_bit_from_depth(0.5, 128);
+    occup = occupancy_bit_from_depth(0.5f, 128);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000000u, 0x00000000u, 0x00000001u, 0u));
 
-    occup = occupancy_bit_from_depth(33.0 / 64.0, 64);
+    occup = occupancy_bit_from_depth(33.0f / 64.0f, 64);
     EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000000u, 0x00000002u, 0u, 0u));
 
     /* Test composing occupancy an the expected result. */
     /* Start empty. */
     OccupancyBits entry = occupancy_new();
     OccupancyBits exit = occupancy_new();
-    entry = occupancy_or(entry, occupancy_bit_from_depth(1.0 / 32.0, 32));
+    entry = occupancy_or(entry, occupancy_bit_from_depth(1.0f / 32.0f, 32));
     /* Second entry at the same depth. Should not change anything. */
-    entry = occupancy_or(entry, occupancy_bit_from_depth(1.1 / 32.0, 32));
+    entry = occupancy_or(entry, occupancy_bit_from_depth(1.1f / 32.0f, 32));
     /* Exit 2 bits later. */
-    exit = occupancy_or(exit, occupancy_bit_from_depth(3.0 / 32.0, 32));
+    exit = occupancy_or(exit, occupancy_bit_from_depth(3.0f / 32.0f, 32));
     /* Second exit. Should not change anything. */
-    exit = occupancy_or(exit, occupancy_bit_from_depth(5.0 / 32.0, 32));
+    exit = occupancy_or(exit, occupancy_bit_from_depth(5.0f / 32.0f, 32));
     /* Third entry is valid. */
-    entry = occupancy_or(entry, occupancy_bit_from_depth(7.0 / 32.0, 32));
+    entry = occupancy_or(entry, occupancy_bit_from_depth(7.0f / 32.0f, 32));
     /* Third exit is valid. */
-    exit = occupancy_or(exit, occupancy_bit_from_depth(9.0 / 32.0, 32));
+    exit = occupancy_or(exit, occupancy_bit_from_depth(9.0f / 32.0f, 32));
     /* Fourth entry is valid. */
-    entry = occupancy_or(entry, occupancy_bit_from_depth(11.0 / 32.0, 32));
+    entry = occupancy_or(entry, occupancy_bit_from_depth(11.0f / 32.0f, 32));
     /* Fourth exit on the same depth. Cancels the occupancy. */
-    exit = occupancy_or(exit, occupancy_bit_from_depth(11.0 / 32.0, 32));
+    exit = occupancy_or(exit, occupancy_bit_from_depth(11.0f / 32.0f, 32));
     EXPECT_EQ(entry.bits[0], 2178u); /* 1000 1000 0010 */
     EXPECT_EQ(exit.bits[0], 2600u);  /* 1010 0010 1000 */
 
@@ -85,11 +85,11 @@ void main()
     entry = occupancy_new();
     exit = occupancy_new();
     /* First exit. Anything prior should be considered in volume. */
-    exit = occupancy_or(exit, occupancy_bit_from_depth(33.0 / 44.0, 44));
+    exit = occupancy_or(exit, occupancy_bit_from_depth(33.0f / 44.0f, 44));
     /* First entry. */
-    entry = occupancy_or(entry, occupancy_bit_from_depth(36.0 / 44.0, 44));
+    entry = occupancy_or(entry, occupancy_bit_from_depth(36.0f / 44.0f, 44));
     /* Second exit. Should not change anything. */
-    exit = occupancy_or(exit, occupancy_bit_from_depth(40.0 / 44.0, 44));
+    exit = occupancy_or(exit, occupancy_bit_from_depth(40.0f / 44.0f, 44));
     /* 0000 0001 0000   0000 0000 0000 0000  0000 0000 0000 0000 */
     EXPECT_EQ(occupancy_to_uint4(entry), uvec4(0x00000000u, 0x010u, 0u, 0u));
     /* 0001 0000 0010   0000 0000 0000 0000  0000 0000 0000 0000 */

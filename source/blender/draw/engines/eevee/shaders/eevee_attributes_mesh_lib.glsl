@@ -28,13 +28,13 @@ vec3 attr_load_orco(vec4 orco)
 #  ifdef GPU_VERTEX_SHADER
   /* We know when there is no orco layer when orco.w is 1.0 because it uses the generic vertex
    * attribute (which is [0,0,0,1]). */
-  if (orco.w == 1.0) {
+  if (orco.w == 1.0f) {
     /* If the object does not have any deformation, the orco layer calculation is done on the fly
      * using the orco_madd factors. */
     return drw_object_orco(pos);
   }
 #  endif
-  return orco.xyz * 0.5 + 0.5;
+  return orco.xyz * 0.5f + 0.5f;
 }
 #endif
 vec4 attr_load_tangent(vec4 tangent)

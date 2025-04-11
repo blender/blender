@@ -397,7 +397,7 @@ FRAGMENT_OUT(0, VEC4, fragColor)
 VERTEX_SOURCE("overlay_edit_uv_tiled_image_borders_vert.glsl")
 FRAGMENT_SOURCE("overlay_uniform_color_frag.glsl")
 PUSH_CONSTANT(VEC3, tile_pos)
-DEFINE_VALUE("tile_scale", "vec3(1.0)")
+DEFINE_VALUE("tile_scale", "vec3(1.0f)")
 ADDITIONAL_INFO(draw_view)
 GPU_SHADER_CREATE_END()
 

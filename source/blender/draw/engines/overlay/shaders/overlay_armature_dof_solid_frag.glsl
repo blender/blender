@@ -9,5 +9,5 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_armature_dof)
 void main()
 {
   fragColor = vec4(finalColor.rgb, finalColor.a * alpha);
-  lineOutput = vec4(0.0);
+  lineOutput = vec4(0.0f);
 }

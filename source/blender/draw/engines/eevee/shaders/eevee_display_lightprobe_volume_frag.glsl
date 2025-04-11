@@ -15,7 +15,7 @@ void main()
   float dist_sqr = dot(lP, lP);
 
   /* Discard outside the circle. */
-  if (dist_sqr > 1.0) {
+  if (dist_sqr > 1.0f) {
     discard;
     return;
   }
@@ -27,16 +27,16 @@ void main()
   sh.L1.Mp1 = texelFetch(irradiance_d_tx, cell, 0);
   float validity = texelFetch(validity_tx, cell, 0).r;
 
-  vec3 vN = vec3(lP, sqrt(max(0.0, 1.0 - dist_sqr)));
+  vec3 vN = vec3(lP, sqrt(max(0.0f, 1.0f - dist_sqr)));
   vec3 N = drw_normal_view_to_world(vN);
   vec3 lN = transform_direction(world_to_grid, N);
 
   vec3 irradiance = spherical_harmonics_evaluate_lambert(lN, sh);
 
   if (display_validity) {
-    out_color = vec4(mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), validity), 0.0);
+    out_color = vec4(mix(vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), validity), 0.0f);
   }
   else {
-    out_color = vec4(irradiance, 0.0);
+    out_color = vec4(irradiance, 0.0f);
   }
 }

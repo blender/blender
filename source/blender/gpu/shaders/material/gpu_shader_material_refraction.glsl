@@ -5,9 +5,9 @@
 void node_bsdf_refraction(
     vec4 color, float roughness, float ior, vec3 N, float weight, out Closure result)
 {
-  color = max(color, vec4(0.0));
+  color = max(color, vec4(0.0f));
   roughness = saturate(roughness);
-  ior = max(ior, 1e-5);
+  ior = max(ior, 1e-5f);
   N = safe_normalize(N);
 
   ClosureRefraction refraction_data;

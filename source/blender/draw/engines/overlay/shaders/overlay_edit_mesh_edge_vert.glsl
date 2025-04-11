@@ -83,7 +83,7 @@ void do_vertex(const uint strip_index,
   geom_out.edge_coord = coord;
   geom_out.gpu_position = ndc_position;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
-  geom_out.gpu_position.xy += offset * 2.0 * ndc_position.w;
+  geom_out.gpu_position.xy += offset * 2.0f * ndc_position.w;
   strip_EmitVertex(strip_index, out_vertex_id, out_primitive_id, geom_out);
 }
 
@@ -95,19 +95,19 @@ void geometry_main(VertOut geom_in[2], uint out_vert_id, uint out_prim_id, uint 
   vec4 pos0 = geom_in[0].gpu_position;
   vec4 pos1 = geom_in[1].gpu_position;
   vec2 pz_ndc = vec2(pos0.z / pos0.w, pos1.z / pos1.w);
-  bvec2 clipped = lessThan(pz_ndc, vec2(-1.0));
+  bvec2 clipped = lessThan(pz_ndc, vec2(-1.0f));
   if (all(clipped)) {
     /* Totally clipped. */
     return;
   }
 
   vec4 pos01 = pos0 - pos1;
-  float ofs = abs((pz_ndc.y + 1.0) / (pz_ndc.x - pz_ndc.y));
+  float ofs = abs((pz_ndc.y + 1.0f) / (pz_ndc.x - pz_ndc.y));
   if (clipped.y) {
     pos1 += pos01 * ofs;
   }
   else if (clipped.x) {
-    pos0 -= pos01 * (1.0 - ofs);
+    pos0 -= pos01 * (1.0f - ofs);
   }
 
   ss_pos[0] = pos0.xy / pos0.w;
@@ -119,14 +119,14 @@ void geometry_main(VertOut geom_in[2], uint out_vert_id, uint out_prim_id, uint 
   geometry_flat_out.finalColorOuter = geom_in[0].final_color_outer;
   float half_size = sizeEdge;
   /* Enlarge edge for flag display. */
-  half_size += (geometry_flat_out.finalColorOuter.a > 0.0) ? max(sizeEdge, 1.0) : 0.0;
+  half_size += (geometry_flat_out.finalColorOuter.a > 0.0f) ? max(sizeEdge, 1.0f) : 0.0f;
 
   if (do_smooth_wire) {
     /* Add 1px for AA */
-    half_size += 0.5;
+    half_size += 0.5f;
   }
 
-  vec3 edge_ofs = vec3(half_size * sizeViewportInv, 0.0);
+  vec3 edge_ofs = vec3(half_size * sizeViewportInv, 0.0f);
 
   bool horizontal = line.x > line.y;
   edge_ofs = (horizontal) ? edge_ofs.zyz : edge_ofs.xzz;

@@ -26,8 +26,8 @@ void irradiance_capture(vec3 L, vec3 irradiance, float visibility, inout Spheric
   vec3 lL = transform_direction(capture_info_buf.irradiance_grid_world_to_local_rotation, L);
 
   /* Spherical harmonics need to be weighted by sphere area. */
-  irradiance *= 4.0 * M_PI;
-  visibility *= 4.0 * M_PI;
+  irradiance *= 4.0f * M_PI;
+  visibility *= 4.0f * M_PI;
 
   spherical_harmonics_encode_signal_sample(lL, vec4(irradiance, visibility), sh);
 }
@@ -35,15 +35,15 @@ void irradiance_capture(vec3 L, vec3 irradiance, float visibility, inout Spheric
 void irradiance_capture_surfel(Surfel surfel, vec3 P, inout SphericalHarmonicL1 sh)
 {
   vec3 L = safe_normalize(surfel.position - P);
-  bool facing = dot(-L, surfel.normal) > 0.0;
+  bool facing = dot(-L, surfel.normal) > 0.0f;
   SurfelRadiance surfel_radiance_indirect = surfel.radiance_indirect[radiance_src];
 
-  vec4 irradiance_vis = vec4(0.0);
+  vec4 irradiance_vis = vec4(0.0f);
   irradiance_vis += facing ? surfel.radiance_direct.front : surfel.radiance_direct.back;
 
   /* Clamped brightness. */
-  float luma = max(1e-8, reduce_max(irradiance_vis.rgb));
-  irradiance_vis.rgb *= 1.0 - max(0.0, luma - capture_info_buf.clamp_direct) / luma;
+  float luma = max(1e-8f, reduce_max(irradiance_vis.rgb));
+  irradiance_vis.rgb *= 1.0f - max(0.0f, luma - capture_info_buf.clamp_direct) / luma;
 
   /* NOTE: The indirect radiance is already normalized and this is wanted, because we are not
    * integrating the same signal and we would have the SH lagging behind the surfel integration
@@ -56,31 +56,31 @@ void irradiance_capture_surfel(Surfel surfel, vec3 P, inout SphericalHarmonicL1 
 void validity_capture_surfel(Surfel surfel, vec3 P, inout float validity)
 {
   vec3 L = safe_normalize(surfel.position - P);
-  bool facing = surfel.double_sided || dot(-L, surfel.normal) > 0.0;
+  bool facing = surfel.double_sided || dot(-L, surfel.normal) > 0.0f;
   validity += float(facing);
 }
 
 void validity_capture_world(vec3 L, inout float validity)
 {
-  validity += 1.0;
+  validity += 1.0f;
 }
 
 void irradiance_capture_world(vec3 L, inout SphericalHarmonicL1 sh)
 {
-  vec3 radiance = vec3(0.0);
-  float visibility = 0.0;
+  vec3 radiance = vec3(0.0f);
+  float visibility = 0.0f;
 
   if (capture_info_buf.capture_world_direct) {
     SphereProbeUvArea atlas_coord = capture_info_buf.world_atlas_coord;
-    radiance = lightprobe_spheres_sample(L, 0.0, atlas_coord).rgb;
+    radiance = lightprobe_spheres_sample(L, 0.0f, atlas_coord).rgb;
 
     /* Clamped brightness. */
-    float luma = max(1e-8, reduce_max(radiance));
-    radiance *= 1.0 - max(0.0, luma - capture_info_buf.clamp_direct) / luma;
+    float luma = max(1e-8f, reduce_max(radiance));
+    radiance *= 1.0f - max(0.0f, luma - capture_info_buf.clamp_direct) / luma;
   }
 
   if (capture_info_buf.capture_visibility_direct) {
-    visibility = 1.0;
+    visibility = 1.0f;
   }
 
   irradiance_capture(L, radiance, visibility, sh);
@@ -127,7 +127,7 @@ void main()
   float validity = imageLoadFast(validity_img, grid_coord).r;
 
   /* Un-normalize for accumulation. */
-  float weight_captured = capture_info_buf.sample_index * 2.0;
+  float weight_captured = capture_info_buf.sample_index * 2.0f;
   sh.L0.M0 *= weight_captured;
   sh.L1.Mn1 *= weight_captured;
   sh.L1.M0 *= weight_captured;
@@ -155,7 +155,7 @@ void main()
   }
 
   /* Normalize for storage. We accumulated 2 samples. */
-  weight_captured += 2.0;
+  weight_captured += 2.0f;
   sh.L0.M0 /= weight_captured;
   sh.L1.Mn1 /= weight_captured;
   sh.L1.M0 /= weight_captured;

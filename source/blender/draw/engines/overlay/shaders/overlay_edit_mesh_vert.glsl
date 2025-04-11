@@ -24,17 +24,17 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_mesh_vert)
 
 bool test_occlusion()
 {
-  vec3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5 + 0.5;
+  vec3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5f + 0.5f;
   vec4 depths = textureGather(depthTex, ndc.xy);
   return all(greaterThan(vec4(ndc.z), depths));
 }
 
 vec3 non_linear_blend_color(vec3 col1, vec3 col2, float fac)
 {
-  col1 = pow(col1, vec3(1.0 / 2.2));
-  col2 = pow(col2, vec3(1.0 / 2.2));
+  col1 = pow(col1, vec3(1.0f / 2.2f));
+  col2 = pow(col2, vec3(1.0f / 2.2f));
   vec3 col = mix(col1, col2, fac);
-  return pow(col, vec3(2.2));
+  return pow(col, vec3(2.2f));
 }
 
 void main()
@@ -50,15 +50,15 @@ void main()
   uvec4 m_data = data & uvec4(dataMask);
 
 #if defined(VERT)
-  vertexCrease = float(m_data.z >> 4) / 15.0;
+  vertexCrease = float(m_data.z >> 4) / 15.0f;
   finalColor = EDIT_MESH_vertex_color(m_data.y, vertexCrease);
-  gl_PointSize = sizeVertex * ((vertexCrease > 0.0) ? 3.0 : 2.0);
+  gl_PointSize = sizeVertex * ((vertexCrease > 0.0f) ? 3.0f : 2.0f);
   /* Make selected and active vertex always on top. */
   if ((data.x & VERT_SELECTED) != 0u) {
-    gl_Position.z -= 5e-7 * abs(gl_Position.w);
+    gl_Position.z -= 5e-7f * abs(gl_Position.w);
   }
   if ((data.x & VERT_ACTIVE) != 0u) {
-    gl_Position.z -= 5e-7 * abs(gl_Position.w);
+    gl_Position.z -= 5e-7f * abs(gl_Position.w);
   }
 
   bool occluded = test_occlusion();
@@ -72,12 +72,12 @@ void main()
   selectOverride = (m_data.y & EDGE_SELECTED);
 #  endif
 
-  float edge_crease = float(m_data.z & 0xFu) / 15.0;
-  float bweight = float(m_data.w) / 255.0;
+  float edge_crease = float(m_data.z & 0xFu) / 15.0f;
+  float bweight = float(m_data.w) / 255.0f;
   finalColorOuter = EDIT_MESH_edge_color_outer(m_data.y, m_data.x, edge_crease, bweight);
 
-  if (finalColorOuter.a > 0.0) {
-    gl_Position.z -= 5e-7 * abs(gl_Position.w);
+  if (finalColorOuter.a > 0.0f) {
+    gl_Position.z -= 5e-7f * abs(gl_Position.w);
   }
 
   bool occluded = false; /* Done in fragment shader */
@@ -88,28 +88,28 @@ void main()
 
 #  ifdef GPU_METAL
   /* Apply depth bias to overlay in order to prevent z-fighting on Apple Silicon GPUs. */
-  gl_Position.z -= 5e-5;
+  gl_Position.z -= 5e-5f;
 #  endif
 
 #elif defined(FACEDOT)
   finalColor = EDIT_MESH_facedot_color(norAndFlag.w);
 
   /* Bias Face-dot Z position in clip-space. */
-  gl_Position.z -= (drw_view().winmat[3][3] == 0.0) ? 0.00035 : 1e-6;
+  gl_Position.z -= (drw_view().winmat[3][3] == 0.0f) ? 0.00035f : 1e-6f;
   gl_PointSize = sizeFaceDot;
 
   bool occluded = test_occlusion();
 
 #endif
 
-  finalColor.a *= (occluded) ? alpha : 1.0;
+  finalColor.a *= (occluded) ? alpha : 1.0f;
 
 #if !defined(FACE)
   /* Facing based color blend */
-  vec3 view_normal = normalize(drw_normal_object_to_view(vnor) + 1e-4);
-  vec3 view_vec = (drw_view().winmat[3][3] == 0.0) ? normalize(view_pos) : vec3(0.0, 0.0, 1.0);
+  vec3 view_normal = normalize(drw_normal_object_to_view(vnor) + 1e-4f);
+  vec3 view_vec = (drw_view().winmat[3][3] == 0.0f) ? normalize(view_pos) : vec3(0.0f, 0.0f, 1.0f);
   float facing = dot(view_vec, view_normal);
-  facing = 1.0 - abs(facing) * 0.2;
+  facing = 1.0f - abs(facing) * 0.2f;
 
   /* Do interpolation in a non-linear space to have a better visual result. */
   finalColor.rgb = mix(finalColor.rgb,

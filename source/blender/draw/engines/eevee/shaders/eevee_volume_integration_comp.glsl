@@ -24,12 +24,12 @@ void main()
   }
 
   /* Start with full transmittance and no scattered light. */
-  vec3 scattering = vec3(0.0);
-  vec3 transmittance = vec3(1.0);
+  vec3 scattering = vec3(0.0f);
+  vec3 transmittance = vec3(1.0f);
 
   /* Compute view ray. Note that jittering the position of the first voxel doesn't bring any
    * benefit here. */
-  vec3 uvw = (vec3(vec2(texel), 0.0) + vec3(0.5, 0.5, 0.0)) * uniform_buf.volumes.inv_tex_size;
+  vec3 uvw = (vec3(vec2(texel), 0.0f) + vec3(0.5f, 0.5f, 0.0f)) * uniform_buf.volumes.inv_tex_size;
   vec3 view_cell = volume_jitter_to_view(uvw);
 
   float prev_ray_len;
@@ -40,7 +40,7 @@ void main()
   }
   else {
     prev_ray_len = view_cell.z;
-    orig_ray_len = 1.0;
+    orig_ray_len = 1.0f;
   }
 
   for (int i = 0; i <= uniform_buf.volumes.tex_size.z; i++) {
@@ -49,7 +49,7 @@ void main()
     vec3 froxel_scattering = texelFetch(in_scattering_tx, froxel, 0).rgb;
     vec3 extinction = texelFetch(in_extinction_tx, froxel, 0).rgb;
 
-    float cell_depth = volume_z_to_view_z((float(i) + 1.0) * uniform_buf.volumes.inv_tex_size.z);
+    float cell_depth = volume_z_to_view_z((float(i) + 1.0f) * uniform_buf.volumes.inv_tex_size.z);
     float ray_len = orig_ray_len * cell_depth;
 
     /* Evaluate Scattering. */
@@ -61,14 +61,14 @@ void main()
      * macOS HW configurations.
      * Here is the original for reference:
      * `Lscat = (Lscat - Lscat * Tr) / safe_rcp(s_extinction)` */
-    vec3 froxel_opacity = 1.0 - froxel_transmittance;
+    vec3 froxel_opacity = 1.0f - froxel_transmittance;
     vec3 froxel_step_opacity = froxel_opacity * safe_rcp(extinction);
 
     /* Emission does not work if there is no extinction because
-     * `froxel_transmittance` evaluates to 1.0 leading to `froxel_opacity = 0.0`. (See #65771)
-     * To avoid fiddling with numerical values, take the limit of `froxel_step_opacity` as
-     * `extinction` approaches zero which is simply `step_len`. */
-    bvec3 is_invalid_extinction = equal(extinction, vec3(0.0));
+     * `froxel_transmittance` evaluates to 1.0 leading to `froxel_opacity = 0.0 and 0.4 depth.`.
+     * (See #65771) To avoid fiddling with numerical values, take the limit of
+     * `froxel_step_opacity` as `extinction` approaches zero which is simply `step_len`. */
+    bvec3 is_invalid_extinction = equal(extinction, vec3(0.0f));
     froxel_step_opacity = mix(froxel_step_opacity, vec3(step_len), is_invalid_extinction);
 
     /* Integrate along the current step segment. */
@@ -78,7 +78,7 @@ void main()
     scattering += transmittance * froxel_scattering;
     transmittance *= froxel_transmittance;
 
-    imageStoreFast(out_scattering_img, froxel, vec4(scattering, 1.0));
-    imageStoreFast(out_transmittance_img, froxel, vec4(transmittance, 1.0));
+    imageStoreFast(out_scattering_img, froxel, vec4(scattering, 1.0f));
+    imageStoreFast(out_transmittance_img, froxel, vec4(transmittance, 1.0f));
   }
 }

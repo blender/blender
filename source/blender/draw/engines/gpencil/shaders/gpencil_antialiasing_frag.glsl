@@ -15,7 +15,7 @@ void main()
   out_edges = SMAALumaEdgeDetectionPS(uvs, offset, colorTex);
   out_edges = max(out_edges, SMAALumaEdgeDetectionPS(uvs, offset, revealTex));
   /* Discard if there is no edge. */
-  if (dot(out_edges, float2(1.0, 1.0)) == 0.0) {
+  if (dot(out_edges, float2(1.0f, 1.0f)) == 0.0f) {
     discard;
     return;
   }
@@ -37,14 +37,14 @@ void main()
 
   /* Revealage, how much light passes through. */
   /* Average for alpha channel. */
-  out_reveal.a = clamp(dot(out_reveal.rgb, vec3(0.333334)), 0.0, 1.0);
+  out_reveal.a = clamp(dot(out_reveal.rgb, vec3(0.333334f)), 0.0f, 1.0f);
   /* Color buffer is already pre-multiplied. Just add it to the color. */
   /* Add the alpha. */
-  out_color.a = 1.0 - out_reveal.a;
+  out_color.a = 1.0f - out_reveal.a;
 
   if (onlyAlpha) {
     /* Special case in wire-frame X-ray mode. */
-    out_color = vec4(0.0);
+    out_color = vec4(0.0f);
     out_reveal.rgb = out_reveal.aaa;
   }
 #endif

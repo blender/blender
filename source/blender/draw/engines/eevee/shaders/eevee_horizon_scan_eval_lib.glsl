@@ -42,16 +42,16 @@ vec3 horizon_scan_sample_radiance(vec2 uv)
 #ifndef HORIZON_OCCLUSION
   return texture(screen_radiance_tx, uv).rgb;
 #else
-  return vec3(0.0);
+  return vec3(0.0f);
 #endif
 }
 
 vec3 horizon_scan_sample_normal(vec2 uv)
 {
 #ifndef HORIZON_OCCLUSION
-  return texture(screen_normal_tx, uv).rgb * 2.0 - 1.0;
+  return texture(screen_normal_tx, uv).rgb * 2.0f - 1.0f;
 #else
-  return vec3(0.0);
+  return vec3(0.0f);
 #endif
 }
 
@@ -90,9 +90,9 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
     v_dir = sample_circle(noise.x / float(2 * slice_count));
   }
 
-  float weight_accum = 0.0;
+  float weight_accum = 0.0f;
 #ifdef HORIZON_OCCLUSION
-  float occlusion_accum = 0.0;
+  float occlusion_accum = 0.0f;
 #endif
   SphericalHarmonicL1 sh_accum = spherical_harmonics_L1_new();
 
@@ -107,7 +107,7 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
     }
 
     /* Setup integration domain around V. */
-    vec3 vB = normalize(cross(vV, vec3(v_dir, 0.0)));
+    vec3 vB = normalize(cross(vV, vec3(v_dir, 0.0f)));
     vec3 vT = cross(vB, vV);
 
     /* Bitmask representing the occluded sectors on the slice. */
@@ -120,7 +120,7 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
 
     horizon_scan_projected_normal_to_plane_angle_and_length(vN, vV, vT, vB, vN_length, vN_angle);
 
-    vN_angle += (noise.z - 0.5) * (M_PI / 32.0) * angle_bias;
+    vN_angle += (noise.z - 0.5f) * (M_PI / 32.0f) * angle_bias;
 
     SphericalHarmonicL1 sh_slice = spherical_harmonics_L1_new();
 
@@ -128,7 +128,7 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
     for (int side = 0; side < 2; side++) {
       Ray ray;
       ray.origin = vP;
-      ray.direction = vec3((side == 0) ? v_dir : -v_dir, 0.0);
+      ray.direction = vec3((side == 0) ? v_dir : -v_dir, 0.0f);
       ray.max_time = search_distance;
 
       /* TODO(fclem): Could save some computation here by computing entry and exit point on the
@@ -141,26 +141,26 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
 #endif
       for (int j = 0; j < sample_count; j++) {
         /* Always cross at least one pixel. */
-        float time = 1.0 + square((float(j) + noise.y) / float(sample_count)) * ssray.max_time;
+        float time = 1.0f + square((float(j) + noise.y) / float(sample_count)) * ssray.max_time;
 
         if (reversed) {
           /* We need to cross at least 2 pixels to avoid artifacts form the HiZ storing only the
            * max depth. The HiZ would need to contain the min depth instead to avoid this. */
-          time += 1.0;
+          time += 1.0f;
         }
 
-        float lod = 1.0 + saturate(float(j) - noise.w) * uniform_buf.ao.lod_factor;
+        float lod = 1.0f + saturate(float(j) - noise.w) * uniform_buf.ao.lod_factor;
 
         vec2 sample_uv = ssray.origin.xy + ssray.direction.xy * time;
         float sample_depth = textureLod(hiz_tx, sample_uv * uniform_buf.hiz.uv_scale, lod).r;
 
-        if (sample_depth == 1.0 && !reversed) {
+        if (sample_depth == 1.0f && !reversed) {
           /* Skip background. Avoids making shadow on the geometry near the far plane. */
           continue;
         }
 
         /* Bias depth a bit to avoid self shadowing issues. */
-        const float bias = 2.0 * 2.4e-7;
+        const float bias = 2.0f * 2.4e-7f;
         sample_depth += reversed ? -bias : bias;
 
         vec3 vP_sample_front = drw_point_screen_to_view(vec3(sample_uv, sample_depth));
@@ -180,13 +180,13 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
         /* If we are tracing backward, the angles are negative. Swizzle to keep correct order. */
         theta = (side == 0) ? theta.xy : -theta.yx;
 
-        vec3 sample_radiance = ao_only ? vec3(0.0) : horizon_scan_sample_radiance(sample_uv);
+        vec3 sample_radiance = ao_only ? vec3(0.0f) : horizon_scan_sample_radiance(sample_uv);
         /* Take emitter surface normal into consideration. */
         vec3 sample_normal = horizon_scan_sample_normal(sample_uv);
         /* Discard back-facing samples.
          * The 2 factor is to avoid loosing too much energy v(which is something not
          * explained in the paper...). Likely to be wrong, but we need a soft falloff. */
-        float facing_weight = saturate(-dot(sample_normal, vL_front) * 2.0);
+        float facing_weight = saturate(-dot(sample_normal, vL_front) * 2.0f);
 
         /* Angular bias shrinks the visibility bitmask around the projected normal. */
         vec2 biased_theta = (theta - vN_angle) * angle_bias;
@@ -225,7 +225,7 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
 #endif
 #ifdef HORIZON_CLOSURE
   /* Weight by area of the sphere. This is expected for correct SH evaluation. */
-  res.result = spherical_harmonics_mul(sh_accum, weight_rcp * 4.0 * M_PI);
+  res.result = spherical_harmonics_mul(sh_accum, weight_rcp * 4.0f * M_PI);
 #endif
   return res;
 }

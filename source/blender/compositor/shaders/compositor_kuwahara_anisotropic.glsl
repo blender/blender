@@ -37,8 +37,8 @@ void main()
 
   /* Compute the first and second eigenvalues of the structure tensor using the equations in
    * section "3.1 Orientation and Anisotropy Estimation" of the paper. */
-  float eigenvalue_first_term = (dxdx + dydy) / 2.0;
-  float eigenvalue_square_root_term = sqrt(square(dxdx - dydy) + 4.0 * square(dxdy)) / 2.0;
+  float eigenvalue_first_term = (dxdx + dydy) / 2.0f;
+  float eigenvalue_square_root_term = sqrt(square(dxdx - dydy) + 4.0f * square(dxdy)) / 2.0f;
   float first_eigenvalue = eigenvalue_first_term + eigenvalue_square_root_term;
   float second_eigenvalue = eigenvalue_first_term - eigenvalue_square_root_term;
 
@@ -47,19 +47,20 @@ void main()
    * Estimation" of the paper. */
   vec2 eigenvector = vec2(first_eigenvalue - dxdx, -dxdy);
   float eigenvector_length = length(eigenvector);
-  vec2 unit_eigenvector = eigenvector_length != 0.0 ? eigenvector / eigenvector_length : vec2(1.0);
+  vec2 unit_eigenvector = eigenvector_length != 0.0f ? eigenvector / eigenvector_length :
+                                                       vec2(1.0f);
 
   /* Compute the amount of anisotropy using equations in section "3.1 Orientation and Anisotropy
    * Estimation" of the paper. The anisotropy ranges from 0 to 1, where 0 corresponds to isotropic
    * and 1 corresponds to entirely anisotropic regions. */
   float eigenvalue_sum = first_eigenvalue + second_eigenvalue;
   float eigenvalue_difference = first_eigenvalue - second_eigenvalue;
-  float anisotropy = eigenvalue_sum > 0.0 ? eigenvalue_difference / eigenvalue_sum : 0.0;
+  float anisotropy = eigenvalue_sum > 0.0f ? eigenvalue_difference / eigenvalue_sum : 0.0f;
 
 #if defined(VARIABLE_SIZE)
-  float radius = max(0.0, texture_load(size_tx, texel).x);
+  float radius = max(0.0f, texture_load(size_tx, texel).x);
 #elif defined(CONSTANT_SIZE)
-  float radius = max(0.0, size);
+  float radius = max(0.0f, size);
 #endif
   if (radius == 0) {
     imageStore(output_img, texel, texture_load(input_tx, texel));
@@ -106,8 +107,8 @@ void main()
    * section "3 Alternative Weighting Functions" of the polynomial weights paper. More on this
    * later in the code. */
   const int number_of_sectors = 8;
-  float sector_center_overlap_parameter = 2.0 / radius;
-  float sector_envelope_angle = ((3.0 / 2.0) * M_PI) / number_of_sectors;
+  float sector_center_overlap_parameter = 2.0f / radius;
+  float sector_envelope_angle = ((3.0f / 2.0f) * M_PI) / number_of_sectors;
   float cross_sector_overlap_parameter = (sector_center_overlap_parameter +
                                           cos(sector_envelope_angle)) /
                                          square(sin(sector_envelope_angle));
@@ -126,7 +127,7 @@ void main()
    * pixel in all sectors is simply (1 / number_of_sectors). */
   vec4 center_color = texture_load(input_tx, texel);
   vec4 center_color_squared = center_color * center_color;
-  float center_weight = 1.0 / number_of_sectors;
+  float center_weight = 1.0f / number_of_sectors;
   vec4 weighted_center_color = center_color * center_weight;
   vec4 weighted_center_color_squared = center_color_squared * center_weight;
   for (int i = 0; i < number_of_sectors; i++) {
@@ -156,7 +157,7 @@ void main()
        * the ellipse or disk. */
       vec2 disk_point = inverse_ellipse_matrix * vec2(i, j);
       float disk_point_length_squared = dot(disk_point, disk_point);
-      if (disk_point_length_squared > 1.0) {
+      if (disk_point_length_squared > 1.0f) {
         continue;
       }
 
@@ -175,10 +176,10 @@ void main()
        * other even-indexed 4 weights by successive 90 degree rotations as discussed. */
       vec2 polynomial = sector_center_overlap_parameter -
                         cross_sector_overlap_parameter * square(disk_point);
-      sector_weights[0] = square(max(0.0, disk_point.y + polynomial.x));
-      sector_weights[2] = square(max(0.0, -disk_point.x + polynomial.y));
-      sector_weights[4] = square(max(0.0, -disk_point.y + polynomial.x));
-      sector_weights[6] = square(max(0.0, disk_point.x + polynomial.y));
+      sector_weights[0] = square(max(0.0f, disk_point.y + polynomial.x));
+      sector_weights[2] = square(max(0.0f, -disk_point.x + polynomial.y));
+      sector_weights[4] = square(max(0.0f, -disk_point.y + polynomial.x));
+      sector_weights[6] = square(max(0.0f, disk_point.x + polynomial.y));
 
       /* Then we rotate the disk point by 45 degrees, which is a simple expression involving a
        * constant as can be demonstrated by applying a 45 degree rotation matrix. */
@@ -189,10 +190,10 @@ void main()
        * disk point. */
       vec2 rotated_polynomial = sector_center_overlap_parameter -
                                 cross_sector_overlap_parameter * square(rotated_disk_point);
-      sector_weights[1] = square(max(0.0, rotated_disk_point.y + rotated_polynomial.x));
-      sector_weights[3] = square(max(0.0, -rotated_disk_point.x + rotated_polynomial.y));
-      sector_weights[5] = square(max(0.0, -rotated_disk_point.y + rotated_polynomial.x));
-      sector_weights[7] = square(max(0.0, rotated_disk_point.x + rotated_polynomial.y));
+      sector_weights[1] = square(max(0.0f, rotated_disk_point.y + rotated_polynomial.x));
+      sector_weights[3] = square(max(0.0f, -rotated_disk_point.x + rotated_polynomial.y));
+      sector_weights[5] = square(max(0.0f, -rotated_disk_point.y + rotated_polynomial.x));
+      sector_weights[7] = square(max(0.0f, rotated_disk_point.x + rotated_polynomial.y));
 
       /* We compute a radial Gaussian weighting component such that pixels further away from the
        * sector center gets attenuated, and we also divide by the sum of sector weights to
@@ -229,8 +230,8 @@ void main()
 
   /* Compute the weighted sum of mean of sectors, such that sectors with lower standard deviation
    * gets more significant weight than sectors with higher standard deviation. */
-  float sum_of_weights = 0.0;
-  vec4 weighted_sum = vec4(0.0);
+  float sum_of_weights = 0.0f;
+  vec4 weighted_sum = vec4(0.0f);
   for (int i = 0; i < number_of_sectors; i++) {
     weighted_mean_of_color_of_sectors[i] /= sum_of_weights_of_sectors[i];
     weighted_mean_of_squared_color_of_sectors[i] /= sum_of_weights_of_sectors[i];
@@ -239,12 +240,12 @@ void main()
     vec4 squared_color_mean = weighted_mean_of_squared_color_of_sectors[i];
     vec4 color_variance = abs(squared_color_mean - color_mean * color_mean);
 
-    float standard_deviation = dot(sqrt(color_variance.rgb), vec3(1.0));
+    float standard_deviation = dot(sqrt(color_variance.rgb), vec3(1.0f));
 
     /* Compute the sector weight based on the weight function introduced in section "3.3.1
      * Single-scale Filtering" of the multi-scale paper. Use a threshold of 0.02 to avoid zero
      * division and avoid artifacts in homogeneous regions as demonstrated in the paper. */
-    float weight = 1.0 / pow(max(0.02, standard_deviation), sharpness);
+    float weight = 1.0f / pow(max(0.02f, standard_deviation), sharpness);
 
     sum_of_weights += weight;
     weighted_sum += color_mean * weight;
@@ -252,7 +253,7 @@ void main()
 
   /* Fallback to the original color if all sector weights are zero due to very high standard
    * deviation and sharpness. */
-  if (sum_of_weights == 0.0) {
+  if (sum_of_weights == 0.0f) {
     weighted_sum = center_color;
   }
   else {

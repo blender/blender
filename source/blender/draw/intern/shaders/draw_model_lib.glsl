@@ -128,25 +128,25 @@ vec3 drw_normal_view_to_object(vec3 vN)
 
 vec3 drw_point_object_to_world(vec3 lP)
 {
-  return (drw_modelmat() * vec4(lP, 1.0)).xyz;
+  return (drw_modelmat() * vec4(lP, 1.0f)).xyz;
 }
 vec3 drw_point_world_to_object(vec3 P)
 {
-  return (drw_modelinv() * vec4(P, 1.0)).xyz;
+  return (drw_modelinv() * vec4(P, 1.0f)).xyz;
 }
 
 vec3 drw_point_object_to_view(vec3 lP)
 {
-  return (drw_view().viewmat * (drw_modelmat() * vec4(lP, 1.0))).xyz;
+  return (drw_view().viewmat * (drw_modelmat() * vec4(lP, 1.0f))).xyz;
 }
 vec3 drw_point_view_to_object(vec3 vP)
 {
-  return (drw_modelinv() * (drw_view().viewinv * vec4(vP, 1.0))).xyz;
+  return (drw_modelinv() * (drw_view().viewinv * vec4(vP, 1.0f))).xyz;
 }
 
 vec4 drw_point_object_to_homogenous(vec3 lP)
 {
-  return (drw_view().winmat * (drw_view().viewmat * (drw_modelmat() * vec4(lP, 1.0))));
+  return (drw_view().winmat * (drw_view().viewmat * (drw_modelmat() * vec4(lP, 1.0f))));
 }
 vec3 drw_point_object_to_ndc(vec3 lP)
 {

@@ -82,7 +82,7 @@ void main()
      * The only difference is that the non causal filter ignores the current value and starts from
      * the previous input, as can be seen in the subscript of the first input term in both
      * equations. So add one while indexing the non causal inputs. */
-    outputs[0] = vec4(0.0);
+    outputs[0] = vec4(0.0f);
     int first_input_index = is_causal ? 0 : 1;
     for (int i = 0; i < FILTER_ORDER; i++) {
       outputs[0] += feedforward_coefficients[i] * inputs[first_input_index + i];

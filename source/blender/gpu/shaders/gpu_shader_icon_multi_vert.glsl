@@ -19,15 +19,15 @@ void main()
 
   /* Use pos to select the right swizzle (instead of gl_VertexID)
    * in order to workaround an OSX driver bug. */
-  if (all(equal(pos, vec2(0.0, 0.0)))) {
+  if (all(equal(pos, vec2(0.0f, 0.0f)))) {
     rect.xy = rect.xz;
     tex.xy = tex.xz;
   }
-  else if (all(equal(pos, vec2(0.0, 1.0)))) {
+  else if (all(equal(pos, vec2(0.0f, 1.0f)))) {
     rect.xy = rect.xw;
     tex.xy = tex.xw;
   }
-  else if (all(equal(pos, vec2(1.0, 1.0)))) {
+  else if (all(equal(pos, vec2(1.0f, 1.0f)))) {
     rect.xy = rect.yw;
     tex.xy = tex.yw;
   }

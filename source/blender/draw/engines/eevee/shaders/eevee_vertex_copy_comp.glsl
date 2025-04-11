@@ -19,6 +19,6 @@ void main()
     out_buf[start_offset + vertex_id] = vec4(in_buf[vertex_id * vertex_stride + 0],
                                              in_buf[vertex_id * vertex_stride + 1],
                                              in_buf[vertex_id * vertex_stride + 2],
-                                             1.0);
+                                             1.0f);
   }
 }

@@ -29,7 +29,7 @@ VERTEX_OUT(flat_color_iface)
 PUSH_CONSTANT(MAT4, ModelViewProjectionMatrix)
 PUSH_CONSTANT(VEC2, viewport_size)
 PUSH_CONSTANT(FLOAT, dash_width)
-PUSH_CONSTANT(FLOAT, udash_factor) /* if > 1.0, solid line. */
+PUSH_CONSTANT(FLOAT, udash_factor) /* if > 1.0f, solid line. */
 /* TODO(fclem): Remove this. And decide to discard if color2 alpha is 0. */
 PUSH_CONSTANT(INT, colors_len) /* Enabled if > 0, 1 for solid line. */
 PUSH_CONSTANT(VEC4, color)

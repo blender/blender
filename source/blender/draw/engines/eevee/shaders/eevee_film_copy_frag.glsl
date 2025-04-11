@@ -25,7 +25,7 @@ vec4 cryptomatte_false_color(float hash)
   return vec4(hash,
               float(m3hash << 8) / float(0xFFFFFFFFu),
               float(m3hash << 16) / float(0xFFFFFFFFu),
-              1.0);
+              1.0f);
 }
 
 void main()
@@ -37,7 +37,7 @@ void main()
   }
   else if (uniform_buf.film.display_storage_type == PASS_STORAGE_VALUE) {
     out_color.rgb = imageLoadFast(value_accum_img, ivec3(texel, display_id)).rrr;
-    out_color.a = 1.0;
+    out_color.a = 1.0f;
   }
   else if (uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
     out_color = imageLoadFast(color_accum_img, ivec3(texel, display_id));
@@ -49,6 +49,6 @@ void main()
 
   float out_depth = imageLoadFast(depth_img, texel).r;
   out_depth = drw_depth_view_to_screen(-out_depth);
-  out_depth += 2.4e-7 * 4.0 + fwidth(out_depth);
+  out_depth += 2.4e-7f * 4.0f + fwidth(out_depth);
   gl_FragDepth = saturate(out_depth);
 }

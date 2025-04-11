@@ -31,7 +31,7 @@ ivec3 surfel_cluster_index_get(ivec3 cluster_grid_size,
                                float4x4 irradiance_grid_world_to_local,
                                vec3 P)
 {
-  vec3 lP = transform_point(irradiance_grid_world_to_local, P) * 0.5 + 0.5;
+  vec3 lP = transform_point(irradiance_grid_world_to_local, P) * 0.5f + 0.5f;
   ivec3 cluster_index = ivec3(lP * vec3(cluster_grid_size));
   cluster_index = clamp(cluster_index, ivec3(0), cluster_grid_size - 1);
   return cluster_index;

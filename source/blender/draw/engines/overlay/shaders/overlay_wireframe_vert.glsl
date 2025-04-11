@@ -53,9 +53,9 @@ void wire_color_get(out vec3 rim_col, out vec3 wire_col)
 
 vec3 hsv_to_rgb(vec3 hsv)
 {
-  vec3 nrgb = abs(hsv.x * 6.0 - vec3(3.0, 2.0, 4.0)) * vec3(1, -1, -1) + vec3(-1, 2, 2);
-  nrgb = clamp(nrgb, 0.0, 1.0);
-  return ((nrgb - 1.0) * hsv.y + 1.0) * hsv.z;
+  vec3 nrgb = abs(hsv.x * 6.0f - vec3(3.0f, 2.0f, 4.0f)) * vec3(1, -1, -1) + vec3(-1, 2, 2);
+  nrgb = clamp(nrgb, 0.0f, 1.0f);
+  return ((nrgb - 1.0f) * hsv.y + 1.0f) * hsv.z;
 }
 
 void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
@@ -64,24 +64,24 @@ void wire_object_color_get(out vec3 rim_col, out vec3 wire_col)
   bool is_selected = flag_test(info.flag, OBJECT_SELECTED);
 
   if (colorType == V3D_SHADING_OBJECT_COLOR) {
-    rim_col = wire_col = drw_object_infos().ob_color.rgb * 0.5;
+    rim_col = wire_col = drw_object_infos().ob_color.rgb * 0.5f;
   }
   else {
     float hue = info.random;
-    vec3 hsv = vec3(hue, 0.75, 0.8);
+    vec3 hsv = vec3(hue, 0.75f, 0.8f);
     rim_col = wire_col = hsv_to_rgb(hsv);
   }
 
   if (is_selected && useColoring) {
     /* "Normalize" color. */
-    wire_col += 1e-4; /* Avoid division by 0. */
+    wire_col += 1e-4f; /* Avoid division by 0. */
     float brightness = max(wire_col.x, max(wire_col.y, wire_col.z));
-    wire_col *= 0.5 / brightness;
-    rim_col += 0.75;
+    wire_col *= 0.5f / brightness;
+    rim_col += 0.75f;
   }
   else {
-    rim_col *= 0.5;
-    wire_col += 0.5;
+    rim_col *= 0.5f;
+    wire_col += 0.5f;
   }
 }
 
@@ -92,11 +92,11 @@ void main()
   /* If no attribute is available, use a fixed facing value depending on the coloring mode.
    * This allow to keep most of the contrast between unselected and selected color
    * while keeping object coloring mode working (see #134011). */
-  float no_nor_facing = (colorType == V3D_SHADING_SINGLE_COLOR) ? 0.0 : 0.5;
+  float no_nor_facing = (colorType == V3D_SHADING_SINGLE_COLOR) ? 0.0f : 0.5f;
 
   vec3 wpos = drw_point_object_to_world(pos);
 #if defined(POINTS)
-  gl_PointSize = sizeVertex * 2.0;
+  gl_PointSize = sizeVertex * 2.0f;
 #elif defined(CURVES)
   float facing = no_nor_facing;
 #else
@@ -104,11 +104,11 @@ void main()
 
   if (isHair) {
     mat4 obmat = hairDupliMatrix;
-    wpos = (obmat * vec4(pos, 1.0)).xyz;
+    wpos = (obmat * vec4(pos, 1.0f)).xyz;
     wnor = -normalize(to_float3x3(obmat) * nor);
   }
 
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
   vec3 V = (is_persp) ? normalize(drw_view().viewinv[3].xyz - wpos) : drw_view().viewinv[2].xyz;
 
   bool no_attr = all(equal(nor, vec3(0)));
@@ -119,9 +119,9 @@ void main()
 
 #if !defined(POINTS) && !defined(CURVES)
   if (!use_custom_depth_bias) {
-    float facing_ratio = clamp(1.0 - facing * facing, 0.0, 1.0);
-    float flip = sign(facing);           /* Flip when not facing the normal (i.e.: back-facing). */
-    float curvature = (1.0 - wd * 0.75); /* Avoid making things worse for curvy areas. */
+    float facing_ratio = clamp(1.0f - facing * facing, 0.0f, 1.0f);
+    float flip = sign(facing); /* Flip when not facing the normal (i.e.: back-facing). */
+    float curvature = (1.0f - wd * 0.75f); /* Avoid making things worse for curvy areas. */
     vec3 wofs = wnor * (facing_ratio * curvature * flip);
     wofs = drw_normal_world_to_view(wofs);
 
@@ -129,13 +129,13 @@ void main()
     gl_Position.xy += wofs.xy * sizeViewportInv * gl_Position.w;
 
     /* Push the vertex towards the camera. Helps a bit. */
-    gl_Position.z -= facing_ratio * curvature * 1.0e-6 * gl_Position.w;
+    gl_Position.z -= facing_ratio * curvature * 1.0e-6f * gl_Position.w;
   }
 #endif
 
   /* Curves do not need the offset since they *are* the curve geometry. */
 #if !defined(CURVES)
-  gl_Position.z -= ndc_offset_factor * 0.5;
+  gl_Position.z -= ndc_offset_factor * 0.5f;
 #endif
 
   vec3 rim_col, wire_col;
@@ -152,17 +152,17 @@ void main()
 
 #else
   /* Convert to screen position [0..sizeVp]. */
-  edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
+  edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
   edgePos = edgeStart;
 
 #  if !defined(SELECT_ENABLE)
-  facing = clamp(abs(facing), 0.0, 1.0);
+  facing = clamp(abs(facing), 0.0f, 1.0f);
   /* Do interpolation in a non-linear space to have a better visual result. */
-  rim_col = pow(rim_col, vec3(1.0 / 2.2));
-  wire_col = pow(wire_col, vec3(1.0 / 2.2));
-  vec3 final_front_col = mix(rim_col, wire_col, 0.35);
+  rim_col = pow(rim_col, vec3(1.0f / 2.2f));
+  wire_col = pow(wire_col, vec3(1.0f / 2.2f));
+  vec3 final_front_col = mix(rim_col, wire_col, 0.35f);
   finalColor.rgb = mix(rim_col, final_front_col, facing);
-  finalColor.rgb = pow(finalColor.rgb, vec3(2.2));
+  finalColor.rgb = pow(finalColor.rgb, vec3(2.2f));
 #  endif
 
   finalColor.a = wireOpacity;
@@ -171,14 +171,14 @@ void main()
 #  if !defined(CURVES)
   /* Cull flat edges below threshold. */
   if (!no_attr && !is_edge_sharpness_visible(wd)) {
-    edgeStart = vec2(-1.0);
+    edgeStart = vec2(-1.0f);
   }
 #  endif
 
 #  if defined(SELECT_ENABLE)
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
-  gl_Position.xy += sizeViewportInv * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
+  gl_Position.xy += sizeViewportInv * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0f : 1.0f);
 #  endif
 #endif
 

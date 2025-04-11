@@ -23,7 +23,7 @@ void main()
 
   init_interface();
 
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
   hair_get_pos_tan_binor_time(is_persp,
                               drw_modelinv(),
                               drw_view().viewinv[3].xyz,
@@ -59,7 +59,7 @@ void main()
   interp.P += nodetree_displacement();
 
 #ifdef MAT_CLIP_PLANE
-  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0));
+  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0f));
 #endif
 
 #ifdef MAT_SHADOW

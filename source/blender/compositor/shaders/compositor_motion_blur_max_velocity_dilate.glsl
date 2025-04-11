@@ -42,7 +42,7 @@ struct MotionLine {
 MotionLine compute_motion_line(ivec2 tile, vec2 motion)
 {
   float magnitude = length(motion);
-  vec2 dir = magnitude != 0.0 ? motion / magnitude : motion;
+  vec2 dir = magnitude != 0.0f ? motion / magnitude : motion;
 
   MotionLine line;
   line.origin = vec2(tile);

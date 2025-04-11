@@ -150,8 +150,9 @@ bool intersect_view(Pyramid pyramid)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 5; ++v) {
-      float test = dot(drw_view_culling().frustum_planes.planes[p], vec4(pyramid.corners[v], 1.0));
-      if (test > 0.0) {
+      float test = dot(drw_view_culling().frustum_planes.planes[p],
+                       vec4(pyramid.corners[v], 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -173,8 +174,8 @@ bool intersect_view(Pyramid pyramid)
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
       float test = dot(i_pyramid.planes[p],
-                       vec4(drw_view_culling().frustum_corners.corners[v].xyz, 1.0));
-      if (test > 0.0) {
+                       vec4(drw_view_culling().frustum_corners.corners[v].xyz, 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -196,8 +197,8 @@ bool intersect_view(Box box)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
-      float test = dot(drw_view_culling().frustum_planes.planes[p], vec4(box.corners[v], 1.0));
-      if (test > 0.0) {
+      float test = dot(drw_view_culling().frustum_planes.planes[p], vec4(box.corners[v], 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -219,8 +220,8 @@ bool intersect_view(Box box)
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
       float test = dot(i_box.planes[p],
-                       vec4(drw_view_culling().frustum_corners.corners[v].xyz, 1.0));
-      if (test > 0.0) {
+                       vec4(drw_view_culling().frustum_corners.corners[v].xyz, 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -243,8 +244,8 @@ bool intersect_view(IsectBox i_box)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
-      float test = dot(drw_view_culling().frustum_planes.planes[p], vec4(i_box.corners[v], 1.0));
-      if (test > 0.0) {
+      float test = dot(drw_view_culling().frustum_planes.planes[p], vec4(i_box.corners[v], 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -264,8 +265,8 @@ bool intersect_view(IsectBox i_box)
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
       float test = dot(i_box.planes[p],
-                       vec4(drw_view_culling().frustum_corners.corners[v].xyz, 1.0));
-      if (test > 0.0) {
+                       vec4(drw_view_culling().frustum_corners.corners[v].xyz, 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -286,7 +287,7 @@ bool intersect_view(Sphere sphere)
 
   for (int p = 0; p < 6 && intersects; ++p) {
     float dist_to_plane = dot(drw_view_culling().frustum_planes.planes[p],
-                              vec4(sphere.center, 1.0));
+                              vec4(sphere.center, 1.0f));
     if (dist_to_plane < -sphere.radius) {
       intersects = false;
     }
@@ -311,8 +312,8 @@ bool intersect(IsectPyramid i_pyramid, Box box)
   for (int p = 0; p < 5; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
-      float test = dot(i_pyramid.planes[p], vec4(box.corners[v], 1.0));
-      if (test > 0.0) {
+      float test = dot(i_pyramid.planes[p], vec4(box.corners[v], 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -333,8 +334,8 @@ bool intersect(IsectPyramid i_pyramid, Box box)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 5; ++v) {
-      float test = dot(i_box.planes[p], vec4(i_pyramid.corners[v], 1.0));
-      if (test > 0.0) {
+      float test = dot(i_box.planes[p], vec4(i_pyramid.corners[v], 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -356,8 +357,8 @@ bool intersect(IsectPyramid i_pyramid, IsectBox i_box)
   for (int p = 0; p < 5; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
-      float test = dot(i_pyramid.planes[p], vec4(i_box.corners[v], 1.0));
-      if (test > 0.0) {
+      float test = dot(i_pyramid.planes[p], vec4(i_box.corners[v], 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -377,8 +378,8 @@ bool intersect(IsectPyramid i_pyramid, IsectBox i_box)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 5; ++v) {
-      float test = dot(i_box.planes[p], vec4(i_pyramid.corners[v], 1.0));
-      if (test > 0.0) {
+      float test = dot(i_box.planes[p], vec4(i_pyramid.corners[v], 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -400,8 +401,8 @@ bool intersect(IsectFrustum i_frustum, Pyramid pyramid)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 5; ++v) {
-      float test = dot(i_frustum.planes[p], vec4(pyramid.corners[v], 1.0));
-      if (test > 0.0) {
+      float test = dot(i_frustum.planes[p], vec4(pyramid.corners[v], 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -422,8 +423,8 @@ bool intersect(IsectFrustum i_frustum, Pyramid pyramid)
   for (int p = 0; p < 5; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
-      float test = dot(i_pyramid.planes[p], vec4(i_frustum.corners[v].xyz, 1.0));
-      if (test > 0.0) {
+      float test = dot(i_pyramid.planes[p], vec4(i_frustum.corners[v].xyz, 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -445,8 +446,8 @@ bool intersect(IsectFrustum i_frustum, Box box)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
-      float test = dot(i_frustum.planes[p], vec4(box.corners[v], 1.0));
-      if (test > 0.0) {
+      float test = dot(i_frustum.planes[p], vec4(box.corners[v], 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -467,8 +468,8 @@ bool intersect(IsectFrustum i_frustum, Box box)
   for (int p = 0; p < 6; ++p) {
     bool is_any_vertex_on_positive_side = false;
     for (int v = 0; v < 8; ++v) {
-      float test = dot(i_box.planes[p], vec4(i_frustum.corners[v].xyz, 1.0));
-      if (test > 0.0) {
+      float test = dot(i_box.planes[p], vec4(i_frustum.corners[v].xyz, 1.0f));
+      if (test > 0.0f) {
         is_any_vertex_on_positive_side = true;
         break;
       }
@@ -487,7 +488,7 @@ bool intersect(IsectFrustum i_frustum, Sphere sphere)
 {
   bool intersects = true;
   for (int p = 0; p < 6; ++p) {
-    float dist_to_plane = dot(i_frustum.planes[p], vec4(sphere.center, 1.0));
+    float dist_to_plane = dot(i_frustum.planes[p], vec4(sphere.center, 1.0f));
     if (dist_to_plane < -sphere.radius) {
       intersects = false;
       break;
@@ -506,13 +507,13 @@ bool intersect(Cone cone, Sphere sphere)
   float sphere_distance = length(sphere.center);
   float sphere_distance_rcp = safe_rcp(sphere_distance);
   float sphere_sin = saturate(sphere.radius * sphere_distance_rcp);
-  float sphere_cos = sqrt(1.0 - sphere_sin * sphere_sin);
-  float cone_aperture_sin = sqrt(1.0 - cone.angle_cos * cone.angle_cos);
+  float sphere_cos = sqrt(1.0f - sphere_sin * sphere_sin);
+  float cone_aperture_sin = sqrt(1.0f - cone.angle_cos * cone.angle_cos);
 
   float cone_sphere_center_cos = dot(sphere.center * sphere_distance_rcp, cone.direction);
   /* cos(A+B) = cos(A) * cos(B) - sin(A) * sin(B). */
   float cone_sphere_angle_sum_cos = (sphere.radius > sphere_distance) ?
-                                        -1.0 :
+                                        -1.0f :
                                         (cone.angle_cos * sphere_cos -
                                          cone_aperture_sin * sphere_sin);
   /* Comparing cosines instead of angles since we are interested

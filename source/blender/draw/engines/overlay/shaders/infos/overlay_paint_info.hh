@@ -80,7 +80,7 @@ VERTEX_IN(1, VEC2, mu) /* Masking uv map. */
 VERTEX_OUT(overlay_paint_texture_iface)
 SAMPLER(0, FLOAT_2D, maskImage)
 PUSH_CONSTANT(VEC3, maskColor)
-PUSH_CONSTANT(FLOAT, opacity) /* `1.0` by default. */
+PUSH_CONSTANT(FLOAT, opacity) /* `1.0f` by default. */
 PUSH_CONSTANT(BOOL, maskInvertStencil)
 PUSH_CONSTANT(BOOL, maskImagePremultiplied)
 FRAGMENT_OUT(0, VEC4, fragColor)
@@ -114,7 +114,7 @@ VERTEX_IN(1, VEC3, pos)
 VERTEX_IN(2, VEC3, nor)
 VERTEX_OUT(overlay_paint_weight_iface)
 SAMPLER(0, FLOAT_1D, colorramp)
-PUSH_CONSTANT(FLOAT, opacity)     /* `1.0` by default. */
+PUSH_CONSTANT(FLOAT, opacity)     /* `1.0f` by default. */
 PUSH_CONSTANT(BOOL, drawContours) /* `false` by default. */
 FRAGMENT_OUT(0, VEC4, fragColor)
 FRAGMENT_OUT(1, VEC4, lineOutput)

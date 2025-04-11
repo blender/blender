@@ -20,14 +20,14 @@
  *
  * https://en.wikipedia.org/wiki/Standard_deviation#/media/File:Standard_deviation_diagram.svg
  *
- * Example: for a 5px 1d gaussian filter, one would set `linear_distance` of 2.5.
+ * Example: for a 5px 1d gaussian filter, one would set `linear_distance` of 2.5f.
  * `standard_deviation = 1.0` will cover 68% of the gaussian weight inside the 5px radius.
  * `standard_deviation = 2.0` will cover 95% of the gaussian weight inside the 5px radius.
  */
 float filter_gaussian_factor(float linear_distance, float standard_deviation)
 {
   /* Account for `filter_gaussian_factor` using `exp2` for speed (`exp(x) = exp2(x / log(2))`). */
-  const float log_2_inv = 1.442695041;
+  const float log_2_inv = 1.442695041f;
   return log_2_inv * standard_deviation / square(linear_distance);
 }
 
@@ -47,7 +47,7 @@ float filter_gaussian_weight(float factor, float square_distance)
 float filter_planar_weight(vec3 plane_N, vec3 plane_P, vec3 P, float scale)
 {
   vec4 plane_eq = vec4(plane_N, -dot(plane_N, plane_P));
-  float plane_distance = dot(plane_eq, vec4(P, 1.0));
+  float plane_distance = dot(plane_eq, vec4(P, 1.0f));
   return filter_gaussian_weight(scale, square(plane_distance));
 }
 

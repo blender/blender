@@ -44,10 +44,10 @@ vec4 summed_area_table_sum(sampler2D table, ivec2 lower_bound, ivec2 upper_bound
 {
   ivec2 corrected_lower_bound = lower_bound - ivec2(1);
   ivec2 corrected_upper_bound = min(texture_size(table) - ivec2(1), upper_bound);
-  vec4 addend = texture_load(table, corrected_upper_bound, vec4(0.0)) +
-                texture_load(table, corrected_lower_bound, vec4(0.0));
+  vec4 addend = texture_load(table, corrected_upper_bound, vec4(0.0f)) +
+                texture_load(table, corrected_lower_bound, vec4(0.0f));
   vec4 subtrahend =
-      texture_load(table, ivec2(corrected_lower_bound.x, corrected_upper_bound.y), vec4(0.0)) +
-      texture_load(table, ivec2(corrected_upper_bound.x, corrected_lower_bound.y), vec4(0.0));
+      texture_load(table, ivec2(corrected_lower_bound.x, corrected_upper_bound.y), vec4(0.0f)) +
+      texture_load(table, ivec2(corrected_upper_bound.x, corrected_lower_bound.y), vec4(0.0f));
   return addend - subtrahend;
 }

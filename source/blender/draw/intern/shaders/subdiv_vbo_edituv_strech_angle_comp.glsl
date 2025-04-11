@@ -6,16 +6,16 @@
 
 COMPUTE_SHADER_CREATE_INFO(subdiv_edituv_stretch_angle)
 
-#define M_PI 3.1415926535897932
-#define M_1_PI 0.31830988618379067154
+#define M_PI 3.1415926535897932f
+#define M_1_PI 0.31830988618379067154f
 
 /* Adapted from BLI_math_vector.h */
 float angle_normalized_v3v3(vec3 v1, vec3 v2)
 {
   /* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
-  bool q = (dot(v1, v2) >= 0.0);
+  bool q = (dot(v1, v2) >= 0.0f);
   vec3 v = (q) ? (v1 - v2) : (v1 + v2);
-  float a = 2.0 * asin(length(v) / 2.0);
+  float a = 2.0f * asin(length(v) / 2.0f);
   return (q) ? a : M_PI - a;
 }
 

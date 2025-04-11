@@ -32,7 +32,7 @@ void main()
 
   /* Loop over all identifiers selected by the user, if the identifier of either of the ranks match
    * it, accumulate its coverage. */
-  float total_coverage = 0.0;
+  float total_coverage = 0.0f;
   for (int i = 0; i < identifiers_count; i++) {
     float identifier = identifiers[i];
     if (identifier_of_first_rank == identifier) {

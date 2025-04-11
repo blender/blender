@@ -22,11 +22,11 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
 {
   vec3 random_point_on_cylinder = sample_cylinder(noise);
   /* Bias the rays so we never get really high energy rays almost parallel to the surface. */
-  const float rng_bias = 0.08;
+  const float rng_bias = 0.08f;
   /* When modeling object thickness as a sphere, the outgoing rays are distributed uniformly
    * over the sphere. We don't want the RAY_BIAS in this case. */
-  if (cl.type != CLOSURE_BSDF_TRANSLUCENT_ID || thickness <= 0.0) {
-    random_point_on_cylinder.x = 1.0 - random_point_on_cylinder.x * (1.0 - rng_bias);
+  if (cl.type != CLOSURE_BSDF_TRANSLUCENT_ID || thickness <= 0.0f) {
+    random_point_on_cylinder.x = 1.0f - random_point_on_cylinder.x * (1.0f - rng_bias);
   }
 
   switch (cl.type) {
@@ -38,8 +38,8 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
   mat3 tangent_to_world = from_up_axis(cl.N);
 
   BsdfSample samp;
-  samp.pdf = 0.0;
-  samp.direction = vec3(0.0);
+  samp.pdf = 0.0f;
+  samp.direction = vec3(0.0f);
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
       samp = bxdf_translucent_sample(random_point_on_cylinder, thickness);

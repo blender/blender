@@ -5,9 +5,9 @@
 void node_wireframe(float size, out float fac)
 {
   vec3 barys = g_data.barycentric_coords.xyy;
-  barys.z = 1.0 - barys.x - barys.y;
+  barys.z = 1.0f - barys.x - barys.y;
 
-  size *= 0.5;
+  size *= 0.5f;
   vec3 s = step(-size, -barys * g_data.barycentric_dists);
 
   fac = max(s.x, max(s.y, s.z));
@@ -16,10 +16,10 @@ void node_wireframe(float size, out float fac)
 void node_wireframe_screenspace(float size, out float fac)
 {
   vec3 barys = g_data.barycentric_coords.xyy;
-  barys.z = 1.0 - barys.x - barys.y;
+  barys.z = 1.0f - barys.x - barys.y;
 
 #ifdef GPU_FRAGMENT_SHADER
-  size *= (1.0 / 3.0);
+  size *= (1.0f / 3.0f);
   vec3 dx = dFdx(barys);
   vec3 dy = dFdy(barys);
   vec3 deltas = sqrt(dx * dx + dy * dy);
@@ -28,6 +28,6 @@ void node_wireframe_screenspace(float size, out float fac)
 
   fac = max(s.x, max(s.y, s.z));
 #else
-  fac = 1.0;
+  fac = 1.0f;
 #endif
 }

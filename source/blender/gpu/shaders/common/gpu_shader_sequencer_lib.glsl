@@ -13,7 +13,7 @@ SHADER_LIBRARY_CREATE_INFO(gpu_shader_sequencer_strips)
 float sdf_rounded_box(vec2 pos, vec2 size, float radius)
 {
   vec2 q = abs(pos) - size + radius;
-  return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - radius;
+  return min(max(q.x, q.y), 0.0f) + length(max(q, 0.0f)) - radius;
 }
 
 void strip_box(float left,
@@ -33,13 +33,13 @@ void strip_box(float left,
   r_pos1 = round(vec2(left, bottom));
   r_pos2 = round(vec2(right, top));
   /* Make sure strip is at least 1px wide. */
-  r_pos2.x = max(r_pos2.x, r_pos1.x + 1.0);
-  r_size = (r_pos2 - r_pos1) * 0.5;
-  r_center = (r_pos1 + r_pos2) * 0.5;
+  r_pos2.x = max(r_pos2.x, r_pos1.x + 1.0f);
+  r_size = (r_pos2 - r_pos1) * 0.5f;
+  r_center = (r_pos1 + r_pos2) * 0.5f;
   r_pos = round(pos);
 
   r_radius = context_data.round_radius;
   if (r_radius > r_size.x) {
-    r_radius = 0.0;
+    r_radius = 0.0f;
   }
 }

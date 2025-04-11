@@ -50,5 +50,5 @@ vec4 drw_object_attribute(const uint attr_hash)
     }
   }
 #endif
-  return vec4(0.0);
+  return vec4(0.0f);
 }

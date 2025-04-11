@@ -31,7 +31,7 @@ struct LightProbeSample {
  */
 LightProbeSample lightprobe_load(vec3 P, vec3 Ng, vec3 V)
 {
-  float noise = interlieved_gradient_noise(UTIL_TEXEL, 0.0, 0.0);
+  float noise = interlieved_gradient_noise(UTIL_TEXEL, 0.0f, 0.0f);
   noise = fract(noise + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
 
   LightProbeSample result;
@@ -43,12 +43,12 @@ LightProbeSample lightprobe_load(vec3 P, vec3 Ng, vec3 V)
 /* Return the best parallax corrected ray direction from the probe center. */
 vec3 lightprobe_sphere_parallax(SphereProbeData probe, vec3 P, vec3 L)
 {
-  bool is_world = (probe.influence_scale == 0.0);
+  bool is_world = (probe.influence_scale == 0.0f);
   if (is_world) {
     return L;
   }
   /* Correct reflection ray using parallax volume intersection. */
-  vec3 lP = vec4(P, 1.0) * probe.world_to_probe_transposed;
+  vec3 lP = vec4(P, 1.0f) * probe.world_to_probe_transposed;
   vec3 lL = (to_float3x3(probe.world_to_probe_transposed) * L) / probe.parallax_distance;
 
   float dist = (probe.parallax_shape == SHAPE_ELIPSOID) ? line_unit_sphere_intersect_dist(lP, lL) :
@@ -83,8 +83,8 @@ vec3 lightprobe_spherical_sample_normalized_with_parallax(LightProbeSample samp,
 
 float pdf_to_lod(float inv_pdf)
 {
-  float blur_pdf = saturate((2.0 * M_PI) * inv_pdf);
-  return blur_pdf * 2.0;
+  float blur_pdf = saturate((2.0f * M_PI) * inv_pdf);
+  return blur_pdf * 2.0f;
 }
 
 vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float inv_pdf)

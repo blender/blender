@@ -24,7 +24,7 @@ void main()
       data.mask = sculpt_mask[loop_index];
     }
     else {
-      data.mask = 0.0;
+      data.mask = 0.0f;
     }
 
     sculpt_data[loop_index] = data;

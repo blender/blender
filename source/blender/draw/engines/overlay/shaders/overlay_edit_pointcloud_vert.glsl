@@ -24,8 +24,8 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Small offset in Z for depth precision. */
-  gl_Position.z -= 3e-4;
+  gl_Position.z -= 3e-4f;
 
-  gl_PointSize = sizeVertex * 2.0;
+  gl_PointSize = sizeVertex * 2.0f;
   view_clipping_distances(world_pos);
 }

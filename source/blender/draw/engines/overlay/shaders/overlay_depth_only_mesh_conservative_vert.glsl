@@ -56,14 +56,14 @@ void do_vertex(const uint i,
 
   gl_Position = geom_in.hs_P;
   if (all(is_subpixel)) {
-    vec2 ofs = (i == 0) ? vec2(-1.0) : ((i == 1) ? vec2(2.0, -1.0) : vec2(-1.0, 2.0));
+    vec2 ofs = (i == 0) ? vec2(-1.0f) : ((i == 1) ? vec2(2.0f, -1.0f) : vec2(-1.0f, 2.0f));
     /* HACK: Fix cases where the triangle is too small make it cover at least one pixel. */
     gl_Position.xy += sizeViewportInv * geom_in.hs_P.w * ofs;
   }
   /* Test if the triangle is almost parallel with the view to avoid precision issues. */
   else if (any(is_subpixel) || is_coplanar) {
     /* HACK: Fix cases where the triangle is Parallel to the view by deforming it slightly. */
-    vec2 ofs = (i == 0) ? vec2(-1.0) : ((i == 1) ? vec2(1.0, -1.0) : vec2(1.0));
+    vec2 ofs = (i == 0) ? vec2(-1.0f) : ((i == 1) ? vec2(1.0f, -1.0f) : vec2(1.0f));
     gl_Position.xy += sizeViewportInv * geom_in.hs_P.w * ofs;
   }
   else {
@@ -85,11 +85,11 @@ void geometry_main(VertOut geom_in[3],
   /* Compute NDC bound box. */
   vec4 bbox = vec4(min(min(pos0.xy, pos1.xy), pos2.xy), max(max(pos0.xy, pos1.xy), pos2.xy));
   /* Convert to pixel space. */
-  bbox = (bbox * 0.5 + 0.5) * sizeViewport.xyxy;
+  bbox = (bbox * 0.5f + 0.5f) * sizeViewport.xyxy;
   /* Detect failure cases where triangles would produce no fragments. */
-  bvec2 is_subpixel = lessThan(bbox.zw - bbox.xy, vec2(1.0));
+  bvec2 is_subpixel = lessThan(bbox.zw - bbox.xy, vec2(1.0f));
   /* View aligned triangle. */
-  const float threshold = 0.00001;
+  const float threshold = 0.00001f;
   bool is_coplanar = abs(plane.z) < threshold;
 
   do_vertex(0, out_vertex_id, out_primitive_id, geom_in[0], is_subpixel, is_coplanar);

@@ -10,7 +10,7 @@ void node_bsdf_hair(vec4 color,
                     float weight,
                     out Closure result)
 {
-  color = max(color, vec4(0.0));
+  color = max(color, vec4(0.0f));
 
 #if 0
   /* NOTE(fclem): This is the way it should be. But we don't have proper implementation of the hair
@@ -59,7 +59,7 @@ void node_bsdf_hair_principled(vec4 color,
   hair_data.weight = weight;
   hair_data.color = color.rgb;
   hair_data.offset = offset;
-  hair_data.roughness = vec2(0.0);
+  hair_data.roughness = vec2(0.0f);
   hair_data.T = g_data.curve_B;
 #else
   ClosureDiffuse hair_data;

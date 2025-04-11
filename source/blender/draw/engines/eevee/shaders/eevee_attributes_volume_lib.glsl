@@ -37,19 +37,19 @@ int g_attr_id = 0;
  * \{ */
 
 #  ifdef GRID_ATTRIBUTES
-vec3 g_lP = vec3(0.0);
+vec3 g_lP = vec3(0.0f);
 #  else
-vec3 g_wP = vec3(0.0);
+vec3 g_wP = vec3(0.0f);
 #  endif
 
 vec3 grid_coordinates()
 {
 #  ifdef GRID_ATTRIBUTES
-  vec3 co = (drw_volume.grids_xform[g_attr_id] * vec4(g_lP, 1.0)).xyz;
+  vec3 co = (drw_volume.grids_xform[g_attr_id] * vec4(g_lP, 1.0f)).xyz;
 #  else
   /* Only for test shaders. All the runtime shaders require `draw_object_infos` and
    * `draw_volume_infos`. */
-  vec3 co = vec3(0.0);
+  vec3 co = vec3(0.0f);
 #  endif
   g_attr_id += 1;
   return co;

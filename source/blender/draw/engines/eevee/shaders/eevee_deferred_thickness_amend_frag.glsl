@@ -58,16 +58,16 @@ void thickness_from_shadow_single(uint l_idx,
 
   float occluder_delta = shadow_sample(
       is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P_offset);
-  if (occluder_delta > 0.0) {
+  if (occluder_delta > 0.0f) {
     float hit_distance = abs(occluder_delta);
     /* Add back the amount of offset we added to the original position.
      * This avoids self shadowing issue. */
-    hit_distance += (normal_offset + 1.0) * texel_radius;
+    hit_distance += (normal_offset + 1.0f) * texel_radius;
 
-    if ((hit_distance > abs(gbuffer_thickness) * 0.001) &&
-        (hit_distance < abs(gbuffer_thickness) * 1.0))
+    if ((hit_distance > abs(gbuffer_thickness) * 0.001f) &&
+        (hit_distance < abs(gbuffer_thickness) * 1.0f))
     {
-      float weight = 1.0;
+      float weight = 1.0f;
       saturate(dot(lv.L, -Ng));
       thickness_accum += hit_distance * weight;
       weight_accum += weight;
@@ -82,8 +82,8 @@ void thickness_from_shadow_single(uint l_idx,
  */
 float thickness_from_shadow(vec3 P, vec3 Ng, float vPz, float gbuffer_thickness)
 {
-  float thickness_accum = 0.0;
-  float weight_accum = 0.0;
+  float thickness_accum = 0.0f;
+  float weight_accum = 0.0f;
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     thickness_from_shadow_single(
@@ -98,8 +98,8 @@ float thickness_from_shadow(vec3 P, vec3 Ng, float vPz, float gbuffer_thickness)
   }
   LIGHT_FOREACH_END
 
-  if (weight_accum == 0.0) {
-    return -1.0;
+  if (weight_accum == 0.0f) {
+    return -1.0f;
   }
 
   float thickness = thickness_accum / weight_accum;
@@ -115,7 +115,7 @@ void main()
 
   /* Bias the shading point position because of depth buffer precision.
    * Constant is taken from https://www.terathon.com/gdc07_lengyel.pdf. */
-  const float bias = 2.4e-7;
+  const float bias = 2.4e-7f;
   depth -= bias;
 
   vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
@@ -128,17 +128,17 @@ void main()
   int data_layer = gbuffer_normal_count(header);
   vec2 data_packed = imageLoad(gbuf_normal_img, ivec3(texel, data_layer)).rg;
   float gbuffer_thickness = gbuffer_thickness_unpack(data_packed.x);
-  if (gbuffer_thickness == 0.0) {
+  if (gbuffer_thickness == 0.0f) {
     return;
   }
 
   float shadow_thickness = thickness_from_shadow(P, Ng, vPz, gbuffer_thickness);
-  if (shadow_thickness <= 0.0) {
+  if (shadow_thickness <= 0.0f) {
     return;
   }
 
   if ((shadow_thickness < abs(gbuffer_thickness))) {
     data_packed.x = gbuffer_thickness_pack(sign(gbuffer_thickness) * shadow_thickness);
-    imageStore(gbuf_normal_img, ivec3(texel, data_layer), vec4(data_packed, 0.0, 0.0));
+    imageStore(gbuf_normal_img, ivec3(texel, data_layer), vec4(data_packed, 0.0f, 0.0f));
   }
 }

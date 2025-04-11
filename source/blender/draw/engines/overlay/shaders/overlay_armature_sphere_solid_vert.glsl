@@ -12,7 +12,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_armature_sphere_solid)
 #include "select_lib.glsl"
 
 /* Sphere radius */
-#define rad 0.05
+#define rad 0.05f
 
 void main()
 {
@@ -25,12 +25,12 @@ void main()
   mat4 model_view_matrix = drw_view().viewmat * model_mat;
   sphereMatrix = inverse(model_view_matrix);
 
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
 
   /* This is the local space camera ray (not normalize).
    * In perspective mode it's also the view-space position
    * of the sphere center. */
-  vec3 cam_ray = (is_persp) ? model_view_matrix[3].xyz : vec3(0.0, 0.0, -1.0);
+  vec3 cam_ray = (is_persp) ? model_view_matrix[3].xyz : vec3(0.0f, 0.0f, -1.0f);
   cam_ray = to_float3x3(sphereMatrix) * cam_ray;
 
   /* Sphere center distance from the camera (persp) in local space. */
@@ -41,13 +41,13 @@ void main()
   vec3 x_axis = normalize(cross(sphereMatrix[1].xyz, z_axis));
   vec3 y_axis = cross(z_axis, x_axis);
 
-  float z_ofs = -rad - 1e-8; /* offset to the front of the sphere */
+  float z_ofs = -rad - 1e-8f; /* offset to the front of the sphere */
   if (is_persp) {
     /* For perspective, the projected sphere radius
      * can be bigger than the center disc. Compute the
      * max angular size and compensate by sliding the disc
      * towards the camera and scale it accordingly. */
-    const float half_pi = 3.1415926 * 0.5;
+    const float half_pi = 3.1415926f * 0.5f;
     /* Let be (in local space):
      * V the view vector origin.
      * O the sphere origin.
@@ -55,7 +55,7 @@ void main()
      * We compute the angle between (OV) and (OT). */
     float a = half_pi - asin(rad / cam_dist);
     float cos_b = cos(a);
-    float sin_b = sqrt(clamp(1.0 - cos_b * cos_b, 0.0, 1.0));
+    float sin_b = sqrt(clamp(1.0f - cos_b * cos_b, 0.0f, 1.0f));
 #if 1
     /* Instead of choosing the biggest circle in screen-space,
      * we choose the nearest with the same angular size. This
@@ -75,7 +75,7 @@ void main()
   /* Camera oriented position (but still in local space) */
   vec3 cam_pos = x_axis * pos.x + y_axis * pos.y + z_axis * z_ofs;
 
-  vec4 pos_4d = vec4(cam_pos, 1.0);
+  vec4 pos_4d = vec4(cam_pos, 1.0f);
   vec4 V = model_view_matrix * pos_4d;
   gl_Position = drw_view().winmat * V;
   viewPosition = V.xyz;

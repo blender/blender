@@ -28,7 +28,7 @@ void main()
 
   vec3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
-  gl_PointSize = (!is_gpencil) ? sizeVertex * 2.0 : sizeVertexGpencil * 2.0;
+  gl_PointSize = (!is_gpencil) ? sizeVertex * 2.0f : sizeVertexGpencil * 2.0f;
   view_clipping_distances(world_pos);
 
   bool show_handle = showCurveHandles;
@@ -40,6 +40,6 @@ void main()
 
   if (!show_handle && ((data & BEZIER_HANDLE) != 0u)) {
     /* We set the vertex at the camera origin to generate 0 fragments. */
-    gl_Position = vec4(0.0, 0.0, -3e36, 0.0);
+    gl_Position = vec4(0.0f, 0.0f, -3e36f, 0.0f);
   }
 }

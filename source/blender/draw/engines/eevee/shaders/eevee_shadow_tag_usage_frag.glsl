@@ -27,18 +27,18 @@ float ray_aabb(vec3 ray_origin, vec3 ray_direction, vec3 aabb_min, vec3 aabb_max
   float t_max = reduce_min(max(t_mins, t_maxs));
 
   /* AABB is in the opposite direction. */
-  if (t_max < 0.0) {
-    return -1.0;
+  if (t_max < 0.0f) {
+    return -1.0f;
   }
   /* No intersection. */
   if (t_min > t_max) {
-    return -1.0;
+    return -1.0f;
   }
   /* The ray origin is inside the aabb. */
-  if (t_min < 0.0) {
+  if (t_min < 0.0f) {
     /* For regular ray casting we would return t_max here,
      * but we want to ray cast against the box volume, not just the surface. */
-    return 0.0;
+    return 0.0f;
   }
   return t_min;
 }
@@ -46,9 +46,9 @@ float ray_aabb(vec3 ray_origin, vec3 ray_direction, vec3 aabb_min, vec3 aabb_max
 float pixel_size_at(float linear_depth)
 {
   float pixel_size = uniform_buf.shadow.film_pixel_radius;
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
   if (is_persp) {
-    pixel_size *= max(0.01, linear_depth);
+    pixel_size *= max(0.01f, linear_depth);
   }
   return pixel_size * exp2(float(fb_lod));
 }
@@ -66,15 +66,15 @@ void step_bounding_sphere(vec3 vs_near_plane,
   float far_pixel_size = pixel_size_at(far_t);
   vec3 far_center = vs_near_plane + vs_view_direction * far_t;
 
-  sphere_center = mix(near_center, far_center, 0.5);
+  sphere_center = mix(near_center, far_center, 0.5f);
   sphere_radius = 0;
 
   for (int x = -1; x <= 1; x += 2) {
     for (int y = -1; y <= 1; y += 2) {
-      vec3 near_corner = near_center + (near_pixel_size * 0.5 * vec3(x, y, 0));
+      vec3 near_corner = near_center + (near_pixel_size * 0.5f * vec3(x, y, 0));
       sphere_radius = max(sphere_radius, length_squared(near_corner - sphere_center));
 
-      vec3 far_corner = far_center + (far_pixel_size * 0.5 * vec3(x, y, 0));
+      vec3 far_corner = far_center + (far_pixel_size * 0.5f * vec3(x, y, 0));
       sphere_radius = max(sphere_radius, length_squared(far_corner - sphere_center));
     }
   }
@@ -90,9 +90,9 @@ void main()
   float opaque_depth = texelFetch(hiz_tx, ivec2(gl_FragCoord.xy), fb_lod).r;
   vec3 ws_opaque = drw_point_screen_to_world(vec3(screen_uv, opaque_depth));
 
-  vec3 ws_near_plane = drw_point_screen_to_world(vec3(screen_uv, 0.0));
+  vec3 ws_near_plane = drw_point_screen_to_world(vec3(screen_uv, 0.0f));
   vec3 ws_view_direction = normalize(interp.P - ws_near_plane);
-  vec3 vs_near_plane = drw_point_screen_to_view(vec3(screen_uv, 0.0));
+  vec3 vs_near_plane = drw_point_screen_to_view(vec3(screen_uv, 0.0f));
   vec3 vs_view_direction = normalize(interp.vP - vs_near_plane);
   vec3 ls_near_plane = drw_point_world_to_object(ws_near_plane);
   vec3 ls_view_direction = normalize(drw_point_world_to_object(interp.P) - ls_near_plane);
@@ -103,7 +103,7 @@ void main()
   float ls_near_box_t = ray_aabb(
       ls_near_plane, ls_view_direction, interp_flat.ls_aabb_min, interp_flat.ls_aabb_max);
 
-  if (ls_near_box_t < 0.0) {
+  if (ls_near_box_t < 0.0f) {
     /* The ray cast can fail in ortho mode due to numerical precision. (See #121629) */
     return;
   }

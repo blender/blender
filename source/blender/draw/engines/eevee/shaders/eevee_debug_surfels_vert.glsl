@@ -17,9 +17,9 @@ void main()
 #if 0 /* Debug surfel lists. TODO allow in release build with a dedicated shader. */
   if (gl_VertexID == 0 && surfel.next > -1) {
     Surfel surfel_next = surfels_buf[surfel.next];
-    vec4 line_color = (surfel.prev == -1)      ? vec4(1.0, 1.0, 0.0, 1.0) :
-                      (surfel_next.next == -1) ? vec4(0.0, 1.0, 1.0, 1.0) :
-                                                 vec4(0.0, 1.0, 0.0, 1.0);
+    vec4 line_color = (surfel.prev == -1)      ? vec4(1.0f, 1.0f, 0.0f, 1.0f) :
+                      (surfel_next.next == -1) ? vec4(0.0f, 1.0f, 1.0f, 1.0f) :
+                                                 vec4(0.0f, 1.0f, 0.0f, 1.0f);
     drw_debug_line(surfel_next.position, surfel.position, line_color);
   }
 #endif
@@ -51,5 +51,5 @@ void main()
   P = (model_matrix * vec4(lP, 1)).xyz;
 
   gl_Position = drw_point_world_to_homogenous(P);
-  gl_Position.z -= 2.5e-5;
+  gl_Position.z -= 2.5e-5f;
 }

@@ -20,12 +20,12 @@ bool is_face_hidden(uint coarse_quad_index)
 float get_loop_flag(uint coarse_quad_index, int vert_origindex)
 {
   if (is_face_hidden(coarse_quad_index) || (shader_data.is_edit_mode && vert_origindex == -1)) {
-    return -1.0;
+    return -1.0f;
   }
   if (is_face_selected(coarse_quad_index)) {
-    return 1.0;
+    return 1.0f;
   }
-  return 0.0;
+  return 0.0f;
 }
 
 void main()
@@ -63,7 +63,7 @@ void main()
     vec3 v2 = subdiv_get_vertex_pos(pos_nor2);
     vec3 v3 = subdiv_get_vertex_pos(pos_nor3);
 
-    vec3 face_normal = vec3(0.0);
+    vec3 face_normal = vec3(0.0f);
     add_newell_cross_v3_v3v3(face_normal, v0, v1);
     add_newell_cross_v3_v3v3(face_normal, v1, v2);
     add_newell_cross_v3_v3v3(face_normal, v2, v3);

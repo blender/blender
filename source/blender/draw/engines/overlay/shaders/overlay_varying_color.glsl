@@ -12,7 +12,7 @@ void main()
 {
   fragColor = finalColor;
 #ifdef LINE_OUTPUT
-  lineOutput = vec4(0.0);
+  lineOutput = vec4(0.0f);
 #endif
   select_id_output(select_id);
 }

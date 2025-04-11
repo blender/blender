@@ -47,21 +47,21 @@ struct rgb9e5_t {
 rgb9e5_t rgb9e5_from_float3(vec3 color)
 {
   const float max_rgb9e5 = float(0xFF80u);
-  color = clamp(color, 0.0, max_rgb9e5);
+  color = clamp(color, 0.0f, max_rgb9e5);
 
   float max_component = max(max(color.r, color.g), color.b);
   int log2_floored = rgb9e5_floor_log2(max_component);
   int exp_shared = max(-RGB9E5_EXP_BIAS - 1, log2_floored) + (1 + RGB9E5_EXP_BIAS);
   float denom = rgb9e5_exponent_factor(exp_shared);
-  int maxm = int(max_component / denom + 0.5);
+  int maxm = int(max_component / denom + 0.5f);
   if (maxm == MAX_RGB9E5_MANTISSA + 1) {
-    denom *= 2.0;
+    denom *= 2.0f;
     exp_shared += 1;
   }
 
   rgb9e5_t result;
   result.exp_shared = uint(exp_shared);
-  result.mantissa = uvec3(color / denom + 0.5);
+  result.mantissa = uvec3(color / denom + 0.5f);
   return result;
 }
 

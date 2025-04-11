@@ -58,15 +58,15 @@ vec3 sphere_probe_texel_to_direction(vec2 local_texel,
 vec2 sphere_probe_miplvl_scale_bias(float mip_lvl, SphereProbeUvArea uv_area, vec2 uv)
 {
   /* Add 0.5 to avoid rounding error. */
-  int mip_0_res = int(float(SPHERE_PROBE_ATLAS_RES) * uv_area.scale + 0.5);
+  int mip_0_res = int(float(SPHERE_PROBE_ATLAS_RES) * uv_area.scale + 0.5f);
   float mip_lvl_res = float(mip_0_res >> int(mip_lvl));
-  float mip_lvl_res_inv = 1.0 / mip_lvl_res;
+  float mip_lvl_res_inv = 1.0f / mip_lvl_res;
   /* We place texel centers at the edges of the octahedron, to avoid artifacts caused by
    * interpolating across the edges.
    * The first pixel scaling aligns all the border edges (half pixel border).
    * The second pixel scaling aligns the center edges (odd number of pixel). */
-  float scale = (mip_lvl_res - 2.0) * mip_lvl_res_inv;
-  float offset = 0.5 * mip_lvl_res_inv;
+  float scale = (mip_lvl_res - 2.0f) * mip_lvl_res_inv;
+  float offset = 0.5f * mip_lvl_res_inv;
   return uv * scale + offset;
 }
 
@@ -91,13 +91,13 @@ void sphere_probe_direction_to_uv(vec3 L,
 vec2 sphere_probe_direction_to_uv(vec3 L, float lod, SphereProbeUvArea uv_area)
 {
   vec2 altas_uv_min, altas_uv_max_unused;
-  sphere_probe_direction_to_uv(L, lod, 0.0, uv_area, altas_uv_min, altas_uv_max_unused);
+  sphere_probe_direction_to_uv(L, lod, 0.0f, uv_area, altas_uv_min, altas_uv_max_unused);
   return altas_uv_min;
 }
 
 float sphere_probe_roughness_to_mix_fac(float roughness)
 {
-  const float scale = 1.0 / (SPHERE_PROBE_MIX_END_ROUGHNESS - SPHERE_PROBE_MIX_START_ROUGHNESS);
+  const float scale = 1.0f / (SPHERE_PROBE_MIX_END_ROUGHNESS - SPHERE_PROBE_MIX_START_ROUGHNESS);
   const float bias = scale * SPHERE_PROBE_MIX_START_ROUGHNESS;
   return square(saturate(roughness * scale - bias));
 }
@@ -109,7 +109,7 @@ float sphere_probe_roughness_to_lod(float roughness)
   float ratio = saturate(roughness / SPHERE_PROBE_MIP_MAX_ROUGHNESS);
   float ratio_sqrt = sqrt_fast(ratio);
   /* Mix with linear to avoid mip 1 being too sharp. */
-  float mip_ratio = mix(ratio, ratio_sqrt, 0.4);
+  float mip_ratio = mix(ratio, ratio_sqrt, 0.4f);
   return mip_ratio * float(SPHERE_PROBE_MIPMAP_LEVELS - 1);
 }
 
@@ -119,12 +119,12 @@ float sphere_probe_lod_to_roughness(float lod)
   /* Inverse of sphere_probe_roughness_to_lod. */
   float mip_ratio = lod / float(SPHERE_PROBE_MIPMAP_LEVELS - 1);
   float a = mip_ratio;
-  const float b = 0.6; /* Factor of ratio. */
-  const float c = 0.4; /* Factor of ratio_sqrt. */
+  const float b = 0.6f; /* Factor of ratio. */
+  const float c = 0.4f; /* Factor of ratio_sqrt. */
   float b2 = square(b);
   float c2 = square(c);
   float c4 = square(c2);
   /* In wolfram alpha we trust. */
-  float ratio = (-sqrt(4.0 * a * b * c2 + c4) + 2.0 * a * b + c2) / (2.0 * b2);
+  float ratio = (-sqrt(4.0f * a * b * c2 + c4) + 2.0f * a * b + c2) / (2.0f * b2);
   return ratio * SPHERE_PROBE_MIP_MAX_ROUGHNESS;
 }

@@ -21,29 +21,29 @@ void main()
   vec2 uv = uvcoordsvar.xy;
 
   float depth = texture(depth_tx, uv).r;
-  if (depth == 1.0) {
+  if (depth == 1.0f) {
     /* Skip the background. */
     discard;
     return;
   }
 
   /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
-  vec3 P = drw_point_screen_to_view(vec3(uv, 0.5));
+  vec3 P = drw_point_screen_to_view(vec3(uv, 0.5f));
   vec3 V = drw_view_incident_vector(P);
   vec3 N = workbench_normal_decode(texture(normal_tx, uv));
   vec4 mat_data = texture(material_tx, uv);
 
   vec3 base_color = mat_data.rgb;
-  vec4 color = vec4(1.0);
+  vec4 color = vec4(1.0f);
 
 #ifdef WORKBENCH_LIGHTING_MATCAP
   /* When using matcaps, mat_data.a is the back-face sign. */
-  N = (mat_data.a > 0.0) ? N : -N;
+  N = (mat_data.a > 0.0f) ? N : -N;
   color.rgb = get_matcap_lighting(matcap_tx, base_color, N, V);
 #endif
 
 #ifdef WORKBENCH_LIGHTING_STUDIO
-  float roughness = 0.0, metallic = 0.0;
+  float roughness = 0.0f, metallic = 0.0f;
   workbench_float_pair_decode(mat_data.a, roughness, metallic);
   color.rgb = get_world_lighting(base_color, roughness, metallic, N, V);
 #endif
@@ -53,7 +53,7 @@ void main()
 #endif
 
 #if defined(WORKBENCH_CAVITY) || defined(WORKBENCH_CURVATURE)
-  float cavity = 0.0, edges = 0.0, curvature = 0.0;
+  float cavity = 0.0f, edges = 0.0f, curvature = 0.0f;
 
 #  ifdef WORKBENCH_CAVITY
   cavity_compute(uv, depth_tx, normal_tx, cavity, edges);
@@ -63,7 +63,8 @@ void main()
   curvature_compute(uv, object_id_tx, normal_tx, curvature);
 #  endif
 
-  float final_cavity_factor = clamp((1.0 - cavity) * (1.0 + edges) * (1.0 + curvature), 0.0, 4.0);
+  float final_cavity_factor = clamp(
+      (1.0f - cavity) * (1.0f + edges) * (1.0f + curvature), 0.0f, 4.0f);
 
   color.rgb *= final_cavity_factor;
 #endif

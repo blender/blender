@@ -20,7 +20,7 @@ void main()
 {
   /* Scale the original rectangle to accommodate the diagonal of the diamond shape. */
   vec2 originalRectSize = rect.yw - rect.xz;
-  float offset = 0.125 * min(originalRectSize.x, originalRectSize.y) +
+  float offset = 0.125f * min(originalRectSize.x, originalRectSize.y) +
                  outlineOffset * outlineThickness;
   vec2 ofs = vec2(offset, -offset);
   vec2 pos;
@@ -44,25 +44,25 @@ void main()
     }
   }
 
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0f, 1.0f);
 
-  vec2 rectSize = rect.yw - rect.xz + 2.0 * vec2(outlineOffset, outlineOffset);
+  vec2 rectSize = rect.yw - rect.xz + 2.0f * vec2(outlineOffset, outlineOffset);
   float minSize = min(rectSize.x, rectSize.y);
 
-  vec2 centeredCoordinates = pos - ((rect.xz + rect.yw) / 2.0);
+  vec2 centeredCoordinates = pos - ((rect.xz + rect.yw) / 2.0f);
   uv = centeredCoordinates / minSize;
 
   /* Calculate the necessary "extrusion" of the coordinates to draw the middle part of
    * multi sockets. */
   float ratio = rectSize.x / rectSize.y;
-  extrusion = (ratio > 1.0) ? vec2((ratio - 1.0) / 2.0, 0.0) :
-                              vec2(0.0, ((1.0 / ratio) - 1.0) / 2.0);
+  extrusion = (ratio > 1.0f) ? vec2((ratio - 1.0f) / 2.0f, 0.0f) :
+                               vec2(0.0f, ((1.0f / ratio) - 1.0f) / 2.0f);
 
   /* Shape parameters. */
   finalShape = int(shape);
   finalOutlineThickness = outlineThickness / minSize;
   finalDotRadius = outlineThickness / minSize;
-  AAsize = 1.0 * aspect / minSize;
+  AAsize = 1.0f * aspect / minSize;
 
   /* Pass through parameters. */
   finalColor = colorInner;

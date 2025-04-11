@@ -10,11 +10,11 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_paint_texture)
 
 void main()
 {
-  vec4 mask = vec4(texture_read_as_srgb(maskImage, maskImagePremultiplied, uv_interp).rgb, 1.0);
+  vec4 mask = vec4(texture_read_as_srgb(maskImage, maskImagePremultiplied, uv_interp).rgb, 1.0f);
   if (maskInvertStencil) {
-    mask.rgb = 1.0 - mask.rgb;
+    mask.rgb = 1.0f - mask.rgb;
   }
-  float mask_step = smoothstep(0.0, 3.0, mask.r + mask.g + mask.b);
+  float mask_step = smoothstep(0.0f, 3.0f, mask.r + mask.g + mask.b);
   mask.rgb *= maskColor;
   mask.a = mask_step * opacity;
 

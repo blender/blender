@@ -20,14 +20,14 @@ void main()
   vec3 screen_pos = drw_view().viewinv[0].xyz * pos.x + drw_view().viewinv[1].xyz * pos.y;
   vec3 inst_pos = data_buf[gl_InstanceID].xyz;
   vec3 p = inst_pos;
-  p.z *= (pos.z == 0.0) ? 0.0 : 1.0;
+  p.z *= (pos.z == 0.0f) ? 0.0f : 1.0f;
   float screen_size = mul_project_m4_v3_zfac(globalsBlock.pixel_fac, p) * sizePixel;
   vec3 world_pos = p + screen_pos * screen_size;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Convert to screen position [0..sizeVp]. */
-  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
+  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 
   view_clipping_distances(world_pos);
 }

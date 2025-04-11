@@ -13,7 +13,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_armature_envelope_outline)
 /* project to screen space */
 vec2 proj(vec4 pos)
 {
-  return (0.5 * (pos.xy / pos.w) + 0.5) * sizeViewport;
+  return (0.5f * (pos.xy / pos.w) + 0.5f) * sizeViewport;
 }
 
 vec2 compute_dir(vec2 v0, vec2 v1, vec2 v2)
@@ -25,7 +25,7 @@ vec2 compute_dir(vec2 v0, vec2 v1, vec2 v2)
 
 mat3 compute_mat(vec4 sphere, vec3 bone_vec, out float z_ofs)
 {
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
   vec3 cam_ray = (is_persp) ? sphere.xyz - drw_view().viewinv[3].xyz : -drw_view().viewinv[2].xyz;
 
   /* Sphere center distance from the camera (persp) in world space. */
@@ -35,14 +35,14 @@ mat3 compute_mat(vec4 sphere, vec3 bone_vec, out float z_ofs)
   vec3 z_axis = cam_ray / cam_dist;
   vec3 x_axis = normalize(cross(bone_vec, z_axis));
   vec3 y_axis = cross(z_axis, x_axis);
-  z_ofs = 0.0;
+  z_ofs = 0.0f;
 
   if (is_persp) {
     /* For perspective, the projected sphere radius
      * can be bigger than the center disc. Compute the
      * max angular size and compensate by sliding the disc
      * towards the camera and scale it accordingly. */
-    const float half_pi = 3.1415926 * 0.5;
+    const float half_pi = 3.1415926f * 0.5f;
     float rad = sphere.w;
     /* Let be :
      * V the view vector origin.
@@ -51,7 +51,7 @@ mat3 compute_mat(vec4 sphere, vec3 bone_vec, out float z_ofs)
      * We compute the angle between (OV) and (OT). */
     float a = half_pi - asin(rad / cam_dist);
     float cos_b = cos(a);
-    float sin_b = sqrt(clamp(1.0 - cos_b * cos_b, 0.0, 1.0));
+    float sin_b = sqrt(clamp(1.0f - cos_b * cos_b, 0.0f, 1.0f));
 
     x_axis *= sin_b;
     y_axis *= sin_b;
@@ -104,7 +104,7 @@ void main()
   // float dst_tail = -dot(data_buf[gl_InstanceID].tail_sphere.xyz, drw_view().viewmat[2].xyz);
 
   vec4 sph_near, sph_far;
-  if ((dst_head > dst_tail) && (drw_view().winmat[3][3] == 0.0)) {
+  if ((dst_head > dst_tail) && (drw_view().winmat[3][3] == 0.0f)) {
     sph_near = data_buf[gl_InstanceID].tail_sphere;
     sph_far = data_buf[gl_InstanceID].head_sphere;
   }
@@ -113,10 +113,10 @@ void main()
     sph_far = data_buf[gl_InstanceID].tail_sphere;
   }
 
-  vec3 bone_vec = (sph_far.xyz - sph_near.xyz) + 1e-8;
+  vec3 bone_vec = (sph_far.xyz - sph_near.xyz) + 1e-8f;
 
   Bone b;
-  float bone_lenrcp = 1.0 / max(1e-8, sqrt(dot(bone_vec, bone_vec)));
+  float bone_lenrcp = 1.0f / max(1e-8f, sqrt(dot(bone_vec, bone_vec)));
   b.sinb = (sph_far.w - sph_near.w) * bone_lenrcp * sph_near.w;
   b.vec = bone_vec * bone_lenrcp;
 
@@ -151,5 +151,5 @@ void main()
 
   edgeStart = edgePos = proj(gl_Position);
 
-  finalColor = vec4(data_buf[gl_InstanceID].bone_color_and_wire_width.rgb, 1.0);
+  finalColor = vec4(data_buf[gl_InstanceID].bone_color_and_wire_width.rgb, 1.0f);
 }

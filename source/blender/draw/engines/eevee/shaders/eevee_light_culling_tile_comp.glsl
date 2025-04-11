@@ -46,7 +46,7 @@ vec4 tile_bound_cone(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
  * Corner order does not matter. */
 vec4 tile_bound_cylinder(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
 {
-  vec3 center = (v00 + v01 + v10 + v11) * 0.25;
+  vec3 center = (v00 + v01 + v10 + v11) * 0.25f;
   float dist_sqr = distance_squared(center, v00);
   dist_sqr = max(dist_sqr, distance_squared(center, v01));
   dist_sqr = max(dist_sqr, distance_squared(center, v10));
@@ -58,11 +58,11 @@ vec4 tile_bound_cylinder(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
 vec2 tile_to_ndc(vec2 tile_co, vec2 offset)
 {
   /* Add a margin to prevent culling too much if the frustum becomes too much unstable. */
-  const float margin = 0.02;
-  tile_co += margin * (offset * 2.0 - 1.0);
+  const float margin = 0.02f;
+  tile_co += margin * (offset * 2.0f - 1.0f);
 
   tile_co += offset;
-  return tile_co * light_cull_buf.tile_to_uv_fac * 2.0 - 1.0;
+  return tile_co * light_cull_buf.tile_to_uv_fac * 2.0f - 1.0f;
 }
 
 CullingTile tile_culling_get(uvec2 tile_co)
@@ -75,15 +75,15 @@ CullingTile tile_culling_get(uvec2 tile_co)
   corners[5].xy = corners[4].xy = tile_to_ndc(ftile, vec2(1, 0));
   corners[6].xy = corners[7].xy = tile_to_ndc(ftile, vec2(1, 1));
   corners[2].xy = corners[3].xy = tile_to_ndc(ftile, vec2(0, 1));
-  corners[1].z = corners[5].z = corners[6].z = corners[2].z = -1.0;
-  corners[0].z = corners[4].z = corners[7].z = corners[3].z = 1.0;
+  corners[1].z = corners[5].z = corners[6].z = corners[2].z = -1.0f;
+  corners[0].z = corners[4].z = corners[7].z = corners[3].z = 1.0f;
 
   for (int i = 0; i < 8; i++) {
     /* Culling in view space for precision. */
     corners[i] = project_point(drw_view().wininv, corners[i]);
   }
 
-  bool is_persp = drw_view().winmat[3][3] == 0.0;
+  bool is_persp = drw_view().winmat[3][3] == 0.0f;
   CullingTile tile;
   tile.bounds = (is_persp) ? tile_bound_cone(corners[0], corners[4], corners[7], corners[3]) :
                              tile_bound_cylinder(corners[0], corners[4], corners[7], corners[3]);
@@ -103,7 +103,7 @@ bool intersect(CullingTile tile, Sphere sphere)
   bool isect = true;
   /* Test tile intersection using bounding cone or bounding cylinder.
    * This has less false positive cases when the sphere is large. */
-  if (drw_view().winmat[3][3] == 0.0) {
+  if (drw_view().winmat[3][3] == 0.0f) {
     isect = intersect(shape_cone(tile.bounds.xyz, tile.bounds.w), sphere);
   }
   else {
@@ -170,7 +170,7 @@ void main()
       case LIGHT_SPOT_DISK: {
         LightSpotData spot = light_spot_data_get(light);
         /* Only for < ~170 degree Cone due to plane extraction precision. */
-        if (spot.spot_tan < 10.0) {
+        if (spot.spot_tan < 10.0f) {
           Pyramid pyramid = shape_pyramid_non_oblique(
               vP,
               vP - v_back * radius,
@@ -185,8 +185,8 @@ void main()
       case LIGHT_RECT:
       case LIGHT_ELLIPSE: {
         vec3 v000 = vP - v_right * radius - v_up * radius;
-        vec3 v100 = v000 + v_right * (radius * 2.0);
-        vec3 v010 = v000 + v_up * (radius * 2.0);
+        vec3 v100 = v000 + v_right * (radius * 2.0f);
+        vec3 v010 = v000 + v_up * (radius * 2.0f);
         vec3 v001 = v000 - v_back * radius;
         Box bbox = shape_box(v000, v100, v010, v001);
         intersect_tile = intersect_tile && intersect(tile, bbox);

@@ -21,6 +21,6 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_morphological_distance_feather_erode)
 ADDITIONAL_INFO(compositor_morphological_distance_feather_shared)
-DEFINE_VALUE("FUNCTION(x)", "1.0 - x")
+DEFINE_VALUE("FUNCTION(x)", "1.0f - x")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()

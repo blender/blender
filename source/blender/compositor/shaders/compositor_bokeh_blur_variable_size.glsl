@@ -22,15 +22,16 @@ vec4 load_weight(ivec2 texel, float radius)
    * in the weights texture. That's to guarantee that at last the center pixel will be accumulated
    * even if the weights texture is zero at its center. */
   if (texel.x == 0 && texel.y == 0) {
-    return vec4(1.0);
+    return vec4(1.0f);
   }
 
-  /* Add the radius to transform the texel into the range [0, radius * 2], with an additional 0.5
+  /* Add the radius to transform the texel into the range [0, radius * 2], with an additional 0.5f
    * to sample at the center of the pixels, then divide by the upper bound plus one to transform
    * the texel into the normalized range [0, 1] needed to sample the weights sampler. Finally,
    * invert the textures coordinates by subtracting from 1 to maintain the shape of the weights as
    * mentioned in the function description. */
-  return texture(weights_tx, 1.0 - ((vec2(texel) + vec2(radius + 0.5)) / (radius * 2.0 + 1.0)));
+  return texture(weights_tx,
+                 1.0f - ((vec2(texel) + vec2(radius + 0.5f)) / (radius * 2.0f + 1.0f)));
 }
 
 void main()
@@ -40,22 +41,22 @@ void main()
   /* The mask input is treated as a boolean. If it is zero, then no blurring happens for this
    * pixel. Otherwise, the pixel is blurred normally and the mask value is irrelevant. */
   float mask = texture_load(mask_tx, texel).x;
-  if (mask == 0.0) {
+  if (mask == 0.0f) {
     imageStore(output_img, texel, texture_load(input_tx, texel));
     return;
   }
 
-  float center_size = max(0.0, texture_load(size_tx, texel).x * base_size);
+  float center_size = max(0.0f, texture_load(size_tx, texel).x * base_size);
 
   /* Go over the window of the given search radius and accumulate the colors multiplied by their
    * respective weights as well as the weights themselves, but only if both the size of the center
    * pixel and the size of the candidate pixel are less than both the x and y distances of the
    * candidate pixel. */
-  vec4 accumulated_color = vec4(0.0);
-  vec4 accumulated_weight = vec4(0.0);
+  vec4 accumulated_color = vec4(0.0f);
+  vec4 accumulated_weight = vec4(0.0f);
   for (int y = -search_radius; y <= search_radius; y++) {
     for (int x = -search_radius; x <= search_radius; x++) {
-      float candidate_size = max(0.0, texture_load(size_tx, texel + ivec2(x, y)).x * base_size);
+      float candidate_size = max(0.0f, texture_load(size_tx, texel + ivec2(x, y)).x * base_size);
 
       /* Skip accumulation if either the x or y distances of the candidate pixel are larger than
        * either the center or candidate pixel size. Note that the max and min functions here denote

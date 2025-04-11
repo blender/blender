@@ -23,14 +23,14 @@ COMPUTE_SHADER_CREATE_INFO(eevee_surfel_ray)
 
 float avg_albedo(vec3 albedo)
 {
-  return saturate(dot(albedo, vec3(1.0 / 3.0)));
+  return saturate(dot(albedo, vec3(1.0f / 3.0f)));
 }
 
 void radiance_transfer(inout Surfel surfel, vec3 in_radiance, float in_visibility, vec3 L)
 {
   /* Clamped brightness. */
-  float luma = max(1e-8, reduce_max(in_radiance));
-  in_radiance *= 1.0 - max(0.0, luma - capture_info_buf.clamp_indirect) / luma;
+  float luma = max(1e-8f, reduce_max(in_radiance));
+  in_radiance *= 1.0f - max(0.0f, luma - capture_info_buf.clamp_indirect) / luma;
 
   float NL = dot(surfel.normal, L);
   /* Lambertian BSDF. Albedo applied later depending on which side of the surfel was hit. */
@@ -41,8 +41,8 @@ void radiance_transfer(inout Surfel surfel, vec3 in_radiance, float in_visibilit
 
   SurfelRadiance radiance = surfel.radiance_indirect[radiance_dst];
 
-  float sample_weight = 1.0 / capture_info_buf.sample_count;
-  bool front_facing = (NL > 0.0);
+  float sample_weight = 1.0f / capture_info_buf.sample_count;
+  bool front_facing = (NL > 0.0f);
   if (front_facing) {
     /* Store radiance normalized for spherical harmonic accumulation and for visualization. */
     radiance.front *= radiance.front_weight;
@@ -66,7 +66,7 @@ void radiance_transfer(inout Surfel surfel, vec3 in_radiance, float in_visibilit
 void radiance_transfer_surfel(inout Surfel receiver, Surfel sender)
 {
   vec3 L = safe_normalize(sender.position - receiver.position);
-  bool front_facing = dot(-L, sender.normal) > 0.0;
+  bool front_facing = dot(-L, sender.normal) > 0.0f;
 
   vec4 radiance_vis;
   SurfelRadiance sender_radiance_indirect = sender.radiance_indirect[radiance_src];
@@ -80,7 +80,7 @@ void radiance_transfer_surfel(inout Surfel receiver, Surfel sender)
   }
 
   if (!capture_info_buf.capture_indirect) {
-    radiance_vis.rgb = vec3(0.0);
+    radiance_vis.rgb = vec3(0.0f);
   }
 
   radiance_transfer(receiver, radiance_vis.rgb, radiance_vis.a, L);
@@ -88,16 +88,16 @@ void radiance_transfer_surfel(inout Surfel receiver, Surfel sender)
 
 void radiance_transfer_world(inout Surfel receiver, vec3 L)
 {
-  vec3 radiance = vec3(0.0);
-  float visibility = 0.0;
+  vec3 radiance = vec3(0.0f);
+  float visibility = 0.0f;
 
   if (capture_info_buf.capture_world_indirect) {
     SphereProbeUvArea atlas_coord = capture_info_buf.world_atlas_coord;
-    radiance = lightprobe_spheres_sample(L, 0.0, atlas_coord).rgb;
+    radiance = lightprobe_spheres_sample(L, 0.0f, atlas_coord).rgb;
   }
 
   if (capture_info_buf.capture_visibility_indirect) {
-    visibility = 1.0;
+    visibility = 1.0f;
   }
 
   radiance_transfer(receiver, radiance, visibility, L);

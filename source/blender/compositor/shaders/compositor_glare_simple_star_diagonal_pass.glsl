@@ -26,7 +26,7 @@ void main()
       vec4 current_input = imageLoad(diagonal_img, texel);
       vec4 next_input = imageLoad(diagonal_img, texel + i * direction);
 
-      vec4 neighbor_average = (previous_output + next_input) / 2.0;
+      vec4 neighbor_average = (previous_output + next_input) / 2.0f;
       vec4 causal_output = mix(current_input, neighbor_average, fade_factor);
       imageStore(diagonal_img, texel, causal_output);
       imageFence(diagonal_img);
@@ -42,7 +42,7 @@ void main()
       vec4 current_input = imageLoad(diagonal_img, texel);
       vec4 next_input = imageLoad(diagonal_img, texel - i * direction);
 
-      vec4 neighbor_average = (previous_output + next_input) / 2.0;
+      vec4 neighbor_average = (previous_output + next_input) / 2.0f;
       vec4 non_causal_output = mix(current_input, neighbor_average, fade_factor);
       imageStore(diagonal_img, texel, non_causal_output);
       imageFence(diagonal_img);

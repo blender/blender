@@ -24,16 +24,16 @@ void main()
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
   ivec2 size = imageSize(output_img);
-  vec2 normalized_pixel_location = (vec2(texel) + vec2(0.5)) / vec2(size);
-  float squared_shape_parameter = square(1.0 / smoothness);
+  vec2 normalized_pixel_location = (vec2(texel) + vec2(0.5f)) / vec2(size);
+  float squared_shape_parameter = square(1.0f / smoothness);
 
   populate_cache();
 
   /* Interpolate the markers using a Gaussian Radial Basis Function Interpolation with the
    * reciprocal of the smoothness as the shaping parameter. Equal weights are assigned to all
    * markers, so no RBF fitting is required. */
-  float sum_of_weights = 0.0;
-  vec4 weighted_sum = vec4(0.0);
+  float sum_of_weights = 0.0f;
+  vec4 weighted_sum = vec4(0.0f);
   for (int i = 0; i < number_of_markers; i++) {
     bool use_cache = i < int(CACHE_SIZE);
 

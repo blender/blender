@@ -37,7 +37,7 @@ void main()
                                gpu_attr_load_uint_1010102_snorm(tangent, gpu_attr_3, v_i).xyz;
 
   if ((gl_VertexID & 1) == 0) {
-    float flip = ((gl_VertexID & 2) == 0) ? -1.0 : 1.0;
+    float flip = ((gl_VertexID & 2) == 0) ? -1.0f : 1.0f;
     ls_P += normalSize * radius * (flip * ls_N - ls_T);
   }
 

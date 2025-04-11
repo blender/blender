@@ -57,7 +57,7 @@ void main()
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
   /* A value for accumulating the blur result. */
-  float accumulated_value = 0.0;
+  float accumulated_value = 0.0f;
 
   /* Compute the contribution of the center pixel to the blur result. */
   float center_value = FUNCTION(texture_load(input_tx, texel).x);
@@ -67,7 +67,7 @@ void main()
    * or minimum in the search loop below. Additionally, the center falloff is always 1.0, so start
    * with that. */
   float limit_distance = center_value;
-  float limit_distance_falloff = 1.0;
+  float limit_distance_falloff = 1.0f;
 
   /* Compute the contributions of the pixels to the right and left, noting that the weights and
    * falloffs textures only store the weights and falloffs for the positive half, but since the

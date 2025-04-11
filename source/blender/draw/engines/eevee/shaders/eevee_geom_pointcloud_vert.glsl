@@ -51,7 +51,7 @@ void main()
   interp.P += nodetree_displacement();
 
 #ifdef MAT_CLIP_PLANE
-  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0));
+  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0f));
 #endif
 
 #ifdef MAT_SHADOW

@@ -21,7 +21,7 @@ vec3 barycentric_distances_get()
   float wp_delta = length(dFdx(interp.P)) + length(dFdy(interp.P));
   float bc_delta = length(dFdx(gpu_BaryCoord)) + length(dFdy(gpu_BaryCoord));
   float rate_of_change = wp_delta / bc_delta;
-  return rate_of_change * (1.0 - gpu_BaryCoord);
+  return rate_of_change * (1.0f - gpu_BaryCoord);
 }
 #endif
 
@@ -47,11 +47,11 @@ void init_globals_curves()
     /* Needs to check for SAMPLING_DATA, otherwise surfel shader validation fails. */
     noise = fract(noise + sampling_rng_1D_get(SAMPLING_CURVES_U));
 #      endif
-    cos_theta = noise * 2.0 - 1.0;
+    cos_theta = noise * 2.0f - 1.0f;
 #    endif
   }
 #  endif
-  float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
+  float sin_theta = sqrt(max(0.0f, 1.0f - cos_theta * cos_theta));
   g_data.N = g_data.Ni = normalize(interp.N * sin_theta + curve_interp.binormal * cos_theta);
 
   /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
@@ -84,8 +84,8 @@ void init_globals()
   g_data.N = safe_normalize(interp.N);
   g_data.Ng = g_data.N;
   g_data.is_strand = false;
-  g_data.hair_time = 0.0;
-  g_data.hair_thickness = 0.0;
+  g_data.hair_time = 0.0f;
+  g_data.hair_thickness = 0.0f;
   g_data.hair_strand_id = 0;
 #if defined(MAT_SHADOW)
   g_data.ray_type = RAY_TYPE_SHADOW;
@@ -99,10 +99,10 @@ void init_globals()
     g_data.ray_type = RAY_TYPE_CAMERA;
   }
 #endif
-  g_data.ray_depth = 0.0;
+  g_data.ray_depth = 0.0f;
   g_data.ray_length = distance(g_data.P, drw_view_position());
-  g_data.barycentric_coords = vec2(0.0);
-  g_data.barycentric_dists = vec3(0.0);
+  g_data.barycentric_coords = vec2(0.0f);
+  g_data.barycentric_dists = vec3(0.0f);
 
 #ifdef GPU_FRAGMENT_SHADER
   g_data.N = (FrontFacing) ? g_data.N : -g_data.N;
@@ -123,8 +123,8 @@ void init_globals()
 void init_interface()
 {
 #ifdef GPU_VERTEX_SHADER
-  interp.P = vec3(0.0);
-  interp.N = vec3(0.0);
+  interp.P = vec3(0.0f);
+  interp.N = vec3(0.0f);
   drw_ResourceID_iface.resource_index = drw_resource_id();
 #endif
 }
@@ -146,7 +146,7 @@ void shadow_viewport_layer_set(int view_id, int lod)
 vec3 shadow_position_vector_get(vec3 view_position, ShadowRenderView view)
 {
   if (view.is_directional) {
-    return vec3(0.0, 0.0, -view_position.z - view.clip_near);
+    return vec3(0.0f, 0.0f, -view_position.z - view.clip_near);
   }
   return view_position;
 }
@@ -156,9 +156,9 @@ vec3 shadow_position_vector_get(vec3 view_position, ShadowRenderView view)
  * clipping at the same time. */
 vec3 shadow_clip_vector_get(vec3 view_position, float clip_distance_inv)
 {
-  if (clip_distance_inv == 0.0) {
+  if (clip_distance_inv == 0.0f) {
     /* No clipping. */
-    return vec3(2.0);
+    return vec3(2.0f);
   }
   /* Punctual shadow case. */
   return view_position * clip_distance_inv;

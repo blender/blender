@@ -9,15 +9,15 @@ void main()
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
   vec2 output_size = vec2(imageSize(output_img));
 
-  vec2 coordinates = (vec2(texel) + vec2(0.5)) / output_size;
+  vec2 coordinates = (vec2(texel) + vec2(0.5f)) / output_size;
 
-  vec4 accumulated_color = vec4(0.0);
+  vec4 accumulated_color = vec4(0.0f);
   for (int i = 0; i < number_of_motion_blur_samples; i++) {
     mat3 homography_matrix = to_float3x3(homography_matrices[i]);
 
-    vec3 transformed_coordinates = homography_matrix * vec3(coordinates, 1.0);
+    vec3 transformed_coordinates = homography_matrix * vec3(coordinates, 1.0f);
     /* Point is at infinity and will be zero when sampled, so early exit. */
-    if (transformed_coordinates.z == 0.0) {
+    if (transformed_coordinates.z == 0.0f) {
       continue;
     }
     vec2 projected_coordinates = transformed_coordinates.xy / transformed_coordinates.z;

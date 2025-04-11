@@ -45,7 +45,7 @@ void main()
 #endif
 
   /* Small bias to always be on top of the geom. */
-  gl_Position.z -= 1e-3;
+  gl_Position.z -= 1e-3f;
 
   /* ID 0 is nothing (background) */
   interp.ob_id = uint(drw_resource_id() + 1);

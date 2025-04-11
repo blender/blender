@@ -34,45 +34,45 @@ void main()
 {
   /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
    * memory pressure. */
-  const vec2 cornervec[36] = float2_array(vec2(0.0, 1.0),
-                                          vec2(0.02, 0.805),
-                                          vec2(0.067, 0.617),
-                                          vec2(0.169, 0.45),
-                                          vec2(0.293, 0.293),
-                                          vec2(0.45, 0.169),
-                                          vec2(0.617, 0.076),
-                                          vec2(0.805, 0.02),
-                                          vec2(1.0, 0.0),
-                                          vec2(-1.0, 0.0),
-                                          vec2(-0.805, 0.02),
-                                          vec2(-0.617, 0.067),
-                                          vec2(-0.45, 0.169),
-                                          vec2(-0.293, 0.293),
-                                          vec2(-0.169, 0.45),
-                                          vec2(-0.076, 0.617),
-                                          vec2(-0.02, 0.805),
-                                          vec2(0.0, 1.0),
-                                          vec2(0.0, -1.0),
-                                          vec2(-0.02, -0.805),
-                                          vec2(-0.067, -0.617),
-                                          vec2(-0.169, -0.45),
-                                          vec2(-0.293, -0.293),
-                                          vec2(-0.45, -0.169),
-                                          vec2(-0.617, -0.076),
-                                          vec2(-0.805, -0.02),
-                                          vec2(-1.0, 0.0),
-                                          vec2(1.0, 0.0),
-                                          vec2(0.805, -0.02),
-                                          vec2(0.617, -0.067),
-                                          vec2(0.45, -0.169),
-                                          vec2(0.293, -0.293),
-                                          vec2(0.169, -0.45),
-                                          vec2(0.076, -0.617),
-                                          vec2(0.02, -0.805),
-                                          vec2(0.0, -1.0));
+  const vec2 cornervec[36] = float2_array(vec2(0.0f, 1.0f),
+                                          vec2(0.02f, 0.805f),
+                                          vec2(0.067f, 0.617f),
+                                          vec2(0.169f, 0.45f),
+                                          vec2(0.293f, 0.293f),
+                                          vec2(0.45f, 0.169f),
+                                          vec2(0.617f, 0.076f),
+                                          vec2(0.805f, 0.02f),
+                                          vec2(1.0f, 0.0f),
+                                          vec2(-1.0f, 0.0f),
+                                          vec2(-0.805f, 0.02f),
+                                          vec2(-0.617f, 0.067f),
+                                          vec2(-0.45f, 0.169f),
+                                          vec2(-0.293f, 0.293f),
+                                          vec2(-0.169f, 0.45f),
+                                          vec2(-0.076f, 0.617f),
+                                          vec2(-0.02f, 0.805f),
+                                          vec2(0.0f, 1.0f),
+                                          vec2(0.0f, -1.0f),
+                                          vec2(-0.02f, -0.805f),
+                                          vec2(-0.067f, -0.617f),
+                                          vec2(-0.169f, -0.45f),
+                                          vec2(-0.293f, -0.293f),
+                                          vec2(-0.45f, -0.169f),
+                                          vec2(-0.617f, -0.076f),
+                                          vec2(-0.805f, -0.02f),
+                                          vec2(-1.0f, 0.0f),
+                                          vec2(1.0f, 0.0f),
+                                          vec2(0.805f, -0.02f),
+                                          vec2(0.617f, -0.067f),
+                                          vec2(0.45f, -0.169f),
+                                          vec2(0.293f, -0.293f),
+                                          vec2(0.169f, -0.45f),
+                                          vec2(0.076f, -0.617f),
+                                          vec2(0.02f, -0.805f),
+                                          vec2(0.0f, -1.0f));
 
   const vec2 center_offset[4] = float2_array(
-      vec2(1.0, 1.0), vec2(-1.0, 1.0), vec2(-1.0, -1.0), vec2(1.0, -1.0));
+      vec2(1.0f, 1.0f), vec2(-1.0f, 1.0f), vec2(-1.0f, -1.0f), vec2(1.0f, -1.0f));
 
   uint cflag = vflag & CNR_FLAG_RANGE;
   uint vofs = (vflag >> CORNER_VEC_OFS) & CORNER_VEC_RANGE;
@@ -87,7 +87,7 @@ void main()
   float radius = (is_inner) ? rad_inner : rad_outer;
 
   float shadow_offset = (is_inner && (cflag > BOTTOM_RIGHT)) ? (shadow_width - shadow_width_top) :
-                                                               0.0;
+                                                               0.0f;
 
   vec2 c = center_offset[cflag];
   vec2 center_outer = rad_outer * c;
@@ -101,10 +101,10 @@ void main()
    * straight part of the rectangle. This allows us to get a better falloff at the top. */
   if (is_inner && (cflag > BOTTOM_RIGHT) && (v.y < (shadow_offset - rad_outer))) {
     v.y += shadow_width_top;
-    v.x = 0.0;
+    v.x = 0.0f;
   }
   else {
-    v = radius * normalize(v - (center_outer + vec2(0.0, shadow_offset))) + center;
+    v = radius * normalize(v - (center_outer + vec2(0.0f, shadow_offset))) + center;
   }
 
   /* Position to corner */
@@ -122,9 +122,9 @@ void main()
     v += rct.xw;
   }
 
-  float inner_shadow_strength = min((rect.w - v.y) / rad_outer + 0.1, 1.0);
-  shadowFalloff = (is_inner) ? inner_shadow_strength : 0.0;
-  innerMask = (is_inner) ? 0.0 : 1.0;
+  float inner_shadow_strength = min((rect.w - v.y) / rad_outer + 0.1f, 1.0f);
+  shadowFalloff = (is_inner) ? inner_shadow_strength : 0.0f;
+  innerMask = (is_inner) ? 0.0f : 1.0f;
 
-  gl_Position = ModelViewProjectionMatrix * vec4(v, 0.0, 1.0);
+  gl_Position = ModelViewProjectionMatrix * vec4(v, 0.0f, 1.0f);
 }

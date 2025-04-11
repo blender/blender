@@ -12,8 +12,8 @@ void node_volume_scatter(vec4 color,
                          float weight,
                          out Closure result)
 {
-  color = max(color, vec4(0.0));
-  density = max(density, 0.0);
+  color = max(color, vec4(0.0f));
+  density = max(density, 0.0f);
 
   ClosureVolumeScatter volume_scatter_data;
   volume_scatter_data.weight = weight;

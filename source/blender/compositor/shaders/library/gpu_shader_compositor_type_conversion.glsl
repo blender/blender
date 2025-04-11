@@ -28,7 +28,7 @@ vec3 float_to_float3(float value)
 
 vec4 float_to_color(float value)
 {
-  return vec4(vec3(value), 1.0);
+  return vec4(vec3(value), 1.0f);
 }
 
 vec4 float_to_float4(float value)
@@ -38,7 +38,7 @@ vec4 float_to_float4(float value)
 
 bool float_to_bool(float value)
 {
-  return value > 0.0;
+  return value > 0.0f;
 }
 
 /* --------------------------------------------------------------------
@@ -86,7 +86,7 @@ bool int_to_bool(int value)
 
 float float2_to_float(vec2 value)
 {
-  return dot(value, vec2(1.0)) / 2.0;
+  return dot(value, vec2(1.0f)) / 2.0f;
 }
 
 int float2_to_int(vec2 value)
@@ -101,22 +101,22 @@ ivec2 float2_to_int2(vec2 value)
 
 vec3 float2_to_float3(vec2 value)
 {
-  return vec3(value, 0.0);
+  return vec3(value, 0.0f);
 }
 
 vec4 float2_to_color(vec2 value)
 {
-  return vec4(value, 0.0, 1.0);
+  return vec4(value, 0.0f, 1.0f);
 }
 
 vec4 float2_to_float4(vec2 value)
 {
-  return vec4(value, 0.0, 0.0);
+  return vec4(value, 0.0f, 0.0f);
 }
 
 bool float2_to_bool(vec2 value)
 {
-  return !all(equal(value, vec2(0.0)));
+  return !all(equal(value, vec2(0.0f)));
 }
 
 /* --------------------------------------------------------------------
@@ -125,7 +125,7 @@ bool float2_to_bool(vec2 value)
 
 float float3_to_float(vec3 value)
 {
-  return dot(value, vec3(1.0)) / 3.0;
+  return dot(value, vec3(1.0f)) / 3.0f;
 }
 
 int float3_to_int(vec3 value)
@@ -145,17 +145,17 @@ vec2 float3_to_float2(vec3 value)
 
 vec4 float3_to_color(vec3 value)
 {
-  return vec4(value, 1.0);
+  return vec4(value, 1.0f);
 }
 
 vec4 float3_to_float4(vec3 value)
 {
-  return vec4(value, 0.0);
+  return vec4(value, 0.0f);
 }
 
 bool float3_to_bool(vec3 value)
 {
-  return !all(equal(value, vec3(0.0)));
+  return !all(equal(value, vec3(0.0f)));
 }
 
 /* --------------------------------------------------------------------
@@ -194,7 +194,7 @@ vec4 color_to_float4(vec4 value)
 
 bool color_to_bool(vec4 value, vec3 luminance_coefficients)
 {
-  return color_to_float(value, luminance_coefficients) > 0.0;
+  return color_to_float(value, luminance_coefficients) > 0.0f;
 }
 
 /* --------------------------------------------------------------------
@@ -203,7 +203,7 @@ bool color_to_bool(vec4 value, vec3 luminance_coefficients)
 
 float float4_to_float(vec4 value)
 {
-  return dot(value, vec4(1.0)) / 4.0;
+  return dot(value, vec4(1.0f)) / 4.0f;
 }
 
 int float4_to_int(vec4 value)
@@ -233,7 +233,7 @@ vec4 float4_to_color(vec4 value)
 
 bool float4_to_bool(vec4 value)
 {
-  return !all(equal(value, vec4(0.0)));
+  return !all(equal(value, vec4(0.0f)));
 }
 
 /* --------------------------------------------------------------------
@@ -257,17 +257,17 @@ vec2 int2_to_float2(ivec2 value)
 
 vec3 int2_to_float3(ivec2 value)
 {
-  return vec3(vec2(value), 0.0);
+  return vec3(vec2(value), 0.0f);
 }
 
 vec4 int2_to_color(ivec2 value)
 {
-  return vec4(vec2(value), 0.0, 1.0);
+  return vec4(vec2(value), 0.0f, 1.0f);
 }
 
 vec4 int2_to_float4(ivec2 value)
 {
-  return vec4(vec2(value), 0.0, 0.0);
+  return vec4(vec2(value), 0.0f, 0.0f);
 }
 
 bool int2_to_bool(ivec2 value)
@@ -327,7 +327,7 @@ float float_from_vec4(vec4 vector, vec3 luminance_coefficients)
 
 float float_from_vec3(vec3 vector)
 {
-  return dot(vector, vec3(1.0)) / 3.0;
+  return dot(vector, vec3(1.0f)) / 3.0f;
 }
 
 vec3 vec3_from_vec4(vec4 vector)
@@ -342,10 +342,10 @@ vec3 vec3_from_float(float value)
 
 vec4 vec4_from_vec3(vec3 vector)
 {
-  return vec4(vector, 1.0);
+  return vec4(vector, 1.0f);
 }
 
 vec4 vec4_from_float(float value)
 {
-  return vec4(vec3(value), 1.0);
+  return vec4(vec3(value), 1.0f);
 }

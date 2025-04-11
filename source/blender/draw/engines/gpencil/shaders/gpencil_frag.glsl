@@ -11,13 +11,13 @@ FRAGMENT_SHADER_CREATE_INFO(gpencil_geometry)
 
 vec3 gpencil_lighting()
 {
-  vec3 light_accum = vec3(0.0);
+  vec3 light_accum = vec3(0.0f);
   for (int i = 0; i < GPENCIL_LIGHT_BUFFER_LEN; i++) {
-    if (vec3(gp_lights[i]._color).x == -1.0) {
+    if (vec3(gp_lights[i]._color).x == -1.0f) {
       break;
     }
     vec3 L = gp_lights[i]._position - gp_interp.pos;
-    float vis = 1.0;
+    float vis = 1.0f;
     gpLightType type = gpLightType(floatBitsToUint(gp_lights[i]._type));
     /* Spot Attenuation. */
     if (type == GP_LIGHT_TYPE_SPOT) {
@@ -25,9 +25,10 @@ vec3 gpencil_lighting()
       vec3 local_L = rot_scale * L;
       local_L /= abs(local_L.z);
       float ellipse = inversesqrt(length_squared(local_L));
-      vis *= smoothstep(0.0, 1.0, (ellipse - gp_lights[i]._spot_size) / gp_lights[i]._spot_blend);
+      vis *= smoothstep(
+          0.0f, 1.0f, (ellipse - gp_lights[i]._spot_size) / gp_lights[i]._spot_blend);
       /* Also mask +Z cone. */
-      vis *= step(0.0, local_L.z);
+      vis *= step(0.0f, local_L.z);
     }
     /* Inverse square decay. Skip for suns. */
     float L_len_sqr = length_squared(L);
@@ -36,17 +37,17 @@ vec3 gpencil_lighting()
     }
     else {
       L = gp_lights[i]._forward;
-      L_len_sqr = 1.0;
+      L_len_sqr = 1.0f;
     }
     /* Lambertian falloff */
     if (type != GP_LIGHT_TYPE_AMBIENT) {
       L /= sqrt(L_len_sqr);
-      vis *= clamp(dot(gpNormal, L), 0.0, 1.0);
+      vis *= clamp(dot(gpNormal, L), 0.0f, 1.0f);
     }
     light_accum += vis * gp_lights[i]._color;
   }
   /* Clamp to avoid NaNs. */
-  return clamp(light_accum, 0.0, 1e10);
+  return clamp(light_accum, 0.0f, 1e10f);
 }
 
 void main()
@@ -58,18 +59,18 @@ void main()
   }
   else if (flag_test(gp_interp_flat.mat_flag, GP_FILL_TEXTURE_USE)) {
     bool use_clip = flag_test(gp_interp_flat.mat_flag, GP_FILL_TEXTURE_CLIP);
-    vec2 uvs = (use_clip) ? clamp(gp_interp.uv, 0.0, 1.0) : gp_interp.uv;
+    vec2 uvs = (use_clip) ? clamp(gp_interp.uv, 0.0f, 1.0f) : gp_interp.uv;
     bool premul = flag_test(gp_interp_flat.mat_flag, GP_FILL_TEXTURE_PREMUL);
     col = texture_read_as_linearrgb(gpFillTexture, premul, uvs);
   }
   else if (flag_test(gp_interp_flat.mat_flag, GP_FILL_GRADIENT_USE)) {
     bool radial = flag_test(gp_interp_flat.mat_flag, GP_FILL_GRADIENT_RADIAL);
-    float fac = clamp(radial ? length(gp_interp.uv * 2.0 - 1.0) : gp_interp.uv.x, 0.0, 1.0);
+    float fac = clamp(radial ? length(gp_interp.uv * 2.0f - 1.0f) : gp_interp.uv.x, 0.0f, 1.0f);
     uint matid = gp_interp_flat.mat_flag >> GPENCIl_MATID_SHIFT;
     col = mix(gp_materials[matid].fill_color, gp_materials[matid].fill_mix_color, fac);
   }
   else /* SOLID */ {
-    col = vec4(1.0);
+    col = vec4(1.0f);
   }
   col.rgb *= col.a;
 
@@ -86,7 +87,7 @@ void main()
                                              gp_interp_noperspective.hardness);
 
   /* To avoid aliasing artifacts, we reduce the opacity of small strokes. */
-  fragColor *= smoothstep(0.0, 1.0, gp_interp_noperspective.thickness.y);
+  fragColor *= smoothstep(0.0f, 1.0f, gp_interp_noperspective.thickness.y);
 
   /* Holdout materials. */
   if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_HOLDOUT | GP_FILL_HOLDOUT)) {
@@ -98,9 +99,9 @@ void main()
      * Note that we are limited to mono-chromatic alpha blending here
      * because of the blend equation and the limit of 1 color target
      * when using custom color blending. */
-    revealColor = vec4(0.0, 0.0, 0.0, fragColor.a);
+    revealColor = vec4(0.0f, 0.0f, 0.0f, fragColor.a);
 
-    if (fragColor.a < 0.001) {
+    if (fragColor.a < 0.001f) {
       discard;
       return;
     }
@@ -119,7 +120,7 @@ void main()
   /* FIXME(fclem): Grrr. This is bad for performance but it's the easiest way to not get
    * depth written where the mask obliterate the layer. */
   float mask = texture(gpMaskTexture, uvs).r;
-  if (mask < 0.001) {
+  if (mask < 0.001f) {
     discard;
     return;
   }
@@ -128,7 +129,7 @@ void main()
    * This has a cost as the depth test cannot happen early.
    * We could do this in the vertex shader but then perspective interpolation of uvs and
    * fragment clipping gets really complicated. */
-  if (gp_interp_flat.depth >= 0.0) {
+  if (gp_interp_flat.depth >= 0.0f) {
     gl_FragDepth = gp_interp_flat.depth;
   }
   else {

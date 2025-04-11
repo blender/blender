@@ -59,7 +59,7 @@ int curves_attribute_element_id()
 vec4 attr_load_tangent(samplerBuffer cd_buf)
 {
   /* Not supported for the moment. */
-  return vec4(0.0, 0.0, 0.0, 1.0);
+  return vec4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 vec3 attr_load_uv(samplerBuffer cd_buf)
 {

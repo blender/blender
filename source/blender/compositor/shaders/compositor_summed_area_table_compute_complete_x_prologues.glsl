@@ -15,9 +15,9 @@ void main()
    * though, conceptually, the dispatch domain covers the vertical axis of the image. */
   int x = int(gl_GlobalInvocationID.x);
 
-  vec4 accumulated_color = vec4(0.0);
+  vec4 accumulated_color = vec4(0.0f);
   for (int y = 0; y < texture_size(incomplete_x_prologues_tx).y; y++) {
-    accumulated_color += texture_load(incomplete_x_prologues_tx, ivec2(x, y), vec4(0.0));
+    accumulated_color += texture_load(incomplete_x_prologues_tx, ivec2(x, y), vec4(0.0f));
     imageStore(complete_x_prologues_img, ivec2(x, y), accumulated_color);
 
     if (gl_WorkGroupID.x == 0) {
@@ -26,7 +26,7 @@ void main()
        * so we set the sum to zero in that case. This is implemented by setting the sums of the
        * first vertical work-group to zero, white latter work-groups are summed as usual and
        * stored starting from the second row. */
-      imageStore(complete_x_prologues_sum_img, ivec2(y, 0), vec4(0.0));
+      imageStore(complete_x_prologues_sum_img, ivec2(y, 0), vec4(0.0f));
     }
 
     /* A parallel reduction loop to sum the prologues. This is exactly the same as the parallel

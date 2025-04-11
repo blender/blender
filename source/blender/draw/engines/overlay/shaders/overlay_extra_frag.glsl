@@ -13,7 +13,7 @@ void main()
 {
   fragColor = finalColor;
 #ifdef IS_SPOT_CONE
-  lineOutput = vec4(0.0);
+  lineOutput = vec4(0.0f);
 #else
   lineOutput = pack_line_data(gl_FragCoord.xy, edgeStart, edgePos);
   select_id_output(select_id);

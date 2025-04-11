@@ -26,7 +26,7 @@ void main()
 
       /* Exempt the center pixel. */
       if (all(notEqual(offset, ivec2(0)))) {
-        if (texture_load(input_tx, texel + offset).a < 1.0) {
+        if (texture_load(input_tx, texel + offset).a < 1.0f) {
           has_transparent_neighbors = true;
           break;
         }
@@ -35,7 +35,7 @@ void main()
   }
 
   /* The pixels at the boundary are those that are opaque and have transparent neighbors. */
-  bool is_opaque = texture_load(input_tx, texel).a == 1.0;
+  bool is_opaque = texture_load(input_tx, texel).a == 1.0f;
   bool is_boundary_pixel = is_opaque && has_transparent_neighbors;
 
   /* Encode the boundary information in the format expected by the jump flooding algorithm. */

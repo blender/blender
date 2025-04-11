@@ -11,25 +11,25 @@ void main()
 
   /* Add 0.5 to evaluate the input sampler at the center of the pixel and divide by the image size
    * to get the coordinates into the sampler's expected [0, 1] range. */
-  vec2 coordinates = (vec2(texel) + vec2(0.5)) / vec2(input_size);
+  vec2 coordinates = (vec2(texel) + vec2(0.5f)) / vec2(input_size);
 
   /* We accumulate four variants of the input ghost texture, each is scaled by some amount and
    * possibly multiplied by some color as a form of color modulation. */
-  vec4 accumulated_ghost = vec4(0.0);
+  vec4 accumulated_ghost = vec4(0.0f);
   for (int i = 0; i < 4; i++) {
     float scale = scales[i];
     vec4 color_modulator = color_modulators[i];
 
     /* Scale the coordinates for the ghost, pre subtract 0.5 and post add 0.5 to use 0.5 as the
      * origin of the scaling. */
-    vec2 scaled_coordinates = (coordinates - 0.5) * scale + 0.5;
+    vec2 scaled_coordinates = (coordinates - 0.5f) * scale + 0.5f;
 
     /* The value of the ghost is attenuated by a scalar multiple of the inverse distance to the
      * center, such that it is maximum at the center and become zero further from the center,
      * making sure to take the scale into account. The scalar multiple of 1 / 4 is chosen using
      * visual judgment. */
-    float distance_to_center = distance(coordinates, vec2(0.5)) * 2.0;
-    float attenuator = max(0.0, 1.0 - distance_to_center * abs(scale)) / 4.0;
+    float distance_to_center = distance(coordinates, vec2(0.5f)) * 2.0f;
+    float attenuator = max(0.0f, 1.0f - distance_to_center * abs(scale)) / 4.0f;
 
     /* Accumulate the scaled ghost after attenuating and color modulating its value. */
     vec4 multiplier = attenuator * color_modulator;

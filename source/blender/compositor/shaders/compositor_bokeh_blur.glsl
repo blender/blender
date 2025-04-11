@@ -12,7 +12,7 @@ vec4 load_input(ivec2 texel)
     /* If bounds are extended, then we treat the input as padded by a radius amount of pixels. So
      * we load the input with an offset by the radius amount and fallback to a transparent color if
      * it is out of bounds. */
-    color = texture_load(input_tx, texel - radius, vec4(0.0));
+    color = texture_load(input_tx, texel - radius, vec4(0.0f));
   }
   else {
     color = texture_load(input_tx, texel);
@@ -34,12 +34,13 @@ vec4 load_input(ivec2 texel)
  * of the weights texture, hence the need for inversion. */
 vec4 load_weight(ivec2 texel)
 {
-  /* Add the radius to transform the texel into the range [0, radius * 2], with an additional 0.5
+  /* Add the radius to transform the texel into the range [0, radius * 2], with an additional 0.5f
    * to sample at the center of the pixels, then divide by the upper bound plus one to transform
    * the texel into the normalized range [0, 1] needed to sample the weights sampler. Finally,
    * invert the textures coordinates by subtracting from 1 to maintain the shape of the weights as
    * mentioned in the function description. */
-  return texture(weights_tx, 1.0 - ((vec2(texel) + vec2(radius + 0.5)) / (radius * 2.0 + 1.0)));
+  return texture(weights_tx,
+                 1.0f - ((vec2(texel) + vec2(radius + 0.5f)) / (radius * 2.0f + 1.0f)));
 }
 
 void main()
@@ -49,15 +50,15 @@ void main()
   /* The mask input is treated as a boolean. If it is zero, then no blurring happens for this
    * pixel. Otherwise, the pixel is blurred normally and the mask value is irrelevant. */
   float mask = texture_load(mask_tx, texel).x;
-  if (mask == 0.0) {
+  if (mask == 0.0f) {
     imageStore(output_img, texel, texture_load(input_tx, texel));
     return;
   }
 
   /* Go over the window of the given radius and accumulate the colors multiplied by their
    * respective weights as well as the weights themselves. */
-  vec4 accumulated_color = vec4(0.0);
-  vec4 accumulated_weight = vec4(0.0);
+  vec4 accumulated_color = vec4(0.0f);
+  vec4 accumulated_weight = vec4(0.0f);
   for (int y = -radius; y <= radius; y++) {
     for (int x = -radius; x <= radius; x++) {
       vec4 weight = load_weight(ivec2(x, y));

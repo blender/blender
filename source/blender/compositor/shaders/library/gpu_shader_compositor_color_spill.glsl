@@ -10,7 +10,7 @@ void node_composite_color_spill(vec4 color,
                                 float limit_scale,
                                 out vec4 result)
 {
-  float average_limit = (color[int(limit_channels.x)] + color[int(limit_channels.y)]) / 2.0;
+  float average_limit = (color[int(limit_channels.x)] + color[int(limit_channels.y)]) / 2.0f;
   float map = factor * color[int(spill_channel)] - limit_scale * average_limit;
-  result = vec4(map > 0.0 ? color.rgb + spill_scale * map : color.rgb, color.a);
+  result = vec4(map > 0.0f ? color.rgb + spill_scale * map : color.rgb, color.a);
 }

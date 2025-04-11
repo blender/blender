@@ -55,7 +55,7 @@ void main()
   ivec2 texel = min(ivec2(gl_GlobalInvocationID.xy), imageSize(velocity_img) - 1);
 
   vec2 render_size = vec2(imageSize(velocity_img).xy);
-  vec2 uv = (vec2(texel) + 0.5) / render_size;
+  vec2 uv = (vec2(texel) + 0.5f) / render_size;
   float depth = texelFetch(depth_tx, texel, 0).r;
   vec4 motion = velocity_resolve(imageLoad(velocity_img, texel), uv, depth);
 #ifdef FLATTEN_RG
@@ -69,9 +69,9 @@ void main()
   imageStore(velocity_img, ivec2(gl_GlobalInvocationID.xy), velocity_pack(motion));
   /* Clip velocity to viewport bounds (in NDC space). */
   vec2 line_clip;
-  line_clip.x = line_unit_square_intersect_dist_safe(uv * 2.0 - 1.0, motion.xy * 2.0);
-  line_clip.y = line_unit_square_intersect_dist_safe(uv * 2.0 - 1.0, -motion.zw * 2.0);
-  motion *= min(line_clip, vec2(1.0)).xxyy;
+  line_clip.x = line_unit_square_intersect_dist_safe(uv * 2.0f - 1.0f, motion.xy * 2.0f);
+  line_clip.y = line_unit_square_intersect_dist_safe(uv * 2.0f - 1.0f, -motion.zw * 2.0f);
+  motion *= min(line_clip, vec2(1.0f)).xxyy;
   /* Convert to pixel space. Note this is only for velocity tiles. */
   motion *= render_size.xyxy;
   /* Rescale to shutter relative motion for viewport. */

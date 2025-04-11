@@ -28,16 +28,16 @@ GlobalData init_globals(vec3 wP)
 {
   GlobalData surf;
   surf.P = wP;
-  surf.N = vec3(0.0);
-  surf.Ng = vec3(0.0);
+  surf.N = vec3(0.0f);
+  surf.Ng = vec3(0.0f);
   surf.is_strand = false;
-  surf.hair_time = 0.0;
-  surf.hair_thickness = 0.0;
+  surf.hair_time = 0.0f;
+  surf.hair_thickness = 0.0f;
   surf.hair_strand_id = 0;
-  surf.barycentric_coords = vec2(0.0);
-  surf.barycentric_dists = vec3(0.0);
+  surf.barycentric_coords = vec2(0.0f);
+  surf.barycentric_dists = vec3(0.0f);
   surf.ray_type = RAY_TYPE_CAMERA;
-  surf.ray_depth = 0.0;
+  surf.ray_depth = 0.0f;
   surf.ray_length = distance(surf.P, drw_view_position());
   return surf;
 }
@@ -51,7 +51,7 @@ struct VolumeProperties {
 
 VolumeProperties eval_froxel(ivec3 froxel, float jitter)
 {
-  vec3 uvw = (vec3(froxel) + vec3(0.5, 0.5, 0.5 - jitter)) * uniform_buf.volumes.inv_tex_size;
+  vec3 uvw = (vec3(froxel) + vec3(0.5f, 0.5f, 0.5f - jitter)) * uniform_buf.volumes.inv_tex_size;
 
   vec3 vP = volume_jitter_to_view(uvw);
   vec3 wP = drw_point_view_to_world(vP);
@@ -86,11 +86,11 @@ VolumeProperties eval_froxel(ivec3 froxel, float jitter)
 
 void write_froxel(ivec3 froxel, VolumeProperties prop)
 {
-  vec2 phase = vec2(prop.anisotropy, 1.0);
+  vec2 phase = vec2(prop.anisotropy, 1.0f);
 
   /* Do not add phase weight if there's no scattering. */
-  if (all(equal(prop.scattering, vec3(0.0)))) {
-    phase = vec2(0.0);
+  if (all(equal(prop.scattering, vec3(0.0f)))) {
+    phase = vec2(0.0f);
   }
 
   vec3 extinction = prop.scattering + prop.absorption;

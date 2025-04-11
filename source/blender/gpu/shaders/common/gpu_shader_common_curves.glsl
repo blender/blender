@@ -14,12 +14,12 @@ vec4 white_balance(vec4 color, vec4 black_level, vec4 white_level)
 
 float extrapolate_if_needed(float parameter, float value, float start_slope, float end_slope)
 {
-  if (parameter < 0.0) {
+  if (parameter < 0.0f) {
     return value + parameter * start_slope;
   }
 
-  if (parameter > 1.0) {
-    return value + (parameter - 1.0) * end_slope;
+  if (parameter > 1.0f) {
+    return value + (parameter - 1.0f) * end_slope;
   }
 
   return value;
@@ -28,9 +28,9 @@ float extrapolate_if_needed(float parameter, float value, float start_slope, flo
 /* Same as extrapolate_if_needed but vectorized. */
 vec3 extrapolate_if_needed(vec3 parameters, vec3 values, vec3 start_slopes, vec3 end_slopes)
 {
-  vec3 end_or_zero_slopes = mix(vec3(0.0), end_slopes, greaterThan(parameters, vec3(1.0)));
-  vec3 slopes = mix(end_or_zero_slopes, start_slopes, lessThan(parameters, vec3(0.0)));
-  parameters = parameters - mix(vec3(0.0), vec3(1.0), greaterThan(parameters, vec3(1.0)));
+  vec3 end_or_zero_slopes = mix(vec3(0.0f), end_slopes, greaterThan(parameters, vec3(1.0f)));
+  vec3 slopes = mix(end_or_zero_slopes, start_slopes, lessThan(parameters, vec3(0.0f)));
+  parameters = parameters - mix(vec3(0.0f), vec3(1.0f), greaterThan(parameters, vec3(1.0f)));
   return values + parameters * slopes;
 }
 
@@ -41,16 +41,16 @@ float compute_curve_map_coordinates(float parameter)
 {
   /* Curve maps have a fixed width of 257. We offset by the equivalent of half a pixel and scale
    * down such that the normalized parameter 1.0 corresponds to the center of the last pixel. */
-  float sampler_offset = 0.5 / 257.0;
-  float sampler_scale = 1.0 - (1.0 / 257.0);
+  float sampler_offset = 0.5f / 257.0f;
+  float sampler_scale = 1.0f - (1.0f / 257.0f);
   return parameter * sampler_scale + sampler_offset;
 }
 
 /* Same as compute_curve_map_coordinates but vectorized. */
 vec3 compute_curve_map_coordinates(vec3 parameters)
 {
-  float sampler_offset = 0.5 / 257.0;
-  float sampler_scale = 1.0 - (1.0 / 257.0);
+  float sampler_offset = 0.5f / 257.0f;
+  float sampler_scale = 1.0f - (1.0f / 257.0f);
   return parameters * sampler_scale + sampler_offset;
 }
 
@@ -128,8 +128,8 @@ void curves_combined_only(float factor,
 /* Contrary to standard tone curve implementations, the film-like implementation tries to preserve
  * the hue of the colors as much as possible. To understand why this might be a problem, consider
  * the violet color (0.5, 0.0, 1.0). If this color was to be evaluated at a power curve x^4, the
- * color will be blue (0.0625, 0.0, 1.0). So the color changes and not just its luminosity, which
- * is what film-like tone curves tries to avoid.
+ * color will be blue (0.0625, 0.0, 1.0). So the color changes and not just its luminosity,
+ * which is what film-like tone curves tries to avoid.
  *
  * First, the channels with the lowest and highest values are identified and evaluated at the
  * curve. Then, the third channel---the median---is computed while maintaining the original hue of
@@ -200,7 +200,7 @@ void curves_film_like(float factor,
 
   result.a = color.a;
 
-  result = mix(color, result, clamp(factor, 0.0, 1.0));
+  result = mix(color, result, clamp(factor, 0.0f, 1.0f));
 }
 
 void curves_vector(vec3 vector,

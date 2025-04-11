@@ -31,7 +31,7 @@ void main()
 
   gl_Position = gpencil_vertex(
       /* TODO */
-      vec4(1024.0, 1024.0, 1.0 / 1024.0, 1.0 / 1024.0),
+      vec4(1024.0f, 1024.0f, 1.0f / 1024.0f, 1.0f / 1024.0f),
       interp.P,
       interp.N,
       g_color,
@@ -58,7 +58,7 @@ void main()
   interp.P += nodetree_displacement();
 
 #ifdef MAT_CLIP_PLANE
-  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0));
+  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0f));
 #endif
 
 #ifdef MAT_SHADOW

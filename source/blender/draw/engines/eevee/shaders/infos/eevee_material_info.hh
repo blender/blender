@@ -24,7 +24,7 @@
 #  define SHADOW_UPDATE_ATOMIC_RASTER
 #  define MAT_TRANSPARENT
 
-#  define thickness_mode 1.0
+#  define thickness_mode 1.0f
 #endif
 
 #include "eevee_defines.hh"

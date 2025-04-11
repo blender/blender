@@ -35,15 +35,15 @@ void main()
   }
 
   float depth = texelFetch(depth_tx, texel_fullres, 0).r;
-  vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
+  vec2 uv = (vec2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
 
   vec4 ray_data_im = imageLoadFast(ray_data_img, texel);
   float ray_pdf_inv = ray_data_im.w;
 
-  if (ray_pdf_inv == 0.0) {
+  if (ray_pdf_inv == 0.0f) {
     /* Invalid ray or pixels without ray. Do not trace. */
-    imageStoreFast(ray_time_img, texel, vec4(0.0));
-    imageStoreFast(ray_radiance_img, texel, vec4(0.0));
+    imageStoreFast(ray_time_img, texel, vec4(0.0f));
+    imageStoreFast(ray_radiance_img, texel, vec4(0.0f));
     return;
   }
 
@@ -58,7 +58,7 @@ void main()
   if (closure_index == 0) {
     uint gbuf_header = texelFetch(gbuf_header_tx, ivec3(texel_fullres, 0), 0).r;
     float thickness = gbuffer_read_thickness(gbuf_header, gbuf_normal_tx, texel_fullres);
-    if (thickness != 0.0) {
+    if (thickness != 0.0f) {
       ClosureUndetermined cl = gbuffer_read_bin(
           gbuf_header, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
       ray = raytrace_thickness_ray_amend(ray, cl, V, thickness);
@@ -76,10 +76,10 @@ void main()
 
   vec3 radiance = lightprobe_eval_direction(samp, ray.origin, ray.direction, ray_pdf_inv);
   /* Set point really far for correct reprojection of background. */
-  float hit_time = 1000.0;
+  float hit_time = 1000.0f;
 
   radiance = colorspace_brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
 
   imageStoreFast(ray_time_img, texel, vec4(hit_time));
-  imageStoreFast(ray_radiance_img, texel, vec4(radiance, 0.0));
+  imageStoreFast(ray_radiance_img, texel, vec4(radiance, 0.0f));
 }

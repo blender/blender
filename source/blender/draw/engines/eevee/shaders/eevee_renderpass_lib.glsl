@@ -35,7 +35,7 @@ void clear_aovs()
     output_renderpass_color(uniform_buf.render_pass.color_len + i, vec4(0));
   }
   for (int i = 0; i < AOV_MAX && i < uniform_buf.render_pass.aovs.value_len; i++) {
-    output_renderpass_value(uniform_buf.render_pass.value_len + i, 0.0);
+    output_renderpass_value(uniform_buf.render_pass.value_len + i, 0.0f);
   }
 #endif
 }

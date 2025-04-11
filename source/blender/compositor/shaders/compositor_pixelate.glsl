@@ -11,7 +11,7 @@ void main()
   ivec2 start = (texel / ivec2(pixel_size)) * ivec2(pixel_size);
   ivec2 end = min(start + ivec2(pixel_size), texture_size(input_tx));
 
-  vec4 accumulated_color = vec4(0.0);
+  vec4 accumulated_color = vec4(0.0f);
   for (int y = start.y; y < end.y; y++) {
     for (int x = start.x; x < end.x; x++) {
       accumulated_color += texture_load_unbound(input_tx, ivec2(x, y));

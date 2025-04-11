@@ -24,15 +24,15 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray, vec2 pixel_size
   /* Constant bias (due to depth buffer precision). Helps with self intersection. */
   /* Magic numbers for 24bits of precision.
    * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
-  const float bias = -2.4e-7 * 2.0;
+  const float bias = -2.4e-7f * 2.0f;
   ray.origin.zw += bias;
   ray.direction.zw += bias;
 
   ray.direction -= ray.origin;
   /* If the line is degenerate, make it cover at least one pixel
    * to not have to handle zero-pixel extent as a special case later */
-  if (length_squared(ray.direction.xy) < 0.00001) {
-    ray.direction.xy = vec2(0.0, 0.00001);
+  if (length_squared(ray.direction.xy) < 0.00001f) {
+    ray.direction.xy = vec2(0.0f, 0.00001f);
   }
   float ray_len_sqr = length_squared(ray.direction.xyz);
   /* Make ray.direction cover one pixel. */
@@ -46,8 +46,8 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray, vec2 pixel_size
   float clip_dist = line_unit_box_intersect_dist_safe(ray.origin.xyz, ray.direction.xyz);
   ray.max_time = min(ray.max_time, clip_dist);
   /* Convert to texture coords [0..1] range. */
-  ray.origin = ray.origin * 0.5 + 0.5;
-  ray.direction *= 0.5;
+  ray.origin = ray.origin * 0.5f + 0.5f;
+  ray.direction *= 0.5f;
 }
 
 ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, vec2 pixel_size)
@@ -69,8 +69,8 @@ ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, vec2 pixel_size, float t
    * Calculate thickness further away to avoid near plane clipping issues. */
   ssray.origin.w = drw_depth_view_to_screen(ray.origin.z - thickness);
   ssray.direction.w = drw_depth_view_to_screen(ray.origin.z + ray.direction.z - thickness);
-  ssray.origin.w = ssray.origin.w * 2.0 - 1.0;
-  ssray.direction.w = ssray.direction.w * 2.0 - 1.0;
+  ssray.origin.w = ssray.origin.w * 2.0f - 1.0f;
+  ssray.direction.w = ssray.direction.w * 2.0f - 1.0f;
 
   raytrace_screenspace_ray_finalize(ssray, pixel_size);
   return ssray;

@@ -11,7 +11,7 @@ void main()
 
   /* Add 0.5 to evaluate the input sampler at the center of the pixel and divide by the image size
    * to get the coordinates into the sampler's expected [0, 1] range. */
-  vec2 coordinates = (vec2(texel) + vec2(0.5)) / vec2(texture_size(input_tx));
+  vec2 coordinates = (vec2(texel) + vec2(0.5f)) / vec2(texture_size(input_tx));
 
   vec4 offset;
   SMAANeighborhoodBlendingVS(coordinates, offset);

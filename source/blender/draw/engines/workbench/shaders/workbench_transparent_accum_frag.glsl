@@ -17,13 +17,13 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_lighting_matcap)
 /* Special function only to be used with calculate_transparent_weight(). */
 float linear_zdepth(float depth, mat4 proj_mat)
 {
-  if (proj_mat[3][3] == 0.0) {
-    float d = 2.0 * depth - 1.0;
+  if (proj_mat[3][3] == 0.0f) {
+    float d = 2.0f * depth - 1.0f;
     return -proj_mat[3][2] / (d + proj_mat[2][2]);
   }
   else {
     /* Return depth from near plane. */
-    float z_delta = -2.0 / proj_mat[2][2];
+    float z_delta = -2.0f / proj_mat[2][2];
     return depth * z_delta;
   }
 }
@@ -37,28 +37,28 @@ float calculate_transparent_weight()
   float z = linear_zdepth(gl_FragCoord.z, drw_view().winmat);
 #if 0
   /* Eq 10 : Good for surfaces with varying opacity (like particles) */
-  float a = min(1.0, alpha * 10.0) + 0.01;
-  float b = -gl_FragCoord.z * 0.95 + 1.0;
-  float w = a * a * a * 3e2 * b * b * b;
+  float a = min(1.0f, alpha * 10.0f) + 0.01f;
+  float b = -gl_FragCoord.z * 0.95f + 1.0f;
+  float w = a * a * a * 3e2f * b * b * b;
 #else
   /* Eq 7 put more emphasis on surfaces closer to the view. */
-  // float w = 10.0 / (1e-5 + pow(abs(z) / 5.0, 2.0) + pow(abs(z) / 200.0, 6.0)); /* Eq 7 */
-  // float w = 10.0 / (1e-5 + pow(abs(z) / 10.0, 3.0) + pow(abs(z) / 200.0, 6.0)); /* Eq 8 */
-  // float w = 10.0 / (1e-5 + pow(abs(z) / 200.0, 4.0)); /* Eq 9 */
+  // float w = 10.0f / (1e-5f + pow(abs(z) / 5.0f, 2.0f) + pow(abs(z) / 200.0f, 6.0f)); /* Eq 7 */
+  // float w = 10.0f / (1e-5f + pow(abs(z) / 10.0f, 3.0f) + pow(abs(z) / 200.0f, 6.0f)); /* Eq 8 */
+  // float w = 10.0f / (1e-5f + pow(abs(z) / 200.0f, 4.0f)); /* Eq 9 */
   /* Same as eq 7, but optimized. */
-  float a = abs(z) / 5.0;
-  float b = abs(z) / 200.0;
+  float a = abs(z) / 5.0f;
+  float b = abs(z) / 200.0f;
   b *= b;
-  float w = 10.0 / ((1e-5 + a * a) + b * (b * b)); /* Eq 7 */
+  float w = 10.0f / ((1e-5f + a * a) + b * (b * b)); /* Eq 7 */
 #endif
-  return clamp(w, 1e-2, 3e2);
+  return clamp(w, 1e-2f, 3e2f);
 }
 
 void main()
 {
   /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
   vec2 uv_viewport = gl_FragCoord.xy * world_data.viewport_size_inv;
-  vec3 vP = drw_point_screen_to_view(vec3(uv_viewport, 0.5));
+  vec3 vP = drw_point_screen_to_view(vec3(uv_viewport, 0.5f));
   vec3 I = drw_view_incident_vector(vP);
   vec3 N = normalize(normal_interp);
 

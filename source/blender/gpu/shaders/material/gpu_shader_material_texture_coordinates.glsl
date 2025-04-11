@@ -23,9 +23,9 @@ void node_tex_coord(mat4 obmatinv,
   generated = attr_orco;
   normal_transform_world_to_object(g_data.N, normal);
   uv = attr_uv.xyz;
-  bool valid_mat = (obmatinv[3][3] != 0.0);
+  bool valid_mat = (obmatinv[3][3] != 0.0f);
   if (valid_mat) {
-    object = (obmatinv * vec4(g_data.P, 1.0)).xyz;
+    object = (obmatinv * vec4(g_data.P, 1.0f)).xyz;
   }
   else {
     point_transform_world_to_object(g_data.P, object);

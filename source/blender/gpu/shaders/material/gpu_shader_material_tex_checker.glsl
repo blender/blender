@@ -8,7 +8,7 @@ void node_tex_checker(
   vec3 p = co * scale;
 
   /* Prevent precision issues on unit coordinates. */
-  p = (p + 0.000001) * 0.999999;
+  p = (p + 0.000001f) * 0.999999f;
 
   int xi = int(abs(floor(p.x)));
   int yi = int(abs(floor(p.y)));
@@ -17,5 +17,5 @@ void node_tex_checker(
   bool check = ((mod(xi, 2) == mod(yi, 2)) == bool(mod(zi, 2)));
 
   color = check ? color1 : color2;
-  fac = check ? 1.0 : 0.0;
+  fac = check ? 1.0f : 0.0f;
 }

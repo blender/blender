@@ -13,15 +13,15 @@ void main()
   /* Go over the pixels in the blur window of the specified radius around the center pixel, and for
    * pixels whose determinator is close enough to the determinator of the center pixel, accumulate
    * their color as well as their weights. */
-  float accumulated_weight = 0.0;
-  vec4 accumulated_color = vec4(0.0);
+  float accumulated_weight = 0.0f;
+  vec4 accumulated_color = vec4(0.0f);
   for (int y = -radius; y <= radius; y++) {
     for (int x = -radius; x <= radius; x++) {
       vec4 determinator = texture_load(determinator_tx, texel + ivec2(x, y));
-      float difference = dot(abs(center_determinator - determinator).rgb, vec3(1.0));
+      float difference = dot(abs(center_determinator - determinator).rgb, vec3(1.0f));
 
       if (difference < threshold) {
-        accumulated_weight += 1.0;
+        accumulated_weight += 1.0f;
         accumulated_color += texture_load(input_tx, texel + ivec2(x, y));
       }
     }
@@ -29,7 +29,7 @@ void main()
 
   /* Write the accumulated color divided by the accumulated weight if any pixel in the window was
    * accumulated, otherwise, write a fallback black color. */
-  vec4 fallback = vec4(vec3(0.0), 1.0);
-  vec4 color = (accumulated_weight != 0.0) ? (accumulated_color / accumulated_weight) : fallback;
+  vec4 fallback = vec4(vec3(0.0f), 1.0f);
+  vec4 color = (accumulated_weight != 0.0f) ? (accumulated_color / accumulated_weight) : fallback;
   imageStore(output_img, texel, color);
 }

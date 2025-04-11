@@ -14,7 +14,7 @@ void main()
   SeqStripDrawData strip = strip_data[id];
   vec4 rect = vec4(strip.left_handle, strip.bottom, strip.right_handle, strip.top);
   /* Expand by 1px to fit pixel grid rounding. */
-  vec2 expand = vec2(1.0, 1.0);
+  vec2 expand = vec2(1.0f, 1.0f);
   rect.xy -= expand;
   rect.zw += expand;
 

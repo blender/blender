@@ -25,11 +25,11 @@ void gpencil_color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, f
    */
   /* We add the mixed color. This is 100% mix (no texture visible). */
   gp_interp.color_mul = vec4(mixed_col.aaa, mixed_col.a);
-  gp_interp.color_add = vec4(mixed_col.rgb * mixed_col.a, 0.0);
+  gp_interp.color_add = vec4(mixed_col.rgb * mixed_col.a, 0.0f);
   /* Then we blend according to the texture mix factor.
    * Note that we keep the alpha modulation. */
   gp_interp.color_mul.rgb *= mix_tex;
-  gp_interp.color_add.rgb *= 1.0 - mix_tex;
+  gp_interp.color_add.rgb *= 1.0f - mix_tex;
 }
 
 void main()
@@ -42,7 +42,7 @@ void main()
   gpMaterial gp_mat = gp_materials[ma1.x + gpMaterialOffset];
   gpMaterialFlag gp_flag = gpMaterialFlag(floatBitsToUint(gp_mat._flag));
 
-  gl_Position = gpencil_vertex(vec4(viewportSize, 1.0 / viewportSize),
+  gl_Position = gpencil_vertex(vec4(viewportSize, 1.0f / viewportSize),
                                gp_flag,
                                gp_mat._alignment_rot,
                                gp_interp.pos,
@@ -62,7 +62,7 @@ void main()
 
     /* Special case: We don't use vertex color if material Holdout. */
     if (flag_test(gp_flag, GP_STROKE_HOLDOUT)) {
-      vert_color = vec4(0.0);
+      vert_color = vec4(0.0f);
     }
 
     gpencil_color_output(
@@ -72,13 +72,13 @@ void main()
 
     if (gpStrokeOrder3d) {
       /* Use the fragment depth (see fragment shader). */
-      gp_interp_flat.depth = -1.0;
+      gp_interp_flat.depth = -1.0f;
     }
     else if (flag_test(gp_flag, GP_STROKE_OVERLAP)) {
       /* Use the index of the point as depth.
        * This means the stroke can overlap itself. */
       float point_index = float(ma1.z);
-      gp_interp_flat.depth = (point_index + gpStrokeIndexOffset + 2.0) * 0.0000002;
+      gp_interp_flat.depth = (point_index + gpStrokeIndexOffset + 2.0f) * 0.0000002f;
     }
     else {
       /* Use the index of first point of the stroke as depth.
@@ -87,7 +87,7 @@ void main()
        * We offset by one so that the fill can be overlapped by its stroke.
        * The offset is ok since we pad the strokes data because of adjacency infos. */
       float stroke_index = float(ma1.y);
-      gp_interp_flat.depth = (stroke_index + gpStrokeIndexOffset + 2.0) * 0.0000002;
+      gp_interp_flat.depth = (stroke_index + gpStrokeIndexOffset + 2.0f) * 0.0000002f;
     }
   }
   else {
@@ -98,29 +98,29 @@ void main()
 
     /* Special case: We don't modulate alpha in gradient mode. */
     if (flag_test(gp_flag, GP_FILL_GRADIENT_USE)) {
-      fill_col.a = 1.0;
+      fill_col.a = 1.0f;
     }
 
     /* Decode fill opacity. */
-    vec4 fcol_decode = vec4(fcol1.rgb, floor(fcol1.a / 10.0));
+    vec4 fcol_decode = vec4(fcol1.rgb, floor(fcol1.a / 10.0f));
     float fill_opacity = fcol1.a - (fcol_decode.a * 10);
-    fcol_decode.a /= 10000.0;
+    fcol_decode.a /= 10000.0f;
 
     /* Special case: We don't use vertex color if material Holdout. */
     if (flag_test(gp_flag, GP_FILL_HOLDOUT)) {
-      fcol_decode = vec4(0.0);
+      fcol_decode = vec4(0.0f);
     }
 
     /* Apply opacity. */
     fill_col.a *= fill_opacity;
     /* If factor is > 1 force opacity. */
-    if (fill_opacity > 1.0) {
-      fill_col.a += fill_opacity - 1.0;
+    if (fill_opacity > 1.0f) {
+      fill_col.a += fill_opacity - 1.0f;
     }
 
-    fill_col.a = clamp(fill_col.a, 0.0, 1.0);
+    fill_col.a = clamp(fill_col.a, 0.0f, 1.0f);
 
-    gpencil_color_output(fill_col, fcol_decode, 1.0, gp_mat._fill_texture_mix);
+    gpencil_color_output(fill_col, fcol_decode, 1.0f, gp_mat._fill_texture_mix);
 
     gp_interp_flat.mat_flag = gp_flag & GP_FILL_FLAGS;
     gp_interp_flat.mat_flag |= uint(ma1.x + gpMaterialOffset) << GPENCIl_MATID_SHIFT;
@@ -130,12 +130,12 @@ void main()
 
     if (gpStrokeOrder3d) {
       /* Use the fragment depth (see fragment shader). */
-      gp_interp_flat.depth = -1.0;
+      gp_interp_flat.depth = -1.0f;
     }
     else {
       /* Use the index of first point of the stroke as depth. */
       float stroke_index = float(ma1.y);
-      gp_interp_flat.depth = (stroke_index + gpStrokeIndexOffset + 1.0) * 0.0000002;
+      gp_interp_flat.depth = (stroke_index + gpStrokeIndexOffset + 1.0f) * 0.0000002f;
     }
   }
 }

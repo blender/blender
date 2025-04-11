@@ -51,17 +51,17 @@
 #define no_hole_fill_pass false
 
 /* Distribute weights between near/slight-focus/far fields (slide 117). */
-#define dof_layer_threshold (4.0)
+#define dof_layer_threshold (4.0f)
 /* Make sure it overlaps. */
-#define dof_layer_offset_fg (0.5 + 1.0)
+#define dof_layer_offset_fg (0.5f + 1.0f)
 /* Extra offset for convolution layers to avoid light leaking from background. */
-#define dof_layer_offset (0.5 + 0.5)
+#define dof_layer_offset (0.5f + 0.5f)
 
 #define dof_max_slight_focus_radius DOF_MAX_SLIGHT_FOCUS_RADIUS
 
 const uvec2 quad_offsets_u[4] = uint2_array(uvec2(0, 1), uvec2(1, 1), uvec2(1, 0), uvec2(0, 0));
 const vec2 quad_offsets[4] = float2_array(
-    vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(0.5, -0.5), vec2(-0.5, -0.5));
+    vec2(-0.5f, 0.5f), vec2(0.5f, 0.5f), vec2(0.5f, -0.5f), vec2(-0.5f, -0.5f));
 
 /** \} */
 
@@ -72,10 +72,10 @@ const vec2 quad_offsets[4] = float2_array(
 float dof_hdr_color_weight(vec4 color)
 {
   /* Very fast "luma" weighting. */
-  float luma = (color.g * 2.0) + (color.r + color.b);
+  float luma = (color.g * 2.0f) + (color.r + color.b);
   /* TODO(fclem) Pass correct exposure. */
-  const float exposure = 1.0;
-  return 1.0 / (luma * exposure + 4.0);
+  const float exposure = 1.0f;
+  return 1.0f / (luma * exposure + 4.0f);
 }
 
 float dof_coc_select(vec4 cocs)
@@ -99,10 +99,10 @@ vec4 dof_bilateral_coc_weights(vec4 cocs)
 {
   float chosen_coc = dof_coc_select(cocs);
 
-  const float scale = 4.0; /* TODO(fclem) revisit. */
+  const float scale = 4.0f; /* TODO(fclem) revisit. */
   /* NOTE: The difference between the cocs should be inside a abs() function,
    * but we follow UE4 implementation to improve how dithered transparency looks (see slide 19). */
-  return saturate(1.0 - (chosen_coc - cocs) * scale);
+  return saturate(1.0f - (chosen_coc - cocs) * scale);
 }
 
 /* NOTE: Do not forget to normalize weights afterwards. */
@@ -139,10 +139,10 @@ float dof_layer_weight(float coc, const bool is_foreground)
   /* NOTE: These are full-resolution pixel CoC value. */
   if (IS_RESOLVE) {
     return saturate(-abs(coc) + dof_layer_threshold + dof_layer_offset) *
-           float(is_foreground ? (coc <= 0.5) : (coc > -0.5));
+           float(is_foreground ? (coc <= 0.5f) : (coc > -0.5f));
   }
   else {
-    coc *= 2.0; /* Account for half pixel gather. */
+    coc *= 2.0f; /* Account for half pixel gather. */
     float threshold = dof_layer_threshold -
                       ((is_foreground) ? dof_layer_offset_fg : dof_layer_offset);
     return saturate(((is_foreground) ? -coc : coc) - threshold);
@@ -151,7 +151,7 @@ float dof_layer_weight(float coc, const bool is_foreground)
 vec4 dof_layer_weight(vec4 coc)
 {
   /* NOTE: Used for scatter pass which already flipped the sign correctly. */
-  coc *= 2.0; /* Account for half pixel gather. */
+  coc *= 2.0f; /* Account for half pixel gather. */
   return saturate(coc - dof_layer_threshold + dof_layer_offset);
 }
 
@@ -159,10 +159,10 @@ vec4 dof_layer_weight(vec4 coc)
 float dof_sample_weight(float coc)
 {
 #if 1 /* Optimized */
-  return min(1.0, 1.0 / square(coc));
+  return min(1.0f, 1.0f / square(coc));
 #else
   /* Full intensity if CoC radius is below the pixel footprint. */
-  const float min_coc = 1.0;
+  const float min_coc = 1.0f;
   coc = max(min_coc, abs(coc));
   return (M_PI * min_coc * min_coc) / (M_PI * coc * coc);
 #endif
@@ -170,10 +170,10 @@ float dof_sample_weight(float coc)
 vec4 dof_sample_weight(vec4 coc)
 {
 #if 1 /* Optimized */
-  return min(vec4(1.0), 1.0 / square(coc));
+  return min(vec4(1.0f), 1.0f / square(coc));
 #else
   /* Full intensity if CoC radius is below the pixel footprint. */
-  const float min_coc = 1.0;
+  const float min_coc = 1.0f;
   coc = max(vec4(min_coc), abs(coc));
   return (M_PI * min_coc * min_coc) / (M_PI * coc * coc);
 #endif
@@ -195,17 +195,17 @@ struct CocTile {
 };
 
 /* WATCH: Might have to change depending on the texture format. */
-#define dof_tile_large_coc 1024.0
+#define dof_tile_large_coc 1024.0f
 
 /* Init a CoC tile for reduction algorithms. */
 CocTile dof_coc_tile_init()
 {
   CocTile tile;
-  tile.fg_min_coc = 0.0;
+  tile.fg_min_coc = 0.0f;
   tile.fg_max_coc = -dof_tile_large_coc;
   tile.fg_max_intersectable_coc = dof_tile_large_coc;
   tile.bg_min_coc = dof_tile_large_coc;
-  tile.bg_max_coc = 0.0;
+  tile.bg_max_coc = 0.0f;
   tile.bg_min_intersectable_coc = dof_tile_large_coc;
   return tile;
 }
@@ -252,7 +252,7 @@ bool dof_do_fast_gather(float max_absolute_coc, float min_absolute_coc, const bo
 {
   float min_weight = dof_layer_weight((is_foreground) ? -min_absolute_coc : min_absolute_coc,
                                       is_foreground);
-  if (min_weight < 1.0) {
+  if (min_weight < 1.0f) {
     return false;
   }
   /* FIXME(fclem): This is a workaround to fast gather triggering too early. Since we use custom
@@ -289,7 +289,7 @@ CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
   bool bg_fully_opaque = predict.do_background &&
                          dof_do_fast_gather(-tile.bg_max_coc, tile.bg_min_coc, false);
 #endif
-  predict.do_hole_fill = !fg_fully_opaque && -tile.fg_min_coc > 0.0;
+  predict.do_hole_fill = !fg_fully_opaque && -tile.fg_min_coc > 0.0f;
   predict.do_focus = !fg_fully_opaque;
   predict.do_slight_focus = !fg_fully_opaque;
 

@@ -50,13 +50,13 @@ shared uint shared_max_slight_focus_abs_coc;
  */
 float dof_slight_focus_coc_tile_get(vec2 frag_coord)
 {
-  float local_abs_max = 0.0;
+  float local_abs_max = 0.0f;
   /* Sample in a cross (X) pattern. This covers all pixels over the whole tile, as long as
    * dof_max_slight_focus_radius is less than the group size. */
   for (int i = 0; i < 4; i++) {
-    vec2 sample_uv = (frag_coord + quad_offsets[i] * 2.0 * dof_max_slight_focus_radius) /
+    vec2 sample_uv = (frag_coord + quad_offsets[i] * 2.0f * dof_max_slight_focus_radius) /
                      vec2(textureSize(color_tx, 0));
-    float coc = dof_coc_from_depth(dof_buf, sample_uv, textureLod(depth_tx, sample_uv, 0.0).r);
+    float coc = dof_coc_from_depth(dof_buf, sample_uv, textureLod(depth_tx, sample_uv, 0.0f).r);
     coc = clamp(coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
     if (abs(coc) < dof_max_slight_focus_radius) {
       local_abs_max = max(local_abs_max, abs(coc));
@@ -68,7 +68,7 @@ float dof_slight_focus_coc_tile_get(vec2 frag_coord)
 
 #else
   if (gl_LocalInvocationIndex == 0u) {
-    shared_max_slight_focus_abs_coc = floatBitsToUint(0.0);
+    shared_max_slight_focus_abs_coc = floatBitsToUint(0.0f);
   }
   barrier();
   /* Use atomic reduce operation. */
@@ -100,18 +100,18 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
      * │       │       │
      * └───────┴───────┘
      */
-    vec2 uv_sample = ((frag_coord + corners[i]) * 0.5) / vec2(textureSize(stable_color_tx, 0));
+    vec2 uv_sample = ((frag_coord + corners[i]) * 0.5f) / vec2(textureSize(stable_color_tx, 0));
     /* Reminder: The content of this buffer is YCoCg + CoC. */
-    vec3 ycocg_sample = textureLod(stable_color_tx, uv_sample, 0.0).rgb;
+    vec3 ycocg_sample = textureLod(stable_color_tx, uv_sample, 0.0f).rgb;
     neighbor_min = (i == 0) ? ycocg_sample : min(neighbor_min, ycocg_sample);
     neighbor_max = (i == 0) ? ycocg_sample : max(neighbor_max, ycocg_sample);
   }
   /* Pad the bounds in the near in focus region to get back a bit of detail. */
-  float padding = 0.125 * saturate(1.0 - square(center_coc) / square(8.0));
+  float padding = 0.125f * saturate(1.0f - square(center_coc) / square(8.0f));
   neighbor_max += abs(neighbor_min) * padding;
   neighbor_min -= abs(neighbor_min) * padding;
   /* Progressively apply the clamp to avoid harsh transition. Also mask by weight. */
-  float fac = saturate(square(max(0.0, abs(center_coc) - 0.5)) * 4.0) * weight;
+  float fac = saturate(square(max(0.0f, abs(center_coc) - 0.5f)) * 4.0f) * weight;
   /* Clamp in YCoCg space to avoid too much color drift. */
   color = colorspace_YCoCg_from_scene_linear(color);
   color = mix(color, clamp(color, neighbor_min, neighbor_max), fac);
@@ -121,66 +121,66 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
 
 void main()
 {
-  vec2 frag_coord = vec2(gl_GlobalInvocationID.xy) + 0.5;
+  vec2 frag_coord = vec2(gl_GlobalInvocationID.xy) + 0.5f;
   ivec2 tile_co = ivec2(frag_coord / float(DOF_TILES_SIZE * 2));
 
   CocTile coc_tile = dof_coc_tile_load(in_tiles_fg_img, in_tiles_bg_img, tile_co);
   CocTilePrediction prediction = dof_coc_tile_prediction_get(coc_tile);
 
   vec2 uv = frag_coord / vec2(textureSize(color_tx, 0));
-  vec2 uv_halfres = (frag_coord * 0.5) / vec2(textureSize(color_bg_tx, 0));
+  vec2 uv_halfres = (frag_coord * 0.5f) / vec2(textureSize(color_bg_tx, 0));
 
-  float slight_focus_max_coc = 0.0;
+  float slight_focus_max_coc = 0.0f;
   if (prediction.do_slight_focus) {
     slight_focus_max_coc = dof_slight_focus_coc_tile_get(frag_coord);
-    prediction.do_slight_focus = slight_focus_max_coc >= 0.5;
+    prediction.do_slight_focus = slight_focus_max_coc >= 0.5f;
     if (prediction.do_slight_focus) {
       prediction.do_focus = false;
     }
   }
 
   if (prediction.do_focus) {
-    float center_coc = (dof_coc_from_depth(dof_buf, uv, textureLod(depth_tx, uv, 0.0).r));
-    prediction.do_focus = abs(center_coc) <= 0.5;
+    float center_coc = (dof_coc_from_depth(dof_buf, uv, textureLod(depth_tx, uv, 0.0f).r));
+    prediction.do_focus = abs(center_coc) <= 0.5f;
   }
 
-  vec4 out_color = vec4(0.0);
-  float weight = 0.0;
+  vec4 out_color = vec4(0.0f);
+  float weight = 0.0f;
 
   vec4 layer_color;
   float layer_weight;
 
-  const vec3 hole_fill_color = vec3(0.2, 0.1, 1.0);
-  const vec3 background_color = vec3(0.1, 0.2, 1.0);
-  const vec3 slight_focus_color = vec3(1.0, 0.2, 0.1);
-  const vec3 focus_color = vec3(1.0, 1.0, 0.1);
-  const vec3 foreground_color = vec3(0.2, 1.0, 0.1);
+  const vec3 hole_fill_color = vec3(0.2f, 0.1f, 1.0f);
+  const vec3 background_color = vec3(0.1f, 0.2f, 1.0f);
+  const vec3 slight_focus_color = vec3(1.0f, 0.2f, 0.1f);
+  const vec3 focus_color = vec3(1.0f, 1.0f, 0.1f);
+  const vec3 foreground_color = vec3(0.2f, 1.0f, 0.1f);
 
   if (!no_hole_fill_pass && prediction.do_hole_fill) {
-    layer_color = textureLod(color_hole_fill_tx, uv_halfres, 0.0);
-    layer_weight = textureLod(weight_hole_fill_tx, uv_halfres, 0.0).r;
+    layer_color = textureLod(color_hole_fill_tx, uv_halfres, 0.0f);
+    layer_weight = textureLod(weight_hole_fill_tx, uv_halfres, 0.0f).r;
     if (do_debug_color) {
       layer_color.rgb *= hole_fill_color;
     }
     out_color = layer_color * safe_rcp(layer_weight);
-    weight = float(layer_weight > 0.0);
+    weight = float(layer_weight > 0.0f);
   }
 
   if (!no_background_pass && prediction.do_background) {
-    layer_color = textureLod(color_bg_tx, uv_halfres, 0.0);
-    layer_weight = textureLod(weight_bg_tx, uv_halfres, 0.0).r;
+    layer_color = textureLod(color_bg_tx, uv_halfres, 0.0f);
+    layer_weight = textureLod(weight_bg_tx, uv_halfres, 0.0f).r;
     if (do_debug_color) {
       layer_color.rgb *= background_color;
     }
     /* Always prefer background to hole_fill pass. */
     layer_color *= safe_rcp(layer_weight);
-    layer_weight = float(layer_weight > 0.0);
+    layer_weight = float(layer_weight > 0.0f);
     /* Composite background. */
-    out_color = out_color * (1.0 - layer_weight) + layer_color;
-    weight = weight * (1.0 - layer_weight) + layer_weight;
+    out_color = out_color * (1.0f - layer_weight) + layer_color;
+    weight = weight * (1.0f - layer_weight) + layer_weight;
     /* Fill holes with the composited background. */
     out_color *= safe_rcp(weight);
-    weight = float(weight > 0.0);
+    weight = float(weight > 0.0f);
   }
 
   if (!no_slight_focus_pass && prediction.do_slight_focus) {
@@ -197,40 +197,40 @@ void main()
     }
 
     /* Composite slight defocus. */
-    out_color = out_color * (1.0 - layer_weight) + layer_color;
-    weight = weight * (1.0 - layer_weight) + layer_weight;
+    out_color = out_color * (1.0f - layer_weight) + layer_color;
+    weight = weight * (1.0f - layer_weight) + layer_weight;
 
     // out_color.rgb = dof_neighborhood_clamp(frag_coord, out_color.rgb, center_coc, layer_weight);
   }
 
   if (!no_focus_pass && prediction.do_focus) {
-    layer_color = colorspace_safe_color(textureLod(color_tx, uv, 0.0));
-    layer_weight = 1.0;
+    layer_color = colorspace_safe_color(textureLod(color_tx, uv, 0.0f));
+    layer_weight = 1.0f;
     if (do_debug_color) {
       layer_color.rgb *= focus_color;
     }
     /* Composite in focus. */
-    out_color = out_color * (1.0 - layer_weight) + layer_color;
-    weight = weight * (1.0 - layer_weight) + layer_weight;
+    out_color = out_color * (1.0f - layer_weight) + layer_color;
+    weight = weight * (1.0f - layer_weight) + layer_weight;
   }
 
   if (!no_foreground_pass && prediction.do_foreground) {
-    layer_color = textureLod(color_fg_tx, uv_halfres, 0.0);
-    layer_weight = textureLod(weight_fg_tx, uv_halfres, 0.0).r;
+    layer_color = textureLod(color_fg_tx, uv_halfres, 0.0f);
+    layer_weight = textureLod(weight_fg_tx, uv_halfres, 0.0f).r;
     if (do_debug_color) {
       layer_color.rgb *= foreground_color;
     }
     /* Composite foreground. */
-    out_color = out_color * (1.0 - layer_weight) + layer_color;
+    out_color = out_color * (1.0f - layer_weight) + layer_color;
   }
 
   /* Fix float precision issue in alpha compositing. */
-  if (out_color.a > 0.99) {
-    out_color.a = 1.0;
+  if (out_color.a > 0.99f) {
+    out_color.a = 1.0f;
   }
 
   if (debug_resolve_perf && prediction.do_slight_focus) {
-    out_color.rgb *= vec3(1.0, 0.1, 0.1);
+    out_color.rgb *= vec3(1.0f, 0.1f, 0.1f);
   }
 
   imageStore(out_color_img, ivec2(gl_GlobalInvocationID.xy), out_color);

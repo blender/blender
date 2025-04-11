@@ -108,7 +108,7 @@ void light_eval_single_closure(LightData light,
                                const bool is_transmission)
 {
   attenuation *= light_power_get(light, cl.type);
-  if (attenuation < 1e-30) {
+  if (attenuation < 1e-30f) {
     return;
   }
   float ltc_result = light_ltc(utility_tx, light, cl.N, V, lv, cl.ltc_mat);
@@ -160,7 +160,7 @@ void light_eval_single(uint l_idx,
     return;
   }
 
-  float shadow = 1.0;
+  float shadow = 1.0f;
   if (light.tilemap_index != LIGHT_NO_SHADOW) {
     shadow = shadow_eval(light,
                          is_directional,
@@ -226,12 +226,12 @@ void light_eval_reflection(
 #endif
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    light_eval_single(l_idx, true, false, stack, P, Ng, V, 0.0, receiver_light_set);
+    light_eval_single(l_idx, true, false, stack, P, Ng, V, 0.0f, receiver_light_set);
   }
   LIGHT_FOREACH_END
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, PIXEL, vPz, l_idx) {
-    light_eval_single(l_idx, false, false, stack, P, Ng, V, 0.0, receiver_light_set);
+    light_eval_single(l_idx, false, false, stack, P, Ng, V, 0.0f, receiver_light_set);
   }
   LIGHT_FOREACH_END
 }

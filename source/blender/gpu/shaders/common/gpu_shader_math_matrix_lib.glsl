@@ -17,18 +17,18 @@
 
 mat2x2 mat2x2_diagonal(float v)
 {
-  return mat2x2(vec2(v, 0.0), vec2(0.0, v));
+  return mat2x2(vec2(v, 0.0f), vec2(0.0f, v));
 }
 mat3x3 mat3x3_diagonal(float v)
 {
-  return mat3x3(vec3(v, 0.0, 0.0), vec3(0.0, v, 0.0), vec3(0.0, 0.0, v));
+  return mat3x3(vec3(v, 0.0f, 0.0f), vec3(0.0f, v, 0.0f), vec3(0.0f, 0.0f, v));
 }
 mat4x4 mat4x4_diagonal(float v)
 {
-  return mat4x4(vec4(v, 0.0, 0.0, 0.0),
-                vec4(0.0, v, 0.0, 0.0),
-                vec4(0.0, 0.0, v, 0.0),
-                vec4(0.0, 0.0, 0.0, v));
+  return mat4x4(vec4(v, 0.0f, 0.0f, 0.0f),
+                vec4(0.0f, v, 0.0f, 0.0f),
+                vec4(0.0f, 0.0f, v, 0.0f),
+                vec4(0.0f, 0.0f, 0.0f, v));
 }
 
 mat2x2 mat2x2_all(float v)
@@ -46,28 +46,28 @@ mat4x4 mat4x4_all(float v)
 
 mat2x2 mat2x2_zero()
 {
-  return mat2x2_all(0.0);
+  return mat2x2_all(0.0f);
 }
 mat3x3 mat3x3_zero()
 {
-  return mat3x3_all(0.0);
+  return mat3x3_all(0.0f);
 }
 mat4x4 mat4x4_zero()
 {
-  return mat4x4_all(0.0);
+  return mat4x4_all(0.0f);
 }
 
 mat2x2 mat2x2_identity()
 {
-  return mat2x2_diagonal(1.0);
+  return mat2x2_diagonal(1.0f);
 }
 mat3x3 mat3x3_identity()
 {
-  return mat3x3_diagonal(1.0);
+  return mat3x3_diagonal(1.0f);
 }
 mat4x4 mat4x4_identity()
 {
-  return mat4x4_diagonal(1.0);
+  return mat4x4_diagonal(1.0f);
 }
 
 /** \} */
@@ -144,7 +144,7 @@ mat4x4 translate(mat4x4 mat, vec3 translation);
 
 /**
  * Equivalent to `mat * from_rotation(rotation)` but with fewer operation.
- * Optimized for rotation on basis vector (i.e: AxisAngle({1, 0, 0}, 0.2)).
+ * Optimized for rotation on basis vector (i.e: AxisAngle({1, 0, 0}, 0.2f)).
  */
 mat3x3 rotate(mat3x3 mat, AxisAngle rotation);
 mat3x3 rotate(mat3x3 mat, EulerXYZ rotation);
@@ -476,18 +476,18 @@ mat4x4 invert(mat4x4 mat)
 
 mat2x2 invert(mat2x2 mat, out bool r_success)
 {
-  r_success = determinant(mat) != 0.0;
-  return r_success ? inverse(mat) : mat2x2(0.0);
+  r_success = determinant(mat) != 0.0f;
+  return r_success ? inverse(mat) : mat2x2(0.0f);
 }
 mat3x3 invert(mat3x3 mat, out bool r_success)
 {
-  r_success = determinant(mat) != 0.0;
-  return r_success ? inverse(mat) : mat3x3(0.0);
+  r_success = determinant(mat) != 0.0f;
+  return r_success ? inverse(mat) : mat3x3(0.0f);
 }
 mat4x4 invert(mat4x4 mat, out bool r_success)
 {
-  r_success = determinant(mat) != 0.0;
-  return r_success ? inverse(mat) : mat4x4(0.0);
+  r_success = determinant(mat) != 0.0f;
+  return r_success ? inverse(mat) : mat4x4(0.0f);
 }
 
 #  if defined(GPU_OPENGL) || defined(GPU_METAL)
@@ -580,7 +580,7 @@ mat4x4 normalize(mat4x4 mat)
 
 mat2x2 normalize_and_get_size(mat2x2 mat, out vec2 r_size)
 {
-  float size_x = 0.0, size_y = 0.0;
+  float size_x = 0.0f, size_y = 0.0f;
   mat2x2 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -589,7 +589,7 @@ mat2x2 normalize_and_get_size(mat2x2 mat, out vec2 r_size)
 }
 mat2x3 normalize_and_get_size(mat2x3 mat, out vec2 r_size)
 {
-  float size_x = 0.0, size_y = 0.0;
+  float size_x = 0.0f, size_y = 0.0f;
   mat2x3 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -598,7 +598,7 @@ mat2x3 normalize_and_get_size(mat2x3 mat, out vec2 r_size)
 }
 mat2x4 normalize_and_get_size(mat2x4 mat, out vec2 r_size)
 {
-  float size_x = 0.0, size_y = 0.0;
+  float size_x = 0.0f, size_y = 0.0f;
   mat2x4 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -607,7 +607,7 @@ mat2x4 normalize_and_get_size(mat2x4 mat, out vec2 r_size)
 }
 mat3x2 normalize_and_get_size(mat3x2 mat, out vec3 r_size)
 {
-  float size_x = 0.0, size_y = 0.0, size_z = 0.0;
+  float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f;
   mat3x2 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -617,7 +617,7 @@ mat3x2 normalize_and_get_size(mat3x2 mat, out vec3 r_size)
 }
 mat3x3 normalize_and_get_size(mat3x3 mat, out vec3 r_size)
 {
-  float size_x = 0.0, size_y = 0.0, size_z = 0.0;
+  float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f;
   mat3x3 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -627,7 +627,7 @@ mat3x3 normalize_and_get_size(mat3x3 mat, out vec3 r_size)
 }
 mat3x4 normalize_and_get_size(mat3x4 mat, out vec3 r_size)
 {
-  float size_x = 0.0, size_y = 0.0, size_z = 0.0;
+  float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f;
   mat3x4 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -637,7 +637,7 @@ mat3x4 normalize_and_get_size(mat3x4 mat, out vec3 r_size)
 }
 mat4x2 normalize_and_get_size(mat4x2 mat, out vec4 r_size)
 {
-  float size_x = 0.0, size_y = 0.0, size_z = 0.0, size_w = 0.0;
+  float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f, size_w = 0.0f;
   mat4x2 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -648,7 +648,7 @@ mat4x2 normalize_and_get_size(mat4x2 mat, out vec4 r_size)
 }
 mat4x3 normalize_and_get_size(mat4x3 mat, out vec4 r_size)
 {
-  float size_x = 0.0, size_y = 0.0, size_z = 0.0, size_w = 0.0;
+  float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f, size_w = 0.0f;
   mat4x3 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -659,7 +659,7 @@ mat4x3 normalize_and_get_size(mat4x3 mat, out vec4 r_size)
 }
 mat4x4 normalize_and_get_size(mat4x4 mat, out vec4 r_size)
 {
-  float size_x = 0.0, size_y = 0.0, size_z = 0.0, size_w = 0.0;
+  float size_x = 0.0f, size_y = 0.0f, size_z = 0.0f, size_w = 0.0f;
   mat4x4 ret;
   ret[0] = normalize_and_get_length(mat[0], size_x);
   ret[1] = normalize_and_get_length(mat[1], size_y);
@@ -671,11 +671,11 @@ mat4x4 normalize_and_get_size(mat4x4 mat, out vec4 r_size)
 
 mat2x2 adjoint(mat2x2 mat)
 {
-  mat2x2 adj = mat2x2(0.0);
+  mat2x2 adj = mat2x2(0.0f);
   for (int c = 0; c < 2; c++) {
     for (int r = 0; r < 2; r++) {
       /* Copy other cells except the "cross" to compute the determinant. */
-      float tmp = 0.0;
+      float tmp = 0.0f;
       for (int m_c = 0; m_c < 2; m_c++) {
         for (int m_r = 0; m_r < 2; m_r++) {
           if (m_c != c && m_r != r) {
@@ -692,11 +692,11 @@ mat2x2 adjoint(mat2x2 mat)
 }
 mat3x3 adjoint(mat3x3 mat)
 {
-  mat3x3 adj = mat3x3(0.0);
+  mat3x3 adj = mat3x3(0.0f);
   for (int c = 0; c < 3; c++) {
     for (int r = 0; r < 3; r++) {
       /* Copy other cells except the "cross" to compute the determinant. */
-      mat2x2 tmp = mat2x2(0.0);
+      mat2x2 tmp = mat2x2(0.0f);
       for (int m_c = 0; m_c < 3; m_c++) {
         for (int m_r = 0; m_r < 3; m_r++) {
           if (m_c != c && m_r != r) {
@@ -715,11 +715,11 @@ mat3x3 adjoint(mat3x3 mat)
 }
 mat4x4 adjoint(mat4x4 mat)
 {
-  mat4x4 adj = mat4x4(0.0);
+  mat4x4 adj = mat4x4(0.0f);
   for (int c = 0; c < 4; c++) {
     for (int r = 0; r < 4; r++) {
       /* Copy other cells except the "cross" to compute the determinant. */
-      mat3x3 tmp = mat3x3(0.0);
+      mat3x3 tmp = mat3x3(0.0f);
       for (int m_c = 0; m_c < 4; m_c++) {
         for (int m_r = 0; m_r < 4; m_r++) {
           if (m_c != c && m_r != r) {
@@ -755,7 +755,7 @@ mat3x3 rotate(mat3x3 mat, AxisAngle rotation)
 {
   mat3x3 result;
   /* axis_vec is given to be normalized. */
-  if (rotation.axis.x == 1.0) {
+  if (rotation.axis.x == 1.0f) {
     float angle_cos = cos(rotation.angle);
     float angle_sin = sin(rotation.angle);
     for (int c = 0; c < 3; c++) {
@@ -764,7 +764,7 @@ mat3x3 rotate(mat3x3 mat, AxisAngle rotation)
       result[2][c] = -angle_sin * mat[1][c] + angle_cos * mat[2][c];
     }
   }
-  else if (rotation.axis.y == 1.0) {
+  else if (rotation.axis.y == 1.0f) {
     float angle_cos = cos(rotation.angle);
     float angle_sin = sin(rotation.angle);
     for (int c = 0; c < 3; c++) {
@@ -773,7 +773,7 @@ mat3x3 rotate(mat3x3 mat, AxisAngle rotation)
       result[2][c] = angle_sin * mat[0][c] + angle_cos * mat[2][c];
     }
   }
-  else if (rotation.axis.z == 1.0) {
+  else if (rotation.axis.z == 1.0f) {
     float angle_cos = cos(rotation.angle);
     float angle_sin = sin(rotation.angle);
     for (int c = 0; c < 3; c++) {
@@ -791,14 +791,14 @@ mat3x3 rotate(mat3x3 mat, AxisAngle rotation)
 mat3x3 rotate(mat3x3 mat, EulerXYZ rotation)
 {
   AxisAngle axis_angle;
-  if (rotation.y == 0.0 && rotation.z == 0.0) {
-    axis_angle = AxisAngle(vec3(1.0, 0.0, 0.0), rotation.x);
+  if (rotation.y == 0.0f && rotation.z == 0.0f) {
+    axis_angle = AxisAngle(vec3(1.0f, 0.0f, 0.0f), rotation.x);
   }
-  else if (rotation.x == 0.0 && rotation.z == 0.0) {
-    axis_angle = AxisAngle(vec3(0.0, 1.0, 0.0), rotation.y);
+  else if (rotation.x == 0.0f && rotation.z == 0.0f) {
+    axis_angle = AxisAngle(vec3(0.0f, 1.0f, 0.0f), rotation.y);
   }
-  else if (rotation.x == 0.0 && rotation.y == 0.0) {
-    axis_angle = AxisAngle(vec3(0.0, 0.0, 1.0), rotation.z);
+  else if (rotation.x == 0.0f && rotation.y == 0.0f) {
+    axis_angle = AxisAngle(vec3(0.0f, 0.0f, 1.0f), rotation.z);
   }
   else {
     /* Un-optimized case. Arbitrary rotation. */
@@ -861,21 +861,21 @@ mat4x4 scale(mat4x4 mat, vec3 scale)
 
 mat4x4 from_location(vec3 location)
 {
-  mat4x4 ret = mat4x4(1.0);
+  mat4x4 ret = mat4x4(1.0f);
   ret[3].xyz = location;
   return ret;
 }
 
 mat2x2 from_scale(vec2 scale)
 {
-  mat2x2 ret = mat2x2(0.0);
+  mat2x2 ret = mat2x2(0.0f);
   ret[0][0] = scale[0];
   ret[1][1] = scale[1];
   return ret;
 }
 mat3x3 from_scale(vec3 scale)
 {
-  mat3x3 ret = mat3x3(0.0);
+  mat3x3 ret = mat3x3(0.0f);
   ret[0][0] = scale[0];
   ret[1][1] = scale[1];
   ret[2][2] = scale[2];
@@ -883,7 +883,7 @@ mat3x3 from_scale(vec3 scale)
 }
 mat4x4 from_scale(vec4 scale)
 {
-  mat4x4 ret = mat4x4(0.0);
+  mat4x4 ret = mat4x4(0.0f);
   ret[0][0] = scale[0];
   ret[1][1] = scale[1];
   ret[2][2] = scale[2];
@@ -945,17 +945,17 @@ mat3x3 from_rotation(Quaternion rotation)
   float qcc = q3 * q3;
 
   mat3x3 mat;
-  mat[0][0] = float(1.0 - qbb - qcc);
+  mat[0][0] = float(1.0f - qbb - qcc);
   mat[0][1] = float(qdc + qab);
   mat[0][2] = float(-qdb + qac);
 
   mat[1][0] = float(-qdc + qab);
-  mat[1][1] = float(1.0 - qaa - qcc);
+  mat[1][1] = float(1.0f - qaa - qcc);
   mat[1][2] = float(qda + qbc);
 
   mat[2][0] = float(qdb + qac);
   mat[2][1] = float(-qda + qbc);
-  mat[2][2] = float(1.0 - qaa - qbb);
+  mat[2][2] = float(1.0f - qaa - qbb);
   return mat;
 }
 
@@ -1044,12 +1044,12 @@ mat2x2 from_direction(vec2 direction)
 mat3x3 from_up_axis(vec3 up)
 {
   /* Duff, Tom, et al. "Building an orthonormal basis, revisited." JCGT 6.1 (2017). */
-  float z_sign = up.z >= 0.0 ? 1.0 : -1.0;
-  float a = -1.0 / (z_sign + up.z);
+  float z_sign = up.z >= 0.0f ? 1.0f : -1.0f;
+  float a = -1.0f / (z_sign + up.z);
   float b = up.x * up.y * a;
 
   mat3x3 basis;
-  basis[0] = vec3(1.0 + z_sign * square(up.x) * a, z_sign * b, -z_sign * up.x);
+  basis[0] = vec3(1.0f + z_sign * square(up.x) * a, z_sign * b, -z_sign * up.x);
   basis[1] = vec3(b, z_sign + square(up.y) * a, -up.y);
   basis[2] = up;
   return basis;
@@ -1070,7 +1070,7 @@ void detail_normalized_to_eul2(mat3 mat, out EulerXYZ eul1, out EulerXYZ eul2)
   else {
     eul1.x = atan2(-mat[2][1], mat[1][1]);
     eul1.y = atan2(-mat[0][2], cy);
-    eul1.z = 0.0;
+    eul1.z = 0.0f;
 
     eul2 = eul1;
   }
@@ -1106,7 +1106,7 @@ Quaternion normalized_to_quat_fast(mat3 mat)
 
   /* Method outlined by Mike Day, ref: https://math.stackexchange.com/a/3183435/220949
    * with an additional `sqrtf(..)` for higher precision result.
-   * Removing the `sqrt` causes tests to fail unless the precision is set to 1e-6 or larger. */
+   * Removing the `sqrt` causes tests to fail unless the precision is set to 1e-6f or larger. */
 
   if (mat[2][2] < 0.0f) {
     if (mat[0][0] > mat[1][1]) {
@@ -1187,7 +1187,7 @@ Quaternion detail_normalized_to_quat_with_checks(mat3x3 mat)
   if (!isfinite(det)) {
     return Quaternion_identity();
   }
-  else if (det < 0.0) {
+  else if (det < 0.0f) {
     return normalized_to_quat_fast(-mat);
   }
   return normalized_to_quat_fast(mat);
@@ -1311,7 +1311,7 @@ vec3 transform_point(mat3x3 mat, vec3 point)
 
 vec3 transform_point(mat4x4 mat, vec3 point)
 {
-  return (mat * vec4(point, 1.0)).xyz;
+  return (mat * vec4(point, 1.0f)).xyz;
 }
 
 vec3 transform_direction(mat3x3 mat, vec3 direction)
@@ -1326,13 +1326,13 @@ vec3 transform_direction(mat4x4 mat, vec3 direction)
 
 vec2 project_point(mat3x3 mat, vec2 point)
 {
-  vec3 tmp = mat * vec3(point, 1.0);
+  vec3 tmp = mat * vec3(point, 1.0f);
   /* Absolute value to not flip the frustum upside down behind the camera. */
   return tmp.xy / abs(tmp.z);
 }
 vec3 project_point(mat4x4 mat, vec3 point)
 {
-  vec4 tmp = mat * vec4(point, 1.0);
+  vec4 tmp = mat * vec4(point, 1.0f);
   /* Absolute value to not flip the frustum upside down behind the camera. */
   return tmp.xyz / abs(tmp.w);
 }
@@ -1358,13 +1358,13 @@ mat4x4 projection_orthographic(
   float y_delta = top - bottom;
   float z_delta = far_clip - near_clip;
 
-  mat4x4 mat = mat4x4(1.0);
-  if (x_delta != 0.0 && y_delta != 0.0 && z_delta != 0.0) {
-    mat[0][0] = 2.0 / x_delta;
+  mat4x4 mat = mat4x4(1.0f);
+  if (x_delta != 0.0f && y_delta != 0.0f && z_delta != 0.0f) {
+    mat[0][0] = 2.0f / x_delta;
     mat[3][0] = -(right + left) / x_delta;
-    mat[1][1] = 2.0 / y_delta;
+    mat[1][1] = 2.0f / y_delta;
     mat[3][1] = -(top + bottom) / y_delta;
-    mat[2][2] = -2.0 / z_delta; /* NOTE: negate Z. */
+    mat[2][2] = -2.0f / z_delta; /* NOTE: negate Z. */
     mat[3][2] = -(far_clip + near_clip) / z_delta;
   }
   return mat;
@@ -1377,16 +1377,16 @@ mat4x4 projection_perspective(
   float y_delta = top - bottom;
   float z_delta = far_clip - near_clip;
 
-  mat4x4 mat = mat4x4(1.0);
-  if (x_delta != 0.0 && y_delta != 0.0 && z_delta != 0.0) {
-    mat[0][0] = near_clip * 2.0 / x_delta;
-    mat[1][1] = near_clip * 2.0 / y_delta;
+  mat4x4 mat = mat4x4(1.0f);
+  if (x_delta != 0.0f && y_delta != 0.0f && z_delta != 0.0f) {
+    mat[0][0] = near_clip * 2.0f / x_delta;
+    mat[1][1] = near_clip * 2.0f / y_delta;
     mat[2][0] = (right + left) / x_delta; /* NOTE: negate Z. */
     mat[2][1] = (top + bottom) / y_delta;
     mat[2][2] = -(far_clip + near_clip) / z_delta;
-    mat[2][3] = -1.0;
-    mat[3][2] = (-2.0 * near_clip * far_clip) / z_delta;
-    mat[3][3] = 0.0;
+    mat[2][3] = -1.0f;
+    mat[3][2] = (-2.0f * near_clip * far_clip) / z_delta;
+    mat[3][3] = 0.0f;
   }
   return mat;
 }
@@ -1432,7 +1432,7 @@ bool is_zero(mat4x4 a)
 
 bool is_negative(mat3x3 mat)
 {
-  return determinant(mat) < 0.0;
+  return determinant(mat) < 0.0f;
 }
 bool is_negative(mat4x4 mat)
 {
@@ -1475,13 +1475,13 @@ bool is_equal(mat4x4 a, mat4x4 b, float epsilon)
 
 bool is_orthogonal(mat3x3 mat)
 {
-  if (abs(dot(mat[0], mat[1])) > 1e-5) {
+  if (abs(dot(mat[0], mat[1])) > 1e-5f) {
     return false;
   }
-  if (abs(dot(mat[1], mat[2])) > 1e-5) {
+  if (abs(dot(mat[1], mat[2])) > 1e-5f) {
     return false;
   }
-  if (abs(dot(mat[2], mat[0])) > 1e-5) {
+  if (abs(dot(mat[2], mat[0])) > 1e-5f) {
     return false;
   }
   return true;
@@ -1492,13 +1492,13 @@ bool is_orthonormal(mat3x3 mat)
   if (!is_orthogonal(mat)) {
     return false;
   }
-  if (abs(length_squared(mat[0]) - 1.0) > 1e-5) {
+  if (abs(length_squared(mat[0]) - 1.0f) > 1e-5f) {
     return false;
   }
-  if (abs(length_squared(mat[1]) - 1.0) > 1e-5) {
+  if (abs(length_squared(mat[1]) - 1.0f) > 1e-5f) {
     return false;
   }
-  if (abs(length_squared(mat[2]) - 1.0) > 1e-5) {
+  if (abs(length_squared(mat[2]) - 1.0f) > 1e-5f) {
     return false;
   }
   return true;
@@ -1509,7 +1509,7 @@ bool is_uniformly_scaled(mat3x3 mat)
   if (!is_orthogonal(mat)) {
     return false;
   }
-  const float eps = 1e-7;
+  const float eps = 1e-7f;
   float x = length_squared(mat[0]);
   float y = length_squared(mat[1]);
   float z = length_squared(mat[2]);

@@ -13,6 +13,6 @@ void main()
     gl_FragDepth = depth;
   }
   else {
-    gl_FragDepth = (depth != 0.0) ? gl_FragCoord.z : 1.0;
+    gl_FragDepth = (depth != 0.0f) ? gl_FragCoord.z : 1.0f;
   }
 }

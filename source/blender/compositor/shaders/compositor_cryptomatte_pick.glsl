@@ -39,5 +39,5 @@ void main()
   float green = float(hash_value << 8) / float(0xFFFFFFFFu);
   float blue = float(hash_value << 16) / float(0xFFFFFFFFu);
 
-  imageStore(output_img, texel, vec4(id_of_first_rank, green, blue, 1.0));
+  imageStore(output_img, texel, vec4(id_of_first_rank, green, blue, 1.0f));
 }
