@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 struct ID;
+struct bNodeTree;
 
 typedef enum ViewerPathElemType {
   VIEWER_PATH_ELEM_TYPE_ID = 0,
@@ -18,6 +19,7 @@ typedef enum ViewerPathElemType {
   VIEWER_PATH_ELEM_TYPE_VIEWER_NODE = 4,
   VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE = 5,
   VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE = 6,
+  VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE = 7,
 } ViewerPathElemType;
 
 typedef struct ViewerPathElem {
@@ -71,6 +73,17 @@ typedef struct ViewerNodeViewerPathElem {
   int32_t node_id;
   char _pad1[4];
 } ViewerNodeViewerPathElem;
+
+typedef struct EvaluateClosureNodeViewerPathElem {
+  ViewerPathElem base;
+
+  /** The identifier of the node that evaluates the closure. */
+  int32_t evaluate_node_id;
+  /** The identifier of the output node of the closure zone that is evaluated. */
+  int32_t closure_output_node_id;
+  /** The node tree that contains the closure zone that is evaluated. */
+  struct bNodeTree *closure_tree;
+} EvaluateClosureNodeViewerPathElem;
 
 typedef struct ViewerPath {
   /** List of #ViewerPathElem. */

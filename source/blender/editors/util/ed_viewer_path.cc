@@ -56,6 +56,7 @@ static ViewerPathElem *viewer_path_elem_for_zone(const bNodeTreeZone &zone)
       return &node_elem->base;
     }
     case GEO_NODE_CLOSURE_OUTPUT: {
+      // TODO: Need to find a place where this closure is evaluated.
       return nullptr;
     }
   }
@@ -375,6 +376,34 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
         zone = nullptr;
         break;
       }
+      case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
+        const auto &typed_elem = *reinterpret_cast<const EvaluateClosureNodeViewerPathElem *>(
+            path_elem);
+        const bNode *evaluate_node = ngroup->node_by_id(typed_elem.evaluate_node_id);
+        if (evaluate_node == nullptr) {
+          return false;
+        }
+        const bNodeTreeZone *parent_zone = tree_zones->get_zone_by_node(
+            typed_elem.evaluate_node_id);
+        if (parent_zone != zone) {
+          return false;
+        }
+        if (!typed_elem.closure_tree) {
+          return false;
+        }
+        const bNode *closure_output_node = typed_elem.closure_tree->node_by_id(
+            typed_elem.closure_output_node_id);
+        if (!closure_output_node) {
+          return false;
+        }
+        ngroup = typed_elem.closure_tree;
+        const bNodeTreeZones *closure_tree_zones = typed_elem.closure_tree->zones();
+        if (!closure_tree_zones) {
+          return false;
+        }
+        zone = closure_tree_zones->get_zone_by_node(typed_elem.closure_output_node_id);
+        break;
+      }
       default: {
         BLI_assert_unreachable();
       }
@@ -530,6 +559,11 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
           elem_generic);
       compute_context_builder.push<bke::ForeachGeometryElementZoneComputeContext>(
           elem.zone_output_node_id, elem.index);
+      return true;
+    }
+    case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
+      const auto &elem = reinterpret_cast<const EvaluateClosureNodeViewerPathElem &>(elem_generic);
+      compute_context_builder.push<bke::EvaluateClosureComputeContext>(elem.evaluate_node_id);
       return true;
     }
   }

@@ -101,6 +101,11 @@ void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_p
         BLO_write_struct(writer, ForeachGeometryElementZoneViewerPathElem, typed_elem);
         break;
       }
+      case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
+        const auto *typed_elem = reinterpret_cast<EvaluateClosureNodeViewerPathElem *>(elem);
+        BLO_write_struct(writer, EvaluateClosureNodeViewerPathElem, typed_elem);
+        break;
+      }
     }
     BLO_write_string(writer, elem->ui_name);
   }
@@ -117,6 +122,7 @@ void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer
       case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
       case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE:
       case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE:
+      case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE:
       case VIEWER_PATH_ELEM_TYPE_ID: {
         break;
       }
@@ -136,6 +142,11 @@ void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_p
       case VIEWER_PATH_ELEM_TYPE_ID: {
         auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
         BKE_LIB_FOREACHID_PROCESS_ID(data, typed_elem->id, IDWALK_CB_DIRECT_WEAK_LINK);
+        break;
+      }
+      case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
+        auto *typed_elem = reinterpret_cast<EvaluateClosureNodeViewerPathElem *>(elem);
+        BKE_LIB_FOREACHID_PROCESS_ID(data, typed_elem->closure_tree, IDWALK_CB_DIRECT_WEAK_LINK);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_MODIFIER:
@@ -165,7 +176,8 @@ void BKE_viewer_path_id_remap(ViewerPath *viewer_path,
       case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
       case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
       case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE:
-      case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE: {
+      case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE:
+      case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
         break;
       }
     }
@@ -202,6 +214,9 @@ ViewerPathElem *BKE_viewer_path_elem_new(const ViewerPathElemType type)
     }
     case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE: {
       return &make_elem<ForeachGeometryElementZoneViewerPathElem>(type)->base;
+    }
+    case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
+      return &make_elem<EvaluateClosureNodeViewerPathElem>(type)->base;
     }
   }
   BLI_assert_unreachable();
@@ -247,6 +262,12 @@ ForeachGeometryElementZoneViewerPathElem *BKE_viewer_path_elem_new_foreach_geome
 {
   return reinterpret_cast<ForeachGeometryElementZoneViewerPathElem *>(
       BKE_viewer_path_elem_new(VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE));
+}
+
+EvaluateClosureNodeViewerPathElem *BKE_viewer_path_elem_new_evaluate_closure()
+{
+  return reinterpret_cast<EvaluateClosureNodeViewerPathElem *>(
+      BKE_viewer_path_elem_new(VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE));
 }
 
 ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src)
@@ -303,6 +324,14 @@ ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src)
       new_elem->index = old_elem->index;
       break;
     }
+    case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
+      const auto *old_elem = reinterpret_cast<const EvaluateClosureNodeViewerPathElem *>(src);
+      auto *new_elem = reinterpret_cast<EvaluateClosureNodeViewerPathElem *>(dst);
+      new_elem->closure_output_node_id = old_elem->closure_output_node_id;
+      new_elem->evaluate_node_id = old_elem->evaluate_node_id;
+      new_elem->closure_tree = old_elem->closure_tree;
+      break;
+    }
   }
   return dst;
 }
@@ -354,6 +383,13 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
              ((flag & VIEWER_PATH_EQUAL_FLAG_IGNORE_ITERATION) != 0 ||
               a_elem->index == b_elem->index);
     }
+    case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
+      const auto *a_elem = reinterpret_cast<const EvaluateClosureNodeViewerPathElem *>(a);
+      const auto *b_elem = reinterpret_cast<const EvaluateClosureNodeViewerPathElem *>(b);
+      return a_elem->closure_output_node_id == b_elem->closure_output_node_id &&
+             a_elem->evaluate_node_id == b_elem->evaluate_node_id &&
+             a_elem->closure_tree == b_elem->closure_tree;
+    }
   }
   return false;
 }
@@ -366,7 +402,8 @@ void BKE_viewer_path_elem_free(ViewerPathElem *elem)
     case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
     case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
     case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE:
-    case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE: {
+    case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE:
+    case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
       break;
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {

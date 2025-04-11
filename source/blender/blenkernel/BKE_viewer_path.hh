@@ -60,6 +60,8 @@ SimulationZoneViewerPathElem *BKE_viewer_path_elem_new_simulation_zone();
 ViewerNodeViewerPathElem *BKE_viewer_path_elem_new_viewer_node();
 RepeatZoneViewerPathElem *BKE_viewer_path_elem_new_repeat_zone();
 ForeachGeometryElementZoneViewerPathElem *BKE_viewer_path_elem_new_foreach_geometry_element_zone();
+EvaluateClosureNodeViewerPathElem *BKE_viewer_path_elem_new_evaluate_closure();
+
 ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src);
 bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
                                 const ViewerPathElem *b,
