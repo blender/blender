@@ -196,9 +196,7 @@ static wmOperatorStatus file_browse_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   FileBrowseOp *fbo = static_cast<FileBrowseOp *>(op->customdata);
-  ID *id;
   char *path;
-  int path_len;
   const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" :
                                                                            "filepath";
 
@@ -210,40 +208,38 @@ static wmOperatorStatus file_browse_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  path = RNA_string_get_alloc(op->ptr, path_prop, nullptr, 0, &path_len);
+  path = RNA_string_get_alloc(op->ptr, path_prop, nullptr, 0, nullptr);
 
-  /* Add slash for directories, important for some properties. */
-  if (RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
-    char path_buf[FILE_MAX];
+  if (path[0]) {
     /* Check relative paths are supported here as this option will be hidden
      * when it's not supported. In this case the value may have been enabled
      * by default or from the last-used setting.
      * Either way, don't use the blend-file relative prefix when it's not supported.  */
-    const bool is_relative = RNA_boolean_get(op->ptr, "relative_path") &&
-                             file_browse_operator_relative_paths_supported(op);
-    id = fbo->ptr.owner_id;
+    const PropertySubType prop_subtype = RNA_property_subtype(fbo->prop);
+    const bool is_relative = BLI_path_is_rel(path);
+    const bool make_relative = RNA_boolean_get(op->ptr, "relative_path") &&
+                               file_browse_operator_relative_paths_supported(op);
 
-    STRNCPY(path_buf, path);
-    BLI_path_abs(path_buf, id ? ID_BLEND_PATH(bmain, id) : BKE_main_blendfile_path(bmain));
+    /* Add slash for directories, important for some properties. */
+    if ((prop_subtype == PROP_DIRPATH) || (is_relative || make_relative)) {
+      char path_buf[FILE_MAX];
+      ID *id = fbo->ptr.owner_id;
 
-    if (BLI_is_dir(path_buf)) {
-      /* Do this first so '//' isn't converted to '//\' on windows. */
-      BLI_path_slash_ensure(path_buf, sizeof(path_buf));
+      STRNCPY(path_buf, path);
+      MEM_freeN(path);
+
       if (is_relative) {
+        BLI_path_abs(path_buf, id ? ID_BLEND_PATH(bmain, id) : BKE_main_blendfile_path(bmain));
+      }
+
+      if (prop_subtype == PROP_DIRPATH) {
+        BLI_path_slash_ensure(path_buf, sizeof(path_buf));
+      }
+
+      if (make_relative) {
         BLI_path_rel(path_buf, BKE_main_blendfile_path(bmain));
-        path_len = strlen(path_buf);
-        path = static_cast<char *>(MEM_reallocN(path, path_len + 1));
-        memcpy(path, path_buf, path_len + 1);
       }
-      else {
-        path = static_cast<char *>(MEM_reallocN(path, path_len + 1));
-      }
-    }
-    else {
-      char *const lslash = (char *)BLI_path_slash_rfind(path);
-      if (lslash) {
-        lslash[1] = '\0';
-      }
+      path = BLI_strdup(path_buf);
     }
   }
 
