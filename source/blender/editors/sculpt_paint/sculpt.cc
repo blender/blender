@@ -2978,7 +2978,6 @@ void calc_brush_plane(const Depsgraph &depsgraph,
     r_area_co = ss.cache->last_center;
     r_area_co = symmetry_flip(r_area_co, ss.cache->mirror_symmetry_pass);
     r_area_co = math::transform_point(ss.cache->symm_rot_mat, r_area_co);
-    mul_m4_v3(ss.cache->symm_rot_mat.ptr(), r_area_co);
 
     /* Shift the plane for the current tile. */
     r_area_co += ss.cache->plane_offset;
