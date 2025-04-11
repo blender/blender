@@ -18,7 +18,7 @@
  *  - Swap Height and Depth: Exchanges the roles of Height and Depth.
  */
 
-#include "editors/sculpt_paint/brushes/types.hh"
+#include "editors/sculpt_paint/brushes/brushes.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
@@ -463,5 +463,45 @@ void do_plane_brush(const Depsgraph &depsgraph,
   pbvh.tag_positions_changed(node_mask);
   pbvh.flush_bounds_to_parents();
 }
+
+namespace brushes::plane {
+NodeMaskResult calc_node_mask(const Depsgraph &depsgraph,
+                              Object &ob,
+                              const Brush &brush,
+                              IndexMaskMemory &memory)
+{
+  const SculptSession &ss = *ob.sculpt;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+
+  const bool use_original = !ss.cache->accum;
+  const IndexMask initial_node_mask = gather_nodes(pbvh,
+                                                   eBrushFalloffShape(brush.falloff_shape),
+                                                   use_original,
+                                                   ss.cache->location_symm,
+                                                   ss.cache->radius_squared,
+                                                   ss.cache->view_normal_symm,
+                                                   memory);
+
+  float3 plane_center;
+  float3 plane_normal;
+  calc_brush_plane(depsgraph, brush, ob, initial_node_mask, plane_normal, plane_center);
+
+  /* Recompute the node mask using the center of the brush plane as the center.
+   *
+   * The indices of the nodes in `cursor_node_mask` have been calculated based on the cursor
+   * location. However, for the Plane brush, its effective center often deviates from the cursor
+   * location. Calculating the affected nodes using the cursor location as the center can lead to
+   * issues (see, for example, #123768). */
+  const IndexMask plane_mask = bke::pbvh::search_nodes(
+      pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (node_fully_masked_or_hidden(node)) {
+          return false;
+        }
+        return node_in_sphere(node, plane_center, ss.cache->radius_squared, use_original);
+      });
+
+  return {plane_mask, plane_center, plane_normal};
+}
+}  // namespace brushes::plane
 
 }  // namespace blender::ed::sculpt_paint

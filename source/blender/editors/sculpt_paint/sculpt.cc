@@ -98,7 +98,7 @@
 
 #include "bmesh.hh"
 
-#include "editors/sculpt_paint/brushes/types.hh"
+#include "editors/sculpt_paint/brushes/brushes.hh"
 #include "mesh_brush_common.hh"
 
 using blender::float3;
@@ -2509,6 +2509,40 @@ static IndexMask pbvh_gather_generic(Object &ob,
   return {};
 }
 
+IndexMask gather_nodes(const bke::pbvh::Tree &pbvh,
+                       const eBrushFalloffShape falloff_shape,
+                       const bool use_original,
+                       const float3 &location,
+                       const float radius_sq,
+                       const std::optional<float3> &ray_direction,
+                       IndexMaskMemory &memory)
+{
+  switch (falloff_shape) {
+    case PAINT_FALLOFF_SHAPE_SPHERE: {
+      return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (node_fully_masked_or_hidden(node)) {
+          return false;
+        }
+        return node_in_sphere(node, location, radius_sq, use_original);
+      });
+    }
+
+    case PAINT_FALLOFF_SHAPE_TUBE: {
+      BLI_assert(ray_direction);
+      const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
+          location, ray_direction.value_or(float3(0.0f)));
+      return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (node_fully_masked_or_hidden(node)) {
+          return false;
+        }
+        return node_in_cylinder(ray_dist_precalc, node, radius_sq, use_original);
+      });
+    }
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
 static IndexMask pbvh_gather_texpaint(Object &ob,
                                       const Brush &brush,
                                       const bool use_original,
@@ -3093,16 +3127,6 @@ static bool brush_type_needs_all_pbvh_nodes(const Brush &brush)
   return false;
 }
 
-struct NodeMaskResult {
-  IndexMask node_mask;
-
-  /* For planar brushes, the plane center and normal are calculated based on the original cursor
-   * position and needed for further calculations when performing brush strokes.
-   */
-  std::optional<float3> plane_center;
-  std::optional<float3> plane_normal;
-};
-
 /** Calculates the nodes that a brush will influence. */
 static NodeMaskResult calc_brush_node_mask(const Depsgraph &depsgraph,
                                            Object &ob,
@@ -3121,29 +3145,7 @@ static NodeMaskResult calc_brush_node_mask(const Depsgraph &depsgraph,
     return {all_leaf_nodes(pbvh, memory), std::nullopt, std::nullopt};
   }
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE) {
-    IndexMaskMemory cursor_mask_memory;
-    const IndexMask cursor_node_mask = pbvh_gather_generic(
-        ob, brush, use_original, 1.0f, cursor_mask_memory);
-
-    float3 plane_center;
-    float3 plane_normal;
-    calc_brush_plane(depsgraph, brush, ob, cursor_node_mask, plane_normal, plane_center);
-
-    /* Recompute the node mask using the center of the brush plane as the center.
-     *
-     * The indices of the nodes in `cursor_node_mask` have been calculated based on the cursor
-     * location. However, for the Plane brush, its effective center often deviates from the cursor
-     * location. Calculating the affected nodes using the cursor location as the center can lead to
-     * issues (see, for example, #123768). */
-    const IndexMask plane_mask = bke::pbvh::search_nodes(
-        pbvh, memory, [&](const bke::pbvh::Node &node) {
-          if (node_fully_masked_or_hidden(node)) {
-            return false;
-          }
-          return node_in_sphere(node, plane_center, pow2f(ss.cache->radius), use_original);
-        });
-
-    return {plane_mask, plane_center, plane_normal};
+    return brushes::plane::calc_node_mask(depsgraph, ob, brush, memory);
   }
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) {
     return {cloth::brush_affected_nodes_gather(ob, brush, memory), std::nullopt, std::nullopt};

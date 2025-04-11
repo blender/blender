@@ -4,9 +4,12 @@
 
 #pragma once
 
-#include "BLI_index_mask_fwd.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_math_vector_types.hh"
 
+#include <optional>
+
+struct Brush;
 struct Depsgraph;
 struct Scene;
 struct Sculpt;
@@ -16,6 +19,17 @@ class Node;
 }
 
 namespace blender::ed::sculpt_paint {
+
+/** Represents the result of one or more bvh queries to find a brush's affected nodes. */
+struct NodeMaskResult {
+  IndexMask node_mask;
+
+  /* For planar brushes, the plane center and normal are calculated based on the original cursor
+   * position and needed for further calculations when performing brush strokes.
+   */
+  std::optional<float3> plane_center;
+  std::optional<float3> plane_normal;
+};
 
 void do_clay_brush(const Depsgraph &depsgraph,
                    const Sculpt &sd,
@@ -92,6 +106,14 @@ void do_plane_brush(const Depsgraph &depsgraph,
                     const IndexMask &node_mask,
                     const float3 &plane_normal,
                     const float3 &plane_center);
+
+namespace brushes::plane {
+NodeMaskResult calc_node_mask(const Depsgraph &depsgraph,
+                              Object &ob,
+                              const Brush &brush,
+                              IndexMaskMemory &memory);
+}
+
 void do_grab_brush(const Depsgraph &depsgraph,
                    const Sculpt &sd,
                    Object &ob,

@@ -710,6 +710,13 @@ bool node_in_cylinder(const DistRayAABB_Precalc &ray_dist_precalc,
                       const bke::pbvh::Node &node,
                       float radius_sq,
                       bool original);
+IndexMask gather_nodes(const bke::pbvh::Tree &pbvh,
+                       eBrushFalloffShape falloff_shape,
+                       bool use_original,
+                       const float3 &location,
+                       float radius_sq,
+                       const std::optional<float3> &ray_direction,
+                       IndexMaskMemory &memory);
 
 }  // namespace blender::ed::sculpt_paint
 
