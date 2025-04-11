@@ -975,7 +975,7 @@ static void register_common_props(wmOperatorType *ot)
 
   prop = RNA_def_boolean(
       ot->srna, "use_invert", false, "Invert", "Invert action for the duration of the stroke");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 void SCULPT_OT_uv_sculpt_grab(wmOperatorType *ot)

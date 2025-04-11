@@ -5842,7 +5842,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
       "Override Location",
       "Override the given `location` array by recalculating object space positions from the "
       "provided `mouse_event` positions");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   RNA_def_boolean(ot->srna,
                   "ignore_background_click",

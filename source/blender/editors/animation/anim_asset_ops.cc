@@ -432,7 +432,7 @@ void POSELIB_OT_create_pose_asset(wmOperatorType *ot)
                          false,
                          "Activate New Action",
                          "This property is deprecated and will be removed in the future");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 enum AssetModifyMode {

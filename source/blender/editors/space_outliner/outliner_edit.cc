@@ -466,7 +466,7 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
                          false,
                          "Use Active",
                          "Rename the active item, rather than the one the mouse is over");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */

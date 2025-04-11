@@ -389,7 +389,7 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(
       ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected objects");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 static wmOperatorStatus object_hide_collection_exec(bContext *C, wmOperator *op)
@@ -524,11 +524,11 @@ void OBJECT_OT_hide_collection(wmOperatorType *ot)
                      "Index of the collection to change visibility",
                      0,
                      INT_MAX);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
   prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle", "Toggle visibility");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
   prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend visibility");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
@@ -2118,7 +2118,7 @@ void OBJECT_OT_mode_set_with_submode(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_enum_flag(
       ot->srna, "mesh_select_mode", rna_enum_mesh_select_mode_items, 0, "Mesh Mode", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2443,9 +2443,9 @@ void OBJECT_OT_move_to_collection(wmOperatorType *ot)
                      "Index of the collection to move to",
                      0,
                      INT_MAX);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
   prop = RNA_def_boolean(ot->srna, "is_new", false, "New", "Move objects to a new collection");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
   prop = RNA_def_string(ot->srna,
                         "new_collection_name",
                         nullptr,
@@ -2482,9 +2482,9 @@ void OBJECT_OT_link_to_collection(wmOperatorType *ot)
                      "Index of the collection to move to",
                      0,
                      INT_MAX);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
   prop = RNA_def_boolean(ot->srna, "is_new", false, "New", "Move objects to a new collection");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
   prop = RNA_def_string(ot->srna,
                         "new_collection_name",
                         nullptr,

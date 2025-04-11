@@ -1432,7 +1432,7 @@ void TEXT_OT_comment_toggle(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
   prop = RNA_def_enum(ot->srna, "type", comment_items, 0, "Type", "Add or remove comments");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2624,7 +2624,7 @@ void TEXT_OT_delete(wmOperatorType *ot)
                       DEL_NEXT_CHAR,
                       "Type",
                       "Which part of the text to delete");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -3947,7 +3947,7 @@ void TEXT_OT_replace(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
   prop = RNA_def_boolean(ot->srna, "all", false, "Replace All", "Replace all occurrences");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -4168,11 +4168,11 @@ void TEXT_OT_jump_to_file_at_point(wmOperatorType *ot)
   ot->flag = 0;
 
   prop = RNA_def_string(ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_int(ot->srna, "line", 0, 0, INT_MAX, "Line", "Line to jump to", 1, 10000);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_int(ot->srna, "column", 0, 0, INT_MAX, "Column", "Column to jump to", 1, 10000);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */

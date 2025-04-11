@@ -621,13 +621,13 @@ void VIEW3D_OT_camera_background_image_add(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop = RNA_def_string(
       ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "Path to image file");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "relative_path",
                          true,
                          "Relative Path",
                          "Select the file relative to the blend file");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   WM_operator_properties_id_lookup(ot, true);
 }

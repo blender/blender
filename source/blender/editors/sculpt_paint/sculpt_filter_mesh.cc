@@ -2523,7 +2523,7 @@ void register_operator_props(wmOperatorType *ot)
 
   /* Smooth filter requires entire event history. */
   prop = RNA_def_collection_runtime(ot->srna, "event_history", &RNA_OperatorStrokeElement, "", "");
-  RNA_def_property_flag(prop, PropertyFlag(int(PROP_HIDDEN) | int(PROP_SKIP_SAVE)));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 static void sculpt_mesh_ui_exec(bContext * /*C*/, wmOperator *op)

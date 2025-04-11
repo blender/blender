@@ -5636,7 +5636,7 @@ void UV_OT_select_mode(wmOperatorType *ot)
   PropertyRNA *prop;
   ot->prop = prop = RNA_def_enum(
       ot->srna, "type", rna_enum_mesh_select_mode_uv_items, 0, "Type", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */

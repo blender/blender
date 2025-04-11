@@ -553,7 +553,7 @@ void MESH_OT_delete(wmOperatorType *ot)
                           MESH_DELETE_VERT,
                           "Type",
                           "Method used for deleting mesh data");
-  RNA_def_property_flag(ot->prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -1092,7 +1092,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_boolean(ot->srna, "clear", false, "Clear", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   WM_operatortype_props_advanced_begin(ot);
 }
@@ -1164,7 +1164,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_boolean(ot->srna, "clear", false, "Clear", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna,
       "use_verts",
@@ -3962,7 +3962,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
   prop = RNA_def_enum(
       ot->srna, "shape", rna_enum_dummy_NULL_items, 0, "Shape", "Shape key to use for blending");
   RNA_def_enum_funcs(prop, shape_itemf);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_ENUM_NO_TRANSLATE | PROP_NEVER_UNLINK));
+  RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE | PROP_NEVER_UNLINK);
   RNA_def_float(ot->srna, "blend", 1.0f, -1e3f, 1e3f, "Blend", "Blending factor", -2.0f, 2.0f);
   RNA_def_boolean(ot->srna, "add", true, "Add", "Add rather than blend between shapes");
 }
@@ -8015,7 +8015,7 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_boolean(ot->srna, "clear", false, "Clear", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -8093,7 +8093,7 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_boolean(ot->srna, "clear", false, "Clear", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */

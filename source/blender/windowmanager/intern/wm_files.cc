@@ -2436,7 +2436,7 @@ static void read_factory_reset_props(wmOperatorType *ot)
                          false,
                          "Factory Startup App-Template Only",
                          "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2950,7 +2950,7 @@ static void read_homefile_props(wmOperatorType *ot)
   PropertyRNA *prop;
 
   prop = RNA_def_string(ot->srna, "app_template", "Template", sizeof(U.app_template), "", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
       ot->srna,
@@ -2960,7 +2960,7 @@ static void read_homefile_props(wmOperatorType *ot)
       "After loading, remove everything except scenes, windows, and workspaces. This makes it "
       "possible to load the startup file with its scene configuration and window layout intact, "
       "but no objects, materials, animations, ...");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 void WM_OT_read_homefile(wmOperatorType *ot)
@@ -2984,11 +2984,11 @@ void WM_OT_read_homefile(wmOperatorType *ot)
   /* So scripts can use an alternative start-up file without the UI. */
   prop = RNA_def_boolean(
       ot->srna, "load_ui", true, "Load UI", "Load user interface setup from the .blend file");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   /* So the splash can be kept open after loading a file (for templates). */
   prop = RNA_def_boolean(ot->srna, "use_splash", false, "Splash", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   /* So scripts can load factory-startup without resetting preferences
    * (which has other implications such as reloading all add-ons).
@@ -2999,7 +2999,7 @@ void WM_OT_read_homefile(wmOperatorType *ot)
                          "Factory Startup",
                          "Load the default ('factory startup') blend file. "
                          "This is independent of the normal start-up file that the user can save");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   read_factory_reset_props(ot);
 
   read_homefile_props(ot);
@@ -3939,7 +3939,7 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
                   "Remap relative paths when saving to a different directory");
 
   prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "Exit Blender after saving");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,
                          "incremental",
@@ -3947,7 +3947,7 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
                          "Incremental",
                          "Save the current Blender file with a numerically incremented name that "
                          "does not overwrite any existing files");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */

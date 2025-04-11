@@ -194,7 +194,7 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
   PropertyRNA *prop;
 
   prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_enum(ot->srna,
                       "mode",
@@ -203,13 +203,13 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
                       "Stroke Mode",
                       "Action taken when a paint stroke is made");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* TODO: Pen flip logic should likely be combined into the stroke mode logic instead of being
    * an entirely separate concept. */
   prop = RNA_def_boolean(
       ot->srna, "pen_flip", false, "Pen Flip", "Whether a tablet's eraser mode is being used");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /* 3D Paint */
