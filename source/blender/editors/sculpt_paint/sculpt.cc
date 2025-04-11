@@ -807,6 +807,14 @@ static bool brush_uses_topology_rake(const SculptSession &ss, const Brush &brush
  */
 static int sculpt_brush_needs_normal(const SculptSession &ss, const Sculpt &sd, const Brush &brush)
 {
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE) {
+    /* The normal for the Plane brush is expected to have already been calculated in
+     * #calc_brush_plane. */
+    BLI_assert_msg(!math::is_zero(ss.cache->sculpt_normal),
+                   "Normal should have been previously calculated.");
+    return false;
+  }
+
   using namespace blender::ed::sculpt_paint;
   const MTex *mask_tex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
   return ((bke::brush::supports_normal_weight(brush) && (ss.cache->normal_weight > 0.0f)) ||
