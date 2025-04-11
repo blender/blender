@@ -659,11 +659,12 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
 
 /* For all platforms, we add some directories from User Preferences to
  * the FS_CATEGORY_OTHER category so that these directories
- * have the appropriate icons when they are added to the Bookmarks. */
+ * have the appropriate icons when they are added to the Bookmarks.
+ *
+ * NOTE: of the preferences support as `//` prefix.
+ * Skip them since they depend on the current loaded blend file. */
 #define FS_UDIR_PATH(dir, icon) \
-\
-  if (BLI_strnlen(dir, 3) > 2) { \
-\
+  if ((BLI_strnlen(dir, 3) > 2) && !BLI_path_is_rel(dir)) { \
     fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, dir, nullptr, icon, FS_INSERT_LAST); \
   }
 
