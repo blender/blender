@@ -218,7 +218,7 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  if (region->winy > HEADERY * UI_SCALE_FAC) {
+  if (region->winy > UI_ANIM_MINY) {
     UI_view2d_scrollers_draw(v2d, nullptr);
   }
 
@@ -246,15 +246,16 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
+
+  const int min_height = snla->flag & SNLA_SHOW_MARKERS ? UI_MARKERS_MINY : UI_ANIM_MINY;
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(minimized ? TH_TIME_SCRUB_BACKGROUND : TH_BACK);
+  UI_ThemeClearColor(region->winy > min_height ? TH_BACK : TH_TIME_SCRUB_BACKGROUND);
 
   UI_view2d_view_ortho(v2d);
 
   /* time grid */
-  if (!minimized) {
+  if (region->winy > min_height) {
     UI_view2d_draw_lines_x__discrete_frames_or_seconds(
         v2d, scene, snla->flag & SNLA_DRAWTIME, true);
   }
@@ -262,7 +263,9 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
   /* start and end frame */
-  ANIM_draw_framerange(scene, v2d);
+  if (region->winy > min_height) {
+    ANIM_draw_framerange(scene, v2d);
+  }
 
   /* data */
   if (ANIM_animdata_get_context(C, &ac)) {
@@ -274,10 +277,12 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  UI_view2d_view_orthoSpecial(region, v2d, true);
-  int marker_draw_flag = DRAW_MARKERS_MARGIN;
-  if (snla->flag & SNLA_SHOW_MARKERS) {
-    ED_markers_draw(C, marker_draw_flag);
+  if (region->winy >= UI_MARKERS_MINY) {
+    UI_view2d_view_orthoSpecial(region, v2d, true);
+    int marker_draw_flag = DRAW_MARKERS_MARGIN;
+    if (snla->flag & SNLA_SHOW_MARKERS) {
+      ED_markers_draw(C, marker_draw_flag);
+    }
   }
 
   /* preview range */
@@ -300,13 +305,13 @@ static void nla_main_region_draw_overlay(const bContext *C, ARegion *region)
   const SpaceNla *snla = CTX_wm_space_nla(C);
   const Scene *scene = CTX_data_scene(C);
   View2D *v2d = &region->v2d;
-  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
 
   /* scrubbing region */
-  ED_time_scrub_draw_current_frame(region, scene, snla->flag & SNLA_DRAWTIME, !minimized);
+  ED_time_scrub_draw_current_frame(
+      region, scene, snla->flag & SNLA_DRAWTIME, region->winy >= UI_ANIM_MINY);
 
   /* scrollers */
-  if (!minimized) {
+  if (region->winy >= UI_ANIM_MINY) {
     UI_view2d_scrollers_draw(v2d, nullptr);
   }
 }

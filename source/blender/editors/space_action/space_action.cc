@@ -185,10 +185,10 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   short marker_flag = 0;
 
-  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
+  const int min_height = saction->flag & SACTION_SHOW_MARKERS ? UI_MARKERS_MINY : UI_ANIM_MINY;
 
   /* scrollers */
-  if (!minimized) {
+  if (region->winy >= UI_ANIM_MINY) {
     region->v2d.scroll |= V2D_SCROLL_BOTTOM;
   }
   else {
@@ -211,18 +211,22 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_ortho(v2d);
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(minimized ? TH_TIME_SCRUB_BACKGROUND : TH_BACK);
+  UI_ThemeClearColor(region->winy > min_height ? TH_BACK : TH_TIME_SCRUB_BACKGROUND);
 
   UI_view2d_view_ortho(v2d);
 
   /* time grid */
-  UI_view2d_draw_lines_x__discrete_frames_or_seconds(
-      v2d, scene, saction->flag & SACTION_DRAWTIME, true);
+  if (region->winy > min_height) {
+    UI_view2d_draw_lines_x__discrete_frames_or_seconds(
+        v2d, scene, saction->flag & SACTION_DRAWTIME, true);
+  }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
   /* start and end frame */
-  ANIM_draw_framerange(scene, v2d);
+  if (region->winy > min_height) {
+    ANIM_draw_framerange(scene, v2d);
+  }
 
   /* Draw the manually set intended playback frame range highlight in the Action editor. */
   if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY) && saction->action) {
@@ -237,13 +241,15 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  UI_view2d_view_orthoSpecial(region, v2d, true);
+  if (region->winy >= UI_MARKERS_MINY) {
+    UI_view2d_view_orthoSpecial(region, v2d, true);
 
-  marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
-                DRAW_MARKERS_MARGIN;
+    marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
+                  DRAW_MARKERS_MARGIN;
 
-  if (saction->flag & SACTION_SHOW_MARKERS) {
-    ED_markers_draw(C, marker_flag);
+    if (saction->flag & SACTION_SHOW_MARKERS) {
+      ED_markers_draw(C, marker_flag);
+    }
   }
 
   /* preview range */
@@ -272,8 +278,6 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
   const Object *obact = CTX_data_active_object(C);
   View2D *v2d = &region->v2d;
 
-  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
-
   /* caches */
   if (saction->mode == SACTCONT_TIMELINE) {
     GPU_matrix_push_projection();
@@ -283,7 +287,8 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
   }
 
   /* scrubbing region */
-  ED_time_scrub_draw_current_frame(region, scene, saction->flag & SACTION_DRAWTIME, !minimized);
+  ED_time_scrub_draw_current_frame(
+      region, scene, saction->flag & SACTION_DRAWTIME, region->winy >= UI_ANIM_MINY);
 
   /* scrollers */
   const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);

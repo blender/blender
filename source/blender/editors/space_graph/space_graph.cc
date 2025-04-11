@@ -213,16 +213,17 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
+
+  const int min_height = sipo->flag & SIPO_SHOW_MARKERS ? UI_MARKERS_MINY : UI_ANIM_MINY;
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(minimized ? TH_TIME_SCRUB_BACKGROUND : TH_BACK);
+  UI_ThemeClearColor(region->winy > min_height ? TH_BACK : TH_TIME_SCRUB_BACKGROUND);
 
   UI_view2d_view_ortho(v2d);
 
   /* grid */
   bool display_seconds = (sipo->mode == SIPO_MODE_ANIMATION) && (sipo->flag & SIPO_DRAWTIME);
-  if (!minimized) {
+  if (region->winy > min_height) {
     UI_view2d_draw_lines_x__frames_or_seconds(v2d, scene, display_seconds);
     UI_view2d_draw_lines_y__values(v2d);
   }
@@ -230,7 +231,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
   /* start and end frame (in F-Curve mode only) */
-  if (sipo->mode != SIPO_MODE_DRIVERS) {
+  if (sipo->mode != SIPO_MODE_DRIVERS && region->winy > min_height) {
     ANIM_draw_framerange(scene, v2d);
   }
 
@@ -257,7 +258,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
     v2d->tot.xmax += 10.0f;
   }
 
-  if ((sipo->flag & SIPO_NODRAWCURSOR) == 0) {
+  if ((sipo->flag & SIPO_NODRAWCURSOR) == 0 && region->winy >= UI_MARKERS_MINY) {
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -300,7 +301,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  if (sipo->mode != SIPO_MODE_DRIVERS) {
+  if (sipo->mode != SIPO_MODE_DRIVERS && region->winy >= UI_MARKERS_MINY) {
     UI_view2d_view_orthoSpecial(region, v2d, true);
     int marker_draw_flag = DRAW_MARKERS_MARGIN;
     if (sipo->flag & SIPO_SHOW_MARKERS) {
@@ -329,7 +330,7 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   const SpaceGraph *sipo = CTX_wm_space_graph(C);
-  const bool minimized = (region->winy <= HEADERY * UI_SCALE_FAC * 1.1f);
+  const bool minimized = (region->winy < UI_ANIM_MINY);
 
   const Scene *scene = CTX_data_scene(C);
   View2D *v2d = &region->v2d;

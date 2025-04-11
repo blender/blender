@@ -211,6 +211,12 @@ static bool operator_markers_region_active(bContext *C)
     return false;
   }
 
+  /* Minimum vertical size to select markers, while still scrubbing frames. */
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  if (region && region->winy < UI_MARKERS_MINY) {
+    return false;
+  }
+
   switch (area->spacetype) {
     case SPACE_ACTION: {
       SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);

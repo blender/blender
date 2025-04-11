@@ -1975,9 +1975,10 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
     UI_view2d_view_restore(C);
   }
 
-  ED_time_scrub_draw_current_frame(region, scene, !(sseq->flag & SEQ_DRAWFRAMES));
+  ED_time_scrub_draw_current_frame(
+      region, scene, !(sseq->flag & SEQ_DRAWFRAMES), region->winy >= UI_ANIM_MINY);
 
-  if (region->winy > HEADERY * UI_SCALE_FAC) {
+  if (region->winy > UI_ANIM_MINY) {
     const ListBase *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
     seq::timeline_boundbox(scene, seqbase, &v2d->tot);
     const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
