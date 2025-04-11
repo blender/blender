@@ -132,8 +132,6 @@ void SVMShaderManager::device_update_specific(Device *device,
     return;
   }
 
-  dscene->svm_nodes.copy_to_device();
-
   device_update_common(device, dscene, scene, progress);
 
   update_flags = UPDATE_NONE;

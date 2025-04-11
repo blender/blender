@@ -62,7 +62,10 @@ class OSLManager {
   void reset(Scene *scene);
 
   void device_update_pre(Device *device, Scene *scene);
-  void device_update_post(Device *device, Scene *scene, Progress &progress);
+  void device_update_post(Device *device,
+                          Scene *scene,
+                          Progress &progress,
+                          const bool reload_kernels);
   void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
 #ifdef WITH_OSL

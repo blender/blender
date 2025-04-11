@@ -199,10 +199,10 @@ void Scene::device_update(Device *device_, Progress &progress)
     integrator->tag_modified();
   }
 
+  /* Compile shaders and get information about features they used. */
   progress.set_status("Updating Shaders");
   osl_manager->device_update_pre(device, this);
-  shader_manager->device_update(device, &dscene, this, progress);
-  osl_manager->device_update_post(device, this, progress);
+  shader_manager->device_update_pre(device, &dscene, this, progress);
 
   if (progress.get_cancel() || device->have_error()) {
     return;
@@ -221,8 +221,16 @@ void Scene::device_update(Device *device_, Progress &progress)
    * compilation) does not depend on the scene and some other functionality (like display
    * driver) might be waiting on the scene mutex to synchronize display pass. */
   mutex.unlock();
-  load_kernels(progress);
+  const bool kernels_reloaded = load_kernels(progress);
   mutex.lock();
+
+  if (progress.get_cancel() || device->have_error()) {
+    return;
+  }
+
+  /* Upload shaders to GPU and compile OSL kernels, after kernels have been loaded. */
+  shader_manager->device_update_post(device, &dscene, this, progress);
+  osl_manager->device_update_post(device, this, progress, kernels_reloaded);
 
   if (progress.get_cancel() || device->have_error()) {
     return;
