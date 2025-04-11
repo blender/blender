@@ -143,17 +143,22 @@ static bool leaf_needs_material_split(const Span<int> faces, const Span<int> mat
 static void build_nodes_recursive_mesh(const Span<int> material_indices,
                                        const int leaf_limit,
                                        const int node_index,
+                                       const int parent_index,
                                        const std::optional<Bounds<float3>> &bounds_precalc,
                                        const Span<float3> face_centers,
                                        const int depth,
                                        MutableSpan<int> faces,
                                        Vector<MeshNode> &nodes)
 {
+  BLI_assert(parent_index >= -1);
+
+  MeshNode &node = nodes[node_index];
+  node.parent_ = parent_index;
+
   /* Decide whether this is a leaf or not */
   const bool below_leaf_limit = faces.size() <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(faces, material_indices)) {
-      MeshNode &node = nodes[node_index];
       node.flag_ |= Node::Leaf;
       node.face_indices_ = faces;
       return;
@@ -198,6 +203,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
   build_nodes_recursive_mesh(material_indices,
                              leaf_limit,
                              nodes[node_index].children_offset_,
+                             node_index,
                              std::nullopt,
                              face_centers,
                              depth + 1,
@@ -206,6 +212,7 @@ static void build_nodes_recursive_mesh(const Span<int> material_indices,
   build_nodes_recursive_mesh(material_indices,
                              leaf_limit,
                              nodes[node_index].children_offset_ + 1,
+                             node_index,
                              std::nullopt,
                              face_centers,
                              depth + 1,
@@ -270,7 +277,7 @@ Tree Tree::from_mesh(const Mesh &mesh)
     SCOPED_TIMER_AVERAGED("build_nodes_recursive_mesh");
 #endif
     build_nodes_recursive_mesh(
-        material_index, leaf_limit, 0, bounds, face_centers, 0, pbvh.prim_indices_, nodes);
+        material_index, leaf_limit, 0, -1, bounds, face_centers, 0, pbvh.prim_indices_, nodes);
   }
 
   build_mesh_leaf_nodes(mesh.verts_num, faces, corner_verts, nodes);
@@ -296,17 +303,22 @@ Tree Tree::from_mesh(const Mesh &mesh)
 static void build_nodes_recursive_grids(const Span<int> material_indices,
                                         const int leaf_limit,
                                         const int node_index,
+                                        const int parent_index,
                                         const std::optional<Bounds<float3>> &bounds_precalc,
                                         const Span<float3> face_centers,
                                         const int depth,
                                         MutableSpan<int> faces,
                                         Vector<GridsNode> &nodes)
 {
+  BLI_assert(parent_index >= -1);
+
+  GridsNode &node = nodes[node_index];
+  node.parent_ = parent_index;
+
   /* Decide whether this is a leaf or not */
   const bool below_leaf_limit = faces.size() <= leaf_limit || depth >= STACK_FIXED_DEPTH - 1;
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(faces, material_indices)) {
-      GridsNode &node = nodes[node_index];
       node.flag_ |= Node::Leaf;
       node.prim_indices_ = faces;
       return;
@@ -351,6 +363,7 @@ static void build_nodes_recursive_grids(const Span<int> material_indices,
   build_nodes_recursive_grids(material_indices,
                               leaf_limit,
                               nodes[node_index].children_offset_,
+                              node_index,
                               std::nullopt,
                               face_centers,
                               depth + 1,
@@ -359,6 +372,7 @@ static void build_nodes_recursive_grids(const Span<int> material_indices,
   build_nodes_recursive_grids(material_indices,
                               leaf_limit,
                               nodes[node_index].children_offset_ + 1,
+                              node_index,
                               std::nullopt,
                               face_centers,
                               depth + 1,
@@ -426,7 +440,7 @@ Tree Tree::from_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg)
     SCOPED_TIMER_AVERAGED("build_nodes_recursive_grids");
 #endif
     build_nodes_recursive_grids(
-        material_index, leaf_limit, 0, bounds, face_centers, 0, face_indices, nodes);
+        material_index, leaf_limit, 0, -1, bounds, face_centers, 0, face_indices, nodes);
   }
 
   /* Convert face indices into grid indices. */
@@ -1093,37 +1107,41 @@ void update_node_bounds_bmesh(BMeshNode &node)
   node.bounds_ = bounds;
 }
 
-struct BoundsMergeInfo {
-  Bounds<float3> bounds;
-  bool update;
-};
-
-template<typename NodeT>
-static BoundsMergeInfo merge_child_bounds(MutableSpan<NodeT> nodes,
-                                          const BitSpan dirty,
-                                          const int node_index)
-{
-  NodeT &node = nodes[node_index];
-  if (node.flag_ & Node::Leaf) {
-    const bool update = node_index < dirty.size() && dirty[node_index];
-    return {node.bounds_, update};
-  }
-
-  const BoundsMergeInfo info_0 = merge_child_bounds(nodes, dirty, node.children_offset_ + 0);
-  const BoundsMergeInfo info_1 = merge_child_bounds(nodes, dirty, node.children_offset_ + 1);
-  const bool update = info_0.update || info_1.update;
-  if (update) {
-    node.bounds_ = bounds::merge(info_0.bounds, info_1.bounds);
-  }
-  return {node.bounds_, update};
-}
-
 void Tree::flush_bounds_to_parents()
 {
+  IndexMaskMemory memory;
+  const IndexMask node_mask = IndexMask::from_bits(bounds_dirty_, memory);
+
   std::visit(
       [&](auto &nodes) {
-        nodes.first().bounds_ =
-            merge_child_bounds(nodes.as_mutable_span(), bounds_dirty_, 0).bounds;
+        Set<int> nodes_to_update;
+        nodes_to_update.reserve(node_mask.size());
+
+        node_mask.foreach_index([&](int i) {
+          if (std::optional<int> parent = nodes[i].parent()) {
+            nodes_to_update.add(*parent);
+          }
+        });
+
+        while (!nodes_to_update.is_empty()) {
+          const int node_index = *nodes_to_update.begin();
+          nodes_to_update.remove(node_index);
+
+          auto &node = nodes[node_index];
+          const Bounds<float3> old_bounds = node.bounds_;
+
+          const Bounds<float3> bounds1 = nodes[node.children_offset_].bounds_;
+          const Bounds<float3> bounds2 = nodes[node.children_offset_ + 1].bounds_;
+          node.bounds_ = bounds::merge(bounds1, bounds2);
+
+          const std::optional<int> parent = node.parent();
+          const bool bounds_changed = node.bounds_.min != old_bounds.min ||
+                                      node.bounds_.max != old_bounds.max;
+
+          if (bounds_changed && parent) {
+            nodes_to_update.add(*parent);
+          }
+        }
       },
       this->nodes_);
   bounds_dirty_.clear_and_shrink();
