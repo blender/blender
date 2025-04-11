@@ -666,6 +666,27 @@ static void update_node_location_legacy(bNodeTree &ntree)
   }
 }
 
+/* Some node properties were turned into inputs, so we write the input values back to the
+ * properties upon write to maintain forward compatibility. */
+static void write_compositor_legacy_properties(bNodeTree &node_tree)
+{
+  if (node_tree.type != NTREE_COMPOSIT) {
+    return;
+  }
+
+  for (bNode *node : node_tree.all_nodes()) {
+    auto write_input_to_property_bool_char = [&](const char *identifier, char &property) {
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+      property = input->default_value_typed<bNodeSocketValueBoolean>()->value;
+    };
+
+    if (node->type_legacy == CMP_NODE_GLARE) {
+      NodeGlare *storage = static_cast<NodeGlare *>(node->storage);
+      write_input_to_property_bool_char("Diagonal Star", storage->star_45);
+    }
+  }
+}
+
 }  // namespace forward_compat
 
 static void write_node_socket_default_value(BlendWriter *writer, const bNodeSocket *sock)
@@ -750,6 +771,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 
   if (!BLO_write_is_undo(writer)) {
     forward_compat::update_node_location_legacy(*ntree);
+    forward_compat::write_compositor_legacy_properties(*ntree);
   }
 
   for (bNode *node : ntree->all_nodes()) {

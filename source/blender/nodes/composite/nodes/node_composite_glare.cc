@@ -169,12 +169,10 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description("Modulates colors of streaks and ghosts for a spectral dispersion effect")
       .compositor_expects_single_value();
-  glare_panel.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-    const int glare_type = RNA_enum_get(ptr, "glare_type");
-    if (glare_type == CMP_NODE_GLARE_SIMPLE_STAR) {
-      uiItemR(layout, ptr, "use_rotate_45", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    }
-  });
+  glare_panel.add_input<decl::Bool>("Diagonal", "Diagonal Star")
+      .default_value(true)
+      .description("Align the star diagonally")
+      .compositor_expects_single_value();
 }
 
 static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
@@ -182,7 +180,6 @@ static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
   NodeGlare *ndg = MEM_callocN<NodeGlare>(__func__);
   ndg->quality = 1;
   ndg->type = CMP_NODE_GLARE_STREAKS;
-  ndg->star_45 = true;
   node->storage = ndg;
 }
 
@@ -217,6 +214,10 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *streaks_angle_input = bke::node_find_socket(*node, SOCK_IN, "Streaks Angle");
   blender::bke::node_set_socket_availability(
       *ntree, *streaks_angle_input, glare_type == CMP_NODE_GLARE_STREAKS);
+
+  bNodeSocket *diagonal_star_input = bke::node_find_socket(*node, SOCK_IN, "Diagonal Star");
+  blender::bke::node_set_socket_availability(
+      *ntree, *diagonal_star_input, glare_type == CMP_NODE_GLARE_SIMPLE_STAR);
 }
 
 using namespace blender::compositor;
@@ -535,7 +536,7 @@ class GlareOperation : public NodeOperation {
 
   Result execute_simple_star(const Result &highlights)
   {
-    if (node_storage(bnode()).star_45) {
+    if (this->get_diagonal_star()) {
       return execute_simple_star_diagonal(highlights);
     }
     return execute_simple_star_axis_aligned(highlights);
@@ -980,6 +981,11 @@ class GlareOperation : public NodeOperation {
     });
 
     return diagonal_pass_result;
+  }
+
+  bool get_diagonal_star()
+  {
+    return this->get_input("Diagonal Star").get_single_value_default(true);
   }
 
   /* --------------

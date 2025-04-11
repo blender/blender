@@ -1262,7 +1262,7 @@ typedef struct NodeGlare {
   char angle DNA_DEPRECATED;
   char _pad0;
   char size DNA_DEPRECATED;
-  char star_45;
+  char star_45 DNA_DEPRECATED;
   char streaks DNA_DEPRECATED;
   float colmod DNA_DEPRECATED;
   float mix DNA_DEPRECATED;
