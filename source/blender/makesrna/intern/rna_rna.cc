@@ -195,7 +195,7 @@ const EnumPropertyItem rna_enum_property_flag_items[] = {
      PROP_TEXTEDIT_UPDATE_DESCR},
     {PROP_PATH_OUTPUT, "OUTPUT_PATH", 0, "Output Path", PROP_PATH_OUTPUT_DESCR},
     {PROP_PATH_SUPPORTS_BLEND_RELATIVE,
-     "RELATIVE_PATH",
+     "PATH_SUPPORTS_BLEND_RELATIVE",
      0,
      "Relative Path Support",
      PROP_PATH_RELATIVE_DESCR},
