@@ -10,6 +10,13 @@ import pathlib
 class SculptMode(enum.IntEnum):
     MESH = 1
     MULTIRES = 2
+    DYNTOPO = 3
+
+
+class BrushType(enum.StrEnum):
+    DRAW = "Draw"
+    CLAY_STRIPS = "Clay Strips"
+    SMOOTH = "Smooth"
 
 
 def set_view3d_context_override(context_override):
@@ -33,13 +40,18 @@ def set_view3d_context_override(context_override):
                 context_override["region"] = region
 
 
-def prepare_sculpt_scene(context: any, mode: SculptMode):
-    import bpy
+def prepare_sculpt_scene(context: any, mode: SculptMode, brush_type: BrushType):
     """
     Prepare a clean state of the scene suitable for benchmarking
 
     It creates a high-res object and moves it to a sculpt mode.
+
+    For dyntopo & normal mesh sculpting, we create a grid with 2.2M vertices.
+    For multires sculpting, we create a grid with 22k vertices - with a multires
+    modifier set to level 3, this results in an equivalent number of 2.2M vertices
+    inside sculpt mode.
     """
+    import bpy
 
     # Ensure the current mode is object, as it might not be the always the case
     # if the benchmark script is run from a non-clean state of the .blend file.
@@ -55,10 +67,13 @@ def prepare_sculpt_scene(context: any, mode: SculptMode):
     group.interface.new_socket("Geometry", in_out='OUTPUT', socket_type='NodeSocketGeometry')
     group_output_node = group.nodes.new('NodeGroupOutput')
 
-    if mode == SculptMode.MULTIRES:
-        size = 150
-    else:
-        size = 1500
+    match mode:
+        case SculptMode.MESH:
+            size = 1500
+        case SculptMode.MULTIRES:
+            size = 150
+        case SculptMode.DYNTOPO:
+            size = 1500
 
     grid_node = group.nodes.new('GeometryNodeMeshGrid')
     grid_node.inputs["Size X"].default_value = 2.0
@@ -80,8 +95,18 @@ def prepare_sculpt_scene(context: any, mode: SculptMode):
     # Move the plane to the sculpt mode.
     bpy.ops.object.mode_set(mode='SCULPT')
 
+    bpy.ops.brush.asset_activate(
+        asset_library_type='ESSENTIALS',
+        relative_asset_identifier='brushes/essentials_brushes-mesh_sculpt.blend/Brush/' +
+        brush_type)
+
+    # Reduce the brush strength to avoid deforming the mesh too much and influencing multiple strokes
+    context.tool_settings.sculpt.brush.strength = 0.1
+
     if mode == SculptMode.MULTIRES:
         bpy.ops.object.subdivision_set(level=3)
+    elif mode == SculptMode.DYNTOPO:
+        bpy.ops.sculpt.dynamic_topology_toggle()
 
 
 def generate_stroke(context):
@@ -111,15 +136,14 @@ def generate_stroke(context):
         template["pen_flip"] = False
 
     num_steps = 100
-    start = Vector((-1, -1, 0))
-    end = Vector((1, 1, 0))
+    start = Vector((context['area'].width, context['area'].height))
+    end = Vector((0, 0))
     delta = (end - start) / (num_steps - 1)
 
     stroke = []
     for i in range(num_steps):
         step = template.copy()
-        step["location"] = start + delta * i
-        # TODO: mouse and mouse_event?
+        step["mouse_event"] = start + delta * i
         stroke.append(step)
 
     return stroke
@@ -130,47 +154,60 @@ def _run(args: dict):
     import time
     context = bpy.context
 
+    timeout = 5
+    total_time_start = time.time()
+
     # Create an undo stack explicitly. This isn't created by default in background mode.
     bpy.ops.ed.undo_push()
 
-    prepare_sculpt_scene(context, args['mode'])
+    prepare_sculpt_scene(context, args['mode'], args['brush_type'])
 
     context_override = context.copy()
     set_view3d_context_override(context_override)
 
-    with context.temp_override(**context_override):
-        start = time.time()
-        bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override))
-        end = time.time()
+    min_measurements = 5
+    max_measurements = 100
 
-    result = {'time': end - start}
-    # bpy.ops.wm.save_mainfile(filepath="/home/hans/Documents/test.blend")
-    return result
+    measurements = []
+    while True:
+        with context.temp_override(**context_override):
+            start = time.time()
+            bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True)
+            measurements.append(time.time() - start)
+
+        if len(measurements) >= min_measurements and (time.time() - total_time_start) > timeout:
+            break
+        if len(measurements) >= max_measurements:
+            break
+
+    return sum(measurements) / len(measurements)
 
 
 class SculptBrushTest(api.Test):
-    def __init__(self, filepath: pathlib.Path, mode: SculptMode):
+    def __init__(self, filepath: pathlib.Path, mode: SculptMode, brush_type: BrushType):
         self.filepath = filepath
         self.mode = mode
+        self.brush_type = brush_type
 
     def name(self):
-        # To preserve historical data, avoid adding the prefix for the mesh tests.
-        if self.mode == SculptMode.MESH:
-            return self.filepath.stem
-
-        return "{}_{}".format(self.mode.name.lower(), self.filepath.stem)
+        return "{}_{}".format(self.mode.name.lower(), self.brush_type.name.lower())
 
     def category(self):
         return "sculpt"
 
     def run(self, env, _device_id):
-        args = {"mode": self.mode.value}
+        args = {
+            'mode': self.mode,
+            'brush_type': self.brush_type,
+        }
 
         result, _ = env.run_in_blender(_run, args, [self.filepath])
 
-        return result
+        return {'time': result}
 
 
 def generate(env):
     filepaths = env.find_blend_files('sculpt/*')
-    return [SculptBrushTest(filepath, mode) for filepath in filepaths for mode in SculptMode]
+    # For now, we only expect there to ever be a single file to use as the basis for generating other brush tests
+    assert len(filepaths) == 1
+    return [SculptBrushTest(filepaths[0], mode, brush_type) for mode in SculptMode for brush_type in BrushType]
