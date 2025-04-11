@@ -3254,19 +3254,6 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      bConstraint *con = static_cast<bConstraint *>(ob->constraints.first);
-      while (con) {
-        bConstraint *con_next = static_cast<bConstraint *>(con->next);
-        if (con->type == 17) { /* CONSTRAINT_TYPE_RIGIDBODYJOINT */
-          BLI_remlink(&ob->constraints, con);
-          BKE_constraint_free_data(con);
-          MEM_freeN(con);
-        }
-        con = con_next;
-      }
-    }
-
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {

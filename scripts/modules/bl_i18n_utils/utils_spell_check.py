@@ -646,7 +646,6 @@ class SpellChecker:
         "polygroup", "polygroups",
         "poselib",
         "pushpull",
-        "pyconstraint", "pyconstraints",
         "qe",  # keys...
         "shaderfx", "shaderfxs",
         "shapekey", "shapekeys",

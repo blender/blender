@@ -65,7 +65,6 @@ set(SRC
   bpy_traceback.cc
   bpy_utils_previews.cc
   bpy_utils_units.cc
-  stubs.cc
 
   bpy.hh
   bpy_app.hh

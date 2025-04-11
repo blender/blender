@@ -119,33 +119,6 @@ typedef enum eConstraintObType {
   /* CONSTRAINT_OBTYPE_CV = 4, */ /* UNUSED */
 } eConstraintObType;
 
-/* Python Script Constraint */
-typedef struct bPythonConstraint {
-  /** Text-buffer (containing script) to execute. */
-  struct Text *text;
-  /** 'id-properties' used to store custom properties for constraint. */
-  IDProperty *prop;
-
-  /** General settings/state indicators accessed by bitmapping. */
-  int flag;
-  /** Number of targets - usually only 1-3 are needed. */
-  int tarnum;
-
-  /** A list of targets that this constraint has (bConstraintTarget-s). */
-  ListBase targets;
-
-  /**
-   * Target from previous implementation
-   * (version-patch sets this to NULL on file-load).
-   */
-  struct Object *tar;
-  /**
-   * Subtarget from previous implementation
-   * (version-patch sets this to "" on file-load), MAX_ID_NAME-2.
-   */
-  char subtarget[64];
-} bPythonConstraint;
-
 /* Inverse-Kinematics (IK) constraint
  * This constraint supports a variety of mode determine by the type field
  * according to eConstraint_IK_Type.
@@ -638,7 +611,7 @@ typedef enum eBConstraint_Types {
   CONSTRAINT_TYPE_ROTLIKE = 8,
   CONSTRAINT_TYPE_LOCLIKE = 9,
   CONSTRAINT_TYPE_SIZELIKE = 10,
-  CONSTRAINT_TYPE_PYTHON = 11,
+  /* CONSTRAINT_TYPE_DEPRECATED = 11, */
   CONSTRAINT_TYPE_ACTION = 12,
   CONSTRAINT_TYPE_LOCKTRACK = 13,
   CONSTRAINT_TYPE_DISTLIMIT = 14,
