@@ -300,7 +300,7 @@ int BLI_str_utf8_invalid_strip(char *str, size_t str_len)
       break;
     }
     /* strip, keep looking */
-    memmove(str, str + 1, str_len + 1); /* +1 for nullptr char! */
+    memmove(str, str + 1, str_len + 1); /* +1 for null char! */
     tot++;
   }
 
@@ -958,7 +958,7 @@ size_t BLI_str_utf8_from_unicode(uint c, char *dst, const size_t dst_maxncpy)
   UTF8_VARS_FROM_CHAR32(c, first, len);
 
   if (UNLIKELY(dst_maxncpy < len)) {
-    /* nullptr terminate instead of writing a partial byte. */
+    /* Null terminate instead of writing a partial byte. */
     memset(dst, 0x0, dst_maxncpy);
     return dst_maxncpy;
   }

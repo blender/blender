@@ -50,7 +50,7 @@ char *BLI_strdup_null(const char *str)
 
 char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 {
-  /* include the nullptr terminator of str2 only */
+  /* Include the null terminator of `str2` only. */
   const size_t str1_len = strlen(str1);
   const size_t str2_len = strlen(str2) + 1;
   char *str, *s;

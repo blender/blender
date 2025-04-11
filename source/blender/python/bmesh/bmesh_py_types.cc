@@ -4630,7 +4630,7 @@ int BPy_BMElem_CheckHType(PyTypeObject *type, const char htype)
 
 char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
 {
-  /* zero to ensure string is always nullptr terminated */
+  /* Zero to ensure string is always null terminated. */
   const char *ret_array[4];
   int i = 0;
   if (htype & BM_VERT) {
@@ -4653,7 +4653,7 @@ char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
 }
 char *BPy_BMElem_StringFromHType(const char htype)
 {
-  /* zero to ensure string is always nullptr terminated */
+  /* Zero to ensure string is always null terminated. */
   static char ret[32];
   return BPy_BMElem_StringFromHType_ex(htype, ret);
 }

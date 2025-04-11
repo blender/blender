@@ -29,7 +29,7 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-/* Maximum length of text sample in char32_t, including nullptr terminator. */
+/* Maximum length of text sample in char32_t, including null terminator. */
 #define BLF_SAMPLE_LEN 5
 
 struct UnicodeSample {
