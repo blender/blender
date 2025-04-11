@@ -398,6 +398,7 @@ void NODE_GGT_backdrop_crop(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_sun_beams(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_box_mask(wmGizmoGroupType *gzgt);
+void NODE_GGT_backdrop_ellipse_mask(wmGizmoGroupType *gzgt);
 
 /* `node_geometry_attribute_search.cc` */
 
