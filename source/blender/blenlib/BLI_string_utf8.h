@@ -25,17 +25,19 @@ size_t BLI_strncpy_utf8_rlen_unterminated(char *__restrict dst,
                                           size_t dst_maxncpy);
 
 /**
- * Find first UTF-8 invalid byte in given \a str, of \a length bytes.
+ * Find first UTF-8 invalid byte in given \a str, of \a str_len bytes.
  *
  * \return the offset of the first invalid byte.
  */
-ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length) ATTR_NONNULL(1);
+ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len) ATTR_NONNULL(1);
 /**
  * Remove any invalid UTF-8 byte (taking into account multi-bytes sequence of course).
  *
+ * \param str: a null terminated string.
+ * \param str_len: the result of `strlen(str)`.
  * \return number of stripped bytes.
  */
-int BLI_str_utf8_invalid_strip(char *str, size_t length) ATTR_NONNULL(1);
+int BLI_str_utf8_invalid_strip(char *str, size_t str_len) ATTR_NONNULL(1);
 
 /**
  * \return The size (in bytes) of a single UTF-8 char.

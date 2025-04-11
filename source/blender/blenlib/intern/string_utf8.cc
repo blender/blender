@@ -147,7 +147,7 @@ BLI_INLINE uint utf8_char_decode(const char *p, const char mask, const int len, 
 
 /** \} */
 
-ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
+ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len)
 {
   /* NOTE(@ideasman42): from libswish3, originally called u8_isvalid(),
    * modified to return the index of the bad character (byte index not UTF).
@@ -159,11 +159,11 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
    * length is in bytes, since without knowing whether the string is valid
    * it's hard to know how many characters there are! */
 
-  const uchar *p, *perr, *pend = (const uchar *)str + length;
+  const uchar *p, *perr, *pend = (const uchar *)str + str_len;
   uchar c;
   int ab;
 
-  for (p = (const uchar *)str; p < pend; p++, length--) {
+  for (p = (const uchar *)str; p < pend; p++, str_len--) {
     c = *p;
     perr = p; /* Erroneous char is always the first of an invalid utf8 sequence... */
     if (ELEM(c, 0xfe, 0xff, 0x00)) {
@@ -181,13 +181,13 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
      * we only add/subtract extra utf8 bytes in code below
      * (ab number, aka number of bytes remaining in the utf8 sequence after the initial one). */
     ab = utf8_char_compute_skip(c) - 1;
-    if (length <= size_t(ab)) {
+    if (str_len <= size_t(ab)) {
       goto utf8_error;
     }
 
     /* Check top bits in the second byte */
     p++;
-    length--;
+    str_len--;
     if ((*p & 0xc0) != 0x80) {
       goto utf8_error;
     }
@@ -268,7 +268,7 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
     /* Check for valid bytes after the 2nd, if any; all must start 10. */
     while (--ab > 0) {
       p++;
-      length--;
+      str_len--;
       if ((*p & 0xc0) != 0x80) {
         goto utf8_error;
       }
@@ -282,25 +282,25 @@ utf8_error:
   return ((const char *)perr - (const char *)str);
 }
 
-int BLI_str_utf8_invalid_strip(char *str, size_t length)
+int BLI_str_utf8_invalid_strip(char *str, size_t str_len)
 {
   ptrdiff_t bad_char;
   int tot = 0;
 
-  BLI_assert(str[length] == '\0');
+  BLI_assert(str[str_len] == '\0');
 
-  while ((bad_char = BLI_str_utf8_invalid_byte(str, length)) != -1) {
+  while ((bad_char = BLI_str_utf8_invalid_byte(str, str_len)) != -1) {
     str += bad_char;
-    length -= size_t(bad_char + 1);
+    str_len -= size_t(bad_char + 1);
 
-    if (length == 0) {
+    if (str_len == 0) {
       /* last character bad, strip it */
       *str = '\0';
       tot++;
       break;
     }
     /* strip, keep looking */
-    memmove(str, str + 1, length + 1); /* +1 for nullptr char! */
+    memmove(str, str + 1, str_len + 1); /* +1 for nullptr char! */
     tot++;
   }
 
