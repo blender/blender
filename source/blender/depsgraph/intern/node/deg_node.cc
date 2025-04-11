@@ -285,16 +285,7 @@ Node::Node()
   name = "";
 }
 
-Node::~Node()
-{
-  /* Free links. */
-  /* NOTE: We only free incoming links. This is to avoid double-free of links
-   * when we're trying to free same link from both its sides. We don't have
-   * dangling links so this is not a problem from memory leaks point of view. */
-  for (Relation *rel : inlinks) {
-    delete rel;
-  }
-}
+Node::~Node() = default;
 
 std::string Node::identifier() const
 {

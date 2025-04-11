@@ -89,7 +89,6 @@ void deg_graph_remove_unused_noops(Depsgraph *graph)
   /* Remove the relations. */
   for (Relation *relation : relations_to_remove) {
     relation->unlink();
-    delete relation;
   }
 
   DEG_DEBUG_PRINTF((::Depsgraph *)graph,
