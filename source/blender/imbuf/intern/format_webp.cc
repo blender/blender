@@ -61,7 +61,7 @@ ImBuf *imb_loadwebp(const uchar *mem, size_t size, int flags, ImFileColorSpace &
     ibuf->ftype = IMB_FTYPE_WEBP;
     IMB_alloc_byte_pixels(ibuf);
     /* Flip the image during decoding to match Blender. */
-    uchar *last_row = ibuf->byte_buffer.data + 4 * (ibuf->y - 1) * ibuf->x;
+    uchar *last_row = ibuf->byte_buffer.data + (4 * size_t(ibuf->y - 1) * size_t(ibuf->x));
     if (WebPDecodeRGBAInto(mem, size, last_row, size_t(ibuf->x) * ibuf->y * 4, -4 * ibuf->x) ==
         nullptr)
     {
@@ -134,7 +134,7 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
   config.output.colorspace = MODE_RGBA;
   config.output.u.RGBA.rgba = ibuf->byte_buffer.data;
   config.output.u.RGBA.stride = 4 * ibuf->x;
-  config.output.u.RGBA.size = size_t(config.output.u.RGBA.stride * ibuf->y);
+  config.output.u.RGBA.size = size_t(config.output.u.RGBA.stride) * size_t(ibuf->y);
 
   if (WebPDecode(data, data_size, &config) != VP8_STATUS_OK) {
     fprintf(stderr, "WebP: Failed to decode image\n");
@@ -156,22 +156,28 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
 
 bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
 {
+  const uint limit = 16383;
+  if (ibuf->x > limit || ibuf->y > limit) {
+    fprintf(stderr, "WebP: image x/y exceeds %u\n", limit);
+    return false;
+  }
+
   const int bytesperpixel = (ibuf->planes + 7) >> 3;
   uchar *encoded_data, *last_row;
   size_t encoded_data_size;
 
   if (bytesperpixel == 3) {
     /* We must convert the ImBuf RGBA buffer to RGB as WebP expects a RGB buffer. */
-    const size_t num_pixels = ibuf->x * ibuf->y;
+    const size_t num_pixels = IMB_get_pixel_count(ibuf);
     const uint8_t *rgba_rect = ibuf->byte_buffer.data;
     uint8_t *rgb_rect = MEM_malloc_arrayN<uint8_t>(num_pixels * 3, "webp rgb_rect");
-    for (int i = 0; i < num_pixels; i++) {
+    for (size_t i = 0; i < num_pixels; i++) {
       rgb_rect[i * 3 + 0] = rgba_rect[i * 4 + 0];
       rgb_rect[i * 3 + 1] = rgba_rect[i * 4 + 1];
       rgb_rect[i * 3 + 2] = rgba_rect[i * 4 + 2];
     }
 
-    last_row = (uchar *)(rgb_rect + (ibuf->y - 1) * ibuf->x * 3);
+    last_row = (uchar *)(rgb_rect + (size_t(ibuf->y - 1) * size_t(ibuf->x) * 3));
 
     if (ibuf->foptions.quality == 100.0f) {
       encoded_data_size = WebPEncodeLosslessRGB(
@@ -184,7 +190,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
     MEM_freeN(rgb_rect);
   }
   else if (bytesperpixel == 4) {
-    last_row = ibuf->byte_buffer.data + 4 * (ibuf->y - 1) * ibuf->x;
+    last_row = ibuf->byte_buffer.data + 4 * size_t(ibuf->y - 1) * size_t(ibuf->x);
 
     if (ibuf->foptions.quality == 100.0f) {
       encoded_data_size = WebPEncodeLosslessRGBA(
