@@ -20,6 +20,8 @@ VKRenderGraph::VKRenderGraph(VKResourceStateTracker &resources) : resources_(res
 
 void VKRenderGraph::reset()
 {
+  submission_id.next();
+
   links_.clear();
   for (VKRenderGraphNode &node : nodes_) {
     node.free_data(storage_);
