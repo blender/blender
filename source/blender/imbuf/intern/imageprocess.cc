@@ -20,7 +20,7 @@ void IMB_convert_rgba_to_abgr(ImBuf *ibuf)
   float rtf, *cpf = ibuf->float_buffer.data;
 
   if (ibuf->byte_buffer.data) {
-    size = ibuf->x * ibuf->y;
+    size = IMB_get_pixel_count(ibuf);
 
     while (size-- > 0) {
       rt = cp[0];
@@ -34,7 +34,7 @@ void IMB_convert_rgba_to_abgr(ImBuf *ibuf)
   }
 
   if (ibuf->float_buffer.data) {
-    size = ibuf->x * ibuf->y;
+    size = IMB_get_pixel_count(ibuf);
 
     while (size-- > 0) {
       rtf = cpf[0];
