@@ -26,6 +26,7 @@
 #include "BKE_outliner_treehash.hh"
 #include "BKE_screen.hh"
 
+#include "ED_outliner.hh"
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
@@ -829,7 +830,7 @@ static int outliner_exclude_filter_get(const SpaceOutliner *space_outliner)
 {
   int exclude_filter = space_outliner->filter & ~SO_FILTER_OB_STATE;
 
-  if (space_outliner->search_string[0] != 0) {
+  if ((space_outliner->search_string[0] != 0) && ED_outliner_support_searching(space_outliner)) {
     exclude_filter |= SO_FILTER_SEARCH;
   }
   else {
@@ -1151,7 +1152,9 @@ void outliner_build_tree(Main *mainvar,
   /* Are we looking for something - we want to tag parents to filter child matches
    * - NOT in data-blocks view - searching all data-blocks takes way too long to be useful
    * - this variable is only set once per tree build */
-  if (space_outliner->search_string[0] != 0 && space_outliner->outlinevis != SO_DATA_API) {
+  if (space_outliner->search_string[0] != 0 && space_outliner->outlinevis != SO_DATA_API &&
+      ED_outliner_support_searching(space_outliner))
+  {
     space_outliner->search_flags |= SO_SEARCH_RECURSIVE;
   }
   else {
