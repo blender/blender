@@ -179,6 +179,19 @@ struct FileBrowseOp {
   bool is_userdef = false;
 };
 
+static bool file_browse_operator_relative_paths_supported(wmOperator *op)
+{
+  FileBrowseOp *fbo = static_cast<FileBrowseOp *>(op->customdata);
+  const PropertySubType subtype = RNA_property_subtype(fbo->prop);
+  if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
+    const int flag = RNA_property_flag(fbo->prop);
+    if ((flag & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static wmOperatorStatus file_browse_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -202,7 +215,12 @@ static wmOperatorStatus file_browse_exec(bContext *C, wmOperator *op)
   /* Add slash for directories, important for some properties. */
   if (RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
     char path_buf[FILE_MAX];
-    const bool is_relative = RNA_boolean_get(op->ptr, "relative_path");
+    /* Check relative paths are supported here as this option will be hidden
+     * when it's not supported. In this case the value may have been enabled
+     * by default or from the last-used setting.
+     * Either way, don't use the blend-file relative prefix when it's not supported.  */
+    const bool is_relative = RNA_boolean_get(op->ptr, "relative_path") &&
+                             file_browse_operator_relative_paths_supported(op);
     id = fbo->ptr.owner_id;
 
     STRNCPY(path_buf, path);
@@ -406,6 +424,19 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
   return OPERATOR_RUNNING_MODAL;
 }
 
+static bool file_browse_poll_property(const bContext * /*C*/,
+                                      wmOperator *op,
+                                      const PropertyRNA *prop)
+{
+  const char *prop_id = RNA_property_identifier(prop);
+  if (STREQ(prop_id, "relative_path")) {
+    if (!file_browse_operator_relative_paths_supported(op)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void BUTTONS_OT_file_browse(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -418,6 +449,7 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
   ot->invoke = file_browse_invoke;
   ot->exec = file_browse_exec;
   ot->cancel = file_browse_cancel;
+  ot->poll_property = file_browse_poll_property;
 
   /* Conditional undo based on button flag. */
   ot->flag = 0;
@@ -449,6 +481,7 @@ void BUTTONS_OT_directory_browse(wmOperatorType *ot)
   ot->invoke = file_browse_invoke;
   ot->exec = file_browse_exec;
   ot->cancel = file_browse_cancel;
+  ot->poll_property = file_browse_poll_property;
 
   /* conditional undo based on button flag */
   ot->flag = 0;
