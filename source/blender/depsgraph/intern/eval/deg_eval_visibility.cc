@@ -14,7 +14,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
-#include "BLI_stack.h"
+#include "BLI_stack.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -122,7 +122,7 @@ void deg_graph_flush_visibility_flags(Depsgraph *graph)
     }
   }
 
-  BLI_Stack *stack = BLI_stack_new(sizeof(OperationNode *), "DEG flush layers stack");
+  Stack<OperationNode *> stack;
 
   for (OperationNode *op_node : graph->operations) {
     op_node->custom_flags = 0;
@@ -133,14 +133,13 @@ void deg_graph_flush_visibility_flags(Depsgraph *graph)
       }
     }
     if (op_node->num_links_pending == 0) {
-      BLI_stack_push(stack, &op_node);
+      stack.push(op_node);
       op_node->custom_flags |= DEG_NODE_VISITED;
     }
   }
 
-  while (!BLI_stack_is_empty(stack)) {
-    OperationNode *op_node;
-    BLI_stack_pop(stack, &op_node);
+  while (!stack.is_empty()) {
+    OperationNode *op_node = stack.pop();
 
     /* Flush flags to parents. */
     for (Relation *rel : op_node->inlinks) {
@@ -213,13 +212,12 @@ void deg_graph_flush_visibility_flags(Depsgraph *graph)
           --op_from->num_links_pending;
         }
         if ((op_from->num_links_pending == 0) && (op_from->custom_flags & DEG_NODE_VISITED) == 0) {
-          BLI_stack_push(stack, &op_from);
+          stack.push(op_from);
           op_from->custom_flags |= DEG_NODE_VISITED;
         }
       }
     }
   }
-  BLI_stack_free(stack);
 
   graph->need_update_nodes_visibility = false;
 }

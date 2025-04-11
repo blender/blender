@@ -12,7 +12,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "BLI_stack.h"
+#include "BLI_stack.hh"
 
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_component.hh"
@@ -41,20 +41,15 @@ struct StackEntry {
 };
 
 struct CyclesSolverState {
-  CyclesSolverState(Depsgraph *graph)
-      : graph(graph), traversal_stack(BLI_stack_new(sizeof(StackEntry), "DEG detect cycles stack"))
-  {
-    /* pass */
-  }
+  CyclesSolverState(Depsgraph *graph) : graph(graph) {}
   ~CyclesSolverState()
   {
-    BLI_stack_free(traversal_stack);
     if (num_cycles != 0) {
       printf("Detected %d dependency cycles\n", num_cycles);
     }
   }
   Depsgraph *graph;
-  BLI_Stack *traversal_stack;
+  Stack<StackEntry> traversal_stack;
   int num_cycles = 0;
 };
 
@@ -84,7 +79,7 @@ void schedule_node_to_stack(CyclesSolverState *state, OperationNode *node)
   entry.node = node;
   entry.from = nullptr;
   entry.via_relation = nullptr;
-  BLI_stack_push(state->traversal_stack, &entry);
+  state->traversal_stack.push(entry);
   set_node_visited_state(node, NODE_IN_STACK);
 }
 
@@ -153,9 +148,9 @@ Relation *select_relation_to_murder(Relation *relation, StackEntry *cycle_start_
 /* Solve cycles with all nodes which are scheduled for traversal. */
 void solve_cycles(CyclesSolverState *state)
 {
-  BLI_Stack *traversal_stack = state->traversal_stack;
-  while (!BLI_stack_is_empty(traversal_stack)) {
-    StackEntry *entry = (StackEntry *)BLI_stack_peek(traversal_stack);
+  Stack<StackEntry> &traversal_stack = state->traversal_stack;
+  while (!traversal_stack.is_empty()) {
+    StackEntry *entry = &traversal_stack.peek();
     OperationNode *node = entry->node;
     bool all_child_traversed = true;
     const int num_visited = get_node_num_visited_children(node);
@@ -184,7 +179,7 @@ void solve_cycles(CyclesSolverState *state)
           new_entry.node = to;
           new_entry.from = entry;
           new_entry.via_relation = rel;
-          BLI_stack_push(traversal_stack, &new_entry);
+          traversal_stack.push(new_entry);
           set_node_visited_state(node, NODE_IN_STACK);
           all_child_traversed = false;
           set_node_num_visited_children(node, i);
@@ -194,7 +189,7 @@ void solve_cycles(CyclesSolverState *state)
     }
     if (all_child_traversed) {
       set_node_visited_state(node, NODE_VISITED);
-      BLI_stack_discard(traversal_stack);
+      traversal_stack.pop();
     }
   }
 }
