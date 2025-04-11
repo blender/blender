@@ -1186,11 +1186,11 @@ void IMB_rectfill_area(
 
 void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
 {
-  int i;
+  size_t i;
 
   if (ibuf->float_buffer.data && (ibuf->channels == 4)) {
     float *fbuf = ibuf->float_buffer.data + 3;
-    for (i = ibuf->x * ibuf->y; i > 0; i--, fbuf += 4) {
+    for (i = IMB_get_pixel_count(ibuf); i > 0; i--, fbuf += 4) {
       *fbuf = value;
     }
   }
@@ -1198,7 +1198,7 @@ void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
   if (ibuf->byte_buffer.data) {
     const uchar cvalue = value * 255;
     uchar *cbuf = ibuf->byte_buffer.data + 3;
-    for (i = ibuf->x * ibuf->y; i > 0; i--, cbuf += 4) {
+    for (i = IMB_get_pixel_count(ibuf); i > 0; i--, cbuf += 4) {
       *cbuf = cvalue;
     }
   }

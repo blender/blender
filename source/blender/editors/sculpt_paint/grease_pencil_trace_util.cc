@@ -90,7 +90,8 @@ ImBuf *bitmap_to_image(const Bitmap &bm)
   const int words_per_scanline = bm.dy;
   const Span<potrace_word> words = {bm.map, num_words};
   MutableSpan<ColorGeometry4b> colors = {
-      reinterpret_cast<ColorGeometry4b *>(ibuf->byte_buffer.data), ibuf->x * ibuf->y};
+      reinterpret_cast<ColorGeometry4b *>(ibuf->byte_buffer.data),
+      int64_t(IMB_get_pixel_count(ibuf))};
   threading::parallel_for(IndexRange(ibuf->y), 4096, [&](const IndexRange range) {
     for (const int y : range) {
       Span<potrace_word> scanline_words = words.slice(

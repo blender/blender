@@ -155,8 +155,9 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
              IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace))
     {
       /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
-      data_rect = MEM_mallocN(
-          (is_grayscale ? sizeof(float[4]) : sizeof(uchar[4])) * ibuf->x * ibuf->y, __func__);
+      data_rect = MEM_mallocN((is_grayscale ? sizeof(float[4]) : sizeof(uchar[4])) *
+                                  IMB_get_pixel_count(ibuf),
+                              __func__);
       *r_freedata = freedata = true;
 
       if (data_rect == nullptr) {
@@ -224,8 +225,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
     void *src_rect = data_rect;
 
     if (freedata == false) {
-      data_rect = MEM_mallocN((is_float_rect ? sizeof(float) : sizeof(uchar)) * ibuf->x * ibuf->y,
-                              __func__);
+      data_rect = MEM_mallocN(
+          (is_float_rect ? sizeof(float) : sizeof(uchar)) * IMB_get_pixel_count(ibuf), __func__);
       *r_freedata = freedata = true;
     }
 
@@ -233,14 +234,15 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
       return nullptr;
     }
 
-    int buffer_size = do_rescale ? rescale_size[0] * rescale_size[1] : ibuf->x * ibuf->y;
+    size_t buffer_size = do_rescale ? size_t(rescale_size[0]) * size_t(rescale_size[1]) :
+                                      size_t(ibuf->x) * size_t(ibuf->y);
     if (is_float_rect) {
-      for (uint64_t i = 0; i < buffer_size; i++) {
+      for (size_t i = 0; i < buffer_size; i++) {
         ((float *)data_rect)[i] = ((float *)src_rect)[i * 4];
       }
     }
     else {
-      for (uint64_t i = 0; i < buffer_size; i++) {
+      for (size_t i = 0; i < buffer_size; i++) {
         ((uchar *)data_rect)[i] = ((uchar *)src_rect)[i * 4];
       }
     }
