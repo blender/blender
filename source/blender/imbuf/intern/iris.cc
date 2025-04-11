@@ -287,7 +287,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM
   } \
   ((void)0)
 
-    MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(MFILE_DATA(inf) + ((4 * 2) * tablen));
+    MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(MFILE_DATA(inf) + (2 * tablen));
 
     readtab(inf, starttab, tablen);
     readtab(inf, lengthtab, tablen);
