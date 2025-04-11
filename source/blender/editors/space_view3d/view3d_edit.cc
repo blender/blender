@@ -621,7 +621,8 @@ void VIEW3D_OT_camera_background_image_add(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop = RNA_def_string(
       ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "Path to image file");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_subtype(prop, PROP_FILEPATH);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE | PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   prop = RNA_def_boolean(ot->srna,
                          "relative_path",
                          true,

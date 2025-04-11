@@ -1886,6 +1886,7 @@ void FILE_OT_external_operation(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_string(ot->srna, "filepath", nullptr, FILE_MAX, "File or folder path", "");
+  RNA_def_property_subtype(prop, PROP_FILEPATH);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   RNA_def_enum(ot->srna,

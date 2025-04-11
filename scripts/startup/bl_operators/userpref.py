@@ -1132,6 +1132,7 @@ class PREFERENCES_OT_studiolight_new(Operator):
     filename: StringProperty(
         name="Name",
         default="StudioLight",
+        subtype='FILE_NAME',
     )
 
     ask_override = False

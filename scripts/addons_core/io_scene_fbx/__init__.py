@@ -51,7 +51,9 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
     bl_label = "Import FBX"
     bl_options = {'UNDO', 'PRESET'}
 
-    directory: StringProperty()
+    directory: StringProperty(
+        subtype='DIR_PATH',
+    )
 
     filename_ext = ".fbx"
     filter_glob: StringProperty(default="*.fbx", options={'HIDDEN'})
