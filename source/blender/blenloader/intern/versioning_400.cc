@@ -6774,7 +6774,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Image *, image, &bmain->images) {
       LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
         if (slot->name[0]) {
-          BLI_str_utf8_invalid_strip(slot->name, sizeof(slot->name));
+          BLI_str_utf8_invalid_strip(slot->name, BLI_strnlen(slot->name, sizeof(slot->name)));
         }
       }
     }
