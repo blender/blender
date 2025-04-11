@@ -3699,8 +3699,8 @@ void node_tree_set_output(bNodeTree &ntree)
         }
       }
 
-      /* The compositor must always have an active viewer, if viewer nodes exist. */
-      if (output == 0 && is_compositor) {
+      /* Only geometry nodes is allowed to have no active output in the node tree. */
+      if (output == 0 && !is_geometry) {
         node->flag |= NODE_DO_OUTPUT;
       }
     }
