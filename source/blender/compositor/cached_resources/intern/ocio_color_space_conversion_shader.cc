@@ -121,7 +121,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     /* Don't use the name argument directly since ShaderCreateInfo only stores references to
      * resource names, instead, use the name that is stored in resource_names_. */
     std::string &resource_name = *resource_names_[resource_names_.size() - 1];
-    shader_create_info_.push_constant(Type::FLOAT, resource_name);
+    shader_create_info_.push_constant(Type::float_t, resource_name);
 
     float_uniforms_.add(resource_name, get_double);
 
@@ -140,7 +140,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     /* Don't use the name argument directly since ShaderCreateInfo only stores references to
      * resource names, instead, use the name that is stored in resource_names_. */
     const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
-    shader_create_info_.push_constant(Type::BOOL, resource_name);
+    shader_create_info_.push_constant(Type::bool_t, resource_name);
 
     boolean_uniforms_.add(name, get_bool);
 
@@ -159,7 +159,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     /* Don't use the name argument directly since ShaderCreateInfo only stores references to
      * resource names, instead, use the name that is stored in resource_names_. */
     std::string &resource_name = *resource_names_[resource_names_.size() - 1];
-    shader_create_info_.push_constant(Type::VEC3, resource_name);
+    shader_create_info_.push_constant(Type::float3_t, resource_name);
 
     vector_uniforms_.add(resource_name, get_float3);
 

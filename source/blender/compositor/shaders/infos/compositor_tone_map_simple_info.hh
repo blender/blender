@@ -6,9 +6,9 @@
 
 GPU_SHADER_CREATE_INFO(compositor_tone_map_simple)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(FLOAT, luminance_scale)
-PUSH_CONSTANT(FLOAT, luminance_scale_blend_factor)
-PUSH_CONSTANT(FLOAT, inverse_gamma)
+PUSH_CONSTANT(float, luminance_scale)
+PUSH_CONSTANT(float, luminance_scale_blend_factor)
+PUSH_CONSTANT(float, inverse_gamma)
 SAMPLER(0, FLOAT_2D, input_tx)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
 COMPUTE_SOURCE("compositor_tone_map_simple.glsl")

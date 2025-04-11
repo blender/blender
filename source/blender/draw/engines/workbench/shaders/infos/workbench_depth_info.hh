@@ -27,7 +27,7 @@ DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_extract_stencil)
-FRAGMENT_OUT(0, UINT, out_stencil_value)
+FRAGMENT_OUT(0, uint, out_stencil_value)
 FRAGMENT_SOURCE("workbench_extract_stencil.glsl")
 ADDITIONAL_INFO(draw_fullscreen)
 DO_STATIC_COMPILATION()

@@ -395,26 +395,6 @@ using bvec2 = bool2;
 using bvec3 = bool3;
 using bvec4 = bool4;
 
-using FLOAT = float;
-using VEC2 = float2;
-using VEC3 = float3;
-using VEC4 = float4;
-
-using INT = int;
-using IVEC2 = int2;
-using IVEC3 = int3;
-using IVEC4 = int4;
-
-using UINT = uint;
-using UVEC2 = uint2;
-using UVEC3 = uint3;
-using UVEC4 = uint4;
-
-using BOOL = bool;
-using BVEC2 = bool2;
-using BVEC3 = bool3;
-using BVEC4 = bool4;
-
 using bool32_t = uint;
 
 /** Packed types are needed for MSL which have different alignment rules for float3. */
@@ -518,9 +498,6 @@ using mat4x4 = float4x4;
 using mat2 = float2x2;
 using mat3 = float3x3;
 using mat4 = float4x4;
-
-using MAT4 = float4x4;
-using MAT3 = float3x3;
 
 /* Matrix reshaping functions. */
 #define RESHAPE(mat_to, mat_from, ...) \

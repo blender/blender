@@ -771,16 +771,16 @@ static void populate_specialization_constant_values(
 
     uint index = i + MTL_SHADER_SPECIALIZATION_CONSTANT_BASE_ID;
     switch (shader_constants.types[i]) {
-      case Type::INT:
+      case Type::int_t:
         [values setConstantValue:&value.i type:MTLDataTypeInt atIndex:index];
         break;
-      case Type::UINT:
+      case Type::uint_t:
         [values setConstantValue:&value.u type:MTLDataTypeUInt atIndex:index];
         break;
-      case Type::BOOL:
+      case Type::bool_t:
         [values setConstantValue:&value.u type:MTLDataTypeBool atIndex:index];
         break;
-      case Type::FLOAT:
+      case Type::float_t:
         [values setConstantValue:&value.f type:MTLDataTypeFloat atIndex:index];
         break;
       default:

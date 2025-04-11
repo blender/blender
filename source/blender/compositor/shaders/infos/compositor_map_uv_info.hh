@@ -13,7 +13,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_map_uv_anisotropic)
 ADDITIONAL_INFO(compositor_map_uv_shared)
-PUSH_CONSTANT(FLOAT, gradient_attenuation_factor)
+PUSH_CONSTANT(float, gradient_attenuation_factor)
 COMPUTE_SOURCE("compositor_map_uv_anisotropic.glsl")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()

@@ -27,8 +27,8 @@
  * This is to make sure that the resulting motion vectors are valid even with displacement.
  * WARNING: The next value is invalid when rendering the viewport. */
 GPU_SHADER_NAMED_INTERFACE_INFO(eevee_velocity_surface_iface, motion)
-SMOOTH(VEC3, prev)
-SMOOTH(VEC3, next)
+SMOOTH(float3, prev)
+SMOOTH(float3, next)
 GPU_SHADER_NAMED_INTERFACE_END(motion)
 
 GPU_SHADER_CREATE_INFO(eevee_velocity_camera)
@@ -46,7 +46,7 @@ STORAGE_BUF(VELOCITY_GEO_PREV_BUF_SLOT, READ, vec4, velocity_geo_prev_buf[])
 STORAGE_BUF(VELOCITY_GEO_NEXT_BUF_SLOT, READ, vec4, velocity_geo_next_buf[])
 STORAGE_BUF(VELOCITY_INDIRECTION_BUF_SLOT, READ, VelocityIndex, velocity_indirection_buf[])
 VERTEX_OUT(eevee_velocity_surface_iface)
-FRAGMENT_OUT(0, VEC4, out_velocity)
+FRAGMENT_OUT(0, float4, out_velocity)
 ADDITIONAL_INFO(eevee_velocity_camera)
 GPU_SHADER_CREATE_END()
 
@@ -55,9 +55,9 @@ COMPUTE_SOURCE("eevee_vertex_copy_comp.glsl")
 LOCAL_GROUP_SIZE(VERTEX_COPY_GROUP_SIZE)
 STORAGE_BUF(0, READ, float, in_buf[])
 STORAGE_BUF(1, WRITE, vec4, out_buf[])
-PUSH_CONSTANT(INT, start_offset)
-PUSH_CONSTANT(INT, vertex_stride)
-PUSH_CONSTANT(INT, vertex_count)
+PUSH_CONSTANT(int, start_offset)
+PUSH_CONSTANT(int, vertex_stride)
+PUSH_CONSTANT(int, vertex_count)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 

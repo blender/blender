@@ -199,7 +199,7 @@ static bool createGPUShader(OCIO_GPUShader &shader,
       source, "if ( gamma != vec3(1., 1., 1.) )", "if (! all(equal(gamma, vec3(1., 1., 1.))) )");
 
   StageInterfaceInfo iface("OCIO_Interface", "");
-  iface.smooth(Type::VEC2, "texCoord_interp");
+  iface.smooth(Type::float2_t, "texCoord_interp");
 
   ShaderCreateInfo info("OCIO_Display");
   /* Work around OpenColorIO not supporting latest GLSL yet. */
@@ -214,11 +214,11 @@ static bool createGPUShader(OCIO_GPUShader &shader,
   info.sampler(TEXTURE_SLOT_IMAGE, ImageType::FLOAT_2D, "image_texture");
   info.sampler(TEXTURE_SLOT_OVERLAY, ImageType::FLOAT_2D, "overlay_texture");
   info.uniform_buf(UNIFORMBUF_SLOT_DISPLAY, "OCIO_GPUParameters", "parameters");
-  info.push_constant(Type::MAT4, "ModelViewProjectionMatrix");
-  info.vertex_in(0, Type::VEC2, "pos");
-  info.vertex_in(1, Type::VEC2, "texCoord");
+  info.push_constant(Type::float4x4_t, "ModelViewProjectionMatrix");
+  info.vertex_in(0, Type::float2_t, "pos");
+  info.vertex_in(1, Type::float2_t, "texCoord");
   info.vertex_out(iface);
-  info.fragment_out(0, Type::VEC4, "fragColor");
+  info.fragment_out(0, Type::float4_t, "fragColor");
   info.vertex_source("gpu_shader_display_transform_vert.glsl");
   info.fragment_source("gpu_shader_display_transform_frag.glsl");
   info.fragment_source_generated = source;

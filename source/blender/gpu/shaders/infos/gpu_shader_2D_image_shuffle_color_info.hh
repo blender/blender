@@ -18,8 +18,8 @@
 
 GPU_SHADER_CREATE_INFO(gpu_shader_2D_image_shuffle_color)
 ADDITIONAL_INFO(gpu_shader_2D_image_common)
-PUSH_CONSTANT(VEC4, color)
-PUSH_CONSTANT(VEC4, shuffle)
+PUSH_CONSTANT(float4, color)
+PUSH_CONSTANT(float4, shuffle)
 FRAGMENT_SOURCE("gpu_shader_image_shuffle_color_frag.glsl")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()

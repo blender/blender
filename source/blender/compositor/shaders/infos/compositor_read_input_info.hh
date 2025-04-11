@@ -6,7 +6,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_read_input_shared)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(IVEC2, lower_bound)
+PUSH_CONSTANT(int2, lower_bound)
 SAMPLER(0, FLOAT_2D, input_tx)
 COMPUTE_SOURCE("compositor_read_input.glsl")
 GPU_SHADER_CREATE_END()

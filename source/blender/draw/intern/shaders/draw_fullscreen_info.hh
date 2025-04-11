@@ -10,7 +10,7 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(fullscreen_iface)
-SMOOTH(VEC4, uvcoordsvar)
+SMOOTH(float4, uvcoordsvar)
 GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(draw_fullscreen)

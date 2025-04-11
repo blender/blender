@@ -64,21 +64,21 @@ static const PyC_FlagSet pygpu_qualifiers[] = {
   "      - ``IVEC4``\n" \
   "      - ``BOOL``\n"
 const PyC_StringEnumItems pygpu_attrtype_items[] = {
-    {int(Type::FLOAT), "FLOAT"},
-    {int(Type::VEC2), "VEC2"},
-    {int(Type::VEC3), "VEC3"},
-    {int(Type::VEC4), "VEC4"},
-    {int(Type::MAT3), "MAT3"},
-    {int(Type::MAT4), "MAT4"},
-    {int(Type::UINT), "UINT"},
-    {int(Type::UVEC2), "UVEC2"},
-    {int(Type::UVEC3), "UVEC3"},
-    {int(Type::UVEC4), "UVEC4"},
-    {int(Type::INT), "INT"},
-    {int(Type::IVEC2), "IVEC2"},
-    {int(Type::IVEC3), "IVEC3"},
-    {int(Type::IVEC4), "IVEC4"},
-    {int(Type::BOOL), "BOOL"},
+    {int(Type::float_t), "FLOAT"},
+    {int(Type::float2_t), "VEC2"},
+    {int(Type::float3_t), "VEC3"},
+    {int(Type::float4_t), "VEC4"},
+    {int(Type::float3x3_t), "MAT3"},
+    {int(Type::float4x4_t), "MAT4"},
+    {int(Type::uint_t), "UINT"},
+    {int(Type::uint2_t), "UVEC2"},
+    {int(Type::uint3_t), "UVEC3"},
+    {int(Type::uint4_t), "UVEC4"},
+    {int(Type::int_t), "INT"},
+    {int(Type::int2_t), "IVEC2"},
+    {int(Type::int3_t), "IVEC3"},
+    {int(Type::int4_t), "IVEC4"},
+    {int(Type::bool_t), "BOOL"},
     {0, nullptr},
 };
 
@@ -846,55 +846,55 @@ static PyObject *pygpu_shader_info_sampler(BPyGPUShaderCreateInfo *self, PyObjec
 static int constant_type_size(Type type)
 {
   switch (type) {
-    case Type::BOOL:
-    case Type::FLOAT:
-    case Type::INT:
-    case Type::UINT:
-    case Type::UCHAR4:
-    case Type::CHAR4:
-    case Type::VEC3_101010I2:
-    case Type::USHORT2:
-    case Type::SHORT2:
+    case Type::bool_t:
+    case Type::float_t:
+    case Type::int_t:
+    case Type::uint_t:
+    case Type::uchar4_t:
+    case Type::char4_t:
+    case Type::float3_10_10_10_2_t:
+    case Type::ushort2_t:
+    case Type::short2_t:
       return 4;
       break;
-    case Type::USHORT3:
-    case Type::SHORT3:
+    case Type::ushort3_t:
+    case Type::short3_t:
       return 6;
       break;
-    case Type::VEC2:
-    case Type::UVEC2:
-    case Type::IVEC2:
-    case Type::USHORT4:
-    case Type::SHORT4:
+    case Type::float2_t:
+    case Type::uint2_t:
+    case Type::int2_t:
+    case Type::ushort4_t:
+    case Type::short4_t:
       return 8;
       break;
-    case Type::VEC3:
-    case Type::UVEC3:
-    case Type::IVEC3:
+    case Type::float3_t:
+    case Type::uint3_t:
+    case Type::int3_t:
       return 12;
       break;
-    case Type::VEC4:
-    case Type::UVEC4:
-    case Type::IVEC4:
+    case Type::float4_t:
+    case Type::uint4_t:
+    case Type::int4_t:
       return 16;
       break;
-    case Type::MAT3:
+    case Type::float3x3_t:
       return 36 + 3 * 4;
-    case Type::MAT4:
+    case Type::float4x4_t:
       return 64;
       break;
-    case Type::UCHAR:
-    case Type::CHAR:
+    case Type::uchar_t:
+    case Type::char_t:
       return 1;
       break;
-    case Type::UCHAR2:
-    case Type::CHAR2:
-    case Type::USHORT:
-    case Type::SHORT:
+    case Type::uchar2_t:
+    case Type::char2_t:
+    case Type::ushort_t:
+    case Type::short_t:
       return 2;
       break;
-    case Type::UCHAR3:
-    case Type::CHAR3:
+    case Type::uchar3_t:
+    case Type::char3_t:
       return 3;
       break;
   }

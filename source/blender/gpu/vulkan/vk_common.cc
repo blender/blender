@@ -616,52 +616,52 @@ VkFormat to_vk_format(const GPUVertCompType type, const uint32_t size, GPUVertFe
 VkFormat to_vk_format(const shader::Type type)
 {
   switch (type) {
-    case shader::Type::FLOAT:
+    case shader::Type::float_t:
       return VK_FORMAT_R32_SFLOAT;
-    case shader::Type::VEC2:
+    case shader::Type::float2_t:
       return VK_FORMAT_R32G32_SFLOAT;
-    case shader::Type::VEC3:
+    case shader::Type::float3_t:
       return VK_FORMAT_R32G32B32_SFLOAT;
-    case shader::Type::VEC4:
+    case shader::Type::float4_t:
       return VK_FORMAT_R32G32B32A32_SFLOAT;
-    case shader::Type::UINT:
+    case shader::Type::uint_t:
       return VK_FORMAT_R32_UINT;
-    case shader::Type::UVEC2:
+    case shader::Type::uint2_t:
       return VK_FORMAT_R32G32_UINT;
-    case shader::Type::UVEC3:
+    case shader::Type::uint3_t:
       return VK_FORMAT_R32G32B32_UINT;
-    case shader::Type::UVEC4:
+    case shader::Type::uint4_t:
       return VK_FORMAT_R32G32B32A32_UINT;
-    case shader::Type::INT:
+    case shader::Type::int_t:
       return VK_FORMAT_R32_SINT;
-    case shader::Type::IVEC2:
+    case shader::Type::int2_t:
       return VK_FORMAT_R32G32_SINT;
-    case shader::Type::IVEC3:
+    case shader::Type::int3_t:
       return VK_FORMAT_R32G32B32_SINT;
-    case shader::Type::IVEC4:
+    case shader::Type::int4_t:
       return VK_FORMAT_R32G32B32A32_SINT;
-    case shader::Type::MAT4:
+    case shader::Type::float4x4_t:
       return VK_FORMAT_R32G32B32A32_SFLOAT;
 
-    case shader::Type::MAT3:
-    case shader::Type::BOOL:
-    case shader::Type::VEC3_101010I2:
-    case shader::Type::UCHAR:
-    case shader::Type::UCHAR2:
-    case shader::Type::UCHAR3:
-    case shader::Type::UCHAR4:
-    case shader::Type::CHAR:
-    case shader::Type::CHAR2:
-    case shader::Type::CHAR3:
-    case shader::Type::CHAR4:
-    case shader::Type::SHORT:
-    case shader::Type::SHORT2:
-    case shader::Type::SHORT3:
-    case shader::Type::SHORT4:
-    case shader::Type::USHORT:
-    case shader::Type::USHORT2:
-    case shader::Type::USHORT3:
-    case shader::Type::USHORT4:
+    case shader::Type::float3x3_t:
+    case shader::Type::bool_t:
+    case shader::Type::float3_10_10_10_2_t:
+    case shader::Type::uchar_t:
+    case shader::Type::uchar2_t:
+    case shader::Type::uchar3_t:
+    case shader::Type::uchar4_t:
+    case shader::Type::char_t:
+    case shader::Type::char2_t:
+    case shader::Type::char3_t:
+    case shader::Type::char4_t:
+    case shader::Type::short_t:
+    case shader::Type::short2_t:
+    case shader::Type::short3_t:
+    case shader::Type::short4_t:
+    case shader::Type::ushort_t:
+    case shader::Type::ushort2_t:
+    case shader::Type::ushort3_t:
+    case shader::Type::ushort4_t:
       break;
   }
 

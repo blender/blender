@@ -12,7 +12,7 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(workbench_transparent_resolve)
-FRAGMENT_OUT(0, VEC4, fragColor)
+FRAGMENT_OUT(0, float4, fragColor)
 SAMPLER(0, FLOAT_2D, transparentAccum)
 SAMPLER(1, FLOAT_2D, transparentRevealage)
 FRAGMENT_SOURCE("workbench_transparent_resolve_frag.glsl")

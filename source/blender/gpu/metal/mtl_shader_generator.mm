@@ -60,69 +60,69 @@ char *MSLGeneratorInterface::msl_patch_default = nullptr;
 static eMTLDataType to_mtl_type(Type type)
 {
   switch (type) {
-    case Type::FLOAT:
+    case Type::float_t:
       return MTL_DATATYPE_FLOAT;
-    case Type::VEC2:
+    case Type::float2_t:
       return MTL_DATATYPE_FLOAT2;
-    case Type::VEC3:
+    case Type::float3_t:
       return MTL_DATATYPE_FLOAT3;
-    case Type::VEC4:
+    case Type::float4_t:
       return MTL_DATATYPE_FLOAT4;
-    case Type::MAT3:
+    case Type::float3x3_t:
       return MTL_DATATYPE_FLOAT3x3;
-    case Type::MAT4:
+    case Type::float4x4_t:
       return MTL_DATATYPE_FLOAT4x4;
-    case Type::UINT:
+    case Type::uint_t:
       return MTL_DATATYPE_UINT;
-    case Type::UVEC2:
+    case Type::uint2_t:
       return MTL_DATATYPE_UINT2;
-    case Type::UVEC3:
+    case Type::uint3_t:
       return MTL_DATATYPE_UINT3;
-    case Type::UVEC4:
+    case Type::uint4_t:
       return MTL_DATATYPE_UINT4;
-    case Type::INT:
+    case Type::int_t:
       return MTL_DATATYPE_INT;
-    case Type::IVEC2:
+    case Type::int2_t:
       return MTL_DATATYPE_INT2;
-    case Type::IVEC3:
+    case Type::int3_t:
       return MTL_DATATYPE_INT3;
-    case Type::IVEC4:
+    case Type::int4_t:
       return MTL_DATATYPE_INT4;
-    case Type::VEC3_101010I2:
+    case Type::float3_10_10_10_2_t:
       return MTL_DATATYPE_INT1010102_NORM;
-    case Type::BOOL:
+    case Type::bool_t:
       return MTL_DATATYPE_BOOL;
-    case Type::UCHAR:
+    case Type::uchar_t:
       return MTL_DATATYPE_UCHAR;
-    case Type::UCHAR2:
+    case Type::uchar2_t:
       return MTL_DATATYPE_UCHAR2;
-    case Type::UCHAR3:
+    case Type::uchar3_t:
       return MTL_DATATYPE_UCHAR3;
-    case Type::UCHAR4:
+    case Type::uchar4_t:
       return MTL_DATATYPE_UCHAR4;
-    case Type::CHAR:
+    case Type::char_t:
       return MTL_DATATYPE_CHAR;
-    case Type::CHAR2:
+    case Type::char2_t:
       return MTL_DATATYPE_CHAR2;
-    case Type::CHAR3:
+    case Type::char3_t:
       return MTL_DATATYPE_CHAR3;
-    case Type::CHAR4:
+    case Type::char4_t:
       return MTL_DATATYPE_CHAR4;
-    case Type::USHORT:
+    case Type::ushort_t:
       return MTL_DATATYPE_USHORT;
-    case Type::USHORT2:
+    case Type::ushort2_t:
       return MTL_DATATYPE_USHORT2;
-    case Type::USHORT3:
+    case Type::ushort3_t:
       return MTL_DATATYPE_USHORT3;
-    case Type::USHORT4:
+    case Type::ushort4_t:
       return MTL_DATATYPE_USHORT4;
-    case Type::SHORT:
+    case Type::short_t:
       return MTL_DATATYPE_SHORT;
-    case Type::SHORT2:
+    case Type::short2_t:
       return MTL_DATATYPE_SHORT2;
-    case Type::SHORT3:
+    case Type::short3_t:
       return MTL_DATATYPE_SHORT3;
-    case Type::SHORT4:
+    case Type::short4_t:
       return MTL_DATATYPE_SHORT4;
     default: {
       BLI_assert_msg(false, "Unexpected data type");
@@ -1228,7 +1228,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
         storage_blocks.append(ssbo);
 
         /* Add uniform for metadata. */
-        MSLUniform uniform(shader::Type::IVEC4, tex.name + "_metadata", false, 1);
+        MSLUniform uniform(shader::Type::int4_t, tex.name + "_metadata", false, 1);
         uniforms.append(uniform);
 
         atomic_fallback_buffer_count++;

@@ -6,8 +6,8 @@
 
 GPU_SHADER_CREATE_INFO(compositor_double_edge_mask_compute_boundary)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(BOOL, include_all_inner_edges)
-PUSH_CONSTANT(BOOL, include_edges_of_image)
+PUSH_CONSTANT(bool, include_all_inner_edges)
+PUSH_CONSTANT(bool, include_edges_of_image)
 SAMPLER(0, FLOAT_2D, inner_mask_tx)
 SAMPLER(1, FLOAT_2D, outer_mask_tx)
 IMAGE(0, GPU_RG16I, WRITE, INT_2D, inner_boundary_img)

@@ -6,8 +6,8 @@
 
 GPU_SHADER_CREATE_INFO(compositor_keying_screen)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(FLOAT, smoothness)
-PUSH_CONSTANT(INT, number_of_markers)
+PUSH_CONSTANT(float, smoothness)
+PUSH_CONSTANT(int, number_of_markers)
 STORAGE_BUF(0, READ, vec2, marker_positions[])
 STORAGE_BUF(1, READ, vec4, marker_colors[])
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)

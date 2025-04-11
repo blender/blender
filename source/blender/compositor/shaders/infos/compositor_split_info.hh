@@ -6,7 +6,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_split_shared)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(FLOAT, split_ratio)
+PUSH_CONSTANT(float, split_ratio)
 SAMPLER(0, FLOAT_2D, first_image_tx)
 SAMPLER(1, FLOAT_2D, second_image_tx)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)

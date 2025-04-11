@@ -6,7 +6,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_morphological_distance_shared)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(INT, radius)
+PUSH_CONSTANT(int, radius)
 SAMPLER(0, FLOAT_2D, input_tx)
 IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
 COMPUTE_SOURCE("compositor_morphological_distance.glsl")

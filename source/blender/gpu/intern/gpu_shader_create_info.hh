@@ -109,36 +109,37 @@
 #endif
 
 #ifndef GLSL_CPP_STUBS
-#  define SMOOTH(type, name) .smooth(Type::type, #name)
-#  define FLAT(type, name) .flat(Type::type, #name)
-#  define NO_PERSPECTIVE(type, name) .no_perspective(Type::type, #name)
+#  define SMOOTH(type, name) .smooth(Type::type##_t, #name)
+#  define FLAT(type, name) .flat(Type::type##_t, #name)
+#  define NO_PERSPECTIVE(type, name) .no_perspective(Type::type##_t, #name)
 
 /* LOCAL_GROUP_SIZE(int size_x, int size_y = -1, int size_z = -1) */
 #  define LOCAL_GROUP_SIZE(...) .local_group_size(__VA_ARGS__)
 
-#  define VERTEX_IN(slot, type, name) .vertex_in(slot, Type::type, #name)
+#  define VERTEX_IN(slot, type, name) .vertex_in(slot, Type::type##_t, #name)
 #  define VERTEX_OUT(stage_interface) .vertex_out(stage_interface)
 /* TO REMOVE. */
 #  define GEOMETRY_LAYOUT(...) .geometry_layout(__VA_ARGS__)
 #  define GEOMETRY_OUT(stage_interface) .geometry_out(stage_interface)
 
 #  define SUBPASS_IN(slot, type, img_type, name, rog) \
-    .subpass_in(slot, Type::type, ImageType::img_type, #name, rog)
+    .subpass_in(slot, Type::type##_t, ImageType::img_type, #name, rog)
 
-#  define FRAGMENT_OUT(slot, type, name) .fragment_out(slot, Type::type, #name)
+#  define FRAGMENT_OUT(slot, type, name) .fragment_out(slot, Type::type##_t, #name)
 #  define FRAGMENT_OUT_DUAL(slot, type, name, blend) \
-    .fragment_out(slot, Type::type, #name, DualBlend::blend)
+    .fragment_out(slot, Type::type##_t, #name, DualBlend::blend)
 #  define FRAGMENT_OUT_ROG(slot, type, name, rog) \
-    .fragment_out(slot, Type::type, #name, DualBlend::NONE, rog)
+    .fragment_out(slot, Type::type##_t, #name, DualBlend::NONE, rog)
 
 #  define EARLY_FRAGMENT_TEST(enable) .early_fragment_test(enable)
 #  define DEPTH_WRITE(value) .depth_write(value)
 
 #  define SPECIALIZATION_CONSTANT(type, name, default_value) \
-    .specialization_constant(Type::type, #name, default_value)
+    .specialization_constant(Type::type##_t, #name, default_value)
 
-#  define PUSH_CONSTANT(type, name) .push_constant(Type::type, #name)
-#  define PUSH_CONSTANT_ARRAY(type, name, array_size) .push_constant(Type::type, #name, array_size)
+#  define PUSH_CONSTANT(type, name) .push_constant(Type::type##_t, #name)
+#  define PUSH_CONSTANT_ARRAY(type, name, array_size) \
+    .push_constant(Type::type##_t, #name, array_size)
 
 #  define UNIFORM_BUF(slot, type_name, name) .uniform_buf(slot, #type_name, #name)
 #  define UNIFORM_BUF_FREQ(slot, type_name, name, freq) \
@@ -326,89 +327,89 @@ static inline Type to_type(const eGPUType type)
 {
   switch (type) {
     case GPU_FLOAT:
-      return Type::FLOAT;
+      return Type::float_t;
     case GPU_VEC2:
-      return Type::VEC2;
+      return Type::float2_t;
     case GPU_VEC3:
-      return Type::VEC3;
+      return Type::float3_t;
     case GPU_VEC4:
-      return Type::VEC4;
+      return Type::float4_t;
     case GPU_MAT3:
-      return Type::MAT3;
+      return Type::float3x3_t;
     case GPU_MAT4:
-      return Type::MAT4;
+      return Type::float4x4_t;
     default:
       BLI_assert_msg(0, "Error: Cannot convert eGPUType to shader::Type.");
-      return Type::FLOAT;
+      return Type::float_t;
   }
 }
 
 static inline std::ostream &operator<<(std::ostream &stream, const Type type)
 {
   switch (type) {
-    case Type::FLOAT:
+    case Type::float_t:
       return stream << "float";
-    case Type::VEC2:
+    case Type::float2_t:
       return stream << "vec2";
-    case Type::VEC3:
+    case Type::float3_t:
       return stream << "vec3";
-    case Type::VEC4:
+    case Type::float4_t:
       return stream << "vec4";
-    case Type::MAT3:
+    case Type::float3x3_t:
       return stream << "mat3";
-    case Type::MAT4:
+    case Type::float4x4_t:
       return stream << "mat4";
-    case Type::VEC3_101010I2:
+    case Type::float3_10_10_10_2_t:
       return stream << "vec3_1010102_Inorm";
-    case Type::UCHAR:
+    case Type::uchar_t:
       return stream << "uchar";
-    case Type::UCHAR2:
+    case Type::uchar2_t:
       return stream << "uchar2";
-    case Type::UCHAR3:
+    case Type::uchar3_t:
       return stream << "uchar3";
-    case Type::UCHAR4:
+    case Type::uchar4_t:
       return stream << "uchar4";
-    case Type::CHAR:
+    case Type::char_t:
       return stream << "char";
-    case Type::CHAR2:
+    case Type::char2_t:
       return stream << "char2";
-    case Type::CHAR3:
+    case Type::char3_t:
       return stream << "char3";
-    case Type::CHAR4:
+    case Type::char4_t:
       return stream << "char4";
-    case Type::INT:
+    case Type::int_t:
       return stream << "int";
-    case Type::IVEC2:
+    case Type::int2_t:
       return stream << "ivec2";
-    case Type::IVEC3:
+    case Type::int3_t:
       return stream << "ivec3";
-    case Type::IVEC4:
+    case Type::int4_t:
       return stream << "ivec4";
-    case Type::UINT:
+    case Type::uint_t:
       return stream << "uint";
-    case Type::UVEC2:
+    case Type::uint2_t:
       return stream << "uvec2";
-    case Type::UVEC3:
+    case Type::uint3_t:
       return stream << "uvec3";
-    case Type::UVEC4:
+    case Type::uint4_t:
       return stream << "uvec4";
-    case Type::USHORT:
+    case Type::ushort_t:
       return stream << "ushort";
-    case Type::USHORT2:
+    case Type::ushort2_t:
       return stream << "ushort2";
-    case Type::USHORT3:
+    case Type::ushort3_t:
       return stream << "ushort3";
-    case Type::USHORT4:
+    case Type::ushort4_t:
       return stream << "ushort4";
-    case Type::SHORT:
+    case Type::short_t:
       return stream << "short";
-    case Type::SHORT2:
+    case Type::short2_t:
       return stream << "short2";
-    case Type::SHORT3:
+    case Type::short3_t:
       return stream << "short3";
-    case Type::SHORT4:
+    case Type::short4_t:
       return stream << "short4";
-    case Type::BOOL:
+    case Type::bool_t:
       return stream << "bool";
     default:
       BLI_assert(0);
@@ -1035,14 +1036,14 @@ struct ShaderCreateInfo {
     constant.type = type;
     constant.name = name;
     switch (type) {
-      case Type::INT:
+      case Type::int_t:
         constant.value.i = int(default_value);
         break;
-      case Type::BOOL:
-      case Type::UINT:
+      case Type::bool_t:
+      case Type::uint_t:
         constant.value.u = uint(default_value);
         break;
-      case Type::FLOAT:
+      case Type::float_t:
         constant.value.f = float(default_value);
         break;
       default:
@@ -1161,7 +1162,7 @@ struct ShaderCreateInfo {
   Self &push_constant(Type type, StringRefNull name, int array_size = 0)
   {
     /* We don't have support for UINT push constants yet, use INT instead. */
-    BLI_assert(type != Type::UINT);
+    BLI_assert(type != Type::uint_t);
     BLI_assert_msg(name.find("[") == -1,
                    "Array syntax is forbidden for push constants."
                    "Use the array_size parameter instead.");

@@ -291,7 +291,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_convert_color_to_float)
 ADDITIONAL_INFO(compositor_convert_float_shared)
-PUSH_CONSTANT(VEC3, luminance_coefficients_u)
+PUSH_CONSTANT(float3, luminance_coefficients_u)
 IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
 DEFINE_VALUE("CONVERT_EXPRESSION(value)",
              "vec4(color_to_float(value, luminance_coefficients_u), vec3(0.0f))")
@@ -300,7 +300,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_convert_color_to_int)
 ADDITIONAL_INFO(compositor_convert_float_shared)
-PUSH_CONSTANT(VEC3, luminance_coefficients_u)
+PUSH_CONSTANT(float3, luminance_coefficients_u)
 IMAGE(0, GPU_R16I, WRITE, INT_2D, output_img)
 DEFINE_VALUE("CONVERT_EXPRESSION(value)",
              "ivec4(color_to_int(value, luminance_coefficients_u), ivec3(0))")
@@ -337,7 +337,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_convert_color_to_bool)
 ADDITIONAL_INFO(compositor_convert_float_shared)
-PUSH_CONSTANT(VEC3, luminance_coefficients_u)
+PUSH_CONSTANT(float3, luminance_coefficients_u)
 IMAGE(0, GPU_R8I, WRITE, INT_2D, output_img)
 DEFINE_VALUE("CONVERT_EXPRESSION(value)", "ivec4(color_to_bool(value, luminance_coefficients_u))")
 DO_STATIC_COMPILATION()

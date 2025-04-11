@@ -6,8 +6,8 @@
 
 GPU_SHADER_CREATE_INFO(compositor_bilateral_blur)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(INT, radius)
-PUSH_CONSTANT(FLOAT, threshold)
+PUSH_CONSTANT(int, radius)
+PUSH_CONSTANT(float, threshold)
 SAMPLER(0, FLOAT_2D, input_tx)
 SAMPLER(1, FLOAT_2D, determinator_tx)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)

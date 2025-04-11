@@ -22,7 +22,7 @@ UNIFORM_BUF_FREQ(OVERLAY_GLOBALS_SLOT, GlobalsUboStorage, globalsBlock, PASS)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_INTERFACE_INFO(select_id_patch_iface)
-FLAT(UINT, select_id)
+FLAT(uint, select_id)
 GPU_SHADER_INTERFACE_END()
 
 /* Used to patch overlay shaders. */

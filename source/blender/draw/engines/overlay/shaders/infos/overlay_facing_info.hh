@@ -14,10 +14,10 @@
 #include "overlay_common_info.hh"
 
 GPU_SHADER_CREATE_INFO(overlay_facing_base)
-VERTEX_IN(0, VEC3, pos)
+VERTEX_IN(0, float3, pos)
 VERTEX_SOURCE("overlay_facing_vert.glsl")
 FRAGMENT_SOURCE("overlay_facing_frag.glsl")
-FRAGMENT_OUT(0, VEC4, fragColor)
+FRAGMENT_OUT(0, float4, fragColor)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()

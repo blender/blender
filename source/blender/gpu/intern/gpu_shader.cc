@@ -501,25 +501,25 @@ void Shader::specialization_constants_init(const shader::ShaderCreateInfo &info)
 void GPU_shader_constant_int_ex(GPUShader *sh, int location, int value)
 {
   Shader &shader = *unwrap(sh);
-  BLI_assert(shader.constants.types[location] == gpu::shader::Type::INT);
+  BLI_assert(shader.constants.types[location] == gpu::shader::Type::int_t);
   shader.constants.is_dirty |= assign_if_different(shader.constants.values[location].i, value);
 }
 void GPU_shader_constant_uint_ex(GPUShader *sh, int location, uint value)
 {
   Shader &shader = *unwrap(sh);
-  BLI_assert(shader.constants.types[location] == gpu::shader::Type::UINT);
+  BLI_assert(shader.constants.types[location] == gpu::shader::Type::uint_t);
   shader.constants.is_dirty |= assign_if_different(shader.constants.values[location].u, value);
 }
 void GPU_shader_constant_float_ex(GPUShader *sh, int location, float value)
 {
   Shader &shader = *unwrap(sh);
-  BLI_assert(shader.constants.types[location] == gpu::shader::Type::FLOAT);
+  BLI_assert(shader.constants.types[location] == gpu::shader::Type::float_t);
   shader.constants.is_dirty |= assign_if_different(shader.constants.values[location].f, value);
 }
 void GPU_shader_constant_bool_ex(GPUShader *sh, int location, bool value)
 {
   Shader &shader = *unwrap(sh);
-  BLI_assert(shader.constants.types[location] == gpu::shader::Type::BOOL);
+  BLI_assert(shader.constants.types[location] == gpu::shader::Type::bool_t);
   shader.constants.is_dirty |= assign_if_different(shader.constants.values[location].u,
                                                    uint32_t(value));
 }

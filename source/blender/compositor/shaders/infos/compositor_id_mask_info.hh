@@ -6,7 +6,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_id_mask)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(INT, index)
+PUSH_CONSTANT(int, index)
 SAMPLER(0, FLOAT_2D, input_mask_tx)
 IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_mask_img)
 COMPUTE_SOURCE("compositor_id_mask.glsl")

@@ -27,15 +27,15 @@
  * \{ */
 
 GPU_SHADER_CREATE_INFO(workbench_volume_common)
-VERTEX_IN(0, VEC3, pos)
-FRAGMENT_OUT(0, VEC4, fragColor)
+VERTEX_IN(0, float3, pos)
+FRAGMENT_OUT(0, float4, fragColor)
 SAMPLER(0, DEPTH_2D, depthBuffer)
 SAMPLER(1, FLOAT_3D, densityTexture)
-PUSH_CONSTANT(INT, samplesLen)
-PUSH_CONSTANT(FLOAT, noiseOfs)
-PUSH_CONSTANT(FLOAT, stepLength)
-PUSH_CONSTANT(FLOAT, densityScale)
-PUSH_CONSTANT(BOOL, do_depth_test)
+PUSH_CONSTANT(int, samplesLen)
+PUSH_CONSTANT(float, noiseOfs)
+PUSH_CONSTANT(float, stepLength)
+PUSH_CONSTANT(float, densityScale)
+PUSH_CONSTANT(bool, do_depth_test)
 VERTEX_SOURCE("workbench_volume_vert.glsl")
 FRAGMENT_SOURCE("workbench_volume_frag.glsl")
 GPU_SHADER_CREATE_END()
@@ -61,9 +61,9 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_object_common)
 DEFINE("VOLUME_OBJECT")
-PUSH_CONSTANT(MAT4, volumeTextureToObject)
+PUSH_CONSTANT(float4x4, volumeTextureToObject)
 /* FIXME(fclem): This overflow the push_constant limit. */
-PUSH_CONSTANT(MAT4, volumeObjectToTexture)
+PUSH_CONSTANT(float4x4, volumeObjectToTexture)
 ADDITIONAL_INFO(draw_resource_id_varying)
 GPU_SHADER_CREATE_END()
 
@@ -87,15 +87,15 @@ GPU_SHADER_CREATE_INFO(workbench_volume_coba)
 DEFINE("USE_COBA")
 SAMPLER(4, UINT_3D, flagTexture)
 SAMPLER(5, FLOAT_1D, transferTexture)
-PUSH_CONSTANT(BOOL, showPhi)
-PUSH_CONSTANT(BOOL, showFlags)
-PUSH_CONSTANT(BOOL, showPressure)
-PUSH_CONSTANT(FLOAT, gridScale)
+PUSH_CONSTANT(bool, showPhi)
+PUSH_CONSTANT(bool, showFlags)
+PUSH_CONSTANT(bool, showPressure)
+PUSH_CONSTANT(float, gridScale)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_no_coba)
 SAMPLER(4, FLOAT_3D, shadowTexture)
-PUSH_CONSTANT(VEC3, activeColor)
+PUSH_CONSTANT(float3, activeColor)
 GPU_SHADER_CREATE_END()
 
 /** \} */
@@ -121,15 +121,15 @@ GPU_SHADER_CREATE_END()
  * \{ */
 
 GPU_SHADER_INTERFACE_INFO(workbench_volume_iface)
-SMOOTH(VEC3, localPos)
+SMOOTH(float3, localPos)
 GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_slice)
 DEFINE("VOLUME_SLICE")
-VERTEX_IN(1, VEC3, uvs)
+VERTEX_IN(1, float3, uvs)
 VERTEX_OUT(workbench_volume_iface)
-PUSH_CONSTANT(INT, sliceAxis) /* -1 is no slice. */
-PUSH_CONSTANT(FLOAT, slicePosition)
+PUSH_CONSTANT(int, sliceAxis) /* -1 is no slice. */
+PUSH_CONSTANT(float, slicePosition)
 GPU_SHADER_CREATE_END()
 
 /** \} */
