@@ -25,7 +25,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_mesh_vert)
 bool test_occlusion()
 {
   vec3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5 + 0.5;
-  vec4 depths = textureGather(depthTex, ndc.xy, 0);
+  vec4 depths = textureGather(depthTex, ndc.xy);
   return all(greaterThan(vec4(ndc.z), depths));
 }
 
