@@ -369,6 +369,7 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
       char fonts_path[FILE_MAX] = {0};
       if (U.fontdir[0]) {
         STRNCPY(fonts_path, U.fontdir);
+        /* The file selector will expand the blend-file relative prefix. */
       }
       else if (!BKE_appdir_font_folder_default(fonts_path, ARRAY_SIZE(fonts_path))) {
         STRNCPY(fonts_path, BKE_appdir_folder_default_or_root());
