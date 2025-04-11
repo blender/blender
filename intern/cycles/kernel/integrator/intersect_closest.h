@@ -119,6 +119,13 @@ ccl_device_forceinline void integrator_split_shadow_catcher(
    * non-catcher objects. */
   INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_SHADOW_CATCHER_PASS;
 
+  /* Shadow catcher path does not use guiding.
+   * Clear the path_segment to ensure we do not reference possibly stale data from the main path.
+   */
+#  ifdef __PATH_GUIDING__
+  INTEGRATOR_STATE_WRITE(state, guiding, path_segment) = nullptr;
+#  endif
+
   if (kernel_data.film.pass_background != PASS_UNUSED && !kernel_data.background.transparent) {
     /* If using background pass, schedule background shading kernel so that we have a background
      * to alpha-over on. The background kernel will then continue the path afterwards. */
