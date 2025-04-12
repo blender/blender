@@ -25,6 +25,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_texture_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_effect.h"

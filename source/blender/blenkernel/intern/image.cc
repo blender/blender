@@ -152,7 +152,7 @@ static void image_runtime_reset_on_copy(Image *image)
 static void image_runtime_free_data(Image *image)
 {
   BLI_mutex_end(static_cast<ThreadMutex *>(image->runtime.cache_mutex));
-  MEM_freeN(image->runtime.cache_mutex);
+  MEM_freeN((ThreadMutex *)image->runtime.cache_mutex);
   image->runtime.cache_mutex = nullptr;
 
   if (image->runtime.partial_update_user != nullptr) {

@@ -166,7 +166,7 @@ void GLVaoCache::clear()
   }
 
   if (is_dynamic_vao_count) {
-    MEM_freeN((void *)dynamic_vaos.interfaces);
+    MEM_freeN(dynamic_vaos.interfaces);
     MEM_freeN(dynamic_vaos.vao_ids);
   }
 

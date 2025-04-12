@@ -208,7 +208,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
       nullptr, &cu, FO_DUPLI, nullptr, &r_text, &text_len, &text_free, &chartransdata);
 
   if (text_free) {
-    MEM_freeN(const_cast<char32_t *>(r_text));
+    MEM_freeN(r_text);
   }
 
   Span<CharInfo> info{cu.strinfo, text_len};

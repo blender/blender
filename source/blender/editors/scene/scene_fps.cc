@@ -86,7 +86,7 @@ void ED_scene_fps_average_clear(Scene *scene)
   BLI_assert(fpsi->times_fps_sum == times_fps_sum_cmp);
 #endif /* !NDEBUG */
 
-  MEM_freeN(scene->fps_info);
+  MEM_freeN(static_cast<ScreenFrameRateInfo *>(scene->fps_info));
   scene->fps_info = nullptr;
 }
 

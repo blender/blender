@@ -201,14 +201,13 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
   ED_workspace_status_text(C, nullptr);
 
   MEM_SAFE_FREE(opdata->ob_store);
-  MEM_SAFE_FREE(op->customdata);
+  MEM_freeN(opdata);
+  op->customdata = nullptr;
 }
 
 static void edbm_inset_cancel(bContext *C, wmOperator *op)
 {
-  InsetData *opdata;
-
-  opdata = static_cast<InsetData *>(op->customdata);
+  InsetData *opdata = static_cast<InsetData *>(op->customdata);
   if (opdata->is_modal) {
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
       Object *obedit = opdata->ob_store[ob_index].ob;

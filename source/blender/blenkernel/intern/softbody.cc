@@ -383,7 +383,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 
   /* rotate current to previous */
   if (pccd_M->vert_positions_prev) {
-    MEM_freeN((void *)pccd_M->vert_positions_prev);
+    MEM_freeN(pccd_M->vert_positions_prev);
   }
   pccd_M->vert_positions_prev = pccd_M->vert_positions;
   /* Allocate and copy verts. */
@@ -477,10 +477,10 @@ static void ccd_mesh_free(ccd_Mesh *ccdm)
 {
   /* Make sure we're not nuking objects we don't know. */
   if (ccdm && (ccdm->safety == CCD_SAFETY)) {
-    MEM_freeN((void *)ccdm->vert_positions);
-    MEM_freeN((void *)ccdm->vert_tris);
+    MEM_freeN(ccdm->vert_positions);
+    MEM_freeN(ccdm->vert_tris);
     if (ccdm->vert_positions_prev) {
-      MEM_freeN((void *)ccdm->vert_positions_prev);
+      MEM_freeN(ccdm->vert_positions_prev);
     }
     MEM_freeN(ccdm->mima);
     MEM_freeN(ccdm);

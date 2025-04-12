@@ -2450,7 +2450,7 @@ static wmOperatorStatus font_open_exec(bContext *C, wmOperator *op)
 
   if (!font) {
     if (op->customdata) {
-      MEM_freeN(op->customdata);
+      MEM_delete(static_cast<PropertyPointerRNA *>(op->customdata));
     }
     return OPERATOR_CANCELLED;
   }

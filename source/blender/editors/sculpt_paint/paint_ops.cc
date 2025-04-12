@@ -712,7 +712,7 @@ static wmOperatorStatus stencil_control_modal(bContext *C, wmOperator *op, const
   StencilControlData *scd = static_cast<StencilControlData *>(op->customdata);
 
   if (event->type == scd->launch_event && event->val == KM_RELEASE) {
-    MEM_freeN(op->customdata);
+    MEM_freeN(scd);
     WM_event_add_notifier(C, NC_WINDOW, nullptr);
     return OPERATOR_FINISHED;
   }

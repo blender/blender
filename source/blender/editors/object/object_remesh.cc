@@ -351,7 +351,7 @@ static void voxel_size_edit_cancel(bContext *C, wmOperator *op)
 
   ED_region_draw_cb_exit(region->runtime->type, cd->draw_handle);
 
-  MEM_freeN(op->customdata);
+  MEM_freeN(cd);
 
   ED_workspace_status_text(C, nullptr);
 }
@@ -389,7 +389,7 @@ static wmOperatorStatus voxel_size_edit_modal(bContext *C, wmOperator *op, const
   {
     ED_region_draw_cb_exit(region->runtime->type, cd->draw_handle);
     mesh->remesh_voxel_size = cd->voxel_size;
-    MEM_freeN(op->customdata);
+    MEM_freeN(cd);
     ED_region_tag_redraw(region);
     ED_workspace_status_text(C, nullptr);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);

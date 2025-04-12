@@ -1059,7 +1059,9 @@ AZone *ED_area_azones_update(ScrArea *area, const int xy[2])
 
 static void actionzone_exit(wmOperator *op)
 {
-  MEM_SAFE_FREE(op->customdata);
+  sActionzoneData *sad = static_cast<sActionzoneData *>(op->customdata);
+  MEM_freeN(sad);
+  op->customdata = nullptr;
 
   G.moving &= ~G_TRANSFORM_WM;
 }
@@ -1375,8 +1377,11 @@ static bool area_swap_init(wmOperator *op, const wmEvent *event)
 
 static void area_swap_exit(bContext *C, wmOperator *op)
 {
+  sAreaSwapData *sd = static_cast<sAreaSwapData *>(op->customdata);
+  MEM_freeN(sd);
+  op->customdata = nullptr;
+
   WM_cursor_modal_restore(CTX_wm_window(C));
-  MEM_SAFE_FREE(op->customdata);
   ED_workspace_status_text(C, nullptr);
 }
 
@@ -2021,7 +2026,8 @@ static void area_move_exit(bContext *C, wmOperator *op)
     WM_draw_cb_exit(CTX_wm_window(C), md->draw_callback);
   }
 
-  MEM_SAFE_FREE(op->customdata);
+  MEM_freeN(md);
+  op->customdata = nullptr;
 
   /* this makes sure aligned edges will result in aligned grabbing */
   BKE_screen_remove_double_scrverts(CTX_wm_screen(C));
@@ -2375,7 +2381,7 @@ static void area_split_exit(bContext *C, wmOperator *op)
       WM_draw_cb_exit(CTX_wm_window(C), sd->draw_callback);
     }
 
-    MEM_freeN(op->customdata);
+    MEM_freeN(sd);
     op->customdata = nullptr;
   }
 
@@ -2842,7 +2848,7 @@ static void region_scale_exit(wmOperator *op)
   RegionMoveData *rmd = static_cast<RegionMoveData *>(op->customdata);
   WM_draw_cb_exit(rmd->win, rmd->draw_callback);
 
-  MEM_freeN(op->customdata);
+  MEM_freeN(rmd);
   op->customdata = nullptr;
 
   G.moving &= ~G_TRANSFORM_WM;
@@ -6491,7 +6497,7 @@ static wmOperatorStatus space_type_set_or_cycle_exec(bContext *C, wmOperator *op
       }
     }
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
   }
 

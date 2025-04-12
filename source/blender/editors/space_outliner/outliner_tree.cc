@@ -168,7 +168,7 @@ void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree)
   outliner_free_tree(&element->subtree);
 
   if (element->flag & TE_FREE_NAME) {
-    MEM_freeN((void *)element->name);
+    MEM_freeN(element->name);
   }
   element->abstract_element = nullptr;
   MEM_delete(element);

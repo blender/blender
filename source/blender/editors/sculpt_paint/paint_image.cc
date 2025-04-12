@@ -569,7 +569,7 @@ static wmOperatorStatus grab_clone_modal(bContext *C, wmOperator *op, const wmEv
     case LEFTMOUSE:
     case MIDDLEMOUSE:
     case RIGHTMOUSE: /* XXX hardcoded */
-      MEM_freeN(op->customdata);
+      MEM_freeN(cmv);
       return OPERATOR_FINISHED;
     case MOUSEMOVE:
       /* mouse moved, so move the clone image */

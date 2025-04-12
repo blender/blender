@@ -1609,7 +1609,7 @@ void BKE_pose_free_data_ex(bPose *pose, bool do_id_user)
 
   /* free IK solver param */
   if (pose->ikparam) {
-    MEM_freeN(pose->ikparam);
+    MEM_freeN(static_cast<bItasc *>(pose->ikparam));
   }
 }
 

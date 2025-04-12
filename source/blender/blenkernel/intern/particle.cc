@@ -525,7 +525,7 @@ static void psys_free_path_cache_buffers(ParticleCacheKey **cache, ListBase *buf
   }
 
   LISTBASE_FOREACH (LinkData *, buf, bufs) {
-    MEM_freeN(buf->data);
+    MEM_freeN((ParticleCacheKey *)buf->data);
   }
   BLI_freelistN(bufs);
 }

@@ -87,7 +87,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
   UI_block_direction_set(block, UI_DIR_DOWN);
 
   if (free) {
-    MEM_freeN((void *)item);
+    MEM_freeN(item);
   }
 
   return block;
@@ -176,6 +176,6 @@ void uiTemplateIconView(uiLayout *layout,
   ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 
   if (free_items) {
-    MEM_freeN((void *)items);
+    MEM_freeN(items);
   }
 }

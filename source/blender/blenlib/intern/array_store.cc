@@ -376,7 +376,7 @@ static void bchunk_decref(BArrayMemory *bs_mem, BChunk *chunk)
 {
   BLI_assert(chunk->users > 0);
   if (chunk->users == 1) {
-    MEM_freeN((void *)chunk->data);
+    MEM_freeN(chunk->data);
     BLI_mempool_free(bs_mem->chunk, chunk);
   }
   else {
@@ -1554,7 +1554,7 @@ static void array_store_free_data(BArrayStore *bs)
     BLI_mempool_iternew(bs->memory.chunk, &iter);
     while ((chunk = static_cast<BChunk *>(BLI_mempool_iterstep(&iter)))) {
       BLI_assert(chunk->users > 0);
-      MEM_freeN((void *)chunk->data);
+      MEM_freeN(chunk->data);
     }
   }
 

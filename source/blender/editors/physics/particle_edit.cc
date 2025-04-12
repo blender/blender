@@ -2352,7 +2352,7 @@ bool PE_box_select(bContext *C, const rcti *rect, const int sel_op)
 static void pe_select_cache_free_generic_userdata(void *data)
 {
   PE_data_free(static_cast<PEData *>(data));
-  MEM_freeN(data);
+  MEM_freeN(static_cast<PEData *>(data));
 }
 
 static void pe_select_cache_init_with_generic_userdata(bContext *C, wmGenericUserData *wm_userdata)

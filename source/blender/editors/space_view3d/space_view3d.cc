@@ -517,7 +517,7 @@ static void view3d_main_region_free(ARegion *region)
     }
 
     if (rv3d->sms) {
-      MEM_freeN(static_cast<void *>(rv3d->sms));
+      view3d_smooth_free(rv3d);
     }
 
     MEM_freeN(rv3d);

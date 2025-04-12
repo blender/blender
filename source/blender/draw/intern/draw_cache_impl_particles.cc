@@ -1357,10 +1357,10 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     MEM_freeN(parent_mcol);
   }
   if (num_uv_layers) {
-    MEM_freeN((void *)mtfaces);
+    MEM_freeN(mtfaces);
   }
   if (num_col_layers) {
-    MEM_freeN((void *)mcols);
+    MEM_freeN(mcols);
   }
   if (psmd != nullptr) {
     MEM_freeN(uv_id);

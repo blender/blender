@@ -968,13 +968,14 @@ static void node_resize_init(
 
 static void node_resize_exit(bContext *C, wmOperator *op, bool cancel)
 {
+  NodeSizeWidget *nsw = (NodeSizeWidget *)op->customdata;
+
   WM_cursor_modal_restore(CTX_wm_window(C));
 
   /* Restore old data on cancel. */
   if (cancel) {
     SpaceNode *snode = CTX_wm_space_node(C);
     bNode *node = bke::node_get_active(*snode->edittree);
-    NodeSizeWidget *nsw = (NodeSizeWidget *)op->customdata;
 
     node->location[0] = nsw->oldlocx;
     node->location[1] = nsw->oldlocy;
@@ -982,7 +983,7 @@ static void node_resize_exit(bContext *C, wmOperator *op, bool cancel)
     node->height = nsw->oldheight;
   }
 
-  MEM_freeN(op->customdata);
+  MEM_freeN(nsw);
   op->customdata = nullptr;
 }
 

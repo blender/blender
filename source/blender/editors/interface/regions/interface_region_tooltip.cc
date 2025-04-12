@@ -1081,7 +1081,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
                                 UI_TIP_LC_ALERT);
     }
     if (disabled_msg_free) {
-      MEM_freeN((void *)disabled_msg_orig);
+      MEM_freeN(disabled_msg_orig);
     }
   }
 

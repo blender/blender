@@ -211,6 +211,7 @@ static wmOperatorStatus outliner_item_openclose_modal(bContext *C,
 {
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  OpenCloseData *data = (OpenCloseData *)op->customdata;
 
   float view_mval[2];
   UI_view2d_region_to_view(
@@ -218,8 +219,6 @@ static wmOperatorStatus outliner_item_openclose_modal(bContext *C,
 
   if (event->type == MOUSEMOVE) {
     TreeElement *te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
-
-    OpenCloseData *data = (OpenCloseData *)op->customdata;
 
     /* Only openclose if mouse is not over the previously toggled element */
     if (te && TREESTORE(te) != data->prev_tselem) {
@@ -240,7 +239,7 @@ static wmOperatorStatus outliner_item_openclose_modal(bContext *C,
     }
   }
   else if (event->val == KM_RELEASE) {
-    MEM_freeN(op->customdata);
+    MEM_freeN(data);
 
     return OPERATOR_FINISHED;
   }

@@ -1830,7 +1830,7 @@ void RNA_property_enum_items_gettexted_all(bContext *C,
       }
 
       if (free) {
-        MEM_freeN((void *)item);
+        MEM_freeN(item);
       }
     }
   }
@@ -1861,7 +1861,7 @@ bool RNA_property_enum_value(
     }
 
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
   }
   else {
@@ -1984,7 +1984,7 @@ bool RNA_property_enum_identifier(
     bool result;
     result = RNA_enum_identifier(item, value, r_identifier);
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
     return result;
   }
@@ -2002,7 +2002,7 @@ bool RNA_property_enum_name(
     bool result;
     result = RNA_enum_name(item, value, r_name);
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
 
     return result;
@@ -2046,7 +2046,7 @@ bool RNA_property_enum_item_from_value(
     }
 
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
 
     return result;
@@ -2078,7 +2078,7 @@ int RNA_property_enum_bitflag_identifiers(
     int result;
     result = RNA_enum_bitflag_identifiers(item, value, r_identifier);
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
 
     return result;
@@ -4025,7 +4025,7 @@ int RNA_property_enum_step(
   }
 
   if (free) {
-    MEM_freeN((void *)item_array);
+    MEM_freeN(item_array);
   }
 
   return result_value;
@@ -5630,7 +5630,7 @@ bool RNA_enum_is_equal(bContext *C, PointerRNA *ptr, const char *name, const cha
     }
 
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
 
     if (i != -1) {
@@ -6263,7 +6263,7 @@ std::string RNA_property_as_string(
             }
 
             if (free) {
-              MEM_freeN((void *)item_array);
+              MEM_freeN(item_array);
             }
           }
 

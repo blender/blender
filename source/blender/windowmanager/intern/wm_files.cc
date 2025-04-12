@@ -1597,7 +1597,7 @@ void wm_homefile_read_post(bContext *C, const wmFileReadPost_Params *params_file
   }
 
   if (params_file_read_post->is_alloc) {
-    MEM_freeN((void *)params_file_read_post);
+    MEM_freeN(params_file_read_post);
   }
 }
 

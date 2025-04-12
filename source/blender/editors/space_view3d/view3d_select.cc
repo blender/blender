@@ -229,7 +229,7 @@ static void editselect_buf_cache_free(EditSelectBuf_Cache *esel)
 static void editselect_buf_cache_free_voidp(void *esel_voidp)
 {
   editselect_buf_cache_free(static_cast<EditSelectBuf_Cache *>(esel_voidp));
-  MEM_freeN(esel_voidp);
+  MEM_freeN(static_cast<EditSelectBuf_Cache *>(esel_voidp));
 }
 
 static void editselect_buf_cache_init_with_generic_userdata(wmGenericUserData *wm_userdata,

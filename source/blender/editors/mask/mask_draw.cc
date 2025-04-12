@@ -740,7 +740,7 @@ void ED_mask_draw_region(
       GPU_blend(GPU_BLEND_NONE);
     }
 
-    MEM_freeN((void *)buffer);
+    MEM_freeN(buffer);
   }
 
   /* apply transformation so mask editing tools will assume drawing from the

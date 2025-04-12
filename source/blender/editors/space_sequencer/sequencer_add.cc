@@ -794,7 +794,11 @@ static void sequencer_add_init(bContext * /*C*/, wmOperator *op)
 
 static void sequencer_add_cancel(bContext * /*C*/, wmOperator *op)
 {
-  MEM_SAFE_FREE(op->customdata);
+  if (op->customdata) {
+    SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
+    MEM_freeN(sad);
+    op->customdata = nullptr;
+  }
 }
 
 static bool sequencer_add_draw_check_fn(PointerRNA * /*ptr*/,
@@ -1222,13 +1226,12 @@ static wmOperatorStatus sequencer_add_sound_strip_exec(bContext *C, wmOperator *
   }
   else {
     if (!sequencer_add_sound_single_strip(C, op, &load_data)) {
+      sequencer_add_cancel(C, op);
       return OPERATOR_CANCELLED;
     }
   }
 
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-  }
+  sequencer_add_cancel(C, op);
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);

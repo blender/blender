@@ -165,7 +165,7 @@ uint *DRW_select_buffer_bitmap_from_rect(
     }
     buf_iter++;
   }
-  MEM_freeN((void *)buf);
+  MEM_freeN(buf);
 
   if (r_bitmap_len) {
     *r_bitmap_len = bitmap_len;
@@ -212,7 +212,7 @@ uint *DRW_select_buffer_bitmap_from_circle(Depsgraph *depsgraph,
       }
     }
   }
-  MEM_freeN((void *)buf);
+  MEM_freeN(buf);
 
   if (r_bitmap_len) {
     *r_bitmap_len = bitmap_len;
@@ -284,7 +284,7 @@ uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
     buf_iter++;
     i++;
   }
-  MEM_freeN((void *)buf);
+  MEM_freeN(buf);
   MEM_freeN(buf_mask);
 
   if (r_bitmap_len) {
@@ -387,7 +387,7 @@ uint DRW_select_buffer_find_nearest_to_point(Depsgraph *depsgraph,
     *dist = uint(abs(hit_y - center_yx[0]) + abs(hit_x - center_yx[1]));
   }
 
-  MEM_freeN((void *)buf);
+  MEM_freeN(buf);
   return data.r_index;
 }
 

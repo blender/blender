@@ -182,7 +182,9 @@ static void wm_xr_grab_init(wmOperator *op)
 
 static void wm_xr_grab_uninit(wmOperator *op)
 {
-  MEM_SAFE_FREE(op->customdata);
+  XrGrabData *data = static_cast<XrGrabData *>(op->customdata);
+  MEM_SAFE_FREE(data);
+  op->customdata = nullptr;
 }
 
 static void wm_xr_grab_update(wmOperator *op, const wmXrActionData *actiondata)
@@ -690,16 +692,18 @@ static void wm_xr_raycast_uninit(wmOperator *op)
     return;
   }
 
+  XrRaycastData *data = static_cast<XrRaycastData *>(op->customdata);
+
   SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
   if (st) {
     ARegionType *art = BKE_regiontype_from_id(st, RGN_TYPE_XR);
     if (art) {
-      XrRaycastData *data = static_cast<XrRaycastData *>(op->customdata);
       ED_region_draw_cb_exit(art, data->draw_handle);
     }
   }
 
-  MEM_freeN(op->customdata);
+  MEM_SAFE_FREE(data);
+  op->customdata = nullptr;
 }
 
 static void wm_xr_raycast_update(wmOperator *op,
@@ -810,7 +814,9 @@ static void wm_xr_fly_init(wmOperator *op, const wmXrData *xr)
 
 static void wm_xr_fly_uninit(wmOperator *op)
 {
-  MEM_SAFE_FREE(op->customdata);
+  XrFlyData *data = static_cast<XrFlyData *>(op->customdata);
+  MEM_SAFE_FREE(data);
+  op->customdata = nullptr;
 }
 
 static void wm_xr_fly_compute_move(eXrFlyMode mode,

@@ -883,7 +883,7 @@ static void make_duplis_font(const DupliContext *ctx)
   }
 
   if (text_free) {
-    MEM_freeN((void *)text);
+    MEM_freeN(text);
   }
 
   BLI_ghash_free(family_gh, nullptr, nullptr);

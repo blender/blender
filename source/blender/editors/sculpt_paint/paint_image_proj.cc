@@ -4647,15 +4647,15 @@ static void project_paint_end(ProjPaintState *ps)
     /* must be set for non-shared */
     BLI_assert(ps->poly_to_loop_uv || ps->is_shared_user);
     if (ps->poly_to_loop_uv) {
-      MEM_freeN((void *)ps->poly_to_loop_uv);
+      MEM_freeN(ps->poly_to_loop_uv);
     }
 
     if (ps->do_layer_clone) {
-      MEM_freeN((void *)ps->poly_to_loop_uv_clone);
+      MEM_freeN(ps->poly_to_loop_uv_clone);
     }
     if (ps->thread_tot > 1) {
       BLI_spin_end(ps->tile_lock);
-      MEM_freeN((void *)ps->tile_lock);
+      MEM_freeN(ps->tile_lock);
     }
 
     ED_image_paint_tile_lock_end();

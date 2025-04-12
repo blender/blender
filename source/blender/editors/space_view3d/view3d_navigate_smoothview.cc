@@ -618,4 +618,9 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
   ot->flag = OPTYPE_INTERNAL;
 }
 
+void view3d_smooth_free(RegionView3D *rv3d)
+{
+  MEM_SAFE_FREE(rv3d->sms);
+}
+
 /** \} */

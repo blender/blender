@@ -53,12 +53,12 @@ static void free_locales()
   if (locales) {
     int idx = num_locales_menu - 1; /* Last item does not need to be freed! */
     while (idx--) {
-      MEM_freeN((void *)locales_menu[idx].identifier);
-      MEM_freeN((void *)locales_menu[idx].name);
-      MEM_freeN((void *)locales_menu[idx].description); /* Also frees locales's relevant value! */
+      MEM_freeN(locales_menu[idx].identifier);
+      MEM_freeN(locales_menu[idx].name);
+      MEM_freeN(locales_menu[idx].description); /* Also frees locales's relevant value! */
     }
 
-    MEM_freeN((void *)locales);
+    MEM_freeN(locales);
     locales = nullptr;
   }
   MEM_SAFE_FREE(locales_menu);

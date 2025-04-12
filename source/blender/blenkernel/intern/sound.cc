@@ -105,7 +105,7 @@ static void sound_free_data(ID *id)
 
   if (sound->spinlock) {
     BLI_spin_end(static_cast<SpinLock *>(sound->spinlock));
-    MEM_freeN(sound->spinlock);
+    MEM_freeN(static_cast<SpinLock *>(sound->spinlock));
     sound->spinlock = nullptr;
   }
 }

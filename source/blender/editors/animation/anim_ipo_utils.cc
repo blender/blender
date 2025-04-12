@@ -139,7 +139,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
         {
           const char *structname_all = BLI_sprintfN("%s : %s", stripname, structname);
           if (free_structname) {
-            MEM_freeN((void *)structname);
+            MEM_freeN(structname);
           }
           structname = structname_all;
           free_structname = true;
@@ -154,7 +154,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
       const bNodeSocket *socket = static_cast<const bNodeSocket *>(ptr.data);
       const bNode &node = bke::node_find_node(*ntree, *socket);
       if (free_structname) {
-        MEM_freeN((void *)structname);
+        MEM_freeN(structname);
       }
       structname = node.label_or_name().c_str();
       free_structname = false;
@@ -164,7 +164,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
       BLI_assert(GS(ptr.owner_id->name) == ID_NT);
       const bNode *node = static_cast<const bNode *>(ptr.data);
       if (free_structname) {
-        MEM_freeN((void *)structname);
+        MEM_freeN(structname);
       }
       structname = node->label_or_name().c_str();
       free_structname = false;
@@ -221,7 +221,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
   /* free temp name if nameprop is set */
   if (free_structname) {
-    MEM_freeN((void *)structname);
+    MEM_freeN(structname);
   }
 
   /* Use the property's owner struct icon. */

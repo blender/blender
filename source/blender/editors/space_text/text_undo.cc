@@ -76,7 +76,7 @@ static void text_state_decode(TextState *state, Text *text)
     const uchar *buf = static_cast<const uchar *>(
         BLI_array_store_state_data_get_alloc(state->buf_array_state, &buf_len));
     txt_from_buf_for_undo(text, (const char *)buf, buf_len);
-    MEM_freeN((void *)buf);
+    MEM_freeN(buf);
   }
 
   const bool has_select = ((state->cursor_line != state->cursor_line_select) ||

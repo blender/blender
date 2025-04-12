@@ -130,12 +130,12 @@
 void DNA_sdna_free(SDNA *sdna)
 {
   if (sdna->data_alloc) {
-    MEM_freeN((void *)sdna->data);
+    MEM_freeN(sdna->data);
   }
 
-  MEM_freeN((void *)sdna->members);
-  MEM_freeN((void *)sdna->members_array_num);
-  MEM_freeN((void *)sdna->types);
+  MEM_freeN(sdna->members);
+  MEM_freeN(sdna->members_array_num);
+  MEM_freeN(sdna->types);
   MEM_freeN(sdna->structs);
   MEM_freeN(sdna->types_alignment);
 
@@ -1923,10 +1923,10 @@ static void sdna_expand_names(SDNA *sdna)
       names_expand_index++;
     }
   }
-  MEM_freeN((void *)sdna->members);
+  MEM_freeN(sdna->members);
   sdna->members = names_expand;
 
-  MEM_freeN((void *)sdna->members_array_num);
+  MEM_freeN(sdna->members_array_num);
   sdna->members_array_num = names_array_len_expand;
 
   sdna->members_num = names_expand_len;

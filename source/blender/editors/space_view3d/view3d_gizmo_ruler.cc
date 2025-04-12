@@ -1258,7 +1258,9 @@ static void gizmo_ruler_exit(bContext *C, wmGizmo *gz, const bool cancel)
     }
   }
 
-  MEM_SAFE_FREE(gz->interaction_data);
+  RulerInteraction *inter = static_cast<RulerInteraction *>(gz->interaction_data);
+  MEM_freeN(inter);
+  gz->interaction_data = nullptr;
 
   ruler_state_set(ruler_info, RULER_STATE_NORMAL);
 }

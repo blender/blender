@@ -179,7 +179,7 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
   }
 
   /* free format data */
-  MEM_freeN(sock->storage);
+  MEM_freeN(reinterpret_cast<NodeImageMultiFileSocket *>(sock->storage));
 
   blender::bke::node_remove_socket(*ntree, *node, *sock);
   return 1;
@@ -241,12 +241,12 @@ static void free_output_file(bNode *node)
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
     BKE_image_format_free(&sockdata->format);
-    MEM_freeN(sock->storage);
+    MEM_freeN(sockdata);
   }
 
   NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
   BKE_image_format_free(&nimf->format);
-  MEM_freeN(node->storage);
+  MEM_freeN(nimf);
 }
 
 static void copy_output_file(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)

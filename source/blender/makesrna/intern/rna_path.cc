@@ -932,7 +932,7 @@ std::optional<std::string> RNA_path_from_struct_to_idproperty(PointerRNA *ptr,
   }
 
   std::string string_path(path);
-  MEM_freeN((void *)path);
+  MEM_freeN(path);
 
   return string_path;
 }

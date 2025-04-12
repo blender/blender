@@ -1415,7 +1415,7 @@ void blo_filedata_free(FileData *fd)
     DNA_sdna_free(fd->filesdna);
   }
   if (fd->compflags) {
-    MEM_freeN((void *)fd->compflags);
+    MEM_freeN(fd->compflags);
   }
   if (fd->reconstruct_info) {
     DNA_reconstruct_info_free(fd->reconstruct_info);

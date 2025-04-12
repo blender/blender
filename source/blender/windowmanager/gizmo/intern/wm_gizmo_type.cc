@@ -109,7 +109,7 @@ void WM_gizmotype_free_ptr(wmGizmoType *gzt)
 {
   /* Python gizmo, allocates its own string. */
   if (gzt->rna_ext.srna) {
-    MEM_freeN((void *)gzt->idname);
+    MEM_freeN(gzt->idname);
   }
 
   BLI_freelistN(&gzt->target_property_defs);

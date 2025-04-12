@@ -814,7 +814,7 @@ int BLI_path_move(const char *path_src, const char *path_dst)
   }
 
   if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
-    MEM_freeN((void *)path_dst_with_filename);
+    MEM_freeN(path_dst_with_filename);
   }
 
   return err;
@@ -839,7 +839,7 @@ int BLI_copy(const char *path_src, const char *path_dst)
   }
 
   if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
-    MEM_freeN((void *)path_dst_with_filename);
+    MEM_freeN(path_dst_with_filename);
   }
 
   return err;
@@ -1532,7 +1532,7 @@ int BLI_copy(const char *path_src, const char *path_dst)
       path_src, path_dst_with_filename, copy_callback_pre, copy_single_file, nullptr);
 
   if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
-    MEM_freeN((void *)path_dst_with_filename);
+    MEM_freeN(path_dst_with_filename);
   }
 
   return ret;

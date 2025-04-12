@@ -960,7 +960,7 @@ static void ed_marker_move_exit(bContext *C, wmOperator *op)
 
   /* free data */
   MEM_freeN(mm->oldframe);
-  MEM_freeN(op->customdata);
+  MEM_freeN(mm);
   op->customdata = nullptr;
 
   /* clear custom header prints */

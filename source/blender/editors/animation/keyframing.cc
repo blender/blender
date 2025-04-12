@@ -511,7 +511,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
   }
 
   if (free) {
-    MEM_freeN((void *)item_array);
+    MEM_freeN(item_array);
   }
 
   UI_popup_menu_end(C, pup);

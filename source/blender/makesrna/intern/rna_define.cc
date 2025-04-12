@@ -4834,13 +4834,13 @@ void RNA_def_struct_free_pointers(BlenderRNA *brna, StructRNA *srna)
           BLI_ghash_remove(brna->structs_map, (void *)srna->identifier, nullptr, nullptr);
         }
       }
-      MEM_freeN((void *)srna->identifier);
+      MEM_freeN(srna->identifier);
     }
     if (srna->name) {
-      MEM_freeN((void *)srna->name);
+      MEM_freeN(srna->name);
     }
     if (srna->description) {
-      MEM_freeN((void *)srna->description);
+      MEM_freeN(srna->description);
     }
   }
 }
@@ -4861,10 +4861,10 @@ void RNA_def_func_free_pointers(FunctionRNA *func)
 {
   if (func->flag & FUNC_FREE_POINTERS) {
     if (func->identifier) {
-      MEM_freeN((void *)func->identifier);
+      MEM_freeN(func->identifier);
     }
     if (func->description) {
-      MEM_freeN((void *)func->description);
+      MEM_freeN(func->description);
     }
   }
 }
@@ -4978,13 +4978,13 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
     }
 
     if (prop->identifier) {
-      MEM_freeN((void *)prop->identifier);
+      MEM_freeN(prop->identifier);
     }
     if (prop->name) {
-      MEM_freeN((void *)prop->name);
+      MEM_freeN(prop->name);
     }
     if (prop->description) {
-      MEM_freeN((void *)prop->description);
+      MEM_freeN(prop->description);
     }
     if (prop->py_data) {
       MEM_freeN(prop->py_data);
@@ -4994,21 +4994,21 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
       case PROP_BOOLEAN: {
         BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
         if (bprop->defaultarray) {
-          MEM_freeN((void *)bprop->defaultarray);
+          MEM_freeN(bprop->defaultarray);
         }
         break;
       }
       case PROP_INT: {
         IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
         if (iprop->defaultarray) {
-          MEM_freeN((void *)iprop->defaultarray);
+          MEM_freeN(iprop->defaultarray);
         }
         break;
       }
       case PROP_FLOAT: {
         FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
         if (fprop->defaultarray) {
-          MEM_freeN((void *)fprop->defaultarray);
+          MEM_freeN(fprop->defaultarray);
         }
         break;
       }
@@ -5017,25 +5017,25 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 
         for (a = 0; a < eprop->totitem; a++) {
           if (eprop->item[a].identifier) {
-            MEM_freeN((void *)eprop->item[a].identifier);
+            MEM_freeN(eprop->item[a].identifier);
           }
           if (eprop->item[a].name) {
-            MEM_freeN((void *)eprop->item[a].name);
+            MEM_freeN(eprop->item[a].name);
           }
           if (eprop->item[a].description) {
-            MEM_freeN((void *)eprop->item[a].description);
+            MEM_freeN(eprop->item[a].description);
           }
         }
 
         if (eprop->item) {
-          MEM_freeN((void *)eprop->item);
+          MEM_freeN(eprop->item);
         }
         break;
       }
       case PROP_STRING: {
         StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
         if (sprop->defaultvalue) {
-          MEM_freeN((void *)sprop->defaultvalue);
+          MEM_freeN(sprop->defaultvalue);
         }
         break;
       }

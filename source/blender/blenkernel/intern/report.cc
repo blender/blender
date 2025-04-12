@@ -93,7 +93,7 @@ void BKE_reports_clear(ReportList *reports)
 
   while (report) {
     report_next = report->next;
-    MEM_freeN((void *)report->message);
+    MEM_freeN(report->message);
     MEM_freeN(report);
     report = report_next;
   }
@@ -196,7 +196,7 @@ static void reports_prepend_impl(ReportList *reports, const char *prepend)
   const size_t prefix_len = strlen(prepend);
   LISTBASE_FOREACH (Report *, report, &reports->list) {
     char *message = BLI_string_joinN(prepend, report->message);
-    MEM_freeN((void *)report->message);
+    MEM_freeN(report->message);
     report->message = message;
     report->len += prefix_len;
     BLI_assert(report->len == strlen(message));

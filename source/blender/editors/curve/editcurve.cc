@@ -2899,7 +2899,7 @@ static wmOperatorStatus smooth_exec(bContext *C, wmOperator *op)
             changed = true;
           }
         }
-        MEM_freeN((void *)bezt_orig);
+        MEM_freeN(bezt_orig);
         if (changed) {
           BKE_nurb_handles_calc(nu);
         }
@@ -2929,7 +2929,7 @@ static wmOperatorStatus smooth_exec(bContext *C, wmOperator *op)
             smooth_single_bp(bp, bp_orig_prev, bp_orig_next, factor);
           }
         }
-        MEM_freeN((void *)bp_orig);
+        MEM_freeN(bp_orig);
       }
     }
 

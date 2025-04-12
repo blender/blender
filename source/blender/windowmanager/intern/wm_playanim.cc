@@ -2106,9 +2106,9 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
       MEM_freeN(ps.picture->mem);
     }
     if (ps.picture->error_message) {
-      MEM_freeN(static_cast<void *>(ps.picture->error_message));
+      MEM_freeN(ps.picture->error_message);
     }
-    MEM_freeN(const_cast<char *>(ps.picture->filepath));
+    MEM_freeN(ps.picture->filepath);
     MEM_freeN(ps.picture);
   }
 

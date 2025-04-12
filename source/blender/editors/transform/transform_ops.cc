@@ -383,8 +383,9 @@ static void transformops_exit(bContext *C, wmOperator *op)
   transformops_loopsel_hack(C, op);
 #endif
 
-  saveTransform(C, static_cast<TransInfo *>(op->customdata), op);
-  MEM_freeN(op->customdata);
+  TransInfo *t = static_cast<TransInfo *>(op->customdata);
+  saveTransform(C, t, op);
+  MEM_freeN(t);
   op->customdata = nullptr;
   G.moving = 0;
 }

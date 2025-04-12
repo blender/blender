@@ -306,7 +306,8 @@ static wmOperatorStatus snode_bg_viewmove_invoke(bContext *C, wmOperator *op, co
 
 static void snode_bg_viewmove_cancel(bContext * /*C*/, wmOperator *op)
 {
-  MEM_freeN(op->customdata);
+  NodeViewMove *nvm = (NodeViewMove *)op->customdata;
+  MEM_freeN(nvm);
   op->customdata = nullptr;
 }
 

@@ -1776,7 +1776,7 @@ static bool vfont_to_curve(Object *ob,
     }
 
     if (ef == nullptr) {
-      MEM_freeN((void *)mem);
+      MEM_freeN(mem);
     }
     return true;
   }
@@ -1788,7 +1788,7 @@ static bool vfont_to_curve(Object *ob,
   }
   else {
     if (ef == nullptr) {
-      MEM_freeN((void *)mem);
+      MEM_freeN(mem);
     }
   }
 

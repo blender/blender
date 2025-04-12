@@ -256,7 +256,7 @@ void Shader::print_log(Span<StringRefNull> sources,
     }
     const char *_str = BLI_dynstr_get_cstring(dynstr);
     CLG_log_str(LOG.type, severity, this->name, stage, _str);
-    MEM_freeN((void *)_str);
+    MEM_freeN(_str);
   }
 
   BLI_dynstr_free(dynstr);

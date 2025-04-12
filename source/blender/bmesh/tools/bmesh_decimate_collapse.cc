@@ -1505,7 +1505,7 @@ void BM_mesh_decimate_collapse(BMesh *bm,
       }
     }
 
-    MEM_freeN((void *)edge_symmetry_map);
+    MEM_freeN(edge_symmetry_map);
   }
 #endif /* USE_SYMMETRY */
 

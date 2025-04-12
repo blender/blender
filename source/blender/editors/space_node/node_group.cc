@@ -237,9 +237,9 @@ static AnimationBasePathChange *animation_basepath_change_new(const StringRef sr
 static void animation_basepath_change_free(AnimationBasePathChange *basepath_change)
 {
   if (basepath_change->src_basepath != basepath_change->dst_basepath) {
-    MEM_freeN((void *)basepath_change->src_basepath);
+    MEM_freeN(basepath_change->src_basepath);
   }
-  MEM_freeN((void *)basepath_change->dst_basepath);
+  MEM_freeN(basepath_change->dst_basepath);
   MEM_freeN(basepath_change);
 }
 

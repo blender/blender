@@ -420,7 +420,7 @@ static void view_pan_exit(bContext *C, wmOperator *op, bool cancel)
   if (vpd->own_cursor) {
     WM_cursor_modal_restore(CTX_wm_window(C));
   }
-  MEM_freeN(op->customdata);
+  MEM_freeN(vpd);
 }
 
 static wmOperatorStatus view_pan_exec(bContext *C, wmOperator *op)
@@ -602,7 +602,7 @@ static void view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
   if (vpd->own_cursor) {
     WM_cursor_modal_restore(CTX_wm_window(C));
   }
-  MEM_freeN(op->customdata);
+  MEM_freeN(vpd);
 }
 
 static wmOperatorStatus view_zoom_exec(bContext *C, wmOperator *op)

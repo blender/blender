@@ -1562,7 +1562,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
         }
       }
     }
-    MEM_freeN((void *)vgroup_validmap);
+    MEM_freeN(vgroup_validmap);
 
     yco -= 2;
 

@@ -292,7 +292,7 @@ static void zstd_close(FileReader *reader)
     }
   }
   else {
-    MEM_freeN((void *)zstd->in_buf.src);
+    MEM_freeN(const_cast<void *>(zstd->in_buf.src));
   }
 
   zstd->base->close(zstd->base);
