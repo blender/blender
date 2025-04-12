@@ -77,15 +77,13 @@ void WM_xr_actionmap_binding_ensure_unique(XrActionMapItem *ami, XrActionMapBind
   size_t baselen;
   size_t idx = 0;
 
-  STRNCPY(name, amb->name);
-  baselen = BLI_strnlen(name, MAX_NAME);
+  baselen = STRNCPY_RLEN(name, amb->name);
   suffix = &name[baselen];
 
   while (wm_xr_actionmap_binding_find_except(ami, name, amb)) {
     if ((baselen + 1) + (log10(++idx) + 1) > MAX_NAME) {
       /* Use default base name. */
-      STRNCPY(name, WM_XR_ACTIONMAP_BINDING_STR_DEFAULT);
-      baselen = BLI_strnlen(name, MAX_NAME);
+      baselen = STRNCPY_RLEN(name, WM_XR_ACTIONMAP_BINDING_STR_DEFAULT);
       suffix = &name[baselen];
       idx = 0;
     }
@@ -281,15 +279,13 @@ void WM_xr_actionmap_item_ensure_unique(XrActionMap *actionmap, XrActionMapItem 
   size_t baselen;
   size_t idx = 0;
 
-  STRNCPY(name, ami->name);
-  baselen = BLI_strnlen(name, MAX_NAME);
+  baselen = STRNCPY_RLEN(name, ami->name);
   suffix = &name[baselen];
 
   while (wm_xr_actionmap_item_find_except(actionmap, name, ami)) {
     if ((baselen + 1) + (log10(++idx) + 1) > MAX_NAME) {
       /* Use default base name. */
-      STRNCPY(name, WM_XR_ACTIONMAP_ITEM_STR_DEFAULT);
-      baselen = BLI_strnlen(name, MAX_NAME);
+      baselen = STRNCPY_RLEN(name, WM_XR_ACTIONMAP_ITEM_STR_DEFAULT);
       suffix = &name[baselen];
       idx = 0;
     }
@@ -420,15 +416,13 @@ void WM_xr_actionmap_ensure_unique(wmXrRuntimeData *runtime, XrActionMap *action
   size_t baselen;
   size_t idx = 0;
 
-  STRNCPY(name, actionmap->name);
-  baselen = BLI_strnlen(name, MAX_NAME);
+  baselen = STRNCPY_RLEN(name, actionmap->name);
   suffix = &name[baselen];
 
   while (wm_xr_actionmap_find_except(runtime, name, actionmap)) {
     if ((baselen + 1) + (log10(++idx) + 1) > MAX_NAME) {
       /* Use default base name. */
-      STRNCPY(name, WM_XR_ACTIONMAP_STR_DEFAULT);
-      baselen = BLI_strnlen(name, MAX_NAME);
+      baselen = STRNCPY_RLEN(name, WM_XR_ACTIONMAP_STR_DEFAULT);
       suffix = &name[baselen];
       idx = 0;
     }
