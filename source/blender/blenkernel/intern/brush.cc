@@ -570,12 +570,11 @@ void BKE_brush_system_exit()
 
 static void brush_defaults(Brush *brush)
 {
-
-  const Brush *brush_def = DNA_struct_default_get(Brush);
+  const Brush brush_def = {};
 
 #define FROM_DEFAULT(member) \
-  memcpy((void *)&brush->member, (void *)&brush_def->member, sizeof(brush->member))
-#define FROM_DEFAULT_PTR(member) memcpy(brush->member, brush_def->member, sizeof(brush->member))
+  memcpy((void *)&brush->member, (void *)&brush_def.member, sizeof(brush->member))
+#define FROM_DEFAULT_PTR(member) memcpy(brush->member, brush_def.member, sizeof(brush->member))
 
   FROM_DEFAULT(blend);
   FROM_DEFAULT(flag);
@@ -1676,7 +1675,7 @@ static bool brush_gen_texture(const Brush *br,
 
 ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool display_gradient)
 {
-  ImBuf *im = MEM_callocN<ImBuf>("radial control texture");
+  ImBuf *im = MEM_new_for_free<ImBuf>("radial control texture");
   int side = 512;
   int half = side / 2;
 

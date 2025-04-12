@@ -564,10 +564,10 @@ static ButtonMultiState *ui_multibut_lookup(HandleButtonData *data, const Button
 #endif
 
 /* buttons clipboard */
-static ColorBand but_copypaste_coba = {};
-static CurveMapping but_copypaste_curve = {};
+static ColorBand but_copypaste_coba;
+static CurveMapping but_copypaste_curve;
 static bool but_copypaste_curve_alive = false;
-static CurveProfile but_copypaste_profile = {};
+static CurveProfile but_copypaste_profile;
 static bool but_copypaste_profile_alive = false;
 
 /** \} */

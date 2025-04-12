@@ -109,17 +109,17 @@ enum ImagePaintTileState {
 
 struct ImagePaintTile {
   ImageUser iuser;
-  ImBuf *canvas;
-  float radius_fac;
-  int size[2];
-  float uv_origin[2]; /* Stores the position of this tile in UV space. */
-  bool need_redraw;
-  BrushPainterCache cache;
+  ImBuf *canvas = nullptr;
+  float radius_fac = 0.0f;
+  int size[2] = {};
+  float uv_origin[2] = {}; /* Stores the position of this tile in UV space. */
+  bool need_redraw = false;
+  BrushPainterCache cache = {};
 
-  ImagePaintTileState state;
+  ImagePaintTileState state = PAINT2D_TILE_UNINITIALIZED;
 
-  float last_paintpos[2];  /* position of last paint op */
-  float start_paintpos[2]; /* position of first paint */
+  float last_paintpos[2] = {};  /* position of last paint op */
+  float start_paintpos[2] = {}; /* position of first paint */
 };
 
 struct ImagePaintState {
@@ -1638,7 +1638,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   }
 
   s->num_tiles = BLI_listbase_count(&s->image->tiles);
-  s->tiles = MEM_calloc_arrayN<ImagePaintTile>(s->num_tiles, __func__);
+  s->tiles = MEM_new_array_for_free<ImagePaintTile>(s->num_tiles, __func__);
   for (int i = 0; i < s->num_tiles; i++) {
     s->tiles[i].iuser = sima->iuser;
   }

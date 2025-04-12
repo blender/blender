@@ -20,26 +20,26 @@ struct Scene;
 
 struct ImageSaveOptions {
   /* Context within which image is saved. */
-  Main *bmain;
-  Scene *scene;
+  Main *bmain = nullptr;
+  Scene *scene = nullptr;
 
   /* Format and absolute file path. */
   ImageFormatData im_format;
-  char filepath[/*FILE_MAX*/ 1024];
+  char filepath[/*FILE_MAX*/ 1024] = "";
 
   /* Options. */
-  bool relative;
-  bool save_copy;
-  bool save_as_render;
-  bool do_newpath;
+  bool relative = false;
+  bool save_copy = false;
+  bool save_as_render = false;
+  bool do_newpath = false;
 
   /* Original values, so we can restore when type changes back .*/
   int orig_imtype;
   char orig_colorspace[/*MAX_COLORSPACE_NAME*/ 64];
 
   /* Keep track of previous values for auto updates in UI. */
-  bool prev_save_as_render;
-  int prev_imtype;
+  bool prev_save_as_render = false;
+  int prev_imtype = false;
 };
 
 bool BKE_image_save_options_init(ImageSaveOptions *opts,

@@ -974,7 +974,7 @@ void dynamicPaint_freeSurfaceData(DynamicPaintSurface *surface)
   if (data->format_data) {
     /* format specific free */
     if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
-      ImgSeqFormatData *format_data = (ImgSeqFormatData *)data->format_data;
+      ImgSeqFormatData *format_data = data->format_data;
       if (format_data->uv_p) {
         MEM_freeN(format_data->uv_p);
       }
@@ -1555,7 +1555,7 @@ static void dynamic_paint_set_init_color_tex_to_imseq_cb(void *__restrict userda
   const blender::Span<int3> corner_tris = data->corner_tris;
   const blender::Span<blender::float2> uv_map = data->uv_map;
   Tex *tex = data->surface->init_texture;
-  ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
+  ImgSeqFormatData *f_data = sData->format_data;
   const int samples = (data->surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
 
   float uv[9] = {0.0f};
@@ -1591,7 +1591,7 @@ static void dynamic_paint_set_init_color_vcol_to_imseq_cb(
 
   const blender::Span<int3> corner_tris = data->corner_tris;
   const blender::Span<blender::ColorGeometry4b> mloopcol = data->mloopcol;
-  ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
+  ImgSeqFormatData *f_data = sData->format_data;
   const int samples = (data->surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
 
   const int tri_idx = f_data->uv_p[i].tri_index;
@@ -3181,7 +3181,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
      * For debug, output pixel statuses to the color map
      * ----------------------------------------------------------------- */
     for (index = 0; index < sData->total_points; index++) {
-      ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
+      ImgSeqFormatData *f_data = sData->format_data;
       PaintUVPoint *uvPoint = &((PaintUVPoint *)f_data->uv_p)[index];
       PaintPoint *pPoint = &((PaintPoint *)sData->type_data)[index];
       pPoint->alpha = 1.0f;
@@ -3228,7 +3228,7 @@ static void dynamic_paint_output_surface_image_paint_cb(void *__restrict userdat
 
   ImBuf *ibuf = data->ibuf;
   /* image buffer position */
-  const int pos = ((ImgSeqFormatData *)(surface->data->format_data))->uv_p[index].pixel_index * 4;
+  const int pos = surface->data->format_data->uv_p[index].pixel_index * 4;
 
   /* blend wet and dry layers */
   blendColors(point->color,
@@ -3254,7 +3254,7 @@ static void dynamic_paint_output_surface_image_displace_cb(
 
   ImBuf *ibuf = data->ibuf;
   /* image buffer position */
-  const int pos = ((ImgSeqFormatData *)(surface->data->format_data))->uv_p[index].pixel_index * 4;
+  const int pos = surface->data->format_data->uv_p[index].pixel_index * 4;
 
   if (surface->depth_clamp) {
     depth /= surface->depth_clamp;
@@ -3283,7 +3283,7 @@ static void dynamic_paint_output_surface_image_wave_cb(void *__restrict userdata
 
   ImBuf *ibuf = data->ibuf;
   /* image buffer position */
-  const int pos = ((ImgSeqFormatData *)(surface->data->format_data))->uv_p[index].pixel_index * 4;
+  const int pos = surface->data->format_data->uv_p[index].pixel_index * 4;
 
   if (surface->depth_clamp) {
     depth /= surface->depth_clamp;
@@ -3308,7 +3308,7 @@ static void dynamic_paint_output_surface_image_wetmap_cb(void *__restrict userda
 
   ImBuf *ibuf = data->ibuf;
   /* image buffer position */
-  const int pos = ((ImgSeqFormatData *)(surface->data->format_data))->uv_p[index].pixel_index * 4;
+  const int pos = surface->data->format_data->uv_p[index].pixel_index * 4;
 
   copy_v3_fl(&ibuf->float_buffer.data[pos], (point->wetness > 1.0f) ? 1.0f : point->wetness);
   ibuf->float_buffer.data[pos + 3] = 1.0f;
@@ -6012,7 +6012,7 @@ static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
    */
   if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
     float n1[3], n2[3], n3[3];
-    const ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
+    const ImgSeqFormatData *f_data = sData->format_data;
     const PaintUVPoint *tPoint = &((PaintUVPoint *)f_data->uv_p)[index];
 
     bData->s_num[index] = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;

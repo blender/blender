@@ -500,7 +500,7 @@ ImBuf *IMB_allocFromBuffer(
 
 ImBuf *IMB_allocImBuf(uint x, uint y, uchar planes, uint flags)
 {
-  ImBuf *ibuf = MEM_callocN<ImBuf>("ImBuf_struct");
+  ImBuf *ibuf = MEM_new_for_free<ImBuf>("ImBuf_struct");
 
   if (ibuf) {
     if (!IMB_initImBuf(ibuf, x, y, planes, flags)) {

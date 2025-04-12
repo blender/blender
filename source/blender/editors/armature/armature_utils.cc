@@ -452,7 +452,7 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
   EditBone *eBoneTest = nullptr;
 
   LISTBASE_FOREACH (Bone *, curBone, bones) {
-    eBone = MEM_callocN<EditBone>("make_editbone");
+    eBone = MEM_new<EditBone>("make_editbone");
     eBone->temp.bone = curBone;
 
     /* Copy relevant data from bone to eBone

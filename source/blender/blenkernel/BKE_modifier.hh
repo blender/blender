@@ -555,7 +555,7 @@ void BKE_modifier_free_temporary_data(ModifierData *md);
 void BKE_modifiers_add_at_end_if_possible(Object *ob, ModifierData *new_md);
 
 struct CDMaskLink {
-  CDMaskLink *next;
+  CDMaskLink *next = nullptr;
   CustomData_MeshMasks mask;
 };
 

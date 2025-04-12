@@ -74,9 +74,9 @@ using ColorSpace = blender::ocio::ColorSpace;
 #define TIF_COMPRESS_PACKBITS (1 << 4)
 
 struct ImbFormatOptions {
-  short flag;
+  short flag = 0;
   /** Quality serves dual purpose as quality number for JPEG or compression amount for PNG. */
-  char quality;
+  char quality = 0;
 };
 
 /* -------------------------------------------------------------------- */
@@ -141,15 +141,15 @@ enum ImBufOwnership {
 
 struct DDSData {
   /** DDS fourcc info */
-  unsigned int fourcc;
+  unsigned int fourcc = 0;
   /** The number of mipmaps in the dds file */
-  unsigned int nummipmaps;
+  unsigned int nummipmaps = 0;
   /** The compressed image data */
-  unsigned char *data;
+  unsigned char *data = nullptr;
   /** The size of the compressed data */
-  unsigned int size;
+  unsigned int size = 0;
   /** Who owns the data buffer. */
-  ImBufOwnership ownership;
+  ImBufOwnership ownership = IB_DO_NOT_TAKE_OWNERSHIP;
 };
 
 /* Different storage specialization.
@@ -160,17 +160,17 @@ struct DDSData {
  * Accessing the data pointer directly is fine and is an expected way of accessing it. */
 
 struct ImBufByteBuffer {
-  uint8_t *data;
-  ImBufOwnership ownership;
+  uint8_t *data = nullptr;
+  ImBufOwnership ownership = IB_DO_NOT_TAKE_OWNERSHIP;
 
-  const ColorSpace *colorspace;
+  const ColorSpace *colorspace = nullptr;
 };
 
 struct ImBufFloatBuffer {
-  float *data;
-  ImBufOwnership ownership;
+  float *data = nullptr;
+  ImBufOwnership ownership = IB_DO_NOT_TAKE_OWNERSHIP;
 
-  const ColorSpace *colorspace;
+  const ColorSpace *colorspace = nullptr;
 };
 
 struct ImBufGPU {
@@ -183,7 +183,7 @@ struct ImBufGPU {
    * TODO(@sergey): This should become a list of textures, to support having high-res ImBuf on GPU
    * without hitting hardware limitations.
    */
-  blender::gpu::Texture *texture;
+  blender::gpu::Texture *texture = nullptr;
 };
 
 /** \} */
@@ -198,7 +198,8 @@ struct ImBuf {
    * Should be 'unsigned int' since most formats use this.
    * but this is problematic with texture math in `imagetexture.c`
    * avoid problems and use int. - campbell */
-  int x, y;
+  int x = 0;
+  int y = 0;
 
   /**
    * Stores the Data and Display Window information. Those are only initialized if the image buffer
@@ -216,13 +217,13 @@ struct ImBuf {
   int display_offset[2];
 
   /** Active amount of bits/bit-planes. */
-  unsigned char planes;
+  unsigned char planes = 0;
   /** Number of channels in `rect_float` (0 = 4 channel default) */
-  int channels;
+  int channels = 0;
 
   /* flags */
   /** Controls which components should exist. */
-  int flags;
+  int flags = 0;
 
   /* pixels */
 
@@ -246,48 +247,48 @@ struct ImBuf {
   ImBufGPU gpu;
 
   /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
-  double ppm[2];
+  double ppm[2] = {0.0, 0.0};
 
   /** Amount of dithering to apply, when converting float -> byte. */
-  float dither;
+  float dither = 0.0f;
 
   /* externally used data */
   /** reference index for ImBuf lists */
-  int index;
+  int index = 0;
   /** used to set imbuf to dirty and other stuff */
-  int userflags;
+  int userflags = 0;
   /** image metadata */
-  IDProperty *metadata;
+  IDProperty *metadata = nullptr;
   /** OpenEXR handle. */
-  ExrHandle *exrhandle;
+  ExrHandle *exrhandle = nullptr;
 
   /* file information */
   /** file type we are going to save as */
-  enum eImbFileType ftype;
+  enum eImbFileType ftype = IMB_FTYPE_NONE;
   /** file format specific flags */
   ImbFormatOptions foptions;
   /** The absolute file path associated with this image. */
-  char filepath[IMB_FILEPATH_SIZE];
+  char filepath[IMB_FILEPATH_SIZE] = "";
   /** For movie files, the frame number loaded from the file. */
-  int fileframe;
+  int fileframe = 0;
 
   /** reference counter for multiple users */
-  int32_t refcounter;
+  int32_t refcounter = 0;
 
   /* some parameters to pass along for packing images */
   /** Compressed image only used with PNG and EXR currently. */
   ImBufByteBuffer encoded_buffer;
   /** Size of data written to `encoded_buffer`. */
-  unsigned int encoded_size;
+  unsigned int encoded_size = 0;
   /** Size of `encoded_buffer` */
-  unsigned int encoded_buffer_size;
+  unsigned int encoded_buffer_size = 0;
 
   /* color management */
   /** array of per-display display buffers dirty flags */
-  unsigned int *display_buffer_flags;
+  unsigned int *display_buffer_flags = nullptr;
   /** cache used by color management */
-  ColormanageCache *colormanage_cache;
-  int colormanage_flag;
+  ColormanageCache *colormanage_cache = nullptr;
+  int colormanage_flag = 0;
   rcti invalid_rect;
 
   /** Information for compressed textures. */

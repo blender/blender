@@ -62,7 +62,7 @@ struct Icon_Geom {
   unsigned char (*coords)[2];
   unsigned char (*colors)[4];
   /* when not NULL, the memory of coords and colors is a sub-region of this pointer. */
-  const void *mem;
+  const unsigned char *mem;
 };
 
 typedef struct Icon Icon;

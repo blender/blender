@@ -132,7 +132,7 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
 BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const BMeshCreateParams *params)
 {
   /* allocate the structure */
-  BMesh *bm = MEM_callocN<BMesh>(__func__);
+  BMesh *bm = MEM_new_for_free<BMesh>(__func__);
 
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, allocsize, params->use_toolflags);

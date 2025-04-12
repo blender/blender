@@ -53,18 +53,18 @@
 namespace blender::seq {
 
 struct IndexBuildContext {
-  MovieProxyBuilder *proxy_builder;
+  MovieProxyBuilder *proxy_builder = nullptr;
 
-  int tc_flags;
-  int size_flags;
-  int quality;
-  bool overwrite;
-  int view_id;
+  int tc_flags = 0;
+  int size_flags = 0;
+  int quality = 0;
+  bool overwrite = false;
+  int view_id = 0;
 
-  Main *bmain;
-  Depsgraph *depsgraph;
-  Scene *scene;
-  Strip *strip, *orig_seq;
+  Main *bmain = nullptr;
+  Depsgraph *depsgraph = nullptr;
+  Scene *scene = nullptr;
+  Strip *strip = nullptr, *orig_seq = nullptr;
   SessionUID orig_seq_uid;
 };
 
@@ -459,7 +459,8 @@ bool proxy_rebuild_context(Main *bmain,
 
     strip_free_movie_readers(strip);
 
-    IndexBuildContext *context = MEM_callocN<IndexBuildContext>("strip proxy rebuild context");
+    IndexBuildContext *context = MEM_new_for_free<IndexBuildContext>(
+        "strip proxy rebuild context");
 
     Strip *strip_new = strip_duplicate_recursive(
         bmain, scene, scene, nullptr, strip, StripDuplicate::Selected);

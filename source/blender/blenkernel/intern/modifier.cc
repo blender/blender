@@ -556,7 +556,7 @@ CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-    curr = MEM_callocN<CDMaskLink>(__func__);
+    curr = MEM_new_for_free<CDMaskLink>(__func__);
 
     if (BKE_modifier_is_enabled(scene, md, required_mode)) {
       if (mti->type == ModifierTypeType::OnlyDeform) {

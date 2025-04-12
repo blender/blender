@@ -81,7 +81,7 @@ static void icon_free(void *val)
     Icon_Geom *obj = (Icon_Geom *)icon->obj;
     if (obj->mem) {
       /* coords & colors are part of this memory. */
-      MEM_freeN(const_cast<void *>(obj->mem));
+      MEM_freeN(obj->mem);
     }
     else {
       MEM_freeN(obj->coords);

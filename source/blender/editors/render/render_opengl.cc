@@ -1009,7 +1009,7 @@ static bool screen_opengl_render_anim_init(wmOperator *op)
 }
 
 struct WriteTaskData {
-  RenderResult *rr;
+  RenderResult *rr = nullptr;
   Scene tmp_scene;
 };
 
@@ -1121,7 +1121,7 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
     return false;
   }
   Scene *scene = oglrender->scene;
-  WriteTaskData *task_data = MEM_callocN<WriteTaskData>("write task data");
+  WriteTaskData *task_data = MEM_new_for_free<WriteTaskData>("write task data");
   task_data->rr = rr;
   memcpy(&task_data->tmp_scene, scene, sizeof(task_data->tmp_scene));
   {

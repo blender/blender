@@ -35,86 +35,86 @@ struct bPoseChannel;
 struct MDeformVert;
 
 struct EditBone {
-  EditBone *next, *prev;
+  EditBone *next = nullptr, *prev = nullptr;
   /** User-Defined Properties on this Bone */
-  IDProperty *prop;
+  IDProperty *prop = nullptr;
   /** System-Defined Properties storage. */
-  IDProperty *system_properties;
+  IDProperty *system_properties = nullptr;
   /**
    * Edit-bones have a one-way link  (i.e. children refer
    * to parents.  This is converted to a two-way link for
    * normal bones when leaving edit-mode.
    */
-  EditBone *parent;
-  char name[/*MAXBONENAME*/ 64];
+  EditBone *parent = nullptr;
+  char name[/*MAXBONENAME*/ 64] = "";
   /**
    * Roll along axis.  We'll ultimately use the axis/angle method
    * for determining the transformation matrix of the bone.  The axis
    * is tail-head while roll provides the angle. Refer to Graphics
    * Gems 1 p. 466 (section IX.6) if it's not already in here somewhere.
    */
-  float roll;
+  float roll = 0.0f;
 
   /** Orientation and length is implicit during editing */
-  float head[3];
-  float tail[3];
+  float head[3] = {};
+  float tail[3] = {};
   /**
    * All joints are considered to have zero rotation with respect to
    * their parents. Therefore any rotations specified during the
    * animation are automatically relative to the bones' rest positions.
    */
-  int flag;
-  int layer;
-  int drawtype; /* eArmature_Drawtype */
-  char inherit_scale_mode;
+  int flag = 0;
+  int layer = 0;
+  int drawtype = 0; /* eArmature_Drawtype */
+  char inherit_scale_mode = 0;
 
   /* Envelope distance & weight */
-  float dist, weight;
+  float dist = 0, weight = 0;
   /** put them in order! transform uses this as scale */
-  float xwidth, length, zwidth;
-  float rad_head, rad_tail;
+  float xwidth = 0, length = 0, zwidth = 0;
+  float rad_head = 0, rad_tail = 0;
 
   /* Bendy-Bone parameters */
-  short segments;
-  float roll1, roll2;
-  float curve_in_x, curve_in_z;
-  float curve_out_x, curve_out_z;
-  float ease1, ease2;
-  float scale_in[3], scale_out[3];
+  short segments = 0;
+  float roll1 = 0, roll2 = 0;
+  float curve_in_x = 0, curve_in_z = 0;
+  float curve_out_x = 0, curve_out_z = 0;
+  float ease1 = 0, ease2 = 0;
+  float scale_in[3] = {}, scale_out[3] = {};
 
   /** for envelope scaling */
-  float oldlength;
+  float oldlength = 0;
 
   /** Mapping of vertices to segments. */
-  eBone_BBoneMappingMode bbone_mapping_mode;
+  eBone_BBoneMappingMode bbone_mapping_mode = BBONE_MAPPING_STRAIGHT;
   /** Type of next/prev bone handles */
-  char bbone_prev_type;
-  char bbone_next_type;
+  char bbone_prev_type = 0;
+  char bbone_next_type = 0;
   /** B-Bone flags. */
-  int bbone_flag;
-  short bbone_prev_flag;
-  short bbone_next_flag;
+  int bbone_flag = 0;
+  short bbone_prev_flag = 0;
+  short bbone_next_flag = 0;
   /** Next/prev bones to use as handle references when calculating bbones (optional) */
-  EditBone *bbone_prev;
-  EditBone *bbone_next;
+  EditBone *bbone_prev = nullptr;
+  EditBone *bbone_next = nullptr;
 
   /* Used for display */
   /** in Armature space, rest pos matrix */
-  float disp_mat[4][4];
+  float disp_mat[4][4] = {};
   /** in Armature space, rest pos matrix */
-  float disp_tail_mat[4][4];
+  float disp_tail_mat[4][4] = {};
   /** in Armature space, rest pos matrix. */
-  float disp_bbone_mat[/*MAX_BBONE_SUBDIV*/ 32][4][4];
+  float disp_bbone_mat[/*MAX_BBONE_SUBDIV*/ 32][4][4] = {};
 
   /** connected child temporary during drawing */
-  EditBone *bbone_child;
+  EditBone *bbone_child = nullptr;
 
   ::BoneColor color; /* MUST be named the same as in bPoseChannel and Bone structs. */
-  ListBase /*BoneCollectionReference*/ bone_collections;
+  ListBase /*BoneCollectionReference*/ bone_collections = {};
 
   /* Used to store temporary data */
   union {
-    EditBone *ebone;
+    EditBone *ebone = nullptr;
     Bone *bone;
     void *p;
     int i;

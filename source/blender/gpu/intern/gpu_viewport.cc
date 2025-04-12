@@ -37,10 +37,10 @@
  * The end-goal is to have a single batch shared across viewport and use a model matrix to place
  * the batch. Due to OCIO and Image/UV editor we are not able to use an model matrix yet. */
 struct GPUViewportBatch {
-  blender::gpu::Batch *batch;
+  blender::gpu::Batch *batch = nullptr;
   struct {
-    rctf rect_pos;
-    rctf rect_uv;
+    rctf rect_pos = {};
+    rctf rect_uv = {};
   } last_used_parameters;
 };
 
@@ -52,38 +52,38 @@ static struct {
 } g_viewport = {{0}};
 
 struct GPUViewport {
-  blender::int2 size;
-  int flag;
+  blender::int2 size = blender::int2(0);
+  int flag = 0;
 
   /* Set the active view (for stereoscopic viewport rendering). */
-  int active_view;
+  int active_view = 0;
 
   /* Viewport Resources. */
-  DRWData *draw_data;
+  DRWData *draw_data = nullptr;
   /** Color buffers, one for each stereo view. Only one if not stereo viewport. */
-  blender::gpu::Texture *color_render_tx[2];
-  blender::gpu::Texture *color_overlay_tx[2];
+  blender::gpu::Texture *color_render_tx[2] = {};
+  blender::gpu::Texture *color_overlay_tx[2] = {};
   /** Depth buffer. Can be shared with GPUOffscreen. */
-  blender::gpu::Texture *depth_tx;
+  blender::gpu::Texture *depth_tx = nullptr;
   /** Compositing framebuffer for stereo viewport. */
-  blender::gpu::FrameBuffer *stereo_comp_fb;
+  blender::gpu::FrameBuffer *stereo_comp_fb = nullptr;
   /** Color render and overlay frame-buffers for drawing outside of DRW module.
    * The render framebuffer is expected to be in the linear space and viewport will perform color
    * management on it to bring it to the display space.
    * The overlay frame-buffer is expected to be in the display space and viewport does not do any
    * color management on it. */
-  blender::gpu::FrameBuffer *render_fb;
-  blender::gpu::FrameBuffer *overlay_fb;
+  blender::gpu::FrameBuffer *render_fb = nullptr;
+  blender::gpu::FrameBuffer *overlay_fb = nullptr;
 
   /* Color management. */
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
-  bool use_hdr_display;
-  CurveMapping *orig_curve_mapping;
-  float dither;
+  bool use_hdr_display = false;
+  CurveMapping *orig_curve_mapping = nullptr;
+  float dither = 0.0f;
   /* TODO(@fclem): the UV-image display use the viewport but do not set any view transform for the
    * moment. The end goal would be to let the GPUViewport do the color management. */
-  bool do_color_management;
+  bool do_color_management = false;
   GPUViewportBatch batch;
 };
 
@@ -106,7 +106,7 @@ bool GPU_viewport_do_update(GPUViewport *viewport)
 
 GPUViewport *GPU_viewport_create()
 {
-  GPUViewport *viewport = MEM_callocN<GPUViewport>("GPUViewport");
+  GPUViewport *viewport = MEM_new_for_free<GPUViewport>("GPUViewport");
   viewport->do_color_management = false;
   viewport->size[0] = viewport->size[1] = -1;
   viewport->active_view = 0;

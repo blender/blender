@@ -12,14 +12,16 @@ struct Depsgraph;
 struct DynamicPaintCanvasSettings;
 struct DynamicPaintModifierData;
 struct DynamicPaintRuntime;
+struct ImgSeqFormatData;
 struct Object;
+struct PaintAdjData;
 struct Scene;
 
 /* Actual surface point */
 typedef struct PaintSurfaceData {
-  void *format_data;             /* special data for each surface "format" */
+  ImgSeqFormatData *format_data; /* extra data for image sequence format */
   void *type_data;               /* data used by specific surface type */
-  struct PaintAdjData *adj_data; /* adjacency data for current surface */
+  PaintAdjData *adj_data;        /* adjacency data for current surface */
 
   struct PaintBakeData *bData; /* temporary per step data used for frame calculation */
   int total_points;

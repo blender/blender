@@ -6612,9 +6612,9 @@ bool WM_event_match(const wmEvent *winevent, const wmKeyMapItem *kmi)
 
 /** State storage to detect changes between calls to refresh the information. */
 struct CursorKeymapInfo_State {
-  uint8_t modifier;
-  short space_type;
-  short region_type;
+  uint8_t modifier = 0;
+  short space_type = 0;
+  short region_type = 0;
   /** Never use, just compare memory for changes. */
   bToolRef tref;
 };
@@ -6625,7 +6625,7 @@ struct CursorKeymapInfo {
    * 1: Event type (click/press, drag).
    * 2: Text.
    */
-  char text[3][2][128];
+  char text[3][2][128] = {};
   wmEvent state_event;
   CursorKeymapInfo_State state;
 };
@@ -6691,7 +6691,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 
   CursorKeymapInfo *cd;
   if (UNLIKELY(win->runtime->cursor_keymap_status == nullptr)) {
-    win->runtime->cursor_keymap_status = MEM_callocN<CursorKeymapInfo>(__func__);
+    win->runtime->cursor_keymap_status = MEM_new_for_free<CursorKeymapInfo>(__func__);
   }
   cd = static_cast<CursorKeymapInfo *>(win->runtime->cursor_keymap_status);
 

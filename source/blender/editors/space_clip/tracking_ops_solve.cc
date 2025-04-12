@@ -35,16 +35,16 @@
 /********************** solve camera operator *********************/
 
 struct SolveCameraJob {
-  wmWindowManager *wm;
-  Scene *scene;
-  MovieClip *clip;
+  wmWindowManager *wm = nullptr;
+  Scene *scene = nullptr;
+  MovieClip *clip = nullptr;
   MovieClipUser user;
 
-  ReportList *reports;
+  ReportList *reports = nullptr;
 
-  char stats_message[256];
+  char stats_message[256] = "";
 
-  MovieReconstructContext *context;
+  MovieReconstructContext *context = nullptr;
 };
 
 static bool solve_camera_initjob(
@@ -180,7 +180,7 @@ static wmOperatorStatus solve_camera_exec(bContext *C, wmOperator *op)
 {
   SolveCameraJob *scj;
   char error_msg[256] = "\0";
-  scj = MEM_callocN<SolveCameraJob>("SolveCameraJob data");
+  scj = MEM_new_for_free<SolveCameraJob>("SolveCameraJob data");
   if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
     if (error_msg[0]) {
       BKE_report(op->reports, RPT_ERROR, error_msg);
@@ -210,7 +210,7 @@ static wmOperatorStatus solve_camera_invoke(bContext *C, wmOperator *op, const w
     return OPERATOR_CANCELLED;
   }
 
-  scj = MEM_callocN<SolveCameraJob>("SolveCameraJob data");
+  scj = MEM_new_for_free<SolveCameraJob>("SolveCameraJob data");
   if (!solve_camera_initjob(C, scj, op, error_msg, sizeof(error_msg))) {
     if (error_msg[0]) {
       BKE_report(op->reports, RPT_ERROR, error_msg);
