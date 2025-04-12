@@ -211,12 +211,6 @@ static bool operator_markers_region_active(bContext *C)
     return false;
   }
 
-  /* Minimum vertical size to select markers, while still scrubbing frames. */
-  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-  if (region && region->winy < UI_MARKERS_MINY) {
-    return false;
-  }
-
   switch (area->spacetype) {
     case SPACE_ACTION: {
       SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
@@ -737,6 +731,22 @@ static bool ed_markers_poll_markers_exist(bContext *C)
 
   /* list of markers must exist, as well as some markers in it! */
   return (markers && markers->first);
+}
+
+static bool ed_markers_poll_markers_exist_visible(bContext *C)
+{
+  ScrArea *area = CTX_wm_area(C);
+  if (area == nullptr) {
+    return false;
+  }
+
+  /* Minimum vertical size to select markers, while still scrubbing frames. */
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  if (region && region->winy < UI_MARKERS_MINY) {
+    return false;
+  }
+
+  return ed_markers_poll_markers_exist(C);
 }
 
 /** \} */
@@ -1446,7 +1456,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
   ot->idname = "MARKER_OT_select";
 
   /* api callbacks */
-  ot->poll = ed_markers_poll_markers_exist;
+  ot->poll = ed_markers_poll_markers_exist_visible;
   ot->exec = ed_marker_select_exec;
   ot->invoke = WM_generic_select_invoke;
   ot->modal = WM_generic_select_modal;

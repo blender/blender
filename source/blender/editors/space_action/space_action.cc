@@ -185,7 +185,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   short marker_flag = 0;
 
-  const int min_height = saction->flag & SACTION_SHOW_MARKERS ? UI_MARKERS_MINY : UI_ANIM_MINY;
+  const int min_height = UI_ANIM_MINY;
 
   /* scrollers */
   if (region->winy >= UI_ANIM_MINY) {
@@ -241,15 +241,13 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  if (region->winy >= UI_MARKERS_MINY) {
-    UI_view2d_view_orthoSpecial(region, v2d, true);
+  UI_view2d_view_orthoSpecial(region, v2d, true);
 
-    marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
-                  DRAW_MARKERS_MARGIN;
+  marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
+                DRAW_MARKERS_MARGIN;
 
-    if (saction->flag & SACTION_SHOW_MARKERS) {
-      ED_markers_draw(C, marker_flag);
-    }
+  if (saction->flag & SACTION_SHOW_MARKERS) {
+    ED_markers_draw(C, marker_flag);
   }
 
   /* preview range */

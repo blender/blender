@@ -214,7 +214,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   bAnimContext ac;
   View2D *v2d = &region->v2d;
 
-  const int min_height = sipo->flag & SIPO_SHOW_MARKERS ? UI_MARKERS_MINY : UI_ANIM_MINY;
+  const int min_height = UI_ANIM_MINY;
 
   /* clear and setup matrix */
   UI_ThemeClearColor(region->winy > min_height ? TH_BACK : TH_TIME_SCRUB_BACKGROUND);
@@ -258,7 +258,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
     v2d->tot.xmax += 10.0f;
   }
 
-  if ((sipo->flag & SIPO_NODRAWCURSOR) == 0 && region->winy >= UI_MARKERS_MINY) {
+  if ((sipo->flag & SIPO_NODRAWCURSOR) == 0) {
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -301,7 +301,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  if (sipo->mode != SIPO_MODE_DRIVERS && region->winy >= UI_MARKERS_MINY) {
+  if (sipo->mode != SIPO_MODE_DRIVERS) {
     UI_view2d_view_orthoSpecial(region, v2d, true);
     int marker_draw_flag = DRAW_MARKERS_MARGIN;
     if (sipo->flag & SIPO_SHOW_MARKERS) {
