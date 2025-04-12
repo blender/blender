@@ -69,7 +69,7 @@ void storage_fetch(const AssetLibraryReference *library_reference, const bContex
 /**
  * Invoke asset list reading, guaranteed to execute on the same thread.
  *
- * \see #storage_fetch for an async version.
+ * \see #storage_fetch for an asynchronous version.
  */
 void storage_fetch_blocking(const AssetLibraryReference &library_reference, const bContext &C);
 bool is_loaded(const AssetLibraryReference *library_reference);

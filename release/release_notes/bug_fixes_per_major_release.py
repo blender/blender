@@ -312,9 +312,9 @@ class CommitInfo:
         command = ['git', 'show', '-s', '--format=%B', self.hash]
         command_output = subprocess.run(command, capture_output=True).stdout.decode('utf-8')
 
-        # Find every instance of SPACE#NUMBER. These are the report that the commit claims to fix.
-        # We are looking for the SPACE part because otherwise commits that fix issues in other repos,
-        # E.g. Fix blender/blender-maunal#NUMBER, will be picked out for processing.
+        # Find every instance of `SPACE#NUMBER`. These are the report that the commit claims to fix.
+        # We are looking for the `SPACE` part because otherwise commits that fix issues in other repositories,
+        # E.g. Fix `blender/blender-manual#NUMBER`, will be picked out for processing.
         match = re.findall(r'\s#+(\d+)', command_output)
         if match:
             self.fixed_reports = match

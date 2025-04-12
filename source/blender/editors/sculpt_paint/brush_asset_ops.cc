@@ -60,7 +60,7 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
     /* As asset loading can take upwards of a few minutes on production libraries, we typically
      * do not want this to execute in a blocking fashion. However, for testing / profiling
      * purposes, this is an acceptable workaround for now until a proper python API is created
-     * for this usecase. */
+     * for this use case. */
     asset::list::storage_fetch_blocking(asset_system::all_library_reference(), *C);
   }
   const asset_system::AssetRepresentation *asset =

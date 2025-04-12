@@ -20,7 +20,7 @@ class Node;
 
 namespace blender::ed::sculpt_paint {
 
-/** Represents the result of one or more bvh queries to find a brush's affected nodes. */
+/** Represents the result of one or more BVH queries to find a brush's affected nodes. */
 struct NodeMaskResult {
   IndexMask node_mask;
 

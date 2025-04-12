@@ -311,7 +311,7 @@ RenderWork Session::run_update_for_next_iteration()
   /* Update scene */
   const bool reset_scene = update_scene(delayed_reset_.do_reset);
 
-  /* Update buffers for new paramters. After scene update which influences the passes used. */
+  /* Update buffers for new parameters. After scene update which influences the passes used. */
   bool have_tiles = true;
   bool switched_to_new_tile = false;
 

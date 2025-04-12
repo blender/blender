@@ -1590,7 +1590,7 @@ endif()
 
 # set the endian define
 if(MSVC)
-  # for some reason this fails on msvc
+  # For some reason this fails on MSVC.
   add_definitions(-D__LITTLE_ENDIAN__)
 
   # OSX-Note: as we do cross-compiling with specific set architecture,
@@ -2429,7 +2429,7 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
   string(APPEND C_WARNINGS " -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
   string(APPEND CXX_WARNINGS " -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
-  # most msvc warnings are C & C++
+  # Most MSVC warnings are C & C++.
   set(_WARNINGS
     # warning level:
     "/W3"

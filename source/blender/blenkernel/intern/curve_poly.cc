@@ -25,7 +25,7 @@ static bool delta_dir(const float3 &pos, const float3 &next, float3 &r_delta_dir
 
 /**
  * Computes an approximate tangent from the normalized sum from
- * the direction vectors to neighbouring points on the curve.
+ * the direction vectors to neighboring points on the curve.
  */
 static float3 direction_bisect(const float3 &pos,
                                const float3 &next,

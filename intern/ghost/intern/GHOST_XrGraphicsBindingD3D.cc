@@ -320,7 +320,7 @@ void GHOST_XrGraphicsBindingVulkanD3D::submitToSwapchainImage(
   ID3D11Texture2D *texture = nullptr;
   d3d_device->CreateTexture2D(&desc, &data, &texture);
 
-  /* Copy subresource of the uploaded texture to the swapchain texture. */
+  /* Copy sub-resource of the uploaded texture to the swap-chain texture. */
   d3d_device_ctx->CopySubresourceRegion(
       d3d_swapchain_image.texture, 0, draw_info.ofsx, draw_info.ofsy, 0, texture, 0, nullptr);
 

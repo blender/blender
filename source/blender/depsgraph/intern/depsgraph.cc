@@ -190,7 +190,7 @@ Relation *Depsgraph::add_new_relation(Node *from, Node *to, const char *descript
   }
 #endif
 
-  /* Create new relation, and add it to the graph. The type must be trivially destructable for
+  /* Create new relation, and add it to the graph. The type must be trivially destructible for
    * `.release()` to be okay. If it weren't, we could store the relations with #destruct_ptr on
    * either the `inlinks` or `outlinks`. But since so many #Relation structs are allocated, it's
    * probably better for it be a simple type anyway. */
