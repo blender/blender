@@ -808,7 +808,7 @@ static int text_effect_font_init(const RenderData *context, const Strip *strip, 
 static Vector<CharInfo> build_character_info(const TextVars *data, int font)
 {
   Vector<CharInfo> characters;
-  const size_t len_max = BLI_strnlen(data->text, sizeof(data->text));
+  const size_t len_max = STRNLEN(data->text);
   int byte_offset = 0;
   int char_index = 0;
 

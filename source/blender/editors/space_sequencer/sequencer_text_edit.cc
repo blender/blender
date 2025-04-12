@@ -390,7 +390,7 @@ static bool text_insert(TextVars *data, const char *buf, const size_t buf_len)
   const bool selection_was_deleted = text_has_selection(data);
   delete_selected_text(data);
 
-  const size_t text_str_len = BLI_strnlen(data->text, sizeof(data->text));
+  const size_t text_str_len = STRNLEN(data->text);
 
   if (text_str_len + buf_len + 1 > sizeof(data->text)) {
     return selection_was_deleted;
@@ -415,7 +415,7 @@ static wmOperatorStatus sequencer_text_insert_exec(bContext *C, wmOperator *op)
   char str[512];
   RNA_string_get(op->ptr, "string", str);
 
-  const size_t in_buf_len = BLI_strnlen(str, sizeof(str));
+  const size_t in_buf_len = STRNLEN(str);
   if (in_buf_len == 0) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
@@ -830,7 +830,7 @@ static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator *
   }
 
   delete_selected_text(data);
-  const int max_str_len = sizeof(data->text) - (BLI_strnlen(data->text, sizeof(data->text)) + 1);
+  const int max_str_len = sizeof(data->text) - (STRNLEN(data->text) + 1);
 
   /* Maximum bytes that can be filled into `data->text`. */
   const int fillable_len = std::min(clipboard_len, max_str_len);

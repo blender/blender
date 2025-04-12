@@ -292,7 +292,7 @@ bool BKE_preferences_extension_repo_module_is_valid(const bUserExtensionRepo *re
   if (module_len == 0) {
     return false;
   }
-  if (module_len != BLI_strnlen(repo->module, sizeof(repo->module))) {
+  if (module_len != STRNLEN(repo->module)) {
     return false;
   }
   return true;

@@ -595,6 +595,7 @@ bool BLI_string_elem_split_by_delim(const char *haystack,
   len += BLI_strncpy_rlen(dst + len, suffix, ARRAY_SIZE(dst) - len)
 #define STR_CONCATF(dst, len, format, ...) \
   len += BLI_snprintf_rlen(dst + len, ARRAY_SIZE(dst) - len, format, __VA_ARGS__)
+#define STRNLEN(str) BLI_strnlen(str, ARRAY_SIZE(str))
 
 /** \} */
 
