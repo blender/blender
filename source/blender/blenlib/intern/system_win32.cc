@@ -417,16 +417,16 @@ static void bli_windows_exception_message_get(const EXCEPTION_POINTERS *exceptio
   bli_windows_get_module_name(address, modulename, sizeof(modulename));
   DWORD threadId = GetCurrentThreadId();
 
-  snprintf(r_message,
-           512,
-           "Error   : %s\n"
-           "Address : 0x%p\n"
-           "Module  : %s\n"
-           "Thread  : %.8x\n",
-           exception_name,
-           address,
-           modulename,
-           threadId);
+  BLI_snprintf(r_message,
+               512,
+               "Error   : %s\n"
+               "Address : 0x%p\n"
+               "Module  : %s\n"
+               "Thread  : %.8x\n",
+               exception_name,
+               address,
+               modulename,
+               threadId);
 }
 
 /* -------------------------------------------------------------------- */

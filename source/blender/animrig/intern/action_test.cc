@@ -1153,7 +1153,7 @@ TEST_F(ActionLayersTest, conversion_to_layered_action_groups)
   ASSERT_NE(rename_group, nullptr);
   ASSERT_STREQ(rename_group->name, "Test_Rename");
   /* Forcing a duplicate name which was allowed by legacy actions. */
-  strcpy(rename_group->name, "Test");
+  STRNCPY_UTF8(rename_group->name, "Test");
 
   Action *converted = convert_to_layered_action(*bmain, *action);
   Strip *strip = converted->layer(0)->strip(0);

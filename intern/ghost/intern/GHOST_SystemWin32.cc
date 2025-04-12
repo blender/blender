@@ -2378,8 +2378,7 @@ char *GHOST_SystemWin32::getClipboard(bool /*selection*/) const
 
     len = strlen(buffer);
     char *temp_buff = (char *)malloc(len + 1);
-    strncpy(temp_buff, buffer, len);
-    temp_buff[len] = '\0';
+    memcpy(temp_buff, buffer, len + 1);
 
     /* Buffer mustn't be accessed after CloseClipboard
      * it would like accessing free-d memory */
