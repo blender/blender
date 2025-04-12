@@ -1506,7 +1506,7 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 
       if (ibuf->x > 0 && ibuf->y > 0) {
         BakeImBufuserData *userdata = MEM_callocN<BakeImBufuserData>("MultiresBake userdata");
-        userdata->mask_buffer = MEM_calloc_arrayN<char>(ibuf->y * ibuf->x,
+        userdata->mask_buffer = MEM_calloc_arrayN<char>(size_t(ibuf->y) * size_t(ibuf->x),
                                                         "MultiresBake imbuf mask");
         ibuf->userdata = userdata;
 

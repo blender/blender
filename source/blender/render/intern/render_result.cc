@@ -1194,7 +1194,8 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
   ImBuf *ibuf = RE_RenderViewEnsureImBuf(rr, rv);
 
   if (!ibuf->float_buffer.data && !ibuf->byte_buffer.data) {
-    uint8_t *data = MEM_calloc_arrayN<uint8_t>(4 * rr->rectx * rr->recty, "render_seq rect");
+    uint8_t *data = MEM_calloc_arrayN<uint8_t>(4 * size_t(rr->rectx) * size_t(rr->recty),
+                                               "render_seq rect");
     IMB_assign_byte_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
     return;
   }

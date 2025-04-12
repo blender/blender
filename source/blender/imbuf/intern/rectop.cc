@@ -274,7 +274,7 @@ static void rect_realloc_4bytes(void **buf_p, const uint size[2])
     return;
   }
   MEM_freeN(*buf_p);
-  *buf_p = MEM_malloc_arrayN<uint>(size[0] * size[1], __func__);
+  *buf_p = MEM_malloc_arrayN<uint>(size_t(size[0]) * size_t(size[1]), __func__);
 }
 
 static void rect_realloc_16bytes(void **buf_p, const uint size[2])
@@ -283,7 +283,7 @@ static void rect_realloc_16bytes(void **buf_p, const uint size[2])
     return;
   }
   MEM_freeN(*buf_p);
-  *buf_p = MEM_malloc_arrayN<uint>(4 * size[0] * size[1], __func__);
+  *buf_p = MEM_malloc_arrayN<uint>(4 * size_t(size[0]) * size_t(size[1]), __func__);
 }
 
 void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
@@ -978,7 +978,7 @@ void IMB_rectblend_threaded(ImBuf *dbuf,
 
 void IMB_rectfill(ImBuf *drect, const float col[4])
 {
-  int num;
+  size_t num;
 
   if (drect->byte_buffer.data) {
     uint *rrect = (uint *)drect->byte_buffer.data;
@@ -989,7 +989,7 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
     ccol[2] = int(col[2] * 255);
     ccol[3] = int(col[3] * 255);
 
-    num = drect->x * drect->y;
+    num = IMB_get_pixel_count(drect);
     for (; num > 0; num--) {
       *rrect++ = *((uint *)ccol);
     }
@@ -998,7 +998,7 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
   if (drect->float_buffer.data) {
     float *rrectf = drect->float_buffer.data;
 
-    num = drect->x * drect->y;
+    num = IMB_get_pixel_count(drect);
     for (; num > 0; num--) {
       *rrectf++ = col[0];
       *rrectf++ = col[1];
