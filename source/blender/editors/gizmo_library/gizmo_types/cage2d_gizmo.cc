@@ -850,13 +850,17 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
         cage2d_draw_rect_edge_handles(&r, gz->highlight_part, size_real, margin, color, true);
         cage2d_draw_rect_edge_handles(&r, gz->highlight_part, size_real, margin, black, false);
 
-        /* Always draw corner handles. */
-        cage2d_draw_rect_corner_handles(&r, margin, color, true);
-        cage2d_draw_rect_corner_handles(&r, margin, black, false);
+        /* Draw corner handles. */
+        if (draw_options & ED_GIZMO_CAGE_DRAW_FLAG_CORNER_HANDLES) {
+          cage2d_draw_rect_corner_handles(&r, margin, color, true);
+          cage2d_draw_rect_corner_handles(&r, margin, black, false);
+        }
 
         /* Rotation handles. */
-        cage2d_draw_rect_rotate_handle(&r, margin, color, true);
-        cage2d_draw_rect_rotate_handle(&r, margin, black, false);
+        if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_ROTATE) {
+          cage2d_draw_rect_rotate_handle(&r, margin, color, true);
+          cage2d_draw_rect_rotate_handle(&r, margin, black, false);
+        }
       }
       else {
         BLI_assert(0);
@@ -982,21 +986,27 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
     r_ymax.xmax = size[0];
     r_ymax.ymax = size[1];
 
+    const bool draw_corners = draw_options & ED_GIZMO_CAGE_DRAW_FLAG_CORNER_HANDLES;
+
     if (BLI_rctf_isect_pt_v(&r_xmin, point_local)) {
-      if (BLI_rctf_isect_pt_v(&r_ymin, point_local)) {
-        return ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y;
-      }
-      if (BLI_rctf_isect_pt_v(&r_ymax, point_local)) {
-        return ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y;
+      if (draw_corners) {
+        if (BLI_rctf_isect_pt_v(&r_ymin, point_local)) {
+          return ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y;
+        }
+        if (BLI_rctf_isect_pt_v(&r_ymax, point_local)) {
+          return ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y;
+        }
       }
       return ED_GIZMO_CAGE2D_PART_SCALE_MIN_X;
     }
     if (BLI_rctf_isect_pt_v(&r_xmax, point_local)) {
-      if (BLI_rctf_isect_pt_v(&r_ymin, point_local)) {
-        return ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y;
-      }
-      if (BLI_rctf_isect_pt_v(&r_ymax, point_local)) {
-        return ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y;
+      if (draw_corners) {
+        if (BLI_rctf_isect_pt_v(&r_ymin, point_local)) {
+          return ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y;
+        }
+        if (BLI_rctf_isect_pt_v(&r_ymax, point_local)) {
+          return ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y;
+        }
       }
       return ED_GIZMO_CAGE2D_PART_SCALE_MAX_X;
     }
@@ -1421,6 +1431,7 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
   };
   static const EnumPropertyItem rna_enum_draw_options[] = {
       {ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
+      {ED_GIZMO_CAGE_DRAW_FLAG_CORNER_HANDLES, "CORNER_HANDLES", 0, "Corner Handles", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
   static const float unit_v2[2] = {1.0f, 1.0f};

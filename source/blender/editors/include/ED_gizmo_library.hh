@@ -122,6 +122,7 @@ enum {
   /** Draw a central handle (instead of having the entire area selectable)
    * Needed for large rectangles that we don't want to swallow all events. */
   ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE = (1 << 0),
+  ED_GIZMO_CAGE_DRAW_FLAG_CORNER_HANDLES = (1 << 1),
 };
 
 /** #wmGizmo.highlight_part */
