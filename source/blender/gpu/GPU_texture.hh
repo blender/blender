@@ -1109,7 +1109,12 @@ size_t GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf);
 /**
  * Return the native handle of the \a pix_buf to use for graphic interoperability registration.
  */
-int64_t GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pixel_buf);
+struct GPUPixelBufferNativeHandle {
+  int64_t handle = 0;
+  size_t size = 0;
+};
+
+GPUPixelBufferNativeHandle GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pixel_buf);
 
 /**
  * Update a sub-region of a texture using the data from a #GPUPixelBuffer as source data.

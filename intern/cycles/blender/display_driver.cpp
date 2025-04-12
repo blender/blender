@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "GPU_context.hh"
 #include "GPU_immediate.hh"
 #include "GPU_platform.hh"
 #include "GPU_shader.hh"
@@ -623,10 +624,16 @@ BlenderDisplayDriver::GraphicsInterop BlenderDisplayDriver::graphics_interop_get
 {
   GraphicsInterop interop_dst;
 
+  if (GPU_backend_get_type() != GPU_BACKEND_OPENGL) {
+    return interop_dst;
+  }
+
+  GPUPixelBufferNativeHandle handle = GPU_pixel_buffer_get_native_handle(
+      tiles_->current_tile.buffer_object.gpu_pixel_buffer);
+
   interop_dst.buffer_width = tiles_->current_tile.buffer_object.width;
   interop_dst.buffer_height = tiles_->current_tile.buffer_object.height;
-  interop_dst.opengl_pbo_id = GPU_pixel_buffer_get_native_handle(
-      tiles_->current_tile.buffer_object.gpu_pixel_buffer);
+  interop_dst.opengl_pbo_id = handle.handle;
 
   return interop_dst;
 }

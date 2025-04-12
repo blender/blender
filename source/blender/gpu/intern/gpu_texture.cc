@@ -999,7 +999,7 @@ size_t GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf)
   return unwrap(pixel_buf)->get_size();
 }
 
-int64_t GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pixel_buf)
+GPUPixelBufferNativeHandle GPU_pixel_buffer_get_native_handle(GPUPixelBuffer *pixel_buf)
 {
   return unwrap(pixel_buf)->get_native_handle();
 }

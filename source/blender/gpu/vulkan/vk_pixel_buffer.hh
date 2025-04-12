@@ -16,18 +16,24 @@ namespace blender::gpu {
 
 class VKPixelBuffer : public PixelBuffer {
   VKBuffer buffer_;
+  bool buffer_initialized_ = false;
+  bool buffer_memory_export_ = false;
+  GPUPixelBufferNativeHandle native_handle_;
 
  public:
   VKPixelBuffer(size_t size);
   void *map() override;
   void unmap() override;
-  int64_t get_native_handle() override;
+  GPUPixelBufferNativeHandle get_native_handle() override;
   size_t get_size() override;
 
   VKBuffer &buffer_get()
   {
     return buffer_;
   }
+
+ protected:
+  void create(bool memory_export);
 };
 
 static inline VKPixelBuffer *unwrap(PixelBuffer *pixel_buffer)

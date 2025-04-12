@@ -344,7 +344,7 @@ class PixelBuffer {
 
   virtual void *map() = 0;
   virtual void unmap() = 0;
-  virtual int64_t get_native_handle() = 0;
+  virtual GPUPixelBufferNativeHandle get_native_handle() = 0;
   virtual size_t get_size() = 0;
 };
 

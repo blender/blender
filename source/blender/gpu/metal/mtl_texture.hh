@@ -491,7 +491,7 @@ class MTLPixelBuffer : public PixelBuffer {
 
   void *map() override;
   void unmap() override;
-  int64_t get_native_handle() override;
+  GPUPixelBufferNativeHandle get_native_handle() override;
   size_t get_size() override;
 
   id<MTLBuffer> get_metal_buffer();

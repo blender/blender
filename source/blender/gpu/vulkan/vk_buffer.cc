@@ -9,6 +9,7 @@
 #include "vk_buffer.hh"
 #include "vk_backend.hh"
 #include "vk_context.hh"
+#include <vulkan/vulkan_core.h>
 
 namespace blender::gpu {
 
@@ -28,7 +29,8 @@ bool VKBuffer::create(size_t size_in_bytes,
                       VkBufferUsageFlags buffer_usage,
                       VkMemoryPropertyFlags required_flags,
                       VkMemoryPropertyFlags preferred_flags,
-                      VmaAllocationCreateFlags allocation_flags)
+                      VmaAllocationCreateFlags allocation_flags,
+                      bool export_memory)
 {
   BLI_assert(!is_allocated());
   BLI_assert(vk_buffer_ == VK_NULL_HANDLE);
@@ -55,12 +57,27 @@ bool VKBuffer::create(size_t size_in_bytes,
   const uint32_t queue_family_indices[1] = {device.queue_family_get()};
   create_info.pQueueFamilyIndices = queue_family_indices;
 
+  VkExternalMemoryBufferCreateInfo external_memory_create_info = {
+      VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO, nullptr, 0};
+
   VmaAllocationCreateInfo vma_create_info = {};
   vma_create_info.flags = allocation_flags;
   vma_create_info.priority = 1.0f;
   vma_create_info.requiredFlags = required_flags;
   vma_create_info.preferredFlags = preferred_flags;
   vma_create_info.usage = VMA_MEMORY_USAGE_AUTO;
+
+  if (export_memory) {
+    create_info.pNext = &external_memory_create_info;
+#ifdef _WIN32
+    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+#else
+    external_memory_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+#endif
+    /* Dedicated allocation for zero offset. */
+    vma_create_info.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+    vma_create_info.pool = device.vma_pools.external_memory;
+  }
 
   VkResult result = vmaCreateBuffer(
       allocator, &create_info, &vma_create_info, &vk_buffer_, &allocation_, nullptr);
@@ -176,6 +193,24 @@ void VKBuffer::unmap()
   VmaAllocator allocator = device.mem_allocator_get();
   vmaUnmapMemory(allocator, allocation_);
   mapped_memory_ = nullptr;
+}
+
+VkDeviceMemory VKBuffer::export_memory_get(size_t &memory_size)
+{
+  const VKDevice &device = VKBackend::get().device;
+  VmaAllocator allocator = device.mem_allocator_get();
+
+  VmaAllocationInfo info = {};
+  vmaGetAllocationInfo(allocator, allocation_, &info);
+
+  /* VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT should ensure this. */
+  if (info.offset != 0) {
+    BLI_assert(!"Failed to get zero offset export memory for Vulkan buffer");
+    return nullptr;
+  }
+
+  memory_size = info.size;
+  return info.deviceMemory;
 }
 
 bool VKBuffer::free()
