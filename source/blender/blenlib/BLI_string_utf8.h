@@ -265,5 +265,4 @@ int BLI_str_utf8_offset_from_column_with_tabs(const char *str,
 
 #define STRNLEN_UTF8(str) BLI_strnlen_utf8(str, ARRAY_SIZE(str))
 
-
 /** \} */

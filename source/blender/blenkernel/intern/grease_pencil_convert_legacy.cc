@@ -1046,8 +1046,7 @@ static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
   int layer_idx = 0;
   LISTBASE_FOREACH_INDEX (bGPDlayer *, gpl, &gpd.layers, layer_idx) {
     /* Create a new layer. */
-    Layer &new_layer = grease_pencil.add_layer(
-        StringRefNull(gpl->info, BLI_strnlen(gpl->info, 128)));
+    Layer &new_layer = grease_pencil.add_layer(StringRefNull(gpl->info, STRNLEN(gpl->info)));
 
     /* Flags. */
     new_layer.set_visible((gpl->flag & GP_LAYER_HIDE) == 0);
