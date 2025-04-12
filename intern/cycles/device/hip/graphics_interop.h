@@ -49,6 +49,7 @@ class HIPDeviceGraphicsInterop : public DeviceGraphicsInterop {
   bool need_clear_ = false;
 
   hipGraphicsResource hip_graphics_resource_ = nullptr;
+  hipDeviceptr_t hip_external_memory_ptr_ = 0;
 
   void free();
 };

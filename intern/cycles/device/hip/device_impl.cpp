@@ -1068,7 +1068,9 @@ bool HIPDevice::should_use_graphics_interop(const GraphicsInteropDevice &interop
 
       return found;
     }
+    case GraphicsInteropDevice::VULKAN:
     case GraphicsInteropDevice::NONE:
+      /* TODO: Implement Vulkan support. */
       return false;
   }
 

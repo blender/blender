@@ -52,6 +52,8 @@ class CUDADeviceGraphicsInterop : public DeviceGraphicsInterop {
 
   /* CUDA resources. */
   CUgraphicsResource cu_graphics_resource_ = nullptr;
+  CUexternalMemory cu_external_memory_ = nullptr;
+  CUdeviceptr cu_external_memory_ptr_ = 0;
 
   void free();
 };

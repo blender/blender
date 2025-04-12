@@ -188,6 +188,15 @@ string string_from_bool(bool var)
   return "False";
 }
 
+string string_hex(const uint8_t *data, const size_t size)
+{
+  string result;
+  for (size_t i = 0; i < size; i++) {
+    result += string_printf("%x", data[i]);
+  }
+  return result;
+}
+
 string to_string(const char *str)
 {
   return string(str);

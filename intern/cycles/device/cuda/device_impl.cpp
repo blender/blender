@@ -1099,6 +1099,29 @@ bool CUDADevice::should_use_graphics_interop(const GraphicsInteropDevice &intero
 
       return found;
     }
+    case ccl::GraphicsInteropDevice::VULKAN: {
+      /* Only do interop with matching device UUID. */
+      CUuuid uuid = {};
+      cuDeviceGetUuid(&uuid, cuDevice);
+      const bool found = (sizeof(uuid.bytes) == interop_device.uuid.size() &&
+                          memcmp(uuid.bytes, interop_device.uuid.data(), sizeof(uuid.bytes)) == 0);
+
+      if (log) {
+        if (found) {
+          VLOG_INFO << "Graphics interop: found matching Vulkan device for CUDA";
+        }
+        else {
+          VLOG_INFO << "Graphics interop: no matching Vulkan device for CUDA";
+        }
+
+        VLOG_INFO << "Graphics Interop: CUDA UUID "
+                  << string_hex(reinterpret_cast<uint8_t *>(uuid.bytes), sizeof(uuid.bytes))
+                  << ", Vulkan UUID "
+                  << string_hex(interop_device.uuid.data(), interop_device.uuid.size());
+      }
+
+      return found;
+    }
     case GraphicsInteropDevice::NONE: {
       return false;
     }

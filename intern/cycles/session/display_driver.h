@@ -17,6 +17,7 @@ class GraphicsInteropDevice {
   enum Type {
     NONE,
     OPENGL,
+    VULKAN,
   };
 
   Type type = NONE;
@@ -36,7 +37,9 @@ class GraphicsInteropBuffer {
   int height = 0;
 
   /* The handle is expected to be:
-   * - OpenGL: pixel buffer object ID. */
+   * - OpenGL: pixel buffer object ID.
+   * - Vulkan on Windows: opaque handle for VkBuffer.
+   * - Vulkan on Unix: opaque file descriptor for VkBuffer. */
   GraphicsInteropDevice::Type type = GraphicsInteropDevice::NONE;
   int64_t handle = 0;
 

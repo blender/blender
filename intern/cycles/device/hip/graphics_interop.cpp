@@ -56,6 +56,8 @@ void HIPDeviceGraphicsInterop::set_buffer(const GraphicsInteropBuffer &interop_b
       }
       break;
     }
+    /* TODO: implement vulkan support. */
+    case GraphicsInteropDevice::VULKAN:
     case GraphicsInteropDevice::NONE:
       break;
   }
@@ -63,29 +65,30 @@ void HIPDeviceGraphicsInterop::set_buffer(const GraphicsInteropBuffer &interop_b
 
 device_ptr HIPDeviceGraphicsInterop::map()
 {
+  hipDeviceptr_t hip_buffer = 0;
+
   if (hip_graphics_resource_) {
     HIPContextScope scope(device_);
-
-    hipDeviceptr_t hip_buffer;
     size_t bytes;
 
     hip_device_assert(device_,
                       hipGraphicsMapResources(1, &hip_graphics_resource_, queue_->stream()));
     hip_device_assert(
         device_, hipGraphicsResourceGetMappedPointer(&hip_buffer, &bytes, hip_graphics_resource_));
-
-    if (need_clear_) {
-      hip_device_assert(
-          device_,
-          hipMemsetD8Async(static_cast<hipDeviceptr_t>(hip_buffer), 0, bytes, queue_->stream()));
-
-      need_clear_ = false;
-    }
-
-    return static_cast<device_ptr>(hip_buffer);
+  }
+  else {
+    /* Vulkan buffer is always mapped. */
+    hip_buffer = hip_external_memory_ptr_;
   }
 
-  return 0;
+  if (hip_buffer && need_clear_) {
+    hip_device_assert(
+        device_, hipMemsetD8Async(hip_buffer, 0, buffer_area_ * sizeof(half4), queue_->stream()));
+
+    need_clear_ = false;
+  }
+
+  return static_cast<device_ptr>(hip_buffer);
 }
 
 void HIPDeviceGraphicsInterop::unmap()
@@ -104,6 +107,8 @@ void HIPDeviceGraphicsInterop::free()
     hip_device_assert(device_, hipGraphicsUnregisterResource(hip_graphics_resource_));
     hip_graphics_resource_ = nullptr;
   }
+
+  hip_external_memory_ptr_ = 0;
 }
 
 CCL_NAMESPACE_END

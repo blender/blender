@@ -630,10 +630,12 @@ GraphicsInteropDevice BlenderDisplayDriver::graphics_interop_get_device()
       interop_device.type = GraphicsInteropDevice::OPENGL;
       break;
     case GPU_BACKEND_VULKAN:
+      interop_device.type = GraphicsInteropDevice::VULKAN;
+      break;
     case GPU_BACKEND_METAL:
     case GPU_BACKEND_NONE:
     case GPU_BACKEND_ANY:
-      /* Vulkan and Metal not supported yet by Cycles. */
+      /* Metal not supported yet by Cycles. */
       interop_device.type = GraphicsInteropDevice::NONE;
       break;
   }
@@ -660,10 +662,12 @@ GraphicsInteropBuffer BlenderDisplayDriver::graphics_interop_get_buffer()
       interop_buffer.type = GraphicsInteropDevice::OPENGL;
       break;
     case GPU_BACKEND_VULKAN:
+      interop_buffer.type = GraphicsInteropDevice::VULKAN;
+      break;
     case GPU_BACKEND_METAL:
     case GPU_BACKEND_NONE:
     case GPU_BACKEND_ANY:
-      /* Vulkan and Metal not supported yet by Cycles. */
+      /* Metal not supported yet by Cycles. */
       interop_buffer.type = GraphicsInteropDevice::NONE;
       break;
   }
