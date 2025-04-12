@@ -3541,15 +3541,9 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  /* the itemf func is used instead, keep blender happy */
-  static const EnumPropertyItem default_dummy_items[] = {
-      {PROP_NONE, "DUMMY", 0, "Dummy", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   prop = RNA_def_property(srna, "default", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_enum_items(prop, default_dummy_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
   RNA_def_property_enum_funcs(
       prop, "rna_EnumProperty_default_get", nullptr, "rna_EnumProperty_default_itemf");
   RNA_def_property_ui_text(prop, "Default", "Default value for this enum");
@@ -3558,7 +3552,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
   prop = RNA_def_property(srna, "default_flag", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
-  RNA_def_property_enum_items(prop, default_dummy_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
   RNA_def_property_enum_funcs(
       prop, "rna_EnumProperty_default_get", nullptr, "rna_EnumProperty_default_itemf");
   RNA_def_property_ui_text(prop, "Default", "Default value for this enum");
