@@ -155,6 +155,7 @@ typedef struct CUstream_st* CUstream;
 typedef struct CUgraphicsResource_st* CUgraphicsResource;
 typedef unsigned long long CUtexObject;
 typedef unsigned long long CUsurfObject;
+typedef struct CUextMemory_st *CUexternalMemory;
 
 typedef struct CUuuid_st {
   char bytes[16];
@@ -887,6 +888,49 @@ typedef enum  {
 
 typedef struct _nvrtcProgram* nvrtcProgram;
 
+typedef enum CUexternalMemoryHandleType_enum {
+    CU_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD          = 1,
+    CU_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32       = 2,
+    CU_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT   = 3,
+    CU_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_HEAP         = 4,
+    CU_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_RESOURCE     = 5,
+    CU_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_RESOURCE     = 6,
+    CU_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_RESOURCE_KMT = 7,
+    CU_EXTERNAL_MEMORY_HANDLE_TYPE_NVSCIBUF = 8,
+} CUexternalMemoryHandleType;
+
+typedef struct CUDA_EXTERNAL_MEMORY_HANDLE_DESC_st {
+    CUexternalMemoryHandleType type;
+    union {
+        int fd;
+        struct {
+            void *handle;
+            const void *name;
+        } win32;
+        const void *nvSciBufObject;
+    } handle;
+    unsigned long long size;
+    unsigned int flags;
+    unsigned int reserved[16];
+} CUDA_EXTERNAL_MEMORY_HANDLE_DESC_v1;
+typedef CUDA_EXTERNAL_MEMORY_HANDLE_DESC_v1 CUDA_EXTERNAL_MEMORY_HANDLE_DESC;
+
+typedef struct CUDA_EXTERNAL_MEMORY_BUFFER_DESC_st {
+    unsigned long long offset;
+    unsigned long long size;
+    unsigned int flags;
+    unsigned int reserved[16];
+} CUDA_EXTERNAL_MEMORY_BUFFER_DESC_v1;
+typedef CUDA_EXTERNAL_MEMORY_BUFFER_DESC_v1 CUDA_EXTERNAL_MEMORY_BUFFER_DESC;
+
+typedef struct CUDA_EXTERNAL_MEMORY_MIPMAPPED_ARRAY_DESC_st {
+    unsigned long long offset;
+    CUDA_ARRAY3D_DESCRIPTOR arrayDesc;
+    unsigned int numLevels;
+    unsigned int reserved[16];
+} CUDA_EXTERNAL_MEMORY_MIPMAPPED_ARRAY_DESC_v1;
+typedef CUDA_EXTERNAL_MEMORY_MIPMAPPED_ARRAY_DESC_v1 CUDA_EXTERNAL_MEMORY_MIPMAPPED_ARRAY_DESC;
+
 
 /* Function types. */
 typedef CUresult CUDAAPI tcuGetErrorString(CUresult error, const char** pStr);
@@ -1115,6 +1159,11 @@ typedef CUresult CUDAAPI tcuGLUnregisterBufferObject(GLuint buffer);
 typedef CUresult CUDAAPI tcuGLSetBufferObjectMapFlags(GLuint buffer, unsigned int Flags);
 typedef CUresult CUDAAPI tcuGLMapBufferObjectAsync_v2(CUdeviceptr* dptr, size_t* size, GLuint buffer, CUstream hStream);
 typedef CUresult CUDAAPI tcuGLUnmapBufferObjectAsync(GLuint buffer, CUstream hStream);
+
+typedef CUresult CUDAAPI tcuImportExternalMemory(CUexternalMemory *extMem_out, const CUDA_EXTERNAL_MEMORY_HANDLE_DESC *memHandleDesc);
+typedef CUresult CUDAAPI tcuExternalMemoryGetMappedBuffer(CUdeviceptr *devPtr, CUexternalMemory extMem, const CUDA_EXTERNAL_MEMORY_BUFFER_DESC *bufferDesc);
+typedef CUresult CUDAAPI tcuExternalMemoryGetMappedMipmappedArray(CUmipmappedArray *mipmap, CUexternalMemory extMem, const CUDA_EXTERNAL_MEMORY_MIPMAPPED_ARRAY_DESC *mipmapDesc);
+typedef CUresult CUDAAPI tcuDestroyExternalMemory(CUexternalMemory extMem);
 
 typedef const char* CUDAAPI tnvrtcGetErrorString(nvrtcResult result);
 typedef nvrtcResult CUDAAPI tnvrtcVersion(int* major, int* minor);
@@ -1356,6 +1405,11 @@ extern tcuGLUnregisterBufferObject *cuGLUnregisterBufferObject;
 extern tcuGLSetBufferObjectMapFlags *cuGLSetBufferObjectMapFlags;
 extern tcuGLMapBufferObjectAsync_v2 *cuGLMapBufferObjectAsync_v2;
 extern tcuGLUnmapBufferObjectAsync *cuGLUnmapBufferObjectAsync;
+
+extern tcuImportExternalMemory *cuImportExternalMemory;
+extern tcuExternalMemoryGetMappedBuffer *cuExternalMemoryGetMappedBuffer;
+extern tcuExternalMemoryGetMappedMipmappedArray *cuExternalMemoryGetMappedMipmappedArray;
+extern tcuDestroyExternalMemory *cuDestroyExternalMemory;
 
 extern tnvrtcGetErrorString *nvrtcGetErrorString;
 extern tnvrtcVersion *nvrtcVersion;
