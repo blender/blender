@@ -23,7 +23,7 @@ class DrawTexture {
   DrawTexture();
   ~DrawTexture();
 
-  void write_data(int width, int height, const void *data);
+  void create_from_buffer(pxr::HdRenderBuffer *buffer);
   void draw(GPUShader *shader, const pxr::GfVec4d &viewport, GPUTexture *tex = nullptr);
   GPUTexture *texture() const;
 
