@@ -382,17 +382,17 @@ void SEQUENCER_OT_text_cursor_move(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static bool text_insert(TextVars *data, const char *buf)
+static bool text_insert(TextVars *data, const char *buf, const size_t buf_len)
 {
+  BLI_assert(strlen(buf) == buf_len);
   const TextVarsRuntime *text = data->runtime;
 
   const bool selection_was_deleted = text_has_selection(data);
   delete_selected_text(data);
 
-  const size_t in_str_len = BLI_strnlen(buf, sizeof(buf));
   const size_t text_str_len = BLI_strnlen(data->text, sizeof(data->text));
 
-  if (text_str_len + in_str_len + 1 > sizeof(data->text)) {
+  if (text_str_len + buf_len + 1 > sizeof(data->text)) {
     return selection_was_deleted;
   }
 
@@ -400,8 +400,8 @@ static bool text_insert(TextVars *data, const char *buf)
   char *cursor_addr = const_cast<char *>(cur_char.str_ptr);
   const size_t move_str_len = BLI_strnlen(cursor_addr, sizeof(data->text)) + 1;
 
-  std::memmove(cursor_addr + in_str_len, cursor_addr, move_str_len);
-  std::memcpy(cursor_addr, buf, in_str_len);
+  std::memmove(cursor_addr + buf_len, cursor_addr, move_str_len);
+  std::memcpy(cursor_addr, buf, buf_len);
 
   data->cursor_offset += 1;
   return true;
@@ -420,7 +420,7 @@ static wmOperatorStatus sequencer_text_insert_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
-  if (!text_insert(data, str)) {
+  if (!text_insert(data, str, in_buf_len)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -533,7 +533,7 @@ static wmOperatorStatus sequencer_text_line_break_exec(bContext *C, wmOperator *
   const Strip *strip = seq::select_active_get(CTX_data_scene(C));
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
-  if (!text_insert(data, "\n")) {
+  if (!text_insert(data, "\n", 1)) {
     return OPERATOR_CANCELLED;
   }
 
