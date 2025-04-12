@@ -1066,10 +1066,6 @@ void buf_rectfill_area(uchar *rect,
                        int x2,
                        int y2)
 {
-  int i, j;
-  float a;    /* alpha */
-  float ai;   /* alpha inverted */
-  float aich; /* alpha, inverted, ai/255.0 - Convert char to float at the same time */
   if ((!rect && !rectf) || (!col) || col[3] == 0.0f) {
     return;
   }
@@ -1089,10 +1085,15 @@ void buf_rectfill_area(uchar *rect,
   if (x1 == x2 || y1 == y2) {
     return;
   }
+  const int x_span = x2 - x1;
+  const int y_span = y2 - y1;
 
-  a = col[3];
-  ai = 1 - a;
-  aich = ai / 255.0f;
+  /* Alpha. */
+  const float a = col[3];
+  /* Alpha inverted. */
+  const float ai = 1 - a;
+  /* Alpha, inverted, ai/255.0 - Convert char to float at the same time. */
+  const float aich = ai / 255.0f;
 
   if (rect) {
     uchar *pixel;
@@ -1111,24 +1112,24 @@ void buf_rectfill_area(uchar *rect,
       fg = col[1] * a;
       fb = col[2] * a;
     }
-    for (j = 0; j < y2 - y1; j++) {
-      for (i = 0; i < x2 - x1; i++) {
-        pixel = rect + 4 * (((y1 + j) * width) + (x1 + i));
-        if (pixel >= rect && pixel < rect + (4 * (width * height))) {
-          if (a == 1.0f) {
-            pixel[0] = chr;
-            pixel[1] = chg;
-            pixel[2] = chb;
-            pixel[3] = 255;
-          }
-          else {
-            int alphatest;
-            pixel[0] = char((fr + (float(pixel[0]) * aich)) * 255.0f);
-            pixel[1] = char((fg + (float(pixel[1]) * aich)) * 255.0f);
-            pixel[2] = char((fb + (float(pixel[2]) * aich)) * 255.0f);
-            pixel[3] = char((alphatest = (int(pixel[3]) + alphaint)) < 255 ? alphatest : 255);
-          }
+    for (int j = 0; j < y_span; j++) {
+      pixel = rect + (4 * (((size_t(y1) + size_t(j)) * size_t(width)) + size_t(x1)));
+      for (int i = 0; i < x_span; i++) {
+        BLI_assert(pixel >= rect && pixel < rect + (4 * (size_t(width) * size_t(height))));
+        if (a == 1.0f) {
+          pixel[0] = chr;
+          pixel[1] = chg;
+          pixel[2] = chb;
+          pixel[3] = 255;
         }
+        else {
+          int alphatest;
+          pixel[0] = char((fr + (float(pixel[0]) * aich)) * 255.0f);
+          pixel[1] = char((fg + (float(pixel[1]) * aich)) * 255.0f);
+          pixel[2] = char((fb + (float(pixel[2]) * aich)) * 255.0f);
+          pixel[3] = char((alphatest = (int(pixel[3]) + alphaint)) < 255 ? alphatest : 255);
+        }
+        pixel += 4;
       }
     }
   }
@@ -1145,9 +1146,10 @@ void buf_rectfill_area(uchar *rect,
       srgb_to_linearrgb_v4(col_conv, col);
     }
 
-    for (j = 0; j < y2 - y1; j++) {
-      for (i = 0; i < x2 - x1; i++) {
-        pixel = rectf + 4 * (((y1 + j) * width) + (x1 + i));
+    for (int j = 0; j < y_span; j++) {
+      pixel = rectf + (4 * (((size_t(y1) + j) * size_t(width)) + size_t(x1)));
+      for (int i = 0; i < x_span; i++) {
+        BLI_assert(pixel >= rectf && pixel < rectf + (4 * (size_t(width) * size_t(height))));
         if (a == 1.0f) {
           pixel[0] = col_conv[0];
           pixel[1] = col_conv[1];
@@ -1161,6 +1163,7 @@ void buf_rectfill_area(uchar *rect,
           pixel[2] = (col_conv[2] * a) + (pixel[2] * ai);
           pixel[3] = (alphatest = (pixel[3] + a)) < 1.0f ? alphatest : 1.0f;
         }
+        pixel += 4;
       }
     }
   }
