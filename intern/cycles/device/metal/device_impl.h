@@ -134,7 +134,8 @@ class MetalDevice : public Device {
 
   void erase_allocation(device_memory &mem);
 
-  bool should_use_graphics_interop() override;
+  bool should_use_graphics_interop(const GraphicsInteropDevice &interop_device,
+                                   const bool log) override;
 
   void *get_native_buffer(device_ptr ptr) override;
 

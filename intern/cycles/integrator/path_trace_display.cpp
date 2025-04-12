@@ -186,7 +186,12 @@ void PathTraceDisplay::unmap_texture_buffer()
  * Graphics interoperability.
  */
 
-DisplayDriver::GraphicsInterop PathTraceDisplay::graphics_interop_get()
+GraphicsInteropDevice PathTraceDisplay::graphics_interop_get_device()
+{
+  return driver_->graphics_interop_get_device();
+}
+
+GraphicsInteropBuffer PathTraceDisplay::graphics_interop_get_buffer()
 {
   DCHECK(!texture_buffer_state_.is_mapped);
   DCHECK(update_state_.is_active);
@@ -194,18 +199,18 @@ DisplayDriver::GraphicsInterop PathTraceDisplay::graphics_interop_get()
   if (texture_buffer_state_.is_mapped) {
     LOG(ERROR)
         << "Attempt to use graphics interoperability mode while the texture buffer is mapped.";
-    return DisplayDriver::GraphicsInterop();
+    return GraphicsInteropBuffer();
   }
 
   if (!update_state_.is_active) {
     LOG(ERROR) << "Attempt to use graphics interoperability outside of PathTraceDisplay update.";
-    return DisplayDriver::GraphicsInterop();
+    return GraphicsInteropBuffer();
   }
 
   /* Assume that interop will write new values to the texture. */
   mark_texture_updated();
 
-  return driver_->graphics_interop_get();
+  return driver_->graphics_interop_get_buffer();
 }
 
 void PathTraceDisplay::graphics_interop_activate()

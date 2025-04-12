@@ -1360,7 +1360,8 @@ unique_ptr<DeviceQueue> MetalDevice::gpu_queue_create()
   return make_unique<MetalDeviceQueue>(this);
 }
 
-bool MetalDevice::should_use_graphics_interop()
+bool MetalDevice::should_use_graphics_interop(const GraphicsInteropDevice & /*interop_device*/,
+                                              const bool /*log*/)
 {
   /* METAL_WIP - provide fast interop */
   return false;

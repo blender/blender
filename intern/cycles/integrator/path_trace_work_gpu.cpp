@@ -934,7 +934,7 @@ int PathTraceWorkGPU::num_active_main_paths_paths()
   return num_paths;
 }
 
-bool PathTraceWorkGPU::should_use_graphics_interop()
+bool PathTraceWorkGPU::should_use_graphics_interop(PathTraceDisplay *display)
 {
   /* There are few aspects with the graphics interop when using multiple devices caused by the fact
    * that the PathTraceDisplay has a single texture:
@@ -948,7 +948,8 @@ bool PathTraceWorkGPU::should_use_graphics_interop()
 
   if (!interop_use_checked_) {
     Device *device = queue_->device;
-    interop_use_ = device->should_use_graphics_interop();
+    interop_use_ = device->should_use_graphics_interop(display->graphics_interop_get_device(),
+                                                       true);
 
     if (interop_use_) {
       VLOG_INFO << "Using graphics interop GPU display update.";
@@ -978,7 +979,7 @@ void PathTraceWorkGPU::copy_to_display(PathTraceDisplay *display,
     return;
   }
 
-  if (should_use_graphics_interop()) {
+  if (should_use_graphics_interop(display)) {
     if (copy_to_display_interop(display, pass_mode, num_samples)) {
       return;
     }
@@ -1040,8 +1041,8 @@ bool PathTraceWorkGPU::copy_to_display_interop(PathTraceDisplay *display,
     device_graphics_interop_ = queue_->graphics_interop_create();
   }
 
-  const DisplayDriver::GraphicsInterop graphics_interop_dst = display->graphics_interop_get();
-  device_graphics_interop_->set_display_interop(graphics_interop_dst);
+  const GraphicsInteropBuffer interop_buffer = display->graphics_interop_get_buffer();
+  device_graphics_interop_->set_buffer(interop_buffer);
 
   const device_ptr d_rgba_half = device_graphics_interop_->map();
   if (!d_rgba_half) {

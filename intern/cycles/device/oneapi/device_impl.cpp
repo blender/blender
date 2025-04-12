@@ -928,7 +928,8 @@ unique_ptr<DeviceQueue> OneapiDevice::gpu_queue_create()
   return make_unique<OneapiDeviceQueue>(this);
 }
 
-bool OneapiDevice::should_use_graphics_interop()
+bool OneapiDevice::should_use_graphics_interop(const GraphicsInteropDevice & /*interop_device*/,
+                                               const bool /*log*/)
 {
   /* NOTE(@nsirgien): oneAPI doesn't yet support direct writing into graphics API objects, so
    * return false. */

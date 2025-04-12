@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "session/display_driver.h"
-
 #include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
+
+class GraphicsInteropBuffer;
 
 /* Device-side graphics interoperability support.
  *
@@ -19,9 +19,9 @@ class DeviceGraphicsInterop {
   DeviceGraphicsInterop() = default;
   virtual ~DeviceGraphicsInterop() = default;
 
-  /* Update this device-side graphics interoperability object with the given destination resource
-   * information. */
-  virtual void set_display_interop(const DisplayDriver::GraphicsInterop &display_interop) = 0;
+  /* Update this device-side graphics interoperability buffer with the given destination
+   * resource information. */
+  virtual void set_buffer(const GraphicsInteropBuffer &interop_buffer) = 0;
 
   virtual device_ptr map() = 0;
   virtual void unmap() = 0;

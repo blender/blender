@@ -19,73 +19,91 @@ CUDADeviceGraphicsInterop::CUDADeviceGraphicsInterop(CUDADeviceQueue *queue)
 CUDADeviceGraphicsInterop::~CUDADeviceGraphicsInterop()
 {
   CUDAContextScope scope(device_);
-
-  if (cu_graphics_resource_) {
-    cuda_device_assert(device_, cuGraphicsUnregisterResource(cu_graphics_resource_));
-  }
+  free();
 }
 
-void CUDADeviceGraphicsInterop::set_display_interop(
-    const DisplayDriver::GraphicsInterop &display_interop)
+void CUDADeviceGraphicsInterop::set_buffer(const GraphicsInteropBuffer &interop_buffer)
 {
-  const int64_t new_buffer_area = int64_t(display_interop.buffer_width) *
-                                  display_interop.buffer_height;
+  const int64_t new_buffer_area = int64_t(interop_buffer.width) * interop_buffer.height;
 
-  need_clear_ = display_interop.need_clear;
+  assert(interop_buffer.size >= interop_buffer.width * interop_buffer.height * sizeof(half4));
 
-  if (!display_interop.need_recreate) {
-    if (opengl_pbo_id_ == display_interop.opengl_pbo_id && buffer_area_ == new_buffer_area) {
+  need_clear_ = interop_buffer.need_clear;
+
+  if (!interop_buffer.need_recreate) {
+    if (native_type_ == interop_buffer.type && native_handle_ == interop_buffer.handle &&
+        native_size_ == interop_buffer.size && buffer_area_ == new_buffer_area)
+    {
       return;
     }
   }
 
   CUDAContextScope scope(device_);
+  free();
 
-  if (cu_graphics_resource_) {
-    cuda_device_assert(device_, cuGraphicsUnregisterResource(cu_graphics_resource_));
-  }
-
-  const CUresult result = cuGraphicsGLRegisterBuffer(
-      &cu_graphics_resource_, display_interop.opengl_pbo_id, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
-  if (result != CUDA_SUCCESS) {
-    LOG(ERROR) << "Error registering OpenGL buffer: " << cuewErrorString(result);
-  }
-
-  opengl_pbo_id_ = display_interop.opengl_pbo_id;
+  native_type_ = interop_buffer.type;
+  native_handle_ = interop_buffer.handle;
+  native_size_ = interop_buffer.size;
   buffer_area_ = new_buffer_area;
+
+  switch (interop_buffer.type) {
+    case GraphicsInteropDevice::OPENGL: {
+      const CUresult result = cuGraphicsGLRegisterBuffer(
+          &cu_graphics_resource_, interop_buffer.handle, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
+      if (result != CUDA_SUCCESS) {
+        LOG(ERROR) << "Error registering OpenGL buffer: " << cuewErrorString(result);
+      }
+      break;
+    }
+    case GraphicsInteropDevice::NONE:
+      break;
+  }
 }
 
 device_ptr CUDADeviceGraphicsInterop::map()
 {
-  if (!cu_graphics_resource_) {
-    return 0;
-  }
+  if (cu_graphics_resource_) {
+    /* OpenGL buffer needs mapping. */
+    CUDAContextScope scope(device_);
 
-  CUDAContextScope scope(device_);
+    CUdeviceptr cu_buffer;
+    size_t bytes;
 
-  CUdeviceptr cu_buffer;
-  size_t bytes;
-
-  cuda_device_assert(device_, cuGraphicsMapResources(1, &cu_graphics_resource_, queue_->stream()));
-  cuda_device_assert(
-      device_, cuGraphicsResourceGetMappedPointer(&cu_buffer, &bytes, cu_graphics_resource_));
-
-  if (need_clear_) {
+    cuda_device_assert(device_,
+                       cuGraphicsMapResources(1, &cu_graphics_resource_, queue_->stream()));
     cuda_device_assert(
-        device_, cuMemsetD8Async(static_cast<CUdeviceptr>(cu_buffer), 0, bytes, queue_->stream()));
+        device_, cuGraphicsResourceGetMappedPointer(&cu_buffer, &bytes, cu_graphics_resource_));
 
-    need_clear_ = false;
+    if (need_clear_) {
+      cuda_device_assert(
+          device_,
+          cuMemsetD8Async(static_cast<CUdeviceptr>(cu_buffer), 0, bytes, queue_->stream()));
+
+      need_clear_ = false;
+    }
+
+    return static_cast<device_ptr>(cu_buffer);
   }
 
-  return static_cast<device_ptr>(cu_buffer);
+  return 0;
 }
 
 void CUDADeviceGraphicsInterop::unmap()
 {
-  CUDAContextScope scope(device_);
+  if (cu_graphics_resource_) {
+    CUDAContextScope scope(device_);
 
-  cuda_device_assert(device_,
-                     cuGraphicsUnmapResources(1, &cu_graphics_resource_, queue_->stream()));
+    cuda_device_assert(device_,
+                       cuGraphicsUnmapResources(1, &cu_graphics_resource_, queue_->stream()));
+  }
+}
+
+void CUDADeviceGraphicsInterop::free()
+{
+  if (cu_graphics_resource_) {
+    cuda_device_assert(device_, cuGraphicsUnregisterResource(cu_graphics_resource_));
+    cu_graphics_resource_ = nullptr;
+  }
 }
 
 CCL_NAMESPACE_END

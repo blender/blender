@@ -151,18 +151,27 @@ void OpenGLDisplayDriver::unmap_texture_buffer()
  * Graphics interoperability.
  */
 
-OpenGLDisplayDriver::GraphicsInterop OpenGLDisplayDriver::graphics_interop_get()
+GraphicsInteropDevice OpenGLDisplayDriver::graphics_interop_get_device()
 {
-  GraphicsInterop interop_dst;
+  GraphicsInteropDevice interop_device;
+  interop_device.type = GraphicsInteropDevice::OPENGL;
+  return interop_device;
+}
 
-  interop_dst.buffer_width = texture_.buffer_width;
-  interop_dst.buffer_height = texture_.buffer_height;
-  interop_dst.opengl_pbo_id = texture_.gl_pbo_id;
+GraphicsInteropBuffer OpenGLDisplayDriver::graphics_interop_get_buffer()
+{
+  GraphicsInteropBuffer interop_buffer;
 
-  interop_dst.need_clear = texture_.need_clear;
+  interop_buffer.width = texture_.buffer_width;
+  interop_buffer.height = texture_.buffer_height;
+  interop_buffer.type = GraphicsInteropDevice::OPENGL;
+  interop_buffer.handle = texture_.gl_pbo_id;
+  interop_buffer.size = texture_.buffer_width * texture_.buffer_height * sizeof(half4);
+
+  interop_buffer.need_clear = texture_.need_clear;
   texture_.need_clear = false;
 
-  return interop_dst;
+  return interop_buffer;
 }
 
 void OpenGLDisplayDriver::graphics_interop_activate()
