@@ -591,7 +591,11 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
 #    define STRPREFIX_DIR_DELIMIT(a, b) (strncmp_dir_delimit((a), (b), strlen(b)) == 0)
 
         while ((mnt = getmntent(fp))) {
-          if (STRPREFIX_DIR_DELIMIT(mnt->mnt_dir, "/boot")) {
+          if (STRPREFIX_DIR_DELIMIT(mnt->mnt_dir, "/boot") ||
+              /* According to: https://wiki.archlinux.org/title/EFI_system_partition (2025),
+               * this is a common path to mount the EFI partition. */
+              STRPREFIX_DIR_DELIMIT(mnt->mnt_dir, "/efi"))
+          {
             /* Hide share not usable to the user. */
             continue;
           }
