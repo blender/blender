@@ -1842,10 +1842,18 @@ static void blf_glyph_to_curves(const FT_Outline &ftoutline,
   MEM_freeN(onpoints);
 }
 
-static FT_GlyphSlot blf_glyphslot_ensure_outline(FontBLF *font,
-                                                 const uint charcode,
-                                                 bool use_fallback)
+static FT_GlyphSlot blf_glyphslot_ensure_outline(FontBLF *font, uint charcode, bool use_fallback)
 {
+  if (charcode < 32) {
+    if (ELEM(charcode, 0x10, 0x13)) {
+      /* Do not render line feed or carriage return. #134972. */
+      return nullptr;
+    }
+    /* Other C0 controls (U+0000 - U+001F) can show as space. #135421. */
+    /* TODO: Return all but TAB as ".notdef" character when we have our own. */
+    charcode = ' ';
+  }
+
   /* Glyph might not come from the initial font. */
   FontBLF *font_with_glyph = font;
   FT_UInt glyph_index = use_fallback ? blf_glyph_index_from_charcode(&font_with_glyph, charcode) :
