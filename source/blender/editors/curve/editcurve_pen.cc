@@ -1161,8 +1161,7 @@ static bool is_spline_nearby(ViewContext *vc,
     if (cd.nurb && (cd.nurb->type == CU_BEZIER) && RNA_boolean_get(op->ptr, "move_segment")) {
       MoveSegmentData *seg_data;
       CurvePenData *cpd = (CurvePenData *)(op->customdata);
-      cpd->msd = seg_data = static_cast<MoveSegmentData *>(
-          MEM_callocN(sizeof(MoveSegmentData), __func__));
+      cpd->msd = seg_data = MEM_callocN<MoveSegmentData>(__func__);
       seg_data->bezt_index = cd.bezt_index;
       seg_data->nu = cd.nurb;
       seg_data->t = cd.parameter;
@@ -1590,8 +1589,7 @@ static wmOperatorStatus curve_pen_modal(bContext *C, wmOperator *op, const wmEve
 
   CurvePenData *cpd;
   if (op->customdata == nullptr) {
-    op->customdata = cpd = static_cast<CurvePenData *>(
-        MEM_callocN(sizeof(CurvePenData), __func__));
+    op->customdata = cpd = MEM_callocN<CurvePenData>(__func__);
   }
   else {
     cpd = (CurvePenData *)(op->customdata);
@@ -1755,7 +1753,7 @@ static wmOperatorStatus curve_pen_invoke(bContext *C, wmOperator *op, const wmEv
   Nurb *nu = nullptr;
 
   CurvePenData *cpd;
-  op->customdata = cpd = static_cast<CurvePenData *>(MEM_callocN(sizeof(CurvePenData), __func__));
+  op->customdata = cpd = MEM_callocN<CurvePenData>(__func__);
 
   /* Distance threshold for mouse clicks to affect the spline or its points */
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};

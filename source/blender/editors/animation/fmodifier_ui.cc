@@ -160,7 +160,7 @@ static PanelType *fmodifier_panel_register(ARegionType *region_type,
                                            PanelTypePollFn poll,
                                            const char *id_prefix)
 {
-  PanelType *panel_type = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), __func__));
+  PanelType *panel_type = MEM_callocN<PanelType>(__func__);
 
   /* Intentionally leave the label field blank. The header is filled with buttons. */
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
@@ -198,7 +198,7 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
                                               PanelTypePollFn poll,
                                               PanelType *parent)
 {
-  PanelType *panel_type = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), __func__));
+  PanelType *panel_type = MEM_callocN<PanelType>(__func__);
 
   BLI_assert(parent != nullptr);
   SNPRINTF(panel_type->idname, "%s_%s", parent->idname, name);

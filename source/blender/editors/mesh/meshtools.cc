@@ -1080,7 +1080,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
   const int totface = mesh_eval ? mesh_eval->totface_legacy : mesh->totface_legacy;
   int a;
 
-  mirrorverts = static_cast<int *>(MEM_callocN(sizeof(int) * totvert, "MirrorVerts"));
+  mirrorverts = MEM_calloc_arrayN<int>(totvert, "MirrorVerts");
   mirrorfaces = static_cast<int *>(MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces"));
 
   const Span<float3> vert_positions = mesh_eval ? mesh_eval->vert_positions() :

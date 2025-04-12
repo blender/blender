@@ -806,7 +806,7 @@ void ED_armature_edit_free(bArmature *arm)
 void ED_armature_to_edit(bArmature *arm)
 {
   ED_armature_edit_free(arm);
-  arm->edbo = static_cast<ListBase *>(MEM_callocN(sizeof(ListBase), "edbo armature"));
+  arm->edbo = MEM_callocN<ListBase>("edbo armature");
   arm->act_edbone = make_boneList(arm->edbo, &arm->bonebase, arm->act_bone);
 }
 

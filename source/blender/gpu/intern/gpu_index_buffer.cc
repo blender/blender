@@ -66,7 +66,7 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
   builder->restart_index_value = RESTART_INDEX;
 #endif
   builder->uses_restart_indices = false;
-  builder->data = (uint *)MEM_callocN(builder->max_index_len * sizeof(uint), "IndexBuf data");
+  builder->data = MEM_calloc_arrayN<uint>(builder->max_index_len, "IndexBuf data");
 }
 
 void GPU_indexbuf_init(GPUIndexBufBuilder *builder,

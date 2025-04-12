@@ -773,7 +773,7 @@ static bool vfont_to_curve(Object *ob,
 
     if (BKE_vfont_select_get(ob, &selstart, &selend)) {
       ef->selboxes_len = (selend - selstart) + 1;
-      ef->selboxes = MEM_calloc_arrayN<EditFontSelBox>(size_t(ef->selboxes_len), "font selboxes");
+      ef->selboxes = MEM_calloc_arrayN<EditFontSelBox>(ef->selboxes_len, "font selboxes");
     }
     else {
       ef->selboxes_len = 0;

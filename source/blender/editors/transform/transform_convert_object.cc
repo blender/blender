@@ -518,10 +518,8 @@ static void createTransObject(bContext *C, TransInfo *t)
     tc->data_len += count_proportional_objects(t);
   }
 
-  td = tc->data = static_cast<TransData *>(
-      MEM_callocN(tc->data_len * sizeof(TransData), "TransOb"));
-  tx = tc->data_ext = static_cast<TransDataExtension *>(
-      MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransObExtension"));
+  td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransOb");
+  tx = tc->data_ext = MEM_calloc_arrayN<TransDataExtension>(tc->data_len, "TransObExtension");
 
   TransDataObject *tdo = static_cast<TransDataObject *>(MEM_callocN(sizeof(*tdo), __func__));
   t->custom.type.data = tdo;

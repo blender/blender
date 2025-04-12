@@ -499,7 +499,7 @@ static ParticleCacheKey **psys_alloc_path_cache_buffers(ListBase *bufs, int tot,
 
   tot = std::max(tot, 1);
   totkey = 0;
-  cache = MEM_calloc_arrayN<ParticleCacheKey *>(size_t(tot), "PathCacheArray");
+  cache = MEM_calloc_arrayN<ParticleCacheKey *>(tot, "PathCacheArray");
 
   while (totkey < tot) {
     totbufkey = std::min(tot - totkey, PATH_CACHE_BUF_SIZE);
@@ -2317,8 +2317,7 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
       }
 
       if (!eff->guide_data) {
-        eff->guide_data = MEM_calloc_arrayN<GuideEffectorData>(size_t(psys->totpart),
-                                                               "GuideEffectorData");
+        eff->guide_data = MEM_calloc_arrayN<GuideEffectorData>(psys->totpart, "GuideEffectorData");
       }
 
       data = eff->guide_data + p;
@@ -2587,7 +2586,7 @@ float *psys_cache_vgroup(Mesh *mesh, ParticleSystem *psys, int vgroup)
     const MDeformVert *dvert = mesh->deform_verts().data();
     if (dvert) {
       int totvert = mesh->verts_num, i;
-      vg = MEM_calloc_arrayN<float>(size_t(totvert), "vg_cache");
+      vg = MEM_calloc_arrayN<float>(totvert, "vg_cache");
       if (psys->vg_neg & (1 << vgroup)) {
         for (i = 0; i < totvert; i++) {
           vg[i] = 1.0f - BKE_defvert_find_weight(&dvert[i], psys->vgroup[vgroup] - 1);

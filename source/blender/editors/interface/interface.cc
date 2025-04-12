@@ -5135,7 +5135,7 @@ AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxncpy)
   autocpl = MEM_callocN<AutoComplete>(__func__);
   autocpl->maxncpy = maxncpy;
   autocpl->matches = 0;
-  autocpl->truncate = static_cast<char *>(MEM_callocN(sizeof(char) * maxncpy, __func__));
+  autocpl->truncate = MEM_calloc_arrayN<char>(maxncpy, __func__);
   autocpl->startname = startname;
 
   return autocpl;

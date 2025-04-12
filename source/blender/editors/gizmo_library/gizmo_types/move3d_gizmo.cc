@@ -356,8 +356,7 @@ static wmOperatorStatus gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEven
 {
   const bool use_snap = RNA_boolean_get(gz->ptr, "use_snap");
 
-  MoveInteraction *inter = static_cast<MoveInteraction *>(
-      MEM_callocN(sizeof(MoveInteraction), __func__));
+  MoveInteraction *inter = MEM_callocN<MoveInteraction>(__func__);
   inter->init.mval[0] = event->mval[0];
   inter->init.mval[1] = event->mval[1];
 

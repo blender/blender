@@ -1303,7 +1303,7 @@ void BKE_nurb_makeFaces(const Nurb *nu, float *coord_array, int rowstride, int r
     return;
   }
 
-  sum = MEM_calloc_arrayN<float>(size_t(len), "makeNurbfaces1");
+  sum = MEM_calloc_arrayN<float>(len, "makeNurbfaces1");
 
   bp = nu->bp;
   i = nu->pntsu * nu->pntsv;
@@ -1497,7 +1497,7 @@ void BKE_nurb_makeCurve(const Nurb *nu,
   if (len == 0) {
     return;
   }
-  sum = MEM_calloc_arrayN<float>(size_t(len), "makeNurbcurve1");
+  sum = MEM_calloc_arrayN<float>(len, "makeNurbcurve1");
 
   resolu = (resolu * SEGMENTSU(nu));
 
@@ -2616,7 +2616,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
     if (nu->type == CU_POLY) {
       len = nu->pntsu;
       BevList *bl = MEM_callocN<BevList>(__func__);
-      bl->bevpoints = MEM_calloc_arrayN<BevPoint>(size_t(len), __func__);
+      bl->bevpoints = MEM_calloc_arrayN<BevPoint>(len, __func__);
       if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
         bl->seglen = MEM_malloc_arrayN<float>(size_t(segcount), __func__);
         bl->segbevcount = MEM_malloc_arrayN<int>(size_t(segcount), __func__);
@@ -2666,7 +2666,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
       len = segcount * resolu + 1;
 
       BevList *bl = MEM_callocN<BevList>(__func__);
-      bl->bevpoints = MEM_calloc_arrayN<BevPoint>(size_t(len), __func__);
+      bl->bevpoints = MEM_calloc_arrayN<BevPoint>(len, __func__);
       if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
         bl->seglen = MEM_malloc_arrayN<float>(size_t(segcount), __func__);
         bl->segbevcount = MEM_malloc_arrayN<int>(size_t(segcount), __func__);
@@ -2802,7 +2802,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
         len = (resolu * segcount);
 
         BevList *bl = MEM_callocN<BevList>(__func__);
-        bl->bevpoints = MEM_calloc_arrayN<BevPoint>(size_t(len), __func__);
+        bl->bevpoints = MEM_calloc_arrayN<BevPoint>(len, __func__);
         if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
           bl->seglen = MEM_malloc_arrayN<float>(size_t(segcount), __func__);
           bl->segbevcount = MEM_malloc_arrayN<int>(size_t(segcount), __func__);
@@ -2903,7 +2903,7 @@ void BKE_curve_bevelList_make(Object *ob, const ListBase *nurbs, const bool for_
     nr = bl->nr - bl->dupe_nr + 1; /* +1 because vector-bezier sets flag too. */
     blnew = MEM_mallocN<BevList>("makeBevelList4");
     memcpy(blnew, bl, sizeof(BevList));
-    blnew->bevpoints = MEM_calloc_arrayN<BevPoint>(size_t(nr), "makeBevelPoints4");
+    blnew->bevpoints = MEM_calloc_arrayN<BevPoint>(nr, "makeBevelPoints4");
     if (!blnew->bevpoints) {
       MEM_freeN(blnew);
       break;
@@ -4825,7 +4825,7 @@ bool BKE_nurb_type_convert(Nurb *nu,
   if (nu->type == CU_POLY) {
     if (type == CU_BEZIER) { /* To Bezier with vector-handles. */
       nr = nu->pntsu;
-      bezt = MEM_calloc_arrayN<BezTriple>(size_t(nr), "setsplinetype2");
+      bezt = MEM_calloc_arrayN<BezTriple>(nr, "setsplinetype2");
       nu->bezt = bezt;
       a = nr;
       bp = nu->bp;
@@ -4861,7 +4861,7 @@ bool BKE_nurb_type_convert(Nurb *nu,
   else if (nu->type == CU_BEZIER) { /* Bezier */
     if (ELEM(type, CU_POLY, CU_NURBS)) {
       nr = use_handles ? (3 * nu->pntsu) : nu->pntsu;
-      nu->bp = MEM_calloc_arrayN<BPoint>(size_t(nr), "setsplinetype");
+      nu->bp = MEM_calloc_arrayN<BPoint>(nr, "setsplinetype");
       a = nu->pntsu;
       bezt = nu->bezt;
       bp = nu->bp;
@@ -4927,7 +4927,7 @@ bool BKE_nurb_type_convert(Nurb *nu,
         return false; /* conversion impossible */
       }
 
-      bezt = MEM_calloc_arrayN<BezTriple>(size_t(nr), "setsplinetype2");
+      bezt = MEM_calloc_arrayN<BezTriple>(nr, "setsplinetype2");
       nu->bezt = bezt;
       a = nr;
       bp = nu->bp;

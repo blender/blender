@@ -1149,7 +1149,7 @@ HairGrid *SIM_hair_volume_create_vertex_grid(float cellsize,
   copy_v3_v3(grid->gmax, gmax_margin);
   grid->cellsize = cellsize;
   grid->inv_cellsize = scale;
-  grid->verts = MEM_calloc_arrayN<HairGridVert>(size_t(size), "hair voxel data");
+  grid->verts = MEM_calloc_arrayN<HairGridVert>(size, "hair voxel data");
 
   return grid;
 }

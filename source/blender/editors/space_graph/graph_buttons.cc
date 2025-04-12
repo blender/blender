@@ -1451,8 +1451,7 @@ void graph_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = static_cast<PanelType *>(
-      MEM_callocN(sizeof(PanelType), "spacetype graph panel properties"));
+  pt = MEM_callocN<PanelType>("spacetype graph panel properties");
   STRNCPY(pt->idname, "GRAPH_PT_properties");
   STRNCPY(pt->label, N_("Active F-Curve"));
   STRNCPY(pt->category, "F-Curve");
@@ -1461,8 +1460,7 @@ void graph_buttons_register(ARegionType *art)
   pt->poll = graph_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = static_cast<PanelType *>(
-      MEM_callocN(sizeof(PanelType), "spacetype graph panel properties"));
+  pt = MEM_callocN<PanelType>("spacetype graph panel properties");
   STRNCPY(pt->idname, "GRAPH_PT_key_properties");
   STRNCPY(pt->label, N_("Active Keyframe"));
   STRNCPY(pt->category, "F-Curve");
@@ -1471,8 +1469,7 @@ void graph_buttons_register(ARegionType *art)
   pt->poll = graph_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = static_cast<PanelType *>(
-      MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers driven"));
+  pt = MEM_callocN<PanelType>("spacetype graph panel drivers driven");
   STRNCPY(pt->idname, "GRAPH_PT_driven_property");
   STRNCPY(pt->label, N_("Driven Property"));
   STRNCPY(pt->category, "Drivers");
@@ -1481,7 +1478,7 @@ void graph_buttons_register(ARegionType *art)
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers"));
+  pt = MEM_callocN<PanelType>("spacetype graph panel drivers");
   STRNCPY(pt->idname, "GRAPH_PT_drivers");
   STRNCPY(pt->label, N_("Driver"));
   STRNCPY(pt->category, "Drivers");
@@ -1491,8 +1488,7 @@ void graph_buttons_register(ARegionType *art)
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = static_cast<PanelType *>(
-      MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers popover"));
+  pt = MEM_callocN<PanelType>("spacetype graph panel drivers popover");
   STRNCPY(pt->idname, "GRAPH_PT_drivers_popover");
   STRNCPY(pt->label, N_("Add/Edit Driver"));
   STRNCPY(pt->category, "Drivers");
@@ -1504,7 +1500,7 @@ void graph_buttons_register(ARegionType *art)
    * Add explicitly to global list (so popovers work). */
   WM_paneltype_add(pt);
 
-  pt = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), "spacetype graph panel modifiers"));
+  pt = MEM_callocN<PanelType>("spacetype graph panel modifiers");
   STRNCPY(pt->idname, "GRAPH_PT_modifiers");
   STRNCPY(pt->label, N_("Modifiers"));
   STRNCPY(pt->category, "Modifiers");
@@ -1517,7 +1513,7 @@ void graph_buttons_register(ARegionType *art)
   ANIM_modifier_panels_register_graph_and_NLA(art, GRAPH_FMODIFIER_PANEL_PREFIX, graph_panel_poll);
   ANIM_modifier_panels_register_graph_only(art, GRAPH_FMODIFIER_PANEL_PREFIX, graph_panel_poll);
 
-  pt = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), "spacetype graph panel view"));
+  pt = MEM_callocN<PanelType>("spacetype graph panel view");
   STRNCPY(pt->idname, "GRAPH_PT_view");
   STRNCPY(pt->label, N_("Show Cursor"));
   STRNCPY(pt->category, "View");

@@ -765,7 +765,7 @@ static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
                  mesh_src.verts_num,
                  kb->name,
                  kb->totelem);
-      array = MEM_calloc_arrayN(size_t(mesh_src.verts_num), sizeof(float[3]), __func__);
+      array = MEM_calloc_arrayN(mesh_src.verts_num, sizeof(float[3]), __func__);
     }
     else {
       array = MEM_malloc_arrayN(size_t(mesh_src.verts_num), sizeof(float[3]), __func__);

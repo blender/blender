@@ -539,7 +539,7 @@ static void multires_reallocate_mdisps(const int totloop, MDisps *mdisps, const 
   /* reallocate displacements to be filled in */
   for (int i = 0; i < totloop; i++) {
     const int totdisp = multires_grid_tot[lvl];
-    float(*disps)[3] = MEM_calloc_arrayN<float[3]>(size_t(totdisp), __func__);
+    float(*disps)[3] = MEM_calloc_arrayN<float[3]>(totdisp, __func__);
 
     if (mdisps[i].disps) {
       MEM_freeN(mdisps[i].disps);
@@ -657,7 +657,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, const int
           MDisps *mdisp = &mdisps[corner];
           const int totdisp = multires_grid_tot[lvl];
 
-          float(*disps)[3] = MEM_calloc_arrayN<float[3]>(size_t(totdisp), "multires disps");
+          float(*disps)[3] = MEM_calloc_arrayN<float[3]>(totdisp, "multires disps");
 
           if (mdisp->disps != nullptr) {
             float(*ndisps)[3] = disps;
@@ -871,7 +871,7 @@ static void multires_disp_run_cb(void *__restrict userdata,
       if (gpm->data) {
         MEM_freeN(gpm->data);
       }
-      gpm->data = MEM_calloc_arrayN<float>(size_t(key.grid_area), "gpm.data");
+      gpm->data = MEM_calloc_arrayN<float>(key.grid_area, "gpm.data");
     }
 
     for (int y = 0; y < gridSize; y++) {
@@ -1073,7 +1073,7 @@ void multires_modifier_update_mdisps(DerivedMesh *dm, Scene *scene)
 
       BLI_assert(highGridKey.elem_size == lowGridKey.elem_size);
 
-      CCGElem **subGridData = MEM_calloc_arrayN<CCGElem *>(size_t(numGrids), "subGridData*");
+      CCGElem **subGridData = MEM_calloc_arrayN<CCGElem *>(numGrids, "subGridData*");
       CCGElem *diffGrid = static_cast<CCGElem *>(
           MEM_calloc_arrayN(lowGridSize * lowGridSize, lowGridKey.elem_size, "diff"));
 
@@ -1453,7 +1453,7 @@ void multires_topology_changed(Mesh *mesh)
     if (!mdisp->totdisp || !mdisp->disps) {
       if (grid) {
         mdisp->totdisp = grid;
-        mdisp->disps = MEM_calloc_arrayN<float[3]>(size_t(mdisp->totdisp), "mdisp topology");
+        mdisp->disps = MEM_calloc_arrayN<float[3]>(mdisp->totdisp, "mdisp topology");
       }
 
       continue;

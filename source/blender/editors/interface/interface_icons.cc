@@ -1162,8 +1162,7 @@ static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
     if (!ED_preview_use_image_size(prv_img, size)) {
       prv_img->w[size] = render_size;
       prv_img->h[size] = render_size;
-      prv_img->rect[size] = static_cast<uint *>(
-          MEM_callocN(render_size * render_size * sizeof(uint), "prv_rect"));
+      prv_img->rect[size] = MEM_calloc_arrayN<uint>(render_size * render_size, "prv_rect");
     }
   }
 }

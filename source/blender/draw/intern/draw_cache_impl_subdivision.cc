@@ -577,8 +577,8 @@ static bool draw_subdiv_topology_info_cb(const bke::subdiv::ForeachContext *fore
     for (int i = 0; i < num_edges; i++) {
       ctx->edge_origindex_map[i] = -1;
     }
-    ctx->edge_draw_flag_map = static_cast<int *>(
-        MEM_callocN(cache->num_subdiv_edges * sizeof(int), "subdiv_edge_draw_flag_map"));
+    ctx->edge_draw_flag_map = MEM_calloc_arrayN<int>(cache->num_subdiv_edges,
+                                                     "subdiv_edge_draw_flag_map");
   }
 
   return true;
@@ -732,8 +732,7 @@ static void build_vertex_face_adjacency_maps(DRWSubdivCache &cache)
   cache.subdiv_vertex_face_adjacency = gpu_vertbuf_create_from_format(get_origindex_format(),
                                                                       cache.num_subdiv_loops);
   MutableSpan<int> adjacent_faces = cache.subdiv_vertex_face_adjacency->data<int>();
-  int *tmp_set_faces = static_cast<int *>(
-      MEM_callocN(sizeof(int) * cache.num_subdiv_verts, "tmp subdiv vertex offset"));
+  int *tmp_set_faces = MEM_calloc_arrayN<int>(cache.num_subdiv_verts, "tmp subdiv vertex offset");
 
   for (int i = 0; i < cache.num_subdiv_loops / 4; i++) {
     for (int j = 0; j < 4; j++) {
@@ -1516,8 +1515,8 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
   const int number_of_quads = cache.num_subdiv_loops / 4;
 
   if (mat_len == 1) {
-    cache.mat_start = static_cast<int *>(MEM_callocN(sizeof(int), "subdiv mat_end"));
-    cache.mat_end = static_cast<int *>(MEM_callocN(sizeof(int), "subdiv mat_end"));
+    cache.mat_start = MEM_callocN<int>("subdiv mat_end");
+    cache.mat_end = MEM_callocN<int>("subdiv mat_end");
     cache.mat_start[0] = 0;
     cache.mat_end[0] = number_of_quads;
     return;
@@ -1528,7 +1527,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
       "material_index", bke::AttrDomain::Face, 0);
 
   /* Count number of subdivided polygons for each material. */
-  int *mat_start = static_cast<int *>(MEM_callocN(sizeof(int) * mat_len, "subdiv mat_start"));
+  int *mat_start = MEM_calloc_arrayN<int>(mat_len, "subdiv mat_start");
   int *subdiv_face_offset = cache.subdiv_face_offset;
 
   /* TODO: parallel_reduce? */

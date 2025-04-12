@@ -176,8 +176,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
     /* Create TransData. */
     BLI_assert(data_len >= 1);
     tc->data_len = data_len;
-    tc->data = static_cast<TransData *>(
-        MEM_callocN(data_len * sizeof(TransData), "TransObData(Mesh EditMode)"));
+    tc->data = MEM_calloc_arrayN<TransData>(data_len, "TransObData(Mesh EditMode)");
 
     TransData *td = tc->data;
     TransDataMirror *td_mirror = tc->data_mirror;

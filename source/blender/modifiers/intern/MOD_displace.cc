@@ -270,7 +270,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 
   Tex *tex_target = dmd->texture;
   if (tex_target != nullptr) {
-    tex_co = MEM_calloc_arrayN<float[3]>(size_t(positions.size()), "displaceModifier_do tex_co");
+    tex_co = MEM_calloc_arrayN<float[3]>(positions.size(), "displaceModifier_do tex_co");
     MOD_get_texture_coords((MappingInfoModifierData *)dmd,
                            ctx,
                            ob,

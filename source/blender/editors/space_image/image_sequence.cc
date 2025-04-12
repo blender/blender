@@ -48,7 +48,7 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
     char head[FILE_MAX], tail[FILE_MAX];
     ushort digits;
     char *filename = RNA_string_get_alloc(&itemptr, "name", nullptr, 0, nullptr);
-    ImageFrame *frame = static_cast<ImageFrame *>(MEM_callocN(sizeof(ImageFrame), "image_frame"));
+    ImageFrame *frame = MEM_callocN<ImageFrame>("image_frame");
 
     /* use the first file in the list as base filename */
     frame->framenr = BLI_path_sequence_decode(

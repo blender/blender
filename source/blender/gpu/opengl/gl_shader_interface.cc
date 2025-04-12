@@ -430,7 +430,7 @@ GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateI
   BLI_assert_msg(ubo_len_ <= 16, "enabled_ubo_mask_ is uint16_t");
 
   int input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
-  inputs_ = (ShaderInput *)MEM_callocN(sizeof(ShaderInput) * input_tot_len, __func__);
+  inputs_ = MEM_calloc_arrayN<ShaderInput>(input_tot_len, __func__);
   ShaderInput *input = inputs_;
 
   name_buffer_ = (char *)MEM_mallocN(info.interface_names_size_ + workaround_names_size,

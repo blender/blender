@@ -193,8 +193,8 @@ static void HC_relaxation_iteration_uv(UvSculptData *sculptdata,
   int i;
   const float radius = sqrtf(radius_sq);
 
-  Temp_UVData *tmp_uvdata = (Temp_UVData *)MEM_callocN(
-      sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
+  Temp_UVData *tmp_uvdata = MEM_calloc_arrayN<Temp_UVData>(sculptdata->totalUniqueUvs,
+                                                           "Temporal data");
 
   /* counting neighbors */
   for (i = 0; i < sculptdata->totalUvEdges; i++) {
@@ -278,8 +278,8 @@ static void laplacian_relaxation_iteration_uv(UvSculptData *sculptdata,
   int i;
   const float radius = sqrtf(radius_sq);
 
-  Temp_UVData *tmp_uvdata = (Temp_UVData *)MEM_callocN(
-      sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
+  Temp_UVData *tmp_uvdata = MEM_calloc_arrayN<Temp_UVData>(sculptdata->totalUniqueUvs,
+                                                           "Temporal data");
 
   /* counting neighbors */
   for (i = 0; i < sculptdata->totalUvEdges; i++) {

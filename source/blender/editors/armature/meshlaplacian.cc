@@ -202,10 +202,8 @@ static LaplacianSystem *laplacian_system_construct_begin(int verts_num, int face
 
   sys = MEM_new<LaplacianSystem>(__func__);
 
-  sys->verts = static_cast<float **>(
-      MEM_callocN(sizeof(float *) * verts_num, "LaplacianSystemVerts"));
-  sys->vpinned = static_cast<char *>(
-      MEM_callocN(sizeof(char) * verts_num, "LaplacianSystemVpinned"));
+  sys->verts = MEM_calloc_arrayN<float *>(verts_num, "LaplacianSystemVerts");
+  sys->vpinned = MEM_calloc_arrayN<char>(verts_num, "LaplacianSystemVpinned");
   sys->faces = static_cast<int(*)[3]>(
       MEM_callocN(sizeof(int[3]) * faces_num, "LaplacianSystemFaces"));
 
@@ -248,8 +246,7 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
 
   laplacian_begin_solve(sys, 0);
 
-  sys->varea = static_cast<float *>(
-      MEM_callocN(sizeof(float) * verts_num, "LaplacianSystemVarea"));
+  sys->varea = MEM_calloc_arrayN<float>(verts_num, "LaplacianSystemVarea");
 
   sys->edgehash.reserve(sys->faces_num);
   for (a = 0, face = sys->faces; a < sys->faces_num; a++, face++) {
@@ -576,9 +573,9 @@ static void heat_laplacian_create(LaplacianSystem *sys)
   int a;
 
   /* heat specific definitions */
-  sys->heat.mindist = static_cast<float *>(MEM_callocN(sizeof(float) * verts_num, "HeatMinDist"));
-  sys->heat.H = static_cast<float *>(MEM_callocN(sizeof(float) * verts_num, "HeatH"));
-  sys->heat.p = static_cast<float *>(MEM_callocN(sizeof(float) * verts_num, "HeatP"));
+  sys->heat.mindist = MEM_calloc_arrayN<float>(verts_num, "HeatMinDist");
+  sys->heat.H = MEM_calloc_arrayN<float>(verts_num, "HeatH");
+  sys->heat.p = MEM_calloc_arrayN<float>(verts_num, "HeatP");
 
   /* add verts and faces to laplacian */
   for (a = 0; a < verts_num; a++) {
@@ -660,8 +657,7 @@ void heat_bone_weighting(Object *ob,
 
   /* count triangles and create mask */
   if (ob->mode & OB_MODE_WEIGHT_PAINT && (use_face_sel || use_vert_sel)) {
-    mask = static_cast<int *>(
-        MEM_callocN(sizeof(int) * mesh->verts_num, "heat_bone_weighting mask"));
+    mask = MEM_calloc_arrayN<int>(mesh->verts_num, "heat_bone_weighting mask");
 
     /*  (added selectedVerts content for vertex mask, they used to just equal 1) */
     if (use_vert_sel) {
@@ -714,7 +710,7 @@ void heat_bone_weighting(Object *ob,
   laplacian_system_construct_end(sys);
 
   if (dgroupflip) {
-    vertsflipped = static_cast<int *>(MEM_callocN(sizeof(int) * mesh->verts_num, "vertsflipped"));
+    vertsflipped = MEM_calloc_arrayN<int>(mesh->verts_num, "vertsflipped");
     for (a = 0; a < mesh->verts_num; a++) {
       vertsflipped[a] = mesh_get_x_mirror_vert(ob, nullptr, a, use_topology);
     }
@@ -1155,7 +1151,7 @@ static void meshdeform_bind_floodfill(MeshDeformBind *mdb)
   int *stack, *tag = mdb->tag;
   int a, b, i, xyz[3], stacksize, size = mdb->size;
 
-  stack = static_cast<int *>(MEM_callocN(sizeof(int) * mdb->size3, __func__));
+  stack = MEM_calloc_arrayN<int>(mdb->size3, __func__);
 
   /* we know lower left corner is EXTERIOR because of padding */
   tag[0] = MESHDEFORM_TAG_EXTERIOR;
@@ -1459,7 +1455,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
   char message[256];
 
   /* setup variable indices */
-  mdb->varidx = static_cast<int *>(MEM_callocN(sizeof(int) * mdb->size3, "MeshDeformDSvaridx"));
+  mdb->varidx = MEM_calloc_arrayN<int>(mdb->size3, "MeshDeformDSvaridx");
   for (a = 0, totvar = 0; a < mdb->size3; a++) {
     mdb->varidx[a] = (mdb->tag[a] == MESHDEFORM_TAG_EXTERIOR) ? -1 : totvar++;
   }
@@ -1597,24 +1593,21 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   /* allocate memory */
   mdb->size = (2 << (mmd->gridsize - 1)) + 2;
   mdb->size3 = mdb->size * mdb->size * mdb->size;
-  mdb->tag = static_cast<int *>(MEM_callocN(sizeof(int) * mdb->size3, "MeshDeformBindTag"));
-  mdb->phi = static_cast<float *>(MEM_callocN(sizeof(float) * mdb->size3, "MeshDeformBindPhi"));
-  mdb->totalphi = static_cast<float *>(
-      MEM_callocN(sizeof(float) * mdb->size3, "MeshDeformBindTotalPhi"));
+  mdb->tag = MEM_calloc_arrayN<int>(mdb->size3, "MeshDeformBindTag");
+  mdb->phi = MEM_calloc_arrayN<float>(mdb->size3, "MeshDeformBindPhi");
+  mdb->totalphi = MEM_calloc_arrayN<float>(mdb->size3, "MeshDeformBindTotalPhi");
   mdb->boundisect = static_cast<MDefBoundIsect *(*)[6]>(
       MEM_callocN(sizeof(*mdb->boundisect) * mdb->size3, "MDefBoundIsect"));
-  mdb->semibound = static_cast<int *>(MEM_callocN(sizeof(int) * mdb->size3, "MDefSemiBound"));
+  mdb->semibound = MEM_calloc_arrayN<int>(mdb->size3, "MDefSemiBound");
   mdb->bvhdata = mdb->cagemesh->bvh_corner_tris();
   mdb->bvhtree = mdb->bvhdata.tree;
-  mdb->inside = static_cast<int *>(MEM_callocN(sizeof(int) * mdb->verts_num, "MDefInside"));
+  mdb->inside = MEM_calloc_arrayN<int>(mdb->verts_num, "MDefInside");
 
   if (mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
-    mdb->dyngrid = static_cast<MDefBindInfluence **>(
-        MEM_callocN(sizeof(MDefBindInfluence *) * mdb->size3, "MDefDynGrid"));
+    mdb->dyngrid = MEM_calloc_arrayN<MDefBindInfluence *>(mdb->size3, "MDefDynGrid");
   }
   else {
-    mdb->weights = static_cast<float *>(
-        MEM_callocN(sizeof(float) * mdb->verts_num * mdb->cage_verts_num, "MDefWeights"));
+    mdb->weights = MEM_calloc_arrayN<float>(mdb->verts_num * mdb->cage_verts_num, "MDefWeights");
   }
 
   mdb->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "harmonic coords arena");

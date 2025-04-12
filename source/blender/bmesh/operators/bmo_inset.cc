@@ -572,8 +572,7 @@ static float bm_edge_info_average_length_fallback(BMVert *v_lookup,
     STACK_DECLARE(vert_stack);
     STACK_INIT(vert_stack, bm->totvert);
 
-    vert_lengths = static_cast<VertLengths *>(
-        MEM_callocN(sizeof(*vert_lengths) * bm->totvert, __func__));
+    vert_lengths = MEM_calloc_arrayN<VertLengths>(bm->totvert, __func__);
 
     /* Needed for 'vert_lengths' lookup from connected vertices. */
     BM_mesh_elem_index_ensure(bm, BM_VERT);

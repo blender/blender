@@ -97,7 +97,7 @@ void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *>
   /* Object itself first. */
   if ((ob->avs.recalc & ANIMVIZ_RECALC_PATHS) && (ob->mpath)) {
     /* New target for object. */
-    mpt = static_cast<MPathTarget *>(MEM_callocN(sizeof(MPathTarget), "MPathTarget Ob"));
+    mpt = MEM_callocN<MPathTarget>("MPathTarget Ob");
     mpt->mpath = ob->mpath;
     mpt->ob = ob;
 
@@ -110,7 +110,7 @@ void animviz_build_motionpath_targets(Object *ob, blender::Vector<MPathTarget *>
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       if ((pchan->bone) && ANIM_bonecoll_is_visible_pchan(arm, pchan) && (pchan->mpath)) {
         /* New target for bone. */
-        mpt = static_cast<MPathTarget *>(MEM_callocN(sizeof(MPathTarget), "MPathTarget PoseBone"));
+        mpt = MEM_callocN<MPathTarget>("MPathTarget PoseBone");
         mpt->mpath = pchan->mpath;
         mpt->ob = ob;
         mpt->pchan = pchan;

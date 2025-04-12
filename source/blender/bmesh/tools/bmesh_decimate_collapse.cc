@@ -1313,7 +1313,7 @@ void BM_mesh_decimate_collapse(BMesh *bm,
 #endif
 
   /* Allocate variables. */
-  vquadrics = static_cast<Quadric *>(MEM_callocN(sizeof(Quadric) * bm->totvert, __func__));
+  vquadrics = MEM_calloc_arrayN<Quadric>(bm->totvert, __func__);
   /* Since some edges may be degenerate, we might be over allocating a little here. */
   eheap = BLI_heap_new_ex(bm->totedge);
   eheap_table = static_cast<HeapNode **>(MEM_mallocN(sizeof(HeapNode *) * bm->totedge, __func__));

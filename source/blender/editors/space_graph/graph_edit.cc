@@ -1846,7 +1846,7 @@ static ListBase /*tEulerFilter*/ euler_filter_group_channels(
     }
 
     /* Just add to a new block. */
-    euf = static_cast<tEulerFilter *>(MEM_callocN(sizeof(tEulerFilter), "tEulerFilter"));
+    euf = MEM_callocN<tEulerFilter>("tEulerFilter");
     BLI_addtail(&euler_groups, euf);
     ++*r_num_groups;
 

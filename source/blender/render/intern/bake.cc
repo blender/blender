@@ -469,7 +469,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_
 
   blender::int3 *corner_tris = static_cast<blender::int3 *>(
       MEM_mallocN(sizeof(*corner_tris) * tottri, __func__));
-  triangles = static_cast<TriTessFace *>(MEM_callocN(sizeof(TriTessFace) * tottri, __func__));
+  triangles = MEM_calloc_arrayN<TriTessFace>(tottri, __func__);
 
   const bool calculate_normal = BKE_mesh_face_normals_are_dirty(mesh);
   blender::Span<blender::float3> precomputed_normals;

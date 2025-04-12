@@ -374,8 +374,7 @@ static void image_view_pan_init(bContext *C, wmOperator *op, const wmEvent *even
   SpaceImage *sima = CTX_wm_space_image(C);
   ViewPanData *vpd;
 
-  op->customdata = vpd = static_cast<ViewPanData *>(
-      MEM_callocN(sizeof(ViewPanData), "ImageViewPanData"));
+  op->customdata = vpd = MEM_callocN<ViewPanData>("ImageViewPanData");
 
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = (win->grabcursor == 0);
@@ -535,8 +534,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
   ARegion *region = CTX_wm_region(C);
   ViewZoomData *vpd;
 
-  op->customdata = vpd = static_cast<ViewZoomData *>(
-      MEM_callocN(sizeof(ViewZoomData), "ImageViewZoomData"));
+  op->customdata = vpd = MEM_callocN<ViewZoomData>("ImageViewZoomData");
 
   /* Grab will be set when running from gizmo. */
   vpd->own_cursor = (win->grabcursor == 0);

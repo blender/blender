@@ -404,7 +404,7 @@ static int transformops_data(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int retval = 1;
   if (op->customdata == nullptr) {
-    TransInfo *t = static_cast<TransInfo *>(MEM_callocN(sizeof(TransInfo), "TransInfo data2"));
+    TransInfo *t = MEM_callocN<TransInfo>("TransInfo data2");
 
     t->undo_name = op->type->name;
 

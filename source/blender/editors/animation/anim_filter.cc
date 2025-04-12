@@ -618,8 +618,7 @@ static bAnimListElem *make_new_animlistelem(
   }
 
   /* Allocate and set generic data. */
-  bAnimListElem *ale = static_cast<bAnimListElem *>(
-      MEM_callocN(sizeof(bAnimListElem), "bAnimListElem"));
+  bAnimListElem *ale = MEM_callocN<bAnimListElem>("bAnimListElem");
 
   ale->data = data;
   ale->type = datatype;

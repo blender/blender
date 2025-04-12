@@ -112,8 +112,7 @@ static void gizmo_mesh_extrude_orientation_matrix_set_for_adjust(GizmoExtrudeGro
 
 static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  GizmoExtrudeGroup *ggd = static_cast<GizmoExtrudeGroup *>(
-      MEM_callocN(sizeof(GizmoExtrudeGroup), __func__));
+  GizmoExtrudeGroup *ggd = MEM_callocN<GizmoExtrudeGroup>(__func__);
   gzgroup->customdata = ggd;
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);

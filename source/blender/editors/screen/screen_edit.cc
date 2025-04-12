@@ -1847,8 +1847,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
   }
 
   if (enable) {
-    ScreenAnimData *sad = static_cast<ScreenAnimData *>(
-        MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData"));
+    ScreenAnimData *sad = MEM_callocN<ScreenAnimData>("ScreenAnimData");
 
     screen->animtimer = WM_event_timer_add(wm, win, TIMER0, (1.0 / FPS));
 

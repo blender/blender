@@ -2840,7 +2840,7 @@ static wmOperatorStatus text_scroll_invoke(bContext *C, wmOperator *op, const wm
     return text_scroll_exec(C, op);
   }
 
-  tsc = static_cast<TextScroll *>(MEM_callocN(sizeof(TextScroll), "TextScroll"));
+  tsc = MEM_callocN<TextScroll>("TextScroll");
   tsc->is_first = true;
   tsc->zone = SCROLLHANDLE_BAR;
 
@@ -2955,7 +2955,7 @@ static wmOperatorStatus text_scroll_bar_invoke(bContext *C, wmOperator *op, cons
     return OPERATOR_PASS_THROUGH;
   }
 
-  tsc = static_cast<TextScroll *>(MEM_callocN(sizeof(TextScroll), "TextScroll"));
+  tsc = MEM_callocN<TextScroll>("TextScroll");
   tsc->is_first = true;
   tsc->is_scrollbar = true;
   tsc->zone = zone;

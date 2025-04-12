@@ -1304,7 +1304,7 @@ static float *get_weights_array(Object *ob, const char *vgroup, WeightsArrayCach
     if (cache) {
       if (cache->defgroup_weights == nullptr) {
         int num_defgroup = BKE_object_defgroup_count(ob);
-        cache->defgroup_weights = MEM_calloc_arrayN<float *>(size_t(num_defgroup),
+        cache->defgroup_weights = MEM_calloc_arrayN<float *>(num_defgroup,
                                                              "cached defgroup weights");
         cache->num_defgroup_weights = num_defgroup;
       }

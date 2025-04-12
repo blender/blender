@@ -147,8 +147,7 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
     /* Create TransData. */
     BLI_assert(data_len >= 1);
     tc->data_len = data_len;
-    tc->data = static_cast<TransData *>(
-        MEM_callocN(data_len * sizeof(TransData), "TransObData(Mesh EditMode)"));
+    tc->data = MEM_calloc_arrayN<TransData>(data_len, "TransObData(Mesh EditMode)");
 
     TransData *td = tc->data;
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {

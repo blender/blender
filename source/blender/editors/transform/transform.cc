@@ -1411,7 +1411,7 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
 
 bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2])
 {
-  TransInfo *t = static_cast<TransInfo *>(MEM_callocN(sizeof(TransInfo), "TransInfo data"));
+  TransInfo *t = MEM_callocN<TransInfo>("TransInfo data");
   bool success;
 
   t->context = C;

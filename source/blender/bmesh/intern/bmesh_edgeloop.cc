@@ -143,8 +143,7 @@ int BM_mesh_edgeloops_find(BMesh *bm,
   for (uint i = 0; i < edges_len; i += 1) {
     e = edges[i];
     if (BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG)) {
-      BMEdgeLoopStore *el_store = static_cast<BMEdgeLoopStore *>(
-          MEM_callocN(sizeof(BMEdgeLoopStore), __func__));
+      BMEdgeLoopStore *el_store = MEM_callocN<BMEdgeLoopStore>(__func__);
 
       /* add both directions */
       if (bm_loop_build(el_store, e->v1, e->v2, 1) && bm_loop_build(el_store, e->v2, e->v1, -1) &&
@@ -340,8 +339,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
     BLI_mempool_destroy(vs_pool);
 
     if (v_match[0]) {
-      BMEdgeLoopStore *el_store = static_cast<BMEdgeLoopStore *>(
-          MEM_callocN(sizeof(BMEdgeLoopStore), __func__));
+      BMEdgeLoopStore *el_store = MEM_callocN<BMEdgeLoopStore>(__func__);
       BMVert *v;
 
       /* build loop from edge pointers */

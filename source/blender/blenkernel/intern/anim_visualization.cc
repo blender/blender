@@ -202,7 +202,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
   mpath->flag |= MOTIONPATH_FLAG_LINES;
 
   /* Allocate a cache. */
-  mpath->points = MEM_calloc_arrayN<bMotionPathVert>(size_t(mpath->length), "bMotionPathVerts");
+  mpath->points = MEM_calloc_arrayN<bMotionPathVert>(mpath->length, "bMotionPathVerts");
 
   /* Tag viz settings as currently having some path(s) which use it. */
   avs->path_bakeflag |= MOTIONPATH_BAKE_HAS_PATHS;

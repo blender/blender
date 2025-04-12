@@ -390,7 +390,7 @@ void pointcloud_copy_parameters(const PointCloud &src, PointCloud &dst)
 {
   dst.flag = src.flag;
   MEM_SAFE_FREE(dst.mat);
-  dst.mat = MEM_malloc_arrayN<Material *>(size_t(src.totcol), __func__);
+  dst.mat = MEM_malloc_arrayN<Material *>(src.totcol, __func__);
   dst.totcol = src.totcol;
   MutableSpan(dst.mat, dst.totcol).copy_from(Span(src.mat, src.totcol));
 }

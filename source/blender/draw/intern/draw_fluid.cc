@@ -347,7 +347,7 @@ static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
 
   int cell_count = (highres) ? manta_noise_get_cells(fds->fluid) : fds->total_cells;
   int *dim = (highres) ? fds->res_noise : fds->res;
-  float *data = (float *)MEM_callocN(sizeof(float) * cell_count * 4, "smokeColorTexture");
+  float *data = MEM_calloc_arrayN<float>(cell_count * 4, "smokeColorTexture");
 
   if (data == nullptr) {
     return nullptr;

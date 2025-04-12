@@ -488,12 +488,9 @@ static void createTransSeqData(bContext * /*C*/, TransInfo *t)
 
   tc->custom.type.data = ts = MEM_new<TransSeq>(__func__);
   tc->custom.type.use_free = true;
-  td = tc->data = static_cast<TransData *>(
-      MEM_callocN(tc->data_len * sizeof(TransData), "TransSeq TransData"));
-  td2d = tc->data_2d = static_cast<TransData2D *>(
-      MEM_callocN(tc->data_len * sizeof(TransData2D), "TransSeq TransData2D"));
-  ts->tdseq = tdsq = static_cast<TransDataSeq *>(
-      MEM_callocN(tc->data_len * sizeof(TransDataSeq), "TransSeq TransDataSeq"));
+  td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransSeq TransData");
+  td2d = tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransSeq TransData2D");
+  ts->tdseq = tdsq = MEM_calloc_arrayN<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
 
   /* Custom data to enable edge panning during transformation. */
   UI_view2d_edge_pan_init(t->context,

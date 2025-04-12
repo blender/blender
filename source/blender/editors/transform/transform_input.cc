@@ -381,8 +381,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
       InputAngle_Data *data;
       mi->use_virtual_mval = false;
       mi->precision_factor = 1.0f / 30.0f;
-      data = static_cast<InputAngle_Data *>(
-          MEM_callocN(sizeof(InputAngle_Data), "angle accumulator"));
+      data = MEM_callocN<InputAngle_Data>("angle accumulator");
       data->mval_prev[0] = mi->imval[0];
       data->mval_prev[1] = mi->imval[1];
       mi->data = data;

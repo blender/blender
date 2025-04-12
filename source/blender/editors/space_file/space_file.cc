@@ -953,7 +953,7 @@ void ED_spacetype_file()
   st->blend_write = file_space_blend_write;
 
   /* regions: main window */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype file region"));
+  art = MEM_callocN<ARegionType>("spacetype file region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = file_main_region_init;
   art->draw = file_main_region_draw;
@@ -963,7 +963,7 @@ void ED_spacetype_file()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype file region"));
+  art = MEM_callocN<ARegionType>("spacetype file region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
@@ -973,7 +973,7 @@ void ED_spacetype_file()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: ui */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype file region"));
+  art = MEM_callocN<ARegionType>("spacetype file region");
   art->regionid = RGN_TYPE_UI;
   art->keymapflag = ED_KEYMAP_UI;
   art->poll = file_ui_region_poll;
@@ -983,7 +983,7 @@ void ED_spacetype_file()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: execution */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype file region"));
+  art = MEM_callocN<ARegionType>("spacetype file region");
   art->regionid = RGN_TYPE_EXECUTE;
   art->keymapflag = ED_KEYMAP_UI;
   art->poll = file_execution_region_poll;
@@ -994,7 +994,7 @@ void ED_spacetype_file()
   file_execute_region_panels_register(art);
 
   /* regions: channels (directories) */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype file region"));
+  art = MEM_callocN<ARegionType>("spacetype file region");
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = 240;
   art->prefsizey = 60;
@@ -1006,8 +1006,7 @@ void ED_spacetype_file()
   file_tools_region_panels_register(art);
 
   /* regions: tool properties */
-  art = static_cast<ARegionType *>(
-      MEM_callocN(sizeof(ARegionType), "spacetype file operator region"));
+  art = MEM_callocN<ARegionType>("spacetype file operator region");
   art->regionid = RGN_TYPE_TOOL_PROPS;
   art->prefsizex = 240;
   art->prefsizey = 60;

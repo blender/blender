@@ -689,9 +689,9 @@ static void bb_allocateData(FluidObjectBB *bb, bool use_velocity, bool use_influ
   bb->total_cells = res[0] * res[1] * res[2];
   copy_v3_v3_int(bb->res, res);
 
-  bb->numobjs = MEM_calloc_arrayN<float>(size_t(bb->total_cells), "fluid_bb_numobjs");
+  bb->numobjs = MEM_calloc_arrayN<float>(bb->total_cells, "fluid_bb_numobjs");
   if (use_influence) {
-    bb->influence = MEM_calloc_arrayN<float>(size_t(bb->total_cells), "fluid_bb_influence");
+    bb->influence = MEM_calloc_arrayN<float>(bb->total_cells, "fluid_bb_influence");
   }
   if (use_velocity) {
     bb->velocity = MEM_calloc_arrayN<float>(3 * size_t(bb->total_cells), "fluid_bb_velocity");

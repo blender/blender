@@ -534,7 +534,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
       }
 
       if (use_dverts) {
-        pchan_from_defbase = MEM_calloc_arrayN<bPoseChannel *>(size_t(defbase_len), "defnrToBone");
+        pchan_from_defbase = MEM_calloc_arrayN<bPoseChannel *>(defbase_len, "defnrToBone");
         /* TODO(sergey): Some considerations here:
          *
          * - Check whether keeping this consistent across frames gives speedup.

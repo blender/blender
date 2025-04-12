@@ -627,11 +627,11 @@ static void layerSwap_mdisps(void *data, const int *ci)
 
       MEM_freeN(s->disps);
       s->totdisp = (s->totdisp / corners) * nverts;
-      s->disps = MEM_calloc_arrayN<float[3]>(size_t(s->totdisp), "mdisp swap");
+      s->disps = MEM_calloc_arrayN<float[3]>(s->totdisp, "mdisp swap");
       return;
     }
 
-    float(*d)[3] = MEM_calloc_arrayN<float[3]>(size_t(s->totdisp), "mdisps swap");
+    float(*d)[3] = MEM_calloc_arrayN<float[3]>(s->totdisp, "mdisps swap");
 
     for (int S = 0; S < corners; S++) {
       memcpy(d + cornersize * S, s->disps + cornersize * ci[S], sizeof(float[3]) * cornersize);
@@ -684,7 +684,7 @@ static bool layerRead_mdisps(CDataFile *cdf, void *data, const int count)
 
   for (int i = 0; i < count; i++) {
     if (!d[i].disps) {
-      d[i].disps = MEM_calloc_arrayN<float[3]>(size_t(d[i].totdisp), "mdisps read");
+      d[i].disps = MEM_calloc_arrayN<float[3]>(d[i].totdisp, "mdisps read");
     }
 
     if (!cdf_read_data(cdf, sizeof(float[3]) * d[i].totdisp, d[i].disps)) {
@@ -2493,7 +2493,7 @@ CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData 
   }
 
   CustomData dst = *src;
-  dst.layers = MEM_calloc_arrayN<CustomDataLayer>(size_t(dst_layers.size()), __func__);
+  dst.layers = MEM_calloc_arrayN<CustomDataLayer>(dst_layers.size(), __func__);
   dst.maxlayer = dst.totlayer = dst_layers.size();
   memcpy(dst.layers, dst_layers.data(), dst_layers.as_span().size_in_bytes());
 

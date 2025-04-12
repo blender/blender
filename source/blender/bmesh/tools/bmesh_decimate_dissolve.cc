@@ -292,7 +292,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
   const float angle_limit_cos_neg = -cosf(angle_limit);
   DelimitData delimit_data = {0};
   const int eheap_table_len = do_dissolve_boundaries ? einput_len : max_ii(einput_len, vinput_len);
-  void *_heap_table = MEM_mallocN(sizeof(HeapNode *) * eheap_table_len, __func__);
+  void *_heap_table = MEM_malloc_arrayN<HeapNode *>(eheap_table_len, __func__);
 
   int i;
 

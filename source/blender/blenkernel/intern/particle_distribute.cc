@@ -50,7 +50,7 @@ static void alloc_child_particles(ParticleSystem *psys, int tot)
   if (psys->part->childtype) {
     psys->totchild = tot;
     if (psys->totchild) {
-      psys->child = MEM_calloc_arrayN<ChildParticle>(size_t(psys->totchild), "child_particles");
+      psys->child = MEM_calloc_arrayN<ChildParticle>(psys->totchild, "child_particles");
     }
   }
 }
@@ -1061,9 +1061,9 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     return 0;
   }
 
-  element_weight = MEM_calloc_arrayN<float>(size_t(totelem), "particle_distribution_weights");
-  particle_element = MEM_calloc_arrayN<int>(size_t(totpart), "particle_distribution_indexes");
-  jitter_offset = MEM_calloc_arrayN<float>(size_t(totelem), "particle_distribution_jitoff");
+  element_weight = MEM_calloc_arrayN<float>(totelem, "particle_distribution_weights");
+  particle_element = MEM_calloc_arrayN<int>(totpart, "particle_distribution_indexes");
+  jitter_offset = MEM_calloc_arrayN<float>(totelem, "particle_distribution_jitoff");
 
   /* Calculate weights from face areas */
   if ((part->flag & PART_EDISTR || children) && from != PART_FROM_VERT) {

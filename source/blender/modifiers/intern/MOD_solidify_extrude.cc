@@ -68,7 +68,7 @@ static void mesh_calc_hq_normal(Mesh *mesh,
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
   {
-    EdgeFaceRef *edge_ref_array = MEM_calloc_arrayN<EdgeFaceRef>(size_t(edges.size()), __func__);
+    EdgeFaceRef *edge_ref_array = MEM_calloc_arrayN<EdgeFaceRef>(edges.size(), __func__);
     EdgeFaceRef *edge_ref;
     float edge_normal[3];
 

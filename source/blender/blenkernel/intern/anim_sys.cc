@@ -1237,7 +1237,7 @@ static void nlaeval_snapshot_init(NlaEvalSnapshot *snapshot,
 {
   snapshot->base = base;
   snapshot->size = std::max(16, nlaeval->num_channels);
-  snapshot->channels = MEM_calloc_arrayN<NlaEvalChannelSnapshot *>(size_t(snapshot->size),
+  snapshot->channels = MEM_calloc_arrayN<NlaEvalChannelSnapshot *>(snapshot->size,
                                                                    "NlaEvalSnapshot::channels");
 }
 

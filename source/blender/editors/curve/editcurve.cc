@@ -144,7 +144,7 @@ void printknots(Object *obedit)
 static CVKeyIndex *init_cvKeyIndex(
     void *cv, int key_index, int nu_index, int pt_index, int vertex_index)
 {
-  CVKeyIndex *cvIndex = static_cast<CVKeyIndex *>(MEM_callocN(sizeof(CVKeyIndex), __func__));
+  CVKeyIndex *cvIndex = MEM_callocN<CVKeyIndex>(__func__);
 
   cvIndex->orig_cv = cv;
   cvIndex->key_index = key_index;
@@ -3682,8 +3682,8 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
        * needed.
        */
       /* selection-arrays */
-      usel = static_cast<int *>(MEM_callocN(sizeof(int) * nu->pntsu, "subivideNurb3"));
-      vsel = static_cast<int *>(MEM_callocN(sizeof(int) * nu->pntsv, "subivideNurb3"));
+      usel = MEM_calloc_arrayN<int>(nu->pntsu, "subivideNurb3");
+      vsel = MEM_calloc_arrayN<int>(nu->pntsv, "subivideNurb3");
       sel = 0;
 
       /* Count the number of selected points. */
@@ -4236,7 +4236,7 @@ static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb, ListBase *
   LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (ED_curve_nurb_select_check(v3d, nu)) {
 
-      nus = (NurbSort *)MEM_callocN(sizeof(NurbSort), "sort");
+      nus = MEM_callocN<NurbSort>("sort");
       BLI_addhead(&nbase, nus);
       nus->nu = nu;
 

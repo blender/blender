@@ -383,7 +383,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
   ListBase edges = {nullptr, nullptr};
 
   /* get boundary edges */
-  edge_users = MEM_calloc_arrayN<int>(size_t(mesh_edges.size()), __func__);
+  edge_users = MEM_calloc_arrayN<int>(mesh_edges.size(), __func__);
   for (const int i : polys.index_range()) {
     for (const int edge : corner_edges.slice(polys[i])) {
       edge_users[edge]++;
@@ -482,7 +482,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
         nu->flagu = CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC : 0); /* endpoint */
         nu->resolu = 12;
 
-        nu->bp = MEM_calloc_arrayN<BPoint>(size_t(faces_num), "bpoints");
+        nu->bp = MEM_calloc_arrayN<BPoint>(faces_num, "bpoints");
 
         /* add points */
         vl = (VertLink *)polyline.first;
@@ -1049,7 +1049,7 @@ static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
     if (kb->totelem != mesh.verts_num) {
       MEM_SAFE_FREE(kb->data);
       kb->totelem = mesh.verts_num;
-      kb->data = MEM_calloc_arrayN<float3>(size_t(kb->totelem), __func__);
+      kb->data = MEM_calloc_arrayN<float3>(kb->totelem, __func__);
       CLOG_ERROR(&LOG, "Data for shape key '%s' on mesh missing from evaluated mesh ", kb->name);
     }
   }

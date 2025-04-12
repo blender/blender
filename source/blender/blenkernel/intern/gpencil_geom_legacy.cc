@@ -178,7 +178,7 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
   /* Save triangulation data. */
   if (gps->tot_triangles > 0) {
     MEM_SAFE_FREE(gps->triangles);
-    gps->triangles = MEM_calloc_arrayN<bGPDtriangle>(size_t(gps->tot_triangles),
+    gps->triangles = MEM_calloc_arrayN<bGPDtriangle>(gps->tot_triangles,
                                                      "GP Stroke triangulation");
 
     for (int i = 0; i < gps->tot_triangles; i++) {
@@ -259,7 +259,7 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
   /* create new stroke */
   bGPDstroke *join_stroke = BKE_gpencil_stroke_duplicate(gps_first, false, true);
 
-  join_stroke->points = MEM_calloc_arrayN<bGPDspoint>(size_t(totpoints), __func__);
+  join_stroke->points = MEM_calloc_arrayN<bGPDspoint>(totpoints, __func__);
   join_stroke->totpoints = totpoints;
   join_stroke->flag &= ~GP_STROKE_CYCLIC;
 
@@ -293,7 +293,7 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
 
   /* Copy over vertex weight data (if available) */
   if ((gps_first->dvert != nullptr) || (gps_last->dvert != nullptr)) {
-    join_stroke->dvert = MEM_calloc_arrayN<MDeformVert>(size_t(totpoints), __func__);
+    join_stroke->dvert = MEM_calloc_arrayN<MDeformVert>(totpoints, __func__);
     MDeformVert *dvert_src = nullptr;
     MDeformVert *dvert_dst = nullptr;
 
@@ -355,7 +355,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
    * 2) Each island gets converted to a new stroke
    * If the number of points is <= limit, the stroke is deleted. */
 
-  tGPDeleteIsland *islands = MEM_calloc_arrayN<tGPDeleteIsland>(size_t(gps->totpoints + 1) / 2,
+  tGPDeleteIsland *islands = MEM_calloc_arrayN<tGPDeleteIsland>((gps->totpoints + 1) / 2,
                                                                 "gp_point_islands");
   bool in_island = false;
   int num_islands = 0;
@@ -416,7 +416,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       new_stroke->totpoints = island->end_idx - island->start_idx + 1;
 
       /* Copy over the relevant point data */
-      new_stroke->points = MEM_calloc_arrayN<bGPDspoint>(size_t(new_stroke->totpoints),
+      new_stroke->points = MEM_calloc_arrayN<bGPDspoint>(new_stroke->totpoints,
                                                          "gp delete stroke fragment");
       memcpy(static_cast<void *>(new_stroke->points),
              gps->points + island->start_idx,
@@ -425,7 +425,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       /* Copy over vertex weight data (if available) */
       if (gps->dvert != nullptr) {
         /* Copy over the relevant vertex-weight points */
-        new_stroke->dvert = MEM_calloc_arrayN<MDeformVert>(size_t(new_stroke->totpoints),
+        new_stroke->dvert = MEM_calloc_arrayN<MDeformVert>(new_stroke->totpoints,
                                                            "gp delete stroke fragment weight");
         memcpy(new_stroke->dvert,
                gps->dvert + island->start_idx,

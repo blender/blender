@@ -6491,9 +6491,8 @@ static void sort_bmelem_flag(bContext *C,
     mul_m4_m4m4(mat, rv3d->viewmat, ob->object_to_world().ptr());
 
     if (totelem[0]) {
-      pb = pblock[0] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[0], __func__));
-      sb = sblock[0] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[0], __func__));
+      pb = pblock[0] = MEM_calloc_arrayN<char>(totelem[0], __func__);
+      sb = sblock[0] = MEM_calloc_arrayN<BMElemSort>(totelem[0], __func__);
 
       BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(ve, flag)) {
@@ -6511,9 +6510,8 @@ static void sort_bmelem_flag(bContext *C,
     }
 
     if (totelem[1]) {
-      pb = pblock[1] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[1], __func__));
-      sb = sblock[1] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[1], __func__));
+      pb = pblock[1] = MEM_calloc_arrayN<char>(totelem[1], __func__);
+      sb = sblock[1] = MEM_calloc_arrayN<BMElemSort>(totelem[1], __func__);
 
       BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
         if (BM_elem_flag_test(ed, flag)) {
@@ -6532,9 +6530,8 @@ static void sort_bmelem_flag(bContext *C,
     }
 
     if (totelem[2]) {
-      pb = pblock[2] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[2], __func__));
-      sb = sblock[2] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[2], __func__));
+      pb = pblock[2] = MEM_calloc_arrayN<char>(totelem[2], __func__);
+      sb = sblock[2] = MEM_calloc_arrayN<BMElemSort>(totelem[2], __func__);
 
       BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
         if (BM_elem_flag_test(fa, flag)) {
@@ -6564,9 +6561,8 @@ static void sort_bmelem_flag(bContext *C,
     mul_m4_v3(mat, cur);
 
     if (totelem[0]) {
-      pb = pblock[0] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[0], __func__));
-      sb = sblock[0] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[0], __func__));
+      pb = pblock[0] = MEM_calloc_arrayN<char>(totelem[0], __func__);
+      sb = sblock[0] = MEM_calloc_arrayN<BMElemSort>(totelem[0], __func__);
 
       BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(ve, flag)) {
@@ -6581,9 +6577,8 @@ static void sort_bmelem_flag(bContext *C,
     }
 
     if (totelem[1]) {
-      pb = pblock[1] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[1], __func__));
-      sb = sblock[1] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[1], __func__));
+      pb = pblock[1] = MEM_calloc_arrayN<char>(totelem[1], __func__);
+      sb = sblock[1] = MEM_calloc_arrayN<BMElemSort>(totelem[1], __func__);
 
       BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
         if (BM_elem_flag_test(ed, flag)) {
@@ -6601,9 +6596,8 @@ static void sort_bmelem_flag(bContext *C,
     }
 
     if (totelem[2]) {
-      pb = pblock[2] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[2], __func__));
-      sb = sblock[2] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[2], __func__));
+      pb = pblock[2] = MEM_calloc_arrayN<char>(totelem[2], __func__);
+      sb = sblock[2] = MEM_calloc_arrayN<BMElemSort>(totelem[2], __func__);
 
       BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
         if (BM_elem_flag_test(fa, flag)) {
@@ -6623,9 +6617,8 @@ static void sort_bmelem_flag(bContext *C,
 
   /* Faces only! */
   else if (action == SRT_MATERIAL && totelem[2]) {
-    pb = pblock[2] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[2], __func__));
-    sb = sblock[2] = static_cast<BMElemSort *>(
-        MEM_callocN(sizeof(BMElemSort) * totelem[2], __func__));
+    pb = pblock[2] = MEM_calloc_arrayN<char>(totelem[2], __func__);
+    sb = sblock[2] = MEM_calloc_arrayN<BMElemSort>(totelem[2], __func__);
 
     BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
       if (BM_elem_flag_test(fa, flag)) {
@@ -6730,9 +6723,8 @@ static void sort_bmelem_flag(bContext *C,
       /* Re-init random generator for each element type, to get consistent random when
        * enabling/disabling an element type. */
       RNG *rng = BLI_rng_new_srandom(seed);
-      pb = pblock[0] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[0], __func__));
-      sb = sblock[0] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[0], __func__));
+      pb = pblock[0] = MEM_calloc_arrayN<char>(totelem[0], __func__);
+      sb = sblock[0] = MEM_calloc_arrayN<BMElemSort>(totelem[0], __func__);
 
       BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(ve, flag)) {
@@ -6750,9 +6742,8 @@ static void sort_bmelem_flag(bContext *C,
 
     if (totelem[1]) {
       RNG *rng = BLI_rng_new_srandom(seed);
-      pb = pblock[1] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[1], __func__));
-      sb = sblock[1] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[1], __func__));
+      pb = pblock[1] = MEM_calloc_arrayN<char>(totelem[1], __func__);
+      sb = sblock[1] = MEM_calloc_arrayN<BMElemSort>(totelem[1], __func__);
 
       BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
         if (BM_elem_flag_test(ed, flag)) {
@@ -6770,9 +6761,8 @@ static void sort_bmelem_flag(bContext *C,
 
     if (totelem[2]) {
       RNG *rng = BLI_rng_new_srandom(seed);
-      pb = pblock[2] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[2], __func__));
-      sb = sblock[2] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[2], __func__));
+      pb = pblock[2] = MEM_calloc_arrayN<char>(totelem[2], __func__);
+      sb = sblock[2] = MEM_calloc_arrayN<BMElemSort>(totelem[2], __func__);
 
       BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
         if (BM_elem_flag_test(fa, flag)) {
@@ -6791,9 +6781,8 @@ static void sort_bmelem_flag(bContext *C,
 
   else if (action == SRT_REVERSE) {
     if (totelem[0]) {
-      pb = pblock[0] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[0], __func__));
-      sb = sblock[0] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[0], __func__));
+      pb = pblock[0] = MEM_calloc_arrayN<char>(totelem[0], __func__);
+      sb = sblock[0] = MEM_calloc_arrayN<BMElemSort>(totelem[0], __func__);
 
       BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(ve, flag)) {
@@ -6808,9 +6797,8 @@ static void sort_bmelem_flag(bContext *C,
     }
 
     if (totelem[1]) {
-      pb = pblock[1] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[1], __func__));
-      sb = sblock[1] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[1], __func__));
+      pb = pblock[1] = MEM_calloc_arrayN<char>(totelem[1], __func__);
+      sb = sblock[1] = MEM_calloc_arrayN<BMElemSort>(totelem[1], __func__);
 
       BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
         if (BM_elem_flag_test(ed, flag)) {
@@ -6825,9 +6813,8 @@ static void sort_bmelem_flag(bContext *C,
     }
 
     if (totelem[2]) {
-      pb = pblock[2] = static_cast<char *>(MEM_callocN(sizeof(char) * totelem[2], __func__));
-      sb = sblock[2] = static_cast<BMElemSort *>(
-          MEM_callocN(sizeof(BMElemSort) * totelem[2], __func__));
+      pb = pblock[2] = MEM_calloc_arrayN<char>(totelem[2], __func__);
+      sb = sblock[2] = MEM_calloc_arrayN<BMElemSort>(totelem[2], __func__);
 
       BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
         if (BM_elem_flag_test(fa, flag)) {

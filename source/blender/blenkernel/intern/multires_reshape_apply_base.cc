@@ -64,7 +64,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   reshape_context->base_positions = base_positions;
   const blender::GroupedSpan<int> vert_to_face_map = base_mesh->vert_to_face_map();
 
-  float(*origco)[3] = MEM_calloc_arrayN<float[3]>(size_t(base_mesh->verts_num), __func__);
+  float(*origco)[3] = MEM_calloc_arrayN<float[3]>(base_mesh->verts_num, __func__);
   for (int i = 0; i < base_mesh->verts_num; i++) {
     copy_v3_v3(origco[i], base_positions[i]);
   }

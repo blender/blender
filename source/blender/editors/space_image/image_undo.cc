@@ -181,8 +181,8 @@ void *ED_image_paint_tile_find(PaintTileMap *paint_tile_map,
   if (r_mask) {
     /* allocate mask if requested. */
     if (!ptile->mask) {
-      ptile->mask = static_cast<uint16_t *>(
-          MEM_callocN(sizeof(uint16_t) * square_i(ED_IMAGE_UNDO_TILE_SIZE), "UndoImageTile.mask"));
+      ptile->mask = MEM_calloc_arrayN<uint16_t>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                "UndoImageTile.mask");
     }
     *r_mask = ptile->mask;
   }
@@ -254,8 +254,8 @@ void *ED_image_paint_tile_push(PaintTileMap *paint_tile_map,
 
   /* add mask explicitly here */
   if (r_mask) {
-    *r_mask = ptile->mask = static_cast<uint16_t *>(
-        MEM_callocN(sizeof(uint16_t) * square_i(ED_IMAGE_UNDO_TILE_SIZE), "PaintTile.mask"));
+    *r_mask = ptile->mask = MEM_calloc_arrayN<uint16_t>(square_i(ED_IMAGE_UNDO_TILE_SIZE),
+                                                        "PaintTile.mask");
   }
 
   ptile->rect.pt = MEM_callocN((ibuf->float_buffer.data ? sizeof(float[4]) : sizeof(char[4])) *

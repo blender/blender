@@ -982,12 +982,12 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     bool *tmpflags;
 
     tmpflags = wpd->lock_flags ? (bool *)MEM_dupallocN(wpd->lock_flags) :
-                                 (bool *)MEM_callocN(sizeof(bool) * defbase_tot, __func__);
+                                 MEM_calloc_arrayN<bool>(defbase_tot, __func__);
     tmpflags[wpd->active.index] = true;
     wpd->active.lock = tmpflags;
 
     tmpflags = wpd->lock_flags ? (bool *)MEM_dupallocN(wpd->lock_flags) :
-                                 (bool *)MEM_callocN(sizeof(bool) * defbase_tot, __func__);
+                                 MEM_calloc_arrayN<bool>(defbase_tot, __func__);
     tmpflags[(wpd->mirror.index != -1) ? wpd->mirror.index : wpd->active.index] = true;
     wpd->mirror.lock = tmpflags;
   }

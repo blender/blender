@@ -289,7 +289,7 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, const bool
     }
   }
 
-  cen = static_cast<CfraElem *>(MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem"));
+  cen = MEM_callocN<CfraElem>("add_to_cfra_elem");
   if (ce) {
     BLI_insertlinkbefore(lb, ce, cen);
   }
@@ -931,10 +931,10 @@ static bool ed_marker_move_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  op->customdata = mm = static_cast<MarkerMove *>(MEM_callocN(sizeof(MarkerMove), "Markermove"));
+  op->customdata = mm = MEM_callocN<MarkerMove>("Markermove");
   mm->slink = CTX_wm_space_data(C);
   mm->markers = markers;
-  mm->oldframe = static_cast<int *>(MEM_callocN(totmark * sizeof(int), "MarkerMove oldframe"));
+  mm->oldframe = MEM_calloc_arrayN<int>(totmark, "MarkerMove oldframe");
 
   initNumInput(&mm->num);
   mm->num.idx_max = 0; /* one axis */

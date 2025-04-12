@@ -684,7 +684,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
   const Span<int> corner_edges = mesh->corner_edges();
 
   bool is_manifold_consistent = true;
-  char *edge_faces = (char *)MEM_callocN(mesh->edges_num * sizeof(char), "remesh_manifold_check");
+  char *edge_faces = MEM_calloc_arrayN<char>(mesh->edges_num, "remesh_manifold_check");
   int *edge_vert = (int *)MEM_malloc_arrayN(
       mesh->edges_num, sizeof(uint), "remesh_consistent_check");
 

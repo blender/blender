@@ -261,7 +261,7 @@ static void base_surface_grids_allocate(MultiresReshapeSmoothContext *reshape_sm
   SurfaceGrid *surface_grid = MEM_malloc_arrayN<SurfaceGrid>(size_t(num_grids), __func__);
 
   for (int grid_index = 0; grid_index < num_grids; ++grid_index) {
-    surface_grid[grid_index].points = MEM_calloc_arrayN<SurfacePoint>(size_t(grid_area), __func__);
+    surface_grid[grid_index].points = MEM_calloc_arrayN<SurfacePoint>(grid_area, __func__);
   }
 
   reshape_smooth_context->base_surface_grids = surface_grid;
@@ -551,7 +551,7 @@ static bool foreach_topology_info(const blender::bke::subdiv::ForeachContext *fo
 
   /* NOTE: Calloc so the counters are re-set to 0 "for free". */
   reshape_smooth_context->geometry.num_vertices = num_vertices;
-  reshape_smooth_context->geometry.vertices = MEM_calloc_arrayN<Vertex>(size_t(num_vertices),
+  reshape_smooth_context->geometry.vertices = MEM_calloc_arrayN<Vertex>(num_vertices,
                                                                         "smooth vertices");
 
   reshape_smooth_context->geometry.max_edges = max_edges;

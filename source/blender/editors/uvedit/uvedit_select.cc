@@ -5450,8 +5450,7 @@ static void uv_isolate_selected_islands(const Scene *scene, BMesh *bm, const BMU
 
   int num_islands = elementmap->total_islands;
   /* Boolean array that tells if island with index i is completely selected or not. */
-  bool *is_island_not_selected = static_cast<bool *>(
-      MEM_callocN(sizeof(bool) * (num_islands), __func__));
+  bool *is_island_not_selected = MEM_calloc_arrayN<bool>((num_islands), __func__);
 
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     BMLoop *l;

@@ -1043,7 +1043,7 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
   int numfiles;
 
   if (sfile->layout == nullptr) {
-    sfile->layout = static_cast<FileLayout *>(MEM_callocN(sizeof(FileLayout), "file_layout"));
+    sfile->layout = MEM_callocN<FileLayout>("file_layout");
     sfile->layout->dirty = true;
   }
   else if (sfile->layout->dirty == false) {

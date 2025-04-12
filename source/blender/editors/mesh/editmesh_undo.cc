@@ -706,8 +706,7 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
 {
   /* Map: `Mesh.id.session_uid` -> `UndoMesh`. */
   GHash *uuid_map = BLI_ghash_ptr_new_ex(__func__, object_len);
-  UndoMesh **um_references = static_cast<UndoMesh **>(
-      MEM_callocN(sizeof(UndoMesh *) * object_len, __func__));
+  UndoMesh **um_references = MEM_calloc_arrayN<UndoMesh *>(object_len, __func__);
   for (int i = 0; i < object_len; i++) {
     const Mesh *mesh = static_cast<const Mesh *>(object[i]->data);
     BLI_ghash_insert(uuid_map, POINTER_FROM_INT(mesh->id.session_uid), &um_references[i]);

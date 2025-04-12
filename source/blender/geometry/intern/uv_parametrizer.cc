@@ -197,7 +197,7 @@ static PHash *phash_new(PHashLink **list, int sizehint)
   }
 
   ph->cursize = PHashSizes[ph->cursize_id];
-  ph->buckets = MEM_calloc_arrayN<PHashLink *>(size_t(ph->cursize), "PHashBuckets");
+  ph->buckets = MEM_calloc_arrayN<PHashLink *>(ph->cursize, "PHashBuckets");
 
   return ph;
 }
@@ -242,7 +242,7 @@ static void phash_insert(PHash *ph, PHashLink *link)
 
     ph->cursize = PHashSizes[++ph->cursize_id];
     MEM_freeN(ph->buckets);
-    ph->buckets = MEM_calloc_arrayN<PHashLink *>(size_t(ph->cursize), "PHashBuckets");
+    ph->buckets = (PHashLink **)MEM_callocN(ph->cursize * sizeof(*ph->buckets), "PHashBuckets");
     ph->size = 0;
     *(ph->list) = nullptr;
 
@@ -1029,7 +1029,7 @@ static void p_split_vert(ParamHandle *handle, PChart *chart, PEdge *e)
 
 static PChart **p_split_charts(ParamHandle *handle, PChart *chart, int ncharts)
 {
-  PChart **charts = MEM_calloc_arrayN<PChart *>(size_t(ncharts), "PCharts");
+  PChart **charts = MEM_calloc_arrayN<PChart *>(ncharts, "PCharts");
 
   for (int i = 0; i < ncharts; i++) {
     charts[i] = MEM_callocN<PChart>("PChart");
@@ -1450,10 +1450,10 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
     if (nnewpoints * 2 > size) {
       size *= 2;
       MEM_freeN(oldpoints);
-      oldpoints = MEM_malloc_arrayN<float[2]>(size_t(size), "oldpoints");
+      oldpoints = MEM_mallocN(sizeof(float[2]) * size, "oldpoints");
       memcpy(oldpoints, newpoints, sizeof(float[2]) * nnewpoints);
       MEM_freeN(newpoints);
-      newpoints = MEM_malloc_arrayN<float[2]>(size_t(size), "newpoints");
+      newpoints = MEM_mallocN(sizeof(float[2]) * size, "newpoints");
     }
     else {
       float(*sw_points)[2] = oldpoints;
@@ -2365,9 +2365,9 @@ static void p_abf_setup_system(PAbfSystem *sys)
   sys->bTriangle = MEM_malloc_arrayN<float>(size_t(sys->nfaces), "ABFbtriangle");
   sys->bInterior = MEM_malloc_arrayN<float>(2 * size_t(sys->ninterior), "ABFbinterior");
 
-  sys->lambdaTriangle = MEM_calloc_arrayN<float>(size_t(sys->nfaces), "ABFlambdatri");
-  sys->lambdaPlanar = MEM_calloc_arrayN<float>(size_t(sys->ninterior), "ABFlamdaplane");
-  sys->lambdaLength = MEM_malloc_arrayN<float>(size_t(sys->ninterior), "ABFlambdalen");
+  sys->lambdaTriangle = MEM_calloc_arrayN<float>(sys->nfaces, "ABFlambdatri");
+  sys->lambdaPlanar = MEM_calloc_arrayN<float>(sys->ninterior, "ABFlamdaplane");
+  sys->lambdaLength = (float *)MEM_mallocN(sizeof(float) * sys->ninterior, "ABFlambdalen");
 
   sys->J2dt = MEM_malloc_arrayN<float[3]>(size_t(sys->nangles), "ABFj2dt");
   sys->bstar = MEM_malloc_arrayN<float>(size_t(sys->nfaces), "ABFbstar");

@@ -723,7 +723,7 @@ void BKE_mesh_calc_relative_deform(const int *face_offsets,
 {
   const blender::OffsetIndices<int> faces({face_offsets, faces_num + 1});
 
-  int *vert_accum = MEM_calloc_arrayN<int>(size_t(totvert), __func__);
+  int *vert_accum = MEM_calloc_arrayN<int>(totvert, __func__);
 
   memset(vert_cos_new, '\0', sizeof(*vert_cos_new) * size_t(totvert));
 

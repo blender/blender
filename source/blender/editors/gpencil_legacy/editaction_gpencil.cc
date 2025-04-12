@@ -76,7 +76,7 @@ void ED_gpencil_layer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlys
   /* loop through gp-frames, adding */
   LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     if ((onlysel == 0) || (gpf->flag & GP_FRAME_SELECT)) {
-      ce = static_cast<CfraElem *>(MEM_callocN(sizeof(CfraElem), "CfraElem"));
+      ce = MEM_callocN<CfraElem>("CfraElem");
 
       ce->cfra = float(gpf->framenum);
       ce->sel = (gpf->flag & GP_FRAME_SELECT) ? 1 : 0;

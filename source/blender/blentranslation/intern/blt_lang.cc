@@ -103,12 +103,12 @@ static void fill_locales()
   num_locales_menu++; /* The "closing" void item... */
 
   /* And now, build locales and locale_menu! */
-  locales_menu = MEM_calloc_arrayN<EnumPropertyItem>(size_t(num_locales_menu), __func__);
+  locales_menu = MEM_calloc_arrayN<EnumPropertyItem>(num_locales_menu, __func__);
   line = lines;
   /* Do not allocate locales with zero-sized mem,
    * as LOCALE macro uses nullptr locales as invalid marker! */
   if (num_locales > 0) {
-    locales = MEM_calloc_arrayN<const char *>(size_t(num_locales), __func__);
+    locales = MEM_calloc_arrayN<const char *>(num_locales, __func__);
     while (line) {
       const char *loc, *sep1, *sep2, *sep3;
 

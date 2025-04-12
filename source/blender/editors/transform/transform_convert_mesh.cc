@@ -1604,15 +1604,13 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     /* Create TransData. */
     BLI_assert(data_len >= 1);
     tc->data_len = data_len;
-    tc->data = static_cast<TransData *>(
-        MEM_callocN(data_len * sizeof(TransData), "TransObData(Mesh EditMode)"));
+    tc->data = MEM_calloc_arrayN<TransData>(data_len, "TransObData(Mesh EditMode)");
     if (t->mode == TFM_SHRINKFATTEN) {
       /* Warning: this is overkill, we only need 2 extra floats,
        * but this stores loads of extra stuff, for TFM_SHRINKFATTEN its even more overkill
        * since we may not use the 'alt' transform mode to maintain shell thickness,
        * but with generic transform code its hard to lazy init variables. */
-      tx = tc->data_ext = static_cast<TransDataExtension *>(
-          MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransObData ext"));
+      tx = tc->data_ext = MEM_calloc_arrayN<TransDataExtension>(tc->data_len, "TransObData ext");
     }
 
     TransData *tob = tc->data;

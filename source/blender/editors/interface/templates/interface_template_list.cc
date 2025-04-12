@@ -228,12 +228,11 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
     int order_idx = 0, i = 0;
 
     if (order_by_name) {
-      names = static_cast<StringCmp *>(MEM_callocN(sizeof(StringCmp) * len, "StringCmp"));
+      names = MEM_calloc_arrayN<StringCmp>(len, "StringCmp");
     }
 
     if (item_filter_fn) {
-      dyn_data->items_filter_flags = static_cast<int *>(
-          MEM_callocN(sizeof(int) * len, "items_filter_flags"));
+      dyn_data->items_filter_flags = MEM_calloc_arrayN<int>(len, "items_filter_flags");
       dyn_data->items_shown = 0;
     }
 

@@ -85,8 +85,7 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
 
-  CameraWidgetGroup *cagzgroup = static_cast<CameraWidgetGroup *>(
-      MEM_callocN(sizeof(CameraWidgetGroup), __func__));
+  CameraWidgetGroup *cagzgroup = MEM_callocN<CameraWidgetGroup>(__func__);
   gzgroup->customdata = cagzgroup;
 
   negate_v3_v3(dir, ob->object_to_world().ptr()[2]);

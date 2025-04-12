@@ -5124,7 +5124,7 @@ static int rna_raw_access(ReportList *reports,
               tmparray = nullptr;
             }
             if (!tmparray) {
-              tmparray = MEM_calloc_arrayN<float>(size_t(itemlen), "RNA tmparray");
+              tmparray = MEM_calloc_arrayN<float>(itemlen, "RNA tmparray");
               tmplen = itemlen;
             }
 
@@ -6764,7 +6764,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
     case PROP_BOOLEAN:
       if (len) {
         if (index == -1) {
-          bool *tmparray = MEM_calloc_arrayN<bool>(size_t(len), __func__);
+          bool *tmparray = MEM_calloc_arrayN<bool>(len, __func__);
 
           RNA_property_boolean_get_default_array(ptr, prop, tmparray);
           RNA_property_boolean_set_array(ptr, prop, tmparray);
@@ -6784,7 +6784,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
     case PROP_INT:
       if (len) {
         if (index == -1) {
-          int *tmparray = MEM_calloc_arrayN<int>(size_t(len), __func__);
+          int *tmparray = MEM_calloc_arrayN<int>(len, __func__);
 
           RNA_property_int_get_default_array(ptr, prop, tmparray);
           RNA_property_int_set_array(ptr, prop, tmparray);
@@ -6804,7 +6804,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
     case PROP_FLOAT:
       if (len) {
         if (index == -1) {
-          float *tmparray = MEM_calloc_arrayN<float>(size_t(len), __func__);
+          float *tmparray = MEM_calloc_arrayN<float>(len, __func__);
 
           RNA_property_float_get_default_array(ptr, prop, tmparray);
           RNA_property_float_set_array(ptr, prop, tmparray);

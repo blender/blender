@@ -675,10 +675,8 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
     tc->poseobj = ob;
 
     /* Initialize trans data. */
-    td = tc->data = static_cast<TransData *>(
-        MEM_callocN(tc->data_len * sizeof(TransData), "TransPoseBone"));
-    tdx = tc->data_ext = static_cast<TransDataExtension *>(
-        MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransPoseBoneExt"));
+    td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransPoseBone");
+    tdx = tc->data_ext = MEM_calloc_arrayN<TransDataExtension>(tc->data_len, "TransPoseBoneExt");
     for (i = 0; i < tc->data_len; i++, td++, tdx++) {
       td->ext = tdx;
       td->val = nullptr;
@@ -812,8 +810,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
-    td = tc->data = static_cast<TransData *>(
-        MEM_callocN(tc->data_len * sizeof(TransData), "TransEditBone"));
+    td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransEditBone");
     int i = 0;
 
     LISTBASE_FOREACH (EditBone *, ebo, edbo) {

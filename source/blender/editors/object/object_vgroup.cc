@@ -1467,7 +1467,7 @@ static bool *vgroup_selected_get(Object *ob)
     }
   }
   else {
-    mask = static_cast<bool *>(MEM_callocN(defbase_tot * sizeof(bool), __func__));
+    mask = MEM_calloc_arrayN<bool>(defbase_tot, __func__);
   }
 
   const int actdef = BKE_object_defgroup_active_index_get(ob);

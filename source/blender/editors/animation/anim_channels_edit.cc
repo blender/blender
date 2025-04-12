@@ -1352,8 +1352,7 @@ static void rearrange_animchannel_add_to_islands(ListBase *islands,
       (bool(island->flag & REORDER_ISLAND_HIDDEN) != is_hidden))
   {
     /* create a new island now */
-    island = static_cast<tReorderChannelIsland *>(
-        MEM_callocN(sizeof(tReorderChannelIsland), "tReorderChannelIsland"));
+    island = MEM_callocN<tReorderChannelIsland>("tReorderChannelIsland");
     BLI_addtail(islands, island);
 
     if (is_sel) {

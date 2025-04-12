@@ -1365,8 +1365,7 @@ static bool area_swap_init(wmOperator *op, const wmEvent *event)
     return false;
   }
 
-  sAreaSwapData *sd = static_cast<sAreaSwapData *>(
-      MEM_callocN(sizeof(sAreaSwapData), "sAreaSwapData"));
+  sAreaSwapData *sd = MEM_callocN<sAreaSwapData>("sAreaSwapData");
   sd->sa1 = sad->sa1;
   sd->sa2 = sad->sa2;
   op->customdata = sd;
@@ -1792,8 +1791,7 @@ static bool area_move_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  sAreaMoveData *md = static_cast<sAreaMoveData *>(
-      MEM_callocN(sizeof(sAreaMoveData), "sAreaMoveData"));
+  sAreaMoveData *md = MEM_callocN<sAreaMoveData>("sAreaMoveData");
   op->customdata = md;
 
   md->dir_axis = screen_geom_edge_is_horizontal(actedge) ? SCREEN_AXIS_H : SCREEN_AXIS_V;
@@ -2244,7 +2242,7 @@ static void area_split_draw_cb(const wmWindow * /*win*/, void *userdata)
 static bool area_split_menu_init(bContext *C, wmOperator *op)
 {
   /* custom data */
-  sAreaSplitData *sd = (sAreaSplitData *)MEM_callocN(sizeof(sAreaSplitData), "op_area_split");
+  sAreaSplitData *sd = MEM_callocN<sAreaSplitData>("op_area_split");
   op->customdata = sd;
 
   sd->sarea = CTX_wm_area(C);
@@ -2266,7 +2264,7 @@ static bool area_split_init(bContext *C, wmOperator *op)
   const eScreenAxis dir_axis = eScreenAxis(RNA_enum_get(op->ptr, "direction"));
 
   /* custom data */
-  sAreaSplitData *sd = (sAreaSplitData *)MEM_callocN(sizeof(sAreaSplitData), "op_area_split");
+  sAreaSplitData *sd = MEM_callocN<sAreaSplitData>("op_area_split");
   op->customdata = sd;
 
   sd->sarea = area;
@@ -2862,8 +2860,7 @@ static wmOperatorStatus region_scale_invoke(bContext *C, wmOperator *op, const w
   AZone *az = sad->az;
 
   if (az->region) {
-    RegionMoveData *rmd = static_cast<RegionMoveData *>(
-        MEM_callocN(sizeof(RegionMoveData), "RegionMoveData"));
+    RegionMoveData *rmd = MEM_callocN<RegionMoveData>("RegionMoveData");
 
     op->customdata = rmd;
 
@@ -3737,8 +3734,7 @@ static bool area_join_init(bContext *C, wmOperator *op, ScrArea *sa1, ScrArea *s
     return false;
   }
 
-  sAreaJoinData *jd = static_cast<sAreaJoinData *>(
-      MEM_callocN(sizeof(sAreaJoinData), "op_area_join"));
+  sAreaJoinData *jd = MEM_callocN<sAreaJoinData>("op_area_join");
   jd->sa1 = sa1;
   jd->sa2 = sa2;
   jd->dir = area_getorientation(sa1, sa2);
@@ -6381,8 +6377,7 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
 
     region_blend_end(C, region, true);
   }
-  RegionAlphaInfo *rgi = static_cast<RegionAlphaInfo *>(
-      MEM_callocN(sizeof(RegionAlphaInfo), "RegionAlphaInfo"));
+  RegionAlphaInfo *rgi = MEM_callocN<RegionAlphaInfo>("RegionAlphaInfo");
 
   rgi->hidden = region->flag & RGN_FLAG_HIDDEN;
   rgi->area = area;

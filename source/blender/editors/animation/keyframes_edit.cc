@@ -845,7 +845,7 @@ short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* only if selected */
   if (bezt->f2 & SELECT) {
-    CfraElem *ce = static_cast<CfraElem *>(MEM_callocN(sizeof(CfraElem), "cfraElem"));
+    CfraElem *ce = MEM_callocN<CfraElem>("cfraElem");
     BLI_addtail(&ked->list, ce);
 
     ce->cfra = bezt->vec[1][0];

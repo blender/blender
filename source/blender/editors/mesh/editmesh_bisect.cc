@@ -686,7 +686,7 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
     return;
   }
 
-  GizmoGroup *ggd = static_cast<GizmoGroup *>(MEM_callocN(sizeof(GizmoGroup), __func__));
+  GizmoGroup *ggd = MEM_callocN<GizmoGroup>(__func__);
   gzgroup->customdata = ggd;
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);

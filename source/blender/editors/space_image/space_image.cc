@@ -1176,7 +1176,7 @@ void ED_spacetype_image()
   st->blend_write = image_space_blend_write;
 
   /* regions: main window */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype image region"));
+  art = MEM_callocN<ARegionType>("spacetype image region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_GIZMO | ED_KEYMAP_TOOL | ED_KEYMAP_FRAMES | ED_KEYMAP_GPENCIL;
   art->init = image_main_region_init;
@@ -1185,7 +1185,7 @@ void ED_spacetype_image()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: list-view/buttons/scopes */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype image region"));
+  art = MEM_callocN<ARegionType>("spacetype image region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
@@ -1200,7 +1200,7 @@ void ED_spacetype_image()
   image_buttons_register(art);
 
   /* regions: tool(bar) */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype image region"));
+  art = MEM_callocN<ARegionType>("spacetype image region");
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = int(UI_TOOLBAR_WIDTH);
   art->prefsizey = 50; /* XXX */
@@ -1213,8 +1213,7 @@ void ED_spacetype_image()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: tool header */
-  art = static_cast<ARegionType *>(
-      MEM_callocN(sizeof(ARegionType), "spacetype image tool header region"));
+  art = MEM_callocN<ARegionType>("spacetype image tool header region");
   art->regionid = RGN_TYPE_TOOL_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -1225,7 +1224,7 @@ void ED_spacetype_image()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype image region"));
+  art = MEM_callocN<ARegionType>("spacetype image region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;

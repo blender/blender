@@ -361,12 +361,10 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
   /* Allocate memory for data. */
   tc->data_len = count;
 
-  tc->data = static_cast<TransData *>(
-      MEM_callocN(tc->data_len * sizeof(TransData), "TransData (Graph Editor)"));
+  tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransData (Graph Editor)");
   /* For each 2d vert a 3d vector is allocated,
    * so that they can be treated just as if they were 3d verts. */
-  tc->data_2d = static_cast<TransData2D *>(
-      MEM_callocN(tc->data_len * sizeof(TransData2D), "TransData2D (Graph Editor)"));
+  tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransData2D (Graph Editor)");
   tc->custom.type.data = MEM_callocN(tc->data_len * sizeof(TransDataGraph), "TransDataGraph");
   tc->custom.type.use_free = true;
 

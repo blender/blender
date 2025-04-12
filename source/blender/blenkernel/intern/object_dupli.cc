@@ -1495,7 +1495,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
         FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
       }
 
-      oblist = MEM_calloc_arrayN<Object *>(size_t(totcollection), "dupcollection object list");
+      oblist = MEM_calloc_arrayN<Object *>(totcollection, "dupcollection object list");
 
       if (use_collection_count) {
         a = 0;

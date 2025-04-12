@@ -1037,8 +1037,7 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 
 static BMEditSelection *bm_select_history_create(BMHeader *ele)
 {
-  BMEditSelection *ese = (BMEditSelection *)MEM_callocN(sizeof(BMEditSelection),
-                                                        "BMEdit Selection");
+  BMEditSelection *ese = MEM_callocN<BMEditSelection>("BMEdit Selection");
   ese->htype = ele->htype;
   ese->ele = (BMElem *)ele;
   return ese;

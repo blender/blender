@@ -36,11 +36,9 @@ static void createTransCursor_2D_impl(TransInfo *t, float cursor_location[2])
     BLI_assert(t->data_container_len == 1);
     TransDataContainer *tc = t->data_container;
     tc->data_len = 1;
-    td = tc->data = static_cast<TransData *>(MEM_callocN(sizeof(TransData), "TransTexspace"));
-    td2d = tc->data_2d = static_cast<TransData2D *>(
-        MEM_callocN(tc->data_len * sizeof(TransData2D), "TransObData2D(Cursor)"));
-    td->ext = tc->data_ext = static_cast<TransDataExtension *>(
-        MEM_callocN(sizeof(TransDataExtension), "TransCursorExt"));
+    td = tc->data = MEM_callocN<TransData>("TransTexspace");
+    td2d = tc->data_2d = MEM_calloc_arrayN<TransData2D>(tc->data_len, "TransObData2D(Cursor)");
+    td->ext = tc->data_ext = MEM_callocN<TransDataExtension>("TransCursorExt");
   }
 
   td->flag = TD_SELECTED;
@@ -138,9 +136,8 @@ static void createTransCursor_view3d(bContext * /*C*/, TransInfo *t)
     BLI_assert(t->data_container_len == 1);
     TransDataContainer *tc = t->data_container;
     tc->data_len = 1;
-    td = tc->data = static_cast<TransData *>(MEM_callocN(sizeof(TransData), "TransTexspace"));
-    td->ext = tc->data_ext = static_cast<TransDataExtension *>(
-        MEM_callocN(sizeof(TransDataExtension), "TransTexspace"));
+    td = tc->data = MEM_callocN<TransData>("TransTexspace");
+    td->ext = tc->data_ext = MEM_callocN<TransDataExtension>("TransTexspace");
   }
 
   td->flag = TD_SELECTED;

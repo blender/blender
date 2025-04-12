@@ -2138,8 +2138,8 @@ static StitchState *stitch_init(bContext *C,
     }
   }
 
-  state->island_is_stitchable = static_cast<bool *>(
-      MEM_callocN(sizeof(bool) * state->element_map->total_islands, "stitch I stops"));
+  state->island_is_stitchable = MEM_calloc_arrayN<bool>(state->element_map->total_islands,
+                                                        "stitch I stops");
   if (!state->island_is_stitchable) {
     state_delete(state);
     return nullptr;
@@ -2243,10 +2243,8 @@ static int stitch_init_all(bContext *C, wmOperator *op)
     }
   }
 
-  ssc->objects = static_cast<Object **>(
-      MEM_callocN(sizeof(Object *) * objects.size(), "Object *ssc->objects"));
-  ssc->states = static_cast<StitchState **>(
-      MEM_callocN(sizeof(StitchState *) * objects.size(), "StitchState"));
+  ssc->objects = MEM_calloc_arrayN<Object *>(objects.size(), "Object *ssc->objects");
+  ssc->states = MEM_calloc_arrayN<StitchState *>(objects.size(), "StitchState");
   ssc->objects_len = 0;
 
   int *objs_selection_count = nullptr;
@@ -2268,8 +2266,7 @@ static int stitch_init_all(bContext *C, wmOperator *op)
       total_selected += objs_selection_count[ob_index];
     }
 
-    selected_uvs_arr = static_cast<UvElementID *>(
-        MEM_callocN(sizeof(UvElementID) * total_selected, "selected_uvs_arr"));
+    selected_uvs_arr = MEM_calloc_arrayN<UvElementID>(total_selected, "selected_uvs_arr");
     int sel_idx = 0;
     RNA_BEGIN (op->ptr, itemptr, "selection") {
       BLI_assert(sel_idx < total_selected);
@@ -2281,8 +2278,7 @@ static int stitch_init_all(bContext *C, wmOperator *op)
 
     RNA_collection_clear(op->ptr, "selection");
 
-    state_init = static_cast<StitchStateInit *>(
-        MEM_callocN(sizeof(StitchStateInit), "UV_init_selected"));
+    state_init = MEM_callocN<StitchStateInit>("UV_init_selected");
     state_init->to_select = selected_uvs_arr;
   }
 

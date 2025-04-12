@@ -723,7 +723,7 @@ static void ui_item_array(uiLayout *layout,
                                        blender::ui::EmbossType::None,
                                        blender::ui::EmbossType::Pulldown))
       {
-        boolarr = static_cast<bool *>(MEM_callocN(sizeof(bool) * len, __func__));
+        boolarr = MEM_calloc_arrayN<bool>(len, __func__);
         RNA_property_boolean_get_array(ptr, prop, boolarr);
       }
 

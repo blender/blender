@@ -1324,15 +1324,12 @@ OceanCache *BKE_ocean_init_cache(const char *bakepath,
   och->resolution_x = resolution * resolution;
   och->resolution_y = resolution * resolution;
 
-  och->ibufs_disp = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration),
-                                               "displacement imbuf pointer array");
-  och->ibufs_foam = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration), "foam imbuf pointer array");
-  och->ibufs_spray = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration),
-                                                "spray imbuf pointer array");
-  och->ibufs_spray_inverse = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration),
+  och->ibufs_disp = MEM_calloc_arrayN<ImBuf *>(och->duration, "displacement imbuf pointer array");
+  och->ibufs_foam = MEM_calloc_arrayN<ImBuf *>(och->duration, "foam imbuf pointer array");
+  och->ibufs_spray = MEM_calloc_arrayN<ImBuf *>(och->duration, "spray imbuf pointer array");
+  och->ibufs_spray_inverse = MEM_calloc_arrayN<ImBuf *>(och->duration,
                                                         "spray_inverse imbuf pointer array");
-  och->ibufs_norm = MEM_calloc_arrayN<ImBuf *>(size_t(och->duration),
-                                               "normal imbuf pointer array");
+  och->ibufs_norm = MEM_calloc_arrayN<ImBuf *>(och->duration, "normal imbuf pointer array");
 
   och->time = nullptr;
 

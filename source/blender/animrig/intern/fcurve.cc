@@ -576,7 +576,7 @@ void bake_fcurve(FCurve *fcu,
 {
   BLI_assert(step > 0);
   const int sample_count = (range[1] - range[0]) / step + 1;
-  float *samples = MEM_calloc_arrayN<float>(size_t(sample_count), "Channel Bake Samples");
+  float *samples = MEM_calloc_arrayN<float>(sample_count, "Channel Bake Samples");
   const float sample_rate = 1.0f / step;
   sample_fcurve_segment(fcu, range[0], sample_rate, samples, sample_count);
 
@@ -584,7 +584,7 @@ void bake_fcurve(FCurve *fcu,
     remove_fcurve_key_range(fcu, range, remove_existing);
   }
 
-  BezTriple *baked_keys = MEM_calloc_arrayN<BezTriple>(size_t(sample_count), "beztriple");
+  BezTriple *baked_keys = MEM_calloc_arrayN<BezTriple>(sample_count, "beztriple");
 
   const KeyframeSettings settings = get_keyframe_settings(true);
 
@@ -655,7 +655,7 @@ void bake_fcurve_segments(FCurve *fcu)
         sfra = int(floor(start->vec[1][0]));
 
         if (range) {
-          value_cache = MEM_calloc_arrayN<TempFrameValCache>(size_t(range), "IcuFrameValCache");
+          value_cache = MEM_calloc_arrayN<TempFrameValCache>(range, "IcuFrameValCache");
 
           /* Sample values. */
           for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {

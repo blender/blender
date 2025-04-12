@@ -2809,7 +2809,7 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
 
   /* ensure color management bit fields exists */
   if (!ibuf->display_buffer_flags) {
-    ibuf->display_buffer_flags = MEM_calloc_arrayN<uint>(size_t(global_tot_display),
+    ibuf->display_buffer_flags = MEM_calloc_arrayN<uint>(global_tot_display,
                                                          "imbuf display_buffer_flags");
   }
   else if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {

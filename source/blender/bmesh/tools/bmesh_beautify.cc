@@ -306,8 +306,7 @@ void BM_mesh_beautify_fill(BMesh *bm,
   Heap *eheap;            /* edge heap */
   HeapNode **eheap_table; /* edge index aligned table pointing to the eheap */
 
-  GSet **edge_state_arr = static_cast<GSet **>(
-      MEM_callocN(size_t(edge_array_len) * sizeof(GSet *), __func__));
+  GSet **edge_state_arr = MEM_calloc_arrayN<GSet *>(edge_array_len, __func__);
   BLI_mempool *edge_state_pool = BLI_mempool_create(sizeof(EdRotState), 0, 512, BLI_MEMPOOL_NOP);
   int i;
 

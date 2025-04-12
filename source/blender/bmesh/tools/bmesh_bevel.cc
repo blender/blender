@@ -5015,7 +5015,7 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
   int clstride = 3 * (ns2 + 1);
   float *centerline = static_cast<float *>(
       MEM_mallocN(sizeof(float) * clstride * n_bndv, "bevel"));
-  bool *cset = static_cast<bool *>(MEM_callocN(sizeof(bool) * n_bndv, "bevel"));
+  bool *cset = MEM_calloc_arrayN<bool>(n_bndv, "bevel");
 
   /* Find on_edge, place on bndv[i]'s elast where offset line would meet,
    * taking min-distance-to bv->v with position where next sector's offset line would meet. */

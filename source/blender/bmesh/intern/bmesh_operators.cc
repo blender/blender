@@ -1467,7 +1467,7 @@ void BMO_error_clear(BMesh *bm)
 
 void BMO_error_raise(BMesh *bm, BMOperator *owner, eBMOpErrorLevel level, const char *msg)
 {
-  BMOpError *err = static_cast<BMOpError *>(MEM_callocN(sizeof(BMOpError), "bmop_error"));
+  BMOpError *err = MEM_callocN<BMOpError>("bmop_error");
 
   err->msg = msg;
   err->op = owner;
