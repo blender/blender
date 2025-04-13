@@ -32,6 +32,7 @@
 
 #include "MOD_nodes.hh"
 
+#include "NOD_geo_closure.hh"
 #include "NOD_geometry_nodes_dependencies.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
@@ -727,6 +728,9 @@ class NodeTreeMainUpdater {
     }
     if (node.is_type("GeometryNodeCaptureAttribute")) {
       return &node.input_socket(output_socket->index());
+    }
+    if (node.is_type("GeometryNodeEvaluateClosure")) {
+      return nodes::evaluate_closure_node_internally_linked_input(*output_socket);
     }
     for (const bNodeSocket *input_socket : node.input_sockets()) {
       if (!input_socket->is_available()) {

@@ -336,4 +336,10 @@ struct EvaluateClosureOutputItemsAccessor {
   }
 };
 
+/**
+ * Gets an input socket that can be considered to be internally linked to the given output, or
+ * null if there is none.
+ */
+const bNodeSocket *evaluate_closure_node_internally_linked_input(const bNodeSocket &output_socket);
+
 }  // namespace blender::nodes
