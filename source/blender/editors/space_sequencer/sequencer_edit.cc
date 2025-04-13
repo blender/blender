@@ -468,178 +468,77 @@ void SEQUENCER_OT_snap(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Trim Strips Operator
+/** \name Slip Strips Operator
  * \{ */
 
-struct SlipData {
-  float init_mouseloc[2];
-  int previous_offset;
-  float previous_subframe_offset;
-  float subframe_restore;
-  Strip **strip_array;
-  int num_seq;
-  bool slow;
-  int slow_offset; /* Offset at the point where offset was turned on. */
-  NumInput num_input;
+/* Modal Keymap */
+enum {
+  SLIP_MODAL_CANCEL = 1,
+  SLIP_MODAL_CONFIRM,
+  SLIP_MODAL_PRECISION_ENABLE,
+  SLIP_MODAL_PRECISION_DISABLE,
+  SLIP_MODAL_CLAMP_TOGGLE,
 };
 
-static void slip_add_sequences(ListBase *seqbasep, Strip **strip_array)
-{
-  int i = 0;
+struct SlipData {
+  NumInput num_input;
+  /* Initial mouse position in viewspace. */
+  float init_mouse_co[2];
+  /* Mouse and virtual mouse-cursor x-values in regionspace. */
+  int prev_mval_x;
+  float virtual_mval_x;
+  /* Parsed offset (integer when in precision mode, float otherwise).*/
+  float prev_offset;
+  VectorSet<Strip *> strips;
+  bool precision;
+  bool clamp;
+  /* Determines whether to show subframe offset in header. */
+  bool show_subframe;
+};
 
-  LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-    if (!(strip->type & STRIP_TYPE_EFFECT) && (strip->flag & SELECT)) {
-      strip_array[i] = strip;
-      i++;
-    }
+void slip_modal_keymap(wmKeyConfig *keyconf)
+{
+  static const EnumPropertyItem modal_items[] = {
+      {SLIP_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
+      {SLIP_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+
+      {SLIP_MODAL_PRECISION_ENABLE, "PRECISION_ENABLE", 0, "Precision Enable", ""},
+      {SLIP_MODAL_PRECISION_DISABLE, "PRECISION_DISABLE", 0, "Precision Disable", ""},
+      {SLIP_MODAL_CLAMP_TOGGLE, "CLAMP_TOGGLE", 0, "Clamp Toggle", ""},
+
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Slip Modal");
+
+  /* This function is called for each space-type, only needs to add map once. */
+  if (keymap && keymap->modal_items) {
+    return;
   }
+
+  keymap = WM_modalkeymap_ensure(keyconf, "Slip Modal", modal_items);
+
+  /* Assign map to operators. */
+  WM_modalkeymap_assign(keymap, "SEQUENCER_OT_slip");
 }
 
-static int slip_count_sequences(ListBase *seqbasep)
+static void slip_draw_status(bContext *C, const wmOperator *op)
 {
-  int trimmed_sequences = 0;
+  SlipData *data = static_cast<SlipData *>(op->customdata);
 
-  LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-    if (!(strip->type & STRIP_TYPE_EFFECT) && (strip->flag & SELECT)) {
-      trimmed_sequences++;
-    }
-  }
+  WorkspaceStatus status(C);
 
-  return trimmed_sequences;
+  status.opmodal(IFACE_("Confirm"), op->type, SLIP_MODAL_CONFIRM);
+  status.opmodal(IFACE_("Cancel"), op->type, SLIP_MODAL_CANCEL);
+
+  status.opmodal(IFACE_("Precision"), op->type, SLIP_MODAL_PRECISION_ENABLE, data->precision);
+  status.opmodal(IFACE_("Clamp"), op->type, SLIP_MODAL_CLAMP_TOGGLE, data->clamp);
 }
 
-static wmOperatorStatus sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  SlipData *data;
-  Scene *scene = CTX_data_scene(C);
-  Editing *ed = seq::editing_get(scene);
-  float mouseloc[2];
-  int num_seq;
-  View2D *v2d = UI_view2d_fromcontext(C);
-
-  /* Count the amount of elements to trim. */
-  num_seq = slip_count_sequences(ed->seqbasep);
-
-  if (num_seq == 0) {
-    return OPERATOR_CANCELLED;
-  }
-
-  data = MEM_callocN<SlipData>("trimdata");
-  op->customdata = static_cast<void *>(data);
-  data->strip_array = MEM_calloc_arrayN<Strip *>(num_seq, "trimdata_strips");
-  data->num_seq = num_seq;
-  data->previous_offset = 0;
-
-  initNumInput(&data->num_input);
-  data->num_input.idx_max = 0;
-  data->num_input.unit_sys = USER_UNIT_NONE;
-  data->num_input.unit_type[0] = 0;
-
-  slip_add_sequences(ed->seqbasep, data->strip_array);
-
-  UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouseloc[0], &mouseloc[1]);
-
-  copy_v2_v2(data->init_mouseloc, mouseloc);
-
-  data->slow = false;
-
-  WM_event_add_modal_handler(C, op);
-
-  /* Notify so we draw extensions immediately. */
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-
-  return OPERATOR_RUNNING_MODAL;
-}
-
-static void sequencer_slip_strips(
-    Scene *scene, SlipData *data, int delta, float subframe_delta, bool slip_keyframes)
-{
-  for (int i = data->num_seq - 1; i >= 0; i--) {
-    Strip *strip = data->strip_array[i];
-
-    ListBase *channels = seq::channels_displayed_get(seq::editing_get(scene));
-    if (seq::transform_is_locked(channels, strip)) {
-      continue;
-    }
-
-    seq::time_slip_strip(scene, strip, delta, subframe_delta, slip_keyframes);
-  }
-
-  for (int i = data->num_seq - 1; i >= 0; i--) {
-    Strip *strip = data->strip_array[i];
-    seq::relations_invalidate_cache_preprocessed(scene, strip);
-  }
-}
-
-/* Make sure, that each strip contains at least 1 frame of content.
- * Returns clamped offset relative to current strip positions. */
-static int sequencer_slip_apply_limits(const Scene *scene, SlipData *data, int *offset)
-{
-  int delta_offset = *offset - data->previous_offset;
-
-  for (int i = 0; i < data->num_seq; i++) {
-    Strip *strip = data->strip_array[i];
-    int strip_content_start = seq::time_start_frame_get(strip) + delta_offset;
-    int strip_content_end = strip_content_start + strip->len + strip->anim_startofs +
-                            strip->anim_endofs;
-    int diff = 0;
-
-    if (strip_content_start >= seq::time_right_handle_frame_get(scene, strip)) {
-      diff = seq::time_right_handle_frame_get(scene, strip) - strip_content_start - 1;
-    }
-
-    if (strip_content_end <= seq::time_left_handle_frame_get(scene, strip)) {
-      diff = seq::time_left_handle_frame_get(scene, strip) - strip_content_end + 1;
-    }
-    *offset += diff;
-    delta_offset += diff;
-  }
-  data->previous_offset = *offset;
-
-  return delta_offset;
-}
-
-static wmOperatorStatus sequencer_slip_exec(bContext *C, wmOperator *op)
-{
-  Scene *scene = CTX_data_scene(C);
-  Editing *ed = seq::editing_get(scene);
-
-  /* Count the amount of elements to trim. */
-  int num_seq = slip_count_sequences(ed->seqbasep);
-
-  if (num_seq == 0) {
-    return OPERATOR_CANCELLED;
-  }
-
-  SlipData *data = MEM_callocN<SlipData>("trimdata");
-  op->customdata = static_cast<void *>(data);
-  data->strip_array = MEM_calloc_arrayN<Strip *>(num_seq, "trimdata_strips");
-  data->num_seq = num_seq;
-
-  slip_add_sequences(ed->seqbasep, data->strip_array);
-
-  bool slip_keyframes = RNA_boolean_get(op->ptr, "slip_keyframes");
-  float offset_fl = RNA_float_get(op->ptr, "offset");
-  int offset = round_fl_to_int(offset_fl);
-
-  float subframe_delta = 0.0f;
-  if (std::trunc(offset_fl) != offset_fl) {
-    /* Only apply subframe offsets if the input is not an integer. */
-    subframe_delta = offset_fl - offset;
-  }
-
-  sequencer_slip_apply_limits(scene, data, &offset);
-  sequencer_slip_strips(scene, data, offset, subframe_delta, slip_keyframes);
-
-  MEM_freeN(data->strip_array);
-  MEM_freeN(data);
-
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
-  return OPERATOR_FINISHED;
-}
-
-static void sequencer_slip_update_header(Scene *scene, ScrArea *area, SlipData *data, int offset)
+static void slip_update_header(const Scene *scene,
+                               ScrArea *area,
+                               SlipData *data,
+                               const float offset)
 {
   if (area == nullptr) {
     return;
@@ -649,168 +548,297 @@ static void sequencer_slip_update_header(Scene *scene, ScrArea *area, SlipData *
   if (hasNumInput(&data->num_input)) {
     char num_str[NUM_STR_REP_LEN];
     outputNumInput(&data->num_input, num_str, scene->unit);
-    SNPRINTF(msg, IFACE_("Slip offset: %s"), num_str);
+    SNPRINTF(msg, IFACE_("Slip Offset: Frames: %s"), num_str);
   }
   else {
-    SNPRINTF(msg, IFACE_("Slip offset: %d"), offset);
+    int frame_offset = std::trunc(offset);
+    if (data->show_subframe) {
+      float subframe_offset_sec = (offset - std::trunc(offset)) / FPS;
+      SNPRINTF(msg,
+               IFACE_("Slip Offset: Frames: %d Sound Offset: %.3f"),
+               frame_offset,
+               subframe_offset_sec);
+    }
+    else {
+      SNPRINTF(msg, IFACE_("Slip Offset: Frames: %d"), frame_offset);
+    }
   }
 
   ED_area_status_text(area, msg);
 }
 
-static void handle_number_input(
-    bContext *C, wmOperator *op, ScrArea *area, SlipData *data, Scene *scene)
+static SlipData *slip_data_init(const Scene *scene)
 {
-  float offset_fl;
-  applyNumInput(&data->num_input, &offset_fl);
-  int offset = round_fl_to_int(offset_fl);
+  Editing *ed = seq::editing_get(scene);
+  SlipData *data = MEM_new<SlipData>("slipdata");
 
-  const int delta_offset = sequencer_slip_apply_limits(scene, data, &offset);
-  sequencer_slip_update_header(scene, area, data, offset);
+  VectorSet<Strip *> strips = seq::query_selected_strips(ed->seqbasep);
+  ListBase *channels = seq::channels_displayed_get(seq::editing_get(scene));
+  strips.remove_if([&](Strip *strip) {
+    return ((strip->type & STRIP_TYPE_EFFECT) || seq::transform_is_locked(channels, strip));
+  });
+  if (strips.is_empty()) {
+    return nullptr;
+  }
+  data->strips = strips;
 
-  RNA_float_set(op->ptr, "offset", offset_fl);
+  data->show_subframe = false;
+  data->clamp = true;
+  for (Strip *strip : strips) {
+    strip->flag |= SEQ_SHOW_OFFSETS;
+    /* If any strips start out with hold offsets visible, disable clamping on initialization. */
+    if (strip->startofs < 0 || strip->endofs < 0) {
+      data->clamp = false;
+    }
+    /* Only show subframe information in the header if the user operates on sound strips. */
+    if (strip->type == STRIP_TYPE_SOUND_RAM) {
+      data->show_subframe = true;
+    }
+  }
+
+  return data;
+}
+
+static wmOperatorStatus sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Scene *scene = CTX_data_scene(C);
+  ScrArea *area = CTX_wm_area(C);
+  View2D *v2d = UI_view2d_fromcontext(C);
+
+  SlipData *data = slip_data_init(scene);
+  if (data == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  op->customdata = data;
+
+  initNumInput(&data->num_input);
+  UI_view2d_region_to_view(
+      v2d, event->mval[0], event->mval[1], &data->init_mouse_co[0], &data->init_mouse_co[1]);
+  data->precision = false;
+  data->prev_offset = 0.0f;
+  data->prev_mval_x = event->mval[0];
+  data->virtual_mval_x = event->mval[0];
+
+  slip_draw_status(C, op);
+  slip_update_header(scene, area, data, 0.0f);
+
+  WM_event_add_modal_handler(C, op);
+
+  /* Enable cursor wrapping. */
+  op->type->flag |= OPTYPE_GRAB_CURSOR_X;
+
+  /* Notify so we draw extensions immediately. */
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static void slip_strips_delta(wmOperator *op, Scene *scene, SlipData *data, const float delta)
+{
+  float new_offset = data->prev_offset + delta;
+  /* Calculate rounded whole frames between offsets, which cannot be determined from `delta` alone.
+   * For example, 0.9 -> 1.0 would have a `delta` of 0.1 and a `frame_delta` of 1. */
+  int frame_delta = std::trunc(new_offset) - std::trunc(data->prev_offset);
 
   float subframe_delta = 0.0f;
-  if (data->subframe_restore != 0.0f) {
-    /* Always remove the previous sub-frame adjustments we have potentially made with the mouse
-     * input when the user starts entering values by hand.
-     */
-    subframe_delta = -data->subframe_restore;
-    data->subframe_restore = 0.0f;
+  /* Only apply subframe delta if the input is not an integer. */
+  if (std::trunc(delta) != delta) {
+    /* Note that `subframe_delta` has opposite sign to `frame_delta`
+     * when `abs(delta)` < `abs(frame_delta)` to undo its effect.  */
+    subframe_delta = delta - frame_delta;
   }
-  if (std::trunc(offset_fl) != offset_fl) {
-    /* Only apply sub-frame offsets if the input is not an integer. */
-    subframe_delta = offset_fl - data->previous_subframe_offset - delta_offset;
-    data->subframe_restore += subframe_delta;
-  }
-  data->previous_subframe_offset = offset_fl;
 
   bool slip_keyframes = RNA_boolean_get(op->ptr, "slip_keyframes");
-  sequencer_slip_strips(scene, data, delta_offset, subframe_delta, slip_keyframes);
+  for (Strip *strip : data->strips) {
+    seq::time_slip_strip(scene, strip, frame_delta, subframe_delta, slip_keyframes);
+    seq::relations_invalidate_cache_preprocessed(scene, strip);
+  }
+
+  RNA_float_set(op->ptr, "offset", new_offset);
+  data->prev_offset = new_offset;
+}
+
+static void slip_cleanup(bContext *C, wmOperator *op, Scene *scene)
+{
+  ScrArea *area = CTX_wm_area(C);
+  SlipData *data = static_cast<SlipData *>(op->customdata);
+
+  for (Strip *strip : data->strips) {
+    strip->flag &= ~SEQ_SHOW_OFFSETS;
+  }
+
+  MEM_SAFE_DELETE(data);
+  if (area) {
+    ED_area_status_text(area, nullptr);
+  }
+  ED_workspace_status_text(C, nullptr);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+}
+
+/* Returns clamped offset delta relative to current strip positions,
+ * which is the sum of the frame delta and the subframe delta. */
+static float slip_apply_clamp(const Scene *scene, const SlipData *data, float *r_offset)
+{
+  float offset_delta = *r_offset - data->prev_offset;
+
+  for (Strip *strip : data->strips) {
+    const float unclamped_start = seq::time_start_frame_get(strip) + strip->sound_offset +
+                                  offset_delta;
+    const float unclamped_end = seq::time_content_end_frame_get(scene, strip) +
+                                strip->sound_offset + offset_delta;
+
+    const float left_handle = seq::time_left_handle_frame_get(scene, strip);
+    const float right_handle = seq::time_right_handle_frame_get(scene, strip);
+
+    float diff = 0;
+
+    /* Clamp hold offsets if the option is currently enabled
+     * and if there are enough frames to fill the strip. */
+    if (data->clamp && strip->len >= right_handle - left_handle) {
+      if (unclamped_start > left_handle) {
+        diff = left_handle - unclamped_start;
+      }
+      else if (unclamped_end < right_handle) {
+        diff = right_handle - unclamped_end;
+      }
+    }
+    /* Always make sure each strip contains at least 1 frame of content,
+     * even if the user hasn't enabled clamping. */
+    else {
+      if (unclamped_start > right_handle - 1) {
+        diff = right_handle - 1 - unclamped_start;
+      }
+
+      if (unclamped_end < left_handle + 1) {
+        diff = left_handle + 1 - unclamped_end;
+      }
+    }
+
+    *r_offset += diff;
+    offset_delta += diff;
+  }
+
+  return offset_delta;
+}
+
+static wmOperatorStatus sequencer_slip_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+
+  SlipData *data = slip_data_init(scene);
+  if (data == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  op->customdata = data;
+
+  float offset = RNA_float_get(op->ptr, "offset");
+  slip_apply_clamp(scene, data, &offset);
+
+  slip_strips_delta(op, scene, data, offset);
+  slip_cleanup(C, op, scene);
+  return OPERATOR_FINISHED;
+}
+
+static void slip_handle_num_input(
+    const bContext *C, wmOperator *op, ScrArea *area, SlipData *data, Scene *scene)
+{
+  float offset;
+  applyNumInput(&data->num_input, &offset);
+
+  const float offset_delta = slip_apply_clamp(scene, data, &offset);
+  slip_update_header(scene, area, data, offset);
+  RNA_float_set(op->ptr, "offset", offset);
+
+  slip_strips_delta(op, scene, data, offset_delta);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 }
 
 static wmOperatorStatus sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_scene(C);
-  SlipData *data = (SlipData *)op->customdata;
+  SlipData *data = static_cast<SlipData *>(op->customdata);
   ScrArea *area = CTX_wm_area(C);
-  const bool has_numInput = hasNumInput(&data->num_input);
-  bool handled = true;
+  const bool has_num_input = hasNumInput(&data->num_input);
 
-  /* Modal numinput active, try to handle numeric inputs. */
-  if (event->val == KM_PRESS && has_numInput && handleNumInput(C, &data->num_input, event)) {
-    handle_number_input(C, op, area, data, scene);
+  if (event->val == KM_PRESS && handleNumInput(C, &data->num_input, event)) {
+    slip_handle_num_input(C, op, area, data, scene);
     return OPERATOR_RUNNING_MODAL;
   }
 
-  switch (event->type) {
-    case MOUSEMOVE: {
-      if (!has_numInput) {
-        float mouseloc[2];
-        int offset;
-        float mouse_x;
-        View2D *v2d = UI_view2d_fromcontext(C);
-
-        if (data->slow) {
-          mouse_x = event->mval[0] - data->slow_offset;
-          mouse_x *= 0.1f;
-          mouse_x += data->slow_offset;
-        }
-        else {
-          mouse_x = event->mval[0];
-        }
-
-        /* Choose the side based on which side of the current frame the mouse is. */
-        UI_view2d_region_to_view(v2d, mouse_x, 0, &mouseloc[0], &mouseloc[1]);
-        float offset_fl = mouseloc[0] - data->init_mouseloc[0];
-        offset = offset_fl;
-
-        const int delta_offset = sequencer_slip_apply_limits(scene, data, &offset);
-        sequencer_slip_update_header(scene, area, data, offset);
-
-        if (!data->slow) {
-          RNA_float_set(op->ptr, "offset", offset);
-        }
-        float subframe_delta = 0.0f;
-        if (data->slow) {
-          RNA_float_set(op->ptr, "offset", offset_fl);
-          subframe_delta = offset_fl - data->previous_subframe_offset - delta_offset;
-          data->subframe_restore += subframe_delta;
-        }
-        else if (data->subframe_restore != 0.0f) {
-          /* If we exit slow mode, make sure we undo the fractional adjustments we have done. */
-          subframe_delta = -data->subframe_restore;
-          data->subframe_restore = 0.0f;
-        }
-        data->previous_subframe_offset = offset_fl;
-
-        bool slip_keyframes = RNA_boolean_get(op->ptr, "slip_keyframes");
-        sequencer_slip_strips(scene, data, delta_offset, subframe_delta, slip_keyframes);
-
-        WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  if (event->type == EVT_MODAL_MAP) {
+    switch (event->val) {
+      case SLIP_MODAL_CONFIRM: {
+        slip_cleanup(C, op, scene);
+        return OPERATOR_FINISHED;
       }
-      break;
+      case SLIP_MODAL_CANCEL: {
+        slip_strips_delta(op, scene, data, -data->prev_offset);
+        slip_cleanup(C, op, scene);
+        return OPERATOR_CANCELLED;
+      }
+      case SLIP_MODAL_PRECISION_ENABLE:
+        if (!has_num_input) {
+          data->precision = true;
+          /* Align virtual mouse pointer with the truncated frame to avoid jumps. */
+          float mouse_co[2];
+          UI_view2d_region_to_view(v2d, data->virtual_mval_x, 0.0f, &mouse_co[0], &mouse_co[1]);
+          float offset = mouse_co[0] - data->init_mouse_co[0];
+          float subframe_offset = offset - std::trunc(offset);
+          data->virtual_mval_x += -subframe_offset * UI_view2d_scale_get_x(v2d);
+        }
+        break;
+      case SLIP_MODAL_PRECISION_DISABLE:
+        if (!has_num_input) {
+          data->precision = false;
+          /* If we exit precision mode, make sure we undo the fractional adjustments and align the
+           * virtual mouse pointer. */
+          float to_nearest_frame = -(data->prev_offset - round_fl_to_int(data->prev_offset));
+          slip_strips_delta(op, scene, data, to_nearest_frame);
+          data->virtual_mval_x += to_nearest_frame * UI_view2d_scale_get_x(v2d);
+        }
+        break;
+      case SLIP_MODAL_CLAMP_TOGGLE:
+        data->clamp = !data->clamp;
+        break;
+      default:
+        break;
     }
-
-    case LEFTMOUSE:
-    case EVT_RETKEY:
-    case EVT_PADENTER:
-    case EVT_SPACEKEY: {
-      MEM_freeN(data->strip_array);
-      MEM_freeN(data);
-      op->customdata = nullptr;
-      if (area) {
-        ED_area_status_text(area, nullptr);
-      }
-      DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
-      WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-      return OPERATOR_FINISHED;
-    }
-
-    case EVT_ESCKEY:
-    case RIGHTMOUSE: {
-      int offset = data->previous_offset;
-      float subframe_delta = data->subframe_restore;
-      bool slip_keyframes = RNA_boolean_get(op->ptr, "slip_keyframes");
-      sequencer_slip_strips(scene, data, -offset, -subframe_delta, slip_keyframes);
-
-      MEM_freeN(data->strip_array);
-      MEM_freeN(data);
-      op->customdata = nullptr;
-
-      WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-
-      if (area) {
-        ED_area_status_text(area, nullptr);
-      }
-
-      return OPERATOR_CANCELLED;
-    }
-
-    case EVT_RIGHTSHIFTKEY:
-    case EVT_LEFTSHIFTKEY:
-      if (!has_numInput) {
-        if (event->val == KM_PRESS) {
-          data->slow = true;
-          data->slow_offset = event->mval[0];
-        }
-        else if (event->val == KM_RELEASE) {
-          data->slow = false;
-        }
-      }
-      break;
-
-    default:
-      handled = false;
-      break;
   }
 
-  /* Modal numinput inactive, try to handle numeric inputs. */
-  if (!handled && event->val == KM_PRESS && handleNumInput(C, &data->num_input, event)) {
-    handle_number_input(C, op, area, data, scene);
+  if (event->type == MOUSEMOVE || event->val == SLIP_MODAL_PRECISION_DISABLE ||
+      event->val == SLIP_MODAL_CLAMP_TOGGLE)
+  {
+    if (!has_num_input) {
+      float mouse_x_delta = event->mval[0] - data->prev_mval_x;
+      data->prev_mval_x += mouse_x_delta;
+      if (data->precision) {
+        mouse_x_delta *= 0.1f;
+      }
+      data->virtual_mval_x += mouse_x_delta;
+
+      float mouse_co[2];
+      UI_view2d_region_to_view(v2d, data->virtual_mval_x, 0.0f, &mouse_co[0], &mouse_co[1]);
+      float offset = mouse_co[0] - data->init_mouse_co[0];
+      if (!data->precision) {
+        offset = std::trunc(offset);
+      }
+
+      float clamped_offset = offset;
+      float clamped_offset_delta = slip_apply_clamp(scene, data, &clamped_offset);
+      /* Also adjust virtual mouse pointer after clamp is applied. */
+      data->virtual_mval_x += (clamped_offset - offset) * UI_view2d_scale_get_x(v2d);
+
+      slip_strips_delta(op, scene, data, clamped_offset_delta);
+      slip_update_header(scene, area, data, clamped_offset);
+
+      WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+    }
   }
+
+  slip_draw_status(C, op);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -829,7 +857,7 @@ void SEQUENCER_OT_slip(wmOperatorType *ot)
   ot->poll = sequencer_edit_poll;
 
   /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_BLOCKING | OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Properties. */
   PropertyRNA *prop;
