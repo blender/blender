@@ -2535,8 +2535,11 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
   /* Load the file. */
   ReportList reports;
   BKE_reports_init(&reports, RPT_PRINT);
-  WM_file_autoexec_init(filepath);
-  const bool success = WM_file_read(C, filepath, &reports);
+  /* When activating from the command line there isn't an exact equivalent to operator properties.
+   * Instead, enabling auto-execution via `--enable-autoexec` causes the auto-execution
+   * check to be skipped (if it's set), so it's fine to always enable the check here. */
+  const bool use_scripts_autoexec_check = true;
+  const bool success = WM_file_read(C, filepath, use_scripts_autoexec_check, &reports);
   BKE_reports_free(&reports);
 
   if (success) {
