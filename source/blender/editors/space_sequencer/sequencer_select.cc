@@ -75,6 +75,27 @@ class MouseCoords {
   }
 };
 
+Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mval[2])
+{
+  float mouse_co[2];
+  UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
+
+  blender::Vector<Strip *> visible = sequencer_visible_strips_get(scene, v2d);
+  int mouse_channel = int(mouse_co[1]);
+  for (Strip *strip : visible) {
+    if (strip->machine != mouse_channel) {
+      continue;
+    }
+    rctf body;
+    strip_rectf(scene, strip, &body);
+    if (BLI_rctf_isect_pt_v(&body, mouse_co)) {
+      return strip;
+    }
+  }
+
+  return nullptr;
+}
+
 blender::VectorSet<Strip *> all_strips_from_context(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
@@ -989,11 +1010,12 @@ static float strip_to_frame_distance(const Scene *scene,
 
 /**
  * Get strips that can be selected by a click from `mouse_co` in view-space.
- * The area considered includes padded handles past strip bounds.
+ * The area considered includes padded handles past strip bounds, so multiple strips may be
+ * returned.
  */
-static blender::Vector<Strip *> mouseover_strips_sorted_get(const Scene *scene,
-                                                            const View2D *v2d,
-                                                            float mouse_co[2])
+static blender::Vector<Strip *> padded_strips_under_mouse_get(const Scene *scene,
+                                                              const View2D *v2d,
+                                                              float mouse_co[2])
 {
   Editing *ed = seq::editing_get(scene);
 
@@ -1091,7 +1113,7 @@ StripSelection pick_strip_and_handle(const Scene *scene, const View2D *v2d, floa
     return selection;
   }
 
-  blender::Vector<Strip *> strips = mouseover_strips_sorted_get(scene, v2d, mouse_co);
+  blender::Vector<Strip *> strips = padded_strips_under_mouse_get(scene, v2d, mouse_co);
 
   if (strips.size() == 0) {
     return selection;
@@ -1115,8 +1137,15 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
   ARegion *region = CTX_wm_region(C);
+  ScrArea *area = CTX_wm_area(C);
 
   if (ed == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (STREQ(area->runtime.tool->idname, "builtin.blade")) {
+    /* Blade tool overrides select operator everywhere except the padded part of handles. We
+     * should not be able to select these with this tool active, so return. */
     return OPERATOR_CANCELLED;
   }
 

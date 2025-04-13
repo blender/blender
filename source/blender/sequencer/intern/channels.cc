@@ -25,7 +25,7 @@
 
 namespace blender::seq {
 
-ListBase *channels_displayed_get(Editing *ed)
+ListBase *channels_displayed_get(const Editing *ed)
 {
   return ed->displayed_channels;
 }

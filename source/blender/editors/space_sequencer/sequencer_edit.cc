@@ -1545,7 +1545,7 @@ static wmOperatorStatus sequencer_split_invoke(bContext *C, wmOperator *op, cons
   if (v2d) {
     UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouseloc[0], &mouseloc[1]);
     if (RNA_boolean_get(op->ptr, "use_cursor_position")) {
-      split_frame = mouseloc[0];
+      split_frame = round_fl_to_int(mouseloc[0]);
     }
     RNA_int_set(op->ptr, "channel", mouseloc[1]);
   }

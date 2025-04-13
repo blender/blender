@@ -276,6 +276,7 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
 
 bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point_view[2]);
 void sequencer_select_do_updates(const bContext *C, Scene *scene);
+Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mval[2]);
 
 /* `sequencer_add.cc` */
 
