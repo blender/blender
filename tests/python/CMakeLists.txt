@@ -1021,6 +1021,7 @@ endif()
 if(TEST_SRC_DIR_EXISTS)
   set(geo_node_tests
     attributes
+    closure
     curve_primitives
     curves
     curves/interpolate_curves
