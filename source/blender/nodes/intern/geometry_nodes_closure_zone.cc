@@ -360,7 +360,9 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
     for (const bNodeSocket *bsocket : bnode_.output_sockets().drop_back(1)) {
       const int index = bsocket->index();
       set_default_value_for_output_socket(params, indices_.outputs.main[index], *bsocket);
-      params.set_output(indices_.outputs.input_usages[index], false);
+    }
+    for (const bNodeSocket *bsocket : bnode_.input_sockets().drop_back(1)) {
+      params.set_output(indices_.outputs.input_usages[bsocket->index()], false);
     }
   }
 
