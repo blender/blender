@@ -296,16 +296,26 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
 
     auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
     auto &eval_storage = *static_cast<EvaluateClosureEvalStorage *>(context.storage);
+    auto local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
 
     if (!eval_storage.graph_executor) {
+      if (this->is_recursive_call(user_data)) {
+        if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
+                user_data))
+        {
+          tree_logger->node_warnings.append(
+              *tree_logger->allocator,
+              {bnode_.identifier,
+               {geo_eval_log::NodeWarningType::Error, TIP_("Recursive closure is not allowed")}});
+        }
+        this->set_default_outputs(params);
+        return;
+      }
+
       eval_storage.closure = params.extract_input<bke::SocketValueVariant>(indices_.inputs.main[0])
                                  .extract<ClosurePtr>();
       if (!eval_storage.closure) {
-        for (const bNodeSocket *bsocket : bnode_.output_sockets().drop_back(1)) {
-          const int index = bsocket->index();
-          set_default_value_for_output_socket(params, indices_.outputs.main[index], *bsocket);
-          params.set_output(indices_.outputs.input_usages[index], false);
-        }
+        this->set_default_outputs(params);
         return;
       }
       this->generate_closure_compatibility_warnings(*eval_storage.closure, context);
@@ -327,6 +337,31 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
     lf::Context eval_graph_context{
         eval_storage.graph_executor_storage, &closure_user_data, &closure_local_user_data};
     eval_storage.graph_executor->execute(params, eval_graph_context);
+  }
+
+  bool is_recursive_call(const GeoNodesLFUserData &user_data) const
+  {
+    for (const ComputeContext *context = user_data.compute_context; context;
+         context = context->parent())
+    {
+      if (const auto *closure_context = dynamic_cast<const bke::EvaluateClosureComputeContext *>(
+              context))
+      {
+        if (closure_context->evaluate_node() == &bnode_) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  void set_default_outputs(lf::Params &params) const
+  {
+    for (const bNodeSocket *bsocket : bnode_.output_sockets().drop_back(1)) {
+      const int index = bsocket->index();
+      set_default_value_for_output_socket(params, indices_.outputs.main[index], *bsocket);
+      params.set_output(indices_.outputs.input_usages[index], false);
+    }
   }
 
   void generate_closure_compatibility_warnings(const Closure &closure,
