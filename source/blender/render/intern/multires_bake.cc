@@ -1509,7 +1509,8 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 
       if (ibuf->x > 0 && ibuf->y > 0) {
         BakeImBufuserData *userdata = MEM_cnew<BakeImBufuserData>("MultiresBake userdata");
-        userdata->mask_buffer = MEM_cnew_array<char>(ibuf->y * ibuf->x, "MultiresBake imbuf mask");
+        userdata->mask_buffer = MEM_cnew_array<char>(size_t(ibuf->y) * size_t(ibuf->x),
+                                                     "MultiresBake imbuf mask");
         ibuf->userdata = userdata;
 
         switch (bkr->mode) {

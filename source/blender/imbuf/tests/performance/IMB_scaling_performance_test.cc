@@ -25,8 +25,9 @@ static ImBuf *create_src_image(bool use_float)
 {
   ImBuf *img = IMB_allocImBuf(SRC_X, SRC_Y, 32, use_float ? IB_rectfloat : IB_rect);
   if (use_float) {
+    const size_t img_pixel_count = size_t(img->x) * size_t(img->y);
     float *pix = img->float_buffer.data;
-    for (int i = 0; i < img->x * img->y; i++) {
+    for (size_t i = 0; i < img_pixel_count; i++) {
       pix[0] = i * 0.1f;
       pix[1] = i * 2.1f;
       pix[2] = i * 0.01f;
@@ -35,8 +36,9 @@ static ImBuf *create_src_image(bool use_float)
     }
   }
   else {
+    const size_t img_pixel_count = size_t(img->x) * size_t(img->y);
     uchar *pix = img->byte_buffer.data;
-    for (int i = 0; i < img->x * img->y; i++) {
+    for (size_t i = 0; i < img_pixel_count; i++) {
       pix[0] = i & 0xFF;
       pix[1] = (i * 3) & 0xFF;
       pix[2] = (i + 12345) & 0xFF;
