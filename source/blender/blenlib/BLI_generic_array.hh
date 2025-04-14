@@ -158,13 +158,13 @@ class GArray {
   const void *operator[](int64_t index) const
   {
     BLI_assert(index < size_);
-    return POINTER_OFFSET(data_, type_->size() * index);
+    return POINTER_OFFSET(data_, type_->size * index);
   }
 
   void *operator[](int64_t index)
   {
     BLI_assert(index < size_);
-    return POINTER_OFFSET(data_, type_->size() * index);
+    return POINTER_OFFSET(data_, type_->size * index);
   }
 
   operator GSpan() const
@@ -237,8 +237,8 @@ class GArray {
  private:
   void *allocate(int64_t size)
   {
-    const int64_t item_size = type_->size();
-    const int64_t alignment = type_->alignment();
+    const int64_t item_size = type_->size;
+    const int64_t alignment = type_->alignment;
     return allocator_.allocate(size_t(size) * item_size, alignment, AT);
   }
 

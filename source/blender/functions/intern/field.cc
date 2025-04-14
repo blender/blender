@@ -391,9 +391,9 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
       void *buffer;
       if (!dst_varray || !dst_varray.is_span()) {
         /* Allocate a new buffer for the computed result. */
-        buffer = scope.allocator().allocate(type.size() * array_size, type.alignment());
+        buffer = scope.allocator().allocate(type.size * array_size, type.alignment);
 
-        if (!type.is_trivially_destructible()) {
+        if (!type.is_trivially_destructible) {
           /* Destruct values in the end. */
           scope.add_destruct_call(
               [buffer, mask, &type]() { type.destruct_indices(buffer, mask); });
@@ -437,9 +437,9 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
       const GFieldRef &field = constant_fields_to_evaluate[i];
       const CPPType &type = field.cpp_type();
       /* Allocate memory where the computed value will be stored in. */
-      void *buffer = scope.allocator().allocate(type.size(), type.alignment());
+      void *buffer = scope.allocator().allocate(type.size, type.alignment);
 
-      if (!type.is_trivially_destructible()) {
+      if (!type.is_trivially_destructible) {
         /* Destruct value in the end. */
         scope.add_destruct_call([buffer, &type]() { type.destruct(buffer); });
       }
@@ -700,7 +700,7 @@ FieldInput::~FieldInput() = default;
 FieldConstant::FieldConstant(const CPPType &type, const void *value)
     : FieldNode(FieldNodeType::Constant), type_(type)
 {
-  value_ = MEM_mallocN_aligned(type.size(), type.alignment(), __func__);
+  value_ = MEM_mallocN_aligned(type.size, type.alignment, __func__);
   type.copy_construct(value, value_);
 }
 

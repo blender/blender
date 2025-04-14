@@ -866,7 +866,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
 
     /* Could avoid allocating a new buffer if:
      * - The field does not depend on that attribute (we can't easily check for that yet). */
-    void *buffer = MEM_mallocN_aligned(type.size() * domain_size, type.alignment(), __func__);
+    void *buffer = MEM_mallocN_aligned(type.size * domain_size, type.alignment, __func__);
     if (!selection_is_full) {
       const GAttributeReader old_attribute = attributes.lookup_or_default(id, domain, data_type);
       old_attribute.varray.materialize(buffer);

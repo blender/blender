@@ -126,10 +126,10 @@ class LazyFunctionForClosureZone : public LazyFunction {
       lf_graph.add_link(lf_body_node.output(body_fn_.indices.outputs.input_usages[i]),
                         lf_graph_input_usage);
 
-      void *default_value = closure_allocator.allocate(cpp_type.size(), cpp_type.alignment());
+      void *default_value = closure_allocator.allocate(cpp_type.size, cpp_type.alignment);
       construct_socket_default_value(*bsocket.typeinfo, default_value);
       default_input_values.append(default_value);
-      if (!cpp_type.is_trivially_destructible()) {
+      if (!cpp_type.is_trivially_destructible) {
         closure_scope->add_destruct_call(
             [&cpp_type, default_value]() { cpp_type.destruct(default_value); });
       }
@@ -160,9 +160,9 @@ class LazyFunctionForClosureZone : public LazyFunction {
     for (const int i : zone_.border_links.index_range()) {
       const CPPType &cpp_type = *zone_.border_links[i]->tosock->typeinfo->geometry_nodes_cpp_type;
       void *input_ptr = params.try_get_input_data_ptr(zone_info_.indices.inputs.border_links[i]);
-      void *stored_ptr = closure_allocator.allocate(cpp_type.size(), cpp_type.alignment());
+      void *stored_ptr = closure_allocator.allocate(cpp_type.size, cpp_type.alignment);
       cpp_type.move_construct(input_ptr, stored_ptr);
-      if (!cpp_type.is_trivially_destructible()) {
+      if (!cpp_type.is_trivially_destructible) {
         closure_scope->add_destruct_call(
             [&cpp_type, stored_ptr]() { cpp_type.destruct(stored_ptr); });
       }
@@ -521,10 +521,10 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
 
     auto get_output_default_value = [&](const bke::bNodeSocketType &type) {
       const CPPType &cpp_type = *type.geometry_nodes_cpp_type;
-      void *fallback_value = eval_storage.scope.allocator().allocate(cpp_type.size(),
-                                                                     cpp_type.alignment());
+      void *fallback_value = eval_storage.scope.allocator().allocate(cpp_type.size,
+                                                                     cpp_type.alignment);
       construct_socket_default_value(type, fallback_value);
-      if (!cpp_type.is_trivially_destructible()) {
+      if (!cpp_type.is_trivially_destructible) {
         eval_storage.scope.add_destruct_call(
             [fallback_value, type = &cpp_type]() { type->destruct(fallback_value); });
       }
@@ -730,7 +730,7 @@ void evaluate_closure_eagerly(const Closure &closure, ClosureEagerEvalParams &pa
       const bke::bNodeSocketType &from_type = *item.type;
       const bke::bNodeSocketType &to_type = *signature.inputs[*mapped_i].type;
       const CPPType &to_cpp_type = *to_type.geometry_nodes_cpp_type;
-      void *value = allocator.allocate(to_cpp_type.size(), to_cpp_type.alignment());
+      void *value = allocator.allocate(to_cpp_type.size, to_cpp_type.alignment);
       if (&from_type == &to_type) {
         to_cpp_type.copy_construct(item.value, value);
       }
@@ -762,7 +762,7 @@ void evaluate_closure_eagerly(const Closure &closure, ClosureEagerEvalParams &pa
       const bke::bNodeSocketType &type = *signature.inputs[main_input_i].type;
       const CPPType &cpp_type = *type.geometry_nodes_cpp_type;
       const void *default_value = closure.default_input_value(main_input_i);
-      void *value = allocator.allocate(cpp_type.size(), cpp_type.alignment());
+      void *value = allocator.allocate(cpp_type.size, cpp_type.alignment);
       cpp_type.copy_construct(default_value, value);
       lf_input_values[lf_input_i] = {cpp_type, value};
     }
@@ -787,7 +787,7 @@ void evaluate_closure_eagerly(const Closure &closure, ClosureEagerEvalParams &pa
     const bke::bNodeSocketType &type = *signature.outputs[main_output_i].type;
     const CPPType &cpp_type = *type.geometry_nodes_cpp_type;
     lf_output_values[indices.outputs.main[main_output_i]] = {
-        cpp_type, allocator.allocate(cpp_type.size(), cpp_type.alignment())};
+        cpp_type, allocator.allocate(cpp_type.size, cpp_type.alignment)};
   }
 
   lf::BasicParams lf_params{

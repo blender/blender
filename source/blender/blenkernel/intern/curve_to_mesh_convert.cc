@@ -402,20 +402,20 @@ static GSpan evaluate_attribute(const GVArray &src,
     if (src.is_span()) {
       return src.get_internal_span();
     }
-    buffer.reinitialize(curves.points_num() * src.type().size());
+    buffer.reinitialize(curves.points_num() * src.type().size);
     src.materialize(buffer.data());
     GMutableSpan eval{src.type(), buffer.data(), curves.points_num()};
     return eval;
   }
 
   if (src.is_span()) {
-    buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
+    buffer.reinitialize(curves.evaluated_points_num() * src.type().size);
     GMutableSpan eval{src.type(), buffer.data(), curves.evaluated_points_num()};
     curves.interpolate_to_evaluated(src.get_internal_span(), eval);
     return eval;
   }
   GVArraySpan src_buffer(src);
-  buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
+  buffer.reinitialize(curves.evaluated_points_num() * src.type().size);
   GMutableSpan eval{src.type(), buffer.data(), curves.evaluated_points_num()};
   curves.interpolate_to_evaluated(src_buffer, eval);
   return eval;

@@ -375,7 +375,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
     LinearAllocator<> allocator;
     for (const int i : bake_items_.index_range()) {
       const CPPType &type = *outputs_[i].type;
-      next_values[i] = allocator.allocate(type.size(), type.alignment());
+      next_values[i] = allocator.allocate(type.size, type.alignment);
     }
     this->copy_bake_state_to_values(
         next_state, data_block_map, self_object, compute_context, next_values);

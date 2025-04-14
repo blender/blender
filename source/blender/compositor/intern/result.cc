@@ -706,8 +706,8 @@ void Result::allocate_data(int2 size, bool from_pool)
     storage_type_ = ResultStorageType::CPU;
 
     const CPPType &cpp_type = this->get_cpp_type();
-    const int64_t item_size = cpp_type.size();
-    const int64_t alignment = cpp_type.alignment();
+    const int64_t item_size = cpp_type.size;
+    const int64_t alignment = cpp_type.alignment;
     const int64_t array_size = int64_t(size.x) * int64_t(size.y);
     const int64_t memory_size = array_size * item_size;
 

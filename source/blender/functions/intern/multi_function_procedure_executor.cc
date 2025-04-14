@@ -170,8 +170,8 @@ class ValueAllocator : NonCopyable, NonMovable {
   {
     void *buffer = nullptr;
 
-    const int64_t element_size = type.size();
-    const int64_t alignment = type.alignment();
+    const int64_t element_size = type.size;
+    const int64_t alignment = type.alignment;
 
     if (alignment > min_alignment) {
       /* In this rare case we fallback to not reusing existing buffers. */
@@ -215,8 +215,8 @@ class ValueAllocator : NonCopyable, NonMovable {
     void *buffer;
     if (stack.is_empty()) {
       buffer = linear_allocator_.allocate(
-          std::max<int>(small_value_max_size, type.size()),
-          std::max<int>(small_value_max_alignment, type.alignment()));
+          std::max<int>(small_value_max_size, type.size),
+          std::max<int>(small_value_max_alignment, type.alignment));
     }
     else {
       buffer = stack.pop();
@@ -244,7 +244,7 @@ class ValueAllocator : NonCopyable, NonMovable {
           Stack<void *> &buffers = type.can_exist_in_buffer(small_value_max_size,
                                                             small_value_max_alignment) ?
                                        small_span_buffers_free_list_ :
-                                       span_buffers_free_lists_.lookup_or_add_default(type.size());
+                                       span_buffers_free_lists_.lookup_or_add_default(type.size);
           buffers.push(value_typed->data);
         }
         break;

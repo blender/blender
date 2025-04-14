@@ -416,8 +416,8 @@ static std::shared_ptr<DictionaryValue> write_blob_simple_gspan(BlobWriter &blob
                                                                 const GSpan data)
 {
   const CPPType &type = data.type();
-  BLI_assert(type.is_trivial());
-  if (type.size() == 1 || type.is<ColorGeometry4b>()) {
+  BLI_assert(type.is_trivial);
+  if (type.size == 1 || type.is<ColorGeometry4b>()) {
     return write_blob_raw_bytes(blob_writer, blob_sharing, data.data(), data.size_in_bytes());
   }
   return write_blob_raw_data_with_endian(
@@ -429,13 +429,13 @@ static std::shared_ptr<DictionaryValue> write_blob_simple_gspan(BlobWriter &blob
                                                  GMutableSpan r_data)
 {
   const CPPType &type = r_data.type();
-  BLI_assert(type.is_trivial());
-  if (type.size() == 1 || type.is<ColorGeometry4b>()) {
+  BLI_assert(type.is_trivial);
+  if (type.size == 1 || type.is<ColorGeometry4b>()) {
     return read_blob_raw_bytes(blob_reader, io_data, r_data.size_in_bytes(), r_data.data());
   }
   if (type.is_any<int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float>()) {
     return read_blob_raw_data_with_endian(
-        blob_reader, io_data, type.size(), r_data.size(), r_data.data());
+        blob_reader, io_data, type.size, r_data.size(), r_data.data());
   }
   if (type.is_any<float2, int2>()) {
     return read_blob_raw_data_with_endian(
@@ -485,7 +485,7 @@ static std::shared_ptr<DictionaryValue> write_blob_shared_simple_gspan(
   const char *func = __func__;
   const std::optional<ImplicitSharingInfoAndData> sharing_info_and_data = blob_sharing.read_shared(
       io_data, [&]() -> std::optional<ImplicitSharingInfoAndData> {
-        void *data_mem = MEM_mallocN_aligned(size * cpp_type.size(), cpp_type.alignment(), func);
+        void *data_mem = MEM_mallocN_aligned(size * cpp_type.size, cpp_type.alignment, func);
         if (!read_blob_simple_gspan(blob_reader, io_data, {cpp_type, data_mem, size})) {
           MEM_freeN(data_mem);
           return std::nullopt;

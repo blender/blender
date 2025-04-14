@@ -83,7 +83,7 @@ void Bundle::add_new(SocketInterfaceKey key, const bke::bNodeSocketType &type, c
   BLI_assert(!this->contains(key));
   BLI_assert(type.geometry_nodes_cpp_type);
   const CPPType &cpp_type = *type.geometry_nodes_cpp_type;
-  void *buffer = MEM_mallocN_aligned(cpp_type.size(), cpp_type.alignment(), __func__);
+  void *buffer = MEM_mallocN_aligned(cpp_type.size, cpp_type.alignment, __func__);
   cpp_type.copy_construct(value, buffer);
   items_.append(StoredItem{std::move(key), &type, buffer});
   buffers_.append(buffer);

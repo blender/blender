@@ -494,7 +494,7 @@ bool convert_attribute(bke::MutableAttributeAccessor attributes,
 
   const CPPType &cpp_type = varray.type();
   void *new_data = MEM_mallocN_aligned(
-      varray.size() * cpp_type.size(), cpp_type.alignment(), __func__);
+      varray.size() * cpp_type.size, cpp_type.alignment, __func__);
   varray.materialize_to_uninitialized(new_data);
   attributes.remove(name_copy);
   if (!attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data))) {

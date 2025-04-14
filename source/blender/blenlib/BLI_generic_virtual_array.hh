@@ -574,13 +574,13 @@ class GVArrayImpl_For_GSpan : public GVMutableArrayImpl {
   GVArrayImpl_For_GSpan(const GMutableSpan span)
       : GVMutableArrayImpl(span.type(), span.size()),
         data_(span.data()),
-        element_size_(span.type().size())
+        element_size_(span.type().size)
   {
   }
 
  protected:
   GVArrayImpl_For_GSpan(const CPPType &type, int64_t size)
-      : GVMutableArrayImpl(type, size), element_size_(type.size())
+      : GVMutableArrayImpl(type, size), element_size_(type.size)
   {
   }
 
