@@ -37,6 +37,7 @@
 
 #include "BKE_bake_data_block_map.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
@@ -671,18 +672,17 @@ static void find_side_effect_nodes_for_viewer_path(
     return;
   }
 
-  ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(nmd);
-
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *current = &compute_context_cache.for_modifier(nullptr, nmd);
   for (const ViewerPathElem *elem : parsed_path->node_path) {
-    if (!ed::viewer_path::add_compute_context_for_viewer_path_elem(*elem, compute_context_builder))
-    {
+    current = ed::viewer_path::compute_context_for_viewer_path_elem(
+        *elem, compute_context_cache, current);
+    if (!current) {
       return;
     }
   }
 
-  try_add_side_effect_node(
-      *compute_context_builder.current(), parsed_path->viewer_node_id, nmd, r_side_effect_nodes);
+  try_add_side_effect_node(*current, parsed_path->viewer_node_id, nmd, r_side_effect_nodes);
 }
 
 static void find_side_effect_nodes_for_nested_node(
@@ -690,8 +690,8 @@ static void find_side_effect_nodes_for_nested_node(
     const int root_nested_node_id,
     nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
 {
-  ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(nmd);
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *compute_context = &compute_context_cache.for_modifier(nullptr, nmd);
 
   int nested_node_id = root_nested_node_id;
   const bNodeTree *tree = nmd.node_group;
@@ -716,13 +716,12 @@ static void find_side_effect_nodes_for_nested_node(
       if (!node->id) {
         return;
       }
-      compute_context_builder.push<bke::GroupNodeComputeContext>(*node, *tree);
+      compute_context = &compute_context_cache.for_group_node(compute_context, *node, *tree);
       tree = reinterpret_cast<const bNodeTree *>(node->id);
       nested_node_id = ref->path.id_in_node;
     }
     else {
-      try_add_side_effect_node(
-          *compute_context_builder.current(), ref->path.node_id, nmd, r_side_effect_nodes);
+      try_add_side_effect_node(*compute_context, ref->path.node_id, nmd, r_side_effect_nodes);
       return;
     }
   }
@@ -762,12 +761,12 @@ static void find_side_effect_nodes_for_active_gizmos(
   Object *object_orig = DEG_get_original_object(ctx.object);
   const NodesModifierData &nmd_orig = *reinterpret_cast<const NodesModifierData *>(
       BKE_modifier_get_original(ctx.object, const_cast<ModifierData *>(&nmd.modifier)));
-  ComputeContextBuilder compute_context_builder;
+  bke::ComputeContextCache compute_context_cache;
   nodes::gizmos::foreach_active_gizmo_in_modifier(
       *object_orig,
       nmd_orig,
       wm,
-      compute_context_builder,
+      compute_context_cache,
       [&](const ComputeContext &compute_context,
           const bNode &gizmo_node,
           const bNodeSocket &gizmo_socket) {

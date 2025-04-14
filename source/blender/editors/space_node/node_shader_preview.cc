@@ -33,6 +33,7 @@
 #include "RNA_prototypes.hh"
 
 #include "BKE_colortools.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -117,7 +118,8 @@ static std::optional<ComputeContextHash> get_compute_context_hash_for_node_edito
     hash.v1 = hash.v2 = 0;
     return hash;
   }
-  ComputeContextBuilder compute_context_builder;
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *compute_context = nullptr;
   for (const int i : treepath.index_range().drop_back(1)) {
     /* The tree path contains the name of the node but not its ID. */
     bNodeTree *tree = treepath[i]->nodetree;
@@ -127,9 +129,9 @@ static std::optional<ComputeContextHash> get_compute_context_hash_for_node_edito
        * deleted. */
       return std::nullopt;
     }
-    compute_context_builder.push<bke::GroupNodeComputeContext>(*node, *tree);
+    compute_context = &compute_context_cache.for_group_node(compute_context, *node, *tree);
   }
-  return compute_context_builder.hash();
+  return compute_context->hash();
 }
 
 NestedTreePreviews *get_nested_previews(const bContext &C, SpaceNode &snode)

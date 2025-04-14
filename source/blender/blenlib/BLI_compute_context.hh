@@ -34,10 +34,6 @@
  *   run on different threads.
  */
 
-#include <optional>
-
-#include "BLI_linear_allocator.hh"
-#include "BLI_stack.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_struct_equality_utils.hh"
 
@@ -123,77 +119,6 @@ class ComputeContext {
   virtual void print_current_in_line(std::ostream &stream) const = 0;
 
   friend std::ostream &operator<<(std::ostream &stream, const ComputeContext &compute_context);
-};
-
-/**
- * Utility class to build a context stack in one place. This is typically used to get the hash that
- * corresponds to a specific nested compute context, in order to look up corresponding logged
- * values.
- */
-class ComputeContextBuilder {
- private:
-  LinearAllocator<> allocator_;
-  Stack<destruct_ptr<ComputeContext>> contexts_;
-  std::optional<Vector<destruct_ptr<ComputeContext>>> old_contexts_;
-
- public:
-  /**
-   * If called, compute contexts are not destructed when they are popped. Instead their lifetime
-   * will be the lifetime of this builder.
-   */
-  void keep_old_contexts()
-  {
-    if (!old_contexts_.has_value()) {
-      old_contexts_.emplace();
-    }
-  }
-
-  bool is_empty() const
-  {
-    return contexts_.is_empty();
-  }
-
-  const ComputeContext *current() const
-  {
-    if (contexts_.is_empty()) {
-      return nullptr;
-    }
-    return contexts_.peek().get();
-  }
-
-  ComputeContextHash hash() const
-  {
-    BLI_assert(!contexts_.is_empty());
-    return this->current()->hash();
-  }
-
-  template<typename T, typename... Args> void push(Args &&...args)
-  {
-    const ComputeContext *current = this->current();
-    destruct_ptr<T> context = allocator_.construct<T>(current, std::forward<Args>(args)...);
-    contexts_.push(std::move(context));
-  }
-
-  void pop()
-  {
-    auto context = contexts_.pop();
-    if (old_contexts_) {
-      old_contexts_->append(std::move(context));
-    }
-  }
-
-  /** Pops all compute contexts until the given one is at the top. */
-  void pop_until(const ComputeContext *context)
-  {
-    while (!contexts_.is_empty()) {
-      if (contexts_.peek().get() == context) {
-        return;
-      }
-      this->pop();
-    }
-    /* Should have found the context above if it's not null. */
-    BLI_assert(context == nullptr);
-  }
 };
 
 }  // namespace blender

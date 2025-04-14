@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_asset.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
@@ -343,15 +344,18 @@ std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &s
   return ObjectAndModifier{object, used_modifier};
 }
 
-bool push_compute_context_for_tree_path(const SpaceNode &snode,
-                                        ComputeContextBuilder &compute_context_builder)
+std::optional<const ComputeContext *> compute_context_for_tree_path(
+    const SpaceNode &snode,
+    bke::ComputeContextCache &compute_context_cache,
+    const ComputeContext *parent_compute_context)
 {
+  const ComputeContext *current = parent_compute_context;
   Vector<const bNodeTreePath *> tree_path;
   LISTBASE_FOREACH (const bNodeTreePath *, item, &snode.treepath) {
     tree_path.append(item);
   }
   if (tree_path.is_empty()) {
-    return true;
+    return current;
   }
 
   for (const int i : tree_path.index_range().drop_back(1)) {
@@ -359,43 +363,43 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
     const char *group_node_name = tree_path[i + 1]->node_name;
     const bNode *group_node = blender::bke::node_find_node_by_name(*tree, group_node_name);
     if (group_node == nullptr) {
-      return false;
+      return std::nullopt;
     }
     const blender::bke::bNodeTreeZones *tree_zones = tree->zones();
     if (tree_zones == nullptr) {
-      return false;
+      return std::nullopt;
     }
     const Vector<const blender::bke::bNodeTreeZone *> zone_stack =
         tree_zones->get_zone_stack_for_node(group_node->identifier);
     for (const blender::bke::bNodeTreeZone *zone : zone_stack) {
       switch (zone->output_node->type_legacy) {
         case GEO_NODE_SIMULATION_OUTPUT: {
-          compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone->output_node);
+          current = &compute_context_cache.for_simulation_zone(current, *zone->output_node);
           break;
         }
         case GEO_NODE_REPEAT_OUTPUT: {
           const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(
               zone->output_node->storage);
-          compute_context_builder.push<bke::RepeatZoneComputeContext>(*zone->output_node,
-                                                                      storage.inspection_index);
+          current = &compute_context_cache.for_repeat_zone(
+              current, *zone->output_node, storage.inspection_index);
           break;
         }
         case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
           const auto &storage = *static_cast<const NodeGeometryForeachGeometryElementOutput *>(
               zone->output_node->storage);
-          compute_context_builder.push<bke::ForeachGeometryElementZoneComputeContext>(
-              *zone->output_node, storage.inspection_index);
+          current = &compute_context_cache.for_foreach_geometry_element_zone(
+              current, *zone->output_node, storage.inspection_index);
           break;
         }
         case GEO_NODE_CLOSURE_OUTPUT: {
           // TODO: Need to find a place where this closure is evaluated.
-          return false;
+          return std::nullopt;
         }
       }
     }
-    compute_context_builder.push<bke::GroupNodeComputeContext>(*group_node, *tree);
+    current = &compute_context_cache.for_group_node(current, *group_node, *tree);
   }
-  return true;
+  return current;
 }
 
 /* ******************** default callbacks for node space ***************** */

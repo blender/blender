@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include "BKE_compute_context_cache_fwd.hh"
 #include "BKE_compute_contexts.hh"
 
+#include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
@@ -28,8 +30,18 @@ class ComputeContextCache {
 
   Map<std::pair<const ComputeContext *, StringRef>, const ModifierComputeContext *>
       modifier_contexts_cache_;
+  Map<const ComputeContext *, const OperatorComputeContext *> operator_contexts_cache_;
   Map<std::pair<const ComputeContext *, int32_t>, const GroupNodeComputeContext *>
       group_node_contexts_cache_;
+  Map<std::pair<const ComputeContext *, int32_t>, const SimulationZoneComputeContext *>
+      simulation_zone_contexts_cache_;
+  Map<std::pair<const ComputeContext *, std::pair<int32_t, int>>, const RepeatZoneComputeContext *>
+      repeat_zone_contexts_cache_;
+  Map<std::pair<const ComputeContext *, std::pair<int32_t, int>>,
+      const ForeachGeometryElementZoneComputeContext *>
+      foreach_geometry_element_zone_contexts_cache_;
+  Map<std::pair<const ComputeContext *, int32_t>, const EvaluateClosureComputeContext *>
+      evaluate_closure_contexts_cache_;
 
  public:
   const ModifierComputeContext &for_modifier(const ComputeContext *parent,
@@ -37,10 +49,37 @@ class ComputeContextCache {
   const ModifierComputeContext &for_modifier(const ComputeContext *parent,
                                              StringRef modifier_name);
 
+  const OperatorComputeContext &for_operator(const ComputeContext *parent);
+  const OperatorComputeContext &for_operator(const ComputeContext *parent, const bNodeTree &tree);
+
   const GroupNodeComputeContext &for_group_node(const ComputeContext *parent, int32_t node_id);
   const GroupNodeComputeContext &for_group_node(const ComputeContext *parent,
                                                 const bNode &caller_group_node,
                                                 const bNodeTree &caller_tree);
+
+  const SimulationZoneComputeContext &for_simulation_zone(const ComputeContext *parent,
+                                                          int output_node_id);
+  const SimulationZoneComputeContext &for_simulation_zone(const ComputeContext *parent,
+                                                          const bNode &output_node);
+
+  const RepeatZoneComputeContext &for_repeat_zone(const ComputeContext *parent,
+                                                  int32_t output_node_id,
+                                                  int iteration);
+  const RepeatZoneComputeContext &for_repeat_zone(const ComputeContext *parent,
+                                                  const bNode &output_node,
+                                                  int iteration);
+
+  const ForeachGeometryElementZoneComputeContext &for_foreach_geometry_element_zone(
+      const ComputeContext *parent, int32_t output_node_id, int index);
+  const ForeachGeometryElementZoneComputeContext &for_foreach_geometry_element_zone(
+      const ComputeContext *parent, const bNode &output_node, int index);
+
+  const EvaluateClosureComputeContext &for_evaluate_closure(const ComputeContext *parent,
+                                                            int32_t node_id);
+  const EvaluateClosureComputeContext &for_evaluate_closure(
+      const ComputeContext *parent,
+      const bNode &evaluate_node,
+      const std::optional<nodes::ClosureSourceLocation> &closure_source_location);
 
   /**
    * A fallback that does not use caching and can be used for any compute context.

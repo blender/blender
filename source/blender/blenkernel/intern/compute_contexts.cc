@@ -223,6 +223,19 @@ const ModifierComputeContext &ComputeContextCache::for_modifier(const ComputeCon
   });
 }
 
+const OperatorComputeContext &ComputeContextCache::for_operator(const ComputeContext *parent)
+{
+  return *operator_contexts_cache_.lookup_or_add_cb(
+      parent, [&]() { return &this->for_any_uncached<OperatorComputeContext>(parent); });
+}
+
+const OperatorComputeContext &ComputeContextCache::for_operator(const ComputeContext *parent,
+                                                                const bNodeTree &tree)
+{
+  return *operator_contexts_cache_.lookup_or_add_cb(
+      parent, [&]() { return &this->for_any_uncached<OperatorComputeContext>(parent, tree); });
+}
+
 const GroupNodeComputeContext &ComputeContextCache::for_group_node(const ComputeContext *parent,
                                                                    const int32_t node_id)
 {
@@ -239,6 +252,89 @@ const GroupNodeComputeContext &ComputeContextCache::for_group_node(const Compute
       std::pair{parent, caller_group_node.identifier}, [&]() {
         return &this->for_any_uncached<GroupNodeComputeContext>(
             parent, caller_group_node, caller_tree);
+      });
+}
+
+const SimulationZoneComputeContext &ComputeContextCache::for_simulation_zone(
+    const ComputeContext *parent, int output_node_id)
+{
+  return *simulation_zone_contexts_cache_.lookup_or_add_cb(
+      std::pair{parent, output_node_id}, [&]() {
+        return &this->for_any_uncached<SimulationZoneComputeContext>(parent, output_node_id);
+      });
+}
+
+const SimulationZoneComputeContext &ComputeContextCache::for_simulation_zone(
+    const ComputeContext *parent, const bNode &output_node)
+{
+  return *simulation_zone_contexts_cache_.lookup_or_add_cb(
+      std::pair{parent, output_node.identifier}, [&]() {
+        return &this->for_any_uncached<SimulationZoneComputeContext>(parent, output_node);
+      });
+}
+
+const RepeatZoneComputeContext &ComputeContextCache::for_repeat_zone(const ComputeContext *parent,
+                                                                     int32_t output_node_id,
+                                                                     int iteration)
+{
+  return *repeat_zone_contexts_cache_.lookup_or_add_cb(
+      std::pair{parent, std::pair{output_node_id, iteration}}, [&]() {
+        return &this->for_any_uncached<RepeatZoneComputeContext>(
+            parent, output_node_id, iteration);
+      });
+}
+
+const RepeatZoneComputeContext &ComputeContextCache::for_repeat_zone(const ComputeContext *parent,
+                                                                     const bNode &output_node,
+                                                                     int iteration)
+{
+  return *repeat_zone_contexts_cache_.lookup_or_add_cb(
+      std::pair{parent, std::pair{output_node.identifier, iteration}}, [&]() {
+        return &this->for_any_uncached<RepeatZoneComputeContext>(parent, output_node, iteration);
+      });
+}
+
+const ForeachGeometryElementZoneComputeContext &ComputeContextCache::
+    for_foreach_geometry_element_zone(const ComputeContext *parent,
+                                      int32_t output_node_id,
+                                      int index)
+{
+  return *foreach_geometry_element_zone_contexts_cache_.lookup_or_add_cb(
+      std::pair{parent, std::pair{output_node_id, index}}, [&]() {
+        return &this->for_any_uncached<ForeachGeometryElementZoneComputeContext>(
+            parent, output_node_id, index);
+      });
+}
+
+const ForeachGeometryElementZoneComputeContext &ComputeContextCache::
+    for_foreach_geometry_element_zone(const ComputeContext *parent,
+                                      const bNode &output_node,
+                                      int index)
+{
+  return *foreach_geometry_element_zone_contexts_cache_.lookup_or_add_cb(
+      std::pair{parent, std::pair{output_node.identifier, index}}, [&]() {
+        return &this->for_any_uncached<ForeachGeometryElementZoneComputeContext>(
+            parent, output_node, index);
+      });
+}
+
+const EvaluateClosureComputeContext &ComputeContextCache::for_evaluate_closure(
+    const ComputeContext *parent, int32_t node_id)
+{
+  return *evaluate_closure_contexts_cache_.lookup_or_add_cb(std::pair{parent, node_id}, [&]() {
+    return &this->for_any_uncached<EvaluateClosureComputeContext>(parent, node_id);
+  });
+}
+
+const EvaluateClosureComputeContext &ComputeContextCache::for_evaluate_closure(
+    const ComputeContext *parent,
+    const bNode &evaluate_node,
+    const std::optional<nodes::ClosureSourceLocation> &closure_source_location)
+{
+  return *evaluate_closure_contexts_cache_.lookup_or_add_cb(
+      std::pair{parent, evaluate_node.identifier}, [&]() {
+        return &this->for_any_uncached<EvaluateClosureComputeContext>(
+            parent, evaluate_node, closure_source_location);
       });
 }
 

@@ -10,6 +10,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
 
+#include "BKE_compute_context_cache_fwd.hh"
+
 #include "ED_node_c.hh"
 
 struct SpaceNode;
@@ -79,10 +81,11 @@ struct ObjectAndModifier {
 std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &snode);
 /**
  * Used to get the compute context for the (nested) node group that is currently edited.
- * Returns true on success.
  */
-[[nodiscard]] bool push_compute_context_for_tree_path(
-    const SpaceNode &snode, ComputeContextBuilder &compute_context_builder);
+[[nodiscard]] std::optional<const ComputeContext *> compute_context_for_tree_path(
+    const SpaceNode &snode,
+    bke::ComputeContextCache &compute_context_cache,
+    const ComputeContext *parent_compute_context);
 
 void ui_template_node_asset_menu_items(uiLayout &layout,
                                        const bContext &C,

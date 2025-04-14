@@ -10,6 +10,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_compute_context_cache_fwd.hh"
+
 #include "DNA_viewer_path_types.h"
 
 struct Main;
@@ -81,9 +83,11 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
  * Some viewer path elements correspond to compute-contexts. This function converts from the viewer
  * path element to the corresponding compute context if possible.
  *
- * \return False, there is no matching compute context.
+ * \return The corresponding compute context or null.
  */
-[[nodiscard]] bool add_compute_context_for_viewer_path_elem(
-    const ViewerPathElem &elem, ComputeContextBuilder &compute_context_builder);
+[[nodiscard]] const ComputeContext *compute_context_for_viewer_path_elem(
+    const ViewerPathElem &elem,
+    bke::ComputeContextCache &compute_context_cache,
+    const ComputeContext *parent_compute_context);
 
 }  // namespace blender::ed::viewer_path

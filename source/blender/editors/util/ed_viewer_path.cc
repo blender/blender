@@ -5,6 +5,7 @@
 #include "ED_viewer_path.hh"
 #include "ED_screen.hh"
 
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_main.hh"
@@ -525,49 +526,47 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
   return nullptr;
 }
 
-[[nodiscard]] bool add_compute_context_for_viewer_path_elem(
-    const ViewerPathElem &elem_generic, ComputeContextBuilder &compute_context_builder)
+[[nodiscard]] const ComputeContext *compute_context_for_viewer_path_elem(
+    const ViewerPathElem &elem_generic,
+    bke::ComputeContextCache &compute_context_cache,
+    const ComputeContext *parent_compute_context)
 {
   switch (ViewerPathElemType(elem_generic.type)) {
     case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
     case VIEWER_PATH_ELEM_TYPE_ID: {
-      return false;
+      return nullptr;
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
       const auto &elem = reinterpret_cast<const ModifierViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::ModifierComputeContext>(elem.modifier_name);
-      return true;
+      return &compute_context_cache.for_modifier(parent_compute_context, elem.modifier_name);
     }
     case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
       const auto &elem = reinterpret_cast<const GroupNodeViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::GroupNodeComputeContext>(elem.node_id);
-      return true;
+      return &compute_context_cache.for_group_node(parent_compute_context, elem.node_id);
     }
     case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
       const auto &elem = reinterpret_cast<const SimulationZoneViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::SimulationZoneComputeContext>(elem.sim_output_node_id);
-      return true;
+      return &compute_context_cache.for_simulation_zone(parent_compute_context,
+                                                        elem.sim_output_node_id);
     }
     case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
       const auto &elem = reinterpret_cast<const RepeatZoneViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::RepeatZoneComputeContext>(elem.repeat_output_node_id,
-                                                                  elem.iteration);
-      return true;
+      return &compute_context_cache.for_repeat_zone(
+          parent_compute_context, elem.repeat_output_node_id, elem.iteration);
     }
     case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE: {
       const auto &elem = reinterpret_cast<const ForeachGeometryElementZoneViewerPathElem &>(
           elem_generic);
-      compute_context_builder.push<bke::ForeachGeometryElementZoneComputeContext>(
-          elem.zone_output_node_id, elem.index);
-      return true;
+      return &compute_context_cache.for_foreach_geometry_element_zone(
+          parent_compute_context, elem.zone_output_node_id, elem.index);
     }
     case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
       const auto &elem = reinterpret_cast<const EvaluateClosureNodeViewerPathElem &>(elem_generic);
-      compute_context_builder.push<bke::EvaluateClosureComputeContext>(elem.evaluate_node_id);
-      return true;
+      return &compute_context_cache.for_evaluate_closure(parent_compute_context,
+                                                         elem.evaluate_node_id);
     }
   }
-  return false;
+  return nullptr;
 }
 
 }  // namespace blender::ed::viewer_path

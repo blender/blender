@@ -8,6 +8,7 @@
 #include <mutex>
 
 #include "BLI_compute_context.hh"
+#include "BLI_vector.hh"
 
 namespace blender::nodes {
 

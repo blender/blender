@@ -38,6 +38,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
@@ -4363,26 +4364,22 @@ static Set<const bNodeSocket *> find_sockets_on_active_gizmo_paths(const bContex
   }
   snode.edittree->ensure_topology_cache();
 
+  bke::ComputeContextCache compute_context_cache;
   /* Compute the compute context hash for the current node tree path. */
-  std::optional<ComputeContextHash> current_compute_context_hash =
-      [&]() -> std::optional<ComputeContextHash> {
-    ComputeContextBuilder compute_context_builder;
-    compute_context_builder.push<bke::ModifierComputeContext>(*object_and_modifier->nmd);
-    if (!ed::space_node::push_compute_context_for_tree_path(snode, compute_context_builder)) {
-      return std::nullopt;
-    }
-    return compute_context_builder.current()->hash();
-  }();
-  if (!current_compute_context_hash) {
+  const ComputeContext &root_compute_context = compute_context_cache.for_modifier(
+      nullptr, *object_and_modifier->nmd);
+  const std::optional<const ComputeContext *> current_compute_context =
+      ed::space_node::compute_context_for_tree_path(
+          snode, compute_context_cache, &root_compute_context);
+  if (!current_compute_context.has_value()) {
     return {};
   }
 
   Set<const bNodeSocket *> sockets_on_gizmo_paths;
 
-  ComputeContextBuilder compute_context_builder;
   nodes::gizmos::foreach_active_gizmo(
       C,
-      compute_context_builder,
+      compute_context_cache,
       [&](const Object &gizmo_object,
           const NodesModifierData &gizmo_nmd,
           const ComputeContext &gizmo_context,
@@ -4401,7 +4398,7 @@ static Set<const bNodeSocket *> find_sockets_on_active_gizmo_paths(const bContex
             [&](const ComputeContext &compute_context,
                 const bNodeSocket &socket,
                 const nodes::inverse_eval::ElemVariant & /*elem*/) {
-              if (compute_context.hash() == *current_compute_context_hash) {
+              if (compute_context.hash() == (*current_compute_context)->hash()) {
                 sockets_on_gizmo_paths.add(&socket);
               }
             });
