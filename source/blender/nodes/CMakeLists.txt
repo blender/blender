@@ -53,6 +53,7 @@ set(INC
   intern
   shader
   texture
+  geometry/include
   ../animrig
   ../editors/include
   ../depsgraph

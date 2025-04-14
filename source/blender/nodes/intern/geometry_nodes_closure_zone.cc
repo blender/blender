@@ -12,6 +12,8 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_node_tree_reference_lifetimes.hh"
+
+#include "NOD_geo_closure.hh"
 #include "NOD_geometry_nodes_closure.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -264,12 +266,14 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
       indices_.outputs.main.append(outputs_.append_and_get_index_as(
           bsocket.name, *bsocket.typeinfo->geometry_nodes_cpp_type));
       indices_.inputs.output_usages.append(
-          inputs_.append_and_get_index_as("Usage", CPPType::get<bool>()));
+          inputs_.append_and_get_index_as("Usage", CPPType::get<bool>(), lf::ValueUsage::Maybe));
       if (bke::node_tree_reference_lifetimes::can_contain_referenced_data(
               eNodeSocketDatatype(bsocket.type)))
       {
         const int input_i = inputs_.append_and_get_index_as(
-            "Reference Set", CPPType::get<bke::GeometryNodesReferenceSet>());
+            "Reference Set",
+            CPPType::get<bke::GeometryNodesReferenceSet>(),
+            lf::ValueUsage::Maybe);
         indices_.inputs.reference_set_by_output.add(i, input_i);
       }
     }
@@ -318,22 +322,28 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
 
       eval_storage.closure = params.extract_input<bke::SocketValueVariant>(indices_.inputs.main[0])
                                  .extract<ClosurePtr>();
-      if (!eval_storage.closure) {
-        this->set_default_outputs(params);
-        return;
-      }
-      this->generate_closure_compatibility_warnings(*eval_storage.closure, context);
-      this->initialize_execution_graph(eval_storage);
+      if (eval_storage.closure) {
+        this->generate_closure_compatibility_warnings(*eval_storage.closure, context);
+        this->initialize_execution_graph(eval_storage);
 
-      const bNodeTree &btree_orig = *reinterpret_cast<const bNodeTree *>(
-          DEG_get_original_id(&btree_.id));
-      ClosureEvalLocation eval_location{
-          btree_orig.id.session_uid, bnode_.identifier, user_data.compute_context->hash()};
-      eval_storage.closure->log_evaluation(eval_location);
+        const bNodeTree &btree_orig = *reinterpret_cast<const bNodeTree *>(
+            DEG_get_original_id(&btree_.id));
+        ClosureEvalLocation eval_location{
+            btree_orig.id.session_uid, bnode_.identifier, user_data.compute_context->hash()};
+        eval_storage.closure->log_evaluation(eval_location);
+      }
+      else {
+        /* If no closure is provided, the Evaluate Closure node behaves as if it was muted. So some
+         * values may be passed through if there are internal links. */
+        this->initialize_pass_through_graph(eval_storage);
+      }
     }
 
+    const std::optional<ClosureSourceLocation> closure_source_location =
+        eval_storage.closure ? eval_storage.closure->source_location() : std::nullopt;
+
     bke::EvaluateClosureComputeContext closure_compute_context{
-        user_data.compute_context, bnode_, eval_storage.closure->source_location()};
+        user_data.compute_context, bnode_, closure_source_location};
     GeoNodesLFUserData closure_user_data = user_data;
     closure_user_data.compute_context = &closure_compute_context;
     GeoNodesLFLocalUserData closure_local_user_data{closure_user_data};
@@ -613,6 +623,74 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
       btree_orig.runtime->logged_zone_graphs->graph_by_zone_id.lookup_or_add_cb(
           bnode_.identifier, [&]() { return lf_graph.to_dot(); });
     }
+  }
+
+  void initialize_pass_through_graph(EvaluateClosureEvalStorage &eval_storage) const
+  {
+    const auto &node_storage = *static_cast<const NodeGeometryEvaluateClosure *>(bnode_.storage);
+    lf::Graph &lf_graph = eval_storage.graph;
+    for (const lf::Input &input : inputs_) {
+      lf_graph.add_input(*input.type, input.debug_name);
+    }
+    for (const lf::Output &output : outputs_) {
+      lf_graph.add_output(*output.type, output.debug_name);
+    }
+    const Span<lf::GraphInputSocket *> lf_graph_inputs = lf_graph.graph_inputs();
+    const Span<lf::GraphOutputSocket *> lf_graph_outputs = lf_graph.graph_outputs();
+
+    for (const int output_item_i : IndexRange(node_storage.output_items.items_num)) {
+      const bNodeSocket &output_bsocket = bnode_.output_socket(output_item_i);
+      const bNodeSocket *input_bsocket = evaluate_closure_node_internally_linked_input(
+          output_bsocket);
+      lf::GraphOutputSocket &lf_main_output =
+          *lf_graph_outputs[indices_.outputs.main[output_item_i]];
+      lf::GraphInputSocket &lf_usage_input =
+          *lf_graph_inputs[indices_.inputs.output_usages[output_item_i]];
+      const bke::bNodeSocketType &output_type = *output_bsocket.typeinfo;
+      if (input_bsocket) {
+        lf::OutputSocket &lf_main_input =
+            *lf_graph_inputs[indices_.inputs.main[input_bsocket->index()]];
+        lf::GraphOutputSocket &lf_usage_output =
+            *lf_graph_outputs[indices_.outputs.input_usages[input_bsocket->index()]];
+        const bke::bNodeSocketType &input_type = *input_bsocket->typeinfo;
+        if (&input_type == &output_type) {
+          lf_graph.add_link(lf_main_input, lf_main_output);
+          lf_graph.add_link(lf_usage_input, lf_usage_output);
+          continue;
+        }
+        if (const LazyFunction *conversion_fn = build_implicit_conversion_lazy_function(
+                input_type, output_type, eval_storage.scope))
+        {
+          lf::Node &conversion_node = lf_graph.add_function(*conversion_fn);
+          lf_graph.add_link(lf_main_input, conversion_node.input(0));
+          lf_graph.add_link(conversion_node.output(0), lf_main_output);
+          lf_graph.add_link(lf_usage_input, lf_usage_output);
+          continue;
+        }
+      }
+      const CPPType &cpp_type = *output_type.geometry_nodes_cpp_type;
+      void *default_output_value = eval_storage.scope.linear_allocator().allocate(
+          cpp_type.size(), cpp_type.alignment());
+      construct_socket_default_value(output_type, default_output_value);
+      lf_main_output.set_default_value(default_output_value);
+      if (!cpp_type.is_trivially_destructible()) {
+        eval_storage.scope.add_destruct_call(
+            [default_output_value, type = &cpp_type]() { type->destruct(default_output_value); });
+      }
+    }
+
+    static constexpr bool static_false = false;
+    for (const int usage_i : indices_.outputs.input_usages) {
+      lf::GraphOutputSocket &lf_usage_output = *lf_graph_outputs[usage_i];
+      if (!lf_usage_output.origin()) {
+        lf_usage_output.set_default_value(&static_false);
+      }
+    }
+
+    lf_graph.update_node_indices();
+    eval_storage.graph_executor.emplace(lf_graph, nullptr, nullptr, nullptr);
+    eval_storage.graph_executor_storage = eval_storage.graph_executor->init_storage(
+        eval_storage.scope.linear_allocator());
   }
 };
 
