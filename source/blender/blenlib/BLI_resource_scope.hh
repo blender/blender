@@ -6,7 +6,15 @@
 
 /** \file
  * \ingroup bli
- *
+ */
+
+#include "BLI_linear_allocator.hh"
+#include "BLI_utility_mixins.hh"
+#include "BLI_vector.hh"
+
+namespace blender {
+
+/**
  * A `ResourceScope` takes ownership of arbitrary data/resources. Those resources will be
  * destructed and/or freed when the `ResourceScope` is destructed. Destruction happens in reverse
  * order. That allows resources do depend on other resources that have been added before.
@@ -26,13 +34,6 @@
  * That can happen when the function returns a reference to statically allocated data or
  * dynamically allocated data depending on some condition.
  */
-
-#include "BLI_linear_allocator.hh"
-#include "BLI_utility_mixins.hh"
-#include "BLI_vector.hh"
-
-namespace blender {
-
 class ResourceScope : NonCopyable, NonMovable {
  private:
   struct ResourceData {
@@ -47,15 +48,44 @@ class ResourceScope : NonCopyable, NonMovable {
   ResourceScope();
   ~ResourceScope();
 
+  /**
+   * Pass ownership of the resource to the #ResourceScope. It will be destructed and freed when
+   * the #ResourceScope is destructed.
+   */
   template<typename T> T *add(std::unique_ptr<T> resource);
+
+  /**
+   * Pass ownership of the resource to the #ResourceScope. It will be destructed when the
+   * #ResourceScope is destructed.
+   */
   template<typename T> T *add(destruct_ptr<T> resource);
+
+  /**
+   * Pass ownership of some resource to the #ResourceScope. The given free function will be
+   * called when the #ResourceScope is destructed.
+   */
   void add(void *userdata, void (*free)(void *));
 
+  /**
+   * Construct an object with the same value in the #ResourceScope and return a reference to the
+   * new value.
+   */
   template<typename T> T &add_value(T &&value);
+
+  /**
+   * The passed in function will be called when the scope is destructed.
+   */
   template<typename Func> void add_destruct_call(Func func);
 
+  /**
+   * Utility method to construct an instance of type T that will be owned by the #ResourceScope.
+   */
   template<typename T, typename... Args> T &construct(Args &&...args);
 
+  /**
+   * Returns a reference to a linear allocator that is owned by the #ResourceScope. Memory
+   * allocated through this allocator will be freed when the collector is destructed.
+   */
   LinearAllocator<> &linear_allocator();
 };
 
@@ -63,10 +93,6 @@ class ResourceScope : NonCopyable, NonMovable {
 /** \name #ResourceScope Inline Methods
  * \{ */
 
-/**
- * Pass ownership of the resource to the ResourceScope. It will be destructed and freed when
- * the collector is destructed.
- */
 template<typename T> inline T *ResourceScope::add(std::unique_ptr<T> resource)
 {
   T *ptr = resource.release();
@@ -80,10 +106,6 @@ template<typename T> inline T *ResourceScope::add(std::unique_ptr<T> resource)
   return ptr;
 }
 
-/**
- * Pass ownership of the resource to the ResourceScope. It will be destructed when the
- * collector is destructed.
- */
 template<typename T> inline T *ResourceScope::add(destruct_ptr<T> resource)
 {
   T *ptr = resource.release();
@@ -102,10 +124,6 @@ template<typename T> inline T *ResourceScope::add(destruct_ptr<T> resource)
   return ptr;
 }
 
-/**
- * Pass ownership of some resource to the ResourceScope. The given free function will be
- * called when the collector is destructed.
- */
 inline void ResourceScope::add(void *userdata, void (*free)(void *))
 {
   ResourceData data;
@@ -114,18 +132,11 @@ inline void ResourceScope::add(void *userdata, void (*free)(void *))
   resources_.append(data);
 }
 
-/**
- * Construct an object with the same value in the ResourceScope and return a reference to the
- * new value.
- */
 template<typename T> inline T &ResourceScope::add_value(T &&value)
 {
   return this->construct<T>(std::forward<T>(value));
 }
 
-/**
- * The passed in function will be called when the scope is destructed.
- */
 template<typename Func> inline void ResourceScope::add_destruct_call(Func func)
 {
   void *buffer = allocator_.allocate(sizeof(Func), alignof(Func));
@@ -133,9 +144,6 @@ template<typename Func> inline void ResourceScope::add_destruct_call(Func func)
   this->add(buffer, [](void *data) { (*static_cast<Func *>(data))(); });
 }
 
-/**
- * Utility method to construct an instance of type T that will be owned by the ResourceScope.
- */
 template<typename T, typename... Args> inline T &ResourceScope::construct(Args &&...args)
 {
   destruct_ptr<T> value_ptr = allocator_.construct<T>(std::forward<Args>(args)...);
@@ -144,10 +152,6 @@ template<typename T, typename... Args> inline T &ResourceScope::construct(Args &
   return value_ref;
 }
 
-/**
- * Returns a reference to a linear allocator that is owned by the ResourcesCollector. Memory
- * allocated through this allocator will be freed when the collector is destructed.
- */
 inline LinearAllocator<> &ResourceScope::linear_allocator()
 {
   return allocator_;
