@@ -4204,7 +4204,7 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
 
   totface = mesh->totface_legacy;
   mface = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
-  blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
+  blender::Span<blender::float3> positions = mesh->vert_positions();
 
   /* lets intersect the faces */
   for (i = 0; i < totface; i++, mface++) {
