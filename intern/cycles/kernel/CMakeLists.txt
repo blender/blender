@@ -691,9 +691,10 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
     # or render improperly with specific combinations of device and/or compiler.
     # - Vega (gfx90x) fails to render some scenes
     # - Other GPUs (E.g. RDNA3) render volumes improperly with HIP 6.1.40252
+    # - RDNA1 (gfx101x) renders the Principled BSDF incorrectly in some scenes with HIP 6.3.42560
     # A workaround is to set -O1 opt level during kernel compilation for these
     # configurations.
-    if(WIN32 AND ((${arch} MATCHES "gfx90[a-z0-9]+") OR (${HIP_VERSION} STREQUAL "6.1.40252")))
+    if(WIN32 AND ((${arch} MATCHES "gfx90[a-z0-9]+") OR (${HIP_VERSION} STREQUAL "6.1.40252") OR ((${arch} MATCHES "gfx101[a-z0-9]") AND (${HIP_VERSION} STREQUAL "6.3.42560"))))
       set(hip_opt_flags "-O1")
     else()
       set(hip_opt_flags)
