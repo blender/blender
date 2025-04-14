@@ -1549,7 +1549,8 @@ void OSLManager::reset(Scene * /*scene*/) {}
 void OSLManager::device_update_pre(Device * /*device*/, Scene * /*scene*/) {}
 void OSLManager::device_update_post(Device * /*device*/,
                                     Scene * /*scene*/,
-                                    Progress & /*progress*/)
+                                    Progress & /*progress*/,
+                                    const bool /*reload_kernels*/)
 {
 }
 void OSLManager::device_free(Device * /*device*/, DeviceScene * /*dscene*/, Scene * /*scene*/) {}
