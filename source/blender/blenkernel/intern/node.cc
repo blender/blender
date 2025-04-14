@@ -685,6 +685,11 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       property = input->default_value_typed<bNodeSocketValueInt>()->value;
     };
 
+    auto write_input_to_property_int16 = [&](const char *identifier, int16_t &property) {
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+      property = int16_t(input->default_value_typed<bNodeSocketValueInt>()->value);
+    };
+
     auto write_input_to_property_float = [&](const char *identifier, float &property) {
       const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
       property = input->default_value_typed<bNodeSocketValueFloat>()->value;
@@ -702,6 +707,11 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_float("Roundness", storage->rounding);
       write_input_to_property_float("Catadioptric Size", storage->catadioptric);
       write_input_to_property_float("Color Shift", storage->lensshift);
+    }
+
+    if (node->type_legacy == CMP_NODE_TIME) {
+      write_input_to_property_int16("Start Frame", node->custom1);
+      write_input_to_property_int16("End Frame", node->custom2);
     }
   }
 }

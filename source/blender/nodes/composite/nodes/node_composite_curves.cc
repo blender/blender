@@ -7,7 +7,7 @@
  */
 
 #include "BKE_node.hh"
-#include "BLI_math_base.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -34,14 +34,14 @@ namespace blender::nodes::node_composite_time_curves_cc {
 
 static void cmp_node_time_declare(NodeDeclarationBuilder &b)
 {
+  b.add_input<decl::Int>("Start Frame").default_value(1).compositor_expects_single_value();
+  b.add_input<decl::Int>("End Frame").default_value(250).compositor_expects_single_value();
+
   b.add_output<decl::Float>("Fac");
 }
 
-/* custom1 = start_frame, custom2 = end_frame */
 static void node_composit_init_curves_time(bNodeTree * /*ntree*/, bNode *node)
 {
-  node->custom1 = 1;
-  node->custom2 = 250;
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
@@ -53,43 +53,45 @@ class TimeCurveOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &result = get_result("Fac");
+    Result &result = this->get_result("Fac");
     result.allocate_single_value();
 
-    CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
+    CurveMapping *curve_mapping = const_cast<CurveMapping *>(this->get_curve_mapping());
     BKE_curvemapping_init(curve_mapping);
-    const float time = BKE_curvemapping_evaluateF(curve_mapping, 0, compute_normalized_time());
-    result.set_single_value(clamp_f(time, 0.0f, 1.0f));
+    const float time = BKE_curvemapping_evaluateF(
+        curve_mapping, 0, this->compute_normalized_time());
+    result.set_single_value(math::clamp(time, 0.0f, 1.0f));
+  }
+
+  float compute_normalized_time()
+  {
+    const int frame_number = this->context().get_frame_number();
+    if (frame_number < this->get_start_frame()) {
+      return 0.0f;
+    }
+    if (frame_number > this->get_end_frame()) {
+      return 1.0f;
+    }
+    if (this->get_start_frame() == this->get_end_frame()) {
+      return 0.0f;
+    }
+    return float(frame_number - this->get_start_frame()) /
+           float(this->get_end_frame() - this->get_start_frame());
+  }
+
+  int get_start_frame()
+  {
+    return this->get_input("Start Frame").get_single_value_default(1);
+  }
+
+  int get_end_frame()
+  {
+    return this->get_input("End Frame").get_single_value_default(250);
   }
 
   const CurveMapping *get_curve_mapping()
   {
     return static_cast<const CurveMapping *>(bnode().storage);
-  }
-
-  int get_start_time()
-  {
-    return bnode().custom1;
-  }
-
-  int get_end_time()
-  {
-    return bnode().custom2;
-  }
-
-  float compute_normalized_time()
-  {
-    const int frame_number = context().get_frame_number();
-    if (frame_number < get_start_time()) {
-      return 0.0f;
-    }
-    if (frame_number > get_end_time()) {
-      return 1.0f;
-    }
-    if (get_start_time() == get_end_time()) {
-      return 0.0f;
-    }
-    return float(frame_number - get_start_time()) / float(get_end_time() - get_start_time());
   }
 };
 
