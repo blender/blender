@@ -11,7 +11,7 @@ from bpy.app.translations import (
 
 
 def has_selected_ids_in_context(context):
-    if hasattr(context, "id"):
+    if getattr(context, "id", None) is not None:
         return True
     if len(context.selected_ids) > 0:
         return True
