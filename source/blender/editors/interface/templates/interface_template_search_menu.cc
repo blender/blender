@@ -224,10 +224,10 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
                                            "" :
                                            StringRef(but->drawstr).drop_prefix(sep_index);
       std::string drawstr = std::string("(") + drawstr_override + ")" + drawstr_suffix;
-      item->drawstr = scope.linear_allocator().copy_string(drawstr);
+      item->drawstr = scope.allocator().copy_string(drawstr);
     }
     else {
-      item->drawstr = scope.linear_allocator().copy_string(but->drawstr);
+      item->drawstr = scope.allocator().copy_string(but->drawstr);
     }
 
     item->icon = ui_but_icon(but);
@@ -385,7 +385,7 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
 
       SNPRINTF(uiname, "%s " UI_MENU_ARROW_SEP "%s", idname_as_py, ot_ui_name);
 
-      item.drawwstr_full = scope.linear_allocator().copy_string(uiname);
+      item.drawwstr_full = scope.allocator().copy_string(uiname);
       item.drawstr = ot_ui_name;
 
       item.wm_context = nullptr;
@@ -683,8 +683,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           }
 
           if (but_test < block->buttons.begin()) {
-            menu_display_name_map.add(mt,
-                                      scope.linear_allocator().copy_string(but->drawstr).c_str());
+            menu_display_name_map.add(mt, scope.allocator().copy_string(but->drawstr).c_str());
           }
         }
         else if (menu_items_from_ui_create_item_from_button(
@@ -723,7 +722,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
               }
               str_buf.append(StringRef(drawstr, drawstr_len));
               fmt::format_to(fmt::appender(str_buf), " ({})", drawstr_sep + 1);
-              menu_parent->drawstr = scope.linear_allocator().copy_string(
+              menu_parent->drawstr = scope.allocator().copy_string(
                   StringRef(str_buf.data(), str_buf.size()));
               str_buf.clear();
             }
@@ -735,7 +734,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
                   drawstr_is_empty = true;
                 }
               }
-              menu_parent->drawstr = scope.linear_allocator().copy_string(drawstr);
+              menu_parent->drawstr = scope.allocator().copy_string(drawstr);
             }
             menu_parent->parent = current_menu.self_as_parent;
 
@@ -785,7 +784,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
           if (poll_success) {
             MenuSearch_Parent *menu_parent = &scope.construct<MenuSearch_Parent>();
-            menu_parent->drawstr = scope.linear_allocator().copy_string(but->drawstr);
+            menu_parent->drawstr = scope.allocator().copy_string(but->drawstr);
             menu_parent->parent = current_menu.self_as_parent;
 
             for (const std::unique_ptr<uiBut> &sub_but : sub_block->buttons) {
@@ -865,8 +864,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
     str_buf.append(item.drawstr);
 
-    item.drawwstr_full = scope.linear_allocator().copy_string(
-        StringRef(str_buf.data(), str_buf.size()));
+    item.drawwstr_full = scope.allocator().copy_string(StringRef(str_buf.data(), str_buf.size()));
     str_buf.clear();
   }
 

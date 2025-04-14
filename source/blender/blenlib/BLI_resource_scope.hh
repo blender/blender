@@ -86,7 +86,7 @@ class ResourceScope : NonCopyable, NonMovable {
    * Returns a reference to a linear allocator that is owned by the #ResourceScope. Memory
    * allocated through this allocator will be freed when the collector is destructed.
    */
-  LinearAllocator<> &linear_allocator();
+  LinearAllocator<> &allocator();
 };
 
 /* -------------------------------------------------------------------- */
@@ -152,7 +152,7 @@ template<typename T, typename... Args> inline T &ResourceScope::construct(Args &
   return value_ref;
 }
 
-inline LinearAllocator<> &ResourceScope::linear_allocator()
+inline LinearAllocator<> &ResourceScope::allocator()
 {
   return allocator_;
 }

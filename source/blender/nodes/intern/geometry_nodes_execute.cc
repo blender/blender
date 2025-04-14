@@ -1081,8 +1081,8 @@ void get_geometry_nodes_input_base_values(const bNodeTree &btree,
       continue;
     }
 
-    void *value_buffer = scope.linear_allocator().allocate(
-        stype->geometry_nodes_cpp_type->size(), stype->geometry_nodes_cpp_type->alignment());
+    void *value_buffer = scope.allocator().allocate(stype->geometry_nodes_cpp_type->size(),
+                                                    stype->geometry_nodes_cpp_type->alignment());
     init_socket_cpp_value_from_property(*property, socket_type, value_buffer);
     if (!stype->geometry_nodes_cpp_type->is_trivially_destructible()) {
       scope.add_destruct_call([type = stype->geometry_nodes_cpp_type, value_buffer]() {

@@ -3834,7 +3834,7 @@ struct GeometryNodesLazyFunctionBuilder {
     if (this->try_add_implicit_input(input_bsocket, input_lf_socket, graph_params)) {
       return;
     }
-    GMutablePointer value = get_socket_default_value(scope_.linear_allocator(), input_bsocket);
+    GMutablePointer value = get_socket_default_value(scope_.allocator(), input_bsocket);
     if (value.get() == nullptr) {
       /* Not possible to add a default value. */
       return;

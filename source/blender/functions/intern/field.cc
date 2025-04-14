@@ -391,7 +391,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
       void *buffer;
       if (!dst_varray || !dst_varray.is_span()) {
         /* Allocate a new buffer for the computed result. */
-        buffer = scope.linear_allocator().allocate(type.size() * array_size, type.alignment());
+        buffer = scope.allocator().allocate(type.size() * array_size, type.alignment());
 
         if (!type.is_trivially_destructible()) {
           /* Destruct values in the end. */
@@ -437,7 +437,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
       const GFieldRef &field = constant_fields_to_evaluate[i];
       const CPPType &type = field.cpp_type();
       /* Allocate memory where the computed value will be stored in. */
-      void *buffer = scope.linear_allocator().allocate(type.size(), type.alignment());
+      void *buffer = scope.allocator().allocate(type.size(), type.alignment());
 
       if (!type.is_trivially_destructible()) {
         /* Destruct value in the end. */
