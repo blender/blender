@@ -57,7 +57,6 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
     if (cycle_resource_pool) {
       thread_data.resource_pool_next();
       VKResourcePool &resource_pool = thread_data.resource_pool_get();
-      resource_pool.reset();
       imm = &resource_pool.immediate;
     }
 
