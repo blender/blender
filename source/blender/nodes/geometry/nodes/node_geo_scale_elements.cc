@@ -182,7 +182,7 @@ template<typename T> static T gather_mean(const VArray<T> &values, const Span<in
 
   T value;
   devirtualize_varray(values, [&](const auto values) {
-    const auto accumulator = threading::parallel_reduce<MeanAccumulator>(
+    const auto accumulator = threading::parallel_deterministic_reduce<MeanAccumulator>(
         indices.index_range(),
         2048,
         MeanAccumulator(T(), 0),
