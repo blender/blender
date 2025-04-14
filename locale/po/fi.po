@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2024-10-16 00:56+0000\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:20+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
 "Language: fi\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.7.2"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -4134,26 +4134,6 @@ msgid "-Z Rotation"
 msgstr "-Z -kierto"
 
 
-msgid "Script Error"
-msgstr "Koodivirhe"
-
-
-msgid "Number of Targets"
-msgstr "Kohteiden määrä"
-
-
-msgid "Target Objects"
-msgstr "Kohdeobjektit"
-
-
-msgid "Script"
-msgstr "Koodi"
-
-
-msgid "Use Targets"
-msgstr "Käytä kohteita"
-
-
 msgid "Front"
 msgstr "Edestä"
 
@@ -5155,6 +5135,10 @@ msgstr "Tulosteen laatu"
 
 msgid "Realtime"
 msgstr "Reaaliaikainen"
+
+
+msgid "Profile"
+msgstr "Profiili"
 
 
 msgid "MPEG-4"
@@ -6262,10 +6246,6 @@ msgid "Round"
 msgstr "Pyöreä"
 
 
-msgid "Profile"
-msgstr "Profiili"
-
-
 msgid "Fill Mode"
 msgstr "Täyttötila"
 
@@ -6634,6 +6614,10 @@ msgstr "Päivitä"
 
 msgid "Attribute"
 msgstr "Attribuutti"
+
+
+msgid "Script"
+msgstr "Koodi"
 
 
 msgid "Shader"
@@ -7332,6 +7316,18 @@ msgid "Mask"
 msgstr "Maski"
 
 
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
 msgid "Metaball"
 msgstr "Metapallo"
 
@@ -7380,20 +7376,8 @@ msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
 msgid "Select Similar"
 msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
 
 
 msgid "Basic"
@@ -10699,6 +10683,18 @@ msgid "Texture Type"
 msgstr "Tekstuurin tyyppi"
 
 
+msgid "Geometry Node Editor"
+msgstr "Geometrianoodieditori"
+
+
+msgid "Shader Editor"
+msgstr "Varjostineditori"
+
+
+msgid "Texture Node Editor"
+msgstr "Tekstuurinoodieditori"
+
+
 msgid "Blender File"
 msgstr "Blender-tiedosto"
 
@@ -12834,10 +12830,6 @@ msgid "Offset X"
 msgstr "X-siirros"
 
 
-msgid "Endpoint"
-msgstr "Päätepiste"
-
-
 msgctxt "Operator"
 msgid "Bold"
 msgstr "Lihavoi"
@@ -13034,6 +13026,10 @@ msgstr "Objektin Skaala"
 
 msgid "Randomize Size"
 msgstr "Satunnaista Koko"
+
+
+msgid "Endpoint"
+msgstr "Päätepiste"
 
 
 msgid "Randomize Axis"
@@ -13937,6 +13933,10 @@ msgstr "Väri"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Pinta"
+
+
+msgid "True Normal"
+msgstr "Todellinen normaali"
 
 
 msgid "AOV"
@@ -16181,10 +16181,6 @@ msgid "Decimals"
 msgstr "Desimaalit"
 
 
-msgid "Geometry Node Editor"
-msgstr "Geometrianoodieditori"
-
-
 msgid "Leading"
 msgstr "Edeltävä"
 
@@ -16748,10 +16744,6 @@ msgid "Remainder"
 msgstr "Jakojäännös"
 
 
-msgid "Shader Editor"
-msgstr "Varjostineditori"
-
-
 msgid "Not a shader node tree"
 msgstr "Ei ole varjostinnoodipuu"
 
@@ -16839,10 +16831,6 @@ msgstr "Katso Z-syvyyttä"
 
 msgid "View Distance"
 msgstr "Katso etäisyys"
-
-
-msgid "True Normal"
-msgstr "Todellinen normaali"
 
 
 msgid "Incoming"
@@ -16955,10 +16943,6 @@ msgstr "Lämpötila-attribuutti"
 
 msgid "Patterns"
 msgstr "Kuviot"
-
-
-msgid "Texture Node Editor"
-msgstr "Tekstuurinoodieditori"
 
 
 msgid "Not a texture node tree"

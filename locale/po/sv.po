@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2024-01-17 19:22+0000\n"
-"Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:41+0000\n"
+"Last-Translator: Marcus Edmark Lindh <marcus.lindh@outlook.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.1"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -2598,18 +2598,6 @@ msgstr "Enhetlig"
 
 msgid "Use Relative Offset"
 msgstr "Använd relativ förskjutning"
-
-
-msgid "Number of Targets"
-msgstr "Antal mål"
-
-
-msgid "Usually only 1 to 3 are needed"
-msgstr "Oftast behövs bara 1 till 3"
-
-
-msgid "Target Objects"
-msgstr "Målobjekt"
 
 
 msgid "Front"
@@ -5201,6 +5189,10 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
 msgid "Metaball"
 msgstr "Metaboll"
 
@@ -5275,10 +5267,6 @@ msgstr "Justera vy"
 
 msgid "Align View to Active"
 msgstr "Justera vy till aktiv"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
 
 
 msgid "Catalog"
@@ -5663,6 +5651,10 @@ msgid "Basis"
 msgstr "Bas"
 
 
+msgid "Anisotropic"
+msgstr "Anisotropisk"
+
+
 msgid "High quality"
 msgstr "Hög kvalitet"
 
@@ -5682,10 +5674,6 @@ msgstr "Applicera en färgomvandling i HSV-färgmodellen"
 
 msgid "Eccentricity"
 msgstr "Eccentricitet"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropisk"
 
 
 msgid "Lens Distortion"
@@ -10002,6 +9990,10 @@ msgid "Add Transition"
 msgstr "Lägg till övergång"
 
 
+msgid "Settings to be applied on the newly created node"
+msgstr "Inställningar att applicera på den nyligen skapade noden"
+
+
 msgctxt "Operator"
 msgid "Add Node Collection"
 msgstr "Lägg till nodsamling"
@@ -10009,10 +10001,6 @@ msgstr "Lägg till nodsamling"
 
 msgid "Add a collection info node to the current node editor"
 msgstr "Lägg till en samlingsinfo-nod till den aktuella nodredigeraren"
-
-
-msgid "Settings to be applied on the newly created node"
-msgstr "Inställningar att applicera på den nyligen skapade noden"
 
 
 msgctxt "Operator"
@@ -10336,11 +10324,6 @@ msgstr "Kraftfält på/av"
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Apa"
-
-
-msgctxt "Operator"
-msgid "Hide Collection"
-msgstr "Dölj samling"
 
 
 msgctxt "Operator"
@@ -10861,6 +10844,11 @@ msgstr "Relativt kant"
 msgctxt "Operator"
 msgid "Duplicate Linked Collection"
 msgstr "Duplicera länkad samling"
+
+
+msgctxt "Operator"
+msgid "Hide Collection"
+msgstr "Dölj samling"
 
 
 msgid "Toggle whether item under cursor is enabled or closed"

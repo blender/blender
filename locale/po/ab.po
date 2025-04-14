@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2024-04-29 13:23+0000\n"
+"PO-Revision-Date: 2025-04-14 08:08+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Abkhazian <https://translate.blender.org/projects/blender-ui/ui/ab/>\n"
 "Language: ab\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.1\n"
+"X-Generator: Weblate 5.10.1\n"
 "\"POT-Creation-Date: 2019-02-25 20:41:30"
 
 

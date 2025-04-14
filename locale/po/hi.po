@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
 "Language: hi\n"
@@ -2167,10 +2167,6 @@ msgid "Mass"
 msgstr "द्रव्यमान"
 
 
-msgid "Dummy"
-msgstr "प्रतिरूपी"
-
-
 msgid "Random Phase"
 msgstr "यादृच्छिक चरण"
 
@@ -3595,6 +3591,10 @@ msgstr "अनुकृति वक्र"
 
 msgid "Duplicate Curve"
 msgstr "अनुकृति वक्र"
+
+
+msgid "Dummy"
+msgstr "प्रतिरूपी"
 
 
 msgid "Bend"
@@ -5323,10 +5323,6 @@ msgid "Bold & Italic"
 msgstr "मोटा एवं तिर्यगक्षर"
 
 
-msgid "Endpoint"
-msgstr "समापन बिंदु"
-
-
 msgid "Priority"
 msgstr "प्राथमिकता"
 
@@ -5360,6 +5356,10 @@ msgstr "दिनांक"
 
 msgid "Roughness End"
 msgstr "खुरदरापन समाप्त"
+
+
+msgid "Endpoint"
+msgstr "समापन बिंदु"
 
 
 msgid "Use Timing"

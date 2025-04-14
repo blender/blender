@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
 "Language: sr@latin\n"
@@ -2643,30 +2643,6 @@ msgid "Use Relative Offset"
 msgstr "Koristi relativno rastojanje"
 
 
-msgid "Python Constraint"
-msgstr "Python ograničenje"
-
-
-msgid "Script Error"
-msgstr "Greška u skripti"
-
-
-msgid "Number of Targets"
-msgstr "Broj meta"
-
-
-msgid "Target Objects"
-msgstr "Objekti meta"
-
-
-msgid "Script"
-msgstr "Skripta"
-
-
-msgid "Use Targets"
-msgstr "Koristi mete"
-
-
 msgid "Face Cull"
 msgstr "Odabir stranica"
 
@@ -3886,6 +3862,10 @@ msgstr "Visok kvalitet"
 
 msgid "Realtime"
 msgstr "U realnom vremenu"
+
+
+msgid "Profile"
+msgstr "Profil"
 
 
 msgid "Container"
@@ -5426,10 +5406,6 @@ msgid "Round"
 msgstr "Zakrivreno"
 
 
-msgid "Profile"
-msgstr "Profil"
-
-
 msgid "Bevel Object"
 msgstr "Iskošavanje objekta"
 
@@ -6298,6 +6274,10 @@ msgid "Matte"
 msgstr "Mat"
 
 
+msgid "Script"
+msgstr "Skripta"
+
+
 msgid "Shader"
 msgstr "Senčenja"
 
@@ -6904,10 +6884,6 @@ msgstr "Slot materijala"
 
 msgid "Material slot used for rendering particles"
 msgstr "Slot materijala korišćen za renderovanje čestica"
-
-
-msgid "Dummy"
-msgstr "Lutka"
 
 
 msgid "Particle"
@@ -8605,6 +8581,10 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Select Linked"
+msgstr "Izaberi povezano"
+
+
 msgid "Metaball"
 msgstr "Meta lopta"
 
@@ -8707,10 +8687,6 @@ msgstr "Navigacija"
 
 msgid "Align View"
 msgstr "Poravnaj pogled"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
 
 
 msgid "Basic"
@@ -10687,10 +10663,6 @@ msgid "Rounding"
 msgstr "Zaobljenje"
 
 
-msgid "Shift of the lens components"
-msgstr "Pomeraj komponenti sočiva"
-
-
 msgid "Box Mask"
 msgstr "Maska kutije"
 
@@ -10813,6 +10785,10 @@ msgstr "Ka"
 
 msgid "Corner Pin"
 msgstr "Zakači ugao"
+
+
+msgid "Interpolation method"
+msgstr "Interpolacija"
 
 
 msgid "X2"
@@ -11295,6 +11271,10 @@ msgid "Z Up"
 msgstr "Gore po Z"
 
 
+msgid "Tangent Space"
+msgstr "Ciljni prostor"
+
+
 msgid "Unknown"
 msgstr "Nepoznato"
 
@@ -11409,10 +11389,6 @@ msgstr "Mešanje senčenja"
 
 msgid "Space of the input normal"
 msgstr "Prostor ulazne normale"
-
-
-msgid "Tangent Space"
-msgstr "Ciljni prostor"
 
 
 msgid "Tangent space normal mapping"
@@ -13624,6 +13600,10 @@ msgid "Duplicate Curve"
 msgstr "Dupliraj krivu"
 
 
+msgid "Dummy"
+msgstr "Lutka"
+
+
 msgid "Resize"
 msgstr "Uvećanje"
 
@@ -15040,10 +15020,6 @@ msgstr "Normala ploče"
 
 msgid "Axis Threshold"
 msgstr "Prag osa"
-
-
-msgid "Interpolation method"
-msgstr "Interpolacija"
 
 
 msgid "Smoothness factor"
@@ -18541,15 +18517,6 @@ msgstr "Premešta izabrane linije gore i dole"
 msgctxt "Operator"
 msgid "Toggle Overwrite"
 msgstr "film"
-
-
-msgctxt "Operator"
-msgid "Refresh PyConstraints"
-msgstr "Osveži PyConstraints"
-
-
-msgid "Refresh all pyconstraints"
-msgstr "Osvežava sve pyconstraints"
 
 
 msgctxt "Operator"
@@ -23666,10 +23633,6 @@ msgid "Bold & Italic"
 msgstr "Podebljano i nakošeno"
 
 
-msgid "Endpoint"
-msgstr "Krajnja tačka"
-
-
 msgctxt "Operator"
 msgid "Lock All"
 msgstr "Zaključaj sve"
@@ -23752,6 +23715,10 @@ msgstr "Oblik niti"
 
 msgid "Random Order"
 msgstr "Nasumični redosled"
+
+
+msgid "Endpoint"
+msgstr "Krajnja tačka"
 
 
 msgid "Settings used for fluid"
@@ -24799,6 +24766,10 @@ msgstr "Nema dovoljno slobodne memorije"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Površ"
+
+
+msgid "True Normal"
+msgstr "Stvarna normala"
 
 
 msgid "Slot %d"
@@ -26159,10 +26130,6 @@ msgstr "Udaljenost pogleda"
 
 msgid "Transparency"
 msgstr "Providnost"
-
-
-msgid "True Normal"
-msgstr "Stvarna normala"
 
 
 msgid "Parametric"

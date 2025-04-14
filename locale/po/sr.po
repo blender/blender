@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2025-03-03 11:30+0000\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
 "Language: sr\n"
@@ -2643,30 +2643,6 @@ msgid "Use Relative Offset"
 msgstr "Користи релативно растојање"
 
 
-msgid "Python Constraint"
-msgstr "Python ограничење"
-
-
-msgid "Script Error"
-msgstr "Грешка у скрипти"
-
-
-msgid "Number of Targets"
-msgstr "Број мета"
-
-
-msgid "Target Objects"
-msgstr "Објекти мета"
-
-
-msgid "Script"
-msgstr "Скрипта"
-
-
-msgid "Use Targets"
-msgstr "Користи мете"
-
-
 msgid "Face Cull"
 msgstr "Одабир страница"
 
@@ -3886,6 +3862,10 @@ msgstr "Висок квалитет"
 
 msgid "Realtime"
 msgstr "У реалном времену"
+
+
+msgid "Profile"
+msgstr "Профил"
 
 
 msgid "Container"
@@ -5426,10 +5406,6 @@ msgid "Round"
 msgstr "Закриврено"
 
 
-msgid "Profile"
-msgstr "Профил"
-
-
 msgid "Bevel Object"
 msgstr "Искошавање објекта"
 
@@ -6298,6 +6274,10 @@ msgid "Matte"
 msgstr "Мат"
 
 
+msgid "Script"
+msgstr "Скрипта"
+
+
 msgid "Shader"
 msgstr "Сенчења"
 
@@ -6904,10 +6884,6 @@ msgstr "Слот материјала"
 
 msgid "Material slot used for rendering particles"
 msgstr "Слот материјала коришћен за рендеровање честица"
-
-
-msgid "Dummy"
-msgstr "Лутка"
 
 
 msgid "Particle"
@@ -8605,6 +8581,10 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Select Linked"
+msgstr "Изабери повезано"
+
+
 msgid "Metaball"
 msgstr "Мета лопта"
 
@@ -8707,10 +8687,6 @@ msgstr "Навигација"
 
 msgid "Align View"
 msgstr "Поравнај поглед"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
 
 
 msgid "Basic"
@@ -10687,10 +10663,6 @@ msgid "Rounding"
 msgstr "Заобљење"
 
 
-msgid "Shift of the lens components"
-msgstr "Померај компоненти сочива"
-
-
 msgid "Box Mask"
 msgstr "Маска кутије"
 
@@ -10813,6 +10785,10 @@ msgstr "Ка"
 
 msgid "Corner Pin"
 msgstr "Закачи угао"
+
+
+msgid "Interpolation method"
+msgstr "Интерполација"
 
 
 msgid "X2"
@@ -11295,6 +11271,10 @@ msgid "Z Up"
 msgstr "Горе по Z"
 
 
+msgid "Tangent Space"
+msgstr "Циљни простор"
+
+
 msgid "Unknown"
 msgstr "Непознато"
 
@@ -11409,10 +11389,6 @@ msgstr "Мешање сенчења"
 
 msgid "Space of the input normal"
 msgstr "Простор улазне нормале"
-
-
-msgid "Tangent Space"
-msgstr "Циљни простор"
 
 
 msgid "Tangent space normal mapping"
@@ -13624,6 +13600,10 @@ msgid "Duplicate Curve"
 msgstr "Дуплирај криву"
 
 
+msgid "Dummy"
+msgstr "Лутка"
+
+
 msgid "Resize"
 msgstr "Увећање"
 
@@ -15040,10 +15020,6 @@ msgstr "Нормала плоче"
 
 msgid "Axis Threshold"
 msgstr "Праг оса"
-
-
-msgid "Interpolation method"
-msgstr "Интерполација"
 
 
 msgid "Smoothness factor"
@@ -18541,15 +18517,6 @@ msgstr "Премешта изабране линије горе и доле"
 msgctxt "Operator"
 msgid "Toggle Overwrite"
 msgstr "филм"
-
-
-msgctxt "Operator"
-msgid "Refresh PyConstraints"
-msgstr "Освежи PyConstraints"
-
-
-msgid "Refresh all pyconstraints"
-msgstr "Освежава све pyconstraints"
 
 
 msgctxt "Operator"
@@ -23666,10 +23633,6 @@ msgid "Bold & Italic"
 msgstr "Подебљано и накошено"
 
 
-msgid "Endpoint"
-msgstr "Крајња тачка"
-
-
 msgctxt "Operator"
 msgid "Lock All"
 msgstr "Закључај све"
@@ -23752,6 +23715,10 @@ msgstr "Облик нити"
 
 msgid "Random Order"
 msgstr "Насумични редослед"
+
+
+msgid "Endpoint"
+msgstr "Крајња тачка"
 
 
 msgid "Settings used for fluid"
@@ -24799,6 +24766,10 @@ msgstr "Нема довољно слободне меморије"
 msgctxt "Brush"
 msgid "Surface"
 msgstr "Површ"
+
+
+msgid "True Normal"
+msgstr "Стварна нормала"
 
 
 msgid "Slot %d"
@@ -26159,10 +26130,6 @@ msgstr "Удаљеност погледа"
 
 msgid "Transparency"
 msgstr "Провидност"
-
-
-msgid "True Normal"
-msgstr "Стварна нормала"
 
 
 msgid "Parametric"

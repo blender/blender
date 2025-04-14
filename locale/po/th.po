@@ -1,17 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2019-12-08 17:40+0700\n"
-"Last-Translator: gongpha <gongpha@gmail.com>\n"
-"Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:42+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2.4"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Name"
@@ -3600,6 +3601,14 @@ msgid "Pivot around active object"
 msgstr "หมุนรอบ ๆ วัตถุที่กำลังถูกใช้งาน"
 
 
+msgid "Shader Editor"
+msgstr "ตัวแก้ไขเชดเดอร์"
+
+
+msgid "Texture Node Editor"
+msgstr "ตัวแก้ไขโนดพื้นผิว"
+
+
 msgid "Data API"
 msgstr "API ข้อมูล"
 
@@ -5240,16 +5249,8 @@ msgid "Old"
 msgstr "เก่า"
 
 
-msgid "Shader Editor"
-msgstr "ตัวแก้ไขเชดเดอร์"
-
-
 msgid "View Distance"
 msgstr "ระยะมุมมอง"
-
-
-msgid "Texture Node Editor"
-msgstr "ตัวแก้ไขโนดพื้นผิว"
 
 
 msgid "%s: incorrect dimensions for partial copy '%s'"

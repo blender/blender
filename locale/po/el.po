@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2025-03-03 11:29+0000\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:15+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
 "Language: el\n"
@@ -231,10 +231,6 @@ msgid "Bone"
 msgstr "Οστό"
 
 
-msgid "Script"
-msgstr "Script"
-
-
 msgid "Front"
 msgstr "Μπροστά"
 
@@ -423,6 +419,10 @@ msgid "Vertices"
 msgstr "Κορυφές"
 
 
+msgid "Script"
+msgstr "Script"
+
+
 msgid "Edit"
 msgstr "Επεξεργασία"
 
@@ -519,6 +519,10 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
+
+
 msgid "Metaball"
 msgstr "Μετα-σφαίρα"
 
@@ -557,10 +561,6 @@ msgstr "Προσκόλληση"
 
 msgid "Mirror"
 msgstr "Καθρέφτισμα"
-
-
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
 
 
 msgid "Key"

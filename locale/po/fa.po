@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2024-05-03 12:13+0000\n"
-"Last-Translator: Nooby Noober <iamanoobynoober@gmail.com>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:19+0000\n"
+"Last-Translator: soheil ali-pasha <sapachannel.ir@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.5.2\n"
+"X-Generator: Weblate 5.10.1\n"
 "X-Poedit-Country: IRAN, ISLAMIC REPUBLIC OF\n"
 "X-Poedit-Language: Persian\n"
 "X-Poedit-SourceCharset: utf-8"
@@ -60,6 +60,10 @@ msgstr "ﺎﻫAOV ﺖﺳﺮﻬﻓ"
 
 msgid "Collection of AOVs"
 msgstr "ﺎﻫAOV ﻪﻋﻮﻤﺠﻣ"
+
+
+msgid "F-Curves"
+msgstr "ﻑﺍ ﯽﻨﺤﻨﻣ"
 
 
 msgid "Action F-Curves"
@@ -1024,7 +1028,7 @@ msgstr "ﺵﺮﺘﺴﮔ"
 
 
 msgid "Object"
-msgstr "ءﯽﺷ"
+msgstr "ﺊﺷ"
 
 
 msgid "None"
@@ -1077,6 +1081,10 @@ msgstr "ﺪﯾﺩ ﻥﺍﺪﯿﻣ ﺖﯿﻌﺿﻭ"
 
 msgid "Weight"
 msgstr "ﻥﺯﻭ"
+
+
+msgid "Cache Files"
+msgstr "ﺶﮐ ﯼﺎﻫ ﻞﯾﺎﻓ"
 
 
 msgid "Grease Pencil"
@@ -1892,10 +1900,6 @@ msgid "Uniform"
 msgstr "ﻥﺎﺴﮑﯾ"
 
 
-msgid "Script"
-msgstr "ﺖﭙﯾﺮﮑﺳﺍ"
-
-
 msgid "Front"
 msgstr "ﻮﻠﺟ"
 
@@ -2300,6 +2304,10 @@ msgid "Library"
 msgstr "ﻪﻧﺎﺨﺑﺎﺘﮐ"
 
 
+msgid "Library Override"
+msgstr "ﻪﻧﺎﺨﺑﺎﺘﮐ ﻮﻐﻟ"
+
+
 msgid "Layers"
 msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
 
@@ -2579,12 +2587,20 @@ msgid "Cube"
 msgstr "ﺐﻌﮑﻣ"
 
 
+msgid "Attribute"
+msgstr "ﯽﮔﮋﯾﻭ"
+
+
 msgid "Distort"
 msgstr "ﻥﺩﺮﮐ‌ﺞﮐ"
 
 
 msgid "Filter"
 msgstr "ﯽﻓﺎﺻ"
+
+
+msgid "Script"
+msgstr "ﺖﭙﯾﺮﮑﺳﺍ"
 
 
 msgid "Interface"
@@ -4715,10 +4731,6 @@ msgid "Not Set"
 msgstr "ﻩﺪﺸﻧ ﺺﺨﺸﻣ"
 
 
-msgid "Endpoint"
-msgstr "ﯽﻧﺎﯾﺎﭘ ﻪﻄﻘﻧ"
-
-
 msgctxt "Operator"
 msgid "Search..."
 msgstr "...ﻮﺠﺘﺴﺟ"
@@ -4746,6 +4758,10 @@ msgstr "ﯼﺮﺑﺯ ﻥﺎﯾﺎﭘ"
 
 msgid "Random Order"
 msgstr "ﯽﻓﺩﺎﺼﺗ ﺕﺭﻮﺻ"
+
+
+msgid "Endpoint"
+msgstr "ﯽﻧﺎﯾﺎﭘ ﻪﻄﻘﻧ"
 
 
 msgid "Use Particle's Radius"
