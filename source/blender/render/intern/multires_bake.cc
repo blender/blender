@@ -817,7 +817,7 @@ static void *init_heights_data(MultiresBakeRender *bkr, ImBuf *ibuf)
   BakeImBufuserData *userdata = static_cast<BakeImBufuserData *>(ibuf->userdata);
 
   if (userdata->displacement_buffer == nullptr) {
-    userdata->displacement_buffer = MEM_cnew_array<float>(ibuf->x * ibuf->y,
+    userdata->displacement_buffer = MEM_cnew_array<float>(size_t(ibuf->x) * size_t(ibuf->y),
                                                           "MultiresBake heights");
   }
 
@@ -1420,14 +1420,14 @@ static void bake_ibuf_normalize_displacement(ImBuf *ibuf,
                                              float displacement_min,
                                              float displacement_max)
 {
-  int i;
   const float *current_displacement = displacement;
   const char *current_mask = mask;
   float max_distance;
 
   max_distance = max_ff(fabsf(displacement_min), fabsf(displacement_max));
 
-  for (i = 0; i < ibuf->x * ibuf->y; i++) {
+  const size_t ibuf_pixel_count = size_t(ibuf->x) * size_t(ibuf->y);
+  for (size_t i = 0; i < ibuf_pixel_count; i++) {
     if (*current_mask == FILTER_MASK_USED) {
       float normalized_displacement;
 

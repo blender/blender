@@ -2647,10 +2647,9 @@ void BKE_stamp_info_from_imbuf(RenderResult *rr, ImBuf *ibuf)
 
 bool BKE_imbuf_alpha_test(ImBuf *ibuf)
 {
-  int tot;
   if (ibuf->float_buffer.data) {
     const float *buf = ibuf->float_buffer.data;
-    for (tot = ibuf->x * ibuf->y; tot--; buf += 4) {
+    for (size_t tot = size_t(ibuf->x) * size_t(ibuf->y); tot--; buf += 4) {
       if (buf[3] < 1.0f) {
         return true;
       }
@@ -2658,7 +2657,7 @@ bool BKE_imbuf_alpha_test(ImBuf *ibuf)
   }
   else if (ibuf->byte_buffer.data) {
     uchar *buf = ibuf->byte_buffer.data;
-    for (tot = ibuf->x * ibuf->y; tot--; buf += 4) {
+    for (size_t tot = size_t(ibuf->x) * size_t(ibuf->y); tot--; buf += 4) {
       if (buf[3] != 255) {
         return true;
       }
