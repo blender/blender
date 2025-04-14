@@ -170,17 +170,20 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
     /* test for collapsed areas. This could happen in some blender version... */
     /* ton: removed option now, it needs Context... */
 
-    int headery = ED_area_headersize();
-
     if (facy > 1) {
       /* Keep timeline small in video edit workspace. */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        const int border_width = int(ceil(float(U.border_width) * UI_SCALE_FAC));
+        int min = ED_area_headersize() + border_width;
+        if (area->v1->vec.y > screen_rect->ymin) {
+          min += border_width;
+        }
         if (area->spacetype == SPACE_ACTION && area->v1->vec.y == screen_rect->ymin &&
-            area->winy <= headery * facy)
+            area->winy <= min * facy)
         {
           ScrEdge *se = BKE_screen_find_edge(screen, area->v2, area->v3);
           if (se) {
-            const int yval = area->v1->vec.y + headery - 1;
+            const int yval = area->v1->vec.y + min - 1;
 
             screen_geom_select_connected_edge(win, se);
 
@@ -202,11 +205,16 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
     if (facy < 1) {
       /* make each window at least ED_area_headersize() high */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        if (area->winy < headery) {
+        const int border_width = int(ceil(float(U.border_width) * UI_SCALE_FAC));
+        int min = ED_area_headersize() + border_width;
+        if (area->v1->vec.y > screen_rect->ymin) {
+          min += border_width;
+        }
+        if (area->winy < min) {
           /* lower edge */
           ScrEdge *se = BKE_screen_find_edge(screen, area->v4, area->v1);
           if (se && area->v1 != area->v2) {
-            const int yval = area->v2->vec.y - headery + 1;
+            const int yval = area->v2->vec.y - min;
 
             screen_geom_select_connected_edge(win, se);
 
