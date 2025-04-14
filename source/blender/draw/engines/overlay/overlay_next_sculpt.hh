@@ -72,7 +72,7 @@ class Sculpts : Overlay {
       sculpt_mask_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       sculpt_mask_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       sculpt_mask_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL |
-                                 DRW_STATE_BLEND_MUL,
+                                 DRW_STATE_BLEND_ALPHA,
                              state.clipping_plane_count);
       {
         auto &sub = sculpt_mask_.sub("Mesh");
