@@ -103,7 +103,6 @@ static void deform_drawing(const ModifierData &md,
 
   MutableSpan<float> radii = drawing.radii_for_write();
   const OffsetIndices points_by_curve = curves.points_by_curve();
-  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
       curves, mmd.influence);
   const bool is_normalized = (mmd.flag & MOD_GREASE_PENCIL_THICK_NORMALIZE) != 0;
