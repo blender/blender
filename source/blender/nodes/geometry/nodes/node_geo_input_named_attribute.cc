@@ -79,7 +79,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryInputNamedAttribute &storage = node_storage(params.node());
   const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
-  const std::string name = params.extract_input<std::string>("Name");
+  std::string name = params.extract_input<std::string>("Name");
 
   if (name.empty()) {
     params.set_default_remaining_outputs();
