@@ -680,9 +680,28 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       property = input->default_value_typed<bNodeSocketValueBoolean>()->value;
     };
 
+    auto write_input_to_property_int = [&](const char *identifier, int &property) {
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+      property = input->default_value_typed<bNodeSocketValueInt>()->value;
+    };
+
+    auto write_input_to_property_float = [&](const char *identifier, float &property) {
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+      property = input->default_value_typed<bNodeSocketValueFloat>()->value;
+    };
+
     if (node->type_legacy == CMP_NODE_GLARE) {
       NodeGlare *storage = static_cast<NodeGlare *>(node->storage);
       write_input_to_property_bool_char("Diagonal Star", storage->star_45);
+    }
+
+    if (node->type_legacy == CMP_NODE_BOKEHIMAGE) {
+      NodeBokehImage *storage = static_cast<NodeBokehImage *>(node->storage);
+      write_input_to_property_int("Flaps", storage->flaps);
+      write_input_to_property_float("Angle", storage->angle);
+      write_input_to_property_float("Roundness", storage->rounding);
+      write_input_to_property_float("Catadioptric Size", storage->catadioptric);
+      write_input_to_property_float("Color Shift", storage->lensshift);
     }
   }
 }

@@ -3786,6 +3786,8 @@ static void rna_NodeGlare_color_modulation_set(PointerRNA *ptr, const float valu
   RNA_float_set(&input_rna_pointer, "default_value", blender::math::clamp(value, 0.0f, 1.0f));
 }
 
+/* A getter that returns the value of the input socket with the given template identifier and type.
+ * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
 static T rna_node_property_to_input_getter(PointerRNA *ptr)
 {
@@ -3808,6 +3810,8 @@ static T rna_node_property_to_input_getter(PointerRNA *ptr)
   }
 }
 
+/* A setter that sets the given value to the input socket with the given template identifier and
+ * type. The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
 static void rna_node_property_to_input_setter(PointerRNA *ptr, const T value)
 {
@@ -3829,7 +3833,18 @@ static void rna_node_property_to_input_setter(PointerRNA *ptr, const T value)
   }
 }
 
+/* The following are global static strings used as template arguments to
+ * rna_node_property_to_input_getter and rna_node_property_to_input_setter. */
+
+/* Glare node. */
 static const char node_input_diagonal_star[] = "Diagonal Star";
+
+/* Bokeh Image node. */
+static const char node_input_flaps[] = "Flaps";
+static const char node_input_angle[] = "Angle";
+static const char node_input_roundness[] = "Roundness";
+static const char node_input_catadioptric_size[] = "Catadioptric Size";
+static const char node_input_color_shift[] = "Color Shift";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -9015,41 +9030,66 @@ static void def_cmp_bokehimage(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeBokehImage", "storage");
-
   prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "angle");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_angle>",
+                               "rna_node_property_to_input_setter<float, node_input_angle>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, DEG2RADF(-720.0f), DEG2RADF(720.0f));
-  RNA_def_property_ui_text(prop, "Angle", "Angle of the bokeh");
+  RNA_def_property_ui_text(
+      prop, "Angle", "Angle of the bokeh. (Deprecated: Use Angle input instead)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "flaps", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "flaps");
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_flaps>",
+                             "rna_node_property_to_input_setter<int, node_input_flaps>",
+                             nullptr);
   RNA_def_property_int_default(prop, 5);
   RNA_def_property_range(prop, 3, 24);
-  RNA_def_property_ui_text(prop, "Flaps", "Number of flaps");
+  RNA_def_property_ui_text(
+      prop, "Flaps", "Number of flaps. (Deprecated: Use Flaps input instead)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rounding", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "rounding");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_roundness>",
+                               "rna_node_property_to_input_setter<float, node_input_roundness>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Rounding", "Level of rounding of the bokeh");
+  RNA_def_property_ui_text(
+      prop,
+      "Rounding",
+      "Level of rounding of the bokeh. (Deprecated: Use Roundness input instead)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "catadioptric", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "catadioptric");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_catadioptric_size>",
+      "rna_node_property_to_input_setter<float, node_input_catadioptric_size>",
+      nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Catadioptric", "Level of catadioptric of the bokeh");
+  RNA_def_property_ui_text(
+      prop,
+      "Catadioptric",
+      "Level of catadioptric of the bokeh. (Deprecated: Use Catadioptric Size input instead)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shift", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "lensshift");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_color_shift>",
+                               "rna_node_property_to_input_setter<float, node_input_color_shift>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -1.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Lens Shift", "Shift of the lens components");
+  RNA_def_property_ui_text(
+      prop,
+      "Lens Shift",
+      "Shift of the lens components. (Deprecated: Use Color Shift input instead)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

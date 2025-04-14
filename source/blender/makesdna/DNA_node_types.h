@@ -1096,11 +1096,11 @@ typedef struct NodeColorCorrection {
 } NodeColorCorrection;
 
 typedef struct NodeBokehImage {
-  float angle;
-  int flaps;
-  float rounding;
-  float catadioptric;
-  float lensshift;
+  float angle DNA_DEPRECATED;
+  int flaps DNA_DEPRECATED;
+  float rounding DNA_DEPRECATED;
+  float catadioptric DNA_DEPRECATED;
+  float lensshift DNA_DEPRECATED;
 } NodeBokehImage;
 
 typedef struct NodeBoxMask {
