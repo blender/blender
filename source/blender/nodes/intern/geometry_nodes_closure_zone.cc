@@ -127,6 +127,10 @@ class LazyFunctionForClosureZone : public LazyFunction {
       void *default_value = closure_allocator.allocate(cpp_type.size(), cpp_type.alignment());
       construct_socket_default_value(*bsocket.typeinfo, default_value);
       default_input_values.append(default_value);
+      if (!cpp_type.is_trivially_destructible()) {
+        closure_scope->add_destruct_call(
+            [&cpp_type, default_value]() { cpp_type.destruct(default_value); });
+      }
     }
     closure_indices.inputs.main = lf_graph.graph_inputs().index_range().take_back(
         storage.input_items.items_num);
