@@ -9,7 +9,7 @@ void node_hair_info(float hair_length,
                     out float intercept,
                     out float out_length,
                     out float thickness,
-                    out vec3 normal,
+                    out float3 normal,
                     out float random)
 {
   is_strand = float(g_data.is_strand);

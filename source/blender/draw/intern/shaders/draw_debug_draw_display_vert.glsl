@@ -17,9 +17,10 @@ void main()
   /* Skip the first vertex containing header data. */
   DRWDebugVertPair vert = in_debug_lines_buf[line_id + drw_debug_draw_offset];
 
-  vec3 pos = uintBitsToFloat((is_provoking_vertex) ? uvec3(vert.pos1_x, vert.pos1_y, vert.pos1_z) :
-                                                     uvec3(vert.pos2_x, vert.pos2_y, vert.pos2_z));
-  vec4 col = vec4((uvec4(vert.vert_color) >> uvec4(0, 8, 16, 24)) & 0xFFu) / 255.0f;
+  float3 pos = uintBitsToFloat((is_provoking_vertex) ?
+                                   uint3(vert.pos1_x, vert.pos1_y, vert.pos1_z) :
+                                   uint3(vert.pos2_x, vert.pos2_y, vert.pos2_z));
+  float4 col = float4((uint4(vert.vert_color) >> uint4(0, 8, 16, 24)) & 0xFFu) / 255.0f;
 
   /* Lifetime management. */
   if (is_provoking_vertex && vert.lifetime > 1) {
@@ -32,7 +33,7 @@ void main()
   }
 
   final_color = col;
-  gl_Position = persmat * vec4(pos, 1.0f);
+  gl_Position = persmat * float4(pos, 1.0f);
 
   edge_start = edge_pos = (0.5f * (gl_Position.xy / gl_Position.w) + 0.5f) * size_viewport;
 }

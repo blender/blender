@@ -15,7 +15,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_curve_handle)
 
 struct VertIn {
   /* Local Position. */
-  vec3 ls_P;
+  float3 ls_P;
   /* Edit Flags and Data. */
   uint e_data;
 };
@@ -31,8 +31,8 @@ VertIn input_assembly(uint in_vertex_id)
 }
 
 struct VertOut {
-  vec3 ws_P;
-  vec4 gpu_position;
+  float3 ws_P;
+  float4 gpu_position;
   uint flag;
 };
 
@@ -46,10 +46,10 @@ VertOut vertex_main(VertIn vert_in)
 }
 
 struct GeomOut {
-  vec4 gpu_position;
-  vec3 ws_P;
-  vec2 offset;
-  vec4 color;
+  float4 gpu_position;
+  float3 ws_P;
+  float2 offset;
+  float4 color;
 };
 
 void export_vertex(GeomOut geom_out)
@@ -79,8 +79,8 @@ void output_vertex_pair(const uint line_id,
                         uint out_vertex_id,
                         uint out_primitive_id,
                         VertOut geom_in[2],
-                        vec2 offset,
-                        vec4 color)
+                        float2 offset,
+                        float4 color)
 {
   GeomOut geom_out;
   geom_out.color = color;
@@ -101,8 +101,8 @@ void geometry_main(VertOut geom_in[2],
                    uint out_primitive_id,
                    uint out_invocation_id)
 {
-  vec4 v1 = geom_in[0].gpu_position;
-  vec4 v2 = geom_in[1].gpu_position;
+  float4 v1 = geom_in[0].gpu_position;
+  float4 v2 = geom_in[1].gpu_position;
 
   uint is_active_nurb = (geom_in[1].flag & ACTIVE_NURB);
   uint color_id = (geom_in[1].flag >> COLOR_SHIFT);
@@ -130,7 +130,7 @@ void geometry_main(VertOut geom_in[2],
     }
   }
 
-  vec4 inner_color;
+  float4 inner_color;
   if (color_id == 0u) {
     inner_color = (edge_selected) ? colorHandleSelFree : colorHandleFree;
   }
@@ -158,11 +158,11 @@ void geometry_main(VertOut geom_in[2],
   }
 
   /* Minimize active color bleeding on inner_color. */
-  vec4 active_color = mix(colorActiveSpline, inner_color, 0.25f);
-  vec4 outer_color = (is_active_nurb != 0u) ? active_color : vec4(inner_color.rgb, 0.0f);
+  float4 active_color = mix(colorActiveSpline, inner_color, 0.25f);
+  float4 outer_color = (is_active_nurb != 0u) ? active_color : float4(inner_color.rgb, 0.0f);
 
-  vec2 v1_2 = (v2.xy / v2.w - v1.xy / v1.w);
-  vec2 offset = sizeEdge * 4.0f * sizeViewportInv; /* 4.0f is eyeballed */
+  float2 v1_2 = (v2.xy / v2.w - v1.xy / v1.w);
+  float2 offset = sizeEdge * 4.0f * sizeViewportInv; /* 4.0f is eyeballed */
 
   if (abs(v1_2.x * sizeViewport.x) < abs(v1_2.y * sizeViewport.y)) {
     offset.y = 0.0f;
@@ -171,7 +171,7 @@ void geometry_main(VertOut geom_in[2],
     offset.x = 0.0f;
   }
 
-  vec4 border_color = vec4(colorActiveSpline.rgb, 0.0f);
+  float4 border_color = float4(colorActiveSpline.rgb, 0.0f);
   /* Draw the transparent border (AA). */
   if (is_active_nurb != 0u) {
     offset *= 0.75f; /* Don't make the active "halo" appear very thick. */
@@ -180,7 +180,7 @@ void geometry_main(VertOut geom_in[2],
   /* Draw the outline. */
   output_vertex_pair(1, out_vertex_id, out_primitive_id, geom_in, offset, outer_color);
   /* Draw the core of the line. */
-  output_vertex_pair(2, out_vertex_id, out_primitive_id, geom_in, vec2(0.0f), inner_color);
+  output_vertex_pair(2, out_vertex_id, out_primitive_id, geom_in, float2(0.0f), inner_color);
   /* Draw the outline. */
   output_vertex_pair(3, out_vertex_id, out_primitive_id, geom_in, -offset, outer_color);
   /* Draw the transparent border (AA). */
@@ -220,6 +220,6 @@ void main()
   vert_out[1] = vertex_main(vert_in[1]);
 
   /* Discard by default. */
-  gl_Position = vec4(NAN_FLT);
+  gl_Position = float4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
 }

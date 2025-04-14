@@ -19,10 +19,10 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lut)
  * https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
  * Parametrizing with `x = roughness` and `y = sqrt(1.0f - cos(theta))`.
  * The result is interpreted as: `integral = F0 * scale + F90 * bias - F82_tint * metal_bias`.
- * with `F82_tint = mix(F0, vec3(1.0f), pow5f(6.0f / 7.0f)) * (7.0f / pow6f(6.0f / 7.0f)) * (1.0f -
- * F82)`
+ * with `F82_tint = mix(F0, float3(1.0f), pow5f(6.0f / 7.0f)) * (7.0f / pow6f(6.0f / 7.0f)) * (1.0f
+ * - F82)`
  */
-vec4 ggx_brdf_split_sum(vec3 lut_coord)
+float4 ggx_brdf_split_sum(float3 lut_coord)
 {
   /* Squaring for perceptually linear roughness, see [Physically Based Shading at Disney]
    * (https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf)
@@ -30,8 +30,8 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
   float roughness = square(lut_coord.x);
 
   float NV = clamp(1.0f - square(lut_coord.y), 1e-4f, 0.9999f);
-  vec3 V = vec3(sqrt(1.0f - square(NV)), 0.0f, NV);
-  vec3 N = vec3(0.0f, 0.0f, 1.0f);
+  float3 V = float3(sqrt(1.0f - square(NV)), 0.0f, NV);
+  float3 N = float3(0.0f, 0.0f, 1.0f);
 
   /* Integrating BRDF. */
   float scale = 0.0f;
@@ -39,12 +39,12 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
   float metal_bias = 0.0f;
   const uint sample_count = 512u * 512u;
   for (uint i = 0u; i < sample_count; i++) {
-    vec2 rand = hammersley_2d(i, sample_count);
-    vec3 Xi = sample_cylinder(rand);
+    float2 rand = hammersley_2d(i, sample_count);
+    float3 Xi = sample_cylinder(rand);
 
     /* Microfacet normal. */
-    vec3 L = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
-    vec3 H = normalize(V + L);
+    float3 L = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
+    float3 H = normalize(V + L);
     float NL = L.z;
 
     if (NL > 0.0f) {
@@ -63,7 +63,7 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
   bias /= float(sample_count);
   metal_bias /= float(sample_count);
 
-  return vec4(scale, bias, metal_bias, 0.0f);
+  return float4(scale, bias, metal_bias, 0.0f);
 }
 
 /* Generate BSDF LUT for `IOR < 1` using Schlick's approximation. Returns the transmittance and the
@@ -72,7 +72,7 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
  * The result is interpreted as:
  * `reflectance = F0 * scale + F90 * bias`,
  * `transmittance = (1 - F0) * transmission_factor`. */
-vec4 ggx_bsdf_split_sum(vec3 lut_coord)
+float4 ggx_bsdf_split_sum(float3 lut_coord)
 {
   float ior = clamp(sqrt(lut_coord.x), 1e-4f, 0.9999f);
   /* ior is sin of critical angle. */
@@ -91,8 +91,8 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
    * Section 5.4. */
   float roughness = square(lut_coord.z);
 
-  vec3 V = vec3(sqrt(1.0f - square(NV)), 0.0f, NV);
-  vec3 N = vec3(0.0f, 0.0f, 1.0f);
+  float3 V = float3(sqrt(1.0f - square(NV)), 0.0f, NV);
+  float3 N = float3(0.0f, 0.0f, 1.0f);
 
   /* Integrating BSDF */
   float scale = 0.0f;
@@ -100,15 +100,15 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
   float transmission_factor = 0.0f;
   const uint sample_count = 512u * 512u;
   for (uint i = 0u; i < sample_count; i++) {
-    vec2 rand = hammersley_2d(i, sample_count);
-    vec3 Xi = sample_cylinder(rand);
+    float2 rand = hammersley_2d(i, sample_count);
+    float3 Xi = sample_cylinder(rand);
 
     /* Reflection. */
-    vec3 R = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
+    float3 R = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
     float NR = R.z;
     if (NR > 0.0f) {
-      vec3 H = normalize(V + R);
-      vec3 L = refract(-V, H, 1.0f / ior);
+      float3 H = normalize(V + R);
+      float3 L = refract(-V, H, 1.0f / ior);
       float HL = abs(dot(H, L));
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0f - saturate(HL)));
@@ -119,11 +119,11 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
     }
 
     /* Refraction. */
-    vec3 T = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, 0.0f, false).direction;
+    float3 T = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, 0.0f, false).direction;
     float NT = T.z;
-    /* In the case of TIR, `T == vec3(0)`. */
+    /* In the case of TIR, `T == float3(0)`. */
     if (NT < 0.0f) {
-      vec3 H = normalize(ior * T + V);
+      float3 H = normalize(ior * T + V);
       float HL = abs(dot(H, T));
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0f - saturate(HL)));
@@ -136,7 +136,7 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
   scale /= float(sample_count);
   bias /= float(sample_count);
 
-  return vec4(scale, bias, transmission_factor, 0.0f);
+  return float4(scale, bias, transmission_factor, 0.0f);
 }
 
 /* Generate BTDF LUT for `IOR > 1` using Schlick's approximation. Only the transmittance is needed
@@ -147,14 +147,14 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
  *
  * The result is interpreted as:
  * `transmittance = (1 - F0) * transmission_factor`. */
-vec4 ggx_btdf_gt_one(vec3 lut_coord)
+float4 ggx_btdf_gt_one(float3 lut_coord)
 {
   float f0 = clamp(square(lut_coord.x), 1e-4f, 0.9999f);
   float ior = (1.0f + f0) / (1.0f - f0);
 
   float NV = clamp(1.0f - square(lut_coord.y), 1e-4f, 0.9999f);
-  vec3 V = vec3(sqrt(1.0f - square(NV)), 0.0f, NV);
-  vec3 N = vec3(0.0f, 0.0f, 1.0f);
+  float3 V = float3(sqrt(1.0f - square(NV)), 0.0f, NV);
+  float3 N = float3(0.0f, 0.0f, 1.0f);
 
   /* Squaring for perceptually linear roughness, see [Physically Based Shading at Disney]
    * (https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf)
@@ -165,15 +165,15 @@ vec4 ggx_btdf_gt_one(vec3 lut_coord)
   float transmission_factor = 0.0f;
   const uint sample_count = 512u * 512u;
   for (uint i = 0u; i < sample_count; i++) {
-    vec2 rand = hammersley_2d(i, sample_count);
-    vec3 Xi = sample_cylinder(rand);
+    float2 rand = hammersley_2d(i, sample_count);
+    float3 Xi = sample_cylinder(rand);
 
     /* Refraction. */
-    vec3 L = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, 0.0f, false).direction;
+    float3 L = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, 0.0f, false).direction;
     float NL = L.z;
 
     if (NL < 0.0f) {
-      vec3 H = normalize(ior * L + V);
+      float3 H = normalize(ior * L + V);
       float HV = abs(dot(H, V));
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0f - saturate(HV)));
@@ -184,7 +184,7 @@ vec4 ggx_btdf_gt_one(vec3 lut_coord)
   }
   transmission_factor /= float(sample_count);
 
-  return vec4(transmission_factor, 0.0f, 0.0f, 0.0f);
+  return float4(transmission_factor, 0.0f, 0.0f, 0.0f);
 }
 
 /* Generate SSS translucency profile.
@@ -192,54 +192,54 @@ vec4 ggx_btdf_gt_one(vec3 lut_coord)
  * light. We only integrate for a single color primary since the profile will be applied to each
  * primary independently.
  * For each distance `d` we compute the radiance incoming from an hypothetical parallel plane. */
-vec4 burley_sss_translucency(vec3 lut_coord)
+float4 burley_sss_translucency(float3 lut_coord)
 {
   /* Note that we only store the 1st (radius == 1) component.
    * The others are here for debugging overall appearance. */
-  vec3 radii = vec3(1.0f, 0.2f, 0.1f);
+  float3 radii = float3(1.0f, 0.2f, 0.1f);
   float thickness = lut_coord.x * SSS_TRANSMIT_LUT_RADIUS;
-  vec3 r = thickness / radii;
+  float3 r = thickness / radii;
   /* Manual fit based on cycles render of a backlit slab of varying thickness.
    * Mean Error: 0.003
    * Max Error: 0.015 */
-  vec3 exponential = exp(-3.6f * pow(r, vec3(1.11f)));
-  vec3 gaussian = exp(-pow(3.4f * r, vec3(1.6f)));
-  vec3 fac = square(saturate(0.5f + r / 0.6f));
-  vec3 profile = saturate(mix(gaussian, exponential, fac));
+  float3 exponential = exp(-3.6f * pow(r, float3(1.11f)));
+  float3 gaussian = exp(-pow(3.4f * r, float3(1.6f)));
+  float3 fac = square(saturate(0.5f + r / 0.6f));
+  float3 profile = saturate(mix(gaussian, exponential, fac));
   /* Mask off the end progressively to 0. */
   profile *= saturate(1.0f - pow5f(lut_coord.x));
 
-  return vec4(profile, 0.0f);
+  return float4(profile, 0.0f);
 }
 
-vec4 random_walk_sss_translucency(vec3 lut_coord)
+float4 random_walk_sss_translucency(float3 lut_coord)
 {
   /* Note that we only store the 1st (radius == 1) component.
    * The others are here for debugging overall appearance. */
-  vec3 radii = vec3(1.0f, 0.2f, 0.1f);
+  float3 radii = float3(1.0f, 0.2f, 0.1f);
   float thickness = lut_coord.x * SSS_TRANSMIT_LUT_RADIUS;
-  vec3 r = thickness / radii;
+  float3 r = thickness / radii;
   /* Manual fit based on cycles render of a backlit slab of varying thickness.
    * Mean Error: 0.003
    * Max Error: 0.016 */
-  vec3 scale = vec3(0.31f, 0.47f, 0.32f);
-  vec3 exponent = vec3(-22.0f, -5.8f, -0.5f);
-  vec3 profile = vec3(dot(scale, exp(exponent * r.r)),
-                      dot(scale, exp(exponent * r.g)),
-                      dot(scale, exp(exponent * r.b)));
+  float3 scale = float3(0.31f, 0.47f, 0.32f);
+  float3 exponent = float3(-22.0f, -5.8f, -0.5f);
+  float3 profile = float3(dot(scale, exp(exponent * r.r)),
+                          dot(scale, exp(exponent * r.g)),
+                          dot(scale, exp(exponent * r.b)));
   profile = saturate(profile - 0.1f);
   /* Mask off the end progressively to 0. */
   profile *= saturate(1.0f - pow5f(lut_coord.x));
 
-  return vec4(profile, 0.0f);
+  return float4(profile, 0.0f);
 }
 
 void main()
 {
   /* Make sure coordinates are covering the whole [0..1] range at texel center. */
-  vec3 lut_normalized_coordinate = vec3(gl_GlobalInvocationID) / vec3(table_extent - 1);
+  float3 lut_normalized_coordinate = float3(gl_GlobalInvocationID) / float3(table_extent - 1);
   /* Make sure missing cases are noticeable. */
-  vec4 result = vec4(-1);
+  float4 result = float4(-1);
   switch (uint(table_type)) {
     case LUT_GGX_BRDF_SPLIT_SUM:
       result = ggx_brdf_split_sum(lut_normalized_coordinate);
@@ -257,5 +257,5 @@ void main()
       result = random_walk_sss_translucency(lut_normalized_coordinate);
       break;
   }
-  imageStore(table_img, ivec3(gl_GlobalInvocationID), result);
+  imageStore(table_img, int3(gl_GlobalInvocationID), result);
 }

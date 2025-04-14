@@ -7,18 +7,18 @@
 /* A shared table that stores the UV coordinates of all pixels in the work group. This is necessary
  * to avoid recomputing UV coordinates when computing the gradients necessary for anisotropic
  * filtering, see the implementation for more information. */
-shared vec2 uv_coordinates_table[gl_WorkGroupSize.x][gl_WorkGroupSize.y];
+shared float2 uv_coordinates_table[gl_WorkGroupSize.x][gl_WorkGroupSize.y];
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
-  vec2 uv_coordinates = texture_load(uv_tx, texel).xy;
-  vec2 uv_size = vec2(texture_size(uv_tx));
+  float2 uv_coordinates = texture_load(uv_tx, texel).xy;
+  float2 uv_size = float2(texture_size(uv_tx));
 
   /* Store the UV coordinates into the shared table and issue a barrier to later compute the
    * gradients from the table. */
-  ivec2 table_index = ivec2(gl_LocalInvocationID.xy);
+  int2 table_index = int2(gl_LocalInvocationID.xy);
   uv_coordinates_table[table_index.x][table_index.y] = uv_coordinates;
   barrier();
 
@@ -36,18 +36,18 @@ void main()
    * Divide by the input size since textureGrad assumes derivatives with respect to texel
    * coordinates. */
   int x_step = (table_index.x % 2) * -2 + 1;
-  vec2 x_neighbor = uv_coordinates_table[table_index.x + x_step][table_index.y];
-  vec2 x_gradient = (x_neighbor - uv_coordinates) * x_step / uv_size.x;
+  float2 x_neighbor = uv_coordinates_table[table_index.x + x_step][table_index.y];
+  float2 x_gradient = (x_neighbor - uv_coordinates) * x_step / uv_size.x;
 
   /* Compute the partial derivative of the UV coordinates along the y direction using a
    * finite difference approximation. See the previous code section for more information. */
   int y_step = (table_index.y % 2) * -2 + 1;
-  vec2 y_neighbor = uv_coordinates_table[table_index.x][table_index.y + y_step];
-  vec2 y_gradient = (y_neighbor - uv_coordinates) * y_step / uv_size.y;
+  float2 y_neighbor = uv_coordinates_table[table_index.x][table_index.y + y_step];
+  float2 y_gradient = (y_neighbor - uv_coordinates) * y_step / uv_size.y;
 
   /* Sample the input using the UV coordinates passing in the computed gradients in order to
    * utilize the anisotropic filtering capabilities of the sampler. */
-  vec4 sampled_color = textureGrad(input_tx, uv_coordinates, x_gradient, y_gradient);
+  float4 sampled_color = textureGrad(input_tx, uv_coordinates, x_gradient, y_gradient);
 
   /* The UV coordinates might be defined in only a subset area of the UV textures, in which case,
    * the gradients would be infinite at the boundary of that area, which would produce erroneous
@@ -68,7 +68,7 @@ void main()
    * coordinates is the format used by UV passes in render engines, hence the mentioned logic. */
   float alpha = texture_load(uv_tx, texel).z;
 
-  vec4 result = sampled_color * gradient_attenuation * alpha;
+  float4 result = sampled_color * gradient_attenuation * alpha;
 
   imageStore(output_img, texel, result);
 }

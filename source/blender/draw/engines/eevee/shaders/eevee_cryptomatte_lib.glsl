@@ -10,9 +10,9 @@ SHADER_LIBRARY_CREATE_INFO(eevee_film)
 
 /** Storing/merging and sorting cryptomatte samples. */
 
-bool cryptomatte_can_merge_sample(vec2 dst, vec2 src)
+bool cryptomatte_can_merge_sample(float2 dst, float2 src)
 {
-  if (all(equal(dst, vec2(0.0f, 0.0f)))) {
+  if (all(equal(dst, float2(0.0f, 0.0f)))) {
     return true;
   }
   if (dst.x == src.x) {
@@ -21,25 +21,25 @@ bool cryptomatte_can_merge_sample(vec2 dst, vec2 src)
   return false;
 }
 
-vec2 cryptomatte_merge_sample(FilmSample film_sample, vec2 dst, vec2 src)
+float2 cryptomatte_merge_sample(FilmSample film_sample, float2 dst, float2 src)
 {
-  return vec2(src.x, (dst.y * film_sample.weight + src.y) * film_sample.weight_sum_inv);
+  return float2(src.x, (dst.y * film_sample.weight + src.y) * film_sample.weight_sum_inv);
 }
 
-vec4 cryptomatte_false_color(float hash)
+float4 cryptomatte_false_color(float hash)
 {
   uint m3hash = floatBitsToUint(hash);
-  return vec4(hash,
-              float(m3hash << 8) / float(0xFFFFFFFFu),
-              float(m3hash << 16) / float(0xFFFFFFFFu),
-              1.0f);
+  return float4(hash,
+                float(m3hash << 8) / float(0xFFFFFFFFu),
+                float(m3hash << 16) / float(0xFFFFFFFFu),
+                1.0f);
 }
 
 void cryptomatte_clear_samples(FilmSample dst)
 {
   int layer_len = imageSize(cryptomatte_img).z;
   for (int i = 0; i < layer_len; i++) {
-    imageStoreFast(cryptomatte_img, ivec3(dst.texel, i), vec4(0.0f));
+    imageStoreFast(cryptomatte_img, int3(dst.texel, i), float4(0.0f));
     /* Ensure stores are visible to later reads. */
     imageFence(cryptomatte_img);
   }
@@ -47,15 +47,15 @@ void cryptomatte_clear_samples(FilmSample dst)
 
 void cryptomatte_store_film_sample(FilmSample dst,
                                    int cryptomatte_layer_id,
-                                   vec2 crypto_sample,
-                                   out vec4 out_color)
+                                   float2 crypto_sample,
+                                   out float4 out_color)
 {
   if (crypto_sample.y == 0.0f) {
     return;
   }
   for (int i = 0; i < uniform_buf.film.cryptomatte_samples_len / 2; i++) {
-    ivec3 img_co = ivec3(dst.texel, cryptomatte_layer_id + i);
-    vec4 sample_pair = imageLoad(cryptomatte_img, img_co);
+    int3 img_co = int3(dst.texel, cryptomatte_layer_id + i);
+    float4 sample_pair = imageLoad(cryptomatte_img, img_co);
     if (cryptomatte_can_merge_sample(sample_pair.xy, crypto_sample)) {
       sample_pair.xy = cryptomatte_merge_sample(dst, sample_pair.xy, crypto_sample);
       /* In viewport only one layer is active. */

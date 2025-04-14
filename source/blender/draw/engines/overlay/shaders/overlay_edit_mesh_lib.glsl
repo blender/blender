@@ -19,32 +19,32 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 
 struct VertIn {
   /* Local Position. */
-  vec3 lP;
+  float3 lP;
   /* Local Vertex Normal. */
-  vec3 lN;
+  float3 lN;
   /* Edit Flags and Data. */
-  uvec4 e_data;
+  uint4 e_data;
 };
 
-bool test_occlusion(vec4 gpu_position)
+bool test_occlusion(float4 gpu_position)
 {
-  vec3 ndc = (gpu_position.xyz / gpu_position.w) * 0.5f + 0.5f;
+  float3 ndc = (gpu_position.xyz / gpu_position.w) * 0.5f + 0.5f;
   return ndc.z > texture(depthTex, ndc.xy).r;
 }
 
-vec3 non_linear_blend_color(vec3 col1, vec3 col2, float fac)
+float3 non_linear_blend_color(float3 col1, float3 col2, float fac)
 {
-  col1 = pow(col1, vec3(1.0f / 2.2f));
-  col2 = pow(col2, vec3(1.0f / 2.2f));
-  vec3 col = mix(col1, col2, fac);
-  return pow(col, vec3(2.2f));
+  col1 = pow(col1, float3(1.0f / 2.2f));
+  col2 = pow(col2, float3(1.0f / 2.2f));
+  float3 col = mix(col1, col2, fac);
+  return pow(col, float3(2.2f));
 }
 
 struct VertOut {
-  vec4 gpu_position;
-  vec4 final_color;
-  vec4 final_color_outer;
-  vec3 world_position;
+  float4 gpu_position;
+  float4 final_color;
+  float4 final_color_outer;
+  float3 world_position;
   uint select_override;
 };
 
@@ -53,14 +53,14 @@ VertOut vertex_main(VertIn vert_in)
   VertOut vert_out;
 
   vert_out.world_position = drw_point_object_to_world(vert_in.lP);
-  vec3 view_pos = drw_point_world_to_view(vert_out.world_position);
+  float3 view_pos = drw_point_world_to_view(vert_out.world_position);
   vert_out.gpu_position = drw_point_view_to_homogenous(view_pos);
 
   /* Offset Z position for retopology overlay. */
   vert_out.gpu_position.z += get_homogenous_z_offset(
       drw_view().winmat, view_pos.z, vert_out.gpu_position.w, retopologyOffset);
 
-  uvec4 m_data = vert_in.e_data & uvec4(dataMask);
+  uint4 m_data = vert_in.e_data & uint4(dataMask);
 
 #if defined(VERT)
   vertexCrease = float(m_data.z >> 4) / 15.0f;
@@ -126,8 +126,9 @@ VertOut vertex_main(VertIn vert_in)
 
 #if !defined(FACE)
   /* Facing based color blend */
-  vec3 view_normal = normalize(drw_normal_object_to_view(vert_in.lN) + 1e-4f);
-  vec3 view_vec = (drw_view().winmat[3][3] == 0.0f) ? normalize(view_pos) : vec3(0.0f, 0.0f, 1.0f);
+  float3 view_normal = normalize(drw_normal_object_to_view(vert_in.lN) + 1e-4f);
+  float3 view_vec = (drw_view().winmat[3][3] == 0.0f) ? normalize(view_pos) :
+                                                        float3(0.0f, 0.0f, 1.0f);
   float facing = dot(view_vec, view_normal);
   facing = 1.0f - abs(facing) * 0.2f;
 

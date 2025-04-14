@@ -9,6 +9,6 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_grid_background)
 void main()
 {
   fragColor = ucolor;
-  float scene_depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;
+  float scene_depth = texelFetch(depthBuffer, int2(gl_FragCoord.xy), 0).r;
   fragColor.a = (scene_depth == 1.0f) ? 1.0f : 0.0f;
 }

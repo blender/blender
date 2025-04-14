@@ -44,10 +44,10 @@ float filter_gaussian_weight(float factor, float square_distance)
 /**
  * Planar distance weighting. Allow to weight based on geometric neighborhood.
  */
-float filter_planar_weight(vec3 plane_N, vec3 plane_P, vec3 P, float scale)
+float filter_planar_weight(float3 plane_N, float3 plane_P, float3 P, float scale)
 {
-  vec4 plane_eq = vec4(plane_N, -dot(plane_N, plane_P));
-  float plane_distance = dot(plane_eq, vec4(P, 1.0f));
+  float4 plane_eq = float4(plane_N, -dot(plane_N, plane_P));
+  float plane_distance = dot(plane_eq, float4(P, 1.0f));
   return filter_gaussian_weight(scale, square(plane_distance));
 }
 
@@ -55,7 +55,7 @@ float filter_planar_weight(vec3 plane_N, vec3 plane_P, vec3 P, float scale)
  * Angle weighting. Mostly used for normals.
  * Expects both normals to be normalized.
  */
-float filter_angle_weight(vec3 center_N, vec3 sample_N)
+float filter_angle_weight(float3 center_N, float3 sample_N)
 {
   float facing_ratio = dot(center_N, sample_N);
   return saturate(pow8f(facing_ratio));

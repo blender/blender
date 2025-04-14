@@ -20,7 +20,7 @@ void main()
 {
   if (uint(gl_InstanceID) >= dof_buf.scatter_max_rect) {
     /* Very unlikely to happen but better avoid out of bound access. */
-    gl_Position = vec4(0.0f);
+    gl_Position = float4(0.0f);
     return;
   }
 
@@ -31,17 +31,17 @@ void main()
   interp_flat.color_and_coc3 = rect.color_and_coc[2];
   interp_flat.color_and_coc4 = rect.color_and_coc[3];
 
-  vec2 uv = vec2(gl_VertexID & 1, gl_VertexID >> 1) * 2.0f - 1.0f;
+  float2 uv = float2(gl_VertexID & 1, gl_VertexID >> 1) * 2.0f - 1.0f;
   uv = uv * rect.half_extent;
 
-  gl_Position = vec4(uv + rect.offset, 0.0f, 1.0f);
+  gl_Position = float4(uv + rect.offset, 0.0f, 1.0f);
   /* NDC range [-1..1]. */
-  gl_Position.xy = (gl_Position.xy / vec2(textureSize(occlusion_tx, 0).xy)) * 2.0f - 1.0f;
+  gl_Position.xy = (gl_Position.xy / float2(textureSize(occlusion_tx, 0).xy)) * 2.0f - 1.0f;
 
   if (use_bokeh_lut) {
     /* Bias scale to avoid sampling at the texture's border. */
     interp_flat.distance_scale = (float(DOF_BOKEH_LUT_SIZE) / float(DOF_BOKEH_LUT_SIZE - 1));
-    vec2 uv_div = 1.0f / (interp_flat.distance_scale * abs(rect.half_extent));
+    float2 uv_div = 1.0f / (interp_flat.distance_scale * abs(rect.half_extent));
     interp_noperspective.rect_uv1 = ((uv + quad_offsets[0]) * uv_div) * 0.5f + 0.5f;
     interp_noperspective.rect_uv2 = ((uv + quad_offsets[1]) * uv_div) * 0.5f + 0.5f;
     interp_noperspective.rect_uv3 = ((uv + quad_offsets[2]) * uv_div) * 0.5f + 0.5f;

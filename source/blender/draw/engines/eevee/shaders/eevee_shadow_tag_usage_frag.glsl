@@ -17,11 +17,11 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
 #include "draw_model_lib.glsl"
 #include "eevee_shadow_tag_usage_lib.glsl"
 
-float ray_aabb(vec3 ray_origin, vec3 ray_direction, vec3 aabb_min, vec3 aabb_max)
+float ray_aabb(float3 ray_origin, float3 ray_direction, float3 aabb_min, float3 aabb_max)
 {
   /* https://gdbooks.gitbooks.io/3dcollisions/content/Chapter3/raycast_aabb.html */
-  vec3 t_mins = (aabb_min - ray_origin) / ray_direction;
-  vec3 t_maxs = (aabb_max - ray_origin) / ray_direction;
+  float3 t_mins = (aabb_min - ray_origin) / ray_direction;
+  float3 t_maxs = (aabb_max - ray_origin) / ray_direction;
 
   float t_min = reduce_max(min(t_mins, t_maxs));
   float t_max = reduce_min(max(t_mins, t_maxs));
@@ -53,28 +53,28 @@ float pixel_size_at(float linear_depth)
   return pixel_size * exp2(float(fb_lod));
 }
 
-void step_bounding_sphere(vec3 vs_near_plane,
-                          vec3 vs_view_direction,
+void step_bounding_sphere(float3 vs_near_plane,
+                          float3 vs_view_direction,
                           float near_t,
                           float far_t,
-                          out vec3 sphere_center,
+                          out float3 sphere_center,
                           out float sphere_radius)
 {
   float near_pixel_size = pixel_size_at(near_t);
-  vec3 near_center = vs_near_plane + vs_view_direction * near_t;
+  float3 near_center = vs_near_plane + vs_view_direction * near_t;
 
   float far_pixel_size = pixel_size_at(far_t);
-  vec3 far_center = vs_near_plane + vs_view_direction * far_t;
+  float3 far_center = vs_near_plane + vs_view_direction * far_t;
 
   sphere_center = mix(near_center, far_center, 0.5f);
   sphere_radius = 0;
 
   for (int x = -1; x <= 1; x += 2) {
     for (int y = -1; y <= 1; y += 2) {
-      vec3 near_corner = near_center + (near_pixel_size * 0.5f * vec3(x, y, 0));
+      float3 near_corner = near_center + (near_pixel_size * 0.5f * float3(x, y, 0));
       sphere_radius = max(sphere_radius, length_squared(near_corner - sphere_center));
 
-      vec3 far_corner = far_center + (far_pixel_size * 0.5f * vec3(x, y, 0));
+      float3 far_corner = far_center + (far_pixel_size * 0.5f * float3(x, y, 0));
       sphere_radius = max(sphere_radius, length_squared(far_corner - sphere_center));
     }
   }
@@ -85,17 +85,17 @@ void step_bounding_sphere(vec3 vs_near_plane,
 
 void main()
 {
-  vec2 screen_uv = gl_FragCoord.xy / vec2(fb_resolution);
+  float2 screen_uv = gl_FragCoord.xy / float2(fb_resolution);
 
-  float opaque_depth = texelFetch(hiz_tx, ivec2(gl_FragCoord.xy), fb_lod).r;
-  vec3 ws_opaque = drw_point_screen_to_world(vec3(screen_uv, opaque_depth));
+  float opaque_depth = texelFetch(hiz_tx, int2(gl_FragCoord.xy), fb_lod).r;
+  float3 ws_opaque = drw_point_screen_to_world(float3(screen_uv, opaque_depth));
 
-  vec3 ws_near_plane = drw_point_screen_to_world(vec3(screen_uv, 0.0f));
-  vec3 ws_view_direction = normalize(interp.P - ws_near_plane);
-  vec3 vs_near_plane = drw_point_screen_to_view(vec3(screen_uv, 0.0f));
-  vec3 vs_view_direction = normalize(interp.vP - vs_near_plane);
-  vec3 ls_near_plane = drw_point_world_to_object(ws_near_plane);
-  vec3 ls_view_direction = normalize(drw_point_world_to_object(interp.P) - ls_near_plane);
+  float3 ws_near_plane = drw_point_screen_to_world(float3(screen_uv, 0.0f));
+  float3 ws_view_direction = normalize(interp.P - ws_near_plane);
+  float3 vs_near_plane = drw_point_screen_to_view(float3(screen_uv, 0.0f));
+  float3 vs_view_direction = normalize(interp.vP - vs_near_plane);
+  float3 ls_near_plane = drw_point_world_to_object(ws_near_plane);
+  float3 ls_view_direction = normalize(drw_point_world_to_object(interp.P) - ls_near_plane);
 
   /* TODO (Miguel Pozo): We could try to ray-cast against the non-inflated bounds first,
    * and fallback to the inflated ones if there is no hit.
@@ -108,8 +108,8 @@ void main()
     return;
   }
 
-  vec3 ls_near_box = ls_near_plane + ls_view_direction * ls_near_box_t;
-  vec3 ws_near_box = drw_point_object_to_world(ls_near_box);
+  float3 ls_near_box = ls_near_plane + ls_view_direction * ls_near_box_t;
+  float3 ws_near_box = drw_point_object_to_world(ls_near_box);
 
   float near_box_t = distance(ws_near_plane, ws_near_box);
   float far_box_t = distance(ws_near_plane, interp.P);
@@ -123,10 +123,10 @@ void main()
     t = min(t, far_box_t);
     step_size = pixel_size_at(t);
 
-    vec3 P = ws_near_plane + (ws_view_direction * t);
+    float3 P = ws_near_plane + (ws_view_direction * t);
     float step_radius;
     step_bounding_sphere(vs_near_plane, vs_view_direction, t, t + step_size, P, step_radius);
-    vec3 vP = drw_point_world_to_view(P);
+    float3 vP = drw_point_world_to_view(P);
 
     shadow_tag_usage(
         vP, P, ws_view_direction, step_radius, gl_FragCoord.xy * exp2(float(fb_lod)), 0);

@@ -25,9 +25,9 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_forward)
 /* Global thickness because it is needed for closure_to_rgba. */
 float g_thickness;
 
-vec4 closure_to_rgba(Closure cl_unused)
+float4 closure_to_rgba(Closure cl_unused)
 {
-  vec3 radiance, transmittance;
+  float3 radiance, transmittance;
   forward_lighting_eval(g_thickness, radiance, transmittance);
 
   /* Reset for the next closure tree. */
@@ -35,7 +35,7 @@ vec4 closure_to_rgba(Closure cl_unused)
   float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
   closure_weights_reset(closure_rand);
 
-  return vec4(radiance, saturate(1.0f - average(transmittance)));
+  return float4(radiance, saturate(1.0f - average(transmittance)));
 }
 
 void main()
@@ -61,13 +61,13 @@ void main()
 
   g_holdout = saturate(g_holdout);
 
-  vec3 radiance, transmittance;
+  float3 radiance, transmittance;
   forward_lighting_eval(g_thickness, radiance, transmittance);
 
   /* Volumetric resolve and compositing. */
-  vec2 uvs = gl_FragCoord.xy * uniform_buf.volumes.main_view_extent_inv;
+  float2 uvs = gl_FragCoord.xy * uniform_buf.volumes.main_view_extent_inv;
   VolumeResolveSample vol = volume_resolve(
-      vec3(uvs, gl_FragCoord.z), volume_transmittance_tx, volume_scattering_tx);
+      float3(uvs, gl_FragCoord.z), volume_transmittance_tx, volume_scattering_tx);
   /* Removes the part of the volume scattering that has
    * already been added to the destination pixels by the opaque resolve.
    * Since we do that using the blending pipeline we need to account for material transmittance. */
@@ -76,6 +76,6 @@ void main()
 
   radiance *= 1.0f - saturate(g_holdout);
 
-  out_radiance = vec4(radiance, g_holdout);
-  out_transmittance = vec4(transmittance, saturate(average(transmittance)));
+  out_radiance = float4(radiance, g_holdout);
+  out_transmittance = float4(transmittance, saturate(average(transmittance)));
 }

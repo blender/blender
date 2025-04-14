@@ -19,7 +19,7 @@ GBufferData gbuffer_new()
   data.closure[1].weight = 0.0f;
   data.closure[2].weight = 0.0f;
   data.thickness = 0.2f;
-  data.surface_N = normalize(vec3(0.1f, 0.2f, 0.3f));
+  data.surface_N = normalize(float3(0.1f, 0.2f, 0.3f));
   return data;
 }
 
@@ -30,18 +30,18 @@ void main()
   samplerGBufferHeader header_tx = 0;
   samplerGBufferClosure closure_tx = 0;
   samplerGBufferNormal normal_tx = 0;
-  vec3 Ng = vec3(1.0f, 0.0f, 0.0f);
+  float3 Ng = float3(1.0f, 0.0f, 0.0f);
 
   TEST(eevee_gbuffer, ClosureDiffuse)
   {
     data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_DIFFUSE_ID;
     data_in.closure[0].weight = 1.0f;
-    data_in.closure[0].color = vec3(0.1f, 0.2f, 0.3f);
-    data_in.closure[0].N = normalize(vec3(0.2f, 0.1f, 0.3f));
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
     g_data_packed = gbuffer_pack(data_in, Ng);
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 1);
     EXPECT_EQ(data_out.closure_count, 1);
@@ -59,12 +59,12 @@ void main()
     data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSSRDF_BURLEY_ID;
     data_in.closure[0].weight = 1.0f;
-    data_in.closure[0].color = vec3(0.1f, 0.2f, 0.3f);
-    data_in.closure[0].data.rgb = vec3(0.2f, 0.3f, 0.4f);
-    data_in.closure[0].N = normalize(vec3(0.2f, 0.1f, 0.3f));
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].data.rgb = float3(0.2f, 0.3f, 0.4f);
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
     g_data_packed = gbuffer_pack(data_in, Ng);
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 2);
     EXPECT_EQ(data_out.closure_count, 1);
@@ -84,11 +84,11 @@ void main()
     data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_TRANSLUCENT_ID;
     data_in.closure[0].weight = 1.0f;
-    data_in.closure[0].color = vec3(0.1f, 0.2f, 0.3f);
-    data_in.closure[0].N = normalize(vec3(0.2f, 0.1f, 0.3f));
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
     g_data_packed = gbuffer_pack(data_in, Ng);
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 1);
     EXPECT_EQ(data_out.closure_count, 1);
@@ -106,12 +106,12 @@ void main()
     data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
     data_in.closure[0].weight = 1.0f;
-    data_in.closure[0].color = vec3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[0].data.x = 0.4f;
-    data_in.closure[0].N = normalize(vec3(0.2f, 0.1f, 0.3f));
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
     g_data_packed = gbuffer_pack(data_in, Ng);
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 2);
     EXPECT_EQ(data_out.closure_count, 1);
@@ -130,13 +130,13 @@ void main()
     data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
     data_in.closure[0].weight = 1.0f;
-    data_in.closure[0].color = vec3(0.1f, 0.2f, 0.3f);
+    data_in.closure[0].color = float3(0.1f, 0.2f, 0.3f);
     data_in.closure[0].data.x = 0.4f;
     data_in.closure[0].data.y = 0.5f;
-    data_in.closure[0].N = normalize(vec3(0.2f, 0.1f, 0.3f));
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
     g_data_packed = gbuffer_pack(data_in, Ng);
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(g_data_packed.data_len, 2);
     EXPECT_EQ(data_out.closure_count, 1);
@@ -155,16 +155,16 @@ void main()
   {
     ClosureUndetermined in_cl0 = closure_new(CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
     in_cl0.weight = 1.0f;
-    in_cl0.color = vec3(0.1f, 0.2f, 0.3f);
+    in_cl0.color = float3(0.1f, 0.2f, 0.3f);
     in_cl0.data.x = 0.4f;
     in_cl0.data.y = 0.5f;
-    in_cl0.N = normalize(vec3(0.2f, 0.1f, 0.3f));
+    in_cl0.N = normalize(float3(0.2f, 0.1f, 0.3f));
 
     ClosureUndetermined in_cl1 = closure_new(CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID);
     in_cl1.weight = 1.0f;
-    in_cl1.color = vec3(0.4f, 0.5f, 0.6f);
+    in_cl1.color = float3(0.4f, 0.5f, 0.6f);
     in_cl1.data.x = 0.6f;
-    in_cl1.N = normalize(vec3(0.2f, 0.3f, 0.4f));
+    in_cl1.N = normalize(float3(0.2f, 0.3f, 0.4f));
 
     data_in = gbuffer_new();
     data_in.closure[0] = in_cl0;
@@ -174,7 +174,7 @@ void main()
 
     EXPECT_EQ(g_data_packed.data_len, 4);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 2);
 
@@ -200,22 +200,22 @@ void main()
     data_in = gbuffer_new();
     data_in.closure[0].type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
     data_in.closure[0].weight = 1.0f;
-    data_in.closure[0].color = vec3(0.1f, 0.1f, 0.1f);
+    data_in.closure[0].color = float3(0.1f, 0.1f, 0.1f);
     data_in.closure[0].data.x = 0.4f;
     data_in.closure[0].data.y = 0.5f;
-    data_in.closure[0].N = normalize(vec3(0.2f, 0.1f, 0.3f));
+    data_in.closure[0].N = normalize(float3(0.2f, 0.1f, 0.3f));
 
     data_in.closure[1].type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
     data_in.closure[1].weight = 1.0f;
-    data_in.closure[1].color = vec3(0.1f, 0.1f, 0.1f);
+    data_in.closure[1].color = float3(0.1f, 0.1f, 0.1f);
     data_in.closure[1].data.x = 0.4f;
-    data_in.closure[1].N = normalize(vec3(0.2f, 0.3f, 0.4f));
+    data_in.closure[1].N = normalize(float3(0.2f, 0.3f, 0.4f));
 
     g_data_packed = gbuffer_pack(data_in, Ng);
 
     EXPECT_EQ(g_data_packed.data_len, 2);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 2);
 

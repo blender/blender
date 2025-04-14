@@ -29,14 +29,14 @@ void main()
 #ifdef CUSTOM_NORMALS
   for (int i = 0; i < 4; i++) {
     CustomNormal custom_normal = custom_normals[start_loop_index + i];
-    vec3 nor = vec3(custom_normal.x, custom_normal.y, custom_normal.z);
+    float3 nor = float3(custom_normal.x, custom_normal.y, custom_normal.z);
     PosNorLoop vertex_data = pos_nor[start_loop_index + i];
     pos_nor[start_loop_index + i] = subdiv_set_vertex_nor(vertex_data, normalize(nor));
   }
 #else
   for (int i = 0; i < 4; i++) {
     uint subdiv_vert_index = vert_loop_map[start_loop_index + i];
-    vec3 nor = vertex_normals[subdiv_vert_index];
+    float3 nor = vertex_normals[subdiv_vert_index];
     PosNorLoop vertex_data = pos_nor[start_loop_index + i];
     pos_nor[start_loop_index + i] = subdiv_set_vertex_nor(vertex_data, nor);
   }

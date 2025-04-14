@@ -38,7 +38,7 @@ uint outline_colorid_get()
 
 void main()
 {
-  vec3 world_pos = pointcloud_get_pos();
+  float3 world_pos = pointcloud_get_pos();
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
 

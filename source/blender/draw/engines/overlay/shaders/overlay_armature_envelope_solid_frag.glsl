@@ -13,7 +13,7 @@ void main()
   float n = normalize(normalView).z;
   if (isDistance) {
     n = 1.0f - clamp(-n, 0.0f, 1.0f);
-    fragColor = vec4(1.0f, 1.0f, 1.0f, 0.33f * alpha) * n;
+    fragColor = float4(1.0f, 1.0f, 1.0f, 0.33f * alpha) * n;
   }
   else {
     /* Smooth lighting factor. */
@@ -22,7 +22,7 @@ void main()
     fragColor.rgb = mix(finalStateColor, finalBoneColor, fac * fac);
     fragColor.a = alpha;
   }
-  lineOutput = vec4(0.0f);
+  lineOutput = float4(0.0f);
 
   select_id_output(select_id);
 }

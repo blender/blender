@@ -14,37 +14,37 @@
  * World has no attributes other than orco.
  * \{ */
 
-vec3 attr_load_orco(vec4 orco)
+float3 attr_load_orco(float4 orco)
 {
   return -g_data.N;
 }
-vec4 attr_load_tangent(vec4 tangent)
+float4 attr_load_tangent(float4 tangent)
 {
-  return vec4(0);
+  return float4(0);
 }
-vec4 attr_load_vec4(vec4 attr)
+float4 attr_load_vec4(float4 attr)
 {
-  return vec4(0);
+  return float4(0);
 }
-vec3 attr_load_vec3(vec3 attr)
+float3 attr_load_vec3(float3 attr)
 {
-  return vec3(0);
+  return float3(0);
 }
-vec2 attr_load_vec2(vec2 attr)
+float2 attr_load_vec2(float2 attr)
 {
-  return vec2(0);
+  return float2(0);
 }
 float attr_load_float(float attr)
 {
   return 0.0f;
 }
-vec4 attr_load_color(vec4 attr)
+float4 attr_load_color(float4 attr)
 {
-  return vec4(0);
+  return float4(0);
 }
-vec3 attr_load_uv(vec3 attr)
+float3 attr_load_uv(float3 attr)
 {
-  return vec3(0);
+  return float3(0);
 }
 
 /** \} */

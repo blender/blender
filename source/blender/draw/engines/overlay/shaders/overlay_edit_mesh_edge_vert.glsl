@@ -39,9 +39,9 @@ VertIn input_assembly(uint in_vertex_id)
 }
 
 struct GeomOut {
-  vec4 gpu_position;
-  vec4 final_color;
-  vec3 world_pos;
+  float4 gpu_position;
+  float4 final_color;
+  float3 world_pos;
   float edge_coord;
 };
 
@@ -71,11 +71,11 @@ void strip_EmitVertex(const uint strip_index,
 void do_vertex(const uint strip_index,
                uint out_vertex_id,
                uint out_primitive_id,
-               vec4 final_color,
-               vec4 ndc_position,
-               vec3 world_position,
+               float4 final_color,
+               float4 ndc_position,
+               float3 world_position,
                float coord,
-               vec2 offset)
+               float2 offset)
 {
   GeomOut geom_out;
   geom_out.world_pos = world_position;
@@ -89,19 +89,19 @@ void do_vertex(const uint strip_index,
 
 void geometry_main(VertOut geom_in[2], uint out_vert_id, uint out_prim_id, uint out_invocation_id)
 {
-  vec2 ss_pos[2];
+  float2 ss_pos[2];
 
   /* Clip line against near plane to avoid deformed lines. */
-  vec4 pos0 = geom_in[0].gpu_position;
-  vec4 pos1 = geom_in[1].gpu_position;
-  vec2 pz_ndc = vec2(pos0.z / pos0.w, pos1.z / pos1.w);
-  bvec2 clipped = lessThan(pz_ndc, vec2(-1.0f));
+  float4 pos0 = geom_in[0].gpu_position;
+  float4 pos1 = geom_in[1].gpu_position;
+  float2 pz_ndc = float2(pos0.z / pos0.w, pos1.z / pos1.w);
+  bool2 clipped = lessThan(pz_ndc, float2(-1.0f));
   if (all(clipped)) {
     /* Totally clipped. */
     return;
   }
 
-  vec4 pos01 = pos0 - pos1;
+  float4 pos01 = pos0 - pos1;
   float ofs = abs((pz_ndc.y + 1.0f) / (pz_ndc.x - pz_ndc.y));
   if (clipped.y) {
     pos1 += pos01 * ofs;
@@ -113,7 +113,7 @@ void geometry_main(VertOut geom_in[2], uint out_vert_id, uint out_prim_id, uint 
   ss_pos[0] = pos0.xy / pos0.w;
   ss_pos[1] = pos1.xy / pos1.w;
 
-  vec2 line = ss_pos[0] - ss_pos[1];
+  float2 line = ss_pos[0] - ss_pos[1];
   line = abs(line) * sizeViewport;
 
   geometry_flat_out.finalColorOuter = geom_in[0].final_color_outer;
@@ -126,17 +126,17 @@ void geometry_main(VertOut geom_in[2], uint out_vert_id, uint out_prim_id, uint 
     half_size += 0.5f;
   }
 
-  vec3 edge_ofs = vec3(half_size * sizeViewportInv, 0.0f);
+  float3 edge_ofs = float3(half_size * sizeViewportInv, 0.0f);
 
   bool horizontal = line.x > line.y;
   edge_ofs = (horizontal) ? edge_ofs.zyz : edge_ofs.xzz;
 
-  vec3 wpos0 = geom_in[0].world_position;
-  vec3 wpos1 = geom_in[1].world_position;
+  float3 wpos0 = geom_in[0].world_position;
+  float3 wpos1 = geom_in[1].world_position;
 
-  vec4 final_color1 = geom_in[0].final_color;
-  vec4 final_color2 = (geom_in[0].select_override == 0u) ? geom_in[1].final_color :
-                                                           geom_in[0].final_color;
+  float4 final_color1 = geom_in[0].final_color;
+  float4 final_color2 = (geom_in[0].select_override == 0u) ? geom_in[1].final_color :
+                                                             geom_in[0].final_color;
 
   do_vertex(0, out_vert_id, out_prim_id, final_color1, pos0, wpos0, half_size, edge_ofs.xy);
   do_vertex(1, out_vert_id, out_prim_id, final_color1, pos0, wpos0, -half_size, -edge_ofs.xy);
@@ -176,6 +176,6 @@ void main()
   vert_out[1] = vertex_main(vert_in[1]);
 
   /* Discard by default. */
-  gl_Position = vec4(NAN_FLT);
+  gl_Position = float4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
 }

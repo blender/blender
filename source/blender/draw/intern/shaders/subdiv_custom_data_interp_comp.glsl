@@ -97,7 +97,7 @@ void write_vertex(uint index, Vertex v)
 #endif
 }
 
-Vertex interp_vertex(Vertex v0, Vertex v1, Vertex v2, Vertex v3, vec2 uv)
+Vertex interp_vertex(Vertex v0, Vertex v1, Vertex v2, Vertex v3, float2 uv)
 {
   Vertex result;
   for (int i = 0; i < DIMENSIONS; i++) {
@@ -207,7 +207,7 @@ void main()
    */
   for (uint loop_index = start_loop_index; loop_index < start_loop_index + 4; loop_index++) {
     BlenderPatchCoord co = patch_coords[loop_index];
-    vec2 uv = decode_uv(co.encoded_uv);
+    float2 uv = decode_uv(co.encoded_uv);
     /* NOTE: v2 and v3 are reversed to stay consistent with the interpolation weight on the x-axis:
      *
      * v3 +-----+ v2

@@ -23,7 +23,7 @@ SHADER_LIBRARY_CREATE_INFO(workbench_resolve_cavity)
 
 #ifdef USE_CAVITY
 
-void cavity_compute(vec2 screenco,
+void cavity_compute(float2 screenco,
                     depth2D depthBuffer,
                     sampler2D normalBuffer,
                     out float cavities,
@@ -38,15 +38,15 @@ void cavity_compute(vec2 screenco,
     return;
   }
 
-  vec3 position = drw_point_screen_to_view(vec3(screenco, depth));
-  vec3 normal = workbench_normal_decode(texture(normalBuffer, screenco));
+  float3 position = drw_point_screen_to_view(float3(screenco, depth));
+  float3 normal = workbench_normal_decode(texture(normalBuffer, screenco));
 
-  vec2 jitter_co = (screenco * world_data.viewport_size.xy) * world_data.cavity_jitter_scale;
-  vec3 noise = texture(cavityJitter, jitter_co).rgb;
+  float2 jitter_co = (screenco * world_data.viewport_size.xy) * world_data.cavity_jitter_scale;
+  float3 noise = texture(cavityJitter, jitter_co).rgb;
 
   /* find the offset in screen space by multiplying a point
    * in camera space at the depth of the point by the projection matrix. */
-  vec2 offset;
+  float2 offset;
   float homcoord = drw_view().winmat[2][3] * position.z + drw_view().winmat[3][3];
   offset.x = drw_view().winmat[0][0] * world_data.cavity_distance / homcoord;
   offset.y = drw_view().winmat[1][1] * world_data.cavity_distance / homcoord;
@@ -54,22 +54,22 @@ void cavity_compute(vec2 screenco,
   offset *= 0.5f;
 
   /* NOTE: Putting noise usage here to put some ALU after texture fetch. */
-  vec2 rotX = noise.rg;
-  vec2 rotY = vec2(-rotX.y, rotX.x);
+  float2 rotX = noise.rg;
+  float2 rotY = float2(-rotX.y, rotX.x);
 
   int sample_start = world_data.cavity_sample_start;
   int sample_end = world_data.cavity_sample_end;
   for (int i = sample_start; i < sample_end && i < 512; i++) {
     /* sample_coord.xy is sample direction (normalized).
      * sample_coord.z is sample distance from disk center. */
-    vec3 sample_coord = samples_coords[i].xyz;
+    float3 sample_coord = samples_coords[i].xyz;
     /* Rotate with random direction to get jittered result. */
-    vec2 dir_jittered = vec2(dot(sample_coord.xy, rotX), dot(sample_coord.xy, rotY));
+    float2 dir_jittered = float2(dot(sample_coord.xy, rotX), dot(sample_coord.xy, rotY));
     dir_jittered.xy *= sample_coord.z + noise.b;
 
-    vec2 uvcoords = screenco + dir_jittered * offset;
+    float2 uvcoords = screenco + dir_jittered * offset;
     /* Out of screen case. */
-    if (any(greaterThan(abs(uvcoords - 0.5f), vec2(0.5f)))) {
+    if (any(greaterThan(abs(uvcoords - 0.5f), float2(0.5f)))) {
       continue;
     }
     /* Sample depth. */
@@ -78,13 +78,13 @@ void cavity_compute(vec2 screenco,
     bool is_background = (s_depth == 1.0f);
     /* This trick provide good edge effect even if no neighbor is found. */
     s_depth = (is_background) ? depth : s_depth;
-    vec3 s_pos = drw_point_screen_to_view(vec3(uvcoords, s_depth));
+    float3 s_pos = drw_point_screen_to_view(float3(uvcoords, s_depth));
 
     if (is_background) {
       s_pos.z -= world_data.cavity_distance;
     }
 
-    vec3 dir = s_pos - position;
+    float3 dir = s_pos - position;
     float len = length(dir);
     float f_cavities = dot(dir, normal);
     float f_edge = -f_cavities;

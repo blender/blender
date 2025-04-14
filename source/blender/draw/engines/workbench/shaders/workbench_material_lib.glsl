@@ -10,16 +10,16 @@
 SHADER_LIBRARY_CREATE_INFO(workbench_color_texture)
 
 void workbench_material_data_get(int handle,
-                                 vec3 vertex_color,
-                                 out vec3 color,
+                                 float3 vertex_color,
+                                 out float3 color,
                                  out float alpha,
                                  out float roughness,
                                  out float metallic)
 {
 #ifdef WORKBENCH_COLOR_MATERIAL
-  vec4 data = materials_data[handle];
+  float4 data = materials_data[handle];
 #else
-  vec4 data = vec4(0.0f);
+  float4 data = float4(0.0f);
 #endif
   color = (data.r == -1) ? vertex_color : data.rgb;
 

@@ -22,7 +22,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_dilate)
 
 void main()
 {
-  ivec2 center_tile_pos = ivec2(gl_GlobalInvocationID.xy);
+  int2 center_tile_pos = int2(gl_GlobalInvocationID.xy);
 
   CocTile ring_buckets[DOF_DILATE_RING_COUNT];
 
@@ -31,12 +31,12 @@ void main()
 
     int ring_distance = ring + 1;
     for (int sample_id = 0; sample_id < 4 * ring_distance; sample_id++) {
-      ivec2 offset = dof_square_ring_sample_offset(ring_distance, sample_id);
+      int2 offset = dof_square_ring_sample_offset(ring_distance, sample_id);
 
       offset *= ring_width_multiplier;
 
       for (int i = 0; i < 2; i++) {
-        ivec2 adj_tile_pos = center_tile_pos + ((i == 0) ? offset : -offset);
+        int2 adj_tile_pos = center_tile_pos + ((i == 0) ? offset : -offset);
 
         CocTile adj_tile = dof_coc_tile_load(in_tiles_fg_img, in_tiles_bg_img, adj_tile_pos);
 
@@ -50,7 +50,7 @@ void main()
           ring_buckets[ring].bg_min_coc = min(ring_buckets[ring].bg_min_coc, adj_tile.bg_min_coc);
 
           /* Should be tight as possible to reduce gather overhead (see slide 61). */
-          float closest_neighbor_distance = length(max(abs(vec2(offset)) - 1.0f, 0.0f)) *
+          float closest_neighbor_distance = length(max(abs(float2(offset)) - 1.0f, 0.0f)) *
                                             tile_to_fullres_factor;
 
           ring_buckets[ring].fg_max_intersectable_coc = max(
@@ -99,6 +99,6 @@ void main()
     }
   }
 
-  ivec2 texel_out = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel_out = int2(gl_GlobalInvocationID.xy);
   dof_coc_tile_store(out_tiles_fg_img, out_tiles_bg_img, texel_out, out_tile);
 }

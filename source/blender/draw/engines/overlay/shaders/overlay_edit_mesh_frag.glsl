@@ -22,7 +22,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
 
 bool test_occlusion()
 {
-  return gl_FragCoord.z > texelFetch(depthTex, ivec2(gl_FragCoord.xy), 0).r;
+  return gl_FragCoord.z > texelFetch(depthTex, int2(gl_FragCoord.xy), 0).r;
 }
 
 float edge_step(float dist)
@@ -49,5 +49,5 @@ void main()
   fragColor.a *= 1.0f - (geometry_flat_out.finalColorOuter.a > 0.0f ? mix_w_outer : mix_w);
 
   fragColor.a *= test_occlusion() ? alpha : 1.0f;
-  lineOutput = vec4(0.0f);
+  lineOutput = float4(0.0f);
 }

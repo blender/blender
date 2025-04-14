@@ -7,28 +7,28 @@
 #include "gpu_glsl_cpp_stubs.hh"
 
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire. */
-float transparency_hash(vec2 a)
+float transparency_hash(float2 a)
 {
   return fract(1e4f * sin(17.0f * a.x + 0.1f * a.y) * (0.1f + abs(sin(13.0f * a.y + a.x))));
 }
 
-float transparency_hash_3d(vec3 a)
+float transparency_hash_3d(float3 a)
 {
-  return transparency_hash(vec2(transparency_hash(a.xy), a.z));
+  return transparency_hash(float2(transparency_hash(a.xy), a.z));
 }
 
-float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, vec3 P)
+float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, float3 P)
 {
   /* Find the discretized derivatives of our coordinates. */
   float max_deriv = max(length(dFdx(P)), length(dFdy(P)));
   float pix_scale = 1.0f / (hash_scale * max_deriv);
   /* Find two nearest log-discretized noise scales. */
   float pix_scale_log = log2(pix_scale);
-  vec2 pix_scales;
+  float2 pix_scales;
   pix_scales.x = exp2(floor(pix_scale_log));
   pix_scales.y = exp2(ceil(pix_scale_log));
   /* Compute alpha thresholds at our two noise scales. */
-  vec2 alpha;
+  float2 alpha;
   alpha.x = transparency_hash_3d(floor(pix_scales.x * P));
   alpha.y = transparency_hash_3d(floor(pix_scales.y * P));
   /* Factor to interpolate lerp with. */
@@ -40,7 +40,7 @@ float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, v
   float one_a = 1.0f - a;
   float denom = 1.0f / (2 * a * one_a);
   float one_x = (1 - x);
-  vec3 cases = vec3((x * x) * denom, (x - 0.5f * a) / one_a, 1.0f - (one_x * one_x * denom));
+  float3 cases = float3((x * x) * denom, (x - 0.5f * a) / one_a, 1.0f - (one_x * one_x * denom));
   /* Find our final, uniformly distributed alpha threshold. */
   float threshold = (x < one_a) ? ((x < a) ? cases.x : cases.y) : cases.z;
   /* Jitter the threshold for TAA accumulation. */

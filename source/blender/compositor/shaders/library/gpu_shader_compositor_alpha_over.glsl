@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void node_composite_alpha_over_mixed(
-    float factor, vec4 color, vec4 over_color, float premultiply_factor, out vec4 result)
+    float factor, float4 color, float4 over_color, float premultiply_factor, out float4 result)
 {
   if (over_color.a <= 0.0f) {
     result = color;
@@ -16,11 +16,14 @@ void node_composite_alpha_over_mixed(
     float premultiplier = factor * add_factor;
     float multiplier = 1.0f - factor * over_color.a;
 
-    result = multiplier * color + vec2(premultiplier, factor).xxxy * over_color;
+    result = multiplier * color + float2(premultiplier, factor).xxxy * over_color;
   }
 }
 
-void node_composite_alpha_over_key(float factor, vec4 color, vec4 over_color, out vec4 result)
+void node_composite_alpha_over_key(float factor,
+                                   float4 color,
+                                   float4 over_color,
+                                   out float4 result)
 {
   if (over_color.a <= 0.0f) {
     result = color;
@@ -29,14 +32,14 @@ void node_composite_alpha_over_key(float factor, vec4 color, vec4 over_color, ou
     result = over_color;
   }
   else {
-    result = mix(color, vec4(over_color.rgb, 1.0f), factor * over_color.a);
+    result = mix(color, float4(over_color.rgb, 1.0f), factor * over_color.a);
   }
 }
 
 void node_composite_alpha_over_premultiply(float factor,
-                                           vec4 color,
-                                           vec4 over_color,
-                                           out vec4 result)
+                                           float4 color,
+                                           float4 over_color,
+                                           out float4 result)
 {
   if (over_color.a < 0.0f) {
     result = color;

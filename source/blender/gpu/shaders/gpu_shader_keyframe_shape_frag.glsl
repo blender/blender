@@ -18,8 +18,8 @@ bool test(uint bit)
 
 void main()
 {
-  vec2 pos = gl_PointCoord - vec2(0.5f);
-  vec2 absPos = abs(pos);
+  float2 pos = gl_PointCoord - float2(0.5f);
+  float2 absPos = abs(pos);
   float radius = (absPos.x + absPos.y) * diagonal_scale;
 
   float outline_dist = -1.0f;
@@ -82,6 +82,6 @@ void main()
   }
   /* Outside the outline. */
   else {
-    fragColor = vec4(finalOutlineColor.rgb, finalOutlineColor.a * alpha);
+    fragColor = float4(finalOutlineColor.rgb, finalOutlineColor.a * alpha);
   }
 }

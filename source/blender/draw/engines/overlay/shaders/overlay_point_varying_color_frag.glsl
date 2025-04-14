@@ -10,7 +10,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_extra_grid_base)
 
 void main()
 {
-  vec2 centered = gl_PointCoord - vec2(0.5f);
+  float2 centered = gl_PointCoord - float2(0.5f);
   float dist_squared = dot(centered, centered);
   const float rad_squared = 0.25f;
 
@@ -32,7 +32,7 @@ void main()
 #endif
 
 #ifdef LINE_OUTPUT
-  lineOutput = vec4(0.0f);
+  lineOutput = float4(0.0f);
 #endif
   select_id_output(select_id);
 }

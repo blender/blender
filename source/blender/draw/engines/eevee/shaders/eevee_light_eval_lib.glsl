@@ -32,7 +32,7 @@ SHADER_LIBRARY_CREATE_INFO(eevee_light_data)
 #if !defined(PIXEL) && defined(GPU_FRAGMENT_SHADER)
 #  define PIXEL gl_FragCoord.xy
 #elif defined(GPU_LIBRARY_SHADER)
-#  define PIXEL vec2(0)
+#  define PIXEL float2(0)
 #endif
 
 #if !defined(LIGHT_CLOSURE_EVAL_COUNT)
@@ -94,7 +94,7 @@ float light_power_get(LightData light, LightingType type)
   return light.power[type & 3u];
 }
 
-bool light_linking_affects_receiver(uvec2 light_set_membership, uchar receiver_light_set)
+bool light_linking_affects_receiver(uint2 light_set_membership, uchar receiver_light_set)
 {
   return bitmask64_test(light_set_membership, receiver_light_set);
 }
@@ -102,7 +102,7 @@ bool light_linking_affects_receiver(uvec2 light_set_membership, uchar receiver_l
 void light_eval_single_closure(LightData light,
                                LightVector lv,
                                inout ClosureLight cl,
-                               vec3 V,
+                               float3 V,
                                float attenuation,
                                float shadow,
                                const bool is_transmission)
@@ -112,7 +112,7 @@ void light_eval_single_closure(LightData light,
     return;
   }
   float ltc_result = light_ltc(utility_tx, light, cl.N, V, lv, cl.ltc_mat);
-  vec3 out_radiance = light.color * ltc_result;
+  float3 out_radiance = light.color * ltc_result;
   float visibility = shadow * attenuation;
   cl.light_shadowed += visibility * out_radiance;
   cl.light_unshadowed += attenuation * out_radiance;
@@ -122,9 +122,9 @@ void light_eval_single(uint l_idx,
                        const bool is_directional,
                        const bool is_transmission,
                        inout ClosureLightStack stack,
-                       vec3 P,
-                       vec3 Ng,
-                       vec3 V,
+                       float3 P,
+                       float3 Ng,
+                       float3 V,
                        float thickness,
                        uchar receiver_light_set)
 {
@@ -196,9 +196,9 @@ void light_eval_single(uint l_idx,
 }
 
 void light_eval_transmission(inout ClosureLightStack stack,
-                             vec3 P,
-                             vec3 Ng,
-                             vec3 V,
+                             float3 P,
+                             float3 Ng,
+                             float3 V,
                              float vPz,
                              float thickness,
                              uchar receiver_light_set)
@@ -218,8 +218,12 @@ void light_eval_transmission(inout ClosureLightStack stack,
   LIGHT_FOREACH_END
 }
 
-void light_eval_reflection(
-    inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V, float vPz, uchar receiver_light_set)
+void light_eval_reflection(inout ClosureLightStack stack,
+                           float3 P,
+                           float3 Ng,
+                           float3 V,
+                           float vPz,
+                           uchar receiver_light_set)
 {
 #ifdef SKIP_LIGHT_EVAL
   return;

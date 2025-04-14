@@ -8,7 +8,7 @@
 
 FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_widget_shared)
 
-vec3 compute_masks(vec2 uv)
+float3 compute_masks(float2 uv)
 {
   bool upper_half = uv.y > outRectSize.y * 0.5f;
   bool right_half = uv.x > outRectSize.x * 0.5f;
@@ -17,7 +17,7 @@ vec3 compute_masks(vec2 uv)
   /* Correct aspect ratio for 2D views not using uniform scaling.
    * uv is already in pixel space so a uniform scale should give us a ratio of 1. */
   float ratio = (butCo != -2.0f) ? abs(dFdy(uv.y) / dFdx(uv.x)) : 1.0f;
-  vec2 uv_sdf = uv;
+  float2 uv_sdf = uv;
   uv_sdf.x *= ratio;
 
   if (right_half) {
@@ -46,27 +46,27 @@ vec3 compute_masks(vec2 uv)
   float line_width = (lineWidth > 0.0f) ? max(fwidth(uv.y), lineWidth) : 0.0f;
 
   const float aa_radius = 0.5f;
-  vec3 masks;
+  float3 masks;
   masks.x = smoothstep(-aa_radius, aa_radius, sdf);
   masks.y = smoothstep(-aa_radius, aa_radius, sdf - line_width);
   masks.z = smoothstep(-aa_radius, aa_radius, sdf + line_width * emboss_size);
 
   /* Compose masks together to avoid having too much alpha. */
-  masks.zx = max(vec2(0.0f), masks.zx - masks.xy);
+  masks.zx = max(float2(0.0f), masks.zx - masks.xy);
 
   return masks;
 }
 
-vec4 do_checkerboard()
+float4 do_checkerboard()
 {
   float size = checkerColorAndSize.z;
-  vec2 phase = mod(gl_FragCoord.xy, size * 2.0f);
+  float2 phase = mod(gl_FragCoord.xy, size * 2.0f);
 
   if ((phase.x > size && phase.y < size) || (phase.x < size && phase.y > size)) {
-    return vec4(checkerColorAndSize.xxx, 1.0f);
+    return float4(checkerColorAndSize.xxx, 1.0f);
   }
   else {
-    return vec4(checkerColorAndSize.yyy, 1.0f);
+    return float4(checkerColorAndSize.yyy, 1.0f);
   }
 }
 
@@ -76,12 +76,12 @@ void main()
     discard;
   }
 
-  vec3 masks = compute_masks(uvInterp);
+  float3 masks = compute_masks(uvInterp);
 
   if (butCo > 0.0f) {
     /* Alpha checker widget. */
     if (butCo > 0.5f) {
-      vec4 checker = do_checkerboard();
+      float4 checker = do_checkerboard();
       fragColor = mix(checker, innerColor, innerColor.a);
     }
     else {
@@ -92,7 +92,7 @@ void main()
   }
   else {
     /* Pre-multiply here. */
-    fragColor = innerColor * vec4(innerColor.aaa, 1.0f);
+    fragColor = innerColor * float4(innerColor.aaa, 1.0f);
   }
   fragColor *= masks.y;
   fragColor += masks.x * borderColor;

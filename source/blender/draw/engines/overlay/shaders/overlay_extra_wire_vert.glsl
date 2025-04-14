@@ -12,7 +12,7 @@ VERTEX_SHADER_CREATE_INFO(draw_modelmat)
 #include "draw_view_lib.glsl"
 #include "select_lib.glsl"
 
-vec2 screen_position(vec4 p)
+float2 screen_position(float4 p)
 {
   return ((p.xy / p.w) * 0.5f + 0.5f) * sizeViewport;
 }
@@ -25,7 +25,7 @@ void main()
   select_id_set(in_select_buf[gl_InstanceID]);
 #endif
 
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
 #if defined(SELECT_ENABLE)
@@ -38,8 +38,8 @@ void main()
   stipple_coord = stipple_start = screen_position(gl_Position);
 
 #ifdef OBJECT_WIRE
-  /* Extract data packed inside the unused mat4 members. */
-  finalColor = vec4(
+  /* Extract data packed inside the unused float4x4 members. */
+  finalColor = float4(
       drw_modelmat()[0][3], drw_modelmat()[1][3], drw_modelmat()[2][3], drw_modelmat()[3][3]);
 #else
 

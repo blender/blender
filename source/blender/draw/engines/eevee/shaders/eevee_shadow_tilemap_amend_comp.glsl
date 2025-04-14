@@ -28,7 +28,7 @@ shared ShadowSamplingTilePacked tiles_local[SHADOW_TILEMAP_RES][SHADOW_TILEMAP_R
 
 void main()
 {
-  ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
+  int2 tile_co = int2(gl_GlobalInvocationID.xy);
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     LightData light = light_buf[l_idx];
@@ -40,24 +40,24 @@ void main()
       continue;
     }
 
-    ivec2 base_offset_neg = light_sun_data_get(light).clipmap_base_offset_neg;
-    ivec2 base_offset_pos = light_sun_data_get(light).clipmap_base_offset_pos;
+    int2 base_offset_neg = light_sun_data_get(light).clipmap_base_offset_neg;
+    int2 base_offset_pos = light_sun_data_get(light).clipmap_base_offset_pos;
     /* LOD relative max with respect to clipmap_lod_min. */
     int lod_max = light_sun_data_get(light).clipmap_lod_max -
                   light_sun_data_get(light).clipmap_lod_min;
     /* Iterate in reverse. */
     for (int lod = lod_max; lod >= 0; lod--) {
       int tilemap_index = light.tilemap_index + lod;
-      uvec2 atlas_texel = shadow_tile_coord_in_atlas(uvec2(tile_co), tilemap_index);
+      uint2 atlas_texel = shadow_tile_coord_in_atlas(uint2(tile_co), tilemap_index);
 
-      ShadowSamplingTilePacked tile_packed = imageLoad(tilemaps_img, ivec2(atlas_texel)).x;
+      ShadowSamplingTilePacked tile_packed = imageLoad(tilemaps_img, int2(atlas_texel)).x;
       ShadowSamplingTile tile = shadow_sampling_tile_unpack(tile_packed);
 
       if (lod != lod_max && !tile.is_valid) {
         /* Offset this LOD has with the previous one. In unit of tile of the current LOD. */
-        ivec2 offset_binary = ((base_offset_pos >> lod) & 1) - ((base_offset_neg >> lod) & 1);
-        ivec2 offset_centered = ivec2(SHADOW_TILEMAP_RES / 2) + offset_binary;
-        ivec2 tile_co_prev = (tile_co + offset_centered) >> 1;
+        int2 offset_binary = ((base_offset_pos >> lod) & 1) - ((base_offset_neg >> lod) & 1);
+        int2 offset_centered = int2(SHADOW_TILEMAP_RES / 2) + offset_binary;
+        int2 tile_co_prev = (tile_co + offset_centered) >> 1;
 
         /* Load tile from the previous LOD. */
         ShadowSamplingTilePacked tile_prev_packed = tiles_local[tile_co_prev.y][tile_co_prev.x];
@@ -74,18 +74,18 @@ void main()
            * of both LODs modulo the size of a tile of the source LOD (in tile of current LOD). */
 
           /* Offset corner to center. */
-          tile_prev.lod_offset = uvec2(SHADOW_TILEMAP_RES / 2) << tile_prev.lod;
+          tile_prev.lod_offset = uint2(SHADOW_TILEMAP_RES / 2) << tile_prev.lod;
           /* Align center of both LODs. */
-          tile_prev.lod_offset -= uvec2(SHADOW_TILEMAP_RES / 2);
+          tile_prev.lod_offset -= uint2(SHADOW_TILEMAP_RES / 2);
           /* Add the offset relative to the source LOD. */
-          tile_prev.lod_offset += uvec2(bitfieldExtract(base_offset_pos, lod, int(tile_prev.lod)) -
+          tile_prev.lod_offset += uint2(bitfieldExtract(base_offset_pos, lod, int(tile_prev.lod)) -
                                         bitfieldExtract(base_offset_neg, lod, int(tile_prev.lod)));
           /* Wrap to valid range. */
           tile_prev.lod_offset &= ~(~0u << tile_prev.lod);
 
           tile_prev_packed = shadow_sampling_tile_pack(tile_prev);
           /* Replace the missing page with the one from the lower LOD. */
-          imageStoreFast(tilemaps_img, ivec2(atlas_texel), uvec4(tile_prev_packed));
+          imageStoreFast(tilemaps_img, int2(atlas_texel), uint4(tile_prev_packed));
           /* Push this amended tile to the local tiles. */
           tile_packed = tile_prev_packed;
           tile.is_valid = true;

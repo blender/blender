@@ -48,14 +48,14 @@ shared uint shared_max_slight_focus_abs_coc;
 /**
  * Returns The max CoC in the Slight Focus range inside this compute tile.
  */
-float dof_slight_focus_coc_tile_get(vec2 frag_coord)
+float dof_slight_focus_coc_tile_get(float2 frag_coord)
 {
   float local_abs_max = 0.0f;
   /* Sample in a cross (X) pattern. This covers all pixels over the whole tile, as long as
    * dof_max_slight_focus_radius is less than the group size. */
   for (int i = 0; i < 4; i++) {
-    vec2 sample_uv = (frag_coord + quad_offsets[i] * 2.0f * dof_max_slight_focus_radius) /
-                     vec2(textureSize(color_tx, 0));
+    float2 sample_uv = (frag_coord + quad_offsets[i] * 2.0f * dof_max_slight_focus_radius) /
+                       float2(textureSize(color_tx, 0));
     float coc = dof_coc_from_depth(dof_buf, sample_uv, textureLod(depth_tx, sample_uv, 0.0f).r);
     coc = clamp(coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
     if (abs(coc) < dof_max_slight_focus_radius) {
@@ -80,11 +80,12 @@ float dof_slight_focus_coc_tile_get(vec2 frag_coord)
 #endif
 }
 
-vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float weight)
+float3 dof_neighborhood_clamp(float2 frag_coord, float3 color, float center_coc, float weight)
 {
   /* Stabilize color by clamping with the stable half res neighborhood. */
-  vec3 neighbor_min, neighbor_max;
-  const vec2 corners[4] = float2_array(vec2(-1, -1), vec2(1, -1), vec2(-1, 1), vec2(1, 1));
+  float3 neighbor_min, neighbor_max;
+  const float2 corners[4] = float2_array(
+      float2(-1, -1), float2(1, -1), float2(-1, 1), float2(1, 1));
   for (int i = 0; i < 4; i++) {
     /**
      * Visit the 4 half-res texels around (and containing) the full-resolution texel.
@@ -100,9 +101,10 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
      * │       │       │
      * └───────┴───────┘
      */
-    vec2 uv_sample = ((frag_coord + corners[i]) * 0.5f) / vec2(textureSize(stable_color_tx, 0));
+    float2 uv_sample = ((frag_coord + corners[i]) * 0.5f) /
+                       float2(textureSize(stable_color_tx, 0));
     /* Reminder: The content of this buffer is YCoCg + CoC. */
-    vec3 ycocg_sample = textureLod(stable_color_tx, uv_sample, 0.0f).rgb;
+    float3 ycocg_sample = textureLod(stable_color_tx, uv_sample, 0.0f).rgb;
     neighbor_min = (i == 0) ? ycocg_sample : min(neighbor_min, ycocg_sample);
     neighbor_max = (i == 0) ? ycocg_sample : max(neighbor_max, ycocg_sample);
   }
@@ -121,14 +123,14 @@ vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float
 
 void main()
 {
-  vec2 frag_coord = vec2(gl_GlobalInvocationID.xy) + 0.5f;
-  ivec2 tile_co = ivec2(frag_coord / float(DOF_TILES_SIZE * 2));
+  float2 frag_coord = float2(gl_GlobalInvocationID.xy) + 0.5f;
+  int2 tile_co = int2(frag_coord / float(DOF_TILES_SIZE * 2));
 
   CocTile coc_tile = dof_coc_tile_load(in_tiles_fg_img, in_tiles_bg_img, tile_co);
   CocTilePrediction prediction = dof_coc_tile_prediction_get(coc_tile);
 
-  vec2 uv = frag_coord / vec2(textureSize(color_tx, 0));
-  vec2 uv_halfres = (frag_coord * 0.5f) / vec2(textureSize(color_bg_tx, 0));
+  float2 uv = frag_coord / float2(textureSize(color_tx, 0));
+  float2 uv_halfres = (frag_coord * 0.5f) / float2(textureSize(color_bg_tx, 0));
 
   float slight_focus_max_coc = 0.0f;
   if (prediction.do_slight_focus) {
@@ -144,17 +146,17 @@ void main()
     prediction.do_focus = abs(center_coc) <= 0.5f;
   }
 
-  vec4 out_color = vec4(0.0f);
+  float4 out_color = float4(0.0f);
   float weight = 0.0f;
 
-  vec4 layer_color;
+  float4 layer_color;
   float layer_weight;
 
-  const vec3 hole_fill_color = vec3(0.2f, 0.1f, 1.0f);
-  const vec3 background_color = vec3(0.1f, 0.2f, 1.0f);
-  const vec3 slight_focus_color = vec3(1.0f, 0.2f, 0.1f);
-  const vec3 focus_color = vec3(1.0f, 1.0f, 0.1f);
-  const vec3 foreground_color = vec3(0.2f, 1.0f, 0.1f);
+  const float3 hole_fill_color = float3(0.2f, 0.1f, 1.0f);
+  const float3 background_color = float3(0.1f, 0.2f, 1.0f);
+  const float3 slight_focus_color = float3(1.0f, 0.2f, 0.1f);
+  const float3 focus_color = float3(1.0f, 1.0f, 0.1f);
+  const float3 foreground_color = float3(0.2f, 1.0f, 0.1f);
 
   if (!no_hole_fill_pass && prediction.do_hole_fill) {
     layer_color = textureLod(color_hole_fill_tx, uv_halfres, 0.0f);
@@ -230,8 +232,8 @@ void main()
   }
 
   if (debug_resolve_perf && prediction.do_slight_focus) {
-    out_color.rgb *= vec3(1.0f, 0.1f, 0.1f);
+    out_color.rgb *= float3(1.0f, 0.1f, 0.1f);
   }
 
-  imageStore(out_color_img, ivec2(gl_GlobalInvocationID.xy), out_color);
+  imageStore(out_color_img, int2(gl_GlobalInvocationID.xy), out_color);
 }

@@ -6,7 +6,7 @@
 #include "gpu_shader_material_fractal_noise.glsl"
 #include "gpu_shader_material_noise.glsl"
 
-float calc_wave(vec3 p,
+float calc_wave(float3 p,
                 float distortion,
                 float detail,
                 float detail_scale,
@@ -37,15 +37,15 @@ float calc_wave(vec3 p,
     }
   }
   else { /* type rings */
-    vec3 rp = p;
+    float3 rp = p;
     if (rings_dir == 0) { /* X axis */
-      rp *= vec3(0.0f, 1.0f, 1.0f);
+      rp *= float3(0.0f, 1.0f, 1.0f);
     }
     else if (rings_dir == 1) { /* Y axis */
-      rp *= vec3(1.0f, 0.0f, 1.0f);
+      rp *= float3(1.0f, 0.0f, 1.0f);
     }
     else if (rings_dir == 2) { /* Z axis */
-      rp *= vec3(1.0f, 1.0f, 0.0f);
+      rp *= float3(1.0f, 1.0f, 0.0f);
     }
     /* else: Spherical */
 
@@ -73,7 +73,7 @@ float calc_wave(vec3 p,
   }
 }
 
-void node_tex_wave(vec3 co,
+void node_tex_wave(float3 co,
                    float scale,
                    float distortion,
                    float detail,
@@ -84,7 +84,7 @@ void node_tex_wave(vec3 co,
                    float bands_dir,
                    float rings_dir,
                    float wave_profile,
-                   out vec4 color,
+                   out float4 color,
                    out float fac)
 {
   float f;
@@ -99,6 +99,6 @@ void node_tex_wave(vec3 co,
                 int(rings_dir),
                 int(wave_profile));
 
-  color = vec4(f, f, f, 1.0f);
+  color = float4(f, f, f, 1.0f);
   fac = f;
 }

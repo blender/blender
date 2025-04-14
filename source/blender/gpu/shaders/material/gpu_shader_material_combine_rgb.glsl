@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void combine_rgb(float r, float g, float b, out vec4 col)
+void combine_rgb(float r, float g, float b, out float4 col)
 {
-  col = vec4(r, g, b, 1.0f);
+  col = float4(r, g, b, 1.0f);
 }

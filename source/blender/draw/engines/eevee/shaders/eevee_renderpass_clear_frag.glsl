@@ -14,11 +14,11 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_renderpass_clear)
 
 void main()
 {
-  out_background = vec4(0.0f);
+  out_background = float4(0.0f);
 
   /* Clear Render Buffers. */
   clear_aovs();
-  vec4 clear_color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+  float4 clear_color = float4(0.0f, 0.0f, 0.0f, 1.0f);
   output_renderpass_color(uniform_buf.render_pass.environment_id, clear_color);
   output_renderpass_color(uniform_buf.render_pass.normal_id, clear_color);
   output_renderpass_color(uniform_buf.render_pass.position_id, clear_color);
@@ -30,6 +30,6 @@ void main()
   output_renderpass_value(uniform_buf.render_pass.shadow_id, 1.0f);
   /** NOTE: AO is done on its own pass. */
 
-  ivec2 texel = ivec2(gl_FragCoord.xy);
-  imageStoreFast(rp_cryptomatte_img, texel, vec4(0.0f));
+  int2 texel = int2(gl_FragCoord.xy);
+  imageStoreFast(rp_cryptomatte_img, texel, float4(0.0f));
 }

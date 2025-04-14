@@ -11,26 +11,26 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ambient_occlusion_pass)
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 extent = imageSize(in_normal_img).xy;
+  int2 texel = int2(gl_GlobalInvocationID.xy);
+  int2 extent = imageSize(in_normal_img).xy;
   if (any(greaterThanEqual(texel, extent))) {
     return;
   }
 
-  vec2 uv = (vec2(texel) + vec2(0.5f)) / vec2(extent);
+  float2 uv = (float2(texel) + float2(0.5f)) / float2(extent);
   float depth = texelFetch(hiz_tx, texel, 0).r;
 
   if (depth == 1.0f) {
     /* Do not trace for background */
-    imageStoreFast(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(0.0f));
+    imageStoreFast(out_ao_img, int3(texel, out_ao_img_layer_index), float4(0.0f));
     return;
   }
 
-  vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
-  vec3 N = imageLoad(in_normal_img, ivec3(texel, in_normal_img_layer_index)).xyz;
-  vec3 vN = drw_normal_world_to_view(N);
+  float3 vP = drw_point_screen_to_view(float3(uv, depth));
+  float3 N = imageLoad(in_normal_img, int3(texel, in_normal_img_layer_index)).xyz;
+  float3 vN = drw_normal_world_to_view(N);
 
-  vec4 noise = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER);
+  float4 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
   noise = fract(noise + sampling_rng_3D_get(SAMPLING_AO_U).xyzx);
 
   HorizonScanResult scan = horizon_scan_eval(vP,
@@ -46,5 +46,5 @@ void main()
                                              false,
                                              true);
 
-  imageStoreFast(out_ao_img, ivec3(texel, out_ao_img_layer_index), vec4(saturate(scan.result)));
+  imageStoreFast(out_ao_img, int3(texel, out_ao_img_layer_index), float4(saturate(scan.result)));
 }

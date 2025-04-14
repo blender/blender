@@ -20,7 +20,7 @@ shared uint has_visible_sss;
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   if (gl_LocalInvocationIndex == 0u) {
     has_visible_sss = 0u;
@@ -31,16 +31,16 @@ void main()
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
   if (gbuffer_closure_get(gbuf, 0).type == CLOSURE_BSSRDF_BURLEY_ID) {
-    vec3 radiance = rgb9e5_decode(imageLoadFast(direct_light_img, texel).r);
+    float3 radiance = rgb9e5_decode(imageLoadFast(direct_light_img, texel).r);
     radiance += imageLoadFast(indirect_light_img, texel).rgb;
 
     ClosureSubsurface closure = to_closure_subsurface(gbuffer_closure_get(gbuf, 0));
     float max_radius = reduce_max(closure.sss_radius);
 
-    uint object_id = texelFetch(gbuf_header_tx, ivec3(texel, 1), 0).x;
+    uint object_id = texelFetch(gbuf_header_tx, int3(texel, 1), 0).x;
 
-    imageStoreFast(radiance_img, texel, vec4(radiance, 0.0f));
-    imageStoreFast(object_id_img, texel, uvec4(object_id));
+    imageStoreFast(radiance_img, texel, float4(radiance, 0.0f));
+    imageStoreFast(object_id_img, texel, uint4(object_id));
 
     float depth = texelFetch(depth_tx, texel, 0).r;
     /* TODO(fclem): Check if this simplifies. */
@@ -55,7 +55,7 @@ void main()
   }
   else {
     /* No need to write radiance_img since the radiance won't be used at all. */
-    imageStore(object_id_img, texel, uvec4(0));
+    imageStore(object_id_img, texel, uint4(0));
   }
 
   barrier();

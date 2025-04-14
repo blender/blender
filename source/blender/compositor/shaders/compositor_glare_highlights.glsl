@@ -62,11 +62,11 @@ float adaptive_smooth_clamp(float x, float min_value, float max_value, float smo
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
-  vec2 normalized_coordinates = (vec2(texel) + vec2(0.5f)) / vec2(imageSize(output_img));
+  float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(imageSize(output_img));
 
-  vec4 hsva;
+  float4 hsva;
   rgb_to_hsv(texture(input_tx, normalized_coordinates), hsva);
 
   /* Clamp the brightness of the highlights such that pixels whose brightness are less than the
@@ -84,8 +84,8 @@ void main()
   /* The final brightness is relative to the threshold. */
   hsva.z = clamped_brightness - threshold;
 
-  vec4 rgba;
+  float4 rgba;
   hsv_to_rgb(hsva, rgba);
 
-  imageStore(output_img, texel, vec4(rgba.rgb, 1.0f));
+  imageStore(output_img, texel, float4(rgba.rgb, 1.0f));
 }

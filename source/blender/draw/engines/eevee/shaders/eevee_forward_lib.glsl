@@ -26,10 +26,10 @@
 #  error Closure data count and eval count must match
 #endif
 
-void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmittance)
+void forward_lighting_eval(float thickness, out float3 radiance, out float3 transmittance)
 {
   float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
-  vec3 V = drw_world_incident_vector(g_data.P);
+  float3 V = drw_world_incident_vector(g_data.P);
 
   ClosureLightStack stack;
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
@@ -48,7 +48,7 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   ClosureUndetermined cl_transmit = g_closure_get(0);
   if (cl_transmit.type != CLOSURE_NONE) {
 #  if defined(MAT_SUBSURFACE)
-    vec3 sss_reflect_shadowed, sss_reflect_unshadowed;
+    float3 sss_reflect_shadowed, sss_reflect_unshadowed;
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
       sss_reflect_shadowed = stack.cl[0].light_shadowed;
       sss_reflect_unshadowed = stack.cl[0].light_unshadowed;
@@ -63,8 +63,8 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
 #  if defined(MAT_SUBSURFACE)
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
       /* Apply transmission profile onto transmitted light and sum with reflected light. */
-      vec3 sss_profile = subsurface_transmission(to_closure_subsurface(cl_transmit).sss_radius,
-                                                 thickness);
+      float3 sss_profile = subsurface_transmission(to_closure_subsurface(cl_transmit).sss_radius,
+                                                   thickness);
       stack.cl[0].light_shadowed *= sss_profile;
       stack.cl[0].light_unshadowed *= sss_profile;
       stack.cl[0].light_shadowed += sss_reflect_shadowed;
@@ -80,13 +80,13 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect_sh);
 
   /* Combine all radiance. */
-  vec3 radiance_direct = vec3(0.0f);
-  vec3 radiance_indirect = vec3(0.0f);
+  float3 radiance_direct = float3(0.0f);
+  float3 radiance_indirect = float3(0.0f);
   for (uchar i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
     ClosureUndetermined cl = g_closure_get_resolved(i, 1.0f);
     if (cl.weight > 1e-5f) {
-      vec3 direct_light = closure_light_get(stack, i).light_shadowed;
-      vec3 indirect_light = lightprobe_eval(samp, cl, g_data.P, V, thickness);
+      float3 direct_light = closure_light_get(stack, i).light_shadowed;
+      float3 indirect_light = lightprobe_eval(samp, cl, g_data.P, V, thickness);
 
       if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
            cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&

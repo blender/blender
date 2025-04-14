@@ -19,10 +19,10 @@ void main()
     return;
   }
 
-  vec3 vN = vec3(lP, sqrt(max(0.0f, 1.0f - dist_sqr)));
-  vec3 N = drw_normal_view_to_world(vN);
-  vec3 V = drw_world_incident_vector(P);
-  vec3 L = reflect(-V, N);
+  float3 vN = float3(lP, sqrt(max(0.0f, 1.0f - dist_sqr)));
+  float3 N = drw_normal_view_to_world(vN);
+  float3 V = drw_world_incident_vector(P);
+  float3 L = reflect(-V, N);
 
   out_color = lightprobe_spheres_sample(L, 0, lightprobe_sphere_buf[probe_index].atlas_coord);
   out_color.a = 0.0f;

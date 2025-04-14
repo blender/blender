@@ -574,15 +574,15 @@ SamplerState PointSampler
 #    define mad(a, b, c) fma(a, b, c)
 #  elif defined(GPU_VULKAN)
 /* NOTE(Vulkan) mad macro doesn't work, define each override as work-around. */
-vec4 mad(vec4 a, vec4 b, vec4 c)
+float4 mad(float4 a, float4 b, float4 c)
 {
   return fma(a, b, c);
 }
-vec3 mad(vec3 a, vec3 b, vec3 c)
+float3 mad(float3 a, float3 b, float3 c)
 {
   return fma(a, b, c);
 }
-vec2 mad(vec2 a, vec2 b, vec2 c)
+float2 mad(float2 a, float2 b, float2 c)
 {
   return fma(a, b, c);
 }
@@ -592,18 +592,6 @@ float mad(float a, float b, float c)
 }
 #  else
 #    define mad(a, b, c) (a * b + c)
-#  endif
-/* NOTE(Metal): Types already natively declared in MSL. */
-#  ifndef GPU_METAL
-#    define float2 vec2
-#    define float3 vec3
-#    define float4 vec4
-#    define int2 ivec2
-#    define int3 ivec3
-#    define int4 ivec4
-#    define bool2 bvec2
-#    define bool3 bvec3
-#    define bool4 bvec4
 #  endif
 #endif
 
@@ -1319,7 +1307,7 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
 
 #  ifdef GPU_METAL
       /* Partial vector references are unsupported in MSL. */
-      vec2 _weights = weights.rg;
+      float2 _weights = weights.rg;
       SMAADetectHorizontalCornerPattern(SMAATexturePass2D(edgesTex), _weights, coords.xyzy, d);
       weights.rg = _weights;
 #  else
@@ -1370,7 +1358,7 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
 
 #  ifdef GPU_METAL
     /* Partial vector references are unsupported in MSL. */
-    vec2 _weights = weights.zw;
+    float2 _weights = weights.zw;
     SMAADetectVerticalCornerPattern(SMAATexturePass2D(edgesTex), _weights, coords.xyxz, d);
     weights.zw = _weights;
 #  else

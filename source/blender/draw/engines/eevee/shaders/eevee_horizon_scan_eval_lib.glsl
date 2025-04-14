@@ -37,21 +37,21 @@ SHADER_LIBRARY_CREATE_INFO(eevee_horizon_scan)
 #  define HORIZON_CLOSURE
 #endif
 
-vec3 horizon_scan_sample_radiance(vec2 uv)
+float3 horizon_scan_sample_radiance(float2 uv)
 {
 #ifndef HORIZON_OCCLUSION
   return texture(screen_radiance_tx, uv).rgb;
 #else
-  return vec3(0.0f);
+  return float3(0.0f);
 #endif
 }
 
-vec3 horizon_scan_sample_normal(vec2 uv)
+float3 horizon_scan_sample_normal(float2 uv)
 {
 #ifndef HORIZON_OCCLUSION
   return texture(screen_normal_tx, uv).rgb * 2.0f - 1.0f;
 #else
-  return vec3(0.0f);
+  return float3(0.0f);
 #endif
 }
 
@@ -69,10 +69,10 @@ struct HorizonScanResult {
  * Returned lighting is stored inside the context in `_accum` members already normalized.
  * If `reversed` is set to true, the input normal must be negated.
  */
-HorizonScanResult horizon_scan_eval(vec3 vP,
-                                    vec3 vN,
-                                    vec4 noise,
-                                    vec2 pixel_size,
+HorizonScanResult horizon_scan_eval(float3 vP,
+                                    float3 vN,
+                                    float4 noise,
+                                    float2 pixel_size,
                                     float search_distance,
                                     float thickness_near,
                                     float thickness_far,
@@ -82,9 +82,9 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
                                     const bool reversed,
                                     const bool ao_only)
 {
-  vec3 vV = drw_view_incident_vector(vP);
+  float3 vV = drw_view_incident_vector(vP);
 
-  vec2 v_dir;
+  float2 v_dir;
   if (slice_count <= 2) {
     /* We cover half the circle because we trace in both directions. */
     v_dir = sample_circle(noise.x / float(2 * slice_count));
@@ -107,8 +107,8 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
     }
 
     /* Setup integration domain around V. */
-    vec3 vB = normalize(cross(vV, vec3(v_dir, 0.0f)));
-    vec3 vT = cross(vB, vV);
+    float3 vB = normalize(cross(vV, float3(v_dir, 0.0f)));
+    float3 vT = cross(vB, vV);
 
     /* Bitmask representing the occluded sectors on the slice. */
     uint slice_bitmask = 0u;
@@ -128,7 +128,7 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
     for (int side = 0; side < 2; side++) {
       Ray ray;
       ray.origin = vP;
-      ray.direction = vec3((side == 0) ? v_dir : -v_dir, 0.0f);
+      ray.direction = float3((side == 0) ? v_dir : -v_dir, 0.0f);
       ray.max_time = search_distance;
 
       /* TODO(fclem): Could save some computation here by computing entry and exit point on the
@@ -151,7 +151,7 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
 
         float lod = 1.0f + saturate(float(j) - noise.w) * uniform_buf.ao.lod_factor;
 
-        vec2 sample_uv = ssray.origin.xy + ssray.direction.xy * time;
+        float2 sample_uv = ssray.origin.xy + ssray.direction.xy * time;
         float sample_depth = textureLod(hiz_tx, sample_uv * uniform_buf.hiz.uv_scale, lod).r;
 
         if (sample_depth == 1.0f && !reversed) {
@@ -163,40 +163,40 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
         const float bias = 2.0f * 2.4e-7f;
         sample_depth += reversed ? -bias : bias;
 
-        vec3 vP_sample_front = drw_point_screen_to_view(vec3(sample_uv, sample_depth));
-        vec3 vP_sample_back = vP_sample_front - vV * thickness_near;
+        float3 vP_sample_front = drw_point_screen_to_view(float3(sample_uv, sample_depth));
+        float3 vP_sample_back = vP_sample_front - vV * thickness_near;
 
         float sample_distance;
-        vec3 vL_front = normalize_and_get_length(vP_sample_front - vP, sample_distance);
-        vec3 vL_back = normalize(vP_sample_back - vP);
+        float3 vL_front = normalize_and_get_length(vP_sample_front - vP, sample_distance);
+        float3 vL_back = normalize(vP_sample_back - vP);
         if (sample_distance > search_distance) {
           continue;
         }
 
         /* Ordered pair of angle. Minimum in X, Maximum in Y.
          * Front will always have the smallest angle here since it is the closest to the view. */
-        vec2 theta = acos_fast(vec2(dot(vL_front, vV), dot(vL_back, vV)));
+        float2 theta = acos_fast(float2(dot(vL_front, vV), dot(vL_back, vV)));
         theta.y = max(theta.x + thickness_far, theta.y);
         /* If we are tracing backward, the angles are negative. Swizzle to keep correct order. */
         theta = (side == 0) ? theta.xy : -theta.yx;
 
-        vec3 sample_radiance = ao_only ? vec3(0.0f) : horizon_scan_sample_radiance(sample_uv);
+        float3 sample_radiance = ao_only ? float3(0.0f) : horizon_scan_sample_radiance(sample_uv);
         /* Take emitter surface normal into consideration. */
-        vec3 sample_normal = horizon_scan_sample_normal(sample_uv);
+        float3 sample_normal = horizon_scan_sample_normal(sample_uv);
         /* Discard back-facing samples.
          * The 2 factor is to avoid loosing too much energy v(which is something not
          * explained in the paper...). Likely to be wrong, but we need a soft falloff. */
         float facing_weight = saturate(-dot(sample_normal, vL_front) * 2.0f);
 
         /* Angular bias shrinks the visibility bitmask around the projected normal. */
-        vec2 biased_theta = (theta - vN_angle) * angle_bias;
+        float2 biased_theta = (theta - vN_angle) * angle_bias;
         uint sample_bitmask = horizon_scan_angles_to_bitmask(biased_theta);
         float weight_bitmask = horizon_scan_bitmask_to_visibility_uniform(sample_bitmask &
                                                                           ~slice_bitmask);
 
         sample_radiance *= facing_weight * weight_bitmask;
         spherical_harmonics_encode_signal_sample(
-            vL_front, vec4(sample_radiance, weight_bitmask), sh_slice);
+            vL_front, float4(sample_radiance, weight_bitmask), sh_slice);
 
         slice_bitmask |= sample_bitmask;
       }

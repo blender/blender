@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_background(vec4 color, float strength, float weight, out Closure result)
+void node_background(float4 color, float strength, float weight, out Closure result)
 {
   ClosureEmission emission_data;
   emission_data.weight = weight;

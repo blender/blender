@@ -23,20 +23,20 @@ COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_tiles_flatten_rgba)
 
 shared uint payload_prev;
 shared uint payload_next;
-shared vec2 max_motion_prev;
-shared vec2 max_motion_next;
+shared float2 max_motion_prev;
+shared float2 max_motion_next;
 
 /* Store velocity magnitude in the MSB and thread id in the LSB. */
-uint pack_payload(vec2 motion, uvec2 thread_id)
+uint pack_payload(float2 motion, uint2 thread_id)
 {
   /* NOTE: We clamp max velocity to 16k pixels. */
   return (min(uint(ceil(length(motion))), 0xFFFFu) << 16u) | (thread_id.y << 8) | thread_id.x;
 }
 
 /* Return thread index from the payload. */
-uvec2 unpack_payload(uint payload)
+uint2 unpack_payload(uint payload)
 {
-  return uvec2(payload & 0xFFu, (payload >> 8) & 0xFFu);
+  return uint2(payload & 0xFFu, (payload >> 8) & 0xFFu);
 }
 
 void main()
@@ -49,15 +49,15 @@ void main()
 
   uint local_payload_prev = 0u;
   uint local_payload_next = 0u;
-  vec2 local_max_motion_prev;
-  vec2 local_max_motion_next;
+  float2 local_max_motion_prev;
+  float2 local_max_motion_next;
 
-  ivec2 texel = min(ivec2(gl_GlobalInvocationID.xy), imageSize(velocity_img) - 1);
+  int2 texel = min(int2(gl_GlobalInvocationID.xy), imageSize(velocity_img) - 1);
 
-  vec2 render_size = vec2(imageSize(velocity_img).xy);
-  vec2 uv = (vec2(texel) + 0.5f) / render_size;
+  float2 render_size = float2(imageSize(velocity_img).xy);
+  float2 uv = (float2(texel) + 0.5f) / render_size;
   float depth = texelFetch(depth_tx, texel, 0).r;
-  vec4 motion = velocity_resolve(imageLoad(velocity_img, texel), uv, depth);
+  float4 motion = velocity_resolve(imageLoad(velocity_img, texel), uv, depth);
 #ifdef FLATTEN_RG
   /* imageLoad does not perform the swizzling like sampler does. Do it manually. */
   motion = motion.xyxy;
@@ -66,12 +66,12 @@ void main()
   /* Store resolved velocity to speedup the gather pass. Out of bounds writes are ignored.
    * Unfortunately, we cannot convert to pixel space here since it is also used by TAA and the
    * motion blur needs to remain optional. */
-  imageStore(velocity_img, ivec2(gl_GlobalInvocationID.xy), velocity_pack(motion));
+  imageStore(velocity_img, int2(gl_GlobalInvocationID.xy), velocity_pack(motion));
   /* Clip velocity to viewport bounds (in NDC space). */
-  vec2 line_clip;
+  float2 line_clip;
   line_clip.x = line_unit_square_intersect_dist_safe(uv * 2.0f - 1.0f, motion.xy * 2.0f);
   line_clip.y = line_unit_square_intersect_dist_safe(uv * 2.0f - 1.0f, -motion.zw * 2.0f);
-  motion *= min(line_clip, vec2(1.0f)).xxyy;
+  motion *= min(line_clip, float2(1.0f)).xxyy;
   /* Convert to pixel space. Note this is only for velocity tiles. */
   motion *= render_size.xyxy;
   /* Rescale to shutter relative motion for viewport. */
@@ -104,7 +104,7 @@ void main()
   barrier();
 
   if (gl_LocalInvocationIndex == 0u) {
-    ivec2 tile_co = ivec2(gl_WorkGroupID.xy);
-    imageStore(out_tiles_img, tile_co, vec4(max_motion_prev, max_motion_next));
+    int2 tile_co = int2(gl_WorkGroupID.xy);
+    imageStore(out_tiles_img, tile_co, float4(max_motion_prev, max_motion_next));
   }
 }

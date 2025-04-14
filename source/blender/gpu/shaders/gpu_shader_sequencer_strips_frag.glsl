@@ -8,24 +8,24 @@
 
 FRAGMENT_SHADER_CREATE_INFO(gpu_shader_sequencer_strips)
 
-vec3 color_shade(vec3 rgb, float shade)
+float3 color_shade(float3 rgb, float shade)
 {
-  rgb += vec3(shade / 255.0f);
-  rgb = clamp(rgb, vec3(0.0f), vec3(1.0f));
+  rgb += float3(shade / 255.0f);
+  rgb = clamp(rgb, float3(0.0f), float3(1.0f));
   return rgb;
 }
 
 /* Blends in a straight alpha `color` into premultiplied `cur` and returns premultiplied result. */
-vec4 blend_color(vec4 cur, vec4 color)
+float4 blend_color(float4 cur, float4 color)
 {
   float t = color.a;
-  return cur * (1.0f - t) + vec4(color.rgb * t, t);
+  return cur * (1.0f - t) + float4(color.rgb * t, t);
 }
 
 /* Given signed distance `d` to a shape and current premultiplied color `cur`, blends
  * in an outline at distance between `edge1` and `edge2`.
  * Outline color `outline_color` is in straight alpha. */
-vec4 add_outline(float d, float edge1, float edge2, vec4 cur, vec4 outline_color)
+float4 add_outline(float d, float edge1, float edge2, float4 cur, float4 outline_color)
 {
   d -= 0.5f;
   edge1 *= context_data.pixelsize;
@@ -38,11 +38,11 @@ vec4 add_outline(float d, float edge1, float edge2, vec4 cur, vec4 outline_color
 
 void main()
 {
-  vec2 co = co_interp;
+  float2 co = co_interp;
 
   SeqStripDrawData strip = strip_data[strip_id];
 
-  vec2 pos1, pos2, size, center, pos;
+  float2 pos1, pos2, size, center, pos;
   float radius = 0.0f;
   strip_box(strip.left_handle,
             strip.right_handle,
@@ -83,7 +83,7 @@ void main()
     sdf_inner = sdf_rounded_box(pos - center, size, radius);
   }
 
-  vec4 col = vec4(0.0f);
+  float4 col = float4(0.0f);
 
   /* Background. */
   if ((strip.flags & GPU_SEQ_FLAG_BACKGROUND) != 0) {
@@ -126,12 +126,12 @@ void main()
   /* Missing media. */
   if ((strip.flags & GPU_SEQ_FLAG_MISSING_TITLE) != 0) {
     if (co.y > strip.strip_content_top) {
-      col = blend_color(col, vec4(112.0f / 255.0f, 0.0f, 0.0f, 230.0f / 255.0f));
+      col = blend_color(col, float4(112.0f / 255.0f, 0.0f, 0.0f, 230.0f / 255.0f));
     }
   }
   if ((strip.flags & GPU_SEQ_FLAG_MISSING_CONTENT) != 0) {
     if (co.y <= strip.strip_content_top) {
-      col = blend_color(col, vec4(64.0f / 255.0f, 0.0f, 0.0f, 230.0f / 255.0f));
+      col = blend_color(col, float4(64.0f / 255.0f, 0.0f, 0.0f, 230.0f / 255.0f));
     }
   }
 
@@ -140,25 +140,25 @@ void main()
     if (co.y <= strip.strip_content_top) {
       float phase = mod(gl_FragCoord.x + gl_FragCoord.y, 12.0f);
       if (phase >= 8.0f) {
-        col = blend_color(col, vec4(0.0f, 0.0f, 0.0f, 0.25f));
+        col = blend_color(col, float4(0.0f, 0.0f, 0.0f, 0.25f));
       }
     }
   }
 
   /* Highlight. */
   if ((strip.flags & GPU_SEQ_FLAG_HIGHLIGHT) != 0) {
-    col = blend_color(col, vec4(1.0f, 1.0f, 1.0f, 48.0f / 255.0f));
+    col = blend_color(col, float4(1.0f, 1.0f, 1.0f, 48.0f / 255.0f));
   }
 
   /* Handles. */
-  vec4 col_outline = unpackUnorm4x8(strip.col_outline);
+  float4 col_outline = unpackUnorm4x8(strip.col_outline);
   if ((strip.flags & GPU_SEQ_FLAG_ANY_HANDLE) != 0) {
     bool left_side = pos.x < center.x;
     uint handle_flag = left_side ? GPU_SEQ_FLAG_SELECTED_LH : GPU_SEQ_FLAG_SELECTED_RH;
     bool selected_handle = (strip.flags & handle_flag) != 0;
     /* Blend in handle color in between strip shape and inner handle shape. */
     if (sdf <= 0.0f && sdf_inner >= 0.0f) {
-      vec4 hcol = selected_handle ? col_outline : vec4(0, 0, 0, 0.2f);
+      float4 hcol = selected_handle ? col_outline : float4(0, 0, 0, 0.2f);
       hcol.a *= clamp(sdf_inner, 0.0f, 1.0f);
       col = blend_color(col, hcol);
     }
@@ -171,7 +171,7 @@ void main()
 
   /* Outside of strip rounded rectangle? */
   if (sdf > 0.0f) {
-    col = vec4(0.0f);
+    col = float4(0.0f);
   }
 
   /* Outline / border. */
@@ -182,7 +182,7 @@ void main()
       col = add_outline(sdf, 1.0f, 3.0f, col, col_outline);
       /* Inset line should be inside regular border or inside the handles. */
       float d = max(sdf_inner - 3.0f * context_data.pixelsize, sdf);
-      col = add_outline(d, 3.0f, 4.0f, col, vec4(0, 0, 0, 0.33f));
+      col = add_outline(d, 3.0f, 4.0f, col, float4(0, 0, 0, 0.33f));
     }
 
     /* Active, but not selected strips get a thin inner line. */

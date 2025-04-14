@@ -31,20 +31,20 @@ void main()
 #  define doArrow (colid_doarrow[3] != 0u)
 #  define doMuted (domuted[0] != 0u)
 #else
-  vec2 P0 = node_link_data.bezierPts[0].xy;
-  vec2 P1 = node_link_data.bezierPts[1].xy;
-  vec2 P2 = node_link_data.bezierPts[2].xy;
-  vec2 P3 = node_link_data.bezierPts[3].xy;
+  float2 P0 = node_link_data.bezierPts[0].xy;
+  float2 P1 = node_link_data.bezierPts[1].xy;
+  float2 P2 = node_link_data.bezierPts[2].xy;
+  float2 P3 = node_link_data.bezierPts[3].xy;
   bool doArrow = node_link_data.doArrow;
   bool doMuted = node_link_data.doMuted;
   float dim_factor = node_link_data.dim_factor;
   float thickness = node_link_data.thickness;
-  vec3 dash_params = node_link_data.dash_params.xyz;
+  float3 dash_params = node_link_data.dash_params.xyz;
   int has_back_link = node_link_data.has_back_link ? 1 : 0;
 
-  vec4 colShadow = node_link_data.colors[0];
-  vec4 colStart = node_link_data.colors[1];
-  vec4 colEnd = node_link_data.colors[2];
+  float4 colShadow = node_link_data.colors[0];
+  float4 colStart = node_link_data.colors[1];
+  float4 colEnd = node_link_data.colors[2];
 #endif
 
   float line_thickness = thickness;
@@ -97,22 +97,22 @@ void main()
   float one_minus_t2 = one_minus_t * one_minus_t;
   float one_minus_t2_3 = 3.0f * one_minus_t2;
 
-  vec2 point = (P0 * one_minus_t2 * one_minus_t + P1 * one_minus_t2_3 * t +
-                P2 * t2_3 * one_minus_t + P3 * t2 * t);
+  float2 point = (P0 * one_minus_t2 * one_minus_t + P1 * one_minus_t2_3 * t +
+                  P2 * t2_3 * one_minus_t + P3 * t2 * t);
 
-  vec2 tangent = ((P1 - P0) * one_minus_t2_3 + (P2 - P1) * 6.0f * (t - t2) + (P3 - P2) * t2_3);
+  float2 tangent = ((P1 - P0) * one_minus_t2_3 + (P2 - P1) * 6.0f * (t - t2) + (P3 - P2) * t2_3);
 
   /* Tangent space at t. If the inner and outer control points overlap, the tangent is invalid.
    * Use the vector between the sockets instead. */
   tangent = is_zero(tangent) ? normalize(P3 - P0) : normalize(tangent);
-  vec2 normal = tangent.yx * vec2(-1.0f, 1.0f);
+  float2 normal = tangent.yx * float2(-1.0f, 1.0f);
 
   /* Position vertex on the curve tangent space */
   point += (pos.x * tangent + pos.y * normal) * node_link_data.arrowSize;
 
-  gl_Position = ModelViewProjectionMatrix * vec4(point, 0.0f, 1.0f);
+  gl_Position = ModelViewProjectionMatrix * float4(point, 0.0f, 1.0f);
 
-  vec2 exp_axis = expand.x * tangent + expand.y * normal;
+  float2 exp_axis = expand.x * tangent + expand.y * normal;
 
   /* rotate & scale the expand axis */
   exp_axis = ModelViewProjectionMatrix[0].xy * exp_axis.xx +

@@ -52,17 +52,17 @@ void geometry_main(VertOut geom_in[4],
                    uint out_primitive_id,
                    uint out_invocation_id)
 {
-  vec3 v10 = geom_in[0].lP - geom_in[1].lP;
-  vec3 v12 = geom_in[2].lP - geom_in[1].lP;
-  vec3 v13 = geom_in[3].lP - geom_in[1].lP;
+  float3 v10 = geom_in[0].lP - geom_in[1].lP;
+  float3 v12 = geom_in[2].lP - geom_in[1].lP;
+  float3 v13 = geom_in[3].lP - geom_in[1].lP;
 
-  vec3 n1 = cross(v12, v10);
-  vec3 n2 = cross(v13, v12);
+  float3 n1 = cross(v12, v10);
+  float3 n2 = cross(v13, v12);
 
 #ifdef DEGENERATE_TRIS_WORKAROUND
   /* Check if area is null */
-  vec2 faces_area = vec2(length_squared(n1), length_squared(n2));
-  bvec2 degen_faces = lessThan(abs(faces_area), vec2(DEGENERATE_TRIS_AREA_THRESHOLD));
+  float2 faces_area = float2(length_squared(n1), length_squared(n2));
+  bool2 degen_faces = lessThan(abs(faces_area), float2(DEGENERATE_TRIS_AREA_THRESHOLD));
 
   /* Both triangles are degenerate, abort. */
   if (all(degen_faces)) {
@@ -70,14 +70,14 @@ void geometry_main(VertOut geom_in[4],
   }
 #endif
 
-  vec3 ls_light_direction = drw_normal_world_to_object(vec3(pass_data.light_direction_ws));
+  float3 ls_light_direction = drw_normal_world_to_object(float3(pass_data.light_direction_ws));
 
-  vec2 facing = vec2(dot(n1, ls_light_direction), dot(n2, ls_light_direction));
+  float2 facing = float2(dot(n1, ls_light_direction), dot(n2, ls_light_direction));
 
   /* WATCH: maybe unpredictable in some cases. */
   bool is_manifold = any(notEqual(geom_in[0].lP, geom_in[3].lP));
 
-  bvec2 backface = greaterThan(facing, vec2(0.0f));
+  bool2 backface = greaterThan(facing, float2(0.0f));
 
 #ifdef DEGENERATE_TRIS_WORKAROUND
 #  ifndef DOUBLE_MANIFOLD
@@ -148,6 +148,6 @@ void main()
   vert_out[3] = vertex_main(vert_in[3]);
 
   /* Discard by default. */
-  gl_Position = vec4(NAN_FLT);
+  gl_Position = float4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
 }

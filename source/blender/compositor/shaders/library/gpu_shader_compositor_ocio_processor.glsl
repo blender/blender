@@ -8,11 +8,11 @@
  * at the end of this file, so forward declare it. Such forward declarations are not supported nor
  * needed on Metal. */
 #if !defined(GPU_METAL)
-vec4 OCIOMain(vec4 inPixel);
+float4 OCIOMain(float4 inPixel);
 #endif
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
   imageStore(output_img, texel, OCIOMain(texture_load(input_tx, texel)));
 }

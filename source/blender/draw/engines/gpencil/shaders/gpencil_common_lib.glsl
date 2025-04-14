@@ -16,7 +16,7 @@
 #define MODE_HARDLIGHT_SECOND_PASS 999
 
 void blend_mode_output(
-    int blend_mode, vec4 color, float opacity, out vec4 frag_color, out vec4 frag_revealage)
+    int blend_mode, float4 color, float opacity, out float4 frag_color, out float4 frag_revealage)
 {
   switch (blend_mode) {
     case MODE_REGULAR:
@@ -24,7 +24,7 @@ void blend_mode_output(
        * `(dst.rgba * (1 - src.a) + src.rgb)`. */
       color *= opacity;
       frag_color = color;
-      frag_revealage = vec4(0.0f, 0.0f, 0.0f, color.a);
+      frag_revealage = float4(0.0f, 0.0f, 0.0f, color.a);
       break;
     case MODE_MULTIPLY:
       /* Reminder: Blending func is multiply blend `(dst.rgba * src.rgba)`. */
@@ -35,7 +35,7 @@ void blend_mode_output(
       /* Reminder: Blending func is multiply blend `(dst.rgba * src.rgba)`. */
       color.a *= opacity;
       frag_revealage = frag_color = clamp(
-          1.0f / max(vec4(1e-6f), 1.0f - color * color.a), 0.0f, 1e18f);
+          1.0f / max(float4(1e-6f), 1.0f - color * color.a), 0.0f, 1e18f);
       break;
     case MODE_HARDLIGHT: {
       /* Reminder: Blending func is multiply blend `(dst.rgba * src.rgba)`. */
@@ -50,23 +50,23 @@ void blend_mode_output(
        * `rtn = 1 - 2 + dst * (2 - 2 * src) + 2 * src;`
        * `rtn = (- 1 + 2 * src) + dst * (2 - 2 * src);`
        */
-      color = mix(vec4(0.5f), color, color.a * opacity);
-      vec4 s = step(-0.5f, -color);
+      color = mix(float4(0.5f), color, color.a * opacity);
+      float4 s = step(-0.5f, -color);
       frag_revealage = frag_color = 2.0f * s + 2.0f * color * (1.0f - s * 2.0f);
-      frag_revealage = max(vec4(0.0f), frag_revealage);
+      frag_revealage = max(float4(0.0f), frag_revealage);
       break;
     }
     case MODE_HARDLIGHT_SECOND_PASS:
       /* Reminder: Blending func is additive blend `(dst.rgba + src.rgba)`. */
-      color = mix(vec4(0.5f), color, color.a * opacity);
+      color = mix(float4(0.5f), color, color.a * opacity);
       frag_revealage = frag_color = (-1.0f + 2.0f * color) * step(-0.5f, -color);
-      frag_revealage = max(vec4(0.0f), frag_revealage);
+      frag_revealage = max(float4(0.0f), frag_revealage);
       break;
     case MODE_SUB:
     case MODE_ADD:
       /* Reminder: Blending func is additive / subtractive blend `(dst.rgba +/- src.rgba)`. */
       frag_color = color * color.a * opacity;
-      frag_revealage = vec4(0.0f);
+      frag_revealage = float4(0.0f);
       break;
   }
 }

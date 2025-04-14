@@ -26,13 +26,13 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_stabilize)
 #include "eevee_velocity_lib.glsl"
 
 struct DofSample {
-  vec4 color;
+  float4 color;
   float coc;
 
 #if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
   /* Explicit constructors -- To support GLSL syntax. */
   inline DofSample() = default;
-  inline DofSample(vec4 in_color, float in_coc) : color(in_color), coc(in_coc) {}
+  inline DofSample(float4 in_color, float in_coc) : color(in_color), coc(in_coc) {}
 #endif
 };
 
@@ -40,7 +40,7 @@ struct DofSample {
 /** \name LDS Cache
  * \{ */
 #define cache_size (gl_WorkGroupSize.x + 2)
-shared vec4 color_cache[cache_size][cache_size];
+shared float4 color_cache[cache_size][cache_size];
 shared float coc_cache[cache_size][cache_size];
 /* Need 2 pixel border for depth. */
 #define cache_depth_size (gl_WorkGroupSize.x + 4)
@@ -67,25 +67,25 @@ void dof_cache_init()
    *    Load using 5x5 threads.
    */
 
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
   for (int y = 0; y < 2; y++) {
     for (int x = 0; x < 2; x++) {
       /* 1 Pixel border. */
-      if (all(lessThan(gl_LocalInvocationID.xy, uvec2(cache_size / 2u)))) {
-        ivec2 offset = ivec2(x, y) * ivec2(cache_size / 2u);
-        ivec2 cache_texel = ivec2(gl_LocalInvocationID.xy) + offset;
-        ivec2 load_texel = clamp(texel + offset - 1, ivec2(0), textureSize(color_tx, 0) - 1);
+      if (all(lessThan(gl_LocalInvocationID.xy, uint2(cache_size / 2u)))) {
+        int2 offset = int2(x, y) * int2(cache_size / 2u);
+        int2 cache_texel = int2(gl_LocalInvocationID.xy) + offset;
+        int2 load_texel = clamp(texel + offset - 1, int2(0), textureSize(color_tx, 0) - 1);
 
-        vec4 color = texelFetch(color_tx, load_texel, 0);
+        float4 color = texelFetch(color_tx, load_texel, 0);
         color_cache[cache_texel.y][cache_texel.x] = colorspace_YCoCg_from_scene_linear(color);
         coc_cache[cache_texel.y][cache_texel.x] = texelFetch(coc_tx, load_texel, 0).x;
       }
       /* 2 Pixels border. */
-      if (all(lessThan(gl_LocalInvocationID.xy, uvec2(cache_depth_size / 2u)))) {
-        ivec2 offset = ivec2(x, y) * ivec2(cache_depth_size / 2u);
-        ivec2 cache_texel = ivec2(gl_LocalInvocationID.xy) + offset;
+      if (all(lessThan(gl_LocalInvocationID.xy, uint2(cache_depth_size / 2u)))) {
+        int2 offset = int2(x, y) * int2(cache_depth_size / 2u);
+        int2 cache_texel = int2(gl_LocalInvocationID.xy) + offset;
         /* Depth is full-resolution. Load every 2 pixels. */
-        ivec2 load_texel = clamp((texel + offset - 2) * 2, ivec2(0), textureSize(depth_tx, 0) - 1);
+        int2 load_texel = clamp((texel + offset - 2) * 2, int2(0), textureSize(depth_tx, 0) - 1);
 
         depth_cache[cache_texel.y][cache_texel.x] = texelFetch(depth_tx, load_texel, 0).x;
       }
@@ -95,15 +95,15 @@ void dof_cache_init()
 }
 
 /* NOTE: Sample color space is already in YCoCg space. */
-DofSample dof_fetch_input_sample(ivec2 offset)
+DofSample dof_fetch_input_sample(int2 offset)
 {
-  ivec2 coord = offset + 1 + ivec2(gl_LocalInvocationID.xy);
+  int2 coord = offset + 1 + int2(gl_LocalInvocationID.xy);
   return DofSample(color_cache[coord.y][coord.x], coc_cache[coord.y][coord.x]);
 }
 
-float dof_fetch_half_depth(ivec2 offset)
+float dof_fetch_half_depth(int2 offset)
 {
-  ivec2 coord = offset + 2 + ivec2(gl_LocalInvocationID.xy);
+  int2 coord = offset + 2 + int2(gl_LocalInvocationID.xy);
   return depth_cache[coord.y][coord.x];
 }
 
@@ -129,9 +129,9 @@ float dof_bilateral_weight(float reference_coc, float sample_coc)
 DofSample dof_spatial_filtering()
 {
   /* Plus (+) shape offsets. */
-  const ivec2 plus_offsets[4] = int2_array(ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
-  DofSample center = dof_fetch_input_sample(ivec2(0));
-  DofSample accum = DofSample(vec4(0.0f), 0.0f);
+  const int2 plus_offsets[4] = int2_array(int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1));
+  DofSample center = dof_fetch_input_sample(int2(0));
+  DofSample accum = DofSample(float4(0.0f), 0.0f);
   float accum_weight = 0.0f;
   for (int i = 0; i < 4; i++) {
     DofSample samp = dof_fetch_input_sample(plus_offsets[i]);
@@ -169,12 +169,12 @@ struct DofNeighborhoodMinMax {
 DofNeighborhoodMinMax dof_neighbor_boundbox()
 {
   /* Plus (+) shape offsets. */
-  const ivec2 plus_offsets[4] = int2_array(ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
+  const int2 plus_offsets[4] = int2_array(int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1));
   /**
    * Simple bounding box calculation in YCoCg as described in:
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
    */
-  DofSample min_c = dof_fetch_input_sample(ivec2(0));
+  DofSample min_c = dof_fetch_input_sample(int2(0));
   DofSample max_c = min_c;
   for (int i = 0; i < 4; i++) {
     DofSample samp = dof_fetch_input_sample(plus_offsets[i]);
@@ -187,7 +187,7 @@ DofNeighborhoodMinMax dof_neighbor_boundbox()
    * Round bbox shape by averaging 2 different min/max from 2 different neighborhood. */
   DofSample min_c_3x3 = min_c;
   DofSample max_c_3x3 = max_c;
-  const ivec2 corners[4] = int2_array(ivec2(-1, -1), ivec2(1, -1), ivec2(-1, 1), ivec2(1, 1));
+  const int2 corners[4] = int2_array(int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1));
   for (int i = 0; i < 4; i++) {
     DofSample samp = dof_fetch_input_sample(corners[i]);
     min_c_3x3.color = min(min_c_3x3.color, samp.color);
@@ -204,15 +204,15 @@ DofNeighborhoodMinMax dof_neighbor_boundbox()
 }
 
 /* Returns motion in pixel space to retrieve the pixel history. */
-vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
+float2 dof_pixel_history_motion_vector(int2 texel_sample)
 {
   /**
    * Dilate velocity by using the nearest pixel in a cross pattern.
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
    */
-  const ivec2 corners[4] = int2_array(ivec2(-2, -2), ivec2(2, -2), ivec2(-2, 2), ivec2(2, 2));
-  float min_depth = dof_fetch_half_depth(ivec2(0));
-  ivec2 nearest_texel = ivec2(0);
+  const int2 corners[4] = int2_array(int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2));
+  float min_depth = dof_fetch_half_depth(int2(0));
+  int2 nearest_texel = int2(0);
   for (int i = 0; i < 4; i++) {
     float depth = dof_fetch_half_depth(corners[i]);
     if (min_depth > depth) {
@@ -221,25 +221,25 @@ vec2 dof_pixel_history_motion_vector(ivec2 texel_sample)
     }
   }
   /* Convert to full resolution buffer pixel. */
-  ivec2 velocity_texel = (texel_sample + nearest_texel) * 2;
-  velocity_texel = clamp(velocity_texel, ivec2(0), textureSize(velocity_tx, 0).xy - 1);
-  vec4 vector = velocity_resolve(velocity_tx, velocity_texel, min_depth);
+  int2 velocity_texel = (texel_sample + nearest_texel) * 2;
+  velocity_texel = clamp(velocity_texel, int2(0), textureSize(velocity_tx, 0).xy - 1);
+  float4 vector = velocity_resolve(velocity_tx, velocity_texel, min_depth);
   /* Transform to **half** pixel space. */
-  return vector.xy * vec2(textureSize(color_tx, 0));
+  return vector.xy * float2(textureSize(color_tx, 0));
 }
 
 /* Load color using a special filter to avoid losing detail.
  * \a texel is sample position with sub-pixel accuracy. */
-DofSample dof_sample_history(vec2 input_texel)
+DofSample dof_sample_history(float2 input_texel)
 {
 #if 1 /* Bilinar. */
-  vec2 uv = vec2(input_texel + 0.5f) / vec2(textureSize(in_history_tx, 0));
-  vec4 color = textureLod(in_history_tx, uv, 0.0f);
+  float2 uv = float2(input_texel + 0.5f) / float2(textureSize(in_history_tx, 0));
+  float4 color = textureLod(in_history_tx, uv, 0.0f);
 
 #else /* Catmull Rom interpolation. 5 Bilinear Taps. */
-  vec2 center_texel;
-  vec2 inter_texel = modf(input_texel, center_texel);
-  vec2 weights[4];
+  float2 center_texel;
+  float2 inter_texel = modf(input_texel, center_texel);
+  float2 weights[4];
   film_get_catmull_rom_weights(inter_texel, weights);
 
   /**
@@ -251,20 +251,20 @@ DofSample dof_sample_history(vec2 input_texel)
   center_texel += 0.5f;
 
   /* Slide 92. */
-  vec2 weight_12 = weights[1] + weights[2];
-  vec2 uv_12 = (center_texel + weights[2] / weight_12) * uniform_buf.film.extent_inv;
-  vec2 uv_0 = (center_texel - 1.0f) * uniform_buf.film.extent_inv;
-  vec2 uv_3 = (center_texel + 2.0f) * uniform_buf.film.extent_inv;
+  float2 weight_12 = weights[1] + weights[2];
+  float2 uv_12 = (center_texel + weights[2] / weight_12) * uniform_buf.film.extent_inv;
+  float2 uv_0 = (center_texel - 1.0f) * uniform_buf.film.extent_inv;
+  float2 uv_3 = (center_texel + 2.0f) * uniform_buf.film.extent_inv;
 
-  vec4 color;
-  vec4 weight_cross = weight_12.xyyx * vec4(weights[0].yx, weights[3].xy);
+  float4 color;
+  float4 weight_cross = weight_12.xyyx * float4(weights[0].yx, weights[3].xy);
   float weight_center = weight_12.x * weight_12.y;
 
   color = textureLod(in_history_tx, uv_12, 0.0f) * weight_center;
-  color += textureLod(in_history_tx, vec2(uv_12.x, uv_0.y), 0.0f) * weight_cross.x;
-  color += textureLod(in_history_tx, vec2(uv_0.x, uv_12.y), 0.0f) * weight_cross.y;
-  color += textureLod(in_history_tx, vec2(uv_3.x, uv_12.y), 0.0f) * weight_cross.z;
-  color += textureLod(in_history_tx, vec2(uv_12.x, uv_3.y), 0.0f) * weight_cross.w;
+  color += textureLod(in_history_tx, float2(uv_12.x, uv_0.y), 0.0f) * weight_cross.x;
+  color += textureLod(in_history_tx, float2(uv_0.x, uv_12.y), 0.0f) * weight_cross.y;
+  color += textureLod(in_history_tx, float2(uv_3.x, uv_12.y), 0.0f) * weight_cross.z;
+  color += textureLod(in_history_tx, float2(uv_12.x, uv_3.y), 0.0f) * weight_cross.w;
   /* Re-normalize for the removed corners. */
   color /= (weight_center + reduce_add(weight_cross));
 #endif
@@ -277,7 +277,7 @@ DofSample dof_amend_history(DofNeighborhoodMinMax bbox, DofSample history, DofSa
 {
 #if 0
   /* Clip instead of clamping to avoid color accumulating in the AABB corners. */
-  vec3 clip_dir = src.color.rgb - history.color.rgb;
+  float3 clip_dir = src.color.rgb - history.color.rgb;
 
   float t = line_aabb_clipping_dist(
       history.color.rgb, clip_dir, bbox.min.color.rgb, bbox.max.color.rgb);
@@ -293,7 +293,7 @@ DofSample dof_amend_history(DofNeighborhoodMinMax bbox, DofSample history, DofSa
 }
 
 float dof_history_blend_factor(
-    float velocity, vec2 texel, DofNeighborhoodMinMax bbox, DofSample src, DofSample dst)
+    float velocity, float2 texel, DofNeighborhoodMinMax bbox, DofSample src, DofSample dst)
 {
   float luma_min = bbox.min.color.x;
   float luma_max = bbox.max.color.x;
@@ -308,7 +308,8 @@ float dof_history_blend_factor(
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 43)
    * Bias towards history if incoming pixel is near clamping. Reduces flicker.
    */
-  float distance_to_luma_clip = reduce_min(vec2(luma_history - luma_min, luma_max - luma_history));
+  float distance_to_luma_clip = reduce_min(
+      float2(luma_history - luma_min, luma_max - luma_history));
   /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
   distance_to_luma_clip *= 2.0f * safe_rcp(luma_max - luma_min);
   /* Linearly blend when history gets below to 25% of the bbox size. */
@@ -319,8 +320,8 @@ float dof_history_blend_factor(
   float coc_diff_ratio = saturate(abs(src.coc - dst.coc) / max(1.0f, abs(src.coc)));
   blend = mix(blend, 1.0f, coc_diff_ratio);
   /* Discard out of view history. */
-  if (any(lessThan(texel, vec2(0))) ||
-      any(greaterThanEqual(texel, vec2(imageSize(out_history_img)))))
+  if (any(lessThan(texel, float2(0))) ||
+      any(greaterThanEqual(texel, float2(imageSize(out_history_img)))))
   {
     blend = 1.0f;
   }
@@ -335,7 +336,7 @@ void main()
 {
   dof_cache_init();
 
-  ivec2 src_texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 src_texel = int2(gl_GlobalInvocationID.xy);
 
   /**
    * Naming convention is taken from the film implementation.
@@ -345,8 +346,8 @@ void main()
   DofSample src = dof_spatial_filtering();
 
   /* Reproject by finding where this pixel was in the previous frame. */
-  vec2 motion = dof_pixel_history_motion_vector(src_texel);
-  vec2 history_texel = vec2(src_texel) + motion;
+  float2 motion = dof_pixel_history_motion_vector(src_texel);
+  float2 history_texel = float2(src_texel) + motion;
 
   float velocity = length(motion);
 
@@ -365,8 +366,8 @@ void main()
 
   DofSample result;
   /* Weighted blend. */
-  result.color = vec4(dst.color.rgb, dst.coc) * weight_dst +
-                 vec4(src.color.rgb, src.coc) * weight_src;
+  result.color = float4(dst.color.rgb, dst.coc) * weight_dst +
+                 float4(src.color.rgb, src.coc) * weight_src;
   result.color /= weight_src + weight_dst;
 
   /* Save history for next iteration. Still in YCoCg space with CoC in alpha. */
@@ -380,5 +381,5 @@ void main()
   result.color = colorspace_scene_linear_from_YCoCg(result.color);
 
   imageStore(out_color_img, src_texel, result.color);
-  imageStore(out_coc_img, src_texel, vec4(result.coc));
+  imageStore(out_coc_img, src_texel, float4(result.coc));
 }

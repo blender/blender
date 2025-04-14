@@ -11,10 +11,10 @@
  * \{ */
 
 struct AABB {
-  vec3 min, max;
+  float3 min, max;
 };
 
-AABB shape_aabb(vec3 min, vec3 max)
+AABB shape_aabb(float3 min, float3 max)
 {
   AABB aabb;
   aabb.min = min;
@@ -25,12 +25,12 @@ AABB shape_aabb(vec3 min, vec3 max)
 AABB aabb_init_min_max()
 {
   AABB aabb;
-  aabb.min = vec3(1.0e30f);
-  aabb.max = vec3(-1.0e30f);
+  aabb.min = float3(1.0e30f);
+  aabb.max = float3(-1.0e30f);
   return aabb;
 }
 
-void aabb_merge(inout AABB aabb, vec3 v)
+void aabb_merge(inout AABB aabb, float3 v)
 {
   aabb.min = min(aabb.min, v);
   aabb.max = max(aabb.max, v);
@@ -59,13 +59,13 @@ Box aabb_to_box(AABB aabb)
 {
   Box box;
   box.corners[0] = aabb.min;
-  box.corners[1] = vec3(aabb.max.x, aabb.min.y, aabb.min.z);
-  box.corners[2] = vec3(aabb.max.x, aabb.max.y, aabb.min.z);
-  box.corners[3] = vec3(aabb.min.x, aabb.max.y, aabb.min.z);
-  box.corners[4] = vec3(aabb.min.x, aabb.min.y, aabb.max.z);
-  box.corners[5] = vec3(aabb.max.x, aabb.min.y, aabb.max.z);
+  box.corners[1] = float3(aabb.max.x, aabb.min.y, aabb.min.z);
+  box.corners[2] = float3(aabb.max.x, aabb.max.y, aabb.min.z);
+  box.corners[3] = float3(aabb.min.x, aabb.max.y, aabb.min.z);
+  box.corners[4] = float3(aabb.min.x, aabb.min.y, aabb.max.z);
+  box.corners[5] = float3(aabb.max.x, aabb.min.y, aabb.max.z);
   box.corners[6] = aabb.max;
-  box.corners[7] = vec3(aabb.min.x, aabb.max.y, aabb.max.z);
+  box.corners[7] = float3(aabb.min.x, aabb.max.y, aabb.max.z);
   return box;
 }
 

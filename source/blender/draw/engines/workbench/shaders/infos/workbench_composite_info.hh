@@ -68,7 +68,7 @@ DEFINE("WORKBENCH_CAVITY")
 /* TODO(@pragma37): GPU_SAMPLER_EXTEND_MODE_REPEAT is set in CavityEffect,
  * it doesn't work here? */
 SAMPLER(7, FLOAT_2D, jitter_tx)
-UNIFORM_BUF(5, vec4, cavity_samples[512])
+UNIFORM_BUF(5, float4, cavity_samples[512])
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_resolve_shadow)

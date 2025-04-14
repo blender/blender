@@ -60,7 +60,7 @@ int sample_count_get()
   return 196;
 }
 
-float sample_weight(vec3 out_direction, vec3 in_direction, float linear_roughness)
+float sample_weight(float3 out_direction, float3 in_direction, float linear_roughness)
 {
   out_direction = normalize(out_direction);
   in_direction = normalize(in_direction);
@@ -71,8 +71,8 @@ float sample_weight(vec3 out_direction, vec3 in_direction, float linear_roughnes
    * From "SG Series Part 4: Specular Lighting From an SG Light Source" by MJP
    * https://therealmjp.github.io/posts/sg-series-part-4-specular-lighting-from-an-sg-light-source/
    */
-  vec3 N = out_direction;
-  vec3 H = normalize(out_direction + in_direction);
+  float3 N = out_direction;
+  float3 H = normalize(out_direction + in_direction);
   float NH = saturate(dot(N, H));
   /* GGX. */
   // return exp(-square(acos(NH) / m));
@@ -80,7 +80,7 @@ float sample_weight(vec3 out_direction, vec3 in_direction, float linear_roughnes
   return exp(2.0f * (NH - 1.0f) / square(m));
 }
 
-mat3x3 tangent_basis(vec3 N)
+float3x3 tangent_basis(float3 N)
 {
   /* TODO(fclem): This create a discontinuity at Z=0. */
   return from_up_axis(N);
@@ -92,10 +92,10 @@ void main()
   SphereProbePixelArea out_texel_area = reinterpret_as_write_coord(write_coord_packed);
 
   /* Texel in probe. */
-  ivec2 out_local_texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 out_local_texel = int2(gl_GlobalInvocationID.xy);
 
   /* Exit when pixel being written doesn't fit in the area reserved for the probe. */
-  if (any(greaterThanEqual(out_local_texel, ivec2(out_texel_area.extent)))) {
+  if (any(greaterThanEqual(out_local_texel, int2(out_texel_area.extent)))) {
     return;
   }
 
@@ -110,39 +110,39 @@ void main()
   float mip_roughness_clamped = max(mip_roughness, BSDF_ROUGHNESS_THRESHOLD);
   float cone_cos = cone_cosine_from_roughness(mip_roughness_clamped);
 
-  vec3 out_direction = sphere_probe_texel_to_direction(
-      vec2(out_local_texel), out_texel_area, sample_coord);
+  float3 out_direction = sphere_probe_texel_to_direction(
+      float2(out_local_texel), out_texel_area, sample_coord);
   out_direction = normalize(out_direction);
 
-  mat3x3 basis = tangent_basis(out_direction);
+  float3x3 basis = tangent_basis(out_direction);
 
-  ivec2 out_texel = out_texel_area.offset + out_local_texel;
+  int2 out_texel = out_texel_area.offset + out_local_texel;
 
   float weight_accum = 0.0f;
-  vec4 radiance_accum = vec4(0.0f);
+  float4 radiance_accum = float4(0.0f);
 
   int sample_count = sample_count_get();
   for (int i = 0; i < sample_count; i++) {
-    vec2 rand = hammersley_2d(i, sample_count);
-    vec3 in_direction = basis * sample_uniform_cone(rand, cone_cos);
+    float2 rand = hammersley_2d(i, sample_count);
+    float3 in_direction = basis * sample_uniform_cone(rand, cone_cos);
 
 #ifndef ALWAYS_SAMPLE_CUBEMAP
-    vec2 in_uv = sphere_probe_direction_to_uv(in_direction, float(read_lod), sample_coord);
-    vec4 radiance = texture(in_atlas_mip_tx, vec3(in_uv, sample_coord.layer));
+    float2 in_uv = sphere_probe_direction_to_uv(in_direction, float(read_lod), sample_coord);
+    float4 radiance = texture(in_atlas_mip_tx, float3(in_uv, sample_coord.layer));
 #else /* For reference and debugging. */
-    vec4 radiance = texture(cubemap_tx, in_direction);
+    float4 radiance = texture(cubemap_tx, in_direction);
 #endif
 
     float weight = sample_weight(out_direction, in_direction, mip_roughness_clamped);
     radiance_accum += radiance * weight;
     weight_accum += weight;
   }
-  vec4 out_radiance = radiance_accum * safe_rcp(weight_accum);
+  float4 out_radiance = radiance_accum * safe_rcp(weight_accum);
 
 #ifdef USE_PIXEL_CHECKERBOARD
-  ivec2 a = out_texel % 2;
-  out_radiance = vec4(a.x == a.y);
+  int2 a = out_texel % 2;
+  out_radiance = float4(a.x == a.y);
 #endif
 
-  imageStore(out_atlas_mip_img, ivec3(out_texel, out_texel_area.layer), out_radiance);
+  imageStore(out_atlas_mip_img, int3(out_texel, out_texel_area.layer), out_radiance);
 }

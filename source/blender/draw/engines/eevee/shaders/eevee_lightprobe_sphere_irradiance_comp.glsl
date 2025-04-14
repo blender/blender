@@ -14,15 +14,15 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_irradiance)
 #include "eevee_sampling_lib.glsl"
 #include "eevee_spherical_harmonics_lib.glsl"
 
-shared vec4 local_sh_coefs[gl_WorkGroupSize.x][4];
+shared float4 local_sh_coefs[gl_WorkGroupSize.x][4];
 
 void main()
 {
   SphericalHarmonicL1 sh;
-  sh.L0.M0 = vec4(0.0f);
-  sh.L1.Mn1 = vec4(0.0f);
-  sh.L1.M0 = vec4(0.0f);
-  sh.L1.Mp1 = vec4(0.0f);
+  sh.L0.M0 = float4(0.0f);
+  sh.L1.Mn1 = float4(0.0f);
+  sh.L1.M0 = float4(0.0f);
+  sh.L1.Mp1 = float4(0.0f);
 
   /* First sum onto the local memory. */
   uint valid_data_len = probe_remap_dispatch_size.x * probe_remap_dispatch_size.y;

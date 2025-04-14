@@ -23,16 +23,16 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_trace_screen)
 void main()
 {
   const uint tile_size = RAYTRACE_GROUP_SIZE;
-  uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
-  ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
+  uint2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
+  int2 texel = int2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
   /* Check whether texel is out of bounds for all cases, so we can utilize fast
    * texture functions and early exit if not. */
-  if (any(greaterThanEqual(texel, imageSize(ray_data_img).xy)) || any(lessThan(texel, ivec2(0)))) {
+  if (any(greaterThanEqual(texel, imageSize(ray_data_img).xy)) || any(lessThan(texel, int2(0)))) {
     return;
   }
 
-  vec4 ray_data_im = imageLoadFast(ray_data_img, texel);
+  float4 ray_data_im = imageLoadFast(ray_data_img, texel);
   float ray_pdf_inv = ray_data_im.w;
 
   if (ray_pdf_inv < 0.0f) {
@@ -42,15 +42,15 @@ void main()
 
   if (ray_pdf_inv == 0.0f) {
     /* Invalid ray or pixels without ray. Do not trace. */
-    imageStoreFast(ray_time_img, texel, vec4(0.0f));
-    imageStoreFast(ray_radiance_img, texel, vec4(0.0f));
+    imageStoreFast(ray_time_img, texel, float4(0.0f));
+    imageStoreFast(ray_radiance_img, texel, float4(0.0f));
     return;
   }
 
-  ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
-                        uniform_buf.raytrace.resolution_bias;
+  int2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
+                       uniform_buf.raytrace.resolution_bias;
 
-  uint gbuf_header = texelFetch(gbuf_header_tx, ivec3(texel_fullres, 0), 0).r;
+  uint gbuf_header = texelFetch(gbuf_header_tx, int3(texel_fullres, 0), 0).r;
   ClosureType closure_type = gbuffer_closure_type_get_by_bin(gbuf_header, closure_index);
 
   bool is_reflection = true;
@@ -61,10 +61,10 @@ void main()
   }
 
   float depth = texelFetch(depth_tx, texel_fullres, 0).r;
-  vec2 uv = (vec2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
+  float2 uv = (float2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
 
-  vec3 P = drw_point_screen_to_world(vec3(uv, depth));
-  vec3 V = drw_world_incident_vector(P);
+  float3 P = drw_point_screen_to_world(float3(uv, depth));
+  float3 V = drw_world_incident_vector(P);
   Ray ray;
   ray.origin = P;
   ray.direction = ray_data_im.xyz;
@@ -79,9 +79,9 @@ void main()
     }
   }
 
-  vec3 radiance = vec3(0.0f);
+  float3 radiance = float3(0.0f);
   float noise_offset = sampling_rng_1D_get(SAMPLING_RAYTRACE_W);
-  float rand_trace = interlieved_gradient_noise(vec2(texel), 5.0f, noise_offset);
+  float rand_trace = interlieved_gradient_noise(float2(texel), 5.0f, noise_offset);
 
   ClosureUndetermined cl = gbuffer_read_bin(
       gbuf_header, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
@@ -111,10 +111,10 @@ void main()
                           ray_view);
 
     if (hit.valid) {
-      vec3 hit_P = transform_point(drw_view().viewinv, hit.v_hit_P);
+      float3 hit_P = transform_point(drw_view().viewinv, hit.v_hit_P);
       /* TODO(@fclem): Split matrix multiply for precision. */
-      vec3 history_ndc_hit_P = project_point(uniform_buf.raytrace.radiance_persmat, hit_P);
-      vec3 history_ss_hit_P = history_ndc_hit_P * 0.5f + 0.5f;
+      float3 history_ndc_hit_P = project_point(uniform_buf.raytrace.radiance_persmat, hit_P);
+      float3 history_ss_hit_P = history_ndc_hit_P * 0.5f + 0.5f;
       /* Fetch radiance at hit-point. */
       radiance = textureLod(radiance_front_tx, history_ss_hit_P.xy, 0.0f).rgb;
     }
@@ -138,7 +138,7 @@ void main()
     /* Using ray direction as geometric normal to bias the sampling position.
      * This is faster than loading the gbuffer again and averages between reflected and normal
      * direction over many rays. */
-    vec3 Ng = ray.direction;
+    float3 Ng = ray.direction;
     /* Fallback to nearest light-probe. */
     LightProbeSample samp = lightprobe_load(ray.origin, Ng, V);
     /* Clamp SH to have parity with forward evaluation. */
@@ -152,6 +152,6 @@ void main()
 
   radiance = colorspace_brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
 
-  imageStoreFast(ray_time_img, texel, vec4(hit.time));
-  imageStoreFast(ray_radiance_img, texel, vec4(radiance, 0.0f));
+  imageStoreFast(ray_time_img, texel, float4(hit.time));
+  imageStoreFast(ray_radiance_img, texel, float4(radiance, 0.0f));
 }

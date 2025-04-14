@@ -53,7 +53,7 @@ struct WorldData {
 };
 
 struct ExtrudedFrustum {
-  /** \note vec3 array padded to vec4. */
+  /** \note float3 array padded to float4. */
   float4 corners[16];
   float4 planes[12];
   int corners_count;

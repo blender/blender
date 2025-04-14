@@ -6,16 +6,16 @@
 
 #include "gpu_glsl_cpp_stubs.hh"
 
-vec3 calc_barycentric_distances(vec3 pos0, vec3 pos1, vec3 pos2)
+float3 calc_barycentric_distances(float3 pos0, float3 pos1, float3 pos2)
 {
-  vec3 edge21 = pos2 - pos1;
-  vec3 edge10 = pos1 - pos0;
-  vec3 edge02 = pos0 - pos2;
-  vec3 d21 = normalize(edge21);
-  vec3 d10 = normalize(edge10);
-  vec3 d02 = normalize(edge02);
+  float3 edge21 = pos2 - pos1;
+  float3 edge10 = pos1 - pos0;
+  float3 edge02 = pos0 - pos2;
+  float3 d21 = normalize(edge21);
+  float3 d10 = normalize(edge10);
+  float3 d02 = normalize(edge02);
 
-  vec3 dists;
+  float3 dists;
   float d = dot(d21, edge02);
   dists.x = sqrt(dot(edge02, edge02) - d * d);
   d = dot(d02, edge10);
@@ -25,9 +25,9 @@ vec3 calc_barycentric_distances(vec3 pos0, vec3 pos1, vec3 pos2)
   return dists;
 }
 
-vec2 calc_barycentric_co(int vertid)
+float2 calc_barycentric_co(int vertid)
 {
-  vec2 bary;
+  float2 bary;
   bary.x = float((vertid % 3) == 0);
   bary.y = float((vertid % 3) == 1);
   return bary;
@@ -42,10 +42,13 @@ vec2 calc_barycentric_co(int vertid)
 #  define barycentric_get() hair_get_barycentric()
 #  define barycentric_resolve(bary) hair_resolve_barycentric(bary)
 
-vec3 orco_get(vec3 local_pos, mat4 modelmatinv, vec4 orco_madd[2], const samplerBuffer orco_samp)
+float3 orco_get(float3 local_pos,
+                float4x4 modelmatinv,
+                float4 orco_madd[2],
+                const samplerBuffer orco_samp)
 {
   /* TODO: fix ORCO with modifiers. */
-  vec3 orco = (modelmatinv * vec4(local_pos, 1.0f)).xyz;
+  float3 orco = (modelmatinv * float4(local_pos, 1.0f)).xyz;
   return orco_madd[0].xyz + orco * orco_madd[1].xyz;
 }
 
@@ -54,10 +57,10 @@ float hair_len_get(int id, const samplerBuffer len)
   return texelFetch(len, id).x;
 }
 
-vec4 tangent_get(const samplerBuffer attr, mat3 normalmat)
+float4 tangent_get(const samplerBuffer attr, float3x3 normalmat)
 {
   /* Unsupported */
-  return vec4(0.0f);
+  return float4(0.0f);
 }
 
 #else /* MESH_SHADER */
@@ -66,10 +69,10 @@ vec4 tangent_get(const samplerBuffer attr, mat3 normalmat)
 #  define GET_ATTR(type, attr) attr
 
 /* Calculated in geom shader later with calc_barycentric_co. */
-#  define barycentric_get() vec2(0)
+#  define barycentric_get() float2(0)
 #  define barycentric_resolve(bary) bary
 
-vec3 orco_get(vec3 local_pos, mat4 modelmatinv, vec4 orco_madd[2], vec4 orco)
+float3 orco_get(float3 local_pos, float4x4 modelmatinv, float4 orco_madd[2], float4 orco)
 {
   /* If the object does not have any deformation, the orco layer calculation is done on the fly
    * using the orco_madd factors.
@@ -88,9 +91,9 @@ float hair_len_get(int id, const float len)
   return len;
 }
 
-vec4 tangent_get(vec4 attr, mat3 normalmat)
+float4 tangent_get(float4 attr, float3x3 normalmat)
 {
-  vec4 tangent;
+  float4 tangent;
   tangent.xyz = normalmat * attr.xyz;
   tangent.w = attr.w;
   float len_sqr = dot(tangent.xyz, tangent.xyz);
@@ -108,17 +111,17 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 #define float_from_vec3(v) ((v.r + v.g + v.b) * (1.0f / 3.0f))
 #define float_from_vec2(v) v.r
 
-#define vec2_from_vec4(v) vec2(((v.r + v.g + v.b) * (1.0f / 3.0f)), v.a)
-#define vec2_from_vec3(v) vec2(((v.r + v.g + v.b) * (1.0f / 3.0f)), 1.0f)
-#define vec2_from_float(v) vec2(v)
+#define vec2_from_vec4(v) float2(((v.r + v.g + v.b) * (1.0f / 3.0f)), v.a)
+#define vec2_from_vec3(v) float2(((v.r + v.g + v.b) * (1.0f / 3.0f)), 1.0f)
+#define vec2_from_float(v) float2(v)
 
 #define vec3_from_vec4(v) v.rgb
 #define vec3_from_vec2(v) v.rrr
-#define vec3_from_float(v) vec3(v)
+#define vec3_from_float(v) float3(v)
 
-#define vec4_from_vec3(v) vec4(v, 1.0f)
+#define vec4_from_vec3(v) float4(v, 1.0f)
 #define vec4_from_vec2(v) v.rrrg
-#define vec4_from_float(v) vec4(vec3(v), 1.0f)
+#define vec4_from_float(v) float4(float3(v), 1.0f)
 
 /* TODO: Move to shader_shared. */
 #define RAY_TYPE_CAMERA 0
@@ -321,18 +324,18 @@ GlobalData g_data;
 #ifndef GPU_FRAGMENT_SHADER
 /* Stubs. */
 
-#  define dF_impl(a) (vec3(0.0f))
-#  define dF_branch(a, b, c) (c = vec2(0.0f))
-#  define dF_branch_incomplete(a, b, c) (c = vec2(0.0f))
+#  define dF_impl(a) (float3(0.0f))
+#  define dF_branch(a, b, c) (c = float2(0.0f))
+#  define dF_branch_incomplete(a, b, c) (c = float2(0.0f))
 
 #elif defined(GPU_FAST_DERIVATIVE) /* TODO(@fclem): User Option? */
 /* Fast derivatives */
-vec3 dF_impl(vec3 v)
+float3 dF_impl(float3 v)
 {
-  return vec3(0.0f);
+  return float3(0.0f);
 }
 
-void dF_branch(float fn, out vec2 result)
+void dF_branch(float fn, out float2 result)
 {
   /* NOTE: this function is currently unused, once it is used we need to check if
    * `g_derivative_filter_width` needs to be applied. */
@@ -347,7 +350,7 @@ float g_derivative_filter_width = 0.0f;
 /* Precise derivatives */
 int g_derivative_flag = 0;
 
-vec3 dF_impl(vec3 v)
+float3 dF_impl(float3 v)
 {
   if (g_derivative_flag > 0) {
     return dFdx(v) * g_derivative_filter_width;
@@ -355,7 +358,7 @@ vec3 dF_impl(vec3 v)
   else if (g_derivative_flag < 0) {
     return dFdy(v) * g_derivative_filter_width;
   }
-  return vec3(0.0f);
+  return float3(0.0f);
 }
 
 #  define dF_branch(fn, filter_width, result) \
@@ -366,7 +369,7 @@ vec3 dF_impl(vec3 v)
       g_derivative_flag = -1; \
       result.y = (fn); \
       g_derivative_flag = 0; \
-      result -= vec2((fn)); \
+      result -= float2((fn)); \
     }
 
 /* Used when the non-offset value is already computed elsewhere */

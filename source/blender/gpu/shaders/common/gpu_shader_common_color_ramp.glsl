@@ -7,14 +7,14 @@
 #include "gpu_glsl_cpp_stubs.hh"
 
 void valtorgb_opti_constant(
-    float fac, float edge, vec4 color1, vec4 color2, out vec4 outcol, out float outalpha)
+    float fac, float edge, float4 color1, float4 color2, out float4 outcol, out float outalpha)
 {
   outcol = (fac > edge) ? color2 : color1;
   outalpha = outcol.a;
 }
 
 void valtorgb_opti_linear(
-    float fac, vec2 mulbias, vec4 color1, vec4 color2, out vec4 outcol, out float outalpha)
+    float fac, float2 mulbias, float4 color1, float4 color2, out float4 outcol, out float outalpha)
 {
   fac = clamp(fac * mulbias.x + mulbias.y, 0.0f, 1.0f);
   outcol = mix(color1, color2, fac);
@@ -22,7 +22,7 @@ void valtorgb_opti_linear(
 }
 
 void valtorgb_opti_ease(
-    float fac, vec2 mulbias, vec4 color1, vec4 color2, out vec4 outcol, out float outalpha)
+    float fac, float2 mulbias, float4 color1, float4 color2, out float4 outcol, out float outalpha)
 {
   fac = clamp(fac * mulbias.x + mulbias.y, 0.0f, 1.0f);
   fac = fac * fac * (3.0f - 2.0f * fac);
@@ -43,16 +43,17 @@ float compute_color_map_coordinate(float coordinate)
   return coordinate * sampler_scale + sampler_offset;
 }
 
-void valtorgb(float fac, sampler1DArray colormap, float layer, out vec4 outcol, out float outalpha)
+void valtorgb(
+    float fac, sampler1DArray colormap, float layer, out float4 outcol, out float outalpha)
 {
-  outcol = texture(colormap, vec2(compute_color_map_coordinate(fac), layer));
+  outcol = texture(colormap, float2(compute_color_map_coordinate(fac), layer));
   outalpha = outcol.a;
 }
 
 void valtorgb_nearest(
-    float fac, sampler1DArray colormap, float layer, out vec4 outcol, out float outalpha)
+    float fac, sampler1DArray colormap, float layer, out float4 outcol, out float outalpha)
 {
   fac = clamp(fac, 0.0f, 1.0f);
-  outcol = texelFetch(colormap, ivec2(fac * (textureSize(colormap, 0).x - 1), layer), 0);
+  outcol = texelFetch(colormap, int2(fac * (textureSize(colormap, 0).x - 1), layer), 0);
   outalpha = outcol.a;
 }

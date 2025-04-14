@@ -5,9 +5,9 @@
 #include "gpu_shader_common_color_utils.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
-void node_composite_color_correction(vec4 color,
+void node_composite_color_correction(float4 color,
                                      float mask,
-                                     const vec3 enabled_channels,
+                                     const float3 enabled_channels,
                                      float start_midtones,
                                      float end_midtones,
                                      float master_saturation,
@@ -30,8 +30,8 @@ void node_composite_color_correction(vec4 color,
                                      float highlights_gamma,
                                      float highlights_gain,
                                      float highlights_lift,
-                                     const vec3 luminance_coefficients,
-                                     out vec4 result)
+                                     const float3 luminance_coefficients,
+                                     out float4 result)
 {
   const float margin = 0.10f;
   const float margin_divider = 0.5f / margin;
@@ -81,11 +81,11 @@ void node_composite_color_correction(vec4 color,
   float inverse_gamma = 1.0f / gamma;
   float luma = get_luminance(color.rgb, luminance_coefficients);
 
-  vec3 corrected = luma + saturation * (color.rgb - luma);
+  float3 corrected = luma + saturation * (color.rgb - luma);
   corrected = 0.5f + (corrected - 0.5f) * contrast;
   corrected = fallback_pow(corrected * gain + lift, inverse_gamma, corrected);
   corrected = mix(color.rgb, corrected, min(mask, 1.0f));
 
-  result.rgb = mix(corrected, color.rgb, equal(enabled_channels, vec3(0.0f)));
+  result.rgb = mix(corrected, color.rgb, equal(enabled_channels, float3(0.0f)));
   result.a = color.a;
 }

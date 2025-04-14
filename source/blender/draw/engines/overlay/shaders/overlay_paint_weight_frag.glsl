@@ -43,13 +43,13 @@ float contours(float value, float steps, float width_px, float max_rel_width, fl
   return clamp(base_alpha, 0.0f, 1.0f) * clamp(fade_alpha, 0.0f, 1.0f);
 }
 
-vec4 contour_grid(float weight, float weight_gradient)
+float4 contour_grid(float weight, float weight_gradient)
 {
   /* Fade away when the gradient is too low to avoid big fills and noise. */
   float flt_eps = max(1e-8f, 1e-6f * weight);
 
   if (weight_gradient <= flt_eps) {
-    return vec4(0.0f);
+    return float4(0.0f);
   }
 
   /* Three levels of grid lines */
@@ -58,24 +58,24 @@ vec4 contour_grid(float weight, float weight_gradient)
   float grid1000 = contours(weight, 1000.0f, 2.5f, 0.4f, weight_gradient) * 0.25f;
 
   /* White lines for 0.1 and 0.01, and black for 0.001. */
-  vec4 grid = vec4(1.0f) * max(grid10, grid100);
+  float4 grid = float4(1.0f) * max(grid10, grid100);
 
   grid.a = max(grid.a, grid1000);
 
   return grid * clamp((weight_gradient - flt_eps) / flt_eps, 0.0f, 1.0f);
 }
 
-vec4 apply_color_fac(vec4 color_in)
+float4 apply_color_fac(float4 color_in)
 {
-  vec4 color = color_in;
-  color.rgb = max(vec3(0.005f), color_in.rgb) * color_fac;
+  float4 color = color_in;
+  color.rgb = max(float3(0.005f), color_in.rgb) * color_fac;
   return color;
 }
 
 void main()
 {
   float alert = weight_interp.y;
-  vec4 color;
+  float4 color;
 
   /* Missing vertex group alert color. Uniform in practice. */
   if (alert > 1.1f) {
@@ -84,24 +84,24 @@ void main()
   /* Weights are available */
   else {
     float weight = weight_interp.x;
-    vec4 weight_color = texture(colorramp, weight);
+    float4 weight_color = texture(colorramp, weight);
     weight_color = apply_color_fac(weight_color);
 
     /* Contour display */
     if (drawContours) {
       /* This must be executed uniformly for all fragments */
-      float weight_gradient = length(vec2(dFdx(weight), dFdy(weight)));
+      float weight_gradient = length(float2(dFdx(weight), dFdy(weight)));
 
-      vec4 grid = contour_grid(weight, weight_gradient);
+      float4 grid = contour_grid(weight, weight_gradient);
 
       weight_color = grid + weight_color * (1 - grid.a);
     }
 
     /* Zero weight alert color. Nonlinear blend to reduce impact. */
-    vec4 color_unreferenced = apply_color_fac(colorVertexUnreferenced);
+    float4 color_unreferenced = apply_color_fac(colorVertexUnreferenced);
     color = mix(weight_color, color_unreferenced, alert * alert);
   }
 
-  fragColor = vec4(color.rgb, opacity);
-  lineOutput = vec4(0.0f);
+  fragColor = float4(color.rgb, opacity);
+  lineOutput = float4(0.0f);
 }

@@ -16,16 +16,16 @@ VERTEX_SHADER_CREATE_INFO(overlay_particle_shape)
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "select_lib.glsl"
 
-vec3 rotate(vec3 vec, vec4 quat)
+float3 rotate(float3 vec, float4 quat)
 {
   /* The quaternion representation here stores the w component in the first index. */
   return vec + 2.0f * cross(quat.yzw, cross(quat.yzw, vec) + quat.x * vec);
 }
 
 /* Could be move to a shared library. */
-vec2 circle_position(float angle)
+float2 circle_position(float angle)
 {
-  return vec2(cos(angle), sin(angle));
+  return float2(cos(angle), sin(angle));
 }
 
 void main()
@@ -57,13 +57,13 @@ void main()
   axis_vert ^= 1u;
 #endif
 
-  vec3 shape_pos = vec3(0.0f);
+  float3 shape_pos = float3(0.0f);
   switch (shape_type) {
     case PART_SHAPE_AXIS:
-      shape_pos = vec3(axis_id == 0, axis_id == 1, axis_id == 2) * 2.0f * float(axis_vert != 0u);
+      shape_pos = float3(axis_id == 0, axis_id == 1, axis_id == 2) * 2.0f * float(axis_vert != 0u);
       break;
     case PART_SHAPE_CROSS:
-      shape_pos = vec3(axis_id == 0, axis_id == 1, axis_id == 2) *
+      shape_pos = float3(axis_id == 0, axis_id == 1, axis_id == 2) *
                   (axis_vert == 0u ? 1.0f : -1.0f);
       break;
     case PART_SHAPE_CIRCLE:
@@ -72,7 +72,7 @@ void main()
       break;
   }
 
-  finalColor = vec4(1.0f);
+  finalColor = float4(1.0f);
   if (shape_type == PART_SHAPE_AXIS) {
     /* Works because of flat interpolation. */
     finalColor.rgb = shape_pos;
@@ -84,7 +84,7 @@ void main()
   /* Draw-size packed in alpha. */
   shape_pos *= ucolor.a;
 
-  vec3 world_pos = part.position;
+  float3 world_pos = part.position;
   if (shape_type == PART_SHAPE_CIRCLE) {
     /* World sized, camera facing geometry. */
     world_pos += transform_direction(drw_view().viewinv, shape_pos);

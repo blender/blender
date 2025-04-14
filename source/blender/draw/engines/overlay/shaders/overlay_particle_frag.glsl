@@ -11,7 +11,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_particle_dot_base)
 
 void main()
 {
-  vec2 uv = gl_PointCoord - vec2(0.5f);
+  float2 uv = gl_PointCoord - float2(0.5f);
   float dist = length(uv);
 
   if (dist > 0.5f) {
@@ -20,13 +20,13 @@ void main()
   }
   /* Nice sphere falloff. */
   float intensity = sqrt(1.0f - dist * 2.0f) * 0.5f + 0.5f;
-  fragColor = finalColor * vec4(intensity, intensity, intensity, 1.0f);
+  fragColor = finalColor * float4(intensity, intensity, intensity, 1.0f);
 
   /* The default value of GL_POINT_SPRITE_COORD_ORIGIN is GL_UPPER_LEFT. Need to reverse the Y. */
   uv.y = -uv.y;
   /* Subtract distance to outer edge of the circle. (0.75 is manually tweaked to look better) */
-  vec2 edge_pos = gl_FragCoord.xy - uv * (0.75f / (dist + 1e-9f));
-  vec2 edge_start = edge_pos + vec2(-uv.y, uv.x);
+  float2 edge_pos = gl_FragCoord.xy - uv * (0.75f / (dist + 1e-9f));
+  float2 edge_start = edge_pos + float2(-uv.y, uv.x);
 
   lineOutput = pack_line_data(gl_FragCoord.xy, edge_start, edge_pos);
 

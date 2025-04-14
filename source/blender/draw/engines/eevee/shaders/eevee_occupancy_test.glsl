@@ -20,41 +20,41 @@ void main()
 
     /* occupancy_from_depth */
     occup = occupancy_from_depth(0.1f, 1);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0xFFFFFFFFu, ~0u, ~0u, ~0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0xFFFFFFFFu, ~0u, ~0u, ~0u));
 
     occup = occupancy_from_depth(0.6f, 1);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0xFFFFFFFEu, ~0u, ~0u, ~0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0xFFFFFFFEu, ~0u, ~0u, ~0u));
 
     occup = occupancy_from_depth(0.5f, 32);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0xFFFF0000u, ~0u, ~0u, ~0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0xFFFF0000u, ~0u, ~0u, ~0u));
 
     occup = occupancy_from_depth(0.5f, 64);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0u, ~0u, ~0u, ~0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0u, ~0u, ~0u, ~0u));
 
     occup = occupancy_from_depth(0.5f, 128);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0u, 0u, ~0u, ~0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0u, 0u, ~0u, ~0u));
 
     occup = occupancy_from_depth(33.0f / 64.0f, 64);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0u, 0xFFFFFFFEu, ~0u, ~0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0u, 0xFFFFFFFEu, ~0u, ~0u));
 
     /* occupancy_bit_from_depth */
     occup = occupancy_bit_from_depth(0.1f, 1);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000001u, 0u, 0u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0x00000001u, 0u, 0u, 0u));
 
     occup = occupancy_bit_from_depth(0.6f, 1);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000002u, 0u, 0u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0x00000002u, 0u, 0u, 0u));
 
     occup = occupancy_bit_from_depth(0.5f, 32);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00010000u, 0u, 0u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0x00010000u, 0u, 0u, 0u));
 
     occup = occupancy_bit_from_depth(0.5f, 64);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000000u, 0x00000001u, 0u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0x00000000u, 0x00000001u, 0u, 0u));
 
     occup = occupancy_bit_from_depth(0.5f, 128);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000000u, 0x00000000u, 0x00000001u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0x00000000u, 0x00000000u, 0x00000001u, 0u));
 
     occup = occupancy_bit_from_depth(33.0f / 64.0f, 64);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0x00000000u, 0x00000002u, 0u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0x00000000u, 0x00000002u, 0u, 0u));
 
     /* Test composing occupancy an the expected result. */
     /* Start empty. */
@@ -91,20 +91,20 @@ void main()
     /* Second exit. Should not change anything. */
     exit = occupancy_or(exit, occupancy_bit_from_depth(40.0f / 44.0f, 44));
     /* 0000 0001 0000   0000 0000 0000 0000  0000 0000 0000 0000 */
-    EXPECT_EQ(occupancy_to_uint4(entry), uvec4(0x00000000u, 0x010u, 0u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(entry), uint4(0x00000000u, 0x010u, 0u, 0u));
     /* 0001 0000 0010   0000 0000 0000 0000  0000 0000 0000 0000 */
-    EXPECT_EQ(occupancy_to_uint4(exit), uvec4(0x00000000u, 0x102u, 0u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(exit), uint4(0x00000000u, 0x102u, 0u, 0u));
 
     EXPECT_EQ(occupancy_find_lsb(entry), 36);
     EXPECT_EQ(occupancy_find_lsb(exit), 33);
 
     occup = occupancy_resolve(entry, exit, 44);
     /* 0000 1111 0001   1111 1111 1111 1111  1111 1111 1111 1111 */
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0xFFFFFFFFu, 0x0F1u, 0u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0xFFFFFFFFu, 0x0F1u, 0u, 0u));
 
     occup = occupancy_new();
     occup = occupancy_set_bits_high(occup, 16, 32);
     occup = occupancy_set_bits_high(occup, 80, 16);
-    EXPECT_EQ(occupancy_to_uint4(occup), uvec4(0xFFFF0000u, 0x0000FFFFu, 0xFFFF0000u, 0u));
+    EXPECT_EQ(occupancy_to_uint4(occup), uint4(0xFFFF0000u, 0x0000FFFFu, 0xFFFF0000u, 0u));
   }
 }

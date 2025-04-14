@@ -9,20 +9,20 @@ FRAGMENT_SHADER_CREATE_INFO(gpencil_geometry)
 #include "common_colormanagement_lib.glsl"
 #include "draw_grease_pencil_lib.glsl"
 
-vec3 gpencil_lighting()
+float3 gpencil_lighting()
 {
-  vec3 light_accum = vec3(0.0f);
+  float3 light_accum = float3(0.0f);
   for (int i = 0; i < GPENCIL_LIGHT_BUFFER_LEN; i++) {
-    if (vec3(gp_lights[i]._color).x == -1.0f) {
+    if (float3(gp_lights[i]._color).x == -1.0f) {
       break;
     }
-    vec3 L = gp_lights[i]._position - gp_interp.pos;
+    float3 L = gp_lights[i]._position - gp_interp.pos;
     float vis = 1.0f;
     gpLightType type = gpLightType(floatBitsToUint(gp_lights[i]._type));
     /* Spot Attenuation. */
     if (type == GP_LIGHT_TYPE_SPOT) {
-      mat3 rot_scale = mat3(gp_lights[i]._right, gp_lights[i]._up, gp_lights[i]._forward);
-      vec3 local_L = rot_scale * L;
+      float3x3 rot_scale = float3x3(gp_lights[i]._right, gp_lights[i]._up, gp_lights[i]._forward);
+      float3 local_L = rot_scale * L;
       local_L /= abs(local_L.z);
       float ellipse = inversesqrt(length_squared(local_L));
       vis *= smoothstep(
@@ -52,14 +52,14 @@ vec3 gpencil_lighting()
 
 void main()
 {
-  vec4 col;
+  float4 col;
   if (flag_test(gp_interp_flat.mat_flag, GP_STROKE_TEXTURE_USE)) {
     bool premul = flag_test(gp_interp_flat.mat_flag, GP_STROKE_TEXTURE_PREMUL);
     col = texture_read_as_linearrgb(gpStrokeTexture, premul, gp_interp.uv);
   }
   else if (flag_test(gp_interp_flat.mat_flag, GP_FILL_TEXTURE_USE)) {
     bool use_clip = flag_test(gp_interp_flat.mat_flag, GP_FILL_TEXTURE_CLIP);
-    vec2 uvs = (use_clip) ? clamp(gp_interp.uv, 0.0f, 1.0f) : gp_interp.uv;
+    float2 uvs = (use_clip) ? clamp(gp_interp.uv, 0.0f, 1.0f) : gp_interp.uv;
     bool premul = flag_test(gp_interp_flat.mat_flag, GP_FILL_TEXTURE_PREMUL);
     col = texture_read_as_linearrgb(gpFillTexture, premul, uvs);
   }
@@ -70,7 +70,7 @@ void main()
     col = mix(gp_materials[matid].fill_color, gp_materials[matid].fill_mix_color, fac);
   }
   else /* SOLID */ {
-    col = vec4(1.0f);
+    col = float4(1.0f);
   }
   col.rgb *= col.a;
 
@@ -99,7 +99,7 @@ void main()
      * Note that we are limited to mono-chromatic alpha blending here
      * because of the blend equation and the limit of 1 color target
      * when using custom color blending. */
-    revealColor = vec4(0.0f, 0.0f, 0.0f, fragColor.a);
+    revealColor = float4(0.0f, 0.0f, 0.0f, fragColor.a);
 
     if (fragColor.a < 0.001f) {
       discard;
@@ -107,9 +107,9 @@ void main()
     }
   }
 
-  vec2 fb_size = max(vec2(textureSize(gpSceneDepthTexture, 0).xy),
-                     vec2(textureSize(gpMaskTexture, 0).xy));
-  vec2 uvs = gl_FragCoord.xy / fb_size;
+  float2 fb_size = max(float2(textureSize(gpSceneDepthTexture, 0).xy),
+                       float2(textureSize(gpMaskTexture, 0).xy));
+  float2 uvs = gl_FragCoord.xy / fb_size;
   /* Manual depth test */
   float scene_depth = texture(gpSceneDepthTexture, uvs).r;
   if (gl_FragCoord.z > scene_depth) {

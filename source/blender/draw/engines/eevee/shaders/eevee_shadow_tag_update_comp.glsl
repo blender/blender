@@ -22,9 +22,9 @@ COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_update)
 #include "eevee_shadow_tilemap_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-vec3 safe_project(mat4 winmat, mat4 viewmat, inout int clipped, vec3 v)
+float3 safe_project(float4x4 winmat, float4x4 viewmat, inout int clipped, float3 v)
 {
-  vec4 tmp = winmat * (viewmat * vec4(v, 1.0f));
+  float4 tmp = winmat * (viewmat * float4(v, 1.0f));
   /* Detect case when point is behind the camera. */
   clipped += int(tmp.w < 0.0f);
   return tmp.xyz / tmp.w;
@@ -36,7 +36,7 @@ void main()
 
   IsectPyramid frustum;
   if (tilemap.projection_type == SHADOW_PROJECTION_CUBEFACE) {
-    Pyramid pyramid = shadow_tilemap_cubeface_bounds(tilemap, ivec2(0), ivec2(SHADOW_TILEMAP_RES));
+    Pyramid pyramid = shadow_tilemap_cubeface_bounds(tilemap, int2(0), int2(SHADOW_TILEMAP_RES));
     frustum = isect_pyramid_setup(pyramid);
   }
 
@@ -68,8 +68,8 @@ void main()
       /* Not all verts are behind the near clip plane. */
       if (intersect(frustum, box)) {
         /* We cannot correctly handle this case so we fallback by covering the whole view. */
-        aabb_ndc.max = vec3(1.0f);
-        aabb_ndc.min = vec3(-1.0f);
+        aabb_ndc.max = float3(1.0f);
+        aabb_ndc.min = float3(-1.0f);
       }
       else {
         /* Still out of the frustum. Ignore. */
@@ -82,7 +82,7 @@ void main()
   }
 
   AABB aabb_tag;
-  AABB aabb_map = shape_aabb(vec3(-0.99999f), vec3(0.99999f));
+  AABB aabb_map = shape_aabb(float3(-0.99999f), float3(0.99999f));
 
   /* Directional `winmat` have no correct near/far in the Z dimension at this point.
    * Do not clip in this dimension. */
@@ -97,13 +97,13 @@ void main()
 
   /* Raster the bounding rectangle of the Box projection. */
   const float tilemap_half_res = float(SHADOW_TILEMAP_RES / 2);
-  ivec2 box_min = ivec2(aabb_tag.min.xy * tilemap_half_res + tilemap_half_res);
-  ivec2 box_max = ivec2(aabb_tag.max.xy * tilemap_half_res + tilemap_half_res);
+  int2 box_min = int2(aabb_tag.min.xy * tilemap_half_res + tilemap_half_res);
+  int2 box_max = int2(aabb_tag.max.xy * tilemap_half_res + tilemap_half_res);
 
   for (int lod = 0; lod <= SHADOW_TILEMAP_LOD; lod++, box_min >>= 1, box_max >>= 1) {
     for (int y = box_min.y; y <= box_max.y; y++) {
       for (int x = box_min.x; x <= box_max.x; x++) {
-        int tile_index = shadow_tile_offset(uvec2(x, y), tilemap.tiles_index, lod);
+        int tile_index = shadow_tile_offset(uint2(x, y), tilemap.tiles_index, lod);
         atomicOr(tiles_buf[tile_index], uint(SHADOW_DO_UPDATE));
       }
     }

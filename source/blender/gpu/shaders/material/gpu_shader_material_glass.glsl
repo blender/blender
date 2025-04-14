@@ -2,23 +2,23 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_bsdf_glass(vec4 color,
+void node_bsdf_glass(float4 color,
                      float roughness,
                      float ior,
-                     vec3 N,
+                     float3 N,
                      float weight,
                      const float do_multiscatter,
                      out Closure result)
 {
-  color = max(color, vec4(0.0f));
+  color = max(color, float4(0.0f));
   roughness = saturate(roughness);
   ior = max(ior, 1e-5f);
   N = safe_normalize(N);
 
-  vec3 V = coordinate_incoming(g_data.P);
+  float3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);
 
-  vec2 bsdf = bsdf_lut(NV, roughness, ior, do_multiscatter != 0.0f);
+  float2 bsdf = bsdf_lut(NV, roughness, ior, do_multiscatter != 0.0f);
 
   ClosureReflection reflection_data;
   reflection_data.weight = bsdf.x * weight;

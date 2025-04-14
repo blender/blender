@@ -20,24 +20,24 @@ void main()
 
 #ifdef VOLUME_SLICE
   if (sliceAxis == 0) {
-    localPos = vec3(slicePosition * 2.0f - 1.0f, pos.xy);
+    localPos = float3(slicePosition * 2.0f - 1.0f, pos.xy);
   }
   else if (sliceAxis == 1) {
-    localPos = vec3(pos.x, slicePosition * 2.0f - 1.0f, pos.y);
+    localPos = float3(pos.x, slicePosition * 2.0f - 1.0f, pos.y);
   }
   else {
-    localPos = vec3(pos.xy, slicePosition * 2.0f - 1.0f);
+    localPos = float3(pos.xy, slicePosition * 2.0f - 1.0f);
   }
-  vec3 final_pos = localPos;
+  float3 final_pos = localPos;
 #else
-  vec3 final_pos = pos;
+  float3 final_pos = pos;
 #endif
 
 #ifdef VOLUME_SMOKE
   ObjectInfos info = drw_object_infos();
   final_pos = ((final_pos * 0.5f + 0.5f) - info.orco_add) / info.orco_mul;
 #else
-  final_pos = (volumeTextureToObject * vec4(final_pos * 0.5f + 0.5f, 1.0f)).xyz;
+  final_pos = (volumeTextureToObject * float4(final_pos * 0.5f + 0.5f, 1.0f)).xyz;
 #endif
   gl_Position = drw_point_world_to_homogenous(drw_point_object_to_world(final_pos));
 }

@@ -64,7 +64,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
  * \{ */
 
 struct DofGatherData {
-  vec4 color;
+  float4 color;
   float weight;
   float dist; /* TODO remove */
   /* For scatter occlusion. */
@@ -78,7 +78,7 @@ struct DofGatherData {
 #if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
   /* Explicit constructors -- To support GLSL syntax. */
   inline DofGatherData() = default;
-  inline DofGatherData(vec4 in_color,
+  inline DofGatherData(float4 in_color,
                        float in_weight,
                        float in_dist,
                        float in_coc,
@@ -97,7 +97,7 @@ struct DofGatherData {
 #endif
 };
 
-#define GATHER_DATA_INIT DofGatherData(vec4(0.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+#define GATHER_DATA_INIT DofGatherData(float4(0.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
 
 /* Intersection with the center of the kernel. */
 float dof_intersection_weight(float coc, float distance_from_center, float intersection_multiplier)
@@ -351,13 +351,13 @@ int dof_gather_total_sample_count_with_density_change(const int ring_count,
 
 void dof_gather_accumulate_resolve(int total_sample_count,
                                    DofGatherData accum_data,
-                                   out vec4 out_col,
+                                   out float4 out_col,
                                    out float out_weight,
-                                   out vec2 out_occlusion)
+                                   out float2 out_occlusion)
 {
   float weight_inv = safe_rcp(accum_data.weight);
   out_col = accum_data.color * weight_inv;
-  out_occlusion = vec2(abs(accum_data.coc), accum_data.coc_sqr) * weight_inv;
+  out_occlusion = float2(abs(accum_data.coc), accum_data.coc_sqr) * weight_inv;
 
   if (IS_FOREGROUND) {
     out_weight = 1.0f - accum_data.transparency;
@@ -384,7 +384,7 @@ void dof_gather_accumulate_resolve(int total_sample_count,
   }
 }
 
-float dof_load_gather_coc(sampler2D gather_input_coc_tx, vec2 uv, float lod)
+float dof_load_gather_coc(sampler2D gather_input_coc_tx, float2 uv, float lod)
 {
   float coc = textureLod(gather_input_coc_tx, uv, lod).r;
   /* We gather at half-resolution. CoC must be divided by 2 to be compared against radii. */
@@ -411,17 +411,17 @@ bool dof_do_density_change(float base_radius, float min_intersectable_radius)
 }
 
 void dof_gather_init(float base_radius,
-                     vec2 noise,
-                     out vec2 center_co,
+                     float2 noise,
+                     out float2 center_co,
                      out float lod,
                      out float intersection_multiplier)
 {
   /* Jitter center half a ring to reduce undersampling. */
-  vec2 jitter_ofs = 0.499f * sample_disk(noise);
+  float2 jitter_ofs = 0.499f * sample_disk(noise);
   if (DOF_BOKEH_TEXTURE) {
     jitter_ofs *= dof_buf.bokeh_anisotropic_scale;
   }
-  vec2 frag_coord = vec2(gl_GlobalInvocationID.xy) + 0.5f;
+  float2 frag_coord = float2(gl_GlobalInvocationID.xy) + 0.5f;
   center_co = frag_coord + jitter_ofs * base_radius * unit_sample_radius;
 
   /* TODO(fclem) Seems like the default lod selection is too big. Bias to avoid blocky moving out
@@ -444,15 +444,16 @@ void dof_gather_accumulator(sampler2D color_tx,
                             float min_intersectable_radius,
                             const bool do_fast_gather,
                             const bool do_density_change,
-                            out vec4 out_color,
+                            out float4 out_color,
                             out float out_weight,
-                            out vec2 out_occlusion)
+                            out float2 out_occlusion)
 {
-  vec2 frag_coord = vec2(gl_GlobalInvocationID.xy);
-  vec2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
-  vec2 noise = no_gather_random ? vec2(0.0f, 0.0f) :
-                                  vec2(interlieved_gradient_noise(frag_coord, 0, noise_offset.x),
-                                       interlieved_gradient_noise(frag_coord, 1, noise_offset.y));
+  float2 frag_coord = float2(gl_GlobalInvocationID.xy);
+  float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
+  float2 noise = no_gather_random ?
+                     float2(0.0f, 0.0f) :
+                     float2(interlieved_gradient_noise(frag_coord, 0, noise_offset.x),
+                            interlieved_gradient_noise(frag_coord, 1, noise_offset.y));
 
   if (!do_fast_gather) {
     /* Jitter the radius to reduce noticeable density changes. */
@@ -467,7 +468,7 @@ void dof_gather_accumulator(sampler2D color_tx,
   noise.x = fract(noise.x * 6.1803398875f);
 
   float lod, isect_mul;
-  vec2 center_co;
+  float2 center_co;
   dof_gather_init(base_radius, noise, center_co, lod, isect_mul);
 
   bool first_ring = true;
@@ -479,10 +480,10 @@ void dof_gather_accumulator(sampler2D color_tx,
     int sample_pair_count = gather_ring_density * ring;
 
     float step_rot = M_PI / float(sample_pair_count);
-    mat2 step_rot_mat = from_rotation(Angle(step_rot));
+    float2x2 step_rot_mat = from_rotation(Angle(step_rot));
 
     float angle_offset = noise.y * step_rot;
-    vec2 offset = vec2(cos(angle_offset), sin(angle_offset));
+    float2 offset = float2(cos(angle_offset), sin(angle_offset));
 
     float ring_radius = float(ring) * unit_sample_radius * base_radius;
 
@@ -495,15 +496,15 @@ void dof_gather_accumulator(sampler2D color_tx,
 
       DofGatherData pair_data[2];
       for (int i = 0; i < 2; i++) {
-        vec2 offset_co = ((i == 0) ? offset : -offset);
+        float2 offset_co = ((i == 0) ? offset : -offset);
         if (DOF_BOKEH_TEXTURE) {
           /* Scaling to 0.25 for speed. Improves texture cache hit. */
           offset_co = texture(bkh_lut_tx, offset_co * 0.25f + 0.5f).rg;
           offset_co *= (IS_FOREGROUND) ? -dof_buf.bokeh_anisotropic_scale :
                                          dof_buf.bokeh_anisotropic_scale;
         }
-        vec2 sample_co = center_co + offset_co * ring_radius;
-        vec2 sample_uv = sample_co * dof_buf.gather_uv_fac;
+        float2 sample_co = center_co + offset_co * ring_radius;
+        float2 sample_uv = sample_co * dof_buf.gather_uv_fac;
         if (do_fast_gather) {
           pair_data[i].color = textureLod(color_bilinear_tx, sample_uv, lod);
         }
@@ -561,7 +562,7 @@ void dof_gather_accumulator(sampler2D color_tx,
 
   {
     /* Center sample. */
-    vec2 sample_uv = center_co * dof_buf.gather_uv_fac;
+    float2 sample_uv = center_co * dof_buf.gather_uv_fac;
     DofGatherData center_data;
     if (do_fast_gather) {
       center_data.color = textureLod(color_bilinear_tx, sample_uv, lod);
@@ -589,10 +590,10 @@ void dof_gather_accumulator(sampler2D color_tx,
     out_color.rgb = average(out_color.rgb) * neon_gradient(fac);
   }
   if (debug_gather_perf && do_fast_gather) {
-    out_color.rgb = average(out_color.rgb) * vec3(0.0f, 1.0f, 0.0f);
+    out_color.rgb = average(out_color.rgb) * float3(0.0f, 1.0f, 0.0f);
   }
   if (debug_scatter_perf) {
-    out_color.rgb = average(out_color.rgb) * vec3(0.0f, 1.0f, 0.0f);
+    out_color.rgb = average(out_color.rgb) * float3(0.0f, 1.0f, 0.0f);
   }
 
   /* Output premultiplied color so we can use bilinear sampler in resolve pass. */
@@ -611,15 +612,16 @@ void dof_slight_focus_gather(depth2D depth_tx,
                              sampler2D color_tx,
                              sampler2D bkh_lut_tx, /* Renamed because of ugly macro job. */
                              float radius,
-                             out vec4 out_color,
+                             out float4 out_color,
                              out float out_weight,
                              out float out_center_coc)
 {
-  vec2 frag_coord = vec2(gl_GlobalInvocationID.xy) + 0.5f;
-  vec2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
-  vec2 noise = no_gather_random ? vec2(0.0f) :
-                                  vec2(interlieved_gradient_noise(frag_coord, 3, noise_offset.x),
-                                       interlieved_gradient_noise(frag_coord, 5, noise_offset.y));
+  float2 frag_coord = float2(gl_GlobalInvocationID.xy) + 0.5f;
+  float2 noise_offset = sampling_rng_2D_get(SAMPLING_LENS_U);
+  float2 noise = no_gather_random ?
+                     float2(0.0f) :
+                     float2(interlieved_gradient_noise(frag_coord, 3, noise_offset.x),
+                            interlieved_gradient_noise(frag_coord, 5, noise_offset.y));
 
   DofGatherData fg_accum = GATHER_DATA_INIT;
   DofGatherData bg_accum = GATHER_DATA_INIT;
@@ -633,22 +635,22 @@ void dof_slight_focus_gather(depth2D depth_tx,
   bool first_ring = true;
 
   for (float s = 0.0f; s < sample_count; s++) {
-    vec2 rand2 = fract(hammersley_2d(s, sample_count) + noise);
-    vec2 offset = sample_disk(rand2) * radius;
+    float2 rand2 = fract(hammersley_2d(s, sample_count) + noise);
+    float2 offset = sample_disk(rand2) * radius;
     float ring_dist = length(offset);
 
     DofGatherData pair_data[2];
     for (int i = 0; i < 2; i++) {
-      vec2 sample_offset = ((i == 0) ? offset : -offset);
+      float2 sample_offset = ((i == 0) ? offset : -offset);
       /* OPTI: could precompute the factor. */
-      vec2 sample_uv = (frag_coord + sample_offset) / vec2(textureSize(depth_tx, 0));
+      float2 sample_uv = (frag_coord + sample_offset) / float2(textureSize(depth_tx, 0));
       float depth = textureLod(depth_tx, sample_uv, 0.0f).r;
       pair_data[i].coc = dof_coc_from_depth(dof_buf, sample_uv, depth);
       pair_data[i].color = colorspace_safe_color(textureLod(color_tx, sample_uv, 0.0f));
       pair_data[i].dist = ring_dist;
       if (DOF_BOKEH_TEXTURE) {
         /* Contains sub-pixel distance to bokeh shape. */
-        ivec2 lut_texel = ivec2(round(sample_offset)) + dof_max_slight_focus_radius;
+        int2 lut_texel = int2(round(sample_offset)) + dof_max_slight_focus_radius;
         pair_data[i].dist = texelFetch(bkh_lut_tx, lut_texel, 0).r;
       }
       pair_data[i].coc = clamp(pair_data[i].coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
@@ -678,7 +680,7 @@ void dof_slight_focus_gather(depth2D depth_tx,
   }
 
   /* Center sample. */
-  vec2 sample_uv = frag_coord / vec2(textureSize(depth_tx, 0));
+  float2 sample_uv = frag_coord / float2(textureSize(depth_tx, 0));
   DofGatherData center_data;
   center_data.color = colorspace_safe_color(textureLod(color_tx, sample_uv, 0.0f));
   center_data.coc = dof_coc_from_depth(
@@ -696,9 +698,9 @@ void dof_slight_focus_gather(depth2D depth_tx,
   dof_gather_accumulate_center_sample(
       center_data, bordering_radius, i_radius, false, false, true, bg_accum);
 
-  vec4 bg_col, fg_col;
+  float4 bg_col, fg_col;
   float bg_weight, fg_weight;
-  vec2 unused_occlusion;
+  float2 unused_occlusion;
 
   int total_sample_count = int(sample_count) * 2 + 1;
   dof_gather_accumulate_resolve(total_sample_count, bg_accum, bg_col, bg_weight, unused_occlusion);

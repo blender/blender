@@ -15,12 +15,12 @@ float dither()
 {
   /* NOTE(Metal): Declaring constant array in function scope to avoid increasing local shader
    * memory pressure. */
-  const vec4 dither_mat4x4[4] = float4_array(vec4(P(0.0f), P(8.0f), P(2.0f), P(10.0f)),
-                                             vec4(P(12.0f), P(4.0f), P(14.0f), P(6.0f)),
-                                             vec4(P(3.0f), P(11.0f), P(1.0f), P(9.0f)),
-                                             vec4(P(15.0f), P(7.0f), P(13.0f), P(5.0f)));
+  const float4 dither_mat4x4[4] = float4_array(float4(P(0.0f), P(8.0f), P(2.0f), P(10.0f)),
+                                               float4(P(12.0f), P(4.0f), P(14.0f), P(6.0f)),
+                                               float4(P(3.0f), P(11.0f), P(1.0f), P(9.0f)),
+                                               float4(P(15.0f), P(7.0f), P(13.0f), P(5.0f)));
 
-  ivec2 co = ivec2(gl_FragCoord.xy) % 4;
+  int2 co = int2(gl_FragCoord.xy) % 4;
   return dither_mat4x4[co.x][co.y];
 }
 
@@ -35,9 +35,9 @@ void main()
   float alpha = texture(colorBuffer, uvcoordsvar.xy).a;
   float depth = texture(depthBuffer, uvcoordsvar.xy).r;
 
-  vec3 bg_col;
-  vec3 col_high;
-  vec3 col_low;
+  float3 bg_col;
+  float3 col_high;
+  float3 col_low;
 
   /* BG_SOLID_CHECKER selects BG_SOLID when no pixel has been drawn otherwise use the BG_CHERKER.
    */
@@ -49,44 +49,44 @@ void main()
       break;
     case BG_GRADIENT:
       /* XXX do interpolation in a non-linear space to have a better visual result. */
-      col_high = pow(colorBackground.rgb, vec3(1.0f / 2.2f));
-      col_low = pow(colorBackgroundGradient.rgb, vec3(1.0f / 2.2f));
+      col_high = pow(colorBackground.rgb, float3(1.0f / 2.2f));
+      col_low = pow(colorBackgroundGradient.rgb, float3(1.0f / 2.2f));
       bg_col = mix(col_low, col_high, uvcoordsvar.y);
       /* Convert back to linear. */
-      bg_col = pow(bg_col, vec3(2.2f));
+      bg_col = pow(bg_col, float3(2.2f));
       /*  Dither to hide low precision buffer. (Could be improved) */
       bg_col += dither();
       break;
     case BG_RADIAL: {
       /* Do interpolation in a non-linear space to have a better visual result. */
-      col_high = pow(colorBackground.rgb, vec3(1.0f / 2.2f));
-      col_low = pow(colorBackgroundGradient.rgb, vec3(1.0f / 2.2f));
+      col_high = pow(colorBackground.rgb, float3(1.0f / 2.2f));
+      col_low = pow(colorBackgroundGradient.rgb, float3(1.0f / 2.2f));
 
-      vec2 uv_n = uvcoordsvar.xy - 0.5f;
+      float2 uv_n = uvcoordsvar.xy - 0.5f;
       bg_col = mix(col_high, col_low, length(uv_n) * M_SQRT2);
 
       /* Convert back to linear. */
-      bg_col = pow(bg_col, vec3(2.2f));
+      bg_col = pow(bg_col, float3(2.2f));
       /*  Dither to hide low precision buffer. (Could be improved) */
       bg_col += dither();
       break;
     }
     case BG_CHECKER: {
       float size = sizeChecker * sizePixel;
-      ivec2 p = ivec2(floor(gl_FragCoord.xy / size));
+      int2 p = int2(floor(gl_FragCoord.xy / size));
       bool check = mod(p.x, 2) == mod(p.y, 2);
       bg_col = (check) ? colorCheckerPrimary.rgb : colorCheckerSecondary.rgb;
       break;
     }
     case BG_MASK:
-      fragColor = vec4(vec3(1.0f - alpha), 0.0f);
+      fragColor = float4(float3(1.0f - alpha), 0.0f);
       return;
   }
 
   bg_col = mix(bg_col, colorOverride.rgb, colorOverride.a);
 
   /* Mimic alpha under behavior. Result is premultiplied. */
-  fragColor = vec4(bg_col, 1.0f) * (1.0f - alpha);
+  fragColor = float4(bg_col, 1.0f) * (1.0f - alpha);
 
   /* Special case: If the render is not transparent, do not clear alpha values. */
   if (depth == 1.0f && alpha == 1.0f) {

@@ -48,10 +48,10 @@ void main()
   }
   else {
     /* Draw two links right next to each other, the main link and the back-link. */
-    vec4 main_link_color = finalColor;
+    float4 main_link_color = finalColor;
     main_link_color.a *= get_line_alpha(0.75f, 0.3f);
 
-    vec4 back_link_color = vec4(vec3(0.8f), 1.0f);
+    float4 back_link_color = float4(float3(0.8f), 1.0f);
     back_link_color.a *= get_line_alpha(0.2f, 0.25f);
 
     /* Combine both links. */

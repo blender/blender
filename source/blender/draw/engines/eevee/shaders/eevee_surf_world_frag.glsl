@@ -22,9 +22,9 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_world)
 #include "eevee_sampling_lib.glsl"
 #include "eevee_surf_lib.glsl"
 
-vec4 closure_to_rgba(Closure cl)
+float4 closure_to_rgba(Closure cl)
 {
-  return vec4(0.0f);
+  return float4(0.0f);
 }
 
 void main()
@@ -51,23 +51,23 @@ void main()
     float lod = max(1.0f, base_lod);
     float mix_factor = min(1.0f, base_lod);
     SphereProbeUvArea world_atlas_coord = reinterpret_as_atlas_coord(world_coord_packed);
-    vec4 probe_color = lightprobe_spheres_sample(-g_data.N, lod, world_atlas_coord);
+    float4 probe_color = lightprobe_spheres_sample(-g_data.N, lod, world_atlas_coord);
     out_background.rgb = mix(out_background.rgb, probe_color.rgb, mix_factor);
 
     SphericalHarmonicL1 volume_irradiance = lightprobe_volume_sample(
-        g_data.P, vec3(0.0f), g_data.Ng);
-    vec3 radiance_sh = spherical_harmonics_evaluate_lambert(-g_data.N, volume_irradiance);
+        g_data.P, float3(0.0f), g_data.Ng);
+    float3 radiance_sh = spherical_harmonics_evaluate_lambert(-g_data.N, volume_irradiance);
     float radiance_mix_factor = sphere_probe_roughness_to_mix_fac(world_background_blur);
     out_background.rgb = mix(out_background.rgb, radiance_sh, radiance_mix_factor);
   }
 
   /* Output environment pass. */
 #ifdef MAT_RENDER_PASS_SUPPORT
-  vec4 environment = out_background;
+  float4 environment = out_background;
   environment.a = 1.0f - environment.a;
   environment.rgb *= environment.a;
   output_renderpass_color(uniform_buf.render_pass.environment_id, environment);
 #endif
 
-  out_background = mix(vec4(0.0f, 0.0f, 0.0f, 1.0f), out_background, world_opacity_fade);
+  out_background = mix(float4(0.0f, 0.0f, 0.0f, 1.0f), out_background, world_opacity_fade);
 }

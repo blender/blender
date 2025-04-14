@@ -6,7 +6,7 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   float matte = texture_load(input_matte_tx, texel).x;
 
@@ -24,7 +24,7 @@ void main()
     int count = 0;
     for (int j = -edge_search_radius; j <= edge_search_radius; j++) {
       for (int i = -edge_search_radius; i <= edge_search_radius; i++) {
-        float neighbor_matte = texture_load(input_matte_tx, texel + ivec2(i, j)).x;
+        float neighbor_matte = texture_load(input_matte_tx, texel + int2(i, j)).x;
         count += int(distance(matte, neighbor_matte) < edge_tolerance);
       }
     }
@@ -57,8 +57,8 @@ void main()
     tweaked_matte = max(tweaked_matte, core_matte);
   }
 
-  imageStore(output_matte_img, texel, vec4(tweaked_matte));
+  imageStore(output_matte_img, texel, float4(tweaked_matte));
 #if defined(COMPUTE_EDGES)
-  imageStore(output_edges_img, texel, vec4(is_edge ? 1.0f : 0.0f));
+  imageStore(output_edges_img, texel, float4(is_edge ? 1.0f : 0.0f));
 #endif
 }

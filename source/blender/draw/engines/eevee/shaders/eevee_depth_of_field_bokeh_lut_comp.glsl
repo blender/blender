@@ -18,11 +18,12 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_bokeh_lut)
 
 void main()
 {
-  vec2 gather_uv = ((vec2(gl_GlobalInvocationID.xy) + 0.5f) / float(DOF_BOKEH_LUT_SIZE));
+  float2 gather_uv = ((float2(gl_GlobalInvocationID.xy) + 0.5f) / float(DOF_BOKEH_LUT_SIZE));
   /* Center uv in range [-1..1]. */
   gather_uv = gather_uv * 2.0f - 1.0f;
 
-  vec2 slight_focus_texel = vec2(gl_GlobalInvocationID.xy) - float(dof_max_slight_focus_radius);
+  float2 slight_focus_texel = float2(gl_GlobalInvocationID.xy) -
+                              float(dof_max_slight_focus_radius);
 
   float radius = length(gather_uv);
 
@@ -37,7 +38,7 @@ void main()
 
     theta_new -= dof_buf.bokeh_rotation;
 
-    gather_uv = r_new * vec2(-cos(theta_new), sin(theta_new));
+    gather_uv = r_new * float2(-cos(theta_new), sin(theta_new));
 
     {
       /* Slight focus distance */
@@ -51,11 +52,11 @@ void main()
     gather_uv *= safe_rcp(length(gather_uv));
   }
 
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
   /* For gather store the normalized UV. */
   imageStoreFast(out_gather_lut_img, texel, gather_uv.xyxy);
   /* For scatter store distance. LUT will be scaled by COC. */
-  imageStoreFast(out_scatter_lut_img, texel, vec4(radius));
+  imageStoreFast(out_scatter_lut_img, texel, float4(radius));
   /* For slight focus gather store pixel perfect distance. */
-  imageStore(out_resolve_lut_img, texel, vec4(length(slight_focus_texel)));
+  imageStore(out_resolve_lut_img, texel, float4(length(slight_focus_texel)));
 }

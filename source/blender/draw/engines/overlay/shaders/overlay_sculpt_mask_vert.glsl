@@ -12,10 +12,10 @@ VERTEX_SHADER_CREATE_INFO(overlay_sculpt_mask)
 
 void main()
 {
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  faceset_color = mix(vec3(1.0f), fset, faceSetsOpacity);
+  faceset_color = mix(float3(1.0f), fset, faceSetsOpacity);
   mask_color = 1.0f - (msk * maskOpacity);
 
   view_clipping_distances(world_pos);

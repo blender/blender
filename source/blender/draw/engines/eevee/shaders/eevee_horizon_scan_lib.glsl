@@ -20,11 +20,11 @@
  * Returns the bitmask for a given ordered pair of angle in [-pi/2..pi/2] range.
  * Clamps the inputs to the valid range.
  */
-uint horizon_scan_angles_to_bitmask(vec2 theta)
+uint horizon_scan_angles_to_bitmask(float2 theta)
 {
   const int bitmask_len = 32;
   /* Algorithm 1, line 18. Re-ordered to make sure to clamp to the hemisphere range. */
-  vec2 ratio = saturate(theta * M_1_PI + 0.5f);
+  float2 ratio = saturate(theta * M_1_PI + 0.5f);
   uint a = uint(floor(float(bitmask_len) * ratio.x));
   /* The paper is wrong here. The additional half Pi is not needed. */
   uint b = uint(ceil(float(bitmask_len) * (ratio.y - ratio.x)));
@@ -73,13 +73,13 @@ float horizon_scan_bitmask_to_occlusion_cosine(uint bitmask)
   /* The precomputed weights are the accumulated weights from the reference loop for each of the
    * samples in the mask. The weight is distributed evenly for each sample inside a mask.
    * This is like a 4 piecewise linear approximation of the cosine lobe. */
-  const vec4 weights = vec4(0.0095061f, 0.0270951f, 0.0405571f, 0.0478421f);
-  const uvec4 masks = uvec4(0xF000000Fu, 0x0F0000F0u, 0x00F00F00u, 0x000FF000u);
-  return saturate(1.0f - dot(vec4(bitCount(uvec4(bitmask) & masks)), weights));
+  const float4 weights = float4(0.0095061f, 0.0270951f, 0.0405571f, 0.0478421f);
+  const uint4 masks = uint4(0xF000000Fu, 0x0F0000F0u, 0x00F00F00u, 0x000FF000u);
+  return saturate(1.0f - dot(float4(bitCount(uint4(bitmask) & masks)), weights));
 #endif
 }
 
-float bsdf_eval(vec3 N, vec3 L, vec3 V)
+float bsdf_eval(float3 N, float3 L, float3 V)
 {
   return dot(N, L);
 }
@@ -90,10 +90,10 @@ float bsdf_eval(vec3 N, vec3 L, vec3 V)
  * Returns the angle of the normal projected normal with `V` and its length.
  */
 void horizon_scan_projected_normal_to_plane_angle_and_length(
-    vec3 N, vec3 V, vec3 T, vec3 B, out float N_proj_len, out float N_angle)
+    float3 N, float3 V, float3 T, float3 B, out float N_proj_len, out float N_angle)
 {
   /* Projected view normal onto the integration plane. */
-  vec3 N_proj = normalize_and_get_length(N - B * dot(N, B), N_proj_len);
+  float3 N_proj = normalize_and_get_length(N - B * dot(N, B), N_proj_len);
 
   float N_sin = dot(N_proj, T);
   float N_cos = dot(N_proj, V);

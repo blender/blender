@@ -20,14 +20,15 @@ void main()
   /* Quad expansion using instanced rendering. */
   float x = float(gl_VertexID % 2);
   float y = float(gl_VertexID / 2);
-  vec2 quad = vec2(x, y);
+  float2 quad = float2(x, y);
 
-  vec2 interp_offset = float(interp_size) / abs(pos.zw - pos.xy);
-  texCoord_interp = mix(-interp_offset, 1.0f + interp_offset, quad) * vec2(glyph_dim) + vec2(0.5f);
+  float2 interp_offset = float(interp_size) / abs(pos.zw - pos.xy);
+  texCoord_interp = mix(-interp_offset, 1.0f + interp_offset, quad) * float2(glyph_dim) +
+                    float2(0.5f);
 
-  vec2 final_pos = mix(vec2(ivec2(pos.xy) + ivec2(-interp_size, interp_size)),
-                       vec2(ivec2(pos.zw) + ivec2(interp_size, -interp_size)),
-                       quad);
+  float2 final_pos = mix(float2(int2(pos.xy) + int2(-interp_size, interp_size)),
+                         float2(int2(pos.zw) + int2(interp_size, -interp_size)),
+                         quad);
 
-  gl_Position = ModelViewProjectionMatrix * vec4(final_pos, 0.0f, 1.0f);
+  gl_Position = ModelViewProjectionMatrix * float4(final_pos, 0.0f, 1.0f);
 }

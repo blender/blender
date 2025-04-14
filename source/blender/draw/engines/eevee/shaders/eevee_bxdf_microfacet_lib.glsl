@@ -46,19 +46,19 @@ float bxdf_ggx_smith_G1(float NX, float a2)
  *
  * \return: the sampled direction and the pdf of sampling the direction.
  */
-BsdfSample bxdf_ggx_sample_reflection(vec3 rand, vec3 Vt, float alpha, const bool do_clamp)
+BsdfSample bxdf_ggx_sample_reflection(float3 rand, float3 Vt, float alpha, const bool do_clamp)
 {
   if (do_clamp && alpha < square(BSDF_ROUGHNESS_THRESHOLD)) {
     BsdfSample samp;
     samp.pdf = 1e6f;
-    samp.direction = reflect(-Vt, vec3(0.0f, 0.0f, 1.0f));
+    samp.direction = reflect(-Vt, float3(0.0f, 0.0f, 1.0f));
     return samp;
   }
 
   /* Transforming the view direction to the hemisphere configuration. */
-  vec2 Vt_alpha = alpha * Vt.xy;
+  float2 Vt_alpha = alpha * Vt.xy;
   float Vh_norm;
-  vec3 Vh = normalize_and_get_length(vec3(Vt_alpha, Vt.z), Vh_norm);
+  float3 Vh = normalize_and_get_length(float3(Vt_alpha, Vt.z), Vh_norm);
 
   /* Compute the bounded cap. */
   float a2 = square(alpha);
@@ -68,13 +68,13 @@ BsdfSample bxdf_ggx_sample_reflection(vec3 rand, vec3 Vt, float alpha, const boo
   /* Sample a spherical cap in (-Vh.z * k, 1]. */
   float cos_theta = mix(-Vh.z * k, 1.0f, rand.x);
   float sin_theta = sqrt(saturate(1.0f - square(cos_theta)));
-  vec3 Lh = vec3(sin_theta * rand.yz, cos_theta);
+  float3 Lh = float3(sin_theta * rand.yz, cos_theta);
 
   /* Compute unnormalized halfway direction. */
-  vec3 Hh = Vh + Lh;
+  float3 Hh = Vh + Lh;
 
   /* Transforming the normal back to the ellipsoid configuration. */
-  vec3 Ht = normalize(vec3(alpha * Hh.xy, max(0.0f, Hh.z)));
+  float3 Ht = normalize(float3(alpha * Hh.xy, max(0.0f, Hh.z)));
 
   /* Normal Distribution Function. */
   float D = bxdf_ggx_D(saturate(Ht.z), a2);
@@ -97,7 +97,7 @@ BsdfSample bxdf_ggx_sample_reflection(vec3 rand, vec3 Vt, float alpha, const boo
 
 /* Evaluate the GGX BRDF without the Fresnel term, multiplied by the cosine foreshortening term.
  * Also evaluate the probability of sampling the reflection direction. */
-BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha, const bool do_clamp)
+BsdfEval bxdf_ggx_eval_reflection(float3 N, float3 L, float3 V, float alpha, const bool do_clamp)
 {
   float NV = dot(N, V);
   if (NV <= 0.0f) {
@@ -111,7 +111,7 @@ BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha, const boo
 #endif
   }
 
-  vec3 H = safe_normalize(L + V);
+  float3 H = safe_normalize(L + V);
 
   /* This threshold was computed based on precision of NVidia compiler (see #118997).
    * These drivers tend to produce NaNs in the computation of the NDF (`D`) if alpha is close to 0.
@@ -164,10 +164,10 @@ BsdfEval bxdf_ggx_eval_reflection(vec3 N, vec3 L, vec3 V, float alpha, const boo
  * https://diglib.eg.org/bitstream/handle/10.1111f/cgf14867/v42i8_03_14867.pdf
  * \{ */
 
-vec3 bxdf_ggx_sample_vndf(vec3 rand, vec3 Vt, float alpha, out float G_V)
+float3 bxdf_ggx_sample_vndf(float3 rand, float3 Vt, float alpha, out float G_V)
 {
   /* Transforming the view direction to the hemisphere configuration. */
-  vec3 Vh = normalize(vec3(alpha * Vt.xy, Vt.z));
+  float3 Vh = normalize(float3(alpha * Vt.xy, Vt.z));
 
   /* Smith shadowing-masking term. */
   G_V = 2.0f * Vh.z / (1.0f + Vh.z);
@@ -175,13 +175,13 @@ vec3 bxdf_ggx_sample_vndf(vec3 rand, vec3 Vt, float alpha, out float G_V)
   /* Sample a spherical cap in (-Vh.z, 1]. */
   float cos_theta = mix(-Vh.z, 1.0f, rand.x);
   float sin_theta = sqrt(saturate(1.0f - square(cos_theta)));
-  vec3 Lh = vec3(sin_theta * rand.yz, cos_theta);
+  float3 Lh = float3(sin_theta * rand.yz, cos_theta);
 
   /* Compute unnormalized halfway direction. */
-  vec3 Hh = Vh + Lh;
+  float3 Hh = Vh + Lh;
 
   /* Transforming the normal back to the ellipsoid configuration. */
-  return normalize(vec3(alpha * Hh.xy, max(0.0f, Hh.z)));
+  return normalize(float3(alpha * Hh.xy, max(0.0f, Hh.z)));
 }
 
 /**
@@ -197,7 +197,7 @@ vec3 bxdf_ggx_sample_vndf(vec3 rand, vec3 Vt, float alpha, out float G_V)
  * \return: the sampled direction and the pdf of sampling the direction.
  */
 BsdfSample bxdf_ggx_sample_refraction(
-    vec3 rand, vec3 Vt, float alpha, float ior, float thickness, const bool do_clamp)
+    float3 rand, float3 Vt, float alpha, float ior, float thickness, const bool do_clamp)
 {
   if (thickness != 0.0f) {
     /* The incoming ray is inside the material for the second refraction event. */
@@ -207,14 +207,14 @@ BsdfSample bxdf_ggx_sample_refraction(
   if (do_clamp && alpha < square(BSDF_ROUGHNESS_THRESHOLD)) {
     BsdfSample samp;
     samp.pdf = 1e6f;
-    samp.direction = refract(-Vt, vec3(0.0f, 0.0f, 1.0f), 1.0f / ior);
+    samp.direction = refract(-Vt, float3(0.0f, 0.0f, 1.0f), 1.0f / ior);
     return samp;
   }
 
   float G_V;
-  vec3 Ht = bxdf_ggx_sample_vndf(rand, Vt, alpha, G_V);
+  float3 Ht = bxdf_ggx_sample_vndf(rand, Vt, alpha, G_V);
 
-  vec3 Lt = refract(-Vt, Ht, 1.0f / ior);
+  float3 Lt = refract(-Vt, Ht, 1.0f / ior);
 
   /* Normal Distribution Function. */
   float D = bxdf_ggx_D(saturate(Ht.z), square(alpha));
@@ -233,7 +233,7 @@ BsdfSample bxdf_ggx_sample_refraction(
 /* Evaluate the GGX BTDF without the Fresnel term, multiplied by the cosine foreshortening term.
  * Also evaluate the probability of sampling the refraction direction. */
 BsdfEval bxdf_ggx_eval_refraction(
-    vec3 N, vec3 L, vec3 V, float alpha, float ior, float thickness, const bool do_clamp)
+    float3 N, float3 L, float3 V, float alpha, float ior, float thickness, const bool do_clamp)
 {
   if (thickness != 0.0f) {
     ior = 1.0f / ior;
@@ -259,7 +259,7 @@ BsdfEval bxdf_ggx_eval_refraction(
     return eval;
   }
 
-  vec3 H = ior * L + V;
+  float3 H = ior * L + V;
   /* Ensure `H` is on the same hemisphere as `V`. */
   H = (ior < 1.0f) ? H : -H;
   float inv_len_H = safe_rcp(length(H));
@@ -322,14 +322,14 @@ float bxdf_ggx_perceived_roughness_transmission(float roughness, float ior)
  * Returns the dominant direction for one reflection event.
  * `roughness` is expected to be the linear (from UI) roughness.
  */
-vec3 bxdf_ggx_dominant_direction_reflection(vec3 N, vec3 V, float roughness)
+float3 bxdf_ggx_dominant_direction_reflection(float3 N, float3 V, float roughness)
 {
   /* From Frostbite PBR Course
    * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf
    * Listing 22.
    * Note that the reference labels squared roughness (GGX input) as roughness. */
   float m = square(roughness);
-  vec3 R = -reflect(V, N);
+  float3 R = -reflect(V, N);
   float smoothness = 1.0f - m;
   float fac = smoothness * (sqrt(smoothness) + m);
   return normalize(mix(N, R, fac));
@@ -340,18 +340,18 @@ vec3 bxdf_ggx_dominant_direction_reflection(vec3 N, vec3 V, float roughness)
  * `roughness` is expected to be the reflection roughness from
  * `bxdf_ggx_perceived_roughness_transmission`.
  */
-vec3 bxdf_ggx_dominant_direction_transmission(vec3 N, vec3 V, float ior, float roughness)
+float3 bxdf_ggx_dominant_direction_transmission(float3 N, float3 V, float ior, float roughness)
 {
   /* Reusing same thing as bxdf_ggx_dominant_direction_reflection for now with the roughness mapped
    * to reflection roughness. */
   float m = square(roughness);
-  vec3 R = refract(-V, N, 1.0f / ior);
+  float3 R = refract(-V, N, 1.0f / ior);
   float smoothness = 1.0f - m;
   float fac = smoothness * (sqrt(smoothness) + m);
   return normalize(mix(-N, R, fac));
 }
 
-LightProbeRay bxdf_ggx_lightprobe_reflection(ClosureReflection cl, vec3 V)
+LightProbeRay bxdf_ggx_lightprobe_reflection(ClosureReflection cl, float3 V)
 {
   LightProbeRay probe;
   probe.perceptual_roughness = cl.roughness;
@@ -360,7 +360,7 @@ LightProbeRay bxdf_ggx_lightprobe_reflection(ClosureReflection cl, vec3 V)
   return probe;
 }
 
-LightProbeRay bxdf_ggx_lightprobe_transmission(ClosureRefraction cl, vec3 V, float thickness)
+LightProbeRay bxdf_ggx_lightprobe_transmission(ClosureRefraction cl, float3 V, float thickness)
 {
   LightProbeRay probe;
   probe.perceptual_roughness = bxdf_ggx_perceived_roughness_transmission(cl.roughness, cl.ior);
@@ -370,26 +370,26 @@ LightProbeRay bxdf_ggx_lightprobe_transmission(ClosureRefraction cl, vec3 V, flo
 }
 
 void bxdf_ggx_context_amend_transmission(inout ClosureUndetermined cl,
-                                         inout vec3 V,
+                                         inout float3 V,
                                          float thickness)
 {
   if (thickness != 0.0f) {
     ClosureRefraction bsdf = to_closure_refraction(cl);
     float perceived_roughness = bxdf_ggx_perceived_roughness_transmission(bsdf.roughness,
                                                                           bsdf.ior);
-    vec3 L = bxdf_ggx_dominant_direction_transmission(bsdf.N, V, bsdf.ior, perceived_roughness);
+    float3 L = bxdf_ggx_dominant_direction_transmission(bsdf.N, V, bsdf.ior, perceived_roughness);
     cl.N = -thickness_shape_intersect(thickness, bsdf.N, L).hit_N;
     V = -L;
   }
 }
 
-Ray bxdf_ggx_ray_amend_transmission(ClosureUndetermined cl, vec3 V, Ray ray, float thickness)
+Ray bxdf_ggx_ray_amend_transmission(ClosureUndetermined cl, float3 V, Ray ray, float thickness)
 {
   if (thickness != 0.0f) {
     ClosureRefraction bsdf = to_closure_refraction(cl);
     float perceived_roughness = bxdf_ggx_perceived_roughness_transmission(bsdf.roughness,
                                                                           bsdf.ior);
-    vec3 L = bxdf_ggx_dominant_direction_transmission(bsdf.N, V, bsdf.ior, perceived_roughness);
+    float3 L = bxdf_ggx_dominant_direction_transmission(bsdf.N, V, bsdf.ior, perceived_roughness);
     ray.origin += thickness_shape_intersect(thickness, bsdf.N, L).hit_P;
   }
   return ray;
@@ -397,7 +397,7 @@ Ray bxdf_ggx_ray_amend_transmission(ClosureUndetermined cl, vec3 V, Ray ray, flo
 
 #ifdef EEVEE_UTILITY_TX
 
-ClosureLight bxdf_ggx_light_reflection(ClosureReflection cl, vec3 V)
+ClosureLight bxdf_ggx_light_reflection(ClosureReflection cl, float3 V)
 {
   float cos_theta = dot(cl.N, V);
   ClosureLight light;
@@ -407,18 +407,18 @@ ClosureLight bxdf_ggx_light_reflection(ClosureReflection cl, vec3 V)
   return light;
 }
 
-ClosureLight bxdf_ggx_light_transmission(ClosureRefraction cl, vec3 V, float thickness)
+ClosureLight bxdf_ggx_light_transmission(ClosureRefraction cl, float3 V, float thickness)
 {
   float perceptual_roughness = bxdf_ggx_perceived_roughness_transmission(cl.roughness, cl.ior);
 
   if (thickness != 0.0f) {
-    vec3 L = bxdf_ggx_dominant_direction_transmission(cl.N, V, cl.ior, perceptual_roughness);
+    float3 L = bxdf_ggx_dominant_direction_transmission(cl.N, V, cl.ior, perceptual_roughness);
     cl.N = -thickness_shape_intersect(thickness, cl.N, L).hit_N;
     V = -L;
   }
   /* Ad-hoc solution to reuse the reflection LUT. To be eventually replaced by own precomputed
    * table. */
-  vec3 R = refract(-V, cl.N, (thickness != 0.0f) ? cl.ior : (1.0f / cl.ior));
+  float3 R = refract(-V, cl.N, (thickness != 0.0f) ? cl.ior : (1.0f / cl.ior));
   float cos_theta = dot(-cl.N, R);
 
   ClosureLight light;

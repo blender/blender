@@ -28,7 +28,7 @@ shared uint lod_rendered;
  * Select the smallest viewport that can contain the given rect of tiles to render.
  * Returns the viewport index.
  */
-int viewport_select(ivec2 rect_size)
+int viewport_select(int2 rect_size)
 {
   /* TODO(fclem): Experiment with non squared viewports. */
   int max_dim = max(rect_size.x, rect_size.y);
@@ -43,7 +43,7 @@ int viewport_select(ivec2 rect_size)
 void main()
 {
   int tilemap_index = int(gl_GlobalInvocationID.z);
-  ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
+  int2 tile_co = int2(gl_GlobalInvocationID.xy);
 
   ShadowTileMapData tilemap_data = tilemaps_buf[tilemap_index];
   bool is_cubemap = (tilemap_data.projection_type == SHADOW_PROJECTION_CUBEFACE);
@@ -52,8 +52,8 @@ void main()
   lod_rendered = 0u;
 
   for (int lod = lod_max; lod >= 0; lod--) {
-    ivec2 tile_co_lod = tile_co >> lod;
-    int tile_index = shadow_tile_offset(uvec2(tile_co_lod), tilemap_data.tiles_index, lod);
+    int2 tile_co_lod = tile_co >> lod;
+    int tile_index = shadow_tile_offset(uint2(tile_co_lod), tilemap_data.tiles_index, lod);
 
     /* Compute update area. */
     if (gl_LocalInvocationIndex == 0u) {
@@ -77,11 +77,11 @@ void main()
 
     barrier();
 
-    ivec2 rect_min = ivec2(rect_min_x, rect_min_y);
-    ivec2 rect_max = ivec2(rect_max_x, rect_max_y);
+    int2 rect_min = int2(rect_min_x, rect_min_y);
+    int2 rect_max = int2(rect_max_x, rect_max_y);
 
     int viewport_index = viewport_select(rect_max - rect_min);
-    ivec2 viewport_size = shadow_viewport_size_get(uint(viewport_index));
+    int2 viewport_size = shadow_viewport_size_get(uint(viewport_index));
 
     /* Issue one view if there is an update in the LOD. */
     if (gl_LocalInvocationIndex == 0u) {
@@ -98,10 +98,10 @@ void main()
           float lod_res = float(SHADOW_TILEMAP_RES >> lod);
 
           /* TODO(fclem): These should be the culling planes. */
-          // vec2 cull_region_start = (vec2(rect_min) / lod_res) * 2.0f - 1.0f;
-          // vec2 cull_region_end = (vec2(rect_max) / lod_res) * 2.0f - 1.0f;
-          vec2 view_start = (vec2(rect_min) / lod_res) * 2.0f - 1.0f;
-          vec2 view_end = (vec2(rect_min + viewport_size) / lod_res) * 2.0f - 1.0f;
+          // float2 cull_region_start = (float2(rect_min) / lod_res) * 2.0f - 1.0f;
+          // float2 cull_region_end = (float2(rect_max) / lod_res) * 2.0f - 1.0f;
+          float2 view_start = (float2(rect_min) / lod_res) * 2.0f - 1.0f;
+          float2 view_end = (float2(rect_min + viewport_size) / lod_res) * 2.0f - 1.0f;
 
           int clip_index = tilemap_data.clip_data_index;
           float clip_far = tilemaps_clip_buf[clip_index].clip_far_stored;
@@ -110,7 +110,7 @@ void main()
           view_start = view_start * tilemap_data.half_size + tilemap_data.center_offset;
           view_end = view_end * tilemap_data.half_size + tilemap_data.center_offset;
 
-          mat4x4 winmat;
+          float4x4 winmat;
           if (tilemap_data.projection_type != SHADOW_PROJECTION_CUBEFACE) {
             winmat = projection_orthographic(
                 view_start.x, view_end.x, view_start.y, view_end.y, clip_near, clip_far);
@@ -156,8 +156,8 @@ void main()
   int valid_tile_index = -1;
   uint valid_lod = 0u;
   for (int lod = lod_max; lod >= 0; lod--) {
-    ivec2 tile_co_lod = tile_co >> lod;
-    int tile_index = shadow_tile_offset(uvec2(tile_co_lod), tilemap_data.tiles_index, lod);
+    int2 tile_co_lod = tile_co >> lod;
+    int tile_index = shadow_tile_offset(uint2(tile_co_lod), tilemap_data.tiles_index, lod);
     ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
 
     bool lod_is_rendered = ((lod_rendered >> lod) & 1u) == 1u;
@@ -175,10 +175,10 @@ void main()
   ShadowSamplingTile tile_sampling = shadow_sampling_tile_create(tile_data, valid_lod);
   ShadowSamplingTilePacked tile_sampling_packed = shadow_sampling_tile_pack(tile_sampling);
 
-  uvec2 atlas_texel = shadow_tile_coord_in_atlas(uvec2(tile_co), tilemap_index);
-  imageStoreFast(tilemaps_img, ivec2(atlas_texel), uvec4(tile_sampling_packed));
+  uint2 atlas_texel = shadow_tile_coord_in_atlas(uint2(tile_co), tilemap_index);
+  imageStoreFast(tilemaps_img, int2(atlas_texel), uint4(tile_sampling_packed));
 
-  if (all(equal(gl_GlobalInvocationID, uvec3(0)))) {
+  if (all(equal(gl_GlobalInvocationID, uint3(0)))) {
     /* Clamp it as it can underflow if there is too much tile present on screen. */
     pages_infos_buf.page_free_count = max(pages_infos_buf.page_free_count, 0);
   }

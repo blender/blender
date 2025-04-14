@@ -10,7 +10,7 @@
 #define FLT_EPSILON 1.192092896e-07F
 
 void node_composite_bright_contrast(
-    vec4 color, float brightness, float contrast, const float use_premultiply, out vec4 result)
+    float4 color, float brightness, float contrast, const float use_premultiply, out float4 result)
 {
   float scaled_brightness = brightness / 100.0f;
   float delta = contrast / 200.0f;
@@ -27,12 +27,12 @@ void node_composite_bright_contrast(
     offset = multiplier * scaled_brightness + delta;
   }
 
-  vec4 input_color = color;
+  float4 input_color = color;
   if (use_premultiply != 0.0f) {
     color_alpha_unpremultiply(input_color, input_color);
   }
 
-  result = vec4(input_color.rgb * multiplier + offset, input_color.a);
+  result = float4(input_color.rgb * multiplier + offset, input_color.a);
 
   if (use_premultiply != 0.0f) {
     color_alpha_premultiply(result, result);

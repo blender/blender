@@ -24,30 +24,30 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_mesh_vert)
 
 bool test_occlusion()
 {
-  vec3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5f + 0.5f;
-  vec4 depths = textureGather(depthTex, ndc.xy);
-  return all(greaterThan(vec4(ndc.z), depths));
+  float3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5f + 0.5f;
+  float4 depths = textureGather(depthTex, ndc.xy);
+  return all(greaterThan(float4(ndc.z), depths));
 }
 
-vec3 non_linear_blend_color(vec3 col1, vec3 col2, float fac)
+float3 non_linear_blend_color(float3 col1, float3 col2, float fac)
 {
-  col1 = pow(col1, vec3(1.0f / 2.2f));
-  col2 = pow(col2, vec3(1.0f / 2.2f));
-  vec3 col = mix(col1, col2, fac);
-  return pow(col, vec3(2.2f));
+  col1 = pow(col1, float3(1.0f / 2.2f));
+  col2 = pow(col2, float3(1.0f / 2.2f));
+  float3 col = mix(col1, col2, fac);
+  return pow(col, float3(2.2f));
 }
 
 void main()
 {
-  vec3 world_pos = drw_point_object_to_world(pos);
-  vec3 view_pos = drw_point_world_to_view(world_pos);
+  float3 world_pos = drw_point_object_to_world(pos);
+  float3 view_pos = drw_point_world_to_view(world_pos);
   gl_Position = drw_point_view_to_homogenous(view_pos);
 
   /* Offset Z position for retopology overlay. */
   gl_Position.z += get_homogenous_z_offset(
       drw_view().winmat, view_pos.z, gl_Position.w, retopologyOffset);
 
-  uvec4 m_data = data & uvec4(dataMask);
+  uint4 m_data = data & uint4(dataMask);
 
 #if defined(VERT)
   vertexCrease = float(m_data.z >> 4) / 15.0f;
@@ -106,8 +106,9 @@ void main()
 
 #if !defined(FACE)
   /* Facing based color blend */
-  vec3 view_normal = normalize(drw_normal_object_to_view(vnor) + 1e-4f);
-  vec3 view_vec = (drw_view().winmat[3][3] == 0.0f) ? normalize(view_pos) : vec3(0.0f, 0.0f, 1.0f);
+  float3 view_normal = normalize(drw_normal_object_to_view(vnor) + 1e-4f);
+  float3 view_vec = (drw_view().winmat[3][3] == 0.0f) ? normalize(view_pos) :
+                                                        float3(0.0f, 0.0f, 1.0f);
   float facing = dot(view_vec, view_normal);
   facing = 1.0f - abs(facing) * 0.2f;
 

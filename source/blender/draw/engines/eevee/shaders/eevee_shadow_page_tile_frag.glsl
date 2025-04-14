@@ -65,8 +65,8 @@ void main()
       u_depth, ushort2(interp_noperspective.out_texel_xy), interp_flat.out_page_z);
 #  else
   imageStore(shadow_atlas_img,
-             ivec3(interp_noperspective.out_texel_xy, interp_flat.out_page_z),
-             uvec4(u_depth));
+             int3(interp_noperspective.out_texel_xy, interp_flat.out_page_z),
+             uint4(u_depth));
 #  endif
 }
 

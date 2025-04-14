@@ -11,7 +11,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_gpencil_canvas)
 
 void main()
 {
-  vec2 pos;
+  float2 pos;
   pos.x = float(gl_VertexID % 2);
   pos.y = float(gl_VertexID / 2) / float(halfLineCount - 1);
 
@@ -22,7 +22,7 @@ void main()
 
   pos -= 0.5f;
 
-  vec3 world_pos = xAxis * pos.x + yAxis * pos.y + origin;
+  float3 world_pos = xAxis * pos.x + yAxis * pos.y + origin;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
 

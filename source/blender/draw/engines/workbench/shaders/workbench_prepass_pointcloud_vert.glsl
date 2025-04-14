@@ -20,7 +20,7 @@ VERTEX_SHADER_CREATE_INFO(workbench_pointcloud)
 
 void main()
 {
-  vec3 world_pos;
+  float3 world_pos;
   pointcloud_get_pos_and_nor(world_pos, normal_interp);
 
   normal_interp = normalize(drw_normal_world_to_view(normal_interp));
@@ -29,10 +29,10 @@ void main()
 
   view_clipping_distances(world_pos);
 
-  uv_interp = vec2(0.0f);
+  uv_interp = float2(0.0f);
 
   workbench_material_data_get(
-      int(drw_custom_id()), vec3(1.0f), color_interp, alpha_interp, _roughness, metallic);
+      int(drw_custom_id()), float3(1.0f), color_interp, alpha_interp, _roughness, metallic);
 
   object_id = int(uint(drw_resource_id()) & 0xFFFFu) + 1;
 }

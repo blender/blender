@@ -13,6 +13,6 @@ void main()
   float fac = smoothstep(1.0f, 0.2f, colorFac);
   fragColor.rgb = mix(finalInnerColor.rgb, finalWireColor.rgb, fac);
   fragColor.a = alpha;
-  lineOutput = vec4(0.0f);
+  lineOutput = float4(0.0f);
   select_id_output(select_id);
 }

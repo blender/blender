@@ -8,7 +8,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_3D_point_uniform_size_uniform_color_aa)
 
 void main()
 {
-  vec4 pos_4d = vec4(pos, 1.0f);
+  float4 pos_4d = float4(pos, 1.0f);
   gl_Position = ModelViewProjectionMatrix * pos_4d;
   gl_PointSize = size;
 

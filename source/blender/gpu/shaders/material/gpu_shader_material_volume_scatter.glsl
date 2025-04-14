@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_volume_scatter(vec4 color,
+void node_volume_scatter(float4 color,
                          float density,
                          float anisotropy,
                          float IOR,
@@ -12,7 +12,7 @@ void node_volume_scatter(vec4 color,
                          float weight,
                          out Closure result)
 {
-  color = max(color, vec4(0.0f));
+  color = max(color, float4(0.0f));
   density = max(density, 0.0f);
 
   ClosureVolumeScatter volume_scatter_data;

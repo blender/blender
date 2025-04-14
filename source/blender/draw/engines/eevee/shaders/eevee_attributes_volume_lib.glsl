@@ -37,25 +37,25 @@ int g_attr_id = 0;
  * \{ */
 
 #  ifdef GRID_ATTRIBUTES
-vec3 g_lP = vec3(0.0f);
+float3 g_lP = float3(0.0f);
 #  else
-vec3 g_wP = vec3(0.0f);
+float3 g_wP = float3(0.0f);
 #  endif
 
-vec3 grid_coordinates()
+float3 grid_coordinates()
 {
 #  ifdef GRID_ATTRIBUTES
-  vec3 co = (drw_volume.grids_xform[g_attr_id] * vec4(g_lP, 1.0f)).xyz;
+  float3 co = (drw_volume.grids_xform[g_attr_id] * float4(g_lP, 1.0f)).xyz;
 #  else
   /* Only for test shaders. All the runtime shaders require `draw_object_infos` and
    * `draw_volume_infos`. */
-  vec3 co = vec3(0.0f);
+  float3 co = float3(0.0f);
 #  endif
   g_attr_id += 1;
   return co;
 }
 
-vec3 attr_load_orco(sampler3D tex)
+float3 attr_load_orco(sampler3D tex)
 {
   g_attr_id += 1;
 #  ifdef GRID_ATTRIBUTES
@@ -64,20 +64,20 @@ vec3 attr_load_orco(sampler3D tex)
   return g_wP;
 #  endif
 }
-vec4 attr_load_tangent(sampler3D tex)
+float4 attr_load_tangent(sampler3D tex)
 {
   g_attr_id += 1;
-  return vec4(0);
+  return float4(0);
 }
-vec4 attr_load_vec4(sampler3D tex)
+float4 attr_load_vec4(sampler3D tex)
 {
   return texture(tex, grid_coordinates());
 }
-vec3 attr_load_vec3(sampler3D tex)
+float3 attr_load_vec3(sampler3D tex)
 {
   return texture(tex, grid_coordinates()).rgb;
 }
-vec2 attr_load_vec2(sampler3D tex)
+float2 attr_load_vec2(sampler3D tex)
 {
   return texture(tex, grid_coordinates()).rg;
 }
@@ -85,14 +85,14 @@ float attr_load_float(sampler3D tex)
 {
   return texture(tex, grid_coordinates()).r;
 }
-vec4 attr_load_color(sampler3D tex)
+float4 attr_load_color(sampler3D tex)
 {
   return texture(tex, grid_coordinates());
 }
-vec3 attr_load_uv(sampler3D attr)
+float3 attr_load_uv(sampler3D attr)
 {
   g_attr_id += 1;
-  return vec3(0);
+  return float3(0);
 }
 
 /** \} */

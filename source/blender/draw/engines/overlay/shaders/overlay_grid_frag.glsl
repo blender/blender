@@ -33,11 +33,11 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_grid_next)
 #include "draw_view_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-float get_grid(vec2 co, vec2 fwidthCos, vec2 grid_scale)
+float get_grid(float2 co, float2 fwidthCos, float2 grid_scale)
 {
-  vec2 half_size = grid_scale / 2.0f;
+  float2 half_size = grid_scale / 2.0f;
   /* Triangular wave pattern, amplitude is [0, half_size]. */
-  vec2 grid_domain = abs(mod(co + half_size, grid_scale) - half_size);
+  float2 grid_domain = abs(mod(co + half_size, grid_scale) - half_size);
   /* Modulate by the absolute rate of change of the coordinates
    * (make line have the same width under perspective). */
   grid_domain /= fwidthCos;
@@ -46,9 +46,9 @@ float get_grid(vec2 co, vec2 fwidthCos, vec2 grid_scale)
   return GRID_LINE_STEP(line_dist - grid_buf.line_size);
 }
 
-vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
+float3 get_axes(float3 co, float3 fwidthCos, float line_size)
 {
-  vec3 axes_domain = abs(co);
+  float3 axes_domain = abs(co);
   /* Modulate by the absolute rate of change of the coordinates
    * (make line have the same width under perspective). */
   axes_domain /= fwidthCos;
@@ -59,16 +59,16 @@ vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
 
 void main()
 {
-  vec3 P = local_pos * grid_buf.size.xyz;
-  vec3 dFdxPos = dFdx(P);
-  vec3 dFdyPos = dFdy(P);
-  vec3 fwidthPos = abs(dFdxPos) + abs(dFdyPos);
+  float3 P = local_pos * grid_buf.size.xyz;
+  float3 dFdxPos = dFdx(P);
+  float3 dFdyPos = dFdy(P);
+  float3 fwidthPos = abs(dFdxPos) + abs(dFdyPos);
   P += drw_view_position() * plane_axes;
 
   float dist, fade;
   bool is_persp = drw_view().winmat[3][3] == 0.0f;
   if (is_persp) {
-    vec3 V = drw_view_position() - P;
+    float3 V = drw_view_position() - P;
     dist = length(V);
     V /= dist;
 
@@ -146,7 +146,7 @@ void main()
     float blend = 1.0f - linearstep(scale0x + scale0y, scaleAx + scaleAy, grid_res + grid_res);
     blend = blend * blend * blend;
 
-    vec2 grid_pos, grid_fwidth;
+    float2 grid_pos, grid_fwidth;
     if (flag_test(grid_flag, PLANE_XZ)) {
       grid_pos = P.xz;
       grid_fwidth = fwidthPos.xz;
@@ -160,9 +160,9 @@ void main()
       grid_fwidth = fwidthPos.xy;
     }
 
-    float gridA = get_grid(grid_pos, grid_fwidth, vec2(scaleAx, scaleAy));
-    float gridB = get_grid(grid_pos, grid_fwidth, vec2(scaleBx, scaleBy));
-    float gridC = get_grid(grid_pos, grid_fwidth, vec2(scaleCx, scaleCy));
+    float gridA = get_grid(grid_pos, grid_fwidth, float2(scaleAx, scaleAy));
+    float gridB = get_grid(grid_pos, grid_fwidth, float2(scaleBx, scaleBy));
+    float gridC = get_grid(grid_pos, grid_fwidth, float2(scaleCx, scaleCy));
 
     out_color = colorGrid;
     out_color.a *= gridA * blend;
@@ -170,12 +170,12 @@ void main()
     out_color = mix(out_color, colorGridEmphasis, gridC);
   }
   else {
-    out_color = vec4(colorGrid.rgb, 0.0f);
+    out_color = float4(colorGrid.rgb, 0.0f);
   }
 
   if (flag_test(grid_flag, (SHOW_AXIS_X | SHOW_AXIS_Y | SHOW_AXIS_Z))) {
     /* Setup axes 'domains' */
-    vec3 axes_dist, axes_fwidth;
+    float3 axes_dist, axes_fwidth;
 
     if (flag_test(grid_flag, SHOW_AXIS_X)) {
       axes_dist.x = dot(P.yz, plane_axes.yz);
@@ -190,8 +190,8 @@ void main()
       axes_fwidth.z = dot(fwidthPos.xy, plane_axes.xy);
     }
 
-    /* Computing all axes at once using vec3 */
-    vec3 axes = get_axes(axes_dist, axes_fwidth, 0.1f);
+    /* Computing all axes at once using float3 */
+    float3 axes = get_axes(axes_dist, axes_fwidth, 0.1f);
 
     if (flag_test(grid_flag, SHOW_AXIS_X)) {
       out_color.a = max(out_color.a, axes.x);
@@ -207,7 +207,7 @@ void main()
     }
   }
 
-  vec2 uv = gl_FragCoord.xy / vec2(textureSize(depth_tx, 0));
+  float2 uv = gl_FragCoord.xy / float2(textureSize(depth_tx, 0));
   float scene_depth = texture(depth_tx, uv, 0).r;
 
   float scene_depth_infront = texture(depth_infront_tx, uv, 0).r;

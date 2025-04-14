@@ -23,15 +23,15 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_effect_dof_resolve)
 void main()
 {
   /* Full-screen pass. */
-  vec2 pixel_size = 0.5f / vec2(textureSize(halfResColorTex, 0).xy);
-  vec2 uv = gl_FragCoord.xy * pixel_size;
+  float2 pixel_size = 0.5f / float2(textureSize(halfResColorTex, 0).xy);
+  float2 uv = gl_FragCoord.xy * pixel_size;
 
   /* TODO: MAKE SURE TO ALIGN SAMPLE POSITION TO AVOID OFFSET IN THE BOKEH. */
-  float depth = texelFetch(sceneDepthTex, ivec2(gl_FragCoord.xy), 0).r;
+  float depth = texelFetch(sceneDepthTex, int2(gl_FragCoord.xy), 0).r;
   float zdepth = dof_linear_depth(depth);
   float coc = dof_calculate_coc(zdepth);
 
   float blend = smoothstep(1.0f, 3.0f, abs(coc));
   finalColorAdd = texture(halfResColorTex, uv) * blend;
-  finalColorMul = vec4(1.0f - blend);
+  finalColorMul = float4(1.0f - blend);
 }

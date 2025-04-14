@@ -20,14 +20,14 @@ float curvature_soft_clamp(float curvature, float control)
   return 0.25f / control;
 }
 
-void curvature_compute(vec2 uv,
+void curvature_compute(float2 uv,
                        usampler2D objectIdBuffer,
                        sampler2D normalBuffer,
                        out float curvature)
 {
   curvature = 0.0f;
 
-  vec3 offset = vec3(world_data.viewport_size_inv, 0.0f) * world_data.ui_scale;
+  float3 offset = float3(world_data.viewport_size_inv, 0.0f) * world_data.ui_scale;
   uint object_up = texture(objectIdBuffer, uv + offset.zy).r;
   uint object_down = texture(objectIdBuffer, uv - offset.zy).r;
   uint object_right = texture(objectIdBuffer, uv + offset.xz).r;

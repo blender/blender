@@ -15,14 +15,14 @@ COMPUTE_SHADER_CREATE_INFO(eevee_horizon_scan)
 void main()
 {
   const uint tile_size = RAYTRACE_GROUP_SIZE;
-  uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
-  ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
+  uint2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
+  int2 texel = int2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
-  ivec2 texel_fullres = texel * uniform_buf.raytrace.horizon_resolution_scale +
-                        uniform_buf.raytrace.horizon_resolution_bias;
+  int2 texel_fullres = texel * uniform_buf.raytrace.horizon_resolution_scale +
+                       uniform_buf.raytrace.horizon_resolution_bias;
 
   /* Avoid tracing the outside border if dispatch is too big. */
-  ivec2 extent = textureSize(gbuf_header_tx, 0).xy;
+  int2 extent = textureSize(gbuf_header_tx, 0).xy;
   if (any(greaterThanEqual(texel * uniform_buf.raytrace.horizon_resolution_scale, extent))) {
     return;
   }
@@ -32,22 +32,22 @@ void main()
   texel_fullres = min(texel_fullres, extent - 1);
 
   /* Do not trace where nothing was rendered. */
-  if (texelFetch(gbuf_header_tx, ivec3(texel_fullres, 0), 0).r == 0u) {
+  if (texelFetch(gbuf_header_tx, int3(texel_fullres, 0), 0).r == 0u) {
 #if 0 /* This is not needed as the next stage doesn't do bilinear filtering. */
-    imageStore(horizon_radiance_0_img, texel, vec4(0.0f));
-    imageStore(horizon_radiance_1_img, texel, vec4(0.0f));
-    imageStore(horizon_radiance_2_img, texel, vec4(0.0f));
-    imageStore(horizon_radiance_3_img, texel, vec4(0.0f));
+    imageStore(horizon_radiance_0_img, texel, float4(0.0f));
+    imageStore(horizon_radiance_1_img, texel, float4(0.0f));
+    imageStore(horizon_radiance_2_img, texel, float4(0.0f));
+    imageStore(horizon_radiance_3_img, texel, float4(0.0f));
 #endif
     return;
   }
 
-  vec2 uv = (vec2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
+  float2 uv = (float2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
   float depth = texelFetch(hiz_tx, texel_fullres, 0).r;
-  vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
-  vec3 vN = horizon_scan_sample_normal(uv);
+  float3 vP = drw_point_screen_to_view(float3(uv, depth));
+  float3 vN = horizon_scan_sample_normal(uv);
 
-  vec4 noise = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER);
+  float4 noise = utility_tx_fetch(utility_tx, float2(texel), UTIL_BLUE_NOISE_LAYER);
   noise = fract(noise + sampling_rng_3D_get(SAMPLING_AO_U).xyzx);
 
   HorizonScanResult scan = horizon_scan_eval(vP,

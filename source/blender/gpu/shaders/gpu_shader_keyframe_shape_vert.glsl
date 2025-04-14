@@ -16,20 +16,20 @@ bool test(uint bit)
   return (flags & bit) != 0u;
 }
 
-vec2 line_thresholds(float width)
+float2 line_thresholds(float width)
 {
-  return vec2(max(0.0f, width - line_falloff), width);
+  return float2(max(0.0f, width - line_falloff), width);
 }
 
 void main()
 {
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0f, 1.0f);
+  gl_Position = ModelViewProjectionMatrix * float4(pos, 0.0f, 1.0f);
 
   /* Align to pixel grid if the viewport size is known. */
   if (ViewportSize.x > 0) {
-    vec2 scale = ViewportSize * 0.5f;
-    vec2 px_pos = (gl_Position.xy + 1) * scale;
-    vec2 adj_pos = round(px_pos - 0.5f) + 0.5f;
+    float2 scale = ViewportSize * 0.5f;
+    float2 px_pos = (gl_Position.xy + 1) * scale;
+    float2 adj_pos = round(px_pos - 0.5f) + 0.5f;
     gl_Position.xy = adj_pos / scale - 1;
   }
 

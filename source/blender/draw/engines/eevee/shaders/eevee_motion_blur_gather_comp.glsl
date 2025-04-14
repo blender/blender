@@ -26,26 +26,26 @@ COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_gather)
 
 /* Converts uv velocity into pixel space. Assumes velocity_tx is the same resolution as the
  * target post-FX frame-buffer. */
-vec4 motion_blur_sample_velocity(sampler2D velocity_tx, vec2 uv)
+float4 motion_blur_sample_velocity(sampler2D velocity_tx, float2 uv)
 {
   /* We can load velocity without velocity_resolve() since we resolved during the flatten pass. */
-  vec4 velocity = velocity_unpack(texture(velocity_tx, uv));
-  return velocity * vec2(textureSize(velocity_tx, 0)).xyxy * motion_blur_buf.motion_scale.xxyy;
+  float4 velocity = velocity_unpack(texture(velocity_tx, uv));
+  return velocity * float2(textureSize(velocity_tx, 0)).xyxy * motion_blur_buf.motion_scale.xxyy;
 }
 
-vec2 spread_compare(float center_motion_length, float sample_motion_length, float offset_length)
+float2 spread_compare(float center_motion_length, float sample_motion_length, float offset_length)
 {
-  return saturate(vec2(center_motion_length, sample_motion_length) - offset_length + 1.0f);
+  return saturate(float2(center_motion_length, sample_motion_length) - offset_length + 1.0f);
 }
 
-vec2 depth_compare(float center_depth, float sample_depth)
+float2 depth_compare(float center_depth, float sample_depth)
 {
-  vec2 depth_scale = vec2(-motion_blur_buf.depth_scale, motion_blur_buf.depth_scale);
+  float2 depth_scale = float2(-motion_blur_buf.depth_scale, motion_blur_buf.depth_scale);
   return saturate(0.5f + depth_scale * (sample_depth - center_depth));
 }
 
 /* Kill contribution if not going the same direction. */
-float dir_compare(vec2 offset, vec2 sample_motion, float sample_motion_length)
+float dir_compare(float2 offset, float2 sample_motion, float sample_motion_length)
 {
   if (sample_motion_length < 0.5f) {
     return 1.0f;
@@ -54,44 +54,44 @@ float dir_compare(vec2 offset, vec2 sample_motion, float sample_motion_length)
 }
 
 /* Return background (x) and foreground (y) weights. */
-vec2 sample_weights(float center_depth,
-                    float sample_depth,
-                    float center_motion_length,
-                    float sample_motion_length,
-                    float offset_length)
+float2 sample_weights(float center_depth,
+                      float sample_depth,
+                      float center_motion_length,
+                      float sample_motion_length,
+                      float offset_length)
 {
   /* Classify foreground/background. */
-  vec2 depth_weight = depth_compare(center_depth, sample_depth);
+  float2 depth_weight = depth_compare(center_depth, sample_depth);
   /* Weight if sample is overlapping or under the center pixel. */
-  vec2 spread_weight = spread_compare(center_motion_length, sample_motion_length, offset_length);
+  float2 spread_weight = spread_compare(center_motion_length, sample_motion_length, offset_length);
   return depth_weight * spread_weight;
 }
 
 struct Accumulator {
-  vec4 fg;
-  vec4 bg;
+  float4 fg;
+  float4 bg;
   /** x: Background, y: Foreground, z: dir. */
-  vec3 weight;
+  float3 weight;
 };
 
-void gather_sample(vec2 screen_uv,
+void gather_sample(float2 screen_uv,
                    float center_depth,
                    float center_motion_len,
-                   vec2 offset,
+                   float2 offset,
                    float offset_len,
                    const bool next,
                    inout Accumulator accum)
 {
-  vec2 sample_uv = screen_uv - offset * motion_blur_buf.target_size_inv;
-  vec4 sample_vectors = motion_blur_sample_velocity(velocity_tx, sample_uv);
-  vec2 sample_motion = (next) ? sample_vectors.zw : sample_vectors.xy;
+  float2 sample_uv = screen_uv - offset * motion_blur_buf.target_size_inv;
+  float4 sample_vectors = motion_blur_sample_velocity(velocity_tx, sample_uv);
+  float2 sample_motion = (next) ? sample_vectors.zw : sample_vectors.xy;
   float sample_motion_len = length(sample_motion);
   float sample_depth = texture(depth_tx, sample_uv).r;
-  vec4 sample_color = textureLod(in_color_tx, sample_uv, 0.0f);
+  float4 sample_color = textureLod(in_color_tx, sample_uv, 0.0f);
 
   sample_depth = drw_depth_screen_to_view(sample_depth);
 
-  vec3 weights;
+  float3 weights;
   weights.xy = sample_weights(
       center_depth, sample_depth, center_motion_len, sample_motion_len, offset_len);
   weights.z = dir_compare(offset, sample_motion, sample_motion_len);
@@ -102,10 +102,10 @@ void gather_sample(vec2 screen_uv,
   accum.weight += weights;
 }
 
-void gather_blur(vec2 screen_uv,
-                 vec2 center_motion,
+void gather_blur(float2 screen_uv,
+                 float2 center_motion,
                  float center_depth,
-                 vec2 max_motion,
+                 float2 max_motion,
                  float ofs,
                  const bool next,
                  inout Accumulator accum)
@@ -156,8 +156,8 @@ void gather_blur(vec2 screen_uv,
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  vec2 uv = (vec2(texel) + 0.5f) / vec2(textureSize(depth_tx, 0).xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
+  float2 uv = (float2(texel) + 0.5f) / float2(textureSize(depth_tx, 0).xy);
 
   if (!in_texture_range(texel, depth_tx)) {
     return;
@@ -165,35 +165,36 @@ void main()
 
   /* Data of the center pixel of the gather (target). */
   float center_depth = drw_depth_screen_to_view(texelFetch(depth_tx, texel, 0).r);
-  vec4 center_motion = motion_blur_sample_velocity(velocity_tx, uv);
+  float4 center_motion = motion_blur_sample_velocity(velocity_tx, uv);
 
-  vec4 center_color = textureLod(in_color_tx, uv, 0.0f);
+  float4 center_color = textureLod(in_color_tx, uv, 0.0f);
 
   float noise_offset = sampling_rng_1D_get(SAMPLING_TIME);
   /** TODO(fclem) Blue noise. */
-  vec2 rand = vec2(interlieved_gradient_noise(vec2(gl_GlobalInvocationID.xy), 0, noise_offset),
-                   interlieved_gradient_noise(vec2(gl_GlobalInvocationID.xy), 1, noise_offset));
+  float2 rand = float2(
+      interlieved_gradient_noise(float2(gl_GlobalInvocationID.xy), 0, noise_offset),
+      interlieved_gradient_noise(float2(gl_GlobalInvocationID.xy), 1, noise_offset));
 
   /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
    * Note this randomize only in one direction but in practice it's enough. */
   rand.x = rand.x * 2.0f - 1.0f;
-  ivec2 tile = (texel + ivec2(rand.x * float(MOTION_BLUR_TILE_SIZE) * 0.25f)) /
-               MOTION_BLUR_TILE_SIZE;
-  tile = clamp(tile, ivec2(0), imageSize(in_tiles_img) - 1);
+  int2 tile = (texel + int2(rand.x * float(MOTION_BLUR_TILE_SIZE) * 0.25f)) /
+              MOTION_BLUR_TILE_SIZE;
+  tile = clamp(tile, int2(0), imageSize(in_tiles_img) - 1);
   /* NOTE: Tile velocity is already in pixel space and with correct zw sign. */
-  vec4 max_motion;
+  float4 max_motion;
   /* Load dilation result from the indirection table. */
-  ivec2 tile_prev;
-  motion_blur_tile_indirection_load(tile_indirection_buf, MOTION_PREV, uvec2(tile), tile_prev);
+  int2 tile_prev;
+  motion_blur_tile_indirection_load(tile_indirection_buf, MOTION_PREV, uint2(tile), tile_prev);
   max_motion.xy = imageLoad(in_tiles_img, tile_prev).xy;
-  ivec2 tile_next;
-  motion_blur_tile_indirection_load(tile_indirection_buf, MOTION_NEXT, uvec2(tile), tile_next);
+  int2 tile_next;
+  motion_blur_tile_indirection_load(tile_indirection_buf, MOTION_NEXT, uint2(tile), tile_next);
   max_motion.zw = imageLoad(in_tiles_img, tile_next).zw;
 
   Accumulator accum;
-  accum.weight = vec3(0.0f, 0.0f, 1.0f);
-  accum.bg = vec4(0.0f);
-  accum.fg = vec4(0.0f);
+  accum.weight = float3(0.0f, 0.0f, 1.0f);
+  accum.bg = float4(0.0f);
+  accum.fg = float4(0.0f);
   /* First linear gather. time = [T - delta, T] */
   gather_blur(uv, center_motion.xy, center_depth, max_motion.xy, rand.y, false, accum);
   /* Second linear gather. time = [T, T + delta] */
@@ -216,7 +217,7 @@ void main()
   /* Balance accumulation for failed samples.
    * We replace the missing foreground by the background. */
   float blend_fac = saturate(1.0f - accum.weight.y / accum.weight.z);
-  vec4 out_color = (accum.fg / accum.weight.z) + center_color * blend_fac;
+  float4 out_color = (accum.fg / accum.weight.z) + center_color * blend_fac;
 
 #if 0 /* For debugging. */
   out_color.rgb = out_color.ggg;

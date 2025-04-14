@@ -30,9 +30,9 @@ void main()
   Surfel surfel = surfel_buf[index];
 
   /* There is no view dependent effect as we evaluate everything using diffuse. */
-  vec3 V = surfel.normal;
-  vec3 Ng = surfel.normal;
-  vec3 P = surfel.position;
+  float3 V = surfel.normal;
+  float3 Ng = surfel.normal;
+  float3 P = surfel.position;
 
   ClosureLightStack stack;
 

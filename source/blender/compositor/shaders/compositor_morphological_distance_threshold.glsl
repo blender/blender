@@ -53,8 +53,8 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 image_size = texture_size(input_tx);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
+  int2 image_size = texture_size(input_tx);
 
   /* Apply a threshold operation on the center pixel, where the threshold is currently hard-coded
    * at 0.5. The pixels with values larger than the threshold are said to be masked. */
@@ -66,15 +66,15 @@ void main()
 
   /* Compute the start and end bounds of the window such that no out-of-bounds processing happen in
    * the loops. */
-  ivec2 start = max(texel - radius, ivec2(0)) - texel;
-  ivec2 end = min(texel + radius + 1, image_size) - texel;
+  int2 start = max(texel - radius, int2(0)) - texel;
+  int2 end = min(texel + radius + 1, image_size) - texel;
 
   /* Find the squared distance to the nearest different pixel in the search window of the given
    * radius. */
   for (int y = start.y; y < end.y; y++) {
     int yy = y * y;
     for (int x = start.x; x < end.x; x++) {
-      bool is_sample_masked = texture_load(input_tx, texel + ivec2(x, y)).x > 0.5f;
+      bool is_sample_masked = texture_load(input_tx, texel + int2(x, y)).x > 0.5f;
       if (is_center_masked != is_sample_masked) {
         minimum_squared_distance = min(minimum_squared_distance, x * x + yy);
       }
@@ -90,5 +90,5 @@ void main()
    * then clamp to the [0, 1] range. */
   float value = clamp((signed_minimum_distance + distance) / inset, 0.0f, 1.0f);
 
-  imageStore(output_img, texel, vec4(value));
+  imageStore(output_img, texel, float4(value));
 }

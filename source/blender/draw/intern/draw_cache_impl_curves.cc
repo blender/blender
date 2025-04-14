@@ -602,8 +602,8 @@ static void ensure_control_point_attribute(const Curves &curves,
   const bke::AttributeAccessor attributes = curves.geometry.wrap().attributes();
 
   /* TODO(@kevindietrich): float4 is used for scalar attributes as the implicit conversion done
-   * by OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following
-   * the Blender convention, it should be `vec4(s, s, s, 1)`. This could be resolved using a
+   * by OpenGL to float4 for a scalar `s` will produce a `float4(s, 0, 0, 1)`. However, following
+   * the Blender convention, it should be `float4(s, s, s, 1)`. This could be resolved using a
    * similar texture state swizzle to map the attribute correctly as for volume attributes, so we
    * can control the conversion ourselves. */
   bke::AttributeReader<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
@@ -623,7 +623,7 @@ static void ensure_final_attribute(const Curves &curves,
   drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
 
   GPUVertFormat format = {0};
-  /* All attributes use vec4, see comment below. */
+  /* All attributes use float4, see comment below. */
   GPU_vertformat_attr_add(&format, sampler_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   ensure_control_point_attribute(curves, cache, request, index, format);

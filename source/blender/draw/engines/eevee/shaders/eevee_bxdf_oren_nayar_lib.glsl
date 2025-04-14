@@ -18,12 +18,12 @@
  *
  * \return pdf: the pdf of sampling the reflected/refracted ray. 0 if ray is invalid.
  */
-BsdfSample bxdf_oren_nayar_sample(vec3 random_point_cos_hemisphere)
+BsdfSample bxdf_oren_nayar_sample(float3 random_point_cos_hemisphere)
 {
   /* Bias the rays so we never get really high energy rays almost parallel to the surface.
    * Also reduces shadow terminator artifacts. */
   const float bias = 0.05f;
-  random_point_cos_hemisphere = normalize(random_point_cos_hemisphere + vec3(0.0f, 0.0f, bias));
+  random_point_cos_hemisphere = normalize(random_point_cos_hemisphere + float3(0.0f, 0.0f, bias));
 
   float cos_theta = random_point_cos_hemisphere.z;
   BsdfSample samp;
@@ -51,7 +51,7 @@ Spectrum bsdf_oren_nayar_get_intensity(ShaderClosure *sc, float3 n, float3 v, fl
   return NL * (make_spectrum(single_scatter) + multi_scatter);
 }
 
-BsdfEval bxdf_oren_nayar_eval(vec3 N, vec3 L)
+BsdfEval bxdf_oren_nayar_eval(float3 N, float3 L)
 {
   BsdfEval eval;
   eval.throughput = eval.pdf = saturate(dot(N, L));
@@ -63,7 +63,7 @@ float bxdf_oren_nayar_perceived_roughness()
   return 1.0f;
 }
 
-LightProbeRay bxdf_oren_nayar_lightprobe(vec3 N)
+LightProbeRay bxdf_oren_nayar_lightprobe(float3 N)
 {
   LightProbeRay probe;
   probe.perceptual_roughness = bxdf_oren_nayar_perceived_roughness();
@@ -77,7 +77,8 @@ ClosureLight bxdf_oren_nayar_light(ClosureUndetermined cl)
 {
   ClosureLight light;
   /* TODO(fclem): LTC fit. */
-  light.ltc_mat = vec4(1.0f, 0.0f, 0.0f, 1.0f); /* No transform, just plain cosine distribution. */
+  light.ltc_mat = float4(
+      1.0f, 0.0f, 0.0f, 1.0f); /* No transform, just plain cosine distribution. */
   light.N = cl.N;
   light.type = LIGHT_DIFFUSE;
   return light;

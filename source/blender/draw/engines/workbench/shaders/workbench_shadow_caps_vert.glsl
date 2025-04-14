@@ -48,12 +48,12 @@ void emit_cap(bool front,
 
 void geometry_main(VertOut geom_in[3], uint out_vertex_id, uint out_invocation_id)
 {
-  vec3 v10 = geom_in[0].lP - geom_in[1].lP;
-  vec3 v12 = geom_in[2].lP - geom_in[1].lP;
+  float3 v10 = geom_in[0].lP - geom_in[1].lP;
+  float3 v12 = geom_in[2].lP - geom_in[1].lP;
 
-  vec3 Ng = cross(v12, v10);
+  float3 Ng = cross(v12, v10);
 
-  vec3 ls_light_direction = drw_normal_world_to_object(vec3(pass_data.light_direction_ws));
+  float3 ls_light_direction = drw_normal_world_to_object(float3(pass_data.light_direction_ws));
 
   float facing = dot(Ng, ls_light_direction);
 
@@ -107,6 +107,6 @@ void main()
   vert_out[2] = vertex_main(vert_in[2]);
 
   /* Discard by default. */
-  gl_Position = vec4(NAN_FLT);
+  gl_Position = float4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_invocation_id);
 }

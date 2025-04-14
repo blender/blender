@@ -12,10 +12,10 @@ VERTEX_SHADER_CREATE_INFO(overlay_sculpt_curves_cage)
 
 void main()
 {
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  finalColor = vec4(selection);
+  finalColor = float4(selection);
   finalColor.a *= opacity;
 
   /* Convert to screen position [0..sizeVp]. */

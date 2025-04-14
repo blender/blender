@@ -22,42 +22,42 @@
 #define DRW_BASE_FROM_SET (1 << 3)
 #define DRW_BASE_ACTIVE (1 << 4)
 
-mat4 extract_matrix_packed_data(mat4 mat, out vec4 dataA, out vec4 dataB)
+float4x4 extract_matrix_packed_data(float4x4 mat, out float4 dataA, out float4 dataB)
 {
   const float div = 1.0f / 255.0f;
   int a = int(mat[0][3]);
   int b = int(mat[1][3]);
   int c = int(mat[2][3]);
   int d = int(mat[3][3]);
-  dataA = vec4(a & 0xFF, a >> 8, b & 0xFF, b >> 8) * div;
-  dataB = vec4(c & 0xFF, c >> 8, d & 0xFF, d >> 8) * div;
+  dataA = float4(a & 0xFF, a >> 8, b & 0xFF, b >> 8) * div;
+  dataB = float4(c & 0xFF, c >> 8, d & 0xFF, d >> 8) * div;
   mat[0][3] = mat[1][3] = mat[2][3] = 0.0f;
   mat[3][3] = 1.0f;
   return mat;
 }
 
 /* edge_start and edge_pos needs to be in the range [0..sizeViewport]. */
-vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
+float4 pack_line_data(float2 frag_co, float2 edge_start, float2 edge_pos)
 {
-  vec2 edge = edge_start - edge_pos;
+  float2 edge = edge_start - edge_pos;
   float len = length(edge);
   if (len > 0.0f) {
     edge /= len;
-    vec2 perp = vec2(-edge.y, edge.x);
+    float2 perp = float2(-edge.y, edge.x);
     float dist = dot(perp, frag_co - edge_start);
     /* Add 0.1f to differentiate with cleared pixels. */
-    return vec4(perp * 0.5f + 0.5f, dist * 0.25f + 0.5f + 0.1f, 1.0f);
+    return float4(perp * 0.5f + 0.5f, dist * 0.25f + 0.5f + 0.1f, 1.0f);
   }
   else {
     /* Default line if the origin is perfectly aligned with a pixel. */
-    return vec4(1.0f, 0.0f, 0.5f + 0.1f, 1.0f);
+    return float4(1.0f, 0.0f, 0.5f + 0.1f, 1.0f);
   }
 }
 
 /* View-space Z is used to adjust for perspective projection.
  * Homogenous W is used to convert from NDC to homogenous space.
  * Offset is in view-space, so positive values are closer to the camera. */
-float get_homogenous_z_offset(mat4x4 winmat, float vs_z, float hs_w, float vs_offset)
+float get_homogenous_z_offset(float4x4 winmat, float vs_z, float hs_w, float vs_offset)
 {
   if (vs_offset == 0.0f) {
     /* Don't calculate homogenous offset if view-space offset is zero. */
@@ -75,9 +75,9 @@ float get_homogenous_z_offset(mat4x4 winmat, float vs_z, float hs_w, float vs_of
   }
 }
 
-float mul_project_m4_v3_zfac(float pixel_fac, vec3 co)
+float mul_project_m4_v3_zfac(float pixel_fac, float3 co)
 {
-  vec3 vP = drw_point_world_to_view(co).xyz;
+  float3 vP = drw_point_world_to_view(co).xyz;
   float4x4 winmat = drw_view().winmat;
   return pixel_fac *
          (winmat[0][3] * vP.x + winmat[1][3] * vP.y + winmat[2][3] * vP.z + winmat[3][3]);

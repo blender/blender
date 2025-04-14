@@ -13,10 +13,10 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_particle_point)
 #define no_active_weight 666.0f
 
 #define DISCARD_VERTEX \
-  gl_Position = vec4(0.0f, 0.0f, -3e36f, 0.0f); \
+  gl_Position = float4(0.0f, 0.0f, -3e36f, 0.0f); \
   return;
 
-vec3 weight_to_rgb(float t)
+float3 weight_to_rgb(float t)
 {
   if (t == no_active_weight) {
     /* No weight. */
@@ -24,7 +24,7 @@ vec3 weight_to_rgb(float t)
   }
   if (t > 1.0f || t < 0.0f) {
     /* Error color */
-    return vec3(1.0f, 0.0f, 1.0f);
+    return float3(1.0f, 0.0f, 1.0f);
   }
   else {
     return texture(weightTex, t).rgb;
@@ -44,16 +44,16 @@ void main()
   }
 #endif
 
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
   float end_point_size_factor = 1.0f;
 
   if (useWeight) {
-    finalColor = vec4(weight_to_rgb(selection), 1.0f);
+    finalColor = float4(weight_to_rgb(selection), 1.0f);
   }
   else {
-    vec4 color_selected = useGreasePencil ? colorGpencilVertexSelect : colorVertexSelect;
-    vec4 color_not_selected = useGreasePencil ? colorGpencilVertex : colorVertex;
+    float4 color_selected = useGreasePencil ? colorGpencilVertexSelect : colorVertexSelect;
+    float4 color_not_selected = useGreasePencil ? colorGpencilVertex : colorVertex;
     finalColor = mix(color_not_selected, color_selected, selection);
 
 #if 1 /* Should be checking CURVES_POINT */
@@ -63,11 +63,11 @@ void main()
 
       if (is_stroke_start) {
         end_point_size_factor *= 2.0f;
-        finalColor.rgb = vec3(0.0f, 1.0f, 0.0f);
+        finalColor.rgb = float3(0.0f, 1.0f, 0.0f);
       }
       else if (is_stroke_end) {
         end_point_size_factor *= 1.5f;
-        finalColor.rgb = vec3(1.0f, 0.0f, 0.0f);
+        finalColor.rgb = float3(1.0f, 0.0f, 0.0f);
       }
     }
 #endif

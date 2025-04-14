@@ -24,9 +24,9 @@ SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 
 /* Per froxel jitter to break slices and flickering.
  * Wrapped so that changing it is easier. */
-float volume_froxel_jitter(ivec2 froxel, float offset)
+float volume_froxel_jitter(int2 froxel, float offset)
 {
-  return interlieved_gradient_noise(vec2(froxel), 0.0f, offset);
+  return interlieved_gradient_noise(float2(froxel), 0.0f, offset);
 }
 
 /* Volume froxel texture normalized linear Z to view space Z.
@@ -68,38 +68,38 @@ float view_z_to_volume_z(float depth)
 }
 
 /* Jittered volume texture normalized coordinates to view space position. */
-vec3 volume_jitter_to_view(vec3 coord)
+float3 volume_jitter_to_view(float3 coord)
 {
   /* Since we use an infinite projection matrix for rendering inside the jittered volumes,
    * we need to use a different matrix to reconstruct positions as the infinite matrix is not
    * always invertible. */
-  mat4x4 winmat = uniform_buf.volumes.winmat_finite;
-  mat4x4 wininv = uniform_buf.volumes.wininv_finite;
+  float4x4 winmat = uniform_buf.volumes.winmat_finite;
+  float4x4 wininv = uniform_buf.volumes.wininv_finite;
   /* Input coordinates are in jittered volume texture space. */
   float view_z = volume_z_to_view_z(coord.z);
   /* We need to recover the NDC position for correct perspective divide. */
-  float ndc_z = drw_perspective_divide(winmat * vec4(0.0f, 0.0f, view_z, 1.0f)).z;
-  vec2 ndc_xy = drw_screen_to_ndc(coord.xy);
+  float ndc_z = drw_perspective_divide(winmat * float4(0.0f, 0.0f, view_z, 1.0f)).z;
+  float2 ndc_xy = drw_screen_to_ndc(coord.xy);
   /* NDC to view. */
-  return drw_perspective_divide(wininv * vec4(ndc_xy, ndc_z, 1.0f)).xyz;
+  return drw_perspective_divide(wininv * float4(ndc_xy, ndc_z, 1.0f)).xyz;
 }
 
 /* View space position to jittered volume texture normalized coordinates. */
-vec3 volume_view_to_jitter(vec3 vP)
+float3 volume_view_to_jitter(float3 vP)
 {
   /* Since we use an infinite projection matrix for rendering inside the jittered volumes,
    * we need to use a different matrix to reconstruct positions as the infinite matrix is not
    * always invertible. */
-  mat4x4 winmat = uniform_buf.volumes.winmat_finite;
+  float4x4 winmat = uniform_buf.volumes.winmat_finite;
   /* View to ndc. */
-  vec3 ndc_P = drw_perspective_divide(winmat * vec4(vP, 1.0f));
+  float3 ndc_P = drw_perspective_divide(winmat * float4(vP, 1.0f));
   /* Here, screen is the same as volume texture UVW space. */
-  return vec3(drw_ndc_to_screen(ndc_P.xy), view_z_to_volume_z(vP.z));
+  return float3(drw_ndc_to_screen(ndc_P.xy), view_z_to_volume_z(vP.z));
 }
 
 /* Volume texture normalized coordinates (UVW) to render screen (UV).
  * Expect active view to be the main view. */
-vec3 volume_resolve_to_screen(vec3 coord)
+float3 volume_resolve_to_screen(float3 coord)
 {
   coord.z = volume_z_to_view_z(coord.z);
   coord.z = drw_depth_view_to_screen(coord.z);
@@ -108,7 +108,7 @@ vec3 volume_resolve_to_screen(vec3 coord)
 }
 /* Render screen (UV) to volume texture normalized coordinates (UVW).
  * Expect active view to be the main view. */
-vec3 volume_screen_to_resolve(vec3 coord)
+float3 volume_screen_to_resolve(float3 coord)
 {
   coord.xy *= uniform_buf.volumes.coord_scale;
   coord.z = drw_depth_screen_to_view(coord.z);
@@ -117,33 +117,33 @@ vec3 volume_screen_to_resolve(vec3 coord)
 }
 
 /* Returns the uvw (normalized coordinate) of a froxel in the previous frame.
- * Returns vec3(-1) if history is unavailable. */
-vec3 volume_history_uvw_get(ivec3 froxel)
+ * Returns float3(-1) if history is unavailable. */
+float3 volume_history_uvw_get(int3 froxel)
 {
-  mat4x4 wininv = uniform_buf.volumes.wininv_stable;
-  mat4x4 winmat = uniform_buf.volumes.winmat_stable;
+  float4x4 wininv = uniform_buf.volumes.wininv_stable;
+  float4x4 winmat = uniform_buf.volumes.winmat_stable;
   /* We can't reproject by a simple matrix multiplication. We first need to remap to the view Z,
    * then transform, then remap back to Volume range. */
-  vec3 uvw = (vec3(froxel) + 0.5f) * uniform_buf.volumes.inv_tex_size;
-  vec3 ndc_P = drw_screen_to_ndc(uvw);
+  float3 uvw = (float3(froxel) + 0.5f) * uniform_buf.volumes.inv_tex_size;
+  float3 ndc_P = drw_screen_to_ndc(uvw);
   /* We need to recover the NDC position for correct perspective divide. */
   float view_z = volume_z_to_view_z(uvw.z);
-  ndc_P.z = drw_perspective_divide(winmat * vec4(0.0f, 0.0f, view_z, 1.0f)).z;
+  ndc_P.z = drw_perspective_divide(winmat * float4(0.0f, 0.0f, view_z, 1.0f)).z;
   /* NDC to view. */
-  vec3 vs_P = project_point(wininv, ndc_P);
+  float3 vs_P = project_point(wininv, ndc_P);
 
   /* Transform to previous camera view space. */
-  vec3 vs_P_history = transform_point(uniform_buf.volumes.curr_view_to_past_view, vs_P);
+  float3 vs_P_history = transform_point(uniform_buf.volumes.curr_view_to_past_view, vs_P);
 
   /* View to NDC. */
-  vec4 hs_P_history = uniform_buf.volumes.history_winmat_stable * vec4(vs_P_history, 1.0f);
-  vec3 ndc_P_history = drw_perspective_divide(hs_P_history);
+  float4 hs_P_history = uniform_buf.volumes.history_winmat_stable * float4(vs_P_history, 1.0f);
+  float3 ndc_P_history = drw_perspective_divide(hs_P_history);
 
-  if (hs_P_history.w < 0.0f || any(greaterThan(abs(ndc_P_history.xy), vec2(1.0f)))) {
-    return vec3(-1.0f);
+  if (hs_P_history.w < 0.0f || any(greaterThan(abs(ndc_P_history.xy), float2(1.0f)))) {
+    return float3(-1.0f);
   }
 
-  vec3 uvw_history;
+  float3 uvw_history;
   uvw_history.xy = drw_ndc_to_screen(ndc_P_history.xy);
   uvw_history.z = view_z_to_volume_z(vs_P_history.z,
                                      uniform_buf.volumes.history_depth_near,
@@ -151,7 +151,7 @@ vec3 volume_history_uvw_get(ivec3 froxel)
                                      uniform_buf.volumes.history_depth_distribution);
 
   if (uvw_history.z < 0.0f || uvw_history.z > 1.0f) {
-    return vec3(-1.0f);
+    return float3(-1.0f);
   }
   return uvw_history;
 }
@@ -161,7 +161,7 @@ float volume_phase_function_isotropic()
   return 1.0f / (4.0f * M_PI);
 }
 
-float volume_phase_function(vec3 V, vec3 L, float g)
+float volume_phase_function(float3 V, float3 L, float g)
 {
   /* Henyey-Greenstein. */
   float cos_theta = dot(V, L);
@@ -170,7 +170,7 @@ float volume_phase_function(vec3 V, vec3 L, float g)
   return (1 - sqr_g) / max(1e-8f, 4.0f * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0f / 2.0f));
 }
 
-SphericalHarmonicL1 volume_phase_function_as_sh_L1(vec3 V, float g)
+SphericalHarmonicL1 volume_phase_function_as_sh_L1(float3 V, float g)
 {
   /* Compute rotated zonal harmonic.
    * From Bartlomiej Wronsky
@@ -179,14 +179,14 @@ SphericalHarmonicL1 volume_phase_function_as_sh_L1(vec3 V, float g)
    * https://bartwronski.files.wordpress.com/2014/08/bwronski_volumetric_fog_siggraph2014.pdf
    */
   SphericalHarmonicL1 sh;
-  sh.L0.M0 = spherical_harmonics_L0_M0(V) * vec4(1.0f);
-  sh.L1.Mn1 = spherical_harmonics_L1_Mn1(V) * vec4(g);
-  sh.L1.M0 = spherical_harmonics_L1_M0(V) * vec4(g);
-  sh.L1.Mp1 = spherical_harmonics_L1_Mp1(V) * vec4(g);
+  sh.L0.M0 = spherical_harmonics_L0_M0(V) * float4(1.0f);
+  sh.L1.Mn1 = spherical_harmonics_L1_Mn1(V) * float4(g);
+  sh.L1.M0 = spherical_harmonics_L1_M0(V) * float4(g);
+  sh.L1.Mp1 = spherical_harmonics_L1_Mp1(V) * float4(g);
   return sh;
 }
 
-vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
+float3 volume_light(LightData light, const bool is_directional, LightVector lv)
 {
   float power = 1.0f;
   if (!is_directional) {
@@ -213,24 +213,24 @@ vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
 
 #define VOLUMETRIC_SHADOW_MAX_STEP 128.0f
 
-vec3 volume_shadow(
-    LightData ld, const bool is_directional, vec3 P, LightVector lv, sampler3D extinction_tx)
+float3 volume_shadow(
+    LightData ld, const bool is_directional, float3 P, LightVector lv, sampler3D extinction_tx)
 {
 #if defined(VOLUME_SHADOW)
   if (uniform_buf.volumes.shadow_steps == 0) {
-    return vec3(1.0f);
+    return float3(1.0f);
   }
 
   /* Heterogeneous volume shadows. */
   float dd = lv.dist / uniform_buf.volumes.shadow_steps;
-  vec3 L = lv.L * lv.dist / uniform_buf.volumes.shadow_steps;
+  float3 L = lv.L * lv.dist / uniform_buf.volumes.shadow_steps;
 
   if (is_directional) {
     /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
-    vec3 ndcP = drw_point_world_to_ndc(P);
-    vec3 ndcL = drw_point_world_to_ndc(P + lv.L * lv.dist) - ndcP;
+    float3 ndcP = drw_point_world_to_ndc(P);
+    float3 ndcL = drw_point_world_to_ndc(P + lv.L * lv.dist) - ndcP;
 
-    vec3 ndc_frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
+    float3 ndc_frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
 
     L = drw_point_ndc_to_world(ndc_frustum_isect) - P;
     L /= uniform_buf.volumes.shadow_steps;
@@ -238,33 +238,35 @@ vec3 volume_shadow(
   }
 
   /* TODO use shadow maps instead. */
-  vec3 shadow = vec3(1.0f);
+  float3 shadow = float3(1.0f);
   for (float t = 1.0f; t < VOLUMETRIC_SHADOW_MAX_STEP && t <= uniform_buf.volumes.shadow_steps;
        t += 1.0f)
   {
-    vec3 w_pos = P + L * t;
+    float3 w_pos = P + L * t;
 
-    vec3 v_pos = drw_point_world_to_view(w_pos);
-    vec3 volume_co = volume_view_to_jitter(v_pos);
+    float3 v_pos = drw_point_world_to_view(w_pos);
+    float3 volume_co = volume_view_to_jitter(v_pos);
     /* Let the texture be clamped to edge. This reduce visual glitches. */
-    vec3 s_extinction = texture(extinction_tx, volume_co).rgb;
+    float3 s_extinction = texture(extinction_tx, volume_co).rgb;
 
     shadow *= exp(-s_extinction * dd);
   }
   return shadow;
 #else
-  return vec3(1.0f);
+  return float3(1.0f);
 #endif /* VOLUME_SHADOW */
 }
 
 struct VolumeResolveSample {
-  vec3 transmittance;
-  vec3 scattering;
+  float3 transmittance;
+  float3 scattering;
 };
 
-VolumeResolveSample volume_resolve(vec3 ndc_P, sampler3D transmittance_tx, sampler3D scattering_tx)
+VolumeResolveSample volume_resolve(float3 ndc_P,
+                                   sampler3D transmittance_tx,
+                                   sampler3D scattering_tx)
 {
-  vec3 coord = volume_screen_to_resolve(ndc_P);
+  float3 coord = volume_screen_to_resolve(ndc_P);
 
   /* Volumes objects have the same aliasing problems has shadow maps.
    * To fix this we need a quantization bias (the size of a step in Z) and a slope bias

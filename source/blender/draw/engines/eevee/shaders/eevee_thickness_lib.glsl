@@ -8,9 +8,9 @@
 
 struct ThicknessIsect {
   /* Normal at the intersection point on the sphere. */
-  vec3 hit_N;
+  float3 hit_N;
   /* Position of the intersection point on the sphere. */
-  vec3 hit_P;
+  float3 hit_P;
 };
 
 /**
@@ -19,7 +19,7 @@ struct ThicknessIsect {
  * Assumes N and L are normalized.
  * Everything is relative to the entrance shading point.
  */
-ThicknessIsect thickness_sphere_intersect(float diameter, vec3 N, vec3 L)
+ThicknessIsect thickness_sphere_intersect(float diameter, float3 N, float3 L)
 {
   ThicknessIsect isect;
   float cos_alpha = dot(L, -N);
@@ -34,7 +34,7 @@ ThicknessIsect thickness_sphere_intersect(float diameter, vec3 N, vec3 L)
  * Assumes N and L are normalized.
  * Everything is relative to the entrance shading point.
  */
-ThicknessIsect thickness_plane_intersect(float plane_distance, vec3 N, vec3 L)
+ThicknessIsect thickness_plane_intersect(float plane_distance, float3 N, float3 L)
 {
   ThicknessIsect isect;
   float distance_from_shading_plane = dot(L, -N);
@@ -43,7 +43,7 @@ ThicknessIsect thickness_plane_intersect(float plane_distance, vec3 N, vec3 L)
   return isect;
 }
 
-ThicknessIsect thickness_shape_intersect(float thickness, vec3 N, vec3 L)
+ThicknessIsect thickness_shape_intersect(float thickness, float3 N, float3 L)
 {
   if (thickness < 0.0f) {
     return thickness_plane_intersect(-thickness, N, L);

@@ -31,10 +31,10 @@ SHADER_LIBRARY_CREATE_INFO(draw_hair)
  * \{ */
 
 #  ifdef OBINFO_LIB
-vec3 attr_load_orco(vec4 orco)
+float3 attr_load_orco(float4 orco)
 {
-  vec3 P = hair_get_strand_pos();
-  vec3 lP = transform_point(drw_modelinv(), P);
+  float3 P = hair_get_strand_pos();
+  float3 lP = transform_point(drw_modelinv(), P);
   return drw_object_orco(lP);
 }
 #  endif
@@ -56,28 +56,28 @@ int curves_attribute_element_id()
   return id;
 }
 
-vec4 attr_load_tangent(samplerBuffer cd_buf)
+float4 attr_load_tangent(samplerBuffer cd_buf)
 {
   /* Not supported for the moment. */
-  return vec4(0.0f, 0.0f, 0.0f, 1.0f);
+  return float4(0.0f, 0.0f, 0.0f, 1.0f);
 }
-vec3 attr_load_uv(samplerBuffer cd_buf)
+float3 attr_load_uv(samplerBuffer cd_buf)
 {
   return texelFetch(cd_buf, curve_interp_flat.strand_id).rgb;
 }
-vec4 attr_load_color(samplerBuffer cd_buf)
+float4 attr_load_color(samplerBuffer cd_buf)
 {
   return texelFetch(cd_buf, curve_interp_flat.strand_id).rgba;
 }
-vec4 attr_load_vec4(samplerBuffer cd_buf)
+float4 attr_load_vec4(samplerBuffer cd_buf)
 {
   return texelFetch(cd_buf, curves_attribute_element_id()).rgba;
 }
-vec3 attr_load_vec3(samplerBuffer cd_buf)
+float3 attr_load_vec3(samplerBuffer cd_buf)
 {
   return texelFetch(cd_buf, curves_attribute_element_id()).rgb;
 }
-vec2 attr_load_vec2(samplerBuffer cd_buf)
+float2 attr_load_vec2(samplerBuffer cd_buf)
 {
   return texelFetch(cd_buf, curves_attribute_element_id()).rg;
 }

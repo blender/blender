@@ -7,15 +7,15 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 image_size = texture_size(input_tx);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
+  int2 image_size = texture_size(input_tx);
 
   int radius_squared = radius * radius;
 
   /* Compute the start and end bounds of the window such that no out-of-bounds processing happen
    * in the loops. */
-  ivec2 start = max(texel - radius, int2(0)) - texel;
-  ivec2 end = min(texel + radius + 1, image_size) - texel;
+  int2 start = max(texel - radius, int2(0)) - texel;
+  int2 end = min(texel + radius + 1, image_size) - texel;
 
   /* Find the minimum/maximum value in the circular window of the given radius around the pixel. By
    * circular window, we mean that pixels in the window whose distance to the center of window is
@@ -30,9 +30,9 @@ void main()
       if (x * x + yy > radius_squared) {
         continue;
       }
-      value = OPERATOR(value, texture_load(input_tx, texel + ivec2(x, y)).x);
+      value = OPERATOR(value, texture_load(input_tx, texel + int2(x, y)).x);
     }
   }
 
-  imageStore(output_img, texel, vec4(value));
+  imageStore(output_img, texel, float4(value));
 }

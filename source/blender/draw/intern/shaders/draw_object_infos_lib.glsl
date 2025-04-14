@@ -32,13 +32,13 @@ ObjectInfos drw_object_infos()
 /* Convert local coordinates to "Original coordinates" for texture mapping.
  * This is supposed to only be used if there is no modifier that distort the object.
  * Otherwise, a geometry attribute should be used instead. */
-vec3 drw_object_orco(vec3 lP)
+float3 drw_object_orco(float3 lP)
 {
   ObjectInfos info = drw_object_infos();
   return info.orco_add + lP * info.orco_mul;
 }
 
-vec4 drw_object_attribute(const uint attr_hash)
+float4 drw_object_attribute(const uint attr_hash)
 {
 #if defined(OBATTR_LIB)
   ObjectInfos infos = drw_object_infos();
@@ -46,9 +46,9 @@ vec4 drw_object_attribute(const uint attr_hash)
   for (uint i = 0; i < infos.object_attrs_len; i++, index++) {
     ObjectAttribute attr = drw_attrs[index];
     if (attr.hash_code == attr_hash) {
-      return vec4(attr.data_x, attr.data_y, attr.data_z, attr.data_w);
+      return float4(attr.data_x, attr.data_y, attr.data_z, attr.data_w);
     }
   }
 #endif
-  return vec4(0.0f);
+  return float4(0.0f);
 }

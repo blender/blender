@@ -93,7 +93,7 @@ VERTEX_SOURCE("overlay_extra_groundline_vert.glsl")
 FRAGMENT_SOURCE("overlay_extra_frag.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
-STORAGE_BUF(0, READ, vec4, data_buf[])
+STORAGE_BUF(0, READ, float4, data_buf[])
 GPU_SHADER_CREATE_END()
 
 OVERLAY_INFO_VARIATIONS(overlay_extra_groundline)

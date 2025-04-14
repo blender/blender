@@ -5,7 +5,7 @@
 #include "gpu_shader_common_color_utils.glsl"
 
 void node_composite_distance_matte_rgba(
-    vec4 color, vec4 key, float tolerance, float falloff, out vec4 result, out float matte)
+    float4 color, float4 key, float tolerance, float falloff, out float4 result, out float matte)
 {
   float difference = distance(color.rgb, key.rgb);
   bool is_opaque = difference > tolerance + falloff;
@@ -15,11 +15,11 @@ void node_composite_distance_matte_rgba(
 }
 
 void node_composite_distance_matte_ycca(
-    vec4 color, vec4 key, float tolerance, float falloff, out vec4 result, out float matte)
+    float4 color, float4 key, float tolerance, float falloff, out float4 result, out float matte)
 {
-  vec4 color_ycca;
+  float4 color_ycca;
   rgba_to_ycca_itu_709(color, color_ycca);
-  vec4 key_ycca;
+  float4 key_ycca;
   rgba_to_ycca_itu_709(key, key_ycca);
 
   float difference = distance(color_ycca.yz, key_ycca.yz);

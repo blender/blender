@@ -18,15 +18,15 @@ VERTEX_SHADER_CREATE_INFO(overlay_mesh_loop_normal)
 
 bool test_occlusion()
 {
-  vec3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5f + 0.5f;
+  float3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5f + 0.5f;
   return (ndc.z - 0.00035f) > texture(depthTex, ndc.xy).r;
 }
 
 void main()
 {
   /* Avoid undefined behavior after return. */
-  finalColor = vec4(0.0f);
-  gl_Position = vec4(0.0f);
+  finalColor = float4(0.0f);
+  gl_Position = float4(0.0f);
 
 #if defined(FACE_NORMAL) || defined(VERT_NORMAL) || defined(LOOP_NORMAL)
   /* Point primitive. */
@@ -46,10 +46,10 @@ void main()
 
   uint vert_i = gpu_index_load(in_primitive_first_vertex);
 
-  vec3 ls_pos = gpu_attr_load_float3(pos, gpu_attr_1, vert_i);
+  float3 ls_pos = gpu_attr_load_float3(pos, gpu_attr_1, vert_i);
 #endif
 
-  vec3 nor;
+  float3 nor;
 #if defined(FACE_NORMAL)
 #  if defined(FLOAT_NORMAL)
   /* Path for opensubdiv. To be phased out at some point. */
@@ -91,14 +91,14 @@ void main()
 #else
 
   /* Select the right normal by checking if the generic attribute is used. */
-  if (!all(equal(lnor.xyz, vec3(0)))) {
+  if (!all(equal(lnor.xyz, float3(0)))) {
     if (lnor.w < 0.0f) {
       return;
     }
     nor = lnor.xyz;
     finalColor = colorLNormal;
   }
-  else if (!all(equal(vnor.xyz, vec3(0)))) {
+  else if (!all(equal(vnor.xyz, float3(0)))) {
     if (vnor.w < 0.0f) {
       return;
     }
@@ -107,16 +107,16 @@ void main()
   }
   else {
     nor = norAndFlag.xyz;
-    if (all(equal(nor, vec3(0)))) {
+    if (all(equal(nor, float3(0)))) {
       return;
     }
     finalColor = colorNormal;
   }
-  vec3 ls_pos = pos;
+  float3 ls_pos = pos;
 #endif
 
-  vec3 n = normalize(drw_normal_object_to_world(nor));
-  vec3 world_pos = drw_point_object_to_world(ls_pos);
+  float3 n = normalize(drw_normal_object_to_world(nor));
+  float3 world_pos = drw_point_object_to_world(ls_pos);
 
   if ((gl_VertexID & 1) == 0) {
     if (isConstantScreenSizeNormals) {

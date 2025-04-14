@@ -17,20 +17,21 @@ COMPUTE_SHADER_CREATE_INFO(eevee_volume_integration)
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   if (any(greaterThanEqual(texel, uniform_buf.volumes.tex_size.xy))) {
     return;
   }
 
   /* Start with full transmittance and no scattered light. */
-  vec3 scattering = vec3(0.0f);
-  vec3 transmittance = vec3(1.0f);
+  float3 scattering = float3(0.0f);
+  float3 transmittance = float3(1.0f);
 
   /* Compute view ray. Note that jittering the position of the first voxel doesn't bring any
    * benefit here. */
-  vec3 uvw = (vec3(vec2(texel), 0.0f) + vec3(0.5f, 0.5f, 0.0f)) * uniform_buf.volumes.inv_tex_size;
-  vec3 view_cell = volume_jitter_to_view(uvw);
+  float3 uvw = (float3(float2(texel), 0.0f) + float3(0.5f, 0.5f, 0.0f)) *
+               uniform_buf.volumes.inv_tex_size;
+  float3 view_cell = volume_jitter_to_view(uvw);
 
   float prev_ray_len;
   float orig_ray_len;
@@ -44,10 +45,10 @@ void main()
   }
 
   for (int i = 0; i <= uniform_buf.volumes.tex_size.z; i++) {
-    ivec3 froxel = ivec3(texel, i);
+    int3 froxel = int3(texel, i);
 
-    vec3 froxel_scattering = texelFetch(in_scattering_tx, froxel, 0).rgb;
-    vec3 extinction = texelFetch(in_extinction_tx, froxel, 0).rgb;
+    float3 froxel_scattering = texelFetch(in_scattering_tx, froxel, 0).rgb;
+    float3 extinction = texelFetch(in_extinction_tx, froxel, 0).rgb;
 
     float cell_depth = volume_z_to_view_z((float(i) + 1.0f) * uniform_buf.volumes.inv_tex_size.z);
     float ray_len = orig_ray_len * cell_depth;
@@ -55,21 +56,21 @@ void main()
     /* Evaluate Scattering. */
     float step_len = abs(ray_len - prev_ray_len);
     prev_ray_len = ray_len;
-    vec3 froxel_transmittance = exp(-extinction * step_len);
+    float3 froxel_transmittance = exp(-extinction * step_len);
     /** NOTE: Original calculation carries precision issues when compiling for AMD GPUs
      * and running Metal. This version of the equation retains precision well for all
      * macOS HW configurations.
      * Here is the original for reference:
      * `Lscat = (Lscat - Lscat * Tr) / safe_rcp(s_extinction)` */
-    vec3 froxel_opacity = 1.0f - froxel_transmittance;
-    vec3 froxel_step_opacity = froxel_opacity * safe_rcp(extinction);
+    float3 froxel_opacity = 1.0f - froxel_transmittance;
+    float3 froxel_step_opacity = froxel_opacity * safe_rcp(extinction);
 
     /* Emission does not work if there is no extinction because
      * `froxel_transmittance` evaluates to 1.0 leading to `froxel_opacity = 0.0 and 0.4 depth.`.
      * (See #65771) To avoid fiddling with numerical values, take the limit of
      * `froxel_step_opacity` as `extinction` approaches zero which is simply `step_len`. */
-    bvec3 is_invalid_extinction = equal(extinction, vec3(0.0f));
-    froxel_step_opacity = mix(froxel_step_opacity, vec3(step_len), is_invalid_extinction);
+    bool3 is_invalid_extinction = equal(extinction, float3(0.0f));
+    froxel_step_opacity = mix(froxel_step_opacity, float3(step_len), is_invalid_extinction);
 
     /* Integrate along the current step segment. */
     froxel_scattering = froxel_scattering * froxel_step_opacity;
@@ -78,7 +79,7 @@ void main()
     scattering += transmittance * froxel_scattering;
     transmittance *= froxel_transmittance;
 
-    imageStoreFast(out_scattering_img, froxel, vec4(scattering, 1.0f));
-    imageStoreFast(out_transmittance_img, froxel, vec4(transmittance, 1.0f));
+    imageStoreFast(out_scattering_img, froxel, float4(scattering, 1.0f));
+    imageStoreFast(out_transmittance_img, froxel, float4(transmittance, 1.0f));
   }
 }

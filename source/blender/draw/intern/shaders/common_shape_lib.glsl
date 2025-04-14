@@ -17,11 +17,11 @@
  * \{ */
 
 struct Circle {
-  vec2 center;
+  float2 center;
   float radius;
 };
 
-Circle shape_circle(vec2 center, float radius)
+Circle shape_circle(float2 center, float radius)
 {
   Circle circle;
   circle.center = center;
@@ -36,11 +36,11 @@ Circle shape_circle(vec2 center, float radius)
  * \{ */
 
 struct Sphere {
-  vec3 center;
+  float3 center;
   float radius;
 };
 
-Sphere shape_sphere(vec3 center, float radius)
+Sphere shape_sphere(float3 center, float radius)
 {
   Sphere sphere;
   sphere.center = center;
@@ -55,11 +55,11 @@ Sphere shape_sphere(vec3 center, float radius)
  * \{ */
 
 struct Box {
-  vec3 corners[8];
+  float3 corners[8];
 };
 
 /* Construct box from 4 basis points. */
-Box shape_box(vec3 v000, vec3 v100, vec3 v010, vec3 v001)
+Box shape_box(float3 v000, float3 v100, float3 v010, float3 v001)
 {
   v100 -= v000;
   v010 -= v000;
@@ -84,7 +84,7 @@ Box shape_box(vec3 v000, vec3 v100, vec3 v010, vec3 v001)
 
 struct Pyramid {
   /* Apex is the first. Base vertices are in clockwise order from front view. */
-  vec3 corners[5];
+  float3 corners[5];
 };
 
 /**
@@ -110,7 +110,10 @@ struct Pyramid {
  * base_corner_01 is vertex 2
  * base_corner_10 is vertex 4
  */
-Pyramid shape_pyramid(vec3 apex, vec3 base_corner_00, vec3 base_corner_01, vec3 base_corner_10)
+Pyramid shape_pyramid(float3 apex,
+                      float3 base_corner_00,
+                      float3 base_corner_01,
+                      float3 base_corner_10)
 {
   Pyramid pyramid;
   pyramid.corners[0] = apex;
@@ -141,10 +144,10 @@ Pyramid shape_pyramid(vec3 apex, vec3 base_corner_00, vec3 base_corner_01, vec3 
  * base_center_pos_x is vector from base center to X
  * base_center_pos_y is vector from base center to Y
  */
-Pyramid shape_pyramid_non_oblique(vec3 apex,
-                                  vec3 base_center,
-                                  vec3 base_center_pos_x,
-                                  vec3 base_center_pos_y)
+Pyramid shape_pyramid_non_oblique(float3 apex,
+                                  float3 base_center,
+                                  float3 base_center_pos_x,
+                                  float3 base_center_pos_y)
 {
   Pyramid pyramid;
   pyramid.corners[0] = apex;
@@ -162,7 +165,7 @@ Pyramid shape_pyramid_non_oblique(vec3 apex,
  * \{ */
 
 struct Frustum {
-  vec3 corners[8];
+  float3 corners[8];
 };
 
 /**
@@ -184,7 +187,7 @@ struct Frustum {
  *  0----------4
  * </pre>
  */
-Frustum shape_frustum(vec3 corners[8])
+Frustum shape_frustum(float3 corners[8])
 {
   Frustum frustum;
   for (int i = 0; i < 8; i++) {
@@ -201,13 +204,13 @@ Frustum shape_frustum(vec3 corners[8])
 
 /* Cone at origin with no height. */
 struct Cone {
-  vec3 direction;
+  float3 direction;
   float angle_cos;
 
-  METAL_CONSTRUCTOR_2(Cone, vec3, direction, float, angle_cos)
+  METAL_CONSTRUCTOR_2(Cone, float3, direction, float, angle_cos)
 };
 
-Cone shape_cone(vec3 direction, float angle_cosine)
+Cone shape_cone(float3 direction, float angle_cosine)
 {
   return Cone(direction, angle_cosine);
 }

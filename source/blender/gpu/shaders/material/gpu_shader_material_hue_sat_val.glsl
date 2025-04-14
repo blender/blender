@@ -4,9 +4,9 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
-void hue_sat(float hue, float sat, float value, float fac, vec4 col, out vec4 outcol)
+void hue_sat(float hue, float sat, float value, float fac, float4 col, out float4 outcol)
 {
-  vec4 hsv;
+  float4 hsv;
 
   rgb_to_hsv(col, hsv);
 

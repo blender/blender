@@ -16,7 +16,7 @@ void main()
 {
   select_id_set(drw_custom_id());
 
-  vec3 world_pos, world_nor;
+  float3 world_pos, world_nor;
   float world_radius;
   pointcloud_get_pos_nor_radius(world_pos, world_nor, world_radius);
 
@@ -26,7 +26,7 @@ void main()
   /* Avoid expense of geometry shader by ensuring rastered point-cloud primitive
    * covers at least a whole pixel. */
   int i = gl_VertexID % 3;
-  vec2 ofs = (i == 0) ? vec2(-1.0f) : ((i == 1) ? vec2(2.0f, -1.0f) : vec2(-1.0f, 2.0f));
+  float2 ofs = (i == 0) ? float2(-1.0f) : ((i == 1) ? float2(2.0f, -1.0f) : float2(-1.0f, 2.0f));
   gl_Position.xy += sizeViewportInv * gl_Position.w * ofs;
 #endif
 

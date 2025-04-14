@@ -236,12 +236,12 @@ void math_smoothmax(float a, float b, float c, out float result)
 }
 
 /* TODO(fclem): Fix dependency hell one EEVEE legacy is removed. */
-float math_reduce_max(vec3 a)
+float math_reduce_max(float3 a)
 {
   return max(a.x, max(a.y, a.z));
 }
 
-float math_average(vec3 a)
+float math_average(float3 a)
 {
   return (a.x + a.y + a.z) * (1.0f / 3.0f);
 }

@@ -22,10 +22,10 @@ float ltc_diffuse_sphere_integral(sampler2DArray utility_tx, float avg_dir_z, fl
 {
 #if 1
   /* use tabulated horizon-clipped sphere */
-  vec2 uv = vec2(avg_dir_z * 0.5f + 0.5f, form_factor);
+  float2 uv = float2(avg_dir_z * 0.5f + 0.5f, form_factor);
   uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
 
-  return texture(utility_tx, vec3(uv, UTIL_DISK_INTEGRAL_LAYER))[UTIL_DISK_INTEGRAL_COMP];
+  return texture(utility_tx, float3(uv, UTIL_DISK_INTEGRAL_LAYER))[UTIL_DISK_INTEGRAL_COMP];
 #else
   /* Cheap approximation. Less smooth and have energy issues. */
   return max((form_factor * form_factor + avg_dir_z) / (form_factor + 1.0f), 0.0f);
@@ -37,7 +37,7 @@ float ltc_diffuse_sphere_integral(sampler2DArray utility_tx, float avg_dir_z, fl
  * "How to solve a cubic equation, revisited"
  * http://momentsingraphics.de/?p=105
  */
-vec3 ltc_solve_cubic(vec4 coefs)
+float3 ltc_solve_cubic(float4 coefs)
 {
   /* Normalize the polynomial */
   coefs.xyz /= coefs.w;
@@ -50,15 +50,15 @@ vec3 ltc_solve_cubic(vec4 coefs)
   float D = coefs.x;
 
   /* Compute the Hessian and the discriminant */
-  vec3 delta = vec3(-coefs.zy * coefs.zz + coefs.yx, dot(vec2(coefs.z, -coefs.y), coefs.xy));
+  float3 delta = float3(-coefs.zy * coefs.zz + coefs.yx, dot(float2(coefs.z, -coefs.y), coefs.xy));
 
   /* Discriminant */
-  float discr = dot(vec2(4.0f * delta.x, -delta.y), delta.zy);
+  float discr = dot(float2(4.0f * delta.x, -delta.y), delta.zy);
 
   /* Clamping avoid NaN output on some platform. (see #67060) */
   float sqrt_discr = sqrt(clamp(discr, 0.0f, FLT_MAX));
 
-  vec2 xlc, xsc;
+  float2 xlc, xsc;
 
   /* Algorithm A */
   {
@@ -80,7 +80,7 @@ vec3 ltc_solve_cubic(vec4 coefs)
       xl = x_3a;
     }
 
-    xlc = vec2(xl - B, A);
+    xlc = float2(xl - B, A);
   }
 
   /* Algorithm D */
@@ -103,16 +103,16 @@ vec3 ltc_solve_cubic(vec4 coefs)
       xs = x_3d;
     }
 
-    xsc = vec2(-D, xs + C);
+    xsc = float2(-D, xs + C);
   }
 
   float E = xlc.y * xsc.y;
   float F = -xlc.x * xsc.y - xlc.y * xsc.x;
   float G = xlc.x * xsc.x;
 
-  vec2 xmc = vec2(C * F - B * G, -B * F + C * E);
+  float2 xmc = float2(C * F - B * G, -B * F + C * E);
 
-  vec3 root = vec3(xsc.x / xsc.y, xmc.x / xmc.y, xlc.x / xlc.y);
+  float3 root = float3(xsc.x / xsc.y, xmc.x / xmc.y, xlc.x / xlc.y);
 
   if (root.x < root.y && root.x < root.z) {
     root.xyz = root.yxz;
@@ -126,7 +126,7 @@ vec3 ltc_solve_cubic(vec4 coefs)
 
 /* from Real-Time Area Lighting: a Journey from Research to Production
  * Stephen Hill and Eric Heitz */
-vec3 ltc_edge_integral_vec(vec3 v1, vec3 v2)
+float3 ltc_edge_integral_vec(float3 v1, float3 v2)
 {
   float x = dot(v1, v2);
   float y = abs(x);
@@ -140,13 +140,13 @@ vec3 ltc_edge_integral_vec(vec3 v1, vec3 v2)
   return cross(v1, v2) * theta_sintheta;
 }
 
-mat3 ltc_matrix(vec4 lut)
+float3x3 ltc_matrix(float4 lut)
 {
   /* Load inverse matrix. */
-  return mat3(vec3(lut.x, 0, lut.y), vec3(0, 1, 0), vec3(lut.z, 0, lut.w));
+  return float3x3(float3(lut.x, 0, lut.y), float3(0, 1, 0), float3(lut.z, 0, lut.w));
 }
 
-mat3x3 ltc_tangent_basis(vec3 N, vec3 V)
+float3x3 ltc_tangent_basis(float3 N, float3 V)
 {
   float NV = dot(N, V);
   if (NV > 0.999999f) {
@@ -154,15 +154,15 @@ mat3x3 ltc_tangent_basis(vec3 N, vec3 V)
     return from_up_axis(N);
   }
   /* Construct orthonormal basis around N. */
-  vec3 T1 = normalize(V - N * NV);
-  vec3 T2 = cross(N, T1);
-  return mat3x3(T1, T2, N);
+  float3 T1 = normalize(V - N * NV);
+  float3 T2 = cross(N, T1);
+  return float3x3(T1, T2, N);
 }
 
-void ltc_transform_quad(vec3 N, vec3 V, mat3 Minv, inout vec3 corners[4])
+void ltc_transform_quad(float3 N, float3 V, float3x3 Minv, inout float3 corners[4])
 {
   /* Construct orthonormal basis around N. */
-  mat3 T = ltc_tangent_basis(N, V);
+  float3x3 T = ltc_tangent_basis(N, V);
 
   /* Rotate area light in (T1, T2, R) basis. */
   Minv = Minv * transpose(T);
@@ -175,12 +175,13 @@ void ltc_transform_quad(vec3 N, vec3 V, mat3 Minv, inout vec3 corners[4])
 }
 
 /* If corners have already pass through ltc_transform_quad(),
- * then N **MUST** be vec3(0.0f, 0.0f, 1.0f), corresponding to the Up axis of the shading basis. */
-float ltc_evaluate_quad(sampler2DArray utility_tx, vec3 corners[4], vec3 N)
+ * then N **MUST** be float3(0.0f, 0.0f, 1.0f), corresponding to the Up axis of the shading basis.
+ */
+float ltc_evaluate_quad(sampler2DArray utility_tx, float3 corners[4], float3 N)
 {
   /* Approximation using a sphere of the same solid angle than the quad.
    * Finding the clipped sphere diffuse integral is easier than clipping the quad. */
-  vec3 avg_dir;
+  float3 avg_dir;
   avg_dir = ltc_edge_integral_vec(corners[0], corners[1]);
   avg_dir += ltc_edge_integral_vec(corners[1], corners[2]);
   avg_dir += ltc_edge_integral_vec(corners[2], corners[3]);
@@ -200,23 +201,24 @@ float ltc_evaluate_disk_simple(sampler2DArray utility_tx, float disk_radius, flo
 }
 
 /* disk_points are WS vectors from the shading point to the disk "bounding domain" */
-float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, vec3 disk_points[3])
+float ltc_evaluate_disk(
+    sampler2DArray utility_tx, float3 N, float3 V, float3x3 Minv, float3 disk_points[3])
 {
   /* Construct orthonormal basis around N. */
-  mat3 T = ltc_tangent_basis(N, V);
+  float3x3 T = ltc_tangent_basis(N, V);
 
   /* Rotate area light in (T1, T2, R) basis. */
-  mat3 R = transpose(T);
+  float3x3 R = transpose(T);
 
   /* Intermediate step: init ellipse. */
-  vec3 L_[3];
+  float3 L_[3];
   L_[0] = R * disk_points[0];
   L_[1] = R * disk_points[1];
   L_[2] = R * disk_points[2];
 
-  vec3 C = 0.5f * (L_[0] + L_[2]);
-  vec3 V1 = 0.5f * (L_[1] - L_[2]);
-  vec3 V2 = 0.5f * (L_[1] - L_[0]);
+  float3 C = 0.5f * (L_[0] + L_[2]);
+  float3 V1 = 0.5f * (L_[1] - L_[2]);
+  float3 V2 = 0.5f * (L_[1] - L_[0]);
 
   /* Transform ellipse by Minv. */
   C = Minv * C;
@@ -243,7 +245,7 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
     e_max *= e_max;
     e_min *= e_min;
 
-    vec3 V1_, V2_;
+    float3 V1_, V2_;
     if (d11 > d22) {
       V1_ = d12 * V1 + (e_max - d11) * V2;
       V2_ = d12 * V1 + (e_min - d11) * V2;
@@ -267,7 +269,7 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
 
   /* Now find front facing ellipse with same solid angle. */
 
-  vec3 V3 = normalize(cross(V1, V2));
+  float3 V3 = normalize(cross(V1, V2));
   if (dot(C, V3) < 0.0f) {
     V3 *= -1.0f;
   }
@@ -290,7 +292,7 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
   float c2 = inv_b - ab * t - (1.0f + y0 * y0);
   float c3 = 1.0f;
 
-  vec3 roots = ltc_solve_cubic(vec4(c0, c1, c2, c3));
+  float3 roots = ltc_solve_cubic(float4(c0, c1, c2, c3));
   float e1 = roots.x;
   float e2 = roots.y;
   float e3 = roots.z;
@@ -298,9 +300,9 @@ float ltc_evaluate_disk(sampler2DArray utility_tx, vec3 N, vec3 V, mat3 Minv, ve
   /* Scale the root back by multiplying `b`.
    * `a * x0 / (a - b * e2)` simplifies to `a/b * x0 / (a/b - e2)`,
    * `b * y0 / (b - b * e2)` simplifies to `y0 / (1.0f - e2)`. */
-  vec3 avg_dir = vec3(ab * x0 / (ab - e2), y0 / (1.0f - e2), 1.0f);
+  float3 avg_dir = float3(ab * x0 / (ab - e2), y0 / (1.0f - e2), 1.0f);
 
-  mat3 rotate = mat3(V1, V2, V3);
+  float3x3 rotate = float3x3(V1, V2, V3);
 
   avg_dir = rotate * avg_dir;
   avg_dir = normalize(avg_dir);

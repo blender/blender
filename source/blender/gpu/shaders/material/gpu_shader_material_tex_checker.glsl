@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void node_tex_checker(
-    vec3 co, vec4 color1, vec4 color2, float scale, out vec4 color, out float fac)
+    float3 co, float4 color1, float4 color2, float scale, out float4 color, out float fac)
 {
-  vec3 p = co * scale;
+  float3 p = co * scale;
 
   /* Prevent precision issues on unit coordinates. */
   p = (p + 0.000001f) * 0.999999f;

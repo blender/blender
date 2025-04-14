@@ -4,35 +4,35 @@
 
 #include "gpu_shader_material_blackbody.glsl"
 
-void node_volume_principled(vec4 color,
+void node_volume_principled(float4 color,
                             float density,
                             float anisotropy,
-                            vec4 absorption_color,
+                            float4 absorption_color,
                             float emission_strength,
-                            vec4 emission_color,
+                            float4 emission_color,
                             float blackbody_intensity,
-                            vec4 blackbody_tint,
+                            float4 blackbody_tint,
                             float temperature,
                             float weight,
-                            vec4 density_attribute,
-                            vec4 color_attribute,
-                            vec4 temperature_attribute,
+                            float4 density_attribute,
+                            float4 color_attribute,
+                            float4 temperature_attribute,
                             sampler1DArray spectrummap,
                             float layer,
                             out Closure result)
 {
-  color = max(color, vec4(0.0f));
+  color = max(color, float4(0.0f));
   density = max(density, 0.0f);
-  absorption_color = max(absorption_color, vec4(0.0f));
+  absorption_color = max(absorption_color, float4(0.0f));
   emission_strength = max(emission_strength, 0.0f);
-  emission_color = max(emission_color, vec4(0.0f));
+  emission_color = max(emission_color, float4(0.0f));
   blackbody_intensity = max(blackbody_intensity, 0.0f);
-  blackbody_tint = max(blackbody_tint, vec4(0.0f));
+  blackbody_tint = max(blackbody_tint, float4(0.0f));
   temperature = max(temperature, 0.0f);
 
-  vec3 absorption_coeff = vec3(0.0f);
-  vec3 scatter_coeff = vec3(0.0f);
-  vec3 emission_coeff = vec3(0.0f);
+  float3 absorption_coeff = float3(0.0f);
+  float3 scatter_coeff = float3(0.0f);
+  float3 emission_coeff = float3(0.0f);
 
   /* Compute density. */
   if (density > 1e-5f) {
@@ -41,7 +41,7 @@ void node_volume_principled(vec4 color,
 
   if (density > 1e-5f) {
     /* Compute scattering and absorption coefficients. */
-    vec3 scatter_color = color.rgb * color_attribute.rgb;
+    float3 scatter_color = color.rgb * color_attribute.rgb;
 
     scatter_coeff = scatter_color * density;
     absorption_color.rgb = sqrt(max(absorption_color.rgb, 0.0f));
@@ -67,7 +67,7 @@ void node_volume_principled(vec4 color,
     float intensity = sigma * mix(1.0f, T4, blackbody_intensity);
 
     if (intensity > 1e-5f) {
-      vec4 bb;
+      float4 bb;
       node_blackbody(T, spectrummap, layer, bb);
       emission_coeff += bb.rgb * blackbody_tint.rgb * intensity;
     }

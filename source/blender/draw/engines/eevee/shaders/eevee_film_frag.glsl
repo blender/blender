@@ -10,7 +10,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_film_frag)
 
 void main()
 {
-  ivec2 texel_film = ivec2(gl_FragCoord.xy) - uniform_buf.film.offset;
+  int2 texel_film = int2(gl_FragCoord.xy) - uniform_buf.film.offset;
   float out_depth;
 
   if (uniform_buf.film.display_only) {
@@ -20,15 +20,15 @@ void main()
       out_color = texelFetch(in_combined_tx, texel_film, 0);
     }
     else if (uniform_buf.film.display_storage_type == PASS_STORAGE_VALUE) {
-      out_color.rgb = imageLoadFast(value_accum_img, ivec3(texel_film, display_id)).rrr;
+      out_color.rgb = imageLoadFast(value_accum_img, int3(texel_film, display_id)).rrr;
       out_color.a = 1.0f;
     }
     else if (uniform_buf.film.display_storage_type == PASS_STORAGE_COLOR) {
-      out_color = imageLoadFast(color_accum_img, ivec3(texel_film, display_id));
+      out_color = imageLoadFast(color_accum_img, int3(texel_film, display_id));
     }
     else /* PASS_STORAGE_CRYPTOMATTE */ {
       out_color = cryptomatte_false_color(
-          imageLoadFast(cryptomatte_img, ivec3(texel_film, display_id)).r);
+          imageLoadFast(cryptomatte_img, int3(texel_film, display_id)).r);
     }
   }
   else {

@@ -23,15 +23,15 @@ struct Angle {
 };
 
 struct AxisAngle {
-  vec3 axis;
+  float3 axis;
   float angle;
 
-  METAL_CONSTRUCTOR_2(AxisAngle, vec3, axis, float, angle)
+  METAL_CONSTRUCTOR_2(AxisAngle, float3, axis, float, angle)
 };
 
 AxisAngle AxisAngle_identity()
 {
-  return AxisAngle(vec3(0, 1, 0), 0);
+  return AxisAngle(float3(0, 1, 0), 0);
 }
 
 struct Quaternion {
@@ -39,9 +39,9 @@ struct Quaternion {
   METAL_CONSTRUCTOR_4(Quaternion, float, x, float, y, float, z, float, w)
 };
 
-vec4 as_vec4(Quaternion quat)
+float4 as_vec4(Quaternion quat)
 {
-  return vec4(quat.x, quat.y, quat.z, quat.w);
+  return float4(quat.x, quat.y, quat.z, quat.w);
 }
 
 Quaternion Quaternion_identity()
@@ -54,12 +54,12 @@ struct EulerXYZ {
   METAL_CONSTRUCTOR_3(EulerXYZ, float, x, float, y, float, z)
 };
 
-vec3 as_vec3(EulerXYZ eul)
+float3 as_vec3(EulerXYZ eul)
 {
-  return vec3(eul.x, eul.y, eul.z);
+  return float3(eul.x, eul.y, eul.z);
 }
 
-EulerXYZ as_EulerXYZ(vec3 eul)
+EulerXYZ as_EulerXYZ(float3 eul)
 {
   return EulerXYZ(eul.x, eul.y, eul.z);
 }
@@ -83,9 +83,9 @@ EulerXYZ EulerXYZ_identity()
  * \param cosom: dot product from normalized vectors/quaternions.
  * \param r_w: calculated weights.
  */
-vec2 interpolate_dot_slerp(float t, float cosom)
+float2 interpolate_dot_slerp(float t, float cosom)
 {
-  vec2 w = vec2(1.0f - t, t);
+  float2 w = float2(1.0f - t, t);
   /* Within [-1..1] range, avoid aligned axis. */
   const float eps = 1e-4f;
   if (abs(cosom) < 1.0f - eps) {
@@ -97,14 +97,14 @@ vec2 interpolate_dot_slerp(float t, float cosom)
 
 Quaternion interpolate(Quaternion a, Quaternion b, float t)
 {
-  vec4 quat = as_vec4(a);
+  float4 quat = as_vec4(a);
   float cosom = dot(as_vec4(a), as_vec4(b));
   /* Rotate around shortest angle. */
   if (cosom < 0.0f) {
     cosom = -cosom;
     quat = -quat;
   }
-  vec2 w = interpolate_dot_slerp(t, cosom);
+  float2 w = interpolate_dot_slerp(t, cosom);
   quat = w.x * quat + w.y * as_vec4(b);
   return Quaternion(UNPACK4(quat));
 }
@@ -167,7 +167,7 @@ AxisAngle to_axis_angle(Quaternion quat)
     si = 1.0f;
   }
 
-  vec3 axis = vec3(quat.y, quat.z, quat.w) / si;
+  float3 axis = float3(quat.y, quat.z, quat.w) / si;
   if (is_zero(axis)) {
     axis[1] = 1.0f;
   }

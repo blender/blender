@@ -42,8 +42,8 @@ void main()
   /* Due to the screen space nature of the vertex positioning, we compute only the motion of curve
    * strand, not its cylinder. Otherwise we would add the rotation velocity. */
   int vert_idx = hair_get_base_id();
-  vec3 prv, nxt;
-  vec3 pos = hair_get_point(vert_idx).position;
+  float3 prv, nxt;
+  float3 pos = hair_get_point(vert_idx).position;
   velocity_local_pos_get(pos, vert_idx, prv, nxt);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors
@@ -59,11 +59,11 @@ void main()
   interp.P += nodetree_displacement();
 
 #ifdef MAT_CLIP_PLANE
-  clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0f));
+  clip_interp.clip_distance = dot(clip_plane.plane, float4(interp.P, 1.0f));
 #endif
 
 #ifdef MAT_SHADOW
-  vec3 vs_P = drw_point_world_to_view(interp.P);
+  float3 vs_P = drw_point_world_to_view(interp.P);
   ShadowRenderView view = render_view_buf[drw_view_id];
   shadow_clip.position = shadow_position_vector_get(vs_P, view);
   shadow_clip.vector = shadow_clip_vector_get(vs_P, view.clip_distance_inv);

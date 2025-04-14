@@ -19,18 +19,18 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_text)
 
 float texel_fetch(int index)
 {
-  ivec2 texel = ivec2(index & glyph_tex_width_mask, index >> glyph_tex_width_shift);
+  int2 texel = int2(index & glyph_tex_width_mask, index >> glyph_tex_width_shift);
   return texelFetch(glyph, texel, 0).r;
 }
 
-bool is_inside_box(ivec2 v)
+bool is_inside_box(int2 v)
 {
-  return all(greaterThanEqual(v, ivec2(0))) && all(lessThan(v, glyph_dim));
+  return all(greaterThanEqual(v, int2(0))) && all(lessThan(v, glyph_dim));
 }
 
-float sample_glyph_bilinear(vec2 bilin_f, vec2 uv)
+float sample_glyph_bilinear(float2 bilin_f, float2 uv)
 {
-  ivec2 texel = ivec2(floor(uv)) - 1;
+  int2 texel = int2(floor(uv)) - 1;
   int index = glyph_offset + texel.y * glyph_dim.x + texel.x;
 
   /* Fetch 2x2 texels for filtering. */
@@ -45,13 +45,13 @@ float sample_glyph_bilinear(vec2 bilin_f, vec2 uv)
   if (!is_inside_box(texel)) {
     tl = 0.0f;
   }
-  if (!is_inside_box(texel + ivec2(1, 0))) {
+  if (!is_inside_box(texel + int2(1, 0))) {
     tr = 0.0f;
   }
-  if (!is_inside_box(texel + ivec2(0, 1))) {
+  if (!is_inside_box(texel + int2(0, 1))) {
     bl = 0.0f;
   }
-  if (!is_inside_box(texel + ivec2(1, 1))) {
+  if (!is_inside_box(texel + int2(1, 1))) {
     br = 0.0f;
   }
 
@@ -61,11 +61,11 @@ float sample_glyph_bilinear(vec2 bilin_f, vec2 uv)
   return mix(tA, tB, bilin_f.y);
 }
 
-vec4 sample_glyph_rgba(vec2 uv)
+float4 sample_glyph_rgba(float2 uv)
 {
-  ivec2 texel = ivec2(round(uv)) - 1;
+  int2 texel = int2(round(uv)) - 1;
 
-  vec4 col = vec4(0.0f);
+  float4 col = float4(0.0f);
   if (is_inside_box(texel)) {
     int index = glyph_offset + (texel.y * glyph_dim.x + texel.x) * 4;
     col.r = texel_fetch(index);
@@ -78,7 +78,7 @@ vec4 sample_glyph_rgba(vec2 uv)
 
 void main()
 {
-  vec2 uv_base = texCoord_interp;
+  float2 uv_base = texCoord_interp;
   uint num_channels = (glyph_flags >> 4) & 0xFu;
   uint shadow_type = glyph_flags & 0xFu;
 
@@ -89,7 +89,7 @@ void main()
     return;
   }
 
-  vec2 bilin_f = fract(uv_base);
+  float2 bilin_f = fract(uv_base);
 
   fragColor.rgb = color_flat.rgb;
 
@@ -103,7 +103,7 @@ void main()
      * shifting the filter kernel weights by bilinear fraction. */
     fragColor.a = 0.0f;
 
-    ivec2 texel = ivec2(floor(uv_base)) - 1;
+    int2 texel = int2(floor(uv_base)) - 1;
     int frag_offset = glyph_offset + texel.y * glyph_dim.x + texel.x;
 
     if (shadow_type == 6) {
@@ -115,7 +115,7 @@ void main()
         for (int ix = 0; ix < 4; ++ix) {
           int ofsx = ix - 1;
           float v = texel_fetch(frag_offset + ofsy * glyph_dim.x + ofsx);
-          if (!is_inside_box(texel + ivec2(ofsx, ofsy))) {
+          if (!is_inside_box(texel + int2(ofsx, ofsy))) {
             v = 0.0f;
           }
 
@@ -150,7 +150,7 @@ void main()
         for (int ix = 0; ix < 4; ++ix) {
           int ofsx = ix - 1;
           float v = texel_fetch(frag_offset + ofsy * glyph_dim.x + ofsx);
-          if (!is_inside_box(texel + ivec2(ofsx, ofsy))) {
+          if (!is_inside_box(texel + int2(ofsx, ofsy))) {
             v = 0.0f;
           }
 
@@ -188,7 +188,7 @@ void main()
         for (int ix = 0; ix < 6; ++ix) {
           int ofsx = ix - 2;
           float v = texel_fetch(frag_offset + ofsy * glyph_dim.x + ofsx);
-          if (!is_inside_box(texel + ivec2(ofsx, ofsy))) {
+          if (!is_inside_box(texel + int2(ofsx, ofsy))) {
             v = 0.0f;
           }
 

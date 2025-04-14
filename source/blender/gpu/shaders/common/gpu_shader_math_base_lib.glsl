@@ -68,15 +68,15 @@ float square(float v)
 {
   return v * v;
 }
-vec2 square(vec2 v)
+float2 square(float2 v)
 {
   return v * v;
 }
-vec3 square(vec3 v)
+float3 square(float3 v)
 {
   return v * v;
 }
-vec4 square(vec4 v)
+float4 square(float4 v)
 {
   return v * v;
 }

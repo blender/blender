@@ -24,8 +24,8 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_thickness_amend)
 
 void thickness_from_shadow_single(uint l_idx,
                                   const bool is_directional,
-                                  vec3 P,
-                                  vec3 Ng,
+                                  float3 P,
+                                  float3 Ng,
                                   float gbuffer_thickness,
                                   inout float thickness_accum,
                                   inout float weight_accum)
@@ -46,9 +46,9 @@ void thickness_from_shadow_single(uint l_idx,
 
   float texel_radius = shadow_texel_radius_at_position(light, is_directional, P);
 
-  vec2 pcf_random = pcg4d(vec4(gl_FragCoord.xyz, sampling_rng_1D_get(SAMPLING_SHADOW_X))).xy;
+  float2 pcf_random = pcg4d(float4(gl_FragCoord.xyz, sampling_rng_1D_get(SAMPLING_SHADOW_X))).xy;
 
-  vec3 P_offset = P;
+  float3 P_offset = P;
   /* Invert all biases to get value inside the surface.
    * The additional offset is to make the pcf kernel fully inside the object. */
   float normal_offset = shadow_normal_offset(Ng, lv.L);
@@ -80,7 +80,7 @@ void thickness_from_shadow_single(uint l_idx,
  * available. If no shadow-map has a record of the other side of the surface, this function
  * returns -1.
  */
-float thickness_from_shadow(vec3 P, vec3 Ng, float vPz, float gbuffer_thickness)
+float thickness_from_shadow(float3 P, float3 Ng, float vPz, float gbuffer_thickness)
 {
   float thickness_accum = 0.0f;
   float weight_accum = 0.0f;
@@ -91,7 +91,7 @@ float thickness_from_shadow(vec3 P, vec3 Ng, float vPz, float gbuffer_thickness)
   }
   LIGHT_FOREACH_END
 
-  vec2 pixel = gl_FragCoord.xy;
+  float2 pixel = gl_FragCoord.xy;
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vPz, l_idx) {
     thickness_from_shadow_single(
         l_idx, false, P, Ng, gbuffer_thickness, thickness_accum, weight_accum);
@@ -109,7 +109,7 @@ float thickness_from_shadow(vec3 P, vec3 Ng, float vPz, float gbuffer_thickness)
 
 void main()
 {
-  ivec2 texel = ivec2(gl_FragCoord.xy);
+  int2 texel = int2(gl_FragCoord.xy);
 
   float depth = texelFetch(hiz_tx, texel, 0).r;
 
@@ -118,15 +118,15 @@ void main()
   const float bias = 2.4e-7f;
   depth -= bias;
 
-  vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
+  float3 P = drw_point_screen_to_world(float3(uvcoordsvar.xy, depth));
   float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
 
-  vec3 Ng = gbuffer_normal_unpack(imageLoad(gbuf_normal_img, ivec3(texel, 0)).rg);
+  float3 Ng = gbuffer_normal_unpack(imageLoad(gbuf_normal_img, int3(texel, 0)).rg);
 
   /* Use manual fetch because gbuffer_read_thickness expect a read only texture input. */
-  uint header = texelFetch(gbuf_header_tx, ivec3(texel, 0), 0).r;
+  uint header = texelFetch(gbuf_header_tx, int3(texel, 0), 0).r;
   int data_layer = gbuffer_normal_count(header);
-  vec2 data_packed = imageLoad(gbuf_normal_img, ivec3(texel, data_layer)).rg;
+  float2 data_packed = imageLoad(gbuf_normal_img, int3(texel, data_layer)).rg;
   float gbuffer_thickness = gbuffer_thickness_unpack(data_packed.x);
   if (gbuffer_thickness == 0.0f) {
     return;
@@ -139,6 +139,6 @@ void main()
 
   if ((shadow_thickness < abs(gbuffer_thickness))) {
     data_packed.x = gbuffer_thickness_pack(sign(gbuffer_thickness) * shadow_thickness);
-    imageStore(gbuf_normal_img, ivec3(texel, data_layer), vec4(data_packed, 0.0f, 0.0f));
+    imageStore(gbuf_normal_img, int3(texel, data_layer), float4(data_packed, 0.0f, 0.0f));
   }
 }

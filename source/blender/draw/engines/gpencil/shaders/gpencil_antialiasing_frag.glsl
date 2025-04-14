@@ -22,7 +22,7 @@ void main()
 
 #elif SMAA_STAGE == 1
   out_weights = SMAABlendingWeightCalculationPS(
-      uvs, pixcoord, offset, edgesTex, areaTex, searchTex, vec4(0));
+      uvs, pixcoord, offset, edgesTex, areaTex, searchTex, float4(0));
 
 #elif SMAA_STAGE == 2
   /* Resolve both buffers. */
@@ -37,14 +37,14 @@ void main()
 
   /* Revealage, how much light passes through. */
   /* Average for alpha channel. */
-  out_reveal.a = clamp(dot(out_reveal.rgb, vec3(0.333334f)), 0.0f, 1.0f);
+  out_reveal.a = clamp(dot(out_reveal.rgb, float3(0.333334f)), 0.0f, 1.0f);
   /* Color buffer is already pre-multiplied. Just add it to the color. */
   /* Add the alpha. */
   out_color.a = 1.0f - out_reveal.a;
 
   if (onlyAlpha) {
     /* Special case in wire-frame X-ray mode. */
-    out_color = vec4(0.0f);
+    out_color = float4(0.0f);
     out_reveal.rgb = out_reveal.aaa;
   }
 #endif

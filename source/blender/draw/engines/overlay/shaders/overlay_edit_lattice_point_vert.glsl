@@ -22,7 +22,7 @@ void main()
     finalColor = colorVertex;
   }
 
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Small offset in Z */

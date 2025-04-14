@@ -29,7 +29,7 @@ void main()
    * getting on the way of readability. */
   const float mask_transparency = 0.25f;
 
-  vec2 circle_center = vec2(circle_radius_outer - text_width, 0.5f);
+  float2 circle_center = float2(circle_radius_outer - text_width, 0.5f);
 
   /* Radius in icon space (1 is the icon width). */
   float radius = length(mask_coord_interp - circle_center);
@@ -49,6 +49,6 @@ void main()
                       mask_coord_interp.x);
   }
 
-  fragColor = mix(vec4(0.0f), fragColor, max(mask_transparency, mask));
+  fragColor = mix(float4(0.0f), fragColor, max(mask_transparency, mask));
 #endif
 }

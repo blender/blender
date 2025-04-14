@@ -19,9 +19,9 @@ COMPUTE_SHADER_CREATE_INFO(eevee_horizon_setup)
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 texel_fullres = texel * uniform_buf.raytrace.horizon_resolution_scale +
-                        uniform_buf.raytrace.horizon_resolution_bias;
+  int2 texel = int2(gl_GlobalInvocationID.xy);
+  int2 texel_fullres = texel * uniform_buf.raytrace.horizon_resolution_scale +
+                       uniform_buf.raytrace.horizon_resolution_bias;
 
   /* Return early for padding threads so we can use imageStoreFast. */
   if (any(greaterThanEqual(texel, imageSize(out_radiance_img).xy))) {
@@ -29,7 +29,7 @@ void main()
   }
 
   /* Avoid loading texels outside texture range. */
-  ivec2 extent = textureSize(gbuf_header_tx, 0).xy;
+  int2 extent = textureSize(gbuf_header_tx, 0).xy;
   texel_fullres = min(texel_fullres, extent - 1);
 
   /* Load Gbuffer. */
@@ -37,26 +37,26 @@ void main()
       gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
   /* Export normal. */
-  vec3 N = gbuf.surface_N;
+  float3 N = gbuf.surface_N;
   /* Background has invalid data. */
   /* FIXME: This is zero for opaque layer when we are processing the refraction layer. */
   if (is_zero(N)) {
     /* Avoid NaN. But should be fixed in any case. */
-    N = vec3(1.0f, 0.0f, 0.0f);
+    N = float3(1.0f, 0.0f, 0.0f);
   }
-  vec3 vN = drw_normal_world_to_view(N);
+  float3 vN = drw_normal_world_to_view(N);
   /* Tag processed pixel in the normal buffer for denoising speed. */
   bool is_processed = gbuf.header != 0u;
-  imageStore(out_normal_img, texel, vec4(vN * 0.5f + 0.5f, float(is_processed)));
+  imageStore(out_normal_img, texel, float4(vN * 0.5f + 0.5f, float(is_processed)));
 
   /* Re-project radiance. */
-  vec2 uv = (vec2(texel_fullres) + 0.5f) / vec2(textureSize(depth_tx, 0).xy);
+  float2 uv = (float2(texel_fullres) + 0.5f) / float2(textureSize(depth_tx, 0).xy);
   float depth = texelFetch(depth_tx, texel_fullres, 0).r;
-  vec3 P = drw_point_screen_to_world(vec3(uv, depth));
+  float3 P = drw_point_screen_to_world(float3(uv, depth));
 
-  vec3 ssP_prev = drw_ndc_to_screen(project_point(uniform_buf.raytrace.radiance_persmat, P));
+  float3 ssP_prev = drw_ndc_to_screen(project_point(uniform_buf.raytrace.radiance_persmat, P));
 
-  vec4 radiance = texture(in_radiance_tx, ssP_prev.xy);
+  float4 radiance = texture(in_radiance_tx, ssP_prev.xy);
   radiance = colorspace_brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
 
   imageStore(out_radiance_img, texel, radiance);

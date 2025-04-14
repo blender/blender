@@ -18,11 +18,11 @@ uint get_global_invocation_index()
   return gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * invocations_per_row;
 }
 
-vec2 decode_uv(uint encoded_uv)
+float2 decode_uv(uint encoded_uv)
 {
   float u = float((encoded_uv >> 16) & 0xFFFFu) / 65535.0f;
   float v = float(encoded_uv & 0xFFFFu) / 65535.0f;
-  return vec2(u, v);
+  return float2(u, v);
 }
 
 bool is_set(uint i)
@@ -43,7 +43,7 @@ uint get_index(uint i)
   return (i >> 2) & 0x3FFFFFFFu;
 }
 
-PosNorLoop subdiv_set_vertex_pos(PosNorLoop in_vertex_data, vec3 pos)
+PosNorLoop subdiv_set_vertex_pos(PosNorLoop in_vertex_data, float3 pos)
 {
   in_vertex_data.x = pos.x;
   in_vertex_data.y = pos.y;
@@ -54,7 +54,7 @@ PosNorLoop subdiv_set_vertex_pos(PosNorLoop in_vertex_data, vec3 pos)
 /* Set the vertex normal but preserve the existing flag. This is for when we compute manually the
  * vertex normals when we cannot use the limit surface, in which case the flag and the normal are
  * set by two separate compute pass. */
-PosNorLoop subdiv_set_vertex_nor(PosNorLoop in_vertex_data, vec3 nor)
+PosNorLoop subdiv_set_vertex_nor(PosNorLoop in_vertex_data, float3 nor)
 {
   in_vertex_data.nx = nor.x;
   in_vertex_data.ny = nor.y;
@@ -68,9 +68,9 @@ PosNorLoop subdiv_set_vertex_flag(PosNorLoop in_vertex_data, float flag)
   return in_vertex_data;
 }
 
-vec3 subdiv_get_vertex_pos(PosNorLoop vertex_data)
+float3 subdiv_get_vertex_pos(PosNorLoop vertex_data)
 {
-  return vec3(vertex_data.x, vertex_data.y, vertex_data.z);
+  return float3(vertex_data.x, vertex_data.y, vertex_data.z);
 }
 
 LoopNormal subdiv_get_normal_and_flag(PosNorLoop vertex_data)
@@ -83,7 +83,7 @@ LoopNormal subdiv_get_normal_and_flag(PosNorLoop vertex_data)
   return loop_nor;
 }
 
-void add_newell_cross_v3_v3v3(inout vec3 n, vec3 v_prev, vec3 v_curr)
+void add_newell_cross_v3_v3v3(inout float3 n, float3 v_prev, float3 v_curr)
 {
   n[0] += (v_prev[1] - v_curr[1]) * (v_prev[2] + v_curr[2]);
   n[1] += (v_prev[2] - v_curr[2]) * (v_prev[0] + v_curr[0]);

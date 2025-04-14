@@ -18,10 +18,10 @@ COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_usage_opaque)
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 tex_size = input_depth_extent;
+  int2 texel = int2(gl_GlobalInvocationID.xy);
+  int2 tex_size = input_depth_extent;
 
-  if (!in_range_inclusive(texel, ivec2(0), ivec2(tex_size - 1))) {
+  if (!in_range_inclusive(texel, int2(0), int2(tex_size - 1))) {
     return;
   }
 
@@ -30,10 +30,10 @@ void main()
     return;
   }
 
-  vec2 uv = (vec2(texel) + 0.5f) / vec2(tex_size);
-  vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
-  vec3 P = drw_point_view_to_world(vP);
-  vec2 pixel = vec2(gl_GlobalInvocationID.xy);
+  float2 uv = (float2(texel) + 0.5f) / float2(tex_size);
+  float3 vP = drw_point_screen_to_view(float3(uv, depth));
+  float3 P = drw_point_view_to_world(vP);
+  float2 pixel = float2(gl_GlobalInvocationID.xy);
 
   shadow_tag_usage(vP, P, pixel);
 }

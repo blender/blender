@@ -20,7 +20,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_hole_fill)
 
 void main()
 {
-  ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy / DOF_TILES_SIZE);
+  int2 tile_co = int2(gl_GlobalInvocationID.xy / DOF_TILES_SIZE);
   CocTile coc_tile = dof_coc_tile_load(in_tiles_fg_img, in_tiles_bg_img, tile_co);
   CocTilePrediction prediction = dof_coc_tile_prediction_get(coc_tile);
 
@@ -35,9 +35,9 @@ void main()
   base_radius *= 0.5f;
   min_intersectable_radius *= 0.5f;
 
-  vec4 out_color = vec4(0.0f);
+  float4 out_color = float4(0.0f);
   float out_weight = 0.0f;
-  vec2 unused_occlusion = vec2(0.0f, 0.0f);
+  float2 unused_occlusion = float2(0.0f, 0.0f);
 
   if (can_early_out) {
     /* Early out. */
@@ -69,7 +69,7 @@ void main()
                            unused_occlusion);
   }
 
-  ivec2 out_texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 out_texel = int2(gl_GlobalInvocationID.xy);
   imageStore(out_color_img, out_texel, out_color);
-  imageStore(out_weight_img, out_texel, vec4(out_weight));
+  imageStore(out_weight_img, out_texel, float4(out_weight));
 }

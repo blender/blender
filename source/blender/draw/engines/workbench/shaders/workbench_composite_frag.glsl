@@ -18,7 +18,7 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_resolve_shadow)
 
 void main()
 {
-  vec2 uv = uvcoordsvar.xy;
+  float2 uv = uvcoordsvar.xy;
 
   float depth = texture(depth_tx, uv).r;
   if (depth == 1.0f) {
@@ -28,13 +28,13 @@ void main()
   }
 
   /* Normal and Incident vector are in view-space. Lighting is evaluated in view-space. */
-  vec3 P = drw_point_screen_to_view(vec3(uv, 0.5f));
-  vec3 V = drw_view_incident_vector(P);
-  vec3 N = workbench_normal_decode(texture(normal_tx, uv));
-  vec4 mat_data = texture(material_tx, uv);
+  float3 P = drw_point_screen_to_view(float3(uv, 0.5f));
+  float3 V = drw_view_incident_vector(P);
+  float3 N = workbench_normal_decode(texture(normal_tx, uv));
+  float4 mat_data = texture(material_tx, uv);
 
-  vec3 base_color = mat_data.rgb;
-  vec4 color = vec4(1.0f);
+  float3 base_color = mat_data.rgb;
+  float4 color = float4(1.0f);
 
 #ifdef WORKBENCH_LIGHTING_MATCAP
   /* When using matcaps, mat_data.a is the back-face sign. */

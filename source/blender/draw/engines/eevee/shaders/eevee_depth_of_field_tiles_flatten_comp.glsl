@@ -48,8 +48,8 @@ void main()
   }
   barrier();
 
-  ivec2 sample_texel = min(ivec2(gl_GlobalInvocationID.xy), textureSize(coc_tx, 0).xy - 1);
-  vec2 sample_data = texelFetch(coc_tx, sample_texel, 0).rg;
+  int2 sample_texel = min(int2(gl_GlobalInvocationID.xy), textureSize(coc_tx, 0).xy - 1);
+  float2 sample_data = texelFetch(coc_tx, sample_texel, 0).rg;
 
   float sample_coc = sample_data.x;
   uint fg_coc = floatBitsToUint(max(-sample_coc, 0.0f));
@@ -79,7 +79,7 @@ void main()
     tile.bg_max_coc = uintBitsToFloat(bg_max_coc);
     tile.bg_min_intersectable_coc = uintBitsToFloat(bg_min_intersectable_coc);
 
-    ivec2 tile_co = ivec2(gl_WorkGroupID.xy);
+    int2 tile_co = int2(gl_WorkGroupID.xy);
     dof_coc_tile_store(out_tiles_fg_img, out_tiles_bg_img, tile_co, tile);
   }
 }

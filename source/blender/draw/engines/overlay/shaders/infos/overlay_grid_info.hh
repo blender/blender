@@ -47,7 +47,7 @@ FRAGMENT_SOURCE("overlay_grid_background_frag.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
-DEFINE_VALUE("tile_pos", "vec3(0.0f)")
+DEFINE_VALUE("tile_pos", "float3(0.0f)")
 PUSH_CONSTANT(float3, tile_scale)
 GPU_SHADER_CREATE_END()
 
@@ -61,7 +61,7 @@ FRAGMENT_SOURCE("overlay_uniform_color_frag.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
-STORAGE_BUF(0, READ, vec3, tile_pos_buf[])
+STORAGE_BUF(0, READ, float3, tile_pos_buf[])
 DEFINE_VALUE("tile_pos", "tile_pos_buf[gl_InstanceID]")
-DEFINE_VALUE("tile_scale", "vec3(1.0f)");
+DEFINE_VALUE("tile_scale", "float3(1.0f)");
 GPU_SHADER_CREATE_END()

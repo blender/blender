@@ -23,7 +23,7 @@ SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
  * \{ */
 
 #ifdef OBINFO_LIB
-vec3 attr_load_orco(vec4 orco)
+float3 attr_load_orco(float4 orco)
 {
 #  ifdef GPU_VERTEX_SHADER
   /* We know when there is no orco layer when orco.w is 1.0 because it uses the generic vertex
@@ -37,20 +37,20 @@ vec3 attr_load_orco(vec4 orco)
   return orco.xyz * 0.5f + 0.5f;
 }
 #endif
-vec4 attr_load_tangent(vec4 tangent)
+float4 attr_load_tangent(float4 tangent)
 {
   tangent.xyz = safe_normalize(drw_normal_object_to_world(tangent.xyz));
   return tangent;
 }
-vec4 attr_load_vec4(vec4 attr)
+float4 attr_load_vec4(float4 attr)
 {
   return attr;
 }
-vec3 attr_load_vec3(vec3 attr)
+float3 attr_load_vec3(float3 attr)
 {
   return attr;
 }
-vec2 attr_load_vec2(vec2 attr)
+float2 attr_load_vec2(float2 attr)
 {
   return attr;
 }
@@ -58,11 +58,11 @@ float attr_load_float(float attr)
 {
   return attr;
 }
-vec4 attr_load_color(vec4 attr)
+float4 attr_load_color(float4 attr)
 {
   return attr;
 }
-vec3 attr_load_uv(vec3 attr)
+float3 attr_load_uv(float3 attr)
 {
   return attr;
 }

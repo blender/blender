@@ -13,21 +13,21 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_icon_multi)
 
 void main()
 {
-  vec4 rect = multi_icon_data.calls_data[gl_InstanceID * 3];
-  vec4 tex = multi_icon_data.calls_data[gl_InstanceID * 3 + 1];
+  float4 rect = multi_icon_data.calls_data[gl_InstanceID * 3];
+  float4 tex = multi_icon_data.calls_data[gl_InstanceID * 3 + 1];
   finalColor = multi_icon_data.calls_data[gl_InstanceID * 3 + 2];
 
   /* Use pos to select the right swizzle (instead of gl_VertexID)
    * in order to workaround an OSX driver bug. */
-  if (all(equal(pos, vec2(0.0f, 0.0f)))) {
+  if (all(equal(pos, float2(0.0f, 0.0f)))) {
     rect.xy = rect.xz;
     tex.xy = tex.xz;
   }
-  else if (all(equal(pos, vec2(0.0f, 1.0f)))) {
+  else if (all(equal(pos, float2(0.0f, 1.0f)))) {
     rect.xy = rect.xw;
     tex.xy = tex.xw;
   }
-  else if (all(equal(pos, vec2(1.0f, 1.0f)))) {
+  else if (all(equal(pos, float2(1.0f, 1.0f)))) {
     rect.xy = rect.yw;
     tex.xy = tex.yw;
   }
@@ -36,6 +36,6 @@ void main()
     tex.xy = tex.yz;
   }
 
-  gl_Position = vec4(rect.xy, 0.0f, 1.0f);
+  gl_Position = float4(rect.xy, 0.0f, 1.0f);
   texCoord_interp = tex.xy;
 }

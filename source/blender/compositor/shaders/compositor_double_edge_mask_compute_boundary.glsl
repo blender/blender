@@ -16,17 +16,17 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   /* Identify if any of the 8 neighbors around the center pixel are not masked. */
   bool has_inner_non_masked_neighbors = false;
   bool has_outer_non_masked_neighbors = false;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
-      ivec2 offset = ivec2(i, j);
+      int2 offset = int2(i, j);
 
       /* Exempt the center pixel. */
-      if (all(equal(offset, ivec2(0)))) {
+      if (all(equal(offset, int2(0)))) {
         continue;
       }
 
@@ -37,7 +37,7 @@ void main()
       /* If the user specified include_edges_of_image to be true, then we assume the outer mask is
        * bounded by the image boundary, otherwise, we assume the outer mask is open-ended. This is
        * practically implemented by falling back to 0.0 or 1.0 for out of bound pixels. */
-      vec4 boundary_fallback = include_edges_of_image ? vec4(0.0f) : vec4(1.0f);
+      float4 boundary_fallback = include_edges_of_image ? float4(0.0f) : float4(1.0f);
       if (texture_load(outer_mask_tx, texel + offset, boundary_fallback).x == 0.0f) {
         has_outer_non_masked_neighbors = true;
       }
@@ -61,9 +61,9 @@ void main()
   bool is_outer_boundary = is_outer_masked && !is_inner_masked && has_outer_non_masked_neighbors;
 
   /* Encode the boundary information in the format expected by the jump flooding algorithm. */
-  ivec2 inner_jump_flooding_value = initialize_jump_flooding_value(texel, is_inner_boundary);
-  ivec2 outer_jump_flooding_value = initialize_jump_flooding_value(texel, is_outer_boundary);
+  int2 inner_jump_flooding_value = initialize_jump_flooding_value(texel, is_inner_boundary);
+  int2 outer_jump_flooding_value = initialize_jump_flooding_value(texel, is_outer_boundary);
 
-  imageStore(inner_boundary_img, texel, ivec4(inner_jump_flooding_value, ivec2(0)));
-  imageStore(outer_boundary_img, texel, ivec4(outer_jump_flooding_value, ivec2(0)));
+  imageStore(inner_boundary_img, texel, int4(inner_jump_flooding_value, int2(0)));
+  imageStore(outer_boundary_img, texel, int4(outer_jump_flooding_value, int2(0)));
 }

@@ -16,11 +16,11 @@ float linearrgb_to_srgb(float c)
   }
 }
 
-vec4 texture_read_as_linearrgb(sampler2D tex, bool premultiplied, vec2 co)
+float4 texture_read_as_linearrgb(sampler2D tex, bool premultiplied, float2 co)
 {
   /* By convention image textures return scene linear colors, but
    * overlays still assume srgb. */
-  vec4 col = texture(tex, co);
+  float4 col = texture(tex, co);
   /* Un-pre-multiply if stored multiplied, since straight alpha is expected by shaders. */
   if (premultiplied && !(col.a == 0.0f || col.a == 1.0f)) {
     col.rgb = col.rgb / col.a;
@@ -28,9 +28,9 @@ vec4 texture_read_as_linearrgb(sampler2D tex, bool premultiplied, vec2 co)
   return col;
 }
 
-vec4 texture_read_as_srgb(sampler2D tex, bool premultiplied, vec2 co)
+float4 texture_read_as_srgb(sampler2D tex, bool premultiplied, float2 co)
 {
-  vec4 col = texture_read_as_linearrgb(tex, premultiplied, co);
+  float4 col = texture_read_as_linearrgb(tex, premultiplied, co);
   col.r = linearrgb_to_srgb(col.r);
   col.g = linearrgb_to_srgb(col.g);
   col.b = linearrgb_to_srgb(col.b);

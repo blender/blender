@@ -10,7 +10,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_clipbound)
 
 void main()
 {
-  vec3 world_pos = boundbox[gl_VertexID];
+  float3 world_pos = boundbox[gl_VertexID];
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Result in a position at 1.0 (far plane). Small epsilon to avoid precision issue.

@@ -15,7 +15,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_depth_mesh_conservative)
 #include "select_lib.glsl"
 
 struct VertIn {
-  vec3 ls_P;
+  float3 ls_P;
 };
 
 VertIn input_assembly(uint in_vertex_id)
@@ -28,8 +28,8 @@ VertIn input_assembly(uint in_vertex_id)
 }
 
 struct VertOut {
-  vec4 hs_P;
-  vec3 ws_P;
+  float4 hs_P;
+  float3 ws_P;
 };
 
 VertOut vertex_main(VertIn v_in)
@@ -45,7 +45,7 @@ void do_vertex(const uint i,
                uint out_vertex_id,
                uint out_primitive_id,
                VertOut geom_in,
-               bvec2 is_subpixel,
+               bool2 is_subpixel,
                bool is_coplanar)
 {
   if (out_vertex_id != i) {
@@ -56,14 +56,14 @@ void do_vertex(const uint i,
 
   gl_Position = geom_in.hs_P;
   if (all(is_subpixel)) {
-    vec2 ofs = (i == 0) ? vec2(-1.0f) : ((i == 1) ? vec2(2.0f, -1.0f) : vec2(-1.0f, 2.0f));
+    float2 ofs = (i == 0) ? float2(-1.0f) : ((i == 1) ? float2(2.0f, -1.0f) : float2(-1.0f, 2.0f));
     /* HACK: Fix cases where the triangle is too small make it cover at least one pixel. */
     gl_Position.xy += sizeViewportInv * geom_in.hs_P.w * ofs;
   }
   /* Test if the triangle is almost parallel with the view to avoid precision issues. */
   else if (any(is_subpixel) || is_coplanar) {
     /* HACK: Fix cases where the triangle is Parallel to the view by deforming it slightly. */
-    vec2 ofs = (i == 0) ? vec2(-1.0f) : ((i == 1) ? vec2(1.0f, -1.0f) : vec2(1.0f));
+    float2 ofs = (i == 0) ? float2(-1.0f) : ((i == 1) ? float2(1.0f, -1.0f) : float2(1.0f));
     gl_Position.xy += sizeViewportInv * geom_in.hs_P.w * ofs;
   }
   else {
@@ -78,16 +78,16 @@ void geometry_main(VertOut geom_in[3],
                    uint out_invocation_id)
 {
   /* Compute plane normal in NDC space. */
-  vec3 pos0 = geom_in[0].hs_P.xyz / geom_in[0].hs_P.w;
-  vec3 pos1 = geom_in[1].hs_P.xyz / geom_in[1].hs_P.w;
-  vec3 pos2 = geom_in[2].hs_P.xyz / geom_in[2].hs_P.w;
-  vec3 plane = normalize(cross(pos1 - pos0, pos2 - pos0));
+  float3 pos0 = geom_in[0].hs_P.xyz / geom_in[0].hs_P.w;
+  float3 pos1 = geom_in[1].hs_P.xyz / geom_in[1].hs_P.w;
+  float3 pos2 = geom_in[2].hs_P.xyz / geom_in[2].hs_P.w;
+  float3 plane = normalize(cross(pos1 - pos0, pos2 - pos0));
   /* Compute NDC bound box. */
-  vec4 bbox = vec4(min(min(pos0.xy, pos1.xy), pos2.xy), max(max(pos0.xy, pos1.xy), pos2.xy));
+  float4 bbox = float4(min(min(pos0.xy, pos1.xy), pos2.xy), max(max(pos0.xy, pos1.xy), pos2.xy));
   /* Convert to pixel space. */
   bbox = (bbox * 0.5f + 0.5f) * sizeViewport.xyxy;
   /* Detect failure cases where triangles would produce no fragments. */
-  bvec2 is_subpixel = lessThan(bbox.zw - bbox.xy, vec2(1.0f));
+  bool2 is_subpixel = lessThan(bbox.zw - bbox.xy, float2(1.0f));
   /* View aligned triangle. */
   const float threshold = 0.00001f;
   bool is_coplanar = abs(plane.z) < threshold;
@@ -132,6 +132,6 @@ void main()
   vert_out[2] = vertex_main(vert_in[2]);
 
   /* Discard by default. */
-  gl_Position = vec4(NAN_FLT);
+  gl_Position = float4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
 }

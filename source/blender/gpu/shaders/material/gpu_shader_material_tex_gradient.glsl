@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-float calc_gradient(vec3 p, int gradient_type)
+float calc_gradient(float3 p, int gradient_type)
 {
   float x, y, z;
   x = p.x;
@@ -41,11 +41,11 @@ float calc_gradient(vec3 p, int gradient_type)
   return 0.0f;
 }
 
-void node_tex_gradient(vec3 co, float gradient_type, out vec4 color, out float fac)
+void node_tex_gradient(float3 co, float gradient_type, out float4 color, out float fac)
 {
   float f = calc_gradient(co, int(gradient_type));
   f = clamp(f, 0.0f, 1.0f);
 
-  color = vec4(f, f, f, 1.0f);
+  color = float4(f, f, f, 1.0f);
   fac = f;
 }

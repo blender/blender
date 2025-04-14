@@ -11,6 +11,6 @@ void main()
   int v = gl_VertexID % 3;
   float x = -1.0f + float((v & 1) << 2);
   float y = -1.0f + float((v & 2) << 1);
-  gl_Position = vec4(x, y, 1.0f, 1.0f);
-  uvcoordsvar = vec4((gl_Position.xy + 1.0f) * 0.5f, 0.0f, 0.0f);
+  gl_Position = float4(x, y, 1.0f, 1.0f);
+  uvcoordsvar = float4((gl_Position.xy + 1.0f) * 0.5f, 0.0f, 0.0f);
 }

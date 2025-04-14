@@ -12,8 +12,8 @@ VERTEX_SHADER_CREATE_INFO(eevee_debug_irradiance_grid)
 
 void main()
 {
-  ivec3 grid_resolution = textureSize(debug_data_tx, 0);
-  ivec3 grid_sample;
+  int3 grid_resolution = textureSize(debug_data_tx, 0);
+  int3 grid_sample;
   int sample_id = 0;
   if (debug_mode == DEBUG_IRRADIANCE_CACHE_VALIDITY) {
     /* Points. */
@@ -28,15 +28,15 @@ void main()
   grid_sample.y = (sample_id / grid_resolution.x) % grid_resolution.y;
   grid_sample.z = (sample_id / (grid_resolution.x * grid_resolution.y));
 
-  vec3 P = lightprobe_volume_grid_sample_position(grid_mat, grid_resolution, grid_sample);
+  float3 P = lightprobe_volume_grid_sample_position(grid_mat, grid_resolution, grid_sample);
 
-  vec4 debug_data = texelFetch(debug_data_tx, grid_sample, 0);
+  float4 debug_data = texelFetch(debug_data_tx, grid_sample, 0);
   if (debug_mode == DEBUG_IRRADIANCE_CACHE_VALIDITY) {
-    interp_color = vec4(1.0f - debug_data.r, debug_data.r, 0.0f, 0.0f);
+    interp_color = float4(1.0f - debug_data.r, debug_data.r, 0.0f, 0.0f);
     gl_PointSize = 3.0f;
     if (debug_data.r > debug_value) {
       /* Only render points that are below threshold. */
-      gl_Position = vec4(0.0f);
+      gl_Position = float4(0.0f);
       gl_PointSize = 0.0f;
       return;
     }
@@ -44,7 +44,7 @@ void main()
   else if (debug_mode == DEBUG_IRRADIANCE_CACHE_VIRTUAL_OFFSET) {
     if (is_zero(debug_data.xyz)) {
       /* Only render points that have offset. */
-      gl_Position = vec4(0.0f);
+      gl_Position = float4(0.0f);
       gl_PointSize = 0.0f;
       return;
     }

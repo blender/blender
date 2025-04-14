@@ -25,35 +25,36 @@ COMPUTE_SHADER_CREATE_INFO(eevee_volume_scatter)
 
 #ifdef VOLUME_LIGHTING
 
-vec3 volume_light_eval(const bool is_directional, vec3 P, vec3 V, uint l_idx, float s_anisotropy)
+float3 volume_light_eval(
+    const bool is_directional, float3 P, float3 V, uint l_idx, float s_anisotropy)
 {
   LightData light = light_buf[l_idx];
 
   /* TODO(fclem): Own light list for volume without lights that have 0 volume influence. */
   if (light.power[LIGHT_VOLUME] == 0.0f) {
-    return vec3(0);
+    return float3(0);
   }
 
   LightVector lv = light_shape_vector_get(light, is_directional, P);
 
   float attenuation = light_attenuation_volume(light, is_directional, lv);
   if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
-    return vec3(0);
+    return float3(0);
   }
 
   float visibility = attenuation;
   if (light.tilemap_index != LIGHT_NO_SHADOW) {
     float delta = shadow_sample(is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P);
     if (delta > 0.0f) {
-      return vec3(0);
+      return float3(0);
     }
   }
   visibility *= volume_phase_function(-V, lv.L, s_anisotropy);
   if (visibility < LIGHT_ATTENUATION_THRESHOLD) {
-    return vec3(0);
+    return float3(0);
   }
 
-  vec3 Li = volume_light(light, is_directional, lv) * visibility;
+  float3 Li = volume_light(light, is_directional, lv) * visibility;
 
   if (light.tilemap_index != LIGHT_NO_SHADOW) {
     Li *= volume_shadow(light, is_directional, P, lv, extinction_tx);
@@ -62,7 +63,7 @@ vec3 volume_light_eval(const bool is_directional, vec3 P, vec3 V, uint l_idx, fl
   return Li;
 }
 
-vec3 volume_lightprobe_eval(vec3 P, vec3 V, float s_anisotropy)
+float3 volume_lightprobe_eval(float3 P, float3 V, float s_anisotropy)
 {
   SphericalHarmonicL1 phase_sh = volume_phase_function_as_sh_L1(V, s_anisotropy);
   SphericalHarmonicL1 volume_radiance_sh = lightprobe_volume_sample(P);
@@ -77,33 +78,34 @@ vec3 volume_lightprobe_eval(vec3 P, vec3 V, float s_anisotropy)
 
 void main()
 {
-  ivec3 froxel = ivec3(gl_GlobalInvocationID);
+  int3 froxel = int3(gl_GlobalInvocationID);
 
   if (any(greaterThanEqual(froxel, uniform_buf.volumes.tex_size))) {
     return;
   }
 
   /* Emission. */
-  vec3 scattering = imageLoadFast(in_emission_img, froxel).rgb;
-  vec3 extinction = imageLoadFast(in_extinction_img, froxel).rgb;
+  float3 scattering = imageLoadFast(in_emission_img, froxel).rgb;
+  float3 extinction = imageLoadFast(in_extinction_img, froxel).rgb;
 
 #ifdef VOLUME_LIGHTING
-  vec3 s_scattering = imageLoadFast(in_scattering_img, froxel).rgb;
+  float3 s_scattering = imageLoadFast(in_scattering_img, froxel).rgb;
 
   float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = volume_froxel_jitter(froxel.xy, offset);
-  vec3 uvw = (vec3(froxel) + vec3(0.5f, 0.5f, 0.5f - jitter)) * uniform_buf.volumes.inv_tex_size;
-  vec3 vP = volume_jitter_to_view(uvw);
+  float3 uvw = (float3(froxel) + float3(0.5f, 0.5f, 0.5f - jitter)) *
+               uniform_buf.volumes.inv_tex_size;
+  float3 vP = volume_jitter_to_view(uvw);
 
-  vec3 P = drw_point_view_to_world(vP);
-  vec3 V = drw_world_incident_vector(P);
+  float3 P = drw_point_view_to_world(vP);
+  float3 V = drw_world_incident_vector(P);
 
   float phase = imageLoadFast(in_phase_img, froxel).r;
   float phase_weight = imageLoadFast(in_phase_weight_img, froxel).r;
   /* Divide by phase total weight, to compute the mean anisotropy. */
   float s_anisotropy = phase / max(1.0f, phase_weight);
 
-  vec3 direct_radiance = vec3(0.0f);
+  float3 direct_radiance = float3(0.0f);
 
   if (reduce_max(s_scattering) > 0.0f) {
     LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
@@ -111,8 +113,8 @@ void main()
     }
     LIGHT_FOREACH_END
 
-    vec2 pixel = ((vec2(froxel.xy) + 0.5f) * uniform_buf.volumes.inv_tex_size.xy) *
-                 uniform_buf.volumes.main_view_extent;
+    float2 pixel = ((float2(froxel.xy) + 0.5f) * uniform_buf.volumes.inv_tex_size.xy) *
+                   uniform_buf.volumes.main_view_extent;
 
     LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx)
     {
@@ -121,7 +123,7 @@ void main()
     LIGHT_FOREACH_END
   }
 
-  vec3 indirect_radiance = volume_lightprobe_eval(P, V, s_anisotropy).xyz;
+  float3 indirect_radiance = volume_lightprobe_eval(P, V, s_anisotropy).xyz;
 
   direct_radiance *= s_scattering;
   indirect_radiance *= s_scattering;
@@ -136,10 +138,10 @@ void main()
 
   if (uniform_buf.volumes.history_opacity > 0.0f) {
     /* Temporal reprojection. */
-    vec3 uvw_history = volume_history_uvw_get(froxel);
+    float3 uvw_history = volume_history_uvw_get(froxel);
     if (uvw_history.x != -1.0f) {
-      vec3 scattering_history = texture(scattering_history_tx, uvw_history).rgb;
-      vec3 extinction_history = texture(extinction_history_tx, uvw_history).rgb;
+      float3 scattering_history = texture(scattering_history_tx, uvw_history).rgb;
+      float3 extinction_history = texture(extinction_history_tx, uvw_history).rgb;
       scattering = mix(scattering, scattering_history, uniform_buf.volumes.history_opacity);
       extinction = mix(extinction, extinction_history, uniform_buf.volumes.history_opacity);
     }
@@ -147,10 +149,10 @@ void main()
 
   /* Catch NaNs. */
   if (any(isnan(scattering)) || any(isnan(extinction))) {
-    scattering = vec3(0.0f);
-    extinction = vec3(0.0f);
+    scattering = float3(0.0f);
+    extinction = float3(0.0f);
   }
 
-  imageStoreFast(out_scattering_img, froxel, vec4(scattering, 1.0f));
-  imageStoreFast(out_extinction_img, froxel, vec4(extinction, 1.0f));
+  imageStoreFast(out_scattering_img, froxel, float4(scattering, 1.0f));
+  imageStoreFast(out_extinction_img, froxel, float4(extinction, 1.0f));
 }

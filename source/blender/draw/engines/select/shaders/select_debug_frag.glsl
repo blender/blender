@@ -5,7 +5,7 @@
 void main()
 {
   uint px = texture(image, uvcoordsvar.xy).r;
-  fragColor = vec4(1.0f, 1.0f, 1.0f, 0.0f);
+  fragColor = float4(1.0f, 1.0f, 1.0f, 0.0f);
   if (px != 0u) {
     fragColor.a = 1.0f;
     px &= 0x3Fu;

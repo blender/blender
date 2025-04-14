@@ -12,7 +12,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_lattice_wire)
 
 #define no_active_weight 666.0f
 
-vec3 weight_to_rgb(float t)
+float3 weight_to_rgb(float t)
 {
   if (t == no_active_weight) {
     /* No weight. */
@@ -20,7 +20,7 @@ vec3 weight_to_rgb(float t)
   }
   if (t > 1.0f || t < 0.0f) {
     /* Error color */
-    return vec3(1.0f, 0.0f, 1.0f);
+    return float3(1.0f, 0.0f, 1.0f);
   }
   else {
     return texture(weightTex, t).rgb;
@@ -29,9 +29,9 @@ vec3 weight_to_rgb(float t)
 
 void main()
 {
-  finalColor = vec4(weight_to_rgb(weight), 1.0f);
+  finalColor = float4(weight_to_rgb(weight), 1.0f);
 
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   view_clipping_distances(world_pos);

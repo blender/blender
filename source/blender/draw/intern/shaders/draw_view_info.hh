@@ -111,7 +111,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(drw_clipped)
 /* TODO(fclem): Move to engine side. */
-UNIFORM_BUF_FREQ(DRW_CLIPPING_UBO_SLOT, vec4, drw_clipping_[6], PASS)
+UNIFORM_BUF_FREQ(DRW_CLIPPING_UBO_SLOT, float4, drw_clipping_[6], PASS)
 DEFINE("USE_WORLD_CLIP_PLANES")
 GPU_SHADER_CREATE_END()
 
@@ -179,5 +179,5 @@ GPU_SHADER_CREATE_END()
 /* Stub needs to be after all definitions to avoid conflict with legacy definitions. */
 #ifdef GPU_SHADER
 /* Make it work for both draw_resource_id and draw_resource_with_custom_id. */
-#  define resource_id_buf vec2(0)
+#  define resource_id_buf float2(0)
 #endif

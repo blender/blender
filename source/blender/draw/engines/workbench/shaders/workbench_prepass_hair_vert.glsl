@@ -27,10 +27,10 @@ float integer_noise(int n)
   return (float(nn) / 1073741824.0f);
 }
 
-vec3 workbench_hair_random_normal(vec3 tangent, vec3 binor, float rand)
+float3 workbench_hair_random_normal(float3 tangent, float3 binor, float rand)
 {
   /* To "simulate" anisotropic shading, randomize hair normal per strand. */
-  vec3 nor = cross(tangent, binor);
+  float3 nor = cross(tangent, binor);
   nor = normalize(mix(nor, -tangent, rand * 0.1f));
   float cos_theta = (rand * 2.0f - 1.0f) * 0.2f;
   float sin_theta = sqrt(max(0.0f, 1.0f - cos_theta * cos_theta));
@@ -39,7 +39,7 @@ vec3 workbench_hair_random_normal(vec3 tangent, vec3 binor, float rand)
 }
 
 void workbench_hair_random_material(float rand,
-                                    inout vec3 color,
+                                    inout float3 color,
                                     inout float roughness,
                                     inout float metallic)
 {
@@ -57,7 +57,7 @@ void main()
 {
   bool is_persp = (drw_view().winmat[3][3] == 0.0f);
   float time = 0.0f, thick_time = 0.0f, thickness = 0.0f;
-  vec3 world_pos, tangent, binor;
+  float3 world_pos, tangent, binor;
   hair_get_pos_tan_binor_time(is_persp,
                               drw_modelinv(),
                               drw_view().viewinv[3].xyz,
@@ -72,7 +72,7 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   float hair_rand = integer_noise(hair_get_strand_id());
-  vec3 nor = workbench_hair_random_normal(tangent, binor, hair_rand);
+  float3 nor = workbench_hair_random_normal(tangent, binor, hair_rand);
 
   view_clipping_distances(world_pos);
 

@@ -25,14 +25,14 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_setup)
 
 void main()
 {
-  vec2 fullres_texel_size = 1.0f / vec2(textureSize(color_tx, 0).xy);
+  float2 fullres_texel_size = 1.0f / float2(textureSize(color_tx, 0).xy);
   /* Center uv around the 4 full-resolution pixels. */
-  vec2 quad_center = vec2(gl_GlobalInvocationID.xy * 2 + 1) * fullres_texel_size;
+  float2 quad_center = float2(gl_GlobalInvocationID.xy * 2 + 1) * fullres_texel_size;
 
-  vec4 colors[4];
-  vec4 cocs;
+  float4 colors[4];
+  float4 cocs;
   for (int i = 0; i < 4; i++) {
-    vec2 sample_uv = quad_center + quad_offsets[i] * fullres_texel_size;
+    float2 sample_uv = quad_center + quad_offsets[i] * fullres_texel_size;
     /* NOTE: We use samplers without filtering. */
     colors[i] = colorspace_safe_color(textureLod(color_tx, sample_uv, 0.0f));
     cocs[i] = dof_coc_from_depth(dof_buf, sample_uv, textureLod(depth_tx, sample_uv, 0.0f).r);
@@ -40,15 +40,15 @@ void main()
 
   cocs = clamp(cocs, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
 
-  vec4 weights = dof_bilateral_coc_weights(cocs);
+  float4 weights = dof_bilateral_coc_weights(cocs);
   weights *= dof_bilateral_color_weights(colors);
   /* Normalize so that the sum is 1. */
   weights *= safe_rcp(reduce_add(weights));
 
-  ivec2 out_texel = ivec2(gl_GlobalInvocationID.xy);
-  vec4 out_color = weighted_sum_array(colors, weights);
+  int2 out_texel = int2(gl_GlobalInvocationID.xy);
+  float4 out_color = weighted_sum_array(colors, weights);
   imageStore(out_color_img, out_texel, out_color);
 
   float out_coc = dot(cocs, weights);
-  imageStore(out_coc_img, out_texel, vec4(out_coc));
+  imageStore(out_coc_img, out_texel, float4(out_coc));
 }

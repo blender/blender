@@ -6,14 +6,14 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   float accumulated_weight = 0.0f;
-  vec4 accumulated_color = vec4(0.0f);
+  float4 accumulated_color = float4(0.0f);
 
   /* First, compute the contribution of the center pixel. */
-  vec4 center_color = texture_load(input_tx, texel);
-  float center_weight = texture_load(weights_tx, ivec2(0)).x;
+  float4 center_color = texture_load(input_tx, texel);
+  float center_weight = texture_load(weights_tx, int2(0)).x;
   accumulated_color += center_color * center_weight;
   accumulated_weight += center_weight;
 
@@ -28,9 +28,9 @@ void main()
    * contributions. */
   for (int i = 1; i <= radius; i++) {
     /* Add 0.5 to evaluate at the center of the pixels. */
-    float weight = texture(weights_tx, vec2((float(i) + 0.5f) / float(radius + 1), 0.0f)).x;
-    accumulated_color += texture_load(input_tx, texel + ivec2(i, 0)) * weight;
-    accumulated_color += texture_load(input_tx, texel + ivec2(-i, 0)) * weight;
+    float weight = texture(weights_tx, float2((float(i) + 0.5f) / float(radius + 1), 0.0f)).x;
+    accumulated_color += texture_load(input_tx, texel + int2(i, 0)) * weight;
+    accumulated_color += texture_load(input_tx, texel + int2(-i, 0)) * weight;
     accumulated_weight += weight * 2.0f;
   }
 

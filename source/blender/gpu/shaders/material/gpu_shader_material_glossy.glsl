@@ -2,25 +2,25 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_bsdf_glossy(vec4 color,
+void node_bsdf_glossy(float4 color,
                       float roughness,
                       float anisotropy,
                       float rotation,
-                      vec3 N,
-                      vec3 T,
+                      float3 N,
+                      float3 T,
                       float weight,
                       const float do_multiscatter,
                       out Closure result)
 {
-  color = max(color, vec4(0.0f));
+  color = max(color, float4(0.0f));
   roughness = saturate(roughness);
   N = safe_normalize(N);
   /* anisotropy = clamp(anisotropy, -0.99f, 0.99f) */
 
-  vec3 V = coordinate_incoming(g_data.P);
+  float3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);
 
-  vec2 split_sum = brdf_lut(NV, roughness);
+  float2 split_sum = brdf_lut(NV, roughness);
 
   ClosureReflection reflection_data;
   reflection_data.weight = weight;

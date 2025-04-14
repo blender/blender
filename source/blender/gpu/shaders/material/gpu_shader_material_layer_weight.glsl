@@ -4,13 +4,13 @@
 
 #include "gpu_shader_material_fresnel.glsl"
 
-void node_layer_weight(float blend, vec3 N, out float fresnel, out float facing)
+void node_layer_weight(float blend, float3 N, out float fresnel, out float facing)
 {
   N = normalize(N);
 
   /* fresnel */
   float eta = max(1.0f - blend, 0.00001f);
-  vec3 V = coordinate_incoming(g_data.P);
+  float3 V = coordinate_incoming(g_data.P);
 
   fresnel = fresnel_dielectric(V, N, (FrontFacing) ? 1.0f / eta : eta);
 

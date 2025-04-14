@@ -30,16 +30,16 @@ float sampling_rng_1D_get(const eSamplingDimension dimension)
   return sampling_buf.dimensions[dimension];
 }
 
-vec2 sampling_rng_2D_get(const eSamplingDimension dimension)
+float2 sampling_rng_2D_get(const eSamplingDimension dimension)
 {
-  return vec2(sampling_buf.dimensions[dimension], sampling_buf.dimensions[dimension + 1u]);
+  return float2(sampling_buf.dimensions[dimension], sampling_buf.dimensions[dimension + 1u]);
 }
 
-vec3 sampling_rng_3D_get(const eSamplingDimension dimension)
+float3 sampling_rng_3D_get(const eSamplingDimension dimension)
 {
-  return vec3(sampling_buf.dimensions[dimension],
-              sampling_buf.dimensions[dimension + 1u],
-              sampling_buf.dimensions[dimension + 2u]);
+  return float3(sampling_buf.dimensions[dimension],
+                sampling_buf.dimensions[dimension + 1u],
+                sampling_buf.dimensions[dimension + 2u]);
 }
 
 #endif
@@ -53,23 +53,23 @@ vec3 sampling_rng_3D_get(const eSamplingDimension dimension)
 /* Interleaved gradient noise by Jorge Jimenez
  * http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
  * Seeding found by Epic Game. */
-float interlieved_gradient_noise(vec2 pixel, float seed, float offset)
+float interlieved_gradient_noise(float2 pixel, float seed, float offset)
 {
-  pixel += seed * (vec2(47, 17) * 0.695f);
+  pixel += seed * (float2(47, 17) * 0.695f);
   return fract(offset + 52.9829189f * fract(0.06711056f * pixel.x + 0.00583715f * pixel.y));
 }
 
-vec2 interlieved_gradient_noise(vec2 pixel, vec2 seed, vec2 offset)
+float2 interlieved_gradient_noise(float2 pixel, float2 seed, float2 offset)
 {
-  return vec2(interlieved_gradient_noise(pixel, seed.x, offset.x),
-              interlieved_gradient_noise(pixel, seed.y, offset.y));
+  return float2(interlieved_gradient_noise(pixel, seed.x, offset.x),
+                interlieved_gradient_noise(pixel, seed.y, offset.y));
 }
 
-vec3 interlieved_gradient_noise(vec2 pixel, vec3 seed, vec3 offset)
+float3 interlieved_gradient_noise(float2 pixel, float3 seed, float3 offset)
 {
-  return vec3(interlieved_gradient_noise(pixel, seed.x, offset.x),
-              interlieved_gradient_noise(pixel, seed.y, offset.y),
-              interlieved_gradient_noise(pixel, seed.z, offset.z));
+  return float3(interlieved_gradient_noise(pixel, seed.x, offset.x),
+                interlieved_gradient_noise(pixel, seed.y, offset.y),
+                interlieved_gradient_noise(pixel, seed.z, offset.z));
 }
 
 /* From: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */
@@ -88,32 +88,32 @@ float van_der_corput_radical_inverse(uint bits)
   return float(bits) * 2.3283064365386963e-10f;
 }
 
-vec2 hammersley_2d(float i, float sample_count)
+float2 hammersley_2d(float i, float sample_count)
 {
-  vec2 rand;
+  float2 rand;
   rand.x = i / sample_count;
   rand.y = van_der_corput_radical_inverse(uint(i));
   return rand;
 }
 
-vec2 hammersley_2d(uint i, uint sample_count)
+float2 hammersley_2d(uint i, uint sample_count)
 {
-  vec2 rand;
+  float2 rand;
   rand.x = float(i) / float(sample_count);
   rand.y = van_der_corput_radical_inverse(i);
   return rand;
 }
 
-vec2 hammersley_2d(int i, int sample_count)
+float2 hammersley_2d(int i, int sample_count)
 {
   return hammersley_2d(uint(i), uint(sample_count));
 }
 
 /* Not random but still useful. sample_count should be an even. */
-vec2 regular_grid_2d(int i, int sample_count)
+float2 regular_grid_2d(int i, int sample_count)
 {
   int sample_per_dim = int(sqrt(float(sample_count)));
-  return (vec2(i % sample_per_dim, i / sample_per_dim) + 0.5f) / float(sample_per_dim);
+  return (float2(i % sample_per_dim, i / sample_per_dim) + 0.5f) / float(sample_per_dim);
 }
 
 /* PCG */
@@ -131,17 +131,17 @@ float pcg(float v)
   return pcg_uint(floatBitsToUint(v)) / float(0xffffffffU);
 }
 
-float pcg(vec2 v)
+float pcg(float2 v)
 {
   /* Nested pcg (faster and better quality that pcg2d). */
-  uvec2 u = floatBitsToUint(v);
+  uint2 u = floatBitsToUint(v);
   return pcg_uint(pcg_uint(u.x) + u.y) / float(0xffffffffU);
 }
 
 /* http://www.jcgt.org/published/0009/03/02/ */
-vec3 pcg3d(vec3 v)
+float3 pcg3d(float3 v)
 {
-  uvec3 u = floatBitsToUint(v);
+  uint3 u = floatBitsToUint(v);
 
   u = u * 1664525u + 1013904223u;
 
@@ -155,13 +155,13 @@ vec3 pcg3d(vec3 v)
   u.y += u.z * u.x;
   u.z += u.x * u.y;
 
-  return vec3(u) / float(0xffffffffU);
+  return float3(u) / float(0xffffffffU);
 }
 
 /* http://www.jcgt.org/published/0009/03/02/ */
-vec4 pcg4d(vec4 v)
+float4 pcg4d(float4 v)
 {
-  uvec4 u = floatBitsToUint(v);
+  uint4 u = floatBitsToUint(v);
 
   u = u * 1664525u + 1013904223u;
 
@@ -177,7 +177,7 @@ vec4 pcg4d(vec4 v)
   u.z += u.x * u.y;
   u.w += u.y * u.z;
 
-  return vec4(u) / float(0xffffffffU);
+  return float4(u) / float(0xffffffffU);
 }
 
 /** \} */
@@ -189,16 +189,16 @@ vec4 pcg4d(vec4 v)
  * \{ */
 
 /* Given 1 random number in [0..1] range, return a random unit circle sample. */
-vec2 sample_circle(float rand)
+float2 sample_circle(float rand)
 {
   float phi = (rand - 0.5f) * M_TAU;
   float cos_phi = cos(phi);
   float sin_phi = sqrt(1.0f - square(cos_phi)) * sign(phi);
-  return vec2(cos_phi, sin_phi);
+  return float2(cos_phi, sin_phi);
 }
 
 /* Given 2 random number in [0..1] range, return a random unit disk sample. */
-vec2 sample_disk(vec2 rand)
+float2 sample_disk(float2 rand)
 {
   return sample_circle(rand.y) * sqrt(rand.x);
 }
@@ -206,9 +206,9 @@ vec2 sample_disk(vec2 rand)
 /* This transform a 2d random sample (in [0..1] range) to a sample located on a cylinder of the
  * same range. This is because the sampling functions expect such a random sample which is
  * normally precomputed. */
-vec3 sample_cylinder(vec2 rand)
+float3 sample_cylinder(float2 rand)
 {
-  return vec3(rand.x, sample_circle(rand.y));
+  return float3(rand.x, sample_circle(rand.y));
 }
 
 /**
@@ -217,18 +217,18 @@ vec3 sample_cylinder(vec2 rand)
  * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
  * PDF = 1 / (4 * pi)
  */
-vec3 sample_sphere(vec2 rand)
+float3 sample_sphere(float2 rand)
 {
   float cos_theta = rand.x * 2.0f - 1.0f;
   float sin_theta = safe_sqrt(1.0f - cos_theta * cos_theta);
-  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
+  return float3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
 /**
  * Returns a point in a ball that is "uniformly" distributed after projection along any axis.
  * PDF = unknown
  */
-vec3 sample_ball(vec3 rand)
+float3 sample_ball(float3 rand)
 {
   /* Completely ad-hoc, but works well in practice and is fast. */
   return sample_sphere(rand.xy) * sqrt(sqrt(rand.z));
@@ -240,11 +240,11 @@ vec3 sample_ball(vec3 rand)
  * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
  * PDF = 1 / (2 * pi)
  */
-vec3 sample_hemisphere(vec2 rand)
+float3 sample_hemisphere(float2 rand)
 {
   float cos_theta = rand.x;
   float sin_theta = safe_sqrt(1.0f - square(cos_theta));
-  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
+  return float3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
 /**
@@ -254,11 +254,11 @@ vec3 sample_hemisphere(vec2 rand)
  * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
  * PDF = 1 / (2 * pi * (1 - cos_angle))
  */
-vec3 sample_uniform_cone(vec2 rand, float cos_angle)
+float3 sample_uniform_cone(float2 rand, float cos_angle)
 {
   float cos_theta = mix(cos_angle, 1.0f, rand.x);
   float sin_theta = safe_sqrt(1.0f - square(cos_theta));
-  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
+  return float3(sin_theta * sample_circle(rand.y), cos_theta);
 }
 
 /** \} */

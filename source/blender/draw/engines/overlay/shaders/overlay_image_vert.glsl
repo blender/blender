@@ -15,11 +15,11 @@ VERTEX_SHADER_CREATE_INFO(draw_modelmat)
 void main()
 {
   select_id_set(drw_custom_id());
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   if (isCameraBackground) {
     /* Model matrix converts to view position to avoid jittering (see #91398). */
 #ifdef DEPTH_BIAS
-    gl_Position = depth_bias_winmat * vec4(world_pos, 1.0f);
+    gl_Position = depth_bias_winmat * float4(world_pos, 1.0f);
 #else
     gl_Position = drw_point_view_to_homogenous(world_pos);
 #endif
@@ -29,7 +29,7 @@ void main()
   }
   else {
 #ifdef DEPTH_BIAS
-    gl_Position = depth_bias_winmat * (drw_view().viewmat * vec4(world_pos, 1.0f));
+    gl_Position = depth_bias_winmat * (drw_view().viewmat * float4(world_pos, 1.0f));
 #else
     gl_Position = drw_point_world_to_homogenous(world_pos);
 #endif

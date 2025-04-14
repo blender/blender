@@ -17,7 +17,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_3D_line_dashed_uniform_color_clipped)
 
 void main()
 {
-  vec4 pos_4d = vec4(pos, 1.0f);
+  float4 pos_4d = float4(pos, 1.0f);
   gl_Position = ModelViewProjectionMatrix * pos_4d;
   stipple_start = stipple_pos = viewport_size * 0.5f * (gl_Position.xy / gl_Position.w);
 #ifdef USE_WORLD_CLIP_PLANES

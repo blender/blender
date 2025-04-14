@@ -16,11 +16,11 @@ VERTEX_SHADER_CREATE_INFO(overlay_armature_shape_outline)
 #include "select_lib.glsl"
 
 struct VertIn {
-  vec3 ls_P;
-  mat4 inst_matrix;
+  float3 ls_P;
+  float4x4 inst_matrix;
 };
 
-VertIn input_assembly(uint in_vertex_id, mat4x4 inst_matrix)
+VertIn input_assembly(uint in_vertex_id, float4x4 inst_matrix)
 {
   uint v_i = gpu_index_load(in_vertex_id);
 
@@ -31,18 +31,18 @@ VertIn input_assembly(uint in_vertex_id, mat4x4 inst_matrix)
 }
 
 struct VertOut {
-  vec3 vs_P;
-  vec3 ws_P;
-  vec4 hs_P;
-  vec2 ss_P;
-  vec4 color_size;
+  float3 vs_P;
+  float3 ws_P;
+  float4 hs_P;
+  float2 ss_P;
+  float4 color_size;
   int inverted;
 };
 
 VertOut vertex_main(VertIn v_in)
 {
-  vec4 bone_color, state_color;
-  mat4 model_mat = extract_matrix_packed_data(v_in.inst_matrix, state_color, bone_color);
+  float4 bone_color, state_color;
+  float4x4 model_mat = extract_matrix_packed_data(v_in.inst_matrix, state_color, bone_color);
 
   VertOut v_out;
   v_out.ws_P = transform_point(model_mat, v_in.ls_P);
@@ -58,10 +58,10 @@ VertOut vertex_main(VertIn v_in)
 void emit_vertex(const uint strip_index,
                  uint out_vertex_id,
                  uint out_primitive_id,
-                 vec4 color,
-                 vec4 hs_P,
-                 vec3 ws_P,
-                 vec2 offset,
+                 float4 color,
+                 float4 hs_P,
+                 float3 ws_P,
+                 float2 offset,
                  bool is_persp)
 {
   bool is_odd_primitive = (out_primitive_id & 1u) != 0u;
@@ -93,13 +93,13 @@ void geometry_main(VertOut geom_in[4],
 {
   bool is_persp = (drw_view().winmat[3][3] == 0.0f);
 
-  vec3 view_vec = (is_persp) ? normalize(geom_in[1].vs_P) : vec3(0.0f, 0.0f, -1.0f);
-  vec3 v10 = geom_in[0].vs_P - geom_in[1].vs_P;
-  vec3 v12 = geom_in[2].vs_P - geom_in[1].vs_P;
-  vec3 v13 = geom_in[3].vs_P - geom_in[1].vs_P;
+  float3 view_vec = (is_persp) ? normalize(geom_in[1].vs_P) : float3(0.0f, 0.0f, -1.0f);
+  float3 v10 = geom_in[0].vs_P - geom_in[1].vs_P;
+  float3 v12 = geom_in[2].vs_P - geom_in[1].vs_P;
+  float3 v13 = geom_in[3].vs_P - geom_in[1].vs_P;
 
-  vec3 n0 = cross(v12, v10);
-  vec3 n3 = cross(v13, v12);
+  float3 n0 = cross(v12, v10);
+  float3 n3 = cross(v13, v12);
 
   float fac0 = dot(view_vec, n0);
   float fac3 = dot(view_vec, n3);
@@ -120,10 +120,10 @@ void geometry_main(VertOut geom_in[4],
     return;
   }
 
-  vec2 perp = normalize(geom_in[2].ss_P - geom_in[1].ss_P);
-  vec2 edge_dir = vec2(-perp.y, perp.x);
+  float2 perp = normalize(geom_in[2].ss_P - geom_in[1].ss_P);
+  float2 edge_dir = float2(-perp.y, perp.x);
 
-  vec2 hidden_point;
+  float2 hidden_point;
   /* Take the farthest point to compute edge direction
    * (avoid problems with point behind near plane).
    * If the chosen point is parallel to the edge in screen space,
@@ -135,7 +135,7 @@ void geometry_main(VertOut geom_in[4],
   else {
     hidden_point = (abs(fac3) > 1e-5f) ? geom_in[3].ss_P : geom_in[0].ss_P;
   }
-  vec2 hidden_dir = normalize(hidden_point - geom_in[1].ss_P);
+  float2 hidden_dir = normalize(hidden_point - geom_in[1].ss_P);
 
   float fac = dot(-hidden_dir, edge_dir);
   edge_dir *= (fac < 0.0f) ? -1.0f : 1.0f;
@@ -143,7 +143,7 @@ void geometry_main(VertOut geom_in[4],
   emit_vertex(0,
               out_vertex_id,
               out_primitive_id,
-              vec4(geom_in[0].color_size.rgb, 1.0f),
+              float4(geom_in[0].color_size.rgb, 1.0f),
               geom_in[1].hs_P,
               geom_in[1].ws_P,
               edge_dir - perp,
@@ -152,7 +152,7 @@ void geometry_main(VertOut geom_in[4],
   emit_vertex(1,
               out_vertex_id,
               out_primitive_id,
-              vec4(geom_in[0].color_size.rgb, 1.0f),
+              float4(geom_in[0].color_size.rgb, 1.0f),
               geom_in[2].hs_P,
               geom_in[2].ws_P,
               edge_dir + perp,
@@ -183,7 +183,7 @@ void main()
   uint out_invocation_id = (uint(gl_VertexID) / output_vertex_count_per_invocation) %
                            ouput_invocation_count;
 
-  mat4x4 inst_matrix = data_buf[gl_InstanceID];
+  float4x4 inst_matrix = data_buf[gl_InstanceID];
 
   VertIn vert_in[input_primitive_vertex_count];
   vert_in[0] = input_assembly(in_primitive_first_vertex + 0u, inst_matrix);
@@ -198,6 +198,6 @@ void main()
   vert_out[3] = vertex_main(vert_in[3]);
 
   /* Discard by default. */
-  gl_Position = vec4(NAN_FLT);
+  gl_Position = float4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
 }

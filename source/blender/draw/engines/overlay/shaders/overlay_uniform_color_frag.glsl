@@ -10,6 +10,6 @@ void main()
 {
   fragColor = ucolor;
 #ifdef LINE_OUTPUT
-  lineOutput = vec4(0.0f);
+  lineOutput = float4(0.0f);
 #endif
 }

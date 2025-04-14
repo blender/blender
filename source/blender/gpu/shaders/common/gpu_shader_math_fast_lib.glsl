@@ -15,7 +15,7 @@ float sqrt_fast(float v)
 {
   return intBitsToFloat(0x1fbd1df5 + (floatBitsToInt(v) >> 1));
 }
-vec2 sqrt_fast(vec2 v)
+float2 sqrt_fast(float2 v)
 {
   return intBitsToFloat(0x1fbd1df5 + (floatBitsToInt(v) >> 1));
 }
@@ -27,9 +27,9 @@ float acos_fast(float v)
   res *= sqrt_fast(1.0f - abs(v));
   return (v >= 0) ? res : M_PI - res;
 }
-vec2 acos_fast(vec2 v)
+float2 acos_fast(float2 v)
 {
-  vec2 res = -0.156583f * abs(v) + M_PI_2;
+  float2 res = -0.156583f * abs(v) + M_PI_2;
   res *= sqrt_fast(1.0f - abs(v));
   v.x = (v.x >= 0) ? res.x : M_PI - res.x;
   v.y = (v.y >= 0) ? res.y : M_PI - res.y;

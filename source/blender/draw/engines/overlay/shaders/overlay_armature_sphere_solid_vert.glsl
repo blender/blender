@@ -18,11 +18,11 @@ void main()
 {
   select_id_set(in_select_buf[gl_InstanceID]);
 
-  vec4 bone_color, state_color;
-  mat4 inst_obmat = data_buf[gl_InstanceID];
-  mat4 model_mat = extract_matrix_packed_data(inst_obmat, state_color, bone_color);
+  float4 bone_color, state_color;
+  float4x4 inst_obmat = data_buf[gl_InstanceID];
+  float4x4 model_mat = extract_matrix_packed_data(inst_obmat, state_color, bone_color);
 
-  mat4 model_view_matrix = drw_view().viewmat * model_mat;
+  float4x4 model_view_matrix = drw_view().viewmat * model_mat;
   sphereMatrix = inverse(model_view_matrix);
 
   bool is_persp = (drw_view().winmat[3][3] == 0.0f);
@@ -30,16 +30,16 @@ void main()
   /* This is the local space camera ray (not normalize).
    * In perspective mode it's also the view-space position
    * of the sphere center. */
-  vec3 cam_ray = (is_persp) ? model_view_matrix[3].xyz : vec3(0.0f, 0.0f, -1.0f);
+  float3 cam_ray = (is_persp) ? model_view_matrix[3].xyz : float3(0.0f, 0.0f, -1.0f);
   cam_ray = to_float3x3(sphereMatrix) * cam_ray;
 
   /* Sphere center distance from the camera (persp) in local space. */
   float cam_dist = length(cam_ray);
 
   /* Compute view aligned orthonormal space. */
-  vec3 z_axis = cam_ray / cam_dist;
-  vec3 x_axis = normalize(cross(sphereMatrix[1].xyz, z_axis));
-  vec3 y_axis = cross(z_axis, x_axis);
+  float3 z_axis = cam_ray / cam_dist;
+  float3 x_axis = normalize(cross(sphereMatrix[1].xyz, z_axis));
+  float3 y_axis = cross(z_axis, x_axis);
 
   float z_ofs = -rad - 1e-8f; /* offset to the front of the sphere */
   if (is_persp) {
@@ -73,16 +73,16 @@ void main()
   }
 
   /* Camera oriented position (but still in local space) */
-  vec3 cam_pos = x_axis * pos.x + y_axis * pos.y + z_axis * z_ofs;
+  float3 cam_pos = x_axis * pos.x + y_axis * pos.y + z_axis * z_ofs;
 
-  vec4 pos_4d = vec4(cam_pos, 1.0f);
-  vec4 V = model_view_matrix * pos_4d;
+  float4 pos_4d = float4(cam_pos, 1.0f);
+  float4 V = model_view_matrix * pos_4d;
   gl_Position = drw_view().winmat * V;
   viewPosition = V.xyz;
 
   finalStateColor = state_color.xyz;
   finalBoneColor = bone_color.xyz;
 
-  vec4 world_pos = model_mat * pos_4d;
+  float4 world_pos = model_mat * pos_4d;
   view_clipping_distances(world_pos.xyz);
 }

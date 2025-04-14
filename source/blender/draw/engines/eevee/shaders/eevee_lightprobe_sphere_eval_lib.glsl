@@ -11,7 +11,7 @@
 #include "gpu_shader_math_base_lib.glsl"
 
 #ifdef SPHERE_PROBE
-int lightprobe_spheres_select(vec3 P, float random_probe)
+int lightprobe_spheres_select(float3 P, float random_probe)
 {
   for (int index = 0; index < SPHERE_PROBE_MAX; index++) {
     SphereProbeData probe_data = lightprobe_sphere_buf[index];
@@ -21,7 +21,7 @@ int lightprobe_spheres_select(vec3 P, float random_probe)
       return index - 1;
     }
     /* NOTE: The vector-matrix multiplication swapped on purpose to cancel the matrix transpose. */
-    vec3 lP = vec4(P, 1.0f) * probe_data.world_to_probe_transposed;
+    float3 lP = float4(P, 1.0f) * probe_data.world_to_probe_transposed;
     float gradient = (probe_data.influence_shape == SHAPE_ELIPSOID) ?
                          length(lP) :
                          max(max(abs(lP.x), abs(lP.y)), abs(lP.z));

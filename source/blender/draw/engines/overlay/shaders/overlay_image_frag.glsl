@@ -11,8 +11,8 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_image_base)
 
 void main()
 {
-  vec2 uvs_clamped = clamp(uvs, 0.0f, 1.0f);
-  vec4 tex_color;
+  float2 uvs_clamped = clamp(uvs, 0.0f, 1.0f);
+  float4 tex_color;
   tex_color = texture_read_as_linearrgb(imgTexture, imgPremultiplied, uvs_clamped);
 
   fragColor = tex_color * ucolor;

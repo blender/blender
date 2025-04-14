@@ -23,17 +23,17 @@ float fresnel_dielectric_cos(float cosi, float eta)
   return result;
 }
 
-float fresnel_dielectric(vec3 Incoming, vec3 Normal, float eta)
+float fresnel_dielectric(float3 Incoming, float3 Normal, float eta)
 {
   /* compute fresnel reflectance without explicitly computing
    * the refracted direction */
   return fresnel_dielectric_cos(dot(Incoming, Normal), eta);
 }
 
-void node_fresnel(float ior, vec3 N, out float result)
+void node_fresnel(float ior, float3 N, out float result)
 {
   N = normalize(N);
-  vec3 V = coordinate_incoming(g_data.P);
+  float3 V = coordinate_incoming(g_data.P);
 
   float eta = max(ior, 0.00001f);
   result = fresnel_dielectric(V, N, (FrontFacing) ? eta : 1.0f / eta);

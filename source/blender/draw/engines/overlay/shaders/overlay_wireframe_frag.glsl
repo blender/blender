@@ -21,19 +21,19 @@ void main()
   }
 #endif
 
-  lineOutput = vec4(0.0f);
+  lineOutput = float4(0.0f);
 
 #if defined(POINTS)
-  vec2 centered = abs(gl_PointCoord - vec2(0.5f));
+  float2 centered = abs(gl_PointCoord - float2(0.5f));
   float dist = max(centered.x, centered.y);
 
   float fac = dist * dist * 4.0f;
   /* Create a small gradient so that dense objects have a small fresnel effect. */
   /* Non linear blend. */
-  vec3 rim_col = sqrt(finalColorInner.rgb);
-  vec3 wire_col = sqrt(finalColor.rgb);
-  vec3 final_front_col = mix(rim_col, wire_col, 0.35f);
-  fragColor = vec4(mix(final_front_col, rim_col, saturate(fac)), 1.0f);
+  float3 rim_col = sqrt(finalColorInner.rgb);
+  float3 wire_col = sqrt(finalColor.rgb);
+  float3 final_front_col = mix(rim_col, wire_col, 0.35f);
+  fragColor = float4(mix(final_front_col, rim_col, saturate(fac)), 1.0f);
   fragColor *= fragColor;
 
 #elif !defined(SELECT_ENABLE)
@@ -42,13 +42,13 @@ void main()
 
 #  if !defined(CURVES)
   if (use_custom_depth_bias) {
-    vec2 dir = lineOutput.xy * 2.0f - 1.0f;
+    float2 dir = lineOutput.xy * 2.0f - 1.0f;
     bool dir_horiz = abs(dir.x) > abs(dir.y);
 
-    vec2 uv = gl_FragCoord.xy * sizeViewportInv;
+    float2 uv = gl_FragCoord.xy * sizeViewportInv;
     float depth_occluder = texture(depthTex, uv).r;
     float depth_min = depth_occluder;
-    vec2 uv_offset = sizeViewportInv;
+    float2 uv_offset = sizeViewportInv;
     if (dir_horiz) {
       uv_offset.y = 0.0f;
     }

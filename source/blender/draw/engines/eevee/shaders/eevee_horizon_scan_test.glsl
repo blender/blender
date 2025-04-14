@@ -18,18 +18,18 @@ void main()
 {
   TEST(eevee_horizon_scan, Bitmask)
   {
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(-1.0f, -1.0f)), 0x00000000u);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(-1.0f, -0.97f)), 0x00000001u);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(-1.0f, -0.5f)), 0x000000FFu);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(-1.0f, 0.0f)), 0x0000FFFFu);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(-0.5f, 0.0f)), 0x0000FF00u);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(-0.5f, 0.5f)), 0x00FFFF00u);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(0.0f, 0.5f)), 0x00FF0000u);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(0.0f, 1.0f)), 0xFFFF0000u);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(0.5f, 1.0f)), 0xFF000000u);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(-1.0f, 1.0f)), 0xFFFFFFFFu);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(-2.0f, 2.0f)), 0xFFFFFFFFu);
-    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * vec2(0.2f, 0.2f)), 0x00000000u);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(-1.0f, -1.0f)), 0x00000000u);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(-1.0f, -0.97f)), 0x00000001u);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(-1.0f, -0.5f)), 0x000000FFu);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(-1.0f, 0.0f)), 0x0000FFFFu);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(-0.5f, 0.0f)), 0x0000FF00u);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(-0.5f, 0.5f)), 0x00FFFF00u);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(0.0f, 0.5f)), 0x00FF0000u);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(0.0f, 1.0f)), 0xFFFF0000u);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(0.5f, 1.0f)), 0xFF000000u);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(-1.0f, 1.0f)), 0xFFFFFFFFu);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(-2.0f, 2.0f)), 0xFFFFFFFFu);
+    EXPECT_EQ(horizon_scan_angles_to_bitmask(M_PI_2 * float2(0.2f, 0.2f)), 0x00000000u);
   }
 
   TEST(eevee_horizon_scan, UniformOcclusion)

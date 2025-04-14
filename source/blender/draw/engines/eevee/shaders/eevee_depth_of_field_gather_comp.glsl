@@ -23,7 +23,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
 
 void main()
 {
-  ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy / DOF_TILES_SIZE);
+  int2 tile_co = int2(gl_GlobalInvocationID.xy / DOF_TILES_SIZE);
   CocTile coc_tile = dof_coc_tile_load(in_tiles_fg_img, in_tiles_bg_img, tile_co);
   CocTilePrediction prediction = dof_coc_tile_prediction_get(coc_tile);
 
@@ -50,14 +50,14 @@ void main()
 
   bool do_density_change = dof_do_density_change(base_radius, min_intersectable_radius);
 
-  vec4 out_color;
+  float4 out_color;
   float out_weight;
-  vec2 out_occlusion;
+  float2 out_occlusion;
 
   if (can_early_out) {
-    out_color = vec4(0.0f);
+    out_color = float4(0.0f);
     out_weight = 0.0f;
-    out_occlusion = vec2(0.0f, 0.0f);
+    out_occlusion = float2(0.0f, 0.0f);
   }
   else if (do_fast_gather) {
     dof_gather_accumulator(color_tx,
@@ -99,8 +99,8 @@ void main()
                            out_occlusion);
   }
 
-  ivec2 out_texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 out_texel = int2(gl_GlobalInvocationID.xy);
   imageStore(out_color_img, out_texel, out_color);
-  imageStore(out_weight_img, out_texel, vec4(out_weight));
+  imageStore(out_weight_img, out_texel, float4(out_weight));
   imageStore(out_occlusion_img, out_texel, out_occlusion.xyxy);
 }

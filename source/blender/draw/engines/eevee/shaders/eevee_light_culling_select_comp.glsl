@@ -53,9 +53,9 @@ void main()
       LightSpotData spot = light_spot_data_get(light);
       /* Only for < ~170 degree Cone due to plane extraction precision. */
       if (spot.spot_tan < 10.0f) {
-        vec3 x_axis = light_x_axis(light);
-        vec3 y_axis = light_y_axis(light);
-        vec3 z_axis = light_z_axis(light);
+        float3 x_axis = light_x_axis(light);
+        float3 y_axis = light_y_axis(light);
+        float3 z_axis = light_z_axis(light);
         Pyramid pyramid = shape_pyramid_non_oblique(
             light_position_get(light),
             light_position_get(light) - z_axis * spot.influence_radius_max,

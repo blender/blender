@@ -18,9 +18,9 @@
 #include "gpu_shader_utildefines_lib.glsl"
 
 /* Returns view-space ray. */
-BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, float thickness)
+BsdfSample ray_generate_direction(float2 noise, ClosureUndetermined cl, float3 V, float thickness)
 {
-  vec3 random_point_on_cylinder = sample_cylinder(noise);
+  float3 random_point_on_cylinder = sample_cylinder(noise);
   /* Bias the rays so we never get really high energy rays almost parallel to the surface. */
   const float rng_bias = 0.08f;
   /* When modeling object thickness as a sphere, the outgoing rays are distributed uniformly
@@ -35,11 +35,11 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
       break;
   }
 
-  mat3 tangent_to_world = from_up_axis(cl.N);
+  float3x3 tangent_to_world = from_up_axis(cl.N);
 
   BsdfSample samp;
   samp.pdf = 0.0f;
-  samp.direction = vec3(0.0f);
+  samp.direction = float3(0.0f);
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
       samp = bxdf_translucent_sample(random_point_on_cylinder, thickness);
@@ -65,7 +65,7 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
       break;
     }
   }
-  samp.direction = tangent_to_world * vec3(samp.direction);
+  samp.direction = tangent_to_world * float3(samp.direction);
 
   return samp;
 }

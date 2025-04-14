@@ -5,11 +5,11 @@
 #include "gpu_shader_math_matrix_lib.glsl"
 #include "gpu_shader_math_rotation_lib.glsl"
 
-vec3 rotate_around_axis(vec3 p, vec3 axis, float angle)
+float3 rotate_around_axis(float3 p, float3 axis, float angle)
 {
   float costheta = cos(angle);
   float sintheta = sin(angle);
-  vec3 r;
+  float3 r;
 
   r.x = ((costheta + (1.0f - costheta) * axis.x * axis.x) * p.x) +
         (((1.0f - costheta) * axis.x * axis.y - axis.z * sintheta) * p.y) +
@@ -26,36 +26,61 @@ vec3 rotate_around_axis(vec3 p, vec3 axis, float angle)
   return r;
 }
 
-void node_vector_rotate_axis_angle(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
+void node_vector_rotate_axis_angle(float3 vector_in,
+                                   float3 center,
+                                   float3 axis,
+                                   float angle,
+                                   float3 rotation,
+                                   float invert,
+                                   out float3 vec)
 {
   vec = (length(axis) != 0.0f) ?
             rotate_around_axis(vector_in - center, normalize(axis), angle * invert) + center :
             vector_in;
 }
 
-void node_vector_rotate_axis_x(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
+void node_vector_rotate_axis_x(float3 vector_in,
+                               float3 center,
+                               float3 axis,
+                               float angle,
+                               float3 rotation,
+                               float invert,
+                               out float3 vec)
 {
-  vec = rotate_around_axis(vector_in - center, vec3(1.0f, 0.0f, 0.0f), angle * invert) + center;
+  vec = rotate_around_axis(vector_in - center, float3(1.0f, 0.0f, 0.0f), angle * invert) + center;
 }
 
-void node_vector_rotate_axis_y(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
+void node_vector_rotate_axis_y(float3 vector_in,
+                               float3 center,
+                               float3 axis,
+                               float angle,
+                               float3 rotation,
+                               float invert,
+                               out float3 vec)
 {
-  vec = rotate_around_axis(vector_in - center, vec3(0.0f, 1.0f, 0.0f), angle * invert) + center;
+  vec = rotate_around_axis(vector_in - center, float3(0.0f, 1.0f, 0.0f), angle * invert) + center;
 }
 
-void node_vector_rotate_axis_z(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
+void node_vector_rotate_axis_z(float3 vector_in,
+                               float3 center,
+                               float3 axis,
+                               float angle,
+                               float3 rotation,
+                               float invert,
+                               out float3 vec)
 {
-  vec = rotate_around_axis(vector_in - center, vec3(0.0f, 0.0f, 1.0f), angle * invert) + center;
+  vec = rotate_around_axis(vector_in - center, float3(0.0f, 0.0f, 1.0f), angle * invert) + center;
 }
 
-void node_vector_rotate_euler_xyz(
-    vec3 vector_in, vec3 center, vec3 axis, float angle, vec3 rotation, float invert, out vec3 vec)
+void node_vector_rotate_euler_xyz(float3 vector_in,
+                                  float3 center,
+                                  float3 axis,
+                                  float angle,
+                                  float3 rotation,
+                                  float invert,
+                                  out float3 vec)
 {
-  mat3 rmat = (invert < 0.0f) ? transpose(from_rotation(as_EulerXYZ(rotation))) :
-                                from_rotation(as_EulerXYZ(rotation));
+  float3x3 rmat = (invert < 0.0f) ? transpose(from_rotation(as_EulerXYZ(rotation))) :
+                                    from_rotation(as_EulerXYZ(rotation));
   vec = rmat * (vector_in - center) + center;
 }

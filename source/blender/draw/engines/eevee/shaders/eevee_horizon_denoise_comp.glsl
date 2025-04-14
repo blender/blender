@@ -13,23 +13,23 @@ COMPUTE_SHADER_CREATE_INFO(eevee_horizon_denoise)
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-vec3 sample_normal_get(ivec2 texel, out bool is_processed)
+float3 sample_normal_get(int2 texel, out bool is_processed)
 {
-  vec4 normal = texelFetch(screen_normal_tx, texel, 0);
+  float4 normal = texelFetch(screen_normal_tx, texel, 0);
   is_processed = (normal.w != 0.0f);
   return normal.xyz * 2.0f - 1.0f;
 }
 
 float sample_weight_get(
-    vec3 center_N, vec3 center_P, ivec2 sample_texel, vec2 sample_uv, ivec2 sample_offset)
+    float3 center_N, float3 center_P, int2 sample_texel, float2 sample_uv, int2 sample_offset)
 {
-  ivec2 sample_texel_fullres = sample_texel * uniform_buf.raytrace.horizon_resolution_scale +
-                               uniform_buf.raytrace.horizon_resolution_bias;
+  int2 sample_texel_fullres = sample_texel * uniform_buf.raytrace.horizon_resolution_scale +
+                              uniform_buf.raytrace.horizon_resolution_bias;
   float sample_depth = texelFetch(hiz_tx, sample_texel_fullres, 0).r;
 
   bool is_valid;
-  vec3 sample_N = sample_normal_get(sample_texel, is_valid);
-  vec3 sample_P = drw_point_screen_to_world(vec3(sample_uv, sample_depth));
+  float3 sample_N = sample_normal_get(sample_texel, is_valid);
+  float3 sample_P = drw_point_screen_to_world(float3(sample_uv, sample_depth));
 
   if (!is_valid) {
     return 0.0f;
@@ -39,13 +39,13 @@ float sample_weight_get(
 
   /* TODO(fclem): Scene parameter. 100.0f is dependent on scene scale. */
   float depth_weight = filter_planar_weight(center_N, center_P, sample_P, 100.0f);
-  float spatial_weight = filter_gaussian_weight(gauss, length_squared(vec2(sample_offset)));
+  float spatial_weight = filter_gaussian_weight(gauss, length_squared(float2(sample_offset)));
   float normal_weight = filter_angle_weight(center_N, sample_N);
 
   return depth_weight * spatial_weight * normal_weight;
 }
 
-SphericalHarmonicL1 load_spherical_harmonic(ivec2 texel)
+SphericalHarmonicL1 load_spherical_harmonic(int2 texel)
 {
   SphericalHarmonicL1 sh;
   sh.L0.M0 = texelFetch(in_sh_0_tx, texel, 0);
@@ -59,25 +59,25 @@ SphericalHarmonicL1 load_spherical_harmonic(ivec2 texel)
 void main()
 {
   const uint tile_size = RAYTRACE_GROUP_SIZE;
-  uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
-  ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
+  uint2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
+  int2 texel = int2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
-  vec2 texel_size = 1.0f / vec2(textureSize(in_sh_0_tx, 0).xy);
-  ivec2 texel_fullres = texel * uniform_buf.raytrace.horizon_resolution_scale +
-                        uniform_buf.raytrace.horizon_resolution_bias;
+  float2 texel_size = 1.0f / float2(textureSize(in_sh_0_tx, 0).xy);
+  int2 texel_fullres = texel * uniform_buf.raytrace.horizon_resolution_scale +
+                       uniform_buf.raytrace.horizon_resolution_bias;
 
   bool is_valid;
   float center_depth = texelFetch(hiz_tx, texel_fullres, 0).r;
-  vec2 center_uv = vec2(texel) * texel_size;
-  vec3 center_P = drw_point_screen_to_world(vec3(center_uv, center_depth));
-  vec3 center_N = sample_normal_get(texel, is_valid);
+  float2 center_uv = float2(texel) * texel_size;
+  float3 center_P = drw_point_screen_to_world(float3(center_uv, center_depth));
+  float3 center_N = sample_normal_get(texel, is_valid);
 
   if (!is_valid) {
 #if 0 /* This is not needed as the next stage doesn't do bilinear filtering. */
-    imageStore(out_sh_0_img, texel, vec4(0.0f));
-    imageStore(out_sh_1_img, texel, vec4(0.0f));
-    imageStore(out_sh_2_img, texel, vec4(0.0f));
-    imageStore(out_sh_3_img, texel, vec4(0.0f));
+    imageStore(out_sh_0_img, texel, float4(0.0f));
+    imageStore(out_sh_1_img, texel, float4(0.0f));
+    imageStore(out_sh_2_img, texel, float4(0.0f));
+    imageStore(out_sh_3_img, texel, float4(0.0f));
 #endif
     return;
   }
@@ -87,9 +87,9 @@ void main()
   /* 3x3 filter. */
   for (int y = -1; y <= 1; y++) {
     for (int x = -1; x <= 1; x++) {
-      ivec2 sample_offset = ivec2(x, y);
-      ivec2 sample_texel = texel + sample_offset;
-      vec2 sample_uv = (vec2(sample_texel) + 0.5f) * texel_size;
+      int2 sample_offset = int2(x, y);
+      int2 sample_texel = texel + sample_offset;
+      float2 sample_uv = (float2(sample_texel) + 0.5f) * texel_size;
       float sample_weight = sample_weight_get(
           center_N, center_P, sample_texel, sample_uv, sample_offset);
       /* We need to avoid sampling if there no weight as the texture values could be undefined

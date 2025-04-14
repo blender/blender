@@ -16,7 +16,7 @@ void main()
 {
   select_id_set(in_select_buf[gl_VertexID]);
 
-  vec3 world_pos = drw_point_object_to_world(data_buf[gl_VertexID].pos_.xyz);
+  float3 world_pos = drw_point_object_to_world(data_buf[gl_VertexID].pos_.xyz);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   gl_PointSize = sizeObjectCenter;

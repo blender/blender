@@ -29,7 +29,7 @@ struct LightProbeSample {
  * Return cached light-probe data at P.
  * Ng and V are use for biases.
  */
-LightProbeSample lightprobe_load(vec3 P, vec3 Ng, vec3 V)
+LightProbeSample lightprobe_load(float3 P, float3 Ng, float3 V)
 {
   float noise = interlieved_gradient_noise(UTIL_TEXEL, 0.0f, 0.0f);
   noise = fract(noise + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
@@ -41,22 +41,22 @@ LightProbeSample lightprobe_load(vec3 P, vec3 Ng, vec3 V)
 }
 
 /* Return the best parallax corrected ray direction from the probe center. */
-vec3 lightprobe_sphere_parallax(SphereProbeData probe, vec3 P, vec3 L)
+float3 lightprobe_sphere_parallax(SphereProbeData probe, float3 P, float3 L)
 {
   bool is_world = (probe.influence_scale == 0.0f);
   if (is_world) {
     return L;
   }
   /* Correct reflection ray using parallax volume intersection. */
-  vec3 lP = vec4(P, 1.0f) * probe.world_to_probe_transposed;
-  vec3 lL = (to_float3x3(probe.world_to_probe_transposed) * L) / probe.parallax_distance;
+  float3 lP = float4(P, 1.0f) * probe.world_to_probe_transposed;
+  float3 lL = (to_float3x3(probe.world_to_probe_transposed) * L) / probe.parallax_distance;
 
   float dist = (probe.parallax_shape == SHAPE_ELIPSOID) ? line_unit_sphere_intersect_dist(lP, lL) :
                                                           line_unit_box_intersect_dist(lP, lL);
 
   /* Use distance in world space directly to recover intersection.
    * This works because we assume no shear in the probe matrix. */
-  vec3 L_new = P + L * dist - probe.location;
+  float3 L_new = P + L * dist - probe.location;
 
   /* TODO(fclem): Roughness adjustment. */
 
@@ -67,10 +67,10 @@ vec3 lightprobe_sphere_parallax(SphereProbeData probe, vec3 P, vec3 L)
  * Return spherical sample normalized by irradiance at sample position.
  * This avoid most of light leaking and reduce the need for many local probes.
  */
-vec3 lightprobe_spherical_sample_normalized_with_parallax(LightProbeSample samp,
-                                                          vec3 P,
-                                                          vec3 L,
-                                                          float lod)
+float3 lightprobe_spherical_sample_normalized_with_parallax(LightProbeSample samp,
+                                                            float3 P,
+                                                            float3 L,
+                                                            float lod)
 {
   SphereProbeData probe = lightprobe_sphere_buf[samp.spherical_id];
   ReflectionProbeLowFreqLight shading_sh = lightprobe_spheres_extract_low_freq(
@@ -87,9 +87,9 @@ float pdf_to_lod(float inv_pdf)
   return blur_pdf * 2.0f;
 }
 
-vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float inv_pdf)
+float3 lightprobe_eval_direction(LightProbeSample samp, float3 P, float3 L, float inv_pdf)
 {
-  vec3 radiance_sh = lightprobe_spherical_sample_normalized_with_parallax(
+  float3 radiance_sh = lightprobe_spherical_sample_normalized_with_parallax(
       samp, P, L, pdf_to_lod(inv_pdf));
   return radiance_sh;
 }
@@ -97,26 +97,27 @@ vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float inv_
 #  ifdef EEVEE_UTILITY_TX
 
 /* TODO: Port that inside a BSSDF file. */
-vec3 lightprobe_eval(LightProbeSample samp, ClosureSubsurface cl, vec3 P, vec3 V, float thickness)
+float3 lightprobe_eval(
+    LightProbeSample samp, ClosureSubsurface cl, float3 P, float3 V, float thickness)
 {
-  vec3 sss_profile = subsurface_transmission(cl.sss_radius, abs(thickness));
-  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(cl.N, samp.volume_irradiance);
+  float3 sss_profile = subsurface_transmission(cl.sss_radius, abs(thickness));
+  float3 radiance_sh = spherical_harmonics_evaluate_lambert(cl.N, samp.volume_irradiance);
   radiance_sh += spherical_harmonics_evaluate_lambert(-cl.N, samp.volume_irradiance) * sss_profile;
   return radiance_sh;
 }
 
-vec3 lightprobe_eval(
-    LightProbeSample samp, ClosureUndetermined cl, vec3 P, vec3 V, float thickness)
+float3 lightprobe_eval(
+    LightProbeSample samp, ClosureUndetermined cl, float3 P, float3 V, float thickness)
 {
   LightProbeRay ray = bxdf_lightprobe_ray(cl, P, V, thickness);
 
   float lod = sphere_probe_roughness_to_lod(ray.perceptual_roughness);
   float fac = sphere_probe_roughness_to_mix_fac(ray.perceptual_roughness);
 
-  vec3 radiance_cube = lightprobe_spherical_sample_normalized_with_parallax(
+  float3 radiance_cube = lightprobe_spherical_sample_normalized_with_parallax(
       samp, P, ray.dominant_direction, lod);
-  vec3 radiance_sh = spherical_harmonics_evaluate_lambert(ray.dominant_direction,
-                                                          samp.volume_irradiance);
+  float3 radiance_sh = spherical_harmonics_evaluate_lambert(ray.dominant_direction,
+                                                            samp.volume_irradiance);
   return mix(radiance_cube, radiance_sh, fac);
 }
 #  endif

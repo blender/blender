@@ -9,16 +9,16 @@
 #define CMP_NODE_CHANNEL_MATTE_CS_YUV 3.0f
 #define CMP_NODE_CHANNEL_MATTE_CS_YCC 4.0f
 
-void node_composite_channel_matte(vec4 color,
+void node_composite_channel_matte(float4 color,
                                   const float color_space,
                                   const float matte_channel,
-                                  const vec2 limit_channels,
+                                  const float2 limit_channels,
                                   float max_limit,
                                   float min_limit,
-                                  out vec4 result,
+                                  out float4 result,
                                   out float matte)
 {
-  vec4 channels;
+  float4 channels;
   if (color_space == CMP_NODE_CHANNEL_MATTE_CS_HSV) {
     rgb_to_hsv(color, channels);
   }

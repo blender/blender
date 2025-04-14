@@ -28,14 +28,14 @@ float shadow_read_depth(SHADOW_ATLAS_TYPE atlas_tx,
   const uint page_shift = uint(SHADOW_PAGE_LOD);
   const uint page_mask = ~(0xFFFFFFFFu << uint(SHADOW_PAGE_LOD));
 
-  uvec2 texel = coord.tilemap_texel;
+  uint2 texel = coord.tilemap_texel;
   /* Shift LOD0 pixels so that they get wrapped at the right position for the given LOD. */
-  texel += uvec2(tile.lod_offset << SHADOW_PAGE_LOD);
+  texel += uint2(tile.lod_offset << SHADOW_PAGE_LOD);
   /* Scale to LOD pixels (merge LOD0 pixels together) then mask to get pixel in page. */
-  uvec2 texel_page = (texel >> tile.lod) & page_mask;
-  texel = (uvec2(tile.page.xy) << page_shift) | texel_page;
+  uint2 texel_page = (texel >> tile.lod) & page_mask;
+  texel = (uint2(tile.page.xy) << page_shift) | texel_page;
 
-  return uintBitsToFloat(texelFetch(atlas_tx, ivec3(ivec2(texel), tile.page.z), 0).r);
+  return uintBitsToFloat(texelFetch(atlas_tx, int3(int2(texel), tile.page.z), 0).r);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -45,10 +45,10 @@ float shadow_read_depth(SHADOW_ATLAS_TYPE atlas_tx,
 float shadow_punctual_sample_get(SHADOW_ATLAS_TYPE atlas_tx,
                                  usampler2D tilemaps_tx,
                                  LightData light,
-                                 vec3 P)
+                                 float3 P)
 {
-  vec3 shadow_position = light_local_data_get(light).shadow_position;
-  vec3 lP = transform_point_inversed(light.object_to_world, P);
+  float3 shadow_position = light_local_data_get(light).shadow_position;
+  float3 lP = transform_point_inversed(light.object_to_world, P);
   lP -= shadow_position;
   int face_id = shadow_punctual_face_index_get(lP);
   lP = shadow_punctual_local_position_to_face_local(face_id, lP);
@@ -66,9 +66,9 @@ float shadow_punctual_sample_get(SHADOW_ATLAS_TYPE atlas_tx,
 float shadow_directional_sample_get(SHADOW_ATLAS_TYPE atlas_tx,
                                     usampler2D tilemaps_tx,
                                     LightData light,
-                                    vec3 P)
+                                    float3 P)
 {
-  vec3 lP = transform_direction_transposed(light.object_to_world, P);
+  float3 lP = transform_direction_transposed(light.object_to_world, P);
   ShadowCoordinates coord = shadow_directional_coordinates(light, lP);
 
   float depth = shadow_read_depth(atlas_tx, tilemaps_tx, coord);
@@ -85,7 +85,7 @@ float shadow_sample(const bool is_directional,
                     SHADOW_ATLAS_TYPE atlas_tx,
                     usampler2D tilemaps_tx,
                     LightData light,
-                    vec3 P)
+                    float3 P)
 {
   if (is_directional) {
     return shadow_directional_sample_get(atlas_tx, tilemaps_tx, light, P);

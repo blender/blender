@@ -8,10 +8,10 @@ VERTEX_SHADER_CREATE_INFO(gpencil_geometry)
 
 #include "draw_grease_pencil_lib.glsl"
 
-void gpencil_color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, float mix_tex)
+void gpencil_color_output(float4 stroke_col, float4 vert_col, float vert_strength, float mix_tex)
 {
   /* Mix stroke with other colors. */
-  vec4 mixed_col = stroke_col;
+  float4 mixed_col = stroke_col;
   mixed_col.rgb = mix(mixed_col.rgb, vert_col.rgb, vert_col.a * gpVertexColorOpacity);
   mixed_col.rgb = mix(mixed_col.rgb, gpLayerTint.rgb, gpLayerTint.a);
   mixed_col.a *= vert_strength * gpLayerOpacity;
@@ -24,8 +24,8 @@ void gpencil_color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, f
    * We do however, modulate the alpha (reduce it).
    */
   /* We add the mixed color. This is 100% mix (no texture visible). */
-  gp_interp.color_mul = vec4(mixed_col.aaa, mixed_col.a);
-  gp_interp.color_add = vec4(mixed_col.rgb * mixed_col.a, 0.0f);
+  gp_interp.color_mul = float4(mixed_col.aaa, mixed_col.a);
+  gp_interp.color_add = float4(mixed_col.rgb * mixed_col.a, 0.0f);
   /* Then we blend according to the texture mix factor.
    * Note that we keep the alpha modulation. */
   gp_interp.color_mul.rgb *= mix_tex;
@@ -35,14 +35,14 @@ void gpencil_color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, f
 void main()
 {
   float vert_strength;
-  vec4 vert_color;
-  vec3 vert_N;
+  float4 vert_color;
+  float3 vert_N;
 
-  ivec4 ma1 = floatBitsToInt(texelFetch(gp_pos_tx, gpencil_stroke_point_id() * 3 + 1));
+  int4 ma1 = floatBitsToInt(texelFetch(gp_pos_tx, gpencil_stroke_point_id() * 3 + 1));
   gpMaterial gp_mat = gp_materials[ma1.x + gpMaterialOffset];
   gpMaterialFlag gp_flag = gpMaterialFlag(floatBitsToUint(gp_mat._flag));
 
-  gl_Position = gpencil_vertex(vec4(viewportSize, 1.0f / viewportSize),
+  gl_Position = gpencil_vertex(float4(viewportSize, 1.0f / viewportSize),
                                gp_flag,
                                gp_mat._alignment_rot,
                                gp_interp.pos,
@@ -62,7 +62,7 @@ void main()
 
     /* Special case: We don't use vertex color if material Holdout. */
     if (flag_test(gp_flag, GP_STROKE_HOLDOUT)) {
-      vert_color = vec4(0.0f);
+      vert_color = float4(0.0f);
     }
 
     gpencil_color_output(
@@ -92,9 +92,9 @@ void main()
   }
   else {
     int stroke_point_id = gpencil_stroke_point_id();
-    vec4 uv1 = texelFetch(gp_pos_tx, stroke_point_id * 3 + 2);
-    vec4 fcol1 = texelFetch(gp_col_tx, stroke_point_id * 2 + 1);
-    vec4 fill_col = gp_mat.fill_color;
+    float4 uv1 = texelFetch(gp_pos_tx, stroke_point_id * 3 + 2);
+    float4 fcol1 = texelFetch(gp_col_tx, stroke_point_id * 2 + 1);
+    float4 fill_col = gp_mat.fill_color;
 
     /* Special case: We don't modulate alpha in gradient mode. */
     if (flag_test(gp_flag, GP_FILL_GRADIENT_USE)) {
@@ -102,13 +102,13 @@ void main()
     }
 
     /* Decode fill opacity. */
-    vec4 fcol_decode = vec4(fcol1.rgb, floor(fcol1.a / 10.0f));
+    float4 fcol_decode = float4(fcol1.rgb, floor(fcol1.a / 10.0f));
     float fill_opacity = fcol1.a - (fcol_decode.a * 10);
     fcol_decode.a /= 10000.0f;
 
     /* Special case: We don't use vertex color if material Holdout. */
     if (flag_test(gp_flag, GP_FILL_HOLDOUT)) {
-      fcol_decode = vec4(0.0f);
+      fcol_decode = float4(0.0f);
     }
 
     /* Apply opacity. */
@@ -125,7 +125,7 @@ void main()
     gp_interp_flat.mat_flag = gp_flag & GP_FILL_FLAGS;
     gp_interp_flat.mat_flag |= uint(ma1.x + gpMaterialOffset) << GPENCIl_MATID_SHIFT;
 
-    gp_interp.uv = mat2(gp_mat.fill_uv_rot_scale.xy, gp_mat.fill_uv_rot_scale.zw) * uv1.xy +
+    gp_interp.uv = float2x2(gp_mat.fill_uv_rot_scale.xy, gp_mat.fill_uv_rot_scale.zw) * uv1.xy +
                    gp_mat._fill_uv_offset;
 
     if (gpStrokeOrder3d) {

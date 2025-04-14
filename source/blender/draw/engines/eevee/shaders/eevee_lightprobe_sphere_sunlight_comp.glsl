@@ -15,14 +15,14 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_sunlight)
 #include "eevee_spherical_harmonics_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 
-shared vec3 local_radiance[gl_WorkGroupSize.x];
-shared vec4 local_direction[gl_WorkGroupSize.x];
+shared float3 local_radiance[gl_WorkGroupSize.x];
+shared float4 local_direction[gl_WorkGroupSize.x];
 
 void main()
 {
   SphereProbeSunLight sun;
-  sun.radiance = vec3(0.0f);
-  sun.direction = vec4(0.0f);
+  sun.radiance = float3(0.0f);
+  sun.direction = float4(0.0f);
 
   /* First sum onto the local memory. */
   uint valid_data_len = probe_remap_dispatch_size.x * probe_remap_dispatch_size.y;
@@ -60,14 +60,14 @@ void main()
     /* Normalize the sum to get the mean direction. The length of the vector gives us the size of
      * the sun light. */
     float len;
-    vec3 direction = safe_normalize_and_get_length(local_direction[0].xyz / local_direction[0].w,
-                                                   len);
+    float3 direction = safe_normalize_and_get_length(local_direction[0].xyz / local_direction[0].w,
+                                                     len);
 
-    mat3x3 tx = transpose(from_up_axis(direction));
+    float3x3 tx = transpose(from_up_axis(direction));
     /* Convert to transform. */
-    sunlight_buf.object_to_world.x = vec4(tx[0], 0.0f);
-    sunlight_buf.object_to_world.y = vec4(tx[1], 0.0f);
-    sunlight_buf.object_to_world.z = vec4(tx[2], 0.0f);
+    sunlight_buf.object_to_world.x = float4(tx[0], 0.0f);
+    sunlight_buf.object_to_world.y = float4(tx[1], 0.0f);
+    sunlight_buf.object_to_world.z = float4(tx[2], 0.0f);
 
     /* Auto sun angle. */
     float sun_angle_cos = 2.0f * len - 1.0f;

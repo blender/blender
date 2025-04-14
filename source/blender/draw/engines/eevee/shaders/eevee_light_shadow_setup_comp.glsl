@@ -54,14 +54,14 @@ void orthographic_sync(int tilemap_id,
   float level_size = shadow_directional_coverage_get(clipmap_level);
   float half_size = level_size / 2.0f;
   float tile_size = level_size / float(SHADOW_TILEMAP_RES);
-  vec2 center_offset = vec2(origin_offset) * tile_size;
+  float2 center_offset = float2(origin_offset) * tile_size;
 
   /* object_mat is a rotation matrix. Reduce imprecision by taking the transpose which is also the
    * inverse in this particular case. */
-  tilemaps_buf[tilemap_id].viewmat[0] = vec4(object_to_world.x.xyz, 0.0f);
-  tilemaps_buf[tilemap_id].viewmat[1] = vec4(object_to_world.y.xyz, 0.0f);
-  tilemaps_buf[tilemap_id].viewmat[2] = vec4(object_to_world.z.xyz, 0.0f);
-  tilemaps_buf[tilemap_id].viewmat[3] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+  tilemaps_buf[tilemap_id].viewmat[0] = float4(object_to_world.x.xyz, 0.0f);
+  tilemaps_buf[tilemap_id].viewmat[1] = float4(object_to_world.y.xyz, 0.0f);
+  tilemaps_buf[tilemap_id].viewmat[2] = float4(object_to_world.z.xyz, 0.0f);
+  tilemaps_buf[tilemap_id].viewmat[3] = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
   tilemaps_buf[tilemap_id].projection_type = projection_type;
   tilemaps_buf[tilemap_id].half_size = half_size;
@@ -83,8 +83,8 @@ void cascade_sync(inout LightData light)
   int level_range = level_max - level_min;
   int level_len = level_range + 1;
 
-  vec3 ws_camera_position = uniform_buf.camera.viewinv[3].xyz;
-  vec3 ws_camera_forward = uniform_buf.camera.viewinv[2].xyz;
+  float3 ws_camera_position = uniform_buf.camera.viewinv[3].xyz;
+  float3 ws_camera_forward = uniform_buf.camera.viewinv[2].xyz;
   float camera_clip_near = uniform_buf.camera.clip_near;
   float camera_clip_far = uniform_buf.camera.clip_far;
 
@@ -94,11 +94,11 @@ void cascade_sync(inout LightData light)
   float tile_size = level_size / float(SHADOW_TILEMAP_RES);
 
   /* Ideally we should only take the intersection with the scene bounds. */
-  vec3 ws_far_point = ws_camera_position - ws_camera_forward * camera_clip_far;
-  vec3 ws_near_point = ws_camera_position - ws_camera_forward * camera_clip_near;
+  float3 ws_far_point = ws_camera_position - ws_camera_forward * camera_clip_far;
+  float3 ws_near_point = ws_camera_position - ws_camera_forward * camera_clip_near;
 
-  vec3 ls_far_point = transform_direction_transposed(light.object_to_world, ws_far_point);
-  vec3 ls_near_point = transform_direction_transposed(light.object_to_world, ws_near_point);
+  float3 ls_far_point = transform_direction_transposed(light.object_to_world, ws_far_point);
+  float3 ls_near_point = transform_direction_transposed(light.object_to_world, ws_near_point);
 
   float2 local_view_direction = normalize(ls_far_point.xy - ls_near_point.xy);
   float2 farthest_tilemap_center = local_view_direction * half_size * level_range;
@@ -127,29 +127,29 @@ void cascade_sync(inout LightData light)
                       SHADOW_PROJECTION_CASCADE);
   }
 
-  vec2 clipmap_origin = vec2(origin_offset) * tile_size;
+  float2 clipmap_origin = float2(origin_offset) * tile_size;
 
   LightSunData sun_data = light_sun_data_get(light);
   /* Used as origin for the clipmap_base_offset trick. */
   sun_data.clipmap_origin = clipmap_origin;
   /* Number of levels is limited to 32 by `clipmap_level_range()` for this reason. */
   sun_data.clipmap_base_offset_pos = base_offset_pos;
-  sun_data.clipmap_base_offset_neg = ivec2(0);
+  sun_data.clipmap_base_offset_neg = int2(0);
 
   light = light_sun_data_set(light, sun_data);
 }
 
 void clipmap_sync(inout LightData light)
 {
-  vec3 ws_camera_position = uniform_buf.camera.viewinv[3].xyz;
-  vec3 ls_camera_position = transform_direction_transposed(light.object_to_world,
-                                                           ws_camera_position);
+  float3 ws_camera_position = uniform_buf.camera.viewinv[3].xyz;
+  float3 ls_camera_position = transform_direction_transposed(light.object_to_world,
+                                                             ws_camera_position);
 
   int level_min = light_sun_data_get(light).clipmap_lod_min;
   int level_max = light_sun_data_get(light).clipmap_lod_max;
   int level_len = level_max - level_min + 1;
 
-  vec2 clipmap_origin;
+  float2 clipmap_origin;
   for (int lod = 0; lod < level_len; lod++) {
     int level = level_min + lod;
     /* Compute full offset from world origin to the smallest clipmap tile centered around the
@@ -163,7 +163,7 @@ void clipmap_sync(inout LightData light)
                       level,
                       SHADOW_PROJECTION_CLIPMAP);
 
-    clipmap_origin = vec2(level_offset) * tile_size;
+    clipmap_origin = float2(level_offset) * tile_size;
   }
 
   int2 pos_offset = int2(0);
@@ -199,9 +199,9 @@ void clipmap_sync(inout LightData light)
 void cubeface_sync(int tilemap_id,
                    Transform object_to_world,
                    eCubeFace cubeface,
-                   vec3 jitter_offset)
+                   float3 jitter_offset)
 {
-  vec3 world_jitter_offset = transform_point(object_to_world, jitter_offset);
+  float3 world_jitter_offset = transform_point(object_to_world, jitter_offset);
   object_to_world.x.w = world_jitter_offset.x;
   object_to_world.y.w = world_jitter_offset.y;
   object_to_world.z.w = world_jitter_offset.z;
@@ -219,27 +219,27 @@ void cubeface_sync(int tilemap_id,
 
   /* Update View Matrix. */
   /* TODO(fclem): Could avoid numerical inversion since the transform is a unit matrix. */
-  mat4x4 viewmat = invert(transform_to_matrix(object_to_world));
+  float4x4 viewmat = invert(transform_to_matrix(object_to_world));
 
   /* Use switch instead of inline array of float3x3. */
   switch (cubeface) {
     case Z_NEG:
-      viewmat = to_float4x4(mat3x3(+1, +0, +0, +0, +1, +0, +0, +0, +1)) * viewmat;
+      viewmat = to_float4x4(float3x3(+1, +0, +0, +0, +1, +0, +0, +0, +1)) * viewmat;
       break;
     case X_POS:
-      viewmat = to_float4x4(mat3x3(+0, +0, -1, -1, +0, +0, +0, +1, +0)) * viewmat;
+      viewmat = to_float4x4(float3x3(+0, +0, -1, -1, +0, +0, +0, +1, +0)) * viewmat;
       break;
     case X_NEG:
-      viewmat = to_float4x4(mat3x3(+0, +0, +1, +1, +0, +0, +0, +1, +0)) * viewmat;
+      viewmat = to_float4x4(float3x3(+0, +0, +1, +1, +0, +0, +0, +1, +0)) * viewmat;
       break;
     case Y_POS:
-      viewmat = to_float4x4(mat3x3(+1, +0, +0, +0, +0, -1, +0, +1, +0)) * viewmat;
+      viewmat = to_float4x4(float3x3(+1, +0, +0, +0, +0, -1, +0, +1, +0)) * viewmat;
       break;
     case Y_NEG:
-      viewmat = to_float4x4(mat3x3(-1, +0, +0, +0, +0, +1, +0, +1, +0)) * viewmat;
+      viewmat = to_float4x4(float3x3(-1, +0, +0, +0, +0, +1, +0, +1, +0)) * viewmat;
       break;
     case Z_POS:
-      viewmat = to_float4x4(mat3x3(+1, +0, +0, +0, -1, +0, +0, +0, -1)) * viewmat;
+      viewmat = to_float4x4(float3x3(+1, +0, +0, +0, -1, +0, +0, +0, -1)) * viewmat;
       break;
   }
 
@@ -279,8 +279,8 @@ void main()
       float shape_angle = atan_fast(light_sun_data_get(light).shape_radius);
 
       /* Reverse to that first sample is straight up. */
-      vec2 rand = 1.0f - sampling_rng_2D_get(SAMPLING_SHADOW_I);
-      vec3 shadow_direction = sample_uniform_cone(rand, cos(shape_angle));
+      float2 rand = 1.0f - sampling_rng_2D_get(SAMPLING_SHADOW_I);
+      float3 shadow_direction = sample_uniform_cone(rand, cos(shape_angle));
 
       shadow_direction = transform_direction(light.object_to_world, shadow_direction);
 
@@ -303,15 +303,15 @@ void main()
   }
   else {
     /* Local lights. */
-    vec3 position_on_light = vec3(0.0f);
+    float3 position_on_light = float3(0.0f);
 
     if (light.shadow_jitter && uniform_buf.shadow.use_jitter) {
-      vec3 rand = sampling_rng_3D_get(SAMPLING_SHADOW_I);
+      float3 rand = sampling_rng_3D_get(SAMPLING_SHADOW_I);
 
       if (is_area_light(light.type)) {
-        vec2 point_on_unit_shape = (light.type == LIGHT_RECT) ? rand.xy * 2.0f - 1.0f :
-                                                                sample_disk(rand.xy);
-        position_on_light = vec3(point_on_unit_shape * light_area_data_get(light).size, 0.0f);
+        float2 point_on_unit_shape = (light.type == LIGHT_RECT) ? rand.xy * 2.0f - 1.0f :
+                                                                  sample_disk(rand.xy);
+        position_on_light = float3(point_on_unit_shape * light_area_data_get(light).size, 0.0f);
       }
       else {
         if (light_local_data_get(light).shadow_radius == 0.0f) {

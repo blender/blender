@@ -9,9 +9,9 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_stretching_area)
 #include "draw_model_lib.glsl"
 #include "draw_view_lib.glsl"
 
-vec3 weight_to_rgb(float weight)
+float3 weight_to_rgb(float weight)
 {
-  vec3 r_rgb;
+  float3 r_rgb;
   float blend = ((weight / 2.0f) + 0.5f);
 
   if (weight <= 0.25f) { /* blue->cyan */
@@ -47,19 +47,19 @@ vec3 weight_to_rgb(float weight)
 
 #define M_PI 3.1415926535897932f
 
-vec2 angle_to_v2(float angle)
+float2 angle_to_v2(float angle)
 {
-  return vec2(cos(angle), sin(angle));
+  return float2(cos(angle), sin(angle));
 }
 
 /* Adapted from BLI_math_vector.h */
-float angle_normalized_v2v2(vec2 v1, vec2 v2)
+float angle_normalized_v2v2(float2 v1, float2 v2)
 {
   v1 = normalize(v1 * aspect);
   v2 = normalize(v2 * aspect);
   /* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
   bool q = (dot(v1, v2) >= 0.0f);
-  vec2 v = (q) ? (v1 - v2) : (v1 + v2);
+  float2 v = (q) ? (v1 - v2) : (v1 + v2);
   float a = 2.0f * asin(length(v) / 2.0f);
   return (q) ? a : M_PI - a;
 }
@@ -72,12 +72,12 @@ float area_ratio_to_stretch(float ratio, float tot_ratio)
 
 void main()
 {
-  vec3 world_pos = vec3(pos, 0.0f);
+  float3 world_pos = float3(pos, 0.0f);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
 #ifdef STRETCH_ANGLE
-  vec2 v1 = angle_to_v2(uv_angles.x * M_PI);
-  vec2 v2 = angle_to_v2(uv_angles.y * M_PI);
+  float2 v1 = angle_to_v2(uv_angles.x * M_PI);
+  float2 v2 = angle_to_v2(uv_angles.y * M_PI);
   float uv_angle = angle_normalized_v2v2(v1, v2) / M_PI;
   float stretch = 1.0f - abs(uv_angle - angle);
   stretch = stretch;
@@ -87,5 +87,5 @@ void main()
 
 #endif
 
-  finalColor = vec4(weight_to_rgb(stretch), stretch_opacity);
+  finalColor = float4(weight_to_rgb(stretch), stretch_opacity);
 }

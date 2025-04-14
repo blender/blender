@@ -4,9 +4,9 @@
 
 void main()
 {
-  vec4 rect = vec4(offset.x, offset.y, offset.x + extent.x, offset.y + extent.y);
-  rect /= vec4(size, size);
-  vec4 tex = rect;
+  float4 rect = float4(offset.x, offset.y, offset.x + extent.x, offset.y + extent.y);
+  rect /= float4(size, size);
+  float4 tex = rect;
   rect = rect * 2.0f - 1.0f;
 
   /* QUAD */
@@ -26,5 +26,5 @@ void main()
     rect.xy = rect.zy;
     texCoord_interp = tex.zy;
   }
-  gl_Position = vec4(rect.xy, 0.0f, 1.0f);
+  gl_Position = float4(rect.xy, 0.0f, 1.0f);
 }

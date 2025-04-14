@@ -33,7 +33,7 @@ void set_visibility(bool visibility)
 bool is_visible(IsectBox box)
 {
   for (int i_plane = 0; i_plane < extruded_frustum.planes_count; i_plane++) {
-    vec4 plane = extruded_frustum.planes[i_plane];
+    float4 plane = extruded_frustum.planes[i_plane];
     bool separating_axis = true;
     for (int i_corner = 0; i_corner < 8; i_corner++) {
       float signed_distance = dot(box.corners[i_corner], plane.xyz) - plane.w;
@@ -51,13 +51,13 @@ bool is_visible(IsectBox box)
 
 bool intersects_near_plane(IsectBox box)
 {
-  vec4 near_plane = drw_view_culling().frustum_planes.planes[4];
+  float4 near_plane = drw_view_culling().frustum_planes.planes[4];
   bool on_positive_side = false;
   bool on_negative_side = false;
 
   for (int i_corner = 0; i_corner < 8; i_corner++) {
     for (int i_displace = 0; i_displace < 2; i_displace++) {
-      vec3 corner = box.corners[i_corner] + (shadow_direction * 1e5f * i_displace);
+      float3 corner = box.corners[i_corner] + (shadow_direction * 1e5f * i_displace);
       float signed_distance = dot(corner, -near_plane.xyz) - near_plane.w;
       if (signed_distance <= 0) {
         on_negative_side = true;

@@ -59,9 +59,9 @@
 
 #define dof_max_slight_focus_radius DOF_MAX_SLIGHT_FOCUS_RADIUS
 
-const uvec2 quad_offsets_u[4] = uint2_array(uvec2(0, 1), uvec2(1, 1), uvec2(1, 0), uvec2(0, 0));
-const vec2 quad_offsets[4] = float2_array(
-    vec2(-0.5f, 0.5f), vec2(0.5f, 0.5f), vec2(0.5f, -0.5f), vec2(-0.5f, -0.5f));
+const uint2 quad_offsets_u[4] = uint2_array(uint2(0, 1), uint2(1, 1), uint2(1, 0), uint2(0, 0));
+const float2 quad_offsets[4] = float2_array(
+    float2(-0.5f, 0.5f), float2(0.5f, 0.5f), float2(0.5f, -0.5f), float2(-0.5f, -0.5f));
 
 /** \} */
 
@@ -69,7 +69,7 @@ const vec2 quad_offsets[4] = float2_array(
 /** \name Weighting and downsampling utils.
  * \{ */
 
-float dof_hdr_color_weight(vec4 color)
+float dof_hdr_color_weight(float4 color)
 {
   /* Very fast "luma" weighting. */
   float luma = (color.g * 2.0f) + (color.r + color.b);
@@ -78,7 +78,7 @@ float dof_hdr_color_weight(vec4 color)
   return 1.0f / (luma * exposure + 4.0f);
 }
 
-float dof_coc_select(vec4 cocs)
+float dof_coc_select(float4 cocs)
 {
   /* Select biggest coc. */
   float selected_coc = cocs.x;
@@ -95,7 +95,7 @@ float dof_coc_select(vec4 cocs)
 }
 
 /* NOTE: Do not forget to normalize weights afterwards. */
-vec4 dof_bilateral_coc_weights(vec4 cocs)
+float4 dof_bilateral_coc_weights(float4 cocs)
 {
   float chosen_coc = dof_coc_select(cocs);
 
@@ -106,9 +106,9 @@ vec4 dof_bilateral_coc_weights(vec4 cocs)
 }
 
 /* NOTE: Do not forget to normalize weights afterwards. */
-vec4 dof_bilateral_color_weights(vec4 colors[4])
+float4 dof_bilateral_color_weights(float4 colors[4])
 {
-  vec4 weights;
+  float4 weights;
   for (int i = 0; i < 4; i++) {
     weights[i] = dof_hdr_color_weight(colors[i]);
   }
@@ -116,11 +116,11 @@ vec4 dof_bilateral_color_weights(vec4 colors[4])
 }
 
 /* Returns signed Circle of confusion radius (in pixel) based on depth buffer value [0..1]. */
-float dof_coc_from_depth(DepthOfFieldData dof_data, vec2 uv, float depth)
+float dof_coc_from_depth(DepthOfFieldData dof_data, float2 uv, float depth)
 {
   if (is_panoramic(dof_data.camera_type)) {
     /* Use radial depth. */
-    depth = -length(drw_point_screen_to_view(vec3(uv, depth)));
+    depth = -length(drw_point_screen_to_view(float3(uv, depth)));
   }
   else {
     depth = drw_depth_screen_to_view(depth);
@@ -148,7 +148,7 @@ float dof_layer_weight(float coc, const bool is_foreground)
     return saturate(((is_foreground) ? -coc : coc) - threshold);
   }
 }
-vec4 dof_layer_weight(vec4 coc)
+float4 dof_layer_weight(float4 coc)
 {
   /* NOTE: Used for scatter pass which already flipped the sign correctly. */
   coc *= 2.0f; /* Account for half pixel gather. */
@@ -167,14 +167,14 @@ float dof_sample_weight(float coc)
   return (M_PI * min_coc * min_coc) / (M_PI * coc * coc);
 #endif
 }
-vec4 dof_sample_weight(vec4 coc)
+float4 dof_sample_weight(float4 coc)
 {
 #if 1 /* Optimized */
-  return min(vec4(1.0f), 1.0f / square(coc));
+  return min(float4(1.0f), 1.0f / square(coc));
 #else
   /* Full intensity if CoC radius is below the pixel footprint. */
   const float min_coc = 1.0f;
-  coc = max(vec4(min_coc), abs(coc));
+  coc = max(float4(min_coc), abs(coc));
   return (M_PI * min_coc * min_coc) / (M_PI * coc * coc);
 #endif
 }
@@ -210,7 +210,7 @@ CocTile dof_coc_tile_init()
   return tile;
 }
 
-CocTile dof_coc_tile_unpack(vec3 fg, vec3 bg)
+CocTile dof_coc_tile_unpack(float3 fg, float3 bg)
 {
   CocTile tile;
   tile.fg_min_coc = -fg.x;
@@ -226,10 +226,10 @@ CocTile dof_coc_tile_unpack(vec3 fg, vec3 bg)
  * parameters. Workaround by using defines. */
 #define dof_coc_tile_load(tiles_fg_img_, tiles_bg_img_, texel_) \
   dof_coc_tile_unpack( \
-      imageLoad(tiles_fg_img_, clamp(texel_, ivec2(0), imageSize(tiles_fg_img_) - 1)).xyz, \
-      imageLoad(tiles_bg_img_, clamp(texel_, ivec2(0), imageSize(tiles_bg_img_) - 1)).xyz)
+      imageLoad(tiles_fg_img_, clamp(texel_, int2(0), imageSize(tiles_fg_img_) - 1)).xyz, \
+      imageLoad(tiles_bg_img_, clamp(texel_, int2(0), imageSize(tiles_bg_img_) - 1)).xyz)
 
-void dof_coc_tile_pack(CocTile tile, out vec3 out_fg, out vec3 out_bg)
+void dof_coc_tile_pack(CocTile tile, out float3 out_fg, out float3 out_bg)
 {
   out_fg.x = -tile.fg_min_coc;
   out_fg.y = -tile.fg_max_coc;
@@ -241,8 +241,8 @@ void dof_coc_tile_pack(CocTile tile, out vec3 out_fg, out vec3 out_bg)
 
 #define dof_coc_tile_store(tiles_fg_img_, tiles_bg_img_, texel_out_, tile_data_) \
   if (true) { \
-    vec3 out_fg; \
-    vec3 out_bg; \
+    float3 out_fg; \
+    float3 out_bg; \
     dof_coc_tile_pack(tile_data_, out_fg, out_bg); \
     imageStore(tiles_fg_img_, texel_out_, out_fg.xyzz); \
     imageStore(tiles_bg_img_, texel_out_, out_bg.xyzz); \
@@ -317,9 +317,9 @@ CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
  *
  * Samples are expected to be mirrored to complete the pattern.
  */
-ivec2 dof_square_ring_sample_offset(int ring_distance, int sample_id)
+int2 dof_square_ring_sample_offset(int ring_distance, int sample_id)
 {
-  ivec2 offset;
+  int2 offset;
   if (sample_id < ring_distance) {
     offset.x = ring_distance;
     offset.y = sample_id;

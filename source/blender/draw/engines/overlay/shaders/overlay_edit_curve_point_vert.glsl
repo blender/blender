@@ -26,7 +26,7 @@ void main()
     finalColor = (!is_gpencil) ? colorVertex : colorGpencilVertex;
   }
 
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
   gl_PointSize = (!is_gpencil) ? sizeVertex * 2.0f : sizeVertexGpencil * 2.0f;
   view_clipping_distances(world_pos);
@@ -40,6 +40,6 @@ void main()
 
   if (!show_handle && ((data & BEZIER_HANDLE) != 0u)) {
     /* We set the vertex at the camera origin to generate 0 fragments. */
-    gl_Position = vec4(0.0f, 0.0f, -3e36f, 0.0f);
+    gl_Position = float4(0.0f, 0.0f, -3e36f, 0.0f);
   }
 }

@@ -23,9 +23,9 @@ void main()
   int v = gl_VertexID % 3;
   float x = float((v & 1) << 2) - 1.0f;
   float y = float((v & 2) << 1) - 1.0f;
-  gl_Position = vec4(x, y, 1.0f, 1.0f);
+  gl_Position = float4(x, y, 1.0f, 1.0f);
 
   /* Pass view position to keep accuracy. */
   interp.P = drw_point_ndc_to_view(gl_Position.xyz);
-  interp.N = vec3(1);
+  interp.N = float3(1);
 }

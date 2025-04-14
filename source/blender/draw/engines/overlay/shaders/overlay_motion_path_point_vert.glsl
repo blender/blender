@@ -16,12 +16,13 @@ VERTEX_SHADER_CREATE_INFO(overlay_motion_path_point)
 
 void main()
 {
-  gl_Position = drw_view().winmat * (drw_view().viewmat * (camera_space_matrix * vec4(pos, 1.0f)));
+  gl_Position = drw_view().winmat *
+                (drw_view().viewmat * (camera_space_matrix * float4(pos, 1.0f)));
   gl_PointSize = float(pointSize + 2);
 
   int frame = gl_VertexID + cacheStart;
   bool use_custom_color = customColorPre.x >= 0.0f;
-  finalColor = (use_custom_color) ? vec4(customColorPre, 1.0f) : colorVertex;
+  finalColor = (use_custom_color) ? float4(customColorPre, 1.0f) : colorVertex;
 
   /* Bias to reduce z fighting with the path */
   gl_Position.z -= 1e-4f;
@@ -39,13 +40,13 @@ void main()
   }
   else if (frame < frameCurrent) {
     if (use_custom_color) {
-      finalColor = vec4(customColorPre, 1.0f);
+      finalColor = float4(customColorPre, 1.0f);
     }
   }
   else {
     /* frame > frameCurrent */
     if (use_custom_color) {
-      finalColor = vec4(customColorPost, 1.0f);
+      finalColor = float4(customColorPost, 1.0f);
     }
   }
 

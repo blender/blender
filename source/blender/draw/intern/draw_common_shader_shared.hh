@@ -22,9 +22,9 @@ typedef struct GlobalsUboStorage GlobalsUboStorage;
 #define UBO_LAST_COLOR color_uv_shadow
 
 /* Used as UBO but colors can be directly referenced as well */
-/* \note Also keep all color as vec4 and between #UBO_FIRST_COLOR and #UBO_LAST_COLOR. */
+/* \note Also keep all color as float4 and between #UBO_FIRST_COLOR and #UBO_LAST_COLOR. */
 struct GlobalsUboStorage {
-  /* UBOs data needs to be 16 byte aligned (size of vec4) */
+  /* UBOs data needs to be 16 byte aligned (size of float4) */
   float4 color_wire;
   float4 color_wire_edit;
   float4 color_active;
@@ -132,7 +132,7 @@ struct GlobalsUboStorage {
   float4 color_uv_shadow;
 
   /* NOTE: Put all color before #UBO_LAST_COLOR. */
-  float4 size_viewport; /* Packed as vec4. */
+  float4 size_viewport; /* Packed as float4. */
 
   /* Pack individual float at the end of the buffer to avoid alignment errors */
   float size_pixel, pixel_fac;
@@ -245,8 +245,8 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define colorFaceBack globalsBlock.color_face_back
 #  define colorFaceFront globalsBlock.color_face_front
 #  define colorUVShadow globalsBlock.color_uv_shadow
-#  define sizeViewport vec2(globalsBlock.size_viewport.xy)
-#  define sizeViewportInv vec2(globalsBlock.size_viewport.zw)
+#  define sizeViewport float2(globalsBlock.size_viewport.xy)
+#  define sizeViewportInv float2(globalsBlock.size_viewport.zw)
 #  define sizePixel globalsBlock.size_pixel
 #  define pixelFac globalsBlock.pixel_fac
 #  define sizeObjectCenter globalsBlock.size_object_center

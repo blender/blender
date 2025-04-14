@@ -18,7 +18,7 @@ float linearrgb_to_srgb(float c)
   }
 }
 
-void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
+void linearrgb_to_srgb(float4 col_from, out float4 col_to)
 {
   col_to.r = linearrgb_to_srgb(col_from.r);
   col_to.g = linearrgb_to_srgb(col_from.g);
@@ -29,7 +29,7 @@ void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
 void main()
 {
   fragColor = texture(image_texture, texCoord_interp.xy);
-  vec4 overlay_col = texture(overlays_texture, texCoord_interp.xy);
+  float4 overlay_col = texture(overlays_texture, texCoord_interp.xy);
 
   if (overlay) {
     if (!use_hdr) {

@@ -18,8 +18,8 @@ void main()
 {
   /* We clear the destination pixels directly for the atomicMin technique. */
   uint page_packed = dst_coord_buf[gl_GlobalInvocationID.z];
-  uvec3 page_co = shadow_page_unpack(page_packed);
+  uint3 page_co = shadow_page_unpack(page_packed);
   page_co.xy = page_co.xy * SHADOW_PAGE_RES + gl_GlobalInvocationID.xy;
 
-  imageStoreFast(shadow_atlas_img, ivec3(page_co), uvec4(floatBitsToUint(FLT_MAX)));
+  imageStoreFast(shadow_atlas_img, int3(page_co), uint4(floatBitsToUint(FLT_MAX)));
 }

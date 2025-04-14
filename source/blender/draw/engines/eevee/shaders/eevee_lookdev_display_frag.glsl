@@ -8,10 +8,10 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_lookdev_display)
 
 void main()
 {
-  vec2 texture_size = vec2(textureSize(metallic_tx, 0));
-  vec2 texel_size = vec2(1.0f) / texture_size;
+  float2 texture_size = float2(textureSize(metallic_tx, 0));
+  float2 texel_size = float2(1.0f) / texture_size;
 
-  float distance_from_center = distance(uv_coord.xy, vec2(0.5f));
+  float distance_from_center = distance(uv_coord.xy, float2(0.5f));
   if (distance_from_center > 0.5f) {
     discard;
     return;
@@ -22,8 +22,8 @@ void main()
                  (1.0f / smooth_size);
   float alpha = clamp(1.0f - factor, 0.0f, 1.0f);
 
-  vec4 color = sphere_id == 0 ? texture(metallic_tx, uv_coord.xy, 0) :
-                                texture(diffuse_tx, uv_coord.xy, 0);
+  float4 color = sphere_id == 0 ? texture(metallic_tx, uv_coord.xy, 0) :
+                                  texture(diffuse_tx, uv_coord.xy, 0);
   color.a = alpha;
   out_color = color;
 

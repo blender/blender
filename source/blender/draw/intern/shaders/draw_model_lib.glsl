@@ -64,11 +64,11 @@ uint drw_custom_id()
   return 0;
 }
 
-mat4x4 drw_modelmat()
+float4x4 drw_modelmat()
 {
   return drw_matrix_buf[drw_resource_id()].model;
 }
-mat4x4 drw_modelinv()
+float4x4 drw_modelinv()
 {
   return drw_matrix_buf[drw_resource_id()].model_inverse;
 }
@@ -85,11 +85,11 @@ mat4x4 drw_modelinv()
  * NOTE: This is only valid because we are only using the mat3 of the ViewMatrixInverse.
  * ViewMatrix * transpose(ModelMatrixInverse)
  */
-mat3x3 drw_normat()
+float3x3 drw_normat()
 {
   return transpose(to_float3x3(drw_modelinv()));
 }
-mat3x3 drw_norinv()
+float3x3 drw_norinv()
 {
   return transpose(to_float3x3(drw_modelmat()));
 }
@@ -100,20 +100,20 @@ mat3x3 drw_norinv()
  * Space conversion helpers for normal vectors.
  * \{ */
 
-vec3 drw_normal_object_to_world(vec3 lN)
+float3 drw_normal_object_to_world(float3 lN)
 {
   return (drw_normat() * lN);
 }
-vec3 drw_normal_world_to_object(vec3 N)
+float3 drw_normal_world_to_object(float3 N)
 {
   return (drw_norinv() * N);
 }
 
-vec3 drw_normal_object_to_view(vec3 lN)
+float3 drw_normal_object_to_view(float3 lN)
 {
   return (to_float3x3(drw_view().viewmat) * (drw_normat() * lN));
 }
-vec3 drw_normal_view_to_object(vec3 vN)
+float3 drw_normal_view_to_object(float3 vN)
 {
   return (drw_norinv() * (to_float3x3(drw_view().viewinv) * vN));
 }
@@ -126,29 +126,29 @@ vec3 drw_normal_view_to_object(vec3 vN)
  * Space conversion helpers for points (coordinates).
  * \{ */
 
-vec3 drw_point_object_to_world(vec3 lP)
+float3 drw_point_object_to_world(float3 lP)
 {
-  return (drw_modelmat() * vec4(lP, 1.0f)).xyz;
+  return (drw_modelmat() * float4(lP, 1.0f)).xyz;
 }
-vec3 drw_point_world_to_object(vec3 P)
+float3 drw_point_world_to_object(float3 P)
 {
-  return (drw_modelinv() * vec4(P, 1.0f)).xyz;
-}
-
-vec3 drw_point_object_to_view(vec3 lP)
-{
-  return (drw_view().viewmat * (drw_modelmat() * vec4(lP, 1.0f))).xyz;
-}
-vec3 drw_point_view_to_object(vec3 vP)
-{
-  return (drw_modelinv() * (drw_view().viewinv * vec4(vP, 1.0f))).xyz;
+  return (drw_modelinv() * float4(P, 1.0f)).xyz;
 }
 
-vec4 drw_point_object_to_homogenous(vec3 lP)
+float3 drw_point_object_to_view(float3 lP)
 {
-  return (drw_view().winmat * (drw_view().viewmat * (drw_modelmat() * vec4(lP, 1.0f))));
+  return (drw_view().viewmat * (drw_modelmat() * float4(lP, 1.0f))).xyz;
 }
-vec3 drw_point_object_to_ndc(vec3 lP)
+float3 drw_point_view_to_object(float3 vP)
+{
+  return (drw_modelinv() * (drw_view().viewinv * float4(vP, 1.0f))).xyz;
+}
+
+float4 drw_point_object_to_homogenous(float3 lP)
+{
+  return (drw_view().winmat * (drw_view().viewmat * (drw_modelmat() * float4(lP, 1.0f))));
+}
+float3 drw_point_object_to_ndc(float3 lP)
 {
   return drw_perspective_divide(drw_point_object_to_homogenous(lP));
 }

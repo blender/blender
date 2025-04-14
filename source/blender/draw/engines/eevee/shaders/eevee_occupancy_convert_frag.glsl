@@ -23,7 +23,7 @@ void main()
   float hit_ordered[VOLUME_HIT_DEPTH_MAX + 1];
   int hit_index[VOLUME_HIT_DEPTH_MAX];
 
-  ivec2 texel = ivec2(gl_FragCoord.xy);
+  int2 texel = int2(gl_FragCoord.xy);
 
   int hit_count = int(imageLoad(hit_count_img, texel).x);
   hit_count = min(hit_count, VOLUME_HIT_DEPTH_MAX);
@@ -33,10 +33,10 @@ void main()
   }
 
   /* Clear the texture for next layer / frame. */
-  imageStore(hit_count_img, texel, uvec4(0));
+  imageStore(hit_count_img, texel, uint4(0));
 
   for (int i = 0; i < hit_count; i++) {
-    hit_depths[i] = imageLoad(hit_depth_img, ivec3(texel, i)).r;
+    hit_depths[i] = imageLoad(hit_depth_img, int3(texel, i)).r;
   }
 
   for (int i = 0; i < hit_count; i++) {
@@ -52,7 +52,7 @@ void main()
 
 #if 0 /* Debug. Need to adjust the qualifier of the texture adjusted. */
   for (int i = 0; i < hit_count; i++) {
-    imageStore(hit_depth_img, ivec3(texel, i), vec4(hit_ordered[i]));
+    imageStore(hit_depth_img, int3(texel, i), float4(hit_ordered[i]));
   }
 #endif
 
@@ -95,7 +95,7 @@ void main()
   for (int i = 0; i < imageSize(occupancy_img).z; i++) {
     if (occupancy.bits[i] != 0u) {
       /* NOTE: Doesn't have to be atomic but we need to blend with other method. */
-      imageAtomicOr(occupancy_img, ivec3(texel, i), occupancy.bits[i]);
+      imageAtomicOr(occupancy_img, int3(texel, i), occupancy.bits[i]);
     }
   }
 }

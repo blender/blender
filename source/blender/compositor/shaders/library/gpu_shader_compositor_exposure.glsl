@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_composite_exposure(vec4 color, float exposure, out vec4 result)
+void node_composite_exposure(float4 color, float exposure, out float4 result)
 {
   float multiplier = exp2(exposure);
-  result = vec4(color.rgb * multiplier, color.a);
+  result = float4(color.rgb * multiplier, color.a);
 }

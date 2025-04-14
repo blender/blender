@@ -12,7 +12,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_paint_face)
 
 void main()
 {
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
 #ifdef GPU_METAL
@@ -25,7 +25,7 @@ void main()
 
   /* Don't draw faces that are selected. */
   if (is_hidden || is_select) {
-    gl_Position = vec4(-2.0f, -2.0f, -2.0f, 1.0f);
+    gl_Position = float4(-2.0f, -2.0f, -2.0f, 1.0f);
   }
   else {
     view_clipping_distances(world_pos);

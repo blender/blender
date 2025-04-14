@@ -14,7 +14,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_edges)
 #include "overlay_common_lib.glsl"
 
 struct VertIn {
-  vec2 uv;
+  float2 uv;
   uint flag;
 };
 
@@ -33,9 +33,9 @@ VertIn input_assembly(uint in_vertex_id)
 }
 
 struct VertOut {
-  vec4 hs_P;
-  vec2 stipple_start;
-  vec2 stipple_pos;
+  float4 hs_P;
+  float2 stipple_start;
+  float2 stipple_pos;
   bool selected;
 };
 
@@ -43,11 +43,11 @@ VertOut vertex_main(VertIn v_in)
 {
   VertOut vert_out;
 
-  vec3 world_pos = vec3(v_in.uv, 0.0f);
+  float3 world_pos = float3(v_in.uv, 0.0f);
   vert_out.hs_P = drw_point_world_to_homogenous(world_pos);
   /* Snap vertices to the pixel grid to reduce artifacts. */
-  vec2 half_viewport_res = sizeViewport * 0.5f;
-  vec2 half_pixel_offset = sizeViewportInv * 0.5f;
+  float2 half_viewport_res = sizeViewport * 0.5f;
+  float2 half_pixel_offset = sizeViewportInv * 0.5f;
   vert_out.hs_P.xy = floor(vert_out.hs_P.xy * half_viewport_res) / half_viewport_res +
                      half_pixel_offset;
 
@@ -69,9 +69,9 @@ VertOut vertex_main(VertIn v_in)
 }
 
 struct GeomOut {
-  vec4 gpu_position;
-  vec2 stipple_start;
-  vec2 stipple_pos;
+  float4 gpu_position;
+  float2 stipple_start;
+  float2 stipple_pos;
   float edge_coord;
   bool selected;
 };
@@ -105,8 +105,8 @@ void geometry_main(VertOut geom_in[2],
                    uint out_primitive_id,
                    uint out_invocation_id)
 {
-  vec2 ss_pos0 = drw_perspective_divide(geom_in[0].hs_P).xy;
-  vec2 ss_pos1 = drw_perspective_divide(geom_in[1].hs_P).xy;
+  float2 ss_pos0 = drw_perspective_divide(geom_in[0].hs_P).xy;
+  float2 ss_pos1 = drw_perspective_divide(geom_in[1].hs_P).xy;
 
   float half_size = sizeEdge;
   /* Enlarge edge for outline drawing. */
@@ -119,9 +119,9 @@ void geometry_main(VertOut geom_in[2],
     half_size += 0.5f;
   }
 
-  vec2 line_dir = normalize(ss_pos0 - ss_pos1);
-  vec2 line_perp = vec2(-line_dir.y, line_dir.x);
-  vec2 edge_ofs = line_perp * sizeViewportInv * ceil(half_size);
+  float2 line_dir = normalize(ss_pos0 - ss_pos1);
+  float2 line_perp = float2(-line_dir.y, line_dir.x);
+  float2 edge_ofs = line_perp * sizeViewportInv * ceil(half_size);
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
   edge_ofs *= 2.0f;
 
@@ -132,23 +132,23 @@ void geometry_main(VertOut geom_in[2],
   GeomOut geom_out;
   geom_out.stipple_start = geom_in[0].stipple_start;
   geom_out.stipple_pos = geom_in[0].stipple_pos;
-  geom_out.gpu_position = geom_in[0].hs_P + vec4(edge_ofs, 0.0f, 0.0f);
+  geom_out.gpu_position = geom_in[0].hs_P + float4(edge_ofs, 0.0f, 0.0f);
   geom_out.edge_coord = half_size;
   geom_out.selected = select_0;
   strip_EmitVertex(0, out_vertex_id, out_primitive_id, geom_out);
 
-  geom_out.gpu_position = geom_in[0].hs_P - vec4(edge_ofs, 0.0f, 0.0f);
+  geom_out.gpu_position = geom_in[0].hs_P - float4(edge_ofs, 0.0f, 0.0f);
   geom_out.edge_coord = -half_size;
   strip_EmitVertex(1, out_vertex_id, out_primitive_id, geom_out);
 
   geom_out.stipple_start = geom_in[1].stipple_start;
   geom_out.stipple_pos = geom_in[1].stipple_pos;
-  geom_out.gpu_position = geom_in[1].hs_P + vec4(edge_ofs, 0.0f, 0.0f);
+  geom_out.gpu_position = geom_in[1].hs_P + float4(edge_ofs, 0.0f, 0.0f);
   geom_out.edge_coord = half_size;
   geom_out.selected = select_1;
   strip_EmitVertex(2, out_vertex_id, out_primitive_id, geom_out);
 
-  geom_out.gpu_position = geom_in[1].hs_P - vec4(edge_ofs, 0.0f, 0.0f);
+  geom_out.gpu_position = geom_in[1].hs_P - float4(edge_ofs, 0.0f, 0.0f);
   geom_out.edge_coord = -half_size;
   strip_EmitVertex(3, out_vertex_id, out_primitive_id, geom_out);
 }
@@ -187,6 +187,6 @@ void main()
   drw_ResourceID_iface.resource_index = drw_resource_id();
 
   /* Discard by default. */
-  gl_Position = vec4(NAN_FLT);
+  gl_Position = float4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
 }

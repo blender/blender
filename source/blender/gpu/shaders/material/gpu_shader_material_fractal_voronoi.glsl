@@ -65,8 +65,8 @@ VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, float coord)
 
   VoronoiOutput Output;
   Output.Distance = 0.0f;
-  Output.Color = vec3(0.0f, 0.0f, 0.0f);
-  Output.Position = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+  Output.Color = float3(0.0f, 0.0f, 0.0f);
+  Output.Position = float4(0.0f, 0.0f, 0.0f, 0.0f);
   bool zero_input = params.detail == 0.0f || params.roughness == 0.0f;
 
   for (int i = 0; i <= ceil(params.detail); ++i) {
@@ -123,7 +123,7 @@ FRACTAL_VORONOI_DISTANCE_TO_EDGE_FUNCTION(float)
 
 /* The fractalization logic is the same as for fBM Noise, except that some additions are replaced
  * by lerps. */
-VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, vec2 coord)
+VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, float2 coord)
 {
   float amplitude = 1.0f;
   float max_amplitude = 0.0f;
@@ -131,8 +131,8 @@ VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, vec2 coord)
 
   VoronoiOutput Output;
   Output.Distance = 0.0f;
-  Output.Color = vec3(0.0f, 0.0f, 0.0f);
-  Output.Position = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+  Output.Color = float3(0.0f, 0.0f, 0.0f);
+  Output.Position = float4(0.0f, 0.0f, 0.0f, 0.0f);
   bool zero_input = params.detail == 0.0f || params.roughness == 0.0f;
 
   for (int i = 0; i <= ceil(params.detail); ++i) {
@@ -183,13 +183,13 @@ VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, vec2 coord)
   return Output;
 }
 
-FRACTAL_VORONOI_DISTANCE_TO_EDGE_FUNCTION(vec2)
+FRACTAL_VORONOI_DISTANCE_TO_EDGE_FUNCTION(float2)
 
 /* **** 3D Fractal Voronoi **** */
 
 /* The fractalization logic is the same as for fBM Noise, except that some additions are replaced
  * by lerps. */
-VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, vec3 coord)
+VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, float3 coord)
 {
   float amplitude = 1.0f;
   float max_amplitude = 0.0f;
@@ -197,8 +197,8 @@ VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, vec3 coord)
 
   VoronoiOutput Output;
   Output.Distance = 0.0f;
-  Output.Color = vec3(0.0f, 0.0f, 0.0f);
-  Output.Position = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+  Output.Color = float3(0.0f, 0.0f, 0.0f);
+  Output.Position = float4(0.0f, 0.0f, 0.0f, 0.0f);
   bool zero_input = params.detail == 0.0f || params.roughness == 0.0f;
 
   for (int i = 0; i <= ceil(params.detail); ++i) {
@@ -249,13 +249,13 @@ VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, vec3 coord)
   return Output;
 }
 
-FRACTAL_VORONOI_DISTANCE_TO_EDGE_FUNCTION(vec3)
+FRACTAL_VORONOI_DISTANCE_TO_EDGE_FUNCTION(float3)
 
 /* **** 4D Fractal Voronoi **** */
 
 /* The fractalization logic is the same as for fBM Noise, except that some additions are replaced
  * by lerps. */
-VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, vec4 coord)
+VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, float4 coord)
 {
   float amplitude = 1.0f;
   float max_amplitude = 0.0f;
@@ -263,8 +263,8 @@ VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, vec4 coord)
 
   VoronoiOutput Output;
   Output.Distance = 0.0f;
-  Output.Color = vec3(0.0f, 0.0f, 0.0f);
-  Output.Position = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+  Output.Color = float3(0.0f, 0.0f, 0.0f);
+  Output.Position = float4(0.0f, 0.0f, 0.0f, 0.0f);
   bool zero_input = params.detail == 0.0f || params.roughness == 0.0f;
 
   for (int i = 0; i <= ceil(params.detail); ++i) {
@@ -315,4 +315,4 @@ VoronoiOutput fractal_voronoi_x_fx(VoronoiParams params, vec4 coord)
   return Output;
 }
 
-FRACTAL_VORONOI_DISTANCE_TO_EDGE_FUNCTION(vec4)
+FRACTAL_VORONOI_DISTANCE_TO_EDGE_FUNCTION(float4)

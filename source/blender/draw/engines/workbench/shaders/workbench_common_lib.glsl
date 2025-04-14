@@ -12,12 +12,12 @@
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Sphere-map Transform */
-vec3 workbench_normal_decode(vec4 enc)
+float3 workbench_normal_decode(float4 enc)
 {
-  vec2 fenc = enc.xy * 4.0f - 2.0f;
+  float2 fenc = enc.xy * 4.0f - 2.0f;
   float f = dot(fenc, fenc);
   float g = sqrt(1.0f - f / 4.0f);
-  vec3 n;
+  float3 n;
   n.xy = fenc * g;
   n.z = 1 - f / 2;
   return n;
@@ -25,7 +25,7 @@ vec3 workbench_normal_decode(vec4 enc)
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Sphere-map Transform */
-vec2 workbench_normal_encode(bool front_face, vec3 n)
+float2 workbench_normal_encode(bool front_face, float3 n)
 {
   n = normalize(front_face ? n : -n);
   float p = sqrt(n.z * 8.0f + 8.0f);

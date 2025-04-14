@@ -6,12 +6,12 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
-  vec2 uv = vec2(texel) / vec2(domain_size - ivec2(1));
+  float2 uv = float2(texel) / float2(domain_size - int2(1));
   uv -= location;
   uv.y *= float(domain_size.y) / float(domain_size.x);
-  uv = mat2(cos_angle, -sin_angle, sin_angle, cos_angle) * uv;
+  uv = float2x2(cos_angle, -sin_angle, sin_angle, cos_angle) * uv;
   bool is_inside = length(uv / radius) < 1.0f;
 
   float base_mask_value = texture_load(base_mask_tx, texel).x;
@@ -28,5 +28,5 @@ void main()
   float output_mask_value = is_inside ? (base_mask_value > 0.0f ? 0.0f : value) : base_mask_value;
 #endif
 
-  imageStore(output_mask_img, texel, vec4(output_mask_value));
+  imageStore(output_mask_img, texel, float4(output_mask_value));
 }

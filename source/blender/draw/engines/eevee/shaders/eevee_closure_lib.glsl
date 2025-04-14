@@ -27,7 +27,7 @@ float closure_apparent_roughness_get(ClosureUndetermined cl)
   }
 }
 
-float closure_evaluate_pdf(ClosureUndetermined cl, vec3 L, vec3 V, float thickness)
+float closure_evaluate_pdf(ClosureUndetermined cl, float3 L, float3 V, float thickness)
 {
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
@@ -52,7 +52,7 @@ float closure_evaluate_pdf(ClosureUndetermined cl, vec3 L, vec3 V, float thickne
   return 0.0f;
 }
 
-LightProbeRay bxdf_lightprobe_ray(ClosureUndetermined cl, vec3 P, vec3 V, float thickness)
+LightProbeRay bxdf_lightprobe_ray(ClosureUndetermined cl, float3 P, float3 V, float thickness)
 {
   switch (cl.type) {
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
@@ -82,7 +82,7 @@ LightProbeRay bxdf_lightprobe_ray(ClosureUndetermined cl, vec3 P, vec3 V, float 
 #ifdef EEVEE_UTILITY_TX
 
 ClosureLight closure_light_new_ex(ClosureUndetermined cl,
-                                  vec3 V,
+                                  float3 V,
                                   float thickness,
                                   const bool is_transmission)
 {
@@ -118,17 +118,17 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
         break;
     }
   }
-  cl_light.light_shadowed = vec3(0.0f);
-  cl_light.light_unshadowed = vec3(0.0f);
+  cl_light.light_shadowed = float3(0.0f);
+  cl_light.light_unshadowed = float3(0.0f);
   return cl_light;
 }
 
-ClosureLight closure_light_new(ClosureUndetermined cl, vec3 V, float thickness)
+ClosureLight closure_light_new(ClosureUndetermined cl, float3 V, float thickness)
 {
   return closure_light_new_ex(cl, V, thickness, true);
 }
 
-ClosureLight closure_light_new(ClosureUndetermined cl, vec3 V)
+ClosureLight closure_light_new(ClosureUndetermined cl, float3 V)
 {
   return closure_light_new_ex(cl, V, 0.0f, false);
 }

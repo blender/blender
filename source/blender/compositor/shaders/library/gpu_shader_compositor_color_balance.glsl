@@ -5,33 +5,33 @@
 #include "gpu_shader_common_color_utils.glsl"
 
 void node_composite_color_balance_lgg(
-    float factor, vec4 color, vec3 lift, vec3 gamma, vec3 gain, out vec4 result)
+    float factor, float4 color, float3 lift, float3 gamma, float3 gain, out float4 result)
 {
-  vec3 inverse_lift = 2.0f - lift;
-  vec3 srgb_color = linear_rgb_to_srgb(color.rgb);
-  vec3 lift_balanced = ((srgb_color - 1.0f) * inverse_lift) + 1.0f;
+  float3 inverse_lift = 2.0f - lift;
+  float3 srgb_color = linear_rgb_to_srgb(color.rgb);
+  float3 lift_balanced = ((srgb_color - 1.0f) * inverse_lift) + 1.0f;
 
-  vec3 gain_balanced = lift_balanced * gain;
-  gain_balanced = max(gain_balanced, vec3(0.0f));
+  float3 gain_balanced = lift_balanced * gain;
+  gain_balanced = max(gain_balanced, float3(0.0f));
 
-  vec3 linear_color = srgb_to_linear_rgb(gain_balanced);
-  vec3 gamma_balanced = pow(linear_color, 1.0f / gamma);
+  float3 linear_color = srgb_to_linear_rgb(gain_balanced);
+  float3 gamma_balanced = pow(linear_color, 1.0f / gamma);
 
-  result = vec4(mix(color.rgb, gamma_balanced, min(factor, 1.0f)), color.a);
+  result = float4(mix(color.rgb, gamma_balanced, min(factor, 1.0f)), color.a);
 }
 
 void node_composite_color_balance_asc_cdl(
-    float factor, vec4 color, vec3 offset, vec3 power, vec3 slope, out vec4 result)
+    float factor, float4 color, float3 offset, float3 power, float3 slope, out float4 result)
 {
-  vec3 balanced = color.rgb * slope + offset;
-  balanced = pow(max(balanced, vec3(0.0f)), power);
-  result = vec4(mix(color.rgb, balanced, min(factor, 1.0f)), color.a);
+  float3 balanced = color.rgb * slope + offset;
+  balanced = pow(max(balanced, float3(0.0f)), power);
+  result = float4(mix(color.rgb, balanced, min(factor, 1.0f)), color.a);
 }
 
 void node_composite_color_balance_whitepoint(float factor,
-                                             vec4 color,
-                                             mat4 matrix,
-                                             out vec4 result)
+                                             float4 color,
+                                             float4x4 matrix,
+                                             out float4 result)
 {
   result = mix(color, matrix * color, min(factor, 1.0f));
 }

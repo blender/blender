@@ -37,13 +37,13 @@ uint outline_colorid_get()
 
 void main()
 {
-  vec3 world_pos;
-  vec3 unused_N;
-  vec4 unused_color;
+  float3 world_pos;
+  float3 unused_N;
+  float4 unused_color;
   float unused_strength;
-  vec2 unused_uv;
+  float2 unused_uv;
 
-  gl_Position = gpencil_vertex(vec4(sizeViewport, sizeViewportInv),
+  gl_Position = gpencil_vertex(float4(sizeViewport, sizeViewportInv),
                                world_pos,
                                unused_N,
                                unused_color,

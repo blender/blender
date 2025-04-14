@@ -38,7 +38,7 @@ void main()
 
   barrier();
 
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   bool valid_texel = in_texture_range(texel, gbuf_header_tx);
 
@@ -66,20 +66,20 @@ void main()
   barrier();
 
   if (gl_LocalInvocationIndex == 0u) {
-    ivec2 denoise_tile_co = ivec2(gl_WorkGroupID.xy);
-    ivec2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.resolution_scale;
+    int2 denoise_tile_co = int2(gl_WorkGroupID.xy);
+    int2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.resolution_scale;
 
     for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
       if (tile_contains_ray_tracing[i] > 0) {
-        imageStoreFast(tile_raytrace_denoise_img, ivec3(denoise_tile_co, i), uvec4(1));
-        imageStoreFast(tile_raytrace_tracing_img, ivec3(tracing_tile_co, i), uvec4(1));
+        imageStoreFast(tile_raytrace_denoise_img, int3(denoise_tile_co, i), uint4(1));
+        imageStoreFast(tile_raytrace_tracing_img, int3(tracing_tile_co, i), uint4(1));
       }
     }
 
     if (tile_contains_horizon_scan > 0) {
-      ivec2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.horizon_resolution_scale;
-      imageStoreFast(tile_horizon_denoise_img, ivec3(denoise_tile_co, 0), uvec4(1));
-      imageStoreFast(tile_horizon_tracing_img, ivec3(tracing_tile_co, 0), uvec4(1));
+      int2 tracing_tile_co = denoise_tile_co / uniform_buf.raytrace.horizon_resolution_scale;
+      imageStoreFast(tile_horizon_denoise_img, int3(denoise_tile_co, 0), uint4(1));
+      imageStoreFast(tile_horizon_tracing_img, int3(tracing_tile_co, 0), uint4(1));
     }
   }
 }

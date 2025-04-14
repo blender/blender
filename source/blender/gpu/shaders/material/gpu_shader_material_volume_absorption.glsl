@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_volume_absorption(vec4 color, float density, float weight, out Closure result)
+void node_volume_absorption(float4 color, float density, float weight, out Closure result)
 {
-  color = max(color, vec4(0.0f));
+  color = max(color, float4(0.0f));
   density = max(density, 0.0f);
 
   ClosureVolumeAbsorption volume_absorption_data;

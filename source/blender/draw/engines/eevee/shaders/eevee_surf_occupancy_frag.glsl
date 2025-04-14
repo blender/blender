@@ -42,14 +42,14 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_occupancy)
 #include "eevee_velocity_lib.glsl"
 #include "eevee_volume_lib.glsl"
 
-vec4 closure_to_rgba(Closure cl)
+float4 closure_to_rgba(Closure cl)
 {
-  return vec4(0.0f);
+  return float4(0.0f);
 }
 
 void main()
 {
-  ivec2 texel = ivec2(gl_FragCoord.xy);
+  int2 texel = int2(gl_FragCoord.xy);
   float vPz = dot(drw_view_forward(), interp.P) - dot(drw_view_forward(), drw_view_position());
 
   float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
@@ -64,7 +64,7 @@ void main()
        * It doesn't change anything for closed meshes. */
       occupancy_bits.bits[i] = ~occupancy_bits.bits[i];
       if (occupancy_bits.bits[i] != 0u) {
-        imageAtomicXor(occupancy_img, ivec3(texel, i), occupancy_bits.bits[i]);
+        imageAtomicXor(occupancy_img, int3(texel, i), occupancy_bits.bits[i]);
       }
     }
   }
@@ -73,7 +73,7 @@ void main()
       uint hit_id = imageAtomicAdd(hit_count_img, texel, 1u);
       if (hit_id < VOLUME_HIT_DEPTH_MAX) {
         float value = gl_FrontFacing ? volume_z : -volume_z;
-        imageStore(hit_depth_img, ivec3(texel, hit_id), vec4(value));
+        imageStore(hit_depth_img, int3(texel, hit_id), float4(value));
       }
     }
   }

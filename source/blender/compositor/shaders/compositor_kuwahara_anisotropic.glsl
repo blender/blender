@@ -26,11 +26,11 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   /* The structure tensor is encoded in a vec4 using a column major storage order, as can be seen
    * in the compositor_kuwahara_anisotropic_compute_structure_tensor.glsl shader. */
-  vec4 encoded_structure_tensor = texture_load(structure_tensor_tx, texel);
+  float4 encoded_structure_tensor = texture_load(structure_tensor_tx, texel);
   float dxdx = encoded_structure_tensor.x;
   float dxdy = encoded_structure_tensor.y;
   float dydy = encoded_structure_tensor.w;
@@ -45,10 +45,10 @@ void main()
   /* Compute the normalized eigenvector of the structure tensor oriented in direction of the
    * minimum rate of change using the equations in section "3.1 Orientation and Anisotropy
    * Estimation" of the paper. */
-  vec2 eigenvector = vec2(first_eigenvalue - dxdx, -dxdy);
+  float2 eigenvector = float2(first_eigenvalue - dxdx, -dxdy);
   float eigenvector_length = length(eigenvector);
-  vec2 unit_eigenvector = eigenvector_length != 0.0f ? eigenvector / eigenvector_length :
-                                                       vec2(1.0f);
+  float2 unit_eigenvector = eigenvector_length != 0.0f ? eigenvector / eigenvector_length :
+                                                         float2(1.0f);
 
   /* Compute the amount of anisotropy using equations in section "3.1 Orientation and Anisotropy
    * Estimation" of the paper. The anisotropy ranges from 0 to 1, where 0 corresponds to isotropic
@@ -85,10 +85,10 @@ void main()
   /* Compute an inverse transformation matrix that represents an ellipse of the given width and
    * height and makes and an angle with the x axis of the given cosine and sine. This is an inverse
    * matrix, so it transforms the ellipse into a disk of unit radius. */
-  mat2 inverse_ellipse_matrix = mat2(cosine / ellipse_width,
-                                     -sine / ellipse_height,
-                                     sine / ellipse_width,
-                                     cosine / ellipse_height);
+  float2x2 inverse_ellipse_matrix = float2x2(cosine / ellipse_width,
+                                             -sine / ellipse_height,
+                                             sine / ellipse_width,
+                                             cosine / ellipse_height);
 
   /* Compute the bounding box of a zero centered ellipse whose major axis is aligned with the
    * eigenvector and has the given width and height. This is based on the equations described in:
@@ -98,10 +98,9 @@ void main()
    * Notice that we only compute the upper bound, the lower bound is just negative that since the
    * ellipse is zero centered. Also notice that we take the ceiling of the bounding box, just to
    * ensure the filter window is at least 1x1. */
-  vec2 ellipse_major_axis = ellipse_width * unit_eigenvector;
-  vec2 ellipse_minor_axis = ellipse_height * unit_eigenvector.yx * vec2(-1, 1);
-  ivec2 ellipse_bounds = ivec2(
-      ceil(sqrt(square(ellipse_major_axis) + square(ellipse_minor_axis))));
+  float2 ellipse_major_axis = ellipse_width * unit_eigenvector;
+  float2 ellipse_minor_axis = ellipse_height * unit_eigenvector.yx * float2(-1, 1);
+  int2 ellipse_bounds = int2(ceil(sqrt(square(ellipse_major_axis) + square(ellipse_minor_axis))));
 
   /* Compute the overlap polynomial parameters for 8-sector ellipse based on the equations in
    * section "3 Alternative Weighting Functions" of the polynomial weights paper. More on this
@@ -116,8 +115,8 @@ void main()
   /* We need to compute the weighted mean of color and squared color of each of the 8 sectors of
    * the ellipse, so we declare arrays for accumulating those and initialize them in the next code
    * section. */
-  vec4 weighted_mean_of_squared_color_of_sectors[8];
-  vec4 weighted_mean_of_color_of_sectors[8];
+  float4 weighted_mean_of_squared_color_of_sectors[8];
+  float4 weighted_mean_of_color_of_sectors[8];
   float sum_of_weights_of_sectors[8];
 
   /* The center pixel (0, 0) is exempt from the main loop below for reasons that are explained in
@@ -125,11 +124,11 @@ void main()
    * weight separately first. Luckily, the zero coordinates of the center pixel zeros out most of
    * the complex computations below, and it can easily be shown that the weight for the center
    * pixel in all sectors is simply (1 / number_of_sectors). */
-  vec4 center_color = texture_load(input_tx, texel);
-  vec4 center_color_squared = center_color * center_color;
+  float4 center_color = texture_load(input_tx, texel);
+  float4 center_color_squared = center_color * center_color;
   float center_weight = 1.0f / number_of_sectors;
-  vec4 weighted_center_color = center_color * center_weight;
-  vec4 weighted_center_color_squared = center_color_squared * center_weight;
+  float4 weighted_center_color = center_color * center_weight;
+  float4 weighted_center_color_squared = center_color_squared * center_weight;
   for (int i = 0; i < number_of_sectors; i++) {
     weighted_mean_of_squared_color_of_sectors[i] = weighted_center_color_squared;
     weighted_mean_of_color_of_sectors[i] = weighted_center_color;
@@ -155,7 +154,7 @@ void main()
 
       /* Map the pixels of the ellipse into a unit disk, exempting any points that are not part of
        * the ellipse or disk. */
-      vec2 disk_point = inverse_ellipse_matrix * vec2(i, j);
+      float2 disk_point = inverse_ellipse_matrix * float2(i, j);
       float disk_point_length_squared = dot(disk_point, disk_point);
       if (disk_point_length_squared > 1.0f) {
         continue;
@@ -174,8 +173,8 @@ void main()
        * since the y term of the weighting polynomial is squared, it is not affected by the sign
        * and can be computed once for the x and once for the y coordinates. So we compute every
        * other even-indexed 4 weights by successive 90 degree rotations as discussed. */
-      vec2 polynomial = sector_center_overlap_parameter -
-                        cross_sector_overlap_parameter * square(disk_point);
+      float2 polynomial = sector_center_overlap_parameter -
+                          cross_sector_overlap_parameter * square(disk_point);
       sector_weights[0] = square(max(0.0f, disk_point.y + polynomial.x));
       sector_weights[2] = square(max(0.0f, -disk_point.x + polynomial.y));
       sector_weights[4] = square(max(0.0f, -disk_point.y + polynomial.x));
@@ -183,13 +182,13 @@ void main()
 
       /* Then we rotate the disk point by 45 degrees, which is a simple expression involving a
        * constant as can be demonstrated by applying a 45 degree rotation matrix. */
-      vec2 rotated_disk_point = M_SQRT1_2 *
-                                vec2(disk_point.x - disk_point.y, disk_point.x + disk_point.y);
+      float2 rotated_disk_point = M_SQRT1_2 *
+                                  float2(disk_point.x - disk_point.y, disk_point.x + disk_point.y);
 
       /* Finally, we compute every other odd-index 4 weights starting from the 45 degrees rotated
        * disk point. */
-      vec2 rotated_polynomial = sector_center_overlap_parameter -
-                                cross_sector_overlap_parameter * square(rotated_disk_point);
+      float2 rotated_polynomial = sector_center_overlap_parameter -
+                                  cross_sector_overlap_parameter * square(rotated_disk_point);
       sector_weights[1] = square(max(0.0f, rotated_disk_point.y + rotated_polynomial.x));
       sector_weights[3] = square(max(0.0f, -rotated_disk_point.x + rotated_polynomial.y));
       sector_weights[5] = square(max(0.0f, -rotated_disk_point.y + rotated_polynomial.x));
@@ -205,10 +204,10 @@ void main()
       float radial_gaussian_weight = exp(-M_PI * disk_point_length_squared) / sector_weights_sum;
 
       /* Load the color of the pixel and its mirrored pixel and compute their square. */
-      vec4 upper_color = texture_load(input_tx, texel + ivec2(i, j));
-      vec4 lower_color = texture_load(input_tx, texel - ivec2(i, j));
-      vec4 upper_color_squared = upper_color * upper_color;
-      vec4 lower_color_squared = lower_color * lower_color;
+      float4 upper_color = texture_load(input_tx, texel + int2(i, j));
+      float4 lower_color = texture_load(input_tx, texel - int2(i, j));
+      float4 upper_color_squared = upper_color * upper_color;
+      float4 lower_color_squared = lower_color * lower_color;
 
       for (int k = 0; k < number_of_sectors; k++) {
         float weight = sector_weights[k] * radial_gaussian_weight;
@@ -231,16 +230,16 @@ void main()
   /* Compute the weighted sum of mean of sectors, such that sectors with lower standard deviation
    * gets more significant weight than sectors with higher standard deviation. */
   float sum_of_weights = 0.0f;
-  vec4 weighted_sum = vec4(0.0f);
+  float4 weighted_sum = float4(0.0f);
   for (int i = 0; i < number_of_sectors; i++) {
     weighted_mean_of_color_of_sectors[i] /= sum_of_weights_of_sectors[i];
     weighted_mean_of_squared_color_of_sectors[i] /= sum_of_weights_of_sectors[i];
 
-    vec4 color_mean = weighted_mean_of_color_of_sectors[i];
-    vec4 squared_color_mean = weighted_mean_of_squared_color_of_sectors[i];
-    vec4 color_variance = abs(squared_color_mean - color_mean * color_mean);
+    float4 color_mean = weighted_mean_of_color_of_sectors[i];
+    float4 squared_color_mean = weighted_mean_of_squared_color_of_sectors[i];
+    float4 color_variance = abs(squared_color_mean - color_mean * color_mean);
 
-    float standard_deviation = dot(sqrt(color_variance.rgb), vec3(1.0f));
+    float standard_deviation = dot(sqrt(color_variance.rgb), float3(1.0f));
 
     /* Compute the sector weight based on the weight function introduced in section "3.3.1
      * Single-scale Filtering" of the multi-scale paper. Use a threshold of 0.02 to avoid zero

@@ -13,7 +13,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_faces)
 
 void main()
 {
-  vec3 world_pos = vec3(au, 0.0f);
+  float3 world_pos = float3(au, 0.0f);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   bool is_selected = (flag & FACE_UV_SELECT) != 0u;

@@ -15,18 +15,18 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_volume_resolve)
 
 void main()
 {
-  vec2 uvs = gl_FragCoord.xy * uniform_buf.volumes.main_view_extent_inv;
-  float scene_depth = texelFetch(hiz_tx, ivec2(gl_FragCoord.xy), 0).r;
+  float2 uvs = gl_FragCoord.xy * uniform_buf.volumes.main_view_extent_inv;
+  float scene_depth = texelFetch(hiz_tx, int2(gl_FragCoord.xy), 0).r;
 
   VolumeResolveSample vol = volume_resolve(
-      vec3(uvs, scene_depth), volume_transmittance_tx, volume_scattering_tx);
+      float3(uvs, scene_depth), volume_transmittance_tx, volume_scattering_tx);
 
-  out_radiance = vec4(vol.scattering, 0.0f);
-  out_transmittance = vec4(vol.transmittance, saturate(average(vol.transmittance)));
+  out_radiance = float4(vol.scattering, 0.0f);
+  out_transmittance = float4(vol.transmittance, saturate(average(vol.transmittance)));
 
   if (uniform_buf.render_pass.volume_light_id >= 0) {
     imageStoreFast(rp_color_img,
-                   ivec3(ivec2(gl_FragCoord.xy), uniform_buf.render_pass.volume_light_id),
-                   vec4(vol.scattering, 1.0f));
+                   int3(int2(gl_FragCoord.xy), uniform_buf.render_pass.volume_light_id),
+                   float4(vol.scattering, 1.0f));
   }
 }

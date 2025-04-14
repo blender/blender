@@ -22,10 +22,10 @@ void main()
 
 #elif SMAA_STAGE == 1
   out_weights = SMAABlendingWeightCalculationPS(
-      uvs, pixcoord, offset, edgesTex, areaTex, searchTex, vec4(0));
+      uvs, pixcoord, offset, edgesTex, areaTex, searchTex, float4(0));
 
 #elif SMAA_STAGE == 2
-  out_color = vec4(0.0f);
+  out_color = float4(0.0f);
   if (mixFactor > 0.0f) {
     out_color += SMAANeighborhoodBlendingPS(uvs, offset[0], colorTex, blendTex) * mixFactor;
   }

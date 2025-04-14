@@ -25,24 +25,24 @@ void main()
   int2 rect_min = render_view_buf[view_index].rect_min;
   int tilemap_tiles_index = render_view_buf[view_index].tilemap_tiles_index;
   int lod = render_view_buf[view_index].tilemap_lod;
-  ivec2 viewport_size = shadow_viewport_size_get(render_view_buf[view_index].viewport_index);
+  int2 viewport_size = shadow_viewport_size_get(render_view_buf[view_index].viewport_index);
 
-  ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 tile_co_lod = tile_co >> lod;
+  int2 tile_co = int2(gl_GlobalInvocationID.xy);
+  int2 tile_co_lod = tile_co >> lod;
   bool lod_valid_thread = all(equal(tile_co, tile_co_lod << lod));
 
-  int tile_index = shadow_tile_offset(uvec2(tile_co_lod), tilemap_tiles_index, lod);
+  int tile_index = shadow_tile_offset(uint2(tile_co_lod), tilemap_tiles_index, lod);
 
   if (lod_valid_thread) {
     ShadowTileData tile = shadow_tile_unpack(tiles_buf[tile_index]);
     /* Tile coordinate relative to chosen viewport origin. */
-    ivec2 viewport_tile_co = tile_co_lod - rect_min;
+    int2 viewport_tile_co = tile_co_lod - rect_min;
     /* We need to add page indirection to the render map for the whole viewport even if this one
      * might extend outside of the shadow-map range. To this end, we need to wrap the threads to
      * always cover the whole mip. This is because the viewport cannot be bigger than the mip
      * level itself. */
     int lod_res = SHADOW_TILEMAP_RES >> lod;
-    ivec2 relative_tile_co = (viewport_tile_co + lod_res) % lod_res;
+    int2 relative_tile_co = (viewport_tile_co + lod_res) % lod_res;
     if (all(lessThan(relative_tile_co, viewport_size))) {
       bool do_page_render = tile.is_used && tile.do_update;
       uint page_packed = shadow_page_pack(tile.page);
@@ -58,7 +58,7 @@ void main()
         /* Add page mapping for indexing the page position in atlas and in the frame-buffer. */
         dst_coord_buf[page_index] = page_packed;
         src_coord_buf[page_index] = packUvec4x8(
-            uvec4(relative_tile_co.x, relative_tile_co.y, view_index, 0));
+            uint4(relative_tile_co.x, relative_tile_co.y, view_index, 0));
         /* Tag tile as rendered. Should be safe since only one thread is reading and writing.  */
         tiles_buf[tile_index] |= SHADOW_IS_RENDERED;
         /* Statistics. */

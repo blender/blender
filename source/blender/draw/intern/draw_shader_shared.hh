@@ -108,7 +108,7 @@ struct FrustumPlanes {
 BLI_STATIC_ASSERT_ALIGN(FrustumPlanes, 16)
 
 struct ViewCullingData {
-  /** \note vec3 array padded to vec4. */
+  /** \note float3 array padded to float4. */
   /** Frustum corners. */
   FrustumCorners frustum_corners;
   FrustumPlanes frustum_planes;
@@ -228,7 +228,7 @@ inline bool drw_bounds_are_valid(ObjectBounds bounds)
 struct VolumeInfos {
   /** Object to grid-space. */
   float4x4 grids_xform[DRW_GRID_PER_VOLUME_MAX];
-  /** \note vec4 for alignment. Only float3 needed. */
+  /** \note float4 for alignment. Only float3 needed. */
   float4 color_mul;
   float density_scale;
   float temperature_mul;

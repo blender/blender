@@ -14,20 +14,20 @@ void main()
   const float sphere_radius = 0.05f;
 
   bool is_perp = (drw_view().winmat[3][3] == 0.0f);
-  vec3 ray_ori_view = (is_perp) ? vec3(0.0f) : viewPosition.xyz;
-  vec3 ray_dir_view = (is_perp) ? viewPosition : vec3(0.0f, 0.0f, -1.0f);
+  float3 ray_ori_view = (is_perp) ? float3(0.0f) : viewPosition.xyz;
+  float3 ray_dir_view = (is_perp) ? viewPosition : float3(0.0f, 0.0f, -1.0f);
 
   /* Single matrix mul without branch. */
-  vec4 mul_vec = (is_perp) ? vec4(ray_dir_view, 0.0f) : vec4(ray_ori_view, 1.0f);
-  vec3 mul_res = (sphereMatrix * mul_vec).xyz;
+  float4 mul_vec = (is_perp) ? float4(ray_dir_view, 0.0f) : float4(ray_ori_view, 1.0f);
+  float3 mul_res = (sphereMatrix * mul_vec).xyz;
 
   /* Reminder :
    * sphereMatrix[3] is the view space origin in sphere space (sph_ori -> view_ori).
    * sphereMatrix[2] is the view space Z axis in sphere space. */
 
   /* convert to sphere local space */
-  vec3 ray_ori = (is_perp) ? sphereMatrix[3].xyz : mul_res;
-  vec3 ray_dir = (is_perp) ? mul_res : -sphereMatrix[2].xyz;
+  float3 ray_ori = (is_perp) ? sphereMatrix[3].xyz : mul_res;
+  float3 ray_dir = (is_perp) ? mul_res : -sphereMatrix[2].xyz;
   float ray_len = length(ray_dir);
   ray_dir /= ray_len;
 
@@ -39,9 +39,9 @@ void main()
   float t = -sqrt(max(0.0f, h)) - b;
 
   /* Compute dot product for lighting */
-  vec3 p = ray_dir * t + ray_ori; /* Point on sphere */
-  vec3 n = normalize(p);          /* Normal is just the point in sphere space, normalized. */
-  vec3 l = normalize(sphereMatrix[2].xyz); /* Just the view Z axis in the sphere space. */
+  float3 p = ray_dir * t + ray_ori; /* Point on sphere */
+  float3 n = normalize(p);          /* Normal is just the point in sphere space, normalized. */
+  float3 l = normalize(sphereMatrix[2].xyz); /* Just the view Z axis in the sphere space. */
 
   /* Smooth lighting factor. */
   const float s = 0.2f; /* [0.0f-0.5f] range */
@@ -49,11 +49,11 @@ void main()
   fragColor.rgb = mix(finalStateColor, finalBoneColor, fac * fac);
 
   /* 2x2 dither pattern to smooth the lighting. */
-  float dither = (0.5f + dot(vec2(ivec2(gl_FragCoord.xy) & ivec2(1)), vec2(1.0f, 2.0f))) * 0.25f;
+  float dither = (0.5f + dot(float2(int2(gl_FragCoord.xy) & int2(1)), float2(1.0f, 2.0f))) * 0.25f;
   dither *= (1.0f / 255.0f); /* Assume 8bit per color buffer. */
 
-  fragColor = vec4(fragColor.rgb + dither, alpha);
-  lineOutput = vec4(0.0f);
+  fragColor = float4(fragColor.rgb + dither, alpha);
+  lineOutput = float4(0.0f);
 
   t /= ray_len;
 

@@ -25,19 +25,19 @@ bool drw_view_is_perspective()
 }
 
 /* Returns the view forward vector, going towards the viewer. */
-vec3 drw_view_forward()
+float3 drw_view_forward()
 {
   return drw_view().viewinv[2].xyz;
 }
 
 /* Returns the view origin. */
-vec3 drw_view_position()
+float3 drw_view_position()
 {
   return drw_view().viewinv[3].xyz;
 }
 
 /* Positive Z distance from the view origin. Faster than using `drw_point_world_to_view`. */
-float drw_view_z_distance(vec3 P)
+float drw_view_z_distance(float3 P)
 {
   return dot(P - drw_view_position(), -drw_view_forward());
 }
@@ -64,7 +64,7 @@ float drw_view_near()
  * Returns the world incident vector `V` (going towards the viewer)
  * from the world position `P` and the current view.
  */
-vec3 drw_world_incident_vector(vec3 P)
+float3 drw_world_incident_vector(float3 P)
 {
   return drw_view_is_perspective() ? normalize(drw_view_position() - P) : drw_view_forward();
 }
@@ -73,19 +73,19 @@ vec3 drw_world_incident_vector(vec3 P)
  * Returns the view incident vector `vV` (going towards the viewer)
  * from the view position `vP` and the current view.
  */
-vec3 drw_view_incident_vector(vec3 vP)
+float3 drw_view_incident_vector(float3 vP)
 {
-  return drw_view_is_perspective() ? normalize(-vP) : vec3(0.0f, 0.0f, 1.0f);
+  return drw_view_is_perspective() ? normalize(-vP) : float3(0.0f, 0.0f, 1.0f);
 }
 
 /**
  * Transform position on screen UV space [0..1] to Normalized Device Coordinate space [-1..1].
  */
-vec3 drw_screen_to_ndc(vec3 ss_P)
+float3 drw_screen_to_ndc(float3 ss_P)
 {
   return ss_P * 2.0f - 1.0f;
 }
-vec2 drw_screen_to_ndc(vec2 ss_P)
+float2 drw_screen_to_ndc(float2 ss_P)
 {
   return ss_P * 2.0f - 1.0f;
 }
@@ -97,11 +97,11 @@ float drw_screen_to_ndc(float ss_P)
 /**
  * Transform position in Normalized Device Coordinate [-1..1] to screen UV space [0..1].
  */
-vec3 drw_ndc_to_screen(vec3 ndc_P)
+float3 drw_ndc_to_screen(float3 ndc_P)
 {
   return ndc_P * 0.5f + 0.5f;
 }
-vec2 drw_ndc_to_screen(vec2 ndc_P)
+float2 drw_ndc_to_screen(float2 ndc_P)
 {
   return ndc_P * 0.5f + 0.5f;
 }
@@ -114,12 +114,12 @@ float drw_ndc_to_screen(float ndc_P)
 /** \name Transform Normal
  * \{ */
 
-vec3 drw_normal_view_to_world(vec3 vN)
+float3 drw_normal_view_to_world(float3 vN)
 {
   return (to_float3x3(drw_view().viewinv) * vN);
 }
 
-vec3 drw_normal_world_to_view(vec3 N)
+float3 drw_normal_world_to_view(float3 N)
 {
   return (to_float3x3(drw_view().viewmat) * N);
 }
@@ -130,42 +130,42 @@ vec3 drw_normal_world_to_view(vec3 N)
 /** \name Transform Position
  * \{ */
 
-vec3 drw_perspective_divide(vec4 hs_P)
+float3 drw_perspective_divide(float4 hs_P)
 {
   return hs_P.xyz / hs_P.w;
 }
 
-vec3 drw_point_view_to_world(vec3 vP)
+float3 drw_point_view_to_world(float3 vP)
 {
-  return (drw_view().viewinv * vec4(vP, 1.0f)).xyz;
+  return (drw_view().viewinv * float4(vP, 1.0f)).xyz;
 }
-vec4 drw_point_view_to_homogenous(vec3 vP)
+float4 drw_point_view_to_homogenous(float3 vP)
 {
-  return (drw_view().winmat * vec4(vP, 1.0f));
+  return (drw_view().winmat * float4(vP, 1.0f));
 }
-vec3 drw_point_view_to_ndc(vec3 vP)
+float3 drw_point_view_to_ndc(float3 vP)
 {
   return drw_perspective_divide(drw_point_view_to_homogenous(vP));
 }
 
-vec3 drw_point_world_to_view(vec3 P)
+float3 drw_point_world_to_view(float3 P)
 {
-  return (drw_view().viewmat * vec4(P, 1.0f)).xyz;
+  return (drw_view().viewmat * float4(P, 1.0f)).xyz;
 }
-vec4 drw_point_world_to_homogenous(vec3 P)
+float4 drw_point_world_to_homogenous(float3 P)
 {
-  return (drw_view().winmat * (drw_view().viewmat * vec4(P, 1.0f)));
+  return (drw_view().winmat * (drw_view().viewmat * float4(P, 1.0f)));
 }
-vec3 drw_point_world_to_ndc(vec3 P)
+float3 drw_point_world_to_ndc(float3 P)
 {
   return drw_perspective_divide(drw_point_world_to_homogenous(P));
 }
 
-vec3 drw_point_ndc_to_view(vec3 ssP)
+float3 drw_point_ndc_to_view(float3 ssP)
 {
-  return drw_perspective_divide(drw_view().wininv * vec4(ssP, 1.0f));
+  return drw_perspective_divide(drw_view().wininv * float4(ssP, 1.0f));
 }
-vec3 drw_point_ndc_to_world(vec3 ssP)
+float3 drw_point_ndc_to_world(float3 ssP)
 {
   return drw_point_view_to_world(drw_point_ndc_to_view(ssP));
 }
@@ -176,31 +176,31 @@ vec3 drw_point_ndc_to_world(vec3 ssP)
 /** \name Transform Screen Positions
  * \{ */
 
-vec3 drw_point_view_to_screen(vec3 vP)
+float3 drw_point_view_to_screen(float3 vP)
 {
   return drw_ndc_to_screen(drw_point_view_to_ndc(vP));
 }
-vec3 drw_point_world_to_screen(vec3 vP)
+float3 drw_point_world_to_screen(float3 vP)
 {
   return drw_ndc_to_screen(drw_point_world_to_ndc(vP));
 }
 
-vec3 drw_point_screen_to_view(vec3 ssP)
+float3 drw_point_screen_to_view(float3 ssP)
 {
   return drw_point_ndc_to_view(drw_screen_to_ndc(ssP));
 }
-vec3 drw_point_screen_to_world(vec3 ssP)
+float3 drw_point_screen_to_world(float3 ssP)
 {
   return drw_point_view_to_world(drw_point_screen_to_view(ssP));
 }
 
 float drw_depth_view_to_screen(float v_depth)
 {
-  return drw_point_view_to_screen(vec3(0.0f, 0.0f, v_depth)).z;
+  return drw_point_view_to_screen(float3(0.0f, 0.0f, v_depth)).z;
 }
 float drw_depth_screen_to_view(float ss_depth)
 {
-  return drw_point_screen_to_view(vec3(0.0f, 0.0f, ss_depth)).z;
+  return drw_point_screen_to_view(float3(0.0f, 0.0f, ss_depth)).z;
 }
 
 /** \} */

@@ -23,39 +23,39 @@ COMPUTE_SHADER_CREATE_INFO(eevee_light_culling_tile)
 
 struct CullingTile {
   IsectFrustum frustum;
-  vec4 bounds;
+  float4 bounds;
 };
 
 /* Corners are expected to be in view-space so that the cone is starting from the origin.
  * Corner order does not matter. */
-vec4 tile_bound_cone(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
+float4 tile_bound_cone(float3 v00, float3 v01, float3 v10, float3 v11)
 {
   v00 = normalize(v00);
   v01 = normalize(v01);
   v10 = normalize(v10);
   v11 = normalize(v11);
-  vec3 center = normalize(v00 + v01 + v10 + v11);
+  float3 center = normalize(v00 + v01 + v10 + v11);
   float angle_cosine = dot(center, v00);
   angle_cosine = max(angle_cosine, dot(center, v01));
   angle_cosine = max(angle_cosine, dot(center, v10));
   angle_cosine = max(angle_cosine, dot(center, v11));
-  return vec4(center, angle_cosine);
+  return float4(center, angle_cosine);
 }
 
 /* Corners are expected to be in view-space. Returns Z-aligned bounding cylinder.
  * Corner order does not matter. */
-vec4 tile_bound_cylinder(vec3 v00, vec3 v01, vec3 v10, vec3 v11)
+float4 tile_bound_cylinder(float3 v00, float3 v01, float3 v10, float3 v11)
 {
-  vec3 center = (v00 + v01 + v10 + v11) * 0.25f;
+  float3 center = (v00 + v01 + v10 + v11) * 0.25f;
   float dist_sqr = distance_squared(center, v00);
   dist_sqr = max(dist_sqr, distance_squared(center, v01));
   dist_sqr = max(dist_sqr, distance_squared(center, v10));
   dist_sqr = max(dist_sqr, distance_squared(center, v11));
   /* Return a cone. Later converted to cylinder. */
-  return vec4(center, sqrt(dist_sqr));
+  return float4(center, sqrt(dist_sqr));
 }
 
-vec2 tile_to_ndc(vec2 tile_co, vec2 offset)
+float2 tile_to_ndc(float2 tile_co, float2 offset)
 {
   /* Add a margin to prevent culling too much if the frustum becomes too much unstable. */
   const float margin = 0.02f;
@@ -65,16 +65,16 @@ vec2 tile_to_ndc(vec2 tile_co, vec2 offset)
   return tile_co * light_cull_buf.tile_to_uv_fac * 2.0f - 1.0f;
 }
 
-CullingTile tile_culling_get(uvec2 tile_co)
+CullingTile tile_culling_get(uint2 tile_co)
 {
-  vec2 ftile = vec2(tile_co);
+  float2 ftile = float2(tile_co);
   /* Culling frustum corners for this tile. */
-  vec3 corners[8];
+  float3 corners[8];
   /* Follow same corners order as view frustum. */
-  corners[1].xy = corners[0].xy = tile_to_ndc(ftile, vec2(0, 0));
-  corners[5].xy = corners[4].xy = tile_to_ndc(ftile, vec2(1, 0));
-  corners[6].xy = corners[7].xy = tile_to_ndc(ftile, vec2(1, 1));
-  corners[2].xy = corners[3].xy = tile_to_ndc(ftile, vec2(0, 1));
+  corners[1].xy = corners[0].xy = tile_to_ndc(ftile, float2(0, 0));
+  corners[5].xy = corners[4].xy = tile_to_ndc(ftile, float2(1, 0));
+  corners[6].xy = corners[7].xy = tile_to_ndc(ftile, float2(1, 1));
+  corners[2].xy = corners[3].xy = tile_to_ndc(ftile, float2(0, 1));
   corners[1].z = corners[5].z = corners[6].z = corners[2].z = -1.0f;
   corners[0].z = corners[4].z = corners[7].z = corners[3].z = 1.0f;
 
@@ -135,7 +135,7 @@ void main()
 {
   uint word_idx = gl_GlobalInvocationID.x % light_cull_buf.tile_word_len;
   uint tile_idx = gl_GlobalInvocationID.x / light_cull_buf.tile_word_len;
-  uvec2 tile_co = uvec2(tile_idx % light_cull_buf.tile_x_len,
+  uint2 tile_co = uint2(tile_idx % light_cull_buf.tile_x_len,
                         tile_idx / light_cull_buf.tile_x_len);
 
   if (tile_co.y >= light_cull_buf.tile_y_len) {
@@ -152,10 +152,10 @@ void main()
     LightData light = light_buf[l_idx];
 
     /* Culling in view space for precision and simplicity. */
-    vec3 vP = drw_point_world_to_view(light_position_get(light));
-    vec3 v_right = drw_normal_world_to_view(light_x_axis(light));
-    vec3 v_up = drw_normal_world_to_view(light_y_axis(light));
-    vec3 v_back = drw_normal_world_to_view(light_z_axis(light));
+    float3 vP = drw_point_world_to_view(light_position_get(light));
+    float3 v_right = drw_normal_world_to_view(light_x_axis(light));
+    float3 v_up = drw_normal_world_to_view(light_y_axis(light));
+    float3 v_back = drw_normal_world_to_view(light_z_axis(light));
     float radius = light_local_data_get(light).influence_radius_max;
 
     if (light_cull_buf.view_is_flipped) {
@@ -184,10 +184,10 @@ void main()
       }
       case LIGHT_RECT:
       case LIGHT_ELLIPSE: {
-        vec3 v000 = vP - v_right * radius - v_up * radius;
-        vec3 v100 = v000 + v_right * (radius * 2.0f);
-        vec3 v010 = v000 + v_up * (radius * 2.0f);
-        vec3 v001 = v000 - v_back * radius;
+        float3 v000 = vP - v_right * radius - v_up * radius;
+        float3 v100 = v000 + v_right * (radius * 2.0f);
+        float3 v010 = v000 + v_up * (radius * 2.0f);
+        float3 v001 = v000 - v_back * radius;
         Box bbox = shape_box(v000, v100, v010, v001);
         intersect_tile = intersect_tile && intersect(tile, bbox);
         break;

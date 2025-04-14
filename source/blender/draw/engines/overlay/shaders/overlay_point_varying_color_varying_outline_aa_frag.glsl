@@ -10,7 +10,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_extra_point_base)
 
 void main()
 {
-  float dist = length(gl_PointCoord - vec2(0.5f));
+  float dist = length(gl_PointCoord - float2(0.5f));
 
   /* transparent outside of point
    * --- 0 ---

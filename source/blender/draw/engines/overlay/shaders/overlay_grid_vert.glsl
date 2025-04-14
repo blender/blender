@@ -18,25 +18,25 @@ VERTEX_SHADER_CREATE_INFO(overlay_grid_next)
 
 void main()
 {
-  vec3 vert_pos;
+  float3 vert_pos;
 
   /* Project camera pos to the needed plane */
   if (flag_test(grid_flag, PLANE_XY)) {
-    vert_pos = vec3(pos.x, pos.y, 0.0f);
+    vert_pos = float3(pos.x, pos.y, 0.0f);
   }
   else if (flag_test(grid_flag, PLANE_XZ)) {
-    vert_pos = vec3(pos.x, 0.0f, pos.y);
+    vert_pos = float3(pos.x, 0.0f, pos.y);
   }
   else if (flag_test(grid_flag, PLANE_YZ)) {
-    vert_pos = vec3(0.0f, pos.x, pos.y);
+    vert_pos = float3(0.0f, pos.x, pos.y);
   }
   else /* PLANE_IMAGE */ {
-    vert_pos = vec3(pos.xy * 0.5f + 0.5f, 0.0f);
+    vert_pos = float3(pos.xy * 0.5f + 0.5f, 0.0f);
   }
 
   local_pos = vert_pos;
 
-  vec3 real_pos = drw_view_position() * plane_axes + vert_pos * grid_buf.size.xyz;
+  float3 real_pos = drw_view_position() * plane_axes + vert_pos * grid_buf.size.xyz;
 
   /* Used for additional Z axis */
   if (flag_test(grid_flag, CLIP_ZPOS)) {
@@ -48,5 +48,5 @@ void main()
     local_pos.z = clamp(local_pos.z, -1.0f, 0.0f);
   }
 
-  gl_Position = drw_view().winmat * (drw_view().viewmat * vec4(real_pos, 1.0f));
+  gl_Position = drw_view().winmat * (drw_view().viewmat * float4(real_pos, 1.0f));
 }

@@ -24,15 +24,15 @@
        (z * 2.0f - 1.0f) * nearFar.y)
 
 #define MAX_COC_SIZE 100.0f
-vec2 dof_encode_coc(float near, float far)
+float2 dof_encode_coc(float near, float far)
 {
-  return vec2(near, far) / MAX_COC_SIZE;
+  return float2(near, far) / MAX_COC_SIZE;
 }
-float dof_decode_coc(vec2 cocs)
+float dof_decode_coc(float2 cocs)
 {
   return max(cocs.x, cocs.y) * MAX_COC_SIZE;
 }
-float dof_decode_signed_coc(vec2 cocs)
+float dof_decode_signed_coc(float2 cocs)
 {
   return ((cocs.x > cocs.y) ? cocs.x : -cocs.y) * MAX_COC_SIZE;
 }

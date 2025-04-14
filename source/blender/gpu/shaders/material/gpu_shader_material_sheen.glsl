@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_bsdf_sheen(vec4 color, float roughness, vec3 N, float weight, out Closure result)
+void node_bsdf_sheen(float4 color, float roughness, float3 N, float weight, out Closure result)
 {
-  color = max(color, vec4(0.0f));
+  color = max(color, float4(0.0f));
   roughness = saturate(roughness);
   N = safe_normalize(N);
 

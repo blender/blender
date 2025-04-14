@@ -43,10 +43,10 @@ void main()
   }
   else {
     /* Create a dummy box so initialization happens even when there are no shadow casters. */
-    box = shape_box(vec3(-1.0f),
-                    vec3(-1.0f) + vec3(1.0f, 0.0f, 0.0f),
-                    vec3(-1.0f) + vec3(0.0f, 1.0f, 0.0f),
-                    vec3(-1.0f) + vec3(0.0f, 0.0f, 1.0f));
+    box = shape_box(float3(-1.0f),
+                    float3(-1.0f) + float3(1.0f, 0.0f, 0.0f),
+                    float3(-1.0f) + float3(0.0f, 1.0f, 0.0f),
+                    float3(-1.0f) + float3(0.0f, 0.0f, 1.0f));
   }
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {

@@ -5,10 +5,10 @@
 #include "gpu_shader_common_math.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
 
-vec3 tint_from_color(vec3 color)
+float3 tint_from_color(float3 color)
 {
-  float lum = dot(color, vec3(0.3f, 0.6f, 0.1f)); /* luminance approx. */
-  return (lum > 0.0f) ? color / lum : vec3(1.0f); /* normalize lum. to isolate hue+sat */
+  float lum = dot(color, float3(0.3f, 0.6f, 0.1f)); /* luminance approx. */
+  return (lum > 0.0f) ? color / lum : float3(1.0f); /* normalize lum. to isolate hue+sat */
 }
 
 float principled_sheen(float NV, float rough)
@@ -27,34 +27,34 @@ float ior_from_F0(float F0)
   return (-f - 1.0f) / (f - 1.0f);
 }
 
-void node_bsdf_principled(vec4 base_color,
+void node_bsdf_principled(float4 base_color,
                           float metallic,
                           float roughness,
                           float ior,
                           float alpha,
-                          vec3 N,
+                          float3 N,
                           float weight,
                           float diffuse_roughness,
                           float subsurface_weight,
-                          vec3 subsurface_radius,
+                          float3 subsurface_radius,
                           float subsurface_scale,
                           float subsurface_ior,
                           float subsurface_anisotropy,
                           float specular_ior_level,
-                          vec4 specular_tint,
+                          float4 specular_tint,
                           float anisotropic,
                           float anisotropic_rotation,
-                          vec3 T,
+                          float3 T,
                           float transmission_weight,
                           float coat_weight,
                           float coat_roughness,
                           float coat_ior,
-                          vec4 coat_tint,
-                          vec3 CN,
+                          float4 coat_tint,
+                          float3 CN,
                           float sheen_weight,
                           float sheen_roughness,
-                          vec4 sheen_tint,
-                          vec4 emission,
+                          float4 sheen_tint,
+                          float4 emission,
                           float emission_strength,
                           float thin_film_thickness,
                           float thin_film_ior,
@@ -71,31 +71,31 @@ void node_bsdf_principled(vec4 base_color,
   /* subsurface_anisotropy = clamp(subsurface_anisotropy, 0.0f, 0.9f); */
   /* subsurface_ior = clamp(subsurface_ior, 1.01f, 3.8f); */
   specular_ior_level = max(specular_ior_level, 0.0f);
-  specular_tint = max(specular_tint, vec4(0.0f));
+  specular_tint = max(specular_tint, float4(0.0f));
   /* Not used by EEVEE */
   /* anisotropic = saturate(anisotropic); */
   transmission_weight = saturate(transmission_weight);
   coat_weight = max(coat_weight, 0.0f);
   coat_roughness = saturate(coat_roughness);
   coat_ior = max(coat_ior, 1.0f);
-  coat_tint = max(coat_tint, vec4(0.0f));
+  coat_tint = max(coat_tint, float4(0.0f));
   sheen_weight = max(sheen_weight, 0.0f);
   sheen_roughness = saturate(sheen_roughness);
-  sheen_tint = max(sheen_tint, vec4(0.0f));
+  sheen_tint = max(sheen_tint, float4(0.0f));
 
-  base_color = max(base_color, vec4(0.0f));
-  vec4 clamped_base_color = min(base_color, vec4(1.0f));
+  base_color = max(base_color, float4(0.0f));
+  float4 clamped_base_color = min(base_color, float4(1.0f));
 
   N = safe_normalize(N);
   CN = safe_normalize(CN);
-  vec3 V = coordinate_incoming(g_data.P);
+  float3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);
 
   /* Transparency component. */
   if (true) {
     ClosureTransparency transparency_data;
     transparency_data.weight = weight;
-    transparency_data.transmittance = vec3(1.0f - alpha);
+    transparency_data.transmittance = float3(1.0f - alpha);
     transparency_data.holdout = 0.0f;
     closure_eval(transparency_data);
 
@@ -103,10 +103,10 @@ void node_bsdf_principled(vec4 base_color,
   }
 
   /* First layer: Sheen */
-  vec3 sheen_data_color = vec3(0.0f);
+  float3 sheen_data_color = float3(0.0f);
   if (sheen_weight > 0.0f) {
     /* TODO: Maybe sheen_weight should be specular. */
-    vec3 sheen_color = sheen_weight * sheen_tint.rgb * principled_sheen(NV, sheen_roughness);
+    float3 sheen_color = sheen_weight * sheen_tint.rgb * principled_sheen(NV, sheen_roughness);
     sheen_data_color = weight * sheen_color;
     /* Attenuate lower layers */
     weight *= max((1.0f - math_reduce_max(sheen_color)), 0.0f);
@@ -120,22 +120,23 @@ void node_bsdf_principled(vec4 base_color,
     ClosureReflection coat_data;
     coat_data.N = CN;
     coat_data.roughness = coat_roughness;
-    coat_data.color = vec3(1.0f);
+    coat_data.color = float3(1.0f);
     coat_data.weight = weight * coat_weight * reflectance;
     closure_eval(coat_data);
 
     /* Attenuate lower layers */
     weight *= max((1.0f - reflectance * coat_weight), 0.0f);
 
-    if (!all(equal(coat_tint.rgb, vec3(1.0f)))) {
+    if (!all(equal(coat_tint.rgb, float3(1.0f)))) {
       float coat_neta = 1.0f / coat_ior;
       float NT = sqrt_fast(1.0f - coat_neta * coat_neta * (1 - NV * NV));
       /* Tint lower layers. */
-      coat_tint.rgb = mix(vec3(1.0f), pow(coat_tint.rgb, vec3(1.0f / NT)), saturate(coat_weight));
+      coat_tint.rgb = mix(
+          float3(1.0f), pow(coat_tint.rgb, float3(1.0f / NT)), saturate(coat_weight));
     }
   }
   else {
-    coat_tint.rgb = vec3(1.0f);
+    coat_tint.rgb = float3(1.0f);
   }
 
   /* Emission component.
@@ -149,12 +150,12 @@ void node_bsdf_principled(vec4 base_color,
   }
 
   /* Metallic component */
-  vec3 reflection_tint = specular_tint.rgb;
-  vec3 reflection_color = vec3(0.0f);
+  float3 reflection_tint = specular_tint.rgb;
+  float3 reflection_color = float3(0.0f);
   if (metallic > 0.0f) {
-    vec3 F0 = clamped_base_color.rgb;
-    vec3 F82 = min(reflection_tint, vec3(1.0f));
-    vec3 metallic_brdf;
+    float3 F0 = clamped_base_color.rgb;
+    float3 F82 = min(reflection_tint, float3(1.0f));
+    float3 metallic_brdf;
     brdf_f82_tint_lut(F0, F82, NV, roughness, do_multiscatter != 0.0f, metallic_brdf);
     reflection_color = weight * metallic * metallic_brdf;
     /* Attenuate lower layers */
@@ -163,9 +164,9 @@ void node_bsdf_principled(vec4 base_color,
 
   /* Transmission component */
   if (transmission_weight > 0.0f) {
-    vec3 F0 = vec3(F0_from_ior(ior)) * reflection_tint;
-    vec3 F90 = vec3(1.0f);
-    vec3 reflectance, transmittance;
+    float3 F0 = float3(F0_from_ior(ior)) * reflection_tint;
+    float3 F90 = float3(1.0f);
+    float3 reflectance, transmittance;
     bsdf_lut(F0,
              F90,
              sqrt(clamped_base_color.rgb),
@@ -202,12 +203,12 @@ void node_bsdf_principled(vec4 base_color,
       }
     }
 
-    vec3 F0 = vec3(f0) * reflection_tint;
-    F0 = clamp(F0, vec3(0.0f), vec3(1.0f));
-    vec3 F90 = vec3(1.0f);
-    vec3 reflectance, unused;
+    float3 F0 = float3(f0) * reflection_tint;
+    F0 = clamp(F0, float3(0.0f), float3(1.0f));
+    float3 F90 = float3(1.0f);
+    float3 reflectance, unused;
     bsdf_lut(
-        F0, F90, vec3(0.0f), NV, roughness, eta, do_multiscatter != 0.0f, reflectance, unused);
+        F0, F90, float3(0.0f), NV, roughness, eta, do_multiscatter != 0.0f, reflectance, unused);
 
     ClosureReflection reflection_data;
     reflection_data.N = N;
@@ -225,7 +226,7 @@ void node_bsdf_principled(vec4 base_color,
   if (subsurface_weight > 0.0f) {
     ClosureSubsurface sss_data;
     sss_data.N = N;
-    sss_data.sss_radius = max(subsurface_radius * subsurface_scale, vec3(0.0f));
+    sss_data.sss_radius = max(subsurface_radius * subsurface_scale, float3(0.0f));
     /* Subsurface Scattering materials behave unpredictably with values greater than 1.0 in
      * Cycles. So it's clamped there and we clamp here for consistency with Cycles. */
     sss_data.color = (subsurface_weight * weight) * clamped_base_color.rgb * coat_tint.rgb;

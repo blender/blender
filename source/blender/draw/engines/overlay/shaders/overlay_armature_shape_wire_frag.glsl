@@ -39,9 +39,9 @@ void main()
   float dist = abs(edgeCoord) - half_size;
   const float mix_w = clamp(edge_step(dist), 0.0f, 1.0f);
 
-  fragColor = mix(vec4(finalColor.rgb, alpha), vec4(0), mix_w);
+  fragColor = mix(float4(finalColor.rgb, alpha), float4(0), mix_w);
   fragColor.a *= 1.0f - mix_w;
-  lineOutput = vec4(0);
+  lineOutput = float4(0);
 
   select_id_output(select_id);
 }

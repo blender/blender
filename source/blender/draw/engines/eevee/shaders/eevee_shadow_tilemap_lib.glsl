@@ -14,34 +14,34 @@
  * Select the smallest viewport that can contain the given rectangle of tiles to render.
  * Returns the viewport size in tile.
  */
-ivec2 shadow_viewport_size_get(uint viewport_index)
+int2 shadow_viewport_size_get(uint viewport_index)
 {
   /* TODO(fclem): Experiment with non squared viewports. */
-  return ivec2(1u << viewport_index);
+  return int2(1u << viewport_index);
 }
 
 /* ---------------------------------------------------------------------- */
 /** \name Tile-map data
  * \{ */
 
-int shadow_tile_index(ivec2 tile)
+int shadow_tile_index(int2 tile)
 {
   return tile.x + tile.y * SHADOW_TILEMAP_RES;
 }
 
-uvec2 shadow_tile_coord(int tile_index)
+uint2 shadow_tile_coord(int tile_index)
 {
-  return uvec2(tile_index % SHADOW_TILEMAP_RES, tile_index / SHADOW_TILEMAP_RES);
+  return uint2(tile_index % SHADOW_TILEMAP_RES, tile_index / SHADOW_TILEMAP_RES);
 }
 
 /* Return bottom left pixel position of the tile-map inside the tile-map atlas. */
-uvec2 shadow_tilemap_start(int tilemap_index)
+uint2 shadow_tilemap_start(int tilemap_index)
 {
   return SHADOW_TILEMAP_RES *
-         uvec2(tilemap_index % SHADOW_TILEMAP_PER_ROW, tilemap_index / SHADOW_TILEMAP_PER_ROW);
+         uint2(tilemap_index % SHADOW_TILEMAP_PER_ROW, tilemap_index / SHADOW_TILEMAP_PER_ROW);
 }
 
-uvec2 shadow_tile_coord_in_atlas(uvec2 tile, int tilemap_index)
+uint2 shadow_tile_coord_in_atlas(uint2 tile, int tilemap_index)
 {
   return shadow_tilemap_start(tilemap_index) + tile;
 }
@@ -50,7 +50,7 @@ uvec2 shadow_tile_coord_in_atlas(uvec2 tile, int tilemap_index)
  * Return tile index inside `tiles_buf` for a given tile coordinate inside a specific LOD.
  * `tiles_index` should be `ShadowTileMapData.tiles_index`.
  */
-int shadow_tile_offset(uvec2 tile, int tiles_index, int lod)
+int shadow_tile_offset(uint2 tile, int tiles_index, int lod)
 {
 #if SHADOW_TILEMAP_LOD > 5
 #  error This needs to be adjusted
@@ -106,13 +106,13 @@ int shadow_tile_offset(uvec2 tile, int tiles_index, int lod)
  * \{ */
 
 /** \note Will clamp if out of bounds. */
-ShadowSamplingTile shadow_tile_load(usampler2D tilemaps_tx, uvec2 tile_co, int tilemap_index)
+ShadowSamplingTile shadow_tile_load(usampler2D tilemaps_tx, uint2 tile_co, int tilemap_index)
 {
   /* NOTE(@fclem): This clamp can hide some small imprecision at clip-map transition.
    * Can be disabled to check if the clip-map is well centered. */
-  tile_co = clamp(tile_co, uvec2(0), uvec2(SHADOW_TILEMAP_RES - 1));
-  uvec2 texel = shadow_tile_coord_in_atlas(tile_co, tilemap_index);
-  uint tile_data = texelFetch(tilemaps_tx, ivec2(texel), 0).x;
+  tile_co = clamp(tile_co, uint2(0), uint2(SHADOW_TILEMAP_RES - 1));
+  uint2 texel = shadow_tile_coord_in_atlas(tile_co, tilemap_index);
+  uint tile_data = texelFetch(tilemaps_tx, int2(texel), 0).x;
   return shadow_sampling_tile_unpack(tile_data);
 }
 
@@ -126,7 +126,7 @@ ShadowSamplingTile shadow_tile_load(usampler2D tilemaps_tx, uvec2 tile_co, int t
  * \a lP shading point position in light space, relative to the to camera position snapped to
  * the smallest clip-map level (`shadow_world_to_local(light, P) - light_position_get(light)`).
  */
-int shadow_directional_tilemap_index(LightData light, vec3 lP)
+int shadow_directional_tilemap_index(LightData light, float3 lP)
 {
   LightSunData sun = light_sun_data_get(light);
   int lvl;
@@ -153,7 +153,7 @@ int shadow_directional_tilemap_index(LightData light, vec3 lP)
  * \a lP shading point position in light space, relative to the to camera position snapped to
  * the smallest clip-map level (`shadow_world_to_local(light, P) - light_position_get(light)`).
  */
-float shadow_directional_level_fractional(LightData light, vec3 lP)
+float shadow_directional_level_fractional(LightData light, float3 lP)
 {
   float lod;
   if (light.type == LIGHT_SUN) {
@@ -181,7 +181,7 @@ float shadow_directional_level_fractional(LightData light, vec3 lP)
                float(light_sun_data_get(light).clipmap_lod_max));
 }
 
-int shadow_directional_level(LightData light, vec3 lP)
+int shadow_directional_level(LightData light, float3 lP)
 {
   /* The level can be negative and is increasing with the distance.
    * So we have to ceil instead of flooring. */
@@ -193,7 +193,7 @@ int shadow_directional_level(LightData light, vec3 lP)
  * `distance_to_camera` is Z distance to the camera origin.
  */
 float shadow_punctual_pixel_ratio(LightData light,
-                                  vec3 lP,
+                                  float3 lP,
                                   bool is_perspective,
                                   float distance_to_camera,
                                   float film_pixel_radius)
@@ -223,7 +223,7 @@ float shadow_punctual_pixel_ratio(LightData light,
  * `distance_to_camera` is Z distance to the camera origin.
  */
 float shadow_punctual_level_fractional(LightData light,
-                                       vec3 lP,
+                                       float3 lP,
                                        bool is_perspective,
                                        float distance_to_camera,
                                        float film_pixel_radius)
@@ -234,7 +234,7 @@ float shadow_punctual_level_fractional(LightData light,
 }
 
 int shadow_punctual_level(LightData light,
-                          vec3 lP,
+                          float3 lP,
                           bool is_perspective,
                           float distance_to_camera,
                           float film_pixel_radius)
@@ -248,26 +248,26 @@ struct ShadowCoordinates {
   /* Index of the tile-map to containing the tile. */
   int tilemap_index;
   /* Texel coordinates in [0..SHADOW_MAP_MAX_RES) range. */
-  uvec2 tilemap_texel;
+  uint2 tilemap_texel;
   /* Tile coordinate in [0..SHADOW_TILEMAP_RES) range. */
-  uvec2 tilemap_tile;
+  uint2 tilemap_tile;
 };
 
 /* Assumes tilemap_uv is already saturated. */
-ShadowCoordinates shadow_coordinate_from_uvs(int tilemap_index, vec2 tilemap_uv)
+ShadowCoordinates shadow_coordinate_from_uvs(int tilemap_index, float2 tilemap_uv)
 {
   ShadowCoordinates ret;
   ret.tilemap_index = tilemap_index;
-  ret.tilemap_texel = uvec2(tilemap_uv * (float(SHADOW_MAP_MAX_RES) - 1e-2f));
+  ret.tilemap_texel = uint2(tilemap_uv * (float(SHADOW_MAP_MAX_RES) - 1e-2f));
   ret.tilemap_tile = ret.tilemap_texel >> uint(SHADOW_PAGE_LOD);
   return ret;
 }
 
 /* Retain sign bit and avoid costly int division. */
-ivec2 shadow_decompress_grid_offset(eLightType light_type,
-                                    ivec2 offset_neg,
-                                    ivec2 offset_pos,
-                                    int level_relative)
+int2 shadow_decompress_grid_offset(eLightType light_type,
+                                   int2 offset_neg,
+                                   int2 offset_pos,
+                                   int level_relative)
 {
   if (light_type == LIGHT_SUN_ORTHO) {
     return shadow_cascade_grid_offset(offset_pos, level_relative);
@@ -280,7 +280,7 @@ ivec2 shadow_decompress_grid_offset(eLightType light_type,
 /**
  * \a lP shading point position in light space (`shadow_world_to_local(light, P)`).
  */
-ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, vec3 lP, int level)
+ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, float3 lP, int level)
 {
   /* This difference needs to be less than 32 for the later shift to be valid.
    * This is ensured by `ShadowDirectional::clipmap_level_range()`. */
@@ -288,15 +288,15 @@ ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, vec3 
   int lod_relative = (light.type == LIGHT_SUN_ORTHO) ? light_sun_data_get(light).clipmap_lod_min :
                                                        level;
   /* Compute offset in tile. */
-  ivec2 clipmap_offset = shadow_decompress_grid_offset(
+  int2 clipmap_offset = shadow_decompress_grid_offset(
       light.type,
       light_sun_data_get(light).clipmap_base_offset_neg,
       light_sun_data_get(light).clipmap_base_offset_pos,
       level_relative);
   /* UV in [0..1] range over the tilemap. */
-  vec2 tilemap_uv = lP.xy - light_sun_data_get(light).clipmap_origin;
+  float2 tilemap_uv = lP.xy - light_sun_data_get(light).clipmap_origin;
   tilemap_uv *= exp2(float(-lod_relative));
-  tilemap_uv -= vec2(clipmap_offset) * (1.0f / float(SHADOW_TILEMAP_RES));
+  tilemap_uv -= float2(clipmap_offset) * (1.0f / float(SHADOW_TILEMAP_RES));
   tilemap_uv = saturate(tilemap_uv + 0.5f);
 
   return shadow_coordinate_from_uvs(light.tilemap_index + level_relative, tilemap_uv);
@@ -305,44 +305,44 @@ ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, vec3 
 /**
  * \a lP shading point position in light space (`shadow_world_to_local(light, P)`).
  */
-ShadowCoordinates shadow_directional_coordinates(LightData light, vec3 lP)
+ShadowCoordinates shadow_directional_coordinates(LightData light, float3 lP)
 {
   int level = shadow_directional_level(light, lP - light_position_get(light));
   return shadow_directional_coordinates_at_level(light, lP, level);
 }
 
 /* Transform vector to face local coordinate. */
-vec3 shadow_punctual_local_position_to_face_local(int face_id, vec3 lL)
+float3 shadow_punctual_local_position_to_face_local(int face_id, float3 lL)
 {
   switch (face_id) {
     case 1:
-      return vec3(-lL.y, lL.z, -lL.x);
+      return float3(-lL.y, lL.z, -lL.x);
     case 2:
-      return vec3(lL.y, lL.z, lL.x);
+      return float3(lL.y, lL.z, lL.x);
     case 3:
-      return vec3(lL.x, lL.z, -lL.y);
+      return float3(lL.x, lL.z, -lL.y);
     case 4:
-      return vec3(-lL.x, lL.z, lL.y);
+      return float3(-lL.x, lL.z, lL.y);
     case 5:
-      return vec3(lL.x, -lL.y, -lL.z);
+      return float3(lL.x, -lL.y, -lL.z);
     default:
       return lL;
   }
 }
 
-vec3 shadow_punctual_face_local_to_local_position(int face_id, vec3 fL)
+float3 shadow_punctual_face_local_to_local_position(int face_id, float3 fL)
 {
   switch (face_id) {
     case 1:
-      return vec3(-fL.z, -fL.x, fL.y);
+      return float3(-fL.z, -fL.x, fL.y);
     case 2:
-      return vec3(fL.z, fL.x, fL.y);
+      return float3(fL.z, fL.x, fL.y);
     case 3:
-      return vec3(fL.x, -fL.z, fL.y);
+      return float3(fL.x, -fL.z, fL.y);
     case 4:
-      return vec3(-fL.x, fL.z, fL.y);
+      return float3(-fL.x, fL.z, fL.y);
     case 5:
-      return vec3(fL.x, -fL.y, -fL.z);
+      return float3(fL.x, -fL.y, -fL.z);
     default:
       return fL;
   }
@@ -350,9 +350,9 @@ vec3 shadow_punctual_face_local_to_local_position(int face_id, vec3 fL)
 
 /* Turns local light coordinate into shadow region index. Matches eCubeFace order.
  * \note lL does not need to be normalized. */
-int shadow_punctual_face_index_get(vec3 lL)
+int shadow_punctual_face_index_get(float3 lL)
 {
-  vec3 aP = abs(lL);
+  float3 aP = abs(lL);
   if (all(greaterThan(aP.xx, aP.yz))) {
     return (lL.x > 0.0f) ? 1 : 2;
   }
@@ -368,10 +368,10 @@ int shadow_punctual_face_index_get(vec3 lL)
  * \a lP shading point position in face local space (world unit).
  * \a face_id is the one used to rotate lP using shadow_punctual_local_position_to_face_local().
  */
-ShadowCoordinates shadow_punctual_coordinates(LightData light, vec3 lP, int face_id)
+ShadowCoordinates shadow_punctual_coordinates(LightData light, float3 lP, int face_id)
 {
   /* UVs in [-1..+1] range. */
-  vec2 tilemap_uv = lP.xy / abs(lP.z);
+  float2 tilemap_uv = lP.xy / abs(lP.z);
   /* UVs in [0..1] range. */
   tilemap_uv = saturate(tilemap_uv * 0.5f + 0.5f);
 
@@ -384,22 +384,22 @@ ShadowCoordinates shadow_punctual_coordinates(LightData light, vec3 lP, int face
 /** \name Frustum shapes.
  * \{ */
 
-vec3 shadow_tile_corner_persp(ShadowTileMapData tilemap, ivec2 tile)
+float3 shadow_tile_corner_persp(ShadowTileMapData tilemap, int2 tile)
 {
   return tilemap.corners[1].xyz + tilemap.corners[2].xyz * float(tile.x) +
          tilemap.corners[3].xyz * float(tile.y);
 }
 
 Pyramid shadow_tilemap_cubeface_bounds(ShadowTileMapData tilemap,
-                                       ivec2 tile_start,
-                                       const ivec2 extent)
+                                       int2 tile_start,
+                                       const int2 extent)
 {
   Pyramid shape;
   shape.corners[0] = tilemap.corners[0].xyz;
-  shape.corners[1] = shadow_tile_corner_persp(tilemap, tile_start + ivec2(0, 0));
-  shape.corners[2] = shadow_tile_corner_persp(tilemap, tile_start + ivec2(extent.x, 0));
+  shape.corners[1] = shadow_tile_corner_persp(tilemap, tile_start + int2(0, 0));
+  shape.corners[2] = shadow_tile_corner_persp(tilemap, tile_start + int2(extent.x, 0));
   shape.corners[3] = shadow_tile_corner_persp(tilemap, tile_start + extent);
-  shape.corners[4] = shadow_tile_corner_persp(tilemap, tile_start + ivec2(0, extent.y));
+  shape.corners[4] = shadow_tile_corner_persp(tilemap, tile_start + int2(0, extent.y));
   return shape;
 }
 
@@ -412,7 +412,7 @@ Pyramid shadow_tilemap_cubeface_bounds(ShadowTileMapData tilemap,
  * index every LOD like they were LOD0.
  * \{ */
 
-int shadow_render_page_index_get(int view_index, ivec2 tile_coordinate_in_lod)
+int shadow_render_page_index_get(int view_index, int2 tile_coordinate_in_lod)
 {
   return view_index * SHADOW_TILEMAP_LOD0_LEN + tile_coordinate_in_lod.y * SHADOW_TILEMAP_RES +
          tile_coordinate_in_lod.x;

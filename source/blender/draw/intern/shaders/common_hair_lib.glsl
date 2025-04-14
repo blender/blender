@@ -25,7 +25,7 @@
 #  endif
 
 struct CurvePoint {
-  vec3 position;
+  float3 position;
   /* Position along the curve length. O at root, 1 at the tip. */
   float time;
 };
@@ -34,7 +34,7 @@ CurvePoint hair_get_point(int point_id)
 {
   SHADER_LIBRARY_CREATE_INFO(draw_hair)
 
-  vec4 data = texelFetch(hairPointBuffer, point_id);
+  float4 data = texelFetch(hairPointBuffer, point_id);
   CurvePoint pt;
   pt.position = data.xyz;
   pt.time = data.w;
@@ -90,7 +90,7 @@ int hair_get_base_id(float local_time, int strand_segments, out float interp_tim
 }
 
 void hair_get_interp_attrs(
-    out vec4 data0, out vec4 data1, out vec4 data2, out vec4 data3, out float interp_time)
+    out float4 data0, out float4 data1, out float4 data2, out float4 data3, out float interp_time)
 {
   float local_time = hair_get_local_time();
 
@@ -160,11 +160,11 @@ in float dummy;
 #    endif
 
 void hair_get_center_pos_tan_binor_time(bool is_persp,
-                                        vec3 camera_pos,
-                                        vec3 camera_z,
-                                        out vec3 wpos,
-                                        out vec3 wtan,
-                                        out vec3 wbinor,
+                                        float3 camera_pos,
+                                        float3 camera_z,
+                                        out float3 wpos,
+                                        out float3 wtan,
+                                        out float3 wbinor,
                                         out float time,
                                         out float thickness)
 {
@@ -187,23 +187,23 @@ void hair_get_center_pos_tan_binor_time(bool is_persp,
     wtan = wpos - hair_get_point(id - 1).position;
   }
 
-  mat4 obmat = hairDupliMatrix;
-  wpos = (obmat * vec4(wpos, 1.0f)).xyz;
+  float4x4 obmat = hairDupliMatrix;
+  wpos = (obmat * float4(wpos, 1.0f)).xyz;
   wtan = -normalize(to_float3x3(obmat) * wtan);
 
-  vec3 camera_vec = (is_persp) ? camera_pos - wpos : camera_z;
+  float3 camera_vec = (is_persp) ? camera_pos - wpos : camera_z;
   wbinor = normalize(cross(camera_vec, wtan));
 
   thickness = hair_shaperadius(hairRadShape, hairRadRoot, hairRadTip, time);
 }
 
 void hair_get_pos_tan_binor_time(bool is_persp,
-                                 mat4 invmodel_mat,
-                                 vec3 camera_pos,
-                                 vec3 camera_z,
-                                 out vec3 wpos,
-                                 out vec3 wtan,
-                                 out vec3 wbinor,
+                                 float4x4 invmodel_mat,
+                                 float3 camera_pos,
+                                 float3 camera_z,
+                                 out float3 wpos,
+                                 out float3 wtan,
+                                 out float3 wbinor,
                                  out float time,
                                  out float thickness,
                                  out float thick_time)
@@ -231,54 +231,54 @@ float hair_get_customdata_float(const samplerBuffer cd_buf)
   return texelFetch(cd_buf, id).r;
 }
 
-vec2 hair_get_customdata_vec2(const samplerBuffer cd_buf)
+float2 hair_get_customdata_vec2(const samplerBuffer cd_buf)
 {
   int id = hair_get_strand_id();
   return texelFetch(cd_buf, id).rg;
 }
 
-vec3 hair_get_customdata_vec3(const samplerBuffer cd_buf)
+float3 hair_get_customdata_vec3(const samplerBuffer cd_buf)
 {
   int id = hair_get_strand_id();
   return texelFetch(cd_buf, id).rgb;
 }
 
-vec4 hair_get_customdata_vec4(const samplerBuffer cd_buf)
+float4 hair_get_customdata_vec4(const samplerBuffer cd_buf)
 {
   int id = hair_get_strand_id();
   return texelFetch(cd_buf, id).rgba;
 }
 
-vec3 hair_get_strand_pos()
+float3 hair_get_strand_pos()
 {
   int id = hair_get_strand_id() * hairStrandsRes;
   return hair_get_point(id).position;
 }
 
-vec2 hair_get_barycentric()
+float2 hair_get_barycentric()
 {
   /* To match cycles without breaking into individual segment we encode if we need to invert
    * the first component into the second component. We invert if the barycentricTexCo.y
    * is NOT 0.0 or 1.0. */
   int id = hair_get_base_id();
-  return vec2(float((id % 2) == 1), float(((id % 4) % 3) > 0));
+  return float2(float((id % 2) == 1), float(((id % 4) % 3) > 0));
 }
 
 #  endif
 
 /* To be fed the result of hair_get_barycentric from vertex shader. */
-vec2 hair_resolve_barycentric(vec2 vert_barycentric)
+float2 hair_resolve_barycentric(float2 vert_barycentric)
 {
   if (fract(vert_barycentric.y) != 0.0f) {
-    return vec2(vert_barycentric.x, 0.0f);
+    return float2(vert_barycentric.x, 0.0f);
   }
   else {
-    return vec2(1.0f - vert_barycentric.x, 0.0f);
+    return float2(1.0f - vert_barycentric.x, 0.0f);
   }
 }
 
 /* Hair interpolation functions. */
-vec4 hair_get_weights_cardinal(float t)
+float4 hair_get_weights_cardinal(float t)
 {
   float t2 = t * t;
   float t3 = t2 * t;
@@ -288,7 +288,7 @@ vec4 hair_get_weights_cardinal(float t)
   float fc = 0.5f;
 #  endif
 
-  vec4 weights;
+  float4 weights;
   /* GLSL Optimized version of key_curve_position_weights() */
   float fct = t * fc;
   float fct2 = t2 * fc;
@@ -301,20 +301,20 @@ vec4 hair_get_weights_cardinal(float t)
 }
 
 /* TODO(fclem): This one is buggy, find why. (it's not the optimization!!) */
-vec4 hair_get_weights_bspline(float t)
+float4 hair_get_weights_bspline(float t)
 {
   float t2 = t * t;
   float t3 = t2 * t;
 
-  vec4 weights;
+  float4 weights;
   /* GLSL Optimized version of key_curve_position_weights() */
-  weights.xz = vec2(-0.16666666f, -0.5f) * t3 + (0.5f * t2 + 0.5f * vec2(-t, t) + 0.16666666f);
+  weights.xz = float2(-0.16666666f, -0.5f) * t3 + (0.5f * t2 + 0.5f * float2(-t, t) + 0.16666666f);
   weights.y = (0.5f * t3 - t2 + 0.66666666f);
   weights.w = (0.16666666f * t3);
   return weights;
 }
 
-vec4 hair_interp_data(vec4 v0, vec4 v1, vec4 v2, vec4 v3, vec4 w)
+float4 hair_interp_data(float4 v0, float4 v1, float4 v2, float4 v3, float4 w)
 {
   return v0 * w.x + v1 * w.y + v2 * w.z + v3 * w.w;
 }

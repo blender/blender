@@ -10,9 +10,9 @@ void main()
 {
   const float a = 0.1f;
 #ifdef SHADOW_PASS
-  out_debug_color.rgb = gl_FrontFacing ? vec3(a, -a, 0.0f) : vec3(-a, a, 0.0f);
+  out_debug_color.rgb = gl_FrontFacing ? float3(a, -a, 0.0f) : float3(-a, a, 0.0f);
 #else
-  out_debug_color.rgb = gl_FrontFacing ? vec3(a, a, -a) : vec3(-a, -a, a);
+  out_debug_color.rgb = gl_FrontFacing ? float3(a, a, -a) : float3(-a, -a, a);
 #endif
   out_debug_color.a = a;
 }

@@ -25,22 +25,22 @@ shared uint tiles_local[SHADOW_TILEDATA_PER_TILEMAP];
 shared uint levels_rendered;
 shared uint force_base_page;
 
-int shadow_tile_offset_lds(ivec2 tile, int lod)
+int shadow_tile_offset_lds(int2 tile, int lod)
 {
-  return shadow_tile_offset(uvec2(tile), 0, lod);
+  return shadow_tile_offset(uint2(tile), 0, lod);
 }
 
 /* Deactivate threads that are not part of this LOD. Will only let pass threads which tile
  * coordinate fits the given tilemap LOD. */
-bool thread_mask(ivec2 tile_co, int lod)
+bool thread_mask(int2 tile_co, int lod)
 {
   const uint lod_size = uint(SHADOW_TILEMAP_RES);
-  return all(lessThan(tile_co, ivec2(lod_size >> lod)));
+  return all(lessThan(tile_co, int2(lod_size >> lod)));
 }
 
 void main()
 {
-  ivec2 tile_co = ivec2(gl_GlobalInvocationID.xy);
+  int2 tile_co = int2(gl_GlobalInvocationID.xy);
   uint tilemap_index = gl_GlobalInvocationID.z;
   ShadowTileMapData tilemap = tilemaps_buf[tilemap_index];
 
@@ -57,7 +57,7 @@ void main()
      * main memory the usage bit. */
     for (int lod = 0; lod <= SHADOW_TILEMAP_LOD; lod++) {
       if (thread_mask(tile_co, lod)) {
-        int tile_offset = shadow_tile_offset(uvec2(tile_co), tilemap.tiles_index, lod);
+        int tile_offset = shadow_tile_offset(uint2(tile_co), tilemap.tiles_index, lod);
         ShadowTileDataPacked tile_data = tiles_buf[tile_offset];
 
         if ((tile_data & SHADOW_IS_USED) == 0) {
@@ -87,13 +87,13 @@ void main()
     for (int lod = 1; lod <= SHADOW_TILEMAP_LOD; lod++) {
       barrier();
       if (thread_mask(tile_co, lod)) {
-        ivec2 tile_co_prev_lod = tile_co * 2;
+        int2 tile_co_prev_lod = tile_co * 2;
         int prev_lod = lod - 1;
 
-        int tile_0 = shadow_tile_offset_lds(tile_co_prev_lod + ivec2(0, 0), prev_lod);
-        int tile_1 = shadow_tile_offset_lds(tile_co_prev_lod + ivec2(1, 0), prev_lod);
-        int tile_2 = shadow_tile_offset_lds(tile_co_prev_lod + ivec2(0, 1), prev_lod);
-        int tile_3 = shadow_tile_offset_lds(tile_co_prev_lod + ivec2(1, 1), prev_lod);
+        int tile_0 = shadow_tile_offset_lds(tile_co_prev_lod + int2(0, 0), prev_lod);
+        int tile_1 = shadow_tile_offset_lds(tile_co_prev_lod + int2(1, 0), prev_lod);
+        int tile_2 = shadow_tile_offset_lds(tile_co_prev_lod + int2(0, 1), prev_lod);
+        int tile_3 = shadow_tile_offset_lds(tile_co_prev_lod + int2(1, 1), prev_lod);
         /* Is masked if all tiles from the previous level were tagged as used. */
         bool is_masked = ((tiles_local[tile_0] & tiles_local[tile_1] & tiles_local[tile_2] &
                            tiles_local[tile_3]) &
@@ -187,7 +187,7 @@ void main()
        * This last heuristic avoids very low quality shadows during viewport animation, transform
        * or jittered shadows. */
       if ((force_base_page != 0u) && ((levels_rendered == 0u) || is_render)) {
-        int tile_offset = shadow_tile_offset_lds(ivec2(0), SHADOW_TILEMAP_LOD);
+        int tile_offset = shadow_tile_offset_lds(int2(0), SHADOW_TILEMAP_LOD);
         /* Tag as modified so that we can amend it inside the `tiles_buf`. */
         tiles_local[tile_offset] |= SHADOW_TILE_AMENDED;
         /* Visibility value to write back. */
@@ -201,7 +201,7 @@ void main()
       if (thread_mask(tile_co, lod)) {
         int tile_lds = shadow_tile_offset_lds(tile_co, lod);
         if ((tiles_local[tile_lds] & SHADOW_TILE_AMENDED) != 0) {
-          int tile_offset = shadow_tile_offset(uvec2(tile_co), tilemap.tiles_index, lod);
+          int tile_offset = shadow_tile_offset(uint2(tile_co), tilemap.tiles_index, lod);
           /* Note that we only flush the visibility so that cached pages can be reused. */
           if ((tiles_local[tile_lds] & SHADOW_TILE_MASKED) != 0) {
             tiles_buf[tile_offset] &= ~SHADOW_IS_USED;

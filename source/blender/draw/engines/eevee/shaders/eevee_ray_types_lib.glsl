@@ -14,12 +14,12 @@
  * W component is device normalized Z + Thickness.
  */
 struct ScreenSpaceRay {
-  vec4 origin;
-  vec4 direction;
+  float4 origin;
+  float4 direction;
   float max_time;
 };
 
-void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray, vec2 pixel_size)
+void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray, float2 pixel_size)
 {
   /* Constant bias (due to depth buffer precision). Helps with self intersection. */
   /* Magic numbers for 24bits of precision.
@@ -32,7 +32,7 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray, vec2 pixel_size
   /* If the line is degenerate, make it cover at least one pixel
    * to not have to handle zero-pixel extent as a special case later */
   if (length_squared(ray.direction.xy) < 0.00001f) {
-    ray.direction.xy = vec2(0.0f, 0.00001f);
+    ray.direction.xy = float2(0.0f, 0.00001f);
   }
   float ray_len_sqr = length_squared(ray.direction.xyz);
   /* Make ray.direction cover one pixel. */
@@ -50,7 +50,7 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray, vec2 pixel_size
   ray.direction *= 0.5f;
 }
 
-ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, vec2 pixel_size)
+ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, float2 pixel_size)
 {
   ScreenSpaceRay ssray;
   ssray.origin.xyz = drw_point_view_to_ndc(ray.origin);
@@ -60,7 +60,7 @@ ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, vec2 pixel_size)
   return ssray;
 }
 
-ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, vec2 pixel_size, float thickness)
+ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, float2 pixel_size, float thickness)
 {
   ScreenSpaceRay ssray;
   ssray.origin.xyz = drw_point_view_to_ndc(ray.origin);

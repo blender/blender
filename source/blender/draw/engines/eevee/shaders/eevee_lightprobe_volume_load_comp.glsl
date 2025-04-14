@@ -24,16 +24,16 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_load)
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-void atlas_store(vec4 sh_coefficient, ivec2 atlas_coord, int layer)
+void atlas_store(float4 sh_coefficient, int2 atlas_coord, int layer)
 {
   imageStore(irradiance_atlas_img,
-             ivec3(atlas_coord, layer * IRRADIANCE_GRID_BRICK_SIZE) + ivec3(gl_LocalInvocationID),
+             int3(atlas_coord, layer * IRRADIANCE_GRID_BRICK_SIZE) + int3(gl_LocalInvocationID),
              sh_coefficient);
 }
 
-SphericalHarmonicL1 irradiance_load(ivec3 input_coord)
+SphericalHarmonicL1 irradiance_load(int3 input_coord)
 {
-  input_coord = clamp(input_coord, ivec3(0), textureSize(irradiance_a_tx, 0) - 1);
+  input_coord = clamp(input_coord, int3(0), textureSize(irradiance_a_tx, 0) - 1);
 
   SphericalHarmonicL1 sh;
   sh.L0.M0 = texelFetch(irradiance_a_tx, input_coord, 0);
@@ -52,23 +52,23 @@ SphericalHarmonicL1 irradiance_load(ivec3 input_coord)
 void main()
 {
   int brick_index = lightprobe_volume_grid_brick_index_get(grids_infos_buf[grid_index],
-                                                           ivec3(gl_WorkGroupID));
+                                                           int3(gl_WorkGroupID));
 
-  ivec3 grid_size = textureSize(irradiance_a_tx, 0);
+  int3 grid_size = textureSize(irradiance_a_tx, 0);
   /* Brick coordinate in the source grid. */
-  ivec3 brick_coord = ivec3(gl_WorkGroupID);
+  int3 brick_coord = int3(gl_WorkGroupID);
   /* Add padding border to allow bilinear filtering. */
-  ivec3 texel_coord = brick_coord * (IRRADIANCE_GRID_BRICK_SIZE - 1) + ivec3(gl_LocalInvocationID);
+  int3 texel_coord = brick_coord * (IRRADIANCE_GRID_BRICK_SIZE - 1) + int3(gl_LocalInvocationID);
   /* Add padding to the grid to allow interpolation to outside grid. */
   texel_coord -= 1;
 
-  ivec3 input_coord = clamp(texel_coord, ivec3(0), grid_size - 1);
+  int3 input_coord = clamp(texel_coord, int3(0), grid_size - 1);
 
   bool is_padding_voxel = !all(equal(texel_coord, input_coord));
 
   /* Brick coordinate in the destination atlas. */
   IrradianceBrick brick = irradiance_brick_unpack(bricks_infos_buf[brick_index]);
-  ivec2 output_coord = ivec2(brick.atlas_coord);
+  int2 output_coord = int2(brick.atlas_coord);
 
   SphericalHarmonicL1 sh_local;
 
@@ -90,14 +90,14 @@ void main()
           if (x == 0 && y == 0 && z == 0) {
             continue;
           }
-          ivec3 offset = ivec3(x, y, z);
-          ivec3 neighbor_coord = input_coord + offset;
+          int3 offset = int3(x, y, z);
+          int3 neighbor_coord = input_coord + offset;
           float neighbor_validity = texelFetch(validity_tx, neighbor_coord, 0).r;
           /* Skip invalid neighbor samples. */
           if (neighbor_validity < dilation_threshold) {
             continue;
           }
-          float dist_sqr = length_squared(vec3(offset));
+          float dist_sqr = length_squared(float3(offset));
           if (dist_sqr > square(dilation_radius)) {
             continue;
           }
@@ -112,7 +112,7 @@ void main()
   }
 
   /* Rotate Spherical Harmonic into world space. */
-  mat3 grid_to_world_rot = normalize(
+  float3x3 grid_to_world_rot = normalize(
       to_float3x3(grids_infos_buf[grid_index].world_to_grid_transposed));
   sh_local = spherical_harmonics_rotate(grid_to_world_rot, sh_local);
 
@@ -122,7 +122,7 @@ void main()
   sh_visibility.L1.M0 = sh_local.L1.M0.aaaa;
   sh_visibility.L1.Mp1 = sh_local.L1.Mp1.aaaa;
 
-  vec3 P = lightprobe_volume_grid_sample_position(grid_local_to_world, grid_size, input_coord);
+  float3 P = lightprobe_volume_grid_sample_position(grid_local_to_world, grid_size, input_coord);
 
   SphericalHarmonicL1 sh_distant = lightprobe_volume_sample(P);
 
@@ -148,11 +148,11 @@ void main()
 
   if ((gl_LocalInvocationID.z % 4u) == 0u) {
     /* Encode 4 cells into one volume sample. */
-    ivec4 cell_validity_bits = ivec4(0);
+    int4 cell_validity_bits = int4(0);
     /* Encode validity of each samples in the grid cell. */
     for (int cell = 0; cell < 4; cell++) {
       for (int i = 0; i < 8; i++) {
-        ivec3 coord_input = clamp(texel_coord, ivec3(0), grid_size - 1);
+        int3 coord_input = clamp(texel_coord, int3(0), grid_size - 1);
         float validity = texelFetch(validity_tx, coord_input, 0).r;
         bool is_padding_voxel = !all(equal(texel_coord, input_coord));
         if ((validity > validity_threshold) || is_padding_voxel) {
@@ -162,6 +162,6 @@ void main()
     }
     /* NOTE: We could use another sampler to reduce the memory overhead, but that would take
      * another sampler slot for forward materials. */
-    atlas_store(vec4(cell_validity_bits), output_coord, 4);
+    atlas_store(float4(cell_validity_bits), output_coord, 4);
   }
 }

@@ -379,22 +379,6 @@ using bool2 = VecBase<bool, 2>;
 using bool3 = VecBase<bool, 3>;
 using bool4 = VecBase<bool, 4>;
 
-using vec2 = float2;
-using vec3 = float3;
-using vec4 = float4;
-
-using ivec2 = int2;
-using ivec3 = int3;
-using ivec4 = int4;
-
-using uvec2 = uint2;
-using uvec3 = uint3;
-using uvec4 = uint4;
-
-using bvec2 = bool2;
-using bvec3 = bool3;
-using bvec4 = bool4;
-
 using bool32_t = uint;
 
 /** Packed types are needed for MSL which have different alignment rules for float3. */
@@ -484,20 +468,6 @@ using float3x4 = MatBase<3, 4>;
 using float4x2 = MatBase<4, 2>;
 using float4x3 = MatBase<4, 3>;
 using float4x4 = MatBase<4, 4>;
-
-using mat2x2 = float2x2;
-using mat2x3 = float2x3;
-using mat2x4 = float2x4;
-using mat3x2 = float3x2;
-using mat3x3 = float3x3;
-using mat3x4 = float3x4;
-using mat4x2 = float4x2;
-using mat4x3 = float4x3;
-using mat4x4 = float4x4;
-
-using mat2 = float2x2;
-using mat3 = float3x3;
-using mat4 = float4x4;
 
 /* Matrix reshaping functions. */
 #define RESHAPE(mat_to, mat_from, ...) \

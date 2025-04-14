@@ -18,7 +18,7 @@ void main()
   finalColor.rgb = data_buf[gl_VertexID].color_.rgb;
   finalColor.a = 1.0f;
 
-  vec3 world_pos = data_buf[gl_VertexID].pos_.xyz;
+  float3 world_pos = data_buf[gl_VertexID].pos_.xyz;
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;

@@ -21,12 +21,12 @@ COMPUTE_SHADER_CREATE_INFO(eevee_surfel_ray)
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-float avg_albedo(vec3 albedo)
+float avg_albedo(float3 albedo)
 {
-  return saturate(dot(albedo, vec3(1.0f / 3.0f)));
+  return saturate(dot(albedo, float3(1.0f / 3.0f)));
 }
 
-void radiance_transfer(inout Surfel surfel, vec3 in_radiance, float in_visibility, vec3 L)
+void radiance_transfer(inout Surfel surfel, float3 in_radiance, float in_visibility, float3 L)
 {
   /* Clamped brightness. */
   float luma = max(1e-8f, reduce_max(in_radiance));
@@ -46,16 +46,16 @@ void radiance_transfer(inout Surfel surfel, vec3 in_radiance, float in_visibilit
   if (front_facing) {
     /* Store radiance normalized for spherical harmonic accumulation and for visualization. */
     radiance.front *= radiance.front_weight;
-    radiance.front += vec4(in_radiance, in_visibility) * transfert_fn *
-                      vec4(surfel.albedo_front, avg_albedo(surfel.albedo_front));
+    radiance.front += float4(in_radiance, in_visibility) * transfert_fn *
+                      float4(surfel.albedo_front, avg_albedo(surfel.albedo_front));
     radiance.front_weight += sample_weight;
     radiance.front /= radiance.front_weight;
   }
   else {
     /* Store radiance normalized for spherical harmonic accumulation and for visualization. */
     radiance.back *= radiance.back_weight;
-    radiance.back += vec4(in_radiance, in_visibility) * transfert_fn *
-                     vec4(surfel.albedo_back, avg_albedo(surfel.albedo_back));
+    radiance.back += float4(in_radiance, in_visibility) * transfert_fn *
+                     float4(surfel.albedo_back, avg_albedo(surfel.albedo_back));
     radiance.back_weight += sample_weight;
     radiance.back /= radiance.back_weight;
   }
@@ -65,10 +65,10 @@ void radiance_transfer(inout Surfel surfel, vec3 in_radiance, float in_visibilit
 
 void radiance_transfer_surfel(inout Surfel receiver, Surfel sender)
 {
-  vec3 L = safe_normalize(sender.position - receiver.position);
+  float3 L = safe_normalize(sender.position - receiver.position);
   bool front_facing = dot(-L, sender.normal) > 0.0f;
 
-  vec4 radiance_vis;
+  float4 radiance_vis;
   SurfelRadiance sender_radiance_indirect = sender.radiance_indirect[radiance_src];
   if (front_facing) {
     radiance_vis = sender.radiance_direct.front;
@@ -80,15 +80,15 @@ void radiance_transfer_surfel(inout Surfel receiver, Surfel sender)
   }
 
   if (!capture_info_buf.capture_indirect) {
-    radiance_vis.rgb = vec3(0.0f);
+    radiance_vis.rgb = float3(0.0f);
   }
 
   radiance_transfer(receiver, radiance_vis.rgb, radiance_vis.a, L);
 }
 
-void radiance_transfer_world(inout Surfel receiver, vec3 L)
+void radiance_transfer_world(inout Surfel receiver, float3 L)
 {
-  vec3 radiance = vec3(0.0f);
+  float3 radiance = float3(0.0f);
   float visibility = 0.0f;
 
   if (capture_info_buf.capture_world_indirect) {
@@ -112,7 +112,7 @@ void main()
 
   Surfel surfel = surfel_buf[surfel_index];
 
-  vec3 sky_L = drw_world_incident_vector(surfel.position);
+  float3 sky_L = drw_world_incident_vector(surfel.position);
 
   if (surfel.next > -1) {
     Surfel surfel_next = surfel_buf[surfel.next];

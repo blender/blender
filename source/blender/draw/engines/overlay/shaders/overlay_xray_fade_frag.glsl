@@ -14,7 +14,7 @@ void main()
   float depth_xray_infront = textureLod(xrayDepthTexInfront, uvcoordsvar.xy, 0.0f).r;
   if (depth_infront != 1.0f) {
     if (depth_xray_infront < depth_infront) {
-      fragColor = vec4(opacity);
+      fragColor = float4(opacity);
       return;
     }
 
@@ -30,7 +30,7 @@ void main()
   }
 
   if (depth_xray < depth) {
-    fragColor = vec4(opacity);
+    fragColor = float4(opacity);
     return;
   }
 
