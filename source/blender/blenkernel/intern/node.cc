@@ -680,6 +680,19 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       property = input->default_value_typed<bNodeSocketValueBoolean>()->value;
     };
 
+    auto write_input_to_property_bool_int16_flag = [&](const char *identifier,
+                                                       int16_t &property,
+                                                       const int flag,
+                                                       const bool negative = false) {
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+      if (bool(input->default_value_typed<bNodeSocketValueBoolean>()->value) != negative) {
+        property |= flag;
+      }
+      else {
+        property &= ~flag;
+      }
+    };
+
     auto write_input_to_property_int = [&](const char *identifier, int &property) {
       const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
       property = input->default_value_typed<bNodeSocketValueInt>()->value;
@@ -712,6 +725,18 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
     if (node->type_legacy == CMP_NODE_TIME) {
       write_input_to_property_int16("Start Frame", node->custom1);
       write_input_to_property_int16("End Frame", node->custom2);
+    }
+
+    if (node->type_legacy == CMP_NODE_MASK) {
+      NodeMask *storage = static_cast<NodeMask *>(node->storage);
+      write_input_to_property_int("Size X", storage->size_x);
+      write_input_to_property_int("Size Y", storage->size_y);
+      write_input_to_property_bool_int16_flag(
+          "Feather", node->custom1, CMP_NODE_MASK_FLAG_NO_FEATHER, true);
+      write_input_to_property_bool_int16_flag(
+          "Motion Blur", node->custom1, CMP_NODE_MASK_FLAG_MOTION_BLUR);
+      write_input_to_property_int16("Motion Blur Samples", node->custom2);
+      write_input_to_property_float("Motion Blur Shutter", node->custom3);
     }
   }
 }
