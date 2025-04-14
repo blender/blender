@@ -44,6 +44,8 @@ class MetalDeviceQueue : public DeviceQueue {
 
   void *native_queue() override;
 
+  unique_ptr<DeviceGraphicsInterop> graphics_interop_create() override;
+
  protected:
   void setup_capture();
   void update_capture(DeviceKernel kernel);

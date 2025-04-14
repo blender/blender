@@ -56,9 +56,10 @@ void HIPDeviceGraphicsInterop::set_buffer(const GraphicsInteropBuffer &interop_b
       }
       break;
     }
-    /* TODO: implement vulkan support. */
     case GraphicsInteropDevice::VULKAN:
+    case GraphicsInteropDevice::METAL:
     case GraphicsInteropDevice::NONE:
+      /* TODO: implement vulkan support. */
       break;
   }
 }

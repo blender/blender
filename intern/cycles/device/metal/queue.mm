@@ -10,6 +10,7 @@
 #  include "device/metal/queue.h"
 
 #  include "device/metal/device_impl.h"
+#  include "device/metal/graphics_interop.h"
 #  include "device/metal/kernel.h"
 
 #  include "util/path.h"
@@ -855,6 +856,11 @@ void MetalDeviceQueue::close_blit_encoder()
 void *MetalDeviceQueue::native_queue()
 {
   return mtlCommandQueue_;
+}
+
+unique_ptr<DeviceGraphicsInterop> MetalDeviceQueue::graphics_interop_create()
+{
+  return make_unique<MetalDeviceGraphicsInterop>(this);
 }
 
 CCL_NAMESPACE_END

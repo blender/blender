@@ -98,6 +98,8 @@ set(SRC_METAL
   metal/device.h
   metal/device_impl.mm
   metal/device_impl.h
+  metal/graphics_interop.mm
+  metal/graphics_interop.h
   metal/kernel.mm
   metal/kernel.h
   metal/queue.mm

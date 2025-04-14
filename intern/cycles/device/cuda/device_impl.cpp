@@ -1122,6 +1122,7 @@ bool CUDADevice::should_use_graphics_interop(const GraphicsInteropDevice &intero
 
       return found;
     }
+    case GraphicsInteropDevice::METAL:
     case GraphicsInteropDevice::NONE: {
       return false;
     }

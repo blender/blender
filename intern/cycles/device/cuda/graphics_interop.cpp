@@ -86,6 +86,7 @@ void CUDADeviceGraphicsInterop::set_buffer(const GraphicsInteropBuffer &interop_
       cu_external_memory_ptr_ = external_memory_device_ptr;
       break;
     }
+    case GraphicsInteropDevice::METAL:
     case GraphicsInteropDevice::NONE:
       break;
   }

@@ -12,6 +12,8 @@
 
 #  include "scene/scene.h"
 
+#  include "session/display_driver.h"
+
 #  include "util/debug.h"
 #  include "util/md5.h"
 #  include "util/path.h"
@@ -1360,11 +1362,11 @@ unique_ptr<DeviceQueue> MetalDevice::gpu_queue_create()
   return make_unique<MetalDeviceQueue>(this);
 }
 
-bool MetalDevice::should_use_graphics_interop(const GraphicsInteropDevice & /*interop_device*/,
+bool MetalDevice::should_use_graphics_interop(const GraphicsInteropDevice &interop_device,
                                               const bool /*log*/)
 {
-  /* METAL_WIP - provide fast interop */
-  return false;
+  /* Always supported with unified memory. */
+  return interop_device.type == GraphicsInteropDevice::METAL;
 }
 
 void *MetalDevice::get_native_buffer(device_ptr ptr)

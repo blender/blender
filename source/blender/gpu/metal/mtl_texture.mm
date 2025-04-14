@@ -2649,11 +2649,15 @@ GPUPixelBufferNativeHandle MTLPixelBuffer::get_native_handle()
 {
   GPUPixelBufferNativeHandle native_handle;
 
-  if (buffer_ == nil) {
+  /* Only spported with unified memory currently. */
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx);
+  if (![ctx->device hasUnifiedMemory]) {
     return native_handle;
   }
 
-  native_handle.handle = reinterpret_cast<int64_t>(buffer_);
+  /* Just get pointer to unified memory. No need to unmap. */
+  native_handle.handle = reinterpret_cast<int64_t>(map());
   native_handle.size = size_;
 
   return native_handle;

@@ -18,6 +18,7 @@ class GraphicsInteropDevice {
     NONE,
     OPENGL,
     VULKAN,
+    METAL,
   };
 
   Type type = NONE;
@@ -39,7 +40,8 @@ class GraphicsInteropBuffer {
   /* The handle is expected to be:
    * - OpenGL: pixel buffer object ID.
    * - Vulkan on Windows: opaque handle for VkBuffer.
-   * - Vulkan on Unix: opaque file descriptor for VkBuffer. */
+   * - Vulkan on Unix: opaque file descriptor for VkBuffer.
+   * - Metal: pixel buffer unified memory pointer. */
   GraphicsInteropDevice::Type type = GraphicsInteropDevice::NONE;
   int64_t handle = 0;
 
