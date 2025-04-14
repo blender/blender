@@ -669,8 +669,8 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
         }
       }
       const CPPType &cpp_type = *output_type.geometry_nodes_cpp_type;
-      void *default_output_value = eval_storage.scope.linear_allocator().allocate(
-          cpp_type.size(), cpp_type.alignment());
+      void *default_output_value = eval_storage.scope.allocator().allocate(cpp_type.size(),
+                                                                           cpp_type.alignment());
       construct_socket_default_value(output_type, default_output_value);
       lf_main_output.set_default_value(default_output_value);
       if (!cpp_type.is_trivially_destructible()) {
@@ -690,7 +690,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
     lf_graph.update_node_indices();
     eval_storage.graph_executor.emplace(lf_graph, nullptr, nullptr, nullptr);
     eval_storage.graph_executor_storage = eval_storage.graph_executor->init_storage(
-        eval_storage.scope.linear_allocator());
+        eval_storage.scope.allocator());
   }
 };
 
