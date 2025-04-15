@@ -91,7 +91,42 @@ CHECKER_ARGS = (
     "--inconclusive",
 
     # Generates many warnings, CPPCHECK known about system includes without resolving them.
-    "--suppress=missingIncludeSystem",
+    # To get a list of these use:
+    # `cppcheck --errorlist | pcregrep --only-matching "error id=\"[a-zA-Z_0-9]+\""`
+    *("--suppress={:s}".format(s) for s in (
+        # Noisy, and we can't always avoid this.
+        "missingIncludeSystem",
+        # Typically these can't be made `const`.
+        "constParameterCallback",
+
+        # Overly noisy, we could consider resolving all of these at some point.
+        "cstyleCast",
+
+        # Calling `memset` of float may technically be a bug but works in practice.
+        "memsetClassFloat",
+        # There are various classes which don't have copy or equal constructors (GHOST windows for e.g.)
+        "noCopyConstructor",
+        # Also noisy, looks like these are not issues to "solve".
+        "unusedFunction",
+        # There seems to be many false positives here.
+        "unusedPrivateFunction",
+        # May be interesting to handle but very noisy currently.
+        "variableScope",
+        # TODO: consider enabling this, more of a preference,
+        # not using STL algorithm's doesn't often hint at actual errors.
+        "useStlAlgorithm",
+        # TODO: consider enabling this, currently noisy and we are not likely to resolve them short term.
+        "functionStatic",
+
+        # These could be added back, currently there are so many warnings and they don't seem especially error-prone.
+        "missingMemberCopy",
+        "missingOverride",
+        "noExplicitConstructor",
+        "uninitDerivedMemberVar",
+        "uninitDerivedMemberVarPrivate",
+        "uninitMemberVar",
+        "useInitializationList",
+    )),
 
     # Quiet output, otherwise all defines/includes are printed (overly verbose).
     # Only enable this for troubleshooting (if defines are not set as expected for example).
@@ -113,33 +148,8 @@ CHECKER_ARGS_CXX = (
 CHECKER_EXCLUDE_FROM_SUMMARY = {
     # Not considered an error.
     "allocaCalled",
-    # Typically these can't be made `const`.
-    "constParameterCallback",
-    # Overly noisy, we could consider resolving all of these at some point.
-    "cstyleCast",
-    # Calling `memset` of float may technically be a bug but works in practice.
-    "memsetClassFloat",
-    # There are various classes which don't have copy or equal constructors (GHOST windows for e.g.)
-    "noCopyConstructor",
     # Similar for `noCopyConstructor`.
     "nonoOperatorEq",
-    # There seems to be many false positives here.
-    "unusedFunction",
-    # Also noisy, looks like these are not issues to "solve".
-    "unusedPrivateFunction",
-    # TODO: consider enabling this, more of a preference,
-    # not using STL algorithm's doesn't often hint at actual errors.
-    "useStlAlgorithm",
-    # May be interesting to handle but very noisy currently.
-    "variableScope",
-
-    # These could be added back, currently there are so many warnings and they don't seem especially error-prone.
-    "missingMemberCopy",
-    "missingOverride",
-    "noExplicitConstructor",
-    "uninitDerivedMemberVar",
-    "uninitMemberVar",
-    "useInitializationList",
 }
 
 
