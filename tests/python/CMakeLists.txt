@@ -751,9 +751,6 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     list(FILTER gpu_render_tests EXCLUDE REGEX light_group|shadow_catcher|denoise|guiding|reports)
 
     set(_gpu_render_tests_arguments)
-    if(WITH_GPU_RENDER_TESTS_SILENT)
-      list(APPEND _gpu_render_tests_arguments --fail-silently)
-    endif()
 
     # Eevee Next
     if(WITH_OPENGL_BACKEND)
