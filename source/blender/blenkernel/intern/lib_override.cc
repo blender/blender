@@ -905,6 +905,12 @@ static bool lib_override_hierarchy_dependencies_relationship_skip_check(
   if ((relation_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
     return true;
   }
+  /* Loop-back pointers (`from` ones) should not be taken into account in liboverride hierarchies.
+   *   - They generate an 'inverted' dependency that adds processing and...
+   *   - They should always have a regular, 'forward' matching relation anyway. */
+  if ((relation_id_entry->usage_flag & IDWALK_CB_LOOPBACK) != 0) {
+    return true;
+  }
   return false;
 }
 
