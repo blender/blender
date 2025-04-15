@@ -43,6 +43,7 @@ set(LIB
   bf_editor_space_view3d
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::nodes
   PRIVATE bf::windowmanager
 )
 

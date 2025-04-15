@@ -12,6 +12,8 @@
 
 #include "BKE_compute_context_cache_fwd.hh"
 
+#include "NOD_geometry_nodes_closure_location.hh"
+
 #include "ED_node_c.hh"
 
 struct SpaceNode;
@@ -94,6 +96,17 @@ bool node_editor_is_for_geometry_nodes_modifier(const SpaceNode &snode,
  */
 [[nodiscard]] const ComputeContext *compute_context_for_edittree(
     const SpaceNode &snode, bke::ComputeContextCache &compute_context_cache);
+
+/**
+ * Attempts to find a compute context that the closure is evaluated in. If none is found, null is
+ * returned. If multiple are found, it currently picks the first one it finds which is somewhat
+ * arbitrary.
+ */
+[[nodiscard]] const ComputeContext *compute_context_for_closure_evaluation(
+    const ComputeContext *closure_socket_context,
+    const bNodeSocket &closure_socket,
+    bke::ComputeContextCache &compute_context_cache,
+    const std::optional<nodes::ClosureSourceLocation> &source_location);
 
 /**
  * Creates a compute context for the given zone. It takes e.g. the current inspection index into
