@@ -3858,6 +3858,9 @@ static const char node_input_motion_blur[] = "Motion Blur";
 static const char node_input_motion_blur_samples[] = "Motion Blur Samples";
 static const char node_input_motion_blur_shutter[] = "Motion Blur Shutter";
 
+/* Switch node. */
+static const char node_input_switch[] = "Switch";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -9147,8 +9150,13 @@ static void def_cmp_switch(BlenderRNA * /*brna*/, StructRNA *srna)
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "check", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 0);
-  RNA_def_property_ui_text(prop, "Switch", "Off: first socket, On: second socket");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_node_property_to_input_getter<bool, node_input_switch>",
+                                 "rna_node_property_to_input_setter<bool, node_input_switch>");
+  RNA_def_property_ui_text(
+      prop,
+      "Switch",
+      "Off: first socket, On: second socket. (Deprecated: Use Switch input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

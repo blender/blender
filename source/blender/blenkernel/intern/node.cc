@@ -738,6 +738,10 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_int16("Motion Blur Samples", node->custom2);
       write_input_to_property_float("Motion Blur Shutter", node->custom3);
     }
+
+    if (node->type_legacy == CMP_NODE_SWITCH) {
+      write_input_to_property_bool_int16_flag("Switch", node->custom1, 1 << 0);
+    }
   }
 }
 
