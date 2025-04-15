@@ -1748,8 +1748,9 @@ typedef struct ToolSettings {
   short snap_flag_node;
   short snap_flag_seq;
   short snap_flag_anim;
+  short snap_flag_driver;
   short snap_uv_flag;
-  char _pad[4];
+  char _pad[2];
   /** Default snap source, #eSnapSourceOP. */
   /**
    * TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid previous ambiguity of

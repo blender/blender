@@ -657,13 +657,31 @@ short *transform_snap_flag_from_spacetype_ptr(TransInfo *t, const PropertyRNA **
         *r_prop = &rna_ToolSettings_use_snap_sequencer;
       }
       return &ts->snap_flag_seq;
-    case SPACE_GRAPH:
     case SPACE_ACTION:
     case SPACE_NLA:
       if (r_prop) {
         *r_prop = &rna_ToolSettings_use_snap_anim;
       }
       return &ts->snap_flag_anim;
+    case SPACE_GRAPH: {
+      SpaceGraph *graph_editor = static_cast<SpaceGraph *>(t->area->spacedata.first);
+      switch (graph_editor->mode) {
+        case SIPO_MODE_DRIVERS:
+          /* The driver editor has a separate snapping flag so it can be kept disabled while
+           * keeping it enabled in the Graph Editor. */
+          return &ts->snap_flag_driver;
+
+        case SIPO_MODE_ANIMATION: {
+          if (r_prop) {
+            *r_prop = &rna_ToolSettings_use_snap_anim;
+          }
+          return &ts->snap_flag_anim;
+        }
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
+    }
   }
   /* #SPACE_EMPTY.
    * It can happen when the operator is called via a handle in `bpy.app.handlers`. */
@@ -705,8 +723,25 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
     return eSnapMode(ts->snap_mode);
   }
 
-  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)) {
+  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
     return eSnapMode(ts->snap_anim_mode);
+  }
+
+  if (t->spacetype == SPACE_GRAPH) {
+    SpaceGraph *graph_editor = static_cast<SpaceGraph *>(t->area->spacedata.first);
+    switch (graph_editor->mode) {
+      case SIPO_MODE_DRIVERS:
+        /* Snapping to full values is the only mode that currently makes
+         * sense for the driver editor. */
+        return SCE_SNAP_TO_FRAME;
+
+      case SIPO_MODE_ANIMATION:
+        return eSnapMode(ts->snap_anim_mode);
+
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
   }
 
   return SCE_SNAP_TO_INCREMENT;
