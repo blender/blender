@@ -8854,7 +8854,10 @@ static void def_cmp_mask(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_boolean_funcs(prop,
                                  "rna_node_property_to_input_getter<bool, node_input_feather>",
                                  "rna_node_property_to_input_setter<bool, node_input_feather>");
-  RNA_def_property_ui_text(prop, "Feather", "Use feather information from the mask");
+  RNA_def_property_ui_text(
+      prop,
+      "Feather",
+      "Use feather information from the mask. (Deprecated: Use Feather input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_motion_blur", PROP_BOOLEAN, PROP_NONE);
@@ -8862,7 +8865,10 @@ static void def_cmp_mask(BlenderRNA * /*brna*/, StructRNA *srna)
       prop,
       "rna_node_property_to_input_getter<bool, node_input_motion_blur>",
       "rna_node_property_to_input_setter<bool, node_input_motion_blur>");
-  RNA_def_property_ui_text(prop, "Motion Blur", "Use multi-sampled motion blur of the mask");
+  RNA_def_property_ui_text(
+      prop,
+      "Motion Blur",
+      "Use multi-sampled motion blur of the mask. (Deprecated: Use Motion Blur input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "motion_blur_samples", PROP_INT, PROP_NONE);
@@ -8872,7 +8878,10 @@ static void def_cmp_mask(BlenderRNA * /*brna*/, StructRNA *srna)
       "rna_node_property_to_input_setter<int, node_input_motion_blur_samples>",
       nullptr);
   RNA_def_property_range(prop, 1, CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
-  RNA_def_property_ui_text(prop, "Samples", "Number of motion blur samples");
+  RNA_def_property_ui_text(
+      prop,
+      "Samples",
+      "Number of motion blur samples. (Deprecated: Use Motion Blur Samples input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "motion_blur_shutter", PROP_FLOAT, PROP_NONE);
@@ -8882,7 +8891,10 @@ static void def_cmp_mask(BlenderRNA * /*brna*/, StructRNA *srna)
       "rna_node_property_to_input_setter<float, node_input_motion_blur_shutter>",
       nullptr);
   RNA_def_property_range(prop, 0.0, 1.0f);
-  RNA_def_property_ui_text(prop, "Shutter", "Exposure for motion blur as a factor of FPS");
+  RNA_def_property_ui_text(prop,
+                           "Shutter",
+                           "Exposure for motion blur as a factor of FPS. (Deprecated: Use Motion "
+                           "Blur Shutter input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "size_source", PROP_ENUM, PROP_NONE);
@@ -8898,7 +8910,7 @@ static void def_cmp_mask(BlenderRNA * /*brna*/, StructRNA *srna)
                              "rna_node_property_to_input_setter<int, node_input_size_x>",
                              nullptr);
   RNA_def_property_range(prop, 1.0f, 10000.0f);
-  RNA_def_property_ui_text(prop, "X", "");
+  RNA_def_property_ui_text(prop, "X", "(Deprecated: Use Size X input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "size_y", PROP_INT, PROP_NONE);
@@ -8907,7 +8919,7 @@ static void def_cmp_mask(BlenderRNA * /*brna*/, StructRNA *srna)
                              "rna_node_property_to_input_setter<int, node_input_size_y>",
                              nullptr);
   RNA_def_property_range(prop, 1.0f, 10000.0f);
-  RNA_def_property_ui_text(prop, "Y", "");
+  RNA_def_property_ui_text(prop, "Y", "(Deprecated: Use Size Y input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
