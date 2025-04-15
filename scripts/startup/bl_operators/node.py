@@ -463,9 +463,11 @@ class NODE_OT_interface_item_make_panel_toggle(NodeInterfaceOperator, Operator):
         active_item = interface.active
         if not active_item:
             return False
-        if type(active_item) is not bpy.types.NodeTreeInterfaceSocketBool:
-            cls.poll_message_set("Only boolean sockets are supported")
+        
+        if type(active_item) is not bpy.types.NodeTreeInterfaceSocketBool or active_item.in_out != 'INPUT':
+            cls.poll_message_set("Only boolean input sockets are supported")
             return False
+
         parent_panel = active_item.parent
         if parent_panel.parent is None:
             cls.poll_message_set("Socket must be in a panel")
