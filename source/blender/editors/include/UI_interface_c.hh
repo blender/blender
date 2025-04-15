@@ -3472,7 +3472,7 @@ const uiStyle *UI_style_get(); /* use for fonts etc */
  */
 const uiStyle *UI_style_get_dpi();
 
-/* UI_OT_editsource helpers */
+/* #UI_OT_editsource helpers. */
 bool UI_editsource_enable_check();
 void UI_editsource_active_but_test(uiBut *but);
 /**

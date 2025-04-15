@@ -863,7 +863,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
 {
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   if (sbuts && sbuts->path == nullptr) {
-    /* path is cleared for SCREEN_OT_redo_last, when global undo does a file-read which clears the
+    /* path is cleared for #SCREEN_OT_redo_last, when global undo does a file-read which clears the
      * path (see lib_link_workspace_layout_restore). */
     buttons_context_compute(C, sbuts);
   }

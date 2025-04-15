@@ -482,9 +482,9 @@ enum {
 
 struct SlipData {
   NumInput num_input;
-  /* Initial mouse position in viewspace. */
+  /* Initial mouse position in view-space. */
   float init_mouse_co[2];
-  /* Mouse and virtual mouse-cursor x-values in regionspace. */
+  /* Mouse and virtual mouse-cursor x-values in region-space. */
   int prev_mval_x;
   float virtual_mval_x;
   /* Parsed offset (integer when in precision mode, float otherwise).*/
@@ -492,7 +492,7 @@ struct SlipData {
   VectorSet<Strip *> strips;
   bool precision;
   bool clamp;
-  /* Determines whether to show subframe offset in header. */
+  /* Determines whether to show sub-frame offset in header. */
   bool show_subframe;
 };
 

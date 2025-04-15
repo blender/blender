@@ -955,7 +955,7 @@ static wmOperatorStatus outliner_id_relocate_invoke(bContext *C,
   WM_operator_properties_free(&op_props);
 
   /* If the matching WM operator invoke was successful, it was added to modal handlers. This
-   * operator however is _not_ modal, and will memleak if it returns this status. */
+   * operator however is _not_ modal, and will leak memory if it returns this status. */
   return (ret == OPERATOR_RUNNING_MODAL) ? OPERATOR_FINISHED : ret;
 }
 

@@ -1020,8 +1020,8 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
 
   Depsgraph *depsgraph = preview->depsgraph;
   /* Not all code paths that lead to this function actually provide a depsgraph.
-   * The "Refresh Asset Preview" button (ED_OT_lib_id_generate_preview) does,
-   * but WM_OT_previews_ensure does not. */
+   * The "Refresh Asset Preview" button (#ED_OT_lib_id_generate_preview) does,
+   * but #WM_OT_previews_ensure does not. */
   BLI_assert(depsgraph != nullptr);
   BLI_assert(preview->scene == DEG_get_input_scene(depsgraph));
 

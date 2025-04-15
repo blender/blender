@@ -1096,7 +1096,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
       }
     }
 
-    /* BUTTONS_OT_file_browse calls UI_context_active_but_prop_get_filebrowser */
+    /* #BUTTONS_OT_file_browse calls #UI_context_active_but_prop_get_filebrowser. */
     uiDefIconButO(block,
                   UI_BTYPE_BUT,
                   subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" :

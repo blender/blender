@@ -277,7 +277,7 @@ static void seq_transform_cancel(TransInfo *t, Span<Strip *> transformed_strips)
 
   for (Strip *strip : transformed_strips) {
     /* Handle pre-existing overlapping strips even when operator is canceled.
-     * This is necessary for SEQUENCER_OT_duplicate_move macro for example. */
+     * This is necessary for #SEQUENCER_OT_duplicate_move macro for example. */
     if (seq::transform_test_overlap(t->scene, seqbase, strip)) {
       seq::transform_seqbase_shuffle(seqbase, strip, t->scene);
     }

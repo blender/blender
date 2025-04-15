@@ -155,7 +155,7 @@ static void select_surrounding_handles(Scene *scene, Strip *test) /* XXX BRING B
   }
 }
 
-/* Used for mouse selection in SEQUENCER_OT_select. */
+/* Used for mouse selection in #SEQUENCER_OT_select. */
 static void select_active_side(
     const Scene *scene, ListBase *seqbase, int sel_side, int channel, int frame)
 {
@@ -184,7 +184,7 @@ static void select_active_side(
   }
 }
 
-/* Used for mouse selection in SEQUENCER_OT_select_side. */
+/* Used for mouse selection in #SEQUENCER_OT_select_side. */
 static void select_active_side_range(const Scene *scene,
                                      ListBase *seqbase,
                                      const int sel_side,
@@ -219,7 +219,7 @@ static void select_active_side_range(const Scene *scene,
   }
 }
 
-/* Used alongside `select_linked_time` helper function in SEQUENCER_OT_select. */
+/* Used alongside `select_linked_time` helper function in #SEQUENCER_OT_select. */
 static void select_linked_time_seq(const Scene *scene,
                                    const Strip *strip_source,
                                    const eStripHandle handle_clicked)

@@ -909,7 +909,7 @@ static bool external_file_check_callback(BPathForeachPathData *bpath_data,
 
 /**
  * Do a check on any external files (.blend, textures, etc.) being used.
- * The ASSET_OT_bundle_install operator only works on standalone .blend files
+ * The #ASSET_OT_bundle_install operator only works on standalone `.blend` files
  * (catalog definition files are fine, though).
  *
  * \return true when there are external files, false otherwise.

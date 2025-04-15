@@ -238,7 +238,7 @@ static wmOperatorStatus viewroll_invoke(bContext *C, wmOperator *op, const wmEve
     viewroll_exec(C, op);
   }
   else {
-    /* The equivalent functionality for orbiting the view: VIEW3D_OT_orbit & VIEW3D_OT_rotate are
+    /* The equivalent functionality for orbiting the view: #VIEW3D_OT_orbit & #VIEW3D_OT_rotate are
      * separate operators with different poll functions [which are only permissive for non-locked
      * views]. This operator however mixes modal-interaction & instant-stepping into the same
      * operator and its current poll function permissively finds the non-locked region in quad
