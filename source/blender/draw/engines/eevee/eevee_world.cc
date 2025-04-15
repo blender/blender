@@ -143,6 +143,10 @@ void World::sync()
 
   inst_.light_probes.sync_world(bl_world, has_update);
 
+  if (has_update) {
+    inst_.sampling.reset();
+  }
+
   GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_DEFERRED);
 
   inst_.manager->register_layer_attributes(gpumat);

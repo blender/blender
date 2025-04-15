@@ -343,7 +343,10 @@ LightModule::~LightModule()
 
 void LightModule::begin_sync()
 {
-  use_scene_lights_ = inst_.use_scene_lights();
+  if (assign_if_different(use_scene_lights_, inst_.use_scene_lights())) {
+    inst_.sampling.reset();
+  }
+
   /* Disable sunlight if world has a volume shader as we consider the light cannot go through an
    * infinite opaque medium. */
   use_sun_lights_ = (inst_.world.has_volume_absorption() == false);
