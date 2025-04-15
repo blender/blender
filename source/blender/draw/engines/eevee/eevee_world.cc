@@ -143,7 +143,8 @@ void World::sync()
 
   inst_.light_probes.sync_world(bl_world, has_update);
 
-  if (has_update) {
+  if (inst_.is_viewport() && has_update) {
+    /* Catch lookdev viewport properties updates. */
     inst_.sampling.reset();
   }
 

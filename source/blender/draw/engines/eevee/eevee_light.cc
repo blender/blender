@@ -344,7 +344,10 @@ LightModule::~LightModule()
 void LightModule::begin_sync()
 {
   if (assign_if_different(use_scene_lights_, inst_.use_scene_lights())) {
-    inst_.sampling.reset();
+    if (inst_.is_viewport()) {
+      /* Catch lookdev viewport properties updates. */
+      inst_.sampling.reset();
+    }
   }
 
   /* Disable sunlight if world has a volume shader as we consider the light cannot go through an
