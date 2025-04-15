@@ -1156,7 +1156,7 @@ static bool bm_vert_is_manifold_flagged(BMVert *v, const char api_flag)
 
 /* Mid-level Topology Manipulation Functions */
 
-BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
+BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del, BMFace **r_double)
 {
   BMFace *f, *f_new;
 #ifdef USE_BMESH_HOLES
@@ -1168,6 +1168,12 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
   BMVert *v1 = nullptr, *v2 = nullptr;
   int i;
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+  BMFace *f_existing;
+
+  /* Initialize the return value if provided. This ensures it will be nullptr if the join fails. */
+  if (r_double) {
+    *r_double = nullptr;
+  }
 
   if (UNLIKELY(!totface)) {
     BMESH_ASSERT(0);
@@ -1254,6 +1260,22 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
   if (UNLIKELY(f_new == nullptr)) {
     /* Invalid boundary region to join faces */
     goto error;
+  }
+
+  /* If a new face was created, check whether it is a double of an existing face. */
+  f_existing = BM_face_find_double(f_new);
+  if (f_existing) {
+
+    /* Return the double to the calling function if that was requested. */
+    if (r_double) {
+      *r_double = f_existing;
+    }
+
+    /* Otherwise, automatically reuse the existing face. */
+    else {
+      BM_face_kill(bm, f_new);
+      f_new = f_existing;
+    }
   }
 
   /* copy over loop data */

@@ -189,7 +189,14 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
   for (Vector<BMFace *> &faces : regions) {
     const int64_t faces_len = faces.size();
 
-    BMFace *f_new = BM_faces_join(bm, faces.data(), faces_len, true);
+    BMFace *f_double;
+
+    BMFace *f_new = BM_faces_join(bm, faces.data(), faces_len, true, &f_double);
+
+    /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
+    BLI_assert_msg(f_double == nullptr,
+                   "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+
     if (f_new != nullptr) {
       /* Maintain the active face. */
       if (act_face && bm->act_face == nullptr) {
@@ -305,8 +312,12 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     if (BM_edge_loop_pair(e, &l_a, &l_b)) {
       BMFace *f_new;
 
+      BMFace *f_double;
+
       /* join faces */
-      f_new = BM_faces_join_pair(bm, l_a, l_b, false);
+      f_new = BM_faces_join_pair(bm, l_a, l_b, false, &f_double);
+
+      /* This algorithm actually does check for double faces. */
       if (f_new && BM_face_find_double(f_new)) {
         BM_face_kill(bm, f_new);
         f_new = nullptr;
@@ -426,8 +437,12 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
         if (BM_edge_loop_pair(e, &l_a, &l_b)) {
           BMFace *f_new;
 
+          BMFace *f_double;
+
           /* join faces */
-          f_new = BM_faces_join_pair(bm, l_a, l_b, false);
+          f_new = BM_faces_join_pair(bm, l_a, l_b, false, &f_double);
+
+          /* This algorithm actually does check for double faces. */
           if (f_new && BM_face_find_double(f_new)) {
             BM_face_kill(bm, f_new);
             f_new = nullptr;

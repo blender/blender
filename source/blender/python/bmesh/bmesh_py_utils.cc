@@ -653,7 +653,11 @@ static PyObject *bpy_bm_utils_face_join(PyObject * /*self*/, PyObject *args)
 
   /* Go ahead and join the face!
    * --------------------------- */
-  f_new = BM_faces_join(bm, face_array, int(face_seq_len), do_remove);
+  BMFace *f_double;
+  f_new = BM_faces_join(bm, face_array, int(face_seq_len), do_remove, &f_double);
+  /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
+  BLI_assert_msg(f_double == nullptr,
+                 "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
 
   PyMem_FREE(face_array);
 
