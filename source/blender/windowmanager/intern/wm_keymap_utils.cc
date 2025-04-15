@@ -406,9 +406,20 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
         default:
           break;
       }
+
+      if (ARegion *region = CTX_wm_region(C)) {
+        /* When property is in side panel, add shortcut key to User interface Keymap, see: #136998.
+         */
+        if (region->regiontype == RGN_TYPE_UI) {
+          km = WM_keymap_find_all(wm, "User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
+        }
+      }
       if (km && !WM_keymap_poll((bContext *)C, km)) {
         km = nullptr;
       }
+    }
+    else if (sl->spacetype == SPACE_PROPERTIES) {
+      km = WM_keymap_find_all(wm, "User Interface", SPACE_EMPTY, RGN_TYPE_WINDOW);
     }
 
     if (!km) {
