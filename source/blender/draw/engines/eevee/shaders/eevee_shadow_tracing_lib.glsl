@@ -134,18 +134,6 @@ void shadow_map_trace_hit_check(inout ShadowMapTracingState state,
 
 /** \} */
 
-/* If the ray direction `L`  is below the horizon defined by N (normalized) at the shading point,
- * push it just above the horizon so that this ray will never be below it and produce
- * over-shadowing (since light evaluation already clips the light shape). */
-float3 shadow_ray_above_horizon_ensure(float3 L, float3 N, float max_clip_distance)
-{
-  float distance_to_plane = dot(L, -N);
-  if (distance_to_plane > 0.0f && distance_to_plane < 0.01f + max_clip_distance) {
-    L += N * (0.01f + distance_to_plane);
-  }
-  return L;
-}
-
 /* ---------------------------------------------------------------------- */
 /** \name Directional Shadow Map Tracing
  * \{ */
@@ -174,8 +162,6 @@ ShadowRayDirectional shadow_ray_generate_directional(
 
   /* Light shape is 1 unit away from the shading point. */
   float3 direction = sample_uniform_cone(random_2d, cos(shadow_angle));
-
-  direction = shadow_ray_above_horizon_ensure(direction, lNg, max_tracing_distance);
 
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
   direction *= max(texel_radius, dist_to_near_plane / direction.z);
@@ -257,7 +243,6 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
     float3 point_on_light_shape = float3(random_2d, 0.0f);
 
     direction = point_on_light_shape - lP;
-    direction = shadow_ray_above_horizon_ensure(direction, lNg, shape_radius);
   }
   else {
     float dist;
@@ -274,7 +259,6 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
     float3 point_on_light_shape = right * random_2d.x + up * random_2d.y;
 
     direction = point_on_light_shape - lP;
-    direction = shadow_ray_above_horizon_ensure(direction, lNg, shape_radius);
   }
   float3 shadow_position = light_local_data_get(light).shadow_position;
   /* Clip the ray to not cross the near plane.
