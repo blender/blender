@@ -3786,6 +3786,26 @@ static void rna_NodeGlare_color_modulation_set(PointerRNA *ptr, const float valu
   RNA_float_set(&input_rna_pointer, "default_value", blender::math::clamp(value, 0.0f, 1.0f));
 }
 
+static int rna_NodeSplit_factor_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Factor");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  return int(blender::math::clamp(RNA_float_get(&input_rna_pointer, "default_value"), 0.0f, 1.0f) *
+             100.0f);
+}
+
+static void rna_NodeSplit_factor_set(PointerRNA *ptr, const int value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Factor");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  RNA_float_set(
+      &input_rna_pointer, "default_value", blender::math::clamp(value / 100.0f, 0.0f, 1.0f));
+}
+
 /* A getter that returns the value of the input socket with the given template identifier and type.
  * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
@@ -7963,7 +7983,8 @@ static void def_cmp_split(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "factor", PROP_INT, PROP_FACTOR);
-  RNA_def_property_int_sdna(prop, nullptr, "custom1");
+  RNA_def_property_int_funcs(
+      prop, "rna_NodeSplit_factor_get", "rna_NodeSplit_factor_set", nullptr);
   RNA_def_property_range(prop, 0, 100);
   RNA_def_property_ui_text(prop, "Factor", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
