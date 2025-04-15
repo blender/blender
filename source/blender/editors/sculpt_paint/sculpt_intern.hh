@@ -744,6 +744,11 @@ namespace blender::ed::sculpt_paint {
 /**
  * Tilts a normal by the x and y tilt values using the view axis.
  */
+float3 tilt_apply_to_normal(const Object &object,
+                            const float4x4 &view_inverse,
+                            const float3 &normal,
+                            const float2 &tilt,
+                            float tilt_strength);
 float3 tilt_apply_to_normal(const float3 &normal, const StrokeCache &cache, float tilt_strength);
 
 /**

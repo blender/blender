@@ -2700,24 +2700,33 @@ static void calc_brush_local_mat(const float rotation,
   invert_m4_m4(local_mat, tmat);
 }
 
-float3 tilt_apply_to_normal(const float3 &normal,
-                            const StrokeCache &cache,
+float3 tilt_apply_to_normal(const Object &object,
+                            const float4x4 &view_inverse,
+                            const float3 &normal,
+                            const float2 &tilt,
                             const float tilt_strength)
 {
   if (!USER_EXPERIMENTAL_TEST(&U, use_sculpt_tools_tilt)) {
     return normal;
   }
-  const float3 world_space = math::transform_direction(cache.vc->obact->object_to_world(), normal);
+  const float3 world_space = math::transform_direction(object.object_to_world(), normal);
 
   constexpr float tilt_sensitivity = 0.7f;
   const float rot_max = M_PI_2 * tilt_strength * tilt_sensitivity;
   const float3 normal_tilt_y = math::rotate_direction_around_axis(
-      world_space, cache.vc->rv3d->viewinv[0], cache.tilt.y * rot_max);
+      world_space, view_inverse.x_axis(), tilt.y * rot_max);
   const float3 normal_tilt_xy = math::rotate_direction_around_axis(
-      normal_tilt_y, cache.vc->rv3d->viewinv[1], cache.tilt.x * rot_max);
+      normal_tilt_y, view_inverse.y_axis(), tilt.x * rot_max);
 
-  return math::normalize(
-      math::transform_direction(cache.vc->obact->world_to_object(), normal_tilt_xy));
+  return math::normalize(math::transform_direction(object.world_to_object(), normal_tilt_xy));
+}
+
+float3 tilt_apply_to_normal(const float3 &normal,
+                            const StrokeCache &cache,
+                            const float tilt_strength)
+{
+  return tilt_apply_to_normal(
+      *cache.vc->obact, float4x4(cache.vc->rv3d->viewinv), normal, cache.tilt, tilt_strength);
 }
 
 float3 tilt_effective_normal_get(const SculptSession &ss, const Brush &brush)
