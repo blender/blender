@@ -1123,6 +1123,34 @@ class Channelbag : public ::ActionChannelbag {
   FCurve *fcurve_create_unique(Main *bmain, const FCurveDescriptor &fcurve_descriptor);
 
   /**
+   * Create many F-Curves at once.
+   *
+   * Conceptually the same as adding many curves in a loop:
+   * ```
+   * Vector<FCurve*> res(fcurve_descriptors.size(), nullptr);
+   * for (int64_t i = 0; i < fcurve_descriptors.size(); i++) {
+   *  const FCurveDescriptor &desc = fcurve_descriptors[i];
+   *  res[i] = this->fcurve_create_unique(bmain, desc);
+   * }
+   * return res;
+   * ```
+   *
+   * However that is quadratic complexity due to each curve uniqueness check being
+   * a linear scan, plus invariants rebuilding after each curve.
+   *
+   * \return Vector of created F-Curves. Vector size is the same as input span size.
+   * A vector element can be nullptr if input descriptor has empty RNA path, or if
+   * if such curve already exists.
+   *
+   * \param bmain: Used to tag the dependency graph(s) for relationship
+   * rebuilding. This is necessary when adding a new F-Curve, as a
+   * previously-unanimated depsgraph component may become animated now. Can be
+   * nullptr, in which case the tagging is skipped and is left as the
+   * responsibility of the caller.
+   */
+  Vector<FCurve *> fcurve_create_many(Main *bmain, Span<FCurveDescriptor> fcurve_descriptors);
+
+  /**
    * Append an F-Curve to this Channelbag.
    *
    * This transfers ownership of the F-Curve to this Channelbag, and it is up to
@@ -1221,6 +1249,14 @@ class Channelbag : public ::ActionChannelbag {
    */
   const bActionGroup *channel_group_find(StringRef name) const;
   bActionGroup *channel_group_find(StringRef name);
+
+  /**
+   * Find the index of the channel group.
+   *
+   * \return The index of the channel group if found, or -1 if no such group is
+   * found.
+   */
+  int channel_group_find_index(const bActionGroup *group) const;
 
   /**
    * Find the channel group that contains the fcurve at `fcurve_array_index` as
