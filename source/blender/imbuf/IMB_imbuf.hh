@@ -457,14 +457,6 @@ void IMB_buffer_byte_from_byte(unsigned char *rect_to,
                                int stride_to,
                                int stride_from);
 
-/**
- * Change the ordering of the color bytes pointed to by rect from
- * RGBA to ABGR. size * 4 color bytes are reordered.
- *
- * Only this one is used liberally here, and in imbuf.
- */
-void IMB_convert_rgba_to_abgr(ImBuf *ibuf);
-
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3]);
 

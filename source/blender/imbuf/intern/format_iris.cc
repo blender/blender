@@ -121,6 +121,38 @@ static void interleaverow2(float *lptr, const uchar *cptr, int z, int n);
 static int compressrow(const uchar *lbuf, uchar *rlebuf, int z, int row_len);
 static void lumrow(const uchar *rgbptr, uchar *lumptr, int n);
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Image API
+ * \{ */
+
+/**
+ * Change the ordering of the color bytes pointed to by rect from
+ * RGBA to ABGR. size * 4 color bytes are reordered.
+ *
+ * Only this one is used liberally here, and in imbuf.
+ */
+static void imbuf_rgba_to_abgr(ImBuf *ibuf)
+{
+  size_t size;
+  uchar rt, *cp = ibuf->byte_buffer.data;
+
+  if (ibuf->byte_buffer.data) {
+    size = IMB_get_pixel_count(ibuf);
+
+    while (size-- > 0) {
+      rt = cp[0];
+      cp[0] = cp[3];
+      cp[3] = rt;
+      rt = cp[1];
+      cp[1] = cp[2];
+      cp[2] = rt;
+      cp += 4;
+    }
+  }
+}
+
+/** \} */
+
 /*
  * byte order independent read/write of shorts and ints.
  */
@@ -555,7 +587,7 @@ ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, ImFileColorSpace &
   ibuf->ftype = IMB_FTYPE_IRIS;
 
   if (ibuf->byte_buffer.data) {
-    IMB_convert_rgba_to_abgr(ibuf);
+    imbuf_rgba_to_abgr(ibuf);
   }
 
   return ibuf;
@@ -945,13 +977,13 @@ bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
 
   const short zsize = (ibuf->planes + 7) >> 3;
 
-  IMB_convert_rgba_to_abgr(ibuf);
+  imbuf_rgba_to_abgr(ibuf);
 
   const bool ok = output_iris(
       filepath, (uint *)ibuf->byte_buffer.data, nullptr, ibuf->x, ibuf->y, zsize);
 
   /* restore! Quite clumsy, 2 times a switch... maybe better a malloc ? */
-  IMB_convert_rgba_to_abgr(ibuf);
+  imbuf_rgba_to_abgr(ibuf);
 
   return ok;
 }
