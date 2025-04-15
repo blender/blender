@@ -43,17 +43,21 @@ static void cmp_node_zcombine_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(10000.0f)
       .compositor_domain_priority(3);
+  b.add_input<decl::Bool>("Use Alpha")
+      .default_value(false)
+      .description(
+          "Use the alpha of the first input as mixing factor and return the more opaque alpha of "
+          "the two inputs")
+      .compositor_expects_single_value();
+  b.add_input<decl::Bool>("Anti-Alias")
+      .default_value(true)
+      .description(
+          "Anti-alias the generated mask before combining for smoother boundaries at the cost of "
+          "more expensive processing")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Z");
-}
-
-static void node_composit_buts_zcombine(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *col;
-
-  col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_antialias_z", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -410,12 +414,12 @@ class ZCombineOperation : public NodeOperation {
 
   bool use_alpha()
   {
-    return bnode().custom1 != 0;
+    return this->get_input("Use Alpha").get_single_value_default(false);
   }
 
   bool use_anti_aliasing()
   {
-    return bnode().custom2 == 0;
+    return this->get_input("Anti-Alias").get_single_value_default(true);
   }
 };
 
@@ -438,7 +442,6 @@ void register_node_type_cmp_zcombine()
   ntype.enum_name_legacy = "ZCOMBINE";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_zcombine_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_zcombine;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);
