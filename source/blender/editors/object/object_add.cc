@@ -2115,22 +2115,13 @@ void OBJECT_OT_curves_empty_hair_add(wmOperatorType *ot)
 /** \name Add Point Cloud Operator
  * \{ */
 
-static bool object_pointcloud_add_poll(bContext *C)
-{
-  if (!USER_EXPERIMENTAL_TEST(&U, use_new_point_cloud_type)) {
-    return false;
-  }
-  return ED_operator_objectmode(C);
-}
-
 static wmOperatorStatus object_pointcloud_add_exec(bContext *C, wmOperator *op)
 {
   ushort local_view_bits;
   float loc[3], rot[3];
   add_generic_get_opts(C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr);
 
-  Object *object = add_type(C, OB_POINTCLOUD, nullptr, loc, rot, false, local_view_bits);
-  object->dtx |= OB_DRAWBOUNDOX; /* TODO: remove once there is actual drawing. */
+  add_type(C, OB_POINTCLOUD, nullptr, loc, rot, false, local_view_bits);
 
   return OPERATOR_FINISHED;
 }
@@ -2144,7 +2135,7 @@ void OBJECT_OT_pointcloud_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = object_pointcloud_add_exec;
-  ot->poll = object_pointcloud_add_poll;
+  ot->poll = ED_operator_objectmode;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2762,9 +2753,7 @@ static const EnumPropertyItem *convert_target_itemf(bContext *C,
   RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_MESH);
   RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_CURVES_LEGACY);
   RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_CURVES);
-  if (USER_EXPERIMENTAL_TEST(&U, use_new_point_cloud_type)) {
-    RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_POINTCLOUD);
-  }
+  RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_POINTCLOUD);
   RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_GREASE_PENCIL);
 
   RNA_enum_item_end(&item, &totitem);
