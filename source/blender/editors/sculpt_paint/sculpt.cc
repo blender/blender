@@ -3156,6 +3156,9 @@ static NodeMaskResult calc_brush_node_mask(const Depsgraph &depsgraph,
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE) {
     return brushes::plane::calc_node_mask(depsgraph, ob, brush, memory);
   }
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_STRIPS) {
+    return brushes::clay_strips::calc_node_mask(depsgraph, ob, brush, memory);
+  }
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) {
     return {cloth::brush_affected_nodes_gather(ob, brush, memory), std::nullopt, std::nullopt};
   }
@@ -3388,7 +3391,13 @@ static void do_brush_action(const Depsgraph &depsgraph,
       do_clay_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_CLAY_STRIPS:
-      do_clay_strips_brush(depsgraph, sd, ob, node_mask);
+      BLI_assert(node_mask_result.plane_normal && node_mask_result.plane_center);
+      do_clay_strips_brush(depsgraph,
+                           sd,
+                           ob,
+                           node_mask,
+                           *node_mask_result.plane_normal,
+                           *node_mask_result.plane_center);
       break;
     case SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE:
       do_multiplane_scrape_brush(depsgraph, sd, ob, node_mask);
