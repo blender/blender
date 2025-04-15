@@ -1087,12 +1087,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   optional_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
 
-  /* Enable MoltenVK required instance extensions. */
-#ifdef __APPLE__
-  requireExtension(
-      extensions_available, extensions_enabled, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-#endif
-
   VkInstance instance = VK_NULL_HANDLE;
   if (!vulkan_device.has_value()) {
     VkApplicationInfo app_info = {};
