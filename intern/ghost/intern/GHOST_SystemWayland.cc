@@ -4791,10 +4791,10 @@ static void tablet_tool_handle_tilt(void *data,
                                     const wl_fixed_t tilt_x,
                                     const wl_fixed_t tilt_y)
 {
-  /* Map degrees to `-1.0..1.0`. */
+  /* Map degrees to `-1.0 (left/back)..1.0 (right/forward)`. */
   const float tilt_unit[2] = {
-      float(wl_fixed_to_double(tilt_x) / 90.0),
-      float(wl_fixed_to_double(tilt_y) / 90.0),
+      float(wl_fixed_to_double(tilt_x) / 90.0f),
+      float(wl_fixed_to_double(tilt_y) / -90.0f),
   };
   CLOG_INFO(LOG, 2, "tilt (x=%.4f, y=%.4f)", UNPACK2(tilt_unit));
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);

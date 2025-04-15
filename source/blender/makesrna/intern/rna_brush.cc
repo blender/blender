@@ -3937,12 +3937,12 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
   prop = RNA_def_property(srna, "x_tilt", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
   RNA_def_property_range(prop, -1.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Tilt X", "");
+  RNA_def_property_ui_text(prop, "Tilt X", "Pen tilt from left (-1.0) to right (+1.0)");
 
   prop = RNA_def_property(srna, "y_tilt", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
   RNA_def_property_range(prop, -1.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Tilt Y", "");
+  RNA_def_property_ui_text(prop, "Tilt Y", "Pen tilt from forward (-1.0) to back (+1.0)");
 
   /* used in uv painting */
   prop = RNA_def_property(srna, "time", PROP_FLOAT, PROP_UNSIGNED);

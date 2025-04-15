@@ -700,9 +700,9 @@ struct wmTabletData {
   int active;
   /** Range 0.0 (not touching) to 1.0 (full pressure). */
   float pressure;
-  /** Range 0.0 (upright) to 1.0 (tilted fully against the tablet surface). */
+  /** range -1.0 (left) to +1.0 (right). */
   float x_tilt;
-  /** As above. */
+  /** range -1.0 (toward user) to +1.0 (away from user). */
   float y_tilt;
   /** Interpret mouse motion as absolute as typical for tablets. */
   char is_motion_absolute;

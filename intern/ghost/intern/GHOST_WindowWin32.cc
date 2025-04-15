@@ -6,12 +6,14 @@
  * \ingroup GHOST
  */
 
-#include "GHOST_WindowWin32.hh"
+#include <algorithm>
+
 #include "GHOST_ContextD3D.hh"
 #include "GHOST_ContextNone.hh"
 #include "GHOST_DropTargetWin32.hh"
 #include "GHOST_SystemWin32.hh"
 #include "GHOST_WindowManager.hh"
+#include "GHOST_WindowWin32.hh"
 #include "utf_winfunc.hh"
 #include "utfconv.hh"
 
@@ -1022,11 +1024,19 @@ GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
     }
 
     if (pointerPenInfo[i].penMask & PEN_MASK_TILT_X) {
-      outPointerInfo[i].tabletData.Xtilt = fmin(fabs(pointerPenInfo[i].tiltX / 90.0f), 1.0f);
+      /* Input value is a range of -90 to +90, with a positive value
+       * indicating a tilt to the right. Convert to what Blender
+       * expects: -1.0f (left) to +1.0f (right). */
+      outPointerInfo[i].tabletData.Xtilt = std::clamp(
+          pointerPenInfo[i].tiltX / 90.0f, -1.0f, 1.0f);
     }
 
     if (pointerPenInfo[i].penMask & PEN_MASK_TILT_Y) {
-      outPointerInfo[i].tabletData.Ytilt = fmin(fabs(pointerPenInfo[i].tiltY / 90.0f), 1.0f);
+      /* Input value is a range of -90 to +90, with a positive value
+       * indicating a tilt toward the user. Convert to what Blender
+       * expects: -1.0f (toward user) to +1.0f (away from user). */
+      outPointerInfo[i].tabletData.Ytilt = std::clamp(
+          pointerPenInfo[i].tiltY / -90.0f, -1.0f, 1.0f);
     }
   }
 
