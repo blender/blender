@@ -399,7 +399,7 @@ blender::Span<blender::float3> Mesh::vert_normals_true() const
                              this->faces(),
                              this->corner_verts(),
                              this->vert_to_face_map(),
-                             this->face_normals(),
+                             this->face_normals_true(),
                              r_data);
   });
   return this->runtime->vert_normals_true_cache.data();
