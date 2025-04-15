@@ -5,13 +5,13 @@
 #include "gpu_shader_common_color_utils.glsl"
 
 void node_composite_invert(
-    float fac, float4 color, float do_rgb, float do_alpha, out float4 result)
+    float fac, float4 color, float invert_color, float invert_alpha, out float4 result)
 {
   result = color;
-  if (do_rgb != 0.0f) {
+  if (invert_color != 0.0f) {
     result.rgb = 1.0f - result.rgb;
   }
-  if (do_alpha != 0.0f) {
+  if (invert_alpha != 0.0f) {
     result.a = 1.0f - result.a;
   }
   result = mix(color, result, fac);
