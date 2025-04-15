@@ -727,7 +727,8 @@ static void init_proportional_edit(TransInfo *t)
              &TransConvertType_MeshUV,
              &TransConvertType_MeshVertCData,
              &TransConvertType_Node,
-             &TransConvertType_Object) ||
+             &TransConvertType_Object,
+             &pointcloud::TransConvertType_PointCloud) ||
         ELEM(t->data_type, &TransConvertType_Particle)))
   {
     /* Disable proportional editing. */
