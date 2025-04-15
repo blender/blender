@@ -26,6 +26,10 @@ struct rctf;
 struct NodesModifierData;
 struct uiLayout;
 
+namespace blender::bke {
+class bNodeTreeZone;
+}
+
 namespace blender::ed::space_node {
 
 void tree_update(const bContext *C);
@@ -84,6 +88,15 @@ std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &s
  */
 [[nodiscard]] std::optional<const ComputeContext *> compute_context_for_tree_path(
     const SpaceNode &snode,
+    bke::ComputeContextCache &compute_context_cache,
+    const ComputeContext *parent_compute_context);
+
+/**
+ * Creates a compute context for the given zone. It takes e.g. the current inspection index into
+ * account.
+ */
+[[nodiscard]] const ComputeContext *compute_context_for_zone(
+    const bke::bNodeTreeZone &zone,
     bke::ComputeContextCache &compute_context_cache,
     const ComputeContext *parent_compute_context);
 

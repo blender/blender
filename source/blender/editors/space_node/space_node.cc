@@ -344,6 +344,52 @@ std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &s
   return ObjectAndModifier{object, used_modifier};
 }
 
+const ComputeContext *compute_context_for_zone(const bke::bNodeTreeZone &zone,
+                                               bke::ComputeContextCache &compute_context_cache,
+                                               const ComputeContext *parent_compute_context)
+{
+  if (!zone.output_node) {
+    return nullptr;
+  }
+  const bNode &output_node = *zone.output_node;
+  switch (output_node.type_legacy) {
+    case GEO_NODE_SIMULATION_OUTPUT: {
+      return &compute_context_cache.for_simulation_zone(parent_compute_context, *zone.output_node);
+    }
+    case GEO_NODE_REPEAT_OUTPUT: {
+      const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(output_node.storage);
+      return &compute_context_cache.for_repeat_zone(
+          parent_compute_context, *zone.output_node, storage.inspection_index);
+    }
+    case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
+      const auto &storage = *static_cast<const NodeGeometryForeachGeometryElementOutput *>(
+          output_node.storage);
+      return &compute_context_cache.for_foreach_geometry_element_zone(
+          parent_compute_context, *zone.output_node, storage.inspection_index);
+    }
+    case GEO_NODE_CLOSURE_OUTPUT: {
+      /* TODO: Need to find a place where this closure is evaluated. */
+      return nullptr;
+    }
+  }
+  return nullptr;
+}
+
+static const ComputeContext *compute_context_for_zones(
+    const Span<const bke::bNodeTreeZone *> zones,
+    bke::ComputeContextCache &compute_context_cache,
+    const ComputeContext *parent_compute_context)
+{
+  const ComputeContext *current = parent_compute_context;
+  for (const bke::bNodeTreeZone *zone : zones) {
+    current = compute_context_for_zone(*zone, compute_context_cache, current);
+    if (!current) {
+      return nullptr;
+    }
+  }
+  return current;
+}
+
 std::optional<const ComputeContext *> compute_context_for_tree_path(
     const SpaceNode &snode,
     bke::ComputeContextCache &compute_context_cache,
@@ -371,31 +417,9 @@ std::optional<const ComputeContext *> compute_context_for_tree_path(
     }
     const Vector<const blender::bke::bNodeTreeZone *> zone_stack =
         tree_zones->get_zone_stack_for_node(group_node->identifier);
-    for (const blender::bke::bNodeTreeZone *zone : zone_stack) {
-      switch (zone->output_node->type_legacy) {
-        case GEO_NODE_SIMULATION_OUTPUT: {
-          current = &compute_context_cache.for_simulation_zone(current, *zone->output_node);
-          break;
-        }
-        case GEO_NODE_REPEAT_OUTPUT: {
-          const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(
-              zone->output_node->storage);
-          current = &compute_context_cache.for_repeat_zone(
-              current, *zone->output_node, storage.inspection_index);
-          break;
-        }
-        case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
-          const auto &storage = *static_cast<const NodeGeometryForeachGeometryElementOutput *>(
-              zone->output_node->storage);
-          current = &compute_context_cache.for_foreach_geometry_element_zone(
-              current, *zone->output_node, storage.inspection_index);
-          break;
-        }
-        case GEO_NODE_CLOSURE_OUTPUT: {
-          // TODO: Need to find a place where this closure is evaluated.
-          return std::nullopt;
-        }
-      }
+    current = compute_context_for_zones(zone_stack, compute_context_cache, current);
+    if (!current) {
+      return std::nullopt;
     }
     current = &compute_context_cache.for_group_node(current, *group_node, *tree);
   }

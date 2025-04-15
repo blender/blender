@@ -794,30 +794,9 @@ static void find_tree_zone_hash_recursive(
     const ComputeContext *current,
     Map<const bNodeTreeZone *, ComputeContextHash> &r_hash_by_zone)
 {
-  switch (zone.output_node->type_legacy) {
-    case GEO_NODE_SIMULATION_OUTPUT: {
-      current = &compute_context_cache.for_simulation_zone(current, *zone.output_node);
-      break;
-    }
-    case GEO_NODE_REPEAT_OUTPUT: {
-      const auto &storage = *static_cast<const NodeGeometryRepeatOutput *>(
-          zone.output_node->storage);
-      current = &compute_context_cache.for_repeat_zone(
-          current, *zone.output_node, storage.inspection_index);
-      break;
-    }
-    case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
-      const auto &storage = *static_cast<const NodeGeometryForeachGeometryElementOutput *>(
-          zone.output_node->storage);
-      current = &compute_context_cache.for_foreach_geometry_element_zone(
-          current, *zone.output_node, storage.inspection_index);
-      break;
-    }
-    case GEO_NODE_CLOSURE_OUTPUT: {
-      /* Can't find hashes for closure zones. Nodes in these zones may be evaluated in different
-       * contexts based on where the closures are called. */
-      return;
-    }
+  current = ed::space_node::compute_context_for_zone(zone, compute_context_cache, current);
+  if (!current) {
+    return;
   }
   r_hash_by_zone.add_new(&zone, current->hash());
   for (const bNodeTreeZone *child_zone : zone.child_zones) {
