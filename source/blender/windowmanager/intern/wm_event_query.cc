@@ -406,6 +406,14 @@ int WM_event_drag_threshold(const wmEvent *event)
      * The `event->type` would include #MOUSEMOVE which is always the case when dragging
      * and does not help us know which threshold to use. */
     if (WM_event_is_tablet(event)) {
+      /* Decrease threshold as pen pressure is increased. */
+      if (event->tablet.pressure > 0.0f && event->tablet.pressure < 1.0f) {
+        /* Pressure 0 results in max threshold, pressure 0.5 and above results in 0 pixels. */
+        const float bias = 1.0f - std::min(event->tablet.pressure * 2.0f, 1.0f);
+        drag_threshold = std::max(int(bias * float(U.drag_threshold_tablet)), 0);
+        /* Return without multiplying by resolution scale. */
+        return drag_threshold;
+      }
       drag_threshold = U.drag_threshold_tablet;
     }
     else {
