@@ -1325,13 +1325,7 @@ int parse_driver_build_version(const sycl::device &device)
   int driver_build_version = 0;
 
   size_t second_dot_position = driver_version.find('.', driver_version.find('.') + 1);
-  if (second_dot_position == std::string::npos) {
-    std::cerr << "Unable to parse unknown Intel GPU driver version \"" << driver_version
-              << "\" does not match xx.xx.xxxxx (Linux), x.x.xxxx (L0),"
-              << " xx.xx.xxx.xxxx (Windows) for device \""
-              << device.get_info<sycl::info::device::name>() << "\"." << std::endl;
-  }
-  else {
+  if (second_dot_position != std::string::npos) {
     try {
       size_t third_dot_position = driver_version.find('.', second_dot_position + 1);
       if (third_dot_position != std::string::npos) {
@@ -1349,11 +1343,14 @@ int parse_driver_build_version(const sycl::device &device)
       }
     }
     catch (std::invalid_argument &) {
-      std::cerr << "Unable to parse unknown Intel GPU driver version \"" << driver_version
-                << "\" does not match xx.xx.xxxxx (Linux), x.x.xxxx (L0),"
-                << " xx.xx.xxx.xxxx (Windows) for device \""
-                << device.get_info<sycl::info::device::name>() << "\"." << std::endl;
     }
+  }
+
+  if (driver_build_version == 0) {
+    VLOG_WARNING << "Unable to parse unknown Intel GPU driver version. \"" << driver_version
+                 << "\" does not match xx.xx.xxxxx (Linux), x.x.xxxx (L0),"
+                 << " xx.xx.xxx.xxxx (Windows) for device \""
+                 << device.get_info<sycl::info::device::name>() << "\".";
   }
 
   return driver_build_version;
@@ -1427,11 +1424,16 @@ std::vector<sycl::device> available_sycl_devices()
 #  endif
           if (check_driver_version) {
             int driver_build_version = parse_driver_build_version(device);
-            if ((driver_build_version > 100000 &&
-                 driver_build_version < lowest_supported_driver_version_win) ||
-                driver_build_version < lowest_supported_driver_version_neo)
-            {
+            const int lowest_supported_driver_version = (driver_build_version > 100000) ?
+                                                            lowest_supported_driver_version_win :
+                                                            lowest_supported_driver_version_neo;
+            if (driver_build_version < lowest_supported_driver_version) {
               filter_out = true;
+
+              VLOG_WARNING << "Driver version for device \""
+                           << device.get_info<sycl::info::device::name>()
+                           << "\" is too old. Expected \"" << lowest_supported_driver_version
+                           << "\" or newer, but got \"" << driver_build_version << "\".";
             }
           }
         }
