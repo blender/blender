@@ -58,6 +58,14 @@ void main()
   /* For storing pass, we store the result from depth in tile memory. */
   uint u_depth = floatBitsToUint(in_tile_depth);
 
+  /* Bias to avoid rounding errors on very large clip values.
+   * This can happen easily after the addition of the world volume
+   * versioning script in 4.2.
+   * +1 should be enough but for some reason, some artifacts
+   * are only removed if adding 2 ULP.
+   * This is equivalent of calling `next_after`, but without the safety. */
+  u_depth += 2;
+
   /* Write result to atlas. */
 #  ifdef GPU_METAL
   /* NOTE: Use the fastest possible write function without any parameter wrapping or conversion. */

@@ -91,6 +91,15 @@ void main()
   int3 out_texel = int3((page.xy << page_shift) | texel_page, page.z);
 
   uint u_depth = floatBitsToUint(linear_depth);
+
+  /* Bias to avoid rounding errors on very large clip values.
+   * This can happen easily after the addition of the world volume
+   * versioning script in 4.2.
+   * +1 should be enough but for some reason, some artifacts
+   * are only removed if adding 2 ULP.
+   * This is equivalent of calling `next_after`, but without the safety. */
+  u_depth += 2;
+
   imageAtomicMin(shadow_atlas_img, out_texel, u_depth);
 #endif
 
