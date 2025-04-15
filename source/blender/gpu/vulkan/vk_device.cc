@@ -505,8 +505,9 @@ void VKDevice::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) co
 void VKDevice::debug_print(std::ostream &os, const VKDiscardPool &discard_pool)
 {
   if (discard_pool.images_.is_empty() && discard_pool.buffers_.is_empty() &&
-      discard_pool.image_views_.is_empty() && discard_pool.shader_modules_.is_empty() &&
-      discard_pool.pipeline_layouts_.is_empty())
+      discard_pool.image_views_.is_empty() && discard_pool.buffer_views_.is_empty() &&
+      discard_pool.shader_modules_.is_empty() && discard_pool.pipeline_layouts_.is_empty() &&
+      discard_pool.descriptor_pools_.is_empty())
   {
     return;
   }
@@ -520,11 +521,17 @@ void VKDevice::debug_print(std::ostream &os, const VKDiscardPool &discard_pool)
   if (!discard_pool.buffers_.is_empty()) {
     os << "VkBuffer=" << discard_pool.buffers_.size() << " ";
   }
+  if (!discard_pool.buffer_views_.is_empty()) {
+    os << "VkBufferViews=" << discard_pool.buffer_views_.size() << " ";
+  }
   if (!discard_pool.shader_modules_.is_empty()) {
     os << "VkShaderModule=" << discard_pool.shader_modules_.size() << " ";
   }
   if (!discard_pool.pipeline_layouts_.is_empty()) {
-    os << "VkPipelineLayout=" << discard_pool.pipeline_layouts_.size();
+    os << "VkPipelineLayout=" << discard_pool.pipeline_layouts_.size() << " ";
+  }
+  if (!discard_pool.descriptor_pools_.is_empty()) {
+    os << "VkDescriptorPool=" << discard_pool.descriptor_pools_.size();
   }
   os << "\n";
 }

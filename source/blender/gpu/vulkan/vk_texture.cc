@@ -227,7 +227,6 @@ void VKTexture::read_sub(
   VKContext &context = *VKContext::get();
   context.rendering_end();
   context.render_graph().add_node(copy_image_to_buffer);
-  context.descriptor_set_get().upload_descriptor_sets();
 
   context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
                              RenderGraphFlushFlags::RENEW_RENDER_GRAPH |

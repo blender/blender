@@ -92,7 +92,6 @@ void VKQueryPool::get_occlusion_result(MutableSpan<uint32_t> r_values)
   /* During selection the frame buffer is still rendering. It needs to finish the render scope to
    * ensure the END_RENDERING node */
   context.rendering_end();
-  context.descriptor_set_get().upload_descriptor_sets();
   context.flush_render_graph(RenderGraphFlushFlags::SUBMIT |
                              RenderGraphFlushFlags::WAIT_FOR_COMPLETION |
                              RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
