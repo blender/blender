@@ -58,7 +58,7 @@ float4 tile_bound_cylinder(float3 v00, float3 v01, float3 v10, float3 v11)
 float2 tile_to_ndc(float2 tile_co, float2 offset)
 {
   /* Add a margin to prevent culling too much if the frustum becomes too much unstable. */
-  const float margin = 0.02f;
+  constexpr float margin = 0.02f;
   tile_co += margin * (offset * 2.0f - 1.0f);
 
   tile_co += offset;

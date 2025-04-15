@@ -113,7 +113,7 @@ void main()
 
   TEST(math_matrix, MatrixModify)
   {
-    const float epsilon = 1e-6f;
+    constexpr float epsilon = 1e-6f;
     float4x4 result, expect;
     float4x4 m1 = float4x4(
         float4(0, 3, 0, 0), float4(2, 0, 0, 0), float4(0, 0, 2, 0), float4(0, 0, 0, 1));
@@ -241,7 +241,7 @@ void main()
                                      float4(0.000000f, 0.000000f, 0.000000f, 1.000000f)));
     float4x4 m1 = mat4x4_identity();
     float4x4 result;
-    const float epsilon = 2e-5f;
+    constexpr float epsilon = 2e-5f;
     result = interpolate_fast(m1, m2, 0.0f);
     EXPECT_NEAR(result, m1, epsilon);
     result = interpolate_fast(m1, m2, 1.0f);
@@ -260,7 +260,7 @@ void main()
   TEST(math_matrix, MatrixTransform)
   {
     float3 expect, result;
-    const float3 p = float3(1, 2, 3);
+    constexpr float3 p = float3(1, 2, 3);
     float4x4 m4 = from_loc_rot(float3(10, 0, 0), EulerXYZ(M_PI_2, M_PI_2, M_PI_2));
     float3x3 m3 = from_rotation(EulerXYZ(M_PI_2, M_PI_2, M_PI_2));
     float4x4 pers4 = projection_perspective(-0.1f, 0.1f, -0.1f, 0.1f, -0.1f, -1.0f);

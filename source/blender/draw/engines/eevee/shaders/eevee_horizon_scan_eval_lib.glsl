@@ -160,7 +160,7 @@ HorizonScanResult horizon_scan_eval(float3 vP,
         }
 
         /* Bias depth a bit to avoid self shadowing issues. */
-        const float bias = 2.0f * 2.4e-7f;
+        constexpr float bias = 2.0f * 2.4e-7f;
         sample_depth += reversed ? -bias : bias;
 
         float3 vP_sample_front = drw_point_screen_to_view(float3(sample_uv, sample_depth));

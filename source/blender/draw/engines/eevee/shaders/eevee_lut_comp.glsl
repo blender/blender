@@ -37,7 +37,7 @@ float4 ggx_brdf_split_sum(float3 lut_coord)
   float scale = 0.0f;
   float bias = 0.0f;
   float metal_bias = 0.0f;
-  const uint sample_count = 512u * 512u;
+  constexpr uint sample_count = 512u * 512u;
   for (uint i = 0u; i < sample_count; i++) {
     float2 rand = hammersley_2d(i, sample_count);
     float3 Xi = sample_cylinder(rand);
@@ -98,7 +98,7 @@ float4 ggx_bsdf_split_sum(float3 lut_coord)
   float scale = 0.0f;
   float bias = 0.0f;
   float transmission_factor = 0.0f;
-  const uint sample_count = 512u * 512u;
+  constexpr uint sample_count = 512u * 512u;
   for (uint i = 0u; i < sample_count; i++) {
     float2 rand = hammersley_2d(i, sample_count);
     float3 Xi = sample_cylinder(rand);
@@ -163,7 +163,7 @@ float4 ggx_btdf_gt_one(float3 lut_coord)
 
   /* Integrating BTDF. */
   float transmission_factor = 0.0f;
-  const uint sample_count = 512u * 512u;
+  constexpr uint sample_count = 512u * 512u;
   for (uint i = 0u; i < sample_count; i++) {
     float2 rand = hammersley_2d(i, sample_count);
     float3 Xi = sample_cylinder(rand);

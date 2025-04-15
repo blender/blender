@@ -22,7 +22,7 @@ BsdfSample bxdf_oren_nayar_sample(float3 random_point_cos_hemisphere)
 {
   /* Bias the rays so we never get really high energy rays almost parallel to the surface.
    * Also reduces shadow terminator artifacts. */
-  const float bias = 0.05f;
+  constexpr float bias = 0.05f;
   random_point_cos_hemisphere = normalize(random_point_cos_hemisphere + float3(0.0f, 0.0f, bias));
 
   float cos_theta = random_point_cos_hemisphere.z;

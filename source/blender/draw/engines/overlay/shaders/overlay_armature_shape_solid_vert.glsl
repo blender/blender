@@ -27,11 +27,11 @@ void main()
   inverted = int(dot(cross(model_mat[0].xyz, model_mat[1].xyz), model_mat[2].xyz) < 0.0f);
 
   /* Do lighting at an angle to avoid flat shading on front facing bone. */
-  const float3 light = float3(0.1f, 0.1f, 0.8f);
+  constexpr float3 light = float3(0.1f, 0.1f, 0.8f);
   float n = dot(normal, light);
 
   /* Smooth lighting factor. */
-  const float s = 0.2f; /* [0.0f-0.5f] range */
+  constexpr float s = 0.2f; /* [0.0f-0.5f] range */
   float fac = clamp((n * (1.0f - s)) + s, 0.0f, 1.0f);
   finalColor.rgb = mix(state_color.rgb, bone_color.rgb, fac * fac);
   finalColor.a = 1.0f;

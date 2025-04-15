@@ -93,14 +93,14 @@ void main()
 #endif
   /* NOTE(Metal): Declaring constant arrays in function scope to avoid increasing local shader
    * memory pressure. */
-  const int indices[8] = int_array(0, 1, 1, 2, 2, 3, 3, 0);
+  constexpr int indices[8] = int_array(0, 1, 1, 2, 2, 3, 3, 0);
 
   /* Corners for cell outlines. 0.45 is arbitrary. Any value below 0.5f can be used to avoid
    * overlapping of the outlines. */
-  const float3 corners[4] = float3_array(float3(-0.45f, 0.45f, 0.0f),
-                                         float3(0.45f, 0.45f, 0.0f),
-                                         float3(0.45f, -0.45f, 0.0f),
-                                         float3(-0.45f, -0.45f, 0.0f));
+  constexpr float3 corners[4] = float3_array(float3(-0.45f, 0.45f, 0.0f),
+                                             float3(0.45f, 0.45f, 0.0f),
+                                             float3(0.45f, -0.45f, 0.0f),
+                                             float3(-0.45f, -0.45f, 0.0f));
 
   float3 pos = domainOriginOffset +
                cellSize * (float3(cell_co + adaptiveCellOffset) + cell_offset);

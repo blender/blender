@@ -96,7 +96,7 @@ void main()
   }
 
   /* Raster the bounding rectangle of the Box projection. */
-  const float tilemap_half_res = float(SHADOW_TILEMAP_RES / 2);
+  constexpr float tilemap_half_res = float(SHADOW_TILEMAP_RES / 2);
   int2 box_min = int2(aabb_tag.min.xy * tilemap_half_res + tilemap_half_res);
   int2 box_max = int2(aabb_tag.max.xy * tilemap_half_res + tilemap_half_res);
 

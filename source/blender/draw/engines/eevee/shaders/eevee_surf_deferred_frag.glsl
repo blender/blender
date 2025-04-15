@@ -76,9 +76,9 @@ void main()
   int2 out_texel = int2(gl_FragCoord.xy);
 
 #ifdef MAT_SUBSURFACE
-  const bool use_sss = true;
+  constexpr bool use_sss = true;
 #else
-  const bool use_sss = false;
+  constexpr bool use_sss = false;
 #endif
 
   ObjectInfos object_infos = drw_infos[drw_resource_id()];
@@ -140,7 +140,7 @@ void main()
                    gbuf.N[layer].xyyy);
   }
   if (use_sss || use_light_linking) {
-    const int layer = GBUF_HEADER_FB_LAYER_COUNT;
+    constexpr int layer = GBUF_HEADER_FB_LAYER_COUNT;
     /* NOTE: The image view start at layer GBUF_HEADER_FB_LAYER_COUNT so all destination layer is
      * `layer - GBUF_HEADER_FB_LAYER_COUNT`. */
     imageStoreFast(out_gbuf_header_img,

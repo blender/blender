@@ -26,7 +26,7 @@ float roughness_from_relative_mip(float prev_mip_roughness, float curr_mip_rough
   return curr_mip_roughness;
 #else
   /* The exponent should be 2 but result is a bit less blurry than expected in practice. */
-  const float exponent = 3.0f;
+  constexpr float exponent = 3.0f;
   /* From linear roughness to GGX roughness input. */
   float m_prev = pow(prev_mip_roughness, exponent);
   float m_curr = pow(curr_mip_roughness, exponent);

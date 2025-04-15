@@ -147,9 +147,9 @@ float orderedIntBitsToFloat(int int_value)
  */
 float3 offset_ray(float3 P, float3 Ng)
 {
-  const float origin = 1.0f / 32.0f;
-  const float float_scale = 1.0f / 65536.0f;
-  const float int_scale = 256.0f;
+  constexpr float origin = 1.0f / 32.0f;
+  constexpr float float_scale = 1.0f / 65536.0f;
+  constexpr float int_scale = 256.0f;
 
   int3 of_i = int3(int_scale * Ng);
   of_i = int3((P.x < 0.0f) ? -of_i.x : of_i.x,

@@ -125,7 +125,7 @@ LightData debug_light_get()
 /** Return true if a pixel was written. */
 bool debug_tilemaps(float3 P, LightData light, bool do_debug_sample_tile)
 {
-  const int debug_tile_size_px = 4;
+  constexpr int debug_tile_size_px = 4;
   int2 px = int2(gl_FragCoord.xy) / debug_tile_size_px;
   int tilemap = px.x / SHADOW_TILEMAP_RES;
   int tilemap_index = light.tilemap_index + tilemap;

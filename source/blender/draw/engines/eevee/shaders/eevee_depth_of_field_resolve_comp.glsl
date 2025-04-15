@@ -84,7 +84,7 @@ float3 dof_neighborhood_clamp(float2 frag_coord, float3 color, float center_coc,
 {
   /* Stabilize color by clamping with the stable half res neighborhood. */
   float3 neighbor_min, neighbor_max;
-  const float2 corners[4] = float2_array(
+  constexpr float2 corners[4] = float2_array(
       float2(-1, -1), float2(1, -1), float2(-1, 1), float2(1, 1));
   for (int i = 0; i < 4; i++) {
     /**
@@ -152,11 +152,11 @@ void main()
   float4 layer_color;
   float layer_weight;
 
-  const float3 hole_fill_color = float3(0.2f, 0.1f, 1.0f);
-  const float3 background_color = float3(0.1f, 0.2f, 1.0f);
-  const float3 slight_focus_color = float3(1.0f, 0.2f, 0.1f);
-  const float3 focus_color = float3(1.0f, 1.0f, 0.1f);
-  const float3 foreground_color = float3(0.2f, 1.0f, 0.1f);
+  constexpr float3 hole_fill_color = float3(0.2f, 0.1f, 1.0f);
+  constexpr float3 background_color = float3(0.1f, 0.2f, 1.0f);
+  constexpr float3 slight_focus_color = float3(1.0f, 0.2f, 0.1f);
+  constexpr float3 focus_color = float3(1.0f, 1.0f, 0.1f);
+  constexpr float3 foreground_color = float3(0.2f, 1.0f, 0.1f);
 
   if (!no_hole_fill_pass && prediction.do_hole_fill) {
     layer_color = textureLod(color_hole_fill_tx, uv_halfres, 0.0f);

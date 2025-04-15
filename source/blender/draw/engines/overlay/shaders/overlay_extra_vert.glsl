@@ -205,7 +205,7 @@ void main()
   if ((vclass & VCLASS_LIGHT_SPOT_CONE) != 0) {
     /* Compute point on the cone before and after this one. */
     float2 perp = float2(pos.y, -pos.x);
-    const float incr_angle = 2.0f * 3.1415f / 32.0f;
+    constexpr float incr_angle = 2.0f * 3.1415f / 32.0f;
     const float2 slope = float2(cos(incr_angle), sin(incr_angle));
     float3 p0 = float3((pos.xy * slope.x + perp * slope.y) * lamp_spot_sine, -lamp_spot_cosine);
     float3 p1 = float3((pos.xy * slope.x - perp * slope.y) * lamp_spot_sine, -lamp_spot_cosine);

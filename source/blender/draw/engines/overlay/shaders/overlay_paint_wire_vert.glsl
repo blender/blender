@@ -25,7 +25,7 @@ void main()
     gl_Position = float4(-2.0f, -2.0f, -2.0f, 1.0f);
   }
 
-  const float4 colSel = float4(1.0f);
+  constexpr float4 colSel = float4(1.0f);
 
   finalColor = (is_select) ? colSel : colorWire;
 

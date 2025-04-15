@@ -53,10 +53,10 @@ void main()
   float alpha_threshold = 0.0f;
   float dot_threshold = -1.0f;
 
-  const float circle_radius = 0.5f;
+  constexpr float circle_radius = 0.5f;
   const float square_radius = 0.5f / sqrt(2.0f / M_PI) * M_SQRT1_2;
   const float diamond_radius = 0.5f / sqrt(2.0f / M_PI) * M_SQRT1_2;
-  const float corner_rounding = 0.0f;
+  constexpr float corner_rounding = 0.0f;
 
   switch (finalShape) {
     default:

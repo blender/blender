@@ -19,8 +19,8 @@ void main()
 
   /* The weight kernels of the filter optimized for rotational symmetry described in section
    * "3.2.1 Gradient Calculation". */
-  const float corner_weight = 0.182f;
-  const float center_weight = 1.0f - 2.0f * corner_weight;
+  constexpr float corner_weight = 0.182f;
+  constexpr float center_weight = 1.0f - 2.0f * corner_weight;
 
   float3 x_partial_derivative = texture_load(input_tx, texel + int2(-1, 1)).rgb * -corner_weight +
                                 texture_load(input_tx, texel + int2(-1, 0)).rgb * -center_weight +

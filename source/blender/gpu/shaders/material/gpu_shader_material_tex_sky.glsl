@@ -166,7 +166,7 @@ void node_tex_sky_nishita(float3 co,
   }
   else {
     /* evaluate longitudinal position on the map */
-    const float tau = 6.28318530717958647692f;
+    constexpr float tau = 6.28318530717958647692f;
     float x = (spherical.y + M_PI + sun_rotation) / tau;
     if (x > 1.0f) {
       x -= 1.0f;

@@ -12,7 +12,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_verts)
 void main()
 {
   /* TODO: Theme? */
-  const float4 pinned_col = float4(1.0f, 0.0f, 0.0f, 1.0f);
+  constexpr float4 pinned_col = float4(1.0f, 0.0f, 0.0f, 1.0f);
 
   bool is_selected = (flag & (VERT_UV_SELECT | FACE_UV_SELECT)) != 0u;
   bool is_pinned = (flag & VERT_UV_PINNED) != 0u;

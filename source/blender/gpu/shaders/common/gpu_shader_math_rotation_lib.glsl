@@ -87,7 +87,7 @@ float2 interpolate_dot_slerp(float t, float cosom)
 {
   float2 w = float2(1.0f - t, t);
   /* Within [-1..1] range, avoid aligned axis. */
-  const float eps = 1e-4f;
+  constexpr float eps = 1e-4f;
   if (abs(cosom) < 1.0f - eps) {
     float omega = acos(cosom);
     w = sin(w * omega) / sin(omega);

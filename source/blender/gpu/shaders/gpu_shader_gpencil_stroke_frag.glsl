@@ -8,7 +8,7 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
 
 void main()
 {
-  const float2 center = float2(0, 0.5f);
+  constexpr float2 center = float2(0, 0.5f);
   float4 tColor = interp.mColor;
   /* if alpha < 0, then encap */
   if (tColor.a < 0) {

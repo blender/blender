@@ -74,7 +74,7 @@ float dof_hdr_color_weight(float4 color)
   /* Very fast "luma" weighting. */
   float luma = (color.g * 2.0f) + (color.r + color.b);
   /* TODO(fclem) Pass correct exposure. */
-  const float exposure = 1.0f;
+  constexpr float exposure = 1.0f;
   return 1.0f / (luma * exposure + 4.0f);
 }
 
@@ -99,7 +99,7 @@ float4 dof_bilateral_coc_weights(float4 cocs)
 {
   float chosen_coc = dof_coc_select(cocs);
 
-  const float scale = 4.0f; /* TODO(fclem) revisit. */
+  constexpr float scale = 4.0f; /* TODO(fclem) revisit. */
   /* NOTE: The difference between the cocs should be inside a abs() function,
    * but we follow UE4 implementation to improve how dithered transparency looks (see slide 19). */
   return saturate(1.0f - (chosen_coc - cocs) * scale);
@@ -162,7 +162,7 @@ float dof_sample_weight(float coc)
   return min(1.0f, 1.0f / square(coc));
 #else
   /* Full intensity if CoC radius is below the pixel footprint. */
-  const float min_coc = 1.0f;
+  constexpr float min_coc = 1.0f;
   coc = max(min_coc, abs(coc));
   return (M_PI * min_coc * min_coc) / (M_PI * coc * coc);
 #endif
@@ -173,7 +173,7 @@ float4 dof_sample_weight(float4 coc)
   return min(float4(1.0f), 1.0f / square(coc));
 #else
   /* Full intensity if CoC radius is below the pixel footprint. */
-  const float min_coc = 1.0f;
+  constexpr float min_coc = 1.0f;
   coc = max(float4(min_coc), abs(coc));
   return (M_PI * min_coc * min_coc) / (M_PI * coc * coc);
 #endif

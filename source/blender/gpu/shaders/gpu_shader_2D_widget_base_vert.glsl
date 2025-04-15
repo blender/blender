@@ -32,7 +32,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_widget_base)
 float2 do_widget()
 {
   /* Offset to avoid losing pixels (mimics conservative rasterization). */
-  const float2 ofs = float2(0.5f, -0.5f);
+  constexpr float2 ofs = float2(0.5f, -0.5f);
   lineWidth = abs(rect.x - recti.x);
   float2 emboss_ofs = float2(0.0f, -lineWidth);
 

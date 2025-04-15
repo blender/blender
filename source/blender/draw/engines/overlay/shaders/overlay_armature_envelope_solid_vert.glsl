@@ -22,7 +22,7 @@ void main()
   float sinb = (data_buf[gl_InstanceID].tail_sphere.w - data_buf[gl_InstanceID].head_sphere.w) *
                bone_lenrcp;
 #else
-  const float sinb = 0.0f;
+  constexpr float sinb = 0.0f;
 #endif
 
   float3 y_axis = bone_vec * bone_lenrcp;

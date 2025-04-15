@@ -45,7 +45,7 @@ float3 compute_masks(float2 uv)
    * has been scaled (i.e: Node editor)... */
   float line_width = (lineWidth > 0.0f) ? max(fwidth(uv.y), lineWidth) : 0.0f;
 
-  const float aa_radius = 0.5f;
+  constexpr float aa_radius = 0.5f;
   float3 masks;
   masks.x = smoothstep(-aa_radius, aa_radius, sdf);
   masks.y = smoothstep(-aa_radius, aa_radius, sdf - line_width);

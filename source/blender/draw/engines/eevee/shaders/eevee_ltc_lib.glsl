@@ -230,8 +230,8 @@ float ltc_evaluate_disk(
   float d11 = dot(V1, V1);
   float d22 = dot(V2, V2);
   float d12 = dot(V1, V2);
-  float a, inv_b;                  /* Eigenvalues */
-  const float threshold = 0.0007f; /* Can be adjusted. Fix artifacts. */
+  float a, inv_b;                      /* Eigenvalues */
+  constexpr float threshold = 0.0007f; /* Can be adjusted. Fix artifacts. */
   if (abs(d12) / sqrt(d11 * d22) > threshold) {
     float tr = d11 + d22;
     float det = -d12 * d12 + d11 * d22;

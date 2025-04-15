@@ -53,7 +53,7 @@ void main()
     float2 uv = gl_FragCoord.xy / float2(textureSize(occlusion_tx, 0).xy);
     float2 occlusion_data = texture(occlusion_tx, uv).rg;
     /* Fix tilling artifacts. (Slide 90) */
-    const float correction_fac = 1.0f - DOF_FAST_GATHER_COC_ERROR;
+    constexpr float correction_fac = 1.0f - DOF_FAST_GATHER_COC_ERROR;
     /* Occlude the sprite with geometry from the same field using a chebychev test (slide 85). */
     float mean = occlusion_data.x;
     float variance = occlusion_data.y;

@@ -6,6 +6,7 @@
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_armature_shape_wire)
 
+#include "gpu_shader_utildefines_lib.glsl"
 #include "select_lib.glsl"
 
 /**
@@ -37,7 +38,7 @@ void main()
   float half_size = (do_smooth_wire ? wire_width - 0.5f : wire_width) / 2.0f;
 
   float dist = abs(edgeCoord) - half_size;
-  const float mix_w = clamp(edge_step(dist), 0.0f, 1.0f);
+  float mix_w = saturate(edge_step(dist));
 
   fragColor = mix(float4(finalColor.rgb, alpha), float4(0), mix_w);
   fragColor.a *= 1.0f - mix_w;

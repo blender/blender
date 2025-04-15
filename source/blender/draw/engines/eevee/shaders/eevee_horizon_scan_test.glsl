@@ -34,7 +34,7 @@ void main()
 
   TEST(eevee_horizon_scan, UniformOcclusion)
   {
-    const float esp = 1e-4f;
+    constexpr float esp = 1e-4f;
     EXPECT_NEAR(horizon_scan_bitmask_to_occlusion_uniform(0x00000000u), 1.0f, esp);
     EXPECT_NEAR(horizon_scan_bitmask_to_occlusion_uniform(0xFFFFFFFFu), 0.0f, esp);
     EXPECT_NEAR(horizon_scan_bitmask_to_occlusion_uniform(0xFFFF0000u), 0.5f, esp);
@@ -45,7 +45,7 @@ void main()
 
   TEST(eevee_horizon_scan, CosineOcclusion)
   {
-    const float esp = 1e-5f;
+    constexpr float esp = 1e-5f;
     EXPECT_NEAR(horizon_scan_bitmask_to_occlusion_cosine(0x00000000u), 1.0f, esp);
     EXPECT_NEAR(horizon_scan_bitmask_to_occlusion_cosine(0xFFFFFFFFu), 0.0f, esp);
     EXPECT_NEAR(horizon_scan_bitmask_to_occlusion_cosine(0xFFFF0000u), 0.5f, esp);

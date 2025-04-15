@@ -17,7 +17,7 @@ void main()
   }
   else {
     /* Smooth lighting factor. */
-    const float s = 0.2f; /* [0.0f-0.5f] range */
+    constexpr float s = 0.2f; /* [0.0f-0.5f] range */
     float fac = clamp((n * (1.0f - s)) + s, 0.0f, 1.0f);
     fragColor.rgb = mix(finalStateColor, finalBoneColor, fac * fac);
     fragColor.a = alpha;

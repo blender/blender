@@ -14,7 +14,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_horizon_scan)
 
 void main()
 {
-  const uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
   uint2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   int2 texel = int2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 

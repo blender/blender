@@ -34,7 +34,7 @@ int shadow_tile_offset_lds(int2 tile, int lod)
  * coordinate fits the given tilemap LOD. */
 bool thread_mask(int2 tile_co, int lod)
 {
-  const uint lod_size = uint(SHADOW_TILEMAP_RES);
+  constexpr uint lod_size = uint(SHADOW_TILEMAP_RES);
   return all(lessThan(tile_co, int2(lod_size >> lod)));
 }
 

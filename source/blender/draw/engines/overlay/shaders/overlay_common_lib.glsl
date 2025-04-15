@@ -24,7 +24,7 @@
 
 float4x4 extract_matrix_packed_data(float4x4 mat, out float4 dataA, out float4 dataB)
 {
-  const float div = 1.0f / 255.0f;
+  constexpr float div = 1.0f / 255.0f;
   int a = int(mat[0][3]);
   int b = int(mat[1][3]);
   int c = int(mat[2][3]);

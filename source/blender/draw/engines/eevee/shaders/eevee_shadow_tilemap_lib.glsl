@@ -55,17 +55,17 @@ int shadow_tile_offset(uint2 tile, int tiles_index, int lod)
 #if SHADOW_TILEMAP_LOD > 5
 #  error This needs to be adjusted
 #endif
-  const int lod0_width = SHADOW_TILEMAP_RES / 1;
-  const int lod1_width = SHADOW_TILEMAP_RES / 2;
-  const int lod2_width = SHADOW_TILEMAP_RES / 4;
-  const int lod3_width = SHADOW_TILEMAP_RES / 8;
-  const int lod4_width = SHADOW_TILEMAP_RES / 16;
-  const int lod5_width = SHADOW_TILEMAP_RES / 32;
-  const int lod0_size = lod0_width * lod0_width;
-  const int lod1_size = lod1_width * lod1_width;
-  const int lod2_size = lod2_width * lod2_width;
-  const int lod3_size = lod3_width * lod3_width;
-  const int lod4_size = lod4_width * lod4_width;
+  constexpr int lod0_width = SHADOW_TILEMAP_RES / 1;
+  constexpr int lod1_width = SHADOW_TILEMAP_RES / 2;
+  constexpr int lod2_width = SHADOW_TILEMAP_RES / 4;
+  constexpr int lod3_width = SHADOW_TILEMAP_RES / 8;
+  constexpr int lod4_width = SHADOW_TILEMAP_RES / 16;
+  constexpr int lod5_width = SHADOW_TILEMAP_RES / 32;
+  constexpr int lod0_size = lod0_width * lod0_width;
+  constexpr int lod1_size = lod1_width * lod1_width;
+  constexpr int lod2_size = lod2_width * lod2_width;
+  constexpr int lod3_size = lod3_width * lod3_width;
+  constexpr int lod4_size = lod4_width * lod4_width;
 
   /* TODO(fclem): Convert everything to uint. */
   int offset = tiles_index;
@@ -132,7 +132,7 @@ int shadow_directional_tilemap_index(LightData light, float3 lP)
   int lvl;
   if (light.type == LIGHT_SUN) {
     /* We need to hide one tile worth of data to hide the moving transition. */
-    const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001f);
+    constexpr float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001f);
     /* Avoid using log2 when we can just get the exponent from the floating point. */
     frexp(reduce_max(abs(lP)) * narrowing * 2.0f, lvl);
   }
@@ -158,7 +158,7 @@ float shadow_directional_level_fractional(LightData light, float3 lP)
   float lod;
   if (light.type == LIGHT_SUN) {
     /* We need to hide one tile worth of data to hide the moving transition. */
-    const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001f);
+    constexpr float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 1.0001f);
     /* Since the distance is centered around the camera (and thus by extension the tile-map),
      * we need to multiply by 2 to get the lod level which covers the following range:
      * [-coverage_get(lod)/2..coverage_get(lod)/2] */
@@ -168,7 +168,7 @@ float shadow_directional_level_fractional(LightData light, float3 lP)
   }
   else {
     /* The narrowing need to be stronger since the tile-map position is not rounded but floored. */
-    const float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 2.5001f);
+    constexpr float narrowing = float(SHADOW_TILEMAP_RES) / (float(SHADOW_TILEMAP_RES) - 2.5001f);
     /* Since we want half of the size, bias the level by -1. */
     float clipmap_lod_min_minus_one = float(light_sun_data_get(light).clipmap_lod_min - 1);
     float lod_min_half_size = exp2(clipmap_lod_min_minus_one);
@@ -214,7 +214,7 @@ float shadow_punctual_pixel_ratio(LightData light,
   /* Clamp in shadow space. */
   film_pixel_footprint = max(film_pixel_footprint, -light.lod_min);
   /* Cube-face diagonal divided by LOD0 resolution. */
-  const float shadow_pixel_radius = (2.0f * M_SQRT2) / SHADOW_MAP_MAX_RES;
+  constexpr float shadow_pixel_radius = (2.0f * M_SQRT2) / SHADOW_MAP_MAX_RES;
   return saturate(shadow_pixel_radius / film_pixel_footprint);
 }
 

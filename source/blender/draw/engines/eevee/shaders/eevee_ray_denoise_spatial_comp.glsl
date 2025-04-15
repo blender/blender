@@ -52,7 +52,7 @@ void invalid_pixel_write(int2 texel)
 
 void main()
 {
-  const uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
   uint2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
 
   int2 texel_fullres = int2(gl_LocalInvocationID.xy + tile_coord * tile_size);

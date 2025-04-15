@@ -11,7 +11,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_armature_sphere_solid)
 
 void main()
 {
-  const float sphere_radius = 0.05f;
+  constexpr float sphere_radius = 0.05f;
 
   bool is_perp = (drw_view().winmat[3][3] == 0.0f);
   float3 ray_ori_view = (is_perp) ? float3(0.0f) : viewPosition.xyz;
@@ -32,7 +32,7 @@ void main()
   ray_dir /= ray_len;
 
   /* Line to sphere intersect */
-  const float sphere_radius_sqr = sphere_radius * sphere_radius;
+  constexpr float sphere_radius_sqr = sphere_radius * sphere_radius;
   float b = dot(ray_ori, ray_dir);
   float c = dot(ray_ori, ray_ori) - sphere_radius_sqr;
   float h = b * b - c;
@@ -44,7 +44,7 @@ void main()
   float3 l = normalize(sphereMatrix[2].xyz); /* Just the view Z axis in the sphere space. */
 
   /* Smooth lighting factor. */
-  const float s = 0.2f; /* [0.0f-0.5f] range */
+  constexpr float s = 0.2f; /* [0.0f-0.5f] range */
   float fac = clamp((dot(n, l) * (1.0f - s)) + s, 0.0f, 1.0f);
   fragColor.rgb = mix(finalStateColor, finalBoneColor, fac * fac);
 

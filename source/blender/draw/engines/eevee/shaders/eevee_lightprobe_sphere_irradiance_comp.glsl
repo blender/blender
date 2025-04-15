@@ -26,7 +26,7 @@ void main()
 
   /* First sum onto the local memory. */
   uint valid_data_len = probe_remap_dispatch_size.x * probe_remap_dispatch_size.y;
-  const uint iter_count = uint(SPHERE_PROBE_MAX_HARMONIC) / gl_WorkGroupSize.x;
+  constexpr uint iter_count = uint(SPHERE_PROBE_MAX_HARMONIC) / gl_WorkGroupSize.x;
   for (uint i = 0; i < iter_count; i++) {
     uint index = gl_WorkGroupSize.x * i + gl_LocalInvocationIndex;
     if (index >= valid_data_len) {
@@ -48,7 +48,7 @@ void main()
   local_sh_coefs[local_index][3] = sh.L1.Mp1;
 
   /* Parallel sum. */
-  const uint group_size = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
+  constexpr uint group_size = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
   uint stride = group_size / 2;
   for (int i = 0; i < 10; i++) {
     barrier();

@@ -25,8 +25,8 @@ float shadow_read_depth(SHADOW_ATLAS_TYPE atlas_tx,
     return -1.0f;
   }
   /* Using bitwise ops is way faster than integer ops. */
-  const uint page_shift = uint(SHADOW_PAGE_LOD);
-  const uint page_mask = ~(0xFFFFFFFFu << uint(SHADOW_PAGE_LOD));
+  constexpr uint page_shift = uint(SHADOW_PAGE_LOD);
+  constexpr uint page_mask = ~(0xFFFFFFFFu << uint(SHADOW_PAGE_LOD));
 
   uint2 texel = coord.tilemap_texel;
   /* Shift LOD0 pixels so that they get wrapped at the right position for the given LOD. */

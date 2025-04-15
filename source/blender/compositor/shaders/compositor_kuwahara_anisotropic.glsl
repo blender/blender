@@ -105,7 +105,7 @@ void main()
   /* Compute the overlap polynomial parameters for 8-sector ellipse based on the equations in
    * section "3 Alternative Weighting Functions" of the polynomial weights paper. More on this
    * later in the code. */
-  const int number_of_sectors = 8;
+  constexpr int number_of_sectors = 8;
   float sector_center_overlap_parameter = 2.0f / radius;
   float sector_envelope_angle = ((3.0f / 2.0f) * M_PI) / number_of_sectors;
   float cross_sector_overlap_parameter = (sector_center_overlap_parameter +

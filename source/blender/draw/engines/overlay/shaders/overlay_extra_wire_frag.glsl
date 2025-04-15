@@ -14,8 +14,8 @@ void main()
   fragColor = finalColor;
 
   /* Stipple */
-  const float dash_width = 6.0f;
-  const float dash_factor = 0.5f;
+  constexpr float dash_width = 6.0f;
+  constexpr float dash_factor = 0.5f;
 
   lineOutput = pack_line_data(gl_FragCoord.xy, stipple_start, stipple_coord);
 

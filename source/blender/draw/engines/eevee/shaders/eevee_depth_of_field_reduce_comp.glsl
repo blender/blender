@@ -40,7 +40,7 @@ float dof_scatter_neighborhood_rejection(float3 color)
     ref = min(float3(dof_buf.scatter_neighbor_max_color), ref);
     float diff = reduce_max(max(float3(0.0f), abs(ref - color)));
 
-    const float rejection_threshold = 0.7f;
+    constexpr float rejection_threshold = 0.7f;
     diff = saturate(diff / rejection_threshold - 1.0f);
     validity = max(validity, diff);
   }
@@ -59,19 +59,19 @@ float dof_scatter_screen_border_rejection(float coc, int2 texel)
   /* Full-resolution to half-resolution CoC. */
   coc *= 0.5f;
   /* Allow 10px transition. */
-  const float rejection_hardness = 1.0f / 10.0f;
+  constexpr float rejection_hardness = 1.0f / 10.0f;
   return saturate((min_screen_border_distance - abs(coc)) * rejection_hardness + 1.0f);
 }
 
 float dof_scatter_luminosity_rejection(float3 color)
 {
-  const float rejection_hardness = 1.0f;
+  constexpr float rejection_hardness = 1.0f;
   return saturate(reduce_max(color - dof_buf.scatter_color_threshold) * rejection_hardness);
 }
 
 float dof_scatter_coc_radius_rejection(float coc)
 {
-  const float rejection_hardness = 0.3f;
+  constexpr float rejection_hardness = 0.3f;
   return saturate((abs(coc) - dof_buf.scatter_coc_threshold) * rejection_hardness);
 }
 

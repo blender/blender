@@ -70,8 +70,8 @@ void main()
   int2 texel_co = int2(gl_FragCoord.xy);
 
   /* Using bitwise ops is way faster than integer ops. */
-  const int page_shift = SHADOW_PAGE_LOD;
-  const int page_mask = ~(0xFFFFFFFF << SHADOW_PAGE_LOD);
+  constexpr int page_shift = SHADOW_PAGE_LOD;
+  constexpr int page_mask = ~(0xFFFFFFFF << SHADOW_PAGE_LOD);
 
   int2 tile_co = texel_co >> page_shift;
   int2 texel_page = texel_co & page_mask;

@@ -1521,7 +1521,7 @@ bool is_uniformly_scaled(float3x3 mat)
   if (!is_orthogonal(mat)) {
     return false;
   }
-  const float eps = 1e-7f;
+  constexpr float eps = 1e-7f;
   float x = length_squared(mat[0]);
   float y = length_squared(mat[1]);
   float z = length_squared(mat[2]);

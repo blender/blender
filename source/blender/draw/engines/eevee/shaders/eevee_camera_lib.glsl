@@ -77,7 +77,7 @@ float3 camera_mirror_ball_to_direction(CameraData cam, float2 uv)
     return float3(0.0f);
   }
   dir.z = -safe_sqrt(1.0f - square(dir.x) - square(dir.y));
-  const float3 I = float3(0.0f, 0.0f, 1.0f);
+  constexpr float3 I = float3(0.0f, 0.0f, 1.0f);
   return reflect(I, dir);
 }
 

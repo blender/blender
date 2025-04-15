@@ -27,7 +27,7 @@
 float filter_gaussian_factor(float linear_distance, float standard_deviation)
 {
   /* Account for `filter_gaussian_factor` using `exp2` for speed (`exp(x) = exp2(x / log(2))`). */
-  const float log_2_inv = 1.442695041f;
+  constexpr float log_2_inv = 1.442695041f;
   return log_2_inv * standard_deviation / square(linear_distance);
 }
 

@@ -468,7 +468,7 @@ SphericalHarmonicL1 spherical_harmonics_triple_product(SphericalHarmonicL1 a,
   /* Adapted from:
    * "Code Generation and Factoring for Fast Evaluation of Low-order Spherical Harmonic Products
    * and Squares" Function "SH_product_3". */
-  const float L0_M0_coef = 0.282094792f;
+  constexpr float L0_M0_coef = 0.282094792f;
   SphericalHarmonicL1 sh;
   sh.L0.M0 = a.L0.M0 * b.L0.M0;
   sh.L0.M0 += a.L1.Mn1 * b.L1.Mn1;

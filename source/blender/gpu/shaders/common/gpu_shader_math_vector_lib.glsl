@@ -31,9 +31,9 @@ bool is_any_zero(float4 vec);
  * Return true if the deference between`a` and `b` is below the `epsilon` value.
  * Epsilon value is scaled by magnitude of `a` before comparison.
  */
-bool almost_equal_relative(float2 a, float2 b, const float epsilon_factor);
-bool almost_equal_relative(float3 a, float3 b, const float epsilon_factor);
-bool almost_equal_relative(float4 a, float4 b, const float epsilon_factor);
+bool almost_equal_relative(float2 a, float2 b, float epsilon_factor);
+bool almost_equal_relative(float3 a, float3 b, float epsilon_factor);
+bool almost_equal_relative(float4 a, float4 b, float epsilon_factor);
 
 /**
  * Safe `a` modulo `b`.
@@ -209,9 +209,9 @@ int2 orthogonal(int2 v);
 /**
  * Return true if the difference between`a` and `b` is below the `epsilon` value.
  */
-bool is_equal(float2 a, float2 b, const float epsilon);
-bool is_equal(float3 a, float3 b, const float epsilon);
-bool is_equal(float4 a, float4 b, const float epsilon);
+bool is_equal(float2 a, float2 b, float epsilon);
+bool is_equal(float3 a, float3 b, float epsilon);
+bool is_equal(float4 a, float4 b, float epsilon);
 
 /**
  * Return the maximum component of a vector.
@@ -292,7 +292,7 @@ bool is_any_zero(float4 vec)
   return any(equal(vec, float4(0.0f)));
 }
 
-bool almost_equal_relative(float2 a, float2 b, const float epsilon_factor)
+bool almost_equal_relative(float2 a, float2 b, float epsilon_factor)
 {
   for (int i = 0; i < 2; i++) {
     if (abs(a[i] - b[i]) > epsilon_factor * abs(a[i])) {
@@ -301,7 +301,7 @@ bool almost_equal_relative(float2 a, float2 b, const float epsilon_factor)
   }
   return true;
 }
-bool almost_equal_relative(float3 a, float3 b, const float epsilon_factor)
+bool almost_equal_relative(float3 a, float3 b, float epsilon_factor)
 {
   for (int i = 0; i < 3; i++) {
     if (abs(a[i] - b[i]) > epsilon_factor * abs(a[i])) {
@@ -310,7 +310,7 @@ bool almost_equal_relative(float3 a, float3 b, const float epsilon_factor)
   }
   return true;
 }
-bool almost_equal_relative(float4 a, float4 b, const float epsilon_factor)
+bool almost_equal_relative(float4 a, float4 b, float epsilon_factor)
 {
   for (int i = 0; i < 4; i++) {
     if (abs(a[i] - b[i]) > epsilon_factor * abs(a[i])) {
@@ -547,7 +547,7 @@ float3 project(float3 p, float3 v_proj)
 float2 normalize_and_get_length(float2 vector, out float out_length)
 {
   out_length = length_squared(vector);
-  const float threshold = 1e-35f;
+  constexpr float threshold = 1e-35f;
   if (out_length > threshold) {
     out_length = sqrt(out_length);
     return vector / out_length;
@@ -559,7 +559,7 @@ float2 normalize_and_get_length(float2 vector, out float out_length)
 float3 normalize_and_get_length(float3 vector, out float out_length)
 {
   out_length = length_squared(vector);
-  const float threshold = 1e-35f;
+  constexpr float threshold = 1e-35f;
   if (out_length > threshold) {
     out_length = sqrt(out_length);
     return vector / out_length;
@@ -571,7 +571,7 @@ float3 normalize_and_get_length(float3 vector, out float out_length)
 float4 normalize_and_get_length(float4 vector, out float out_length)
 {
   out_length = length_squared(vector);
-  const float threshold = 1e-35f;
+  constexpr float threshold = 1e-35f;
   if (out_length > threshold) {
     out_length = sqrt(out_length);
     return vector / out_length;
@@ -584,7 +584,7 @@ float4 normalize_and_get_length(float4 vector, out float out_length)
 float2 safe_normalize_and_get_length(float2 vector, out float out_length)
 {
   out_length = length_squared(vector);
-  const float threshold = 1e-35f;
+  constexpr float threshold = 1e-35f;
   if (out_length > threshold) {
     out_length = sqrt(out_length);
     return vector / out_length;
@@ -596,7 +596,7 @@ float2 safe_normalize_and_get_length(float2 vector, out float out_length)
 float3 safe_normalize_and_get_length(float3 vector, out float out_length)
 {
   out_length = length_squared(vector);
-  const float threshold = 1e-35f;
+  constexpr float threshold = 1e-35f;
   if (out_length > threshold) {
     out_length = sqrt(out_length);
     return vector / out_length;
@@ -608,7 +608,7 @@ float3 safe_normalize_and_get_length(float3 vector, out float out_length)
 float4 safe_normalize_and_get_length(float4 vector, out float out_length)
 {
   out_length = length_squared(vector);
-  const float threshold = 1e-35f;
+  constexpr float threshold = 1e-35f;
   if (out_length > threshold) {
     out_length = sqrt(out_length);
     return vector / out_length;
@@ -719,15 +719,15 @@ int2 orthogonal(int2 v)
   return int2(-v.y, v.x);
 }
 
-bool is_equal(float2 a, float2 b, const float epsilon)
+bool is_equal(float2 a, float2 b, float epsilon)
 {
   return all(lessThanEqual(abs(a - b), float2(epsilon)));
 }
-bool is_equal(float3 a, float3 b, const float epsilon)
+bool is_equal(float3 a, float3 b, float epsilon)
 {
   return all(lessThanEqual(abs(a - b), float3(epsilon)));
 }
-bool is_equal(float4 a, float4 b, const float epsilon)
+bool is_equal(float4 a, float4 b, float epsilon)
 {
   return all(lessThanEqual(abs(a - b), float4(epsilon)));
 }

@@ -97,8 +97,9 @@ float2 sphere_probe_direction_to_uv(float3 L, float lod, SphereProbeUvArea uv_ar
 
 float sphere_probe_roughness_to_mix_fac(float roughness)
 {
-  const float scale = 1.0f / (SPHERE_PROBE_MIX_END_ROUGHNESS - SPHERE_PROBE_MIX_START_ROUGHNESS);
-  const float bias = scale * SPHERE_PROBE_MIX_START_ROUGHNESS;
+  constexpr float scale = 1.0f /
+                          (SPHERE_PROBE_MIX_END_ROUGHNESS - SPHERE_PROBE_MIX_START_ROUGHNESS);
+  constexpr float bias = scale * SPHERE_PROBE_MIX_START_ROUGHNESS;
   return square(saturate(roughness * scale - bias));
 }
 
@@ -119,8 +120,8 @@ float sphere_probe_lod_to_roughness(float lod)
   /* Inverse of sphere_probe_roughness_to_lod. */
   float mip_ratio = lod / float(SPHERE_PROBE_MIPMAP_LEVELS - 1);
   float a = mip_ratio;
-  const float b = 0.6f; /* Factor of ratio. */
-  const float c = 0.4f; /* Factor of ratio_sqrt. */
+  constexpr float b = 0.6f; /* Factor of ratio. */
+  constexpr float c = 0.4f; /* Factor of ratio_sqrt. */
   float b2 = square(b);
   float c2 = square(c);
   float c4 = square(c2);

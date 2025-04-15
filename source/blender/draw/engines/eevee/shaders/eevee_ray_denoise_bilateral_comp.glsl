@@ -40,7 +40,7 @@ float3 from_accumulation_space(float3 color)
 
 void main()
 {
-  const uint tile_size = RAYTRACE_GROUP_SIZE;
+  constexpr uint tile_size = RAYTRACE_GROUP_SIZE;
   uint2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   int2 texel_fullres = int2(gl_LocalInvocationID.xy + tile_coord * tile_size);
   float2 center_uv = (float2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;

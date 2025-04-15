@@ -393,7 +393,7 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
   }
   /* Pixel bounding radius inside a tilemap of unit scale.
    * Take only half of it because we want the radius and not the diameter. */
-  const float texel_radius = M_SQRT2 / SHADOW_MAP_MAX_RES;
+  constexpr float texel_radius = M_SQRT2 / SHADOW_MAP_MAX_RES;
   return texel_radius * scale;
 }
 

@@ -21,13 +21,13 @@ void main()
 
 #ifdef DO_CORNER_MASKING
   /* Top-left rounded corner parameters. */
-  const float circle_radius_outer = 0.1f;
-  const float circle_radius_inner = 0.075f;
+  constexpr float circle_radius_outer = 0.1f;
+  constexpr float circle_radius_inner = 0.075f;
 
   /**
    * Add a bit transparency to see a bit of the icon, without
    * getting on the way of readability. */
-  const float mask_transparency = 0.25f;
+  constexpr float mask_transparency = 0.25f;
 
   float2 circle_center = float2(circle_radius_outer - text_width, 0.5f);
 

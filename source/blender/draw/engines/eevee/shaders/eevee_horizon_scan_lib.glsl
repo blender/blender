@@ -22,7 +22,7 @@
  */
 uint horizon_scan_angles_to_bitmask(float2 theta)
 {
-  const int bitmask_len = 32;
+  constexpr int bitmask_len = 32;
   /* Algorithm 1, line 18. Re-ordered to make sure to clamp to the hemisphere range. */
   float2 ratio = saturate(theta * M_1_PI + 0.5f);
   uint a = uint(floor(float(bitmask_len) * ratio.x));
@@ -34,7 +34,7 @@ uint horizon_scan_angles_to_bitmask(float2 theta)
 
 float horizon_scan_bitmask_to_visibility_uniform(uint bitmask)
 {
-  const int bitmask_len = 32;
+  constexpr int bitmask_len = 32;
   /* Algorithm 1, line 26. */
   return float(bitCount(bitmask)) / float(bitmask_len);
 }
@@ -59,7 +59,7 @@ float horizon_scan_bitmask_to_occlusion_cosine(uint bitmask)
    * distribution in `horizon_scan_angles_to_bitmask()` but that requires more computation per
    * samples. The quality difference does not justify it currently. */
 #if 0 /* Reference. */
-  const int bitmask_len = 32;
+  constexpr int bitmask_len = 32;
   float visibility = 0.0f;
   for (int bit = 0; bit < bitmask_len; bit++) {
     float angle = (((float(bit) + 0.5f) / float(bitmask_len)) - 0.5f) * M_PI;
@@ -73,8 +73,8 @@ float horizon_scan_bitmask_to_occlusion_cosine(uint bitmask)
   /* The precomputed weights are the accumulated weights from the reference loop for each of the
    * samples in the mask. The weight is distributed evenly for each sample inside a mask.
    * This is like a 4 piecewise linear approximation of the cosine lobe. */
-  const float4 weights = float4(0.0095061f, 0.0270951f, 0.0405571f, 0.0478421f);
-  const uint4 masks = uint4(0xF000000Fu, 0x0F0000F0u, 0x00F00F00u, 0x000FF000u);
+  constexpr float4 weights = float4(0.0095061f, 0.0270951f, 0.0405571f, 0.0478421f);
+  constexpr uint4 masks = uint4(0xF000000Fu, 0x0F0000F0u, 0x00F00F00u, 0x000FF000u);
   return saturate(1.0f - dot(float4(bitCount(uint4(bitmask) & masks)), weights));
 #endif
 }

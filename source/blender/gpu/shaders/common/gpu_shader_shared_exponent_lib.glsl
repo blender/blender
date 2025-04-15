@@ -46,7 +46,7 @@ struct rgb9e5_t {
 
 rgb9e5_t rgb9e5_from_float3(float3 color)
 {
-  const float max_rgb9e5 = float(0xFF80u);
+  constexpr float max_rgb9e5 = float(0xFF80u);
   color = clamp(color, 0.0f, max_rgb9e5);
 
   float max_component = max(max(color.r, color.g), color.b);

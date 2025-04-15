@@ -9,7 +9,7 @@
  * parameter in the [0, 1] range. */
 float3 compute_hue_curve_map_coordinates(float3 parameters)
 {
-  const float sampler_resolution = 257.0f;
+  constexpr float sampler_resolution = 257.0f;
   float sampler_offset = 0.5f / sampler_resolution;
   float sampler_scale = 1.0f - (1.0f / sampler_resolution);
   return parameters * sampler_scale + sampler_offset;

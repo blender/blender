@@ -22,7 +22,7 @@ BsdfSample ray_generate_direction(float2 noise, ClosureUndetermined cl, float3 V
 {
   float3 random_point_on_cylinder = sample_cylinder(noise);
   /* Bias the rays so we never get really high energy rays almost parallel to the surface. */
-  const float rng_bias = 0.08f;
+  constexpr float rng_bias = 0.08f;
   /* When modeling object thickness as a sphere, the outgoing rays are distributed uniformly
    * over the sphere. We don't want the RAY_BIAS in this case. */
   if (cl.type != CLOSURE_BSDF_TRANSLUCENT_ID || thickness <= 0.0f) {

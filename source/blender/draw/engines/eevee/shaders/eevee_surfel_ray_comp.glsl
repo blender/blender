@@ -34,7 +34,7 @@ void radiance_transfer(inout Surfel surfel, float3 in_radiance, float in_visibil
 
   float NL = dot(surfel.normal, L);
   /* Lambertian BSDF. Albedo applied later depending on which side of the surfel was hit. */
-  const float bsdf = M_1_PI;
+  constexpr float bsdf = M_1_PI;
   /* From "Global Illumination using Parallel Global Ray-Bundles"
    * Eq. 3: Outgoing light */
   float transfert_fn = (M_TAU / capture_info_buf.sample_count) * bsdf * abs(NL);

@@ -46,7 +46,7 @@ float bxdf_ggx_smith_G1(float NX, float a2)
  *
  * \return: the sampled direction and the pdf of sampling the direction.
  */
-BsdfSample bxdf_ggx_sample_reflection(float3 rand, float3 Vt, float alpha, const bool do_clamp)
+BsdfSample bxdf_ggx_sample_reflection(float3 rand, float3 Vt, float alpha, bool do_clamp)
 {
   if (do_clamp && alpha < square(BSDF_ROUGHNESS_THRESHOLD)) {
     BsdfSample samp;
@@ -97,7 +97,7 @@ BsdfSample bxdf_ggx_sample_reflection(float3 rand, float3 Vt, float alpha, const
 
 /* Evaluate the GGX BRDF without the Fresnel term, multiplied by the cosine foreshortening term.
  * Also evaluate the probability of sampling the reflection direction. */
-BsdfEval bxdf_ggx_eval_reflection(float3 N, float3 L, float3 V, float alpha, const bool do_clamp)
+BsdfEval bxdf_ggx_eval_reflection(float3 N, float3 L, float3 V, float alpha, bool do_clamp)
 {
   float NV = dot(N, V);
   if (NV <= 0.0f) {

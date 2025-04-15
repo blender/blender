@@ -116,7 +116,7 @@ void strip_EmitVertex(const uint strip_index,
 
 void geometry_main(VertOut geom_in[4], uint out_vertex_id, uint out_primitive_id)
 {
-  const float MiterLimit = 0.75f;
+  constexpr float MiterLimit = 0.75f;
 
   float4 P0 = geom_in[0].gpu_position;
   float4 P1 = geom_in[1].gpu_position;
@@ -313,15 +313,16 @@ void geometry_main(VertOut geom_in[4], uint out_vertex_id, uint out_primitive_id
 void main()
 {
   /* Line Strip Adjacency primitive. */
-  const uint input_primitive_vertex_count = 1u; /* We read 4 but advance 1. Assume no restart. */
+  constexpr uint input_primitive_vertex_count =
+      1u; /* We read 4 but advance 1. Assume no restart. */
   /* Triangle list primitive (emulating triangle strip). */
-  const uint ouput_primitive_vertex_count = 3u;
-  const uint ouput_primitive_count = 12u;
-  const uint ouput_invocation_count = 1u;
-  const uint output_vertex_count_per_invocation = ouput_primitive_count *
-                                                  ouput_primitive_vertex_count;
-  const uint output_vertex_count_per_input_primitive = output_vertex_count_per_invocation *
-                                                       ouput_invocation_count;
+  constexpr uint ouput_primitive_vertex_count = 3u;
+  constexpr uint ouput_primitive_count = 12u;
+  constexpr uint ouput_invocation_count = 1u;
+  constexpr uint output_vertex_count_per_invocation = ouput_primitive_count *
+                                                      ouput_primitive_vertex_count;
+  constexpr uint output_vertex_count_per_input_primitive = output_vertex_count_per_invocation *
+                                                           ouput_invocation_count;
 
   uint in_primitive_id = uint(gl_VertexID) / output_vertex_count_per_input_primitive;
   uint in_primitive_first_vertex = in_primitive_id * input_primitive_vertex_count;

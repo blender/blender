@@ -249,7 +249,7 @@ void main()
   float scene_depth = textureLod(sceneDepth, depth_uv, 0.0f).r;
 
   /* Avoid bad cases of Z-fighting for occlusion only. */
-  const float epsilon = 3.0f / 8388608.0f;
+  constexpr float epsilon = 3.0f / 8388608.0f;
   bool occluded = (ref_depth > scene_depth + epsilon);
 
   /* NOTE: We never set alpha to 1.0 to avoid Anti-aliasing destroying the line. */

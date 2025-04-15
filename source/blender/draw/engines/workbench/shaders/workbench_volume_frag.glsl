@@ -201,10 +201,10 @@ float4 volume_integration(
 {
   /* NOTE: Constant array declared inside function scope to reduce shader core thread memory
    * pressure on Apple Silicon. */
-  const float4 dither_mat[4] = float4_array(float4(P(0.0f), P(8.0f), P(2.0f), P(10.0f)),
-                                            float4(P(12.0f), P(4.0f), P(14.0f), P(6.0f)),
-                                            float4(P(3.0f), P(11.0f), P(1.0f), P(9.0f)),
-                                            float4(P(15.0f), P(7.0f), P(13.0f), P(5.0f)));
+  constexpr float4 dither_mat[4] = float4_array(float4(P(0.0f), P(8.0f), P(2.0f), P(10.0f)),
+                                                float4(P(12.0f), P(4.0f), P(14.0f), P(6.0f)),
+                                                float4(P(3.0f), P(11.0f), P(1.0f), P(9.0f)),
+                                                float4(P(15.0f), P(7.0f), P(13.0f), P(5.0f)));
   /* Start with full transmittance and no scattered light. */
   float3 final_scattering = float3(0.0f);
   float final_transmittance = 1.0f;
@@ -237,7 +237,7 @@ float4 volume_integration(
 void main()
 {
   uint stencil = texelFetch(stencil_tx, int2(gl_FragCoord.xy), 0).r;
-  const uint in_front_stencil_bits = 1u << 1;
+  constexpr uint in_front_stencil_bits = 1u << 1;
   if (do_depth_test && (stencil & in_front_stencil_bits) != 0) {
     /* Don't draw on top of "in front" objects. */
     discard;

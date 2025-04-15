@@ -113,7 +113,7 @@ float dof_luma_weight(float luma)
 {
   /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
-  const float exposure_scale = 1.0f; /* TODO. */
+  constexpr float exposure_scale = 1.0f; /* TODO. */
   return 1.0f / (4.0f + luma * exposure_scale);
 }
 
@@ -129,7 +129,7 @@ float dof_bilateral_weight(float reference_coc, float sample_coc)
 DofSample dof_spatial_filtering()
 {
   /* Plus (+) shape offsets. */
-  const int2 plus_offsets[4] = int2_array(int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1));
+  constexpr int2 plus_offsets[4] = int2_array(int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1));
   DofSample center = dof_fetch_input_sample(int2(0));
   DofSample accum = DofSample(float4(0.0f), 0.0f);
   float accum_weight = 0.0f;
@@ -169,7 +169,7 @@ struct DofNeighborhoodMinMax {
 DofNeighborhoodMinMax dof_neighbor_boundbox()
 {
   /* Plus (+) shape offsets. */
-  const int2 plus_offsets[4] = int2_array(int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1));
+  constexpr int2 plus_offsets[4] = int2_array(int2(-1, 0), int2(0, -1), int2(1, 0), int2(0, 1));
   /**
    * Simple bounding box calculation in YCoCg as described in:
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014
@@ -187,7 +187,7 @@ DofNeighborhoodMinMax dof_neighbor_boundbox()
    * Round bbox shape by averaging 2 different min/max from 2 different neighborhood. */
   DofSample min_c_3x3 = min_c;
   DofSample max_c_3x3 = max_c;
-  const int2 corners[4] = int2_array(int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1));
+  constexpr int2 corners[4] = int2_array(int2(-1, -1), int2(1, -1), int2(-1, 1), int2(1, 1));
   for (int i = 0; i < 4; i++) {
     DofSample samp = dof_fetch_input_sample(corners[i]);
     min_c_3x3.color = min(min_c_3x3.color, samp.color);
@@ -210,7 +210,7 @@ float2 dof_pixel_history_motion_vector(int2 texel_sample)
    * Dilate velocity by using the nearest pixel in a cross pattern.
    * "High Quality Temporal Supersampling" by Brian Karis at SIGGRAPH 2014 (Slide 27)
    */
-  const int2 corners[4] = int2_array(int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2));
+  constexpr int2 corners[4] = int2_array(int2(-2, -2), int2(2, -2), int2(-2, 2), int2(2, 2));
   float min_depth = dof_fetch_half_depth(int2(0));
   int2 nearest_texel = int2(0);
   for (int i = 0; i < 4; i++) {

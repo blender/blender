@@ -24,7 +24,7 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray, float2 pixel_si
   /* Constant bias (due to depth buffer precision). Helps with self intersection. */
   /* Magic numbers for 24bits of precision.
    * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
-  const float bias = -2.4e-7f * 2.0f;
+  constexpr float bias = -2.4e-7f * 2.0f;
   ray.origin.zw += bias;
   ray.direction.zw += bias;
 

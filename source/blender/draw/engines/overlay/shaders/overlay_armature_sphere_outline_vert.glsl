@@ -49,8 +49,8 @@ void main()
      * can be bigger than the center disc. Compute the
      * max angular size and compensate by sliding the disc
      * towards the camera and scale it accordingly. */
-    const float half_pi = 3.1415926f * 0.5f;
-    const float rad = 0.05f;
+    constexpr float half_pi = 3.1415926f * 0.5f;
+    constexpr float rad = 0.05f;
     /* Let be (in local space):
      * V the view vector origin.
      * O the sphere origin.
