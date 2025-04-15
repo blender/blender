@@ -3726,7 +3726,7 @@ static wmOperatorStatus text_find_and_replace(bContext *C, wmOperator *op, short
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = st->text;
   int flags;
-  int found = 0;
+  bool found = false;
   char *tmp;
 
   if (!st->findstr[0]) {
@@ -3819,7 +3819,7 @@ static wmOperatorStatus text_replace_all(bContext *C)
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = st->text;
   const int flags = st->flags;
-  int found = 0;
+  bool found = false;
 
   if (!st->findstr[0]) {
     return OPERATOR_CANCELLED;

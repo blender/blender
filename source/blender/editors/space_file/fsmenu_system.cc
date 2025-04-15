@@ -534,8 +534,8 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
     }
 #  pragma GCC diagnostic pop
   }
-#else
-  /* unix */
+#else /* `!defined(WIN32) && !defined(__APPLE__)` */
+  /* Generic Unix. */
   {
     const char *home = BLI_dir_home();
 
@@ -569,7 +569,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
     }
 
     {
-      int found = 0;
+      bool found = false;
 #  ifdef __linux__
       /* loop over mount points */
       mntent *mnt;
@@ -616,7 +616,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
                               ICON_DISK_DRIVE,
                               FS_INSERT_SORTED);
 
-          found = 1;
+          found = true;
         }
 #    undef STRPREFIX_DIR_DELIMIT
 
@@ -658,7 +658,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
           BLI_filelist_free(dirs, dirs_num);
         }
       }
-#  endif
+#  endif /* __linux__ */
 
       /* fallback */
       if (!found) {

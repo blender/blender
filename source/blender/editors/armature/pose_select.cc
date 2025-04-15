@@ -663,7 +663,7 @@ void POSE_OT_select_parent(wmOperatorType *ot)
 
 static wmOperatorStatus pose_select_constraint_target_exec(bContext *C, wmOperator * /*op*/)
 {
-  int found = 0;
+  bool found = false;
 
   CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
     if (pchan->bone->flag & BONE_SELECTED) {
@@ -681,7 +681,7 @@ static wmOperatorStatus pose_select_constraint_target_exec(bContext *C, wmOperat
               if ((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
                 pchanc->bone->flag |= BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL;
                 ED_pose_bone_select_tag_update(ob);
-                found = 1;
+                found = true;
               }
             }
           }

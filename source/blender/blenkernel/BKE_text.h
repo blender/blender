@@ -60,7 +60,7 @@ char *txt_to_buf(struct Text *text, size_t *r_buf_strlen)
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 void txt_clean_text(struct Text *text);
 void txt_order_cursors(struct Text *text, bool reverse);
-int txt_find_string(struct Text *text, const char *findstr, int wrap, int match_case);
+bool txt_find_string(struct Text *text, const char *findstr, int wrap, int match_case);
 bool txt_has_sel(const struct Text *text);
 int txt_get_span(const struct TextLine *from, const struct TextLine *to);
 void txt_move_up(struct Text *text, bool sel);

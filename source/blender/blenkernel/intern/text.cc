@@ -1591,13 +1591,13 @@ void txt_insert_buf(Text *text, const char *in_buffer, int in_buffer_len)
 /** \name Find String in Text
  * \{ */
 
-int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
+bool txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
 {
   TextLine *tl, *startl;
   const char *s = nullptr;
 
   if (!text->curl || !text->sell) {
-    return 0;
+    return false;
   }
 
   txt_order_cursors(text, false);
@@ -1637,10 +1637,10 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
     int newc = int(s - tl->line);
     txt_move_to(text, newl, newc, false);
     txt_move_to(text, newl, newc + strlen(findstr), true);
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /** \} */
