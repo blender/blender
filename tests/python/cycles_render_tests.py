@@ -70,10 +70,12 @@ BLOCKLIST_OPTIX = [
 ]
 
 BLOCKLIST_OPTIX_OSL = [
-    # OPTIX OSL doesn't support trace function needed for AO and bevel
-    'bake_bevel.blend',
+    # OptiX OSL does support AO or Bevel
     'ambient_occlusion.*.blend',
+    'bake_bevel.blend',
     'bevel.blend',
+    'principled_bsdf_bevel_emission_137420.blend',
+    # OptiX OSL doesn't support the trace function
     'osl_trace_shader.blend',
     # Bump evaluation is not implemented yet. See 104276
     'compare_bump.blend',
