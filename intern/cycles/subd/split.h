@@ -70,6 +70,8 @@ class DiagSplit {
                     float2 uv_start,
                     float2 uv_end);
   void split_quad(SubPatch &&sub);
+  void split_triangle(SubPatch &&sub);
+  void split_quad_into_triangles(SubPatch &&sub);
   void split_quad(const Mesh::SubdFace &face, const int face_index, const Patch *patch);
   void split_ngon(const Mesh::SubdFace &face,
                   const int face_index,

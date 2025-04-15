@@ -95,6 +95,8 @@ class SubPatch {
   /* Face and corner. */
   int face_index = 0;
   int corner = 0;
+  /* Is a triangular patch instead of a quad patch? */
+  enum { TRIANGLE, QUAD } shape = QUAD;
   /* Vertex indices for inner grid start at this index. */
   int inner_grid_vert_offset = 0;
   /* Triangle indices. */
@@ -138,13 +140,22 @@ class SubPatch {
   };
 
   /*
-   *                edges[2]
-   *         uv3 ←------------ uv2
-   *          |                 ↑
-   * edges[3] |                 | edges[1]
-   *          ↓                 |
-   *         uv0 ------------→ uv1
-   *                edges[0]
+   *               edge2
+   *        uv3 ←------------ uv2
+   *        |                   ↑
+   *  edge3 |                   | edge1
+   *        ↓                   |
+   *        uv0 ------------→ uv1
+   *               edge0
+   *
+   *         uv2
+   *         | \
+   *         |  \
+   *  edge2  |   \  edge1
+   *         |    \
+   *         ↓     \
+   *         uv0 --→ uv1
+   *            edge0
    */
 
   /* UV within patch, counter-clockwise starting from uv (0, 0) towards (1, 0) etc. */
@@ -160,6 +171,16 @@ class SubPatch {
 
   int calc_num_inner_verts() const
   {
+    if (shape == TRIANGLE) {
+      const int M = max(max(edges[0].edge->T, edges[1].edge->T), edges[2].edge->T);
+      if (M <= 2) {
+        /* No inner grid. */
+        return 0;
+      }
+      /* 1 + 2 + .. + M-1 */
+      return M * (M - 1) / 2;
+    }
+
     const int Mu = max(edges[0].edge->T, edges[2].edge->T);
     const int Mv = max(edges[3].edge->T, edges[1].edge->T);
     return (Mu - 1) * (Mv - 1);
@@ -167,6 +188,22 @@ class SubPatch {
 
   int calc_num_triangles() const
   {
+    if (shape == TRIANGLE) {
+      const int M = max(max(edges[0].edge->T, edges[1].edge->T), edges[2].edge->T);
+      if (M == 1) {
+        return 1;
+      }
+      if (M == 2) {
+        return edges[0].edge->T + edges[1].edge->T + edges[2].edge->T - 2;
+      }
+
+      const int inner_M = M - 2;
+      const int inner_triangles = inner_M * inner_M;
+      const int edge_triangles = edges[0].edge->T + edges[1].edge->T + edges[2].edge->T +
+                                 inner_M * 3;
+      return inner_triangles + edge_triangles;
+    }
+
     const int Mu = max(edges[0].edge->T, edges[2].edge->T);
     const int Mv = max(edges[3].edge->T, edges[1].edge->T);
 
@@ -194,8 +231,39 @@ class SubPatch {
     return get_vert_along_edge(edge, edges[edge].edge->T - n);
   }
 
+  int get_inner_grid_vert_triangle(int i, int j) const
+  {
+    /* Rowows (1 + 2 + .. + j), and column i. */
+    const int offset = j * (j + 1) / 2 + i;
+    assert(offset < calc_num_inner_verts());
+    return inner_grid_vert_offset + offset;
+  }
+
   int get_vert_along_grid_edge(const int edge, const int n) const
   {
+    if (shape == TRIANGLE) {
+      const int M = max(max(edges[0].edge->T, edges[1].edge->T), edges[2].edge->T);
+      const int inner_M = M - 2;
+      assert(M >= 2);
+
+      switch (edge) {
+        case 0: {
+          return get_inner_grid_vert_triangle(n, n);
+        }
+        case 1: {
+          return get_inner_grid_vert_triangle(inner_M - n, inner_M);
+        }
+        case 2: {
+          return get_inner_grid_vert_triangle(0, inner_M - n);
+        }
+        default:
+          assert(0);
+          break;
+      }
+
+      return -1;
+    }
+
     const int Mu = max(edges[0].edge->T, edges[2].edge->T);
     const int Mv = max(edges[3].edge->T, edges[1].edge->T);
 
@@ -227,6 +295,12 @@ class SubPatch {
   float2 map_uv(float2 uv) const
   {
     /* Map UV from subpatch to patch parametric coordinates. */
+    if (shape == TRIANGLE) {
+      return clamp((1.0f - uv.x - uv.y) * uvs[0] + uv.x * uvs[1] + uv.y * uvs[2],
+                   zero_float2(),
+                   one_float2());
+    }
+
     const float2 d0 = interp(uvs[0], uvs[3], uv.y);
     const float2 d1 = interp(uvs[1], uvs[2], uv.y);
     return clamp(interp(d0, d1, uv.x), zero_float2(), one_float2());

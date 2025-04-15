@@ -70,7 +70,9 @@ void DiagSplit::alloc_subpatch(SubPatch &&sub)
   assert(sub.edges[0].edge->T >= 1);
   assert(sub.edges[1].edge->T >= 1);
   assert(sub.edges[2].edge->T >= 1);
-  assert(sub.edges[3].edge->T >= 1);
+  if (sub.shape == SubPatch::QUAD) {
+    assert(sub.edges[3].edge->T >= 1);
+  }
 
   sub.inner_grid_vert_offset = alloc_verts(sub.calc_num_inner_verts());
   sub.triangles_offset = num_triangles;
@@ -205,25 +207,32 @@ void DiagSplit::assign_edge_factor(SubEdge *edge,
 
 void DiagSplit::resolve_edge_factors(const SubPatch &sub)
 {
-  /* Compute edge factor if not already set. Or if DSPLIT_NON_UNIFORM and splitting is
-   * no longer possible because the opposite side can't be split. */
   SubEdge *edge0 = sub.edges[0].edge;
   SubEdge *edge1 = sub.edges[1].edge;
   SubEdge *edge2 = sub.edges[2].edge;
-  SubEdge *edge3 = sub.edges[3].edge;
 
   /* Compute edge factor if not already set. */
-  if (edge0->T == 0 || (edge0->must_split() && edge2->T == 1)) {
+  if (edge0->T == 0) {
     assign_edge_factor(edge0, sub.patch, sub.uvs[0], sub.uvs[1], true);
   }
-  if (edge1->T == 0 || (edge0->must_split() && edge3->T == 1)) {
+  if (edge1->T == 0) {
     assign_edge_factor(edge1, sub.patch, sub.uvs[1], sub.uvs[2], true);
   }
-  if (edge2->T == 0 || (edge0->must_split() && edge0->T == 1)) {
-    assign_edge_factor(edge2, sub.patch, sub.uvs[2], sub.uvs[3], true);
+
+  if (sub.shape == SubPatch::TRIANGLE) {
+    if (edge2->T == 0) {
+      assign_edge_factor(edge2, sub.patch, sub.uvs[2], sub.uvs[0], true);
+    }
   }
-  if (edge3->T == 0 || (edge0->must_split() && edge1->T == 1)) {
-    assign_edge_factor(edge3, sub.patch, sub.uvs[3], sub.uvs[0], true);
+  else {
+    SubEdge *edge3 = sub.edges[3].edge;
+
+    if (edge2->T == 0) {
+      assign_edge_factor(edge2, sub.patch, sub.uvs[2], sub.uvs[3], true);
+    }
+    if (edge3->T == 0) {
+      assign_edge_factor(edge3, sub.patch, sub.uvs[3], sub.uvs[0], true);
+    }
   }
 }
 
@@ -369,6 +378,15 @@ void DiagSplit::split_quad(SubPatch &&sub)
     return;
   }
 
+  /* Split into triangles if one side must the split, and the opposite side has
+   * only a single segment. Then we can't do an even split across the quad. */
+  if ((split_u && (sub.edges[0].edge->T == 1 || sub.edges[2].edge->T == 1)) ||
+      (!split_u && (sub.edges[1].edge->T == 1 || sub.edges[3].edge->T == 1)))
+  {
+    split_quad_into_triangles(std::move(sub));
+    return;
+  }
+
   /* Copy into new subpatches. */
   SubPatch sub_a(sub);
   SubPatch sub_b(sub);
@@ -499,6 +517,152 @@ void DiagSplit::split_quad(SubPatch &&sub)
   /* Recurse */
   split_quad(std::move(sub_a));
   split_quad(std::move(sub_b));
+}
+
+void DiagSplit::split_quad_into_triangles(SubPatch &&sub)
+{
+  assert(sub.shape == SubPatch::QUAD);
+
+  /* Copy into new subpatches. */
+  SubPatch sub_a(sub);
+  SubPatch sub_b(sub);
+
+  sub_a.shape = SubPatch::TRIANGLE;
+  sub_b.shape = SubPatch::TRIANGLE;
+
+  for (int i = 0; i < 4; i++) {
+    sub_a.edges[i].own_edge = false;
+    sub_a.edges[i].own_vertex = false;
+    sub_b.edges[i].own_edge = false;
+    sub_b.edges[i].own_vertex = false;
+  }
+
+  const int split_edge_depth = std::max({sub.edges[0].edge->depth,
+                                         sub.edges[1].edge->depth,
+                                         sub.edges[2].edge->depth,
+                                         sub.edges[3].edge->depth});
+
+  sub_a.edges[0] = sub.edges[0];
+  sub_a.edges[1] = sub.edges[1];
+  sub_a.uvs[0] = sub.uvs[0];
+  sub_a.uvs[1] = sub.uvs[1];
+  sub_a.uvs[2] = sub.uvs[2];
+  alloc_edge(&sub_a.edges[2],
+             sub.edges[2].start_vert_index(),
+             sub.edges[0].start_vert_index(),
+             split_edge_depth,
+             true,
+             false);
+
+  sub_b.edges[1] = sub.edges[2];
+  sub_b.edges[2] = sub.edges[3];
+  sub_b.uvs[0] = sub.uvs[0];
+  sub_b.uvs[1] = sub.uvs[2];
+  sub_b.uvs[2] = sub.uvs[3];
+  alloc_edge(&sub_b.edges[0],
+             sub.edges[0].start_vert_index(),
+             sub.edges[2].start_vert_index(),
+             split_edge_depth,
+             true,
+             false);
+
+  /* Set T for new edge. */
+  assign_edge_factor(sub_b.edges[0].edge, sub.patch, sub.uvs[0], sub.uvs[2]);
+
+  /* Recurse */
+  split_triangle(std::move(sub_a));
+  split_triangle(std::move(sub_b));
+}
+
+void DiagSplit::split_triangle(SubPatch &&sub)
+{
+  assert(sub.shape == SubPatch::TRIANGLE);
+
+  /* Set edge factors if we haven't already. */
+  resolve_edge_factors(sub);
+
+  const bool do_split = sub.edges[0].edge->must_split() || sub.edges[1].edge->must_split() ||
+                        sub.edges[2].edge->must_split();
+  if (!do_split) {
+    /* Add the unsplit subpatch. */
+    alloc_subpatch(std::move(sub));
+    return;
+  }
+
+  /* Slight bias so that for equal length edges, we get consistent results across
+   * platforms rather than choice being decided by precision. */
+  const float bias = 1.00012345f;
+
+  /* Pick longest edge that must be split. */
+  float max_length = 0;
+  int split_index_0 = 0;
+  for (int i = 0; i < 3; i++) {
+    if (sub.edges[i].edge->must_split() && sub.edges[i].edge->length > max_length) {
+      split_index_0 = i;
+      max_length = sub.edges[i].edge->length * bias;
+    }
+  }
+
+  /* Copy into new subpatches. */
+  SubPatch sub_a(sub);
+  SubPatch sub_b(sub);
+
+  for (int i = 0; i < 4; i++) {
+    sub_a.edges[i].own_edge = false;
+    sub_a.edges[i].own_vertex = false;
+    sub_b.edges[i].own_edge = false;
+    sub_b.edges[i].own_vertex = false;
+  }
+
+  const int split_index_1 = (split_index_0 + 1) % 3;
+  const int split_index_2 = (split_index_0 + 2) % 3;
+
+  sub_a.edges[2] = sub.edges[split_index_2];
+  sub_b.edges[1] = sub.edges[split_index_1];
+
+  /*
+   *     uv_opposite
+   *       2    2
+   *      / |   | \
+   *     /  |   |  \
+   *    / A |   | B \
+   *   /    |   |    \
+   *  0 --- 1   0 --- 1
+   *       uv_split
+   */
+
+  /* Allocate new edges and vertices. */
+  const float2 uv_split = split_edge(sub.patch,
+                                     &sub.edges[split_index_0],
+                                     &sub_a.edges[0],
+                                     &sub_b.edges[0],
+                                     sub.uvs[split_index_0],
+                                     sub.uvs[split_index_1]);
+
+  /* Set UVs. */
+  sub_a.uvs[0] = sub.uvs[split_index_0];
+  sub_a.uvs[1] = uv_split;
+  sub_a.uvs[2] = sub.uvs[split_index_2];
+  sub_b.uvs[0] = uv_split;
+  sub_b.uvs[1] = sub.uvs[split_index_1];
+  sub_b.uvs[2] = sub.uvs[split_index_2];
+
+  /* Create new edge */
+  const int vsplit = sub.edges[split_index_0].mid_vert_index();
+  const int vopposite = sub.edges[split_index_2].start_vert_index();
+
+  const int split_edge_depth = sub.edges[split_index_0].edge->depth + 1;
+
+  alloc_edge(&sub_a.edges[1], vsplit, vopposite, split_edge_depth, true, false);
+  alloc_edge(&sub_b.edges[2], vopposite, vsplit, split_edge_depth, true, false);
+
+  /* Set T for split edge. */
+  const float2 uv_opposite = sub.uvs[split_index_2];
+  assign_edge_factor(sub_a.edges[1].edge, sub.patch, uv_split, uv_opposite);
+
+  /* Recurse */
+  split_triangle(std::move(sub_a));
+  split_triangle(std::move(sub_b));
 }
 
 void DiagSplit::split_quad(const Mesh::SubdFace &face, const int face_index, const Patch *patch)
