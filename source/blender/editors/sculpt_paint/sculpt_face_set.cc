@@ -101,7 +101,8 @@ int find_next_available_id(Object &object)
       const int cd_offset = CustomData_get_offset_named(
           &bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
       if (cd_offset == -1) {
-        return 1;
+        /* Default face set ID is 1, so the next available id should never be 1 */
+        return 2;
       }
       int next_face_set = 1;
       BMIter iter;
@@ -1739,11 +1740,9 @@ static void gesture_apply_bmesh(gesture::GestureData &gesture_data, const IndexM
   FaceSetOperation *face_set_operation = (FaceSetOperation *)gesture_data.operation;
   const Depsgraph &depsgraph = *gesture_data.vc.depsgraph;
   const int new_face_set = face_set_operation->new_face_set_id;
-  SculptSession &ss = *gesture_data.ss;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*gesture_data.vc.obact);
   MutableSpan<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-  BMesh *bm = ss.bm;
-  const int offset = CustomData_get_offset_named(&bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
+  const int offset = face_set::ensure_face_sets_bmesh(*gesture_data.vc.obact);
 
   Array<bool> node_changed(node_mask.min_array_size(), false);
 
