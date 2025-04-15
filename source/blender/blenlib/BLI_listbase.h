@@ -53,6 +53,12 @@ void *BLI_findlinkfrom(Link *start, int step) ATTR_WARN_UNUSED_RESULT;
 void *BLI_findstring(const ListBase *listbase, const char *id, int offset) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
 /**
+ * Finds the first element in the listbase after the given \a link element which contains the
+ * null-terminated string \a id at the specified offset, returning nullptr if not found.
+ */
+void *BLI_listbase_findafter_string(Link *link, const char *id, int offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
+/**
  * Finds the first element of \a listbase which contains a pointer to the
  * null-terminated string \a id at the specified offset, returning NULL if not found.
  */
