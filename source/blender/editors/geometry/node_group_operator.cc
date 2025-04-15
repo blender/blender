@@ -157,10 +157,13 @@ static void find_socket_log_contexts(const Main &bmain,
         if (snode.edittree == nullptr) {
           continue;
         }
+        if (snode.geometry_nodes_type != SNODE_GEOMETRY_TOOL) {
+          continue;
+        }
         bke::ComputeContextCache compute_context_cache;
         const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
             geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(
-                snode, compute_context_cache, &compute_context_cache.for_operator(nullptr));
+                snode, compute_context_cache);
         for (const ComputeContextHash &hash : hash_by_zone.values()) {
           r_socket_log_contexts.add(hash);
         }

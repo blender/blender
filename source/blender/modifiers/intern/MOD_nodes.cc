@@ -78,6 +78,7 @@
 #include "MOD_nodes.hh"
 #include "MOD_ui_common.hh"
 
+#include "ED_node.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
@@ -824,6 +825,7 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
   if (wm == nullptr) {
     return;
   }
+  bke::ComputeContextCache compute_context_cache;
   LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
     const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
     LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
@@ -833,8 +835,12 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
         if (snode.edittree == nullptr || snode.edittree->type != NTREE_GEOMETRY) {
           continue;
         }
+        if (!ed::space_node::node_editor_is_for_geometry_nodes_modifier(snode, *ctx.object, nmd)) {
+          continue;
+        }
         const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode, nmd);
+            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(
+                snode, compute_context_cache);
         for (const ComputeContextHash &hash : hash_by_zone.values()) {
           r_socket_log_contexts.add(hash);
         }

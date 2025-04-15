@@ -806,12 +806,11 @@ static void find_tree_zone_hash_recursive(
 
 Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
     get_context_hash_by_zone_for_node_editor(const SpaceNode &snode,
-                                             bke::ComputeContextCache &compute_context_cache,
-                                             const ComputeContext *parent_compute_context)
+                                             bke::ComputeContextCache &compute_context_cache)
 {
-  std::optional<const ComputeContext *> current = ed::space_node::compute_context_for_tree_path(
-      snode, compute_context_cache, parent_compute_context);
-  if (!current.has_value() || !*current) {
+  const ComputeContext *current = ed::space_node::compute_context_for_edittree(
+      snode, compute_context_cache);
+  if (!current) {
     return {};
   }
 
@@ -820,23 +819,14 @@ Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
     return {};
   }
   Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone;
-  hash_by_zone.add_new(nullptr, (*current)->hash());
+  hash_by_zone.add_new(nullptr, current->hash());
   for (const bNodeTreeZone *zone : tree_zones->root_zones) {
-    find_tree_zone_hash_recursive(*zone, compute_context_cache, *current, hash_by_zone);
+    find_tree_zone_hash_recursive(*zone, compute_context_cache, current, hash_by_zone);
   }
   return hash_by_zone;
 }
 
-Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
-    get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, const NodesModifierData &nmd)
-{
-  bke::ComputeContextCache compute_context_cache;
-  const ComputeContext &root_compute_context = compute_context_cache.for_modifier(nullptr, nmd);
-  return get_context_hash_by_zone_for_node_editor(
-      snode, compute_context_cache, &root_compute_context);
-}
-
-ContextualGeoTreeLogs GeoModifierLog::get_contextual_tree_logs(const SpaceNode &snode)
+static GeoModifierLog *get_root_log(const SpaceNode &snode)
 {
   switch (SpaceNodeGeometryNodesType(snode.geometry_nodes_type)) {
     case SNODE_GEOMETRY_MODIFIER: {
@@ -845,19 +835,7 @@ ContextualGeoTreeLogs GeoModifierLog::get_contextual_tree_logs(const SpaceNode &
       if (!object_and_modifier) {
         return {};
       }
-      GeoModifierLog *modifier_log = object_and_modifier->nmd->runtime->eval_log.get();
-      if (modifier_log == nullptr) {
-        return {};
-      }
-      const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-          GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode,
-                                                                   *object_and_modifier->nmd);
-      Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone;
-      for (const auto item : hash_by_zone.items()) {
-        GeoTreeLog &tree_log = modifier_log->get_tree_log(item.value);
-        tree_logs_by_zone.add(item.key, &tree_log);
-      }
-      return {tree_logs_by_zone};
+      return object_and_modifier->nmd->runtime->eval_log.get();
     }
     case SNODE_GEOMETRY_TOOL: {
       const ed::geometry::GeoOperatorLog &log =
@@ -865,20 +843,27 @@ ContextualGeoTreeLogs GeoModifierLog::get_contextual_tree_logs(const SpaceNode &
       if (snode.geometry_nodes_tool_tree->id.name + 2 != log.node_group_name) {
         return {};
       }
-      bke::ComputeContextCache compute_context_cache;
-      const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-          GeoModifierLog::get_context_hash_by_zone_for_node_editor(
-              snode, compute_context_cache, &compute_context_cache.for_operator(nullptr));
-      Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone;
-      for (const auto item : hash_by_zone.items()) {
-        GeoTreeLog &tree_log = log.log->get_tree_log(item.value);
-        tree_logs_by_zone.add(item.key, &tree_log);
-      }
-      return {tree_logs_by_zone};
+      return log.log.get();
     }
   }
-  BLI_assert_unreachable();
-  return {};
+  return nullptr;
+}
+
+ContextualGeoTreeLogs GeoModifierLog::get_contextual_tree_logs(const SpaceNode &snode)
+{
+  GeoModifierLog *log = get_root_log(snode);
+  if (!log) {
+    return {};
+  }
+  bke::ComputeContextCache compute_context_cache;
+  const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
+      GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode, compute_context_cache);
+  Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone;
+  for (const auto item : hash_by_zone.items()) {
+    GeoTreeLog &tree_log = log->get_tree_log(item.value);
+    tree_logs_by_zone.add(item.key, &tree_log);
+  }
+  return {tree_logs_by_zone};
 }
 
 const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerPath &viewer_path)

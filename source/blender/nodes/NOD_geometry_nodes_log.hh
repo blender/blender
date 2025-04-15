@@ -459,11 +459,8 @@ class GeoModifierLog {
    * Utility accessor to logged data.
    */
   static Map<const bke::bNodeTreeZone *, ComputeContextHash>
-  get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, const NodesModifierData &nmd);
-  static Map<const bke::bNodeTreeZone *, ComputeContextHash>
   get_context_hash_by_zone_for_node_editor(const SpaceNode &snode,
-                                           bke::ComputeContextCache &compute_context_cache,
-                                           const ComputeContext *parent_compute_context);
+                                           bke::ComputeContextCache &compute_context_cache);
 
   static ContextualGeoTreeLogs get_contextual_tree_logs(const SpaceNode &snode);
   static const ViewerNodeLog *find_viewer_node_log_for_path(const ViewerPath &viewer_path);

@@ -269,10 +269,9 @@ static void foreach_active_gizmo_in_open_node_editor(
     return;
   }
 
-  std::optional<const ComputeContext *> current_compute_context =
-      ed::space_node::compute_context_for_tree_path(
-          snode, compute_context_cache, &compute_context_cache.for_modifier(nullptr, nmd));
-  if (!current_compute_context.has_value()) {
+  const ComputeContext *current_compute_context = ed::space_node::compute_context_for_edittree(
+      snode, compute_context_cache);
+  if (!current_compute_context) {
     return;
   }
 
@@ -323,7 +322,7 @@ static void foreach_active_gizmo_in_open_node_editor(
   for (const ie::SocketElem &gizmo_input : used_gizmo_inputs) {
     foreach_gizmo_for_input(gizmo_input,
                             compute_context_cache,
-                            *current_compute_context,
+                            current_compute_context,
                             *snode.edittree,
                             [&](const ComputeContext &compute_context,
                                 const bNode &gizmo_node,
