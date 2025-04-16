@@ -8634,11 +8634,11 @@ static void rna_def_evaluate_closure_node_viewer_path_elem(BlenderRNA *brna)
   prop = RNA_def_property(srna, "evaluate_node_id", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Evaluate Node ID", "");
 
-  prop = RNA_def_property(srna, "closure_output_node_id", PROP_INT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Closure Output Node ID", "");
+  prop = RNA_def_property(srna, "source_output_node_id", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Closure Node ID", "");
 
-  prop = RNA_def_property(srna, "closure_tree", PROP_POINTER, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Closure Tree", "");
+  prop = RNA_def_property(srna, "source_node_tree", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Source Tree", "");
 }
 
 static void rna_def_viewer_node_viewer_path_elem(BlenderRNA *brna)

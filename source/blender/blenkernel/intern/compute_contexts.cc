@@ -172,11 +172,12 @@ EvaluateClosureComputeContext::EvaluateClosureComputeContext(const ComputeContex
 
 EvaluateClosureComputeContext::EvaluateClosureComputeContext(
     const ComputeContext *parent,
-    const bNode &node,
+    const int32_t evaluate_node_id,
+    const bNode *evaluate_node,
     const std::optional<nodes::ClosureSourceLocation> &closure_source_location)
-    : EvaluateClosureComputeContext(parent, node.identifier)
+    : EvaluateClosureComputeContext(parent, evaluate_node_id)
 {
-  evaluate_node_ = &node;
+  evaluate_node_ = evaluate_node;
   closure_source_location_ = closure_source_location;
 }
 
@@ -328,13 +329,14 @@ const EvaluateClosureComputeContext &ComputeContextCache::for_evaluate_closure(
 
 const EvaluateClosureComputeContext &ComputeContextCache::for_evaluate_closure(
     const ComputeContext *parent,
-    const bNode &evaluate_node,
+    const int32_t evaluate_node_id,
+    const bNode *evaluate_node,
     const std::optional<nodes::ClosureSourceLocation> &closure_source_location)
 {
   return *evaluate_closure_contexts_cache_.lookup_or_add_cb(
-      std::pair{parent, evaluate_node.identifier}, [&]() {
+      std::pair{parent, evaluate_node_id}, [&]() {
         return &this->for_any_uncached<EvaluateClosureComputeContext>(
-            parent, evaluate_node, closure_source_location);
+            parent, evaluate_node_id, evaluate_node, closure_source_location);
       });
 }
 

@@ -98,6 +98,14 @@ bool node_editor_is_for_geometry_nodes_modifier(const SpaceNode &snode,
     const SpaceNode &snode, bke::ComputeContextCache &compute_context_cache);
 
 /**
+ * Get the active compute context for the given socket in the current edittree.
+ */
+[[nodiscard]] const ComputeContext *compute_context_for_edittree_socket(
+    const SpaceNode &snode,
+    bke::ComputeContextCache &compute_context_cache,
+    const bNodeSocket &socket);
+
+/**
  * Attempts to find a compute context that the closure is evaluated in. If none is found, null is
  * returned. If multiple are found, it currently picks the first one it finds which is somewhat
  * arbitrary.

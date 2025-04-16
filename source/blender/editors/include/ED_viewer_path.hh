@@ -90,4 +90,11 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
     bke::ComputeContextCache &compute_context_cache,
     const ComputeContext *parent_compute_context);
 
+/**
+ * The inverse of #compute_context_for_viewer_path_elem. It helps to create a viewer path (which
+ * can be stored in .blend files) from a compute context.
+ */
+[[nodiscard]] ViewerPathElem *viewer_path_elem_for_compute_context(
+    const ComputeContext &compute_context);
+
 }  // namespace blender::ed::viewer_path

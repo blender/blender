@@ -10,6 +10,9 @@
 #include "BLI_compute_context.hh"
 #include "BLI_vector.hh"
 
+struct bNodeTree;
+struct bNode;
+
 namespace blender::nodes {
 
 struct ClosureEvalLocation {
@@ -19,7 +22,11 @@ struct ClosureEvalLocation {
 };
 
 struct ClosureSourceLocation {
-  uint32_t orig_node_tree_session_uid;
+  /**
+   * Tree where the closure is created. Note that this may be an original or evaluated tree,
+   * depending on where it is used.
+   */
+  const bNodeTree *tree;
   int closure_output_node_id;
   ComputeContextHash compute_context_hash;
 };

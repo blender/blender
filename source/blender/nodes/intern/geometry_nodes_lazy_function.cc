@@ -2149,7 +2149,8 @@ struct GeometryNodesLazyFunctionBuilder {
   {
     ZoneBuildInfo &zone_info = zone_build_infos_[zone.index];
     /* Build a function for the closure body. */
-    ZoneBodyFunction &body_fn = this->build_zone_body_function(zone, "Closure Body", nullptr);
+    ZoneBodyFunction &body_fn = this->build_zone_body_function(
+        zone, "Closure Body", &scope_.construct<GeometryNodesLazyFunctionSideEffectProvider>());
     auto &zone_fn = build_closure_zone_lazy_function(scope_, btree_, zone, zone_info, body_fn);
     zone_info.lazy_function = &zone_fn;
   }
@@ -3622,6 +3623,8 @@ struct GeometryNodesLazyFunctionBuilder {
     BLI_assert(inputs_num == function.indices.outputs.input_usages.size());
     BLI_assert(outputs_num == function.indices.outputs.main.size());
     BLI_assert(outputs_num == function.indices.inputs.output_usages.size());
+
+    mapping_->possible_side_effect_node_map.add(&bnode, &lf_node);
 
     for (const int i : IndexRange(inputs_num)) {
       const bNodeSocket &bsocket = bnode.input_socket(i);

@@ -226,11 +226,16 @@ ClosureValueLog::ClosureValueLog(Vector<Item> inputs,
                                  Vector<Item> outputs,
                                  const std::optional<ClosureSourceLocation> &source_location,
                                  std::shared_ptr<ClosureEvalLog> eval_log)
-    : inputs(std::move(inputs)),
-      outputs(std::move(outputs)),
-      source_location(source_location),
-      eval_log(std::move(eval_log))
+    : inputs(std::move(inputs)), outputs(std::move(outputs)), eval_log(std::move(eval_log))
 {
+  if (source_location) {
+    const bNodeTree *tree_eval = source_location->tree;
+    const bNodeTree *tree_orig = reinterpret_cast<const bNodeTree *>(
+        DEG_get_original_id(&tree_eval->id));
+    this->source = Source{tree_orig->id.session_uid,
+                          source_location->closure_output_node_id,
+                          source_location->compute_context_hash};
+  }
 }
 
 /* Avoid generating these in every translation unit. */
@@ -751,7 +756,8 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
     const std::optional<nodes::ClosureSourceLocation> &location =
         context->closure_source_location();
     if (location.has_value()) {
-      tree_logger.tree_orig_session_uid = location->orig_node_tree_session_uid;
+      BLI_assert(DEG_is_evaluated_id(&location->tree->id));
+      tree_logger.tree_orig_session_uid = DEG_get_original_id(&location->tree->id)->session_uid;
     }
   }
   else if (const auto *context = dynamic_cast<const bke::ModifierComputeContext *>(

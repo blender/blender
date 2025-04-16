@@ -146,7 +146,8 @@ void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_p
       }
       case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
         auto *typed_elem = reinterpret_cast<EvaluateClosureNodeViewerPathElem *>(elem);
-        BKE_LIB_FOREACHID_PROCESS_ID(data, typed_elem->closure_tree, IDWALK_CB_DIRECT_WEAK_LINK);
+        BKE_LIB_FOREACHID_PROCESS_ID(
+            data, typed_elem->source_node_tree, IDWALK_CB_DIRECT_WEAK_LINK);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_MODIFIER:
@@ -327,9 +328,9 @@ ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src)
     case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
       const auto *old_elem = reinterpret_cast<const EvaluateClosureNodeViewerPathElem *>(src);
       auto *new_elem = reinterpret_cast<EvaluateClosureNodeViewerPathElem *>(dst);
-      new_elem->closure_output_node_id = old_elem->closure_output_node_id;
+      new_elem->source_output_node_id = old_elem->source_output_node_id;
       new_elem->evaluate_node_id = old_elem->evaluate_node_id;
-      new_elem->closure_tree = old_elem->closure_tree;
+      new_elem->source_node_tree = old_elem->source_node_tree;
       break;
     }
   }
@@ -386,9 +387,9 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
     case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
       const auto *a_elem = reinterpret_cast<const EvaluateClosureNodeViewerPathElem *>(a);
       const auto *b_elem = reinterpret_cast<const EvaluateClosureNodeViewerPathElem *>(b);
-      return a_elem->closure_output_node_id == b_elem->closure_output_node_id &&
+      return a_elem->source_output_node_id == b_elem->source_output_node_id &&
              a_elem->evaluate_node_id == b_elem->evaluate_node_id &&
-             a_elem->closure_tree == b_elem->closure_tree;
+             a_elem->source_node_tree == b_elem->source_node_tree;
     }
   }
   return false;
