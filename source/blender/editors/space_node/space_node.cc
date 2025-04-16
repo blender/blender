@@ -1018,6 +1018,10 @@ static bool node_group_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*ev
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
+  if (snode == nullptr) {
+    return false;
+  }
+
   if (snode->edittree == nullptr) {
     return false;
   }
