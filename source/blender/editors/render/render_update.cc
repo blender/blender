@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
@@ -254,6 +255,12 @@ static void texture_changed(Main *bmain, Tex *tex)
           blender::ed::space_node::tag_update_id(&scene->id);
         }
       }
+    }
+  }
+
+  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+    if (ELEM(tex, brush->mtex.tex, brush->mask_mtex.tex)) {
+      BKE_brush_tag_unsaved_changes(brush);
     }
   }
 }
