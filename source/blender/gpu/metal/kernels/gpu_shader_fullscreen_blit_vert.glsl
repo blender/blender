@@ -9,5 +9,5 @@ void main()
    * Next we scale to NDC range [-1,1]. */
   gl_Position = float4((((pos * size + dst_offset) / fullscreen) * 2.0f - 1.0f), 1.0f, 1.0f);
   float2 uvoff = (src_offset / fullscreen);
-  uvcoordsvar = float4(pos + uvoff, 0.0f, 0.0f);
+  screen_uv = float2(pos + uvoff);
 }
