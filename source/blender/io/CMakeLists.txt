@@ -28,6 +28,10 @@ if(WITH_IO_GREASE_PENCIL)
   add_subdirectory(grease_pencil)
 endif()
 
+if(WITH_IO_FBX)
+  add_subdirectory(fbx)
+endif()
+
 if(WITH_ALEMBIC)
   add_subdirectory(alembic)
 endif()
