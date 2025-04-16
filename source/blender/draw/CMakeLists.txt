@@ -144,10 +144,10 @@ set(SRC
   engines/select/select_engine.cc
   engines/select/select_instance.cc
   engines/overlay/overlay_armature.cc
-  engines/overlay/overlay_next_engine.cc
-  engines/overlay/overlay_next_instance.cc
-  engines/overlay/overlay_next_shader.cc
-  engines/overlay/overlay_next_shape.cc
+  engines/overlay/overlay_engine.cc
+  engines/overlay/overlay_instance.cc
+  engines/overlay/overlay_shader.cc
+  engines/overlay/overlay_shape.cc
 
   DRW_engine.hh
   DRW_pbvh.hh
@@ -239,48 +239,47 @@ set(SRC
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
   engines/overlay/overlay_engine.h
-  engines/overlay/overlay_next_antialiasing.hh
-  engines/overlay/overlay_next_armature.hh
-  engines/overlay/overlay_next_attribute_text.hh
-  engines/overlay/overlay_next_attribute_viewer.hh
-  engines/overlay/overlay_next_axes.hh
-  engines/overlay/overlay_next_background.hh
-  engines/overlay/overlay_next_base.hh
-  engines/overlay/overlay_next_bounds.hh
-  engines/overlay/overlay_next_camera.hh
-  engines/overlay/overlay_next_cursor.hh
-  engines/overlay/overlay_next_curve.hh
-  engines/overlay/overlay_next_edit_text.hh
-  engines/overlay/overlay_next_empty.hh
-  engines/overlay/overlay_next_facing.hh
-  engines/overlay/overlay_next_fade.hh
-  engines/overlay/overlay_next_fluid.hh
-  engines/overlay/overlay_next_force_field.hh
-  engines/overlay/overlay_next_grease_pencil.hh
-  engines/overlay/overlay_next_grid.hh
-  engines/overlay/overlay_next_image.hh
-  engines/overlay/overlay_next_instance.hh
-  engines/overlay/overlay_next_lattice.hh
-  engines/overlay/overlay_next_light.hh
-  engines/overlay/overlay_next_lightprobe.hh
-  engines/overlay/overlay_next_mesh.hh
-  engines/overlay/overlay_next_metaball.hh
-  engines/overlay/overlay_next_mode_transfer.hh
-  engines/overlay/overlay_next_motion_path.hh
-  engines/overlay/overlay_next_name.hh
-  engines/overlay/overlay_next_origin.hh
-  engines/overlay/overlay_next_outline.hh
-  engines/overlay/overlay_next_paint.hh
-  engines/overlay/overlay_next_particle.hh
-  engines/overlay/overlay_next_pointcloud.hh
-  engines/overlay/overlay_next_prepass.hh
-  engines/overlay/overlay_next_private.hh
-  engines/overlay/overlay_next_relation.hh
-  engines/overlay/overlay_next_sculpt.hh
-  engines/overlay/overlay_next_speaker.hh
-  engines/overlay/overlay_next_wireframe.hh
-  engines/overlay/overlay_next_xray_fade.hh
+  engines/overlay/overlay_antialiasing.hh
+  engines/overlay/overlay_armature.hh
+  engines/overlay/overlay_attribute_text.hh
+  engines/overlay/overlay_attribute_viewer.hh
+  engines/overlay/overlay_axes.hh
+  engines/overlay/overlay_background.hh
+  engines/overlay/overlay_base.hh
+  engines/overlay/overlay_bounds.hh
+  engines/overlay/overlay_camera.hh
+  engines/overlay/overlay_cursor.hh
+  engines/overlay/overlay_curve.hh
+  engines/overlay/overlay_edit_text.hh
+  engines/overlay/overlay_empty.hh
+  engines/overlay/overlay_facing.hh
+  engines/overlay/overlay_fade.hh
+  engines/overlay/overlay_fluid.hh
+  engines/overlay/overlay_force_field.hh
+  engines/overlay/overlay_grease_pencil.hh
+  engines/overlay/overlay_grid.hh
+  engines/overlay/overlay_image.hh
+  engines/overlay/overlay_instance.hh
+  engines/overlay/overlay_lattice.hh
+  engines/overlay/overlay_light.hh
+  engines/overlay/overlay_lightprobe.hh
+  engines/overlay/overlay_mesh.hh
+  engines/overlay/overlay_metaball.hh
+  engines/overlay/overlay_mode_transfer.hh
+  engines/overlay/overlay_motion_path.hh
+  engines/overlay/overlay_name.hh
+  engines/overlay/overlay_origin.hh
+  engines/overlay/overlay_outline.hh
+  engines/overlay/overlay_paint.hh
+  engines/overlay/overlay_particle.hh
+  engines/overlay/overlay_pointcloud.hh
+  engines/overlay/overlay_prepass.hh
   engines/overlay/overlay_private.hh
+  engines/overlay/overlay_relation.hh
+  engines/overlay/overlay_sculpt.hh
+  engines/overlay/overlay_speaker.hh
+  engines/overlay/overlay_wireframe.hh
+  engines/overlay/overlay_xray_fade.hh
   engines/select/select_defines.hh
   engines/select/select_engine.hh
   engines/select/select_instance.hh

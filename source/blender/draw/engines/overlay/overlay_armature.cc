@@ -45,7 +45,7 @@
 #include "draw_context_private.hh"
 #include "draw_manager_text.hh"
 
-#include "overlay_next_armature.hh"
+#include "overlay_armature.hh"
 
 #include "draw_cache_impl.hh"
 
