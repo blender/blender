@@ -111,7 +111,7 @@ void geometry_main(VertOut geom_in[2],
   float half_size = sizeEdge;
   /* Enlarge edge for outline drawing. */
   /* Factor of 3.0 out of nowhere! Seems to fix issues with float imprecision. */
-  half_size += (lineStyle == OVERLAY_UV_LINE_STYLE_OUTLINE) ?
+  half_size += (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_OUTLINE) ?
                    max(sizeEdge * (doSmoothWire ? 1.0f : 3.0f), 1.0f) :
                    0.0f;
   /* Add 1 PX for AA. */

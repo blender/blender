@@ -30,7 +30,7 @@ void main()
   float2 dd = fwidth(stipplePos);
   float line_distance = distance(stipplePos, stippleStart) / max(dd.x, dd.y);
 
-  if (lineStyle == OVERLAY_UV_LINE_STYLE_OUTLINE) {
+  if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_OUTLINE) {
     if (use_edge_select) {
       /* TODO(@ideasman42): The current wire-edit color contrast enough against the selection.
        * Look into changing the default theme color instead of reducing contrast with edge-select.
@@ -42,20 +42,20 @@ void main()
     }
     outer_color = float4(float3(0.0f), 1.0f);
   }
-  else if (lineStyle == OVERLAY_UV_LINE_STYLE_DASH) {
+  else if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_DASH) {
     if (fract(line_distance / dashLength) < 0.5f) {
       inner_color = mix(float4(float3(0.35f), 1.0f), colorEdgeSelect, selectionFac);
     }
   }
-  else if (lineStyle == OVERLAY_UV_LINE_STYLE_BLACK) {
+  else if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_BLACK) {
     float4 base_color = float4(float3(0.0f), 1.0f);
     inner_color = mix(base_color, colorEdgeSelect, selectionFac);
   }
-  else if (lineStyle == OVERLAY_UV_LINE_STYLE_WHITE) {
+  else if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_WHITE) {
     float4 base_color = float4(1.0f);
     inner_color = mix(base_color, colorEdgeSelect, selectionFac);
   }
-  else if (lineStyle == OVERLAY_UV_LINE_STYLE_SHADOW) {
+  else if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_SHADOW) {
     inner_color = colorUVShadow;
   }
 

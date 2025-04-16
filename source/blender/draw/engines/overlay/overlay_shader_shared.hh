@@ -20,7 +20,15 @@
 #define BG_SOLID_CHECKER 4
 #define BG_MASK 5
 
-enum OVERLAY_GridBits {
+enum OVERLAY_UVLineStyle : uint32_t {
+  OVERLAY_UV_LINE_STYLE_OUTLINE = 0u,
+  OVERLAY_UV_LINE_STYLE_DASH = 1u,
+  OVERLAY_UV_LINE_STYLE_BLACK = 2u,
+  OVERLAY_UV_LINE_STYLE_WHITE = 3u,
+  OVERLAY_UV_LINE_STYLE_SHADOW = 4u,
+};
+
+enum OVERLAY_GridBits : uint32_t {
   SHOW_AXIS_X = (1u << 0u),
   SHOW_AXIS_Y = (1u << 1u),
   SHOW_AXIS_Z = (1u << 2u),

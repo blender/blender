@@ -14,6 +14,7 @@
 
 #include "BLI_function_ref.hh"
 
+#include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
 #include "GPU_matrix.hh"
@@ -30,9 +31,6 @@
 #include "overlay_shader_shared.hh"
 
 #include "draw_common.hh"
-
-/* Needed for BoneInstanceData. */
-#include "overlay_private.hh"
 
 namespace blender::draw::overlay {
 

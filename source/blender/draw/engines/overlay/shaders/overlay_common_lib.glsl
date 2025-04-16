@@ -6,12 +6,6 @@
 
 #include "draw_view_lib.glsl"
 
-#define OVERLAY_UV_LINE_STYLE_OUTLINE 0
-#define OVERLAY_UV_LINE_STYLE_DASH 1
-#define OVERLAY_UV_LINE_STYLE_BLACK 2
-#define OVERLAY_UV_LINE_STYLE_WHITE 3
-#define OVERLAY_UV_LINE_STYLE_SHADOW 4
-
 /* Wire Color Types, matching eV3DShadingColorType. */
 #define V3D_SHADING_SINGLE_COLOR 2
 #define V3D_SHADING_OBJECT_COLOR 4
