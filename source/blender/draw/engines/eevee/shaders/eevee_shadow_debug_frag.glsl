@@ -207,7 +207,7 @@ void main()
   out_color_mul = float4(1.0f);
 
   float depth = texelFetch(hiz_tx, int2(gl_FragCoord.xy), 0).r;
-  float3 P = drw_point_screen_to_world(float3(uvcoordsvar.xy, depth));
+  float3 P = drw_point_screen_to_world(float3(screen_uv, depth));
   /* Make it pass the depth test. */
   gl_FragDepth = depth - 1e-6f;
 

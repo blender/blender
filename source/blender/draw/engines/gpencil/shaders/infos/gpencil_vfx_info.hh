@@ -9,8 +9,8 @@
 
 #  include "gpencil_shader_shared.h"
 
-#  include "draw_fullscreen_info.hh"
 #  include "draw_view_info.hh"
+#  include "gpu_shader_fullscreen_info.hh"
 
 #  define COMPOSITE
 #endif
@@ -32,7 +32,7 @@ DO_STATIC_COMPILATION()
 DEFINE("COMPOSITE")
 PUSH_CONSTANT(bool, isFirstPass)
 ADDITIONAL_INFO(gpencil_fx_common)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpencil_fx_colorize)
@@ -43,7 +43,7 @@ PUSH_CONSTANT(float3, highColor)
 PUSH_CONSTANT(float, factor)
 PUSH_CONSTANT(int, mode)
 ADDITIONAL_INFO(gpencil_fx_common)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpencil_fx_blur)
@@ -52,7 +52,7 @@ DEFINE("BLUR")
 PUSH_CONSTANT(float2, offset)
 PUSH_CONSTANT(int, sampCount)
 ADDITIONAL_INFO(gpencil_fx_common)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpencil_fx_transform)
@@ -66,7 +66,7 @@ PUSH_CONSTANT(float2, swirlCenter)
 PUSH_CONSTANT(float, swirlAngle)
 PUSH_CONSTANT(float, swirlRadius)
 ADDITIONAL_INFO(gpencil_fx_common)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpencil_fx_glow)
@@ -80,7 +80,7 @@ PUSH_CONSTANT(bool, firstPass)
 PUSH_CONSTANT(bool, glowUnder)
 PUSH_CONSTANT(int, blendMode)
 ADDITIONAL_INFO(gpencil_fx_common)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpencil_fx_rim)
@@ -94,7 +94,7 @@ PUSH_CONSTANT(int, sampCount)
 PUSH_CONSTANT(int, blendMode)
 PUSH_CONSTANT(bool, isFirstPass)
 ADDITIONAL_INFO(gpencil_fx_common)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpencil_fx_shadow)
@@ -111,7 +111,7 @@ PUSH_CONSTANT(float, wavePhase)
 PUSH_CONSTANT(int, sampCount)
 PUSH_CONSTANT(bool, isFirstPass)
 ADDITIONAL_INFO(gpencil_fx_common)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpencil_fx_pixelize)
@@ -122,5 +122,5 @@ PUSH_CONSTANT(float2, targetPixelOffset)
 PUSH_CONSTANT(float2, accumOffset)
 PUSH_CONSTANT(int, sampCount)
 ADDITIONAL_INFO(gpencil_fx_common)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()

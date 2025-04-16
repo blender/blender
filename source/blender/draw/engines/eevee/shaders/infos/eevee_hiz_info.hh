@@ -6,9 +6,9 @@
 #  pragma once
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "draw_fullscreen_info.hh"
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"
+#  include "gpu_shader_fullscreen_info.hh"
 #endif
 
 #include "eevee_defines.hh"
@@ -49,5 +49,5 @@ FRAGMENT_OUT_DUAL(0, float4, out_debug_color_mul, SRC_1)
 FRAGMENT_SOURCE("eevee_hiz_debug_frag.glsl")
 ADDITIONAL_INFO(eevee_shared)
 ADDITIONAL_INFO(eevee_hiz_data)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()

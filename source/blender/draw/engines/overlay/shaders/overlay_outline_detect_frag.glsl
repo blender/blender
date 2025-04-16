@@ -166,7 +166,7 @@ void diag_dir(bool4 edges1, bool4 edges2, out float2 line_start, out float2 line
 
 void main()
 {
-  uint ref = textureLod(outlineId, uvcoordsvar.xy, 0.0f).r;
+  uint ref = textureLod(outlineId, screen_uv, 0.0f).r;
   uint ref_col = ref;
 
   float2 uvs = gl_FragCoord.xy * sizeViewportInv;

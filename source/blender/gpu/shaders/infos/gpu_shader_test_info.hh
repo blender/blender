@@ -19,7 +19,7 @@
 GPU_SHADER_CREATE_INFO(gpu_shader_test)
 TYPEDEF_SOURCE("GPU_shader_shared.hh")
 FRAGMENT_OUT(0, uint4, out_test)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpu_math_test)

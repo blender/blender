@@ -32,8 +32,8 @@ void main()
    * This removes the alpha channel and put the background behind reference images
    * while masking the reference images by the render alpha.
    */
-  float alpha = texture(colorBuffer, uvcoordsvar.xy).a;
-  float depth = texture(depthBuffer, uvcoordsvar.xy).r;
+  float alpha = texture(colorBuffer, screen_uv).a;
+  float depth = texture(depthBuffer, screen_uv).r;
 
   float3 bg_col;
   float3 col_high;
@@ -51,7 +51,7 @@ void main()
       /* XXX do interpolation in a non-linear space to have a better visual result. */
       col_high = pow(colorBackground.rgb, float3(1.0f / 2.2f));
       col_low = pow(colorBackgroundGradient.rgb, float3(1.0f / 2.2f));
-      bg_col = mix(col_low, col_high, uvcoordsvar.y);
+      bg_col = mix(col_low, col_high, screen_uv.y);
       /* Convert back to linear. */
       bg_col = pow(bg_col, float3(2.2f));
       /*  Dither to hide low precision buffer. (Could be improved) */
@@ -62,7 +62,7 @@ void main()
       col_high = pow(colorBackground.rgb, float3(1.0f / 2.2f));
       col_low = pow(colorBackgroundGradient.rgb, float3(1.0f / 2.2f));
 
-      float2 uv_n = uvcoordsvar.xy - 0.5f;
+      float2 uv_n = screen_uv - 0.5f;
       bg_col = mix(col_high, col_low, length(uv_n) * M_SQRT2);
 
       /* Convert back to linear. */

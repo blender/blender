@@ -7,9 +7,9 @@
 #  include "gpu_glsl_cpp_stubs.hh"
 
 #  include "draw_common_shader_shared.hh"
-#  include "draw_fullscreen_info.hh"
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
+#  include "gpu_shader_fullscreen_info.hh"
 
 #  include "gpu_index_load_info.hh"
 #  include "gpu_shader_create_info.hh"
@@ -147,7 +147,7 @@ SAMPLER(2, DEPTH_2D, sceneDepth)
 FRAGMENT_OUT(0, float4, fragColor)
 FRAGMENT_OUT(1, float4, lineOutput)
 FRAGMENT_SOURCE("overlay_outline_detect_frag.glsl")
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()

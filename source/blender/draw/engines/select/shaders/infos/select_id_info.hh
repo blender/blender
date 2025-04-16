@@ -61,7 +61,7 @@ GPU_SHADER_CREATE_END()
 /** \} */
 
 GPU_SHADER_CREATE_INFO(select_debug_fullscreen)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 FRAGMENT_SOURCE("select_debug_frag.glsl")
 SAMPLER(0, UINT_2D, image)
 FRAGMENT_OUT(0, float4, fragColor)

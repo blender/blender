@@ -6,11 +6,11 @@
 #  pragma once
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "draw_fullscreen_info.hh"
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"
 #  include "eevee_shader_shared.hh"
+#  include "gpu_shader_fullscreen_info.hh"
 
 #  define SPHERE_PROBE
 #endif
@@ -60,7 +60,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(eevee_volume_occupancy_convert)
 ADDITIONAL_INFO(eevee_shared)
 ADDITIONAL_INFO(eevee_global_ubo)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 BUILTINS(BuiltinBits::TEXTURE_ATOMIC)
 IMAGE(VOLUME_HIT_DEPTH_SLOT, GPU_R32F, READ, FLOAT_3D, hit_depth_img)
 IMAGE(VOLUME_HIT_COUNT_SLOT, GPU_R32UI, READ_WRITE, UINT_2D, hit_count_img)
@@ -88,7 +88,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(eevee_volume_resolve)
 ADDITIONAL_INFO(eevee_shared)
 ADDITIONAL_INFO(eevee_volume_lib)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 ADDITIONAL_INFO(eevee_render_pass_out)
 ADDITIONAL_INFO(eevee_hiz_data)
 FRAGMENT_SOURCE("eevee_volume_resolve_frag.glsl")

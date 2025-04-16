@@ -23,7 +23,7 @@ void main()
 
   float depth = texelFetch(hiz_tx, texel, 0).r;
   float vP_z = drw_depth_screen_to_view(depth);
-  float3 P = drw_point_screen_to_world(float3(uvcoordsvar.xy, depth));
+  float3 P = drw_point_screen_to_world(float3(screen_uv, depth));
 
   float light_count = 0.0f;
   uint light_cull = 0u;

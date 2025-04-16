@@ -16,8 +16,8 @@ void main()
   /* Revealage is actually stored in transparentAccum alpha channel.
    * This is a workaround to older hardware not having separate blend equation per render target.
    */
-  float4 trans_accum = texture(transparentAccum, uvcoordsvar.xy);
-  float trans_weight = texture(transparentRevealage, uvcoordsvar.xy).r;
+  float4 trans_accum = texture(transparentAccum, screen_uv);
+  float trans_weight = texture(transparentRevealage, screen_uv).r;
   float trans_reveal = trans_accum.a;
 
   /* Listing 4 */

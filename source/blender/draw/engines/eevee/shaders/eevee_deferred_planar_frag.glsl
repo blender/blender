@@ -44,7 +44,7 @@ void main()
     }
   }
 
-  float3 P = drw_point_screen_to_world(float3(uvcoordsvar.xy, depth));
+  float3 P = drw_point_screen_to_world(float3(screen_uv, depth));
   float3 Ng = gbuffer_geometry_normal_unpack(gbuf.header, gbuf.surface_N);
   float3 V = drw_world_incident_vector(P);
   float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());

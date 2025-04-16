@@ -6,11 +6,11 @@
 #  pragma once
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "draw_fullscreen_info.hh"
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"
 #  include "eevee_shader_shared.hh"
+#  include "gpu_shader_fullscreen_info.hh"
 
 #  define SPHERE_PROBE
 #endif
@@ -331,7 +331,7 @@ PUSH_CONSTANT(int, debug_mode)
 PUSH_CONSTANT(int, debug_tilemap_index)
 DEPTH_WRITE(DepthWrite::ANY)
 FRAGMENT_SOURCE("eevee_shadow_debug_frag.glsl")
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(eevee_hiz_data)
 ADDITIONAL_INFO(eevee_light_data)

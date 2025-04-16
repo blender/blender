@@ -118,7 +118,7 @@ void main()
   constexpr float bias = 2.4e-7f;
   depth -= bias;
 
-  float3 P = drw_point_screen_to_world(float3(uvcoordsvar.xy, depth));
+  float3 P = drw_point_screen_to_world(float3(screen_uv, depth));
   float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
 
   float3 Ng = gbuffer_normal_unpack(imageLoad(gbuf_normal_img, int3(texel, 0)).rg);

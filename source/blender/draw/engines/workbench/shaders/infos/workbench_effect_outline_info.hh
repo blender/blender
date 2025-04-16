@@ -6,7 +6,7 @@
 #  pragma once
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "draw_fullscreen_info.hh"
+#  include "gpu_shader_fullscreen_info.hh"
 
 #  include "workbench_shader_shared.h"
 #endif
@@ -19,6 +19,6 @@ FRAGMENT_SOURCE("workbench_effect_outline_frag.glsl")
 SAMPLER(0, UINT_2D, objectIdBuffer)
 UNIFORM_BUF(WB_WORLD_SLOT, WorldData, world_data)
 FRAGMENT_OUT(0, float4, fragColor)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
