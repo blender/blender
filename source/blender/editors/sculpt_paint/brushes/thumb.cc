@@ -25,7 +25,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace thumb_cc {
 
@@ -183,4 +183,4 @@ void do_thumb_brush(const Depsgraph &depsgraph,
   pbvh.flush_bounds_to_parents();
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

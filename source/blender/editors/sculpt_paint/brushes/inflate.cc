@@ -23,7 +23,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace inflate_cc {
 
@@ -187,4 +187,4 @@ void do_inflate_brush(const Depsgraph &depsgraph,
   pbvh.flush_bounds_to_parents();
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

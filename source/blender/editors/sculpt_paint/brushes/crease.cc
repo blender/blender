@@ -24,7 +24,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace crease_cc {
 
@@ -281,4 +281,4 @@ void do_blob_brush(const Depsgraph &depsgraph,
   do_crease_or_blob_brush(depsgraph, scene, sd, true, object, node_mask);
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

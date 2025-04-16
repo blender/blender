@@ -21,7 +21,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace relax_cc {
 
@@ -819,4 +819,4 @@ void do_topology_relax_brush(const Depsgraph &depsgraph,
     }
   }
 }
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

@@ -24,7 +24,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 inline namespace mask_cc {
 
 struct LocalData {
@@ -270,4 +270,4 @@ void do_mask_brush(const Depsgraph &depsgraph,
   pbvh.tag_masks_changed(node_mask);
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

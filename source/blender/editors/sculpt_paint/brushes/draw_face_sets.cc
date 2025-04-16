@@ -22,7 +22,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 inline namespace draw_face_sets_cc {
 
 constexpr float FACE_SET_BRUSH_MIN_FADE = 0.05f;
@@ -442,4 +442,4 @@ void do_draw_face_sets_brush(const Depsgraph &depsgraph,
       break;
   }
 }
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

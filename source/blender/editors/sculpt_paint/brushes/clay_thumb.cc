@@ -30,7 +30,7 @@
 
 #include <numeric>
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace clay_thumb_cc {
 
@@ -259,4 +259,4 @@ float clay_thumb_get_stabilized_pressure(const StrokeCache &cache)
   return pressure_sum / cache.clay_thumb_brush.pressure_stabilizer.size();
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

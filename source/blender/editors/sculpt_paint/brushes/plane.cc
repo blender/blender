@@ -41,7 +41,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace plane_cc {
 
@@ -464,7 +464,7 @@ void do_plane_brush(const Depsgraph &depsgraph,
   pbvh.flush_bounds_to_parents();
 }
 
-namespace brushes::plane {
+namespace plane {
 NodeMaskResult calc_node_mask(const Depsgraph &depsgraph,
                               Object &ob,
                               const Brush &brush,
@@ -502,6 +502,6 @@ NodeMaskResult calc_node_mask(const Depsgraph &depsgraph,
 
   return {plane_mask, plane_center, plane_normal};
 }
-}  // namespace brushes::plane
+}  // namespace plane
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

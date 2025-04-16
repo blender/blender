@@ -33,7 +33,7 @@
 #include "editors/sculpt_paint/sculpt_automask.hh"
 #include "editors/sculpt_paint/sculpt_intern.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 struct ScrapeSampleData {
   std::array<float3, 2> area_cos;
@@ -795,4 +795,4 @@ void multiplane_scrape_preview_draw(const uint gpuattr,
   immEnd();
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

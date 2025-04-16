@@ -894,22 +894,6 @@ bool SCULPT_use_image_paint_brush(PaintModeSettings &settings, Object &ob);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Brush Specific Functionality
- * \{ */
-
-namespace blender::ed::sculpt_paint {
-void multiplane_scrape_preview_draw(uint gpuattr,
-                                    const Brush &brush,
-                                    const SculptSession &ss,
-                                    const float outline_col[3],
-                                    float outline_alpha);
-
-float clay_thumb_get_stabilized_pressure(const StrokeCache &cache);
-}  // namespace blender::ed::sculpt_paint
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Operators
  * \{ */
 

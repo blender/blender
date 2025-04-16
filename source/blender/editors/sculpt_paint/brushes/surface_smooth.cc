@@ -25,7 +25,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace surface_smooth_cc {
 
@@ -408,4 +408,4 @@ void do_surface_smooth_brush(const Depsgraph &depsgraph,
   pbvh.update_bounds(depsgraph, object);
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

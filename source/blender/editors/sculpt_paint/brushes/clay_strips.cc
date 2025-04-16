@@ -27,7 +27,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace clay_strips_cc {
 
@@ -344,7 +344,7 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   pbvh.flush_bounds_to_parents();
 }
 
-namespace brushes::clay_strips {
+namespace clay_strips {
 NodeMaskResult calc_node_mask(const Depsgraph &depsgraph,
                               Object &object,
                               const Brush &brush,
@@ -398,6 +398,6 @@ NodeMaskResult calc_node_mask(const Depsgraph &depsgraph,
 
   return {plane_mask, plane_center, plane_normal};
 }
-}  // namespace brushes::clay_strips
+}  // namespace clay_strips
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

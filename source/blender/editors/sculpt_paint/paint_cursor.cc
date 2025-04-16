@@ -72,6 +72,8 @@
 /* Needed for determining tool material/vertex-color pinning. */
 #include "grease_pencil_intern.hh"
 
+#include "brushes/brushes.hh"
+
 /* TODOs:
  *
  * Some of the cursor drawing code is doing non-draw stuff
@@ -1997,7 +1999,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
   }
 
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE) {
-    multiplane_scrape_preview_draw(
+    brushes::multiplane_scrape_preview_draw(
         pcontext.pos, brush, ss, pcontext.outline_col, pcontext.outline_alpha);
   }
 

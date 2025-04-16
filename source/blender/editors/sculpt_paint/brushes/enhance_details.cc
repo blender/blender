@@ -25,8 +25,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
-
+namespace blender::ed::sculpt_paint::brushes {
 inline namespace enhance_details_cc {
 
 struct LocalData {
@@ -195,58 +194,6 @@ static void calc_translations_bmesh(const bke::pbvh::BMeshNode &node,
 
 }  // namespace enhance_details_cc
 
-void calc_smooth_translations(const Depsgraph &depsgraph,
-                              const Object &object,
-                              const IndexMask &node_mask,
-                              const MutableSpan<float3> translations)
-{
-  const SculptSession &ss = *object.sculpt;
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-
-  threading::EnumerableThreadSpecific<LocalData> all_tls;
-  switch (pbvh.type()) {
-    case bke::pbvh::Type::Mesh: {
-      Mesh &mesh = *static_cast<Mesh *>(object.data);
-      const MeshAttributeData attribute_data(mesh);
-      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
-      const OffsetIndices faces = mesh.faces();
-      const Span<int> corner_verts = mesh.corner_verts();
-      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-      const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
-      node_mask.foreach_index(GrainSize(1), [&](const int i) {
-        LocalData &tls = all_tls.local();
-        calc_translations_faces(positions_eval,
-                                faces,
-                                corner_verts,
-                                vert_to_face_map,
-                                attribute_data.hide_poly,
-                                nodes[i],
-                                tls,
-                                translations);
-      });
-      break;
-    }
-    case bke::pbvh::Type::Grids: {
-      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-      const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
-      node_mask.foreach_index(GrainSize(1), [&](const int i) {
-        LocalData &tls = all_tls.local();
-        calc_translations_grids(subdiv_ccg, nodes[i], tls, translations);
-      });
-      break;
-    }
-    case bke::pbvh::Type::BMesh:
-      BM_mesh_elem_index_ensure(ss.bm, BM_VERT);
-      BM_mesh_elem_table_ensure(ss.bm, BM_VERT);
-      const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
-      node_mask.foreach_index(GrainSize(1), [&](const int i) {
-        LocalData &tls = all_tls.local();
-        calc_translations_bmesh(nodes[i], tls, translations);
-      });
-      break;
-  }
-}
-
 void do_enhance_details_brush(const Depsgraph &depsgraph,
                               const Sculpt &sd,
                               Object &object,
@@ -317,6 +264,60 @@ void do_enhance_details_brush(const Depsgraph &depsgraph,
   }
   pbvh.tag_positions_changed(node_mask);
   pbvh.flush_bounds_to_parents();
+}
+
+}  // namespace blender::ed::sculpt_paint::brushes
+namespace blender::ed::sculpt_paint {
+void calc_smooth_translations(const Depsgraph &depsgraph,
+                              const Object &object,
+                              const IndexMask &node_mask,
+                              const MutableSpan<float3> translations)
+{
+  const SculptSession &ss = *object.sculpt;
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+
+  threading::EnumerableThreadSpecific<brushes::LocalData> all_tls;
+  switch (pbvh.type()) {
+    case bke::pbvh::Type::Mesh: {
+      Mesh &mesh = *static_cast<Mesh *>(object.data);
+      const MeshAttributeData attribute_data(mesh);
+      const Span<float3> positions_eval = bke::pbvh::vert_positions_eval(depsgraph, object);
+      const OffsetIndices faces = mesh.faces();
+      const Span<int> corner_verts = mesh.corner_verts();
+      const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
+      const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        brushes::LocalData &tls = all_tls.local();
+        calc_translations_faces(positions_eval,
+                                faces,
+                                corner_verts,
+                                vert_to_face_map,
+                                attribute_data.hide_poly,
+                                nodes[i],
+                                tls,
+                                translations);
+      });
+      break;
+    }
+    case bke::pbvh::Type::Grids: {
+      SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+      const Span<bke::pbvh::GridsNode> nodes = pbvh.nodes<bke::pbvh::GridsNode>();
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        brushes::LocalData &tls = all_tls.local();
+        calc_translations_grids(subdiv_ccg, nodes[i], tls, translations);
+      });
+      break;
+    }
+    case bke::pbvh::Type::BMesh:
+      BM_mesh_elem_index_ensure(ss.bm, BM_VERT);
+      BM_mesh_elem_table_ensure(ss.bm, BM_VERT);
+      const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
+      node_mask.foreach_index(GrainSize(1), [&](const int i) {
+        brushes::LocalData &tls = all_tls.local();
+        calc_translations_bmesh(nodes[i], tls, translations);
+      });
+      break;
+  }
 }
 
 }  // namespace blender::ed::sculpt_paint

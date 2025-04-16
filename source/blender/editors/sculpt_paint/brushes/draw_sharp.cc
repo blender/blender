@@ -24,7 +24,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace draw_sharp_cc {
 
@@ -194,4 +194,4 @@ void do_draw_sharp_brush(const Depsgraph &depsgraph,
   offset_positions(depsgraph, sd, object, offset, node_mask);
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes
