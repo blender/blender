@@ -33,7 +33,7 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
         nonlocal has_copy
 
         changed_items = []
-        for km_index, (km_name, _km_parms, km_items_data) in enumerate(keyconfig_data):
+        for km_index, (_km_name, _km_parms, km_items_data) in enumerate(keyconfig_data):
             for kmi_item_index, (item_op, item_event, item_prop) in enumerate(km_items_data["items"]):
                 if item_prop and item_op in op_prop_map:
                     properties = item_prop.get("properties", [])

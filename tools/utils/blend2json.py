@@ -258,7 +258,7 @@ def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
     indent = indent + indent_step
 
     is_first = True
-    for i, block in enumerate(blend.blocks):
+    for block in blend.blocks:
         if block.user_data is None or block.user_data > 0:
             meta_keyval = gen_meta_keyval(blend, block)
             if full_data:
@@ -280,7 +280,7 @@ def bdna_to_json(args, fw, blend, indent, indent_step):
 
     def bdna_fields_to_json(blend, dna, indent, indent_step):
         lst = []
-        for i, field in enumerate(dna.fields):
+        for field in dna.fields:
             keyval = (
                 ("dna_name", json_dumps(field.dna_name.name_only)),
                 ("dna_type_id", json_dumps(field.dna_type.dna_type_id)),

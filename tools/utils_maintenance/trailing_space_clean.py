@@ -10,13 +10,13 @@ __all__ = (
 import os
 from os.path import join
 
-from trailing_space_clean_config import PATHS
-
 from collections.abc import (
     Callable,
     Iterator,
     Sequence,
 )
+
+from trailing_space_clean_config import PATHS
 
 SOURCE_EXT = (
     # C/C++

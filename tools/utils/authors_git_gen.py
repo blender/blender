@@ -200,7 +200,7 @@ class Credits:
         chunk_size = 256
         chunk_list = []
         chunk = []
-        for i, c in enumerate(commit_iter):
+        for c in commit_iter:
             chunk.append(c)
             if len(chunk) >= chunk_size:
                 chunk_list.append(chunk)

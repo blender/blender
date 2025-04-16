@@ -1721,7 +1721,7 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
 
 
 class USERPREF_UL_asset_libraries(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         asset_library = item
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:

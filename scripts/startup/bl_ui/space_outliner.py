@@ -176,8 +176,6 @@ class OUTLINER_MT_id_data(Menu):
     def draw(self, context):
         layout = self.layout
 
-        space = context.space_data
-
         layout.operator_enum("outliner.id_operation", "type")
 
         id_linked = getattr(context, "id", None)

@@ -258,6 +258,7 @@ def cppcheck(cppcheck_dir: str, temp_dir: str, log_fh: IO[bytes]) -> None:
     process_functions = []
 
     def my_process(i: int, c: str, cmd: list[str]) -> subprocess.Popen[Any]:
+        del c
         proc = subprocess.Popen(
             cmd,
             stderr=subprocess.PIPE,
