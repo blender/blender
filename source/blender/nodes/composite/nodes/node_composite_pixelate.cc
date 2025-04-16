@@ -26,17 +26,13 @@ namespace blender::nodes::node_composite_pixelate_cc {
 static void cmp_node_pixelate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Color").compositor_domain_priority(0);
+  b.add_input<decl::Int>("Size")
+      .default_value(1)
+      .min(1)
+      .description("The number of pixels that correspond to the same output pixel")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Color");
-}
-
-static void node_composit_init_pixelate(bNodeTree * /*ntree*/, bNode *node)
-{
-  node->custom1 = 1;
-}
-
-static void node_composit_buts_pixelate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -115,7 +111,7 @@ class PixelateOperation : public NodeOperation {
 
   float get_pixel_size()
   {
-    return bnode().custom1;
+    return math::max(1, this->get_input("Size").get_single_value_default(1));
   }
 };
 
@@ -140,8 +136,6 @@ void register_node_type_cmp_pixelate()
   ntype.enum_name_legacy = "PIXELATE";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_pixelate_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_pixelate;
-  ntype.initfunc = file_ns::node_composit_init_pixelate;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

@@ -777,6 +777,10 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
     if (node->type_legacy == CMP_NODE_INPAINT) {
       write_input_to_property_int16("Size", node->custom2);
     }
+
+    if (node->type_legacy == CMP_NODE_PIXELATE) {
+      write_input_to_property_int16("Size", node->custom1);
+    }
   }
 }
 

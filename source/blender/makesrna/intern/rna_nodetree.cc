@@ -9712,10 +9712,14 @@ static void def_cmp_pixelate(BlenderRNA * /*brna*/, StructRNA *srna)
    * exceed the underlying int16_t type. The size limit matches the maximum size used by blur
    * nodes. */
   prop = RNA_def_property(srna, "pixel_size", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "custom1");
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_size>",
+                             "rna_node_property_to_input_setter<int, node_input_size>",
+                             nullptr);
   RNA_def_property_range(prop, 1, 2048);
   RNA_def_property_int_default(prop, 1);
-  RNA_def_property_ui_text(prop, "Pixel Size", "Pixel size of the output image");
+  RNA_def_property_ui_text(
+      prop, "Pixel Size", "Pixel size of the output image. (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
