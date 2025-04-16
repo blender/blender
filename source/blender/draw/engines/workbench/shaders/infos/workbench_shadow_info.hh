@@ -13,7 +13,7 @@
 #  include "draw_view_info.hh"
 #  include "gpu_index_load_info.hh"
 
-#  include "workbench_shader_shared.h"
+#  include "workbench_shader_shared.hh"
 #  define DYNAMIC_PASS_SELECTION
 #  define SHADOW_PASS
 #  define SHADOW_FAIL
@@ -33,7 +33,7 @@ STORAGE_BUF_FREQ(3, READ, float, pos[], GEOMETRY)
 /* WORKAROUND: Needed to support OpenSubdiv vertex format. Should be removed. */
 PUSH_CONSTANT(int2, gpu_attr_3)
 UNIFORM_BUF(1, ShadowPassData, pass_data)
-TYPEDEF_SOURCE("workbench_shader_shared.h")
+TYPEDEF_SOURCE("workbench_shader_shared.hh")
 ADDITIONAL_INFO(gpu_index_buffer_load)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
@@ -49,7 +49,7 @@ PUSH_CONSTANT(int, view_len)
 PUSH_CONSTANT(int, visibility_word_per_draw)
 PUSH_CONSTANT(bool, force_fail_method)
 PUSH_CONSTANT(float3, shadow_direction)
-TYPEDEF_SOURCE("workbench_shader_shared.h")
+TYPEDEF_SOURCE("workbench_shader_shared.hh")
 COMPUTE_SOURCE("workbench_shadow_visibility_comp.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_view_culling)

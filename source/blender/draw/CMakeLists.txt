@@ -288,7 +288,7 @@ set(SRC
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_enums.hh
   engines/workbench/workbench_private.hh
-  engines/workbench/workbench_shader_shared.h
+  engines/workbench/workbench_shader_shared.hh
 )
 
 set(LIB
@@ -535,7 +535,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_volume_vert.glsl
   engines/workbench/shaders/workbench_world_light_lib.glsl
 
-  engines/workbench/workbench_shader_shared.h
+  engines/workbench/workbench_shader_shared.hh
 
   intern/shaders/subdiv_custom_data_interp_comp.glsl
   intern/shaders/subdiv_ibo_lines_comp.glsl
@@ -593,8 +593,8 @@ set(GLSL_SRC
   engines/gpencil/shaders/gpencil_depth_merge_vert.glsl
   engines/gpencil/shaders/gpencil_vfx_frag.glsl
 
-  engines/gpencil/gpencil_defines.h
-  engines/gpencil/gpencil_shader_shared.h
+  engines/gpencil/gpencil_defines.hh
+  engines/gpencil/gpencil_shader_shared.hh
 
   engines/select/shaders/select_id_vert.glsl
   engines/select/shaders/select_id_frag.glsl
@@ -722,7 +722,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_wireframe_vert.glsl
   engines/overlay/shaders/overlay_xray_fade_frag.glsl
 
-  engines/overlay/overlay_shader_shared.h
+  engines/overlay/overlay_shader_shared.hh
 
   engines/image/shaders/image_engine_color_frag.glsl
   engines/image/shaders/image_engine_color_vert.glsl

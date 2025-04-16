@@ -23,9 +23,9 @@
 
 #define GP_LIGHT
 
-#include "gpencil_defines.h"
+#include "gpencil_defines.hh"
 #include "gpencil_shader.hh"
-#include "gpencil_shader_shared.h"
+#include "gpencil_shader_shared.hh"
 
 struct GpencilBatchCache;
 struct Object;

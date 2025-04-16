@@ -12,7 +12,7 @@
 
 #  include "gpu_index_load_info.hh"
 
-#  include "overlay_shader_shared.h"
+#  include "overlay_shader_shared.hh"
 
 #  define HAIR_SHADER
 #  define DRW_HAIR_INFO
@@ -481,7 +481,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 STORAGE_BUF_FREQ(0, READ, float, pos[], GEOMETRY)
 STORAGE_BUF_FREQ(1, READ, uint, data[], GEOMETRY)
 PUSH_CONSTANT(int2, gpu_attr_0)
@@ -505,7 +505,7 @@ OVERLAY_INFO_CLIP_VARIATION(overlay_edit_curve_handle)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_point)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 VERTEX_IN(0, float3, pos)
 VERTEX_IN(1, uint, data)
 VERTEX_OUT(overlay_edit_flat_color_iface)
@@ -571,7 +571,7 @@ OVERLAY_INFO_CLIP_VARIATION(overlay_edit_curve_normals)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curves_handle)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 STORAGE_BUF_FREQ(0, READ, float, pos[], GEOMETRY)
 STORAGE_BUF_FREQ(1, READ, uint, data[], GEOMETRY)
 STORAGE_BUF_FREQ(2, READ, float, selection[], GEOMETRY)
@@ -593,13 +593,13 @@ OVERLAY_INFO_CLIP_VARIATION(overlay_edit_curves_handle)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curves_point)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 DEFINE("CURVES_POINT")
 VERTEX_IN(0, float3, pos)
 VERTEX_IN(1, uint, data)
 VERTEX_IN(2, float, selection)
 #if 1 /* TODO(fclem): Required for legacy gpencil overlay. To be moved to specialized shader. */
-TYPEDEF_SOURCE("gpencil_shader_shared.h")
+TYPEDEF_SOURCE("gpencil_shader_shared.hh")
 VERTEX_IN(3, uint, vflag)
 PUSH_CONSTANT(bool, doStrokeEndpoints)
 #endif
@@ -689,8 +689,8 @@ PUSH_CONSTANT(bool, useWeight)
 PUSH_CONSTANT(bool, useGreasePencil)
 FRAGMENT_OUT(0, float4, fragColor)
 #if 1 /* TODO(fclem): Required for legacy gpencil overlay. To be moved to specialized shader. */
-TYPEDEF_SOURCE("gpencil_shader_shared.h")
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("gpencil_shader_shared.hh")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 VERTEX_IN(3, uint, vflag)
 PUSH_CONSTANT(bool, doStrokeEndpoints)
 #endif
@@ -765,7 +765,7 @@ NO_PERSPECTIVE(float, hardness)
 GPU_SHADER_NAMED_INTERFACE_END(gp_interp_noperspective)
 
 GPU_SHADER_CREATE_INFO(overlay_depth_gpencil_base)
-TYPEDEF_SOURCE("gpencil_shader_shared.h")
+TYPEDEF_SOURCE("gpencil_shader_shared.hh")
 VERTEX_OUT(overlay_depth_only_gpencil_flat_iface)
 VERTEX_OUT(overlay_depth_only_gpencil_noperspective_iface)
 VERTEX_SOURCE("overlay_depth_only_gpencil_vert.glsl")

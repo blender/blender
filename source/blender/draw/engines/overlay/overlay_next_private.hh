@@ -27,7 +27,7 @@
 #include "gpu_shader_create_info.hh"
 
 #include "../select/select_instance.hh"
-#include "overlay_shader_shared.h"
+#include "overlay_shader_shared.hh"
 
 #include "draw_common.hh"
 

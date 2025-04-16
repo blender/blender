@@ -9,7 +9,7 @@
 
 #  define GP_LIGHT
 
-#  include "gpencil_shader_shared.h"
+#  include "gpencil_shader_shared.hh"
 
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
@@ -25,7 +25,7 @@
 
 #include "gpu_shader_create_info.hh"
 
-#include "gpencil_defines.h"
+#include "gpencil_defines.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name GPencil Object rendering
@@ -51,7 +51,7 @@ GPU_SHADER_NAMED_INTERFACE_END(gp_interp_noperspective)
 GPU_SHADER_CREATE_INFO(gpencil_geometry)
 DO_STATIC_COMPILATION()
 DEFINE("GP_LIGHT")
-TYPEDEF_SOURCE("gpencil_defines.h")
+TYPEDEF_SOURCE("gpencil_defines.hh")
 SAMPLER(2, FLOAT_2D, gpFillTexture)
 SAMPLER(3, FLOAT_2D, gpStrokeTexture)
 SAMPLER(4, DEPTH_2D, gpSceneDepthTexture)

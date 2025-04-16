@@ -9,7 +9,7 @@
 #  include "draw_common_shader_shared.hh"
 #  include "draw_view_info.hh"
 
-#  include "overlay_shader_shared.h"
+#  include "overlay_shader_shared.hh"
 #endif
 
 #include "overlay_common_info.hh"
@@ -21,7 +21,7 @@ GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_grid_next)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 VERTEX_IN(0, float3, pos)
 VERTEX_OUT(overlay_grid_iface)
 FRAGMENT_OUT(0, float4, out_color)

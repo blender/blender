@@ -15,7 +15,7 @@
 #include "DRW_render.hh"
 
 #include "overlay_next_base.hh"
-#include "overlay_shader_shared.h"
+#include "overlay_shader_shared.hh"
 
 namespace blender::draw::overlay {
 using namespace blender;

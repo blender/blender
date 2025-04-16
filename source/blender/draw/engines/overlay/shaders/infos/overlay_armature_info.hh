@@ -13,7 +13,7 @@
 #  include "gpu_index_load_info.hh"
 
 #  include "overlay_common_info.hh"
-#  include "overlay_shader_shared.h"
+#  include "overlay_shader_shared.hh"
 #endif
 
 #include "overlay_common_info.hh"
@@ -152,7 +152,7 @@ PUSH_CONSTANT(bool, use_arrow_drawing)
 VERTEX_OUT(overlay_armature_shape_wire_iface)
 VERTEX_SOURCE("overlay_armature_shape_wire_vert.glsl")
 FRAGMENT_SOURCE("overlay_armature_shape_wire_frag.glsl")
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 ADDITIONAL_INFO(overlay_frag_output)
 ADDITIONAL_INFO(overlay_armature_common)
 ADDITIONAL_INFO(gpu_index_buffer_load)
@@ -177,7 +177,7 @@ OVERLAY_INFO_VARIATIONS(overlay_armature_shape_wire_strip)
 
 GPU_SHADER_CREATE_INFO(overlay_armature_envelope_outline)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 VERTEX_IN(0, float2, pos0)
 VERTEX_IN(1, float2, pos1)
 VERTEX_IN(2, float2, pos2)
@@ -200,7 +200,7 @@ GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_armature_envelope_solid)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 VERTEX_IN(0, float3, pos)
 VERTEX_OUT(overlay_armature_envelope_solid_iface)
 PUSH_CONSTANT(bool, isDistance)
@@ -227,7 +227,7 @@ FLAT(float4, finalInnerColor)
 GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_armature_stick_base)
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 /* Bone aligned screen space. */
 VERTEX_IN(0, float2, pos)
 VERTEX_IN(1, int, vclass)
@@ -250,7 +250,7 @@ OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_armature_stick, overlay_armature_stick_
 
 GPU_SHADER_CREATE_INFO(overlay_armature_dof)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 VERTEX_IN(0, float2, pos)
 VERTEX_OUT(overlay_armature_wire_iface)
 VERTEX_SOURCE("overlay_armature_dof_vert.glsl")
@@ -270,7 +270,7 @@ OVERLAY_INFO_CLIP_VARIATION(overlay_armature_dof)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(overlay_armature_wire_base)
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 PUSH_CONSTANT(float, alpha)
 VERTEX_OUT(overlay_armature_wire_iface)
 VERTEX_SOURCE("overlay_armature_wire_vert.glsl")

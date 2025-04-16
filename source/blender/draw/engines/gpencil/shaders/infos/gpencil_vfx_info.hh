@@ -7,7 +7,7 @@
 
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "gpencil_shader_shared.h"
+#  include "gpencil_shader_shared.hh"
 
 #  include "draw_view_info.hh"
 #  include "gpu_shader_fullscreen_info.hh"

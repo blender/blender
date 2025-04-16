@@ -19,7 +19,7 @@
 
 #include "draw_handle.hh"
 
-#include "overlay_shader_shared.h"
+#include "overlay_shader_shared.hh"
 
 /* Needed for eSpaceImage_UVDT_Stretch and eMaskOverlayMode */
 #include "DNA_mask_types.h"

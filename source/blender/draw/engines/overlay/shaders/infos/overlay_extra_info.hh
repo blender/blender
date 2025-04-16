@@ -12,7 +12,7 @@
 
 #  include "gpu_index_load_info.hh"
 
-#  include "overlay_shader_shared.h"
+#  include "overlay_shader_shared.hh"
 #endif
 
 #include "overlay_common_info.hh"
@@ -29,7 +29,7 @@ GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_extra)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 VERTEX_IN(0, float3, pos)
 VERTEX_IN(1, int, vclass)
 VERTEX_OUT(overlay_extra_iface)
@@ -116,7 +116,7 @@ FRAGMENT_OUT(0, float4, fragColor)
 FRAGMENT_OUT(1, float4, lineOutput)
 VERTEX_SOURCE("overlay_extra_wire_vert.glsl")
 FRAGMENT_SOURCE("overlay_extra_wire_frag.glsl")
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 STORAGE_BUF(0, READ, VertexData, data_buf[])
 PUSH_CONSTANT(int, colorid)
 DEFINE_VALUE("pos", "data_buf[gl_VertexID].pos_.xyz")
@@ -165,7 +165,7 @@ VERTEX_SOURCE("overlay_extra_point_vert.glsl")
 FRAGMENT_SOURCE("overlay_point_varying_color_varying_outline_aa_frag.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 STORAGE_BUF(0, READ, VertexData, data_buf[])
 GPU_SHADER_CREATE_END()
 
@@ -181,7 +181,7 @@ FRAGMENT_OUT(0, float4, fragColor)
 FRAGMENT_OUT(1, float4, lineOutput)
 VERTEX_SOURCE("overlay_extra_loose_point_vert.glsl")
 FRAGMENT_SOURCE("overlay_extra_loose_point_frag.glsl")
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 STORAGE_BUF(0, READ, VertexData, data_buf[])
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
@@ -226,7 +226,7 @@ GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(overlay_motion_path_point)
 DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 VERTEX_IN(0, float3, pos)
 VERTEX_IN(1, int, flag)
 PUSH_CONSTANT(int4, mpathPointSettings)
@@ -333,7 +333,7 @@ GPU_SHADER_CREATE_END()
 OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_particle_dot, overlay_particle_dot_base)
 
 GPU_SHADER_CREATE_INFO(overlay_particle_shape_base)
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 SAMPLER(0, FLOAT_1D, weightTex)
 PUSH_CONSTANT(float4, ucolor) /* Draw-size packed in alpha. */
 PUSH_CONSTANT(int, shape_type)
@@ -351,7 +351,7 @@ GPU_SHADER_CREATE_END()
 OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_particle_shape, overlay_particle_shape_base)
 
 GPU_SHADER_CREATE_INFO(overlay_particle_hair_base)
-TYPEDEF_SOURCE("overlay_shader_shared.h")
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 VERTEX_IN(0, float3, pos)
 VERTEX_IN(1, float3, nor)
 PUSH_CONSTANT(int, colorType)

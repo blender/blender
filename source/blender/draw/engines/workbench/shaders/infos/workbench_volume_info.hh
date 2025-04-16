@@ -10,7 +10,7 @@
 
 #  include "draw_object_infos_info.hh"
 
-#  include "workbench_shader_shared.h"
+#  include "workbench_shader_shared.hh"
 #  define VOLUME_SMOKE
 #  define VOLUME_OBJECT
 #  define USE_COBA

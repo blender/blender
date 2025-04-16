@@ -60,7 +60,7 @@ class Preprocessor {
     if (filename.find(".glsl") != std::string::npos) {
       return GLSL;
     }
-    if (filename.find(".h") != std::string::npos) {
+    if (filename.find(".hh") != std::string::npos) {
       return CPP;
     }
     return UNKNOWN;

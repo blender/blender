@@ -26,7 +26,7 @@
 
 #include "mtl_framebuffer.hh"
 #include "mtl_shader_interface.hh"
-#include "mtl_shader_shared.h"
+#include "mtl_shader_shared.hh"
 #include "mtl_state.hh"
 #include "mtl_texture.hh"
 

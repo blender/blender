@@ -7,7 +7,7 @@
 #  include "gpu_glsl_cpp_stubs.hh"
 
 #  include "draw_shader_shared.hh"
-#  include "gpencil_shader_shared.h"
+#  include "gpencil_shader_shared.hh"
 
 #  include "draw_view_info.hh"
 
@@ -99,7 +99,7 @@ ADDITIONAL_INFO(draw_modelmat)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_gpencil)
-TYPEDEF_SOURCE("gpencil_shader_shared.h")
+TYPEDEF_SOURCE("gpencil_shader_shared.hh")
 DEFINE("DRW_GPENCIL_INFO")
 SAMPLER(0, FLOAT_BUFFER, gp_pos_tx)
 SAMPLER(1, FLOAT_BUFFER, gp_col_tx)

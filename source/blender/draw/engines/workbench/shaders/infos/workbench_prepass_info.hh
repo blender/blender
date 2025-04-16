@@ -12,7 +12,7 @@
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
 
-#  include "workbench_shader_shared.h"
+#  include "workbench_shader_shared.hh"
 #  define WORKBENCH_COLOR_MATERIAL
 #  define WORKBENCH_COLOR_TEXTURE
 #  define WORKBENCH_TEXTURE_IMAGE_ARRAY
@@ -132,7 +132,7 @@ FRAGMENT_OUT(0, float4, out_transparent_accum)
 FRAGMENT_OUT(1, float4, out_revealage_accum)
 FRAGMENT_OUT(2, uint, out_object_id)
 PUSH_CONSTANT(bool, forceShadowing)
-TYPEDEF_SOURCE("workbench_shader_shared.h")
+TYPEDEF_SOURCE("workbench_shader_shared.hh")
 FRAGMENT_SOURCE("workbench_transparent_accum_frag.glsl")
 GPU_SHADER_CREATE_END()
 
@@ -140,7 +140,7 @@ GPU_SHADER_CREATE_INFO(workbench_opaque)
 FRAGMENT_OUT(0, float4, out_material)
 FRAGMENT_OUT(1, float2, out_normal)
 FRAGMENT_OUT(2, uint, out_object_id)
-TYPEDEF_SOURCE("workbench_shader_shared.h")
+TYPEDEF_SOURCE("workbench_shader_shared.hh")
 FRAGMENT_SOURCE("workbench_prepass_frag.glsl")
 GPU_SHADER_CREATE_END()
 
