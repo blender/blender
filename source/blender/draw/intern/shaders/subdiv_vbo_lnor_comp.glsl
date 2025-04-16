@@ -20,12 +20,12 @@ bool is_face_hidden(uint coarse_quad_index)
 float get_loop_flag(uint coarse_quad_index, int vert_origindex)
 {
   if (is_face_hidden(coarse_quad_index) || (shader_data.is_edit_mode && vert_origindex == -1)) {
-    return -1.0;
+    return -1.0f;
   }
   if (is_face_selected(coarse_quad_index)) {
-    return 1.0;
+    return 1.0f;
   }
-  return 0.0;
+  return 0.0f;
 }
 
 void main()
@@ -58,12 +58,12 @@ void main()
     PosNorLoop pos_nor1 = pos_nor[start_loop_index + 1];
     PosNorLoop pos_nor2 = pos_nor[start_loop_index + 2];
     PosNorLoop pos_nor3 = pos_nor[start_loop_index + 3];
-    vec3 v0 = subdiv_get_vertex_pos(pos_nor0);
-    vec3 v1 = subdiv_get_vertex_pos(pos_nor1);
-    vec3 v2 = subdiv_get_vertex_pos(pos_nor2);
-    vec3 v3 = subdiv_get_vertex_pos(pos_nor3);
+    float3 v0 = subdiv_get_vertex_pos(pos_nor0);
+    float3 v1 = subdiv_get_vertex_pos(pos_nor1);
+    float3 v2 = subdiv_get_vertex_pos(pos_nor2);
+    float3 v3 = subdiv_get_vertex_pos(pos_nor3);
 
-    vec3 face_normal = vec3(0.0);
+    float3 face_normal = float3(0.0f);
     add_newell_cross_v3_v3v3(face_normal, v0, v1);
     add_newell_cross_v3_v3v3(face_normal, v1, v2);
     add_newell_cross_v3_v3v3(face_normal, v2, v3);

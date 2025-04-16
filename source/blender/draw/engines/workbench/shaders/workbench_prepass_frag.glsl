@@ -17,7 +17,7 @@ void main()
   out_object_id = uint(object_id);
   out_normal = workbench_normal_encode(gl_FrontFacing, normal_interp);
 
-  out_material = vec4(color_interp, workbench_float_pair_encode(_roughness, metallic));
+  out_material = float4(color_interp, workbench_float_pair_encode(_roughness, metallic));
 
 #ifdef WORKBENCH_COLOR_TEXTURE
   out_material.rgb = workbench_image_color(uv_interp);

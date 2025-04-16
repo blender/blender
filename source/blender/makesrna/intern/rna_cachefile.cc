@@ -191,6 +191,7 @@ static void rna_def_cachefile_layer(BlenderRNA *brna)
 
   PropertyRNA *prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_ui_text(prop, "File Path", "Path to the archive");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_update(prop, 0, "rna_CacheFileLayer_update");
 
   prop = RNA_def_property(srna, "hide_layer", PROP_BOOLEAN, PROP_NONE);
@@ -246,6 +247,7 @@ static void rna_def_cachefile(BlenderRNA *brna)
 
   PropertyRNA *prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_ui_text(prop, "File Path", "Path to external displacements file");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_update(prop, 0, "rna_CacheFile_update");
 
   prop = RNA_def_property(srna, "is_sequence", PROP_BOOLEAN, PROP_NONE);

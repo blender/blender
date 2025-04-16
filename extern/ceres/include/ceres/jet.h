@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -724,7 +724,6 @@ inline Jet<T, N> hypot(const Jet<T, N>& x, const Jet<T, N>& y) {
   return Jet<T, N>(tmp, x.a / tmp * x.v + y.a / tmp * y.v);
 }
 
-#ifdef CERES_HAS_CPP17
 // Like sqrt(x^2 + y^2 + z^2),
 // but acts to prevent underflow/overflow for small/large x/y/z.
 // Note that the function is non-smooth at x=y=z=0,
@@ -744,7 +743,6 @@ inline Jet<T, N> hypot(const Jet<T, N>& x,
   const T tmp = hypot(x.a, y.a, z.a);
   return Jet<T, N>(tmp, x.a / tmp * x.v + y.a / tmp * y.v + z.a / tmp * z.v);
 }
-#endif  // defined(CERES_HAS_CPP17)
 
 // Like x * y + z but rounded only once.
 template <typename T, int N>
@@ -757,28 +755,76 @@ inline Jet<T, N> fma(const Jet<T, N>& x,
   return Jet<T, N>(fma(x.a, y.a, z.a), y.a * x.v + x.a * y.v + z.v);
 }
 
-// Returns the larger of the two arguments. NaNs are treated as missing data.
+// Return value of fmax() and fmin() on equality
+// ---------------------------------------------
+//
+// There is arguably no good answer to what fmax() & fmin() should return on
+// equality, which for Jets by definition ONLY compares the scalar parts. We
+// choose what we think is the least worst option (averaging as Jets) which
+// minimises undesirable/unexpected behaviour as used, and also supports client
+// code written against Ceres versions prior to type promotion being supported
+// in Jet comparisons (< v2.1).
+//
+// The std::max() convention of returning the first argument on equality is
+// problematic, as it means that the derivative component may or may not be
+// preserved (when comparing a Jet with a scalar) depending upon the ordering.
+//
+// Always returning the Jet in {Jet, scalar} cases on equality is problematic
+// as it is inconsistent with the behaviour that would be obtained if the scalar
+// was first cast to Jet and the {Jet, Jet} case was used. Prior to type
+// promotion (Ceres v2.1) client code would typically cast constants to Jets
+// e.g: fmax(x, T(2.0)) which means the {Jet, Jet} case predominates, and we
+// still want the result to be order independent.
+//
+// Our intuition is that preserving a non-zero derivative is best, even if
+// its value does not match either of the inputs. Averaging achieves this
+// whilst ensuring argument ordering independence. This is also the approach
+// used by the Jax library, and TensorFlow's reduce_max().
+
+// Returns the larger of the two arguments, with Jet averaging on equality.
+// NaNs are treated as missing data.
 //
 // NOTE: This function is NOT subject to any of the error conditions specified
-// in `math_errhandling`.
+//       in `math_errhandling`.
 template <typename Lhs,
           typename Rhs,
           std::enable_if_t<CompatibleJetOperands_v<Lhs, Rhs>>* = nullptr>
-inline decltype(auto) fmax(const Lhs& f, const Rhs& g) {
+inline decltype(auto) fmax(const Lhs& x, const Rhs& y) {
   using J = std::common_type_t<Lhs, Rhs>;
-  return (isnan(g) || isgreater(f, g)) ? J{f} : J{g};
+  // As x == y may set FP exceptions in the presence of NaNs when used with
+  // non-default compiler options so we avoid its use here.
+  if (isnan(x) || isnan(y) || islessgreater(x, y)) {
+    return isnan(x) || isless(x, y) ? J{y} : J{x};
+  }
+  // x == y (scalar parts) return the average of their Jet representations.
+#if defined(CERES_HAS_CPP20)
+  return midpoint(J{x}, J{y});
+#else
+  return (J{x} + J{y}) * typename J::Scalar(0.5);
+#endif  // defined(CERES_HAS_CPP20)
 }
 
-// Returns the smaller of the two arguments. NaNs are treated as missing data.
+// Returns the smaller of the two arguments, with Jet averaging on equality.
+// NaNs are treated as missing data.
 //
 // NOTE: This function is NOT subject to any of the error conditions specified
-// in `math_errhandling`.
+//       in `math_errhandling`.
 template <typename Lhs,
           typename Rhs,
           std::enable_if_t<CompatibleJetOperands_v<Lhs, Rhs>>* = nullptr>
-inline decltype(auto) fmin(const Lhs& f, const Rhs& g) {
+inline decltype(auto) fmin(const Lhs& x, const Rhs& y) {
   using J = std::common_type_t<Lhs, Rhs>;
-  return (isnan(f) || isless(g, f)) ? J{g} : J{f};
+  // As x == y may set FP exceptions in the presence of NaNs when used with
+  // non-default compiler options so we avoid its use here.
+  if (isnan(x) || isnan(y) || islessgreater(x, y)) {
+    return isnan(x) || isgreater(x, y) ? J{y} : J{x};
+  }
+  // x == y (scalar parts) return the average of their Jet representations.
+#if defined(CERES_HAS_CPP20)
+  return midpoint(J{x}, J{y});
+#else
+  return (J{x} + J{y}) * typename J::Scalar(0.5);
+#endif  // defined(CERES_HAS_CPP20)
 }
 
 // Returns the positive difference (f - g) of two arguments and zero if f <= g.
@@ -804,7 +850,7 @@ template <typename T, int N>
 inline Jet<T, N> erf(const Jet<T, N>& x) {
   // We evaluate the constant as follows:
   //   2 / sqrt(pi) = 1 / sqrt(atan(1.))
-  // On POSIX sytems it is defined as M_2_SQRTPI, but this is not
+  // On POSIX systems it is defined as M_2_SQRTPI, but this is not
   // portable and the type may not be T.  The above expression
   // evaluates to full precision with IEEE arithmetic and, since it's
   // constant, the compiler can generate exactly the same code.  gcc
@@ -828,25 +874,19 @@ inline Jet<T, N> erfc(const Jet<T, N>& x) {
 // function errors in client code (the specific warning is suppressed when
 // Ceres itself is built).
 inline double BesselJ0(double x) {
-#if defined(CERES_MSVC_USE_UNDERSCORE_PREFIXED_BESSEL_FUNCTIONS)
-  return _j0(x);
-#else
+  CERES_DISABLE_DEPRECATED_WARNING
   return j0(x);
-#endif
+  CERES_RESTORE_DEPRECATED_WARNING
 }
 inline double BesselJ1(double x) {
-#if defined(CERES_MSVC_USE_UNDERSCORE_PREFIXED_BESSEL_FUNCTIONS)
-  return _j1(x);
-#else
+  CERES_DISABLE_DEPRECATED_WARNING
   return j1(x);
-#endif
+  CERES_RESTORE_DEPRECATED_WARNING
 }
 inline double BesselJn(int n, double x) {
-#if defined(CERES_MSVC_USE_UNDERSCORE_PREFIXED_BESSEL_FUNCTIONS)
-  return _jn(n, x);
-#else
+  CERES_DISABLE_DEPRECATED_WARNING
   return jn(n, x);
-#endif
+  CERES_RESTORE_DEPRECATED_WARNING
 }
 
 // For the formulae of the derivatives of the Bessel functions see the book:
@@ -1264,8 +1304,13 @@ struct numeric_limits<ceres::Jet<T, N>> {
   static constexpr bool is_bounded = std::numeric_limits<T>::is_bounded;
   static constexpr bool is_modulo = std::numeric_limits<T>::is_modulo;
 
+  // has_denorm (and has_denorm_loss, not defined for Jet) has been deprecated
+  // in C++23. However, without an intent to remove the declaration. Disable
+  // deprecation warnings temporarily just for the corresponding symbols.
+  CERES_DISABLE_DEPRECATED_WARNING
   static constexpr std::float_denorm_style has_denorm =
       std::numeric_limits<T>::has_denorm;
+  CERES_RESTORE_DEPRECATED_WARNING
   static constexpr std::float_round_style round_style =
       std::numeric_limits<T>::round_style;
 
@@ -1335,6 +1380,7 @@ struct NumTraits<ceres::Jet<T, N>> {
   }
 
   static inline int digits10() { return NumTraits<T>::digits10(); }
+  static inline int max_digits10() { return NumTraits<T>::max_digits10(); }
 
   enum {
     IsComplex = 0,

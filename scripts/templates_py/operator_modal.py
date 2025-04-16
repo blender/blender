@@ -54,5 +54,5 @@ def unregister():
 if __name__ == "__main__":
     register()
 
-    # test call
+    # Test call.
     bpy.ops.object.modal_operator('INVOKE_DEFAULT')

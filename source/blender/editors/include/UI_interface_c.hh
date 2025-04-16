@@ -2403,6 +2403,16 @@ float uiLayoutGetSearchWeight(uiLayout *layout);
 int uiLayoutListItemPaddingWidth();
 void uiLayoutListItemAddPadding(uiLayout *layout);
 
+/** Support suppressing checks typically performed to communicate issues to users. */
+enum class LayoutSuppressFlag : uint8_t {
+  PathSupportsBlendFileRelative = 1 << 0,
+};
+ENUM_OPERATORS(LayoutSuppressFlag, LayoutSuppressFlag::PathSupportsBlendFileRelative)
+
+LayoutSuppressFlag uiLayoutSuppressFlagGet(const uiLayout *layout);
+void uiLayoutSuppressFlagSet(uiLayout *layout, LayoutSuppressFlag flag);
+void uiLayoutSuppressFlagClear(uiLayout *layout, LayoutSuppressFlag flag);
+
 /* Layout create functions. */
 
 uiLayout *uiLayoutRow(uiLayout *layout, bool align);
@@ -3472,7 +3482,7 @@ const uiStyle *UI_style_get(); /* use for fonts etc */
  */
 const uiStyle *UI_style_get_dpi();
 
-/* UI_OT_editsource helpers */
+/* #UI_OT_editsource helpers. */
 bool UI_editsource_enable_check();
 void UI_editsource_active_but_test(uiBut *but);
 /**

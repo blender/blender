@@ -339,7 +339,7 @@ bool space_image_main_region_poll(bContext *C)
   return false;
 }
 
-/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or editmode */
+/** For #IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or edit-mode. */
 static bool space_image_main_area_not_uv_brush_poll(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -357,12 +357,16 @@ static bool space_image_main_area_not_uv_brush_poll(bContext *C)
 /** \name View Pan Operator
  * \{ */
 
+namespace {
+
 struct ViewPanData {
   float x, y;
   float xof, yof;
   int launch_event;
   bool own_cursor;
 };
+
+}  // namespace
 
 static void image_view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -504,6 +508,8 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 /** \name View Zoom Operator
  * \{ */
 
+namespace {
+
 struct ViewZoomData {
   float origx, origy;
   float zoom;
@@ -519,6 +525,8 @@ struct ViewZoomData {
   SpaceImage *sima;
   ARegion *region;
 };
+
+}  // namespace
 
 static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 {

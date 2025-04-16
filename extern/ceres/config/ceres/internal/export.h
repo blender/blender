@@ -33,6 +33,7 @@
 #  define CERES_DEPRECATED_NO_EXPORT CERES_NO_EXPORT CERES_DEPRECATED
 #endif
 
+/* NOLINTNEXTLINE(readability-avoid-unconditional-preprocessor-if) */
 #if 0 /* DEFINE_NO_DEPRECATED */
 #  ifndef CERES_NO_DEPRECATED
 #    define CERES_NO_DEPRECATED

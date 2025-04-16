@@ -242,7 +242,8 @@ struct PaintOperation : public PaintModeData {
   }
 };
 
-static void gradient_draw_line(bContext * /*C*/, int x, int y, void *customdata)
+static void gradient_draw_line(
+    bContext * /*C*/, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
 {
   PaintOperation *pop = (PaintOperation *)customdata;
 

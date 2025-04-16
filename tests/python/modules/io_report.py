@@ -28,6 +28,16 @@ def fmtf(f: float) -> str:
     return f"{f:.3f}"
 
 
+def fmtrot(f: float) -> str:
+    str = fmtf(f)
+    # rotation by -PI is the same as by +PI, due to platform
+    # precision differences we might get one or another. Make
+    # sure to emit consistent value.
+    if str == "-3.142":
+        str = "3.142"
+    return str
+
+
 def is_approx_identity(mat: Matrix, tol=0.001):
     identity = Matrix.Identity(4)
     return all(abs(mat[i][j] - identity[i][j]) <= tol for i in range(4) for j in range(4))
@@ -482,7 +492,7 @@ class Report:
                 desc.write(f"\n")
                 desc.write(f"  - pos {fmtf(obj.location[0])}, {fmtf(obj.location[1])}, {fmtf(obj.location[2])}\n")
                 desc.write(
-                    f"  - rot {fmtf(obj.rotation_euler[0])}, {fmtf(obj.rotation_euler[1])}, {fmtf(obj.rotation_euler[2])} ({obj.rotation_mode})\n")
+                    f"  - rot {fmtrot(obj.rotation_euler[0])}, {fmtrot(obj.rotation_euler[1])}, {fmtrot(obj.rotation_euler[2])} ({obj.rotation_mode})\n")
                 desc.write(f"  - scl {obj.scale[0]:.3f}, {obj.scale[1]:.3f}, {obj.scale[2]:.3f}\n")
                 if obj.vertex_groups:
                     desc.write(f"  - {len(obj.vertex_groups)} vertex groups\n")

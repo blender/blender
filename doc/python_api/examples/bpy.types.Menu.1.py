@@ -34,5 +34,5 @@ class SubMenu(bpy.types.Menu):
 
 bpy.utils.register_class(SubMenu)
 
-# test call to display immediately.
+# Test call to display immediately.
 bpy.ops.wm.call_menu(name="OBJECT_MT_select_submenu")

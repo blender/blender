@@ -8,10 +8,10 @@
 
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "workbench_shader_shared.h"
+#  include "workbench_shader_shared.hh"
 
-#  include "draw_fullscreen_info.hh"
 #  include "draw_view_info.hh"
+#  include "gpu_shader_fullscreen_info.hh"
 
 #  define WORKBENCH_LIGHTING_STUDIO
 #  define WORKBENCH_LIGHTING_MATCAP
@@ -33,11 +33,11 @@ SAMPLER(3, DEPTH_2D, depth_tx)
 SAMPLER(4, FLOAT_2D, normal_tx)
 SAMPLER(5, FLOAT_2D, material_tx)
 UNIFORM_BUF(WB_WORLD_SLOT, WorldData, world_data)
-TYPEDEF_SOURCE("workbench_shader_shared.h")
-PUSH_CONSTANT(BOOL, forceShadowing)
-FRAGMENT_OUT(0, VEC4, fragColor)
+TYPEDEF_SOURCE("workbench_shader_shared.hh")
+PUSH_CONSTANT(bool, forceShadowing)
+FRAGMENT_OUT(0, float4, fragColor)
 FRAGMENT_SOURCE("workbench_composite_frag.glsl")
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 ADDITIONAL_INFO(draw_view)
 GPU_SHADER_CREATE_END()
 
@@ -68,7 +68,7 @@ DEFINE("WORKBENCH_CAVITY")
 /* TODO(@pragma37): GPU_SAMPLER_EXTEND_MODE_REPEAT is set in CavityEffect,
  * it doesn't work here? */
 SAMPLER(7, FLOAT_2D, jitter_tx)
-UNIFORM_BUF(5, vec4, cavity_samples[512])
+UNIFORM_BUF(5, float4, cavity_samples[512])
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_resolve_shadow)

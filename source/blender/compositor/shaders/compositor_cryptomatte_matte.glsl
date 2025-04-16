@@ -16,12 +16,12 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  vec4 layer = texture_load(layer_tx, texel + lower_bound);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
+  float4 layer = texture_load(layer_tx, texel + lower_bound);
 
   /* Each Cryptomatte layer stores two ranks. */
-  vec2 first_rank = layer.xy;
-  vec2 second_rank = layer.zw;
+  float2 first_rank = layer.xy;
+  float2 second_rank = layer.zw;
 
   /* Each Cryptomatte rank stores a pair of an identifier and the coverage of the entity identified
    * by that identifier. */
@@ -32,7 +32,7 @@ void main()
 
   /* Loop over all identifiers selected by the user, if the identifier of either of the ranks match
    * it, accumulate its coverage. */
-  float total_coverage = 0.0;
+  float total_coverage = 0.0f;
   for (int i = 0; i < identifiers_count; i++) {
     float identifier = identifiers[i];
     if (identifier_of_first_rank == identifier) {
@@ -44,5 +44,5 @@ void main()
   }
 
   /* Add the total coverage to the coverage accumulated by previous layers. */
-  imageStore(matte_img, texel, imageLoad(matte_img, texel) + vec4(total_coverage));
+  imageStore(matte_img, texel, imageLoad(matte_img, texel) + float4(total_coverage));
 }

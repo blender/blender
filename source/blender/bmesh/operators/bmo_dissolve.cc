@@ -121,7 +121,6 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 {
   BMOIter oiter;
   BMFace *f;
-  BMFace *act_face = bm->act_face;
   BMWalker regwalker;
 
   const bool use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
@@ -189,12 +188,15 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
   for (Vector<BMFace *> &faces : regions) {
     const int64_t faces_len = faces.size();
 
-    BMFace *f_new = BM_faces_join(bm, faces.data(), faces_len, true);
+    BMFace *f_double;
+
+    BMFace *f_new = BM_faces_join(bm, faces.data(), faces_len, true, &f_double);
+
+    /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
+    BLI_assert_msg(f_double == nullptr,
+                   "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+
     if (f_new != nullptr) {
-      /* Maintain the active face. */
-      if (act_face && bm->act_face == nullptr) {
-        bm->act_face = f_new;
-      }
       totface_target -= faces_len - 1;
 
       /* If making the new face failed (e.g. overlapping test)
@@ -242,7 +244,6 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 {
   // BMOperator fop;
-  BMFace *act_face = bm->act_face;
   BMOIter eiter;
   BMIter iter;
   BMEdge *e, *e_next;
@@ -305,18 +306,15 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     if (BM_edge_loop_pair(e, &l_a, &l_b)) {
       BMFace *f_new;
 
+      BMFace *f_double;
+
       /* join faces */
-      f_new = BM_faces_join_pair(bm, l_a, l_b, false);
+      f_new = BM_faces_join_pair(bm, l_a, l_b, false, &f_double);
+
+      /* This algorithm actually does check for double faces. */
       if (f_new && BM_face_find_double(f_new)) {
         BM_face_kill(bm, f_new);
         f_new = nullptr;
-      }
-
-      if (f_new) {
-        /* maintain active face */
-        if (act_face && bm->act_face == nullptr) {
-          bm->act_face = f_new;
-        }
       }
     }
   }
@@ -355,7 +353,6 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
   BMIter iter;
   BMVert *v, *v_next;
   BMEdge *e, *e_next;
-  BMFace *act_face = bm->act_face;
 
   const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
   const bool use_boundary_tear = BMO_slot_bool_get(op->slots_in, "use_boundary_tear");
@@ -426,18 +423,15 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
         if (BM_edge_loop_pair(e, &l_a, &l_b)) {
           BMFace *f_new;
 
+          BMFace *f_double;
+
           /* join faces */
-          f_new = BM_faces_join_pair(bm, l_a, l_b, false);
+          f_new = BM_faces_join_pair(bm, l_a, l_b, false, &f_double);
+
+          /* This algorithm actually does check for double faces. */
           if (f_new && BM_face_find_double(f_new)) {
             BM_face_kill(bm, f_new);
             f_new = nullptr;
-          }
-
-          if (f_new) {
-            /* maintain active face */
-            if (act_face && bm->act_face == nullptr) {
-              bm->act_face = f_new;
-            }
           }
         }
       }

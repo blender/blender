@@ -4299,45 +4299,6 @@ void CustomData_bmesh_interp(CustomData *data,
   }
 }
 
-void CustomData_file_write_info(const eCustomDataType type,
-                                const char **r_struct_name,
-                                int *r_struct_num)
-{
-  const LayerTypeInfo *typeInfo = layerType_getInfo(type);
-
-  *r_struct_name = typeInfo->structname;
-  *r_struct_num = typeInfo->structnum;
-}
-
-void CustomData_blend_write_prepare(CustomData &data,
-                                    Vector<CustomDataLayer, 16> &layers_to_write,
-                                    const Set<std::string> &skip_names)
-{
-  for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
-    if (layer.flag & CD_FLAG_NOCOPY) {
-      continue;
-    }
-    if (blender::bke::attribute_name_is_anonymous(layer.name)) {
-      continue;
-    }
-    if (skip_names.contains(layer.name)) {
-      continue;
-    }
-    layers_to_write.append(layer);
-  }
-  data.totlayer = layers_to_write.size();
-  data.maxlayer = data.totlayer;
-
-  /* NOTE: `data->layers` may be null, this happens when adding
-   * a legacy #MPoly struct to a mesh with no other face attributes.
-   * This leaves us with no unique ID for DNA to identify the old
-   * data with when loading the file. */
-  if (!data.layers && layers_to_write.size() > 0) {
-    /* We just need an address that's unique. */
-    data.layers = reinterpret_cast<CustomDataLayer *>(&data.layers);
-  }
-}
-
 int CustomData_sizeof(const eCustomDataType type)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -4404,18 +4365,6 @@ static bool cd_layer_find_dupe(CustomData *data,
   return false;
 }
 
-struct CustomDataUniqueCheckData {
-  CustomData *data;
-  eCustomDataType type;
-  int index;
-};
-
-static bool customdata_unique_check(void *arg, const char *name)
-{
-  CustomDataUniqueCheckData *data_arg = static_cast<CustomDataUniqueCheckData *>(arg);
-  return cd_layer_find_dupe(data_arg->data, name, data_arg->type, data_arg->index);
-}
-
 int CustomData_name_maxncpy_calc(const blender::StringRef name)
 {
   if (name.startswith(".")) {
@@ -4436,8 +4385,6 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
   CustomDataLayer *nlayer = &data->layers[index];
   const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(nlayer->type));
 
-  CustomDataUniqueCheckData data_arg{data, eCustomDataType(nlayer->type), index};
-
   if (!typeInfo->defaultname) {
     return;
   }
@@ -4451,7 +4398,14 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
   }
 
   const char *defname = ""; /* Dummy argument, never used as `name` is never zero length. */
-  BLI_uniquename_cb(customdata_unique_check, &data_arg, defname, '.', nlayer->name, name_maxncpy);
+  BLI_uniquename_cb(
+      [&](const StringRef name) {
+        return cd_layer_find_dupe(data, name, eCustomDataType(nlayer->type), index);
+      },
+      defname,
+      '.',
+      nlayer->name,
+      name_maxncpy);
 }
 
 void CustomData_validate_layer_name(const CustomData *data,
@@ -5147,6 +5101,45 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
 /** \name Custom Data IO
  * \{ */
 
+static void get_type_file_write_info(const eCustomDataType type,
+                                     const char **r_struct_name,
+                                     int *r_struct_num)
+{
+  const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+  *r_struct_name = typeInfo->structname;
+  *r_struct_num = typeInfo->structnum;
+}
+
+void CustomData_blend_write_prepare(CustomData &data,
+                                    Vector<CustomDataLayer, 16> &layers_to_write,
+                                    const Set<std::string> &skip_names)
+{
+  for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
+    if (layer.flag & CD_FLAG_NOCOPY) {
+      continue;
+    }
+    if (blender::bke::attribute_name_is_anonymous(layer.name)) {
+      continue;
+    }
+    if (skip_names.contains(layer.name)) {
+      continue;
+    }
+    layers_to_write.append(layer);
+  }
+  data.totlayer = layers_to_write.size();
+  data.maxlayer = data.totlayer;
+
+  /* NOTE: `data->layers` may be null, this happens when adding
+   * a legacy #MPoly struct to a mesh with no other face attributes.
+   * This leaves us with no unique ID for DNA to identify the old
+   * data with when loading the file. */
+  if (!data.layers && layers_to_write.size() > 0) {
+    /* We just need an address that's unique. */
+    data.layers = reinterpret_cast<CustomDataLayer *>(&data.layers);
+  }
+}
+
 static void write_mdisps(BlendWriter *writer,
                          const int count,
                          const MDisps *mdlist,
@@ -5213,7 +5206,7 @@ static void blend_write_layer_data(BlendWriter *writer,
     default: {
       const char *structname;
       int structnum;
-      CustomData_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
+      get_type_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
       if (structnum > 0) {
         int datasize = structnum * count;
         BLO_write_struct_array_by_name(writer, structname, datasize, layer.data);
@@ -5327,7 +5320,7 @@ static void blend_read_layer_data(BlendDataReader *reader, CustomDataLayer &laye
     default: {
       const char *structname;
       int structnum;
-      CustomData_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
+      get_type_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
       if (structnum > 0) {
         const int data_num = structnum * count;
         layer.data = BLO_read_struct_by_name_array(reader, structname, data_num, layer.data);
@@ -5415,7 +5408,7 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
       const int pt_size = pt ? int(MEM_allocN_len(pt) / size) : 0;
       const char *structname;
       int structnum;
-      CustomData_file_write_info(type, &structname, &structnum);
+      get_type_file_write_info(type, &structname, &structnum);
       BLI_dynstr_appendf(
           dynstr,
           "%sdict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",

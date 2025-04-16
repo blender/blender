@@ -17,18 +17,18 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_offset)
 #include "eevee_lightprobe_lib.glsl"
 #include "eevee_surfel_list_lib.glsl"
 
-int find_closest_surfel(ivec3 grid_coord, vec3 P)
+int find_closest_surfel(int3 grid_coord, float3 P)
 {
   int surfel_first = imageLoad(cluster_list_img, grid_coord).r;
   float search_radius_sqr = square(capture_info_buf.max_virtual_offset +
                                    capture_info_buf.min_distance_to_surface);
 
   int closest_surfel = -1;
-  float closest_distance_sqr = 1e10;
+  float closest_distance_sqr = 1e10f;
   for (int surfel_id = surfel_first; surfel_id > -1; surfel_id = surfel_buf[surfel_id].next) {
     Surfel surfel = surfel_buf[surfel_id];
 
-    vec3 probe_to_surfel = surfel.position - P;
+    float3 probe_to_surfel = surfel.position - P;
     float surfel_dist_sqr = length_squared(probe_to_surfel);
     /* Do not consider surfels that are outside of search radius. */
     if (surfel_dist_sqr > search_radius_sqr) {
@@ -46,24 +46,24 @@ int find_closest_surfel(ivec3 grid_coord, vec3 P)
 float front_facing_offset(float surfel_distance)
 {
   if (abs(surfel_distance) > capture_info_buf.min_distance_to_surface) {
-    return 0.0;
+    return 0.0f;
   }
   /* NOTE: distance can be negative. */
-  return surfel_distance - ((surfel_distance > 0.0) ? capture_info_buf.min_distance_to_surface :
-                                                      -capture_info_buf.min_distance_to_surface);
+  return surfel_distance - ((surfel_distance > 0.0f) ? capture_info_buf.min_distance_to_surface :
+                                                       -capture_info_buf.min_distance_to_surface);
 }
 
 float back_facing_offset(float surfel_distance)
 {
   if (surfel_distance > capture_info_buf.max_virtual_offset) {
-    return 0.0;
+    return 0.0f;
   }
   /* NOTE: distance can be negative. */
-  return surfel_distance + ((surfel_distance > 0.0) ? capture_info_buf.min_distance_to_surface :
-                                                      -capture_info_buf.min_distance_to_surface);
+  return surfel_distance + ((surfel_distance > 0.0f) ? capture_info_buf.min_distance_to_surface :
+                                                       -capture_info_buf.min_distance_to_surface);
 }
 
-float compute_offset_length(ivec3 grid_coord, vec3 P, vec3 offset_direction)
+float compute_offset_length(int3 grid_coord, float3 P, float3 offset_direction)
 {
   int surfel_first = imageLoad(cluster_list_img, grid_coord).r;
   float search_radius = max(capture_info_buf.max_virtual_offset,
@@ -74,12 +74,12 @@ float compute_offset_length(ivec3 grid_coord, vec3 P, vec3 offset_direction)
   /* Nearest and farthest surfels in offset direction on both sides. */
   int surfel_pos = -1;
   int surfel_neg = -1;
-  float surfel_distance_pos = +1e10;
-  float surfel_distance_neg = -1e10;
+  float surfel_distance_pos = +1e10f;
+  float surfel_distance_neg = -1e10f;
   for (int surfel_id = surfel_first; surfel_id > -1; surfel_id = surfel_buf[surfel_id].next) {
     Surfel surfel = surfel_buf[surfel_id];
 
-    vec3 probe_to_surfel = surfel.position - P;
+    float3 probe_to_surfel = surfel.position - P;
     float surf_dist_signed = dot(offset_direction, probe_to_surfel);
     /* Do not consider surfels that are outside of search radius. */
     if (abs(surf_dist_signed) > search_radius) {
@@ -91,7 +91,7 @@ float compute_offset_length(ivec3 grid_coord, vec3 P, vec3 offset_direction)
       continue;
     }
 
-    if (surf_dist_signed > 0.0) {
+    if (surf_dist_signed > 0.0f) {
       if (surfel_distance_pos > surf_dist_signed) {
         surfel_distance_pos = surf_dist_signed;
         surfel_pos = surfel_id;
@@ -110,16 +110,16 @@ float compute_offset_length(ivec3 grid_coord, vec3 P, vec3 offset_direction)
 
   if (has_neighbor_pos && has_neighbor_neg) {
     /* If both sides have neighbors. */
-    bool is_front_facing_pos = dot(offset_direction, surfel_buf[surfel_pos].normal) < 0.0;
-    bool is_front_facing_neg = dot(-offset_direction, surfel_buf[surfel_neg].normal) < 0.0;
+    bool is_front_facing_pos = dot(offset_direction, surfel_buf[surfel_pos].normal) < 0.0f;
+    bool is_front_facing_neg = dot(-offset_direction, surfel_buf[surfel_neg].normal) < 0.0f;
     if (is_front_facing_pos && is_front_facing_neg) {
       /* If both sides have same facing. */
       if (is_front_facing_pos) {
         /* If both sides are front facing. */
         float distance_between_neighbors = surfel_distance_pos - surfel_distance_neg;
-        if (distance_between_neighbors < capture_info_buf.min_distance_to_surface * 2.0) {
+        if (distance_between_neighbors < capture_info_buf.min_distance_to_surface * 2.0f) {
           /* Choose the middle point. */
-          return (surfel_distance_pos + surfel_distance_neg) / 2.0;
+          return (surfel_distance_pos + surfel_distance_neg) / 2.0f;
         }
         else {
           /* Choose the maximum offset. */
@@ -150,7 +150,7 @@ float compute_offset_length(ivec3 grid_coord, vec3 P, vec3 offset_direction)
     int nearest_surfel_id = has_neighbor_pos ? surfel_pos : surfel_neg;
     float surfel_distance = has_neighbor_pos ? surfel_distance_pos : surfel_distance_neg;
     bool is_front_facing = dot(has_neighbor_pos ? offset_direction : -offset_direction,
-                               surfel_buf[nearest_surfel_id].normal) < 0.0;
+                               surfel_buf[nearest_surfel_id].normal) < 0.0f;
     if (is_front_facing) {
       return front_facing_offset(surfel_distance);
     }
@@ -159,40 +159,41 @@ float compute_offset_length(ivec3 grid_coord, vec3 P, vec3 offset_direction)
     }
   }
   /* If no sides has neighbor (should never happen here since we already bailed out). */
-  return 0.0;
+  return 0.0f;
 }
 
 void main()
 {
-  ivec3 grid_coord = ivec3(gl_GlobalInvocationID);
+  int3 grid_coord = int3(gl_GlobalInvocationID);
 
   if (any(greaterThanEqual(grid_coord, capture_info_buf.irradiance_grid_size))) {
     return;
   }
 
-  vec3 P = lightprobe_volume_grid_sample_position(capture_info_buf.irradiance_grid_local_to_world,
-                                                  capture_info_buf.irradiance_grid_size,
-                                                  grid_coord);
+  float3 P = lightprobe_volume_grid_sample_position(
+      capture_info_buf.irradiance_grid_local_to_world,
+      capture_info_buf.irradiance_grid_size,
+      grid_coord);
 
   int closest_surfel_id = find_closest_surfel(grid_coord, P);
   if (closest_surfel_id == -1) {
-    imageStoreFast(virtual_offset_img, grid_coord, vec4(0.0));
+    imageStoreFast(virtual_offset_img, grid_coord, float4(0.0f));
     return;
   }
 
   /* Offset direction towards the sampling point. */
-  // vec3 offset_direction = safe_normalize(surfel_buf[closest_surfel_id].position - P);
+  // float3 offset_direction = safe_normalize(surfel_buf[closest_surfel_id].position - P);
   /* NOTE: Use normal direction of the surfel instead for stability reasons. */
-  vec3 offset_direction = surfel_buf[closest_surfel_id].normal;
+  float3 offset_direction = surfel_buf[closest_surfel_id].normal;
   bool is_front_facing = dot(surfel_buf[closest_surfel_id].position - P,
-                             surfel_buf[closest_surfel_id].normal) < 0.0;
+                             surfel_buf[closest_surfel_id].normal) < 0.0f;
   if (is_front_facing) {
     offset_direction = -offset_direction;
   }
 
   float offset_length = compute_offset_length(grid_coord, P, offset_direction);
 
-  vec3 virtual_offset = offset_direction * offset_length;
+  float3 virtual_offset = offset_direction * offset_length;
 
-  imageStoreFast(virtual_offset_img, grid_coord, vec4(virtual_offset, 0.0));
+  imageStoreFast(virtual_offset_img, grid_coord, float4(virtual_offset, 0.0f));
 }

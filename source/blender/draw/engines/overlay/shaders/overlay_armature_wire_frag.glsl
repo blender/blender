@@ -12,6 +12,6 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_armature_wire)
 void main()
 {
   lineOutput = pack_line_data(gl_FragCoord.xy, edgeStart, edgePos);
-  fragColor = vec4(finalColor.rgb, finalColor.a * alpha);
+  fragColor = float4(finalColor.rgb, finalColor.a * alpha);
   select_id_output(select_id);
 }

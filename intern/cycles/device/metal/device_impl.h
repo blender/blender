@@ -42,6 +42,7 @@ class MetalDevice : public Device {
   /* MetalRT members ----------------------------------*/
   bool use_metalrt = false;
   bool motion_blur = false;
+  bool use_pcmi = false;
   id<MTLArgumentEncoder> mtlASArgEncoder =
       nil; /* encoder used for fetching device pointers from MTLAccelerationStructure */
 

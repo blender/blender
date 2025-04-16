@@ -388,7 +388,6 @@ class Application : public GHOST_IEventConsumer {
   GHOST_ISystem *m_system;
   GHOST_IWindow *m_mainWindow;
   GHOST_IWindow *m_secondaryWindow;
-  GHOST_IWindow *m_fullScreenWindow;
   GHOST_ITimerTask *m_gearsTimer, *m_testTimer;
   GHOST_TStandardCursor m_cursor;
   bool m_exitRequested;
@@ -400,7 +399,6 @@ Application::Application(GHOST_ISystem *system)
     : m_system(system),
       m_mainWindow(0),
       m_secondaryWindow(0),
-      m_fullScreenWindow(0),
       m_gearsTimer(0),
       m_testTimer(0),
       m_cursor(GHOST_kStandardCursorFirstCursor),
@@ -492,23 +490,6 @@ bool Application::processEvent(const GHOST_IEvent *event)
           break;
         }
 
-        case GHOST_kKeyF:
-          if (!m_system->getFullScreen()) {
-            // Begin fullscreen mode
-            GHOST_DisplaySetting setting;
-
-            setting.bpp = 16;
-            setting.frequency = 50;
-            setting.xPixels = 640;
-            setting.yPixels = 480;
-            m_system->beginFullScreen(setting, &m_fullScreenWindow, false /* stereo flag */);
-          }
-          else {
-            m_system->endFullScreen();
-            m_fullScreenWindow = 0;
-          }
-          break;
-
         case GHOST_kKeyH:
           window->setCursorVisibility(!window->getCursorVisibility());
           break;
@@ -543,10 +524,6 @@ bool Application::processEvent(const GHOST_IEvent *event)
         }
 
         case GHOST_kKeyQ:
-          if (m_system->getFullScreen()) {
-            m_system->endFullScreen();
-            m_fullScreenWindow = 0;
-          }
           m_exitRequested = true;
           break;
 
@@ -718,13 +695,7 @@ static void gearsTimerProc(GHOST_ITimerTask *task, uint64_t /*time*/)
   fAngle += 2.0;
   view_roty += 1.0;
   GHOST_IWindow *window = (GHOST_IWindow *)task->getUserData();
-  if (fApp->m_fullScreenWindow) {
-    // Running full screen
-    fApp->m_fullScreenWindow->invalidate();
-  }
-  else {
-    if (fSystem->validWindow(window)) {
-      window->invalidate();
-    }
+  if (fSystem->validWindow(window)) {
+    window->invalidate();
   }
 }

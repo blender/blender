@@ -66,6 +66,8 @@
     .ysch = 1080, \
     .xasp = 1, \
     .yasp = 1, \
+    .ppm_factor = 72.0f, \
+    .ppm_base = 0.0254f, \
     .tilex = 256, \
     .tiley = 256, \
     .size = 100, \
@@ -236,6 +238,13 @@
     .flag = SCE_EEVEE_TAA_REPROJECTION, \
   }
 
+#define _DNA_DEFAULT_SceneGreasePencil \
+  { \
+    .smaa_threshold = 1.0f, \
+    .smaa_threshold_render = 0.25f, \
+    .aa_samples = 8, \
+  }
+
 #define _DNA_DEFAULT_SceneHydra \
   { \
     .export_method = SCE_HYDRA_EXPORT_HYDRA, \
@@ -254,6 +263,8 @@
     .safe_areas = _DNA_DEFAULT_DisplaySafeAreas, \
  \
     .eevee = _DNA_DEFAULT_SceneEEVEE, \
+ \
+    .grease_pencil_settings = _DNA_DEFAULT_SceneGreasePencil, \
  \
     .hydra = _DNA_DEFAULT_SceneHydra, \
     .simulation_frame_start = 1, \

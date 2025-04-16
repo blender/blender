@@ -120,6 +120,13 @@ template<typename T> static void shrink_array(T **array, int *num, const int shr
 {
   BLI_assert(shrink_num > 0);
   const int new_array_num = *num - shrink_num;
+  if (new_array_num == 0) {
+    MEM_freeN(*array);
+    *array = nullptr;
+    *num = 0;
+    return;
+  }
+
   T *new_array = MEM_calloc_arrayN<T>(new_array_num, __func__);
 
   blender::uninitialized_move_n(*array, new_array_num, new_array);
@@ -373,30 +380,20 @@ const Slot *Action::slot_for_handle(const slot_handle_t handle) const
 
 static void slot_identifier_ensure_unique(Action &action, Slot &slot)
 {
-  /* Cannot capture parameters by reference in the lambda, as that would change its signature
-   * and no longer be compatible with BLI_uniquename_cb(). That's why this struct is necessary. */
-  struct DupNameCheckData {
-    Action &action;
-    Slot &slot;
-  };
-  DupNameCheckData check_data = {action, slot};
-
-  auto check_name_is_used = [](void *arg, const char *name) -> bool {
-    DupNameCheckData *data = static_cast<DupNameCheckData *>(arg);
-    for (const Slot *slot : data->action.slots()) {
-      if (slot == &data->slot) {
+  auto check_name_is_used = [&](const StringRef name) -> bool {
+    for (const Slot *slot_iter : action.slots()) {
+      if (slot_iter == &slot) {
         /* Don't compare against the slot that's being renamed. */
         continue;
       }
-      if (STREQ(slot->identifier, name)) {
+      if (slot_iter->identifier == name) {
         return true;
       }
     }
     return false;
   };
 
-  BLI_uniquename_cb(
-      check_name_is_used, &check_data, "", '.', slot.identifier, sizeof(slot.identifier));
+  BLI_uniquename_cb(check_name_is_used, "", '.', slot.identifier, sizeof(slot.identifier));
 }
 
 void Action::slot_display_name_set(Main &bmain, Slot &slot, StringRefNull new_display_name)
@@ -1846,6 +1843,23 @@ void StripKeyframeData::slot_data_remove(const slot_handle_t slot_handle)
   this->channelbag_remove(*channelbag);
 }
 
+void StripKeyframeData::slot_data_duplicate(const slot_handle_t source_slot_handle,
+                                            const slot_handle_t target_slot_handle)
+{
+  BLI_assert(!this->channelbag_for_slot(target_slot_handle));
+
+  const Channelbag *source_cbag = this->channelbag_for_slot(source_slot_handle);
+  if (!source_cbag) {
+    return;
+  }
+
+  Channelbag &target_cbag = *MEM_new<animrig::Channelbag>(__func__, *source_cbag);
+  target_cbag.slot_handle = target_slot_handle;
+
+  grow_array_and_append<ActionChannelbag *>(
+      &this->channelbag_array, &this->channelbag_array_num, &target_cbag);
+}
+
 const FCurve *Channelbag::fcurve_find(const FCurveDescriptor &fcurve_descriptor) const
 {
   return animrig::fcurve_find(this->fcurves(), fcurve_descriptor);
@@ -1900,6 +1914,102 @@ FCurve &Channelbag::fcurve_create(Main *bmain, const FCurveDescriptor &fcurve_de
   }
 
   return *new_fcurve;
+}
+
+Vector<FCurve *> Channelbag::fcurve_create_many(Main *bmain,
+                                                Span<FCurveDescriptor> fcurve_descriptors)
+{
+  const int prev_fcurve_num = this->fcurve_array_num;
+  const int add_fcurve_num = int(fcurve_descriptors.size());
+  const bool make_first_active = prev_fcurve_num == 0;
+
+  /* Figure out which path+index combinations already exist. */
+  struct CurvePathIndex {
+    StringRefNull rna_path;
+    int array_index;
+    bool operator==(const CurvePathIndex &o) const
+    {
+      /* Check indices first, cheaper than a string comparison. */
+      return this->array_index == o.array_index && this->rna_path == o.rna_path;
+    }
+    uint64_t hash() const
+    {
+      return get_default_hash(this->rna_path, this->array_index);
+    }
+  };
+  Set<CurvePathIndex> unique_curves;
+  unique_curves.reserve(prev_fcurve_num);
+  for (FCurve *fcurve : this->fcurves()) {
+    CurvePathIndex path_index;
+    path_index.rna_path = StringRefNull(fcurve->rna_path ? fcurve->rna_path : "");
+    path_index.array_index = fcurve->array_index;
+    unique_curves.add(path_index);
+  }
+
+  /* Grow curves array with enough space for new curves. */
+  grow_array(&this->fcurve_array, &this->fcurve_array_num, add_fcurve_num);
+
+  /* Add the new curves. */
+  Vector<FCurve *> new_fcurves;
+  new_fcurves.resize(add_fcurve_num);
+  int curve_index = prev_fcurve_num;
+  for (int i = 0; i < add_fcurve_num; i++) {
+    const FCurveDescriptor &desc = fcurve_descriptors[i];
+
+    CurvePathIndex path_index;
+    path_index.rna_path = desc.rna_path;
+    path_index.array_index = desc.array_index;
+    if (desc.rna_path.is_empty() || !unique_curves.add(path_index)) {
+      /* Empty input path, or such curve already exists. */
+      new_fcurves[i] = nullptr;
+      continue;
+    }
+
+    FCurve *fcurve = create_fcurve_for_channel(desc);
+    new_fcurves[i] = fcurve;
+
+    this->fcurve_array[curve_index] = fcurve;
+    if (desc.channel_group.has_value()) {
+      bActionGroup *group = &this->channel_group_ensure(*desc.channel_group);
+      const int insert_index = group->fcurve_range_start + group->fcurve_range_length;
+      BLI_assert(insert_index <= this->fcurve_array_num);
+      /* Insert curve into proper array place at the end of the group. Note: this can
+       * still lead to quadratic complexity, in practice was not found to be an issue yet. */
+      array_shift_range(
+          this->fcurve_array, this->fcurve_array_num, curve_index, curve_index + 1, insert_index);
+      group->fcurve_range_length++;
+
+      /* Update curve start ranges of the following groups. */
+      int index = this->channel_group_find_index(group);
+      BLI_assert(index >= 0 && index < this->group_array_num);
+      for (index = index + 1; index < this->group_array_num; index++) {
+        this->group_array[index]->fcurve_range_start++;
+      }
+    }
+    curve_index++;
+  }
+
+  if (this->fcurve_array_num != curve_index) {
+    /* Some curves were not created, resize to final amount. */
+    shrink_array(
+        &this->fcurve_array, &this->fcurve_array_num, this->fcurve_array_num - curve_index);
+  }
+
+  if (make_first_active) {
+    /* Set first created curve as active. */
+    for (FCurve *fcurve : new_fcurves) {
+      if (fcurve != nullptr) {
+        fcurve->flag |= FCURVE_ACTIVE;
+        break;
+      }
+    }
+  }
+
+  this->restore_channel_group_invariants();
+  if (bmain) {
+    DEG_relations_tag_update(bmain);
+  }
+  return new_fcurves;
 }
 
 void Channelbag::fcurve_append(FCurve &fcurve)
@@ -2222,6 +2332,16 @@ const bActionGroup *Channelbag::channel_group_find(const StringRef name) const
   }
 
   return nullptr;
+}
+
+int Channelbag::channel_group_find_index(const bActionGroup *group) const
+{
+  for (int i = 0; i < this->group_array_num; i++) {
+    if (this->group_array[i] == group) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 bActionGroup *Channelbag::channel_group_find(const StringRef name)
@@ -3075,11 +3195,11 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
  * slot handle and runtime data. This copies the identifier which might clash with other
  * identifiers on the action. Call `slot_identifier_ensure_unique` after.
  */
-static void clone_slot(Slot &from, Slot &to)
+static void clone_slot(const Slot &from, Slot &to)
 {
   ActionSlotRuntimeHandle *runtime = to.runtime;
   slot_handle_t handle = to.handle;
-  *reinterpret_cast<ActionSlot *>(&to) = *reinterpret_cast<ActionSlot *>(&from);
+  *reinterpret_cast<ActionSlot *>(&to) = *reinterpret_cast<const ActionSlot *>(&from);
   to.runtime = runtime;
   to.handle = handle;
 }
@@ -3100,17 +3220,22 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
   if (!from_action.layers().is_empty() && !from_action.layer(0)->strips().is_empty()) {
     StripKeyframeData &from_strip_data = from_action.layer(0)->strip(0)->data<StripKeyframeData>(
         from_action);
-    to_action.layer_keystrip_ensure();
-    StripKeyframeData &to_strip_data = to_action.layer(0)->strip(0)->data<StripKeyframeData>(
-        to_action);
     Channelbag *channelbag = from_strip_data.channelbag_for_slot(source_slot.handle);
-    BLI_assert(channelbag != nullptr);
-    channelbag->slot_handle = target_slot.handle;
-    grow_array_and_append<ActionChannelbag *>(
-        &to_strip_data.channelbag_array, &to_strip_data.channelbag_array_num, channelbag);
-    int index = from_strip_data.find_channelbag_index(*channelbag);
-    shrink_array_and_remove<ActionChannelbag *>(
-        &from_strip_data.channelbag_array, &from_strip_data.channelbag_array_num, index);
+    /* It's perfectly fine for a slot to not have a channelbag on each keyframe strip. */
+    if (channelbag) {
+      /* Only create the layer & keyframe strip if there is a channelbag to move
+       * into it. Otherwise it's better to keep the Action lean, and defer their
+       * creation when keys are inserted. */
+      to_action.layer_keystrip_ensure();
+      StripKeyframeData &to_strip_data = to_action.layer(0)->strip(0)->data<StripKeyframeData>(
+          to_action);
+      channelbag->slot_handle = target_slot.handle;
+      grow_array_and_append<ActionChannelbag *>(
+          &to_strip_data.channelbag_array, &to_strip_data.channelbag_array_num, channelbag);
+      const int index = from_strip_data.find_channelbag_index(*channelbag);
+      shrink_array_and_remove<ActionChannelbag *>(
+          &from_strip_data.channelbag_array, &from_strip_data.channelbag_array_num, index);
+    }
   }
 
   /* Reassign all users of `source_slot` to the action `to_action` and the slot `target_slot`. */
@@ -3151,6 +3276,28 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
   }
 
   from_action.slot_remove(source_slot);
+}
+
+Slot &duplicate_slot(Action &action, const Slot &slot)
+{
+  BLI_assert(action.slots().contains(const_cast<Slot *>(&slot)));
+
+  /* Duplicate the slot itself. */
+  Slot &cloned_slot = action.slot_add();
+  clone_slot(slot, cloned_slot);
+  slot_identifier_ensure_unique(action, cloned_slot);
+
+  /* Duplicate each Channelbag for the source slot. */
+  for (int i = 0; i < action.strip_keyframe_data_array_num; i++) {
+    StripKeyframeData &strip_data = action.strip_keyframe_data_array[i]->wrap();
+    strip_data.slot_data_duplicate(slot.handle, cloned_slot.handle);
+  }
+
+  /* The ID has changed, and so it needs to be re-evaluated. Animation does not
+   * have to be flushed since nothing is using this slot yet. */
+  DEG_id_tag_update(&action.id, ID_RECALC_ANIMATION_NO_FLUSH);
+
+  return cloned_slot;
 }
 
 }  // namespace blender::animrig

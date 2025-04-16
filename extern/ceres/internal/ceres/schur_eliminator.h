@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,7 @@
 #include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // Classes implementing the SchurEliminatorBase interface implement
 // variable elimination for linear least squares problems. Assuming
@@ -169,9 +168,9 @@ class CERES_NO_EXPORT SchurEliminatorBase {
  public:
   virtual ~SchurEliminatorBase();
 
-  // Initialize the eliminator. It is the user's responsibilty to call
+  // Initialize the eliminator. It is the user's responsibility to call
   // this function before calling Eliminate or BackSubstitute. It is
-  // also the caller's responsibilty to ensure that the
+  // also the caller's responsibility to ensure that the
   // CompressedRowBlockStructure object passed to this method is the
   // same one (or is equivalent to) the one associated with the
   // BlockSparseMatrix objects below.
@@ -383,8 +382,9 @@ template <int kRowBlockSize = Eigen::Dynamic,
 class CERES_NO_EXPORT SchurEliminatorForOneFBlock final
     : public SchurEliminatorBase {
  public:
+  // TODO(sameeragarwal) Find out why "assume_full_rank_ete" is not used here
   void Init(int num_eliminate_blocks,
-            bool assume_full_rank_ete,
+            bool /*assume_full_rank_ete*/,
             const CompressedRowBlockStructure* bs) override {
     CHECK_GT(num_eliminate_blocks, 0)
         << "SchurComplementSolver cannot be initialized with "
@@ -447,7 +447,7 @@ class CERES_NO_EXPORT SchurEliminatorForOneFBlock final
     const CompressedRowBlockStructure* bs = A.block_structure();
     const double* values = A.values();
 
-    // Add the diagonal to the schur complement.
+    // Add the diagonal to the Schur complement.
     if (D != nullptr) {
       typename EigenTypes<kFBlockSize>::ConstVectorRef diag(
           D + bs->cols[num_eliminate_blocks_].position, kFBlockSize);
@@ -479,7 +479,7 @@ class CERES_NO_EXPORT SchurEliminatorForOneFBlock final
       const Chunk& chunk = chunks_[i];
       const int e_block_id = bs->rows[chunk.start].cells.front().block_id;
 
-      // Naming covention, e_t_e = e_block.transpose() * e_block;
+      // Naming convention, e_t_e = e_block.transpose() * e_block;
       Eigen::Matrix<double, kEBlockSize, kEBlockSize> e_t_e;
       Eigen::Matrix<double, kEBlockSize, kFBlockSize> e_t_f;
       Eigen::Matrix<double, kEBlockSize, 1> e_t_b;
@@ -570,7 +570,7 @@ class CERES_NO_EXPORT SchurEliminatorForOneFBlock final
   // y_i = e_t_e_inverse * sum_i e_i^T * (b_i - f_i * z);
   void BackSubstitute(const BlockSparseMatrixData& A,
                       const double* b,
-                      const double* D,
+                      const double* /*D*/,
                       const double* z_ptr,
                       double* y) override {
     typename EigenTypes<kFBlockSize>::ConstVectorRef z(z_ptr, kFBlockSize);
@@ -623,8 +623,7 @@ class CERES_NO_EXPORT SchurEliminatorForOneFBlock final
   std::vector<double> e_t_e_inverse_matrices_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

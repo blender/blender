@@ -66,7 +66,7 @@
 /* for Copy As Driver */
 #include "ED_keyframing.hh"
 
-/* only for UI_OT_editsource */
+/* Only for #UI_OT_editsource. */
 #include "BLI_ghash.h"
 #include "ED_screen.hh"
 

@@ -6,30 +6,30 @@
 
 VERTEX_SHADER_CREATE_INFO(gpu_shader_keyframe_shape)
 
-#define line_falloff 1.0
-#define circle_scale sqrt(2.0 / 3.1416)
-#define square_scale sqrt(0.5)
-#define diagonal_scale sqrt(0.5)
+#define line_falloff 1.0f
+#define circle_scale sqrt(2.0f / 3.1416f)
+#define square_scale sqrt(0.5f)
+#define diagonal_scale sqrt(0.5f)
 
 bool test(uint bit)
 {
   return (flags & bit) != 0u;
 }
 
-vec2 line_thresholds(float width)
+float2 line_thresholds(float width)
 {
-  return vec2(max(0.0, width - line_falloff), width);
+  return float2(max(0.0f, width - line_falloff), width);
 }
 
 void main()
 {
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
+  gl_Position = ModelViewProjectionMatrix * float4(pos, 0.0f, 1.0f);
 
   /* Align to pixel grid if the viewport size is known. */
   if (ViewportSize.x > 0) {
-    vec2 scale = ViewportSize * 0.5;
-    vec2 px_pos = (gl_Position.xy + 1) * scale;
-    vec2 adj_pos = round(px_pos - 0.5) + 0.5;
+    float2 scale = ViewportSize * 0.5f;
+    float2 px_pos = (gl_Position.xy + 1) * scale;
+    float2 adj_pos = round(px_pos - 0.5f) + 0.5f;
     gl_Position.xy = adj_pos / scale - 1;
   }
 
@@ -45,17 +45,17 @@ void main()
   }
 
   /* Size-dependent line thickness. */
-  float half_width = (0.06 + (size - 10) * 0.04);
+  float half_width = (0.06f + (size - 10) * 0.04f);
   float line_width = half_width + line_falloff;
 
   /* Outline thresholds. */
   thresholds.xy = line_thresholds(line_width * outline_scale);
 
   /* Inner dot thresholds. */
-  thresholds.zw = line_thresholds(line_width * 1.6);
+  thresholds.zw = line_thresholds(line_width * 1.6f);
 
   /* Extend the primitive size by half line width on either side; odd for symmetry. */
-  float ext_radius = round(0.5 * size) + thresholds.x;
+  float ext_radius = round(0.5f * size) + thresholds.x;
 
   gl_PointSize = ceil(ext_radius + thresholds.y) * 2 + 1;
 

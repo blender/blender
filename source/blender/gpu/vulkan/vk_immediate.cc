@@ -126,6 +126,11 @@ void VKImmediate::end()
     draw.node_data.instance_count = 1;
     draw.node_data.first_vertex = 0;
     draw.node_data.first_instance = 0;
+
+    context.active_framebuffer_get()->vk_viewports_append(draw.node_data.viewport_data.viewports);
+    context.active_framebuffer_get()->vk_render_areas_append(
+        draw.node_data.viewport_data.scissors);
+
     vertex_attributes_.bind(draw.node_data.vertex_buffers);
     context.update_pipeline_data(prim_type, vertex_attributes_, draw.node_data.pipeline_data);
 

@@ -6,9 +6,9 @@
 #  pragma once
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "draw_fullscreen_info.hh"
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"
+#  include "gpu_shader_fullscreen_info.hh"
 #endif
 
 #include "eevee_defines.hh"
@@ -24,7 +24,7 @@ IMAGE(3, GPU_R32F, WRITE, FLOAT_2D, out_mip_3)
 IMAGE(4, GPU_R32F, WRITE, FLOAT_2D, out_mip_4)
 IMAGE(5, GPU_R32F, READ_WRITE, FLOAT_2D, out_mip_5)
 IMAGE(6, GPU_R32F, WRITE, FLOAT_2D, out_mip_6)
-SPECIALIZATION_CONSTANT(BOOL, update_mip_0, true)
+SPECIALIZATION_CONSTANT(bool, update_mip_0, true)
 COMPUTE_SOURCE("eevee_hiz_update_comp.glsl")
 GPU_SHADER_CREATE_END()
 
@@ -38,16 +38,16 @@ GPU_SHADER_CREATE_INFO(eevee_hiz_update_layer)
 DO_STATIC_COMPILATION()
 DEFINE("HIZ_LAYER")
 SAMPLER(1, DEPTH_2D_ARRAY, depth_layered_tx)
-PUSH_CONSTANT(INT, layer_id)
+PUSH_CONSTANT(int, layer_id)
 ADDITIONAL_INFO(eevee_hiz_update_base)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_hiz_debug)
 DO_STATIC_COMPILATION()
-FRAGMENT_OUT_DUAL(0, VEC4, out_debug_color_add, SRC_0)
-FRAGMENT_OUT_DUAL(0, VEC4, out_debug_color_mul, SRC_1)
+FRAGMENT_OUT_DUAL(0, float4, out_debug_color_add, SRC_0)
+FRAGMENT_OUT_DUAL(0, float4, out_debug_color_mul, SRC_1)
 FRAGMENT_SOURCE("eevee_hiz_debug_frag.glsl")
 ADDITIONAL_INFO(eevee_shared)
 ADDITIONAL_INFO(eevee_hiz_data)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 GPU_SHADER_CREATE_END()

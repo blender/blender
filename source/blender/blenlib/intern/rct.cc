@@ -557,8 +557,8 @@ void BLI_rctf_transform_calc_m3_pivot_min(const rctf *dst, const rctf *src, floa
 
   matrix[0][0] = BLI_rctf_size_x(src) / BLI_rctf_size_x(dst);
   matrix[1][1] = BLI_rctf_size_y(src) / BLI_rctf_size_y(dst);
-  matrix[2][0] = (src->xmin - dst->xmin) * matrix[1][1];
-  matrix[2][1] = (src->ymin - dst->ymin) * matrix[0][0];
+  matrix[2][0] = (src->xmin - dst->xmin) * matrix[0][0];
+  matrix[2][1] = (src->ymin - dst->ymin) * matrix[1][1];
 }
 
 void BLI_rcti_translate(rcti *rect, int x, int y)

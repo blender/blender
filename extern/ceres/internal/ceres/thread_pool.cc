@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,14 @@
 //
 // Author: vitus@google.com (Michael Vitus)
 
-// This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/config.h"
-
-#ifdef CERES_USE_CXX_THREADS
+#include "ceres/thread_pool.h"
 
 #include <cmath>
 #include <limits>
 
-#include "ceres/thread_pool.h"
+#include "ceres/internal/config.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 namespace {
 
 // Constrain the total number of threads to the amount the hardware can support.
@@ -105,7 +101,4 @@ void ThreadPool::ThreadMainLoop() {
 
 void ThreadPool::Stop() { task_queue_.StopWaiters(); }
 
-}  // namespace internal
-}  // namespace ceres
-
-#endif  // CERES_USE_CXX_THREADS
+}  // namespace ceres::internal

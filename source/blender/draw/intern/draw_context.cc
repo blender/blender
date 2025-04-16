@@ -736,7 +736,6 @@ static void drw_engines_cache_populate(blender::draw::ObjectRef &ref, Extraction
 
 void DRWContext::sync(iter_callback_t iter_callback)
 {
-  DRW_manager_begin_sync();
   /* Enable modules and init for next sync. */
   data->modules_init();
 
@@ -749,8 +748,6 @@ void DRWContext::sync(iter_callback_t iter_callback)
   dupli_handler.extract_all(extraction);
   extraction.work_and_wait(this->delayed_extraction);
 
-  DRW_manager_end_sync();
-
   DRW_curves_update(*view_data_active->manager);
 }
 
@@ -758,14 +755,16 @@ void DRWContext::engines_init_and_sync(iter_callback_t iter_callback)
 {
   view_data_active->foreach_enabled_engine([&](DrawEngine &instance) { instance.init(); });
 
+  view_data_active->manager->begin_sync(this->obact);
+
   view_data_active->foreach_enabled_engine([&](DrawEngine &instance) {
     /* TODO(fclem): Remove. Only there for overlay engine. */
     if (instance.text_draw_cache) {
       DRW_text_cache_destroy(instance.text_draw_cache);
       instance.text_draw_cache = nullptr;
     }
-    if (drw_get().text_store_p == nullptr) {
-      drw_get().text_store_p = &instance.text_draw_cache;
+    if (text_store_p == nullptr) {
+      text_store_p = &instance.text_draw_cache;
     }
 
     instance.begin_sync();
@@ -774,6 +773,8 @@ void DRWContext::engines_init_and_sync(iter_callback_t iter_callback)
   sync(iter_callback);
 
   view_data_active->foreach_enabled_engine([&](DrawEngine &instance) { instance.end_sync(); });
+
+  view_data_active->manager->end_sync();
 }
 
 void DRWContext::engines_draw_scene()
@@ -976,8 +977,6 @@ static void drw_callbacks_post_scene(DRWContext &draw_ctx)
       ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, true);
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     }
-
-    drw_debug_draw();
 
     GPU_depth_test(GPU_DEPTH_NONE);
     /* Apply state for callbacks. */
@@ -1193,7 +1192,6 @@ static void drw_draw_render_loop_3d(DRWContext &draw_ctx, RenderEngineType *engi
 
   draw_ctx.enable_engines(gpencil_engine_needed, engine_type);
   draw_ctx.engines_data_validate();
-  drw_debug_init();
   draw_ctx.engines_init_and_sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
     /* Only iterate over objects for internal engines or when overlays are enabled */
     if (do_populate_loop) {
@@ -1248,7 +1246,6 @@ static void drw_draw_render_loop_2d(DRWContext &draw_ctx)
 
   draw_ctx.enable_engines();
   draw_ctx.engines_data_validate();
-  drw_debug_init();
   draw_ctx.engines_init_and_sync([&](DupliCacheManager & /*duplis*/, ExtractionGraph &extraction) {
     /* Only iterate over objects when overlay uses object data. */
     if (do_populate_loop) {

@@ -41,7 +41,10 @@ file(GLOB OPENPGL_INSTALLED_VCTOOLS RELATIVE ${OPENPGL_VCTOOLSDIR_PATH} ${OPENPG
 # Check that at least one the installed tool versions
 # (there may be different subversions) is present.
 if(NOT OPENPGL_INSTALLED_VCTOOLS)
-  message(FATAL_ERROR "When building for Windows ARM64 platforms, OpenPGL requires VC Tools ${OPENPGL_VCTOOLS_REQUIRED_VERSION} to be installed alongside the current version.")
+  message(FATAL_ERROR
+    "When building for Windows ARM64 platforms, "
+    "OpenPGL requires VC Tools ${OPENPGL_VCTOOLS_REQUIRED_VERSION} "
+    "to be installed alongside the current version.")
 endif()
 
 # Get the last item in the list (latest, when list is sorted)

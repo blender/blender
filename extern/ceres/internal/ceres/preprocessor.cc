@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,12 @@
 #include "ceres/callbacks.h"
 #include "ceres/gradient_checking_cost_function.h"
 #include "ceres/line_search_preprocessor.h"
-#include "ceres/parallel_for.h"
 #include "ceres/problem_impl.h"
 #include "ceres/solver.h"
+#include "ceres/thread_pool.h"
 #include "ceres/trust_region_preprocessor.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 std::unique_ptr<Preprocessor> Preprocessor::Create(
     MinimizerType minimizer_type) {
@@ -63,7 +62,7 @@ void ChangeNumThreadsIfNeeded(Solver::Options* options) {
   if (options->num_threads == 1) {
     return;
   }
-  const int num_threads_available = MaxNumThreadsAvailable();
+  const int num_threads_available = ThreadPool::MaxNumThreadsAvailable();
   if (options->num_threads > num_threads_available) {
     LOG(WARNING) << "Specified options.num_threads: " << options->num_threads
                  << " exceeds maximum available from the threading model Ceres "
@@ -83,9 +82,11 @@ void SetupCommonMinimizerOptions(PreprocessedProblem* pp) {
   double* reduced_parameters = pp->reduced_parameters.data();
   program->ParameterBlocksToStateVector(reduced_parameters);
 
+  auto context = pp->problem->context();
   Minimizer::Options& minimizer_options = pp->minimizer_options;
   minimizer_options = Minimizer::Options(options);
   minimizer_options.evaluator = pp->evaluator;
+  minimizer_options.context = context;
 
   if (options.logging_type != SILENT) {
     pp->logging_callback = std::make_unique<LoggingCallback>(
@@ -104,5 +105,4 @@ void SetupCommonMinimizerOptions(PreprocessedProblem* pp) {
   }
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

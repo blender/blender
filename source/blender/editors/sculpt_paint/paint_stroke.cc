@@ -136,7 +136,12 @@ struct PaintStroke {
 };
 
 /*** Cursors ***/
-static void paint_draw_smooth_cursor(bContext *C, const int x, const int y, void *customdata)
+static void paint_draw_smooth_cursor(bContext *C,
+                                     const int x,
+                                     const int y,
+                                     const float /*x_tilt*/,
+                                     const float /*y_tilt*/,
+                                     void *customdata)
 {
   const Paint *paint = BKE_paint_get_active_from_context(C);
   const Brush *brush = BKE_paint_brush_for_read(paint);
@@ -173,7 +178,12 @@ static void paint_draw_smooth_cursor(bContext *C, const int x, const int y, void
   }
 }
 
-static void paint_draw_line_cursor(bContext *C, const int x, const int y, void *customdata)
+static void paint_draw_line_cursor(bContext *C,
+                                   const int x,
+                                   const int y,
+                                   const float /*x_tilt*/,
+                                   const float /*y_tilt*/,
+                                   void *customdata)
 {
   const Paint *paint = BKE_paint_get_active_from_context(C);
   PaintStroke *stroke = static_cast<PaintStroke *>(customdata);

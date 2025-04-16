@@ -6,12 +6,17 @@
  * \ingroup gpu
  */
 
+#include <cctype>
+#include <cstdint>
+#include <cstdlib>
 #include <string>
 
 #include "BKE_global.hh"
 #if defined(WIN32)
 #  include "BLI_winstuff.h"
 #endif
+#include "BLI_array.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_subprocess.hh"
 #include "BLI_threads.h"
@@ -41,6 +46,68 @@ static bool match_renderer(StringRef renderer, const Vector<std::string> &items)
     }
   }
   return false;
+}
+
+/**
+ * Return whether an AMD driver version is in [20.11, 22],
+ * preferring false negatives.
+ *
+ * Matches:
+ *   4.6.14761 Core Profile Context 20.45.44 27.20.14544.6
+ *   4.6.14760 Compatibility Profile Context 21.2.3 27.20.14535.3005
+ *   4.6.14831 Core Profile Context FireGL 21.Q2.1 27.20.21026.2006
+ *   4.6.14830 Core Profile Context 22.6.1 27.20.20913.2000
+ *   4.6.14760 Core Profile Context 21.2.3 27.20.14535.3005
+ * Rejects:
+ *   4.6.0 Core Profile Context 23.10.2.231013
+ *   4.6.0 Core Profile Context 24.7.1.240618
+ *   4.6.0 Core Profile Context 25.3.2.250311
+ * by matching
+ *   " 2" digits "." "Q"? digits "." digits " "
+ */
+static bool is_AMD_between_20_11_and_22(const char *version)
+{
+  const char *spc_2 = strstr(version, " 2");
+  if (!spc_2) {
+    return false;
+  }
+
+  char *after_first = nullptr;
+  long first = std::strtol(spc_2, &after_first, 10);
+  if (first < 20 || first > 22) {
+    return false;
+  }
+  if (*after_first != '.') {
+    return false;
+  }
+  ++after_first;
+
+  if (*after_first == 'Q') {
+    ++after_first;
+  }
+  char *after_second = nullptr;
+  long second = std::strtol(after_first, &after_second, 10);
+  if (after_second == after_first) {
+    return false;
+  }
+
+  if (*after_second != '.') {
+    return false;
+  }
+  ++after_second;
+
+  char *after_third = nullptr;
+  long third = std::strtol(after_second, &after_third, 10);
+  UNUSED_VARS(third);
+  if (after_third == after_second) {
+    return false;
+  }
+
+  if (*after_third != ' ') {
+    return false;
+  }
+
+  return (first == 20 && second >= 11) || first == 21 || first == 22;
 }
 
 void GLBackend::platform_init()
@@ -230,6 +297,33 @@ void GLBackend::platform_init()
            renderer,
            version,
            GPU_ARCHITECTURE_IMR);
+
+  GPG.device_uuid.reinitialize(0);
+  GPG.device_luid.reinitialize(0);
+  GPG.device_luid_node_mask = 0;
+
+  if (epoxy_has_gl_extension("GL_EXT_memory_object")) {
+    GLint number_of_devices = 0;
+    glGetIntegerv(GL_NUM_DEVICE_UUIDS_EXT, &number_of_devices);
+    /* Multiple devices could be used by the context if certain extensions like multi-cast is used.
+     * But this is not used by Blender, so this should always be 1. */
+    BLI_assert(number_of_devices == 1);
+
+    GLubyte device_uuid[GL_UUID_SIZE_EXT] = {0};
+    glGetUnsignedBytei_vEXT(GL_DEVICE_UUID_EXT, 0, device_uuid);
+    GPG.device_uuid = Array<uint8_t, 16>(Span<uint8_t>(device_uuid, GL_UUID_SIZE_EXT));
+
+    /* LUID is only supported on Windows. */
+    if (epoxy_has_gl_extension("GL_EXT_memory_object_win32") && (os & GPU_OS_WIN)) {
+      GLubyte device_luid[GL_LUID_SIZE_EXT] = {0};
+      glGetUnsignedBytevEXT(GL_DEVICE_LUID_EXT, device_luid);
+      GPG.device_luid = Array<uint8_t, 8>(Span<uint8_t>(device_luid, GL_LUID_SIZE_EXT));
+
+      GLint node_mask = 0;
+      glGetIntegerv(GL_DEVICE_NODE_MASK_EXT, &node_mask);
+      GPG.device_luid_node_mask = uint32_t(node_mask);
+    }
+  }
 }
 
 void GLBackend::platform_exit()
@@ -384,9 +478,7 @@ static void detect_workarounds()
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     /* Check for AMD legacy driver. Assuming that when these drivers are used this bug is present.
      */
-    if (strstr(version, " 22.6.1 ") || strstr(version, " 21.Q1.2 ") ||
-        strstr(version, " 21.Q2.1 "))
-    {
+    if (is_AMD_between_20_11_and_22(version)) {
       GCaps.use_hq_normals_workaround = true;
     }
     const Vector<std::string> matches = {
@@ -401,9 +493,7 @@ static void detect_workarounds()
    * install of the driver.
    */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    if (strstr(version, " 22.6.1 ") || strstr(version, " 21.Q1.2 ") ||
-        strstr(version, " 21.Q2.1 "))
-    {
+    if (is_AMD_between_20_11_and_22(version)) {
       GCaps.line_directive_workaround = true;
     }
   }

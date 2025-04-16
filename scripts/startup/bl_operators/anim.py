@@ -679,6 +679,10 @@ class ANIM_OT_slot_new_for_id(Operator):
     Note that _which_ ID should get this slot must be set in the 'animated_id' context pointer, using:
 
     >>> layout.context_pointer_set("animated_id", animated_id)
+
+    When the ID already has a slot assigned, the newly-created slot will be
+    named after it (ensuring uniqueness with a numerical suffix) and any
+    animation data of the assigned slot will be duplicated for the new slot.
     """
     bl_idname = "anim.slot_new_for_id"
     bl_label = "New Slot"
@@ -703,10 +707,14 @@ class ANIM_OT_slot_new_for_id(Operator):
 
     def execute(self, context):
         animated_id = context.animated_id
+        adt = animated_id.animation_data
 
-        action = animated_id.animation_data.action
-        slot = action.slots.new(animated_id.id_type, animated_id.name)
-        animated_id.animation_data.action_slot = slot
+        if adt.action_slot:
+            slot = adt.action_slot.duplicate()
+        else:
+            slot = adt.action.slots.new(animated_id.id_type, animated_id.name)
+
+        adt.action_slot = slot
         return {'FINISHED'}
 
 

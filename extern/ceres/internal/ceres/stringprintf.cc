@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,9 @@
 
 #include "ceres/internal/export.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
-using std::string;
-
-void StringAppendV(string* dst, const char* format, va_list ap) {
+void StringAppendV(std::string* dst, const char* format, va_list ap) {
   // First try with a small fixed size buffer
   char space[1024];
 
@@ -93,16 +90,16 @@ void StringAppendV(string* dst, const char* format, va_list ap) {
   delete[] buf;
 }
 
-string StringPrintf(const char* format, ...) {
+std::string StringPrintf(const char* format, ...) {
   va_list ap;
   va_start(ap, format);
-  string result;
+  std::string result;
   StringAppendV(&result, format, ap);
   va_end(ap);
   return result;
 }
 
-const string& SStringPrintf(string* dst, const char* format, ...) {
+const std::string& SStringPrintf(std::string* dst, const char* format, ...) {
   va_list ap;
   va_start(ap, format);
   dst->clear();
@@ -111,12 +108,11 @@ const string& SStringPrintf(string* dst, const char* format, ...) {
   return *dst;
 }
 
-void StringAppendF(string* dst, const char* format, ...) {
+void StringAppendF(std::string* dst, const char* format, ...) {
   va_list ap;
   va_start(ap, format);
   StringAppendV(dst, format, ap);
   va_end(ap);
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

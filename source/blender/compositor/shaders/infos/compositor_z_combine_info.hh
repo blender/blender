@@ -6,7 +6,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_z_combine_simple_image)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(BOOL, use_alpha)
+PUSH_CONSTANT(bool, use_alpha)
 SAMPLER(0, FLOAT_2D, first_tx)
 SAMPLER(1, FLOAT_2D, first_z_tx)
 SAMPLER(2, FLOAT_2D, second_tx)
@@ -36,7 +36,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_z_combine_from_mask_image)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(BOOL, use_alpha)
+PUSH_CONSTANT(bool, use_alpha)
 SAMPLER(0, FLOAT_2D, first_tx)
 SAMPLER(2, FLOAT_2D, second_tx)
 SAMPLER(4, FLOAT_2D, mask_tx)

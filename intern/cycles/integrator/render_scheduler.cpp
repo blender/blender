@@ -781,13 +781,7 @@ int RenderScheduler::calculate_num_samples_per_update() const
 
   const double update_interval_in_seconds = guess_display_update_interval_in_seconds();
 
-  int num_samples_per_update = max(int(num_samples_in_second * update_interval_in_seconds), 1);
-
-  if (limit_samples_per_update_) {
-    num_samples_per_update = min(limit_samples_per_update_, num_samples_per_update);
-  }
-
-  return num_samples_per_update;
+  return max(int(num_samples_in_second * update_interval_in_seconds), 1);
 }
 
 int RenderScheduler::get_start_sample_to_path_trace() const
@@ -914,8 +908,12 @@ int RenderScheduler::get_num_samples_to_path_trace() const
                                 min(num_samples_to_occupy, max_num_samples_to_render));
   }
 
-  /* If adaptive sampling is not use, render as many samples per update as possible, keeping the
-   * device fully occupied, without much overhead of display updates. */
+  if (limit_samples_per_update_) {
+    num_samples_to_render = min(limit_samples_per_update_, num_samples_to_render);
+  }
+
+  /* If adaptive sampling is not use, render as many samples per update as possible, keeping
+   * the device fully occupied, without much overhead of display updates. */
   if (!adaptive_sampling_.use) {
     return num_samples_to_render;
   }

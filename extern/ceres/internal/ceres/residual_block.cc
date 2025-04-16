@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -47,8 +47,7 @@
 
 using Eigen::Dynamic;
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 ResidualBlock::ResidualBlock(
     const CostFunction* cost_function,
@@ -114,8 +113,7 @@ bool ResidualBlock::Evaluate(const bool apply_loss_function,
     return false;
   }
 
-  if (!IsEvaluationValid(
-          *this, parameters.data(), cost, residuals, eval_jacobians)) {
+  if (!IsEvaluationValid(*this, parameters.data(), residuals, eval_jacobians)) {
     // clang-format off
     std::string message =
         "\n\n"
@@ -216,5 +214,4 @@ int ResidualBlock::NumScratchDoublesForEvaluate() const {
   return scratch_doubles;
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

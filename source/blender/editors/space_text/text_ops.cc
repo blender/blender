@@ -925,71 +925,6 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Refresh Pyconstraints Operator
- * \{ */
-
-static wmOperatorStatus text_refresh_pyconstraints_exec(bContext * /*C*/, wmOperator * /*op*/)
-{
-#ifdef WITH_PYTHON
-#  if 0
-  Main *bmain = CTX_data_main(C);
-  Text *text = CTX_data_edit_text(C);
-  Object *ob;
-  bConstraint *con;
-  bool update;
-
-  /* check all pyconstraints */
-  for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-    update = false;
-    if (ob->type == OB_ARMATURE && ob->pose) {
-      bPoseChannel *pchan;
-      for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-        for (con = pchan->constraints.first; con; con = con->next) {
-          if (con->type == CONSTRAINT_TYPE_PYTHON) {
-            bPythonConstraint *data = con->data;
-            if (data->text == text) {
-              BPY_pyconstraint_update(ob, con);
-            }
-            update = true;
-          }
-        }
-      }
-    }
-    for (con = ob->constraints.first; con; con = con->next) {
-      if (con->type == CONSTRAINT_TYPE_PYTHON) {
-        bPythonConstraint *data = con->data;
-        if (data->text == text) {
-          BPY_pyconstraint_update(ob, con);
-        }
-        update = true;
-      }
-    }
-
-    if (update) {
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    }
-  }
-#  endif
-#endif
-
-  return OPERATOR_FINISHED;
-}
-
-void TEXT_OT_refresh_pyconstraints(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Refresh PyConstraints";
-  ot->idname = "TEXT_OT_refresh_pyconstraints";
-  ot->description = "Refresh all pyconstraints";
-
-  /* api callbacks */
-  ot->exec = text_refresh_pyconstraints_exec;
-  ot->poll = text_edit_poll;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Paste Operator
  * \{ */
 
@@ -1432,7 +1367,7 @@ void TEXT_OT_comment_toggle(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
   prop = RNA_def_enum(ot->srna, "type", comment_items, 0, "Type", "Add or remove comments");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2624,7 +2559,7 @@ void TEXT_OT_delete(wmOperatorType *ot)
                       DEL_NEXT_CHAR,
                       "Type",
                       "Which part of the text to delete");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -3791,7 +3726,7 @@ static wmOperatorStatus text_find_and_replace(bContext *C, wmOperator *op, short
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = st->text;
   int flags;
-  int found = 0;
+  bool found = false;
   char *tmp;
 
   if (!st->findstr[0]) {
@@ -3884,7 +3819,7 @@ static wmOperatorStatus text_replace_all(bContext *C)
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = st->text;
   const int flags = st->flags;
-  int found = 0;
+  bool found = false;
 
   if (!st->findstr[0]) {
     return OPERATOR_CANCELLED;
@@ -3947,7 +3882,7 @@ void TEXT_OT_replace(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
   prop = RNA_def_boolean(ot->srna, "all", false, "Replace All", "Replace all occurrences");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -4168,11 +4103,12 @@ void TEXT_OT_jump_to_file_at_point(wmOperatorType *ot)
   ot->flag = 0;
 
   prop = RNA_def_string(ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_subtype(prop, PROP_FILEPATH);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_int(ot->srna, "line", 0, 0, INT_MAX, "Line", "Line to jump to", 1, 10000);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_int(ot->srna, "column", 0, 0, INT_MAX, "Column", "Column to jump to", 1, 10000);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */

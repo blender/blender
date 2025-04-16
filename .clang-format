@@ -258,7 +258,6 @@ ForEachMacros:
   - SEQ_ALL_BEGIN
   - SEQ_ITERATOR_FOREACH
   - SURFACE_QUAD_ITER_BEGIN
-  - foreach
   - ED_screen_areas_iter
   - SLOT_PROBING_BEGIN
   - SET_SLOT_PROBING_BEGIN

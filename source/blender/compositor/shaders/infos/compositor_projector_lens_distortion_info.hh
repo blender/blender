@@ -6,7 +6,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_projector_lens_distortion)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(FLOAT, dispersion)
+PUSH_CONSTANT(float, dispersion)
 SAMPLER(0, FLOAT_2D, input_tx)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)
 COMPUTE_SOURCE("compositor_projector_lens_distortion.glsl")

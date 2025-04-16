@@ -10,10 +10,17 @@
 
 #include <typeinfo>
 
+#ifdef _WIN32
+#  include "BLI_winstuff.h"
+#endif
+
 #ifdef __APPLE__
 #  include <MoltenVK/vk_mvk_moltenvk.h>
 #else
 #  include <vulkan/vulkan.h>
+#  ifdef _WIN32
+#    include <vulkan/vulkan_win32.h>
+#  endif
 #endif
 
 #include "vk_mem_alloc.h"

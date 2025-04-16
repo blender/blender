@@ -196,6 +196,8 @@ static void rna_Mesh_update(Mesh *mesh,
   mesh->runtime->vert_normals_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
   mesh->runtime->corner_normals_cache.tag_dirty();
+  mesh->runtime->vert_normals_true_cache.tag_dirty();
+  mesh->runtime->face_normals_true_cache.tag_dirty();
 
   DEG_id_tag_update(&mesh->id, 0);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);

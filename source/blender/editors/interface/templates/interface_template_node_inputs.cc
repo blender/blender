@@ -56,7 +56,7 @@ static void draw_node_input(bContext *C,
   if (socket.typeinfo->draw == nullptr) {
     return;
   }
-  if (ELEM(socket.type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_SHADER)) {
+  if (ELEM(socket.type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_SHADER, SOCK_BUNDLE, SOCK_CLOSURE)) {
     return;
   }
   const bNode &node = *static_cast<bNode *>(node_ptr->data);

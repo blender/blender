@@ -343,7 +343,7 @@ static void alloc_scale_dst_buffers(
 {
   *r_dst_byte = nullptr;
   if (ibuf->byte_buffer.data != nullptr) {
-    *r_dst_byte = MEM_malloc_arrayN<uchar4>(newx * newy, "scale_buf_byte");
+    *r_dst_byte = MEM_malloc_arrayN<uchar4>(size_t(newx) * size_t(newy), "scale_buf_byte");
     if (*r_dst_byte == nullptr) {
       return;
     }
@@ -413,8 +413,8 @@ struct ScaleDownX {
     const int grain_size = threaded ? 32 : ibufy;
     threading::parallel_for(IndexRange(ibufy), grain_size, [&](IndexRange range) {
       for (const int y : range) {
-        const T *src_ptr = src + y * ibufx;
-        T *dst_ptr = dst + y * newx;
+        const T *src_ptr = src + (int64_t(y) * ibufx);
+        T *dst_ptr = dst + (int64_t(y) * newx);
         float sample = 0.0f;
         float4 val(0.0f);
 
@@ -502,8 +502,8 @@ struct ScaleUpX {
         for (const int y : range) {
           float sample = -0.5f + add * 0.5f;
           int counter = 0;
-          const T *src_ptr = src + y * ibufx;
-          T *dst_ptr = dst + y * newx;
+          const T *src_ptr = src + (int64_t(y) * ibufx);
+          T *dst_ptr = dst + (int64_t(y) * newx);
           float4 val = load_pixel(src_ptr);
           float4 nval = load_pixel(src_ptr + 1);
           float4 diff = nval - val;

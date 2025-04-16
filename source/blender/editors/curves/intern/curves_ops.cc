@@ -809,7 +809,7 @@ static wmOperatorStatus curves_set_selection_domain_exec(bContext *C, wmOperator
     for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
       if (const GVArray src = *attributes.lookup(selection_name, domain)) {
         const CPPType &type = src.type();
-        void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
+        void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size, __func__);
         src.materialize(dst);
 
         attributes.remove(selection_name);

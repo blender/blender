@@ -8,16 +8,16 @@
 
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_INTERFACE_INFO(depth_2d_update_iface).smooth(Type::VEC2, "texCoord_interp");
+GPU_SHADER_INTERFACE_INFO(depth_2d_update_iface).smooth(Type::float2_t, "texCoord_interp");
 
 GPU_SHADER_CREATE_INFO(depth_2d_update_info_base)
-    .vertex_in(0, Type::VEC2, "pos")
+    .vertex_in(0, Type::float2_t, "pos")
     .vertex_out(depth_2d_update_iface)
-    .fragment_out(0, Type::VEC4, "fragColor")
-    .push_constant(Type::VEC2, "extent")
-    .push_constant(Type::VEC2, "offset")
-    .push_constant(Type::VEC2, "size")
-    .push_constant(Type::INT, "mip")
+    .fragment_out(0, Type::float4_t, "fragColor")
+    .push_constant(Type::float2_t, "extent")
+    .push_constant(Type::float2_t, "offset")
+    .push_constant(Type::float2_t, "size")
+    .push_constant(Type::int_t, "mip")
     .depth_write(DepthWrite::ANY)
     .vertex_source("depth_2d_update_vert.glsl");
 

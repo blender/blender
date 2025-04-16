@@ -129,17 +129,17 @@ struct GPUSource {
   {
     using namespace blender::gpu::shader;
     switch (metadata::Type(std::stoull(type))) {
-      case metadata::Type::vec1:
+      case metadata::Type::float1:
         return GPU_FLOAT;
-      case metadata::Type::vec2:
+      case metadata::Type::float2:
         return GPU_VEC2;
-      case metadata::Type::vec3:
+      case metadata::Type::float3:
         return GPU_VEC3;
-      case metadata::Type::vec4:
+      case metadata::Type::float4:
         return GPU_VEC4;
-      case metadata::Type::mat3:
+      case metadata::Type::float3x3:
         return GPU_MAT3;
-      case metadata::Type::mat4:
+      case metadata::Type::float4x4:
         return GPU_MAT4;
       case metadata::Type::sampler1DArray:
         return GPU_TEX1D_ARRAY;
@@ -379,7 +379,7 @@ struct GPUSource {
       dependencies.append_non_duplicates(dict.lookup("gpu_shader_print_lib.glsl"));
     }
     if ((builtins & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
-      dependencies.append_non_duplicates(dict.lookup("common_debug_draw_lib.glsl"));
+      dependencies.append_non_duplicates(dict.lookup("draw_debug_draw_lib.glsl"));
     }
 
     for (auto dependency_name : dependencies_names) {

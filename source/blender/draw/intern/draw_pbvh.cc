@@ -1856,7 +1856,7 @@ Span<gpu::Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
                                                       const ViewportRequest &request,
                                                       const IndexMask &nodes_to_update)
 {
-  const Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object));
+  const Object &object_orig = *DEG_get_original_object(&object);
   const OrigMeshData orig_mesh_data{*static_cast<const Mesh *>(object_orig.data)};
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
@@ -1900,7 +1900,7 @@ Span<gpu::Batch *> DrawCacheImpl::ensure_lines_batches(const Object &object,
                                                        const ViewportRequest &request,
                                                        const IndexMask &nodes_to_update)
 {
-  const Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object));
+  const Object &object_orig = *DEG_get_original_object(&object);
   const OrigMeshData orig_mesh_data(*static_cast<const Mesh *>(object_orig.data));
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
@@ -1931,7 +1931,7 @@ Span<int> DrawCacheImpl::ensure_material_indices(const Object &object)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (material_indices_.size() != pbvh.nodes_num()) {
-    const Object &object_orig = *DEG_get_original_object(&const_cast<Object &>(object));
+    const Object &object_orig = *DEG_get_original_object(&object);
     const OrigMeshData orig_mesh_data(*static_cast<const Mesh *>(object_orig.data));
     material_indices_ = calc_material_indices(object, orig_mesh_data);
   }

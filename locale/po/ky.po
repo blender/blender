@@ -1,20 +1,19 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
-"(b'0000000000000000000000000000000000000000')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2013-11-05 13:47+0600\n"
-"Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
-"Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
-"Language: __POT__\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:32+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
+"Language: ky\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Poedit-SourceCharset: UTF-8\n"
-"X-Generator: Poedit 1.5.4"
+"X-Generator: Weblate 5.10.1\n"
+"X-Poedit-SourceCharset: UTF-8"
 
 
 msgid "Name"
@@ -518,10 +517,6 @@ msgstr "Камера"
 
 msgid "Bone"
 msgstr "Сөөк"
-
-
-msgid "Script"
-msgstr "Скрипт"
 
 
 msgid "Front"
@@ -1036,6 +1031,10 @@ msgstr "Видеофайл"
 
 msgid "Filter"
 msgstr "Фильтр"
+
+
+msgid "Script"
+msgstr "Скрипт"
 
 
 msgid "Interface"

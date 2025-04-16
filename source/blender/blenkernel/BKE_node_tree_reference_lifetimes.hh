@@ -44,11 +44,13 @@ enum class ReferenceSetType {
    * input. In such cases, the caller may provide a set of attributes that should be propagated.
    */
   GroupOutputData,
+  ClosureOutputData,
   /**
    * Field inputs may require attributes that need to be propagated from other geometry inputs to
    * the node that evaluates the field.
    */
   GroupInputReferenceSet,
+  ClosureInputReferenceSet,
   /**
    * Locally created anonymous attributes (like with the Capture Attribute node) need to be
    * propagated to the nodes that use them or even to the group output.
@@ -61,7 +63,7 @@ struct ReferenceSetInfo {
   union {
     /** Used for group interface sockets. */
     int index;
-    /** Used for local sockets. */
+    /** Used for local and closure sockets. */
     const bNodeSocket *socket;
   };
 
@@ -79,7 +81,10 @@ struct ReferenceSetInfo {
 
   ReferenceSetInfo(ReferenceSetType type, const bNodeSocket *socket) : type(type), socket(socket)
   {
-    BLI_assert(ELEM(type, ReferenceSetType::LocalReferenceSet));
+    BLI_assert(ELEM(type,
+                    ReferenceSetType::LocalReferenceSet,
+                    ReferenceSetType::ClosureInputReferenceSet,
+                    ReferenceSetType::ClosureOutputData));
   }
 
   friend std::ostream &operator<<(std::ostream &stream, const ReferenceSetInfo &info);
@@ -101,5 +106,10 @@ struct ReferenceLifetimesInfo {
 };
 
 bool analyse_reference_lifetimes(bNodeTree &tree);
+
+/** The socket type allows storing references to data stored elsewhere. */
+bool can_contain_reference(eNodeSocketDatatype socket_type);
+/** The socket type allows storing data that may be referenced elsewhere. */
+bool can_contain_referenced_data(eNodeSocketDatatype socket_type);
 
 }  // namespace blender::bke::node_tree_reference_lifetimes

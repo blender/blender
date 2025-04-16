@@ -7,7 +7,7 @@
 #  include "gpu_glsl_cpp_stubs.hh"
 
 #  include "draw_shader_shared.hh"
-#  include "gpencil_shader_shared.h"
+#  include "gpencil_shader_shared.hh"
 
 #  include "draw_view_info.hh"
 
@@ -70,22 +70,22 @@ SAMPLER(0, FLOAT_BUFFER, hairPointBuffer)
 /* hairStrandsRes: Number of points per hair strand.
  * 2 - no subdivision
  * 3+ - 1 or more interpolated points per hair. */
-PUSH_CONSTANT(INT, hairStrandsRes)
+PUSH_CONSTANT(int, hairStrandsRes)
 /* hairThicknessRes : Subdivide around the hair.
  * 1 - Wire Hair: Only one pixel thick, independent of view distance.
  * 2 - Poly-strip Hair: Correct width, flat if camera is parallel.
  * 3+ - Cylinder Hair: Massive calculation but potentially perfect. Still need proper support. */
-PUSH_CONSTANT(INT, hairThicknessRes)
+PUSH_CONSTANT(int, hairThicknessRes)
 /* Hair thickness shape. */
-PUSH_CONSTANT(FLOAT, hairRadRoot)
-PUSH_CONSTANT(FLOAT, hairRadTip)
-PUSH_CONSTANT(FLOAT, hairRadShape)
-PUSH_CONSTANT(BOOL, hairCloseTip)
+PUSH_CONSTANT(float, hairRadRoot)
+PUSH_CONSTANT(float, hairRadTip)
+PUSH_CONSTANT(float, hairRadShape)
+PUSH_CONSTANT(bool, hairCloseTip)
 /* Strand batch offset when used in compute shaders. */
-PUSH_CONSTANT(INT, hairStrandOffset)
+PUSH_CONSTANT(int, hairStrandOffset)
 /* Hair particles are stored in world space coordinate.
  * This matrix convert to the instance "world space". */
-PUSH_CONSTANT(MAT4, hairDupliMatrix)
+PUSH_CONSTANT(float4x4, hairDupliMatrix)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
@@ -99,7 +99,7 @@ ADDITIONAL_INFO(draw_modelmat)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_gpencil)
-TYPEDEF_SOURCE("gpencil_shader_shared.h")
+TYPEDEF_SOURCE("gpencil_shader_shared.hh")
 DEFINE("DRW_GPENCIL_INFO")
 SAMPLER(0, FLOAT_BUFFER, gp_pos_tx)
 SAMPLER(1, FLOAT_BUFFER, gp_col_tx)

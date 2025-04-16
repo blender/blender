@@ -261,8 +261,8 @@ class DNACatalogHTML:
 
     def WriteToCSS(self, handle):
         '''
-        Write the Cascading stylesheet template to the handle
-        It is expected that the handle is a Filehandle
+        Write the Cascading style-sheet template to the handle
+        It is expected that the handle is a File-handle.
         '''
         css = """
             @CHARSET "ISO-8859-1";

@@ -144,10 +144,10 @@ set(SRC
   engines/select/select_engine.cc
   engines/select/select_instance.cc
   engines/overlay/overlay_armature.cc
-  engines/overlay/overlay_next_engine.cc
-  engines/overlay/overlay_next_instance.cc
-  engines/overlay/overlay_next_shader.cc
-  engines/overlay/overlay_next_shape.cc
+  engines/overlay/overlay_engine.cc
+  engines/overlay/overlay_instance.cc
+  engines/overlay/overlay_shader.cc
+  engines/overlay/overlay_shape.cc
 
   DRW_engine.hh
   DRW_pbvh.hh
@@ -239,48 +239,47 @@ set(SRC
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
   engines/overlay/overlay_engine.h
-  engines/overlay/overlay_next_antialiasing.hh
-  engines/overlay/overlay_next_armature.hh
-  engines/overlay/overlay_next_attribute_text.hh
-  engines/overlay/overlay_next_attribute_viewer.hh
-  engines/overlay/overlay_next_axes.hh
-  engines/overlay/overlay_next_background.hh
-  engines/overlay/overlay_next_base.hh
-  engines/overlay/overlay_next_bounds.hh
-  engines/overlay/overlay_next_camera.hh
-  engines/overlay/overlay_next_cursor.hh
-  engines/overlay/overlay_next_curve.hh
-  engines/overlay/overlay_next_edit_text.hh
-  engines/overlay/overlay_next_empty.hh
-  engines/overlay/overlay_next_facing.hh
-  engines/overlay/overlay_next_fade.hh
-  engines/overlay/overlay_next_fluid.hh
-  engines/overlay/overlay_next_force_field.hh
-  engines/overlay/overlay_next_grease_pencil.hh
-  engines/overlay/overlay_next_grid.hh
-  engines/overlay/overlay_next_image.hh
-  engines/overlay/overlay_next_instance.hh
-  engines/overlay/overlay_next_lattice.hh
-  engines/overlay/overlay_next_light.hh
-  engines/overlay/overlay_next_lightprobe.hh
-  engines/overlay/overlay_next_mesh.hh
-  engines/overlay/overlay_next_metaball.hh
-  engines/overlay/overlay_next_mode_transfer.hh
-  engines/overlay/overlay_next_motion_path.hh
-  engines/overlay/overlay_next_name.hh
-  engines/overlay/overlay_next_origin.hh
-  engines/overlay/overlay_next_outline.hh
-  engines/overlay/overlay_next_paint.hh
-  engines/overlay/overlay_next_particle.hh
-  engines/overlay/overlay_next_pointcloud.hh
-  engines/overlay/overlay_next_prepass.hh
-  engines/overlay/overlay_next_private.hh
-  engines/overlay/overlay_next_relation.hh
-  engines/overlay/overlay_next_sculpt.hh
-  engines/overlay/overlay_next_speaker.hh
-  engines/overlay/overlay_next_wireframe.hh
-  engines/overlay/overlay_next_xray_fade.hh
+  engines/overlay/overlay_antialiasing.hh
+  engines/overlay/overlay_armature.hh
+  engines/overlay/overlay_attribute_text.hh
+  engines/overlay/overlay_attribute_viewer.hh
+  engines/overlay/overlay_axes.hh
+  engines/overlay/overlay_background.hh
+  engines/overlay/overlay_base.hh
+  engines/overlay/overlay_bounds.hh
+  engines/overlay/overlay_camera.hh
+  engines/overlay/overlay_cursor.hh
+  engines/overlay/overlay_curve.hh
+  engines/overlay/overlay_edit_text.hh
+  engines/overlay/overlay_empty.hh
+  engines/overlay/overlay_facing.hh
+  engines/overlay/overlay_fade.hh
+  engines/overlay/overlay_fluid.hh
+  engines/overlay/overlay_force_field.hh
+  engines/overlay/overlay_grease_pencil.hh
+  engines/overlay/overlay_grid.hh
+  engines/overlay/overlay_image.hh
+  engines/overlay/overlay_instance.hh
+  engines/overlay/overlay_lattice.hh
+  engines/overlay/overlay_light.hh
+  engines/overlay/overlay_lightprobe.hh
+  engines/overlay/overlay_mesh.hh
+  engines/overlay/overlay_metaball.hh
+  engines/overlay/overlay_mode_transfer.hh
+  engines/overlay/overlay_motion_path.hh
+  engines/overlay/overlay_name.hh
+  engines/overlay/overlay_origin.hh
+  engines/overlay/overlay_outline.hh
+  engines/overlay/overlay_paint.hh
+  engines/overlay/overlay_particle.hh
+  engines/overlay/overlay_pointcloud.hh
+  engines/overlay/overlay_prepass.hh
   engines/overlay/overlay_private.hh
+  engines/overlay/overlay_relation.hh
+  engines/overlay/overlay_sculpt.hh
+  engines/overlay/overlay_speaker.hh
+  engines/overlay/overlay_wireframe.hh
+  engines/overlay/overlay_xray_fade.hh
   engines/select/select_defines.hh
   engines/select/select_engine.hh
   engines/select/select_instance.hh
@@ -288,7 +287,7 @@ set(SRC
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_enums.hh
   engines/workbench/workbench_private.hh
-  engines/workbench/workbench_shader_shared.h
+  engines/workbench/workbench_shader_shared.hh
 )
 
 set(LIB
@@ -535,17 +534,8 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_volume_vert.glsl
   engines/workbench/shaders/workbench_world_light_lib.glsl
 
-  engines/workbench/workbench_shader_shared.h
+  engines/workbench/workbench_shader_shared.hh
 
-  intern/shaders/common_aabb_lib.glsl
-  intern/shaders/common_colormanagement_lib.glsl
-  intern/shaders/common_debug_draw_lib.glsl
-  intern/shaders/common_debug_shape_lib.glsl
-  intern/shaders/common_fullscreen_vert.glsl
-  intern/shaders/common_fxaa_lib.glsl
-  intern/shaders/common_hair_lib.glsl
-  intern/shaders/common_hair_refine_comp.glsl
-  intern/shaders/common_shape_lib.glsl
   intern/shaders/subdiv_custom_data_interp_comp.glsl
   intern/shaders/subdiv_ibo_lines_comp.glsl
   intern/shaders/subdiv_ibo_tris_comp.glsl
@@ -558,6 +548,14 @@ set(GLSL_SRC
   intern/shaders/subdiv_vbo_edituv_strech_area_comp.glsl
   intern/shaders/subdiv_vbo_lnor_comp.glsl
   intern/shaders/subdiv_vbo_sculpt_data_comp.glsl
+  intern/shaders/draw_aabb_lib.glsl
+  intern/shaders/draw_colormanagement_lib.glsl
+  intern/shaders/draw_debug_draw_lib.glsl
+  intern/shaders/draw_debug_shape_lib.glsl
+  intern/shaders/draw_fxaa_lib.glsl
+  intern/shaders/draw_curves_lib.glsl
+  intern/shaders/draw_hair_refine_comp.glsl
+  intern/shaders/draw_shape_lib.glsl
   intern/shaders/draw_command_generate_comp.glsl
   intern/shaders/draw_debug_draw_display_frag.glsl
   intern/shaders/draw_debug_draw_display_vert.glsl
@@ -584,6 +582,7 @@ set(GLSL_SRC
 
   engines/gpencil/shaders/gpencil_frag.glsl
   engines/gpencil/shaders/gpencil_vert.glsl
+  engines/gpencil/shaders/gpencil_antialiasing_accumulation_frag.glsl
   engines/gpencil/shaders/gpencil_antialiasing_frag.glsl
   engines/gpencil/shaders/gpencil_antialiasing_vert.glsl
   engines/gpencil/shaders/gpencil_common_lib.glsl
@@ -593,8 +592,8 @@ set(GLSL_SRC
   engines/gpencil/shaders/gpencil_depth_merge_vert.glsl
   engines/gpencil/shaders/gpencil_vfx_frag.glsl
 
-  engines/gpencil/gpencil_defines.h
-  engines/gpencil/gpencil_shader_shared.h
+  engines/gpencil/gpencil_defines.hh
+  engines/gpencil/gpencil_shader_shared.hh
 
   engines/select/shaders/select_id_vert.glsl
   engines/select/shaders/select_id_frag.glsl
@@ -722,7 +721,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_wireframe_vert.glsl
   engines/overlay/shaders/overlay_xray_fade_frag.glsl
 
-  engines/overlay/overlay_shader_shared.h
+  engines/overlay/overlay_shader_shared.hh
 
   engines/image/shaders/image_engine_color_frag.glsl
   engines/image/shaders/image_engine_color_vert.glsl

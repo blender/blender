@@ -211,6 +211,7 @@ void register_node_type_cmp_rgbtobw()
   blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Default);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.gather_link_search_ops = nullptr;
 
   blender::bke::node_register_type(ntype);
 }

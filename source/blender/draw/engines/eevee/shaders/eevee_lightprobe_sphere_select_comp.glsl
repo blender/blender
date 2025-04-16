@@ -30,7 +30,7 @@ void main()
     sh = lightprobe_volume_world();
   }
   else {
-    vec3 probe_center = lightprobe_sphere_buf[idx].location;
+    float3 probe_center = lightprobe_sphere_buf[idx].location;
     sh = lightprobe_volume_sample(probe_center);
   }
 

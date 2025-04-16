@@ -740,7 +740,7 @@ class BlendFileTest(MeshTest):
     """
 
     def __init__(self, test_object_name, exp_object_name, threshold=None):
-        super().__init__(test_object_name, exp_object_name, threshold)
+        super().__init__(test_object_name, exp_object_name, threshold=threshold)
         if bpy.data.objects[test_object_name].get("allow_index_change"):
             self.allow_index_change = True
 

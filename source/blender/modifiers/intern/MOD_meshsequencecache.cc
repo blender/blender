@@ -388,6 +388,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(layout, ptr, "read_data", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
     uiItemR(layout, ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
+  else if (RNA_enum_get(&ob_ptr, "type") == OB_CURVES) {
+    uiItemR(layout, ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  }
 
   modifier_panel_end(layout, ptr);
 }

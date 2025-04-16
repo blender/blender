@@ -29,6 +29,8 @@ void GPU_init()
 
   initialized = true;
 
+  gpu_backend_init_resources();
+
   gpu_shader_dependency_init();
   gpu_shader_create_info_init();
 

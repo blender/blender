@@ -282,6 +282,10 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
 void BKE_scene_multiview_videos_dimensions_get(
     const RenderData *rd, size_t width, size_t height, size_t *r_width, size_t *r_height);
 int BKE_scene_multiview_num_videos_get(const RenderData *rd);
+/**
+ * Calculate the final pixels-per-meter, from the scenes PPM & aspect data.
+ */
+void BKE_scene_ppm_get(const RenderData *rd, double r_ppm[2]);
 
 /* depsgraph */
 void BKE_scene_allocate_depsgraph_hash(Scene *scene);

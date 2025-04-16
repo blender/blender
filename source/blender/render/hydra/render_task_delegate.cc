@@ -171,19 +171,10 @@ void RenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
   }
 }
 
-void RenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, GPUTexture *texture)
+pxr::HdRenderBuffer *RenderTaskDelegate::get_aov_buffer(pxr::TfToken const &aov_key)
 {
-  pxr::HdRenderBuffer *buffer = (pxr::HdRenderBuffer *)GetRenderIndex().GetBprim(
-      pxr::HdPrimTypeTokens->renderBuffer, buffer_id(aov_key));
-  if (!buffer) {
-    return;
-  }
-  eGPUDataFormat format = buffer->GetFormat() == pxr::HdFormat::HdFormatFloat16Vec4 ?
-                              GPU_DATA_HALF_FLOAT :
-                              GPU_DATA_FLOAT;
-  void *buf_data = buffer->Map();
-  GPU_texture_update(texture, format, buf_data);
-  buffer->Unmap();
+  return (pxr::HdRenderBuffer *)GetRenderIndex().GetBprim(pxr::HdPrimTypeTokens->renderBuffer,
+                                                          buffer_id(aov_key));
 }
 
 void RenderTaskDelegate::bind() {}
@@ -281,24 +272,6 @@ void GPURenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
   MEM_freeN(tex_data);
 }
 
-void GPURenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, GPUTexture *texture)
-{
-  GPUTexture *tex = nullptr;
-  if (aov_key == pxr::HdAovTokens->color) {
-    tex = tex_color_;
-  }
-  else if (aov_key == pxr::HdAovTokens->depth) {
-    tex = tex_depth_;
-  }
-  if (!tex) {
-    return;
-  }
-
-  void *tex_data = GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
-  GPU_texture_update(texture, GPU_DATA_FLOAT, tex_data);
-  MEM_freeN(tex_data);
-}
-
 void GPURenderTaskDelegate::bind()
 {
   if (!framebuffer_) {
@@ -333,7 +306,7 @@ void GPURenderTaskDelegate::unbind()
   CLOG_INFO(LOG_HYDRA_RENDER, 3, "unbind");
 }
 
-GPUTexture *GPURenderTaskDelegate::aov_texture(pxr::TfToken const &aov_key)
+GPUTexture *GPURenderTaskDelegate::get_aov_texture(pxr::TfToken const &aov_key)
 {
   if (aov_key == pxr::HdAovTokens->color) {
     return tex_color_;

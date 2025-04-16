@@ -65,6 +65,8 @@
 #  include "BLI_time_utildefines.h"
 #endif
 
+namespace {
+
 using eSign = int8_t;
 
 #ifdef USE_KDTREE
@@ -146,6 +148,8 @@ struct PolyFill {
   KDTree2D kdtree;
 #endif
 };
+
+}  // namespace
 
 /* Based on LIBGDX 2013-11-28, APACHE 2.0 licensed. */
 

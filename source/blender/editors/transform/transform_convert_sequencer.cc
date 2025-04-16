@@ -40,6 +40,8 @@ namespace blender::ed::transform {
 #define STRIP_EDGE_PAN_DELAY 1.0f
 #define STRIP_EDGE_PAN_ZOOM_INFLUENCE 0.5f
 
+namespace {
+
 /** Used for sequencer transform. */
 struct TransDataSeq {
   Strip *strip;
@@ -67,6 +69,8 @@ struct TransSeq {
   /* Strips that aren't selected, but their position entirely depends on transformed strips. */
   VectorSet<Strip *> time_dependent_strips;
 };
+
+}  // namespace
 
 /* -------------------------------------------------------------------- */
 /** \name Sequencer Transform Creation
@@ -273,7 +277,7 @@ static void seq_transform_cancel(TransInfo *t, Span<Strip *> transformed_strips)
 
   for (Strip *strip : transformed_strips) {
     /* Handle pre-existing overlapping strips even when operator is canceled.
-     * This is necessary for SEQUENCER_OT_duplicate_move macro for example. */
+     * This is necessary for #SEQUENCER_OT_duplicate_move macro for example. */
     if (seq::transform_test_overlap(t->scene, seqbase, strip)) {
       seq::transform_seqbase_shuffle(seqbase, strip, t->scene);
     }

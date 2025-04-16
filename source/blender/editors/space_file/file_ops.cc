@@ -1886,6 +1886,7 @@ void FILE_OT_external_operation(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_string(ot->srna, "filepath", nullptr, FILE_MAX, "File or folder path", "");
+  RNA_def_property_subtype(prop, PROP_FILEPATH);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   RNA_def_enum(ot->srna,
@@ -2140,7 +2141,7 @@ static std::string file_execute_get_description(bContext *C,
   SpaceFile *sfile = CTX_wm_space_file(C);
   if (sfile->op && sfile->op->type && sfile->op->type->description) {
     /* Return the description of the executed operator. Don't use get_description
-     * as that will return file details for WM_OT_open_mainfile. */
+     * as that will return file details for #WM_OT_open_mainfile. */
     return TIP_(sfile->op->type->description);
   }
   return {};

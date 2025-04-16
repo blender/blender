@@ -18,17 +18,19 @@ SHADER_LIBRARY_CREATE_INFO(eevee_lightprobe_sphere_data)
 #include "gpu_shader_math_vector_lib.glsl"
 
 #ifdef SPHERE_PROBE
-vec4 lightprobe_spheres_sample(vec3 L, float lod, SphereProbeUvArea uv_area)
+float4 lightprobe_spheres_sample(float3 L, float lod, SphereProbeUvArea uv_area)
 {
   float lod_min = floor(lod);
   float lod_max = ceil(lod);
   float mix_fac = lod - lod_min;
 
-  vec2 altas_uv_min, altas_uv_max;
+  float2 altas_uv_min, altas_uv_max;
   sphere_probe_direction_to_uv(L, lod_min, lod_max, uv_area, altas_uv_min, altas_uv_max);
 
-  vec4 color_min = textureLod(lightprobe_spheres_tx, vec3(altas_uv_min, uv_area.layer), lod_min);
-  vec4 color_max = textureLod(lightprobe_spheres_tx, vec3(altas_uv_max, uv_area.layer), lod_max);
+  float4 color_min = textureLod(
+      lightprobe_spheres_tx, float3(altas_uv_min, uv_area.layer), lod_min);
+  float4 color_max = textureLod(
+      lightprobe_spheres_tx, float3(altas_uv_max, uv_area.layer), lod_max);
   return mix(color_min, color_max, mix_fac);
 }
 #endif
@@ -41,18 +43,18 @@ ReflectionProbeLowFreqLight lightprobe_spheres_extract_low_freq(SphericalHarmoni
   /* Bias to avoid division by zero. */
   result.ambient += 1e-6f;
 
-  mat3x4 L1_per_band;
+  float3x4 L1_per_band;
   L1_per_band[0] = sh.L1.Mn1;
   L1_per_band[1] = sh.L1.M0;
   L1_per_band[2] = sh.L1.Mp1;
 
-  mat4x3 L1_per_comp = transpose(L1_per_band);
+  float4x3 L1_per_comp = transpose(L1_per_band);
   result.direction = L1_per_comp[0] + L1_per_comp[1] + L1_per_comp[2];
 
   return result;
 }
 
-float lightprobe_spheres_normalization_eval(vec3 L,
+float lightprobe_spheres_normalization_eval(float3 L,
                                             ReflectionProbeLowFreqLight numerator,
                                             ReflectionProbeLowFreqLight denominator)
 {

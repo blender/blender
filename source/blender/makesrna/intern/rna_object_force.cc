@@ -1033,6 +1033,7 @@ static void rna_def_pointcache_common(StructRNA *srna)
 
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "path");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_ui_text(prop, "File Path", "Cache file path");
   RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 

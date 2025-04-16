@@ -322,11 +322,9 @@ float Light::point_radiance_get()
 
 void Light::debug_draw()
 {
-#ifndef NDEBUG
   drw_debug_sphere(transform_location(this->object_to_world),
                    local.influence_radius_max,
                    float4(0.8f, 0.3f, 0.0f, 1.0f));
-#endif
 }
 
 /** \} */
@@ -345,7 +343,13 @@ LightModule::~LightModule()
 
 void LightModule::begin_sync()
 {
-  use_scene_lights_ = inst_.use_scene_lights();
+  if (assign_if_different(use_scene_lights_, inst_.use_scene_lights())) {
+    if (inst_.is_viewport()) {
+      /* Catch lookdev viewport properties updates. */
+      inst_.sampling.reset();
+    }
+  }
+
   /* Disable sunlight if world has a volume shader as we consider the light cannot go through an
    * infinite opaque medium. */
   use_sun_lights_ = (inst_.world.has_volume_absorption() == false);

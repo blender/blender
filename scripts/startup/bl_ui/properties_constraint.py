@@ -857,10 +857,6 @@ class ConstraintButtonsPanel:
 
         self.draw_influence(layout, con)
 
-    def draw_python_constraint(self, _context):
-        layout = self.layout
-        layout.label(text="Blender 2.6 doesn't support Python constraints yet")
-
     def draw_armature(self, context):
         layout = self.layout
         con = self.get_constraint(context)
@@ -1650,18 +1646,6 @@ class BONE_PT_bTransformCacheConstraint_time(BoneConstraintPanel, ConstraintButt
         self.draw_transform_cache_time(context)
 
 
-# Python Constraint
-
-class OBJECT_PT_bPythonConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
-    def draw(self, context):
-        self.draw_python_constraint(context)
-
-
-class BONE_PT_bPythonConstraint(BoneConstraintPanel, ConstraintButtonsPanel, Panel):
-    def draw(self, context):
-        self.draw_python_constraint(context)
-
-
 # Armature Constraint
 
 class OBJECT_PT_bArmatureConstraint(ObjectConstraintPanel, ConstraintButtonsPanel, Panel):
@@ -1740,7 +1724,6 @@ classes = (
     OBJECT_PT_bTransformCacheConstraint_procedural,
     OBJECT_PT_bTransformCacheConstraint_velocity,
     OBJECT_PT_bTransformCacheConstraint_layers,
-    OBJECT_PT_bPythonConstraint,
     OBJECT_PT_bArmatureConstraint,
     OBJECT_PT_bArmatureConstraint_bones,
     # Bone panels
@@ -1781,7 +1764,6 @@ classes = (
     BONE_PT_bTransformCacheConstraint_procedural,
     BONE_PT_bTransformCacheConstraint_velocity,
     BONE_PT_bTransformCacheConstraint_layers,
-    BONE_PT_bPythonConstraint,
     BONE_PT_bArmatureConstraint,
     BONE_PT_bArmatureConstraint_bones,
 )

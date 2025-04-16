@@ -60,8 +60,8 @@ struct SculptData {
 };
 
 /* Duplicate of #PosNorLoop from the mesh extract CPU code.
- * We do not use a vec3 for the position as it will be padded to a vec4 which is incompatible with
- * the format. */
+ * We do not use a float3 for the position as it will be padded to a float4 which is incompatible
+ * with the format. */
 struct PosNorLoop {
   float x, y, z;
   float nx, ny, nz;
@@ -94,12 +94,12 @@ struct BlenderPatchCoord {
 };
 
 /* Patch evaluation - F-dots. */
-/* vec3 is padded to vec4, but the format used for face-dots does not have any padding. */
+/* float3 is padded to float4, but the format used for face-dots does not have any padding. */
 struct FDotVert {
   float x, y, z;
 };
 
-/* Same here, do not use vec3. */
+/* Same here, do not use float3. */
 struct FDotNor {
   float x, y, z;
   float flag;

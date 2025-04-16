@@ -874,7 +874,7 @@ template<int N, int M> inline bool operator!=(matrix<float, N, M> a, matrix<floa
 /* Matrix unary minus operator. */
 template<int N, int M> inline matrix<float, N, M> operator-(matrix<float, N, M> a)
 {
-  return a * -1.0;
+  return a * -1.0f;
 }
 
 /* Common Functions. */
@@ -884,8 +884,8 @@ template<int N, int M> inline matrix<float, N, M> operator-(matrix<float, N, M> 
 #define inversesqrt rsqrt
 
 /* clang-format off */
-inline float radians(float deg) { return deg * 0.01745329251; /* M_PI_F / 180 */ }
-inline float degrees(float rad) { return rad * 57.2957795131; /* 180 / M_PI_F */ }
+inline float radians(float deg) { return deg * 0.01745329251f; /* M_PI_F / 180 */ }
+inline float degrees(float rad) { return rad * 57.2957795131f; /* 180 / M_PI_F */ }
 inline int floatBitsToInt(float f) { return as_type<int>(f); }
 inline int2 floatBitsToInt(float2 f) { return as_type<int2>(f); }
 inline int3 floatBitsToInt(float3 f) { return as_type<int3>(f); }
@@ -1020,7 +1020,7 @@ float4x4 inverse(float4x4 a)
   adjoint[3][3] = a[2][0] * b03 - a[2][1] * b01 + a[2][2] * b00;
   float determinant = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
   /* Multiplying by inverse since matrix types don't have divide operators. */
-  return adjoint * (1.0 / determinant);
+  return adjoint * (1.0f / determinant);
 }
 
 float3x3 inverse(float3x3 m)
@@ -1037,7 +1037,7 @@ float3x3 inverse(float3x3 m)
   adjoint[2][2] = +(m[0][0] * m[1][1] - m[1][0] * m[0][1]);
   float determinant = m[0][0] * adjoint[0][0] + m[1][0] * adjoint[0][1] + m[2][0] * adjoint[0][2];
   /* Multiplying by inverse since matrix types don't have divide operators. */
-  return adjoint * (1.0 / determinant);
+  return adjoint * (1.0f / determinant);
 }
 
 float2x2 inverse(float2x2 m)
@@ -1049,7 +1049,7 @@ float2x2 inverse(float2x2 m)
   adjoint[1][1] = +m[0][0];
   float determinant = m[0][0] * m[1][1] - m[1][0] * m[0][1];
   /* Multiplying by inverse since matrix types don't have divide operators. */
-  return adjoint * (1.0 / determinant);
+  return adjoint * (1.0f / determinant);
 }
 
 /* Additional overloads for builtin functions. */
@@ -1061,7 +1061,7 @@ float distance(float x, float y)
 /* Overload for mix(vec<T>, vec<T>, float). */
 template<typename T, int S> vec<T, S> mix(vec<T, S> a, vec<T, S> b, float fac)
 {
-  return a * (1.0 - fac) + b * fac;
+  return a * (1.0f - fac) + b * fac;
 }
 
 /* Using vec<bool, S> does not appear to work, splitting cases. */

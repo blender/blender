@@ -25,7 +25,7 @@ TEST(std140, fl)
 {
   uint32_t offset = 0;
 
-  def_attr<Std140>(shader::Type::FLOAT, 0, 0, 4, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 0, 4, &offset);
 
   align_end_of_struct<Std140>(&offset);
   EXPECT_EQ(offset, 16);
@@ -35,8 +35,8 @@ TEST(std140, _2fl)
 {
   uint32_t offset = 0;
 
-  def_attr<Std140>(shader::Type::FLOAT, 0, 0, 4, &offset);
-  def_attr<Std140>(shader::Type::FLOAT, 0, 4, 8, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 0, 4, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 4, 8, &offset);
 
   align_end_of_struct<Std140>(&offset);
   EXPECT_EQ(offset, 16);
@@ -46,9 +46,9 @@ TEST(std140, _3fl)
 {
   uint32_t offset = 0;
 
-  def_attr<Std140>(shader::Type::FLOAT, 0, 0, 4, &offset);
-  def_attr<Std140>(shader::Type::FLOAT, 0, 4, 8, &offset);
-  def_attr<Std140>(shader::Type::FLOAT, 0, 8, 12, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 0, 4, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 4, 8, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 8, 12, &offset);
 
   align_end_of_struct<Std140>(&offset);
   EXPECT_EQ(offset, 16);
@@ -58,10 +58,10 @@ TEST(std140, _4fl)
 {
   uint32_t offset = 0;
 
-  def_attr<Std140>(shader::Type::FLOAT, 0, 0, 4, &offset);
-  def_attr<Std140>(shader::Type::FLOAT, 0, 4, 8, &offset);
-  def_attr<Std140>(shader::Type::FLOAT, 0, 8, 12, &offset);
-  def_attr<Std140>(shader::Type::FLOAT, 0, 12, 16, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 0, 4, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 4, 8, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 8, 12, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 12, 16, &offset);
 
   align_end_of_struct<Std140>(&offset);
   EXPECT_EQ(offset, 16);
@@ -71,7 +71,7 @@ TEST(std140, fl2)
 {
   uint32_t offset = 0;
 
-  def_attr<Std140>(shader::Type::FLOAT, 2, 0, 32, &offset);
+  def_attr<Std140>(shader::Type::float_t, 2, 0, 32, &offset);
 
   align_end_of_struct<Std140>(&offset);
   EXPECT_EQ(offset, 32);
@@ -81,8 +81,8 @@ TEST(std140, fl_fl2)
 {
   uint32_t offset = 0;
 
-  def_attr<Std140>(shader::Type::FLOAT, 0, 0, 4, &offset);
-  def_attr<Std140>(shader::Type::FLOAT, 2, 16, 48, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 0, 4, &offset);
+  def_attr<Std140>(shader::Type::float_t, 2, 16, 48, &offset);
 
   align_end_of_struct<Std140>(&offset);
   EXPECT_EQ(offset, 48);
@@ -92,8 +92,8 @@ TEST(std140, fl_vec2)
 {
   uint32_t offset = 0;
 
-  def_attr<Std140>(shader::Type::FLOAT, 0, 0, 4, &offset);
-  def_attr<Std140>(shader::Type::VEC2, 0, 8, 16, &offset);
+  def_attr<Std140>(shader::Type::float_t, 0, 0, 4, &offset);
+  def_attr<Std140>(shader::Type::float2_t, 0, 8, 16, &offset);
 
   align_end_of_struct<Std140>(&offset);
   EXPECT_EQ(offset, 16);
@@ -103,10 +103,10 @@ TEST(std140, gpu_shader_2D_widget_base)
 {
   uint32_t offset = 0;
 
-  def_attr<Std140>(shader::Type::VEC4, 12, 0, 192, &offset);
-  def_attr<Std140>(shader::Type::MAT4, 0, 192, 256, &offset);
-  def_attr<Std140>(shader::Type::VEC3, 0, 256, 268, &offset);
-  def_attr<Std140>(shader::Type::BOOL, 0, 268, 272, &offset);
+  def_attr<Std140>(shader::Type::float4_t, 12, 0, 192, &offset);
+  def_attr<Std140>(shader::Type::float4x4_t, 0, 192, 256, &offset);
+  def_attr<Std140>(shader::Type::float3_t, 0, 256, 268, &offset);
+  def_attr<Std140>(shader::Type::bool_t, 0, 268, 272, &offset);
 
   align_end_of_struct<Std140>(&offset);
   EXPECT_EQ(offset, 272);
@@ -116,8 +116,8 @@ TEST(std430, overlay_grid)
 {
   uint32_t offset = 0;
 
-  def_attr<Std430>(shader::Type::VEC3, 0, 0, 12, &offset);
-  def_attr<Std430>(shader::Type::INT, 0, 12, 16, &offset);
+  def_attr<Std430>(shader::Type::float3_t, 0, 0, 12, &offset);
+  def_attr<Std430>(shader::Type::int_t, 0, 12, 16, &offset);
 
   align_end_of_struct<Std430>(&offset);
   EXPECT_EQ(offset, 16);
@@ -127,8 +127,8 @@ TEST(std430, simple_lighting)
 {
   uint32_t offset = 0;
 
-  def_attr<Std430>(shader::Type::MAT4, 0, 0, 64, &offset);
-  def_attr<Std430>(shader::Type::MAT3, 0, 64, 112, &offset);
+  def_attr<Std430>(shader::Type::float4x4_t, 0, 0, 64, &offset);
+  def_attr<Std430>(shader::Type::float3x3_t, 0, 64, 112, &offset);
 
   align_end_of_struct<Std430>(&offset);
   EXPECT_EQ(offset, 112);
@@ -138,9 +138,9 @@ TEST(std430, compositor_cryptomatte_matte_compute)
 {
   uint32_t offset = 0;
 
-  def_attr<Std430>(shader::Type::VEC2, 0, 0, 8, &offset);
-  def_attr<Std430>(shader::Type::FLOAT, 0, 8, 12, &offset);
-  def_attr<Std430>(shader::Type::FLOAT, 32, 12, 140, &offset);
+  def_attr<Std430>(shader::Type::float2_t, 0, 0, 8, &offset);
+  def_attr<Std430>(shader::Type::float_t, 0, 8, 12, &offset);
+  def_attr<Std430>(shader::Type::float_t, 32, 12, 140, &offset);
 
   align_end_of_struct<Std430>(&offset);
   EXPECT_EQ(offset, 144);

@@ -28,7 +28,7 @@ def set_float(self, value):
 bpy.types.Scene.test_float = bpy.props.FloatProperty(get=get_float, set=set_float)
 
 
-# Read-only string property, returns the current date
+# Read-only string property, returns the current date.
 def get_date(self):
     import datetime
     return str(datetime.datetime.now())
@@ -37,9 +37,10 @@ def get_date(self):
 bpy.types.Scene.test_date = bpy.props.StringProperty(get=get_date)
 
 
-# Boolean array. Set function stores a single boolean value, returned as the second component.
-# Array getters must return a list or tuple
-# Array size must match the property vector size exactly
+# Boolean array.
+# - Set function stores a single boolean value, returned as the second component.
+# - Array getters must return a list or tuple.
+# - Array size must match the property vector size exactly.
 def get_array(self):
     return (True, self["somebool"])
 
@@ -82,7 +83,7 @@ print('test_float:', scene.test_float)
 scene.test_array = (True, False)
 print('test_array:', tuple(scene.test_array))
 
-# scene.test_date = "blah"   # this would fail, property is read-only
+# scene.test_date = "blah"   # This would fail, property is read-only.
 print('test_date:', scene.test_date)
 
 scene.test_enum = 'BLUE'

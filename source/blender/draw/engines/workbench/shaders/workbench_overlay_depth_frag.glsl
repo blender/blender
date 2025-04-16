@@ -12,5 +12,5 @@ void main()
 {
   /* Set the depth to 0 for "In Front" objects,
    * so the Overlay engine doesn't draw on top of them. */
-  gl_FragDepth = 0.0;
+  gl_FragDepth = 0.0f;
 }

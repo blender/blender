@@ -34,6 +34,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace {
+
 /* local types */
 struct PolyFill {
   uint edges, verts;
@@ -46,6 +48,8 @@ struct ScanFillVertLink {
   ScanFillVert *vert;
   ScanFillEdge *edge_first, *edge_last;
 };
+
+}  // namespace
 
 /* Local functions. */
 

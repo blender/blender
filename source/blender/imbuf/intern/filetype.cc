@@ -17,7 +17,7 @@
 
 #include "oiio/openimageio_api.h"
 
-#ifdef WITH_OPENEXR
+#ifdef WITH_IMAGE_OPENEXR
 #  include "openexr/openexr_api.h"
 #endif
 
@@ -79,10 +79,10 @@ const ImFileType IMB_FILE_TYPES[] = {
         /*load_filepath_thumbnail*/ nullptr,
         /*save*/ imb_saveiris,
         /*flag*/ 0,
-        /*filetype*/ IMB_FTYPE_IMAGIC,
+        /*filetype*/ IMB_FTYPE_IRIS,
         /*default_save_role*/ COLOR_ROLE_DEFAULT_BYTE,
     },
-#ifdef WITH_CINEON
+#ifdef WITH_IMAGE_CINEON
     {
         /*init*/ nullptr,
         /*exit*/ nullptr,
@@ -132,7 +132,7 @@ const ImFileType IMB_FILE_TYPES[] = {
         /*filetype*/ IMB_FTYPE_RADHDR,
         /*default_save_role*/ COLOR_ROLE_DEFAULT_FLOAT,
     },
-#ifdef WITH_OPENEXR
+#ifdef WITH_IMAGE_OPENEXR
     {
         /*init*/ imb_initopenexr,
         /*exit*/ imb_exitopenexr,
@@ -146,7 +146,7 @@ const ImFileType IMB_FILE_TYPES[] = {
         /*default_save_role*/ COLOR_ROLE_DEFAULT_FLOAT,
     },
 #endif
-#ifdef WITH_OPENJPEG
+#ifdef WITH_IMAGE_OPENJPEG
     {
         /*init*/ nullptr,
         /*exit*/ nullptr,
@@ -184,7 +184,7 @@ const ImFileType IMB_FILE_TYPES[] = {
         /*filetype*/ IMB_FTYPE_PSD,
         /*default_save_role*/ COLOR_ROLE_DEFAULT_FLOAT,
     },
-#ifdef WITH_WEBP
+#ifdef WITH_IMAGE_WEBP
     {
         /*init*/ nullptr,
         /*exit*/ nullptr,

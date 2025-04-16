@@ -6,10 +6,10 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   float input_mask_value = texture_load(input_mask_tx, texel).x;
-  float mask = int(round(input_mask_value)) == index ? 1.0 : 0.0;
+  float mask = int(round(input_mask_value)) == index ? 1.0f : 0.0f;
 
-  imageStore(output_mask_img, texel, vec4(mask));
+  imageStore(output_mask_img, texel, float4(mask));
 }

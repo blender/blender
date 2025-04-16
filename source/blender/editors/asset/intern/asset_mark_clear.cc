@@ -61,7 +61,7 @@ void generate_preview(const bContext *C, ID *id)
     return;
   }
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  ED_preview_kill_jobs_for_id(CTX_wm_manager(C), id);
 
   PreviewImage *preview = BKE_previewimg_id_get(id);
   if (preview) {

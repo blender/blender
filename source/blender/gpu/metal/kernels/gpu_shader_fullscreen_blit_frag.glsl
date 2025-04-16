@@ -4,6 +4,6 @@
 
 void main()
 {
-  vec4 tex_color = textureLod(imageTexture, uvcoordsvar.xy, mip);
+  float4 tex_color = textureLod(imageTexture, screen_uv, mip);
   fragColor = tex_color;
 }

@@ -397,15 +397,20 @@ static wmOperatorStatus wm_link_append_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
+static void wm_link_append_properties_common(wmOperatorType *ot,
+                                             const bool is_link,
+                                             const bool is_relocate)
 {
   PropertyRNA *prop;
 
   /* Better not save _any_ settings for this operator. */
 
   /* Properties. */
-  prop = RNA_def_boolean(
-      ot->srna, "link", is_link, "Link", "Link the objects or data-blocks rather than appending");
+  prop = RNA_def_boolean(ot->srna,
+                         "link",
+                         is_link || is_relocate,
+                         "Link",
+                         "Link the objects or data-blocks rather than appending");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
   prop = RNA_def_boolean(
@@ -427,15 +432,18 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
 
   prop = RNA_def_boolean(ot->srna,
                          "active_collection",
-                         true,
+                         !is_relocate,
                          "Active Collection",
                          "Put new objects on the active collection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
+  /* NOTE: do not force instancing when relocating, as direct data (the selected ID) status should
+   * not change on that regard, and other dependencies would be indirectly linked and therefore
+   * should not require any enforced instancing when linked. */
   prop = RNA_def_boolean(
       ot->srna,
       "instance_collections",
-      is_link,
+      is_link && !is_relocate,
       "Instance Collections",
       "Create instances for collections, rather than adding them directly to the scene");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -443,7 +451,7 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
   prop = RNA_def_boolean(
       ot->srna,
       "instance_object_data",
-      true,
+      !is_relocate,
       "Instance Object Data",
       "Create instances for object data which are not referenced by any objects");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -470,7 +478,7 @@ void WM_OT_link(wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
-  wm_link_append_properties_common(ot, true);
+  wm_link_append_properties_common(ot, true, false);
 }
 
 void WM_OT_append(wmOperatorType *ot)
@@ -494,7 +502,7 @@ void WM_OT_append(wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 
-  wm_link_append_properties_common(ot, false);
+  wm_link_append_properties_common(ot, false, false);
   RNA_def_boolean(ot->srna,
                   "set_fake",
                   false,
@@ -506,6 +514,180 @@ void WM_OT_append(wmOperatorType *ot)
       true,
       "Localize All",
       "Localize all appended data, including those indirectly linked from other libraries");
+}
+
+static wmOperatorStatus wm_id_linked_relocate_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BlendfileLinkAppendContext *lapp_context;
+  char filepath[FILE_MAX_LIBEXTRA], root[FILE_MAXDIR], libname[FILE_MAX_LIBEXTRA],
+      relname[FILE_MAX];
+  char *group, *name;
+
+  RNA_string_get(op->ptr, "filename", relname);
+  RNA_string_get(op->ptr, "directory", root);
+
+  BLI_path_join(filepath, sizeof(filepath), root, relname);
+
+  /* Test if we have a valid data. */
+  const bool is_librarypath_valid = BKE_blendfile_library_path_explode(
+      filepath, libname, &group, &name);
+
+  /* NOTE: Need to also check filepath, as typically libname is an empty string here (when trying
+   * to append from current file from the file-browser e.g.). */
+  if (BLI_path_cmp(BKE_main_blendfile_path(bmain), filepath) == 0 ||
+      BLI_path_cmp(BKE_main_blendfile_path(bmain), libname) == 0)
+  {
+    BKE_reportf(op->reports, RPT_ERROR, "'%s': cannot use current file as library", filepath);
+    return OPERATOR_CANCELLED;
+  }
+  if (!is_librarypath_valid) {
+    BKE_reportf(op->reports, RPT_ERROR, "'%s': not a library", filepath);
+    return OPERATOR_CANCELLED;
+  }
+  if (!group || !name) {
+    BKE_reportf(op->reports, RPT_ERROR, "'%s': nothing indicated", filepath);
+    return OPERATOR_CANCELLED;
+  }
+
+  int flag = wm_link_append_flag(op);
+  BLI_assert(flag & FILE_LINK);
+
+  const short id_type_code = BKE_idtype_idcode_from_name(group);
+
+  const int tmp_id_session_uid = RNA_int_get(op->ptr, "id_session_uid");
+  const uint id_session_uid = *reinterpret_cast<const uint *>(&tmp_id_session_uid);
+  /* NOTE: Creating a full ID map for a single lookup is not worth it. */
+  ID *linked_id = BKE_libblock_find_session_uid(bmain, id_session_uid);
+
+  {
+    const char *linked_id_name = BKE_id_name(*linked_id);
+
+    if (!linked_id || !ID_IS_LINKED(linked_id)) {
+      BKE_reportf(op->reports, RPT_ERROR, "No valid existing linked ID given to relocate");
+      return OPERATOR_CANCELLED;
+    }
+    if (GS(linked_id->name) != id_type_code) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR,
+                  "Selected ID '%s' is a %s, cannot be used to relocate existing linked ID '%s' "
+                  "which is a %s",
+                  name,
+                  group,
+                  linked_id_name,
+                  BKE_idtype_idcode_to_name(GS(linked_id->name)));
+      return OPERATOR_CANCELLED;
+    }
+    if (STREQ(linked_id_name, name) && STREQ(linked_id->lib->runtime->filepath_abs, libname)) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR,
+                  "Selected ID '%s' seems to be the same as the relocated ID '%s', use 'Reload' "
+                  "operation instead",
+                  name,
+                  linked_id_name);
+      return OPERATOR_CANCELLED;
+    }
+  }
+
+  /* From here down, no error returns. */
+
+  if (view_layer && RNA_boolean_get(op->ptr, "autoselect")) {
+    BKE_view_layer_base_deselect_all(scene, view_layer);
+  }
+
+  /* Never enforce instantiation of anything when relocating. */
+  flag &= ~(BLO_LIBLINK_COLLECTION_INSTANCE | BLO_LIBLINK_OBDATA_INSTANCE);
+
+  /* Tag everything, its generally useful to know what is new.
+   *
+   * Take extra care `BKE_main_id_flag_all(bmain, ID_TAG_PRE_EXISTING, false)` is called after! */
+  BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
+
+  /* We define our working data...
+   * Note that here, each item 'uses' one library, and only one. */
+  LibraryLink_Params lapp_params;
+  BLO_library_link_params_init_with_context(
+      &lapp_params, bmain, flag, 0, scene, view_layer, CTX_wm_view3d(C));
+
+  lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
+  BKE_blendfile_link_append_context_embedded_blendfile_set(
+      lapp_context, datatoc_startup_blend, datatoc_startup_blend_size);
+
+  BKE_blendfile_link_append_context_library_add(lapp_context, libname, nullptr);
+  BlendfileLinkAppendContextItem *item = BKE_blendfile_link_append_context_item_add(
+      lapp_context, name, id_type_code, linked_id);
+  BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, item, 0);
+
+  BKE_blendfile_link_append_context_init_done(lapp_context);
+
+  BKE_blendfile_id_relocate(*lapp_context, op->reports);
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
+
+  BKE_blendfile_link_append_context_free(lapp_context);
+
+  /* TODO(sergey): Use proper flag for tagging here. */
+
+  /* TODO(dalai): Temporary solution!
+   * Ideally we only need to tag the new objects themselves, not the scene.
+   * This way we'll avoid flush of collection properties
+   * to all objects and limit update to the particular object only.
+   * But afraid first we need to change collection evaluation in DEG
+   * according to depsgraph manifesto. */
+  if (scene) {
+    DEG_id_tag_update(&scene->id, 0);
+  }
+
+  /* Recreate dependency graph to include new objects. */
+  DEG_relations_tag_update(bmain);
+
+  /* TODO: align `G.filepath_last_library` with other directory storage
+   * (like last opened image, etc). */
+  STRNCPY(G.filepath_last_library, root);
+
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void WM_OT_id_linked_relocate(wmOperatorType *ot)
+{
+  ot->name = "Relocate Linked ID";
+  ot->idname = "WM_OT_id_linked_relocate";
+  ot->description =
+      "Relocate a linked ID, i.e. select another ID to link, and remap its local usages to that "
+      "newly linked data-block). Currently only designed as an internal operator, not directly "
+      "exposed to the user";
+
+  ot->invoke = wm_link_append_invoke;
+  ot->exec = wm_id_linked_relocate_exec;
+  ot->poll = wm_link_append_poll;
+
+  ot->flag = OPTYPE_INTERNAL | OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop = RNA_def_int(ot->srna,
+                                  "id_session_uid",
+                                  MAIN_ID_SESSION_UID_UNSET,
+                                  0,
+                                  INT_MAX,
+                                  "Linked ID Session UID",
+                                  "Unique runtime identifier for the linked ID to relocate",
+                                  0,
+                                  INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER | FILE_TYPE_BLENDER | FILE_TYPE_BLENDERLIB,
+                                 FILE_LOADLIB,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILENAME |
+                                     WM_FILESEL_RELPATH | WM_FILESEL_SHOW_PROPS,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
+
+  wm_link_append_properties_common(ot, true, true);
 }
 
 /** \} */

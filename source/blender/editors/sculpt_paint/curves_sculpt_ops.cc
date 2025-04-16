@@ -912,7 +912,8 @@ static int calculate_points_per_side(bContext *C, MinDistanceEditData &op_data)
   return std::min(300, needed_points);
 }
 
-static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *customdata)
+static void min_distance_edit_draw(
+    bContext *C, int /*x*/, int /*y*/, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
 {
   Scene *scene = CTX_data_scene(C);
   MinDistanceEditData &op_data = *static_cast<MinDistanceEditData *>(customdata);

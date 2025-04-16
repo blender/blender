@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -120,7 +120,7 @@ class CostFunctionToFunctor {
     if (parameter_block_sizes.size() == num_parameter_blocks) {
       for (int block = 0; block < num_parameter_blocks; ++block) {
         CHECK_EQ(ParameterDims::GetDim(block), parameter_block_sizes[block])
-            << "Parameter block size missmatch. The specified static parameter "
+            << "Parameter block size mismatch. The specified static parameter "
                "block dimension does not match the one from the cost function.";
       }
     }

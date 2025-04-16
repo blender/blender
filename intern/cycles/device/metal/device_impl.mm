@@ -99,6 +99,16 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
       use_metalrt = (atoi(metalrt) != 0);
     }
 
+#  if defined(MAC_OS_VERSION_15_0)
+    /* Use "Ray tracing with per component motion interpolation" if available.
+     * Requires Apple9 support (https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf). */
+    if (use_metalrt && [mtlDevice supportsFamily:MTLGPUFamilyApple9]) {
+      if (@available(macos 15.0, *)) {
+        use_pcmi = DebugFlags().metal.use_metalrt_pcmi;
+      }
+    }
+#  endif
+
     if (getenv("CYCLES_DEBUG_METAL_CAPTURE_KERNEL")) {
       capture_enabled = true;
     }
@@ -1383,6 +1393,7 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
     BVHMetal *bvh_metal = static_cast<BVHMetal *>(bvh);
     bvh_metal->motion_blur = motion_blur;
+    bvh_metal->use_pcmi = use_pcmi;
     if (bvh_metal->build(progress, mtlDevice, mtlGeneralCommandQueue, refit)) {
 
       if (bvh->params.top_level) {

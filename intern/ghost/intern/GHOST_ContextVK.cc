@@ -691,11 +691,13 @@ GHOST_TSuccess GHOST_ContextVK::setVulkanSwapBuffersCallbacks(
 
 GHOST_TSuccess GHOST_ContextVK::activateDrawingContext()
 {
+  active_context_ = this;
   return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_ContextVK::releaseDrawingContext()
 {
+  active_context_ = nullptr;
   return GHOST_kSuccess;
 }
 
@@ -743,6 +745,9 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
   vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_count, presents.data());
   /* MAILBOX is the lowest latency V-Sync enabled mode. We will use it if available as it fixes
    * some lag on NVIDIA/Intel GPUs. */
+  /* TODO: select the correct presentation mode based on the actual being performed by the user.
+   * When low latency is required (paint cursor) we should select mailbox, otherwise we can do FIFO
+   * to reduce CPU/GPU usage.*/
   for (auto present_mode : presents) {
     if (present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
       *r_presentMode = present_mode;
@@ -750,7 +755,7 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
     }
   }
 
-  /*FIFO present mode is always available and we (should) prefer it as it will keep the main loop
+  /* FIFO present mode is always available and we (should) prefer it as it will keep the main loop
    * running along the monitor refresh rate. Mailbox and FIFO relaxed can generate a lot of frames
    * that will never be displayed. */
   *r_presentMode = VK_PRESENT_MODE_FIFO_KHR;
@@ -877,8 +882,10 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
     }
   }
 
-  /* Driver can stall if only using minimal image count. */
-  uint32_t image_count_requested = 4;
+  /* Use double buffering when using FIFO. Increasing the number of images could stall when doing
+   * actions that require low latency (paint cursor, UI resizing). MAILBOX prefers triple
+   * buffering. */
+  uint32_t image_count_requested = present_mode == VK_PRESENT_MODE_MAILBOX_KHR ? 3 : 2;
   /* NOTE: maxImageCount == 0 means no limit. */
   if (capabilities.minImageCount != 0 && image_count_requested < capabilities.minImageCount) {
     image_count_requested = capabilities.minImageCount;
@@ -1059,6 +1066,15 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
     required_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
+
+  /* External memory extensions. */
+  optional_device_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
+#ifdef _WIN32
+  optional_device_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
+#elif not defined(__APPLE__)
+  optional_device_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+#endif
+
 #ifdef __APPLE__
   optional_device_extensions.push_back(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
 #else
@@ -1070,12 +1086,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   optional_device_extensions.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
-
-  /* Enable MoltenVK required instance extensions. */
-#ifdef __APPLE__
-  requireExtension(
-      extensions_available, extensions_enabled, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-#endif
 
   VkInstance instance = VK_NULL_HANDLE;
   if (!vulkan_device.has_value()) {
@@ -1177,6 +1187,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     recreateSwapchain();
   }
 
+  active_context_ = this;
   return GHOST_kSuccess;
 }
 

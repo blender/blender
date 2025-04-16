@@ -138,15 +138,6 @@ class GHOST_WindowNULL : public GHOST_Window {
     return GHOST_kSuccess;
   }
 
-  GHOST_TSuccess beginFullScreen() const override
-  {
-    return GHOST_kSuccess;
-  }
-  GHOST_TSuccess endFullScreen() const override
-  {
-    return GHOST_kSuccess;
-  }
-
  private:
   /**
    * \param type: The type of rendering context create.

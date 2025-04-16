@@ -31,6 +31,8 @@
 
 namespace blender::ed::transform {
 
+namespace {
+
 /** Used for sequencer transform. */
 struct TransDataSeq {
   Strip *strip;
@@ -39,6 +41,8 @@ struct TransDataSeq {
   float orig_scale[2];
   float orig_rotation;
 };
+
+}  // namespace
 
 static TransData *SeqToTransData(const Scene *scene,
                                  Strip *strip,

@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_bsdf_translucent(vec4 color, vec3 N, float weight, out Closure result)
+void node_bsdf_translucent(float4 color, float3 N, float weight, out Closure result)
 {
-  color = max(color, vec4(0.0));
+  color = max(color, float4(0.0f));
   N = safe_normalize(N);
 
   ClosureTranslucent translucent_data;

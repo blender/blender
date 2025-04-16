@@ -616,9 +616,9 @@ static void strip_time_slip_strip_ex(const Scene *scene,
 }
 
 void time_slip_strip(
-    const Scene *scene, Strip *strip, int delta, float subframe_delta, bool slip_keyframes)
+    const Scene *scene, Strip *strip, int frame_delta, float subframe_delta, bool slip_keyframes)
 {
-  strip_time_slip_strip_ex(scene, strip, delta, subframe_delta, slip_keyframes, false);
+  strip_time_slip_strip_ex(scene, strip, frame_delta, subframe_delta, slip_keyframes, false);
 }
 
 int time_get_rounded_sound_offset(const Strip *strip, const float frames_per_second)

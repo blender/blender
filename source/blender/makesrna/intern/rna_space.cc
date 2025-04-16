@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BLI_string_ref.hh"
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
@@ -16,6 +17,7 @@
 #include "BKE_movieclip.h"
 
 #include "ED_asset.hh"
+#include "ED_buttons.hh"
 
 #include "BLI_string.h"
 #include "BLI_sys_types.h"
@@ -468,7 +470,7 @@ const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
 
 /* Actually populated dynamically through a function,
  * but helps for context-less access (e.g. doc, i18n...). */
-static const EnumPropertyItem buttons_context_items[] = {
+const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_TOOL, "TOOL", ICON_TOOL_SETTINGS, "Tool", "Active Tool and Workspace settings"},
     {BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene Properties"},
     {BCONTEXT_RENDER, "RENDER", ICON_SCENE, "Render", "Render Properties"},
@@ -548,6 +550,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "DNA_sequence_types.h"
 #  include "DNA_userdef_types.h"
 
+#  include "BLI_index_range.hh"
 #  include "BLI_math_matrix.h"
 #  include "BLI_math_rotation.h"
 #  include "BLI_math_vector.h"
@@ -2076,14 +2079,12 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext * /*C*
 
   /* Although it would never reach this amount, a theoretical maximum number of tabs
    * is BCONTEXT_TOT * 2, with every tab displayed and a spacer in every other item. */
-  short context_tabs_array[BCONTEXT_TOT * 2];
-  int totitem = ED_buttons_tabs_list(sbuts, context_tabs_array);
-  BLI_assert(totitem <= ARRAY_SIZE(context_tabs_array));
+  const blender::Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
 
   int totitem_added = 0;
   bool add_separator = true;
-  for (int i = 0; i < totitem; i++) {
-    if (context_tabs_array[i] == -1) {
+  for (const eSpaceButtons_Context tab : context_tabs_array) {
+    if (tab == -1) {
       if (add_separator) {
         RNA_enum_item_add_separator(&item, &totitem_added);
         add_separator = false;
@@ -2091,11 +2092,11 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext * /*C*
       continue;
     }
 
-    RNA_enum_items_add_value(&item, &totitem_added, buttons_context_items, context_tabs_array[i]);
+    RNA_enum_items_add_value(&item, &totitem_added, buttons_context_items, tab);
     add_separator = true;
 
     /* Add the object data icon dynamically for the data tab. */
-    if (context_tabs_array[i] == BCONTEXT_DATA) {
+    if (tab == BCONTEXT_DATA) {
       (item + totitem_added - 1)->icon = sbuts->dataicon;
     }
   }
@@ -2122,10 +2123,9 @@ static int rna_SpaceProperties_tab_search_results_getlength(const PointerRNA *pt
 {
   SpaceProperties *sbuts = static_cast<SpaceProperties *>(ptr->data);
 
-  short context_tabs_array[BCONTEXT_TOT * 2]; /* Dummy variable. */
-  const int tabs_len = ED_buttons_tabs_list(sbuts, context_tabs_array);
+  const blender::Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
 
-  length[0] = tabs_len;
+  length[0] = context_tabs_array.size();
 
   return length[0];
 }
@@ -2134,10 +2134,9 @@ static void rna_SpaceProperties_tab_search_results_get(PointerRNA *ptr, bool *va
 {
   SpaceProperties *sbuts = static_cast<SpaceProperties *>(ptr->data);
 
-  short context_tabs_array[BCONTEXT_TOT * 2]; /* Dummy variable. */
-  const int tabs_len = ED_buttons_tabs_list(sbuts, context_tabs_array);
+  const blender::Vector<eSpaceButtons_Context> context_tabs_array = ED_buttons_tabs_list(sbuts);
 
-  for (int i = 0; i < tabs_len; i++) {
+  for (const int i : context_tabs_array.index_range()) {
     values[i] = ED_buttons_tab_has_search_result(sbuts, i);
   }
 }
@@ -2736,7 +2735,7 @@ static void rna_SpaceNodeEditor_cursor_location_set(PointerRNA *ptr, const float
 
 const EnumPropertyItem *RNA_enum_node_tree_types_itemf_impl(bContext *C, bool *r_free)
 {
-  return rna_node_tree_type_itemf(C, rna_SpaceNodeEditor_tree_type_poll, r_free);
+  return rna_node_tree_type_itemf(C, C ? rna_SpaceNodeEditor_tree_type_poll : nullptr, r_free);
 }
 
 static const EnumPropertyItem *rna_SpaceNodeEditor_tree_type_itemf(bContext *C,
@@ -3568,6 +3567,8 @@ static StructRNA *rna_viewer_path_elem_refine(PointerRNA *ptr)
       return &RNA_RepeatZoneViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE:
       return &RNA_ForeachGeometryElementZoneViewerPathElem;
+    case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE:
+      return &RNA_EvaluateClosureNodeViewerPathElem;
   }
   BLI_assert_unreachable();
   return nullptr;
@@ -3860,10 +3861,9 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Metadata", "Display metadata properties of the image");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
-  prop = RNA_def_property(srna, "show_texpaint", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", SI_NO_DRAW_TEXPAINT);
-  RNA_def_property_ui_text(
-      prop, "Display Texture Paint UVs", "Display overlay of texture paint UV layer");
+  prop = RNA_def_property(srna, "show_uv", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", SI_NO_DRAW_UV_GUIDE);
+  RNA_def_property_ui_text(prop, "Display UVs", "Display overlay of UV layer");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
   prop = RNA_def_property(srna, "show_pixel_coords", PROP_BOOLEAN, PROP_NONE);
@@ -3912,6 +3912,12 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "uv_opacity");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "UV Opacity", "Opacity of UV overlays");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
+
+  prop = RNA_def_property(srna, "uv_face_opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "uv_face_opacity");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(prop, "UV Face Opacity", "Opacity of faces in UV overlays");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
   prop = RNA_def_property(srna, "stretch_opacity", PROP_FLOAT, PROP_FACTOR);
@@ -5659,6 +5665,43 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_api_region_view3d(srna);
 }
 
+static void rna_def_space_properties_filter(StructRNA *srna)
+{
+  /* Order must follow `buttons_context_items`. */
+  constexpr std::array<blender::StringRefNull, BCONTEXT_TOT> filter_items = {
+      "show_properties_tool",
+      "show_properties_scene",
+      "show_properties_render",
+      "show_properties_output",
+      "show_properties_view_layer",
+      "show_properties_world",
+      "show_properties_collection",
+      "show_properties_object",
+      "show_properties_constraints",
+      "show_properties_modifiers",
+      "show_properties_data",
+      "show_properties_bone",
+      "show_properties_bone_constraints",
+      "show_properties_material",
+      "show_properties_texture",
+      "show_properties_particles",
+      "show_properties_physics",
+      "show_properties_effects",
+  };
+
+  for (const int i : blender::IndexRange(BCONTEXT_TOT)) {
+    EnumPropertyItem item = buttons_context_items[i];
+    const int value = (1 << item.value);
+    blender::StringRefNull prop_name = filter_items[i];
+
+    PropertyRNA *prop = RNA_def_property(srna, prop_name.c_str(), PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, nullptr, "visible_tabs", value);
+    RNA_def_property_ui_text(prop, item.name, "");
+    RNA_def_property_update(
+        prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_context_update");
+  }
+}
+
 static void rna_def_space_properties(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -5696,6 +5739,8 @@ static void rna_def_space_properties(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_context_update");
+
+  rna_def_space_properties_filter(srna);
 
   /* pinned data */
   prop = RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
@@ -7867,11 +7912,6 @@ static void rna_def_space_node(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem dummy_items[] = {
-      {0, "DUMMY", 0, "", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   srna = RNA_def_struct(brna, "SpaceNodeEditor", "Space");
   RNA_def_struct_sdna(srna, "SpaceNode");
   RNA_def_struct_ui_text(srna, "Space Node Editor", "Node editor space data");
@@ -7879,11 +7919,12 @@ static void rna_def_space_node(BlenderRNA *brna)
   rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI));
 
   prop = RNA_def_property(srna, "tree_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, dummy_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
   RNA_def_property_enum_funcs(prop,
                               "rna_SpaceNodeEditor_tree_type_get",
                               "rna_SpaceNodeEditor_tree_type_set",
                               "rna_SpaceNodeEditor_tree_type_itemf");
+  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
   RNA_def_property_ui_text(prop, "Tree Type", "Node tree type to display and edit");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, nullptr);
 
@@ -8493,6 +8534,7 @@ static const EnumPropertyItem viewer_path_elem_type_items[] = {
      ICON_NONE,
      "For Each Geometry Element",
      ""},
+    {VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE, "EVALUATE_CLOSURE", ICON_NONE, "EvaluateClosure", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -8582,6 +8624,23 @@ static void rna_def_foreach_geometry_element_zone_viewer_path_elem(BlenderRNA *b
   RNA_def_property_ui_text(prop, "Zone Output Node ID", "");
 }
 
+static void rna_def_evaluate_closure_node_viewer_path_elem(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "EvaluateClosureNodeViewerPathElem", "ViewerPathElem");
+
+  prop = RNA_def_property(srna, "evaluate_node_id", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Evaluate Node ID", "");
+
+  prop = RNA_def_property(srna, "source_output_node_id", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Closure Node ID", "");
+
+  prop = RNA_def_property(srna, "source_node_tree", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Source Tree", "");
+}
+
 static void rna_def_viewer_node_viewer_path_elem(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -8605,6 +8664,7 @@ static void rna_def_viewer_path(BlenderRNA *brna)
   rna_def_simulation_zone_viewer_path_elem(brna);
   rna_def_repeat_zone_viewer_path_elem(brna);
   rna_def_foreach_geometry_element_zone_viewer_path_elem(brna);
+  rna_def_evaluate_closure_node_viewer_path_elem(brna);
   rna_def_viewer_node_viewer_path_elem(brna);
 
   srna = RNA_def_struct(brna, "ViewerPath", nullptr);

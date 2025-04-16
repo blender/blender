@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -66,8 +66,12 @@ class CERES_EXPORT EvaluationCallback {
 
   // Called before Ceres requests residuals or jacobians for a given setting of
   // the parameters. User parameters (the double* values provided to the cost
-  // functions) are fixed until the next call to PrepareForEvaluation(). If
-  // new_evaluation_point == true, then this is a new point that is different
+  // functions) are fixed until the next call to PrepareForEvaluation().
+  //
+  // If evaluate_jacobians == true, then the user provided CostFunctions will be
+  // asked to evaluate one or more of their Jacobians.
+  //
+  // If new_evaluation_point == true, then this is a new point that is different
   // from the last evaluated point. Otherwise, it is the same point that was
   // evaluated previously (either jacobian or residual) and the user can use
   // cached results from previous evaluations.

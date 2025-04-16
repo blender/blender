@@ -151,6 +151,8 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
   /* Channels Region ----------------------------------------------------------- */
   WM_keymap_ensure(keyconf, "Sequencer Channels", SPACE_SEQ, RGN_TYPE_WINDOW);
+
+  slip_modal_keymap(keyconf);
 }
 
 void ED_operatormacros_sequencer()

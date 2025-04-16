@@ -16,6 +16,6 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_srgb_to_framebuffer_space)
-PUSH_CONSTANT(BOOL, srgbTarget)
+PUSH_CONSTANT(bool, srgbTarget)
 DEFINE("blender_srgb_to_framebuffer_space(a) a")
 GPU_SHADER_CREATE_END()

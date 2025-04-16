@@ -77,96 +77,92 @@ namespace blender::gpu::shader {
 
 enum class Type {
   /* Types supported natively across all GPU back-ends. */
-  FLOAT = 0,
-  VEC2,
-  VEC3,
-  VEC4,
-  MAT3,
-  MAT4,
-  UINT,
-  UVEC2,
-  UVEC3,
-  UVEC4,
-  INT,
-  IVEC2,
-  IVEC3,
-  IVEC4,
-  BOOL,
+  float_t = 0,
+  float2_t,
+  float3_t,
+  float4_t,
+  float3x3_t,
+  float4x4_t,
+  uint_t,
+  uint2_t,
+  uint3_t,
+  uint4_t,
+  int_t,
+  int2_t,
+  int3_t,
+  int4_t,
+  bool_t,
   /* Additionally supported types to enable data optimization and native
    * support in some GPU back-ends.
    * NOTE: These types must be representable in all APIs. E.g. `VEC3_101010I2` is aliased as vec3
    * in the GL back-end, as implicit type conversions from packed normal attribute data to vec3 is
    * supported. UCHAR/CHAR types are natively supported in Metal and can be used to avoid
    * additional data conversions for `GPU_COMP_U8` vertex attributes. */
-  VEC3_101010I2,
-  UCHAR,
-  UCHAR2,
-  UCHAR3,
-  UCHAR4,
-  CHAR,
-  CHAR2,
-  CHAR3,
-  CHAR4,
-  USHORT,
-  USHORT2,
-  USHORT3,
-  USHORT4,
-  SHORT,
-  SHORT2,
-  SHORT3,
-  SHORT4
+  float3_10_10_10_2_t,
+  uchar_t,
+  uchar2_t,
+  uchar3_t,
+  uchar4_t,
+  char_t,
+  char2_t,
+  char3_t,
+  char4_t,
+  ushort_t,
+  ushort2_t,
+  ushort3_t,
+  ushort4_t,
+  short_t,
+  short2_t,
+  short3_t,
+  short4_t
 };
 
 BLI_INLINE int to_component_count(const Type &type)
 {
   switch (type) {
-    case Type::FLOAT:
-    case Type::UINT:
-    case Type::INT:
-    case Type::BOOL:
+    case Type::float_t:
+    case Type::uint_t:
+    case Type::int_t:
+    case Type::bool_t:
       return 1;
-    case Type::VEC2:
-    case Type::UVEC2:
-    case Type::IVEC2:
+    case Type::float2_t:
+    case Type::uint2_t:
+    case Type::int2_t:
       return 2;
-    case Type::VEC3:
-    case Type::UVEC3:
-    case Type::IVEC3:
+    case Type::float3_t:
+    case Type::uint3_t:
+    case Type::int3_t:
       return 3;
-    case Type::VEC4:
-    case Type::UVEC4:
-    case Type::IVEC4:
+    case Type::float4_t:
+    case Type::uint4_t:
+    case Type::int4_t:
       return 4;
-    case Type::MAT3:
+    case Type::float3x3_t:
       return 9;
-    case Type::MAT4:
+    case Type::float4x4_t:
       return 16;
     /* Alias special types. */
-    case Type::UCHAR:
-    case Type::USHORT:
+    case Type::uchar_t:
+    case Type::ushort_t:
+    case Type::char_t:
+    case Type::short_t:
       return 1;
-    case Type::UCHAR2:
-    case Type::USHORT2:
+    case Type::uchar2_t:
+    case Type::ushort2_t:
+    case Type::char2_t:
+    case Type::short2_t:
       return 2;
-    case Type::UCHAR3:
-    case Type::USHORT3:
+    case Type::uchar3_t:
+    case Type::ushort3_t:
+    case Type::char3_t:
+    case Type::short3_t:
       return 3;
-    case Type::UCHAR4:
-    case Type::USHORT4:
+    case Type::uchar4_t:
+    case Type::ushort4_t:
+    case Type::char4_t:
+    case Type::short4_t:
       return 4;
-    case Type::CHAR:
-    case Type::SHORT:
-      return 1;
-    case Type::CHAR2:
-    case Type::SHORT2:
-      return 2;
-    case Type::CHAR3:
-    case Type::SHORT3:
-      return 3;
-    case Type::CHAR4:
-    case Type::SHORT4:
-      return 4;
-    case Type::VEC3_101010I2:
+    case Type::float3_10_10_10_2_t:
       return 3;
   }
   BLI_assert_unreachable();
@@ -193,22 +189,22 @@ struct SpecializationConstant {
 
   SpecializationConstant() = default;
 
-  SpecializationConstant(const char *name, uint32_t value) : type(Type::UINT), name(name)
+  SpecializationConstant(const char *name, uint32_t value) : type(Type::uint_t), name(name)
   {
     this->value.u = value;
   }
 
-  SpecializationConstant(const char *name, int value) : type(Type::INT), name(name)
+  SpecializationConstant(const char *name, int value) : type(Type::int_t), name(name)
   {
     this->value.i = value;
   }
 
-  SpecializationConstant(const char *name, float value) : type(Type::FLOAT), name(name)
+  SpecializationConstant(const char *name, float value) : type(Type::float_t), name(name)
   {
     this->value.f = value;
   }
 
-  SpecializationConstant(const char *name, bool value) : type(Type::BOOL), name(name)
+  SpecializationConstant(const char *name, bool value) : type(Type::bool_t), name(name)
   {
     this->value.u = value ? 1 : 0;
   }

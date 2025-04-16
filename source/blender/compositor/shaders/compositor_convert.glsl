@@ -6,6 +6,6 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
   imageStore(output_img, texel, CONVERT_EXPRESSION(texture_load(input_tx, texel)));
 }

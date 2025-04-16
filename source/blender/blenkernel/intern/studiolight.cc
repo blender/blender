@@ -274,12 +274,16 @@ static void direction_to_equirect(float r[2], const float dir[3])
   r[1] = (acosf(dir[2] / 1.0) - M_PI) / -M_PI;
 }
 
+namespace {
+
 struct MultilayerConvertContext {
   int num_diffuse_channels;
   float *diffuse_pass;
   int num_specular_channels;
   float *specular_pass;
 };
+
+}  // namespace
 
 static void *studiolight_multilayer_addview(void * /*base*/, const char * /*view_name*/)
 {
@@ -449,12 +453,12 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
 {
   BLI_assert(sli->ibuf);
   ImBuf *ibuf = sli->ibuf;
-  float *gpu_matcap_3components = MEM_calloc_arrayN<float>(3 * size_t(ibuf->x) * size_t(ibuf->y),
-                                                           __func__);
+  const size_t ibuf_pixel_count = IMB_get_pixel_count(ibuf);
+  float *gpu_matcap_3components = MEM_calloc_arrayN<float>(3 * ibuf_pixel_count, __func__);
 
   const float(*offset4)[4] = (const float(*)[4])ibuf->float_buffer.data;
   float(*offset3)[3] = (float(*)[3])gpu_matcap_3components;
-  for (int i = 0; i < ibuf->x * ibuf->y; i++, offset4++, offset3++) {
+  for (size_t i = 0; i < ibuf_pixel_count; i++, offset4++, offset3++) {
     copy_v3_v3(*offset3, *offset4);
   }
 

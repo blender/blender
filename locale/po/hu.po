@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2024-01-11 03:55+0000\n"
-"Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:24+0000\n"
+"Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.1\n"
+"X-Generator: Weblate 5.10.1\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: E:\\PROJEKTEK\\Blender\\FORDITAS\\osszefuzes"
 
@@ -2491,10 +2491,6 @@ msgid "Offset will be an absolute point in space instead of relative to the targ
 msgstr "A célobjektumhoz való viszonyítás helyett a középpont abszolut helyzetének meghatározása az eltoláskor"
 
 
-msgid "Target Objects"
-msgstr "Célobjektumok"
-
-
 msgid "Shrinkwrap Constraint"
 msgstr "Simulás kényszerítő"
 
@@ -3258,6 +3254,10 @@ msgstr "MPEG-2"
 
 msgid "Realtime"
 msgstr "Valós idő"
+
+
+msgid "Profile"
+msgstr "Profil"
 
 
 msgid "MPEG-4"
@@ -4237,10 +4237,6 @@ msgstr "Biztos területek mutatása"
 
 msgid "Round"
 msgstr "Kerek"
-
-
-msgid "Profile"
-msgstr "Profil"
 
 
 msgid "Dimensions"
@@ -9218,6 +9214,10 @@ msgid "To"
 msgstr "Eddig"
 
 
+msgid "Interpolation method"
+msgstr "Interpoláció módja"
+
+
 msgid "Use Material layer"
 msgstr "Anyagréteg használata"
 
@@ -9322,6 +9322,10 @@ msgid "Set Material Index"
 msgstr "Anyagindex beállítása"
 
 
+msgid "Tangent Space"
+msgstr "Tangens tér"
+
+
 msgid "Selection"
 msgstr "Kijelölés"
 
@@ -9352,10 +9356,6 @@ msgstr "Min Max"
 
 msgid "Emission"
 msgstr "Emisszió"
-
-
-msgid "Tangent Space"
-msgstr "Tangens tér"
 
 
 msgid "Script Source"
@@ -10733,10 +10733,6 @@ msgstr "Új anyag"
 
 msgid "Add a new material"
 msgstr "Új anyag hozzáadása"
-
-
-msgid "Interpolation method"
-msgstr "Interpoláció módja"
 
 
 msgid "Remove from the selection"

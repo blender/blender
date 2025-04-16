@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -43,30 +43,30 @@
 #ifndef CERES_INTERNAL_ARRAY_UTILS_H_
 #define CERES_INTERNAL_ARRAY_UTILS_H_
 
+#include <cstdint>
 #include <string>
 
 #include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/export.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // Fill the array x with an impossible value that the user code is
 // never expected to compute.
-CERES_NO_EXPORT void InvalidateArray(int size, double* x);
+CERES_NO_EXPORT void InvalidateArray(const int64_t size, double* x);
 
 // Check if all the entries of the array x are valid, i.e. all the
 // values in the array should be finite and none of them should be
 // equal to the "impossible" value used by InvalidateArray.
-CERES_NO_EXPORT bool IsArrayValid(int size, const double* x);
+CERES_NO_EXPORT bool IsArrayValid(const int64_t size, const double* x);
 
 // If the array contains an invalid value, return the index for it,
 // otherwise return size.
-CERES_NO_EXPORT int FindInvalidValue(const int size, const double* x);
+CERES_NO_EXPORT int64_t FindInvalidValue(const int64_t size, const double* x);
 
 // Utility routine to print an array of doubles to a string. If the
 // array pointer is nullptr, it is treated as an array of zeros.
-CERES_NO_EXPORT void AppendArrayToString(const int size,
+CERES_NO_EXPORT void AppendArrayToString(const int64_t size,
                                          const double* x,
                                          std::string* result);
 
@@ -83,10 +83,9 @@ CERES_NO_EXPORT void AppendArrayToString(const int size,
 // gets mapped to
 //
 // [1 0 2 3 0 1 3]
-CERES_NO_EXPORT void MapValuesToContiguousRange(int size, int* array);
+CERES_NO_EXPORT void MapValuesToContiguousRange(const int64_t size, int* array);
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

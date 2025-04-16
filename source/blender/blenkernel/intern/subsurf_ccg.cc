@@ -1632,16 +1632,16 @@ DerivedMesh *subsurf_make_derived_from_derived(DerivedMesh *dm,
                      smd->levels;
     CCGSubSurf *ss;
 
-    /* It is quite possible there is a much better place to do this. It
+    /* NOTE(@zr): It is quite possible there is a much better place to do this. It
      * depends a bit on how rigorously we expect this function to never
      * be called in edit-mode. In semi-theory we could share a single
      * cache, but the handles used inside and outside edit-mode are not
      * the same so we would need some way of converting them. Its probably
      * not worth the effort. But then why am I even writing this long
-     * comment that no one will read? Hmm. - zr
+     * comment that no one will read? Hmm.
      *
-     * Addendum: we can't really ensure that this is never called in edit
-     * mode, so now we have a parameter to verify it. - brecht
+     * NOTE(@brecht): Addendum: we can't really ensure that this is never called in edit
+     * mode, so now we have a parameter to verify it.
      */
     if (!(flags & SUBSURF_IN_EDIT_MODE) && smd->emCache) {
       ccgSubSurf_free(static_cast<CCGSubSurf *>(smd->emCache));
@@ -1729,8 +1729,8 @@ void subsurf_calculate_limit_positions(Mesh *mesh, float (*r_positions)[3])
       add_v3_v3(face_sum, static_cast<const float *>(ccgSubSurf_getFaceCenterData(f)));
     }
 
-    /* ad-hoc correction for boundary vertices, to at least avoid them
-     * moving completely out of place (brecht) */
+    /* NOTE(@brecht): ad-hoc correction for boundary vertices, to at least avoid them
+     * moving completely out of place. */
     if (numFaces && numFaces != N) {
       mul_v3_fl(face_sum, float(N) / float(numFaces));
     }

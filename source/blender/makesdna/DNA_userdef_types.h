@@ -359,7 +359,9 @@ typedef struct ThemeSpace {
   unsigned char node_zone_simulation[4];
   unsigned char node_zone_repeat[4];
   unsigned char node_zone_foreach_geometry_element[4];
+  unsigned char node_zone_closure[4];
   unsigned char simulated_frames[4];
+  char _pad7[4];
 
   /** For sequence editor. */
   unsigned char movie[4], movieclip[4], mask[4], image[4], scene[4], audio[4];
@@ -760,12 +762,12 @@ typedef struct UserDef_Experimental {
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
   char use_new_curves_tools;
-  char use_new_point_cloud_type;
   char use_sculpt_tools_tilt;
   char use_extended_asset_browser;
   char use_sculpt_texture_paint;
   char use_new_volume_nodes;
   char use_shader_node_previews;
+  char use_bundle_and_closure_nodes;
   char _pad[6];
 } UserDef_Experimental;
 
@@ -853,7 +855,11 @@ typedef struct UserDef {
   short versions;
   short dbl_click_time;
 
-  char _pad0[3];
+  char _pad0[2];
+
+  /** Space around each area. Inter-editor gap width. */
+  char border_width;
+
   char mini_axis_type;
   /** #eUserpref_UI_Flag. */
   int uiflag;

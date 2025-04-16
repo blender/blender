@@ -105,7 +105,7 @@ struct NodeInContextDownstreamComparator {
 
 void eval_downstream(
     const Span<SocketInContext> initial_sockets,
-    ResourceScope &scope,
+    bke::ComputeContextCache &compute_context_cache,
     FunctionRef<void(const NodeInContext &ctx_node,
                      Vector<const bNodeSocket *> &r_outputs_to_propagate)> evaluate_node_fn,
     FunctionRef<bool(const SocketInContext &ctx_from, const SocketInContext &ctx_to)>
@@ -135,7 +135,7 @@ void eval_downstream(
         if (group_tree->has_available_link_cycle()) {
           return;
         }
-        const auto &group_context = scope.construct<bke::GroupNodeComputeContext>(
+        const auto &group_context = compute_context_cache.for_group_node(
             ctx_group_node_input.context, node, node.owner_tree());
         const int socket_index = ctx_group_node_input.socket->index();
         /* Forward the value to every group input node. */
@@ -218,7 +218,7 @@ void eval_downstream(
       if (!group_output) {
         continue;
       }
-      const ComputeContext &group_context = scope.construct<bke::GroupNodeComputeContext>(
+      const ComputeContext &group_context = compute_context_cache.for_group_node(
           context, node, node.owner_tree());
       /* Propagate the values from the group output node to the outputs of the group node and
        * continue forwarding them from there. */
@@ -247,7 +247,7 @@ void eval_downstream(
 
 UpstreamEvalTargets eval_upstream(
     const Span<SocketInContext> initial_sockets,
-    ResourceScope &scope,
+    bke::ComputeContextCache &compute_context_cache,
     FunctionRef<void(const NodeInContext &ctx_node,
                      Vector<const bNodeSocket *> &r_modified_inputs)> evaluate_node_fn,
     FunctionRef<bool(const SocketInContext &ctx_from, const SocketInContext &ctx_to)>
@@ -284,7 +284,7 @@ UpstreamEvalTargets eval_upstream(
     if (!group_output) {
       return;
     }
-    const ComputeContext &group_context = scope.construct<bke::GroupNodeComputeContext>(
+    const ComputeContext &group_context = compute_context_cache.for_group_node(
         context, group_node, group_node.owner_tree());
     propagate_value_fn(
         ctx_output_socket,

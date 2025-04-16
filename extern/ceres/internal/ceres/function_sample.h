@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2017 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,7 @@
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/export.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // FunctionSample is used by the line search routines to store and
 // communicate the value and (optionally) the gradient of the function
@@ -83,13 +82,12 @@ struct CERES_NO_EXPORT FunctionSample {
   //
   // where d is the search direction.
   double gradient;
-  // True if the evaluation of the gradient was sucessful and the
+  // True if the evaluation of the gradient was successful and the
   // value is a finite number.
   bool gradient_is_valid;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

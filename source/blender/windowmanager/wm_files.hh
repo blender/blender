@@ -127,6 +127,7 @@ void WM_OT_clear_recent_files(wmOperatorType *ot);
 
 void WM_OT_link(wmOperatorType *ot);
 void WM_OT_append(wmOperatorType *ot);
+void WM_OT_id_linked_relocate(wmOperatorType *ot);
 
 void WM_OT_lib_relocate(wmOperatorType *ot);
 void WM_OT_lib_reload(wmOperatorType *ot);

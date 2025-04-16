@@ -40,8 +40,7 @@
   } while (false)
 #endif  // CERES_HAVE_EXCEPTIONS
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 template <typename Allocator, typename Iterator, typename... Args>
 void ConstructRange(Allocator& alloc,
@@ -84,7 +83,6 @@ void CopyRange(Allocator& alloc,
   }
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_PUBLIC_INTERNAL_MEMORY_H_

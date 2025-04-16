@@ -22,6 +22,7 @@
 
 #include "DNA_ID.h" /* for ID_Type and INDEX_ID_MAX */
 
+#include "BLI_linear_allocator.hh"
 #include "BLI_set.hh"
 #include "BLI_threads.h" /* for SpinLock */
 
@@ -79,6 +80,12 @@ struct Depsgraph {
   ID *get_cow_id(const ID *id_orig) const;
 
   /* Core Graph Functionality ........... */
+
+  /**
+   * Used to decrease the cost of allocating many small structs when building the graph. This is a
+   * viable strategy because the graph is rebuilt from scratch rather than changed in-place.
+   */
+  LinearAllocator<> build_allocator;
 
   /* <ID : IDNode> mapping from ID blocks to nodes representing these
    * blocks, used for quick lookups. */
@@ -178,6 +185,8 @@ struct Depsgraph {
   /* The number of times this graph has been evaluated. */
   uint64_t update_count;
 
+  /* If this mode does not allow writing back to original data any callbacks will be discarded. */
+  DepsgraphEvaluateSyncWriteback sync_writeback;
   /**
    * Stores functions that can be called after depsgraph evaluation to writeback some changes to
    * original data. Also see `DEG_depsgraph_writeback_sync.hh`.

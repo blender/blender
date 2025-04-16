@@ -22,6 +22,17 @@ Vector<MutableSpan<float3>> get_curves_positions_for_write(bke::CurvesGeometry &
   return positions_per_attribute;
 }
 
+Vector<Span<float3>> get_curves_positions(const bke::CurvesGeometry &curves)
+{
+  Vector<Span<float3>> positions_per_attribute;
+  positions_per_attribute.append(curves.positions());
+  if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    positions_per_attribute.append(curves.handle_positions_left());
+    positions_per_attribute.append(curves.handle_positions_right());
+  }
+  return positions_per_attribute;
+}
+
 void transverts_from_curves_positions_create(bke::CurvesGeometry &curves,
                                              TransVertStore *tvs,
                                              const bool skip_handles)

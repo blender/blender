@@ -469,9 +469,6 @@ void Camera::update(Scene *scene)
   kcam->nearclip = nearclip;
   kcam->cliplength = (farclip == FLT_MAX) ? FLT_MAX : farclip - nearclip;
 
-  /* Camera in volume. */
-  kcam->is_inside_volume = 0;
-
   /* Rolling shutter effect */
   kcam->rolling_shutter_type = rolling_shutter_type;
   kcam->rolling_shutter_duration = rolling_shutter_duration;
@@ -530,9 +527,10 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
     return;
   }
 
+  kernel_camera.is_inside_volume = 0;
+
   KernelIntegrator *kintegrator = &dscene->data.integrator;
   if (kintegrator->use_volumes) {
-    KernelCamera *kcam = &dscene->data.cam;
     BoundBox viewplane_boundbox = viewplane_bounds_get();
 
     /* Parallel object update, with grain size to avoid too much threading overhead
@@ -546,17 +544,19 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
                          viewplane_boundbox.intersects(object->bounds)) {
                        /* TODO(sergey): Consider adding more grained check. */
                        VLOG_INFO << "Detected camera inside volume.";
-                       kcam->is_inside_volume = 1;
+                       kernel_camera.is_inside_volume = 1;
                        parallel_for_cancel();
                        break;
                      }
                    }
                  });
 
-    if (!kcam->is_inside_volume) {
+    if (!kernel_camera.is_inside_volume) {
       VLOG_INFO << "Camera is outside of the volume.";
     }
   }
+
+  dscene->data.cam.is_inside_volume = kernel_camera.is_inside_volume;
 
   need_device_update = false;
   need_flags_update = false;
@@ -568,12 +568,12 @@ void Camera::device_free(Device * /*device*/, DeviceScene *dscene, Scene *scene)
   dscene->camera_motion.free();
 }
 
-float3 Camera::transform_raster_to_world(const float raster_x, const float raster_y)
+float3 Camera::transform_full_raster_to_world(const float raster_x, const float raster_y)
 {
   float3 D;
   float3 P;
   if (camera_type == CAMERA_PERSPECTIVE) {
-    D = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
+    D = transform_perspective(&full_rastertocamera, make_float3(raster_x, raster_y, 0.0f));
     const float3 Pclip = normalize(D);
     P = zero_float3();
     /* TODO(sergey): Aperture support? */
@@ -588,7 +588,7 @@ float3 Camera::transform_raster_to_world(const float raster_x, const float raste
   else if (camera_type == CAMERA_ORTHOGRAPHIC) {
     D = make_float3(0.0f, 0.0f, 1.0f);
     /* TODO(sergey): Aperture support? */
-    P = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
+    P = transform_perspective(&full_rastertocamera, make_float3(raster_x, raster_y, 0.0f));
     P = transform_point(&cameratoworld, P);
     D = normalize(transform_direction(&cameratoworld, D));
   }
@@ -659,15 +659,15 @@ BoundBox Camera::viewplane_bounds_get()
                                           0.0f;
     const float extend = max_aperture_size + max(nearclip, scaled_horz_dof_ray);
 
-    bounds.grow(transform_raster_to_world(0.0f, 0.0f), extend);
-    bounds.grow(transform_raster_to_world(0.0f, (float)height), extend);
-    bounds.grow(transform_raster_to_world((float)width, (float)height), extend);
-    bounds.grow(transform_raster_to_world((float)width, 0.0f), extend);
+    bounds.grow(transform_full_raster_to_world(0.0f, 0.0f), extend);
+    bounds.grow(transform_full_raster_to_world(0.0f, (float)full_height), extend);
+    bounds.grow(transform_full_raster_to_world((float)full_width, (float)full_height), extend);
+    bounds.grow(transform_full_raster_to_world((float)full_width, 0.0f), extend);
     if (camera_type == CAMERA_PERSPECTIVE) {
       /* Center point has the most distance in local Z axis,
        * use it to construct bounding box/
        */
-      bounds.grow(transform_raster_to_world(0.5f * width, 0.5f * height), extend);
+      bounds.grow(transform_full_raster_to_world(0.5f * full_width, 0.5f * full_height), extend);
     }
   }
   return bounds;
@@ -824,13 +824,16 @@ bool Camera::use_motion() const
   return motion.size() > 1;
 }
 
-void Camera::set_screen_size(const int width_, int height_)
+bool Camera::set_screen_size(const int width_, int height_)
 {
   if (width_ != width || height_ != height) {
     width = width_;
     height = height_;
     tag_modified();
+    return true;
   }
+
+  return false;
 }
 
 float Camera::motion_time(const int step) const

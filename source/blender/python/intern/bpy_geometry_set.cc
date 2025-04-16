@@ -4,6 +4,13 @@
 
 /** \file
  * \ingroup pythonintern
+ *
+ * This file contains the `bpy.types.GeometrySet` Python API which is a wrapper for the internal
+ * `GeometrySet` type.
+ *
+ * It's not implemented as RNA type because a `GeometrySet` is standalone (i.e. is not necessarily
+ * owned by anything else in Blender like an ID), is wrapping a DNA type and is itself a
+ * non-trivial owner of other data (like sub-geometries).
  */
 
 #include <sstream>
@@ -59,11 +66,13 @@ static BPy_GeometrySet *python_object_from_geometry_set(GeometrySet geometry = {
   return self;
 }
 
-static BPy_GeometrySet *BPy_GeometrySet_new(PyTypeObject * /*type*/,
-                                            PyObject * /*args*/,
-                                            PyObject * /*kwds*/)
+static PyObject *BPy_GeometrySet_new(PyTypeObject * /*type*/, PyObject *args, PyObject *kwds)
 {
-  return python_object_from_geometry_set();
+  static const char *kwlist[] = {nullptr};
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "", const_cast<char **>(kwlist))) {
+    return nullptr;
+  }
+  return reinterpret_cast<PyObject *>(python_object_from_geometry_set());
 }
 
 static void BPy_GeometrySet_dealloc(BPy_GeometrySet *self)
@@ -248,7 +257,7 @@ static PyObject *BPy_GeometrySet_get_instance_references(BPy_GeometrySet *self)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_geometry_set_name_doc,
-    "The name of the geometry set.\n"
+    "The name of the geometry set. It can be used for debugging purposes and is not unique.\n"
     "\n"
     ":type: str\n");
 static PyObject *BPy_GeometrySet_get_name(BPy_GeometrySet *self, void * /*closure*/)
@@ -263,7 +272,7 @@ static int BPy_GeometrySet_set_name(BPy_GeometrySet *self, PyObject *value, void
     return -1;
   }
   const char *name = PyUnicode_AsUTF8(value);
-  self->geometry.name = name ? name : "";
+  self->geometry.name = name;
   return 0;
 }
 
@@ -276,6 +285,9 @@ PyDoc_STRVAR(
 static PyObject *BPy_GeometrySet_get_mesh(BPy_GeometrySet *self, void * /*closure*/)
 {
   Mesh *base_mesh = self->geometry.get_mesh_for_write();
+  if (!base_mesh) {
+    Py_RETURN_NONE;
+  }
   Mesh *mesh = BKE_mesh_wrapper_ensure_subdivision(base_mesh);
   return pyrna_id_CreatePyObject(reinterpret_cast<ID *>(mesh));
 }
@@ -469,7 +481,7 @@ PyTypeObject bpy_geometry_set_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ reinterpret_cast<newfunc>(BPy_GeometrySet_new),
+    /*tp_new*/ BPy_GeometrySet_new,
 };
 
 PyObject *BPyInit_geometry_set_type()

@@ -2525,6 +2525,8 @@ static int get_main_socket_priority(const bNodeSocket *socket)
     case SOCK_TEXTURE:
     case SOCK_MATERIAL:
     case SOCK_MENU:
+    case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
       return 6;
   }
   return -1;

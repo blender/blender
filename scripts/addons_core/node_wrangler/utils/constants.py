@@ -164,6 +164,7 @@ def get_texture_node_types():
         "ShaderNodeTexBrick",
         "ShaderNodeTexChecker",
         "ShaderNodeTexEnvironment",
+        "ShaderNodeTexGabor",
         "ShaderNodeTexGradient",
         "ShaderNodeTexIES",
         "ShaderNodeTexImage",

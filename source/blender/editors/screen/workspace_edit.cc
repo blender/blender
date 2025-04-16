@@ -395,13 +395,17 @@ static void WORKSPACE_OT_append_activate(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = workspace_append_activate_exec;
 
+  PropertyRNA *prop;
   RNA_def_string(ot->srna,
                  "idname",
                  nullptr,
                  MAX_ID_NAME - 2,
                  "Identifier",
                  "Name of the workspace to append and activate");
-  RNA_def_string(ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "Path to the library");
+  prop = RNA_def_string(
+      ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "Path to the library");
+  RNA_def_property_subtype(prop, PROP_FILEPATH);
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
 }
 
 static WorkspaceConfigFileData *workspace_config_file_read(const char *app_template)

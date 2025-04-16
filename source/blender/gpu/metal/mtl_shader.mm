@@ -771,16 +771,16 @@ static void populate_specialization_constant_values(
 
     uint index = i + MTL_SHADER_SPECIALIZATION_CONSTANT_BASE_ID;
     switch (shader_constants.types[i]) {
-      case Type::INT:
+      case Type::int_t:
         [values setConstantValue:&value.i type:MTLDataTypeInt atIndex:index];
         break;
-      case Type::UINT:
+      case Type::uint_t:
         [values setConstantValue:&value.u type:MTLDataTypeUInt atIndex:index];
         break;
-      case Type::BOOL:
+      case Type::bool_t:
         [values setConstantValue:&value.u type:MTLDataTypeBool atIndex:index];
         break;
-      case Type::FLOAT:
+      case Type::float_t:
         [values setConstantValue:&value.f type:MTLDataTypeFloat atIndex:index];
         break;
       default:
@@ -1695,7 +1695,8 @@ void MTLParallelShaderCompiler::parallel_compilation_thread_func(
   GPU_context_active_set(blender_gpu_context);
 
   MTLContext *metal_context = static_cast<MTLContext *>(unwrap(blender_gpu_context));
-  MTLShaderCompiler *shader_compiler = static_cast<MTLShaderCompiler *>(metal_context->compiler);
+  MTLShaderCompiler *shader_compiler = static_cast<MTLShaderCompiler *>(
+      metal_context->get_compiler());
 
   /* This context is only for compilation, it does not need it's own instance of the compiler */
   shader_compiler->release_parallel_shader_compiler();

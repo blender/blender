@@ -41,7 +41,6 @@ static GHOST_SystemHandle shSystem = NULL;
 static GHOST_WindowHandle sMainWindow = NULL;
 static GHOST_WindowHandle sSecondaryWindow = NULL;
 static GHOST_TStandardCursor sCursor = GHOST_kStandardCursorFirstCursor;
-static GHOST_WindowHandle sFullScreenWindow = NULL;
 static GHOST_TimerTaskHandle sTestTimer;
 static GHOST_TimerTaskHandle sGearsTimer;
 
@@ -316,41 +315,12 @@ bool processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
           GHOST_SetCursorShape(window, sCursor);
           break;
         }
-        case GHOST_kKeyF:
-          if (!GHOST_GetFullScreen(shSystem)) {
-            /* Begin full-screen mode. */
-            setting.bpp = 24;
-            setting.frequency = 85;
-            setting.xPixels = 640;
-            setting.yPixels = 480;
-
-            /*
-             * setting.bpp = 16;
-             * setting.frequency = 75;
-             * setting.xPixels = 640;
-             * setting.yPixels = 480;
-             */
-
-            sFullScreenWindow = GHOST_BeginFullScreen(shSystem,
-                                                      &setting,
-
-                                                      FALSE /* stereo flag */);
-          }
-          else {
-            GHOST_EndFullScreen(shSystem);
-            sFullScreenWindow = 0;
-          }
-          break;
         case GHOST_kKeyH: {
           visibility = GHOST_GetCursorVisibility(window);
           GHOST_SetCursorVisibility(window, !visibility);
           break;
         }
         case GHOST_kKeyQ:
-          if (GHOST_GetFullScreen(shSystem)) {
-            GHOST_EndFullScreen(shSystem);
-            sFullScreenWindow = 0;
-          }
           sExitRequested = 1;
         case GHOST_kKeyT:
           if (!sTestTimer) {
@@ -499,13 +469,7 @@ static void gearsTimerProc(GHOST_TimerTaskHandle hTask, uint64_t time)
   fAngle += 2.0;
   view_roty += 1.0;
   hWindow = (GHOST_WindowHandle)GHOST_GetTimerTaskUserData(hTask);
-  if (GHOST_GetFullScreen(shSystem)) {
-    /* Running full screen */
-    GHOST_InvalidateWindow(sFullScreenWindow);
-  }
-  else {
-    if (GHOST_ValidWindow(shSystem, hWindow)) {
-      GHOST_InvalidateWindow(hWindow);
-    }
+  if (GHOST_ValidWindow(shSystem, hWindow)) {
+    GHOST_InvalidateWindow(hWindow);
   }
 }

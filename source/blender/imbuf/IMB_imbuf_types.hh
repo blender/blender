@@ -39,14 +39,14 @@ struct IDProperty;
 /* Lowest bits of foptions.flag / exr_codec contain actual codec enum. */
 #define OPENEXR_CODEC_MASK (0xF)
 
-#ifdef WITH_CINEON
+#ifdef WITH_IMAGE_CINEON
 #  define CINEON_LOG (1 << 8)
 #  define CINEON_16BIT (1 << 7)
 #  define CINEON_12BIT (1 << 6)
 #  define CINEON_10BIT (1 << 5)
 #endif
 
-#ifdef WITH_OPENJPEG
+#ifdef WITH_IMAGE_OPENJPEG
 #  define JP2_12BIT (1 << 9)
 #  define JP2_16BIT (1 << 8)
 #  define JP2_YCC (1 << 7)

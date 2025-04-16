@@ -73,6 +73,7 @@ struct SceneStats {
   uint64_t totlamp, totlampsel;
   uint64_t tottri, tottrisel;
   uint64_t totgplayer, totgpframe, totgpstroke, totgppoint;
+  uint64_t totcuvepoints;
 };
 
 struct SceneStatsFmt {
@@ -90,6 +91,7 @@ struct SceneStatsFmt {
       totgpframe[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
   char totgpstroke[BLI_STR_FORMAT_UINT64_GROUPED_SIZE],
       totgppoint[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
+  char totcuvepoints[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
 };
 
 static bool stats_mesheval(const Mesh *mesh_eval, bool is_selected, SceneStats *stats)
@@ -193,7 +195,13 @@ static void stats_object(Object *ob,
       stats->totgplayer += grease_pencil->layers().size();
       break;
     }
-    case OB_CURVES:
+    case OB_CURVES: {
+      using namespace blender;
+      const Curves &curves_id = *static_cast<Curves *>(ob->data);
+      const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+      stats->totcuvepoints += curves.points_num();
+      break;
+    }
     case OB_POINTCLOUD:
     case OB_VOLUME: {
       break;
@@ -324,7 +332,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
         ".selection", bke::AttrDomain::Point, true);
     stats->totvertsel += array_utils::count_booleans(selection);
-    stats->totvert += curves.points_num();
+    stats->totcuvepoints += curves.points_num();
   }
 }
 
@@ -534,6 +542,8 @@ static bool format_stats(
   SCENE_STATS_FMT_INT(totgpstroke);
   SCENE_STATS_FMT_INT(totgppoint);
 
+  SCENE_STATS_FMT_INT(totcuvepoints);
+
 #undef SCENE_STATS_FMT_INT
   return true;
 }
@@ -559,6 +569,18 @@ static void get_stats_string(char *info,
 
   if (ob) {
     *ofs += BLI_snprintf_rlen(info + *ofs, len - *ofs, "%s | ", ob->id.name + 2);
+  }
+
+  if ((ob) && (ob->type == OB_GREASE_PENCIL)) {
+    *ofs += BLI_snprintf_rlen(info + *ofs,
+                              len - *ofs,
+
+                              IFACE_("Layers:%s | Frames:%s | Strokes:%s | Points:%s"),
+                              stats_fmt->totgplayer,
+                              stats_fmt->totgpframe,
+                              stats_fmt->totgpstroke,
+                              stats_fmt->totgppoint);
+    return;
   }
 
   if (ob && ob->mode == OB_MODE_EDIT) {
@@ -589,6 +611,13 @@ static void get_stats_string(char *info,
                                 stats_fmt->totbonesel,
                                 stats_fmt->totbone);
     }
+    else if (ob->type == OB_CURVES) {
+      *ofs += BLI_snprintf_rlen(info + *ofs,
+                                len - *ofs,
+                                IFACE_("Points:%s/%s"),
+                                stats_fmt->totvertsel,
+                                stats_fmt->totcuvepoints);
+    }
     else {
       *ofs += BLI_snprintf_rlen(info + *ofs,
                                 len - *ofs,
@@ -601,15 +630,10 @@ static void get_stats_string(char *info,
     *ofs += BLI_snprintf_rlen(
         info + *ofs, len - *ofs, IFACE_("Bones:%s/%s"), stats_fmt->totbonesel, stats_fmt->totbone);
   }
-  else if ((ob) && (ob->type == OB_GREASE_PENCIL)) {
-    *ofs += BLI_snprintf_rlen(info + *ofs,
-                              len - *ofs,
-
-                              IFACE_("Layers:%s | Frames:%s | Strokes:%s | Points:%s"),
-                              stats_fmt->totgplayer,
-                              stats_fmt->totgpframe,
-                              stats_fmt->totgpstroke,
-                              stats_fmt->totgppoint);
+  else if (ob && (ob->type == OB_CURVES)) {
+    const char *count = (object_mode == OB_MODE_SCULPT_CURVES) ? stats_fmt->totvertsculpt :
+                                                                 stats_fmt->totcuvepoints;
+    *ofs += BLI_snprintf_rlen(info + *ofs, len - *ofs, IFACE_("Points:%s"), count);
   }
   else if (ob && (object_mode & OB_MODE_SCULPT)) {
     if (stats_is_object_dynamic_topology_sculpt(ob)) {
@@ -856,6 +880,10 @@ void ED_info_draw_stats(
     else if (ob->type == OB_ARMATURE) {
       stats_row(col1, labels[JOINTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
       stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
+    }
+    else if (ob->type == OB_CURVES) {
+      stats_row(
+          col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totcuvepoints, y, height);
     }
     else if (ob->type != OB_FONT) {
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);

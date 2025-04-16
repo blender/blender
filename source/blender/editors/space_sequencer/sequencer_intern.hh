@@ -172,9 +172,7 @@ void channel_draw_context_init(const bContext *C,
 
 /* `sequencer_edit.cc` */
 
-void strip_rectf(const Scene *scene, const Strip *strip, rctf *r_rect);
-Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel);
-void recurs_sel_seq(Strip *strip_meta);
+void slip_modal_keymap(wmKeyConfig *keyconf);
 VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene, bool ignore_active = false);
 StringRef effect_inputs_validate(const VectorSet<Strip *> &inputs, int num_inputs);
 
@@ -258,6 +256,10 @@ void SEQUENCER_OT_scene_frame_range_update(wmOperatorType *ot);
 
 /* `sequencer_select.cc` */
 
+void strip_rectf(const Scene *scene, const Strip *strip, rctf *r_rect);
+Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel);
+void recurs_sel_seq(Strip *strip_meta);
+
 void SEQUENCER_OT_select_all(wmOperatorType *ot);
 void SEQUENCER_OT_select(wmOperatorType *ot);
 void SEQUENCER_OT_select_handle(wmOperatorType *ot);
@@ -274,6 +276,7 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot);
 
 bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point_view[2]);
 void sequencer_select_do_updates(const bContext *C, Scene *scene);
+Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mval[2]);
 
 /* `sequencer_add.cc` */
 

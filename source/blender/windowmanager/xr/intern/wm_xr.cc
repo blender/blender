@@ -71,7 +71,7 @@ bool wm_xr_init(wmWindowManager *wm)
       case GPU_BACKEND_OPENGL:
         gpu_bindings_candidates.append(GHOST_kXrGraphicsOpenGL);
 #  ifdef WIN32
-        gpu_bindings_candidates.append(GHOST_kXrGraphicsD3D11);
+        gpu_bindings_candidates.append(GHOST_kXrGraphicsOpenGLD3D11);
 #  endif
         break;
 #endif
@@ -79,6 +79,9 @@ bool wm_xr_init(wmWindowManager *wm)
 #ifdef WITH_VULKAN_BACKEND
       case GPU_BACKEND_VULKAN:
         gpu_bindings_candidates.append(GHOST_kXrGraphicsVulkan);
+#  ifdef WIN32
+        gpu_bindings_candidates.append(GHOST_kXrGraphicsVulkanD3D11);
+#  endif
         break;
 #endif
 

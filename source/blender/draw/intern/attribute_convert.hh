@@ -22,8 +22,8 @@ class VertBuf;
 
 /**
  * Component length of 3 is used for scalars because implicit conversion is done by OpenGL from a
- * scalar `s` will produce `vec4(s, 0, 0, 1)`. However, following the Blender convention, it should
- * be `vec4(s, s, s, 1)`.
+ * scalar `s` will produce `float4(s, 0, 0, 1)`. However, following the Blender convention, it
+ * should be `float4(s, s, s, 1)`.
  */
 constexpr int COMPONENT_LEN_SCALAR = 3;
 

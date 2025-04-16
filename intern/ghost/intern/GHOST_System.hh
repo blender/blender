@@ -104,40 +104,6 @@ class GHOST_System : public GHOST_ISystem {
   bool validWindow(GHOST_IWindow *window) override;
 
   /**
-   * Begins full screen mode.
-   * \param setting: The new setting of the display.
-   * \param window: Window displayed in full screen.
-   * \param stereoVisual: Stereo visual for quad buffered stereo.
-   * This window is invalid after full screen has been ended.
-   * \return Indication of success.
-   */
-  GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting &setting,
-                                 GHOST_IWindow **window,
-                                 const bool stereoVisual) override;
-
-  /**
-   * Updates the resolution while in full-screen mode.
-   * \param setting: The new setting of the display.
-   * \param window: Window displayed in full screen.
-   *
-   * \return Indication of success.
-   */
-  GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting &setting,
-                                  GHOST_IWindow **window) override;
-
-  /**
-   * Ends full screen mode.
-   * \return Indication of success.
-   */
-  GHOST_TSuccess endFullScreen() override;
-
-  /**
-   * Returns current full screen mode status.
-   * \return The current status.
-   */
-  bool getFullScreen() override;
-
-  /**
    * Native pixel size support (MacBook 'retina').
    * \return The pixel size in float.
    */
@@ -400,15 +366,6 @@ class GHOST_System : public GHOST_ISystem {
    */
   GHOST_TSuccess exit() override;
 
-  /**
-   * Creates a full-screen window.
-   * \param window: The window created.
-   * \return Indication of success.
-   */
-  GHOST_TSuccess createFullScreenWindow(GHOST_Window **window,
-                                        const GHOST_DisplaySetting &settings,
-                                        const bool stereoVisual);
-
   /** The display manager (platform dependent). */
   GHOST_DisplayManager *m_displayManager;
 
@@ -430,9 +387,6 @@ class GHOST_System : public GHOST_ISystem {
 #ifdef WITH_GHOST_DEBUG
   GHOST_EventPrinter *m_eventPrinter;
 #endif  // WITH_GHOST_DEBUG
-
-  /** Settings of the display before the display went full-screen. */
-  GHOST_DisplaySetting m_preFullScreenSetting;
 
   /* Use multi-touch gestures? */
   bool m_multitouchGestures;

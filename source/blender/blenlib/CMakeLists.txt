@@ -466,9 +466,11 @@ if(WIN32)
     add_definitions(-DWITH_BLENDER_THUMBNAILER)
   endif()
   list(APPEND INC
+    ../../../intern/uriconvert
     ../../../intern/utfconv
   )
   list(APPEND LIB
+    bf_intern_uriconvert
     bf_intern_utfconv
     dxgi
   )

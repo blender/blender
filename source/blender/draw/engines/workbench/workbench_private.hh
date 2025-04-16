@@ -12,7 +12,7 @@
 
 #include "workbench_defines.hh"
 #include "workbench_enums.hh"
-#include "workbench_shader_shared.h"
+#include "workbench_shader_shared.hh"
 
 #include "GPU_capabilities.hh"
 

@@ -757,14 +757,28 @@ ID *BKE_main_library_weak_reference_find(Main *bmain,
                                          const char *library_filepath,
                                          const char *library_id_name)
 {
+  /* Make filepath absolute so we can compare filepaths that may be either relative or absolute. */
+  char library_filepath_abs[FILE_MAX];
+  STRNCPY(library_filepath_abs, library_filepath);
+  BLI_path_abs(library_filepath_abs, BKE_main_blendfile_path(bmain));
+
   ListBase *id_list = which_libbase(bmain, GS(library_id_name));
   LISTBASE_FOREACH (ID *, existing_id, id_list) {
-    if (existing_id->library_weak_reference &&
-        STREQ(existing_id->library_weak_reference->library_id_name, library_id_name) &&
-        STREQ(existing_id->library_weak_reference->library_filepath, library_filepath))
+    if (!(existing_id->library_weak_reference &&
+          STREQ(existing_id->library_weak_reference->library_id_name, library_id_name)))
     {
-      return existing_id;
+      continue;
     }
+
+    char existing_filepath_abs[FILE_MAX];
+    STRNCPY(existing_filepath_abs, existing_id->library_weak_reference->library_filepath);
+    BLI_path_abs(existing_filepath_abs, BKE_main_blendfile_path(bmain));
+
+    if (!STREQ(existing_filepath_abs, library_filepath_abs)) {
+      continue;
+    }
+
+    return existing_id;
   }
 
   return nullptr;

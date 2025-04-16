@@ -1,0 +1,7 @@
+Project: ufbx - Single source file FBX loader
+URL: https://github.com/ufbx/ufbx
+License: SPDX:MIT
+Copyright: "Copyright (c) 2020 Samuli Raivio"
+Upstream version: v0.18.1-dev (42860b7, 2025-04-11)
+Local modifications:
+* None

@@ -290,7 +290,8 @@ Use pre-compiled headers to speed up compilation."
   if(WITH_CLANG_TIDY AND (CMAKE_COMPILER_IS_GNUCC OR APPLE))
     if(WITH_COMPILER_PRECOMPILED_HEADERS)
       message(STATUS
-        "Clang-Tidy and the current compiler's precompiled headers are incompatible, disabling precompiled headers."
+        "Clang-Tidy and the current compiler's precompiled headers are incompatible, "
+        "disabling precompiled headers."
       )
       set(WITH_COMPILER_PRECOMPILED_HEADERS OFF)
     endif()
@@ -410,7 +411,6 @@ set_and_warn_dependency(WITH_AUDASPACE WITH_SYSTEM_AUDASPACE OFF)
 
 if(WITH_GHOST_X11)
   option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)" ON)
-  option(WITH_X11_XF86VMODE "Enable X11 video mode switching" ON)
   option(WITH_X11_XFIXES "Enable X11 XWayland cursor warping workaround" ON)
 endif()
 
@@ -475,6 +475,7 @@ option(WITH_OPENCOLLADA "Enable OpenCollada Support (http://www.opencollada.org)
 option(WITH_IO_WAVEFRONT_OBJ "Enable Wavefront-OBJ 3D file format support (*.obj)" ON)
 option(WITH_IO_PLY "Enable PLY 3D file format support (*.ply)" ON)
 option(WITH_IO_STL "Enable STL 3D file format support (*.stl)" ON)
+option(WITH_IO_FBX "Enable FBX 3D file format support (*.fbx)" ON)
 option(WITH_IO_GREASE_PENCIL "Enable grease-pencil file format IO (*.svg, *.pdf)" ON)
 
 # Csv support
@@ -645,7 +646,8 @@ Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even 
   OFF
 )
 set(CYCLES_TEST_DEVICES CPU CACHE STRING "\
-Run regression tests on the specified device types (CPU CUDA OPTIX HIP HIP-RT METAL METAL-RT ONEAPI ONEAPI-RT)"
+Run regression tests on the specified device types \
+(CPU CUDA OPTIX HIP HIP-RT METAL METAL-RT ONEAPI ONEAPI-RT)"
 )
 option(WITH_CYCLES_TEST_OSL "\
 Run additional Cycles test with OSL enabled"
@@ -698,7 +700,8 @@ endif()
 if(NOT APPLE AND NOT (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64"))
   option(WITH_CYCLES_DEVICE_HIP "Enable Cycles AMD HIP support" ON)
   option(WITH_CYCLES_HIP_BINARIES "Build Cycles AMD HIP binaries" OFF)
-  # We only support RDNA1 (gfx101X) and newer. Vega and older generations have rendering artifacts and crashing issues.
+  # We only support RDNA1 (gfx101X) and newer.
+  # Vega and older generations have rendering artifacts and crashing issues.
   set(CYCLES_HIP_BINARIES_ARCH
     gfx1010 gfx1011 gfx1012
     gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 gfx1036
@@ -810,11 +813,6 @@ Enable GPU render related unit testing using Vulkan"
   OFF
 )
 mark_as_advanced(WITH_GPU_RENDER_TESTS_VULKAN)
-option(WITH_GPU_RENDER_TESTS_SILENT "\
-Run GPU render tests silently (finished tests will pass). \
-Generated report will show failing tests"
-  ON
-)
 option(WITH_GPU_RENDER_TESTS_HEADED "\
 Enable GPU render related unit testing that doesn't work in background mode. \
 These tests require an environment with a display server to run. \
@@ -831,7 +829,10 @@ Enable GPU drawing related unit testing (draw manager)"
   OFF
 )
 option(WITH_GPU_COMPOSITOR_TESTS "Enable regression testing for GPU compositor" OFF)
-option(WITH_GPU_MESH_PAINT_TESTS "Enable visual render-based regression testing for mesh painting" OFF)
+option(WITH_GPU_MESH_PAINT_TESTS "\
+Enable visual render-based regression testing for mesh painting"
+  OFF
+)
 option(WITH_UI_TESTS "\
 Enable user-interface tests (Experimental)"
   OFF
@@ -893,10 +894,10 @@ Enable tests validating some build-related scripts against the 'system' version 
 )
 mark_as_advanced(WITH_SYSTEM_PYTHON_TESTS)
 # We could use `find_package (Python3 COMPONENTS Interpreter)` to set that value automatically.
-# However, on some buildbots this will give the default python version of the current virtual environment,
-# which may differ from the OS default python version.
-# And it would set that global 'python3 exec path' CMake value for all CMake scripts, which could have
-# unexpected and dangerous side effects.
+# However, on some buildbots this will give the default Python version of the current virtual
+# environment, which may differ from the OS default Python version.
+# And it would set that global 'python3 exec path' CMake value for all CMake scripts,
+# which could have unexpected and dangerous side effects.
 # So this has to be set explicitly for all builders.
 set(TEST_SYSTEM_PYTHON_EXE "" CACHE PATH "Python executable used to run 'system python' tests")
 mark_as_advanced(TEST_SYSTEM_PYTHON_EXE)
@@ -1020,16 +1021,22 @@ mark_as_advanced(WITH_COMPILER_CODE_COVERAGE)
 
 if(WITH_COMPILER_CODE_COVERAGE)
   if(NOT CMAKE_COMPILER_IS_GNUCC)
-    message("WITH_COMPILER_CODE_COVERAGE only works with GCC currently.")
+    message(WARNING "WITH_COMPILER_CODE_COVERAGE only works with GCC currently.")
     set(WITH_COMPILER_CODE_COVERAGE OFF)
   endif()
 endif()
 
 if(WITH_COMPILER_CODE_COVERAGE)
   set(_code_coverage_defaults "--coverage")
-  set(COMPILER_CODE_COVERAGE_CFLAGS ${_code_coverage_defaults} CACHE STRING "C flags for code coverage")
+  set(COMPILER_CODE_COVERAGE_CFLAGS
+    ${_code_coverage_defaults} CACHE STRING
+    "C flags for code coverage"
+  )
   mark_as_advanced(COMPILER_CODE_COVERAGE_CFLAGS)
-  set(COMPILER_CODE_COVERAGE_CXXFLAGS ${_code_coverage_defaults} CACHE STRING "C++ flags for code coverage")
+  set(COMPILER_CODE_COVERAGE_
+    CXXFLAGS ${_code_coverage_defaults} CACHE STRING
+    "C++ flags for code coverage"
+  )
   mark_as_advanced(COMPILER_CODE_COVERAGE_CXXFLAGS)
   unset(_code_coverage_defaults)
 endif()
@@ -1580,7 +1587,7 @@ endif()
 
 # set the endian define
 if(MSVC)
-  # for some reason this fails on msvc
+  # For some reason this fails on MSVC.
   add_definitions(-D__LITTLE_ENDIAN__)
 
   # OSX-Note: as we do cross-compiling with specific set architecture,
@@ -1982,7 +1989,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
     CXX_WARN_NO_COMMENT -Wno-comment
     CXX_WARN_NO_UNUSED_TYPEDEFS -Wno-unused-local-typedefs
     CXX_WARN_NO_UNUSED_VARIABLE -Wno-unused-variable
-    CXX_WARN_NO_UNUSED_VARIABLE -Wno-uninitialized
+    CXX_WARN_NO_UNINITIALIZED -Wno-uninitialized
+    CXX_WARN_NO_REORDER -Wno-reorder
   )
 
 
@@ -2418,7 +2426,7 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
   string(APPEND C_WARNINGS " -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
   string(APPEND CXX_WARNINGS " -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
-  # most msvc warnings are C & C++
+  # Most MSVC warnings are C & C++.
   set(_WARNINGS
     # warning level:
     "/W3"
@@ -2746,7 +2754,6 @@ if(FIRST_RUN)
     info_cfg_option(WITH_GHOST_WAYLAND)
     if(WITH_GHOST_X11)
       info_cfg_option(WITH_GHOST_XDND)
-      info_cfg_option(WITH_X11_XF86VMODE)
       info_cfg_option(WITH_X11_XFIXES)
       info_cfg_option(WITH_X11_XINPUT)
     endif()
@@ -2814,7 +2821,7 @@ if(FIRST_RUN)
 
   info_cfg_text("")
 
-  message("${_config_msg}")
+  message(STATUS "${_config_msg}")
 endif()
 
 if(0)

@@ -209,11 +209,11 @@ class Camera : public Node {
   int motion_step(const float time) const;
   bool use_motion() const;
 
-  void set_screen_size(const int width_, int height_);
+  bool set_screen_size(const int width_, int height_);
 
  private:
   /* Private utility functions. */
-  float3 transform_raster_to_world(const float raster_x, const float raster_y);
+  float3 transform_full_raster_to_world(const float raster_x, const float raster_y);
 };
 
 CCL_NAMESPACE_END

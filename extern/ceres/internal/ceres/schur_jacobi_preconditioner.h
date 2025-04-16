@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -47,8 +47,7 @@
 #include "ceres/internal/export.h"
 #include "ceres/preconditioner.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class BlockRandomAccessDiagonalMatrix;
 class BlockSparseMatrix;
@@ -72,8 +71,10 @@ class SchurEliminatorBase;
 //   SchurJacobiPreconditioner preconditioner(
 //      *A.block_structure(), options);
 //   preconditioner.Update(A, nullptr);
-//   preconditioner.RightMultiply(x, y);
+//   preconditioner.RightMultiplyAndAccumulate(x, y);
 //
+// TODO(https://github.com/ceres-solver/ceres-solver/issues/935):
+// SchurJacobiPreconditioner::RightMultiply will benefit from multithreading
 class CERES_NO_EXPORT SchurJacobiPreconditioner
     : public BlockSparseMatrixPreconditioner {
  public:
@@ -91,7 +92,7 @@ class CERES_NO_EXPORT SchurJacobiPreconditioner
   ~SchurJacobiPreconditioner() override;
 
   // Preconditioner interface.
-  void RightMultiply(const double* x, double* y) const final;
+  void RightMultiplyAndAccumulate(const double* x, double* y) const final;
   int num_rows() const final;
 
  private:
@@ -104,8 +105,7 @@ class CERES_NO_EXPORT SchurJacobiPreconditioner
   std::unique_ptr<BlockRandomAccessDiagonalMatrix> m_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

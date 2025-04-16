@@ -1315,7 +1315,7 @@ struct ShadowTileMapData {
   float4x4 viewmat;
   /** Precomputed matrix, not used for rendering but for tagging. */
   float4x4 winmat;
-  /** Punctual : Corners of the frustum. (vec3 padded to vec4) */
+  /** Punctual : Corners of the frustum. (float3 padded to float4) */
   float4 corners[4];
   /** Integer offset of the center of the 16x16 tiles from the origin of the tile space. */
   int2 grid_offset;
@@ -2139,13 +2139,13 @@ BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 #ifdef GPU_SHADER
 
 #  if defined(GPU_FRAGMENT_SHADER)
-#    define UTIL_TEXEL vec2(gl_FragCoord.xy)
+#    define UTIL_TEXEL float2(gl_FragCoord.xy)
 #  elif defined(GPU_COMPUTE_SHADER)
-#    define UTIL_TEXEL vec2(gl_GlobalInvocationID.xy)
+#    define UTIL_TEXEL float2(gl_GlobalInvocationID.xy)
 #  elif defined(GPU_VERTEX_SHADER)
-#    define UTIL_TEXEL vec2(gl_VertexID, 0)
+#    define UTIL_TEXEL float2(gl_VertexID, 0)
 #  elif defined(GPU_LIBRARY_SHADER)
-#    define UTIL_TEXEL vec2(0)
+#    define UTIL_TEXEL float2(0)
 #  endif
 
 /* Fetch texel. Wrapping if above range. */
@@ -2190,7 +2190,7 @@ float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roug
 {
   /* LUTs are parameterized by `sqrt(1.0 - cos_theta)` for more precision near grazing incidence.
    */
-  vec2 coords = vec2(roughness, sqrt(clamp(1.0 - cos_theta, 0.0, 1.0)));
+  float2 coords = float2(roughness, sqrt(clamp(1.0 - cos_theta, 0.0, 1.0)));
   return utility_tx_sample_lut(util_tx, coords, layer);
 }
 

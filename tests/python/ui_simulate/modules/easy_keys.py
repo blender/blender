@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import datetime
 import string
 import bpy
 event_types = tuple(
@@ -341,6 +342,8 @@ def run(
 
         if isinstance(val, EventGenerate) or val is None:
             return 0.0
+        elif isinstance(val, datetime.timedelta):
+            return val.total_seconds()
         elif val is Ellipsis:
             if on_exit is not None:
                 on_exit()

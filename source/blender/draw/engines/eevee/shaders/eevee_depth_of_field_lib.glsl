@@ -51,17 +51,17 @@
 #define no_hole_fill_pass false
 
 /* Distribute weights between near/slight-focus/far fields (slide 117). */
-#define dof_layer_threshold (4.0)
+#define dof_layer_threshold (4.0f)
 /* Make sure it overlaps. */
-#define dof_layer_offset_fg (0.5 + 1.0)
+#define dof_layer_offset_fg (0.5f + 1.0f)
 /* Extra offset for convolution layers to avoid light leaking from background. */
-#define dof_layer_offset (0.5 + 0.5)
+#define dof_layer_offset (0.5f + 0.5f)
 
 #define dof_max_slight_focus_radius DOF_MAX_SLIGHT_FOCUS_RADIUS
 
-const uvec2 quad_offsets_u[4] = uint2_array(uvec2(0, 1), uvec2(1, 1), uvec2(1, 0), uvec2(0, 0));
-const vec2 quad_offsets[4] = float2_array(
-    vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(0.5, -0.5), vec2(-0.5, -0.5));
+const uint2 quad_offsets_u[4] = uint2_array(uint2(0, 1), uint2(1, 1), uint2(1, 0), uint2(0, 0));
+const float2 quad_offsets[4] = float2_array(
+    float2(-0.5f, 0.5f), float2(0.5f, 0.5f), float2(0.5f, -0.5f), float2(-0.5f, -0.5f));
 
 /** \} */
 
@@ -69,16 +69,16 @@ const vec2 quad_offsets[4] = float2_array(
 /** \name Weighting and downsampling utils.
  * \{ */
 
-float dof_hdr_color_weight(vec4 color)
+float dof_hdr_color_weight(float4 color)
 {
   /* Very fast "luma" weighting. */
-  float luma = (color.g * 2.0) + (color.r + color.b);
+  float luma = (color.g * 2.0f) + (color.r + color.b);
   /* TODO(fclem) Pass correct exposure. */
-  const float exposure = 1.0;
-  return 1.0 / (luma * exposure + 4.0);
+  constexpr float exposure = 1.0f;
+  return 1.0f / (luma * exposure + 4.0f);
 }
 
-float dof_coc_select(vec4 cocs)
+float dof_coc_select(float4 cocs)
 {
   /* Select biggest coc. */
   float selected_coc = cocs.x;
@@ -95,20 +95,20 @@ float dof_coc_select(vec4 cocs)
 }
 
 /* NOTE: Do not forget to normalize weights afterwards. */
-vec4 dof_bilateral_coc_weights(vec4 cocs)
+float4 dof_bilateral_coc_weights(float4 cocs)
 {
   float chosen_coc = dof_coc_select(cocs);
 
-  const float scale = 4.0; /* TODO(fclem) revisit. */
+  constexpr float scale = 4.0f; /* TODO(fclem) revisit. */
   /* NOTE: The difference between the cocs should be inside a abs() function,
    * but we follow UE4 implementation to improve how dithered transparency looks (see slide 19). */
-  return saturate(1.0 - (chosen_coc - cocs) * scale);
+  return saturate(1.0f - (chosen_coc - cocs) * scale);
 }
 
 /* NOTE: Do not forget to normalize weights afterwards. */
-vec4 dof_bilateral_color_weights(vec4 colors[4])
+float4 dof_bilateral_color_weights(float4 colors[4])
 {
-  vec4 weights;
+  float4 weights;
   for (int i = 0; i < 4; i++) {
     weights[i] = dof_hdr_color_weight(colors[i]);
   }
@@ -116,11 +116,11 @@ vec4 dof_bilateral_color_weights(vec4 colors[4])
 }
 
 /* Returns signed Circle of confusion radius (in pixel) based on depth buffer value [0..1]. */
-float dof_coc_from_depth(DepthOfFieldData dof_data, vec2 uv, float depth)
+float dof_coc_from_depth(DepthOfFieldData dof_data, float2 uv, float depth)
 {
   if (is_panoramic(dof_data.camera_type)) {
     /* Use radial depth. */
-    depth = -length(drw_point_screen_to_view(vec3(uv, depth)));
+    depth = -length(drw_point_screen_to_view(float3(uv, depth)));
   }
   else {
     depth = drw_depth_screen_to_view(depth);
@@ -139,19 +139,19 @@ float dof_layer_weight(float coc, const bool is_foreground)
   /* NOTE: These are full-resolution pixel CoC value. */
   if (IS_RESOLVE) {
     return saturate(-abs(coc) + dof_layer_threshold + dof_layer_offset) *
-           float(is_foreground ? (coc <= 0.5) : (coc > -0.5));
+           float(is_foreground ? (coc <= 0.5f) : (coc > -0.5f));
   }
   else {
-    coc *= 2.0; /* Account for half pixel gather. */
+    coc *= 2.0f; /* Account for half pixel gather. */
     float threshold = dof_layer_threshold -
                       ((is_foreground) ? dof_layer_offset_fg : dof_layer_offset);
     return saturate(((is_foreground) ? -coc : coc) - threshold);
   }
 }
-vec4 dof_layer_weight(vec4 coc)
+float4 dof_layer_weight(float4 coc)
 {
   /* NOTE: Used for scatter pass which already flipped the sign correctly. */
-  coc *= 2.0; /* Account for half pixel gather. */
+  coc *= 2.0f; /* Account for half pixel gather. */
   return saturate(coc - dof_layer_threshold + dof_layer_offset);
 }
 
@@ -159,22 +159,22 @@ vec4 dof_layer_weight(vec4 coc)
 float dof_sample_weight(float coc)
 {
 #if 1 /* Optimized */
-  return min(1.0, 1.0 / square(coc));
+  return min(1.0f, 1.0f / square(coc));
 #else
   /* Full intensity if CoC radius is below the pixel footprint. */
-  const float min_coc = 1.0;
+  constexpr float min_coc = 1.0f;
   coc = max(min_coc, abs(coc));
   return (M_PI * min_coc * min_coc) / (M_PI * coc * coc);
 #endif
 }
-vec4 dof_sample_weight(vec4 coc)
+float4 dof_sample_weight(float4 coc)
 {
 #if 1 /* Optimized */
-  return min(vec4(1.0), 1.0 / square(coc));
+  return min(float4(1.0f), 1.0f / square(coc));
 #else
   /* Full intensity if CoC radius is below the pixel footprint. */
-  const float min_coc = 1.0;
-  coc = max(vec4(min_coc), abs(coc));
+  constexpr float min_coc = 1.0f;
+  coc = max(float4(min_coc), abs(coc));
   return (M_PI * min_coc * min_coc) / (M_PI * coc * coc);
 #endif
 }
@@ -195,22 +195,22 @@ struct CocTile {
 };
 
 /* WATCH: Might have to change depending on the texture format. */
-#define dof_tile_large_coc 1024.0
+#define dof_tile_large_coc 1024.0f
 
 /* Init a CoC tile for reduction algorithms. */
 CocTile dof_coc_tile_init()
 {
   CocTile tile;
-  tile.fg_min_coc = 0.0;
+  tile.fg_min_coc = 0.0f;
   tile.fg_max_coc = -dof_tile_large_coc;
   tile.fg_max_intersectable_coc = dof_tile_large_coc;
   tile.bg_min_coc = dof_tile_large_coc;
-  tile.bg_max_coc = 0.0;
+  tile.bg_max_coc = 0.0f;
   tile.bg_min_intersectable_coc = dof_tile_large_coc;
   return tile;
 }
 
-CocTile dof_coc_tile_unpack(vec3 fg, vec3 bg)
+CocTile dof_coc_tile_unpack(float3 fg, float3 bg)
 {
   CocTile tile;
   tile.fg_min_coc = -fg.x;
@@ -226,10 +226,10 @@ CocTile dof_coc_tile_unpack(vec3 fg, vec3 bg)
  * parameters. Workaround by using defines. */
 #define dof_coc_tile_load(tiles_fg_img_, tiles_bg_img_, texel_) \
   dof_coc_tile_unpack( \
-      imageLoad(tiles_fg_img_, clamp(texel_, ivec2(0), imageSize(tiles_fg_img_) - 1)).xyz, \
-      imageLoad(tiles_bg_img_, clamp(texel_, ivec2(0), imageSize(tiles_bg_img_) - 1)).xyz)
+      imageLoad(tiles_fg_img_, clamp(texel_, int2(0), imageSize(tiles_fg_img_) - 1)).xyz, \
+      imageLoad(tiles_bg_img_, clamp(texel_, int2(0), imageSize(tiles_bg_img_) - 1)).xyz)
 
-void dof_coc_tile_pack(CocTile tile, out vec3 out_fg, out vec3 out_bg)
+void dof_coc_tile_pack(CocTile tile, out float3 out_fg, out float3 out_bg)
 {
   out_fg.x = -tile.fg_min_coc;
   out_fg.y = -tile.fg_max_coc;
@@ -241,8 +241,8 @@ void dof_coc_tile_pack(CocTile tile, out vec3 out_fg, out vec3 out_bg)
 
 #define dof_coc_tile_store(tiles_fg_img_, tiles_bg_img_, texel_out_, tile_data_) \
   if (true) { \
-    vec3 out_fg; \
-    vec3 out_bg; \
+    float3 out_fg; \
+    float3 out_bg; \
     dof_coc_tile_pack(tile_data_, out_fg, out_bg); \
     imageStore(tiles_fg_img_, texel_out_, out_fg.xyzz); \
     imageStore(tiles_bg_img_, texel_out_, out_bg.xyzz); \
@@ -252,7 +252,7 @@ bool dof_do_fast_gather(float max_absolute_coc, float min_absolute_coc, const bo
 {
   float min_weight = dof_layer_weight((is_foreground) ? -min_absolute_coc : min_absolute_coc,
                                       is_foreground);
-  if (min_weight < 1.0) {
+  if (min_weight < 1.0f) {
     return false;
   }
   /* FIXME(fclem): This is a workaround to fast gather triggering too early. Since we use custom
@@ -289,7 +289,7 @@ CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
   bool bg_fully_opaque = predict.do_background &&
                          dof_do_fast_gather(-tile.bg_max_coc, tile.bg_min_coc, false);
 #endif
-  predict.do_hole_fill = !fg_fully_opaque && -tile.fg_min_coc > 0.0;
+  predict.do_hole_fill = !fg_fully_opaque && -tile.fg_min_coc > 0.0f;
   predict.do_focus = !fg_fully_opaque;
   predict.do_slight_focus = !fg_fully_opaque;
 
@@ -317,9 +317,9 @@ CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
  *
  * Samples are expected to be mirrored to complete the pattern.
  */
-ivec2 dof_square_ring_sample_offset(int ring_distance, int sample_id)
+int2 dof_square_ring_sample_offset(int ring_distance, int sample_id)
 {
-  ivec2 offset;
+  int2 offset;
   if (sample_id < ring_distance) {
     offset.x = ring_distance;
     offset.y = sample_id;

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,7 @@
 
 #include "ceres/internal/export.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // A matrix implementing the BlockRandomAccessMatrix interface is a
 // matrix whose rows and columns are divided into blocks. For example
@@ -123,7 +122,6 @@ class CERES_NO_EXPORT BlockRandomAccessMatrix {
   virtual int num_cols() const = 0;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_BLOCK_RANDOM_ACCESS_MATRIX_H_

@@ -1596,6 +1596,13 @@ static wmOperatorStatus wm_operator_invoke(bContext *C,
     return wmOperatorStatus(WM_operator_poll(C, ot));
   }
 
+  if (STREQ("WM_OT_id_linked_relocate", ot->idname)) {
+    printf("foo\n");
+  }
+  if (STREQ("OUTLINER_OT_id_linked_relocate", ot->idname)) {
+    printf("bar\n");
+  }
+
   if (WM_operator_poll(C, ot)) {
     wmWindowManager *wm = CTX_wm_manager(C);
     const intptr_t undo_id_prev = wm_operator_undo_active_id(wm);
@@ -3270,6 +3277,12 @@ static eHandlerActionFlag wm_handlers_do_gizmo_handler(bContext *C,
     }
   }
 
+  if (prev.gz_modal == nullptr) {
+    if (handle_highlight == false && wm_gizmomap_highlight_pending(gzmap)) {
+      handle_highlight = true;
+    }
+  }
+
   if (handle_highlight) {
     int part = -1;
     gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
@@ -3288,6 +3301,8 @@ static eHandlerActionFlag wm_handlers_do_gizmo_handler(bContext *C,
         }
       }
     }
+
+    wm_gizmomap_highlight_handled(gzmap);
   }
 
   /* Don't use from now on. */
@@ -5849,6 +5864,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
         copy_v2_v2_int(event_state->xy, event_new->xy);
         event_state->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
+        event_state->tablet.x_tilt = event.tablet.x_tilt;
+        event_state->tablet.y_tilt = event.tablet.y_tilt;
       }
 
       /* Also add to other window if event is there, this makes overdraws disappear nicely. */

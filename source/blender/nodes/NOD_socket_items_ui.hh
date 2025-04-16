@@ -13,6 +13,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "BLI_function_ref.hh"
+
 #include "BKE_screen.hh"
 
 #include "NOD_socket_items.hh"

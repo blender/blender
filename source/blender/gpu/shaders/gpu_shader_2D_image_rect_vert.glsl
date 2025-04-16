@@ -13,8 +13,8 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_image_rect_color)
 
 void main()
 {
-  vec2 uv;
-  vec2 co;
+  float2 uv;
+  float2 co;
 
   if (gl_VertexID == 0) {
     co = rect_geom.xw;
@@ -33,6 +33,6 @@ void main()
     uv = rect_icon.zy;
   }
 
-  gl_Position = ModelViewProjectionMatrix * vec4(co, 0.0f, 1.0f);
+  gl_Position = ModelViewProjectionMatrix * float4(co, 0.0f, 1.0f);
   texCoord_interp = uv;
 }

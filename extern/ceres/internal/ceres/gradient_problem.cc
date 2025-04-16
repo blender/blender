@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,6 @@
 
 #include <memory>
 
-#include "ceres/local_parameterization.h"
-#include "ceres/manifold_adapter.h"
 #include "glog/logging.h"
 
 namespace ceres {
@@ -44,22 +42,6 @@ GradientProblem::GradientProblem(FirstOrderFunction* function)
           function_->NumParameters())),
       scratch_(new double[function_->NumParameters()]) {
   CHECK(function != nullptr);
-}
-
-GradientProblem::GradientProblem(FirstOrderFunction* function,
-                                 LocalParameterization* parameterization)
-    : function_(function),
-      parameterization_(parameterization),
-      scratch_(new double[function_->NumParameters()]) {
-  CHECK(function != nullptr);
-  if (parameterization != nullptr) {
-    manifold_ =
-        std::make_unique<internal::ManifoldAdapter>(parameterization_.get());
-  } else {
-    manifold_ = std::make_unique<EuclideanManifold<DYNAMIC>>(
-        function_->NumParameters());
-  }
-  CHECK_EQ(function_->NumParameters(), manifold_->AmbientSize());
 }
 
 GradientProblem::GradientProblem(FirstOrderFunction* function,

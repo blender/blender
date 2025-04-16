@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,24 @@
 
 #include "ceres/sparse_matrix.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 SparseMatrix::~SparseMatrix() = default;
 
-}  // namespace internal
-}  // namespace ceres
+void SparseMatrix::SquaredColumnNorm(double* x,
+                                     ContextImpl* context,
+                                     int num_threads) const {
+  (void)context;
+  (void)num_threads;
+  SquaredColumnNorm(x);
+}
+
+void SparseMatrix::ScaleColumns(const double* scale,
+                                ContextImpl* context,
+                                int num_threads) {
+  (void)context;
+  (void)num_threads;
+  ScaleColumns(scale);
+}
+
+}  // namespace ceres::internal

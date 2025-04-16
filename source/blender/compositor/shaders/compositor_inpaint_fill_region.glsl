@@ -12,21 +12,21 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
-  vec4 color = texture_load(input_tx, texel);
+  float4 color = texture_load(input_tx, texel);
 
   /* An opaque pixel, not part of the inpainting region. */
-  if (color.a == 1.0) {
+  if (color.a == 1.0f) {
     imageStore(filled_region_img, texel, color);
-    imageStore(smoothing_radius_img, texel, vec4(0.0));
-    imageStore(distance_to_boundary_img, texel, vec4(0.0));
+    imageStore(smoothing_radius_img, texel, float4(0.0f));
+    imageStore(distance_to_boundary_img, texel, float4(0.0f));
     return;
   }
 
-  ivec2 closest_boundary_texel = texture_load(flooded_boundary_tx, texel).xy;
-  float distance_to_boundary = distance(vec2(texel), vec2(closest_boundary_texel));
-  imageStore(distance_to_boundary_img, texel, vec4(distance_to_boundary));
+  int2 closest_boundary_texel = texture_load(flooded_boundary_tx, texel).xy;
+  float distance_to_boundary = distance(float2(texel), float2(closest_boundary_texel));
+  imageStore(distance_to_boundary_img, texel, float4(distance_to_boundary));
 
   /* We follow this shader by a blur shader that smooths out the inpainting region, where the blur
    * radius is the radius of the circle that touches the boundary. We can imagine the blur window
@@ -37,12 +37,12 @@ void main()
    * areas outside of the clamp range only indirectly affect the inpainting region due to blurring
    * and thus needn't use higher blur radii. */
   float blur_window_size = min(float(max_distance), distance_to_boundary) / M_SQRT2;
-  bool skip_smoothing = distance_to_boundary > (max_distance * 2.0);
-  float smoothing_radius = skip_smoothing ? 0.0 : blur_window_size;
-  imageStore(smoothing_radius_img, texel, vec4(smoothing_radius));
+  bool skip_smoothing = distance_to_boundary > (max_distance * 2.0f);
+  float smoothing_radius = skip_smoothing ? 0.0f : blur_window_size;
+  imageStore(smoothing_radius_img, texel, float4(smoothing_radius));
 
   /* Mix the boundary color with the original color using its alpha because semi-transparent areas
    * are considered to be partially inpainted. */
-  vec4 boundary_color = texture_load(input_tx, closest_boundary_texel);
+  float4 boundary_color = texture_load(input_tx, closest_boundary_texel);
   imageStore(filled_region_img, texel, mix(boundary_color, color, color.a));
 }

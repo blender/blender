@@ -6,7 +6,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_realize_on_domain_shared)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(MAT4, inverse_transformation)
+PUSH_CONSTANT(float4x4, inverse_transformation)
 SAMPLER(0, FLOAT_2D, input_tx)
 COMPUTE_SOURCE("compositor_realize_on_domain.glsl")
 GPU_SHADER_CREATE_END()

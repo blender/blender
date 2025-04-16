@@ -364,6 +364,8 @@ set(SRC
   BKE_colorband.hh
   BKE_colortools.hh
   BKE_compositor.hh
+  BKE_compute_context_cache.hh
+  BKE_compute_context_cache_fwd.hh
   BKE_compute_contexts.hh
   BKE_constraint.h
   BKE_context.hh
@@ -635,19 +637,19 @@ if(WITH_BULLET)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
-  add_definitions(-DWITH_OPENEXR)
+  add_definitions(-DWITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
-  add_definitions(-DWITH_OPENJPEG)
+  add_definitions(-DWITH_IMAGE_OPENJPEG)
 endif()
 
 if(WITH_IMAGE_CINEON)
-  add_definitions(-DWITH_CINEON)
+  add_definitions(-DWITH_IMAGE_CINEON)
 endif()
 
 if(WITH_IMAGE_WEBP)
-  add_definitions(-DWITH_WEBP)
+  add_definitions(-DWITH_IMAGE_WEBP)
 endif()
 
 if(WITH_CODEC_FFMPEG)

@@ -16,7 +16,7 @@ def set_pose_matrices(obj, matrix_map):
             # pbone.matrix = matrix
             # bpy.context.view_layer.update()
 
-            # Compute and assign local matrix, using the new parent matrix
+            # Compute and assign local matrix, using the new parent matrix.
             if pbone.parent:
                 pbone.matrix_basis = pbone.bone.convert_local_to_pose(
                     matrix,
@@ -32,7 +32,7 @@ def set_pose_matrices(obj, matrix_map):
                     invert=True
                 )
         else:
-            # Compute the updated pose matrix from local and new parent matrix
+            # Compute the updated pose matrix from local and new parent matrix.
             if pbone.parent:
                 matrix = pbone.bone.convert_local_to_pose(
                     pbone.matrix_basis,
@@ -46,11 +46,11 @@ def set_pose_matrices(obj, matrix_map):
                     pbone.bone.matrix_local,
                 )
 
-        # Recursively process children, passing the new matrix through
+        # Recursively process children, passing the new matrix through.
         for child in pbone.children:
             rec(child, matrix)
 
-    # Scan all bone trees from their roots
+    # Scan all bone trees from their roots.
     for pbone in obj.pose.bones:
         if not pbone.parent:
             rec(pbone, None)

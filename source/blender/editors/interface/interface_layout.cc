@@ -20,6 +20,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
@@ -179,6 +180,8 @@ struct uiLayout : uiItem {
   float units[2];
   /** Is copied to uiButs created in this layout. */
   float search_weight;
+
+  LayoutSuppressFlag suppress_flag;
 };
 
 struct uiLayoutItemFlow : uiLayout {
@@ -955,6 +958,11 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
   const int start_size = block->buttons.size();
 
   ui_item_enum_expand_exec(layout, block, ptr, prop, uiname, h, UI_BTYPE_TAB, icon_only);
+
+  if (block->buttons.is_empty()) {
+    return;
+  }
+
   BLI_assert(start_size != block->buttons.size());
 
   for (int i = start_size; i < block->buttons.size(); i++) {
@@ -1080,7 +1088,23 @@ static uiBut *ui_item_with_label(uiLayout *layout,
     UI_block_layout_set_current(block, uiLayoutRow(sub, true));
     but = uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, prop_but_width - UI_UNIT_X, h);
 
-    /* BUTTONS_OT_file_browse calls UI_context_active_but_prop_get_filebrowser */
+    if (but != nullptr) {
+      if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
+        if ((RNA_property_flag(prop) & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
+          if (BLI_path_is_rel(but->drawstr.c_str())) {
+
+            /* Finally check that this isn't suppressed, see: #137507. */
+            if ((uiLayoutSuppressFlagGet(layout) &
+                 LayoutSuppressFlag::PathSupportsBlendFileRelative) != LayoutSuppressFlag(0))
+            {
+              UI_but_flag_enable(but, UI_BUT_REDALERT);
+            }
+          }
+        }
+      }
+    }
+
+    /* #BUTTONS_OT_file_browse calls #UI_context_active_but_prop_get_filebrowser. */
     uiDefIconButO(block,
                   UI_BTYPE_BUT,
                   subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" :
@@ -5466,6 +5490,21 @@ void uiLayoutListItemAddPadding(uiLayout *layout)
 
   /* Restore. */
   UI_block_layout_set_current(block, layout);
+}
+
+LayoutSuppressFlag uiLayoutSuppressFlagGet(const uiLayout *layout)
+{
+  return layout->suppress_flag;
+}
+
+void uiLayoutSuppressFlagSet(uiLayout *layout, LayoutSuppressFlag flag)
+{
+  layout->suppress_flag |= flag;
+}
+
+void uiLayoutSuppressFlagClear(uiLayout *layout, LayoutSuppressFlag flag)
+{
+  layout->suppress_flag &= ~flag;
 }
 
 /** \} */

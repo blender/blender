@@ -14,13 +14,13 @@ void main()
      * pixel in the row with the average value of the previous output and next input in the same
      * row. */
     for (int x = 0; x < width; x++) {
-      ivec2 texel = ivec2(x, gl_GlobalInvocationID.x);
-      vec4 previous_output = imageLoad(horizontal_img, texel - ivec2(i, 0));
-      vec4 current_input = imageLoad(horizontal_img, texel);
-      vec4 next_input = imageLoad(horizontal_img, texel + ivec2(i, 0));
+      int2 texel = int2(x, gl_GlobalInvocationID.x);
+      float4 previous_output = imageLoad(horizontal_img, texel - int2(i, 0));
+      float4 current_input = imageLoad(horizontal_img, texel);
+      float4 next_input = imageLoad(horizontal_img, texel + int2(i, 0));
 
-      vec4 neighbor_average = (previous_output + next_input) / 2.0;
-      vec4 causal_output = mix(current_input, neighbor_average, fade_factor);
+      float4 neighbor_average = (previous_output + next_input) / 2.0f;
+      float4 causal_output = mix(current_input, neighbor_average, fade_factor);
       imageStore(horizontal_img, texel, causal_output);
       imageFence(horizontal_img);
     }
@@ -30,13 +30,13 @@ void main()
      * pixel in the row with the average value of the previous output and next input in the same
      * row. */
     for (int x = width - 1; x >= 0; x--) {
-      ivec2 texel = ivec2(x, gl_GlobalInvocationID.x);
-      vec4 previous_output = imageLoad(horizontal_img, texel + ivec2(i, 0));
-      vec4 current_input = imageLoad(horizontal_img, texel);
-      vec4 next_input = imageLoad(horizontal_img, texel - ivec2(i, 0));
+      int2 texel = int2(x, gl_GlobalInvocationID.x);
+      float4 previous_output = imageLoad(horizontal_img, texel + int2(i, 0));
+      float4 current_input = imageLoad(horizontal_img, texel);
+      float4 next_input = imageLoad(horizontal_img, texel - int2(i, 0));
 
-      vec4 neighbor_average = (previous_output + next_input) / 2.0;
-      vec4 non_causal_output = mix(current_input, neighbor_average, fade_factor);
+      float4 neighbor_average = (previous_output + next_input) / 2.0f;
+      float4 non_causal_output = mix(current_input, neighbor_average, fade_factor);
       imageStore(horizontal_img, texel, non_causal_output);
       imageFence(horizontal_img);
     }

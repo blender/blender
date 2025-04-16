@@ -25,20 +25,58 @@
 
 #define UTIL_DEBUG 0
 
+/**
+ * Known image extensions, in most cases these match values
+ * for images which Blender creates, there are some exceptions to this.
+ *
+ * See #BKE_image_path_ext_from_imformat which also stores known extensions.
+ */
 const char *imb_ext_image[] = {
-    ".png",  ".tga", ".bmp", ".jpg", ".jpeg", ".sgi", ".rgb", ".rgba", ".tif", ".tiff", ".tx",
-#ifdef WITH_OPENJPEG
-    ".jp2",  ".j2c",
+    /* #IMB_FTYPE_PNG */
+    ".png",
+    /* #IMB_FTYPE_TGA */
+    ".tga",
+    /* #IMB_FTYPE_BMP */
+    ".bmp",
+    /* #IMB_FTYPE_JPG */
+    ".jpg",
+    ".jpeg",
+    /* #IMB_FTYPE_IRIS */
+    ".sgi",
+    ".rgb",
+    ".rgba",
+    /* #IMB_FTYPE_TIF */
+    ".tif",
+    ".tiff",
+    /* A convention for naming tiled images at different resolutions (MIP-mapped),
+     * supported by various render engines texture caching systems.
+     * These are typically TIFF or EXR images. See the tool `maketx` from OpenImageIO. */
+    ".tx",
+#ifdef WITH_IMAGE_OPENJPEG
+    /* #IMB_FTYPE_JP2 */
+    ".jp2",
+    ".j2c",
 #endif
-    ".hdr",  ".dds",
-#ifdef WITH_CINEON
-    ".dpx",  ".cin",
+    /* #IMB_FTYPE_RADHDR */
+    ".hdr",
+    /* #IMB_FTYPE_DDS */
+    ".dds",
+#ifdef WITH_IMAGE_CINEON
+    /* #IMB_FTYPE_DPX */
+    ".dpx",
+    /* #IMB_FTYPE_CINEON */
+    ".cin",
 #endif
-#ifdef WITH_OPENEXR
+#ifdef WITH_IMAGE_OPENEXR
+    /* #IMB_FTYPE_EXR */
     ".exr",
 #endif
-    ".psd",  ".pdd", ".psb",
-#ifdef WITH_WEBP
+    /* #IMB_FTYPE_PSD */
+    ".psd",
+    ".pdd",
+    ".psb",
+#ifdef WITH_IMAGE_WEBP
+    /* #IMB_FTYPE_WEBP */
     ".webp",
 #endif
     nullptr,

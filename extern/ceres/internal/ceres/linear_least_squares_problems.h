@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,7 @@
 #include "ceres/internal/export.h"
 #include "ceres/sparse_matrix.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // Structure defining a linear least squares problem and if possible
 // ground truth solutions. To be used by various LinearSolver tests.
@@ -74,6 +73,10 @@ CERES_NO_EXPORT
 std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem3();
 CERES_NO_EXPORT
 std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem4();
+CERES_NO_EXPORT
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem5();
+CERES_NO_EXPORT
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem6();
 
 // Write the linear least squares problem to disk. The exact format
 // depends on dump_format_type.
@@ -85,8 +88,7 @@ bool DumpLinearLeastSquaresProblem(const std::string& filename_base,
                                    const double* b,
                                    const double* x,
                                    int num_eliminate_blocks);
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

@@ -17,11 +17,13 @@ GHOST_TSuccess GHOST_ContextNone::swapBuffers()
 
 GHOST_TSuccess GHOST_ContextNone::activateDrawingContext()
 {
+  active_context_ = this;
   return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_ContextNone::releaseDrawingContext()
 {
+  active_context_ = nullptr;
   return GHOST_kSuccess;
 }
 
@@ -32,6 +34,7 @@ GHOST_TSuccess GHOST_ContextNone::updateDrawingContext()
 
 GHOST_TSuccess GHOST_ContextNone::initializeDrawingContext()
 {
+  active_context_ = this;
   return GHOST_kSuccess;
 }
 

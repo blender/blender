@@ -1107,43 +1107,41 @@ static bool region_background_is_transparent(const ScrArea *area, const ARegion 
 
 static void region_azone_edge(const ScrArea *area, AZone *az, const ARegion *region)
 {
-  const int azonepad_edge = (0.1f * U.widget_unit);
+  const bool is_header = RGN_TYPE_IS_HEADER_ANY(region->regiontype);
+  const bool transparent = !is_header && region->overlap &&
+                           region_background_is_transparent(area, region);
 
-  /* If there is no visible region background, users typically expect the #AZone to be closer to
-   * the content, so move it a bit. */
-  const int overlap_padding =
-      /* Header-like regions are usually thin and there's not much padding around them,
-       * applying an offset would make the edge overlap buttons. */
-      (!RGN_TYPE_IS_HEADER_ANY(region->regiontype) &&
-       /* Is the region background transparent? */
-       region->overlap && region_background_is_transparent(area, region)) ?
-          /* Note that this is an arbitrary amount that matches nicely with numbers elsewhere. */
-          int(0.4f * U.widget_unit) :
-          0;
+  /* Only scale the padding inside the region, not outside. */
+  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
+
+  /* Different padding inside and outside the region. */
+  const int pad_out = (is_header ? 2.0f : 3.0f) * UI_SCALE_FAC;
+  const int pad_in = (is_header ? 1.0f : (transparent ? 8.0f : 4.0f)) * UI_SCALE_FAC / aspect;
 
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT:
       az->x1 = region->winrct.xmin;
-      az->y1 = region->winrct.ymax - azonepad_edge - overlap_padding;
+      az->y1 = region->winrct.ymax + pad_out;
       az->x2 = region->winrct.xmax;
-      az->y2 = region->winrct.ymax + azonepad_edge - overlap_padding;
+      az->y2 = region->winrct.ymax - pad_in;
       break;
     case AE_BOTTOM_TO_TOPLEFT:
       az->x1 = region->winrct.xmin;
-      az->y1 = region->winrct.ymin + azonepad_edge + overlap_padding;
+      az->y1 = region->winrct.ymin + pad_out;
       az->x2 = region->winrct.xmax;
-      az->y2 = region->winrct.ymin - azonepad_edge + overlap_padding;
+      az->y2 = region->winrct.ymin - pad_in;
       break;
     case AE_LEFT_TO_TOPRIGHT:
-      az->x1 = region->winrct.xmin - azonepad_edge + overlap_padding;
+      az->x1 = region->winrct.xmin - pad_out;
       az->y1 = region->winrct.ymin;
-      az->x2 = region->winrct.xmin + azonepad_edge + overlap_padding;
+      az->x2 = region->winrct.xmin + pad_in;
       az->y2 = region->winrct.ymax;
       break;
     case AE_RIGHT_TO_TOPLEFT:
-      az->x1 = region->winrct.xmax + azonepad_edge - overlap_padding;
+      az->x1 = region->winrct.xmax - pad_in;
       az->y1 = region->winrct.ymin;
-      az->x2 = region->winrct.xmax - azonepad_edge - overlap_padding;
+      az->x2 = region->winrct.xmax + pad_out;
       az->y2 = region->winrct.ymax;
       break;
   }
@@ -1803,27 +1801,36 @@ static void region_rect_recursive(
   memset(&region->runtime->visible_rect, 0, sizeof(region->runtime->visible_rect));
 }
 
-static void area_calc_totrct(ScrArea *area, const rcti *window_rect)
+static void area_calc_totrct(const bScreen *screen, ScrArea *area, const rcti *window_rect)
 {
-  short px = short(U.pixelsize);
+  short px = short(std::max(float(U.border_width) * UI_SCALE_FAC, UI_SCALE_FAC));
 
   area->totrct.xmin = area->v1->vec.x;
   area->totrct.xmax = area->v4->vec.x;
   area->totrct.ymin = area->v1->vec.y;
   area->totrct.ymax = area->v2->vec.y;
 
-  /* scale down totrct by 1 pixel on all sides not matching window borders */
-  if (area->totrct.xmin > window_rect->xmin) {
-    area->totrct.xmin += px;
-  }
-  if (area->totrct.xmax < (window_rect->xmax - 1)) {
-    area->totrct.xmax -= px;
-  }
-  if (area->totrct.ymin > window_rect->ymin) {
-    area->totrct.ymin += px;
-  }
-  if (area->totrct.ymax < (window_rect->ymax - 1)) {
-    area->totrct.ymax -= px;
+  /* Scale down totrct by the border size on all sides not at window edges. */
+  if (!ED_area_is_global(area) && screen->state != SCREENFULL &&
+      !(screen->temp && BLI_listbase_is_single(&screen->areabase)))
+  {
+    if (area->totrct.xmin > window_rect->xmin) {
+      area->totrct.xmin += px;
+    }
+    if (area->totrct.xmax < (window_rect->xmax - 1)) {
+      area->totrct.xmax -= px;
+    }
+    if (area->totrct.ymin > window_rect->ymin) {
+      area->totrct.ymin += px;
+    }
+
+    if (area->totrct.ymax < (window_rect->ymax - 1)) {
+      area->totrct.ymax -= px;
+    }
+    else if (!BLI_listbase_is_single(&screen->areabase) || screen->state == SCREENMAXIMIZED) {
+      /* Small gap below Top Bar. */
+      area->totrct.ymax -= U.pixelsize;
+    }
   }
   /* Although the following asserts are correct they lead to a very unstable Blender.
    * And the asserts would fail even in 2.7x
@@ -1971,8 +1978,8 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
   const bScreen *screen = WM_window_get_active_screen(win);
 
   rcti window_rect;
-  WM_window_rect_calc(win, &window_rect);
-  area_calc_totrct(area, &window_rect);
+  WM_window_screen_rect_calc(win, &window_rect);
+  area_calc_totrct(screen, area, &window_rect);
 
   /* region rect sizes */
   rcti rect = area->totrct;
@@ -2070,12 +2077,12 @@ void ED_area_init(bContext *C, const wmWindow *win, ScrArea *area)
   }
 
   rcti window_rect;
-  WM_window_rect_calc(win, &window_rect);
+  WM_window_screen_rect_calc(win, &window_rect);
 
   ED_area_and_region_types_init(area);
 
   /* area sizes */
-  area_calc_totrct(area, &window_rect);
+  area_calc_totrct(screen, area, &window_rect);
 
   area_regions_poll(C, screen, area);
 
@@ -3359,12 +3366,7 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
     mask.xmax -= round_fl_to_int(UI_view2d_scale_get_x(&region->v2d) *
                                  UI_PANEL_CATEGORY_MARGIN_WIDTH);
   }
-  bool use_full_hide = false;
-  if (region->overlap) {
-    /* Don't always show scrollbars for transparent regions as it's distracting. */
-    use_full_hide = true;
-  }
-  UI_view2d_scrollers_draw_ex(v2d, use_mask ? &mask : nullptr, use_full_hide);
+  UI_view2d_scrollers_draw(v2d, use_mask ? &mask : nullptr);
 }
 
 void ED_region_panels_ex(const bContext *C,
@@ -3549,31 +3551,6 @@ bool ED_region_property_search(const bContext *C,
   return has_result;
 }
 
-/**
- * The drawable part of the region might be slightly smaller because of area edges. This is
- * especially visible for header-like regions, where vertical space around widgets is small, and
- * it's quite visible when widgets aren't centered properly.
- */
-static void layout_coordinates_correct_for_drawable_rect(
-    const wmWindow *win, const ScrArea *area, const ARegion *region, int * /*r_xco*/, int *r_yco)
-{
-  /* Don't do corrections at the window borders where the region rectangles are clipped already. */
-  {
-    rcti win_rect;
-    WM_window_rect_calc(win, &win_rect);
-    if (region->winrct.ymin == win_rect.ymin) {
-      return;
-    }
-    if (region->winrct.ymax == (win_rect.ymax - 1)) {
-      return;
-    }
-  }
-
-  if (region->winrct.ymax == area->totrct.ymax) {
-    *r_yco -= 1;
-  }
-}
-
 void ED_region_header_layout(const bContext *C, ARegion *region)
 {
   const uiStyle *style = UI_style_get_dpi();
@@ -3584,12 +3561,9 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
   const float buttony_scale = buttony / float(UI_UNIT_Y);
 
   /* Vertically center buttons. */
-  int xco = UI_HEADER_OFFSET;
+  int xco = int(UI_HEADER_OFFSET);
   int yco = buttony + (region->winy - buttony) / 2;
   int maxco = xco;
-
-  layout_coordinates_correct_for_drawable_rect(
-      CTX_wm_window(C), CTX_wm_area(C), region, &xco, &yco);
 
   /* set view2d view matrix for scrolling (without scrollers) */
   UI_view2d_view_ortho(&region->v2d);

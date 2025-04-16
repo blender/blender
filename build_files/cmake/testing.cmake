@@ -139,6 +139,9 @@ function(blender_add_ctests)
   if(ARGC LESS 1)
     message(FATAL_ERROR "No arguments supplied to blender_add_ctests()")
   endif()
+  if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/data/render")
+    return()
+  endif()
 
   # Parse the arguments
   set(oneValueArgs DISCOVER_TESTS TARGET SUITE_NAME)
@@ -287,6 +290,7 @@ function(blender_add_test_executable_impl
 
   blender_target_include_dirs(${name}_test ${includes})
   blender_target_include_dirs_sys(${name}_test ${includes_sys})
+  blender_source_group("${name}_test" "${sources}")
 endfunction()
 
 # Add tests for a Blender library, to be called in tandem with blender_add_lib().

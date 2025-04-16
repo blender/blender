@@ -42,6 +42,12 @@ struct Global {
   char filepath_last_image[/*FILE_MAX*/ 1024];
   /** Last used location for library link/append. */
   char filepath_last_library[/*FILE_MAX*/ 1024];
+  /**
+   * Last saved location for .blend files.
+   * This is used for recovery in case of a crash.
+   * It is set when a .blend file is loaded or when saving (manually or through autosave).
+   */
+  char filepath_last_blend[/*FILE_MAX*/ 1024];
 
   /**
    * Strings of recently opened files to show in the file menu.

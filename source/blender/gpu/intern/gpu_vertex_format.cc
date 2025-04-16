@@ -369,21 +369,21 @@ void VertexFormat_texture_buffer_pack(GPUVertFormat *format)
 static uint component_size_get(const Type gpu_type)
 {
   switch (gpu_type) {
-    case Type::VEC2:
-    case Type::IVEC2:
-    case Type::UVEC2:
+    case Type::float2_t:
+    case Type::int2_t:
+    case Type::uint2_t:
       return 2;
-    case Type::VEC3:
-    case Type::IVEC3:
-    case Type::UVEC3:
+    case Type::float3_t:
+    case Type::int3_t:
+    case Type::uint3_t:
       return 3;
-    case Type::VEC4:
-    case Type::IVEC4:
-    case Type::UVEC4:
+    case Type::float4_t:
+    case Type::int4_t:
+    case Type::uint4_t:
       return 4;
-    case Type::MAT3:
+    case Type::float3x3_t:
       return 12;
-    case Type::MAT4:
+    case Type::float4x4_t:
       return 16;
     default:
       return 1;
@@ -395,26 +395,26 @@ static void recommended_fetch_mode_and_comp_type(Type gpu_type,
                                                  GPUVertFetchMode *r_fetch_mode)
 {
   switch (gpu_type) {
-    case Type::FLOAT:
-    case Type::VEC2:
-    case Type::VEC3:
-    case Type::VEC4:
-    case Type::MAT3:
-    case Type::MAT4:
+    case Type::float_t:
+    case Type::float2_t:
+    case Type::float3_t:
+    case Type::float4_t:
+    case Type::float3x3_t:
+    case Type::float4x4_t:
       *r_comp_type = GPU_COMP_F32;
       *r_fetch_mode = GPU_FETCH_FLOAT;
       break;
-    case Type::INT:
-    case Type::IVEC2:
-    case Type::IVEC3:
-    case Type::IVEC4:
+    case Type::int_t:
+    case Type::int2_t:
+    case Type::int3_t:
+    case Type::int4_t:
       *r_comp_type = GPU_COMP_I32;
       *r_fetch_mode = GPU_FETCH_INT;
       break;
-    case Type::UINT:
-    case Type::UVEC2:
-    case Type::UVEC3:
-    case Type::UVEC4:
+    case Type::uint_t:
+    case Type::uint2_t:
+    case Type::uint3_t:
+    case Type::uint4_t:
       *r_comp_type = GPU_COMP_U32;
       *r_fetch_mode = GPU_FETCH_INT;
       break;

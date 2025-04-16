@@ -86,12 +86,12 @@ static const CPPType &CPPType_TestType = CPPType::get<TestType>();
 
 TEST(cpp_type, Size)
 {
-  EXPECT_EQ(CPPType_TestType.size(), sizeof(TestType));
+  EXPECT_EQ(CPPType_TestType.size, sizeof(TestType));
 }
 
 TEST(cpp_type, Alignment)
 {
-  EXPECT_EQ(CPPType_TestType.alignment(), alignof(TestType));
+  EXPECT_EQ(CPPType_TestType.alignment, alignof(TestType));
 }
 
 TEST(cpp_type, Is)

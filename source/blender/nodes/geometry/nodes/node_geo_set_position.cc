@@ -17,11 +17,13 @@ namespace blender::nodes::node_geo_set_position_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Geometry");
+  b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Vector>("Position").implicit_field_on_all(implicit_field_inputs::position);
   b.add_input<decl::Vector>("Offset").subtype(PROP_TRANSLATION).field_on_all();
-  b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
 static const auto &get_add_fn()

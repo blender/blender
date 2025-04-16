@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@
 #include "ceres/internal/export.h"
 #include "ceres/preprocessor.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class CERES_NO_EXPORT TrustRegionPreprocessor final : public Preprocessor {
  public:
@@ -45,8 +44,7 @@ class CERES_NO_EXPORT TrustRegionPreprocessor final : public Preprocessor {
                   PreprocessedProblem* preprocessed_problem) override;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

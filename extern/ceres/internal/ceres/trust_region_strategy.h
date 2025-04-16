@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,7 @@
 #include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class LinearSolver;
 class SparseMatrix;
@@ -74,6 +73,9 @@ class CERES_NO_EXPORT TrustRegionStrategy {
 
     // Further specify which dogleg method to use
     DoglegType dogleg_type = TRADITIONAL_DOGLEG;
+
+    ContextImpl* context = nullptr;
+    int num_threads = 1;
   };
 
   // Factory.
@@ -112,7 +114,8 @@ class CERES_NO_EXPORT TrustRegionStrategy {
     int num_iterations = -1;
 
     // Status of the linear solver used to solve the Newton system.
-    LinearSolverTerminationType termination_type = LINEAR_SOLVER_FAILURE;
+    LinearSolverTerminationType termination_type =
+        LinearSolverTerminationType::FAILURE;
   };
 
   // Use the current radius to solve for the trust region step.
@@ -141,8 +144,7 @@ class CERES_NO_EXPORT TrustRegionStrategy {
   virtual double Radius() const = 0;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

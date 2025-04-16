@@ -618,7 +618,7 @@ static int rna_Image_pixels_get_length(const PointerRNA *ptr, int length[RNA_MAX
   ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
   if (ibuf) {
-    length[0] = ibuf->x * ibuf->y * ibuf->channels;
+    length[0] = IMB_get_pixel_count(ibuf) * size_t(ibuf->channels);
   }
   else {
     length[0] = 0;
@@ -634,18 +634,17 @@ static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
   Image *ima = (Image *)ptr->owner_id;
   ImBuf *ibuf;
   void *lock;
-  int i, size;
 
   ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
   if (ibuf) {
-    size = ibuf->x * ibuf->y * ibuf->channels;
+    const size_t size = IMB_get_pixel_count(ibuf) * size_t(ibuf->channels);
 
     if (ibuf->float_buffer.data) {
       memcpy(values, ibuf->float_buffer.data, sizeof(float) * size);
     }
     else {
-      for (i = 0; i < size; i++) {
+      for (size_t i = 0; i < size; i++) {
         values[i] = ibuf->byte_buffer.data[i] * (1.0f / 255.0f);
       }
     }
@@ -659,18 +658,17 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
   Image *ima = (Image *)ptr->owner_id;
   ImBuf *ibuf;
   void *lock;
-  int i, size;
 
   ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
   if (ibuf) {
-    size = ibuf->x * ibuf->y * ibuf->channels;
+    const size_t size = IMB_get_pixel_count(ibuf) * size_t(ibuf->channels);
 
     if (ibuf->float_buffer.data) {
       memcpy(ibuf->float_buffer.data, values, sizeof(float) * size);
     }
     else {
-      for (i = 0; i < size; i++) {
+      for (size_t i = 0; i < size; i++) {
         ibuf->byte_buffer.data[i] = unit_float_to_uchar_clamp(values[i]);
       }
     }
@@ -905,6 +903,7 @@ static void rna_def_image_packed_files(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "filepath");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_struct_name_property(srna, prop);
 
   prop = RNA_def_property(srna, "view", PROP_INT, PROP_NONE);
@@ -1160,12 +1159,14 @@ static void rna_def_image(BlenderRNA *brna)
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_string_sdna(prop, nullptr, "filepath");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_ui_text(prop, "File Name", "Image/Movie file name");
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_reload_update");
 
   /* eek. this is horrible but needed so we can save to a new name without blanking the data :( */
   prop = RNA_def_property(srna, "filepath_raw", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "filepath");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_ui_text(prop, "File Name", "Image/Movie file name (without data refreshing)");
 
   prop = RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);

@@ -79,7 +79,6 @@ if(UNIX AND NOT APPLE)
   set(WITH_GHOST_XDND          ON  CACHE BOOL "" FORCE)
   set(WITH_PULSEAUDIO          ON  CACHE BOOL "" FORCE)
   set(WITH_X11_XINPUT          ON  CACHE BOOL "" FORCE)
-  set(WITH_X11_XF86VMODE       ON  CACHE BOOL "" FORCE)
   set(WITH_JACK_DYNLOAD        ON  CACHE BOOL "" FORCE)
   set(WITH_PULSEAUDIO_DYNLOAD  ON  CACHE BOOL "" FORCE)
   # TODO don't disable pipewire on release builds once it has gotten more testing

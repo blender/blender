@@ -310,6 +310,8 @@ struct MSLFragmentOutputAttribute {
    * subsequent draws. If a subsequent draw requires reading data from a GBuffer, raster order
    * groups should be used to ensure all writes occur before reading. */
   int raster_order_group;
+  /* Used for lack of ROG support workaround. */
+  bool is_layered_input;
 
   bool operator==(const MSLFragmentOutputAttribute &right) const
   {
@@ -505,6 +507,9 @@ inline bool is_builtin_type(std::string type)
       {"vec2", MTL_DATATYPE_FLOAT2},
       {"vec3", MTL_DATATYPE_FLOAT3},
       {"vec4", MTL_DATATYPE_FLOAT4},
+      {"float2", MTL_DATATYPE_FLOAT2},
+      {"float3", MTL_DATATYPE_FLOAT3},
+      {"float4", MTL_DATATYPE_FLOAT4},
       {"int", MTL_DATATYPE_INT},
       {"ivec2", MTL_DATATYPE_INT2},
       {"ivec3", MTL_DATATYPE_INT3},
@@ -522,6 +527,8 @@ inline bool is_builtin_type(std::string type)
       {"uint4", MTL_DATATYPE_UINT4},
       {"mat3", MTL_DATATYPE_FLOAT3x3},
       {"mat4", MTL_DATATYPE_FLOAT4x4},
+      {"float3x3", MTL_DATATYPE_FLOAT3x3},
+      {"float4x4", MTL_DATATYPE_FLOAT4x4},
       {"bool", MTL_DATATYPE_INT},
       {"uchar", MTL_DATATYPE_UCHAR},
       {"uchar2", MTL_DATATYPE_UCHAR2},
@@ -544,7 +551,7 @@ inline bool is_matrix_type(const std::string &type)
 inline bool is_matrix_type(const shader::Type &type)
 {
   /* Matrix type support. Add types as necessary. */
-  return (type == shader::Type::MAT4 || type == shader::Type::MAT3);
+  return (type == shader::Type::float4x4_t || type == shader::Type::float3x3_t);
 }
 
 inline int get_matrix_location_count(const std::string &type)
@@ -562,10 +569,10 @@ inline int get_matrix_location_count(const std::string &type)
 inline int get_matrix_location_count(const shader::Type &type)
 {
   /* Matrix type support. Add types as necessary. */
-  if (type == shader::Type::MAT4) {
+  if (type == shader::Type::float4x4_t) {
     return 4;
   }
-  if (type == shader::Type::MAT3) {
+  if (type == shader::Type::float3x3_t) {
     return 3;
   }
   return 1;
@@ -581,11 +588,11 @@ inline std::string get_matrix_subtype(const std::string &type)
 
 inline shader::Type get_matrix_subtype(const shader::Type &type)
 {
-  if (type == shader::Type::MAT4) {
-    return shader::Type::VEC4;
+  if (type == shader::Type::float4x4_t) {
+    return shader::Type::float4_t;
   }
-  if (type == shader::Type::MAT3) {
-    return shader::Type::VEC3;
+  if (type == shader::Type::float3x3_t) {
+    return shader::Type::float3_t;
   }
   return type;
 }
@@ -594,19 +601,19 @@ inline std::string get_attribute_conversion_function(bool *uses_conversion,
                                                      const shader::Type &type)
 {
   /* NOTE(Metal): Add more attribute types as required. */
-  if (type == shader::Type::FLOAT) {
+  if (type == shader::Type::float_t) {
     *uses_conversion = true;
     return "internal_vertex_attribute_convert_read_float";
   }
-  if (type == shader::Type::VEC2) {
+  if (type == shader::Type::float2_t) {
     *uses_conversion = true;
     return "internal_vertex_attribute_convert_read_float2";
   }
-  if (type == shader::Type::VEC3) {
+  if (type == shader::Type::float3_t) {
     *uses_conversion = true;
     return "internal_vertex_attribute_convert_read_float3";
   }
-  if (type == shader::Type::VEC4) {
+  if (type == shader::Type::float4_t) {
     *uses_conversion = true;
     return "internal_vertex_attribute_convert_read_float4";
   }
@@ -680,69 +687,69 @@ inline const char *to_string_msl(const shader::Interpolation &interp)
 inline const char *to_string(const shader::Type &type)
 {
   switch (type) {
-    case shader::Type::FLOAT:
+    case shader::Type::float_t:
       return "float";
-    case shader::Type::VEC2:
+    case shader::Type::float2_t:
       return "vec2";
-    case shader::Type::VEC3:
+    case shader::Type::float3_t:
       return "vec3";
-    case shader::Type::VEC3_101010I2:
+    case shader::Type::float3_10_10_10_2_t:
       return "vec3_1010102_Inorm";
-    case shader::Type::VEC4:
+    case shader::Type::float4_t:
       return "vec4";
-    case shader::Type::MAT3:
+    case shader::Type::float3x3_t:
       return "mat3";
-    case shader::Type::MAT4:
+    case shader::Type::float4x4_t:
       return "mat4";
-    case shader::Type::UINT:
+    case shader::Type::uint_t:
       return "uint32_t";
-    case shader::Type::UVEC2:
+    case shader::Type::uint2_t:
       return "uvec2";
-    case shader::Type::UVEC3:
+    case shader::Type::uint3_t:
       return "uvec3";
-    case shader::Type::UVEC4:
+    case shader::Type::uint4_t:
       return "uvec4";
-    case shader::Type::INT:
+    case shader::Type::int_t:
       return "int";
-    case shader::Type::IVEC2:
+    case shader::Type::int2_t:
       return "ivec2";
-    case shader::Type::IVEC3:
+    case shader::Type::int3_t:
       return "ivec3";
-    case shader::Type::IVEC4:
+    case shader::Type::int4_t:
       return "ivec4";
-    case shader::Type::BOOL:
+    case shader::Type::bool_t:
       return "bool";
-    case shader::Type::UCHAR:
+    case shader::Type::uchar_t:
       return "uchar";
-    case shader::Type::UCHAR2:
+    case shader::Type::uchar2_t:
       return "uchar2";
-    case shader::Type::UCHAR3:
+    case shader::Type::uchar3_t:
       return "uchar3";
-    case shader::Type::UCHAR4:
+    case shader::Type::uchar4_t:
       return "uchar4";
-    case shader::Type::CHAR:
+    case shader::Type::char_t:
       return "char";
-    case shader::Type::CHAR2:
+    case shader::Type::char2_t:
       return "char2";
-    case shader::Type::CHAR3:
+    case shader::Type::char3_t:
       return "char3";
-    case shader::Type::CHAR4:
+    case shader::Type::char4_t:
       return "char4";
-    case shader::Type::USHORT:
+    case shader::Type::ushort_t:
       return "ushort";
-    case shader::Type::USHORT2:
+    case shader::Type::ushort2_t:
       return "ushort2";
-    case shader::Type::USHORT3:
+    case shader::Type::ushort3_t:
       return "ushort3";
-    case shader::Type::USHORT4:
+    case shader::Type::ushort4_t:
       return "ushort4";
-    case shader::Type::SHORT:
+    case shader::Type::short_t:
       return "short";
-    case shader::Type::SHORT2:
+    case shader::Type::short2_t:
       return "short2";
-    case shader::Type::SHORT3:
+    case shader::Type::short3_t:
       return "short3";
-    case shader::Type::SHORT4:
+    case shader::Type::short4_t:
       return "short4";
     default:
       BLI_assert(false);

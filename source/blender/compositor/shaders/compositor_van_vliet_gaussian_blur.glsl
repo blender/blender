@@ -34,41 +34,42 @@ void main()
    *
    * We detect causality by even numbers. */
   bool is_causal = gl_GlobalInvocationID.y % 2 == 0;
-  vec2 first_feedforward_coefficients = is_causal ? first_causal_feedforward_coefficients :
-                                                    first_non_causal_feedforward_coefficients;
+  float2 first_feedforward_coefficients = is_causal ? first_causal_feedforward_coefficients :
+                                                      first_non_causal_feedforward_coefficients;
   float first_boundary_coefficient = is_causal ? first_causal_boundary_coefficient :
                                                  first_non_causal_boundary_coefficient;
-  vec2 second_feedforward_coefficients = is_causal ? second_causal_feedforward_coefficients :
-                                                     second_non_causal_feedforward_coefficients;
+  float2 second_feedforward_coefficients = is_causal ? second_causal_feedforward_coefficients :
+                                                       second_non_causal_feedforward_coefficients;
   float second_boundary_coefficient = is_causal ? second_causal_boundary_coefficient :
                                                   second_non_causal_boundary_coefficient;
   /* And we detect the filter by order. */
   bool is_first_filter = gl_GlobalInvocationID.y < 2;
-  vec2 feedforward_coefficients = is_first_filter ? first_feedforward_coefficients :
-                                                    second_feedforward_coefficients;
-  vec2 feedback_coefficients = is_first_filter ? first_feedback_coefficients :
-                                                 second_feedback_coefficients;
+  float2 feedforward_coefficients = is_first_filter ? first_feedforward_coefficients :
+                                                      second_feedforward_coefficients;
+  float2 feedback_coefficients = is_first_filter ? first_feedback_coefficients :
+                                                   second_feedback_coefficients;
   float boundary_coefficient = is_first_filter ? first_boundary_coefficient :
                                                  second_boundary_coefficient;
 
   /* Create an array that holds the last FILTER_ORDER inputs along with the current input. The
    * current input is at index 0 and the oldest input is at index FILTER_ORDER. We assume Neumann
    * boundary condition, so we initialize all inputs by the boundary pixel. */
-  ivec2 boundary_texel = is_causal ? ivec2(0, y) : ivec2(width - 1, y);
-  vec4 input_boundary = texture_load(input_tx, boundary_texel);
-  vec4 inputs[FILTER_ORDER + 1] = float4_array(input_boundary, input_boundary, input_boundary);
+  int2 boundary_texel = is_causal ? int2(0, y) : int2(width - 1, y);
+  float4 input_boundary = texture_load(input_tx, boundary_texel);
+  float4 inputs[FILTER_ORDER + 1] = float4_array(input_boundary, input_boundary, input_boundary);
 
   /* Create an array that holds the last FILTER_ORDER outputs along with the current output. The
    * current output is at index 0 and the oldest output is at index FILTER_ORDER. We assume Neumann
    * boundary condition, so we initialize all outputs by the boundary pixel multiplied by the
    * boundary coefficient. See the VanVlietGaussianCoefficients class for more information on the
    * boundary handing. */
-  vec4 output_boundary = input_boundary * boundary_coefficient;
-  vec4 outputs[FILTER_ORDER + 1] = float4_array(output_boundary, output_boundary, output_boundary);
+  float4 output_boundary = input_boundary * boundary_coefficient;
+  float4 outputs[FILTER_ORDER + 1] = float4_array(
+      output_boundary, output_boundary, output_boundary);
 
   for (int x = 0; x < width; x++) {
     /* Run forward across rows for the causal filter and backward for the non causal filter. */
-    ivec2 texel = is_causal ? ivec2(x, y) : ivec2(width - 1 - x, y);
+    int2 texel = is_causal ? int2(x, y) : int2(width - 1 - x, y);
     inputs[0] = texture_load(input_tx, texel);
 
     /* Compute the filter based on its difference equation, this is not in the Van Vliet paper
@@ -82,7 +83,7 @@ void main()
      * The only difference is that the non causal filter ignores the current value and starts from
      * the previous input, as can be seen in the subscript of the first input term in both
      * equations. So add one while indexing the non causal inputs. */
-    outputs[0] = vec4(0.0);
+    outputs[0] = float4(0.0f);
     int first_input_index = is_causal ? 0 : 1;
     for (int i = 0; i < FILTER_ORDER; i++) {
       outputs[0] += feedforward_coefficients[i] * inputs[first_input_index + i];

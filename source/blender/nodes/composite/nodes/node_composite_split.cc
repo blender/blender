@@ -6,6 +6,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BLI_math_base.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -22,25 +24,24 @@ namespace blender::nodes::node_composite_split_cc {
 
 static void cmp_node_split_declare(NodeDeclarationBuilder &b)
 {
+  b.add_input<decl::Float>("Factor")
+      .default_value(0.5f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Specifies the position of the split")
+      .compositor_expects_single_value();
   b.add_input<decl::Color>("Image");
   b.add_input<decl::Color>("Image", "Image_001");
-  b.add_output<decl::Color>("Image");
-}
 
-static void node_composit_init_split(bNodeTree * /*ntree*/, bNode *node)
-{
-  node->custom1 = 50; /* default 50% split */
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_buts_split(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *row, *col;
-
-  col = uiLayoutColumn(layout, false);
-  row = uiLayoutRow(col, false);
+  uiLayout *row = uiLayoutRow(layout, false);
   uiItemR(
       row, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "factor", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -131,7 +132,7 @@ class SplitOperation : public NodeOperation {
 
   float get_split_ratio()
   {
-    return bnode().custom1 / 100.0f;
+    return math::clamp(this->get_input("Factor").get_single_value_default(0.5f), 0.0f, 1.0f);
   }
 };
 
@@ -158,7 +159,6 @@ void register_node_type_cmp_split()
   ntype.declare = file_ns::cmp_node_split_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_split;
   ntype.flag |= NODE_PREVIEW;
-  ntype.initfunc = file_ns::node_composit_init_split;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   ntype.no_muting = true;

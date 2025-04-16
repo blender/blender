@@ -285,7 +285,6 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
       state,
       gpuSettings.context_type,
       ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
-      false,
       (GHOST_WindowWin32 *)parentWindow,
       ((gpuSettings.flags & GHOST_gpuDebugContext) != 0),
       is_dialog,
@@ -618,11 +617,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
       ::LoadIcon(nullptr, IDI_APPLICATION);
     }
     wc.hCursor = ::LoadCursor(0, IDC_ARROW);
-    wc.hbrBackground =
-#ifdef INW32_COMPISITING
-        (HBRUSH)CreateSolidBrush
-#endif
-        (0x00000000);
+    wc.hbrBackground = (HBRUSH)GetStockObject(DKGRAY_BRUSH);
     wc.lpszMenuName = 0;
     wc.lpszClassName = L"GHOST_WindowClass";
 
@@ -2245,6 +2240,18 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           /* An application sends the WM_ERASEBKGND message when the window background must be
            * erased (for example, when a window is resized). The message is sent to prepare an
            * invalidated portion of a window for painting. */
+          {
+            HBRUSH bgBrush = (HBRUSH)GetClassLongPtr(hwnd, GCLP_HBRBACKGROUND);
+            if (bgBrush) {
+              RECT rect;
+              GetClientRect(hwnd, &rect);
+              FillRect((HDC)(wParam), &rect, bgBrush);
+              /* Clear the backround brush after the initial fill as we don't
+               * need or want any default Windows fill behavior on redraw. */
+              SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, (LONG_PTR) nullptr);
+            }
+            break;
+          }
         case WM_NCPAINT:
           /* An application sends the WM_NCPAINT message to a window
            * when its frame must be painted. */
@@ -2378,8 +2385,7 @@ char *GHOST_SystemWin32::getClipboard(bool /*selection*/) const
 
     len = strlen(buffer);
     char *temp_buff = (char *)malloc(len + 1);
-    strncpy(temp_buff, buffer, len);
-    temp_buff[len] = '\0';
+    memcpy(temp_buff, buffer, len + 1);
 
     /* Buffer mustn't be accessed after CloseClipboard
      * it would like accessing free-d memory */

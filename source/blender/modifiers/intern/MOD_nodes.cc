@@ -37,6 +37,7 @@
 
 #include "BKE_bake_data_block_map.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
@@ -77,6 +78,7 @@
 #include "MOD_nodes.hh"
 #include "MOD_ui_common.hh"
 
+#include "ED_node.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
@@ -475,7 +477,8 @@ namespace blender {
  * To make sure that it is executed, all parent group nodes and zones have to be set to  have side
  * effects as well.
  */
-static void try_add_side_effect_node(const ComputeContext &final_compute_context,
+static void try_add_side_effect_node(const ModifierEvalContext &ctx,
+                                     const ComputeContext &final_compute_context,
                                      const int final_node_id,
                                      const NodesModifierData &nmd,
                                      nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
@@ -618,6 +621,49 @@ static void try_add_side_effect_node(const ComputeContext &final_compute_context
       current_tree = reinterpret_cast<const bNodeTree *>(group_node->id);
       current_zone = nullptr;
     }
+    else if (const auto *compute_context =
+                 dynamic_cast<const bke::EvaluateClosureComputeContext *>(compute_context_generic))
+    {
+      const bNode *evaluate_node = current_tree->node_by_id(compute_context->node_id());
+      if (!evaluate_node) {
+        return;
+      }
+      if (evaluate_node->is_muted()) {
+        return;
+      }
+      if (current_zone != current_zones->get_zone_by_node(evaluate_node->identifier)) {
+        return;
+      }
+      const std::optional<nodes::ClosureSourceLocation> &source_location =
+          compute_context->closure_source_location();
+      if (!source_location) {
+        return;
+      }
+      if (!source_location->tree->zones()) {
+        return;
+      }
+      const lf::FunctionNode *lf_evaluate_node =
+          lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(evaluate_node,
+                                                                              nullptr);
+      if (!lf_evaluate_node) {
+        return;
+      }
+      /* The tree may sometimes be original and sometimes evaluated, depending on the source of the
+       * compute context. */
+      const bNodeTree *eval_closure_tree = DEG_is_evaluated_id(&source_location->tree->id) ?
+                                               source_location->tree :
+                                               reinterpret_cast<const bNodeTree *>(
+                                                   DEG_get_evaluated_id(
+                                                       ctx.depsgraph, &source_location->tree->id));
+      const bNode *closure_output_node = eval_closure_tree->node_by_id(
+          source_location->closure_output_node_id);
+      if (!closure_output_node) {
+        return;
+      }
+      local_side_effect_nodes.nodes_by_context.add(parent_compute_context_hash, lf_evaluate_node);
+      current_tree = eval_closure_tree;
+      current_zone = eval_closure_tree->zones()->get_zone_by_node(closure_output_node->identifier);
+    }
     else {
       return;
     }
@@ -671,27 +717,27 @@ static void find_side_effect_nodes_for_viewer_path(
     return;
   }
 
-  ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);
-
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *current = &compute_context_cache.for_modifier(nullptr, nmd);
   for (const ViewerPathElem *elem : parsed_path->node_path) {
-    if (!ed::viewer_path::add_compute_context_for_viewer_path_elem(*elem, compute_context_builder))
-    {
+    current = ed::viewer_path::compute_context_for_viewer_path_elem(
+        *elem, compute_context_cache, current);
+    if (!current) {
       return;
     }
   }
 
-  try_add_side_effect_node(
-      *compute_context_builder.current(), parsed_path->viewer_node_id, nmd, r_side_effect_nodes);
+  try_add_side_effect_node(ctx, *current, parsed_path->viewer_node_id, nmd, r_side_effect_nodes);
 }
 
 static void find_side_effect_nodes_for_nested_node(
+    const ModifierEvalContext &ctx,
     const NodesModifierData &nmd,
     const int root_nested_node_id,
     nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
 {
-  ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(nmd.modifier.name);
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *compute_context = &compute_context_cache.for_modifier(nullptr, nmd);
 
   int nested_node_id = root_nested_node_id;
   const bNodeTree *tree = nmd.node_group;
@@ -716,13 +762,12 @@ static void find_side_effect_nodes_for_nested_node(
       if (!node->id) {
         return;
       }
-      compute_context_builder.push<bke::GroupNodeComputeContext>(*node, *tree);
+      compute_context = &compute_context_cache.for_group_node(compute_context, *node, *tree);
       tree = reinterpret_cast<const bNodeTree *>(node->id);
       nested_node_id = ref->path.id_in_node;
     }
     else {
-      try_add_side_effect_node(
-          *compute_context_builder.current(), ref->path.node_id, nmd, r_side_effect_nodes);
+      try_add_side_effect_node(ctx, *compute_context, ref->path.node_id, nmd, r_side_effect_nodes);
       return;
     }
   }
@@ -748,7 +793,7 @@ static void find_side_effect_nodes_for_baking(const NodesModifierData &nmd,
     if (!modifier_cache.requested_bakes.contains(ref.id)) {
       continue;
     }
-    find_side_effect_nodes_for_nested_node(nmd, ref.id, r_side_effect_nodes);
+    find_side_effect_nodes_for_nested_node(ctx, nmd, ref.id, r_side_effect_nodes);
   }
 }
 
@@ -762,16 +807,17 @@ static void find_side_effect_nodes_for_active_gizmos(
   Object *object_orig = DEG_get_original_object(ctx.object);
   const NodesModifierData &nmd_orig = *reinterpret_cast<const NodesModifierData *>(
       BKE_modifier_get_original(ctx.object, const_cast<ModifierData *>(&nmd.modifier)));
-  ComputeContextBuilder compute_context_builder;
+  bke::ComputeContextCache compute_context_cache;
   nodes::gizmos::foreach_active_gizmo_in_modifier(
       *object_orig,
       nmd_orig,
       wm,
-      compute_context_builder,
+      compute_context_cache,
       [&](const ComputeContext &compute_context,
           const bNode &gizmo_node,
           const bNodeSocket &gizmo_socket) {
-        try_add_side_effect_node(compute_context, gizmo_node.identifier, nmd, r_side_effect_nodes);
+        try_add_side_effect_node(
+            ctx, compute_context, gizmo_node.identifier, nmd, r_side_effect_nodes);
         r_socket_log_contexts.add(compute_context.hash());
 
         nodes::gizmos::foreach_compute_context_on_gizmo_path(
@@ -825,6 +871,7 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
   if (wm == nullptr) {
     return;
   }
+  bke::ComputeContextCache compute_context_cache;
   LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
     const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
     LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
@@ -834,9 +881,12 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
         if (snode.edittree == nullptr || snode.edittree->type != NTREE_GEOMETRY) {
           continue;
         }
+        if (!ed::space_node::node_editor_is_for_geometry_nodes_modifier(snode, *ctx.object, nmd)) {
+          continue;
+        }
         const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode,
-                                                                              nmd.modifier.name);
+            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(
+                snode, compute_context_cache);
         for (const ComputeContextHash &hash : hash_by_zone.values()) {
           r_socket_log_contexts.add(hash);
         }
@@ -862,18 +912,17 @@ static void check_property_socket_sync(const Object *ob,
     const bNodeTreeInterfaceSocket *socket = nmd->node_group->interface_inputs()[i];
     const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
     const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    if (type == SOCK_GEOMETRY) {
+      geometry_socket_count++;
+    }
     /* The first socket is the special geometry socket for the modifier object. */
     if (i == 0 && type == SOCK_GEOMETRY) {
-      geometry_socket_count++;
       continue;
     }
 
     IDProperty *property = properties.lookup_key_default_as(socket->identifier, nullptr);
     if (property == nullptr) {
-      if (ELEM(type, SOCK_GEOMETRY, SOCK_MATRIX)) {
-        geometry_socket_count++;
-      }
-      else {
+      if (!ELEM(type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_BUNDLE, SOCK_CLOSURE)) {
         BKE_modifier_set_error(
             ob, md, "Missing property for input socket \"%s\"", socket->name ? socket->name : "");
       }
@@ -1835,7 +1884,7 @@ static void modifyGeometry(ModifierData *md,
   find_side_effect_nodes(*nmd, *ctx, side_effect_nodes, socket_log_contexts);
   call_data.side_effect_nodes = &side_effect_nodes;
 
-  bke::ModifierComputeContext modifier_compute_context{nullptr, nmd->modifier.name};
+  bke::ModifierComputeContext modifier_compute_context{nullptr, *nmd};
 
   geometry_set = nodes::execute_geometry_nodes_on_geometry(
       tree, properties, modifier_compute_context, call_data, std::move(geometry_set));
@@ -1873,7 +1922,14 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   modifyGeometry(md, ctx, geometry_set);
 
-  Mesh *new_mesh = geometry_set.get_component_for_write<bke::MeshComponent>().release();
+  bke::MeshComponent &mesh_component = geometry_set.get_component_for_write<bke::MeshComponent>();
+  if (mesh_component.get() != mesh) {
+    /* If this is the same as the input mesh, it's not necessary to make a copy of it even if it's
+     * not owned by the geometry set. That's because we know that the caller manages the ownership
+     * of the mesh. */
+    mesh_component.ensure_owns_direct_data();
+  }
+  Mesh *new_mesh = mesh_component.release();
   if (new_mesh == nullptr) {
     return BKE_mesh_new_nomain(0, 0, 0, 0);
   }
@@ -1925,7 +1981,7 @@ static geo_log::GeoTreeLog *get_root_tree_log(const NodesModifierData &nmd)
   if (!nmd.runtime->eval_log) {
     return nullptr;
   }
-  bke::ModifierComputeContext compute_context{nullptr, nmd.modifier.name};
+  bke::ModifierComputeContext compute_context{nullptr, nmd};
   return &nmd.runtime->eval_log->get_tree_log(compute_context.hash());
 }
 
@@ -2512,7 +2568,7 @@ static void draw_warnings(const bContext *C,
   if (!tree_log) {
     return;
   }
-  tree_log->ensure_node_warnings(nmd.node_group);
+  tree_log->ensure_node_warnings(*CTX_data_main(C));
   const int warnings_num = tree_log->all_warnings.size();
   if (warnings_num == 0) {
     return;

@@ -42,6 +42,8 @@
 /* Margin around the smaller buttons. */
 #define GIZMO_MINI_OFFSET 2.0f
 
+namespace {
+
 enum {
   GZ_INDEX_MOVE = 0,
   GZ_INDEX_ROTATE = 1,
@@ -67,6 +69,22 @@ struct NavigateGizmoInfo {
   uint icon;
   void (*op_prop_fn)(PointerRNA *ptr);
 };
+
+struct NavigateWidgetGroup {
+  wmGizmo *gz_array[GZ_INDEX_TOTAL];
+  /* Store the view state to check for changes. */
+  struct {
+    rcti rect_visible;
+    struct {
+      char is_persp;
+      bool is_camera;
+      char viewlock;
+      char cameralock;
+    } rv3d;
+  } state;
+};
+
+}  // namespace
 
 static void navigate_context_toggle_camera_lock_init(PointerRNA *ptr)
 {
@@ -128,20 +146,6 @@ static NavigateGizmoInfo g_navigate_params[GZ_INDEX_TOTAL] = {
         ICON_VIEW_UNLOCKED,
         navigate_context_toggle_camera_lock_init,
     },
-};
-
-struct NavigateWidgetGroup {
-  wmGizmo *gz_array[GZ_INDEX_TOTAL];
-  /* Store the view state to check for changes. */
-  struct {
-    rcti rect_visible;
-    struct {
-      char is_persp;
-      bool is_camera;
-      char viewlock;
-      char cameralock;
-    } rv3d;
-  } state;
 };
 
 static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)

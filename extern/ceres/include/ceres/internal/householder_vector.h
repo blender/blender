@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,7 @@
 #include "Eigen/Core"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // Algorithm 5.1.1 from 'Matrix Computations' by Golub et al. (Johns Hopkins
 // Studies in Mathematical Sciences) but using the nth element of the input
@@ -90,7 +89,6 @@ typename Derived::PlainObject ApplyHouseholderVector(
   return (y - v * (beta * (v.transpose() * y)));
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_PUBLIC_INTERNAL_HOUSEHOLDER_VECTOR_H_

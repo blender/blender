@@ -340,7 +340,7 @@ static SeqRetimingKey *strip_retiming_add_key(Strip *strip, float frame_index)
   float value = strip_retiming_evaluate(strip, frame_index);
 
   SeqRetimingKey *keys = strip->retiming_keys;
-  size_t keys_count = retiming_keys_count(strip);
+  const int keys_count = retiming_keys_count(strip);
   const int new_key_index = start_key - keys + 1;
   BLI_assert(new_key_index >= 0);
   BLI_assert(new_key_index < keys_count);

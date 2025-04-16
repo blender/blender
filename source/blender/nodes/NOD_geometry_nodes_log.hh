@@ -35,16 +35,21 @@
 #include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator_chunked_list.hh"
 
+#include "BKE_compute_context_cache_fwd.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_node.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_volume_grid_fwd.hh"
+
+#include "NOD_geometry_nodes_closure_location.hh"
+#include "NOD_socket_interface_key.hh"
 
 #include "FN_field.hh"
 
 #include "DNA_node_types.h"
 
 struct SpaceNode;
+struct NodesModifierData;
 
 namespace blender::nodes::geo_eval_log {
 
@@ -184,6 +189,46 @@ class GeometryInfoLog : public ValueLog {
   GeometryInfoLog(const bke::GVolumeGrid &grid);
 };
 
+class BundleValueLog : public ValueLog {
+ public:
+  struct Item {
+    SocketInterfaceKey key;
+    const bke::bNodeSocketType *type;
+  };
+
+  Vector<Item> items;
+
+  BundleValueLog(Vector<Item> items);
+};
+
+class ClosureValueLog : public ValueLog {
+ public:
+  struct Item {
+    SocketInterfaceKey key;
+    const bke::bNodeSocketType *type;
+  };
+
+  /**
+   * Similar to #ClosureSourceLocation but does not keep pointer references to potentially
+   * temporary data.
+   */
+  struct Source {
+    uint32_t orig_node_tree_session_uid;
+    int closure_output_node_id;
+    ComputeContextHash compute_context_hash;
+  };
+
+  Vector<Item> inputs;
+  Vector<Item> outputs;
+  std::optional<Source> source;
+  std::shared_ptr<ClosureEvalLog> eval_log;
+
+  ClosureValueLog(Vector<Item> inputs,
+                  Vector<Item> outputs,
+                  const std::optional<ClosureSourceLocation> &source_location,
+                  std::shared_ptr<ClosureEvalLog> eval_log);
+};
+
 /**
  * Data logged by a viewer node when it is executed. In this case, we do want to log the entire
  * geometry.
@@ -205,6 +250,11 @@ class GeoTreeLogger {
   std::optional<ComputeContextHash> parent_hash;
   std::optional<int32_t> parent_node_id;
   Vector<ComputeContextHash> children_hashes;
+  /**
+   * The #ID.session_uid of the tree that this logger is for. It's an optional value because under
+   * some circumstances it's not possible to know this exactly currently (e.g. for closures).
+   */
+  std::optional<uint32_t> tree_orig_session_uid;
   /** The time spend in the compute context that this logger corresponds to. */
   std::chrono::nanoseconds execution_time{};
 
@@ -319,7 +369,15 @@ class GeoTreeLog {
   GeoTreeLog(GeoModifierLog *modifier_log, Vector<GeoTreeLogger *> tree_loggers);
   ~GeoTreeLog();
 
-  void ensure_node_warnings(const bNodeTree *tree);
+  /**
+   * Propagate node warnings. This needs access to the node group pointers, because propagation
+   * settings are stored on the nodes. However, the log can only store weak pointers (in the form
+   * of e.g. session ids) to original data to avoid dangling pointers.
+   */
+  void ensure_node_warnings(const NodesModifierData &nmd);
+  void ensure_node_warnings(const Main &bmain);
+  void ensure_node_warnings(const Map<uint32_t, const bNodeTree *> &orig_tree_by_session_uid);
+
   void ensure_execution_times();
   void ensure_socket_values();
   void ensure_viewer_node_logs();
@@ -346,6 +404,26 @@ class GeoTreeLog {
     }
     return std::nullopt;
   }
+};
+
+class ContextualGeoTreeLogs {
+ private:
+  Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone_;
+
+ public:
+  ContextualGeoTreeLogs(Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone = {});
+
+  /**
+   * Get a tree log for the given zone/node/socket if available.
+   */
+  GeoTreeLog *get_main_tree_log(const bke::bNodeTreeZone *zone) const;
+  GeoTreeLog *get_main_tree_log(const bNode &node) const;
+  GeoTreeLog *get_main_tree_log(const bNodeSocket &socket) const;
+
+  /**
+   * Runs a callback for each tree log that may be returned above.
+   */
+  void foreach_tree_log(FunctionRef<void(GeoTreeLog &)> callback) const;
 };
 
 /**
@@ -391,13 +469,10 @@ class GeoModifierLog {
    * Utility accessor to logged data.
    */
   static Map<const bke::bNodeTreeZone *, ComputeContextHash>
-  get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name);
-  static Map<const bke::bNodeTreeZone *, ComputeContextHash>
   get_context_hash_by_zone_for_node_editor(const SpaceNode &snode,
-                                           ComputeContextBuilder &compute_context_builder);
+                                           bke::ComputeContextCache &compute_context_cache);
 
-  static Map<const bke::bNodeTreeZone *, GeoTreeLog *> get_tree_log_by_zone_for_node_editor(
-      const SpaceNode &snode);
+  static ContextualGeoTreeLogs get_contextual_tree_logs(const SpaceNode &snode);
   static const ViewerNodeLog *find_viewer_node_log_for_path(const ViewerPath &viewer_path);
 };
 

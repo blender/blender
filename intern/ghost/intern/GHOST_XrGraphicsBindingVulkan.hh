@@ -6,6 +6,8 @@
  * \ingroup GHOST
  */
 
+#pragma once
+
 #include <list>
 
 #define VMA_VULKAN_VERSION 1002000  // Vulkan 1.2
@@ -17,6 +19,7 @@
 
 class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
  public:
+  GHOST_XrGraphicsBindingVulkan(GHOST_Context &ghost_ctx);
   ~GHOST_XrGraphicsBindingVulkan() override;
 
   /**
@@ -41,7 +44,7 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
   bool needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const override;
 
  private:
-  GHOST_ContextVK *m_ghost_ctx = nullptr;
+  GHOST_ContextVK &m_ghost_ctx;
 
   VkInstance m_vk_instance = VK_NULL_HANDLE;
   VkPhysicalDevice m_vk_physical_device = VK_NULL_HANDLE;
@@ -52,9 +55,16 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
   VmaAllocation m_vk_buffer_allocation = VK_NULL_HANDLE;
   VkBuffer m_vk_buffer = VK_NULL_HANDLE;
   VmaAllocationInfo m_vk_buffer_allocation_info = {};
+  GHOST_TVulkanXRModes m_data_transfer_mode = GHOST_kVulkanXRModeCPU;
 
   std::list<std::vector<XrSwapchainImageVulkan2KHR>> m_image_cache;
   VkCommandPool m_vk_command_pool = VK_NULL_HANDLE;
+
+  GHOST_TVulkanXRModes choseDataTransferMode();
+  void submitToSwapchainImageCpu(XrSwapchainImageVulkan2KHR &swapchain_image,
+                                 const GHOST_XrDrawViewInfo &draw_info);
+  void submitToSwapchainImageGpu(XrSwapchainImageVulkan2KHR &swapchain_image,
+                                 const GHOST_XrDrawViewInfo &draw_info);
 
   /**
    * Single VkCommandBuffer that is used for all views/swap-chains.

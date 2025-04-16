@@ -142,7 +142,7 @@ if(WITH_OPENCOLORIO)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
-  add_definitions(-DWITH_OPENEXR)
+  add_definitions(-DWITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_OPENIMAGEDENOISE)

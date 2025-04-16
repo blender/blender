@@ -613,8 +613,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 #  endif
 
   if (use_osl) {
-    /* Re-create OSL pipeline in case kernels are reloaded after it has been created before. */
-    load_osl_kernels();
+    /* OSL kernels will be (re)created on by OSL manager. */
   }
   else if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) {
     /* Create shader ray-tracing and MNEE pipeline. */

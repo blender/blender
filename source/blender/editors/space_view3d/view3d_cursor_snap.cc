@@ -870,7 +870,8 @@ static bool v3d_cursor_snap_poll_fn(bContext *C)
   return true;
 }
 
-static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void * /*customdata*/)
+static void v3d_cursor_snap_draw_fn(
+    bContext *C, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void * /*customdata*/)
 {
   using namespace blender;
   ScrArea *area = CTX_wm_area(C);

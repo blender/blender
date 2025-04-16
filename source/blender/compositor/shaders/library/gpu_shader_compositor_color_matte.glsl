@@ -4,18 +4,18 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
-void node_composite_color_matte(vec4 color,
-                                vec4 key,
+void node_composite_color_matte(float4 color,
+                                float4 key,
                                 float hue_epsilon,
                                 float saturation_epsilon,
                                 float value_epsilon,
-                                out vec4 result,
+                                out float4 result,
                                 out float matte)
 
 {
-  vec4 color_hsva;
+  float4 color_hsva;
   rgb_to_hsv(color, color_hsva);
-  vec4 key_hsva;
+  float4 key_hsva;
   rgb_to_hsv(key, key_hsva);
 
   bool is_within_saturation = distance(color_hsva.y, key_hsva.y) < saturation_epsilon;
@@ -24,8 +24,8 @@ void node_composite_color_matte(vec4 color,
   /* Hue wraps around, so check the distance around the boundary. */
   float min_hue = min(color_hsva.x, key_hsva.x);
   float max_hue = max(color_hsva.x, key_hsva.x);
-  is_within_hue = is_within_hue || ((min_hue + (1.0 - max_hue)) < hue_epsilon);
+  is_within_hue = is_within_hue || ((min_hue + (1.0f - max_hue)) < hue_epsilon);
 
-  matte = (is_within_hue && is_within_saturation && is_within_value) ? 0.0 : color.a;
+  matte = (is_within_hue && is_within_saturation && is_within_value) ? 0.0f : color.a;
   result = color * matte;
 }

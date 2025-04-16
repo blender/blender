@@ -127,8 +127,10 @@ void VIEW3D_OT_camera_to_view(wmOperatorType *ot)
 /** \name Camera Fit Frame to Selected Operator
  * \{ */
 
-/* unlike VIEW3D_OT_view_selected this is for framing a render and not
- * meant to take into account vertex/bone selection for eg. */
+/**
+ * Unlike #VIEW3D_OT_view_selected this is for framing a render and not
+ * meant to take into account vertex/bone selection for eg.
+ */
 static wmOperatorStatus view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);

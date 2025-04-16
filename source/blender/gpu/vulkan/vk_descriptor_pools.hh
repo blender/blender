@@ -52,9 +52,12 @@ class VKDescriptorPools {
   VkDescriptorSet allocate(const VkDescriptorSetLayout descriptor_set_layout);
 
   /**
-   * Reset the pools to start looking for free space from the first descriptor pool.
+   * Discard all existing pools and reinitializes this instance.
+   *
+   * This is a fix to ensure that resources will not be rewritten. Eventually we should discard the
+   * resource pools for reuse.
    */
-  void reset();
+  void discard(VKContext &vk_context);
 
  private:
   VkDescriptorPool active_pool_get();

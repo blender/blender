@@ -15,18 +15,17 @@
 GBufferData gbuffer_new()
 {
   GBufferData data;
-  data.closure[0].weight = 0.0;
-  data.closure[1].weight = 0.0;
-  data.closure[2].weight = 0.0;
-  data.thickness = 0.2;
-  data.object_id = 0xF220u;
-  data.surface_N = normalize(vec3(0.1, 0.2, 0.3));
+  data.closure[0].weight = 0.0f;
+  data.closure[1].weight = 0.0f;
+  data.closure[2].weight = 0.0f;
+  data.thickness = 0.2f;
+  data.surface_N = normalize(float3(0.1f, 0.2f, 0.3f));
   return data;
 }
 
 void main()
 {
-  vec3 Ng = vec3(1.0, 0.0, 0.0);
+  float3 Ng = float3(1.0f, 0.0f, 0.0f);
 
   TEST(eevee_gbuffer, NormalPack)
   {
@@ -36,9 +35,9 @@ void main()
     gbuf.data_len = 0;
     gbuf.normal_len = 0;
 
-    vec3 N0 = normalize(vec3(0.2, 0.1, 0.3));
-    vec3 N1 = normalize(vec3(0.1, 0.2, 0.3));
-    vec3 N2 = normalize(vec3(0.3, 0.1, 0.2));
+    float3 N0 = normalize(float3(0.2f, 0.1f, 0.3f));
+    float3 N1 = normalize(float3(0.1f, 0.2f, 0.3f));
+    float3 N2 = normalize(float3(0.3f, 0.1f, 0.2f));
 
     gbuffer_append_closure(gbuf, GBUF_DIFFUSE);
     gbuffer_append_normal(gbuf, N0);
@@ -70,7 +69,7 @@ void main()
     gbuf.data_len = 0;
     gbuf.normal_len = 0;
 
-    vec3 N0 = normalize(vec3(0.2, 0.1, 0.3));
+    float3 N0 = normalize(float3(0.2f, 0.1f, 0.3f));
 
     gbuffer_append_closure(gbuf, GBUF_DIFFUSE);
     gbuffer_append_normal(gbuf, N0);
@@ -99,24 +98,24 @@ void main()
   samplerGBufferNormal normal_tx = 0;
 
   ClosureUndetermined cl1 = closure_new(CLOSURE_BSDF_DIFFUSE_ID);
-  cl1.weight = 1.0;
-  cl1.color = vec3(1);
-  cl1.N = normalize(vec3(0.2, 0.1, 0.3));
+  cl1.weight = 1.0f;
+  cl1.color = float3(1);
+  cl1.N = normalize(float3(0.2f, 0.1f, 0.3f));
 
   ClosureUndetermined cl2 = closure_new(CLOSURE_BSDF_DIFFUSE_ID);
-  cl2.weight = 1.0;
-  cl2.color = vec3(1);
-  cl2.N = normalize(vec3(0.1, 0.2, 0.3));
+  cl2.weight = 1.0f;
+  cl2.color = float3(1);
+  cl2.N = normalize(float3(0.1f, 0.2f, 0.3f));
 
   ClosureUndetermined cl3 = closure_new(CLOSURE_BSDF_DIFFUSE_ID);
-  cl3.weight = 1.0;
-  cl3.color = vec3(1);
-  cl3.N = normalize(vec3(0.3, 0.2, 0.1));
+  cl3.weight = 1.0f;
+  cl3.color = float3(1);
+  cl3.N = normalize(float3(0.3f, 0.2f, 0.1f));
 
   ClosureUndetermined cl_none = closure_new(CLOSURE_NONE);
-  cl_none.weight = 1.0;
-  cl_none.color = vec3(1);
-  cl_none.N = normalize(vec3(0.0, 0.0, 1.0));
+  cl_none.weight = 1.0f;
+  cl_none.color = float3(1);
+  cl_none.N = normalize(float3(0.0f, 0.0f, 1.0f));
 
   TEST(eevee_gbuffer, NormalReuseDoubleFirst)
   {
@@ -129,12 +128,12 @@ void main()
     EXPECT_EQ(g_data_packed.data_len, 2);
     EXPECT_EQ(g_data_packed.normal_len, 1);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 2);
     EXPECT_EQ(data_out.normal_len, 1);
-    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5);
-    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 1).N, 1e-5);
+    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5f);
+    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 1).N, 1e-5f);
   }
 
   TEST(eevee_gbuffer, NormalReuseDoubleNone)
@@ -148,12 +147,12 @@ void main()
     EXPECT_EQ(g_data_packed.data_len, 2);
     EXPECT_EQ(g_data_packed.normal_len, 2);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 2);
     EXPECT_EQ(data_out.normal_len, 2);
-    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5);
-    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 1).N, 1e-5);
+    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5f);
+    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 1).N, 1e-5f);
   }
 
   TEST(eevee_gbuffer, NormalReuseTripleFirst)
@@ -167,13 +166,13 @@ void main()
 
     EXPECT_EQ(g_data_packed.normal_len, 2);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 3);
     EXPECT_EQ(data_out.normal_len, 2);
-    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5);
-    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 1).N, 1e-5);
-    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 2).N, 1e-5);
+    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5f);
+    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 1).N, 1e-5f);
+    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 2).N, 1e-5f);
   }
 
   TEST(eevee_gbuffer, NormalReuseTripleSecond)
@@ -187,13 +186,13 @@ void main()
 
     EXPECT_EQ(g_data_packed.normal_len, 2);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 3);
     EXPECT_EQ(data_out.normal_len, 2);
-    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 0).N, 1e-5);
-    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 1).N, 1e-5);
-    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 2).N, 1e-5);
+    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 0).N, 1e-5f);
+    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 1).N, 1e-5f);
+    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 2).N, 1e-5f);
   }
 
   TEST(eevee_gbuffer, NormalReuseTripleThird)
@@ -207,13 +206,13 @@ void main()
 
     EXPECT_EQ(g_data_packed.normal_len, 2);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 3);
     EXPECT_EQ(data_out.normal_len, 2);
-    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 0).N, 1e-5);
-    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 1).N, 1e-5);
-    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 2).N, 1e-5);
+    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 0).N, 1e-5f);
+    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 1).N, 1e-5f);
+    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 2).N, 1e-5f);
   }
 
   TEST(eevee_gbuffer, NormalReuseTripleNone)
@@ -227,13 +226,13 @@ void main()
 
     EXPECT_EQ(g_data_packed.normal_len, 3);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 3);
     EXPECT_EQ(data_out.normal_len, 3);
-    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5);
-    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 1).N, 1e-5);
-    EXPECT_NEAR(cl3.N, gbuffer_closure_get(data_out, 2).N, 1e-5);
+    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5f);
+    EXPECT_NEAR(cl2.N, gbuffer_closure_get(data_out, 1).N, 1e-5f);
+    EXPECT_NEAR(cl3.N, gbuffer_closure_get(data_out, 2).N, 1e-5f);
   }
 
   TEST(eevee_gbuffer, NormalReuseSingleHole)
@@ -247,13 +246,13 @@ void main()
 
     EXPECT_EQ(g_data_packed.normal_len, 2);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 2);
     EXPECT_EQ(data_out.normal_len, 2);
-    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5);
-    EXPECT_NEAR(cl3.N, gbuffer_closure_get(data_out, 1).N, 1e-5);
-    EXPECT_NEAR(cl3.N, gbuffer_closure_get_by_bin(data_out, 2).N, 1e-5);
+    EXPECT_NEAR(cl1.N, gbuffer_closure_get(data_out, 0).N, 1e-5f);
+    EXPECT_NEAR(cl3.N, gbuffer_closure_get(data_out, 1).N, 1e-5f);
+    EXPECT_NEAR(cl3.N, gbuffer_closure_get_by_bin(data_out, 2).N, 1e-5f);
   }
 
   TEST(eevee_gbuffer, NormalReuseDoubleHole)
@@ -267,11 +266,11 @@ void main()
 
     EXPECT_EQ(g_data_packed.normal_len, 1);
 
-    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, ivec2(0));
+    data_out = gbuffer_read(header_tx, closure_tx, normal_tx, int2(0));
 
     EXPECT_EQ(data_out.closure_count, 1);
     EXPECT_EQ(data_out.normal_len, 1);
-    EXPECT_NEAR(cl3.N, gbuffer_closure_get(data_out, 0).N, 1e-5);
-    EXPECT_NEAR(cl3.N, gbuffer_closure_get_by_bin(data_out, 2).N, 1e-5);
+    EXPECT_NEAR(cl3.N, gbuffer_closure_get(data_out, 0).N, 1e-5f);
+    EXPECT_NEAR(cl3.N, gbuffer_closure_get_by_bin(data_out, 2).N, 1e-5f);
   }
 }

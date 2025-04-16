@@ -8,10 +8,10 @@
 
 VERTEX_SHADER_CREATE_INFO(drw_clipped)
 
-void view_clipping_distances(vec3 wpos)
+void view_clipping_distances(float3 wpos)
 {
 #  ifdef USE_WORLD_CLIP_PLANES
-  vec4 pos_4d = vec4(wpos, 1.0);
+  float4 pos_4d = float4(wpos, 1.0f);
   gl_ClipDistance[0] = dot(drw_clipping_[0], pos_4d);
   gl_ClipDistance[1] = dot(drw_clipping_[1], pos_4d);
   gl_ClipDistance[2] = dot(drw_clipping_[2], pos_4d);
@@ -24,12 +24,12 @@ void view_clipping_distances(vec3 wpos)
 void view_clipping_distances_bypass()
 {
 #  ifdef USE_WORLD_CLIP_PLANES
-  gl_ClipDistance[0] = 1.0;
-  gl_ClipDistance[1] = 1.0;
-  gl_ClipDistance[2] = 1.0;
-  gl_ClipDistance[3] = 1.0;
-  gl_ClipDistance[4] = 1.0;
-  gl_ClipDistance[5] = 1.0;
+  gl_ClipDistance[0] = 1.0f;
+  gl_ClipDistance[1] = 1.0f;
+  gl_ClipDistance[2] = 1.0f;
+  gl_ClipDistance[3] = 1.0f;
+  gl_ClipDistance[4] = 1.0f;
+  gl_ClipDistance[5] = 1.0f;
 #  endif
 }
 

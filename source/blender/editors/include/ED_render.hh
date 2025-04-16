@@ -113,6 +113,7 @@ void ED_preview_restart_queue_add(ID *id, enum eIconSizes size);
 void ED_preview_restart_queue_work(const bContext *C);
 
 void ED_preview_kill_jobs(wmWindowManager *wm, Main *bmain);
+void ED_preview_kill_jobs_for_id(wmWindowManager *wm, const ID *id);
 
 void ED_preview_draw(
     const bContext *C, void *idp, void *parentp, void *slotp, uiPreview *ui_preview, rcti *rect);

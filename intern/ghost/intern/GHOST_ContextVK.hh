@@ -100,6 +100,7 @@ struct GHOST_Frame {
 
 class GHOST_ContextVK : public GHOST_Context {
   friend class GHOST_XrGraphicsBindingVulkan;
+  friend class GHOST_XrGraphicsBindingVulkanD3D;
 
  public:
   /**

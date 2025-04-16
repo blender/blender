@@ -51,5 +51,5 @@ def menu_func(self, context):
 bpy.utils.register_class(CustomDrawOperator)
 bpy.types.VIEW3D_MT_object.append(menu_func)
 
-# test call
+# Test call.
 bpy.ops.object.custom_draw('INVOKE_DEFAULT')

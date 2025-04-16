@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2025-01-27 09:56+0000\n"
-"Last-Translator: Sander Spolspoel <sander@sworl.be>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:33+0000\n"
+"Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.9.2"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -1445,6 +1445,10 @@ msgid "Good"
 msgstr "Goed"
 
 
+msgid "Profile"
+msgstr "Profiel"
+
+
 msgctxt "Action"
 msgid "Invalid"
 msgstr "Ongeldig"
@@ -2091,10 +2095,6 @@ msgid "Round"
 msgstr "Rond"
 
 
-msgid "Profile"
-msgstr "Profiel"
-
-
 msgid "Dimensions"
 msgstr "Dimensies"
 
@@ -2698,6 +2698,10 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
 msgid "Light"
 msgstr "Licht"
 
@@ -2756,10 +2760,6 @@ msgstr "Navigatie"
 
 msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
 
 
 msgctxt "MovieClip"
@@ -4924,11 +4924,6 @@ msgstr "Aap"
 
 
 msgctxt "Operator"
-msgid "Hide Collection"
-msgstr "Verberg Collectie"
-
-
-msgctxt "Operator"
 msgid "Show Hidden Objects"
 msgstr "Toon Verborgen Objecten"
 
@@ -5272,6 +5267,11 @@ msgstr "Dupliceer Collectie"
 
 msgid "Render the collection"
 msgstr "Render de collectie"
+
+
+msgctxt "Operator"
+msgid "Hide Collection"
+msgstr "Verberg Collectie"
 
 
 msgctxt "Operator"
@@ -5905,11 +5905,6 @@ msgstr "Maak Intern"
 msgctxt "Operator"
 msgid "Toggle Overwrite"
 msgstr "Overschrijven Aan/Uit"
-
-
-msgctxt "Operator"
-msgid "Refresh PyConstraints"
-msgstr "Ververs PyConstraints"
 
 
 msgctxt "Operator"
@@ -7351,10 +7346,6 @@ msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
 
 
-msgid "Endpoint"
-msgstr "Eindpunt"
-
-
 msgctxt "Operator"
 msgid "Custom..."
 msgstr "Aangepast..."
@@ -7474,6 +7465,10 @@ msgstr "Render Als"
 
 msgid "Fade Distance"
 msgstr "Vervaag Afstand"
+
+
+msgid "Endpoint"
+msgstr "Eindpunt"
 
 
 msgid "Sewing"

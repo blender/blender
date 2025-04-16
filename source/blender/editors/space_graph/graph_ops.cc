@@ -39,7 +39,7 @@
 /** \name Set Cursor
  *
  * The 'cursor' in the Graph Editor consists of two parts:
- * 1) Current Frame Indicator (as per ANIM_OT_change_frame)
+ * 1) Current Frame Indicator (as per #ANIM_OT_change_frame)
  * 2) Value Indicator (stored per Graph Editor instance)
  * \{ */
 
@@ -67,9 +67,9 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
     sipo->cursorTime = frame;
   }
   else {
-    /* adjust the frame
-     * NOTE: sync this part of the code with ANIM_OT_change_frame
-     */
+    /* Adjust the frame.
+     * NOTE: sync this part of the code with #ANIM_OT_change_frame. */
+
     /* 1) frame is rounded to the nearest int, since frames are ints */
     scene->r.cfra = round_fl_to_int(frame);
 

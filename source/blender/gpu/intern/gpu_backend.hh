@@ -33,6 +33,10 @@ class VertBuf;
 class GPUBackend {
  public:
   virtual ~GPUBackend() = default;
+
+  /* Called after the main context creation and activation. */
+  virtual void init_resources() = 0;
+  /* Called before the main context deletion and deactivation. */
   virtual void delete_resources() = 0;
 
   static GPUBackend *get();

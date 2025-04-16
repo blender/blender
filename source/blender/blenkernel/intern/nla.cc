@@ -1895,11 +1895,6 @@ bool BKE_nlastrip_has_curves_for_property(const PointerRNA *ptr, const PropertyR
 
 /* Sanity Validation ------------------------------------ */
 
-static bool nla_editbone_name_check(void *arg, const char *name)
-{
-  return BLI_ghash_haskey((GHash *)arg, (const void *)name);
-}
-
 void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
 {
   GHash *gh;
@@ -1950,12 +1945,14 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
    * - In an extreme case, it might not be able to find a name,
    *   but then everything else in Blender would fail too :).
    */
-  BLI_uniquename_cb(nla_editbone_name_check,
-                    (void *)gh,
-                    DATA_("NlaStrip"),
-                    '.',
-                    strip->name,
-                    sizeof(strip->name));
+  BLI_uniquename_cb(
+      [&](const blender::StringRefNull check_name) {
+        return BLI_ghash_haskey(gh, check_name.c_str());
+      },
+      DATA_("NlaStrip"),
+      '.',
+      strip->name,
+      sizeof(strip->name));
 
   /* free the hash... */
   BLI_ghash_free(gh, nullptr, nullptr);

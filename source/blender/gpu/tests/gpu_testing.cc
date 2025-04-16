@@ -7,6 +7,7 @@
 #include "CLG_log.h"
 
 #include "BLI_math_color.h"
+#include "BLI_threads.h"
 
 #include "GPU_context.hh"
 #include "GPU_debug.hh"
@@ -24,6 +25,7 @@ void GPUTest::SetUp()
   G.debug |= g_debug_flags_;
 
   CLG_init();
+  BLI_threadapi_init();
   GPU_backend_type_selection_set(gpu_backend_type);
   GHOST_GPUSettings gpuSettings = {};
   gpuSettings.context_type = draw_context_type;

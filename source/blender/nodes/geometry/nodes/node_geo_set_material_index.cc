@@ -14,11 +14,13 @@ namespace blender::nodes::node_geo_set_material_index_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Geometry")
       .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::GreasePencil});
+  b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Int>("Material Index").min(0).field_on_all();
-  b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
 static void set_material_index_in_grease_pencil(GreasePencil &grease_pencil,

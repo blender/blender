@@ -112,7 +112,7 @@ def api_dump(args):
     dump_module = dump["bpy.types"] = {}
 
     struct = rna_info.BuildRNAInfo()[0]
-    for struct_id, struct_info in sorted(struct.items()):
+    for _struct_id, struct_info in sorted(struct.items()):
 
         struct_id_str = struct_info.identifier
 

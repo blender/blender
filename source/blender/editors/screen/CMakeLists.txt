@@ -6,6 +6,7 @@ set(INC
   ../asset
   ../include
   ../../makesrna
+  ../../nodes
   ../../../../extern/fmtlib/include
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna

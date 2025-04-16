@@ -200,6 +200,8 @@ static RenderResult *render_result_from_bake(
   rr->tilerect.xmax = x + w;
   rr->tilerect.ymax = y + h;
 
+  BKE_scene_ppm_get(&engine->re->r, rr->ppm);
+
   /* Add single baking render layer. */
   RenderLayer *rl = MEM_callocN<RenderLayer>("bake render layer");
   STRNCPY(rl->name, layername);

@@ -4,8 +4,8 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
-  vec2 normalized_coordinates = (vec2(texel) + vec2(0.5)) / vec2(imageSize(output_img));
+  float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(imageSize(output_img));
   imageStore(output_img, texel, texture(input_tx, normalized_coordinates));
 }

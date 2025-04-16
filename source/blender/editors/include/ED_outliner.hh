@@ -58,3 +58,5 @@ void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_out
 void ED_outliner_select_sync_flag_outliners(const bContext *C);
 
 int ED_outliner_icon_from_id(const ID &id);
+
+bool ED_outliner_support_searching(const SpaceOutliner *space_outliner);

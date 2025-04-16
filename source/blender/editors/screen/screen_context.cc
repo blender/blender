@@ -97,7 +97,7 @@ const char *screen_context_dir[] = {
     "annotation_data",
     "annotation_data_owner",
     "active_annotation_layer",
-    /* Grease Pencil v3 */
+    /* Grease Pencil */
     "grease_pencil",
     "active_operator",
     "active_action",

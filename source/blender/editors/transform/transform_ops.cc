@@ -341,9 +341,9 @@ static void TRANSFORM_OT_create_orientation(wmOperatorType *ot)
 
 #ifdef USE_LOOPSLIDE_HACK
 /**
- * Special hack for MESH_OT_loopcut_slide so we get back to the selection mode
- * Do this for all meshes in multi-object editmode so their selectmode is in sync for following
- * operators
+ * Special hack for #MESH_OT_loopcut_slide so we get back to the selection mode
+ * Do this for all meshes in multi-object edit-mode so their select-mode is in sync
+ * for following operators
  */
 static void transformops_loopsel_hack(bContext *C, wmOperator *op)
 {

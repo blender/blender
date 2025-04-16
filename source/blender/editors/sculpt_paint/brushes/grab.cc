@@ -4,7 +4,7 @@
 
 #include <queue>
 
-#include "editors/sculpt_paint/brushes/types.hh"
+#include "editors/sculpt_paint/brushes/brushes.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
@@ -28,8 +28,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
-
+namespace blender::ed::sculpt_paint::brushes {
 inline namespace grab_cc {
 
 struct LocalData {
@@ -225,6 +224,9 @@ void do_grab_brush(const Depsgraph &depsgraph,
   pbvh.tag_positions_changed(node_mask);
   pbvh.flush_bounds_to_parents();
 }
+}  // namespace blender::ed::sculpt_paint::brushes
+
+namespace blender::ed::sculpt_paint {
 
 void geometry_preview_lines_update(Depsgraph &depsgraph,
                                    Object &object,

@@ -379,14 +379,18 @@ VArray<float3> curve_normals_varray(const CurvesGeometry &curves, AttrDomain dom
 VArray<float3> mesh_normals_varray(const Mesh &mesh,
                                    const IndexMask &mask,
                                    AttrDomain domain,
-                                   bool no_corner_normals = false);
+                                   bool no_corner_normals = false,
+                                   bool true_normals = false);
 
 class NormalFieldInput : public GeometryFieldInput {
   bool legacy_corner_normals_ = false;
+  bool true_normals_ = false;
 
  public:
-  NormalFieldInput(const bool legacy_corner_normals = false)
-      : GeometryFieldInput(CPPType::get<float3>()), legacy_corner_normals_(legacy_corner_normals)
+  NormalFieldInput(const bool legacy_corner_normals = false, const bool true_normals = false)
+      : GeometryFieldInput(CPPType::get<float3>()),
+        legacy_corner_normals_(legacy_corner_normals),
+        true_normals_(true_normals)
   {
     category_ = Category::Generated;
   }

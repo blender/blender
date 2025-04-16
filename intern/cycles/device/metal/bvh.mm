@@ -178,11 +178,6 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       return false;
     }
 
-    /*------------------------------------------------*/
-    BVH_status(
-        "Building mesh BLAS | %7d tris | %s", (int)mesh->num_triangles(), geom->name.c_str());
-    /*------------------------------------------------*/
-
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
     const array<float3> &verts = mesh->get_verts();
@@ -249,6 +244,11 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       geomDescMotion.opaque = true;
 
       geomDesc = geomDescMotion;
+
+      BVH_status("Building motion mesh BLAS | %7d tris | %s | %7d motion keyframes",
+                 (int)mesh->num_triangles(),
+                 geom->name.c_str(),
+                 (int)num_motion_steps);
     }
     else {
       MTLAccelerationStructureTriangleGeometryDescriptor *geomDescNoMotion =
@@ -264,6 +264,9 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       geomDescNoMotion.opaque = true;
 
       geomDesc = geomDescNoMotion;
+
+      BVH_status(
+          "Building mesh BLAS | %7d tris | %s", (int)mesh->num_triangles(), geom->name.c_str());
     }
 
     /* Force a single any-hit call, so shadow record-all behavior works correctly */
@@ -388,11 +391,6 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
       return false;
     }
 
-    /*------------------------------------------------*/
-    BVH_status(
-        "Building hair BLAS | %7d curves | %s", (int)hair->num_curves(), geom->name.c_str());
-    /*------------------------------------------------*/
-
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
     size_t num_motion_steps = 1;
@@ -406,7 +404,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
     id<MTLBuffer> idxBuffer = nil;
 
     MTLAccelerationStructureGeometryDescriptor *geomDesc;
-    if (motion_blur) {
+    if (num_motion_steps > 1) {
       MTLAccelerationStructureMotionCurveGeometryDescriptor *geomDescCrv =
           [MTLAccelerationStructureMotionCurveGeometryDescriptor descriptor];
 
@@ -587,12 +585,21 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
         [MTLPrimitiveAccelerationStructureDescriptor descriptor];
     accelDesc.geometryDescriptors = @[ geomDesc ];
 
-    if (motion_blur) {
+    if (num_motion_steps > 1) {
       accelDesc.motionStartTime = 0.0f;
       accelDesc.motionEndTime = 1.0f;
       accelDesc.motionStartBorderMode = MTLMotionBorderModeVanish;
       accelDesc.motionEndBorderMode = MTLMotionBorderModeVanish;
       accelDesc.motionKeyframeCount = num_motion_steps;
+
+      BVH_status("Building motion hair BLAS | %7d curves | %s | %7d motion keyframes",
+                 (int)hair->num_curves(),
+                 geom->name.c_str(),
+                 (int)num_motion_steps);
+    }
+    else {
+      BVH_status(
+          "Building hair BLAS | %7d curves | %s", (int)hair->num_curves(), geom->name.c_str());
     }
 
     if (!use_fast_trace_bvh) {
@@ -708,12 +715,6 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
       return false;
     }
 
-    /*------------------------------------------------*/
-    BVH_status("Building pointcloud BLAS | %7d points | %s",
-               (int)pointcloud->num_points(),
-               geom->name.c_str());
-    /*------------------------------------------------*/
-
     const size_t num_points = pointcloud->get_points().size();
     const float3 *points = pointcloud->get_points().data();
     const float *radius = pointcloud->get_radius().data();
@@ -766,7 +767,7 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
     }
 
     MTLAccelerationStructureGeometryDescriptor *geomDesc;
-    if (motion_blur) {
+    if (num_motion_steps > 1) {
       std::vector<MTLMotionKeyframeData *> aabb_ptrs;
       aabb_ptrs.reserve(num_motion_steps);
       for (size_t step = 0; step < num_motion_steps; ++step) {
@@ -812,12 +813,22 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
         [MTLPrimitiveAccelerationStructureDescriptor descriptor];
     accelDesc.geometryDescriptors = @[ geomDesc ];
 
-    if (motion_blur) {
+    if (num_motion_steps > 1) {
       accelDesc.motionStartTime = 0.0f;
       accelDesc.motionEndTime = 1.0f;
       //      accelDesc.motionStartBorderMode = MTLMotionBorderModeVanish;
       //      accelDesc.motionEndBorderMode = MTLMotionBorderModeVanish;
       accelDesc.motionKeyframeCount = num_motion_steps;
+
+      BVH_status("Building motion pointcloud BLAS | %7d points | %s | %7d motion keyframes",
+                 (int)pointcloud->num_points(),
+                 geom->name.c_str(),
+                 (int)num_motion_steps);
+    }
+    else {
+      BVH_status("Building pointcloud BLAS | %7d points | %s",
+                 (int)pointcloud->num_points(),
+                 geom->name.c_str());
     }
     accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
 
@@ -933,6 +944,34 @@ bool BVHMetal::build_BLAS(Progress &progress,
   return false;
 }
 
+#  if defined(MAC_OS_VERSION_15_0)
+
+/* Return MTLComponentTransform from a DecomposedTransform. */
+static MTLComponentTransform decomposed_to_component_transform(const DecomposedTransform &src)
+{
+  MTLComponentTransform tfm;
+  tfm.scale = MTLPackedFloat3Make(src.y.w, src.z.w, src.w.w);
+  tfm.shear = MTLPackedFloat3Make(src.z.x, src.z.y, src.w.x);
+  tfm.pivot = MTLPackedFloat3Make(0.0f, 0.0f, 0.0f);
+  tfm.rotation = MTLPackedFloatQuaternionMake(src.x.x, src.x.y, src.x.z, src.x.w);
+  tfm.translation = MTLPackedFloat3Make(src.y.x, src.y.y, src.y.z);
+  return tfm;
+}
+
+/* Return unit MTLComponentTransform. */
+static MTLComponentTransform component_transform_make_unit()
+{
+  MTLComponentTransform tfm;
+  tfm.scale = MTLPackedFloat3Make(1.0f, 1.0f, 1.0f);
+  tfm.shear = MTLPackedFloat3Make(0.0f, 0.0f, 0.0f);
+  tfm.pivot = MTLPackedFloat3Make(0.0f, 0.0f, 0.0f);
+  tfm.rotation = MTLPackedFloatQuaternionMake(0.0f, 0.0f, 0.0f, 1.0f);
+  tfm.translation = MTLPackedFloat3Make(0.0f, 0.0f, 0.0f);
+  return tfm;
+}
+
+#  endif
+
 bool BVHMetal::build_TLAS(Progress &progress,
                           id<MTLDevice> mtl_device,
                           id<MTLCommandQueue> queue,
@@ -996,11 +1035,13 @@ bool BVHMetal::build_TLAS(Progress &progress,
 
     uint32_t num_instances = 0;
     uint32_t num_motion_transforms = 0;
+    uint32_t num_motion_instances = 0;
     for (Object *ob : objects) {
       num_instances++;
 
       if (ob->use_motion()) {
         num_motion_transforms += max((size_t)1, ob->get_motion().size());
+        num_motion_instances++;
       }
       else {
         num_motion_transforms++;
@@ -1011,10 +1052,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
       return false;
     }
 
-    /*------------------------------------------------*/
-    BVH_status("Building TLAS      | %7d instances", (int)num_instances);
-    /*------------------------------------------------*/
-
+    const bool use_instance_motion = motion_blur && num_motion_instances;
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
     NSMutableArray *all_blas = [NSMutableArray array];
@@ -1035,7 +1073,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
     };
 
     size_t instance_size;
-    if (motion_blur) {
+    if (use_instance_motion) {
       instance_size = sizeof(MTLAccelerationStructureMotionInstanceDescriptor);
     }
     else {
@@ -1046,12 +1084,28 @@ bool BVHMetal::build_TLAS(Progress &progress,
     id<MTLBuffer> instanceBuf = [mtl_device newBufferWithLength:num_instances * instance_size
                                                         options:MTLResourceStorageModeShared];
     id<MTLBuffer> motion_transforms_buf = nil;
-    MTLPackedFloat4x3 *motion_transforms = nullptr;
-    if (motion_blur && num_motion_transforms) {
-      motion_transforms_buf = [mtl_device
-          newBufferWithLength:num_motion_transforms * sizeof(MTLPackedFloat4x3)
-                      options:MTLResourceStorageModeShared];
-      motion_transforms = (MTLPackedFloat4x3 *)motion_transforms_buf.contents;
+    MTLPackedFloat4x3 *matrix_motion_transforms = nullptr;
+#  if defined(MAC_OS_VERSION_15_0)
+    MTLComponentTransform *decomposed_motion_transforms = nullptr;
+#  endif
+    if (use_instance_motion && num_motion_transforms) {
+#  if defined(MAC_OS_VERSION_15_0)
+      if (use_pcmi) {
+        if (@available(macos 15.0, *)) {
+          motion_transforms_buf = [mtl_device
+              newBufferWithLength:num_motion_transforms * sizeof(MTLComponentTransform)
+                          options:MTLResourceStorageModeShared];
+          decomposed_motion_transforms = (MTLComponentTransform *)motion_transforms_buf.contents;
+        }
+      }
+      else
+#  endif
+      {
+        motion_transforms_buf = [mtl_device
+            newBufferWithLength:num_motion_transforms * sizeof(MTLPackedFloat4x3)
+                        options:MTLResourceStorageModeShared];
+        matrix_motion_transforms = (MTLPackedFloat4x3 *)motion_transforms_buf.contents;
+      }
     }
 
     uint32_t instance_index = 0;
@@ -1115,7 +1169,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
       }
 
       /* Bake into the appropriate descriptor */
-      if (motion_blur) {
+      if (use_instance_motion) {
         MTLAccelerationStructureMotionInstanceDescriptor *instances =
             (MTLAccelerationStructureMotionInstanceDescriptor *)[instanceBuf contents];
         MTLAccelerationStructureMotionInstanceDescriptor &desc = instances[currIndex];
@@ -1130,34 +1184,64 @@ bool BVHMetal::build_TLAS(Progress &progress,
         desc.motionEndBorderMode = MTLMotionBorderModeVanish;
         desc.intersectionFunctionTableOffset = 0;
 
+        array<DecomposedTransform> decomp(ob->get_motion().size());
+        transform_motion_decompose(
+            decomp.data(), ob->get_motion().data(), ob->get_motion().size());
+
         int key_count = ob->get_motion().size();
         if (key_count) {
           desc.motionTransformsCount = key_count;
 
-          Transform *keys = ob->get_motion().data();
-          for (int i = 0; i < key_count; i++) {
-            float *t = (float *)&motion_transforms[motion_transform_index++];
-            /* Transpose transform */
-            const auto *src = (const float *)&keys[i];
-            for (int i = 0; i < 12; i++) {
-              t[i] = src[(i / 3) + 4 * (i % 3)];
+#  if defined(MAC_OS_VERSION_15_0)
+          if (use_pcmi) {
+            for (int i = 0; i < key_count; i++) {
+              decomposed_motion_transforms[motion_transform_index++] =
+                  decomposed_to_component_transform(decomp[i]);
+            }
+          }
+          else
+#  endif
+          {
+            Transform *keys = ob->get_motion().data();
+            for (int i = 0; i < key_count; i++) {
+              float *t = (float *)&matrix_motion_transforms[motion_transform_index++];
+              /* Transpose transform */
+              const auto *src = (const float *)&keys[i];
+              for (int i = 0; i < 12; i++) {
+                t[i] = src[(i / 3) + 4 * (i % 3)];
+              }
             }
           }
         }
         else {
           desc.motionTransformsCount = 1;
 
-          float *t = (float *)&motion_transforms[motion_transform_index++];
-          if (ob->get_geometry()->is_instanced()) {
-            /* Transpose transform */
-            const auto *src = (const float *)&ob->get_tfm();
-            for (int i = 0; i < 12; i++) {
-              t[i] = src[(i / 3) + 4 * (i % 3)];
+#  if defined(MAC_OS_VERSION_15_0)
+          if (use_pcmi) {
+            if (ob->get_geometry()->is_instanced()) {
+              decomposed_motion_transforms[motion_transform_index++] =
+                  decomposed_to_component_transform(decomp[0]);
+            }
+            else {
+              decomposed_motion_transforms[motion_transform_index++] =
+                  component_transform_make_unit();
             }
           }
-          else {
-            /* Clear transform to identity matrix */
-            t[0] = t[4] = t[8] = 1.0f;
+          else
+#  endif
+          {
+            float *t = (float *)&matrix_motion_transforms[motion_transform_index++];
+            if (ob->get_geometry()->is_instanced()) {
+              /* Transpose transform */
+              const auto *src = (const float *)&ob->get_tfm();
+              for (int i = 0; i < 12; i++) {
+                t[i] = src[(i / 3) + 4 * (i % 3)];
+              }
+            }
+            else {
+              /* Clear transform to identity matrix */
+              t[0] = t[4] = t[8] = 1.0f;
+            }
           }
         }
       }
@@ -1187,6 +1271,18 @@ bool BVHMetal::build_TLAS(Progress &progress,
       }
     }
 
+    if (use_instance_motion) {
+      BVH_status(
+          "Building motion TLAS      | %7d instances | %7d motion instances | %7d motion "
+          "transforms",
+          (int)num_instances,
+          (int)num_motion_instances,
+          (int)num_motion_transforms);
+    }
+    else {
+      BVH_status("Building TLAS      | %7d instances", (int)num_instances);
+    }
+
     MTLInstanceAccelerationStructureDescriptor *accelDesc =
         [MTLInstanceAccelerationStructureDescriptor descriptor];
     accelDesc.instanceCount = num_instances;
@@ -1196,10 +1292,17 @@ bool BVHMetal::build_TLAS(Progress &progress,
     accelDesc.instanceDescriptorStride = instance_size;
     accelDesc.instancedAccelerationStructures = all_blas;
 
-    if (motion_blur) {
+    if (use_instance_motion) {
       accelDesc.instanceDescriptorType = MTLAccelerationStructureInstanceDescriptorTypeMotion;
       accelDesc.motionTransformBuffer = motion_transforms_buf;
       accelDesc.motionTransformCount = num_motion_transforms;
+#  if defined(MAC_OS_VERSION_15_0)
+      if (@available(macos 15.0, *)) {
+        accelDesc.motionTransformStride = 0;
+        accelDesc.motionTransformType = use_pcmi ? MTLTransformTypeComponent :
+                                                   MTLTransformTypePackedFloat4x3;
+      }
+#  endif
     }
 
     accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;

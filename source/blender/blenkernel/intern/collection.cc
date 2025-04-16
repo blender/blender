@@ -805,7 +805,7 @@ void BKE_collection_new_name_get(Collection *collection_parent, char *rname)
   else {
     const int number = BLI_listbase_count(&collection_parent->children) + 1;
     const int digits = integer_digits_i(number);
-    const int max_len = sizeof(collection_parent->id.name) - 1 /* nullptr terminator */ -
+    const int max_len = sizeof(collection_parent->id.name) - 1 /* Null terminator. */ -
                         (1 + digits) /* " %d" */ - 2 /* ID */;
     name = BLI_sprintfN("%.*s %d", max_len, collection_parent->id.name + 2, number);
   }

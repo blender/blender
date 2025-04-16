@@ -140,10 +140,10 @@ static openvdb::FloatGrid::Ptr mesh_to_density_grid_impl(
   openvdb::tools::sdfToFogVolume(*new_grid);
 
   if (density != 1.0f) {
-    openvdb::tools::foreach (new_grid->beginValueOn(),
-                             [&](const openvdb::FloatGrid::ValueOnIter &iter) {
-                               iter.modifyValue([&](float &value) { value *= density; });
-                             });
+    openvdb::tools::foreach(new_grid->beginValueOn(),
+                            [&](const openvdb::FloatGrid::ValueOnIter &iter) {
+                              iter.modifyValue([&](float &value) { value *= density; });
+                            });
   }
   return new_grid;
 }

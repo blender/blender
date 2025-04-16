@@ -2080,7 +2080,7 @@ static char *find_next_op(const char *str, char *remaining_str, int remaining_st
       return remaining_str + i;
     }
   }
-  BLI_assert_msg(0, "String should be nullptr terminated");
+  BLI_assert_msg(0, "String should be null terminated");
   return remaining_str + i;
 }
 

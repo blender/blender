@@ -54,6 +54,7 @@ struct MovieWriter {
 
   int ffmpeg_crf = 0; /* set to 0 to not use CRF mode; we have another flag for lossless anyway. */
   int ffmpeg_preset = 0; /* see eFFMpegPreset */
+  int ffmpeg_profile = 0;
 
   AVFormatContext *outfile = nullptr;
   AVCodecContext *video_codec = nullptr;

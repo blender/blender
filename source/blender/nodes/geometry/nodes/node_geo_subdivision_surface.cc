@@ -29,7 +29,11 @@ NODE_STORAGE_FUNCS(NodeGeometrySubdivisionSurface)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+  b.add_default_layout();
   b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
+  b.add_output<decl::Geometry>("Mesh").propagate_all().align_with_previous();
   b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
   b.add_input<decl::Float>("Edge Crease")
       .default_value(0.0f)
@@ -48,7 +52,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Place vertices at the surface that would be produced with infinite "
           "levels of subdivision (smoothest possible shape)");
-  b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

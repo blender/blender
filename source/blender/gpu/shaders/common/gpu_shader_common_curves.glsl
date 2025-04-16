@@ -6,31 +6,34 @@
 
 #include "gpu_glsl_cpp_stubs.hh"
 
-vec4 white_balance(vec4 color, vec4 black_level, vec4 white_level)
+float4 white_balance(float4 color, float4 black_level, float4 white_level)
 {
-  vec4 range = max(white_level - black_level, vec4(1e-5f));
+  float4 range = max(white_level - black_level, float4(1e-5f));
   return (color - black_level) / range;
 }
 
 float extrapolate_if_needed(float parameter, float value, float start_slope, float end_slope)
 {
-  if (parameter < 0.0) {
+  if (parameter < 0.0f) {
     return value + parameter * start_slope;
   }
 
-  if (parameter > 1.0) {
-    return value + (parameter - 1.0) * end_slope;
+  if (parameter > 1.0f) {
+    return value + (parameter - 1.0f) * end_slope;
   }
 
   return value;
 }
 
 /* Same as extrapolate_if_needed but vectorized. */
-vec3 extrapolate_if_needed(vec3 parameters, vec3 values, vec3 start_slopes, vec3 end_slopes)
+float3 extrapolate_if_needed(float3 parameters,
+                             float3 values,
+                             float3 start_slopes,
+                             float3 end_slopes)
 {
-  vec3 end_or_zero_slopes = mix(vec3(0.0), end_slopes, greaterThan(parameters, vec3(1.0)));
-  vec3 slopes = mix(end_or_zero_slopes, start_slopes, lessThan(parameters, vec3(0.0)));
-  parameters = parameters - mix(vec3(0.0), vec3(1.0), greaterThan(parameters, vec3(1.0)));
+  float3 end_or_zero_slopes = mix(float3(0.0f), end_slopes, greaterThan(parameters, float3(1.0f)));
+  float3 slopes = mix(end_or_zero_slopes, start_slopes, lessThan(parameters, float3(0.0f)));
+  parameters = parameters - mix(float3(0.0f), float3(1.0f), greaterThan(parameters, float3(1.0f)));
   return values + parameters * slopes;
 }
 
@@ -41,40 +44,40 @@ float compute_curve_map_coordinates(float parameter)
 {
   /* Curve maps have a fixed width of 257. We offset by the equivalent of half a pixel and scale
    * down such that the normalized parameter 1.0 corresponds to the center of the last pixel. */
-  float sampler_offset = 0.5 / 257.0;
-  float sampler_scale = 1.0 - (1.0 / 257.0);
+  float sampler_offset = 0.5f / 257.0f;
+  float sampler_scale = 1.0f - (1.0f / 257.0f);
   return parameter * sampler_scale + sampler_offset;
 }
 
 /* Same as compute_curve_map_coordinates but vectorized. */
-vec3 compute_curve_map_coordinates(vec3 parameters)
+float3 compute_curve_map_coordinates(float3 parameters)
 {
-  float sampler_offset = 0.5 / 257.0;
-  float sampler_scale = 1.0 - (1.0 / 257.0);
+  float sampler_offset = 0.5f / 257.0f;
+  float sampler_scale = 1.0f - (1.0f / 257.0f);
   return parameters * sampler_scale + sampler_offset;
 }
 
 void curves_combined_rgb(float factor,
-                         vec4 color,
-                         vec4 black_level,
-                         vec4 white_level,
+                         float4 color,
+                         float4 black_level,
+                         float4 white_level,
                          sampler1DArray curve_map,
                          const float layer,
-                         vec4 range_minimums,
-                         vec4 range_dividers,
-                         vec4 start_slopes,
-                         vec4 end_slopes,
-                         out vec4 result)
+                         float4 range_minimums,
+                         float4 range_dividers,
+                         float4 start_slopes,
+                         float4 end_slopes,
+                         out float4 result)
 {
-  vec4 balanced = white_balance(color, black_level, white_level);
+  float4 balanced = white_balance(color, black_level, white_level);
 
   /* First, evaluate alpha curve map at all channels. The alpha curve is the Combined curve in the
    * UI. The channels are first normalized into the [0, 1] range. */
-  vec3 parameters = (balanced.rgb - range_minimums.aaa) * range_dividers.aaa;
-  vec3 coordinates = compute_curve_map_coordinates(parameters);
-  result.r = texture(curve_map, vec2(coordinates.x, layer)).a;
-  result.g = texture(curve_map, vec2(coordinates.y, layer)).a;
-  result.b = texture(curve_map, vec2(coordinates.z, layer)).a;
+  float3 parameters = (balanced.rgb - range_minimums.aaa) * range_dividers.aaa;
+  float3 coordinates = compute_curve_map_coordinates(parameters);
+  result.r = texture(curve_map, float2(coordinates.x, layer)).a;
+  result.g = texture(curve_map, float2(coordinates.y, layer)).a;
+  result.b = texture(curve_map, float2(coordinates.z, layer)).a;
 
   /* Then, extrapolate if needed. */
   result.rgb = extrapolate_if_needed(parameters, result.rgb, start_slopes.aaa, end_slopes.aaa);
@@ -83,9 +86,9 @@ void curves_combined_rgb(float factor,
    * [0, 1] range. */
   parameters = (result.rgb - range_minimums.rgb) * range_dividers.rgb;
   coordinates = compute_curve_map_coordinates(parameters);
-  result.r = texture(curve_map, vec2(coordinates.r, layer)).r;
-  result.g = texture(curve_map, vec2(coordinates.g, layer)).g;
-  result.b = texture(curve_map, vec2(coordinates.b, layer)).b;
+  result.r = texture(curve_map, float2(coordinates.r, layer)).r;
+  result.g = texture(curve_map, float2(coordinates.g, layer)).g;
+  result.b = texture(curve_map, float2(coordinates.b, layer)).b;
 
   /* Then, extrapolate again if needed. */
   result.rgb = extrapolate_if_needed(parameters, result.rgb, start_slopes.rgb, end_slopes.rgb);
@@ -96,29 +99,30 @@ void curves_combined_rgb(float factor,
 }
 
 void curves_combined_only(float factor,
-                          vec4 color,
-                          vec4 black_level,
-                          vec4 white_level,
+                          float4 color,
+                          float4 black_level,
+                          float4 white_level,
                           sampler1DArray curve_map,
                           const float layer,
                           float range_minimum,
                           float range_divider,
                           float start_slope,
                           float end_slope,
-                          out vec4 result)
+                          out float4 result)
 {
-  vec4 balanced = white_balance(color, black_level, white_level);
+  float4 balanced = white_balance(color, black_level, white_level);
 
   /* Evaluate alpha curve map at all channels. The alpha curve is the Combined curve in the
    * UI. The channels are first normalized into the [0, 1] range. */
-  vec3 parameters = (balanced.rgb - vec3(range_minimum)) * vec3(range_divider);
-  vec3 coordinates = compute_curve_map_coordinates(parameters);
-  result.r = texture(curve_map, vec2(coordinates.x, layer)).a;
-  result.g = texture(curve_map, vec2(coordinates.y, layer)).a;
-  result.b = texture(curve_map, vec2(coordinates.z, layer)).a;
+  float3 parameters = (balanced.rgb - float3(range_minimum)) * float3(range_divider);
+  float3 coordinates = compute_curve_map_coordinates(parameters);
+  result.r = texture(curve_map, float2(coordinates.x, layer)).a;
+  result.g = texture(curve_map, float2(coordinates.y, layer)).a;
+  result.b = texture(curve_map, float2(coordinates.z, layer)).a;
 
   /* Then, extrapolate if needed. */
-  result.rgb = extrapolate_if_needed(parameters, result.rgb, vec3(start_slope), vec3(end_slope));
+  result.rgb = extrapolate_if_needed(
+      parameters, result.rgb, float3(start_slope), float3(end_slope));
 
   result.a = color.a;
 
@@ -128,8 +132,8 @@ void curves_combined_only(float factor,
 /* Contrary to standard tone curve implementations, the film-like implementation tries to preserve
  * the hue of the colors as much as possible. To understand why this might be a problem, consider
  * the violet color (0.5, 0.0, 1.0). If this color was to be evaluated at a power curve x^4, the
- * color will be blue (0.0625, 0.0, 1.0). So the color changes and not just its luminosity, which
- * is what film-like tone curves tries to avoid.
+ * color will be blue (0.0625, 0.0, 1.0). So the color changes and not just its luminosity,
+ * which is what film-like tone curves tries to avoid.
  *
  * First, the channels with the lowest and highest values are identified and evaluated at the
  * curve. Then, the third channel---the median---is computed while maintaining the original hue of
@@ -157,18 +161,18 @@ void curves_combined_only(float factor,
  * maximum, and median values are written to the color channel that they were originally extracted
  * from. */
 void curves_film_like(float factor,
-                      vec4 color,
-                      vec4 black_level,
-                      vec4 white_level,
+                      float4 color,
+                      float4 black_level,
+                      float4 white_level,
                       sampler1DArray curve_map,
                       const float layer,
                       float range_minimum,
                       float range_divider,
                       float start_slope,
                       float end_slope,
-                      out vec4 result)
+                      out float4 result)
 {
-  vec4 balanced = white_balance(color, black_level, white_level);
+  float4 balanced = white_balance(color, black_level, white_level);
 
   /* Find the maximum, minimum, and median of the color channels. */
   float minimum = min(balanced.r, min(balanced.g, balanced.b));
@@ -181,8 +185,8 @@ void curves_film_like(float factor,
   float max_parameter = (maximum - range_minimum) * range_divider;
   float min_coordinates = compute_curve_map_coordinates(min_parameter);
   float max_coordinates = compute_curve_map_coordinates(max_parameter);
-  float new_min = texture(curve_map, vec2(min_coordinates, layer)).a;
-  float new_max = texture(curve_map, vec2(max_coordinates, layer)).a;
+  float new_min = texture(curve_map, float2(min_coordinates, layer)).a;
+  float new_max = texture(curve_map, float2(max_coordinates, layer)).a;
 
   /* Then, extrapolate if needed. */
   new_min = extrapolate_if_needed(min_parameter, new_min, start_slope, end_slope);
@@ -193,46 +197,46 @@ void curves_film_like(float factor,
   float new_median = new_min + (median - minimum) * scaling_ratio;
 
   /* Write each value to its original channel. */
-  bvec3 channel_is_min = equal(balanced.rgb, vec3(minimum));
-  vec3 median_or_min = mix(vec3(new_median), vec3(new_min), channel_is_min);
-  bvec3 channel_is_max = equal(balanced.rgb, vec3(maximum));
-  result.rgb = mix(median_or_min, vec3(new_max), channel_is_max);
+  bool3 channel_is_min = equal(balanced.rgb, float3(minimum));
+  float3 median_or_min = mix(float3(new_median), float3(new_min), channel_is_min);
+  bool3 channel_is_max = equal(balanced.rgb, float3(maximum));
+  result.rgb = mix(median_or_min, float3(new_max), channel_is_max);
 
   result.a = color.a;
 
-  result = mix(color, result, clamp(factor, 0.0, 1.0));
+  result = mix(color, result, clamp(factor, 0.0f, 1.0f));
 }
 
-void curves_vector(vec3 vector,
+void curves_vector(float3 vector,
                    sampler1DArray curve_map,
                    const float layer,
-                   vec3 range_minimums,
-                   vec3 range_dividers,
-                   vec3 start_slopes,
-                   vec3 end_slopes,
-                   out vec3 result)
+                   float3 range_minimums,
+                   float3 range_dividers,
+                   float3 start_slopes,
+                   float3 end_slopes,
+                   out float3 result)
 {
   /* Evaluate each component on its curve map.
    * The components are first normalized into the [0, 1] range. */
-  vec3 parameters = (vector - range_minimums) * range_dividers;
-  vec3 coordinates = compute_curve_map_coordinates(parameters);
-  result.x = texture(curve_map, vec2(coordinates.x, layer)).x;
-  result.y = texture(curve_map, vec2(coordinates.y, layer)).y;
-  result.z = texture(curve_map, vec2(coordinates.z, layer)).z;
+  float3 parameters = (vector - range_minimums) * range_dividers;
+  float3 coordinates = compute_curve_map_coordinates(parameters);
+  result.x = texture(curve_map, float2(coordinates.x, layer)).x;
+  result.y = texture(curve_map, float2(coordinates.y, layer)).y;
+  result.z = texture(curve_map, float2(coordinates.z, layer)).z;
 
   /* Then, extrapolate if needed. */
   result = extrapolate_if_needed(parameters, result, start_slopes, end_slopes);
 }
 
 void curves_vector_mixed(float factor,
-                         vec3 vector,
+                         float3 vector,
                          sampler1DArray curve_map,
                          const float layer,
-                         vec3 range_minimums,
-                         vec3 range_dividers,
-                         vec3 start_slopes,
-                         vec3 end_slopes,
-                         out vec3 result)
+                         float3 range_minimums,
+                         float3 range_dividers,
+                         float3 start_slopes,
+                         float3 end_slopes,
+                         out float3 result)
 {
   curves_vector(
       vector, curve_map, layer, range_minimums, range_dividers, start_slopes, end_slopes, result);
@@ -251,7 +255,7 @@ void curves_float(float value,
   /* Evaluate the normalized value on the first curve map. */
   float parameter = (value - range_minimum) * range_divider;
   float coordinates = compute_curve_map_coordinates(parameter);
-  result = texture(curve_map, vec2(coordinates, layer)).x;
+  result = texture(curve_map, float2(coordinates, layer)).x;
 
   /* Then, extrapolate if needed. */
   result = extrapolate_if_needed(parameter, result, start_slope, end_slope);

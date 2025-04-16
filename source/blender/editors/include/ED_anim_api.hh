@@ -731,7 +731,7 @@ const bAnimChannelType *ANIM_channel_get_typeinfo(const bAnimListElem *ale);
 /**
  * Print debug info string for the given channel.
  */
-void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level);
+void ANIM_channel_debug_print_info(bAnimContext &ac, bAnimListElem *ale, short indent_level);
 
 /**
  * Retrieves the Action associated with this animation channel.

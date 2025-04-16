@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,7 @@
 #include "ceres/sparse_matrix.h"
 #include "ceres/wall_time.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class CERES_NO_EXPORT GradientProblemEvaluator final : public Evaluator {
  public:
@@ -53,10 +52,10 @@ class CERES_NO_EXPORT GradientProblemEvaluator final : public Evaluator {
 
   std::unique_ptr<SparseMatrix> CreateJacobian() const final { return nullptr; }
 
-  bool Evaluate(const EvaluateOptions& evaluate_options,
+  bool Evaluate(const EvaluateOptions& /*evaluate_options*/,
                 const double* state,
                 double* cost,
-                double* residuals,
+                double* /*residuals*/,
                 double* gradient,
                 SparseMatrix* jacobian) final {
     CHECK(jacobian == nullptr);
@@ -83,7 +82,7 @@ class CERES_NO_EXPORT GradientProblemEvaluator final : public Evaluator {
   int NumParameters() const final { return problem_.NumParameters(); }
 
   int NumEffectiveParameters() const final {
-    return problem_.NumLocalParameters();
+    return problem_.NumTangentParameters();
   }
 
   int NumResiduals() const final { return 1; }
@@ -97,8 +96,7 @@ class CERES_NO_EXPORT GradientProblemEvaluator final : public Evaluator {
   ::ceres::internal::ExecutionSummary execution_summary_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

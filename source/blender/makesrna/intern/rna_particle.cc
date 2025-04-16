@@ -2493,11 +2493,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem part_mat_items[] = {
-      {0, "DUMMY", 0, "Dummy", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   srna = RNA_def_struct(brna, "ParticleSettings", "ID");
   RNA_def_struct_ui_text(
       srna, "Particle Settings", "Particle settings, reusable by multiple particle systems");
@@ -2882,7 +2877,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "material_slot", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "omat");
-  RNA_def_property_enum_items(prop, part_mat_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Particle_Material_itemf");
   RNA_def_property_ui_text(prop, "Material Slot", "Material slot used for rendering particles");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");

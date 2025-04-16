@@ -9,7 +9,7 @@
  * additional filtering step.
  */
 
-#include "editors/sculpt_paint/brushes/types.hh"
+#include "editors/sculpt_paint/brushes/brushes.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
@@ -31,7 +31,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace plane_legacy_cc {
 
@@ -170,7 +170,7 @@ static void do_plane_brush(const Depsgraph &depsgraph,
   calc_brush_plane(depsgraph, brush, object, node_mask, area_no, area_co);
   area_no = tilt_apply_to_normal(area_no, *ss.cache, brush.tilt_strength_factor);
 
-  const float offset = SCULPT_brush_plane_offset_get(sd, ss);
+  const float offset = brush_plane_offset_get(brush, ss);
   const float displace = direction * ss.cache->radius * offset;
   area_co += area_no * ss.cache->scale * displace;
 
@@ -310,4 +310,4 @@ void do_scrape_brush(const Depsgraph &depsgraph,
       });
 }
 
-}  // namespace blender::ed::sculpt_paint
+}  // namespace blender::ed::sculpt_paint::brushes

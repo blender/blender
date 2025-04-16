@@ -125,7 +125,7 @@ void PDFExporter::export_grease_pencil_objects(const int frame_number)
     const Object *ob = info.object;
 
     /* Use evaluated version to get strokes with modifiers. */
-    Object *ob_eval = DEG_get_evaluated_object(context_.depsgraph, const_cast<Object *>(ob));
+    const Object *ob_eval = DEG_get_evaluated_object(context_.depsgraph, ob);
     BLI_assert(ob_eval->type == OB_GREASE_PENCIL);
     const GreasePencil *grease_pencil_eval = static_cast<const GreasePencil *>(ob_eval->data);
 

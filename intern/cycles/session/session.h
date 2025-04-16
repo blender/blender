@@ -204,11 +204,12 @@ class Session {
 
   void run_main_render_loop();
 
-  bool update_scene(const int width, const int height);
+  bool update_scene(const bool reset_samples);
 
   void update_status_time(bool show_pause = false, bool show_done = false);
 
-  void do_delayed_reset();
+  bool delayed_reset_buffer_params();
+  void update_buffers_for_params();
 
   int2 get_effective_tile_size() const;
 

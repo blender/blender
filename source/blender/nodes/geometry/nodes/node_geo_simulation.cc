@@ -301,7 +301,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       this->set_default_outputs(params);
       return;
     }
-    if (found_id->is_in_loop) {
+    if (found_id->is_in_loop || found_id->is_in_closure) {
       this->set_default_outputs(params);
       return;
     }
@@ -573,7 +573,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       this->set_default_outputs(params);
       return;
     }
-    if (found_id->is_in_loop) {
+    if (found_id->is_in_loop || found_id->is_in_closure) {
       this->set_default_outputs(params);
       return;
     }
@@ -657,7 +657,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     LinearAllocator<> allocator;
     for (const int i : simulation_items_.index_range()) {
       const CPPType &type = *outputs_[i].type;
-      next_values[i] = allocator.allocate(type.size(), type.alignment());
+      next_values[i] = allocator.allocate(type.size, type.alignment);
     }
     copy_simulation_state_to_values(simulation_items_,
                                     next_state,

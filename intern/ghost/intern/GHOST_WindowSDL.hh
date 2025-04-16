@@ -117,16 +117,5 @@ class GHOST_WindowSDL : public GHOST_Window {
     return GHOST_kSuccess;
   }
 
-  // TODO
-  GHOST_TSuccess beginFullScreen() const override
-  {
-    return GHOST_kFailure;
-  }
-
-  GHOST_TSuccess endFullScreen() const override
-  {
-    return GHOST_kFailure;
-  }
-
   uint16_t getDPIHint() override;
 };

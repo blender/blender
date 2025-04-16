@@ -266,6 +266,7 @@ def file_remove_empty_braces(source_dst):
     import re
 
     def key_replace(match):
+        del match
         return ""
     data_prev = None
     # Braces may become empty by removing nested

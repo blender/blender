@@ -10,6 +10,8 @@
 #  include "BLI_system.h"
 #endif
 
+#include "BLI_span.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "UI_interface.hh"
@@ -24,6 +26,7 @@
 #include "COM_derived_resources.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
+#include "COM_utilities_oidn.hh"
 
 #include "node_composite_util.hh"
 
@@ -126,7 +129,7 @@ class DenoiseOperation : public NodeOperation {
     output_image.allocate_texture(input_image.domain());
 
 #ifdef WITH_OPENIMAGEDENOISE
-    oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
+    oidn::DeviceRef device = create_oidn_device(this->context());
     device.set("setAffinity", false);
     device.commit();
 
@@ -151,9 +154,16 @@ class DenoiseOperation : public NodeOperation {
       input_color = const_cast<float *>(static_cast<const float *>(input_image.cpu_data().data()));
       output_color = static_cast<float *>(output_image.cpu_data().data());
     }
+
+    const int64_t buffer_size = int64_t(width) * height * input_image.channels_count();
+    const MutableSpan<float> input_buffer_span = MutableSpan<float>(input_color, buffer_size);
+    oidn::BufferRef input_buffer = create_oidn_buffer(device, input_buffer_span);
+    const MutableSpan<float> output_buffer_span = MutableSpan<float>(output_color, buffer_size);
+    oidn::BufferRef output_buffer = create_oidn_buffer(device, output_buffer_span);
+
     oidn::FilterRef filter = device.newFilter("RT");
-    filter.setImage("color", input_color, oidn::Format::Float3, width, height, 0, pixel_stride);
-    filter.setImage("output", output_color, oidn::Format::Float3, width, height, 0, pixel_stride);
+    filter.setImage("color", input_buffer, oidn::Format::Float3, width, height, 0, pixel_stride);
+    filter.setImage("output", output_buffer, oidn::Format::Float3, width, height, 0, pixel_stride);
     filter.set("hdr", use_hdr());
     filter.set("cleanAux", auxiliary_passes_are_clean());
     this->set_filter_quality(filter);
@@ -183,7 +193,11 @@ class DenoiseOperation : public NodeOperation {
         }
       }
 
-      filter.setImage("albedo", albedo, oidn::Format::Float3, width, height, 0, pixel_stride);
+      const MutableSpan<float> albedo_buffer_span = MutableSpan<float>(albedo, buffer_size);
+      oidn::BufferRef albedo_buffer = create_oidn_buffer(device, albedo_buffer_span);
+
+      filter.setImage(
+          "albedo", albedo_buffer, oidn::Format::Float3, width, height, 0, pixel_stride);
     }
 
     /* If the albedo and normal inputs are not single value inputs, set the normal input to the
@@ -213,17 +227,26 @@ class DenoiseOperation : public NodeOperation {
 
       /* Float3 results might be stored in 4-component textures due to hardware limitations, so we
        * need to use the pixel stride of the texture. */
-      int normal_pixel_stride = sizeof(float) *
-                                (this->context().use_gpu() ?
-                                     GPU_texture_component_len(GPU_texture_format(input_normal)) :
-                                     input_normal.channels_count());
+      const int normal_channels_count = this->context().use_gpu() ?
+                                            GPU_texture_component_len(
+                                                GPU_texture_format(input_normal)) :
+                                            input_normal.channels_count();
+      int normal_pixel_stride = sizeof(float) * normal_channels_count;
+
+      const int64_t normal_buffer_size = int64_t(width) * height * normal_channels_count;
+      const MutableSpan<float> normal_buffer_span = MutableSpan<float>(normal, normal_buffer_size);
+      oidn::BufferRef normal_buffer = create_oidn_buffer(device, normal_buffer_span);
 
       filter.setImage(
-          "normal", normal, oidn::Format::Float3, width, height, 0, normal_pixel_stride);
+          "normal", normal_buffer, oidn::Format::Float3, width, height, 0, normal_pixel_stride);
     }
 
     filter.commit();
     filter.execute();
+
+    if (output_buffer.getStorage() != oidn::Storage::Host) {
+      output_buffer.read(0, buffer_size * sizeof(float), output_color);
+    }
 
     if (this->context().use_gpu()) {
       GPU_texture_update(output_image, data_format, output_color);

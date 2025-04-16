@@ -30,7 +30,7 @@
 #include "draw_pass.hh"
 #include "draw_view_data.hh"
 
-#include "../overlay/overlay_next_private.hh"
+#include "../overlay/overlay_private.hh"
 
 #include "select_engine.hh"
 

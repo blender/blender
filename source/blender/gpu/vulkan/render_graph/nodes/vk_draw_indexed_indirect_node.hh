@@ -20,6 +20,7 @@ struct VKDrawIndexedIndirectData {
   VKPipelineData pipeline_data;
   VKIndexBufferBinding index_buffer;
   VKVertexBufferBindings vertex_buffers;
+  VKViewportData viewport_data;
   VkBuffer indirect_buffer;
   VkDeviceSize offset;
   uint32_t draw_count;
@@ -77,6 +78,8 @@ class VKDrawIndexedIndirectNode
                       Data &data,
                       VKBoundPipelines &r_bound_pipelines) override
   {
+    vk_pipeline_viewport_set_commands(
+        command_buffer, data.viewport_data, r_bound_pipelines.graphics.viewport_state);
     vk_pipeline_data_build_commands(command_buffer,
                                     data.pipeline_data,
                                     r_bound_pipelines.graphics.pipeline,

@@ -36,7 +36,7 @@
 #include "mtl_texture.hh"
 
 extern char datatoc_mtl_shader_defines_msl[];
-extern char datatoc_mtl_shader_shared_h[];
+extern char datatoc_mtl_shader_shared_hh[];
 
 using namespace blender;
 using namespace blender::gpu;
@@ -60,69 +60,69 @@ char *MSLGeneratorInterface::msl_patch_default = nullptr;
 static eMTLDataType to_mtl_type(Type type)
 {
   switch (type) {
-    case Type::FLOAT:
+    case Type::float_t:
       return MTL_DATATYPE_FLOAT;
-    case Type::VEC2:
+    case Type::float2_t:
       return MTL_DATATYPE_FLOAT2;
-    case Type::VEC3:
+    case Type::float3_t:
       return MTL_DATATYPE_FLOAT3;
-    case Type::VEC4:
+    case Type::float4_t:
       return MTL_DATATYPE_FLOAT4;
-    case Type::MAT3:
+    case Type::float3x3_t:
       return MTL_DATATYPE_FLOAT3x3;
-    case Type::MAT4:
+    case Type::float4x4_t:
       return MTL_DATATYPE_FLOAT4x4;
-    case Type::UINT:
+    case Type::uint_t:
       return MTL_DATATYPE_UINT;
-    case Type::UVEC2:
+    case Type::uint2_t:
       return MTL_DATATYPE_UINT2;
-    case Type::UVEC3:
+    case Type::uint3_t:
       return MTL_DATATYPE_UINT3;
-    case Type::UVEC4:
+    case Type::uint4_t:
       return MTL_DATATYPE_UINT4;
-    case Type::INT:
+    case Type::int_t:
       return MTL_DATATYPE_INT;
-    case Type::IVEC2:
+    case Type::int2_t:
       return MTL_DATATYPE_INT2;
-    case Type::IVEC3:
+    case Type::int3_t:
       return MTL_DATATYPE_INT3;
-    case Type::IVEC4:
+    case Type::int4_t:
       return MTL_DATATYPE_INT4;
-    case Type::VEC3_101010I2:
+    case Type::float3_10_10_10_2_t:
       return MTL_DATATYPE_INT1010102_NORM;
-    case Type::BOOL:
+    case Type::bool_t:
       return MTL_DATATYPE_BOOL;
-    case Type::UCHAR:
+    case Type::uchar_t:
       return MTL_DATATYPE_UCHAR;
-    case Type::UCHAR2:
+    case Type::uchar2_t:
       return MTL_DATATYPE_UCHAR2;
-    case Type::UCHAR3:
+    case Type::uchar3_t:
       return MTL_DATATYPE_UCHAR3;
-    case Type::UCHAR4:
+    case Type::uchar4_t:
       return MTL_DATATYPE_UCHAR4;
-    case Type::CHAR:
+    case Type::char_t:
       return MTL_DATATYPE_CHAR;
-    case Type::CHAR2:
+    case Type::char2_t:
       return MTL_DATATYPE_CHAR2;
-    case Type::CHAR3:
+    case Type::char3_t:
       return MTL_DATATYPE_CHAR3;
-    case Type::CHAR4:
+    case Type::char4_t:
       return MTL_DATATYPE_CHAR4;
-    case Type::USHORT:
+    case Type::ushort_t:
       return MTL_DATATYPE_USHORT;
-    case Type::USHORT2:
+    case Type::ushort2_t:
       return MTL_DATATYPE_USHORT2;
-    case Type::USHORT3:
+    case Type::ushort3_t:
       return MTL_DATATYPE_USHORT3;
-    case Type::USHORT4:
+    case Type::ushort4_t:
       return MTL_DATATYPE_USHORT4;
-    case Type::SHORT:
+    case Type::short_t:
       return MTL_DATATYPE_SHORT;
-    case Type::SHORT2:
+    case Type::short2_t:
       return MTL_DATATYPE_SHORT2;
-    case Type::SHORT3:
+    case Type::short3_t:
       return MTL_DATATYPE_SHORT3;
-    case Type::SHORT4:
+    case Type::short4_t:
       return MTL_DATATYPE_SHORT4;
     default: {
       BLI_assert_msg(false, "Unexpected data type");
@@ -339,7 +339,7 @@ char *MSLGeneratorInterface::msl_patch_default_get()
 
   std::stringstream ss_patch;
   ss_patch << datatoc_mtl_shader_defines_msl << std::endl;
-  ss_patch << datatoc_mtl_shader_shared_h << std::endl;
+  ss_patch << datatoc_mtl_shader_shared_hh << std::endl;
   size_t len = strlen(ss_patch.str().c_str()) + 1;
 
   msl_patch_default = (char *)malloc(len * sizeof(char));
@@ -1228,7 +1228,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
         storage_blocks.append(ssbo);
 
         /* Add uniform for metadata. */
-        MSLUniform uniform(shader::Type::IVEC4, tex.name + "_metadata", false, 1);
+        MSLUniform uniform(shader::Type::int4_t, tex.name + "_metadata", false, 1);
         uniforms.append(uniform);
 
         atomic_fallback_buffer_count++;
@@ -1264,7 +1264,6 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
 
   /** Fragment outputs. */
   for (const shader::ShaderCreateInfo::FragOut &frag_out : create_info_->fragment_outputs_) {
-
     /* Validate input. */
     BLI_assert(frag_out.name.is_empty() == false);
     BLI_assert(frag_out.index >= 0);
@@ -1292,40 +1291,23 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
     /* Populate MSLGenerator attribute. */
     MSLFragmentTileInputAttribute mtl_frag_in;
     mtl_frag_in.layout_location = frag_tile_in.index;
-    mtl_frag_in.layout_index = (frag_tile_in.blend != DualBlend::NONE) ?
-                                   ((frag_tile_in.blend == DualBlend::SRC_0) ? 0 : 1) :
-                                   -1;
+    mtl_frag_in.layout_index = -1;
     mtl_frag_in.type = frag_tile_in.type;
     mtl_frag_in.name = frag_tile_in.name;
     mtl_frag_in.raster_order_group = frag_tile_in.raster_order_group;
+    mtl_frag_in.is_layered_input = ELEM(frag_tile_in.img_type,
+                                        ImageType::UINT_2D_ARRAY,
+                                        ImageType::INT_2D_ARRAY,
+                                        ImageType::FLOAT_2D_ARRAY);
 
     fragment_tile_inputs.append(mtl_frag_in);
 
     /* If we do not support native tile inputs, generate an image-binding per input. */
     if (!MTLBackend::capabilities.supports_native_tile_inputs) {
-      /* Determine type: */
-      bool is_layered_fb = bool(create_info_->builtins_ & BuiltinBits::LAYER);
-      /* Start with invalid value to detect failure cases. */
-      ImageType image_type = ImageType::FLOAT_BUFFER;
-      switch (frag_tile_in.type) {
-        case Type::FLOAT:
-          image_type = is_layered_fb ? ImageType::FLOAT_2D_ARRAY : ImageType::FLOAT_2D;
-          break;
-        case Type::INT:
-          image_type = is_layered_fb ? ImageType::INT_2D_ARRAY : ImageType::INT_2D;
-          break;
-        case Type::UINT:
-          image_type = is_layered_fb ? ImageType::UINT_2D_ARRAY : ImageType::UINT_2D;
-          break;
-        default:
-          break;
-      }
-      BLI_assert(image_type != ImageType::FLOAT_BUFFER);
-
       /* Generate texture binding resource. */
       MSLTextureResource msl_image;
       msl_image.stage = ShaderStage::FRAGMENT;
-      msl_image.type = image_type;
+      msl_image.type = frag_tile_in.img_type;
       msl_image.name = frag_tile_in.name + "_subpass_img";
       msl_image.access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
       msl_image.slot = texture_slot_id++;
@@ -2145,9 +2127,14 @@ std::string MSLGeneratorInterface::generate_msl_fragment_tile_input_population()
       swizzle[to_component_count(tile_input.type)] = '\0';
 
       bool is_layered_fb = bool(create_info_->builtins_ & BuiltinBits::LAYER);
-      std::string texel_co = (is_layered_fb) ?
-                                 "ivec3(ivec2(v_in._default_position_.xy), int(v_in.gpu_Layer))" :
-                                 "ivec2(v_in._default_position_.xy)";
+      std::string texel_co =
+          (tile_input.is_layered_input) ?
+              ((is_layered_fb)  ? "ivec3(ivec2(v_in._default_position_.xy), int(v_in.gpu_Layer))" :
+                                  /* This should fetch the attached layer.
+                                   * But this is not simple to set. For now
+                                   * assume it is always the first layer. */
+                                  "ivec3(ivec2(v_in._default_position_.xy), 0)") :
+              "ivec2(v_in._default_position_.xy)";
 
       out << "\t" << get_shader_stage_instance_name(ShaderStage::FRAGMENT) << "."
           << tile_input.name << " = imageLoad("

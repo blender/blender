@@ -10,9 +10,9 @@ COMPUTE_SHADER_CREATE_INFO(eevee_film_comp)
 
 void main()
 {
-  ivec2 texel_film = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel_film = int2(gl_GlobalInvocationID.xy);
   /* Not used. */
-  vec4 out_color;
+  float4 out_color;
   float out_depth;
 
   if (any(greaterThanEqual(texel_film, uniform_buf.film.extent))) {

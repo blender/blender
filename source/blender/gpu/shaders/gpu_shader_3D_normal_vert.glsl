@@ -9,5 +9,5 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_simple_lighting)
 void main()
 {
   normal = normalize(NormalMatrix * nor);
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  gl_Position = ModelViewProjectionMatrix * float4(pos, 1.0f);
 }

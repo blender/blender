@@ -126,31 +126,63 @@ class Instance;
  *
  */
 struct GBuffer {
+ public:
   /* TODO(fclem): Use texture from pool once they support texture array and layer views. */
   Texture header_tx = {"GBufferHeader"};
   Texture closure_tx = {"GBufferClosure"};
   Texture normal_tx = {"GBufferNormal"};
-  /* References to the GBuffer layer range [1..max]. */
-  GPUTexture *closure_img_tx = nullptr;
-  GPUTexture *normal_img_tx = nullptr;
 
-  void acquire(int2 extent, int data_count, int normal_count)
+  /* Expected number of layer written through the framebuffer. */
+  const uint header_fb_layer_count = GBUF_HEADER_FB_LAYER_COUNT;
+  const uint closure_fb_layer_count = GBUF_CLOSURE_FB_LAYER_COUNT;
+  const uint normal_fb_layer_count = GBUF_NORMAL_FB_LAYER_COUNT;
+
+ private:
+  /* References to optional GBuffer layers that are not always required or written to.
+   * These will point to either the dummy textures bellow or to a layer range view of the above
+   * textures. In the later case, these layers are written with imageStore instead of being part
+   * of the #Framebuffer. */
+  GPUTexture *closure_opt_layers_ = nullptr;
+  GPUTexture *normal_opt_layers_ = nullptr;
+  GPUTexture *header_opt_layers_ = nullptr;
+
+  /* Textures used to fulfill the GBuffer optional layers binding when textures do not have enough
+   * layers for the optional layers image views. The shader are then expected to never write to
+   * them. */
+  Texture dummy_header_tx_ = {"GBufferDummyHeader"};
+  Texture dummy_closure_tx_ = {"GBufferDummyClosure"};
+  Texture dummy_normal_tx_ = {"GBufferDummyNormal"};
+
+ public:
+  void acquire(int2 extent, int header_count, int data_count, int normal_count)
   {
-    /* Always allocating enough layers so that the image view is always valid. */
-    data_count = max_ii(3, data_count);
-    normal_count = max_ii(2, normal_count);
+    /* Always allocate enough layers so that the frame-buffer attachments are always valid. */
+    header_count = max_ii(header_fb_layer_count, header_count);
+    data_count = max_ii(closure_fb_layer_count, data_count);
+    normal_count = max_ii(normal_fb_layer_count, normal_count);
+
+    dummy_header_tx_.ensure_2d_array(GPU_R32UI, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
+    dummy_closure_tx_.ensure_2d_array(GPU_RGB10_A2, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
+    dummy_normal_tx_.ensure_2d_array(GPU_RG16, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                              GPU_TEXTURE_USAGE_ATTACHMENT;
-    header_tx.ensure_2d(GPU_R32UI, extent, usage);
+    header_tx.ensure_2d_array(GPU_R32UI, extent, header_count, usage);
     closure_tx.ensure_2d_array(GPU_RGB10_A2, extent, data_count, usage);
     normal_tx.ensure_2d_array(GPU_RG16, extent, normal_count, usage);
     /* Ensure layer view for frame-buffer attachment. */
+    header_tx.ensure_layer_views();
     closure_tx.ensure_layer_views();
     normal_tx.ensure_layer_views();
     /* Ensure layer view for image store. */
-    closure_img_tx = closure_tx.layer_range_view(2, data_count - 2);
-    normal_img_tx = normal_tx.layer_range_view(1, normal_count - 1);
+    auto range = [](int layer_count, int fb_layer_count, Texture &tx, Texture &dummy) {
+      return (layer_count > fb_layer_count) ?
+                 tx.layer_range_view(fb_layer_count, layer_count - fb_layer_count) :
+                 dummy;
+    };
+    header_opt_layers_ = range(header_count, header_fb_layer_count, header_tx, dummy_header_tx_);
+    closure_opt_layers_ = range(data_count, closure_fb_layer_count, closure_tx, dummy_closure_tx_);
+    normal_opt_layers_ = range(normal_count, normal_fb_layer_count, normal_tx, dummy_normal_tx_);
   }
 
   /* Bind the GBuffer frame-buffer correctly using the correct workarounds. */
@@ -190,8 +222,9 @@ struct GBuffer {
     // closure_tx.release();
     // normal_tx.release();
 
-    closure_img_tx = nullptr;
-    normal_img_tx = nullptr;
+    header_opt_layers_ = nullptr;
+    closure_opt_layers_ = nullptr;
+    normal_opt_layers_ = nullptr;
   }
 
   template<typename PassType> void bind_resources(PassType &pass)
@@ -199,6 +232,13 @@ struct GBuffer {
     pass.bind_texture("gbuf_header_tx", &header_tx);
     pass.bind_texture("gbuf_closure_tx", &closure_tx);
     pass.bind_texture("gbuf_normal_tx", &normal_tx);
+  }
+
+  template<typename PassType> void bind_optional_layers(PassType &pass)
+  {
+    pass.bind_image(GBUF_NORMAL_SLOT, &normal_opt_layers_);
+    pass.bind_image(GBUF_CLOSURE_SLOT, &closure_opt_layers_);
+    pass.bind_image(GBUF_HEADER_SLOT, &header_opt_layers_);
   }
 };
 

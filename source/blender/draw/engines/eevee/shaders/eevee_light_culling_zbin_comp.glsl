@@ -22,7 +22,7 @@ shared uint zbin_min[CULLING_ZBIN_COUNT];
 
 void main()
 {
-  const uint zbin_iter = CULLING_ZBIN_COUNT / gl_WorkGroupSize.x;
+  constexpr uint zbin_iter = CULLING_ZBIN_COUNT / gl_WorkGroupSize.x;
   const uint zbin_local = gl_LocalInvocationID.x * zbin_iter;
 
   for (uint i = 0u, l = zbin_local; i < zbin_iter; i++, l++) {
@@ -38,7 +38,7 @@ void main()
       continue;
     }
     LightData light = light_buf[index];
-    vec3 P = light_position_get(light);
+    float3 P = light_position_get(light);
     /* TODO(fclem): Could have better bounds for spot and area lights. */
     float radius = light_local_data_get(light).influence_radius_max;
     float z_dist = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());

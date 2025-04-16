@@ -31,8 +31,8 @@
 #include "draw_cache.hh"
 #include "draw_cache_impl.hh"
 
-#include "../engines/gpencil/gpencil_defines.h"
-#include "../engines/gpencil/gpencil_shader_shared.h"
+#include "../engines/gpencil/gpencil_defines.hh"
+#include "../engines/gpencil/gpencil_shader_shared.hh"
 
 namespace blender::draw {
 

@@ -193,6 +193,7 @@ class VKDevice : public NonCopyable {
   /** Limits of the device linked to this context. */
   VkPhysicalDeviceProperties vk_physical_device_properties_ = {};
   VkPhysicalDeviceDriverProperties vk_physical_device_driver_properties_ = {};
+  VkPhysicalDeviceIDProperties vk_physical_device_id_properties_ = {};
   VkPhysicalDeviceMemoryProperties vk_physical_device_memory_properties_ = {};
   /** Features support. */
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
@@ -231,7 +232,23 @@ class VKDevice : public NonCopyable {
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectName = nullptr;
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = nullptr;
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = nullptr;
+
+    /* Extension: VK_KHR_external_memory_fd */
+    PFN_vkGetMemoryFdKHR vkGetMemoryFd = nullptr;
+
+#ifdef _WIN32
+    /* Extension: VK_KHR_external_memory_win32 */
+    PFN_vkGetMemoryWin32HandleKHR vkGetMemoryWin32Handle = nullptr;
+#endif
   } functions;
+
+  struct {
+    /* NOTE: This attribute needs to be kept alive as it will be read by VMA when allocating from
+     * `external_memory` pool. */
+    VkExportMemoryAllocateInfoKHR external_memory_info = {
+        VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_KHR};
+    VmaPool external_memory = VK_NULL_HANDLE;
+  } vma_pools;
 
   const char *extension_name_get(int index) const
   {
@@ -246,6 +263,11 @@ class VKDevice : public NonCopyable {
   const VkPhysicalDeviceProperties &physical_device_properties_get() const
   {
     return vk_physical_device_properties_;
+  }
+
+  const VkPhysicalDeviceIDProperties &physical_device_id_properties_get() const
+  {
+    return vk_physical_device_id_properties_;
   }
 
   const VkPhysicalDeviceFeatures &physical_device_features_get() const

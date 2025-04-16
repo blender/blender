@@ -17,15 +17,16 @@ namespace blender::nodes::node_geo_evaluate_at_index_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+  b.add_default_layout();
   const bNode *node = b.node_or_null();
-
-  b.add_input<decl::Int>("Index").min(0).supports_field();
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom2);
     b.add_input(data_type, "Value").hide_value().supports_field();
-
-    b.add_output(data_type, "Value").field_source_reference_all();
+    b.add_output(data_type, "Value").field_source_reference_all().align_with_previous();
   }
+  b.add_input<decl::Int>("Index").min(0).supports_field();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

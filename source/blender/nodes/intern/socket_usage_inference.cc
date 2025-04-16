@@ -14,6 +14,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -32,6 +33,7 @@ struct SocketUsageInferencer {
  private:
   /** Owns e.g. intermediate evaluated values. */
   ResourceScope scope_;
+  bke::ComputeContextCache compute_context_cache_;
 
   /** Root node tree. */
   const bNodeTree &root_tree_;
@@ -69,7 +71,7 @@ struct SocketUsageInferencer {
                         const std::optional<Span<GPointer>> tree_input_values)
       : root_tree_(tree)
   {
-    scope_.linear_allocator().provide_buffer(scope_buffer_);
+    scope_.allocator().provide_buffer(scope_buffer_);
     root_tree_.ensure_topology_cache();
     root_tree_.ensure_interface_cache();
     this->ensure_animation_data_processed(root_tree_);
@@ -319,7 +321,7 @@ struct SocketUsageInferencer {
 
     /* The group node input is used if any of the matching group inputs within the group is
      * used. */
-    const ComputeContext &group_context = scope_.construct<bke::GroupNodeComputeContext>(
+    const ComputeContext &group_context = compute_context_cache_.for_group_node(
         socket.context, *node, node->owner_tree());
     Vector<const bNodeSocket *> dependent_sockets;
     for (const bNode *group_input_node : group->group_input_nodes()) {
@@ -612,7 +614,7 @@ struct SocketUsageInferencer {
       all_socket_values_.add_new(socket, nullptr);
       return;
     }
-    const ComputeContext &group_context = scope_.construct<bke::GroupNodeComputeContext>(
+    const ComputeContext &group_context = compute_context_cache_.for_group_node(
         socket.context, *node, node->owner_tree());
     const SocketInContext socket_in_group{&group_context,
                                           &group_output_node->input_socket(socket->index())};
@@ -744,10 +746,10 @@ struct SocketUsageInferencer {
       }
       /* Allocate memory for the output value. */
       const CPPType &base_type = *output_socket->typeinfo->base_cpp_type;
-      void *value = scope_.linear_allocator().allocate(base_type.size(), base_type.alignment());
+      void *value = scope_.allocator().allocate(base_type.size, base_type.alignment);
       params.add_uninitialized_single_output(GMutableSpan(base_type, value, 1));
       all_socket_values_.add_new(output_socket, value);
-      if (!base_type.is_trivially_destructible()) {
+      if (!base_type.is_trivially_destructible) {
         scope_.add_destruct_call(
             [type = &base_type, value]() { type->destruct(const_cast<void *>(value)); });
       }
@@ -826,11 +828,10 @@ struct SocketUsageInferencer {
     }
 
     const CPPType &base_type = *socket->typeinfo->base_cpp_type;
-    void *value_buffer = scope_.linear_allocator().allocate(base_type.size(),
-                                                            base_type.alignment());
+    void *value_buffer = scope_.allocator().allocate(base_type.size, base_type.alignment);
     socket->typeinfo->get_base_cpp_value(socket->default_value, value_buffer);
     all_socket_values_.add_new(socket, value_buffer);
-    if (!base_type.is_trivially_destructible()) {
+    if (!base_type.is_trivially_destructible) {
       scope_.add_destruct_call(
           [type = &base_type, value_buffer]() { type->destruct(value_buffer); });
     }
@@ -868,9 +869,9 @@ struct SocketUsageInferencer {
     if (!conversions.is_convertible(*from_type, *to_type)) {
       return nullptr;
     }
-    void *dst = scope_.linear_allocator().allocate(to_type->size(), to_type->alignment());
+    void *dst = scope_.allocator().allocate(to_type->size, to_type->alignment);
     conversions.convert_to_uninitialized(*from_type, *to_type, src, dst);
-    if (!to_type->is_trivially_destructible()) {
+    if (!to_type->is_trivially_destructible) {
       scope_.add_destruct_call([to_type, dst]() { to_type->destruct(dst); });
     }
     return dst;
@@ -1078,7 +1079,7 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
     if (base_type == nullptr) {
       continue;
     }
-    void *value = allocator.allocate(base_type->size(), base_type->alignment());
+    void *value = allocator.allocate(base_type->size, base_type->alignment);
     stype.get_base_cpp_value(socket.default_value, value);
     input_values[i] = GPointer(base_type, value);
   }

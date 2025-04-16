@@ -90,6 +90,8 @@ ccl_device_forceinline void guiding_record_surface_segment(KernelGlobals kg,
     return;
   }
 
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
+
   const pgl_vec3f zero = guiding_vec3f(zero_float3());
   const pgl_vec3f one = guiding_vec3f(one_float3());
 
@@ -119,6 +121,9 @@ ccl_device_forceinline void guiding_record_surface_bounce(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
+
   const float min_roughness = safe_sqrtf(fminf(roughness.x, roughness.y));
   const bool is_delta = (min_roughness == 0.0f);
   const float3 weight_rgb = spectrum_to_rgb(weight);
@@ -148,6 +153,9 @@ ccl_device_forceinline void guiding_record_surface_emission(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
+
   const float3 Le_rgb = spectrum_to_rgb(Le);
 
   openpgl::cpp::SetDirectContribution(state->guiding.path_segment, guiding_vec3f(Le_rgb));
@@ -170,6 +178,9 @@ ccl_device_forceinline void guiding_record_bssrdf_segment(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
+
   const pgl_vec3f zero = guiding_vec3f(zero_float3());
   const pgl_vec3f one = guiding_vec3f(one_float3());
 
@@ -195,6 +206,8 @@ ccl_device_forceinline void guiding_record_bssrdf_weight(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
 
   /* Note albedo left out here, will be included in guiding_record_bssrdf_bounce. */
   const float3 weight_rgb = spectrum_to_rgb(safe_divide_color(weight, albedo));
@@ -225,6 +238,9 @@ ccl_device_forceinline void guiding_record_bssrdf_bounce(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
+
   const float3 normal = clamp(N, -one_float3(), one_float3());
   const float3 weight_rgb = spectrum_to_rgb(weight * albedo);
 
@@ -252,6 +268,9 @@ ccl_device_forceinline void guiding_record_volume_segment(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
+
   const pgl_vec3f zero = guiding_vec3f(zero_float3());
   const pgl_vec3f one = guiding_vec3f(one_float3());
 
@@ -280,6 +299,9 @@ ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
+
   const float3 weight_rgb = spectrum_to_rgb(weight);
   const float3 normal = make_float3(0.0f, 0.0f, 1.0f);
 
@@ -307,6 +329,8 @@ ccl_device_forceinline void guiding_record_volume_transmission(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
 
   if (state->guiding.path_segment) {
     // TODO (sherholz): need to find a better way to avoid this check
@@ -336,6 +360,8 @@ ccl_device_forceinline void guiding_record_volume_emission(KernelGlobals kg,
     return;
   }
 
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
+
   if (state->guiding.path_segment) {
     const float3 Le_rgb = spectrum_to_rgb(Le);
 
@@ -358,6 +384,9 @@ ccl_device_forceinline void guiding_record_light_surface_segment(
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
+
   const pgl_vec3f zero = guiding_vec3f(zero_float3());
   const pgl_vec3f one = guiding_vec3f(one_float3());
   const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
@@ -392,6 +421,8 @@ ccl_device_forceinline void guiding_record_background(KernelGlobals kg,
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
 
   const float3 L_rgb = spectrum_to_rgb(L);
   const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
@@ -452,6 +483,8 @@ ccl_device_forceinline void guiding_record_continuation_probability(
   if (!kernel_data.integrator.train_guiding) {
     return;
   }
+
+  assert((INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SHADOW_CATCHER_PASS) == 0);
 
   if (state->guiding.path_segment) {
     openpgl::cpp::SetRussianRouletteProbability(state->guiding.path_segment,

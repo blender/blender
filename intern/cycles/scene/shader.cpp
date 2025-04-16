@@ -480,11 +480,12 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
   return id;
 }
 
-void ShaderManager::device_update(Device *device,
-                                  DeviceScene *dscene,
-                                  Scene *scene,
-                                  Progress &progress)
+void ShaderManager::device_update_pre(Device *device,
+                                      DeviceScene *dscene,
+                                      Scene *scene,
+                                      Progress &progress)
 {
+  /* This runs before kernels have been loaded, so can't copy to device yet. */
   if (!need_update()) {
     return;
   }
@@ -502,6 +503,16 @@ void ShaderManager::device_update(Device *device,
   assert(scene->default_empty->reference_count() != 0);
 
   device_update_specific(device, dscene, scene, progress);
+}
+
+void ShaderManager::device_update_post(Device * /*device*/,
+                                       DeviceScene *dscene,
+                                       Scene * /*scene*/,
+                                       Progress & /*progress*/)
+{
+  /* This runs after kernels have been loaded, so can copy to device. */
+  dscene->shaders.copy_to_device_if_modified();
+  dscene->svm_nodes.copy_to_device_if_modified();
 }
 
 void ShaderManager::device_update_common(Device * /*device*/,
@@ -603,8 +614,6 @@ void ShaderManager::device_update_common(Device * /*device*/,
 
     has_transparent_shadow |= (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
   }
-
-  dscene->shaders.copy_to_device();
 
   /* lookup tables */
   KernelTables *ktables = &dscene->data.tables;

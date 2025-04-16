@@ -9,7 +9,6 @@
 #pragma once
 
 #include "vk_sampler.hh"
-#include "vk_samplers.hh"
 
 #include "BLI_map.hh"
 

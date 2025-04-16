@@ -249,6 +249,8 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
     case SOCK_CUSTOM:
     case SOCK_GEOMETRY:
     case SOCK_SHADER:
+    case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
       return nullptr;
   }
   return nullptr;
@@ -414,6 +416,8 @@ static bool old_id_property_type_matches_socket_convert_to_new(
     case SOCK_MATRIX:
     case SOCK_GEOMETRY:
     case SOCK_SHADER:
+    case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
       return false;
   }
   BLI_assert_unreachable();
@@ -726,10 +730,9 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
             component_type,
             domain,
             output_info.name,
-            GMutableSpan{
-                type,
-                MEM_mallocN_aligned(type.size() * domain_size, type.alignment(), __func__),
-                domain_size}};
+            GMutableSpan{type,
+                         MEM_mallocN_aligned(type.size * domain_size, type.alignment, __func__),
+                         domain_size}};
         fn::GField field = validator.validate_field_if_necessary(output_info.field);
         field_evaluator.add_with_destination(std::move(field), store.data);
         attributes_to_store.append(store);
@@ -865,7 +868,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
 
     const CPPType *type = typeinfo->geometry_nodes_cpp_type;
     BLI_assert(type != nullptr);
-    void *value = allocator.allocate(type->size(), type->alignment());
+    void *value = allocator.allocate(type->size, type->alignment);
     initialize_group_input(btree, properties_set, i, value);
     param_inputs[function.inputs.main[i]] = {type, value};
     inputs_to_destruct.append({type, value});
@@ -888,7 +891,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
   for (const int i : IndexRange(num_outputs)) {
     const lf::Output &lf_output = lazy_function.outputs()[i];
     const CPPType &type = *lf_output.type;
-    void *buffer = allocator.allocate(type.size(), type.alignment());
+    void *buffer = allocator.allocate(type.size, type.alignment);
     param_outputs[i] = {type, buffer};
   }
 
@@ -939,9 +942,8 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
                                                        SOCK_CUSTOM;
     IDProperty *new_prop = id_property_create_from_socket(socket, use_name_for_ids).release();
     if (new_prop == nullptr) {
-      /* Out of the set of supported input sockets, only
-       * geometry sockets aren't added to the modifier. */
-      BLI_assert(ELEM(socket_type, SOCK_GEOMETRY, SOCK_MATRIX));
+      /* Out of the set of supported input sockets, these sockets aren't added to the modifier. */
+      BLI_assert(ELEM(socket_type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_BUNDLE, SOCK_CLOSURE));
       continue;
     }
 
@@ -1078,10 +1080,10 @@ void get_geometry_nodes_input_base_values(const bNodeTree &btree,
       continue;
     }
 
-    void *value_buffer = scope.linear_allocator().allocate(
-        stype->geometry_nodes_cpp_type->size(), stype->geometry_nodes_cpp_type->alignment());
+    void *value_buffer = scope.allocator().allocate(stype->geometry_nodes_cpp_type->size,
+                                                    stype->geometry_nodes_cpp_type->alignment);
     init_socket_cpp_value_from_property(*property, socket_type, value_buffer);
-    if (!stype->geometry_nodes_cpp_type->is_trivially_destructible()) {
+    if (!stype->geometry_nodes_cpp_type->is_trivially_destructible) {
       scope.add_destruct_call([type = stype->geometry_nodes_cpp_type, value_buffer]() {
         type->destruct(value_buffer);
       });

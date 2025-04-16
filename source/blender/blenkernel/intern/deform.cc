@@ -738,16 +738,14 @@ static bool defgroup_find_name_dupe(const StringRef name, bDeformGroup *dg, Obje
   return false;
 }
 
-static bool defgroup_unique_check(void *arg, const char *name)
-{
-  DeformGroupUniqueNameData *data = static_cast<DeformGroupUniqueNameData *>(arg);
-  return defgroup_find_name_dupe(name, data->dg, data->ob);
-}
-
 void BKE_object_defgroup_unique_name(bDeformGroup *dg, Object *ob)
 {
-  DeformGroupUniqueNameData data{ob, dg};
-  BLI_uniquename_cb(defgroup_unique_check, &data, DATA_("Group"), '.', dg->name, sizeof(dg->name));
+  BLI_uniquename_cb(
+      [&](const blender::StringRef name) { return defgroup_find_name_dupe(name, dg, ob); },
+      DATA_("Group"),
+      '.',
+      dg->name,
+      sizeof(dg->name));
 }
 
 void BKE_object_defgroup_set_name(bDeformGroup *dg, Object *ob, const char *new_name)

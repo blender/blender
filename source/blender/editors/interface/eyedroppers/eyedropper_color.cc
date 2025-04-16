@@ -229,7 +229,7 @@ static bool eyedropper_cryptomatte_sample_renderlayer_fl(RenderLayer *render_lay
     return false;
   }
 
-  const int render_layer_name_len = BLI_strnlen(render_layer->name, sizeof(render_layer->name));
+  const int render_layer_name_len = STRNLEN(render_layer->name);
   if (strncmp(prefix, render_layer->name, render_layer_name_len) != 0) {
     return false;
   }

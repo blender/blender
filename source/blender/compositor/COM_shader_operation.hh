@@ -119,6 +119,11 @@ class ShaderOperation : public PixelOperation {
    * material node graph. */
   void link_node_inputs(DNode node);
 
+  /* Link the GPU stack of the given unavailable input to a constant zero value setter GPU node.
+   * The value is ignored since the socket is unavailable, but the GPU Material compiler expects
+   * all inputs to be linked, even unavailable ones. */
+  void link_node_input_unavailable(const DInputSocket input);
+
   /* Link the GPU stack of the given unlinked input to a constant value setter GPU node that
    * supplies the value of the unlinked input. The value is taken from the given origin input,
    * which will be equal to the input in most cases, but can also be an unlinked input of a group

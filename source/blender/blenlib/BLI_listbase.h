@@ -18,54 +18,58 @@
 /**
  * Returns the position of \a vlink within \a listbase, numbering from 0, or -1 if not found.
  */
-int BLI_findindex(const struct ListBase *listbase, const void *vlink) ATTR_WARN_UNUSED_RESULT
+int BLI_findindex(const ListBase *listbase, const void *vlink) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
 /**
  * Returns the 0-based index of the first element of listbase which contains the specified
  * null-terminated string at the specified offset, or -1 if not found.
  */
-int BLI_findstringindex(const struct ListBase *listbase,
+int BLI_findstringindex(const ListBase *listbase,
                         const char *id,
                         int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /**
  * Return a ListBase representing the entire list the given Link is in.
  */
-ListBase BLI_listbase_from_link(struct Link *some_link);
+ListBase BLI_listbase_from_link(Link *some_link);
 
 /* Find forwards. */
 
 /**
  * Returns the nth element of \a listbase, numbering from 0.
  */
-void *BLI_findlink(const struct ListBase *listbase, int number) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
+void *BLI_findlink(const ListBase *listbase, int number) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /**
  * Returns the element before/after \a link that is \a step links away, numbering from 0. \a step
  * is allowed to be negative. Returns NULL when the link is out-of-bounds.
  */
-void *BLI_findlinkfrom(struct Link *start, int step) ATTR_WARN_UNUSED_RESULT;
+void *BLI_findlinkfrom(Link *start, int step) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Finds the first element of \a listbase which contains the null-terminated
  * string \a id at the specified offset, returning NULL if not found.
  */
-void *BLI_findstring(const struct ListBase *listbase,
-                     const char *id,
-                     int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_findstring(const ListBase *listbase, const char *id, int offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
+/**
+ * Finds the first element in the listbase after the given \a link element which contains the
+ * null-terminated string \a id at the specified offset, returning nullptr if not found.
+ */
+void *BLI_listbase_findafter_string(Link *link, const char *id, int offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
 /**
  * Finds the first element of \a listbase which contains a pointer to the
  * null-terminated string \a id at the specified offset, returning NULL if not found.
  */
-void *BLI_findstring_ptr(const struct ListBase *listbase,
+void *BLI_findstring_ptr(const ListBase *listbase,
                          const char *id,
                          int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
  * Finds the first element in the listbase after the given \a link element which contains a pointer
  * to the null-terminated string \a id at the specified offset, returning NULL if not found.
  */
-void *BLI_listbase_findafter_string_ptr(struct Link *link, const char *id, const int offset);
+void *BLI_listbase_findafter_string_ptr(Link *link, const char *id, int offset);
 
 /**
  * Finds the first element of listbase which contains the specified pointer value
@@ -89,7 +93,7 @@ void *BLI_listbase_bytes_find(const ListBase *listbase,
  *
  * \return The found item, or NULL.
  */
-void *BLI_listbase_string_or_index_find(const struct ListBase *listbase,
+void *BLI_listbase_string_or_index_find(const ListBase *listbase,
                                         const char *string,
                                         size_t string_offset,
                                         int index) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
@@ -99,29 +103,26 @@ void *BLI_listbase_string_or_index_find(const struct ListBase *listbase,
 /**
  * Returns the nth-last element of \a listbase, numbering from 0.
  */
-void *BLI_rfindlink(const struct ListBase *listbase, int number) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
+void *BLI_rfindlink(const ListBase *listbase, int number) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
  * Finds the last element of \a listbase which contains the
  * null-terminated string \a id at the specified offset, returning NULL if not found.
  */
-void *BLI_rfindstring(const struct ListBase *listbase,
-                      const char *id,
-                      int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_rfindstring(const ListBase *listbase, const char *id, int offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
 /**
  * Finds the last element of \a listbase which contains a pointer to the
  * null-terminated string \a id at the specified offset, returning NULL if not found.
  */
-void *BLI_rfindstring_ptr(const struct ListBase *listbase,
+void *BLI_rfindstring_ptr(const ListBase *listbase,
                           const char *id,
                           int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
  * Finds the last element of listbase which contains the specified pointer value
  * at the specified offset, returning NULL if not found.
  */
-void *BLI_rfindptr(const struct ListBase *listbase,
-                   const void *ptr,
-                   int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_rfindptr(const ListBase *listbase, const void *ptr, int offset) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
 /**
  * Finds the last element of listbase which contains the specified bytes
  * at the specified offset, returning NULL if not found.
@@ -134,21 +135,21 @@ void *BLI_listbase_bytes_rfind(const ListBase *listbase,
 /**
  * Removes and disposes of the entire contents of \a listbase using guardedalloc.
  */
-void BLI_freelistN(struct ListBase *listbase) ATTR_NONNULL(1);
+void BLI_freelistN(ListBase *listbase) ATTR_NONNULL(1);
 /**
  * Appends \a vlink (assumed to begin with a Link) onto listbase.
  */
-void BLI_addtail(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+void BLI_addtail(ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 /**
  * Removes \a vlink from \a listbase. Assumes it is linked into there!
  *
  * \warning Does _not_ clear the `prev`/`next` pointers of the removed `vlink`.
  */
-void BLI_remlink(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+void BLI_remlink(ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 /**
  * Checks that \a vlink is linked into listbase, removing it from there if so.
  */
-bool BLI_remlink_safe(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+bool BLI_remlink_safe(ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 /**
  * Removes the head from \a listbase and returns it.
  */
@@ -161,19 +162,17 @@ void *BLI_poptail(ListBase *listbase) ATTR_NONNULL(1);
 /**
  * Prepends \a vlink (assumed to begin with a Link) onto listbase.
  */
-void BLI_addhead(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+void BLI_addhead(ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 /**
  * Inserts \a vnewlink immediately preceding \a vnextlink in listbase.
  * Or, if \a vnextlink is NULL, puts \a vnewlink at the end of the list.
  */
-void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink)
-    ATTR_NONNULL(1);
+void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink) ATTR_NONNULL(1);
 /**
  * Inserts \a vnewlink immediately following \a vprevlink in \a listbase.
  * Or, if \a vprevlink is NULL, puts \a vnewlink at the front of the list.
  */
-void BLI_insertlinkafter(struct ListBase *listbase, void *vprevlink, void *vnewlink)
-    ATTR_NONNULL(1);
+void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink) ATTR_NONNULL(1);
 /**
  * Insert a link in place of another, without changing its position in the list.
  *
@@ -188,7 +187,7 @@ void BLI_insertlinkreplace(ListBase *listbase, void *vreplacelink, void *vnewlin
  * (which should return 1 if its first arg should come after its second arg).
  * This uses insertion sort, so NOT ok for large list.
  */
-void BLI_listbase_sort(struct ListBase *listbase, int (*cmp)(const void *, const void *))
+void BLI_listbase_sort(ListBase *listbase, int (*cmp)(const void *, const void *))
     ATTR_NONNULL(1, 2);
 void BLI_listbase_sort_r(ListBase *listbase,
                          int (*cmp)(void *, const void *, const void *),
@@ -211,21 +210,20 @@ bool BLI_listbase_move_index(ListBase *listbase, int from, int to) ATTR_NONNULL(
 /**
  * Removes and disposes of the entire contents of listbase using direct free(3).
  */
-void BLI_freelist(struct ListBase *listbase) ATTR_NONNULL(1);
+void BLI_freelist(ListBase *listbase) ATTR_NONNULL(1);
 /**
  * Returns the number of elements in \a listbase, up until (and including count_max)
  *
  * \note Use to avoid redundant looping.
  */
-int BLI_listbase_count_at_most(const struct ListBase *listbase,
-                               int count_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_listbase_count_at_most(const ListBase *listbase, int count_max) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1);
 /**
  * Returns true when the number of items in `listbase` matches `count_cmp`.
  *
  * \note Use to avoid redundant looping.
  */
-BLI_INLINE bool BLI_listbase_count_is_equal_to(const struct ListBase *listbase,
-                                               const int count_cmp)
+BLI_INLINE bool BLI_listbase_count_is_equal_to(const ListBase *listbase, const int count_cmp)
 {
   return BLI_listbase_count_at_most(listbase, count_cmp + 1) == count_cmp;
 }
@@ -233,34 +231,31 @@ BLI_INLINE bool BLI_listbase_count_is_equal_to(const struct ListBase *listbase,
 /**
  * Returns the number of elements in \a listbase.
  */
-int BLI_listbase_count(const struct ListBase *listbase) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+int BLI_listbase_count(const ListBase *listbase) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
  * Removes \a vlink from listbase and disposes of it. Assumes it is linked into there!
  */
-void BLI_freelinkN(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
+void BLI_freelinkN(ListBase *listbase, void *vlink) ATTR_NONNULL(1);
 
 /**
  * Swaps \a vlinka and \a vlinkb in the list. Assumes they are both already in the list!
  */
-void BLI_listbase_swaplinks(struct ListBase *listbase, void *vlinka, void *vlinkb)
-    ATTR_NONNULL(1, 2);
+void BLI_listbase_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb) ATTR_NONNULL(1, 2);
 /**
  * Swaps \a vlinka and \a vlinkb from their respective lists.
  * Assumes they are both already in their \a listbasea!
  */
-void BLI_listbases_swaplinks(struct ListBase *listbasea,
-                             struct ListBase *listbaseb,
-                             void *vlinka,
-                             void *vlinkb) ATTR_NONNULL(2, 3);
+void BLI_listbases_swaplinks(ListBase *listbasea, ListBase *listbaseb, void *vlinka, void *vlinkb)
+    ATTR_NONNULL(2, 3);
 
 /**
  * Moves the entire contents of \a src onto the end of \a dst.
  */
-void BLI_movelisttolist(struct ListBase *dst, struct ListBase *src) ATTR_NONNULL(1, 2);
+void BLI_movelisttolist(ListBase *dst, ListBase *src) ATTR_NONNULL(1, 2);
 /**
  * Moves the entire contents of \a src at the beginning of \a dst.
  */
-void BLI_movelisttolist_reverse(struct ListBase *dst, struct ListBase *src) ATTR_NONNULL(1, 2);
+void BLI_movelisttolist_reverse(ListBase *dst, ListBase *src) ATTR_NONNULL(1, 2);
 /**
  * Split `original_listbase` after given `vlink`, putting the remaining of the list into given
  * `split_listbase`.
@@ -268,35 +263,34 @@ void BLI_movelisttolist_reverse(struct ListBase *dst, struct ListBase *src) ATTR
  * \note If `vlink` is NULL, it is considered as 'the item before the first item', so the whole
  * list is moved from `original_listbase` to `split_listbase`.
  */
-void BLI_listbase_split_after(struct ListBase *original_listbase,
-                              struct ListBase *split_listbase,
-                              void *vlink) ATTR_NONNULL(1, 2);
+void BLI_listbase_split_after(ListBase *original_listbase, ListBase *split_listbase, void *vlink)
+    ATTR_NONNULL(1, 2);
 /**
  * Sets dst to a duplicate of the entire contents of src. dst may be the same as src.
  */
-void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src) ATTR_NONNULL(1, 2);
-void BLI_listbase_reverse(struct ListBase *lb) ATTR_NONNULL(1);
+void BLI_duplicatelist(ListBase *dst, const ListBase *src) ATTR_NONNULL(1, 2);
+void BLI_listbase_reverse(ListBase *lb) ATTR_NONNULL(1);
 /**
  * \param vlink: Link to make first.
  */
-void BLI_listbase_rotate_first(struct ListBase *lb, void *vlink) ATTR_NONNULL(1, 2);
+void BLI_listbase_rotate_first(ListBase *lb, void *vlink) ATTR_NONNULL(1, 2);
 /**
  * \param vlink: Link to make last.
  */
-void BLI_listbase_rotate_last(struct ListBase *lb, void *vlink) ATTR_NONNULL(1, 2);
+void BLI_listbase_rotate_last(ListBase *lb, void *vlink) ATTR_NONNULL(1, 2);
 
 /**
  * Utility functions to avoid first/last references inline all over.
  */
-BLI_INLINE bool BLI_listbase_is_single(const struct ListBase *lb)
+BLI_INLINE bool BLI_listbase_is_single(const ListBase *lb)
 {
   return (lb->first && lb->first == lb->last);
 }
-BLI_INLINE bool BLI_listbase_is_empty(const struct ListBase *lb)
+BLI_INLINE bool BLI_listbase_is_empty(const ListBase *lb)
 {
   return (lb->first == (void *)nullptr);
 }
-BLI_INLINE void BLI_listbase_clear(struct ListBase *lb)
+BLI_INLINE void BLI_listbase_clear(ListBase *lb)
 {
   lb->first = lb->last = (void *)nullptr;
 }
@@ -305,7 +299,7 @@ BLI_INLINE void BLI_listbase_clear(struct ListBase *lb)
  * Validate the integrity of a given ListBase.
  * \return true if everything is OK, false otherwise.
  */
-bool BLI_listbase_validate(struct ListBase *lb);
+bool BLI_listbase_validate(ListBase *lb);
 
 /**
  * Equality check for ListBase.
@@ -313,7 +307,7 @@ bool BLI_listbase_validate(struct ListBase *lb);
  * This only shallowly compares the ListBase itself (so the first/last
  * pointers), and does not do any equality checks on the list items.
  */
-BLI_INLINE bool BLI_listbase_equal(const struct ListBase *a, const struct ListBase *b)
+BLI_INLINE bool BLI_listbase_equal(const ListBase *a, const ListBase *b)
 {
   if (a == nullptr) {
     return b == nullptr;
@@ -327,7 +321,7 @@ BLI_INLINE bool BLI_listbase_equal(const struct ListBase *a, const struct ListBa
 /**
  * Create a generic list node containing link to provided data.
  */
-struct LinkData *BLI_genericNodeN(void *data);
+LinkData *BLI_genericNodeN(void *data);
 
 /**
  * Does a full loop on the list, with any value acting as first

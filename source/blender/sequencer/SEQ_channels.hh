@@ -15,7 +15,7 @@ struct Strip;
 
 namespace blender::seq {
 
-ListBase *channels_displayed_get(Editing *ed);
+ListBase *channels_displayed_get(const Editing *ed);
 void channels_displayed_set(Editing *ed, ListBase *channels);
 void channels_ensure(ListBase *channels);
 void channels_duplicate(ListBase *channels_dst, ListBase *channels_src);

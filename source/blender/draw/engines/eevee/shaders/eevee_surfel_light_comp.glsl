@@ -30,9 +30,9 @@ void main()
   Surfel surfel = surfel_buf[index];
 
   /* There is no view dependent effect as we evaluate everything using diffuse. */
-  vec3 V = surfel.normal;
-  vec3 Ng = surfel.normal;
-  vec3 P = surfel.position;
+  float3 V = surfel.normal;
+  float3 Ng = surfel.normal;
+  float3 P = surfel.position;
 
   ClosureLightStack stack;
 
@@ -40,7 +40,7 @@ void main()
   cl_reflect.N = surfel.normal;
   cl_reflect.type = CLOSURE_BSDF_DIFFUSE_ID;
   stack.cl[0] = closure_light_new(cl_reflect, V);
-  light_eval_reflection(stack, P, Ng, V, 0.0, surfel.receiver_light_set);
+  light_eval_reflection(stack, P, Ng, V, 0.0f, surfel.receiver_light_set);
 
   if (capture_info_buf.capture_indirect) {
     surfel_buf[index].radiance_direct.front.rgb += stack.cl[0].light_shadowed *
@@ -51,7 +51,7 @@ void main()
   cl_transmit.N = -surfel.normal;
   cl_transmit.type = CLOSURE_BSDF_DIFFUSE_ID;
   stack.cl[0] = closure_light_new(cl_transmit, -V);
-  light_eval_reflection(stack, P, -Ng, -V, 0.0, surfel.receiver_light_set);
+  light_eval_reflection(stack, P, -Ng, -V, 0.0f, surfel.receiver_light_set);
 
   if (capture_info_buf.capture_indirect) {
     surfel_buf[index].radiance_direct.back.rgb += stack.cl[0].light_shadowed * surfel.albedo_back;

@@ -1906,8 +1906,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   }
   else {
     if (but->editstr) {
-      /* max length isn't used in this case,
-       * we rely on string being nullptr terminated. */
+      /* The maximum length isn't used in this case,
+       * we rely on string being null terminated. */
       drawstr_left_len = INT_MAX;
 
 #ifdef WITH_INPUT_IME

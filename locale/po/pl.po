@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2025-02-18 05:56+0000\n"
-"Last-Translator: Krzysztof Chorzempa <Krzysztof-Chorzempa@users.noreply.translate.blender.org>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:34+0000\n"
+"Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 5.9.2"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -5980,50 +5980,6 @@ msgid "Offset will be an absolute point in space instead of relative to the targ
 msgstr "Odstęp będzie absolutnym punktem w przestrzeni zamiast punktu względnego do obiektu docelowego"
 
 
-msgid "Python Constraint"
-msgstr "Ogranicznik Python"
-
-
-msgid "Use Python script for constraint evaluation"
-msgstr "Użyj skryptu w pythonie dla obliczania ogranicznika"
-
-
-msgid "Script Error"
-msgstr "Błąd skryptu"
-
-
-msgid "The linked Python script has thrown an error"
-msgstr "Podłączony skrypt pythona wygenerował błąd"
-
-
-msgid "Number of Targets"
-msgstr "Liczba obiektów"
-
-
-msgid "Usually only 1 to 3 are needed"
-msgstr "Zwykle potrzebne są 1-3"
-
-
-msgid "Target Objects"
-msgstr "Obiekty docelowe"
-
-
-msgid "Script"
-msgstr "Skrypt"
-
-
-msgid "The text object that contains the Python script"
-msgstr "Obiekt tekstowy który zawiera skrypt w pythonie"
-
-
-msgid "Use Targets"
-msgstr "Użyj obiektów docelowych"
-
-
-msgid "Use the targets indicated in the constraint panel"
-msgstr "Używa obiektów docelowych wskazanych w panelu ogranicznika"
-
-
 msgid "Shrinkwrap Constraint"
 msgstr "Ogranicznik skurcz/owiń"
 
@@ -7437,6 +7393,10 @@ msgid "Paint"
 msgstr "Malowanie"
 
 
+msgid "Anti-Aliasing"
+msgstr "Wygładzanie krawędzi"
+
+
 msgid "Incremental"
 msgstr "Przyrostowy"
 
@@ -7486,7 +7446,7 @@ msgstr "Położenie końca kości"
 
 
 msgid "Effector weights for physics simulation"
-msgstr "Wagi efektorów wpływających na symulacje fizyczne"
+msgstr "Wagi efektorów dla symulacji fizyki"
 
 
 msgid "All effector's weight"
@@ -7498,15 +7458,15 @@ msgstr "Użyj dla wzrostu włosów"
 
 
 msgid "Use force fields when growing hair"
-msgstr "Używa pól siłowych dla symulacji wzrostu włosów"
+msgstr "Używa pól siłowych podczas wzrostu włosów"
 
 
 msgid "Boid"
-msgstr "Boid"
+msgstr "Stado"
 
 
 msgid "Boid effector weight"
-msgstr "Waga efektora symulującego ruch boidów"
+msgstr "Waga efektora stada"
 
 
 msgid "Charge"
@@ -7514,23 +7474,31 @@ msgstr "Ładunek"
 
 
 msgid "Charge effector weight"
-msgstr "Waga efektora związanego z oddziaływaniem ładunku"
+msgstr "Waga efektora ładunku"
+
+
+msgid "Effector Collection"
+msgstr "Kolekcja efektorów"
+
+
+msgid "Limit effectors to this collection"
+msgstr "Ogranicza efektory do tej kolekcji"
 
 
 msgid "Curve Guide"
-msgstr "Wymuszona trajektoria"
+msgstr "Śledzenie ścieżki"
 
 
 msgid "Curve guide effector weight"
-msgstr "Waga efektora wymuszającego trajektorię"
+msgstr "Waga efektora śledzenia ścieżki"
 
 
 msgid "Drag"
-msgstr "Przeciąganie"
+msgstr "Przyciąganie"
 
 
 msgid "Drag effector weight"
-msgstr "Siła oddziaływania takiego jak wciąganie lub zasysanie"
+msgstr "Waga efektora przyciągania"
 
 
 msgid "Force"
@@ -7542,15 +7510,15 @@ msgstr "Waga efektora siły"
 
 
 msgid "Global gravity weight"
-msgstr "Globalny wpływ grawitacji"
+msgstr "Waga globalnej grawitacji"
 
 
 msgid "Harmonic"
-msgstr "Harmoniczny"
+msgstr "Harmoniczne"
 
 
 msgid "Harmonic effector weight"
-msgstr "Wielkość wpływu sił harmonicznych"
+msgstr "Waga efektora harmonicznego"
 
 
 msgid "Lennard-Jones"
@@ -7558,31 +7526,43 @@ msgstr "Lennard-Jones"
 
 
 msgid "Lennard-Jones effector weight"
-msgstr "Siła oddziaływania w potencjale Lennarda-Jonesa"
+msgstr "Waga efektora Lennarda-Jonesa"
 
 
 msgid "Magnetic"
-msgstr "Magnetyczny"
+msgstr "Magnetyczne"
 
 
 msgid "Magnetic effector weight"
-msgstr "Waga oddziaływania magnetycznego"
+msgstr "Waga efektora magnetycznego"
+
+
+msgid "Fluid Flow"
+msgstr "Przepływ cieczy"
+
+
+msgid "Fluid Flow effector weight"
+msgstr "Waga efektora przepływu cieczy"
 
 
 msgid "Texture effector weight"
-msgstr "Waga efektora teksturowego"
+msgstr "Waga efektora tekstury"
 
 
 msgid "Turbulence"
-msgstr "Turbulencje"
+msgstr "Turbulencja"
 
 
 msgid "Turbulence effector weight"
-msgstr "Wpływ efektora turbulencji"
+msgstr "Waga efektora turbulencji"
 
 
 msgid "Vortex"
 msgstr "Wir"
+
+
+msgid "Vortex effector weight"
+msgstr "Waga efektora wiru"
 
 
 msgid "Wind"
@@ -7590,7 +7570,7 @@ msgstr "Wiatr"
 
 
 msgid "Wind effector weight"
-msgstr "Siła oddziaływania wiatru"
+msgstr "Waga efektora wiatru"
 
 
 msgid "Enum Item Definition"
@@ -8071,7 +8051,7 @@ msgstr "Wielkość wpływu jaki ma modyfikator krzywej gdy nie jest w stanie wej
 
 
 msgid "Disabled"
-msgstr "Wyłączone"
+msgstr "Wył."
 
 
 msgid "F-Curve Modifier has invalid settings and will not be evaluated"
@@ -9837,6 +9817,14 @@ msgid "Show Start Frame"
 msgstr "Wyświetl klatkę początkową"
 
 
+msgid "Blank"
+msgstr "Pusty"
+
+
+msgid "Generate a blank image"
+msgstr "Generuje pusty obraz"
+
+
 msgid "X/Y pixels per meter, for the image buffer"
 msgstr "X/Y pikseli na metr dla bufora obrazu"
 
@@ -9933,6 +9921,18 @@ msgstr "Kolekcja odwróceń"
 
 msgid "Show the clipping distances in the 3D view"
 msgstr "Pokazuje odległości przycinania w widoku 3D"
+
+
+msgid "Light probe that captures precise lighting from all directions at a single point in space"
+msgstr "Sonda świetlna, która przechwytuje precyzyjne oświetlenie ze wszystkich kierunków w jednym punkcie w przestrzeni"
+
+
+msgid "Light probe that captures incoming light from a single direction on a plane"
+msgstr "Sonda świetlna, która przechwytuje światło przychodzące z jednego kierunku na płaszczyźnie"
+
+
+msgid "Light probe that captures low frequency lighting inside a volume"
+msgstr "Sonda świetlna, która przechwytuje oświetlenie o niskiej częstotliwości wewnątrz kubatury"
 
 
 msgid "Visibility Collection"
@@ -10135,6 +10135,10 @@ msgid "Filter"
 msgstr "Filtr"
 
 
+msgid "Script"
+msgstr "Skrypt"
+
+
 msgid "Interface"
 msgstr "Interfejs"
 
@@ -10286,7 +10290,7 @@ msgstr "Tryb interakcji z obiektem"
 
 
 msgid "Object Mode"
-msgstr "Tryb obiektowy"
+msgstr "Tryb obiektu"
 
 
 msgid "Edit Mode"
@@ -10366,6 +10370,10 @@ msgstr "Krzywe włosów"
 msgctxt "ID"
 msgid "Empty"
 msgstr "Pusty"
+
+
+msgid "Use Alpha"
+msgstr "Użyj przezroczystości"
 
 
 msgid "Vertex Groups"
@@ -10503,6 +10511,14 @@ msgstr "Cząsteczki/ściana"
 
 msgid "Inverse"
 msgstr "Odwrotny"
+
+
+msgid "Background Scene"
+msgstr "Scena tła"
+
+
+msgid "Background set scene"
+msgstr "Scena w tle"
 
 
 msgid "3D Cursor"
@@ -10780,6 +10796,10 @@ msgstr "32-bitowe kanały kolorów"
 
 msgid "Color Management"
 msgstr "Zarządzanie kolorami"
+
+
+msgid "Follow Scene"
+msgstr "Jak w scenie"
 
 
 msgid "Codec"
@@ -11564,6 +11584,14 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
 msgid "Metaball"
 msgstr "Metakula"
 
@@ -11646,14 +11674,6 @@ msgstr "Punkt obserwacji"
 
 msgid "Navigation"
 msgstr "Nawigacja"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
 
 
 msgid "Catalog"
@@ -11891,6 +11911,30 @@ msgid "Collection of mesh vertices"
 msgstr "Kolekcja wierzchołków siatki"
 
 
+msgid "Metaball Elements"
+msgstr "Elementy metakuli"
+
+
+msgid "Collection of metaball elements"
+msgstr "Kolekcja elementów metakuli"
+
+
+msgid "Active Element"
+msgstr "Aktywny element"
+
+
+msgid "Last selected element"
+msgstr "Ostatnio zaznaczony element"
+
+
+msgid "Metaball Element"
+msgstr "Element metakuli"
+
+
+msgid "Metaball type"
+msgstr "Rodzaj metakuli"
+
+
 msgid "Ball"
 msgstr "Kula"
 
@@ -12033,6 +12077,10 @@ msgstr "Spacja"
 
 msgid "Amount to displace geometry"
 msgstr "Intensywność przemieszczenia geometrii"
+
+
+msgid "Texture Coordinates"
+msgstr "Współrzędne tekstury"
 
 
 msgctxt "Simulation"
@@ -12329,8 +12377,16 @@ msgid "Brightness/Contrast"
 msgstr "Jasność/kontrast"
 
 
+msgid "High"
+msgstr "Wysoka"
+
+
 msgid "Single"
 msgstr "Pojedyńczy"
+
+
+msgid "Low"
+msgstr "Niska"
 
 
 msgid "To"
@@ -12339,6 +12395,10 @@ msgstr "Do"
 
 msgid "Denoise"
 msgstr "Odszumiaj"
+
+
+msgid "Balanced"
+msgstr "Balans"
 
 
 msgctxt "Image"
@@ -12370,12 +12430,40 @@ msgid "Shadow"
 msgstr "Cień"
 
 
+msgid "Glare "
+msgstr "Blask "
+
+
+msgid "Glare Type"
+msgstr "Rodzaj blasku"
+
+
 msgid "Bloom"
 msgstr "Poświata"
 
 
+msgid "Ghosts"
+msgstr "Widma"
+
+
+msgid "Streaks"
+msgstr "Smugi"
+
+
+msgid "Fog Glow"
+msgstr "Blask mgły"
+
+
+msgid "Simple Star"
+msgstr "Prosta gwiazda"
+
+
 msgid "Hue/Saturation/Value"
 msgstr "Barwa/nasycenie/wartość"
+
+
+msgid "Image Info"
+msgstr "Informacje o obrazie"
 
 
 msgid "Invert Color"
@@ -12656,6 +12744,10 @@ msgstr "Zapisz jako render"
 
 msgid "Pixelate"
 msgstr "Pikselizacja"
+
+
+msgid "Render Layers"
+msgstr "Warstwy renderowania"
 
 
 msgid "Rotate"
@@ -13262,6 +13354,10 @@ msgid "Flip Colors"
 msgstr "Zamień kolory"
 
 
+msgid "Create mesh plane(s) from image files with the appropriate aspect ratio"
+msgstr "Tworzy siatki płaszczyzny z plików obrazów o odpowiednich proporcjach"
+
+
 msgctxt "Operator"
 msgid "Import BVH"
 msgstr "Importuj BVH"
@@ -13304,6 +13400,10 @@ msgstr "Dodaj modyfikator"
 msgctxt "Operator"
 msgid "Quick Explode"
 msgstr "Szybka eksplozja"
+
+
+msgid "Add a fur setup to the selected objects"
+msgstr "Dodaje konfigurację futra do zaznaczonych obiektów"
 
 
 msgctxt "Operator"
@@ -14034,9 +14134,49 @@ msgid "Constraint"
 msgstr "Ogranicznik"
 
 
+msgid "The alignment of the new object"
+msgstr "Wyrównanie nowego obiektu"
+
+
+msgid "Align the new object to the world"
+msgstr "Wyrównuje nowy obiekt do świata"
+
+
+msgid "Align the new object to the view"
+msgstr "Wyrównuje nowy obiekt do widoku"
+
+
+msgid "Use the 3D cursor orientation for the new object"
+msgstr "Używa orientacji kursora 3D dla nowego obiektu"
+
+
+msgid "Enter Edit Mode"
+msgstr "Wejdź do trybu edycji"
+
+
+msgid "Enter edit mode when adding this object"
+msgstr "Wchodzi w tryb edycji podczas dodawania tego obiektu"
+
+
+msgid "Location for the newly added object"
+msgstr "Położenie nowo dodanego obiektu"
+
+
+msgid "Rotation for the newly added object"
+msgstr "Obrót nowo dodanego obiektu"
+
+
+msgid "Scale for the newly added object"
+msgstr "Rozmiar nowo dodanego obiektu"
+
+
 msgctxt "Operator"
 msgid "Add Circle"
 msgstr "Dodaj okrąg"
+
+
+msgid "Add new circle curve"
+msgstr "Dodaje nową krzywą okręgu"
 
 
 msgid "Handles"
@@ -14102,9 +14242,44 @@ msgid "Add Bézier Circle"
 msgstr "Dodaj okrąg Béziera"
 
 
+msgid "Construct a Bézier Circle"
+msgstr "Tworzy okrąg Béziera"
+
+
+msgctxt "Operator"
+msgid "Add Bézier"
+msgstr "Dodaj Béziera"
+
+
+msgid "Construct a Bézier Curve"
+msgstr "Tworzy krzywą Béziera"
+
+
+msgctxt "Operator"
+msgid "Add Nurbs Circle"
+msgstr "Dodaj okrąg NURBS"
+
+
+msgid "Construct a Nurbs Circle"
+msgstr "Tworzy okrąg NURBS"
+
+
+msgctxt "Operator"
+msgid "Add Nurbs Curve"
+msgstr "Dodaj krzywą NURBS"
+
+
+msgid "Construct a Nurbs Curve"
+msgstr "Tworzy krzywą NURBS"
+
+
 msgctxt "Operator"
 msgid "Add Path"
 msgstr "Dodaj ścieżkę"
+
+
+msgid "Construct a Path"
+msgstr "Tworzy ścieżkę"
 
 
 msgctxt "Operator"
@@ -14941,6 +15116,10 @@ msgid "Add Cube"
 msgstr "Dodaj sześcian"
 
 
+msgid "Construct a cube mesh that consists of six square faces"
+msgstr "Tworzy siatkę sześcianu, która składa się z sześciu kwadratowych ścian"
+
+
 msgid "Construct a cube mesh"
 msgstr "Tworzy siatkę sześcianu"
 
@@ -14959,9 +15138,17 @@ msgid "Add Grid"
 msgstr "Dodaj kratkę"
 
 
+msgid "Construct a subdivided plane mesh"
+msgstr "Tworzy podzieloną siatkę płaszczyzny"
+
+
 msgctxt "Operator"
 msgid "Add Ico Sphere"
 msgstr "Dodaj sferę Ico"
+
+
+msgid "Construct a spherical mesh that consists of equally sized triangles"
+msgstr "Tworzy sferyczną siatkę, która składa się z trójkątów jednakowych rozmiarów"
 
 
 msgctxt "Operator"
@@ -15005,6 +15192,10 @@ msgstr "Główny promień"
 msgctxt "Operator"
 msgid "Add UV Sphere"
 msgstr "Dodaj sferę UV"
+
+
+msgid "Construct a spherical mesh with quad faces, except for triangle faces at the top and bottom"
+msgstr "Tworzy sferyczną siatkę z czworokątnymi ścianami, z wyjątkiem trójkątnych ścian na górze i na dole"
 
 
 msgid "Gimbal"
@@ -15082,6 +15273,15 @@ msgid "Viewer Region"
 msgstr "Przeglądaj region"
 
 
+msgctxt "Operator"
+msgid "Add Object"
+msgstr "Dodaj obiekt"
+
+
+msgid "Add an object to the scene"
+msgstr "Dodaje obiekt do sceny"
+
+
 msgid "Add named object"
 msgstr "Dodaje obiekt z nazwą"
 
@@ -15093,6 +15293,10 @@ msgstr "Początek sceny"
 msgctxt "Operator"
 msgid "Add Armature"
 msgstr "Dodaj szkielet"
+
+
+msgid "Add an armature object to the scene"
+msgstr "Dodaje obiekt szkieletu do sceny"
 
 
 msgctxt "Operator"
@@ -15134,6 +15338,10 @@ msgstr "Dodaje przeciąganą kolekcję jako instancję kolekcji"
 msgctxt "Operator"
 msgid "Add Collection Instance"
 msgstr "Dodaj instancję kolekcji"
+
+
+msgid "Add a collection instance"
+msgstr "Dodaje instancję kolekcji"
 
 
 msgctxt "Operator"
@@ -15211,6 +15419,10 @@ msgid "Grease Pencil from Curve or Mesh objects"
 msgstr "Grease Pencil z obiektów typu krzywa lub siatka"
 
 
+msgid "Add an empty curve object to the scene with the selected mesh as surface"
+msgstr "Dodaje pusty obiekt krzywej do sceny z zaznaczoną siatką jako powierzchnia"
+
+
 msgctxt "Operator"
 msgid "Add Random Curves"
 msgstr "Dodaj losową krzywą"
@@ -15246,6 +15458,24 @@ msgstr "Duplikuje wybrane obiekty, ale nie ich dane, i pozwala je przesuwać"
 
 
 msgctxt "Operator"
+msgid "Edit Mode"
+msgstr "Tryb edycji"
+
+
+msgid "Toggle object's edit mode"
+msgstr "Przełącza tryb edycji obiektu"
+
+
+msgctxt "Operator"
+msgid "Add Effector"
+msgstr "Dodaj efektor"
+
+
+msgid "Add an empty object with a physics effector to the scene"
+msgstr "Dodaje pusty obiekt z efektorem fizyki do sceny"
+
+
+msgctxt "Operator"
 msgid "Add Empty"
 msgstr "Dodaj pusty"
 
@@ -15254,9 +15484,30 @@ msgid "Add an empty object to the scene"
 msgstr "Dodaje pusty obiekt do sceny"
 
 
+msgid "Add an empty image type to scene with data"
+msgstr "Dodaje pusty typ obrazu do sceny z danymi"
+
+
+msgid "Put in Background"
+msgstr "Umieść w tle"
+
+
 msgctxt "Operator"
 msgid "Toggle Force Field"
 msgstr "Przełącz pole siłowe"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Dodaje obiekt typu Grease Pencil do sceny"
+
+
+msgctxt "Operator"
+msgid "Blank"
+msgstr "Pusty"
+
+
+msgid "Create an empty Grease Pencil object"
+msgstr "Tworzy pusty obiekt typu Grease Pencil"
 
 
 msgctxt "Operator"
@@ -15264,19 +15515,53 @@ msgid "Stroke"
 msgstr "Kreska"
 
 
+msgid "Create a simple stroke with basic colors"
+msgstr "Tworzy zwykłą kreskę z podstawowymi kolorami"
+
+
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Małpka"
 
 
+msgid "Construct a Suzanne Grease Pencil object"
+msgstr "Tworzy obiekt typu Grease Pencil Zuzanny"
+
+
+msgctxt "Operator"
+msgid "Scene Line Art"
+msgstr "Kontur sceny"
+
+
+msgid "Quickly set up Line Art for the entire scene"
+msgstr "Szybko konfiguruje kontur dla całej sceny"
+
+
+msgctxt "Operator"
+msgid "Collection Line Art"
+msgstr "Kontur kolekcji"
+
+
+msgid "Quickly set up Line Art for the active collection"
+msgstr "Szybko konfiguruje kontur dla aktywnej kolekcji"
+
+
+msgctxt "Operator"
+msgid "Object Line Art"
+msgstr "Kontur obiektu"
+
+
+msgid "Quickly set up Line Art for the active object"
+msgstr "Szybko konfiguruje kontur dla aktywnego obiektu"
+
+
+msgid "Show In Front"
+msgstr "Pokaż z przodu"
+
+
 msgctxt "Operator"
 msgid "Add Segment"
 msgstr "Dodaj segment"
-
-
-msgctxt "Operator"
-msgid "Hide Collection"
-msgstr "Ukryj kolekcję"
 
 
 msgctxt "Operator"
@@ -15294,9 +15579,17 @@ msgid "Add Light"
 msgstr "Dodaj światło"
 
 
+msgid "Add a light object to the scene"
+msgstr "Dodaje obiekt światła do sceny"
+
+
 msgctxt "Operator"
 msgid "Add Light Probe"
 msgstr "Dodaj sondę świetlną"
+
+
+msgid "Add a light probe object"
+msgstr "Dodaje obiekt sondy świetlnej"
 
 
 msgctxt "Operator"
@@ -15349,6 +15642,10 @@ msgstr "Kierunek przesuwania aktywnego materiału"
 msgctxt "Operator"
 msgid "Add Metaball"
 msgstr "Dodaj metakulę"
+
+
+msgid "Add an metaball object to the scene"
+msgstr "Dodaje obiekt metakuli do sceny"
 
 
 msgctxt "Operator"
@@ -15628,6 +15925,10 @@ msgid "Add a speaker object to the scene"
 msgstr "Dodaje obiekt głośnika do sceny"
 
 
+msgid "Add a text object to the scene"
+msgstr "Dodaje obiekt tekstu do sceny"
+
+
 msgctxt "Operator"
 msgid "Apply Object Transform"
 msgstr "Zastosuje transformację obiektu"
@@ -15655,6 +15956,15 @@ msgstr "Dodaje obiekt kubatury do sceny"
 
 
 msgctxt "Operator"
+msgid "Import OpenVDB Volume"
+msgstr "Importuj kubaturę OpenVDB"
+
+
+msgid "Import OpenVDB volume file"
+msgstr "Importuje plik kubatury OpenVDB"
+
+
+msgctxt "Operator"
 msgid "Disable Collection"
 msgstr "Wyłącz kolekcję"
 
@@ -15667,6 +15977,11 @@ msgstr "Duplikuj kolekcję"
 msgctxt "Operator"
 msgid "Enable Collection"
 msgstr "Włącz kolekcję"
+
+
+msgctxt "Operator"
+msgid "Hide Collection"
+msgstr "Ukryj kolekcję"
 
 
 msgctxt "Operator"
@@ -16128,6 +16443,60 @@ msgstr "Właściwość"
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Usuń zaznaczenie wszystkiego"
+
+
+msgctxt "Operator"
+msgid "Add Surface Circle"
+msgstr "Dodaj okrąg powierzchni"
+
+
+msgid "Construct a Nurbs surface Circle"
+msgstr "Tworzy okrąg powierzchni NURBS"
+
+
+msgctxt "Operator"
+msgid "Add Surface Curve"
+msgstr "Dodaj krzywą powierzchni"
+
+
+msgid "Construct a Nurbs surface Curve"
+msgstr "Tworzy krzywą powierzchni NURBS"
+
+
+msgctxt "Operator"
+msgid "Add Surface Cylinder"
+msgstr "Dodaj walec powierzchni"
+
+
+msgid "Construct a Nurbs surface Cylinder"
+msgstr "Tworzy walec powierzchni NURBS"
+
+
+msgctxt "Operator"
+msgid "Add Surface Sphere"
+msgstr "Dodaj sferę powierzchni"
+
+
+msgid "Construct a Nurbs surface Sphere"
+msgstr "Tworzy sferę powierzchni NURBS"
+
+
+msgctxt "Operator"
+msgid "Add Surface Patch"
+msgstr "Dodaj łatkę powierzchni"
+
+
+msgid "Construct a Nurbs surface Patch"
+msgstr "Tworzy łatkę powierzchni NURBS"
+
+
+msgctxt "Operator"
+msgid "Add Surface Torus"
+msgstr "Dodaj torus powierzchni"
+
+
+msgid "Construct a Nurbs surface Torus"
+msgstr "Tworzy torus powierzchni NURBS"
 
 
 msgctxt "Operator"
@@ -16800,6 +17169,14 @@ msgstr "Zapisz preferencje"
 msgctxt "Operator"
 msgid "Search Menu"
 msgstr "Przeszukaj menu"
+
+
+msgid "Pop-up a search over all menus in the current context"
+msgstr "Wyświetla okno wyszukiwania we wszystkich menu w bieżącym kontekście"
+
+
+msgid "Pop-up a search for a menu in current context"
+msgstr "Wyświetla okno wyszukiwania menu w bieżącym kontekście"
 
 
 msgid "Menu to search in"
@@ -17819,6 +18196,11 @@ msgid "Seconds"
 msgstr "Sekundy"
 
 
+msgctxt "Unit"
+msgid "Camera"
+msgstr "Kamera"
+
+
 msgid "Rounded Ribbons"
 msgstr "Zaokrąglone wstęgi"
 
@@ -18452,6 +18834,10 @@ msgid "Bounding Box Center"
 msgstr "Środek prostopadłościanu brzegowego"
 
 
+msgid "Individual Origins"
+msgstr "Indywidualne początki"
+
+
 msgid "Snapping Distance"
 msgstr "Odległość przyciągania"
 
@@ -18822,6 +19208,18 @@ msgstr "Rodzaj cieniowania"
 msgctxt "ID"
 msgid "Texture Type"
 msgstr "Rodzaj tekstury"
+
+
+msgid "Geometry Node Editor"
+msgstr "Edytor węzłów geometrii"
+
+
+msgid "Shader Editor"
+msgstr "Edytor cieniowania"
+
+
+msgid "Texture Node Editor"
+msgstr "Edytor węzłów tekstury"
 
 
 msgid "Blender File"
@@ -19842,11 +20240,6 @@ msgstr "Edytor węzłów"
 
 
 msgctxt "WindowManager"
-msgid "SequencerPreview"
-msgstr "PodglądSekwencera"
-
-
-msgctxt "WindowManager"
 msgid "Text"
 msgstr "Tekst"
 
@@ -20535,10 +20928,6 @@ msgid "K0"
 msgstr "K0"
 
 
-msgid "Endpoint"
-msgstr "Punkt końcowy"
-
-
 msgctxt "Operator"
 msgid "Bold"
 msgstr "Pogrubienie"
@@ -20751,6 +21140,10 @@ msgid "Global Coordinates"
 msgstr "Współrzędne globalne"
 
 
+msgid "Endpoint"
+msgstr "Punkt końcowy"
+
+
 msgid "Scale Randomness"
 msgstr "Losowość skali"
 
@@ -20798,9 +21191,18 @@ msgid "Bubbles"
 msgstr "Bąbelki"
 
 
+msgid "CFL Number"
+msgstr "Numer CFL"
+
+
+msgctxt "Operator"
+msgid "Resume"
+msgstr "Wznów"
+
+
 msgctxt "Operator"
 msgid "Free"
-msgstr "Swobodny"
+msgstr "Wyczyść"
 
 
 msgid "Fuel"
@@ -22259,12 +22661,12 @@ msgstr "Bézier"
 
 msgctxt "Operator"
 msgid "Nurbs Curve"
-msgstr "Krzywa nurbs"
+msgstr "Krzywa NURBS"
 
 
 msgctxt "Operator"
 msgid "Nurbs Circle"
-msgstr "Koło nurbs"
+msgstr "Okrąg NURBS"
 
 
 msgctxt "Operator"
@@ -22284,22 +22686,22 @@ msgstr "Futro"
 
 msgctxt "Operator"
 msgid "Nurbs Surface"
-msgstr "Powierzchnia nurbs"
+msgstr "Powierzchnia NURBS"
 
 
 msgctxt "Operator"
 msgid "Nurbs Cylinder"
-msgstr "Cylinder nurbs"
+msgstr "Walec NURBS"
 
 
 msgctxt "Operator"
 msgid "Nurbs Sphere"
-msgstr "Kula nurbs"
+msgstr "Sfera NURBS"
 
 
 msgctxt "Operator"
 msgid "Nurbs Torus"
-msgstr "Torus nurbs"
+msgstr "Torus NURBS"
 
 
 msgctxt "Operator"
@@ -22325,6 +22727,11 @@ msgstr "Pusty"
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Głośnik"
+
+
+msgctxt "Operator"
+msgid "Mesh Plane"
+msgstr "Siatka płaszczyzny"
 
 
 msgctxt "Operator"
@@ -22573,6 +22980,21 @@ msgstr "Szkielet"
 msgctxt "Operator"
 msgid "Lattice"
 msgstr "Kratownica"
+
+
+msgctxt "Operator"
+msgid "Collection Instance..."
+msgstr "Instancja kolekcji..."
+
+
+msgctxt "Operator"
+msgid "No Collections to Instance"
+msgstr "Brak kolekcji do instancji"
+
+
+msgctxt "Operator"
+msgid "Collection Instance"
+msgstr "Instancja kolekcji"
 
 
 msgctxt "Operator"
@@ -22849,6 +23271,10 @@ msgstr "Powierzchnia"
 msgctxt "Action"
 msgid "var"
 msgstr "var"
+
+
+msgid "True Normal"
+msgstr "Prawdziwa normalna"
 
 
 msgid "GP_Layer"
@@ -23878,6 +24304,10 @@ msgid "Value: {}"
 msgstr "Wartość: {}"
 
 
+msgid "Radians: {}"
+msgstr "Radiany: {}"
+
+
 msgctxt "Operator"
 msgid "Click"
 msgstr "Kliknięcie"
@@ -24086,10 +24516,6 @@ msgstr "Przeglądaj dane chmury punktów do powiązania"
 
 msgid "Browse Volume Data to be linked"
 msgstr "Przeglądaj dane kubatury do powiązania"
-
-
-msgid "Browse Grease Pencil v3 Data to be linked"
-msgstr "Przeglądaj dane Grease Pencil v3 do powiązania"
 
 
 msgid "Browse ID data to be linked"
@@ -24509,7 +24935,7 @@ msgstr "Brak zaznaczonych wierzchołków"
 
 
 msgid "Selection not supported in object mode"
-msgstr "Zaznaczenie nie obsługiwane w trybie obiektowym"
+msgstr "Zaznaczenie niewspierane w trybie obiektu"
 
 
 msgid "No edges selected"
@@ -24632,8 +25058,38 @@ msgstr "Wir"
 
 
 msgctxt "Object"
+msgid "Magnet"
+msgstr "Magnes"
+
+
+msgctxt "Object"
+msgid "Wind"
+msgstr "Wiatr"
+
+
+msgctxt "Object"
 msgid "CurveGuide"
 msgstr "CurveGuide"
+
+
+msgctxt "Object"
+msgid "Charge"
+msgstr "Ładunek"
+
+
+msgctxt "Object"
+msgid "Lennard-Jones"
+msgstr "Lennard-Jones"
+
+
+msgctxt "Object"
+msgid "Boid"
+msgstr "Stado"
+
+
+msgctxt "Object"
+msgid "Turbulence"
+msgstr "Turbulencja"
 
 
 msgctxt "Object"
@@ -24670,6 +25126,10 @@ msgstr "Nie można zduplikować obiektu"
 
 msgid "This data does not support joining in edit mode"
 msgstr "Te dane nie obsługują łączenia w trybie edycji"
+
+
+msgid "Deleted %u object(s)"
+msgstr "Usunięto obiekty w liczbie: %u"
 
 
 msgid "No active mesh object"
@@ -25001,7 +25461,7 @@ msgstr "Nie mogę powiązać obiektu z powiązaną sceną"
 
 
 msgid "Skipped editing library object data"
-msgstr "Przerwano edycję danych obiektowych z biblioteki"
+msgstr "Pominięto edycję danych obiektu biblioteki"
 
 
 msgid "Orphan library objects added to the current scene to avoid loss"
@@ -25433,7 +25893,7 @@ msgstr "Usunięto następującą liczbę edytorów: %d"
 
 
 msgid "Only supported in object mode"
-msgstr "Obsługiwane tylko w trybie obiektowym"
+msgstr "Obsługiwane tylko w trybie obiektu"
 
 
 msgid "expected a view3d region"
@@ -25569,7 +26029,7 @@ msgstr "Wykryto Modyfikatory Produktywne!"
 
 
 msgid "Keeping the modifiers will increase polycount when returning to object mode"
-msgstr "Zachowanie modyfikatorów zwiększy gęstość geometrii przy powrocie do trybu obiektowego"
+msgstr "Zachowanie modyfikatorów zwiększy gęstość geometrii przy powrocie do trybu obiektu"
 
 
 msgid "vertex data"
@@ -25606,10 +26066,6 @@ msgstr "Aktywna krzywa F"
 
 msgid "Active Keyframe"
 msgstr "Aktywna Klatka Kluczowa"
-
-
-msgid "Action must have at least one keyframe or F-Modifier"
-msgstr "Akcja musi posiadać przynajmniej jedną klatkę kluczową lub modyfikator F"
 
 
 msgid "Keyframe pasting is not available for mask mode"
@@ -27642,6 +28098,14 @@ msgid "Despill Channel:"
 msgstr "Kanał Despill:"
 
 
+msgid "Prefilter:"
+msgstr "Filtr wstępny:"
+
+
+msgid "Quality:"
+msgstr "Jakość:"
+
+
 msgid "Center:"
 msgstr "Centrum:"
 
@@ -27656,6 +28120,10 @@ msgstr "Warstwa:"
 
 msgid "File Subpath:"
 msgstr "Podścieżka pliku:"
+
+
+msgid "Glare"
+msgstr "Blask"
 
 
 msgid "Dot"
@@ -27682,10 +28150,6 @@ msgstr "B"
 
 msgid "Addend"
 msgstr "Dodajnik"
-
-
-msgid "Geometry Node Editor"
-msgstr "Edytor węzłów geometrii"
 
 
 msgid "Leading"
@@ -27746,10 +28210,6 @@ msgstr "Pozostałe"
 
 msgid "Bounding box volume must be greater than 0"
 msgstr "Kubatura prostopadłościanu brzegowego musi być większa niż 0"
-
-
-msgid "Shader Editor"
-msgstr "Edytor cieniowania"
 
 
 msgid "BSDF"
@@ -27908,10 +28368,6 @@ msgid "Clear Coat Normal"
 msgstr "Wektor normalny powłoki bezbarwnej"
 
 
-msgid "True Normal"
-msgstr "Prawdziwa normalna"
-
-
 msgid "Incoming"
 msgstr "Przychodzący"
 
@@ -28018,10 +28474,6 @@ msgstr "Dokładność szorstkości"
 
 msgid "Patterns"
 msgstr "Wzorce"
-
-
-msgid "Texture Node Editor"
-msgstr "Edytor węzłów tekstury"
 
 
 msgid "Bricks 1"

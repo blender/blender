@@ -12,6 +12,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
+#include "BKE_compute_context_cache.hh"
 #include "BKE_context.hh"
 #include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_geometry_set.hh"
@@ -944,12 +945,11 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
 
   /* This needs to stay around for a bit longer because the compute contexts are required when
    * applying the gizmo changes. */
-  auto compute_context_builder = std::make_shared<ComputeContextBuilder>();
-  compute_context_builder->keep_old_contexts();
+  auto compute_context_cache = std::make_shared<bke::ComputeContextCache>();
 
   nodes::gizmos::foreach_active_gizmo(
       *C,
-      *compute_context_builder,
+      *compute_context_cache,
       [&](const Object &object_orig,
           const NodesModifierData &nmd_orig,
           const ComputeContext &compute_context,
@@ -1047,7 +1047,7 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
           /* Update the callback to apply gizmo changes based on the new context. */
           node_gizmos->apply_change =
               [C = C,
-               compute_context_builder,
+               compute_context_cache,
                compute_context = &compute_context,
                gizmo_node_tree = &gizmo_node.owner_tree(),
                gizmo_node = &gizmo_node,

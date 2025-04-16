@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "editors/sculpt_paint/brushes/types.hh"
+#include "editors/sculpt_paint/brushes/brushes.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
@@ -27,7 +27,7 @@
 
 #include "bmesh.hh"
 
-namespace blender::ed::sculpt_paint {
+namespace blender::ed::sculpt_paint::brushes {
 
 inline namespace clay_strips_cc {
 
@@ -249,54 +249,46 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
 }  // namespace clay_strips_cc
 
+/**
+ * Basic principles of the clay strips brush:
+ * * Calculate a brush plane from an initial node mask
+ * * Use this center position and normal to create a brush-local matrix
+ * * Use this matrix and the plane to calculate and use cube distances for
+ * * the affected area
+ */
 void do_clay_strips_brush(const Depsgraph &depsgraph,
                           const Sculpt &sd,
                           Object &object,
-                          const IndexMask &node_mask)
+                          const IndexMask &node_mask,
+                          const float3 &plane_normal,
+                          const float3 &plane_center)
 {
   SculptSession &ss = *object.sculpt;
+  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  const bool flip = (ss.cache->bstrength < 0.0f);
+
+  /* Note: This return has to happen *after* the call to calc_brush_plane for now, as
+   * the method is not idempotent and sets variables inside the stroke cache. */
   if (math::is_zero(ss.cache->grab_delta_symm)) {
     return;
   }
 
-  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-  const bool flip = (ss.cache->bstrength < 0.0f);
-  const float radius = flip ? -ss.cache->radius : ss.cache->radius;
-  const float offset = SCULPT_brush_plane_offset_get(sd, ss);
-  const float displace = radius * (0.18f + offset);
-
-  float3 area_position;
-  float3 plane_normal;
-  calc_brush_plane(depsgraph, brush, object, node_mask, plane_normal, area_position);
-  plane_normal = tilt_apply_to_normal(plane_normal, *ss.cache, brush.tilt_strength_factor);
-  area_position += plane_normal * ss.cache->scale * displace;
-
-  float3 area_normal;
-  if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
-    area_normal = calc_area_normal(depsgraph, brush, object, node_mask).value_or(float3(0));
-  }
-  else {
-    area_normal = plane_normal;
-  }
-
   float4x4 mat = float4x4::identity();
-  mat.x_axis() = math::cross(area_normal, ss.cache->grab_delta_symm);
-  mat.y_axis() = math::cross(area_normal, float3(mat[0]));
-  mat.z_axis() = area_normal;
-  mat.location() = area_position;
+  mat.x_axis() = math::cross(plane_normal, ss.cache->grab_delta_symm);
+  mat.y_axis() = math::cross(plane_normal, float3(mat[0]));
+  mat.z_axis() = plane_normal;
+  mat.location() = plane_center;
   mat = math::normalize(mat);
 
   /* Scale brush local space matrix. */
   const float4x4 scale = math::from_scale<float4x4>(float3(ss.cache->radius));
   float4x4 tmat = mat * scale;
-
   tmat.y_axis() *= brush.tip_scale_x;
-
   mat = math::invert(tmat);
 
   float4 plane;
-  plane_from_point_normal_v3(plane, area_position, plane_normal);
+  plane_from_point_normal_v3(plane, plane_center, plane_normal);
 
   const float strength = std::abs(ss.cache->bstrength);
 
@@ -352,4 +344,60 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
   pbvh.flush_bounds_to_parents();
 }
 
-}  // namespace blender::ed::sculpt_paint
+namespace clay_strips {
+NodeMaskResult calc_node_mask(const Depsgraph &depsgraph,
+                              Object &object,
+                              const Brush &brush,
+                              IndexMaskMemory &memory)
+{
+  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
+  const SculptSession &ss = *object.sculpt;
+
+  const bool flip = (ss.cache->bstrength < 0.0f);
+  const float offset = brush_plane_offset_get(brush, ss);
+  const float displace = ss.cache->radius * (0.18f + offset) * (flip ? -1.0f : 1.0f);
+
+  /* TODO: Test to see if the sqrt2 extra factor can be removed */
+  const float initial_radius_squared = math::square(ss.cache->radius * math::numbers::sqrt2);
+
+  const bool use_original = !ss.cache->accum;
+  const IndexMask initial_node_mask = gather_nodes(pbvh,
+                                                   eBrushFalloffShape(brush.falloff_shape),
+                                                   use_original,
+                                                   ss.cache->location_symm,
+                                                   initial_radius_squared,
+                                                   ss.cache->view_normal_symm,
+                                                   memory);
+
+  float3 plane_center;
+  float3 sculpt_plane_normal;
+  calc_brush_plane(depsgraph, brush, object, initial_node_mask, sculpt_plane_normal, plane_center);
+
+  float3 plane_normal = sculpt_plane_normal;
+  /* Ignore brush settings and recalculate the area normal. */
+  if (brush.sculpt_plane != SCULPT_DISP_DIR_AREA || (brush.flag & BRUSH_ORIGINAL_NORMAL)) {
+    plane_normal =
+        calc_area_normal(depsgraph, brush, object, initial_node_mask).value_or(float3(0));
+  }
+
+  plane_normal = tilt_apply_to_normal(plane_normal, *ss.cache, brush.tilt_strength_factor);
+  plane_center += plane_normal * ss.cache->scale * displace;
+
+  /* With a cube influence area, this brush needs slightly more than the radius.
+   *
+   * SQRT3 because the cube circumscribes the spherical brush area, so the current radius is equal
+   * to half of the length of a side of the cube. */
+  const float radius_squared = math::square(ss.cache->radius * math::numbers::sqrt3);
+  const IndexMask plane_mask = bke::pbvh::search_nodes(
+      pbvh, memory, [&](const bke::pbvh::Node &node) {
+        if (node_fully_masked_or_hidden(node)) {
+          return false;
+        }
+        return node_in_sphere(node, plane_center, radius_squared, use_original);
+      });
+
+  return {plane_mask, plane_center, plane_normal};
+}
+}  // namespace clay_strips
+
+}  // namespace blender::ed::sculpt_paint::brushes

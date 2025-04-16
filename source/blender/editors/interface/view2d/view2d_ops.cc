@@ -1820,36 +1820,20 @@ enum {
 } /*eV2DScrollerHandle_Zone*/;
 
 /**
- * Check if mouse is within scroller handle.
+ * Get the part of the scrollbar that the mouse is in.
  *
- * \param mouse: relevant mouse coordinate in region space.
- * \param sc_min, sc_max: extents of scroller 'groove' (potential available space for scroller).
- * \param sh_min, sh_max: positions of scrollbar handles.
+ * \param mouse: Relevant mouse coordinate in region space.
+ * \param sh_min, sh_max: Extents of the "scroller handle" part of the scrollbar in region space.
  */
-static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_min, int sh_max)
+static short scrollbar_zone_get(int mouse, int sh_min, int sh_max)
 {
-  /* firstly, check if
-   * - 'bubble' fills entire scroller
-   * - 'bubble' completely out of view on either side
-   */
-  bool in_view = true;
-  if (sh_min <= sc_min && sc_max <= sh_max) {
-    in_view = false;
-  }
-  else if (sh_max <= sc_min || sc_max <= sh_min) {
-    in_view = false;
-  }
-
-  if (!in_view) {
-    return SCROLLHANDLE_BAR;
-  }
-
-  /* check if mouse is in or past either handle */
-  /* TODO: check if these extents are still valid or not */
+  /* Check if mouse is in either zoom handle. */
   bool in_max = ((mouse >= (sh_max - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
                  (mouse <= (sh_max + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
   bool in_min = ((mouse <= (sh_min + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
                  (mouse >= (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
+
+  /* Check if mouse is in scrollbar or outside, on the scrollbar track. */
   bool in_bar = ((mouse < (sh_max - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
                  (mouse > (sh_min + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
   const bool out_min = mouse < (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
@@ -1919,7 +1903,7 @@ static void scroller_activate_init(bContext *C,
    *
    * Some editors like the File Browser, Spreadsheet or scrubbing UI already set up custom masks
    * for scroll-bars (they don't cover the whole region width or height), these need to be
-   * considered, otherwise coords for `mouse_in_scroller_handle` later are not compatible. This
+   * considered, otherwise coords for `scrollbar_zone_get` later are not compatible. This
    * should be a reliable way to do it. Otherwise the custom scroller mask could also be stored in
    * #View2D.
    */
@@ -1942,8 +1926,7 @@ static void scroller_activate_init(bContext *C,
     vsm->fac_round = BLI_rctf_size_x(&v2d->cur) / float(BLI_rcti_size_x(&region->winrct) + 1);
 
     /* get 'zone' (i.e. which part of scroller is activated) */
-    vsm->zone = mouse_in_scroller_handle(
-        event->mval[0], v2d->hor.xmin, v2d->hor.xmax, scrollers.hor_min, scrollers.hor_max);
+    vsm->zone = scrollbar_zone_get(event->mval[0], scrollers.hor_min, scrollers.hor_max);
 
     if ((v2d->keepzoom & V2D_LOCKZOOM_X) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
       /* default to scroll, as handles not usable */
@@ -1962,8 +1945,7 @@ static void scroller_activate_init(bContext *C,
     vsm->fac_round = BLI_rctf_size_y(&v2d->cur) / float(BLI_rcti_size_y(&region->winrct) + 1);
 
     /* get 'zone' (i.e. which part of scroller is activated) */
-    vsm->zone = mouse_in_scroller_handle(
-        event->mval[1], v2d->vert.ymin, v2d->vert.ymax, scrollers.vert_min, scrollers.vert_max);
+    vsm->zone = scrollbar_zone_get(event->mval[1], scrollers.vert_min, scrollers.vert_max);
 
     if ((v2d->keepzoom & V2D_LOCKZOOM_Y) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
       /* default to scroll, as handles not usable */

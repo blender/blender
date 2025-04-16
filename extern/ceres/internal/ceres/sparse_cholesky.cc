@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2017 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,30 +31,28 @@
 #include "ceres/sparse_cholesky.h"
 
 #include <memory>
+#include <utility>
 
 #include "ceres/accelerate_sparse.h"
-#include "ceres/cxsparse.h"
 #include "ceres/eigensparse.h"
-#include "ceres/float_cxsparse.h"
 #include "ceres/float_suitesparse.h"
 #include "ceres/iterative_refiner.h"
 #include "ceres/suitesparse.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 std::unique_ptr<SparseCholesky> SparseCholesky::Create(
     const LinearSolver::Options& options) {
-  const OrderingType ordering_type = options.use_postordering ? AMD : NATURAL;
   std::unique_ptr<SparseCholesky> sparse_cholesky;
 
   switch (options.sparse_linear_algebra_library_type) {
     case SUITE_SPARSE:
 #ifndef CERES_NO_SUITESPARSE
       if (options.use_mixed_precision_solves) {
-        sparse_cholesky = FloatSuiteSparseCholesky::Create(ordering_type);
+        sparse_cholesky =
+            FloatSuiteSparseCholesky::Create(options.ordering_type);
       } else {
-        sparse_cholesky = SuiteSparseCholesky::Create(ordering_type);
+        sparse_cholesky = SuiteSparseCholesky::Create(options.ordering_type);
       }
       break;
 #else
@@ -64,9 +62,10 @@ std::unique_ptr<SparseCholesky> SparseCholesky::Create(
     case EIGEN_SPARSE:
 #ifdef CERES_USE_EIGEN_SPARSE
       if (options.use_mixed_precision_solves) {
-        sparse_cholesky = FloatEigenSparseCholesky::Create(ordering_type);
+        sparse_cholesky =
+            FloatEigenSparseCholesky::Create(options.ordering_type);
       } else {
-        sparse_cholesky = EigenSparseCholesky::Create(ordering_type);
+        sparse_cholesky = EigenSparseCholesky::Create(options.ordering_type);
       }
       break;
 #else
@@ -74,25 +73,14 @@ std::unique_ptr<SparseCholesky> SparseCholesky::Create(
                  << "Eigen's sparse Cholesky factorization routines.";
 #endif
 
-    case CX_SPARSE:
-#ifndef CERES_NO_CXSPARSE
-      if (options.use_mixed_precision_solves) {
-        sparse_cholesky = FloatCXSparseCholesky::Create(ordering_type);
-      } else {
-        sparse_cholesky = CXSparseCholesky::Create(ordering_type);
-      }
-      break;
-#else
-      LOG(FATAL) << "Ceres was compiled without support for CXSparse.";
-#endif
-
     case ACCELERATE_SPARSE:
 #ifndef CERES_NO_ACCELERATE_SPARSE
       if (options.use_mixed_precision_solves) {
-        sparse_cholesky = AppleAccelerateCholesky<float>::Create(ordering_type);
+        sparse_cholesky =
+            AppleAccelerateCholesky<float>::Create(options.ordering_type);
       } else {
         sparse_cholesky =
-            AppleAccelerateCholesky<double>::Create(ordering_type);
+            AppleAccelerateCholesky<double>::Create(options.ordering_type);
       }
       break;
 #else
@@ -107,10 +95,10 @@ std::unique_ptr<SparseCholesky> SparseCholesky::Create(
   }
 
   if (options.max_num_refinement_iterations > 0) {
-    std::unique_ptr<IterativeRefiner> refiner(
-        new IterativeRefiner(options.max_num_refinement_iterations));
-    sparse_cholesky = std::unique_ptr<SparseCholesky>(new RefinedSparseCholesky(
-        std::move(sparse_cholesky), std::move(refiner)));
+    auto refiner = std::make_unique<SparseIterativeRefiner>(
+        options.max_num_refinement_iterations);
+    sparse_cholesky = std::make_unique<RefinedSparseCholesky>(
+        std::move(sparse_cholesky), std::move(refiner));
   }
   return sparse_cholesky;
 }
@@ -123,7 +111,7 @@ LinearSolverTerminationType SparseCholesky::FactorAndSolve(
     double* solution,
     std::string* message) {
   LinearSolverTerminationType termination_type = Factorize(lhs, message);
-  if (termination_type == LINEAR_SOLVER_SUCCESS) {
+  if (termination_type == LinearSolverTerminationType::SUCCESS) {
     termination_type = Solve(rhs, solution, message);
   }
   return termination_type;
@@ -131,7 +119,7 @@ LinearSolverTerminationType SparseCholesky::FactorAndSolve(
 
 RefinedSparseCholesky::RefinedSparseCholesky(
     std::unique_ptr<SparseCholesky> sparse_cholesky,
-    std::unique_ptr<IterativeRefiner> iterative_refiner)
+    std::unique_ptr<SparseIterativeRefiner> iterative_refiner)
     : sparse_cholesky_(std::move(sparse_cholesky)),
       iterative_refiner_(std::move(iterative_refiner)) {}
 
@@ -153,13 +141,12 @@ LinearSolverTerminationType RefinedSparseCholesky::Solve(const double* rhs,
                                                          std::string* message) {
   CHECK(lhs_ != nullptr);
   auto termination_type = sparse_cholesky_->Solve(rhs, solution, message);
-  if (termination_type != LINEAR_SOLVER_SUCCESS) {
+  if (termination_type != LinearSolverTerminationType::SUCCESS) {
     return termination_type;
   }
 
   iterative_refiner_->Refine(*lhs_, rhs, sparse_cholesky_.get(), solution);
-  return LINEAR_SOLVER_SUCCESS;
+  return LinearSolverTerminationType::SUCCESS;
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

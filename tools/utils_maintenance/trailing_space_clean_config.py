@@ -9,7 +9,13 @@ __all__ = (
 
 
 import os
-PATHS = (
+from collections.abc import (
+    Callable,
+    Iterator,
+)
+
+
+PATHS: tuple[str, ...] = (
     "build_files/build_environment/cmake",
     "build_files/cmake",
     "doc/python_api",
@@ -38,7 +44,7 @@ PATHS = tuple(
 )
 
 
-def files(path, test_fn):
+def files(path: str, test_fn: Callable[[str], bool]) -> Iterator[str]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]

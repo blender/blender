@@ -14,7 +14,7 @@ int occupancy_bit_index_from_depth(float depth, int bit_count)
 {
   /* We want the occupancy at the center of each range a bit covers.
    * So we round the depth to the nearest bit. */
-  return int(depth * float(bit_count) + 0.5);
+  return int(depth * float(bit_count) + 0.5f);
 }
 
 /**
@@ -117,11 +117,11 @@ int occupancy_find_lsb(OccupancyBits occupancy)
 }
 
 /**
- * Converts the first four occupancy words to a uvec4.
+ * Converts the first four occupancy words to a uint4.
  */
-uvec4 occupancy_to_uint4(OccupancyBits occupancy)
+uint4 occupancy_to_uint4(OccupancyBits occupancy)
 {
-  return uvec4(occupancy.bits[0], occupancy.bits[1], occupancy.bits[2], occupancy.bits[3]);
+  return uint4(occupancy.bits[0], occupancy.bits[1], occupancy.bits[2], occupancy.bits[3]);
 }
 
 /**

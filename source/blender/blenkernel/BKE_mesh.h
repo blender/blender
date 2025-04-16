@@ -280,11 +280,14 @@ enum {
  * Collection of #MLoopNorSpace basic storage & pre-allocation.
  */
 struct MLoopNorSpaceArray {
-  MLoopNorSpace **lspacearr; /* Face corner aligned array */
-  struct LinkNode
-      *loops_pool; /* Allocated once, avoids to call BLI_linklist_prepend_arena() for each loop! */
-  char data_type;  /* Whether we store loop indices, or pointers to BMLoop. */
-  int spaces_num;  /* Number of clnors spaces defined in this array. */
+  /** Face corner aligned array. */
+  MLoopNorSpace **lspacearr;
+  /** Allocated once, avoids to call #BLI_linklist_prepend_arena() for each loop! */
+  struct LinkNode *loops_pool;
+  /** Whether we store loop indices, or pointers to #BMLoop. */
+  char data_type;
+  /** Number of `clnors` spaces defined in this array. */
+  int spaces_num;
   struct MemArena *mem;
 };
 /**
@@ -349,18 +352,6 @@ void BKE_lnor_space_custom_data_to_normal(const MLoopNorSpace *lnor_space,
 void BKE_lnor_space_custom_normal_to_data(const MLoopNorSpace *lnor_space,
                                           const float custom_lnor[3],
                                           short r_clnor_data[2]);
-
-/**
- * Computes average per-vertex normals from given custom loop normals.
- *
- * \param clnors: The computed custom loop normals.
- * \param r_vert_clnors: The (already allocated) array where to store averaged per-vertex normals.
- */
-void BKE_mesh_normals_loop_to_vertex(int numVerts,
-                                     const int *corner_verts,
-                                     int numLoops,
-                                     const float (*clnors)[3],
-                                     float (*r_vert_clnors)[3]);
 
 /**
  * High-level custom normals functions.

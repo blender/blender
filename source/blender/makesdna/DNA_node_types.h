@@ -273,6 +273,8 @@ typedef enum eNodeSocketDatatype {
   SOCK_ROTATION = 14,
   SOCK_MENU = 15,
   SOCK_MATRIX = 16,
+  SOCK_BUNDLE = 17,
+  SOCK_CLOSURE = 18,
 } eNodeSocketDatatype;
 
 /** Socket shape. */
@@ -1094,11 +1096,11 @@ typedef struct NodeColorCorrection {
 } NodeColorCorrection;
 
 typedef struct NodeBokehImage {
-  float angle;
-  int flaps;
-  float rounding;
-  float catadioptric;
-  float lensshift;
+  float angle DNA_DEPRECATED;
+  int flaps DNA_DEPRECATED;
+  float rounding DNA_DEPRECATED;
+  float catadioptric DNA_DEPRECATED;
+  float lensshift DNA_DEPRECATED;
 } NodeBokehImage;
 
 typedef struct NodeBoxMask {
@@ -1260,7 +1262,7 @@ typedef struct NodeGlare {
   char angle DNA_DEPRECATED;
   char _pad0;
   char size DNA_DEPRECATED;
-  char star_45;
+  char star_45 DNA_DEPRECATED;
   char streaks DNA_DEPRECATED;
   float colmod DNA_DEPRECATED;
   float mix DNA_DEPRECATED;
@@ -1272,8 +1274,13 @@ typedef struct NodeGlare {
 
 /** Tone-map node. */
 typedef struct NodeTonemap {
-  float key, offset, gamma;
-  float f, m, a, c;
+  float key DNA_DEPRECATED;
+  float offset DNA_DEPRECATED;
+  float gamma DNA_DEPRECATED;
+  float f DNA_DEPRECATED;
+  float m DNA_DEPRECATED;
+  float a DNA_DEPRECATED;
+  float c DNA_DEPRECATED;
   int type;
 } NodeTonemap;
 
@@ -1319,7 +1326,8 @@ typedef struct NodeDilateErode {
 } NodeDilateErode;
 
 typedef struct NodeMask {
-  int size_x, size_y;
+  int size_x DNA_DEPRECATED;
+  int size_y DNA_DEPRECATED;
 } NodeMask;
 
 typedef struct NodeSetAlpha {
@@ -1504,6 +1512,10 @@ typedef struct NodeTranslateData {
   char relative;
   short interpolation;
 } NodeTranslateData;
+
+typedef struct NodeScaleData {
+  short interpolation;
+} NodeScaleData;
 
 typedef struct NodePlaneTrackDeformData {
   char tracking_object[64];
@@ -2107,6 +2119,85 @@ typedef struct NodeGeometryForeachGeometryElementOutput {
   char _pad[3];
 } NodeGeometryForeachGeometryElementOutput;
 
+typedef struct NodeGeometryClosureInput {
+  /** bNode.identifier of the corresponding output node. */
+  int32_t output_node_id;
+} NodeGeometryClosureInput;
+
+typedef struct NodeGeometryClosureInputItem {
+  char *name;
+  /** #eNodeSocketDatatype. */
+  short socket_type;
+  char _pad[2];
+  int identifier;
+} NodeGeometryClosureInputItem;
+
+typedef struct NodeGeometryClosureOutputItem {
+  char *name;
+  /** #eNodeSocketDatatype. */
+  short socket_type;
+  char _pad[2];
+  int identifier;
+} NodeGeometryClosureOutputItem;
+
+typedef struct NodeGeometryClosureInputItems {
+  NodeGeometryClosureInputItem *items;
+  int items_num;
+  int active_index;
+  int next_identifier;
+  char _pad[4];
+} NodeGeometryClosureInputItems;
+
+typedef struct NodeGeometryClosureOutputItems {
+  NodeGeometryClosureOutputItem *items;
+  int items_num;
+  int active_index;
+  int next_identifier;
+  char _pad[4];
+} NodeGeometryClosureOutputItems;
+
+typedef struct NodeGeometryClosureOutput {
+  NodeGeometryClosureInputItems input_items;
+  NodeGeometryClosureOutputItems output_items;
+} NodeGeometryClosureOutput;
+
+typedef struct NodeGeometryEvaluateClosureInputItem {
+  char *name;
+  /** #eNodeSocketDatatype */
+  short socket_type;
+  char _pad[2];
+  int identifier;
+} NodeGeometryEvaluateClosureInputItem;
+
+typedef struct NodeGeometryEvaluateClosureOutputItem {
+  char *name;
+  /** #eNodeSocketDatatype */
+  short socket_type;
+  char _pad[2];
+  int identifier;
+} NodeGeometryEvaluateClosureOutputItem;
+
+typedef struct NodeGeometryEvaluateClosureInputItems {
+  NodeGeometryEvaluateClosureInputItem *items;
+  int items_num;
+  int active_index;
+  int next_identifier;
+  char _pad[4];
+} NodeGeometryEvaluateClosureInputItems;
+
+typedef struct NodeGeometryEvaluateClosureOutputItems {
+  NodeGeometryEvaluateClosureOutputItem *items;
+  int items_num;
+  int active_index;
+  int next_identifier;
+  char _pad[4];
+} NodeGeometryEvaluateClosureOutputItems;
+
+typedef struct NodeGeometryEvaluateClosure {
+  NodeGeometryEvaluateClosureInputItems input_items;
+  NodeGeometryEvaluateClosureOutputItems output_items;
+} NodeGeometryEvaluateClosure;
+
 typedef struct IndexSwitchItem {
   /** Generated unique identifier which stays the same even when the item order or names change. */
   int identifier;
@@ -2220,6 +2311,36 @@ typedef struct NodeGeometryBake {
   int active_index;
   char _pad[4];
 } NodeGeometryBake;
+
+typedef struct NodeGeometryCombineBundleItem {
+  char *name;
+  int identifier;
+  int16_t socket_type;
+  char _pad[2];
+} NodeGeometryCombineBundleItem;
+
+typedef struct NodeGeometryCombineBundle {
+  NodeGeometryCombineBundleItem *items;
+  int items_num;
+  int next_identifier;
+  int active_index;
+  char _pad[4];
+} NodeGeometryCombineBundle;
+
+typedef struct NodeGeometrySeparateBundleItem {
+  char *name;
+  int identifier;
+  int16_t socket_type;
+  char _pad[2];
+} NodeGeometrySeparateBundleItem;
+
+typedef struct NodeGeometrySeparateBundle {
+  NodeGeometrySeparateBundleItem *items;
+  int items_num;
+  int next_identifier;
+  int active_index;
+  char _pad[4];
+} NodeGeometrySeparateBundle;
 
 /* script node mode */
 enum {
@@ -2815,6 +2936,14 @@ typedef enum CMPNodeInterpolation {
   CMP_NODE_INTERPOLATION_BILINEAR = 1,
   CMP_NODE_INTERPOLATION_BICUBIC = 2,
 } CMPNodeInterpolation;
+
+/* CornerPin node interpolation option. */
+typedef enum CMPNodeCornerPinInterpolation {
+  CMP_NODE_CORNER_PIN_INTERPOLATION_NEAREST = 0,
+  CMP_NODE_CORNER_PIN_INTERPOLATION_BILINEAR = 1,
+  CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC = 2,
+  CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC = 3,
+} CMPNodeCornerPinInterpolation;
 
 /* Stabilize 2D node. Stored in custom2. */
 typedef enum CMPNodeStabilizeInverse {

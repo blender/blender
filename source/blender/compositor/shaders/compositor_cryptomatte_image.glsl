@@ -6,10 +6,10 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  vec4 input_color = texture_load(input_tx, texel);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
+  float4 input_color = texture_load(input_tx, texel);
   float input_matte = texture_load(matte_tx, texel).x;
 
   /* Premultiply the alpha to the image. */
-  imageStore(output_img, texel, input_color * vec4(input_matte));
+  imageStore(output_img, texel, input_color * float4(input_matte));
 }

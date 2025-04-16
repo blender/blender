@@ -14,7 +14,7 @@ Below is an example of a mesh that is altered from a handler:
 
 
 def frame_change_pre(scene):
-    # A triangle that shifts in the z direction
+    # A triangle that shifts in the z direction.
     zshift = scene.frame_current * 0.1
     vertices = [(-1, -1, zshift), (1, -1, zshift), (0, 1, zshift)]
     triangles = [(0, 1, 2)]

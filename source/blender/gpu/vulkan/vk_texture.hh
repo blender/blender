@@ -12,6 +12,7 @@
 
 #include "vk_context.hh"
 #include "vk_image_view.hh"
+#include "vk_memory.hh"
 
 namespace blender::gpu {
 
@@ -51,6 +52,7 @@ class VKTexture : public Texture {
   VKVertexBuffer *source_buffer_ = nullptr;
   VkImage vk_image_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
+  VmaAllocationInfo allocation_info_ = {};
 
   /**
    * Image views are owned by VKTexture. When a specific image view is needed it will be created
@@ -111,6 +113,13 @@ class VKTexture : public Texture {
 
   /* TODO(fclem): Legacy. Should be removed at some point. */
   uint gl_bindcode_get() const override;
+  /**
+   * Export the memory associated with this texture to be imported by a different
+   * API/Process/Instance.
+   *
+   * Returns the handle + offset of the image inside the handle.
+   */
+  VKMemoryExport export_memory(VkExternalMemoryHandleTypeFlagBits handle_type);
 
   VkImage vk_image_handle() const
   {

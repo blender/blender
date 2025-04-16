@@ -11,10 +11,11 @@
 ##################################################################################################
 
 macro(download_package package_name)
-  # this will
-  # 1 - download the required package from either the upstream location or blender mirror depending on MSYS2_USE_UPSTREAM_PACKAGES
-  # 2 - Set a global variable [package_name]_FILE to point to the downloaded file
-  # 3 - Verify the hash if FORCE_CHECK_HASH is on
+  # This will:
+  # 1 - Download the required package from either the upstream location or blender mirror
+  #     depending on `MSYS2_USE_UPSTREAM_PACKAGES`.
+  # 2 - Set a global variable [package_name]_FILE to point to the downloaded file.
+  # 3 - Verify the hash if FORCE_CHECK_HASH is on.
   set(URL ${MSYS2_${package_name}_URL})
   set(HASH ${MSYS2_${package_name}_HASH})
   string(REPLACE "/" ";" _url_list ${URL})
@@ -27,7 +28,7 @@ macro(download_package package_name)
     else()
       set(_final_url "https://projects.blender.org/blender/lib-windows_x64/media/branch/build_environment/${_file_name}")
     endif()
-    message("Downloading ${_final_filename} from ${_final_url}")
+    message(STATUS "Downloading ${_final_filename} from ${_final_url}")
     file(
       DOWNLOAD ${_final_url} ${_final_filename}
       TIMEOUT 1800  # seconds
@@ -52,8 +53,9 @@ macro(download_package package_name)
   unset(_file_name)
 endmacro()
 
-# Note we use URL here rather than URI as the deps checker will check all *_URI vars for package/license/homepage requirements
-# since none of this will end up on end users systems the requirements are not as strict
+# Note we use URL here rather than URI as the dependencies checker will check all `*_URI`
+# variables for package/license/homepage requirements since none of this will end up
+# on end users systems the requirements are not as strict.
 set(MSYS2_BASE_URL https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20221028.tar.xz)
 set(MSYS2_BASE_HASH 545cc6a4c36bb98058f2b2945c5d06de523516db)
 
@@ -75,7 +77,7 @@ download_package(PERL)
 download_package(GAS)
 download_package(AR)
 
-message("LIBDIR = ${LIBDIR}")
+message(STATUS "LIBDIR = ${LIBDIR}")
 macro(cmake_to_msys_path MsysPath ResultingPath)
   string(REPLACE ":" "" TmpPath "${MsysPath}")
   string(SUBSTRING ${TmpPath} 0 1 Drive)
@@ -84,7 +86,7 @@ macro(cmake_to_msys_path MsysPath ResultingPath)
   string(CONCAT ${ResultingPath} "/" ${LowerDrive} ${PathPart})
 endmacro()
 cmake_to_msys_path(${LIBDIR} msys2_LIBDIR)
-message("msys2_LIBDIR = ${msys2_LIBDIR}")
+message(STATUS "msys2_LIBDIR = ${msys2_LIBDIR}")
 
 # Make msys2 root directory
 if(NOT EXISTS "${DOWNLOAD_DIR}/msys2")
@@ -97,14 +99,14 @@ endif()
 # Extract msys2
 if((NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd") AND
    (EXISTS "${MSYS2_BASE_FILE}"))
-  message("Extracting msys2 base")
+  message(STATUS "Extracting msys2 base")
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar jxf ${MSYS2_BASE_FILE}
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/msys2
   )
 
   # Start msys2 with command "exit" - does initial setup etc then exits
-  message("Performing first-time load for msys2")
+  message(STATUS "Performing first-time load for msys2")
   execute_process(
     COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c exit
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/msys2/msys64
@@ -113,7 +115,8 @@ if((NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd") AND
   # Do initial upgrade of pacman packages (only required for initial setup, to get
   # latest packages as opposed to to what the installer comes with)
   execute_process(
-    COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c "pacman -Sy --noconfirm && exit"
+    COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c
+      "pacman -Sy --noconfirm && exit"
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/msys2/msys64
   )
 endif()
@@ -121,15 +124,17 @@ endif()
 # If m4 isn't there, the others probably aren't either
 if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/m4.exe")
   # Refresh pacman repositories (similar to debian's `apt update`)
-  message("Refreshing pacman")
+  message(STATUS "Refreshing pacman")
   execute_process(
-    COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c "pacman -Syy --noconfirm && exit"
+    COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c
+      "pacman -Syy --noconfirm && exit"
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/msys2/msys64
   )
 
-  message("Installing required packages")
+  message(STATUS "Installing required packages")
   execute_process(
-    COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c "pacman -S patch m4 coreutils pkgconf make diffutils autoconf-wrapper --noconfirm && exit"
+    COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c
+      "pacman -S patch m4 coreutils pkgconf make diffutils autoconf-wrapper --noconfirm && exit"
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/msys2/msys64
   )
 endif()
@@ -153,7 +158,7 @@ endif()
 
 # extract nasm
 if((NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/nasm.exe") AND (EXISTS "${MSYS2_NASM_FILE}"))
-  message("Extracting nasm")
+  message(STATUS "Extracting nasm")
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar jxf "${MSYS2_NASM_FILE}"
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/
@@ -176,7 +181,7 @@ endif()
 
 # extract perl
 if((NOT EXISTS "${DOWNLOAD_DIR}/perl/portable.perl") AND (EXISTS "${MSYS2_PERL_FILE}"))
-  message("Extracting perl")
+  message(STATUS "Extracting perl")
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar jxf ${MSYS2_PERL_FILE}
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/perl
@@ -194,7 +199,7 @@ if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/gas-preprocessor.pl")
 endif()
 
 # Get ar-lib
-message("Checking for ar-lib")
+message(STATUS "Checking for ar-lib")
 if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/ar-lib")
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -204,7 +209,7 @@ if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/ar-lib")
 endif()
 
 if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/ming64sh.cmd")
-  message("Installing ming64sh.cmd")
+  message(STATUS "Installing ming64sh.cmd")
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E copy
       ${PATCH_DIR}/ming64sh.cmd

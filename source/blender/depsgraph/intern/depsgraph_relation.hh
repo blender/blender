@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "MEM_guardedalloc.h"
-
 namespace blender::deg {
 
 struct Node;
@@ -35,8 +33,9 @@ enum RelationFlag {
 
 /* B depends on A (A -> B) */
 struct Relation {
-  Relation(Node *from, Node *to, const char *description);
-  ~Relation();
+  Relation(Node *from, Node *to, const char *description) : from(from), to(to), name(description)
+  {
+  }
 
   void unlink();
 
@@ -46,9 +45,7 @@ struct Relation {
 
   /* relationship attributes */
   const char *name; /* label for debugging */
-  int flag;         /* Bitmask of RelationFlag) */
-
-  MEM_CXX_CLASS_ALLOC_FUNCS("Relation");
+  int flag = 0;     /* Bitmask of RelationFlag) */
 };
 
 }  // namespace blender::deg

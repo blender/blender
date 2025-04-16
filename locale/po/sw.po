@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2024-07-05 18:56+0000\n"
-"Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:50+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
 "Language: sw\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.5.2"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -7764,50 +7764,6 @@ msgid "Offset will be an absolute point in space instead of relative to the targ
 msgstr "Offset itakuwa sehemu kamili katika nafasi badala ya jamaa na lengo"
 
 
-msgid "Python Constraint"
-msgstr "Kizuizi cha Chatu"
-
-
-msgid "Use Python script for constraint evaluation"
-msgstr "Tumia hati ya Python kwa tathmini ya kizuizi"
-
-
-msgid "Script Error"
-msgstr "Hitilafu ya Hati"
-
-
-msgid "The linked Python script has thrown an error"
-msgstr "Hati iliyounganishwa ya Python imetupa kosa"
-
-
-msgid "Number of Targets"
-msgstr "Idadi ya Malengo"
-
-
-msgid "Usually only 1 to 3 are needed"
-msgstr "Kawaida 1 hadi 3 tu inahitajika"
-
-
-msgid "Target Objects"
-msgstr "Vitu Lengwa"
-
-
-msgid "Script"
-msgstr "Hati"
-
-
-msgid "The text object that contains the Python script"
-msgstr "Kitu cha maandishi ambacho kina hati ya Python"
-
-
-msgid "Use Targets"
-msgstr "Tumia Malengo"
-
-
-msgid "Use the targets indicated in the constraint panel"
-msgstr "Tumia shabaha zilizoonyeshwa kwenye paneli ya vizuizi"
-
-
 msgid "Shrinkwrap Constraint"
 msgstr "Kizuizi cha Shrinkwrap"
 
@@ -10890,6 +10846,10 @@ msgstr "Huzima utoaji wa video, kwa matoleo ya sauti pekee"
 
 msgid "FFmpeg video codec #1"
 msgstr "kodeki ya video ya FFmpeg"
+
+
+msgid "Profile"
+msgstr "Wasifu"
 
 
 msgid "Matroska"
@@ -13977,6 +13937,10 @@ msgid "Collection"
 msgstr "Mkusanyiko"
 
 
+msgid "Bundle"
+msgstr "Kifungu"
+
+
 msgid "Freestyle Line Set"
 msgstr "Seti ya Mstari Huria"
 
@@ -16988,10 +16952,6 @@ msgid "Tilt Strength"
 msgstr "Nguvu ya Tilt"
 
 
-msgid "How much the tilt of the pen will affect the brush"
-msgstr "Ni kiasi gani kuinamisha kalamu kutaathiri brashi"
-
-
 msgid "Tip Roundness"
 msgstr "Mviringo wa Ncha"
 
@@ -18229,10 +18189,6 @@ msgstr "Tumia mduara kwa sehemu ya jiometri ya beveli ya curve"
 
 msgid "Use an object for the section of the curve's bevel geometry segment"
 msgstr "Tumia kitu kwa sehemu ya sehemu ya jiometri ya bevel ya curve"
-
-
-msgid "Profile"
-msgstr "Wasifu"
 
 
 msgid "Use a custom profile for each quarter of curve's bevel geometry"
@@ -21275,6 +21231,10 @@ msgstr "Kupotosha"
 
 msgid "Filter"
 msgstr "Chuja"
+
+
+msgid "Script"
+msgstr "Hati"
 
 
 msgid "Pattern"
@@ -28764,6 +28724,10 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
 msgid "Metaball"
 msgstr "Mpira wa miguu"
 
@@ -28818,10 +28782,6 @@ msgstr "Kioo"
 
 msgid "Navigation"
 msgstr "Urambazaji"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
 
 
 msgid "Keyframe Insert Pie"
@@ -37057,10 +37017,6 @@ msgid "Average error of re-projection"
 msgstr "Hitilafu ya wastani ya kukadiria upya"
 
 
-msgid "Bundle"
-msgstr "Kifungu"
-
-
 msgid "Position of bundle reconstructed from this track"
 msgstr "Nafasi ya kifungu kilichoundwa upya kutoka kwa wimbo huu"
 
@@ -37629,36 +37585,16 @@ msgid "Bokeh Image"
 msgstr "Picha ya Bokeh"
 
 
-msgid "Angle of the bokeh"
-msgstr "Pembe ya bokeh"
-
-
-msgid "Level of catadioptric of the bokeh"
-msgstr "Kiwango cha catadioptric ya bokeh"
-
-
 msgid "Flaps"
 msgstr "Mabako"
-
-
-msgid "Number of flaps"
-msgstr "Idadi ya vibao"
 
 
 msgid "Rounding"
 msgstr "Kuzunguka"
 
 
-msgid "Level of rounding of the bokeh"
-msgstr "Kiwango cha kuzungushwa kwa bokeh"
-
-
 msgid "Lens Shift"
 msgstr "Shift ya Lenzi"
-
-
-msgid "Shift of the lens components"
-msgstr "Kuhama kwa vijenzi vya lenzi"
 
 
 msgid "Box Mask"
@@ -38141,6 +38077,10 @@ msgid "Corner Pin"
 msgstr "Pini ya Pembeni"
 
 
+msgid "Interpolation method"
+msgstr "Njia ya kutafsiri"
+
+
 msgid "Use relative values to crop image"
 msgstr "Tumia thamani zinazohusiana ili kupunguza taswira"
 
@@ -38520,10 +38460,6 @@ msgstr "Geuza Y"
 
 msgid "Flip X & Y"
 msgstr "Geuza X"
-
-
-msgid "Simple star filter: add 45 degree rotation offset"
-msgstr "Kichujio rahisi cha nyota: ongeza mzunguuko wa digrii 45"
 
 
 msgid "Hue Correct"
@@ -39883,6 +39819,14 @@ msgid "Which domain to store the data in"
 msgstr "Ni kikoa gani cha kuhifadhi data ndani"
 
 
+msgid "Paired Output"
+msgstr "Pato Lililooanishwa"
+
+
+msgid "Zone output node that this input node is paired with"
+msgstr "Njia ya pato la eneo ambalo nodi hii ya ingizo imeoanishwa nayo"
+
+
 msgid "Collection Info"
 msgstr "Maelezo ya Mkusanyiko"
 
@@ -40341,14 +40285,6 @@ msgstr "Flip Nyuso"
 
 msgid "Reverse the order of the vertices and edges of selected faces, flipping their normal direction"
 msgstr "Badilisha mpangilio wa wima na kingo za nyuso zilizochaguliwa, ukigeuza mwelekeo wao wa kawaida."
-
-
-msgid "Paired Output"
-msgstr "Pato Lililooanishwa"
-
-
-msgid "Zone output node that this input node is paired with"
-msgstr "Njia ya pato la eneo ambalo nodi hii ya ingizo imeoanishwa nayo"
 
 
 msgid "Inspection Index"
@@ -41230,6 +41166,10 @@ msgstr "Weka Kielezo cha Nyenzo"
 
 msgid "Set the material index for each selected geometry element"
 msgstr "Weka faharasa ya nyenzo kwa kila kipengele cha jiometri iliyochaguliwa"
+
+
+msgid "Tangent Space"
+msgstr "Nafasi ya Tangent"
 
 
 msgid "Set Point Radius"
@@ -42239,10 +42179,6 @@ msgstr "Tengeneza hali ya kutatanisha kutoka kwa picha ya kawaida ya ramani ya R
 
 msgid "Space of the input normal"
 msgstr "Nafasi ya kawaida ya ingizo"
-
-
-msgid "Tangent Space"
-msgstr "Nafasi ya Tangent"
 
 
 msgid "Tangent space normal mapping"
@@ -57038,10 +56974,6 @@ msgid "Create a bridge of faces between two or more selected edge loops"
 msgstr "Unda daraja la nyuso kati ya loops mbili au zaidi zilizochaguliwa za makali"
 
 
-msgid "Interpolation method"
-msgstr "Njia ya kutafsiri"
-
-
 msgid "Blend Path"
 msgstr "Njia ya Mchanganyiko"
 
@@ -60007,6 +59939,18 @@ msgid "Reset viewable area to show selected strips range"
 msgstr "Weka upya eneo linaloweza kutazamwa ili kuonyesha masafa ya vipande vilivyochaguliwa"
 
 
+msgid "Offset of nodes from the cursor when added"
+msgstr "Kukabiliana na nodi kutoka kwa mshale unapoongezwa"
+
+
+msgid "Settings to be applied on the newly created node"
+msgstr "Mipangilio ya kutumika kwenye nodi mpya iliyoundwa"
+
+
+msgid "Start transform operator after inserting the node"
+msgstr "Anza kubadilisha opereta baada ya kuingiza nodi"
+
+
 msgctxt "Operator"
 msgid "Add Node Collection"
 msgstr "Ongeza Mkusanyiko wa Nodi"
@@ -60030,18 +59974,6 @@ msgstr "Rangi ya chanzo imerekebishwa kwa gamma"
 
 msgid "Has Alpha"
 msgstr "Ina Alfa"
-
-
-msgid "Offset of nodes from the cursor when added"
-msgstr "Kukabiliana na nodi kutoka kwa mshale unapoongezwa"
-
-
-msgid "Settings to be applied on the newly created node"
-msgstr "Mipangilio ya kutumika kwenye nodi mpya iliyoundwa"
-
-
-msgid "Start transform operator after inserting the node"
-msgstr "Anza kubadilisha opereta baada ya kuingiza nodi"
 
 
 msgctxt "Operator"
@@ -61470,11 +61402,6 @@ msgstr "Sogeza sehemu ya saa inayotumika juu au chini"
 
 msgid "Remove the active segment from the time modifier"
 msgstr "Ondoa sehemu inayotumika kwenye kirekebishaji wakati"
-
-
-msgctxt "Operator"
-msgid "Hide Collection"
-msgstr "Ficha Mkusanyiko"
 
 
 msgid "Show only objects in collection (Shift to extend)"
@@ -63947,6 +63874,11 @@ msgstr "Zima kutoka kwa Tabaka la Kutazama"
 
 msgid "Exclude collection from the active view layer"
 msgstr "Ondoa mkusanyiko kutoka kwa safu inayotumika ya mwonekano"
+
+
+msgctxt "Operator"
+msgid "Hide Collection"
+msgstr "Ficha Mkusanyiko"
 
 
 msgid "Hide the collection in this view layer"
@@ -75804,6 +75736,14 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
+msgid "Quad View"
+msgstr "Mtazamo wa Quad"
+
+
+msgid "Multi Frame"
+msgstr "Fremu nyingi"
+
+
 msgid "Auto-Masking"
 msgstr "Kufunika Masking Kiotomatiki"
 
@@ -75818,6 +75758,10 @@ msgstr "Curves Sculpt Parameta Falloff"
 
 msgid "Viewport Debug"
 msgstr "Utatuzi wa kituo cha kutazama"
+
+
+msgid "Drawing Plane"
+msgstr "Ndege ya Kuchora"
 
 
 msgid "View Lock"
@@ -75874,18 +75818,6 @@ msgstr "Badilisha Mielekeo"
 
 msgid "Stroke Placement"
 msgstr "Uwekaji wa Kiharusi"
-
-
-msgid "Drawing Plane"
-msgstr "Ndege ya Kuchora"
-
-
-msgid "Quad View"
-msgstr "Mtazamo wa Quad"
-
-
-msgid "Multi Frame"
-msgstr "Fremu nyingi"
 
 
 msgid "Fast GI Approximation"
@@ -83981,10 +83913,6 @@ msgid "Render settings"
 msgstr "Mipangilio ya kutoa"
 
 
-msgid "Anti-Aliasing Threshold"
-msgstr "Kizingiti cha Kupinga Kutengwa"
-
-
 msgid "Threshold for edge detection algorithm (higher values might over-blur some part of the image)"
 msgstr "Kizingiti cha algorithm ya kugundua makali (thamani za juu zinaweza kutia ukungu zaidi sehemu fulani ya picha)"
 
@@ -86064,6 +85992,18 @@ msgid "Node tree type to display and edit"
 msgstr "Aina ya mti wa nodi ya kuonyesha na kuhariri"
 
 
+msgid "Geometry Node Editor"
+msgstr "Mhariri wa Njia ya Jiometri"
+
+
+msgid "Shader Editor"
+msgstr "Mhariri wa Shader"
+
+
+msgid "Texture Node Editor"
+msgstr "Mhariri wa Njia ya Umbile"
+
+
 msgid "Space Outliner"
 msgstr "Kionyesha Nafasi"
 
@@ -87468,14 +87408,6 @@ msgstr "Onyesha Nyosha"
 
 msgid "Display faces colored according to the difference in shape between UVs and their 3D coordinates (blue for low distortion, red for high distortion)"
 msgstr "Onyesha nyuso zenye rangi kulingana na tofauti ya umbo kati ya UV na viwianishi vyake vya 3D (bluu kwa upotoshaji mdogo, nyekundu kwa upotoshaji wa hali ya juu)"
-
-
-msgid "Display Texture Paint UVs"
-msgstr "Onyesha UV za Rangi ya Umbile"
-
-
-msgid "Display overlay of texture paint UV layer"
-msgstr "Onyesho la juu la safu ya UV ya rangi ya maandishi"
 
 
 msgid "Tile Grid Shape"
@@ -95718,56 +95650,6 @@ msgstr "Zana ya Kufuatilia: Blade (rudi nyuma)"
 
 
 msgctxt "WindowManager"
-msgid "Sequencer Tool: Cursor"
-msgstr "Zana ya Kufuatilia: Mshale"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Cursor (fallback)"
-msgstr "Zana ya Kufuatilia: Mshale (rudi nyuma)"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Move"
-msgstr "Zana ya Kufuatilia: Sogeza"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Move (fallback)"
-msgstr "Zana ya Sequencer: Sogeza (rudi nyuma)"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Rotate"
-msgstr "Zana ya Kufuatilia: Zungusha"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Rotate (fallback)"
-msgstr "Zana ya Kufuatilia: Zungusha (rudi nyuma)"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Scale"
-msgstr "Zana ya Kufuatilia: Mizani"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Scale (fallback)"
-msgstr "Zana ya Kufuatilia: Kiwango (kurudi nyuma)"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Sample"
-msgstr "Zana ya Kufuatilia: Sampuli"
-
-
-msgctxt "WindowManager"
-msgid "Sequencer Tool: Sample (fallback)"
-msgstr "Zana ya Kufuatilia: Sampuli (rudi nyuma)"
-
-
-msgctxt "WindowManager"
 msgid "File Browser"
 msgstr "Kivinjari cha Faili"
 
@@ -97697,10 +97579,6 @@ msgid "Rotation Range"
 msgstr "Mzunguko wa Mzunguko"
 
 
-msgid "Blender 2.6 doesn't support Python constraints yet"
-msgstr "Blender 2.6 bado haitumii vikwazo vya Python"
-
-
 msgctxt "Operator"
 msgid "Add Target Bone"
 msgstr "Ongeza Mfupa Unaolenga"
@@ -97927,14 +97805,6 @@ msgstr "Nafasi ya Neno"
 
 msgid "Line Spacing"
 msgstr "Nafasi ya Mstari"
-
-
-msgid "Endpoint"
-msgstr "Mwisho"
-
-
-msgid "Interpolation Tilt"
-msgstr "Tilt ya Tafsiri"
 
 
 msgctxt "Operator"
@@ -98678,6 +98548,10 @@ msgstr "Nasibu Ukubwa"
 
 msgid "Parting not available with virtual parents"
 msgstr "Kuachana hakupatikani na wazazi pepe"
+
+
+msgid "Endpoint"
+msgstr "Mwisho"
 
 
 msgid "Randomize Amplitude"
@@ -103220,6 +103094,10 @@ msgid "Custom Location"
 msgstr "Mahali Maalum"
 
 
+msgid "Interpolation Tilt"
+msgstr "Tilt ya Tafsiri"
+
+
 msgid "Scaling"
 msgstr "Kuongeza"
 
@@ -103899,6 +103777,10 @@ msgstr "Nodi ya Urefu wa Spline"
 
 msgid "\"{}\" attribute from geometry"
 msgstr "\"{}\" sifa kutoka jiometri"
+
+
+msgid "True Normal"
+msgstr "Kweli Kawaida"
 
 
 msgid "GP_Layer"
@@ -106280,10 +106162,6 @@ msgstr "Vinjari Data ya Wingu la Point ili kuunganishwa"
 
 msgid "Browse Volume Data to be linked"
 msgstr "Vinjari Data ya Kiasi ili kuunganishwa"
-
-
-msgid "Browse Grease Pencil v3 Data to be linked"
-msgstr "Vinjari Data ya Grease Penseli v3 ya kuunganishwa"
 
 
 msgid "Browse ID data to be linked"
@@ -108880,10 +108758,6 @@ msgid "Active Keyframe"
 msgstr "Fremu muhimu Inayotumika"
 
 
-msgid "Action must have at least one keyframe or F-Modifier"
-msgstr "Kitendo lazima kiwe na angalau fremu moja muhimu au F-Modifier"
-
-
 msgid "Could not find current NLA Track"
 msgstr "Haikuweza kupata Wimbo wa sasa wa NLA"
 
@@ -110551,14 +110425,6 @@ msgstr "Hakuna vipande vya kubandika"
 
 msgid "%d strips pasted"
 msgstr "sehemu %d zimebandikwa"
-
-
-msgid "Slip offset: %s"
-msgstr "Kupunguza utelezi: %s"
-
-
-msgid "Slip offset: %d"
-msgstr "Kupunguza utelezi: %d"
 
 
 msgid "Cannot reassign inputs: strip has no inputs"
@@ -114230,10 +114096,6 @@ msgid "Decimals"
 msgstr "Desimali"
 
 
-msgid "Geometry Node Editor"
-msgstr "Mhariri wa Njia ya Jiometri"
-
-
 msgid "Node must be run as tool"
 msgstr "Nodi lazima iendeshwe kama zana"
 
@@ -115878,10 +115740,6 @@ msgid " (Deprecated)"
 msgstr " (Imeacha kutumika)"
 
 
-msgid "Shader Editor"
-msgstr "Mhariri wa Shader"
-
-
 msgid "Not a shader node tree"
 msgstr "Sio mti wa nodi ya shader"
 
@@ -116112,10 +115970,6 @@ msgid "Clear Coat Normal"
 msgstr "Wazi Koti Kawaida"
 
 
-msgid "True Normal"
-msgstr "Kweli Kawaida"
-
-
 msgid "Incoming"
 msgstr "Inayoingia"
 
@@ -116294,10 +116148,6 @@ msgstr "Sifa ya Joto"
 
 msgid "Patterns"
 msgstr "Miundo"
-
-
-msgid "Texture Node Editor"
-msgstr "Mhariri wa Njia ya Umbile"
 
 
 msgid "Not a texture node tree"

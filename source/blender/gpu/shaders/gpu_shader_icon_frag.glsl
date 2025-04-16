@@ -17,19 +17,19 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_icon)
 void main()
 {
   /* Sample texture with LOD BIAS. Used instead of custom LOD bias in GPU_SAMPLER_CUSTOM_ICON. */
-  fragColor = texture(image, texCoord_interp, -0.5) * finalColor;
+  fragColor = texture(image, texCoord_interp, -0.5f) * finalColor;
 
 #ifdef DO_CORNER_MASKING
   /* Top-left rounded corner parameters. */
-  const float circle_radius_outer = 0.1;
-  const float circle_radius_inner = 0.075;
+  constexpr float circle_radius_outer = 0.1f;
+  constexpr float circle_radius_inner = 0.075f;
 
   /**
    * Add a bit transparency to see a bit of the icon, without
    * getting on the way of readability. */
-  const float mask_transparency = 0.25;
+  constexpr float mask_transparency = 0.25f;
 
-  vec2 circle_center = vec2(circle_radius_outer - text_width, 0.5);
+  float2 circle_center = float2(circle_radius_outer - text_width, 0.5f);
 
   /* Radius in icon space (1 is the icon width). */
   float radius = length(mask_coord_interp - circle_center);
@@ -49,6 +49,6 @@ void main()
                       mask_coord_interp.x);
   }
 
-  fragColor = mix(vec4(0.0), fragColor, max(mask_transparency, mask));
+  fragColor = mix(float4(0.0f), fragColor, max(mask_transparency, mask));
 #endif
 }

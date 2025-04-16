@@ -545,7 +545,6 @@ if ARGS.sphinx_build_pdf:
             SPHINX_IN, SPHINX_OUT_PDF,
         ]
         sphinx_make_pdf_log = os.path.join(ARGS.output_dir, ".latex_make.log")
-        SPHINX_MAKE_PDF_STDOUT = open(sphinx_make_pdf_log, "w", encoding="utf-8")
 
 
 # --------------------------------CHANGELOG GENERATION--------------------------------------
@@ -661,34 +660,32 @@ def example_extract_docstring(filepath):
     - ``line_no_has_content`` when False, this file only contains a doc-string.
       There is no need to include the remainder.
     """
-    file = open(filepath, "r", encoding="utf-8")
-    line = file.readline()
-    line_no = 0
-    text = []
-    if line.startswith('"""'):  # Assume nothing here.
+    with open(filepath, "r", encoding="utf-8") as fh:
+        line = fh.readline()
+        line_no = 0
+        text = []
+        if line.startswith('"""'):  # Assume nothing here.
+            line_no += 1
+        else:
+            return "", 0, True
+
+        for line in fh:
+            line_no += 1
+            if line.startswith('"""'):
+                break
+            text.append(line.rstrip())
+
         line_no += 1
-    else:
-        file.close()
-        return "", 0, True
+        line_no_has_content = False
 
-    for line in file:
-        line_no += 1
-        if line.startswith('"""'):
-            break
-        text.append(line.rstrip())
+        # Skip over blank lines so the Python code doesn't have blank lines at the top.
+        for line in fh:
+            if line.strip():
+                line_no_has_content = True
+                break
+            line_no += 1
 
-    line_no += 1
-    line_no_has_content = False
-
-    # Skip over blank lines so the Python code doesn't have blank lines at the top.
-    for line in file:
-        if line.strip():
-            line_no_has_content = True
-            break
-        line_no += 1
-
-    file.close()
-    return "\n".join(text).rstrip("\n"), line_no, line_no_has_content
+        return "\n".join(text).rstrip("\n"), line_no, line_no_has_content
 
 
 def title_string(text, heading_char, double=False):
@@ -1826,7 +1823,15 @@ def pyrna2sphinx(basepath):
                 continue
             write_struct(struct)
 
-        def fake_bpy_type(class_module_name, class_value, class_name, descr_str, use_subclasses=True):
+        def fake_bpy_type(
+                class_module_name,
+                class_value,
+                class_name,
+                descr_str,
+                *,
+                use_subclasses,  # `bool`
+                base_class,  # `str | None`
+        ):
             filepath = os.path.join(basepath, "{:s}.{:s}.rst".format(class_module_name, class_name))
             file = open(filepath, "w", encoding="utf-8")
             fw = file.write
@@ -1834,6 +1839,9 @@ def pyrna2sphinx(basepath):
             fw(title_string(class_name, "="))
 
             fw(".. currentmodule:: {:s}\n\n".format(class_module_name))
+
+            if base_class is not None:
+                fw("base classes --- :class:`{:s}`\n\n".format(base_class))
 
             if use_subclasses:
                 subclass_ids = [
@@ -1871,21 +1879,27 @@ def pyrna2sphinx(basepath):
             class_value = bpy_struct
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_STRUCT_FAKE,
-                "built-in base class for all classes in bpy.types.", use_subclasses=True,
+                "built-in base class for all classes in bpy.types.",
+                use_subclasses=True,
+                base_class=None,
             )
 
         if _BPY_PROP_COLLECTION_FAKE:
             class_value = bpy.types.bpy_prop_collection
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_PROP_COLLECTION_FAKE,
-                "built-in class used for all collections.", use_subclasses=False,
+                "built-in class used for all collections.",
+                use_subclasses=False,
+                base_class=None,
             )
 
         if _BPY_PROP_COLLECTION_IDPROP_FAKE:
             class_value = bpy.types.bpy_prop_collection_idprop
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_PROP_COLLECTION_IDPROP_FAKE,
-                "built-in class used for user defined collections.", use_subclasses=False,
+                "built-in class used for user defined collections.",
+                use_subclasses=False,
+                base_class=_BPY_PROP_COLLECTION_FAKE,
             )
 
     # Operators.
@@ -2044,10 +2058,12 @@ def write_rst_bpy(basepath):
     """
     Write RST file of ``bpy`` module (disabled by default)
     """
-    if ARGS.bpy:
-        filepath = os.path.join(basepath, "bpy.rst")
-        file = open(filepath, "w", encoding="utf-8")
-        fw = file.write
+    if not ARGS.bpy:
+        return
+
+    filepath = os.path.join(basepath, "bpy.rst")
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fw = fh.write
 
         fw("\n")
 
@@ -2056,17 +2072,18 @@ def write_rst_bpy(basepath):
         fw(title_string(title, "="))
 
         fw(".. module:: bpy.types\n\n")
-        file.close()
 
 
 def write_rst_types_index(basepath):
     """
     Write the RST file of ``bpy.types`` module (index)
     """
-    if "bpy.types" not in EXCLUDE_MODULES:
-        filepath = os.path.join(basepath, "bpy.types.rst")
-        file = open(filepath, "w", encoding="utf-8")
-        fw = file.write
+    if "bpy.types" in EXCLUDE_MODULES:
+        return
+
+    filepath = os.path.join(basepath, "bpy.types.rst")
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fw = fh.write
         fw(title_string("Types (bpy.types)", "="))
         fw(".. module:: bpy.types\n\n")
         fw(".. toctree::\n")
@@ -2082,17 +2099,17 @@ def write_rst_types_index(basepath):
             fw("   :maxdepth: 1\n\n")
             fw("   Shared Enum Types <bpy_types_enum_items/index>\n\n")
 
-        file.close()
-
 
 def write_rst_ops_index(basepath):
     """
     Write the RST file of bpy.ops module (index)
     """
-    if "bpy.ops" not in EXCLUDE_MODULES:
-        filepath = os.path.join(basepath, "bpy.ops.rst")
-        file = open(filepath, "w", encoding="utf-8")
-        fw = file.write
+    if "bpy.ops" in EXCLUDE_MODULES:
+        return
+
+    filepath = os.path.join(basepath, "bpy.ops.rst")
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fw = fh.write
         fw(title_string("Operators (bpy.ops)", "="))
         fw(".. module:: bpy.ops\n\n")
         write_example_ref("", fw, "bpy.ops")
@@ -2102,7 +2119,6 @@ def write_rst_ops_index(basepath):
         fw("   :maxdepth: 1\n")
         fw("   :glob:\n\n")
         fw("   bpy.ops.*\n\n")
-        file.close()
 
 
 def write_rst_geometry_set(basepath):
@@ -2114,11 +2130,11 @@ def write_rst_geometry_set(basepath):
 
     # Write the index.
     filepath = os.path.join(basepath, "bpy.types.GeometrySet.rst")
-    file = open(filepath, "w", encoding="utf-8")
-    fw = file.write
-    fw(title_string("GeometrySet", "="))
-    write_example_ref("", fw, "bpy.types.GeometrySet")
-    pyclass2sphinx(fw, "bpy.types", "GeometrySet", bpy.types.GeometrySet, False)
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fw = fh.write
+        fw(title_string("GeometrySet", "="))
+        write_example_ref("", fw, "bpy.types.GeometrySet")
+        pyclass2sphinx(fw, "bpy.types", "GeometrySet", bpy.types.GeometrySet, False)
 
     EXAMPLE_SET_USED.add("bpy.types.GeometrySet")
 
@@ -2132,14 +2148,13 @@ def write_rst_msgbus(basepath):
 
     # Write the index.
     filepath = os.path.join(basepath, "bpy.msgbus.rst")
-    file = open(filepath, "w", encoding="utf-8")
-    fw = file.write
-    fw(title_string("Message Bus (bpy.msgbus)", "="))
-    write_example_ref("", fw, "bpy.msgbus")
-    fw(".. toctree::\n")
-    fw("   :glob:\n\n")
-    fw("   bpy.msgbus.*\n\n")
-    file.close()
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fw = fh.write
+        fw(title_string("Message Bus (bpy.msgbus)", "="))
+        write_example_ref("", fw, "bpy.msgbus")
+        fw(".. toctree::\n")
+        fw("   :glob:\n\n")
+        fw("   bpy.msgbus.*\n\n")
 
     # Write the contents.
     pymodule2sphinx(basepath, 'bpy.msgbus', bpy.msgbus, 'Message Bus', ())
@@ -2150,11 +2165,13 @@ def write_rst_data(basepath):
     """
     Write the RST file of ``bpy.data`` module.
     """
-    if "bpy.data" not in EXCLUDE_MODULES:
-        # Not actually a module, only write this file so we can reference in the TOC.
-        filepath = os.path.join(basepath, "bpy.data.rst")
-        file = open(filepath, "w", encoding="utf-8")
-        fw = file.write
+    if "bpy.data" in EXCLUDE_MODULES:
+        return
+
+    # Not actually a module, only write this file so we can reference in the TOC.
+    filepath = os.path.join(basepath, "bpy.data.rst")
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fw = fh.write
         fw(title_string("Data Access (bpy.data)", "="))
         fw(".. module:: bpy.data\n")
         fw("\n")
@@ -2167,9 +2184,8 @@ def write_rst_data(basepath):
         fw("   :type: :class:`bpy.types.BlendData`\n")
         fw("\n")
         fw(".. literalinclude:: ../examples/bpy.data.py\n")
-        file.close()
 
-        EXAMPLE_SET_USED.add("bpy.data")
+    EXAMPLE_SET_USED.add("bpy.data")
 
 
 def pyrna_enum2sphinx_shared_link(prop):
@@ -2626,7 +2642,9 @@ def main():
     if ARGS.sphinx_build_pdf:
         import subprocess
         subprocess.call(SPHINX_BUILD_PDF)
-        subprocess.call(SPHINX_MAKE_PDF, stdout=SPHINX_MAKE_PDF_STDOUT)
+
+        with open(sphinx_make_pdf_log, "w", encoding="utf-8") as fh:
+            subprocess.call(SPHINX_MAKE_PDF, stdout=fh)
 
         # Sphinx-build log cleanup+sort.
         if ARGS.log:
@@ -2668,8 +2686,8 @@ def main():
 
     teardown_blender(setup_data)
 
-    sys.exit()
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

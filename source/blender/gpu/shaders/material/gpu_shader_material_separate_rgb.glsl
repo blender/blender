@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void separate_rgb(vec4 col, out float r, out float g, out float b)
+void separate_rgb(float4 col, out float r, out float g, out float b)
 {
   r = col.r;
   g = col.g;

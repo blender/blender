@@ -1,18 +1,22 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2024-11-09 15:56+0000\n"
-"Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:13+0000\n"
+"Last-Translator: Martin Meiland <martinmeiland@hotmail.dk>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.7.2"
+"X-Generator: Weblate 5.10.1"
+
+
+msgid "Shader AOV"
+msgstr "Nuancering AOV"
 
 
 msgid "Valid"
@@ -55,12 +59,56 @@ msgid "Collection of AOVs"
 msgstr "Samling af AOVs"
 
 
+msgid "Animation Channel Bag"
+msgstr "Animations Kanal Bag"
+
+
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "Samling af animations kanaler, typisk forbundet med en handlings rum"
+
+
 msgid "F-Curves"
 msgstr "F-curves"
 
 
+msgid "The individual F-Curves that animate the slot"
+msgstr "Den individuele F-Kurve den animerede plads"
+
+
+msgid "F-Curve Groups"
+msgstr "F-Kruve Grupper"
+
+
+msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
+msgstr "Grupperinger af F-Kruve til visnings formål, i f.eks. dopesheeted og graf redigere"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "Slottet, som Channelbags animationsdata er til"
+
+
+msgid "Collection of F-Curves for a specific action slot, on a specific strip"
+msgstr "Samling af F-Kurve til et specifikt handlings rum, på en handlings linje"
+
+
+msgid "Collection of f-curve groups"
+msgstr "Samling af f-kurve grupper"
+
+
+msgid "Animation Channels for Slots"
+msgstr "Animation kanaler for slots"
+
+
+msgid "For each action slot, a list of animation channels that are meant for that slot"
+msgstr "For hver handlings slot, en liste af animation kanaler der er beregnet  for det slot"
+
+
 msgid "Action F-Curves"
 msgstr "Handlings F-kurver"
+
+
+msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
+msgstr "Samling af action F-kurver. Bemærk, at dette er en ældre API, der ikke er opmærksom på handlingspladser, og som kun vil overveje F-kurverne for denne handlings første plads"
 
 
 msgid "Action Group"
@@ -239,8 +287,24 @@ msgid "Collection of action groups"
 msgstr "Samling af handlingsgrupper"
 
 
+msgid "Action Layer"
+msgstr "Handlingslag"
+
+
 msgid "Strips"
 msgstr "stimmel"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "Listen over strimler, der er på dette animationslag"
+
+
+msgid "Action Layers"
+msgstr "Aktivt lag"
+
+
+msgid "Collection of animation layers"
+msgstr "Samling af animationslag"
 
 
 msgid "Action Pose Markers"
@@ -267,12 +331,65 @@ msgid "Index of active pose marker"
 msgstr "Indeks for aktive poséringsmarkører"
 
 
+msgid "Action slot"
+msgstr "Aktion slot"
+
+
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "Identifikator for et sæt kanaler i denne handling, der kan bruges af en datablok til at angive, hvad den bliver animeret af"
+
+
 msgid "Active"
 msgstr "Aktiv"
 
 
+msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
+msgstr "Om dette er det aktive slot, kan indstilles ved at tildele til action.slots.active"
+
+
+msgid ""
+"Number specific to this Slot, unique within the Action.\n"
+"This is used, for example, on a ActionKeyframeStrip to look up the ActionChannelbag for this Slot"
+msgstr ""
+"Nummer, der er specifikt for dette slot, unikt i handlingen.\n"
+"Dette bruges for eksempel på en ActionKeyframeStrip til at slå ActionChannelbag'en op for dette slot"
+
+
+msgid "Slot Identifier"
+msgstr "Slot-identifikator"
+
+
+msgid "Used when connecting an Action to a data-block, to find the correct slot handle. This is the display name, prefixed by two characters determined by the slot's ID type"
+msgstr "Bruges ved tilslutning af en handling til en datablok for at finde det korrekte slothåndtag. Dette er visningsnavnet, foranstillet af to tegn, bestemt af pladsens ID-type"
+
+
+msgid "Slot Display Name"
+msgstr "Slot vist navn"
+
+
+msgid "Name of the slot, for display in the user interface. This name combined with the slot's data-block type is unique within its Action"
+msgstr "Navn på slot, til visning i brugergrænsefladen. Dette navn kombineret med slotsens databloktype er unikt i dets Action"
+
+
+msgid "Selection state of the slot"
+msgstr "Valgtilstand for slot"
+
+
 msgid "Show Expanded"
 msgstr "Vis udvidet"
+
+
+msgid "Expanded state of the slot"
+msgstr "Udvidet tilstand af slot"
+
+
+msgctxt "ID"
+msgid "Target ID Type"
+msgstr "Mål ID-type"
+
+
+msgid "Type of data-block that this slot is intended to animate; can be set when 'UNSPECIFIED' but is otherwise read-only"
+msgstr "Type datablok, som denne slot er beregnet til at animere; kan indstilles, når 'USPECIFICERET', men ellers er skrivebeskyttet"
 
 
 msgctxt "ID"
@@ -381,6 +498,16 @@ msgstr "højtaler"
 
 
 msgctxt "ID"
+msgid "Texture"
+msgstr "struktur"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Lydstyrke"
+
+
+msgctxt "ID"
 msgid "Window Manager"
 msgstr "windue håndtering"
 
@@ -395,8 +522,53 @@ msgid "World"
 msgstr "verden"
 
 
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "Uspecificeret"
+
+
+msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
+msgstr "Endnu ikke specificeret. Når denne slot først tildeles til en datablok, vil denne blive indstillet til typen af den datablok"
+
+
+msgid "Action Slots"
+msgstr "Handlings slot"
+
+
+msgid "Collection of action slots"
+msgstr "Samling af handlings slot"
+
+
+msgid "Active Slot"
+msgstr "Aktiv slot"
+
+
+msgid "Active slot for this action"
+msgstr "Aktiv plads til denne handling"
+
+
+msgid "Action Strip"
+msgstr "Handlings Strip"
+
+
 msgid "Keyframe"
 msgstr "Nøglebillede"
+
+
+msgid "Strip with a set of F-Curves for each action slot"
+msgstr "Strip med et sæt F-Curves for hvert action slot"
+
+
+msgid "Keyframe Animation Strip"
+msgstr "Keyframe Animations Strip"
+
+
+msgid "Action Strips"
+msgstr "Handlings strips"
+
+
+msgid "Collection of animation strips"
+msgstr "Samling af animationsstrimler"
 
 
 msgid "Add-on"
@@ -491,6 +663,10 @@ msgid "Make more room for large scenes to fit by distributing memory across inte
 msgstr "Giv mere plads til, at store scener kan passe ved at distribuere hukommelse på tværs af sammenkoblede enheder (f.eks. via NVLink) i stedet for at duplikere det"
 
 
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above"
+msgstr "HIP RT muliggør AMD hardware ray tracing på RDNA2 og derover"
+
+
 msgid "Embree on GPU"
 msgstr "Embree på GPU"
 
@@ -565,6 +741,10 @@ msgstr "Aldrig"
 
 msgid "Never collapse the new merge nodes"
 msgstr "Skjul aldrig de nye fletningsnoder sammen"
+
+
+msgid "Mix Node Position"
+msgstr "Bland nodeposition"
 
 
 msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify the position of the new nodes"
@@ -767,6 +947,22 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "mængde, som den aktive handling bidrager til resultatet af NLA-stakken"
 
 
+msgid "The slot identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right slot when assigning an Action"
+msgstr "Slottet identificerer, hvilket undersæt af handlingen, der anses for at være for denne datablok, og dets navn bruges til at finde den rigtige plads, når der tildeles en handling"
+
+
+msgid "Action Slot Handle"
+msgstr "Håndtag til handlingsslot"
+
+
+msgid "A number that identifies which sub-set of the Action is considered to be for this data-block"
+msgstr "Et nummer, der identificerer, hvilket undersæt af handlingen, der anses for at være for denne datablok"
+
+
+msgid "The list of slots in this animation data-block"
+msgstr "Listen over slots i denne animationsdatablok"
+
+
 msgid "Tweak Mode Action Storage"
 msgstr "Juster mode handlings _opbevaring"
 
@@ -781,6 +977,14 @@ msgstr "Drivere"
 
 msgid "The Drivers/Expressions for this data-block"
 msgstr "Driverne/udtrykkene for denne datablok"
+
+
+msgid "Last Action Slot Identifier"
+msgstr "Sidste handling Slot Identifier"
+
+
+msgid "The identifier of the most recently assigned action slot. The slot identifies which sub-set of the Action is considered to be for this data-block, and its identifier is used to find the right slot when assigning an Action."
+msgstr "Identifikationen af den senest tildelte handlingsplads. Slottet identificerer, hvilket undersæt af handlingen, der anses for at være for denne datablok, og dets identifikator bruges til at finde den rigtige plads, når der tildeles en handling."
 
 
 msgid "NLA Tracks"
@@ -1001,6 +1205,10 @@ msgstr "Vis stier til stillinger inden for det specificerede område"
 
 msgid "Bake to active Camera"
 msgstr "Bag til aktivt kamera"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported."
+msgstr "Bevægelsesstipunkter vil blive indbygget i kamerarummet på det aktive kamera. Det betyder, at de kun ser rigtigt ud, når de ser gennem det kamera. Skift kamera ved hjælp af markører er ikke understøttet."
 
 
 msgid "Any Type"
@@ -1335,6 +1543,10 @@ msgid "Copyright"
 msgstr "ophavsret"
 
 
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed."
+msgstr "Ophavsretsmeddelelse for dette aktiv. En tom ophavsretsmeddelelse betyder ikke nødvendigvis, at dette er ophavsretsfrit. Kontakt forfatteren, hvis der er behov for nogen afklaring."
+
+
 msgid "Description"
 msgstr "Beskrivelse"
 
@@ -1345,6 +1557,10 @@ msgstr "En beskrivelse af det aktiv, der skal vises for brugeren"
 
 msgid "License"
 msgstr "Licens"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
+msgstr "Den type licens, som dette aktiv er distribueret under. Et tomt licensnavn betyder ikke nødvendigvis, at dette er fri for licensvilkår. Kontakt forfatteren, hvis der er behov for nogen afklaring."
 
 
 msgid "Tags"
@@ -1484,6 +1700,10 @@ msgid "No Asset Dragging"
 msgstr "Ingen aktiv træk"
 
 
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items."
+msgstr "Deaktiver standardaktivets træk ved trækhændelser. Nyttigt til at implementere tilpasset træk via brugerdefinerede nøglekortelementer."
+
+
 msgid "Visible by Default"
 msgstr "Synlig som standard"
 
@@ -1526,6 +1746,10 @@ msgstr "Filtrer aktiver efter navn"
 
 msgid "Show Names"
 msgstr "Vis Navne"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible."
+msgstr "Vis aktivnavnet sammen med forhåndsvisningen. Ellers vil kun forhåndsvisningen være synlig."
 
 
 msgid "Asset Tag"
@@ -1572,6 +1796,10 @@ msgid "Floating-point value"
 msgstr "Flydende komma værdi"
 
 
+msgid "32-bit integer"
+msgstr "32-bit heltal"
+
+
 msgid "Vector"
 msgstr "Vektor"
 
@@ -1600,6 +1828,14 @@ msgid "Text string"
 msgstr "tekst string"
 
 
+msgid "Boolean"
+msgstr "Boolean"
+
+
+msgid "True or false"
+msgstr "Sandt eller falsk"
+
+
 msgid "2D Vector"
 msgstr "2D Vektor"
 
@@ -1614,6 +1850,14 @@ msgstr "8-Bit integer"
 
 msgid "Smaller integer with a range from -128 to 127"
 msgstr "mindre integer med i vide fra -128 til 127"
+
+
+msgid "2D 16-Bit Integer Vector"
+msgstr "2D 16-bit heltalsvektor"
+
+
+msgid "16-bit signed integer vector"
+msgstr "16-bit fortegnet heltalsvektor"
 
 
 msgid "2D Integer Vector"
@@ -1680,8 +1924,16 @@ msgid "Attribute on mesh face corner"
 msgstr "Attribut på overflade hjørne"
 
 
+msgid "Spline"
+msgstr "Spline"
+
+
 msgid "Attribute on spline"
 msgstr "Attribut på spline"
+
+
+msgid "Instance"
+msgstr "Forekomst"
 
 
 msgid "Attribute on instance"
@@ -1694,6 +1946,10 @@ msgstr "Lag"
 
 msgid "Attribute on Grease Pencil layer"
 msgstr "atribit på fedt pensel lag"
+
+
+msgid "Is Internal"
+msgstr "Er intern"
 
 
 msgid "The attribute is meant for internal use by Blender"
@@ -1800,6 +2056,10 @@ msgid "Geometry attribute that stores rotation"
 msgstr "Geometriattribut, der gemmer rotation"
 
 
+msgid "2D 16-Bit Integer Vector Attribute"
+msgstr "2D 16-bit heltalsvektorattribut"
+
+
 msgid "String Attribute"
 msgstr "Strengattribut"
 
@@ -1884,6 +2144,10 @@ msgid "Cage Extrusion"
 msgstr "Bur ekstrudering"
 
 
+msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes."
+msgstr "Pust den aktive genstand op med den angivne afstand til bagning. Dette hjælper med at matche til punkter tættere på ydersiden af de valgte objektmasker."
+
+
 msgid "Cage Object"
 msgstr "Bur Objekt"
 
@@ -1908,12 +2172,24 @@ msgid "Image Format"
 msgstr "Billedformat"
 
 
+msgid "Margin"
+msgstr "Margin"
+
+
 msgid "Extends the baked result as a post process filter"
 msgstr "Forlænger det bagte resultat som et efterbehandlings filter"
 
 
+msgid "Margin Type"
+msgstr "Margintype"
+
+
 msgid "Algorithm to extend the baked result"
 msgstr "Algoritme til at forlænge det bagte resultat"
+
+
+msgid "Adjacent Faces"
+msgstr "Tilstødende overflader"
 
 
 msgid "Use pixels from adjacent faces across UV seams"
@@ -2018,6 +2294,10 @@ msgstr "Difus spredning"
 
 msgid "Glossy"
 msgstr "Blank"
+
+
+msgid "Transmission"
+msgstr "Overførsel"
 
 
 msgid "Save Mode"
@@ -2128,6 +2408,14 @@ msgid "Split external images per material (external only)"
 msgstr "Opdel eksterne billeder pr. materiale (kun eksternt)"
 
 
+msgid "View From"
+msgstr "Se fra"
+
+
+msgid "Source of reflection ray directions"
+msgstr "Kilde til reflektionsstråleretninger"
+
+
 msgid "Above Surface"
 msgstr "Over overfladen"
 
@@ -2200,6 +2488,14 @@ msgid "Visibility status"
 msgstr "Synlighedsstatus"
 
 
+msgid "Bevel Radius"
+msgstr "Fasningsradius"
+
+
+msgid "Radius for beveling"
+msgstr "Radius til affasning"
+
+
 msgid "Control Point selected"
 msgstr "Kontrolpunkt valgt"
 
@@ -2232,6 +2528,34 @@ msgid "Weight"
 msgstr "Vægt"
 
 
+msgid "Softbody goal weight"
+msgstr "Softbody målvægt"
+
+
+msgid "Blend-File Data"
+msgstr "Blend-fil data"
+
+
+msgid "Cache Files data-blocks"
+msgstr "Cache-filer data-blokke"
+
+
+msgid "Cameras"
+msgstr "Kameraer"
+
+
+msgid "Camera data-blocks"
+msgstr "Kamera data-blokke"
+
+
+msgid "Collections"
+msgstr "Samlinger"
+
+
+msgid "Collection data-blocks"
+msgstr "Indsamling af data-blokke"
+
+
 msgid "Curve data-blocks"
 msgstr "Kurve data-blokke"
 
@@ -2252,12 +2576,40 @@ msgid "Vector font data-blocks"
 msgstr "Vektor skrifttyper"
 
 
+msgid "Annotation"
+msgstr "Anmærkning"
+
+
 msgid "Annotation data-blocks (legacy Grease Pencil)"
 msgstr "Annotationsdatablokke (legacy Grease Pencil)"
 
 
 msgid "Grease Pencil"
 msgstr "Grease Pencil"
+
+
+msgid "Grease Pencil data-blocks"
+msgstr "Grease Pencil datablokke"
+
+
+msgid "Hair curve data-blocks"
+msgstr "Hårkurve datablokke"
+
+
+msgid "Images"
+msgstr "Billeder"
+
+
+msgid "Image data-blocks"
+msgstr "Billeddata-blokke"
+
+
+msgid "File Has Unsaved Changes"
+msgstr "Filen har ikke-gemte ændringer"
+
+
+msgid "Have recent edits been saved to disk"
+msgstr "Er de seneste redigeringer blevet gemt på disken"
 
 
 msgid "File is Saved"
@@ -2272,8 +2624,152 @@ msgid "Lattices"
 msgstr "Gitter"
 
 
+msgid "Lattice data-blocks"
+msgstr "Gitter data-blokke"
+
+
+msgid "Libraries"
+msgstr "Biblioteker"
+
+
+msgid "Library data-blocks"
+msgstr "Biblioteksdatablokke"
+
+
 msgid "Light Probes"
 msgstr "Lyssonder"
+
+
+msgid "Light Probe data-blocks"
+msgstr "Light Probe datablokke"
+
+
+msgid "Lights"
+msgstr "Lys"
+
+
+msgid "Light data-blocks"
+msgstr "Lys datablokke"
+
+
+msgid "Line Styles"
+msgstr "Linjestile"
+
+
+msgid "Line Style data-blocks"
+msgstr "Line Stil data-blokke"
+
+
+msgid "Masks"
+msgstr "Masker"
+
+
+msgid "Masks data-blocks"
+msgstr "Maske datablokke"
+
+
+msgid "Materials"
+msgstr "Materialer"
+
+
+msgid "Material data-blocks"
+msgstr "Materiale data-blokke"
+
+
+msgid "Mesh data-blocks"
+msgstr "Mesh data-blokke"
+
+
+msgid "Metaball data-blocks"
+msgstr "Metaball data-blokke"
+
+
+msgid "Movie Clips"
+msgstr "Filmklip"
+
+
+msgid "Movie Clip data-blocks"
+msgstr "Filmklip data-blokke"
+
+
+msgid "Node Groups"
+msgstr "Nodegrupper"
+
+
+msgid "Node group data-blocks"
+msgstr "Node gruppe data-blokke"
+
+
+msgid "Objects"
+msgstr "Objekter"
+
+
+msgid "Object data-blocks"
+msgstr "Objektdatablokke"
+
+
+msgid "Paint Curves"
+msgstr "Male kurver"
+
+
+msgid "Paint Curves data-blocks"
+msgstr "Paint Curves datablokke"
+
+
+msgid "Palettes"
+msgstr "Paletter"
+
+
+msgid "Palette data-blocks"
+msgstr "Palette data-blokke"
+
+
+msgid "Particles"
+msgstr "Partikler"
+
+
+msgid "Particle data-blocks"
+msgstr "Partikeldatablokke"
+
+
+msgid "Point cloud data-blocks"
+msgstr "Punktsky data-blokke"
+
+
+msgid "Scenes"
+msgstr "Scener"
+
+
+msgid "Scene data-blocks"
+msgstr "Scene data-blokke"
+
+
+msgid "Screens"
+msgstr "Skærme"
+
+
+msgid "Collection of armatures"
+msgstr "Samling af armaturer"
+
+
+msgid "Main Brushes"
+msgstr "Hoved pensler"
+
+
+msgid "Collection of brushes"
+msgstr "Samling af pensler"
+
+
+msgid "Main Cache Files"
+msgstr "Hovedcache-filer"
+
+
+msgid "Collection of cache files"
+msgstr "Samling af cache-filer"
+
+
+msgid "Main Cameras"
+msgstr "Hovedkameraer"
 
 
 msgid "Level"
@@ -3134,6 +3630,10 @@ msgid "Sharpen"
 msgstr "Skarpere"
 
 
+msgid "True Normal"
+msgstr "Sand normal"
+
+
 msgid "Keyframe not in F-Curve"
 msgstr "Nøglebillede er ikke i F-kurve"
 
@@ -3156,10 +3656,6 @@ msgstr "ID værdi"
 
 msgid "View Distance"
 msgstr "Syns distance"
-
-
-msgid "True Normal"
-msgstr "Sand normal"
 
 
 msgid "Incoming"

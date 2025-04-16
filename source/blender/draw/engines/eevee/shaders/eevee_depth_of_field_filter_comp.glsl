@@ -14,12 +14,12 @@
 COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_filter)
 
 struct FilterSample {
-  vec4 color;
+  float4 color;
   float weight;
 
 #if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
   inline FilterSample() = default;
-  inline FilterSample(vec4 in_color, float in_weight) : color(in_color), weight(in_weight) {}
+  inline FilterSample(float4 in_color, float in_weight) : color(in_color), weight(in_weight) {}
 #endif
 };
 
@@ -27,7 +27,7 @@ struct FilterSample {
 /** \name Pixel cache.
  * \{ */
 #define cache_size (gl_WorkGroupSize.x + 2)
-shared vec4 color_cache[cache_size][cache_size];
+shared float4 color_cache[cache_size][cache_size];
 shared float weight_cache[cache_size][cache_size];
 
 void cache_init()
@@ -51,13 +51,13 @@ void cache_init()
    *    Load using 5x5 threads.
    */
 
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy) - 1;
-  if (all(lessThan(gl_LocalInvocationID.xy, uvec2(cache_size / 2u)))) {
+  int2 texel = int2(gl_GlobalInvocationID.xy) - 1;
+  if (all(lessThan(gl_LocalInvocationID.xy, uint2(cache_size / 2u)))) {
     for (int y = 0; y < 2; y++) {
       for (int x = 0; x < 2; x++) {
-        ivec2 offset = ivec2(x, y) * ivec2(cache_size / 2u);
-        ivec2 cache_texel = ivec2(gl_LocalInvocationID.xy) + offset;
-        ivec2 load_texel = clamp(texel + offset, ivec2(0), textureSize(color_tx, 0) - 1);
+        int2 offset = int2(x, y) * int2(cache_size / 2u);
+        int2 cache_texel = int2(gl_LocalInvocationID.xy) + offset;
+        int2 load_texel = clamp(texel + offset, int2(0), textureSize(color_tx, 0) - 1);
 
         color_cache[cache_texel.y][cache_texel.x] = texelFetch(color_tx, load_texel, 0);
         weight_cache[cache_texel.y][cache_texel.x] = texelFetch(weight_tx, load_texel, 0).r;
@@ -151,7 +151,7 @@ void main()
 
   cache_init();
 
-  ivec2 texel = ivec2(gl_LocalInvocationID.xy);
+  int2 texel = int2(gl_LocalInvocationID.xy);
 
   FilterLmhResult rows[3];
   for (int y = 0; y < 3; y++) {
@@ -168,7 +168,7 @@ void main()
   /* Last bottom nodes. */
   median = filter_median(low, median, high);
 
-  ivec2 out_texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 out_texel = int2(gl_GlobalInvocationID.xy);
   imageStore(out_color_img, out_texel, median.color);
-  imageStore(out_weight_img, out_texel, vec4(median.weight));
+  imageStore(out_weight_img, out_texel, float4(median.weight));
 }

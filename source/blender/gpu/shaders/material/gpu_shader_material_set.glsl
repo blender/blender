@@ -7,42 +7,42 @@ void set_value(float val, out float outval)
   outval = val;
 }
 
-void set_rgb(vec3 col, out vec3 outcol)
+void set_rgb(float3 col, out float3 outcol)
 {
   outcol = col;
 }
 
-void set_rgba(vec4 col, out vec4 outcol)
+void set_rgba(float4 col, out float4 outcol)
 {
   outcol = col;
 }
 
 void set_value_zero(out float outval)
 {
-  outval = 0.0;
+  outval = 0.0f;
 }
 
 void set_value_one(out float outval)
 {
-  outval = 1.0;
+  outval = 1.0f;
 }
 
-void set_rgb_zero(out vec3 outval)
+void set_rgb_zero(out float3 outval)
 {
-  outval = vec3(0.0);
+  outval = float3(0.0f);
 }
 
-void set_rgb_one(out vec3 outval)
+void set_rgb_one(out float3 outval)
 {
-  outval = vec3(1.0);
+  outval = float3(1.0f);
 }
 
-void set_rgba_zero(out vec4 outval)
+void set_rgba_zero(out float4 outval)
 {
-  outval = vec4(0.0);
+  outval = float4(0.0f);
 }
 
-void set_rgba_one(out vec4 outval)
+void set_rgba_one(out float4 outval)
 {
-  outval = vec4(1.0);
+  outval = float4(1.0f);
 }

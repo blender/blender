@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 #include "ceres/dynamic_compressed_row_jacobian_writer.h"
 
 #include <memory>
+#include <utility>
+#include <vector>
 
 #include "ceres/casts.h"
 #include "ceres/compressed_row_jacobian_writer.h"
@@ -39,11 +41,7 @@
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
 
-namespace ceres {
-namespace internal {
-
-using std::pair;
-using std::vector;
+namespace ceres::internal {
 
 std::unique_ptr<ScratchEvaluatePreparer[]>
 DynamicCompressedRowJacobianWriter::CreateEvaluatePreparers(int num_threads) {
@@ -69,7 +67,7 @@ void DynamicCompressedRowJacobianWriter::Write(int residual_id,
       program_->residual_blocks()[residual_id];
   const int num_residuals = residual_block->NumResiduals();
 
-  vector<pair<int, int>> evaluated_jacobian_blocks;
+  std::vector<std::pair<int, int>> evaluated_jacobian_blocks;
   CompressedRowJacobianWriter::GetOrderedParameterBlocks(
       program_, residual_id, &evaluated_jacobian_blocks);
 
@@ -100,5 +98,4 @@ void DynamicCompressedRowJacobianWriter::Write(int residual_id,
   }
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

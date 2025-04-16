@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2025-02-25 15:56+0000\n"
-"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:48+0000\n"
+"Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -7126,46 +7126,6 @@ msgid "Offset will be an absolute point in space instead of relative to the targ
 msgstr "偏移會是空間中的絕對點，而不是相對於目標的點"
 
 
-msgid "Python Constraint"
-msgstr "Python 約束"
-
-
-msgid "Use Python script for constraint evaluation"
-msgstr "使用 Python 命令稿來評估約束"
-
-
-msgid "Script Error"
-msgstr "命令稿錯誤"
-
-
-msgid "The linked Python script has thrown an error"
-msgstr "連結的 Python 命令稿拋出錯誤"
-
-
-msgid "Number of Targets"
-msgstr "目標數量"
-
-
-msgid "Target Objects"
-msgstr "目標物體"
-
-
-msgid "Script"
-msgstr "命令稿"
-
-
-msgid "The text object that contains the Python script"
-msgstr "包含 Python 命令稿的文字物件"
-
-
-msgid "Use Targets"
-msgstr "使用目標"
-
-
-msgid "Use the targets indicated in the constraint panel"
-msgstr "使用約束面板內指示的目標"
-
-
 msgid "Shrinkwrap Constraint"
 msgstr "收縮包覆約束"
 
@@ -9703,6 +9663,10 @@ msgid "Realtime"
 msgstr "即時"
 
 
+msgid "Profile"
+msgstr "剖面"
+
+
 msgid "Container"
 msgstr "容器"
 
@@ -11907,6 +11871,10 @@ msgstr "選單"
 
 msgid "Collection"
 msgstr "集盒"
+
+
+msgid "Bundle"
+msgstr "綁束"
 
 
 msgid "Freestyle Line Set"
@@ -14445,10 +14413,6 @@ msgid "Round"
 msgstr "圓"
 
 
-msgid "Profile"
-msgstr "剖面"
-
-
 msgid "Bevel Object"
 msgstr "倒角物體"
 
@@ -16531,6 +16495,10 @@ msgid "Matte"
 msgstr "遮景片"
 
 
+msgid "Script"
+msgstr "命令稿"
+
+
 msgid "Shader"
 msgstr "著色器"
 
@@ -17620,10 +17588,6 @@ msgstr "材質槽"
 
 msgid "Material slot used for rendering particles"
 msgstr "用於算繪粒子的材質槽"
-
-
-msgid "Dummy"
-msgstr "偽"
 
 
 msgid "Object Aligned"
@@ -22611,6 +22575,14 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
 msgid "Metaball"
 msgstr "變幻球"
 
@@ -22791,16 +22763,8 @@ msgid "View Regions"
 msgstr "檢視範圍"
 
 
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
 msgid "Select Similar"
 msgstr "選取相似者"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
 
 
 msgid "Basic"
@@ -27798,10 +27762,6 @@ msgid "Average error of re-projection"
 msgstr "重新投射的平均錯誤"
 
 
-msgid "Bundle"
-msgstr "綁束"
-
-
 msgid "Position of bundle reconstructed from this track"
 msgstr "綁束從此軌道重建的位置"
 
@@ -28257,36 +28217,16 @@ msgid "Bokeh Image"
 msgstr "散景影像"
 
 
-msgid "Angle of the bokeh"
-msgstr "散景的角度"
-
-
 msgid "Catadioptric"
 msgstr "折反射"
-
-
-msgid "Level of catadioptric of the bokeh"
-msgstr "散景的折反射等級"
 
 
 msgid "Flaps"
 msgstr "葉片"
 
 
-msgid "Number of flaps"
-msgstr "葉片數"
-
-
 msgid "Rounding"
 msgstr "圓滑"
-
-
-msgid "Level of rounding of the bokeh"
-msgstr "散景的圓滑等級"
-
-
-msgid "Shift of the lens components"
-msgstr "鏡片組件的推移"
 
 
 msgid "Box Mask"
@@ -28713,6 +28653,14 @@ msgid "To"
 msgstr "到"
 
 
+msgid "Interpolation method"
+msgstr "插補方法"
+
+
+msgid "Anisotropic"
+msgstr "各向異性"
+
+
 msgid "X2"
 msgstr "X2"
 
@@ -29078,10 +29026,6 @@ msgid "If not set to high quality, the effect will be applied to a low-res copy 
 msgstr "如果沒有設為高品質，效果會套用至來源影像的低解析度副本"
 
 
-msgid "Simple star filter: add 45 degree rotation offset"
-msgstr "簡單星光過濾器：新增 45 度旋轉偏移"
-
-
 msgid "Hue Correct"
 msgstr "色相校正"
 
@@ -29225,10 +29169,6 @@ msgstr "高精度"
 
 msgid "Classic"
 msgstr "經典"
-
-
-msgid "Anisotropic"
-msgstr "各向異性"
 
 
 msgid "Lens Distortion"
@@ -30182,6 +30122,10 @@ msgid "Z Up"
 msgstr "Z 向上"
 
 
+msgid "Tangent Space"
+msgstr "切線空間"
+
+
 msgid "Set Point Radius"
 msgstr "設定點半徑"
 
@@ -30469,10 +30413,6 @@ msgstr "混合著色器"
 
 msgid "Space of the input normal"
 msgstr "輸入法線的空間"
-
-
-msgid "Tangent Space"
-msgstr "切線空間"
 
 
 msgid "Tangent space normal mapping"
@@ -35705,6 +35645,10 @@ msgid "Init"
 msgstr "初"
 
 
+msgid "Dummy"
+msgstr "偽"
+
+
 msgid "Resize"
 msgstr "調整大小"
 
@@ -38788,10 +38732,6 @@ msgid "Bridge Edge Loops"
 msgstr "橋接線圈"
 
 
-msgid "Interpolation method"
-msgstr "插補方法"
-
-
 msgid "Blend Path"
 msgstr "交混路徑"
 
@@ -40893,6 +40833,14 @@ msgid "Reset viewable area to show selected strips range"
 msgstr "重設可檢視區域以顯示選取的片段範圍"
 
 
+msgid "Settings to be applied on the newly created node"
+msgstr "新建節點要套用的設定值"
+
+
+msgid "Start transform operator after inserting the node"
+msgstr "在插入節點後啟動變換操作器"
+
+
 msgid "Add a collection info node to the current node editor"
 msgstr "在目前節點編輯器中，新增集盒資訊節點"
 
@@ -40907,14 +40855,6 @@ msgstr "伽瑪已校正"
 
 msgid "The source color is gamma corrected"
 msgstr "來源色彩已經過伽碼校正"
-
-
-msgid "Settings to be applied on the newly created node"
-msgstr "新建節點要套用的設定值"
-
-
-msgid "Start transform operator after inserting the node"
-msgstr "在插入節點後啟動變換操作器"
 
 
 msgid "Add an existing node group to the current node editor"
@@ -46966,15 +46906,6 @@ msgstr "輸入時切換覆寫"
 
 
 msgctxt "Operator"
-msgid "Refresh PyConstraints"
-msgstr "重新整理 PyContraints"
-
-
-msgid "Refresh all pyconstraints"
-msgstr "重新整理全部 pyconstraints"
-
-
-msgctxt "Operator"
 msgid "Reload"
 msgstr "重新載入"
 
@@ -50027,8 +49958,24 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Quad View"
+msgstr "四格檢視"
+
+
+msgid "Stereoscopy"
+msgstr "立體視覺"
+
+
+msgid "Multi Frame"
+msgstr "多重畫框"
+
+
 msgid "Auto-Masking"
 msgstr "自動遮罩"
+
+
+msgid "Drawing Plane"
+msgstr "描繪平面"
 
 
 msgid "VR"
@@ -50081,22 +50028,6 @@ msgstr "變換方向"
 
 msgid "Stroke Placement"
 msgstr "筆觸放置"
-
-
-msgid "Drawing Plane"
-msgstr "描繪平面"
-
-
-msgid "Quad View"
-msgstr "四格檢視"
-
-
-msgid "Stereoscopy"
-msgstr "立體視覺"
-
-
-msgid "Multi Frame"
-msgstr "多重畫框"
 
 
 msgid "Chain Scaling"
@@ -55654,10 +55585,6 @@ msgid "Exponential Sampling"
 msgstr "指數型取樣"
 
 
-msgid "Anti-Aliasing Threshold"
-msgstr "防鋸齒閾值"
-
-
 msgid "Scene Hydra"
 msgstr "場景 Hydra"
 
@@ -57147,6 +57074,14 @@ msgstr "編輯來自線條樣式的紋理節點"
 
 msgid "Node tree type to display and edit"
 msgstr "用於顯示與編輯的節點樹類型"
+
+
+msgid "Shader Editor"
+msgstr "著色器編輯器"
+
+
+msgid "Texture Node Editor"
+msgstr "紋理節點編輯器"
 
 
 msgid "Space Outliner"
@@ -62243,18 +62178,8 @@ msgstr "節點工具：選取套索（備用）"
 
 
 msgctxt "WindowManager"
-msgid "SequencerCommon"
-msgstr "序段編輯器常用"
-
-
-msgctxt "WindowManager"
 msgid "Sequencer"
 msgstr "序段編輯器"
-
-
-msgctxt "WindowManager"
-msgid "SequencerPreview"
-msgstr "序段編輯器預覽"
 
 
 msgctxt "WindowManager"
@@ -63400,10 +63325,6 @@ msgid "Offset X"
 msgstr "偏移 X"
 
 
-msgid "Endpoint"
-msgstr "端點"
-
-
 msgctxt "Operator"
 msgid "Bold"
 msgstr "粗體"
@@ -63725,6 +63646,10 @@ msgstr "股段外形"
 
 msgid "Random Order"
 msgstr "隨機順序"
+
+
+msgid "Endpoint"
+msgstr "端點"
 
 
 msgid "Settings used for fluid"
@@ -67080,6 +67005,10 @@ msgstr "線條集"
 
 msgid "\"{}\" attribute from geometry"
 msgstr "幾何的「{}」特性"
+
+
+msgid "True Normal"
+msgstr "真法線"
 
 
 msgid "GP_Layer"
@@ -72746,10 +72675,6 @@ msgid "Missing Data-Block"
 msgstr "遺失數據組塊"
 
 
-msgid "Shader Editor"
-msgstr "著色器編輯器"
-
-
 msgid "AO"
 msgstr "AO"
 
@@ -72860,10 +72785,6 @@ msgstr "檢視距離"
 
 msgid "Transparency"
 msgstr "透明"
-
-
-msgid "True Normal"
-msgstr "真法線"
 
 
 msgid "Incoming"
@@ -73020,10 +72941,6 @@ msgstr "溫度特性"
 
 msgid "Patterns"
 msgstr "樣式"
-
-
-msgid "Texture Node Editor"
-msgstr "紋理節點編輯器"
 
 
 msgid "Bricks 1"

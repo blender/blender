@@ -21,7 +21,7 @@
  * | 2 | 3 | 4 | 5 | 6 | 7 |
  * +---+---+---+---+---+---+
  */
-int compute_number_of_diagonals(ivec2 size)
+int compute_number_of_diagonals(int2 size)
 {
   return size.x + size.y - 1;
 }
@@ -59,7 +59,7 @@ int compute_number_of_diagonals(ivec2 size)
  *
  *   Length => min(Longest Length, index + 1, Number Of Diagonals - index)
  */
-int compute_diagonal_length(ivec2 size, int diagonal_index)
+int compute_diagonal_length(int2 size, int diagonal_index)
 {
   int length_of_longest_diagonal = min(size.x, size.y);
   int start_sequence = diagonal_index + 1;
@@ -94,17 +94,17 @@ int compute_diagonal_length(ivec2 size, int diagonal_index)
  *
  *   Y => max(0, (height - 1) - index)
  */
-ivec2 compute_diagonal_start(ivec2 size, int index)
+int2 compute_diagonal_start(int2 size, int index)
 {
-  return ivec2(max(0, index - (size.y - 1)), max(0, (size.y - 1) - index));
+  return int2(max(0, index - (size.y - 1)), max(0, (size.y - 1) - index));
 }
 
 /* Computes a direction vector such that when added to the position of a value in a matrix will
  * yield the position of the next value in the same diagonal. According to the choice of the start
  * of the diagonal in compute_diagonal_start, this is (1, 1). */
-ivec2 get_diagonal_direction()
+int2 get_diagonal_direction()
 {
-  return ivec2(1);
+  return int2(1);
 }
 
 /* Computes the number of values in the anti diagonal of the given index in the matrix with the
@@ -125,7 +125,7 @@ ivec2 get_diagonal_direction()
  * The length of the anti diagonal is identical to the length of the diagonal of the same index, as
  * can be seen by comparing the above diagram with the one in the compute_diagonal_length function,
  * since the anti diagonals are merely flipped diagonals. */
-int compute_anti_diagonal_length(ivec2 size, int diagonal_index)
+int compute_anti_diagonal_length(int2 size, int diagonal_index)
 {
   return compute_diagonal_length(size, diagonal_index);
 }
@@ -157,15 +157,15 @@ int compute_anti_diagonal_length(ivec2 size, int diagonal_index)
  *
  *   Y => max(0, index - (width - 1))
  */
-ivec2 compute_anti_diagonal_start(ivec2 size, int index)
+int2 compute_anti_diagonal_start(int2 size, int index)
 {
-  return ivec2(min(size.x - 1, index), max(0, index - (size.x - 1)));
+  return int2(min(size.x - 1, index), max(0, index - (size.x - 1)));
 }
 
 /* Computes a direction vector such that when added to the position of a value in a matrix will
  * yield the position of the next value in the same anti diagonal. According to the choice of the
  * start of the anti diagonal in compute_anti_diagonal_start, this is (-1, 1). */
-ivec2 get_anti_diagonal_direction()
+int2 get_anti_diagonal_direction()
 {
-  return ivec2(-1, 1);
+  return int2(-1, 1);
 }

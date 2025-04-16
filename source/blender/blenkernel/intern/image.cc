@@ -62,6 +62,7 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
+#include "BLI_string_utf8.h"
 #include "BLI_system.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
@@ -2645,10 +2646,9 @@ void BKE_stamp_info_from_imbuf(RenderResult *rr, ImBuf *ibuf)
 
 bool BKE_imbuf_alpha_test(ImBuf *ibuf)
 {
-  int tot;
   if (ibuf->float_buffer.data) {
     const float *buf = ibuf->float_buffer.data;
-    for (tot = ibuf->x * ibuf->y; tot--; buf += 4) {
+    for (size_t tot = IMB_get_pixel_count(ibuf); tot--; buf += 4) {
       if (buf[3] < 1.0f) {
         return true;
       }
@@ -2656,7 +2656,7 @@ bool BKE_imbuf_alpha_test(ImBuf *ibuf)
   }
   else if (ibuf->byte_buffer.data) {
     uchar *buf = ibuf->byte_buffer.data;
-    for (tot = ibuf->x * ibuf->y; tot--; buf += 4) {
+    for (size_t tot = IMB_get_pixel_count(ibuf); tot--; buf += 4) {
       if (buf[3] != 255) {
         return true;
       }
@@ -3962,7 +3962,7 @@ void BKE_image_release_renderresult(Scene *scene, Image *ima, RenderResult *rend
 
 bool BKE_image_is_openexr(Image *ima)
 {
-#ifdef WITH_OPENEXR
+#ifdef WITH_IMAGE_OPENEXR
   if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_SEQUENCE, IMA_SRC_TILED)) {
     return BLI_path_extension_check(ima->filepath, ".exr");
   }
@@ -4048,7 +4048,7 @@ static void image_add_view(Image *ima, const char *viewname, const char *filepat
 
 /* After imbuf load, OpenEXR type can return with a EXR-handle open
  * in that case we have to build a render-result. */
-#ifdef WITH_OPENEXR
+#ifdef WITH_IMAGE_OPENEXR
 static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 {
   const char *colorspace = ima->colorspace_settings.name;
@@ -4070,7 +4070,7 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
   /* set proper views */
   image_init_multilayer_multiview(ima, ima->rr);
 }
-#endif /* WITH_OPENEXR */
+#endif /* WITH_IMAGE_OPENEXR */
 
 /** Common stuff to do with images after loading. */
 static void image_init_after_load(Image *ima, ImageUser *iuser, ImBuf * /*ibuf*/)
@@ -4158,6 +4158,7 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int e
       IMB_refImBuf(ibuf);
 
       BKE_imbuf_stamp_info(ima->rr, ibuf);
+      copy_v2_v2_db(ibuf->ppm, ima->rr->ppm);
 
       image_init_after_load(ima, iuser, ibuf);
       image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : 0, entry);
@@ -4327,7 +4328,7 @@ static ImBuf *load_image_single(Image *ima,
   }
 
   if (ibuf) {
-#ifdef WITH_OPENEXR
+#ifdef WITH_IMAGE_OPENEXR
     if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->userdata) {
       /* Handle multilayer and multiview cases, don't assign ibuf here.
        * will be set layer in BKE_image_acquire_ibuf from ima->rr. */
@@ -4458,6 +4459,7 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
       image_init_after_load(ima, iuser, ibuf);
 
       BKE_imbuf_stamp_info(ima->rr, ibuf);
+      copy_v2_v2_db(ibuf->ppm, ima->rr->ppm);
 
       image_assign_ibuf(ima, ibuf, iuser ? iuser->multi_index : IMA_NO_INDEX, 0);
     }
@@ -5736,7 +5738,7 @@ RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
 {
   RenderSlot *slot = MEM_callocN<RenderSlot>("Image new Render Slot");
   if (name && name[0]) {
-    STRNCPY(slot->name, name);
+    STRNCPY_UTF8(slot->name, name);
   }
   else {
     int n = BLI_listbase_count(&ima->renderslots) + 1;

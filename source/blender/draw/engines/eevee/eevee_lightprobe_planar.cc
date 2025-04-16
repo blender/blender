@@ -15,7 +15,9 @@ using namespace blender::math;
 
 void PlanarProbe::set_view(const draw::View &view, int layer_id)
 {
-  this->viewmat = view.viewmat() * reflection_matrix_get();
+  /* Invert the up axis to avoid changing handedness (see #137022). */
+  this->viewmat = from_scale<float4x4>(float3(1, -1, 1)) * view.viewmat() *
+                  reflection_matrix_get();
   this->winmat = view.winmat();
   this->world_to_object_transposed = float3x4(transpose(world_to_plane));
   this->normal = normalize(plane_to_world.z_axis());
@@ -101,6 +103,7 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
     world_clip_buf_.push_update();
 
     gbuf.acquire(extent,
+                 inst_.pipelines.deferred.header_layer_count(),
                  inst_.pipelines.deferred.closure_layer_count(),
                  inst_.pipelines.deferred.normal_layer_count());
 
@@ -109,7 +112,7 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
 
     res.gbuffer_fb.ensure(GPU_ATTACHMENT_TEXTURE_LAYER(depth_tx_, resource_index),
                           GPU_ATTACHMENT_TEXTURE_LAYER(radiance_tx_, resource_index),
-                          GPU_ATTACHMENT_TEXTURE(gbuf.header_tx),
+                          GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.header_tx.layer_view(0), 0),
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.normal_tx.layer_view(0), 0),
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(0), 0),
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(1), 0));

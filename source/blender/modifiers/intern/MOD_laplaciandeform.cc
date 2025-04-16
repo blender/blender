@@ -49,7 +49,6 @@ enum {
   LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP,
 };
 
-/* Prevent naming collision. */
 namespace {
 
 struct LaplacianSystem {

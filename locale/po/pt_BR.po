@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'409ce2b976cf')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-03-24 09:38+0000\n"
-"PO-Revision-Date: 2025-03-03 11:30+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"PO-Revision-Date: 2025-04-14 08:36+0000\n"
+"Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
@@ -6434,50 +6434,6 @@ msgid "Offset will be an absolute point in space instead of relative to the targ
 msgstr "O deslocamento será um ponto absoluto no espaço ao invés de ser relativo ao alvo."
 
 
-msgid "Python Constraint"
-msgstr "Restrição - Python"
-
-
-msgid "Use Python script for constraint evaluation"
-msgstr "Usa um script Python para a avaliação de restrição."
-
-
-msgid "Script Error"
-msgstr "Erro de script"
-
-
-msgid "The linked Python script has thrown an error"
-msgstr "O script Python emitiu um erro de funcionamento."
-
-
-msgid "Number of Targets"
-msgstr "Número de alvos"
-
-
-msgid "Usually only 1 to 3 are needed"
-msgstr "Usualmente apenas 1 a 3 alvos são necessários"
-
-
-msgid "Target Objects"
-msgstr "Objetos alvo"
-
-
-msgid "Script"
-msgstr "Script"
-
-
-msgid "The text object that contains the Python script"
-msgstr "O objeto de texto que contém o script Python."
-
-
-msgid "Use Targets"
-msgstr "Usar alvos"
-
-
-msgid "Use the targets indicated in the constraint panel"
-msgstr "Usa os alvos indicados dentro do painel de restrições."
-
-
 msgid "Shrinkwrap Constraint"
 msgstr "Restrição - Envelopar"
 
@@ -8919,6 +8875,10 @@ msgid "Realtime"
 msgstr "Tempo real"
 
 
+msgid "Profile"
+msgstr "Perfil"
+
+
 msgid "Container"
 msgstr "Contêiner"
 
@@ -10683,6 +10643,10 @@ msgstr "Menu"
 
 msgid "Collection"
 msgstr "Coleção"
+
+
+msgid "Bundle"
+msgstr "Encapsulamento"
 
 
 msgid "Freestyle Line Set"
@@ -12843,10 +12807,6 @@ msgid "Round"
 msgstr "Arredondamento"
 
 
-msgid "Profile"
-msgstr "Perfil"
-
-
 msgid "Bevel Object"
 msgstr "Objeto de chanfro"
 
@@ -14890,6 +14850,10 @@ msgid "Matte"
 msgstr "Tela"
 
 
+msgid "Script"
+msgstr "Script"
+
+
 msgid "Shader"
 msgstr "Sombreador"
 
@@ -15959,10 +15923,6 @@ msgstr "Compartimentos de material"
 
 msgid "Material slot used for rendering particles"
 msgstr "Compartimento de material usado para renderização de partículas."
-
-
-msgid "Dummy"
-msgstr "Postiço"
 
 
 msgid "Let the surface normal give the particle a starting velocity"
@@ -21480,6 +21440,22 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
 msgid "Metaball"
 msgstr "Meta-esfera"
 
@@ -21636,24 +21612,8 @@ msgid "View Regions"
 msgstr "Visualizar Regiões"
 
 
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
 
 
 msgid "Basic"
@@ -26729,10 +26689,6 @@ msgid "Average error of re-projection"
 msgstr "Erro médio de re-projeção."
 
 
-msgid "Bundle"
-msgstr "Encapsulamento"
-
-
 msgid "Position of bundle reconstructed from this track"
 msgstr "Posição do encapsulamento reconstruído a partir desta trilha."
 
@@ -27189,36 +27145,16 @@ msgid "Bokeh Image"
 msgstr "Imagem flocada"
 
 
-msgid "Angle of the bokeh"
-msgstr "Ângulo para a flocagem."
-
-
 msgid "Catadioptric"
 msgstr "Catadiotrópico"
-
-
-msgid "Level of catadioptric of the bokeh"
-msgstr "Nível catadióptrico da flocagem."
 
 
 msgid "Flaps"
 msgstr "Retalhos"
 
 
-msgid "Number of flaps"
-msgstr "Número de retalhos."
-
-
 msgid "Rounding"
 msgstr "Arredondar"
-
-
-msgid "Level of rounding of the bokeh"
-msgstr "Nível de arredondamento da flocagem."
-
-
-msgid "Shift of the lens components"
-msgstr "Alternância dos componentes da lente."
 
 
 msgid "Box Mask"
@@ -27633,6 +27569,14 @@ msgid "Corner Pin"
 msgstr "Afixar as laterais"
 
 
+msgid "Interpolation method"
+msgstr "Método de interpolação"
+
+
+msgid "Anisotropic"
+msgstr "Anisotrópico"
+
+
 msgid "X2"
 msgstr "X2"
 
@@ -28001,10 +27945,6 @@ msgid "If not set to high quality, the effect will be applied to a low-res copy 
 msgstr "Caso não configurado para alta qualidade, o efeito será aplicado para uma cópia de baixa-resolução da imagem fonte."
 
 
-msgid "Simple star filter: add 45 degree rotation offset"
-msgstr "Para o filtro de estrelas simples. Adiciona um deslocamento de 45 graus para a rotação."
-
-
 msgid "Hue Correct"
 msgstr "Correção de matiz"
 
@@ -28128,10 +28068,6 @@ msgstr "Objeto de rastreamento"
 
 msgid "Eccentricity"
 msgstr "Excentricidade"
-
-
-msgid "Anisotropic"
-msgstr "Anisotrópico"
 
 
 msgid "Lens Distortion"
@@ -28678,6 +28614,10 @@ msgid "Poisson Disk"
 msgstr "Disco de Poisson"
 
 
+msgid "Input Items"
+msgstr "Itens de Entrada"
+
+
 msgid "Triangles"
 msgstr "Triângulos"
 
@@ -28728,6 +28668,10 @@ msgstr "Repetir Resultado"
 
 msgid "Z Up"
 msgstr "Z Para cima"
+
+
+msgid "Tangent Space"
+msgstr "Espaço tangente"
 
 
 msgid "Unknown"
@@ -28997,10 +28941,6 @@ msgstr "Mistura de sombreador"
 
 msgid "Space of the input normal"
 msgstr "Espaço das normais de entrada."
-
-
-msgid "Tangent Space"
-msgstr "Espaço tangente"
 
 
 msgid "Tangent space normal mapping"
@@ -29574,10 +29514,6 @@ msgstr "Valor para as normais"
 
 msgid "Enum Item"
 msgstr "Item de menu"
-
-
-msgid "Input Items"
-msgstr "Itens de Entrada"
 
 
 msgid "Node Inputs"
@@ -34392,6 +34328,10 @@ msgid "Init"
 msgstr "Iniciar"
 
 
+msgid "Dummy"
+msgstr "Postiço"
+
+
 msgid "Resize"
 msgstr "Redimensionar"
 
@@ -38058,10 +37998,6 @@ msgid "Bridge Edge Loops"
 msgstr "Interligar anéis de arestas"
 
 
-msgid "Interpolation method"
-msgstr "Método de interpolação"
-
-
 msgid "Blend Path"
 msgstr "Mesclar caminho"
 
@@ -39014,7 +38950,7 @@ msgstr "Preencher lacunas"
 
 msgctxt "Operator"
 msgid "Point Normals to Target"
-msgstr "Apontar Normais para Alvo\v"
+msgstr "Apontar Normais para Alvov"
 
 
 msgctxt "Operator"
@@ -40262,6 +40198,14 @@ msgid "Reset viewable area to show selected strips range"
 msgstr "Redefine a área visível para mostrar o intervalo de faixas selecionada."
 
 
+msgid "Settings to be applied on the newly created node"
+msgstr "Configurações a ser aplicadas no nó recentemente criado."
+
+
+msgid "Start transform operator after inserting the node"
+msgstr "Inicia o operador de transformação após a inserção do nó."
+
+
 msgctxt "Operator"
 msgid "Add Node Collection"
 msgstr "Adicionar Coleção de Nós"
@@ -40273,14 +40217,6 @@ msgstr "A cor fonte"
 
 msgid "Gamma Corrected"
 msgstr "Usar correção de gama"
-
-
-msgid "Settings to be applied on the newly created node"
-msgstr "Configurações a ser aplicadas no nó recentemente criado."
-
-
-msgid "Start transform operator after inserting the node"
-msgstr "Inicia o operador de transformação após a inserção do nó."
 
 
 msgctxt "Operator"
@@ -41222,11 +41158,6 @@ msgstr "Mover Segmento Tracejado"
 msgctxt "Operator"
 msgid "Remove Dash Segment"
 msgstr "Remover Segmento Tracejado"
-
-
-msgctxt "Operator"
-msgid "Hide Collection"
-msgstr "Ocultar Coleção"
 
 
 msgid "Toggle visibility"
@@ -42945,6 +42876,11 @@ msgstr "Habilitar Coleção"
 msgctxt "Operator"
 msgid "Enable Collection in Render"
 msgstr "Habilitar Coleção no Render"
+
+
+msgctxt "Operator"
+msgid "Hide Collection"
+msgstr "Ocultar Coleção"
 
 
 msgctxt "Operator"
@@ -46866,15 +46802,6 @@ msgstr "Alterna a substituição de escrita durante a digitação."
 
 
 msgctxt "Operator"
-msgid "Refresh PyConstraints"
-msgstr "Atualizar as restrições Python"
-
-
-msgid "Refresh all pyconstraints"
-msgstr "Atualiza todas as restrições Python."
-
-
-msgctxt "Operator"
 msgid "Reload"
 msgstr "Recarregar"
 
@@ -50255,6 +50182,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Quad View"
+msgstr "Exibição Quadrante"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
+
+
 msgid "Wire Color"
 msgstr "Cor dos cabos"
 
@@ -50269,14 +50204,6 @@ msgstr "Captura de movimentos"
 
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
-
-
-msgid "Quad View"
-msgstr "Exibição Quadrante"
-
-
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
 
 
 msgid "Bone Constraints"
@@ -57482,6 +57409,14 @@ msgid "Node tree type to display and edit"
 msgstr "Tipo de árvore de nó para mostrar e editar."
 
 
+msgid "Geometry Node Editor"
+msgstr "Editor de Nós Geométricos"
+
+
+msgid "Shader Editor"
+msgstr "Editor de Sombreador"
+
+
 msgid "Space Outliner"
 msgstr "Espaço do esquematizador"
 
@@ -61598,18 +61533,8 @@ msgstr "Nós em geral"
 
 
 msgctxt "WindowManager"
-msgid "SequencerCommon"
-msgstr "Comum do editor de sequências"
-
-
-msgctxt "WindowManager"
 msgid "Sequencer"
 msgstr "Editor de sequências"
-
-
-msgctxt "WindowManager"
-msgid "SequencerPreview"
-msgstr "Previsão do editor de sequências"
 
 
 msgctxt "WindowManager"
@@ -62208,14 +62133,6 @@ msgid "Offset X"
 msgstr "Deslocamento X"
 
 
-msgid "Endpoint"
-msgstr "Terminações"
-
-
-msgid "Interpolation Tilt"
-msgstr "Inclinar Interpolação"
-
-
 msgctxt "Operator"
 msgid "Custom..."
 msgstr "Personalizar..."
@@ -62486,6 +62403,10 @@ msgstr "Ordem aleatória"
 
 msgid "Strand Steps"
 msgstr "Passos do fio"
+
+
+msgid "Endpoint"
+msgstr "Terminações"
 
 
 msgid "Settings used for fluid"
@@ -65007,6 +64928,10 @@ msgid "Clear Freestyle Face"
 msgstr "Limpar marcações de faces Freestyle"
 
 
+msgid "Interpolation Tilt"
+msgstr "Inclinar Interpolação"
+
+
 msgctxt "Operator"
 msgid "Scale BBone"
 msgstr "Escalonar osso maleável"
@@ -65356,6 +65281,10 @@ msgstr "variável"
 
 msgid "Untitled"
 msgstr "Sem título"
+
+
+msgid "True Normal"
+msgstr "Normal verdadeira"
 
 
 msgid "GP_Layer"
@@ -67980,10 +67909,6 @@ msgid "Active Keyframe"
 msgstr "Quadros-chave ativos"
 
 
-msgid "Action must have at least one keyframe or F-Modifier"
-msgstr "A ação deve possuir ao menos um quadro-chave ou modificador-f."
-
-
 msgid "Could not find current NLA Track"
 msgstr "Não foi possível encontrar a trilha de animação não linear atual."
 
@@ -70088,10 +70013,6 @@ msgid "Val"
 msgstr "Valor"
 
 
-msgid "Geometry Node Editor"
-msgstr "Editor de Nós Geométricos"
-
-
 msgid "Invert Arc"
 msgstr "Inverter Arco"
 
@@ -70164,10 +70085,6 @@ msgid "Rotate islands for best fit"
 msgstr "Rotaciona as ilhas para um melhor ajuste."
 
 
-msgid "Shader Editor"
-msgstr "Editor de Sombreador"
-
-
 msgid "AO"
 msgstr "Oclusão ambiente"
 
@@ -70230,10 +70147,6 @@ msgstr "Distância de visualização"
 
 msgid "Transparency"
 msgstr "Transparência"
-
-
-msgid "True Normal"
-msgstr "Normal verdadeira"
 
 
 msgid "Incoming"

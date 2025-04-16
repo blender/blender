@@ -6,10 +6,10 @@
 
 FRAGMENT_SHADER_CREATE_INFO(gpu_shader_keyframe_shape)
 
-#define diagonal_scale sqrt(0.5)
+#define diagonal_scale sqrt(0.5f)
 
-#define minmax_bias 0.7
-#define minmax_scale sqrt(1.0 / (1.0 + 1.0 / minmax_bias))
+#define minmax_bias 0.7f
+#define minmax_scale sqrt(1.0f / (1.0f + 1.0f / minmax_bias))
 
 bool test(uint bit)
 {
@@ -18,11 +18,11 @@ bool test(uint bit)
 
 void main()
 {
-  vec2 pos = gl_PointCoord - vec2(0.5);
-  vec2 absPos = abs(pos);
+  float2 pos = gl_PointCoord - float2(0.5f);
+  float2 absPos = abs(pos);
   float radius = (absPos.x + absPos.y) * diagonal_scale;
 
-  float outline_dist = -1.0;
+  float outline_dist = -1.0f;
 
   /* Diamond outline */
   if (test(GPU_KEYFRAME_SHAPE_DIAMOND)) {
@@ -57,7 +57,7 @@ void main()
 
     /* Up and down arrow-like shading. */
     if (test(GPU_KEYFRAME_SHAPE_ARROW_END_MAX | GPU_KEYFRAME_SHAPE_ARROW_END_MIN)) {
-      float ypos = -1.0;
+      float ypos = -1.0f;
 
       /* Up arrow (maximum) */
       if (test(GPU_KEYFRAME_SHAPE_ARROW_END_MAX)) {
@@ -73,7 +73,7 @@ void main()
       float minmax_step = smoothstep(thresholds[0], thresholds[1], minmax_dist * minmax_scale);
 
       /* Reduced alpha for uncertain extremes. */
-      float minmax_alpha = test(GPU_KEYFRAME_SHAPE_ARROW_END_MIXED) ? 0.55 : 0.85;
+      float minmax_alpha = test(GPU_KEYFRAME_SHAPE_ARROW_END_MIXED) ? 0.55f : 0.85f;
 
       alpha = max(alpha, minmax_step * minmax_alpha);
     }
@@ -82,6 +82,6 @@ void main()
   }
   /* Outside the outline. */
   else {
-    fragColor = vec4(finalOutlineColor.rgb, finalOutlineColor.a * alpha);
+    fragColor = float4(finalOutlineColor.rgb, finalOutlineColor.a * alpha);
   }
 }

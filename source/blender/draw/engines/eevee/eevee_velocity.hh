@@ -49,7 +49,12 @@ class VelocityModule {
         return std::get<gpu::VertBuf *>(this->pos_buf);
       }
       if (std::holds_alternative<gpu::Batch *>(this->pos_buf)) {
-        return std::get<gpu::Batch *>(this->pos_buf)->verts_(0);
+        gpu::VertBuf *buf = std::get<gpu::Batch *>(this->pos_buf)->verts_(1);
+        if (!buf) {
+          return nullptr;
+        }
+        BLI_assert(STREQ(buf->format.names, "pos"));
+        return buf;
       }
       return nullptr;
     }

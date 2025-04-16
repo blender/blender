@@ -2084,7 +2084,7 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_settings(Panel, View3DPanel, Gr
             )
             brush_basic_gpencil_weight_settings(layout, context, brush)
         else:
-            # Grease Pencil v3
+            # Grease Pencil
             from bl_ui.properties_paint_common import (
                 brush_basic_grease_pencil_weight_settings,
             )

@@ -306,6 +306,9 @@ enum {
   FL_NEED_SORTING = 1 << 4,
   FL_NEED_FILTERING = 1 << 5,
   FL_SORT_INVERT = 1 << 6,
+  /** Trigger a call to #AS_asset_library_load() to update asset catalogs (won't reload the actual
+   * assets) */
+  FL_RELOAD_ASSET_LIBRARY = 1 << 7,
 };
 
 /** #FileList.tags */
@@ -2108,6 +2111,11 @@ void filelist_tag_force_reset_mainfiles(FileList *filelist)
   filelist->flags |= FL_FORCE_RESET_MAIN_FILES;
 }
 
+void filelist_tag_reload_asset_library(FileList *filelist)
+{
+  filelist->flags |= FL_RELOAD_ASSET_LIBRARY;
+}
+
 bool filelist_is_ready(const FileList *filelist)
 {
   return (filelist->flags & FL_IS_READY) != 0;
@@ -3056,6 +3064,9 @@ struct FileListReadJob {
   /** Set to request a partial read that only adds files representing #Main data (IDs). Used when
    * #Main may have received changes of interest (e.g. asset removed or renamed). */
   bool only_main_data;
+  /** Trigger a call to #AS_asset_library_load() to update asset catalogs (won't reload the actual
+   * assets) */
+  bool reload_asset_library;
 
   /** Shallow copy of #filelist for thread-safe access.
    *
@@ -3883,7 +3894,7 @@ static void filelist_readjob_load_asset_library_data(FileListReadJob *job_params
   if (job_params->filelist->asset_library_ref == nullptr) {
     return;
   }
-  if (tmp_filelist->asset_library != nullptr) {
+  if (tmp_filelist->asset_library != nullptr && job_params->reload_asset_library == false) {
     /* Asset library itself is already loaded. Load assets into this. */
     job_params->load_asset_library = tmp_filelist->asset_library;
     return;
@@ -4228,7 +4239,10 @@ static void assetlibrary_readjob_startjob(void *flrjv, wmJobWorkerStatus *worker
   filelist_readjob_startjob(flrjv, worker_status);
 }
 
-void filelist_readjob_start(FileList *filelist, const int space_notifier, const bContext *C)
+static void filelist_readjob_start_ex(FileList *filelist,
+                                      const int space_notifier,
+                                      const bContext *C,
+                                      const bool force_blocking_read)
 {
   Main *bmain = CTX_data_main(C);
   wmJob *wm_job;
@@ -4248,8 +4262,12 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
   {
     flrj->only_main_data = true;
   }
+  if (filelist->flags & FL_RELOAD_ASSET_LIBRARY) {
+    flrj->reload_asset_library = true;
+  }
 
-  filelist->flags &= ~(FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES | FL_IS_READY);
+  filelist->flags &= ~(FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES | FL_RELOAD_ASSET_LIBRARY |
+                       FL_IS_READY);
   filelist->flags |= FL_IS_PENDING;
 
   /* Init even for single threaded execution. Called functions use it. */
@@ -4261,7 +4279,7 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
    * main data changed may need access to the ID files (see #93691). */
   const bool no_threads = (filelist->tags & FILELIST_TAGS_NO_THREADS) || flrj->only_main_data;
 
-  if (no_threads) {
+  if (force_blocking_read || no_threads) {
     /* Single threaded execution. Just directly call the callbacks. */
     wmJobWorkerStatus worker_status = {};
     filelist_readjob_startjob(flrj, &worker_status);
@@ -4290,6 +4308,16 @@ void filelist_readjob_start(FileList *filelist, const int space_notifier, const 
 
   /* start the job */
   WM_jobs_start(CTX_wm_manager(C), wm_job);
+}
+
+void filelist_readjob_start(FileList *filelist, const int space_notifier, const bContext *C)
+{
+  filelist_readjob_start_ex(filelist, space_notifier, C, false);
+}
+
+void filelist_readjob_blocking_run(FileList *filelist, int space_notifier, const bContext *C)
+{
+  filelist_readjob_start_ex(filelist, space_notifier, C, true);
 }
 
 void filelist_readjob_stop(FileList *filelist, wmWindowManager *wm)

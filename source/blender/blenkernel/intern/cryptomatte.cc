@@ -264,7 +264,7 @@ char *BKE_cryptomatte_entries_to_matte_id(NodeCryptomatte *node_storage)
     if (!first) {
       BLI_dynstr_append(matte_id, ",");
     }
-    if (BLI_strnlen(entry->name, sizeof(entry->name)) != 0) {
+    if (STRNLEN(entry->name) != 0) {
       BLI_dynstr_nappend(matte_id, entry->name, sizeof(entry->name));
     }
     else {

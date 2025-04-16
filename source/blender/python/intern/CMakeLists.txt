@@ -65,7 +65,6 @@ set(SRC
   bpy_traceback.cc
   bpy_utils_previews.cc
   bpy_utils_units.cc
-  stubs.cc
 
   bpy.hh
   bpy_app.hh
@@ -228,19 +227,19 @@ if(WITH_FREESTYLE)
 endif()
 
 if(WITH_IMAGE_CINEON)
-  add_definitions(-DWITH_CINEON)
+  add_definitions(-DWITH_IMAGE_CINEON)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
-  add_definitions(-DWITH_OPENEXR)
+  add_definitions(-DWITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
-  add_definitions(-DWITH_OPENJPEG)
+  add_definitions(-DWITH_IMAGE_OPENJPEG)
 endif()
 
-if(WITH_WEBP)
-  add_definitions(-DWITH_WEBP)
+if(WITH_IMAGE_WEBP)
+  add_definitions(-DWITH_IMAGE_WEBP)
 endif()
 
 if(WITH_INPUT_NDOF)
@@ -315,6 +314,10 @@ endif()
 
 if(WITH_IO_STL)
   add_definitions(-DWITH_IO_STL)
+endif()
+
+if(WITH_IO_FBX)
+  add_definitions(-DWITH_IO_FBX)
 endif()
 
 if(WITH_IO_GREASE_PENCIL)

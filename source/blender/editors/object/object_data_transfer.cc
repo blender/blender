@@ -546,17 +546,18 @@ static wmOperatorStatus data_transfer_exec(bContext *C, wmOperator *op)
 #endif
 }
 
-/* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
-/* Note this context poll is only really partial,
- * it cannot check for all possible invalid cases. */
+/** Used by both #OBJECT_OT_data_transfer and #OBJECT_OT_datalayout_transfer. */
 static bool data_transfer_poll(bContext *C)
 {
+  /* Note this context poll is only really partial,
+   * it cannot check for all possible invalid cases. */
+
   Object *ob = context_active_object(C);
   ID *data = static_cast<ID *>((ob) ? ob->data : nullptr);
   return (ob != nullptr && ob->type == OB_MESH && data != nullptr);
 }
 
-/* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
+/** Used by both #OBJECT_OT_data_transfer and #OBJECT_OT_datalayout_transfer. */
 static bool data_transfer_poll_property(const bContext * /*C*/,
                                         wmOperator *op,
                                         const PropertyRNA *prop)

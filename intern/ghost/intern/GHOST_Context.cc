@@ -29,6 +29,11 @@
 #include <cstdio>
 #include <cstring>
 
+GHOST_IContext *GHOST_IContext::getActiveDrawingContext()
+{
+  return GHOST_Context::getActiveDrawingContext();
+}
+
 #ifdef _WIN32
 
 bool win32_silent_chk(bool result)

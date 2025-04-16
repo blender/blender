@@ -21,7 +21,11 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(DEFINED MSVC_REDIST_DIR)
     file(TO_CMAKE_PATH ${MSVC_REDIST_DIR} MSVC_REDIST_DIR)
   else()
-    message("Unable to detect the Visual Studio redist directory, copying of the runtime dlls will not work, try running from the visual studio developer prompt.")
+    message(WARNING
+      "Unable to detect the Visual Studio redist directory, "
+      "copying of the runtime dlls will not work, "
+      "try running from the visual studio developer prompt."
+    )
   endif()
   if(WITH_WINDOWS_STRIPPED_PDB)
     message(WARNING "stripped pdb not supported with clang, disabling..")
@@ -30,28 +34,41 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
 else()
   if(WITH_BLENDER)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.28.29921) # MSVC 2019 16.9.16
-      message(FATAL_ERROR "Compiler is unsupported, MSVC 2019 16.9.16 or newer is required for building blender.")
+      message(FATAL_ERROR
+        "Compiler is unsupported, MSVC 2019 16.9.16 or newer is required for building blender."
+      )
     endif()
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.36.32532 AND # MSVC 2022 17.6.0 has a bad codegen
        CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.37.32705)             # But it is fixed in 2022 17.7 preview 1
-      message(FATAL_ERROR "Compiler is unsupported, MSVC 2022 17.6.x has codegen issues and cannot be used to build blender. Please upgrade to 17.7 or newer.")
+      message(FATAL_ERROR
+        "Compiler is unsupported, "
+        "MSVC 2022 17.6.x has codegen issues and cannot be used to build blender. "
+        "Please upgrade to 17.7 or newer."
+      )
     endif()
   endif()
 endif()
 
 set(WINDOWS_ARM64_MIN_VSCMD_VER 17.12.3)
 # We have a minimum version of VSCMD for ARM64 (ie, the version the libs were compiled against)
-# This checks for the version on initial run, and caches it, so users do not have to run the VS CMD window every time
+# This checks for the version on initial run, and caches it,
+# so users do not have to run the VS CMD window every time
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
   set(VC_VSCMD_VER $ENV{VSCMD_VER} CACHE STRING "Version of the VSCMD initially run from")
   mark_as_advanced(VC_VSCMD_VER)
   set(VSCMD_VER ${VC_VSCMD_VER})
   if(DEFINED VSCMD_VER)
     if(VSCMD_VER VERSION_LESS WINDOWS_ARM64_MIN_VSCMD_VER)
-      message(FATAL_ERROR "Windows ARM64 requires VS2022 version ${WINDOWS_ARM64_MIN_VSCMD_VER} or greater - please update your VS2022 install!")
+      message(FATAL_ERROR
+        "Windows ARM64 requires VS2022 version ${WINDOWS_ARM64_MIN_VSCMD_VER} or greater - "
+        "please update your VS2022 install!"
+      )
     endif()
   else()
-    message(FATAL_ERROR "Unable to detect the Visual Studio CMD version, try running from the visual studio developer prompt.")
+    message(FATAL_ERROR
+      "Unable to detect the Visual Studio CMD version, "
+      "try running from the visual studio developer prompt."
+    )
   endif()
 endif()
 
@@ -174,8 +191,8 @@ remove_cc_flag(
 )
 
 if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
-  string(APPEND CMAKE_CXX_FLAGS " ${CXX_WARN_FLAGS} /MP /nologo /J /Gd /showFilenames /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
-  string(APPEND CMAKE_C_FLAGS   " /MP /nologo /J /Gd /showFilenames -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
+  string(APPEND CMAKE_CXX_FLAGS " ${CXX_WARN_FLAGS} /Gy /MP /nologo /J /Gd /showFilenames /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
+  string(APPEND CMAKE_C_FLAGS   " /MP /nologo /J /Gy /Gd /showFilenames -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off")
 else()
   string(APPEND CMAKE_CXX_FLAGS " /nologo /J /Gd /MP /EHsc /bigobj")
   string(APPEND CMAKE_C_FLAGS   " /nologo /J /Gd /MP /bigobj")
@@ -196,7 +213,7 @@ if(WITH_COMPILER_ASAN AND MSVC AND NOT MSVC_CLANG)
 endif()
 
 
-# C++ standards conformace
+# C++ standards conformance
 # /permissive-    : Available from MSVC 15.5 (1912) and up. Enables standards-confirming compiler
 #                   behavior. Required until the project is marked as c++20.
 # /Zc:__cplusplus : Available from MSVC 15.7 (1914) and up. Ensures correct value of the __cplusplus
@@ -279,7 +296,8 @@ string(APPEND PLATFORM_LINKFLAGS " /SUBSYSTEM:CONSOLE /STACK:2097152")
 set(PLATFORM_LINKFLAGS_RELEASE "/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib")
 
 if(NOT WITH_COMPILER_ASAN)
-  # Asan is incompatible with fastlink, it will appear to work, but will not resolve symbols which makes it somewhat useless
+  # ASAN is incompatible with `fastlink`, it will appear to work,
+  # but will not resolve symbols which makes it somewhat useless.
   string(APPEND PLATFORM_LINKFLAGS_DEBUG "/debug:fastlink ")
 endif()
 string(APPEND PLATFORM_LINKFLAGS_DEBUG " /IGNORE:4099 /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcmtd.lib")
@@ -308,10 +326,16 @@ if(NOT DEFINED LIBDIR)
       set(LIBDIR_BASE "windows_x64")
     endif()
   else()
-    message(FATAL_ERROR "32 bit compiler detected, blender no longer provides pre-build libraries for 32 bit windows, please set the LIBDIR cmake variable to your own library folder")
+    message(FATAL_ERROR
+      "32 bit compiler detected, "
+      "blender no longer provides pre-build libraries for 32 bit windows, "
+      "please set the LIBDIR cmake variable to your own library folder"
+    )
   endif()
   if(MSVC_CLANG)
-    message(STATUS "Clang version ${CMAKE_CXX_COMPILER_VERSION} detected, masquerading as MSVC ${MSVC_VERSION}")
+    message(STATUS
+      "Clang version ${CMAKE_CXX_COMPILER_VERSION} detected, masquerading as MSVC ${MSVC_VERSION}"
+    )
     set(LIBDIR ${CMAKE_SOURCE_DIR}/lib/${LIBDIR_BASE})
   elseif(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.30.30423)
     message(STATUS "Visual Studio 2022 detected.")
@@ -326,7 +350,10 @@ else()
   endif()
 endif()
 if(NOT EXISTS "${LIBDIR}/.git")
-  message(FATAL_ERROR "\n\nWindows requires pre-compiled libs at: '${LIBDIR}'. Please run `make update` in the blender source folder to obtain them.")
+  message(FATAL_ERROR
+    "\n\nWindows requires pre-compiled libs at: '${LIBDIR}'. "
+    "Please run `make update` in the blender source folder to obtain them."
+  )
 endif()
 
 include(platform_old_libs_update)
@@ -376,7 +403,7 @@ set(ZLIB_INCLUDE_DIR ${LIBDIR}/zlib/include)
 set(ZLIB_LIBRARY ${LIBDIR}/zlib/lib/libz_st.lib)
 set(ZLIB_DIR ${LIBDIR}/zlib)
 
-windows_find_package(ZLIB) # we want to find before finding things that depend on it like png
+windows_find_package(ZLIB) # We want to find before finding things that depend on it like PNG.
 windows_find_package(PNG)
 if(NOT PNG_FOUND)
   warn_hardcoded_paths(libpng)
@@ -611,7 +638,9 @@ if(FALSE)
     set(_PYTHON_VERSION "3.12")
     string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
     if(NOT EXISTS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS})
-      message(FATAL_ERROR "Missing python libraries! Neither 3.12 nor 3.11 are found in ${LIBDIR}/python")
+      message(FATAL_ERROR
+        "Missing python libraries! Neither 3.12 nor 3.11 are found in ${LIBDIR}/python"
+      )
     endif()
   endif()
 endif()
@@ -751,7 +780,9 @@ if(WITH_LLVM)
 
     set(LLVM_LIBRARY ${LLVM_LIBS})
   else()
-    message(WARNING "LLVM debug libs not present on this system. Using release libs for debug builds.")
+    message(WARNING
+      "LLVM debug libs not present on this system. Using release libs for debug builds."
+    )
     set(LLVM_LIBRARY ${LLVM_LIBRARY_OPTIMIZED})
   endif()
 
@@ -924,7 +955,15 @@ endif()
 
 if(WITH_TBB)
   windows_find_package(TBB)
-  if(NOT TBB_FOUND)
+  if(TBB_FOUND)
+    get_target_property(TBB_LIBRARIES_RELEASE TBB::tbb LOCATION_RELEASE)
+    get_target_property(TBB_LIBRARIES_DEBUG TBB::tbb LOCATION_DEBUG)
+    set(TBB_LIBRARIES
+      optimized ${TBB_LIBRARIES_RELEASE}
+      debug ${TBB_LIBRARIES_DEBUG}
+    )
+    get_target_property(TBB_INCLUDE_DIRS TBB::tbb INTERFACE_INCLUDE_DIRECTORIES)
+  else()
     if(EXISTS ${LIBDIR}/tbb/lib/tbb12.lib) # 4.4
       set(TBB_LIBRARIES
         optimized ${LIBDIR}/tbb/lib/tbb12.lib
@@ -1169,7 +1208,9 @@ if(WINDOWS_PYTHON_DEBUG)
   # If the user scripts env var is set, include scripts from there otherwise
   # include user scripts in the profile folder.
   if(DEFINED ENV{BLENDER_USER_SCRIPTS})
-    message(STATUS "Including user scripts from environment BLENDER_USER_SCRIPTS=$ENV{BLENDER_USER_SCRIPTS}")
+    message(STATUS
+      "Including user scripts from environment BLENDER_USER_SCRIPTS=$ENV{BLENDER_USER_SCRIPTS}"
+    )
     set(USER_SCRIPTS_ROOT "$ENV{BLENDER_USER_SCRIPTS}")
   else()
     message(STATUS "Including user scripts from the profile folder")
@@ -1335,8 +1376,8 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
   )
 endif()
 
-# Add the msvc directory to the path so when building with ASAN enabled tools such as
-# msgfmt which run before the install phase can find the asan shared libraries.
+# Add the MSVC directory to the path so when building with ASAN enabled tools such as
+# `msgfmt` which run before the install phase can find the asan shared libraries.
 get_filename_component(_msvc_path ${CMAKE_C_COMPILER} DIRECTORY)
 # Environment variables to run precompiled executables that needed libraries.
 list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ";" _library_paths)

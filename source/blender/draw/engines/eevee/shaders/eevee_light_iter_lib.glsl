@@ -68,7 +68,7 @@ int culling_z_to_zbin(float scale, float bias, float z)
 
 #  define LIGHT_FOREACH_BEGIN_LOCAL(_culling, _zbins, _words, _pixel, _linearz, _item_index) \
     { \
-      uvec2 tile_co = uvec2(_pixel / _culling.tile_size); \
+      uint2 tile_co = uint2(_pixel / _culling.tile_size); \
       uint tile_word_offset = (tile_co.x + tile_co.y * _culling.tile_x_len) * \
                               _culling.tile_word_len; \
       int zbin_index = culling_z_to_zbin(_culling.zbin_scale, _culling.zbin_bias, _linearz); \

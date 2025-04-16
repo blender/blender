@@ -14,7 +14,7 @@ class ModalTimerOperator(bpy.types.Operator):
             return {'CANCELLED'}
 
         if event.type == 'TIMER':
-            # change theme color, silly!
+            # Change theme color, silly!
             color = context.preferences.themes[0].view_3d.space.gradients.high_gradient
             color.s = 1.0
             color.h += 0.01
@@ -50,5 +50,5 @@ def unregister():
 if __name__ == "__main__":
     register()
 
-    # test call
+    # Test call.
     bpy.ops.wm.modal_timer_operator()

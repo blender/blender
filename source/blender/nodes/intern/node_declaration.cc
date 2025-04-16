@@ -38,7 +38,7 @@ void build_node_declaration(const bke::bNodeType &typeinfo,
 void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
 {
   auto is_data_socket_decl = [](const SocketDeclaration *socket_decl) {
-    return dynamic_cast<const decl::Geometry *>(socket_decl);
+    return ELEM(socket_decl->socket_type, SOCK_GEOMETRY, SOCK_BUNDLE, SOCK_CLOSURE);
   };
 
   Vector<int> geometry_inputs;
@@ -353,6 +353,12 @@ static bool socket_type_to_static_decl_type(const eNodeSocketDatatype socket_typ
       return true;
     case SOCK_MENU:
       fn(TypeTag<decl::Menu>());
+      return true;
+    case SOCK_BUNDLE:
+      fn(TypeTag<decl::Bundle>());
+      return true;
+    case SOCK_CLOSURE:
+      fn(TypeTag<decl::Closure>());
       return true;
     default:
       return false;

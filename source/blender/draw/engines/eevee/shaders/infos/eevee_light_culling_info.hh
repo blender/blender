@@ -6,11 +6,11 @@
 #  pragma once
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "draw_fullscreen_info.hh"
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
 #  include "eevee_common_info.hh"
 #  include "eevee_shader_shared.hh"
+#  include "gpu_shader_fullscreen_info.hh"
 
 #  define SPHERE_PROBE
 #endif
@@ -94,12 +94,12 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_light_culling_debug)
 DO_STATIC_COMPILATION()
-FRAGMENT_OUT_DUAL(0, VEC4, out_debug_color_add, SRC_0)
-FRAGMENT_OUT_DUAL(0, VEC4, out_debug_color_mul, SRC_1)
+FRAGMENT_OUT_DUAL(0, float4, out_debug_color_add, SRC_0)
+FRAGMENT_OUT_DUAL(0, float4, out_debug_color_mul, SRC_1)
 FRAGMENT_SOURCE("eevee_light_culling_debug_frag.glsl")
 ADDITIONAL_INFO(eevee_shared)
 ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_fullscreen)
+ADDITIONAL_INFO(gpu_fullscreen)
 ADDITIONAL_INFO(eevee_light_data)
 ADDITIONAL_INFO(eevee_hiz_data)
 GPU_SHADER_CREATE_END()

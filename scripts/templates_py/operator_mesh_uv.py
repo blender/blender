@@ -9,11 +9,11 @@ def main(context):
 
     uv_layer = bm.loops.layers.uv.verify()
 
-    # adjust uv coordinates
+    # Adjust UV coordinates.
     for face in bm.faces:
         for loop in face.loops:
             loop_uv = loop[uv_layer]
-            # use xy position of the vertex as a uv coordinate
+            # Use XY position of the vertex as a uv coordinate.
             loop_uv.uv = loop.vert.co.xy
 
     bmesh.update_edit_mesh(me)
@@ -52,5 +52,5 @@ def unregister():
 if __name__ == "__main__":
     register()
 
-    # test call
+    # Test call.
     bpy.ops.uv.simple_operator()

@@ -233,6 +233,17 @@ class NODE_OT_add_foreach_geometry_element_zone(NodeAddZoneOperator, Operator):
     add_default_geometry_link = False
 
 
+class NODE_OT_add_closure_zone(NodeAddZoneOperator, Operator):
+    """Add a Closure zone"""
+    bl_idname = "node.add_closure_zone"
+    bl_label = "Add Closure Zone"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type = "GeometryNodeClosureInput"
+    output_node_type = "GeometryNodeClosureOutput"
+    add_default_geometry_link = False
+
+
 class NODE_OT_collapse_hide_unused_toggle(Operator):
     """Toggle collapsed nodes and hide unused sockets"""
     bl_idname = "node.collapse_hide_unused_toggle"
@@ -429,6 +440,11 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
         item = interface.active
 
         if item:
+            if item.item_type == 'PANEL':
+                child = item.interface_items
+                if child and child[0].is_panel_toggle:
+                    panel_toggle = item.interface_items[0]
+                    interface.remove(panel_toggle)
             interface.remove(item)
             interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
 
@@ -452,9 +468,11 @@ class NODE_OT_interface_item_make_panel_toggle(NodeInterfaceOperator, Operator):
         active_item = interface.active
         if not active_item:
             return False
-        if type(active_item) is not bpy.types.NodeTreeInterfaceSocketBool:
-            cls.poll_message_set("Only boolean sockets are supported")
+
+        if type(active_item) is not bpy.types.NodeTreeInterfaceSocketBool or active_item.in_out != 'INPUT':
+            cls.poll_message_set("Only boolean input sockets are supported")
             return False
+
         parent_panel = active_item.parent
         if parent_panel.parent is None:
             cls.poll_message_set("Socket must be in a panel")
@@ -672,6 +690,7 @@ classes = (
     NODE_OT_add_simulation_zone,
     NODE_OT_add_repeat_zone,
     NODE_OT_add_foreach_geometry_element_zone,
+    NODE_OT_add_closure_zone,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_interface_item_new,
     NODE_OT_interface_item_duplicate,

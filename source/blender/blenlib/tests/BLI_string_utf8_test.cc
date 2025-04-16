@@ -360,7 +360,7 @@ TEST(string, StringNLenUTF8_Incomplete)
 #define EXPECT_BYTE_OFFSET(truncate_ofs, expect_nchars) \
   { \
     size_t buf_ofs = 0; \
-    strcpy(buf, ref_str); \
+    STRNCPY(buf, ref_str); \
     buf[truncate_ofs] = '\0'; \
     EXPECT_EQ(BLI_strnlen_utf8_ex(buf, ref_str_len, &buf_ofs), expect_nchars); \
     EXPECT_EQ(buf_ofs, truncate_ofs); \

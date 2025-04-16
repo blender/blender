@@ -79,6 +79,8 @@ class VKContext : public Context, NonCopyable {
       VkFence signal_fence = VK_NULL_HANDLE);
   void finish() override;
 
+  ShaderCompiler *get_compiler() override;
+
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) override;
 
   void debug_group_begin(const char *, int) override;

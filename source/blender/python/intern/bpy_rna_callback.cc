@@ -80,7 +80,8 @@ static PyObject *PyC_Tuple_CopySized(PyObject *src, int len_dst)
   return dst;
 }
 
-static void cb_wm_cursor_draw(bContext *C, int x, int y, void *customdata)
+static void cb_wm_cursor_draw(
+    bContext *C, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
 {
   PyGILState_STATE gilstate;
   bpy_context_set(C, &gilstate);

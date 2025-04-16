@@ -20,14 +20,14 @@
  *
  * https://en.wikipedia.org/wiki/Standard_deviation#/media/File:Standard_deviation_diagram.svg
  *
- * Example: for a 5px 1d gaussian filter, one would set `linear_distance` of 2.5.
+ * Example: for a 5px 1d gaussian filter, one would set `linear_distance` of 2.5f.
  * `standard_deviation = 1.0` will cover 68% of the gaussian weight inside the 5px radius.
  * `standard_deviation = 2.0` will cover 95% of the gaussian weight inside the 5px radius.
  */
 float filter_gaussian_factor(float linear_distance, float standard_deviation)
 {
   /* Account for `filter_gaussian_factor` using `exp2` for speed (`exp(x) = exp2(x / log(2))`). */
-  const float log_2_inv = 1.442695041;
+  constexpr float log_2_inv = 1.442695041f;
   return log_2_inv * standard_deviation / square(linear_distance);
 }
 
@@ -44,10 +44,10 @@ float filter_gaussian_weight(float factor, float square_distance)
 /**
  * Planar distance weighting. Allow to weight based on geometric neighborhood.
  */
-float filter_planar_weight(vec3 plane_N, vec3 plane_P, vec3 P, float scale)
+float filter_planar_weight(float3 plane_N, float3 plane_P, float3 P, float scale)
 {
-  vec4 plane_eq = vec4(plane_N, -dot(plane_N, plane_P));
-  float plane_distance = dot(plane_eq, vec4(P, 1.0));
+  float4 plane_eq = float4(plane_N, -dot(plane_N, plane_P));
+  float plane_distance = dot(plane_eq, float4(P, 1.0f));
   return filter_gaussian_weight(scale, square(plane_distance));
 }
 
@@ -55,7 +55,7 @@ float filter_planar_weight(vec3 plane_N, vec3 plane_P, vec3 P, float scale)
  * Angle weighting. Mostly used for normals.
  * Expects both normals to be normalized.
  */
-float filter_angle_weight(vec3 center_N, vec3 sample_N)
+float filter_angle_weight(float3 center_N, float3 sample_N)
 {
   float facing_ratio = dot(center_N, sample_N);
   return saturate(pow8f(facing_ratio));

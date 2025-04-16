@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -176,7 +176,7 @@
 namespace ceres {
 
 template <typename CostFunctor,
-          NumericDiffMethodType method = CENTRAL,
+          NumericDiffMethodType kMethod = CENTRAL,
           int kNumResiduals = 0,  // Number of residuals, or ceres::DYNAMIC
           int... Ns>              // Parameters dimensions for each block.
 class NumericDiffCostFunction final
@@ -236,7 +236,7 @@ class NumericDiffCostFunction final
     }
 
     internal::EvaluateJacobianForParameterBlocks<ParameterDims>::
-        template Apply<method, kNumResiduals>(
+        template Apply<kMethod, kNumResiduals>(
             functor_.get(),
             residuals,
             options_,

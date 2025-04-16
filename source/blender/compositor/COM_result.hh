@@ -409,6 +409,9 @@ class Result {
   /* Identical to sample_nearest_extended but with bilinear interpolation. */
   float4 sample_bilinear_extended(const float2 &coordinates) const;
 
+  /* Identical to sample_nearest_extended but with cubic interpolation. */
+  float4 sample_cubic_extended(const float2 &coordinates) const;
+
   float4 sample_nearest_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const;
   float4 sample_bilinear_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const;
   float4 sample_cubic_wrap(const float2 &coordinates, bool wrap_x, bool wrap_y) const;
@@ -753,6 +756,28 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_extended(const float2 &coordina
                                 this->channels_count(),
                                 texel_coordinates.x,
                                 texel_coordinates.y);
+  return pixel_value;
+}
+
+BLI_INLINE_METHOD float4 Result::sample_cubic_extended(const float2 &coordinates) const
+{
+  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  if (is_single_value_) {
+    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
+    return pixel_value;
+  }
+
+  const int2 size = domain_.size;
+  const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
+
+  const float *buffer = static_cast<const float *>(this->cpu_data().data());
+  math::interpolate_cubic_bspline_fl(buffer,
+                                     pixel_value,
+                                     size.x,
+                                     size.y,
+                                     this->channels_count(),
+                                     texel_coordinates.x,
+                                     texel_coordinates.y);
   return pixel_value;
 }
 

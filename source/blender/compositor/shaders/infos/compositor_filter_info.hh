@@ -6,7 +6,7 @@
 
 GPU_SHADER_CREATE_INFO(compositor_filter)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(MAT4, ukernel)
+PUSH_CONSTANT(float4x4, ukernel)
 SAMPLER(0, FLOAT_2D, input_tx)
 SAMPLER(1, FLOAT_2D, factor_tx)
 IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, output_img)

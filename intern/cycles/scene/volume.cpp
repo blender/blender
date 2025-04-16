@@ -606,7 +606,7 @@ static void merge_scalar_grids_for_velocity(const Scene *scene, Volume *volume)
   vecgrid->tree().topologyUnion(vel_z_grid->tree());
 
   MergeScalarGrids op(&vel_x_grid->tree(), &vel_y_grid->tree(), &vel_z_grid->tree());
-  openvdb::tools::foreach (vecgrid->beginValueOn(), op, true, false);
+  openvdb::tools::foreach(vecgrid->beginValueOn(), op, true, false);
 
   /* Assume all grids have the same transformation. */
   const openvdb::math::Transform::Ptr transform = openvdb::ConstPtrCast<openvdb::math::Transform>(

@@ -160,18 +160,6 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
      ICON_CON_PIVOT,
      "Pivot",
      "Change pivot point for transforms (buggy)"},
-#if 0
-    {CONSTRAINT_TYPE_RIGIDBODYJOINT,
-     "RIGID_BODY_JOINT",
-     ICON_CONSTRAINT_DATA,
-     "Rigid Body Joint",
-     "Use to define a Rigid Body Constraint (for Game Engine use only)"},
-    {CONSTRAINT_TYPE_PYTHON,
-     "SCRIPT",
-     ICON_CONSTRAINT_DATA,
-     "Script",
-     "Custom constraint(s) written in Python (Not yet implemented)"},
-#endif
     {CONSTRAINT_TYPE_SHRINKWRAP,
      "SHRINKWRAP",
      ICON_CON_SHRINKWRAP,
@@ -353,8 +341,6 @@ static StructRNA *rna_ConstraintType_refine(PointerRNA *ptr)
       return &RNA_CopyScaleConstraint;
     case CONSTRAINT_TYPE_SAMEVOL:
       return &RNA_MaintainVolumeConstraint;
-    case CONSTRAINT_TYPE_PYTHON:
-      return &RNA_PythonConstraint;
     case CONSTRAINT_TYPE_ARMATURE:
       return &RNA_ArmatureConstraint;
     case CONSTRAINT_TYPE_ACTION:
@@ -490,10 +476,6 @@ static std::optional<std::string> rna_ConstraintTarget_path(const PointerRNA *pt
     if (con->type == CONSTRAINT_TYPE_ARMATURE) {
       bArmatureConstraint *acon = static_cast<bArmatureConstraint *>(con->data);
       index = BLI_findindex(&acon->targets, tgt);
-    }
-    else if (con->type == CONSTRAINT_TYPE_PYTHON) {
-      bPythonConstraint *pcon = static_cast<bPythonConstraint *>(con->data);
-      index = BLI_findindex(&pcon->targets, tgt);
     }
   }
 
@@ -1166,46 +1148,6 @@ static void rna_def_constraint_childof(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Inverse Matrix", "Transformation matrix to apply before");
   RNA_def_property_update(
       prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_childof_inverse_matrix_update");
-
-  RNA_define_lib_overridable(false);
-}
-
-static void rna_def_constraint_python(BlenderRNA *brna)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "PythonConstraint", "Constraint");
-  RNA_def_struct_ui_text(srna, "Python Constraint", "Use Python script for constraint evaluation");
-  RNA_def_struct_sdna_from(srna, "bPythonConstraint", "data");
-
-  RNA_define_lib_overridable(true);
-
-  prop = RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "targets", nullptr);
-  RNA_def_property_struct_type(prop, "ConstraintTarget");
-  RNA_def_property_ui_text(prop, "Targets", "Target Objects");
-
-  prop = RNA_def_property(srna, "target_count", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "tarnum");
-  RNA_def_property_ui_text(prop, "Number of Targets", "Usually only 1 to 3 are needed");
-  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
-
-  prop = RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Script", "The text object that contains the Python script");
-  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
-
-  prop = RNA_def_property(srna, "use_targets", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", PYCON_USETARGETS);
-  RNA_def_property_ui_text(
-      prop, "Use Targets", "Use the targets indicated in the constraint panel");
-  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
-
-  prop = RNA_def_property(srna, "has_script_error", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", PYCON_SCRIPTERROR);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Script Error", "The linked Python script has thrown an error");
 
   RNA_define_lib_overridable(false);
 }
@@ -3793,7 +3735,6 @@ void RNA_def_constraint(BlenderRNA *brna)
   rna_def_constrainttarget_bone(brna);
 
   rna_def_constraint_childof(brna);
-  rna_def_constraint_python(brna);
   rna_def_constraint_armature_deform(brna);
   rna_def_constraint_stretch_to(brna);
   rna_def_constraint_follow_path(brna);

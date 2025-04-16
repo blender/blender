@@ -149,7 +149,7 @@ static char *generate(blender::Map<std::string, std::string> &messages, size_t *
     Offset &off = offsets[i];
 
     /* For each string, we need size and file offset.
-     * Each string is nullptr terminated; the nullptr does not count into the size. */
+     * Each string is null terminated; the null does not count into the size. */
     off.key_offset = tot_keys_len;
     off.key_len = uint32_t(items[i].key.size());
     tot_keys_len += off.key_len + 1;

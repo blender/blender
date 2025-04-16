@@ -23,10 +23,6 @@ class Batch;
 
 blender::gpu::Batch *GPU_batch_preset_sphere(int lod) ATTR_WARN_UNUSED_RESULT;
 blender::gpu::Batch *GPU_batch_preset_sphere_wire(int lod) ATTR_WARN_UNUSED_RESULT;
-blender::gpu::Batch *GPU_batch_preset_panel_drag_widget(float pixelsize,
-                                                        const float col_high[4],
-                                                        const float col_dark[4],
-                                                        float width) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * To be used with procedural placement inside shader.

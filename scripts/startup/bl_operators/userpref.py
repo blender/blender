@@ -543,7 +543,6 @@ class PREFERENCES_OT_addon_disable(Operator):
             _wm_wait_cursor(True)
 
         module_name = self.module
-        is_extension = addon_utils.check_extension(module_name)
         addon_utils.disable(module_name, default_set=True, handle_error=err_cb)
 
         if err_str:
@@ -1132,6 +1131,7 @@ class PREFERENCES_OT_studiolight_new(Operator):
     filename: StringProperty(
         name="Name",
         default="StudioLight",
+        subtype='FILE_NAME',
     )
 
     ask_override = False

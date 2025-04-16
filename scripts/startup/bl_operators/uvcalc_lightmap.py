@@ -320,11 +320,11 @@ def lightmap_uvpack(
                 if added_ids[i]:
                     continue
                 tri1 = tri_lengths[i]
-                f1, lens1, lo1 = tri1
+                _f1, lens1, lo1 = tri1
 
                 sorted_l = (lens1[lo1[0]], lens1[lo1[1]], lens1[lo1[2]])
                 added_ids[i] = True
-                vec, nearest, dist = kd.find(sorted_l, filter=lambda idx: not added_ids[idx])
+                _vec, nearest, dist = kd.find(sorted_l, filter=lambda idx: not added_ids[idx])
                 if not nearest or nearest < 0:
                     pretty_faces.append(prettyface((tri1, None)))
                     break

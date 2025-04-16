@@ -10,7 +10,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_3D_flat_color)
 
 void main()
 {
-  vec4 pos_4d = vec4(pos, 1.0);
+  float4 pos_4d = float4(pos, 1.0f);
   gl_Position = ModelViewProjectionMatrix * pos_4d;
   finalColor = color;
 

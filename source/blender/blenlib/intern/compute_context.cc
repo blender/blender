@@ -7,6 +7,7 @@
  */
 
 #include "BLI_compute_context.hh"
+#include "BLI_stack.hh"
 
 #include <sstream>
 #include <xxhash.h>

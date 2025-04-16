@@ -4560,7 +4560,9 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
    * `BKE_lib_override_library_main_update`, see #103062.
    * Proper fix involves first addressing #90610. */
-  BKE_main_collections_parent_relations_rebuild(mainvar);
+  if ((flag & BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD) == 0) {
+    BKE_main_collections_parent_relations_rebuild(mainvar);
+  }
 
   /* Make all relative paths, relative to the open blend file. */
   fix_relpaths_library(BKE_main_blendfile_path(mainvar), mainvar);

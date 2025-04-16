@@ -25,7 +25,16 @@
 
 #define COST_INVALID FLT_MAX
 
-struct DelimitData;
+namespace {
+
+struct DelimitData {
+  int cd_loop_type;
+  int cd_loop_size;
+  int cd_loop_offset;
+  int cd_loop_offset_end;
+};
+
+}  // namespace
 
 static bool bm_edge_is_delimiter(const BMEdge *e,
                                  const BMO_Delimit delimit,
@@ -63,13 +72,6 @@ static float bm_vert_edge_face_angle(BMVert *v,
 #undef UNIT_TO_ANGLE
 #undef ANGLE_TO_UNIT
 }
-
-struct DelimitData {
-  int cd_loop_type;
-  int cd_loop_size;
-  int cd_loop_offset;
-  int cd_loop_offset_end;
-};
 
 static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e, const DelimitData *delimit_data)
 {
@@ -346,8 +348,11 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
       i = BM_elem_index_get(e);
 
       if (BM_edge_is_manifold(e)) {
-        f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false);
-
+        BMFace *f_double;
+        f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false, &f_double);
+        /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
+        BLI_assert_msg(f_double == nullptr,
+                       "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
         if (f_new) {
           BMLoop *l_first, *l_iter;
 

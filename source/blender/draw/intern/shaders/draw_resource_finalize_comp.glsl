@@ -20,26 +20,26 @@ void main()
     return;
   }
 
-  mat4 model_mat = matrix_buf[resource_id].model;
+  float4x4 model_mat = matrix_buf[resource_id].model;
   ObjectInfos infos = infos_buf[resource_id];
   ObjectBounds bounds = bounds_buf[resource_id];
 
   if (drw_bounds_corners_are_valid(bounds)) {
     /* Convert corners to origin + sides in world space. */
-    vec3 p0 = bounds.bounding_corners[0].xyz;
-    vec3 p01 = bounds.bounding_corners[1].xyz - p0;
-    vec3 p02 = bounds.bounding_corners[2].xyz - p0;
-    vec3 p03 = bounds.bounding_corners[3].xyz - p0;
+    float3 p0 = bounds.bounding_corners[0].xyz;
+    float3 p01 = bounds.bounding_corners[1].xyz - p0;
+    float3 p02 = bounds.bounding_corners[2].xyz - p0;
+    float3 p03 = bounds.bounding_corners[3].xyz - p0;
     /* Avoid flat box. */
-    p01.x = max(p01.x, 1e-4);
-    p02.y = max(p02.y, 1e-4);
-    p03.z = max(p03.z, 1e-4);
-    vec3 diagonal = p01 + p02 + p03;
-    vec3 center = p0 + diagonal * 0.5;
+    p01.x = max(p01.x, 1e-4f);
+    p02.y = max(p02.y, 1e-4f);
+    p03.z = max(p03.z, 1e-4f);
+    float3 diagonal = p01 + p02 + p03;
+    float3 center = p0 + diagonal * 0.5f;
     float min_axis = reduce_min(abs(diagonal));
     bounds.bounding_sphere.xyz = transform_point(model_mat, center);
     /* We have to apply scaling to the diagonal. */
-    bounds.bounding_sphere.w = length(transform_direction(model_mat, diagonal)) * 0.5;
+    bounds.bounding_sphere.w = length(transform_direction(model_mat, diagonal)) * 0.5f;
     bounds._inner_sphere_radius = min_axis;
     bounds.bounding_corners[0].xyz = transform_point(model_mat, p0);
     bounds.bounding_corners[1].xyz = transform_direction(model_mat, p01);
@@ -52,28 +52,28 @@ void main()
     }
 
     /* TODO: Bypass test for very large objects (see #67319). */
-    if (bounds.bounding_sphere.w > 1e12) {
-      bounds.bounding_sphere.w = -2.0;
+    if (bounds.bounding_sphere.w > 1e12f) {
+      bounds.bounding_sphere.w = -2.0f;
     }
 
     /* Bypass culling test for objects that are flattened on one or more axes (see #127774).
      * Fixing them is too much computation but might be worth doing if a use case for it.
      * Do not compute the real length to save some instructions. */
-    vec3 object_scale = vec3(reduce_add(abs(model_mat[0].xyz)),
-                             reduce_add(abs(model_mat[1].xyz)),
-                             reduce_add(abs(model_mat[2].xyz)));
-    if (any(lessThan(abs(object_scale), vec3(1e-10)))) {
-      bounds.bounding_sphere.w = -2.0;
+    float3 object_scale = float3(reduce_add(abs(model_mat[0].xyz)),
+                                 reduce_add(abs(model_mat[1].xyz)),
+                                 reduce_add(abs(model_mat[2].xyz)));
+    if (any(lessThan(abs(object_scale), float3(1e-10f)))) {
+      bounds.bounding_sphere.w = -2.0f;
     }
 
     /* Update bounds. */
     bounds_buf[resource_id] = bounds;
   }
 
-  vec3 loc = infos.orco_add;  /* Box center. */
-  vec3 size = infos.orco_mul; /* Box half-extent. */
-  vec3 orco_mul = safe_rcp(size * 2.0);
-  vec3 orco_add = (loc - size) * -orco_mul;
+  float3 loc = infos.orco_add;  /* Box center. */
+  float3 size = infos.orco_mul; /* Box half-extent. */
+  float3 orco_mul = safe_rcp(size * 2.0f);
+  float3 orco_add = (loc - size) * -orco_mul;
   infos_buf[resource_id].orco_add = orco_add;
   infos_buf[resource_id].orco_mul = orco_mul;
 }

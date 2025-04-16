@@ -251,7 +251,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
       this->set_default_outputs(params);
       return;
     }
-    if (found_id->is_in_loop) {
+    if (found_id->is_in_loop || found_id->is_in_closure) {
       DummyDataBlockMap data_block_map;
       this->pass_through(params, user_data, &data_block_map);
       return;
@@ -375,7 +375,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
     LinearAllocator<> allocator;
     for (const int i : bake_items_.index_range()) {
       const CPPType &type = *outputs_[i].type;
-      next_values[i] = allocator.allocate(type.size(), type.alignment());
+      next_values[i] = allocator.allocate(type.size, type.alignment);
     }
     this->copy_bake_state_to_values(
         next_state, data_block_map, self_object, compute_context, next_values);

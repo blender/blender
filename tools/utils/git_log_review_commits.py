@@ -37,6 +37,7 @@ class _GetchUnix:
 
     def __init__(self):
         import tty
+        del tty
 
     def __call__(self):
         import tty

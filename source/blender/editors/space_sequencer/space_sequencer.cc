@@ -43,6 +43,7 @@
 #include "WM_api.hh"
 #include "WM_message.hh"
 
+#include "SEQ_channels.hh"
 #include "SEQ_offscreen.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
@@ -662,7 +663,9 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   int wmcursor = WM_CURSOR_DEFAULT;
 
   const bToolRef *tref = area->runtime.tool;
-  if (tref == nullptr || !STRPREFIX(tref->idname, "builtin.select")) {
+  if (tref == nullptr ||
+      !(STRPREFIX(tref->idname, "builtin.select") || STREQ(tref->idname, "builtin.blade")))
+  {
     WM_cursor_set(win, wmcursor);
     return;
   }
@@ -693,6 +696,17 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 
   const Scene *scene = win->scene;
   const Editing *ed = seq::editing_get(scene);
+
+  if (STREQ(tref->idname, "builtin.blade")) {
+    int mval[2] = {int(mouse_co_region[0]), int(mouse_co_region[1])};
+    Strip *strip = strip_under_mouse_get(scene, v2d, mval);
+    ListBase *channels = seq::channels_displayed_get(ed);
+    if (strip != nullptr) {
+      wmcursor = seq::transform_is_locked(channels, strip) ? WM_CURSOR_STOP : WM_CURSOR_BLADE;
+    }
+    WM_cursor_set(win, wmcursor);
+    return;
+  }
 
   if (ed == nullptr) {
     WM_cursor_set(win, wmcursor);

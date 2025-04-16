@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,8 @@ class CERES_NO_EXPORT Evaluator {
     int num_threads = 1;
     int num_eliminate_blocks = -1;
     LinearSolverType linear_solver_type = DENSE_QR;
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type =
+        NO_SPARSE;
     bool dynamic_sparsity = false;
     ContextImpl* context = nullptr;
     EvaluationCallback* evaluation_callback = nullptr;

@@ -1,9 +1,9 @@
 import mathutils
 
-# zero length vector
+# Zero length vector.
 vec = mathutils.Vector((0.0, 0.0, 1.0))
 
-# unit length vector
+# Unit length vector.
 vec_a = vec.normalized()
 
 vec_b = mathutils.Vector((0.0, 1.0, 2.0))
@@ -29,7 +29,7 @@ vec_a < vec_b
 vec_a <= vec_b
 
 
-# Math can be performed on Vector classes
+# Math can be performed on Vector classes.
 vec_a + vec_b
 vec_a - vec_b
 vec_a @ vec_b
@@ -39,7 +39,7 @@ quat @ vec_a
 -vec_a
 
 
-# You can access a vector object like a sequence
+# You can access a vector object like a sequence.
 x = vec_a[0]
 len(vec)
 vec_a[:] = vec_b
@@ -47,7 +47,7 @@ vec_a[:] = 1.0, 2.0, 3.0
 vec2d[:] = vec3d[:2]
 
 
-# Vectors support 'swizzle' operations
+# Vectors support 'swizzle' operations.
 # See https://en.wikipedia.org/wiki/Swizzling_(computer_graphics)
 vec.xyz = vec.zyx
 vec.xy = vec4d.zw

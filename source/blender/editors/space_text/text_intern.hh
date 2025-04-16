@@ -121,7 +121,6 @@ void TEXT_OT_save(wmOperatorType *ot);
 void TEXT_OT_save_as(wmOperatorType *ot);
 void TEXT_OT_make_internal(wmOperatorType *ot);
 void TEXT_OT_run_script(wmOperatorType *ot);
-void TEXT_OT_refresh_pyconstraints(wmOperatorType *ot);
 
 void TEXT_OT_paste(wmOperatorType *ot);
 void TEXT_OT_copy(wmOperatorType *ot);

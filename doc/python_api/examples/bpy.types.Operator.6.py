@@ -43,12 +43,12 @@ class ModalOperator(bpy.types.Operator):
         return {'FINISHED'}
 
     def modal(self, context, event):
-        if event.type == 'MOUSEMOVE':  # Apply
+        if event.type == 'MOUSEMOVE':  # Apply.
             self.value = event.mouse_x
             self.execute(context)
-        elif event.type == 'LEFTMOUSE':  # Confirm
+        elif event.type == 'LEFTMOUSE':  # Confirm.
             return {'FINISHED'}
-        elif event.type in {'RIGHTMOUSE', 'ESC'}:  # Cancel
+        elif event.type in {'RIGHTMOUSE', 'ESC'}:  # Cancel.
             # Revert all changes that have been made
             context.object.location.x = self.init_loc_x
             return {'CANCELLED'}
@@ -73,5 +73,5 @@ def menu_func(self, context):
 bpy.utils.register_class(ModalOperator)
 bpy.types.VIEW3D_MT_object.append(menu_func)
 
-# test call
+# Test call.
 bpy.ops.object.modal_operator('INVOKE_DEFAULT')
