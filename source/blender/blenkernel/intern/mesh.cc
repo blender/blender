@@ -610,11 +610,6 @@ void mesh_remove_invalid_attribute_strings(Mesh &mesh)
 
 }  // namespace blender::bke
 
-void BKE_mesh_free_data_for_undo(Mesh *mesh)
-{
-  mesh_free_data(&mesh->id);
-}
-
 /**
  * \note on data that this function intentionally doesn't free:
  *

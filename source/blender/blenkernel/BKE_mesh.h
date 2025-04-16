@@ -80,12 +80,6 @@ void BKE_mesh_ensure_default_orig_index_customdata(Mesh *mesh);
 void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh);
 
 /**
- * Free (or release) any data used by this mesh (does not free the mesh itself).
- * Only use for undo, in most cases `BKE_id_free(nullptr, me)` should be used.
- */
-void BKE_mesh_free_data_for_undo(Mesh *mesh);
-
-/**
  * Remove all geometry and derived data like caches from the mesh.
  */
 void BKE_mesh_clear_geometry(Mesh *mesh);
