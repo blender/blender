@@ -49,6 +49,8 @@ class BoykovKolmogorovMaxFlow {
                 const int target,
                 const int capacity)
   {
+    assert(edge < m_graph_edges.size());
+
     m_graph_edges[edge] = Edge{source, target};
     m_graph_out_edges[source].push_back(edge);
     m_rev_edge_map[edge] = reverse_edge;

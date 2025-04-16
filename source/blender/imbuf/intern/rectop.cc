@@ -1031,7 +1031,7 @@ void IMB_rectblend_threaded(ImBuf *dbuf,
 
 void IMB_rectfill(ImBuf *drect, const float col[4])
 {
-  int num;
+  size_t num;
 
   if (drect->byte_buffer.data) {
     uint *rrect = (uint *)drect->byte_buffer.data;
@@ -1042,7 +1042,7 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
     ccol[2] = int(col[2] * 255);
     ccol[3] = int(col[3] * 255);
 
-    num = drect->x * drect->y;
+    num = size_t(drect->x) * size_t(drect->y);
     for (; num > 0; num--) {
       *rrect++ = *((uint *)ccol);
     }
@@ -1051,7 +1051,7 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
   if (drect->float_buffer.data) {
     float *rrectf = drect->float_buffer.data;
 
-    num = drect->x * drect->y;
+    num = size_t(drect->x) * size_t(drect->y);
     for (; num > 0; num--) {
       *rrectf++ = col[0];
       *rrectf++ = col[1];
@@ -1239,11 +1239,11 @@ void IMB_rectfill_area(
 
 void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
 {
-  int i;
+  size_t i;
 
   if (ibuf->float_buffer.data && (ibuf->channels == 4)) {
     float *fbuf = ibuf->float_buffer.data + 3;
-    for (i = ibuf->x * ibuf->y; i > 0; i--, fbuf += 4) {
+    for (i = size_t(ibuf->x) * size_t(ibuf->y); i > 0; i--, fbuf += 4) {
       *fbuf = value;
     }
   }
@@ -1251,7 +1251,7 @@ void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
   if (ibuf->byte_buffer.data) {
     const uchar cvalue = value * 255;
     uchar *cbuf = ibuf->byte_buffer.data + 3;
-    for (i = ibuf->x * ibuf->y; i > 0; i--, cbuf += 4) {
+    for (i = size_t(ibuf->x) * size_t(ibuf->y); i > 0; i--, cbuf += 4) {
       *cbuf = cvalue;
     }
   }

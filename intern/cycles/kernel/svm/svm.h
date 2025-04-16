@@ -189,18 +189,18 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       svm_node_attr<node_feature_mask>(kg, sd, stack, node);
       break;
       SVM_CASE(NODE_VERTEX_COLOR)
-      svm_node_vertex_color(kg, sd, stack, node.y, node.z, node.w);
+      svm_node_vertex_color(kg, sd, stack, node);
       break;
       SVM_CASE(NODE_GEOMETRY_BUMP_DX)
       IF_KERNEL_NODES_FEATURE(BUMP)
       {
-        svm_node_geometry_bump_dx(kg, sd, stack, node.y, node.z);
+        svm_node_geometry_bump_dx(kg, sd, stack, node.y, node.z, __uint_as_float(node.w));
       }
       break;
       SVM_CASE(NODE_GEOMETRY_BUMP_DY)
       IF_KERNEL_NODES_FEATURE(BUMP)
       {
-        svm_node_geometry_bump_dy(kg, sd, stack, node.y, node.z);
+        svm_node_geometry_bump_dy(kg, sd, stack, node.y, node.z, __uint_as_float(node.w));
       }
       break;
       SVM_CASE(NODE_SET_DISPLACEMENT)
@@ -222,7 +222,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       offset = svm_node_tex_noise(kg, sd, stack, node.y, node.z, node.w, offset);
       break;
       SVM_CASE(NODE_SET_BUMP)
-      svm_node_set_bump<node_feature_mask>(kg, sd, stack, node);
+      offset = svm_node_set_bump<node_feature_mask>(kg, sd, stack, node, offset);
       break;
       SVM_CASE(NODE_ATTR_BUMP_DX)
       IF_KERNEL_NODES_FEATURE(BUMP)
@@ -239,13 +239,13 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_VERTEX_COLOR_BUMP_DX)
       IF_KERNEL_NODES_FEATURE(BUMP)
       {
-        svm_node_vertex_color_bump_dx(kg, sd, stack, node.y, node.z, node.w);
+        svm_node_vertex_color_bump_dx(kg, sd, stack, node);
       }
       break;
       SVM_CASE(NODE_VERTEX_COLOR_BUMP_DY)
       IF_KERNEL_NODES_FEATURE(BUMP)
       {
-        svm_node_vertex_color_bump_dy(kg, sd, stack, node.y, node.z, node.w);
+        svm_node_vertex_color_bump_dy(kg, sd, stack, node);
       }
       break;
       SVM_CASE(NODE_TEX_COORD_BUMP_DX)

@@ -314,6 +314,9 @@ void WM_gizmomap_tag_refresh_drawstep(wmGizmoMap *gzmap, const eWM_GizmoFlagMapD
   BLI_assert(uint(drawstep) < WM_GIZMOMAP_DRAWSTEP_MAX);
   if (gzmap) {
     gzmap->update_flag[drawstep] |= (GIZMOMAP_IS_PREPARE_DRAW | GIZMOMAP_IS_REFRESH_CALLBACK);
+    /* This could be split out into a separate tagging function,
+     * in practice both when refreshing the highlight should also be updated. */
+    gzmap->tag_highlight_pending = true;
   }
 }
 
@@ -323,6 +326,8 @@ void WM_gizmomap_tag_refresh(wmGizmoMap *gzmap)
     for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
       gzmap->update_flag[i] |= (GIZMOMAP_IS_PREPARE_DRAW | GIZMOMAP_IS_REFRESH_CALLBACK);
     }
+    /* See code-comment for #WM_gizmomap_tag_refresh_drawstep. */
+    gzmap->tag_highlight_pending = true;
   }
 }
 
@@ -535,7 +540,12 @@ static void gizmo_draw_select_3d_loop(const bContext *C,
         GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
       }
       else {
-        GPU_depth_test(GPU_DEPTH_NONE);
+        /* WORKAROUND(#132196): `GPU_DEPTH_NONE` leads to issues with Intel GPU drivers on Windows
+         * where camera gizmos cannot be shifted. `glGetQueryObjectuiv` for `GL_SAMPLES_PASSED`
+         * seems to return zero in all cases. This might be due to undefined behavior of OpenGL
+         * when the depth test is disabled and rendering to a depth render target-only framebuffer.
+         * Using `GPU_DEPTH_ALWAYS` fixes the issue. */
+        GPU_depth_test(GPU_DEPTH_ALWAYS);
       }
       is_depth_prev = is_depth;
     }
@@ -732,6 +742,15 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
   }
 
   return result;
+}
+
+bool wm_gizmomap_highlight_pending(const wmGizmoMap *gzmap)
+{
+  return gzmap->tag_highlight_pending;
+}
+bool wm_gizmomap_highlight_handled(wmGizmoMap *gzmap)
+{
+  return gzmap->tag_highlight_pending = false;
 }
 
 wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,

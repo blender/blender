@@ -245,7 +245,12 @@ def main() -> None:
     setuptools.setup(
         name="bpy",
         version=blender_version_str,
-        install_requires=["cython", "numpy", "requests", "zstandard"],
+
+        # bpy is not compatible with numpy 2+, as the VFX reference platform uses
+        # 1.26 atm. This fix amended the install requirement package to specify
+        # numpy>=1.26,<2.0 to mitigate this issue.
+        install_requires=["cython", "numpy>=1.26,<2.0", "requests", "zstandard"],
+
         python_requires="==%d.%d.*" % (python_version_number[0], python_version_number[1]),
         packages=["bpy"],
         package_data={"": package_files("bpy")},

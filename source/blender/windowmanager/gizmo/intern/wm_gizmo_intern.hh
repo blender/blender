@@ -107,6 +107,9 @@ struct wmGizmoMap {
   /** When set, one of the items in 'groups' has #wmGizmoGroup.tag_remove set. */
   bool tag_remove_group;
 
+  /** When set, the event system re-calculates highlight even without cursor motion. */
+  bool tag_highlight_pending;
+
   /**
    * \brief Gizmo map runtime context
    *

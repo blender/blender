@@ -17,6 +17,7 @@ void differentiate_texco(vec4 v, out vec3 df)
 
 void node_bump(float strength,
                float dist,
+               float filter_width,
                float height,
                vec3 N,
                vec2 height_xy,
@@ -42,9 +43,7 @@ void node_bump(float strength,
 
   strength = max(strength, 0.0);
 
-  /* NOTE: keep the same as defined `BUMP_DX`. */
-  const float bump_dx = 0.1;
-  result = normalize(bump_dx * abs(det) * N - dist * sign(det) * surfgrad);
+  result = normalize(filter_width * abs(det) * N - dist * sign(det) * surfgrad);
   result = normalize(mix(N, result, strength));
 #else
   result = N;

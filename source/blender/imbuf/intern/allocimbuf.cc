@@ -723,7 +723,7 @@ size_t IMB_get_size_in_memory(ImBuf *ibuf)
     channel_size += sizeof(float);
   }
 
-  size += channel_size * ibuf->x * ibuf->y * ibuf->channels;
+  size += channel_size * size_t(ibuf->x) * size_t(ibuf->y) * size_t(ibuf->channels);
 
   if (ibuf->miptot) {
     for (a = 0; a < ibuf->miptot; a++) {

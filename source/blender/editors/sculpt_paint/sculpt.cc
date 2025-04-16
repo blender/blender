@@ -809,6 +809,14 @@ static bool brush_uses_topology_rake(const SculptSession &ss, const Brush &brush
  */
 static int sculpt_brush_needs_normal(const SculptSession &ss, const Sculpt &sd, const Brush &brush)
 {
+  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE) {
+    /* The normal for the Plane brush is expected to have already been calculated in
+     * #calc_brush_plane. */
+    BLI_assert_msg(!math::is_zero(ss.cache->sculpt_normal),
+                   "Normal should have been previously calculated.");
+    return false;
+  }
+
   using namespace blender::ed::sculpt_paint;
   const MTex *mask_tex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
   return ((SCULPT_BRUSH_TYPE_HAS_NORMAL_WEIGHT(brush.sculpt_brush_type) &&
@@ -2316,10 +2324,14 @@ static float brush_strength(const Sculpt &sd,
       return alpha * flip * pressure * overlap * feather;
 
     case SCULPT_BRUSH_TYPE_PLANE:
-      if (flip > 0.0f) {
+      if (flip > 0.0f || brush.plane_inversion_mode == BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH) {
         overlap = (1.0f + overlap) / 2.0f;
         return alpha * pressure * overlap * feather;
       }
+      /* When the brush is inverted with the Invert Displacement mode (i.e. when the brush adds
+       * contrast), use a different formula that results in a lower strength. This is done because,
+       * from an artistic point of view, the contrast would otherwise generally be too strong. Note
+       * that this behavior is coherent with the way Fill, Scrape and Flatten work. See #136211. */
       else {
         return 0.5f * alpha * pressure * overlap * feather;
       }
@@ -3042,6 +3054,7 @@ static IndexMask calc_plane_for_plane_brush(const Depsgraph &depsgraph,
                                             const StrokeCache &cache,
                                             const Brush &brush,
                                             Object &object,
+                                            IndexMaskMemory &memory,
                                             float3 &r_plane_normal,
                                             float3 &r_plane_center)
 {
@@ -3060,7 +3073,6 @@ static IndexMask calc_plane_for_plane_brush(const Depsgraph &depsgraph,
    * location. However, for the Plane brush, its effective center often deviates from the cursor
    * location. Calculating the affected nodes using the cursor location as the center can lead to
    * issues (see, for example, #123768). */
-  IndexMaskMemory memory;
   return bke::pbvh::search_nodes(pbvh, memory, [&](const bke::pbvh::Node &node) {
     if (node_fully_masked_or_hidden(node)) {
       return false;
@@ -3248,7 +3260,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
   }
   else if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE) {
     node_mask = calc_plane_for_plane_brush(
-        depsgraph, *ss.cache, brush, ob, plane_normal, plane_center);
+        depsgraph, *ss.cache, brush, ob, memory, plane_normal, plane_center);
   }
   else if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH) {
     node_mask = cloth::brush_affected_nodes_gather(ob, brush, memory);
@@ -6438,21 +6450,41 @@ void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
                                       Vector<float> &r_factors,
                                       Vector<float> &r_distances)
 {
+  const Span<int> verts = node.verts();
+  r_factors.resize(verts.size());
+  r_distances.resize(verts.size());
+
+  calc_factors_common_mesh_indexed(depsgraph,
+                                   brush,
+                                   object,
+                                   attribute_data,
+                                   vert_positions,
+                                   vert_normals,
+                                   node,
+                                   r_factors.as_mutable_span(),
+                                   r_distances.as_mutable_span());
+}
+void calc_factors_common_mesh_indexed(const Depsgraph &depsgraph,
+                                      const Brush &brush,
+                                      const Object &object,
+                                      const MeshAttributeData &attribute_data,
+                                      const Span<float3> vert_positions,
+                                      const Span<float3> vert_normals,
+                                      const bke::pbvh::MeshNode &node,
+                                      const MutableSpan<float> factors,
+                                      const MutableSpan<float> distances)
+{
   const SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
 
   const Span<int> verts = node.verts();
 
-  r_factors.resize(verts.size());
-  const MutableSpan<float> factors = r_factors;
   fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
   filter_region_clip_factors(ss, vert_positions, verts, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
-  r_distances.resize(verts.size());
-  const MutableSpan<float> distances = r_distances;
   calc_brush_distances(
       ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
   filter_distances_with_radius(cache.radius, distances, factors);
@@ -7606,16 +7638,21 @@ GroupedSpan<BMVert *> calc_vert_neighbors(Set<BMVert *, 0> verts,
   return GroupedSpan<BMVert *>(r_offset_data.as_span(), r_data.as_span());
 }
 
-GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
-                                              const Span<int> corner_verts,
-                                              const GroupedSpan<int> vert_to_face,
-                                              const BitSpan boundary_verts,
-                                              const Span<bool> hide_poly,
-                                              const Span<int> verts,
-                                              Vector<int> &r_offset_data,
-                                              Vector<int> &r_data)
+template<bool use_factors>
+static GroupedSpan<int> calc_vert_neighbors_interior_impl(const OffsetIndices<int> faces,
+                                                          const Span<int> corner_verts,
+                                                          const GroupedSpan<int> vert_to_face,
+                                                          const BitSpan boundary_verts,
+                                                          const Span<bool> hide_poly,
+                                                          const Span<int> verts,
+                                                          const Span<float> factors,
+                                                          Vector<int> &r_offset_data,
+                                                          Vector<int> &r_data)
 {
   BLI_assert(corner_verts.size() == faces.total_size());
+  if constexpr (use_factors) {
+    BLI_assert(verts.size() == factors.size());
+  }
 
   r_offset_data.resize(verts.size() + 1);
   r_data.clear();
@@ -7624,6 +7661,11 @@ GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
     const int vert = verts[i];
     const int vert_start = r_data.size();
     r_offset_data[i] = vert_start;
+    if constexpr (use_factors) {
+      if (factors[i] == 0.0f) {
+        continue;
+      }
+    }
     append_neighbors_to_vector(faces, corner_verts, vert_to_face, hide_poly, vert, r_data);
 
     if (boundary_verts[vert]) {
@@ -7643,6 +7685,47 @@ GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
   }
   r_offset_data.last() = r_data.size();
   return GroupedSpan<int>(r_offset_data.as_span(), r_data.as_span());
+}
+
+GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
+                                              const Span<int> corner_verts,
+                                              const GroupedSpan<int> vert_to_face,
+                                              const BitSpan boundary_verts,
+                                              const Span<bool> hide_poly,
+                                              const Span<int> verts,
+                                              const Span<float> factors,
+                                              Vector<int> &r_offset_data,
+                                              Vector<int> &r_data)
+{
+  return calc_vert_neighbors_interior_impl<true>(faces,
+                                                 corner_verts,
+                                                 vert_to_face,
+                                                 boundary_verts,
+                                                 hide_poly,
+                                                 verts,
+                                                 factors,
+                                                 r_offset_data,
+                                                 r_data);
+}
+
+GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
+                                              const Span<int> corner_verts,
+                                              const GroupedSpan<int> vert_to_face,
+                                              const BitSpan boundary_verts,
+                                              const Span<bool> hide_poly,
+                                              const Span<int> verts,
+                                              Vector<int> &r_offset_data,
+                                              Vector<int> &r_data)
+{
+  return calc_vert_neighbors_interior_impl<false>(faces,
+                                                  corner_verts,
+                                                  vert_to_face,
+                                                  boundary_verts,
+                                                  hide_poly,
+                                                  verts,
+                                                  {},
+                                                  r_offset_data,
+                                                  r_data);
 }
 
 void calc_vert_neighbors_interior(const OffsetIndices<int> faces,

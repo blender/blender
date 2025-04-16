@@ -771,7 +771,9 @@ typedef struct bAction {
 
   /* Storage for the underlying data of strips. Each strip type has its own
    * array, and strips reference this data with an enum indicating the strip
-   * type and an int containing the index in the array to use. */
+   * type and an int containing the index in the array to use.
+   *
+   * NOTE: when adding new strip data arrays, also update `duplicate_slot()`. */
   struct ActionStripKeyframeData **strip_keyframe_data_array;
   int strip_keyframe_data_array_num;
 

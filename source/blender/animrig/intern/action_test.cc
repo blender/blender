@@ -1248,6 +1248,135 @@ TEST_F(ActionLayersTest, action_move_slot)
   ASSERT_EQ(action, suzanne->adt->action);
 }
 
+TEST_F(ActionLayersTest, action_move_slot_without_channelbag)
+{
+  Action *action_2 = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "Action 2"));
+  EXPECT_TRUE(action->is_empty());
+
+  Slot &slot_cube = action->slot_add();
+  Slot &slot_suzanne = action_2->slot_add();
+  EXPECT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
+  EXPECT_EQ(assign_action_and_slot(action_2, &slot_suzanne, suzanne->id),
+            ActionSlotAssignmentResult::OK);
+
+  PointerRNA cube_rna_pointer = RNA_id_pointer_create(&cube->id);
+  PointerRNA suzanne_rna_pointer = RNA_id_pointer_create(&suzanne->id);
+
+  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"location", 0});
+  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"rotation_euler", 1});
+
+  /* Make sure action_2 has a keyframe strip, but without a channelbag. */
+  action_2->layer_add("Bagless").strip_add(*action_2, Strip::Type::Keyframe);
+
+  ASSERT_EQ(action->layer_array_num, 1);
+  ASSERT_EQ(action_2->layer_array_num, 1);
+
+  Layer *layer_1 = action->layer(0);
+  Layer *layer_2 = action_2->layer(0);
+
+  ASSERT_EQ(layer_1->strip_array_num, 1);
+  ASSERT_EQ(layer_2->strip_array_num, 1);
+
+  StripKeyframeData &strip_data_1 = layer_1->strip(0)->data<StripKeyframeData>(*action);
+  StripKeyframeData &strip_data_2 = layer_2->strip(0)->data<StripKeyframeData>(*action_2);
+
+  ASSERT_EQ(strip_data_1.channelbag_array_num, 1);
+  ASSERT_EQ(strip_data_2.channelbag_array_num, 0)
+      << "the keyframe strip of action_2 should NOT have a channelbag in this test";
+
+  Channelbag *bag_1 = strip_data_1.channelbag(0);
+  ASSERT_EQ(bag_1->fcurve_array_num, 2);
+
+  move_slot(*bmain, slot_suzanne, *action_2, *action);
+
+  ASSERT_EQ(strip_data_1.channelbag_array_num, 1);
+  ASSERT_EQ(strip_data_2.channelbag_array_num, 0);
+
+  ASSERT_EQ(action->slot_array_num, 2);
+  ASSERT_EQ(action_2->slot_array_num, 0);
+
+  /* Action should have been reassigned. */
+  ASSERT_EQ(action, cube->adt->action);
+  ASSERT_EQ(action, suzanne->adt->action);
+}
+
+TEST_F(ActionLayersTest, action_duplicate_slot)
+{
+  ASSERT_TRUE(action->is_empty());
+
+  Slot &slot_cube = action->slot_add();
+  ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
+
+  PointerRNA cube_rna_pointer = RNA_id_pointer_create(&cube->id);
+
+  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"location", 0});
+  action_fcurve_ensure_ex(bmain, action, "Test", &cube_rna_pointer, {"rotation_euler", 1});
+
+  ASSERT_EQ(action->layer_array_num, 1);
+  Layer *layer = action->layer(0);
+
+  ASSERT_EQ(layer->strip_array_num, 1);
+  StripKeyframeData &strip_data = layer->strip(0)->data<StripKeyframeData>(*action);
+
+  ASSERT_EQ(strip_data.channelbag_array_num, 1);
+  Channelbag *bag = strip_data.channelbag(0);
+  ASSERT_EQ(bag->fcurve_array_num, 2);
+
+  /* Duplicate the slot and check it for uniqueness within the Action. */
+  Slot &dupli_slot = duplicate_slot(*action, slot_cube);
+  EXPECT_NE(dupli_slot.identifier, slot_cube.identifier);
+  EXPECT_NE(dupli_slot.handle, slot_cube.handle);
+  ASSERT_EQ(action->slot_array_num, 2);
+  EXPECT_EQ(&dupli_slot, action->slot(1));
+
+  /* Check the channelbag has been duplicated correctly. */
+  ASSERT_EQ(strip_data.channelbag_array_num, 2);
+  Channelbag *dupli_bag = strip_data.channelbag(1);
+  EXPECT_EQ(dupli_bag->slot_handle, dupli_slot.handle);
+  EXPECT_EQ(dupli_bag->fcurve_array_num, 2);
+
+  /* Check the original channelbag is untouched. */
+  EXPECT_EQ(bag->slot_handle, slot_cube.handle);
+  EXPECT_EQ(bag->fcurve_array_num, 2);
+
+  /* The slot should NOT have been reassigned. */
+  EXPECT_EQ(action, cube->adt->action);
+  EXPECT_EQ(slot_cube.handle, cube->adt->slot_handle);
+}
+
+TEST_F(ActionLayersTest, action_duplicate_slot_without_channelbag)
+{
+  ASSERT_TRUE(action->is_empty());
+
+  Slot &slot_cube = action->slot_add();
+  ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
+
+  /* Create a keyframe strip, but without any channelbags. */
+  action->layer_keystrip_ensure();
+
+  ASSERT_EQ(action->layer_array_num, 1);
+  Layer *layer = action->layer(0);
+
+  ASSERT_EQ(layer->strip_array_num, 1);
+  StripKeyframeData &strip_data = layer->strip(0)->data<StripKeyframeData>(*action);
+
+  ASSERT_EQ(strip_data.channelbag_array_num, 0);
+
+  /* Duplicate the slot and check it for uniqueness within the Action. */
+  Slot &dupli_slot = duplicate_slot(*action, slot_cube);
+  EXPECT_NE(dupli_slot.identifier, slot_cube.identifier);
+  EXPECT_NE(dupli_slot.handle, slot_cube.handle);
+  ASSERT_EQ(action->slot_array_num, 2);
+  EXPECT_EQ(&dupli_slot, action->slot(1));
+
+  /* Check there are still no channelbags. */
+  EXPECT_EQ(strip_data.channelbag_array_num, 0);
+
+  /* The slot should NOT have been reassigned. */
+  EXPECT_EQ(action, cube->adt->action);
+  EXPECT_EQ(slot_cube.handle, cube->adt->slot_handle);
+}
+
 /*-----------------------------------------------------------*/
 
 /* Allocate fcu->bezt, and also return a unique_ptr to it for easily freeing the memory. */
@@ -1399,11 +1528,11 @@ class ChannelbagTest : public testing::Test {
 
 TEST_F(ChannelbagTest, fcurve_move_to_index)
 {
-  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, "group0"});
-  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, std::nullopt, "group0"});
-  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, std::nullopt, "group1"});
-  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, std::nullopt, "group1"});
-  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0, std::nullopt, std::nullopt});
+  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, {}, {}, "group0"});
+  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, {}, {}, "group0"});
+  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, {}, {}, "group1"});
+  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, {}, {}, "group1"});
+  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0});
 
   ASSERT_EQ(5, channelbag->fcurves().size());
   ASSERT_EQ(2, channelbag->channel_groups().size());
@@ -1517,11 +1646,11 @@ TEST_F(ChannelbagTest, channel_group_remove)
   bActionGroup &group1 = channelbag->channel_group_create("Group1");
   bActionGroup &group2 = channelbag->channel_group_create("Group2");
 
-  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, "Group0"});
-  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, std::nullopt, "Group0"});
-  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, std::nullopt, "Group2"});
-  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, std::nullopt, "Group2"});
-  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0, std::nullopt, std::nullopt});
+  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, {}, {}, "Group0"});
+  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, {}, {}, "Group0"});
+  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, {}, {}, "Group2"});
+  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, {}, {}, "Group2"});
+  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0});
 
   ASSERT_EQ(3, channelbag->channel_groups().size());
   ASSERT_EQ(5, channelbag->fcurves().size());
@@ -1633,14 +1762,14 @@ TEST_F(ChannelbagTest, channel_group_ensure)
 
 TEST_F(ChannelbagTest, channel_group_fcurve_creation)
 {
-  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, std::nullopt});
+  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0});
   EXPECT_EQ(1, channelbag->fcurves().size());
   EXPECT_TRUE(channelbag->channel_groups().is_empty());
 
   /* If an fcurve already exists, then ensuring it with a channel group in the
    * fcurve descriptor should NOT add it that group, nor should the group be
    * created if it doesn't already exist. */
-  channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, "group0"});
+  channelbag->fcurve_ensure(nullptr, {"fcu0", 0, {}, {}, "group0"});
   EXPECT_EQ(1, channelbag->fcurves().size());
   EXPECT_EQ(nullptr, fcu0.grp);
   EXPECT_TRUE(channelbag->channel_groups().is_empty());
@@ -1648,7 +1777,7 @@ TEST_F(ChannelbagTest, channel_group_fcurve_creation)
   /* Creating a new fcurve with a channel group in the fcurve descriptor should
    * create the group and put the fcurve in it.  This also implies that the
    * fcurve will be added before any non-grouped fcurves in the array. */
-  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, std::nullopt, "group0"});
+  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, {}, {}, "group0"});
   ASSERT_EQ(2, channelbag->fcurves().size());
   ASSERT_EQ(1, channelbag->channel_groups().size());
   bActionGroup &group0 = *channelbag->channel_group(0);
@@ -1663,7 +1792,7 @@ TEST_F(ChannelbagTest, channel_group_fcurve_creation)
    * should create the group and put the fcurve in it.  This also implies that
    * the fcurve will be added before non-grouped fcurves, but after other
    * grouped ones. */
-  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, std::nullopt, "group1"});
+  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, {}, {}, "group1"});
   ASSERT_EQ(3, channelbag->fcurves().size());
   ASSERT_EQ(2, channelbag->channel_groups().size());
   EXPECT_EQ(&group0, channelbag->channel_group(0));
@@ -1681,7 +1810,7 @@ TEST_F(ChannelbagTest, channel_group_fcurve_creation)
 
   /* Creating a new fcurve with the first channel group again should put it at
    * the end of that group. */
-  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, std::nullopt, "group0"});
+  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, {}, {}, "group0"});
   ASSERT_EQ(4, channelbag->fcurves().size());
   ASSERT_EQ(2, channelbag->channel_groups().size());
   EXPECT_EQ(&group0, channelbag->channel_group(0));
@@ -1701,7 +1830,7 @@ TEST_F(ChannelbagTest, channel_group_fcurve_creation)
 
   /* Finally, creating a new fcurve with the second channel group again should
    * also put it at the end of that group. */
-  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0, std::nullopt, "group1"});
+  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0, {}, {}, "group1"});
   ASSERT_EQ(5, channelbag->fcurves().size());
   ASSERT_EQ(2, channelbag->channel_groups().size());
   EXPECT_EQ(&group0, channelbag->channel_group(0));
@@ -1724,11 +1853,11 @@ TEST_F(ChannelbagTest, channel_group_fcurve_creation)
 
 TEST_F(ChannelbagTest, channel_group_fcurve_removal)
 {
-  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, "group0"});
-  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, std::nullopt, "group0"});
-  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, std::nullopt, "group1"});
-  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, std::nullopt, "group1"});
-  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0, std::nullopt, std::nullopt});
+  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, {}, {}, "group0"});
+  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, {}, {}, "group0"});
+  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, {}, {}, "group1"});
+  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, {}, {}, "group1"});
+  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0});
 
   ASSERT_EQ(5, channelbag->fcurves().size());
   ASSERT_EQ(2, channelbag->channel_groups().size());
@@ -1797,11 +1926,11 @@ TEST_F(ChannelbagTest, channel_group_fcurve_removal)
 
 TEST_F(ChannelbagTest, channel_group_move_to_index)
 {
-  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, "group0"});
-  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, std::nullopt, "group1"});
-  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, std::nullopt, "group1"});
-  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, std::nullopt, "group2"});
-  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0, std::nullopt, std::nullopt});
+  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, {}, {}, "group0"});
+  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, {}, {}, "group1"});
+  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, {}, {}, "group1"});
+  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, {}, {}, "group2"});
+  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0});
 
   ASSERT_EQ(5, channelbag->fcurves().size());
   ASSERT_EQ(3, channelbag->channel_groups().size());
@@ -1876,9 +2005,9 @@ TEST_F(ChannelbagTest, channel_group_move_to_index)
 
 TEST_F(ChannelbagTest, channel_group_move_fcurve_into)
 {
-  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, std::nullopt});
-  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, std::nullopt, std::nullopt});
-  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, std::nullopt, std::nullopt});
+  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0});
+  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0});
+  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0});
   bActionGroup &group0 = channelbag->channel_group_create("group0");
   bActionGroup &group1 = channelbag->channel_group_create("group1");
 
@@ -1942,11 +2071,11 @@ TEST_F(ChannelbagTest, channel_group_move_fcurve_into)
 
 TEST_F(ChannelbagTest, channel_group_fcurve_ungroup)
 {
-  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, std::nullopt, "group0"});
-  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, std::nullopt, "group0"});
-  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, std::nullopt, "group1"});
-  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, std::nullopt, "group1"});
-  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0, std::nullopt, std::nullopt});
+  FCurve &fcu0 = channelbag->fcurve_ensure(nullptr, {"fcu0", 0, {}, {}, "group0"});
+  FCurve &fcu1 = channelbag->fcurve_ensure(nullptr, {"fcu1", 0, {}, {}, "group0"});
+  FCurve &fcu2 = channelbag->fcurve_ensure(nullptr, {"fcu2", 0, {}, {}, "group1"});
+  FCurve &fcu3 = channelbag->fcurve_ensure(nullptr, {"fcu3", 0, {}, {}, "group1"});
+  FCurve &fcu4 = channelbag->fcurve_ensure(nullptr, {"fcu4", 0});
 
   ASSERT_EQ(5, channelbag->fcurves().size());
   ASSERT_EQ(2, channelbag->channel_groups().size());

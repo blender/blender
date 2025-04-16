@@ -321,7 +321,10 @@ InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmO
   const Object &object = *CTX_data_active_object(&C);
   const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
-  BLI_assert(grease_pencil.has_active_layer());
+  if (!grease_pencil.has_active_layer()) {
+    return nullptr;
+  }
+
   const Layer &active_layer = *grease_pencil.get_active_layer();
 
   InterpolateOpData *data = MEM_new<InterpolateOpData>(__func__);
@@ -463,7 +466,8 @@ static void assign_samples_to_segments(const int num_dst_points,
   const IndexRange src_points = src_positions.index_range();
   /* Extra segment at the end for cyclic curves. */
   const int num_src_segments = src_points.size() - 1 + cyclic;
-  const int num_free_samples = num_dst_points - num_src_segments;
+  /* Extra points of the destination curve that need to be distributed on source segments. */
+  const int num_free_samples = num_dst_points - num_src_segments - 1;
   BLI_assert(dst_sample_offsets.size() == num_src_segments + 1);
 
   Array<float> segment_lengths(num_src_segments + 1);

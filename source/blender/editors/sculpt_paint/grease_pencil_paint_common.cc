@@ -107,8 +107,7 @@ float brush_point_influence(const Scene &scene,
                                multi_frame_falloff;
 
   /* Distance falloff. */
-  const int2 mval_i = int2(math::round(sample.mouse_position));
-  const float distance = math::distance(mval_i, int2(co));
+  const float distance = math::distance(sample.mouse_position, co);
   /* Apply Brush curve. */
   const float brush_falloff = BKE_brush_curve_strength(&brush, distance, radius);
 

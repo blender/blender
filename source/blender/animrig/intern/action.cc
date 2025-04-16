@@ -36,6 +36,7 @@
 
 #include "BLT_translation.hh"
 
+#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
 #include "ANIM_action.hh"
@@ -1844,6 +1845,23 @@ void StripKeyframeData::slot_data_remove(const slot_handle_t slot_handle)
   this->channelbag_remove(*channelbag);
 }
 
+void StripKeyframeData::slot_data_duplicate(const slot_handle_t source_slot_handle,
+                                            const slot_handle_t target_slot_handle)
+{
+  BLI_assert(!this->channelbag_for_slot(target_slot_handle));
+
+  const Channelbag *source_cbag = this->channelbag_for_slot(source_slot_handle);
+  if (!source_cbag) {
+    return;
+  }
+
+  Channelbag &target_cbag = *MEM_new<animrig::Channelbag>(__func__, *source_cbag);
+  target_cbag.slot_handle = target_slot_handle;
+
+  grow_array_and_append<ActionChannelbag *>(
+      &this->channelbag_array, &this->channelbag_array_num, &target_cbag);
+}
+
 const FCurve *Channelbag::fcurve_find(const FCurveDescriptor &fcurve_descriptor) const
 {
   return animrig::fcurve_find(this->fcurves(), fcurve_descriptor);
@@ -2125,6 +2143,10 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
                  fcurve_descriptor.array_index,
                  slot.identifier);
     return insert_vert_result;
+  }
+
+  if (fcurve_descriptor.prop_type) {
+    update_autoflags_fcurve_direct(fcurve, *fcurve_descriptor.prop_type);
   }
 
   return SingleKeyingResult::SUCCESS;
@@ -2696,7 +2718,8 @@ FCurve *action_fcurve_ensure_legacy(Main *bmain,
     return fcu;
   }
 
-  /* Determine the property subtype if we can. */
+  /* Determine the property (sub)type if we can. */
+  std::optional<PropertyType> prop_type = std::nullopt;
   std::optional<PropertySubType> prop_subtype = std::nullopt;
   if (ptr != nullptr) {
     PropertyRNA *resolved_prop;
@@ -2705,15 +2728,19 @@ FCurve *action_fcurve_ensure_legacy(Main *bmain,
     const bool resolved = RNA_path_resolve_property(
         &id_ptr, fcurve_descriptor.rna_path.c_str(), &resolved_ptr, &resolved_prop);
     if (resolved) {
+      prop_type = RNA_property_type(resolved_prop);
       prop_subtype = RNA_property_subtype(resolved_prop);
     }
   }
 
+  BLI_assert_msg(!fcurve_descriptor.prop_type.has_value(),
+                 "Did not expect a prop_type to be passed in. This is fine, but does need some "
+                 "changes to action_fcurve_ensure_legacy() to deal with it");
   BLI_assert_msg(!fcurve_descriptor.prop_subtype.has_value(),
                  "Did not expect a prop_subtype to be passed in. This is fine, but does need some "
                  "changes to action_fcurve_ensure_legacy() to deal with it");
   fcu = create_fcurve_for_channel(
-      {fcurve_descriptor.rna_path, fcurve_descriptor.array_index, prop_subtype});
+      {fcurve_descriptor.rna_path, fcurve_descriptor.array_index, prop_type, prop_subtype});
 
   if (BLI_listbase_is_empty(&act->curves)) {
     fcu->flag |= FCURVE_ACTIVE;
@@ -3065,11 +3092,11 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
  * slot handle and runtime data. This copies the identifier which might clash with other
  * identifiers on the action. Call `slot_identifier_ensure_unique` after.
  */
-static void clone_slot(Slot &from, Slot &to)
+static void clone_slot(const Slot &from, Slot &to)
 {
   ActionSlotRuntimeHandle *runtime = to.runtime;
   slot_handle_t handle = to.handle;
-  *reinterpret_cast<ActionSlot *>(&to) = *reinterpret_cast<ActionSlot *>(&from);
+  *reinterpret_cast<ActionSlot *>(&to) = *reinterpret_cast<const ActionSlot *>(&from);
   to.runtime = runtime;
   to.handle = handle;
 }
@@ -3090,17 +3117,22 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
   if (!from_action.layers().is_empty() && !from_action.layer(0)->strips().is_empty()) {
     StripKeyframeData &from_strip_data = from_action.layer(0)->strip(0)->data<StripKeyframeData>(
         from_action);
-    to_action.layer_keystrip_ensure();
-    StripKeyframeData &to_strip_data = to_action.layer(0)->strip(0)->data<StripKeyframeData>(
-        to_action);
     Channelbag *channelbag = from_strip_data.channelbag_for_slot(source_slot.handle);
-    BLI_assert(channelbag != nullptr);
-    channelbag->slot_handle = target_slot.handle;
-    grow_array_and_append<ActionChannelbag *>(
-        &to_strip_data.channelbag_array, &to_strip_data.channelbag_array_num, channelbag);
-    int index = from_strip_data.find_channelbag_index(*channelbag);
-    shrink_array_and_remove<ActionChannelbag *>(
-        &from_strip_data.channelbag_array, &from_strip_data.channelbag_array_num, index);
+    /* It's perfectly fine for a slot to not have a channelbag on each keyframe strip. */
+    if (channelbag) {
+      /* Only create the layer & keyframe strip if there is a channelbag to move
+       * into it. Otherwise it's better to keep the Action lean, and defer their
+       * creation when keys are inserted. */
+      to_action.layer_keystrip_ensure();
+      StripKeyframeData &to_strip_data = to_action.layer(0)->strip(0)->data<StripKeyframeData>(
+          to_action);
+      channelbag->slot_handle = target_slot.handle;
+      grow_array_and_append<ActionChannelbag *>(
+          &to_strip_data.channelbag_array, &to_strip_data.channelbag_array_num, channelbag);
+      const int index = from_strip_data.find_channelbag_index(*channelbag);
+      shrink_array_and_remove<ActionChannelbag *>(
+          &from_strip_data.channelbag_array, &from_strip_data.channelbag_array_num, index);
+    }
   }
 
   /* Reassign all users of `source_slot` to the action `to_action` and the slot `target_slot`. */
@@ -3127,12 +3159,42 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
         BLI_assert(result == ActionSlotAssignmentResult::OK);
         UNUSED_VARS_NDEBUG(result);
       }
+
+      /* TODO: move the tagging of animated IDs into generic_assign_action() and
+       * generic_assign_action_slot(), as that's closer to the modification of
+       * the animated ID.
+       *
+       * This line was added here for now, to fix #136388 with minimal impact on
+       * other code, so that the fix can be easily backported to Blender 4.4. */
+      DEG_id_tag_update(user, ID_RECALC_ANIMATION);
       return true;
     };
     foreach_action_slot_use_with_references(*user, assign_other_action);
   }
 
   from_action.slot_remove(source_slot);
+}
+
+Slot &duplicate_slot(Action &action, const Slot &slot)
+{
+  BLI_assert(action.slots().contains(const_cast<Slot *>(&slot)));
+
+  /* Duplicate the slot itself. */
+  Slot &cloned_slot = action.slot_add();
+  clone_slot(slot, cloned_slot);
+  slot_identifier_ensure_unique(action, cloned_slot);
+
+  /* Duplicate each Channelbag for the source slot. */
+  for (int i = 0; i < action.strip_keyframe_data_array_num; i++) {
+    StripKeyframeData &strip_data = action.strip_keyframe_data_array[i]->wrap();
+    strip_data.slot_data_duplicate(slot.handle, cloned_slot.handle);
+  }
+
+  /* The ID has changed, and so it needs to be re-evaluated. Animation does not
+   * have to be flushed since nothing is using this slot yet. */
+  DEG_id_tag_update(&action.id, ID_RECALC_ANIMATION_NO_FLUSH);
+
+  return cloned_slot;
 }
 
 }  // namespace blender::animrig

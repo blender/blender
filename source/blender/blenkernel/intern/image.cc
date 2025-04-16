@@ -60,6 +60,7 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
+#include "BLI_string_utf8.h"
 #include "BLI_system.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
@@ -2646,10 +2647,9 @@ void BKE_stamp_info_from_imbuf(RenderResult *rr, ImBuf *ibuf)
 
 bool BKE_imbuf_alpha_test(ImBuf *ibuf)
 {
-  int tot;
   if (ibuf->float_buffer.data) {
     const float *buf = ibuf->float_buffer.data;
-    for (tot = ibuf->x * ibuf->y; tot--; buf += 4) {
+    for (size_t tot = size_t(ibuf->x) * size_t(ibuf->y); tot--; buf += 4) {
       if (buf[3] < 1.0f) {
         return true;
       }
@@ -2657,7 +2657,7 @@ bool BKE_imbuf_alpha_test(ImBuf *ibuf)
   }
   else if (ibuf->byte_buffer.data) {
     uchar *buf = ibuf->byte_buffer.data;
-    for (tot = ibuf->x * ibuf->y; tot--; buf += 4) {
+    for (size_t tot = size_t(ibuf->x) * size_t(ibuf->y); tot--; buf += 4) {
       if (buf[3] != 255) {
         return true;
       }
@@ -5737,7 +5737,7 @@ RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
 {
   RenderSlot *slot = MEM_cnew<RenderSlot>("Image new Render Slot");
   if (name && name[0]) {
-    STRNCPY(slot->name, name);
+    STRNCPY_UTF8(slot->name, name);
   }
   else {
     int n = BLI_listbase_count(&ima->renderslots) + 1;

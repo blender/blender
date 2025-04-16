@@ -689,6 +689,7 @@ typedef enum eFCurve_Flags {
   /** temporary tag for editing */
   FCURVE_TAGGED = (1 << 15),
 } eFCurve_Flags;
+ENUM_OPERATORS(eFCurve_Flags, FCURVE_TAGGED);
 
 /* extrapolation modes (only simple value 'extending') */
 typedef enum eFCurve_Extend {

@@ -2334,6 +2334,10 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
 
     if (use_obedit) {
       FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, object_type, object_mode, ob_iter) {
+        /* Depsgraph usually does this, but we use a different iterator.
+         * So we have to do it manually. */
+        ob_iter->runtime->select_id = DEG_get_original_object(ob_iter)->runtime->select_id;
+
         drw_engines_cache_populate(ob_iter);
       }
       FOREACH_OBJECT_IN_MODE_END;

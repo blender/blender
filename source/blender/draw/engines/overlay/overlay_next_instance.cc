@@ -121,6 +121,17 @@ void Instance::init()
       GPU_texture_update_sub(resources.dummy_depth_tx, GPU_DATA_FLOAT, &data, 0, 0, 0, 1, 1, 1);
     }
   }
+
+  if (state.v3d) {
+    if (resources.is_selection() || state.is_depth_only_drawing) {
+      const View3DShading &shading = state.v3d->shading;
+      /* This is bad as this makes a solid mode setting affect material preview / render mode
+       * selection and auto-depth. But users are relying on this to work in scene using backface
+       * culling in shading (see #136335 and #136418). */
+      resources.theme_settings.backface_culling = (shading.flag & V3D_SHADING_BACKFACE_CULLING);
+      GPU_uniformbuf_update(resources.globals_buf, &resources.theme_settings);
+    }
+  }
 }
 
 void Instance::begin_sync()
@@ -131,7 +142,7 @@ void Instance::begin_sync()
   state.camera_position = view.viewinv().location();
   state.camera_forward = view.viewinv().z_axis();
 
-  resources.begin_sync();
+  resources.begin_sync(state.clipping_plane_count);
 
   background.begin_sync(resources, state);
   image_prepass.begin_sync(resources, state);
@@ -504,7 +515,8 @@ void Instance::draw_v3d(Manager &manager, View &view)
     layer.armatures.draw_line(framebuffer, manager, view);
     layer.sculpts.draw_line(framebuffer, manager, view);
     layer.grease_pencil.draw_line(framebuffer, manager, view);
-    layer.meshes.draw_line(framebuffer, manager, view);
+    /* NOTE: Temporarily moved after grid drawing (See #136764). */
+    // layer.meshes.draw_line(framebuffer, manager, view);
     layer.curves.draw_line(framebuffer, manager, view);
   };
 
@@ -542,11 +554,11 @@ void Instance::draw_v3d(Manager &manager, View &view)
       }
     }
 
+    regular.prepass.draw_line(resources.overlay_line_fb, manager, view);
+
     /* TODO(fclem): Split overlay and rename draw functions. */
     /* TODO(fclem): Draw on line framebuffer. */
     regular.empties.draw_images(resources.overlay_fb, manager, view);
-
-    regular.prepass.draw_line(resources.overlay_line_fb, manager, view);
 
     if (state.xray_enabled || (state.v3d && state.v3d->shading.type > OB_SOLID)) {
       /* If workbench is not enabled, the infront buffer might contain garbage. */
@@ -588,6 +600,9 @@ void Instance::draw_v3d(Manager &manager, View &view)
     motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
     xray_fade.draw_color_only(resources.overlay_color_only_fb, manager, view);
     grid.draw_color_only(resources.overlay_color_only_fb, manager, view);
+
+    regular.meshes.draw_line(resources.overlay_line_fb, manager, view);
+    infront.meshes.draw_line(resources.overlay_line_in_front_fb, manager, view);
 
     draw_color_only(regular, resources.overlay_color_only_fb);
     draw_color_only(infront, resources.overlay_color_only_fb);

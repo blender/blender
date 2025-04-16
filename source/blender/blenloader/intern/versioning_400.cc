@@ -100,6 +100,8 @@
 
 #include "BLT_translation.hh"
 
+#include "RNA_access.hh"
+
 #include "BLO_read_write.hh"
 #include "BLO_readfile.hh"
 
@@ -131,6 +133,34 @@ static void version_fcurve_noise_modifier(FCurve &fcurve)
     data->lacunarity = 2.0f;
     data->roughness = 0.5f;
     data->legacy_noise = true;
+  }
+}
+
+static void version_fix_fcurve_noise_offset(FCurve &fcurve)
+{
+  LISTBASE_FOREACH (FModifier *, fcurve_modifier, &fcurve.modifiers) {
+    if (fcurve_modifier->type != FMODIFIER_TYPE_NOISE) {
+      continue;
+    }
+    FMod_Noise *data = static_cast<FMod_Noise *>(fcurve_modifier->data);
+    if (data->legacy_noise) {
+      /* We don't want to modify anything if the noise is set to legacy, because the issue only
+       * occurred on the new style noise. */
+      continue;
+    }
+    data->offset *= data->size;
+  }
+}
+
+static void nlastrips_apply_fcurve_versioning(ListBase &strips)
+{
+  LISTBASE_FOREACH (NlaStrip *, strip, &strips) {
+    LISTBASE_FOREACH (FCurve *, fcurve, &strip->fcurves) {
+      version_fix_fcurve_noise_offset(*fcurve);
+    }
+
+    /* Check sub-strips (if meta-strips). */
+    nlastrips_apply_fcurve_versioning(strip->strips);
   }
 }
 
@@ -1287,6 +1317,21 @@ static void do_version_color_to_float_conversion(bNodeTree *node_tree)
   }
 }
 
+static void do_version_bump_filter_width(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
+    if (node->type_legacy != SH_NODE_BUMP) {
+      continue;
+    }
+
+    bNodeSocket *filter_width_input = blender::bke::node_find_socket(
+        node, SOCK_IN, "Filter Width");
+    if (filter_width_input) {
+      *version_cycles_node_socket_float_value(filter_width_input) = 1.0f;
+    }
+  }
+}
+
 static void do_version_viewer_shortcut(bNodeTree *node_tree)
 {
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
@@ -1650,8 +1695,63 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
       if (ntree->type == NTREE_COMPOSIT) {
         do_version_color_to_float_conversion(ntree);
       }
+      else if (ntree->type == NTREE_SHADER) {
+        do_version_bump_filter_width(ntree);
+      }
     }
     FOREACH_NODETREE_END;
+  }
+
+  /* For each F-Curve, set the F-Curve flags based on the property type it animates. This is to
+   * correct F-Curves created while the bug (#136347) was in active use. Since this bug did not
+   * appear before 4.4, and this versioning code has a bit of a performance impact (going over all
+   * F-Curves of all Actions, and resolving them all to their RNA properties), it will be skipped
+   * if the blend file is old enough to not be affected. */
+  if (MAIN_VERSION_FILE_ATLEAST(bmain, 404, 0) && !MAIN_VERSION_FILE_ATLEAST(bmain, 404, 31)) {
+    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
+      blender::animrig::Action &action = dna_action->wrap();
+      for (const blender::animrig::Slot *slot : action.slots()) {
+        blender::Span<ID *> slot_users = slot->users(*bmain);
+        if (slot_users.is_empty()) {
+          /* If nothing is using this slot, the RNA paths cannot be resolved, and so there
+           * is no way to find the animated property type. */
+          continue;
+        }
+        blender::animrig::foreach_fcurve_in_action_slot(action, slot->handle, [&](FCurve &fcurve) {
+          /* Loop over all slot users, because when the slot is shared, not all F-Curves may
+           * resolve on all users. For example, a custom property might only exist on a subset of
+           * the users.*/
+          for (ID *slot_user : slot_users) {
+            PointerRNA slot_user_ptr = RNA_id_pointer_create(slot_user);
+            PointerRNA ptr;
+            PropertyRNA *prop;
+            if (!RNA_path_resolve_property(&slot_user_ptr, fcurve.rna_path, &ptr, &prop)) {
+              continue;
+            }
+
+            blender::animrig::update_autoflags_fcurve_direct(&fcurve, RNA_property_type(prop));
+            break;
+          }
+        });
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 32)) {
+    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
+      blender::animrig::Action &action = dna_action->wrap();
+      blender::animrig::foreach_fcurve_in_action(
+          action, [&](FCurve &fcurve) { version_fix_fcurve_noise_offset(fcurve); });
+    }
+    BKE_animdata_main_cb(bmain, [](ID * /* id */, AnimData *adt) {
+      LISTBASE_FOREACH (FCurve *, fcurve, &adt->drivers) {
+        version_fix_fcurve_noise_offset(*fcurve);
+      }
+
+      LISTBASE_FOREACH (NlaTrack *, track, &adt->nla_tracks) {
+        nlastrips_apply_fcurve_versioning(track->strips);
+      }
+    });
   }
 
   /**

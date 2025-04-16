@@ -644,6 +644,21 @@ endif()
 
 # HIP module
 
+# Workaround for SDK 6.3.42560-881c2d702 compiler bug on RDNA2
+# Issue #136138
+function(get_hip_math_flag arch math_flag)
+  if(WIN32 AND (${arch} MATCHES "gfx1030|gfx1031|gfx1032|gfx1033|gfx1034|gfx1035|gfx1036"))
+      set(result
+        -fhip-fp32-correctly-rounded-divide-sqrt
+        -fno-gpu-approx-transcendentals
+        -fgpu-flush-denormals-to-zero
+        -ffp-contract=off)
+  else()
+      set(result "")
+  endif()
+  set(${math_flag} "${result}" PARENT_SCOPE)
+endfunction()
+
 if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   # build for each arch
   set(hip_sources device/hip/kernel.cpp
@@ -676,13 +691,16 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
     # or render improperly with specific combinations of device and/or compiler.
     # - Vega (gfx90x) fails to render some scenes
     # - Other GPUs (E.g. RDNA3) render volumes improperly with HIP 6.1.40252
+    # - RDNA1 (gfx101x) renders the Principled BSDF incorrectly in some scenes with HIP 6.3.42560
     # A workaround is to set -O1 opt level during kernel compilation for these
     # configurations.
-    if(WIN32 AND ((${arch} MATCHES "gfx90[a-z0-9]+") OR (${HIP_VERSION} STREQUAL "6.1.40252")))
+    if(WIN32 AND ((${arch} MATCHES "gfx90[a-z0-9]+") OR (${HIP_VERSION} STREQUAL "6.1.40252") OR ((${arch} MATCHES "gfx101[a-z0-9]") AND (${HIP_VERSION} STREQUAL "6.3.42560"))))
       set(hip_opt_flags "-O1")
     else()
       set(hip_opt_flags)
     endif()
+
+    get_hip_math_flag(${arch} math_flag)
 
     set(hip_flags
       ${hip_flags}
@@ -699,6 +717,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       -Wno-parentheses-equality
       -Wno-unused-value
       -ffast-math
+      ${math_flag}
       ${hip_opt_flags}
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
 
@@ -794,10 +813,12 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIPRT)
 
   set(hiprt_hipfb)
   foreach(arch ${CYCLES_HIP_BINARIES_ARCH})
+    get_hip_math_flag(${arch} math_flag)
     set(hiprt_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_${arch}.hipfb)
     set(hiprt_file_compressed ${hiprt_file}.zst)
     set(hiprt_flags
     ${hiprt_compile_flags}
+    ${math_flag}
     --offload-arch=${arch}
     -o ${hiprt_file})
 

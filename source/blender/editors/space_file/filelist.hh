@@ -179,6 +179,7 @@ bool filelist_file_cache_block(FileList *filelist, int index);
 bool filelist_needs_force_reset(const FileList *filelist);
 void filelist_tag_force_reset(FileList *filelist);
 void filelist_tag_force_reset_mainfiles(FileList *filelist);
+void filelist_tag_reload_asset_library(FileList *filelist);
 bool filelist_pending(const FileList *filelist);
 bool filelist_needs_reset_on_main_changes(const FileList *filelist);
 bool filelist_is_ready(const FileList *filelist);

@@ -695,22 +695,21 @@ static void strip_retiming_fix_transition(const Scene *scene, Strip *strip, SeqR
 
 static void strip_retiming_fix_transitions(const Scene *scene, Strip *strip, SeqRetimingKey *key)
 {
+  /* Store value, since handles array will be reallocated. */
   const int key_index = SEQ_retiming_key_index_get(strip, key);
 
-  if (!SEQ_retiming_is_last_key(strip, key)) {
-    SeqRetimingKey *next_key = key + 1;
-    if (SEQ_retiming_key_is_transition_start(next_key)) {
-      strip_retiming_fix_transition(scene, strip, next_key);
+  if (key_index > 1) {
+    SeqRetimingKey *prev_key = key - 2;
+    if (SEQ_retiming_key_is_transition_start(prev_key)) {
+      strip_retiming_fix_transition(scene, strip, prev_key);
     }
   }
 
-  if (key_index <= 1) {
-    return;
-  }
-
-  SeqRetimingKey *next_key = &SEQ_retiming_keys_get(strip)[key_index + 1];
-  if (SEQ_retiming_key_is_transition_start(next_key)) {
-    strip_retiming_fix_transition(scene, strip, next_key);
+  if (!SEQ_retiming_is_last_key(strip, key)) {
+    SeqRetimingKey *next_key = &SEQ_retiming_keys_get(strip)[key_index + 1];
+    if (SEQ_retiming_key_is_transition_start(next_key)) {
+      strip_retiming_fix_transition(scene, strip, next_key);
+    }
   }
 }
 
