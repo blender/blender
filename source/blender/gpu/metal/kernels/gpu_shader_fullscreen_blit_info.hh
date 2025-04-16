@@ -6,9 +6,11 @@
  * \ingroup gpu
  */
 
+#pragma once
+
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_INTERFACE_INFO(fullscreen_blit_iface).smooth(Type::float4_t, "uvcoordsvar");
+GPU_SHADER_INTERFACE_INFO(fullscreen_blit_iface).smooth(Type::float2_t, "screen_uv");
 
 GPU_SHADER_CREATE_INFO(fullscreen_blit)
     .vertex_in(0, Type::float2_t, "pos")
