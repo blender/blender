@@ -1029,7 +1029,10 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
   }
 
   /* Warn if relative paths are used when unsupported (will already display red-alert). */
-  if (ELEM(but->type, UI_BTYPE_TEXT)) {
+  if (ELEM(but->type, UI_BTYPE_TEXT) &&
+      /* Check red-alert, if the flag is not set, then this was suppressed. */
+      (but->flag & UI_BUT_REDALERT))
+  {
     if (rnaprop) {
       PropertySubType subtype = RNA_property_subtype(rnaprop);
       if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {

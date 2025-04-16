@@ -2403,6 +2403,16 @@ float uiLayoutGetSearchWeight(uiLayout *layout);
 int uiLayoutListItemPaddingWidth();
 void uiLayoutListItemAddPadding(uiLayout *layout);
 
+/** Support suppressing checks typically performed to communicate issues to users. */
+enum class LayoutSuppressFlag : uint8_t {
+  PathSupportsBlendFileRelative = 1 << 0,
+};
+ENUM_OPERATORS(LayoutSuppressFlag, LayoutSuppressFlag::PathSupportsBlendFileRelative)
+
+LayoutSuppressFlag uiLayoutSuppressFlagGet(const uiLayout *layout);
+void uiLayoutSuppressFlagSet(uiLayout *layout, LayoutSuppressFlag flag);
+void uiLayoutSuppressFlagClear(uiLayout *layout, LayoutSuppressFlag flag);
+
 /* Layout create functions. */
 
 uiLayout *uiLayoutRow(uiLayout *layout, bool align);

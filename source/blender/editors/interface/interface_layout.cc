@@ -180,6 +180,8 @@ struct uiLayout : uiItem {
   float units[2];
   /** Is copied to uiButs created in this layout. */
   float search_weight;
+
+  LayoutSuppressFlag suppress_flag;
 };
 
 struct uiLayoutItemFlow : uiLayout {
@@ -1090,7 +1092,13 @@ static uiBut *ui_item_with_label(uiLayout *layout,
       if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
         if ((RNA_property_flag(prop) & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
           if (BLI_path_is_rel(but->drawstr.c_str())) {
-            UI_but_flag_enable(but, UI_BUT_REDALERT);
+
+            /* Finally check that this isn't suppressed, see: #137507. */
+            if ((uiLayoutSuppressFlagGet(layout) &
+                 LayoutSuppressFlag::PathSupportsBlendFileRelative) != LayoutSuppressFlag(0))
+            {
+              UI_but_flag_enable(but, UI_BUT_REDALERT);
+            }
           }
         }
       }
@@ -5482,6 +5490,21 @@ void uiLayoutListItemAddPadding(uiLayout *layout)
 
   /* Restore. */
   UI_block_layout_set_current(block, layout);
+}
+
+LayoutSuppressFlag uiLayoutSuppressFlagGet(const uiLayout *layout)
+{
+  return layout->suppress_flag;
+}
+
+void uiLayoutSuppressFlagSet(uiLayout *layout, LayoutSuppressFlag flag)
+{
+  layout->suppress_flag |= flag;
+}
+
+void uiLayoutSuppressFlagClear(uiLayout *layout, LayoutSuppressFlag flag)
+{
+  layout->suppress_flag &= ~flag;
 }
 
 /** \} */
