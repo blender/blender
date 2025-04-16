@@ -654,14 +654,7 @@ void SMAAMovc(bool4 cond, inout float4 variable, float4 value)
 /**
  * Edge Detection Vertex Shader
  */
-#  ifdef GPU_METAL
-/* NOTE: Metal API requires explicit address space qualifiers for pointer types.
- * Arrays in functions are passed as pointers, and thus require explicit address
- * space. */
-void SMAAEdgeDetectionVS(float2 texcoord, thread float4 *offset)
-#  else
-void SMAAEdgeDetectionVS(float2 texcoord, out float4 offset[3])
-#  endif
+void SMAAEdgeDetectionVS(float2 texcoord, float4 (&offset)[3])
 {
   offset[0] = mad(SMAA_RT_METRICS.xyxy, float4(-1.0f, 0.0f, 0.0f, -1.0f), texcoord.xyxy);
   offset[1] = mad(SMAA_RT_METRICS.xyxy, float4(1.0f, 0.0f, 0.0f, 1.0f), texcoord.xyxy);
@@ -671,16 +664,7 @@ void SMAAEdgeDetectionVS(float2 texcoord, out float4 offset[3])
 /**
  * Blend Weight Calculation Vertex Shader
  */
-#  ifdef GPU_METAL
-/* NOTE: Metal API requires explicit address space qualifiers for pointer types.
- * Arrays in functions are passed as pointers, and thus require explicit address
- * space. */
-void SMAABlendingWeightCalculationVS(float2 texcoord,
-                                     thread float2 &pixcoord,
-                                     thread float4 *offset)
-#  else
-void SMAABlendingWeightCalculationVS(float2 texcoord, out float2 pixcoord, out float4 offset[3])
-#  endif
+void SMAABlendingWeightCalculationVS(float2 texcoord, out float2 pixcoord, float4 (&offset)[3])
 {
   pixcoord = texcoord * SMAA_RT_METRICS.zw;
 

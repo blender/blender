@@ -121,6 +121,7 @@ class Preprocessor {
       }
       str = remove_quotes(str);
       str = enum_macro_injection(str);
+      str = argument_reference_mutation(str);
     }
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
@@ -480,6 +481,18 @@ class Preprocessor {
       str = std::regex_replace(str, regex, "$1");
     }
     return str;
+  }
+
+  /* To be run before `argument_decorator_macro_injection()`. */
+  std::string argument_reference_mutation(const std::string &str)
+  {
+    /* Remove parenthesis first. */
+    /* Example: `float (&var)[2]` > `float &var[2]` */
+    std::regex regex_parenthesis(R"((\w+ )\(&(\w+)\))");
+    std::string out = std::regex_replace(str, regex_parenthesis, "$1&$2");
+    /* Example: `const float &var[2]` > `inout float var[2]` */
+    std::regex regex(R"((?:const)?(\s*)(\w+)\s+\&(\w+)(\[\d*\])?)");
+    return std::regex_replace(out, regex, "$1 inout $2 $3$4");
   }
 
   std::string argument_decorator_macro_injection(const std::string &str)
