@@ -33,7 +33,7 @@ Manager::~Manager()
   }
 }
 
-void Manager::begin_sync()
+void Manager::begin_sync(Object *object_active)
 {
   /* Add 2 to always have a non-null number even in case of overflow. */
   sync_counter_ = (global_sync_counter_ += 2);
@@ -75,7 +75,7 @@ void Manager::begin_sync()
   attribute_len_ = 0;
   /* TODO(fclem): Resize buffers if too big, but with an hysteresis threshold. */
 
-  object_active = drw_get().obact;
+  this->object_active = object_active;
 
   /* Init the 0 resource. */
   resource_handle(float4x4::identity());
