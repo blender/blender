@@ -119,6 +119,9 @@ void DRW_render_context_disable(Render *render);
 void DRW_submission_start();
 void DRW_submission_end();
 
+void DRW_submission_mutex_init();
+void DRW_submission_mutex_exit();
+
 void DRW_gpu_context_create();
 void DRW_gpu_context_destroy();
 /**

@@ -30,6 +30,16 @@
 
 static TicketMutex *submission_mutex = nullptr;
 
+void DRW_submission_mutex_init()
+{
+  submission_mutex = BLI_ticket_mutex_alloc();
+}
+
+void DRW_submission_mutex_exit()
+{
+  BLI_ticket_mutex_free(submission_mutex);
+}
+
 void DRW_submission_start()
 {
   bool locked = BLI_ticket_mutex_lock_check_recursive(submission_mutex);
@@ -69,7 +79,8 @@ void DRW_gpu_context_create()
   BLI_assert(system_gpu_context == nullptr); /* Ensure it's called once */
 
   system_gpu_context_mutex = BLI_ticket_mutex_alloc();
-  submission_mutex = BLI_ticket_mutex_alloc();
+  DRW_submission_mutex_init();
+
   /* This changes the active context. */
   system_gpu_context = WM_system_gpu_context_create();
   WM_system_gpu_context_activate(system_gpu_context);
@@ -95,7 +106,7 @@ void DRW_gpu_context_destroy()
     GPU_context_active_set(blender_gpu_context);
     GPU_context_discard(blender_gpu_context);
     WM_system_gpu_context_dispose(system_gpu_context);
-    BLI_ticket_mutex_free(submission_mutex);
+    DRW_submission_mutex_exit();
     BLI_ticket_mutex_free(system_gpu_context_mutex);
   }
 }
