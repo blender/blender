@@ -1031,6 +1031,8 @@ static void mesh_undosys_step_decode(
     undomesh_to_editmesh(&elem->data, obedit, em);
     em->needs_flush_to_id = 1;
     DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+    /* The object update tag is necessary to cause modifiers to reevaluate after vertex group
+     * changes. */
     DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
   }
 
