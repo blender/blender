@@ -36,7 +36,7 @@
 #include "mtl_texture.hh"
 
 extern char datatoc_mtl_shader_defines_msl[];
-extern char datatoc_mtl_shader_shared_h[];
+extern char datatoc_mtl_shader_shared_hh[];
 
 using namespace blender;
 using namespace blender::gpu;
@@ -339,7 +339,7 @@ char *MSLGeneratorInterface::msl_patch_default_get()
 
   std::stringstream ss_patch;
   ss_patch << datatoc_mtl_shader_defines_msl << std::endl;
-  ss_patch << datatoc_mtl_shader_shared_h << std::endl;
+  ss_patch << datatoc_mtl_shader_shared_hh << std::endl;
   size_t len = strlen(ss_patch.str().c_str()) + 1;
 
   msl_patch_default = (char *)malloc(len * sizeof(char));
