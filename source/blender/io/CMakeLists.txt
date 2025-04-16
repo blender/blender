@@ -8,7 +8,8 @@ if(WITH_IO_WAVEFRONT_OBJ OR
    WITH_IO_GREASE_PENCIL OR
    WITH_ALEMBIC OR
    WITH_USD OR
-   WITH_IO_CSV)
+   WITH_IO_CSV OR
+   WITH_IO_FBX)
   add_subdirectory(common)
 endif()
 
