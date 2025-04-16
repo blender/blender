@@ -279,6 +279,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
       km = WM_keymap_find_all(wm, "Object Non-modal", SPACE_EMPTY, RGN_TYPE_WINDOW);
     }
     else {
+      km = WM_keymap_guess_from_context(C);
+    }
+
+    if (km == nullptr) {
       km = WM_keymap_find_all(wm, "Object Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
     }
   }
