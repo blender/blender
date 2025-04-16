@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_colormanagement_lib.glsl"
+#include "draw_colormanagement_lib.glsl"
 
 /* Keep in sync with image_engine.c */
 #define IMAGE_DRAW_FLAG_SHOW_ALPHA (1 << 0)

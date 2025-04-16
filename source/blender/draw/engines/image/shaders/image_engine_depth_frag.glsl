@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_colormanagement_lib.glsl"
+#include "draw_colormanagement_lib.glsl"
 
 #define Z_DEPTH_BORDER 1.0f
 #define Z_DEPTH_IMAGE 0.75f

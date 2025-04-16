@@ -6,7 +6,7 @@
 
 #include "infos/eevee_common_info.hh"
 
-#include "common_shape_lib.glsl"
+#include "draw_shape_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 

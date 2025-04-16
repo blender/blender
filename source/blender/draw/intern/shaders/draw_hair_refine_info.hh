@@ -25,7 +25,7 @@ STORAGE_BUF(0, WRITE, float4, posTime[])
 /* Per strands data. */
 SAMPLER(1, UINT_BUFFER, hairStrandBuffer)
 SAMPLER(2, UINT_BUFFER, hairStrandSegBuffer)
-COMPUTE_SOURCE("common_hair_refine_comp.glsl")
+COMPUTE_SOURCE("draw_hair_refine_comp.glsl")
 DEFINE("HAIR_PHASE_SUBDIV")
 ADDITIONAL_INFO(draw_hair)
 DO_STATIC_COMPILATION()

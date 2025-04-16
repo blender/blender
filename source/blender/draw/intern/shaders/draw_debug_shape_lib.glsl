@@ -8,8 +8,8 @@
  * Debug drawing of shapes.
  */
 
-#include "common_debug_draw_lib.glsl"
-#include "common_shape_lib.glsl"
+#include "draw_debug_draw_lib.glsl"
+#include "draw_shape_lib.glsl"
 
 void drw_debug(Box shape, float4 color)
 {

@@ -379,7 +379,7 @@ struct GPUSource {
       dependencies.append_non_duplicates(dict.lookup("gpu_shader_print_lib.glsl"));
     }
     if ((builtins & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
-      dependencies.append_non_duplicates(dict.lookup("common_debug_draw_lib.glsl"));
+      dependencies.append_non_duplicates(dict.lookup("draw_debug_draw_lib.glsl"));
     }
 
     for (auto dependency_name : dependencies_names) {

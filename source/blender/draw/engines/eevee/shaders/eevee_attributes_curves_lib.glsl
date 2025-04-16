@@ -14,7 +14,7 @@
 SHADER_LIBRARY_CREATE_INFO(draw_modelmat)
 SHADER_LIBRARY_CREATE_INFO(draw_hair)
 
-#include "common_hair_lib.glsl" /* TODO rename to curve. */
+#include "draw_curves_lib.glsl" /* TODO rename to curve. */
 #include "draw_model_lib.glsl"
 #include "draw_object_infos_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"

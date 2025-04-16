@@ -15,7 +15,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_update)
 
-#include "common_aabb_lib.glsl"
+#include "draw_aabb_lib.glsl"
 #include "draw_intersect_lib.glsl"
 
 #include "draw_view_lib.glsl"

@@ -6,7 +6,7 @@
 
 VERTEX_SHADER_CREATE_INFO(overlay_sculpt_curves_selection)
 
-#include "common_hair_lib.glsl"
+#include "draw_curves_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"

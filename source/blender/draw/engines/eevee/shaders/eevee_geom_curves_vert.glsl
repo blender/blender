@@ -7,7 +7,7 @@
 VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
 VERTEX_SHADER_CREATE_INFO(eevee_geom_curves)
 
-#include "common_hair_lib.glsl" /* TODO rename to curve. */
+#include "draw_curves_lib.glsl" /* TODO rename to curve. */
 #include "draw_model_lib.glsl"
 #include "eevee_attributes_curves_lib.glsl"
 #include "eevee_nodetree_lib.glsl"

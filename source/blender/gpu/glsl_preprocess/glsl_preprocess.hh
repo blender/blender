@@ -307,7 +307,7 @@ class Preprocessor {
       return "";
     }
 
-    const bool skip_drw_debug = filename.find("common_debug_draw_lib.glsl") != std::string::npos ||
+    const bool skip_drw_debug = filename.find("draw_debug_draw_lib.glsl") != std::string::npos ||
                                 filename.find("draw_debug_draw_display_vert.glsl") !=
                                     std::string::npos;
 

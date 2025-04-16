@@ -4,7 +4,7 @@
 
 #include "draw_hair_refine_info.hh"
 
-#include "common_hair_lib.glsl"
+#include "draw_curves_lib.glsl"
 
 COMPUTE_SHADER_CREATE_INFO(draw_hair_refine_compute)
 

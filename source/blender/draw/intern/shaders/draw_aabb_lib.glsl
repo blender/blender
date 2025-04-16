@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "common_shape_lib.glsl"
+#include "draw_shape_lib.glsl"
 
 /* ---------------------------------------------------------------------- */
 /** \name Axis Aligned Bound Box

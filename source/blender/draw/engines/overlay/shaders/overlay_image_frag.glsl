@@ -6,7 +6,7 @@
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_image_base)
 
-#include "common_colormanagement_lib.glsl"
+#include "draw_colormanagement_lib.glsl"
 #include "select_lib.glsl"
 
 void main()

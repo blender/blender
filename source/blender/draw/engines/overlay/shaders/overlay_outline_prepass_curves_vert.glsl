@@ -6,7 +6,7 @@
 
 VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_curves)
 
-#include "common_hair_lib.glsl"
+#include "draw_curves_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "draw_object_infos_lib.glsl"
 #include "draw_view_clipping_lib.glsl"

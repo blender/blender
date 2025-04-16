@@ -14,7 +14,7 @@
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
 FRAGMENT_SHADER_CREATE_INFO(eevee_surf_capture)
 
-#include "common_hair_lib.glsl"
+#include "draw_curves_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
 #include "eevee_nodetree_lib.glsl"

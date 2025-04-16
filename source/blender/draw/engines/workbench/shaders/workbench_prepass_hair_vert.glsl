@@ -9,7 +9,7 @@ VERTEX_SHADER_CREATE_INFO(workbench_lighting_flat)
 VERTEX_SHADER_CREATE_INFO(workbench_transparent_accum)
 VERTEX_SHADER_CREATE_INFO(workbench_curves)
 
-#include "common_hair_lib.glsl"
+#include "draw_curves_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"

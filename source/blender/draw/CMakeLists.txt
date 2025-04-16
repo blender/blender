@@ -537,14 +537,6 @@ set(GLSL_SRC
 
   engines/workbench/workbench_shader_shared.h
 
-  intern/shaders/common_aabb_lib.glsl
-  intern/shaders/common_colormanagement_lib.glsl
-  intern/shaders/common_debug_draw_lib.glsl
-  intern/shaders/common_debug_shape_lib.glsl
-  intern/shaders/common_fxaa_lib.glsl
-  intern/shaders/common_hair_lib.glsl
-  intern/shaders/common_hair_refine_comp.glsl
-  intern/shaders/common_shape_lib.glsl
   intern/shaders/subdiv_custom_data_interp_comp.glsl
   intern/shaders/subdiv_ibo_lines_comp.glsl
   intern/shaders/subdiv_ibo_tris_comp.glsl
@@ -557,6 +549,14 @@ set(GLSL_SRC
   intern/shaders/subdiv_vbo_edituv_strech_area_comp.glsl
   intern/shaders/subdiv_vbo_lnor_comp.glsl
   intern/shaders/subdiv_vbo_sculpt_data_comp.glsl
+  intern/shaders/draw_aabb_lib.glsl
+  intern/shaders/draw_colormanagement_lib.glsl
+  intern/shaders/draw_debug_draw_lib.glsl
+  intern/shaders/draw_debug_shape_lib.glsl
+  intern/shaders/draw_fxaa_lib.glsl
+  intern/shaders/draw_curves_lib.glsl
+  intern/shaders/draw_hair_refine_comp.glsl
+  intern/shaders/draw_shape_lib.glsl
   intern/shaders/draw_command_generate_comp.glsl
   intern/shaders/draw_debug_draw_display_frag.glsl
   intern/shaders/draw_debug_draw_display_vert.glsl
