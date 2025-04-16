@@ -627,10 +627,10 @@ void ED_node_shader_default(const bContext *C, ID *id)
                                   *blender::bke::node_find_socket(*output, SOCK_IN, "Surface"));
     }
 
-    shader->location[0] = 10.0f;
-    shader->location[1] = 300.0f;
-    output->location[0] = 300.0f;
-    output->location[1] = 300.0f;
+    shader->location[0] = -200.0f;
+    shader->location[1] = 100.0f;
+    output->location[0] = 200.0f;
+    output->location[1] = 100.0f;
     blender::bke::node_set_active(*ntree, *output);
     BKE_ntree_update_after_single_tree_change(*bmain, *ntree);
   }

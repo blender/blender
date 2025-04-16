@@ -1937,17 +1937,17 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
       nullptr, &linestyle->id, "stroke_shader", "ShaderNodeTree");
 
   uv_along_stroke = blender::bke::node_add_static_node(C, *ntree, SH_NODE_UVALONGSTROKE);
-  uv_along_stroke->location[0] = 0.0f;
-  uv_along_stroke->location[1] = 300.0f;
+  uv_along_stroke->location[0] = -200.0f;
+  uv_along_stroke->location[1] = 100.0f;
   uv_along_stroke->custom1 = 0; /* use_tips */
 
   input_texture = blender::bke::node_add_static_node(C, *ntree, SH_NODE_TEX_IMAGE);
-  input_texture->location[0] = 200.0f;
-  input_texture->location[1] = 300.0f;
+  input_texture->location[0] = 0.0f;
+  input_texture->location[1] = 100.0f;
 
   output_linestyle = blender::bke::node_add_static_node(C, *ntree, SH_NODE_OUTPUT_LINESTYLE);
-  output_linestyle->location[0] = 400.0f;
-  output_linestyle->location[1] = 300.0f;
+  output_linestyle->location[0] = 300.0f;
+  output_linestyle->location[1] = 100.0f;
   output_linestyle->custom1 = MA_RAMP_BLEND;
   output_linestyle->custom2 = 0; /* use_clamp */
 
