@@ -440,6 +440,11 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
         item = interface.active
 
         if item:
+            if item.item_type == 'PANEL':
+                child = item.interface_items
+                if child and child[0].is_panel_toggle:
+                    panel_toggle = item.interface_items[0]
+                    interface.remove(panel_toggle)
             interface.remove(item)
             interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
 
