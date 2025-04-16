@@ -42,6 +42,30 @@ class Preprocessor {
   std::stringstream gpu_functions_;
 
  public:
+  enum SourceLanguage {
+    UNKNOWN = 0,
+    CPP,
+    MSL,
+    GLSL,
+    /* Same as GLSL but enable partial C++ feature support like template, references,
+     * include system, etc ... */
+    BLENDER_GLSL,
+  };
+
+  static SourceLanguage language_from_filename(const std::string &filename)
+  {
+    if (filename.find(".msl") != std::string::npos) {
+      return MSL;
+    }
+    if (filename.find(".glsl") != std::string::npos) {
+      return GLSL;
+    }
+    if (filename.find(".h") != std::string::npos) {
+      return CPP;
+    }
+    return UNKNOWN;
+  }
+
   /* Compile-time hashing function which converts string to a 64bit hash. */
   constexpr static uint64_t hash(const char *name)
   {
@@ -60,42 +84,44 @@ class Preprocessor {
   }
 
   /* Takes a whole source file and output processed source. */
-  std::string process(std::string str,
+  std::string process(SourceLanguage language,
+                      std::string str,
                       const std::string &filename,
-                      bool do_linting,
                       bool do_parse_function,
-                      bool do_string_mutation,
-                      bool do_include_parsing,
                       bool do_small_type_linting,
                       report_callback report_error)
   {
+    if (language == UNKNOWN) {
+      report_error(std::smatch(), "Unknown file type");
+      return "";
+    }
     str = remove_comments(str, report_error);
     threadgroup_variables_parsing(str);
     parse_builtins(str);
-    if (do_parse_function) {
-      parse_library_functions(str);
-    }
-    if (do_include_parsing) {
-      include_parse(str);
-    }
-    str = preprocessor_directive_mutation(str);
-    if (do_string_mutation) {
-      str = assert_processing(str, filename);
-      static_strings_parsing(str);
-      str = static_strings_mutation(str);
-      str = printf_processing(str, report_error);
-      quote_linting(str, report_error);
-    }
-    if (do_linting) {
+    if (language == BLENDER_GLSL || language == CPP) {
+      if (do_parse_function) {
+        parse_library_functions(str);
+      }
+      if (language == BLENDER_GLSL) {
+        include_parse(str);
+      }
+      str = preprocessor_directive_mutation(str);
+      if (language == BLENDER_GLSL) {
+        str = assert_processing(str, filename);
+        static_strings_parsing(str);
+        str = static_strings_mutation(str);
+        str = printf_processing(str, report_error);
+        quote_linting(str, report_error);
+      }
       global_scope_constant_linting(str, report_error);
       matrix_constructor_linting(str, report_error);
       array_constructor_linting(str, report_error);
+      if (do_small_type_linting) {
+        small_type_linting(str, report_error);
+      }
+      str = remove_quotes(str);
+      str = enum_macro_injection(str);
     }
-    if (do_small_type_linting) {
-      small_type_linting(str, report_error);
-    }
-    str = remove_quotes(str);
-    str = enum_macro_injection(str);
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
     return line_directive_prefix(filename) + str + threadgroup_variables_suffix() +
@@ -107,7 +133,7 @@ class Preprocessor {
   std::string process(const std::string &str)
   {
     auto no_err_report = [](std::smatch, const char *) {};
-    return process(str, "", false, false, false, false, false, no_err_report);
+    return process(GLSL, str, "", false, false, no_err_report);
   }
 
  private:
