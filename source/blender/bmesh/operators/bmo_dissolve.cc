@@ -121,7 +121,6 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 {
   BMOIter oiter;
   BMFace *f;
-  BMFace *act_face = bm->act_face;
   BMWalker regwalker;
 
   const bool use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
@@ -198,10 +197,6 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
                    "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
 
     if (f_new != nullptr) {
-      /* Maintain the active face. */
-      if (act_face && bm->act_face == nullptr) {
-        bm->act_face = f_new;
-      }
       totface_target -= faces_len - 1;
 
       /* If making the new face failed (e.g. overlapping test)
@@ -249,7 +244,6 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 {
   // BMOperator fop;
-  BMFace *act_face = bm->act_face;
   BMOIter eiter;
   BMIter iter;
   BMEdge *e, *e_next;
@@ -322,13 +316,6 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
         BM_face_kill(bm, f_new);
         f_new = nullptr;
       }
-
-      if (f_new) {
-        /* maintain active face */
-        if (act_face && bm->act_face == nullptr) {
-          bm->act_face = f_new;
-        }
-      }
     }
   }
 
@@ -366,7 +353,6 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
   BMIter iter;
   BMVert *v, *v_next;
   BMEdge *e, *e_next;
-  BMFace *act_face = bm->act_face;
 
   const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
   const bool use_boundary_tear = BMO_slot_bool_get(op->slots_in, "use_boundary_tear");
@@ -446,13 +432,6 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
           if (f_new && BM_face_find_double(f_new)) {
             BM_face_kill(bm, f_new);
             f_new = nullptr;
-          }
-
-          if (f_new) {
-            /* maintain active face */
-            if (act_face && bm->act_face == nullptr) {
-              bm->act_face = f_new;
-            }
           }
         }
       }

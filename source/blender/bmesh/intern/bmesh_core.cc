@@ -1169,6 +1169,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
   int i;
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
   BMFace *f_existing;
+  const bool had_active_face = (bm->act_face != nullptr);
 
   /* Initialize the return value if provided. This ensures it will be nullptr if the join fails. */
   if (r_double) {
@@ -1364,6 +1365,12 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
     for (i = 0; i < totface; i++) {
       BM_face_kill(bm, faces[i]);
     }
+  }
+
+  /* If the mesh started with an active face, but no longer has one, then the active face was one
+   * of the faces that was joined then deleted. Set the active face to preserve it. */
+  if (had_active_face && bm->act_face == nullptr) {
+    bm->act_face = f_new;
   }
 
   BM_CHECK_ELEMENT(f_new);
