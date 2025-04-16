@@ -590,12 +590,6 @@ void CustomData_bmesh_alloc_block(CustomData *data, void **block);
  */
 void CustomData_bmesh_free_block_data(CustomData *data, void *block);
 
-/**
- * Query info over types.
- */
-void CustomData_file_write_info(eCustomDataType type,
-                                const char **r_struct_name,
-                                int *r_struct_num);
 int CustomData_sizeof(eCustomDataType type);
 
 /**

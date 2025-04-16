@@ -5101,9 +5101,9 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
 /** \name Custom Data IO
  * \{ */
 
-void CustomData_file_write_info(const eCustomDataType type,
-                                const char **r_struct_name,
-                                int *r_struct_num)
+static void get_type_file_write_info(const eCustomDataType type,
+                                     const char **r_struct_name,
+                                     int *r_struct_num)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 
@@ -5206,7 +5206,7 @@ static void blend_write_layer_data(BlendWriter *writer,
     default: {
       const char *structname;
       int structnum;
-      CustomData_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
+      get_type_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
       if (structnum > 0) {
         int datasize = structnum * count;
         BLO_write_struct_array_by_name(writer, structname, datasize, layer.data);
@@ -5320,7 +5320,7 @@ static void blend_read_layer_data(BlendDataReader *reader, CustomDataLayer &laye
     default: {
       const char *structname;
       int structnum;
-      CustomData_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
+      get_type_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
       if (structnum > 0) {
         const int data_num = structnum * count;
         layer.data = BLO_read_struct_by_name_array(reader, structname, data_num, layer.data);
@@ -5408,7 +5408,7 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
       const int pt_size = pt ? int(MEM_allocN_len(pt) / size) : 0;
       const char *structname;
       int structnum;
-      CustomData_file_write_info(type, &structname, &structnum);
+      get_type_file_write_info(type, &structname, &structnum);
       BLI_dynstr_appendf(
           dynstr,
           "%sdict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
