@@ -41,6 +41,12 @@ constexpr static int GPU_MAX_UNIFORM_ATTR = 8;
  * \{ */
 
 /**
+ * Preprocess a raw GLSL source to adhere to our backend compatible shader language.
+ * Needed if the string was not part of our build system and is used in a #GPUShaderCreateInfo.
+ */
+std::string GPU_shader_preprocess_source(blender::StringRefNull original);
+
+/**
  * Create a shader using the given #GPUShaderCreateInfo.
  * Can return a null pointer if compilation fails.
  */
