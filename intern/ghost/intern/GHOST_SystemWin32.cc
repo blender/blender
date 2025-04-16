@@ -622,7 +622,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 #ifdef INW32_COMPISITING
         (HBRUSH)CreateSolidBrush
 #endif
-        (0x00000000);
+        (HBRUSH) GetStockObject(DKGRAY_BRUSH);
     wc.lpszMenuName = 0;
     wc.lpszClassName = L"GHOST_WindowClass";
 
@@ -2245,6 +2245,18 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           /* An application sends the WM_ERASEBKGND message when the window background must be
            * erased (for example, when a window is resized). The message is sent to prepare an
            * invalidated portion of a window for painting. */
+          {
+            HBRUSH bgBrush = (HBRUSH)GetClassLongPtr(hwnd, GCLP_HBRBACKGROUND);
+            if (bgBrush) {
+              RECT rect;
+              GetClientRect(hwnd, &rect);
+              FillRect((HDC)(wParam), &rect, bgBrush);
+              /* Clear the backround brush after the initial fill as we don't
+               * need or want any default Windows fill behavior on redraw. */
+              SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, (LONG_PTR) nullptr);
+            }
+            break;
+          }
         case WM_NCPAINT:
           /* An application sends the WM_NCPAINT message to a window
            * when its frame must be painted. */
