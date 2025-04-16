@@ -773,6 +773,10 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_int16("Size", node->custom2);
       write_input_to_property_float("Falloff Size", node->custom3);
     }
+
+    if (node->type_legacy == CMP_NODE_INPAINT) {
+      write_input_to_property_int16("Size", node->custom2);
+    }
   }
 }
 
