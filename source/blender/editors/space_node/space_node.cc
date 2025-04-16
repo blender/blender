@@ -444,7 +444,8 @@ static std::optional<const ComputeContext *> compute_context_for_tree_path(
       return std::nullopt;
     }
     const Vector<const blender::bke::bNodeTreeZone *> zone_stack =
-        tree_zones->get_zone_stack_for_node(group_node->identifier);
+        tree_zones->get_zones_to_enter_from_root(
+            tree_zones->get_zone_by_node(group_node->identifier));
     current = compute_context_for_zones(zone_stack, compute_context_cache, current);
     if (!current) {
       return std::nullopt;

@@ -126,8 +126,8 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
     if (!tree_zones) {
       return;
     }
-    const Vector<const bNodeTreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
-        node->identifier);
+    const Vector<const bNodeTreeZone *> zone_stack = tree_zones->get_zones_to_enter_from_root(
+        tree_zones->get_zone_by_node(node->identifier));
     for (const bNodeTreeZone *zone : zone_stack) {
       ViewerPathElem *zone_elem = viewer_path_elem_for_zone(*zone);
       if (!zone_elem) {
@@ -147,8 +147,8 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
   if (!tree_zones) {
     return;
   }
-  const Vector<const bNodeTreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
-      node.identifier);
+  const Vector<const bNodeTreeZone *> zone_stack = tree_zones->get_zones_to_enter_from_root(
+      tree_zones->get_zone_by_node(node.identifier));
   for (const bNodeTreeZone *zone : zone_stack) {
     ViewerPathElem *zone_elem = viewer_path_elem_for_zone(*zone);
     if (!zone_elem) {
