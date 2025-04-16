@@ -35,58 +35,97 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
+
+  b.add_input<decl::Float>("Key")
+      .default_value(0.18f)
+      .min(0.0f)
+      .description(
+          "The luminance that will be mapped to the log average luminance, typically set to the "
+          "middle gray value")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Balance")
+      .default_value(1.0f)
+      .min(0.0f)
+      .description(
+          "Balances low and high luminance areas. Lower values emphasize details in shadows, "
+          "while higher values compress highlights more smoothly")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Gamma")
+      .default_value(1.0f)
+      .min(0.0f)
+      .description("Gamma correction factor applied after tone mapping")
+      .compositor_expects_single_value();
+
+  b.add_input<decl::Float>("Intensity")
+      .default_value(0.0f)
+      .description(
+          "Controls the intensity of the image, lower values makes it darker while higher values "
+          "makes it lighter")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Contrast")
+      .default_value(0.0f)
+      .min(0.0f)
+      .description(
+          "Controls the contrast of the image. Zero automatically sets the contrast based on its "
+          "global range for better luminance distribution")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Light Adaptation")
+      .default_value(0.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "Specifies if tone mapping operates on the entire image or per pixel, 0 means the "
+          "entire image, 1 means it is per pixel, and values in between blends between both")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Chromatic Adaptation")
+      .default_value(0.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "Specifies if tone mapping operates on the luminance or on each channel independently, "
+          "0 means it uses luminance, 1 means it is per channel, and values in between blends "
+          "between both")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_tonemap(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTonemap *ntm = MEM_callocN<NodeTonemap>(__func__);
-  ntm->type = 1;
-  ntm->key = 0.18;
-  ntm->offset = 1;
-  ntm->gamma = 1;
-  ntm->f = 0;
-  ntm->m = 0; /* Actual value is set according to input. */
-  /* Default a of 1 works well with natural HDR images, but not always so for CGI.
-   * Maybe should use 0 or at least lower initial value instead. */
-  ntm->a = 1;
-  ntm->c = 0;
+  ntm->type = CMP_NODE_TONE_MAP_PHOTORECEPTOR;
   node->storage = ntm;
 }
 
 static void node_composit_buts_tonemap(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *col;
+  uiItemR(layout, ptr, "tonemap_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
 
-  col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "tonemap_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  if (RNA_enum_get(ptr, "tonemap_type") == 0) {
-    uiItemR(
-        col, ptr, "key", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  }
-  else {
-    uiItemR(col, ptr, "intensity", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    uiItemR(col,
-            ptr,
-            "contrast",
-            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-            std::nullopt,
-            ICON_NONE);
-    uiItemR(col,
-            ptr,
-            "adaptation",
-            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-            std::nullopt,
-            ICON_NONE);
-    uiItemR(col,
-            ptr,
-            "correction",
-            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-            std::nullopt,
-            ICON_NONE);
-  }
+static void node_update(bNodeTree *ntree, bNode *node)
+{
+  const bool is_simple = node_storage(*node).type == CMP_NODE_TONE_MAP_SIMPLE;
+
+  bNodeSocket *key_input = bke::node_find_socket(*node, SOCK_IN, "Key");
+  bNodeSocket *balance_input = bke::node_find_socket(*node, SOCK_IN, "Balance");
+  bNodeSocket *gamma_input = bke::node_find_socket(*node, SOCK_IN, "Gamma");
+
+  blender::bke::node_set_socket_availability(*ntree, *key_input, is_simple);
+  blender::bke::node_set_socket_availability(*ntree, *balance_input, is_simple);
+  blender::bke::node_set_socket_availability(*ntree, *gamma_input, is_simple);
+
+  bNodeSocket *intensity_input = bke::node_find_socket(*node, SOCK_IN, "Intensity");
+  bNodeSocket *contrast_input = bke::node_find_socket(*node, SOCK_IN, "Contrast");
+  bNodeSocket *light_adaptation_input = bke::node_find_socket(*node, SOCK_IN, "Light Adaptation");
+  bNodeSocket *chromatic_adaptation_input = bke::node_find_socket(
+      *node, SOCK_IN, "Chromatic Adaptation");
+
+  blender::bke::node_set_socket_availability(*ntree, *intensity_input, !is_simple);
+  blender::bke::node_set_socket_availability(*ntree, *contrast_input, !is_simple);
+  blender::bke::node_set_socket_availability(*ntree, *light_adaptation_input, !is_simple);
+  blender::bke::node_set_socket_availability(*ntree, *chromatic_adaptation_input, !is_simple);
 }
 
 using namespace blender::compositor;
@@ -134,7 +173,7 @@ class ToneMapOperation : public NodeOperation {
   {
     const float luminance_scale = compute_luminance_scale();
     const float luminance_scale_blend_factor = compute_luminance_scale_blend_factor();
-    const float gamma = node_storage(bnode()).gamma;
+    const float gamma = this->get_gamma();
     const float inverse_gamma = gamma != 0.0f ? 1.0f / gamma : 0.0f;
 
     GPUShader *shader = context().get_shader("compositor_tone_map_simple");
@@ -163,7 +202,7 @@ class ToneMapOperation : public NodeOperation {
   {
     const float luminance_scale = compute_luminance_scale();
     const float luminance_scale_blend_factor = compute_luminance_scale_blend_factor();
-    const float gamma = node_storage(bnode()).gamma;
+    const float gamma = this->get_gamma();
     const float inverse_gamma = gamma != 0.0f ? 1.0f / gamma : 0.0f;
 
     const Result &image = get_input("Image");
@@ -195,7 +234,7 @@ class ToneMapOperation : public NodeOperation {
   float compute_luminance_scale()
   {
     const float geometric_mean = compute_geometric_mean_of_luminance();
-    return geometric_mean != 0.0 ? node_storage(bnode()).key / geometric_mean : 0.0f;
+    return geometric_mean != 0.0 ? this->get_key() / geometric_mean : 0.0f;
   }
 
   /* Computes equation (1) from Reinhard's 2002 paper. However, note that the equation in the paper
@@ -208,6 +247,11 @@ class ToneMapOperation : public NodeOperation {
     return std::exp(compute_average_log_luminance());
   }
 
+  float get_key()
+  {
+    return math::max(0.0f, this->get_input("Key").get_single_value_default(0.18f));
+  }
+
   /* Equation (3) from Reinhard's 2002 paper blends between high luminance scaling for high
    * luminance values and low luminance scaling for low luminance values. This is done by adding 1
    * to the denominator, since for low luminance values, the denominator will be close to 1 and for
@@ -216,7 +260,12 @@ class ToneMapOperation : public NodeOperation {
    * a parameter to the user for more flexibility. */
   float compute_luminance_scale_blend_factor()
   {
-    return node_storage(bnode()).offset;
+    return math::max(0.0f, this->get_input("Balance").get_single_value_default(1.0f));
+  }
+
+  float get_gamma()
+  {
+    return math::max(0.0f, this->get_input("Gamma").get_single_value_default(1.0f));
   }
 
   /* Tone mapping based on equation (1) and the trilinear interpolation between equations (6) and
@@ -345,15 +394,15 @@ class ToneMapOperation : public NodeOperation {
   /* Computes equation (5) from Reinhard's 2005 paper. */
   float compute_intensity()
   {
-    return std::exp(-node_storage(bnode()).f);
+    return std::exp(-this->get_intensity());
   }
 
   /* If the contrast is not zero, return it, otherwise, a zero contrast denote automatic derivation
    * of the contrast value based on equations (2) and (4) from Reinhard's 2005 paper. */
   float compute_contrast()
   {
-    if (node_storage(bnode()).m != 0.0f) {
-      return node_storage(bnode()).m;
+    if (this->get_contrast() != 0.0f) {
+      return this->get_contrast();
     }
 
     const float log_maximum_luminance = compute_log_maximum_luminance();
@@ -399,14 +448,26 @@ class ToneMapOperation : public NodeOperation {
     return std::log(math::max(minimum, 1e-5f));
   }
 
+  float get_intensity()
+  {
+    return this->get_input("Intensity").get_single_value_default(0.0f);
+  }
+
+  float get_contrast()
+  {
+    return math::max(0.0f, this->get_input("Contrast").get_single_value_default(0.0f));
+  }
+
   float get_chromatic_adaptation()
   {
-    return node_storage(bnode()).c;
+    return math::clamp(
+        this->get_input("Chromatic Adaptation").get_single_value_default(0.0f), 0.0f, 1.0f);
   }
 
   float get_light_adaptation()
   {
-    return node_storage(bnode()).a;
+    return math::clamp(
+        this->get_input("Light Adaptation").get_single_value_default(0.0f), 0.0f, 1.0f);
   }
 
   CMPNodeToneMapType get_type()
@@ -436,6 +497,7 @@ void register_node_type_cmp_tonemap()
   ntype.enum_name_legacy = "TONEMAP";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_tonemap_declare;
+  ntype.updatefunc = file_ns::node_update;
   ntype.draw_buttons = file_ns::node_composit_buts_tonemap;
   ntype.initfunc = file_ns::node_composit_init_tonemap;
   blender::bke::node_type_storage(

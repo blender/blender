@@ -757,6 +757,17 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_bool_int16_flag("Use Alpha", node->custom1, 1 << 0);
       write_input_to_property_bool_int16_flag("Anti-Alias", node->custom2, 1 << 0, true);
     }
+
+    if (node->type_legacy == CMP_NODE_TONEMAP) {
+      NodeTonemap *storage = static_cast<NodeTonemap *>(node->storage);
+      write_input_to_property_float("Key", storage->key);
+      write_input_to_property_float("Balance", storage->offset);
+      write_input_to_property_float("Gamma", storage->gamma);
+      write_input_to_property_float("Intensity", storage->f);
+      write_input_to_property_float("Contrast", storage->m);
+      write_input_to_property_float("Light Adaptation", storage->a);
+      write_input_to_property_float("Chromatic Adaptation", storage->c);
+    }
   }
 }
 

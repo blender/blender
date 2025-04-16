@@ -3889,6 +3889,15 @@ static const char node_input_invert_alpha[] = "Invert Alpha";
 static const char node_input_use_alpha[] = "Use Alpha";
 static const char node_input_anti_alias[] = "Anti-Alias";
 
+/* Tone Map node. */
+static const char node_input_key[] = "Key";
+static const char node_input_balance[] = "Balance";
+static const char node_input_gamma[] = "Gamma";
+static const char node_input_intensity[] = "Intensity";
+static const char node_input_contrast[] = "Contrast";
+static const char node_input_light_adaptation[] = "Light Adaptation";
+static const char node_input_chromatic_adaptation[] = "Chromatic Adaptation";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -8487,50 +8496,87 @@ static void def_cmp_tonemap(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "key", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "key");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_key>",
+                               "rna_node_property_to_input_setter<float, node_input_key>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Key", "The value the average luminance is mapped to");
+  RNA_def_property_ui_text(
+      prop,
+      "Key",
+      "The value the average luminance is mapped to. (Deprecated: Use Key input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "offset");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_balance>",
+                               "rna_node_property_to_input_setter<float, node_input_balance>",
+                               nullptr);
   RNA_def_property_range(prop, 0.001f, 10.0f);
-  RNA_def_property_ui_text(
-      prop,
-      "Offset",
-      "Normally always 1, but can be used as an extra control to alter the brightness curve");
+  RNA_def_property_ui_text(prop,
+                           "Offset",
+                           "Normally always 1, but can be used as an extra control to alter the "
+                           "brightness curve. (Deprecated: Use Balance input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "gamma");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_gamma>",
+                               "rna_node_property_to_input_setter<float, node_input_gamma>",
+                               nullptr);
   RNA_def_property_range(prop, 0.001f, 3.0f);
-  RNA_def_property_ui_text(prop, "Gamma", "If not used, set to 1");
+  RNA_def_property_ui_text(
+      prop, "Gamma", "If not used, set to 1. (Deprecated: Use Gamma input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "f");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_intensity>",
+                               "rna_node_property_to_input_setter<float, node_input_intensity>",
+                               nullptr);
   RNA_def_property_range(prop, -8.0f, 8.0f);
-  RNA_def_property_ui_text(
-      prop, "Intensity", "If less than zero, darkens image; otherwise, makes it brighter");
+  RNA_def_property_ui_text(prop,
+                           "Intensity",
+                           "If less than zero, darkens image; otherwise, makes it brighter. "
+                           "(Deprecated: Use Intensity input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "m");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_contrast>",
+                               "rna_node_property_to_input_setter<float, node_input_contrast>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Contrast", "Set to 0 to use estimate from input image");
+  RNA_def_property_ui_text(
+      prop,
+      "Contrast",
+      "Set to 0 to use estimate from input image. (Deprecated: Use Contrast input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "adaptation", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "a");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_light_adaptation>",
+      "rna_node_property_to_input_setter<float, node_input_light_adaptation>",
+      nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Adaptation", "If 0, global; if 1, based on pixel intensity");
+  RNA_def_property_ui_text(prop,
+                           "Adaptation",
+                           "If 0, global; if 1, based on pixel intensity. (Deprecated: Use Light "
+                           "Adaptation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "correction", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "c");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_chromatic_adaptation>",
+      "rna_node_property_to_input_setter<float, node_input_chromatic_adaptation>",
+      nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(
-      prop, "Color Correction", "If 0, same for all channels; if 1, each independent");
+  RNA_def_property_ui_text(prop,
+                           "Color Correction",
+                           "If 0, same for all channels; if 1, each independent (Deprecated: Use "
+                           "Chromatic Adaptation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
