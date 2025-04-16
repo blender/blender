@@ -591,6 +591,10 @@ if(WITH_HARU)
   set_and_warn_library_found("Haru" HARU_FOUND WITH_HARU)
 endif()
 
+if(WITH_MANIFOLD)
+  find_package(manifold REQUIRED)
+endif()
+
 if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   find_package_wrapper(openpgl)
   mark_as_advanced(openpgl_DIR)
