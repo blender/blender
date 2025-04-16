@@ -516,9 +516,18 @@ static void test_draw_submit_only()
   manager.end_sync();
   view.sync(viewmat, projmat);
   view_other.sync(viewmat, projmat);
+
+  /* Add some draws to prevent empty pass optimization. */
+  GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR);
   pass.init();
+  pass.shader_set(sh);
+  pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   pass_main.init();
+  pass_main.shader_set(sh);
+  pass_main.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   pass_manual.init();
+  pass_manual.shader_set(sh);
+  pass_manual.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
   /* Auto command and visibility computation. */
   manager.submit(pass);
@@ -607,7 +616,10 @@ static void test_draw_submit_only()
     manager.submit_only(pass_manual, view);
   }
   {
+    /* Add some draws to prevent empty pass optimization. */
     pass_manual.init();
+    pass_manual.shader_set(sh);
+    pass_manual.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
     /* Submit before command generation. */
     EXPECT_BLI_ASSERT(manager.submit_only(pass_manual, view),

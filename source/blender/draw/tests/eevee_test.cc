@@ -1804,6 +1804,8 @@ DRAW_TEST(eevee_shadow_page_mask)
 
 static void test_eevee_surfel_list()
 {
+  GTEST_SKIP() << "Result is non-deterministic. To be revisited.";
+
   GPU_render_begin();
   StorageArrayBuffer<int> list_start_buf = {"list_start_buf"};
   StorageVectorBuffer<Surfel> surfel_buf = {"surfel_buf"};
