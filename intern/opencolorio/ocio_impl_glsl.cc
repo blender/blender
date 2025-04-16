@@ -187,6 +187,8 @@ static bool createGPUShader(OCIO_GPUShader &shader,
     }
   }
 
+  source = GPU_shader_preprocess_source(source);
+
   /* Comparison operator in Metal returns per-element comparison and returns a vector of booleans.
    * Need a special syntax to see if two vec3 are matched.
    *
