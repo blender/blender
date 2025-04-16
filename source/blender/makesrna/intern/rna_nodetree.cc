@@ -3898,6 +3898,10 @@ static const char node_input_contrast[] = "Contrast";
 static const char node_input_light_adaptation[] = "Light Adaptation";
 static const char node_input_chromatic_adaptation[] = "Chromatic Adaptation";
 
+/* Dilate/Erode node. */
+static const char node_input_size[] = "Size";
+static const char node_input_falloff_size[] = "Falloff Size";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -7526,17 +7530,27 @@ static void def_cmp_dilate_erode(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "custom2");
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_size>",
+                             "rna_node_property_to_input_setter<int, node_input_size>",
+                             nullptr);
   RNA_def_property_range(prop, -5000, 5000);
   RNA_def_property_ui_range(prop, -100, 100, 1, -1);
-  RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
+  RNA_def_property_ui_text(
+      prop,
+      "Distance",
+      "Distance to grow/shrink (number of iterations). (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   /* CMP_NODE_DILATE_ERODE_DISTANCE_THRESH only */
   prop = RNA_def_property(srna, "edge", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "custom3");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_falloff_size>",
+                               "rna_node_property_to_input_setter<float, node_input_falloff_size>",
+                               nullptr);
   RNA_def_property_range(prop, -100, 100);
-  RNA_def_property_ui_text(prop, "Edge", "Edge to inset");
+  RNA_def_property_ui_text(
+      prop, "Edge", "Edge to inset. (Deprecated: Use Falloff Size input instead.)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 

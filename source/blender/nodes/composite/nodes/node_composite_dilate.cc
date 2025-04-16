@@ -38,6 +38,20 @@ NODE_STORAGE_FUNCS(NodeDilateErode)
 static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>("Mask").default_value(0.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Int>("Size")
+      .default_value(0)
+      .description(
+          "The size of dilation/erosion in pixels. Positive values dilates and negative values "
+          "erodes")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Falloff Size")
+      .default_value(0.0f)
+      .min(0.0f)
+      .description(
+          "The size of the falloff from the edges in pixels. If less than two pixels, the edges "
+          "will be anti-aliased")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Float>("Mask");
 }
 
@@ -51,15 +65,16 @@ static void node_composit_init_dilateerode(bNodeTree * /*ntree*/, bNode *node)
 static void node_composit_buts_dilateerode(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "distance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  switch (RNA_enum_get(ptr, "mode")) {
-    case CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD:
-      uiItemR(layout, ptr, "edge", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      break;
-    case CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER:
-      uiItemR(layout, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      break;
+  if (RNA_enum_get(ptr, "mode") == CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER) {
+    uiItemR(layout, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
+}
+
+static void node_update(bNodeTree *ntree, bNode *node)
+{
+  bNodeSocket *falloff_size_input = bke::node_find_socket(*node, SOCK_IN, "Falloff Size");
+  const bool is_falloff_size_needed = node->custom1 == CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD;
+  blender::bke::node_set_socket_availability(*ntree, *falloff_size_input, is_falloff_size_needed);
 }
 
 using namespace blender::compositor;
@@ -319,7 +334,7 @@ class DilateErodeOperation : public NodeOperation {
 
   void execute_distance()
   {
-    morphological_distance(context(), get_input("Mask"), get_result("Mask"), get_distance());
+    morphological_distance(context(), get_input("Mask"), get_result("Mask"), this->get_size());
   }
 
   /* ------------------------------------------
@@ -337,10 +352,10 @@ class DilateErodeOperation : public NodeOperation {
       this->execute_distance_threshold_cpu(output_mask);
     }
 
-    /* For configurations where there is little user-specified inset, anti-alias the result for
-     * smoother edges. */
+    /* For configurations where there is little user-specified falloff size, anti-alias the result
+     * for smoother edges. */
     Result &output = this->get_result("Mask");
-    if (this->get_inset() < 2.0f) {
+    if (this->get_falloff_size() < 2.0f) {
       smaa(this->context(), output_mask, output);
       output_mask.release();
     }
@@ -354,9 +369,9 @@ class DilateErodeOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_morphological_distance_threshold");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "inset", math::max(this->get_inset(), 10e-6f));
+    GPU_shader_uniform_1f(shader, "inset", math::max(this->get_falloff_size(), 10e-6f));
     GPU_shader_uniform_1i(shader, "radius", get_morphological_distance_threshold_radius());
-    GPU_shader_uniform_1i(shader, "distance", get_distance());
+    GPU_shader_uniform_1i(shader, "distance", this->get_size());
 
     const Result &input_mask = get_input("Mask");
     input_mask.bind_as_texture(shader, "input_tx");
@@ -381,9 +396,9 @@ class DilateErodeOperation : public NodeOperation {
 
     const int2 image_size = input.domain().size;
 
-    const float inset = math::max(this->get_inset(), 10e-6f);
+    const float inset = math::max(this->get_falloff_size(), 10e-6f);
     const int radius = this->get_morphological_distance_threshold_radius();
-    const int distance = this->get_distance();
+    const int distance = this->get_size();
 
     /* The Morphological Distance Threshold operation is effectively three consecutive operations
      * implemented as a single operation. The three operations are as follows:
@@ -476,7 +491,7 @@ class DilateErodeOperation : public NodeOperation {
   /* See the discussion in the implementation for more information. */
   int get_morphological_distance_threshold_radius()
   {
-    return int(math::ceil(get_inset())) + math::abs(get_distance());
+    return int(math::ceil(this->get_falloff_size())) + math::abs(this->get_size());
   }
 
   /* ----------------------------------------
@@ -488,7 +503,7 @@ class DilateErodeOperation : public NodeOperation {
     morphological_distance_feather(context(),
                                    get_input("Mask"),
                                    get_result("Mask"),
-                                   get_distance(),
+                                   this->get_size(),
                                    node_storage(bnode()).falloff);
   }
 
@@ -503,40 +518,42 @@ class DilateErodeOperation : public NodeOperation {
       return true;
     }
 
-    if (get_method() == CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD && get_inset() != 0.0f) {
+    if (get_method() == CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD &&
+        this->get_falloff_size() != 0.0f)
+    {
       return false;
     }
 
-    if (get_distance() == 0) {
+    if (this->get_size() == 0) {
       return true;
     }
 
     return false;
   }
 
-  /* Gets the size of the structuring element. See the get_distance method for more information. */
+  /* Gets the size of the structuring element. See the get_size method for more information. */
   int get_structuring_element_size()
   {
-    return math::abs(this->get_distance()) * 2 + 1;
+    return math::abs(this->get_size()) * 2 + 1;
   }
 
-  /* Returns true if dilation should be performed, as opposed to erosion. See the get_distance()
+  /* Returns true if dilation should be performed, as opposed to erosion. See the get_size()
    * method for more information. */
   bool is_dilation()
   {
-    return this->get_distance() > 0;
+    return this->get_size() > 0;
   }
 
   /* The signed radius of the structuring element, that is, half the structuring element size. The
    * sign indicates either dilation or erosion, where negative values means erosion. */
-  int get_distance()
+  int get_size()
   {
-    return bnode().custom2;
+    return this->get_input("Size").get_single_value_default(0);
   }
 
-  float get_inset()
+  float get_falloff_size()
   {
-    return bnode().custom3;
+    return math::max(0.0f, this->get_input("Falloff Size").get_single_value_default(0.0f));
   }
 
   CMPNodeDilateErodeMethod get_method()
@@ -565,6 +582,7 @@ void register_node_type_cmp_dilateerode()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.draw_buttons = file_ns::node_composit_buts_dilateerode;
   ntype.declare = file_ns::cmp_node_dilate_declare;
+  ntype.updatefunc = file_ns::node_update;
   ntype.initfunc = file_ns::node_composit_init_dilateerode;
   blender::bke::node_type_storage(
       ntype, "NodeDilateErode", node_free_standard_storage, node_copy_standard_storage);
