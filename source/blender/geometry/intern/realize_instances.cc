@@ -998,8 +998,14 @@ static Map<StringRef, AttributeDomainAndType> gather_attributes_to_propagate(
       if (component_type != bke::GeometryComponent::Type::Instance &&
           dst_domain == AttrDomain::Instance)
       {
-        /* Instance attributes are realized on the point domain currently. */
-        dst_domain = AttrDomain::Point;
+        if (component_type == bke::GeometryComponent::Type::GreasePencil) {
+          /* For Grease Pencil, we want to propagate the instance attributes to the layers. */
+          dst_domain = AttrDomain::Layer;
+        }
+        else {
+          /* Other instance attributes are realized on the point domain currently. */
+          dst_domain = AttrDomain::Point;
+        }
       }
       auto add = [&](AttributeDomainAndType *kind) {
         kind->domain = dst_domain;
