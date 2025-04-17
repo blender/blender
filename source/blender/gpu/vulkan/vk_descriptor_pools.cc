@@ -53,7 +53,6 @@ void VKDescriptorPools::add_new_pool(const VKDevice &device)
       {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, POOL_SIZE_INPUT_ATTACHMENT}};
   VkDescriptorPoolCreateInfo pool_info = {};
   pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
   pool_info.maxSets = POOL_SIZE_DESCRIPTOR_SETS;
   pool_info.poolSizeCount = pool_sizes.size();
   pool_info.pPoolSizes = pool_sizes.data();
