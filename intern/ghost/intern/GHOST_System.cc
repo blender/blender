@@ -95,8 +95,6 @@ GHOST_TSuccess GHOST_System::disposeWindow(GHOST_IWindow *window)
    */
   if (m_windowManager->getWindowFound(window)) {
     m_eventManager->removeWindowEvents(window);
-  }
-  if (m_windowManager->getWindowFound(window)) {
     success = m_windowManager->removeWindow(window);
     if (success) {
       delete window;
