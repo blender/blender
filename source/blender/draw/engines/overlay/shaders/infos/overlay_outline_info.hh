@@ -14,6 +14,8 @@
 #  include "gpu_index_load_info.hh"
 #  include "gpu_shader_create_info.hh"
 
+#  include "overlay_shader_shared.hh"
+
 #  define HAIR_SHADER
 #  define DRW_HAIR_INFO
 
@@ -32,6 +34,7 @@ FLAT(uint, ob_id)
 GPU_SHADER_NAMED_INTERFACE_END(interp)
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass)
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 PUSH_CONSTANT(bool, is_transform)
 VERTEX_OUT(overlay_outline_prepass_iface)
 /* Using uint because 16bit uint can contain more ids than int. */
@@ -96,6 +99,7 @@ GPU_SHADER_NAMED_INTERFACE_END(gp_interp_noperspective)
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_gpencil)
 DO_STATIC_COMPILATION()
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 PUSH_CONSTANT(bool, is_transform)
 VERTEX_OUT(overlay_outline_prepass_iface)
 VERTEX_OUT(overlay_outline_prepass_gpencil_flat_iface)

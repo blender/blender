@@ -45,11 +45,6 @@ VertIn input_assembly(uint in_vertex_id)
   return vert_in;
 }
 
-/* Replace top 2 bits (of the 16bit output) by outline_id.
- * This leaves 16K different IDs to create outlines between objects.
- * SHIFT = (32 - (16 - 2)) */
-#define SHIFT 18u
-
 struct VertOut {
   float3 ws_P;
   float4 hs_P;
@@ -74,7 +69,7 @@ VertOut vertex_main(VertIn v_in)
   uint outline_id = outline_colorid_get();
 
   /* Combine for 16bit uint target. */
-  vert_out.ob_id = (outline_id << 14u) | ((vert_out.ob_id << SHIFT) >> SHIFT);
+  vert_out.ob_id = outline_id_pack(outline_id, vert_out.ob_id);
 
   return vert_out;
 }

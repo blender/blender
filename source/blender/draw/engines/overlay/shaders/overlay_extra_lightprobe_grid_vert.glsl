@@ -27,11 +27,6 @@ float4 color_from_id(float color_id)
   return colorTransform;
 }
 
-/* Replace top 2 bits (of the 16bit output) by outline_id.
- * This leaves 16K different IDs to create outlines between objects.
- * SHIFT = (32 - (16 - 2)) */
-#define SHIFT 18u
-
 void main()
 {
   select_id_set(drw_custom_id());

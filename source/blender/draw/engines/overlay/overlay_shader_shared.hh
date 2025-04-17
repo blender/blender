@@ -11,14 +11,14 @@
 #  include "DNA_view3d_types.h"
 #endif
 
-/* TODO(fclem): Should eventually become OVERLAY_BackgroundType.
- * But there is no uint push constant functions at the moment. */
-#define BG_SOLID 0
-#define BG_GRADIENT 1
-#define BG_CHECKER 2
-#define BG_RADIAL 3
-#define BG_SOLID_CHECKER 4
-#define BG_MASK 5
+enum OVERLAY_BackgroundType : uint32_t {
+  BG_SOLID = 0u,
+  BG_GRADIENT = 1u,
+  BG_CHECKER = 2u,
+  BG_RADIAL = 3u,
+  BG_SOLID_CHECKER = 4u,
+  BG_MASK = 5u,
+};
 
 enum OVERLAY_UVLineStyle : uint32_t {
   OVERLAY_UV_LINE_STYLE_OUTLINE = 0u,
@@ -46,6 +46,14 @@ enum OVERLAY_GridBits : uint32_t {
 #ifndef GPU_SHADER
 ENUM_OPERATORS(OVERLAY_GridBits, CUSTOM_GRID)
 #endif
+
+static inline uint outline_id_pack(uint outline_id, uint object_id)
+{
+  /* Replace top 2 bits (of the 16bit output) by outline_id.
+   * This leaves 16K different IDs to create outlines between objects.
+   * 18 = (32 - (16 - 2)) */
+  return (outline_id << 14u) | ((object_id << 18u) >> 18u);
+}
 
 /* Match: #SI_GRID_STEPS_LEN */
 #define OVERLAY_GRID_STEPS_LEN 8

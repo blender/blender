@@ -37,33 +37,33 @@ struct VertOut {
   float4 color;
 };
 
-#define frameCurrent mpath_line_settings.x
-#define frameStart mpath_line_settings.y
-#define frameEnd mpath_line_settings.z
-#define cacheStart mpath_line_settings.w
-
 VertOut vertex_main(VertIn vert_in)
 {
+  uint frame_current = mpath_line_settings.x;
+  // uint frameStart = mpath_line_settings.y; /* UNUSED */
+  // uint frameEnd = mpath_line_settings.z; /* UNUSED */
+  uint cache_start = mpath_line_settings.w;
+
   VertOut vert_out;
   /* Optionally transform from view space to world space for screen space motion paths. */
   vert_out.ws_P = transform_point(camera_space_matrix, vert_in.P);
   vert_out.hs_P = drw_point_world_to_homogenous(vert_out.ws_P);
   vert_out.ss_P = drw_ndc_to_screen(drw_perspective_divide(vert_out.hs_P)).xy * sizeViewport;
 
-  int frame = int(vert_in.vert_id) + cacheStart;
+  int frame = int(vert_in.vert_id) + cache_start;
 
-  float3 blend_base = (abs(frame - frameCurrent) == 0) ?
+  float3 blend_base = (abs(frame - frame_current) == 0) ?
                           colorCurrentFrame.rgb :
                           colorBackground.rgb; /* "bleed" CFRAME color to ease color blending */
   bool use_custom_color = custom_color_pre.x >= 0.0f;
 
-  if (frame < frameCurrent) {
+  if (frame < frame_current) {
     vert_out.color.rgb = use_custom_color ? custom_color_pre : colorBeforeFrame.rgb;
   }
-  else if (frame > frameCurrent) {
+  else if (frame > frame_current) {
     vert_out.color.rgb = use_custom_color ? custom_color_post : colorAfterFrame.rgb;
   }
-  else /* if (frame == frameCurrent) */ {
+  else /* if (frame == frame_current) */ {
     vert_out.color.rgb = use_custom_color ? colorCurrentFrame.rgb : blend_base;
   }
   vert_out.color.a = 1.0f;

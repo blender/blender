@@ -30,11 +30,6 @@ uint outline_colorid_get()
   return 0u;
 }
 
-/* Replace top 2 bits (of the 16bit output) by outline_id.
- * This leaves 16K different IDs to create outlines between objects.
- * SHIFT = (32 - (16 - 2)) */
-#define SHIFT 18u
-
 void main()
 {
   float3 world_pos = drw_point_object_to_world(pos);
@@ -54,7 +49,7 @@ void main()
   uint outline_id = outline_colorid_get();
 
   /* Combine for 16bit uint target. */
-  interp.ob_id = (outline_id << 14u) | ((interp.ob_id << SHIFT) >> SHIFT);
+  interp.ob_id = outline_id_pack(outline_id, interp.ob_id);
 
   view_clipping_distances(world_pos);
 }
