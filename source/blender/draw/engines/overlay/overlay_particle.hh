@@ -262,13 +262,13 @@ class Particles : Overlay {
         case PART_DRAW_AXIS:
           geom = DRW_cache_particles_get_dots(ob, psys);
           set_color(*shape_ps_);
-          shape_ps_->push_constant("shape_type", PART_SHAPE_AXIS);
+          shape_ps_->push_constant("shape_type", int(PART_SHAPE_AXIS));
           shape_ps_->draw_expand(geom, GPU_PRIM_LINES, 3, 1, handle, res.select_id(ob_ref).get());
           break;
         case PART_DRAW_CIRC:
           geom = DRW_cache_particles_get_dots(ob, psys);
           set_color(*shape_ps_);
-          shape_ps_->push_constant("shape_type", PART_SHAPE_CIRCLE);
+          shape_ps_->push_constant("shape_type", int(PART_SHAPE_CIRCLE));
           shape_ps_->draw_expand(geom,
                                  GPU_PRIM_LINES,
                                  PARTICLE_SHAPE_CIRCLE_RESOLUTION,
@@ -279,7 +279,7 @@ class Particles : Overlay {
         case PART_DRAW_CROSS:
           geom = DRW_cache_particles_get_dots(ob, psys);
           set_color(*shape_ps_);
-          shape_ps_->push_constant("shape_type", PART_SHAPE_CROSS);
+          shape_ps_->push_constant("shape_type", int(PART_SHAPE_CROSS));
           shape_ps_->draw_expand(geom, GPU_PRIM_LINES, 3, 1, handle, res.select_id(ob_ref).get());
           break;
       }

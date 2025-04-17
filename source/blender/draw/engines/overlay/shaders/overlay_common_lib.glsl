@@ -11,11 +11,6 @@
 #define V3D_SHADING_OBJECT_COLOR 4
 #define V3D_SHADING_RANDOM_COLOR 1
 
-#define DRW_BASE_SELECTED (1 << 1)
-#define DRW_BASE_FROM_DUPLI (1 << 2)
-#define DRW_BASE_FROM_SET (1 << 3)
-#define DRW_BASE_ACTIVE (1 << 4)
-
 float4x4 extract_matrix_packed_data(float4x4 mat, out float4 dataA, out float4 dataB)
 {
   constexpr float div = 1.0f / 255.0f;

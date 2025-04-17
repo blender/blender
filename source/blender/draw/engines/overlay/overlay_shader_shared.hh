@@ -47,6 +47,45 @@ enum OVERLAY_GridBits : uint32_t {
 ENUM_OPERATORS(OVERLAY_GridBits, CUSTOM_GRID)
 #endif
 
+enum VertexClass : uint32_t {
+  VCLASS_NONE = 0,
+
+  VCLASS_LIGHT_AREA_SHAPE = 1 << 0,
+  VCLASS_LIGHT_SPOT_SHAPE = 1 << 1,
+  VCLASS_LIGHT_SPOT_BLEND = 1 << 2,
+  VCLASS_LIGHT_SPOT_CONE = 1 << 3,
+  VCLASS_LIGHT_DIST = 1 << 4,
+
+  VCLASS_CAMERA_FRAME = 1 << 5,
+  VCLASS_CAMERA_DIST = 1 << 6,
+  VCLASS_CAMERA_VOLUME = 1 << 7,
+
+  VCLASS_SCREENSPACE = 1 << 8,
+  VCLASS_SCREENALIGNED = 1 << 9,
+
+  VCLASS_EMPTY_SCALED = 1 << 10,
+  VCLASS_EMPTY_AXES = 1 << 11,
+  VCLASS_EMPTY_AXES_NAME = 1 << 12,
+  VCLASS_EMPTY_AXES_SHADOW = 1 << 13,
+  VCLASS_EMPTY_SIZE = 1 << 14,
+};
+#ifndef GPU_SHADER
+ENUM_OPERATORS(VertexClass, VCLASS_EMPTY_SIZE)
+#endif
+
+enum StickBoneFlag {
+  COL_WIRE = (1u << 0u),
+  COL_HEAD = (1u << 1u),
+  COL_TAIL = (1u << 2u),
+  COL_BONE = (1u << 3u),
+  POS_HEAD = (1u << 4u),
+  POS_TAIL = (1u << 5u),
+  POS_BONE = (1u << 6u),
+};
+#ifndef GPU_SHADER
+ENUM_OPERATORS(StickBoneFlag, POS_BONE)
+#endif
+
 static inline uint outline_id_pack(uint outline_id, uint object_id)
 {
   /* Replace top 2 bits (of the 16bit output) by outline_id.
@@ -265,10 +304,11 @@ BLI_STATIC_ASSERT_ALIGN(VertexData, 16)
 /* Limited by expand_prim_len bit count. */
 #define PARTICLE_SHAPE_CIRCLE_RESOLUTION 7
 
-/* TODO(fclem): This should be a enum, but it breaks compilation on Metal for some reason. */
-#define PART_SHAPE_AXIS 1
-#define PART_SHAPE_CIRCLE 2
-#define PART_SHAPE_CROSS 3
+enum OVERLAY_ParticleShape : uint32_t {
+  PART_SHAPE_AXIS = 1,
+  PART_SHAPE_CIRCLE = 2,
+  PART_SHAPE_CROSS = 3,
+};
 
 struct ParticlePointData {
   packed_float3 position;
@@ -318,17 +358,6 @@ struct BoneEnvelopeData {
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(BoneEnvelopeData, 16)
-
-/* Keep in sync with armature_stick_vert.glsl. */
-enum StickBoneFlag {
-  COL_WIRE = (1u << 0u),
-  COL_HEAD = (1u << 1u),
-  COL_TAIL = (1u << 2u),
-  COL_BONE = (1u << 3u),
-  POS_HEAD = (1u << 4u),
-  POS_TAIL = (1u << 5u),
-  POS_BONE = (1u << 6u),
-};
 
 struct BoneStickData {
   float4 bone_start;

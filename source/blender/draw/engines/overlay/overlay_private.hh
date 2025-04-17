@@ -274,7 +274,12 @@ struct State {
 /* Matches Vertex Format. */
 struct Vertex {
   float3 pos;
-  int vclass;
+  VertexClass vclass;
+};
+
+struct VertexBone {
+  float3 pos;
+  StickBoneFlag vclass;
 };
 
 struct VertexWithColor {
@@ -284,7 +289,7 @@ struct VertexWithColor {
 
 struct VertShaded {
   float3 pos;
-  int v_class;
+  VertexClass v_class;
   float3 nor;
 };
 
@@ -390,6 +395,17 @@ class ShapeCache {
   GPUVertFormat format_vert_triple = {0};
 
   const GPUVertFormat &get_format(Vertex /*unused*/)
+  {
+    GPUVertFormat &format = format_vert;
+    if (format.attr_len != 0) {
+      return format;
+    }
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "vclass", GPU_COMP_I32, 1, GPU_FETCH_INT);
+    return format;
+  }
+
+  const GPUVertFormat &get_format(VertexBone /*unused*/)
   {
     GPUVertFormat &format = format_vert;
     if (format.attr_len != 0) {
