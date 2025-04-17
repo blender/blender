@@ -117,7 +117,7 @@ BLOCKLIST_GPU = [
     'denoise_hair.blend',
     'hair_basemesh_intercept.blend',
     'hair_instancer_uv.blend',
-    'hair_length_info.blend',
+    'hair_info.blend',
     'hair_particle_random.blend',
     "hair_transmission.blend",
     'principled_hair_.*.blend',
