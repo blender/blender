@@ -177,4 +177,14 @@ void VKResourceStateTracker::validate() const
 }
 #endif
 
+void VKResourceStateTracker::debug_print() const
+{
+  std::ostream &os = std::cout;
+  os << "VKResourceStateTracker\n";
+  os << " resources=(" << resources_.size() << "/" << resources_.capacity() << ")\n";
+  os << " buffers=(" << buffer_resources_.size() << "/" << buffer_resources_.capacity() << ")\n";
+  os << " images=(" << image_resources_.size() << "/" << image_resources_.capacity() << ")\n";
+  os << " unused=(" << unused_handles_.size() << "/" << unused_handles_.capacity() << ")\n";
+}
+
 }  // namespace blender::gpu::render_graph
