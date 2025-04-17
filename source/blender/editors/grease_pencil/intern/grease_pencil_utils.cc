@@ -1184,6 +1184,11 @@ IndexMask retrieve_visible_bezier_handle_points(Object &object,
     return IndexMask(0);
   }
 
+  /* Make sure that the handle position attributes exists. */
+  if (curves.handle_positions_left().is_empty() || curves.handle_positions_right().is_empty()) {
+    return IndexMask(0);
+  }
+
   const Array<int> point_to_curve_map = curves.point_to_curve_map();
   const VArray<int8_t> types = curves.curve_types();
 
