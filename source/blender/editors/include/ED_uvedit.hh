@@ -81,6 +81,8 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 
 bool ED_uvedit_test(Object *obedit);
 
+/* `uvedit_select.cc` */
+
 /* Visibility and selection tests. */
 
 bool uvedit_face_visible_test_ex(const ToolSettings *ts, const BMFace *efa);
@@ -264,19 +266,6 @@ BMFace **ED_uvedit_selected_faces(const Scene *scene, BMesh *bm, int len_max, in
 BMLoop **ED_uvedit_selected_edges(const Scene *scene, BMesh *bm, int len_max, int *r_edges_len);
 BMLoop **ED_uvedit_selected_verts(const Scene *scene, BMesh *bm, int len_max, int *r_verts_len);
 
-void ED_uvedit_get_aspect(Object *obedit, float *r_aspx, float *r_aspy);
-
-/**
- * Return the X / Y aspect (wider aspects are over 1, taller are below 1).
- * Apply this aspect by multiplying with the Y axis (X aspect is always 1 & unchanged).
- */
-float ED_uvedit_get_aspect_y(Object *obedit);
-
-void ED_uvedit_get_aspect_from_material(Object *ob,
-                                        const int material_index,
-                                        float *r_aspx,
-                                        float *r_aspy);
-
 void ED_uvedit_active_vert_loop_set(BMesh *bm, BMLoop *l);
 BMLoop *ED_uvedit_active_vert_loop_get(BMesh *bm);
 
@@ -291,6 +280,19 @@ char ED_uvedit_select_mode_get(const Scene *scene);
 void ED_uvedit_select_sync_flush(const ToolSettings *ts, BMesh *bm, bool select);
 
 /* `uvedit_unwrap_ops.cc` */
+
+void ED_uvedit_get_aspect(Object *obedit, float *r_aspx, float *r_aspy);
+
+/**
+ * Return the X / Y aspect (wider aspects are over 1, taller are below 1).
+ * Apply this aspect by multiplying with the Y axis (X aspect is always 1 & unchanged).
+ */
+float ED_uvedit_get_aspect_y(Object *obedit);
+
+void ED_uvedit_get_aspect_from_material(Object *ob,
+                                        const int material_index,
+                                        float *r_aspx,
+                                        float *r_aspy);
 
 /** Return true if the timer is managed by live-unwrap. */
 bool ED_uvedit_live_unwrap_timer_check(const wmTimer *timer);
