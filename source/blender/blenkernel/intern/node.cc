@@ -789,6 +789,11 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_float("Sharpness", storage->sharpness);
       write_input_to_property_float("Eccentricity", storage->eccentricity);
     }
+
+    if (node->type_legacy == CMP_NODE_DESPECKLE) {
+      write_input_to_property_float("Color Threshold", node->custom3);
+      write_input_to_property_float("Neighbor Threshold", node->custom4);
+    }
   }
 }
 

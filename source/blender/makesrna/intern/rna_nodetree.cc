@@ -3908,6 +3908,10 @@ static const char node_input_uniformity[] = "Uniformity";
 static const char node_input_sharpness[] = "Sharpness";
 static const char node_input_eccentricity[] = "Eccentricity";
 
+/* Despeckle node. */
+static const char node_input_color_threshold[] = "Color Threshold";
+static const char node_input_neighbor_threshold[] = "Neighbor Threshold";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -7603,16 +7607,29 @@ static void def_cmp_despeckle(BlenderRNA * /*brna*/, StructRNA *srna)
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "custom3");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_color_threshold>",
+      "rna_node_property_to_input_setter<float, node_input_color_threshold>",
+      nullptr);
   RNA_def_property_range(prop, 0.0, 1.0f);
-  RNA_def_property_ui_text(prop, "Threshold", "Threshold for detecting pixels to despeckle");
+  RNA_def_property_ui_text(prop,
+                           "Threshold",
+                           "Threshold for detecting pixels to despeckle. (Deprecated: Use Color "
+                           "Threshold input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "threshold_neighbor", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "custom4");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_neighbor_threshold>",
+      "rna_node_property_to_input_setter<float, node_input_neighbor_threshold>",
+      nullptr);
   RNA_def_property_range(prop, 0.0, 1.0f);
-  RNA_def_property_ui_text(
-      prop, "Neighbor", "Threshold for the number of neighbor pixels that must match");
+  RNA_def_property_ui_text(prop,
+                           "Neighbor",
+                           "Threshold for the number of neighbor pixels that must match. "
+                           "(Deprecated: Use Neighbor Threshold instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
