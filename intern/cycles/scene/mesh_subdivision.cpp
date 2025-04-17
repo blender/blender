@@ -66,6 +66,7 @@ void Mesh::tessellate(SubdParams &params)
         patch->patch_index = face.ptex_offset;
         patch->from_ngon = false;
         patch->shader = face.shader;
+        patch->smooth = face.smooth;
         patch++;
       }
       else {
@@ -73,6 +74,7 @@ void Mesh::tessellate(SubdParams &params)
           patch->patch_index = face.ptex_offset + corner;
           patch->from_ngon = true;
           patch->shader = face.shader;
+          patch->smooth = face.smooth;
           patch++;
         }
       }
@@ -111,6 +113,7 @@ void Mesh::tessellate(SubdParams &params)
         hull[3] = verts[subd_face_corners[face.start_corner + 2]];
 
         patch->shader = face.shader;
+        patch->smooth = face.smooth;
         patch++;
       }
       else {
@@ -129,6 +132,7 @@ void Mesh::tessellate(SubdParams &params)
           patch->from_ngon = true;
 
           patch->shader = face.shader;
+          patch->smooth = face.smooth;
 
           const int v0 = subd_face_corners[face.start_corner + mod(corner + 0, face.num_corners)];
           const int v1 = subd_face_corners[face.start_corner + mod(corner + 1, face.num_corners)];

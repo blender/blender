@@ -127,7 +127,7 @@ void EdgeDice::add_triangle(const SubPatch &sub,
   mesh_triangles[triangle_index * 3 + 1] = v1;
   mesh_triangles[triangle_index * 3 + 2] = v2;
   mesh_shader[triangle_index] = patch->shader;
-  mesh_smooth[triangle_index] = true;
+  mesh_smooth[triangle_index] = patch->smooth;
 
   if (mesh_ptex_face_id) {
     mesh_ptex_face_id[triangle_index] = patch->patch_index;
