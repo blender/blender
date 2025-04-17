@@ -4012,23 +4012,19 @@ static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache
 
 /* Initialize the stroke cache invariants from operator properties. */
 static void sculpt_update_cache_invariants(
-    bContext *C, Sculpt &sd, SculptSession &ss, wmOperator *op, const float mval[2])
+    bContext *C, Sculpt &sd, SculptSession &ss, const wmOperator &op, const float mval[2])
 {
   StrokeCache *cache = MEM_new<StrokeCache>(__func__);
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
   UnifiedPaintSettings *ups = &tool_settings->unified_paint_settings;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
-  ViewContext *vc = paint_stroke_view_context(static_cast<PaintStroke *>(op->customdata));
+  ViewContext *vc = paint_stroke_view_context(static_cast<PaintStroke *>(op.customdata));
   Object &ob = *CTX_data_active_object(C);
-  float mat[3][3];
-  float viewDir[3] = {0.0f, 0.0f, 1.0f};
-  float max_scale;
-  int mode;
 
   ss.cache = cache;
 
   /* Set scaling adjustment. */
-  max_scale = 0.0f;
+  float max_scale = 0.0f;
   for (int i = 0; i < 3; i++) {
     max_scale = max_ff(max_scale, fabsf(ob.scale[i]));
   }
@@ -4043,23 +4039,19 @@ static void sculpt_update_cache_invariants(
   sculpt_init_mirror_clipping(ob, ss);
 
   /* Initial mouse location. */
-  if (mval) {
-    copy_v2_v2(cache->initial_mouse, mval);
-  }
-  else {
-    zero_v2(cache->initial_mouse);
-  }
+  cache->initial_mouse = mval ? float2(mval) : float2(0.0f);
 
-  copy_v3_v3(cache->initial_location_symm, ss.cursor_location);
-  copy_v3_v3(cache->initial_location, ss.cursor_location);
+  cache->initial_location_symm = ss.cursor_location;
+  cache->initial_location = ss.cursor_location;
 
-  copy_v3_v3(cache->initial_normal_symm, ss.cursor_normal);
-  copy_v3_v3(cache->initial_normal, ss.cursor_normal);
+  cache->initial_normal_symm = ss.cursor_normal;
+  cache->initial_normal = ss.cursor_normal;
 
-  mode = RNA_enum_get(op->ptr, "mode");
-  cache->pen_flip = RNA_boolean_get(op->ptr, "pen_flip");
+  const int mode = RNA_enum_get(op.ptr, "mode");
+  cache->pen_flip = RNA_boolean_get(op.ptr, "pen_flip");
   cache->invert = mode == BRUSH_STROKE_INVERT;
   cache->alt_smooth = mode == BRUSH_STROKE_SMOOTH;
+
   cache->normal_weight = brush->normal_weight;
 
   /* Interpret invert as following normal, for grab brushes. */
@@ -4086,8 +4078,8 @@ static void sculpt_update_cache_invariants(
     brush = BKE_paint_brush(&sd.paint);
   }
 
-  copy_v2_v2(cache->mouse, cache->initial_mouse);
-  copy_v2_v2(cache->mouse_event, cache->initial_mouse);
+  cache->mouse = cache->initial_mouse;
+  cache->mouse_event = cache->initial_mouse;
   copy_v2_v2(ups->tex_mouse, cache->initial_mouse);
 
   cache->initial_direction_flipped = brush_flip(*brush, *cache) < 0.0f;
@@ -4099,29 +4091,25 @@ static void sculpt_update_cache_invariants(
   /* Cache projection matrix. */
   cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, &ob);
 
-  invert_m4_m4(ob.runtime->world_to_object.ptr(), ob.object_to_world().ptr());
-  copy_m3_m4(mat, cache->vc->rv3d->viewinv);
-  mul_m3_v3(mat, viewDir);
-  copy_m3_m4(mat, ob.world_to_object().ptr());
-  mul_m3_v3(mat, viewDir);
-  normalize_v3_v3(cache->view_normal, viewDir);
+  const float3 z_axis = {0.0f, 0.0f, 1.0f};
+  ob.runtime->world_to_object = math::invert(ob.object_to_world());
+  const float3x3 view_inv(float4x4(cache->vc->rv3d->viewinv));
+  cache->view_normal = math::normalize(z_axis * view_inv * ob.world_to_object().view<3, 3>());
 
   cache->supports_gravity = bke::brush::supports_gravity(*brush) && sd.gravity_factor > 0.0f;
   /* Get gravity vector in world space. */
   if (cache->supports_gravity) {
     if (sd.gravity_object) {
-      Object *gravity_object = sd.gravity_object;
-
-      copy_v3_v3(cache->gravity_direction, gravity_object->object_to_world().ptr()[2]);
+      const Object *gravity_object = sd.gravity_object;
+      cache->gravity_direction = gravity_object->object_to_world().z_axis();
     }
     else {
-      cache->gravity_direction[0] = cache->gravity_direction[1] = 0.0f;
-      cache->gravity_direction[2] = 1.0f;
+      cache->gravity_direction = {0.0f, 0.0f, 1.0f};
     }
 
     /* Transform to sculpted object space. */
-    mul_m3_v3(mat, cache->gravity_direction);
-    normalize_v3(cache->gravity_direction);
+    cache->gravity_direction = math::normalize(
+        math::transform_direction(ob.world_to_object(), cache->gravity_direction));
   }
 
   cache->accum = true;
@@ -4157,12 +4145,10 @@ static void sculpt_update_cache_invariants(
   cache->first_time = true;
   cache->plane_brush.first_time = true;
 
-#define PIXEL_INPUT_THRESHHOLD 5
   if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) {
-    cache->dial = BLI_dial_init(cache->initial_mouse, PIXEL_INPUT_THRESHHOLD);
+    constexpr int pixel_input_threshold = 5;
+    cache->dial = BLI_dial_init(cache->initial_mouse, pixel_input_threshold);
   }
-
-#undef PIXEL_INPUT_THRESHHOLD
 }
 
 static float brush_dynamic_size_get(const Brush &brush,
@@ -5581,7 +5567,7 @@ static bool stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
 
     ED_view3d_init_mats_rv3d(&ob, CTX_wm_region_view3d(C));
 
-    sculpt_update_cache_invariants(C, sd, ss, op, mval);
+    sculpt_update_cache_invariants(C, sd, ss, *op, mval);
 
     SculptCursorGeometryInfo sgi;
     SCULPT_cursor_geometry_info_update(C, &sgi, mval, false);
