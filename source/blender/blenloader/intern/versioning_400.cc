@@ -2450,6 +2450,77 @@ static void do_version_pixelate_node_options_to_inputs_animation(bNodeTree *node
   });
 }
 
+/* The options were converted into inputs. */
+static void do_version_kuwahara_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeKuwaharaData *storage = static_cast<NodeKuwaharaData *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Uniformity")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Uniformity", "Uniformity");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->uniformity;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Sharpness")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Sharpness", "Sharpness");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->sharpness;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Eccentricity")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Eccentricity", "Eccentricity");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->eccentricity;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "High Precision")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "High Precision", "High Precision");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = storage->high_precision;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_kuwahara_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "uniformity")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "sharpness")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "eccentricity")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "high_precision")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
 static void do_version_viewer_shortcut(bNodeTree *node_tree)
 {
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
@@ -3027,6 +3098,19 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
         LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
           if (node->type_legacy == CMP_NODE_PIXELATE) {
             do_version_pixelate_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 33)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_KUWAHARA) {
+            do_version_kuwahara_node_options_to_inputs_animation(node_tree, node);
           }
         }
       }
@@ -7729,6 +7813,19 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
           if (node->type_legacy == CMP_NODE_PIXELATE) {
             do_version_pixelate_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 33)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_KUWAHARA) {
+            do_version_kuwahara_node_options_to_inputs(node_tree, node);
           }
         }
       }

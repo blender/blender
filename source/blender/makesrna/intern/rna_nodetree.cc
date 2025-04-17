@@ -3902,6 +3902,12 @@ static const char node_input_chromatic_adaptation[] = "Chromatic Adaptation";
 static const char node_input_size[] = "Size";
 static const char node_input_falloff_size[] = "Falloff Size";
 
+/* Kuwahara node. */
+static const char node_input_high_precision[] = "High Precision";
+static const char node_input_uniformity[] = "Uniformity";
+static const char node_input_sharpness[] = "Sharpness";
+static const char node_input_eccentricity[] = "Eccentricity";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -10031,42 +10037,56 @@ static void def_cmp_kuwahara(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_high_precision", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "high_precision", 1);
-  RNA_def_property_ui_text(
+  RNA_def_property_boolean_funcs(
       prop,
-      "High Precision",
-      "Uses a more precise but slower method. Use if the output contains undesirable noise.");
+      "rna_node_property_to_input_getter<bool, node_input_high_precision>",
+      "rna_node_property_to_input_setter<bool, node_input_high_precision>");
+  RNA_def_property_ui_text(prop,
+                           "High Precision",
+                           "Uses a more precise but slower method. Use if the output contains "
+                           "undesirable noise. (Deprecated: Use High Precision input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "uniformity", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "uniformity");
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_uniformity>",
+                             "rna_node_property_to_input_setter<int, node_input_uniformity>",
+                             nullptr);
   RNA_def_property_range(prop, 0.0, 50.0);
   RNA_def_property_ui_range(prop, 0, 50, 1, -1);
-  RNA_def_property_ui_text(prop,
-                           "Uniformity",
-                           "Controls the uniformity of the direction of the filter. Higher values "
-                           "produces more uniform directions.");
+  RNA_def_property_ui_text(
+      prop,
+      "Uniformity",
+      "Controls the uniformity of the direction of the filter. Higher values "
+      "produces more uniform directions. (Deprecated: Use Uniformity input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "sharpness", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "sharpness");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_sharpness>",
+                               "rna_node_property_to_input_setter<float, node_input_sharpness>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
   RNA_def_property_ui_text(prop,
                            "Sharpness",
                            "Controls the sharpness of the filter. 0 means completely smooth while "
-                           "1 means completely sharp.");
+                           "1 means completely sharp. (Deprecated: Use Sharpness input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "eccentricity", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "eccentricity");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_eccentricity>",
+                               "rna_node_property_to_input_setter<float, node_input_eccentricity>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 2.0f);
   RNA_def_property_ui_range(prop, 0.0f, 2.0f, 0.1, 3);
   RNA_def_property_ui_text(
       prop,
       "Eccentricity",
       "Controls how directional the filter is. 0 means the filter is completely omnidirectional "
-      "while 2 means it is maximally directed along the edges of the image.");
+      "while 2 means it is maximally directed along the edges of the image. (Deprecated: Use "
+      "Eccentricity input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
