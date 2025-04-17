@@ -385,8 +385,7 @@ static void seq_disk_cache_delete_invalid_files(SeqDiskCache *disk_cache,
     next_file = cache_file->next;
     if (cache_file->cache_type & invalidate_types) {
       if (STREQ(cache_dir, cache_file->dir)) {
-        int timeline_frame_start = seq_cache_frame_index_to_timeline_frame(
-            strip, cache_file->start_frame);
+        const int timeline_frame_start = cache_file->start_frame + time_start_frame_get(strip);
         if (timeline_frame_start > range_start && timeline_frame_start <= range_end) {
           seq_disk_cache_delete_file(disk_cache, cache_file);
         }

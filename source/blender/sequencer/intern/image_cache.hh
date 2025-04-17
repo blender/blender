@@ -26,10 +26,9 @@ struct SeqCacheKey {
   SeqCacheKey *link_next; /* Used for linking intermediate items to final frame. */
   Strip *strip;
   RenderData context;
-  float frame_index;    /* Usually same as timeline_frame. Mapped to media for RAW entries. */
-  float timeline_frame; /* Only for reference - used for freeing when cache is full. */
-  float cost;           /* In short: render time(s) divided by playback frame duration(s) */
-  bool is_temp_cache;   /* this cache entry will be freed before rendering next frame */
+  float frame_index;  /* Usually same as timeline_frame. Mapped to media for RAW entries. */
+  float cost;         /* In short: render time(s) divided by playback frame duration(s) */
+  bool is_temp_cache; /* this cache entry will be freed before rendering next frame */
   /* ID of task for assigning temp cache entries to particular task(thread, etc.) */
   eTaskId task_id;
   int type;
@@ -53,6 +52,5 @@ void seq_cache_cleanup_sequence(Scene *scene,
                                 int invalidate_types,
                                 bool force_seq_changed_range);
 bool seq_cache_is_full();
-float seq_cache_frame_index_to_timeline_frame(Strip *strip, float frame_index);
 
 }  // namespace blender::seq

@@ -140,9 +140,9 @@ static float seq_cache_timeline_frame_to_frame_index(const Scene *scene,
   return timeline_frame - time_start_frame_get(strip);
 }
 
-float seq_cache_frame_index_to_timeline_frame(Strip *strip, float frame_index)
+static int seq_cache_key_timeline_frame_get(const SeqCacheKey *key)
 {
-  return frame_index + time_start_frame_get(strip);
+  return key->frame_index + time_start_frame_get(key->strip);
 }
 
 static SeqCache *seq_cache_get_from_scene(Scene *scene)
@@ -277,6 +277,8 @@ static void seq_cache_key_unlink(SeqCacheKey *key)
 static SeqCacheKey *seq_cache_choose_key(Scene *scene, SeqCacheKey *lkey, SeqCacheKey *rkey)
 {
   SeqCacheKey *finalkey = nullptr;
+  const int lkey_tml_frame = seq_cache_key_timeline_frame_get(lkey);
+  const int rkey_tml_frame = seq_cache_key_timeline_frame_get(rkey);
 
   /* Ideally, cache would not need to check the state of prefetching task
    * that is tricky to do however, because prefetch would need to know,
@@ -293,13 +295,13 @@ static SeqCacheKey *seq_cache_choose_key(Scene *scene, SeqCacheKey *lkey, SeqCac
     seq_prefetch_get_time_range(scene, &pfjob_start, &pfjob_end);
 
     if (lkey) {
-      if (lkey->timeline_frame < pfjob_start || lkey->timeline_frame > pfjob_end) {
+      if (lkey_tml_frame < pfjob_start || lkey_tml_frame > pfjob_end) {
         return lkey;
       }
     }
 
     if (rkey) {
-      if (rkey->timeline_frame < pfjob_start || rkey->timeline_frame > pfjob_end) {
+      if (rkey_tml_frame < pfjob_start || rkey_tml_frame > pfjob_end) {
         return rkey;
       }
     }
@@ -308,14 +310,14 @@ static SeqCacheKey *seq_cache_choose_key(Scene *scene, SeqCacheKey *lkey, SeqCac
   }
 
   if (rkey && lkey) {
-    if (lkey->timeline_frame > rkey->timeline_frame) {
+    if (lkey_tml_frame > rkey_tml_frame) {
       SeqCacheKey *swapkey = lkey;
       lkey = rkey;
       rkey = swapkey;
     }
 
-    int l_diff = scene->r.cfra - lkey->timeline_frame;
-    int r_diff = rkey->timeline_frame - scene->r.cfra;
+    int l_diff = scene->r.cfra - lkey_tml_frame;
+    int r_diff = rkey_tml_frame - scene->r.cfra;
 
     if (l_diff > r_diff) {
       finalkey = lkey;
@@ -417,7 +419,7 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
     total_count++;
 
     if (lkey) {
-      if (key->timeline_frame < lkey->timeline_frame) {
+      if (seq_cache_key_timeline_frame_get(key) < seq_cache_key_timeline_frame_get(lkey)) {
         lkey = key;
       }
     }
@@ -425,7 +427,7 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
       lkey = key;
     }
     if (rkey) {
-      if (key->timeline_frame > rkey->timeline_frame) {
+      if (seq_cache_key_timeline_frame_get(key) > seq_cache_key_timeline_frame_get(rkey)) {
         rkey = key;
       }
     }
@@ -519,7 +521,6 @@ static void seq_cache_populate_key(SeqCacheKey *key,
   key->context = *context;
   key->frame_index = seq_cache_timeline_frame_to_frame_index(
       context->scene, strip, timeline_frame, type);
-  key->timeline_frame = timeline_frame;
   key->type = type;
   key->link_prev = nullptr;
   key->link_next = nullptr;
@@ -638,19 +639,15 @@ void seq_cache_cleanup_sequence(Scene *scene,
 
   seq_cache_lock(scene);
 
-  const int range_start_seq_changed = seq_cache_timeline_frame_to_frame_index(
-      scene, strip, time_left_handle_frame_get(scene, strip_changed), invalidate_types);
-  const int range_end_seq_changed = seq_cache_timeline_frame_to_frame_index(
-      scene, strip, time_right_handle_frame_get(scene, strip_changed), invalidate_types);
+  const int range_start_seq_changed = time_left_handle_frame_get(scene, strip_changed);
+  const int range_end_seq_changed = time_right_handle_frame_get(scene, strip_changed);
 
   int range_start = range_start_seq_changed;
   int range_end = range_end_seq_changed;
 
   if (!force_seq_changed_range) {
-    const int range_start_seq = seq_cache_timeline_frame_to_frame_index(
-        scene, strip, time_left_handle_frame_get(scene, strip), invalidate_types);
-    const int range_end_seq = seq_cache_timeline_frame_to_frame_index(
-        scene, strip, time_right_handle_frame_get(scene, strip), invalidate_types);
+    const int range_start_seq = time_left_handle_frame_get(scene, strip);
+    const int range_end_seq = time_right_handle_frame_get(scene, strip);
 
     range_start = max_ii(range_start, range_start_seq);
     range_end = min_ii(range_end, range_end_seq);
@@ -667,16 +664,17 @@ void seq_cache_cleanup_sequence(Scene *scene,
     BLI_ghashIterator_step(&gh_iter);
     BLI_assert(key->cache_owner == cache);
 
+    const int key_timeline_frame = seq_cache_key_timeline_frame_get(key);
     /* Clean all final and composite in intersection of strip and strip_changed. */
-    if (key->type & invalidate_composite && key->frame_index >= range_start &&
-        key->frame_index <= range_end)
+    if (key->type & invalidate_composite && key_timeline_frame >= range_start &&
+        key_timeline_frame <= range_end)
     {
       seq_cache_key_unlink(key);
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
     }
     else if (key->type & invalidate_source && key->strip == strip &&
-             key->frame_index >= range_start_seq_changed &&
-             key->frame_index <= range_end_seq_changed)
+             key_timeline_frame >= time_left_handle_frame_get(scene, strip_changed) &&
+             key_timeline_frame <= time_right_handle_frame_get(scene, strip_changed))
     {
       seq_cache_key_unlink(key);
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
@@ -851,7 +849,7 @@ void cache_iterate(
     BLI_assert(key->cache_owner == cache);
     int timeline_frame;
     if (key->type & SEQ_CACHE_STORE_FINAL_OUT) {
-      timeline_frame = key->timeline_frame;
+      timeline_frame = seq_cache_key_timeline_frame_get(key);
     }
     else {
       /* This is not a final cache image. The cached frame is relative to where the strip is
