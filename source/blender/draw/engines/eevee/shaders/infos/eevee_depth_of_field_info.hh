@@ -157,7 +157,7 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_no_lut)
 DEFINE_VALUE("DOF_BOKEH_TEXTURE", "false")
 /**
  * WORKAROUND(@fclem): This is to keep the code as is for now. The bokeh_lut_tx is referenced
- * even if not used after optimization. But we don't want to include it in the create infos.
+ * even if not used after optimization. But we don't want to include it in the create information.
  */
 DEFINE_VALUE("bokeh_lut_tx", "color_tx")
 GPU_SHADER_CREATE_END()

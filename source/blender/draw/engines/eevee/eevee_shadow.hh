@@ -268,7 +268,7 @@ class ShadowModule {
   ShadowPageHeapBuf pages_free_data_ = {"PagesFreeBuf"};
   /** Pool of cached tiles waiting to be reused. */
   ShadowPageCacheBuf pages_cached_data_ = {"PagesCachedBuf"};
-  /** Infos for book keeping and debug. */
+  /** Information for book keeping and debug. */
   ShadowPagesInfoDataBuf pages_infos_data_ = {"PagesInfosBuf"};
 
   int3 copy_dispatch_size_;

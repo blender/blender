@@ -2246,7 +2246,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
               RECT rect;
               GetClientRect(hwnd, &rect);
               FillRect((HDC)(wParam), &rect, bgBrush);
-              /* Clear the backround brush after the initial fill as we don't
+              /* Clear the background brush after the initial fill as we don't
                * need or want any default Windows fill behavior on redraw. */
               SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, (LONG_PTR) nullptr);
             }

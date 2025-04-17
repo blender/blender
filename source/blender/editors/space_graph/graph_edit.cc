@@ -1816,7 +1816,7 @@ static ListBase /*tEulerFilter*/ euler_filter_group_channels(
 
     /* Check if this is an appropriate F-Curve:
      * - Only rotation curves.
-     * - For pchan curves, make sure we're only using the euler curves.
+     * - For pose-channel curves, make sure we're only using the euler curves.
      */
     if (strstr(fcu->rna_path, "rotation_euler") == nullptr) {
       continue;

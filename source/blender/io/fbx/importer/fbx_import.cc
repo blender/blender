@@ -88,7 +88,7 @@ struct FbxImportContext {
 
 void FbxImportContext::import_globals(Scene *scene) const
 {
-  /* Set scene framerate to that of FBX file. */
+  /* Set scene frame-rate to that of FBX file. */
   double fps = this->fbx.settings.frames_per_second;
   scene->r.frs_sec = roundf(fps);
   scene->r.frs_sec_base = scene->r.frs_sec / fps;

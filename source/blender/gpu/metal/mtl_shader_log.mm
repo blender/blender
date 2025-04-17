@@ -45,7 +45,7 @@ const char *MTLLogParser::parse_line(const char *source_combined,
 
     if (source_name == "msl_wrapper_code") {
       /* In this case the issue is in the wrapper. We cannot access it.
-       * So we still display the internal error lines for some more infos. */
+       * So we still display the internal error lines for some more information. */
       log_item.cursor.row = -1;
       wrapper_error_ = true;
     }

@@ -606,7 +606,7 @@ struct GreasePencilDepthPlane {
   float4 plane;
   /* Center and size of the bounding box of the Grease Pencil object. */
   Bounds<float3> bounds;
-  /* Gpencil object resource handle. */
+  /* Grease-pencil object resource handle. */
   ResourceHandle handle;
 };
 
@@ -929,7 +929,7 @@ struct Resources : public select::SelectMap {
   }
 };
 
-/* List of flat objects drawcalls.
+/* List of flat objects draw-calls.
  * In order to not loose selection display of flat objects view from the side,
  * we store them in a list and add them to the pass just in time if their flat side is
  * perpendicular to the view. */

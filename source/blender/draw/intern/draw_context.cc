@@ -654,7 +654,7 @@ ObjectRef::ObjectRef(DEGObjectIterData &iter_data, Object *ob)
   this->dupli_parent = iter_data.dupli_parent;
   this->dupli_object = iter_data.dupli_object_current;
   this->object = ob;
-  /* Set by the first drawcall. */
+  /* Set by the first draw-call. */
   this->handle = ResourceHandle(0);
 }
 
@@ -663,7 +663,7 @@ ObjectRef::ObjectRef(Object *ob)
   this->dupli_parent = nullptr;
   this->dupli_object = nullptr;
   this->object = ob;
-  /* Set by the first drawcall. */
+  /* Set by the first draw-call. */
   this->handle = ResourceHandle(0);
 }
 

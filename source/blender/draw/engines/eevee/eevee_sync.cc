@@ -5,7 +5,7 @@
 /** \file
  * \ingroup eevee
  *
- * Converts the different renderable object types to drawcalls.
+ * Converts the different renderable object types to draw-calls.
  */
 
 #include "BKE_paint.hh"

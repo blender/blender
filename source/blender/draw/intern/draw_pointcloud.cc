@@ -72,7 +72,7 @@ gpu::Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
 {
   BLI_assert(object->type == OB_POINTCLOUD);
   PointCloud &pointcloud = DRW_object_get_data_for_drawing<PointCloud>(*object);
-  /* An empty point cloud should never result in a drawcall. However, the buffer binding commands
+  /* An empty point cloud should never result in a draw-call. However, the buffer binding commands
    * will still be executed. In this case, in order to avoid assertion, we bind dummy VBOs. */
   bool is_empty = pointcloud.totpoint == 0;
 

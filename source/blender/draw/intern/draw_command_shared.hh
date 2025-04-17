@@ -47,9 +47,9 @@ struct DrawGroup {
 
   /** Atomic counters used during command sorting. GPU only. Reset on CPU. */
 
-  /* Counts visible and invisible instances. Create drawcalls when it reaches `DrawGroup::len`. */
+  /* Counts visible and invisible instances. Create draw-calls when it reaches `DrawGroup::len`. */
   uint total_counter;
-  /* Counts only visible instance (counting multi-view). Used to issue the drawcalls. */
+  /* Counts only visible instance (counting multi-view). Used to issue the draw-calls. */
   uint front_facing_counter;
   uint back_facing_counter;
 
