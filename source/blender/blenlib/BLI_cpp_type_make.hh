@@ -14,12 +14,24 @@
 
 namespace blender::cpp_type_util {
 
+template<typename T> inline bool pointer_has_valid_alignment(const void *ptr)
+{
+  return (uintptr_t(ptr) % alignof(T)) == 0;
+}
+
+template<typename T> inline bool pointer_can_point_to_instance(const void *ptr)
+{
+  return ptr != nullptr && pointer_has_valid_alignment<T>(ptr);
+}
+
 template<typename T> void default_construct_cb(void *ptr)
 {
+  BLI_assert(pointer_can_point_to_instance<T>(ptr));
   new (ptr) T;
 }
 template<typename T> void default_construct_indices_cb(void *ptr, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(ptr));
   if constexpr (std::is_trivially_constructible_v<T>) {
     return;
   }
@@ -28,20 +40,24 @@ template<typename T> void default_construct_indices_cb(void *ptr, const IndexMas
 
 template<typename T> void value_initialize_cb(void *ptr)
 {
+  BLI_assert(pointer_can_point_to_instance<T>(ptr));
   new (ptr) T();
 }
 
 template<typename T> void value_initialize_indices_cb(void *ptr, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(ptr));
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { new (static_cast<T *>(ptr) + i) T(); });
 }
 
 template<typename T> void destruct_cb(void *ptr)
 {
+  BLI_assert(pointer_can_point_to_instance<T>(ptr));
   (static_cast<T *>(ptr))->~T();
 }
 template<typename T> void destruct_indices_cb(void *ptr, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(ptr));
   if (std::is_trivially_destructible_v<T>) {
     return;
   }
@@ -51,10 +67,15 @@ template<typename T> void destruct_indices_cb(void *ptr, const IndexMask &mask)
 
 template<typename T> void copy_assign_cb(const void *src, void *dst)
 {
+  BLI_assert(pointer_can_point_to_instance<T>(src));
+  BLI_assert(pointer_can_point_to_instance<T>(dst));
   *static_cast<T *>(dst) = *static_cast<const T *>(src);
 }
 template<typename T> void copy_assign_indices_cb(const void *src, void *dst, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || src != dst);
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(src));
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(dst));
   const T *src_ = static_cast<const T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -63,6 +84,9 @@ template<typename T> void copy_assign_indices_cb(const void *src, void *dst, con
 template<typename T>
 void copy_assign_compressed_cb(const void *src, void *dst, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || src != dst);
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(src));
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(dst));
   const T *src_ = static_cast<const T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -72,11 +96,17 @@ void copy_assign_compressed_cb(const void *src, void *dst, const IndexMask &mask
 
 template<typename T> void copy_construct_cb(const void *src, void *dst)
 {
+  BLI_assert(src != dst || std::is_trivially_copy_constructible_v<T>);
+  BLI_assert(pointer_can_point_to_instance<T>(src));
+  BLI_assert(pointer_can_point_to_instance<T>(dst));
   blender::uninitialized_copy_n(static_cast<const T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T>
 void copy_construct_indices_cb(const void *src, void *dst, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || src != dst);
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(src));
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(dst));
   const T *src_ = static_cast<const T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -85,6 +115,9 @@ void copy_construct_indices_cb(const void *src, void *dst, const IndexMask &mask
 template<typename T>
 void copy_construct_compressed_cb(const void *src, void *dst, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || src != dst);
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(src));
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(dst));
   const T *src_ = static_cast<const T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -94,10 +127,15 @@ void copy_construct_compressed_cb(const void *src, void *dst, const IndexMask &m
 
 template<typename T> void move_assign_cb(void *src, void *dst)
 {
+  BLI_assert(pointer_can_point_to_instance<T>(src));
+  BLI_assert(pointer_can_point_to_instance<T>(dst));
   blender::initialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T> void move_assign_indices_cb(void *src, void *dst, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || src != dst);
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(src));
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(dst));
   T *src_ = static_cast<T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -106,10 +144,17 @@ template<typename T> void move_assign_indices_cb(void *src, void *dst, const Ind
 
 template<typename T> void move_construct_cb(void *src, void *dst)
 {
+  BLI_assert(src != dst || std::is_trivially_move_constructible_v<T>);
+  BLI_assert(pointer_can_point_to_instance<T>(src));
+  BLI_assert(pointer_can_point_to_instance<T>(dst));
+
   blender::uninitialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T> void move_construct_indices_cb(void *src, void *dst, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || src != dst);
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(src));
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(dst));
   T *src_ = static_cast<T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -118,6 +163,9 @@ template<typename T> void move_construct_indices_cb(void *src, void *dst, const 
 
 template<typename T> void relocate_assign_cb(void *src, void *dst)
 {
+  BLI_assert(src != dst || std::is_trivially_move_constructible_v<T>);
+  BLI_assert(pointer_can_point_to_instance<T>(src));
+  BLI_assert(pointer_can_point_to_instance<T>(dst));
   T *src_ = static_cast<T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -126,6 +174,9 @@ template<typename T> void relocate_assign_cb(void *src, void *dst)
 }
 template<typename T> void relocate_assign_indices_cb(void *src, void *dst, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || src != dst);
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(src));
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(dst));
   T *src_ = static_cast<T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -137,6 +188,9 @@ template<typename T> void relocate_assign_indices_cb(void *src, void *dst, const
 
 template<typename T> void relocate_construct_cb(void *src, void *dst)
 {
+  BLI_assert(src != dst || std::is_trivially_move_constructible_v<T>);
+  BLI_assert(pointer_can_point_to_instance<T>(src));
+  BLI_assert(pointer_can_point_to_instance<T>(dst));
   T *src_ = static_cast<T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -146,6 +200,9 @@ template<typename T> void relocate_construct_cb(void *src, void *dst)
 template<typename T>
 void relocate_construct_indices_cb(void *src, void *dst, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || src != dst);
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(src));
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(dst));
   T *src_ = static_cast<T *>(src);
   T *dst_ = static_cast<T *>(dst);
 
@@ -155,18 +212,11 @@ void relocate_construct_indices_cb(void *src, void *dst, const IndexMask &mask)
   });
 }
 
-template<typename T> void fill_assign_cb(const void *value, void *dst, int64_t n)
-{
-  const T &value_ = *static_cast<const T *>(value);
-  T *dst_ = static_cast<T *>(dst);
-
-  for (int64_t i = 0; i < n; i++) {
-    dst_[i] = value_;
-  }
-}
 template<typename T>
 void fill_assign_indices_cb(const void *value, void *dst, const IndexMask &mask)
 {
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(value));
+  BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(dst));
   const T &value_ = *static_cast<const T *>(value);
   T *dst_ = static_cast<T *>(dst);
 
@@ -199,6 +249,8 @@ template<typename T> void print_cb(const void *value, std::stringstream &ss)
 
 template<typename T> bool is_equal_cb(const void *a, const void *b)
 {
+  BLI_assert(pointer_can_point_to_instance<T>(a));
+  BLI_assert(pointer_can_point_to_instance<T>(b));
   const T &a_ = *static_cast<const T *>(a);
   const T &b_ = *static_cast<const T *>(b);
   return a_ == b_;
@@ -206,6 +258,7 @@ template<typename T> bool is_equal_cb(const void *a, const void *b)
 
 template<typename T> uint64_t hash_cb(const void *value)
 {
+  BLI_assert(pointer_can_point_to_instance<T>(value));
   const T &value_ = *static_cast<const T *>(value);
   return get_default_hash(value_);
 }
