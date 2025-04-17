@@ -15,6 +15,7 @@
 #include "NOD_node_extra_info.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
+#include "NOD_socket_search_link.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -372,6 +373,53 @@ static void node_extra_info(NodeExtraInfoParams &params)
   }
 }
 
+static std::pair<bNode *, bNode *> add_foreach_zone(LinkSearchOpParams &params)
+{
+  bNode &input_node = params.add_node("GeometryNodeForeachGeometryElementInput");
+  bNode &output_node = params.add_node("GeometryNodeForeachGeometryElementOutput");
+  output_node.location[0] = 300;
+
+  auto &input_storage = *static_cast<NodeGeometryForeachGeometryElementInput *>(
+      input_node.storage);
+  input_storage.output_node_id = output_node.identifier;
+
+  return {&input_node, &output_node};
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeSocket &other_socket = params.other_socket();
+  const eNodeSocketDatatype type = eNodeSocketDatatype(other_socket.type);
+  if (type != SOCK_GEOMETRY) {
+    return;
+  }
+  if (other_socket.in_out == SOCK_OUT) {
+    params.add_item_full_name(IFACE_("For Each Element"), [](LinkSearchOpParams &params) {
+      const auto [input_node, output_node] = add_foreach_zone(params);
+      params.update_and_connect_available_socket(*input_node, "Geometry");
+    });
+  }
+  else {
+    params.add_item_full_name(
+        IFACE_("For Each Element " UI_MENU_ARROW_SEP " Main"), [](LinkSearchOpParams &params) {
+          const auto [input_node, output_node] = add_foreach_zone(params);
+          socket_items::clear<ForeachGeometryElementGenerationItemsAccessor>(*output_node);
+          params.update_and_connect_available_socket(*output_node, "Geometry");
+        });
+
+    params.add_item_full_name(IFACE_("For Each Element " UI_MENU_ARROW_SEP " Generated"),
+                              [](LinkSearchOpParams &params) {
+                                const auto [input_node, output_node] = add_foreach_zone(params);
+                                params.node_tree.ensure_topology_cache();
+                                bke::node_add_link(params.node_tree,
+                                                   *output_node,
+                                                   output_node->output_socket(2),
+                                                   params.node,
+                                                   params.socket);
+                              });
+  }
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -387,6 +435,7 @@ static void node_register()
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.register_operators = node_operators;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.get_extra_info = node_extra_info;
   ntype.no_muting = true;
   blender::bke::node_type_storage(

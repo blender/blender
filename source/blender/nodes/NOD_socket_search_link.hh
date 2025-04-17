@@ -129,6 +129,12 @@ class GatherLinkSearchOpParams {
    * class (`params`) that we do for the argument to `LinkSocketFn`.
    */
   void add_item(std::string socket_name, SocketLinkOperation::LinkSocketFn fn, int weight = 0);
+
+  /**
+   * Same as #add_item, but the provide the full name of the menu entry instead of just the socket
+   * name.
+   */
+  void add_item_full_name(std::string name, SocketLinkOperation::LinkSocketFn fn, int weight = 0);
 };
 
 /**

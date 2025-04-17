@@ -70,6 +70,17 @@ template<typename Accessor> inline void destruct_array(bNode &node)
 }
 
 /**
+ * Removes all items from the node.
+ */
+template<typename Accessor> inline void clear(bNode &node)
+{
+  destruct_array<Accessor>(node);
+  SocketItemsRef ref = Accessor::get_items_from_node(node);
+  *ref.items_num = 0;
+  *ref.active_index = 0;
+}
+
+/**
  * Copy the items from the storage of the source node to the storage of the destination node.
  */
 template<typename Accessor> inline void copy_array(const bNode &src_node, bNode &dst_node)

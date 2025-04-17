@@ -26,6 +26,7 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
+#include "NOD_socket_search_link.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
@@ -846,6 +847,40 @@ static void node_extra_info(NodeExtraInfoParams &params)
   }
 }
 
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeSocket &other_socket = params.other_socket();
+  if (!SimulationItemsAccessor::supports_socket_type(eNodeSocketDatatype(other_socket.type))) {
+    return;
+  }
+  params.add_item_full_name(IFACE_("Simulation"), [](LinkSearchOpParams &params) {
+    bNode &input_node = params.add_node("GeometryNodeSimulationInput");
+    bNode &output_node = params.add_node("GeometryNodeSimulationOutput");
+    output_node.location[0] = 300;
+
+    auto &input_storage = *static_cast<NodeGeometrySimulationInput *>(input_node.storage);
+    input_storage.output_node_id = output_node.identifier;
+
+    socket_items::clear<SimulationItemsAccessor>(output_node);
+    socket_items::add_item_with_socket_type_and_name<SimulationItemsAccessor>(
+        output_node, eNodeSocketDatatype(params.socket.type), params.socket.name);
+    update_node_declaration_and_sockets(params.node_tree, input_node);
+    update_node_declaration_and_sockets(params.node_tree, output_node);
+    if (params.socket.in_out == SOCK_IN) {
+      params.connect_available_socket(output_node, params.socket.name);
+    }
+    else {
+      params.connect_available_socket(input_node, params.socket.name);
+    }
+    params.node_tree.ensure_topology_cache();
+    bke::node_add_link(params.node_tree,
+                       input_node,
+                       input_node.output_socket(1),
+                       output_node,
+                       output_node.input_socket(1));
+  });
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -858,7 +893,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = sim_input_node::node_label;
-  ntype.gather_link_search_ops = nullptr;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.no_muting = true;

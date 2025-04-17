@@ -9,6 +9,7 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
+#include "NOD_socket_search_link.hh"
 
 #include "BLO_read_write.hh"
 
@@ -220,6 +221,40 @@ static void node_operators()
   socket_items::ops::make_common_operators<RepeatItemsAccessor>();
 }
 
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeSocket &other_socket = params.other_socket();
+  if (!RepeatItemsAccessor::supports_socket_type(eNodeSocketDatatype(other_socket.type))) {
+    return;
+  }
+  params.add_item_full_name(IFACE_("Repeat"), [](LinkSearchOpParams &params) {
+    bNode &input_node = params.add_node("GeometryNodeRepeatInput");
+    bNode &output_node = params.add_node("GeometryNodeRepeatOutput");
+    output_node.location[0] = 300;
+
+    auto &input_storage = *static_cast<NodeGeometryRepeatInput *>(input_node.storage);
+    input_storage.output_node_id = output_node.identifier;
+
+    socket_items::clear<RepeatItemsAccessor>(output_node);
+    socket_items::add_item_with_socket_type_and_name<RepeatItemsAccessor>(
+        output_node, eNodeSocketDatatype(params.socket.type), params.socket.name);
+    update_node_declaration_and_sockets(params.node_tree, input_node);
+    update_node_declaration_and_sockets(params.node_tree, output_node);
+    if (params.socket.in_out == SOCK_IN) {
+      params.connect_available_socket(output_node, params.socket.name);
+    }
+    else {
+      params.connect_available_socket(input_node, params.socket.name);
+    }
+    params.node_tree.ensure_topology_cache();
+    bke::node_add_link(params.node_tree,
+                       input_node,
+                       input_node.output_socket(1),
+                       output_node,
+                       output_node.input_socket(0));
+  });
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -231,6 +266,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.labelfunc = repeat_input_node::node_label;
   ntype.insert_link = node_insert_link;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.no_muting = true;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.register_operators = node_operators;

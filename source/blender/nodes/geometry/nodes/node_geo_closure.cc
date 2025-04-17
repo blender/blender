@@ -9,6 +9,7 @@
 #include "NOD_geo_closure.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
+#include "NOD_socket_search_link.hh"
 
 #include "BLO_read_write.hh"
 
@@ -181,6 +182,27 @@ static void node_operators()
   socket_items::ops::make_common_operators<ClosureOutputItemsAccessor>();
 }
 
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeSocket &other_socket = params.other_socket();
+  if (other_socket.type != SOCK_CLOSURE) {
+    return;
+  }
+  if (other_socket.in_out == SOCK_OUT) {
+    return;
+  }
+  params.add_item_full_name(IFACE_("Closure"), [](LinkSearchOpParams &params) {
+    bNode &input_node = params.add_node("GeometryNodeClosureInput");
+    bNode &output_node = params.add_node("GeometryNodeClosureOutput");
+    output_node.location[0] = 300;
+
+    auto &input_storage = *static_cast<NodeGeometryClosureInput *>(input_node.storage);
+    input_storage.output_node_id = output_node.identifier;
+
+    params.connect_available_socket(output_node, "Closure");
+  });
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -192,6 +214,7 @@ static void node_register()
   ntype.labelfunc = input_node::node_label;
   ntype.no_muting = true;
   ntype.register_operators = node_operators;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
   bke::node_type_storage(ntype, "NodeGeometryClosureOutput", node_free_storage, node_copy_storage);

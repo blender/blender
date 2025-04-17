@@ -23,12 +23,17 @@ void GatherLinkSearchOpParams::add_item(std::string socket_name,
                                         SocketLinkOperation::LinkSocketFn fn,
                                         const int weight)
 {
-
   std::string name = fmt::format("{}{} " UI_MENU_ARROW_SEP " {}",
                                  IFACE_(node_type_.ui_name),
                                  node_type_.deprecation_notice ? IFACE_(" (Deprecated)") : "",
                                  socket_name);
+  this->add_item_full_name(std::move(name), std::move(fn), weight);
+}
 
+void GatherLinkSearchOpParams::add_item_full_name(std::string name,
+                                                  SocketLinkOperation::LinkSocketFn fn,
+                                                  int weight)
+{
   items_.append({std::move(name), std::move(fn), weight});
 }
 
