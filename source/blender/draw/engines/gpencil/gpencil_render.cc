@@ -48,7 +48,7 @@ static void remap_depth(const View &view, MutableSpan<float> pix_z)
 
 static void render_set_view(RenderEngine *engine,
                             const Depsgraph *depsgraph,
-                            float2 aa_offset = float2{0.0f})
+                            const float2 aa_offset = float2{0.0f})
 {
   Object *camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
 
@@ -262,9 +262,9 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
 
   const float aa_radius = clamp_f(draw_ctx->scene->r.gauss, 0.0f, 100.0f);
   const int sample_count = draw_ctx->scene->grease_pencil_settings.aa_samples;
-  for (auto i : IndexRange(sample_count)) {
-    float2 aa_offset = Instance::antialiasing_sample_get(i, sample_count) * aa_radius;
-    aa_offset = 2.0f * aa_offset / float2(inst.render_color_tx.size());
+  for (const int sample_i : IndexRange(sample_count)) {
+    const float2 aa_sample = Instance::antialiasing_sample_get(sample_i, sample_count) * aa_radius;
+    const float2 aa_offset = 2.0f * aa_sample / float2(inst.render_color_tx.size());
     render_set_view(engine, depsgraph, aa_offset);
     render_init_buffers(draw_ctx, inst, engine, render_layer, depsgraph, &rect);
 
@@ -275,7 +275,7 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
      * This diminishes after each new sample as we want all samples to be equally weighted inside
      * the final result (inside the combined buffer). This weighting scheme allows to always store
      * the resolved result making it ready for in-progress display or read-back. */
-    const float weight = 1.0f / (1.0f + i);
+    const float weight = 1.0f / (1.0f + sample_i);
     inst.antialiasing_accumulate(manager, weight);
   }
 
