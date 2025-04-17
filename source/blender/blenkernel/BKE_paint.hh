@@ -506,7 +506,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
    * ID data is older than sculpt-mode data.
    * Set #Main.is_memfile_undo_flush_needed when enabling.
    */
-  char needs_flush_to_id = false;
+  bool needs_flush_to_id = false;
 
   /**
    * Some tools follows the shading chosen by the last used tool canvas.

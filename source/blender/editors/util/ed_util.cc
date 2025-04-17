@@ -263,11 +263,10 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
      * Auto-save prevents this from happening but scripts
      * may cause a flush on saving: #53986. */
     if (ob->sculpt != nullptr && ob->sculpt->cache == nullptr) {
-      char *needs_flush_ptr = &ob->sculpt->needs_flush_to_id;
-      if (check_needs_flush && (*needs_flush_ptr == 0)) {
+      if (check_needs_flush && !ob->sculpt->needs_flush_to_id) {
         return false;
       }
-      *needs_flush_ptr = 0;
+      ob->sculpt->needs_flush_to_id = false;
 
       /* flush multires changes (for sculpt) */
       multires_flush_sculpt_updates(ob);
