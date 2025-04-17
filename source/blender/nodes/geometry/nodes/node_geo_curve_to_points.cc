@@ -122,6 +122,9 @@ static PointCloud *pointcloud_from_curves(const bke::CurvesGeometry &curves,
   MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
 
   const bke::AttributeFilterFromFunc filter = [&](const StringRef name) {
+    if (ELEM(name, tangent_id, normal_id, rotation_id)) {
+      return bke::AttributeFilter::Result::Process;
+    }
     if (attribute_filter.allow_skip(name)) {
       return bke::AttributeFilter::Result::AllowSkip;
     }
