@@ -7,20 +7,6 @@
 FRAGMENT_SHADER_CREATE_INFO(overlay_antialiasing)
 
 /**
- * We want to know how much a pixel is covered by a line.
- * We replace the square pixel with a circle of the same area and try to find the intersection
- * area. The area we search is the circular segment. https://en.wikipedia.org/wiki/Circular_segment
- * The formula for the area uses inverse trig function and is quite complex. Instead,
- * we approximate it by using the smooth-step function and a 1.05 factor to the disc radius.
- */
-
-#define M_1_SQRTPI 0.5641895835477563f /* `1/sqrt(pi)`. */
-
-#define DISC_RADIUS (M_1_SQRTPI * 1.05f)
-#define LINE_SMOOTH_START (0.5f - DISC_RADIUS)
-#define LINE_SMOOTH_END (0.5f + DISC_RADIUS)
-
-/**
  * Returns coverage of a line onto a sample that is distance_to_line (in pixels) far from the line.
  * line_kernel_size is the inner size of the line with 100% coverage.
  */

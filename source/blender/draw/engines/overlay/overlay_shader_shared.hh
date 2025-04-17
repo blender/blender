@@ -386,3 +386,20 @@ struct BoneStickData {
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(BoneStickData, 16)
+
+/**
+ * We want to know how much of a pixel is covered by a line.
+ * Here, we imagine the square pixel is a circle with the same area and try to find the
+ * intersection area. The overlap area is a circular segment.
+ * https://en.wikipedia.org/wiki/Circular_segment The formula for the area uses inverse trig
+ * function and is quite complex. Instead, we approximate it by using the smoothstep function and
+ * a 1.05f factor to the disc radius.
+ *
+ * For an alternate approach, see:
+ * https://developer.nvidia.com/gpugems/gpugems2/part-iii-high-quality-rendering/chapter-22-fast-prefiltered-lines
+ */
+#define M_1_SQRTPI 0.5641895835477563f /* `1/sqrt(pi)`. */
+#define DISC_RADIUS (M_1_SQRTPI * 1.05f)
+#define LINE_SMOOTH_START (0.5f + DISC_RADIUS)
+#define LINE_SMOOTH_END (0.5f - DISC_RADIUS)
+#define LINE_STEP(dist) smoothstep(LINE_SMOOTH_START, LINE_SMOOTH_END, dist)

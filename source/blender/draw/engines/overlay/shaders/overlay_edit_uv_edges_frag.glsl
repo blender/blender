@@ -53,8 +53,8 @@ void main()
   float mix_w_outer;
 
   if (do_smooth_wire) {
-    mix_w = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist);
-    mix_w_outer = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist_outer);
+    mix_w = smoothstep(LINE_SMOOTH_START, LINE_SMOOTH_END, dist);
+    mix_w_outer = smoothstep(LINE_SMOOTH_START, LINE_SMOOTH_END, dist_outer);
   }
   else {
     mix_w = step(0.5f, dist);

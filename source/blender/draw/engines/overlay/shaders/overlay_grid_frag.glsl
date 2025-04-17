@@ -13,23 +13,6 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_grid_next)
  * interpolation.
  */
 
-/**
- * We want to know how much of a pixel is covered by a line.
- * Here, we imagine the square pixel is a circle with the same area and try to find the
- * intersection area. The overlap area is a circular segment.
- * https://en.wikipedia.org/wiki/Circular_segment The formula for the area uses inverse trig
- * function and is quite complex. Instead, we approximate it by using the smoothstep function and
- * a 1.05f factor to the disc radius.
- *
- * For an alternate approach, see:
- * https://developer.nvidia.com/gpugems/gpugems2/part-iii-high-quality-rendering/chapter-22-fast-prefiltered-lines
- */
-#define M_1_SQRTPI 0.5641895835477563f /* `1/sqrt(pi)`. */
-#define DISC_RADIUS (M_1_SQRTPI * 1.05f)
-#define GRID_LINE_SMOOTH_START (0.5f + DISC_RADIUS)
-#define GRID_LINE_SMOOTH_END (0.5f - DISC_RADIUS)
-#define GRID_LINE_STEP(dist) smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist)
-
 #include "draw_view_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
@@ -43,7 +26,7 @@ float get_grid(float2 co, float2 fwidthCos, float2 grid_scale)
   grid_domain /= fwidthCos;
   /* Collapse waves. */
   float line_dist = min(grid_domain.x, grid_domain.y);
-  return GRID_LINE_STEP(line_dist - grid_buf.line_size);
+  return LINE_STEP(line_dist - grid_buf.line_size);
 }
 
 float3 get_axes(float3 co, float3 fwidthCos, float line_size)
@@ -52,7 +35,7 @@ float3 get_axes(float3 co, float3 fwidthCos, float line_size)
   /* Modulate by the absolute rate of change of the coordinates
    * (make line have the same width under perspective). */
   axes_domain /= fwidthCos;
-  return GRID_LINE_STEP(axes_domain - (line_size + grid_buf.line_size));
+  return LINE_STEP(axes_domain - (line_size + grid_buf.line_size));
 }
 
 #define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0f, 1.0f))

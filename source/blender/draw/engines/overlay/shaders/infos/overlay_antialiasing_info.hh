@@ -7,6 +7,8 @@
 #  include "gpu_glsl_cpp_stubs.hh"
 
 #  include "gpu_shader_fullscreen_info.hh"
+
+#  include "overlay_shader_shared.hh"
 #endif
 
 #include "overlay_common_info.hh"
@@ -18,6 +20,7 @@ SAMPLER(1, FLOAT_2D, color_tx)
 SAMPLER(2, FLOAT_2D, line_tx)
 PUSH_CONSTANT(bool, do_smooth_lines)
 FRAGMENT_OUT(0, float4, frag_color)
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
 FRAGMENT_SOURCE("overlay_antialiasing_frag.glsl")
 ADDITIONAL_INFO(gpu_fullscreen)
 ADDITIONAL_INFO(draw_globals)
