@@ -8192,7 +8192,7 @@ static GHOST_TSuccess getCursorPositionClientRelative_impl(
     if (win->getCursorGrabBounds(wrap_bounds) == GHOST_kFailure) {
       win->getClientBounds(wrap_bounds);
     }
-    int xy_wrap[2] = {
+    wl_fixed_t xy_wrap[2] = {
         seat_state_pointer->xy[0],
         seat_state_pointer->xy[1],
     };
@@ -9406,14 +9406,14 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
     }
     if (seat->wp.locked_pointer) {
       /* Potentially add a motion event so the application has updated X/Y coordinates. */
-      int32_t xy_motion[2] = {0, 0};
+      wl_fixed_t xy_motion[2] = {0, 0};
       bool xy_motion_create_event = false;
 
       /* Request location to restore to. */
       if (mode_current == GHOST_kGrabWrap) {
         /* Since this call is initiated by Blender, we can be sure the window wasn't closed
          * by logic outside this function - as the window was needed to make this call. */
-        int32_t xy_next[2] = {UNPACK2(seat->pointer.xy)};
+        wl_fixed_t xy_next[2] = {UNPACK2(seat->pointer.xy)};
 
         GHOST_Rect bounds_scale;
 
