@@ -157,16 +157,6 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
       estimate *= node->get_float(strength_in->socket_type);
     }
 
-    /* Lower importance of emission nodes from automatic value/color to shader
-     * conversion, as these are likely used for previewing and can be slow to
-     * build a light tree for on dense meshes. */
-    if (node->type == EmissionNode::get_node_type()) {
-      EmissionNode *emission_node = static_cast<EmissionNode *>(node);
-      if (emission_node->from_auto_conversion) {
-        estimate *= 0.1f;
-      }
-    }
-
     return estimate;
   }
   if (node->type == LightFalloffNode::get_node_type() ||
@@ -265,7 +255,19 @@ void Shader::estimate_emission()
      * using a lot of memory in the light tree and potentially wasting samples
      * where indirect light samples are sufficient.
      * Possible optimization: estimate front and back emission separately. */
-    emission_sampling = (reduce_max(fabs(emission_estimate)) > 0.5f) ?
+
+    /* Lower importance of emission nodes from automatic value/color to shader conversion, as these
+     * are likely used for previewing and can be slow to build a light tree for on dense meshes. */
+    float scale = 1.0f;
+    const ShaderOutput *output = surf->link;
+    if (output && output->parent->type == EmissionNode::get_node_type()) {
+      const EmissionNode *emission_node = static_cast<const EmissionNode *>(output->parent);
+      if (emission_node->from_auto_conversion) {
+        scale = 0.1f;
+      }
+    }
+
+    emission_sampling = (reduce_max(fabs(emission_estimate * scale)) > 0.5f) ?
                             EMISSION_SAMPLING_FRONT_BACK :
                             EMISSION_SAMPLING_NONE;
   }
