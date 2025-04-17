@@ -1484,7 +1484,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
       /* Range: -1 (left) to 1 (right). */
       ct.Xtilt = event.tilt.x;
       /* On macOS, the y tilt behavior is inverted from what we expect: negative
-       * meaning a tilt toward the user, positive meaning away from the user. */
+       * meaning a tilt toward the user, positive meaning away from the user.
+       * Convert to what Blender expects: -1.0 (away from user) to +1.0 (toward user). */
       ct.Ytilt = -event.tilt.y;
       break;
 

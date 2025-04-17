@@ -166,7 +166,7 @@ typedef struct GHOST_TabletData {
   GHOST_TTabletMode Active; /* 0=None, 1=Stylus, 2=Eraser */
   float Pressure;           /* range 0.0 (not touching) to 1.0 (full pressure) */
   float Xtilt;              /* range -1.0 (left) to +1.0 (right) */
-  float Ytilt;              /* range -1.0 (toward user) to +1.0 (away from user) */
+  float Ytilt;              /* range -1.0 (away from user) to +1.0 (toward user) */
 } GHOST_TabletData;
 
 static const GHOST_TabletData GHOST_TABLET_DATA_NONE = {

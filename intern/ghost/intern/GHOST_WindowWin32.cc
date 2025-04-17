@@ -1013,9 +1013,9 @@ GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
     if (pointerPenInfo[i].penMask & PEN_MASK_TILT_Y) {
       /* Input value is a range of -90 to +90, with a positive value
        * indicating a tilt toward the user. Convert to what Blender
-       * expects: -1.0f (toward user) to +1.0f (away from user). */
+       * expects: -1.0f (away from user) to +1.0f (toward user). */
       outPointerInfo[i].tabletData.Ytilt = std::clamp(
-          pointerPenInfo[i].tiltY / -90.0f, -1.0f, 1.0f);
+          pointerPenInfo[i].tiltY / 90.0f, -1.0f, 1.0f);
     }
   }
 
