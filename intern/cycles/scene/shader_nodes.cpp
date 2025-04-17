@@ -4725,7 +4725,10 @@ void HairInfoNode::compile(SVMCompiler &compiler)
   out = output("Random");
   if (!out->links.empty()) {
     const int attr = compiler.attribute(ATTR_STD_CURVE_RANDOM);
-    compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT);
+    compiler.add_node(NODE_ATTR,
+                      attr,
+                      compiler.encode_uchar4(compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT),
+                      __float_as_uint(0.0f));
   }
 }
 
@@ -4777,7 +4780,10 @@ void PointInfoNode::compile(SVMCompiler &compiler)
   out = output("Random");
   if (!out->links.empty()) {
     const int attr = compiler.attribute(ATTR_STD_POINT_RANDOM);
-    compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT);
+    compiler.add_node(NODE_ATTR,
+                      attr,
+                      compiler.encode_uchar4(compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT),
+                      __float_as_uint(0.0f));
   }
 }
 
