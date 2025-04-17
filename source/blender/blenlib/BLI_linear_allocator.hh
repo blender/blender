@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "BLI_cpp_type.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
@@ -99,6 +100,12 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     return static_cast<T *>(this->allocate(sizeof(T), alignof(T)));
   }
 
+  /** Same as above but uses a runtime #CPPType. */
+  void *allocate(const CPPType &type)
+  {
+    return this->allocate(type.size, type.alignment);
+  }
+
   /**
    * Allocate a memory buffer that can hold T array with the given size.
    *
@@ -108,6 +115,12 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   {
     T *array = static_cast<T *>(this->allocate(sizeof(T) * size, alignof(T)));
     return MutableSpan<T>(array, size);
+  }
+
+  /** Same as above but uses a runtime #CPPType. */
+  void *allocate_array(const CPPType &type, const int64_t size)
+  {
+    return this->allocate(type.size * size, type.alignment);
   }
 
   /**

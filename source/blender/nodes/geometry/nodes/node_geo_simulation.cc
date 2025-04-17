@@ -658,7 +658,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     LinearAllocator<> allocator;
     for (const int i : simulation_items_.index_range()) {
       const CPPType &type = *outputs_[i].type;
-      next_values[i] = allocator.allocate(type.size, type.alignment);
+      next_values[i] = allocator.allocate(type);
     }
     copy_simulation_state_to_values(simulation_items_,
                                     next_state,

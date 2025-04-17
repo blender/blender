@@ -272,7 +272,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
   };
 
   auto log_generic_value = [&](const CPPType &type, const void *value) {
-    void *buffer = this->allocator->allocate(type.size, type.alignment);
+    void *buffer = this->allocator->allocate(type);
     type.copy_construct(value, buffer);
     store_logged_value(this->allocator->construct<GenericValueLog>(GMutablePointer{type, buffer}));
   };

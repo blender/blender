@@ -1232,7 +1232,7 @@ static GMutablePointer get_socket_default_value(LinearAllocator<> &allocator,
   if (type == nullptr) {
     return {};
   }
-  void *buffer = allocator.allocate(type->size, type->alignment);
+  void *buffer = allocator.allocate(*type);
   typeinfo.get_geometry_nodes_cpp_value(bsocket.default_value, buffer);
   return {type, buffer};
 }
