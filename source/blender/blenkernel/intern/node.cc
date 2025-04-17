@@ -794,6 +794,11 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_float("Color Threshold", node->custom3);
       write_input_to_property_float("Neighbor Threshold", node->custom4);
     }
+
+    if (node->type_legacy == CMP_NODE_DENOISE) {
+      NodeDenoise *storage = static_cast<NodeDenoise *>(node->storage);
+      write_input_to_property_bool_char("HDR", storage->hdr);
+    }
   }
 }
 

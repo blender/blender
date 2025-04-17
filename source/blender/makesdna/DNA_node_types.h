@@ -1619,7 +1619,7 @@ typedef struct NodeCryptomatte {
 } NodeCryptomatte;
 
 typedef struct NodeDenoise {
-  char hdr;
+  char hdr DNA_DEPRECATED;
   char prefilter;
   char quality;
   char _pad[1];

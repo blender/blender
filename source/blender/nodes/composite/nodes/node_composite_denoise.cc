@@ -53,13 +53,14 @@ static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .hide_value()
       .compositor_domain_priority(1);
+  b.add_input<decl::Bool>("HDR").default_value(true).compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_denonise(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeDenoise *ndg = MEM_callocN<NodeDenoise>(__func__);
-  ndg->hdr = true;
   ndg->prefilter = CMP_NODE_DENOISE_PREFILTER_ACCURATE;
   ndg->quality = CMP_NODE_DENOISE_QUALITY_SCENE;
   node->storage = ndg;
@@ -96,7 +97,6 @@ static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, Point
   uiItemR(layout, ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemL(layout, IFACE_("Quality:"), ICON_NONE);
   uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_hdr", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -287,7 +287,7 @@ class DenoiseOperation : public NodeOperation {
 
   bool use_hdr()
   {
-    return node_storage(bnode()).hdr;
+    return this->get_input("HDR").get_single_value_default(true);
   }
 
   CMPNodeDenoisePrefilter get_prefilter_mode()
