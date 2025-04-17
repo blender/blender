@@ -10,10 +10,13 @@ namespace blender::nodes::node_fn_invert_matrix_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.is_function_node();
   b.add_input<decl::Matrix>("Matrix");
-  b.add_output<decl::Matrix>("Matrix").description(
-      "The inverted matrix or the identity matrix if the input is not invertible");
+  b.add_output<decl::Matrix>("Matrix")
+      .description("The inverted matrix or the identity matrix if the input is not invertible")
+      .align_with_previous();
   b.add_output<decl::Bool>("Invertible").description("True if the input matrix is invertible");
 }
 
