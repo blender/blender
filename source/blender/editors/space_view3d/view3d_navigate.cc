@@ -813,7 +813,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   View3D *v3d = CTX_wm_view3d(C);
   BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
   Object *ob_act_eval = BKE_view_layer_active_object_get(view_layer_eval);
-  Object *ob_act = DEG_get_original_object(ob_act_eval);
+  Object *ob_act = DEG_get_original(ob_act_eval);
 
   if (ob_act && (ob_act->mode & OB_MODE_ALL_PAINT) &&
       /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */

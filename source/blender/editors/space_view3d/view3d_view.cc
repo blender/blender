@@ -544,7 +544,7 @@ static bool drw_select_filter_object_mode_lock(Object *ob, void *user_data)
 static bool drw_select_filter_object_mode_lock_for_weight_paint(Object *ob, void *user_data)
 {
   LinkNode *ob_pose_list = static_cast<LinkNode *>(user_data);
-  return ob_pose_list && (BLI_linklist_index(ob_pose_list, DEG_get_original_object(ob)) != -1);
+  return ob_pose_list && (BLI_linklist_index(ob_pose_list, DEG_get_original(ob)) != -1);
 }
 
 int view3d_gpu_select_ex(const ViewContext *vc,

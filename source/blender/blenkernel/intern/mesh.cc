@@ -1642,7 +1642,7 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
     mesh->runtime->mesh_eval = nullptr;
   }
   if (DEG_is_active(depsgraph)) {
-    Mesh *mesh_orig = reinterpret_cast<Mesh *>(DEG_get_original_id(&mesh->id));
+    Mesh *mesh_orig = DEG_get_original(mesh);
     if (mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED) {
       mesh_orig->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
       copy_v3_v3(mesh_orig->texspace_location, mesh->texspace_location);

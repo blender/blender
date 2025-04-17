@@ -946,7 +946,7 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
   }
 
   ID *id = self->ptr->owner_id;
-  if (id && id != DEG_get_original_id(id)) {
+  if (id && id != DEG_get_original(id)) {
     extra_info = ", evaluated";
   }
 
@@ -977,7 +977,7 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
   PyObject *tmp_str;
   PyObject *ret;
 
-  if (id == nullptr || !PYRNA_STRUCT_IS_VALID(self) || (DEG_get_original_id(id) != id)) {
+  if (id == nullptr || !PYRNA_STRUCT_IS_VALID(self) || (DEG_get_original(id) != id)) {
     /* fallback */
     return pyrna_struct_str(self);
   }

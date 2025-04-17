@@ -358,7 +358,7 @@ bool node_editor_is_for_geometry_nodes_modifier(const SpaceNode &snode,
     return false;
   }
   const Object *object_orig = DEG_is_original_object(&object) ? &object :
-                                                                DEG_get_original_object(&object);
+                                                                DEG_get_original(&object);
   if (object_and_modifier->object != object_orig) {
     return false;
   }

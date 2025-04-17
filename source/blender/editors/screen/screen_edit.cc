@@ -979,7 +979,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     Scene *scene = WM_window_get_active_scene(prevwin);
-    Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
+    Scene *scene_eval = DEG_get_evaluated(depsgraph, scene);
     BKE_sound_stop_scene(scene_eval);
   }
   screen->animtimer = nullptr;

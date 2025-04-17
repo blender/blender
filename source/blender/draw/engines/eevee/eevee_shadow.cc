@@ -1116,7 +1116,7 @@ void ShadowModule::debug_end_sync()
     return;
   }
 
-  ObjectKey object_key(DEG_get_original_object(object_active));
+  ObjectKey object_key(DEG_get_original(object_active));
 
   if (inst_.lights.light_map_.contains(object_key) == false) {
     return;

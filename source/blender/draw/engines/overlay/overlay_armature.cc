@@ -2018,7 +2018,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
   const bool is_select = ctx->res->is_selection();
   const bool show_text = ctx->show_text;
 
-  const Object *ob_orig = DEG_get_original_object(ob);
+  const Object *ob_orig = DEG_get_original(ob);
   /* FIXME(@ideasman42): We should be able to use the evaluated object,
    * however the active bone isn't updated. Long term solution is an 'EditArmature' struct.
    * for now we can draw from the original armature. See: #66773. */
@@ -2121,7 +2121,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
         ctx->res->is_selection();
 
     if (is_pose_select) {
-      const Object *ob_orig = DEG_get_original_object(ob);
+      const Object *ob_orig = DEG_get_original(ob);
       /* Note: Selection Next handles the object id merging later. */
       index = ctx->bone_buf ? 0x0 : ob_orig->runtime->select_id;
     }
@@ -2137,7 +2137,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
       pchan->bone->flag &= ~BONE_DRAW_LOCKED_WEIGHT;
     }
 
-    const Object *obact_orig = DEG_get_original_object(draw_ctx->obact);
+    const Object *obact_orig = DEG_get_original(draw_ctx->obact);
 
     const ListBase *defbase = BKE_object_defgroup_list(obact_orig);
     for (const bDeformGroup *dg : ConstListBaseWrapper<bDeformGroup>(defbase)) {

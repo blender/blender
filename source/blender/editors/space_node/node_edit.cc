@@ -262,8 +262,7 @@ static void compo_initjob(void *cjv)
    * evaluate_on_framechange. */
   DEG_evaluate_on_refresh(cj->compositor_depsgraph);
 
-  bNodeTree *ntree_eval = (bNodeTree *)DEG_get_evaluated_id(cj->compositor_depsgraph,
-                                                            &cj->ntree->id);
+  bNodeTree *ntree_eval = DEG_get_evaluated(cj->compositor_depsgraph, cj->ntree);
 
   cj->localtree = bke::node_tree_localize(ntree_eval, nullptr);
 

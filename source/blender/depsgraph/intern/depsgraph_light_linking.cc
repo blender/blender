@@ -48,15 +48,6 @@ void eval_runtime_data(const ::Depsgraph *depsgraph, Object &object_eval)
 
 namespace {
 
-/* TODO(sergey): Move to a public API, solving the const-correctness. */
-template<class T> inline const T *get_original(const T *id)
-{
-  if (!id) {
-    return nullptr;
-  }
-  return reinterpret_cast<const T *>(DEG_get_original_id(&id->id));
-}
-
 /* Check whether the ID is suitable to be an input of the dependency graph. */
 /* TODO(sergey): Move the function and check to a more generic place. */
 #ifndef NDEBUG
@@ -207,7 +198,7 @@ const EmitterData *EmitterDataMap::get_data(const Object &emitter) const
     return nullptr;
   }
 
-  const Collection *collection_orig = get_original(collection_eval);
+  const Collection *collection_orig = DEG_get_original(collection_eval);
 
   return emitter_data_map_.lookup_ptr(collection_orig);
 }
@@ -305,7 +296,7 @@ void LinkingData::update_emitters_membership(EmitterDataMap &emitter_data_map,
 
 uint64_t LinkingData::get_light_set_for(const Object &object) const
 {
-  const Object *object_orig = get_original(&object);
+  const Object *object_orig = DEG_get_original(&object);
   return object_light_sets_.lookup_default(object_orig, LightSet::DEFAULT_ID);
 }
 

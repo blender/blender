@@ -237,8 +237,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
           .set_default_value(&stored);
     }
 
-    bNodeTree &btree_orig = *reinterpret_cast<bNodeTree *>(
-        DEG_get_original_id(const_cast<ID *>(&btree_.id)));
+    const bNodeTree &btree_orig = *DEG_get_original(&btree_);
     if (btree_orig.runtime->logged_zone_graphs) {
       std::lock_guard lock{btree_orig.runtime->logged_zone_graphs->mutex};
       btree_orig.runtime->logged_zone_graphs->graph_by_zone_id.lookup_or_add_cb(
@@ -369,8 +368,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
         this->generate_closure_compatibility_warnings(*eval_storage.closure, context);
         this->initialize_execution_graph(eval_storage);
 
-        const bNodeTree &btree_orig = *reinterpret_cast<const bNodeTree *>(
-            DEG_get_original_id(&btree_.id));
+        const bNodeTree &btree_orig = *DEG_get_original(&btree_);
         ClosureEvalLocation eval_location{
             btree_orig.id.session_uid, bnode_.identifier, user_data.compute_context->hash()};
         eval_storage.closure->log_evaluation(eval_location);
@@ -663,8 +661,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
         eval_storage.scope.allocator());
 
     /* Log graph for debugging purposes. */
-    bNodeTree &btree_orig = *reinterpret_cast<bNodeTree *>(
-        DEG_get_original_id(const_cast<ID *>(&btree_.id)));
+    const bNodeTree &btree_orig = *DEG_get_original(&btree_);
     if (btree_orig.runtime->logged_zone_graphs) {
       std::lock_guard lock{btree_orig.runtime->logged_zone_graphs->mutex};
       btree_orig.runtime->logged_zone_graphs->graph_by_zone_id.lookup_or_add_cb(

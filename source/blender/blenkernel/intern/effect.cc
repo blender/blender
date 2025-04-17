@@ -319,7 +319,7 @@ ListBase *BKE_effectors_create(Depsgraph *depsgraph,
 
   LISTBASE_FOREACH (EffectorRelation *, relation, relations) {
     /* Get evaluated object. */
-    Object *ob = (Object *)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
+    Object *ob = DEG_get_evaluated(depsgraph, relation->ob);
 
     if (relation->psys) {
       /* Get evaluated particle system. */

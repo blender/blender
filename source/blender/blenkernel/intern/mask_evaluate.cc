@@ -926,7 +926,7 @@ void BKE_mask_eval_update(Depsgraph *depsgraph, Mask *mask)
   }
 
   if (is_depsgraph_active) {
-    Mask *mask_orig = (Mask *)DEG_get_original_id(&mask->id);
+    Mask *mask_orig = DEG_get_original(mask);
     for (MaskLayer *masklay_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
                    *masklay_eval = static_cast<MaskLayer *>(mask->masklayers.first);
          masklay_orig != nullptr;

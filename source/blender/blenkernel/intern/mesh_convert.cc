@@ -896,7 +896,7 @@ static int foreach_libblock_make_original_callback(LibraryIDLinkCallbackData *cb
   if (*id_p == nullptr) {
     return IDWALK_RET_NOP;
   }
-  *id_p = DEG_get_original_id(*id_p);
+  *id_p = DEG_get_original(*id_p);
 
   return IDWALK_RET_NOP;
 }

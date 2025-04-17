@@ -697,7 +697,7 @@ static std::optional<uint32_t> get_original_session_uid(const ID *id)
   if (DEG_is_original_id(id)) {
     return id->session_uid;
   }
-  if (const ID *id_orig = DEG_get_original_id(id)) {
+  if (const ID *id_orig = DEG_get_original(id)) {
     return id_orig->session_uid;
   }
   return {};

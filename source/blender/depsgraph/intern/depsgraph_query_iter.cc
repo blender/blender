@@ -145,7 +145,7 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
 
     DEGObjectIterSettings *settings = data->settings;
     if (settings->included_objects) {
-      Object *object_orig = DEG_get_original_object(obd);
+      Object *object_orig = DEG_get_original(obd);
       if (!settings->included_objects->contains(object_orig)) {
         continue;
       }
@@ -244,7 +244,7 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
     }
 
     Object *object = (Object *)id_node->id_cow;
-    Object *object_orig = DEG_get_original_object(object);
+    Object *object_orig = DEG_get_original(object);
 
     DEGObjectIterSettings *settings = data->settings;
     if (settings->included_objects) {

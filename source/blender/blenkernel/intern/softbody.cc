@@ -3498,7 +3498,7 @@ static void sbStoreLastFrame(Depsgraph *depsgraph, Object *object, float framenr
   if (!DEG_is_active(depsgraph)) {
     return;
   }
-  Object *object_orig = DEG_get_original_object(object);
+  Object *object_orig = DEG_get_original(object);
   object->soft->last_frame = framenr;
   object_orig->soft->last_frame = framenr;
 }

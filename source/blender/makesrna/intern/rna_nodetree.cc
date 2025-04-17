@@ -1597,7 +1597,7 @@ static void rna_NodeTree_debug_lazy_function_graph(bNodeTree *tree,
   if (DEG_is_original_id(&tree->id)) {
     /* The graph is only stored on the evaluated data. */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    tree = reinterpret_cast<bNodeTree *>(DEG_get_evaluated_id(depsgraph, &tree->id));
+    tree = DEG_get_evaluated(depsgraph, tree);
   }
   std::lock_guard lock{tree->runtime->geometry_nodes_lazy_function_graph_info_mutex};
   if (!tree->runtime->geometry_nodes_lazy_function_graph_info) {
@@ -1617,7 +1617,7 @@ static void rna_NodeTree_debug_zone_body_lazy_function_graph(
   if (DEG_is_original_id(&tree->id)) {
     /* The graph is only stored on the evaluated data. */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    tree = reinterpret_cast<bNodeTree *>(DEG_get_evaluated_id(depsgraph, &tree->id));
+    tree = DEG_get_evaluated(depsgraph, tree);
   }
   std::lock_guard lock{tree->runtime->geometry_nodes_lazy_function_graph_info_mutex};
   if (!tree->runtime->geometry_nodes_lazy_function_graph_info) {

@@ -172,7 +172,7 @@ class Sculpts : Overlay {
     /* Using the original object/geometry is necessary because we skip depsgraph updates in sculpt
      * mode to improve performance. This means the evaluated mesh doesn't have the latest face set,
      * visibility, and mask data. */
-    Object *object_orig = reinterpret_cast<Object *>(DEG_get_original_id(&ob_ref.object->id));
+    Object *object_orig = DEG_get_original(ob_ref.object);
     if (!object_orig) {
       BLI_assert_unreachable();
       return;

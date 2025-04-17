@@ -1951,7 +1951,7 @@ static void movieclip_eval_update_reload(Depsgraph *depsgraph, Main *bmain, Movi
 {
   BKE_movieclip_reload(bmain, clip);
   if (DEG_is_active(depsgraph)) {
-    MovieClip *clip_orig = (MovieClip *)DEG_get_original_id(&clip->id);
+    MovieClip *clip_orig = DEG_get_original(clip);
     BKE_movieclip_reload(bmain, clip_orig);
   }
 }
@@ -1960,7 +1960,7 @@ static void movieclip_eval_update_generic(Depsgraph *depsgraph, MovieClip *clip)
 {
   BKE_tracking_dopesheet_tag_update(&clip->tracking);
   if (DEG_is_active(depsgraph)) {
-    MovieClip *clip_orig = (MovieClip *)DEG_get_original_id(&clip->id);
+    MovieClip *clip_orig = DEG_get_original(clip);
     BKE_tracking_dopesheet_tag_update(&clip_orig->tracking);
   }
 }

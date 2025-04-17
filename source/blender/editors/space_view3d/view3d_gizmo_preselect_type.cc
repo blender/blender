@@ -405,7 +405,7 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
   else {
     if (best.eed) {
       Object *ob = gz_ring->bases[gz_ring->base_index]->object;
-      Scene *scene_eval = (Scene *)DEG_get_evaluated_id(vc.depsgraph, &vc.scene->id);
+      Scene *scene_eval = DEG_get_evaluated(vc.depsgraph, vc.scene);
       Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
       BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
       /* Re-allocate coords each update isn't ideal, however we can't be sure

@@ -326,7 +326,7 @@ void *BKE_cachefile_add(Main *bmain, const char *name)
 void BKE_cachefile_reload(Depsgraph *depsgraph, CacheFile *cache_file)
 {
   /* To force reload, free the handle and tag depsgraph to load it again. */
-  CacheFile *cache_file_eval = (CacheFile *)DEG_get_evaluated_id(depsgraph, &cache_file->id);
+  CacheFile *cache_file_eval = DEG_get_evaluated(depsgraph, cache_file);
   if (cache_file_eval) {
     cachefile_handle_free(cache_file_eval);
   }
@@ -374,7 +374,7 @@ void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file
 
   if (DEG_is_active(depsgraph)) {
     /* Flush object paths back to original data-block for UI. */
-    CacheFile *cache_file_orig = (CacheFile *)DEG_get_original_id(&cache_file->id);
+    CacheFile *cache_file_orig = DEG_get_original(cache_file);
     BLI_freelistN(&cache_file_orig->object_paths);
     BLI_duplicatelist(&cache_file_orig->object_paths, &cache_file->object_paths);
   }

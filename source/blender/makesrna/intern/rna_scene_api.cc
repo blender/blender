@@ -158,7 +158,7 @@ static void rna_Scene_ray_cast(Scene *scene,
   blender::ed::transform::snap_object_context_destroy(sctx);
 
   if (r_ob != nullptr && *r_ob != nullptr) {
-    *r_ob = DEG_get_original_object(*r_ob);
+    *r_ob = DEG_get_original(*r_ob);
   }
 
   if (ret) {

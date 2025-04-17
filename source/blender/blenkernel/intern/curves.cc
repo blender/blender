@@ -237,7 +237,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
     GeometryComponentEditData &edit_component =
         geometry_set.get_component_for_write<GeometryComponentEditData>();
     edit_component.curves_edit_hints_ = std::make_unique<CurvesEditHints>(
-        *static_cast<const Curves *>(DEG_get_original_object(object)->data));
+        *static_cast<const Curves *>(DEG_get_original(object)->data));
   }
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 

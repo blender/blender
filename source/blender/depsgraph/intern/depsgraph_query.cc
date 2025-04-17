@@ -167,7 +167,7 @@ void DEG_get_customdata_mask_for_object(const Depsgraph *graph,
   }
 
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
-  const deg::IDNode *id_node = deg_graph->find_id_node(DEG_get_original_id(&ob->id));
+  const deg::IDNode *id_node = deg_graph->find_id_node(DEG_get_original(&ob->id));
   if (id_node == nullptr) {
     /* TODO(sergey): Does it mean we need to check set scene? */
     return;
@@ -282,16 +282,6 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
               orig_id->name);
     }
   }
-}
-
-Object *DEG_get_original_object(Object *object)
-{
-  return reinterpret_cast<Object *>(DEG_get_original_id(&object->id));
-}
-
-const Object *DEG_get_original_object(const Object *object)
-{
-  return reinterpret_cast<const Object *>(DEG_get_original_id(&object->id));
 }
 
 ID *DEG_get_original_id(ID *id)

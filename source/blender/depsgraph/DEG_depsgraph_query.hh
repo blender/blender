@@ -97,18 +97,39 @@ const Object *DEG_get_evaluated_object(const Depsgraph *depsgraph, const Object 
 ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, ID *id);
 const ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, const ID *id);
 
+template<typename T> T *DEG_get_evaluated(const Depsgraph *depsgraph, T *id)
+{
+  static_assert(blender::dna::is_ID_v<T>);
+  return reinterpret_cast<T *>(DEG_get_evaluated_id(depsgraph, reinterpret_cast<ID *>(id)));
+}
+
+template<typename T> const T *DEG_get_evaluated(const Depsgraph *depsgraph, const T *id)
+{
+  static_assert(blender::dna::is_ID_v<T>);
+  return reinterpret_cast<const T *>(
+      DEG_get_evaluated_id(depsgraph, reinterpret_cast<const ID *>(id)));
+}
+
 /** Get evaluated version of data pointed to by RNA pointer */
 void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
                                    PointerRNA *ptr,
                                    PointerRNA *r_ptr_eval);
 
-/** Get original version of object for given evaluated one. */
-Object *DEG_get_original_object(Object *object);
-const Object *DEG_get_original_object(const Object *object);
-
 /** Get original version of given evaluated ID data-block. */
 ID *DEG_get_original_id(ID *id);
 const ID *DEG_get_original_id(const ID *id);
+
+template<typename T> T *DEG_get_original(T *id)
+{
+  static_assert(blender::dna::is_ID_v<T>);
+  return reinterpret_cast<T *>(DEG_get_original_id(reinterpret_cast<ID *>(id)));
+}
+
+template<typename T> const T *DEG_get_original(const T *id)
+{
+  static_assert(blender::dna::is_ID_v<T>);
+  return reinterpret_cast<const T *>(DEG_get_original_id(reinterpret_cast<const ID *>(id)));
+}
 
 /**
  * Get the depsgraph that owns the given ID. This is efficient because the depsgraph is cached on
