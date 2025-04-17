@@ -8,9 +8,11 @@
  * \ingroup bli
  */
 
-#include "BLI_cpp_type.hh"
-#include "BLI_utildefines.h"
 #include <sstream>
+
+#include "BLI_cpp_type.hh"
+#include "BLI_index_mask.hh"
+#include "BLI_utildefines.h"
 
 namespace blender::cpp_type_util {
 
@@ -37,17 +39,24 @@ template<typename T> void default_construct_indices_cb(void *ptr, const IndexMas
   }
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { new (static_cast<T *>(ptr) + i) T; });
 }
+template<typename T> void default_construct_n_cb(void *ptr, const int64_t n)
+{
+  default_construct_indices_cb<T>(ptr, IndexMask(n));
+}
 
 template<typename T> void value_initialize_cb(void *ptr)
 {
   BLI_assert(pointer_can_point_to_instance<T>(ptr));
   new (ptr) T();
 }
-
 template<typename T> void value_initialize_indices_cb(void *ptr, const IndexMask &mask)
 {
   BLI_assert(mask.size() == 0 || pointer_can_point_to_instance<T>(ptr));
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { new (static_cast<T *>(ptr) + i) T(); });
+}
+template<typename T> void value_initialize_n_cb(void *ptr, const int64_t n)
+{
+  value_initialize_indices_cb<T>(ptr, IndexMask(n));
 }
 
 template<typename T> void destruct_cb(void *ptr)
@@ -63,6 +72,10 @@ template<typename T> void destruct_indices_cb(void *ptr, const IndexMask &mask)
   }
   T *ptr_ = static_cast<T *>(ptr);
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { ptr_[i].~T(); });
+}
+template<typename T> void destruct_n_cb(void *ptr, const int64_t n)
+{
+  destruct_indices_cb<T>(ptr, IndexMask(n));
 }
 
 template<typename T> void copy_assign_cb(const void *src, void *dst)
@@ -80,6 +93,10 @@ template<typename T> void copy_assign_indices_cb(const void *src, void *dst, con
   T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { dst_[i] = src_[i]; });
+}
+template<typename T> void copy_assign_n_cb(const void *src, void *dst, const int64_t n)
+{
+  copy_assign_indices_cb<T>(src, dst, IndexMask(n));
 }
 template<typename T>
 void copy_assign_compressed_cb(const void *src, void *dst, const IndexMask &mask)
@@ -112,6 +129,10 @@ void copy_construct_indices_cb(const void *src, void *dst, const IndexMask &mask
 
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { new (dst_ + i) T(src_[i]); });
 }
+template<typename T> void copy_construct_n_cb(const void *src, void *dst, const int64_t n)
+{
+  copy_construct_indices_cb<T>(src, dst, IndexMask(n));
+}
 template<typename T>
 void copy_construct_compressed_cb(const void *src, void *dst, const IndexMask &mask)
 {
@@ -141,6 +162,10 @@ template<typename T> void move_assign_indices_cb(void *src, void *dst, const Ind
 
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { dst_[i] = std::move(src_[i]); });
 }
+template<typename T> void move_assign_n_cb(void *src, void *dst, const int64_t n)
+{
+  move_assign_indices_cb<T>(src, dst, IndexMask(n));
+}
 
 template<typename T> void move_construct_cb(void *src, void *dst)
 {
@@ -159,6 +184,10 @@ template<typename T> void move_construct_indices_cb(void *src, void *dst, const 
   T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { new (dst_ + i) T(std::move(src_[i])); });
+}
+template<typename T> void move_construct_n_cb(void *src, void *dst, const int64_t n)
+{
+  move_construct_indices_cb<T>(src, dst, IndexMask(n));
 }
 
 template<typename T> void relocate_assign_cb(void *src, void *dst)
@@ -184,6 +213,10 @@ template<typename T> void relocate_assign_indices_cb(void *src, void *dst, const
     dst_[i] = std::move(src_[i]);
     src_[i].~T();
   });
+}
+template<typename T> void relocate_assign_n_cb(void *src, void *dst, const int64_t n)
+{
+  relocate_assign_indices_cb<T>(src, dst, IndexMask(n));
 }
 
 template<typename T> void relocate_construct_cb(void *src, void *dst)
@@ -211,6 +244,10 @@ void relocate_construct_indices_cb(void *src, void *dst, const IndexMask &mask)
     src_[i].~T();
   });
 }
+template<typename T> void relocate_construct_n_cb(void *src, void *dst, const int64_t n)
+{
+  relocate_construct_indices_cb<T>(src, dst, IndexMask(n));
+}
 
 template<typename T>
 void fill_assign_indices_cb(const void *value, void *dst, const IndexMask &mask)
@@ -221,6 +258,10 @@ void fill_assign_indices_cb(const void *value, void *dst, const IndexMask &mask)
   T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { dst_[i] = value_; });
+}
+template<typename T> void fill_assign_n_cb(const void *value, void *dst, const int64_t n)
+{
+  fill_assign_indices_cb<T>(value, dst, IndexMask(n));
 }
 
 template<typename T> void fill_construct_cb(const void *value, void *dst, int64_t n)
@@ -239,6 +280,10 @@ void fill_construct_indices_cb(const void *value, void *dst, const IndexMask &ma
   T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index_optimized<int64_t>([&](int64_t i) { new (dst_ + i) T(value_); });
+}
+template<typename T> void fill_construct_n_cb(const void *value, void *dst, const int64_t n)
+{
+  fill_construct_indices_cb<T>(value, dst, IndexMask(n));
 }
 
 template<typename T> void print_cb(const void *value, std::stringstream &ss)
@@ -281,8 +326,10 @@ CPPType::CPPType(TypeTag<T> /*type*/,
   this->is_trivially_destructible = std::is_trivially_destructible_v<T>;
   if constexpr (std::is_default_constructible_v<T>) {
     default_construct_ = default_construct_cb<T>;
+    default_construct_n_ = default_construct_n_cb<T>;
     default_construct_indices_ = default_construct_indices_cb<T>;
     value_initialize_ = value_initialize_cb<T>;
+    value_initialize_n_ = value_initialize_n_cb<T>;
     value_initialize_indices_ = value_initialize_indices_cb<T>;
     if constexpr (bool(Flags & CPPTypeFlags::IdentityDefaultValue)) {
       static const T default_value = T::identity();
@@ -295,21 +342,25 @@ CPPType::CPPType(TypeTag<T> /*type*/,
   }
   if constexpr (std::is_destructible_v<T>) {
     destruct_ = destruct_cb<T>;
+    destruct_n_ = destruct_n_cb<T>;
     destruct_indices_ = destruct_indices_cb<T>;
   }
   if constexpr (std::is_copy_assignable_v<T>) {
     copy_assign_ = copy_assign_cb<T>;
+    copy_assign_n_ = copy_assign_n_cb<T>;
     copy_assign_indices_ = copy_assign_indices_cb<T>;
     copy_assign_compressed_ = copy_assign_compressed_cb<T>;
   }
   if constexpr (std::is_copy_constructible_v<T>) {
     if constexpr (std::is_trivially_copy_constructible_v<T>) {
       copy_construct_ = copy_assign_;
+      copy_construct_n_ = copy_assign_n_;
       copy_construct_indices_ = copy_assign_indices_;
       copy_construct_compressed_ = copy_assign_compressed_;
     }
     else {
       copy_construct_ = copy_construct_cb<T>;
+      copy_construct_n_ = copy_construct_n_cb<T>;
       copy_construct_indices_ = copy_construct_indices_cb<T>;
       copy_construct_compressed_ = copy_construct_compressed_cb<T>;
     }
@@ -319,51 +370,62 @@ CPPType::CPPType(TypeTag<T> /*type*/,
       /* This casts away the const from the src pointer. This is fine for trivial types as moving
        * them does not change the original value. */
       move_assign_ = reinterpret_cast<decltype(move_assign_)>(copy_assign_);
+      move_assign_n_ = reinterpret_cast<decltype(move_assign_n_)>(copy_assign_n_);
       move_assign_indices_ = reinterpret_cast<decltype(move_assign_indices_)>(
           copy_assign_indices_);
     }
     else {
       move_assign_ = move_assign_cb<T>;
+      move_assign_n_ = move_assign_n_cb<T>;
       move_assign_indices_ = move_assign_indices_cb<T>;
     }
   }
   if constexpr (std::is_move_constructible_v<T>) {
     if constexpr (std::is_trivially_move_constructible_v<T>) {
       move_construct_ = move_assign_;
+      move_construct_n_ = move_assign_n_;
       move_construct_indices_ = move_assign_indices_;
     }
     else {
       move_construct_ = move_construct_cb<T>;
+      move_construct_n_ = move_construct_n_cb<T>;
       move_construct_indices_ = move_construct_indices_cb<T>;
     }
   }
   if constexpr (std::is_destructible_v<T>) {
     if constexpr (std::is_trivially_move_assignable_v<T> && std::is_trivially_destructible_v<T>) {
       relocate_assign_ = move_assign_;
+      relocate_assign_n_ = move_assign_n_;
       relocate_assign_indices_ = move_assign_indices_;
 
       relocate_construct_ = move_assign_;
+      relocate_construct_n_ = move_assign_n_;
       relocate_construct_indices_ = move_assign_indices_;
     }
     else {
       if constexpr (std::is_move_assignable_v<T>) {
         relocate_assign_ = relocate_assign_cb<T>;
+        relocate_assign_n_ = relocate_assign_n_cb<T>;
         relocate_assign_indices_ = relocate_assign_indices_cb<T>;
       }
       if constexpr (std::is_move_constructible_v<T>) {
         relocate_construct_ = relocate_construct_cb<T>;
+        relocate_construct_n_ = relocate_construct_n_cb<T>;
         relocate_construct_indices_ = relocate_construct_indices_cb<T>;
       }
     }
   }
   if constexpr (std::is_copy_assignable_v<T>) {
+    fill_assign_n_ = fill_assign_n_cb<T>;
     fill_assign_indices_ = fill_assign_indices_cb<T>;
   }
   if constexpr (std::is_copy_constructible_v<T>) {
     if constexpr (std::is_trivially_constructible_v<T>) {
+      fill_construct_n_ = fill_assign_n_;
       fill_construct_indices_ = fill_assign_indices_;
     }
     else {
+      fill_construct_n_ = fill_construct_n_cb<T>;
       fill_construct_indices_ = fill_construct_indices_cb<T>;
     }
   }
