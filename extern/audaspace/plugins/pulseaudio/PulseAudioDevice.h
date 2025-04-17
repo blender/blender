@@ -26,27 +26,18 @@
  * The PulseAudioDevice class.
  */
 
-#include "devices/SoftwareDevice.h"
-#include "util/RingBuffer.h"
-
-#include <condition_variable>
-#include <thread>
-
 #include <pulse/pulseaudio.h>
+
+#include "devices/MixingThreadDevice.h"
 
 AUD_NAMESPACE_BEGIN
 
 /**
  * This device plays back through PulseAudio, the simple direct media layer.
  */
-class AUD_PLUGIN_API PulseAudioDevice : public SoftwareDevice
+class AUD_PLUGIN_API PulseAudioDevice : public MixingThreadDevice
 {
 private:
-	/**
-	 * Whether there is currently playback.
-	 */
-	volatile bool m_playback;
-
 	bool m_corked;
 
 	pa_threaded_mainloop* m_mainloop;
@@ -54,42 +45,14 @@ private:
 	pa_stream* m_stream;
 	pa_context_state_t m_state;
 
-	/**
-	 * The mixing ring buffer.
-	 */
-	RingBuffer m_ring_buffer;
-
-	/**
-	 * Whether the device is valid.
-	 */
-	bool m_valid;
-
 	int m_buffersize;
 	uint32_t m_underflows;
-
-	/**
-	 * The mixing thread.
-	 */
-	std::thread m_mixingThread;
-
-	/**
-	 * Mutex for mixing.
-	 */
-	std::mutex m_mixingLock;
-
-	/**
-	 * Condition for mixing.
-	 */
-	std::condition_variable m_mixingCondition;
 
 	/// Synchronizer.
 	pa_usec_t m_synchronizerStartTime{0};
 	double m_synchronizerStartPosition{0.0};
 
-	/**
-	 * Updates the ring buffer.
-	 */
-	AUD_LOCAL void updateRingBuffer();
+	AUD_LOCAL void preMixingWork(bool playing) override;
 
 	/**
 	 * Reports the state of the PulseAudio server connection.
