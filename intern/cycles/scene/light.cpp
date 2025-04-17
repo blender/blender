@@ -136,6 +136,16 @@ void Light::tag_update(Scene *scene)
   if (is_modified()) {
     scene->light_manager->tag_update(scene, LightManager::LIGHT_MODIFIED);
   }
+  else {
+    for (const Node *node : get_used_shaders()) {
+      if (node->is_modified()) {
+        /* If the light shader is modified, the number of lights in the scene might change.
+         * Tag light manager for update. */
+        scene->light_manager->tag_update(scene, LightManager::LIGHT_MODIFIED);
+        break;
+      }
+    }
+  }
 }
 
 bool Light::has_contribution(const Scene *scene, const Object *object)
