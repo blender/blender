@@ -818,7 +818,7 @@ static int sculpt_brush_needs_normal(const SculptSession &ss, const Sculpt &sd, 
   using namespace blender::ed::sculpt_paint;
   const MTex *mask_tex = BKE_brush_mask_texture_get(&brush, OB_MODE_SCULPT);
   return ((bke::brush::supports_normal_weight(brush) && (ss.cache->normal_weight > 0.0f)) ||
-          auto_mask::needs_normal(ss, sd, &brush) ||
+          auto_mask::needs_normal(sd, &brush) ||
           ELEM(brush.sculpt_brush_type,
                SCULPT_BRUSH_TYPE_BLOB,
                SCULPT_BRUSH_TYPE_CREASE,
