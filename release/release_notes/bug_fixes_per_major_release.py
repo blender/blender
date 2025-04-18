@@ -274,7 +274,7 @@ class CommitInfo:
         "backport_list",
         "classification",
         "fixed_reports",
-        "fixed_reports",
+        "commit_message",
         "has_been_overwritten",
         "is_revert",
         "module",
@@ -295,8 +295,9 @@ class CommitInfo:
     def set_defaults(self) -> None:
         self.is_revert = 'revert' in self.commit_title.lower()
 
-        self.fixed_reports: list[str] = []
-        self.check_full_commit_message_for_fixed_reports()
+        self.commit_message = subprocess.run(
+            ['git', 'show', '-s', '--format=%B', self.hash], capture_output=True).stdout.decode('utf-8')
+        self.fixed_reports = self.check_full_commit_message_for_fixed_reports()
 
         # Setup some "useful" empty defaults.
         self.backport_list: list[str] = []
@@ -308,16 +309,14 @@ class CommitInfo:
         self.needs_update = True
         self.has_been_overwritten = False
 
-    def check_full_commit_message_for_fixed_reports(self) -> None:
-        command = ['git', 'show', '-s', '--format=%B', self.hash]
-        command_output = subprocess.run(command, capture_output=True).stdout.decode('utf-8')
-
+    def check_full_commit_message_for_fixed_reports(self) -> list[str]:
         # Find every instance of `SPACE#NUMBER`. These are the report that the commit claims to fix.
         # We are looking for the `SPACE` part because otherwise commits that fix issues in other repositories,
         # E.g. Fix `blender/blender-manual#NUMBER`, will be picked out for processing.
-        match = re.findall(r'\s#+(\d+)', command_output)
+        match = re.findall(r'\s#+(\d+)', self.commit_message)
         if match:
-            self.fixed_reports = match
+            return match
+        return []
 
     def get_backports(self, dict_of_backports: dict[str, list[str]]) -> None:
         # Figures out if the commit was back-ported, and to what version(s).
@@ -423,6 +422,7 @@ class CommitInfo:
     def prepare_for_cache(self) -> tuple[str, dict[str, Any]]:
         return self.hash, {
             'is_revert': self.is_revert,
+            'commit_message': self.commit_message,
             'fixed_reports': self.fixed_reports,
             'backport_list': self.backport_list,
             'module': self.module,
@@ -432,6 +432,7 @@ class CommitInfo:
 
     def read_from_cache(self, cache_data: dict[str, Any]) -> None:
         self.is_revert = cache_data['is_revert']
+        self.commit_message = cache_data['commit_message']
         self.fixed_reports = cache_data['fixed_reports']
         self.backport_list = cache_data['backport_list']
         self.module = cache_data['module']
@@ -705,6 +706,55 @@ def classify_commits(
 
     # Print so we're away from the progress bar.
     print("\n\n\n")
+
+
+def sort_reverts(list_of_commits: list[CommitInfo]) -> None:
+    number_of_revert_commits = 0
+    for commit in list_of_commits:
+        if commit.classification == REVERT:
+            number_of_revert_commits += 1
+
+    if number_of_revert_commits == 0:
+        # Early out since there are no revert commits to sort
+        return
+
+    while True:
+        sort = input(f"Would you like to sort ({number_of_revert_commits}) reverts? (Y/N) ")
+
+        if sort.lower() == "n":
+            return
+        if sort.lower() == "y":
+            break
+
+    for revert_commit in list_of_commits:
+        if revert_commit.classification == REVERT:
+            # Add some space between each commit message.
+            print("\n" * 10)
+
+            print({revert_commit.commit_message})
+            reverted_commit_list = input(
+                f"Which commit hash(s) did this commit fix? Provide a comma separated list for multiple commits. Leave blank if you do not know: ")
+
+            reverted_commit_hashs: list[str] = []
+            for hash in reverted_commit_list.split(","):
+                # Split the comma separated list and remove any extra white spaces from it.
+                hash = hash.strip()
+                if len(hash) != 0:
+                    reverted_commit_hashs.append(hash)
+
+            if len(reverted_commit_hashs) == 0:
+                # A commit hash wasn't provided.
+                continue
+
+            # This is just to shift the commit into a list we don't share in the release notes.
+            # An alternative classification is `IGNORED` but then the information won't be saved to the cache.
+            revert_commit.classification = FIXED_NEW_ISSUE
+
+            for hash in reverted_commit_hashs:
+                for commit in list_of_commits:
+                    if commit.hash.startswith(hash):
+                        # This is just to shift the commit out of the list of `FIXED_OLD_ISSUE`.
+                        commit.classification = FIXED_NEW_ISSUE
 
 
 # ---
@@ -1020,6 +1070,8 @@ def main() -> int:
         current_version=args.current_version,
         previous_version=args.previous_version,
     )
+
+    sort_reverts(list_of_commits)
 
     if args.cache:
         cached_commits_store(list_of_commits)
