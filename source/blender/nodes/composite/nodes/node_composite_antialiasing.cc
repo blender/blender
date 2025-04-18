@@ -18,36 +18,45 @@
 
 namespace blender::nodes::node_composite_antialiasing_cc {
 
-NODE_STORAGE_FUNCS(NodeAntiAliasingData)
-
 static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
+  b.add_input<decl::Float>("Threshold")
+      .default_value(0.2f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "Specifies the threshold or sensitivity to edges. Lowering this value you will be able "
+          "to detect more edges at the expense of performance")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Contrast Limit")
+      .default_value(2.0f)
+      .min(0.0f)
+      .description(
+          "If there is an neighbor edge that has a Contrast Limit times bigger contrast than "
+          "current edge, current edge will be discarded. This allows to eliminate spurious "
+          "crossing edges")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Corner Rounding")
+      .default_value(0.25f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Specifies how much sharp corners will be rounded")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_antialiasing(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* All members are deprecated and needn't be set, but the data is still allocated for forward
+   * compatibility. */
   NodeAntiAliasingData *data = MEM_callocN<NodeAntiAliasingData>(__func__);
-
-  data->threshold = CMP_DEFAULT_SMAA_THRESHOLD;
-  data->contrast_limit = CMP_DEFAULT_SMAA_CONTRAST_LIMIT;
-  data->corner_rounding = CMP_DEFAULT_SMAA_CORNER_ROUNDING;
-
   node->storage = data;
-}
-
-static void node_composit_buts_antialiasing(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *col;
-
-  col = uiLayoutColumn(layout, false);
-
-  uiItemR(col, ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "contrast_limit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "corner_rounding", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -58,33 +67,35 @@ class AntiAliasingOperation : public NodeOperation {
 
   void execute() override
   {
-    smaa(context(),
-         get_input("Image"),
-         get_result("Image"),
-         get_threshold(),
-         get_local_contrast_adaptation_factor(),
-         get_corner_rounding());
+    smaa(this->context(),
+         this->get_input("Image"),
+         this->get_result("Image"),
+         this->get_threshold(),
+         this->get_local_contrast_adaptation_factor(),
+         this->get_corner_rounding());
   }
 
-  /* Blender encodes the threshold in the [0, 1] range, while the SMAA algorithm expects it in
-   * the [0, 0.5] range. */
+  /* We encode the threshold in the [0, 1] range, while the SMAA algorithm expects it in the
+   * [0, 0.5] range. */
   float get_threshold()
   {
-    return node_storage(bnode()).threshold / 2.0f;
+    return math::clamp(this->get_input("Threshold").get_single_value_default(0.2f), 0.0f, 1.0f) /
+           2.0f;
   }
 
-  /* Blender encodes the local contrast adaptation factor in the [0, 1] range, while the SMAA
-   * algorithm expects it in the [0, 10] range. */
   float get_local_contrast_adaptation_factor()
   {
-    return node_storage(bnode()).contrast_limit * 10.0f;
+    return math::max(0.0f, this->get_input("Contrast Limit").get_single_value_default(2.0f));
   }
 
-  /* Blender encodes the corner rounding factor in the float [0, 1] range, while the SMAA algorithm
+  /* We encode the corner rounding factor in the float [0, 1] range, while the SMAA algorithm
    * expects it in the integer [0, 100] range. */
   int get_corner_rounding()
   {
-    return int(node_storage(bnode()).corner_rounding * 100.0f);
+    return int(math::clamp(this->get_input("Corner Rounding").get_single_value_default(0.25f),
+                           0.0f,
+                           1.0f) *
+               100.0f);
   }
 };
 
@@ -107,7 +118,6 @@ void register_node_type_cmp_antialiasing()
   ntype.enum_name_legacy = "ANTIALIASING";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_antialiasing_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_antialiasing;
   ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_size(ntype, 170, 140, 200);
   ntype.initfunc = file_ns::node_composit_init_antialiasing;

@@ -799,6 +799,16 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       NodeDenoise *storage = static_cast<NodeDenoise *>(node->storage);
       write_input_to_property_bool_char("HDR", storage->hdr);
     }
+
+    if (node->type_legacy == CMP_NODE_ANTIALIASING) {
+      NodeAntiAliasingData *storage = static_cast<NodeAntiAliasingData *>(node->storage);
+      write_input_to_property_float("Threshold", storage->threshold);
+      write_input_to_property_float("Corner Rounding", storage->corner_rounding);
+
+      /* Contrast limit was previously divided by 10. */
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Contrast Limit");
+      storage->contrast_limit = input->default_value_typed<bNodeSocketValueFloat>()->value / 10.0f;
+    }
   }
 }
 

@@ -3806,6 +3806,27 @@ static void rna_NodeSplit_factor_set(PointerRNA *ptr, const int value)
       &input_rna_pointer, "default_value", blender::math::clamp(value / 100.0f, 0.0f, 1.0f));
 }
 
+static float rna_NodeAntiAlias_contrast_limit_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Contrast Limit");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  /* Contrast limit was previously divided by 10. */
+  return blender::math::clamp(
+      RNA_float_get(&input_rna_pointer, "default_value") / 10.0f, 0.0f, 1.0f);
+}
+
+static void rna_NodeAntiAlias_contrast_limit_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Contrast Limit");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  /* Contrast limit was previously divided by 10. */
+  RNA_float_set(&input_rna_pointer, "default_value", value * 10.0f);
+}
+
 /* A getter that returns the value of the input socket with the given template identifier and type.
  * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
@@ -3914,6 +3935,11 @@ static const char node_input_neighbor_threshold[] = "Neighbor Threshold";
 
 /* Denoise node. */
 static const char node_input_hdr[] = "HDR";
+
+/* Anti-Alias node. */
+static const char node_input_threshold[] = "Threshold";
+static const char node_input_contrast_limit[] = "Contrast Limit";
+static const char node_input_corner_rounding[] = "Corner Rounding";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -10116,19 +10142,23 @@ static void def_cmp_antialiasing(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeAntiAliasingData", "storage");
-
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "threshold");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_threshold>",
+                               "rna_node_property_to_input_setter<float, node_input_threshold>",
+                               nullptr);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-  RNA_def_property_ui_text(
-      prop,
-      "Threshold",
-      "Threshold to detect edges (smaller threshold makes more sensitive detection)");
+  RNA_def_property_ui_text(prop,
+                           "Threshold",
+                           "Threshold to detect edges (smaller threshold makes more sensitive "
+                           "detection). (Deprecated: Use Threshold input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "contrast_limit", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "contrast_limit");
+  RNA_def_property_float_funcs(prop,
+                               "rna_NodeAntiAlias_contrast_limit_get",
+                               "rna_NodeAntiAlias_contrast_limit_set",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
   RNA_def_property_ui_text(
@@ -10136,14 +10166,22 @@ static void def_cmp_antialiasing(BlenderRNA * /*brna*/, StructRNA *srna)
       "Contrast Limit",
       "How much to eliminate spurious edges to avoid artifacts (the larger value makes less "
       "active; the value 2.0, for example, means discard a detected edge if there is a "
-      "neighboring edge that has 2.0 times bigger contrast than the current one)");
+      "neighboring edge that has 2.0 times bigger contrast than the current one). (Deprecated: "
+      "Use Contrast Limit input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "corner_rounding", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "corner_rounding");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_corner_rounding>",
+      "rna_node_property_to_input_setter<float, node_input_corner_rounding>",
+      nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Corner Rounding", "How much sharp corners will be rounded");
+  RNA_def_property_ui_text(
+      prop,
+      "Corner Rounding",
+      "How much sharp corners will be rounded. (Deprecated: Use Corner Rounding input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
