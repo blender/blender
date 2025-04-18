@@ -2578,7 +2578,7 @@ static float3 calc_sculpt_normal(const Depsgraph &depsgraph,
 static void update_sculpt_normal(const Depsgraph &depsgraph,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 const brushes::CursorSampleResult &node_mask_result)
+                                 const brushes::CursorSampleResult &cursor_sample_result)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   StrokeCache &cache = *ob.sculpt->cache;
@@ -2594,11 +2594,11 @@ static void update_sculpt_normal(const Depsgraph &depsgraph,
   if (cache.mirror_symmetry_pass == 0 && cache.radial_symmetry_pass == 0 &&
       (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(cache) || update_normal))
   {
-    if (node_mask_result.plane_normal) {
-      cache.sculpt_normal = *node_mask_result.plane_normal;
+    if (cursor_sample_result.plane_normal) {
+      cache.sculpt_normal = *cursor_sample_result.plane_normal;
     }
     else {
-      cache.sculpt_normal = calc_sculpt_normal(depsgraph, sd, ob, node_mask_result.node_mask);
+      cache.sculpt_normal = calc_sculpt_normal(depsgraph, sd, ob, cursor_sample_result.node_mask);
       if (brush.falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
         project_plane_v3_v3v3(cache.sculpt_normal, cache.sculpt_normal, cache.view_normal_symm);
         normalize_v3(cache.sculpt_normal);
@@ -3233,9 +3233,9 @@ static void do_brush_action(const Depsgraph &depsgraph,
     }
   }
 
-  const brushes::CursorSampleResult node_mask_result = calc_brush_node_mask(
+  const brushes::CursorSampleResult cursor_sample_result = calc_brush_node_mask(
       depsgraph, ob, brush, memory);
-  const IndexMask node_mask = node_mask_result.node_mask;
+  const IndexMask node_mask = cursor_sample_result.node_mask;
 
   /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
    * vertices and uses regular coords undo. */
@@ -3291,7 +3291,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
   }
 
   if (sculpt_brush_needs_normal(ss, brush)) {
-    update_sculpt_normal(depsgraph, sd, ob, node_mask_result);
+    update_sculpt_normal(depsgraph, sd, ob, cursor_sample_result);
   }
 
   update_brush_local_mat(sd, ob);
@@ -3388,13 +3388,13 @@ static void do_brush_action(const Depsgraph &depsgraph,
       brushes::do_clay_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_CLAY_STRIPS:
-      BLI_assert(node_mask_result.plane_normal && node_mask_result.plane_center);
+      BLI_assert(cursor_sample_result.plane_normal && cursor_sample_result.plane_center);
       brushes::do_clay_strips_brush(depsgraph,
                                     sd,
                                     ob,
                                     node_mask,
-                                    *node_mask_result.plane_normal,
-                                    *node_mask_result.plane_center);
+                                    *cursor_sample_result.plane_normal,
+                                    *cursor_sample_result.plane_center);
       break;
     case SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE:
       brushes::do_multiplane_scrape_brush(depsgraph, sd, ob, node_mask);
@@ -3473,13 +3473,13 @@ static void do_brush_action(const Depsgraph &depsgraph,
       color::do_smear_brush(depsgraph, sd, ob, node_mask);
       break;
     case SCULPT_BRUSH_TYPE_PLANE:
-      BLI_assert(node_mask_result.plane_normal && node_mask_result.plane_center);
+      BLI_assert(cursor_sample_result.plane_normal && cursor_sample_result.plane_center);
       brushes::do_plane_brush(depsgraph,
                               sd,
                               ob,
                               node_mask,
-                              *node_mask_result.plane_normal,
-                              *node_mask_result.plane_center);
+                              *cursor_sample_result.plane_normal,
+                              *cursor_sample_result.plane_center);
       break;
   }
 
