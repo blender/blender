@@ -112,8 +112,6 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
 bool mode_enabled(const Sculpt &sd, const Brush *br, eAutomasking_flag mode);
 bool is_enabled(const Sculpt &sd, const Object &object, const Brush *br);
 
-bool needs_normal(const Sculpt &sd, const Brush *brush);
-
 /**
  * Calculate all auto-masking influence on each vertex.
  */
