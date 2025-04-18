@@ -254,11 +254,12 @@ bool gizmo_window_project_3d(
 /** \name RNA Utils
  * \{ */
 
-/* Based on 'rna_GizmoProperties_find_operator'. */
 wmGizmo *gizmo_find_from_properties(const IDProperty *properties,
                                     const int spacetype,
                                     const int regionid)
 {
+  /* Based on #rna_GizmoProperties_find_operator. */
+
   for (bScreen *screen = static_cast<bScreen *>(G_MAIN->screens.first); screen;
        screen = static_cast<bScreen *>(screen->id.next))
   {

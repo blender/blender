@@ -53,9 +53,6 @@ int template_search_textbut_height()
   return TEMPLATE_SEARCH_TEXTBUT_HEIGHT;
 }
 
-/**
- * Add a block button for the search menu for templateID and templateSearch.
- */
 void template_add_button_search_menu(const bContext *C,
                                      uiLayout *layout,
                                      uiBlock *block,

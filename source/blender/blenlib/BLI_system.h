@@ -12,6 +12,9 @@
 
 int BLI_cpu_support_sse2(void);
 int BLI_cpu_support_sse42(void);
+/**
+ * Write a backtrace into a file for systems which support it.
+ */
 void BLI_system_backtrace_with_os_info(FILE *fp, const void *os_info);
 void BLI_system_backtrace(FILE *fp);
 

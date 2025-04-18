@@ -174,8 +174,6 @@ bool foreach_action_slot_use_with_references(
   return true;
 }
 
-/* This function has to copy the logic of foreach_action_slot_use_with_references(), as it needs to
- * know where exactly those pointers came from. */
 bool foreach_action_slot_use_with_rna(ID &animated_id,
                                       FunctionRef<bool(ID &animated_id,
                                                        bAction *action,
@@ -183,6 +181,9 @@ bool foreach_action_slot_use_with_rna(ID &animated_id,
                                                        PropertyRNA &action_slot_prop,
                                                        char *last_slot_identifier)> callback)
 {
+  /* This function has to copy the logic of #foreach_action_slot_use_with_references(),
+   * as it needs to know where exactly those pointers came from. */
+
   AnimData *adt = BKE_animdata_from_id(&animated_id);
 
   if (adt) {

@@ -903,9 +903,6 @@ void viewops_data_free(bContext *C, ViewOpsData *vod)
 /** \name Generic View Operator Utilities
  * \{ */
 
-/**
- * \param align_to_quat: When not nullptr, set the axis relative to this rotation.
- */
 void axis_set_view(bContext *C,
                    View3D *v3d,
                    ARegion *region,

@@ -334,7 +334,6 @@ void StateSet::execute(RecordingState &recording_state) const
   }
 }
 
-/* Set state of the GPU module manually. */
 void StateSet::set(DRWState state)
 {
   RecordingState recording_state;

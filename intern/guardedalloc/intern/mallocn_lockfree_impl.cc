@@ -515,7 +515,8 @@ void MEM_lockfree_printmemlist() {}
 
 void mem_lockfree_clearmemlist() {}
 
-/* unused */
+/* Unused. */
+
 void MEM_lockfree_callbackmemlist(void (*func)(void *))
 {
   (void)func; /* Ignored. */
@@ -560,7 +561,8 @@ uint MEM_lockfree_get_memory_blocks_in_use()
   return uint(memory_usage_block_num());
 }
 
-/* dummy */
+/* Dummy. */
+
 void MEM_lockfree_reset_peak_memory()
 {
   memory_usage_peak_reset();

@@ -711,16 +711,6 @@ static OCIO_GPUDisplayShader &getGPUDisplayShader(
   return display_shader;
 }
 
-/**
- * Setup GPU contexts for a transform defined by processor using GLSL.
- * All LUT allocating baking and shader compilation happens here.
- *
- * Once this function is called, callee could start drawing images
- * using regular 2D texture.
- *
- * When all drawing is finished, gpuDisplayShaderUnbind must be called to
- * restore GPU context to its previous state.
- */
 bool OCIOImpl::gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                     const char *input,
                                     const char *view,

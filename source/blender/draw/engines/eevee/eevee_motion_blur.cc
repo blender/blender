@@ -82,7 +82,6 @@ void MotionBlurModule::init()
   inst_.set_time(time_steps_[1]);
 }
 
-/* Runs after rendering a sample. */
 void MotionBlurModule::step()
 {
   if (!enabled_) {

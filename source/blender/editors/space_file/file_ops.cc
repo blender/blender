@@ -2890,14 +2890,6 @@ static bool can_create_dir_from_user_input(const char dir[FILE_MAX_LIBEXTRA])
   return true;
 }
 
-/**
- * This callback runs when the user has entered a new path in the file selectors directory field.
- *
- * Expand & normalize the path then:
- * - Change the path when it exists.
- * - Prompt the user to create the path if it doesn't
- *   (providing it passes basic sanity checks).
- */
 void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*arg_but*/)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);

@@ -145,6 +145,7 @@ extern const BMOpDefine *bmo_opdefines[];
 extern const int bmo_opdefines_total;
 
 /*------specific operator helper functions-------*/
+
 void BM_mesh_esubdivide(BMesh *bm,
                         char edge_hflag,
                         float smooth,

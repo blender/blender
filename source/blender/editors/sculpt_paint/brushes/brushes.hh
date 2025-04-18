@@ -39,6 +39,13 @@ void do_clay_brush(const Depsgraph &depsgraph,
                    const Sculpt &sd,
                    Object &ob,
                    const IndexMask &node_mask);
+/**
+ * Basic principles of the clay strips brush:
+ * * Calculate a brush plane from an initial node mask
+ * * Use this center position and normal to create a brush-local matrix
+ * * Use this matrix and the plane to calculate and use cube distances for
+ * * the affected area
+ */
 void do_clay_strips_brush(const Depsgraph &depsgraph,
                           const Sculpt &sd,
                           Object &ob,

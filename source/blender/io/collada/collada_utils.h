@@ -376,6 +376,11 @@ class BoneExtended {
   bool has_custom_roll;
 
  public:
+  /**
+   * BoneExtended is a helper class needed for the Bone chain finder
+   * See ArmatureImporter::fix_leaf_bones()
+   * and ArmatureImporter::connect_bone_chains()
+   */
   BoneExtended(EditBone *aBone);
 
   void set_name(const char *aName);

@@ -383,9 +383,6 @@ static void bli_load_symbols()
   }
 }
 
-/**
- * Write a backtrace into a file for systems which support it.
- */
 void BLI_system_backtrace_with_os_info(FILE *fp, const void *os_info)
 {
   const EXCEPTION_POINTERS *exception_info = static_cast<const EXCEPTION_POINTERS *>(os_info);

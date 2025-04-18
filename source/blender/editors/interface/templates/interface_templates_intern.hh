@@ -48,6 +48,9 @@ static inline void rna_update_cb(bContext *C, void *arg_cb, void * /*arg*/)
 /* `interface_template.cc` */
 int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop);
 int template_search_textbut_height();
+/**
+ * Add a block button for the search menu for templateID and templateSearch.
+ */
 void template_add_button_search_menu(const bContext *C,
                                      uiLayout *layout,
                                      uiBlock *block,

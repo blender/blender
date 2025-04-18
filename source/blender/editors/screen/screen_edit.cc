@@ -716,9 +716,6 @@ static bool region_poll(const bContext *C,
   return region->runtime->type->poll(&params);
 }
 
-/**
- * \return true if any region polling state changed, and an area re-init is needed.
- */
 bool area_regions_poll(bContext *C, const bScreen *screen, ScrArea *area)
 {
   bScreen *prev_screen = CTX_wm_screen(C);

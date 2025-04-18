@@ -251,15 +251,17 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_particle_writer(
   return nullptr;
 }
 
-/* Don't generate data writers for instances. */
 bool USDHierarchyIterator::include_data_writers(const HierarchyContext *context) const
 {
+  /* Don't generate data writers for instances. */
+
   return !(params_.use_instancing && context->is_instance());
 }
 
-/* Don't generate writers for children of instances. */
 bool USDHierarchyIterator::include_child_writers(const HierarchyContext *context) const
 {
+  /* Don't generate writers for children of instances. */
+
   return !(params_.use_instancing && context->is_instance());
 }
 
