@@ -40,7 +40,7 @@ def set_view3d_context_override(context_override):
                 context_override["region"] = region
 
 
-def prepare_sculpt_scene(context: any, mode: SculptMode, brush_type: BrushType):
+def prepare_sculpt_scene(context: any, mode: SculptMode):
     """
     Prepare a clean state of the scene suitable for benchmarking
 
@@ -96,18 +96,22 @@ def prepare_sculpt_scene(context: any, mode: SculptMode, brush_type: BrushType):
     # Move the plane to the sculpt mode.
     bpy.ops.object.mode_set(mode='SCULPT')
 
-    bpy.ops.brush.asset_activate(
-        asset_library_type='ESSENTIALS',
-        relative_asset_identifier='brushes/essentials_brushes-mesh_sculpt.blend/Brush/' +
-        brush_type.value)
-
-    # Reduce the brush strength to avoid deforming the mesh too much and influencing multiple strokes
-    context.tool_settings.sculpt.brush.strength = 0.1
-
     if mode == SculptMode.MULTIRES:
         bpy.ops.object.subdivision_set(level=3)
     elif mode == SculptMode.DYNTOPO:
         bpy.ops.sculpt.dynamic_topology_toggle()
+
+
+def prepare_brush(context: any, brush_type: BrushType):
+    """Activates and sets common brush settings"""
+    import bpy
+    bpy.ops.brush.asset_activate(
+        asset_library_type='ESSENTIALS',
+        relative_asset_identifier='brushes/essentials_brushes-mesh_sculpt.blend/Brush/' +
+                                  brush_type.value)
+
+    # Reduce the brush strength to avoid deforming the mesh too much and influencing multiple strokes
+    context.tool_settings.sculpt.brush.strength = 0.1
 
 
 def generate_stroke(context):
@@ -150,7 +154,7 @@ def generate_stroke(context):
     return stroke
 
 
-def _run(args: dict):
+def _run_brush_test(args: dict):
     import bpy
     import time
     context = bpy.context
@@ -161,7 +165,8 @@ def _run(args: dict):
     # Create an undo stack explicitly. This isn't created by default in background mode.
     bpy.ops.ed.undo_push()
 
-    prepare_sculpt_scene(context, args['mode'], args['brush_type'])
+    prepare_sculpt_scene(context, args['mode'])
+    prepare_brush(context, args['brush_type'])
 
     context_override = context.copy()
     set_view3d_context_override(context_override)
@@ -174,6 +179,40 @@ def _run(args: dict):
         with context.temp_override(**context_override):
             start = time.time()
             bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True)
+            measurements.append(time.time() - start)
+
+        if len(measurements) >= min_measurements and (time.time() - total_time_start) > timeout:
+            break
+        if len(measurements) >= max_measurements:
+            break
+
+    return sum(measurements) / len(measurements)
+
+
+def _run_bvh_test(args: dict):
+    import bpy
+    import time
+    context = bpy.context
+
+    timeout = 5
+    total_time_start = time.time()
+
+    # Create an undo stack explicitly. This isn't created by default in background mode.
+    bpy.ops.ed.undo_push()
+
+    prepare_sculpt_scene(context, args['mode'])
+
+    context_override = context.copy()
+    set_view3d_context_override(context_override)
+
+    min_measurements = 5
+    max_measurements = 100
+
+    measurements = []
+    while True:
+        with context.temp_override(**context_override):
+            start = time.time()
+            bpy.ops.sculpt.optimize()
             measurements.append(time.time() - start)
 
         if len(measurements) >= min_measurements and (time.time() - total_time_start) > timeout:
@@ -202,7 +241,28 @@ class SculptBrushTest(api.Test):
             'brush_type': self.brush_type,
         }
 
-        result, _ = env.run_in_blender(_run, args, [self.filepath])
+        result, _ = env.run_in_blender(_run_brush_test, args, [self.filepath])
+
+        return {'time': result}
+
+
+class SculptRebuildBVHTest(api.Test):
+    def __init__(self, filepath: pathlib.Path, mode: SculptMode):
+        self.filepath = filepath
+        self.mode = mode
+
+    def name(self):
+        return "{}_rebuild_bvh".format(self.mode.name.lower())
+
+    def category(self):
+        return "sculpt"
+
+    def run(self, env, _device_id):
+        args = {
+            'mode': self.mode,
+        }
+
+        result, _ = env.run_in_blender(_run_bvh_test, args, [self.filepath])
 
         return {'time': result}
 
@@ -211,4 +271,6 @@ def generate(env):
     filepaths = env.find_blend_files('sculpt/*')
     # For now, we only expect there to ever be a single file to use as the basis for generating other brush tests
     assert len(filepaths) == 1
-    return [SculptBrushTest(filepaths[0], mode, brush_type) for mode in SculptMode for brush_type in BrushType]
+    brush_tests = [SculptBrushTest(filepaths[0], mode, brush_type) for mode in SculptMode for brush_type in BrushType]
+    bvh_tests = [SculptRebuildBVHTest(filepaths[0], mode) for mode in SculptMode]
+    return brush_tests + bvh_tests
