@@ -698,6 +698,11 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       property = input->default_value_typed<bNodeSocketValueInt>()->value;
     };
 
+    auto write_input_to_property_short = [&](const char *identifier, short &property) {
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+      property = input->default_value_typed<bNodeSocketValueInt>()->value;
+    };
+
     auto write_input_to_property_int16 = [&](const char *identifier, int16_t &property) {
       const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
       property = int16_t(input->default_value_typed<bNodeSocketValueInt>()->value);
@@ -808,6 +813,15 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       /* Contrast limit was previously divided by 10. */
       const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Contrast Limit");
       storage->contrast_limit = input->default_value_typed<bNodeSocketValueFloat>()->value / 10.0f;
+    }
+
+    if (node->type_legacy == CMP_NODE_VECBLUR) {
+      NodeBlurData *storage = static_cast<NodeBlurData *>(node->storage);
+      write_input_to_property_short("Samples", storage->samples);
+
+      /* Shutter was previously divided by 2. */
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Shutter");
+      storage->fac = input->default_value_typed<bNodeSocketValueFloat>()->value / 2.0f;
     }
   }
 }
