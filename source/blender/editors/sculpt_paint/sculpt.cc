@@ -2578,7 +2578,7 @@ static float3 calc_sculpt_normal(const Depsgraph &depsgraph,
 static void update_sculpt_normal(const Depsgraph &depsgraph,
                                  const Sculpt &sd,
                                  Object &ob,
-                                 const brushes::NodeMaskResult &node_mask_result)
+                                 const brushes::CursorSampleResult &node_mask_result)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   StrokeCache &cache = *ob.sculpt->cache;
