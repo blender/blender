@@ -1178,8 +1178,7 @@ static void write_boolean_benchmark_time(
     }
     outfile << solver << "," << op << ",\"" << mesh1_name << "\",\"" << mesh2_name << "\","
             << num_faces_1 << "," << num_faces_2 << "," << num_tris_1 << "," << num_tris_2 << ","
-            << time_ms << ","
-            << threads << std::endl;
+            << time_ms << "," << threads << std::endl;
     outfile.close();
   }
   else {

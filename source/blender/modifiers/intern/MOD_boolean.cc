@@ -400,8 +400,8 @@ static Array<short> get_material_remap_transfer(Object &object,
 }
 
 static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
-                                const ModifierEvalContext *ctx,
-                                Mesh *mesh)
+                                    const ModifierEvalContext *ctx,
+                                    Mesh *mesh)
 {
   Vector<const Mesh *> meshes;
   Vector<float4x4> obmats;
@@ -416,7 +416,9 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
     return mesh;
   }
 
-  blender::geometry::boolean::Solver solver = bmd->solver == eBooleanModifierSolver_Mesh_Arr ? blender::geometry::boolean::Solver::MeshArr : blender::geometry::boolean::Solver::Manifold;
+  blender::geometry::boolean::Solver solver = bmd->solver == eBooleanModifierSolver_Mesh_Arr ?
+                                                  blender::geometry::boolean::Solver::MeshArr :
+                                                  blender::geometry::boolean::Solver::Manifold;
   meshes.append(mesh);
   obmats.append(ctx->object->object_to_world());
   material_remaps.append({});
@@ -481,20 +483,21 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
   op_params.no_self_intersections = !use_self;
   op_params.watertight = !hole_tolerant;
   op_params.no_nested_components = false;
-  blender::geometry::boolean::BooleanError error = blender::geometry::boolean::BooleanError::NoError;
-  Mesh *result = blender::geometry::boolean::mesh_boolean(
-      meshes,
-      obmats,
-      ctx->object->object_to_world(),
-      material_remaps,
-      op_params,
-      solver,
-      nullptr,
-      &error);
+  blender::geometry::boolean::BooleanError error =
+      blender::geometry::boolean::BooleanError::NoError;
+  Mesh *result = blender::geometry::boolean::mesh_boolean(meshes,
+                                                          obmats,
+                                                          ctx->object->object_to_world(),
+                                                          material_remaps,
+                                                          op_params,
+                                                          solver,
+                                                          nullptr,
+                                                          &error);
 
   if (error != blender::geometry::boolean::BooleanError::NoError) {
     if (error == blender::geometry::boolean::BooleanError::NonManifold) {
-      BKE_modifier_set_error(ctx->object, (ModifierData *)bmd, "Cannot execute, non-manifold inputs");
+      BKE_modifier_set_error(
+          ctx->object, (ModifierData *)bmd, "Cannot execute, non-manifold inputs");
     }
     else if (error == blender::geometry::boolean::BooleanError::UnknownError) {
       BKE_modifier_set_error(ctx->object, (ModifierData *)(bmd), "Cannot execute, unknown error");
