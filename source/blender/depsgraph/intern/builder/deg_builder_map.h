@@ -35,7 +35,7 @@ class BuilderMap {
   bool checkIsBuilt(ID *id, int tag = TAG_COMPLETE) const;
 
   /* Tag given ID as handled/built. */
-  void tagBuild(ID *id, int tag = TAG_COMPLETE);
+  void tagBuilt(ID *id, int tag = TAG_COMPLETE);
 
   /* Combination of previous two functions, returns truth if ID was already handled, or tags is
    * handled otherwise and return false. */
@@ -45,9 +45,9 @@ class BuilderMap {
   {
     return checkIsBuilt(&datablock->id, tag);
   }
-  template<typename T> void tagBuild(T *datablock, int tag = TAG_COMPLETE)
+  template<typename T> void tagBuilt(T *datablock, int tag = TAG_COMPLETE)
   {
-    tagBuild(&datablock->id, tag);
+    tagBuilt(&datablock->id, tag);
   }
   template<typename T> bool checkIsBuiltAndTag(T *datablock, int tag = TAG_COMPLETE)
   {

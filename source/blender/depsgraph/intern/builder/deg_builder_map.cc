@@ -17,7 +17,7 @@ bool BuilderMap::checkIsBuilt(ID *id, int tag) const
   return (getIDTag(id) & tag) == tag;
 }
 
-void BuilderMap::tagBuild(ID *id, int tag)
+void BuilderMap::tagBuilt(ID *id, int tag)
 {
   id_tags_.lookup_or_add(id, 0) |= tag;
 }
