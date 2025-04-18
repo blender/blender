@@ -563,6 +563,11 @@ void VKDevice::debug_print()
   os << "Discard pool\n";
   debug_print(os, orphaned_data);
   os << "\n";
+
+  for (const std::reference_wrapper<VKContext> &context : contexts_) {
+    os << " VKContext \n";
+    debug_print(os, context.get().discard_pool);
+  }
 }
 
 /** \} */

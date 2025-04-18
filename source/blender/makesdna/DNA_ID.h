@@ -15,6 +15,8 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
+#  include <type_traits>
+
 namespace blender::bke {
 struct PreviewImageRuntime;
 }
@@ -1251,4 +1253,30 @@ typedef enum eID_Index {
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+namespace blender::dna {
+namespace detail {
+template<typename, typename = void> struct has_ID_member : std::false_type {};
+template<typename T> struct has_ID_member<T, std::void_t<decltype(&T::id)>> : std::true_type {};
+template<typename T> constexpr bool has_ID_as_first_member()
+{
+  if constexpr (std::is_standard_layout_v<T> && has_ID_member<T>::value) {
+    return offsetof(T, id) == 0 && std::is_same_v<decltype(T::id), ID>;
+  }
+  else {
+    return false;
+  }
+}
+}  // namespace detail
+
+/**
+ * Type trait to check if a type is a ID data-block. It just actually checks whether the type has
+ * #ID is first data member, which should be good enough in practice.
+ */
+template<typename T>
+constexpr bool is_ID_v = detail::has_ID_as_first_member<T>() || std::is_same_v<T, ID>;
+
+}  // namespace blender::dna
 #endif

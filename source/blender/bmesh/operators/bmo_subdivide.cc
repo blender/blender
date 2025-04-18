@@ -1310,7 +1310,6 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
       bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, ELE_INNER | ELE_SPLIT | SUBD_SPLIT);
 }
 
-/* editmesh-emulating function */
 void BM_mesh_esubdivide(BMesh *bm,
                         const char edge_hflag,
                         const float smooth,

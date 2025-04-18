@@ -5,7 +5,7 @@
 /** \file
  * \ingroup eevee
  *
- * Shading passes contain drawcalls specific to shading pipelines.
+ * Shading passes contain draw-calls specific to shading pipelines.
  * They are shared across views.
  * This file is only for shading passes. Other passes are declared in their own module.
  */
@@ -246,7 +246,7 @@ struct DeferredLayerBase {
     int count = count_bits_i(closure_bits_ &
                              (CLOSURE_REFRACTION | CLOSURE_REFLECTION | CLOSURE_CLEARCOAT |
                               CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
-    /* Count the additional infos layer needed by some closures. */
+    /* Count the additional information layer needed by some closures. */
     count += count_bits_i(closure_bits_ &
                           (CLOSURE_SSS | CLOSURE_TRANSLUCENT | CLOSURE_REFRACTION));
     return count;

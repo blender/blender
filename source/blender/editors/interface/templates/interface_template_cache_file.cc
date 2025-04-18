@@ -61,8 +61,7 @@ void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerR
   const bool engine_supports_procedural = RE_engine_supports_alembic_procedural(engine_type,
                                                                                 scene);
   CacheFile *cache_file = static_cast<CacheFile *>(fileptr->data);
-  CacheFile *cache_file_eval = reinterpret_cast<CacheFile *>(
-      DEG_get_evaluated_id(CTX_data_depsgraph_pointer(C), &cache_file->id));
+  CacheFile *cache_file_eval = DEG_get_evaluated(CTX_data_depsgraph_pointer(C), cache_file);
   bool is_alembic = cache_file_eval->type == CACHEFILE_TYPE_ALEMBIC;
 
   if (!is_alembic) {

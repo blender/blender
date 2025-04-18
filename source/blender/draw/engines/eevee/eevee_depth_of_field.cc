@@ -483,8 +483,6 @@ void DepthOfField::resolve_pass_sync()
 /** \name Post-FX Rendering.
  * \{ */
 
-/* Similar to Film::update_sample_table() but with constant filter radius and constant sample
- * count. */
 void DepthOfField::update_sample_table()
 {
   float2 subpixel_offset = inst_.film.pixel_jitter_get();

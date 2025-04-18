@@ -1309,7 +1309,7 @@ void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *
   for (int i = 0; i < *eval_totcol; i++) {
     Material *material_eval = (*eval_mat)[i];
     if (material_eval != nullptr) {
-      Material *material_orig = (Material *)DEG_get_original_id(&material_eval->id);
+      Material *material_orig = DEG_get_original(material_eval);
       (*orig_mat)[i] = material_orig;
       id_us_plus(&material_orig->id);
     }

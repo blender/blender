@@ -115,13 +115,6 @@ static int calc_effective_bits(const Sculpt &sd, const Brush *brush)
   return sd.automasking_flags;
 }
 
-bool needs_normal(const SculptSession & /*ss*/, const Sculpt &sd, const Brush *brush)
-{
-  int flags = calc_effective_bits(sd, brush);
-
-  return flags & (BRUSH_AUTOMASKING_BRUSH_NORMAL | BRUSH_AUTOMASKING_VIEW_NORMAL);
-}
-
 static float normal_calc(const float3 &compare_normal,
                          const float3 &normal,
                          float limit_lower,

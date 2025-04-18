@@ -61,7 +61,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
   float scalex, scaley;
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
+  Mask *mask_eval = DEG_get_evaluated(depsgraph, mask_orig);
 
   ED_mask_get_size(area, &width, &height);
   ED_mask_pixelspace_factor(area, region, &scalex, &scaley);
@@ -223,7 +223,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C,
   int width, height;
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
+  Mask *mask_eval = DEG_get_evaluated(depsgraph, mask_orig);
 
   ED_mask_get_size(area, &width, &height);
   ED_mask_pixelspace_factor(area, region, &scalex, &scaley);
@@ -380,7 +380,7 @@ bool ED_mask_feather_find_nearest(const bContext *C,
   int width, height;
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
+  Mask *mask_eval = DEG_get_evaluated(depsgraph, mask_orig);
 
   ED_mask_get_size(area, &width, &height);
   ED_mask_pixelspace_factor(area, region, &scalex, &scaley);
@@ -625,7 +625,7 @@ bool ED_mask_selected_minmax(const bContext *C,
   /* Use evaluated mask to take animation into account.
    * The animation of splines is not "flushed" back to original, so need to explicitly
    * use evaluated data-block here. */
-  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask->id);
+  Mask *mask_eval = DEG_get_evaluated(depsgraph, mask);
 
   INIT_MINMAX2(min, max);
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask_eval->masklayers) {

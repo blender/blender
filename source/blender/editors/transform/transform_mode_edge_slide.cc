@@ -253,7 +253,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
   BMBVHTree *bmbvh = nullptr;
   Array<float3> bmbvh_coord_storage;
   if (use_occlude_geometry) {
-    Scene *scene_eval = (Scene *)DEG_get_evaluated_id(t->depsgraph, &t->scene->id);
+    Scene *scene_eval = DEG_get_evaluated(t->depsgraph, t->scene);
     Object *obedit_eval = DEG_get_evaluated_object(t->depsgraph, tc->obedit);
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
 

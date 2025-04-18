@@ -438,11 +438,6 @@ void *BLI_mempool_calloc(BLI_mempool *pool)
   return retval;
 }
 
-/**
- * Free an element from the mempool.
- *
- * \note doesn't protect against double frees, take care!
- */
 void BLI_mempool_free(BLI_mempool *pool, void *addr)
 {
   BLI_freenode *newhead = static_cast<BLI_freenode *>(addr);

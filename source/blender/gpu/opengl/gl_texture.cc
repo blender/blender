@@ -620,10 +620,11 @@ GLuint GLTexture::get_sampler(const GPUSamplerState &sampler_state)
  * Dummy texture to see if the implementation supports the requested size.
  * \{ */
 
-/* NOTE: This only checks if this mipmap is valid / supported.
- * TODO(fclem): make the check cover the whole mipmap chain. */
 bool GLTexture::proxy_check(int mip)
 {
+  /* NOTE: This only checks if this mipmap is valid / supported.
+   * TODO(fclem): make the check cover the whole mipmap chain. */
+
   /* Manual validation first, since some implementation have issues with proxy creation. */
   int max_size = GPU_max_texture_size();
   int max_3d_size = GPU_max_texture_3d_size();

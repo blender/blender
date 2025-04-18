@@ -1096,7 +1096,7 @@ static void create_edit_points_position_vbo(
 void DRW_curves_batch_cache_create_requested(Object *ob)
 {
   Curves &curves_id = DRW_object_get_data_for_drawing<Curves>(*ob);
-  Object *ob_orig = DEG_get_original_object(ob);
+  Object *ob_orig = DEG_get_original(ob);
   if (ob_orig == nullptr) {
     return;
   }

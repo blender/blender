@@ -277,7 +277,7 @@ static void view3d_stereo3d_setup(
     float shiftx;
 
     data = (Camera *)v3d->camera->data;
-    data_eval = (Camera *)DEG_get_evaluated_id(depsgraph, &data->id);
+    data_eval = DEG_get_evaluated(depsgraph, data);
 
     shiftx = data_eval->shiftx;
 

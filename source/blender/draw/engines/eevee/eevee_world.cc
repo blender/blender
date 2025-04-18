@@ -136,7 +136,7 @@ void World::sync()
   }
 
   /* We have to manually test here because we have overrides. */
-  ::World *orig_world = (::World *)DEG_get_original_id(&bl_world->id);
+  ::World *orig_world = DEG_get_original(bl_world);
   if (assign_if_different(prev_original_world, orig_world)) {
     has_update = true;
   }

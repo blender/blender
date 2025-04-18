@@ -52,7 +52,7 @@ class VKDescriptorPools {
   VkDescriptorSet allocate(const VkDescriptorSetLayout descriptor_set_layout);
 
   /**
-   * Discard all existing pools and reinitializes this instance.
+   * Discard all existing pools and re-initializes this instance.
    *
    * This is a fix to ensure that resources will not be rewritten. Eventually we should discard the
    * resource pools for reuse.

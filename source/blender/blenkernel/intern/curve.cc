@@ -5501,7 +5501,7 @@ void BKE_curve_eval_geometry(Depsgraph *depsgraph, Curve *curve)
   DEG_debug_print_eval(depsgraph, __func__, curve->id.name, curve);
   BKE_curve_texspace_calc(curve);
   if (DEG_is_active(depsgraph)) {
-    Curve *curve_orig = (Curve *)DEG_get_original_id(&curve->id);
+    Curve *curve_orig = DEG_get_original(curve);
     if (curve->texspace_flag & CU_TEXSPACE_FLAG_AUTO_EVALUATED) {
       curve_orig->texspace_flag |= CU_TEXSPACE_FLAG_AUTO_EVALUATED;
       copy_v3_v3(curve_orig->texspace_location, curve->texspace_location);

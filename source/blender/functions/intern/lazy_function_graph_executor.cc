@@ -658,7 +658,7 @@ class Executor {
   {
     const OutputSocket &socket = *self_.graph_inputs_[graph_input_index];
     const CPPType &type = socket.type();
-    void *buffer = local_data.allocator->allocate(type.size, type.alignment);
+    void *buffer = local_data.allocator->allocate(type);
     type.move_construct(input_data, buffer);
     this->forward_value_to_linked_inputs(socket, {type, buffer}, current_task, local_data);
   }
@@ -910,7 +910,7 @@ class Executor {
             self_.logger_->log_socket_value(input_socket, {type, default_value}, local_context);
           }
           BLI_assert(input_state.value == nullptr);
-          input_state.value = allocator.allocate(type.size, type.alignment);
+          input_state.value = allocator.allocate(type);
           type.copy_construct(default_value, input_state.value);
           input_state.was_ready_for_execution = true;
         }
@@ -1172,7 +1172,7 @@ class Executor {
               value_to_forward = {};
             }
             else {
-              void *buffer = local_data.allocator->allocate(type.size, type.alignment);
+              void *buffer = local_data.allocator->allocate(type);
               type.copy_construct(value_to_forward.get(), buffer);
               this->forward_value_to_input(locked_node, input_state, {type, buffer}, current_task);
             }
@@ -1367,7 +1367,7 @@ class GraphExecutorLFParams final : public Params {
     if (output_state.value == nullptr) {
       LinearAllocator<> &allocator = *this->get_local_data().allocator;
       const CPPType &type = node_.output(index).type();
-      output_state.value = allocator.allocate(type.size, type.alignment);
+      output_state.value = allocator.allocate(type);
     }
     return output_state.value;
   }

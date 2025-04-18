@@ -153,9 +153,10 @@ static void strip_unload_font(int fontid)
 /** \name Text Effect
  * \{ */
 
-/* `data->text[0] == 0` is ignored on purpose in order to make it possible to edit  */
 bool effects_can_render_text(const Strip *strip)
 {
+  /* `data->text[0] == 0` is ignored on purpose in order to make it possible to edit. */
+
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   if (data->text_size < 1.0f ||
       ((data->color[3] == 0.0f) &&

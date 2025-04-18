@@ -155,8 +155,8 @@ class Particles : Overlay {
      * only causes bad level calls and breaks design from the past.
      */
     Object *object_eval = ob_ref.object;
-    Object *object_orig = DEG_get_original_object(object_eval);
-    Scene *scene_orig = (Scene *)DEG_get_original_id(&state.scene->id);
+    Object *object_orig = DEG_get_original(object_eval);
+    Scene *scene_orig = const_cast<Scene *>(DEG_get_original(state.scene));
     PTCacheEdit *edit = PE_create_current(state.depsgraph, scene_orig, object_orig);
     if (edit == nullptr) {
       /* Happens when trying to edit particles in EMITTER mode without having them cached. */

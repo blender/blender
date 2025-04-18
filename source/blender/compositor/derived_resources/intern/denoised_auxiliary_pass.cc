@@ -28,6 +28,7 @@ namespace blender::compositor {
 /* ------------------------------------------------------------------------------------------------
  * Denoised Auxiliary Pass Key.
  */
+
 DenoisedAuxiliaryPassKey::DenoisedAuxiliaryPassKey(const DenoisedAuxiliaryPassType type,
                                                    const oidn::Quality quality)
     : type(type), quality(quality)

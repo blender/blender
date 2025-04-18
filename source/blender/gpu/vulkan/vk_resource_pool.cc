@@ -149,6 +149,7 @@ void VKDiscardPool::destroy_discarded_resources(VKDevice &device, bool force)
 
   // TODO: Introduce reuse_old as the allocations can all be reused by resetting the pool.
   descriptor_pools_.remove_old(current_timeline, [&](VkDescriptorPool vk_descriptor_pool) {
+    vkResetDescriptorPool(device.vk_handle(), vk_descriptor_pool, 0);
     vkDestroyDescriptorPool(device.vk_handle(), vk_descriptor_pool, nullptr);
   });
 }

@@ -429,7 +429,8 @@ void TVertex::Replace(ViewEdge *iOld, ViewEdge *iNew)
   }
 }
 
-/** iterators access */
+/* Iterators access. */
+
 ViewVertex::edge_iterator TVertex::edges_begin()
 {
   // return edge_iterator(_FrontEdgeA, _FrontEdgeB, _BackEdgeA, _BackEdgeB, _FrontEdgeA);
@@ -584,7 +585,8 @@ void NonTVertex::AddIncomingViewEdge(ViewEdge *iVEdge)
   }
 }
 
-/** iterators access */
+/* Iterators access. */
+
 ViewVertex::edge_iterator NonTVertex::edges_begin()
 {
   return edge_iterator(_ViewEdges.begin(), _ViewEdges.end(), _ViewEdges.begin());

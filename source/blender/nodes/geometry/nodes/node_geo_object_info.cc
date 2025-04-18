@@ -103,7 +103,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   /* Compare by `orig_id` because objects may be copied into separate depsgraphs. */
-  if (DEG_get_original_id(&object->id) == DEG_get_original_id(&self_object->id)) {
+  if (DEG_get_original(object) == DEG_get_original(self_object)) {
     params.error_message_add(
         NodeWarningType::Error,
         params.user_data()->call_data->operator_data ?

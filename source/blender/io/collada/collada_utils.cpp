@@ -534,11 +534,6 @@ BoneExtensionManager::~BoneExtensionManager()
   }
 }
 
-/**
- * BoneExtended is a helper class needed for the Bone chain finder
- * See ArmatureImporter::fix_leaf_bones()
- * and ArmatureImporter::connect_bone_chains()
- */
 BoneExtended::BoneExtended(EditBone *aBone)
 {
   this->set_name(aBone->name);

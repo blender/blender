@@ -504,7 +504,7 @@ static PointerRNA rna_Depsgraph_updates_get(CollectionPropertyIterator *iter)
 
 static ID *rna_Depsgraph_id_eval_get(Depsgraph *depsgraph, ID *id_orig)
 {
-  return DEG_get_evaluated_id(depsgraph, id_orig);
+  return DEG_get_evaluated(depsgraph, id_orig);
 }
 
 static bool rna_Depsgraph_id_type_updated(Depsgraph *depsgraph, int id_type)

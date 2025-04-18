@@ -434,7 +434,7 @@ static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
 
   Mask *mask_orig = CTX_data_edit_mask(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
+  Mask *mask_eval = DEG_get_evaluated(depsgraph, mask_orig);
 
   rcti rect;
   rctf rectf;
@@ -531,7 +531,7 @@ static bool do_lasso_select_mask(bContext *C, const Span<int2> mcoords, const eS
 
   Mask *mask_orig = CTX_data_edit_mask(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
+  Mask *mask_eval = DEG_get_evaluated(depsgraph, mask_orig);
 
   rcti rect;
   bool changed = false;
@@ -665,7 +665,7 @@ static wmOperatorStatus circle_select_exec(bContext *C, wmOperator *op)
 
   Mask *mask_orig = CTX_data_edit_mask(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
+  Mask *mask_eval = DEG_get_evaluated(depsgraph, mask_orig);
 
   float zoomx, zoomy, offset[2], ellipse[2];
   int width, height;

@@ -26,47 +26,22 @@
  * The PipeWireDevice class.
  */
 
-#include <condition_variable>
-#include <thread>
 #include <pipewire/pipewire.h>
-#include <spa/utils/ringbuffer.h>
 
-#include "devices/SoftwareDevice.h"
+#include "devices/MixingThreadDevice.h"
 
 AUD_NAMESPACE_BEGIN
 
 /**
  * This device plays back through PipeWire, the simple direct media layer.
  */
-class AUD_PLUGIN_API PipeWireDevice : public SoftwareDevice
+class AUD_PLUGIN_API PipeWireDevice : public MixingThreadDevice
 {
 private:
-	/**
-	 * Whether we should start filling our ringbuffer with audio.
-	 */
-	bool m_fill_ringbuffer;
-
 	pw_stream* m_stream;
 	pw_thread_loop* m_thread;
 	std::unique_ptr<pw_stream_events> m_events;
-
-	/**
-	 * The mixing thread.
-	 */
-	std::thread m_mixingThread;
-	bool m_run_mixing_thread;
-
-	/**
-	 * Mutex for mixing.
-	 */
-	std::mutex m_mixingLock;
-
-	/**
-	 * The mixing ringbuffer and mixing data
-	 */
-	spa_ringbuffer m_ringbuffer;
-	Buffer m_ringbuffer_data;
-	std::condition_variable m_mixingCondition;
+	bool m_active{false};
 
 	/// Synchronizer.
 	bool m_getSynchronizerStartTime{false};
@@ -74,11 +49,6 @@ private:
 	double m_synchronizerStartPosition{0.0};
 
 	AUD_LOCAL static void handleStateChanged(void* device_ptr, enum pw_stream_state old, enum pw_stream_state state, const char* error);
-
-	/**
-	 * Updates the ring buffers.
-	 */
-	AUD_LOCAL void updateRingBuffers();
 
 	/**
 	 * Mixes the next bytes into the buffer.
@@ -91,6 +61,7 @@ private:
 	PipeWireDevice& operator=(const PipeWireDevice&) = delete;
 
 protected:
+	void preMixingWork(bool playing);
 	virtual void playing(bool playing);
 
 public:

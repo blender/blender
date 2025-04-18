@@ -659,7 +659,7 @@ void ED_mask_draw_region(
     const bContext *C)
 {
   View2D *v2d = &region->v2d;
-  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_->id);
+  Mask *mask_eval = DEG_get_evaluated(depsgraph, mask_);
 
   /* aspect always scales vertically in movie and image spaces */
   const float width = width_i, height = float(height_i) * (aspy / aspx);

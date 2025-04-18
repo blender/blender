@@ -67,7 +67,7 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 static DecimateModifierData *getOriginalModifierData(const DecimateModifierData *dmd,
                                                      const ModifierEvalContext *ctx)
 {
-  Object *ob_orig = DEG_get_original_object(ctx->object);
+  Object *ob_orig = DEG_get_original(ctx->object);
   return (DecimateModifierData *)BKE_modifiers_findby_name(ob_orig, dmd->modifier.name);
 }
 

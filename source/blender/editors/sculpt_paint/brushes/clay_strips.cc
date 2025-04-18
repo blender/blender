@@ -249,13 +249,6 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 
 }  // namespace clay_strips_cc
 
-/**
- * Basic principles of the clay strips brush:
- * * Calculate a brush plane from an initial node mask
- * * Use this center position and normal to create a brush-local matrix
- * * Use this matrix and the plane to calculate and use cube distances for
- * * the affected area
- */
 void do_clay_strips_brush(const Depsgraph &depsgraph,
                           const Sculpt &sd,
                           Object &object,
@@ -345,10 +338,10 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
 }
 
 namespace clay_strips {
-NodeMaskResult calc_node_mask(const Depsgraph &depsgraph,
-                              Object &object,
-                              const Brush &brush,
-                              IndexMaskMemory &memory)
+CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
+                                  Object &object,
+                                  const Brush &brush,
+                                  IndexMaskMemory &memory)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const SculptSession &ss = *object.sculpt;

@@ -32,38 +32,39 @@
 
 namespace blender::nodes::node_composite_vec_blur_cc {
 
-NODE_STORAGE_FUNCS(NodeBlurData)
-
 static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>("Z").default_value(0.0f).min(0.0f).max(1.0f).compositor_domain_priority(
-      2);
+  b.add_input<decl::Float>("Z").default_value(0.0f).min(0.0f).compositor_domain_priority(2);
   b.add_input<decl::Vector>("Speed")
       .default_value({0.0f, 0.0f, 0.0f})
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_VELOCITY)
       .compositor_domain_priority(1);
+  b.add_input<decl::Int>("Samples")
+      .default_value(32)
+      .min(1)
+      .max(256)
+      .description("The number of samples used to approximate the motion blur")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Shutter")
+      .default_value(0.5f)
+      .min(0.0f)
+      .description("Time between shutter opening and closing in frames")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
 }
 
-/* custom1: iterations, custom2: max_speed (0 = no_limit). */
 static void node_composit_init_vecblur(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* All members are deprecated and needn't be set, but the data is still allocated for forward
+   * compatibility. */
   NodeBlurData *nbd = MEM_callocN<NodeBlurData>(__func__);
   node->storage = nbd;
-  nbd->samples = 32;
-  nbd->fac = 0.25f;
-}
-
-static void node_composit_buts_vecblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "samples", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "factor", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Blur"), ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -580,7 +581,7 @@ class VectorBlurOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_motion_blur_max_velocity_dilate");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "shutter_speed", node_storage(bnode()).fac);
+    GPU_shader_uniform_1f(shader, "shutter_speed", this->get_shutter());
 
     max_tile_velocity.bind_as_texture(shader, "input_tx");
 
@@ -608,8 +609,8 @@ class VectorBlurOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_motion_blur");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1i(shader, "samples_count", node_storage(bnode()).samples);
-    GPU_shader_uniform_1f(shader, "shutter_speed", node_storage(bnode()).fac);
+    GPU_shader_uniform_1i(shader, "samples_count", this->get_samples_count());
+    GPU_shader_uniform_1f(shader, "shutter_speed", this->get_shutter());
 
     Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
@@ -643,8 +644,8 @@ class VectorBlurOperation : public NodeOperation {
 
   void execute_cpu()
   {
-    const float shutter_speed = node_storage(bnode()).fac;
-    const int samples_count = node_storage(bnode()).samples;
+    const float shutter_speed = this->get_shutter();
+    const int samples_count = this->get_samples_count();
 
     const Result &input_image = get_input("Image");
     const Result &input_depth = get_input("Z");
@@ -667,6 +668,18 @@ class VectorBlurOperation : public NodeOperation {
                     shutter_speed);
     max_velocity.release();
   }
+
+  int get_samples_count()
+  {
+    return math::clamp(this->get_input("Samples").get_single_value_default(32), 1, 256);
+  }
+
+  float get_shutter()
+  {
+    /* Divide by two since the motion blur algorithm expects shutter per motion step and has two
+     * motion steps, while the user inputs the entire shutter across all steps. */
+    return math::max(0.0f, this->get_input("Shutter").get_single_value_default(0.5f)) / 2.0f;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
@@ -688,7 +701,6 @@ void register_node_type_cmp_vecblur()
   ntype.enum_name_legacy = "VECBLUR";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_vec_blur_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_vecblur;
   ntype.initfunc = file_ns::node_composit_init_vecblur;
   blender::bke::node_type_storage(
       ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);

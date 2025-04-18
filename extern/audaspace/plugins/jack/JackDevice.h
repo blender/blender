@@ -30,12 +30,10 @@
 #include <condition_variable>
 #include <string>
 #include <thread>
-#include <vector>
 
 #include <jack/jack.h>
-#include <jack/ringbuffer.h>
 
-#include "devices/SoftwareDevice.h"
+#include "devices/MixingThreadDevice.h"
 #include "util/Buffer.h"
 
 AUD_NAMESPACE_BEGIN
@@ -43,7 +41,7 @@ AUD_NAMESPACE_BEGIN
 /**
  * This device plays back through JACK.
  */
-class AUD_PLUGIN_API JackDevice : public SoftwareDevice
+class AUD_PLUGIN_API JackDevice : public MixingThreadDevice
 {
 private:
 	/**
@@ -57,21 +55,9 @@ private:
 	jack_client_t* m_client;
 
 	/**
-	 * The output buffer.
-	 */
-	Buffer m_buffer;
-
-	/**
 	 * The deinterleaving buffer.
 	 */
 	Buffer m_deinterleavebuf;
-
-	jack_ringbuffer_t** m_ringbuffers;
-
-	/**
-	 * Whether the device is valid.
-	 */
-	bool m_valid;
 
 	/**
 	 * Invalidates the jack device.
@@ -136,25 +122,7 @@ private:
 	 */
 	void* m_syncFuncData;
 
-	/**
-	 * The mixing thread.
-	 */
-	std::thread m_mixingThread;
-
-	/**
-	 * Mutex for mixing.
-	 */
-	std::mutex m_mixingLock;
-
-	/**
-	 * Condition for mixing.
-	 */
-	std::condition_variable m_mixingCondition;
-
-	/**
-	 * Updates the ring buffers.
-	 */
-	AUD_LOCAL void updateRingBuffers();
+	AUD_LOCAL void preMixingWork(bool playing) override;
 
 	// delete copy constructor and operator=
 	JackDevice(const JackDevice&) = delete;

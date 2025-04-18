@@ -2163,42 +2163,45 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
   if (found) {
     Base *basact = bases[base_index_active];
     ED_view3d_viewcontext_init_object(&vc, basact->object);
+    Object *obedit = vc.obedit;
+    BMEditMesh *em = vc.em;
+    BMesh *bm = em->bm;
 
     if (efa) {
       switch (params->sel_op) {
         case SEL_OP_ADD: {
-          BM_mesh_active_face_set(vc.em->bm, efa);
+          BM_mesh_active_face_set(bm, efa);
 
           /* Work-around: deselect first, so we can guarantee it will
            * be active even if it was already selected. */
-          BM_select_history_remove(vc.em->bm, efa);
-          BM_face_select_set(vc.em->bm, efa, false);
-          BM_select_history_store(vc.em->bm, efa);
-          BM_face_select_set(vc.em->bm, efa, true);
+          BM_select_history_remove(bm, efa);
+          BM_face_select_set(bm, efa, false);
+          BM_select_history_store(bm, efa);
+          BM_face_select_set(bm, efa, true);
           break;
         }
         case SEL_OP_SUB: {
-          BM_select_history_remove(vc.em->bm, efa);
-          BM_face_select_set(vc.em->bm, efa, false);
+          BM_select_history_remove(bm, efa);
+          BM_face_select_set(bm, efa, false);
           break;
         }
         case SEL_OP_XOR: {
-          BM_mesh_active_face_set(vc.em->bm, efa);
+          BM_mesh_active_face_set(bm, efa);
           if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-            BM_select_history_store(vc.em->bm, efa);
-            BM_face_select_set(vc.em->bm, efa, true);
+            BM_select_history_store(bm, efa);
+            BM_face_select_set(bm, efa, true);
           }
           else {
-            BM_select_history_remove(vc.em->bm, efa);
-            BM_face_select_set(vc.em->bm, efa, false);
+            BM_select_history_remove(bm, efa);
+            BM_face_select_set(bm, efa, false);
           }
           break;
         }
         case SEL_OP_SET: {
-          BM_mesh_active_face_set(vc.em->bm, efa);
+          BM_mesh_active_face_set(bm, efa);
           if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-            BM_select_history_store(vc.em->bm, efa);
-            BM_face_select_set(vc.em->bm, efa, true);
+            BM_select_history_store(bm, efa);
+            BM_face_select_set(bm, efa, true);
           }
           break;
         }
@@ -2214,32 +2217,32 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
         case SEL_OP_ADD: {
           /* Work-around: deselect first, so we can guarantee it will
            * be active even if it was already selected. */
-          BM_select_history_remove(vc.em->bm, eed);
-          BM_edge_select_set(vc.em->bm, eed, false);
-          BM_select_history_store(vc.em->bm, eed);
-          BM_edge_select_set(vc.em->bm, eed, true);
+          BM_select_history_remove(bm, eed);
+          BM_edge_select_set(bm, eed, false);
+          BM_select_history_store(bm, eed);
+          BM_edge_select_set(bm, eed, true);
           break;
         }
         case SEL_OP_SUB: {
-          BM_select_history_remove(vc.em->bm, eed);
-          BM_edge_select_set(vc.em->bm, eed, false);
+          BM_select_history_remove(bm, eed);
+          BM_edge_select_set(bm, eed, false);
           break;
         }
         case SEL_OP_XOR: {
           if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-            BM_select_history_store(vc.em->bm, eed);
-            BM_edge_select_set(vc.em->bm, eed, true);
+            BM_select_history_store(bm, eed);
+            BM_edge_select_set(bm, eed, true);
           }
           else {
-            BM_select_history_remove(vc.em->bm, eed);
-            BM_edge_select_set(vc.em->bm, eed, false);
+            BM_select_history_remove(bm, eed);
+            BM_edge_select_set(bm, eed, false);
           }
           break;
         }
         case SEL_OP_SET: {
           if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-            BM_select_history_store(vc.em->bm, eed);
-            BM_edge_select_set(vc.em->bm, eed, true);
+            BM_select_history_store(bm, eed);
+            BM_edge_select_set(bm, eed, true);
           }
           break;
         }
@@ -2254,32 +2257,32 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
         case SEL_OP_ADD: {
           /* Work-around: deselect first, so we can guarantee it will
            * be active even if it was already selected. */
-          BM_select_history_remove(vc.em->bm, eve);
-          BM_vert_select_set(vc.em->bm, eve, false);
-          BM_select_history_store(vc.em->bm, eve);
-          BM_vert_select_set(vc.em->bm, eve, true);
+          BM_select_history_remove(bm, eve);
+          BM_vert_select_set(bm, eve, false);
+          BM_select_history_store(bm, eve);
+          BM_vert_select_set(bm, eve, true);
           break;
         }
         case SEL_OP_SUB: {
-          BM_select_history_remove(vc.em->bm, eve);
-          BM_vert_select_set(vc.em->bm, eve, false);
+          BM_select_history_remove(bm, eve);
+          BM_vert_select_set(bm, eve, false);
           break;
         }
         case SEL_OP_XOR: {
           if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-            BM_select_history_store(vc.em->bm, eve);
-            BM_vert_select_set(vc.em->bm, eve, true);
+            BM_select_history_store(bm, eve);
+            BM_vert_select_set(bm, eve, true);
           }
           else {
-            BM_select_history_remove(vc.em->bm, eve);
-            BM_vert_select_set(vc.em->bm, eve, false);
+            BM_select_history_remove(bm, eve);
+            BM_vert_select_set(bm, eve, false);
           }
           break;
         }
         case SEL_OP_SET: {
           if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-            BM_select_history_store(vc.em->bm, eve);
-            BM_vert_select_set(vc.em->bm, eve, true);
+            BM_select_history_store(bm, eve);
+            BM_vert_select_set(bm, eve, true);
           }
           break;
         }
@@ -2290,13 +2293,13 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
       }
     }
 
-    EDBM_selectmode_flush(vc.em);
+    EDBM_selectmode_flush(em);
 
     if (efa) {
       /* Change active material on object. */
-      if (efa->mat_nr != vc.obedit->actcol - 1) {
-        vc.obedit->actcol = efa->mat_nr + 1;
-        vc.em->mat_nr = efa->mat_nr;
+      if (efa->mat_nr != obedit->actcol - 1) {
+        obedit->actcol = efa->mat_nr + 1;
+        em->mat_nr = efa->mat_nr;
         WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, nullptr);
       }
     }
@@ -2308,8 +2311,8 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
       blender::ed::object::base_activate(C, basact);
     }
 
-    DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);
-    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
+    DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
+    WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
     changed = true;
   }

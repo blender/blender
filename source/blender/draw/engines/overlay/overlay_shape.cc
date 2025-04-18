@@ -77,8 +77,8 @@ static const std::array<uint3, 12> bone_box_solid_tris{
 };
 
 /**
- * Store indices of generated verts from bone_box_solid_tris to define adjacency infos.
- * See bone_octahedral_solid_tris for more infos.
+ * Store indices of generated verts from `bone_box_solid_tris` to define adjacency information.
+ * See `bone_octahedral_solid_tris` for more information.
  */
 static const std::array<uint4, 12> bone_box_wire_lines_adjacency = {
     uint4{4, 2, 0, 11},
@@ -168,7 +168,8 @@ static const std::array<uint3, 8> bone_octahedral_solid_tris = {
 };
 
 /**
- * Store indices of generated verts from bone_octahedral_solid_tris to define adjacency infos.
+ * Store indices of generated verts from `bone_octahedral_solid_tris` to define adjacency
+ * information.
  * Example: triangle {2, 1, 0} is adjacent to {3, 2, 0}, {1, 4, 0} and {5, 1, 2}.
  * {2, 1, 0} becomes {0, 1, 2}
  * {3, 2, 0} becomes {3, 4, 5}

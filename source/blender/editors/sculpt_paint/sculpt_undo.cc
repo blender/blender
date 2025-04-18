@@ -1566,7 +1566,7 @@ void push_node(const Depsgraph &depsgraph,
     return;
   }
 
-  ss.needs_flush_to_id = 1;
+  ss.needs_flush_to_id = true;
 
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
@@ -1589,7 +1589,7 @@ void push_nodes(const Depsgraph &depsgraph,
 {
   SculptSession &ss = *object.sculpt;
 
-  ss.needs_flush_to_id = 1;
+  ss.needs_flush_to_id = true;
 
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   if (ss.bm || ELEM(type, Type::DyntopoBegin, Type::DyntopoEnd)) {
@@ -2019,7 +2019,7 @@ static void step_decode(
       }
 
       if (ob->sculpt) {
-        ob->sculpt->needs_flush_to_id = 1;
+        ob->sculpt->needs_flush_to_id = true;
       }
       bmain->is_memfile_undo_flush_needed = true;
     }

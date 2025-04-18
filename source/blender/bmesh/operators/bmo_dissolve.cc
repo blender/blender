@@ -192,19 +192,28 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
     BMFace *f_new = BM_faces_join(bm, faces.data(), faces_len, true, &f_double);
 
-    /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
-    BLI_assert_msg(f_double == nullptr,
-                   "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+    if (LIKELY(f_new)) {
 
-    if (f_new != nullptr) {
+      /* All the joined faces are gone and the fresh f_new represents their union. */
       totface_target -= faces_len - 1;
 
-      /* If making the new face failed (e.g. overlapping test)
-       * un-mark the original faces for deletion. */
+      if (UNLIKELY(f_double)) {
+        /* `BM_faces_join()` succeeded, but there is a double. Keep the pre-existing face
+         * and retain its custom-data. Remove the newly made merge result.  */
+        BM_face_kill(bm, f_new);
+        totface_target -= 1;
+        f_new = f_double;
+      }
+
+      /* Un-mark the joined face to ensure it is not garbage collected later. */
       BMO_face_flag_disable(bm, f_new, FACE_ORIG);
+
+      /* Mark the joined face so it can be added to the selection later. */
       BMO_face_flag_enable(bm, f_new, FACE_NEW);
     }
     else {
+      /* `BM_faces_join()` failed. */
+
       /* NOTE: prior to 3.0 this raised an error: "Could not create merged face".
        * Change behavior since it's not useful to fail entirely when a single face-group
        * can't be merged into one face. Continue with other face groups instead.
@@ -304,18 +313,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
   BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
     BMLoop *l_a, *l_b;
     if (BM_edge_loop_pair(e, &l_a, &l_b)) {
-      BMFace *f_new;
-
-      BMFace *f_double;
-
-      /* join faces */
-      f_new = BM_faces_join_pair(bm, l_a, l_b, false, &f_double);
-
-      /* This algorithm actually does check for double faces. */
-      if (f_new && BM_face_find_double(f_new)) {
-        BM_face_kill(bm, f_new);
-        f_new = nullptr;
-      }
+      BM_faces_join_pair(bm, l_a, l_b, false, nullptr);
     }
   }
 
@@ -417,22 +415,16 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
   BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
     BMIter itersub;
 
+    /* Merge across every edge that touches `v`. This does a `BM_faces_join_pair()` for each edge.
+     * There may be a possible performance improvement available here, for high valence verts.
+     * Collecting a list of 20 faces and performing a single `BM_faces_join` would almost certainly
+     * more performant than doing 19 separate `BM_faces_join_pair()` of 2 faces each in sequence.
+     * Low valence verts would need benchmarking, to check that such a change isn't harmful. */
     if (!BMO_vert_flag_test(bm, v, VERT_MARK_PAIR)) {
       BM_ITER_ELEM (e, &itersub, v, BM_EDGES_OF_VERT) {
         BMLoop *l_a, *l_b;
         if (BM_edge_loop_pair(e, &l_a, &l_b)) {
-          BMFace *f_new;
-
-          BMFace *f_double;
-
-          /* join faces */
-          f_new = BM_faces_join_pair(bm, l_a, l_b, false, &f_double);
-
-          /* This algorithm actually does check for double faces. */
-          if (f_new && BM_face_find_double(f_new)) {
-            BM_face_kill(bm, f_new);
-            f_new = nullptr;
-          }
+          BM_faces_join_pair(bm, l_a, l_b, false, nullptr);
         }
       }
     }

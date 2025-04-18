@@ -36,22 +36,25 @@ static void cmp_node_despeckle_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
+  b.add_input<decl::Float>("Color Threshold")
+      .default_value(0.5f)
+      .min(0.0f)
+      .description(
+          "Pixels are despeckled only if their color difference from the average color of their "
+          "neighbors exceeds this threshold")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Neighbor Threshold")
+      .default_value(0.5f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "Pixels are despeckled only if the number of pixels in their neighborhood that are "
+          "different exceed this ratio threshold relative to the total number of neighbors. "
+          "Neighbors are considered different if they exceed the color threshold input")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
-}
-
-static void node_composit_init_despeckle(bNodeTree * /*ntree*/, bNode *node)
-{
-  node->custom3 = 0.5f;
-  node->custom4 = 0.5f;
-}
-
-static void node_composit_buts_despeckle(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *col;
-
-  col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "threshold_neighbor", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -181,12 +184,13 @@ class DespeckleOperation : public NodeOperation {
 
   float get_color_threshold()
   {
-    return bnode().custom3;
+    return math::max(0.0f, this->get_input("Color Threshold").get_single_value_default(0.5f));
   }
 
   float get_neighbor_threshold()
   {
-    return bnode().custom4;
+    return math::clamp(
+        this->get_input("Neighbor Threshold").get_single_value_default(0.5f), 0.0f, 1.0f);
   }
 };
 
@@ -211,9 +215,7 @@ void register_node_type_cmp_despeckle()
   ntype.enum_name_legacy = "DESPECKLE";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_despeckle_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_despeckle;
   ntype.flag |= NODE_PREVIEW;
-  ntype.initfunc = file_ns::node_composit_init_despeckle;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

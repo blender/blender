@@ -83,6 +83,12 @@ class ResourceScope : NonCopyable, NonMovable {
   template<typename T, typename... Args> T &construct(Args &&...args);
 
   /**
+   * Allocate a buffer for the given type. The caller is responsible for initializing it before the
+   * #ResourceScope is destructed. The value in the returned buffer is destructed automatically.
+   */
+  void *allocate_owned(const CPPType &type);
+
+  /**
    * Returns a reference to a linear allocator that is owned by the #ResourceScope. Memory
    * allocated through this allocator will be freed when the collector is destructed.
    */
@@ -150,6 +156,15 @@ template<typename T, typename... Args> inline T &ResourceScope::construct(Args &
   T &value_ref = *value_ptr;
   this->add(std::move(value_ptr));
   return value_ref;
+}
+
+inline void *ResourceScope::allocate_owned(const CPPType &type)
+{
+  void *buffer = allocator_.allocate(type);
+  if (!type.is_trivially_destructible) {
+    this->add_destruct_call([&type, buffer]() { type.destruct(buffer); });
+  }
+  return buffer;
 }
 
 inline LinearAllocator<> &ResourceScope::allocator()

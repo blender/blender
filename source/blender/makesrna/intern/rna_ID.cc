@@ -348,14 +348,14 @@ static bool rna_ID_is_evaluated_get(PointerRNA *ptr)
 {
   ID *id = (ID *)ptr->data;
 
-  return (DEG_get_original_id(id) != id);
+  return DEG_get_original(id) != id;
 }
 
 static PointerRNA rna_ID_original_get(PointerRNA *ptr)
 {
   ID *id = (ID *)ptr->data;
 
-  return RNA_id_pointer_create(DEG_get_original_id(id));
+  return RNA_id_pointer_create(DEG_get_original(id));
 }
 
 short RNA_type_to_ID_code(const StructRNA *type)
@@ -704,7 +704,7 @@ StructRNA *rna_PropertyGroup_refine(PointerRNA *ptr)
 
 static ID *rna_ID_evaluated_get(ID *id, Depsgraph *depsgraph)
 {
-  return DEG_get_evaluated_id(depsgraph, id);
+  return DEG_get_evaluated(depsgraph, id);
 }
 
 static ID *rna_ID_copy(ID *id, Main *bmain)

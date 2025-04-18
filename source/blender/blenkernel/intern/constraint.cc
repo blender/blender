@@ -6097,7 +6097,7 @@ static bConstraint *constraint_find_original(Object *ob,
                                              bConstraint *con,
                                              Object **r_orig_ob)
 {
-  Object *orig_ob = (Object *)DEG_get_original_id(&ob->id);
+  Object *orig_ob = DEG_get_original(ob);
 
   if (ELEM(orig_ob, nullptr, ob)) {
     return nullptr;

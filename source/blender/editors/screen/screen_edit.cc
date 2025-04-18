@@ -716,9 +716,6 @@ static bool region_poll(const bContext *C,
   return region->runtime->type->poll(&params);
 }
 
-/**
- * \return true if any region polling state changed, and an area re-init is needed.
- */
 bool area_regions_poll(bContext *C, const bScreen *screen, ScrArea *area)
 {
   bScreen *prev_screen = CTX_wm_screen(C);
@@ -979,7 +976,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     Scene *scene = WM_window_get_active_scene(prevwin);
-    Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
+    Scene *scene_eval = DEG_get_evaluated(depsgraph, scene);
     BKE_sound_stop_scene(scene_eval);
   }
   screen->animtimer = nullptr;

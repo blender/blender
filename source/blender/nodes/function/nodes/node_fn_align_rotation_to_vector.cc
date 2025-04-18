@@ -18,11 +18,14 @@ namespace blender::nodes::node_fn_align_rotation_to_vector_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+  b.add_default_layout();
   b.is_function_node();
   b.add_input<decl::Rotation>("Rotation").hide_value();
+  b.add_output<decl::Rotation>("Rotation").align_with_previous();
   b.add_input<decl::Float>("Factor").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_input<decl::Vector>("Vector").default_value({0.0, 0.0, 1.0}).subtype(PROP_XYZ);
-  b.add_output<decl::Rotation>("Rotation");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

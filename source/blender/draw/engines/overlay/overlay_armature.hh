@@ -498,7 +498,7 @@ class Armatures : Overlay {
     /* Draw the inner part of the bones, otherwise render just outlines. */
     bool is_filled = false;
 
-    const ThemeWireColor *bcolor = nullptr; /* pchan color */
+    const ThemeWireColor *bcolor = nullptr; /* Pose-channel color. */
 
     DrawContext() = default;
   };

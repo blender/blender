@@ -339,6 +339,16 @@ class OCIOImpl : public IOCIOImpl {
   void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id) override;
 
   bool supportGPUShader() override;
+  /**
+   * Setup GPU contexts for a transform defined by processor using GLSL.
+   * All LUT allocating baking and shader compilation happens here.
+   *
+   * Once this function is called, callee could start drawing images
+   * using regular 2D texture.
+   *
+   * When all drawing is finished, gpuDisplayShaderUnbind must be called to
+   * restore GPU context to its previous state.
+   */
   bool gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                             const char *input,
                             const char *view,

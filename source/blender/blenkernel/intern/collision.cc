@@ -1297,7 +1297,7 @@ Object **BKE_collision_objects_create(Depsgraph *depsgraph,
 
   LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
     /* Get evaluated object. */
-    Object *ob = (Object *)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
+    Object *ob = DEG_get_evaluated(depsgraph, relation->ob);
 
     if (modifier_type == eModifierType_Collision && !(ob->pd && ob->pd->deflect)) {
       continue;
@@ -1337,7 +1337,7 @@ ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collecti
 
   LISTBASE_FOREACH (CollisionRelation *, relation, relations) {
     /* Get evaluated object. */
-    Object *ob = (Object *)DEG_get_evaluated_id(depsgraph, &relation->ob->id);
+    Object *ob = DEG_get_evaluated(depsgraph, relation->ob);
 
     if (ob == self) {
       continue;

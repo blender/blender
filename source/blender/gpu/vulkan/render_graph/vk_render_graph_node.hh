@@ -48,29 +48,29 @@ using NodeHandle = uint64_t;
  *
  */
 struct VKRenderGraphStorage {
-  Vector<VKBeginRenderingNode::Data> begin_rendering;
-  Vector<VKClearAttachmentsNode::Data> clear_attachments;
-  Vector<VKBlitImageNode::Data> blit_image;
-  Vector<VKCopyBufferToImageNode::Data> copy_buffer_to_image;
-  Vector<VKCopyImageNode::Data> copy_image;
-  Vector<VKCopyImageToBufferNode::Data> copy_image_to_buffer;
-  Vector<VKDrawNode::Data> draw;
-  Vector<VKDrawIndexedNode::Data> draw_indexed;
-  Vector<VKDrawIndexedIndirectNode::Data> draw_indexed_indirect;
-  Vector<VKDrawIndirectNode::Data> draw_indirect;
+  Vector<VKBeginRenderingNode::Data, 1024> begin_rendering;
+  Vector<VKClearAttachmentsNode::Data, 1024> clear_attachments;
+  Vector<VKBlitImageNode::Data, 1024> blit_image;
+  Vector<VKCopyBufferToImageNode::Data, 1024> copy_buffer_to_image;
+  Vector<VKCopyImageNode::Data, 1024> copy_image;
+  Vector<VKCopyImageToBufferNode::Data, 1024> copy_image_to_buffer;
+  Vector<VKDrawNode::Data, 1024> draw;
+  Vector<VKDrawIndexedNode::Data, 1024> draw_indexed;
+  Vector<VKDrawIndexedIndirectNode::Data, 1024> draw_indexed_indirect;
+  Vector<VKDrawIndirectNode::Data, 1024> draw_indirect;
 
   void reset()
   {
-    begin_rendering.clear();
-    clear_attachments.clear();
-    blit_image.clear();
-    copy_buffer_to_image.clear();
-    copy_image.clear();
-    copy_image_to_buffer.clear();
-    draw.clear();
-    draw_indexed.clear();
-    draw_indexed_indirect.clear();
-    draw_indirect.clear();
+    begin_rendering.clear_and_shrink();
+    clear_attachments.clear_and_shrink();
+    blit_image.clear_and_shrink();
+    copy_buffer_to_image.clear_and_shrink();
+    copy_image.clear_and_shrink();
+    copy_image_to_buffer.clear_and_shrink();
+    draw.clear_and_shrink();
+    draw_indexed.clear_and_shrink();
+    draw_indexed_indirect.clear_and_shrink();
+    draw_indirect.clear_and_shrink();
   }
 };
 

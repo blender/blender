@@ -22,11 +22,13 @@ enum class Mode : int8_t {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Geometry>("Grease Pencil").propagate_all();
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+  b.add_default_layout();
   b.add_input<decl::Geometry>("Grease Pencil")
       .supported_type(GeometryComponent::Type::GreasePencil)
       .align_with_previous();
-
+  b.add_output<decl::Geometry>("Grease Pencil").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Color>("Color")
       .default_value(ColorGeometry4f(1.0f, 1.0f, 1.0f, 1.0f))

@@ -110,6 +110,7 @@ class MotionBlurModule {
 
   void init();
 
+  /* Runs after rendering a sample. */
   void step();
 
   void sync();

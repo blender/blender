@@ -644,9 +644,9 @@ class Strip : public ::ActionStrip {
    *
    * For example, to get a keyframe strip's data:
    *
-   * ```
+   * \code{.cc}
    * StripKeyframeData &strip_data = strip.data<StripKeyframeData>(action);
-   * ```
+   * \endcode
    */
   template<typename T> const T &data(const Action &owning_action) const;
   template<typename T> T &data(Action &owning_action);
@@ -1126,14 +1126,14 @@ class Channelbag : public ::ActionChannelbag {
    * Create many F-Curves at once.
    *
    * Conceptually the same as adding many curves in a loop:
-   * ```
+   * \code{.cc}
    * Vector<FCurve*> res(fcurve_descriptors.size(), nullptr);
    * for (int64_t i = 0; i < fcurve_descriptors.size(); i++) {
    *  const FCurveDescriptor &desc = fcurve_descriptors[i];
    *  res[i] = this->fcurve_create_unique(bmain, desc);
    * }
    * return res;
-   * ```
+   * \endcode
    *
    * However that is quadratic complexity due to each curve uniqueness check being
    * a linear scan, plus invariants rebuilding after each curve.

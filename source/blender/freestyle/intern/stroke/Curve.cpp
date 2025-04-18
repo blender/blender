@@ -567,7 +567,8 @@ Curve::~Curve()
   }
 }
 
-/** iterators access */
+/* Iterators access. */
+
 Curve::point_iterator Curve::points_begin(float step)
 {
   vertex_container::iterator second = _Vertices.begin();

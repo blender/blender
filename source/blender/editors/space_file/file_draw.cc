@@ -421,23 +421,13 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   uiBut *but;
 
   const int x = tile_draw_rect->xmin + padx;
-  const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y -
-                round_fl_to_int((sfile->layout->tile_h + height) / 2.0f);
+  const int y = tile_draw_rect->ymin +
+                round_fl_to_int((BLI_rcti_size_y(tile_draw_rect) - height) / 2.0f);
 
   if (icon < BIFICONID_LAST_STATIC) {
     /* Small built-in icon. Draw centered in given width. */
-    but = uiDefIconBut(block,
-                       UI_BTYPE_LABEL,
-                       0,
-                       icon,
-                       x,
-                       y + 1,
-                       width,
-                       height,
-                       nullptr,
-                       0.0f,
-                       0.0f,
-                       std::nullopt);
+    but = uiDefIconBut(
+        block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, std::nullopt);
     /* Center the icon. */
     UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
   }
@@ -963,7 +953,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 
   /* alternating flat shade background */
   for (i = 2; (i <= layout->rows + 1); i += 2) {
-    sy = int(v2d->cur.ymax) - layout->offset_top - i * item_height - layout->tile_border_y;
+    sy = int(v2d->cur.ymax) - layout->offset_top - i * item_height - layout->list_padding_top;
 
     /* Offset pattern slightly to add scroll effect. */
     sy += round_fl_to_int(item_height * (v2d->tot.ymax - v2d->cur.ymax) / item_height);
@@ -1189,7 +1179,7 @@ static void draw_details_columns(const FileSelectParams *params,
 
     if (str) {
       file_draw_string(sx + ATTRIBUTE_COLUMN_PADDING,
-                       tile_draw_rect->ymax - layout->tile_border_y,
+                       tile_draw_rect->ymax,
                        IFACE_(str),
                        column->width - 2 * ATTRIBUTE_COLUMN_PADDING,
                        layout->tile_h,
@@ -1212,7 +1202,32 @@ static rcti tile_draw_rect_get(const View2D *v2d, const FileLayout *layout, cons
   rect.xmin = tile_pos_x;
   rect.xmax = rect.xmin + layout->tile_w;
   rect.ymax = tile_pos_y;
-  rect.ymin = rect.ymax - layout->tile_h - layout->tile_border_y;
+  rect.ymin = rect.ymax - layout->tile_h;
+
+  return rect;
+}
+
+/**
+ * Get the boundaries to display the name label in (this isn't the rectangle of the text itself).
+ */
+static rcti text_draw_rect_get(const View2D *v2d,
+                               const eFileDisplayType display_type,
+                               const FileLayout *layout,
+                               const int file_idx,
+                               const int icon_ofs_x)
+{
+  rcti tile_rect = tile_draw_rect_get(v2d, layout, file_idx);
+
+  rcti rect = tile_rect;
+  if (display_type == FILE_IMGDISPLAY) {
+    rect.ymin += round_fl_to_int(layout->prv_border_y * 0.5f);
+    rect.ymax = rect.ymin + layout->textheight;
+  }
+  else {
+    rect.xmin += icon_ofs_x + 1;
+    rect.xmax = tile_rect.xmin + round_fl_to_int(layout->attribute_columns[COLUMN_NAME].width) -
+                layout->tile_border_x;
+  }
 
   return rect;
 }
@@ -1231,7 +1246,6 @@ void file_draw_list(const bContext *C, ARegion *region)
   int numfiles;
   int numfiles_layout;
   int offset;
-  int column_width, textheight;
   int i;
   eFontStyle_Align align;
   bool do_drag;
@@ -1261,11 +1275,6 @@ void file_draw_list(const bContext *C, ARegion *region)
   }
 
   filelist_file_cache_slidingwindow_set(files, numfiles_layout);
-
-  column_width = (FILE_IMGDISPLAY == params->display) ?
-                     layout->tile_w :
-                     round_fl_to_int(layout->attribute_columns[COLUMN_NAME].width);
-  textheight = int(layout->textheight * 3.0 / 2.0 + 0.5);
 
   align = (FILE_IMGDISPLAY == params->display) ? UI_STYLE_TEXT_CENTER : UI_STYLE_TEXT_LEFT;
 
@@ -1323,10 +1332,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                                                                              0;
         BLI_assert(i == 0 || !FILENAME_IS_CURRPAR(file->relpath));
 
-        rcti tile_bg_rect = tile_draw_rect;
-        /* One pixel downwards, places it more in the center. */
-        BLI_rcti_translate(&tile_bg_rect, 0, -U.pixelsize);
-        draw_tile_background(&tile_bg_rect, colorid, shade);
+        draw_tile_background(&tile_draw_rect, colorid, shade);
       }
     }
     UI_draw_roundbox_corner_set(UI_CNR_NONE);
@@ -1383,15 +1389,18 @@ void file_draw_list(const bContext *C, ARegion *region)
       if (do_drag) {
         const uiStyle *style = UI_style_get();
         const int str_width = UI_fontstyle_string_width(&style->widget, file->name);
-        const int drag_width = std::min(str_width + icon_ofs,
-                                        int(column_width - ATTRIBUTE_COLUMN_PADDING));
+        const int drag_width = std::min(
+            str_width + icon_ofs,
+            int(layout->attribute_columns[COLUMN_NAME].width - ATTRIBUTE_COLUMN_PADDING));
         if (drag_width > 0) {
+          /* Uses full row height (tile height plus 2 * tile border padding) so there's no space
+           * between rows. */
           uiBut *drag_but = uiDefBut(block,
                                      UI_BTYPE_LABEL,
                                      0,
                                      "",
                                      tile_draw_rect.xmin,
-                                     tile_draw_rect.ymin - 1,
+                                     tile_draw_rect.ymin - layout->tile_border_y,
                                      drag_width,
                                      layout->tile_h + layout->tile_border_y * 2,
                                      nullptr,
@@ -1425,26 +1434,30 @@ void file_draw_list(const bContext *C, ARegion *region)
           (filelist_loading || icon >= BIFICONID_LAST_STATIC))
       {
         const BIFIconID type_icon = filelist_geticon_file_type(files, i, true);
-        file_add_overlay_icon_but(
-            block, tile_draw_rect.xmin + padx - 2, tile_draw_rect.ymin - 1, type_icon);
+        file_add_overlay_icon_but(block,
+                                  tile_draw_rect.xmin + padx - 2,
+                                  tile_draw_rect.ymin - 2 * UI_SCALE_FAC,
+                                  type_icon);
       }
     }
 
-    if (file_selflag & FILE_SEL_EDITING) {
-      const short width = (params->display == FILE_IMGDISPLAY) ?
-                              column_width :
-                              layout->attribute_columns[COLUMN_NAME].width -
-                                  ATTRIBUTE_COLUMN_PADDING;
+    const rcti text_rect = text_draw_rect_get(
+        v2d, eFileDisplayType(params->display), layout, i, icon_ofs);
 
+    if (file_selflag & FILE_SEL_EDITING) {
+      const int but_height =
+          (params->display == FILE_IMGDISPLAY) ?
+              layout->textheight * 1.4f :
+              /* Just a little smaller than the tile height, clamped to #UI_UNIT_Y as maximum. */
+              std::min(short(BLI_rcti_size_y(&text_rect) - 1.0f * UI_SCALE_FAC), UI_UNIT_Y);
       uiBut *but = uiDefBut(block,
                             UI_BTYPE_TEXT,
                             1,
                             "",
-                            tile_draw_rect.xmin + icon_ofs,
-                            tile_draw_rect.ymin + layout->tile_border_y +
-                                ((layout->tile_h - textheight) / 2.0f) - 0.15f * UI_UNIT_X,
-                            width - icon_ofs,
-                            textheight,
+                            text_rect.xmin,
+                            text_rect.ymin,
+                            BLI_rcti_size_x(&text_rect),
+                            but_height,
                             params->renamefile,
                             1.0f,
                             float(sizeof(params->renamefile)),
@@ -1471,17 +1484,13 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     /* file_selflag might have been modified by branch above. */
     if ((file_selflag & FILE_SEL_EDITING) == 0) {
-      const int txpos = (params->display == FILE_IMGDISPLAY) ? tile_draw_rect.xmin :
-                                                               tile_draw_rect.xmin + 1 + icon_ofs;
-      const int typos = (params->display == FILE_IMGDISPLAY) ?
-                            tile_draw_rect.ymin + layout->tile_border_y + layout->textheight :
-                            tile_draw_rect.ymax - layout->tile_border_y;
-      const int twidth = (params->display == FILE_IMGDISPLAY) ?
-                             column_width :
-                             column_width - 1 - icon_ofs - padx - layout->tile_border_x;
-      const int theight = (params->display == FILE_IMGDISPLAY) ? textheight : layout->tile_h;
-
-      file_draw_string(txpos, typos, file->name, float(twidth), theight, align, text_col);
+      file_draw_string(text_rect.xmin,
+                       text_rect.ymax,
+                       file->name,
+                       BLI_rcti_size_x(&text_rect),
+                       BLI_rcti_size_y(&text_rect),
+                       align,
+                       text_col);
     }
 
     if (params->display != FILE_IMGDISPLAY) {

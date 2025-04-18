@@ -246,6 +246,9 @@ ViewOpsData *viewops_data_create(bContext *C,
                                  const wmEvent *event,
                                  const ViewOpsType *nav_type,
                                  const bool use_cursor_init);
+/**
+ * \param align_to_quat: When not nullptr, set the axis relative to this rotation.
+ */
 void axis_set_view(bContext *C,
                    View3D *v3d,
                    ARegion *region,

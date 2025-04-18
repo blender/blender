@@ -9,6 +9,9 @@
 #include "NOD_geo_closure.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
+#include "NOD_socket_search_link.hh"
+
+#include "BKE_compute_context_cache.hh"
 
 #include "BLO_read_write.hh"
 
@@ -181,6 +184,74 @@ static void node_operators()
   socket_items::ops::make_common_operators<ClosureOutputItemsAccessor>();
 }
 
+static void try_initialize_closure_from_evaluator(SpaceNode &snode, bNode &closure_output_node)
+{
+  snode.edittree->ensure_topology_cache();
+  bNodeSocket &closure_socket = closure_output_node.output_socket(0);
+
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
+      snode, compute_context_cache, closure_socket);
+  if (!current_context) {
+    /* The current tree does not have a known context, e.g. it is pinned but the modifier has been
+     * removed. */
+    return;
+  }
+  const ComputeContext *evaluate_context_generic =
+      ed::space_node::compute_context_for_closure_evaluation(
+          current_context, closure_socket, compute_context_cache, std::nullopt);
+  if (!evaluate_context_generic) {
+    /* No evaluation of the closure found. */
+    return;
+  }
+  const auto *evaluate_context = dynamic_cast<const bke::EvaluateClosureComputeContext *>(
+      evaluate_context_generic);
+  if (!evaluate_context) {
+    return;
+  }
+  const bNode *evaluate_node = evaluate_context->evaluate_node();
+  if (!evaluate_node) {
+    return;
+  }
+  const auto *storage = static_cast<const NodeGeometryEvaluateClosure *>(evaluate_node->storage);
+
+  for (const int i : IndexRange(storage->input_items.items_num)) {
+    const NodeGeometryEvaluateClosureInputItem &evaluate_item = storage->input_items.items[i];
+    socket_items::add_item_with_socket_type_and_name<ClosureInputItemsAccessor>(
+        closure_output_node, eNodeSocketDatatype(evaluate_item.socket_type), evaluate_item.name);
+  }
+  for (const int i : IndexRange(storage->output_items.items_num)) {
+    const NodeGeometryEvaluateClosureOutputItem &evaluate_item = storage->output_items.items[i];
+    socket_items::add_item_with_socket_type_and_name<ClosureOutputItemsAccessor>(
+        closure_output_node, eNodeSocketDatatype(evaluate_item.socket_type), evaluate_item.name);
+  }
+  BKE_ntree_update_tag_node_property(snode.edittree, &closure_output_node);
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeSocket &other_socket = params.other_socket();
+  if (other_socket.type != SOCK_CLOSURE) {
+    return;
+  }
+  if (other_socket.in_out == SOCK_OUT) {
+    return;
+  }
+  params.add_item_full_name(IFACE_("Closure"), [](LinkSearchOpParams &params) {
+    bNode &input_node = params.add_node("GeometryNodeClosureInput");
+    bNode &output_node = params.add_node("GeometryNodeClosureOutput");
+    output_node.location[0] = 300;
+
+    auto &input_storage = *static_cast<NodeGeometryClosureInput *>(input_node.storage);
+    input_storage.output_node_id = output_node.identifier;
+
+    params.connect_available_socket(output_node, "Closure");
+
+    SpaceNode &snode = *CTX_wm_space_node(&params.C);
+    try_initialize_closure_from_evaluator(snode, output_node);
+  });
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -192,6 +263,7 @@ static void node_register()
   ntype.labelfunc = input_node::node_label;
   ntype.no_muting = true;
   ntype.register_operators = node_operators;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
   bke::node_type_storage(ntype, "NodeGeometryClosureOutput", node_free_storage, node_copy_storage);

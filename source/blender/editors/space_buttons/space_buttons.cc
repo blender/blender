@@ -351,6 +351,7 @@ static bool property_search_for_context(const bContext *C, ARegion *region, Spac
     return false;
   }
 
+  buttons_context_compute(C, sbuts);
   return ED_region_property_search(
       C, region, &region->runtime->type->paneltypes, contexts, nullptr);
 }

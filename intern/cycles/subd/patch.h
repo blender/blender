@@ -19,6 +19,7 @@ class Patch {
 
   int patch_index = 0;
   int shader = 0;
+  bool smooth = true;
   bool from_ngon = false;
 };
 

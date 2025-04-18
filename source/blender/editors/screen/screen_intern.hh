@@ -158,6 +158,9 @@ bool screen_area_close(bContext *C, ReportList *reports, bScreen *screen, ScrAre
 void screen_area_spacelink_add(const Scene *scene, ScrArea *area, eSpace_Type space_type);
 AZone *ED_area_actionzone_find_xy(ScrArea *area, const int xy[2]);
 
+/**
+ * \return true if any region polling state changed, and an area re-init is needed.
+ */
 bool area_regions_poll(bContext *C, const bScreen *screen, ScrArea *area);
 
 /* `screen_geometry.cc` */

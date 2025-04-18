@@ -868,7 +868,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
 
     const CPPType *type = typeinfo->geometry_nodes_cpp_type;
     BLI_assert(type != nullptr);
-    void *value = allocator.allocate(type->size, type->alignment);
+    void *value = allocator.allocate(*type);
     initialize_group_input(btree, properties_set, i, value);
     param_inputs[function.inputs.main[i]] = {type, value};
     inputs_to_destruct.append({type, value});
@@ -891,7 +891,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
   for (const int i : IndexRange(num_outputs)) {
     const lf::Output &lf_output = lazy_function.outputs()[i];
     const CPPType &type = *lf_output.type;
-    void *buffer = allocator.allocate(type.size, type.alignment);
+    void *buffer = allocator.allocate(type);
     param_outputs[i] = {type, buffer};
   }
 
@@ -1080,14 +1080,8 @@ void get_geometry_nodes_input_base_values(const bNodeTree &btree,
       continue;
     }
 
-    void *value_buffer = scope.allocator().allocate(stype->geometry_nodes_cpp_type->size,
-                                                    stype->geometry_nodes_cpp_type->alignment);
+    void *value_buffer = scope.allocate_owned(*stype->geometry_nodes_cpp_type);
     init_socket_cpp_value_from_property(*property, socket_type, value_buffer);
-    if (!stype->geometry_nodes_cpp_type->is_trivially_destructible) {
-      scope.add_destruct_call([type = stype->geometry_nodes_cpp_type, value_buffer]() {
-        type->destruct(value_buffer);
-      });
-    }
     if (stype->geometry_nodes_cpp_type == stype->base_cpp_type) {
       r_values[input_i] = {stype->base_cpp_type, value_buffer};
       continue;

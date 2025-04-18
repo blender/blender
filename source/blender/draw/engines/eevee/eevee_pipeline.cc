@@ -5,7 +5,7 @@
 /** \file
  * \ingroup eevee
  *
- * Shading passes contain drawcalls specific to shading pipelines.
+ * Shading passes contain draw-calls specific to shading pipelines.
  * They are to be shared across views.
  * This file is only for shading passes. Other passes are declared in their own module.
  */

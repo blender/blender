@@ -24,6 +24,8 @@
 #include "intern/node/deg_node_id.hh"
 #include "intern/node/deg_node_time.hh"
 
+#include "BLI_math_bits.h"
+
 namespace deg = blender::deg;
 
 void DEG_debug_flags_set(Depsgraph *depsgraph, int flags)
@@ -356,4 +358,37 @@ void DEG_debug_print_eval_time(Depsgraph *depsgraph,
           deg::color_end().c_str(),
           time);
   fflush(stdout);
+}
+
+static std::string stringify_append_bit(const std::string &str, IDRecalcFlag tag)
+{
+  const char *tag_name = DEG_update_tag_as_string(tag);
+  if (tag_name == nullptr) {
+    return str;
+  }
+  std::string result = str;
+  if (!result.empty()) {
+    result += ", ";
+  }
+  result += tag_name;
+  return result;
+}
+
+std::string DEG_stringify_recalc_flags(uint flags)
+{
+  if (flags == 0) {
+    return "NONE";
+  }
+  std::string result;
+  uint current_flag = flags;
+  /* Special cases to avoid ALL flags from being split into individual bits. */
+  if ((current_flag & ID_RECALC_PSYS_ALL) == ID_RECALC_PSYS_ALL) {
+    result = stringify_append_bit(result, ID_RECALC_PSYS_ALL);
+  }
+  /* Handle all the rest of the flags. */
+  while (current_flag != 0) {
+    IDRecalcFlag tag = (IDRecalcFlag)(1 << bitscan_forward_clear_uint(&current_flag));
+    result = stringify_append_bit(result, tag);
+  }
+  return result;
 }

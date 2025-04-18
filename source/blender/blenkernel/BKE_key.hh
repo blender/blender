@@ -24,10 +24,6 @@ struct Main;
 struct Mesh;
 struct Object;
 
-/**
- * Free (or release) any data used by this shape-key (does not free the key itself).
- */
-void BKE_key_free_data(Key *key);
 void BKE_key_free_nolib(Key *key);
 Key *BKE_key_add(Main *bmain, ID *id);
 /**

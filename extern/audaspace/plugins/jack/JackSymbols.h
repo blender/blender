@@ -39,6 +39,7 @@ JACK_SYMBOL(jack_on_shutdown);
 JACK_SYMBOL(jack_port_register);
 JACK_SYMBOL(jack_client_close);
 JACK_SYMBOL(jack_get_sample_rate);
+JACK_SYMBOL(jack_get_buffer_size);
 JACK_SYMBOL(jack_activate);
 JACK_SYMBOL(jack_get_ports);
 JACK_SYMBOL(jack_port_name);

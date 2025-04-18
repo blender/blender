@@ -654,7 +654,7 @@ ObjectRef::ObjectRef(DEGObjectIterData &iter_data, Object *ob)
   this->dupli_parent = iter_data.dupli_parent;
   this->dupli_object = iter_data.dupli_object_current;
   this->object = ob;
-  /* Set by the first drawcall. */
+  /* Set by the first draw-call. */
   this->handle = ResourceHandle(0);
 }
 
@@ -663,7 +663,7 @@ ObjectRef::ObjectRef(Object *ob)
   this->dupli_parent = nullptr;
   this->dupli_object = nullptr;
   this->object = ob;
-  /* Set by the first drawcall. */
+  /* Set by the first draw-call. */
   this->handle = ResourceHandle(0);
 }
 
@@ -1699,7 +1699,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
       FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, object_type, object_mode, ob_iter) {
         /* Depsgraph usually does this, but we use a different iterator.
          * So we have to do it manually. */
-        ob_iter->runtime->select_id = DEG_get_original_object(ob_iter)->runtime->select_id;
+        ob_iter->runtime->select_id = DEG_get_original(ob_iter)->runtime->select_id;
 
         blender::draw::ObjectRef ob_ref(ob_iter);
         drw_engines_cache_populate(ob_ref, extraction);

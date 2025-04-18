@@ -3802,8 +3802,8 @@ static void knifetool_init_obinfo(KnifeTool_OpData *kcd,
                                   int ob_index,
                                   bool use_tri_indices)
 {
-  Scene *scene_eval = (Scene *)DEG_get_evaluated_id(kcd->vc.depsgraph, &kcd->scene->id);
-  Object *obedit_eval = (Object *)DEG_get_evaluated_id(kcd->vc.depsgraph, &ob->id);
+  Scene *scene_eval = DEG_get_evaluated(kcd->vc.depsgraph, kcd->scene);
+  Object *obedit_eval = DEG_get_evaluated(kcd->vc.depsgraph, ob);
   const Mesh &mesh_orig = *static_cast<const Mesh *>(ob->data);
   const Mesh &mesh_eval = *static_cast<const Mesh *>(obedit_eval->data);
 

@@ -323,7 +323,7 @@ void GPU_batch_bind_as_resources(Batch *batch, GPUShader *shader)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Drawing / Drawcall functions
+/** \name Drawing / Draw-call functions
  * \{ */
 
 void GPU_batch_draw_parameter_get(Batch *batch,

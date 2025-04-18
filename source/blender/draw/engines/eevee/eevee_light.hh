@@ -140,7 +140,7 @@ class LightModule {
 
   /** LightData buffer used for rendering. Filled by the culling pass. */
   LightDataBuf culling_light_buf_ = {"Lights_culled"};
-  /** Culling infos. */
+  /** Culling information. */
   LightCullingDataBuf culling_data_buf_ = {"LightCull_data"};
   /** Z-distance matching the key for each visible lights. Used for sorting. */
   LightCullingZdistBuf culling_zdist_buf_ = {"LightCull_zdist"};

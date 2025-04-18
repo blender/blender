@@ -610,7 +610,8 @@ class TVertex : public ViewVertex {
     return nullptr;
   }
 
-  /* iterators access */
+  /* Iterators access. */
+
   virtual edge_iterator edges_begin();
   virtual const_edge_iterator edges_begin() const;
   virtual edge_iterator edges_end();
@@ -827,7 +828,8 @@ class NonTVertex : public ViewVertex {
     }
   }
 
-  /* iterators access */
+  /* Iterators access. */
+
   virtual edge_iterator edges_begin();
   virtual const_edge_iterator edges_begin() const;
   virtual edge_iterator edges_end();

@@ -38,39 +38,69 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>("Size").default_value(6.0f).compositor_domain_priority(1);
+  b.add_input<decl::Float>("Size")
+      .default_value(6.0f)
+      .description("The size of the filter in pixels")
+      .compositor_domain_priority(1);
+  b.add_input<decl::Int>("Uniformity")
+      .default_value(4)
+      .min(0)
+      .description(
+          "Controls the uniformity of the direction of the filter. Higher values produces more "
+          "uniform directions")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Sharpness")
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "Controls the sharpness of the filter. 0 means completely smooth while 1 means "
+          "completely sharp")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Eccentricity")
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(2.0f)
+      .description(
+          "Controls how directional the filter is. 0 means the filter is completely "
+          "omnidirectional while 2 means it is maximally directed along the edges of the image")
+      .compositor_expects_single_value();
+  b.add_input<decl::Bool>("High Precision")
+      .default_value(false)
+      .description(
+          "Uses a more precise but slower method. Use if the output contains undesirable noise.")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_kuwahara(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeKuwaharaData *data = MEM_callocN<NodeKuwaharaData>(__func__);
+  data->variation = CMP_NODE_KUWAHARA_ANISOTROPIC;
   node->storage = data;
-
-  /* Set defaults. */
-  data->uniformity = 4;
-  data->eccentricity = 1.0;
-  data->sharpness = 0.5;
 }
 
 static void node_composit_buts_kuwahara(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *col;
+  uiItemR(layout, ptr, "variation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+}
 
-  col = uiLayoutColumn(layout, false);
+static void node_update(bNodeTree *ntree, bNode *node)
+{
+  const bool is_classic = node_storage(*node).variation == CMP_NODE_KUWAHARA_CLASSIC;
 
-  uiItemR(col, ptr, "variation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  bNodeSocket *high_precision_input = bke::node_find_socket(*node, SOCK_IN, "High Precision");
+  blender::bke::node_set_socket_availability(*ntree, *high_precision_input, is_classic);
 
-  const int variation = RNA_enum_get(ptr, "variation");
-
-  if (variation == CMP_NODE_KUWAHARA_CLASSIC) {
-    uiItemR(col, ptr, "use_high_precision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  }
-  else if (variation == CMP_NODE_KUWAHARA_ANISOTROPIC) {
-    uiItemR(col, ptr, "uniformity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "sharpness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "eccentricity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  }
+  bNodeSocket *uniformity_input = bke::node_find_socket(*node, SOCK_IN, "Uniformity");
+  bNodeSocket *sharpness_input = bke::node_find_socket(*node, SOCK_IN, "Sharpness");
+  bNodeSocket *eccentricity_input = bke::node_find_socket(*node, SOCK_IN, "Eccentricity");
+  blender::bke::node_set_socket_availability(*ntree, *uniformity_input, !is_classic);
+  blender::bke::node_set_socket_availability(*ntree, *sharpness_input, !is_classic);
+  blender::bke::node_set_socket_availability(*ntree, *eccentricity_input, !is_classic);
 }
 
 using namespace blender::compositor;
@@ -102,7 +132,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
      * execute in constant time as opposed to having quadratic complexity. Except if high precision
      * is enabled, since summed area tables are less precise. */
     Result &size_input = get_input("Size");
-    if (!node_storage(bnode()).high_precision &&
+    if (!this->get_high_precision() &&
         (!size_input.is_single_value() || size_input.get_single_value<float>() > 5.0f))
     {
       this->execute_classic_summed_area_table();
@@ -318,10 +348,8 @@ class ConvertKuwaharaOperation : public NodeOperation {
   {
     Result structure_tensor = compute_structure_tensor();
     Result smoothed_structure_tensor = context().create_result(ResultType::Color);
-    symmetric_separable_blur(context(),
-                             structure_tensor,
-                             smoothed_structure_tensor,
-                             float2(node_storage(bnode()).uniformity));
+    symmetric_separable_blur(
+        context(), structure_tensor, smoothed_structure_tensor, float2(this->get_uniformity()));
     structure_tensor.release();
 
     if (this->context().use_gpu()) {
@@ -339,8 +367,8 @@ class ConvertKuwaharaOperation : public NodeOperation {
     GPUShader *shader = context().get_shader(get_anisotropic_shader_name());
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "eccentricity", get_eccentricity());
-    GPU_shader_uniform_1f(shader, "sharpness", get_sharpness());
+    GPU_shader_uniform_1f(shader, "eccentricity", this->compute_eccentricity());
+    GPU_shader_uniform_1f(shader, "sharpness", this->compute_sharpness());
 
     Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
@@ -378,8 +406,8 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
   void execute_anisotropic_cpu(const Result &structure_tensor)
   {
-    const float eccentricity = this->get_eccentricity();
-    const float sharpness = this->get_sharpness();
+    const float eccentricity = this->compute_eccentricity();
+    const float sharpness = this->compute_sharpness();
 
     Result &input = this->get_input("Image");
     Result &size = this->get_input("Size");
@@ -749,9 +777,9 @@ class ConvertKuwaharaOperation : public NodeOperation {
    * The stored sharpness is in the range [0, 1], so we multiply by 16 to get it in the range
    * [0, 16], however, we also square it before multiplication to slow down the rate of change
    * near zero to counter its exponential nature for more intuitive user control. */
-  float get_sharpness()
+  float compute_sharpness()
   {
-    const float sharpness_factor = node_storage(bnode()).sharpness;
+    const float sharpness_factor = this->get_sharpness();
     return sharpness_factor * sharpness_factor * 16.0f;
   }
 
@@ -768,9 +796,29 @@ class ConvertKuwaharaOperation : public NodeOperation {
    * default eccentricity, which users can use to enhance the directionality of the filter.
    * Instead of actual infinity, we just use an eccentricity of 1 / 0.01 since the result is very
    * similar to that of infinity. */
+  float compute_eccentricity()
+  {
+    return 1.0f / math::max(0.01f, this->get_eccentricity());
+  }
+
+  int get_high_precision()
+  {
+    return this->get_input("High Precision").get_single_value_default(false);
+  }
+
+  int get_uniformity()
+  {
+    return math::max(0, this->get_input("Uniformity").get_single_value_default(4));
+  }
+
+  float get_sharpness()
+  {
+    return math::clamp(this->get_input("Sharpness").get_single_value_default(1.0f), 0.0f, 1.0f);
+  }
+
   float get_eccentricity()
   {
-    return 1.0f / math::max(0.01f, node_storage(bnode()).eccentricity);
+    return math::clamp(this->get_input("Eccentricity").get_single_value_default(1.0f), 0.0f, 2.0f);
   }
 };
 
@@ -794,6 +842,7 @@ void register_node_type_cmp_kuwahara()
   ntype.enum_name_legacy = "KUWAHARA";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_kuwahara_declare;
+  ntype.updatefunc = file_ns::node_update;
   ntype.draw_buttons = file_ns::node_composit_buts_kuwahara;
   ntype.initfunc = file_ns::node_composit_init_kuwahara;
   blender::bke::node_type_storage(

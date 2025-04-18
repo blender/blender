@@ -2488,7 +2488,7 @@ static void make_object_duplilist_real(bContext *C,
   }
 
   LISTBASE_FOREACH (DupliObject *, dob, lb_duplis) {
-    Object *ob_src = DEG_get_original_object(dob->ob);
+    Object *ob_src = DEG_get_original(dob->ob);
     Object *ob_dst = static_cast<Object *>(ID_NEW_SET(ob_src, BKE_id_copy(bmain, &ob_src->id)));
     id_us_min(&ob_dst->id);
 

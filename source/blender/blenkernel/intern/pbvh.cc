@@ -1071,7 +1071,7 @@ void update_normals_from_eval(Object &object_eval, Tree &pbvh)
    * graph updates for sculpt deformations in some cases (so the evaluated object doesn't contain
    * their result), and also because (currently) sculpt deformations skip tagging the mesh normals
    * caches dirty. */
-  Object &object_orig = *DEG_get_original_object(&object_eval);
+  Object &object_orig = *DEG_get_original(&object_eval);
   pbvh.update_normals(object_orig, object_eval);
 }
 
@@ -2411,7 +2411,7 @@ Span<float3> vert_positions_eval(const Depsgraph &depsgraph, const Object &objec
 Span<float3> vert_positions_eval_from_eval(const Object &object_eval)
 {
   BLI_assert(!DEG_is_original_object(&object_eval));
-  const Object &object_orig = *DEG_get_original_object(&object_eval);
+  const Object &object_orig = *DEG_get_original(&object_eval);
   return vert_positions_eval(object_orig, object_eval);
 }
 
@@ -2430,14 +2430,14 @@ Span<float3> vert_normals_eval(const Depsgraph &depsgraph, const Object &object_
 Span<float3> vert_normals_eval_from_eval(const Object &object_eval)
 {
   BLI_assert(!DEG_is_original_object(&object_eval));
-  const Object &object_orig = *DEG_get_original_object(&object_eval);
+  const Object &object_orig = *DEG_get_original(&object_eval);
   return vert_normals_cache_eval(object_orig, object_eval).data();
 }
 
 Span<float3> face_normals_eval_from_eval(const Object &object_eval)
 {
   BLI_assert(!DEG_is_original_object(&object_eval));
-  const Object &object_orig = *DEG_get_original_object(&object_eval);
+  const Object &object_orig = *DEG_get_original(&object_eval);
   return face_normals_cache_eval(object_orig, object_eval).data();
 }
 

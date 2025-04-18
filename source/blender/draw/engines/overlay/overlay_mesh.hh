@@ -567,7 +567,7 @@ class MeshUVs : Overlay {
                    space_image->mask_info.draw_flag & MASK_DRAWFLAG_OVERLAY;
       if (show_mask_) {
         mask_mode_ = eMaskOverlayMode(space_image->mask_info.overlay_mode);
-        mask_id_ = (Mask *)DEG_get_evaluated_id(state.depsgraph, &space_image->mask_info.mask->id);
+        mask_id_ = DEG_get_evaluated(state.depsgraph, space_image->mask_info.mask);
       }
       else {
         mask_id_ = nullptr;

@@ -49,7 +49,7 @@ class ObjectKey {
 
   ObjectKey(const ObjectRef &ob_ref, int sub_key = 0)
   {
-    ob_ = DEG_get_original_object(ob_ref.object);
+    ob_ = DEG_get_original(ob_ref.object);
     hash_value_ = BLI_ghashutil_ptrhash(ob_);
 
     if (DupliObject *dupli = ob_ref.dupli_object) {

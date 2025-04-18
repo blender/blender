@@ -1813,7 +1813,7 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
   init_context(&ctx, depsgraph, sce, ob_eval, nullptr, instance_stack, dupli_gen_type_stack);
   ctx.duplilist = duplilist;
 
-  Object *ob_orig = DEG_get_original_object(ob_eval);
+  Object *ob_orig = DEG_get_original(ob_eval);
 
   LISTBASE_FOREACH (ModifierData *, md_orig, &ob_orig->modifiers) {
     if (md_orig->type != eModifierType_Nodes) {

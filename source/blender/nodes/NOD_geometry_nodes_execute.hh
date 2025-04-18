@@ -7,6 +7,7 @@
 #include "BLI_compute_context.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_resource_scope.hh"
+#include "BLI_vector_set.hh"
 
 #include "DNA_node_types.h"
 

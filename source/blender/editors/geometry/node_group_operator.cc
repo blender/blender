@@ -564,8 +564,7 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
 
   const bNodeTree *node_tree = nullptr;
   if (depsgraphs.extra) {
-    node_tree = reinterpret_cast<const bNodeTree *>(
-        DEG_get_evaluated_id(depsgraphs.extra, const_cast<ID *>(&node_tree_orig->id)));
+    node_tree = DEG_get_evaluated(depsgraphs.extra, node_tree_orig);
   }
   else {
     node_tree = node_tree_orig;

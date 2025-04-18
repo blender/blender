@@ -258,11 +258,6 @@
 #define CMP_CHAN_RGB 1
 #define CMP_CHAN_A 2
 
-/* Default SMAA configuration values. */
-#define CMP_DEFAULT_SMAA_THRESHOLD 1.0f
-#define CMP_DEFAULT_SMAA_CONTRAST_LIMIT 0.2f
-#define CMP_DEFAULT_SMAA_CORNER_ROUNDING 0.25f
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
