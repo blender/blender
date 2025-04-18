@@ -62,7 +62,13 @@ struct FileLayout {
   int attribute_column_header_h;
   int prv_w;
   int prv_h;
+  /** Extra padding to add above any files. Used for horizontal and column list views. */
+  int list_padding_top;
+  /** Width to draw the file's "tile" (matches the highlight background) with. `tile_border_x` will
+   * be added before and after it as padding around the tile. */
   int tile_w;
+  /** Height to draw the file's "tile" (matches the highlight background) with. `tile_border_y`
+   * will be added above and below it as padding around the tile. */
   int tile_h;
   int tile_border_x;
   int tile_border_y;
