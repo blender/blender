@@ -338,10 +338,10 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
 }
 
 namespace clay_strips {
-NodeMaskResult calc_node_mask(const Depsgraph &depsgraph,
-                              Object &object,
-                              const Brush &brush,
-                              IndexMaskMemory &memory)
+CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
+                                  Object &object,
+                                  const Brush &brush,
+                                  IndexMaskMemory &memory)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const SculptSession &ss = *object.sculpt;

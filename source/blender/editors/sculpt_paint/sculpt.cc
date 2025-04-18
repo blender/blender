@@ -3133,10 +3133,10 @@ static bool brush_type_needs_all_pbvh_nodes(const Brush &brush)
 }
 
 /** Calculates the nodes that a brush will influence. */
-static brushes::NodeMaskResult calc_brush_node_mask(const Depsgraph &depsgraph,
-                                                    Object &ob,
-                                                    const Brush &brush,
-                                                    IndexMaskMemory &memory)
+static brushes::CursorSampleResult calc_brush_node_mask(const Depsgraph &depsgraph,
+                                                        Object &ob,
+                                                        const Brush &brush,
+                                                        IndexMaskMemory &memory)
 {
   const SculptSession &ss = *ob.sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
@@ -3233,7 +3233,7 @@ static void do_brush_action(const Depsgraph &depsgraph,
     }
   }
 
-  const brushes::NodeMaskResult node_mask_result = calc_brush_node_mask(
+  const brushes::CursorSampleResult node_mask_result = calc_brush_node_mask(
       depsgraph, ob, brush, memory);
   const IndexMask node_mask = node_mask_result.node_mask;
 
