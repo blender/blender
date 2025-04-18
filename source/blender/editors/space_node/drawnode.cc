@@ -1147,6 +1147,22 @@ static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
   return node_decl->inputs[socket_index]->is_attribute_name;
 }
 
+static bool socket_needs_layer_search(const bNode &node, const bNodeSocket &socket)
+{
+  const nodes::NodeDeclaration *node_decl = node.declaration();
+  if (node_decl == nullptr) {
+    return false;
+  }
+  if (node_decl->skip_updating_sockets) {
+    return false;
+  }
+  if (socket.in_out == SOCK_OUT) {
+    return false;
+  }
+  const int socket_index = BLI_findindex(&node.inputs, &socket);
+  return node_decl->inputs[socket_index]->is_layer_name;
+}
+
 static void draw_gizmo_pin_icon(uiLayout *layout, PointerRNA *socket_ptr)
 {
   uiItemR(layout, socket_ptr, "pin_gizmo", UI_ITEM_NONE, "", ICON_GIZMO);
@@ -1316,6 +1332,16 @@ static void std_node_socket_draw(
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
           uiItemL(row, text, ICON_NONE);
           node_geometry_add_attribute_search_button(*C, *node, *ptr, *row);
+        }
+      }
+      else if (socket_needs_layer_search(*node, *sock)) {
+        if (text.is_empty()) {
+          node_geometry_add_layer_search_button(*C, *node, *ptr, *layout, label);
+        }
+        else {
+          uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
+          uiItemL(row, text, ICON_NONE);
+          node_geometry_add_layer_search_button(*C, *node, *ptr, *row);
         }
       }
       else {

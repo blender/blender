@@ -90,6 +90,10 @@ void attribute_search_add_items(StringRef str,
                                 Span<const nodes::geo_eval_log::GeometryAttributeInfo *> infos,
                                 uiSearchItems *items,
                                 bool is_first);
+void grease_pencil_layer_search_add_items(StringRef str,
+                                          Span<const std::string *> layer_names,
+                                          uiSearchItems &items,
+                                          bool is_first);
 
 bool asset_shelf_popover_invoke(bContext &C,
                                 blender::StringRef asset_shelf_idname,
