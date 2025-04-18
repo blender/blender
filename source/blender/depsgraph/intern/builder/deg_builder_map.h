@@ -32,30 +32,30 @@ class BuilderMap {
   };
 
   /* Check whether given ID is already handled by builder (or if it's being handled). */
-  bool checkIsBuilt(ID *id, int tag = TAG_COMPLETE) const;
+  bool check_is_built(ID *id, int tag = TAG_COMPLETE) const;
 
   /* Tag given ID as handled/built. */
-  void tagBuilt(ID *id, int tag = TAG_COMPLETE);
+  void tag_built(ID *id, int tag = TAG_COMPLETE);
 
   /* Combination of previous two functions, returns truth if ID was already handled, or tags is
    * handled otherwise and return false. */
-  bool checkIsBuiltAndTag(ID *id, int tag = TAG_COMPLETE);
+  bool check_is_built_and_tag(ID *id, int tag = TAG_COMPLETE);
 
-  template<typename T> bool checkIsBuilt(T *datablock, int tag = TAG_COMPLETE) const
+  template<typename T> bool check_is_built(T *datablock, int tag = TAG_COMPLETE) const
   {
-    return checkIsBuilt(&datablock->id, tag);
+    return this->check_is_built(&datablock->id, tag);
   }
-  template<typename T> void tagBuilt(T *datablock, int tag = TAG_COMPLETE)
+  template<typename T> void tag_built(T *datablock, int tag = TAG_COMPLETE)
   {
-    tagBuilt(&datablock->id, tag);
+    this->tag_built(&datablock->id, tag);
   }
-  template<typename T> bool checkIsBuiltAndTag(T *datablock, int tag = TAG_COMPLETE)
+  template<typename T> bool check_is_built_and_tag(T *datablock, int tag = TAG_COMPLETE)
   {
-    return checkIsBuiltAndTag(&datablock->id, tag);
+    return this->check_is_built_and_tag(&datablock->id, tag);
   }
 
  protected:
-  int getIDTag(ID *id) const;
+  int get_ID_tag(ID *id) const;
 
   Map<ID *, int> id_tags_;
 };

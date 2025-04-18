@@ -673,7 +673,7 @@ void DepsgraphNodeBuilder::build_id(ID *id, const bool force_be_visible)
 
 void DepsgraphNodeBuilder::build_generic_id(ID *id)
 {
-  if (built_map_.checkIsBuiltAndTag(id)) {
+  if (built_map_.check_is_built_and_tag(id)) {
     return;
   }
 
@@ -697,7 +697,7 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
   const bool is_collection_restricted = (collection->flag & visibility_flag);
   const bool is_collection_visible = !is_collection_restricted && is_parent_collection_visible_;
   IDNode *id_node;
-  if (built_map_.checkIsBuiltAndTag(collection)) {
+  if (built_map_.check_is_built_and_tag(collection)) {
     id_node = find_id_node(&collection->id);
     if (is_collection_visible && id_node->is_visible_on_build == false &&
         id_node->is_collection_fully_expanded == true)
@@ -752,7 +752,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
                                         eDepsNode_LinkedState_Type linked_state,
                                         bool is_visible)
 {
-  const bool has_object = built_map_.checkIsBuiltAndTag(object);
+  const bool has_object = built_map_.check_is_built_and_tag(object);
 
   /* When there is already object in the dependency graph accumulate visibility an linked state
    * flags. Only do it on the object itself (apart from very special cases) and leave dealing with
@@ -1014,7 +1014,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
       break;
     default: {
       ID *obdata = (ID *)object->data;
-      if (!built_map_.checkIsBuilt(obdata)) {
+      if (!built_map_.check_is_built(obdata)) {
         build_animdata(obdata);
       }
       break;
@@ -1305,7 +1305,7 @@ void DepsgraphNodeBuilder::build_animation_images(ID *id)
 
 void DepsgraphNodeBuilder::build_action(bAction *action)
 {
-  if (built_map_.checkIsBuiltAndTag(action)) {
+  if (built_map_.check_is_built_and_tag(action)) {
     return;
   }
   build_idproperties(action->id.properties);
@@ -1458,7 +1458,7 @@ void DepsgraphNodeBuilder::build_dimensions(Object *object)
 
 void DepsgraphNodeBuilder::build_world(World *world)
 {
-  if (built_map_.checkIsBuiltAndTag(world)) {
+  if (built_map_.check_is_built_and_tag(world)) {
     return;
   }
   /* World itself. */
@@ -1629,7 +1629,7 @@ void DepsgraphNodeBuilder::build_particle_systems(Object *object, bool is_object
 
 void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *particle_settings)
 {
-  if (built_map_.checkIsBuiltAndTag(particle_settings)) {
+  if (built_map_.check_is_built_and_tag(particle_settings)) {
     return;
   }
   /* Make sure we've got proper copied ID pointer. */
@@ -1663,7 +1663,7 @@ void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *particle_se
 
 void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 {
-  if (built_map_.checkIsBuiltAndTag(key)) {
+  if (built_map_.check_is_built_and_tag(key)) {
     return;
   }
   build_idproperties(key->id.properties);
@@ -1716,7 +1716,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object)
 
 void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
 {
-  if (built_map_.checkIsBuiltAndTag(obdata)) {
+  if (built_map_.check_is_built_and_tag(obdata)) {
     return;
   }
   OperationNode *op_node;
@@ -1841,7 +1841,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
 
 void DepsgraphNodeBuilder::build_armature(bArmature *armature)
 {
-  if (built_map_.checkIsBuiltAndTag(armature)) {
+  if (built_map_.check_is_built_and_tag(armature)) {
     return;
   }
   build_idproperties(armature->id.properties);
@@ -1877,7 +1877,7 @@ void DepsgraphNodeBuilder::build_armature_bone_collections(
 
 void DepsgraphNodeBuilder::build_camera(Camera *camera)
 {
-  if (built_map_.checkIsBuiltAndTag(camera)) {
+  if (built_map_.check_is_built_and_tag(camera)) {
     return;
   }
   build_idproperties(camera->id.properties);
@@ -1890,7 +1890,7 @@ void DepsgraphNodeBuilder::build_camera(Camera *camera)
 
 void DepsgraphNodeBuilder::build_light(Light *lamp)
 {
-  if (built_map_.checkIsBuiltAndTag(lamp)) {
+  if (built_map_.check_is_built_and_tag(lamp)) {
     return;
   }
   build_idproperties(lamp->id.properties);
@@ -1932,7 +1932,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
   if (ntree == nullptr) {
     return;
   }
-  if (built_map_.checkIsBuiltAndTag(ntree)) {
+  if (built_map_.check_is_built_and_tag(ntree)) {
     return;
   }
   /* nodetree itself */
@@ -2036,7 +2036,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 
 void DepsgraphNodeBuilder::build_material(Material *material)
 {
-  if (built_map_.checkIsBuiltAndTag(material)) {
+  if (built_map_.check_is_built_and_tag(material)) {
     return;
   }
   /* Material itself. */
@@ -2068,7 +2068,7 @@ void DepsgraphNodeBuilder::build_materials(Material **materials, int num_materia
 
 void DepsgraphNodeBuilder::build_texture(Tex *texture)
 {
-  if (built_map_.checkIsBuiltAndTag(texture)) {
+  if (built_map_.check_is_built_and_tag(texture)) {
     return;
   }
   /* Texture itself. */
@@ -2095,7 +2095,7 @@ void DepsgraphNodeBuilder::build_texture(Tex *texture)
 
 void DepsgraphNodeBuilder::build_image(Image *image)
 {
-  if (built_map_.checkIsBuiltAndTag(image)) {
+  if (built_map_.check_is_built_and_tag(image)) {
     return;
   }
   build_parameters(&image->id);
@@ -2106,7 +2106,7 @@ void DepsgraphNodeBuilder::build_image(Image *image)
 
 void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 {
-  if (built_map_.checkIsBuiltAndTag(cache_file)) {
+  if (built_map_.check_is_built_and_tag(cache_file)) {
     return;
   }
   ID *cache_file_id = &cache_file->id;
@@ -2127,7 +2127,7 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 
 void DepsgraphNodeBuilder::build_mask(Mask *mask)
 {
-  if (built_map_.checkIsBuiltAndTag(mask)) {
+  if (built_map_.check_is_built_and_tag(mask)) {
     return;
   }
   ID *mask_id = &mask->id;
@@ -2164,7 +2164,7 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
 
 void DepsgraphNodeBuilder::build_freestyle_linestyle(FreestyleLineStyle *linestyle)
 {
-  if (built_map_.checkIsBuiltAndTag(linestyle)) {
+  if (built_map_.check_is_built_and_tag(linestyle)) {
     return;
   }
 
@@ -2177,7 +2177,7 @@ void DepsgraphNodeBuilder::build_freestyle_linestyle(FreestyleLineStyle *linesty
 
 void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
 {
-  if (built_map_.checkIsBuiltAndTag(clip)) {
+  if (built_map_.check_is_built_and_tag(clip)) {
     return;
   }
   ID *clip_id = &clip->id;
@@ -2197,7 +2197,7 @@ void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
 
 void DepsgraphNodeBuilder::build_lightprobe(LightProbe *probe)
 {
-  if (built_map_.checkIsBuiltAndTag(probe)) {
+  if (built_map_.check_is_built_and_tag(probe)) {
     return;
   }
   /* Placeholder so we can add relations and tag ID node for update. */
@@ -2209,7 +2209,7 @@ void DepsgraphNodeBuilder::build_lightprobe(LightProbe *probe)
 
 void DepsgraphNodeBuilder::build_speaker(Speaker *speaker)
 {
-  if (built_map_.checkIsBuiltAndTag(speaker)) {
+  if (built_map_.check_is_built_and_tag(speaker)) {
     return;
   }
   /* Placeholder so we can add relations and tag ID node for update. */
@@ -2224,7 +2224,7 @@ void DepsgraphNodeBuilder::build_speaker(Speaker *speaker)
 
 void DepsgraphNodeBuilder::build_sound(bSound *sound)
 {
-  if (built_map_.checkIsBuiltAndTag(sound)) {
+  if (built_map_.check_is_built_and_tag(sound)) {
     return;
   }
   add_id_node(&sound->id);
@@ -2242,7 +2242,7 @@ void DepsgraphNodeBuilder::build_sound(bSound *sound)
 
 void DepsgraphNodeBuilder::build_vfont(VFont *vfont)
 {
-  if (built_map_.checkIsBuiltAndTag(vfont)) {
+  if (built_map_.check_is_built_and_tag(vfont)) {
     return;
   }
   build_parameters(&vfont->id);
@@ -2277,7 +2277,7 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
   if (scene->ed == nullptr) {
     return;
   }
-  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_SEQUENCER)) {
+  if (built_map_.check_is_built_and_tag(scene, BuilderMap::TAG_SCENE_SEQUENCER)) {
     return;
   }
   build_scene_audio(scene);
@@ -2294,7 +2294,7 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
 
 void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
 {
-  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_AUDIO)) {
+  if (built_map_.check_is_built_and_tag(scene, BuilderMap::TAG_SCENE_AUDIO)) {
     return;
   }
 
