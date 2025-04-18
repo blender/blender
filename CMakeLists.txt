@@ -2401,6 +2401,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     CXX_WARN_NO_IMPLICIT_CONST_INT_FLOAT_CONVERSION -Wno-implicit-const-int-float-conversion
     CXX_WARN_NO_UNDEF -Wno-undef
     CXX_WARN_NO_UNDEF_PREFIX -Wno-undef-prefix
+    CXX_WARN_NO_INCONSISTENT_MISSING_OVERRIDE -Wno-inconsistent-missing-override
   )
 
 elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
