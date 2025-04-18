@@ -366,7 +366,7 @@ bool BLI_file_ensure_parent_dir_exists(const char *filepath) ATTR_NONNULL(1);
  * \note This is only used on APPLE/WIN32.
  */
 bool BLI_file_alias_target(const char *filepath,
-                           char r_targetpath[/*FILE_MAXDIR*/]) ATTR_WARN_UNUSED_RESULT;
+                           char r_targetpath[/*FILE_MAXDIR*/ 768]) ATTR_WARN_UNUSED_RESULT;
 
 bool BLI_file_magic_is_gzip(const char header[4]);
 
