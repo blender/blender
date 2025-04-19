@@ -7,8 +7,11 @@
 
 #include "BKE_armature.hh"
 #include "BKE_modifier.hh"
+
 #include "BLI_listbase.h"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_action_types.h"
@@ -77,7 +80,7 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor)
 
 void get_armature_bone_names(const Object *ob_arm,
                              const bool use_deform,
-                             Vector<std::string> &r_names)
+                             Vector<StringRef> &r_names)
 {
   Map<StringRef, const Bone *> deform_map;
   if (use_deform) {
@@ -85,11 +88,12 @@ void get_armature_bone_names(const Object *ob_arm,
   }
 
   auto visitor = [&](const Bone *bone) {
-    if (use_deform && !deform_map.contains(bone->name)) {
+    const StringRef bone_name(bone->name);
+    if (use_deform && !deform_map.contains(bone_name)) {
       return;
     }
 
-    r_names.append(bone->name);
+    r_names.append(bone_name);
   };
 
   visit_bones(ob_arm, visitor);
@@ -101,7 +105,7 @@ pxr::TfToken build_usd_joint_path(const Bone *bone, bool allow_unicode)
 
   const Bone *parent = bone->parent;
   while (parent) {
-    path = make_safe_name(parent->name, allow_unicode) + std::string("/") + path;
+    path = make_safe_name(parent->name, allow_unicode) + '/' + path;
     parent = parent->parent;
   }
 

@@ -8,6 +8,7 @@
 #include "WM_types.hh"
 
 #include "BLI_map.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
 #include <pxr/usd/usdShade/material.h>
@@ -123,7 +124,7 @@ class USDMaterialReader {
   /** Convert the given USD shader input to an input on the given Blender node. */
   bool set_node_input(const pxr::UsdShadeInput &usd_input,
                       bNode *dest_node,
-                      const char *dest_socket_name,
+                      const StringRefNull dest_socket_name,
                       bNodeTree *ntree,
                       int column,
                       NodePlacementContext *r_ctx,
@@ -135,7 +136,7 @@ class USDMaterialReader {
    */
   bool follow_connection(const pxr::UsdShadeInput &usd_input,
                          bNode *dest_node,
-                         const char *dest_socket_name,
+                         const StringRefNull dest_socket_name,
                          bNodeTree *ntree,
                          int column,
                          NodePlacementContext *r_ctx,
@@ -144,7 +145,7 @@ class USDMaterialReader {
   void convert_usd_uv_texture(const pxr::UsdShadeShader &usd_shader,
                               const pxr::TfToken &usd_source_name,
                               bNode *dest_node,
-                              const char *dest_socket_name,
+                              const StringRefNull dest_socket_name,
                               bNodeTree *ntree,
                               int column,
                               NodePlacementContext *r_ctx,
@@ -152,7 +153,7 @@ class USDMaterialReader {
 
   void convert_usd_transform_2d(const pxr::UsdShadeShader &usd_shader,
                                 bNode *dest_node,
-                                const char *dest_socket_name,
+                                const StringRefNull dest_socket_name,
                                 bNodeTree *ntree,
                                 int column,
                                 NodePlacementContext *r_ctx) const;
@@ -174,7 +175,7 @@ class USDMaterialReader {
   void convert_usd_primvar_reader_float2(const pxr::UsdShadeShader &usd_shader,
                                          const pxr::TfToken &usd_source_name,
                                          bNode *dest_node,
-                                         const char *dest_socket_name,
+                                         const StringRefNull dest_socket_name,
                                          bNodeTree *ntree,
                                          int column,
                                          NodePlacementContext *r_ctx) const;

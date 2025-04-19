@@ -41,7 +41,7 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor);
  *                    armature export joint indices
  * \param r_names: The returned list of bone names
  */
-void get_armature_bone_names(const Object *ob_arm, bool use_deform, Vector<std::string> &r_names);
+void get_armature_bone_names(const Object *ob_arm, bool use_deform, Vector<StringRef> &r_names);
 
 /**
  * Return the USD joint path corresponding to the given bone. For example, for the bone

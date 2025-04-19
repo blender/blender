@@ -756,7 +756,7 @@ void USDMeshWriter::init_skinned_mesh(const HierarchyContext &context)
     return;
   }
 
-  Vector<std::string> bone_names;
+  Vector<StringRef> bone_names;
   get_armature_bone_names(
       arm_obj, usd_export_context_.export_params.only_deform_bones, bone_names);
 

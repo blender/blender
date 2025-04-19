@@ -29,6 +29,7 @@
 #include "BLI_fileops.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
+#include "BLI_string_ref.hh"
 
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
@@ -164,8 +165,8 @@ static Image *load_image(std::string tex_path, Main *bmain, const USDImportParam
  * as an upstream source to 'dst_node' with the given sockets. */
 static bNode *append_node(bNode *dst_node,
                           int16_t new_node_type,
-                          const char *out_sock,
-                          const char *in_sock,
+                          const StringRef out_sock,
+                          const StringRef in_sock,
                           bNodeTree *ntree,
                           float offset)
 {
