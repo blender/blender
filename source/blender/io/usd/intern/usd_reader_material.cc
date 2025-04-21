@@ -699,7 +699,7 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
 
   bNodeSocket *sock = blender::bke::node_find_socket(*dest_node, SOCK_IN, dest_socket_name);
   if (!sock) {
-    CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name);
+    CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name.c_str());
     return false;
   }
 
@@ -747,7 +747,7 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
       CLOG_WARN(&LOG,
                 "Unexpected type %s for destination node socket %s",
                 sock->idname,
-                dest_socket_name);
+                dest_socket_name.c_str());
       break;
   }
 
@@ -1162,7 +1162,8 @@ void USDMaterialReader::convert_usd_uv_texture(const pxr::UsdShadeShader &usd_sh
     tex_image = add_node(nullptr, ntree, SH_NODE_TEX_IMAGE, locx, locy);
 
     if (!tex_image) {
-      CLOG_ERROR(&LOG, "Couldn't create SH_NODE_TEX_IMAGE for node input %s", dest_socket_name);
+      CLOG_ERROR(
+          &LOG, "Couldn't create SH_NODE_TEX_IMAGE for node input %s", dest_socket_name.c_str());
       return;
     }
 
