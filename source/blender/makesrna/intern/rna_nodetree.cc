@@ -3970,6 +3970,11 @@ static const char node_input_maximum[] = "Maximum";
 /* Chroma Key node. */
 static const char node_input_falloff[] = "Falloff";
 
+/* Color Key node. */
+static const char node_input_hue[] = "Hue";
+static const char node_input_saturation[] = "Saturation";
+static const char node_input_value[] = "Value";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -7789,21 +7794,37 @@ static void def_cmp_color_matte(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
 
   prop = RNA_def_property(srna, "color_hue", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t1");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_hue>",
+                               "rna_node_property_to_input_setter<float, node_input_hue>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "H", "Hue tolerance for colors to be considered a keying color");
+  RNA_def_property_ui_text(prop,
+                           "H",
+                           "Hue tolerance for colors to be considered a keying color. "
+                           "(Deprecated: Use Hue input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "color_saturation", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t2");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_saturation>",
+                               "rna_node_property_to_input_setter<float, node_input_saturation>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "S", "Saturation tolerance for the color");
+  RNA_def_property_ui_text(
+      prop,
+      "S",
+      "Saturation tolerance for the color. (Deprecated: Use Saturation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "color_value", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t3");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_value>",
+                               "rna_node_property_to_input_setter<float, node_input_value>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "V", "Value tolerance for the color");
+  RNA_def_property_ui_text(
+      prop, "V", "Value tolerance for the color. (Deprecated: Use Value input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

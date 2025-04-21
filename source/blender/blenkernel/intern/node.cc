@@ -836,6 +836,13 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_float("Maximum", storage->t1);
       write_input_to_property_float("Falloff", storage->fstrength);
     }
+
+    if (node->type_legacy == CMP_NODE_COLOR_MATTE) {
+      NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+      write_input_to_property_float("Hue", storage->t1);
+      write_input_to_property_float("Saturation", storage->t2);
+      write_input_to_property_float("Value", storage->t3);
+    }
   }
 }
 

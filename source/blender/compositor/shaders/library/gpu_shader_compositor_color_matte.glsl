@@ -6,7 +6,7 @@
 
 void node_composite_color_matte(float4 color,
                                 float4 key,
-                                float hue_epsilon,
+                                float hue_threshold,
                                 float saturation_epsilon,
                                 float value_epsilon,
                                 out float4 result,
@@ -17,6 +17,9 @@ void node_composite_color_matte(float4 color,
   rgb_to_hsv(color, color_hsva);
   float4 key_hsva;
   rgb_to_hsv(key, key_hsva);
+
+  /* Divide by 2 because the hue wraps around. */
+  float hue_epsilon = hue_threshold / 2.0f;
 
   bool is_within_saturation = distance(color_hsva.y, key_hsva.y) < saturation_epsilon;
   bool is_within_value = distance(color_hsva.z, key_hsva.z) < value_epsilon;
