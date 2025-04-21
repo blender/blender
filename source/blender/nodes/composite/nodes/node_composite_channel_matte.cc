@@ -32,9 +32,20 @@ NODE_STORAGE_FUNCS(NodeChroma)
 
 static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Minimum")
+      .default_value(0.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Channel values lower than this minimum are keyed");
+  b.add_input<decl::Float>("Maximum")
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Channel values higher than this maximum are not keyed");
+
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Matte");
 }
@@ -90,19 +101,6 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
             std::nullopt,
             ICON_NONE);
   }
-
-  uiItemR(col,
-          ptr,
-          "limit_max",
-          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          std::nullopt,
-          ICON_NONE);
-  uiItemR(col,
-          ptr,
-          "limit_min",
-          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          std::nullopt,
-          ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -145,16 +143,6 @@ static int2 get_limit_channels(const bNode &node)
   return limit_channels;
 }
 
-static float get_max_limit(const bNode &node)
-{
-  return node_storage(node).t1;
-}
-
-static float get_min_limit(const bNode &node)
-{
-  return node_storage(node).t2;
-}
-
 static int node_gpu_material(GPUMaterial *material,
                              bNode *node,
                              bNodeExecData * /*execdata*/,
@@ -164,8 +152,6 @@ static int node_gpu_material(GPUMaterial *material,
   const float color_space = int(get_color_space(*node));
   const float matte_channel = get_matte_channel(*node);
   const float2 limit_channels = float2(get_limit_channels(*node));
-  const float max_limit = get_max_limit(*node);
-  const float min_limit = get_min_limit(*node);
 
   return GPU_stack_link(material,
                         node,
@@ -174,17 +160,15 @@ static int node_gpu_material(GPUMaterial *material,
                         outputs,
                         GPU_constant(&color_space),
                         GPU_constant(&matte_channel),
-                        GPU_constant(limit_channels),
-                        GPU_uniform(&max_limit),
-                        GPU_uniform(&min_limit));
+                        GPU_constant(limit_channels));
 }
 
 template<CMPNodeChannelMatteColorSpace ColorSpace>
 static void channel_key(const float4 &color,
-                        const int matte_channel,
-                        const int2 limit_channels,
                         const float min_limit,
                         const float max_limit,
+                        const int matte_channel,
+                        const int2 limit_channels,
                         float4 &result,
                         float &matte)
 {
@@ -228,50 +212,64 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   const CMPNodeChannelMatteColorSpace color_space = get_color_space(builder.node());
   const int matte_channel = get_matte_channel(builder.node());
   const int2 limit_channels = get_limit_channels(builder.node());
-  const float min_limit = get_min_limit(builder.node());
-  const float max_limit = get_max_limit(builder.node());
 
   switch (color_space) {
     case CMP_NODE_CHANNEL_MATTE_CS_RGB:
       builder.construct_and_set_matching_fn_cb([=]() {
-        return mf::build::SI1_SO2<float4, float4, float>(
+        return mf::build::SI3_SO2<float4, float, float, float4, float>(
             "Channel Key RGB",
-            [=](const float4 &color, float4 &output_color, float &matte) -> void {
+            [=](const float4 &color,
+                const float &minimum,
+                const float &maximum,
+                float4 &output_color,
+                float &matte) -> void {
               channel_key<CMP_NODE_CHANNEL_MATTE_CS_RGB>(
-                  color, matte_channel, limit_channels, min_limit, max_limit, output_color, matte);
+                  color, minimum, maximum, matte_channel, limit_channels, output_color, matte);
             },
             mf::build::exec_presets::AllSpanOrSingle());
       });
       break;
     case CMP_NODE_CHANNEL_MATTE_CS_HSV:
       builder.construct_and_set_matching_fn_cb([=]() {
-        return mf::build::SI1_SO2<float4, float4, float>(
+        return mf::build::SI3_SO2<float4, float, float, float4, float>(
             "Channel Key HSV",
-            [=](const float4 &color, float4 &output_color, float &matte) -> void {
+            [=](const float4 &color,
+                const float &minimum,
+                const float &maximum,
+                float4 &output_color,
+                float &matte) -> void {
               channel_key<CMP_NODE_CHANNEL_MATTE_CS_HSV>(
-                  color, matte_channel, limit_channels, min_limit, max_limit, output_color, matte);
+                  color, minimum, maximum, matte_channel, limit_channels, output_color, matte);
             },
             mf::build::exec_presets::AllSpanOrSingle());
       });
       break;
     case CMP_NODE_CHANNEL_MATTE_CS_YUV:
       builder.construct_and_set_matching_fn_cb([=]() {
-        return mf::build::SI1_SO2<float4, float4, float>(
+        return mf::build::SI3_SO2<float4, float, float, float4, float>(
             "Channel Key YUV",
-            [=](const float4 &color, float4 &output_color, float &matte) -> void {
+            [=](const float4 &color,
+                const float &minimum,
+                const float &maximum,
+                float4 &output_color,
+                float &matte) -> void {
               channel_key<CMP_NODE_CHANNEL_MATTE_CS_YUV>(
-                  color, matte_channel, limit_channels, min_limit, max_limit, output_color, matte);
+                  color, minimum, maximum, matte_channel, limit_channels, output_color, matte);
             },
             mf::build::exec_presets::AllSpanOrSingle());
       });
       break;
     case CMP_NODE_CHANNEL_MATTE_CS_YCC:
       builder.construct_and_set_matching_fn_cb([=]() {
-        return mf::build::SI1_SO2<float4, float4, float>(
+        return mf::build::SI3_SO2<float4, float, float, float4, float>(
             "Channel Key YCC",
-            [=](const float4 &color, float4 &output_color, float &matte) -> void {
+            [=](const float4 &color,
+                const float &minimum,
+                const float &maximum,
+                float4 &output_color,
+                float &matte) -> void {
               channel_key<CMP_NODE_CHANNEL_MATTE_CS_YCC>(
-                  color, matte_channel, limit_channels, min_limit, max_limit, output_color, matte);
+                  color, minimum, maximum, matte_channel, limit_channels, output_color, matte);
             },
             mf::build::exec_presets::AllSpanOrSingle());
       });

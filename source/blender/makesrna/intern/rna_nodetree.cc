@@ -3963,6 +3963,10 @@ static const char node_input_corner_rounding[] = "Corner Rounding";
 /* Vector Blur node. */
 static const char node_input_samples[] = "Samples";
 
+/* Channel Key node. */
+static const char node_input_minimum[] = "Minimum";
+static const char node_input_maximum[] = "Maximum";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -8064,17 +8068,27 @@ static void def_cmp_channel_matte(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "limit_max", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t1");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_Matte_t1_set", nullptr);
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_maximum>",
+                               "rna_node_property_to_input_setter<float, node_input_maximum>",
+                               nullptr);
   RNA_def_property_ui_range(prop, 0, 1, 0.1f, 3);
-  RNA_def_property_ui_text(prop, "High", "Values higher than this setting are 100% opaque");
+  RNA_def_property_ui_text(
+      prop,
+      "High",
+      "Values higher than this setting are 100% opaque. (Deprecated: Use Maximum input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "limit_min", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t2");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_Matte_t2_set", nullptr);
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_minimum>",
+                               "rna_node_property_to_input_setter<float, node_input_minimum>",
+                               nullptr);
   RNA_def_property_ui_range(prop, 0, 1, 0.1f, 3);
-  RNA_def_property_ui_text(prop, "Low", "Values lower than this setting are 100% keyed");
+  RNA_def_property_ui_text(
+      prop,
+      "Low",
+      "Values lower than this setting are 100% keyed. (Deprecated: Use Minimum input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
