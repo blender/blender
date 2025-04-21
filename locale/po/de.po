@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:14+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18831,12 +18831,48 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
 
 
 msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
+
+
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
+
+
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
 
 
 msgid "Select Linked"
@@ -18971,48 +19007,12 @@ msgid "Pivot Point"
 msgstr "Drehpunkt"
 
 
-msgid "Snap"
-msgstr "Einrasten"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Proportionaler Bearbeitungsabfall"
 
 
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
 
 
 msgid "Assets"
@@ -23680,10 +23680,6 @@ msgid "Despeckle"
 msgstr "Perspektive"
 
 
-msgid "Threshold for detecting pixels to despeckle"
-msgstr "Schwellwert für das Zeichnen von Rändern auf Geometrie-Kanten"
-
-
 msgid "Neighbor"
 msgstr "Nachbar"
 
@@ -23702,14 +23698,6 @@ msgstr "Farbabstände unterhalb des Schwellenwertes wird erfasst"
 
 msgid "Dilate/Erode"
 msgstr "Erweitern/Verkleinern"
-
-
-msgid "Distance to grow/shrink (number of iterations)"
-msgstr "Abstand zum Erweitern/Verkleinern (Anzahl von Schritten)"
-
-
-msgid "Edge to inset"
-msgstr "Kante bis einsetzen"
 
 
 msgid "Feather"
@@ -23864,10 +23852,6 @@ msgid "Inpaint"
 msgstr "Malen"
 
 
-msgid "Distance to inpaint (number of iterations)"
-msgstr "Abstand zu Inpaint (Anzahl der Wiederholungen)"
-
-
 msgid "Post Blur"
 msgstr "Anschließend weichzeichnen"
 
@@ -23981,10 +23965,6 @@ msgid "Use Minimum"
 msgstr "Minimum verwenden"
 
 
-msgid "Number of motion blur samples"
-msgstr "Vertikal"
-
-
 msgid "Shutter"
 msgstr "Verschluss"
 
@@ -24003,10 +23983,6 @@ msgstr "Pixel als Einheit für Brennweite verwenden"
 
 msgid "Fixed/Scene"
 msgstr "Szene"
-
-
-msgid "Use feather information from the mask"
-msgstr "Benutze Feder Informationen von der Maske"
 
 
 msgid "Motion Blur"
@@ -24209,6 +24185,10 @@ msgid "Pixel Size"
 msgstr "Pixelgröße"
 
 
+msgid "Number of motion blur samples"
+msgstr "Vertikal"
+
+
 msgid "Alpha Convert"
 msgstr "Umwandeln"
 
@@ -24277,10 +24257,6 @@ msgid "Switch"
 msgstr "Schalter"
 
 
-msgid "Off: first socket, On: second socket"
-msgstr "Aus: erste Buchse, An: zweite Buchse"
-
-
 msgid "Node Output"
 msgstr "Knotenausgabe"
 
@@ -24291,14 +24267,6 @@ msgstr "Zeitkurve"
 
 msgid "Adaptation"
 msgstr "Anpassung"
-
-
-msgid "If 0, global; if 1, based on pixel intensity"
-msgstr "Wenn 0, global; wenn 1, auf Pixelintensität basierend"
-
-
-msgid "If not used, set to 1"
-msgstr "Wenn nicht benutzt auf 1 setzen"
 
 
 msgid "Rh Simple"
@@ -40167,6 +40135,30 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
+
+
+msgid "Measurement"
+msgstr "Messung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Snapping"
+msgstr "Einrasten"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
 msgid "Guides"
 msgstr "Hilfslinien"
 
@@ -40187,8 +40179,8 @@ msgid "Auto-Masking"
 msgstr "Automatisches Maskieren"
 
 
-msgid "Drawing Plane"
-msgstr "Malfläche"
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
 
 
 msgid "VR"
@@ -40229,30 +40221,6 @@ msgstr "Setzer"
 
 msgid "Overlays"
 msgstr "Überlagerungen"
-
-
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Snapping"
-msgstr "Einrasten"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
 
 
 msgid "Chain Scaling"
@@ -47407,6 +47375,14 @@ msgid "Hue correction modifier for sequence strip"
 msgstr "Farbkorrektur-Modifikator für Sequenzstreifen"
 
 
+msgid "If 0, global; if 1, based on pixel intensity"
+msgstr "Wenn 0, global; wenn 1, auf Pixelintensität basierend"
+
+
+msgid "If not used, set to 1"
+msgstr "Wenn nicht benutzt auf 1 setzen"
+
+
 msgid "White balance modifier for sequence strip"
 msgstr "Weißbalance-Modifikator für Sequenzstreifen"
 
@@ -53029,11 +53005,6 @@ msgstr "Instanz zu Szene"
 
 
 msgctxt "Operator"
-msgid "ID Data"
-msgstr "ID Data"
-
-
-msgctxt "Operator"
 msgid "Paste Data-Blocks"
 msgstr "Einfügen Datenblöcke"
 
@@ -54229,6 +54200,11 @@ msgstr "Leer"
 
 
 msgctxt "Operator"
+msgid "Point Cloud"
+msgstr "Punkt Wolke"
+
+
+msgctxt "Operator"
 msgid "Speaker"
 msgstr "Lautsprecher"
 
@@ -54825,11 +54801,6 @@ msgstr "Vorheriger Bereich"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "Nächster Bereich"
-
-
-msgctxt "Operator"
-msgid "Point Cloud"
-msgstr "Punkt Wolke"
 
 
 msgctxt "Operator"
@@ -59320,6 +59291,10 @@ msgid "To Max"
 msgstr "Bis Maximum"
 
 
+msgid "Use feather information from the mask"
+msgstr "Benutze Feder Informationen von der Maske"
+
+
 msgid "Offset Y"
 msgstr "Y-Versatz"
 
@@ -60184,10 +60159,6 @@ msgstr "Alle durch den Benutzer installierten Add-Ons"
 
 msgid "Import-Export"
 msgstr "Importieren/Expotieren"
-
-
-msgid "English (English)"
-msgstr "Englisch (English)"
 
 
 msgid "Japanese (日本語)"

@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
-"PO-Revision-Date: 2025-04-14 08:26+0000\n"
-"Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"PO-Revision-Date: 2025-04-15 22:56+0000\n"
+"Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -24571,12 +24571,52 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
 
 
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
 
 
 msgid "Select Linked"
@@ -24731,10 +24771,6 @@ msgid "Pivot Point"
 msgstr "Punto di Perno"
 
 
-msgid "Snap"
-msgstr "Aggancia"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
 
@@ -24749,42 +24785,6 @@ msgstr "Automascheramento"
 
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
 
 
 msgid "Keyframe Insert Pie"
@@ -26952,6 +26952,11 @@ msgstr "Utilizza collassatura spigolo"
 
 msgid "Use un-subdivide face reduction"
 msgstr "Utilizza la riduzione facce mediante de-suddivisione"
+
+
+msgctxt "Mesh"
+msgid "Planar"
+msgstr "Planare"
 
 
 msgid "Dissolve geometry to form planar polygons"
@@ -31342,6 +31347,10 @@ msgid "Placeholder"
 msgstr "Segnaposto"
 
 
+msgid "Cryptomatte Layer"
+msgstr "Livello Cryptomatte"
+
+
 msgid "Auto-Refresh"
 msgstr "Aggiornamento Automatico"
 
@@ -31462,10 +31471,6 @@ msgid "Despeckle"
 msgstr "Smacchiatura"
 
 
-msgid "Threshold for detecting pixels to despeckle"
-msgstr "Soglia per rilevare i pixel da smacchiare"
-
-
 msgid "Neighbor"
 msgstr "Più Vicino"
 
@@ -31481,10 +31486,6 @@ msgstr "Dilata/Erodi"
 msgctxt "Image"
 msgid "Edge"
 msgstr "Spigolo"
-
-
-msgid "Edge to inset"
-msgstr "Spigolo da incassare"
 
 
 msgid "Feather"
@@ -31749,10 +31750,6 @@ msgid "Use Minimum"
 msgstr "Utilizza Minimo"
 
 
-msgid "Number of motion blur samples"
-msgstr "Numero del percorso delle particelle"
-
-
 msgid "Shutter"
 msgstr "Otturatore"
 
@@ -31771,10 +31768,6 @@ msgstr "Utilizza la dimensione pixel per il buffer"
 
 msgid "Fixed/Scene"
 msgstr "Fisso/Scena"
-
-
-msgid "Use feather information from the mask"
-msgstr "Utilizza informazioni sfumatura dalla maschera"
 
 
 msgid "Motion Blur"
@@ -32001,6 +31994,10 @@ msgid "Pixel Size"
 msgstr "Dimensione Pixel"
 
 
+msgid "Number of motion blur samples"
+msgstr "Numero del percorso delle particelle"
+
+
 msgid "Alpha Convert"
 msgstr "Conversione Alfa"
 
@@ -32049,10 +32046,6 @@ msgid "Switch"
 msgstr "Commutatore"
 
 
-msgid "Off: first socket, On: second socket"
-msgstr "Off: primo connettore, On: secondo connettore"
-
-
 msgid "Node Output"
 msgstr "Uscita Nodo"
 
@@ -32063,18 +32056,6 @@ msgstr "Mappa Tonalità"
 
 msgid "Adaptation"
 msgstr "Adattamento"
-
-
-msgid "If 0, global; if 1, based on pixel intensity"
-msgstr "Se 0, globale; se 1, basato sull'intensità del pixel"
-
-
-msgid "If 0, same for all channels; if 1, each independent"
-msgstr "Se 0, uguale per tutti i canali; se 1, ogni canale indipendentemente"
-
-
-msgid "If not used, set to 1"
-msgstr "Se non utilizzato, impostare a 1"
 
 
 msgid "Tonemap Type"
@@ -32139,10 +32120,6 @@ msgstr "Fattore Sfocatura"
 
 msgid "Max Speed"
 msgstr "Velocità Max"
-
-
-msgid "Maximum speed, or zero for none"
-msgstr "Velocità massima, o zero per nessuna"
 
 
 msgid "Min Speed"
@@ -32497,6 +32474,10 @@ msgstr "Angolo Spigolo"
 
 msgid "Edge Vertices"
 msgstr "Vertici dello Spigolo"
+
+
+msgid "Is Face Planar"
+msgstr "È la Faccia Planare"
 
 
 msgid "Named Attribute"
@@ -50865,12 +50846,36 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Mesh Edit Mode"
+msgstr "Modalità Modifica Mesh"
+
+
+msgid "Measurement"
+msgstr "Misurazione"
+
+
+msgid "Snapping"
+msgstr "Ancoraggio"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
 
 
 msgid "Auto-Masking"
 msgstr "Auto-Mascheramento"
+
+
+msgid "Motion Tracking"
+msgstr "Tracciatura Movimento"
 
 
 msgid "Wire Color"
@@ -50895,30 +50900,6 @@ msgstr "Compositore"
 
 msgid "Overlays"
 msgstr "Sovrapposizioni"
-
-
-msgid "Motion Tracking"
-msgstr "Tracciatura Movimento"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Modalità Modifica Mesh"
-
-
-msgid "Measurement"
-msgstr "Misurazione"
-
-
-msgid "Snapping"
-msgstr "Ancoraggio"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
 
 
 msgid "Chain Scaling"
@@ -57921,6 +57902,18 @@ msgstr "Modificatore curve RGB di uno spzzone sequenza"
 
 msgid "Hue correction modifier for sequence strip"
 msgstr "Modificatore tonalità di uno spezzone sequenza"
+
+
+msgid "If 0, global; if 1, based on pixel intensity"
+msgstr "Se 0, globale; se 1, basato sull'intensità del pixel"
+
+
+msgid "If 0, same for all channels; if 1, each independent"
+msgstr "Se 0, uguale per tutti i canali; se 1, ogni canale indipendentemente"
+
+
+msgid "If not used, set to 1"
+msgstr "Se non utilizzato, impostare a 1"
 
 
 msgid "White balance modifier for sequence strip"
@@ -66955,6 +66948,10 @@ msgid "Control Point:"
 msgstr "Punto di Controllo:"
 
 
+msgid "Point:"
+msgstr "Punto:"
+
+
 msgid "Vertex:"
 msgstr "Vertice:"
 
@@ -68057,6 +68054,10 @@ msgid "From Max"
 msgstr "Da Max"
 
 
+msgid "Use feather information from the mask"
+msgstr "Utilizza informazioni sfumatura dalla maschera"
+
+
 msgid "Offset Y"
 msgstr "Offset Y"
 
@@ -68983,10 +68984,6 @@ msgstr "microfono"
 
 msgid "network"
 msgstr "rete"
-
-
-msgid "English (English)"
-msgstr "Inglese (English)"
 
 
 msgid "Japanese (日本語)"

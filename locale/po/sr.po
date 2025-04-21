@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8581,6 +8581,30 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
 msgid "Select Linked"
 msgstr "Изабери повезано"
 
@@ -8663,30 +8687,6 @@ msgstr "Специјални знаци"
 
 msgid "Bone Roll"
 msgstr "Ролна костију"
-
-
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
 
 
 msgid "Basic"
@@ -11027,10 +11027,6 @@ msgid "Use Minimum"
 msgstr "Користи минимум"
 
 
-msgid "Number of motion blur samples"
-msgstr "Поставља број додатних бљесова"
-
-
 msgid "Size Source"
 msgstr "Изворна величина"
 
@@ -11041,10 +11037,6 @@ msgstr "Величина сцене"
 
 msgid "Fixed/Scene"
 msgstr "Фиксно/Сцена"
-
-
-msgid "Use feather information from the mask"
-msgstr "Користи информације умекшавања са маске"
 
 
 msgid "Motion Blur"
@@ -11081,6 +11073,10 @@ msgstr "Тачкасто"
 
 msgid "Pixel Size"
 msgstr "Величина пиксела"
+
+
+msgid "Number of motion blur samples"
+msgstr "Поставља број додатних бљесова"
 
 
 msgid "Alpha Convert"
@@ -11175,16 +11171,8 @@ msgid "Max Speed"
 msgstr "Макс. брзина"
 
 
-msgid "Maximum speed, or zero for none"
-msgstr "Максимална брзина или нула за ништа"
-
-
 msgid "Min Speed"
 msgstr "Мин. брзина"
-
-
-msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
-msgstr "Минимална брзина пиксела да би био замућен (користи се за раздвајање предњеги и задњег плана)"
 
 
 msgid "Viewer"
@@ -19783,12 +19771,12 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
-msgid "Motion Tracking"
-msgstr "Праћење покрета"
-
-
 msgid "Transform Orientations"
 msgstr "Трансформација оријентација"
+
+
+msgid "Motion Tracking"
+msgstr "Праћење покрета"
 
 
 msgid "Bone Constraints"
@@ -26080,6 +26068,10 @@ msgid "Glare"
 msgstr "Бљесак"
 
 
+msgid "Use feather information from the mask"
+msgstr "Користи информације умекшавања са маске"
+
+
 msgid "Val"
 msgstr "Вр."
 
@@ -26329,10 +26321,6 @@ msgstr "Збирка поза"
 
 msgid "Import-Export"
 msgstr "Увоз-извоз"
-
-
-msgid "English (English)"
-msgstr "Енглески (English)"
 
 
 msgid "Japanese (日本語)"

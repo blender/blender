@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:54+0000\n"
 "Last-Translator: Martynas Žiemys <martynasziemys@gmail.com>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -4858,10 +4858,6 @@ msgstr "mikrofonas"
 
 msgid "network"
 msgstr "tinklas"
-
-
-msgid "English (English)"
-msgstr "Angliškai (English)"
 
 
 msgid "Japanese (日本語)"

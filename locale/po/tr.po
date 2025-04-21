@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:43+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -29255,12 +29255,52 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
+msgid "Local View"
+msgstr "Yerel Görünüm"
+
+
+msgid "Viewpoint"
+msgstr "Bakış açısı"
+
+
+msgid "Navigation"
+msgstr "Navigasyon"
+
+
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
+
+
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
 
 
 msgid "Select More/Less"
 msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Select Similar"
+msgstr "Benzerini Seç"
+
+
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
 
 
 msgid "Select Linked"
@@ -29431,10 +29471,6 @@ msgid "Pivot Point"
 msgstr "Pivot Noktası"
 
 
-msgid "Snap"
-msgstr "Yakala"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Orantılı Düzenleme Düşüşü"
 
@@ -29449,42 +29485,6 @@ msgstr "Otomatik maskeleme"
 
 msgid "Face Sets Edit"
 msgstr "Yüz Setleri Düzenle"
-
-
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
-msgid "Local View"
-msgstr "Yerel Görünüm"
-
-
-msgid "Viewpoint"
-msgstr "Bakış açısı"
-
-
-msgid "Navigation"
-msgstr "Navigasyon"
-
-
-msgid "Align View"
-msgstr "Görünümü hizala"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
-
-
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
 
 
 msgid "Keyframe Insert Pie"
@@ -38168,14 +38168,6 @@ msgid "Corner Rounding"
 msgstr "Köşe Yuvarlatma"
 
 
-msgid "How much sharp corners will be rounded"
-msgstr "Keskin köşeler ne kadar yuvarlatılacak"
-
-
-msgid "Threshold to detect edges (smaller threshold makes more sensitive detection)"
-msgstr "Kenarları algılamak için eşik (daha küçük eşik daha hassas algılama sağlar)"
-
-
 msgid "Bilateral Blur"
 msgstr "İkili Bulanıklık"
 
@@ -39194,16 +39186,8 @@ msgid "Despeckle"
 msgstr "Benekleri gidermek"
 
 
-msgid "Threshold for detecting pixels to despeckle"
-msgstr "Lekeleri gidermek için pikselleri algılama eşiği"
-
-
 msgid "Neighbor"
 msgstr "Komşu"
-
-
-msgid "Threshold for the number of neighbor pixels that must match"
-msgstr "Eşleşmesi gereken komşu piksel sayısı için eşik"
 
 
 msgid "Difference Key"
@@ -39226,17 +39210,9 @@ msgid "Expand and shrink masks"
 msgstr "Maskeleri genişlet ve daralt"
 
 
-msgid "Distance to grow/shrink (number of iterations)"
-msgstr "Büyüme/daralma mesafesi (tekrarlama sayısı)"
-
-
 msgctxt "Image"
 msgid "Edge"
 msgstr "Kenar"
-
-
-msgid "Edge to inset"
-msgstr "Kenardan içe doğru"
 
 
 msgid "Growing/shrinking mode"
@@ -39495,10 +39471,6 @@ msgid "Extend borders of an image into transparent or masked regions"
 msgstr "Bir görüntünün sınırlarını şeffaf veya maskeli bölgelere genişletin"
 
 
-msgid "Distance to inpaint (number of iterations)"
-msgstr "Boyanmaya olan mesafe (tekrarlama sayısı)"
-
-
 msgid "Invert Color"
 msgstr "Rengi Tersine Çevir"
 
@@ -39731,16 +39703,8 @@ msgid "Use Minimum"
 msgstr "Minimumu Kullan"
 
 
-msgid "Number of motion blur samples"
-msgstr "Hareket bulanıklığı örneklerinin sayısı"
-
-
 msgid "Shutter"
 msgstr "Kepenk"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "FPS faktörü olarak hareket bulanıklığına maruz kalma"
 
 
 msgid "Size Source"
@@ -39767,16 +39731,8 @@ msgid "Pixel size scaled by scene percentage"
 msgstr "Sahne yüzdesine göre ölçeklenen piksel boyutu"
 
 
-msgid "Use feather information from the mask"
-msgstr "Maskeden tüy bilgilerini kullan"
-
-
 msgid "Motion Blur"
 msgstr "Hareket Bulanıklığı"
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "Maskenin çoklu örneklenmiş hareket bulanıklığını kullan"
 
 
 msgid "Perform math operations"
@@ -40225,12 +40181,20 @@ msgid "Pixel Size"
 msgstr "Piksel Boyutu"
 
 
-msgid "Pixel size of the output image"
-msgstr "Çıkış görüntüsünün piksel boyutu"
-
-
 msgid "Plane Track Deform"
 msgstr "Uçak İzi Deformasyonu"
+
+
+msgid "Number of motion blur samples"
+msgstr "Hareket bulanıklığı örneklerinin sayısı"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "FPS faktörü olarak hareket bulanıklığına maruz kalma"
+
+
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "Maskenin çoklu örneklenmiş hareket bulanıklığını kullan"
 
 
 msgid "Posterize"
@@ -40401,10 +40365,6 @@ msgid "Switch between two images using a checkbox"
 msgstr "Bir onay kutusu kullanarak iki resim arasında geçiş yapın"
 
 
-msgid "Off: first socket, On: second socket"
-msgstr "Kapalı: ilk soket, Açık: ikinci soket"
-
-
 msgid "Switch View"
 msgstr "Görünümü Değiştir"
 
@@ -40431,30 +40391,6 @@ msgstr "Ton haritası"
 
 msgid "Adaptation"
 msgstr "Uyum"
-
-
-msgid "If 0, global; if 1, based on pixel intensity"
-msgstr "0 ise, genel; 1 ise, piksel yoğunluğuna göre"
-
-
-msgid "Set to 0 to use estimate from input image"
-msgstr "Giriş görüntüsünden tahmin kullanmak için 0 olarak ayarlayın"
-
-
-msgid "If 0, same for all channels; if 1, each independent"
-msgstr "0 ise, tüm kanallar için aynıdır; 1 ise, her kanal bağımsızdır"
-
-
-msgid "If not used, set to 1"
-msgstr "Kullanılmıyorsa 1 olarak ayarlayın"
-
-
-msgid "If less than zero, darkens image; otherwise, makes it brighter"
-msgstr "Sıfırdan küçükse, görüntüyü koyulaştırır; aksi takdirde, daha parlak hale getirir"
-
-
-msgid "The value the average luminance is mapped to"
-msgstr "Ortalama parlaklığın eşlendiği değer"
 
 
 msgid "Tonemap Type"
@@ -40565,24 +40501,12 @@ msgid "Blur Factor"
 msgstr "Bulanıklık Faktörü"
 
 
-msgid "Scaling factor for motion vectors (actually, 'shutter speed', in frames)"
-msgstr "Hareket vektörleri için ölçekleme faktörü (aslında, karelerdeki 'deklanşör hızı')"
-
-
 msgid "Max Speed"
 msgstr "Maksimum Hız"
 
 
-msgid "Maximum speed, or zero for none"
-msgstr "Maksimum hız veya sıfır hiç yok"
-
-
 msgid "Min Speed"
 msgstr "Minimum Hız"
-
-
-msgid "Interpolate between frames in a Bézier curve, rather than linearly"
-msgstr "Doğrusal olarak değil, Bézier eğrisindeki kareler arasında enterpolasyon yapın"
 
 
 msgid "Viewer"
@@ -40595,10 +40519,6 @@ msgstr "Z Kombinasyonu"
 
 msgid "Combine two images using depth maps"
 msgstr "Derinlik haritalarını kullanarak iki görüntüyü birleştirin"
-
-
-msgid "Take alpha channel into account when doing the Z operation"
-msgstr "Z işlemini yaparken alfa kanalını hesaba katın"
 
 
 msgid "Anti-Alias Z"
@@ -76783,6 +76703,14 @@ msgid "Operator that allows file handlers to receive file drops"
 msgstr "Dosya işleyicilerinin dosya düşüşlerini almasını sağlayan operatör"
 
 
+msgid "Vertex colors in the file are in sRGB color space"
+msgstr "Dosyadaki köşe renkleri sRGB renk uzayındadır"
+
+
+msgid "Vertex colors in the file are in linear color space"
+msgstr "Dosyadaki tepe noktası renkleri doğrusal renk uzayındadır"
+
+
 msgctxt "Operator"
 msgid "Export to PDF"
 msgstr "PDF'ye aktar"
@@ -77172,14 +77100,6 @@ msgstr "Tepecik Renklerini Dışa Aktar"
 
 msgid "Do not import/export color attributes"
 msgstr "Renk niteliklerini içe/dışa aktarmayın"
-
-
-msgid "Vertex colors in the file are in sRGB color space"
-msgstr "Dosyadaki köşe renkleri sRGB renk uzayındadır"
-
-
-msgid "Vertex colors in the file are in linear color space"
-msgstr "Dosyadaki tepe noktası renkleri doğrusal renk uzayındadır"
 
 
 msgid "Export Vertex Normals"
@@ -79202,6 +79122,34 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Mesh Edit Mode"
+msgstr "Mesh Düzenleme Modu"
+
+
+msgid "Measurement"
+msgstr "Ölçüm"
+
+
+msgid "Curve Edit Mode"
+msgstr "Eğri Düzenleme Modu"
+
+
+msgid "Snapping"
+msgstr "Çıtlama"
+
+
+msgid "Transform Orientations"
+msgstr "Dönüştürme Yönlendirmeleri"
+
+
+msgid "Stroke Placement"
+msgstr "İnme Yerleşimi"
+
+
+msgid "Drawing Plane"
+msgstr "Çizim düzlemi"
+
+
 msgid "Guides"
 msgstr "Rehberler"
 
@@ -79226,6 +79174,10 @@ msgid "Auto-Masking"
 msgstr "Otomatik Maskeleme"
 
 
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
 msgid "Curves Sculpt Add Curve Options"
 msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
 
@@ -79240,10 +79192,6 @@ msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
 
 msgid "Viewport Debug"
 msgstr "Görüş Alanı Hata Ayıklaması"
-
-
-msgid "Drawing Plane"
-msgstr "Çizim düzlemi"
 
 
 msgid "VR"
@@ -79304,34 +79252,6 @@ msgstr "Kaplamalar"
 
 msgid "Viewer Node"
 msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Düzenleme Modu"
-
-
-msgid "Measurement"
-msgstr "Ölçüm"
-
-
-msgid "Curve Edit Mode"
-msgstr "Eğri Düzenleme Modu"
-
-
-msgid "Snapping"
-msgstr "Çıtlama"
-
-
-msgid "Transform Orientations"
-msgstr "Dönüştürme Yönlendirmeleri"
-
-
-msgid "Stroke Placement"
-msgstr "İnme Yerleşimi"
 
 
 msgid "Chain Scaling"
@@ -82572,14 +82492,6 @@ msgstr "Yeni Eğriler Araçları"
 
 msgid "Enable additional features for the new curves data block"
 msgstr "Yeni eğriler veri bloğu için ek özellikleri etkinleştirin"
-
-
-msgid "New Point Cloud Type"
-msgstr "Yeni Nokta Bulutu Türü"
-
-
-msgid "Enable the new point cloud type in the ui"
-msgstr "Kullanıcı arayüzünde yeni nokta bulutu türünü etkinleştirin"
 
 
 msgid "New Volume Nodes"
@@ -93950,6 +93862,30 @@ msgstr "Dizi şeridi için renk tonu düzeltme değiştiricisi"
 
 msgid "Tone mapping modifier"
 msgstr "Ton eşleme değiştiricisi"
+
+
+msgid "If 0, global; if 1, based on pixel intensity"
+msgstr "0 ise, genel; 1 ise, piksel yoğunluğuna göre"
+
+
+msgid "Set to 0 to use estimate from input image"
+msgstr "Giriş görüntüsünden tahmin kullanmak için 0 olarak ayarlayın"
+
+
+msgid "If 0, same for all channels; if 1, each independent"
+msgstr "0 ise, tüm kanallar için aynıdır; 1 ise, her kanal bağımsızdır"
+
+
+msgid "If not used, set to 1"
+msgstr "Kullanılmıyorsa 1 olarak ayarlayın"
+
+
+msgid "If less than zero, darkens image; otherwise, makes it brighter"
+msgstr "Sıfırdan küçükse, görüntüyü koyulaştırır; aksi takdirde, daha parlak hale getirir"
+
+
+msgid "The value the average luminance is mapped to"
+msgstr "Ortalama parlaklığın eşlendiği değer"
 
 
 msgid "Tone mapping algorithm"
@@ -108289,11 +108225,6 @@ msgstr "Örnekten Sahneye"
 
 
 msgctxt "Operator"
-msgid "ID Data"
-msgstr "Kimlik Verileri"
-
-
-msgctxt "Operator"
 msgid "Paste Data-Blocks"
 msgstr "Veri Bloklarını Yapıştır"
 
@@ -110060,6 +109991,11 @@ msgstr "Boş"
 
 
 msgctxt "Operator"
+msgid "Point Cloud"
+msgstr "Nokta Bulutu"
+
+
+msgctxt "Operator"
 msgid "Speaker"
 msgstr "Konuşmacı"
 
@@ -110962,11 +110898,6 @@ msgstr "Önceki Blok"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "Sonraki Blok"
-
-
-msgctxt "Operator"
-msgid "Point Cloud"
-msgstr "Nokta Bulutu"
 
 
 msgctxt "Operator"
@@ -123532,6 +123463,10 @@ msgid "To Max"
 msgstr "Maksimuma"
 
 
+msgid "Use feather information from the mask"
+msgstr "Maskeden tüy bilgilerini kullan"
+
+
 msgid "Offset Y"
 msgstr "Ofset Y"
 
@@ -127359,10 +127294,6 @@ msgstr "Yüksek Kontrast"
 msgctxt "Preferences"
 msgid "Inspired By"
 msgstr "İlham Alındı"
-
-
-msgid "English (English)"
-msgstr "İngilizce (English)"
 
 
 msgid "Japanese (日本語)"

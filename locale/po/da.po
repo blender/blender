@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
-"PO-Revision-Date: 2025-04-14 08:13+0000\n"
-"Last-Translator: Martin Meiland <martinmeiland@hotmail.dk>\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"PO-Revision-Date: 2025-04-18 12:33+0000\n"
+"Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -613,6 +613,10 @@ msgstr "slukket"
 
 msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
 msgstr "Deaktiver kerneoptimering. Langsomste gengivelse, ingen ekstra baggrunds-CPU-brug"
+
+
+msgid "Intersection only"
+msgstr "Kun kryds"
 
 
 msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
@@ -1796,6 +1800,10 @@ msgid "Floating-point value"
 msgstr "Flydende komma værdi"
 
 
+msgid "Integer"
+msgstr "Heltal"
+
+
 msgid "32-bit integer"
 msgstr "32-bit heltal"
 
@@ -2520,6 +2528,10 @@ msgid "Handle 2 selection status"
 msgstr "Håndter 2 valgstatus"
 
 
+msgid "Tilt"
+msgstr "vippe"
+
+
 msgid "Tilt in 3D View"
 msgstr "Vip i 3D-visning"
 
@@ -2534,6 +2546,38 @@ msgstr "Softbody målvægt"
 
 msgid "Blend-File Data"
 msgstr "Blend-fil data"
+
+
+msgid "Main data structure representing a .blend file and all its data-blocks"
+msgstr "Hoveddatastruktur, der repræsenterer en .blend-fil og alle dens datablokke"
+
+
+msgid "Actions"
+msgstr "Handlinger"
+
+
+msgid "Action data-blocks"
+msgstr "Handlingsdatablokke"
+
+
+msgid "Armatures"
+msgstr "Armaturer"
+
+
+msgid "Armature data-blocks"
+msgstr "Skelet data-bloke"
+
+
+msgid "Brushes"
+msgstr "Pensler"
+
+
+msgid "Brush data-blocks"
+msgstr "Pensler data-blokke"
+
+
+msgid "Cache Files"
+msgstr "Cache filer"
 
 
 msgid "Cache Files data-blocks"
@@ -2554,6 +2598,10 @@ msgstr "Samlinger"
 
 msgid "Collection data-blocks"
 msgstr "Indsamling af data-blokke"
+
+
+msgid "Curves"
+msgstr "Kurver"
 
 
 msgid "Curve data-blocks"
@@ -2590,6 +2638,10 @@ msgstr "Grease Pencil"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Grease Pencil datablokke"
+
+
+msgid "Hair Curves"
+msgstr "Hårkurver"
 
 
 msgid "Hair curve data-blocks"
@@ -2732,6 +2784,10 @@ msgid "Particle data-blocks"
 msgstr "Partikeldatablokke"
 
 
+msgid "Point Clouds"
+msgstr "Punktskyer"
+
+
 msgid "Point cloud data-blocks"
 msgstr "Punktsky data-blokke"
 
@@ -2746,6 +2802,102 @@ msgstr "Scene data-blokke"
 
 msgid "Screens"
 msgstr "Skærme"
+
+
+msgid "Screen data-blocks"
+msgstr "Skærm data-blokke"
+
+
+msgid "Shape Keys"
+msgstr "Formnøgler"
+
+
+msgid "Shape Key data-blocks"
+msgstr "Shape Key data-blokke"
+
+
+msgid "Sounds"
+msgstr "Lyde"
+
+
+msgid "Sound data-blocks"
+msgstr "Lyde data-blokke"
+
+
+msgid "Speakers"
+msgstr "Højtalere"
+
+
+msgid "Speaker data-blocks"
+msgstr "Højttaler data-blokke"
+
+
+msgid "Texts"
+msgstr "Tekster"
+
+
+msgid "Text data-blocks"
+msgstr "Tekstdatablokke"
+
+
+msgid "Textures"
+msgstr "Teksturer"
+
+
+msgid "Texture data-blocks"
+msgstr "Tekstur data-blokke"
+
+
+msgid "Use Auto-Pack"
+msgstr "Brug Auto-Pack"
+
+
+msgid "Automatically pack all external data into .blend file"
+msgstr "Pak automatisk alle eksterne data ind i en .blend-fil"
+
+
+msgid "Version"
+msgstr "Version"
+
+
+msgid "File format version the .blend file was saved with"
+msgstr "Filformatversion .blend-filen blev gemt med"
+
+
+msgid "Window Managers"
+msgstr "Window Managers"
+
+
+msgid "Window manager data-blocks"
+msgstr "Window manager datablokke"
+
+
+msgid "Workspaces"
+msgstr "Arbejdsrum"
+
+
+msgid "Workspace data-blocks"
+msgstr "Workspace data-blokke"
+
+
+msgid "Worlds"
+msgstr "Verdener"
+
+
+msgid "World data-blocks"
+msgstr "Verdens datablokke"
+
+
+msgid "Main Actions"
+msgstr "Hovedhandlinger"
+
+
+msgid "Collection of actions"
+msgstr "Samling af handlinger"
+
+
+msgid "Main Armatures"
+msgstr "Hoved Armaturer"
 
 
 msgid "Collection of armatures"
@@ -2770,6 +2922,182 @@ msgstr "Samling af cache-filer"
 
 msgid "Main Cameras"
 msgstr "Hovedkameraer"
+
+
+msgid "Collection of cameras"
+msgstr "Samling af kameraer"
+
+
+msgid "Main Collections"
+msgstr "Hovedsamlinger"
+
+
+msgid "Main Curves"
+msgstr "Hovedkurver"
+
+
+msgid "Collection of curves"
+msgstr "Samling af kurver"
+
+
+msgid "Main Fonts"
+msgstr "Hovedskrifttyper"
+
+
+msgid "Collection of fonts"
+msgstr "Samling af skrifttyper"
+
+
+msgid "Main Hair Curves"
+msgstr "Hoved hår kurver"
+
+
+msgid "Main Images"
+msgstr "Hoved billeder"
+
+
+msgid "Collection of images"
+msgstr "Samling af billeder"
+
+
+msgid "Main Lattices"
+msgstr "Hoved gitter"
+
+
+msgid "Collection of lattices"
+msgstr "Samling af gitter"
+
+
+msgid "Main Libraries"
+msgstr "Hoved biblioteker"
+
+
+msgid "Collection of libraries"
+msgstr "Samling af biblioteker"
+
+
+msgid "Main Lights"
+msgstr "Hoved lys"
+
+
+msgid "Main Line Styles"
+msgstr "Hoved Linje Stile"
+
+
+msgid "Collection of line styles"
+msgstr "Samling af linje stile"
+
+
+msgid "Main Masks"
+msgstr "Hoved Masker"
+
+
+msgid "Collection of masks"
+msgstr "Samling af masker"
+
+
+msgid "Main Materials"
+msgstr "Hoved Materialer"
+
+
+msgid "Collection of materials"
+msgstr "Samling af materialer"
+
+
+msgid "Main Meshes"
+msgstr "Hoved Masker"
+
+
+msgid "Collection of meshes"
+msgstr "Samling af masker"
+
+
+msgid "Main Metaballs"
+msgstr "Hoved Metaballs"
+
+
+msgid "Collection of metaballs"
+msgstr "Samling af metaballs"
+
+
+msgid "Main Movie Clips"
+msgstr "Hoved filmklip"
+
+
+msgid "Collection of movie clips"
+msgstr "Samling af filmklip"
+
+
+msgid "Main Node Trees"
+msgstr "Hoved Node Træer"
+
+
+msgid "Collection of node trees"
+msgstr "Samling af node træer"
+
+
+msgid "Main Objects"
+msgstr "Hoved Objekter"
+
+
+msgid "Collection of objects"
+msgstr "Samling af genstande"
+
+
+msgid "Collection of palettes"
+msgstr "Samling af paletter"
+
+
+msgid "Main Particle Settings"
+msgstr "Hoved Partikel Indstillinger"
+
+
+msgid "Collection of particle settings"
+msgstr "Indsamling af partikelindstillinger"
+
+
+msgid "Main Point Clouds"
+msgstr "Hovedpunktskyer"
+
+
+msgid "Main Light Probes"
+msgstr "Hovedlyssonder"
+
+
+msgid "Collection of light probes"
+msgstr "Samling af lyssonder"
+
+
+msgid "Main Scenes"
+msgstr "Hoved Scener"
+
+
+msgid "Collection of scenes"
+msgstr "Samling af scener"
+
+
+msgid "Set fake user on appended IDs"
+msgstr "Indstil falsk bruger på vedlagte id'er"
+
+
+msgid "Append (make local) also indirect dependencies of appended IDs coming from other libraries. NOTE: All IDs (including indirectly linked ones) coming from the same initial library are always made local"
+msgstr "Tilføj (gør lokale) også indirekte afhængigheder af tilføjede id'er, der kommer fra andre biblioteker. BEMÆRK: Alle id'er (inklusive indirekte linkede), der kommer fra det samme oprindelige bibliotek, er altid lavet lokale"
+
+
+msgid "Try to re-use previously appended matching IDs when appending them again, instead of creating local duplicates"
+msgstr "Prøv at genbruge tidligere tilføjede matchende id'er, når du tilføjer dem igen, i stedet for at oprette lokale dubletter"
+
+
+msgid "Clear the asset data on append (it is always kept for linked data)"
+msgstr "Ryd aktivdataene ved tilføj (det gemmes altid for linkede data)"
+
+
+msgid "Automatically select imported objects"
+msgstr "Vælg automatisk importerede objekter"
+
+
+msgid "Use the active Collection of the current View Layer to instantiate imported collections and objects"
+msgstr "Brug den aktive samling af det aktuelle visningslag til at instantiere importerede samlinger og objekter"
 
 
 msgid "Level"

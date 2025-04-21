@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:27+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -34750,12 +34750,52 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Select All by Trait"
-msgstr "特徴で全選択"
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
 
 
 msgid "Select More/Less"
 msgstr "選択の拡大縮小"
+
+
+msgid "Select Similar"
+msgstr "類似選択"
+
+
+msgid "Select All by Trait"
+msgstr "特徴で全選択"
 
 
 msgid "Select Linked"
@@ -34926,10 +34966,6 @@ msgid "Pivot Point"
 msgstr "ピボットポイント"
 
 
-msgid "Snap"
-msgstr "スナップ"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "プロポーショナル編集の減衰タイプ"
 
@@ -34944,42 +34980,6 @@ msgstr "自動マスク"
 
 msgid "Face Sets Edit"
 msgstr "面セット編集"
-
-
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
-
-
-msgid "View Regions"
-msgstr "ビュー領域設定"
-
-
-msgid "Select Similar"
-msgstr "類似選択"
 
 
 msgid "Keyframe Insert Pie"
@@ -44772,22 +44772,8 @@ msgid "Contrast Limit"
 msgstr "コントラスト限界"
 
 
-msgid "How much to eliminate spurious edges to avoid artifacts (the larger value makes less active; the value 2.0, for example, means discard a detected edge if there is a neighboring edge that has 2.0 times bigger contrast than the current one)"
-msgstr ""
-"アーティファクトを防ぐため，偽のエッジを除去する量\n"
-"（大きな値で処理が減り，例えば，2.0で隣のエッジが現在の物より2倍コントラストが大きい場合にエッジの探知を放棄します）"
-
-
 msgid "Corner Rounding"
 msgstr "コーナー丸め"
-
-
-msgid "How much sharp corners will be rounded"
-msgstr "シャープなコーナーを丸める量"
-
-
-msgid "Threshold to detect edges (smaller threshold makes more sensitive detection)"
-msgstr "エッジ探知のしきい値（小さな値で探知が鋭敏になります）"
 
 
 msgid "Bilateral Blur"
@@ -45982,16 +45968,8 @@ msgid "Smooth areas of an image in which noise is noticeable, while leaving comp
 msgstr "画像の複雑な部分はそのままに，ノイズが目立つ部分を滑らかにします"
 
 
-msgid "Threshold for detecting pixels to despeckle"
-msgstr "スペックル除去でのピクセル探知のしきい値"
-
-
 msgid "Neighbor"
 msgstr "隣接"
-
-
-msgid "Threshold for the number of neighbor pixels that must match"
-msgstr "適合する隣接ピクセル数のしきい値"
 
 
 msgid "Difference Key"
@@ -46018,17 +45996,9 @@ msgid "Expand and shrink masks"
 msgstr "マスクを拡大縮小します"
 
 
-msgid "Distance to grow/shrink (number of iterations)"
-msgstr "拡大/縮小する距離（リピート回数）"
-
-
 msgctxt "Image"
 msgid "Edge"
 msgstr "エッジ"
-
-
-msgid "Edge to inset"
-msgstr "内側をぼかす量"
 
 
 msgid "Growing/shrinking mode"
@@ -46337,10 +46307,6 @@ msgid "Extend borders of an image into transparent or masked regions"
 msgstr "画像の境界を透過またはマスクした領域で延長します"
 
 
-msgid "Distance to inpaint (number of iterations)"
-msgstr "インペイントの距離（回数）"
-
-
 msgid "Invert Color"
 msgstr "カラー反転"
 
@@ -46466,37 +46432,12 @@ msgid "Eccentricity"
 msgstr "偏心率"
 
 
-msgid "Controls how directional the filter is. 0 means the filter is completely omnidirectional while 2 means it is maximally directed along the edges of the image."
-msgstr ""
-"フィルターの指向性をコントロールします．\n"
-"０でフィルターは完全に無指向性になり，\n"
-"２で画像端に沿って偏りが最大になります."
-
-
-msgid "Controls the sharpness of the filter. 0 means completely smooth while 1 means completely sharp."
-msgstr ""
-"フィルターのシャープさをコントロールします．\n"
-"０で完全にスムーズになり，１で完全にシャープになります."
-
-
 msgid "Uniformity"
 msgstr "均一さ"
 
 
-msgid "Controls the uniformity of the direction of the filter. Higher values produces more uniform directions."
-msgstr ""
-"フィルターの方向の均一さをコントロールします．\n"
-"大きな値でより均一な方向になります."
-
-
 msgid "High Precision"
 msgstr "高精度"
-
-
-msgid "Uses a more precise but slower method. Use if the output contains undesirable noise."
-msgstr ""
-"もっと正確ですが，低速な方法を使用します．\n"
-"出力に不要なノイズがある時に使用してください."
 
 
 msgid "Variation of Kuwahara filter to use"
@@ -46636,16 +46577,8 @@ msgid "Input mask from a mask datablock, created in the image editor"
 msgstr "画像エディターで作成された，マスクデータブロックの入力マスク"
 
 
-msgid "Number of motion blur samples"
-msgstr "モーションブラーサンプル数"
-
-
 msgid "Shutter"
 msgstr "シャッター"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "モーションブラー用に撮影するフレーム毎秒"
 
 
 msgid "Size Source"
@@ -46672,16 +46605,8 @@ msgid "Pixel size scaled by scene percentage"
 msgstr "シーンのパーセンテージでピクセルサイズを拡大縮小"
 
 
-msgid "Use feather information from the mask"
-msgstr "マスクのフェザー情報を使用します"
-
-
 msgid "Motion Blur"
 msgstr "モーションブラー"
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "マスクのマルチサンプルモーションブラーを使用します"
 
 
 msgid "Perform math operations"
@@ -47160,10 +47085,6 @@ msgid "Pixel Size"
 msgstr "ピクセルサイズ"
 
 
-msgid "Pixel size of the output image"
-msgstr "出力画像のピクセルサイズ"
-
-
 msgid "Plane Track Deform"
 msgstr "平面トラック変形"
 
@@ -47172,6 +47093,18 @@ msgid "Replace flat planes in footage by another image, detected by plane tracks
 msgstr ""
 "モーショントラッキングの平面トラックで探知した映像内の平面を\n"
 "他の画像で置き換えます"
+
+
+msgid "Number of motion blur samples"
+msgstr "モーションブラーサンプル数"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "モーションブラー用に撮影するフレーム毎秒"
+
+
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "マスクのマルチサンプルモーションブラーを使用します"
 
 
 msgid "Posterize"
@@ -47374,10 +47307,6 @@ msgid "Switch between two images using a checkbox"
 msgstr "チェックボックスを使用し二つの画像を切り替えます"
 
 
-msgid "Off: first socket, On: second socket"
-msgstr "オフ：第一ソケット，オン：第二ソケット"
-
-
 msgid "Switch View"
 msgstr "ビュー切り替え"
 
@@ -47420,34 +47349,6 @@ msgstr ""
 
 msgid "Adaptation"
 msgstr "適応"
-
-
-msgid "If 0, global; if 1, based on pixel intensity"
-msgstr "０でグローバル，１でピクセルの明るさを元にします"
-
-
-msgid "Set to 0 to use estimate from input image"
-msgstr "０で入力画像からの概算を使用"
-
-
-msgid "If 0, same for all channels; if 1, each independent"
-msgstr "０で全チャンネル同じ，１でそれぞれ独立"
-
-
-msgid "If not used, set to 1"
-msgstr "使用しない場合は１に設定"
-
-
-msgid "If less than zero, darkens image; otherwise, makes it brighter"
-msgstr "0未満の場合は暗く，それ以外は明るくします"
-
-
-msgid "The value the average luminance is mapped to"
-msgstr "マップされる平均輝度の値"
-
-
-msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
-msgstr "通常は常に１ですが，さらに輝度曲線を操作するのに使用できます"
 
 
 msgid "Tonemap Type"
@@ -47586,28 +47487,12 @@ msgid "Blur Factor"
 msgstr "ブラー係数"
 
 
-msgid "Scaling factor for motion vectors (actually, 'shutter speed', in frames)"
-msgstr "モーションベクトルのスケーリング係数（実際は「シャッタースピード」のフレーム数）"
-
-
 msgid "Max Speed"
 msgstr "最大速度"
 
 
-msgid "Maximum speed, or zero for none"
-msgstr "最大スピード，なければ0"
-
-
 msgid "Min Speed"
 msgstr "最小速度"
-
-
-msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
-msgstr "ブラーするピクセルの最小速度（前面から背景を分離するのに使用します）"
-
-
-msgid "Interpolate between frames in a Bézier curve, rather than linearly"
-msgstr "フレーム間の補間にリニア（直線）ではなくベジエ曲線を使用"
 
 
 msgid "Viewer"
@@ -47626,16 +47511,8 @@ msgid "Combine two images using depth maps"
 msgstr "深度マップを使用し二つの画像を合成します"
 
 
-msgid "Take alpha channel into account when doing the Z operation"
-msgstr "Z(深度)の演算を行う時，アルファチャンネルを考慮します"
-
-
 msgid "Anti-Alias Z"
 msgstr "Zアンチエイリアス"
-
-
-msgid "Anti-alias the z-buffer to try to avoid artifacts, mostly useful for Blender renders"
-msgstr "Z バッファをアンチエイリアスしてジャギーを防ぎます．Blender レンダーで大抵の場合は便利です"
 
 
 msgid "Function Node"
@@ -88914,6 +88791,14 @@ msgid "Operator that allows file handlers to receive file drops"
 msgstr "ファイルハンドラーがドロップしたファイルを受け取れるオペレーター"
 
 
+msgid "Vertex colors in the file are in sRGB color space"
+msgstr "ファイル内の頂点カラーは sRGB 色空間"
+
+
+msgid "Vertex colors in the file are in linear color space"
+msgstr "ファイル内の頂点カラーはリニア色空間"
+
+
 msgctxt "Operator"
 msgid "Export to PDF"
 msgstr "PDFにエクスポート"
@@ -89359,14 +89244,6 @@ msgstr "頂点カラーのエクスポート"
 
 msgid "Do not import/export color attributes"
 msgstr "カラー属性をインポート・エクスポートしません"
-
-
-msgid "Vertex colors in the file are in sRGB color space"
-msgstr "ファイル内の頂点カラーは sRGB 色空間"
-
-
-msgid "Vertex colors in the file are in linear color space"
-msgstr "ファイル内の頂点カラーはリニア色空間"
 
 
 msgid "Export Vertex Normals"
@@ -91906,6 +91783,38 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
+msgid "Mesh Edit Mode"
+msgstr "メッシュ編集モード"
+
+
+msgid "Measurement"
+msgstr "計測"
+
+
+msgid "Curve Edit Mode"
+msgstr "カーブ編集モード"
+
+
+msgid "Curves Edit Mode"
+msgstr "ヘアーカーブ編集モード"
+
+
+msgid "Snapping"
+msgstr "スナップ"
+
+
+msgid "Transform Orientations"
+msgstr "トランスフォーム座標系"
+
+
+msgid "Stroke Placement"
+msgstr "ストロークの基準"
+
+
+msgid "Drawing Plane"
+msgstr "ドロー平面"
+
+
 msgid "Guides"
 msgstr "ガイド"
 
@@ -91934,6 +91843,10 @@ msgid "Auto-Masking"
 msgstr "自動マスク"
 
 
+msgid "Motion Tracking"
+msgstr "モーショントラッキング"
+
+
 msgid "Curves Sculpt Add Curve Options"
 msgstr "カーブスカルプトカーブ追加オプション"
 
@@ -91948,10 +91861,6 @@ msgstr "カーブスケールを拡大/収縮"
 
 msgid "Viewport Debug"
 msgstr "ビューポートデバッグ"
-
-
-msgid "Drawing Plane"
-msgstr "ドロー平面"
 
 
 msgid "VR"
@@ -92020,38 +91929,6 @@ msgstr "オーバーレイ"
 
 msgid "Viewer Node"
 msgstr "ビューアーノード"
-
-
-msgid "Motion Tracking"
-msgstr "モーショントラッキング"
-
-
-msgid "Mesh Edit Mode"
-msgstr "メッシュ編集モード"
-
-
-msgid "Measurement"
-msgstr "計測"
-
-
-msgid "Curve Edit Mode"
-msgstr "カーブ編集モード"
-
-
-msgid "Curves Edit Mode"
-msgstr "ヘアーカーブ編集モード"
-
-
-msgid "Snapping"
-msgstr "スナップ"
-
-
-msgid "Transform Orientations"
-msgstr "トランスフォーム座標系"
-
-
-msgid "Stroke Placement"
-msgstr "ストロークの基準"
 
 
 msgid "Chain Scaling"
@@ -95596,14 +95473,6 @@ msgstr "新カーブツール"
 
 msgid "Enable additional features for the new curves data block"
 msgstr "新しいカーブデータブロック用の追加の機能を有効にします"
-
-
-msgid "New Point Cloud Type"
-msgstr "新しいポイントクラウドタイプ"
-
-
-msgid "Enable the new point cloud type in the ui"
-msgstr "UI で新しいポイントクラウドタイプを有効にします"
 
 
 msgid "New Volume Nodes"
@@ -109089,6 +108958,34 @@ msgstr "シーケンスストリップ用，色相補正モディファイアー
 
 msgid "Tone mapping modifier"
 msgstr "トーンマッピングモディファイアー"
+
+
+msgid "If 0, global; if 1, based on pixel intensity"
+msgstr "０でグローバル，１でピクセルの明るさを元にします"
+
+
+msgid "Set to 0 to use estimate from input image"
+msgstr "０で入力画像からの概算を使用"
+
+
+msgid "If 0, same for all channels; if 1, each independent"
+msgstr "０で全チャンネル同じ，１でそれぞれ独立"
+
+
+msgid "If not used, set to 1"
+msgstr "使用しない場合は１に設定"
+
+
+msgid "If less than zero, darkens image; otherwise, makes it brighter"
+msgstr "0未満の場合は暗く，それ以外は明るくします"
+
+
+msgid "The value the average luminance is mapped to"
+msgstr "マップされる平均輝度の値"
+
+
+msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
+msgstr "通常は常に１ですが，さらに輝度曲線を操作するのに使用できます"
 
 
 msgid "Tone mapping algorithm"
@@ -124904,11 +124801,6 @@ msgstr "シーンにインスタンス作成"
 
 
 msgctxt "Operator"
-msgid "ID Data"
-msgstr "IDデータ"
-
-
-msgctxt "Operator"
 msgid "Paste Data-Blocks"
 msgstr "データブロックを貼り付け"
 
@@ -126824,6 +126716,11 @@ msgstr "空"
 
 
 msgctxt "Operator"
+msgid "Point Cloud"
+msgstr "ポイントクラウド"
+
+
+msgctxt "Operator"
 msgid "Speaker"
 msgstr "スピーカー"
 
@@ -127755,11 +127652,6 @@ msgstr "前のブロック"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "次のブロック"
-
-
-msgctxt "Operator"
-msgid "Point Cloud"
-msgstr "ポイントクラウド"
 
 
 msgctxt "Operator"
@@ -142839,6 +142731,12 @@ msgid "Core Matte"
 msgstr "コアマット"
 
 
+msgid "Uses a more precise but slower method. Use if the output contains undesirable noise."
+msgstr ""
+"もっと正確ですが，低速な方法を使用します．\n"
+"出力に不要なノイズがある時に使用してください."
+
+
 msgid "Dispersion"
 msgstr "分光"
 
@@ -142861,6 +142759,10 @@ msgstr "最小へ"
 
 msgid "To Max"
 msgstr "最大へ"
+
+
+msgid "Use feather information from the mask"
+msgstr "マスクのフェザー情報を使用します"
 
 
 msgid "Offset Y"
@@ -147891,10 +147793,6 @@ msgstr "マイク"
 
 msgid "network"
 msgstr "ネットワーク"
-
-
-msgid "English (English)"
-msgstr "英語（English）"
 
 
 msgid "Japanese (日本語)"

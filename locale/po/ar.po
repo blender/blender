@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15799,12 +15799,40 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Select All by Trait"
-msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
+
+
+msgid "Snap"
+msgstr "ﻱﺫﺎﺣ"
+
+
+msgid "UV Mapping"
+msgstr "UV ءﺎﺴﻛﺇ"
+
+
+msgid "Navigation"
+msgstr "ﺢﻔّﺼﺗ"
+
+
+msgid "Align View"
+msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Align View to Active"
+msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
 
 
 msgid "Select More/Less"
 msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "Select Similar"
+msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
+
+
+msgid "Select All by Trait"
+msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
 
 
 msgid "Select Linked"
@@ -15879,36 +15907,8 @@ msgid "Bone Roll"
 msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
-msgid "Snap"
-msgstr "ﻱﺫﺎﺣ"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
-
-
-msgid "UV Mapping"
-msgstr "UV ءﺎﺴﻛﺇ"
-
-
-msgid "Navigation"
-msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "Align View"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Align View to Active"
-msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Select Similar"
-msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
 
 
 msgctxt "MovieClip"
@@ -19205,24 +19205,12 @@ msgid "Despeckle"
 msgstr "ﻊﻘﺒﻟﺍ ﻲﻐﻟﺍ"
 
 
-msgid "Threshold for detecting pixels to despeckle"
-msgstr "ﻊﻘﺒﻟ ﺕﻼ﻿ﺴﻜﺒﻟﺍ ﻒﺸﻛ ﺔﺒﺘﻋ"
-
-
 msgid "Neighbor"
 msgstr "ﺭﺎﺠﻟﺍ"
 
 
 msgid "Difference Key"
 msgstr "ﻕﺮﻔﻟﺍ ﺡﺎﺘﻔﻣ"
-
-
-msgid "Distance to grow/shrink (number of iterations)"
-msgstr "(ﺕﺍﺭﺍﺮﻜﺘﻟﺍ ﺩﺪﻋ) ﺵﺎﻤﻜﻧﻻ﻿ﺍ/ﻮﻤﻨﻟﺍ ﺔﻓﺎﺴﻣ"
-
-
-msgid "Edge to inset"
-msgstr "ﺔﻓﺎﺤﻟﺍ ﺝﺭﺪﺗ "
 
 
 msgid "Feather"
@@ -19349,10 +19337,6 @@ msgid "Inpaint"
 msgstr "ﺢﻠّﺻ"
 
 
-msgid "Distance to inpaint (number of iterations)"
-msgstr "(ﺕﺍﺭﺍﺮﻜﺘﻟﺍ ﺩﺪﻋ) ﻢﺳﺮﻠﻟ ﺔﻓﺎﺴﻤﻟﺍ"
-
-
 msgid "Post Blur"
 msgstr "ﺔﻳﺪﻌﺑ ﺔﻴﺑﺎﺒﺿ"
 
@@ -19462,16 +19446,8 @@ msgid "Use Minimum"
 msgstr "ﻰﻧﺪﻟﺍ ﺪﺤﻟﺍ ﻡﺪﺨﺘﺳﺇ"
 
 
-msgid "Number of motion blur samples"
-msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻴﺑﺎﺒﺿ ﺕﺎﻨﻴﻋ ﺩﺪﻋ"
-
-
 msgid "Shutter"
 msgstr "ﻖﻠﻓ"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "ﺔﻴﻧﺎﺜﻟﺍ ﻲﻓ ﺭﺎﻃﻺ﻿ﻟ ﻞﻣﺎﻌﻤﻛ ﺔﻛﺮﺤﺘﻤﻟﺍ ﺔﻴﺑﺎﺒﻀﻠﻟ ﺾﻳﺮﻌﺘﻟﺍ"
 
 
 msgid "Size Source"
@@ -19488,10 +19464,6 @@ msgstr "ﻥﺰﺨﻤﻠﻟ ﻞﻜﺴﺒﻟﺍ ﻢﺠﺣ ﻡﺪﺨﺘﺳﺍ"
 
 msgid "Fixed/Scene"
 msgstr "ﺪﻬﺸﻣ/ﺖﺑﺎﺛ"
-
-
-msgid "Use feather information from the mask"
-msgstr "ﻉﺎﻨﻘﻟﺍ ﻦﻣ ﺶﻣﺎﻬﻟﺍ ﺕﺎﻣﻮﻠﻌﻣ ﻡﺪﺨﺘﺳﺍ"
 
 
 msgid "Motion Blur"
@@ -19532,6 +19504,14 @@ msgstr "EXR ﺔﻘﺒﻃ ﺕﺎﺤﺘﻓ"
 
 msgid "Pixelate"
 msgstr "ﻞﺴﻜﺑ"
+
+
+msgid "Number of motion blur samples"
+msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻴﺑﺎﺒﺿ ﺕﺎﻨﻴﻋ ﺩﺪﻋ"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "ﺔﻴﻧﺎﺜﻟﺍ ﻲﻓ ﺭﺎﻃﻺ﻿ﻟ ﻞﻣﺎﻌﻤﻛ ﺔﻛﺮﺤﺘﻤﻟﺍ ﺔﻴﺑﺎﺒﻀﻠﻟ ﺾﻳﺮﻌﺘﻟﺍ"
 
 
 msgid "Alpha Convert"
@@ -19576,10 +19556,6 @@ msgstr "ﻉﺎﻌﺸﻟﺍ ﻝﻮﻃ"
 
 msgid "Switch"
 msgstr "ﺡﺎﺘﻔﻣ"
-
-
-msgid "Off: first socket, On: second socket"
-msgstr "ﺔﺤﺘﻓ ﻲﻧﺎﺛ :ﻞﻌﻔﻣ ،ﺔﺤﺘﻓ ﻝﻭﺃ :ﻞﻄﻌﻣ"
 
 
 msgid "Node Output"
@@ -19644,10 +19620,6 @@ msgstr "ﺏﺎﺒﻀﻟﺍ ﻞﻣﺎﻌﻣ"
 
 msgid "Max Speed"
 msgstr "ﺔﻋﺮﺳ ﺮﺒﻛﺍ"
-
-
-msgid "Maximum speed, or zero for none"
-msgstr "ءﻲﺷ ﻼ﻿ﻟ ﺮﻔﺻ ,ﺔﻋﺮﺳ ﺮﺒﻛﺍ"
 
 
 msgid "Min Speed"
@@ -28775,20 +28747,20 @@ msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
 
 
-msgid "Wire Color"
-msgstr "ﻂﺑﺍﺮﻟﺍ ﻥﻮﻟ"
-
-
-msgid "Render Pass"
-msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
+msgid "Transform Orientations"
+msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
 
 
 msgid "Motion Tracking"
 msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
 
 
-msgid "Transform Orientations"
-msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
+msgid "Wire Color"
+msgstr "ﻂﺑﺍﺮﻟﺍ ﻥﻮﻟ"
+
+
+msgid "Render Pass"
+msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
 
 
 msgid "Bone Constraints"
@@ -38020,6 +37992,10 @@ msgid "Glare"
 msgstr "ﺞﻫﻮﺗ"
 
 
+msgid "Use feather information from the mask"
+msgstr "ﻉﺎﻨﻘﻟﺍ ﻦﻣ ﺶﻣﺎﻬﻟﺍ ﺕﺎﻣﻮﻠﻌﻣ ﻡﺪﺨﺘﺳﺍ"
+
+
 msgid "Dot"
 msgstr "ﺔﻄﻘﻧ"
 
@@ -38334,10 +38310,6 @@ msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﻞﺒﻗ ﻦﻣ ﺔﺒﺼﻨﻤﻟﺍ ﺲﺑ�
 
 msgid "Import-Export"
 msgstr "ﺪﻳﺭﻮﺗ-ﺮﻳﺪﺼﺗ"
-
-
-msgid "English (English)"
-msgstr "(English) ﺔﻳﺰﻴﻠﺠﻧﺇ"
 
 
 msgid "Japanese (日本語)"

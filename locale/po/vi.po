@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:46+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -33412,12 +33412,52 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Select All by Trait"
-msgstr "Chọn Toàn Bộ theo Đặc Điểm"
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
+
+
+msgid "Snap"
+msgstr "Bám Dính"
+
+
+msgid "UV Mapping"
+msgstr "Ánh Xạ UV"
+
+
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
+
+
+msgid "Viewpoint"
+msgstr "Điểm Nhìn"
+
+
+msgid "Navigation"
+msgstr "Điều Hướng"
+
+
+msgid "Align View"
+msgstr "Căn Chỉnh Góc Nhìn"
+
+
+msgid "Align View to Active"
+msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
+
+
+msgid "View Regions"
+msgstr "Vùng Góc Nhìn"
 
 
 msgid "Select More/Less"
 msgstr "Tăng/Giảm Lựa Chọn"
+
+
+msgid "Select Similar"
+msgstr "Chọn Tương Tự"
+
+
+msgid "Select All by Trait"
+msgstr "Chọn Toàn Bộ theo Đặc Điểm"
 
 
 msgid "Select Linked"
@@ -33588,10 +33628,6 @@ msgid "Pivot Point"
 msgstr "Điểm Tựa"
 
 
-msgid "Snap"
-msgstr "Bám Dính"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
 
@@ -33606,42 +33642,6 @@ msgstr "Tự Động Chắn Lọc"
 
 msgid "Face Sets Edit"
 msgstr "Biên Soạn các Mặt Ấn Định"
-
-
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
-
-
-msgid "UV Mapping"
-msgstr "Ánh Xạ UV"
-
-
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
-
-
-msgid "Viewpoint"
-msgstr "Điểm Nhìn"
-
-
-msgid "Navigation"
-msgstr "Điều Hướng"
-
-
-msgid "Align View"
-msgstr "Căn Chỉnh Góc Nhìn"
-
-
-msgid "Align View to Active"
-msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
-
-
-msgid "View Regions"
-msgstr "Vùng Góc Nhìn"
-
-
-msgid "Select Similar"
-msgstr "Chọn Tương Tự"
 
 
 msgid "Keyframe Insert Pie"
@@ -43252,20 +43252,8 @@ msgid "Contrast Limit"
 msgstr "Giới Hạn Tương Phản"
 
 
-msgid "How much to eliminate spurious edges to avoid artifacts (the larger value makes less active; the value 2.0, for example, means discard a detected edge if there is a neighboring edge that has 2.0 times bigger contrast than the current one)"
-msgstr "Mức độ loại bỏ các cạnh giả mạo để tránh giả tượng (giá trị lớn hơn làm cho năng tính giảm đi; giá trị 2.0, chẳng hạn, có nghĩa là loại bỏ một cạnh phát hiện thấy, nếu một cạnh lân cận nó có độ tương phản lớn hơn 2.0 lần cái hiện tại)"
-
-
 msgid "Corner Rounding"
 msgstr "Làm Tròn Góc"
-
-
-msgid "How much sharp corners will be rounded"
-msgstr "Mức độ làm tròn các góc nhọn"
-
-
-msgid "Threshold to detect edges (smaller threshold makes more sensitive detection)"
-msgstr "Ngưỡng để phát hiện cạnh (ngưỡng nhỏ sẽ làm cho khả năng phát hiện nhạy cảm hơn)"
 
 
 msgid "Bilateral Blur"
@@ -44369,16 +44357,8 @@ msgid "Smooth areas of an image in which noise is noticeable, while leaving comp
 msgstr "Làm mịn các vùng của một hình ảnh có nhiễu đáng chú ý, song để nguyên, không động chạm gì đến các vùng phức tạp cả"
 
 
-msgid "Threshold for detecting pixels to despeckle"
-msgstr "Giới hạn dùng phát hiện các điểm ảnh để khử chấm lốm đốm"
-
-
 msgid "Neighbor"
 msgstr "Lân Cận"
-
-
-msgid "Threshold for the number of neighbor pixels that must match"
-msgstr "Giới hạn mà số lượng điểm ảnh lân cận nhất định phải khớp"
 
 
 msgid "Difference Key"
@@ -44405,17 +44385,9 @@ msgid "Expand and shrink masks"
 msgstr "Mở rộng và thu nhỏ màn chắn lọc"
 
 
-msgid "Distance to grow/shrink (number of iterations)"
-msgstr "Khoảng cách để giãn ra/thu vào (số lần tuần hoàn)"
-
-
 msgctxt "Image"
 msgid "Edge"
 msgstr "Cạnh"
-
-
-msgid "Edge to inset"
-msgstr "Cạnh để cắt nội"
 
 
 msgid "Growing/shrinking mode"
@@ -44670,10 +44642,6 @@ msgid "Extend borders of an image into transparent or masked regions"
 msgstr "Mở rộng đường viền của hình ảnh thành các vùng trong suốt hoặc các vùng chắn lọc"
 
 
-msgid "Distance to inpaint (number of iterations)"
-msgstr "Khoảng cách sơn nội (số lần lặp lại)"
-
-
 msgid "Invert Color"
 msgstr "Đảo Ngược Màu"
 
@@ -44795,28 +44763,12 @@ msgid "Eccentricity"
 msgstr "Lệch Tâm"
 
 
-msgid "Controls how directional the filter is. 0 means the filter is completely omnidirectional while 2 means it is maximally directed along the edges of the image."
-msgstr "Điều khiển phương pháp định hướng của bộ lọc. 0 có nghĩa là bộ lọc hoàn toàn trên mọi hướng, trong khi 2 có nghĩa là nó được hướng tối đa dọc theo các cạnh của hình ảnh."
-
-
-msgid "Controls the sharpness of the filter. 0 means completely smooth while 1 means completely sharp."
-msgstr "Điều khiển độ sắc nét của bộ lọc. 0 có nghĩa là hoàn toàn mịn màng trong khi 1 có nghĩa là hoàn toàn sắc nét."
-
-
 msgid "Uniformity"
 msgstr "Tính Đồng Nhất"
 
 
-msgid "Controls the uniformity of the direction of the filter. Higher values produces more uniform directions."
-msgstr "Điều khiển tính đồng nhất trong chiều hướng của bộ lọc. Giá trị cao hơn tạo ra chiều hướng đồng nhất hơn."
-
-
 msgid "High Precision"
 msgstr "Độ Chính Xác Cao"
-
-
-msgid "Uses a more precise but slower method. Use if the output contains undesirable noise."
-msgstr "Dùng phương pháp chính xác hơn song chậm hơn. Sử dụng nếu đầu ra có chứa nhiễu không mong muốn."
 
 
 msgid "Variation of Kuwahara filter to use"
@@ -44954,16 +44906,8 @@ msgid "Input mask from a mask datablock, created in the image editor"
 msgstr "Màn chắn lọc đầu vào từ khối dữ liệu màn chắn, được tạo ra trong trình biên soạn hình ảnh"
 
 
-msgid "Number of motion blur samples"
-msgstr "Lượng mẫu vật lấy để làm nhòe mờ chuyển động"
-
-
 msgid "Shutter"
 msgstr "Cửa Chập"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "Độ phơi sáng cho sự làm nhòe mờ chuyển động, theo tần số Khung Hình/Giây"
 
 
 msgid "Size Source"
@@ -44990,16 +44934,8 @@ msgid "Pixel size scaled by scene percentage"
 msgstr "Cỡ điểm ảnh được tỷ lệ hóa theo lượng phần trăm của cảnh"
 
 
-msgid "Use feather information from the mask"
-msgstr "Dùng thông tin về mép nhòe từ màn chắn lọc"
-
-
 msgid "Motion Blur"
 msgstr "Làm Nhòe Mờ Chuyển Động"
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "Dùng sự nhòe mờ chuyển động đa mẫu vật của màn chắn lọc"
 
 
 msgid "Perform math operations"
@@ -45431,16 +45367,24 @@ msgid "Pixel Size"
 msgstr "Kích Thước Điểm Ảnh"
 
 
-msgid "Pixel size of the output image"
-msgstr "Kích thước điểm ảnh của hình ảnh đầu ra"
-
-
 msgid "Plane Track Deform"
 msgstr "Biến Dạng Bình Diện Giám Sát"
 
 
 msgid "Replace flat planes in footage by another image, detected by plane tracks from motion tracking"
 msgstr "Thay thế các mặt phẳng trong cảnh quay bằng một hình ảnh khác, vốn được phát hiện bởi các dấu giám sát mặt phẳng từ quá trình giám sát chuyển động"
+
+
+msgid "Number of motion blur samples"
+msgstr "Lượng mẫu vật lấy để làm nhòe mờ chuyển động"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "Độ phơi sáng cho sự làm nhòe mờ chuyển động, theo tần số Khung Hình/Giây"
+
+
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "Dùng sự nhòe mờ chuyển động đa mẫu vật của màn chắn lọc"
 
 
 msgid "Posterize"
@@ -45623,10 +45567,6 @@ msgid "Switch between two images using a checkbox"
 msgstr "Chuyển đổi giữa hai hình ảnh bằng cách sử dụng một hộp kiểm"
 
 
-msgid "Off: first socket, On: second socket"
-msgstr "Tắt: ổ cắm thứ nhất, Mở: ổ cắm thứ nhì"
-
-
 msgid "Switch View"
 msgstr "Đổi Kiểu Quan Sát"
 
@@ -45665,34 +45605,6 @@ msgstr "Ánh xạ một bộ màu sang một bộ màu khác để tính xấp x
 
 msgid "Adaptation"
 msgstr "Thích Nghi/Tùy Ứng"
-
-
-msgid "If 0, global; if 1, based on pixel intensity"
-msgstr "Nếu là 0 thì là toàn cầu; nếu là 1 thì dựa trên cường độ của điểm ảnh"
-
-
-msgid "Set to 0 to use estimate from input image"
-msgstr "Đặt là 0 để sử dụng sự dự đoán từ hình ảnh cung cấp ở đầu vào"
-
-
-msgid "If 0, same for all channels; if 1, each independent"
-msgstr "Nếu là 0 thì toàn bộ các kênh đều tương tự; nếu là 1 thì mỗi cái đứng riêng độc lập"
-
-
-msgid "If not used, set to 1"
-msgstr "Nếu không sử dụng thì đặt là 1"
-
-
-msgid "If less than zero, darkens image; otherwise, makes it brighter"
-msgstr "Nếu ít hơn 0 thì sẽ làm tối hình ảnh đi; nếu không, sẽ làm sáng lên"
-
-
-msgid "The value the average luminance is mapped to"
-msgstr "Độ sáng trung bình sẽ được ánh xạ thành giá trị này"
-
-
-msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
-msgstr "Thường thì luôn luôn là 1, song có thể sử dụng như một điều chế bổ sung để thay đổi đường cong về độ sáng"
 
 
 msgid "Tonemap Type"
@@ -45811,28 +45723,12 @@ msgid "Blur Factor"
 msgstr "Hệ Số Nhòe Mờ"
 
 
-msgid "Scaling factor for motion vectors (actually, 'shutter speed', in frames)"
-msgstr "Hệ số tỷ lệ cho các vectơ về chuyển động (thực ra là 'tốc độ cửa chập', trong số khung hình)"
-
-
 msgid "Max Speed"
 msgstr "Tốc Độ Tối Đa"
 
 
-msgid "Maximum speed, or zero for none"
-msgstr "Tốc độ tối đa, hoặc đặt bằng 0 nghĩa là không có"
-
-
 msgid "Min Speed"
 msgstr "Tốt Độ Tối Thiểu"
-
-
-msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
-msgstr "Tốc độ tối thiểu để làm cho điểm ảnh bị nhòe đi (dùng để tách biệt nền ra khỏi cảnh trước)"
-
-
-msgid "Interpolate between frames in a Bézier curve, rather than linearly"
-msgstr "Nội suy giữa các khung hình theo đường cong Bézier, thay vì tuyến tính"
 
 
 msgid "Viewer"
@@ -45851,16 +45747,8 @@ msgid "Combine two images using depth maps"
 msgstr "Kết hợp hai hình ảnh bằng cách sử dụng bản đồ về độ sâu"
 
 
-msgid "Take alpha channel into account when doing the Z operation"
-msgstr "Cân nhắc đến kênh alpha khi thi hành thao tác về Z"
-
-
 msgid "Anti-Alias Z"
 msgstr "Khử Răng Cưa Z"
-
-
-msgid "Anti-alias the z-buffer to try to avoid artifacts, mostly useful for Blender renders"
-msgstr "Khử răng cưa bộ nhớ đệm-Z để cố gắng tránh giả tượng, lợi ích nhiều nhất cho các kết xuất Blender"
 
 
 msgid "Function Node"
@@ -85932,6 +85820,14 @@ msgid "Operator that allows file handlers to receive file drops"
 msgstr "Thao tác cho phép trình xử lý tập tin nhận được các tập tin thả vào"
 
 
+msgid "Vertex colors in the file are in sRGB color space"
+msgstr "Màu điểm đỉnh trong tập tin là nằm trong không gian màu sRGB cơ mà"
+
+
+msgid "Vertex colors in the file are in linear color space"
+msgstr "Màu điểm đỉnh trong tập tin là nằm trong không gian màu tuyến tính cơ mà"
+
+
 msgctxt "Operator"
 msgid "Export to PDF"
 msgstr "Xuất Khẩu dưới dạng PDF"
@@ -86373,14 +86269,6 @@ msgstr "Xuất Khẩu Màu Điểm Đỉnh"
 
 msgid "Do not import/export color attributes"
 msgstr "Không nhập/xuất khẩu thuộc tính màu"
-
-
-msgid "Vertex colors in the file are in sRGB color space"
-msgstr "Màu điểm đỉnh trong tập tin là nằm trong không gian màu sRGB cơ mà"
-
-
-msgid "Vertex colors in the file are in linear color space"
-msgstr "Màu điểm đỉnh trong tập tin là nằm trong không gian màu tuyến tính cơ mà"
 
 
 msgid "Export Vertex Normals"
@@ -88703,6 +88591,38 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
+msgid "Mesh Edit Mode"
+msgstr "Chế Độ Biên Soạn Khung Lưới"
+
+
+msgid "Measurement"
+msgstr "Đo Lường"
+
+
+msgid "Curve Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
+msgid "Curves Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
+msgid "Snapping"
+msgstr "Bám Dính"
+
+
+msgid "Transform Orientations"
+msgstr "Các Định Hướng Biến Hóa"
+
+
+msgid "Stroke Placement"
+msgstr "Phương Pháp Đặt Nét Vẽ"
+
+
+msgid "Drawing Plane"
+msgstr "Bề Diện Tác Họa"
+
+
 msgid "Guides"
 msgstr "Hướng Dẫn"
 
@@ -88731,6 +88651,10 @@ msgid "Auto-Masking"
 msgstr "Tự Động Chắn Lọc"
 
 
+msgid "Motion Tracking"
+msgstr "Giám Sát Chuyển Động"
+
+
 msgid "Curves Sculpt Add Curve Options"
 msgstr "Điêu Khắc Đường Cong: Các Tùy Chọn về Thêm Đường Cong"
 
@@ -88745,10 +88669,6 @@ msgstr "Tỷ Lệ Phình Ra/Thu Lại của Đường Cong"
 
 msgid "Viewport Debug"
 msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
-
-
-msgid "Drawing Plane"
-msgstr "Bề Diện Tác Họa"
 
 
 msgid "VR"
@@ -88813,38 +88733,6 @@ msgstr "Lớp Vẽ Lồng"
 
 msgid "Viewer Node"
 msgstr "Nút Quan Sát"
-
-
-msgid "Motion Tracking"
-msgstr "Giám Sát Chuyển Động"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Chế Độ Biên Soạn Khung Lưới"
-
-
-msgid "Measurement"
-msgstr "Đo Lường"
-
-
-msgid "Curve Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
-
-
-msgid "Curves Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
-
-
-msgid "Snapping"
-msgstr "Bám Dính"
-
-
-msgid "Transform Orientations"
-msgstr "Các Định Hướng Biến Hóa"
-
-
-msgid "Stroke Placement"
-msgstr "Phương Pháp Đặt Nét Vẽ"
 
 
 msgid "Chain Scaling"
@@ -92341,14 +92229,6 @@ msgstr "Sử Dụng các Công Cụ Đường Cong Mới"
 
 msgid "Enable additional features for the new curves data block"
 msgstr "Bật các tính năng bổ sung cho khối dữ liệu đường cong mới"
-
-
-msgid "New Point Cloud Type"
-msgstr "Kiểu của Mây Điểm Chấm Mới Tạo"
-
-
-msgid "Enable the new point cloud type in the ui"
-msgstr "Bật kiểu của mây điểm chấm mới tạo trong Giao Diện Người Dùng"
 
 
 msgid "New Volume Nodes"
@@ -105010,6 +104890,34 @@ msgstr "Bộ điều chỉnh sắc màu cho dải trình tự"
 
 msgid "Tone mapping modifier"
 msgstr "Bộ điều chỉnh ánh xạ tông màu"
+
+
+msgid "If 0, global; if 1, based on pixel intensity"
+msgstr "Nếu là 0 thì là toàn cầu; nếu là 1 thì dựa trên cường độ của điểm ảnh"
+
+
+msgid "Set to 0 to use estimate from input image"
+msgstr "Đặt là 0 để sử dụng sự dự đoán từ hình ảnh cung cấp ở đầu vào"
+
+
+msgid "If 0, same for all channels; if 1, each independent"
+msgstr "Nếu là 0 thì toàn bộ các kênh đều tương tự; nếu là 1 thì mỗi cái đứng riêng độc lập"
+
+
+msgid "If not used, set to 1"
+msgstr "Nếu không sử dụng thì đặt là 1"
+
+
+msgid "If less than zero, darkens image; otherwise, makes it brighter"
+msgstr "Nếu ít hơn 0 thì sẽ làm tối hình ảnh đi; nếu không, sẽ làm sáng lên"
+
+
+msgid "The value the average luminance is mapped to"
+msgstr "Độ sáng trung bình sẽ được ánh xạ thành giá trị này"
+
+
+msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
+msgstr "Thường thì luôn luôn là 1, song có thể sử dụng như một điều chế bổ sung để thay đổi đường cong về độ sáng"
 
 
 msgid "Tone mapping algorithm"
@@ -120365,11 +120273,6 @@ msgstr "Thực Thể vào Cảnh"
 
 
 msgctxt "Operator"
-msgid "ID Data"
-msgstr "Dữ Liệu ID"
-
-
-msgctxt "Operator"
 msgid "Paste Data-Blocks"
 msgstr "Dán Khối-Dữ Liệu"
 
@@ -122241,6 +122144,11 @@ msgstr "Trống Rỗng"
 
 
 msgctxt "Operator"
+msgid "Point Cloud"
+msgstr "Mây Điểm Chấm"
+
+
+msgctxt "Operator"
 msgid "Speaker"
 msgstr "Loa"
 
@@ -123157,11 +123065,6 @@ msgstr "Khối Trước Đây"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "Khối Tiếp Theo"
-
-
-msgctxt "Operator"
-msgid "Point Cloud"
-msgstr "Mây Điểm Chấm"
 
 
 msgctxt "Operator"
@@ -137614,6 +137517,10 @@ msgid "Core Matte"
 msgstr "Lớp Vẽ Lồng Cốt Lõi"
 
 
+msgid "Uses a more precise but slower method. Use if the output contains undesirable noise."
+msgstr "Dùng phương pháp chính xác hơn song chậm hơn. Sử dụng nếu đầu ra có chứa nhiễu không mong muốn."
+
+
 msgid "Dispersion"
 msgstr "Phân Tán"
 
@@ -137636,6 +137543,10 @@ msgstr "Đến Tối Thiểu"
 
 msgid "To Max"
 msgstr "Đến Tối Đa"
+
+
+msgid "Use feather information from the mask"
+msgstr "Dùng thông tin về mép nhòe từ màn chắn lọc"
 
 
 msgid "Offset Y"
@@ -142421,10 +142332,6 @@ msgstr "micrô"
 
 msgid "network"
 msgstr "mạng"
-
-
-msgid "English (English)"
-msgstr "Tiếng Anh (English)"
 
 
 msgid "Japanese (日本語)"
