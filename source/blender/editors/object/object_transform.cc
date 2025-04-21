@@ -80,6 +80,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.hh"
+#include "RNA_prototypes.hh"
+
 #include "object_intern.hh"
 
 namespace blender::ed::object {
@@ -2320,6 +2323,25 @@ static wmOperatorStatus object_transform_axis_target_modal(bContext *C,
   }
 
   if (is_finished) {
+    Scene *scene = CTX_data_scene(C);
+    /* Perform auto-keying for rotational changes for all objects. */
+    for (XFormAxisItem &item : xfd->object_data) {
+      PointerRNA ptr = RNA_pointer_create_discrete(&item.ob->id, &RNA_Object, &item.ob->id);
+      const char *rotation_property = "rotation_euler";
+      switch (item.ob->rotmode) {
+        case ROT_MODE_QUAT:
+          rotation_property = "rotation_quaternion";
+          break;
+        case ROT_MODE_AXISANGLE:
+          rotation_property = "rotation_axis_angle";
+          break;
+        default:
+          break;
+      }
+      PropertyRNA *prop = RNA_struct_find_property(&ptr, rotation_property);
+      animrig::autokeyframe_property(C, scene, &ptr, prop, -1, scene->r.cfra, true);
+    }
+
     object_transform_axis_target_free_data(op);
     return OPERATOR_FINISHED;
   }
