@@ -404,7 +404,6 @@ static wmOperatorStatus text_open_exec(bContext *C, wmOperator *op)
   SpaceText *st = CTX_wm_space_text(C);
   Main *bmain = CTX_data_main(C);
   Text *text;
-  PropertyPointerRNA *pprop;
   char filepath[FILE_MAX];
   const bool internal = RNA_boolean_get(op->ptr, "internal");
 
@@ -412,20 +411,18 @@ static wmOperatorStatus text_open_exec(bContext *C, wmOperator *op)
 
   text = BKE_text_load_ex(bmain, filepath, BKE_main_blendfile_path(bmain), internal);
 
+  PropertyPointerRNA *pprop = static_cast<PropertyPointerRNA *>(op->customdata);
   if (!text) {
-    if (op->customdata) {
-      MEM_freeN(op->customdata);
-    }
+    MEM_delete(pprop);
+    op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }
 
-  if (!op->customdata) {
+  if (!pprop) {
     text_open_init(C, op);
   }
 
   /* hook into UI */
-  pprop = static_cast<PropertyPointerRNA *>(op->customdata);
-
   if (pprop->prop) {
     PointerRNA idptr = RNA_id_pointer_create(&text->id);
     RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, nullptr);
@@ -2788,7 +2785,8 @@ static void scroll_exit(bContext *C, wmOperator *op)
   st->runtime->scroll_ofs_px[1] = 0;
   ED_area_tag_redraw(CTX_wm_area(C));
 
-  MEM_freeN(op->customdata);
+  MEM_freeN(tsc);
+  op->customdata = nullptr;
 }
 
 static wmOperatorStatus text_scroll_modal(bContext *C, wmOperator *op, const wmEvent *event)

@@ -2189,18 +2189,17 @@ static void annotation_draw_apply_event(
 /* operator 'redo' (i.e. after changing some properties, but also for repeat last) */
 static wmOperatorStatus annotation_draw_exec(bContext *C, wmOperator *op)
 {
-  tGPsdata *p = nullptr;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   /* try to initialize context data needed while drawing */
   if (!annotation_draw_init(C, op, nullptr)) {
-    if (op->customdata) {
-      MEM_freeN(op->customdata);
-    }
+    tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
+    MEM_delete(p);
+    op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }
 
-  p = static_cast<tGPsdata *>(op->customdata);
+  tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
 
   /* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
    * setting the relevant values in context at each step, then applying
@@ -2256,8 +2255,6 @@ static wmOperatorStatus annotation_draw_exec(bContext *C, wmOperator *op)
 /* start of interactive drawing part of operator */
 static wmOperatorStatus annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  tGPsdata *p = nullptr;
-
   /* support for tablets eraser pen */
   if (annotation_is_tablet_eraser_active(event)) {
     RNA_enum_set(op->ptr, "mode", GP_PAINTMODE_ERASER);
@@ -2265,13 +2262,13 @@ static wmOperatorStatus annotation_draw_invoke(bContext *C, wmOperator *op, cons
 
   /* try to initialize context data needed while drawing */
   if (!annotation_draw_init(C, op, event)) {
-    if (op->customdata) {
-      MEM_freeN(op->customdata);
-    }
+    tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
+    MEM_delete(p);
+    op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }
 
-  p = static_cast<tGPsdata *>(op->customdata);
+  tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
 
   /* if empty erase capture and finish */
   if (p->status == GP_STATUS_CAPTURE) {
