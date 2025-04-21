@@ -125,7 +125,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
             float &matte) -> void {
           color_matte(color, key_color, hue, saturation, value, output_color, matte);
         },
-        mf::build::exec_presets::AllSpanOrSingle());
+        mf::build::exec_presets::SomeSpanOrSingle<0, 1>());
   });
 }
 

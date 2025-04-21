@@ -226,7 +226,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
               channel_key<CMP_NODE_CHANNEL_MATTE_CS_RGB>(
                   color, minimum, maximum, matte_channel, limit_channels, output_color, matte);
             },
-            mf::build::exec_presets::AllSpanOrSingle());
+            mf::build::exec_presets::SomeSpanOrSingle<0>());
       });
       break;
     case CMP_NODE_CHANNEL_MATTE_CS_HSV:
@@ -241,7 +241,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
               channel_key<CMP_NODE_CHANNEL_MATTE_CS_HSV>(
                   color, minimum, maximum, matte_channel, limit_channels, output_color, matte);
             },
-            mf::build::exec_presets::AllSpanOrSingle());
+            mf::build::exec_presets::SomeSpanOrSingle<0>());
       });
       break;
     case CMP_NODE_CHANNEL_MATTE_CS_YUV:
@@ -256,7 +256,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
               channel_key<CMP_NODE_CHANNEL_MATTE_CS_YUV>(
                   color, minimum, maximum, matte_channel, limit_channels, output_color, matte);
             },
-            mf::build::exec_presets::AllSpanOrSingle());
+            mf::build::exec_presets::SomeSpanOrSingle<0>());
       });
       break;
     case CMP_NODE_CHANNEL_MATTE_CS_YCC:
@@ -271,7 +271,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
               channel_key<CMP_NODE_CHANNEL_MATTE_CS_YCC>(
                   color, minimum, maximum, matte_channel, limit_channels, output_color, matte);
             },
-            mf::build::exec_presets::AllSpanOrSingle());
+            mf::build::exec_presets::SomeSpanOrSingle<0>());
       });
       break;
   }
