@@ -34,7 +34,7 @@ LANGUAGES_CATEGORIES = (
 LANGUAGES = (
     # ID, UI English label, ISO code.
     (0, "Automatic (Automatic)", "DEFAULT"),
-    (1, "English (English)", "en_US"),
+    (1, "American English (American English)", "en_US"),
     (2, "Japanese (日本語)", "ja_JP"),
     (3, "Dutch (Nederlands)", "nl_NL"),
     (4, "Italian (Italiano)", "it_IT"),
@@ -94,6 +94,7 @@ LANGUAGES = (
     # Using the utf8 flipped form of Urdu (اُردُو).
     (55, "Urdu (وُدرُا)", "ur"),
     (56, "Lithuanian (Lietuviškai)", "lt"),
+    (57, "British English (British English)", "en_GB"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.hh`)!
