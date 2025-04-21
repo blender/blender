@@ -1259,6 +1259,10 @@ if(APPLE)
   include(platform_apple_xcode)
 endif()
 
+if(APPLE)
+  option(WITH_LEGACY_MACOS_X64_LINKER "Use legacy macOS linker. Only on x64 platform. Minutes slower, but emits fewer warnings." OFF)
+  mark_as_advanced(WITH_LEGACY_MACOS_X64_LINKER)
+endif()
 
 # -----------------------------------------------------------------------------
 # Check for Conflicting/Unsupported Configurations
