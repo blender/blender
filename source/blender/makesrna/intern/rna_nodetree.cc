@@ -3237,22 +3237,6 @@ static void rna_distance_matte_t2_set(PointerRNA *ptr, float value)
   chroma->t2 = value;
 }
 
-static void rna_difference_matte_t1_set(PointerRNA *ptr, float value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeChroma *chroma = static_cast<NodeChroma *>(node->storage);
-
-  chroma->t1 = value;
-}
-
-static void rna_difference_matte_t2_set(PointerRNA *ptr, float value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeChroma *chroma = static_cast<NodeChroma *>(node->storage);
-
-  chroma->t2 = value;
-}
-
 /* Button Set Functions for Matte Nodes */
 static void rna_Matte_t1_set(PointerRNA *ptr, float value)
 {
@@ -3974,6 +3958,9 @@ static const char node_input_falloff[] = "Falloff";
 static const char node_input_hue[] = "Hue";
 static const char node_input_saturation[] = "Saturation";
 static const char node_input_value[] = "Value";
+
+/* Difference Key node. */
+static const char node_input_tolerance[] = "Tolerance";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -7772,18 +7759,27 @@ static void def_cmp_diff_matte(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
 
   prop = RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t1");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_difference_matte_t1_set", nullptr);
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_tolerance>",
+                               "rna_node_property_to_input_setter<float, node_input_tolerance>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed");
+  RNA_def_property_ui_text(prop,
+                           "Tolerance",
+                           "Color distances below this threshold are keyed. (Deprecated: Use "
+                           "Tolerance input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t2");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_difference_matte_t2_set", nullptr);
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_falloff>",
+                               "rna_node_property_to_input_setter<float, node_input_falloff>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(
-      prop, "Falloff", "Color distances below this additional threshold are partially keyed");
+  RNA_def_property_ui_text(prop,
+                           "Falloff",
+                           "Color distances below this additional threshold are partially keyed. "
+                           "(Deprecated: Use Falloff input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

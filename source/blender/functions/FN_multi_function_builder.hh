@@ -705,6 +705,23 @@ inline auto SI3_SO2(const char *name,
       name, element_fn, exec_preset, TypeSequence<In1, In2, In3>());
 }
 
+/** Build multi-function with 4 single-input and 2 single-output parameter. */
+template<typename In1,
+         typename In2,
+         typename In3,
+         typename In4,
+         typename Out1,
+         typename Out2,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI4_SO2(const char *name,
+                    const ElementFn element_fn,
+                    const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_two_outputs<Out1, Out2>(
+      name, element_fn, exec_preset, TypeSequence<In1, In2, In3, In4>());
+}
+
 /** Build multi-function with 5 single-input and 2 single-output parameter. */
 template<typename In1,
          typename In2,
