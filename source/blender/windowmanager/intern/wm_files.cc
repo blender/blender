@@ -2570,8 +2570,8 @@ static wmOperatorStatus wm_homefile_write_invoke(bContext *C,
   if (!U.app_template[0]) {
     return WM_operator_confirm_ex(C,
                                   op,
-                                  IFACE_("Overwrite Main Startup File"),
-                                  IFACE_("Make the current file the default startup blend file."),
+                                  IFACE_("Overwrite Startup File"),
+                                  IFACE_("Blender will start next time as it is now."),
                                   IFACE_("Overwrite"),
                                   ALERT_ICON_QUESTION,
                                   false);
@@ -2581,7 +2581,7 @@ static wmOperatorStatus wm_homefile_write_invoke(bContext *C,
   char display_name[FILE_MAX];
   BLI_path_to_display_name(display_name, sizeof(display_name), IFACE_(U.app_template));
   std::string message = fmt::format(
-      fmt::runtime(IFACE_("Make the current file the default \"{}\" startup file.")),
+      fmt::runtime(IFACE_("Template \"{}\" will start next time as it is now.")),
       IFACE_(display_name));
   return WM_operator_confirm_ex(C,
                                 op,
