@@ -259,7 +259,7 @@ void FbxImportContext::setup_hierarchy()
     }
     if (node->parent) {
       Object *obj_par = this->mapping.el_to_object.lookup_default(&node->parent->element, nullptr);
-      if (obj_par != nullptr && obj_par != item.value) {
+      if (!ELEM(obj_par, nullptr, item.value)) {
         item.value->parent = obj_par;
       }
     }

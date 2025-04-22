@@ -48,7 +48,7 @@ bool USDTransformWriter::should_apply_root_xform(const HierarchyContext &context
     return false;
   }
 
-  if (BLI_strnlen(usd_export_context_.export_params.root_prim_path, 1024) != 0) {
+  if (usd_export_context_.export_params.root_prim_path[0]) {
     return false;
   }
 

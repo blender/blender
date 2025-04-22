@@ -4730,7 +4730,7 @@ void ANIM_channel_debug_print_info(bAnimContext &ac, bAnimListElem *ale, short i
       }
       case sizeof(short): {
         const short as_short = *static_cast<const short *>(setting_ptr);
-        setting_value = bool(as_short & static_cast<short>(setting_flag)) != is_neg;
+        setting_value = bool(as_short & short(setting_flag)) != is_neg;
         break;
       }
       default:
