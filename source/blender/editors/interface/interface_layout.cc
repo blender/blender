@@ -135,53 +135,11 @@ ENUM_OPERATORS(ItemInternalFlag, ItemInternalFlag::PropDecorateNoPad)
 
 }  // namespace blender::ui
 
-struct uiItem {
-  blender::ui::ItemType type;
-  blender::ui::ItemInternalFlag flag;
-
-  uiItem() = default;
-  uiItem(const uiItem &) = default;
-  virtual ~uiItem() = default;
-};
-
 using uiItemType = blender::ui::ItemType;
 using uiItemInternalFlag = blender::ui::ItemInternalFlag;
 
 struct uiButtonItem : uiItem {
   uiBut *but;
-};
-
-struct uiLayout : uiItem {
-  uiLayoutRoot *root;
-  bContextStore *context;
-  uiLayout *parent;
-  blender::Vector<uiItem *> items;
-
-  char heading[UI_MAX_NAME_STR];
-
-  /** Sub layout to add child items, if not the layout itself. */
-  uiLayout *child_items_layout;
-
-  int x, y, w, h;
-  float scale[2];
-  short space;
-  bool align;
-  bool active;
-  bool active_default;
-  bool activate_init;
-  bool enabled;
-  bool redalert;
-  bool keepaspect;
-  /** For layouts inside grid-flow, they and their items shall never have a fixed maximal size. */
-  bool variable_size;
-  char alignment;
-  blender::ui::EmbossType emboss;
-  /** for fixed width or height to avoid UI size changes */
-  float units[2];
-  /** Is copied to uiButs created in this layout. */
-  float search_weight;
-
-  LayoutSuppressFlag suppress_flag;
 };
 
 struct uiLayoutItemFlow : uiLayout {
