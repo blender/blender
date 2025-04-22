@@ -7165,77 +7165,32 @@ void filter_distances_with_radius(const float radius,
   }
 }
 
+template<typename T>
 void calc_brush_cube_distances(const Brush &brush,
-                               const float4x4 &mat,
-                               const Span<float3> positions,
-                               const Span<int> verts,
-                               const MutableSpan<float> r_distances,
-                               const MutableSpan<float> factors)
+                               const Span<T> positions,
+                               const MutableSpan<float> r_distances)
 {
-  BLI_assert(verts.size() == factors.size());
-  BLI_assert(verts.size() == r_distances.size());
+  BLI_assert(r_distances.size() == positions.size());
 
   const float roundness = brush.tip_roundness;
+  const float roundness_rcp = math::safe_rcp(roundness);
   const float hardness = 1.0f - roundness;
-  for (const int i : verts.index_range()) {
-    if (factors[i] == 0.0f) {
-      r_distances[i] = std::numeric_limits<float>::max();
-      continue;
-    }
-    const float3 local = math::abs(math::transform_point(mat, positions[verts[i]]));
 
-    if (!(local.x <= 1.0f && local.y <= 1.0f && local.z <= 1.0f)) {
-      factors[i] = 0.0f;
-      r_distances[i] = std::numeric_limits<float>::max();
-      continue;
-    }
-    if (std::min(local.x, local.y) > hardness) {
-      /* Corner, distance to the center of the corner circle. */
-      r_distances[i] = math::distance(float2(hardness), float2(local)) / roundness;
-      continue;
-    }
-    if (std::max(local.x, local.y) > hardness) {
-      /* Side, distance to the square XY axis. */
-      r_distances[i] = (std::max(local.x, local.y) - hardness) / roundness;
-      continue;
-    }
-
-    /* Inside the square, constant distance. */
-    r_distances[i] = 0.0f;
-  }
-}
-
-void calc_brush_cube_distances(const Brush &brush,
-                               const float4x4 &mat,
-                               const Span<float3> positions,
-                               const MutableSpan<float> r_distances,
-                               const MutableSpan<float> factors)
-{
-  BLI_assert(positions.size() == factors.size());
-  BLI_assert(positions.size() == r_distances.size());
-
-  const float roundness = brush.tip_roundness;
-  const float hardness = 1.0f - roundness;
   for (const int i : positions.index_range()) {
-    if (factors[i] == 0.0f) {
-      r_distances[i] = std::numeric_limits<float>::max();
-      continue;
-    }
-    const float3 local = math::abs(math::transform_point(mat, positions[i]));
+    const T local = math::abs(positions[i]);
 
-    if (!(local.x <= 1.0f && local.y <= 1.0f && local.z <= 1.0f)) {
-      factors[i] = 0.0f;
+    if (math::reduce_max(local) > 1.0f) {
       r_distances[i] = std::numeric_limits<float>::max();
       continue;
     }
     if (std::min(local.x, local.y) > hardness) {
       /* Corner, distance to the center of the corner circle. */
-      r_distances[i] = math::distance(float2(hardness), float2(local)) / roundness;
+      r_distances[i] = math::distance(float2(hardness), float2(local)) * roundness_rcp;
       continue;
     }
     if (std::max(local.x, local.y) > hardness) {
       /* Side, distance to the square XY axis. */
-      r_distances[i] = (std::max(local.x, local.y) - hardness) / roundness;
+      r_distances[i] = (std::max(local.x, local.y) - hardness) * roundness_rcp;
       continue;
     }
 
@@ -7243,6 +7198,12 @@ void calc_brush_cube_distances(const Brush &brush,
     r_distances[i] = 0.0f;
   }
 }
+template void calc_brush_cube_distances<float2>(const Brush &brush,
+                                                const Span<float2> positions,
+                                                MutableSpan<float> r_distances);
+template void calc_brush_cube_distances<float3>(const Brush &brush,
+                                                const Span<float3> positions,
+                                                MutableSpan<float> r_distances);
 
 void apply_hardness_to_distances(const float radius,
                                  const float hardness,
