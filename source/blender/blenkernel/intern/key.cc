@@ -2208,11 +2208,10 @@ void BKE_keyblock_convert_from_mesh(const Mesh *mesh, const Key *key, KeyBlock *
 }
 
 void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
-                                  float (*vert_positions)[3],
-                                  const int totvert)
+                                  blender::MutableSpan<blender::float3> vert_positions)
 {
-  const int tot = min_ii(kb->totelem, totvert);
-  memcpy(vert_positions, kb->data, sizeof(float[3]) * tot);
+  vert_positions.take_front(kb->totelem)
+      .copy_from({static_cast<blender::float3 *>(kb->data), kb->totelem});
 }
 
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
@@ -2228,8 +2227,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   }
 
   blender::Array<blender::float3> positions(mesh->vert_positions());
-  BKE_keyblock_convert_to_mesh(
-      kb, reinterpret_cast<float(*)[3]>(positions.data()), mesh->verts_num);
+  BKE_keyblock_convert_to_mesh(kb, positions);
   const blender::Span<blender::int2> edges = mesh->edges();
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();

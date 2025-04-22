@@ -811,10 +811,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
     if (KeyBlock *kb = static_cast<KeyBlock *>(
             BLI_findlink(&mesh->key->block, ob_eval->shapenr - 1)))
     {
-      BKE_keyblock_convert_to_mesh(
-          kb,
-          reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
-          mesh->verts_num);
+      BKE_keyblock_convert_to_mesh(kb, mesh->vert_positions_for_write());
     }
   }
 
