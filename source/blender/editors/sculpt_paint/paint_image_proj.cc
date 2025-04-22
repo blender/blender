@@ -4655,7 +4655,8 @@ static void project_paint_end(ProjPaintState *ps)
     }
     if (ps->thread_tot > 1) {
       BLI_spin_end(ps->tile_lock);
-      MEM_freeN(ps->tile_lock);
+      /* The void cast is needed when building without TBB. */
+      MEM_freeN((void *)ps->tile_lock);
     }
 
     ED_image_paint_tile_lock_end();

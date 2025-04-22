@@ -105,7 +105,8 @@ static void sound_free_data(ID *id)
 
   if (sound->spinlock) {
     BLI_spin_end(static_cast<SpinLock *>(sound->spinlock));
-    MEM_freeN(static_cast<SpinLock *>(sound->spinlock));
+    /* The void cast is needed when building without TBB. */
+    MEM_freeN((void *)static_cast<SpinLock *>(sound->spinlock));
     sound->spinlock = nullptr;
   }
 }

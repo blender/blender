@@ -167,7 +167,8 @@ void BKE_main_destroy(Main &bmain)
   BKE_main_clear(bmain);
 
   BLI_spin_end(reinterpret_cast<SpinLock *>(bmain.lock));
-  MEM_freeN(reinterpret_cast<SpinLock *>(bmain.lock));
+  /* The void cast is needed when building without TBB. */
+  MEM_freeN((void *)reinterpret_cast<SpinLock *>(bmain.lock));
   bmain.lock = nullptr;
 }
 
