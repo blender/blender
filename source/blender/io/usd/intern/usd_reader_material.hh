@@ -8,6 +8,7 @@
 #include "WM_types.hh"
 
 #include "BLI_map.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -23,36 +24,55 @@ struct ReportList;
 
 namespace blender::io::usd {
 
-using ShaderToNodeMap = blender::Map<std::string, bNode *>;
+using ShaderToNodeMap = Map<std::string, bNode *>;
 
 /* Helper struct used when arranging nodes in columns, keeping track the
  * occupancy information for a given column.  I.e., for column n,
  * column_offsets[n] is the y-offset (from top to bottom) of the occupied
  * region in that column. */
 struct NodePlacementContext {
-  float origx;
-  float origy;
-  blender::Vector<float, 0> column_offsets;
-  const float horizontal_step;
-  const float vertical_step;
+  const float origx_;
+  const float origy_;
+  const float horizontal_step_;
+  const float vertical_step_;
+  Vector<float, 8> column_offsets_ = Vector<float, 8>(8, 0.0f);
 
   /* Map a USD shader prim path to the Blender node converted
    * from that shader.  This map is updated during shader
    * conversion and is used to avoid creating duplicate nodes
    * for a given shader. */
-  ShaderToNodeMap node_cache;
+  ShaderToNodeMap node_cache_;
 
-  NodePlacementContext(float in_origx,
-                       float in_origy,
-                       float in_horizontal_step = 300.0f,
-                       float in_vertical_step = 300.0f)
-      : origx(in_origx),
-        origy(in_origy),
-        column_offsets(64, 0.0f),
-        horizontal_step(in_horizontal_step),
-        vertical_step(in_vertical_step)
+  NodePlacementContext(float origx,
+                       float origy,
+                       float horizontal_step = 300.0f,
+                       float vertical_step = 300.0f)
+      : origx_(origx),
+        origy_(origy),
+        horizontal_step_(horizontal_step),
+        vertical_step_(vertical_step)
   {
   }
+
+  /* Compute the x- and y-coordinates for placing a new node in an unoccupied region of
+   * the column with the given index. */
+  float2 compute_node_loc(int column);
+
+  /**
+   * Generate a key for caching a Blender node created for a given USD shader by returning the
+   * shader prim path with an optional tag suffix. The tag can be specified in order to generate a
+   * unique key when more than one Blender node is created for the USD shader. */
+  std::string get_key(const pxr::UsdShadeShader &usd_shader, const blender::StringRef tag) const;
+
+  /* Returns the Blender node previously cached for the given USD shader. Returns null if no cached
+   * shader was found. */
+  bNode *get_cached_node(const pxr::UsdShadeShader &usd_shader,
+                         const blender::StringRef tag = {}) const;
+
+  /* Cache the Blender node translated from the given USD shader. */
+  void cache_node(const pxr::UsdShadeShader &usd_shader,
+                  bNode *node,
+                  const blender::StringRef tag = {});
 };
 
 /* Helper struct which carries an assortment of optional
@@ -90,13 +110,12 @@ struct ExtraLinkInfo {
  * the corresponding inputs.
  */
 class USDMaterialReader {
- protected:
-  USDImportParams params_;
-
-  Main *bmain_;
+ private:
+  const USDImportParams &params_;
+  Main &bmain_;
 
  public:
-  USDMaterialReader(const USDImportParams &params, Main *bmain);
+  USDMaterialReader(const USDImportParams &params, Main &bmain);
 
   Material *add_material(const pxr::UsdShadeMaterial &usd_material,
                          bool read_usd_preview = true) const;
@@ -127,7 +146,7 @@ class USDMaterialReader {
                       const StringRefNull dest_socket_name,
                       bNodeTree *ntree,
                       int column,
-                      NodePlacementContext *r_ctx,
+                      NodePlacementContext &ctx,
                       const ExtraLinkInfo &extra = {}) const;
 
   /**
@@ -139,7 +158,7 @@ class USDMaterialReader {
                          const StringRefNull dest_socket_name,
                          bNodeTree *ntree,
                          int column,
-                         NodePlacementContext *r_ctx,
+                         NodePlacementContext &ctx,
                          const ExtraLinkInfo &extra = {}) const;
 
   void convert_usd_uv_texture(const pxr::UsdShadeShader &usd_shader,
@@ -148,7 +167,7 @@ class USDMaterialReader {
                               const StringRefNull dest_socket_name,
                               bNodeTree *ntree,
                               int column,
-                              NodePlacementContext *r_ctx,
+                              NodePlacementContext &ctx,
                               const ExtraLinkInfo &extra = {}) const;
 
   void convert_usd_transform_2d(const pxr::UsdShadeShader &usd_shader,
@@ -156,7 +175,7 @@ class USDMaterialReader {
                                 const StringRefNull dest_socket_name,
                                 bNodeTree *ntree,
                                 int column,
-                                NodePlacementContext *r_ctx) const;
+                                NodePlacementContext &ctx) const;
 
   /**
    * Load the texture image node's texture from the path given by the USD shader's
@@ -178,7 +197,7 @@ class USDMaterialReader {
                                          const StringRefNull dest_socket_name,
                                          bNodeTree *ntree,
                                          int column,
-                                         NodePlacementContext *r_ctx) const;
+                                         NodePlacementContext &ctx) const;
 };
 
 /* Utility functions. */
