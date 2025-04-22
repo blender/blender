@@ -22,6 +22,11 @@
 #define _BLI_KDTREE_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
 #define BLI_kdtree_nd_(id) _BLI_KDTREE_CONCAT(KDTREE_PREFIX_ID, _##id)
 
+/* Put in anonymouse namespace to avoid violating one definition rule.
+ * Otherwise MEM_malloc_array<KDTreeNode> can get defined once for multiple dimensions,
+ * with different node sizes. */
+namespace {
+
 struct KDTreeNode_head {
   uint left, right;
   float co[KD_DIMS];
@@ -34,6 +39,8 @@ struct KDTreeNode {
   int index;
   uint d; /* range is only (0..KD_DIMS - 1) */
 };
+
+}  // namespace
 
 struct KDTree {
   KDTreeNode *nodes;
@@ -95,10 +102,6 @@ KDTree *BLI_kdtree_nd_(new)(uint nodes_len_capacity)
   KDTree *tree;
 
   tree = MEM_callocN<KDTree>("KDTree");
-  /* NOTE: Cannot use `MEM_malloc_arrayN<KDTreeNode>()` here, as `KDTreeNode` is not one type, but
-   * four (1D to 4D), differing by their `float co[KD_DIMS]` member. It seems like the code
-   * generating the templates does not distinguish these cases, and create a single code for all
-   * four cases, leading to invalid allocation sizes. */
   tree->nodes = MEM_malloc_arrayN<KDTreeNode>(nodes_len_capacity, "KDTreeNode");
   tree->nodes_len = 0;
   tree->root = KD_NODE_ROOT_IS_INIT;
