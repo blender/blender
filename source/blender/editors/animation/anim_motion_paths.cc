@@ -11,6 +11,7 @@
 #include <cstdlib>
 
 #include "BLI_listbase.h"
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
@@ -287,9 +288,9 @@ static int motionpath_get_next_next_keyframe(MPathTarget *mpt,
 
 static bool motionpath_check_can_use_keyframe_range(MPathTarget * /*mpt*/,
                                                     AnimData *adt,
-                                                    ListBase *fcurve_list)
+                                                    blender::Span<FCurve *> fcurves)
 {
-  if (adt == nullptr || fcurve_list == nullptr) {
+  if (adt == nullptr || fcurves.is_empty()) {
     return false;
   }
   /* NOTE: We might needed to do a full frame range update if there is a specific setup of NLA
@@ -299,7 +300,7 @@ static bool motionpath_check_can_use_keyframe_range(MPathTarget * /*mpt*/,
 
 static void motionpath_calculate_update_range(MPathTarget *mpt,
                                               AnimData *adt,
-                                              ListBase *fcurve_list,
+                                              blender::Vector<FCurve *> fcurves,
                                               int current_frame,
                                               int *r_sfra,
                                               int *r_efra)
@@ -315,7 +316,7 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
 
   /* Similar to the case when there is only a single keyframe: need to update en entire range to
    * a constant value. */
-  if (!motionpath_check_can_use_keyframe_range(mpt, adt, fcurve_list)) {
+  if (!motionpath_check_can_use_keyframe_range(mpt, adt, fcurves)) {
     *r_sfra = mpt->mpath->start_frame;
     *r_efra = mpt->mpath->end_frame;
     return;
@@ -326,7 +327,7 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
    * channel which wasn't edited.
    * Could be optimized further by storing some flags about which channels has been modified so
    * we ignore all others (which can potentially make an update range unnecessary wide). */
-  for (FCurve *fcu = static_cast<FCurve *>(fcurve_list->first); fcu != nullptr; fcu = fcu->next) {
+  for (FCurve *fcu : fcurves) {
     AnimKeylist *keylist = ED_keylist_create();
     fcurve_to_keylist(adt, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, true);
     ED_keylist_prepare_for_direct_access(keylist);
@@ -465,7 +466,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     /* Build list of all keyframes in active action for object or pchan. */
     mpt->keylist = ED_keylist_create();
 
-    ListBase *fcurve_list = nullptr;
+    blender::Vector<FCurve *> fcurves;
     if (adt && adt->action) {
       /* Get pointer to animviz settings for each target. */
       bAnimVizSettings *avs = animviz_target_settings_get(mpt);
@@ -485,12 +486,19 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
         }
 
         if (agrp) {
-          fcurve_list = &agrp->channels;
+          fcurves = blender::listbase_to_vector<FCurve>(agrp->channels);
           action_group_to_keylist(adt, agrp, mpt->keylist, 0, {-FLT_MAX, FLT_MAX});
         }
       }
       else {
-        fcurve_list = &adt->action->curves;
+        Action &action = adt->action->wrap();
+        if (action.is_action_layered()) {
+          fcurves = blender::Vector<FCurve *>(
+              channelbag_for_action_slot(action, adt->slot_handle)->fcurves());
+        }
+        else {
+          fcurves = blender::listbase_to_vector<FCurve>(adt->action->curves);
+        }
         action_to_keylist(adt, adt->action, mpt->keylist, 0, {-FLT_MAX, FLT_MAX});
       }
     }
@@ -498,7 +506,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 
     if (range == ANIMVIZ_CALC_RANGE_CHANGED) {
       int mpt_sfra, mpt_efra;
-      motionpath_calculate_update_range(mpt, adt, fcurve_list, cfra, &mpt_sfra, &mpt_efra);
+      motionpath_calculate_update_range(mpt, adt, fcurves, cfra, &mpt_sfra, &mpt_efra);
       if (mpt_sfra <= mpt_efra) {
         sfra = min_ii(sfra, mpt_sfra);
         efra = max_ii(efra, mpt_efra);
