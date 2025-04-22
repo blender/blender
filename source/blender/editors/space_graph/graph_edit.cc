@@ -56,6 +56,7 @@
 #include "ED_keyframing.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
+#include "ED_space_graph.hh"
 #include "ED_transform.hh"
 
 #include "WM_api.hh"
@@ -2274,15 +2275,11 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ListBase anim_data = {nullptr, nullptr};
-  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
-                ANIMFILTER_NODUPLIS);
-  if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
-    filter |= ANIMFILTER_SEL;
-  }
+  ListBase anim_data = blender::ed::graph::get_editable_fcurves(ac);
 
-  ANIM_animdata_filter(
-      &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+  if (BLI_listbase_is_empty(&anim_data)) {
+    return OPERATOR_CANCELLED;
+  }
 
   float closest_frame = next ? FLT_MAX : -FLT_MAX;
   bool found = false;
@@ -2323,7 +2320,7 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
   /* Set notifier that things have changed. */
-  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
   return OPERATOR_FINISHED;
 }
 
