@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:34+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11584,6 +11584,26 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Snap"
+msgstr "Przyciągnij"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
 
@@ -11652,28 +11672,8 @@ msgid "Text"
 msgstr "Tekst"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
 
 
 msgid "Catalog"
@@ -12363,10 +12363,6 @@ msgstr "Zaznacz według wzoru"
 
 msgid "Show Preview"
 msgstr "Pokaż podgląd"
-
-
-msgid "How much sharp corners will be rounded"
-msgstr "Jak bardzo ostre rogi będą zaokrąglone"
 
 
 msgid "Rounding"
@@ -17401,22 +17397,6 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
-msgid "Active Tool"
-msgstr "Aktywne narzędzie"
-
-
-msgid "Shadow Settings"
-msgstr "Ustawienia cienia"
-
-
-msgid "Compositor"
-msgstr "Kompozytor"
-
-
-msgid "Motion Tracking"
-msgstr "Śledzenie ruchu"
-
-
 msgid "Mesh Edit Mode"
 msgstr "Tryb edycji siatki"
 
@@ -17435,6 +17415,22 @@ msgstr "Przyciąganie"
 
 msgid "Transform Orientations"
 msgstr "Orientacje przekształcenia"
+
+
+msgid "Motion Tracking"
+msgstr "Śledzenie ruchu"
+
+
+msgid "Active Tool"
+msgstr "Aktywne narzędzie"
+
+
+msgid "Shadow Settings"
+msgstr "Ustawienia cienia"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
 
 
 msgid "Aperture"
@@ -21737,11 +21733,6 @@ msgstr "Wyłącz podczas renderowania"
 
 
 msgctxt "Operator"
-msgid "ID Data"
-msgstr "ID danych"
-
-
-msgctxt "Operator"
 msgid "Paste Data-Blocks"
 msgstr "Wklej bloki danych"
 
@@ -22725,6 +22716,11 @@ msgstr "Pusty"
 
 
 msgctxt "Operator"
+msgid "Point Cloud"
+msgstr "Chmura punktów"
+
+
+msgctxt "Operator"
 msgid "Speaker"
 msgstr "Głośnik"
 
@@ -22965,11 +22961,6 @@ msgstr "Tekst atrybutu"
 msgctxt "Operator"
 msgid "Viewport Render Animation"
 msgstr "Renderuj animację rzutni"
-
-
-msgctxt "Operator"
-msgid "Point Cloud"
-msgstr "Chmura punktów"
 
 
 msgctxt "Operator"
@@ -28815,10 +28806,6 @@ msgstr "Wszystkie wtyczki zainstalowane przez użytkownika"
 
 msgid "Import-Export"
 msgstr "Import-Eksport"
-
-
-msgid "English (English)"
-msgstr "Angielski (English)"
 
 
 msgid "Japanese (日本語)"

@@ -106,7 +106,7 @@ static void assign_materials(Main *bmain,
     return;
   }
 
-  USDMaterialReader mat_reader(params, bmain);
+  USDMaterialReader mat_reader(params, *bmain);
 
   for (const auto item : mat_index_map.items()) {
     Material *assigned_mat = find_existing_material(

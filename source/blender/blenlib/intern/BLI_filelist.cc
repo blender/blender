@@ -430,10 +430,10 @@ void BLI_filelist_duplicate(direntry **dest_filelist,
 void BLI_filelist_entry_free(direntry *entry)
 {
   if (entry->relname) {
-    MEM_freeN((void *)entry->relname);
+    MEM_freeN(entry->relname);
   }
   if (entry->path) {
-    MEM_freeN((void *)entry->path);
+    MEM_freeN(entry->path);
   }
 }
 

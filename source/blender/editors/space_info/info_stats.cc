@@ -505,7 +505,7 @@ static bool format_stats(
       return false;
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
-    *stats_p = (SceneStats *)MEM_mallocN(sizeof(SceneStats), __func__);
+    *stats_p = MEM_mallocN<SceneStats>(__func__);
     stats_update(depsgraph, scene, view_layer, v3d_local, *stats_p);
   }
 

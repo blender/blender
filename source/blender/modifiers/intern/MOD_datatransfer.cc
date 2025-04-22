@@ -192,7 +192,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   if (BKE_reports_contain(&reports, RPT_ERROR)) {
     const char *report_str = BKE_reports_string(&reports, RPT_ERROR);
     BKE_modifier_set_error(ctx->object, md, "%s", report_str);
-    MEM_freeN((void *)report_str);
+    MEM_freeN(report_str);
   }
 
   BKE_reports_free(&reports);

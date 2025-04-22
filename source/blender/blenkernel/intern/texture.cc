@@ -34,6 +34,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_texture_types.h"
 
 #include "BKE_brush.hh"
 #include "BKE_colorband.hh"
@@ -236,7 +237,7 @@ TexMapping *BKE_texture_mapping_add(int type)
 
 void BKE_texture_mapping_default(TexMapping *texmap, int type)
 {
-  memset(texmap, 0, sizeof(TexMapping));
+  *texmap = TexMapping{};
 
   texmap->size[0] = texmap->size[1] = texmap->size[2] = 1.0f;
   texmap->max[0] = texmap->max[1] = texmap->max[2] = 1.0f;
@@ -339,7 +340,7 @@ ColorMapping *BKE_texture_colormapping_add()
 
 void BKE_texture_colormapping_default(ColorMapping *colormap)
 {
-  memset(colormap, 0, sizeof(ColorMapping));
+  *colormap = ColorMapping{};
 
   BKE_colorband_init(&colormap->coba, true);
 

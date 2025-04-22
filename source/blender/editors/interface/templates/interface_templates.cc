@@ -40,7 +40,7 @@ int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop)
   const int estimated_width = UI_fontstyle_string_width(fstyle, name) + margin;
 
   if (name != str) {
-    MEM_freeN((void *)name);
+    MEM_freeN(name);
   }
 
   /* Clamp to some min/max width. */

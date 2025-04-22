@@ -457,7 +457,7 @@ void import_meshes(Main &bmain,
             BKE_object_material_assign_single_obdata(&bmain, obj, mesh_mat, mat_index);
 
             /* If object material is different, assign that to object. */
-            if (node_mat != nullptr && node_mat != mesh_mat) {
+            if (!ELEM(node_mat, nullptr, mesh_mat)) {
               BKE_object_material_assign(&bmain, obj, node_mat, mat_index, BKE_MAT_ASSIGN_OBJECT);
             }
           }

@@ -26,6 +26,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"
@@ -107,12 +108,12 @@ struct InputSpec {
 };
 
 /* Map Blender socket names to USD Preview Surface InputSpec structs. */
-using InputSpecMap = blender::Map<std::string, InputSpec>;
+using InputSpecMap = blender::Map<StringRef, InputSpec>;
 
 /* Static function forward declarations. */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
                                                      const pxr::UsdShadeMaterial &material,
-                                                     const char *name,
+                                                     const StringRef name,
                                                      int type);
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
                                                      const pxr::UsdShadeMaterial &material,
@@ -536,7 +537,7 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
 
   BLI_assert(!uv_node || uv_node->type_legacy == SH_NODE_UVMAP);
 
-  const char *shader_name = uv_node ? uv_node->name : "uvmap";
+  const StringRef shader_name = uv_node ? uv_node->name : "uvmap";
 
   pxr::UsdShadeShader uv_shader = create_usd_preview_shader(
       usd_export_context, usd_material, shader_name, SH_NODE_UVMAP);
@@ -1007,7 +1008,7 @@ static bNode *find_displacement_node(Material *material)
 /* Creates a USD Preview Surface shader based on the given cycles node name and type. */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
                                                      const pxr::UsdShadeMaterial &material,
-                                                     const char *name,
+                                                     const StringRef name,
                                                      const int type)
 {
   pxr::SdfPath shader_path = material.GetPath().AppendChild(
@@ -1345,7 +1346,7 @@ void export_texture(bNode *node,
   export_texture(ima, stage, allow_overwrite, reports);
 }
 
-pxr::TfToken token_for_input(const char *input_name)
+pxr::TfToken token_for_input(const StringRef input_name)
 {
   const InputSpecMap &input_map = preview_surface_input_map();
   const InputSpec *spec = input_map.lookup_ptr(input_name);

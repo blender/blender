@@ -76,7 +76,7 @@ void ED_gpencil_layer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlys
   /* loop through gp-frames, adding */
   LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     if ((onlysel == 0) || (gpf->flag & GP_FRAME_SELECT)) {
-      ce = static_cast<CfraElem *>(MEM_callocN(sizeof(CfraElem), "CfraElem"));
+      ce = MEM_callocN<CfraElem>("CfraElem");
 
       ce->cfra = float(gpf->framenum);
       ce->sel = (gpf->flag & GP_FRAME_SELECT) ? 1 : 0;
@@ -354,8 +354,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 
     /* create a new layer in buffer if there were keyframes here */
     if (BLI_listbase_is_empty(&copied_frames) == false) {
-      bGPDlayer *new_layer = static_cast<bGPDlayer *>(
-          MEM_callocN(sizeof(bGPDlayer), "GPCopyPasteLayer"));
+      bGPDlayer *new_layer = MEM_callocN<bGPDlayer>("GPCopyPasteLayer");
       BLI_addtail(&gpencil_anim_copybuf, new_layer);
 
       /* move over copied frames */

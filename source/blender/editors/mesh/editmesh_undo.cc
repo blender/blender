@@ -706,8 +706,7 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
 {
   /* Map: `Mesh.id.session_uid` -> `UndoMesh`. */
   GHash *uuid_map = BLI_ghash_ptr_new_ex(__func__, object_len);
-  UndoMesh **um_references = static_cast<UndoMesh **>(
-      MEM_callocN(sizeof(UndoMesh *) * object_len, __func__));
+  UndoMesh **um_references = MEM_calloc_arrayN<UndoMesh *>(object_len, __func__);
   for (int i = 0; i < object_len; i++) {
     const Mesh *mesh = static_cast<const Mesh *>(object[i]->data);
     BLI_ghash_insert(uuid_map, POINTER_FROM_INT(mesh->id.session_uid), &um_references[i]);
@@ -796,7 +795,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, Mesh &mesh, Key *key, UndoMesh
       um_arraystore.task_pool = BLI_task_pool_create_background(nullptr, TASK_PRIORITY_LOW);
     }
 
-    UMArrayData *um_data = static_cast<UMArrayData *>(MEM_mallocN(sizeof(*um_data), __func__));
+    UMArrayData *um_data = MEM_mallocN<UMArrayData>(__func__);
     um_data->um = um;
     um_data->um_ref = um_ref;
 
@@ -958,8 +957,7 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   blender::Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
-  us->elems = static_cast<MeshUndoStep_Elem *>(
-      MEM_callocN(sizeof(*us->elems) * objects.size(), __func__));
+  us->elems = MEM_calloc_arrayN<MeshUndoStep_Elem>(objects.size(), __func__);
   us->elems_len = objects.size();
 
   UndoMesh **um_references = nullptr;

@@ -616,7 +616,7 @@ void USDStageReader::import_all_materials(Main *bmain)
     build_material_map(bmain, settings_.mat_name_to_mat);
   }
 
-  USDMaterialReader mtl_reader(params_, bmain);
+  USDMaterialReader mtl_reader(params_, *bmain);
   for (const pxr::SdfPath &mtl_path : material_paths_) {
     pxr::UsdPrim prim = stage_->GetPrimAtPath(mtl_path);
 
@@ -707,7 +707,7 @@ void USDStageReader::call_material_import_hooks(Main *bmain) const
                 "Preview Surface material",
                 usd_mtl.GetPath().GetAsString().c_str());
 
-      USDMaterialReader mat_reader(this->params_, bmain);
+      USDMaterialReader mat_reader(this->params_, *bmain);
       mat_reader.import_usd_preview(item.value, usd_mtl);
     }
   }

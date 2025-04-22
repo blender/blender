@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
-"PO-Revision-Date: 2025-04-14 08:38+0000\n"
-"Last-Translator: Nerenas Kosades <nerenas@mail.ru>\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"PO-Revision-Date: 2025-04-21 07:39+0000\n"
+"Last-Translator: Fatih Alexandr <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -57,6 +57,10 @@ msgstr "Список AOV"
 
 msgid "Collection of AOVs"
 msgstr "Коллекция AOV"
+
+
+msgid "Animation Channel Bag"
+msgstr "Карман канала анимации"
 
 
 msgid "F-Curves"
@@ -327,6 +331,10 @@ msgid "Slot Identifier"
 msgstr "Идентификатор слота"
 
 
+msgid "Used when connecting an Action to a data-block, to find the correct slot handle. This is the display name, prefixed by two characters determined by the slot's ID type"
+msgstr "Используется при подключении действия к блоку данных для поиска правильного дескриптора слота. Это отображаемое имя, с двумя префиксами, определяемыми типом идентификатора слота"
+
+
 msgid "Slot Display Name"
 msgstr "Отображаемое имя слота"
 
@@ -341,6 +349,11 @@ msgstr "Состояние выделения слота"
 
 msgid "Show Expanded"
 msgstr "Развёрнуто"
+
+
+msgctxt "ID"
+msgid "Target ID Type"
+msgstr "ID-Тип цели"
 
 
 msgctxt "ID"
@@ -1832,7 +1845,7 @@ msgstr "Трёхмерный нецелочисленный вектор"
 
 
 msgid "RGBA color with 32-bit floating-point values"
-msgstr "Цвет RGBA с 32-битными значениями с плавающей точкой"
+msgstr "Цвет RGBA с 32-битными значениями с плавающей запятой"
 
 
 msgid "Byte Color"
@@ -1856,7 +1869,7 @@ msgstr "Логический"
 
 
 msgid "True or false"
-msgstr "Истина или ложь"
+msgstr "Истинно или ложно"
 
 
 msgid "2D Vector"
@@ -1864,7 +1877,7 @@ msgstr "2D-вектор"
 
 
 msgid "2D vector with floating-point values"
-msgstr "2D-вектор чисел с плавающей точкой"
+msgstr "2D-вектор чисел с плавающей запятой"
 
 
 msgid "8-Bit Integer"
@@ -1896,7 +1909,7 @@ msgstr "Кватернион"
 
 
 msgid "Floating point quaternion rotation"
-msgstr "Вращение кватерниона с плавающей точкой"
+msgstr "Вращение кватерниона с плавающей запятой"
 
 
 msgid "4x4 Matrix"
@@ -1904,7 +1917,7 @@ msgstr "Матрица 4x4"
 
 
 msgid "Floating point matrix"
-msgstr "Матрица чисел с плавающей запятой (float)"
+msgstr "Матрица чисел с плавающей запятой"
 
 
 msgid "Domain"
@@ -2020,7 +2033,7 @@ msgstr "Атрибут Float2"
 
 
 msgid "Geometry attribute that stores floating-point 2D vectors"
-msgstr "Атрибут геометрии, хранящий двумерные векторы с плавающей точкой"
+msgstr "Атрибут геометрии, хранящий двумерные векторы с плавающей запятой"
 
 
 msgid "4x4 Matrix Attribute"
@@ -2032,27 +2045,27 @@ msgstr "Атрибут геометрии, который хранит матр�
 
 
 msgid "Float Attribute"
-msgstr "Числовой атрибут с плавающей точкой"
+msgstr "Числовой атрибут с плавающей запятой"
 
 
 msgid "Geometry attribute that stores floating-point values"
-msgstr "Атрибут геометрии, хранящий значения с плавающей точкой"
+msgstr "Атрибут геометрии, хранящий значения с плавающей запятой"
 
 
 msgid "Float Color Attribute"
-msgstr "Атрибут цвета с плавающей точкой"
+msgstr "Атрибут цвета с плавающей запятой"
 
 
 msgid "Geometry attribute that stores RGBA colors as floating-point values using 32-bits per channel"
-msgstr "Атрибут геометрии, который хранит цвета RGBA в числах с плавающей точкой, используя 32 бит на канал"
+msgstr "Атрибут геометрии, который хранит цвета RGBA в числах с плавающей запятой, используя 32 бит на канал"
 
 
 msgid "Float Vector Attribute"
-msgstr "Атрибут вектора чисел с плавающей точкой"
+msgstr "Атрибут вектора чисел с плавающей запятой"
 
 
 msgid "Geometry attribute that stores floating-point 3D vectors"
-msgstr "Атрибут геометрии, хранящий 3D-векторы с плавающей точкой"
+msgstr "Атрибут геометрии, хранящий 3D-векторы с плавающей запятой"
 
 
 msgid "2D Integer Vector Attribute"
@@ -3267,6 +3280,10 @@ msgid "Generate a placeholder (empty ID) if not found in any library files"
 msgstr "Сгенерировать заполнитель (пустой идентификатор), если он не найден ни в одном файле библиотеки"
 
 
+msgid "Force loaded ID to be tagged as indirectly linked (used in reload context only)"
+msgstr "Принудительно пометить загруженный идентификатор как косвенно связанный (используется только в контексте перезагрузки)"
+
+
 msgid "Set fake user on appended IDs"
 msgstr "Установить параметр \"фиктивного пользователя\" на добавленные идентификаторы"
 
@@ -3281,6 +3298,14 @@ msgstr "Очищать данные ассетов при добавлении (
 
 msgid "Automatically select imported objects"
 msgstr "Автоматически выделять импортированные объекты"
+
+
+msgid "Use the active Collection of the current View Layer to instantiate imported collections and objects"
+msgstr "Использовать активную коллекцию текущего слоя визуализации для создания экземпляров импортированных коллекций и объектов"
+
+
+msgid "Instantiate object data IDs (i.e. create objects for them if needed)"
+msgstr "Создание экземпляров идентификаторов для данных объектов (т.е. создание для них объектов при необходимости)"
 
 
 msgid "Instantiate collections as empties, instead of linking them into the current view layer"
@@ -3303,6 +3328,10 @@ msgid "An item (representing a data-block) in a BlendImportContext data. Current
 msgstr "Элемент (представляющий блок данных) в данных BlendImportContext (КонтекстаИмпортаBlend). В настоящее время представлен только в качестве данных \"только для чтения\" для обработчиков pre/post linking (связывания)"
 
 
+msgid "How this item has been handled by the append operation. Only set if the data has been appended"
+msgstr "Как этот элемент был обработан операцией добавления. Устанавливается только в том случае, если данные были добавлены"
+
+
 msgid "Not yet defined"
 msgstr "Пока не определено"
 
@@ -3313,11 +3342,15 @@ msgstr "Связанный идентификатор имел другие, н�
 
 msgctxt "ID"
 msgid "ID Type"
-msgstr "ID-тип"
+msgstr "ID-Тип"
 
 
 msgid "ID type of the item"
 msgstr "Тип ID элемента"
+
+
+msgid "That item was added for an indirectly imported ID, as a dependency of another data-block"
+msgstr "Этот элемент был добавлен для косвенно импортированного идентификатора в качестве зависимости другого блока данных"
 
 
 msgid "That item represents an ID only used as liboverride dependency (either directly or indirectly, see `LIBOVERRIDE_DEPENDENCY` for precisions). It should not be considered during the 'make local' (append) process, and remain purely linked data. Mutually exclusive with `LIBOVERRIDE_DEPENDENCY`"
@@ -4363,7 +4396,7 @@ msgstr "Родители полностью видны"
 
 
 msgid "True when all of the ancestors of this bone collection are marked as visible; always True for root bone collections"
-msgstr "Истина, если все предки этой коллекции костей отмечены как видимые; всегда истина для корневых коллекций костей"
+msgstr "Истинно, если все предки этой коллекции костей отмечены как видимые; всегда \"истинно\" для корневых коллекций костей"
 
 
 msgid "Effective Visibility"
@@ -4371,7 +4404,7 @@ msgstr "Эффективная видимость"
 
 
 msgid "Whether this bone collection is effectively visible in the viewport. This is True when this bone collection and all of its ancestors are visible, or when it is marked as 'solo'."
-msgstr "Определяет, если эта коллекция костей эффективно видна во вьюпорте. Это значение является \"истинным\", если эта коллекция костей и все её предки видны, или если она помечена как \"соло\"."
+msgstr "Определяет, если эта коллекция костей эффективно видна во вьюпорте. Это значение является \"истинным\", если эта коллекция костей и все её предки видны, или если она помечена как 'соло'."
 
 
 msgid "Unique within the Armature"
@@ -6509,7 +6542,7 @@ msgstr "Привязка света"
 
 
 msgid "Light linking settings of the collection object"
-msgstr "Настройки привязки света для коллекции объекта"
+msgstr "Настройки привязки света для объекта коллекции"
 
 
 msgid "Collection Children"
@@ -7858,7 +7891,7 @@ msgstr "Установить отложенную инверсию"
 
 
 msgid "Set to true to request recalculation of the inverse matrix"
-msgstr "Установите, чтобы запросить отложенный пересчёт инверсной матрицы"
+msgstr "Установить значение на \"истинно\", чтобы запросить пересчёт инверсной матрицы"
 
 
 msgid "Location X"
@@ -8629,7 +8662,7 @@ msgstr "Влиять на трансформации"
 
 
 msgid "Transforms are affected by this constraint as well"
-msgstr "Трансформации также будут подвержены этому ограничителю"
+msgstr "Трансформации также будут подвержены этому ограничению"
 
 
 msgid "Limit Location Constraint"
@@ -11940,7 +11973,7 @@ msgstr "F-кривая и её ключевые кадры скрыты сред
 
 
 msgid "True if the curve contributes no animation due to lack of keyframes or useful modifiers, and should be deleted"
-msgstr "Истина, если кривая не участвует в анимации, поскольку в ней нет ни ключевых кадров, ни полезных модификаторов, и, следовательно, должна быть удалена"
+msgstr "Истинно, если кривая не участвует в анимации, поскольку в ней нет ни ключевых кадров, ни полезных модификаторов, и, следовательно, должна быть удалена"
 
 
 msgid "False when F-Curve could not be evaluated in past, so should be skipped when evaluating"
@@ -12298,6 +12331,10 @@ msgstr "Рекомендуется для быстрого кодировани�
 
 msgid "Profile"
 msgstr "Профиль"
+
+
+msgid "ProRes 422 HQ"
+msgstr "ProRes 422 HQ"
 
 
 msgid "Container"
@@ -14126,6 +14163,22 @@ msgid "Import the assets as copied data-block while avoiding multiple copies of 
 msgstr "Импортировать ассет как скопированный блок данных, но без многократного копирования вложенных, обычно тяжёлых данных. Например, зависимые текстуры и меш не нужно копировать каждый раз при импорте этого ассета. Вместо этого экземпляры ассета будут использовать общие данные"
 
 
+msgid "Instance Collections on Appending"
+msgstr "Создать экземпляры коллекций при добавлении"
+
+
+msgid "Create instances for collections when appending, rather than adding them directly to the scene"
+msgstr "Создать экземпляры коллекций при добавлении, а не добавлять их физически в сцену"
+
+
+msgid "Instance Collections on Linking"
+msgstr "Создать экземпляры коллекций при связывании"
+
+
+msgid "Create instances for collections when linking, rather than adding them directly to the scene"
+msgstr "Создать экземпляры коллекций при связывании, а не добавлять их физически в сцену"
+
+
 msgid "Float2 Attribute Value"
 msgstr "Значение атрибута Float2"
 
@@ -14151,19 +14204,19 @@ msgstr "Матрица"
 
 
 msgid "Float Attribute Value"
-msgstr "Значение атрибута числа с плавающей точкой"
+msgstr "Значение атрибута числа с плавающей запятой"
 
 
 msgid "Floating-point value in geometry attribute"
-msgstr "Значение числа с плавающей точкой в атрибуте геометрии"
+msgstr "Значение числа с плавающей запятой в атрибуте геометрии"
 
 
 msgid "Float Color Attribute Value"
-msgstr "Значение атрибута цвета с плавающей точкой"
+msgstr "Значение атрибута цвета с плавающей запятой"
 
 
 msgid "Float Vector Attribute Value"
-msgstr "Значение атрибута вектора чисел с плавающей точкой"
+msgstr "Значение атрибута вектора чисел с плавающей запятой"
 
 
 msgid "Vector value in geometry attribute"
@@ -17451,6 +17504,10 @@ msgid "Library file the data-block is linked from"
 msgstr "Библиотечный файл, на который ссылается датаблок"
 
 
+msgid "Weak reference to a data-block in another library .blend file (used to re-use already appended data instead of appending new copies)"
+msgstr "Слабая ссылка на блок данных в другом .blend-файле библиотеки (используется для повторного использования уже добавленных данных вместо добавления новых копий)"
+
+
 msgid "Unique data-block ID name (within a same type and library)"
 msgstr "Имя идентификатора уникального блока данных (в пределах одного типа и библиотеки)"
 
@@ -17542,6 +17599,10 @@ msgstr "Корневой ID-тип"
 
 msgid "Is Empty"
 msgstr "Пустое"
+
+
+msgid "False when there is any Layer, Slot, or legacy F-Curve"
+msgstr "Ложно, если есть какой-либо слой, слот или устаревшая F-кривая"
 
 
 msgid "Layers"
@@ -19538,6 +19599,10 @@ msgid "Use Prefetch"
 msgstr "Использовать предварительную выборку"
 
 
+msgid "When enabled, the Cycles Procedural will preload animation data for faster updates"
+msgstr "При включении Cycles Procedural будет предварительно загружать данные анимации для более быстрых обновлений"
+
+
 msgid "Use Render Engine Procedural"
 msgstr "Использовать процедурный движок рендеринга"
 
@@ -20019,6 +20084,10 @@ msgstr "Панорамный"
 
 msgid "Collection of Object data-blocks"
 msgstr "Коллекция датаблоков объектов"
+
+
+msgid "Active Collection Exporter Index"
+msgstr "Индекс экспортёра активной коллекции"
 
 
 msgid "Active index in the exporters list"
@@ -24024,11 +24093,11 @@ msgstr "Глобально отключить в зондах-объёмах"
 
 
 msgid "Instance Collection"
-msgstr "Коллекция экземпляров"
+msgstr "Экземпляр коллекции"
 
 
 msgid "Instance an existing collection"
-msgstr "Экземпляр существующей коллекции"
+msgstr "Создать экземпляр существующей коллекции"
 
 
 msgid "Instance Faces Scale"
@@ -25004,11 +25073,11 @@ msgstr "Создать сетку по гексагональному шабло
 
 
 msgid "Instance Collection Weights"
-msgstr "Веса коллекции экземпляров"
+msgstr "Веса экземпляра коллекции"
 
 
 msgid "Weights for all of the objects in the instance collection"
-msgstr "Веса для всех объектов в коллекции экземпляров"
+msgstr "Веса для всех объектов в экземпляре коллекции"
 
 
 msgid "Integration"
@@ -26144,6 +26213,14 @@ msgstr "Настройки отображения"
 
 msgid "Color management settings applied on image before saving"
 msgstr "Настройки управления цветом, применяемые перед сохранением изображения"
+
+
+msgid "Landmark"
+msgstr "Ориентир"
+
+
+msgid "Selected Landmark"
+msgstr "Выделенный ориентир"
 
 
 msgctxt "World"
@@ -27662,6 +27739,10 @@ msgid "Name for new preset"
 msgstr "Имя нового пресета"
 
 
+msgid "Rigify Active Collection"
+msgstr "Активная коллекция Rigify"
+
+
 msgid "Last frame to transfer"
 msgstr "Последний кадр для перенесения"
 
@@ -28230,6 +28311,10 @@ msgid "ZIP"
 msgstr "ZIP"
 
 
+msgid "Lossless zip compression of 16 row image blocks"
+msgstr "Сжатие без потерь 16-строчных блоков изображений с помощью zip-архива"
+
+
 msgid "DWAA (lossy)"
 msgstr "DWAA (с потерями)"
 
@@ -28383,7 +28468,7 @@ msgstr "Нецелочисленные пиксели изображения"
 
 
 msgid "Image pixels components, as floats (RGBA concatenated values)"
-msgstr "Компоненты пикселей изображения в виде чисел с плавающей точкой (RGBA-значения с конкатенацией)"
+msgstr "Компоненты пикселей изображения в виде чисел с плавающей запятой (RGBA-значения с конкатенацией)"
 
 
 msgid "Image Size"
@@ -30526,6 +30611,10 @@ msgid "Location, Rotation & Scale"
 msgstr "Положение, вращение и масштаб"
 
 
+msgid "Key location/rotation/scale as well as custom properties"
+msgstr "Положение/вращение/масштаб ключа, а также пользовательские свойства"
+
+
 msgid "Location, Rotation, Scale & Custom Properties"
 msgstr "Положение, вращение, масштаб и пользовательские свойства"
 
@@ -32128,12 +32217,52 @@ msgid "Material slot name"
 msgstr "Имя слота материала"
 
 
-msgid "Select All by Trait"
-msgstr "Выделить всё по признаку"
+msgid "Mirror"
+msgstr "Зеркало"
+
+
+msgid "Snap"
+msgstr "Привязка"
+
+
+msgid "UV Mapping"
+msgstr "UV-разметка"
+
+
+msgid "Local View"
+msgstr "Локальный вид"
+
+
+msgid "Viewpoint"
+msgstr "Точка обзора"
+
+
+msgid "Navigation"
+msgstr "Навигация"
+
+
+msgid "Align View"
+msgstr "Выровнять вид"
+
+
+msgid "Align View to Active"
+msgstr "Выровнять вид по активному"
+
+
+msgid "View Regions"
+msgstr "Области обзора"
 
 
 msgid "Select More/Less"
 msgstr "Выделить больше/меньше"
+
+
+msgid "Select Similar"
+msgstr "Выделить по схожести"
+
+
+msgid "Select All by Trait"
+msgstr "Выделить всё по признаку"
 
 
 msgid "Select Linked"
@@ -32292,10 +32421,6 @@ msgid "Pivot Point"
 msgstr "Центр трансформации"
 
 
-msgid "Snap"
-msgstr "Привязка"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Спад пропорционального редактирования"
 
@@ -32310,42 +32435,6 @@ msgstr "Автомаски́рование"
 
 msgid "Face Sets Edit"
 msgstr "Редактировать наборы граней"
-
-
-msgid "Mirror"
-msgstr "Зеркало"
-
-
-msgid "UV Mapping"
-msgstr "UV-разметка"
-
-
-msgid "Local View"
-msgstr "Локальный вид"
-
-
-msgid "Viewpoint"
-msgstr "Точка обзора"
-
-
-msgid "Navigation"
-msgstr "Навигация"
-
-
-msgid "Align View"
-msgstr "Выровнять вид"
-
-
-msgid "Align View to Active"
-msgstr "Выровнять вид по активному"
-
-
-msgid "View Regions"
-msgstr "Области обзора"
-
-
-msgid "Select Similar"
-msgstr "Выделить по схожести"
 
 
 msgid "Animals"
@@ -32713,6 +32802,10 @@ msgstr "Пресеты частоты смены кадров"
 
 msgid "Lineset Specials"
 msgstr "Инструменты набора линий"
+
+
+msgid "Pixel Density Presets"
+msgstr "Пресеты плотности пикселей"
 
 
 msgid "Effect Strip"
@@ -41045,20 +41138,8 @@ msgid "Contrast Limit"
 msgstr "Уровень контрастности"
 
 
-msgid "How much to eliminate spurious edges to avoid artifacts (the larger value makes less active; the value 2.0, for example, means discard a detected edge if there is a neighboring edge that has 2.0 times bigger contrast than the current one)"
-msgstr "Насколько следует устранять ложные края, чтобы избежать артефактов (большее значение делает менее активным; например, значение 2.0 означает отбрасывание обнаруженного края, если есть соседний край, который имеет в 2.0 раза больший контраст, чем текущий)"
-
-
 msgid "Corner Rounding"
 msgstr "Скругление углов"
-
-
-msgid "How much sharp corners will be rounded"
-msgstr "Насколько острые углы будут скруглены"
-
-
-msgid "Threshold to detect edges (smaller threshold makes more sensitive detection)"
-msgstr "Порог обнаружения краёв (чем меньше порог, тем чувствительнее обнаружение)"
 
 
 msgid "Bilateral Blur"
@@ -41780,6 +41861,10 @@ msgid "Anisotropic"
 msgstr "Анизотропный"
 
 
+msgid "Use Anisotropic interpolation"
+msgstr "Использовать анизотропную интерполяцию"
+
+
 msgid "Crops image to a smaller region, either making the cropped area transparent or resizing the image"
 msgstr "Обрезает изображение до меньшей области, делая обрезанную область прозрачной или изменяя размер изображения"
 
@@ -41788,16 +41873,32 @@ msgid "X2"
 msgstr "X2"
 
 
+msgid "Right edge of the cropping rectangle"
+msgstr "Правый край прямоугольника обрезки"
+
+
 msgid "Y2"
 msgstr "Y2"
+
+
+msgid "Bottom edge of the cropping rectangle"
+msgstr "Нижний край прямоугольника обрезки"
 
 
 msgid "X1"
 msgstr "X1"
 
 
+msgid "Left edge of the cropping rectangle"
+msgstr "Левый край прямоугольника обрезки"
+
+
 msgid "Y1"
 msgstr "Y1"
+
+
+msgid "Top edge of the cropping rectangle"
+msgstr "Верхний край прямоугольника обрезки"
 
 
 msgid "Use relative values to crop image"
@@ -42092,16 +42193,8 @@ msgid "Smooth areas of an image in which noise is noticeable, while leaving comp
 msgstr "Сгладить области изображения, на которых заметен шум, оставляя сложные области нетронутыми"
 
 
-msgid "Threshold for detecting pixels to despeckle"
-msgstr "Порог обнаружения удаляемых пятен"
-
-
 msgid "Neighbor"
 msgstr "Соседи"
-
-
-msgid "Threshold for the number of neighbor pixels that must match"
-msgstr "Количество соседних пикселей, для которых должно быть установлено соответствие"
 
 
 msgid "Difference Key"
@@ -42124,17 +42217,9 @@ msgid "Dilate/Erode"
 msgstr "Расширение/размытие"
 
 
-msgid "Distance to grow/shrink (number of iterations)"
-msgstr "Расстояние наращивания/сжатия (количество итераций)"
-
-
 msgctxt "Image"
 msgid "Edge"
 msgstr "Край"
-
-
-msgid "Edge to inset"
-msgstr "Ребро для врезки"
 
 
 msgid "Growing/shrinking mode"
@@ -42405,10 +42490,6 @@ msgid "Inpaint"
 msgstr "Ретушь"
 
 
-msgid "Distance to inpaint (number of iterations)"
-msgstr "Расстояние ретуширования (количество итераций)"
-
-
 msgid "Invert Color"
 msgstr "Инвертировать цвет"
 
@@ -42526,28 +42607,12 @@ msgid "Eccentricity"
 msgstr "Эксцентриситет"
 
 
-msgid "Controls how directional the filter is. 0 means the filter is completely omnidirectional while 2 means it is maximally directed along the edges of the image."
-msgstr "Управляет направленностью фильтра. 0 означает, что фильтр полностью всенаправленный, а 2 означает, что он максимально направлен вдоль краёв изображения."
-
-
-msgid "Controls the sharpness of the filter. 0 means completely smooth while 1 means completely sharp."
-msgstr "Управляет резкостью фильтра. 0 означает полностью плавный, а 1 -- полностью резкий."
-
-
 msgid "Uniformity"
 msgstr "Однородность"
 
 
-msgid "Controls the uniformity of the direction of the filter. Higher values produces more uniform directions."
-msgstr "Управляет равномерностью направления фильтра. Более высокие значения дают более равномерные направления."
-
-
 msgid "High Precision"
 msgstr "Высокая точность"
-
-
-msgid "Uses a more precise but slower method. Use if the output contains undesirable noise."
-msgstr "Использует более точный, но более медленный метод. Используйте, если вывод содержит нежелательный шум."
 
 
 msgid "Classic"
@@ -42681,16 +42746,8 @@ msgid "Input mask from a mask datablock, created in the image editor"
 msgstr "Вводная маска из блока данных маски, созданного в редакторе изображений"
 
 
-msgid "Number of motion blur samples"
-msgstr "Количество сэмплов сглаживания движения"
-
-
 msgid "Shutter"
 msgstr "Затвор"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "Рассчитывать выдержку для размытия движения в зависимости от частоты кадров в секунду"
 
 
 msgid "Size Source"
@@ -42717,16 +42774,8 @@ msgid "Pixel size scaled by scene percentage"
 msgstr "Масштабировать размер пикселя по процентной доле сцены"
 
 
-msgid "Use feather information from the mask"
-msgstr "Использовать информацию о растушёвке из маски"
-
-
 msgid "Motion Blur"
 msgstr "Размытие движения"
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "Использовать размытие движения с множественной выборкой для маски"
 
 
 msgid "Perform math operations"
@@ -42929,6 +42978,10 @@ msgid "Truncate"
 msgstr "Обрезать"
 
 
+msgid "The integer part of A, removing fractional digits"
+msgstr "Целая часть числа A, без дробных цифр"
+
+
 msgctxt "NodeTree"
 msgid "Fraction"
 msgstr "Дробная часть"
@@ -43091,6 +43144,10 @@ msgid "Clamp result of the node to 0.0 to 1.0 range"
 msgstr "Ограничить результат ноды в диапазоне от 0.0 до 1.0"
 
 
+msgid "Blend two images together using various blending modes"
+msgstr "Объединить два изображения, используя различные режимы смешивания"
+
+
 msgid "Include alpha of second input in this operation"
 msgstr "Включить значения альфа-канала со второго входа в этой операции"
 
@@ -43159,16 +43216,24 @@ msgid "Pixel Size"
 msgstr "Размер пикселя"
 
 
-msgid "Pixel size of the output image"
-msgstr "Размер пикселя выходного изображения"
-
-
 msgid "Plane Track Deform"
 msgstr "Деформация трека-плоскости"
 
 
 msgid "Replace flat planes in footage by another image, detected by plane tracks from motion tracking"
 msgstr "Заменить плоские плоскости на отснятом материале другим изображением, обнаруженным по трекам-плоскостям при отслеживании движения"
+
+
+msgid "Number of motion blur samples"
+msgstr "Количество сэмплов сглаживания движения"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "Рассчитывать выдержку для размытия движения в зависимости от частоты кадров в секунду"
+
+
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "Использовать размытие движения с множественной выборкой для маски"
 
 
 msgid "Posterize"
@@ -43339,10 +43404,6 @@ msgid "Switch between two images using a checkbox"
 msgstr "Переключение между двумя изображениями с помощью флажка"
 
 
-msgid "Off: first socket, On: second socket"
-msgstr "Откл: первый вход, Вкл: второй вход"
-
-
 msgid "Switch View"
 msgstr "Переключатель вида"
 
@@ -43377,34 +43438,6 @@ msgstr "Сопоставьте один набор цветов с другим,
 
 msgid "Adaptation"
 msgstr "Адаптация"
-
-
-msgid "If 0, global; if 1, based on pixel intensity"
-msgstr "Если 0, то глобально; Если 1, то на основе интенсивности пикселей"
-
-
-msgid "Set to 0 to use estimate from input image"
-msgstr "Установите в 0 для оценки от входного изображения"
-
-
-msgid "If 0, same for all channels; if 1, each independent"
-msgstr "Если 0, то одинаково для всех каналов; Если 1, независимо для каждого"
-
-
-msgid "If not used, set to 1"
-msgstr "Если не используется, установите в 1"
-
-
-msgid "If less than zero, darkens image; otherwise, makes it brighter"
-msgstr "Если меньше нуля, затемняет изображение; в противном случае делает его ярче"
-
-
-msgid "The value the average luminance is mapped to"
-msgstr "Значение, на которое отображается средняя яркость"
-
-
-msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
-msgstr "Обычно всегда 1, но может использоваться как дополнительный элемент управления для изменения кривой яркости"
 
 
 msgid "Tonemap Type"
@@ -43523,28 +43556,12 @@ msgid "Blur Factor"
 msgstr "Коэффициент размытия"
 
 
-msgid "Scaling factor for motion vectors (actually, 'shutter speed', in frames)"
-msgstr "Коэффициент масштабирования для векторов движения (точнее, 'скорость затвора' в кадрах)"
-
-
 msgid "Max Speed"
 msgstr "Максимальная скорость"
 
 
-msgid "Maximum speed, or zero for none"
-msgstr "Максимальная скорость или нуль в противном случае"
-
-
 msgid "Min Speed"
 msgstr "Минимальная скорость"
-
-
-msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
-msgstr "Минимальная скорость для размываемого пикселя (используется для отделения фона от переднего плана)"
-
-
-msgid "Interpolate between frames in a Bézier curve, rather than linearly"
-msgstr "Интерполировать между кадрами по кривой Безье, а не линейно"
 
 
 msgid "Viewer"
@@ -43561,10 +43578,6 @@ msgstr "Объединить по Z-буферу"
 
 msgid "Anti-Alias Z"
 msgstr "Z-сглаживание"
-
-
-msgid "Anti-alias the z-buffer to try to avoid artifacts, mostly useful for Blender renders"
-msgstr "Использовать сглаживание в z-буфере для предотвращения артефактов, полезно для рендеров в Blender"
 
 
 msgid "Align Euler to Vector"
@@ -43643,6 +43656,10 @@ msgid "Not And"
 msgstr "Нет и"
 
 
+msgid "True when at least one input is false"
+msgstr "Истинно, когда хотя бы один входной сигнал ложен"
+
+
 msgid "Nor"
 msgstr "Нет-Нет"
 
@@ -43673,6 +43690,10 @@ msgstr "Импликация"
 
 msgid "True unless the first input is true and the second is false"
 msgstr "Истина, если только первый входной параметр не является истинным, а второй -- ложным"
+
+
+msgid "True when the first input is true and the second is false (not imply)"
+msgstr "Истина, когда первый входной параметр истинен, а второй -- ложен (не подразумевается)"
 
 
 msgid "Combine Matrix"
@@ -45617,6 +45638,10 @@ msgid "Selection Type"
 msgstr "Тип выделения"
 
 
+msgid "Store true or false selection values in edit mode"
+msgstr "Сохранение истинных или ложных значений выделения в режиме редактирования"
+
+
 msgid "Store floating point selection values. For mesh geometry, stored inverted as the sculpt mode mask"
 msgstr "Сохранить выбор значений чисел с плавающей запятой. Для геометрии меша, сохранено инвертированным как маска режима скульптуры"
 
@@ -46243,7 +46268,7 @@ msgstr "Плавающая кривая"
 
 
 msgid "Map an input float to a curve and outputs a float value"
-msgstr "Отобразить входное значение с плавающей точкой на кривой и вывести значение с плавающей точкой"
+msgstr "Отобразить входное значение с плавающей запятой на кривой и вывести значение с плавающей запятой"
 
 
 msgid "Fresnel"
@@ -47796,6 +47821,14 @@ msgid "Input or output socket of a node"
 msgstr "Входной или выходной сокет ноды"
 
 
+msgid "Subtype Label"
+msgstr "Метка подтипа"
+
+
+msgid "Label to display for the socket subtype in the UI"
+msgstr "Метка для отображения подтипа сокета в пользовательском интерфейсе"
+
+
 msgid "Tooltip"
 msgstr "Подсказка"
 
@@ -47972,6 +48005,10 @@ msgid "Global index of the item among all items in the interface"
 msgstr "Глобальный индекс элемента среди всех элементов в интерфейсе"
 
 
+msgid "Item Type"
+msgstr "Тип элемента"
+
+
 msgid "Socket"
 msgstr "Сокет"
 
@@ -48066,6 +48103,10 @@ msgstr "Минимальное значение"
 
 msgid "Subtype"
 msgstr "Подтип"
+
+
+msgid "Subtype of the default value"
+msgstr "Подтип значения по умолчанию"
 
 
 msgid "Integer Node Socket Interface"
@@ -48304,6 +48345,10 @@ msgid "Collection of object effects"
 msgstr "Коллекция эффектов объекта"
 
 
+msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
+msgstr "Отметить действия без F-кривых для удаления после сохранения и перезагрузки файла с сохранением \"библиотек действий\""
+
+
 msgctxt "Operator"
 msgid "Clear Useless Actions"
 msgstr "Очистить бесполезные действия"
@@ -48411,6 +48456,11 @@ msgstr "Копировать цвет кости активной кости н�
 msgctxt "Operator"
 msgid "Copy Colors to Selected"
 msgstr "Копировать цвета в выделенные"
+
+
+msgctxt "Operator"
+msgid "Make Collection Active"
+msgstr "Сделать коллекцию активной"
 
 
 msgid "Upgrades the metarig from bone layers to bone collections"
@@ -49253,7 +49303,7 @@ msgstr "Добавить волка (метариг)"
 
 
 msgid "Assign the current values of custom properties as their defaults, for use as part of the rest pose state in NLA track mixing"
-msgstr "Назначить текущие значения особых свойств в качестве значений по умолчанию для использования в состоянии позы покоя в смеси треков НЛА"
+msgstr "Назначить текущие значения пользовательских свойств в качестве значений по умолчанию для использования в состоянии позы покоя в смеси треков НЛА"
 
 
 msgctxt "Operator"
@@ -49991,6 +50041,10 @@ msgid "I18n Save Settings"
 msgstr "Сохранить настройки переводов"
 
 
+msgid "Update i18n data (po files) in Blender source code repository"
+msgstr "Обновление данных i18n (файлы po) в репозитории исходного кода Blender'а"
+
+
 msgctxt "Operator"
 msgid "Init I18n Update Settings"
 msgstr "Инициализировать настройки обновления переводов"
@@ -50409,6 +50463,11 @@ msgstr "Установить инструмент по типу кисти"
 
 msgid "Set the tool by name (for key-maps)"
 msgstr "Установить инструмент по имени (для списков клавиатурных комбинаций)"
+
+
+msgctxt "Operator"
+msgid "Set Tool by Name"
+msgstr "Установить инструмент по имени"
 
 
 msgid "Set the tool by index (for key-maps)"
@@ -51728,6 +51787,10 @@ msgid "Create a new action slot for this data-block, to hold its animation"
 msgstr "Создать новый слот действия для этого блока данных для хранения его анимации"
 
 
+msgid "Un-assign the action slot from this NLA strip, effectively making it non-animated"
+msgstr "Отменить назначение слота действия этой NLA-дорожке, фактически сделав её неанимированной"
+
+
 msgctxt "Operator"
 msgid "Set Start Frame"
 msgstr "Начальный кадр"
@@ -51769,6 +51832,10 @@ msgstr "Выровнять выделенные кости относитель�
 msgctxt "Operator"
 msgid "Assign to Collection"
 msgstr "Назначить в коллекцию"
+
+
+msgid "Assign all selected bones to a collection, or unassign them, depending on whether the active bone is already assigned or not"
+msgstr "Назначить все выделенные кости в коллекцию или отменить их назначение в зависимости от того, назначена ли уже активная кость или нет"
 
 
 msgid "Collection Index"
@@ -51908,6 +51975,10 @@ msgid "Bone Collection"
 msgstr "Коллекция костей"
 
 
+msgid "Name of the bone collection to assign this bone to; empty to assign to the active bone collection"
+msgstr "Имя коллекции костей, в которую следует назначить данную кость; пусто для назначения к активной коллекции костей"
+
+
 msgctxt "Operator"
 msgid "Add Selected Bones to New Collection"
 msgstr "Добавить выделенные кости в новую коллекцию"
@@ -51966,9 +52037,17 @@ msgid "Remove selected bones from the active bone collection"
 msgstr "Удалить выделенные кости из активной коллекции костей"
 
 
+msgid "Name of the bone collection to unassign this bone from; empty to unassign from the active bone collection"
+msgstr "Имя коллекции костей, из которой необходимо отменить назначение этой кости; пусто, чтобы отменить назначение из активной коллекции костей"
+
+
 msgctxt "Operator"
 msgid "Remove Bone from Bone Collection"
 msgstr "Удалить кость из коллекции костей"
+
+
+msgid "Name of the bone to unassign from the collection; empty to use the active bone"
+msgstr "Имя кости, с которой необходимо снять назначение для этой коллекции; пусто для использования активной кости"
 
 
 msgid "Copy Bone colors from the active bone to all selected bones"
@@ -52161,6 +52240,10 @@ msgstr "Отобразить все скрытые кости в режиме р
 
 msgid "(undocumented operator)"
 msgstr "(недокументированый оператор)"
+
+
+msgid "Make this collection active"
+msgstr "Сделать эту коллекцию активной"
 
 
 msgctxt "Operator"
@@ -53732,6 +53815,10 @@ msgstr "Удалить отслеживаемый объект"
 
 msgid "Remove object for tracking"
 msgstr "Удалить объект для отслеживания"
+
+
+msgid "Update current image used by plane marker from the content of the plane marker"
+msgstr "Обновить текущее изображение, используемое маркером плоскости, из содержимого маркера плоскости"
 
 
 msgid "View whole image with markers"
@@ -55779,11 +55866,11 @@ msgstr "Создавать папку для каждого экспортиру
 
 
 msgid "Custom Properties"
-msgstr "Настраиваемые свойства"
+msgstr "Пользовательские свойства"
 
 
 msgid "Export custom properties"
-msgstr "Экспортировать настраиваемые свойства"
+msgstr "Экспортировать пользовательские свойства"
 
 
 msgid "Loose Edges"
@@ -55858,6 +55945,10 @@ msgid "Allow export of all joint vertex influences. Models may appear incorrectl
 msgstr "Разрешить экспорт всех влияний вершин суставов. Модели могут отображаться некорректно во многих просмотрщиках"
 
 
+msgid "Export all actions, bound to a single armature. WARNING: Option does not support exports including multiple armatures"
+msgstr "Экспорт всех действий, привязанных к одной арматуре. ВНИМАНИЕ: опция не поддерживает экспорт, включающий несколько арматур"
+
+
 msgid "Animation Mode"
 msgstr "Режим анимации"
 
@@ -55919,7 +56010,7 @@ msgstr "Квантование битов для значений координ
 
 
 msgid "Export custom properties as glTF extras"
-msgstr "Экспортировать настраиваемые свойства как дополнение glTF"
+msgstr "Экспортировать пользовательские свойства как дополнение glTF"
 
 
 msgid "Always Sample Animations"
@@ -55952,6 +56043,10 @@ msgstr "Ограничить некоторую оптимизацию, чтоб
 
 msgid "Disable quantization; produces much larger glTF files with no extensions"
 msgstr "Отключить квантование; создает файлы glTF гораздо большего размера без расширений"
+
+
+msgid "KTX2 Compression"
+msgstr "Сжатие KTX2"
 
 
 msgid "Vertex Position Attributes"
@@ -56164,6 +56259,10 @@ msgstr "Настройки объектов"
 
 msgid "Animation settings"
 msgstr "Настройки анимации"
+
+
+msgid "Export objects in the active collection only"
+msgstr "Экспортировать объекты только из активной коллекции"
 
 
 msgid "Include active collection and nested collections"
@@ -59753,7 +59852,7 @@ msgstr "Импортировать настраиваемые нормали, е
 
 
 msgid "Import user properties as custom properties"
-msgstr "Импортировать пользовательские свойства как особые свойства"
+msgstr "Импортировать пользовательские свойства в качестве настраиваемых свойств"
 
 
 msgid "Import Enums As Strings"
@@ -59814,6 +59913,10 @@ msgstr "Попытаться угадать исходную позу привя
 
 msgid "Pack all images into .blend file"
 msgstr "Запаковать изображения в .blend-файл"
+
+
+msgid "Import scene extras as custom properties. Existing custom properties will be overwritten"
+msgstr "Импортировать дополнения сцены в качестве пользовательских свойств. Существующие пользовательские свойства будут перезаписаны"
 
 
 msgid "How normals are computed during import"
@@ -60374,6 +60477,10 @@ msgstr "Вставить материал"
 
 msgid "Paste the material settings and nodes"
 msgstr "Вставить настройки материала и нодов"
+
+
+msgid "Delete selected metaball element(s)"
+msgstr "Удалить выделенные элемент(ы) метасферы"
 
 
 msgctxt "Operator"
@@ -64821,6 +64928,10 @@ msgid "Add a camera object to the scene"
 msgstr "Добавить объект камеры в сцену"
 
 
+msgid "Delete the selected local overrides and relink their usages to the linked data-blocks if possible, else reset them and mark them as non editable"
+msgstr "Удалить выбранные локальные переопределения и повторно связать их использование со связанными блоками данных, если это возможно, в противном случае сбросить их и отметить в качестве нередактируемых"
+
+
 msgctxt "Operator"
 msgid "Add to Collection"
 msgstr "Добавить в коллекцию"
@@ -64835,7 +64946,7 @@ msgstr "Добавить перетаскиваемую коллекцию в с
 
 
 msgid "Add the dropped collection as collection instance"
-msgstr "Добавить удаленную коллекцию как экземпляр коллекции"
+msgstr "Добавить вброшенную коллекцию в качестве экземпляра коллекции"
 
 
 msgctxt "Operator"
@@ -65741,7 +65852,11 @@ msgstr "Объединить коллекции"
 
 
 msgid "Link Instance Collection"
-msgstr "Связать коллекцию экземпляров"
+msgstr "Связать экземпляр коллекции"
+
+
+msgid "Replace assigned Collection Instance"
+msgstr "Заменить назначенный экземпляр коллекции"
 
 
 msgid "Link Fonts to Text"
@@ -66655,7 +66770,7 @@ msgstr "Выделить все связанные видимые объекты
 
 
 msgid "Instanced Collection"
-msgstr "Экземпляр коллекции"
+msgstr "Созданный экземпляр коллекции"
 
 
 msgid "Library (Object Data)"
@@ -67558,6 +67673,10 @@ msgid "Set as active vertex group"
 msgstr "Активировать группу вершин"
 
 
+msgid "Convert geometry and instances into editable objects and collections"
+msgstr "Преобразовать геометрию и экземпляры в редактируемые объекты и коллекции"
+
+
 msgctxt "Operator"
 msgid "Apply Visual Transform"
 msgstr "Применить визуальную трансформацию"
@@ -67744,6 +67863,10 @@ msgid "Delete Hierarchy"
 msgstr "Удалить иерархию"
 
 
+msgid "Delete selected collection hierarchies"
+msgstr "Удалить выделенные иерархии коллекций"
+
+
 msgctxt "Operator"
 msgid "Clear Holdout"
 msgstr "Удалить удержание"
@@ -67782,7 +67905,7 @@ msgstr "Установить коллекцию так, что ее объект
 
 msgctxt "Operator"
 msgid "Instance Collection"
-msgstr "Создать экземпляр коллекции"
+msgstr "Экземпляр коллекции"
 
 
 msgid "Instance selected collections to active scene"
@@ -67886,6 +68009,10 @@ msgid "Copy or reorder modifiers, constraints, and effects"
 msgstr "Копировать или изменить порядок модификаторов, ограничителей и эффектов"
 
 
+msgid "Delete selected objects and collections"
+msgstr "Удалить выделенные объекты и коллекции"
+
+
 msgid "Hierarchy"
 msgstr "Иерархия"
 
@@ -67950,6 +68077,15 @@ msgstr "Удалить датаблок"
 
 msgid "Delete the ID under cursor"
 msgstr "Удалить ID под курсором"
+
+
+msgctxt "Operator"
+msgid "Outliner ID Data Operation"
+msgstr "Операция с ID-данными аутлайнера"
+
+
+msgid "ID Data Operation"
+msgstr "Операция с ID-данными"
 
 
 msgid "Unlink"
@@ -68129,20 +68265,61 @@ msgid "Selection Set"
 msgstr "Набор выделения"
 
 
+msgid "Apply the operation over selected data-blocks only"
+msgstr "Применить операцию только к выделенным блокам данных"
+
+
+msgid "Content"
+msgstr "Содержимое"
+
+
+msgid "Apply the operation over content of the selected items only (the data-blocks in their sub-tree)"
+msgstr "Применить операцию только к содержимому выделенных элементов (блоков данных в их поддереве)"
+
+
+msgid "Selected & Content"
+msgstr "Выделенное и Содержимое"
+
+
+msgid "Apply the operation over selected data-blocks and all their dependencies"
+msgstr "Применить операцию к выбранным блокам данных и всем их зависимостям"
+
+
 msgid "Reset"
 msgstr "Сбросить"
+
+
+msgctxt "Operator"
+msgid "Outliner Library Override Troubleshoot Operation"
+msgstr "Операция устранения неполадок при переопределении библиотеки аутлайнера"
 
 
 msgid "Advanced operations over library override to help fix broken hierarchies"
 msgstr "Расширенные операции над переопределением библиотеки, помогающие исправить нарушенные иерархии"
 
 
+msgid "Library Override Troubleshoot Operation"
+msgstr "Операция устранения неполадок при переопределении библиотеки"
+
+
+msgid "Resync"
+msgstr "Повторная синхронизация"
+
+
 msgid "Rebuild the selected local overrides from their linked references, as well as their hierarchies of dependencies"
 msgstr "Перестроить выбранные локальные переопределения из связанных с ними ссылок, а также их иерархии зависимостей"
 
 
+msgid "Resync Enforce"
+msgstr "Принудительная повторная синхронизация"
+
+
 msgid "Rebuild the selected local overrides from their linked references, as well as their hierarchies of dependencies, enforcing these hierarchies to match the linked data (i.e. ignoring existing overrides on data-blocks pointer properties)"
 msgstr "Перестроить выбранные локальные переопределения из связанных с ними ссылок, а также их иерархии зависимостей, обеспечив соответствие этих иерархий со связанными данными (т. е. игнорировать существующие переопределения свойств указателей блоков данных)"
+
+
+msgid "Delete the selected local overrides (including their hierarchies of override dependencies) and relink their usages to the linked data-blocks"
+msgstr "Удалить выделенные локальные переопределения (включая их иерархии зависимостей переопределений) и заново связать их использование со связанными блоками данных"
 
 
 msgctxt "Operator"
@@ -68200,6 +68377,10 @@ msgstr "Очистить всё"
 
 msgid "Clear all orphaned data-blocks without any users from the file"
 msgstr "Удалить все неиспользуемые датаблоки из файла"
+
+
+msgid "Linked Data-blocks"
+msgstr "Связанные блоки данных"
 
 
 msgid "Include unused linked data-blocks into deletion"
@@ -69385,7 +69566,7 @@ msgstr "Все свойства"
 
 
 msgid "All properties, including transforms, bendy bone shape, and custom properties"
-msgstr "Все свойства, включая трансформации, форма сгибаемых костей и особые свойства"
+msgstr "Все свойства, включая трансформации, форму сгибаемых костей и пользовательские свойства"
 
 
 msgid "Location only"
@@ -69409,7 +69590,7 @@ msgstr "Свойства формы сгибаемой кости"
 
 
 msgid "Custom properties"
-msgstr "Особые свойства"
+msgstr "Пользовательские свойства"
 
 
 msgid "Weighting factor for which keyframe is favored more"
@@ -69728,6 +69909,10 @@ msgstr "Выделить кости, использованные в качес�
 
 msgid "Select all visible bones grouped by similar properties"
 msgstr "Выделить все видимые кости по схожим свойствам"
+
+
+msgid "Same collections as the active bone"
+msgstr "Те же коллекции, что и у активной кости"
 
 
 msgid "All bones affected by active Keying Set"
@@ -72460,6 +72645,10 @@ msgid "Delete Retiming Keys"
 msgstr "Удалить ключи ретайминга"
 
 
+msgid "Delete selected retiming keys from the sequencer"
+msgstr "Удалить выделенные ключи ретайминга из секвенсора"
+
+
 msgctxt "Operator"
 msgid "Reset Retiming"
 msgstr "Сбросить ретайминг"
@@ -72536,6 +72725,10 @@ msgstr "Добавить новую дорожку с новой пустой с
 
 msgid "Add a new Strip, with an empty scene, and copy settings from the current scene"
 msgstr "Добавить новую дорожку с пустой сценой и скопировать настройки из текущей сцены"
+
+
+msgid "Add a Strip and link in the collections from the current scene (shallow copy)"
+msgstr "Добавить дорожку и ссылку в коллекции из текущей сцены (поверхностная копия)"
 
 
 msgid "Select a strip (last selected becomes the \"active strip\")"
@@ -74419,7 +74612,7 @@ msgstr "Принудительно обновить весь перевод ин
 
 msgctxt "Operator"
 msgid "Reset to Default Value"
-msgstr "Сбросить на значение по умолчанию"
+msgstr "Сбросить до значений \"по умолчанию\""
 
 
 msgid "Reset this property's value to its default value"
@@ -76213,6 +76406,10 @@ msgid "Add VR landmark from the viewer pose of the running VR session to the lis
 msgstr "Добавить в список и выбрать VR-ориентир из позы зрителя в текущем сеансе VR"
 
 
+msgid "Delete the selected VR landmark from the list"
+msgstr "Удалить выделенный VR-ориентир из списка"
+
+
 msgctxt "Operator"
 msgid "Walk Navigation"
 msgstr "Навигация \"ходьба\""
@@ -76278,6 +76475,14 @@ msgstr "Конечный кадр экспорта; используйте зн�
 
 msgid "Determines visibility of objects, modifier settings, and other areas where there are different settings for viewport and rendering"
 msgstr "Определяет видимость объектов, настройки модификаторов и других областей, где есть разные настройки для области просмотра и рендеринга"
+
+
+msgid "Export Custom Properties"
+msgstr "Экспорт пользовательских свойств"
+
+
+msgid "Export custom properties to Alembic .userProperties"
+msgstr "Экспорт пользовательских свойств в Alembic .свойстваПользователя"
 
 
 msgid "Export Hair"
@@ -76440,6 +76645,10 @@ msgstr "Очистить данные ассета"
 
 msgid "Don't add asset meta-data or tags from the original data-block"
 msgstr "Не добавлять метаданные или теги ассетов из исходного блока данных"
+
+
+msgid "Try to re-use previously matching appended data-blocks instead of appending a new copy"
+msgstr "Попробовать повторно использовать ранее добавленные совпадающие блоки данных вместо добавления новой копии"
 
 
 msgid "Instance Collections"
@@ -76647,7 +76856,7 @@ msgstr "Все элементы"
 
 
 msgid "Items Not Found"
-msgstr "Элементы не найдены"
+msgstr "Элементы, которые не найдены"
 
 
 msgctxt "Operator"
@@ -77103,6 +77312,14 @@ msgid "View a context based online manual in a web browser"
 msgstr "Открыть связанную страницу онлайн-руководства в веб-браузере"
 
 
+msgid "Vertex colors in the file are in sRGB color space"
+msgstr "Цвета вершин в файле находятся в цветовом пространстве sRGB"
+
+
+msgid "Vertex colors in the file are in linear color space"
+msgstr "Цвета вершин в файле находятся в линейном цветовом пространстве"
+
+
 msgid "Include only active frame"
 msgstr "Включить только активный кадр"
 
@@ -77347,14 +77564,6 @@ msgid "Do not import/export color attributes"
 msgstr "Не импортировать/экспортировать атрибуты цвета"
 
 
-msgid "Vertex colors in the file are in sRGB color space"
-msgstr "Цвета вершин в файле находятся в цветовом пространстве sRGB"
-
-
-msgid "Vertex colors in the file are in linear color space"
-msgstr "Цвета вершин в файле находятся в линейном цветовом пространстве"
-
-
 msgid "Export Vertex Normals"
 msgstr "Экспорт нормалей вершин"
 
@@ -77502,6 +77711,14 @@ msgid "Context"
 msgstr "Контекст"
 
 
+msgid "Array Length"
+msgstr "Длина массива"
+
+
+msgid "Library Overridable"
+msgstr "Переопределяемая библиотека"
+
+
 msgid "Allow the property to be overridden when the data-block is linked"
 msgstr "Разрешить переопределение свойства при связывании блока данных"
 
@@ -77514,13 +77731,69 @@ msgid "A single floating-point value"
 msgstr "Единое значение с плавающей запятой"
 
 
+msgid "Float Array"
+msgstr "Массив нецелых чисел"
+
+
+msgid "An array of floating-point values"
+msgstr "Массив значений с плавающей запятой"
+
+
+msgid "A single integer"
+msgstr "Одно целое число"
+
+
+msgid "Integer Array"
+msgstr "Массив целых чисел"
+
+
+msgid "An array of integers"
+msgstr "Массив состоящий из целых чисел"
+
+
+msgid "A true or false value"
+msgstr "Истинное или ложное значение"
+
+
+msgid "Boolean Array"
+msgstr "Логический массив"
+
+
+msgid "An array of true or false values"
+msgstr "Массив истинных или ложных значений"
+
+
+msgid "A string value"
+msgstr "Строковое значение"
+
+
+msgid "A data-block value"
+msgstr "Значение блока данных"
+
+
+msgid "Edit a Python value directly, for unsupported property types"
+msgstr "Редактировать значение Python напрямую для неподдерживаемых типов свойств"
+
+
+msgid "Soft Min"
+msgstr "Плавно - Мин."
+
+
 msgctxt "Unit"
 msgid "Subtype"
 msgstr "Подтип"
 
 
+msgid "Soft Limits"
+msgstr "Плавные пределы"
+
+
 msgid "Limits the Property Value slider to a range, values outside the range must be inputted numerically"
 msgstr "Ограничивает ползунок значения свойства диапазоном, значения вне диапазона необходимо вводить в цифровом виде"
+
+
+msgid "Value for custom property types that can only be edited as a Python expression"
+msgstr "Значение для настраиваемых типов свойств, которые можно редактировать только как выражение Python"
 
 
 msgctxt "Operator"
@@ -78073,6 +78346,10 @@ msgid "Site"
 msgstr "Сайт"
 
 
+msgid "Preserve UTF-8 encoded characters when writing USD prim and property names (requires software utilizing USD 24.03 or greater when opening the resulting files)"
+msgstr "Сохранять символы в кодировке UTF-8 при написании основных символов и имён свойств USD (требуется программное обеспечение, использующее USD 24.03 или выше при открытии полученных файлов)"
+
+
 msgid "Author USD custom attributes containing the original Blender object and object data names"
 msgstr "Авторские пользовательские атрибуты USD, содержащие исходный объект Blender и имена данных объекта"
 
@@ -78103,6 +78380,10 @@ msgstr "Конвертировать материал мира в \"USD свет
 
 msgid "Export all cameras"
 msgstr "Экспортировать все камеры"
+
+
+msgid "Export custom properties as USD attributes"
+msgstr "Экспортировать пользовательские свойства в качестве атрибутов USD"
 
 
 msgid "Export hair particle systems as USD curves"
@@ -78241,6 +78522,18 @@ msgid "Apply Unit Conversion Scale"
 msgstr "Применить масштаб преобразования юнитов"
 
 
+msgid "Behavior when importing USD attributes as Blender custom properties"
+msgstr "Поведение при импорте атрибутов USD в качестве пользовательских свойств Blender'а"
+
+
+msgid "Import USD attributes in the 'userProperties' namespace as Blender custom properties. The namespace will be stripped from the property names"
+msgstr "Импортировать атрибуты USD в пространство имён 'свойствПользователя' в качестве пользовательских свойства Blender'а. Пространство имён будет удалено из имён свойств"
+
+
+msgid "Import all USD custom attributes as Blender custom properties. Namespaces will be retained in the property names"
+msgstr "Импортировать все настраиваемые атрибуты USD в качестве пользовательских свойства Blender'а. Пространства имён будут сохранены в именах свойств"
+
+
 msgid "Convert the first discovered USD dome light to a world background shader"
 msgstr "Преобразовать первый обнаруженный \"USD света мирового свода\" в фоновый шейдер мира"
 
@@ -78331,6 +78624,10 @@ msgstr "Если опция \"импортировать предварител�
 
 msgid "Scene Instancing"
 msgstr "Создание экземпляров сцены"
+
+
+msgid "Import USD scene graph instances as collection instances"
+msgstr "Импортировать экземпляры графа сцены USD в качестве экземпляров коллекции"
 
 
 msgid "Behavior when the name of an imported texture file conflicts with an existing file"
@@ -79060,6 +79357,38 @@ msgid "Panel containing UI elements"
 msgstr "Панель содержит элементы интерфейса"
 
 
+msgid "Mesh Edit Mode"
+msgstr "Режим редактирования меша"
+
+
+msgid "Measurement"
+msgstr "Измерение"
+
+
+msgid "Curve Edit Mode"
+msgstr "Режим редактирования кривой"
+
+
+msgid "Curves Edit Mode"
+msgstr "Режим редактирования кривых"
+
+
+msgid "Snapping"
+msgstr "Привязка"
+
+
+msgid "Transform Orientations"
+msgstr "Ориентации трансформации"
+
+
+msgid "Stroke Placement"
+msgstr "Расположение штрихов"
+
+
+msgid "Drawing Plane"
+msgstr "Плоскость рисования"
+
+
 msgid "Guides"
 msgstr "Направляющие"
 
@@ -79088,8 +79417,8 @@ msgid "Auto-Masking"
 msgstr "Авто-маски́рование"
 
 
-msgid "Drawing Plane"
-msgstr "Плоскость рисования"
+msgid "Motion Tracking"
+msgstr "Отслеживание движения"
 
 
 msgid "glTF Animations"
@@ -79138,38 +79467,6 @@ msgstr "Наложения"
 
 msgid "Viewer Node"
 msgstr "Нода предпросмотра"
-
-
-msgid "Motion Tracking"
-msgstr "Отслеживание движения"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим редактирования меша"
-
-
-msgid "Measurement"
-msgstr "Измерение"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим редактирования кривой"
-
-
-msgid "Curves Edit Mode"
-msgstr "Режим редактирования кривых"
-
-
-msgid "Snapping"
-msgstr "Привязка"
-
-
-msgid "Transform Orientations"
-msgstr "Ориентации трансформации"
-
-
-msgid "Stroke Placement"
-msgstr "Расположение штрихов"
 
 
 msgid "Chain Scaling"
@@ -79949,6 +80246,10 @@ msgid "High Viscosity Solver"
 msgstr "Решатель высокой вязкости"
 
 
+msgid "Show options for the properties editor"
+msgstr "Показать параметры редактора свойств"
+
+
 msgid "White Balance"
 msgstr "Баланс белого"
 
@@ -79995,6 +80296,10 @@ msgstr "Пресеты FFmpeg"
 
 msgid "Format Presets"
 msgstr "Пресеты форматов"
+
+
+msgid "Pixel Density"
+msgstr "Плотность пикселей"
 
 
 msgid "Views"
@@ -81921,11 +82226,11 @@ msgstr "Добавить/заменить"
 
 
 msgid "Collection Instance Empty Size"
-msgstr "Размер пустышки коллекции экземпляра"
+msgstr "Размер пустышки экземпляра коллекции"
 
 
 msgid "Display size of the empty when new collection instances are created"
-msgstr "Отображаемый размер пустышки при создании новой коллекции экземпляров"
+msgstr "Отображаемый размер пустышки при создании нового экземпляра коллекции"
 
 
 msgid "Connect Movie Strips by Default"
@@ -82345,6 +82650,14 @@ msgid "Use Visual keying automatically for constrained objects"
 msgstr "Использовать автоматическую визуальную вставку кадров для объектов с ограничениями"
 
 
+msgid "No Override Auto Resync"
+msgstr "Без авто-повторной синхронизации переопределений"
+
+
+msgid "Disable library overrides automatic resync detection and process on file load (can be useful to help fixing broken files). Also see the `--disable-liboverride-auto-resync` command line option"
+msgstr "Отключить автоматическое обнаружение повторной синхронизации библиотеки переопределений и процесс загрузки файла (может быть полезно для исправления повреждённых файлов). Также см. параметр командной строки `--disable-liboverride-auto-resync`"
+
+
 msgid "Asset Debug Info"
 msgstr "Информация об отладке ассетов"
 
@@ -82387,10 +82700,6 @@ msgstr "Дополнительная информация по отладке и
 
 msgid "New Curves Tools"
 msgstr "Новые инструменты кривых"
-
-
-msgid "New Point Cloud Type"
-msgstr "Новый тип облака точек"
 
 
 msgid "New Volume Nodes"
@@ -82728,7 +83037,7 @@ msgstr "Поменять направление масштабирования �
 
 
 msgid "Double Click Timeout"
-msgstr "Тайм-аут двойного клика"
+msgstr "Время ожидания двойного клика"
 
 
 msgid "Time/delay (in ms) for a double click"
@@ -83264,7 +83573,7 @@ msgstr "Установить формат аудиосэмпла как 32-би�
 
 
 msgid "Set audio sample format to 32-bit float"
-msgstr "Установить формат аудиосэмпла на 32-битный с плавающей точкой"
+msgstr "Установить формат аудиосэмпла на 32-битный с плавающей запятой"
 
 
 msgid "64-bit Float"
@@ -83272,7 +83581,7 @@ msgstr "64-бит нецелое"
 
 
 msgid "Set audio sample format to 64-bit float"
-msgstr "Установить формат аудиосэмпла на 64-битный с плавающей точкой"
+msgstr "Установить формат аудиосэмпла на 64-битный с плавающей запятой"
 
 
 msgid "Audio Sample Rate"
@@ -83424,7 +83733,7 @@ msgstr "Ограничить количество одновременных и�
 
 
 msgid "Network Timeout"
-msgstr "Тайм-аут сети"
+msgstr "Время ожидания сети"
 
 
 msgid "The time in seconds to wait for online operations before a connection may fail with a time-out error. Zero uses the systems default."
@@ -83872,7 +84181,7 @@ msgstr "Расстояние от центра, необходимое для с
 
 
 msgid "Tap Key Timeout"
-msgstr "Тайм-аут нажатия клавиши"
+msgstr "Время ожидания нажатия клавиши"
 
 
 msgid "Pie menu button held longer than this will dismiss menu on release (in 1/100ths of sec)"
@@ -84219,6 +84528,10 @@ msgid "Animatable"
 msgstr "Можно анимировать"
 
 
+msgid "True when the property is optional in a Python function implementing an RNA function"
+msgstr "Истинно, когда свойство является необязательным в функции Python, реализующей RNA-функцию"
+
+
 msgid "True when this value can't be set to None"
 msgstr "Истина, когда это значение не может быть установлено на \"нет\""
 
@@ -84227,8 +84540,16 @@ msgid "Return"
 msgstr "Ввод"
 
 
+msgid "True when this property is an output value from an RNA function"
+msgstr "Истинно, когда это свойство является выходным значением RNA-функции"
+
+
 msgid "Registered"
 msgstr "Зарегистрировано"
+
+
+msgid "False when this property is an optional argument in an RNA function"
+msgstr "Ложно, когда это свойство является необязательным аргументом в RNA-функции"
 
 
 msgid "Skip Preset"
@@ -84273,6 +84594,10 @@ msgid "Pixel"
 msgstr "Пиксель"
 
 
+msgid "A distance on screen"
+msgstr "Расстояние на экране"
+
+
 msgctxt "Unit"
 msgid "Unsigned"
 msgstr "Неназначенные"
@@ -84283,14 +84608,26 @@ msgid "Percentage"
 msgstr "Процент"
 
 
+msgid "A percentage between 0 and 100"
+msgstr "Процент от 0 до 100"
+
+
 msgctxt "Unit"
 msgid "Factor"
 msgstr "Коэффициент"
 
 
+msgid "A factor between 0.0 and 1.0"
+msgstr "Коэффициент между 0.0 и 1.0"
+
+
 msgctxt "Unit"
 msgid "Angle"
 msgstr "Угол"
+
+
+msgid "A rotational value specified in radians"
+msgstr "Значение вращения, указанное в радианах"
 
 
 msgctxt "Unit"
@@ -84378,6 +84715,11 @@ msgid "Matrix"
 msgstr "Матрица"
 
 
+msgctxt "Unit"
+msgid "Euler Angles"
+msgstr "Углы Эйлера"
+
+
 msgid "Euler rotation angles in radians"
 msgstr "Углы вращения Эйлера в радианах"
 
@@ -84385,6 +84727,10 @@ msgstr "Углы вращения Эйлера в радианах"
 msgctxt "Unit"
 msgid "Quaternion"
 msgstr "Кватернион"
+
+
+msgid "Quaternion rotation (affects NLA blending)"
+msgstr "Вращение кватерниона (влияет на смешивание NLA)"
 
 
 msgctxt "Unit"
@@ -85037,6 +85383,10 @@ msgid "Adaptive Compile"
 msgstr "Адаптивная компиляция"
 
 
+msgid "Compile the Cycles GPU kernel with only the feature set required for the current scene"
+msgstr "Компилировать ядро графического процессора Cycles только с набором функций, необходимым для текущей сцены"
+
+
 msgid "Use Curves BVH"
 msgstr "Кривые BVH"
 
@@ -85130,7 +85480,7 @@ msgstr "Использовать CPU для рендеринга"
 
 
 msgid "GPU Compute"
-msgstr "GPU-вычисления"
+msgstr "GPU-Вычисления"
 
 
 msgid "Use GPU compute device for rendering, configured in the system tab in the user preferences"
@@ -85937,6 +86287,14 @@ msgid "Numeric ID (read only!)"
 msgstr "Числовой идентификатор (только для чтения!)"
 
 
+msgid "PO Blender File Path"
+msgstr "Путь .po-файла Blender'а"
+
+
+msgid "Path to the relevant po file in Blender's source repository"
+msgstr "Путь к соответствующему файлу .po в исходном репозитории Blender'а"
+
+
 msgid "Language ID"
 msgstr "ID языка"
 
@@ -86275,6 +86633,10 @@ msgstr "ID-свойство"
 
 msgid "Property that stores arbitrary, user defined properties"
 msgstr "Свойство, хранящее в себе произвольные пользовательские свойства"
+
+
+msgid "Quaternion Attribute Value"
+msgstr "Значение атрибута кватерниона"
 
 
 msgid "Quality options for the raytracing pipeline"
@@ -87229,11 +87591,11 @@ msgstr "Сохранять данные рендеринга для более �
 
 
 msgid "Placeholders"
-msgstr "Плейсхолдеры"
+msgstr "Заполнители"
 
 
 msgid "Create empty placeholder files while rendering frames (similar to Unix 'touch')"
-msgstr "Создавать пустые файлы-плейсхолдеры во время рендеринга (аналогично команде Unix «touch»)"
+msgstr "Создавать пустые файлы-заполнители во время рендеринга (аналогично команде Unix 'touch')"
 
 
 msgid "Cache Result"
@@ -90873,6 +91235,11 @@ msgid "Use the pinned node tree"
 msgstr "Закрепить нодовую систему"
 
 
+msgctxt "ID"
+msgid "Shader Type"
+msgstr "Тип шейдера"
+
+
 msgid "Type of data to take shader from"
 msgstr "Тип данных, из которых нужно взять шейдер"
 
@@ -90895,6 +91262,11 @@ msgstr "Использовать активную ноду просмотра в
 
 msgid "Supports Previews"
 msgstr "Поддерживает предварительный просмотр"
+
+
+msgctxt "ID"
+msgid "Texture Type"
+msgstr "Тип текстуры"
 
 
 msgid "Type of data to take texture from"
@@ -91198,8 +91570,18 @@ msgid "Scene Properties"
 msgstr "Настройки сцены"
 
 
+msgctxt "ID"
+msgid "Render"
+msgstr "Рендер"
+
+
 msgid "Render Properties"
 msgstr "Настройки рендера"
+
+
+msgctxt "ID"
+msgid "Output"
+msgstr "Вывод"
 
 
 msgid "Output Properties"
@@ -91239,6 +91621,11 @@ msgstr "Модификаторы"
 
 msgid "Modifier Properties"
 msgstr "Настройки модификаторов"
+
+
+msgctxt "ID"
+msgid "Data"
+msgstr "Данные"
 
 
 msgid "Object Data Properties"
@@ -92199,6 +92586,10 @@ msgid "Display faces colored according to the difference in shape between UVs an
 msgstr "Отобразить грани с расцветкой в соответствии с разницей между их координатами UV и 3D (синий для слабого искажения, красный для высокого искажения)"
 
 
+msgid "Display UVs"
+msgstr "Отображать UV"
+
+
 msgid "Opacity of the UV Stretch overlay"
 msgstr "Непрозрачность наложения UV-растяжения"
 
@@ -92213,6 +92604,14 @@ msgstr "Развёртывать в реальном времени"
 
 msgid "Continuously unwrap the selected UV island while transforming pinned vertices"
 msgstr "Непрерывно развёртывать выделенный UV-остров при трансформации закреплённых вершин"
+
+
+msgid "UV Face Opacity"
+msgstr "Непрозрачность граней UV"
+
+
+msgid "Opacity of faces in UV overlays"
+msgstr "Непрозрачность граней UV-наложений"
 
 
 msgid "UV Opacity"
@@ -93409,6 +93808,34 @@ msgid "Tone mapping modifier"
 msgstr "Модификатор тонального отображения"
 
 
+msgid "If 0, global; if 1, based on pixel intensity"
+msgstr "Если 0, то глобально; Если 1, то на основе интенсивности пикселей"
+
+
+msgid "Set to 0 to use estimate from input image"
+msgstr "Установите в 0 для оценки от входного изображения"
+
+
+msgid "If 0, same for all channels; if 1, each independent"
+msgstr "Если 0, то одинаково для всех каналов; Если 1, независимо для каждого"
+
+
+msgid "If not used, set to 1"
+msgstr "Если не используется, установите в 1"
+
+
+msgid "If less than zero, darkens image; otherwise, makes it brighter"
+msgstr "Если меньше нуля, затемняет изображение; в противном случае делает его ярче"
+
+
+msgid "The value the average luminance is mapped to"
+msgstr "Значение, на которое отображается средняя яркость"
+
+
+msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
+msgstr "Обычно всегда 1, но может использоваться как дополнительный элемент управления для изменения кривой яркости"
+
+
 msgid "Tone mapping algorithm"
 msgstr "Алгоритм тонального отображения"
 
@@ -94479,6 +94906,10 @@ msgstr "Стиль шрифта"
 
 msgid "Theme settings for Font"
 msgstr "Настройки темы шрифта"
+
+
+msgid "Weight of the characters. 100-900, 400 is normal."
+msgstr "Вес символов. 100-900, 400 - норма."
 
 
 msgid "Shadow Size"
@@ -95900,7 +96331,7 @@ msgstr "Визуализация статистики меша"
 
 
 msgid "Transform Pivot Point"
-msgstr "Центр транформации"
+msgstr "Центр трансформации"
 
 
 msgid "Unified Paint Settings"
@@ -97936,7 +98367,7 @@ msgstr "Булевый"
 
 msgctxt "Volume"
 msgid "Float"
-msgstr "С плавающей точкой"
+msgstr "С плавающей запятой"
 
 
 msgctxt "Volume"
@@ -101065,6 +101496,11 @@ msgid "Search by Key-Binding"
 msgstr "Поиск по сочетанию клавиш"
 
 
+msgctxt "Operator"
+msgid "Edit Value"
+msgstr "Изменить значение"
+
+
 msgid "API Defined"
 msgstr "Определён в API"
 
@@ -101462,6 +101898,15 @@ msgstr "Нет меш-объекта"
 
 
 msgctxt "Unit"
+msgid "Plain Data"
+msgstr "Простые данные"
+
+
+msgid "Data values without special behavior"
+msgstr "Значения данных без особого поведения"
+
+
+msgctxt "Unit"
 msgid "Time"
 msgstr "Время"
 
@@ -101660,6 +102105,14 @@ msgstr "Сообщества пользователей"
 
 msgid "Non boolean value found: {:s}[ ].{:s}"
 msgstr "Найдено не-логическое значение: {:s}[ ].{:s}"
+
+
+msgid "Characters"
+msgstr "Символы"
+
+
+msgid "Strip From"
+msgstr "Удалить от"
 
 
 msgid "Rename {:d} {:s}"
@@ -104627,6 +105080,11 @@ msgstr "Типы"
 
 
 msgctxt "Operator"
+msgid "Show Object Hierarchy"
+msgstr "Отобразить иерархию объектов"
+
+
+msgctxt "Operator"
 msgid "Show One Level"
 msgstr "Показать один уровень"
 
@@ -104677,11 +105135,6 @@ msgstr "Экземпляр в сцену"
 
 
 msgctxt "Operator"
-msgid "ID Data"
-msgstr "Данные ID"
-
-
-msgctxt "Operator"
 msgid "Paste Data-Blocks"
 msgstr "Вставить датаблоки"
 
@@ -104720,6 +105173,11 @@ msgstr "Ссылка в сцену"
 msgctxt "Operator"
 msgid "Make"
 msgstr "Сделать"
+
+
+msgctxt "Operator"
+msgid "Troubleshoot"
+msgstr "Устранение неполадок"
 
 
 msgid "Restriction Toggles"
@@ -106435,6 +106893,11 @@ msgstr "Импортировать OpenVDB…"
 
 
 msgctxt "Operator"
+msgid "Point Cloud"
+msgstr "Облако точек"
+
+
+msgctxt "Operator"
 msgid "Speaker"
 msgstr "Источник звука"
 
@@ -106545,6 +107008,11 @@ msgstr "Материалы"
 msgctxt "Operator"
 msgid "Object Animation"
 msgstr "Анимация объекта"
+
+
+msgctxt "Operator"
+msgid "Object Data Animation"
+msgstr "Данные анимации объекта"
 
 
 msgctxt "Operator"
@@ -107203,11 +107671,6 @@ msgstr "Следующий блок"
 
 
 msgctxt "Operator"
-msgid "Point Cloud"
-msgstr "Облако точек"
-
-
-msgctxt "Operator"
 msgid "Armature"
 msgstr "Арматура"
 
@@ -107224,7 +107687,7 @@ msgstr "Экземпляр коллекции…"
 
 msgctxt "Operator"
 msgid "No Collections to Instance"
-msgstr "Нет коллекций"
+msgstr "Нет коллекций для создания экземпляров"
 
 
 msgctxt "Operator"
@@ -107894,6 +108357,11 @@ msgid "DOF Distance (Pick)"
 msgstr "Расстояние глубины резкости (выбрать)"
 
 
+msgctxt "Operator"
+msgid "Adjust Focus Distance"
+msgstr "Регулировка фокусного расстояния"
+
+
 msgid "No object selected, using cursor"
 msgstr "Нет выделенного объекта, используется курсор"
 
@@ -108288,6 +108756,14 @@ msgid "Loading \"%s\" failed: "
 msgstr "Загрузка \"%s\" не удалась: "
 
 
+msgid "Linked Data"
+msgstr "Связанные данные"
+
+
+msgid "Appended Data"
+msgstr "Добавленные данные"
+
+
 msgid "Linking or appending from a very old .blend file format (%d.%d), no animation conversion will be done! You may want to re-save your lib file with current Blender"
 msgstr "Связывание или присоединение от .blend-файла в очень старом формате (%d.%d), анимация не будет преобразована! Пересохраните библиотечный файл в текущей версии Blender"
 
@@ -108602,6 +109078,14 @@ msgid "link_placeholders"
 msgstr "заполнители_ссылок"
 
 
+msgid "Impossible to resync data-block %s and its dependencies, as its linked reference is missing"
+msgstr "Невозможно повторно синхронизировать блок данных %s и его зависимости, так как отсутствует связанная с ним ссылка"
+
+
+msgid "During resync of data-block %s, %d obsolete overrides were deleted, that had local changes defined by user"
+msgstr "Во время повторной синхронизации блока данных %s было удалено %d устаревших переопределений, в которых были локальные изменения, установленные пользователем"
+
+
 msgid "Library override templates have been removed: removing all override data from the data-block '%s'"
 msgstr "Шаблоны переопределения библиотеки были удалены: удаление всех данных переопределения из блока данных '%s'"
 
@@ -108620,6 +109104,10 @@ msgstr "Привязка света для %s"
 
 msgid "Shadow Linking for %s"
 msgstr "Привязка тени для %s"
+
+
+msgid "Cannot unlink unsupported '%s' from light linking collection '%s'"
+msgstr "Невозможно отсоединить неподдерживаемый '%s' от коллекция для привязки света '%s'"
 
 
 msgid "lightprobes"
@@ -109195,6 +109683,14 @@ msgid "Failed to read blend file '%s': %s"
 msgstr "Не удалось прочитать файл «%s», %s"
 
 
+msgid "Blend file '%s' created by a Big Endian version of Blender, support for these files will be removed in Blender 5.0"
+msgstr "Файл blend '%s' создан версией Blender'а с обратным порядком байтов, поддержка этих файлов будет удалена в Blender 5.0"
+
+
+msgid "Cannot read blend file '%s', incomplete header, may be from a newer version of Blender"
+msgstr "Невозможно прочитать файл-blend '%s', неполный заголовок, возможно, из более новой версии Blender'а"
+
+
 msgid "Failed to read file '%s', not a blend file"
 msgstr "Не удалось прочитать файл '%s', это не blend-файл"
 
@@ -109581,6 +110077,10 @@ msgid "Remove animation from selected objects?"
 msgstr "Удалить анимацию у выделенных объектов?"
 
 
+msgid "Delete keyframes from selected objects?"
+msgstr "Удалить ключевые кадры из выделенных объектов?"
+
+
 msgid "No RNA pointer available to retrieve values for this F-curve"
 msgstr "Нет доступного RNA-указателя для получения значений этой f-кривой"
 
@@ -109623,6 +110123,10 @@ msgstr "Успешно добавлено %d ключевых кадров дл�
 
 msgid "Nothing selected to key"
 msgstr "Ничего не выделено для фиксации ключа"
+
+
+msgid "Could not insert keyframe, as this type does not support animation data (ID = %s)"
+msgstr "Не удалось вставить ключевой кадр, так как этот тип не поддерживает данные анимации (ID = %s)"
 
 
 msgid "Successfully removed %d keyframes for keying set '%s'"
@@ -109763,6 +110267,10 @@ msgstr "Не найдено ни одного объекта с которым �
 
 msgid "Cannot update a linked Armature with a system override; explicitly create an override on the Armature Data"
 msgstr "Невозможно обновить связанную арматуру с системным переопределением; явно создайте переопределение для данных арматуры"
+
+
+msgid "Armature has no active bone collection, select one first"
+msgstr "У арматуры нет активной коллекции костей, сначала выберите её"
 
 
 msgid "No active bone collection"
@@ -111963,6 +112471,10 @@ msgid "Could not add the collection because of dependency cycle detected"
 msgstr "Не удалось добавить коллекцию из-за обнаруженной циклической зависимости"
 
 
+msgid "Cannot unlink a library override collection which is not the root of its override hierarchy"
+msgstr "Невозможно отсоединить коллекцию библиотеки переопределений, которая не является корнем её иерархии переопределений"
+
+
 msgid "File handler '%s' not found"
 msgstr "Обработчик для файла '%s' не найден"
 
@@ -112585,6 +113097,10 @@ msgstr "Флюид: Невозможно использовать папку к�
 
 msgid "Library override data-blocks only support Disk Cache storage"
 msgstr "Блоки данных переопределения библиотеки поддерживают только хранилище дискового кэша"
+
+
+msgid "Linked data-blocks do not allow editing caches"
+msgstr "Связанные блоки данных не позволяют редактировать кэши"
 
 
 msgid "No Rigid Body World to add Rigid Body Constraint to"
@@ -113430,6 +113946,10 @@ msgid "Not implemented for Masks"
 msgstr "Не реализовано для масок"
 
 
+msgid "Cannot activate a file selector dialog, one already open"
+msgstr "Невозможно активировать диалоговое окно выбора файла, оно уже открыто"
+
+
 msgid "Property is not editable"
 msgstr "Свойство не подлежит редактированию"
 
@@ -113736,6 +114256,10 @@ msgid ""
 msgstr ""
 "Библиотеки ассетов являются локальными каталогами, которые могут содержать файлы .blend с ассетами внутри.\n"
 "Управление библиотеками ассетов из раздела \"Пути к файлам\" в настройках"
+
+
+msgid "Unreadable Blender library file:"
+msgstr "Нечитаемый файл библиотеки Blender'а:"
 
 
 msgid "Link target"
@@ -114455,6 +114979,10 @@ msgid "{} (Boolean)"
 msgstr "{} (Логический)"
 
 
+msgid "False"
+msgstr "Ложно"
+
+
 msgid "(Matrix)"
 msgstr "(Матрица)"
 
@@ -114755,12 +115283,24 @@ msgid "Library path '%s' is now valid, please reload the library"
 msgstr "Путь к библиотеке «%s» теперь правильный, пожалуйста, перезагрузите библиотеку"
 
 
+msgid "Remap Data ID"
+msgstr "Переназначить ID-данных"
+
+
 msgid "Purge Unused Data from This File"
 msgstr "Удалить неиспользуемые данные из этого файла"
 
 
 msgid "Manage Unused Data"
 msgstr "Управление неиспользуемыми данными"
+
+
+msgid "Strip names are not editable from the Outliner"
+msgstr "Названия дорожек нельзя редактировать в самом аутлайнере"
+
+
+msgid "Library path is not editable, use the Relocate operation"
+msgstr "Путь к библиотеке не редактируется, используйте операцию \"перебазирования\""
 
 
 msgid "No active item to rename"
@@ -114823,8 +115363,44 @@ msgid "Not yet implemented"
 msgstr "Пока не реализовано"
 
 
+msgid "Cannot unlink action '%s'. It's not clear which object or object-data it should be unlinked from, there's no object or object-data as parent in the Outliner tree"
+msgstr "Невозможно отсоединить действие '%s'. Неясно, от какого объекта или данных объекта его следует отсоединять, в дереве аулайнера нет родительского объекта или данных объекта"
+
+
+msgid "Cannot unlink material '%s'. It's not clear which object or object-data it should be unlinked from, there's no object or object-data as parent in the Outliner tree"
+msgstr "Невозможно отсоединить материал '%s'. Неясно, от какого объекта или данных объекта его следует отсоединять, в дереве аутлайнера нет родительского объекта или данных объекта"
+
+
+msgid "Cannot unlink the material '%s' from linked object data"
+msgstr "Невозможно отсоединить материал '%s' от связанных данных объекта"
+
+
+msgid "Cannot unlink texture '%s'. It's not clear which Freestyle line style it should be unlinked from, there's no Freestyle line style as parent in the Outliner tree"
+msgstr "Невозможно отсоединить текстуру '%s'. Неясно, от какого стиля линий Freestyle её следует отсоединять, в дереве аутлайнера нет родительского стиля линий Freestyle"
+
+
 msgid "Cannot unlink collection '%s'. It's not clear which scene, collection or instance empties it should be unlinked from, there's no scene, collection or instance empties as parent in the Outliner tree"
 msgstr "Невозможно отсоединить коллекцию '%s'. Неясно, от какой сцены, коллекции или экземпляра пустышек её следует отсоединить, в дереве аутлайнера нет родительских сцен, коллекций или экземпляра пустышек"
+
+
+msgid "Cannot unlink collection '%s' parented to another linked collection '%s'"
+msgstr "Невозможно отсоединить коллекцию '%s', которая является родительской для другой связанной коллекции '%s'"
+
+
+msgid "Cannot unlink object '%s' parented to another linked object '%s'"
+msgstr "Невозможно отсоединить объект '%s', который является родителем другого связанного объекта '%s'"
+
+
+msgid "Cannot unlink object '%s' from linked collection or scene '%s'"
+msgstr "Невозможно отсоединить объект '%s' от связанной коллекции или сцены '%s'"
+
+
+msgid "Cannot unlink world '%s'. It's not clear which scene it should be unlinked from, there's no scene as parent in the Outliner tree"
+msgstr "Невозможно отсоединить мир '%s'. Неясно, от какой сцены его следует отсоединять, в дереве аутлайнера нет родительской сцены"
+
+
+msgid "Could not create library override from data-block '%s', as it is not overridable"
+msgstr "Не удалось создать переопределение библиотеки из блока данных '%s', так как оно непереопределяемо"
 
 
 msgid "Invalid anchor ('%s') found, needed to create library override from data-block '%s'"
@@ -115072,6 +115648,10 @@ msgstr ""
 "{}  {}  {}  {}"
 
 
+msgid "Reload active text file?"
+msgstr "Перезагрузить активный текстовый файл?"
+
+
 msgid "File Modified Outside and Inside Blender"
 msgstr "Файл изменён снаружи в внутри Blender"
 
@@ -115190,6 +115770,10 @@ msgstr "Оператор только для Windows и Linux"
 
 msgid "Control Point:"
 msgstr "Контрольная точка:"
+
+
+msgid "Point:"
+msgstr "Точка:"
 
 
 msgid "Vertex:"
@@ -115446,6 +116030,10 @@ msgstr "FPS: %.2f"
 
 msgid "fps: %i"
 msgstr "FPS: %i"
+
+
+msgid "Create object instance from object-data"
+msgstr "Создать экземпляр объекта из объектных данных"
 
 
 msgid "X-Ray not available in current mode"
@@ -116383,6 +116971,10 @@ msgid "'%s' doesn't have an alpha-numeric suffix"
 msgstr "«%s» не имеет буквенно-цифрового префикса"
 
 
+msgid "%s: expected ID type, not %s"
+msgstr "%s: ожидаемый тип идентификатора, а не %s"
+
+
 msgid "Array length mismatch (expected %d, got %d)"
 msgstr "Несоответствие длины массива (ожидается %d, получено %d)"
 
@@ -116976,6 +117568,10 @@ msgstr "Возможно назначить только вычисляемые 
 
 msgid "Only empty objects support collection instances"
 msgstr "Только объекты-пустышки могут содержать экземпляры коллекций"
+
+
+msgid "Cannot set instance-collection as object belongs in collection being instanced, thus causing a cycle"
+msgstr "Невозможно установить экземпляр-коллекцию, поскольку объект принадлежит той коллекции, экземпляр которой в свою очередь создаётся в качестве экземпляра, что приводит к циклу"
 
 
 msgid "VertexGroup.add(): cannot be called while object is in edit mode"
@@ -118212,6 +118808,14 @@ msgid "Layer:"
 msgstr "Слой:"
 
 
+msgid ""
+"Gamma correction value, applied as color^gamma.\n"
+"Typically used to convert from gamma encoded to linear color space, or in the reverse direction with 1/gamma"
+msgstr ""
+"Значение гамма-коррекции, применяемое как цвет^гамма.\n"
+"Обычно используется для преобразования из гамма-кодированного в линейное цветовое пространство или в обратном направлении с 1/гамма"
+
+
 msgid "Streaks Angle"
 msgstr "Угол полос"
 
@@ -118284,6 +118888,10 @@ msgid "Core Matte"
 msgstr "Маска основы"
 
 
+msgid "Uses a more precise but slower method. Use if the output contains undesirable noise."
+msgstr "Использует более точный, но более медленный метод. Используйте, если вывод содержит нежелательный шум."
+
+
 msgid "Dispersion"
 msgstr "Дисперсия"
 
@@ -118306,6 +118914,10 @@ msgstr "До Min"
 
 msgid "To Max"
 msgstr "До Max"
+
+
+msgid "Use feather information from the mask"
+msgstr "Использовать информацию о растушёвке из маски"
 
 
 msgid "Offset Y"
@@ -119185,6 +119797,10 @@ msgstr "Отключено, Blender скомпилировал без STL I/O"
 
 msgid "Path to a STL file"
 msgstr "Путь к файлу STL"
+
+
+msgid "File contains invalid UTF-8 characters"
+msgstr "Файл содержит недопустимые символы UTF-8"
 
 
 msgid "Path to a text file"
@@ -120673,6 +121289,10 @@ msgid "The number of noise octaves. Higher values give more detailed noise but i
 msgstr "Количество октав шума. Более высокие значения дают более детализированный шум, но увеличивают время рендеринга"
 
 
+msgid "Blend factor between an octave and its previous one. A value of zero corresponds to zero detail"
+msgstr "Коэффициент смешивания между октавой и предыдущей. Значение ноль соответствует нулевой детализации"
+
+
 msgid "The difference between the scale of each two consecutive octaves. Larger values corresponds to larger scale for higher octaves"
 msgstr "Разница между масштабами каждых двух последовательных октав. Большие значения соответствуют большему масштабу для более высоких октав"
 
@@ -121094,6 +121714,10 @@ msgid "Permanently allow execution of scripts"
 msgstr "Всегда разрешать выполнение скриптов"
 
 
+msgid "This file was saved by a newer version of Blender (%s)"
+msgstr "Этот файл был сохранён более новой версией Blender'а (%s)"
+
+
 msgid "Saving it with this Blender (%s) may cause loss of data"
 msgstr "Сохранение с помощью данной версии Blender'а (%s) может привести к потере данных"
 
@@ -121104,6 +121728,10 @@ msgstr "Этим файлом управляет система ассетов B
 
 msgid "Cannot overwrite asset system files. Save as new file"
 msgstr "Невозможно перезаписать файлы системы ассетов. Сохраните как новый файл"
+
+
+msgid "Overwrite file with an older Blender version?"
+msgstr "Перезаписать файл более старой версией Blender'а?"
 
 
 msgid "Cannot overwrite asset system files. Save as new file?"
@@ -121146,8 +121774,16 @@ msgid "%d libraries and %d linked data-blocks are missing (including %d ObjectDa
 msgstr "%d библиотек и %d связанных блоков данных отсутствуют (включая %d ОбъектныхДанных), подробности см. в информационном редакторе и в аутлайнере"
 
 
+msgid "%d libraries have overrides needing resync (auto resynced in %.0fm%.2fs), please check the Info editor for details"
+msgstr "%d библиотек имеют переопределения, требующие повторной синхронизации (автоматическая повторная синхронизация за %.0fm%.2fs), подробности см. в информационном редакторе"
+
+
 msgid "Proxies have been removed from Blender (%d proxies were automatically converted to library overrides, %d proxies could not be converted and were cleared). Consider re-saving any library .blend file with the newest Blender version"
 msgstr "Прокси были удалены из Blender'а (%d прокси были автоматически преобразованы в переопределения библиотеки, %d прокси не удалось преобразовать и они были очищены). Рассмотрите возможность повторного сохранения любого файла .blend библиотеки с новейшей версией Blender'а"
+
+
+msgid "Cannot read file \"%s\": %s"
+msgstr "Невозможно прочитать файл \"%s\": %s"
 
 
 msgid "Application Template \"%s\" not found"
@@ -121421,6 +122057,10 @@ msgid "Arri Alexa Mini & SXT"
 msgstr "Arri Alexa Mini & SXT"
 
 
+msgid "Fullframe"
+msgstr "Полный кадр"
+
+
 msgid "RED Dragon 5K"
 msgstr "RED Dragon 5K"
 
@@ -121567,6 +122207,10 @@ msgstr "Высокопроизводительный растровый ренд
 
 msgid "Manage UI translations"
 msgstr "Управление переводами ПИ"
+
+
+msgid "Allows managing UI translations directly from Blender (update main .po files, update scripts' translations, etc.)"
+msgstr "Позволяет управлять переводами пользовательского интерфейса непосредственно из Blender'а (обновлять основные файлы .po, обновлять переводы скриптов и т. д.)"
 
 
 msgid "Various tools to enhance and speed up node-based workflow"
@@ -121783,10 +122427,6 @@ msgstr "микрофон"
 
 msgid "network"
 msgstr "сеть"
-
-
-msgid "English (English)"
-msgstr "Английский (English)"
 
 
 msgid "Japanese (日本語)"

@@ -213,7 +213,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
                  msg ? msg : "failed, context is incorrect");
     CTX_wm_operator_poll_msg_clear(C);
     if (msg_free) {
-      MEM_freeN((void *)msg);
+      MEM_freeN(msg);
     }
     error_val = -1;
   }

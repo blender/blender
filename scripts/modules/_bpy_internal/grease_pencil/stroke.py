@@ -135,8 +135,10 @@ def DefAttributeGetterSetters(attributes_list):
      "The rotation for this point. Used to rotate textures."),
     ("delta_time", "delta_time", 'FLOAT', 0.0,
      "The time delta in seconds since the start of the stroke."),
-    ("select_handle_left", ".selection_handle_left", 'BOOLEAN', True, "The selection state of the left bézier handle."),
-    ("select_handle_right", ".selection_handle_right", 'BOOLEAN', True, "The selection state of the right bézier handle."),
+    ("select_handle_left", ".selection_handle_left", 'BOOLEAN', True,
+     "The selection state of the left bézier handle."),
+    ("select_handle_right", ".selection_handle_right", 'BOOLEAN', True,
+     "The selection state of the right bézier handle."),
 ])
 class GreasePencilStrokePoint(AttributeGetterSetter):
     """

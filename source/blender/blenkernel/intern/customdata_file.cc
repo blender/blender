@@ -193,7 +193,7 @@ static bool cdf_read_header(CDataFile *cdf)
     return false;
   }
 
-  cdf->layer = MEM_calloc_arrayN<CDataFileLayer>(size_t(header->totlayer), "CDataFileLayer");
+  cdf->layer = MEM_calloc_arrayN<CDataFileLayer>(header->totlayer, "CDataFileLayer");
   cdf->totlayer = header->totlayer;
 
   if (!cdf->layer) {

@@ -555,7 +555,6 @@ OffsetIndices<int> CurvesGeometry::nurbs_custom_knots_by_curve() const
     const OffsetIndices points_by_curve = this->points_by_curve();
     const VArray<int8_t> knot_modes = this->nurbs_knots_modes();
     const VArray<int8_t> orders = this->nurbs_orders();
-    const VArray<bool> cyclic = this->cyclic();
 
     int knot_count = 0;
     for (const int curve : this->curves_range()) {

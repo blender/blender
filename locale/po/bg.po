@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:10+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1140,6 +1140,10 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
+msgid "UV Mapping"
+msgstr "UV Картиране"
+
+
 msgid "Light"
 msgstr "Светлина"
 
@@ -1170,10 +1174,6 @@ msgstr "Слей"
 
 msgid "Text"
 msgstr "Текст"
-
-
-msgid "UV Mapping"
-msgstr "UV Картиране"
 
 
 msgid "Languages..."
@@ -2384,10 +2384,6 @@ msgstr "Засенчване"
 
 msgid "Pose Library"
 msgstr "Библиотека с Пози"
-
-
-msgid "English (English)"
-msgstr "Английски (English)"
 
 
 msgid "Japanese (日本語)"

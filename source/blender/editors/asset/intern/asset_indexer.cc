@@ -266,8 +266,7 @@ static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
 
   int num_entries_read = 0;
   for (const std::shared_ptr<Value> &element : entries->elements()) {
-    FileIndexerEntry *entry = static_cast<FileIndexerEntry *>(
-        MEM_callocN(sizeof(FileIndexerEntry), __func__));
+    FileIndexerEntry *entry = MEM_callocN<FileIndexerEntry>(__func__);
     init_indexer_entry_from_value(*entry, *element->as_dictionary_value());
 
     BLI_linklist_prepend(&indexer_entries.entries, entry);

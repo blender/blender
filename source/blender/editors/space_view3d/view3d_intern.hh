@@ -230,3 +230,6 @@ void VIEW3D_GGT_placement(wmGizmoGroupType *gzgt);
 extern uchar view3d_camera_border_hack_col[3];
 extern bool view3d_camera_border_hack_test;
 #endif
+
+/* view3d_navigate_smoothview.cc */
+void view3d_smooth_free(RegionView3D *rv3d);

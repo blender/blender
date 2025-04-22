@@ -142,8 +142,8 @@ LinkNode *BM_mesh_calc_path_vert(BMesh *bm,
 
   /* Allocate. */
   totvert = bm->totvert;
-  verts_prev = static_cast<BMVert **>(MEM_callocN(sizeof(*verts_prev) * totvert, __func__));
-  cost = static_cast<float *>(MEM_mallocN(sizeof(*cost) * totvert, __func__));
+  verts_prev = MEM_calloc_arrayN<BMVert *>(totvert, __func__);
+  cost = MEM_malloc_arrayN<float>(totvert, __func__);
 
   copy_vn_fl(cost, totvert, COST_INIT_MAX);
 
@@ -322,8 +322,8 @@ LinkNode *BM_mesh_calc_path_edge(BMesh *bm,
 
   /* Allocate. */
   totedge = bm->totedge;
-  edges_prev = static_cast<BMEdge **>(MEM_callocN(sizeof(*edges_prev) * totedge, __func__));
-  cost = static_cast<float *>(MEM_mallocN(sizeof(*cost) * totedge, __func__));
+  edges_prev = MEM_calloc_arrayN<BMEdge *>(totedge, __func__);
+  cost = MEM_malloc_arrayN<float>(totedge, __func__);
 
   copy_vn_fl(cost, totedge, COST_INIT_MAX);
 
@@ -523,8 +523,8 @@ LinkNode *BM_mesh_calc_path_face(BMesh *bm,
 
   /* Allocate. */
   totface = bm->totface;
-  faces_prev = static_cast<BMFace **>(MEM_callocN(sizeof(*faces_prev) * totface, __func__));
-  cost = static_cast<float *>(MEM_mallocN(sizeof(*cost) * totface, __func__));
+  faces_prev = MEM_calloc_arrayN<BMFace *>(totface, __func__);
+  cost = MEM_malloc_arrayN<float>(totface, __func__);
 
   copy_vn_fl(cost, totface, COST_INIT_MAX);
 

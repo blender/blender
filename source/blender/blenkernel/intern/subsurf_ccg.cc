@@ -1145,7 +1145,7 @@ static void ccgdm_create_grids(DerivedMesh *dm)
   gridData = MEM_malloc_arrayN<CCGElem *>(size_t(numGrids), "ccgdm.gridData");
   gridFaces = MEM_malloc_arrayN<CCGFace *>(size_t(numGrids), "ccgdm.gridFaces");
 
-  ccgdm->gridHidden = MEM_calloc_arrayN<uint *>(size_t(numGrids), "ccgdm.gridHidden");
+  ccgdm->gridHidden = MEM_calloc_arrayN<uint *>(numGrids, "ccgdm.gridHidden");
 
   for (gIndex = 0, index = 0; index < numFaces; index++) {
     CCGFace *f = ccgdm->faceMap[index].face;

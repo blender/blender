@@ -642,7 +642,7 @@ static void bmesh_find_doubles_common(BMesh *bm,
     BMO_slot_buffer_flag_enable(bm, op->slots_in, "keep_verts", BM_VERT, VERT_KEEP);
   }
 
-  int *duplicates = static_cast<int *>(MEM_mallocN(sizeof(int) * verts_len, __func__));
+  int *duplicates = MEM_malloc_arrayN<int>(verts_len, __func__);
   {
     KDTree_3d *tree = BLI_kdtree_3d_new(verts_len);
     for (int i = 0; i < verts_len; i++) {

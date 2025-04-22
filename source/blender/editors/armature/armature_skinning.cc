@@ -319,26 +319,24 @@ static void add_verts_to_dgroups(ReportList *reports,
 
   /* create an array of pointer to bones that are skinnable
    * and fill it with all of the skinnable bones */
-  bonelist = static_cast<Bone **>(MEM_callocN(numbones * sizeof(Bone *), "bonelist"));
+  bonelist = MEM_calloc_arrayN<Bone *>(numbones, "bonelist");
   looper_data.list = bonelist;
   bone_looper(ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, bone_skinnable_cb);
 
   /* create an array of pointers to the deform groups that
    * correspond to the skinnable bones (creating them
    * as necessary. */
-  dgrouplist = static_cast<bDeformGroup **>(
-      MEM_callocN(numbones * sizeof(bDeformGroup *), "dgrouplist"));
-  dgroupflip = static_cast<bDeformGroup **>(
-      MEM_callocN(numbones * sizeof(bDeformGroup *), "dgroupflip"));
+  dgrouplist = MEM_calloc_arrayN<bDeformGroup *>(numbones, "dgrouplist");
+  dgroupflip = MEM_calloc_arrayN<bDeformGroup *>(numbones, "dgroupflip");
 
   looper_data.list = dgrouplist;
   bone_looper(ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, dgroup_skinnable_cb);
 
   /* create an array of root and tip positions transformed into
    * global coords */
-  root = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "root"));
-  tip = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "tip"));
-  selected = static_cast<bool *>(MEM_callocN(sizeof(bool) * numbones, "selected"));
+  root = MEM_calloc_arrayN<float[3]>(numbones, "root");
+  tip = MEM_calloc_arrayN<float[3]>(numbones, "tip");
+  selected = MEM_calloc_arrayN<bool>(numbones, "selected");
 
   for (int j = 0; j < numbones; j++) {
     bone = bonelist[j];

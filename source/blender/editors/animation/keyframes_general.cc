@@ -70,8 +70,7 @@ bool duplicate_fcurve_keys(FCurve *fcu)
     /* If a key is selected */
     if (fcu->bezt[i].f2 & SELECT) {
       /* Expand the list */
-      BezTriple *newbezt = static_cast<BezTriple *>(
-          MEM_callocN(sizeof(BezTriple) * (fcu->totvert + 1), "beztriple"));
+      BezTriple *newbezt = MEM_calloc_arrayN<BezTriple>((fcu->totvert + 1), "beztriple");
 
       memcpy(newbezt, fcu->bezt, sizeof(BezTriple) * (i + 1));
       memcpy(newbezt + i + 1, fcu->bezt + i, sizeof(BezTriple));
@@ -294,7 +293,7 @@ ListBase find_fcurve_segments(FCurve *fcu)
 
   while (find_fcurve_segment(fcu, current_index, &segment_start_idx, &segment_len)) {
     FCurveSegment *segment;
-    segment = static_cast<FCurveSegment *>(MEM_callocN(sizeof(*segment), "FCurveSegment"));
+    segment = MEM_callocN<FCurveSegment>("FCurveSegment");
     segment->start_index = segment_start_idx;
     segment->length = segment_len;
     BLI_addtail(&segments, segment);
@@ -425,14 +424,12 @@ struct ButterworthCoefficients {
 
 ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order)
 {
-  ButterworthCoefficients *bw_coeff = static_cast<ButterworthCoefficients *>(
-      MEM_callocN(sizeof(ButterworthCoefficients), "Butterworth Coefficients"));
+  ButterworthCoefficients *bw_coeff = MEM_callocN<ButterworthCoefficients>(
+      "Butterworth Coefficients");
   bw_coeff->filter_order = filter_order;
-  bw_coeff->d1 = static_cast<double *>(
-      MEM_callocN(sizeof(double) * filter_order, "coeff filtered"));
-  bw_coeff->d2 = static_cast<double *>(
-      MEM_callocN(sizeof(double) * filter_order, "coeff samples"));
-  bw_coeff->A = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "Butterworth A"));
+  bw_coeff->d1 = MEM_calloc_arrayN<double>(filter_order, "coeff filtered");
+  bw_coeff->d2 = MEM_calloc_arrayN<double>(filter_order, "coeff samples");
+  bw_coeff->A = MEM_calloc_arrayN<double>(filter_order, "Butterworth A");
   return bw_coeff;
 }
 
@@ -529,12 +526,12 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
 {
   const int filter_order = bw_coeff->filter_order;
 
-  float *filtered_values = static_cast<float *>(
-      MEM_callocN(sizeof(float) * sample_count, "Butterworth Filtered FCurve Values"));
+  float *filtered_values = MEM_calloc_arrayN<float>(sample_count,
+                                                    "Butterworth Filtered FCurve Values");
 
-  double *w0 = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "w0"));
-  double *w1 = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "w1"));
-  double *w2 = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "w2"));
+  double *w0 = MEM_calloc_arrayN<double>(filter_order, "w0");
+  double *w1 = MEM_calloc_arrayN<double>(filter_order, "w1");
+  double *w2 = MEM_calloc_arrayN<double>(filter_order, "w2");
 
   /* The values need to be offset so the first sample starts at 0. This avoids oscillations at the
    * start and end of the curve. */
@@ -932,8 +929,7 @@ void time_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float
 
   /* If we operate directly on the fcurve there will be a feedback loop
    * so we need to capture the "y" values on an array to then apply them on a second loop. */
-  float *y_values = static_cast<float *>(
-      MEM_callocN(sizeof(float) * segment->length, "Time Offset Samples"));
+  float *y_values = MEM_calloc_arrayN<float>(segment->length, "Time Offset Samples");
 
   for (int i = 0; i < segment->length; i++) {
     /* This simulates the fcu curve moving in time. */
@@ -1149,8 +1145,7 @@ void smooth_fcurve(FCurve *fcu)
     tSmooth_Bezt *tarray, *tsb;
 
     /* allocate memory in one go */
-    tsb = tarray = static_cast<tSmooth_Bezt *>(
-        MEM_callocN(totSel * sizeof(tSmooth_Bezt), "tSmooth_Bezt Array"));
+    tsb = tarray = MEM_calloc_arrayN<tSmooth_Bezt>(totSel, "tSmooth_Bezt Array");
 
     /* populate tarray with data of selected points */
     bezt = fcu->bezt;

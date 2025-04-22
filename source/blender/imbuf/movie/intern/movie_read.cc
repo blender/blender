@@ -445,10 +445,10 @@ static int startffmpeg(MovieReader *anim)
     av_image_fill_arrays(
         anim->pFrameDeinterlaced->data,
         anim->pFrameDeinterlaced->linesize,
-        static_cast<const uint8_t *>(MEM_callocN(
+        MEM_calloc_arrayN<uint8_t>(
             av_image_get_buffer_size(
                 anim->pCodecCtx->pix_fmt, anim->pCodecCtx->width, anim->pCodecCtx->height, 1),
-            "ffmpeg deinterlace")),
+            "ffmpeg deinterlace"),
         anim->pCodecCtx->pix_fmt,
         anim->pCodecCtx->width,
         anim->pCodecCtx->height,

@@ -177,8 +177,7 @@ static void fcurves_to_pchan_links_get(ListBase &pfLinks, Object &ob, bPoseChann
     return;
   }
 
-  tPChanFCurveLink *pfl = static_cast<tPChanFCurveLink *>(
-      MEM_callocN(sizeof(tPChanFCurveLink), "tPChanFCurveLink"));
+  tPChanFCurveLink *pfl = MEM_callocN<tPChanFCurveLink>("tPChanFCurveLink");
 
   pfl->ob = &ob;
   pfl->fcurves = curves;

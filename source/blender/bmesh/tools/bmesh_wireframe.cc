@@ -176,12 +176,9 @@ void BM_mesh_wireframe(BMesh *bm,
   BMIter itersub;
 
   /* filled only with boundary verts */
-  BMVert **verts_src = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__));
-  BMVert **verts_neg = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__));
-  BMVert **verts_pos = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(BMVert *) * totvert_orig, __func__));
+  BMVert **verts_src = MEM_malloc_arrayN<BMVert *>(totvert_orig, __func__);
+  BMVert **verts_neg = MEM_malloc_arrayN<BMVert *>(totvert_orig, __func__);
+  BMVert **verts_pos = MEM_malloc_arrayN<BMVert *>(totvert_orig, __func__);
 
   /* Will over-allocate, but makes for easy lookups by index to keep aligned. */
   BMVert **verts_boundary = static_cast<BMVert **>(
@@ -306,7 +303,7 @@ void BM_mesh_wireframe(BMesh *bm,
     BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
   }
 
-  verts_loop = static_cast<BMVert **>(MEM_mallocN(sizeof(BMVert *) * verts_loop_tot, __func__));
+  verts_loop = MEM_malloc_arrayN<BMVert *>(verts_loop_tot, __func__);
   verts_loop_tot = 0; /* count up again */
 
   BM_ITER_MESH (f_src, &iter, bm, BM_FACES_OF_MESH) {

@@ -217,7 +217,7 @@ static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter, const int size
   ushort *mask, *m;
   int x, y, thread = 0;
 
-  mask = static_cast<ushort *>(MEM_mallocN(sizeof(ushort) * size * size, __func__));
+  mask = MEM_malloc_arrayN<ushort>(size * size, __func__);
   m = mask;
 
   for (y = 0; y < size; y++) {
@@ -302,14 +302,12 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
 
   /* create brush image buffer if it didn't exist yet */
   if (!cache->tex_mask) {
-    cache->tex_mask = static_cast<ushort *>(
-        MEM_mallocN(sizeof(ushort) * diameter * diameter, __func__));
+    cache->tex_mask = MEM_malloc_arrayN<ushort>(diameter * diameter, __func__);
   }
 
   /* create new texture image buffer with coordinates relative to old */
   tex_mask_old = cache->tex_mask_old;
-  cache->tex_mask_old = static_cast<ushort *>(
-      MEM_mallocN(sizeof(ushort) * diameter * diameter, __func__));
+  cache->tex_mask_old = MEM_malloc_arrayN<ushort>(diameter * diameter, __func__);
 
   if (tex_mask_old) {
     ImBuf maskibuf;

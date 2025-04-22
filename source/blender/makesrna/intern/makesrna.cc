@@ -5248,7 +5248,7 @@ static const char *cpp_classes =
     "                found = true; \\\n"
     "            } \\\n"
     "            if (name_fixed != name) { \\\n"
-    "                MEM_freeN((void *) name); \\\n"
+    "                MEM_freeN( name); \\\n"
     "            } \\\n"
     "            sname##_##identifier##_next(&iter); \\\n"
     "        } \\\n"

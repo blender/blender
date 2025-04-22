@@ -1796,7 +1796,7 @@ static bool rna_Operator_unregister(Main *bmain, StructRNA *type)
    * they are 2 different srna's. */
   RNA_struct_free(&BLENDER_RNA, type);
 
-  MEM_freeN((void *)idname);
+  MEM_freeN(idname);
   return true;
 }
 

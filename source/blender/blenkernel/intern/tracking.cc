@@ -533,7 +533,6 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking,
   const MovieTrackingSettings *settings = &tracking->settings;
 
   MovieTrackingTrack *track = BKE_tracking_track_add_empty(tracking, tracksbase);
-  MovieTrackingMarker marker;
 
   const float half_pattern_px = settings->default_pattern_size / 2.0f;
   const float half_search_px = settings->default_search_size / 2.0f;
@@ -541,7 +540,7 @@ MovieTrackingTrack *BKE_tracking_track_add(MovieTracking *tracking,
   const float pattern_size[2] = {half_pattern_px / width, half_pattern_px / height};
   const float search_size[2] = {half_search_px / width, half_search_px / height};
 
-  memset(&marker, 0, sizeof(marker));
+  MovieTrackingMarker marker = {};
   marker.pos[0] = x;
   marker.pos[1] = y;
   marker.framenr = framenr;

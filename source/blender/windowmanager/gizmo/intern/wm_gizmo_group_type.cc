@@ -130,7 +130,7 @@ static void gizmogrouptype_free(wmGizmoGroupType *gzgt)
 {
   /* Python gizmo group, allocates its own string. */
   if (gzgt->rna_ext.srna) {
-    MEM_freeN((void *)gzgt->idname);
+    MEM_freeN(gzgt->idname);
   }
 
   MEM_freeN(gzgt);

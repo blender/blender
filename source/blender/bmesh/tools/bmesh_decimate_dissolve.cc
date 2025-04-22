@@ -292,7 +292,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
   const float angle_limit_cos_neg = -cosf(angle_limit);
   DelimitData delimit_data = {0};
   const int eheap_table_len = do_dissolve_boundaries ? einput_len : max_ii(einput_len, vinput_len);
-  void *_heap_table = MEM_mallocN(sizeof(HeapNode *) * eheap_table_len, __func__);
+  void *_heap_table = MEM_malloc_arrayN<HeapNode *>(eheap_table_len, __func__);
 
   int i;
 
@@ -384,7 +384,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
 
     /* prepare for cleanup */
     BM_mesh_elem_index_ensure(bm, BM_VERT);
-    vert_reverse_lookup = static_cast<int *>(MEM_mallocN(sizeof(int) * bm->totvert, __func__));
+    vert_reverse_lookup = MEM_malloc_arrayN<int>(bm->totvert, __func__);
     copy_vn_i(vert_reverse_lookup, bm->totvert, -1);
     for (i = 0; i < vinput_len; i++) {
       BMVert *v = vinput_arr[i];
@@ -392,7 +392,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     }
 
     /* --- cleanup --- */
-    earray = static_cast<BMEdge **>(MEM_mallocN(sizeof(BMEdge *) * bm->totedge, __func__));
+    earray = MEM_malloc_arrayN<BMEdge *>(bm->totedge, __func__);
     BM_ITER_MESH_INDEX (e_iter, &iter, bm, BM_EDGES_OF_MESH, i) {
       earray[i] = e_iter;
     }

@@ -51,8 +51,7 @@ static void create_flame_spectrum_texture(float *data)
 #  define MAX_FIRE_ALPHA 0.06f
 #  define FULL_ON_FIRE 100
 
-  float *spec_pixels = (float *)MEM_mallocN(TFUNC_WIDTH * 4 * 16 * 16 * sizeof(float),
-                                            "spec_pixels");
+  float *spec_pixels = MEM_malloc_arrayN<float>(TFUNC_WIDTH * 4 * 16 * 16, "spec_pixels");
 
   IMB_colormanagement_blackbody_temperature_to_rgb_table(data, TFUNC_WIDTH, 1500, 3000);
 
@@ -347,7 +346,7 @@ static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
 
   int cell_count = (highres) ? manta_noise_get_cells(fds->fluid) : fds->total_cells;
   int *dim = (highres) ? fds->res_noise : fds->res;
-  float *data = (float *)MEM_callocN(sizeof(float) * cell_count * 4, "smokeColorTexture");
+  float *data = MEM_calloc_arrayN<float>(cell_count * 4, "smokeColorTexture");
 
   if (data == nullptr) {
     return nullptr;

@@ -1741,8 +1741,7 @@ static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
       MEM_mallocN(sizeof(*cache->block_entries) * cache_size, __func__));
 
   cache->misc_entries = BLI_ghash_ptr_new_ex(__func__, cache_size);
-  cache->misc_entries_indices = static_cast<int *>(
-      MEM_mallocN(sizeof(*cache->misc_entries_indices) * cache_size, __func__));
+  cache->misc_entries_indices = MEM_malloc_arrayN<int>(cache_size, __func__);
   copy_vn_i(cache->misc_entries_indices, cache_size, -1);
   cache->misc_cursor = 0;
 

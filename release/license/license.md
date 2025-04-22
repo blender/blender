@@ -888,6 +888,7 @@ Provided by SIL’s Non-Roman Script Initiative. Contact us at nrsi@sil.org.
 | [Igc Llvm](https://github.com/llvm/llvm-project/)¹ | llvmorg-14. | `Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.` |
 | [Igc Opencl Clang](https://github.com/intel/opencl-clang/)¹ | v14.0.1 | `Copyright (c) Intel Corporation (2009-2017).` |
 | [LLVM](https://github.com/llvm/llvm-project/)¹ | 17.0.6 | `Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.` |
+| [Manifold](https://github.com/elalish/manifold) | 3.0.1 | `Copyright 2021 The Manifold Authors.` |
 | [Mantaflow](http://mantaflow.com/) | 0.13 | `Copyright 2011 Tobias Pfaff, Nils Thuerey` |
 | [MaterialX](https://github.com/AcademySoftwareFoundation/MaterialX) | 1.39.2 | `Copyright Contributors to the MaterialX Project` |
 | [oneTBB](https://software.intel.com/en-us/oneapi/onetbb) | v2021.13.0 | `Copyright (c) 2005-2020 Intel Corporation` |
@@ -1202,7 +1203,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 | ------- | ------- | --------- |
 | [Alembic](https://www.alembic.io/) | 1.8.3 | `TM & © 2009-2015 Lucasfilm Entertainment Company Ltd. or Lucasfilm Ltd. All rights reserved. Industrial Light & Magic, ILM and the Bulb and Gear design logo are all registered trademarks or service marks of Lucasfilm Ltd. © 2009-2015 Sony Pictures Imageworks Inc.  All rights reserved.` |
 | [Blosc](https://www.blosc.org/) | 1.21.1 | `Copyright (C) 2009-2018 Francesc Alted <francesc@blosc.org>. Copyright (C) 2019-present Blosc Development team <blosc@blosc.org>. Copyright (C) 2006 by Rob Landley <rob@landley.net>.` |
-| [Ceres Solver](http://ceres-solver.org/) | - | `Copyright 2015 Google Inc. All rights reserved.` |
+| [Ceres Solver](http://ceres-solver.org/) | - | `Copyright 2023 Google Inc. All rights reserved.` |
 | [Curve-Fit-nD](https://github.com/ideasman42/curve-fit-nd) | ae32da9de26 | `Copyright (c) 2016, DWANGO Co., Ltd.; Copyright (c) 2016, Campbell Barton; All rights reserved.` |
 | [FreeSpacenav](https://github.com/FreeSpacenav/libspnav) | 1.1 | `Copyright (C) 2007-2022 John Tsiombikas nuclear@member.fsf.org` |
 | [Google Flags](https://github.com/gflags/gflags) | 2.2.1 (46f7 | `Copyright (c) 1999, Google Inc. All rights reserved.` |
@@ -3107,6 +3108,7 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 | [Robinmap](https://github.com/Tessil/robin-map) | v1.3.0 | `Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>` |
 | [sse2neon](https://github.com/DLTcollab/sse2neon) | 227cc413fb2 | `Copyright sse2neon contributors` |
 | [TinyGLTF](https://github.com/syoyo/tinygltf) | 2.8.21, 4bf | `Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors` |
+| [ufbx - Single source file FBX loader](https://github.com/ufbx/ufbx) | v0.18.1-dev | `Copyright (c) 2020 Samuli Raivio` |
 | [VC Intrinsics](https://github.com/intel/vc-intrinsics) | 0.20.1 | `Copyright (C) 2020-2021 Intel Corporation` |
 | [Vcintrinsics](https://github.com/intel/vc-intrinsics) | b2565a03eb3 | `Copyright (c) 2019-2024 Intel Corporation` |
 | [Vulkan Memory Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) | 009ecd1 | `Copyright (c) 2017-2024 Advanced Micro Devices, Inc. All rights reserved.` |
@@ -3546,7 +3548,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 </details>
 
-## [Public Domain](https://spdx.org/licenses/LLVM-exception.html)
+## [Public Domain](https://spdx.org/licenses/CC0-1.0.html)
 
 Public domain projects have no specific license or requirements in regards to copyright enforcement.
 

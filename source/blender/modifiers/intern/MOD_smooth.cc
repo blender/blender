@@ -69,12 +69,12 @@ static void smoothModifier_do(
     return;
   }
 
-  float(*accumulated_vecs)[3] = MEM_calloc_arrayN<float[3]>(size_t(verts_num), __func__);
+  float(*accumulated_vecs)[3] = MEM_calloc_arrayN<float[3]>(verts_num, __func__);
   if (!accumulated_vecs) {
     return;
   }
 
-  uint *accumulated_vecs_count = MEM_calloc_arrayN<uint>(size_t(verts_num), __func__);
+  uint *accumulated_vecs_count = MEM_calloc_arrayN<uint>(verts_num, __func__);
   if (!accumulated_vecs_count) {
     MEM_freeN(accumulated_vecs);
     return;

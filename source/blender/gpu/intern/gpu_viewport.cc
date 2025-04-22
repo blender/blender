@@ -99,8 +99,7 @@ bool GPU_viewport_do_update(GPUViewport *viewport)
 
 GPUViewport *GPU_viewport_create()
 {
-  GPUViewport *viewport = static_cast<GPUViewport *>(
-      MEM_callocN(sizeof(GPUViewport), "GPUViewport"));
+  GPUViewport *viewport = MEM_callocN<GPUViewport>("GPUViewport");
   viewport->do_color_management = false;
   viewport->size[0] = viewport->size[1] = -1;
   viewport->active_view = 0;

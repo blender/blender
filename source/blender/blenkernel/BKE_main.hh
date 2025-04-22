@@ -55,60 +55,75 @@ struct MainIDRelationsEntryItem {
   MainIDRelationsEntryItem *next;
 
   union {
-    /* For `from_ids` list, a user of the hashed ID. */
+    /** For `from_ids` list, a user of the hashed ID. */
     ID *from;
-    /* For `to_ids` list, an ID used by the hashed ID. */
+    /** For `to_ids` list, an ID used by the hashed ID. */
     ID **to;
   } id_pointer;
-  /* Session uid of the `id_pointer`. */
+  /** Session uid of the `id_pointer`. */
   uint session_uid;
 
-  LibraryForeachIDCallbackFlag usage_flag; /* Using IDWALK_ enums, defined in BKE_lib_query.hh */
+  /** Using IDWALK_ enums, defined in BKE_lib_query.hh */
+  LibraryForeachIDCallbackFlag usage_flag;
 };
 
 struct MainIDRelationsEntry {
-  /* Linked list of IDs using that ID. */
+  /** Linked list of IDs using that ID. */
   MainIDRelationsEntryItem *from_ids;
-  /* Linked list of IDs used by that ID. */
+  /** Linked list of IDs used by that ID. */
   MainIDRelationsEntryItem *to_ids;
 
-  /* Session uid of the ID matching that entry. */
+  /** Session UID of the ID matching that entry. */
   uint session_uid;
 
-  /* Runtime tags, users should ensure those are reset after usage. */
+  /** Runtime tags, users should ensure those are reset after usage. */
   uint tags;
 };
 
 /** #MainIDRelationsEntry.tags */
 enum eMainIDRelationsEntryTags {
-  /* Generic tag marking the entry as to be processed. */
+  /** Generic tag marking the entry as to be processed. */
   MAINIDRELATIONS_ENTRY_TAGS_DOIT = 1 << 0,
 
-  /* Generic tag marking the entry as processed in the `to` direction (i.e. the IDs used by this
-   * item have been processed). */
+  /**
+   * Generic tag marking the entry as processed in the `to` direction
+   * (i.e. the IDs used by this item have been processed).
+   */
   MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO = 1 << 4,
-  /* Generic tag marking the entry as processed in the `from` direction (i.e. the IDs using this
-   * item have been processed). */
+  /**
+   * Generic tag marking the entry as processed in the `from` direction
+   * (i.e. the IDs using this item have been processed).
+   */
   MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM = 1 << 5,
-  /* Generic tag marking the entry as processed. */
+  /** Generic tag marking the entry as processed. */
   MAINIDRELATIONS_ENTRY_TAGS_PROCESSED = MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO |
                                          MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM,
 
-  /* Generic tag marking the entry as being processed in the `to` direction (i.e. the IDs used by
-   * this item are being processed). Useful for dependency loops detection and handling. */
+  /**
+   * Generic tag marking the entry as being processed in the `to` direction
+   * (i.e. the IDs used by this item are being processed).
+   * Useful for dependency loops detection and handling.
+   */
   MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS_TO = 1 << 8,
-  /* Generic tag marking the entry as being processed in the `from` direction (i.e. the IDs using
-   * this item are being processed). Useful for dependency loops detection and handling. */
+  /**
+   * Generic tag marking the entry as being processed in the `from` direction
+   * (i.e. the IDs using this item are being processed).
+   * Useful for dependency loops detection and handling.
+   */
   MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS_FROM = 1 << 9,
-  /* Generic tag marking the entry as being processed. Useful for dependency loops detection and
-   * handling. */
+  /**
+   * Generic tag marking the entry as being processed.
+   * Useful for dependency loops detection and handling.
+   */
   MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS = MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS_TO |
                                           MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS_FROM,
 };
 
 struct MainIDRelations {
-  /* Mapping from an ID pointer to all of its parents (IDs using it) and children (IDs it uses).
-   * Values are `MainIDRelationsEntry` pointers. */
+  /**
+   * Mapping from an ID pointer to all of its parents (IDs using it) and children (IDs it uses).
+   * Values are `MainIDRelationsEntry` pointers.
+   */
   GHash *relations_from_pointers;
   /* NOTE: we could add more mappings when needed (e.g. from session uid?). */
 
@@ -119,7 +134,7 @@ struct MainIDRelations {
 };
 
 enum {
-  /* Those bmain relations include pointers/usages from editors. */
+  /** Those bmain relations include pointers/usages from editors. */
   MAINIDRELATIONS_INCLUDE_UI = 1 << 0,
 };
 
@@ -140,7 +155,8 @@ struct Main {
   char filepath[1024];               /* 1024 = FILE_MAX */
   short versionfile, subversionfile; /* see BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION */
   short minversionfile, minsubversionfile;
-  /** The currently opened .blend file was written from a newer version of Blender, and has forward
+  /**
+   * The currently opened .blend file was written from a newer version of Blender, and has forward
    * compatibility issues (data loss).
    *
    * \note In practice currently this is only based on the version numbers, in the future it
@@ -224,7 +240,8 @@ struct Main {
    */
   Library *curlib;
 
-  /** Listbase for all ID types, containing all IDs for the current Main. */
+  /* List bases for all ID types, containing all IDs for the current #Main. */
+
   ListBase scenes;
   ListBase libraries;
   ListBase objects;
@@ -237,7 +254,8 @@ struct Main {
   ListBase lattices;
   ListBase lights;
   ListBase cameras;
-  ListBase ipo; /* Deprecated (only for versioning). */
+  /** Deprecated (only for versioning). */
+  ListBase ipo;
   ListBase shapekeys;
   ListBase worlds;
   ListBase screens;
@@ -254,8 +272,10 @@ struct Main {
   ListBase particles;
   ListBase palettes;
   ListBase paintcurves;
-  ListBase wm;       /* Singleton (exception). */
-  ListBase gpencils; /* Legacy Grease Pencil. */
+  /** Singleton (exception). */
+  ListBase wm;
+  /** Legacy Grease Pencil. */
+  ListBase gpencils;
   ListBase grease_pencils;
   ListBase movieclips;
   ListBase masks;
@@ -337,19 +357,26 @@ struct MainMergeReport {
 
   /** Number of IDs from source Main that have been moved into destination Main. */
   int num_merged_ids = 0;
-  /** Number of (non-library) IDs from source Main that were expected to have a matching ID in
-   * destination Main, but did not. These have not been moved, and their usages have been remapped
-   * to null. */
+  /**
+   * Number of (non-library) IDs from source Main that were expected
+   * to have a matching ID in destination Main, but did not.
+   * These have not been moved, and their usages have been remapped to null.
+   */
   int num_unknown_ids = 0;
-  /** Number of (non-library) IDs from source Main that already had a matching ID in destination
-   * Main. */
+  /**
+   * Number of (non-library) IDs from source Main that already had a matching ID
+   * in destination Main.
+   */
   int num_remapped_ids = 0;
-  /** Number of Library IDs from source Main that already had a matching Library ID in destination
-   * Main. */
+  /**
+   * Number of Library IDs from source Main that already had a matching Library ID
+   * in destination Main.
+   */
   int num_remapped_libraries = 0;
 };
 
-/** Merge the content of `bmain_src` into `bmain_dst`.
+/**
+ * Merge the content of `bmain_src` into `bmain_dst`.
  *
  * In case of collision (ID from same library with same name), the existing ID in `bmain_dst` is
  * kept, the one from `bmain_src` is left in its original Main, and its usages in `bmain_dst` (from
@@ -363,7 +390,8 @@ struct MainMergeReport {
  * they are dropped, their usages are remapped to null, and a warning is printed.
  *
  * Since `bmain_src` is either empty or contains left-over IDs with (likely) invalid ID
- * relationships and other potential issues after the merge, it is always freed. */
+ * relationships and other potential issues after the merge, it is always freed.
+ */
 void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &reports);
 
 /**

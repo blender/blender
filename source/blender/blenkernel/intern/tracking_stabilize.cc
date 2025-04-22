@@ -115,7 +115,7 @@ static void attach_stabilization_baseline_data(StabContext *ctx,
 static void discard_stabilization_baseline_data(void *val)
 {
   if (val != nullptr) {
-    MEM_freeN(val);
+    MEM_freeN(static_cast<TrackStabilizationBase *>(val));
   }
 }
 

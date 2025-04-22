@@ -75,8 +75,7 @@ static void wpaint_prev_create(WPaintPrev *wpp, MDeformVert *dverts, int dcount)
   wpaint_prev_init(wpp);
 
   if (dverts && dcount) {
-    wpp->wpaint_prev = static_cast<MDeformVert *>(
-        MEM_malloc_arrayN(dcount, sizeof(MDeformVert), __func__));
+    wpp->wpaint_prev = MEM_malloc_arrayN<MDeformVert>(dcount, __func__);
     wpp->tot = dcount;
     BKE_defvert_array_copy(wpp->wpaint_prev, dverts, dcount);
   }

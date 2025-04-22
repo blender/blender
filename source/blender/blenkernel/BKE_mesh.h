@@ -256,10 +256,11 @@ struct MLoopNorSpace {
    * aligned).
    */
   float ref_beta;
-  /** All loops using this lnor space (i.e. smooth fan of loops),
+  /**
+   * All loops using this lnor space (i.e. smooth fan of loops),
    * as (depending on owning MLoopNorSpaceArrary.data_type):
-   *     - Indices (uint_in_ptr), or
-   *     - BMLoop pointers. */
+   * - Indices (uint_in_ptr), or
+   * - BMLoop pointers. */
   struct LinkNode *loops;
   char flags;
 };

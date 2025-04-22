@@ -163,8 +163,7 @@ uiListNameFilter::uiListNameFilter(uiList &list)
       filter_ = storage_.filter_buff;
     }
     else {
-      filter_ = storage_.filter_dyn = static_cast<char *>(
-          MEM_mallocN((slen + 3) * sizeof(char), "filter_dyn"));
+      filter_ = storage_.filter_dyn = MEM_malloc_arrayN<char>((slen + 3), "filter_dyn");
     }
     BLI_strncpy_ensure_pad(filter_, filter_raw, '*', slen + 3);
   }
@@ -228,12 +227,11 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
     int order_idx = 0, i = 0;
 
     if (order_by_name) {
-      names = static_cast<StringCmp *>(MEM_callocN(sizeof(StringCmp) * len, "StringCmp"));
+      names = MEM_calloc_arrayN<StringCmp>(len, "StringCmp");
     }
 
     if (item_filter_fn) {
-      dyn_data->items_filter_flags = static_cast<int *>(
-          MEM_callocN(sizeof(int) * len, "items_filter_flags"));
+      dyn_data->items_filter_flags = MEM_calloc_arrayN<int>(len, "items_filter_flags");
       dyn_data->items_shown = 0;
     }
 
@@ -295,8 +293,7 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
        */
       qsort(names, order_idx, sizeof(StringCmp), cmpstringp);
 
-      dyn_data->items_filter_neworder = static_cast<int *>(
-          MEM_mallocN(sizeof(int) * order_idx, "items_filter_neworder"));
+      dyn_data->items_filter_neworder = MEM_malloc_arrayN<int>(order_idx, "items_filter_neworder");
       for (new_idx = 0; new_idx < order_idx; new_idx++) {
         dyn_data->items_filter_neworder[names[new_idx].org_idx] = new_idx;
       }
@@ -675,7 +672,7 @@ static uiList *ui_list_ensure(const bContext *C,
       BLI_findstring(&region->ui_lists, full_list_id, offsetof(uiList, list_id)));
 
   if (!ui_list) {
-    ui_list = static_cast<uiList *>(MEM_callocN(sizeof(uiList), "uiList"));
+    ui_list = MEM_callocN<uiList>("uiList");
     STRNCPY(ui_list->list_id, full_list_id);
     BLI_addtail(&region->ui_lists, ui_list);
     ui_list->list_grip = -UI_LIST_AUTO_SIZE_THRESHOLD; /* Force auto size by default. */
@@ -688,8 +685,7 @@ static uiList *ui_list_ensure(const bContext *C,
   }
 
   if (!ui_list->dyn_data) {
-    ui_list->dyn_data = static_cast<uiListDyn *>(
-        MEM_callocN(sizeof(uiListDyn), "uiList.dyn_data"));
+    ui_list->dyn_data = MEM_callocN<uiListDyn>("uiList.dyn_data");
   }
   uiListDyn *dyn_data = ui_list->dyn_data;
   /* Note that this isn't a `uiListType` callback, it's stored in the runtime list data. Otherwise

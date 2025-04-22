@@ -205,7 +205,7 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_2d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup2D *ggd = static_cast<GizmoGroup2D *>(MEM_callocN(sizeof(GizmoGroup2D), __func__));
+  GizmoGroup2D *ggd = MEM_callocN<GizmoGroup2D>(__func__);
 
   ggd->translate_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
   ggd->translate_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
@@ -785,8 +785,7 @@ static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup_Resize2D *ggd = static_cast<GizmoGroup_Resize2D *>(
-      MEM_callocN(sizeof(GizmoGroup_Resize2D), __func__));
+  GizmoGroup_Resize2D *ggd = MEM_callocN<GizmoGroup_Resize2D>(__func__);
 
   ggd->gizmo_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
   ggd->gizmo_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
@@ -948,8 +947,7 @@ static GizmoGroup_Rotate2D *gizmogroup2d_rotate_init(wmGizmoGroup *gzgroup)
 {
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup_Rotate2D *ggd = static_cast<GizmoGroup_Rotate2D *>(
-      MEM_callocN(sizeof(GizmoGroup_Rotate2D), __func__));
+  GizmoGroup_Rotate2D *ggd = MEM_callocN<GizmoGroup_Rotate2D>(__func__);
 
   ggd->gizmo = WM_gizmo_new_ptr(gzt_button, gzgroup, nullptr);
 

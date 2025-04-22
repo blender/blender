@@ -20,8 +20,7 @@
 
 void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_data)
 {
-  BMFace **faces_array_all = static_cast<BMFace **>(
-      MEM_mallocN(bm->totface * sizeof(BMFace *), __func__));
+  BMFace **faces_array_all = MEM_malloc_arrayN<BMFace *>(bm->totface, __func__);
   /*
    * - Create an array of faces based on 'filter_fn'.
    *   First part of array for match, for non-match.

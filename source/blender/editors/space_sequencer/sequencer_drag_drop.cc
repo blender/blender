@@ -587,8 +587,7 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
   wmJob *wm_job = WM_jobs_get(
       wm, win, nullptr, "Load Previews", eWM_JobFlag(0), WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
 
-  DropJobData *job_data = (DropJobData *)MEM_mallocN(sizeof(DropJobData),
-                                                     "SeqDragDropPreviewData");
+  DropJobData *job_data = MEM_mallocN<DropJobData>("SeqDragDropPreviewData");
   get_drag_path(C, drag, job_data->path);
 
   job_data->only_audio = only_audio;

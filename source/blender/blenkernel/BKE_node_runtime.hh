@@ -338,8 +338,10 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** Used to avoid running forward compatibility code more often than necessary. */
   bool forward_compatible_versioning_done = false;
 
-  /** If this node is reroute and this reroute is not logically linked with any source except other
-   * reroute, this will be true. */
+  /**
+   * If this node is reroute and this reroute is not logically linked with any source except other
+   * reroute, this will be true.
+   */
   bool is_dangling_reroute = false;
 
   /** Only valid if #topology_cache_is_dirty is false. */

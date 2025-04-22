@@ -980,8 +980,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   s.edge_queue = BLI_heap_new();
   s.select_tris_only = BMO_slot_bool_get(op->slots_in, "deselect_joined");
   if (s.use_topo_influence) {
-    s.edge_queue_nodes = static_cast<HeapNode **>(
-        MEM_malloc_arrayN(bm->totedge, sizeof(HeapNode *), __func__));
+    s.edge_queue_nodes = MEM_malloc_arrayN<HeapNode *>(bm->totedge, __func__);
   }
 
 #ifdef USE_JOIN_TRIANGLE_INTERACTIVE_TESTING

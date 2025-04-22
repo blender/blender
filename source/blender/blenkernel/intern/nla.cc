@@ -389,7 +389,7 @@ void BKE_nlatrack_insert_after(ListBase *nla_tracks,
   BLI_assert(nla_tracks);
   BLI_assert(new_track);
 
-  /** If nullptr, then caller intends to insert a new head. But, tracks are not allowed to be
+  /* If nullptr, then caller intends to insert a new head. But, tracks are not allowed to be
    * placed before library overrides. So it must inserted after the last override. */
   if (prev == nullptr) {
     NlaTrack *first_track = (NlaTrack *)nla_tracks->first;

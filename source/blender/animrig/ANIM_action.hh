@@ -570,10 +570,7 @@ class Strip : public ::ActionStrip {
    *
    * Does *not* make a copy of the strip's data, which is stored in an array on
    * the owning action. */
-  explicit Strip(const Strip &other)
-  {
-    memcpy(this, &other, sizeof(*this));
-  }
+  explicit Strip(const Strip &other) = default;
 
   /**
    * Creates a new strip of type `type` for `owning_action`, with the strip's

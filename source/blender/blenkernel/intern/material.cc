@@ -1667,7 +1667,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *o
       ma->paint_clone_slot = 0;
     }
     else {
-      ma->texpaintslot = MEM_calloc_arrayN<TexPaintSlot>(size_t(count), "texpaint_slots");
+      ma->texpaintslot = MEM_calloc_arrayN<TexPaintSlot>(count, "texpaint_slots");
 
       bNode *active_node = blender::bke::node_get_active_paint_canvas(*ma->nodetree);
 

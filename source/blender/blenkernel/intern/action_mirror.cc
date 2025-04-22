@@ -372,7 +372,7 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
     BKE_fcurve_handles_recalc_ex(fcurve_array[i], eBezTriple_Flag(0));
   }
 
-  MEM_freeN((void *)keyed_frames);
+  MEM_freeN(keyed_frames);
 
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
     FCurve_KeyCache *fkc = (FCurve_KeyCache *)(&fkc_pchan) + chan;

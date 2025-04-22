@@ -78,8 +78,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   names_size += info.subpass_inputs_.size() * SUBPASS_FALLBACK_NAME_LEN;
 
   int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
-  inputs_ = static_cast<ShaderInput *>(
-      MEM_calloc_arrayN(input_tot_len, sizeof(ShaderInput), __func__));
+  inputs_ = MEM_calloc_arrayN<ShaderInput>(input_tot_len, __func__);
   ShaderInput *input = inputs_;
 
   name_buffer_ = (char *)MEM_mallocN(names_size, "name_buffer");

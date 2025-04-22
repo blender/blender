@@ -233,19 +233,25 @@ struct ReuseOldBMainData {
   Main *new_bmain;
   Main *old_bmain;
 
-  /** Data generated and used by calling WM code to handle keeping WM and UI IDs as best as
+  /**
+   * Data generated and used by calling WM code to handle keeping WM and UI IDs as best as
    * possible across file reading.
    *
-   * \note May be null in undo (memfile) case. */
+   * \note May be null in undo (memfile) case.
+   */
   BlendFileReadWMSetupData *wm_setup_data;
 
-  /** Storage for all remapping rules (old_id -> new_id) required by the preservation of old IDs
-   * into the new Main. */
+  /**
+   * Storage for all remapping rules (old_id -> new_id) required by the preservation of old IDs
+   * into the new Main.
+   */
   id::IDRemapper *remapper;
   bool is_libraries_remapped;
 
-  /** Used to find matching IDs by name/lib in new main, to remap ID usages of data ported over
-   * from old main. */
+  /**
+   * Used to find matching IDs by name/lib in new main, to remap ID usages of data ported over
+   * from old main.
+   */
   IDNameLib_Map *id_map;
 };
 

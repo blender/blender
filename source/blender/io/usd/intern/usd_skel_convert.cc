@@ -113,7 +113,6 @@ void import_skeleton_curves(Main *bmain,
                             const pxr::UsdSkelSkeletonQuery &skel_query,
                             const blender::Map<pxr::TfToken, std::string> &joint_to_bone_map,
                             ReportList *reports)
-
 {
   if (!(bmain && arm_obj && skel_query)) {
     return;
@@ -762,8 +761,9 @@ void import_skeleton(Main *bmain,
 
   /* Create the bones. */
   for (const pxr::TfToken &joint : joint_order) {
-    std::string name = pxr::SdfPath(joint).GetName();
-    EditBone *bone = ED_armature_ebone_add(arm, name.c_str());
+    pxr::SdfPath bone_path(joint);
+    const std::string &bone_name = bone_path.GetName();
+    EditBone *bone = ED_armature_ebone_add(arm, bone_name.c_str());
     if (!bone) {
       BKE_reportf(reports,
                   RPT_WARNING,
@@ -1296,7 +1296,7 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
 
 void export_deform_verts(const Mesh *mesh,
                          const pxr::UsdSkelBindingAPI &skel_api,
-                         const Span<std::string> bone_names)
+                         const Span<StringRef> bone_names)
 {
   BLI_assert(mesh);
   BLI_assert(skel_api);

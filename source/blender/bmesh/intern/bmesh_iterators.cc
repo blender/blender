@@ -154,7 +154,7 @@ void *BM_iter_as_arrayN(BMesh *bm,
   if (BM_iter_init(&iter, bm, itype, data) && iter.count > 0) {
     BMElem *ele;
     BMElem **array = iter.count > stack_array_size ?
-                         static_cast<BMElem **>(MEM_mallocN(sizeof(ele) * iter.count, __func__)) :
+                         MEM_malloc_arrayN<BMElem *>(iter.count, __func__) :
                          reinterpret_cast<BMElem **>(stack_array);
     int i = 0;
 
@@ -188,7 +188,7 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
       slot_len > 0)
   {
     BMElem **array = slot_len > stack_array_size ?
-                         static_cast<BMElem **>(MEM_mallocN(sizeof(ele) * slot_len, __func__)) :
+                         MEM_malloc_arrayN<BMElem *>(slot_len, __func__) :
                          reinterpret_cast<BMElem **>(stack_array);
     int i = 0;
 

@@ -129,8 +129,7 @@ static void nearest_fcurve_vert_store(ListBase *matches,
       }
       /* add new if not replacing... */
       if (replace == 0) {
-        nvi = static_cast<tNearestVertInfo *>(
-            MEM_callocN(sizeof(tNearestVertInfo), "Nearest Graph Vert Info - Bezt"));
+        nvi = MEM_callocN<tNearestVertInfo>("Nearest Graph Vert Info - Bezt");
       }
 
       /* store values */
@@ -1229,7 +1228,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
 
     case GRAPHKEYS_COLUMNSEL_CFRA: /* current frame */
       /* make a single CfraElem for storing this */
-      ce = static_cast<CfraElem *>(MEM_callocN(sizeof(CfraElem), "cfraElem"));
+      ce = MEM_callocN<CfraElem>("cfraElem");
       BLI_addtail(&ked.list, ce);
 
       ce->cfra = float(scene->r.cfra);

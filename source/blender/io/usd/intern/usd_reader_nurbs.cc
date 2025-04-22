@@ -137,7 +137,7 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
 
     float weight = 1.0f;
 
-    nu->bp = MEM_calloc_arrayN<BPoint>(size_t(nu->pntsu), __func__);
+    nu->bp = MEM_calloc_arrayN<BPoint>(nu->pntsu, __func__);
     BPoint *bp = nu->bp;
 
     for (int j = 0; j < nu->pntsu; j++, bp++, idx++) {

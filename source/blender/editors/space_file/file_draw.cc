@@ -127,7 +127,7 @@ struct FileTooltipData {
 
 static FileTooltipData *file_tooltip_data_create(const SpaceFile *sfile, const FileDirEntry *file)
 {
-  FileTooltipData *data = (FileTooltipData *)MEM_mallocN(sizeof(FileTooltipData), __func__);
+  FileTooltipData *data = MEM_mallocN<FileTooltipData>(__func__);
   data->sfile = sfile;
   data->file = file;
   return data;

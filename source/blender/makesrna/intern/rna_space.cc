@@ -384,14 +384,26 @@ static const EnumPropertyItem display_channels_items[] = {
 };
 
 const EnumPropertyItem rna_enum_shading_type_items[] = {
-    {OB_WIRE, "WIREFRAME", ICON_SHADING_WIRE, "Wireframe", "Display the object as wire edges"},
-    {OB_SOLID, "SOLID", ICON_SHADING_SOLID, "Solid", "Display in solid mode"},
+    {OB_WIRE,
+     "WIREFRAME",
+     ICON_SHADING_WIRE,
+     "Wireframe",
+     "Display only edges of geometry without surface shading"},
+    {OB_SOLID,
+     "SOLID",
+     ICON_SHADING_SOLID,
+     "Solid",
+     "Display objects with flat lighting and basic surface shading"},
     {OB_MATERIAL,
      "MATERIAL",
      ICON_SHADING_TEXTURE,
      "Material Preview",
-     "Display in Material Preview mode"},
-    {OB_RENDER, "RENDERED", ICON_SHADING_RENDERED, "Rendered", "Display render preview"},
+     "Preview materials using predefined environment lights"},
+    {OB_RENDER,
+     "RENDERED",
+     ICON_SHADING_RENDERED,
+     "Rendered",
+     "Preview the final scene using the active render engine"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -8117,8 +8129,9 @@ static void rna_def_space_clip(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceClip");
   RNA_def_struct_ui_text(srna, "Space Clip Editor", "Clip editor space data");
 
-  rna_def_space_generic_show_region_toggles(
-      srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD));
+  rna_def_space_generic_show_region_toggles(srna,
+                                            (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) |
+                                                (1 << RGN_TYPE_HUD) | (1 << RGN_TYPE_CHANNELS));
 
   /* movieclip */
   prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);

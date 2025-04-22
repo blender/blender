@@ -224,8 +224,7 @@ static void console_history_debug(const bContext *C)
 
 static ConsoleLine *console_lb_add__internal(ListBase *lb, ConsoleLine *from)
 {
-  ConsoleLine *ci = static_cast<ConsoleLine *>(
-      MEM_callocN(sizeof(ConsoleLine), "ConsoleLine Add"));
+  ConsoleLine *ci = MEM_callocN<ConsoleLine>("ConsoleLine Add");
 
   if (from) {
     BLI_assert(strlen(from->line) == from->len);
@@ -235,7 +234,7 @@ static ConsoleLine *console_lb_add__internal(ListBase *lb, ConsoleLine *from)
     ci->type = from->type;
   }
   else {
-    ci->line = static_cast<char *>(MEM_callocN(64, "console-in-line"));
+    ci->line = MEM_calloc_arrayN<char>(64, "console-in-line");
     ci->len_alloc = 64;
     ci->len = 0;
   }
@@ -260,8 +259,7 @@ static ConsoleLine *console_scrollback_add(const bContext *C, ConsoleLine *from)
 
 static ConsoleLine *console_lb_add_str__internal(ListBase *lb, char *str, bool own)
 {
-  ConsoleLine *ci = static_cast<ConsoleLine *>(
-      MEM_callocN(sizeof(ConsoleLine), "ConsoleLine Add"));
+  ConsoleLine *ci = MEM_callocN<ConsoleLine>("ConsoleLine Add");
   const int str_len = strlen(str);
   if (own) {
     ci->line = str;

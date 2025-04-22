@@ -293,8 +293,7 @@ static void apply_scale_factor_clamp(float *val,
 static TransformProperties *v3d_transform_props_ensure(View3D *v3d)
 {
   if (v3d->runtime.properties_storage == nullptr) {
-    TransformProperties *tfp = static_cast<TransformProperties *>(
-        MEM_callocN(sizeof(TransformProperties), "TransformProperties"));
+    TransformProperties *tfp = MEM_new<TransformProperties>("TransformProperties");
     /* Construct C++ structures in otherwise zero initialized struct. */
     new (tfp) TransformProperties();
 
@@ -1562,7 +1561,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
         }
       }
     }
-    MEM_freeN((void *)vgroup_validmap);
+    MEM_freeN(vgroup_validmap);
 
     yco -= 2;
 
@@ -1901,7 +1900,7 @@ void view3d_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), "spacetype view3d panel object"));
+  pt = MEM_callocN<PanelType>("spacetype view3d panel object");
   STRNCPY(pt->idname, "VIEW3D_PT_transform");
   STRNCPY(pt->label, N_("Transform")); /* XXX C panels unavailable through RNA bpy.types! */
   STRNCPY(pt->category, "Item");
@@ -1910,7 +1909,7 @@ void view3d_buttons_register(ARegionType *art)
   pt->poll = view3d_panel_transform_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), "spacetype view3d panel vgroup"));
+  pt = MEM_callocN<PanelType>("spacetype view3d panel vgroup");
   STRNCPY(pt->idname, "VIEW3D_PT_vgroup");
   STRNCPY(pt->label, N_("Vertex Weights")); /* XXX C panels unavailable through RNA bpy.types! */
   STRNCPY(pt->category, "Item");
@@ -1921,7 +1920,7 @@ void view3d_buttons_register(ARegionType *art)
 
   MenuType *mt;
 
-  mt = static_cast<MenuType *>(MEM_callocN(sizeof(MenuType), "spacetype view3d menu collections"));
+  mt = MEM_callocN<MenuType>("spacetype view3d menu collections");
   STRNCPY(mt->idname, "VIEW3D_MT_collection");
   STRNCPY(mt->label, N_("Collection"));
   STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);

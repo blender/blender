@@ -125,11 +125,11 @@ static LaplacianSystem *initLaplacianSystem(int verts_num,
   sys->repeat = iterations;
   STRNCPY(sys->anchor_grp_name, defgrpName);
   sys->co = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
-  sys->no = MEM_calloc_arrayN<float[3]>(size_t(verts_num), __func__);
-  sys->delta = MEM_calloc_arrayN<float[3]>(size_t(verts_num), __func__);
+  sys->no = MEM_calloc_arrayN<float[3]>(verts_num, __func__);
+  sys->delta = MEM_calloc_arrayN<float[3]>(verts_num, __func__);
   sys->tris = MEM_malloc_arrayN<uint[3]>(size_t(tris_num), __func__);
   sys->index_anchors = MEM_malloc_arrayN<int>(size_t(anchors_num), __func__);
-  sys->unit_verts = MEM_calloc_arrayN<int>(size_t(verts_num), __func__);
+  sys->unit_verts = MEM_calloc_arrayN<int>(verts_num, __func__);
   return sys;
 }
 

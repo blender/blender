@@ -111,7 +111,7 @@ static wmOperatorStatus lattice_select_random_exec(bContext *C, wmOperator *op)
 
     int a = lt->pntsu * lt->pntsv * lt->pntsw;
     int elem_map_len = 0;
-    BPoint **elem_map = static_cast<BPoint **>(MEM_mallocN(sizeof(*elem_map) * a, __func__));
+    BPoint **elem_map = MEM_malloc_arrayN<BPoint *>(a, __func__);
     BPoint *bp = lt->def;
 
     while (a--) {

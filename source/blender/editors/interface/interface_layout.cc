@@ -135,53 +135,11 @@ ENUM_OPERATORS(ItemInternalFlag, ItemInternalFlag::PropDecorateNoPad)
 
 }  // namespace blender::ui
 
-struct uiItem {
-  blender::ui::ItemType type;
-  blender::ui::ItemInternalFlag flag;
-
-  uiItem() = default;
-  uiItem(const uiItem &) = default;
-  virtual ~uiItem() = default;
-};
-
 using uiItemType = blender::ui::ItemType;
 using uiItemInternalFlag = blender::ui::ItemInternalFlag;
 
 struct uiButtonItem : uiItem {
   uiBut *but;
-};
-
-struct uiLayout : uiItem {
-  uiLayoutRoot *root;
-  bContextStore *context;
-  uiLayout *parent;
-  blender::Vector<uiItem *> items;
-
-  char heading[UI_MAX_NAME_STR];
-
-  /** Sub layout to add child items, if not the layout itself. */
-  uiLayout *child_items_layout;
-
-  int x, y, w, h;
-  float scale[2];
-  short space;
-  bool align;
-  bool active;
-  bool active_default;
-  bool activate_init;
-  bool enabled;
-  bool redalert;
-  bool keepaspect;
-  /** For layouts inside grid-flow, they and their items shall never have a fixed maximal size. */
-  bool variable_size;
-  char alignment;
-  blender::ui::EmbossType emboss;
-  /** for fixed width or height to avoid UI size changes */
-  float units[2];
-  /** Is copied to uiButs created in this layout. */
-  float search_weight;
-
-  LayoutSuppressFlag suppress_flag;
 };
 
 struct uiLayoutItemFlow : uiLayout {
@@ -723,7 +681,7 @@ static void ui_item_array(uiLayout *layout,
                                        blender::ui::EmbossType::None,
                                        blender::ui::EmbossType::Pulldown))
       {
-        boolarr = static_cast<bool *>(MEM_callocN(sizeof(bool) * len, __func__));
+        boolarr = MEM_calloc_arrayN<bool>(len, __func__);
         RNA_property_boolean_get_array(ptr, prop, boolarr);
       }
 
@@ -931,7 +889,7 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
   UI_block_layout_set_current(block, layout);
 
   if (free) {
-    MEM_freeN((void *)item_array);
+    MEM_freeN(item_array);
   }
 }
 static void ui_item_enum_expand(uiLayout *layout,
@@ -1454,7 +1412,7 @@ static StringRef ui_menu_enumpropname(uiLayout *layout,
   }
 
   if (free) {
-    MEM_freeN((void *)item);
+    MEM_freeN(item);
   }
 
   return name;
@@ -1721,7 +1679,7 @@ void uiItemsFullEnumO(uiLayout *layout,
         layout, ot, ptr, prop, properties, context, flag, item_array, totitem, active);
 
     if (free) {
-      MEM_freeN((void *)item_array);
+      MEM_freeN(item_array);
     }
   }
   else if (prop && RNA_property_type(prop) != PROP_ENUM) {
@@ -1800,7 +1758,7 @@ void uiItemEnumO_string(uiLayout *layout,
   int value;
   if (item == nullptr || RNA_enum_value_from_id(item, value_str, &value) == 0) {
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
     RNA_warning(
         "%s.%s, enum %s not found", RNA_struct_identifier(ptr.type), propname.c_str(), value_str);
@@ -1808,7 +1766,7 @@ void uiItemEnumO_string(uiLayout *layout,
   }
 
   if (free) {
-    MEM_freeN((void *)item);
+    MEM_freeN(item);
   }
 
   RNA_property_enum_set(&ptr, prop, value);
@@ -1978,7 +1936,7 @@ static void ui_item_rna_size(uiLayout *layout,
         }
       }
       if (free) {
-        MEM_freeN((void *)item_array);
+        MEM_freeN(item_array);
       }
     }
   }
@@ -2695,7 +2653,7 @@ void uiItemEnumR_string_prop(uiLayout *layout,
   if (!RNA_enum_value_from_id(item, value, &ivalue)) {
     const StringRefNull propname = RNA_property_identifier(prop);
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
     ui_item_disabled(layout, propname.c_str());
     RNA_warning("enum property value not found: %s", value);
@@ -2719,7 +2677,7 @@ void uiItemEnumR_string_prop(uiLayout *layout,
   }
 
   if (free) {
-    MEM_freeN((void *)item);
+    MEM_freeN(item);
   }
 }
 
@@ -2791,7 +2749,7 @@ void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const StringRefNull propnam
   }
 
   if (free) {
-    MEM_freeN((void *)item);
+    MEM_freeN(item);
   }
 }
 
@@ -3602,7 +3560,7 @@ static int menu_item_enum_opname_menu_active(bContext *C, uiBut *but, MenuItemLe
   RNA_property_enum_items_gettexted(C, &ptr, prop, &item_array, &totitem, &free);
   int active = RNA_enum_from_name(item_array, but->str.c_str());
   if (free) {
-    MEM_freeN((void *)item_array);
+    MEM_freeN(item_array);
   }
 
   return active;

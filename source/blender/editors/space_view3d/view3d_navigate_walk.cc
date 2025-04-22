@@ -1539,7 +1539,7 @@ static wmOperatorStatus walk_invoke(bContext *C, wmOperator *op, const wmEvent *
   op->customdata = walk;
 
   if (initWalkInfo(C, walk, op, event->mval) == false) {
-    MEM_freeN(op->customdata);
+    MEM_freeN(walk);
     return OPERATOR_CANCELLED;
   }
 

@@ -3540,6 +3540,7 @@ class WM_MT_region_toggle_pie(Menu):
 
         for region in context.area.regions:
             region_type = region.type
+            # If the attribute doesn't exist, the RNA definition is outdated and needs to be see: #134339 and it fix.
             attr = cls._region_info.get(region_type, None)
             if attr is None:
                 continue

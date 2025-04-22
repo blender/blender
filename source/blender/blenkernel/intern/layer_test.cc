@@ -29,7 +29,7 @@ TEST(view_layer, aov_unique_names)
   IMB_init();
   RE_engines_init();
 
-  Scene scene = {{nullptr}};
+  Scene scene = {};
   IDType_ID_SCE.init_data(&scene.id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(scene.view_layers.first);
 
@@ -121,7 +121,7 @@ TEST(view_layer, aov_conflict)
   IMB_init();
   RE_engines_init();
 
-  Scene scene = {{nullptr}};
+  Scene scene = {};
   IDType_ID_SCE.init_data(&scene.id);
   ViewLayer *view_layer = static_cast<ViewLayer *>(scene.view_layers.first);
 

@@ -4095,7 +4095,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
      * otherwise if this is a generator it may free the strings before we copy them */
     Py_DECREF(items_fast);
 
-    MEM_freeN((void *)eitems);
+    MEM_freeN(eitems);
   }
 
   Py_RETURN_NONE;

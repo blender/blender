@@ -187,10 +187,10 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
 
   /* allocated exec data pointers for nodes */
   exec->totnodes = nodelist.size();
-  exec->nodeexec = MEM_calloc_arrayN<bNodeExec>(size_t(exec->totnodes), "node execution data");
+  exec->nodeexec = MEM_calloc_arrayN<bNodeExec>(exec->totnodes, "node execution data");
   /* allocate data pointer for node stack */
   exec->stacksize = index;
-  exec->stack = MEM_calloc_arrayN<bNodeStack>(size_t(exec->stacksize), "bNodeStack");
+  exec->stack = MEM_calloc_arrayN<bNodeStack>(exec->stacksize, "bNodeStack");
 
   /* all non-const results are considered inputs */
   int n;

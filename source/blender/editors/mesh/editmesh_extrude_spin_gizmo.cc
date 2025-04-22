@@ -107,8 +107,7 @@ static void gizmo_mesh_spin_init_setup(const bContext * /*C*/, wmGizmoGroup *gzg
   const float scale_base = INIT_SCALE_BASE;
   const float scale_button = INIT_SCALE_BUTTON;
 
-  GizmoGroupData_SpinInit *ggd = static_cast<GizmoGroupData_SpinInit *>(
-      MEM_callocN(sizeof(*ggd), __func__));
+  GizmoGroupData_SpinInit *ggd = MEM_callocN<GizmoGroupData_SpinInit>(__func__);
   gzgroup->customdata = ggd;
   const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
@@ -814,8 +813,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
     return;
   }
 
-  GizmoGroupData_SpinRedo *ggd = static_cast<GizmoGroupData_SpinRedo *>(
-      MEM_callocN(sizeof(*ggd), __func__));
+  GizmoGroupData_SpinRedo *ggd = MEM_callocN<GizmoGroupData_SpinRedo>(__func__);
   gzgroup->customdata = ggd;
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);

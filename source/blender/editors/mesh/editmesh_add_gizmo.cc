@@ -235,8 +235,7 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
     return;
   }
 
-  GizmoPlacementGroup *ggd = static_cast<GizmoPlacementGroup *>(
-      MEM_callocN(sizeof(GizmoPlacementGroup), __func__));
+  GizmoPlacementGroup *ggd = MEM_callocN<GizmoPlacementGroup>(__func__);
   gzgroup->customdata = ggd;
 
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_3d", true);

@@ -338,7 +338,7 @@ static void ptcache_particle_read(
 
   if (old_data) {
     /* old format cache */
-    memcpy(&pa->state, old_data, sizeof(ParticleKey));
+    pa->state = *reinterpret_cast<const ParticleKey *>(old_data);
     return;
   }
 
@@ -421,9 +421,9 @@ static void ptcache_particle_interpolate(int index,
     return;
   }
 
-  memcpy(keys + 1, &pa->state, sizeof(ParticleKey));
+  keys[1] = pa->state;
   if (old_data) {
-    memcpy(keys + 2, old_data, sizeof(ParticleKey));
+    keys[2] = *reinterpret_cast<const ParticleKey *>(old_data);
   }
   else {
     BKE_ptcache_make_particle_key(keys + 2, 0, data, cfra2);
@@ -1512,7 +1512,7 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len
   size_t out_len = len;
 #endif
   uchar *in;
-  uchar *props = static_cast<uchar *>(MEM_callocN(sizeof(char[16]), "tmp"));
+  uchar *props = MEM_calloc_arrayN<uchar>(16, "tmp");
 
   ptcache_file_read(pf, &compressed, 1, sizeof(uchar));
   if (compressed) {
@@ -1523,7 +1523,7 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len
       /* do nothing */
     }
     else {
-      in = (uchar *)MEM_callocN(sizeof(uchar) * in_len, "pointcache_compressed_buffer");
+      in = MEM_calloc_arrayN<uchar>(in_len, "pointcache_compressed_buffer");
       ptcache_file_read(pf, in, in_len, sizeof(uchar));
 #ifdef WITH_LZO
       if (compressed == 1) {
@@ -1557,7 +1557,7 @@ static int ptcache_file_compressed_write(
   int r = 0;
   uchar compressed = 0;
   size_t out_len = 0;
-  uchar *props = static_cast<uchar *>(MEM_callocN(sizeof(char[16]), "tmp"));
+  uchar *props = MEM_calloc_arrayN<uchar>(16, "tmp");
   size_t sizeOfIt = 5;
 
   (void)mode; /* unused when building w/o compression */
@@ -2823,7 +2823,7 @@ void BKE_ptcache_id_time(
     uint end = cache->endframe;
 
     cache->cached_frames_len = cache->endframe - cache->startframe + 1;
-    cache->cached_frames = MEM_calloc_arrayN<char>(size_t(cache->cached_frames_len),
+    cache->cached_frames = MEM_calloc_arrayN<char>(cache->cached_frames_len,
                                                    "cached frames array");
 
     if (pid->cache->flag & PTCACHE_DISK_CACHE) {

@@ -210,7 +210,7 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
 
   if (ot->rna_ext.srna) {
     /* A Python operator, allocates its own string. */
-    MEM_freeN((void *)ot->idname);
+    MEM_freeN(ot->idname);
   }
 
   MEM_freeN(ot);
@@ -302,10 +302,10 @@ static void wm_macro_start(wmOperator *op)
 
 static wmOperatorStatus wm_macro_end(wmOperator *op, wmOperatorStatus retval)
 {
-  if (retval & OPERATOR_CANCELLED) {
-    MacroData *md = static_cast<MacroData *>(op->customdata);
+  MacroData *md = static_cast<MacroData *>(op->customdata);
 
-    if (md->retval & OPERATOR_FINISHED) {
+  if (retval & OPERATOR_CANCELLED) {
+    if (md && (md->retval & OPERATOR_FINISHED)) {
       retval |= OPERATOR_FINISHED;
       retval &= ~OPERATOR_CANCELLED;
     }
@@ -313,8 +313,8 @@ static wmOperatorStatus wm_macro_end(wmOperator *op, wmOperatorStatus retval)
 
   /* If modal is ending, free custom data. */
   if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
-    if (op->customdata) {
-      MEM_freeN(op->customdata);
+    if (md) {
+      MEM_freeN(md);
       op->customdata = nullptr;
     }
   }

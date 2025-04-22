@@ -177,7 +177,7 @@ bool BLI_ghashutil_paircmp(const void *a, const void *b)
 
 void BLI_ghashutil_pairfree(void *ptr)
 {
-  MEM_freeN(ptr);
+  MEM_freeN(static_cast<const GHashPair *>(ptr));
 }
 
 /** \} */

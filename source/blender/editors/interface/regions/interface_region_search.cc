@@ -920,8 +920,8 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   data->items.totitem = 0;
   data->items.names = (char **)MEM_callocN(data->items.maxitem * sizeof(void *), __func__);
   data->items.pointers = (void **)MEM_callocN(data->items.maxitem * sizeof(void *), __func__);
-  data->items.icons = (int *)MEM_callocN(data->items.maxitem * sizeof(int), __func__);
-  data->items.but_flags = (int *)MEM_callocN(data->items.maxitem * sizeof(int), __func__);
+  data->items.icons = MEM_calloc_arrayN<int>(data->items.maxitem, __func__);
+  data->items.but_flags = MEM_calloc_arrayN<int>(data->items.maxitem, __func__);
   data->items.name_prefix_offsets = nullptr; /* Lazy initialized as needed. */
   for (int i = 0; i < data->items.maxitem; i++) {
     data->items.names[i] = (char *)MEM_callocN(data->items.maxstrlen + 1, __func__);

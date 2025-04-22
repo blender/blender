@@ -79,7 +79,8 @@ struct DerivedMesh {
   int (*getNumLoops)(DerivedMesh *dm);
   int (*getNumPolys)(DerivedMesh *dm);
 
-  /** Return a pointer to the entire array of verts/edges/face from the
+  /**
+   * Return a pointer to the entire array of verts/edges/face from the
    * derived mesh. if such an array does not exist yet, it will be created,
    * and freed on the next ->release(). consider using getVert/Edge/Face if
    * you are only interested in a few verts/edges/faces.
@@ -93,8 +94,9 @@ struct DerivedMesh {
   int *(*getCornerEdgeArray)(DerivedMesh *dm);
   int *(*getPolyArray)(DerivedMesh *dm);
 
-  /** Copy all verts/edges/faces from the derived mesh into
-   * *{vert/edge/face}_r (must point to a buffer large enough)
+  /**
+   * Copy all verts/edges/faces from the derived mesh into
+   * `*{vert/edge/face}_r` (must point to a buffer large enough).
    */
   void (*copyVertArray)(DerivedMesh *dm, float (*r_positions)[3]);
   void (*copyEdgeArray)(DerivedMesh *dm, blender::int2 *r_edge);
@@ -102,9 +104,9 @@ struct DerivedMesh {
   void (*copyCornerEdgeArray)(DerivedMesh *dm, int *r_corner_edges);
   void (*copyPolyArray)(DerivedMesh *dm, int *r_face_offsets);
 
-  /** Return a pointer to the entire array of vert/edge/face custom data
-   * from the derived mesh (this gives a pointer to the actual data, not
-   * a copy)
+  /**
+   * Return a pointer to the entire array of vert/edge/face custom data
+   * from the derived mesh (this gives a pointer to the actual data, not a copy).
    */
   void *(*getVertDataArray)(DerivedMesh *dm, eCustomDataType type);
   void *(*getEdgeDataArray)(DerivedMesh *dm, eCustomDataType type);
@@ -122,8 +124,10 @@ struct DerivedMesh {
    * - Can be undefined
    * - Must be defined for modifiers that only deform however. */
 
-  /** Release reference to the DerivedMesh. This function decides internally
-   * if the DerivedMesh will be freed, or cached for later use. */
+  /**
+   * Release reference to the DerivedMesh. This function decides internally
+   * if the DerivedMesh will be freed, or cached for later use.
+   */
   void (*release)(DerivedMesh *dm);
 };
 
@@ -168,10 +172,12 @@ void DM_release(DerivedMesh *dm);
  */
 void DM_set_only_copy(DerivedMesh *dm, const CustomData_MeshMasks *mask);
 
-/* creates a CDDerivedMesh from the given Mesh, this will reference the
+/**
+ * Creates a CDDerivedMesh from the given Mesh, this will reference the
  * original data in Mesh, but it is safe to apply vertex coordinates or
  * calculate normals as those functions will automatically create new
- * data to not overwrite the original. */
+ * data to not overwrite the original.
+ */
 DerivedMesh *CDDM_from_mesh(Mesh *mesh);
 
 /* -------------------------------------------------------------------- */

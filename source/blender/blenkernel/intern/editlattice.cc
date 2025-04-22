@@ -112,7 +112,7 @@ void BKE_editlattice_load(Object *obedit)
     }
 
     fp = static_cast<float *>(
-        actkey->data = MEM_calloc_arrayN(size_t(tot), size_t(lt->key->elemsize), "actkey->data"));
+        actkey->data = MEM_calloc_arrayN(tot, size_t(lt->key->elemsize), "actkey->data"));
     actkey->totelem = tot;
 
     bp = editlt->def;

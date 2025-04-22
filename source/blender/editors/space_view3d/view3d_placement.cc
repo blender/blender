@@ -368,7 +368,7 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
 
 static bool calc_bbox(InteractivePlaceData *ipd, BoundBox *bounds)
 {
-  memset(bounds, 0x0, sizeof(*bounds));
+  *bounds = BoundBox{};
 
   if (compare_v3v3(ipd->co_src, ipd->step[0].co_dst, FLT_EPSILON)) {
     return false;
@@ -1023,6 +1023,8 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
     switch (event->type) {
       case EVT_ESCKEY:
       case RIGHTMOUSE: {
+        /* Restore snap mode. */
+        *ipd->snap_to_ptr = ipd->snap_to_restore;
         view3d_interactive_add_exit(C, op);
         return OPERATOR_CANCELLED;
       }

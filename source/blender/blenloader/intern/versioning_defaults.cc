@@ -134,7 +134,7 @@ static void blo_update_defaults_screen(bScreen *screen,
         }
         sima->uv_face_opacity = 1.0f;
       }
-      else if (STREQ(workspace_name, "Texture Paint") || STREQ(workspace_name, "Shading")) {
+      else if (STR_ELEM(workspace_name, "Texture Paint", "Shading")) {
         SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         sima->uv_face_opacity = 0.0f;
       }

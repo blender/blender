@@ -27,10 +27,7 @@
 using namespace blender;
 using namespace blender::ed::asset;
 
-AssetShelfSettings::AssetShelfSettings()
-{
-  memset(this, 0, sizeof(*this));
-}
+AssetShelfSettings::AssetShelfSettings() = default;
 
 AssetShelfSettings::AssetShelfSettings(const AssetShelfSettings &other)
 {

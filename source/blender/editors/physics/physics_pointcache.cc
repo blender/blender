@@ -175,8 +175,7 @@ static void ptcache_free_bake(PointCache *cache)
 
 static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 {
-  PTCacheBaker *baker = static_cast<PTCacheBaker *>(
-      MEM_callocN(sizeof(PTCacheBaker), "PTCacheBaker"));
+  PTCacheBaker *baker = MEM_callocN<PTCacheBaker>("PTCacheBaker");
 
   baker->bmain = CTX_data_main(C);
   baker->scene = CTX_data_scene(C);
@@ -214,8 +213,7 @@ static wmOperatorStatus ptcache_bake_invoke(bContext *C, wmOperator *op, const w
 {
   bool all = STREQ(op->type->idname, "PTCACHE_OT_bake_all");
 
-  PointCacheJob *job = static_cast<PointCacheJob *>(
-      MEM_mallocN(sizeof(PointCacheJob), "PointCacheJob"));
+  PointCacheJob *job = MEM_mallocN<PointCacheJob>("PointCacheJob");
   job->wm = CTX_wm_manager(C);
   job->baker = ptcache_baker_create(C, op, all);
   job->baker->bake_job = job;

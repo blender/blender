@@ -98,8 +98,10 @@ using FCurveConvertCB = void(FCurve &fcurve);
  * converted.
  */
 struct AnimDataFCurveConvertor {
-  /** Source and destination RNA paths (relative to the relevant root paths stored in the owner
-   * #AnimDataConvertor data). */
+  /**
+   * Source and destination RNA paths
+   * (relative to the relevant root paths stored in the owner #AnimDataConvertor data).
+   */
   const char *relative_rna_path_src;
   const char *relative_rna_path_dst;
 
@@ -179,8 +181,10 @@ class AnimDataConvertor {
   blender::Vector<FCurve *> fcurves_from_src_main_action = {};
   blender::Vector<FCurve *> fcurves_from_src_tmp_action = {};
   blender::Vector<FCurve *> fcurves_from_src_drivers = {};
-  /** Generic 'has done something' flag, used to decide whether depsgraph tagging for updates is
-   * needed. */
+  /**
+   * Generic 'has done something' flag, used to decide whether depsgraph tagging for updates is
+   * needed.
+   */
   bool has_changes = false;
 
  public:

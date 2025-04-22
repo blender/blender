@@ -192,8 +192,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
     totvert = mesh->verts_num;
   }
 
-  MirrTopoHash_t *topo_hash = static_cast<MirrTopoHash_t *>(
-      MEM_callocN(totvert * sizeof(MirrTopoHash_t), __func__));
+  MirrTopoHash_t *topo_hash = MEM_calloc_arrayN<MirrTopoHash_t>(totvert, __func__);
 
   /* Initialize the vert-edge-user counts used to detect unique topology */
   if (em) {
@@ -265,8 +264,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
   }
 
   /* Hash/Index pairs are needed for sorting to find index pairs */
-  MirrTopoVert_t *topo_pairs = static_cast<MirrTopoVert_t *>(
-      MEM_callocN(sizeof(MirrTopoVert_t) * totvert, "MirrTopoPairs"));
+  MirrTopoVert_t *topo_pairs = MEM_calloc_arrayN<MirrTopoVert_t>(totvert, "MirrTopoPairs");
 
   /* since we are looping through verts, initialize these values here too */
   intptr_t *index_lookup = static_cast<intptr_t *>(

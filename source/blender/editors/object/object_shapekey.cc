@@ -185,8 +185,7 @@ static bool object_shape_key_mirror(
   kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
 
   if (kb) {
-    char *tag_elem = static_cast<char *>(
-        MEM_callocN(sizeof(char) * kb->totelem, "shape_key_mirror"));
+    char *tag_elem = MEM_calloc_arrayN<char>(kb->totelem, "shape_key_mirror");
 
     if (ob->type == OB_MESH) {
       Mesh *mesh = static_cast<Mesh *>(ob->data);

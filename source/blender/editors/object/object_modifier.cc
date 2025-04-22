@@ -765,10 +765,10 @@ static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
                  mesh_src.verts_num,
                  kb->name,
                  kb->totelem);
-      array = MEM_calloc_arrayN(size_t(mesh_src.verts_num), sizeof(float[3]), __func__);
+      array = MEM_calloc_arrayN<float[3]>(mesh_src.verts_num, __func__);
     }
     else {
-      array = MEM_malloc_arrayN(size_t(mesh_src.verts_num), sizeof(float[3]), __func__);
+      array = MEM_malloc_arrayN<float[3]>(size_t(mesh_src.verts_num), __func__);
       memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src.verts_num));
     }
 
@@ -811,10 +811,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
     if (KeyBlock *kb = static_cast<KeyBlock *>(
             BLI_findlink(&mesh->key->block, ob_eval->shapenr - 1)))
     {
-      BKE_keyblock_convert_to_mesh(
-          kb,
-          reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
-          mesh->verts_num);
+      BKE_keyblock_convert_to_mesh(kb, mesh->vert_positions_for_write());
     }
   }
 
@@ -3249,7 +3246,7 @@ static wmOperatorStatus ocean_bake_exec(bContext *C, wmOperator *op)
                                          omd->foam_fade,
                                          omd->resolution);
 
-  och->time = static_cast<float *>(MEM_mallocN(och->duration * sizeof(float), "foam bake time"));
+  och->time = MEM_malloc_arrayN<float>(och->duration, "foam bake time");
 
   int cfra = scene->r.cfra;
 
@@ -3619,8 +3616,8 @@ static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencilDashModifierSegment *new_segments = static_cast<GreasePencilDashModifierSegment *>(
-      MEM_malloc_arrayN(dmd->segments_num + 1, sizeof(GreasePencilDashModifierSegment), __func__));
+  GreasePencilDashModifierSegment *new_segments =
+      MEM_malloc_arrayN<GreasePencilDashModifierSegment>(dmd->segments_num + 1, __func__);
 
   const int new_active_index = std::clamp(dmd->segment_active_index + 1, 0, dmd->segments_num);
   if (dmd->segments_num != 0) {
@@ -3855,8 +3852,8 @@ static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  GreasePencilTimeModifierSegment *new_segments = static_cast<GreasePencilTimeModifierSegment *>(
-      MEM_malloc_arrayN(tmd->segments_num + 1, sizeof(GreasePencilTimeModifierSegment), __func__));
+  GreasePencilTimeModifierSegment *new_segments =
+      MEM_malloc_arrayN<GreasePencilTimeModifierSegment>(tmd->segments_num + 1, __func__);
 
   const int new_active_index = std::clamp(tmd->segment_active_index + 1, 0, tmd->segments_num);
   if (tmd->segments_num != 0) {

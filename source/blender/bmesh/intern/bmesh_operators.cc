@@ -465,7 +465,7 @@ void *BMO_slot_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_
   /* could add support for mapping type */
   BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
 
-  ret = static_cast<void **>(MEM_mallocN(sizeof(void *) * slot->len, __func__));
+  ret = MEM_malloc_arrayN<void *>(slot->len, __func__);
   memcpy(ret, slot->data.buf, sizeof(void *) * slot->len);
   *len = slot->len;
   return ret;
@@ -1467,7 +1467,7 @@ void BMO_error_clear(BMesh *bm)
 
 void BMO_error_raise(BMesh *bm, BMOperator *owner, eBMOpErrorLevel level, const char *msg)
 {
-  BMOpError *err = static_cast<BMOpError *>(MEM_callocN(sizeof(BMOpError), "bmop_error"));
+  BMOpError *err = MEM_callocN<BMOpError>("bmop_error");
 
   err->msg = msg;
   err->op = owner;

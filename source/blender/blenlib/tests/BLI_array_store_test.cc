@@ -63,7 +63,7 @@ static void testchunk_list_free(ListBase *lb)
 {
   for (TestChunk *tc = (TestChunk *)lb->first, *tb_next; tc; tc = tb_next) {
     tb_next = tc->next;
-    MEM_freeN((void *)tc->data);
+    MEM_freeN(const_cast<void *>(tc->data));
     MEM_freeN(tc);
   }
   BLI_listbase_clear(lb);
@@ -255,7 +255,7 @@ static void testbuffer_list_free(ListBase *lb)
 {
   for (TestBuffer *tb = (TestBuffer *)lb->first, *tb_next; tb; tb = tb_next) {
     tb_next = tb->next;
-    MEM_freeN((void *)tb->data);
+    MEM_freeN(const_cast<void *>(tb->data));
     MEM_freeN(tb);
   }
   BLI_listbase_clear(lb);
@@ -322,7 +322,7 @@ TEST(array_store, Single)
   EXPECT_STREQ(data_src, data_dst);
   EXPECT_EQ(data_dst_len, sizeof(data_src));
   BLI_array_store_destroy(bs);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 }
 
 TEST(array_store, DoubleNop)
@@ -341,11 +341,11 @@ TEST(array_store, DoubleNop)
 
   data_dst = (char *)BLI_array_store_state_data_get_alloc(state_a, &data_dst_len);
   EXPECT_STREQ(data_src, data_dst);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 
   data_dst = (char *)BLI_array_store_state_data_get_alloc(state_b, &data_dst_len);
   EXPECT_STREQ(data_src, data_dst);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 
   EXPECT_EQ(data_dst_len, sizeof(data_src));
   BLI_array_store_destroy(bs);
@@ -367,11 +367,11 @@ TEST(array_store, DoubleDiff)
 
   data_dst = (char *)BLI_array_store_state_data_get_alloc(state_a, &data_dst_len);
   EXPECT_STREQ(data_src_a, data_dst);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 
   data_dst = (char *)BLI_array_store_state_data_get_alloc(state_b, &data_dst_len);
   EXPECT_STREQ(data_src_b, data_dst);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 
   BLI_array_store_destroy(bs);
 }

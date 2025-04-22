@@ -1765,7 +1765,7 @@ static void get_selected_marker_positions(Scene *scene, ListBase /*FrameLink*/ *
   ListBase selected_markers = {nullptr, nullptr};
   ED_markers_make_cfra_list(&scene->markers, &selected_markers, true);
   LISTBASE_FOREACH (CfraElem *, marker, &selected_markers) {
-    FrameLink *link = static_cast<FrameLink *>(MEM_callocN(sizeof(FrameLink), "Marker Key Link"));
+    FrameLink *link = MEM_callocN<FrameLink>("Marker Key Link");
     link->frame = marker->cfra;
     BLI_addtail(target_frames, link);
   }
@@ -1791,7 +1791,7 @@ static void get_keyed_frames_in_range(ListBase *pflinks,
     if (column->cfra > end_frame) {
       break;
     }
-    FrameLink *link = static_cast<FrameLink *>(MEM_callocN(sizeof(FrameLink), "Marker Key Link"));
+    FrameLink *link = MEM_callocN<FrameLink>("Marker Key Link");
     link->frame = column->cfra;
     BLI_addtail(target_frames, link);
   }
@@ -1811,7 +1811,7 @@ static void get_selected_frames(ListBase *pflinks, ListBase /*FrameLink*/ *targe
     if (!column->sel) {
       continue;
     }
-    FrameLink *link = static_cast<FrameLink *>(MEM_callocN(sizeof(FrameLink), "Marker Key Link"));
+    FrameLink *link = MEM_callocN<FrameLink>("Marker Key Link");
     link->frame = column->cfra;
     BLI_addtail(target_frames, link);
   }
@@ -1849,7 +1849,7 @@ static wmOperatorStatus pose_propagate_exec(bContext *C, wmOperator *op)
   switch (mode) {
     case POSE_PROPAGATE_NEXT_KEY: {
       float target_frame = find_next_key(&pflinks, current_frame);
-      FrameLink *link = static_cast<FrameLink *>(MEM_callocN(sizeof(FrameLink), "Next Key Link"));
+      FrameLink *link = MEM_callocN<FrameLink>("Next Key Link");
       link->frame = target_frame;
       BLI_addtail(&target_frames, link);
       propagate_curve_values(&pflinks, current_frame, &target_frames);
@@ -1858,7 +1858,7 @@ static wmOperatorStatus pose_propagate_exec(bContext *C, wmOperator *op)
 
     case POSE_PROPAGATE_LAST_KEY: {
       float target_frame = find_last_key(&pflinks);
-      FrameLink *link = static_cast<FrameLink *>(MEM_callocN(sizeof(FrameLink), "Last Key Link"));
+      FrameLink *link = MEM_callocN<FrameLink>("Last Key Link");
       link->frame = target_frame;
       BLI_addtail(&target_frames, link);
       propagate_curve_values(&pflinks, current_frame, &target_frames);

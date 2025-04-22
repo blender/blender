@@ -237,9 +237,9 @@ static AnimationBasePathChange *animation_basepath_change_new(const StringRef sr
 static void animation_basepath_change_free(AnimationBasePathChange *basepath_change)
 {
   if (basepath_change->src_basepath != basepath_change->dst_basepath) {
-    MEM_freeN((void *)basepath_change->src_basepath);
+    MEM_freeN(basepath_change->src_basepath);
   }
-  MEM_freeN((void *)basepath_change->dst_basepath);
+  MEM_freeN(basepath_change->dst_basepath);
   MEM_freeN(basepath_change);
 }
 
@@ -920,8 +920,8 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
     ref.path.id_in_node = new_ref.id;
   }
   MEM_SAFE_FREE(group.nested_node_refs);
-  group.nested_node_refs = static_cast<bNestedNodeRef *>(
-      MEM_malloc_arrayN(new_nested_node_refs.size(), sizeof(bNestedNodeRef), __func__));
+  group.nested_node_refs = MEM_malloc_arrayN<bNestedNodeRef>(new_nested_node_refs.size(),
+                                                             __func__);
   uninitialized_copy_n(
       new_nested_node_refs.data(), new_nested_node_refs.size(), group.nested_node_refs);
   group.nested_node_refs_num = new_nested_node_refs.size();

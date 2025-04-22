@@ -680,6 +680,11 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       property = input->default_value_typed<bNodeSocketValueBoolean>()->value;
     };
 
+    auto write_input_to_property_bool_short = [&](const char *identifier, short &property) {
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+      property = input->default_value_typed<bNodeSocketValueBoolean>()->value;
+    };
+
     auto write_input_to_property_bool_int16_flag = [&](const char *identifier,
                                                        int16_t &property,
                                                        const int flag,
@@ -712,6 +717,12 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
       property = input->default_value_typed<bNodeSocketValueFloat>()->value;
     };
+
+    auto write_input_to_property_float_color =
+        [&](const char *identifier, const int index, float &property) {
+          const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+          property = input->default_value_typed<bNodeSocketValueRGBA>()->value[index];
+        };
 
     if (node->type_legacy == CMP_NODE_GLARE) {
       NodeGlare *storage = static_cast<NodeGlare *>(node->storage);
@@ -822,6 +833,58 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       /* Shutter was previously divided by 2. */
       const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Shutter");
       storage->fac = input->default_value_typed<bNodeSocketValueFloat>()->value / 2.0f;
+    }
+
+    if (node->type_legacy == CMP_NODE_CHANNEL_MATTE) {
+      NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+      write_input_to_property_float("Minimum", storage->t2);
+      write_input_to_property_float("Maximum", storage->t1);
+    }
+
+    if (node->type_legacy == CMP_NODE_CHROMA_MATTE) {
+      NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+      write_input_to_property_float("Minimum", storage->t2);
+      write_input_to_property_float("Maximum", storage->t1);
+      write_input_to_property_float("Falloff", storage->fstrength);
+    }
+
+    if (node->type_legacy == CMP_NODE_COLOR_MATTE) {
+      NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+      write_input_to_property_float("Hue", storage->t1);
+      write_input_to_property_float("Saturation", storage->t2);
+      write_input_to_property_float("Value", storage->t3);
+    }
+
+    if (node->type_legacy == CMP_NODE_DIFF_MATTE) {
+      NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+      write_input_to_property_float("Tolerance", storage->t1);
+      write_input_to_property_float("Falloff", storage->t2);
+    }
+
+    if (node->type_legacy == CMP_NODE_DIST_MATTE) {
+      NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+      write_input_to_property_float("Tolerance", storage->t1);
+      write_input_to_property_float("Falloff", storage->t2);
+    }
+
+    if (node->type_legacy == CMP_NODE_LUMA_MATTE) {
+      NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+      write_input_to_property_float("Minimum", storage->t2);
+      write_input_to_property_float("Maximum", storage->t1);
+    }
+
+    if (node->type_legacy == CMP_NODE_COLOR_SPILL) {
+      NodeColorspill *storage = static_cast<NodeColorspill *>(node->storage);
+      write_input_to_property_float("Limit Strength", storage->limscale);
+      write_input_to_property_bool_short("Use Spill Strength", storage->unspill);
+      write_input_to_property_float_color("Spill Strength", 0, storage->uspillr);
+      write_input_to_property_float_color("Spill Strength", 1, storage->uspillg);
+      write_input_to_property_float_color("Spill Strength", 2, storage->uspillb);
+    }
+
+    if (node->type_legacy == CMP_NODE_KEYINGSCREEN) {
+      NodeKeyingScreenData *storage = static_cast<NodeKeyingScreenData *>(node->storage);
+      write_input_to_property_float("Smoothness", storage->smoothness);
     }
   }
 }

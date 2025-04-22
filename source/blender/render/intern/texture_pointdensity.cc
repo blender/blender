@@ -292,7 +292,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
   }
 
   /* Stores the number of MLoops using the same vertex, so we can normalize colors. */
-  int *mcorners = MEM_calloc_arrayN<int>(size_t(pd->totpoints), "point density corner count");
+  int *mcorners = MEM_calloc_arrayN<int>(pd->totpoints, "point density corner count");
 
   for (i = 0; i < totloop; i++) {
     int v = corner_verts[i];

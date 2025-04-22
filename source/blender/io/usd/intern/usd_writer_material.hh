@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 #include <pxr/usd/usdShade/material.h>
 
 #include <string>
@@ -33,7 +35,7 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
  * Returns a USDPreviewSurface token name for a given Blender shader Socket name,
  * or an empty TfToken if the input name is not found in the map.
  */
-pxr::TfToken token_for_input(const char *input_name);
+pxr::TfToken token_for_input(const StringRef input_name);
 
 void export_texture(bNode *node,
                     const pxr::UsdStageRefPtr stage,

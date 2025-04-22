@@ -1061,8 +1061,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
   int keyframes_to_insert = end - start;
   int sample_points = fcu->totvert;
 
-  BezTriple *bezt = fcu->bezt = MEM_calloc_arrayN<BezTriple>(size_t(keyframes_to_insert),
-                                                             __func__);
+  BezTriple *bezt = fcu->bezt = MEM_calloc_arrayN<BezTriple>(keyframes_to_insert, __func__);
   fcu->totvert = keyframes_to_insert;
 
   /* Get first sample point to 'copy' as keyframe. */

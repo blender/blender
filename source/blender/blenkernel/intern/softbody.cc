@@ -383,7 +383,7 @@ static void ccd_mesh_update(Object *ob, ccd_Mesh *pccd_M)
 
   /* rotate current to previous */
   if (pccd_M->vert_positions_prev) {
-    MEM_freeN((void *)pccd_M->vert_positions_prev);
+    MEM_freeN(pccd_M->vert_positions_prev);
   }
   pccd_M->vert_positions_prev = pccd_M->vert_positions;
   /* Allocate and copy verts. */
@@ -477,10 +477,10 @@ static void ccd_mesh_free(ccd_Mesh *ccdm)
 {
   /* Make sure we're not nuking objects we don't know. */
   if (ccdm && (ccdm->safety == CCD_SAFETY)) {
-    MEM_freeN((void *)ccdm->vert_positions);
-    MEM_freeN((void *)ccdm->vert_tris);
+    MEM_freeN(ccdm->vert_positions);
+    MEM_freeN(ccdm->vert_tris);
     if (ccdm->vert_positions_prev) {
-      MEM_freeN((void *)ccdm->vert_positions_prev);
+      MEM_freeN(ccdm->vert_positions_prev);
     }
     MEM_freeN(ccdm->mima);
     MEM_freeN(ccdm);
@@ -716,7 +716,7 @@ static void add_bp_springlist(BodyPoint *bp, int springID)
   }
   else {
     bp->nofsprings++;
-    newlist = MEM_calloc_arrayN<int>(size_t(bp->nofsprings), "bpsprings");
+    newlist = MEM_calloc_arrayN<int>(bp->nofsprings, "bpsprings");
     memcpy(newlist, bp->springs, (bp->nofsprings - 1) * sizeof(int));
     MEM_freeN(bp->springs);
     bp->springs = newlist;
@@ -1534,7 +1534,7 @@ static void sb_sfesf_threads_run(Depsgraph *depsgraph,
     totthread--;
   }
 
-  sb_threads = MEM_calloc_arrayN<SB_thread_context>(size_t(totthread), "SBSpringsThread");
+  sb_threads = MEM_calloc_arrayN<SB_thread_context>(totthread, "SBSpringsThread");
   left = totsprings;
   dec = totsprings / totthread + 1;
   for (i = 0; i < totthread; i++) {
@@ -2214,7 +2214,7 @@ static void sb_cf_threads_run(Scene *scene,
 
   // printf("sb_cf_threads_run spawning %d threads\n", totthread);
 
-  sb_threads = MEM_calloc_arrayN<SB_thread_context>(size_t(totthread), "SBThread");
+  sb_threads = MEM_calloc_arrayN<SB_thread_context>(totthread, "SBThread");
   left = totpoint;
   dec = totpoint / totthread + 1;
   for (i = 0; i < totthread; i++) {
@@ -3254,8 +3254,8 @@ void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float ls
   if (!sb || !sb->bpoint) {
     return;
   }
-  opos = MEM_calloc_arrayN<float[3]>(size_t(sb->totpoint), "SB_OPOS");
-  rpos = MEM_calloc_arrayN<float[3]>(size_t(sb->totpoint), "SB_RPOS");
+  opos = MEM_calloc_arrayN<float[3]>(sb->totpoint, "SB_OPOS");
+  rpos = MEM_calloc_arrayN<float[3]>(sb->totpoint, "SB_RPOS");
   /* might filter vertex selection with a vertex group */
   for (a = 0, bp = sb->bpoint, rp = sb->scratch->Ref.ivert; a < sb->totpoint; a++, bp++, rp++) {
     copy_v3_v3(rpos[a], rp->pos);

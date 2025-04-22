@@ -1112,7 +1112,7 @@ static wmOperatorStatus fly_invoke(bContext *C, wmOperator *op, const wmEvent *e
   op->customdata = fly;
 
   if (initFlyInfo(C, fly, op, event) == false) {
-    MEM_freeN(op->customdata);
+    MEM_freeN(fly);
     return OPERATOR_CANCELLED;
   }
 

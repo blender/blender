@@ -800,10 +800,12 @@ struct LibOverrideGroupTagData {
   blender::Set<ID *> linked_ids_hierarchy_default_override;
   bool do_create_linked_overrides_set;
 
-  /** Helpers to mark or unmark an ID as part of the processed (reference of) liboverride
+  /**
+   * Helpers to mark or unmark an ID as part of the processed (reference of) liboverride
    * hierarchy.
    *
-   * \return `true` if the given ID is tagged as missing linked data, `false` otherwise. */
+   * \return `true` if the given ID is tagged as missing linked data, `false` otherwise.
+   */
   bool id_tag_set(ID *id, const bool is_missing)
   {
     if (do_create_linked_overrides_set) {

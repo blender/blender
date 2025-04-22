@@ -458,7 +458,7 @@ void BKE_curveprofile_reset(CurveProfile *profile)
       break;
   }
 
-  profile->path = MEM_calloc_arrayN<CurveProfilePoint>(size_t(profile->path_len), __func__);
+  profile->path = MEM_calloc_arrayN<CurveProfilePoint>(profile->path_len, __func__);
 
   switch (preset) {
     case PROF_PRESET_LINE:
@@ -688,8 +688,7 @@ static void create_samples(CurveProfile *profile,
   calculate_path_handles(path, totpoints);
 
   /* Create a list of edge indices with the most curved at the start, least curved at the end. */
-  CurvatureSortPoint *curve_sorted = MEM_calloc_arrayN<CurvatureSortPoint>(size_t(totedges),
-                                                                           __func__);
+  CurvatureSortPoint *curve_sorted = MEM_calloc_arrayN<CurvatureSortPoint>(totedges, __func__);
   for (int i = 0; i < totedges; i++) {
     curve_sorted[i].point_index = i;
     /* Calculate the curvature of each edge once for use when sorting for curvature. */
@@ -698,7 +697,7 @@ static void create_samples(CurveProfile *profile,
   qsort(curve_sorted, totedges, sizeof(CurvatureSortPoint), sort_points_curvature);
 
   /* Assign the number of sampled points for each edge. */
-  int16_t *n_samples = MEM_calloc_arrayN<int16_t>(size_t(totedges), "samples numbers");
+  int16_t *n_samples = MEM_calloc_arrayN<int16_t>(totedges, "samples numbers");
   int n_added = 0;
   int n_left;
   if (n_segments >= totedges) {

@@ -208,7 +208,8 @@ static void view_pan_exit(wmOperator *op)
 {
   v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
-  MEM_SAFE_FREE(op->customdata);
+  MEM_freeN(vpd);
+  op->customdata = nullptr;
 }
 
 /** \} */
@@ -402,7 +403,8 @@ static wmOperatorStatus view_edge_pan_modal(bContext *C, wmOperator *op, const w
   /* Exit if we release the mouse button, hit escape, or enter a different window. */
   if (event->val == KM_RELEASE || event->type == EVT_ESCKEY || source_win != target_win) {
     vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
-    MEM_SAFE_FREE(op->customdata);
+    MEM_SAFE_FREE(vpd);
+    op->customdata = nullptr;
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
 
@@ -417,7 +419,8 @@ static void view_edge_pan_cancel(bContext * /*C*/, wmOperator *op)
 {
   v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
-  MEM_SAFE_FREE(op->customdata);
+  MEM_SAFE_FREE(vpd);
+  op->customdata = nullptr;
 }
 
 static void VIEW2D_OT_edge_pan(wmOperatorType *ot)
@@ -874,7 +877,8 @@ static void view_zoomstep_exit(bContext *C, wmOperator *op)
 
   v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
   vzd->v2d->flag &= ~V2D_IS_NAVIGATING;
-  MEM_SAFE_FREE(op->customdata);
+  MEM_SAFE_FREE(vzd);
+  op->customdata = nullptr;
 }
 
 /* this operator only needs this single callback, where it calls the view_zoom_*() methods */
@@ -1111,7 +1115,7 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
       WM_event_timer_remove(CTX_wm_manager(C), CTX_wm_window(C), vzd->timer);
     }
 
-    MEM_freeN(op->customdata);
+    MEM_freeN(vzd);
     op->customdata = nullptr;
   }
 }
@@ -1970,7 +1974,7 @@ static void scroller_activate_exit(bContext *C, wmOperator *op)
     vsm->v2d->scroll_ui &= ~(V2D_SCROLL_H_ACTIVE | V2D_SCROLL_V_ACTIVE);
     vsm->v2d->flag &= ~V2D_IS_NAVIGATING;
 
-    MEM_freeN(op->customdata);
+    MEM_freeN(vsm);
     op->customdata = nullptr;
 
     ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));

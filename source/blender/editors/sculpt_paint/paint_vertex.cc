@@ -250,8 +250,7 @@ void init_session_data(const ToolSettings &ts, Object &ob)
     SculptSession &ss = *ob.sculpt;
     if (!vwpaint::brush_use_accumulate(*ts.wpaint)) {
       if (ss.mode.wpaint.alpha_weight == nullptr) {
-        ss.mode.wpaint.alpha_weight = (float *)MEM_callocN(mesh->verts_num * sizeof(float),
-                                                           __func__);
+        ss.mode.wpaint.alpha_weight = MEM_calloc_arrayN<float>(mesh->verts_num, __func__);
       }
       if (ss.mode.wpaint.dvert_prev.is_empty()) {
         MDeformVert initial_value{};

@@ -129,8 +129,7 @@ void GeometryExporter::operator()(Object *ob)
       /* skip the basis */
       kb = kb->next;
       for (; kb; kb = kb->next) {
-        BKE_keyblock_convert_to_mesh(
-            kb, reinterpret_cast<float(*)[3]>(positions.data()), mesh->verts_num);
+        BKE_keyblock_convert_to_mesh(kb, positions);
         export_key_mesh(ob, mesh, kb);
       }
     }

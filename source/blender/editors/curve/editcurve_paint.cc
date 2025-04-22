@@ -577,7 +577,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 {
   BLI_assert(op->customdata == nullptr);
 
-  CurveDrawData *cdd = static_cast<CurveDrawData *>(MEM_callocN(sizeof(*cdd), __func__));
+  CurveDrawData *cdd = MEM_callocN<CurveDrawData>(__func__);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   if (is_invoke) {
@@ -722,7 +722,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
     BLI_mempool_iter iter;
     StrokeElem *selem, *selem_prev;
 
-    float *lengths = static_cast<float *>(MEM_mallocN(sizeof(float) * stroke_len, __func__));
+    float *lengths = MEM_malloc_arrayN<float>(stroke_len, __func__);
     StrokeElem **selem_array = static_cast<StrokeElem **>(
         MEM_mallocN(sizeof(*selem_array) * stroke_len, __func__));
     lengths[0] = 0.0f;
@@ -798,7 +798,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
   const float radius_max = cps->radius_max;
   const float radius_range = cps->radius_max - cps->radius_min;
 
-  Nurb *nu = static_cast<Nurb *>(MEM_callocN(sizeof(Nurb), __func__));
+  Nurb *nu = MEM_callocN<Nurb>(__func__);
   nu->pntsv = 0;
   nu->resolu = cu->resolu;
   nu->resolv = cu->resolv;
@@ -820,8 +820,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
     } coords_indices;
     coords_indices.radius = use_pressure_radius ? dims++ : -1;
 
-    float *coords = static_cast<float *>(
-        MEM_mallocN(sizeof(*coords) * stroke_len * dims, __func__));
+    float *coords = MEM_malloc_arrayN<float>(stroke_len * dims, __func__);
 
     float *cubic_spline = nullptr;
     uint cubic_spline_len = 0;
@@ -920,7 +919,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
 
     if (result == 0) {
       nu->pntsu = cubic_spline_len;
-      nu->bezt = static_cast<BezTriple *>(MEM_callocN(sizeof(BezTriple) * nu->pntsu, __func__));
+      nu->bezt = MEM_calloc_arrayN<BezTriple>(nu->pntsu, __func__);
 
       float *co = cubic_spline;
       BezTriple *bezt = nu->bezt;
@@ -1016,7 +1015,7 @@ static wmOperatorStatus curve_draw_exec(bContext *C, wmOperator *op)
     nu->pntsu = stroke_len;
     nu->pntsv = 1;
     nu->type = CU_POLY;
-    nu->bp = static_cast<BPoint *>(MEM_callocN(nu->pntsu * sizeof(BPoint), __func__));
+    nu->bp = MEM_calloc_arrayN<BPoint>(nu->pntsu, __func__);
 
     /* Misc settings. */
     nu->resolu = cu->resolu;

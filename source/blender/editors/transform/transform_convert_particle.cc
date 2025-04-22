@@ -87,12 +87,11 @@ static void createTransParticleVerts(bContext * /*C*/, TransInfo *t)
     }
 
     tc->data_len = count;
-    td = tc->data = static_cast<TransData *>(
-        MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Particle Mode)"));
+    td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransObData(Particle Mode)");
 
     if (t->mode == TFM_BAKE_TIME) {
-      tx = tc->data_ext = static_cast<TransDataExtension *>(
-          MEM_callocN(tc->data_len * sizeof(TransDataExtension), "Particle_TransExtension"));
+      tx = tc->data_ext = MEM_calloc_arrayN<TransDataExtension>(tc->data_len,
+                                                                "Particle_TransExtension");
     }
     else {
       tx = tc->data_ext = nullptr;

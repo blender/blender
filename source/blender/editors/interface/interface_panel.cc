@@ -1723,8 +1723,7 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   }
 
   /* Sort panels. */
-  PanelSort *panel_sort = static_cast<PanelSort *>(
-      MEM_mallocN(sizeof(PanelSort) * active_panels_len, __func__));
+  PanelSort *panel_sort = MEM_malloc_arrayN<PanelSort>(active_panels_len, __func__);
   {
     PanelSort *ps = panel_sort;
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {

@@ -1257,7 +1257,7 @@ void IrradianceBake::read_surfels(LightProbeGridCacheFrame *cache_frame)
   surfels_buf_.read();
 
   cache_frame->surfels_len = capture_info_buf_.surfel_len;
-  cache_frame->surfels = MEM_malloc_arrayN(cache_frame->surfels_len, sizeof(Surfel), __func__);
+  cache_frame->surfels = MEM_malloc_arrayN<Surfel>(cache_frame->surfels_len, __func__);
 
   MutableSpan<Surfel> surfels_dst((Surfel *)cache_frame->surfels, cache_frame->surfels_len);
   Span<Surfel> surfels_src(surfels_buf_.data(), cache_frame->surfels_len);

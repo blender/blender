@@ -1830,7 +1830,7 @@ void RNA_property_enum_items_gettexted_all(bContext *C,
       }
 
       if (free) {
-        MEM_freeN((void *)item);
+        MEM_freeN(item);
       }
     }
   }
@@ -1861,7 +1861,7 @@ bool RNA_property_enum_value(
     }
 
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
   }
   else {
@@ -1984,7 +1984,7 @@ bool RNA_property_enum_identifier(
     bool result;
     result = RNA_enum_identifier(item, value, r_identifier);
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
     return result;
   }
@@ -2002,7 +2002,7 @@ bool RNA_property_enum_name(
     bool result;
     result = RNA_enum_name(item, value, r_name);
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
 
     return result;
@@ -2046,7 +2046,7 @@ bool RNA_property_enum_item_from_value(
     }
 
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
 
     return result;
@@ -2078,7 +2078,7 @@ int RNA_property_enum_bitflag_identifiers(
     int result;
     result = RNA_enum_bitflag_identifiers(item, value, r_identifier);
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
 
     return result;
@@ -4025,7 +4025,7 @@ int RNA_property_enum_step(
   }
 
   if (free) {
-    MEM_freeN((void *)item_array);
+    MEM_freeN(item_array);
   }
 
   return result_value;
@@ -5124,7 +5124,7 @@ static int rna_raw_access(ReportList *reports,
               tmparray = nullptr;
             }
             if (!tmparray) {
-              tmparray = MEM_calloc_arrayN<float>(size_t(itemlen), "RNA tmparray");
+              tmparray = MEM_calloc_arrayN<float>(itemlen, "RNA tmparray");
               tmplen = itemlen;
             }
 
@@ -5630,7 +5630,7 @@ bool RNA_enum_is_equal(bContext *C, PointerRNA *ptr, const char *name, const cha
     }
 
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
 
     if (i != -1) {
@@ -6263,7 +6263,7 @@ std::string RNA_property_as_string(
             }
 
             if (free) {
-              MEM_freeN((void *)item_array);
+              MEM_freeN(item_array);
             }
           }
 
@@ -6764,7 +6764,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
     case PROP_BOOLEAN:
       if (len) {
         if (index == -1) {
-          bool *tmparray = MEM_calloc_arrayN<bool>(size_t(len), __func__);
+          bool *tmparray = MEM_calloc_arrayN<bool>(len, __func__);
 
           RNA_property_boolean_get_default_array(ptr, prop, tmparray);
           RNA_property_boolean_set_array(ptr, prop, tmparray);
@@ -6784,7 +6784,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
     case PROP_INT:
       if (len) {
         if (index == -1) {
-          int *tmparray = MEM_calloc_arrayN<int>(size_t(len), __func__);
+          int *tmparray = MEM_calloc_arrayN<int>(len, __func__);
 
           RNA_property_int_get_default_array(ptr, prop, tmparray);
           RNA_property_int_set_array(ptr, prop, tmparray);
@@ -6804,7 +6804,7 @@ bool RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
     case PROP_FLOAT:
       if (len) {
         if (index == -1) {
-          float *tmparray = MEM_calloc_arrayN<float>(size_t(len), __func__);
+          float *tmparray = MEM_calloc_arrayN<float>(len, __func__);
 
           RNA_property_float_get_default_array(ptr, prop, tmparray);
           RNA_property_float_set_array(ptr, prop, tmparray);

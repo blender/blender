@@ -130,12 +130,12 @@
 void DNA_sdna_free(SDNA *sdna)
 {
   if (sdna->data_alloc) {
-    MEM_freeN((void *)sdna->data);
+    MEM_freeN(sdna->data);
   }
 
-  MEM_freeN((void *)sdna->members);
-  MEM_freeN((void *)sdna->members_array_num);
-  MEM_freeN((void *)sdna->types);
+  MEM_freeN(sdna->members);
+  MEM_freeN(sdna->members_array_num);
+  MEM_freeN(sdna->types);
   MEM_freeN(sdna->structs);
   MEM_freeN(sdna->types_alignment);
 
@@ -360,7 +360,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     sdna->members_num_alloc = sdna->members_num;
 
     data++;
-    sdna->members = MEM_calloc_arrayN<const char *>(size_t(sdna->members_num), "sdnanames");
+    sdna->members = MEM_calloc_arrayN<const char *>(sdna->members_num, "sdnanames");
   }
   else {
     *r_error_message = "NAME error in SDNA file";
@@ -399,7 +399,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     }
 
     data++;
-    sdna->types = MEM_calloc_arrayN<const char *>(size_t(sdna->types_num), "sdnatypes");
+    sdna->types = MEM_calloc_arrayN<const char *>(sdna->types_num, "sdnatypes");
   }
   else {
     *r_error_message = "TYPE error in SDNA file";
@@ -452,7 +452,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     }
 
     data++;
-    sdna->structs = MEM_calloc_arrayN<SDNA_Struct *>(size_t(sdna->structs_num), "sdnastrcs");
+    sdna->structs = MEM_calloc_arrayN<SDNA_Struct *>(sdna->structs_num, "sdnastrcs");
   }
   else {
     *r_error_message = "STRC error in SDNA file";
@@ -1556,8 +1556,7 @@ static ReconstructStep *create_reconstruct_steps_for_struct(const SDNA *oldsdna,
                                                             const SDNA_Struct *old_struct,
                                                             const SDNA_Struct *new_struct)
 {
-  ReconstructStep *steps = MEM_calloc_arrayN<ReconstructStep>(size_t(new_struct->members_num),
-                                                              __func__);
+  ReconstructStep *steps = MEM_calloc_arrayN<ReconstructStep>(new_struct->members_num, __func__);
 
   int new_member_offset = 0;
   for (int new_member_index = 0; new_member_index < new_struct->members_num; new_member_index++) {
@@ -1924,10 +1923,10 @@ static void sdna_expand_names(SDNA *sdna)
       names_expand_index++;
     }
   }
-  MEM_freeN((void *)sdna->members);
+  MEM_freeN(sdna->members);
   sdna->members = names_expand;
 
-  MEM_freeN((void *)sdna->members_array_num);
+  MEM_freeN(sdna->members_array_num);
   sdna->members_array_num = names_array_len_expand;
 
   sdna->members_num = names_expand_len;

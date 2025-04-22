@@ -530,8 +530,7 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
     struct XFormArray {
       float matrix[4][4];
       bool is_set;
-    } *pchan_xform_array = static_cast<XFormArray *>(
-        MEM_mallocN(sizeof(*pchan_xform_array) * chanbase_len, __func__));
+    } *pchan_xform_array = MEM_malloc_arrayN<XFormArray>(chanbase_len, __func__);
     bool changed = false;
 
     int i;

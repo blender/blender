@@ -289,7 +289,7 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, const bool
     }
   }
 
-  cen = static_cast<CfraElem *>(MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem"));
+  cen = MEM_callocN<CfraElem>("add_to_cfra_elem");
   if (ce) {
     BLI_insertlinkbefore(lb, ce, cen);
   }
@@ -779,7 +779,7 @@ static wmOperatorStatus ed_marker_add_exec(bContext *C, wmOperator * /*op*/)
     marker->flag &= ~SELECT;
   }
 
-  marker = static_cast<TimeMarker *>(MEM_callocN(sizeof(TimeMarker), "TimeMarker"));
+  marker = MEM_callocN<TimeMarker>("TimeMarker");
   marker->flag = SELECT;
   marker->frame = frame;
   SNPRINTF(marker->name, "F_%02d", frame);
@@ -931,10 +931,10 @@ static bool ed_marker_move_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  op->customdata = mm = static_cast<MarkerMove *>(MEM_callocN(sizeof(MarkerMove), "Markermove"));
+  op->customdata = mm = MEM_callocN<MarkerMove>("Markermove");
   mm->slink = CTX_wm_space_data(C);
   mm->markers = markers;
-  mm->oldframe = static_cast<int *>(MEM_callocN(totmark * sizeof(int), "MarkerMove oldframe"));
+  mm->oldframe = MEM_calloc_arrayN<int>(totmark, "MarkerMove oldframe");
 
   initNumInput(&mm->num);
   mm->num.idx_max = 0; /* one axis */
@@ -960,7 +960,7 @@ static void ed_marker_move_exit(bContext *C, wmOperator *op)
 
   /* free data */
   MEM_freeN(mm->oldframe);
-  MEM_freeN(op->customdata);
+  MEM_freeN(mm);
   op->customdata = nullptr;
 
   /* clear custom header prints */
@@ -1215,8 +1215,7 @@ static void ed_marker_duplicate_apply(bContext *C)
       marker->flag &= ~SELECT;
 
       /* create and set up new marker */
-      TimeMarker *newmarker = static_cast<TimeMarker *>(
-          MEM_callocN(sizeof(TimeMarker), "TimeMarker"));
+      TimeMarker *newmarker = MEM_callocN<TimeMarker>("TimeMarker");
       newmarker->flag = SELECT;
       newmarker->frame = marker->frame;
       STRNCPY(newmarker->name, marker->name);
@@ -1924,7 +1923,7 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 
   marker = ED_markers_find_nearest_marker(markers, scene->r.cfra);
   if ((marker == nullptr) || (marker->frame != scene->r.cfra)) {
-    marker = static_cast<TimeMarker *>(MEM_callocN(sizeof(TimeMarker), "Camera TimeMarker"));
+    marker = MEM_callocN<TimeMarker>("Camera TimeMarker");
     /* This marker's name is only displayed in the viewport statistics, animation editors use the
      * camera's name when bound to a marker. */
     SNPRINTF(marker->name, "F_%02d", scene->r.cfra);

@@ -238,7 +238,7 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
       seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_IMAGE);
   strip->len = load_data->image.len;
   StripData *data = strip->data;
-  data->stripdata = MEM_calloc_arrayN<StripElem>(size_t(load_data->image.len), "stripelem");
+  data->stripdata = MEM_calloc_arrayN<StripElem>(load_data->image.len, "stripelem");
 
   if (strip->len == 1) {
     strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
@@ -400,7 +400,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
   char colorspace[64] = "\0"; /* MAX_COLORSPACE_NAME */
   bool is_multiview_loaded = false;
   const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
-  MovieReader **anim_arr = MEM_calloc_arrayN<MovieReader *>(size_t(totfiles), "Video files");
+  MovieReader **anim_arr = MEM_calloc_arrayN<MovieReader *>(totfiles, "Video files");
   int i;
   int orig_width = 0;
   int orig_height = 0;

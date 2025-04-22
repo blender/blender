@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:32+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1302,16 +1302,16 @@ msgid "Mask"
 msgstr "Маска"
 
 
+msgid "Mirror"
+msgstr "Чагылтуу"
+
+
 msgid "Apply"
 msgstr "Колдонуу"
 
 
 msgid "Text"
 msgstr "Текст"
-
-
-msgid "Mirror"
-msgstr "Чагылтуу"
 
 
 msgctxt "MovieClip"
@@ -3779,10 +3779,6 @@ msgstr "күй."
 
 msgid "Import-Export"
 msgstr "Импорт-экспорт"
-
-
-msgid "English (English)"
-msgstr "Англис (English)"
 
 
 msgid "Japanese (日本語)"

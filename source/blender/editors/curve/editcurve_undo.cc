@@ -217,8 +217,7 @@ static bool curve_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   blender::Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
-  us->elems = static_cast<CurveUndoStep_Elem *>(
-      MEM_callocN(sizeof(*us->elems) * objects.size(), __func__));
+  us->elems = MEM_calloc_arrayN<CurveUndoStep_Elem>(objects.size(), __func__);
   us->elems_len = objects.size();
 
   for (uint i = 0; i < objects.size(); i++) {

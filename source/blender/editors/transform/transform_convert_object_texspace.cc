@@ -62,9 +62,8 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
     BLI_assert(t->data_container_len == 1);
     TransDataContainer *tc = t->data_container;
     tc->data_len = 1;
-    td = tc->data = static_cast<TransData *>(MEM_callocN(sizeof(TransData), "TransTexspace"));
-    td->ext = tc->data_ext = static_cast<TransDataExtension *>(
-        MEM_callocN(sizeof(TransDataExtension), "TransTexspace"));
+    td = tc->data = MEM_callocN<TransData>("TransTexspace");
+    td->ext = tc->data_ext = MEM_callocN<TransDataExtension>("TransTexspace");
   }
 
   td->flag = TD_SELECTED;

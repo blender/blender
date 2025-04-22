@@ -186,8 +186,7 @@ static wmOperatorStatus add_empty_ks_path_exec(bContext *C, wmOperator *op)
       BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
 
   /* Don't use the API method for this, since that checks on values... */
-  KS_Path *keyingset_path = static_cast<KS_Path *>(
-      MEM_callocN(sizeof(KS_Path), "KeyingSetPath Empty"));
+  KS_Path *keyingset_path = MEM_callocN<KS_Path>("KeyingSetPath Empty");
   BLI_addtail(&keyingset->paths, keyingset_path);
   keyingset->active_path = BLI_listbase_count(&keyingset->paths);
 

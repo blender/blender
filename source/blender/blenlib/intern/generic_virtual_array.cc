@@ -237,8 +237,8 @@ class GVArrayImpl_For_SingleValue : public GVArrayImpl_For_SingleValueRef,
 
   ~GVArrayImpl_For_SingleValue() override
   {
-    type_->destruct((void *)value_);
-    MEM_freeN((void *)value_);
+    type_->destruct(const_cast<void *>(value_));
+    MEM_freeN(const_cast<void *>(value_));
   }
 };
 

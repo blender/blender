@@ -344,8 +344,7 @@ void ED_view3d_smooth_view_ex(
 
     /* Keep track of running timer! */
     if (rv3d->sms == nullptr) {
-      rv3d->sms = static_cast<SmoothView3DStore *>(
-          MEM_mallocN(sizeof(SmoothView3DStore), "smoothview v3d"));
+      rv3d->sms = MEM_mallocN<SmoothView3DStore>("smoothview v3d");
     }
     *rv3d->sms = sms;
     if (rv3d->smooth_timer) {
@@ -616,6 +615,11 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 
   /* Flags. */
   ot->flag = OPTYPE_INTERNAL;
+}
+
+void view3d_smooth_free(RegionView3D *rv3d)
+{
+  MEM_SAFE_FREE(rv3d->sms);
 }
 
 /** \} */

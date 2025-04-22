@@ -2645,17 +2645,15 @@ static void armdef_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 {
   bArmatureConstraint *data = static_cast<bArmatureConstraint *>(con->data);
 
-  float sum_mat[4][4], input_co[3];
-  DualQuat sum_dq;
-  float weight = 0.0f;
-
   /* Prepare for blending. */
-  zero_m4(sum_mat);
-  memset(&sum_dq, 0, sizeof(sum_dq));
+  float sum_mat[4][4] = {};
+  DualQuat sum_dq = {};
+  float weight = 0.0f;
 
   DualQuat *pdq = (data->flag & CONSTRAINT_ARMATURE_QUATERNION) ? &sum_dq : nullptr;
   bool use_envelopes = (data->flag & CONSTRAINT_ARMATURE_ENVELOPE) != 0;
 
+  float input_co[3];
   if (cob->pchan && cob->pchan->bone && !(data->flag & CONSTRAINT_ARMATURE_CUR_LOCATION)) {
     /* For constraints on bones, use the rest position to bind b-bone segments
      * and envelopes, to allow safely changing the bone location as if parented. */

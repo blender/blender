@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:12+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13581,6 +13581,30 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
+msgid "Snap"
+msgstr "Přichytit"
+
+
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
 
@@ -13673,32 +13697,8 @@ msgid "Pivot Point"
 msgstr "Bod pro pivot"
 
 
-msgid "Snap"
-msgstr "Přichytit"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
 
 
 msgid "Basic"
@@ -16957,10 +16957,6 @@ msgid "Difference Key"
 msgstr "Rozdíl"
 
 
-msgid "Edge to inset"
-msgstr "Posouvat hranu"
-
-
 msgid "Feather"
 msgstr "Ostatní"
 
@@ -17077,10 +17073,6 @@ msgid "Inpaint"
 msgstr "VBar malování"
 
 
-msgid "Distance to inpaint (number of iterations)"
-msgstr "Číslo ve stupních určující počet otočení"
-
-
 msgid "Post Blur"
 msgstr "Povolit vypocet stinu"
 
@@ -17181,10 +17173,6 @@ msgid "Use Minimum"
 msgstr "Minimální X limitace"
 
 
-msgid "Number of motion blur samples"
-msgstr "Číslo, určující počet 'Spin' kroků"
-
-
 msgid "Shutter"
 msgstr "Závěrka"
 
@@ -17203,10 +17191,6 @@ msgstr "Žádné skupiny vertexů"
 
 msgid "Fixed/Scene"
 msgstr "Scéna"
-
-
-msgid "Use feather information from the mask"
-msgstr "Zobrazit nastaveni hran"
 
 
 msgid "Motion Blur"
@@ -17259,6 +17243,10 @@ msgstr "Pixely"
 
 msgid "Pixel Size"
 msgstr "Velikost Pixelu"
+
+
+msgid "Number of motion blur samples"
+msgstr "Číslo, určující počet 'Spin' kroků"
 
 
 msgid "Alpha Convert"
@@ -17371,10 +17359,6 @@ msgstr "Činitel"
 
 msgid "Max Speed"
 msgstr "Mód vybírání plošek"
-
-
-msgid "Maximum speed, or zero for none"
-msgstr "Maximální Y limitace"
 
 
 msgid "Min Speed"
@@ -31136,6 +31120,26 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
+
+
+msgid "Measurement"
+msgstr "Měření"
+
+
+msgid "Curve Edit Mode"
+msgstr "Editační Režim Křivky"
+
+
+msgid "Snapping"
+msgstr "Přichytávání"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
 msgid "Guides"
 msgstr "Vodítka"
 
@@ -31146,6 +31150,10 @@ msgstr "Stereoskopie"
 
 msgid "Auto-Masking"
 msgstr "Auto-Maska"
+
+
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
 
 
 msgid "Active Tool"
@@ -31170,30 +31178,6 @@ msgstr "Dutina"
 
 msgid "Overlays"
 msgstr "Překrytí"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Measurement"
-msgstr "Měření"
-
-
-msgid "Curve Edit Mode"
-msgstr "Editační Režim Křivky"
-
-
-msgid "Snapping"
-msgstr "Přichytávání"
-
-
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
 
 
 msgid "Chain Scaling"
@@ -32935,10 +32919,6 @@ msgstr "Povolit Záporné Snímky"
 
 msgid "Current frame number can be manually set to a negative value"
 msgstr "Aktuální snímek může být manuálně nastaven jako negativní číslo"
-
-
-msgid "New Point Cloud Type"
-msgstr "Nový Typ Bodového Mraku"
 
 
 msgid "Animation Player"
@@ -40552,6 +40532,11 @@ msgstr "Importovat OpenVDB..."
 
 
 msgctxt "Operator"
+msgid "Point Cloud"
+msgstr "Bodový Mrak"
+
+
+msgctxt "Operator"
 msgid "Speaker"
 msgstr "Reproduktor"
 
@@ -41012,11 +40997,6 @@ msgstr "Převalit doprava"
 msgctxt "Operator"
 msgid "Non Manifold"
 msgstr "Vybrat non-manifold"
-
-
-msgctxt "Operator"
-msgid "Point Cloud"
-msgstr "Bodový Mrak"
 
 
 msgctxt "Operator"
@@ -43915,6 +43895,10 @@ msgid "Glare"
 msgstr "Skrýt skryté soubory"
 
 
+msgid "Use feather information from the mask"
+msgstr "Zobrazit nastaveni hran"
+
+
 msgid "Dot"
 msgstr "Kvadratické"
 
@@ -44144,10 +44128,6 @@ msgstr "Platforma Npodporována"
 
 msgid "Pose Library"
 msgstr "Není knihovnou"
-
-
-msgid "English (English)"
-msgstr "Angličtina (English)"
 
 
 msgid "Japanese (日本語)"

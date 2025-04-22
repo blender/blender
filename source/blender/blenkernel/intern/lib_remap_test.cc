@@ -161,9 +161,9 @@ TEST(lib_remap, embedded_ids_can_not_be_remapped)
   Context<CompositorTestData> context;
   bNodeTree *other_tree = static_cast<bNodeTree *>(BKE_id_new_nomain(ID_NT, nullptr));
 
-  EXPECT_NE(context.test_data.scene, nullptr);
-  EXPECT_NE(context.test_data.compositor_nodetree, nullptr);
-  EXPECT_EQ(context.test_data.compositor_nodetree, context.test_data.scene->nodetree);
+  ASSERT_NE(context.test_data.scene, nullptr);
+  ASSERT_NE(context.test_data.compositor_nodetree, nullptr);
+  ASSERT_EQ(context.test_data.compositor_nodetree, context.test_data.scene->nodetree);
 
   BKE_libblock_remap(
       context.test_data.bmain, context.test_data.compositor_nodetree, other_tree, 0);
@@ -178,9 +178,9 @@ TEST(lib_remap, embedded_ids_can_not_be_deleted)
 {
   Context<CompositorTestData> context;
 
-  EXPECT_NE(context.test_data.scene, nullptr);
-  EXPECT_NE(context.test_data.compositor_nodetree, nullptr);
-  EXPECT_EQ(context.test_data.compositor_nodetree, context.test_data.scene->nodetree);
+  ASSERT_NE(context.test_data.scene, nullptr);
+  ASSERT_NE(context.test_data.compositor_nodetree, nullptr);
+  ASSERT_EQ(context.test_data.compositor_nodetree, context.test_data.scene->nodetree);
 
   BKE_libblock_remap(context.test_data.bmain,
                      context.test_data.compositor_nodetree,
@@ -201,8 +201,8 @@ TEST(lib_remap, delete_when_remap_to_self_not_allowed)
 {
   Context<TwoMeshesTestData> context;
 
-  EXPECT_NE(context.test_data.mesh, nullptr);
-  EXPECT_NE(context.test_data.other_mesh, nullptr);
+  ASSERT_NE(context.test_data.mesh, nullptr);
+  ASSERT_NE(context.test_data.other_mesh, nullptr);
   context.test_data.mesh->texcomesh = context.test_data.other_mesh;
 
   BKE_libblock_remap(
@@ -221,10 +221,10 @@ TEST(lib_remap, users_are_decreased_when_not_skipping_never_null)
 {
   Context<MeshObjectTestData> context;
 
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
-  EXPECT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
-  EXPECT_EQ(context.test_data.mesh->id.us, 1);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_EQ(context.test_data.object->data, context.test_data.mesh);
+  ASSERT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
+  ASSERT_EQ(context.test_data.mesh->id.us, 1);
 
   /* This is an invalid situation, test case tests this in between value until we have a better
    * solution. */
@@ -239,10 +239,10 @@ TEST(lib_remap, users_are_same_when_skipping_never_null)
 {
   Context<MeshObjectTestData> context;
 
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
-  EXPECT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
-  EXPECT_EQ(context.test_data.mesh->id.us, 1);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_EQ(context.test_data.object->data, context.test_data.mesh);
+  ASSERT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
+  ASSERT_EQ(context.test_data.mesh->id.us, 1);
 
   BKE_libblock_remap(
       context.test_data.bmain, context.test_data.mesh, nullptr, ID_REMAP_SKIP_NEVER_NULL_USAGE);
@@ -262,8 +262,8 @@ TEST(lib_remap, do_not_delete_when_cannot_unset)
 {
   Context<MeshObjectTestData> context;
 
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_EQ(context.test_data.object->data, context.test_data.mesh);
 
   BKE_libblock_remap(
       context.test_data.bmain, context.test_data.mesh, nullptr, ID_REMAP_SKIP_NEVER_NULL_USAGE);
@@ -275,8 +275,8 @@ TEST(lib_remap, force_never_null_usage)
 {
   Context<MeshObjectTestData> context;
 
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_EQ(context.test_data.object->data, context.test_data.mesh);
 
   BKE_libblock_remap(
       context.test_data.bmain, context.test_data.mesh, nullptr, ID_REMAP_FORCE_NEVER_NULL_USAGE);
@@ -287,9 +287,9 @@ TEST(lib_remap, never_null_usage_flag_not_requested_on_delete)
 {
   Context<MeshObjectTestData> context;
 
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
-  EXPECT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_EQ(context.test_data.object->data, context.test_data.mesh);
+  ASSERT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
 
   /* Never null usage isn't requested so the flag should not be set. */
   BKE_libblock_remap(
@@ -303,9 +303,9 @@ TEST(lib_remap, never_null_usage_storage_requested_on_delete)
 {
   Context<MeshObjectTestData> context;
 
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
-  EXPECT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_EQ(context.test_data.object->data, context.test_data.mesh);
+  ASSERT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
 
   /* Never null usage is requested so the owner ID (the Object) should be added to the set. */
   IDRemapper remapper;
@@ -327,9 +327,9 @@ TEST(lib_remap, never_null_usage_flag_not_requested_on_remap)
   Context<MeshObjectTestData> context;
   Mesh *other_mesh = BKE_mesh_add(context.test_data.bmain, nullptr);
 
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
-  EXPECT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_EQ(context.test_data.object->data, context.test_data.mesh);
+  ASSERT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
 
   /* Never null usage isn't requested so the flag should not be set. */
   BKE_libblock_remap(
@@ -343,9 +343,9 @@ TEST(lib_remap, never_null_usage_storage_requested_on_remap)
   Context<MeshObjectTestData> context;
   Mesh *other_mesh = BKE_mesh_add(context.test_data.bmain, nullptr);
 
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
-  EXPECT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_EQ(context.test_data.object->data, context.test_data.mesh);
+  ASSERT_EQ(context.test_data.object->id.tag & ID_TAG_DOIT, 0);
 
   /* Never null usage is requested, but the obdata is remapped to another Mesh, not to `nullptr`,
    * so the `never_null_users` set should remain empty. */

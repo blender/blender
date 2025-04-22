@@ -404,8 +404,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
     butal_array = butal_array_buf;
   }
   else {
-    butal_array = static_cast<ButAlign *>(
-        MEM_mallocN(sizeof(*butal_array) * num_buttons, __func__));
+    butal_array = MEM_malloc_arrayN<ButAlign>(num_buttons, __func__);
   }
   memset(butal_array, 0, sizeof(*butal_array) * size_t(num_buttons));
 

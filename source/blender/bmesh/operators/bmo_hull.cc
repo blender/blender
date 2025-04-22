@@ -192,8 +192,7 @@ static HullFinalEdges *hull_final_edges(BLI_mempool *hull_triangles)
 {
   HullFinalEdges *final_edges;
 
-  final_edges = static_cast<HullFinalEdges *>(
-      MEM_callocN(sizeof(HullFinalEdges), "HullFinalEdges"));
+  final_edges = MEM_callocN<HullFinalEdges>("HullFinalEdges");
   final_edges->edges = BLI_ghash_ptr_new("final edges ghash");
   final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 0, 128, BLI_MEMPOOL_NOP);
   final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 0, 128, BLI_MEMPOOL_NOP);
@@ -446,7 +445,7 @@ static BMVert **hull_verts_from_bullet(plConvexHull hull,
                                        const int num_input_verts)
 {
   const int num_verts = plConvexHullNumVertices(hull);
-  BMVert **hull_verts = static_cast<BMVert **>(MEM_mallocN(sizeof(*hull_verts) * num_verts, AT));
+  BMVert **hull_verts = MEM_malloc_arrayN<BMVert *>(num_verts, AT);
   int i;
 
   for (i = 0; i < num_verts; i++) {

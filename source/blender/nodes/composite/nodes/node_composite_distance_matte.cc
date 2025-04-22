@@ -30,12 +30,25 @@ NODE_STORAGE_FUNCS(NodeChroma)
 
 static void cmp_node_distance_matte_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_input<decl::Color>("Key Color")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(1);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Key Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Tolerance")
+      .default_value(0.1f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "If the distance between the color and the key color in the given color space is less "
+          "than this threshold, it is keyed");
+  b.add_input<decl::Float>("Falloff")
+      .default_value(0.1f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "If the distance between the color and the key color in the given color space is less "
+          "than this threshold, it is partially keyed, otherwise, it is not keyed");
+
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Matte");
 }
@@ -51,23 +64,10 @@ static void node_composit_init_distance_matte(bNodeTree * /*ntree*/, bNode *node
 
 static void node_composit_buts_distance_matte(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *col, *row;
-
-  col = uiLayoutColumn(layout, true);
-
   uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
-  row = uiLayoutRow(layout, false);
+  uiLayout *row = uiLayoutRow(layout, false);
   uiItemR(
       row, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-
-  uiItemR(col,
-          ptr,
-          "tolerance",
-          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          std::nullopt,
-          ICON_NONE);
-  uiItemR(
-      col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -77,42 +77,17 @@ static CMPNodeDistanceMatteColorSpace get_color_space(const bNode &node)
   return static_cast<CMPNodeDistanceMatteColorSpace>(node_storage(node).channel);
 }
 
-static float get_tolerance(const bNode &node)
-{
-  return node_storage(node).t1;
-}
-
-static float get_falloff(const bNode &node)
-{
-  return node_storage(node).t2;
-}
-
 static int node_gpu_material(GPUMaterial *material,
                              bNode *node,
                              bNodeExecData * /*execdata*/,
                              GPUNodeStack *inputs,
                              GPUNodeStack *outputs)
 {
-  const float tolerance = get_tolerance(*node);
-  const float falloff = get_falloff(*node);
-
   switch (get_color_space(*node)) {
     case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA:
-      return GPU_stack_link(material,
-                            node,
-                            "node_composite_distance_matte_rgba",
-                            inputs,
-                            outputs,
-                            GPU_uniform(&tolerance),
-                            GPU_uniform(&falloff));
+      return GPU_stack_link(material, node, "node_composite_distance_matte_rgba", inputs, outputs);
     case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA:
-      return GPU_stack_link(material,
-                            node,
-                            "node_composite_distance_matte_ycca",
-                            inputs,
-                            outputs,
-                            GPU_uniform(&tolerance),
-                            GPU_uniform(&falloff));
+      return GPU_stack_link(material, node, "node_composite_distance_matte_ycca", inputs, outputs);
   }
 
   return false;
@@ -156,31 +131,37 @@ static void distance_key_ycca(const float4 &color,
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  const float tolerance = get_tolerance(builder.node());
-  const float falloff = get_falloff(builder.node());
   const CMPNodeDistanceMatteColorSpace color_space = get_color_space(builder.node());
 
   switch (color_space) {
     case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA:
       builder.construct_and_set_matching_fn_cb([=]() {
-        return mf::build::SI2_SO2<float4, float4, float4, float>(
+        return mf::build::SI4_SO2<float4, float4, float, float, float4, float>(
             "Distance Key YCCA",
-            [=](const float4 &color, const float4 &key_color, float4 &output_color, float &matte)
-                -> void {
+            [=](const float4 &color,
+                const float4 &key_color,
+                const float &tolerance,
+                const float &falloff,
+                float4 &output_color,
+                float &matte) -> void {
               distance_key_ycca(color, key_color, tolerance, falloff, output_color, matte);
             },
-            mf::build::exec_presets::AllSpanOrSingle());
+            mf::build::exec_presets::SomeSpanOrSingle<0, 1>());
       });
       break;
     case CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA:
       builder.construct_and_set_matching_fn_cb([=]() {
-        return mf::build::SI2_SO2<float4, float4, float4, float>(
+        return mf::build::SI4_SO2<float4, float4, float, float, float4, float>(
             "Distance Key RGBA",
-            [=](const float4 &color, const float4 &key_color, float4 &output_color, float &matte)
-                -> void {
+            [=](const float4 &color,
+                const float4 &key_color,
+                const float &tolerance,
+                const float &falloff,
+                float4 &output_color,
+                float &matte) -> void {
               distance_key_rgba(color, key_color, tolerance, falloff, output_color, matte);
             },
-            mf::build::exec_presets::AllSpanOrSingle());
+            mf::build::exec_presets::SomeSpanOrSingle<0, 1>());
       });
       break;
   }

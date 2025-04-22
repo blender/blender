@@ -603,8 +603,7 @@ static wmOperatorStatus gizmo_dial_invoke(bContext * /*C*/, wmGizmo *gz, const w
     return OPERATOR_RUNNING_MODAL;
   }
 
-  DialInteraction *inter = static_cast<DialInteraction *>(
-      MEM_callocN(sizeof(DialInteraction), __func__));
+  DialInteraction *inter = MEM_callocN<DialInteraction>(__func__);
 
   inter->init.mval[0] = event->mval[0];
   inter->init.mval[1] = event->mval[1];

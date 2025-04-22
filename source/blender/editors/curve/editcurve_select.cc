@@ -1932,7 +1932,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
   } *data;
 
   /* init connectivity data */
-  data = static_cast<PointAdj *>(MEM_mallocN(sizeof(*data) * vert_num, __func__));
+  data = MEM_malloc_arrayN<PointAdj>(vert_num, __func__);
   for (int i = 0; i < vert_num; i++) {
     data[i].vert = i;
     data[i].vert_prev = -1;

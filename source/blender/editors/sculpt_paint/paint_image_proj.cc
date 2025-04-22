@@ -3895,8 +3895,7 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
     int *counter = MEM_calloc_arrayN<int>(ps->totvert_eval, "counter");
     float(*edges)[3] = static_cast<float(*)[3]>(
         MEM_callocN(sizeof(float[3]) * ps->totvert_eval, "edges"));
-    ps->cavities = static_cast<float *>(
-        MEM_mallocN(sizeof(float) * ps->totvert_eval, "ProjectPaint Cavities"));
+    ps->cavities = MEM_malloc_arrayN<float>(ps->totvert_eval, "ProjectPaint Cavities");
     cavities = ps->cavities;
 
     for (const int64_t i : ps->edges_eval.index_range()) {
@@ -3932,8 +3931,7 @@ static void proj_paint_state_seam_bleed_init(ProjPaintState *ps)
     ps->vertFaces = MEM_calloc_arrayN<LinkNode *>(ps->totvert_eval, "paint-vertFaces");
     ps->faceSeamFlags = MEM_calloc_arrayN<ushort>(ps->corner_tris_eval.size(), __func__);
     ps->faceWindingFlags = MEM_calloc_arrayN<char>(ps->corner_tris_eval.size(), __func__);
-    ps->loopSeamData = static_cast<LoopSeamData *>(
-        MEM_mallocN(sizeof(LoopSeamData) * ps->totloop_eval, "paint-loopSeamUVs"));
+    ps->loopSeamData = MEM_malloc_arrayN<LoopSeamData>(ps->totloop_eval, "paint-loopSeamUVs");
     ps->vertSeams = MEM_calloc_arrayN<ListBase>(ps->totvert_eval, "paint-vertSeams");
   }
 }
@@ -3957,8 +3955,7 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
 
   if (ps->is_shared_user == false) {
     if (ps->thread_tot > 1) {
-      ps->tile_lock = static_cast<SpinLock *>(
-          MEM_mallocN(sizeof(SpinLock), "projpaint_tile_lock"));
+      ps->tile_lock = MEM_mallocN<SpinLock>("projpaint_tile_lock");
       BLI_spin_init(ps->tile_lock);
     }
 
@@ -4647,14 +4644,15 @@ static void project_paint_end(ProjPaintState *ps)
     /* must be set for non-shared */
     BLI_assert(ps->poly_to_loop_uv || ps->is_shared_user);
     if (ps->poly_to_loop_uv) {
-      MEM_freeN((void *)ps->poly_to_loop_uv);
+      MEM_freeN(ps->poly_to_loop_uv);
     }
 
     if (ps->do_layer_clone) {
-      MEM_freeN((void *)ps->poly_to_loop_uv_clone);
+      MEM_freeN(ps->poly_to_loop_uv_clone);
     }
     if (ps->thread_tot > 1) {
       BLI_spin_end(ps->tile_lock);
+      /* The void cast is needed when building without TBB. */
       MEM_freeN((void *)ps->tile_lock);
     }
 

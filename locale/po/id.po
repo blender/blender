@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:25+0000\n"
 "Last-Translator: Muhammad Jayadi Anwar <muhajayaanwar@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15082,6 +15082,18 @@ msgid "Mask"
 msgstr "Masker"
 
 
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
@@ -15132,18 +15144,6 @@ msgstr "Menggabungkan"
 
 msgid "Text"
 msgstr "Teks"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
 
 
 msgctxt "MovieClip"
@@ -17304,20 +17304,8 @@ msgid "Contrast Limit"
 msgstr "Batas Kontras"
 
 
-msgid "How much to eliminate spurious edges to avoid artifacts (the larger value makes less active; the value 2.0, for example, means discard a detected edge if there is a neighboring edge that has 2.0 times bigger contrast than the current one)"
-msgstr "Seberapa banyak untuk menghilangkan tepi palsu untuk menghindari artefak (nilai yang lebih besar membuat kurang aktif; nilai 2.0, misalnya, berarti membuang tepi yang terdeteksi jika ada tepi tetangga yang memiliki kontras 2.0 kali lebih besar dari yang sekarang)"
-
-
 msgid "Corner Rounding"
 msgstr "Pembulatan Pojok"
-
-
-msgid "How much sharp corners will be rounded"
-msgstr "Seberapa besar pojok tajam akan dibulatkan"
-
-
-msgid "Threshold to detect edges (smaller threshold makes more sensitive detection)"
-msgstr "Ambang batas untuk mendeteksi tepi (ambang batas yang lebih kecil membuat deteksi lebih sensitif)"
 
 
 msgid "Bilateral Blur"
@@ -18026,14 +18014,6 @@ msgid "Neighbor"
 msgstr "Tetangga"
 
 
-msgid "Threshold for the number of neighbor pixels that must match"
-msgstr "Batas untuk jumlah pixel tetangga yang harus cocok"
-
-
-msgid "Edge to inset"
-msgstr "Tepi ke inset"
-
-
 msgid "Feather"
 msgstr "Bulu"
 
@@ -18191,16 +18171,8 @@ msgid "Use Minimum"
 msgstr "Gunakan Minimum"
 
 
-msgid "Number of motion blur samples"
-msgstr "Jumlah sampel buram gerakan"
-
-
 msgid "Shutter"
 msgstr "Shutter"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "Pencahayaan untuk buram gerakan sebagai faktor FPS"
 
 
 msgid "Size Source"
@@ -18215,16 +18187,8 @@ msgid "Fixed/Scene"
 msgstr "Tetap/Adegan"
 
 
-msgid "Use feather information from the mask"
-msgstr "Gunakan informasi bulu dari masker"
-
-
 msgid "Motion Blur"
 msgstr "Buram Gerakan"
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "Menggunakan buram gerakan multi-sampel pada masker"
 
 
 msgid "A + B"
@@ -18360,6 +18324,18 @@ msgid "EXR Layer Slots"
 msgstr "Slot Layer EXR"
 
 
+msgid "Number of motion blur samples"
+msgstr "Jumlah sampel buram gerakan"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "Pencahayaan untuk buram gerakan sebagai faktor FPS"
+
+
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "Menggunakan buram gerakan multi-sampel pada masker"
+
+
 msgid "To Straight"
 msgstr "Ke Lurus"
 
@@ -18452,16 +18428,8 @@ msgid "Max Speed"
 msgstr "Kecepatan Maks"
 
 
-msgid "Maximum speed, or zero for none"
-msgstr "Kecepatan maksimum, atau nol untuk kosong"
-
-
 msgid "Min Speed"
 msgstr "Kecepatan Min"
-
-
-msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
-msgstr "Kecepatan minimum untuk sebuah pixel diburamkan (digunakan untuk memisahkan latar belakang dari latar depan)"
 
 
 msgid "Viewer"
@@ -25358,12 +25326,12 @@ msgid "Restrict painting to vertices in the group"
 msgstr "Membatasi lukisan ke simpul di kelompok"
 
 
-msgid "Wire Color"
-msgstr "Warna Kabel"
-
-
 msgid "Snapping"
 msgstr "Gertakan"
+
+
+msgid "Wire Color"
+msgstr "Warna Kabel"
 
 
 msgid "Custom Shape"
@@ -29281,11 +29249,6 @@ msgstr "Contoh ke Adegan"
 
 
 msgctxt "Operator"
-msgid "ID Data"
-msgstr "Data ID"
-
-
-msgctxt "Operator"
 msgid "Paste Data-Blocks"
 msgstr "Tempel Data-Blok"
 
@@ -31834,6 +31797,10 @@ msgid "Glare"
 msgstr "Kesilauan"
 
 
+msgid "Use feather information from the mask"
+msgstr "Gunakan informasi bulu dari masker"
+
+
 msgid "Dot"
 msgstr "Titik"
 
@@ -32414,10 +32381,6 @@ msgstr "Pemahatan"
 
 msgid "Import-Export"
 msgstr "Impor-Ekspor"
-
-
-msgid "English (English)"
-msgstr "Inggris (English)"
 
 
 msgid "Japanese (日本語)"

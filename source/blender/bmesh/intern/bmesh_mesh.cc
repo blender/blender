@@ -132,7 +132,7 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
 BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const BMeshCreateParams *params)
 {
   /* allocate the structure */
-  BMesh *bm = static_cast<BMesh *>(MEM_callocN(sizeof(BMesh), __func__));
+  BMesh *bm = MEM_callocN<BMesh>(__func__);
 
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, allocsize, params->use_toolflags);
@@ -248,7 +248,7 @@ void BM_mesh_clear(BMesh *bm)
 
   /* free old mesh */
   BM_mesh_data_free(bm);
-  memset(bm, 0, sizeof(BMesh));
+  *bm = BMesh{};
 
   /* allocate the memory pools for the mesh elements */
   bm_mempool_init(bm, &bm_mesh_allocsize_default, use_toolflags);
@@ -768,11 +768,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
     /* Make a copy of all vertices. */
     verts_pool = bm->vtable;
-    verts_copy = static_cast<BMVert *>(
-        MEM_mallocN(sizeof(BMVert) * totvert, "BM_mesh_remap verts copy"));
-    void **pyptrs = (cd_vert_pyptr != -1) ?
-                        static_cast<void **>(MEM_mallocN(sizeof(void *) * totvert, __func__)) :
-                        nullptr;
+    verts_copy = MEM_malloc_arrayN<BMVert>(totvert, "BM_mesh_remap verts copy");
+    void **pyptrs = (cd_vert_pyptr != -1) ? MEM_malloc_arrayN<void *>(totvert, __func__) : nullptr;
     for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--;
          ve--, vep--)
     {
@@ -825,11 +822,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
     /* Make a copy of all vertices. */
     edges_pool = bm->etable;
-    edges_copy = static_cast<BMEdge *>(
-        MEM_mallocN(sizeof(BMEdge) * totedge, "BM_mesh_remap edges copy"));
-    void **pyptrs = (cd_edge_pyptr != -1) ?
-                        static_cast<void **>(MEM_mallocN(sizeof(void *) * totedge, __func__)) :
-                        nullptr;
+    edges_copy = MEM_malloc_arrayN<BMEdge>(totedge, "BM_mesh_remap edges copy");
+    void **pyptrs = (cd_edge_pyptr != -1) ? MEM_malloc_arrayN<void *>(totedge, __func__) : nullptr;
     for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--;
          ed--, edp--)
     {
@@ -881,11 +875,8 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
     /* Make a copy of all vertices. */
     faces_pool = bm->ftable;
-    faces_copy = static_cast<BMFace *>(
-        MEM_mallocN(sizeof(BMFace) * totface, "BM_mesh_remap faces copy"));
-    void **pyptrs = (cd_poly_pyptr != -1) ?
-                        static_cast<void **>(MEM_mallocN(sizeof(void *) * totface, __func__)) :
-                        nullptr;
+    faces_copy = MEM_malloc_arrayN<BMFace>(totface, "BM_mesh_remap faces copy");
+    void **pyptrs = (cd_poly_pyptr != -1) ? MEM_malloc_arrayN<void *>(totface, __func__) : nullptr;
     for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--;
          fa--, fap--)
     {
@@ -1053,17 +1044,13 @@ void BM_mesh_rebuild(BMesh *bm,
   const char remap = (vpool_dst ? BM_VERT : 0) | (epool_dst ? BM_EDGE : 0) |
                      (lpool_dst ? BM_LOOP : 0) | (fpool_dst ? BM_FACE : 0);
 
-  BMVert **vtable_dst = (remap & BM_VERT) ? static_cast<BMVert **>(MEM_mallocN(
-                                                sizeof(BMVert *) * bm->totvert, __func__)) :
+  BMVert **vtable_dst = (remap & BM_VERT) ? MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__) :
                                             nullptr;
-  BMEdge **etable_dst = (remap & BM_EDGE) ? static_cast<BMEdge **>(MEM_mallocN(
-                                                sizeof(BMEdge *) * bm->totedge, __func__)) :
+  BMEdge **etable_dst = (remap & BM_EDGE) ? MEM_malloc_arrayN<BMEdge *>(bm->totedge, __func__) :
                                             nullptr;
-  BMLoop **ltable_dst = (remap & BM_LOOP) ? static_cast<BMLoop **>(MEM_mallocN(
-                                                sizeof(BMLoop *) * bm->totloop, __func__)) :
+  BMLoop **ltable_dst = (remap & BM_LOOP) ? MEM_malloc_arrayN<BMLoop *>(bm->totloop, __func__) :
                                             nullptr;
-  BMFace **ftable_dst = (remap & BM_FACE) ? static_cast<BMFace **>(MEM_mallocN(
-                                                sizeof(BMFace *) * bm->totface, __func__)) :
+  BMFace **ftable_dst = (remap & BM_FACE) ? MEM_malloc_arrayN<BMFace *>(bm->totface, __func__) :
                                             nullptr;
 
   const bool use_toolflags = params->use_toolflags;

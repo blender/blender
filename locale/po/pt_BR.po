@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21440,12 +21440,52 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
 
 
 msgid "Select More/Less"
 msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
 
 
 msgid "Select Linked"
@@ -21572,48 +21612,8 @@ msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
-msgid "Snap"
-msgstr "Atrair"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
 
 
 msgid "Basic"
@@ -27753,16 +27753,8 @@ msgid "Despeckle"
 msgstr "Remover granulação e manchas"
 
 
-msgid "Threshold for detecting pixels to despeckle"
-msgstr "Ajustes para detectar pixeis para remoção de granulação e manchas."
-
-
 msgid "Neighbor"
 msgstr "Avizinhar"
-
-
-msgid "Threshold for the number of neighbor pixels that must match"
-msgstr "Ajuste para o número de pixeis próximos que devem combinar por avizinhamento."
 
 
 msgid "Difference Key"
@@ -27779,14 +27771,6 @@ msgstr "Distância de cores abaixo da qual este ajuste estará chaveado."
 
 msgid "Dilate/Erode"
 msgstr "Dilatar ou erodir"
-
-
-msgid "Distance to grow/shrink (number of iterations)"
-msgstr "Distância para dilatar e / ou erodir (número de interações)."
-
-
-msgid "Edge to inset"
-msgstr "Arestas para insertar nas dilatações e / ou erosões"
 
 
 msgid "Growing/shrinking mode"
@@ -27969,10 +27953,6 @@ msgid "Inpaint"
 msgstr "Pintura interna"
 
 
-msgid "Distance to inpaint (number of iterations)"
-msgstr "Distância para pintura interna (número de interações)."
-
-
 msgid "Post Blur"
 msgstr "Pós desfocagem"
 
@@ -28138,16 +28118,8 @@ msgid "Use Minimum"
 msgstr "Usar mínimo"
 
 
-msgid "Number of motion blur samples"
-msgstr "Número de amostras para desfoque de movimento."
-
-
 msgid "Shutter"
 msgstr "Obturador"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "Exposição para desfoque de movimento como um fator de quadros por segundo."
 
 
 msgid "Size Source"
@@ -28174,16 +28146,8 @@ msgid "Pixel size scaled by scene percentage"
 msgstr "O tamanho dos pixeis da máscara serão escalonados de maneira absoluta para combinar com a porcentagem da cena."
 
 
-msgid "Use feather information from the mask"
-msgstr "Usa a informação das splines das plumas a partir da máscara."
-
-
 msgid "Motion Blur"
 msgstr "Desfoque de movimento"
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "Usa o desfoque de movimento por múltiplas amostragens para a máscara."
 
 
 msgid "A + B"
@@ -28270,6 +28234,18 @@ msgid "Plane Track Deform"
 msgstr "Deformação de rastreamento de plano"
 
 
+msgid "Number of motion blur samples"
+msgstr "Número de amostras para desfoque de movimento."
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "Exposição para desfoque de movimento como um fator de quadros por segundo."
+
+
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "Usa o desfoque de movimento por múltiplas amostragens para a máscara."
+
+
 msgid "Posterize"
 msgstr "Posterizar"
 
@@ -28350,10 +28326,6 @@ msgid "Switch"
 msgstr "Alternar"
 
 
-msgid "Off: first socket, On: second socket"
-msgstr "Desligado: primeiro conector, Ligado: segundo conector."
-
-
 msgid "Node Output"
 msgstr "Nós de saída"
 
@@ -28372,34 +28344,6 @@ msgstr "Mapa de tonalidade"
 
 msgid "Adaptation"
 msgstr "Adaptação"
-
-
-msgid "If 0, global; if 1, based on pixel intensity"
-msgstr "Valor zero significa global. Valor igual a um, adaptação com base na intensidade dos pixeis."
-
-
-msgid "Set to 0 to use estimate from input image"
-msgstr "Defina para zero para usar uma estimativa a partir da imagem de entrada."
-
-
-msgid "If 0, same for all channels; if 1, each independent"
-msgstr "Em caso de valor zero, o mesmo valor será usado para todos os canais. Em caso de valor um, cada canal será independente."
-
-
-msgid "If not used, set to 1"
-msgstr "Caso não usado, configure para o valor de 1.0."
-
-
-msgid "If less than zero, darkens image; otherwise, makes it brighter"
-msgstr "Caso menor que zero, escurece a imagem, caso contrário, a torna mais brilhante."
-
-
-msgid "The value the average luminance is mapped to"
-msgstr "O valor no qual a média de luminância está mapeada."
-
-
-msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
-msgstr "Normalmente sempre 1, mas pode ser usado como um controle extra para alterar a curva de brilho."
 
 
 msgid "Tonemap Type"
@@ -28486,24 +28430,12 @@ msgid "Blur Factor"
 msgstr "Fator de desfoque"
 
 
-msgid "Scaling factor for motion vectors (actually, 'shutter speed', in frames)"
-msgstr "Fator de escala para vetores de movimento (atualmente, a \"velocidade do obturador\", em quadros)."
-
-
 msgid "Max Speed"
 msgstr "Velocidade máxima"
 
 
-msgid "Maximum speed, or zero for none"
-msgstr "Velocidade máxima, ou zero para nenhuma."
-
-
 msgid "Min Speed"
 msgstr "Velocidade mínima"
-
-
-msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
-msgstr "Velocidade mínima para que um pixel seja desfocado (usado para separar o plano frontal do plano de fundo)."
 
 
 msgid "Viewer"
@@ -28516,10 +28448,6 @@ msgstr "Combinar Z"
 
 msgid "Anti-Alias Z"
 msgstr "Antisserrilhamento em Z"
-
-
-msgid "Anti-alias the z-buffer to try to avoid artifacts, mostly useful for Blender renders"
-msgstr "Usa antisserrilhamento no buffer Z para tentar evitar artefatos, mais útil para renderizações com o motor interno Blender."
 
 
 msgid "Pivot Axis"
@@ -50182,6 +50110,10 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
@@ -50190,20 +50122,16 @@ msgid "Stereoscopy"
 msgstr "Estereoscopia"
 
 
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
 msgid "Wire Color"
 msgstr "Cor dos cabos"
 
 
 msgid "Render Pass"
 msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
 
 
 msgid "Bone Constraints"
@@ -58759,6 +58687,34 @@ msgid "Tone mapping modifier"
 msgstr "Modificador de mapa de tonalidades."
 
 
+msgid "If 0, global; if 1, based on pixel intensity"
+msgstr "Valor zero significa global. Valor igual a um, adaptação com base na intensidade dos pixeis."
+
+
+msgid "Set to 0 to use estimate from input image"
+msgstr "Defina para zero para usar uma estimativa a partir da imagem de entrada."
+
+
+msgid "If 0, same for all channels; if 1, each independent"
+msgstr "Em caso de valor zero, o mesmo valor será usado para todos os canais. Em caso de valor um, cada canal será independente."
+
+
+msgid "If not used, set to 1"
+msgstr "Caso não usado, configure para o valor de 1.0."
+
+
+msgid "If less than zero, darkens image; otherwise, makes it brighter"
+msgstr "Caso menor que zero, escurece a imagem, caso contrário, a torna mais brilhante."
+
+
+msgid "The value the average luminance is mapped to"
+msgstr "O valor no qual a média de luminância está mapeada."
+
+
+msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
+msgstr "Normalmente sempre 1, mas pode ser usado como um controle extra para alterar a curva de brilho."
+
+
 msgid "Tone mapping algorithm"
 msgstr "Algoritmo de mapeamento de tonalidade."
 
@@ -63280,11 +63236,6 @@ msgstr "Habilitar no Render"
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "Instância para Cena"
-
-
-msgctxt "Operator"
-msgid "ID Data"
-msgstr "Dados do ID"
 
 
 msgid "Empties"
@@ -70005,6 +69956,10 @@ msgid "Streak fade-out factor"
 msgstr "Fator de saída para o esmaecimento das listras."
 
 
+msgid "Use feather information from the mask"
+msgstr "Usa a informação das splines das plumas a partir da máscara."
+
+
 msgid "Dot"
 msgstr "Ponto"
 
@@ -70621,10 +70576,6 @@ msgstr "Todos os complementos instalados pelo usuário"
 
 msgid "Import-Export"
 msgstr "Importar e exportar"
-
-
-msgid "English (English)"
-msgstr "Inglês (English)"
 
 
 msgid "Japanese (日本語)"

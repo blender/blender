@@ -2158,7 +2158,7 @@ int BM_mesh_calc_face_groups(BMesh *bm,
   bm->elem_index_dirty &= ~BM_FACE;
 
   /* detect groups */
-  stack = static_cast<BMFace **>(MEM_mallocN(sizeof(*stack) * tot_faces, __func__));
+  stack = MEM_malloc_arrayN<BMFace *>(tot_faces, __func__);
 
   f_next = static_cast<BMFace *>(BM_iter_new(&iter, bm, BM_FACES_OF_MESH, nullptr));
 
@@ -2310,7 +2310,7 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
   bm->elem_index_dirty &= ~BM_EDGE;
 
   /* detect groups */
-  stack = static_cast<BMEdge **>(MEM_mallocN(sizeof(*stack) * tot_edges, __func__));
+  stack = MEM_malloc_arrayN<BMEdge *>(tot_edges, __func__);
 
   e_next = static_cast<BMEdge *>(BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, nullptr));
 
@@ -2388,14 +2388,14 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
 int BM_mesh_calc_edge_groups_as_arrays(
     BMesh *bm, BMVert **verts, BMEdge **edges, BMFace **faces, int (**r_groups)[3])
 {
-  int(*groups)[3] = static_cast<int(*)[3]>(MEM_mallocN(sizeof(*groups) * bm->totvert, __func__));
+  int(*groups)[3] = MEM_malloc_arrayN<int[3]>(bm->totvert, __func__);
   STACK_DECLARE(groups);
   STACK_INIT(groups, bm->totvert);
 
   /* Clear all selected vertices */
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
-  BMVert **stack = static_cast<BMVert **>(MEM_mallocN(sizeof(*stack) * bm->totvert, __func__));
+  BMVert **stack = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
   STACK_DECLARE(stack);
   STACK_INIT(stack, bm->totvert);
 

@@ -533,7 +533,7 @@ static wmOperatorStatus find_missing_files_exec(bContext *C, wmOperator *op)
   const bool find_all = RNA_boolean_get(op->ptr, "find_all");
 
   BKE_bpath_missing_files_find(bmain, searchpath, op->reports, find_all);
-  MEM_freeN((void *)searchpath);
+  MEM_freeN(searchpath);
   /* Redraw sequencer since media presence cache might have changed. */
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 

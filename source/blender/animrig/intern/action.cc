@@ -1021,9 +1021,8 @@ Slot::Slot()
   this->runtime = MEM_new<SlotRuntime>(__func__);
 }
 
-Slot::Slot(const Slot &other)
+Slot::Slot(const Slot &other) : ActionSlot(other)
 {
-  memcpy(this, &other, sizeof(*this));
   this->runtime = MEM_new<SlotRuntime>(__func__);
 }
 
@@ -1633,7 +1632,7 @@ Strip &Strip::create(Action &owning_action, const Strip::Type type)
 {
   /* Create the strip. */
   ActionStrip *strip = MEM_callocN<ActionStrip>(__func__);
-  memcpy(strip, DNA_struct_default_get(ActionStrip), sizeof(*strip));
+  *strip = *DNA_struct_default_get(ActionStrip);
   strip->strip_type = int8_t(type);
 
   /* Create the strip's data on the owning Action. */
@@ -1707,9 +1706,8 @@ void Strip::slot_data_remove(Action &owning_action, const slot_handle_t slot_han
 /* ----- ActionStripKeyframeData implementation ----------- */
 
 StripKeyframeData::StripKeyframeData(const StripKeyframeData &other)
+    : ActionStripKeyframeData(other)
 {
-  memcpy(this, &other, sizeof(*this));
-
   this->channelbag_array = MEM_calloc_arrayN<ActionChannelbag *>(other.channelbag_array_num,
                                                                  __func__);
   Span<const Channelbag *> channelbags_src = other.channelbags();

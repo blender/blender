@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e1163bf1330a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 10:01+0000\n"
+"POT-Creation-Date: 2025-04-21 07:54+0000\n"
 "PO-Revision-Date: 2025-04-14 08:48+0000\n"
 "Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22575,8 +22575,48 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
 msgid "Select More/Less"
 msgstr "選取更多/更少"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
 
 
 msgid "Select Linked"
@@ -22715,10 +22755,6 @@ msgid "Pivot Point"
 msgstr "樞紐點"
 
 
-msgid "Snap"
-msgstr "吸附"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "比例化編輯衰落"
 
@@ -22729,42 +22765,6 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
 
 
 msgid "Basic"
@@ -28833,16 +28833,8 @@ msgid "Despeckle"
 msgstr "去斑點"
 
 
-msgid "Threshold for detecting pixels to despeckle"
-msgstr "偵測要去斑點的像素閾值"
-
-
 msgid "Neighbor"
 msgstr "鄰接"
-
-
-msgid "Threshold for the number of neighbor pixels that must match"
-msgstr "一定相符的鄰接像素數閾值"
 
 
 msgid "Difference Key"
@@ -28861,17 +28853,9 @@ msgid "Dilate/Erode"
 msgstr "膨脹/腐蝕"
 
 
-msgid "Distance to grow/shrink (number of iterations)"
-msgstr "增大/縮小的距離 (迭代次數)"
-
-
 msgctxt "Image"
 msgid "Edge"
 msgstr "邊線"
-
-
-msgid "Edge to inset"
-msgstr "要內嵌的邊線"
 
 
 msgid "Growing/shrinking mode"
@@ -29056,10 +29040,6 @@ msgstr "將節點輸出緩衝放到 alpha 直出模式而不是 alpha 預乘模�
 
 msgid "Inpaint"
 msgstr "內繪"
-
-
-msgid "Distance to inpaint (number of iterations)"
-msgstr "內繪的距離 (迭代次數)"
 
 
 msgid "Post Blur"
@@ -29258,16 +29238,8 @@ msgid "Use Minimum"
 msgstr "使用最小值"
 
 
-msgid "Number of motion blur samples"
-msgstr "運動模糊的樣本數"
-
-
 msgid "Shutter"
 msgstr "快門"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "運動模糊作為 FPS 因子的曝光"
 
 
 msgid "Size Source"
@@ -29292,10 +29264,6 @@ msgstr "固定/場景"
 
 msgid "Pixel size scaled by scene percentage"
 msgstr "依場景百分比縮放的像素大小"
-
-
-msgid "Use feather information from the mask"
-msgstr "使用來自遮罩的羽毛資訊"
 
 
 msgid "Motion Blur"
@@ -29598,6 +29566,14 @@ msgid "Plane Track Deform"
 msgstr "平面軌道變形"
 
 
+msgid "Number of motion blur samples"
+msgstr "運動模糊的樣本數"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "運動模糊作為 FPS 因子的曝光"
+
+
 msgid "Posterize"
 msgstr "色調分離"
 
@@ -29682,10 +29658,6 @@ msgid "Switch"
 msgstr "切換"
 
 
-msgid "Off: first socket, On: second socket"
-msgstr "關：第一個接口，開：第二個接口"
-
-
 msgid "Node Output"
 msgstr "節點輸出"
 
@@ -29700,34 +29672,6 @@ msgstr "色調映射"
 
 msgid "Adaptation"
 msgstr "適應"
-
-
-msgid "If 0, global; if 1, based on pixel intensity"
-msgstr "如果 0，為全域；如果 1，便基於像素強度"
-
-
-msgid "Set to 0 to use estimate from input image"
-msgstr "設定為 0 從輸入影像評估"
-
-
-msgid "If 0, same for all channels; if 1, each independent"
-msgstr "如果 0，所有通道都相同；如果 1，各個獨立"
-
-
-msgid "If not used, set to 1"
-msgstr "如果不使用，設為 1"
-
-
-msgid "If less than zero, darkens image; otherwise, makes it brighter"
-msgstr "如果小於 0，會加深影像；否則會變亮"
-
-
-msgid "The value the average luminance is mapped to"
-msgstr "平均輝度映射的值"
-
-
-msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
-msgstr "一般總是 1，但可以作為更改亮度曲線的額外控制"
 
 
 msgid "Tonemap Type"
@@ -29810,24 +29754,12 @@ msgid "Blur Factor"
 msgstr "模糊係數"
 
 
-msgid "Scaling factor for motion vectors (actually, 'shutter speed', in frames)"
-msgstr "運動向量的縮放係數 (實際為「快門速度」，單位為幀)"
-
-
 msgid "Max Speed"
 msgstr "最大速度"
 
 
-msgid "Maximum speed, or zero for none"
-msgstr "最大速度，或 0 為無速度"
-
-
 msgid "Min Speed"
 msgstr "最小速度"
-
-
-msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
-msgstr "像素轉為模糊的最小速度 (用來將背景從前景分離出來)"
 
 
 msgid "Viewer"
@@ -49958,6 +49890,26 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Measurement"
+msgstr "測量"
+
+
+msgid "Snapping"
+msgstr "吸附"
+
+
+msgid "Transform Orientations"
+msgstr "變換方向"
+
+
+msgid "Stroke Placement"
+msgstr "筆觸放置"
+
+
+msgid "Drawing Plane"
+msgstr "描繪平面"
+
+
 msgid "Quad View"
 msgstr "四格檢視"
 
@@ -49974,8 +49926,8 @@ msgid "Auto-Masking"
 msgstr "自動遮罩"
 
 
-msgid "Drawing Plane"
-msgstr "描繪平面"
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
 
 
 msgid "VR"
@@ -50008,26 +49960,6 @@ msgstr "疊層"
 
 msgid "Viewer Node"
 msgstr "檢視器節點"
-
-
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Measurement"
-msgstr "測量"
-
-
-msgid "Snapping"
-msgstr "吸附"
-
-
-msgid "Transform Orientations"
-msgstr "變換方向"
-
-
-msgid "Stroke Placement"
-msgstr "筆觸放置"
 
 
 msgid "Chain Scaling"
@@ -58588,6 +58520,34 @@ msgstr "序段片段的 RGB 曲線修改器"
 
 msgid "Hue correction modifier for sequence strip"
 msgstr "序段片段的色相校正修改器"
+
+
+msgid "If 0, global; if 1, based on pixel intensity"
+msgstr "如果 0，為全域；如果 1，便基於像素強度"
+
+
+msgid "Set to 0 to use estimate from input image"
+msgstr "設定為 0 從輸入影像評估"
+
+
+msgid "If 0, same for all channels; if 1, each independent"
+msgstr "如果 0，所有通道都相同；如果 1，各個獨立"
+
+
+msgid "If not used, set to 1"
+msgstr "如果不使用，設為 1"
+
+
+msgid "If less than zero, darkens image; otherwise, makes it brighter"
+msgstr "如果小於 0，會加深影像；否則會變亮"
+
+
+msgid "The value the average luminance is mapped to"
+msgstr "平均輝度映射的值"
+
+
+msgid "Normally always 1, but can be used as an extra control to alter the brightness curve"
+msgstr "一般總是 1，但可以作為更改亮度曲線的額外控制"
 
 
 msgid "Proxy parameters for a sequence strip"
@@ -72473,6 +72433,10 @@ msgid "To Max"
 msgstr "到最大"
 
 
+msgid "Use feather information from the mask"
+msgstr "使用來自遮罩的羽毛資訊"
+
+
 msgid "Offset Y"
 msgstr "偏移 Y"
 
@@ -73713,10 +73677,6 @@ msgstr "燈光"
 
 msgid "network"
 msgstr "網路"
-
-
-msgid "English (English)"
-msgstr "英文 (English)"
 
 
 msgid "Japanese (日本語)"

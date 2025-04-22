@@ -173,8 +173,8 @@ static const char *zstd_ensure_cache(ZstdReader *zstd, int frame)
   size_t uncompressed_size = zstd->seek.uncompressed_ofs[frame + 1] -
                              zstd->seek.uncompressed_ofs[frame];
 
-  char *uncompressed_data = static_cast<char *>(MEM_mallocN(uncompressed_size, __func__));
-  char *compressed_data = static_cast<char *>(MEM_mallocN(compressed_size, __func__));
+  char *uncompressed_data = MEM_malloc_arrayN<char>(uncompressed_size, __func__);
+  char *compressed_data = MEM_malloc_arrayN<char>(compressed_size, __func__);
   if (zstd->base->seek(zstd->base, zstd->seek.compressed_ofs[frame], SEEK_SET) < 0 ||
       zstd->base->read(zstd->base, compressed_data, compressed_size) < compressed_size)
   {
@@ -292,7 +292,7 @@ static void zstd_close(FileReader *reader)
     }
   }
   else {
-    MEM_freeN((void *)zstd->in_buf.src);
+    MEM_freeN(const_cast<void *>(zstd->in_buf.src));
   }
 
   zstd->base->close(zstd->base);

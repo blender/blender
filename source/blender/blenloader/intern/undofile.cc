@@ -40,7 +40,7 @@ void BLO_memfile_free(MemFile *memfile)
 {
   while (MemFileChunk *chunk = static_cast<MemFileChunk *>(BLI_pophead(&memfile->chunks))) {
     if (chunk->is_identical == false) {
-      MEM_freeN((void *)chunk->buf);
+      MEM_freeN(chunk->buf);
     }
     MEM_freeN(chunk);
   }
@@ -157,7 +157,7 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
 
   /* not equal... */
   if (curchunk->buf == nullptr) {
-    char *buf_new = static_cast<char *>(MEM_mallocN(size, "Chunk buffer"));
+    char *buf_new = MEM_malloc_arrayN<char>(size, "Chunk buffer");
     memcpy(buf_new, buf, size);
     curchunk->buf = buf_new;
     memfile->size += size;

@@ -984,7 +984,7 @@ static const char *rna_ui_get_enum_name(bContext *C,
       name = items[index].name;
     }
     if (free) {
-      MEM_freeN((void *)items);
+      MEM_freeN(items);
     }
   }
 
@@ -1016,7 +1016,7 @@ static const char *rna_ui_get_enum_description(bContext *C,
       desc = items[index].description;
     }
     if (free) {
-      MEM_freeN((void *)items);
+      MEM_freeN(items);
     }
   }
 
@@ -1048,7 +1048,7 @@ static int rna_ui_get_enum_icon(bContext *C,
       icon = items[index].icon;
     }
     if (free) {
-      MEM_freeN((void *)items);
+      MEM_freeN(items);
     }
   }
 
