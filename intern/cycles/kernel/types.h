@@ -70,72 +70,71 @@ CCL_NAMESPACE_BEGIN
 // NOLINTEND
 
 /* Kernel Features */
+/* NOTE: Keep kernel features as defines as they are used by the preprocessor to do compile time
+ * optimization while using adaptive kernel compilation. */
 
 /* Shader nodes. */
-enum {
-  KERNEL_FEATURE_NODE_BSDF = (1U << 0U),
-  KERNEL_FEATURE_NODE_EMISSION = (1U << 1U),
-  KERNEL_FEATURE_NODE_VOLUME = (1U << 2U),
-  KERNEL_FEATURE_NODE_BUMP = (1U << 3U),
-  KERNEL_FEATURE_NODE_BUMP_STATE = (1U << 4U),
-  KERNEL_FEATURE_NODE_VORONOI_EXTRA = (1U << 5U),
-  KERNEL_FEATURE_NODE_RAYTRACE = (1U << 6U),
-  KERNEL_FEATURE_NODE_AOV = (1U << 7U),
-  KERNEL_FEATURE_NODE_LIGHT_PATH = (1U << 8U),
-  KERNEL_FEATURE_NODE_PRINCIPLED_HAIR = (1U << 9U),
+#define KERNEL_FEATURE_NODE_BSDF (1U << 0U)
+#define KERNEL_FEATURE_NODE_EMISSION (1U << 1U)
+#define KERNEL_FEATURE_NODE_VOLUME (1U << 2U)
+#define KERNEL_FEATURE_NODE_BUMP (1U << 3U)
+#define KERNEL_FEATURE_NODE_BUMP_STATE (1U << 4U)
+#define KERNEL_FEATURE_NODE_VORONOI_EXTRA (1U << 5U)
+#define KERNEL_FEATURE_NODE_RAYTRACE (1U << 6U)
+#define KERNEL_FEATURE_NODE_AOV (1U << 7U)
+#define KERNEL_FEATURE_NODE_LIGHT_PATH (1U << 8U)
+#define KERNEL_FEATURE_NODE_PRINCIPLED_HAIR (1U << 9U)
 
-  /* Use path tracing kernels. */
-  KERNEL_FEATURE_PATH_TRACING = (1U << 10U),
+/* Use path tracing kernels. */
+#define KERNEL_FEATURE_PATH_TRACING (1U << 10U)
 
-  /* BVH/sampling kernel features. */
-  KERNEL_FEATURE_POINTCLOUD = (1U << 11U),
-  KERNEL_FEATURE_HAIR = (1U << 12U),
-  KERNEL_FEATURE_HAIR_THICK = (1U << 13U),
-  KERNEL_FEATURE_OBJECT_MOTION = (1U << 14U),
+/* BVH/sampling kernel features. */
+#define KERNEL_FEATURE_POINTCLOUD (1U << 11U)
+#define KERNEL_FEATURE_HAIR (1U << 12U)
+#define KERNEL_FEATURE_HAIR_THICK (1U << 13U)
+#define KERNEL_FEATURE_OBJECT_MOTION (1U << 14U)
 
-  /* Denotes whether baking functionality is needed. */
-  KERNEL_FEATURE_BAKING = (1U << 15U),
+/* Denotes whether baking functionality is needed. */
+#define KERNEL_FEATURE_BAKING (1U << 15U)
 
-  /* Use subsurface scattering materials. */
-  KERNEL_FEATURE_SUBSURFACE = (1U << 16U),
+/* Use subsurface scattering materials. */
+#define KERNEL_FEATURE_SUBSURFACE (1U << 16U)
 
-  /* Use volume materials. */
-  KERNEL_FEATURE_VOLUME = (1U << 17U),
+/* Use volume materials. */
+#define KERNEL_FEATURE_VOLUME (1U << 17U)
 
-  /* Use Transparent shadows */
-  KERNEL_FEATURE_TRANSPARENT = (1U << 18U),
+/* Use Transparent shadows */
+#define KERNEL_FEATURE_TRANSPARENT (1U << 18U)
 
-  /* Use shadow catcher. */
-  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 19U),
+/* Use shadow catcher. */
+#define KERNEL_FEATURE_SHADOW_CATCHER (1U << 19U)
 
-  /* Light render passes. */
-  KERNEL_FEATURE_LIGHT_PASSES = (1U << 20U),
+/* Light render passes. */
+#define KERNEL_FEATURE_LIGHT_PASSES (1U << 20U)
 
-  /* AO. */
-  KERNEL_FEATURE_AO_PASS = (1U << 21U),
-  KERNEL_FEATURE_AO_ADDITIVE = (1U << 22U),
-
-  /* MNEE. */
-  KERNEL_FEATURE_MNEE = (1U << 23U),
-
-  /* Path guiding. */
-  KERNEL_FEATURE_PATH_GUIDING = (1U << 24U),
-
-  /* OSL. */
-  KERNEL_FEATURE_OSL = (1U << 25U),
-
-  /* Light and shadow linking. */
-  KERNEL_FEATURE_LIGHT_LINKING = (1U << 26U),
-  KERNEL_FEATURE_SHADOW_LINKING = (1U << 27U),
-
-  /* Use denoising kernels and output denoising passes. */
-  KERNEL_FEATURE_DENOISING = (1U << 28U),
-
-  /* Light tree. */
-  KERNEL_FEATURE_LIGHT_TREE = (1U << 29U)
-};
-
+/* AO. */
+#define KERNEL_FEATURE_AO_PASS (1U << 21U)
+#define KERNEL_FEATURE_AO_ADDITIVE (1U << 22U)
 #define KERNEL_FEATURE_AO (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE)
+
+/* MNEE. */
+#define KERNEL_FEATURE_MNEE (1U << 23U)
+
+/* Path guiding. */
+#define KERNEL_FEATURE_PATH_GUIDING (1U << 24U)
+
+/* OSL. */
+#define KERNEL_FEATURE_OSL (1U << 25U)
+
+/* Light and shadow linking. */
+#define KERNEL_FEATURE_LIGHT_LINKING (1U << 26U)
+#define KERNEL_FEATURE_SHADOW_LINKING (1U << 27U)
+
+/* Use denoising kernels and output denoising passes. */
+#define KERNEL_FEATURE_DENOISING (1U << 28U)
+
+/* Light tree. */
+#define KERNEL_FEATURE_LIGHT_TREE (1U << 29U)
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */
 
@@ -218,7 +217,6 @@ enum {
 #  undef __MNEE__
 #endif
 
-/* Scene-based selective features compilation. */
 /* Scene-based selective features compilation. */
 #ifdef __KERNEL_FEATURES__
 #  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_OBJECT_MOTION)
