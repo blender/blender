@@ -1311,9 +1311,12 @@ typedef struct NodeColorBalance {
 } NodeColorBalance;
 
 typedef struct NodeColorspill {
-  short limchan, unspill;
-  float limscale;
-  float uspillr, uspillg, uspillb;
+  short limchan;
+  short unspill DNA_DEPRECATED;
+  float limscale DNA_DEPRECATED;
+  float uspillr DNA_DEPRECATED;
+  float uspillg DNA_DEPRECATED;
+  float uspillb DNA_DEPRECATED;
 } NodeColorspill;
 
 typedef struct NodeConvertColorSpace {

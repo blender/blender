@@ -3788,6 +3788,75 @@ static void rna_NodeVectorBlur_shutter_set(PointerRNA *ptr, const float value)
   RNA_float_set(&input_rna_pointer, "default_value", value * 2.0f);
 }
 
+static float rna_NodeColorSpill_unspill_red_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Spill Strength");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  float spill_strength[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", spill_strength);
+  return spill_strength[0];
+}
+
+static void rna_NodeColorSpill_unspill_red_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Spill Strength");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  float spill_strength[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", spill_strength);
+  spill_strength[0] = value;
+  RNA_float_set_array(&input_rna_pointer, "default_value", spill_strength);
+}
+
+static float rna_NodeColorSpill_unspill_green_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Spill Strength");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  float spill_strength[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", spill_strength);
+  return spill_strength[1];
+}
+
+static void rna_NodeColorSpill_unspill_green_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Spill Strength");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  float spill_strength[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", spill_strength);
+  spill_strength[1] = value;
+  RNA_float_set_array(&input_rna_pointer, "default_value", spill_strength);
+}
+
+static float rna_NodeColorSpill_unspill_blue_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Spill Strength");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  float spill_strength[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", spill_strength);
+  return spill_strength[2];
+}
+
+static void rna_NodeColorSpill_unspill_blue_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Spill Strength");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  float spill_strength[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", spill_strength);
+  spill_strength[2] = value;
+  RNA_float_set_array(&input_rna_pointer, "default_value", spill_strength);
+}
+
 /* A getter that returns the value of the input socket with the given template identifier and type.
  * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
@@ -3918,6 +3987,11 @@ static const char node_input_value[] = "Value";
 
 /* Difference Key node. */
 static const char node_input_tolerance[] = "Tolerance";
+
+/* Color Spill node. */
+static const char node_input_limit_strength[] = "Limit Strength";
+static const char node_input_use_spill_strength[] = "Use Spill Strength";
+static const char node_input_spill_strength[] = "Spill Strength";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -7897,34 +7971,53 @@ static void def_cmp_color_spill(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "limscale");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_limit_strength>",
+      "rna_node_property_to_input_setter<float, node_input_limit_strength>",
+      nullptr);
   RNA_def_property_range(prop, 0.5f, 1.5f);
-  RNA_def_property_ui_text(prop, "Ratio", "Scale limit by value");
+  RNA_def_property_ui_text(
+      prop, "Ratio", "Scale limit by value. (Deprecated: Use Limit Strength input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_unspill", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "unspill", 0);
-  RNA_def_property_ui_text(prop, "Unspill", "Compensate all channels (differently) by hand");
+  RNA_def_property_boolean_funcs(
+      prop,
+      "rna_node_property_to_input_getter<bool, node_input_use_spill_strength>",
+      "rna_node_property_to_input_setter<bool, node_input_use_spill_strength>");
+  RNA_def_property_ui_text(prop,
+                           "Unspill",
+                           "Compensate all channels (differently) by hand. (Deprecated: Use Use "
+                           "Spill Strength input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "unspill_red", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "uspillr");
+  RNA_def_property_float_funcs(
+      prop, "rna_NodeColorSpill_unspill_red_get", "rna_NodeColorSpill_unspill_red_set", nullptr);
   RNA_def_property_range(prop, 0.0f, 1.5f);
-  RNA_def_property_ui_text(prop, "R", "Red spillmap scale");
+  RNA_def_property_ui_text(
+      prop, "R", "Red spillmap scale. (Deprecated: Use Spill Strength input instead.)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "unspill_green", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "uspillg");
+  RNA_def_property_float_funcs(prop,
+                               "rna_NodeColorSpill_unspill_green_get",
+                               "rna_NodeColorSpill_unspill_green_set",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.5f);
-  RNA_def_property_ui_text(prop, "G", "Green spillmap scale");
+  RNA_def_property_ui_text(
+      prop, "G", "Green spillmap scale. (Deprecated: Use Spill Strength input instead.)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "unspill_blue", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "uspillb");
+  RNA_def_property_float_funcs(
+      prop, "rna_NodeColorSpill_unspill_blue_get", "rna_NodeColorSpill_unspill_blue_set", nullptr);
   RNA_def_property_range(prop, 0.0f, 1.5f);
-  RNA_def_property_ui_text(prop, "B", "Blue spillmap scale");
+  RNA_def_property_ui_text(
+      prop, "B", "Blue spillmap scale. (Deprecated: Use Spill Strength input instead.)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
