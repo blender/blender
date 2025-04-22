@@ -151,7 +151,7 @@ static wmOperatorStatus mesh_bisect_invoke(bContext *C, wmOperator *op, const wm
     wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
     BisectData *opdata;
 
-    opdata = static_cast<BisectData *>(MEM_mallocN(sizeof(BisectData), "inset_operator_data"));
+    opdata = MEM_mallocN<BisectData>("inset_operator_data");
     gesture->user_data.data = opdata;
 
     opdata->backup_len = objects.size();

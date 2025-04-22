@@ -293,8 +293,7 @@ static void apply_scale_factor_clamp(float *val,
 static TransformProperties *v3d_transform_props_ensure(View3D *v3d)
 {
   if (v3d->runtime.properties_storage == nullptr) {
-    TransformProperties *tfp = static_cast<TransformProperties *>(
-        MEM_callocN(sizeof(TransformProperties), "TransformProperties"));
+    TransformProperties *tfp = MEM_new<TransformProperties>("TransformProperties");
     /* Construct C++ structures in otherwise zero initialized struct. */
     new (tfp) TransformProperties();
 

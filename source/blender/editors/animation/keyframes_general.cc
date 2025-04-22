@@ -70,8 +70,7 @@ bool duplicate_fcurve_keys(FCurve *fcu)
     /* If a key is selected */
     if (fcu->bezt[i].f2 & SELECT) {
       /* Expand the list */
-      BezTriple *newbezt = static_cast<BezTriple *>(
-          MEM_callocN(sizeof(BezTriple) * (fcu->totvert + 1), "beztriple"));
+      BezTriple *newbezt = MEM_calloc_arrayN<BezTriple>((fcu->totvert + 1), "beztriple");
 
       memcpy(newbezt, fcu->bezt, sizeof(BezTriple) * (i + 1));
       memcpy(newbezt + i + 1, fcu->bezt + i, sizeof(BezTriple));
@@ -294,7 +293,7 @@ ListBase find_fcurve_segments(FCurve *fcu)
 
   while (find_fcurve_segment(fcu, current_index, &segment_start_idx, &segment_len)) {
     FCurveSegment *segment;
-    segment = static_cast<FCurveSegment *>(MEM_callocN(sizeof(*segment), "FCurveSegment"));
+    segment = MEM_callocN<FCurveSegment>("FCurveSegment");
     segment->start_index = segment_start_idx;
     segment->length = segment_len;
     BLI_addtail(&segments, segment);

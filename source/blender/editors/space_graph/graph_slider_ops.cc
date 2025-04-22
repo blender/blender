@@ -22,6 +22,7 @@
 
 #include "DEG_depsgraph.hh"
 #include "DNA_anim_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_access.hh"
@@ -161,14 +162,11 @@ static void store_original_bezt_arrays(tGraphSliderOp *gso)
       continue;
     }
 
-    const int arr_size = sizeof(BezTriple) * fcu->totvert;
-
-    tBeztCopyData *copy = static_cast<tBeztCopyData *>(
-        MEM_mallocN(sizeof(tBeztCopyData), "bezts_copy"));
-    BezTriple *bezts_copy = static_cast<BezTriple *>(MEM_mallocN(arr_size, "bezts_copy_array"));
+    tBeztCopyData *copy = MEM_mallocN<tBeztCopyData>("bezts_copy");
+    BezTriple *bezts_copy = MEM_malloc_arrayN<BezTriple>(fcu->totvert, "bezts_copy_array");
 
     copy->tot_vert = fcu->totvert;
-    memcpy(bezts_copy, fcu->bezt, arr_size);
+    memcpy(bezts_copy, fcu->bezt, sizeof(BezTriple) * fcu->totvert);
 
     copy->bezt = bezts_copy;
 
@@ -211,14 +209,12 @@ static void reset_bezts(tGraphSliderOp *gso)
 
     tBeztCopyData *data = static_cast<tBeztCopyData *>(link_bezt->data);
 
-    const int arr_size = sizeof(BezTriple) * data->tot_vert;
-
     MEM_freeN(fcu->bezt);
 
-    fcu->bezt = static_cast<BezTriple *>(MEM_mallocN(arr_size, __func__));
+    fcu->bezt = MEM_malloc_arrayN<BezTriple>(data->tot_vert, __func__);
     fcu->totvert = data->tot_vert;
 
-    memcpy(fcu->bezt, data->bezt, arr_size);
+    memcpy(fcu->bezt, data->bezt, sizeof(BezTriple) * data->tot_vert);
 
     link_bezt = link_bezt->next;
   }

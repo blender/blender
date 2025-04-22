@@ -54,8 +54,7 @@ static Image *bake_object_image_get(Object *ob, int mat_nr)
 
 static Image **bake_object_image_get_array(Object *ob)
 {
-  Image **image_array = static_cast<Image **>(
-      MEM_mallocN(sizeof(Material *) * ob->totcol, __func__));
+  Image **image_array = MEM_malloc_arrayN<Image *>(ob->totcol, __func__);
   for (int i = 0; i < ob->totcol; i++) {
     image_array[i] = bake_object_image_get(ob, i);
   }

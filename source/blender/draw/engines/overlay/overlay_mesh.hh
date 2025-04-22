@@ -1051,7 +1051,7 @@ class MeshUVs : Overlay {
   {
     const int width = resolution.x;
     const int height = floor(float(resolution.y) * (aspect.y / aspect.x));
-    float *buffer = static_cast<float *>(MEM_mallocN(sizeof(float) * height * width, __func__));
+    float *buffer = MEM_malloc_arrayN<float>(height * width, __func__);
 
     MaskRasterHandle *handle = BKE_maskrasterize_handle_new();
     BKE_maskrasterize_handle_init(handle, mask, width, height, true, true, true);

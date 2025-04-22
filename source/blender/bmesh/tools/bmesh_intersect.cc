@@ -1527,8 +1527,7 @@ bool BM_mesh_intersect(BMesh *bm,
     user_data_wrap.test_fn = test_fn;
     user_data_wrap.user_data = user_data;
 
-    groups_array = static_cast<int *>(
-        MEM_mallocN(sizeof(*groups_array) * size_t(bm->totface), __func__));
+    groups_array = MEM_malloc_arrayN<int>(size_t(bm->totface), __func__);
     group_tot = BM_mesh_calc_face_groups(
         bm, groups_array, &group_index, bm_loop_filter_fn, nullptr, &user_data_wrap, 0, BM_EDGE);
 

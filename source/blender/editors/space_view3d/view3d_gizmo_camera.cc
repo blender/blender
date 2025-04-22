@@ -411,8 +411,7 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType * /
 
 static void WIDGETGROUP_camera_view_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(
-      MEM_mallocN(sizeof(CameraViewWidgetGroup), __func__));
+  CameraViewWidgetGroup *viewgroup = MEM_mallocN<CameraViewWidgetGroup>(__func__);
 
   viewgroup->border = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
 

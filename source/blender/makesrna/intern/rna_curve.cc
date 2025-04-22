@@ -595,11 +595,10 @@ static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
     MEM_freeN(cu->strinfo);
   }
 
-  cu->str = static_cast<char *>(MEM_mallocN(len_bytes + sizeof(char32_t), "str"));
+  cu->str = MEM_malloc_arrayN<char>(len_bytes + sizeof(char32_t), "str");
   memcpy(cu->str, value, len_bytes + 1);
 
-  cu->strinfo = static_cast<CharInfo *>(
-      MEM_callocN((len_chars + 4) * sizeof(CharInfo), "strinfo"));
+  cu->strinfo = MEM_calloc_arrayN<CharInfo>((len_chars + 4), "strinfo");
 }
 
 static void rna_Nurb_update_cyclic_u(Main *bmain, Scene *scene, PointerRNA *ptr)

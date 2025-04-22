@@ -101,7 +101,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     uint i;
     bool is_degenerate = true;
 
-    nors = static_cast<SortNormal *>(MEM_mallocN(sizeof(*nors) * nors_tot, __func__));
+    nors = MEM_malloc_arrayN<SortNormal>(nors_tot, __func__);
 
     for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first), i = 0; sf_vert;
          sf_vert = sf_vert->next, i++)

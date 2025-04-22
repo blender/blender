@@ -57,7 +57,7 @@ static SpaceLink *buttons_create(const ScrArea * /*area*/, const Scene * /*scene
   ARegion *region;
   SpaceProperties *sbuts;
 
-  sbuts = static_cast<SpaceProperties *>(MEM_callocN(sizeof(SpaceProperties), "initbuts"));
+  sbuts = MEM_callocN<SpaceProperties>("initbuts");
   sbuts->spacetype = SPACE_PROPERTIES;
   sbuts->mainb = sbuts->mainbuser = BCONTEXT_OBJECT;
   sbuts->visible_tabs = uint(-1); /* 0xFFFFFFFF - All tabs visible by default. */
@@ -123,8 +123,7 @@ static void buttons_init(wmWindowManager * /*wm*/, ScrArea *area)
   SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
 
   if (sbuts->runtime == nullptr) {
-    sbuts->runtime = static_cast<SpaceProperties_Runtime *>(
-        MEM_mallocN(sizeof(SpaceProperties_Runtime), __func__));
+    sbuts->runtime = MEM_mallocN<SpaceProperties_Runtime>(__func__);
     sbuts->runtime->search_string[0] = '\0';
     sbuts->runtime->tab_search_results = BLI_BITMAP_NEW(BCONTEXT_TOT * 2, __func__);
   }

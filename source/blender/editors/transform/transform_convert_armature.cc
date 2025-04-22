@@ -640,8 +640,8 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
         }
       }
 
-      PoseInitData_Mirror *pid = static_cast<PoseInitData_Mirror *>(
-          MEM_mallocN((total_mirrored + 1) * sizeof(PoseInitData_Mirror), "PoseInitData_Mirror"));
+      PoseInitData_Mirror *pid = MEM_malloc_arrayN<PoseInitData_Mirror>((total_mirrored + 1),
+                                                                        "PoseInitData_Mirror");
 
       /* Trick to terminate iteration. */
       pid[total_mirrored].pchan = nullptr;
@@ -780,8 +780,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     }
 
     if (mirror) {
-      BoneInitData *bid = static_cast<BoneInitData *>(
-          MEM_mallocN((total_mirrored + 1) * sizeof(BoneInitData), "BoneInitData"));
+      BoneInitData *bid = MEM_malloc_arrayN<BoneInitData>((total_mirrored + 1), "BoneInitData");
 
       /* Trick to terminate iteration. */
       bid[total_mirrored].bone = nullptr;

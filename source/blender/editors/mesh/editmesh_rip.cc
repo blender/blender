@@ -418,8 +418,7 @@ static UnorderedLoopPair *edbm_tagged_loop_pairs_to_fill(BMesh *bm)
   }
 
   if (total_tag) {
-    UnorderedLoopPair *uloop_pairs = static_cast<UnorderedLoopPair *>(
-        MEM_mallocN(total_tag * sizeof(UnorderedLoopPair), __func__));
+    UnorderedLoopPair *uloop_pairs = MEM_malloc_arrayN<UnorderedLoopPair>(total_tag, __func__);
     UnorderedLoopPair *ulp = uloop_pairs;
 
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {

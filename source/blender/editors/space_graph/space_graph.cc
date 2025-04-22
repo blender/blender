@@ -61,11 +61,11 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
   SpaceGraph *sipo;
 
   /* Graph Editor - general stuff */
-  sipo = static_cast<SpaceGraph *>(MEM_callocN(sizeof(SpaceGraph), "init graphedit"));
+  sipo = MEM_callocN<SpaceGraph>("init graphedit");
   sipo->spacetype = SPACE_GRAPH;
 
   /* allocate DopeSheet data for Graph Editor */
-  sipo->ads = static_cast<bDopeSheet *>(MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet"));
+  sipo->ads = MEM_callocN<bDopeSheet>("GraphEdit DopeSheet");
   sipo->ads->source = (ID *)scene;
 
   /* settings for making it easier by default to just see what you're interested in tweaking */
@@ -145,7 +145,7 @@ static void graph_init(wmWindowManager *wm, ScrArea *area)
   /* Init dope-sheet if non-existent (i.e. for old files). */
   if (sipo->ads == nullptr) {
     wmWindow *win = WM_window_find_by_area(wm, area);
-    sipo->ads = static_cast<bDopeSheet *>(MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet"));
+    sipo->ads = MEM_callocN<bDopeSheet>("GraphEdit DopeSheet");
     sipo->ads->source = win ? (ID *)WM_window_get_active_scene(win) : nullptr;
   }
 

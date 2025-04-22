@@ -1915,7 +1915,7 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
   ImageUser *iuser = image_user_from_context(C);
   Scene *scene = CTX_data_scene(C);
 
-  ImageSaveData *isd = static_cast<ImageSaveData *>(MEM_callocN(sizeof(*isd), __func__));
+  ImageSaveData *isd = MEM_callocN<ImageSaveData>(__func__);
   isd->image = image;
   isd->iuser = iuser;
 

@@ -1853,8 +1853,8 @@ static void uv_select_linked_multi(Scene *scene,
       continue;
     }
 
-    stack = static_cast<int *>(MEM_mallocN(sizeof(*stack) * (bm->totface + 1), "UvLinkStack"));
-    flag = static_cast<char *>(MEM_callocN(sizeof(*flag) * bm->totface, "UvLinkFlag"));
+    stack = MEM_malloc_arrayN<int>(bm->totface + 1, "UvLinkStack");
+    flag = MEM_calloc_arrayN<char>(bm->totface, "UvLinkFlag");
 
     if (hit == nullptr) {
       /* Use existing selection */
@@ -4369,8 +4369,7 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
     }
   }
 
-  UVOverlapData *overlap_data = static_cast<UVOverlapData *>(
-      MEM_mallocN(sizeof(UVOverlapData) * uv_tri_len, "UvOverlapData"));
+  UVOverlapData *overlap_data = MEM_malloc_arrayN<UVOverlapData>(uv_tri_len, "UvOverlapData");
   BVHTree *uv_tree = BLI_bvhtree_new(uv_tri_len, 0.0f, 4, 6);
 
   /* Use a global data index when inserting into the BVH. */
@@ -5058,8 +5057,7 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
 
-  ListBase *island_list_ptr = static_cast<ListBase *>(
-      MEM_callocN(sizeof(*island_list_ptr) * objects.size(), __func__));
+  ListBase *island_list_ptr = MEM_calloc_arrayN<ListBase>(objects.size(), __func__);
   int island_list_len = 0;
 
   const bool face_selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
@@ -5286,7 +5284,7 @@ BMFace **ED_uvedit_selected_faces(const Scene *scene, BMesh *bm, int len_max, in
 
   CLAMP_MAX(len_max, bm->totface);
   int faces_len = 0;
-  BMFace **faces = static_cast<BMFace **>(MEM_mallocN(sizeof(*faces) * len_max, __func__));
+  BMFace **faces = MEM_malloc_arrayN<BMFace *>(len_max, __func__);
 
   BMIter iter;
   BMFace *f;
@@ -5316,7 +5314,7 @@ BMLoop **ED_uvedit_selected_edges(const Scene *scene, BMesh *bm, int len_max, in
 
   CLAMP_MAX(len_max, bm->totloop);
   int edges_len = 0;
-  BMLoop **edges = static_cast<BMLoop **>(MEM_mallocN(sizeof(*edges) * len_max, __func__));
+  BMLoop **edges = MEM_malloc_arrayN<BMLoop *>(len_max, __func__);
 
   BMIter iter;
   BMFace *f;
@@ -5375,7 +5373,7 @@ BMLoop **ED_uvedit_selected_verts(const Scene *scene, BMesh *bm, int len_max, in
 
   CLAMP_MAX(len_max, bm->totloop);
   int verts_len = 0;
-  BMLoop **verts = static_cast<BMLoop **>(MEM_mallocN(sizeof(*verts) * len_max, __func__));
+  BMLoop **verts = MEM_malloc_arrayN<BMLoop *>(len_max, __func__);
 
   BMIter iter;
   BMFace *f;

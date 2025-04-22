@@ -106,8 +106,7 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
 
   if (!ELEM(creation_mode, DRIVER_FCURVE_LOOKUP_ONLY, DRIVER_FCURVE_EMPTY)) {
     /* add some new driver data */
-    fcu->driver = static_cast<ChannelDriver *>(
-        MEM_callocN(sizeof(ChannelDriver), "ChannelDriver"));
+    fcu->driver = MEM_callocN<ChannelDriver>("ChannelDriver");
 
     /* F-Modifier or Keyframes? */
     if (creation_mode == DRIVER_FCURVE_GENERATOR) {

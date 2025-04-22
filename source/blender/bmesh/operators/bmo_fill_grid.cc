@@ -245,11 +245,11 @@ static void bm_grid_fill_array(BMesh *bm,
   /* Store loops */
   if (use_loop_interp) {
     /* x2 because each edge connects 2 loops */
-    larr_x_a = static_cast<BMLoop *(*)[2]>(MEM_mallocN(sizeof(*larr_x_a) * (xtot - 1), __func__));
-    larr_x_b = static_cast<BMLoop *(*)[2]>(MEM_mallocN(sizeof(*larr_x_b) * (xtot - 1), __func__));
+    larr_x_a = MEM_malloc_arrayN<BMLoop *[2]>((xtot - 1), __func__);
+    larr_x_b = MEM_malloc_arrayN<BMLoop *[2]>((xtot - 1), __func__);
 
-    larr_y_a = static_cast<BMLoop *(*)[2]>(MEM_mallocN(sizeof(*larr_y_a) * (ytot - 1), __func__));
-    larr_y_b = static_cast<BMLoop *(*)[2]>(MEM_mallocN(sizeof(*larr_y_b) * (ytot - 1), __func__));
+    larr_y_a = MEM_malloc_arrayN<BMLoop *[2]>((ytot - 1), __func__);
+    larr_y_b = MEM_malloc_arrayN<BMLoop *[2]>((ytot - 1), __func__);
 
     /* fill in the loops */
     for (x = 0; x < xtot - 1; x++) {

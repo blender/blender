@@ -446,7 +446,7 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
                                                     BMEdgeLoopStore *el_store_b,
                                                     const int interp_mode)
 {
-  LoopPairStore *lpair = static_cast<LoopPairStore *>(MEM_mallocN(sizeof(*lpair), __func__));
+  LoopPairStore *lpair = MEM_mallocN<LoopPairStore>(__func__);
 
   if (interp_mode == SUBD_RING_INTERP_SURF) {
     const uint len_a = BM_edgeloop_length_get(el_store_a);

@@ -96,7 +96,7 @@ static SpaceLink *image_create(const ScrArea * /*area*/, const Scene * /*scene*/
   ARegion *region;
   SpaceImage *simage;
 
-  simage = static_cast<SpaceImage *>(MEM_callocN(sizeof(SpaceImage), "initimage"));
+  simage = MEM_callocN<SpaceImage>("initimage");
   simage->spacetype = SPACE_IMAGE;
   simage->zoom = 1.0f;
   simage->lock = true;

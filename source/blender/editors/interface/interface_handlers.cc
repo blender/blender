@@ -3077,7 +3077,7 @@ void ui_but_active_string_clear_and_exit(bContext *C, uiBut *but)
 
   /* most likely nullptr, but let's check, and give it temp zero string */
   if (!but->active->text_edit.edit_string) {
-    but->active->text_edit.edit_string = static_cast<char *>(MEM_callocN(1, "temp str"));
+    but->active->text_edit.edit_string = MEM_calloc_arrayN<char>(1, "temp str");
   }
   but->active->text_edit.edit_string[0] = 0;
 
@@ -3419,8 +3419,7 @@ static bool ui_textedit_copypaste(uiBut *but, uiTextEdit &text_edit, const int m
   else if (ELEM(mode, UI_TEXTEDIT_COPY, UI_TEXTEDIT_CUT)) {
     /* copy the contents to the copypaste buffer */
     const int sellen = but->selend - but->selsta;
-    char *buf = static_cast<char *>(
-        MEM_mallocN(sizeof(char) * (sellen + 1), "ui_textedit_copypaste"));
+    char *buf = MEM_malloc_arrayN<char>((sellen + 1), "ui_textedit_copypaste");
 
     memcpy(buf, text_edit.edit_string + but->selsta, sellen);
     buf[sellen] = '\0';
@@ -10048,8 +10047,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
       if (dyn_data->items_filter_neworder || dyn_data->items_filter_flags) {
         /* If we have a display order different from
          * collection order, we have some work! */
-        int *org_order = static_cast<int *>(
-            MEM_mallocN(dyn_data->items_shown * sizeof(int), __func__));
+        int *org_order = MEM_malloc_arrayN<int>(dyn_data->items_shown, __func__);
         const int *new_order = dyn_data->items_filter_neworder;
         int org_idx = -1, len = dyn_data->items_len;
         int current_idx = -1;
@@ -12523,8 +12521,7 @@ static uiBlockInteraction_Handle *ui_block_interaction_begin(bContext *C,
     }
   }
 
-  int *unique_retval_ids = static_cast<int *>(
-      MEM_mallocN(sizeof(*unique_retval_ids) * unique_retval_ids_len, __func__));
+  int *unique_retval_ids = MEM_malloc_arrayN<int>(unique_retval_ids_len, __func__);
   unique_retval_ids_len = 0;
   for (const std::unique_ptr<uiBut> &but : block->buttons) {
     if (but->active || (but->flag & UI_BUT_DRAG_MULTI)) {

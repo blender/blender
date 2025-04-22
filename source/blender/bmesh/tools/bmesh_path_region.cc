@@ -156,9 +156,8 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
   int *depths[2] = {nullptr};
   int pass = 0;
 
-  BMVert **stack = static_cast<BMVert **>(MEM_mallocN(sizeof(*stack) * bm->totvert, __func__));
-  BMVert **stack_other = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(*stack_other) * bm->totvert, __func__));
+  BMVert **stack = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
+  BMVert **stack_other = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
 
   STACK_DECLARE(stack);
   STACK_INIT(stack, bm->totvert);

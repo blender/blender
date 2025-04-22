@@ -149,8 +149,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
 
   /* create new parameters if necessary */
   if (!sfile->params) {
-    sfile->params = static_cast<FileSelectParams *>(
-        MEM_callocN(sizeof(FileSelectParams), "fileselparams"));
+    sfile->params = MEM_callocN<FileSelectParams>("fileselparams");
     /* set path to most recently opened .blend */
     BLI_path_split_dir_file(blendfile_path,
                             sfile->params->dir,

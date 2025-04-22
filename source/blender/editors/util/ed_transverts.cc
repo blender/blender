@@ -526,8 +526,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
                                                                                   memory);
     MutableSpan<float3> positions = pointcloud->positions_for_write();
 
-    tvs->transverts = static_cast<TransVert *>(
-        MEM_calloc_arrayN(selection.size(), sizeof(TransVert), __func__));
+    tvs->transverts = MEM_calloc_arrayN<TransVert>(selection.size(), __func__);
     tvs->transverts_tot = selection.size();
 
     selection.foreach_index(GrainSize(1024), [&](const int64_t i, const int64_t pos) {

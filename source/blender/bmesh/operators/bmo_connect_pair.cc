@@ -290,7 +290,7 @@ static void state_link_add(PathContext *pc, PathLinkState *state, BMElem *ele, B
 
 static PathLinkState *state_dupe_add(PathLinkState *state, const PathLinkState *state_orig)
 {
-  state = static_cast<PathLinkState *>(MEM_mallocN(sizeof(*state), __func__));
+  state = MEM_mallocN<PathLinkState>(__func__);
   *state = *state_orig;
   return state;
 }
@@ -630,7 +630,7 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
   /* add first vertex */
   {
     PathLinkState *state;
-    state = static_cast<PathLinkState *>(MEM_callocN(sizeof(*state), __func__));
+    state = MEM_callocN<PathLinkState>(__func__);
     state_link_add(&pc, state, (BMElem *)pc.v_pair[0], nullptr);
     BLI_heapsimple_insert(pc.states, state->dist, state);
   }

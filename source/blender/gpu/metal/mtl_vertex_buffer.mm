@@ -26,7 +26,7 @@ void MTLVertBuf::acquire_data()
     data_ = nullptr;
   }
   else {
-    data_ = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
+    data_ = MEM_malloc_arrayN<uchar>(this->size_alloc_get(), __func__);
   }
 }
 

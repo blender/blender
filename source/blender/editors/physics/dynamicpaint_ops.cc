@@ -487,8 +487,7 @@ static wmOperatorStatus dynamicpaint_bake_exec(bContext *C, wmOperator *op)
   canvas->error[0] = '\0';
   canvas->flags |= MOD_DPAINT_BAKING;
 
-  DynamicPaintBakeJob *job = static_cast<DynamicPaintBakeJob *>(
-      MEM_mallocN(sizeof(DynamicPaintBakeJob), "DynamicPaintBakeJob"));
+  DynamicPaintBakeJob *job = MEM_mallocN<DynamicPaintBakeJob>("DynamicPaintBakeJob");
   job->bmain = CTX_data_main(C);
   job->scene = scene_eval;
   job->depsgraph = depsgraph;

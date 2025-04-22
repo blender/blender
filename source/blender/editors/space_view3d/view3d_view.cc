@@ -883,7 +883,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
     }
   }
 
-  v3d->localvd = static_cast<View3D *>(MEM_mallocN(sizeof(View3D), "localview"));
+  v3d->localvd = MEM_mallocN<View3D>("localview");
   *v3d->localvd = blender::dna::shallow_copy(*v3d);
   v3d->local_view_uid = local_view_bit;
 
@@ -896,8 +896,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
       Object *camera_old = nullptr;
       float dist_new, ofs_new[3];
 
-      rv3d->localvd = static_cast<RegionView3D *>(
-          MEM_mallocN(sizeof(RegionView3D), "localview region"));
+      rv3d->localvd = MEM_mallocN<RegionView3D>("localview region");
       memcpy(rv3d->localvd, rv3d, sizeof(RegionView3D));
 
       if (frame_selected) {

@@ -42,7 +42,7 @@ static SpaceLink *topbar_create(const ScrArea * /*area*/, const Scene * /*scene*
   ARegion *region;
   SpaceTopBar *stopbar;
 
-  stopbar = static_cast<SpaceTopBar *>(MEM_callocN(sizeof(*stopbar), "init topbar"));
+  stopbar = MEM_callocN<SpaceTopBar>("init topbar");
   stopbar->spacetype = SPACE_TOPBAR;
 
   /* header */

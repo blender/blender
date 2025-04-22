@@ -374,8 +374,7 @@ void gpu_select_pick_begin(GPUSelectBuffer *buffer, const rcti *input, eGPUSelec
   }
   else {
     /* Set to 0xff for #SELECT_ID_NONE. */
-    ps->nearest.rect_id = static_cast<uint *>(
-        MEM_mallocN(sizeof(uint) * ps->dst.rect_len, __func__));
+    ps->nearest.rect_id = MEM_malloc_arrayN<uint>(ps->dst.rect_len, __func__);
     memset(ps->nearest.rect_id, 0xff, sizeof(uint) * ps->dst.rect_len);
   }
 }

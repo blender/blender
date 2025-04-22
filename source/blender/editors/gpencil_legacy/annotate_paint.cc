@@ -712,8 +712,7 @@ static void annotation_stroke_arrow_allocate(bGPDstroke *gps, const int totpoint
   /* Copy appropriate settings for stroke. */
   gps->totpoints = totpoints;
   /* Allocate enough memory for a continuous array for storage points. */
-  gps->points = static_cast<bGPDspoint *>(
-      MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "annotation_stroke_points"));
+  gps->points = MEM_calloc_arrayN<bGPDspoint>(gps->totpoints, "annotation_stroke_points");
 }
 
 static void annotation_arrow_create_open(tGPsdata *p,
@@ -843,7 +842,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
   }
 
   /* allocate memory for a new stroke */
-  gps = static_cast<bGPDstroke *>(MEM_callocN(sizeof(bGPDstroke), "annotation_stroke"));
+  gps = MEM_callocN<bGPDstroke>("annotation_stroke");
 
   /* copy appropriate settings for stroke */
   gps->totpoints = totelem;
@@ -857,8 +856,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
   gps->tot_triangles = 0;
 
   /* allocate enough memory for a continuous array for storage points */
-  gps->points = static_cast<bGPDspoint *>(
-      MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "annotation_stroke_points"));
+  gps->points = MEM_calloc_arrayN<bGPDspoint>(gps->totpoints, "annotation_stroke_points");
   gps->tot_triangles = 0;
 
   /* set pointer to first non-initialized point */
@@ -966,8 +964,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       int interp_depth = 0;
       int found_depth = 0;
 
-      depth_arr = static_cast<float *>(
-          MEM_mallocN(sizeof(float) * gpd->runtime.sbuffer_used, "depth_points"));
+      depth_arr = MEM_malloc_arrayN<float>(gpd->runtime.sbuffer_used, "depth_points");
 
       const ViewDepths *depths = p->depths;
       for (i = 0, ptc = static_cast<tGPspoint *>(gpd->runtime.sbuffer);

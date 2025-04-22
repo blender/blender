@@ -172,7 +172,7 @@ bool vgroup_parray_alloc(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, const
 
           i = em->bm->totvert;
 
-          *dvert_arr = static_cast<MDeformVert **>(MEM_mallocN(sizeof(void *) * i, __func__));
+          *dvert_arr = MEM_malloc_arrayN<MDeformVert *>(i, __func__);
           *dvert_tot = i;
 
           i = 0;
@@ -199,8 +199,7 @@ bool vgroup_parray_alloc(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, const
           MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
 
           *dvert_tot = mesh->verts_num;
-          *dvert_arr = static_cast<MDeformVert **>(
-              MEM_mallocN(sizeof(void *) * mesh->verts_num, __func__));
+          *dvert_arr = MEM_malloc_arrayN<MDeformVert *>(mesh->verts_num, __func__);
 
           if (use_vert_sel) {
             const bke::AttributeAccessor attributes = mesh->attributes();
@@ -228,8 +227,7 @@ bool vgroup_parray_alloc(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, const
         if (lt->dvert) {
           BPoint *def = lt->def;
           *dvert_tot = lt->pntsu * lt->pntsv * lt->pntsw;
-          *dvert_arr = static_cast<MDeformVert **>(
-              MEM_mallocN(sizeof(void *) * (*dvert_tot), __func__));
+          *dvert_arr = MEM_malloc_arrayN<MDeformVert *>((*dvert_tot), __func__);
 
           if (use_vert_sel) {
             for (int i = 0; i < *dvert_tot; i++) {
@@ -1664,12 +1662,10 @@ static void vgroup_smooth_subset(Object *ob,
         mesh->edges(), mesh->verts_num, vert_to_edge_offsets, vert_to_edge_indices);
   }
 
-  weight_accum_prev = static_cast<float *>(
-      MEM_mallocN(sizeof(*weight_accum_prev) * dvert_tot, __func__));
-  weight_accum_curr = static_cast<float *>(
-      MEM_mallocN(sizeof(*weight_accum_curr) * dvert_tot, __func__));
+  weight_accum_prev = MEM_malloc_arrayN<float>(dvert_tot, __func__);
+  weight_accum_curr = MEM_malloc_arrayN<float>(dvert_tot, __func__);
 
-  verts_used = static_cast<uint *>(MEM_mallocN(sizeof(*verts_used) * dvert_tot, __func__));
+  verts_used = MEM_malloc_arrayN<uint>(dvert_tot, __func__);
   STACK_INIT(verts_used, dvert_tot);
 
 #define IS_BM_VERT_READ(v) (use_hide ? (BM_elem_flag_test(v, BM_ELEM_HIDDEN) == 0) : true)
@@ -1896,8 +1892,7 @@ static int vgroup_limit_total_subset(Object *ob,
       if (num_to_drop > 0) {
         /* re-pack dw array so that non-bone weights are first, bone-weighted verts at end
          * sort the tail, then copy only the truncated array back to dv->dw */
-        dw_temp = static_cast<MDeformWeight *>(
-            MEM_mallocN(sizeof(MDeformWeight) * dv->totweight, __func__));
+        dw_temp = MEM_malloc_arrayN<MDeformWeight>(dv->totweight, __func__);
         bone_count = 0;
         non_bone_count = 0;
         for (j = 0; j < dv->totweight; j++) {
@@ -3783,8 +3778,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
   int defbase_tot = BLI_listbase_count(defbase);
 
   /* Needs a dummy index at the start. */
-  int *sort_map_update = static_cast<int *>(
-      MEM_mallocN(sizeof(int) * (defbase_tot + 1), __func__));
+  int *sort_map_update = MEM_malloc_arrayN<int>((defbase_tot + 1), __func__);
   int *sort_map = sort_map_update + 1;
 
   const char *name;

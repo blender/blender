@@ -308,7 +308,7 @@ GPU_TEST(texture_copy)
 
 template<typename DataType> static DataType *generate_test_data(size_t data_len)
 {
-  DataType *data = static_cast<DataType *>(MEM_mallocN(data_len * sizeof(DataType), __func__));
+  DataType *data = MEM_malloc_arrayN<DataType>(data_len, __func__);
   for (int i : IndexRange(data_len)) {
     if (std::is_same<DataType, float>()) {
       data[i] = (DataType)(i % 8) / 8.0f;
@@ -1046,8 +1046,7 @@ static void test_texture_update_sub_no_unpack_row_length()
   GPU_texture_clear(texture, GPU_DATA_FLOAT, &clear_color);
 
   const float4 texture_color(0.0f, 1.0f, 0.0f, 1.0f);
-  float4 *texture_data = static_cast<float4 *>(
-      MEM_mallocN(sub_size.x * sub_size.y * sizeof(float4), __func__));
+  float4 *texture_data = MEM_malloc_arrayN<float4>(sub_size.x * sub_size.y, __func__);
   for (int i = 0; i < sub_size.x * sub_size.y; i++) {
     texture_data[i] = texture_color;
   }
@@ -1102,8 +1101,7 @@ static void test_texture_update_sub_unpack_row_length()
 
   const float4 texture_color(0.0f, 1.0f, 0.0f, 1.0f);
   const float4 texture_color_off(1.0f, 0.0f, 0.0f, 1.0f);
-  float4 *texture_data = static_cast<float4 *>(
-      MEM_mallocN(size.x * size.y * sizeof(float4), __func__));
+  float4 *texture_data = MEM_malloc_arrayN<float4>(size.x * size.y, __func__);
   for (int x = 0; x < size.x; x++) {
     for (int y = 0; y < size.y; y++) {
       int index = x + y * size.x;

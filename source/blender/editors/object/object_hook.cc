@@ -74,7 +74,7 @@ static int return_editmesh_indexar(BMEditMesh *em,
     return 0;
   }
 
-  *r_indexar = index = static_cast<int *>(MEM_mallocN(4 * indexar_num, "hook indexar"));
+  *r_indexar = index = MEM_malloc_arrayN<int>(indexar_num, "hook indexar");
   *r_indexar_num = indexar_num;
   nr = 0;
   zero_v3(r_cent);
@@ -179,7 +179,7 @@ static int return_editlattice_indexar(Lattice *editlatt,
     return 0;
   }
 
-  *r_indexar = index = static_cast<int *>(MEM_mallocN(4 * indexar_num, "hook indexar"));
+  *r_indexar = index = MEM_malloc_arrayN<int>(indexar_num, "hook indexar");
   *r_indexar_num = indexar_num;
   nr = 0;
   zero_v3(r_cent);
@@ -267,8 +267,7 @@ static int return_editcurve_indexar(Object *obedit,
     return 0;
   }
 
-  *r_indexar = index = static_cast<int *>(
-      MEM_mallocN(sizeof(*index) * indexar_num, "hook indexar"));
+  *r_indexar = index = MEM_malloc_arrayN<int>(indexar_num, "hook indexar");
   *r_indexar_num = indexar_num;
   nr = 0;
   zero_v3(r_cent);

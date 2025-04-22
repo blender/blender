@@ -958,7 +958,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
     bool *unlocked = (bool *)MEM_dupallocN(wpd->vgroup_validmap);
 
     if (wpd->lock_flags) {
-      bool *locked = (bool *)MEM_mallocN(sizeof(bool) * wpd->defbase_tot, __func__);
+      bool *locked = MEM_malloc_arrayN<bool>(wpd->defbase_tot, __func__);
       BKE_object_defgroup_split_locked_validmap(
           wpd->defbase_tot, wpd->lock_flags, wpd->vgroup_validmap, locked, unlocked);
       wpd->vgroup_locked = locked;
@@ -969,7 +969,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
   if (wpd->do_multipaint && ts.auto_normalize) {
     bool *tmpflags;
-    tmpflags = (bool *)MEM_mallocN(sizeof(bool) * defbase_tot, __func__);
+    tmpflags = MEM_malloc_arrayN<bool>(defbase_tot, __func__);
     if (wpd->lock_flags) {
       BLI_array_binary_or(tmpflags, wpd->defbase_sel, wpd->lock_flags, wpd->defbase_tot);
     }
@@ -1000,7 +1000,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   /* Brush may have changed after initialization. */
   brush = BKE_paint_brush(&vp.paint);
   if (ELEM(brush->weight_brush_type, WPAINT_BRUSH_TYPE_SMEAR, WPAINT_BRUSH_TYPE_BLUR)) {
-    wpd->precomputed_weight = (float *)MEM_mallocN(sizeof(float) * mesh.verts_num, __func__);
+    wpd->precomputed_weight = MEM_malloc_arrayN<float>(mesh.verts_num, __func__);
   }
 
   if (!ob.sculpt->mode.wpaint.dvert_prev.is_empty()) {

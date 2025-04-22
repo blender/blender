@@ -155,7 +155,7 @@ static DrawInfo *def_internal_icon(
     if (bbuf) {
       int y, imgsize;
 
-      iimg->rect = static_cast<uint8_t *>(MEM_mallocN(size * size * sizeof(uint), __func__));
+      iimg->rect = MEM_malloc_arrayN<uint8_t>(size * size * sizeof(uint), __func__);
 
       /* Here we store the rect in the icon - same as before */
       if (size == bbuf->x && size == bbuf->y && xofs == 0 && yofs == 0) {
@@ -1262,7 +1262,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
           img->w = STUDIOLIGHT_ICON_SIZE;
           img->h = STUDIOLIGHT_ICON_SIZE;
           const size_t size = STUDIOLIGHT_ICON_SIZE * STUDIOLIGHT_ICON_SIZE * sizeof(uint);
-          img->rect = static_cast<uint8_t *>(MEM_mallocN(size, __func__));
+          img->rect = MEM_malloc_arrayN<uint8_t>(size, __func__);
           memset(img->rect, 0, size);
           di->data.buffer.image = img;
 

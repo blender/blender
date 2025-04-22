@@ -99,8 +99,7 @@ KDTree *BLI_kdtree_nd_(new)(uint nodes_len_capacity)
    * four (1D to 4D), differing by their `float co[KD_DIMS]` member. It seems like the code
    * generating the templates does not distinguish these cases, and create a single code for all
    * four cases, leading to invalid allocation sizes. */
-  tree->nodes = static_cast<KDTreeNode *>(
-      MEM_mallocN(sizeof(KDTreeNode) * nodes_len_capacity, "KDTreeNode"));
+  tree->nodes = MEM_malloc_arrayN<KDTreeNode>(nodes_len_capacity, "KDTreeNode");
   tree->nodes_len = 0;
   tree->root = KD_NODE_ROOT_IS_INIT;
   tree->max_node_index = -1;

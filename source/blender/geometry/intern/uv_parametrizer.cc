@@ -2367,7 +2367,7 @@ static void p_abf_setup_system(PAbfSystem *sys)
 
   sys->lambdaTriangle = MEM_calloc_arrayN<float>(sys->nfaces, "ABFlambdatri");
   sys->lambdaPlanar = MEM_calloc_arrayN<float>(sys->ninterior, "ABFlamdaplane");
-  sys->lambdaLength = (float *)MEM_mallocN(sizeof(float) * sys->ninterior, "ABFlambdalen");
+  sys->lambdaLength = MEM_malloc_arrayN<float>(sys->ninterior, "ABFlambdalen");
 
   sys->J2dt = MEM_malloc_arrayN<float[3]>(size_t(sys->nangles), "ABFj2dt");
   sys->bstar = MEM_malloc_arrayN<float>(size_t(sys->nfaces), "ABFbstar");

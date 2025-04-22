@@ -465,7 +465,7 @@ void *BMO_slot_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_
   /* could add support for mapping type */
   BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
 
-  ret = static_cast<void **>(MEM_mallocN(sizeof(void *) * slot->len, __func__));
+  ret = MEM_malloc_arrayN<void *>(slot->len, __func__);
   memcpy(ret, slot->data.buf, sizeof(void *) * slot->len);
   *len = slot->len;
   return ret;

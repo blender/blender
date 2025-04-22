@@ -315,8 +315,7 @@ void BM_mesh_beautify_fill(BMesh *bm,
 #endif
 
   eheap = BLI_heap_new_ex(uint(edge_array_len));
-  eheap_table = static_cast<HeapNode **>(
-      MEM_mallocN(sizeof(HeapNode *) * size_t(edge_array_len), __func__));
+  eheap_table = MEM_malloc_arrayN<HeapNode *>(size_t(edge_array_len), __func__);
 
   /* build heap */
   for (i = 0; i < edge_array_len; i++) {

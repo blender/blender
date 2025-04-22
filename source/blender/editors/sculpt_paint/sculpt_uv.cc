@@ -727,8 +727,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   /* Allocate the unique uv buffers */
   data->uv = MEM_calloc_arrayN<UvAdjacencyElement>(unique_uvs, __func__);
   /* Holds, for each UvElement in elementMap, an index of its unique UV. */
-  int *uniqueUv = static_cast<int *>(
-      MEM_mallocN(sizeof(*uniqueUv) * data->elementMap->total_uvs, __func__));
+  int *uniqueUv = MEM_malloc_arrayN<int>(data->elementMap->total_uvs, __func__);
   GHash *edgeHash = BLI_ghash_new(uv_edge_hash, uv_edge_compare, "uv_brush_edge_hash");
   /* we have at most totalUVs edges */
   UvEdge *edges = MEM_calloc_arrayN<UvEdge>(data->elementMap->total_uvs, __func__);
@@ -877,8 +876,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     if (!data->initial_stroke) {
       uv_sculpt_stroke_exit(C, op);
     }
-    data->initial_stroke->initialSelection = static_cast<UVInitialStrokeElement *>(MEM_mallocN(
-        sizeof(*data->initial_stroke->initialSelection) * data->totalUniqueUvs, __func__));
+    data->initial_stroke->initialSelection = MEM_malloc_arrayN<UVInitialStrokeElement>(
+        data->totalUniqueUvs, __func__);
     if (!data->initial_stroke->initialSelection) {
       uv_sculpt_stroke_exit(C, op);
     }

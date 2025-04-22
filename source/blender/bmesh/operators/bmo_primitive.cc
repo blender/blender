@@ -1156,7 +1156,7 @@ void BM_mesh_calc_uvs_sphere(BMesh *bm, const short oflag, const int cd_loop_uv_
 
 void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 {
-  BMVert **tv = static_cast<BMVert **>(MEM_mallocN(sizeof(*tv) * monkeynv * 2, "tv"));
+  BMVert **tv = MEM_malloc_arrayN<BMVert *>(monkeynv * 2, "tv");
   float mat[4][4];
   int i;
 

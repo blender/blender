@@ -1081,8 +1081,7 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
 
   /* Populate through adjacent triangles, first triangle wins. */
   const int corner_tris_num = poly_to_tri_count(mesh_eval->faces_num, mesh_eval->corners_num);
-  int3 *corner_tris = static_cast<int3 *>(
-      MEM_mallocN(sizeof(*corner_tris) * corner_tris_num, __func__));
+  int3 *corner_tris = MEM_malloc_arrayN<int3>(corner_tris_num, __func__);
 
   const Span<int> corner_verts = mesh_eval->corner_verts();
   bke::mesh::corner_tris_calc(mesh_eval->vert_positions(),
@@ -1514,8 +1513,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
 
   /* Populate the pixel array with the face data. Except if we use a cage, then
    * it is populated later with the cage mesh (smoothed version of the mesh). */
-  pixel_array_low = static_cast<BakePixel *>(
-      MEM_mallocN(sizeof(BakePixel) * targets.pixels_num, "bake pixels low poly"));
+  pixel_array_low = MEM_malloc_arrayN<BakePixel>(targets.pixels_num, "bake pixels low poly");
   if ((bkr->is_selected_to_active && (ob_cage == nullptr) && bkr->is_cage) == false) {
     if (!CustomData_has_layer(&me_low_eval->corner_data, CD_PROP_FLOAT2)) {
       BKE_reportf(reports,
@@ -1653,8 +1651,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
     ob_low_eval->base_flag &= ~(BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT | BASE_ENABLED_RENDER);
 
     /* populate the pixel arrays with the corresponding face data for each high poly object */
-    pixel_array_high = static_cast<BakePixel *>(
-        MEM_mallocN(sizeof(BakePixel) * targets.pixels_num, "bake pixels high poly"));
+    pixel_array_high = MEM_malloc_arrayN<BakePixel>(targets.pixels_num, "bake pixels high poly");
 
     if (!RE_bake_pixels_populate_from_objects(
             me_low_eval,

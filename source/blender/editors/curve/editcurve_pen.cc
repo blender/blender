@@ -601,8 +601,7 @@ static void insert_bezt_to_nurb(Nurb *nu, const CutData *data, Curve *cu)
 {
   EditNurb *editnurb = cu->editnurb;
 
-  BezTriple *new_bezt_array = (BezTriple *)MEM_mallocN((nu->pntsu + 1) * sizeof(BezTriple),
-                                                       __func__);
+  BezTriple *new_bezt_array = MEM_malloc_arrayN<BezTriple>((nu->pntsu + 1), __func__);
   const int index = data->bezt_index + 1;
   /* Copy all control points before the cut to the new memory. */
   ED_curve_beztcpy(editnurb, new_bezt_array, nu->bezt, index);
@@ -657,7 +656,7 @@ static void insert_bp_to_nurb(Nurb *nu, const CutData *data, Curve *cu)
 {
   EditNurb *editnurb = cu->editnurb;
 
-  BPoint *new_bp_array = (BPoint *)MEM_mallocN((nu->pntsu + 1) * sizeof(BPoint), __func__);
+  BPoint *new_bp_array = MEM_malloc_arrayN<BPoint>((nu->pntsu + 1), __func__);
   const int index = data->bp_index + 1;
   /* Copy all control points before the cut to the new memory. */
   ED_curve_bpcpy(editnurb, new_bp_array, nu->bp, index);
@@ -756,7 +755,7 @@ static void update_cut_data_for_nurb(
 
   if (nu->type == CU_BEZIER) {
     for (int i = 0; i < end; i++) {
-      float *points = static_cast<float *>(MEM_mallocN(sizeof(float[3]) * (resolu + 1), __func__));
+      float *points = MEM_malloc_arrayN<float>(3 * (resolu + 1), __func__);
 
       const BezTriple *bezt1 = nu->bezt + i;
       const BezTriple *bezt2 = nu->bezt + (i + 1) % nu->pntsu;
@@ -945,8 +944,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
       const bool last_sel = BEZT_ISSEL_ANY(last_bezt) && nu1->pntsu > 1;
       if (first_sel) {
         if (last_sel) {
-          BezTriple *new_bezt = (BezTriple *)MEM_mallocN((nu1->pntsu + 2) * sizeof(BezTriple),
-                                                         __func__);
+          BezTriple *new_bezt = MEM_malloc_arrayN<BezTriple>((nu1->pntsu + 2), __func__);
           ED_curve_beztcpy(editnurb, new_bezt, nu1->bezt, 1);
           ED_curve_beztcpy(editnurb, new_bezt + nu1->pntsu + 1, last_bezt, 1);
           BEZT_DESEL_ALL(nu1->bezt);
@@ -967,8 +965,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
           BEZT_SEL_IDX(new_bezt + (nu1->pntsu - 1), 2);
         }
         else {
-          BezTriple *new_bezt = (BezTriple *)MEM_mallocN((nu1->pntsu + 1) * sizeof(BezTriple),
-                                                         __func__);
+          BezTriple *new_bezt = MEM_malloc_arrayN<BezTriple>((nu1->pntsu + 1), __func__);
           ED_curve_beztcpy(editnurb, new_bezt, nu1->bezt, 1);
           BEZT_DESEL_ALL(nu1->bezt);
           ED_curve_beztcpy(editnurb, new_bezt + 1, nu1->bezt, nu1->pntsu);
@@ -985,8 +982,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
         cu->actvert = 0;
       }
       else if (last_sel) {
-        BezTriple *new_bezt = (BezTriple *)MEM_mallocN((nu1->pntsu + 1) * sizeof(BezTriple),
-                                                       __func__);
+        BezTriple *new_bezt = MEM_malloc_arrayN<BezTriple>((nu1->pntsu + 1), __func__);
         ED_curve_beztcpy(editnurb, new_bezt + nu1->pntsu, last_bezt, 1);
         BEZT_DESEL_ALL(last_bezt);
         ED_curve_beztcpy(editnurb, new_bezt, nu1->bezt, nu1->pntsu);
@@ -1008,7 +1004,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
       const bool last_sel = last_bp->f1 & SELECT && nu1->pntsu > 1;
       if (first_sel) {
         if (last_sel) {
-          BPoint *new_bp = (BPoint *)MEM_mallocN((nu1->pntsu + 2) * sizeof(BPoint), __func__);
+          BPoint *new_bp = MEM_malloc_arrayN<BPoint>((nu1->pntsu + 2), __func__);
           ED_curve_bpcpy(editnurb, new_bp, nu1->bp, 1);
           ED_curve_bpcpy(editnurb, new_bp + nu1->pntsu + 1, last_bp, 1);
           nu1->bp->f1 &= ~SELECT;
@@ -1021,7 +1017,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
           nu1->pntsu += 2;
         }
         else {
-          BPoint *new_bp = (BPoint *)MEM_mallocN((nu1->pntsu + 1) * sizeof(BPoint), __func__);
+          BPoint *new_bp = MEM_malloc_arrayN<BPoint>((nu1->pntsu + 1), __func__);
           ED_curve_bpcpy(editnurb, new_bp, nu1->bp, 1);
           nu1->bp->f1 &= ~SELECT;
           ED_curve_bpcpy(editnurb, new_bp + 1, nu1->bp, nu1->pntsu);
@@ -1035,7 +1031,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
         cu->actvert = 0;
       }
       else if (last_sel) {
-        BPoint *new_bp = (BPoint *)MEM_mallocN((nu1->pntsu + 1) * sizeof(BPoint), __func__);
+        BPoint *new_bp = MEM_malloc_arrayN<BPoint>((nu1->pntsu + 1), __func__);
         ED_curve_bpcpy(editnurb, new_bp, nu1->bp, nu1->pntsu);
         ED_curve_bpcpy(editnurb, new_bp + nu1->pntsu, last_bp, 1);
         last_bp->f1 &= ~SELECT;

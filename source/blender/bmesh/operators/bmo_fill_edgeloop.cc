@@ -23,7 +23,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
   /* first collect an array of unique from the edges */
   const int tote = BMO_slot_buffer_len(op->slots_in, "edges");
   const int totv = tote; /* these should be the same */
-  BMVert **verts = static_cast<BMVert **>(MEM_mallocN(sizeof(*verts) * totv, __func__));
+  BMVert **verts = MEM_malloc_arrayN<BMVert *>(totv, __func__);
 
   BMVert *v;
   BMEdge *e;
@@ -72,7 +72,7 @@ void bmo_edgeloop_fill_exec(BMesh *bm, BMOperator *op)
 
   if (ok) {
     /* NOTE: in the case of multiple loops, this over-allocates (which is fine). */
-    BMVert **f_verts = static_cast<BMVert **>(MEM_mallocN(sizeof(*verts) * totv, __func__));
+    BMVert **f_verts = MEM_malloc_arrayN<BMVert *>(totv, __func__);
     BMIter eiter;
 
     /* build array of connected verts and edges */

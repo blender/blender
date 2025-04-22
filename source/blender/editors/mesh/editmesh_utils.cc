@@ -489,8 +489,8 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
     return nullptr;
   }
 
-  vmap->vert = (UvMapVert **)MEM_callocN(sizeof(*vmap->vert) * totverts, "UvMapVert_pt");
-  UvMapVert *buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
+  vmap->vert = MEM_calloc_arrayN<UvMapVert *>(totverts, "UvMapVert_pt");
+  UvMapVert *buf = vmap->buf = MEM_calloc_arrayN<UvMapVert>(totuv, "UvMapVert");
 
   if (!vmap->vert || !vmap->buf) {
     BKE_mesh_uv_vert_map_free(vmap);
@@ -759,13 +759,11 @@ static void bm_uv_build_islands(UvElementMap *element_map,
   int islandbufsize = 0;
 
   /* map holds the map from current vmap->buf to the new, sorted map */
-  uint *map = static_cast<uint *>(MEM_mallocN(sizeof(*map) * totuv, __func__));
-  BMFace **stack = static_cast<BMFace **>(MEM_mallocN(sizeof(*stack) * bm->totface, __func__));
-  UvElement *islandbuf = static_cast<UvElement *>(
-      MEM_callocN(sizeof(*islandbuf) * totuv, __func__));
+  uint *map = MEM_malloc_arrayN<uint>(totuv, __func__);
+  BMFace **stack = MEM_malloc_arrayN<BMFace *>(bm->totface, __func__);
+  UvElement *islandbuf = MEM_calloc_arrayN<UvElement>(totuv, __func__);
   /* Island number for BMFaces. */
-  int *island_number = static_cast<int *>(
-      MEM_callocN(sizeof(*island_number) * bm->totface, __func__));
+  int *island_number = MEM_calloc_arrayN<int>(bm->totface, __func__);
   copy_vn_i(island_number, bm->totface, INVALID_ISLAND);
 
   const BMUVOffsets uv_offsets = BM_uv_map_offsets_get(bm);
@@ -839,12 +837,9 @@ static void bm_uv_build_islands(UvElementMap *element_map,
     }
   }
 
-  element_map->island_indices = static_cast<int *>(
-      MEM_callocN(sizeof(*element_map->island_indices) * nislands, __func__));
-  element_map->island_total_uvs = static_cast<int *>(
-      MEM_callocN(sizeof(*element_map->island_total_uvs) * nislands, __func__));
-  element_map->island_total_unique_uvs = static_cast<int *>(
-      MEM_callocN(sizeof(*element_map->island_total_unique_uvs) * nislands, __func__));
+  element_map->island_indices = MEM_calloc_arrayN<int>(nislands, __func__);
+  element_map->island_total_uvs = MEM_calloc_arrayN<int>(nislands, __func__);
+  element_map->island_total_unique_uvs = MEM_calloc_arrayN<int>(nislands, __func__);
   int j = 0;
   for (int i = 0; i < totuv; i++) {
     UvElement *next = element_map->storage[i].next;
@@ -1043,9 +1038,7 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
   element_map->storage = (UvElement *)MEM_callocN(sizeof(*element_map->storage) * totuv,
                                                   "UvElement");
 
-  bool *winding = use_winding ?
-                      static_cast<bool *>(MEM_callocN(sizeof(*winding) * bm->totface, "winding")) :
-                      nullptr;
+  bool *winding = use_winding ? MEM_calloc_arrayN<bool>(bm->totface, "winding") : nullptr;
 
   UvElement *buf = element_map->storage;
   int j;

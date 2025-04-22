@@ -354,8 +354,7 @@ static void mesh_customdatacorrect_init_container_merge_group(TransDataContainer
    * to one of the sliding vertices. */
 
   /* Over allocate, only 'math' layers are indexed. */
-  int *customdatalayer_map = static_cast<int *>(
-      MEM_mallocN(sizeof(int) * bm->ldata.totlayer, __func__));
+  int *customdatalayer_map = MEM_malloc_arrayN<int>(bm->ldata.totlayer, __func__);
   int layer_math_map_len = 0;
   for (int i = 0; i < bm->ldata.totlayer; i++) {
     if (CustomData_layer_has_math(&bm->ldata, i)) {
@@ -770,8 +769,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
   if (!has_only_single_islands) {
     if (em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
-      groups_array = static_cast<int *>(
-          MEM_mallocN(sizeof(*groups_array) * bm->totedgesel, __func__));
+      groups_array = MEM_malloc_arrayN<int>(bm->totedgesel, __func__);
       data.island_tot = BM_mesh_calc_edge_groups(
           bm, groups_array, &group_index, nullptr, nullptr, BM_ELEM_SELECT);
 
@@ -779,8 +777,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
       itype = BM_VERTS_OF_EDGE;
     }
     else { /* `bm->selectmode & SCE_SELECT_FACE`. */
-      groups_array = static_cast<int *>(
-          MEM_mallocN(sizeof(*groups_array) * bm->totfacesel, __func__));
+      groups_array = MEM_malloc_arrayN<int>(bm->totfacesel, __func__);
       data.island_tot = BM_mesh_calc_face_groups(
           bm, groups_array, &group_index, nullptr, nullptr, nullptr, BM_ELEM_SELECT, BM_VERT);
 
@@ -1203,7 +1200,7 @@ void transform_convert_mesh_mirrordata_calc(BMEditMesh *em,
   BMIter iter;
   int i, flag, totvert = bm->totvert;
 
-  vert_map = static_cast<MirrorDataVert *>(MEM_callocN(totvert * sizeof(*vert_map), __func__));
+  vert_map = MEM_calloc_arrayN<MirrorDataVert>(totvert, __func__);
 
   float select_sum[3] = {0};
   BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
@@ -1567,9 +1564,9 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     int *dists_index = nullptr;
     float *dists = nullptr;
     if (prop_mode & T_PROP_CONNECTED) {
-      dists = static_cast<float *>(MEM_mallocN(bm->totvert * sizeof(float), __func__));
+      dists = MEM_malloc_arrayN<float>(bm->totvert, __func__);
       if (is_island_center) {
-        dists_index = static_cast<int *>(MEM_mallocN(bm->totvert * sizeof(int), __func__));
+        dists_index = MEM_malloc_arrayN<int>(bm->totvert, __func__);
       }
       transform_convert_mesh_connectivity_distance(em->bm, mtx, dists, dists_index);
     }

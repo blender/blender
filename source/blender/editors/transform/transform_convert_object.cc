@@ -521,7 +521,7 @@ static void createTransObject(bContext *C, TransInfo *t)
   td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransOb");
   tx = tc->data_ext = MEM_calloc_arrayN<TransDataExtension>(tc->data_len, "TransObExtension");
 
-  TransDataObject *tdo = static_cast<TransDataObject *>(MEM_callocN(sizeof(*tdo), __func__));
+  TransDataObject *tdo = MEM_callocN<TransDataObject>(__func__);
   t->custom.type.data = tdo;
   t->custom.type.free_cb = freeTransObjectCustomData;
 

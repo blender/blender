@@ -97,7 +97,7 @@ uint *DRW_select_buffer_read(
 
       /* Read the UI32 pixels. */
       buf_len = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
-      r_buf = static_cast<uint *>(MEM_mallocN(buf_len * sizeof(*r_buf), __func__));
+      r_buf = MEM_malloc_arrayN<uint>(buf_len, __func__);
 
       GPUFrameBuffer *select_id_fb = DRW_engine_select_framebuffer_get();
       GPU_framebuffer_bind(select_id_fb);

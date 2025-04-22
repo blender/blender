@@ -42,8 +42,7 @@ const float FRAME_STEP = 0.005;
 static void build_fcurve(FCurve &fcurve)
 {
   fcurve.totvert = 3;
-  fcurve.bezt = static_cast<BezTriple *>(
-      MEM_callocN(sizeof(BezTriple) * fcurve.totvert, "BezTriples"));
+  fcurve.bezt = MEM_calloc_arrayN<BezTriple>(fcurve.totvert, "BezTriples");
   fcurve.bezt[0].vec[1][0] = 10.0f;
   fcurve.bezt[0].vec[1][1] = 1.0f;
   fcurve.bezt[1].vec[1][0] = 20.0f;

@@ -1035,7 +1035,7 @@ static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
     MEM_SAFE_FREE(kb->data);
 
     kb->totelem = mesh.verts_num;
-    kb->data = MEM_malloc_arrayN(size_t(kb->totelem), sizeof(float3), __func__);
+    kb->data = MEM_malloc_arrayN<float3>(size_t(kb->totelem), __func__);
     MutableSpan<float3> kb_coords(static_cast<float3 *>(kb->data), kb->totelem);
     if (kb->uid == actshape_uid) {
       mesh.attributes().lookup<float3>("position").varray.materialize(kb_coords);

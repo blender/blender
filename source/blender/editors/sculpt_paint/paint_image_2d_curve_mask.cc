@@ -110,8 +110,7 @@ static void sampled_curve_free(CurveMaskCache *curve_mask_cache)
 static void update_sampled_curve(CurveMaskCache *curve_mask_cache, const Brush *brush)
 {
   if (curve_mask_cache->sampled_curve == nullptr) {
-    curve_mask_cache->sampled_curve = static_cast<float *>(
-        MEM_mallocN(CurveSamplesLen * sizeof(float), __func__));
+    curve_mask_cache->sampled_curve = MEM_malloc_arrayN<float>(CurveSamplesLen, __func__);
   }
 
   for (int i = 0; i < CurveSamplesLen; i++) {

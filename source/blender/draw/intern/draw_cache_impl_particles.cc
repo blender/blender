@@ -428,12 +428,11 @@ static void particle_calculate_uvs(ParticleSystem *psys,
       *r_uv = r_parent_uvs[parent_index];
     }
     else {
-      *r_uv = static_cast<float(*)[2]>(
-          MEM_callocN(sizeof(**r_uv) * num_uv_layers, "Particle UVs"));
+      *r_uv = MEM_calloc_arrayN<float[2]>(num_uv_layers, "Particle UVs");
     }
   }
   else {
-    *r_uv = static_cast<float(*)[2]>(MEM_callocN(sizeof(**r_uv) * num_uv_layers, "Particle UVs"));
+    *r_uv = MEM_calloc_arrayN<float[2]>(num_uv_layers, "Particle UVs");
   }
   if (child_index == -1) {
     /* Calculate UVs for parent particles. */
@@ -472,12 +471,11 @@ static void particle_calculate_mcol(ParticleSystem *psys,
       *r_mcol = r_parent_mcol[parent_index];
     }
     else {
-      *r_mcol = static_cast<MCol *>(
-          MEM_callocN(sizeof(**r_mcol) * num_col_layers, "Particle MCol"));
+      *r_mcol = MEM_calloc_arrayN<MCol>(num_col_layers, "Particle MCol");
     }
   }
   else {
-    *r_mcol = static_cast<MCol *>(MEM_callocN(sizeof(**r_mcol) * num_col_layers, "Particle MCol"));
+    *r_mcol = MEM_calloc_arrayN<MCol>(num_col_layers, "Particle MCol");
   }
   if (child_index == -1) {
     /* Calculate MCols for parent particles. */
@@ -937,12 +935,10 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   MEM_SAFE_FREE(cache->col_tex);
   MEM_SAFE_FREE(cache->col_layer_names);
 
-  cache->proc_col_buf = static_cast<gpu::VertBuf **>(
-      MEM_calloc_arrayN(cache->num_col_layers, sizeof(void *), "proc_col_buf"));
-  cache->col_tex = static_cast<GPUTexture **>(
-      MEM_calloc_arrayN(cache->num_col_layers, sizeof(void *), "col_tex"));
-  cache->col_layer_names = static_cast<char(*)[4][14]>(MEM_calloc_arrayN(
-      cache->num_col_layers, sizeof(*cache->col_layer_names), "col_layer_names"));
+  cache->proc_col_buf = MEM_calloc_arrayN<gpu::VertBuf *>(cache->num_col_layers, "proc_col_buf");
+  cache->col_tex = MEM_calloc_arrayN<GPUTexture *>(cache->num_col_layers, "col_tex");
+  cache->col_layer_names = MEM_calloc_arrayN<char[4][14]>(cache->num_col_layers,
+                                                          "col_layer_names");
 
   /* Vertex colors */
   for (int i = 0; i < cache->num_col_layers; i++) {
@@ -1218,8 +1214,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   attr_id.ind = GPU_vertformat_attr_add(&format, "ind", GPU_COMP_I32, 1, GPU_FETCH_INT);
 
   if (psmd) {
-    uv_id = static_cast<uint *>(MEM_mallocN(sizeof(*uv_id) * num_uv_layers, "UV attr format"));
-    col_id = static_cast<uint *>(MEM_mallocN(sizeof(*col_id) * num_col_layers, "Col attr format"));
+    uv_id = MEM_malloc_arrayN<uint>(num_uv_layers, "UV attr format");
+    col_id = MEM_malloc_arrayN<uint>(num_col_layers, "Col attr format");
 
     for (int i = 0; i < num_uv_layers; i++) {
 

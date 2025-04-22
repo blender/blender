@@ -570,8 +570,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   tris_high = MEM_calloc_arrayN<TriTessFace *>(highpoly_num, "MVerts Highpoly Mesh Array");
 
   /* Assume all high-poly tessfaces are triangles. */
-  me_highpoly = static_cast<Mesh **>(
-      MEM_mallocN(sizeof(Mesh *) * highpoly_num, "Highpoly Derived Meshes"));
+  me_highpoly = MEM_malloc_arrayN<Mesh *>(highpoly_num, "Highpoly Derived Meshes");
   Array<blender::bke::BVHTreeFromMesh> treeData(highpoly_num);
 
   if (!is_cage) {

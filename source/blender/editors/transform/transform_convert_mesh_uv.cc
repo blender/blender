@@ -281,8 +281,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
         continue;
       }
 
-      island_center = static_cast<IslandCenter *>(
-          MEM_callocN(sizeof(*island_center) * elementmap->total_islands, __func__));
+      island_center = MEM_calloc_arrayN<IslandCenter>(elementmap->total_islands, __func__);
     }
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {

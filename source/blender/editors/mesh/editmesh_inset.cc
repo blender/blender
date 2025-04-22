@@ -122,8 +122,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
     RNA_float_set(op->ptr, "depth", 0.0f);
   }
 
-  op->customdata = opdata = static_cast<InsetData *>(
-      MEM_mallocN(sizeof(InsetData), "inset_operator_data"));
+  op->customdata = opdata = MEM_mallocN<InsetData>("inset_operator_data");
 
   uint objects_used_len = 0;
 

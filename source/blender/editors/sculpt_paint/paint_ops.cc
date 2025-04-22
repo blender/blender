@@ -618,7 +618,7 @@ static wmOperatorStatus stencil_control_invoke(bContext *C, wmOperator *op, cons
     }
   }
 
-  scd = static_cast<StencilControlData *>(MEM_mallocN(sizeof(StencilControlData), __func__));
+  scd = MEM_mallocN<StencilControlData>(__func__);
   scd->mask = mask;
   scd->br = br;
 

@@ -200,8 +200,8 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
 
   ED_paintcurve_undo_push_begin(op->type->name);
 
-  PaintCurvePoint *pcp = static_cast<PaintCurvePoint *>(
-      MEM_mallocN((pc->tot_points + 1) * sizeof(PaintCurvePoint), "PaintCurvePoint"));
+  PaintCurvePoint *pcp = MEM_malloc_arrayN<PaintCurvePoint>((pc->tot_points + 1),
+                                                            "PaintCurvePoint");
   int add_index = pc->add_index;
 
   if (pc->points) {
@@ -330,8 +330,7 @@ static wmOperatorStatus paintcurve_delete_point_exec(bContext *C, wmOperator *op
     int new_tot = pc->tot_points - tot_del;
     PaintCurvePoint *points_new = nullptr;
     if (new_tot > 0) {
-      points_new = static_cast<PaintCurvePoint *>(
-          MEM_mallocN(new_tot * sizeof(PaintCurvePoint), "PaintCurvePoint"));
+      points_new = MEM_malloc_arrayN<PaintCurvePoint>(new_tot, "PaintCurvePoint");
     }
 
     for (i = 0, pcp = pc->points; i < pc->tot_points; i++, pcp++) {
@@ -586,8 +585,7 @@ static wmOperatorStatus paintcurve_slide_invoke(bContext *C, wmOperator *op, con
   if (pcp) {
     ARegion *region = CTX_wm_region(C);
     wmWindow *window = CTX_wm_window(C);
-    PointSlideData *psd = static_cast<PointSlideData *>(
-        MEM_mallocN(sizeof(PointSlideData), "PointSlideData"));
+    PointSlideData *psd = MEM_mallocN<PointSlideData>("PointSlideData");
     copy_v2_v2_int(psd->initial_loc, event->mval);
     psd->event = event->type;
     psd->pcp = pcp;

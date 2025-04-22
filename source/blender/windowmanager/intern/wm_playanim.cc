@@ -125,7 +125,7 @@ static bool buffer_from_filepath(const char *filepath,
   if (UNLIKELY(size == size_t(-1))) {
     *r_error_message = BLI_sprintfN("failure '%s' to access size", strerror(errno));
   }
-  else if (r_mem && UNLIKELY(!(mem = static_cast<uchar *>(MEM_mallocN(size, __func__))))) {
+  else if (r_mem && UNLIKELY(!(mem = MEM_malloc_arrayN<uchar>(size, __func__)))) {
     *r_error_message = BLI_sprintfN("error allocating buffer %" PRIu64 " size", uint64_t(size));
   }
   else if (r_mem && UNLIKELY((size_read = BLI_read(file, mem, size)) != size)) {

@@ -157,7 +157,7 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
 
   /* not equal... */
   if (curchunk->buf == nullptr) {
-    char *buf_new = static_cast<char *>(MEM_mallocN(size, "Chunk buffer"));
+    char *buf_new = MEM_malloc_arrayN<char>(size, "Chunk buffer");
     memcpy(buf_new, buf, size);
     curchunk->buf = buf_new;
     memfile->size += size;

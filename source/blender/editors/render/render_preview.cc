@@ -1106,8 +1106,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   RenderView *rv = (RenderView *)rr->views.first;
   ImBuf *rv_ibuf = RE_RenderViewEnsureImBuf(rr, rv);
   IMB_assign_float_buffer(rv_ibuf,
-                          static_cast<float *>(MEM_callocN(sizeof(float[4]) * width * height,
-                                                           "texture render result")),
+                          MEM_calloc_arrayN<float>(4 * width * height, "texture render result"),
                           IB_TAKE_OWNERSHIP);
   RE_ReleaseResult(re);
 

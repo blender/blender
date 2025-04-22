@@ -844,8 +844,8 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
 
   /* Use an array as a stack. Stack size can't exceed total faces if keep track of what is in
    * stack. */
-  BMFace **stack = static_cast<BMFace **>(MEM_malloc_arrayN(totface, sizeof(BMFace *), __func__));
-  bool *in_stack = static_cast<bool *>(MEM_malloc_arrayN(totface, sizeof(bool), __func__));
+  BMFace **stack = MEM_malloc_arrayN<BMFace *>(totface, __func__);
+  bool *in_stack = MEM_malloc_arrayN<bool>(totface, __func__);
 
   /* Set all component ids by DFS from faces with unassigned components. */
   for (f = 0; f < totface; f++) {
@@ -5013,8 +5013,7 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
   float ns2inv = 1.0f / float(ns2);
   VMesh *vm = new_adj_vmesh(bp->mem_arena, n_bndv, ns, bv->vmesh->boundstart);
   int clstride = 3 * (ns2 + 1);
-  float *centerline = static_cast<float *>(
-      MEM_mallocN(sizeof(float) * clstride * n_bndv, "bevel"));
+  float *centerline = MEM_malloc_arrayN<float>(clstride * n_bndv, "bevel");
   bool *cset = MEM_calloc_arrayN<bool>(n_bndv, "bevel");
 
   /* Find on_edge, place on bndv[i]'s elast where offset line would meet,

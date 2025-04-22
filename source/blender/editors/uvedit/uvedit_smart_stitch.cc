@@ -240,8 +240,7 @@ static StitchPreviewer *stitch_preview_init()
 {
   StitchPreviewer *stitch_preview;
 
-  stitch_preview = static_cast<StitchPreviewer *>(
-      MEM_mallocN(sizeof(StitchPreviewer), "stitch_previewer"));
+  stitch_preview = MEM_mallocN<StitchPreviewer>("stitch_previewer");
   stitch_preview->preview_polys = nullptr;
   stitch_preview->preview_stitchable = nullptr;
   stitch_preview->preview_unstitchable = nullptr;
@@ -985,8 +984,8 @@ static int stitch_process_data(StitchStateContainer *ssc,
     preview_position[i].data_position = STITCH_NO_PREVIEW;
   }
 
-  island_stitch_data = static_cast<IslandStitchData *>(MEM_callocN(
-      sizeof(*island_stitch_data) * state->element_map->total_islands, "stitch_island_data"));
+  island_stitch_data = MEM_calloc_arrayN<IslandStitchData>(state->element_map->total_islands,
+                                                           "stitch_island_data");
   if (!island_stitch_data) {
     return 0;
   }
@@ -1157,8 +1156,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
     /* initialize the preview buffers */
     preview->preview_polys = static_cast<float *>(
         MEM_mallocN(sizeof(float[2]) * preview->preview_uvs, "tri_uv_stitch_prev"));
-    preview->uvs_per_polygon = static_cast<uint *>(
-        MEM_mallocN(sizeof(*preview->uvs_per_polygon) * preview->num_polys, "tri_uv_stitch_prev"));
+    preview->uvs_per_polygon = MEM_malloc_arrayN<uint>(preview->num_polys, "tri_uv_stitch_prev");
 
     preview->static_tris = static_cast<float *>(
         MEM_mallocN((sizeof(float[6]) * state->tris_per_island[ssc->static_island]),
@@ -1882,14 +1880,11 @@ static StitchState *stitch_init(bContext *C,
   /* internal uvs need no normals but it is hard and slow to keep a map of
    * normals only for boundary uvs, so allocating for all uvs.
    * Times 2 because each `float[2]` is stored as `{n[2 * i], n[2*i + 1]}`. */
-  state->normals = static_cast<float *>(
-      MEM_callocN(sizeof(*state->normals) * 2 * unique_uvs, "uv_stitch_normals"));
-  state->map = map = static_cast<int *>(
-      MEM_mallocN(sizeof(*map) * state->element_map->total_uvs, "uv_stitch_unique_map"));
+  state->normals = MEM_calloc_arrayN<float>(2 * unique_uvs, "uv_stitch_normals");
+  state->map = map = MEM_malloc_arrayN<int>(state->element_map->total_uvs, "uv_stitch_unique_map");
   /* Allocate the edge stack */
   edge_hash = BLI_ghash_new(uv_edge_hash, uv_edge_compare, "stitch_edge_hash");
-  all_edges = static_cast<UvEdge *>(
-      MEM_mallocN(sizeof(*all_edges) * state->element_map->total_uvs, "ssc_edges"));
+  all_edges = MEM_malloc_arrayN<UvEdge>(state->element_map->total_uvs, "ssc_edges");
 
   BLI_assert(!state->stitch_preview); /* Paranoia. */
   if (!state->uvs || !map || !edge_hash || !all_edges) {
@@ -1960,8 +1955,7 @@ static StitchState *stitch_init(bContext *C,
   }
 
   total_edges = BLI_ghash_len(edge_hash);
-  state->edges = edges = static_cast<UvEdge *>(
-      MEM_mallocN(sizeof(*edges) * total_edges, "stitch_edges"));
+  state->edges = edges = MEM_malloc_arrayN<UvEdge>(total_edges, "stitch_edges");
 
   /* I assume any system will be able to at least allocate an iterator :p */
   if (!edges) {
@@ -2124,8 +2118,8 @@ static StitchState *stitch_init(bContext *C,
 
   /***** initialize static island preview data *****/
 
-  state->tris_per_island = static_cast<uint *>(MEM_mallocN(
-      sizeof(*state->tris_per_island) * state->element_map->total_islands, "stitch island tris"));
+  state->tris_per_island = MEM_malloc_arrayN<uint>(state->element_map->total_islands,
+                                                   "stitch island tris");
   for (i = 0; i < state->element_map->total_islands; i++) {
     state->tris_per_island[i] = 0;
   }

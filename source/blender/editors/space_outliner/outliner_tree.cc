@@ -568,8 +568,7 @@ static void outliner_sort(ListBase *lb)
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
-      tTreeSort *tear = static_cast<tTreeSort *>(
-          MEM_mallocN(totelem * sizeof(tTreeSort), "tree sort array"));
+      tTreeSort *tear = MEM_malloc_arrayN<tTreeSort>(totelem, "tree sort array");
       tTreeSort *tp = tear;
       int skip = 0;
 
@@ -635,8 +634,7 @@ static void outliner_collections_children_sort(ListBase *lb)
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
-      tTreeSort *tear = static_cast<tTreeSort *>(
-          MEM_mallocN(totelem * sizeof(tTreeSort), "tree sort array"));
+      tTreeSort *tear = MEM_malloc_arrayN<tTreeSort>(totelem, "tree sort array");
       tTreeSort *tp = tear;
 
       LISTBASE_FOREACH (TreeElement *, te, lb) {

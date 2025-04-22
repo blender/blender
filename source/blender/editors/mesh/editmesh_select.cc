@@ -1371,8 +1371,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
-  int *groups_array = static_cast<int *>(
-      MEM_mallocN(sizeof(*groups_array) * bm->totfacesel, __func__));
+  int *groups_array = MEM_malloc_arrayN<int>(bm->totfacesel, __func__);
   group_tot = BM_mesh_calc_face_groups(
       bm, groups_array, &group_index, nullptr, nullptr, nullptr, BM_ELEM_SELECT, BM_VERT);
 
@@ -1385,7 +1384,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
     const int fg_sta = group_index[i][0];
     const int fg_len = group_index[i][1];
     int j;
-    BMFace **fg = static_cast<BMFace **>(MEM_mallocN(sizeof(*fg) * fg_len, __func__));
+    BMFace **fg = MEM_malloc_arrayN<BMFace *>(fg_len, __func__);
 
     for (j = 0; j < fg_len; j++) {
       fg[j] = BM_face_at_index(bm, groups_array[fg_sta + j]);
@@ -1646,8 +1645,7 @@ static wmOperatorStatus edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
       }
     }
 
-    BMEdge **edarray = static_cast<BMEdge **>(
-        MEM_mallocN(sizeof(BMEdge *) * totedgesel, "edge array"));
+    BMEdge **edarray = MEM_malloc_arrayN<BMEdge *>(totedgesel, "edge array");
     edindex = 0;
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -2981,8 +2979,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
   BMIter iter;
   bool changed = false;
 
-  float *edge_lengths = static_cast<float *>(
-      MEM_mallocN(sizeof(*edge_lengths) * bm->totedge, __func__));
+  float *edge_lengths = MEM_malloc_arrayN<float>(bm->totedge, __func__);
 
   {
     bool has_nonmanifold = false;
@@ -3014,13 +3011,11 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
   int(*fgroup_index)[2];
   int fgroup_len;
 
-  int *fgroup_array = static_cast<int *>(
-      MEM_mallocN(sizeof(*fgroup_array) * bm->totface, __func__));
+  int *fgroup_array = MEM_malloc_arrayN<int>(bm->totface, __func__);
   fgroup_len = BM_mesh_calc_face_groups(
       bm, fgroup_array, &fgroup_index, bm_interior_loop_filter_fn, nullptr, nullptr, 0, BM_EDGE);
 
-  int *fgroup_recalc_stack = static_cast<int *>(
-      MEM_mallocN(sizeof(*fgroup_recalc_stack) * fgroup_len, __func__));
+  int *fgroup_recalc_stack = MEM_malloc_arrayN<int>(fgroup_len, __func__);
   STACK_DECLARE(fgroup_recalc_stack);
   STACK_INIT(fgroup_recalc_stack, fgroup_len);
 
@@ -3034,10 +3029,8 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
   }
   bm->elem_index_dirty |= BM_FACE;
 
-  ListBase *fgroup_listbase = static_cast<ListBase *>(
-      MEM_callocN(sizeof(*fgroup_listbase) * fgroup_len, __func__));
-  BMFaceLink *f_link_array = static_cast<BMFaceLink *>(
-      MEM_callocN(sizeof(*f_link_array) * bm->totface, __func__));
+  ListBase *fgroup_listbase = MEM_calloc_arrayN<ListBase>(fgroup_len, __func__);
+  BMFaceLink *f_link_array = MEM_calloc_arrayN<BMFaceLink>(bm->totface, __func__);
 
   for (int i = 0; i < fgroup_len; i++) {
     const int fg_sta = fgroup_index[i][0];
@@ -3058,10 +3051,8 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
   MEM_freeN(fgroup_index);
 
   Heap *fgroup_heap = BLI_heap_new_ex(fgroup_len);
-  HeapNode **fgroup_table = static_cast<HeapNode **>(
-      MEM_mallocN(sizeof(*fgroup_table) * fgroup_len, __func__));
-  bool *fgroup_dirty = static_cast<bool *>(
-      MEM_callocN(sizeof(*fgroup_dirty) * fgroup_len, __func__));
+  HeapNode **fgroup_table = MEM_malloc_arrayN<HeapNode *>(fgroup_len, __func__);
+  bool *fgroup_dirty = MEM_calloc_arrayN<bool>(fgroup_len, __func__);
 
   for (int i = 0; i < fgroup_len; i++) {
     const float cost = bm_interior_face_group_calc_cost(&fgroup_listbase[i], edge_lengths);
@@ -5363,8 +5354,7 @@ static int loop_find_region(BMLoop *l, int flag, GSet *visit_face_set, BMFace **
     }
   }
 
-  BMFace **region_alloc = static_cast<BMFace **>(
-      MEM_malloc_arrayN(region.size(), sizeof(BMFace *), __func__));
+  BMFace **region_alloc = MEM_malloc_arrayN<BMFace *>(region.size(), __func__);
   memcpy(region_alloc, region.data(), region.as_span().size_in_bytes());
   *region_out = region_alloc;
   return region.size();
@@ -5402,7 +5392,7 @@ static int loop_find_regions(BMEditMesh *em, const bool selbigger)
   int count = 0, i;
 
   visit_face_set = BLI_gset_ptr_new_ex(__func__, edges_len);
-  BMEdge **edges = static_cast<BMEdge **>(MEM_mallocN(sizeof(*edges) * edges_len, __func__));
+  BMEdge **edges = MEM_malloc_arrayN<BMEdge *>(edges_len, __func__);
 
   i = 0;
   BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {

@@ -56,7 +56,7 @@ static SpaceLink *file_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   ARegion *region;
   SpaceFile *sfile;
 
-  sfile = static_cast<SpaceFile *>(MEM_callocN(sizeof(SpaceFile), "initfile"));
+  sfile = MEM_callocN<SpaceFile>("initfile");
   sfile->spacetype = SPACE_FILE;
 
   /* header */

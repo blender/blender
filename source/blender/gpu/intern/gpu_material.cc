@@ -155,8 +155,7 @@ GPUTexture **gpu_material_sky_texture_layer_set(
   UNUSED_VARS_NDEBUG(width, height);
 
   if (mat->sky_builder == nullptr) {
-    mat->sky_builder = static_cast<GPUSkyBuilder *>(
-        MEM_mallocN(sizeof(GPUSkyBuilder), "GPUSkyBuilder"));
+    mat->sky_builder = MEM_mallocN<GPUSkyBuilder>("GPUSkyBuilder");
     mat->sky_builder->current_layer = 0;
   }
 
@@ -186,8 +185,7 @@ GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
   UNUSED_VARS_NDEBUG(size);
 
   if (mat->coba_builder == nullptr) {
-    mat->coba_builder = static_cast<GPUColorBandBuilder *>(
-        MEM_mallocN(sizeof(GPUColorBandBuilder), "GPUColorBandBuilder"));
+    mat->coba_builder = MEM_mallocN<GPUColorBandBuilder>("GPUColorBandBuilder");
     mat->coba_builder->current_layer = 0;
   }
 

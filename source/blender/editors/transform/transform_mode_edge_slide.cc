@@ -85,7 +85,7 @@ struct EdgeSlideData {
 };
 
 struct EdgeSlideParams {
-  wmOperator *op = nullptr;
+  wmOperator *op;
   float perc;
 
   /** When un-clamped - use this index: #TransDataEdgeSlideVert.dir_side. */
@@ -278,7 +278,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
   if (use_calc_direction) {
     loop_dir = MEM_calloc_arrayN<float2>(loop_nr, "sv loop_dir");
-    loop_maxdist = static_cast<float *>(MEM_mallocN(sizeof(float) * loop_nr, "sv loop_maxdist"));
+    loop_maxdist = MEM_malloc_arrayN<float>(loop_nr, "sv loop_maxdist");
     copy_vn_fl(loop_maxdist, loop_nr, FLT_MAX);
   }
 
@@ -884,7 +884,7 @@ static void initEdgeSlide_ex(TransInfo *t,
   t->mode = TFM_EDGE_SLIDE;
 
   {
-    EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(MEM_callocN(sizeof(*slp), __func__));
+    EdgeSlideParams *slp = MEM_callocN<EdgeSlideParams>(__func__);
     slp->op = op;
     slp->use_even = use_even;
     slp->flipped = flipped;

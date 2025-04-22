@@ -45,7 +45,7 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   ARegion *region;
   SpaceText *stext;
 
-  stext = static_cast<SpaceText *>(MEM_callocN(sizeof(SpaceText), "inittext"));
+  stext = MEM_callocN<SpaceText>("inittext");
   stext->spacetype = SPACE_TEXT;
 
   stext->lheight = 12;

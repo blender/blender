@@ -38,7 +38,7 @@ static SpaceLink *script_create(const ScrArea * /*area*/, const Scene * /*scene*
   ARegion *region;
   SpaceScript *sscript;
 
-  sscript = static_cast<SpaceScript *>(MEM_callocN(sizeof(SpaceScript), "initscript"));
+  sscript = MEM_callocN<SpaceScript>("initscript");
   sscript->spacetype = SPACE_SCRIPT;
 
   /* header */

@@ -254,7 +254,7 @@ GLShaderInterface::GLShaderInterface(GLuint program)
   /* Bit set to true if uniform comes from a uniform block. */
   BLI_bitmap *uniforms_from_blocks = BLI_BITMAP_NEW(active_uniform_len, __func__);
   /* Set uniforms from block for exclusion. */
-  GLint *ubo_uni_ids = (GLint *)MEM_mallocN(sizeof(GLint) * max_ubo_uni_len, __func__);
+  GLint *ubo_uni_ids = MEM_malloc_arrayN<GLint>(max_ubo_uni_len, __func__);
   for (int i = 0; i < ubo_len; i++) {
     GLint ubo_uni_len;
     glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &ubo_uni_len);
@@ -266,7 +266,7 @@ GLShaderInterface::GLShaderInterface(GLuint program)
   MEM_freeN(ubo_uni_ids);
 
   int input_tot_len = attr_len + ubo_len + uniform_len + ssbo_len;
-  inputs_ = (ShaderInput *)MEM_callocN(sizeof(ShaderInput) * input_tot_len, __func__);
+  inputs_ = MEM_calloc_arrayN<ShaderInput>(input_tot_len, __func__);
 
   const uint32_t name_buffer_len = attr_len * max_attr_name_len + ubo_len * max_ubo_name_len +
                                    uniform_len * max_uniform_name_len +

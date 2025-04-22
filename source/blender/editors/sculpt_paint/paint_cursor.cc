@@ -316,10 +316,10 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
       target->old_col = col;
     }
     if (col) {
-      buffer = static_cast<uchar *>(MEM_mallocN(sizeof(uchar) * size * size * 4, "load_tex"));
+      buffer = MEM_malloc_arrayN<uchar>(size * size * 4, "load_tex");
     }
     else {
-      buffer = static_cast<uchar *>(MEM_mallocN(sizeof(uchar) * size * size, "load_tex"));
+      buffer = MEM_malloc_arrayN<uchar>(size * size, "load_tex");
     }
 
     pool = BKE_image_pool_new();
@@ -454,7 +454,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 
       cursor_snap.size = size;
     }
-    buffer = static_cast<uchar *>(MEM_mallocN(sizeof(uchar) * size * size, "load_tex"));
+    buffer = MEM_malloc_arrayN<uchar>(size * size, "load_tex");
 
     BKE_curvemapping_init(br->curve);
 

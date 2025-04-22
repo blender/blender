@@ -471,8 +471,7 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
       LISTBASE_FOREACH (bDeformGroup *, dg, &mesh->vertex_group_names) {
         /* See if this group exists in the object (if it doesn't, add it to the end) */
         if (!BKE_object_defgroup_find_name(ob, dg->name)) {
-          bDeformGroup *odg = static_cast<bDeformGroup *>(
-              MEM_mallocN(sizeof(bDeformGroup), __func__));
+          bDeformGroup *odg = MEM_mallocN<bDeformGroup>(__func__);
           memcpy(odg, dg, sizeof(bDeformGroup));
           BLI_addtail(&mesh_active->vertex_group_names, odg);
         }
@@ -490,10 +489,8 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
          * check if destination mesh already has matching entries too. */
         if (mesh->key && key) {
           /* for remapping KeyBlock.relative */
-          int *index_map = static_cast<int *>(
-              MEM_mallocN(sizeof(int) * mesh->key->totkey, __func__));
-          KeyBlock **kb_map = static_cast<KeyBlock **>(
-              MEM_mallocN(sizeof(KeyBlock *) * mesh->key->totkey, __func__));
+          int *index_map = MEM_malloc_arrayN<int>(mesh->key->totkey, __func__);
+          KeyBlock **kb_map = MEM_malloc_arrayN<KeyBlock *>(mesh->key->totkey, __func__);
 
           LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &mesh->key->block, i) {
             BLI_assert(i < mesh->key->totkey);
@@ -548,7 +545,7 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
       &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_vert");
   int *corner_edges = (int *)CustomData_add_layer_named(
       &ldata, CD_PROP_INT32, CD_CONSTRUCT, totloop, ".corner_edge");
-  int *face_offsets = static_cast<int *>(MEM_malloc_arrayN(faces_num + 1, sizeof(int), __func__));
+  int *face_offsets = MEM_malloc_arrayN<int>(faces_num + 1, __func__);
   face_offsets[faces_num] = totloop;
 
   vertofs = 0;
@@ -678,10 +675,10 @@ wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   const int totcol = matar.size();
   if (totcol) {
-    mesh->mat = static_cast<Material **>(MEM_callocN(sizeof(*mesh->mat) * totcol, __func__));
+    mesh->mat = MEM_calloc_arrayN<Material *>(totcol, __func__);
     std::copy_n(matar.data(), totcol, mesh->mat);
-    ob->mat = static_cast<Material **>(MEM_callocN(sizeof(*ob->mat) * totcol, __func__));
-    ob->matbits = static_cast<char *>(MEM_callocN(sizeof(*ob->matbits) * totcol, __func__));
+    ob->mat = MEM_calloc_arrayN<Material *>(totcol, __func__);
+    ob->matbits = MEM_calloc_arrayN<char>(totcol, __func__);
   }
 
   ob->totcol = mesh->totcol = totcol;
@@ -1081,7 +1078,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
   int a;
 
   mirrorverts = MEM_calloc_arrayN<int>(totvert, "MirrorVerts");
-  mirrorfaces = static_cast<int *>(MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces"));
+  mirrorfaces = MEM_calloc_arrayN<int>(2 * totface, "MirrorFaces");
 
   const Span<float3> vert_positions = mesh_eval ? mesh_eval->vert_positions() :
                                                   mesh->vert_positions();

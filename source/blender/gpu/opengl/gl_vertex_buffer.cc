@@ -22,7 +22,7 @@ void GLVertBuf::acquire_data()
 
   /* Discard previous data if any. */
   MEM_SAFE_FREE(data_);
-  data_ = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
+  data_ = MEM_malloc_arrayN<uchar>(this->size_alloc_get(), __func__);
 }
 
 void GLVertBuf::resize_data()

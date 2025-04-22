@@ -549,7 +549,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 
   BMVert **vtable = nullptr;
   if (use_merge) {
-    vtable = static_cast<BMVert **>(MEM_mallocN(sizeof(BMVert *) * bm->totvert, __func__));
+    vtable = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
     int i = 0;
     BMIter iter;
     BMVert *v;

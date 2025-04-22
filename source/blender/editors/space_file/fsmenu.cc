@@ -298,7 +298,7 @@ void fsmenu_insert_entry(FSMenu *fsmenu,
     }
   }
 
-  fsm_iter = static_cast<FSMenuEntry *>(MEM_mallocN(sizeof(*fsm_iter), "fsme"));
+  fsm_iter = MEM_mallocN<FSMenuEntry>("fsme");
   fsm_iter->path = has_trailing_slash ? BLI_strdup(path) : BLI_string_joinN(path, SEP_STR);
   fsm_iter->save = (flag & FS_INSERT_SAVE) != 0;
 

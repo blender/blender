@@ -61,7 +61,7 @@ static ScrArea *screen_addarea_ex(ScrAreaMap *area_map,
                                   ScrVert *bottom_right,
                                   const eSpace_Type space_type)
 {
-  ScrArea *area = static_cast<ScrArea *>(MEM_callocN(sizeof(ScrArea), "addscrarea"));
+  ScrArea *area = MEM_callocN<ScrArea>("addscrarea");
 
   area->v1 = bottom_left;
   area->v2 = top_left;
@@ -1269,7 +1269,7 @@ static void screen_global_area_refresh(wmWindow *win,
     screen_area_spacelink_add(WM_window_get_active_scene(win), area, space_type);
 
     /* Data specific to global areas. */
-    area->global = static_cast<ScrGlobalAreaData *>(MEM_callocN(sizeof(*area->global), __func__));
+    area->global = MEM_callocN<ScrGlobalAreaData>(__func__);
     area->global->size_max = height_max;
     area->global->size_min = height_min;
     area->global->align = align;

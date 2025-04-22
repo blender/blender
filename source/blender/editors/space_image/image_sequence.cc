@@ -66,7 +66,7 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
     }
     else {
       /* start a new frame range */
-      range = static_cast<ImageFrameRange *>(MEM_callocN(sizeof(*range), __func__));
+      range = MEM_callocN<ImageFrameRange>(__func__);
       BLI_path_join(range->filepath, sizeof(range->filepath), dir, filename);
       BLI_addtail(ranges, range);
 
@@ -164,7 +164,7 @@ ListBase ED_image_filesel_detect_sequences(blender::StringRefNull root_path,
   }
   /* Filepath property for drag & drop etc. */
   else {
-    ImageFrameRange *range = static_cast<ImageFrameRange *>(MEM_callocN(sizeof(*range), __func__));
+    ImageFrameRange *range = MEM_callocN<ImageFrameRange>(__func__);
     BLI_addtail(&ranges, range);
 
     STRNCPY(range->filepath, filepath);

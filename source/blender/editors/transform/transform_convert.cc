@@ -457,8 +457,7 @@ TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, BezTriple *b
 {
   TransDataCurveHandleFlags *hdata;
   td->flag |= TD_BEZTRIPLE;
-  hdata = td->hdata = static_cast<TransDataCurveHandleFlags *>(
-      MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data"));
+  hdata = td->hdata = MEM_mallocN<TransDataCurveHandleFlags>("CuHandle Data");
   hdata->ih1 = bezt->h1;
   hdata->h1 = &bezt->h1;
   hdata->ih2 = bezt->h2; /* In case the second is not selected. */
@@ -827,8 +826,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
       objects = local_objects;
     }
 
-    t->data_container = static_cast<TransDataContainer *>(
-        MEM_callocN(sizeof(*t->data_container) * objects.size(), __func__));
+    t->data_container = MEM_calloc_arrayN<TransDataContainer>(objects.size(), __func__);
     t->data_container_len = objects.size();
 
     for (int i = 0; i < objects.size(); i++) {

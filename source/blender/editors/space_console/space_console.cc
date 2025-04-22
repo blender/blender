@@ -40,7 +40,7 @@ static SpaceLink *console_create(const ScrArea * /*area*/, const Scene * /*scene
   ARegion *region;
   SpaceConsole *sconsole;
 
-  sconsole = static_cast<SpaceConsole *>(MEM_callocN(sizeof(SpaceConsole), "initconsole"));
+  sconsole = MEM_callocN<SpaceConsole>("initconsole");
   sconsole->spacetype = SPACE_CONSOLE;
 
   sconsole->lheight = 14;

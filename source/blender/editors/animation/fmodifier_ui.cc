@@ -337,8 +337,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
                             0.0,
                             0.0,
                             TIP_("Delete Modifier"));
-  FModifierDeleteContext *ctx = static_cast<FModifierDeleteContext *>(
-      MEM_mallocN(sizeof(FModifierDeleteContext), __func__));
+  FModifierDeleteContext *ctx = MEM_mallocN<FModifierDeleteContext>(__func__);
   ctx->owner_id = owner_id;
   ctx->modifiers = fmodifier_list_space_specific(C);
   BLI_assert(ctx->modifiers != nullptr);
@@ -603,8 +602,7 @@ static void fmod_envelope_addpoint_cb(bContext *C, void *fcm_dv, void * /*arg*/)
     }
 
     /* add new */
-    fedn = static_cast<FCM_EnvelopeData *>(
-        MEM_callocN((env->totvert + 1) * sizeof(FCM_EnvelopeData), "FCM_EnvelopeData"));
+    fedn = MEM_calloc_arrayN<FCM_EnvelopeData>((env->totvert + 1), "FCM_EnvelopeData");
 
     /* add the points that should occur before the point to be pasted */
     if (i > 0) {
@@ -626,8 +624,7 @@ static void fmod_envelope_addpoint_cb(bContext *C, void *fcm_dv, void * /*arg*/)
     env->totvert++;
   }
   else {
-    env->data = static_cast<FCM_EnvelopeData *>(
-        MEM_callocN(sizeof(FCM_EnvelopeData), "FCM_EnvelopeData"));
+    env->data = MEM_callocN<FCM_EnvelopeData>("FCM_EnvelopeData");
     *(env->data) = fed;
 
     env->totvert = 1;
@@ -645,8 +642,7 @@ static void fmod_envelope_deletepoint_cb(bContext * /*C*/, void *fcm_dv, void *i
   /* check that no data exists for the current frame... */
   if (env->totvert > 1) {
     /* allocate a new smaller array */
-    fedn = static_cast<FCM_EnvelopeData *>(
-        MEM_callocN(sizeof(FCM_EnvelopeData) * (env->totvert - 1), "FCM_EnvelopeData"));
+    fedn = MEM_calloc_arrayN<FCM_EnvelopeData>((env->totvert - 1), "FCM_EnvelopeData");
 
     memcpy(fedn, env->data, sizeof(FCM_EnvelopeData) * (index));
     memcpy(fedn + index,

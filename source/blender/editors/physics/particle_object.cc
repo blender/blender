@@ -230,7 +230,7 @@ static wmOperatorStatus new_particle_target_exec(bContext *C, wmOperator * /*op*
     pt->flag &= ~PTARGET_CURRENT;
   }
 
-  pt = static_cast<ParticleTarget *>(MEM_callocN(sizeof(ParticleTarget), "keyed particle target"));
+  pt = MEM_callocN<ParticleTarget>("keyed particle target");
 
   pt->flag |= PTARGET_CURRENT;
   pt->psys = 1;
@@ -1115,8 +1115,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 #define PSYS_FROM_NEXT(cur) (single_psys_from ? nullptr : (cur)->next)
   totpsys = single_psys_from ? 1 : BLI_listbase_count(&ob_from->particlesystem);
 
-  tmp_psys = static_cast<ParticleSystem **>(
-      MEM_mallocN(sizeof(ParticleSystem *) * totpsys, "temporary particle system array"));
+  tmp_psys = MEM_malloc_arrayN<ParticleSystem *>(totpsys, "temporary particle system array");
 
   for (psys_from = PSYS_FROM_FIRST, i = 0; psys_from; psys_from = PSYS_FROM_NEXT(psys_from), i++) {
     psys = BKE_object_copy_particlesystem(psys_from, 0);

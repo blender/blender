@@ -334,8 +334,8 @@ static void add_verts_to_dgroups(ReportList *reports,
 
   /* create an array of root and tip positions transformed into
    * global coords */
-  root = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "root"));
-  tip = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "tip"));
+  root = MEM_calloc_arrayN<float[3]>(numbones, "root");
+  tip = MEM_calloc_arrayN<float[3]>(numbones, "tip");
   selected = MEM_calloc_arrayN<bool>(numbones, "selected");
 
   for (int j = 0; j < numbones; j++) {

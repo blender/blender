@@ -38,7 +38,7 @@ int screen_geom_area_width(const ScrArea *area)
 
 ScrVert *screen_geom_vertex_add_ex(ScrAreaMap *area_map, short x, short y)
 {
-  ScrVert *sv = static_cast<ScrVert *>(MEM_callocN(sizeof(ScrVert), "addscrvert"));
+  ScrVert *sv = MEM_callocN<ScrVert>("addscrvert");
   sv->vec.x = x;
   sv->vec.y = y;
 
@@ -52,7 +52,7 @@ ScrVert *screen_geom_vertex_add(bScreen *screen, short x, short y)
 
 ScrEdge *screen_geom_edge_add_ex(ScrAreaMap *area_map, ScrVert *v1, ScrVert *v2)
 {
-  ScrEdge *se = static_cast<ScrEdge *>(MEM_callocN(sizeof(ScrEdge), "addscredge"));
+  ScrEdge *se = MEM_callocN<ScrEdge>("addscredge");
 
   BKE_screen_sort_scrvert(&v1, &v2);
   se->v1 = v1;

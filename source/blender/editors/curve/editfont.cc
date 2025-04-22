@@ -535,7 +535,7 @@ static bool font_paste_utf8(bContext *C, const char *str, const size_t str_len)
 
   int tmplen;
 
-  char32_t *mem = static_cast<char32_t *>(MEM_mallocN((sizeof(*mem) * (str_len + 1)), __func__));
+  char32_t *mem = MEM_malloc_arrayN<char32_t>(str_len + 1, __func__);
 
   tmplen = BLI_str_utf8_as_utf32(mem, str, str_len + 1);
 
@@ -564,7 +564,7 @@ static char *font_select_to_buffer(Object *obedit)
   const size_t text_buf_len = selend - selstart;
 
   const size_t len_utf8 = BLI_str_utf32_as_utf8_len_ex(text_buf, text_buf_len + 1);
-  char *buf = static_cast<char *>(MEM_mallocN(len_utf8 + 1, __func__));
+  char *buf = MEM_malloc_arrayN<char>(len_utf8 + 1, __func__);
   BLI_str_utf32_as_utf8(buf, text_buf, len_utf8);
   return buf;
 }
@@ -771,7 +771,7 @@ static wmOperatorStatus text_insert_unicode_invoke(bContext *C,
                                                    wmOperator * /*op*/,
                                                    const wmEvent * /*event*/)
 {
-  char *edit_string = static_cast<char *>(MEM_mallocN(24, __func__));
+  char *edit_string = MEM_malloc_arrayN<char>(24, __func__);
   edit_string[0] = 0;
   UI_popup_block_invoke_ex(C, wm_block_insert_unicode_create, edit_string, MEM_freeN, false);
   return OPERATOR_FINISHED;
@@ -845,8 +845,8 @@ static void txt_add_object(bContext *C,
     MEM_freeN(cu->strinfo);
   }
 
-  cu->str = static_cast<char *>(MEM_mallocN(nbytes + 4, "str"));
-  cu->strinfo = static_cast<CharInfo *>(MEM_callocN((nchars + 4) * sizeof(CharInfo), "strinfo"));
+  cu->str = MEM_malloc_arrayN<char>(nbytes + 4, "str");
+  cu->strinfo = MEM_calloc_arrayN<CharInfo>((nchars + 4), "strinfo");
 
   cu->len = 0;
   cu->len_char32 = nchars - 1;
@@ -1095,7 +1095,7 @@ static void copy_selection(Object *obedit)
     BKE_vfont_clipboard_get(&text_buf, nullptr, &len_utf8, nullptr);
 
     /* system clipboard */
-    buf = static_cast<char *>(MEM_mallocN(len_utf8 + 1, __func__));
+    buf = MEM_malloc_arrayN<char>(len_utf8 + 1, __func__);
     if (buf) {
       BLI_str_utf32_as_utf8(buf, text_buf, len_utf8 + 1);
       WM_clipboard_text_set(buf, false);
@@ -1211,7 +1211,7 @@ static wmOperatorStatus paste_text_exec(bContext *C, wmOperator *op)
   BKE_vfont_clipboard_get(&text_buf, nullptr, &len_utf8, nullptr);
 
   if (text_buf) {
-    clipboard_vfont.buf = static_cast<char *>(MEM_mallocN(len_utf8 + 1, __func__));
+    clipboard_vfont.buf = MEM_malloc_arrayN<char>(len_utf8 + 1, __func__);
 
     if (clipboard_vfont.buf == nullptr) {
       MEM_freeN(clipboard_system.buf);
@@ -1879,8 +1879,7 @@ static wmOperatorStatus insert_text_exec(bContext *C, wmOperator *op)
   inserted_utf8 = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, nullptr);
   len = BLI_strlen_utf8(inserted_utf8);
 
-  inserted_text = static_cast<char32_t *>(
-      MEM_callocN(sizeof(char32_t) * (len + 1), "FONT_insert_text"));
+  inserted_text = MEM_calloc_arrayN<char32_t>((len + 1), "FONT_insert_text");
   len = BLI_str_utf8_as_utf32(inserted_text, inserted_utf8, MAXTEXT);
 
   for (a = 0; a < len; a++) {
@@ -2254,12 +2253,11 @@ void ED_curve_editfont_make(Object *obedit)
   int len_char32;
 
   if (ef == nullptr) {
-    ef = cu->editfont = static_cast<EditFont *>(MEM_callocN(sizeof(EditFont), "editfont"));
+    ef = cu->editfont = MEM_callocN<EditFont>("editfont");
 
     ef->textbuf = static_cast<char32_t *>(
         MEM_callocN((MAXTEXT + 4) * sizeof(*ef->textbuf), "texteditbuf"));
-    ef->textbufinfo = static_cast<CharInfo *>(
-        MEM_callocN((MAXTEXT + 4) * sizeof(CharInfo), "texteditbufinfo"));
+    ef->textbufinfo = MEM_calloc_arrayN<CharInfo>((MAXTEXT + 4), "texteditbufinfo");
   }
 
   /* Convert the original text to chat32_t. */
@@ -2299,7 +2297,7 @@ void ED_curve_editfont_load(Object *obedit)
   cu->len = BLI_str_utf32_as_utf8_len(ef->textbuf);
 
   /* Alloc memory for UTF-8 variable char length string */
-  cu->str = static_cast<char *>(MEM_mallocN(cu->len + sizeof(char32_t), "str"));
+  cu->str = MEM_malloc_arrayN<char>(cu->len + sizeof(char32_t), "str");
 
   /* Copy the wchar to UTF-8 */
   BLI_str_utf32_as_utf8(cu->str, ef->textbuf, cu->len + 1);
@@ -2307,8 +2305,7 @@ void ED_curve_editfont_load(Object *obedit)
   if (cu->strinfo) {
     MEM_freeN(cu->strinfo);
   }
-  cu->strinfo = static_cast<CharInfo *>(
-      MEM_callocN((cu->len_char32 + 4) * sizeof(CharInfo), "texteditinfo"));
+  cu->strinfo = MEM_calloc_arrayN<CharInfo>((cu->len_char32 + 4), "texteditinfo");
   memcpy(cu->strinfo, ef->textbufinfo, cu->len_char32 * sizeof(CharInfo));
 
   /* Other vars */

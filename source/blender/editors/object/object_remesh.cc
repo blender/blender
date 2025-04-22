@@ -685,8 +685,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
 
   bool is_manifold_consistent = true;
   char *edge_faces = MEM_calloc_arrayN<char>(mesh->edges_num, "remesh_manifold_check");
-  int *edge_vert = (int *)MEM_malloc_arrayN(
-      mesh->edges_num, sizeof(uint), "remesh_consistent_check");
+  int *edge_vert = MEM_malloc_arrayN<int>(mesh->edges_num, "remesh_consistent_check");
 
   for (uint i = 0; i < mesh->edges_num; i++) {
     edge_vert[i] = -1;
@@ -951,7 +950,7 @@ static void quadriflow_end_job(void *customdata)
 
 static wmOperatorStatus quadriflow_remesh_exec(bContext *C, wmOperator *op)
 {
-  QuadriFlowJob *job = (QuadriFlowJob *)MEM_mallocN(sizeof(QuadriFlowJob), "QuadriFlowJob");
+  QuadriFlowJob *job = MEM_mallocN<QuadriFlowJob>("QuadriFlowJob");
 
   job->op = op;
   job->owner = CTX_data_active_object(C);

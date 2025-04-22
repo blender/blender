@@ -484,7 +484,7 @@ static WriteData *writedata_new(WriteWrap *ww)
       wd->buffer.max_size = ZSTD_BUFFER_SIZE;
       wd->buffer.chunk_size = ZSTD_CHUNK_SIZE;
     }
-    wd->buffer.buf = static_cast<uchar *>(MEM_mallocN(wd->buffer.max_size, "wd->buffer.buf"));
+    wd->buffer.buf = MEM_malloc_arrayN<uchar>(wd->buffer.max_size, "wd->buffer.buf");
   }
 
   return wd;

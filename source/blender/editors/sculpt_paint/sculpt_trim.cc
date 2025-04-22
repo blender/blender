@@ -348,8 +348,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
   const int trim_faces_nums = (2 * (screen_points.size() - 2)) + (2 * screen_points.size());
   trim_operation->mesh = BKE_mesh_new_nomain(
       trim_totverts, 0, trim_faces_nums, trim_faces_nums * 3);
-  trim_operation->true_mesh_co = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco"));
+  trim_operation->true_mesh_co = MEM_malloc_arrayN<float[3]>(trim_totverts, "mesh orco");
 
   float shape_origin[3];
   float shape_normal[3];

@@ -1185,7 +1185,7 @@ static void makeknots(Nurb *nu, short uv)
 
 void BKE_nurb_knot_alloc_u(Nurb *nu)
 {
-  nu->knotsu = static_cast<float *>(MEM_calloc_arrayN(KNOTSU(nu) + 1, sizeof(float), __func__));
+  nu->knotsu = MEM_calloc_arrayN<float>(KNOTSU(nu) + 1, __func__);
 }
 
 void BKE_nurb_knot_calc_u(Nurb *nu)

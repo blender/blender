@@ -83,8 +83,7 @@ static void PREFERENCES_OT_reset_default_theme(wmOperatorType *ot)
 
 static wmOperatorStatus preferences_autoexec_add_exec(bContext * /*C*/, wmOperator * /*op*/)
 {
-  bPathCompare *path_cmp = static_cast<bPathCompare *>(
-      MEM_callocN(sizeof(bPathCompare), "bPathCompare"));
+  bPathCompare *path_cmp = MEM_callocN<bPathCompare>("bPathCompare");
   BLI_addtail(&U.autoexec_paths, path_cmp);
   U.runtime.is_dirty = true;
   return OPERATOR_FINISHED;

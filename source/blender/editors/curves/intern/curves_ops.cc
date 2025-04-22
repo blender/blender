@@ -311,9 +311,8 @@ static void try_convert_single_object(Object &curves_ob,
   settings.totpart = 0;
   psys_changed_type(&surface_ob, particle_system);
 
-  MutableSpan<ParticleData> particles{
-      static_cast<ParticleData *>(MEM_calloc_arrayN(hair_num, sizeof(ParticleData), __func__)),
-      hair_num};
+  MutableSpan<ParticleData> particles{MEM_calloc_arrayN<ParticleData>(hair_num, __func__),
+                                      hair_num};
 
   /* The old hair system still uses #MFace, so make sure those are available on the mesh. */
   BKE_mesh_tessface_calc(&surface_me);
@@ -357,8 +356,7 @@ static void try_convert_single_object(Object &curves_ob,
 
     ParticleData &particle = particles[new_hair_i];
     const int num_keys = points.size();
-    MutableSpan<HairKey> hair_keys{
-        static_cast<HairKey *>(MEM_calloc_arrayN(num_keys, sizeof(HairKey), __func__)), num_keys};
+    MutableSpan<HairKey> hair_keys{MEM_calloc_arrayN<HairKey>(num_keys, __func__), num_keys};
 
     particle.hair = hair_keys.data();
     particle.totkey = hair_keys.size();

@@ -752,8 +752,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
   }
   bm->elem_index_dirty |= BM_EDGE;
 
-  edge_info = static_cast<SplitEdgeInfo *>(
-      MEM_mallocN(edge_info_len * sizeof(SplitEdgeInfo), __func__));
+  edge_info = MEM_malloc_arrayN<SplitEdgeInfo>(edge_info_len, __func__);
 
   /* fill in array and initialize tagging */
   es = edge_info;
@@ -1355,7 +1354,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
      * which BM_vert_calc_shell_factor uses. */
 
     /* over allocate */
-    varr_co = static_cast<float(*)[3]>(MEM_callocN(sizeof(*varr_co) * bm->totvert, __func__));
+    varr_co = MEM_calloc_arrayN<float[3]>(bm->totvert, __func__);
     void *vert_lengths_p = nullptr;
 
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {

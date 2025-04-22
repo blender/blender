@@ -35,7 +35,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
   ARegion *region;
   SpaceUserPref *spref;
 
-  spref = static_cast<SpaceUserPref *>(MEM_callocN(sizeof(SpaceUserPref), "inituserpref"));
+  spref = MEM_callocN<SpaceUserPref>("inituserpref");
   spref->spacetype = SPACE_USERPREF;
 
   /* header */

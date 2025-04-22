@@ -486,7 +486,7 @@ static void statvis_calc_sharp(const MeshRenderData &mr, MutableSpan<float> r_sh
   const float minmax_irange = 1.0f / (max - min);
 
   /* Can we avoid this extra allocation? */
-  float *vert_angles = (float *)MEM_mallocN(sizeof(float) * mr.verts_num, __func__);
+  float *vert_angles = MEM_malloc_arrayN<float>(mr.verts_num, __func__);
   copy_vn_fl(vert_angles, mr.verts_num, -M_PI);
 
   if (mr.extract_type == MeshExtractType::BMesh) {

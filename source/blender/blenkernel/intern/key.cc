@@ -1551,7 +1551,7 @@ float *BKE_key_evaluate_object_ex(
 
   /* allocate array */
   if (arr == nullptr) {
-    out = static_cast<char *>(MEM_callocN(size, "BKE_key_evaluate_object out"));
+    out = MEM_calloc_arrayN<char>(size, "BKE_key_evaluate_object out");
   }
   else {
     if (arr_size != size) {

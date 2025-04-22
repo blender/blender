@@ -59,8 +59,7 @@ static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmGizmoGroupType *gzg
 
 static void WIDGETGROUP_xform_cage_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  XFormCageWidgetGroup *xgzgroup = static_cast<XFormCageWidgetGroup *>(
-      MEM_mallocN(sizeof(XFormCageWidgetGroup), __func__));
+  XFormCageWidgetGroup *xgzgroup = MEM_mallocN<XFormCageWidgetGroup>(__func__);
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_3d", true);
   xgzgroup->gizmo = WM_gizmo_new_ptr(gzt_cage, gzgroup, nullptr);
   wmGizmo *gz = xgzgroup->gizmo;

@@ -489,8 +489,7 @@ IndexBuf *GPU_indexbuf_build_from_memory(const GPUPrimType prim_type,
   const uint32_t indices_num = data_len * indices_per_primitive(prim_type);
   /* TODO: The need for this copy is meant to be temporary. The data should be uploaded directly to
    * the GPU here rather than copied to an array owned by the IBO first. */
-  uint32_t *copy = static_cast<uint32_t *>(
-      MEM_malloc_arrayN(indices_num, sizeof(uint32_t), __func__));
+  uint32_t *copy = MEM_malloc_arrayN<uint32_t>(indices_num, __func__);
   threading::memory_bandwidth_bound_task(sizeof(uint32_t) * indices_num * 2, [&]() {
     array_utils::copy(Span(data, indices_num), MutableSpan(copy, indices_num));
   });

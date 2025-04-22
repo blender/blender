@@ -1512,7 +1512,7 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, uchar *result, uint len
   size_t out_len = len;
 #endif
   uchar *in;
-  uchar *props = static_cast<uchar *>(MEM_callocN(sizeof(char[16]), "tmp"));
+  uchar *props = MEM_calloc_arrayN<uchar>(16, "tmp");
 
   ptcache_file_read(pf, &compressed, 1, sizeof(uchar));
   if (compressed) {
@@ -1557,7 +1557,7 @@ static int ptcache_file_compressed_write(
   int r = 0;
   uchar compressed = 0;
   size_t out_len = 0;
-  uchar *props = static_cast<uchar *>(MEM_callocN(sizeof(char[16]), "tmp"));
+  uchar *props = MEM_calloc_arrayN<uchar>(16, "tmp");
   size_t sizeOfIt = 5;
 
   (void)mode; /* unused when building w/o compression */

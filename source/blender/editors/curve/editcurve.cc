@@ -205,7 +205,7 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
          * it might be replaced and freed while editcurve remain in use
          * (in viewport render case e.g.). Note that we could use a pool to avoid
          * lots of malloc's here, but... not really a problem for now. */
-        BPoint *origbp_cpy = static_cast<BPoint *>(MEM_mallocN(sizeof(*origbp_cpy), __func__));
+        BPoint *origbp_cpy = MEM_mallocN<BPoint>(__func__);
         *origbp_cpy = *origbp;
         keyIndex = init_cvKeyIndex(origbp_cpy, key_index, nu_index, pt_index, vertex_index);
         BLI_ghash_insert(gh, bp, keyIndex);
@@ -552,8 +552,7 @@ GHash *ED_curve_keyindex_hash_duplicate(GHash *keyindex)
   GHASH_ITER (gh_iter, keyindex) {
     void *cv = BLI_ghashIterator_getKey(&gh_iter);
     CVKeyIndex *index = static_cast<CVKeyIndex *>(BLI_ghashIterator_getValue(&gh_iter));
-    CVKeyIndex *newIndex = static_cast<CVKeyIndex *>(
-        MEM_mallocN(sizeof(CVKeyIndex), "dupli_keyIndexHash index"));
+    CVKeyIndex *newIndex = MEM_mallocN<CVKeyIndex>("dupli_keyIndexHash index");
 
     memcpy(newIndex, index, sizeof(CVKeyIndex));
     newIndex->orig_cv = MEM_dupallocN(index->orig_cv);
@@ -688,7 +687,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
         }
       }
 
-      ofs = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * totvec, "currkey->data"));
+      ofs = MEM_calloc_arrayN<float[3]>(totvec, "currkey->data");
       i = 0;
       LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
         if (nu->bezt) {
@@ -1168,8 +1167,7 @@ static int *init_index_map(Object *obedit, int *r_old_totvert)
     }
   }
 
-  old_to_new_map = static_cast<int *>(
-      MEM_mallocN(old_totvert * sizeof(int), "curve old to new index map"));
+  old_to_new_map = MEM_malloc_arrayN<int>(old_totvert, "curve old to new index map");
   for (int i = 0; i < old_totvert; i++) {
     old_to_new_map[i] = -1;
   }
@@ -1350,7 +1348,7 @@ void ED_curve_editnurb_make(Object *obedit)
       BKE_curve_editNurb_keyIndex_free(&editnurb->keyindex);
     }
     else {
-      editnurb = static_cast<EditNurb *>(MEM_callocN(sizeof(EditNurb), "editnurb"));
+      editnurb = MEM_callocN<EditNurb>("editnurb");
       cu->editnurb = editnurb;
     }
 
@@ -1777,7 +1775,7 @@ static void ed_surf_delete_selected(Object *obedit)
         if (newv != nu->pntsv) {
           /* delete */
           bp = nu->bp;
-          bpn = newbp = (BPoint *)MEM_mallocN(newv * nu->pntsu * sizeof(BPoint), "deleteNurb");
+          bpn = newbp = MEM_malloc_arrayN<BPoint>(newv * nu->pntsu, "deleteNurb");
           for (b = 0; b < nu->pntsv; b++) {
             if ((bp->f1 & SELECT) == 0) {
               memcpy(bpn, bp, nu->pntsu * sizeof(BPoint));
@@ -1803,7 +1801,7 @@ static void ed_surf_delete_selected(Object *obedit)
         if (newu != nu->pntsu) {
           /* delete */
           bp = nu->bp;
-          bpn = newbp = (BPoint *)MEM_mallocN(newu * nu->pntsv * sizeof(BPoint), "deleteNurb");
+          bpn = newbp = MEM_malloc_arrayN<BPoint>(newu * nu->pntsv, "deleteNurb");
           for (b = 0; b < nu->pntsv; b++) {
             for (a = 0; a < nu->pntsu; a++, bp++) {
               if ((bp->f1 & SELECT) == 0) {
@@ -1928,7 +1926,7 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
         }
       }
       if (type) {
-        bezt1 = (BezTriple *)MEM_mallocN((nu->pntsu) * sizeof(BezTriple), "delNurb");
+        bezt1 = MEM_malloc_arrayN<BezTriple>((nu->pntsu), "delNurb");
         memcpy(bezt1, nu->bezt, (nu->pntsu) * sizeof(BezTriple));
         keyIndex_updateBezt(editnurb, nu->bezt, bezt1, nu->pntsu);
         MEM_freeN(nu->bezt);
@@ -1953,7 +1951,7 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
         }
       }
       if (type) {
-        bp1 = (BPoint *)MEM_mallocN(nu->pntsu * sizeof(BPoint), "delNurb2");
+        bp1 = MEM_malloc_arrayN<BPoint>(nu->pntsu, "delNurb2");
         memcpy(bp1, nu->bp, (nu->pntsu) * sizeof(BPoint));
         keyIndex_updateBP(editnurb, nu->bp, bp1, nu->pntsu);
         MEM_freeN(nu->bp);
@@ -2089,10 +2087,8 @@ bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
   const NurbDim max = editnurb_find_max_points_num(editnurb);
   /* One point induces at most one interval. Except single point case, it can give + 1.
    * Another +1 is for first element of the first interval. */
-  int *const intvls_u = static_cast<int *>(
-      MEM_malloc_arrayN(max.pntsu + 2, sizeof(int), "extrudeNurb0"));
-  int *const intvls_v = static_cast<int *>(
-      MEM_malloc_arrayN(max.pntsv + 2, sizeof(int), "extrudeNurb1"));
+  int *const intvls_u = MEM_malloc_arrayN<int>(max.pntsu + 2, "extrudeNurb0");
+  int *const intvls_v = MEM_malloc_arrayN<int>(max.pntsv + 2, "extrudeNurb1");
   bool ok = false;
 
   LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
@@ -2130,8 +2126,7 @@ bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
 
     const int new_pntsu = nu->pntsu + intvl_cnt_u - 1;
     const int new_pntsv = nu->pntsv + intvl_cnt_v - 1;
-    BPoint *const new_bp = (BPoint *)MEM_malloc_arrayN(
-        new_pntsu * new_pntsv, sizeof(BPoint), "extrudeNurb2");
+    BPoint *const new_bp = MEM_malloc_arrayN<BPoint>(new_pntsu * new_pntsv, "extrudeNurb2");
     BPoint *new_bp_v = new_bp;
 
     bool selected_v = is_first_sel_v;
@@ -2350,7 +2345,7 @@ static void adduplicateflagNurb(
       if (ED_curve_nurb_select_check(v3d, nu)) {
         /* A rectangular area in nurb has to be selected and if splitting
          * must be in U or V direction. */
-        usel = static_cast<char *>(MEM_callocN(nu->pntsu, "adduplicateN3"));
+        usel = MEM_calloc_arrayN<char>(nu->pntsu, "adduplicateN3");
         bp = nu->bp;
         for (a = 0; a < nu->pntsv; a++) {
           for (b = 0; b < nu->pntsu; b++, bp++) {
@@ -3509,7 +3504,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
 
       if (amount) {
         /* insert */
-        beztnew = (BezTriple *)MEM_mallocN((amount + nu->pntsu) * sizeof(BezTriple), "subdivNurb");
+        beztnew = MEM_malloc_arrayN<BezTriple>((amount + nu->pntsu), "subdivNurb");
         beztn = beztnew;
         a = nu->pntsu;
         bezt = nu->bezt;
@@ -3599,7 +3594,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
 
       if (amount) {
         /* insert */
-        bpnew = (BPoint *)MEM_mallocN((amount + nu->pntsu) * sizeof(BPoint), "subdivNurb2");
+        bpnew = MEM_malloc_arrayN<BPoint>((amount + nu->pntsu), "subdivNurb2");
         bpn = bpnew;
 
         a = nu->pntsu;
@@ -3709,7 +3704,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
         int tot = ((number_cuts + 1) * nu->pntsu - number_cuts) *
                   ((number_cuts + 1) * nu->pntsv - number_cuts);
 
-        bpn = bpnew = static_cast<BPoint *>(MEM_mallocN(tot * sizeof(BPoint), "subdivideNurb4"));
+        bpn = bpnew = MEM_malloc_arrayN<BPoint>(tot, "subdivideNurb4");
         bp = nu->bp;
         /* first subdivide rows */
         for (a = 0; a < nu->pntsv; a++) {
@@ -3769,8 +3764,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
         }
 
         if (sel) { /* V direction. */
-          bpn = bpnew = static_cast<BPoint *>(
-              MEM_mallocN((sel + nu->pntsv) * nu->pntsu * sizeof(BPoint), "subdivideNurb4"));
+          bpn = bpnew = MEM_malloc_arrayN<BPoint>((sel + nu->pntsv) * nu->pntsu, "subdivideNurb4");
           bp = nu->bp;
           for (a = 0; a < nu->pntsv; a++) {
             for (b = 0; b < nu->pntsu; b++) {
@@ -3819,8 +3813,8 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
           if (sel) { /* U direction. */
             /* Inserting U points is sort of 'default' Flat curves only get
              * U points inserted in them. */
-            bpn = bpnew = static_cast<BPoint *>(
-                MEM_mallocN((sel + nu->pntsu) * nu->pntsv * sizeof(BPoint), "subdivideNurb4"));
+            bpn = bpnew = MEM_malloc_arrayN<BPoint>((sel + nu->pntsu) * nu->pntsv,
+                                                    "subdivideNurb4");
             bp = nu->bp;
             for (a = 0; a < nu->pntsv; a++) {
               for (b = 0; b < nu->pntsu; b++) {
@@ -4157,7 +4151,7 @@ static void switchdirection_knots(float *base, int tot)
   /* and make in increasing order again */
   a = tot - 1;
   fp1 = base;
-  fp2 = tempf = static_cast<float *>(MEM_mallocN(sizeof(float) * tot, "switchdirect"));
+  fp2 = tempf = MEM_malloc_arrayN<float>(tot, "switchdirect");
   while (a--) {
     fp2[0] = fabsf(fp1[1] - fp1[0]);
     fp1++;
@@ -4411,8 +4405,7 @@ static bool merge_2_nurb(Curve *cu, ListBase *editnurb, Nurb *nu1, Nurb *nu2)
     nu1->orderv++;
   }
   temp = nu1->bp;
-  nu1->bp = static_cast<BPoint *>(
-      MEM_mallocN(nu1->pntsu * nu1->pntsv * sizeof(BPoint), "mergeBP"));
+  nu1->bp = MEM_malloc_arrayN<BPoint>(nu1->pntsu * nu1->pntsv, "mergeBP");
 
   bp = nu1->bp;
   bp1 = temp;
@@ -4688,8 +4681,7 @@ static wmOperatorStatus make_segment_exec(bContext *C, wmOperator *op)
     if ((nu1 && nu2) && (nu1 != nu2)) {
       if (nu1->type == nu2->type) {
         if (nu1->type == CU_BEZIER) {
-          BezTriple *bezt = (BezTriple *)MEM_mallocN((nu1->pntsu + nu2->pntsu) * sizeof(BezTriple),
-                                                     "addsegmentN");
+          BezTriple *bezt = MEM_malloc_arrayN<BezTriple>((nu1->pntsu + nu2->pntsu), "addsegmentN");
           ED_curve_beztcpy(cu->editnurb, bezt, nu2->bezt, nu2->pntsu);
           ED_curve_beztcpy(cu->editnurb, bezt + nu2->pntsu, nu1->bezt, nu1->pntsu);
 
@@ -4703,7 +4695,7 @@ static wmOperatorStatus make_segment_exec(bContext *C, wmOperator *op)
           BKE_nurb_handles_calc(nu1);
         }
         else {
-          bp = (BPoint *)MEM_mallocN((nu1->pntsu + nu2->pntsu) * sizeof(BPoint), "addsegmentN2");
+          bp = MEM_malloc_arrayN<BPoint>((nu1->pntsu + nu2->pntsu), "addsegmentN2");
           ED_curve_bpcpy(cu->editnurb, bp, nu2->bp, nu2->pntsu);
           ED_curve_bpcpy(cu->editnurb, bp + nu2->pntsu, nu1->bp, nu1->pntsu);
           MEM_freeN(nu1->bp);
@@ -5318,7 +5310,7 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
         const int new_len = pnt_len + new_points;
 
         bezt_src = nu->bezt;
-        bezt_dst = static_cast<BezTriple *>(MEM_mallocN(new_len * sizeof(BezTriple), __func__));
+        bezt_dst = MEM_malloc_arrayN<BezTriple>(new_len, __func__);
         bezt_src_iter = &bezt_src[0];
         bezt_dst_iter = &bezt_dst[0];
         i = 0;
@@ -5418,7 +5410,7 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
           bp_prev = nullptr;
         }
         bp_src = nu->bp;
-        bp_dst = static_cast<BPoint *>(MEM_mallocN(new_len * sizeof(BPoint), __func__));
+        bp_dst = MEM_malloc_arrayN<BPoint>(new_len, __func__);
         bp_src_iter = &bp_src[0];
         bp_dst_iter = &bp_dst[0];
         i = 0;
@@ -5564,8 +5556,7 @@ int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, const float
     Nurb *nurb_new;
     if (!nu) {
       /* Bezier as default. */
-      nurb_new = static_cast<Nurb *>(
-          MEM_callocN(sizeof(Nurb), "BLI_editcurve_addvert new_bezt_nurb 2"));
+      nurb_new = MEM_callocN<Nurb>("BLI_editcurve_addvert new_bezt_nurb 2");
       nurb_new->type = CU_BEZIER;
       nurb_new->resolu = cu->resolu;
       nurb_new->orderu = 4;
@@ -6643,7 +6634,7 @@ void ed_dissolve_bez_segment(BezTriple *bezt_prev,
   const int dims = 3;
 
   const int points_len = ((cu->resolu - 1) * i_span_edge_len) + 1;
-  float *points = static_cast<float *>(MEM_mallocN(points_len * dims * sizeof(float), __func__));
+  float *points = MEM_malloc_arrayN<float>(points_len * dims, __func__);
   float *points_stride = points;
   const int points_stride_len = (cu->resolu - 1);
 
