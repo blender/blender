@@ -150,10 +150,10 @@ TEST(lib_query, libquery_basic)
 {
   Context<WholeIDTestData> context;
 
-  EXPECT_NE(context.test_data.scene, nullptr);
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_NE(context.test_data.target, nullptr);
-  EXPECT_NE(context.test_data.mesh, nullptr);
+  ASSERT_NE(context.test_data.scene, nullptr);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_NE(context.test_data.target, nullptr);
+  ASSERT_NE(context.test_data.mesh, nullptr);
 
   /* Reset all ID user-count to 0. */
   ID *id_iter;
@@ -209,10 +209,10 @@ TEST(lib_query, libquery_recursive)
 {
   Context<IDSubDataTestData> context;
 
-  EXPECT_NE(context.test_data.scene, nullptr);
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_NE(context.test_data.target, nullptr);
-  EXPECT_NE(context.test_data.mesh, nullptr);
+  ASSERT_NE(context.test_data.scene, nullptr);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_NE(context.test_data.target, nullptr);
+  ASSERT_NE(context.test_data.mesh, nullptr);
 
   /* Reset all ID user-count to 0. */
   ID *id_iter;
@@ -268,10 +268,10 @@ TEST(lib_query, libquery_subdata)
 {
   Context<IDSubDataTestData> context;
 
-  EXPECT_NE(context.test_data.scene, nullptr);
-  EXPECT_NE(context.test_data.object, nullptr);
-  EXPECT_NE(context.test_data.target, nullptr);
-  EXPECT_NE(context.test_data.mesh, nullptr);
+  ASSERT_NE(context.test_data.scene, nullptr);
+  ASSERT_NE(context.test_data.object, nullptr);
+  ASSERT_NE(context.test_data.target, nullptr);
+  ASSERT_NE(context.test_data.mesh, nullptr);
 
   /* Reset all ID user-count to 0. */
   ID *id_iter;
