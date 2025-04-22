@@ -944,7 +944,7 @@ class SEQUENCER_MT_strip_text(Menu):
 class SEQUENCER_MT_strip_show_hide(Menu):
     bl_label = "Show/Hide"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_PREVIEW'
         layout.operator("sequencer.unmute", text="Show Hidden Strips").unselected = False

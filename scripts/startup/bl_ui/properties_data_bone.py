@@ -390,7 +390,6 @@ class BONE_PT_display_custom_shape(BoneButtonsPanel, Panel):
         return context.bone
 
     def draw(self, context):
-        import platform
         layout = self.layout
         layout.use_property_split = True
 
