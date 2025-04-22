@@ -31,9 +31,20 @@ NODE_STORAGE_FUNCS(NodeChroma)
 
 static void cmp_node_luma_matte_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Float>("Minimum")
+      .default_value(0.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Pixels whose luminance values lower than this minimum are keyed");
+  b.add_input<decl::Float>("Maximum")
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Pixels whose luminance values higher than this maximum are not keyed");
+
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Matte");
 }
@@ -46,36 +57,7 @@ static void node_composit_init_luma_matte(bNodeTree * /*ntree*/, bNode *node)
   c->t2 = 0.0f;
 }
 
-static void node_composit_buts_luma_matte(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *col;
-
-  col = uiLayoutColumn(layout, true);
-  uiItemR(col,
-          ptr,
-          "limit_max",
-          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          std::nullopt,
-          ICON_NONE);
-  uiItemR(col,
-          ptr,
-          "limit_min",
-          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          std::nullopt,
-          ICON_NONE);
-}
-
 using namespace blender::compositor;
-
-static float get_high(const bNode &node)
-{
-  return node_storage(node).t1;
-}
-
-static float get_low(const bNode &node)
-{
-  return node_storage(node).t2;
-}
 
 static int node_gpu_material(GPUMaterial *material,
                              bNode *node,
@@ -83,8 +65,6 @@ static int node_gpu_material(GPUMaterial *material,
                              GPUNodeStack *inputs,
                              GPUNodeStack *outputs)
 {
-  const float high = get_high(*node);
-  const float low = get_low(*node);
   float luminance_coefficients[3];
   IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
 
@@ -93,28 +73,28 @@ static int node_gpu_material(GPUMaterial *material,
                         "node_composite_luminance_matte",
                         inputs,
                         outputs,
-                        GPU_uniform(&high),
-                        GPU_uniform(&low),
                         GPU_constant(luminance_coefficients));
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  const float high = get_high(builder.node());
-  const float low = get_low(builder.node());
   float3 luminance_coefficients;
   IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
 
   builder.construct_and_set_matching_fn_cb([=]() {
-    return mf::build::SI1_SO2<float4, float4, float>(
+    return mf::build::SI3_SO2<float4, float, float, float4, float>(
         "Luminance Key",
-        [=](const float4 &color, float4 &result, float &matte) -> void {
+        [=](const float4 &color,
+            const float &minimum,
+            const float &maximum,
+            float4 &result,
+            float &matte) -> void {
           float luminance = math::dot(color.xyz(), luminance_coefficients);
-          float alpha = math::clamp((luminance - low) / (high - low), 0.0f, 1.0f);
+          float alpha = math::clamp((luminance - minimum) / (maximum - minimum), 0.0f, 1.0f);
           matte = math::min(alpha, color.w);
           result = color * matte;
         },
-        mf::build::exec_presets::AllSpanOrSingle());
+        mf::build::exec_presets::SomeSpanOrSingle<0>());
   });
 }
 
@@ -132,7 +112,6 @@ void register_node_type_cmp_luma_matte()
   ntype.enum_name_legacy = "LUMA_MATTE";
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_luma_matte_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_luma_matte;
   ntype.flag |= NODE_PREVIEW;
   ntype.initfunc = file_ns::node_composit_init_luma_matte;
   blender::bke::node_type_storage(

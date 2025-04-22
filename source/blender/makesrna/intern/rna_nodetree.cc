@@ -3219,31 +3219,6 @@ static bool rna_NodeGroup_node_tree_poll(PointerRNA *ptr, const PointerRNA value
   return blender::bke::node_group_poll(ntree, ngroup, &disabled_hint);
 }
 
-/* Button Set Functions for Matte Nodes */
-static void rna_Matte_t1_set(PointerRNA *ptr, float value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeChroma *chroma = static_cast<NodeChroma *>(node->storage);
-
-  chroma->t1 = value;
-
-  if (value < chroma->t2) {
-    chroma->t2 = value;
-  }
-}
-
-static void rna_Matte_t2_set(PointerRNA *ptr, float value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeChroma *chroma = static_cast<NodeChroma *>(node->storage);
-
-  if (value > chroma->t1) {
-    value = chroma->t1;
-  }
-
-  chroma->t2 = value;
-}
-
 static void rna_Node_scene_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   bNode *node = ptr->data_as<bNode>();
@@ -7961,15 +7936,19 @@ static void def_cmp_luma_matte(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
 
   prop = RNA_def_property(srna, "limit_max", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t1");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_Matte_t1_set", nullptr);
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_maximum>",
+                               "rna_node_property_to_input_setter<float, node_input_maximum>",
+                               nullptr);
   RNA_def_property_ui_range(prop, 0, 1, 0.1f, 3);
   RNA_def_property_ui_text(prop, "High", "Values higher than this setting are 100% opaque");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "limit_min", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t2");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_Matte_t2_set", nullptr);
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_minimum>",
+                               "rna_node_property_to_input_setter<float, node_input_minimum>",
+                               nullptr);
   RNA_def_property_ui_range(prop, 0, 1, 0.1f, 3);
   RNA_def_property_ui_text(prop, "Low", "Values lower than this setting are 100% keyed");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
