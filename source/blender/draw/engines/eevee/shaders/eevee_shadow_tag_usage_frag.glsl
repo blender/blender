@@ -83,6 +83,12 @@ void step_bounding_sphere(float3 vs_near_plane,
   sphere_radius = sqrt(sphere_radius);
 }
 
+/* Warning: Only works for valid, finite, positive floats. */
+float nextafter(float value)
+{
+  return uintBitsToFloat(floatBitsToUint(value) + 1);
+}
+
 void main()
 {
   float2 screen_uv = gl_FragCoord.xy / float2(fb_resolution);
@@ -118,7 +124,9 @@ void main()
 
   /* Ray march from the front to the back of the bbox, and tag shadow usage along the way. */
   float step_size;
-  for (float t = near_box_t; t <= far_box_t; t += step_size) {
+  /* In extreme cases, step_size can be smaller than the next representable float delta, so we use
+   * nextafter to prevent infinite loops. (See #137566) */
+  for (float t = near_box_t; t <= far_box_t; t = max(t + step_size, nextafter(t))) {
     /* Ensure we don't get past far_box_t. */
     t = min(t, far_box_t);
     step_size = pixel_size_at(t);
