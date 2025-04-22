@@ -40,6 +40,9 @@ struct TransDataSeq {
   float orig_translation[2];
   float orig_scale[2];
   float orig_rotation;
+  int orig_flag;
+  float active_seq_orig_rotation;
+  float2 orig_mirror;
 };
 
 }  // namespace
@@ -54,6 +57,7 @@ static TransData *SeqToTransData(const Scene *scene,
   const StripTransform *transform = strip->data->transform;
   const float2 origin = seq::image_transform_origin_offset_pixelspace_get(scene, strip);
   const float2 mirror = seq::image_transform_mirror_factor_get(strip);
+  Editing *ed = seq::editing_get(scene);
   float vertex[2] = {origin[0], origin[1]};
 
   /* Add control vertex, so rotation and scale can be calculated.
@@ -90,6 +94,9 @@ static TransData *SeqToTransData(const Scene *scene,
   tdseq->orig_scale[0] = transform->scale_x;
   tdseq->orig_scale[1] = transform->scale_y;
   tdseq->orig_rotation = transform->rotation;
+  tdseq->orig_flag = strip->flag;
+  tdseq->orig_mirror = mirror;
+  tdseq->active_seq_orig_rotation = ed->act_seq->data->transform->rotation;
 
   td->extra = (void *)tdseq;
   td->ext = nullptr;
@@ -197,6 +204,7 @@ static void recalcData_sequencer_image(TransInfo *t)
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
+  Editing *ed = seq::editing_get(t->scene);
   int i;
 
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
@@ -222,13 +230,12 @@ static void recalcData_sequencer_image(TransInfo *t)
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdseq->strip;
     StripTransform *transform = strip->data->transform;
-    const float2 mirror = seq::image_transform_mirror_factor_get(strip);
 
     /* Calculate translation. */
     float translation[2];
     copy_v2_v2(translation, tdseq->orig_origin_position);
     sub_v2_v2(translation, origin);
-    mul_v2_v2(translation, mirror);
+    mul_v2_v2(translation, tdseq->orig_mirror);
     translation[0] *= t->scene->r.yasp / t->scene->r.xasp;
 
     /* Round resulting position to integer pixels. Resulting strip
@@ -245,7 +252,33 @@ static void recalcData_sequencer_image(TransInfo *t)
 
     /* Rotation. Scaling can cause negative rotation. */
     if (t->mode == TFM_ROTATION) {
-      transform->rotation = tdseq->orig_rotation - (t->values_final[0] * mirror[0] * mirror[1]);
+      transform->rotation = tdseq->orig_rotation -
+                            (t->values_final[0] * tdseq->orig_mirror[0] * tdseq->orig_mirror[1]);
+    }
+
+    if (t->mode == TFM_MIRROR) {
+
+      transform->xofs *= t->values_final[0];
+      transform->yofs *= t->values_final[1];
+
+      if (t->orient_curr == O_SET) {
+        if (strip == ed->act_seq) {
+          transform->rotation = -tdseq->orig_rotation;
+        }
+        else {
+          transform->rotation = tdseq->orig_rotation + (2 * -tdseq->active_seq_orig_rotation);
+        }
+      }
+      else {
+        strip->flag = tdseq->orig_flag;
+        if (t->values_final[0] == -1) {
+          strip->flag ^= SEQ_FLIPX;
+        }
+        if (t->values_final[1] == -1) {
+          strip->flag ^= SEQ_FLIPY;
+        }
+        transform->rotation = tdseq->orig_rotation;
+      }
     }
 
     if ((t->animtimer) && animrig::is_autokey_on(t->scene)) {
@@ -272,6 +305,12 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
     if (t->state == TRANS_CANCEL) {
       if (t->mode == TFM_ROTATION) {
         transform->rotation = tdseq->orig_rotation;
+      }
+      if (t->mode == TFM_MIRROR) {
+        transform->xofs = tdseq->orig_translation[0];
+        transform->yofs = tdseq->orig_translation[1];
+        transform->rotation = tdseq->orig_rotation;
+        strip->flag = tdseq->orig_flag;
       }
       continue;
     }

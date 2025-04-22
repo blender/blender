@@ -178,6 +178,17 @@ static void applyMirror(TransInfo *t)
 
     SNPRINTF(str, IFACE_("Mirror%s"), t->con.text);
 
+    if (t->options & CTX_SEQUENCER_IMAGE) {
+      if (axis_bitmap == 1) {
+        t->values_final[0] = -1;
+        t->values_final[1] = 1;
+      }
+      if (axis_bitmap == 2) {
+        t->values_final[0] = 1;
+        t->values_final[1] = -1;
+      }
+    }
+
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;
       for (i = 0; i < tc->data_len; i++, td++) {
@@ -194,6 +205,10 @@ static void applyMirror(TransInfo *t)
     ED_area_status_text(t->area, str);
   }
   else {
+    if (t->options & CTX_SEQUENCER_IMAGE) {
+      t->values_final[0] = 1.0f;
+      t->values_final[1] = 1.0f;
+    }
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;
       for (i = 0; i < tc->data_len; i++, td++) {

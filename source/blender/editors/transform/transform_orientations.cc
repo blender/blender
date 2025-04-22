@@ -48,6 +48,7 @@
 
 #include "SEQ_select.hh"
 
+#include "SEQ_transform.hh"
 #include "transform.hh"
 #include "transform_orientations.hh"
 
@@ -764,7 +765,9 @@ short transform_orientation_matrix_get(bContext *C,
     Scene *scene = t->scene;
     Strip *strip = seq::select_active_get(scene);
     if (strip && strip->data->transform && orient_index == V3D_ORIENT_LOCAL) {
-      axis_angle_to_mat3_single(r_spacemtx, 'Z', strip->data->transform->rotation);
+      const float2 mirror = seq::image_transform_mirror_factor_get(strip);
+      axis_angle_to_mat3_single(
+          r_spacemtx, 'Z', strip->data->transform->rotation * mirror[0] * mirror[1]);
       return orient_index;
     }
   }
