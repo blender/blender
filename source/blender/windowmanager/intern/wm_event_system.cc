@@ -6637,7 +6637,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
       if (kmi->type == RIGHTMOUSE && kmi->val == KM_PRESS &&
           STR_ELEM(kmi->idname, "WM_OT_call_menu", "WM_OT_call_menu_pie", "WM_OT_call_panel"))
       {
-        name = TIP_("Options");
+        name = IFACE_("Options");
       }
       else if (ot) {
         /* Skip internal operators. */
