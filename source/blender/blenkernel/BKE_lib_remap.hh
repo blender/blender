@@ -79,12 +79,14 @@ enum {
    * the 'separate' mesh operator.
    */
   ID_REMAP_FORCE_OBDATA_IN_EDITMODE = 1 << 7,
-  /** Do remapping of `lib` Library pointers of IDs (by default these are completely ignored).
+  /**
+   * Do remapping of `lib` Library pointers of IDs (by default these are completely ignored).
    *
    * WARNING: Use with caution. This is currently a 'raw' remapping, with no further processing. In
    * particular, DO NOT use this to make IDs local (i.e. remap a library pointer to NULL), unless
-   * the calling code takes care of the rest of the required changes (ID tags & flags updates,
-   * etc.). */
+   * the calling code takes care of the rest of the required changes
+   * (ID tags & flags updates, etc.).
+   */
   ID_REMAP_DO_LIBRARY_POINTERS = 1 << 8,
 
   /**

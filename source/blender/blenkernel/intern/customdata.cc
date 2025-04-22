@@ -176,7 +176,7 @@ struct LayerTypeInfo {
   /** A function used by mesh validating code, must ensures passed item has valid data. */
   cd_validate validate;
 
-  /** functions necessary for geometry collapse */
+  /** Functions necessary for geometry collapse. */
   bool (*equal)(const void *data1, const void *data2);
   void (*multiply)(void *data, float fac);
   void (*initminmax)(void *min, void *max);
@@ -184,17 +184,19 @@ struct LayerTypeInfo {
   void (*dominmax)(const void *data1, void *min, void *max);
   void (*copyvalue)(const void *source, void *dest, int mixmode, const float mixfactor);
 
-  /** a function to read data from a cdf file */
+  /** A function to read data from a cdf file. */
   bool (*read)(CDataFile *cdf, void *data, int count);
 
-  /** a function to write data to a cdf file */
+  /** A function to write data to a cdf file. */
   bool (*write)(CDataFile *cdf, const void *data, int count);
 
-  /** a function to determine file size */
+  /** A function to determine file size. */
   size_t (*filesize)(CDataFile *cdf, const void *data, int count);
 
-  /** a function to determine max allowed number of layers,
-   * should be null or return -1 if no limit */
+  /**
+   * A function to determine max allowed number of layers,
+   * should be null or return -1 if no limit.
+   */
   int (*layers_max)();
 };
 

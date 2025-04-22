@@ -50,8 +50,7 @@ struct MaskLayer *BKE_mask_layer_active(struct Mask *mask);
 void BKE_mask_layer_active_set(struct Mask *mask, struct MaskLayer *masklay);
 void BKE_mask_layer_remove(struct Mask *mask, struct MaskLayer *masklay);
 
-/** \brief Free all animation keys for a mask layer.
- */
+/** \brief Free all animation keys for a mask layer. */
 void BKE_mask_layer_free_shapes(struct MaskLayer *masklay);
 void BKE_mask_layer_free(struct MaskLayer *masklay);
 void BKE_mask_layer_free_list(struct ListBase *masklayers);

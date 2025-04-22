@@ -53,12 +53,16 @@ struct LibraryForeachIDData {
   /** Callback flags that are forbidden for all callback calls for current processed data. */
   LibraryForeachIDCallbackFlag cb_flag_clear;
 
-  /* Function to call for every ID pointers of current processed data, and its opaque user data
-   * pointer. */
+  /**
+   * Function to call for every ID pointers of current processed data, and its opaque user data
+   * pointer.
+   */
   blender::FunctionRef<LibraryIDLinkCallback> callback;
   void *user_data;
-  /** Store the returned value from the callback, to decide how to continue the processing of ID
-   * pointers for current data. */
+  /**
+   * Store the returned value from the callback, to decide how to continue the processing of ID
+   * pointers for current data.
+   */
   int status;
 
   /* To handle recursion. */
@@ -657,7 +661,8 @@ void BKE_library_ID_test_usages(Main *bmain,
 
 /* ***** IDs usages.checking/tagging. ***** */
 
-/* Internal data for the common processing of the 'unused IDs' query functions.
+/**
+ * Internal data for the common processing of the 'unused IDs' query functions.
  *
  * While #LibQueryUnusedIDsData is a subset of this internal struct, they need to be kept separate,
  * since this struct is used with partially 'enforced' values for some parameters by the
@@ -804,7 +809,8 @@ static bool lib_query_unused_ids_has_exception_user(ID &id, UnusedIDsData &data)
   return false;
 }
 
-/* Returns `true` if given ID is detected as part of at least one dependency loop, false otherwise.
+/**
+ * Returns `true` if given ID is detected as part of at least one dependency loop, false otherwise.
  */
 static bool lib_query_unused_ids_tag_recurse(ID *id, UnusedIDsData &data)
 {

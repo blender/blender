@@ -136,8 +136,10 @@ typedef enum eDriverVariablePropertyResult {
   DRIVER_VAR_PROPERTY_FALLBACK,
   /** The target property could not be resolved. */
   DRIVER_VAR_PROPERTY_INVALID,
-  /** The property was resolved (output parameters are set),
-   *  but the array index is out of bounds. */
+  /**
+   * The property was resolved (output parameters are set),
+   * but the array index is out of bounds.
+   */
   DRIVER_VAR_PROPERTY_INVALID_INDEX
 } eDriverVariablePropertyResult;
 

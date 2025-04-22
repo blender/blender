@@ -203,8 +203,10 @@ struct PaintBakeData {
   /** speed vector in global space movement per frame, if required */
   Vec3f *velocity;
   Vec3f *prev_velocity;
-  /** special temp data for post-p velocity based brushes like smudge
-   * 3 float dir vec + 1 float str */
+  /**
+   * Special temp data for post-p velocity based brushes like smudge
+   * 3 float dir vec + 1 float str.
+   */
   float *brush_velocity;
   /** copy of previous frame vertices. used to observe surface movement. */
   float (*prev_positions)[3];

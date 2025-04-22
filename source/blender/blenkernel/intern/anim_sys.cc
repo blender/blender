@@ -1377,7 +1377,7 @@ static int nlaevalchan_validate_index(const NlaEvalChannel *nec, int index)
 
 static bool nlaevalchan_validate_index_ex(const NlaEvalChannel *nec, const int array_index)
 {
-  /** Although array_index comes from fcurve, that doesn't necessarily mean the property has that
+  /* Although array_index comes from fcurve, that doesn't necessarily mean the property has that
    * many elements. */
   const int index = nlaevalchan_validate_index(nec, array_index);
 
@@ -1878,15 +1878,15 @@ static bool nla_blend_get_inverted_strip_value(const int blendmode,
         return false;
       }
 
-      /** Math:
+      /* Math:
        *
-       *  blended_value = inf * (lower_value * strip_value) + (1 - inf) * lower_value
-       *  blended_value - (1 - inf) * lower_value = inf * (lower_value * strip_value)
-       *  (blended_value - (1 - inf) * lower_value) / (inf * lower_value) =  strip_value
-       *  (blended_value - lower_value + inf * lower_value) / (inf * lower_value) =  strip_value
-       *  ((blended_value - lower_value) / (inf * lower_value)) + 1 =  strip_value
+       * blended_value = inf * (lower_value * strip_value) + (1 - inf) * lower_value
+       * blended_value - (1 - inf) * lower_value = inf * (lower_value * strip_value)
+       * (blended_value - (1 - inf) * lower_value) / (inf * lower_value) =  strip_value
+       * (blended_value - lower_value + inf * lower_value) / (inf * lower_value) =  strip_value
+       * ((blended_value - lower_value) / (inf * lower_value)) + 1 =  strip_value
        *
-       *  strip_value = ((blended_value - lower_value) / (inf * lower_value)) + 1
+       * strip_value = ((blended_value - lower_value) / (inf * lower_value)) + 1
        */
       *r_strip_value = ((blended_value - lower_value) / (influence * lower_value)) + 1.0f;
       return true;
@@ -1897,13 +1897,13 @@ static bool nla_blend_get_inverted_strip_value(const int blendmode,
 
     default:
 
-      /** Math:
+      /* Math:
        *
-       *  blended_value = lower_value * (1.0f - inf) + (strip_value * inf)
-       *  blended_value - lower_value * (1.0f - inf) = (strip_value * inf)
-       *  (blended_value - lower_value * (1.0f - inf)) / inf = strip_value
+       * blended_value = lower_value * (1.0f - inf) + (strip_value * inf)
+       * blended_value - lower_value * (1.0f - inf) = (strip_value * inf)
+       * (blended_value - lower_value * (1.0f - inf)) / inf = strip_value
        *
-       *  strip_value = (blended_value - lower_value * (1.0f - inf)) / inf
+       * strip_value = (blended_value - lower_value * (1.0f - inf)) / inf
        */
       *r_strip_value = (blended_value - lower_value * (1.0f - influence)) / influence;
       return true;
@@ -3666,8 +3666,8 @@ void nlasnapshot_blend_get_inverted_upper_snapshot(NlaEvalData *eval_data,
   LISTBASE_FOREACH (NlaEvalChannel *, nec, &eval_data->channels) {
     NlaEvalChannelSnapshot *blended_necs = nlaeval_snapshot_get(blended_snapshot, nec->index);
     if (blended_necs == nullptr) {
-      /** We assume the caller only wants a subset of channels to be inverted, those that exist
-       * within \a blended_snapshot. */
+      /* We assume the caller only wants a subset of channels to be inverted,
+       * those that exist within `blended_snapshot`. */
       continue;
     }
 

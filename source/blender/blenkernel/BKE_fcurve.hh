@@ -504,7 +504,8 @@ BezTriple *BKE_bezier_array_merge(
  */
 void BKE_fcurve_delete_key(FCurve *fcu, int index);
 
-/** Delete an index range of keyframes from an F-curve. This is more performant than individually
+/**
+ * Delete an index range of keyframes from an F-curve. This is more performant than individually
  * removing keys.
  * Has a complexity of O(N) with respect to number of keys in `fcu`.
  *
