@@ -1023,6 +1023,8 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
     switch (event->type) {
       case EVT_ESCKEY:
       case RIGHTMOUSE: {
+        /* Restore snap mode. */
+        *ipd->snap_to_ptr = ipd->snap_to_restore;
         view3d_interactive_add_exit(C, op);
         return OPERATOR_CANCELLED;
       }
