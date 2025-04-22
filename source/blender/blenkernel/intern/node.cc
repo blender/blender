@@ -881,6 +881,11 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_float_color("Spill Strength", 1, storage->uspillg);
       write_input_to_property_float_color("Spill Strength", 2, storage->uspillb);
     }
+
+    if (node->type_legacy == CMP_NODE_KEYINGSCREEN) {
+      NodeKeyingScreenData *storage = static_cast<NodeKeyingScreenData *>(node->storage);
+      write_input_to_property_float("Smoothness", storage->smoothness);
+    }
   }
 }
 

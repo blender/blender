@@ -3993,6 +3993,9 @@ static const char node_input_limit_strength[] = "Limit Strength";
 static const char node_input_use_spill_strength[] = "Use Spill Strength";
 static const char node_input_spill_strength[] = "Spill Strength";
 
+/* Smoothness node. */
+static const char node_input_smoothness[] = "Smoothness";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -9729,9 +9732,12 @@ static void def_cmp_keyingscreen(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "smoothness", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "smoothness");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_smoothness>",
+                               "rna_node_property_to_input_setter<float, node_input_smoothness>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Smoothness", "");
+  RNA_def_property_ui_text(prop, "Smoothness", "(Deprecated: Use Smoothness input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
