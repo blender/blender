@@ -1060,7 +1060,9 @@ AZone *ED_area_azones_update(ScrArea *area, const int xy[2])
 static void actionzone_exit(wmOperator *op)
 {
   sActionzoneData *sad = static_cast<sActionzoneData *>(op->customdata);
-  MEM_freeN(sad);
+  if (sad) {
+    MEM_freeN(sad);
+  }
   op->customdata = nullptr;
 
   G.moving &= ~G_TRANSFORM_WM;
