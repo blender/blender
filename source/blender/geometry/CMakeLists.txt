@@ -145,20 +145,6 @@ if(WITH_GMP)
   )
 endif()
 
-if(WITH_MANIFOLD_EXTERN)
-  add_definitions(-DWITH_MANIFOLD)
-#TODO -- do this properly
-  list (APPEND INC
-    "../../../extern/manifold/include/"
-    "../../../extern/manifold/include/manifold/"
-  )
-#TODO -- append to LIB the libraries that actually work
-  list (APPEND LIB
-    extern_manifold
-  )
-  
-endif()
-
 blender_add_lib(bf_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::geometry ALIAS bf_geometry)
 
