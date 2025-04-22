@@ -3217,6 +3217,12 @@ def km_sequencer_preview(params):
          {"properties": [("property", 'ROTATION')]}),
 
         ("sequencer.preview_duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        ("sequencer.mute", {"type": 'H', "value": 'PRESS'},
+         {"properties": [("unselected", False)]}),
+        ("sequencer.mute", {"type": 'H', "value": 'PRESS', "shift": True},
+         {"properties": [("unselected", True)]}),
+        ("sequencer.unmute", {"type": 'H', "value": 'PRESS', "alt": True},
+         {"properties": [("unselected", False)]}),
         ("sequencer.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("sequencer.delete", {"type": 'DEL', "value": 'PRESS'}, None),
 
