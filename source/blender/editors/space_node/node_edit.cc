@@ -1244,7 +1244,8 @@ bool node_is_previewable(const SpaceNode &snode, const bNodeTree &ntree, const b
     return false;
   }
   if (ntree.type == NTREE_SHADER) {
-    return USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) && !node.is_frame();
+    return USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) && !node.is_frame() &&
+           snode.shaderfrom == SNODE_SHADER_OBJECT;
   }
   return node.typeinfo->flag & NODE_PREVIEW;
 }
