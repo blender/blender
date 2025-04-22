@@ -315,11 +315,11 @@ class Meshes : Overlay {
     const bool draw_as_solid = (ob->dt > OB_WIRE) && !state.xray_enabled;
     const bool has_edit_cage = mesh_has_edit_cage(ob);
 
-    if (show_retopology_) {
+    if (show_retopology_ && !state.is_render_depth_available) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);
       edit_mesh_prepass_ps_.draw(geom, res_handle);
     }
-    if (draw_as_solid) {
+    if (draw_as_solid && !state.is_render_depth_available) {
       gpu::Batch *geom = DRW_cache_mesh_surface_get(ob);
       edit_mesh_prepass_ps_.draw(geom, res_handle);
     }
