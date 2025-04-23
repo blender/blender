@@ -411,18 +411,19 @@ static wmOperatorStatus text_open_exec(bContext *C, wmOperator *op)
 
   text = BKE_text_load_ex(bmain, filepath, BKE_main_blendfile_path(bmain), internal);
 
-  PropertyPointerRNA *pprop = static_cast<PropertyPointerRNA *>(op->customdata);
   if (!text) {
+    PropertyPointerRNA *pprop = static_cast<PropertyPointerRNA *>(op->customdata);
     MEM_delete(pprop);
     op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }
 
-  if (!pprop) {
+  if (!op->customdata) {
     text_open_init(C, op);
   }
 
   /* hook into UI */
+  PropertyPointerRNA *pprop = static_cast<PropertyPointerRNA *>(op->customdata);
   if (pprop->prop) {
     PointerRNA idptr = RNA_id_pointer_create(&text->id);
     RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr, nullptr);
