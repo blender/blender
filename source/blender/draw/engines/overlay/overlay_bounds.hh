@@ -146,7 +146,7 @@ class Bounds : Overlay {
     }
 
     /* Rigid Body Shape */
-    if (!from_dupli && ob->rigidbody_object != nullptr) {
+    if (state.show_extras() && !from_dupli && ob->rigidbody_object != nullptr) {
       switch (ob->rigidbody_object->shape) {
         case RB_SHAPE_BOX:
           add_bounds(true, OB_BOUND_BOX);
