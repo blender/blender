@@ -4853,11 +4853,50 @@ bool WM_event_handler_region_v2d_mask_poll(const wmWindow * /*win*/,
   return event_or_prev_in_rect(event, &rect);
 }
 
-bool WM_event_handler_region_marker_poll(const wmWindow * /*win*/,
-                                         const ScrArea * /*area*/,
+bool WM_event_handler_region_marker_poll(const wmWindow *win,
+                                         const ScrArea *area,
                                          const ARegion *region,
                                          const wmEvent *event)
 {
+  switch (area->spacetype) {
+    case SPACE_ACTION: {
+      const SpaceAction *saction = static_cast<SpaceAction *>(area->spacedata.first);
+      if ((saction->flag & SACTION_SHOW_MARKERS) == 0) {
+        return false;
+      }
+      break;
+    }
+    case SPACE_GRAPH: {
+      const SpaceGraph *sgraph = static_cast<SpaceGraph *>(area->spacedata.first);
+      if ((sgraph->flag & SIPO_SHOW_MARKERS) == 0) {
+        return false;
+      }
+      break;
+    }
+    case SPACE_NLA: {
+      const SpaceNla *snla = static_cast<SpaceNla *>(area->spacedata.first);
+      if ((snla->flag & SNLA_SHOW_MARKERS) == 0) {
+        return false;
+      }
+      break;
+    }
+    case SPACE_SEQ: {
+      const SpaceSeq *seq = static_cast<SpaceSeq *>(area->spacedata.first);
+      if ((seq->flag & SEQ_SHOW_MARKERS) == 0) {
+        return false;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+
+  const ListBase *markers = ED_scene_markers_get(WM_window_get_active_scene(win),
+                                                 const_cast<ScrArea *>(area));
+  if (BLI_listbase_is_empty(markers)) {
+    return false;
+  }
+
   rcti rect = region->winrct;
   rect.ymax = rect.ymin + UI_MARKER_MARGIN_Y;
   /* TODO: investigate returning `event_or_prev_in_rect(event, &rect)` here.
