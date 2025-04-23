@@ -95,7 +95,7 @@ enum {
    * active button can be polled on non-active buttons to (e.g. for disabling). */
   UI_BUT_ACTIVE_OVERRIDE = (1 << 7),
 
-  /* WARNING: rest of #uiBut.flag in UI_interface.hh */
+  /* WARNING: rest of #uiBut.flag in `UI_interface_c.hh`. */
 };
 
 /** #uiBut.pie_dir */
