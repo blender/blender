@@ -19,7 +19,7 @@
  * back-up in case the linked-list related data is lost.
  *
  * It also provides C++ template versions of [cm]alloc and related API,
- * which prodives improved type safety, ensures that the allocated types
+ * which provides improved type safety, ensures that the allocated types
  * are trivial, and reduces the casting verbosity by directly returning
  * a pointer of the expected type.
  *
@@ -52,7 +52,7 @@ extern "C" {
  * void pointers and explicit size values).
  *
  * This API should usually not be used anymore in C++ code, unless some form of raw memory
- * mamangement is necessary (e.g. for allocation of various ID types based on their
+ * management is necessary (e.g. for allocation of various ID types based on their
  * #IDTypeInfo::struct_size data).
  *
  * \{ */
@@ -170,7 +170,7 @@ extern void *(*MEM_calloc_arrayN_aligned)(
     ATTR_NONNULL(4);
 
 #ifdef __cplusplus
-/* Implicitely uses the templated, type-safe version of #MEM_freeN<T>, unless `v` is `void *`. */
+/** Implicitly uses the templated, type-safe version of #MEM_freeN<T>, unless `v` is `void *`. */
 #  define MEM_SAFE_FREE(v) \
     do { \
       if (v) { \
@@ -330,7 +330,7 @@ void MEM_use_guarded_allocator(void);
  * Defines some `new`/`delete`-like helpers, which allocate/free memory using `MEM_guardedalloc`,
  * and construct/destruct the objects.
  *
- * When possible, it is prefferred to use these, even on trivial types, as it makes potential
+ * When possible, it is preferred to use these, even on trivial types, as it makes potential
  * future changes to these types less disruptive, and is overall closer to standard C++ data
  * creation and destruction.
  *

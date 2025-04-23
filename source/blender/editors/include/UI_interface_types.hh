@@ -24,7 +24,7 @@ using uiMenuHandleFunc = void (*)(bContext *C, void *arg, int event);
 /**
  * Used for cycling menu values without opening the menu (Ctrl-Wheel).
  * \param direction: forward or backwards [1 / -1].
- * \param arg1: uiBut.poin (as with #uiMenuCreateFunc).
+ * \param arg1: `uiBut.poin` (as with #uiMenuCreateFunc).
  * \return true when the button was changed.
  */
 using uiMenuStepFunc = bool (*)(bContext *C, int direction, void *arg1);

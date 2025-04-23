@@ -1164,7 +1164,7 @@ static void write_boolean_benchmark_time(
   const int num_tris_2 = mesh2 ? mesh2->corner_tris().size() : 0;
   const int threads = BLI_system_num_threads_override_get();
 
-  /* Add header line if file doesn't exsit yet. */
+  /* Add header line if file doesn't exist yet. */
   bool first_time = false;
   if (!std::filesystem::exists(BENCHMARK_FILE)) {
     first_time = true;

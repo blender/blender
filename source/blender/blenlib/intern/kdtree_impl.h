@@ -22,8 +22,8 @@
 #define _BLI_KDTREE_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
 #define BLI_kdtree_nd_(id) _BLI_KDTREE_CONCAT(KDTREE_PREFIX_ID, _##id)
 
-/* Put in anonymouse namespace to avoid violating one definition rule.
- * Otherwise MEM_malloc_array<KDTreeNode> can get defined once for multiple dimensions,
+/* Put in anonymous namespace to avoid violating one definition rule.
+ * Otherwise `MEM_malloc_array<KDTreeNode>` can get defined once for multiple dimensions,
  * with different node sizes. */
 namespace {
 
