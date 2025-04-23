@@ -901,6 +901,11 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_float("Despill Strength", storage->despill_factor);
       write_input_to_property_float("Despill Balance", storage->despill_balance);
     }
+
+    if (node->type_legacy == CMP_NODE_ID_MASK) {
+      write_input_to_property_short("Index", node->custom1);
+      write_input_to_property_bool_short("Anti-Alias", node->custom2);
+    }
   }
 }
 

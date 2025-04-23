@@ -4009,6 +4009,9 @@ static const char node_input_postprocess_feather_size[] = "Postprocess Feather S
 static const char node_input_despill_strength[] = "Despill Strength";
 static const char node_input_despill_balance[] = "Despill Balance";
 
+/* ID Key node. */
+static const char node_input_index[] = "Index";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -8239,14 +8242,25 @@ static void def_cmp_id_mask(BlenderRNA * /*brna*/, StructRNA *srna)
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "custom1");
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_index>",
+                             "rna_node_property_to_input_setter<int, node_input_index>",
+                             nullptr);
   RNA_def_property_range(prop, 0, 32767);
-  RNA_def_property_ui_text(prop, "Index", "Pass index number to convert to alpha");
+  RNA_def_property_ui_text(
+      prop,
+      "Index",
+      "Pass index number to convert to alpha. (Deprecated: Use Index input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom2", 0);
-  RNA_def_property_ui_text(prop, "Anti-Aliasing", "Apply an anti-aliasing filter to the mask");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_node_property_to_input_getter<bool, node_input_anti_alias>",
+                                 "rna_node_property_to_input_setter<bool, node_input_anti_alias>");
+  RNA_def_property_ui_text(
+      prop,
+      "Anti-Aliasing",
+      "Apply an anti-aliasing filter to the mask. (Deprecated: Use Anti-Aliasing input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
