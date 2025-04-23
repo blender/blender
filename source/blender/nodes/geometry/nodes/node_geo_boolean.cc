@@ -193,7 +193,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   Mesh *result = geometry::boolean::mesh_boolean(
       meshes,
       transforms,
-      float4x4::identity(),
       material_remaps,
       op_params,
       solver,

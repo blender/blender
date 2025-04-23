@@ -403,8 +403,9 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
                                     const ModifierEvalContext *ctx,
                                     Mesh *mesh)
 {
+  const float4x4 &world_to_object = ctx->object->world_to_object();
   Vector<const Mesh *> meshes;
-  Vector<float4x4> obmats;
+  Vector<float4x4> transforms;
 
   Vector<Array<short>> material_remaps;
 
@@ -420,7 +421,7 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
                                                   blender::geometry::boolean::Solver::MeshArr :
                                                   blender::geometry::boolean::Solver::Manifold;
   meshes.append(mesh);
-  obmats.append(ctx->object->object_to_world());
+  transforms.append(float4x4::identity());
   material_remaps.append({});
 
   const BooleanModifierMaterialMode material_mode = BooleanModifierMaterialMode(
@@ -443,7 +444,7 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
     }
     BKE_mesh_wrapper_ensure_mdata(mesh_operand);
     meshes.append(mesh_operand);
-    obmats.append(bmd->object->object_to_world());
+    transforms.append(world_to_object * bmd->object->object_to_world());
     if (material_mode == eBooleanModifierMaterialMode_Index) {
       material_remaps.append(get_material_remap_index_based(ctx->object, bmd->object));
     }
@@ -463,7 +464,7 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
           }
           BKE_mesh_wrapper_ensure_mdata(collection_mesh);
           meshes.append(collection_mesh);
-          obmats.append(ob->object_to_world());
+          transforms.append(world_to_object * ob->object_to_world());
           if (material_mode == eBooleanModifierMaterialMode_Index) {
             material_remaps.append(get_material_remap_index_based(ctx->object, ob));
           }
@@ -485,14 +486,8 @@ static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
   op_params.no_nested_components = false;
   blender::geometry::boolean::BooleanError error =
       blender::geometry::boolean::BooleanError::NoError;
-  Mesh *result = blender::geometry::boolean::mesh_boolean(meshes,
-                                                          obmats,
-                                                          ctx->object->object_to_world(),
-                                                          material_remaps,
-                                                          op_params,
-                                                          solver,
-                                                          nullptr,
-                                                          &error);
+  Mesh *result = blender::geometry::boolean::mesh_boolean(
+      meshes, transforms, material_remaps, op_params, solver, nullptr, &error);
 
   if (error != blender::geometry::boolean::BooleanError::NoError) {
     if (error == blender::geometry::boolean::BooleanError::NonManifold) {

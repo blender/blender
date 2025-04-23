@@ -247,9 +247,8 @@ void MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
  * All allocation of memory for the IMesh comes from `arena`.
  */
 static meshintersect::IMesh meshes_to_imesh(Span<const Mesh *> meshes,
-                                            Span<float4x4> obmats,
+                                            Span<float4x4> transforms,
                                             Span<Array<short>> material_remaps,
-                                            const float4x4 &target_transform,
                                             meshintersect::IMeshArena &arena,
                                             MeshesToIMeshInfo *r_info)
 {
@@ -295,7 +294,6 @@ static meshintersect::IMesh meshes_to_imesh(Span<const Mesh *> meshes,
    * of the target, multiply each transform by the inverse of the
    * target matrix. Exact Boolean works better if these matrices are 'cleaned'
    *  -- see the comment for the `clean_transform` function, above. */
-  const float4x4 inv_target_mat = math::invert(clean_transform(target_transform));
 
   /* For each input `Mesh`, make `Vert`s and `Face`s for the corresponding
    * vertices and polygons, and keep track of the original indices (using the
@@ -309,10 +307,9 @@ static meshintersect::IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     r_info->mesh_face_offset[mi] = f;
     /* Get matrix that transforms a coordinate in meshes[mi]'s local space
      * to the target space. */
-    const float4x4 objn_mat = obmats.is_empty() ? float4x4::identity() :
-                                                  clean_transform(obmats[mi]);
-    r_info->to_target_transform[mi] = inv_target_mat * objn_mat;
-    r_info->has_negative_transform[mi] = math::is_negative(objn_mat);
+    r_info->to_target_transform[mi] = transforms.is_empty() ? float4x4::identity() :
+                                                              clean_transform(transforms[mi]);
+    r_info->has_negative_transform[mi] = math::is_negative(r_info->to_target_transform[mi]);
 
     /* All meshes 1 and up will be transformed into the local space of operand 0.
      * Historical behavior of the modifier has been to flip the faces of any meshes
@@ -329,7 +326,7 @@ static meshintersect::IMesh meshes_to_imesh(Span<const Mesh *> meshes,
      * Skip the matrix multiplication for each point when there is no transform for a mesh,
      * for example when the first mesh is already in the target space. (Note the logic
      * directly above, which uses an identity matrix with an empty input transform). */
-    if (obmats.is_empty() || r_info->to_target_transform[mi] == float4x4::identity()) {
+    if (transforms.is_empty() || r_info->to_target_transform[mi] == float4x4::identity()) {
       threading::parallel_for(vert_positions.index_range(), 2048, [&](IndexRange range) {
         for (int i : range) {
           float3 co = vert_positions[i];
@@ -830,7 +827,6 @@ static meshintersect::BoolOpType operation_to_mesh_arr_mode(const Operation oper
 
 static Mesh *mesh_boolean_mesh_arr(Span<const Mesh *> meshes,
                                    Span<float4x4> transforms,
-                                   const float4x4 &target_transform,
                                    Span<Array<short>> material_remaps,
                                    const bool use_self,
                                    const bool hole_tolerant,
@@ -849,8 +845,7 @@ static Mesh *mesh_boolean_mesh_arr(Span<const Mesh *> meshes,
   }
   MeshesToIMeshInfo mim;
   meshintersect::IMeshArena arena;
-  meshintersect::IMesh m_in = meshes_to_imesh(
-      meshes, transforms, material_remaps, target_transform, arena, &mim);
+  meshintersect::IMesh m_in = meshes_to_imesh(meshes, transforms, material_remaps, arena, &mim);
   std::function<int(int)> shape_fn = [&mim](int f) {
     for (int mi = 0; mi < mim.mesh_face_offset.size() - 1; ++mi) {
       if (f < mim.mesh_face_offset[mi + 1]) {
@@ -925,30 +920,20 @@ static int face_boolean_operand(BMFace *f, void * /*user_data*/)
  */
 static BMesh *mesh_bm_concat(Span<const Mesh *> meshes,
                              Span<float4x4> transforms,
-                             const float4x4 &target_transform,
                              Span<Array<short>> material_remaps,
                              Array<std::array<BMLoop *, 3>> &r_looptris)
 {
   const int meshes_num = meshes.size();
   BLI_assert(meshes_num >= 1);
-  bool ok;
-  float4x4 inv_target_mat = math::invert(target_transform, ok);
-  if (!ok) {
-    BLI_assert_unreachable();
-    inv_target_mat = float4x4::identity();
-  }
-  Array<float4x4> to_target(meshes_num);
   Array<bool> is_negative_transform(meshes_num);
   Array<bool> is_flip(meshes_num);
   const int tsize = transforms.size();
   for (const int i : IndexRange(meshes_num)) {
     if (tsize > i) {
-      to_target[i] = inv_target_mat * transforms[i];
       is_negative_transform[i] = math::is_negative(transforms[i]);
       is_flip[i] = is_negative_transform[i] != is_negative_transform[0];
     }
     else {
-      to_target[i] = inv_target_mat;
       is_negative_transform[i] = false;
       is_flip[i] = false;
     }
@@ -1011,7 +996,7 @@ static BMesh *mesh_bm_concat(Span<const Mesh *> meshes,
   int i = 0;
   int mesh_index = 0;
   BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-    copy_v3_v3(eve->co, math::transform_point(to_target[mesh_index], float3(eve->co)));
+    copy_v3_v3(eve->co, math::transform_point(transforms[mesh_index], float3(eve->co)));
     ++i;
     if (i == verts_end[mesh_index]) {
       mesh_index++;
@@ -1024,7 +1009,7 @@ static BMesh *mesh_bm_concat(Span<const Mesh *> meshes,
   i = 0;
   mesh_index = 0;
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    copy_v3_v3(efa->no, math::transform_direction(to_target[mesh_index], float3(efa->no)));
+    copy_v3_v3(efa->no, math::transform_direction(transforms[mesh_index], float3(efa->no)));
     if (is_negative_transform[mesh_index]) {
       negate_v3(efa->no);
     }
@@ -1069,7 +1054,6 @@ static int operation_to_float_mode(const Operation operation)
 
 static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
                                 Span<float4x4> transforms,
-                                const float4x4 &target_transform,
                                 Span<Array<short>> material_remaps,
                                 const int boolean_mode,
                                 Vector<int> * /*r_intersecting_edges*/)
@@ -1088,7 +1072,7 @@ static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
 
   Array<std::array<BMLoop *, 3>> looptris;
   if (meshes.size() == 2) {
-    BMesh *bm = mesh_bm_concat(meshes, transforms, target_transform, material_remaps, looptris);
+    BMesh *bm = mesh_bm_concat(meshes, transforms, material_remaps, looptris);
     BM_mesh_intersect(bm,
                       looptris,
                       face_boolean_operand,
@@ -1112,8 +1096,7 @@ static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
   Array<Array<short>> two_remaps = {material_remaps[0], material_remaps[1]};
   Mesh *prev_result_mesh = nullptr;
   for (const int i : meshes.index_range().drop_back(1)) {
-    BMesh *bm = mesh_bm_concat(
-        two_meshes, two_transforms, float4x4::identity(), two_remaps, looptris);
+    BMesh *bm = mesh_bm_concat(two_meshes, two_transforms, two_remaps, looptris);
     BM_mesh_intersect(bm,
                       looptris,
                       face_boolean_operand,
@@ -1191,7 +1174,6 @@ static void write_boolean_benchmark_time(
 
 Mesh *mesh_boolean(Span<const Mesh *> meshes,
                    Span<float4x4> transforms,
-                   const float4x4 &target_transform,
                    Span<Array<short>> material_remaps,
                    BooleanOpParameters op_params,
                    Solver solver,
@@ -1207,7 +1189,6 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
       *r_error = BooleanError::NoError;
       ans = mesh_boolean_float(meshes,
                                transforms,
-                               target_transform,
                                material_remaps,
                                operation_to_float_mode(op_params.boolean_mode),
                                r_intersecting_edges);
@@ -1217,7 +1198,6 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
       *r_error = BooleanError::NoError;
       ans = mesh_boolean_mesh_arr(meshes,
                                   transforms,
-                                  target_transform,
                                   material_remaps,
                                   !op_params.no_self_intersections,
                                   !op_params.watertight,
@@ -1229,13 +1209,8 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
       break;
     case Solver::Manifold:
 #ifdef WITH_MANIFOLD
-      ans = mesh_boolean_manifold(meshes,
-                                  transforms,
-                                  target_transform,
-                                  material_remaps,
-                                  op_params,
-                                  r_intersecting_edges,
-                                  r_error);
+      ans = mesh_boolean_manifold(
+          meshes, transforms, material_remaps, op_params, r_intersecting_edges, r_error);
 #else
       *r_error = BooleanError::SolverNotAvailable;
 #endif

@@ -72,8 +72,8 @@ struct BooleanOpParameters {
  * in the way the user hopes.
  *
  * \param meshes: The meshes that are operands of the boolean operation.
- * \param transforms: An array of transform matrices used for each mesh's positions.
- * \param target_transform: the result needs to be transformed by this.
+ * \param transforms: An array of transform matrices used to transform the input meshes to bring
+ * them into the transform space of the result.
  * \param material_remaps: An array of maps from material slot numbers in the corresponding mesh
  * to the material slot in the first mesh. It is OK for material_remaps or any of its constituent
  * arrays to be empty. A -1 value means that the original index should be used with no mapping.
@@ -85,7 +85,6 @@ struct BooleanOpParameters {
  */
 Mesh *mesh_boolean(Span<const Mesh *> meshes,
                    Span<float4x4> transforms,
-                   const float4x4 &target_transform,
                    Span<Array<short>> material_remaps,
                    BooleanOpParameters op_params,
                    Solver solver,
