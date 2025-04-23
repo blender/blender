@@ -53,6 +53,8 @@
         </UI>
         <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Learn how to support Blender" />
         <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+        <SetProperty Id="REINSTALLMODE" Value="amus" Before="FindRelatedProducts" Sequence="first">NOT REINSTALLMODE</SetProperty>
+        
         <UIRef Id="WixUI_ErrorProgressText" />
         <CustomAction Id="LaunchBrowser"
              ExeCommand="explorer.exe &quot;https://fund.blender.org/?utm_source=blender-$(var.CPACK_PACKAGE_VERSION)-installer-msi&quot;"
