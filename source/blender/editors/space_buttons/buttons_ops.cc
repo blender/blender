@@ -177,6 +177,12 @@ struct FileBrowseOp {
   PropertyRNA *prop = nullptr;
   bool is_undo = false;
   bool is_userdef = false;
+
+  /**
+   * It would be good if this can be removed, see #UI_context_active_but_prop_get_filebrowser
+   * code comment for details.
+   */
+  bool override_path_supports_blend_relative = false;
 };
 
 static bool file_browse_operator_relative_paths_supported(wmOperator *op)
@@ -186,6 +192,9 @@ static bool file_browse_operator_relative_paths_supported(wmOperator *op)
   if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
     const int flag = RNA_property_flag(fbo->prop);
     if ((flag & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
+      if (fbo->override_path_supports_blend_relative) {
+        return true;
+      }
       return false;
     }
   }
@@ -286,6 +295,7 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
   PropertyRNA *prop;
   bool is_undo;
   bool is_userdef;
+  bool override_path_supports_blend_relative;
   char *path;
 
   const SpaceFile *sfile = CTX_wm_space_file(C);
@@ -294,7 +304,8 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
     return OPERATOR_CANCELLED;
   }
 
-  UI_context_active_but_prop_get_filebrowser(C, &ptr, &prop, &is_undo, &is_userdef);
+  UI_context_active_but_prop_get_filebrowser(
+      C, &ptr, &prop, &is_undo, &is_userdef, &override_path_supports_blend_relative);
 
   if (!prop) {
     return OPERATOR_CANCELLED;
@@ -346,6 +357,8 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
   fbo->prop = prop;
   fbo->is_undo = is_undo;
   fbo->is_userdef = is_userdef;
+  fbo->override_path_supports_blend_relative = override_path_supports_blend_relative;
+
   op->customdata = fbo;
 
   /* NOTE(@ideasman42): Normally #ED_fileselect_get_params would handle this

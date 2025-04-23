@@ -1051,7 +1051,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
         if ((RNA_property_flag(prop) & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
           if (BLI_path_is_rel(but->drawstr.c_str())) {
 
-            /* Finally check that this isn't suppressed, see: #137507. */
+            /* Finally check that this isn't suppressed, see: #137507 & #137856. */
             if ((uiLayoutSuppressFlagGet(layout) &
                  LayoutSuppressFlag::PathSupportsBlendFileRelative) != LayoutSuppressFlag(0))
             {
@@ -1137,15 +1137,18 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
                                                 PointerRNA *r_ptr,
                                                 PropertyRNA **r_prop,
                                                 bool *r_is_undo,
-                                                bool *r_is_userdef)
+                                                bool *r_is_userdef,
+                                                bool *r_override_path_supports_blend_relative)
 {
   ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
   uiBut *prevbut = nullptr;
+  bool override_path_supports_blend_relative = false;
 
   *r_ptr = {};
   *r_prop = nullptr;
   *r_is_undo = false;
   *r_is_userdef = false;
+  *r_override_path_supports_blend_relative = false;
 
   if (!region) {
     return;
@@ -1159,12 +1162,23 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
         }
       }
 
+      /* Allow forcing relative paths to be considered supported
+       * even when the property doesn't support related paths.
+       *
+       * Needed because the `COLLECTION_OT_export_all` and associated functions
+       * use the operators file-path property for storage and expand the path
+       * before passing it to the operator, see #137856 & #137507. */
+      if (but->optype && STREQ(but->optype->idname, "COLLECTION_OT_export_all")) {
+        override_path_supports_blend_relative = true;
+      }
+
       /* find the button before the active one */
       if ((but->flag & UI_BUT_LAST_ACTIVE) && prevbut) {
         *r_ptr = prevbut->rnapoin;
         *r_prop = prevbut->rnaprop;
         *r_is_undo = (prevbut->flag & UI_BUT_UNDO) != 0;
         *r_is_userdef = UI_but_is_userdef(prevbut);
+        *r_override_path_supports_blend_relative = override_path_supports_blend_relative;
         return;
       }
     }
