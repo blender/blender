@@ -175,6 +175,7 @@ static bool BMD_error_messages(const Object *ob, ModifierData *md)
 
   const bool operand_collection = (bmd->flag & eBooleanModifierFlag_Collection) != 0;
   const bool use_exact = bmd->solver == eBooleanModifierSolver_Mesh_Arr;
+  const bool use_manifold = bmd->solver == eBooleanModifierSolver_Manifold;
   const bool operation_intersect = bmd->operation == eBooleanModifierOp_Intersect;
 
 #ifndef WITH_GMP
@@ -186,7 +187,7 @@ static bool BMD_error_messages(const Object *ob, ModifierData *md)
 #endif
 
   /* If intersect is selected using fast solver, return a error. */
-  if (operand_collection && operation_intersect && !use_exact) {
+  if (operand_collection && operation_intersect && !(use_exact || use_manifold)) {
     BKE_modifier_set_error(ob, md, "Cannot execute, intersect only available using exact solver");
     error_returns_result = true;
   }
@@ -194,7 +195,7 @@ static bool BMD_error_messages(const Object *ob, ModifierData *md)
   /* If the selected collection is empty and using fast solver, return a error. */
   if (operand_collection) {
     if (!use_exact && BKE_collection_is_empty(col)) {
-      BKE_modifier_set_error(ob, md, "Cannot execute, fast solver and empty collection");
+      BKE_modifier_set_error(ob, md, "Cannot execute, non-exact solver and empty collection");
       error_returns_result = true;
     }
 
@@ -398,9 +399,9 @@ static Array<short> get_material_remap_transfer(Object &object,
   return map;
 }
 
-static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
-                                const ModifierEvalContext *ctx,
-                                Mesh *mesh)
+static Mesh *non_float_boolean_mesh(BooleanModifierData *bmd,
+                                    const ModifierEvalContext *ctx,
+                                    Mesh *mesh)
 {
   Vector<const Mesh *> meshes;
   Vector<float4x4> obmats;
@@ -415,6 +416,9 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
     return mesh;
   }
 
+  blender::geometry::boolean::Solver solver = bmd->solver == eBooleanModifierSolver_Mesh_Arr ?
+                                                  blender::geometry::boolean::Solver::MeshArr :
+                                                  blender::geometry::boolean::Solver::Manifold;
   meshes.append(mesh);
   obmats.append(ctx->object->object_to_world());
   material_remaps.append({});
@@ -479,15 +483,27 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   op_params.no_self_intersections = !use_self;
   op_params.watertight = !hole_tolerant;
   op_params.no_nested_components = false;
-  Mesh *result = blender::geometry::boolean::mesh_boolean(
-      meshes,
-      obmats,
-      ctx->object->object_to_world(),
-      material_remaps,
-      op_params,
-      blender::geometry::boolean::Solver::MeshArr,
-      nullptr);
+  blender::geometry::boolean::BooleanError error =
+      blender::geometry::boolean::BooleanError::NoError;
+  Mesh *result = blender::geometry::boolean::mesh_boolean(meshes,
+                                                          obmats,
+                                                          ctx->object->object_to_world(),
+                                                          material_remaps,
+                                                          op_params,
+                                                          solver,
+                                                          nullptr,
+                                                          &error);
 
+  if (error != blender::geometry::boolean::BooleanError::NoError) {
+    if (error == blender::geometry::boolean::BooleanError::NonManifold) {
+      BKE_modifier_set_error(
+          ctx->object, (ModifierData *)bmd, "Cannot execute, non-manifold inputs");
+    }
+    else if (error == blender::geometry::boolean::BooleanError::UnknownError) {
+      BKE_modifier_set_error(ctx->object, (ModifierData *)(bmd), "Cannot execute, unknown error");
+    }
+    return result;
+  }
   if (material_mode == eBooleanModifierMaterialMode_Transfer) {
     MEM_SAFE_FREE(result->mat);
     result->mat = MEM_malloc_arrayN<Material *>(size_t(materials.size()), __func__);
@@ -514,8 +530,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
 #ifdef WITH_GMP
-  if (bmd->solver == eBooleanModifierSolver_Mesh_Arr) {
-    return exact_boolean_mesh(bmd, ctx, mesh);
+  if (bmd->solver != eBooleanModifierSolver_Float) {
+    return non_float_boolean_mesh(bmd, ctx, mesh);
   }
 #endif
 
@@ -633,6 +649,7 @@ static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Mesh_Arr;
+  const bool use_manifold = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Manifold;
 
   uiLayoutSetPropSep(layout, true);
 
@@ -644,6 +661,9 @@ static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
       uiItemR(col, ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     uiItemR(col, ptr, "use_hole_tolerant", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  }
+  else if (use_manifold) {
+    /* No options as of yet. */
   }
   else {
     uiItemR(col, ptr, "double_threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);

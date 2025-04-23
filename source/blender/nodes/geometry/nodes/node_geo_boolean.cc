@@ -44,20 +44,24 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
 
-  b.add_input<decl::Bool>("Self Intersection");
-  b.add_input<decl::Bool>("Hole Tolerant");
+  auto make_mesh_arr = [](bNode &node) {
+    node.custom2 = int16_t(geometry::boolean::Solver::MeshArr);
+  };
+  auto &self_intersect =
+      b.add_input<decl::Bool>("Self Intersection").make_available(make_mesh_arr);
+  auto &hole_tolerant = b.add_input<decl::Bool>("Hole Tolerant").make_available(make_mesh_arr);
   b.add_output<decl::Geometry>("Mesh").propagate_all();
-  auto &output_edges = b.add_output<decl::Bool>("Intersecting Edges")
-                           .field_on_all()
-                           .make_available([](bNode &node) {
-                             node.custom2 = int16_t(geometry::boolean::Solver::MeshArr);
-                           });
+  auto &output_edges =
+      b.add_output<decl::Bool>("Intersecting Edges").field_on_all().make_available(make_mesh_arr);
 
   if (node != nullptr) {
     const auto operation = geometry::boolean::Operation(node->custom1);
     const auto solver = geometry::boolean::Solver(node->custom2);
 
-    output_edges.available(solver == geometry::boolean::Solver::MeshArr);
+    output_edges.available(solver == geometry::boolean::Solver::MeshArr ||
+                           solver == geometry::boolean::Solver::Manifold);
+    self_intersect.available(solver == geometry::boolean::Solver::MeshArr);
+    hole_tolerant.available(solver == geometry::boolean::Solver::MeshArr);
 
     switch (operation) {
       case geometry::boolean::Operation::Intersect:
@@ -86,7 +90,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom2 = int16_t(geometry::boolean::Solver::Float);
 }
 
-#ifdef WITH_GMP
 static Array<short> calc_mesh_material_map(const Mesh &mesh, VectorSet<Material *> &all_materials)
 {
   Array<short> map(mesh.totcol);
@@ -96,15 +99,17 @@ static Array<short> calc_mesh_material_map(const Mesh &mesh, VectorSet<Material 
   }
   return map;
 }
-#endif /* WITH_GMP */
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-#ifdef WITH_GMP
   geometry::boolean::Operation operation = geometry::boolean::Operation(params.node().custom1);
   geometry::boolean::Solver solver = geometry::boolean::Solver(params.node().custom2);
-  const bool use_self = params.get_input<bool>("Self Intersection");
-  const bool hole_tolerant = params.get_input<bool>("Hole Tolerant");
+  bool use_self = false;
+  bool hole_tolerant = false;
+  if (solver == geometry::boolean::Solver::MeshArr) {
+    use_self = params.get_input<bool>("Self Intersection");
+    hole_tolerant = params.get_input<bool>("Hole Tolerant");
+  }
 
   Vector<const Mesh *> meshes;
   Vector<float4x4> transforms;
@@ -173,7 +178,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   AttributeOutputs attribute_outputs;
-  if (solver == geometry::boolean::Solver::MeshArr) {
+  if (ELEM(solver, geometry::boolean::Solver::MeshArr, geometry::boolean::Solver::Manifold)) {
     attribute_outputs.intersecting_edges_id = params.get_output_anonymous_attribute_id_if_needed(
         "Intersecting Edges");
   }
@@ -184,6 +189,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   op_params.no_self_intersections = !use_self;
   op_params.watertight = !hole_tolerant;
   op_params.no_nested_components = true; /* TODO: make this configurable. */
+  geometry::boolean::BooleanError error = geometry::boolean::BooleanError::NoError;
   Mesh *result = geometry::boolean::mesh_boolean(
       meshes,
       transforms,
@@ -191,7 +197,22 @@ static void node_geo_exec(GeoNodeExecParams params)
       material_remaps,
       op_params,
       solver,
-      attribute_outputs.intersecting_edges_id ? &intersecting_edges : nullptr);
+      attribute_outputs.intersecting_edges_id ? &intersecting_edges : nullptr,
+      &error);
+  if (error == geometry::boolean::BooleanError::NonManifold) {
+    params.error_message_add(NodeWarningType::Error, TIP_("An input was not manifold"));
+  }
+  else if (error == geometry::boolean::BooleanError::ResultTooBig) {
+    params.error_message_add(NodeWarningType::Error,
+                             TIP_("Boolean result is too big for solver to handle"));
+  }
+  else if (error == geometry::boolean::BooleanError::SolverNotAvailable) {
+    params.error_message_add(NodeWarningType::Error,
+                             TIP_("Boolean solver not available (compiled without it)"));
+  }
+  else if (error == geometry::boolean::BooleanError::UnknownError) {
+    params.error_message_add(NodeWarningType::Error, TIP_("Unknown Boolean error"));
+  }
   if (!result) {
     params.set_default_remaining_outputs();
     return;
@@ -227,11 +248,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   result_geometry.name = set_a.name;
 
   params.set_output("Mesh", std::move(result_geometry));
-#else
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without GMP"));
-  params.set_default_remaining_outputs();
-#endif
 }
 
 static void node_rna(StructRNA *srna)
@@ -265,6 +281,11 @@ static void node_rna(StructRNA *srna)
        0,
        "Float",
        "Simple solver for the best performance, without support for overlapping geometry"},
+      {int(geometry::boolean::Solver::Manifold),
+       "MANIFOLD",
+       0,
+       "Manifold",
+       "Very fast and robust solver (best with manifold input)"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

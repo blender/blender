@@ -374,6 +374,10 @@ endif()
 if(WITH_HARU)
   find_package(Haru REQUIRED)
 endif()
+ 
+if(WITH_MANIFOLD)
+  find_package(manifold REQUIRED)
+endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   find_package(openpgl QUIET)

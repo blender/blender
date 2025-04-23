@@ -20,14 +20,24 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_task.hh"
+#include "BLI_threads.h"
 #include "BLI_virtual_array.hh"
 
 #include "DNA_node_types.h"
 
 #include "GEO_mesh_boolean.hh"
+#include "mesh_boolean_manifold.hh"
 
 #include "bmesh.hh"
 #include "tools/bmesh_intersect.hh"
+
+// #define BENCHMARK_TIME
+#ifdef BENCHMARK_TIME
+#  include "BLI_timeit.hh"
+#  include <filesystem>
+#  include <fstream>
+#  define BENCHMARK_FILE "/tmp/blender_benchmark.csv"
+#endif
 
 namespace blender::geometry::boolean {
 
@@ -1141,6 +1151,42 @@ static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
   return nullptr;
 }
 
+#ifdef BENCHMARK_TIME
+/* Append benchmark time and other information for boolean operations to a /tmp file. */
+static void write_boolean_benchmark_time(
+    StringRef solver, StringRef op, const Mesh *mesh1, const Mesh *mesh2, float time_ms)
+{
+  StringRef mesh1_name = mesh1 ? mesh1->id.name + 2 : "";
+  StringRef mesh2_name = mesh2 ? mesh2->id.name + 2 : "";
+  const int num_faces_1 = mesh1 ? mesh1->faces_num : 0;
+  const int num_faces_2 = mesh2 ? mesh2->faces_num : 0;
+  const int num_tris_1 = mesh1 ? mesh1->corner_tris().size() : 0;
+  const int num_tris_2 = mesh2 ? mesh2->corner_tris().size() : 0;
+  const int threads = BLI_system_num_threads_override_get();
+
+  /* Add header line if file doesn't exsit yet. */
+  bool first_time = false;
+  if (!std::filesystem::exists(BENCHMARK_FILE)) {
+    first_time = true;
+  }
+  /* Open the benchmark file in append mode. */
+  std::ofstream outfile(BENCHMARK_FILE, std::ios_base::app);
+
+  if (outfile.is_open()) {
+    if (first_time) {
+      outfile << "solver,op,mesh1,mesh2,face1,face2,tris1,tris2,time_in_ms,threads" << std::endl;
+    }
+    outfile << solver << "," << op << ",\"" << mesh1_name << "\",\"" << mesh2_name << "\","
+            << num_faces_1 << "," << num_faces_2 << "," << num_tris_1 << "," << num_tris_2 << ","
+            << time_ms << "," << threads << std::endl;
+    outfile.close();
+  }
+  else {
+    std::cerr << "Unable to open benchmark file: " << BENCHMARK_FILE << std::endl;
+  }
+}
+#endif
+
 /** \} */
 
 Mesh *mesh_boolean(Span<const Mesh *> meshes,
@@ -1149,34 +1195,70 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
                    Span<Array<short>> material_remaps,
                    BooleanOpParameters op_params,
                    Solver solver,
-                   Vector<int> *r_intersecting_edges)
+                   Vector<int> *r_intersecting_edges,
+                   BooleanError *r_error)
 {
-
+  Mesh *ans = nullptr;
+#ifdef BENCHMARK_TIME
+  const timeit::TimePoint start_time = timeit::Clock::now();
+#endif
   switch (solver) {
     case Solver::Float:
-      return mesh_boolean_float(meshes,
-                                transforms,
-                                target_transform,
-                                material_remaps,
-                                operation_to_float_mode(op_params.boolean_mode),
-                                r_intersecting_edges);
+      *r_error = BooleanError::NoError;
+      ans = mesh_boolean_float(meshes,
+                               transforms,
+                               target_transform,
+                               material_remaps,
+                               operation_to_float_mode(op_params.boolean_mode),
+                               r_intersecting_edges);
+      break;
     case Solver::MeshArr:
 #ifdef WITH_GMP
-      return mesh_boolean_mesh_arr(meshes,
-                                   transforms,
-                                   target_transform,
-                                   material_remaps,
-                                   !op_params.no_self_intersections,
-                                   !op_params.watertight,
-                                   operation_to_mesh_arr_mode(op_params.boolean_mode),
-                                   r_intersecting_edges);
+      *r_error = BooleanError::NoError;
+      ans = mesh_boolean_mesh_arr(meshes,
+                                  transforms,
+                                  target_transform,
+                                  material_remaps,
+                                  !op_params.no_self_intersections,
+                                  !op_params.watertight,
+                                  operation_to_mesh_arr_mode(op_params.boolean_mode),
+                                  r_intersecting_edges);
 #else
-      return nullptr;
+      *r_error = BooleanError::SolverNotAvailable;
 #endif
+      break;
+    case Solver::Manifold:
+#ifdef WITH_MANIFOLD
+      ans = mesh_boolean_manifold(meshes,
+                                  transforms,
+                                  target_transform,
+                                  material_remaps,
+                                  op_params,
+                                  r_intersecting_edges,
+                                  r_error);
+#else
+      *r_error = BooleanError::SolverNotAvailable;
+#endif
+      break;
     default:
       BLI_assert_unreachable();
   }
-  return nullptr;
+#ifdef BENCHMARK_TIME
+  const timeit::TimePoint end_time = timeit::Clock::now();
+  const timeit::Nanoseconds duration = end_time - start_time;
+  float time_ms = duration.count() / 1.0e6f;
+  Operation op = op_params.boolean_mode;
+  const char *opstr = op == Operation::Intersect ?
+                          "intersect" :
+                          (op == Operation::Union ? "union" : "difference");
+  const Mesh *mesh1 = meshes.size() > 0 ? meshes[0] : nullptr;
+  const Mesh *mesh2 = meshes.size() > 0 ? meshes[1] : nullptr;
+  const char *solverstr = solver == Solver::Float   ? "float" :
+                          solver == Solver::MeshArr ? "mesharr" :
+                                                      "manifold";
+  write_boolean_benchmark_time(solverstr, opstr, mesh1, mesh2, time_ms);
+#endif
+  return ans;
 }
 
 }  // namespace blender::geometry::boolean

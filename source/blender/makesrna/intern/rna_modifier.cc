@@ -3531,6 +3531,11 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
        0,
        "Exact",
        "Advanced solver for the best result"},
+      {eBooleanModifierSolver_Manifold,
+       "MANIFOLD",
+       0,
+       "Manifold",
+       "Fast solver that works only on manifold meshes but gives better results"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

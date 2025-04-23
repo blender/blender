@@ -881,6 +881,23 @@ if(WITH_OPENIMAGEDENOISE)
   set(OPENIMAGEDENOISE_DEFINITIONS)
 endif()
 
+if(WITH_MANIFOLD)
+  set(MANIFOLD ${LIBDIR}/manifold)
+  if(EXISTS ${MANIFOLD})
+    set(MANIFOLD_INCLUDE_DIR ${MANIFOLD}/include)
+    set(MANIFOLD_INCLUDE_DIRS ${MANIFOLD_INCLUDE_DIR})
+    set(MANIFOLD_LIBDIR ${MANIFOLD}/lib)
+    set(MANIFOLD_LIBRARIES
+      optimized ${MANIFOLD_LIBDIR}/manifold.lib
+      debug ${MANIFOLD_LIBDIR}/manifold_d.lib
+    )
+    set(MANIFOLD_FOUND 1)
+  else()
+    set(WITH_MANIFOLD OFF)
+    message(STATUS "Manifold not found, disabling WITH_MANIFOLD")
+  endif()
+endif()
+
 if(WITH_ALEMBIC)
   set(ALEMBIC ${LIBDIR}/alembic)
   set(ALEMBIC_INCLUDE_DIR ${ALEMBIC}/include)
