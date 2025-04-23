@@ -70,8 +70,12 @@ class Bounds : Overlay {
     const bool has_bounds =
         !ELEM(ob->type, OB_LAMP, OB_CAMERA, OB_EMPTY, OB_SPEAKER, OB_LIGHTPROBE) &&
         (ob->type != OB_MBALL || BKE_mball_is_basis(ob));
+    const bool show_extras = !from_dupli && state.show_extras();
+
+    /* Ignore `show_extras` when the objects draw-type is already bound-box,
+     * otherwise the object would not draw at all. */
     const bool draw_bounds = has_bounds && ((ob->dt == OB_BOUNDBOX) ||
-                                            ((ob->dtx & OB_DRAWBOUNDOX) && !from_dupli));
+                                            ((ob->dtx & OB_DRAWBOUNDOX) && show_extras));
     const float4 color = res.object_wire_color(ob_ref, state);
 
     auto add_bounds_ex = [&](const float3 center, const float3 size, const char bound_type) {
@@ -146,7 +150,7 @@ class Bounds : Overlay {
     }
 
     /* Rigid Body Shape */
-    if (state.show_extras() && !from_dupli && ob->rigidbody_object != nullptr) {
+    if (show_extras && ob->rigidbody_object != nullptr) {
       switch (ob->rigidbody_object->shape) {
         case RB_SHAPE_BOX:
           add_bounds(true, OB_BOUND_BOX);
@@ -167,7 +171,7 @@ class Bounds : Overlay {
     }
 
     /* Texture Space */
-    if (!from_dupli && ob->data && (ob->dtx & OB_TEXSPACE)) {
+    if (show_extras && (ob->data != nullptr) && (ob->dtx & OB_TEXSPACE)) {
       switch (GS(static_cast<ID *>(ob->data)->name)) {
         case ID_ME: {
           Mesh &me = DRW_object_get_data_for_drawing<Mesh>(*ob);
