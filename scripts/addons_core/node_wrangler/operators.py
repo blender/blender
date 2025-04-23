@@ -2176,60 +2176,6 @@ class NWAddSequence(Operator, NWBase, ImportHelper):
         return {'FINISHED'}
 
 
-class NWAddMultipleImages(Operator, NWBase, ImportHelper):
-    """Add multiple images at once"""
-    bl_idname = 'node.nw_add_multiple_images'
-    bl_label = 'Open Selected Images'
-    bl_options = {'REGISTER', 'UNDO'}
-    directory: StringProperty(
-        subtype="DIR_PATH"
-    )
-    files: CollectionProperty(
-        type=bpy.types.OperatorFileListElement,
-        options={'HIDDEN', 'SKIP_SAVE'}
-    )
-
-    @classmethod
-    def poll(cls, context):
-        return (nw_check(cls, context)
-                and nw_check_space_type(cls, context, {'ShaderNodeTree', 'CompositorNodeTree'}))
-
-    def execute(self, context):
-        nodes, links = get_nodes_links(context)
-
-        xloc, yloc = context.region.view2d.region_to_view(context.area.width / 2, context.area.height / 2)
-
-        if context.space_data.node_tree.type == 'SHADER':
-            node_type = "ShaderNodeTexImage"
-        elif context.space_data.node_tree.type == 'COMPOSITING':
-            node_type = "CompositorNodeImage"
-
-        new_nodes = []
-        for f in self.files:
-            fname = f.name
-
-            node = nodes.new(node_type)
-            new_nodes.append(node)
-            node.label = fname
-            node.hide = True
-            node.location.x = xloc
-            node.location.y = yloc
-            yloc -= 40
-
-            img = bpy.data.images.load(self.directory + fname)
-            node.image = img
-
-        # shift new nodes up to center of tree
-        list_size = new_nodes[0].location.y - new_nodes[-1].location.y
-        for node in nodes:
-            if node in new_nodes:
-                node.select = True
-                node.location.y += (list_size / 2)
-            else:
-                node.select = False
-        return {'FINISHED'}
-
-
 class NWSaveViewer(bpy.types.Operator, ExportHelper):
     """Save the current viewer node to an image file"""
     bl_idname = "node.nw_save_viewer"
@@ -2417,7 +2363,6 @@ classes = (
     NWMakeLink,
     NWCallInputsMenu,
     NWAddSequence,
-    NWAddMultipleImages,
     NWSaveViewer,
     NWResetNodes,
 )
