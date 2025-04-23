@@ -58,7 +58,6 @@ bool GPU_vulkan_render_pass_workaround();
 bool GPU_geometry_shader_support();
 bool GPU_shader_draw_parameters_support();
 bool GPU_hdr_support();
-bool GPU_texture_view_support();
 bool GPU_stencil_export_support();
 
 bool GPU_mem_stats_supported();

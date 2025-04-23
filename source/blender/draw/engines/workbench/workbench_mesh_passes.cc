@@ -189,7 +189,7 @@ void OpaquePass::draw(Manager &manager,
 
     shadow_pass->draw(
         manager, view, resources, **&shadow_depth_stencil_tx, !gbuffer_in_front_ps_.is_empty());
-    deferred_ps_stencil_tx = resources.stencil_view.extract(manager, shadow_depth_stencil_tx);
+    deferred_ps_stencil_tx = shadow_depth_stencil_tx.stencil_view();
   }
   else {
     shadow_depth_stencil_tx.free();

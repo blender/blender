@@ -42,7 +42,6 @@ set(SRC_GLSL_FRAG
   workbench_effect_outline_frag.glsl
   workbench_effect_smaa_frag.glsl
   workbench_effect_taa_frag.glsl
-  workbench_extract_stencil.glsl
   workbench_merge_depth_frag.glsl
   workbench_overlay_depth_frag.glsl
   workbench_prepass_frag.glsl

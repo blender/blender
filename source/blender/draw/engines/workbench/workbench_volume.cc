@@ -191,7 +191,7 @@ void VolumePass::draw(Manager &manager, View &view, SceneResources &resources)
     return;
   }
 
-  stencil_tx_ = resources.stencil_view.extract(manager, resources.depth_tx);
+  stencil_tx_ = resources.depth_tx.ptr()->stencil_view();
 
   fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
   fb_.bind();
