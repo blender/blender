@@ -36,7 +36,8 @@ enum class BooleanError {
   NoError = 0,
   NonManifold = 1,
   ResultTooBig = 2,
-  UnknownError = 3,
+  SolverNotAvailable = 3,
+  UnknownError = 4,
 };
 
 /**

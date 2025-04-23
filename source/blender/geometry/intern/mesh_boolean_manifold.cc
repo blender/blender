@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef WITH_MANIFOLD
 #include <algorithm>
 #include <iostream>
 
@@ -1710,3 +1711,4 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
 }
 
 }  // namespace blender::geometry::boolean
+#endif // WITH_MANIFOLD

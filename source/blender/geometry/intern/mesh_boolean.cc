@@ -1224,7 +1224,7 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
                                   operation_to_mesh_arr_mode(op_params.boolean_mode),
                                   r_intersecting_edges);
 #else
-      *r_error = BooleanError::UnknownError;
+      *r_error = BooleanError::SolverNotAvailable;
 #endif
       break;
     case Solver::Manifold:
@@ -1237,7 +1237,7 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
                                   r_intersecting_edges,
                                   r_error);
 #else
-      *r_error = BooleanError::UnknownError;
+      *r_error = BooleanError::SolverNotAvailable;
 #endif
       break;
     default:

@@ -90,7 +90,6 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom2 = int16_t(geometry::boolean::Solver::Float);
 }
 
-#ifdef WITH_GMP
 static Array<short> calc_mesh_material_map(const Mesh &mesh, VectorSet<Material *> &all_materials)
 {
   Array<short> map(mesh.totcol);
@@ -100,11 +99,9 @@ static Array<short> calc_mesh_material_map(const Mesh &mesh, VectorSet<Material 
   }
   return map;
 }
-#endif /* WITH_GMP */
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-#ifdef WITH_GMP
   geometry::boolean::Operation operation = geometry::boolean::Operation(params.node().custom1);
   geometry::boolean::Solver solver = geometry::boolean::Solver(params.node().custom2);
   bool use_self = false;
@@ -209,6 +206,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Error,
                              TIP_("Boolean result is too big for solver to handle"));
   }
+  else if (error == geometry::boolean::BooleanError::SolverNotAvailable) {
+    params.error_message_add(NodeWarningType::Error,
+                             TIP_("Boolean solver not available (compiled without it)"));
+  }
   else if (error == geometry::boolean::BooleanError::UnknownError) {
     params.error_message_add(NodeWarningType::Error, TIP_("Unknown Boolean error"));
   }
@@ -247,11 +248,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   result_geometry.name = set_a.name;
 
   params.set_output("Mesh", std::move(result_geometry));
-#else
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without GMP"));
-  params.set_default_remaining_outputs();
-#endif
 }
 
 static void node_rna(StructRNA *srna)

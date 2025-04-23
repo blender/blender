@@ -145,6 +145,10 @@ if(WITH_GMP)
   )
 endif()
 
+if(WITH_MANIFOLD)
+  add_definitions(-DWITH_MANIFOLD)
+endif()
+
 blender_add_lib(bf_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::geometry ALIAS bf_geometry)
 
