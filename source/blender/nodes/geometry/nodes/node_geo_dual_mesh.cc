@@ -332,7 +332,7 @@ static bool sort_vertex_faces(const Span<int2> edges,
   }
 
   /* For each face store the two corners whose edge contains the vertex. */
-  Array<std::pair<int, int>> face_vertex_corners(connected_faces.size());
+  Array<std::pair<int, int>, 16> face_vertex_corners(connected_faces.size());
   for (const int i : connected_faces.index_range()) {
     bool first_edge_done = false;
     for (const int corner : faces[connected_faces[i]]) {
