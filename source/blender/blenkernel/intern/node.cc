@@ -886,6 +886,21 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       NodeKeyingScreenData *storage = static_cast<NodeKeyingScreenData *>(node->storage);
       write_input_to_property_float("Smoothness", storage->smoothness);
     }
+
+    if (node->type_legacy == CMP_NODE_KEYING) {
+      NodeKeyingData *storage = static_cast<NodeKeyingData *>(node->storage);
+      write_input_to_property_int("Preprocess Blur Size", storage->blur_pre);
+      write_input_to_property_float("Key Balance", storage->screen_balance);
+      write_input_to_property_int("Edge Search Size", storage->edge_kernel_radius);
+      write_input_to_property_float("Edge Tolerance", storage->edge_kernel_tolerance);
+      write_input_to_property_float("Black Level", storage->clip_black);
+      write_input_to_property_float("White Level", storage->clip_white);
+      write_input_to_property_int("Postprocess Blur Size", storage->blur_post);
+      write_input_to_property_int("Postprocess Dilate Size", storage->dilate_distance);
+      write_input_to_property_int("Postprocess Feather Size", storage->feather_distance);
+      write_input_to_property_float("Despill Strength", storage->despill_factor);
+      write_input_to_property_float("Despill Balance", storage->despill_balance);
+    }
   }
 }
 

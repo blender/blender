@@ -32,50 +32,136 @@ NODE_STORAGE_FUNCS(NodeKeyingData)
 
 static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_input<decl::Color>("Key Color")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(1);
-  b.add_input<decl::Float>("Garbage Matte").hide_value().compositor_domain_priority(2);
-  b.add_input<decl::Float>("Core Matte").hide_value().compositor_domain_priority(3);
+  b.use_custom_socket_order();
+
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Matte");
   b.add_output<decl::Float>("Edges");
+
+  b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Color>("Key Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+
+  PanelDeclarationBuilder &preprocess_panel = b.add_panel("Preprocess").default_closed(true);
+  preprocess_panel.add_input<decl::Int>("Blur Size", "Preprocess Blur Size")
+      .default_value(0)
+      .min(0)
+      .description(
+          "Blur the color of the input image in YCC color space before keying while leaving the "
+          "luminance intact using a Gaussian blur of the given size")
+      .compositor_expects_single_value();
+
+  PanelDeclarationBuilder &key_panel = b.add_panel("Key").default_closed(true);
+  key_panel.add_input<decl::Float>("Balance", "Key Balance")
+      .default_value(0.5f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "Balances between the two non primary color channels that the primary channel compares "
+          "against. 0 means the latter channel of the two is used, while 1 means the former of "
+          "the two is used")
+      .compositor_expects_single_value();
+
+  PanelDeclarationBuilder &tweak_panel = b.add_panel("Tweak").default_closed(true);
+  tweak_panel.add_input<decl::Float>("Black Level")
+      .default_value(0.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "The matte gets remapped such matte values lower than the black level become black. "
+          "Pixels at the identified edges are excluded from the remapping to preserve details")
+      .compositor_expects_single_value();
+  tweak_panel.add_input<decl::Float>("White Level")
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "The matte gets remapped such matte values higher than the white level become white. "
+          "Pixels at the identified edges are excluded from the remapping to preserve details")
+      .compositor_expects_single_value();
+
+  PanelDeclarationBuilder &edges_panel = tweak_panel.add_panel("Edges").default_closed(true);
+  edges_panel.add_input<decl::Int>("Size", "Edge Search Size")
+      .default_value(3)
+      .min(0)
+      .description(
+          "Size of the search window used to identify edges. Higher search size corresponds to "
+          "less noisy and higher quality edges, not necessarily bigger edges. Edge tolerance can "
+          "be used to expend the size of the edges")
+      .compositor_expects_single_value();
+  edges_panel.add_input<decl::Float>("Tolerance", "Edge Tolerance")
+      .default_value(0.1f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "Pixels are considered part of the edges if more than 10% of the neighbouring pixels "
+          "have matte values that differ from the pixel's matte value by this tolerance")
+      .compositor_expects_single_value();
+
+  PanelDeclarationBuilder &mask_panel = b.add_panel("Mask").default_closed(true);
+  mask_panel.add_input<decl::Float>("Garbage Matte")
+      .default_value(0.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Areas in the garbage matte mask are excluded from the matte");
+  mask_panel.add_input<decl::Float>("Core Matte")
+      .default_value(0.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Areas in the core matte mask are included in the matte");
+
+  PanelDeclarationBuilder &postprocess_panel = b.add_panel("Postprocess").default_closed(true);
+  postprocess_panel.add_input<decl::Int>("Blur Size", "Postprocess Blur Size")
+      .default_value(0)
+      .min(0)
+      .description("Blur the computed matte using a Gaussian blur of the given size")
+      .compositor_expects_single_value();
+  postprocess_panel.add_input<decl::Int>("Dilate Size", "Postprocess Dilate Size")
+      .default_value(0)
+      .description(
+          "Dilate or erode the computed matte using a circular structuring element of the "
+          "specified size. Negative sizes means erosion while positive means dilation")
+      .compositor_expects_single_value();
+  postprocess_panel.add_input<decl::Int>("Feather Size", "Postprocess Feather Size")
+      .default_value(0)
+      .description(
+          "Dilate or erode the computed matte using an inverse distance operation evaluated at "
+          "the given falloff of the specified size. Negative sizes means erosion while positive "
+          "means dilation")
+      .compositor_expects_single_value();
+  postprocess_panel.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
+    uiItemR(layout, ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  });
+
+  PanelDeclarationBuilder &despill_panel = b.add_panel("Despill").default_closed(true);
+  despill_panel.add_input<decl::Float>("Strength", "Despill Strength")
+      .default_value(1.0f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Specifies the strength of the despill")
+      .compositor_expects_single_value();
+  despill_panel.add_input<decl::Float>("Balance", "Despill Balance")
+      .default_value(0.5f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "Defines the channel used for despill limiting. Balances between the two non primary "
+          "color channels that the primary channel compares against. 0 means the latter channel "
+          "of the two is used, while 1 means the former of the two is used")
+      .compositor_expects_single_value();
 }
 
 static void node_composit_init_keying(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeKeyingData *data = MEM_callocN<NodeKeyingData>(__func__);
-
-  data->screen_balance = 0.5f;
-  data->despill_balance = 0.5f;
-  data->despill_factor = 1.0f;
-  data->edge_kernel_radius = 3;
-  data->edge_kernel_tolerance = 0.1f;
-  data->clip_black = 0.0f;
-  data->clip_white = 1.0f;
   node->storage = data;
-}
-
-static void node_composit_buts_keying(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  // bNode *node = (bNode*)ptr->data; /* UNUSED */
-
-  uiItemR(layout, ptr, "blur_pre", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "screen_balance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "despill_factor", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "despill_balance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "edge_kernel_radius", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(
-      layout, ptr, "edge_kernel_tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "clip_black", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "clip_white", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "dilate_distance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "feather_distance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "blur_post", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -143,7 +229,7 @@ class KeyingOperation : public NodeOperation {
     /* No blur needed, return the original matte. We also increment the reference count of the
      * input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
-    const float blur_size = node_storage(bnode()).blur_pre;
+    const float blur_size = this->get_preprocess_blur_size();
     if (blur_size == 0.0f) {
       Result output = get_input("Image");
       output.increment_reference_count();
@@ -161,6 +247,11 @@ class KeyingOperation : public NodeOperation {
     blurred_chroma.release();
 
     return blurred_input;
+  }
+
+  int get_preprocess_blur_size()
+  {
+    return math::max(0, this->get_input("Preprocess Blur Size").get_single_value_default(0));
   }
 
   Result extract_input_chroma()
@@ -301,7 +392,7 @@ class KeyingOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_keying_compute_matte");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "key_balance", node_storage(bnode()).screen_balance);
+    GPU_shader_uniform_1f(shader, "key_balance", this->get_key_balance());
 
     input.bind_as_texture(shader, "input_tx");
 
@@ -324,7 +415,7 @@ class KeyingOperation : public NodeOperation {
 
   Result compute_matte_cpu(Result &input)
   {
-    const float key_balance = node_storage(bnode()).screen_balance;
+    const float key_balance = this->get_key_balance();
 
     Result &key = get_input("Key Color");
 
@@ -380,21 +471,25 @@ class KeyingOperation : public NodeOperation {
     return output;
   }
 
+  float get_key_balance()
+  {
+    return math::clamp(this->get_input("Key Balance").get_single_value_default(0.5f), 0.0f, 1.0f);
+  }
+
   Result compute_tweaked_matte(Result &input_matte)
   {
-    const float black_level = node_storage(bnode()).clip_black;
-    const float white_level = node_storage(bnode()).clip_white;
-
-    const bool core_matte_exists = node().input_by_identifier("Core Matte")->is_logically_linked();
-    const bool garbage_matte_exists =
-        node().input_by_identifier("Garbage Matte")->is_logically_linked();
+    const float black_level = this->get_black_level();
+    const float white_level = this->get_black_level();
+    const Result &garbage_matte = this->get_input("Garbage Matte");
+    const Result &core_matte = this->get_input("Core Matte");
 
     /* The edges output is not needed and the matte is not tweaked, so return the original matte.
      * We also increment the reference count of the input because the caller will release it after
      * the call, and we want to extend its life since it is now returned as the output. */
     Result &output_edges = get_result("Edges");
-    if (!output_edges.should_compute() && (black_level == 0.0f && white_level == 1.0f) &&
-        !core_matte_exists && !garbage_matte_exists)
+    if (!output_edges.should_compute() && black_level == 0.0f && white_level == 1.0f &&
+        core_matte.get_single_value_default(1.0f) == 0.0f &&
+        garbage_matte.get_single_value_default(1.0f) == 0.0f)
     {
       Result output_matte = input_matte;
       input_matte.increment_reference_count();
@@ -412,16 +507,10 @@ class KeyingOperation : public NodeOperation {
     GPUShader *shader = context().get_shader(this->get_tweak_matte_shader_name());
     GPU_shader_bind(shader);
 
-    const bool core_matte_exists = node().input_by_identifier("Core Matte")->is_logically_linked();
-    const bool garbage_matte_exists =
-        node().input_by_identifier("Garbage Matte")->is_logically_linked();
-
-    GPU_shader_uniform_1b(shader, "apply_core_matte", core_matte_exists);
-    GPU_shader_uniform_1b(shader, "apply_garbage_matte", garbage_matte_exists);
-    GPU_shader_uniform_1i(shader, "edge_search_radius", node_storage(bnode()).edge_kernel_radius);
-    GPU_shader_uniform_1f(shader, "edge_tolerance", node_storage(bnode()).edge_kernel_tolerance);
-    GPU_shader_uniform_1f(shader, "black_level", node_storage(bnode()).clip_black);
-    GPU_shader_uniform_1f(shader, "white_level", node_storage(bnode()).clip_white);
+    GPU_shader_uniform_1i(shader, "edge_search_radius", this->get_edge_search_size());
+    GPU_shader_uniform_1f(shader, "edge_tolerance", this->get_edge_tolerance());
+    GPU_shader_uniform_1f(shader, "black_level", this->get_black_level());
+    GPU_shader_uniform_1f(shader, "white_level", this->get_white_level());
 
     input_matte.bind_as_texture(shader, "input_matte_tx");
 
@@ -464,15 +553,10 @@ class KeyingOperation : public NodeOperation {
 
   Result compute_tweaked_matte_cpu(Result &input_matte)
   {
-    const bool apply_core_matte =
-        this->node().input_by_identifier("Core Matte")->is_logically_linked();
-    const bool apply_garbage_matte =
-        this->node().input_by_identifier("Garbage Matte")->is_logically_linked();
-
-    const int edge_search_radius = node_storage(bnode()).edge_kernel_radius;
-    const float edge_tolerance = node_storage(bnode()).edge_kernel_tolerance;
-    const float black_level = node_storage(bnode()).clip_black;
-    const float white_level = node_storage(bnode()).clip_white;
+    const int edge_search_radius = this->get_edge_search_size();
+    const float edge_tolerance = this->get_edge_tolerance();
+    const float black_level = this->get_black_level();
+    const float white_level = this->get_white_level();
 
     Result &garbage_matte_image = get_input("Garbage Matte");
     Result &core_matte_image = get_input("Core Matte");
@@ -522,16 +606,12 @@ class KeyingOperation : public NodeOperation {
 
       /* Exclude unwanted areas using the provided garbage matte, 1 means unwanted, so invert the
        * garbage matte and take the minimum. */
-      if (apply_garbage_matte) {
-        float garbage_matte = garbage_matte_image.load_pixel<float>(texel);
-        tweaked_matte = math::min(tweaked_matte, 1.0f - garbage_matte);
-      }
+      float garbage_matte = garbage_matte_image.load_pixel<float, true>(texel);
+      tweaked_matte = math::min(tweaked_matte, 1.0f - garbage_matte);
 
       /* Include wanted areas that were incorrectly keyed using the provided core matte. */
-      if (apply_core_matte) {
-        float core_matte = core_matte_image.load_pixel<float>(texel);
-        tweaked_matte = math::max(tweaked_matte, core_matte);
-      }
+      float core_matte = core_matte_image.load_pixel<float, true>(texel);
+      tweaked_matte = math::max(tweaked_matte, core_matte);
 
       output_matte.store_pixel(texel, tweaked_matte);
       if (compute_edges) {
@@ -542,9 +622,30 @@ class KeyingOperation : public NodeOperation {
     return output_matte;
   }
 
+  int get_edge_search_size()
+  {
+    return math::max(0, this->get_input("Edge Search Size").get_single_value_default(3));
+  }
+
+  float get_edge_tolerance()
+  {
+    return math::clamp(
+        this->get_input("Edge Tolerance").get_single_value_default(0.1f), 0.0f, 1.0f);
+  }
+
+  float get_black_level()
+  {
+    return math::clamp(this->get_input("Black Level").get_single_value_default(0.0f), 0.0f, 1.0f);
+  }
+
+  float get_white_level()
+  {
+    return math::clamp(this->get_input("White Level").get_single_value_default(1.0f), 0.0f, 1.0f);
+  }
+
   Result compute_blurred_matte(Result &input_matte)
   {
-    const float blur_size = node_storage(bnode()).blur_post;
+    const float blur_size = this->get_postprocess_blur_size();
     /* No blur needed, return the original matte. We also increment the reference count of the
      * input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
@@ -561,9 +662,14 @@ class KeyingOperation : public NodeOperation {
     return blurred_matte;
   }
 
+  int get_postprocess_blur_size()
+  {
+    return math::max(0, this->get_input("Postprocess Blur Size").get_single_value_default(0));
+  }
+
   Result compute_morphed_matte(Result &input_matte)
   {
-    const int distance = node_storage(bnode()).dilate_distance;
+    const int distance = this->get_postprocess_dilate_size();
     /* No morphology needed, return the original matte. We also increment the reference count of
      * the input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
@@ -579,9 +685,14 @@ class KeyingOperation : public NodeOperation {
     return morphed_matte;
   }
 
+  int get_postprocess_dilate_size()
+  {
+    return math::max(0, this->get_input("Postprocess Dilate Size").get_single_value_default(0));
+  }
+
   Result compute_feathered_matte(Result &input_matte)
   {
-    const int distance = node_storage(bnode()).feather_distance;
+    const int distance = this->get_postprocess_feather_size();
     /* No feathering needed, return the original matte. We also increment the reference count of
      * the input because the caller will release it after the call, and we want to extend its life
      * since it is now returned as the output. */
@@ -596,6 +707,11 @@ class KeyingOperation : public NodeOperation {
         context(), input_matte, feathered_matte, distance, node_storage(bnode()).feather_falloff);
 
     return feathered_matte;
+  }
+
+  int get_postprocess_feather_size()
+  {
+    return math::max(0, this->get_input("Postprocess Feather Size").get_single_value_default(0));
   }
 
   void compute_image(Result &matte)
@@ -613,8 +729,8 @@ class KeyingOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_keying_compute_image");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "despill_factor", node_storage(bnode()).despill_factor);
-    GPU_shader_uniform_1f(shader, "despill_balance", node_storage(bnode()).despill_balance);
+    GPU_shader_uniform_1f(shader, "despill_factor", this->get_despill_strength());
+    GPU_shader_uniform_1f(shader, "despill_balance", this->get_despill_balance());
 
     Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
@@ -639,8 +755,8 @@ class KeyingOperation : public NodeOperation {
 
   void compute_image_cpu(Result &matte_image)
   {
-    const float despill_factor = node_storage(bnode()).despill_factor;
-    const float despill_balance = node_storage(bnode()).despill_balance;
+    const float despill_factor = this->get_despill_strength();
+    const float despill_balance = this->get_despill_balance();
 
     Result &input = get_input("Image");
     Result &key = get_input("Key Color");
@@ -673,6 +789,17 @@ class KeyingOperation : public NodeOperation {
       output.store_pixel(texel, color);
     });
   }
+
+  float get_despill_strength()
+  {
+    return math::max(0.0f, this->get_input("Despill Strength").get_single_value_default(1.0f));
+  }
+
+  float get_despill_balance()
+  {
+    return math::clamp(
+        this->get_input("Despill Balance").get_single_value_default(0.5f), 0.0f, 1.0f);
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
@@ -696,7 +823,6 @@ void register_node_type_cmp_keying()
   ntype.enum_name_legacy = "KEYING";
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_keying_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_keying;
   ntype.initfunc = file_ns::node_composit_init_keying;
   blender::bke::node_type_storage(
       ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);

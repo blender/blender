@@ -3993,8 +3993,21 @@ static const char node_input_limit_strength[] = "Limit Strength";
 static const char node_input_use_spill_strength[] = "Use Spill Strength";
 static const char node_input_spill_strength[] = "Spill Strength";
 
-/* Smoothness node. */
+/* Keying Screen node. */
 static const char node_input_smoothness[] = "Smoothness";
+
+/* Keying node. */
+static const char node_input_preprocess_blur_size[] = "Preprocess Blur Size";
+static const char node_input_key_balance[] = "Key Balance";
+static const char node_input_edge_search_size[] = "Edge Search Size";
+static const char node_input_edge_tolerance[] = "Edge Tolerance";
+static const char node_input_black_level[] = "Black Level";
+static const char node_input_white_level[] = "White Level";
+static const char node_input_postprocess_blur_size[] = "Postprocess Blur Size";
+static const char node_input_postprocess_dilate_size[] = "Postprocess Dilate Size";
+static const char node_input_postprocess_feather_size[] = "Postprocess Feather Size";
+static const char node_input_despill_strength[] = "Despill Strength";
+static const char node_input_despill_balance[] = "Despill Balance";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -9748,81 +9761,129 @@ static void def_cmp_keying(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeKeyingData", "storage");
 
   prop = RNA_def_property(srna, "screen_balance", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "screen_balance");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_key_balance>",
+                               "rna_node_property_to_input_setter<float, node_input_key_balance>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(
-      prop,
-      "Screen Balance",
-      "Balance between two non-primary channels primary channel is comparing against");
+  RNA_def_property_ui_text(prop,
+                           "Screen Balance",
+                           "Balance between two non-primary channels primary channel is comparing "
+                           "against. (Deprecated: Use Key Balance input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "despill_factor", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "despill_factor");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_despill_strength>",
+      "rna_node_property_to_input_setter<float, node_input_despill_strength>",
+      nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Despill Factor", "Factor of despilling screen color from image");
+  RNA_def_property_ui_text(prop,
+                           "Despill Factor",
+                           "Factor of despilling screen color from image. (Deprecated: Use "
+                           "Despill Strength input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "despill_balance", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "despill_balance");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(
+  RNA_def_property_float_funcs(
       prop,
-      "Despill Balance",
-      "Balance between non-key colors used to detect amount of key color to be removed");
+      "rna_node_property_to_input_getter<float, node_input_despill_balance>",
+      "rna_node_property_to_input_setter<float, node_input_despill_balance>",
+      nullptr);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(prop,
+                           "Despill Balance",
+                           "Balance between non-key colors used to detect amount of key color to "
+                           "be removed. (Deprecated: Use Despill Balance input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "clip_black", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "clip_black");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_black_level>",
+                               "rna_node_property_to_input_setter<float, node_input_black_level>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(
-      prop,
-      "Clip Black",
-      "Value of non-scaled matte pixel which considers as fully background pixel");
+  RNA_def_property_ui_text(prop,
+                           "Clip Black",
+                           "Value of non-scaled matte pixel which considers as fully background "
+                           "pixel. (Deprecated: Use Black Level input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "clip_white", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "clip_white");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_white_level>",
+                               "rna_node_property_to_input_setter<float, node_input_white_level>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(
-      prop,
-      "Clip White",
-      "Value of non-scaled matte pixel which considers as fully foreground pixel");
+  RNA_def_property_ui_text(prop,
+                           "Clip White",
+                           "Value of non-scaled matte pixel which considers as fully foreground "
+                           "pixel. (Deprecated: Use White Level input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "blur_pre", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "blur_pre");
+  RNA_def_property_int_funcs(
+      prop,
+      "rna_node_property_to_input_getter<int, node_input_preprocess_blur_size>",
+      "rna_node_property_to_input_setter<int, node_input_preprocess_blur_size>",
+      nullptr);
   RNA_def_property_range(prop, 0, 2048);
-  RNA_def_property_ui_text(
-      prop, "Pre Blur", "Chroma pre-blur size which applies before running keyer");
+  RNA_def_property_ui_text(prop,
+                           "Pre Blur",
+                           "Chroma pre-blur size which applies before running keyer. (Deprecated: "
+                           "Use Preprocess Blur Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "blur_post", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "blur_post");
+  RNA_def_property_int_funcs(
+      prop,
+      "rna_node_property_to_input_getter<int, node_input_postprocess_blur_size>",
+      "rna_node_property_to_input_setter<int, node_input_postprocess_blur_size>",
+      nullptr);
   RNA_def_property_range(prop, 0, 2048);
-  RNA_def_property_ui_text(
-      prop, "Post Blur", "Matte blur size which applies after clipping and dilate/eroding");
+  RNA_def_property_ui_text(prop,
+                           "Post Blur",
+                           "Matte blur size which applies after clipping and dilate/eroding. "
+                           "(Deprecated: Use Postprocess Blur Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "dilate_distance", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "dilate_distance");
+  RNA_def_property_int_funcs(
+      prop,
+      "rna_node_property_to_input_getter<int, node_input_postprocess_dilate_size>",
+      "rna_node_property_to_input_setter<int, node_input_postprocess_dilate_size>",
+      nullptr);
   RNA_def_property_range(prop, -100, 100);
-  RNA_def_property_ui_text(prop, "Dilate/Erode", "Distance to grow/shrink the matte");
+  RNA_def_property_ui_text(prop,
+                           "Dilate/Erode",
+                           "Distance to grow/shrink the matte. (Deprecated: Use Postprocess "
+                           "Dilate Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "edge_kernel_radius", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "edge_kernel_radius");
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_edge_search_size>",
+                             "rna_node_property_to_input_setter<int, node_input_edge_search_size>",
+                             nullptr);
   RNA_def_property_range(prop, 0, 100);
-  RNA_def_property_ui_text(
-      prop, "Edge Kernel Radius", "Radius of kernel used to detect whether pixel belongs to edge");
+  RNA_def_property_ui_text(prop,
+                           "Edge Kernel Radius",
+                           "Radius of kernel used to detect whether pixel belongs to edge. "
+                           "(Deprecated: Use Edge Search Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "edge_kernel_tolerance", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "edge_kernel_tolerance");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(
+  RNA_def_property_float_funcs(
       prop,
-      "Edge Kernel Tolerance",
-      "Tolerance to pixels inside kernel which are treating as belonging to the same plane");
+      "rna_node_property_to_input_getter<float, node_input_edge_tolerance>",
+      "rna_node_property_to_input_setter<float, node_input_edge_tolerance>",
+      nullptr);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(prop,
+                           "Edge Kernel Tolerance",
+                           "Tolerance to pixels inside kernel which are treating as belonging to "
+                           "the same plane. (Deprecated: Use Edge Tolerance input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "feather_falloff", PROP_ENUM, PROP_NONE);
@@ -9834,9 +9895,16 @@ static void def_cmp_keying(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "feather_distance", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "feather_distance");
+  RNA_def_property_int_funcs(
+      prop,
+      "rna_node_property_to_input_getter<int, node_input_postprocess_feather_size>",
+      "rna_node_property_to_input_setter<int, node_input_postprocess_feather_size>",
+      nullptr);
   RNA_def_property_range(prop, -100, 100);
-  RNA_def_property_ui_text(prop, "Feather Distance", "Distance to grow/shrink the feather");
+  RNA_def_property_ui_text(prop,
+                           "Feather Distance",
+                           "Distance to grow/shrink the feather. (Deprecated: Use Postprocess "
+                           "Feather Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

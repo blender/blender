@@ -33,8 +33,6 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_keying_tweak_matte_shared)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(bool, apply_core_matte)
-PUSH_CONSTANT(bool, apply_garbage_matte)
 PUSH_CONSTANT(int, edge_search_radius)
 PUSH_CONSTANT(float, edge_tolerance)
 PUSH_CONSTANT(float, black_level)

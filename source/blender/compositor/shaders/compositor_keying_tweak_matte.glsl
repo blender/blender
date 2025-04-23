@@ -46,16 +46,12 @@ void main()
 
   /* Exclude unwanted areas using the provided garbage matte, 1 means unwanted, so invert the
    * garbage matte and take the minimum. */
-  if (apply_garbage_matte) {
-    float garbage_matte = texture_load(garbage_matte_tx, texel).x;
-    tweaked_matte = min(tweaked_matte, 1.0f - garbage_matte);
-  }
+  float garbage_matte = texture_load(garbage_matte_tx, texel).x;
+  tweaked_matte = min(tweaked_matte, 1.0f - garbage_matte);
 
   /* Include wanted areas that were incorrectly keyed using the provided core matte. */
-  if (apply_core_matte) {
-    float core_matte = texture_load(core_matte_tx, texel).x;
-    tweaked_matte = max(tweaked_matte, core_matte);
-  }
+  float core_matte = texture_load(core_matte_tx, texel).x;
+  tweaked_matte = max(tweaked_matte, core_matte);
 
   imageStore(output_matte_img, texel, float4(tweaked_matte));
 #if defined(COMPUTE_EDGES)
