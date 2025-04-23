@@ -2552,8 +2552,10 @@ static void wm_handler_operator_insert(wmWindow *win, wmEventHandler_Op *handler
     LISTBASE_FOREACH (wmEventHandler *, handler_iter, &win->modalhandlers) {
       if (handler_iter->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler_iter_op = (wmEventHandler_Op *)handler_iter;
-        if (handler_iter_op->op->type->flag & OPTYPE_MODAL_PRIORITY) {
-          last_priority_handler = handler_iter;
+        if (handler_iter_op->op != nullptr) {
+          if (handler_iter_op->op->type->flag & OPTYPE_MODAL_PRIORITY) {
+            last_priority_handler = handler_iter;
+          }
         }
       }
     }
