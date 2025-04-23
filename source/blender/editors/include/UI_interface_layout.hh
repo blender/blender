@@ -62,17 +62,17 @@ struct uiItem {
  */
 struct uiLayout : uiItem {
   // protected:
-  uiLayoutRoot *root;
-  bContextStore *context;
-  uiLayout *parent;
-  blender::Vector<uiItem *> items;
+  uiLayoutRoot *root_;
+  bContextStore *context_;
+  uiLayout *parent_;
+  blender::Vector<uiItem *> items_;
 
-  char heading[UI_MAX_NAME_STR];
+  char heading_[UI_MAX_NAME_STR];
 
   /** Sub layout to add child items, if not the layout itself. */
-  uiLayout *child_items_layout;
+  uiLayout *child_items_layout_;
 
-  int x, y, w, h;
+  int x_, y_, w_, h_;
   float scale_[2];
   short space_;
   bool align_;
