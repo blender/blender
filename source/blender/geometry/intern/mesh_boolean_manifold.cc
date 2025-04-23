@@ -3,47 +3,47 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifdef WITH_MANIFOLD
-#include <algorithm>
-#include <iostream>
+#  include <algorithm>
+#  include <iostream>
 
-#include "BLI_array.hh"
-#include "BLI_array_utils.hh"
-#include "BLI_map.hh"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_matrix.hh"
-#include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector.hh"
-#include "BLI_math_vector_types.hh"
-#include "BLI_offset_indices.hh"
-#include "BLI_span.hh"
-#include "BLI_task.hh"
-#include "BLI_vector.hh"
+#  include "BLI_array.hh"
+#  include "BLI_array_utils.hh"
+#  include "BLI_map.hh"
+#  include "BLI_math_geom.h"
+#  include "BLI_math_matrix.h"
+#  include "BLI_math_matrix.hh"
+#  include "BLI_math_matrix_types.hh"
+#  include "BLI_math_vector.hh"
+#  include "BLI_math_vector_types.hh"
+#  include "BLI_offset_indices.hh"
+#  include "BLI_span.hh"
+#  include "BLI_task.hh"
+#  include "BLI_vector.hh"
 
 // #define DEBUG_TIME
-#ifdef DEBUG_TIME
-#  include "BLI_timeit.hh"
-#endif
+#  ifdef DEBUG_TIME
+#    include "BLI_timeit.hh"
+#  endif
 
-#include "BKE_attribute.hh"
-#include "BKE_attribute_math.hh"
-#include "BKE_deform.hh"
-#include "BKE_geometry_set.hh"
-#include "BKE_instances.hh"
-#include "BKE_lib_id.hh"
-#include "BKE_mesh.hh"
+#  include "BKE_attribute.hh"
+#  include "BKE_attribute_math.hh"
+#  include "BKE_deform.hh"
+#  include "BKE_geometry_set.hh"
+#  include "BKE_instances.hh"
+#  include "BKE_lib_id.hh"
+#  include "BKE_mesh.hh"
 
-#include "GEO_realize_instances.hh"
+#  include "GEO_realize_instances.hh"
 
-#include "mesh_boolean_manifold.hh"
+#  include "mesh_boolean_manifold.hh"
 
-#include "manifold/manifold.h"
+#  include "manifold/manifold.h"
 
 using manifold::Manifold;
 using manifold::MeshGL;
 
 /* Using this for now for debug printing of materials. Can remove later. */
-#include "DNA_material_types.h"
+#  include "DNA_material_types.h"
 
 namespace blender::geometry::boolean {
 
@@ -266,9 +266,9 @@ static void get_manifold(Manifold &manifold,
     dump_meshgl(meshgl, "converted result for mesh " + std::to_string(mesh_index));
   }
   {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
     timeit::ScopedTimer mtimer("manifold constructor from meshgl");
-#endif
+#  endif
     manifold = Manifold(meshgl);
   }
 }
@@ -386,9 +386,9 @@ Span<int> OutToInMaps::ensure_face_map()
     return face_map_;
   }
   /* The MeshAssembly's new_faces should map one to one with output faces. */
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("filling face map");
-#endif
+#  endif
   face_map_.reinitialize(output_mesh_->faces_num);
   BLI_assert(mesh_assembly_->new_faces.size() == face_map_.size());
   constexpr int grain_size = 50000;
@@ -411,9 +411,9 @@ Span<int> OutToInMaps::ensure_vertex_map()
    * through the vertices of the corresponding input face for matches.
    */
   const Span<int> face_map = this->ensure_face_map();
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("filling vertex map");
-#endif
+#  endif
   vertex_map_ = Array<int>(output_mesh_->verts_num, -1);
   /* To parallelize this, need to deal with the fact that this will
    * have different threads wanting to write vertex_map, and also want
@@ -459,9 +459,9 @@ Span<int> OutToInMaps::ensure_corner_map()
    */
   const Span<int> face_map = this->ensure_face_map();
   const Span<int> vert_map = this->ensure_vertex_map();
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("filling corner map");
-#endif
+#  endif
   corner_map_ = Array<int>(output_mesh_->corners_num, -1);
   const OffsetIndices<int> in_faces = joined_mesh_->faces();
   const OffsetIndices<int> out_faces = output_mesh_->faces();
@@ -534,9 +534,9 @@ Span<int> OutToInMaps::ensure_edge_map()
    * this is the "canonical" edge representative so that only
    * one thread tries to write this. Or could use atomic operations.
    */
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("filling edge map");
-#endif
+#  endif
   edge_map_ = Array<int>(output_mesh_->edges_num, -1);
   const Span<int> out_corner_edges = output_mesh_->corner_edges();
   const Span<int> out_corner_verts = output_mesh_->corner_verts();
@@ -680,9 +680,9 @@ constexpr int face_group_inline = 4;
 static Array<Vector<int, face_group_inline>> get_face_groups(const MeshGL &mgl,
                                                              int input_faces_num)
 {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("get_face_groups");
-#endif
+#  endif
   constexpr int dbg_level = 0;
   Array<Vector<int, face_group_inline>> fg(input_faces_num);
   const int tris_num = mgl.NumTri();
@@ -701,7 +701,7 @@ static Array<Vector<int, face_group_inline>> get_face_groups(const MeshGL &mgl,
   return fg;
 }
 
-#if 0
+#  if 0
 * TODO: later */
 /* Return 1 if \a group is just the same oas the original face \a face_index
  * in \a mesh.
@@ -765,7 +765,7 @@ static uchar check_original_face(const Vector<int, face_group_inline> &group,
   }
   return 0;
 }
-#endif
+#  endif
 
 static OutFace make_out_face(const MeshGL &mgl, int tri_index, int orig_face)
 {
@@ -1127,9 +1127,9 @@ static void merge_out_faces(Vector<OutFace> &faces)
  */
 static MeshAssembly assemble_mesh_from_meshgl(const MeshGL &mgl, const MeshOffsets &mesh_offsets)
 {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("calculating assemble_mesh_from_meshgl");
-#endif
+#  endif
   constexpr int dbg_level = 0;
   if (dbg_level > 0) {
     std::cout << "assemble_mesh_from_meshgl\n";
@@ -1151,11 +1151,11 @@ static MeshAssembly assemble_mesh_from_meshgl(const MeshGL &mgl, const MeshOffse
     }
   }
   {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
     timeit::ScopedTimer timer("face merging");
-#endif
-#define parallel_face_merge
-#ifdef parallel_face_merge
+#  endif
+#  define parallel_face_merge
+#  ifdef parallel_face_merge
     Vector<Vector<OutFace>> new_groups(face_groups.size());
     const int grain_size = 15000;
     threading::parallel_for(face_groups.index_range(), grain_size, [&](const IndexRange range) {
@@ -1169,13 +1169,13 @@ static MeshAssembly assemble_mesh_from_meshgl(const MeshGL &mgl, const MeshOffse
         merge_out_faces(group_faces);
       }
     });
-#  ifdef DEBUG_TIME
+#    ifdef DEBUG_TIME
     timeit::ScopedTimer xtimer("copying groups at end");
-#  endif
+#    endif
     for (const int i : new_groups.index_range()) {
       ma.new_faces.extend(new_groups[i].as_span());
     }
-#else
+#  else
     for (const int gid : face_groups.index_range()) {
       const Span<int> group = face_groups[gid].as_span();
       Vector<OutFace> group_faces(group.size());
@@ -1186,7 +1186,7 @@ static MeshAssembly assemble_mesh_from_meshgl(const MeshGL &mgl, const MeshOffse
       merge_out_faces(group_faces);
       ma.new_faces.extend(group_faces.as_span());
     }
-#endif
+#  endif
   }
   if (dbg_level > 0) {
     std::cout << "mesh_assembly result:\n";
@@ -1225,9 +1225,9 @@ static void interpolate_corner_attributes(bke::MutableAttributeAccessor &output_
                                           const Span<int> out_to_in_corner_map,
                                           const Span<int> out_to_in_face_map)
 {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("interpolate corner attributes");
-#endif
+#  endif
   /* Make parallel arrays of things needed access and write all corner attributes to interpolate.
    */
   Vector<bke::GSpanAttributeWriter> writers;
@@ -1350,9 +1350,9 @@ static void get_intersecting_edges(Vector<int> *r_intersecting_edges,
   /* In a manifold mesh, every edge is adjacent to exactly two faces.
    * Find them, and when we have a pair, check to see if those faces came
    * from separate input meshes, and add the edge to r_intersecting_Edges if so. */
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("get_intersecting_edges");
-#endif
+#  endif
   const OffsetIndices<int> faces = mesh->faces();
   const Span<int> corner_edges = mesh->corner_edges();
   const Span<int> face_map = out_to_in.ensure_face_map();
@@ -1439,9 +1439,9 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
   if (dbg_level > 0) {
     std::cout << "MESHGL_TO_MESH\n";
   }
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("meshgl to mesh from joined_mesh");
-#endif
+#  endif
   BLI_assert(mgl.mergeFromVert.empty());
 
   if (mgl.vertProperties.empty() || mgl.triVerts.empty()) {
@@ -1476,9 +1476,9 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
 
   /* Write corner vertex references. */
   {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
     timeit::ScopedTimer timer_c("calculate faces");
-#endif
+#  endif
     output_attrs.add<int>(".corner_vert", bke::AttrDomain::Corner, bke::AttributeInitConstruct());
     MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
     threading::parallel_for(IndexRange(faces_num), 10'000, [&](const IndexRange range) {
@@ -1489,17 +1489,17 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
   }
 
   {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
     timeit::ScopedTimer timer_e("calculating edges");
-#endif
+#  endif
     bke::mesh_calc_edges(*mesh, false, false);
   }
 
   /* Set the vertex positions, using implicit sharing to avoid copying any data. */
   {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
     timeit::ScopedTimer timer_c("set positions");
-#endif
+#  endif
     BLI_assert(!output_attrs.contains("position"));
     BLI_assert(mgl.numProp == 3);
     auto *sharing_info = new ImplicitSharedValue<std::vector<float>>(
@@ -1512,9 +1512,9 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
   OutToInMaps out_to_in(&ma, joined_mesh, mesh);
 
   {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
     timeit::ScopedTimer timer_a("copying and interpolating attributes");
-#endif
+#  endif
 
     /* Copy attributes from joined_mesh to elements they are mapped to
      * in the new mesh. For most attributes, if there is no input element
@@ -1586,9 +1586,9 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
 static bke::GeometrySet join_meshes_with_transforms(const Span<const Mesh *> meshes,
                                                     const Span<float4x4> transforms)
 {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
   timeit::ScopedTimer jtimer(__func__);
-#endif
+#  endif
   bke::Instances instances;
   instances.resize(meshes.size());
   instances.transforms_for_write().copy_from(transforms);
@@ -1621,9 +1621,9 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
   }
   *r_error = BooleanError::NoError;
   try {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
     timeit::ScopedTimer timer("MANIFOLD BOOLEAN");
-#endif
+#  endif
 
     const int meshes_num = meshes.size();
 
@@ -1650,9 +1650,9 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
           manifolds[0].Status() == Manifold::Error::NoError &&
           is_plane(meshes[1], &normal, &origin_offset))
       {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
         timeit::ScopedTimer timer_trim("DOING BOOLEAN SLICE, GETTING MESH_GL RESULT");
-#endif
+#  endif
         meshgl_result = mesh_trim_manifold(manifolds[0], normal, origin_offset, mesh_offsets);
       }
       else {
@@ -1665,9 +1665,9 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
                                  manifold::OpType::Intersect :
                                  (op == Operation::Union ? manifold::OpType::Add :
                                                            manifold::OpType::Subtract);
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
       timeit::ScopedTimer timer_bool("DOING BOOLEAN, GETTING MESH_GL RESULT");
-#endif
+#  endif
       Manifold man_result = Manifold::BatchBoolean(manifolds, mop);
       meshgl_result = man_result.GetMeshGL();
       /* Have to wait until after converting to MeshGL to check status. */
@@ -1690,9 +1690,9 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
     }
     Mesh *mesh_result;
     {
-#ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
       timeit::ScopedTimer timer_out("MESHGL RESULT TO MESH");
-#endif
+#  endif
       mesh_result = meshgl_to_mesh(meshgl_result, joined_mesh, mesh_offsets, r_intersecting_edges);
     }
     if (!math::is_identity(target_transform)) {
@@ -1711,4 +1711,4 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
 }
 
 }  // namespace blender::geometry::boolean
-#endif // WITH_MANIFOLD
+#endif  // WITH_MANIFOLD
