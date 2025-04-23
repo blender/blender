@@ -743,11 +743,20 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
 /* for callbacks */
 /* undo simply makes copies of a bmesh */
 /**
+ *
+ * Copy data from `em` into `um`.
+ *
  * \param um_ref: The reference to use for de-duplicating memory between undo-steps.
+ *
+ * \note See #undomesh_to_editmesh for an explanation for why passing in data-blocks is avoided.
  */
-static void *undomesh_from_editmesh(UndoMesh *um, Mesh &mesh, Key *key, UndoMesh *um_ref)
+static void *undomesh_from_editmesh(UndoMesh *um,
+                                    BMEditMesh *em,
+                                    Key *key,
+                                    const ListBase *vertex_group_names,
+                                    const int vertex_group_active_index,
+                                    UndoMesh *um_ref)
 {
-  BMEditMesh *em = mesh.runtime->edit_mesh.get();
   BLI_assert(BLI_array_is_zeroed(um, 1));
 #ifdef USE_ARRAY_STORE_THREAD
   /* changes this waits is low, but must have finished */
@@ -779,8 +788,8 @@ static void *undomesh_from_editmesh(UndoMesh *um, Mesh &mesh, Key *key, UndoMesh
   params.cd_mask_extra = cd_mask_extra;
   params.active_shapekey_to_mvert = true;
   BM_mesh_bm_to_me(nullptr, em->bm, um->mesh, &params);
-  BKE_defgroup_copy_list(&um->mesh->vertex_group_names, &mesh.vertex_group_names);
-  um->mesh->vertex_group_active_index = mesh.vertex_group_active_index;
+  BKE_defgroup_copy_list(&um->mesh->vertex_group_names, vertex_group_names);
+  um->mesh->vertex_group_active_index = vertex_group_active_index;
 
   um->selectmode = em->selectmode;
   um->shapenr = em->bm->shapenr;
@@ -811,7 +820,18 @@ static void *undomesh_from_editmesh(UndoMesh *um, Mesh &mesh, Key *key, UndoMesh
   return um;
 }
 
-static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
+/**
+ * Copy data from `um` into `em`.
+ *
+ * \note while `em` defines the "edit-mesh" there are some exceptions which are intentionally
+ * kept as separate arguments instead of passing in the #Object or #Mesh data blocks.
+ * This is done to avoid confusion from passing in multiple meshes, where it's not always clear
+ * what the source of truth is for mesh data - which can make the logic difficult to reason about.
+ */
+static void undomesh_to_editmesh(UndoMesh *um,
+                                 BMEditMesh *em,
+                                 ListBase *vertex_group_names,
+                                 int *vertex_group_active_index)
 {
   BMEditMesh *em_tmp;
   BMesh *bm;
@@ -843,17 +863,15 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
   create_params.use_toolflags = true;
   bm = BM_mesh_create(&allocsize, &create_params);
 
-  Mesh &mesh = *static_cast<Mesh *>(ob->data);
-
   BMeshFromMeshParams convert_params{};
   /* Handled with tessellation. */
   convert_params.calc_face_normal = false;
   convert_params.calc_vert_normal = false;
   convert_params.active_shapekey = um->shapenr;
   BM_mesh_bm_from_me(bm, um->mesh, &convert_params);
-  BLI_freelistN(&mesh.vertex_group_names);
-  BKE_defgroup_copy_list(&mesh.vertex_group_names, &um->mesh->vertex_group_names);
-  mesh.vertex_group_active_index = um->mesh->vertex_group_active_index;
+  BLI_freelistN(vertex_group_names);
+  BKE_defgroup_copy_list(vertex_group_names, &um->mesh->vertex_group_names);
+  *vertex_group_active_index = um->mesh->vertex_group_active_index;
 
   em_tmp = BKE_editmesh_create(bm);
   *em = *em_tmp;
@@ -865,8 +883,6 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
   bm->selectmode = um->selectmode;
 
   bm->spacearr_dirty = BM_SPACEARR_DIRTY_ALL;
-
-  ob->shapenr = um->shapenr;
 
   MEM_delete(em_tmp);
 
@@ -967,14 +983,19 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 #endif
 
   for (uint i = 0; i < objects.size(); i++) {
-    Object *ob = objects[i];
+    Object *obedit = objects[i];
     MeshUndoStep_Elem *elem = &us->elems[i];
 
-    elem->obedit_ref.ptr = ob;
+    elem->obedit_ref.ptr = obedit;
     Mesh *mesh = static_cast<Mesh *>(elem->obedit_ref.ptr->data);
     BMEditMesh *em = mesh->runtime->edit_mesh.get();
-    undomesh_from_editmesh(
-        &elem->data, *mesh, mesh->key, um_references ? um_references[i] : nullptr);
+    undomesh_from_editmesh(&elem->data,
+                           em,
+                           mesh->key,
+                           &mesh->vertex_group_names,
+                           mesh->vertex_group_active_index,
+                           um_references ? um_references[i] : nullptr);
+
     em->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
     elem->data.uv_selectmode = ts->uv_selectmode;
@@ -1021,7 +1042,11 @@ static void mesh_undosys_step_decode(
       continue;
     }
     BMEditMesh *em = mesh->runtime->edit_mesh.get();
-    undomesh_to_editmesh(&elem->data, obedit, em);
+    undomesh_to_editmesh(
+        &elem->data, em, &mesh->vertex_group_names, &mesh->vertex_group_active_index);
+
+    obedit->shapenr = em->bm->shapenr;
+
     em->needs_flush_to_id = 1;
     DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
     /* The object update tag is necessary to cause modifiers to reevaluate after vertex group
