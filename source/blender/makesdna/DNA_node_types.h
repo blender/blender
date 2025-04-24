@@ -1530,10 +1530,10 @@ typedef struct NodeScaleData {
 typedef struct NodePlaneTrackDeformData {
   char tracking_object[64];
   char plane_track_name[64];
-  char flag;
-  char motion_blur_samples;
+  char flag DNA_DEPRECATED;
+  char motion_blur_samples DNA_DEPRECATED;
   char _pad[2];
-  float motion_blur_shutter;
+  float motion_blur_shutter DNA_DEPRECATED;
 } NodePlaneTrackDeformData;
 
 typedef struct NodeShaderScript {
@@ -2954,13 +2954,6 @@ typedef enum CMPNodeCornerPinInterpolation {
   CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC = 2,
   CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC = 3,
 } CMPNodeCornerPinInterpolation;
-
-#define CMP_NODE_PLANE_TRACK_DEFORM_MOTION_BLUR_SAMPLES_MAX 64
-
-/* Plane track deform node. */
-typedef enum CMPNodePlaneTrackDeformFlags {
-  CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR = 1,
-} CMPNodePlaneTrackDeformFlags;
 
 /* Set Alpha Node. */
 

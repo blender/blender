@@ -42,10 +42,62 @@ NODE_STORAGE_FUNCS(NodePlaneTrackDeformData)
 
 static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").compositor_realization_mode(
-      CompositorInputRealizationMode::Transforms);
+  b.use_custom_socket_order();
+
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Plane");
+
+  b.add_layout([](uiLayout *layout, bContext *C, PointerRNA *ptr) {
+    bNode *node = ptr->data_as<bNode>();
+
+    uiTemplateID(layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
+
+    if (node->id) {
+      MovieClip *clip = reinterpret_cast<MovieClip *>(node->id);
+      MovieTracking *tracking = &clip->tracking;
+      MovieTrackingObject *tracking_object;
+      PointerRNA tracking_ptr = RNA_pointer_create_discrete(
+          &clip->id, &RNA_MovieTracking, tracking);
+
+      uiLayout *col = uiLayoutColumn(layout, false);
+      uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+
+      tracking_object = BKE_tracking_object_get_named(tracking,
+                                                      node_storage(*node).tracking_object);
+      if (tracking_object) {
+        PointerRNA object_ptr = RNA_pointer_create_discrete(
+            &clip->id, &RNA_MovieTrackingObject, tracking_object);
+
+        uiItemPointerR(
+            col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
+      }
+      else {
+        uiItemR(layout, ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
+      }
+    }
+  });
+
+  b.add_input<decl::Color>("Image").compositor_realization_mode(
+      CompositorInputRealizationMode::Transforms);
+  PanelDeclarationBuilder &motion_blur_panel = b.add_panel("Motion Blur").default_closed(true);
+  motion_blur_panel.add_input<decl::Bool>("Motion Blur")
+      .default_value(false)
+      .panel_toggle()
+      .description("Use multi-sampled motion blur of the plane")
+      .compositor_expects_single_value();
+  motion_blur_panel.add_input<decl::Int>("Samples", "Motion Blur Samples")
+      .default_value(16)
+      .min(1)
+      .max(64)
+      .description("Number of motion blur samples")
+      .compositor_expects_single_value();
+  motion_blur_panel.add_input<decl::Float>("Shutter", "Motion Blur Shutter")
+      .default_value(0.5f)
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .description("Exposure for motion blur as a factor of FPS")
+      .compositor_expects_single_value();
 }
 
 static void init(const bContext *C, PointerRNA *ptr)
@@ -53,8 +105,6 @@ static void init(const bContext *C, PointerRNA *ptr)
   bNode *node = (bNode *)ptr->data;
 
   NodePlaneTrackDeformData *data = MEM_callocN<NodePlaneTrackDeformData>(__func__);
-  data->motion_blur_samples = 16;
-  data->motion_blur_shutter = 0.5f;
   node->storage = data;
 
   const Scene *scene = CTX_data_scene(C);
@@ -71,45 +121,6 @@ static void init(const bContext *C, PointerRNA *ptr)
     if (tracking_object->active_plane_track) {
       STRNCPY(data->plane_track_name, tracking_object->active_plane_track->name);
     }
-  }
-}
-
-static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  bNode *node = (bNode *)ptr->data;
-  NodePlaneTrackDeformData *data = (NodePlaneTrackDeformData *)node->storage;
-
-  uiTemplateID(layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
-
-  if (node->id) {
-    MovieClip *clip = (MovieClip *)node->id;
-    MovieTracking *tracking = &clip->tracking;
-    MovieTrackingObject *tracking_object;
-    uiLayout *col;
-    PointerRNA tracking_ptr = RNA_pointer_create_discrete(&clip->id, &RNA_MovieTracking, tracking);
-
-    col = uiLayoutColumn(layout, false);
-    uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
-
-    tracking_object = BKE_tracking_object_get_named(tracking, data->tracking_object);
-    if (tracking_object) {
-      PointerRNA object_ptr = RNA_pointer_create_discrete(
-          &clip->id, &RNA_MovieTrackingObject, tracking_object);
-
-      uiItemPointerR(
-          col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
-    }
-    else {
-      uiItemR(layout, ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
-    }
-  }
-
-  uiItemR(layout, ptr, "use_motion_blur", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  if (data->flag & CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR) {
-    uiItemR(
-        layout, ptr, "motion_blur_samples", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    uiItemR(
-        layout, ptr, "motion_blur_shutter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 
@@ -351,8 +362,8 @@ class PlaneTrackDeformOperation : public NodeOperation {
   {
     /* We evaluate at the frames in the range [frame - shutter, frame + shutter], if no motion blur
      * is enabled or the motion blur samples is set to 1, we just evaluate at the current frame. */
-    const int samples = use_motion_blur() ? node_storage(bnode()).motion_blur_samples : 1;
-    const float shutter = samples != 1 ? node_storage(bnode()).motion_blur_shutter : 0.0f;
+    const int samples = this->get_motion_blur_samples();
+    const float shutter = samples != 1 ? this->get_motion_blur_shutter() : 0.0f;
     const float start_frame = context().get_frame_number() - shutter;
     const float frame_step = (shutter * 2.0f) / samples;
 
@@ -407,14 +418,22 @@ class PlaneTrackDeformOperation : public NodeOperation {
     return size;
   }
 
-  bool use_motion_blur()
+  int get_motion_blur_samples()
   {
-    return get_flags() & CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR;
+    const int samples = math::clamp(
+        this->get_input("Motion Blur Samples").get_single_value_default(16), 1, 64);
+    return this->use_motion_blur() ? samples : 1;
   }
 
-  CMPNodePlaneTrackDeformFlags get_flags()
+  float get_motion_blur_shutter()
   {
-    return static_cast<CMPNodePlaneTrackDeformFlags>(node_storage(bnode()).flag);
+    return math::clamp(
+        this->get_input("Motion Blur Shutter").get_single_value_default(0.5f), 0.0f, 1.0f);
+  }
+
+  bool use_motion_blur()
+  {
+    return this->get_input("Motion Blur").get_single_value_default(false);
   }
 
   MovieClip *get_movie_clip()
@@ -444,7 +463,6 @@ void register_node_type_cmp_planetrackdeform()
   ntype.enum_name_legacy = "PLANETRACKDEFORM";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_planetrackdeform_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_planetrackdeform;
   ntype.initfunc_api = file_ns::init;
   blender::bke::node_type_storage(
       ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);

@@ -708,6 +708,11 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       property = input->default_value_typed<bNodeSocketValueInt>()->value;
     };
 
+    auto write_input_to_property_char = [&](const char *identifier, char &property) {
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+      property = input->default_value_typed<bNodeSocketValueInt>()->value;
+    };
+
     auto write_input_to_property_int16 = [&](const char *identifier, int16_t &property) {
       const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
       property = int16_t(input->default_value_typed<bNodeSocketValueInt>()->value);
@@ -909,6 +914,13 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
 
     if (node->type_legacy == CMP_NODE_STABILIZE2D) {
       write_input_to_property_bool_short("Invert", node->custom2);
+    }
+
+    if (node->type_legacy == CMP_NODE_PLANETRACKDEFORM) {
+      NodePlaneTrackDeformData *storage = static_cast<NodePlaneTrackDeformData *>(node->storage);
+      write_input_to_property_bool_char("Motion Blur", storage->flag);
+      write_input_to_property_char("Motion Blur Samples", storage->motion_blur_samples);
+      write_input_to_property_float("Motion Blur Shutter", storage->motion_blur_shutter);
     }
   }
 }
