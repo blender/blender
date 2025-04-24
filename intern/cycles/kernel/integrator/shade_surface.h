@@ -239,6 +239,8 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = INTEGRATOR_STATE(
       state, path, transparent_bounce);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, volume_bounds_bounce) = INTEGRATOR_STATE(
+      state, path, volume_bounds_bounce);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, glossy_bounce) = INTEGRATOR_STATE(
       state, path, glossy_bounce);
 
@@ -682,6 +684,8 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bounce) = bounce;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = transparent_bounce;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, volume_bounds_bounce) = INTEGRATOR_STATE(
+      state, path, volume_bounds_bounce);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_AO_ADDITIVE) {

@@ -858,6 +858,8 @@ ccl_device_forceinline void integrate_volume_direct_light(
       state, path, glossy_bounce);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) = INTEGRATOR_STATE(
       state, path, transmission_bounce);
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, volume_bounds_bounce) = INTEGRATOR_STATE(
+      state, path, volume_bounds_bounce);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput_phase;
 
   /* Write Light-group, +1 as light-group is int but we need to encode into a uint8_t. */

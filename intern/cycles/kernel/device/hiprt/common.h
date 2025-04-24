@@ -19,8 +19,8 @@ struct RayPayload {
  * NOTE: This assumes that reinterpret_cast from void pointer to RayPayload works correctly. */
 struct ShadowPayload : RayPayload {
   int in_state;
-  uint max_hits;
-  uint num_hits;
+  uint max_transparent_hits;
+  uint num_transparent_hits;
   uint *r_num_recorded_hits;
   float *r_throughput;
 };
@@ -380,8 +380,8 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
 {
   KernelGlobals kg = payload->kg;
 
-  const uint num_hits = payload->num_hits;
-  const uint max_hits = payload->max_hits;
+  uint num_transparent_hits = payload->num_transparent_hits;
+  const uint max_transparent_hits = payload->max_transparent_hits;
   const int state = payload->in_state;
   const RaySelfPrimitives &self = payload->self;
 
@@ -407,7 +407,9 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
     return true; /* No hit -continue traversal. */
   }
 
-  if (intersection_skip_shadow_already_recoded(kg, state, object, prim, num_hits)) {
+  if (intersection_skip_shadow_already_recoded(
+          kg, state, object, prim, *payload->r_num_recorded_hits))
+  {
     return true;
   }
 
@@ -418,18 +420,22 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
 #  ifndef __TRANSPARENT_SHADOWS__
   return false;
 #  else
-  if (num_hits >= max_hits ||
-      !(intersection_get_shader_flags(kg, prim, primitive_type) & SD_HAS_TRANSPARENT_SHADOW))
-  {
+  const int flags = intersection_get_shader_flags(kg, prim, primitive_type);
+  if (!(flags & SD_HAS_TRANSPARENT_SHADOW)) {
+    return false;
+  }
+
+  num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
+  if (num_transparent_hits > max_transparent_hits) {
     return false;
   }
 
   uint record_index = *payload->r_num_recorded_hits;
 
-  payload->num_hits = num_hits + 1;
+  payload->num_transparent_hits = num_transparent_hits;
   *(payload->r_num_recorded_hits) += 1;
 
-  const uint max_record_hits = min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+  const uint max_record_hits = INTEGRATOR_SHADOW_ISECT_SIZE;
   if (record_index >= max_record_hits) {
     float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
     uint max_recorded_hit = 0;
@@ -467,9 +473,9 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
 {
   KernelGlobals kg = payload->kg;
 
-  const uint num_hits = payload->num_hits;
+  uint num_transparent_hits = payload->num_transparent_hits;
   const uint num_recorded_hits = *(payload->r_num_recorded_hits);
-  const uint max_hits = payload->max_hits;
+  const uint max_transparent_hits = payload->max_transparent_hits;
   const RaySelfPrimitives &self = payload->self;
 
   const int object = kernel_data_fetch(user_instance_id, hit.instanceID);
@@ -494,7 +500,10 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
     return true; /* No hit -continue traversal. */
   }
 
-  if (intersection_skip_shadow_already_recoded(kg, payload->in_state, object, prim, num_hits)) {
+  /* FIXME: transparent curves are not recorded, this check doesn't work. */
+  if (intersection_skip_shadow_already_recoded(
+          kg, payload->in_state, object, prim, num_recorded_hits))
+  {
     return true;
   }
 
@@ -510,16 +519,20 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
 #  ifndef __TRANSPARENT_SHADOWS__
   return false;
 #  else
-  if (num_hits >= max_hits ||
-      !(intersection_get_shader_flags(kg, prim, primitive_type) & SD_HAS_TRANSPARENT_SHADOW))
-  {
+  const int flags = intersection_get_shader_flags(kg, prim, primitive_type);
+  if (!(flags & SD_HAS_TRANSPARENT_SHADOW)) {
+    return false;
+  }
+
+  num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
+  if (num_transparent_hits > max_transparent_hits) {
     return false;
   }
 
   float throughput = *payload->r_throughput;
   throughput *= intersection_curve_shadow_transparency(kg, object, prim, primitive_type, u);
   *payload->r_throughput = throughput;
-  payload->num_hits += 1;
+  payload->num_transparent_hits = num_transparent_hits;
 
   if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
     return false;

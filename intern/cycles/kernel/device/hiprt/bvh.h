@@ -166,7 +166,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
                                                      const ccl_private Ray *ray,
                                                      const uint visibility,
-                                                     const uint max_hits,
+                                                     const uint max_transparent_hits,
                                                      ccl_private uint *num_recorded_hits,
                                                      ccl_private float *throughput)
 {
@@ -187,8 +187,8 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   payload.prim_type = PRIMITIVE_NONE;
   payload.ray_time = ray->time;
   payload.in_state = state;
-  payload.max_hits = max_hits;
-  payload.num_hits = 0;
+  payload.max_transparent_hits = max_transparent_hits;
+  payload.num_transparent_hits = 0;
   payload.r_num_recorded_hits = num_recorded_hits;
   payload.r_throughput = throughput;
 

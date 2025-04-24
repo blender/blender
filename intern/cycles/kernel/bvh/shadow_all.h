@@ -31,7 +31,7 @@ ccl_device_inline
                                 const ccl_private Ray *ray,
                                 IntegratorShadowState state,
                                 const uint visibility,
-                                const uint max_hits,
+                                const uint max_transparent_hits,
                                 ccl_private uint *r_num_recorded_hits,
                                 ccl_private float *r_throughput)
 {
@@ -54,7 +54,7 @@ ccl_device_inline
   float3 idir = bvh_inverse_direction(dir);
   float tmin = ray->tmin;
   int object = OBJECT_NONE;
-  uint num_hits = 0;
+  uint num_transparent_hits = 0;
 
   /* Max distance in world space. May be dynamically reduced when max number of
    * recorded hits is exceeded and we no longer need to find hits beyond the max
@@ -241,8 +241,9 @@ ccl_device_inline
                 continue;
               }
 
-              num_hits++;
-              if (num_hits > max_hits) {
+              /* Only count transparent bounces, volume bounds bounces are counted when shading. */
+              num_transparent_hits += !(flags & SD_HAS_ONLY_VOLUME);
+              if (num_transparent_hits > max_transparent_hits) {
                 return true;
               }
 
@@ -268,7 +269,7 @@ ccl_device_inline
                  * so that we can detect this and trace another ray if needed. */
                 ++(*r_num_recorded_hits);
 
-                const uint max_record_hits = min(max_hits, (uint)INTEGRATOR_SHADOW_ISECT_SIZE);
+                const uint max_record_hits = (uint)INTEGRATOR_SHADOW_ISECT_SIZE;
                 if (*r_num_recorded_hits <= max_record_hits || isect.t < tmax_hits) {
                   integrator_state_write_shadow_isect(state, &isect, isect_index);
 
@@ -331,12 +332,12 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
                                          const ccl_private Ray *ray,
                                          IntegratorShadowState state,
                                          const uint visibility,
-                                         const uint max_hits,
+                                         const uint max_transparent_hits,
                                          ccl_private uint *num_recorded_hits,
                                          ccl_private float *throughput)
 {
   return BVH_FUNCTION_FULL_NAME(BVH)(
-      kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+      kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
 }
 
 #undef BVH_FUNCTION_NAME

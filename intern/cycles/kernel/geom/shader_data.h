@@ -86,6 +86,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
       triangle_shader_setup(kg, sd);
     }
     else {
+      kernel_assert(sd->type == PRIMITIVE_MOTION_TRIANGLE);
       /* motion triangle */
       motion_triangle_shader_setup(kg, sd);
     }

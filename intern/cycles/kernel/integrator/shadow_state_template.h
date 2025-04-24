@@ -23,6 +23,8 @@ KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, diffuse_bounce, KERNEL_FEATURE_PATH_
 KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, glossy_bounce, KERNEL_FEATURE_PATH_TRACING)
 /* Current transmission ray bounce depth. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, transmission_bounce, KERNEL_FEATURE_PATH_TRACING)
+/* Current volume bounds ray bounce depth. */
+KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, volume_bounds_bounce, KERNEL_FEATURE_PATH_TRACING)
 /* DeviceKernel bit indicating queued kernels. */
 KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, queued_kernel, KERNEL_FEATURE_PATH_TRACING)
 /* enum PathRayFlag */
