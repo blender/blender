@@ -1336,6 +1336,8 @@ void DRW_draw_render_loop_offscreen(Depsgraph *depsgraph,
   DRWContext draw_ctx(mode, depsgraph, render_viewport, nullptr, region, v3d);
   draw_ctx.acquire_data();
   draw_ctx.options.draw_background = draw_background;
+  /* Init modules ahead of time because the begin_sync happens before DRW_render_object_iter. */
+  draw_ctx.data->modules_init();
 
   drw_draw_render_loop_3d(draw_ctx, engine_type);
 
