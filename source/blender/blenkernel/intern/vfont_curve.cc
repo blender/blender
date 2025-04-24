@@ -1421,8 +1421,8 @@ static bool vfont_to_curve(Object *ob,
   /* Cursor first. */
   if (ef) {
     ct = &chartransdata[ef->pos];
-    const float cursor_width = 0.04f;
-    const float cursor_half = 0.02f;
+    const float cursor_width = 0.08f;
+    const float cursor_half = 0.04f;
     const float xoffset = ct->xof;
     const float yoffset = ct->yof;
 
