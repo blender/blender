@@ -288,8 +288,16 @@ void MESH_OT_intersect(wmOperatorType *ot)
   };
 
   static const EnumPropertyItem isect_intersect_solver_items[] = {
-      {ISECT_SOLVER_FAST, "FAST", 0, "Fast", "Faster solver, some limitations"},
-      {ISECT_SOLVER_EXACT, "EXACT", 0, "Exact", "Exact solver, slower, handles more cases"},
+      {ISECT_SOLVER_FAST,
+       "FAST",
+       0,
+       "Float",
+       "Simple solver with good performance, without support for overlapping geometry"},
+      {ISECT_SOLVER_EXACT,
+       "EXACT",
+       0,
+       "Exact",
+       "Slower solver with the best results for coplanar faces"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
