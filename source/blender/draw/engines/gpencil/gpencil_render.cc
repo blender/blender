@@ -65,10 +65,8 @@ static void render_init_buffers(const DRWContext *draw_ctx,
                                 Instance &inst,
                                 RenderEngine *engine,
                                 RenderLayer *render_layer,
-                                const Depsgraph *depsgraph,
                                 const rcti *rect)
 {
-  Scene *scene = DEG_get_evaluated_scene(depsgraph);
   const int2 size = int2(draw_ctx->viewport_size_get());
   View &view = View::default_get();
 
@@ -91,7 +89,8 @@ static void render_init_buffers(const DRWContext *draw_ctx,
     remap_depth(view, {pix_z, rpass_z_src->rectx * rpass_z_src->recty});
   }
 
-  const bool do_region = (scene->r.mode & R_BORDER) != 0;
+  const bool do_region = !(rect->xmin == 0 && rect->ymin == 0 && rect->xmax == size.x &&
+                           rect->ymax == size.y);
   const bool do_clear_z = !pix_z || do_region;
   const bool do_clear_col = !pix_col || do_region;
 
@@ -238,7 +237,7 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
   Manager &manager = *DRW_manager_get();
 
   render_set_view(engine, depsgraph);
-  render_init_buffers(draw_ctx, inst, engine, render_layer, depsgraph, &rect);
+  render_init_buffers(draw_ctx, inst, engine, render_layer, &rect);
   inst.init();
 
   inst.camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
@@ -266,7 +265,7 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
     const float2 aa_sample = Instance::antialiasing_sample_get(sample_i, sample_count) * aa_radius;
     const float2 aa_offset = 2.0f * aa_sample / float2(inst.render_color_tx.size());
     render_set_view(engine, depsgraph, aa_offset);
-    render_init_buffers(draw_ctx, inst, engine, render_layer, depsgraph, &rect);
+    render_init_buffers(draw_ctx, inst, engine, render_layer, &rect);
 
     /* Render the gpencil object and merge the result to the underlying render. */
     inst.draw(manager);
