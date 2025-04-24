@@ -5572,9 +5572,9 @@ static void join_triangle_props(wmOperatorType *ot)
 void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Tris to Quads";
+  ot->name = "Triangles to Quads";
   ot->idname = "MESH_OT_tris_convert_to_quads";
-  ot->description = "Join triangles into quads";
+  ot->description = "Merge triangles into four sided polygons where possible";
 
   /* api callbacks */
   ot->exec = edbm_tris_convert_to_quads_exec;
