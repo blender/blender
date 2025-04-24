@@ -1995,8 +1995,10 @@ static void rigidbody_update_external_forces(Depsgraph *depsgraph,
         if (!is_zero_v3(eff_force)) {
           RB_body_activate(static_cast<rbRigidBody *>(rbo->shared->physics_object));
         }
-        RB_body_apply_central_force(static_cast<rbRigidBody *>(rbo->shared->physics_object),
-                                    eff_force);
+        if ((rbo->flag & RBO_FLAG_DISABLED) == 0) {
+          RB_body_apply_central_force(static_cast<rbRigidBody *>(rbo->shared->physics_object),
+                                      eff_force);
+        }
       }
       else if (G.f & G_DEBUG) {
         printf("\tno forces to apply to '%s'\n", ob->id.name + 2);
