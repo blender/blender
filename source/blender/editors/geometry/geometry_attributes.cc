@@ -475,7 +475,8 @@ static bool geometry_attribute_convert_poll(bContext *C)
   return true;
 }
 
-bool convert_attribute(bke::MutableAttributeAccessor attributes,
+bool convert_attribute(AttributeOwner &owner,
+                       bke::MutableAttributeAccessor attributes,
                        const StringRef name,
                        const bke::AttrDomain dst_domain,
                        const eCustomDataType dst_type,
@@ -489,6 +490,9 @@ bool convert_attribute(bke::MutableAttributeAccessor attributes,
     return false;
   }
 
+  const CustomDataLayer *active_attribute = BKE_attributes_active_get(owner);
+  const bool was_active = active_attribute && active_attribute->name == name;
+
   const std::string name_copy = name;
   const GVArray varray = *attributes.lookup_or_default(name_copy, dst_domain, dst_type);
 
@@ -500,6 +504,13 @@ bool convert_attribute(bke::MutableAttributeAccessor attributes,
   if (!attributes.add(name_copy, dst_domain, dst_type, bke::AttributeInitMoveArray(new_data))) {
     MEM_freeN(new_data);
   }
+
+  if (was_active) {
+    /* The attribute active status is stored as an index. Changing the attribute's domain will
+     * change its index, so reassign the active attribute if necessary.*/
+    BKE_attributes_active_set(owner, name_copy);
+  }
+
   return true;
 }
 
@@ -519,7 +530,8 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
 
     switch (mode) {
       case ConvertAttributeMode::Generic: {
-        if (!convert_attribute(attributes,
+        if (!convert_attribute(owner,
+                               attributes,
                                name,
                                bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
                                eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
@@ -559,7 +571,8 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
   else if (ob->type == OB_CURVES) {
     Curves *curves_id = static_cast<Curves *>(ob->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-    if (!convert_attribute(curves.attributes_for_write(),
+    if (!convert_attribute(owner,
+                           curves.attributes_for_write(),
                            name,
                            bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
                            eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
@@ -572,7 +585,8 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
   }
   else if (ob->type == OB_POINTCLOUD) {
     PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
-    if (!convert_attribute(pointcloud.attributes_for_write(),
+    if (!convert_attribute(owner,
+                           pointcloud.attributes_for_write(),
                            name,
                            bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
                            eCustomDataType(RNA_enum_get(op->ptr, "data_type")),
@@ -918,7 +932,9 @@ static wmOperatorStatus geometry_color_attribute_convert_exec(bContext *C, wmOpe
 {
   Object *ob = object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  convert_attribute(mesh->attributes_for_write(),
+  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+  convert_attribute(owner,
+                    mesh->attributes_for_write(),
                     mesh->active_color_attribute,
                     bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
                     eCustomDataType(RNA_enum_get(op->ptr, "data_type")),

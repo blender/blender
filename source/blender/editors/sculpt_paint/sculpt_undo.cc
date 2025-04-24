@@ -1865,7 +1865,8 @@ static void set_active_layer(bContext *C, const SculptAttrRef *attr)
     layer = BKE_attribute_search_for_write(
         owner, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
     if (layer) {
-      if (ed::geometry::convert_attribute(mesh->attributes_for_write(),
+      if (ed::geometry::convert_attribute(owner,
+                                          mesh->attributes_for_write(),
                                           attr->name,
                                           attr->domain,
                                           eCustomDataType(attr->type),
