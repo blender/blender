@@ -7809,8 +7809,6 @@ static void def_cmp_diff_matte(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
-
   prop = RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_funcs(prop,
                                "rna_node_property_to_input_getter<float, node_input_tolerance>",
@@ -7839,8 +7837,6 @@ static void def_cmp_diff_matte(BlenderRNA * /*brna*/, StructRNA *srna)
 static void def_cmp_color_matte(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
-
-  RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
 
   prop = RNA_def_property(srna, "color_hue", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_funcs(prop,
@@ -8048,8 +8044,6 @@ static void def_cmp_luma_matte(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
-
   prop = RNA_def_property(srna, "limit_max", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_funcs(prop,
                                "rna_node_property_to_input_getter<float, node_input_maximum>",
@@ -8083,8 +8077,6 @@ static void def_cmp_chroma_matte(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
-
   prop = RNA_def_property(srna, "tolerance", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_funcs(prop,
                                "rna_node_property_to_input_getter<float, node_input_maximum>",
@@ -8110,7 +8102,7 @@ static void def_cmp_chroma_matte(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "fsize");
+  RNA_def_property_float_sdna(prop, nullptr, "custom4");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Lift", "Alpha lift. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -8126,7 +8118,7 @@ static void def_cmp_chroma_matte(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shadow_adjust", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "t3");
+  RNA_def_property_float_sdna(prop, nullptr, "custom3");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
       prop,

@@ -26,8 +26,6 @@
 
 namespace blender::nodes::node_composite_color_matte_cc {
 
-NODE_STORAGE_FUNCS(NodeChroma)
-
 static void cmp_node_color_matte_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
@@ -63,13 +61,10 @@ static void cmp_node_color_matte_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_color_matte(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* All members are deprecated and needn't be set, but the data is still allocated for forward
+   * compatibility. */
   NodeChroma *c = MEM_callocN<NodeChroma>(__func__);
   node->storage = c;
-  c->t1 = 0.01f;
-  c->t2 = 0.1f;
-  c->t3 = 0.1f;
-  c->fsize = 0.0f;
-  c->fstrength = 1.0f;
 }
 
 using namespace blender::compositor;

@@ -1213,10 +1213,15 @@ typedef struct NodeImageMultiFileSocket {
 } NodeImageMultiFileSocket;
 
 typedef struct NodeChroma {
-  float t1, t2, t3;
-  float fsize, fstrength, falpha;
-  float key[4];
-  short algorithm, channel;
+  float t1 DNA_DEPRECATED;
+  float t2 DNA_DEPRECATED;
+  float t3 DNA_DEPRECATED;
+  float fsize DNA_DEPRECATED;
+  float fstrength DNA_DEPRECATED;
+  float falpha DNA_DEPRECATED;
+  float key[4] DNA_DEPRECATED;
+  short algorithm;
+  short channel;
 } NodeChroma;
 
 typedef struct NodeTwoXYs {
