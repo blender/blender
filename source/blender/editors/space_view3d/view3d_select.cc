@@ -1360,7 +1360,7 @@ static bool view3d_lasso_select(bContext *C,
     }
     else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
       changed_multi |= PE_lasso_select(C,
-                                       reinterpret_cast<const int(*)[2]>(mcoords.data()),
+                                       reinterpret_cast<const int (*)[2]>(mcoords.data()),
                                        mcoords.size(),
                                        sel_op) != OPERATOR_CANCELLED;
     }
@@ -4243,6 +4243,12 @@ static int gpu_bone_select_buffer_cmp(const void *sel_a_p, const void *sel_b_p)
   return 0;
 }
 
+static void object_select_tag_updates(bContext &C, Scene &scene)
+{
+  DEG_id_tag_update(&scene.id, ID_RECALC_SELECT);
+  WM_event_add_notifier(&C, NC_SCENE | ND_OB_SELECT, &scene);
+}
+
 static bool do_object_box_select(bContext *C,
                                  const ViewContext *vc,
                                  const rcti *rect,
@@ -4259,8 +4265,6 @@ static bool do_object_box_select(bContext *C,
     base->object->id.tag &= ~ID_TAG_DOIT;
   }
 
-  blender::Vector<Base *> bases;
-
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     changed |= object_deselect_all_visible(vc->scene, vc->view_layer, vc->v3d);
@@ -4268,13 +4272,19 @@ static bool do_object_box_select(bContext *C,
 
   ListBase *object_bases = BKE_view_layer_object_bases_get(vc->view_layer);
   if ((hits == -1) && !SEL_OP_USE_OUTSIDE(sel_op)) {
-    goto finally;
+    if (changed) {
+      object_select_tag_updates(*C, *vc->scene);
+      return true;
+    }
   }
 
+  blender::Map<uint32_t, Base *> base_by_object_select_id;
   LISTBASE_FOREACH (Base *, base, object_bases) {
     if (BASE_SELECTABLE(v3d, base)) {
-      if ((base->object->runtime->select_id & 0x0000FFFF) != 0) {
-        bases.append(base);
+      const uint32_t select_id = base->object->runtime->select_id;
+      if ((select_id & 0x0000FFFF) != 0) {
+        const uint hit_object = select_id & 0xFFFF;
+        base_by_object_select_id.add(hit_object, base);
       }
     }
   }
@@ -4282,21 +4292,22 @@ static bool do_object_box_select(bContext *C,
   /* The draw order doesn't always match the order we populate the engine, see: #51695. */
   qsort(buffer.storage.data(), hits, sizeof(GPUSelectResult), gpu_bone_select_buffer_cmp);
 
+  blender::Set<Base *> bases_inside;
   for (const GPUSelectResult *buf_iter = buffer.storage.data(), *buf_end = buf_iter + hits;
        buf_iter < buf_end;
        buf_iter++)
   {
-    bPoseChannel *pchan_dummy;
-    Base *base = ED_armature_base_and_pchan_from_select_buffer(bases, buf_iter->id, &pchan_dummy);
-    if (base != nullptr) {
-      base->object->id.tag |= ID_TAG_DOIT;
+    const uint32_t select_id = buf_iter->id;
+    const uint32_t hit_object = select_id & 0xFFFF;
+    if (Base *base = base_by_object_select_id.lookup_default(hit_object, nullptr)) {
+      bases_inside.add(base);
     }
   }
 
   for (Base *base = static_cast<Base *>(object_bases->first); base && hits; base = base->next) {
     if (BASE_SELECTABLE(v3d, base)) {
       const bool is_select = base->flag & BASE_SELECTED;
-      const bool is_inside = base->object->id.tag & ID_TAG_DOIT;
+      const bool is_inside = bases_inside.contains(base);
       const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
         blender::ed::object::base_select(base,
@@ -4307,11 +4318,8 @@ static bool do_object_box_select(bContext *C,
     }
   }
 
-finally:
-
   if (changed) {
-    DEG_id_tag_update(&vc->scene->id, ID_RECALC_SELECT);
-    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
+    object_select_tag_updates(*C, *vc->scene);
   }
   return changed;
 }
