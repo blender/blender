@@ -2157,6 +2157,14 @@ enum {
    * over the layout and can enable it). */
   UI_TEMPLATE_OP_PROPS_NO_SPLIT_LAYOUT = 1 << 4,
   UI_TEMPLATE_OP_PROPS_HIDE_PRESETS = 1 << 5,
+  /**
+   * Allow the buttons placed by the template to send an undo push. Usually this isn't wanted,
+   * except for rare cases where operators draw their properties into a regular UI for later
+   * execution (e.g. collection exporter panels in Properties).
+   *
+   * This should never be enabled for UIs that trigger redo, like "Adjust Last Operation" panels.
+   */
+  UI_TEMPLATE_OP_PROPS_ALLOW_UNDO_PUSH = 1 << 6,
 };
 
 /* Used for transparent checkers shown under color buttons that have an alpha component. */
