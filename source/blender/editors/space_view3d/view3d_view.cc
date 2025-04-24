@@ -603,7 +603,7 @@ int view3d_gpu_select_ex(const ViewContext *vc,
     GPU_select_begin_next(buffer, &rect, gpu_select_mode, 0);
     GPU_select_cache_load_id();
     hits = GPU_select_end();
-    goto finally;
+    return hits;
   }
 
   switch (select_filter) {
@@ -733,7 +733,6 @@ int view3d_gpu_select_ex(const ViewContext *vc,
 
   UI_Theme_Restore(&theme_state);
 
-finally:
   return hits;
 }
 
