@@ -961,6 +961,7 @@ static VkDescriptorType to_vk_descriptor_type_image(const shader::ImageType &ima
 static VkDescriptorType to_vk_descriptor_type_sampler(const shader::ImageType &image_type)
 {
   switch (image_type) {
+    case shader::ImageType::undefined:
     case shader::ImageType::Float1D:
     case shader::ImageType::Float1DArray:
     case shader::ImageType::Float2D:
