@@ -24,7 +24,7 @@ SHADER_LIBRARY_CREATE_INFO(workbench_resolve_cavity)
 #ifdef USE_CAVITY
 
 void cavity_compute(float2 screenco,
-                    depth2D depth_buffer,
+                    sampler2DDepth depth_buffer,
                     sampler2D normalBuffer,
                     out float cavities,
                     out float edges)

@@ -15,13 +15,13 @@
 #include "gpu_shader_create_info.hh"
 
 #define image_out(slot, format, name) \
-  image(slot, format, Qualifier::WRITE, ImageType::FLOAT_2D, name, Frequency::PASS)
+  image(slot, format, Qualifier::write, ImageType::Float2D, name, Frequency::PASS)
 #define uimage_out(slot, format, name) \
-  image(slot, format, Qualifier::WRITE, ImageType::UINT_2D, name, Frequency::PASS)
+  image(slot, format, Qualifier::write, ImageType::Uint2D, name, Frequency::PASS)
 #define image_in(slot, format, name) \
-  image(slot, format, Qualifier::READ, ImageType::FLOAT_2D, name, Frequency::PASS)
+  image(slot, format, Qualifier::read, ImageType::Float2D, name, Frequency::PASS)
 #define image_array_out(slot, qualifier, format, name) \
-  image(slot, format, qualifier, ImageType::FLOAT_2D_ARRAY, name, Frequency::PASS)
+  image(slot, format, qualifier, ImageType::Float2DArray, name, Frequency::PASS)
 
 /* -------------------------------------------------------------------- */
 /** \name Thickness Amend
@@ -30,8 +30,8 @@
 GPU_SHADER_CREATE_INFO(eevee_deferred_thickness_amend)
 DO_STATIC_COMPILATION()
 DEFINE("GBUFFER_LOAD")
-SAMPLER(0, UINT_2D_ARRAY, gbuf_header_tx)
-IMAGE(0, GPU_RG16, READ_WRITE, FLOAT_2D_ARRAY, gbuf_normal_img)
+SAMPLER(0, usampler2DArray, gbuf_header_tx)
+IMAGE(0, GPU_RG16, read_write, image2DArray, gbuf_normal_img)
 /* Early fragment test is needed to discard fragment that do not need this processing. */
 EARLY_FRAGMENT_TEST(true)
 FRAGMENT_SOURCE("eevee_deferred_thickness_amend_frag.glsl")
@@ -50,7 +50,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_tile_classify)
 FRAGMENT_SOURCE("eevee_deferred_tile_classify_frag.glsl")
 ADDITIONAL_INFO(eevee_shared)
 ADDITIONAL_INFO(gpu_fullscreen)
-SUBPASS_IN(1, uint, UINT_2D_ARRAY, in_gbuffer_header, DEFERRED_GBUFFER_ROG_ID)
+SUBPASS_IN(1, uint, Uint2DArray, in_gbuffer_header, DEFERRED_GBUFFER_ROG_ID)
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 PUSH_CONSTANT(int, current_bit)
 DO_STATIC_COMPILATION()
@@ -62,13 +62,13 @@ FRAGMENT_SOURCE("eevee_deferred_light_frag.glsl")
 EARLY_FRAGMENT_TEST(true)
 FRAGMENT_OUT(0, float4, out_combined)
 /* Chaining to next pass. */
-IMAGE_FREQ(2, DEFERRED_RADIANCE_FORMAT, WRITE, UINT_2D, direct_radiance_1_img, PASS)
-IMAGE_FREQ(3, DEFERRED_RADIANCE_FORMAT, WRITE, UINT_2D, direct_radiance_2_img, PASS)
-IMAGE_FREQ(4, DEFERRED_RADIANCE_FORMAT, WRITE, UINT_2D, direct_radiance_3_img, PASS)
+IMAGE_FREQ(2, DEFERRED_RADIANCE_FORMAT, write, uimage2D, direct_radiance_1_img, PASS)
+IMAGE_FREQ(3, DEFERRED_RADIANCE_FORMAT, write, uimage2D, direct_radiance_2_img, PASS)
+IMAGE_FREQ(4, DEFERRED_RADIANCE_FORMAT, write, uimage2D, direct_radiance_3_img, PASS)
 /* Optimized out if use_split_indirect is false. */
-IMAGE_FREQ(5, RAYTRACE_RADIANCE_FORMAT, WRITE, FLOAT_2D, indirect_radiance_1_img, PASS)
-IMAGE_FREQ(6, RAYTRACE_RADIANCE_FORMAT, WRITE, FLOAT_2D, indirect_radiance_2_img, PASS)
-IMAGE_FREQ(7, RAYTRACE_RADIANCE_FORMAT, WRITE, FLOAT_2D, indirect_radiance_3_img, PASS)
+IMAGE_FREQ(5, RAYTRACE_RADIANCE_FORMAT, write, image2D, indirect_radiance_1_img, PASS)
+IMAGE_FREQ(6, RAYTRACE_RADIANCE_FORMAT, write, image2D, indirect_radiance_2_img, PASS)
+IMAGE_FREQ(7, RAYTRACE_RADIANCE_FORMAT, write, image2D, indirect_radiance_3_img, PASS)
 SPECIALIZATION_CONSTANT(bool, use_split_indirect, false)
 SPECIALIZATION_CONSTANT(bool, use_lightprobe_eval, false)
 SPECIALIZATION_CONSTANT(bool, use_transmission, false)
@@ -112,13 +112,13 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_combine)
 /* Early fragment test is needed to avoid processing fragments background fragments. */
 EARLY_FRAGMENT_TEST(true)
 /* Inputs. */
-SAMPLER(2, UINT_2D, direct_radiance_1_tx)
-SAMPLER(3, UINT_2D, direct_radiance_2_tx)
-SAMPLER(4, UINT_2D, direct_radiance_3_tx)
-SAMPLER(5, FLOAT_2D, indirect_radiance_1_tx)
-SAMPLER(6, FLOAT_2D, indirect_radiance_2_tx)
-SAMPLER(7, FLOAT_2D, indirect_radiance_3_tx)
-IMAGE(5, GPU_RGBA16F, READ_WRITE, FLOAT_2D, radiance_feedback_img)
+SAMPLER(2, usampler2D, direct_radiance_1_tx)
+SAMPLER(3, usampler2D, direct_radiance_2_tx)
+SAMPLER(4, usampler2D, direct_radiance_3_tx)
+SAMPLER(5, sampler2D, indirect_radiance_1_tx)
+SAMPLER(6, sampler2D, indirect_radiance_2_tx)
+SAMPLER(7, sampler2D, indirect_radiance_3_tx)
+IMAGE(5, GPU_RGBA16F, read_write, image2D, radiance_feedback_img)
 FRAGMENT_OUT(0, float4, out_combined)
 ADDITIONAL_INFO(eevee_shared)
 ADDITIONAL_INFO(eevee_gbuffer_data)

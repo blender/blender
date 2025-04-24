@@ -357,30 +357,30 @@ static GPUShader *compile_eval_stencil_shader(BufferDescriptor const &srcDesc,
   info.define("WORK_GROUP_SIZE", work_group_size);
   info.typedef_source("osd_patch_basis.glsl");
   info.storage_buf(
-      SHADER_SRC_VERTEX_BUFFER_BUF_SLOT, Qualifier::READ, "float", "srcVertexBuffer[]");
+      SHADER_SRC_VERTEX_BUFFER_BUF_SLOT, Qualifier::read, "float", "srcVertexBuffer[]");
   info.storage_buf(
-      SHADER_DST_VERTEX_BUFFER_BUF_SLOT, Qualifier::WRITE, "float", "dstVertexBuffer[]");
+      SHADER_DST_VERTEX_BUFFER_BUF_SLOT, Qualifier::write, "float", "dstVertexBuffer[]");
   info.push_constant(Type::int_t, "srcOffset");
   info.push_constant(Type::int_t, "dstOffset");
 
   bool deriv1 = (duDesc.length > 0 || dvDesc.length > 0);
   if (deriv1) {
     info.define("OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES");
-    info.storage_buf(SHADER_DU_BUFFER_BUF_SLOT, Qualifier::READ_WRITE, "float", "duBuffer[]");
-    info.storage_buf(SHADER_DV_BUFFER_BUF_SLOT, Qualifier::READ_WRITE, "float", "dvBuffer[]");
+    info.storage_buf(SHADER_DU_BUFFER_BUF_SLOT, Qualifier::read_write, "float", "duBuffer[]");
+    info.storage_buf(SHADER_DV_BUFFER_BUF_SLOT, Qualifier::read_write, "float", "dvBuffer[]");
     info.push_constant(Type::int3_t, "duDesc");
     info.push_constant(Type::int3_t, "dvDesc");
   }
 
-  info.storage_buf(SHADER_SIZES_BUF_SLOT, Qualifier::READ, "int", "sizes_buf[]");
-  info.storage_buf(SHADER_OFFSETS_BUF_SLOT, Qualifier::READ, "int", "offsets_buf[]");
-  info.storage_buf(SHADER_INDICES_BUF_SLOT, Qualifier::READ, "int", "indices_buf[]");
-  info.storage_buf(SHADER_WEIGHTS_BUF_SLOT, Qualifier::READ, "float", "weights_buf[]");
+  info.storage_buf(SHADER_SIZES_BUF_SLOT, Qualifier::read, "int", "sizes_buf[]");
+  info.storage_buf(SHADER_OFFSETS_BUF_SLOT, Qualifier::read, "int", "offsets_buf[]");
+  info.storage_buf(SHADER_INDICES_BUF_SLOT, Qualifier::read, "int", "indices_buf[]");
+  info.storage_buf(SHADER_WEIGHTS_BUF_SLOT, Qualifier::read, "float", "weights_buf[]");
   if (deriv1) {
     info.storage_buf(
-        SHADER_DU_WEIGHTS_BUF_SLOT, Qualifier::READ_WRITE, "float", "du_weights_buf[]");
+        SHADER_DU_WEIGHTS_BUF_SLOT, Qualifier::read_write, "float", "du_weights_buf[]");
     info.storage_buf(
-        SHADER_DV_WEIGHTS_BUF_SLOT, Qualifier::READ_WRITE, "float", "dv_weights_buf[]");
+        SHADER_DV_WEIGHTS_BUF_SLOT, Qualifier::read_write, "float", "dv_weights_buf[]");
   }
   info.push_constant(Type::int_t, "batchStart");
   info.push_constant(Type::int_t, "batchEnd");
@@ -459,29 +459,29 @@ static GPUShader *compile_eval_patches_shader(BufferDescriptor const &srcDesc,
   info.define("WORK_GROUP_SIZE", work_group_size);
   info.typedef_source("osd_patch_basis.glsl");
   info.storage_buf(
-      SHADER_SRC_VERTEX_BUFFER_BUF_SLOT, Qualifier::READ, "float", "srcVertexBuffer[]");
+      SHADER_SRC_VERTEX_BUFFER_BUF_SLOT, Qualifier::read, "float", "srcVertexBuffer[]");
   info.storage_buf(
-      SHADER_DST_VERTEX_BUFFER_BUF_SLOT, Qualifier::WRITE, "float", "dstVertexBuffer[]");
+      SHADER_DST_VERTEX_BUFFER_BUF_SLOT, Qualifier::write, "float", "dstVertexBuffer[]");
   info.push_constant(Type::int_t, "srcOffset");
   info.push_constant(Type::int_t, "dstOffset");
 
   bool deriv1 = (duDesc.length > 0 || dvDesc.length > 0);
   if (deriv1) {
     info.define("OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES");
-    info.storage_buf(SHADER_DU_BUFFER_BUF_SLOT, Qualifier::READ_WRITE, "float", "duBuffer[]");
-    info.storage_buf(SHADER_DV_BUFFER_BUF_SLOT, Qualifier::READ_WRITE, "float", "dvBuffer[]");
+    info.storage_buf(SHADER_DU_BUFFER_BUF_SLOT, Qualifier::read_write, "float", "duBuffer[]");
+    info.storage_buf(SHADER_DV_BUFFER_BUF_SLOT, Qualifier::read_write, "float", "dvBuffer[]");
     info.push_constant(Type::int3_t, "duDesc");
     info.push_constant(Type::int3_t, "dvDesc");
   }
 
   info.storage_buf(
-      SHADER_PATCH_ARRAY_BUFFER_BUF_SLOT, Qualifier::READ, "OsdPatchArray", "patchArrayBuffer[]");
+      SHADER_PATCH_ARRAY_BUFFER_BUF_SLOT, Qualifier::read, "OsdPatchArray", "patchArrayBuffer[]");
   info.storage_buf(
-      SHADER_PATCH_COORDS_BUF_SLOT, Qualifier::READ, "OsdPatchCoord", "patchCoords[]");
+      SHADER_PATCH_COORDS_BUF_SLOT, Qualifier::read, "OsdPatchCoord", "patchCoords[]");
   info.storage_buf(
-      SHADER_PATCH_INDEX_BUFFER_BUF_SLOT, Qualifier::READ, "int", "patchIndexBuffer[]");
+      SHADER_PATCH_INDEX_BUFFER_BUF_SLOT, Qualifier::read, "int", "patchIndexBuffer[]");
   info.storage_buf(
-      SHADER_PATCH_PARAM_BUFFER_BUF_SLOT, Qualifier::READ, "OsdPatchParam", "patchParamBuffer[]");
+      SHADER_PATCH_PARAM_BUFFER_BUF_SLOT, Qualifier::read, "OsdPatchParam", "patchParamBuffer[]");
 
   info.compute_source("osd_eval_patches_comp.glsl");
   GPUShader *shader = GPU_shader_create_from_info(

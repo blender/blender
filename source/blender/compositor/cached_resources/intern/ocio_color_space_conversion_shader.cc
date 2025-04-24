@@ -242,12 +242,12 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     {
       texture = GPU_texture_create_1d(
           texture_name, width, 1, texture_format, GPU_TEXTURE_USAGE_SHADER_READ, values);
-      shader_create_info_.sampler(textures_.size() + 1, ImageType::FLOAT_1D, resource_name);
+      shader_create_info_.sampler(textures_.size() + 1, ImageType::Float1D, resource_name);
     }
     else {
       texture = GPU_texture_create_2d(
           texture_name, width, height, 1, texture_format, GPU_TEXTURE_USAGE_SHADER_READ, values);
-      shader_create_info_.sampler(textures_.size() + 1, ImageType::FLOAT_2D, resource_name);
+      shader_create_info_.sampler(textures_.size() + 1, ImageType::Float2D, resource_name);
     }
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);
 
@@ -268,7 +268,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     /* Don't use the name argument directly since ShaderCreateInfo only stores references to
      * resource names, instead, use the name that is stored in resource_names_. */
     const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
-    shader_create_info_.sampler(textures_.size() + 1, ImageType::FLOAT_3D, resource_name);
+    shader_create_info_.sampler(textures_.size() + 1, ImageType::Float3D, resource_name);
 
     GPUTexture *texture = GPU_texture_create_3d(texture_name,
                                                 size,
@@ -306,11 +306,11 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     GpuShaderCreator::finalize();
 
     shader_create_info_.local_group_size(16, 16);
-    shader_create_info_.sampler(0, ImageType::FLOAT_2D, input_sampler_name());
+    shader_create_info_.sampler(0, ImageType::Float2D, input_sampler_name());
     shader_create_info_.image(0,
                               Result::gpu_texture_format(ResultType::Color, precision_),
-                              Qualifier::WRITE,
-                              ImageType::FLOAT_2D,
+                              Qualifier::write,
+                              ImageReadWriteType::Float2D,
                               output_image_name());
     shader_create_info_.compute_source("gpu_shader_compositor_ocio_processor.glsl");
     shader_create_info_.compute_source_generated += shader_code_;

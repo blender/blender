@@ -169,7 +169,7 @@ METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
 #ifdef PLANAR_PROBES
 
 ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
-                                   depth2DArray planar_depth_tx,
+                                   sampler2DArrayDepth planar_depth_tx,
                                    PlanarProbeData planar,
                                    float stride_rand,
                                    Ray ray)

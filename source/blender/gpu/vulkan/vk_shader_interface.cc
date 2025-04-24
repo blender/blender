@@ -216,37 +216,37 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     VKImageViewArrayed arrayed = VKImageViewArrayed::DONT_CARE;
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       arrayed = ELEM(res.image.type,
-                     shader::ImageType::FLOAT_1D_ARRAY,
-                     shader::ImageType::FLOAT_2D_ARRAY,
-                     shader::ImageType::FLOAT_CUBE_ARRAY,
-                     shader::ImageType::INT_1D_ARRAY,
-                     shader::ImageType::INT_2D_ARRAY,
-                     shader::ImageType::INT_CUBE_ARRAY,
-                     shader::ImageType::UINT_1D_ARRAY,
-                     shader::ImageType::UINT_2D_ARRAY,
-                     shader::ImageType::UINT_CUBE_ARRAY,
-                     shader::ImageType::UINT_2D_ARRAY_ATOMIC,
-                     shader::ImageType::INT_2D_ARRAY_ATOMIC) ?
+                     shader::ImageType::Float1DArray,
+                     shader::ImageType::Float2DArray,
+                     shader::ImageType::FloatCubeArray,
+                     shader::ImageType::Int1DArray,
+                     shader::ImageType::Int2DArray,
+                     shader::ImageType::IntCubeArray,
+                     shader::ImageType::Uint1DArray,
+                     shader::ImageType::Uint2DArray,
+                     shader::ImageType::UintCubeArray,
+                     shader::ImageType::AtomicUint2DArray,
+                     shader::ImageType::AtomicInt2DArray) ?
                     VKImageViewArrayed::ARRAYED :
                     VKImageViewArrayed::NOT_ARRAYED;
     }
     else if (res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
       arrayed = ELEM(res.sampler.type,
-                     shader::ImageType::FLOAT_1D_ARRAY,
-                     shader::ImageType::FLOAT_2D_ARRAY,
-                     shader::ImageType::FLOAT_CUBE_ARRAY,
-                     shader::ImageType::INT_1D_ARRAY,
-                     shader::ImageType::INT_2D_ARRAY,
-                     shader::ImageType::INT_CUBE_ARRAY,
-                     shader::ImageType::UINT_1D_ARRAY,
-                     shader::ImageType::UINT_2D_ARRAY,
-                     shader::ImageType::UINT_CUBE_ARRAY,
-                     shader::ImageType::SHADOW_2D_ARRAY,
-                     shader::ImageType::SHADOW_CUBE_ARRAY,
-                     shader::ImageType::DEPTH_2D_ARRAY,
-                     shader::ImageType::DEPTH_CUBE_ARRAY,
-                     shader::ImageType::UINT_2D_ARRAY_ATOMIC,
-                     shader::ImageType::INT_2D_ARRAY_ATOMIC) ?
+                     shader::ImageType::Float1DArray,
+                     shader::ImageType::Float2DArray,
+                     shader::ImageType::FloatCubeArray,
+                     shader::ImageType::Int1DArray,
+                     shader::ImageType::Int2DArray,
+                     shader::ImageType::IntCubeArray,
+                     shader::ImageType::Uint1DArray,
+                     shader::ImageType::Uint2DArray,
+                     shader::ImageType::UintCubeArray,
+                     shader::ImageType::Shadow2DArray,
+                     shader::ImageType::ShadowCubeArray,
+                     shader::ImageType::Depth2DArray,
+                     shader::ImageType::DepthCubeArray,
+                     shader::ImageType::AtomicUint2DArray,
+                     shader::ImageType::AtomicInt2DArray) ?
                     VKImageViewArrayed::ARRAYED :
                     VKImageViewArrayed::NOT_ARRAYED;
     }
@@ -306,19 +306,19 @@ void VKShaderInterface::descriptor_set_location_update(
         break;
 
       case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
-        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::READ) == true) {
+        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::read) == true) {
           vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
         }
-        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::WRITE) == true) {
+        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::write) == true) {
           vk_access_flags |= VK_ACCESS_SHADER_WRITE_BIT;
         }
         break;
 
       case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
-        if (bool(resource->image.qualifiers & shader::Qualifier::READ) == true) {
+        if (bool(resource->image.qualifiers & shader::Qualifier::read) == true) {
           vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
         }
-        if (bool(resource->image.qualifiers & shader::Qualifier::WRITE) == true) {
+        if (bool(resource->image.qualifiers & shader::Qualifier::write) == true) {
           vk_access_flags |= VK_ACCESS_SHADER_WRITE_BIT;
         }
         break;

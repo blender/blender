@@ -213,8 +213,8 @@ static bool createGPUShader(OCIO_GPUShader &shader,
   info.define("in", "");
 #endif
   info.typedef_source("ocio_shader_shared.hh");
-  info.sampler(TEXTURE_SLOT_IMAGE, ImageType::FLOAT_2D, "image_texture");
-  info.sampler(TEXTURE_SLOT_OVERLAY, ImageType::FLOAT_2D, "overlay_texture");
+  info.sampler(TEXTURE_SLOT_IMAGE, ImageType::Float2D, "image_texture");
+  info.sampler(TEXTURE_SLOT_OVERLAY, ImageType::Float2D, "overlay_texture");
   info.uniform_buf(UNIFORMBUF_SLOT_DISPLAY, "OCIO_GPUParameters", "parameters");
   info.push_constant(Type::float4x4_t, "ModelViewProjectionMatrix");
   info.vertex_in(0, Type::float2_t, "pos");
@@ -233,16 +233,16 @@ static bool createGPUShader(OCIO_GPUShader &shader,
   if (use_curve_mapping) {
     info.define("USE_CURVE_MAPPING");
     info.uniform_buf(UNIFORMBUF_SLOT_CURVEMAP, "OCIO_GPUCurveMappingParameters", "curve_mapping");
-    info.sampler(TEXTURE_SLOT_CURVE_MAPPING, ImageType::FLOAT_1D, "curve_mapping_texture");
+    info.sampler(TEXTURE_SLOT_CURVE_MAPPING, ImageType::Float1D, "curve_mapping_texture");
   }
 
   /* Set LUT textures. */
   int slot = TEXTURE_SLOT_LUTS_OFFSET;
   for (OCIO_GPULutTexture &texture : textures.luts) {
     const int dimensions = GPU_texture_dimensions(texture.texture);
-    ImageType type = (dimensions == 1) ? ImageType::FLOAT_1D :
-                     (dimensions == 2) ? ImageType::FLOAT_2D :
-                                         ImageType::FLOAT_3D;
+    ImageType type = (dimensions == 1) ? ImageType::Float1D :
+                     (dimensions == 2) ? ImageType::Float2D :
+                                         ImageType::Float3D;
 
     info.sampler(slot++, type, texture.sampler_name.c_str());
   }

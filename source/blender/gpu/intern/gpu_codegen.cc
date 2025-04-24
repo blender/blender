@@ -407,22 +407,22 @@ void GPUCodegen::generate_resources()
   LISTBASE_FOREACH (GPUMaterialTexture *, tex, &graph.textures) {
     if (tex->colorband) {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
-      info.sampler(slot++, ImageType::FLOAT_1D_ARRAY, name, Frequency::BATCH);
+      info.sampler(slot++, ImageType::Float1DArray, name, Frequency::BATCH);
     }
     else if (tex->sky) {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
-      info.sampler(0, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);
+      info.sampler(0, ImageType::Float2DArray, name, Frequency::BATCH);
     }
     else if (tex->tiled_mapping_name[0] != '\0') {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
-      info.sampler(slot++, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);
+      info.sampler(slot++, ImageType::Float2DArray, name, Frequency::BATCH);
 
       const char *name_mapping = info.name_buffer.append_sampler_name(tex->tiled_mapping_name);
-      info.sampler(slot++, ImageType::FLOAT_1D_ARRAY, name_mapping, Frequency::BATCH);
+      info.sampler(slot++, ImageType::Float1DArray, name_mapping, Frequency::BATCH);
     }
     else {
       const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
-      info.sampler(slot++, ImageType::FLOAT_2D, name, Frequency::BATCH);
+      info.sampler(slot++, ImageType::Float2D, name, Frequency::BATCH);
     }
   }
 

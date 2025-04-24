@@ -98,13 +98,10 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define imageLoadFast imageLoad
 
 /* Texture format tokens -- Type explicitness required by other Graphics APIs. */
-#define depth2D sampler2D
-#define depth2DArray sampler2DArray
-#define depth2DMS sampler2DMS
-#define depth2DMSArray sampler2DMSArray
-#define depthCube samplerCube
-#define depthCubeArray samplerCubeArray
-#define depth2DArrayShadow sampler2DArrayShadow
+#define sampler2DDepth sampler2D
+#define sampler2DArrayDepth sampler2DArray
+#define samplerCubeDepth sampler2D
+#define samplerCubeArrayDepth sampler2DArray
 
 #define usampler2DArrayAtomic usampler2DArray
 #define usampler2DAtomic usampler2D

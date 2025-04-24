@@ -7,8 +7,8 @@
 GPU_SHADER_CREATE_INFO(compositor_morphological_step_shared)
 LOCAL_GROUP_SIZE(16, 16)
 PUSH_CONSTANT(int, radius)
-SAMPLER(0, FLOAT_2D, input_tx)
-IMAGE(0, GPU_R16F, WRITE, FLOAT_2D, output_img)
+SAMPLER(0, sampler2D, input_tx)
+IMAGE(0, GPU_R16F, write, image2D, output_img)
 COMPUTE_SOURCE("compositor_morphological_step.glsl")
 GPU_SHADER_CREATE_END()
 

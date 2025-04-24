@@ -41,13 +41,13 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(draw_object_infos)
 TYPEDEF_SOURCE("draw_shader_shared.hh")
 DEFINE("OBINFO_LIB")
-STORAGE_BUF(DRW_OBJ_INFOS_SLOT, READ, ObjectInfos, drw_infos[])
+STORAGE_BUF(DRW_OBJ_INFOS_SLOT, read, ObjectInfos, drw_infos[])
 GPU_SHADER_CREATE_END()
 
 /** \note Requires draw_object_infos. */
 GPU_SHADER_CREATE_INFO(draw_object_attributes)
 DEFINE("OBATTR_LIB")
-STORAGE_BUF(DRW_OBJ_ATTR_SLOT, READ, ObjectAttribute, drw_attrs[])
+STORAGE_BUF(DRW_OBJ_ATTR_SLOT, read, ObjectAttribute, drw_attrs[])
 ADDITIONAL_INFO(draw_object_infos)
 GPU_SHADER_CREATE_END()
 
@@ -65,7 +65,7 @@ DEFINE("DRW_HAIR_INFO")
 /* Per control points data inside subdivision shader
  * or
  * per tessellated point inside final shader. */
-SAMPLER(0, FLOAT_BUFFER, hairPointBuffer)
+SAMPLER(0, samplerBuffer, hairPointBuffer)
 /* TODO(@fclem): Pack these into one UBO. */
 /* hairStrandsRes: Number of points per hair strand.
  * 2 - no subdivision
@@ -89,7 +89,7 @@ PUSH_CONSTANT(float4x4, hairDupliMatrix)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
-SAMPLER_FREQ(0, FLOAT_BUFFER, ptcloud_pos_rad_tx, BATCH)
+SAMPLER_FREQ(0, samplerBuffer, ptcloud_pos_rad_tx, BATCH)
 DEFINE("POINTCLOUD_SHADER")
 DEFINE("DRW_POINTCLOUD_INFO")
 GPU_SHADER_CREATE_END()
@@ -101,8 +101,8 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(draw_gpencil)
 TYPEDEF_SOURCE("gpencil_shader_shared.hh")
 DEFINE("DRW_GPENCIL_INFO")
-SAMPLER(0, FLOAT_BUFFER, gp_pos_tx)
-SAMPLER(1, FLOAT_BUFFER, gp_col_tx)
+SAMPLER(0, samplerBuffer, gp_pos_tx)
+SAMPLER(1, samplerBuffer, gp_col_tx)
 ADDITIONAL_INFO(draw_resource_id_varying)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_object_infos)

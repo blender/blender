@@ -12,7 +12,7 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(workbench_merge_depth)
-SAMPLER(0, DEPTH_2D, depth_tx)
+SAMPLER(0, sampler2DDepth, depth_tx)
 FRAGMENT_SOURCE("workbench_merge_depth_frag.glsl")
 ADDITIONAL_INFO(gpu_fullscreen)
 DEPTH_WRITE(DepthWrite::ANY)

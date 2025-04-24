@@ -6,8 +6,8 @@
 
 GPU_SHADER_CREATE_INFO(compositor_compute_preview)
 LOCAL_GROUP_SIZE(16, 16)
-SAMPLER(0, FLOAT_2D, input_tx)
-IMAGE(0, GPU_RGBA16F, WRITE, FLOAT_2D, preview_img)
+SAMPLER(0, sampler2D, input_tx)
+IMAGE(0, GPU_RGBA16F, write, image2D, preview_img)
 COMPUTE_SOURCE("compositor_compute_preview.glsl")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()

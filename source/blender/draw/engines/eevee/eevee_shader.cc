@@ -646,7 +646,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         /* TODO(fclem): Eventually, we could add support for loading both. For now, remove the
          * vertex inputs after conversion (avoid name collision). */
         for (auto &input : info.vertex_inputs_) {
-          info.sampler(sampler_slots.get(), ImageType::FLOAT_3D, input.name, Frequency::BATCH);
+          info.sampler(sampler_slots.get(), ImageType::Float3D, input.name, Frequency::BATCH);
         }
         info.vertex_inputs_.clear();
         /* Volume materials require these for loading the grid attributes from smoke sims. */
@@ -662,7 +662,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
           global_vars << input.type << " " << input.name << ";\n";
         }
         else {
-          info.sampler(sampler_slots.get(), ImageType::FLOAT_BUFFER, input.name, Frequency::BATCH);
+          info.sampler(sampler_slots.get(), ImageType::FloatBuffer, input.name, Frequency::BATCH);
         }
       }
       info.vertex_inputs_.clear();
@@ -672,7 +672,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
         /* Even if world do not have grid attributes, we use dummy texture binds to pass correct
          * defaults. So we have to replace all attributes as samplers. */
         for (auto &input : info.vertex_inputs_) {
-          info.sampler(sampler_slots.get(), ImageType::FLOAT_3D, input.name, Frequency::BATCH);
+          info.sampler(sampler_slots.get(), ImageType::Float3D, input.name, Frequency::BATCH);
         }
         info.vertex_inputs_.clear();
       }
@@ -695,7 +695,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     case MAT_GEOM_VOLUME:
       /** Volume grid attributes come from 3D textures. Transfer attributes to samplers. */
       for (auto &input : info.vertex_inputs_) {
-        info.sampler(sampler_slots.get(), ImageType::FLOAT_3D, input.name, Frequency::BATCH);
+        info.sampler(sampler_slots.get(), ImageType::Float3D, input.name, Frequency::BATCH);
       }
       info.vertex_inputs_.clear();
       break;

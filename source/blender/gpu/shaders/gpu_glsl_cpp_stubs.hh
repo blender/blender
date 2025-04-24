@@ -511,7 +511,12 @@ RESHAPE(float3x3, float3x4, m[0].xyz, m[1].xyz, m[2].xyz)
 /** \name Sampler Types
  * \{ */
 
-template<typename T, int Dimensions, bool Cube = false, bool Array = false, bool Atomic = false>
+template<typename T,
+         int Dimensions,
+         bool Cube = false,
+         bool Array = false,
+         bool Atomic = false,
+         bool Depth = false>
 struct SamplerBase {
   static constexpr int coord_dim = Dimensions + int(Cube) + int(Array);
   static constexpr int deriv_dim = Dimensions + int(Cube);
@@ -581,10 +586,10 @@ using isampler2DAtomic = SamplerBase<int, 2, false, false, true>;
 using isampler2DArrayAtomic = SamplerBase<int, 2, false, true, true>;
 using isampler3DAtomic = SamplerBase<int, 3, false, false, true>;
 
-using depth2D = sampler2D;
-using depth2DArray = sampler2DArray;
-using depthCube = samplerCube;
-using depthCubeArray = samplerCubeArray;
+using sampler2DDepth = SamplerBase<float, 2, false, false, false, true>;
+using sampler2DArrayDepth = SamplerBase<float, 2, false, true, false, true>;
+using samplerCubeDepth = SamplerBase<float, 2, true, false, false, true>;
+using samplerCubeArrayDepth = SamplerBase<float, 2, true, true, false, true>;
 
 /* Sampler Buffers do not have LOD. */
 float4 texelFetch(samplerBuffer, int) RET;
@@ -597,7 +602,7 @@ uint4 texelFetch(usamplerBuffer, int) RET;
 /** \name Image Types
  * \{ */
 
-template<typename T, int Dimensions, bool Array = false> struct ImageBase {
+template<typename T, int Dimensions, bool Array = false, bool Atomic = false> struct ImageBase {
   static constexpr int coord_dim = Dimensions + int(Array);
 
   using int_coord_type = VecBase<int, coord_dim>;
@@ -658,6 +663,14 @@ using iimage1DArray = ImageBase<int, 1, true>;
 using iimage2DArray = ImageBase<int, 2, true>;
 using uimage1DArray = ImageBase<uint, 1, true>;
 using uimage2DArray = ImageBase<uint, 2, true>;
+
+using iimage2DAtomic = ImageBase<int, 2, false, true>;
+using iimage3DAtomic = ImageBase<int, 3, false, true>;
+using uimage2DAtomic = ImageBase<uint, 2, false, true>;
+using uimage3DAtomic = ImageBase<uint, 3, false, true>;
+
+using iimage2DArrayAtomic = ImageBase<int, 2, true, true>;
+using uimage2DArrayAtomic = ImageBase<uint, 2, true, true>;
 
 /* Forbid Cube and cube arrays. Bind them as 3D textures instead. */
 

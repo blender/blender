@@ -209,30 +209,30 @@ static void print_image_type(std::ostream &os,
                              const ShaderCreateInfo::Resource::BindType bind_type)
 {
   switch (type) {
-    case ImageType::INT_BUFFER:
-    case ImageType::INT_1D:
-    case ImageType::INT_1D_ARRAY:
-    case ImageType::INT_2D:
-    case ImageType::INT_2D_ARRAY:
-    case ImageType::INT_3D:
-    case ImageType::INT_CUBE:
-    case ImageType::INT_CUBE_ARRAY:
-    case ImageType::INT_2D_ATOMIC:
-    case ImageType::INT_2D_ARRAY_ATOMIC:
-    case ImageType::INT_3D_ATOMIC:
+    case ImageType::IntBuffer:
+    case ImageType::Int1D:
+    case ImageType::Int1DArray:
+    case ImageType::Int2D:
+    case ImageType::Int2DArray:
+    case ImageType::Int3D:
+    case ImageType::IntCube:
+    case ImageType::IntCubeArray:
+    case ImageType::AtomicInt2D:
+    case ImageType::AtomicInt2DArray:
+    case ImageType::AtomicInt3D:
       os << "i";
       break;
-    case ImageType::UINT_BUFFER:
-    case ImageType::UINT_1D:
-    case ImageType::UINT_1D_ARRAY:
-    case ImageType::UINT_2D:
-    case ImageType::UINT_2D_ARRAY:
-    case ImageType::UINT_3D:
-    case ImageType::UINT_CUBE:
-    case ImageType::UINT_CUBE_ARRAY:
-    case ImageType::UINT_2D_ATOMIC:
-    case ImageType::UINT_2D_ARRAY_ATOMIC:
-    case ImageType::UINT_3D_ATOMIC:
+    case ImageType::UintBuffer:
+    case ImageType::Uint1D:
+    case ImageType::Uint1DArray:
+    case ImageType::Uint2D:
+    case ImageType::Uint2DArray:
+    case ImageType::Uint3D:
+    case ImageType::UintCube:
+    case ImageType::UintCubeArray:
+    case ImageType::AtomicUint2D:
+    case ImageType::AtomicUint2DArray:
+    case ImageType::AtomicUint3D:
       os << "u";
       break;
     default:
@@ -247,52 +247,52 @@ static void print_image_type(std::ostream &os,
   }
 
   switch (type) {
-    case ImageType::FLOAT_BUFFER:
-    case ImageType::INT_BUFFER:
-    case ImageType::UINT_BUFFER:
+    case ImageType::FloatBuffer:
+    case ImageType::IntBuffer:
+    case ImageType::UintBuffer:
       os << "Buffer";
       break;
-    case ImageType::FLOAT_1D:
-    case ImageType::FLOAT_1D_ARRAY:
-    case ImageType::INT_1D:
-    case ImageType::INT_1D_ARRAY:
-    case ImageType::UINT_1D:
-    case ImageType::UINT_1D_ARRAY:
+    case ImageType::Float1D:
+    case ImageType::Float1DArray:
+    case ImageType::Int1D:
+    case ImageType::Int1DArray:
+    case ImageType::Uint1D:
+    case ImageType::Uint1DArray:
       os << "1D";
       break;
-    case ImageType::FLOAT_2D:
-    case ImageType::FLOAT_2D_ARRAY:
-    case ImageType::INT_2D:
-    case ImageType::INT_2D_ARRAY:
-    case ImageType::UINT_2D:
-    case ImageType::UINT_2D_ARRAY:
-    case ImageType::SHADOW_2D:
-    case ImageType::SHADOW_2D_ARRAY:
-    case ImageType::DEPTH_2D:
-    case ImageType::DEPTH_2D_ARRAY:
-    case ImageType::INT_2D_ATOMIC:
-    case ImageType::INT_2D_ARRAY_ATOMIC:
-    case ImageType::UINT_2D_ATOMIC:
-    case ImageType::UINT_2D_ARRAY_ATOMIC:
+    case ImageType::Float2D:
+    case ImageType::Float2DArray:
+    case ImageType::Int2D:
+    case ImageType::Int2DArray:
+    case ImageType::Uint2D:
+    case ImageType::Uint2DArray:
+    case ImageType::Shadow2D:
+    case ImageType::Shadow2DArray:
+    case ImageType::Depth2D:
+    case ImageType::Depth2DArray:
+    case ImageType::AtomicInt2D:
+    case ImageType::AtomicInt2DArray:
+    case ImageType::AtomicUint2D:
+    case ImageType::AtomicUint2DArray:
       os << "2D";
       break;
-    case ImageType::FLOAT_3D:
-    case ImageType::INT_3D:
-    case ImageType::INT_3D_ATOMIC:
-    case ImageType::UINT_3D:
-    case ImageType::UINT_3D_ATOMIC:
+    case ImageType::Float3D:
+    case ImageType::Int3D:
+    case ImageType::AtomicInt3D:
+    case ImageType::Uint3D:
+    case ImageType::AtomicUint3D:
       os << "3D";
       break;
-    case ImageType::FLOAT_CUBE:
-    case ImageType::FLOAT_CUBE_ARRAY:
-    case ImageType::INT_CUBE:
-    case ImageType::INT_CUBE_ARRAY:
-    case ImageType::UINT_CUBE:
-    case ImageType::UINT_CUBE_ARRAY:
-    case ImageType::SHADOW_CUBE:
-    case ImageType::SHADOW_CUBE_ARRAY:
-    case ImageType::DEPTH_CUBE:
-    case ImageType::DEPTH_CUBE_ARRAY:
+    case ImageType::FloatCube:
+    case ImageType::FloatCubeArray:
+    case ImageType::IntCube:
+    case ImageType::IntCubeArray:
+    case ImageType::UintCube:
+    case ImageType::UintCubeArray:
+    case ImageType::ShadowCube:
+    case ImageType::ShadowCubeArray:
+    case ImageType::DepthCube:
+    case ImageType::DepthCubeArray:
       os << "Cube";
       break;
     default:
@@ -300,20 +300,20 @@ static void print_image_type(std::ostream &os,
   }
 
   switch (type) {
-    case ImageType::FLOAT_1D_ARRAY:
-    case ImageType::FLOAT_2D_ARRAY:
-    case ImageType::FLOAT_CUBE_ARRAY:
-    case ImageType::INT_1D_ARRAY:
-    case ImageType::INT_2D_ARRAY:
-    case ImageType::INT_CUBE_ARRAY:
-    case ImageType::UINT_1D_ARRAY:
-    case ImageType::UINT_2D_ARRAY:
-    case ImageType::UINT_CUBE_ARRAY:
-    case ImageType::SHADOW_2D_ARRAY:
-    case ImageType::SHADOW_CUBE_ARRAY:
-    case ImageType::DEPTH_2D_ARRAY:
-    case ImageType::DEPTH_CUBE_ARRAY:
-    case ImageType::UINT_2D_ARRAY_ATOMIC:
+    case ImageType::Float1DArray:
+    case ImageType::Float2DArray:
+    case ImageType::FloatCubeArray:
+    case ImageType::Int1DArray:
+    case ImageType::Int2DArray:
+    case ImageType::IntCubeArray:
+    case ImageType::Uint1DArray:
+    case ImageType::Uint2DArray:
+    case ImageType::UintCubeArray:
+    case ImageType::Shadow2DArray:
+    case ImageType::ShadowCubeArray:
+    case ImageType::Depth2DArray:
+    case ImageType::DepthCubeArray:
+    case ImageType::AtomicUint2DArray:
       os << "Array";
       break;
     default:
@@ -321,10 +321,10 @@ static void print_image_type(std::ostream &os,
   }
 
   switch (type) {
-    case ImageType::SHADOW_2D:
-    case ImageType::SHADOW_2D_ARRAY:
-    case ImageType::SHADOW_CUBE:
-    case ImageType::SHADOW_CUBE_ARRAY:
+    case ImageType::Shadow2D:
+    case ImageType::Shadow2DArray:
+    case ImageType::ShadowCube:
+    case ImageType::ShadowCubeArray:
       os << "Shadow";
       break;
     default:
@@ -335,13 +335,13 @@ static void print_image_type(std::ostream &os,
 
 static std::ostream &print_qualifier(std::ostream &os, const Qualifier &qualifiers)
 {
-  if (bool(qualifiers & Qualifier::NO_RESTRICT) == false) {
+  if (bool(qualifiers & Qualifier::no_restrict) == false) {
     os << "restrict ";
   }
-  if (bool(qualifiers & Qualifier::READ) == false) {
+  if (bool(qualifiers & Qualifier::read) == false) {
     os << "writeonly ";
   }
-  if (bool(qualifiers & Qualifier::WRITE) == false) {
+  if (bool(qualifiers & Qualifier::write) == false) {
     os << "readonly ";
   }
   return os;
@@ -997,10 +997,8 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
       /* IMPORTANT: We assume that the frame-buffer will be layered or not based on the layer
        * built-in flag. */
       bool is_layered_fb = bool(info.builtins_ & BuiltinBits::LAYER);
-      bool is_layered_input = ELEM(input.img_type,
-                                   ImageType::UINT_2D_ARRAY,
-                                   ImageType::INT_2D_ARRAY,
-                                   ImageType::FLOAT_2D_ARRAY);
+      bool is_layered_input = ELEM(
+          input.img_type, ImageType::Uint2DArray, ImageType::Int2DArray, ImageType::Float2DArray);
       /* Declare image. */
       using Resource = ShaderCreateInfo::Resource;
       /* NOTE(fclem): Using the attachment index as resource index might be problematic as it might

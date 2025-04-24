@@ -610,7 +610,7 @@ void gpu::MTLTexture::update_sub(
 
     if (is_depth_format) {
       if (type_ == GPU_TEXTURE_2D || type_ == GPU_TEXTURE_2D_ARRAY) {
-        /* Workaround for crash in validation layer when blitting to depth2D target with
+        /* Workaround for crash in validation layer when blitting to sampler2DDepth target with
          * dimensions (1, 1, 1); */
         if (extent[0] == 1 && extent[1] == 1 && extent[2] == 1 && totalsize == 4) {
           can_use_direct_blit = false;

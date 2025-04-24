@@ -21,7 +21,7 @@ GPU_SHADER_CREATE_INFO(fullscreen_blit)
     .push_constant(Type::float2_t, "dst_offset")
     .push_constant(Type::float2_t, "src_offset")
     .push_constant(Type::int_t, "mip")
-    .sampler(0, ImageType::FLOAT_2D, "imageTexture", Frequency::PASS)
+    .sampler(0, ImageType::Float2D, "imageTexture", Frequency::PASS)
     .vertex_source("gpu_shader_fullscreen_blit_vert.glsl")
     .fragment_source("gpu_shader_fullscreen_blit_frag.glsl")
     .do_static_compilation(true);

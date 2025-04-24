@@ -608,7 +608,7 @@ void dof_gather_accumulator(sampler2D color_tx,
  * The full pixel neighborhood is gathered.
  * \{ */
 
-void dof_slight_focus_gather(depth2D depth_tx,
+void dof_slight_focus_gather(sampler2DDepth depth_tx,
                              sampler2D color_tx,
                              sampler2D bkh_lut_tx, /* Renamed because of ugly macro job. */
                              float radius,

@@ -720,8 +720,8 @@ IMAGE_FN AtomicT imageAtomicExchange(SamplerT texture, IntCoord coord, AtomicT d
 
 /* Add any types as needed. */
 #define TEMPLATE template<typename T = float, access A = access::sample>
-TEMPLATE using depth2D = _mtl_sampler<T, A, depth2d<T, A>, true, 2, 0, 0>;
-TEMPLATE using depth2DArray = _mtl_sampler<T, A, depth2d_array<T, A>, true, 2, 0, 1>;
+TEMPLATE using sampler2DDepth = _mtl_sampler<T, A, depth2d<T, A>, true, 2, 0, 0>;
+TEMPLATE using sampler2DArrayDepth = _mtl_sampler<T, A, depth2d_array<T, A>, true, 2, 0, 1>;
 TEMPLATE using depthCube = _mtl_sampler<T, A, texturecube<T, A>, true, 2, 1, 1>;
 TEMPLATE using depthCubeArray = _mtl_sampler<T, A, texturecube_array<T, A>, true, 2, 1, 1>;
 TEMPLATE using sampler1D = _mtl_sampler<T, A, texture1d<T, A>, false, 1, 0, 0>;
@@ -738,8 +738,8 @@ TEMPLATE using sampler2DArrayAtomic = _mtl_sampler<T, A, texture2d<T, A>, false,
 TEMPLATE using sampler3DAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 3, 0, 0, true>;
 
 /* Used by backend to declare the samplers. Could be removed. */
-TEMPLATE using _mtl_sampler_depth_2d = depth2D<T, A>;
-TEMPLATE using _mtl_sampler_depth_2d_array = depth2DArray<T, A>;
+TEMPLATE using _mtl_sampler_depth_2d = sampler2DDepth<T, A>;
+TEMPLATE using _mtl_sampler_depth_2d_array = sampler2DArrayDepth<T, A>;
 TEMPLATE using _mtl_sampler_depth_cube = depthCube<T, A>;
 TEMPLATE using _mtl_sampler_depth_cube_array = depthCubeArray<T, A>;
 TEMPLATE using _mtl_sampler_1d = sampler1D<T, A>;
@@ -795,23 +795,24 @@ struct SStruct {
 #define sampler1D thread _mtl_sampler_1d<float>
 #define sampler1DArray thread _mtl_sampler_1d_array<float>
 #define sampler2D thread _mtl_sampler_2d<float>
-#define depth2D thread _mtl_sampler_depth_2d<float>
+#define sampler2DDepth thread _mtl_sampler_depth_2d<float>
+#define sampler2DShadow thread _mtl_sampler_depth_2d<float>
 #define sampler2DArray thread _mtl_sampler_2d_array<float>
+#define sampler2DArrayDepth thread _mtl_sampler_depth_2d_array<float>
 #define sampler2DArrayShadow thread _mtl_sampler_depth_2d_array<float>
-#define depth2DArray thread _mtl_sampler_depth_2d_array<float>
-#define depth2DArrayShadow thread _mtl_sampler_depth_2d_array<float>
 #define sampler3D thread _mtl_sampler_3d<float>
 #define samplerBuffer thread _mtl_sampler_buffer<float, access::read>
 #define samplerCube thread _mtl_sampler_cube<float>
+#define samplerCubeDepth thread _mtl_sampler_depth_cube<float>
+#define samplerCubeShadow thread _mtl_sampler_depth_cube<float>
 #define samplerCubeArray thread _mtl_sampler_cube_array<float>
+#define samplerCubeArrayDepth thread _mtl_sampler_depth_cube_array<float>
+#define samplerCubeArrayShadow thread _mtl_sampler_depth_cube_array<float>
 
 #define usampler1D thread _mtl_sampler_1d<uint>
 #define usampler1DArray thread _mtl_sampler_1d_array<uint>
 #define usampler2D thread _mtl_sampler_2d<uint>
-#define udepth2D thread _mtl_sampler_depth_2d<uint>
 #define usampler2DArray thread _mtl_sampler_2d_array<uint>
-#define usampler2DArrayShadow thread _mtl_sampler_depth_2d_array<uint>
-#define udepth2DArrayShadow thread _mtl_sampler_depth_2d_array<uint>
 #define usampler3D thread _mtl_sampler_3d<uint>
 #define usamplerBuffer thread _mtl_sampler_buffer<uint, access::read>
 #define usamplerCube thread _mtl_sampler_cube<uint>
@@ -820,10 +821,7 @@ struct SStruct {
 #define isampler1D thread _mtl_sampler_1d<int>
 #define isampler1DArray thread _mtl_sampler_1d_array<int>
 #define isampler2D thread _mtl_sampler_2d<int>
-#define idepth2D thread _mtl_sampler_depth_2d<int>
 #define isampler2DArray thread _mtl_sampler_2d_array<int>
-#define isampler2DArrayShadow thread _mtl_sampler_depth_2d_array<int>
-#define idepth2DArrayShadow thread _mtl_sampler_depth_2d_array<int>
 #define isampler3D thread _mtl_sampler_3d<int>
 #define isamplerBuffer thread _mtl_sampler_buffer<int, access::read>
 #define isamplerCube thread _mtl_sampler_cube<int>

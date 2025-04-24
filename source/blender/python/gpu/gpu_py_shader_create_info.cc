@@ -40,9 +40,9 @@ using blender::gpu::shader::Qualifier;
     "      - ``READ``\n" \
     "      - ``WRITE``\n"
 static const PyC_FlagSet pygpu_qualifiers[] = {
-    {int(Qualifier::NO_RESTRICT), "NO_RESTRICT"},
-    {int(Qualifier::READ), "READ"},
-    {int(Qualifier::WRITE), "WRITE"},
+    {int(Qualifier::no_restrict), "NO_RESTRICT"},
+    {int(Qualifier::read), "READ"},
+    {int(Qualifier::write), "WRITE"},
     {0, nullptr},
 };
 #endif
@@ -116,44 +116,44 @@ const PyC_StringEnumItems pygpu_attrtype_items[] = {
   "      - ``DEPTH_CUBE``\n" \
   "      - ``DEPTH_CUBE_ARRAY``\n"
 static const PyC_StringEnumItems pygpu_imagetype_items[] = {
-    {int(ImageType::FLOAT_BUFFER), "FLOAT_BUFFER"},
-    {int(ImageType::FLOAT_1D), "FLOAT_1D"},
-    {int(ImageType::FLOAT_1D_ARRAY), "FLOAT_1D_ARRAY"},
-    {int(ImageType::FLOAT_2D), "FLOAT_2D"},
-    {int(ImageType::FLOAT_2D_ARRAY), "FLOAT_2D_ARRAY"},
-    {int(ImageType::FLOAT_3D), "FLOAT_3D"},
-    {int(ImageType::FLOAT_CUBE), "FLOAT_CUBE"},
-    {int(ImageType::FLOAT_CUBE_ARRAY), "FLOAT_CUBE_ARRAY"},
-    {int(ImageType::INT_BUFFER), "INT_BUFFER"},
-    {int(ImageType::INT_1D), "INT_1D"},
-    {int(ImageType::INT_1D_ARRAY), "INT_1D_ARRAY"},
-    {int(ImageType::INT_2D), "INT_2D"},
-    {int(ImageType::INT_2D_ARRAY), "INT_2D_ARRAY"},
-    {int(ImageType::INT_3D), "INT_3D"},
-    {int(ImageType::INT_CUBE), "INT_CUBE"},
-    {int(ImageType::INT_CUBE_ARRAY), "INT_CUBE_ARRAY"},
-    {int(ImageType::INT_2D_ATOMIC), "INT_2D_ATOMIC"},
-    {int(ImageType::INT_2D_ARRAY_ATOMIC), "INT_2D_ARRAY_ATOMIC"},
-    {int(ImageType::INT_3D_ATOMIC), "INT_3D_ATOMIC"},
-    {int(ImageType::UINT_BUFFER), "UINT_BUFFER"},
-    {int(ImageType::UINT_1D), "UINT_1D"},
-    {int(ImageType::UINT_1D_ARRAY), "UINT_1D_ARRAY"},
-    {int(ImageType::UINT_2D), "UINT_2D"},
-    {int(ImageType::UINT_2D_ARRAY), "UINT_2D_ARRAY"},
-    {int(ImageType::UINT_3D), "UINT_3D"},
-    {int(ImageType::UINT_CUBE), "UINT_CUBE"},
-    {int(ImageType::UINT_CUBE_ARRAY), "UINT_CUBE_ARRAY"},
-    {int(ImageType::UINT_2D_ATOMIC), "UINT_2D_ATOMIC"},
-    {int(ImageType::UINT_2D_ARRAY_ATOMIC), "UINT_2D_ARRAY_ATOMIC"},
-    {int(ImageType::UINT_3D_ATOMIC), "UINT_3D_ATOMIC"},
-    {int(ImageType::SHADOW_2D), "SHADOW_2D"},
-    {int(ImageType::SHADOW_2D_ARRAY), "SHADOW_2D_ARRAY"},
-    {int(ImageType::SHADOW_CUBE), "SHADOW_CUBE"},
-    {int(ImageType::SHADOW_CUBE_ARRAY), "SHADOW_CUBE_ARRAY"},
-    {int(ImageType::DEPTH_2D), "DEPTH_2D"},
-    {int(ImageType::DEPTH_2D_ARRAY), "DEPTH_2D_ARRAY"},
-    {int(ImageType::DEPTH_CUBE), "DEPTH_CUBE"},
-    {int(ImageType::DEPTH_CUBE_ARRAY), "DEPTH_CUBE_ARRAY"},
+    {int(ImageType::FloatBuffer), "FLOAT_BUFFER"},
+    {int(ImageType::Float1D), "FLOAT_1D"},
+    {int(ImageType::Float1DArray), "FLOAT_1D_ARRAY"},
+    {int(ImageType::Float2D), "FLOAT_2D"},
+    {int(ImageType::Float2DArray), "FLOAT_2D_ARRAY"},
+    {int(ImageType::Float3D), "FLOAT_3D"},
+    {int(ImageType::FloatCube), "FLOAT_CUBE"},
+    {int(ImageType::FloatCubeArray), "FLOAT_CUBE_ARRAY"},
+    {int(ImageType::IntBuffer), "INT_BUFFER"},
+    {int(ImageType::Int1D), "INT_1D"},
+    {int(ImageType::Int1DArray), "INT_1D_ARRAY"},
+    {int(ImageType::Int2D), "INT_2D"},
+    {int(ImageType::Int2DArray), "INT_2D_ARRAY"},
+    {int(ImageType::Int3D), "INT_3D"},
+    {int(ImageType::IntCube), "INT_CUBE"},
+    {int(ImageType::IntCubeArray), "INT_CUBE_ARRAY"},
+    {int(ImageType::AtomicInt2D), "INT_2D_ATOMIC"},
+    {int(ImageType::AtomicInt2DArray), "INT_2D_ARRAY_ATOMIC"},
+    {int(ImageType::AtomicInt3D), "INT_3D_ATOMIC"},
+    {int(ImageType::UintBuffer), "UINT_BUFFER"},
+    {int(ImageType::Uint1D), "UINT_1D"},
+    {int(ImageType::Uint1DArray), "UINT_1D_ARRAY"},
+    {int(ImageType::Uint2D), "UINT_2D"},
+    {int(ImageType::Uint2DArray), "UINT_2D_ARRAY"},
+    {int(ImageType::Uint3D), "UINT_3D"},
+    {int(ImageType::UintCube), "UINT_CUBE"},
+    {int(ImageType::UintCubeArray), "UINT_CUBE_ARRAY"},
+    {int(ImageType::AtomicUint2D), "UINT_2D_ATOMIC"},
+    {int(ImageType::AtomicUint2DArray), "UINT_2D_ARRAY_ATOMIC"},
+    {int(ImageType::AtomicUint3D), "UINT_3D_ATOMIC"},
+    {int(ImageType::Shadow2D), "SHADOW_2D"},
+    {int(ImageType::Shadow2DArray), "SHADOW_2D_ARRAY"},
+    {int(ImageType::ShadowCube), "SHADOW_CUBE"},
+    {int(ImageType::ShadowCubeArray), "SHADOW_CUBE_ARRAY"},
+    {int(ImageType::Depth2D), "DEPTH_2D"},
+    {int(ImageType::Depth2DArray), "DEPTH_2D_ARRAY"},
+    {int(ImageType::DepthCube), "DEPTH_CUBE"},
+    {int(ImageType::DepthCubeArray), "DEPTH_CUBE_ARRAY"},
     {0, nullptr},
 };
 
@@ -754,7 +754,7 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
   PyC_StringEnum pygpu_imagetype = {pygpu_imagetype_items};
   const char *name;
   PyObject *py_qualifiers = nullptr;
-  Qualifier qualifier = Qualifier::NO_RESTRICT;
+  Qualifier qualifier = Qualifier::no_restrict;
 
   static const char *_keywords[] = {"slot", "format", "type", "name", "qualifiers", nullptr};
   static _PyArg_Parser _parser = {
@@ -798,7 +798,7 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
   info->image(slot,
               (eGPUTextureFormat)pygpu_texformat.value_found,
               qualifier,
-              (ImageType)pygpu_imagetype.value_found,
+              blender::gpu::shader::ImageReadWriteType(pygpu_imagetype.value_found),
               name);
 
   Py_RETURN_NONE;

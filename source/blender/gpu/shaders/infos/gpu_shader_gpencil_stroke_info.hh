@@ -22,7 +22,7 @@ GPU_SHADER_NAMED_INTERFACE_END(interp)
 
 GPU_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
 TYPEDEF_SOURCE("GPU_shader_shared.hh")
-STORAGE_BUF_FREQ(0, READ, GreasePencilStrokeData, gp_vert_data[], GEOMETRY)
+STORAGE_BUF_FREQ(0, read, GreasePencilStrokeData, gp_vert_data[], GEOMETRY)
 VERTEX_OUT(gpencil_stroke_vert_iface)
 FRAGMENT_OUT(0, float4, fragColor)
 UNIFORM_BUF(0, GPencilStrokeData, gpencil_stroke_data)

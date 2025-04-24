@@ -29,9 +29,9 @@
  * \{ */
 
 GPU_SHADER_CREATE_INFO(workbench_composite)
-SAMPLER(3, DEPTH_2D, depth_tx)
-SAMPLER(4, FLOAT_2D, normal_tx)
-SAMPLER(5, FLOAT_2D, material_tx)
+SAMPLER(3, sampler2DDepth, depth_tx)
+SAMPLER(4, sampler2D, normal_tx)
+SAMPLER(5, sampler2D, material_tx)
 UNIFORM_BUF(WB_WORLD_SLOT, WorldData, world_data)
 TYPEDEF_SOURCE("workbench_shader_shared.hh")
 PUSH_CONSTANT(bool, force_shadowing)
@@ -49,7 +49,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_resolve_opaque_matcap)
 DEFINE("WORKBENCH_LIGHTING_MATCAP")
-SAMPLER(WB_MATCAP_SLOT, FLOAT_2D_ARRAY, matcap_tx)
+SAMPLER(WB_MATCAP_SLOT, sampler2DArray, matcap_tx)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_resolve_opaque_flat)
@@ -60,20 +60,20 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_resolve_curvature)
 DEFINE("WORKBENCH_CURVATURE")
-SAMPLER(6, UINT_2D, object_id_tx)
+SAMPLER(6, usampler2D, object_id_tx)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_resolve_cavity)
 DEFINE("WORKBENCH_CAVITY")
 /* TODO(@pragma37): GPU_SAMPLER_EXTEND_MODE_REPEAT is set in CavityEffect,
  * it doesn't work here? */
-SAMPLER(7, FLOAT_2D, jitter_tx)
+SAMPLER(7, sampler2D, jitter_tx)
 UNIFORM_BUF(5, float4, cavity_samples[512])
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_resolve_shadow)
 DEFINE("WORKBENCH_SHADOW")
-SAMPLER(8, UINT_2D, stencil_tx)
+SAMPLER(8, usampler2D, stencil_tx)
 GPU_SHADER_CREATE_END()
 
 /* Variations */
