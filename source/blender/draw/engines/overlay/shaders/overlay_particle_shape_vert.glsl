@@ -35,7 +35,7 @@ void main()
   int particle_id = gl_VertexID;
   int shape_vert_id = gl_VertexID;
 
-  switch (shape_type) {
+  switch (OVERLAY_ParticleShape(shape_type)) {
     case PART_SHAPE_AXIS:
     case PART_SHAPE_CROSS:
       shape_vert_id = gl_VertexID % 6;
@@ -58,7 +58,7 @@ void main()
 #endif
 
   float3 shape_pos = float3(0.0f);
-  switch (shape_type) {
+  switch (OVERLAY_ParticleShape(shape_type)) {
     case PART_SHAPE_AXIS:
       shape_pos = float3(axis_id == 0, axis_id == 1, axis_id == 2) * 2.0f * float(axis_vert != 0u);
       break;
