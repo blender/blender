@@ -6,6 +6,13 @@
 """
 The intent of this map is to be able to a single canonical author
 for every ``Name <email>`` combination.
+
+This data is used for:
+
+- Extracting a list of authors to create the ``AUTHORS`` file (in the projects root),
+  see ``./git_data_canonical_authors.py``.
+- Generating the credits page: ``https://www.blender.org/about/credits/``
+  see ``./credits_git_gen.py``.
 """
 
 __all__ = (
