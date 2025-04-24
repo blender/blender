@@ -22,10 +22,9 @@
 #define _BLI_KDTREE_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
 #define BLI_kdtree_nd_(id) _BLI_KDTREE_CONCAT(KDTREE_PREFIX_ID, _##id)
 
-/* Put in anonymous namespace to avoid violating one definition rule.
- * Otherwise `MEM_malloc_array<KDTreeNode>` can get defined once for multiple dimensions,
+/* All these struct names are #defines with unique names, to avoid violating the one definition
+ * rule. Otherwise `MEM_malloc_array<KDTreeNode>` can get defined once for multiple dimensions,
  * with different node sizes. */
-namespace {
 
 struct KDTreeNode_head {
   uint left, right;
@@ -39,8 +38,6 @@ struct KDTreeNode {
   int index;
   uint d; /* range is only (0..KD_DIMS - 1) */
 };
-
-}  // namespace
 
 struct KDTree {
   KDTreeNode *nodes;
