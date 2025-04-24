@@ -488,6 +488,8 @@ def extract_c_comments(filepath: str) -> tuple[list[Comment], set[str]]:
             code_words.add(w)
             # Allow plurals of these variables too.
             code_words.add(w + "'s")
+            # Allow `th` suffix, mainly for indices, e.g. the `i'th` element.
+            code_words.add(w + "'th")
 
     comments = []
 
