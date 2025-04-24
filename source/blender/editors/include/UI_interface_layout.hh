@@ -48,8 +48,8 @@ enum class LayoutSuppressFlag : uint8_t;
  * Meanwhile keep using `uiLayout*` functions to read/write this properties.
  */
 struct uiItem {
-  blender::ui::ItemType type;
-  blender::ui::ItemInternalFlag flag;
+  blender::ui::ItemType type_;
+  blender::ui::ItemInternalFlag flag_;
 
   uiItem() = default;
   uiItem(const uiItem &) = default;
