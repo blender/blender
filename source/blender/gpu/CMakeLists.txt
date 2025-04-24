@@ -99,7 +99,7 @@ set(SRC
   intern/gpu_vertex_format_normals.cc
   intern/gpu_viewport.cc
   intern/gpu_worker.cc
-  
+
   GPU_attribute_convert.hh
   GPU_batch.hh
   GPU_batch_presets.hh

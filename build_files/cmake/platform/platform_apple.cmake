@@ -374,7 +374,7 @@ endif()
 if(WITH_HARU)
   find_package(Haru REQUIRED)
 endif()
- 
+
 if(WITH_MANIFOLD)
   find_package(manifold REQUIRED)
 endif()
