@@ -24,20 +24,20 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_effect_dof_downsample)
 void main()
 {
   float4 texel = float4(gl_FragCoord.xyxy) * 2.0f + float4(0.0f, 0.0f, 1.0f, 1.0f);
-  texel = (texel - 0.5f) / float4(textureSize(sceneColorTex, 0).xyxy);
+  texel = (texel - 0.5f) / float4(textureSize(scene_color_tx, 0).xyxy);
 
   /* Using texelFetch can bypass the mip range setting on some platform.
    * Using texture LOD fixes this issue. Note that we need to disable filtering to get the right
    * texel values. */
-  float4 color1 = textureLod(sceneColorTex, texel.xy, 0.0f);
-  float4 color2 = textureLod(sceneColorTex, texel.zw, 0.0f);
-  float4 color3 = textureLod(sceneColorTex, texel.zy, 0.0f);
-  float4 color4 = textureLod(sceneColorTex, texel.xw, 0.0f);
+  float4 color1 = textureLod(scene_color_tx, texel.xy, 0.0f);
+  float4 color2 = textureLod(scene_color_tx, texel.zw, 0.0f);
+  float4 color3 = textureLod(scene_color_tx, texel.zy, 0.0f);
+  float4 color4 = textureLod(scene_color_tx, texel.xw, 0.0f);
 
-  float2 cocs1 = textureLod(inputCocTex, texel.xy, 0.0f).rg;
-  float2 cocs2 = textureLod(inputCocTex, texel.zw, 0.0f).rg;
-  float2 cocs3 = textureLod(inputCocTex, texel.zy, 0.0f).rg;
-  float2 cocs4 = textureLod(inputCocTex, texel.xw, 0.0f).rg;
+  float2 cocs1 = textureLod(input_coc_tx, texel.xy, 0.0f).rg;
+  float2 cocs2 = textureLod(input_coc_tx, texel.zw, 0.0f).rg;
+  float2 cocs3 = textureLod(input_coc_tx, texel.zy, 0.0f).rg;
+  float2 cocs4 = textureLod(input_coc_tx, texel.xw, 0.0f).rg;
 
   float4 cocs_near = float4(cocs1.r, cocs2.r, cocs3.r, cocs4.r) * MAX_COC_SIZE;
   float4 cocs_far = float4(cocs1.g, cocs2.g, cocs3.g, cocs4.g) * MAX_COC_SIZE;

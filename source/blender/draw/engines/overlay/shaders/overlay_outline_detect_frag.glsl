@@ -42,13 +42,13 @@ bool4 gather_edges(float2 uv, uint ref)
 {
   uint4 ids;
 #ifdef GPU_ARB_texture_gather
-  ids = textureGather(outlineId, uv);
+  ids = textureGather(outline_id_tx, uv);
 #else
   float3 ofs = float3(0.5f, 0.5f, -0.5f) * sizeViewportInv.xyy;
-  ids.x = textureLod(outlineId, uv - ofs.xz, 0.0f).r;
-  ids.y = textureLod(outlineId, uv + ofs.xy, 0.0f).r;
-  ids.z = textureLod(outlineId, uv + ofs.xz, 0.0f).r;
-  ids.w = textureLod(outlineId, uv - ofs.xy, 0.0f).r;
+  ids.x = textureLod(outline_id_tx, uv - ofs.xz, 0.0f).r;
+  ids.y = textureLod(outline_id_tx, uv + ofs.xy, 0.0f).r;
+  ids.z = textureLod(outline_id_tx, uv + ofs.xz, 0.0f).r;
+  ids.w = textureLod(outline_id_tx, uv - ofs.xy, 0.0f).r;
 #endif
 
   return notEqual(ids, uint4(ref));
@@ -166,7 +166,7 @@ void diag_dir(bool4 edges1, bool4 edges2, out float2 line_start, out float2 line
 
 void main()
 {
-  uint ref = textureLod(outlineId, screen_uv, 0.0f).r;
+  uint ref = textureLod(outline_id_tx, screen_uv, 0.0f).r;
   uint ref_col = ref;
 
   float2 uvs = gl_FragCoord.xy * sizeViewportInv;
@@ -178,25 +178,25 @@ void main()
 #ifdef GPU_ARB_texture_gather
   /* Reminder: Samples order is CW starting from top left. */
   uint2 tmp1, tmp2, tmp3, tmp4;
-  if (doThickOutlines) {
-    tmp1 = textureGather(outlineId, uvs + ofs.xy * float2(1.5f, -0.5f)).xy;
-    tmp2 = textureGather(outlineId, uvs + ofs.xy * float2(-1.5f, -0.5f)).yx;
-    tmp3 = textureGather(outlineId, uvs + ofs.xy * float2(0.5f, 1.5f)).wx;
-    tmp4 = textureGather(outlineId, uvs + ofs.xy * float2(0.5f, -1.5f)).xw;
+  if (do_thick_outlines) {
+    tmp1 = textureGather(outline_id_tx, uvs + ofs.xy * float2(1.5f, -0.5f)).xy;
+    tmp2 = textureGather(outline_id_tx, uvs + ofs.xy * float2(-1.5f, -0.5f)).yx;
+    tmp3 = textureGather(outline_id_tx, uvs + ofs.xy * float2(0.5f, 1.5f)).wx;
+    tmp4 = textureGather(outline_id_tx, uvs + ofs.xy * float2(0.5f, -1.5f)).xw;
     ids.x = tmp1.x;
     ids.y = tmp2.x;
     ids.z = tmp3.x;
     ids.w = tmp4.x;
   }
   else {
-    ids.xz = textureGather(outlineId, uvs + ofs.xy * 0.5f).zx;
-    ids.yw = textureGather(outlineId, uvs - ofs.xy * 0.5f).xz;
+    ids.xz = textureGather(outline_id_tx, uvs + ofs.xy * 0.5f).zx;
+    ids.yw = textureGather(outline_id_tx, uvs - ofs.xy * 0.5f).xz;
   }
 #else
-  ids.x = textureLod(outlineId, uvs + ofs.xz, 0.0f).r;
-  ids.y = textureLod(outlineId, uvs - ofs.xz, 0.0f).r;
-  ids.z = textureLod(outlineId, uvs + ofs.zy, 0.0f).r;
-  ids.w = textureLod(outlineId, uvs - ofs.zy, 0.0f).r;
+  ids.x = textureLod(outline_id_tx, uvs + ofs.xz, 0.0f).r;
+  ids.y = textureLod(outline_id_tx, uvs - ofs.xz, 0.0f).r;
+  ids.z = textureLod(outline_id_tx, uvs + ofs.zy, 0.0f).r;
+  ids.w = textureLod(outline_id_tx, uvs - ofs.zy, 0.0f).r;
 #endif
 
   bool has_edge_pos_x = has_edge(ids.x, uvs + ofs.xz, ref, ref_col, depth_uv);
@@ -204,7 +204,7 @@ void main()
   bool has_edge_pos_y = has_edge(ids.z, uvs + ofs.zy, ref, ref_col, depth_uv);
   bool has_edge_neg_y = has_edge(ids.w, uvs - ofs.zy, ref, ref_col, depth_uv);
 
-  if (doThickOutlines) {
+  if (do_thick_outlines) {
     if (!any(bool4(has_edge_pos_x, has_edge_neg_x, has_edge_pos_y, has_edge_neg_y))) {
 #ifdef GPU_ARB_texture_gather
       ids.x = tmp1.y;
@@ -212,10 +212,10 @@ void main()
       ids.z = tmp3.y;
       ids.w = tmp4.y;
 #else
-      ids.x = textureLod(outlineId, uvs + 2.0f * ofs.xz, 0.0f).r;
-      ids.y = textureLod(outlineId, uvs - 2.0f * ofs.xz, 0.0f).r;
-      ids.z = textureLod(outlineId, uvs + 2.0f * ofs.zy, 0.0f).r;
-      ids.w = textureLod(outlineId, uvs - 2.0f * ofs.zy, 0.0f).r;
+      ids.x = textureLod(outline_id_tx, uvs + 2.0f * ofs.xz, 0.0f).r;
+      ids.y = textureLod(outline_id_tx, uvs - 2.0f * ofs.xz, 0.0f).r;
+      ids.z = textureLod(outline_id_tx, uvs + 2.0f * ofs.zy, 0.0f).r;
+      ids.w = textureLod(outline_id_tx, uvs - 2.0f * ofs.zy, 0.0f).r;
 #endif
 
       has_edge_pos_x = has_edge(ids.x, uvs + 2.0f * ofs.xz, ref, ref_col, depth_uv);
@@ -225,35 +225,35 @@ void main()
     }
   }
 
-  if (isXrayWires) {
+  if (is_xray_wires) {
     /* Don't inflate the wire outlines too much. */
     has_edge_neg_x = has_edge_neg_y = false;
   }
 
-  /* WATCH: Keep in sync with outlineId of the pre-pass. */
+  /* WATCH: Keep in sync with outline_id_tx of the pre-pass. */
   uint color_id = ref_col >> 14u;
   if (ref_col == 0u) {
-    fragColor = float4(0.0f);
+    frag_color = float4(0.0f);
   }
   else if (color_id == 1u) {
-    fragColor = colorSelect;
+    frag_color = colorSelect;
   }
   else if (color_id == 3u) {
-    fragColor = colorActive;
+    frag_color = colorActive;
   }
   else {
-    fragColor = colorTransform;
+    frag_color = colorTransform;
   }
 
-  float ref_depth = textureLod(outlineDepth, depth_uv, 0.0f).r;
-  float scene_depth = textureLod(sceneDepth, depth_uv, 0.0f).r;
+  float ref_depth = textureLod(outline_depth_tx, depth_uv, 0.0f).r;
+  float scene_depth = textureLod(scene_depth_tx, depth_uv, 0.0f).r;
 
   /* Avoid bad cases of Z-fighting for occlusion only. */
   constexpr float epsilon = 3.0f / 8388608.0f;
   bool occluded = (ref_depth > scene_depth + epsilon);
 
   /* NOTE: We never set alpha to 1.0 to avoid Anti-aliasing destroying the line. */
-  fragColor *= (occluded ? alphaOcclu : 1.0f) * (254.0f / 255.0f);
+  frag_color *= (occluded ? alpha_occlu : 1.0f) * (254.0f / 255.0f);
 
   int edge_case = 0;
   edge_case += int(has_edge_pos_x) * XPOS;
@@ -269,8 +269,8 @@ void main()
     return;
   }
 
-  if (!doAntiAliasing) {
-    lineOutput = float4(0.0f);
+  if (!do_anti_aliasing) {
+    line_output = float4(0.0f);
     return;
   }
 
@@ -367,5 +367,5 @@ void main()
       break;
   }
 
-  lineOutput = pack_line_data(float2(0.0f), line_start, line_end);
+  line_output = pack_line_data(float2(0.0f), line_start, line_end);
 }

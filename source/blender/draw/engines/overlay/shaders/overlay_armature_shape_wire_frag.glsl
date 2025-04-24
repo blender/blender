@@ -37,12 +37,12 @@ void main()
 {
   float half_size = (do_smooth_wire ? wire_width - 0.5f : wire_width) / 2.0f;
 
-  float dist = abs(edgeCoord) - half_size;
+  float dist = abs(edge_coord) - half_size;
   float mix_w = saturate(edge_step(dist));
 
-  fragColor = mix(float4(finalColor.rgb, alpha), float4(0), mix_w);
-  fragColor.a *= 1.0f - mix_w;
-  lineOutput = float4(0);
+  frag_color = mix(float4(final_color.rgb, alpha), float4(0), mix_w);
+  frag_color.a *= 1.0f - mix_w;
+  line_output = float4(0);
 
   select_id_output(select_id);
 }

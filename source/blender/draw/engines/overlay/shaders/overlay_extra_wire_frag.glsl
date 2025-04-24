@@ -11,22 +11,22 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_extra_wire_base)
 
 void main()
 {
-  fragColor = finalColor;
+  frag_color = final_color;
 
   /* Stipple */
   constexpr float dash_width = 6.0f;
   constexpr float dash_factor = 0.5f;
 
-  lineOutput = pack_line_data(gl_FragCoord.xy, stipple_start, stipple_coord);
+  line_output = pack_line_data(gl_FragCoord.xy, stipple_start, stipple_coord);
 
   float dist = distance(stipple_start, stipple_coord);
 
-  if (fragColor.a == 0.0f) {
+  if (frag_color.a == 0.0f) {
     /* Disable stippling. */
     dist = 0.0f;
   }
 
-  fragColor.a = 1.0f;
+  frag_color.a = 1.0f;
 
 #ifndef SELECT_ENABLE
   /* Discarding inside the selection will create some undefined behavior.

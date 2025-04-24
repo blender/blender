@@ -22,7 +22,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
 
 bool test_occlusion()
 {
-  return gl_FragCoord.z > texelFetch(depthTex, int2(gl_FragCoord.xy), 0).r;
+  return gl_FragCoord.z > texelFetch(depth_tx, int2(gl_FragCoord.xy), 0).r;
 }
 
 float edge_step(float dist)
@@ -37,17 +37,17 @@ float edge_step(float dist)
 
 void main()
 {
-  float dist = abs(geometry_noperspective_out.edgeCoord) - max(sizeEdge - 0.5f, 0.0f);
+  float dist = abs(geometry_noperspective_out.edge_coord) - max(sizeEdge - 0.5f, 0.0f);
   float dist_outer = dist - max(sizeEdge, 1.0f);
   float mix_w = edge_step(dist);
   float mix_w_outer = edge_step(dist_outer);
   /* Line color & alpha. */
-  fragColor = mix(geometry_flat_out.finalColorOuter,
-                  geometry_out.finalColor,
-                  1.0f - mix_w * geometry_flat_out.finalColorOuter.a);
+  frag_color = mix(geometry_flat_out.final_color_outer,
+                   geometry_out.final_color,
+                   1.0f - mix_w * geometry_flat_out.final_color_outer.a);
   /* Line edges shape. */
-  fragColor.a *= 1.0f - (geometry_flat_out.finalColorOuter.a > 0.0f ? mix_w_outer : mix_w);
+  frag_color.a *= 1.0f - (geometry_flat_out.final_color_outer.a > 0.0f ? mix_w_outer : mix_w);
 
-  fragColor.a *= test_occlusion() ? alpha : 1.0f;
-  lineOutput = float4(0.0f);
+  frag_color.a *= test_occlusion() ? alpha : 1.0f;
+  line_output = float4(0.0f);
 }

@@ -8,8 +8,8 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_paint_face)
 
 void main()
 {
-  fragColor = ucolor;
+  frag_color = ucolor;
 #ifdef LINE_OUTPUT
-  lineOutput = float4(0.0f);
+  line_output = float4(0.0f);
 #endif
 }

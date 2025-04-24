@@ -25,16 +25,16 @@ void main()
 {
   int4 texel = int4(gl_FragCoord.xyxy) * 2 + int4(0, 0, 1, 1);
 
-  float4 color1 = texelFetch(sceneColorTex, texel.xy, 0);
-  float4 color2 = texelFetch(sceneColorTex, texel.zw, 0);
-  float4 color3 = texelFetch(sceneColorTex, texel.zy, 0);
-  float4 color4 = texelFetch(sceneColorTex, texel.xw, 0);
+  float4 color1 = texelFetch(scene_color_tx, texel.xy, 0);
+  float4 color2 = texelFetch(scene_color_tx, texel.zw, 0);
+  float4 color3 = texelFetch(scene_color_tx, texel.zy, 0);
+  float4 color4 = texelFetch(scene_color_tx, texel.xw, 0);
 
   float4 depths;
-  depths.x = texelFetch(sceneDepthTex, texel.xy, 0).x;
-  depths.y = texelFetch(sceneDepthTex, texel.zw, 0).x;
-  depths.z = texelFetch(sceneDepthTex, texel.zy, 0).x;
-  depths.w = texelFetch(sceneDepthTex, texel.xw, 0).x;
+  depths.x = texelFetch(scene_depth_tx, texel.xy, 0).x;
+  depths.y = texelFetch(scene_depth_tx, texel.zw, 0).x;
+  depths.z = texelFetch(scene_depth_tx, texel.zy, 0).x;
+  depths.w = texelFetch(scene_depth_tx, texel.xw, 0).x;
 
   float4 zdepths = dof_linear_depth(depths);
   float4 cocs_near = dof_calculate_coc(zdepths);

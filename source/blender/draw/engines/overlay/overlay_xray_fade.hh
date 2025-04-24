@@ -38,10 +38,10 @@ class XrayFade : Overlay {
       pass.shader_set(res.shaders->xray_fade.get());
       /* TODO(fclem): Confusing. The meaning of xray depth texture changed between legacy engine
        * and overlay next. To be renamed after shaders are not shared anymore. */
-      pass.bind_texture("depthTex", &res.xray_depth_tx);
-      pass.bind_texture("depthTexInfront", &res.xray_depth_in_front_tx);
-      pass.bind_texture("xrayDepthTex", &res.depth_tx);
-      pass.bind_texture("xrayDepthTexInfront", &res.depth_in_front_tx);
+      pass.bind_texture("depth_tx", &res.xray_depth_tx);
+      pass.bind_texture("depth_txInfront", &res.xray_depth_in_front_tx);
+      pass.bind_texture("xray_depth_tx", &res.depth_tx);
+      pass.bind_texture("xray_depth_txInfront", &res.depth_in_front_tx);
       pass.push_constant("opacity", 1.0f - state.xray_opacity);
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }

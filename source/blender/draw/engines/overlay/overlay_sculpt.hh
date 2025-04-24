@@ -76,8 +76,8 @@ class Sculpts : Overlay {
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_MUL,
                       state.clipping_plane_count);
         sub.shader_set(res.shaders->sculpt_mesh.get());
-        sub.push_constant("maskOpacity", mask_opacity);
-        sub.push_constant("faceSetsOpacity", face_set_opacity);
+        sub.push_constant("mask_opacity", mask_opacity);
+        sub.push_constant("face_sets_opacity", face_set_opacity);
         mesh_ps_ = &sub;
       }
       {

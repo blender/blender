@@ -45,23 +45,23 @@ void main()
   float3x3 rot_mat = float3x3(0.0f);
 
   float3 cell_offset = float3(0.5f);
-  int3 cell_div = volumeSize;
-  if (sliceAxis == 0) {
-    cell_offset.x = slicePosition * float(volumeSize.x);
+  int3 cell_div = volume_size;
+  if (slice_axis == 0) {
+    cell_offset.x = slice_position * float(volume_size.x);
     cell_div.x = 1;
     rot_mat[2].x = 1.0f;
     rot_mat[0].y = 1.0f;
     rot_mat[1].z = 1.0f;
   }
-  else if (sliceAxis == 1) {
-    cell_offset.y = slicePosition * float(volumeSize.y);
+  else if (slice_axis == 1) {
+    cell_offset.y = slice_position * float(volume_size.y);
     cell_div.y = 1;
     rot_mat[1].x = 1.0f;
     rot_mat[2].y = 1.0f;
     rot_mat[0].z = 1.0f;
   }
-  else if (sliceAxis == 2) {
-    cell_offset.z = slicePosition * float(volumeSize.z);
+  else if (slice_axis == 2) {
+    cell_offset.z = slice_position * float(volume_size.z);
     cell_div.z = 1;
     rot_mat[0].x = 1.0f;
     rot_mat[1].y = 1.0f;
@@ -73,21 +73,21 @@ void main()
   cell_co.y = (cell / cell_div.x) % cell_div.y;
   cell_co.z = cell / (cell_div.x * cell_div.y);
 
-  finalColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
+  final_color = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 #if defined(SHOW_FLAGS) || defined(SHOW_RANGE)
-  uint flag = texelFetch(flagTexture, cell_co + int3(cell_offset), 0).r;
+  uint flag = texelFetch(flag_tx, cell_co + int3(cell_offset), 0).r;
 #endif
 
 #ifdef SHOW_FLAGS
-  finalColor = flag_to_color(flag);
+  final_color = flag_to_color(flag);
 #endif
 
 #ifdef SHOW_RANGE
-  float value = texelFetch(fieldTexture, cell_co + int3(cell_offset), 0).r;
-  if (value >= lowerBound && value <= upperBound) {
-    if (cellFilter == 0 || bool(uint(cellFilter) & flag)) {
-      finalColor = rangeColor;
+  float value = texelFetch(field_tx, cell_co + int3(cell_offset), 0).r;
+  if (value >= lower_bound && value <= upper_bound) {
+    if (cell_filter == 0 || bool(uint(cell_filter) & flag)) {
+      final_color = range_color;
     }
   }
 #endif
@@ -102,10 +102,10 @@ void main()
                                              float3(0.45f, -0.45f, 0.0f),
                                              float3(-0.45f, -0.45f, 0.0f));
 
-  float3 pos = domainOriginOffset +
-               cellSize * (float3(cell_co + adaptiveCellOffset) + cell_offset);
+  float3 pos = domain_origin_offset +
+               cell_size * (float3(cell_co + adaptive_cell_offset) + cell_offset);
   float3 rotated_pos = rot_mat * corners[indices[gl_VertexID % 8]];
-  pos += rotated_pos * cellSize;
+  pos += rotated_pos * cell_size;
 
   float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);

@@ -16,7 +16,7 @@ void main()
 {
   select_id_set(drw_custom_id());
   float3 world_pos = drw_point_object_to_world(pos);
-  if (isCameraBackground) {
+  if (is_camera_background) {
     /* Model matrix converts to view position to avoid jittering (see #91398). */
 #ifdef DEPTH_BIAS
     gl_Position = depth_bias_winmat * float4(world_pos, 1.0f);
@@ -36,7 +36,7 @@ void main()
     view_clipping_distances(world_pos);
   }
 
-  if (depthSet) {
+  if (depth_set) {
     /* Result in a position at 1.0 (far plane). Small epsilon to avoid precision issue.
      * This mimics the effect of infinite projection matrix
      * (see http://www.terathon.com/gdc07_lengyel.pdf). */

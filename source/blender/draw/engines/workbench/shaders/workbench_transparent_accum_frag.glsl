@@ -80,7 +80,7 @@ void main()
   float3 shaded_color = color;
 #endif
 
-  shaded_color *= get_shadow(N, forceShadowing);
+  shaded_color *= get_shadow(N, force_shadowing);
 
   /* Listing 4 */
   float alpha = alpha_interp * world_data.xray_alpha;

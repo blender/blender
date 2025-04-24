@@ -39,24 +39,24 @@ void main()
 
 #ifdef OBJECT_WIRE
   /* Extract data packed inside the unused float4x4 members. */
-  finalColor = float4(
+  final_color = float4(
       drw_modelmat()[0][3], drw_modelmat()[1][3], drw_modelmat()[2][3], drw_modelmat()[3][3]);
 #else
 
   if (colorid != 0) {
     /* TH_CAMERA_PATH is the only color code at the moment.
      * Checking `colorid != 0` to avoid having to sync its value with the GLSL code. */
-    finalColor = colorCameraPath;
-    finalColor.a = 0.0f; /* No Stipple */
+    final_color = colorCameraPath;
+    final_color.a = 0.0f; /* No Stipple */
   }
   else {
-    finalColor = color;
-    finalColor.a = 1.0f; /* Stipple */
+    final_color = color;
+    final_color.a = 1.0f; /* Stipple */
   }
 #endif
 
 #if defined(SELECT_ENABLE)
-  finalColor.a = 0.0f; /* No Stipple */
+  final_color.a = 0.0f; /* No Stipple */
 #endif
 
   view_clipping_distances(world_pos);

@@ -38,13 +38,13 @@ void main()
 
   if ((gl_VertexID & 1) == 0) {
     float flip = ((gl_VertexID & 2) == 0) ? -1.0f : 1.0f;
-    ls_P += normalSize * radius * (flip * ls_N - ls_T);
+    ls_P += normal_size * radius * (flip * ls_N - ls_T);
   }
 
   float3 world_pos = drw_point_object_to_world(ls_P);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  finalColor = colorWireEdit;
+  final_color = colorWireEdit;
 
   view_clipping_distances(world_pos);
 }

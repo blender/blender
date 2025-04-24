@@ -73,7 +73,7 @@ void emit_vertex(const uint strip_index,
     return;
   }
 
-  finalColor = color;
+  final_color = color;
 
   gl_Position = hs_P;
   /* Offset away from the center to avoid overlap with solid shape. */
@@ -81,7 +81,7 @@ void emit_vertex(const uint strip_index,
   /* Improve AA bleeding inside bone silhouette. */
   gl_Position.z -= (is_persp) ? 1e-4f : 1e-6f;
 
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 
   view_clipping_distances(ws_P);
 }

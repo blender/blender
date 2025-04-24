@@ -63,7 +63,7 @@ struct GeomOut {
 
 void export_vertex(GeomOut geom_out)
 {
-  finalColor = geom_out.color;
+  final_color = geom_out.color;
   gl_Position = geom_out.gpu_position;
   gl_Position.xy += geom_out.offset * geom_out.gpu_position.w;
   view_clipping_distances(geom_out.ws_P);
@@ -132,13 +132,13 @@ void geometry_main(VertOut geom_in[2],
 
   bool is_bezier_handle = (geom_in[0].flag & EDIT_CURVES_BEZIER_HANDLE) != 0;
   /* Don't output any edges if we don't show handles */
-  if ((uint(curveHandleDisplay) == CURVE_HANDLE_NONE) && is_bezier_handle) {
+  if ((uint(curve_handle_display) == CURVE_HANDLE_NONE) && is_bezier_handle) {
     return;
   }
 
   /* If handle type is only selected and the edge is not selected, don't show.
    * Nurbs and other curves must show the handles always. */
-  if ((uint(curveHandleDisplay) == CURVE_HANDLE_SELECTED) && is_bezier_handle && !is_active) {
+  if ((uint(curve_handle_display) == CURVE_HANDLE_SELECTED) && is_bezier_handle && !is_active) {
     return;
   }
 

@@ -23,7 +23,7 @@ void main()
   float4x4 model_mat = extract_matrix_packed_data(inst_obmat, state_color, bone_color);
 
   float4x4 model_view_matrix = drw_view().viewmat * model_mat;
-  sphereMatrix = inverse(model_view_matrix);
+  sphere_matrix = inverse(model_view_matrix);
 
   bool is_persp = (drw_view().winmat[3][3] == 0.0f);
 
@@ -31,14 +31,14 @@ void main()
    * In perspective mode it's also the view-space position
    * of the sphere center. */
   float3 cam_ray = (is_persp) ? model_view_matrix[3].xyz : float3(0.0f, 0.0f, -1.0f);
-  cam_ray = to_float3x3(sphereMatrix) * cam_ray;
+  cam_ray = to_float3x3(sphere_matrix) * cam_ray;
 
   /* Sphere center distance from the camera (persp) in local space. */
   float cam_dist = length(cam_ray);
 
   /* Compute view aligned orthonormal space. */
   float3 z_axis = cam_ray / cam_dist;
-  float3 x_axis = normalize(cross(sphereMatrix[1].xyz, z_axis));
+  float3 x_axis = normalize(cross(sphere_matrix[1].xyz, z_axis));
   float3 y_axis = cross(z_axis, x_axis);
 
   float z_ofs = -rad - 1e-8f; /* offset to the front of the sphere */
@@ -78,10 +78,10 @@ void main()
   float4 pos_4d = float4(cam_pos, 1.0f);
   float4 V = model_view_matrix * pos_4d;
   gl_Position = drw_view().winmat * V;
-  viewPosition = V.xyz;
+  view_position = V.xyz;
 
-  finalStateColor = state_color.xyz;
-  finalBoneColor = bone_color.xyz;
+  final_state_color = state_color.xyz;
+  final_bone_color = bone_color.xyz;
 
   float4 world_pos = model_mat * pos_4d;
   view_clipping_distances(world_pos.xyz);

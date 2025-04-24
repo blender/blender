@@ -17,8 +17,8 @@ void main()
   bool is_selected = (flag & (VERT_UV_SELECT | FACE_UV_SELECT)) != 0u;
   bool is_pinned = (flag & VERT_UV_PINNED) != 0u;
   float4 deselect_col = (is_pinned) ? pinned_col : float4(color.rgb, 1.0f);
-  fillColor = (is_selected) ? colorVertexSelect : deselect_col;
-  outlineColor = (is_pinned) ? pinned_col : float4(fillColor.rgb, 0.0f);
+  fill_color = (is_selected) ? colorVertexSelect : deselect_col;
+  outline_color = (is_pinned) ? pinned_col : float4(fill_color.rgb, 0.0f);
 
   float3 world_pos = float3(au, 0.0f);
   /* Move selected vertices to the top
@@ -26,17 +26,17 @@ void main()
    * actual pixels are at 0.75, 1.0 is used for the background. */
   float depth = is_selected ? (is_pinned ? 0.05f : 0.10f) : 0.15f;
   gl_Position = float4(drw_point_world_to_homogenous(world_pos).xy, depth, 1.0f);
-  gl_PointSize = pointSize;
+  gl_PointSize = dot_size;
 
   /* calculate concentric radii in pixels */
-  float radius = 0.5f * pointSize;
+  float radius = 0.5f * dot_size;
 
   /* start at the outside and progress toward the center */
   radii[0] = radius;
   radii[1] = radius - 1.0f;
-  radii[2] = radius - outlineWidth;
-  radii[3] = radius - outlineWidth - 1.0f;
+  radii[2] = radius - outline_width;
+  radii[3] = radius - outline_width - 1.0f;
 
   /* convert to PointCoord units */
-  radii /= pointSize;
+  radii /= dot_size;
 }

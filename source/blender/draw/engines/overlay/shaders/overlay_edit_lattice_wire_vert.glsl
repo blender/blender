@@ -23,13 +23,13 @@ float3 weight_to_rgb(float t)
     return float3(1.0f, 0.0f, 1.0f);
   }
   else {
-    return texture(weightTex, t).rgb;
+    return texture(weight_tx, t).rgb;
   }
 }
 
 void main()
 {
-  finalColor = float4(weight_to_rgb(weight), 1.0f);
+  final_color = float4(weight_to_rgb(weight), 1.0f);
 
   float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);

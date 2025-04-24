@@ -18,7 +18,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_wireframe)
 #if !defined(POINTS) && !defined(CURVES)
 bool is_edge_sharpness_visible(float wire_data)
 {
-  return wire_data <= wireStepParam;
+  return wire_data <= wire_step_param;
 }
 #endif
 
@@ -33,8 +33,8 @@ void wire_color_get(out float3 rim_col, out float3 wire_col)
     rim_col = colorWire.rgb;
     wire_col = colorWire.rgb;
   }
-  else if (is_selected && useColoring) {
-    if (isTransform) {
+  else if (is_selected && use_coloring) {
+    if (is_transform) {
       rim_col = colorTransform.rgb;
     }
     else if (is_active) {
@@ -64,7 +64,7 @@ void wire_object_color_get(out float3 rim_col, out float3 wire_col)
   ObjectInfos info = drw_object_infos();
   bool is_selected = flag_test(info.flag, OBJECT_SELECTED);
 
-  if (colorType == V3D_SHADING_OBJECT_COLOR) {
+  if (color_type == V3D_SHADING_OBJECT_COLOR) {
     rim_col = wire_col = drw_object_infos().ob_color.rgb * 0.5f;
   }
   else {
@@ -73,7 +73,7 @@ void wire_object_color_get(out float3 rim_col, out float3 wire_col)
     rim_col = wire_col = hsv_to_rgb(hsv);
   }
 
-  if (is_selected && useColoring) {
+  if (is_selected && use_coloring) {
     /* "Normalize" color. */
     wire_col += 1e-4f; /* Avoid division by 0. */
     float brightness = max(wire_col.x, max(wire_col.y, wire_col.z));
@@ -93,7 +93,7 @@ void main()
   /* If no attribute is available, use a fixed facing value depending on the coloring mode.
    * This allow to keep most of the contrast between unselected and selected color
    * while keeping object coloring mode working (see #134011). */
-  float no_nor_facing = (colorType == V3D_SHADING_SINGLE_COLOR) ? 0.0f : 0.5f;
+  float no_nor_facing = (color_type == V3D_SHADING_SINGLE_COLOR) ? 0.0f : 0.5f;
 
   float3 wpos = drw_point_object_to_world(pos);
 #if defined(POINTS)
@@ -103,8 +103,8 @@ void main()
 #else
   float3 wnor = safe_normalize(drw_normal_object_to_world(nor));
 
-  if (isHair) {
-    float4x4 obmat = hairDupliMatrix;
+  if (is_hair) {
+    float4x4 obmat = hair_dupli_matrix;
     wpos = (obmat * float4(pos, 1.0f)).xyz;
     wnor = -normalize(to_float3x3(obmat) * nor);
   }
@@ -140,7 +140,7 @@ void main()
 #endif
 
   float3 rim_col, wire_col;
-  if (colorType == V3D_SHADING_OBJECT_COLOR || colorType == V3D_SHADING_RANDOM_COLOR) {
+  if (color_type == V3D_SHADING_OBJECT_COLOR || color_type == V3D_SHADING_RANDOM_COLOR) {
     wire_object_color_get(rim_col, wire_col);
   }
   else {
@@ -148,13 +148,13 @@ void main()
   }
 
 #if defined(POINTS)
-  finalColor = wire_col.rgbb;
-  finalColorInner = rim_col.rgbb;
+  final_color = wire_col.rgbb;
+  final_color_inner = rim_col.rgbb;
 
 #else
   /* Convert to screen position [0..sizeVp]. */
-  edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
-  edgePos = edgeStart;
+  edge_start = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_pos = edge_start;
 
 #  if !defined(SELECT_ENABLE)
   facing = clamp(abs(facing), 0.0f, 1.0f);
@@ -162,17 +162,17 @@ void main()
   rim_col = pow(rim_col, float3(1.0f / 2.2f));
   wire_col = pow(wire_col, float3(1.0f / 2.2f));
   float3 final_front_col = mix(rim_col, wire_col, 0.35f);
-  finalColor.rgb = mix(rim_col, final_front_col, facing);
-  finalColor.rgb = pow(finalColor.rgb, float3(2.2f));
+  final_color.rgb = mix(rim_col, final_front_col, facing);
+  final_color.rgb = pow(final_color.rgb, float3(2.2f));
 #  endif
 
-  finalColor.a = wireOpacity;
-  finalColor.rgb *= wireOpacity;
+  final_color.a = wire_opacity;
+  final_color.rgb *= wire_opacity;
 
 #  if !defined(CURVES)
   /* Cull flat edges below threshold. */
   if (!no_attr && !is_edge_sharpness_visible(wd)) {
-    edgeStart = float2(-1.0f);
+    edge_start = float2(-1.0f);
   }
 #  endif
 

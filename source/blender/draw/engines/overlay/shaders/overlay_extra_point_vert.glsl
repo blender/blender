@@ -28,8 +28,8 @@ void main()
   radii[3] = radius - outline_width - 1.0f;
   radii /= sizeObjectCenter;
 
-  fillColor = data_buf[gl_VertexID].color_;
-  outlineColor = colorOutline;
+  fill_color = data_buf[gl_VertexID].color_;
+  outline_color = colorOutline;
 
 #ifdef SELECT_ENABLE
   /* Selection frame-buffer can be very small.

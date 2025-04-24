@@ -72,13 +72,13 @@ void main()
       break;
   }
 
-  finalColor = float4(1.0f);
+  final_color = float4(1.0f);
   if (shape_type == PART_SHAPE_AXIS) {
     /* Works because of flat interpolation. */
-    finalColor.rgb = shape_pos;
+    final_color.rgb = shape_pos;
   }
   else {
-    finalColor.rgb = part.value < 0.0f ? ucolor.rgb : texture(weightTex, part.value).rgb;
+    final_color.rgb = part.value < 0.0f ? ucolor.rgb : texture(weight_tx, part.value).rgb;
   }
 
   /* Draw-size packed in alpha. */
@@ -93,7 +93,7 @@ void main()
     world_pos += rotate(shape_pos, part.rotation);
   }
   gl_Position = drw_point_world_to_homogenous(world_pos);
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 
   view_clipping_distances(world_pos);
 }

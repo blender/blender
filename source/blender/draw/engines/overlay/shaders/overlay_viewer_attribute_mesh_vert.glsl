@@ -14,5 +14,5 @@ void main()
 {
   float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
-  finalColor = attribute_value;
+  final_color = attribute_value;
 }

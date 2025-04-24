@@ -15,13 +15,13 @@ void main()
 {
   select_id_set(in_select_buf[gl_VertexID / 2]);
 
-  finalColor.rgb = data_buf[gl_VertexID].color_.rgb;
-  finalColor.a = 1.0f;
+  final_color.rgb = data_buf[gl_VertexID].color_.rgb;
+  final_color.a = 1.0f;
 
   float3 world_pos = data_buf[gl_VertexID].pos_.xyz;
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 
   view_clipping_distances(world_pos);
 }

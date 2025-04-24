@@ -74,5 +74,5 @@ void main()
   color.rgb *= get_shadow(N, shadow);
 #endif
 
-  fragColor = color;
+  frag_color = color;
 }

@@ -13,15 +13,15 @@ void main()
   float4 color;
 
   /* Remember, this is associated alpha (aka. pre-multiply). */
-  color.rgb = textureLod(colorBuf, screen_uv, 0).rgb;
+  color.rgb = textureLod(color_buf, screen_uv, 0).rgb;
   /* Stroke only render mono-chromatic revealage. We convert to alpha. */
-  color.a = 1.0f - textureLod(revealBuf, screen_uv, 0).r;
+  color.a = 1.0f - textureLod(reveal_buf, screen_uv, 0).r;
 
-  float mask = textureLod(maskBuf, screen_uv, 0).r;
-  mask *= blendOpacity;
+  float mask = textureLod(mask_buf, screen_uv, 0).r;
+  mask *= blend_opacity;
 
-  fragColor = float4(1.0f, 0.0f, 1.0f, 1.0f);
+  frag_color = float4(1.0f, 0.0f, 1.0f, 1.0f);
   fragRevealage = float4(1.0f, 0.0f, 1.0f, 1.0f);
 
-  blend_mode_output(blendMode, color, mask, fragColor, fragRevealage);
+  blend_mode_output(blend_mode, color, mask, frag_color, fragRevealage);
 }

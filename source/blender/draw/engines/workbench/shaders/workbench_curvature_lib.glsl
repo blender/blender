@@ -21,17 +21,17 @@ float curvature_soft_clamp(float curvature, float control)
 }
 
 void curvature_compute(float2 uv,
-                       usampler2D objectIdBuffer,
+                       usampler2D object_id_buffer,
                        sampler2D normalBuffer,
                        out float curvature)
 {
   curvature = 0.0f;
 
   float3 offset = float3(world_data.viewport_size_inv, 0.0f) * world_data.ui_scale;
-  uint object_up = texture(objectIdBuffer, uv + offset.zy).r;
-  uint object_down = texture(objectIdBuffer, uv - offset.zy).r;
-  uint object_right = texture(objectIdBuffer, uv + offset.xz).r;
-  uint object_left = texture(objectIdBuffer, uv - offset.xz).r;
+  uint object_up = texture(object_id_buffer, uv + offset.zy).r;
+  uint object_down = texture(object_id_buffer, uv - offset.zy).r;
+  uint object_right = texture(object_id_buffer, uv + offset.xz).r;
+  uint object_left = texture(object_id_buffer, uv - offset.xz).r;
 
   /* Remove object outlines. */
   if ((object_up != object_down) || (object_right != object_left)) {

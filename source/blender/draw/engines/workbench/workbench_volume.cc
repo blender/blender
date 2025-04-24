@@ -57,18 +57,18 @@ void VolumePass::object_sync_volume(Manager &manager,
       ShaderCache::get().volume_get(false, volume.display.interpolation_method, false, use_slice));
   sub_ps.push_constant("do_depth_test", scene_state.shading.type >= OB_SOLID);
 
-  const float density_scale = volume.display.density *
-                              BKE_volume_density_scale(&volume, ob->object_to_world().ptr());
+  const float density_fac = volume.display.density *
+                            BKE_volume_density_scale(&volume, ob->object_to_world().ptr());
 
-  sub_ps.bind_texture("depthBuffer", &resources.depth_tx);
+  sub_ps.bind_texture("depth_buffer", &resources.depth_tx);
   sub_ps.bind_texture("stencil_tx", &stencil_tx_);
-  sub_ps.bind_texture("densityTexture", grid->texture);
+  sub_ps.bind_texture("density_tx", grid->texture);
   /* TODO: implement shadow texture, see manta_smoke_calc_transparency. */
-  sub_ps.bind_texture("shadowTexture", dummy_shadow_tx_);
-  sub_ps.push_constant("activeColor", color);
-  sub_ps.push_constant("densityScale", density_scale);
-  sub_ps.push_constant("volumeObjectToTexture", float4x4(grid->object_to_texture));
-  sub_ps.push_constant("volumeTextureToObject", float4x4(grid->texture_to_object));
+  sub_ps.bind_texture("shadow_tx", dummy_shadow_tx_);
+  sub_ps.push_constant("active_color", color);
+  sub_ps.push_constant("density_fac", density_fac);
+  sub_ps.push_constant("volume_object_to_texture", float4x4(grid->object_to_texture));
+  sub_ps.push_constant("volume_texture_to_object", float4x4(grid->texture_to_object));
 
   if (use_slice) {
     draw_slice_ps(
@@ -135,40 +135,39 @@ void VolumePass::object_sync_modifier(Manager &manager,
                                FLUID_DOMAIN_FIELD_PHI_OUT,
                                FLUID_DOMAIN_FIELD_PHI_OBSTACLE);
 
-    sub_ps.push_constant("showFlags", show_flags);
-    sub_ps.push_constant("showPressure", show_pressure);
-    sub_ps.push_constant("showPhi", show_phi);
-    sub_ps.push_constant("gridScale", settings.grid_scale);
+    sub_ps.push_constant("show_flags", show_flags);
+    sub_ps.push_constant("show_pressure", show_pressure);
+    sub_ps.push_constant("show_phi", show_phi);
+    sub_ps.push_constant("grid_scale", settings.grid_scale);
 
     if (show_flags) {
-      sub_ps.bind_texture("flagTexture", settings.tex_field);
+      sub_ps.bind_texture("flag_tx", settings.tex_field);
     }
     else {
-      sub_ps.bind_texture("densityTexture", settings.tex_field);
+      sub_ps.bind_texture("density_tx", settings.tex_field);
     }
 
     if (!show_flags && !show_pressure && !show_phi) {
-      sub_ps.bind_texture("transferTexture", settings.tex_coba);
+      sub_ps.bind_texture("transfer_tx", settings.tex_coba);
     }
   }
   else {
     bool use_constant_color = ((settings.active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
                                (settings.active_fields & FLUID_DOMAIN_ACTIVE_COLOR_SET) != 0);
 
-    sub_ps.push_constant("activeColor",
+    sub_ps.push_constant("active_color",
                          use_constant_color ? float3(settings.active_color) : float3(1));
 
-    sub_ps.bind_texture("densityTexture",
+    sub_ps.bind_texture("density_tx",
                         settings.tex_color ? settings.tex_color : settings.tex_density);
-    sub_ps.bind_texture("flameTexture",
-                        settings.tex_flame ? settings.tex_flame : dummy_volume_tx_);
-    sub_ps.bind_texture("flameColorTexture",
+    sub_ps.bind_texture("flame_tx", settings.tex_flame ? settings.tex_flame : dummy_volume_tx_);
+    sub_ps.bind_texture("flame_color_tx",
                         settings.tex_flame ? settings.tex_flame_coba : dummy_coba_tx_);
-    sub_ps.bind_texture("shadowTexture", settings.tex_shadow);
+    sub_ps.bind_texture("shadow_tx", settings.tex_shadow);
   }
 
-  sub_ps.push_constant("densityScale", 10.0f * settings.display_thickness);
-  sub_ps.bind_texture("depthBuffer", &resources.depth_tx);
+  sub_ps.push_constant("density_fac", 10.0f * settings.display_thickness);
+  sub_ps.bind_texture("depth_buffer", &resources.depth_tx);
   sub_ps.bind_texture("stencil_tx", &stencil_tx_);
 
   if (use_slice) {
@@ -217,9 +216,9 @@ void VolumePass::draw_slice_ps(Manager &manager,
   float step_length = std::max(1e-16f, dimensions[axis] * 0.05f);
 
   ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_CULL_FRONT);
-  ps.push_constant("slicePosition", slice_depth);
-  ps.push_constant("sliceAxis", axis);
-  ps.push_constant("stepLength", step_length);
+  ps.push_constant("slice_position", slice_depth);
+  ps.push_constant("slice_axis", axis);
+  ps.push_constant("step_length", step_length);
 
   ps.draw(resources.volume_cube_batch, manager.resource_handle(ob_ref));
 }
@@ -239,9 +238,9 @@ void VolumePass::draw_volume_ps(Manager &manager,
   float step_length = math::length((1.0f / slice_count) * world_size);
 
   ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL | DRW_STATE_CULL_FRONT);
-  ps.push_constant("samplesLen", max_slice);
-  ps.push_constant("stepLength", step_length);
-  ps.push_constant("noiseOfs", float(noise_offset));
+  ps.push_constant("samples_len", max_slice);
+  ps.push_constant("step_length", step_length);
+  ps.push_constant("noise_ofs", float(noise_offset));
 
   ps.draw(resources.volume_cube_batch, manager.resource_handle(ob_ref));
 }

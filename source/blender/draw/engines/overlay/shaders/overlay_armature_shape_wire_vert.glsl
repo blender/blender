@@ -31,7 +31,7 @@ VertIn input_assembly(uint in_vertex_id, float4x4 inst_matrix)
 
 struct VertOut {
   float4 gpu_position;
-  float4 finalColor;
+  float4 final_color;
   float3 world_pos;
   float wire_width;
 };
@@ -68,8 +68,8 @@ VertOut vertex_main(VertIn v_in)
   }
   v_out.gpu_position = drw_point_world_to_homogenous(v_out.world_pos);
 
-  v_out.finalColor.rgb = mix(state_color.rgb, bone_color.rgb, 0.5f);
-  v_out.finalColor.a = 1.0f;
+  v_out.final_color.rgb = mix(state_color.rgb, bone_color.rgb, 0.5f);
+  v_out.final_color.a = 1.0f;
   /* Because the packing clamps the value, the wire width is passed in compressed. */
   v_out.wire_width = bone_color.a * WIRE_WIDTH_COMPRESSION;
 
@@ -94,8 +94,8 @@ void do_vertex(const uint strip_index,
     return;
   }
 
-  finalColor = color;
-  edgeCoord = coord;
+  final_color = color;
+  edge_coord = coord;
   gl_Position = hs_P;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
   gl_Position.xy += offset * 2.0f * hs_P.w;
@@ -145,7 +145,7 @@ void geometry_main(VertOut geom_in[2],
   float2 line_norm = normalize(float2(line[1], -line[0]));
   float2 edge_ofs = (half_size * line_norm) * sizeViewportInv;
 
-  float4 final_color = geom_in[0].finalColor;
+  float4 final_color = geom_in[0].final_color;
   do_vertex(0,
             out_vertex_id,
             out_primitive_id,

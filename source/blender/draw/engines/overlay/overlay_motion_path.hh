@@ -163,11 +163,11 @@ class MotionPath : Overlay {
           current_frame, int(frame_range.start()), int(frame_range.last()), mpath->start_frame);
 
       auto &sub = *line_ps_;
-      sub.push_constant("mpathLineSettings", motion_path_settings);
-      sub.push_constant("lineThickness", mpath->line_thickness);
+      sub.push_constant("mpath_line_settings", motion_path_settings);
+      sub.push_constant("line_thickness", mpath->line_thickness);
       sub.push_constant("selected", selected);
-      sub.push_constant("customColorPre", color_pre);
-      sub.push_constant("customColorPost", color_post);
+      sub.push_constant("custom_color_pre", color_pre);
+      sub.push_constant("custom_color_post", color_post);
       sub.push_constant("camera_space_matrix",
                         camera_eval ? camera_eval->object_to_world() : float4x4::identity());
 
@@ -182,10 +182,10 @@ class MotionPath : Overlay {
       const int4 motion_path_settings = {pt_size, current_frame, mpath->start_frame, stride};
 
       auto &sub = *vert_ps_;
-      sub.push_constant("mpathPointSettings", motion_path_settings);
-      sub.push_constant("showKeyFrames", show_keyframes);
-      sub.push_constant("customColorPre", color_pre);
-      sub.push_constant("customColorPost", color_post);
+      sub.push_constant("mpath_point_settings", motion_path_settings);
+      sub.push_constant("show_key_frames", show_keyframes);
+      sub.push_constant("custom_color_pre", color_pre);
+      sub.push_constant("custom_color_post", color_post);
       sub.push_constant("camera_space_matrix",
                         camera_eval ? camera_eval->object_to_world() : float4x4::identity());
 

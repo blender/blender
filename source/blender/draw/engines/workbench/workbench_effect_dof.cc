@@ -167,47 +167,47 @@ void DofPass::sync(SceneResources &resources, const DRWContext *draw_ctx)
   down_ps_.init();
   down_ps_.state_set(DRW_STATE_WRITE_COLOR);
   down_ps_.shader_set(ShaderCache::get().dof_prepare.get());
-  down_ps_.bind_texture("sceneColorTex", &resources.color_tx);
-  down_ps_.bind_texture("sceneDepthTex", &resources.depth_tx);
-  down_ps_.push_constant("invertedViewportSize", viewport_size_inv);
-  down_ps_.push_constant("dofParams", float3(aperture_size_, distance_, invsensor_size_));
-  down_ps_.push_constant("nearFar", float2(near_, far_));
+  down_ps_.bind_texture("scene_color_tx", &resources.color_tx);
+  down_ps_.bind_texture("scene_depth_tx", &resources.depth_tx);
+  down_ps_.push_constant("inverted_viewport_size", viewport_size_inv);
+  down_ps_.push_constant("dof_params", float3(aperture_size_, distance_, invsensor_size_));
+  down_ps_.push_constant("near_far", float2(near_, far_));
   down_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
   down2_ps_.init();
   down2_ps_.state_set(DRW_STATE_WRITE_COLOR);
   down2_ps_.shader_set(ShaderCache::get().dof_downsample.get());
-  down2_ps_.bind_texture("sceneColorTex", &source_tx_, sampler_state);
-  down2_ps_.bind_texture("inputCocTex", &coc_halfres_tx_, sampler_state);
+  down2_ps_.bind_texture("scene_color_tx", &source_tx_, sampler_state);
+  down2_ps_.bind_texture("input_coc_tx", &coc_halfres_tx_, sampler_state);
   down2_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
   blur_ps_.init();
   blur_ps_.state_set(DRW_STATE_WRITE_COLOR);
   blur_ps_.shader_set(ShaderCache::get().dof_blur1.get());
   blur_ps_.bind_ubo("samples", samples_buf_);
-  blur_ps_.bind_texture("noiseTex", resources.jitter_tx);
-  blur_ps_.bind_texture("inputCocTex", &coc_halfres_tx_, sampler_state);
-  blur_ps_.bind_texture("halfResColorTex", &source_tx_, sampler_state);
-  blur_ps_.push_constant("invertedViewportSize", viewport_size_inv);
-  blur_ps_.push_constant("noiseOffset", offset_);
+  blur_ps_.bind_texture("noise_tx", resources.jitter_tx);
+  blur_ps_.bind_texture("input_coc_tx", &coc_halfres_tx_, sampler_state);
+  blur_ps_.bind_texture("half_res_color_tx", &source_tx_, sampler_state);
+  blur_ps_.push_constant("inverted_viewport_size", viewport_size_inv);
+  blur_ps_.push_constant("noise_offset", offset_);
   blur_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
   blur2_ps_.init();
   blur2_ps_.state_set(DRW_STATE_WRITE_COLOR);
   blur2_ps_.shader_set(ShaderCache::get().dof_blur2.get());
-  blur2_ps_.bind_texture("inputCocTex", &coc_halfres_tx_, sampler_state);
-  blur2_ps_.bind_texture("blurTex", &blur_tx_);
-  blur2_ps_.push_constant("invertedViewportSize", viewport_size_inv);
+  blur2_ps_.bind_texture("input_coc_tx", &coc_halfres_tx_, sampler_state);
+  blur2_ps_.bind_texture("blur_tx", &blur_tx_);
+  blur2_ps_.push_constant("inverted_viewport_size", viewport_size_inv);
   blur2_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
   resolve_ps_.init();
   resolve_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
   resolve_ps_.shader_set(ShaderCache::get().dof_resolve.get());
-  resolve_ps_.bind_texture("halfResColorTex", &source_tx_, sampler_state);
-  resolve_ps_.bind_texture("sceneDepthTex", &resources.depth_tx);
-  resolve_ps_.push_constant("invertedViewportSize", viewport_size_inv);
-  resolve_ps_.push_constant("dofParams", float3(aperture_size_, distance_, invsensor_size_));
-  resolve_ps_.push_constant("nearFar", float2(near_, far_));
+  resolve_ps_.bind_texture("half_res_color_tx", &source_tx_, sampler_state);
+  resolve_ps_.bind_texture("scene_depth_tx", &resources.depth_tx);
+  resolve_ps_.push_constant("inverted_viewport_size", viewport_size_inv);
+  resolve_ps_.push_constant("dof_params", float3(aperture_size_, distance_, invsensor_size_));
+  resolve_ps_.push_constant("near_far", float2(near_, far_));
   resolve_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 

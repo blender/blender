@@ -13,23 +13,23 @@ void main()
 {
   float2 pos;
   pos.x = float(gl_VertexID % 2);
-  pos.y = float(gl_VertexID / 2) / float(halfLineCount - 1);
+  pos.y = float(gl_VertexID / 2) / float(half_line_count - 1);
 
   if (pos.y > 1.0f) {
     pos.xy = pos.yx;
-    pos.x -= 1.0f + 1.0f / float(halfLineCount - 1);
+    pos.x -= 1.0f + 1.0f / float(half_line_count - 1);
   }
 
   pos -= 0.5f;
 
-  float3 world_pos = xAxis * pos.x + yAxis * pos.y + origin;
+  float3 world_pos = x_axis * pos.x + y_axis * pos.y + origin;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   view_clipping_distances(world_pos);
 
-  finalColor = color;
+  final_color = color;
 
   /* Convert to screen position [0..sizeVp]. */
-  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_pos = edge_start = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 }

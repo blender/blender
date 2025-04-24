@@ -12,8 +12,8 @@ void main()
 {
 #if SMAA_STAGE == 0
   /* Detect edges in color and revealage buffer. */
-  out_edges = SMAALumaEdgeDetectionPS(uvs, offset, colorTex);
-  out_edges = max(out_edges, SMAALumaEdgeDetectionPS(uvs, offset, revealTex));
+  out_edges = SMAALumaEdgeDetectionPS(uvs, offset, color_tx);
+  out_edges = max(out_edges, SMAALumaEdgeDetectionPS(uvs, offset, reveal_tx));
   /* Discard if there is no edge. */
   if (dot(out_edges, float2(1.0f, 1.0f)) == 0.0f) {
     discard;
@@ -22,17 +22,17 @@ void main()
 
 #elif SMAA_STAGE == 1
   out_weights = SMAABlendingWeightCalculationPS(
-      uvs, pixcoord, offset, edgesTex, areaTex, searchTex, float4(0));
+      uvs, pixcoord, offset, edges_tx, area_tx, search_tx, float4(0));
 
 #elif SMAA_STAGE == 2
   /* Resolve both buffers. */
-  if (doAntiAliasing) {
-    out_color = SMAANeighborhoodBlendingPS(uvs, offset[0], colorTex, blendTex);
-    out_reveal = SMAANeighborhoodBlendingPS(uvs, offset[0], revealTex, blendTex);
+  if (do_anti_aliasing) {
+    out_color = SMAANeighborhoodBlendingPS(uvs, offset[0], color_tx, blend_tx);
+    out_reveal = SMAANeighborhoodBlendingPS(uvs, offset[0], reveal_tx, blend_tx);
   }
   else {
-    out_color = texture(colorTex, uvs);
-    out_reveal = texture(revealTex, uvs);
+    out_color = texture(color_tx, uvs);
+    out_reveal = texture(reveal_tx, uvs);
   }
 
   /* Revealage, how much light passes through. */
@@ -42,7 +42,7 @@ void main()
   /* Add the alpha. */
   out_color.a = 1.0f - out_reveal.a;
 
-  if (onlyAlpha) {
+  if (only_alpha) {
     /* Special case in wire-frame X-ray mode. */
     out_color = float4(0.0f);
     out_reveal.rgb = out_reveal.aaa;

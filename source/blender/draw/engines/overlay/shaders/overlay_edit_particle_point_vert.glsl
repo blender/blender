@@ -27,7 +27,7 @@ float3 weight_to_rgb(float t)
     return float3(1.0f, 0.0f, 1.0f);
   }
   else {
-    return texture(weightTex, t).rgb;
+    return texture(weight_tx, t).rgb;
   }
 }
 
@@ -37,8 +37,8 @@ void main()
   bool is_active = (data & EDIT_CURVES_ACTIVE_HANDLE) != 0u;
   bool is_bezier_handle = (data & EDIT_CURVES_BEZIER_HANDLE) != 0u;
 
-  if (is_bezier_handle && ((uint(curveHandleDisplay) == CURVE_HANDLE_NONE) ||
-                           (uint(curveHandleDisplay) == CURVE_HANDLE_SELECTED) && !is_active))
+  if (is_bezier_handle && ((uint(curve_handle_display) == CURVE_HANDLE_NONE) ||
+                           (uint(curve_handle_display) == CURVE_HANDLE_SELECTED) && !is_active))
   {
     DISCARD_VERTEX
   }
@@ -48,32 +48,32 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
   float end_point_size_factor = 1.0f;
 
-  if (useWeight) {
-    finalColor = float4(weight_to_rgb(selection), 1.0f);
+  if (use_weight) {
+    final_color = float4(weight_to_rgb(selection), 1.0f);
   }
   else {
-    float4 color_selected = useGreasePencil ? colorGpencilVertexSelect : colorVertexSelect;
-    float4 color_not_selected = useGreasePencil ? colorGpencilVertex : colorVertex;
-    finalColor = mix(color_not_selected, color_selected, selection);
+    float4 color_selected = use_grease_pencil ? colorGpencilVertexSelect : colorVertexSelect;
+    float4 color_not_selected = use_grease_pencil ? colorGpencilVertex : colorVertex;
+    final_color = mix(color_not_selected, color_selected, selection);
 
 #if 1 /* Should be checking CURVES_POINT */
-    if (doStrokeEndpoints) {
+    if (do_stroke_endpoints) {
       bool is_stroke_start = (vflag & GP_EDIT_STROKE_START) != 0u;
       bool is_stroke_end = (vflag & GP_EDIT_STROKE_END) != 0u;
 
       if (is_stroke_start) {
         end_point_size_factor *= 2.0f;
-        finalColor.rgb = float3(0.0f, 1.0f, 0.0f);
+        final_color.rgb = float3(0.0f, 1.0f, 0.0f);
       }
       else if (is_stroke_end) {
         end_point_size_factor *= 1.5f;
-        finalColor.rgb = float3(1.0f, 0.0f, 0.0f);
+        final_color.rgb = float3(1.0f, 0.0f, 0.0f);
       }
     }
 #endif
   }
 
-  float vsize = useGreasePencil ? sizeVertexGpencil : sizeVertex;
+  float vsize = use_grease_pencil ? sizeVertexGpencil : sizeVertex;
   gl_PointSize = vsize * 2.0f * end_point_size_factor;
 
   view_clipping_distances(world_pos);

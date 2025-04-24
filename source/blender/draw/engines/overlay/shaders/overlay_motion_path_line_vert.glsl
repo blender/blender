@@ -37,10 +37,10 @@ struct VertOut {
   float4 color;
 };
 
-#define frameCurrent mpathLineSettings.x
-#define frameStart mpathLineSettings.y
-#define frameEnd mpathLineSettings.z
-#define cacheStart mpathLineSettings.w
+#define frameCurrent mpath_line_settings.x
+#define frameStart mpath_line_settings.y
+#define frameEnd mpath_line_settings.z
+#define cacheStart mpath_line_settings.w
 
 VertOut vertex_main(VertIn vert_in)
 {
@@ -55,13 +55,13 @@ VertOut vertex_main(VertIn vert_in)
   float3 blend_base = (abs(frame - frameCurrent) == 0) ?
                           colorCurrentFrame.rgb :
                           colorBackground.rgb; /* "bleed" CFRAME color to ease color blending */
-  bool use_custom_color = customColorPre.x >= 0.0f;
+  bool use_custom_color = custom_color_pre.x >= 0.0f;
 
   if (frame < frameCurrent) {
-    vert_out.color.rgb = use_custom_color ? customColorPre : colorBeforeFrame.rgb;
+    vert_out.color.rgb = use_custom_color ? custom_color_pre : colorBeforeFrame.rgb;
   }
   else if (frame > frameCurrent) {
-    vert_out.color.rgb = use_custom_color ? customColorPost : colorAfterFrame.rgb;
+    vert_out.color.rgb = use_custom_color ? custom_color_post : colorAfterFrame.rgb;
   }
   else /* if (frame == frameCurrent) */ {
     vert_out.color.rgb = use_custom_color ? colorCurrentFrame.rgb : blend_base;
@@ -108,7 +108,7 @@ void geometry_main(VertOut geom_in[2],
   float2 edge_dir = orthogonal(normalize(ss_P1 - ss_P0 + 1e-8f)) * sizeViewportInv;
 
   bool is_persp = (drw_view().winmat[3][3] == 0.0f);
-  float line_size = float(lineThickness) * sizePixel;
+  float line_size = float(line_thickness) * sizePixel;
 
   GeomOut geom_out;
 

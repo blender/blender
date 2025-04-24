@@ -40,7 +40,7 @@ float3 workbench_image_color(float2 uvs)
   float4 color;
 
   float3 co = float3(uvs, 0.0f);
-  if (isImageTile) {
+  if (is_image_tile) {
     if (node_tex_tile_lookup(co, imageTileData)) {
       color = texture(imageTileArray, co);
     }
@@ -53,12 +53,12 @@ float3 workbench_image_color(float2 uvs)
   }
 
   /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
-  if (imagePremult && !(color.a == 0.0f || color.a == 1.0f)) {
+  if (image_premult && !(color.a == 0.0f || color.a == 1.0f)) {
     color.rgb /= color.a;
   }
 
 #  ifdef GPU_FRAGMENT_SHADER
-  if (color.a < imageTransparencyCutoff) {
+  if (color.a < image_transparency_cutoff) {
     discard;
   }
 #  endif

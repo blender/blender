@@ -9,52 +9,52 @@ VERTEX_SHADER_CREATE_INFO(overlay_motion_path_point)
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 
-#define pointSize mpathPointSettings.x
-#define frameCurrent mpathPointSettings.y
-#define cacheStart mpathPointSettings.z
-#define stepSize mpathPointSettings.w
-
 void main()
 {
+  int pt_size = mpath_point_settings.x;
+  int frameCurrent = mpath_point_settings.y;
+  int cacheStart = mpath_point_settings.z;
+  int stepSize = mpath_point_settings.w;
+
   gl_Position = drw_view().winmat *
                 (drw_view().viewmat * (camera_space_matrix * float4(pos, 1.0f)));
-  gl_PointSize = float(pointSize + 2);
+  gl_PointSize = float(pt_size + 2);
 
   int frame = gl_VertexID + cacheStart;
-  bool use_custom_color = customColorPre.x >= 0.0f;
-  finalColor = (use_custom_color) ? float4(customColorPre, 1.0f) : colorVertex;
+  bool use_custom_color = custom_color_pre.x >= 0.0f;
+  final_color = (use_custom_color) ? float4(custom_color_pre, 1.0f) : colorVertex;
 
   /* Bias to reduce z fighting with the path */
   gl_Position.z -= 1e-4f;
 
   if (gl_VertexID % stepSize == 0) {
-    gl_PointSize = float(pointSize) + 4;
+    gl_PointSize = float(pt_size) + 4;
   }
 
   /* Draw special dot where the current frame is. */
   if (frame == frameCurrent) {
-    gl_PointSize = float(pointSize + 8);
-    finalColor = colorCurrentFrame;
+    gl_PointSize = float(pt_size + 8);
+    final_color = colorCurrentFrame;
     /* Bias more to get these on top of keyframes */
     gl_Position.z -= 1e-4f;
   }
   else if (frame < frameCurrent) {
     if (use_custom_color) {
-      finalColor = float4(customColorPre, 1.0f);
+      final_color = float4(custom_color_pre, 1.0f);
     }
   }
   else {
     /* frame > frameCurrent */
     if (use_custom_color) {
-      finalColor = float4(customColorPost, 1.0f);
+      final_color = float4(custom_color_post, 1.0f);
     }
   }
 
-  if (showKeyFrames) {
+  if (show_key_frames) {
     /* Overrides the color to highlight points that are keyframes. */
     if ((uint(flag) & MOTIONPATH_VERT_KEY) != 0u) {
-      gl_PointSize = float(pointSize + 5);
-      finalColor = colorVertexSelect;
+      gl_PointSize = float(pt_size + 5);
+      final_color = colorVertexSelect;
       /* Bias more to get these on top of regular points */
       gl_Position.z -= 1e-4f;
     }

@@ -65,9 +65,9 @@ void main()
   obmat[0][3] = obmat[1][3] = obmat[2][3] = 0.0f;
   obmat[3][3] = 1.0f;
 
-  finalColor = color;
+  final_color = color;
   if (color.a < 0.0f) {
-    finalColor.a = 1.0f;
+    final_color.a = 1.0f;
   }
 
   float lamp_spot_sine;
@@ -120,16 +120,16 @@ void main()
       /* Override color. */
       switch (int(camera_distance_color)) {
         case 0: /* Mist */
-          finalColor = float4(0.5f, 0.5f, 0.5f, 1.0f);
+          final_color = float4(0.5f, 0.5f, 0.5f, 1.0f);
           break;
         case 1: /* Mist Active */
-          finalColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+          final_color = float4(1.0f, 1.0f, 1.0f, 1.0f);
           break;
         case 2: /* Clip */
-          finalColor = float4(0.5f, 0.5f, 0.25f, 1.0f);
+          final_color = float4(0.5f, 0.5f, 0.25f, 1.0f);
           break;
         case 3: /* Clip Active */
-          finalColor = float4(1.0f, 1.0f, 0.5f, 1.0f);
+          final_color = float4(1.0f, 1.0f, 0.5f, 1.0f);
           break;
       }
     }
@@ -162,8 +162,8 @@ void main()
 
     float3 axis_color = float3(0.0f);
     axis_color[int(axis)] = 1.0f;
-    finalColor.rgb = mix(axis_color + fract(axis), color.rgb, color.a);
-    finalColor.a = 1.0f;
+    final_color.rgb = mix(axis_color + fract(axis), color.rgb, color.a);
+    final_color.a = 1.0f;
   }
 
   /* Not exclusive with previous flags. */
@@ -173,16 +173,16 @@ void main()
     float color_intensity = fract(color.r);
     switch (color_class) {
       case 0: /* No eye (convergence plane). */
-        finalColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+        final_color = float4(1.0f, 1.0f, 1.0f, 1.0f);
         break;
       case 1: /* Left eye. */
-        finalColor = float4(0.0f, 1.0f, 1.0f, 1.0f);
+        final_color = float4(0.0f, 1.0f, 1.0f, 1.0f);
         break;
       case 2: /* Right eye. */
-        finalColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
+        final_color = float4(1.0f, 0.0f, 0.0f, 1.0f);
         break;
     }
-    finalColor *= float4(float3(color_intensity), color.g);
+    final_color *= float4(float3(color_intensity), color.g);
   }
 
   float3 world_pos;
@@ -230,7 +230,7 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Convert to screen position [0..sizeVp]. */
-  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_pos = edge_start = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 
 #if defined(SELECT_ENABLE)
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the

@@ -14,6 +14,6 @@ void main()
   float3 world_pos = float3(au, 0.0f);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  finalColor = ((flag & FACE_UV_SELECT) != 0u) ? colorFaceDot : float4(colorWire.rgb, 1.0f);
-  gl_PointSize = pointSize;
+  final_color = ((flag & FACE_UV_SELECT) != 0u) ? colorFaceDot : float4(colorWire.rgb, 1.0f);
+  gl_PointSize = dot_size;
 }

@@ -69,12 +69,12 @@ float gpencil_decode_hardness(int packed_data)
   return float((uint(packed_data) & 0x3FC0000u) >> 18u) * (1.0f / 255.0f);
 }
 
-float2 gpencil_project_to_screenspace(float4 v, float4 viewport_size)
+float2 gpencil_project_to_screenspace(float4 v, float4 viewport_res)
 {
-  return ((v.xy / v.w) * 0.5f + 0.5f) * viewport_size.xy;
+  return ((v.xy / v.w) * 0.5f + 0.5f) * viewport_res.xy;
 }
 
-float gpencil_stroke_thickness_modulate(float thickness, float4 ndc_pos, float4 viewport_size)
+float gpencil_stroke_thickness_modulate(float thickness, float4 ndc_pos, float4 viewport_res)
 {
   /* Modify stroke thickness by object scale. */
   thickness = length(to_float3x3(drw_modelmat()) * float3(thickness * M_SQRT1_3));
@@ -88,7 +88,7 @@ float gpencil_stroke_thickness_modulate(float thickness, float4 ndc_pos, float4 
   thickness /= legacy_radius_conversion_factor;
 
   /* World space point size. */
-  thickness *= drw_view().winmat[1][1] * viewport_size.y;
+  thickness *= drw_view().winmat[1][1] * viewport_res.y;
 
   return thickness;
 }
@@ -140,7 +140,7 @@ bool gpencil_is_stroke_vertex()
  * WARNING: Max attribute count is actually 14 because OSX OpenGL implementation
  * considers gl_VertexID and gl_InstanceID as vertex attribute. (see #74536)
  */
-float4 gpencil_vertex(float4 viewport_size,
+float4 gpencil_vertex(float4 viewport_res,
                       gpMaterialFlag material_flags,
                       float2 alignment_rot,
                       /* World Position. */
@@ -243,16 +243,16 @@ float4 gpencil_vertex(float4 viewport_size,
     out_P = (use_curr) ? wpos1 : wpos2;
     out_strength = abs((use_curr) ? strength1 : strength2);
 
-    float2 ss_adj = gpencil_project_to_screenspace(ndc_adj, viewport_size);
-    float2 ss1 = gpencil_project_to_screenspace(ndc1, viewport_size);
-    float2 ss2 = gpencil_project_to_screenspace(ndc2, viewport_size);
+    float2 ss_adj = gpencil_project_to_screenspace(ndc_adj, viewport_res);
+    float2 ss1 = gpencil_project_to_screenspace(ndc1, viewport_res);
+    float2 ss2 = gpencil_project_to_screenspace(ndc2, viewport_res);
     /* Screen-space Lines tangents. */
     float line_len;
     float2 line = safe_normalize_and_get_length(ss2 - ss1, line_len);
     float2 line_adj = safe_normalize((use_curr) ? (ss1 - ss_adj) : (ss_adj - ss2));
 
     float thickness = abs((use_curr) ? thickness1 : thickness2);
-    thickness = gpencil_stroke_thickness_modulate(thickness, out_ndc, viewport_size);
+    thickness = gpencil_stroke_thickness_modulate(thickness, out_ndc, viewport_res);
     float clamped_thickness = gpencil_clamp_small_stroke_thickness(thickness, out_ndc);
 
     out_uv = float2(x, y) * 0.5f + 0.5f;
@@ -276,7 +276,7 @@ float4 gpencil_vertex(float4 viewport_size,
       }
       else { /* GP_STROKE_ALIGNMENT_OBJECT */
         float4 ndc_x = drw_point_world_to_homogenous(wpos1 + drw_modelmat()[0].xyz);
-        float2 ss_x = gpencil_project_to_screenspace(ndc_x, viewport_size);
+        float2 ss_x = gpencil_project_to_screenspace(ndc_x, viewport_res);
         x_axis = safe_normalize(ss_x - ss1);
       }
 
@@ -300,7 +300,7 @@ float4 gpencil_vertex(float4 viewport_size,
       /* Invert for vertex shader. */
       out_aspect = 1.0f / out_aspect;
 
-      out_ndc.xy += (x * x_axis + y * y_axis) * viewport_size.zw * clamped_thickness;
+      out_ndc.xy += (x * x_axis + y * y_axis) * viewport_res.zw * clamped_thickness;
 
       out_sspos.xy = ss1;
       out_sspos.zw = ss1 + x_axis * 0.5f;
@@ -337,7 +337,7 @@ float4 gpencil_vertex(float4 viewport_size,
         screen_ofs += line * x;
       }
 
-      out_ndc.xy += screen_ofs * viewport_size.zw * clamped_thickness;
+      out_ndc.xy += screen_ofs * viewport_res.zw * clamped_thickness;
 
       out_uv.x = (use_curr) ? uv1.z : uv2.z;
     }
@@ -380,7 +380,7 @@ float4 gpencil_vertex(float4 viewport_size,
   return out_ndc;
 }
 
-float4 gpencil_vertex(float4 viewport_size,
+float4 gpencil_vertex(float4 viewport_res,
                       out float3 out_P,
                       out float3 out_N,
                       out float4 out_color,
@@ -391,7 +391,7 @@ float4 gpencil_vertex(float4 viewport_size,
                       out float2 out_thickness,
                       out float out_hardness)
 {
-  return gpencil_vertex(viewport_size,
+  return gpencil_vertex(viewport_res,
                         gpMaterialFlag(0u),
                         float2(1.0f, 0.0f),
                         out_P,

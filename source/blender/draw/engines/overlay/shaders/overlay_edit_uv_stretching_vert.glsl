@@ -83,9 +83,9 @@ void main()
   stretch = stretch;
   stretch = 1.0f - stretch * stretch;
 #else
-  float stretch = 1.0f - area_ratio_to_stretch(ratio, totalAreaRatio);
+  float stretch = 1.0f - area_ratio_to_stretch(ratio, total_area_ratio);
 
 #endif
 
-  finalColor = float4(weight_to_rgb(stretch), stretch_opacity);
+  final_color = float4(weight_to_rgb(stretch), stretch_opacity);
 }

@@ -178,7 +178,7 @@ class Armatures : Overlay {
         sub.state_set(transparent_state | DRW_STATE_CULL_FRONT, state.clipping_plane_count);
         sub.shader_set(res.shaders->armature_envelope_fill.get());
         sub.push_constant("alpha", 1.0f);
-        sub.push_constant("isDistance", true);
+        sub.push_constant("is_distance", true);
         opaque_.envelope_distance = &sub;
       }
       if (use_wire_alpha) {
@@ -186,7 +186,7 @@ class Armatures : Overlay {
         sub.state_set(transparent_state | DRW_STATE_CULL_FRONT, state.clipping_plane_count);
         sub.shader_set(res.shaders->armature_envelope_fill.get());
         sub.push_constant("alpha", wire_alpha);
-        sub.push_constant("isDistance", true);
+        sub.push_constant("is_distance", true);
         transparent_.envelope_distance = &sub;
       }
       else {
@@ -278,7 +278,7 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("transparent.shape_outline");
         sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders->armature_shape_outline.get());
-        sub.bind_texture("depthTex", depth_tex);
+        sub.bind_texture("depth_tx", depth_tex);
         sub.push_constant("alpha", wire_alpha * 0.6f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
         transparent_.shape_outline = &sub;
@@ -300,7 +300,7 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("transparent.shape_wire");
         sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders->armature_shape_wire.get());
-        sub.bind_texture("depthTex", depth_tex);
+        sub.bind_texture("depth_tx", depth_tex);
         sub.push_constant("alpha", wire_alpha * 0.6f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
         sub.push_constant("use_arrow_drawing", false);
@@ -323,7 +323,7 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("transparent.shape_wire_strip");
         sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders->armature_shape_wire_strip.get());
-        sub.bind_texture("depthTex", depth_tex);
+        sub.bind_texture("depth_tx", depth_tex);
         sub.push_constant("alpha", wire_alpha * 0.6f);
         sub.push_constant("do_smooth_wire", do_smooth_wire);
         sub.push_constant("use_arrow_drawing", false);
@@ -376,7 +376,7 @@ class Armatures : Overlay {
         auto &sub = armature_ps_.sub("opaque.envelope_fill");
         sub.state_set(default_state | DRW_STATE_CULL_BACK, state.clipping_plane_count);
         sub.shader_set(res.shaders->armature_envelope_fill.get());
-        sub.push_constant("isDistance", false);
+        sub.push_constant("is_distance", false);
         sub.push_constant("alpha", 1.0f);
         opaque_.envelope_fill = &sub;
       }

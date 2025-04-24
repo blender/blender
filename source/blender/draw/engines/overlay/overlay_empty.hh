@@ -316,11 +316,11 @@ class Empties : Overlay {
       char depth_mode = state.is_depth_only_drawing ? char(OB_EMPTY_IMAGE_DEPTH_DEFAULT) :
                                                       ob->empty_image_depth;
       PassMain::Sub &pass = create_subpass(state, *ob, use_alpha_blend, mat, res);
-      pass.bind_texture("imgTexture", tex);
-      pass.push_constant("imgPremultiplied", use_alpha_premult);
-      pass.push_constant("imgAlphaBlend", use_alpha_blend);
-      pass.push_constant("isCameraBackground", false);
-      pass.push_constant("depthSet", depth_mode != OB_EMPTY_IMAGE_DEPTH_DEFAULT);
+      pass.bind_texture("img_tx", tex);
+      pass.push_constant("img_premultiplied", use_alpha_premult);
+      pass.push_constant("img_alpha_blend", use_alpha_blend);
+      pass.push_constant("is_camera_background", false);
+      pass.push_constant("depth_set", depth_mode != OB_EMPTY_IMAGE_DEPTH_DEFAULT);
       pass.push_constant("ucolor", float4(ob->color));
       ResourceHandle res_handle = manager.resource_handle(mat);
       pass.draw(res.shapes.quad_solid.get(), res_handle, select_id.get());

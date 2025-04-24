@@ -12,9 +12,9 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(workbench_transparent_resolve)
-FRAGMENT_OUT(0, float4, fragColor)
-SAMPLER(0, FLOAT_2D, transparentAccum)
-SAMPLER(1, FLOAT_2D, transparentRevealage)
+FRAGMENT_OUT(0, float4, frag_color)
+SAMPLER(0, FLOAT_2D, transparent_accum)
+SAMPLER(1, FLOAT_2D, transparent_revealage)
 FRAGMENT_SOURCE("workbench_transparent_resolve_frag.glsl")
 ADDITIONAL_INFO(gpu_fullscreen)
 DO_STATIC_COMPILATION()

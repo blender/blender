@@ -66,8 +66,8 @@ class LightProbes : Overlay {
     ps_dots_.shader_set(res.shaders->extra_grid.get());
     ps_dots_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     ps_dots_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-    ps_dots_.bind_texture("depthBuffer", &res.depth_tx);
-    ps_dots_.push_constant("isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
+    ps_dots_.bind_texture("depth_buffer", &res.depth_tx);
+    ps_dots_.push_constant("is_transform", (G.moving & G_TRANSFORM_OBJ) != 0);
     res.select_bind(ps_dots_);
   }
 
@@ -157,7 +157,7 @@ class LightProbes : Overlay {
 
           const uint cell_count = prb.grid_resolution_x * prb.grid_resolution_y *
                                   prb.grid_resolution_z;
-          ps_dots_.push_constant("gridModelMatrix", matrix);
+          ps_dots_.push_constant("grid_model_matrix", matrix);
           ps_dots_.draw_procedural(GPU_PRIM_POINTS, 1, cell_count, 0, {0}, select_id.get());
         }
         break;

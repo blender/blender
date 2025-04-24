@@ -38,7 +38,7 @@ class Lattices : Overlay {
       PassMain::Sub &sub_pass = ps_.sub(name);
       sub_pass.shader_set(shader);
       if (add_weight_tex) {
-        sub_pass.bind_texture("weightTex", &res.weight_ramp_tx);
+        sub_pass.bind_texture("weight_tx", &res.weight_ramp_tx);
       }
       return &sub_pass;
     };

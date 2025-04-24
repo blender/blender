@@ -27,44 +27,44 @@ void main()
   float4 inner_color = float4(float3(0.0f), 1.0f);
   float4 outer_color = float4(0.0f);
 
-  float2 dd = fwidth(stipplePos);
-  float line_distance = distance(stipplePos, stippleStart) / max(dd.x, dd.y);
+  float2 dd = fwidth(stipple_pos);
+  float line_distance = distance(stipple_pos, stipple_start) / max(dd.x, dd.y);
 
-  if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_OUTLINE) {
+  if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_OUTLINE) {
     if (use_edge_select) {
       /* TODO(@ideasman42): The current wire-edit color contrast enough against the selection.
        * Look into changing the default theme color instead of reducing contrast with edge-select.
        */
-      inner_color = (selectionFac != 0.0f) ? colorEdgeSelect : (colorWireEdit * 0.5f);
+      inner_color = (selection_fac != 0.0f) ? colorEdgeSelect : (colorWireEdit * 0.5f);
     }
     else {
-      inner_color = mix(colorWireEdit, colorEdgeSelect, selectionFac);
+      inner_color = mix(colorWireEdit, colorEdgeSelect, selection_fac);
     }
     outer_color = float4(float3(0.0f), 1.0f);
   }
-  else if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_DASH) {
-    if (fract(line_distance / dashLength) < 0.5f) {
-      inner_color = mix(float4(float3(0.35f), 1.0f), colorEdgeSelect, selectionFac);
+  else if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_DASH) {
+    if (fract(line_distance / dash_length) < 0.5f) {
+      inner_color = mix(float4(float3(0.35f), 1.0f), colorEdgeSelect, selection_fac);
     }
   }
-  else if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_BLACK) {
+  else if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_BLACK) {
     float4 base_color = float4(float3(0.0f), 1.0f);
-    inner_color = mix(base_color, colorEdgeSelect, selectionFac);
+    inner_color = mix(base_color, colorEdgeSelect, selection_fac);
   }
-  else if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_WHITE) {
+  else if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_WHITE) {
     float4 base_color = float4(1.0f);
-    inner_color = mix(base_color, colorEdgeSelect, selectionFac);
+    inner_color = mix(base_color, colorEdgeSelect, selection_fac);
   }
-  else if (OVERLAY_UVLineStyle(lineStyle) == OVERLAY_UV_LINE_STYLE_SHADOW) {
+  else if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_SHADOW) {
     inner_color = colorUVShadow;
   }
 
-  float dist = abs(edgeCoord) - max(sizeEdge - 0.5f, 0.0f);
+  float dist = abs(edge_coord) - max(sizeEdge - 0.5f, 0.0f);
   float dist_outer = dist - max(sizeEdge, 1.0f);
   float mix_w;
   float mix_w_outer;
 
-  if (doSmoothWire) {
+  if (do_smooth_wire) {
     mix_w = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist);
     mix_w_outer = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist_outer);
   }
@@ -80,5 +80,5 @@ void main()
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
   final_color.a *= is_active ? alpha : (alpha * 0.25f);
 
-  fragColor = final_color;
+  frag_color = final_color;
 }

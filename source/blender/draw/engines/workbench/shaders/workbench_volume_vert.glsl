@@ -19,16 +19,16 @@ void main()
   drw_ResourceID_iface.resource_index = drw_resource_id();
 
 #ifdef VOLUME_SLICE
-  if (sliceAxis == 0) {
-    localPos = float3(slicePosition * 2.0f - 1.0f, pos.xy);
+  if (slice_axis == 0) {
+    local_position = float3(slice_position * 2.0f - 1.0f, pos.xy);
   }
-  else if (sliceAxis == 1) {
-    localPos = float3(pos.x, slicePosition * 2.0f - 1.0f, pos.y);
+  else if (slice_axis == 1) {
+    local_position = float3(pos.x, slice_position * 2.0f - 1.0f, pos.y);
   }
   else {
-    localPos = float3(pos.xy, slicePosition * 2.0f - 1.0f);
+    local_position = float3(pos.xy, slice_position * 2.0f - 1.0f);
   }
-  float3 final_pos = localPos;
+  float3 final_pos = local_position;
 #else
   float3 final_pos = pos;
 #endif
@@ -37,7 +37,7 @@ void main()
   ObjectInfos info = drw_object_infos();
   final_pos = ((final_pos * 0.5f + 0.5f) - info.orco_add) / info.orco_mul;
 #else
-  final_pos = (volumeTextureToObject * float4(final_pos * 0.5f + 0.5f, 1.0f)).xyz;
+  final_pos = (volume_texture_to_object * float4(final_pos * 0.5f + 0.5f, 1.0f)).xyz;
 #endif
   gl_Position = drw_point_world_to_homogenous(drw_point_object_to_world(final_pos));
 }

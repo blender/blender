@@ -17,15 +17,15 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_mesh_vert)
 
 #ifdef EDGE
 /* Ugly but needed to keep the same vertex shader code for other passes. */
-#  define finalColor geometry_in.finalColor_
-#  define finalColorOuter geometry_in.finalColorOuter_
+#  define final_color geometry_in.final_color_
+#  define final_color_outer geometry_in.final_color_outer_
 #  define selectOverride geometry_in.selectOverride_
 #endif
 
 bool test_occlusion()
 {
   float3 ndc = (gl_Position.xyz / gl_Position.w) * 0.5f + 0.5f;
-  float4 depths = textureGather(depthTex, ndc.xy);
+  float4 depths = textureGather(depth_tx, ndc.xy);
   return all(greaterThan(float4(ndc.z), depths));
 }
 
@@ -45,14 +45,14 @@ void main()
 
   /* Offset Z position for retopology overlay. */
   gl_Position.z += get_homogenous_z_offset(
-      drw_view().winmat, view_pos.z, gl_Position.w, retopologyOffset);
+      drw_view().winmat, view_pos.z, gl_Position.w, retopology_offset);
 
-  uint4 m_data = data & uint4(dataMask);
+  uint4 m_data = data & uint4(data_mask);
 
 #if defined(VERT)
-  vertexCrease = float(m_data.z >> 4) / 15.0f;
-  finalColor = EDIT_MESH_vertex_color(m_data.y, vertexCrease);
-  gl_PointSize = sizeVertex * ((vertexCrease > 0.0f) ? 3.0f : 2.0f);
+  vertex_crease = float(m_data.z >> 4) / 15.0f;
+  final_color = EDIT_MESH_vertex_color(m_data.y, vertex_crease);
+  gl_PointSize = sizeVertex * ((vertex_crease > 0.0f) ? 3.0f : 2.0f);
   /* Make selected and active vertex always on top. */
   if ((data.x & VERT_SELECTED) != 0u) {
     gl_Position.z -= 5e-7f * abs(gl_Position.w);
@@ -65,25 +65,25 @@ void main()
 
 #elif defined(EDGE)
 #  ifdef FLAT
-  finalColor = EDIT_MESH_edge_color_inner(m_data.y);
+  final_color = EDIT_MESH_edge_color_inner(m_data.y);
   selectOverride = 1u;
 #  else
-  finalColor = EDIT_MESH_edge_vertex_color(m_data.y);
+  final_color = EDIT_MESH_edge_vertex_color(m_data.y);
   selectOverride = (m_data.y & EDGE_SELECTED);
 #  endif
 
   float edge_crease = float(m_data.z & 0xFu) / 15.0f;
   float bweight = float(m_data.w) / 255.0f;
-  finalColorOuter = EDIT_MESH_edge_color_outer(m_data.y, m_data.x, edge_crease, bweight);
+  final_color_outer = EDIT_MESH_edge_color_outer(m_data.y, m_data.x, edge_crease, bweight);
 
-  if (finalColorOuter.a > 0.0f) {
+  if (final_color_outer.a > 0.0f) {
     gl_Position.z -= 5e-7f * abs(gl_Position.w);
   }
 
   bool occluded = false; /* Done in fragment shader */
 
 #elif defined(FACE)
-  finalColor = EDIT_MESH_face_color(m_data.x);
+  final_color = EDIT_MESH_face_color(m_data.x);
   bool occluded = true;
 
 #  ifdef GPU_METAL
@@ -92,7 +92,7 @@ void main()
 #  endif
 
 #elif defined(FACEDOT)
-  finalColor = EDIT_MESH_facedot_color(norAndFlag.w);
+  final_color = EDIT_MESH_facedot_color(norAndFlag.w);
 
   /* Bias Face-dot Z position in clip-space. */
   gl_Position.z -= (drw_view().winmat[3][3] == 0.0f) ? 0.00035f : 1e-6f;
@@ -102,7 +102,7 @@ void main()
 
 #endif
 
-  finalColor.a *= (occluded) ? alpha : 1.0f;
+  final_color.a *= (occluded) ? alpha : 1.0f;
 
 #if !defined(FACE)
   /* Facing based color blend */
@@ -113,9 +113,9 @@ void main()
   facing = 1.0f - abs(facing) * 0.2f;
 
   /* Do interpolation in a non-linear space to have a better visual result. */
-  finalColor.rgb = mix(finalColor.rgb,
-                       non_linear_blend_color(colorEditMeshMiddle.rgb, finalColor.rgb, facing),
-                       fresnelMixEdit);
+  final_color.rgb = mix(final_color.rgb,
+                        non_linear_blend_color(colorEditMeshMiddle.rgb, final_color.rgb, facing),
+                        fresnelMixEdit);
 #endif
 
   gl_Position.z -= ndc_offset_factor * ndc_offset;

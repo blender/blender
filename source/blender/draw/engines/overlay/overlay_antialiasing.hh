@@ -72,10 +72,10 @@ class AntiAliasing : Overlay {
       pass.shader_set(res.shaders->anti_aliasing.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.bind_texture("depthTex", &res.depth_tx);
-      pass.bind_texture("colorTex", &res.overlay_tx);
-      pass.bind_texture("lineTex", &res.line_tx);
-      pass.push_constant("doSmoothLines", do_smooth_lines);
+      pass.bind_texture("depth_tx", &res.depth_tx);
+      pass.bind_texture("color_tx", &res.overlay_tx);
+      pass.bind_texture("line_tx", &res.line_tx);
+      pass.push_constant("do_smooth_lines", do_smooth_lines);
       pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
     }
   }

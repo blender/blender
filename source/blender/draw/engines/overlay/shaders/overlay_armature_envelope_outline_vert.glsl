@@ -150,7 +150,7 @@ void main()
   /* Offset away from the center to avoid overlap with solid shape. */
   gl_Position.xy += ofs_dir * sizeViewportInv * gl_Position.w;
 
-  edgeStart = edgePos = proj(gl_Position);
+  edge_start = edge_pos = proj(gl_Position);
 
-  finalColor = float4(data_buf[gl_InstanceID].bone_color_and_wire_width.rgb, 1.0f);
+  final_color = float4(data_buf[gl_InstanceID].bone_color_and_wire_width.rgb, 1.0f);
 }

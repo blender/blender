@@ -37,8 +37,8 @@ void main()
 #ifndef SELECT_ENABLE
   /* We cannot change the fragment's depth in selection mode. Otherwise we would break pipeline
    * correctness when early depth test enforced. */
-  if (!gpStrokeOrder3d) {
-    /* Stroke order 2D. Project to gpDepthPlane. */
+  if (!gp_stroke_order3d) {
+    /* Stroke order 2D. Project to gp_depth_plane. */
     bool is_persp = drw_view().winmat[3][3] == 0.0f;
     float2 uvs = float2(gl_FragCoord.xy) * sizeViewportInv;
     float3 pos_ndc = float3(uvs, gl_FragCoord.z) * 2.0f - 1.0f;
@@ -47,7 +47,7 @@ void main()
 
     float3 ray_ori = pos;
     float3 ray_dir = (is_persp) ? (drw_view().viewinv[3].xyz - pos) : drw_view().viewinv[2].xyz;
-    float3 isect = ray_plane_intersection(ray_ori, ray_dir, gpDepthPlane);
+    float3 isect = ray_plane_intersection(ray_ori, ray_dir, gp_depth_plane);
     float4 ndc = drw_point_world_to_homogenous(isect);
     gl_FragDepth = (ndc.z / ndc.w) * 0.5f + 0.5f;
   }

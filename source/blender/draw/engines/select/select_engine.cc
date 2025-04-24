@@ -140,14 +140,14 @@ struct Instance : public DrawEngine {
       {
         auto &sub = depth_only_ps.sub("DepthOnly");
         sub.shader_set(sh->select_id_uniform);
-        sub.push_constant("retopologyOffset", retopology_offset);
+        sub.push_constant("retopology_offset", retopology_offset);
         sub.push_constant("select_id", 0);
         depth_only = &sub;
       }
       if (retopology_occlusion) {
         auto &sub = depth_only_ps.sub("Occlusion");
         sub.shader_set(sh->select_id_uniform);
-        sub.push_constant("retopologyOffset", 0.0f);
+        sub.push_constant("retopology_offset", 0.0f);
         sub.push_constant("select_id", 0);
         depth_occlude = &sub;
       }
@@ -159,14 +159,14 @@ struct Instance : public DrawEngine {
       if (e_data.context.select_mode & SCE_SELECT_FACE) {
         auto &sub = select_face_ps.sub("Face");
         sub.shader_set(sh->select_id_flat);
-        sub.push_constant("retopologyOffset", retopology_offset);
+        sub.push_constant("retopology_offset", retopology_offset);
         select_face_flat = &sub;
       }
       else {
         auto &sub = select_face_ps.sub("FaceNoSelect");
         sub.shader_set(sh->select_id_uniform);
         sub.push_constant("select_id", 0);
-        sub.push_constant("retopologyOffset", retopology_offset);
+        sub.push_constant("retopology_offset", retopology_offset);
         select_face_uniform = &sub;
       }
 
@@ -176,7 +176,7 @@ struct Instance : public DrawEngine {
         auto &sub = select_edge_ps.sub("Sub");
         sub.state_set(state | DRW_STATE_FIRST_VERTEX_CONVENTION, clipping_plane_count);
         sub.shader_set(sh->select_id_flat);
-        sub.push_constant("retopologyOffset", retopology_offset);
+        sub.push_constant("retopology_offset", retopology_offset);
         select_edge = &sub;
       }
 
@@ -188,7 +188,7 @@ struct Instance : public DrawEngine {
         sub.state_set(state, clipping_plane_count);
         sub.shader_set(sh->select_id_flat);
         sub.push_constant("vertex_size", float(2 * vertex_size));
-        sub.push_constant("retopologyOffset", retopology_offset);
+        sub.push_constant("retopology_offset", retopology_offset);
         select_vert = &sub;
       }
     }

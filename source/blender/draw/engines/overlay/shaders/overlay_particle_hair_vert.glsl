@@ -32,8 +32,8 @@ void wire_color_get(out float3 rim_col, out float3 wire_col)
     rim_col = colorWire.rgb;
     wire_col = colorWire.rgb;
   }
-  else if (is_selected && useColoring) {
-    if (isTransform) {
+  else if (is_selected && use_coloring) {
+    if (is_transform) {
       rim_col = colorTransform.rgb;
     }
     else if (is_active) {
@@ -63,7 +63,7 @@ void wire_object_color_get(out float3 rim_col, out float3 wire_col)
   ObjectInfos info = drw_object_infos();
   bool is_selected = flag_test(info.flag, OBJECT_SELECTED);
 
-  if (colorType == V3D_SHADING_OBJECT_COLOR) {
+  if (color_type == V3D_SHADING_OBJECT_COLOR) {
     rim_col = wire_col = drw_object_infos().ob_color.rgb * 0.5f;
   }
   else {
@@ -72,7 +72,7 @@ void wire_object_color_get(out float3 rim_col, out float3 wire_col)
     rim_col = wire_col = hsv_to_rgb(hsv);
   }
 
-  if (is_selected && useColoring) {
+  if (is_selected && use_coloring) {
     /* "Normalize" color. */
     wire_col += 1e-4f; /* Avoid division by 0. */
     float brightness = max(wire_col.x, max(wire_col.y, wire_col.z));
@@ -94,10 +94,10 @@ void main()
 
   gl_Position = drw_point_world_to_homogenous(ws_P);
 
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 
   float3 rim_col, wire_col;
-  if (colorType == V3D_SHADING_OBJECT_COLOR || colorType == V3D_SHADING_RANDOM_COLOR) {
+  if (color_type == V3D_SHADING_OBJECT_COLOR || color_type == V3D_SHADING_RANDOM_COLOR) {
     wire_object_color_get(rim_col, wire_col);
   }
   else {
@@ -110,9 +110,9 @@ void main()
   rim_col = sqrt(rim_col);
   wire_col = sqrt(wire_col);
   float3 final_front_col = mix(rim_col, wire_col, 0.35f);
-  finalColor.rgb = mix(rim_col, final_front_col, facing);
-  finalColor.rgb = square(finalColor.rgb);
-  finalColor.a = 1.0f;
+  final_color.rgb = mix(rim_col, final_front_col, facing);
+  final_color.rgb = square(final_color.rgb);
+  final_color.a = 1.0f;
 
   view_clipping_distances(ws_P);
 }

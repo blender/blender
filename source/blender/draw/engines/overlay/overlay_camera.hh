@@ -603,11 +603,11 @@ class Cameras : Overlay {
         PassMain &pass = is_foreground ?
                              (use_view_transform ? foreground_scene_ps_ : foreground_ps_) :
                              (use_view_transform ? background_scene_ps_ : background_ps_);
-        pass.bind_texture("imgTexture", tex);
-        pass.push_constant("imgPremultiplied", use_alpha_premult);
-        pass.push_constant("imgAlphaBlend", true);
-        pass.push_constant("isCameraBackground", true);
-        pass.push_constant("depthSet", true);
+        pass.bind_texture("img_tx", tex);
+        pass.push_constant("img_premultiplied", use_alpha_premult);
+        pass.push_constant("img_alpha_blend", true);
+        pass.push_constant("is_camera_background", true);
+        pass.push_constant("depth_set", true);
         pass.push_constant("ucolor", color_premult_alpha);
         ResourceHandle res_handle = manager.resource_handle(mat);
         pass.draw(res.shapes.quad_solid.get(), res_handle, select_id.get());

@@ -14,7 +14,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_extra_groundline)
 void main()
 {
   select_id_set(in_select_buf[gl_InstanceID]);
-  finalColor = colorLight;
+  final_color = colorLight;
 
   /* Relative to DPI scaling. Have constant screen size. */
   float3 screen_pos = drw_view().viewinv[0].xyz * pos.x + drw_view().viewinv[1].xyz * pos.y;
@@ -27,7 +27,7 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Convert to screen position [0..sizeVp]. */
-  edgePos = edgeStart = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_pos = edge_start = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
 
   view_clipping_distances(world_pos);
 }

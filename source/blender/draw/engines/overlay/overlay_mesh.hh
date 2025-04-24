@@ -141,7 +141,7 @@ class Meshes : Overlay {
       pass.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | face_culling,
                      state.clipping_plane_count);
       pass.shader_set(res.shaders->mesh_edit_depth.get());
-      pass.push_constant("retopologyOffset", retopology_offset);
+      pass.push_constant("retopology_offset", retopology_offset);
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     }
@@ -166,12 +166,12 @@ class Meshes : Overlay {
       auto shader_pass = [&](GPUShader *shader, const char *name) {
         auto &sub = pass.sub(name);
         sub.shader_set(shader);
-        sub.bind_texture("depthTex", depth_tex);
+        sub.bind_texture("depth_tx", depth_tex);
         sub.push_constant("alpha", backwire_opacity);
-        sub.push_constant("isConstantScreenSizeNormals", use_screen_size);
-        sub.push_constant("normalSize", state.overlay.normals_length);
-        sub.push_constant("normalScreenSize", state.overlay.normals_constant_screen_size);
-        sub.push_constant("retopologyOffset", retopology_offset);
+        sub.push_constant("is_constant_screen_size_normals", use_screen_size);
+        sub.push_constant("normal_size", state.overlay.normals_length);
+        sub.push_constant("normal_screen_size", state.overlay.normals_constant_screen_size);
+        sub.push_constant("retopology_offset", retopology_offset);
         sub.push_constant("hq_normals", use_hq_normals);
         return &sub;
       };
@@ -205,7 +205,7 @@ class Meshes : Overlay {
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       pass.bind_texture("colorramp", &res.weight_ramp_tx);
-      pass.push_constant("drawContours", false);
+      pass.push_constant("draw_contours", false);
       pass.push_constant("opacity", state.overlay.weight_paint_mode_opacity);
       if (!shadeless) {
         /* Arbitrary light to give a hint of the geometry behind the weights. */
@@ -218,20 +218,20 @@ class Meshes : Overlay {
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA,
                      state.clipping_plane_count);
       pass.shader_set(res.shaders->mesh_analysis.get());
-      pass.bind_texture("weightTex", res.weight_ramp_tx);
+      pass.bind_texture("weight_tx", res.weight_ramp_tx);
     }
 
     auto mesh_edit_common_resource_bind = [&](PassSimple &pass, float alpha, float ndc_offset) {
-      pass.bind_texture("depthTex", depth_tex);
+      pass.bind_texture("depth_tx", depth_tex);
       /* TODO(fclem): UBO. */
-      pass.push_constant("wireShading", is_wire_shading_mode);
-      pass.push_constant("selectFace", select_face_);
-      pass.push_constant("selectEdge", select_edge_);
+      pass.push_constant("wire_shading", is_wire_shading_mode);
+      pass.push_constant("select_face", select_face_);
+      pass.push_constant("select_edge", select_edge_);
       pass.push_constant("alpha", alpha);
-      pass.push_constant("retopologyOffset", retopology_offset);
+      pass.push_constant("retopology_offset", retopology_offset);
       pass.push_constant("ndc_offset_factor", &state.ndc_offset_factor);
       pass.push_constant("ndc_offset", ndc_offset);
-      pass.push_constant("dataMask", int4(data_mask));
+      pass.push_constant("data_mask", int4(data_mask));
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     };
@@ -290,7 +290,7 @@ class Meshes : Overlay {
                          DRW_STATE_WRITE_DEPTH,
                      state.clipping_plane_count);
       pass.shader_set(res.shaders->mesh_edit_skin_root.get());
-      pass.push_constant("retopologyOffset", retopology_offset);
+      pass.push_constant("retopology_offset", retopology_offset);
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
     }
@@ -656,7 +656,7 @@ class MeshUVs : Overlay {
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       pass.push_constant("alpha", space_image->uv_opacity);
-      pass.push_constant("doSmoothWire", do_smooth_wire);
+      pass.push_constant("do_smooth_wire", do_smooth_wire);
     }
 
     if (show_uv_edit) {
@@ -670,10 +670,10 @@ class MeshUVs : Overlay {
       pass.shader_set(sh);
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.push_constant("lineStyle", int(edit_uv_line_style_from_space_image(space_image)));
+      pass.push_constant("line_style", int(edit_uv_line_style_from_space_image(space_image)));
       pass.push_constant("alpha", space_image->uv_opacity);
-      pass.push_constant("dashLength", dash_length);
-      pass.push_constant("doSmoothWire", do_smooth_wire);
+      pass.push_constant("dash_length", dash_length);
+      pass.push_constant("do_smooth_wire", do_smooth_wire);
     }
 
     if (show_vert_) {
@@ -689,8 +689,8 @@ class MeshUVs : Overlay {
       pass.shader_set(res.shaders->uv_edit_vert.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.push_constant("pointSize", (point_size + 1.5f) * float(M_SQRT2));
-      pass.push_constant("outlineWidth", 0.75f);
+      pass.push_constant("dot_size", (point_size + 1.5f) * float(M_SQRT2));
+      pass.push_constant("outline_width", 0.75f);
       pass.push_constant("color", theme_color);
     }
 
@@ -704,7 +704,7 @@ class MeshUVs : Overlay {
       pass.shader_set(res.shaders->uv_edit_facedot.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.push_constant("pointSize", point_size);
+      pass.push_constant("point_size", point_size);
     }
 
     if (show_face_) {
@@ -718,7 +718,7 @@ class MeshUVs : Overlay {
       pass.shader_set(res.shaders->uv_edit_face.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.push_constant("uvOpacity", opacity);
+      pass.push_constant("uv_opacity", opacity);
     }
 
     if (show_mesh_analysis_) {
@@ -732,7 +732,7 @@ class MeshUVs : Overlay {
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       pass.push_constant("aspect", state.image_uv_aspect);
       pass.push_constant("stretch_opacity", space_image->stretch_opacity);
-      pass.push_constant("totalAreaRatio", &total_area_ratio_);
+      pass.push_constant("total_area_ratio", &total_area_ratio_);
     }
 
     per_mesh_area_3d_.clear();
@@ -938,9 +938,9 @@ class MeshUVs : Overlay {
         BKE_image_get_size_fl(image, nullptr, &size_image[0]);
 
         pass.shader_set(res.shaders->uv_brush_stencil.get());
-        pass.bind_texture("imgTexture", stencil_texture);
-        pass.push_constant("imgPremultiplied", true);
-        pass.push_constant("imgAlphaBlend", true);
+        pass.bind_texture("img_tx", stencil_texture);
+        pass.push_constant("img_premultiplied", true);
+        pass.push_constant("img_alpha_blend", true);
         pass.push_constant("ucolor", float4(1.0f, 1.0f, 1.0f, image_paint_settings.clone_alpha));
         pass.push_constant("brush_offset", float2(image_paint_settings.clone_offset));
         pass.push_constant("brush_scale", float2(stencil_texture.size().xy()) / size_image);
@@ -959,7 +959,7 @@ class MeshUVs : Overlay {
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS |
                      (is_combined ? DRW_STATE_BLEND_MUL : DRW_STATE_BLEND_ALPHA));
       pass.shader_set(res.shaders->uv_paint_mask.get());
-      pass.bind_texture("imgTexture", mask_texture_);
+      pass.bind_texture("img_tx", mask_texture_);
       pass.push_constant("color", float4(1.0f, 1.0f, 1.0f, 1.0f));
       pass.push_constant("opacity", opacity);
       pass.push_constant("brush_offset", float2(0.0f));

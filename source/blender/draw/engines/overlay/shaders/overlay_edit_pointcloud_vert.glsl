@@ -12,7 +12,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_pointcloud)
 
 void main()
 {
-  finalColor = colorVertexSelect;
+  final_color = colorVertexSelect;
 
   float radius = pos_rad.w;
   float3 world_pos = drw_point_object_to_world(pos_rad.xyz);

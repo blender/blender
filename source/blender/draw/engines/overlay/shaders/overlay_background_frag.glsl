@@ -32,8 +32,8 @@ void main()
    * This removes the alpha channel and put the background behind reference images
    * while masking the reference images by the render alpha.
    */
-  float alpha = texture(colorBuffer, screen_uv).a;
-  float depth = texture(depthBuffer, screen_uv).r;
+  float alpha = texture(color_buffer, screen_uv).a;
+  float depth = texture(depth_buffer, screen_uv).r;
 
   float3 bg_col;
   float3 col_high;
@@ -41,9 +41,9 @@ void main()
 
   /* BG_SOLID_CHECKER selects BG_SOLID when no pixel has been drawn otherwise use the BG_CHERKER.
    */
-  int bg_type = bgType == BG_SOLID_CHECKER ? (depth == 1.0f ? BG_SOLID : BG_CHECKER) : bgType;
+  int type = bg_type == BG_SOLID_CHECKER ? (depth == 1.0f ? BG_SOLID : BG_CHECKER) : bg_type;
 
-  switch (bg_type) {
+  switch (type) {
     case BG_SOLID:
       bg_col = colorBackground.rgb;
       break;
@@ -79,17 +79,17 @@ void main()
       break;
     }
     case BG_MASK:
-      fragColor = float4(float3(1.0f - alpha), 0.0f);
+      frag_color = float4(float3(1.0f - alpha), 0.0f);
       return;
   }
 
-  bg_col = mix(bg_col, colorOverride.rgb, colorOverride.a);
+  bg_col = mix(bg_col, color_override.rgb, color_override.a);
 
   /* Mimic alpha under behavior. Result is premultiplied. */
-  fragColor = float4(bg_col, 1.0f) * (1.0f - alpha);
+  frag_color = float4(bg_col, 1.0f) * (1.0f - alpha);
 
   /* Special case: If the render is not transparent, do not clear alpha values. */
   if (depth == 1.0f && alpha == 1.0f) {
-    fragColor.a = 1.0f;
+    frag_color.a = 1.0f;
   }
 }

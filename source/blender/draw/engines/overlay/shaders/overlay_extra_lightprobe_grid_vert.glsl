@@ -14,7 +14,7 @@ VERTEX_SHADER_CREATE_INFO(draw_modelmat)
 
 float4 color_from_id(float color_id)
 {
-  if (isTransform) {
+  if (is_transform) {
     return colorTransform;
   }
   else if (color_id == 1.0f) {
@@ -27,7 +27,7 @@ float4 color_from_id(float color_id)
   return colorTransform;
 }
 
-/* Replace top 2 bits (of the 16bit output) by outlineId.
+/* Replace top 2 bits (of the 16bit output) by outline_id.
  * This leaves 16K different IDs to create outlines between objects.
  * SHIFT = (32 - (16 - 2)) */
 #define SHIFT 18u
@@ -35,12 +35,13 @@ float4 color_from_id(float color_id)
 void main()
 {
   select_id_set(drw_custom_id());
-  float4x4 model_mat = gridModelMatrix;
+  float4x4 model_mat = grid_model_matrix;
   model_mat[0][3] = model_mat[1][3] = model_mat[2][3] = 0.0f;
   model_mat[3][3] = 1.0f;
-  float color_id = gridModelMatrix[3].w;
+  float color_id = grid_model_matrix[3].w;
 
-  int3 grid_resolution = int3(gridModelMatrix[0].w, gridModelMatrix[1].w, gridModelMatrix[2].w);
+  int3 grid_resolution = int3(
+      grid_model_matrix[0].w, grid_model_matrix[1].w, grid_model_matrix[2].w);
 
   float3 ls_cell_location;
   /* Keep in sync with update_irradiance_probe */
@@ -56,16 +57,16 @@ void main()
   gl_Position = drw_point_world_to_homogenous(ws_cell_location);
   gl_PointSize = sizeVertex * 2.0f;
 
-  finalColor = color_from_id(color_id);
+  final_color = color_from_id(color_id);
 
   /* Shade occluded points differently. */
   float4 p = gl_Position / gl_Position.w;
-  float z_depth = texture(depthBuffer, p.xy * 0.5f + 0.5f).r * 2.0f - 1.0f;
+  float z_depth = texture(depth_buffer, p.xy * 0.5f + 0.5f).r * 2.0f - 1.0f;
   float z_delta = p.z - z_depth;
   if (z_delta > 0.0f) {
     float fac = 1.0f - z_delta * 10000.0f;
     /* Smooth blend to avoid flickering. */
-    finalColor = mix(colorBackground, finalColor, clamp(fac, 0.2f, 1.0f));
+    final_color = mix(colorBackground, final_color, clamp(fac, 0.2f, 1.0f));
   }
 
   view_clipping_distances(ws_cell_location);

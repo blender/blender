@@ -29,7 +29,7 @@ struct VertIn {
 bool test_occlusion(float4 gpu_position)
 {
   float3 ndc = (gpu_position.xyz / gpu_position.w) * 0.5f + 0.5f;
-  return ndc.z > texture(depthTex, ndc.xy).r;
+  return ndc.z > texture(depth_tx, ndc.xy).r;
 }
 
 float3 non_linear_blend_color(float3 col1, float3 col2, float fac)
@@ -58,14 +58,14 @@ VertOut vertex_main(VertIn vert_in)
 
   /* Offset Z position for retopology overlay. */
   vert_out.gpu_position.z += get_homogenous_z_offset(
-      drw_view().winmat, view_pos.z, vert_out.gpu_position.w, retopologyOffset);
+      drw_view().winmat, view_pos.z, vert_out.gpu_position.w, retopology_offset);
 
-  uint4 m_data = vert_in.e_data & uint4(dataMask);
+  uint4 m_data = vert_in.e_data & uint4(data_mask);
 
 #if defined(VERT)
-  vertexCrease = float(m_data.z >> 4) / 15.0f;
-  vert_out.final_color = EDIT_MESH_vertex_color(m_data.y, vertexCrease);
-  gl_PointSize = sizeVertex * ((vertexCrease > 0.0f) ? 3.0f : 2.0f);
+  vertex_crease = float(m_data.z >> 4) / 15.0f;
+  vert_out.final_color = EDIT_MESH_vertex_color(m_data.y, vertex_crease);
+  gl_PointSize = sizeVertex * ((vertex_crease > 0.0f) ? 3.0f : 2.0f);
   /* Make selected and active vertex always on top. */
   if ((data.x & VERT_SELECTED) != 0u) {
     vert_out.gpu_position.z -= 5e-7f * abs(vert_out.gpu_position.w);

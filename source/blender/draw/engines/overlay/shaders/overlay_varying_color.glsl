@@ -10,9 +10,9 @@ VERTEX_SHADER_CREATE_INFO(overlay_volume_velocity_mac)
 
 void main()
 {
-  fragColor = finalColor;
+  frag_color = final_color;
 #ifdef LINE_OUTPUT
-  lineOutput = float4(0.0f);
+  line_output = float4(0.0f);
 #endif
   select_id_output(select_id);
 }

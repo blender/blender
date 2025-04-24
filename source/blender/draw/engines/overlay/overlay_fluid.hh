@@ -161,21 +161,22 @@ class Fluids : Overlay {
       DRW_smoke_ensure_velocity(fmd);
 
       PassSimple::Sub &sub = *sub_pass;
-      sub.bind_texture("velocityX", fds->tex_velocity_x);
-      sub.bind_texture("velocityY", fds->tex_velocity_y);
-      sub.bind_texture("velocityZ", fds->tex_velocity_z);
-      sub.push_constant("displaySize", fds->vector_scale);
-      sub.push_constant("slicePosition", fds->slice_depth);
-      sub.push_constant("cellSize", float3(fds->cell_size));
-      sub.push_constant("domainOriginOffset", float3(fds->p0));
-      sub.push_constant("adaptiveCellOffset", int3(fds->res_min));
-      sub.push_constant("sliceAxis", slice_axis);
-      sub.push_constant("scaleWithMagnitude", bool(fds->vector_scale_with_magnitude));
-      sub.push_constant("isCellCentered", (fds->vector_field == FLUID_DOMAIN_VECTOR_FIELD_FORCE));
+      sub.bind_texture("velocity_x", fds->tex_velocity_x);
+      sub.bind_texture("velocity_y", fds->tex_velocity_y);
+      sub.bind_texture("velocity_z", fds->tex_velocity_z);
+      sub.push_constant("display_size", fds->vector_scale);
+      sub.push_constant("slice_position", fds->slice_depth);
+      sub.push_constant("cell_size", float3(fds->cell_size));
+      sub.push_constant("domain_origin_offset", float3(fds->p0));
+      sub.push_constant("adaptive_cell_offset", int3(fds->res_min));
+      sub.push_constant("slice_axis", slice_axis);
+      sub.push_constant("scale_with_magnitude", bool(fds->vector_scale_with_magnitude));
+      sub.push_constant("is_cell_centered",
+                        (fds->vector_field == FLUID_DOMAIN_VECTOR_FIELD_FORCE));
       if (fds->vector_draw_type == VECTOR_DRAW_MAC) {
-        sub.push_constant("drawMACX", (fds->vector_draw_mac_components & VECTOR_DRAW_MAC_X));
-        sub.push_constant("drawMACY", (fds->vector_draw_mac_components & VECTOR_DRAW_MAC_Y));
-        sub.push_constant("drawMACZ", (fds->vector_draw_mac_components & VECTOR_DRAW_MAC_Z));
+        sub.push_constant("draw_macx", (fds->vector_draw_mac_components & VECTOR_DRAW_MAC_X));
+        sub.push_constant("draw_macy", (fds->vector_draw_mac_components & VECTOR_DRAW_MAC_Y));
+        sub.push_constant("draw_macz", (fds->vector_draw_mac_components & VECTOR_DRAW_MAC_Z));
       }
       sub.push_constant("in_select_id", int(sel_id.get()));
       sub.draw_procedural(GPU_PRIM_LINES, 1, total_lines * 2, -1, res_handle);
@@ -194,7 +195,7 @@ class Fluids : Overlay {
           DRW_fluid_ensure_flags(fmd);
 
           sub_pass = grid_lines_flags_ps_;
-          sub_pass->bind_texture("flagTexture", fds->tex_flags);
+          sub_pass->bind_texture("flag_tx", fds->tex_flags);
           break;
         case FLUID_GRIDLINE_COLOR_TYPE_RANGE:
           if (fds->use_coba && (fds->coba_field != FLUID_DOMAIN_FIELD_FLAGS)) {
@@ -202,12 +203,12 @@ class Fluids : Overlay {
             DRW_fluid_ensure_range_field(fmd);
 
             sub_pass = grid_lines_range_ps_;
-            sub_pass->bind_texture("flagTexture", fds->tex_flags);
-            sub_pass->bind_texture("fieldTexture", fds->tex_range_field);
-            sub_pass->push_constant("lowerBound", fds->gridlines_lower_bound);
-            sub_pass->push_constant("upperBound", fds->gridlines_upper_bound);
-            sub_pass->push_constant("rangeColor", float4(fds->gridlines_range_color));
-            sub_pass->push_constant("cellFilter", int(fds->gridlines_cell_filter));
+            sub_pass->bind_texture("flag_tx", fds->tex_flags);
+            sub_pass->bind_texture("field_tx", fds->tex_range_field);
+            sub_pass->push_constant("lower_bound", fds->gridlines_lower_bound);
+            sub_pass->push_constant("upper_bound", fds->gridlines_upper_bound);
+            sub_pass->push_constant("range_color", float4(fds->gridlines_range_color));
+            sub_pass->push_constant("cell_filter", int(fds->gridlines_cell_filter));
             break;
           }
           /* Otherwise, fallback to none color type. */
@@ -218,12 +219,12 @@ class Fluids : Overlay {
       }
 
       PassSimple::Sub &sub = *sub_pass;
-      sub.push_constant("volumeSize", int3(fds->res));
-      sub.push_constant("slicePosition", fds->slice_depth);
-      sub.push_constant("cellSize", float3(fds->cell_size));
-      sub.push_constant("domainOriginOffset", float3(fds->p0));
-      sub.push_constant("adaptiveCellOffset", int3(fds->res_min));
-      sub.push_constant("sliceAxis", slice_axis);
+      sub.push_constant("volume_size", int3(fds->res));
+      sub.push_constant("slice_position", fds->slice_depth);
+      sub.push_constant("cell_size", float3(fds->cell_size));
+      sub.push_constant("domain_origin_offset", float3(fds->p0));
+      sub.push_constant("adaptive_cell_offset", int3(fds->res_min));
+      sub.push_constant("slice_axis", slice_axis);
       sub.push_constant("in_select_id", int(sel_id.get()));
 
       BLI_assert(slice_axis != -1);

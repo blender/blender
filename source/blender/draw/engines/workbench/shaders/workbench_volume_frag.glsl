@@ -126,9 +126,9 @@ void volume_properties(float3 ls_pos, out float3 scattering, out float extinctio
   float3 co = ls_pos * 0.5f + 0.5f;
 #ifdef USE_COBA
   float4 tval;
-  if (showPhi) {
+  if (show_phi) {
     /* Color mapping for level-set representation */
-    float val = sample_volume_texture(densityTexture, co).r * gridScale;
+    float val = sample_volume_texture(density_tx, co).r * grid_scale;
 
     val = max(min(val * 0.2f, 1.0f), -1.0f);
 
@@ -139,14 +139,14 @@ void volume_properties(float3 ls_pos, out float3 scattering, out float extinctio
       tval = float4(0.5f, 1.0f + val, 0.0f, 0.06f);
     }
   }
-  else if (showFlags) {
+  else if (show_flags) {
     /* Color mapping for flags */
-    uint flag = texture(flagTexture, co).r;
+    uint flag = texture(flag_tx, co).r;
     tval = flag_to_color(flag);
   }
-  else if (showPressure) {
+  else if (show_pressure) {
     /* Color mapping for pressure */
-    float val = sample_volume_texture(densityTexture, co).r * gridScale;
+    float val = sample_volume_texture(density_tx, co).r * grid_scale;
 
     if (val > 0) {
       tval = float4(val, val, val, 0.06f);
@@ -156,27 +156,27 @@ void volume_properties(float3 ls_pos, out float3 scattering, out float extinctio
     }
   }
   else {
-    float val = sample_volume_texture(densityTexture, co).r * gridScale;
-    tval = texture(transferTexture, val);
+    float val = sample_volume_texture(density_tx, co).r * grid_scale;
+    tval = texture(transfer_tx, val);
   }
-  tval *= densityScale;
+  tval *= density_fac;
   tval.rgb = pow(tval.rgb, float3(2.2f));
   scattering = tval.rgb * 1500.0f;
   extinction = max(1e-4f, tval.a * 50.0f);
 #else
 #  ifdef VOLUME_SMOKE
-  float flame = sample_volume_texture(flameTexture, co).r;
-  float4 emission = texture(flameColorTexture, flame);
+  float flame = sample_volume_texture(flame_tx, co).r;
+  float4 emission = texture(flame_color_tx, flame);
 #  endif
-  float3 density = sample_volume_texture(densityTexture, co).rgb;
-  float shadows = sample_volume_texture(shadowTexture, co).r;
+  float3 density = sample_volume_texture(density_tx, co).rgb;
+  float shadows = sample_volume_texture(shadow_tx, co).r;
 
-  scattering = density * densityScale;
+  scattering = density * density_fac;
   extinction = max(1e-4f, dot(scattering, float3(0.33333f)));
-  scattering *= activeColor;
+  scattering *= active_color;
 
   /* Scale shadows in log space and clamp them to avoid completely black shadows. */
-  scattering *= exp(clamp(log(shadows) * densityScale * 0.1f, -2.5f, 0.0f)) * M_PI;
+  scattering *= exp(clamp(log(shadows) * density_fac * 0.1f, -2.5f, 0.0f)) * M_PI;
 
 #  ifdef VOLUME_SMOKE
   /* 800 is arbitrary and here to mimic old viewport. TODO: make it a parameter. */
@@ -210,10 +210,10 @@ float4 volume_integration(
   float final_transmittance = 1.0f;
 
   int2 tx = int2(gl_FragCoord.xy) % 4;
-  float noise = fract(dither_mat[tx.x][tx.y] + noiseOfs);
+  float noise = fract(dither_mat[tx.x][tx.y] + noise_ofs);
 
   float ray_len = noise * ray_inc;
-  for (int i = 0; i < samplesLen && ray_len < ray_max; i++, ray_len += ray_inc) {
+  for (int i = 0; i < samples_len && ray_len < ray_max; i++, ray_len += ray_inc) {
     float3 ls_pos = ray_ori + ray_dir * ray_len;
 
     float3 Lscat;
@@ -246,7 +246,7 @@ void main()
 
 #ifdef VOLUME_SLICE
   /* Manual depth test. TODO: remove. */
-  float depth = texelFetch(depthBuffer, int2(gl_FragCoord.xy), 0).r;
+  float depth = texelFetch(depth_buffer, int2(gl_FragCoord.xy), 0).r;
   if (do_depth_test && gl_FragCoord.z >= depth) {
     /* NOTE: In the Metal API, prior to Metal 2.3, Discard is not an explicit return and can
      * produce undefined behavior. This is especially prominent with derivatives if control-flow
@@ -261,17 +261,17 @@ void main()
 
   float3 Lscat;
   float s_extinction, Tr;
-  volume_properties(localPos, Lscat, s_extinction);
-  eval_volume_step(Lscat, s_extinction, stepLength, Tr);
+  volume_properties(local_position, Lscat, s_extinction);
+  eval_volume_step(Lscat, s_extinction, step_length, Tr);
 
-  fragColor = float4(Lscat, Tr);
+  frag_color = float4(Lscat, Tr);
 #else
-  float2 screen_uv = gl_FragCoord.xy / float2(textureSize(depthBuffer, 0).xy);
+  float2 screen_uv = gl_FragCoord.xy / float2(textureSize(depth_buffer, 0).xy);
   bool is_persp = drw_view().winmat[3][3] == 0.0f;
 
   float3 volume_center = drw_modelmat()[3].xyz;
 
-  float depth = do_depth_test ? texelFetch(depthBuffer, int2(gl_FragCoord.xy), 0).r : 1.0f;
+  float depth = do_depth_test ? texelFetch(depth_buffer, int2(gl_FragCoord.xy), 0).r : 1.0f;
   float depth_end = min(depth, gl_FragCoord.z);
   float3 vs_ray_end = drw_point_screen_to_view(float3(screen_uv, depth_end));
   float3 vs_ray_ori = drw_point_screen_to_view(float3(screen_uv, 0.0f));
@@ -287,9 +287,9 @@ void main()
   ls_ray_ori = (drw_object_orco(ls_ray_ori)) * 2.0f - 1.0f;
   ls_ray_end = (drw_object_orco(ls_ray_end)) * 2.0f - 1.0f;
 #  else
-  ls_ray_dir = (volumeObjectToTexture * float4(ls_ray_dir, 1.0f)).xyz * 2.0f - 1.0f;
-  ls_ray_ori = (volumeObjectToTexture * float4(ls_ray_ori, 1.0f)).xyz * 2.0f - 1.0f;
-  ls_ray_end = (volumeObjectToTexture * float4(ls_ray_end, 1.0f)).xyz * 2.0f - 1.0f;
+  ls_ray_dir = (volume_object_to_texture * float4(ls_ray_dir, 1.0f)).xyz * 2.0f - 1.0f;
+  ls_ray_ori = (volume_object_to_texture * float4(ls_ray_ori, 1.0f)).xyz * 2.0f - 1.0f;
+  ls_ray_end = (volume_object_to_texture * float4(ls_ray_end, 1.0f)).xyz * 2.0f - 1.0f;
 #  endif
 
   ls_ray_dir -= ls_ray_ori;
@@ -309,13 +309,13 @@ void main()
     return;
   }
 
-  fragColor = volume_integration(ls_ray_ori,
-                                 ls_ray_dir,
-                                 stepLength,
-                                 length(ls_vol_isect) / length(ls_ray_dir),
-                                 length(vs_ray_dir) * stepLength);
+  frag_color = volume_integration(ls_ray_ori,
+                                  ls_ray_dir,
+                                  step_length,
+                                  length(ls_vol_isect) / length(ls_ray_dir),
+                                  length(vs_ray_dir) * step_length);
 #endif
 
   /* Convert transmittance to alpha so we can use pre-multiply blending. */
-  fragColor.a = 1.0f - fragColor.a;
+  frag_color.a = 1.0f - frag_color.a;
 }

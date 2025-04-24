@@ -72,7 +72,7 @@ class Grid : Overlay {
           res.theme_settings.color_background, res.theme_settings.color_grid, 0.5);
       sub.push_constant("ucolor", color_back);
       sub.push_constant("tile_scale", float3(data_.size));
-      sub.bind_texture("depthBuffer", depth_tx);
+      sub.bind_texture("depth_buffer", depth_tx);
       sub.draw(res.shapes.quad_solid.get());
     }
     {

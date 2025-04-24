@@ -13,13 +13,13 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_lattice_point)
 void main()
 {
   if ((data & VERT_SELECTED) != 0u) {
-    finalColor = colorVertexSelect;
+    final_color = colorVertexSelect;
   }
   else if ((data & VERT_ACTIVE) != 0u) {
-    finalColor = colorEditMeshActive;
+    final_color = colorEditMeshActive;
   }
   else {
-    finalColor = colorVertex;
+    final_color = colorVertex;
   }
 
   float3 world_pos = drw_point_object_to_world(pos);

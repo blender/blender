@@ -147,10 +147,10 @@ float3 get_world_lighting(float3 base_color, float roughness, float metallic, fl
   return diffuse_light + specular_light;
 }
 
-float get_shadow(float3 N, bool force_shadowing)
+float get_shadow(float3 N, bool force_shadow)
 {
   float light_factor = -dot(N, world_data.shadow_direction_vs.xyz);
   float shadow_mix = smoothstep(world_data.shadow_shift, world_data.shadow_focus, light_factor);
-  shadow_mix *= force_shadowing ? 0.0f : world_data.shadow_mul;
+  shadow_mix *= force_shadow ? 0.0f : world_data.shadow_mul;
   return shadow_mix + world_data.shadow_add;
 }

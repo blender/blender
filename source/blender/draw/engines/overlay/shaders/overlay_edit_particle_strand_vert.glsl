@@ -23,7 +23,7 @@ float3 weight_to_rgb(float t)
     return float3(1.0f, 0.0f, 1.0f);
   }
   else {
-    return texture(weightTex, t).rgb;
+    return texture(weight_tx, t).rgb;
   }
 }
 
@@ -32,12 +32,12 @@ void main()
   float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  if (useWeight) {
-    finalColor = float4(weight_to_rgb(selection), 1.0f);
+  if (use_weight) {
+    final_color = float4(weight_to_rgb(selection), 1.0f);
   }
   else {
-    float4 use_color = useGreasePencil ? colorGpencilVertexSelect : colorVertexSelect;
-    finalColor = mix(colorWireEdit, use_color, selection);
+    float4 use_color = use_grease_pencil ? colorGpencilVertexSelect : colorVertexSelect;
+    final_color = mix(colorWireEdit, use_color, selection);
   }
 
   view_clipping_distances(world_pos);

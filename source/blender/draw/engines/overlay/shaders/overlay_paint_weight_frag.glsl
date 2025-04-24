@@ -88,7 +88,7 @@ void main()
     weight_color = apply_color_fac(weight_color);
 
     /* Contour display */
-    if (drawContours) {
+    if (draw_contours) {
       /* This must be executed uniformly for all fragments */
       float weight_gradient = length(float2(dFdx(weight), dFdy(weight)));
 
@@ -102,6 +102,6 @@ void main()
     color = mix(weight_color, color_unreferenced, alert * alert);
   }
 
-  fragColor = float4(color.rgb, opacity);
-  lineOutput = float4(0.0f);
+  frag_color = float4(color.rgb, opacity);
+  line_output = float4(0.0f);
 }

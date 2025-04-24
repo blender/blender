@@ -11,7 +11,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_edit_uv_mask_image)
 void main()
 {
   float2 uvs_clamped = clamp(uvs, 0.0f, 1.0f);
-  float mask_value = texture_read_as_linearrgb(imgTexture, true, uvs_clamped).r;
+  float mask_value = texture_read_as_linearrgb(img_tx, true, uvs_clamped).r;
   mask_value = mix(1.0f, mask_value, opacity);
-  fragColor = float4(color.rgb * mask_value, color.a);
+  frag_color = float4(color.rgb * mask_value, color.a);
 }

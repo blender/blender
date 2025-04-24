@@ -25,8 +25,8 @@ void main()
     gl_Position = float4(-2.0f, -2.0f, -2.0f, 1.0f);
   }
 
-  finalColor = (is_select) ? float4(1.0f) : colorWire;
-  finalColor.a = nor.w;
+  final_color = (is_select) ? float4(1.0f) : colorWire;
+  final_color.a = nor.w;
 
   gl_PointSize = sizeVertex * 2.0f;
 
