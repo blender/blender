@@ -1050,9 +1050,10 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
   }
 
   numfiles = filelist_files_ensure(sfile->files);
-  const int textheight = int(file_font_pointsize());
   layout = sfile->layout;
-  layout->textheight = textheight;
+  /* Slightly increased than font height for padding. */
+  layout->text_line_height = file_font_pointsize();
+  layout->text_lines_count = 1;
 
   if (params->display == FILE_IMGDISPLAY) {
     /* More compact spacing for asset browser. */
@@ -1066,7 +1067,9 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
     layout->prv_border_x = pad_fac * UI_UNIT_X;
     layout->prv_border_y = pad_fac * UI_UNIT_Y;
     layout->tile_w = layout->prv_w + 2 * layout->prv_border_x;
-    layout->tile_h = layout->prv_h + 2 * layout->prv_border_y + textheight;
+    layout->text_lines_count = 2;
+    layout->tile_h = layout->prv_h + 2 * layout->prv_border_y +
+                     layout->text_lines_count * layout->text_line_height;
     layout->width = int(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
     layout->flow_columns = layout->width / (layout->tile_w + 2 * layout->tile_border_x);
     layout->attribute_column_header_h = 0;
@@ -1090,7 +1093,7 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
     layout->tile_border_x = 0.4f * UI_UNIT_X;
     layout->tile_border_y = 0.05f * UI_UNIT_Y;
     layout->list_padding_top = 2 * layout->tile_border_y;
-    layout->tile_h = round_fl_to_int(textheight * 1.4f);
+    layout->tile_h = round_fl_to_int(layout->text_line_height * 1.4f);
     layout->width = int(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
     layout->tile_w = layout->width;
     layout->flow_columns = 1;
@@ -1115,7 +1118,7 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
     layout->tile_border_x = 0.4f * UI_UNIT_X;
     layout->tile_border_y = 0.05f * UI_UNIT_Y;
     layout->list_padding_top = 2 * layout->tile_border_y;
-    layout->tile_h = std::max(round_fl_to_int(textheight * 1.4f), layout->prv_h);
+    layout->tile_h = std::max(round_fl_to_int(layout->text_line_height * 1.4f), layout->prv_h);
     layout->attribute_column_header_h = 0;
     layout->offset_top = layout->attribute_column_header_h;
     layout->height = int(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);

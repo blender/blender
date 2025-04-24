@@ -501,6 +501,24 @@ static void file_draw_string(int sx,
 }
 
 /**
+ * Draw the string over at max \a line_count lines, clipping in the middle so it fits.
+ */
+static void file_draw_string_mulitline_clipped(const rcti *rect,
+                                               const char *string,
+                                               eFontStyle_Align align,
+                                               const uchar col[4])
+{
+  if (string[0] == '\0' || BLI_rcti_size_x(rect) < 1) {
+    return;
+  }
+
+  const uiStyle *style = UI_style_get();
+  uiFontStyle fs = style->widget;
+
+  UI_fontstyle_draw_multiline_clipped(&fs, rect, string, col, align);
+}
+
+/**
  * \param r_sx, r_sy: The lower right corner of the last line drawn, plus the height of the last
  *                    line. This is the cursor position on completion to allow drawing more text
  *                    behind that.
@@ -814,6 +832,7 @@ static void file_draw_loading_icon(const rcti *tile_draw_rect,
 
 static void file_draw_indicator_icons(const FileList *files,
                                       const FileDirEntry *file,
+                                      const FileLayout *layout,
                                       const rcti *tile_draw_rect,
                                       const float preview_icon_aspect,
                                       const int file_type_icon,
@@ -827,7 +846,7 @@ static void file_draw_indicator_icons(const FileList *files,
    * cover the preview. */
   if (preview_icon_aspect < 2.0f) {
     const float icon_x = float(tile_draw_rect->xmin) + (3.0f * UI_SCALE_FAC);
-    const float icon_y = float(tile_draw_rect->ymin) + (17.0f * UI_SCALE_FAC);
+    const float icon_y = float(tile_draw_rect->ymax) - layout->prv_border_y - layout->prv_h;
     const uchar light[4] = {255, 255, 255, 255};
     if (is_offline) {
       /* Icon at bottom to indicate the file is offline. */
@@ -1221,7 +1240,7 @@ static rcti text_draw_rect_get(const View2D *v2d,
   rcti rect = tile_rect;
   if (display_type == FILE_IMGDISPLAY) {
     rect.ymin += round_fl_to_int(layout->prv_border_y * 0.5f);
-    rect.ymax = rect.ymin + layout->textheight;
+    rect.ymax = rect.ymin + layout->text_line_height * layout->text_lines_count;
   }
   else {
     rect.xmin += icon_ofs_x + 1;
@@ -1361,8 +1380,13 @@ void file_draw_list(const bContext *C, ARegion *region)
         has_special_file_image = true;
       }
 
-      file_draw_indicator_icons(
-          files, file, &tile_draw_rect, thumb_icon_aspect, file_type_icon, has_special_file_image);
+      file_draw_indicator_icons(files,
+                                file,
+                                layout,
+                                &tile_draw_rect,
+                                thumb_icon_aspect,
+                                file_type_icon,
+                                has_special_file_image);
 
       if (do_drag) {
         file_add_preview_drag_but(
@@ -1447,7 +1471,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     if (file_selflag & FILE_SEL_EDITING) {
       const int but_height =
           (params->display == FILE_IMGDISPLAY) ?
-              layout->textheight * 1.4f :
+              layout->text_line_height * 1.4f :
               /* Just a little smaller than the tile height, clamped to #UI_UNIT_Y as maximum. */
               std::min(short(BLI_rcti_size_y(&text_rect) - 1.0f * UI_SCALE_FAC), UI_UNIT_Y);
       uiBut *but = uiDefBut(block,
@@ -1455,7 +1479,8 @@ void file_draw_list(const bContext *C, ARegion *region)
                             1,
                             "",
                             text_rect.xmin,
-                            text_rect.ymin,
+                            /* First line only, when name is displayed in multiple lines. */
+                            text_rect.ymax - but_height,
                             BLI_rcti_size_x(&text_rect),
                             but_height,
                             params->renamefile,
@@ -1484,13 +1509,18 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     /* file_selflag might have been modified by branch above. */
     if ((file_selflag & FILE_SEL_EDITING) == 0) {
-      file_draw_string(text_rect.xmin,
-                       text_rect.ymax,
-                       file->name,
-                       BLI_rcti_size_x(&text_rect),
-                       BLI_rcti_size_y(&text_rect),
-                       align,
-                       text_col);
+      if (layout->text_lines_count == 1) {
+        file_draw_string(text_rect.xmin,
+                         text_rect.ymax,
+                         file->name,
+                         BLI_rcti_size_x(&text_rect),
+                         BLI_rcti_size_y(&text_rect),
+                         align,
+                         text_col);
+      }
+      else {
+        file_draw_string_mulitline_clipped(&text_rect, file->name, align, text_col);
+      }
     }
 
     if (params->display != FILE_IMGDISPLAY) {
@@ -1558,7 +1588,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
   const View2D *v2d = &region->v2d;
   const int pad = sfile->layout->tile_border_x;
   const int width = BLI_rctf_size_x(&v2d->tot) - (2 * pad);
-  const int line_height = sfile->layout->textheight;
+  const int line_height = sfile->layout->text_line_height;
   int sx = v2d->tot.xmin + pad;
   /* For some reason no padding needed. */
   int sy = v2d->tot.ymax;
@@ -1616,7 +1646,7 @@ static void file_draw_invalid_library_hint(const bContext * /*C*/,
   const View2D *v2d = &region->v2d;
   const int pad = sfile->layout->tile_border_x;
   const int width = BLI_rctf_size_x(&v2d->tot) - (2 * pad);
-  const int line_height = sfile->layout->textheight;
+  const int line_height = sfile->layout->text_line_height;
   int sx = v2d->tot.xmin + pad;
   /* For some reason no padding needed. */
   int sy = v2d->tot.ymax;

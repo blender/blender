@@ -84,7 +84,8 @@ struct FileLayout {
   int height;
   int flag;
   int dirty;
-  int textheight;
+  int text_line_height;
+  int text_lines_count;
   /**
    * The columns for each item (name, modification date/time, size).
    * Not to be confused with the `flow_columns` above.
