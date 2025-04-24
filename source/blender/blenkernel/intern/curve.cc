@@ -365,7 +365,8 @@ void BKE_curve_init(Curve *cu, const short curve_type)
     size_t len_char32 = BLI_strlen_utf8_ex(str, &len_bytes);
 
     cu->str = MEM_malloc_arrayN<char>(len_bytes + 1, "str");
-    BLI_strncpy(cu->str, str, len_bytes + 1);
+    memcpy(cu->str, str, len_bytes + 1);
+    BLI_assert(cu->str[len_bytes] == '\0');
 
     cu->len = len_bytes;
     cu->len_char32 = cu->pos = len_char32;
