@@ -1875,8 +1875,8 @@ static void update_musgrave_node_dimensions(bNodeTree *ntree)
 }
 
 /* The Color output of the Musgrave node has been removed. Previously, this
- * output was just equal to the Fac output. To correct this, we move links
- * from the Color output to the Fac output if they exist.
+ * output was just equal to the `Fac` output. To correct this, we move links
+ * from the Color output to the `Fac` output if they exist.
  */
 static void update_musgrave_node_color_output(bNodeTree *ntree)
 {
@@ -1919,10 +1919,10 @@ static void update_voronoi_node_f3_and_f4(bNodeTree *ntree)
   }
 }
 
-/* The Fac output of the Voronoi node has been removed. Previously, this
+/* The `Fac` output of the Voronoi node has been removed. Previously, this
  * output was the voronoi distance in the Intensity mode and the Cell ID
  * in the Cell mode. To correct this, we update the identifier and name
- * of the Fac socket such that it gets mapped to the Distance socket.
+ * of the `Fac` socket such that it gets mapped to the Distance socket.
  * This is supposed to work with update_voronoi_node_coloring.
  */
 static void update_voronoi_node_fac_output(bNodeTree *ntree)
@@ -2051,7 +2051,7 @@ static void update_voronoi_node_crackle(bNodeTree *ntree)
  * The coloring property of the Voronoi node was removed. Previously,
  * if the coloring enum was set to Intensity (0), the voronoi distance
  * was returned in all outputs, otherwise, the Cell ID was returned.
- * Since we remapped the Fac output in update_voronoi_node_fac_output,
+ * Since we remapped the `Fac` output in update_voronoi_node_fac_output,
  * then to fix this, we relink the Color output to the Distance
  * output if coloring was set to 0, and the other way around otherwise.
  */

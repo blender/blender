@@ -863,34 +863,34 @@ bool BLI_str_utf32_char_is_optional_break_before(char32_t codepoint, char32_t co
 
   /* Close punctuation. */
   if (ELEM(codepoint_prev,
-           0x3001,  /* Ideographic Comma. */
-           0x3002,  /* Ideographic Full Stop. */
-           0xFE10,  /* Presentation Form for Vertical Ideographic Comma. */
-           0xFE11,  /* Presentation Form for Vertical Ideographic Full Stop. */
-           0xFE12,  /* Presentation Form for Vertical Ideographic Colon. */
-           0xFE50,  /* Small Comma. */
-           0xFE52,  /* Small Full Stop. */
-           0xFF0C,  /* Fullwidth Comma. */
-           0xFF0E,  /* Fullwidth Full Stop. */
-           0XFF61,  /* Halfwidth Ideographic Full Stop. */
-           0Xff64)) /* Halfwidth Ideographic Comma. */
+           0x3001,  /* Ideographic comma. */
+           0x3002,  /* Ideographic full stop. */
+           0xFE10,  /* Presentation form for vertical ideographic comma. */
+           0xFE11,  /* Presentation form for vertical ideographic full stop. */
+           0xFE12,  /* Presentation form for vertical ideographic colon. */
+           0xFE50,  /* Small comma. */
+           0xFE52,  /* Small full stop. */
+           0xFF0C,  /* Full-width comma. */
+           0xFF0E,  /* Full-width full stop. */
+           0XFF61,  /* Half-width ideographic full stop. */
+           0Xff64)) /* Half-width ideographic comma. */
   {
     return true;
   }
 
   /* Exclamation/Interrogation. */
   if (ELEM(codepoint_prev,
-           '!',     /* Exlamation Mark. */
-           '?',     /* Question Mark. */
-           0x05C6,  /* Hebrew punctuation maqaf. */
+           '!',     /* Exclamation mark. */
+           '?',     /* Question mark. */
+           0x05C6,  /* Hebrew punctuation `maqaf`. */
            0x061B,  /* Arabic semicolon. */
            0x061E,  /* Arabic triple dot. */
            0x061F,  /* Arabic question mark. */
            0x06D4,  /* Arabic full stop. */
            0x07F9,  /* N'Ko question mark. */
            0x0F0D,  /* Tibetan shad mark. */
-           0xFF01,  /* Fullwidth Exclamation Mark. */
-           0xFF1F)) /* Fullwidth Question Mark. */
+           0xFF01,  /* Full-width exclamation mark. */
+           0xff1f)) /* full-width question mark. */
   {
     return true;
   }

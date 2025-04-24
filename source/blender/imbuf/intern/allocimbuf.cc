@@ -685,7 +685,7 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   }
   tbuf.dds_data.data = nullptr;
 
-  /* set malloc flag */
+  /* Set `malloc` flag. */
   tbuf.refcounter = 0;
 
   /* for now don't duplicate metadata */

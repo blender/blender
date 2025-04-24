@@ -255,15 +255,15 @@ void UI_fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
 
   /* Draw so that overall text is centered vertically. */
   yofs = (max_height + lines.size() * line_height) / 2.0f - BLF_ascender(fs->uifont_id) -
-         /* Not sure substracting the descender is always wanted, gives best results where this is
-          * currently used. */
+         /* Not sure subtracting the descender is always wanted,
+          * gives best results where this is currently used. */
          BLF_descender(fs->uifont_id) / 2.0f;
   yofs = std::max(0, yofs);
 
   ResultBLF line_result = {0, 0};
   /* Draw each line with the given alignment. */
   for (StringRef line : lines) {
-    /* String wrapping might have trailing/leading whitespace. */
+    /* String wrapping might have trailing/leading white-space. */
     line = line.trim();
 
     if (align == UI_STYLE_TEXT_CENTER) {
