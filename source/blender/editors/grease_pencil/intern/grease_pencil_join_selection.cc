@@ -109,6 +109,17 @@ template<typename T> void reverse_point_data(const IndexRange point_range, Mutab
   data.slice(point_range.first(), point_range.size()).reverse();
 }
 
+template<typename T>
+void swap_handle_attributes(MutableSpan<T> handles_left, MutableSpan<T> handles_right)
+{
+  BLI_assert(handles_left.size() == handles_right.size());
+  threading::parallel_for(handles_left.index_range(), 8192, [&](const IndexRange range) {
+    for (const int point : range) {
+      std::swap(handles_left[point], handles_right[point]);
+    }
+  });
+};
+
 /**
  * Change on \dst_curves the direction of \a points_to_reverse (switch the start and end) without
  * changing their shape.
@@ -132,6 +143,35 @@ void reverse_points_of(bke::CurvesGeometry &dst_curves, const IndexRange points_
     });
     attribute.finish();
   });
+
+  /* Also needs to swap left/right bezier handles if handle attributes exist. */
+  if (attributes.contains("handle_left") && attributes.contains("handle_right")) {
+    MutableSpan<float3> handles_left = dst_curves.handle_positions_left_for_write().slice(
+        points_to_reverse);
+    MutableSpan<float3> handles_right = dst_curves.handle_positions_right_for_write().slice(
+        points_to_reverse);
+    swap_handle_attributes<float3>(handles_left, handles_right);
+  }
+  if (attributes.contains(".selection_handle_left") &&
+      attributes.contains(".selection_handle_right"))
+  {
+    bke::SpanAttributeWriter<bool> writer_left = attributes.lookup_for_write_span<bool>(
+        ".selection_handle_left");
+    bke::SpanAttributeWriter<bool> writer_right = attributes.lookup_for_write_span<bool>(
+        ".selection_handle_right");
+    const MutableSpan<bool> selection_left = writer_left.span.slice(points_to_reverse);
+    const MutableSpan<bool> selection_right = writer_right.span.slice(points_to_reverse);
+    swap_handle_attributes<bool>(selection_left, selection_right);
+    writer_left.finish();
+    writer_right.finish();
+  }
+  if (attributes.contains("handle_type_left") && attributes.contains("handle_type_right")) {
+    MutableSpan<int8_t> types_left = dst_curves.handle_types_left_for_write().slice(
+        points_to_reverse);
+    MutableSpan<int8_t> types_right = dst_curves.handle_types_right_for_write().slice(
+        points_to_reverse);
+    swap_handle_attributes<int8_t>(types_left, types_right);
+  }
 }
 
 void apply_action(ActionOnNextRange action,
