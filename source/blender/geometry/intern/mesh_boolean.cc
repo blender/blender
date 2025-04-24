@@ -238,7 +238,7 @@ void MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
  * Convert all of the meshes in `meshes` to an `IMesh` and return that.
  * All of the coordinates are transformed into the local space of the
  * first Mesh. To do this transformation, we also need the transformation
- * obmats corresponding to the Meshes, so they are in the `obmats` argument.
+ * object matrices corresponding to the Meshes, so they are in the `transforms` argument.
  * The 'original' indexes in the IMesh are the indexes you get by
  * a scheme that offsets each vertex, edge, and face index by the sum of the
  * vertices, edges, and polys in the preceding Meshes in the mesh span.

@@ -151,7 +151,7 @@ class StaleFiles:
 
                 # Ensure the `base_directory` & `path_abs` they are not the same.
                 # One could be forgiven for thinking they must never be the same since `path`
-                # is known not be be an empty string, one would be mistaken!
+                # is known not be an empty string, one would be mistaken!
                 # WIN32 which considers `C:\path\` the same as `C:\path\. ` to be the same.
                 # Therefor, literal lines containing any combination of trailing full-stop
                 # or space characters would be considered files that cannot be removed.

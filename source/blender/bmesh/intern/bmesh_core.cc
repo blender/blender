@@ -1361,7 +1361,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del,
   }
   else {
     /* Otherwise, delete only the faces that were merged
-     * (do not leave the mesh with both both the old and new faces). */
+     * (do not leave the mesh with both the old and new faces). */
     for (i = 0; i < totface; i++) {
       BM_face_kill(bm, faces[i]);
     }

@@ -133,7 +133,7 @@ static bool object_mode_set_ok_or_report(ReportList *reports)
    * is quite obscure. See: #137380. */
 
   if (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) {
-    BKE_reportf(reports, RPT_ERROR, "Unable to change object modes while transforming");
+    BKE_reportf(reports, RPT_ERROR, "Unable to change object mode while transforming");
     return false;
   }
 
