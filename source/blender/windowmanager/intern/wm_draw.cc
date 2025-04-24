@@ -1026,15 +1026,16 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 {
   bScreen *screen = WM_window_get_active_screen(win);
 
-  /* Draw screen areas into their own frame buffer. Status bar is drawn last, because mesh
-   * and memory usage statistics are affected by drawing of editors. */
+  /* Draw screen areas into their own frame buffer. Status bar and spreadsheet is drawn
+   * last, because mesh and memory usage statistics are affected by drawing of other
+   * editors like the 3D viewport. */
   ED_screen_areas_iter (win, screen, area) {
-    if (area->spacetype != SPACE_STATUSBAR) {
+    if (!ELEM(area->spacetype, SPACE_STATUSBAR, SPACE_SPREADSHEET)) {
       wm_draw_area_offscreen(C, win, area, stereo);
     }
   }
   ED_screen_areas_iter (win, screen, area) {
-    if (area->spacetype == SPACE_STATUSBAR) {
+    if (ELEM(area->spacetype, SPACE_STATUSBAR, SPACE_SPREADSHEET)) {
       wm_draw_area_offscreen(C, win, area, stereo);
     }
   }
