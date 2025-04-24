@@ -26,7 +26,7 @@ float get_grid(float2 co, float2 fwidthCos, float2 grid_scale)
   grid_domain /= fwidthCos;
   /* Collapse waves. */
   float line_dist = min(grid_domain.x, grid_domain.y);
-  return LINE_STEP(line_dist - grid_buf.line_size);
+  return 1.0 - LINE_STEP(line_dist - grid_buf.line_size);
 }
 
 float3 get_axes(float3 co, float3 fwidthCos, float line_size)
@@ -35,7 +35,7 @@ float3 get_axes(float3 co, float3 fwidthCos, float line_size)
   /* Modulate by the absolute rate of change of the coordinates
    * (make line have the same width under perspective). */
   axes_domain /= fwidthCos;
-  return LINE_STEP(axes_domain - (line_size + grid_buf.line_size));
+  return 1.0 - LINE_STEP(axes_domain - (line_size + grid_buf.line_size));
 }
 
 #define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0f, 1.0f))

@@ -400,6 +400,7 @@ BLI_STATIC_ASSERT_ALIGN(BoneStickData, 16)
  */
 #define M_1_SQRTPI 0.5641895835477563f /* `1/sqrt(pi)`. */
 #define DISC_RADIUS (M_1_SQRTPI * 1.05f)
-#define LINE_SMOOTH_START (0.5f + DISC_RADIUS)
-#define LINE_SMOOTH_END (0.5f - DISC_RADIUS)
+#define LINE_SMOOTH_START (0.5f - DISC_RADIUS)
+#define LINE_SMOOTH_END (0.5f + DISC_RADIUS)
+/* Returns 0 before LINE_SMOOTH_START and 1 after LINE_SMOOTH_END. */
 #define LINE_STEP(dist) smoothstep(LINE_SMOOTH_START, LINE_SMOOTH_END, dist)
