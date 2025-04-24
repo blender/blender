@@ -66,6 +66,7 @@
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
 #include "ED_sequencer.hh"
+#include "ED_space_graph.hh"
 #include "ED_view3d.hh"
 
 #include "RNA_access.hh"
@@ -3331,24 +3332,45 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 /** \name Jump to Key-Frame Operator
  * \{ */
 
-/* function to be called outside UI context, or for redo */
-static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
+static void keylist_from_dopesheet(bContext &C, AnimKeylist &keylist)
 {
-  Scene *scene = CTX_data_scene(C);
-  Object *ob = CTX_data_active_object(C);
-  bDopeSheet ads = {nullptr};
-  const bool next = RNA_boolean_get(op->ptr, "next");
-  bool done = false;
+  bAnimContext ac;
 
-  /* sanity checks */
-  if (scene == nullptr) {
-    return OPERATOR_CANCELLED;
+  if (ANIM_animdata_get_context(&C, &ac) == 0) {
+    return;
+  }
+  BLI_assert(ac.area->spacetype == SPACE_ACTION);
+  summary_to_keylist(&ac, &keylist, 0, {-FLT_MAX, FLT_MAX});
+}
+
+static void keylist_from_graph_editor(bContext &C, AnimKeylist &keylist)
+{
+  bAnimContext ac;
+
+  if (ANIM_animdata_get_context(&C, &ac) == 0) {
+    return;
   }
 
-  const float cfra = BKE_scene_frame_get(scene);
+  ListBase anim_data = blender::ed::graph::get_editable_fcurves(ac);
 
-  /* Initialize binary-tree-list for getting keyframes. */
-  AnimKeylist *keylist = ED_keylist_create();
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = static_cast<FCurve *>(ale->key_data);
+    if (!fcu->bezt) {
+      continue;
+    }
+
+    const bool use_nla_mapping = true;
+    fcurve_to_keylist(ale->adt, fcu, &keylist, 0, {-FLT_MAX, FLT_MAX}, use_nla_mapping);
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+}
+
+/* This is used for all editors where a more specific function isn't implemented. */
+static void keylist_fallback_for_keyframe_jump(bContext &C, AnimKeylist &keylist)
+{
+  bDopeSheet ads = {nullptr};
+  Scene *scene = CTX_data_scene(&C);
 
   /* Speed up dummy dope-sheet context with flags to perform necessary filtering. */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
@@ -3357,27 +3379,62 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   /* populate tree with keyframe nodes */
-  scene_to_keylist(&ads, scene, keylist, 0, {-FLT_MAX, FLT_MAX});
+  scene_to_keylist(&ads, scene, &keylist, 0, {-FLT_MAX, FLT_MAX});
 
+  Object *ob = CTX_data_active_object(&C);
   if (ob) {
-    ob_to_keylist(&ads, ob, keylist, 0, {-FLT_MAX, FLT_MAX});
+    ob_to_keylist(&ads, ob, &keylist, 0, {-FLT_MAX, FLT_MAX});
 
     if (ob->type == OB_GREASE_PENCIL) {
       const bool active_layer_only = !(scene->flag & SCE_KEYS_NO_SELONLY);
       grease_pencil_data_block_to_keylist(
-          nullptr, static_cast<const GreasePencil *>(ob->data), keylist, 0, active_layer_only);
+          nullptr, static_cast<const GreasePencil *>(ob->data), &keylist, 0, active_layer_only);
     }
   }
 
   {
-    Mask *mask = CTX_data_edit_mask(C);
+    Mask *mask = CTX_data_edit_mask(&C);
     if (mask) {
       MaskLayer *masklay = BKE_mask_layer_active(mask);
-      mask_to_keylist(&ads, masklay, keylist);
+      mask_to_keylist(&ads, masklay, &keylist);
     }
   }
+}
+
+/* function to be called outside UI context, or for redo */
+static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  const bool next = RNA_boolean_get(op->ptr, "next");
+  bool done = false;
+
+  /* sanity checks */
+  if (scene == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ScrArea *area = CTX_wm_area(C);
+  AnimKeylist *keylist = ED_keylist_create();
+
+  switch (area->spacetype) {
+    case SPACE_ACTION: {
+      keylist_from_dopesheet(*C, *keylist);
+      break;
+    }
+
+    case SPACE_GRAPH:
+      keylist_from_graph_editor(*C, *keylist);
+      break;
+
+    default:
+      keylist_fallback_for_keyframe_jump(*C, *keylist);
+      break;
+  }
+
+  /* Initialize binary-tree-list for getting keyframes. */
   ED_keylist_prepare_for_direct_access(keylist);
 
+  const float cfra = BKE_scene_frame_get(scene);
   /* find matching keyframe in the right direction */
   const ActKeyColumn *ak;
 
@@ -3428,8 +3485,7 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
 
 static bool keyframe_jump_poll(bContext *C)
 {
-  /* There is a keyframe jump operator specifically for the Graph Editor. */
-  return operator_screenactive_norender(C) && !ED_operator_graphedit_active(C);
+  return operator_screenactive_norender(C);
 }
 
 static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)

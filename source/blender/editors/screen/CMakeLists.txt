@@ -4,6 +4,7 @@
 
 set(INC
   ../asset
+  ../space_graph
   ../include
   ../../makesrna
   ../../nodes

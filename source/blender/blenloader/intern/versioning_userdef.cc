@@ -281,6 +281,13 @@ static void do_version_select_mouse(const UserDef *userdef, wmKeyMapItem *kmi)
   }
 }
 
+static void do_version_keyframe_jump(wmKeyMapItem *kmi)
+{
+  if (STREQ(kmi->idname, "GRAPH_OT_keyframe_jump")) {
+    STRNCPY(kmi->idname, "SCREEN_OT_keyframe_jump");
+  }
+}
+
 static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi, void * /*user_data*/)
 {
   if (STRPREFIX(kmi->idname, "WM_OT_context_") && kmi->properties) {
@@ -1466,6 +1473,23 @@ void blo_do_versions_userdef(UserDef *userdef)
           return false;
         },
         nullptr);
+  }
+
+  if (!USER_VERSION_ATLEAST(405, 50)) {
+    LISTBASE_FOREACH (wmKeyMap *, keymap, &userdef->user_keymaps) {
+      LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &keymap->diff_items) {
+        if (kmdi->remove_item) {
+          do_version_keyframe_jump(kmdi->remove_item);
+        }
+        if (kmdi->add_item) {
+          do_version_keyframe_jump(kmdi->add_item);
+        }
+      }
+
+      LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
+        do_version_keyframe_jump(kmi);
+      }
+    }
   }
 
   /**
