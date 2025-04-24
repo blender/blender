@@ -32,7 +32,6 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
   }
   GPENCIL_Instance &inst = *vedata->instance;
 
-  Scene *scene = DEG_get_evaluated_scene(depsgraph);
   const float *viewport_size = DRW_viewport_size_get();
   const int size[2] = {int(viewport_size[0]), int(viewport_size[1])};
 
@@ -85,7 +84,8 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
     }
   }
 
-  const bool do_region = (scene->r.mode & R_BORDER) != 0;
+  const bool do_region = !(rect->xmin == 0 && rect->ymin == 0 && rect->xmax == size[0] &&
+                           rect->ymax == size[1]);
   const bool do_clear_z = !pix_z || do_region;
   const bool do_clear_col = !pix_col || do_region;
 
