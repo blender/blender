@@ -1351,11 +1351,19 @@ static void blf_font_wrap_apply(FontBLF *font,
       clip_bytes = BLI_str_utf8_from_unicode_len(codepoint_prev);
     }
     else if (UNLIKELY((int(mode) & int(BLFWrapMode::Typographical)) &&
-                      BLI_str_utf32_char_is_optional_break(codepoint, codepoint_prev)))
+                      BLI_str_utf32_char_is_optional_break_after(codepoint, codepoint_prev)))
     {
       /* Optional break after various characters, keeping it. */
       wrap.last[0] = i;
       wrap.last[1] = i;
+      clip_bytes = 0;
+    }
+    else if (UNLIKELY((int(mode) & int(BLFWrapMode::Typographical)) &&
+                      BLI_str_utf32_char_is_optional_break_before(codepoint, codepoint_prev)))
+    {
+      /* Optional break before various characters. */
+      wrap.last[0] = i_curr;
+      wrap.last[1] = i_curr;
       clip_bytes = 0;
     }
 

@@ -792,7 +792,7 @@ bool BLI_str_utf32_char_is_breaking_space(char32_t codepoint)
               0x3000); /* Ideographic space. */
 }
 
-bool BLI_str_utf32_char_is_optional_break(char32_t codepoint, char32_t codepoint_prev)
+bool BLI_str_utf32_char_is_optional_break_after(char32_t codepoint, char32_t codepoint_prev)
 {
   /* Subset of the characters that are line breaking opportunities
    * according to the Unicode Line Breaking Algorithm (Standard Annex #14).
@@ -828,6 +828,71 @@ bool BLI_str_utf32_char_is_optional_break(char32_t codepoint, char32_t codepoint
 
   if (ELEM(codepoint, 0x0F0D, 0x0F0B)) {
     return true; /* Tibetan shad mark and intersyllabic tsheg. */
+  }
+
+  return false;
+}
+
+bool BLI_str_utf32_char_is_optional_break_before(char32_t codepoint, char32_t codepoint_prev)
+{
+  /* Do not break on any of these if a space follows. */
+  if (BLI_str_utf32_char_is_breaking_space(codepoint)) {
+    return false;
+  }
+
+  /* Infix Numeric Separators. Allow break on these if not numbers afterward. */
+  if (ELEM(codepoint_prev,
+           ',',    /* Comma. */
+           ':',    /* Colon. */
+           ';',    /* Semicolon. */
+           0x037E, /* Greek question mark. */
+           0x0589, /* Armenian full stop. */
+           0x060C, /* Arabic comma. */
+           0x060D, /* Arabic date separator. */
+           0x07F8, /* N'Ko comma. */
+           0x2044) /* Fraction slash. */
+      && !(codepoint >= '0' && codepoint <= '9'))
+  {
+    return true;
+  }
+
+  /* Break on full stop only if not followed by another, or by a number. */
+  if (codepoint_prev == '.' && codepoint != '.' && !(codepoint >= '0' && codepoint <= '9')) {
+    return true;
+  }
+
+  /* Close punctuation. */
+  if (ELEM(codepoint_prev,
+           0x3001,  /* Ideographic Comma. */
+           0x3002,  /* Ideographic Full Stop. */
+           0xFE10,  /* Presentation Form for Vertical Ideographic Comma. */
+           0xFE11,  /* Presentation Form for Vertical Ideographic Full Stop. */
+           0xFE12,  /* Presentation Form for Vertical Ideographic Colon. */
+           0xFE50,  /* Small Comma. */
+           0xFE52,  /* Small Full Stop. */
+           0xFF0C,  /* Fullwidth Comma. */
+           0xFF0E,  /* Fullwidth Full Stop. */
+           0XFF61,  /* Halfwidth Ideographic Full Stop. */
+           0Xff64)) /* Halfwidth Ideographic Comma. */
+  {
+    return true;
+  }
+
+  /* Exclamation/Interrogation. */
+  if (ELEM(codepoint_prev,
+           '!',     /* Exlamation Mark. */
+           '?',     /* Question Mark. */
+           0x05C6,  /* Hebrew punctuation maqaf. */
+           0x061B,  /* Arabic semicolon. */
+           0x061E,  /* Arabic triple dot. */
+           0x061F,  /* Arabic question mark. */
+           0x06D4,  /* Arabic full stop. */
+           0x07F9,  /* N'Ko question mark. */
+           0x0F0D,  /* Tibetan shad mark. */
+           0xFF01,  /* Fullwidth Exclamation Mark. */
+           0xFF1F)) /* Fullwidth Question Mark. */
+  {
+    return true;
   }
 
   return false;
