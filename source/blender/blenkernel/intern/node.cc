@@ -906,6 +906,10 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_short("Index", node->custom1);
       write_input_to_property_bool_short("Anti-Alias", node->custom2);
     }
+
+    if (node->type_legacy == CMP_NODE_STABILIZE2D) {
+      write_input_to_property_bool_short("Invert", node->custom2);
+    }
   }
 }
 

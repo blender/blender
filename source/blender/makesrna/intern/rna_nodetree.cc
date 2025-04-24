@@ -4012,6 +4012,9 @@ static const char node_input_despill_balance[] = "Despill Balance";
 /* ID Key node. */
 static const char node_input_index[] = "Index";
 
+/* Stabilize 2D node. */
+static const char node_input_invert[] = "Invert";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -9127,9 +9130,13 @@ static void def_cmp_stabilize2d(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom2", CMP_NODE_STABILIZE_FLAG_INVERSE);
-  RNA_def_property_ui_text(
-      prop, "Invert", "Invert stabilization to re-introduce motion to the frame");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_node_property_to_input_getter<bool, node_input_invert>",
+                                 "rna_node_property_to_input_setter<bool, node_input_invert>");
+  RNA_def_property_ui_text(prop,
+                           "Invert",
+                           "Invert stabilization to re-introduce motion to the frame. "
+                           "(Deprecated: Use Invert input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

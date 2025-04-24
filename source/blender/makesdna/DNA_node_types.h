@@ -2950,11 +2950,6 @@ typedef enum CMPNodeCornerPinInterpolation {
   CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC = 3,
 } CMPNodeCornerPinInterpolation;
 
-/* Stabilize 2D node. Stored in custom2. */
-typedef enum CMPNodeStabilizeInverse {
-  CMP_NODE_STABILIZE_FLAG_INVERSE = 1,
-} CMPNodeStabilizeInverse;
-
 #define CMP_NODE_PLANE_TRACK_DEFORM_MOTION_BLUR_SAMPLES_MAX 64
 
 /* Plane track deform node. */
