@@ -262,8 +262,8 @@ TEST(blf_wrapping_path, wrap_path_overflow_ascii)
 {
   /* Do not break, even though over the wrap limit. */
   const char sample[] =
-      "xxxxxxxxxxxxxxxxxxx!\"#$%&\'()*+,-."
-      "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^`abcdefghijklmnopqrstuvwxyz{|}~";
+      "xxxxxxxxxxxxxxxxxxx!\"#$\'()*+,"
+      "0123456789:;<>@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^`abcdefghijklmnopqrstuvwxyz{|}~";
   /* Ahem does not contain all the characters included in above string. */
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
