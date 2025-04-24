@@ -102,22 +102,36 @@ static bool stats_mesheval(const Mesh *mesh_eval, bool is_selected, SceneStats *
 
   int totvert, totedge, totface, totloop;
 
-  const SubsurfRuntimeData *subsurf_runtime_data = mesh_eval->runtime->subsurf_runtime_data;
-
+  /* Get multires stats. */
   if (const std::unique_ptr<SubdivCCG> &subdiv_ccg = mesh_eval->runtime->subdiv_ccg) {
     BKE_subdiv_ccg_topology_counters(*subdiv_ccg, totvert, totedge, totface, totloop);
   }
-  else if (subsurf_runtime_data && subsurf_runtime_data->resolution != 0) {
-    totvert = subsurf_runtime_data->stats_totvert;
-    totedge = subsurf_runtime_data->stats_totedge;
-    totface = subsurf_runtime_data->stats_faces_num;
-    totloop = subsurf_runtime_data->stats_totloop;
-  }
   else {
-    totvert = mesh_eval->verts_num;
-    totedge = mesh_eval->edges_num;
-    totface = mesh_eval->faces_num;
-    totloop = mesh_eval->corners_num;
+    /* Get CPU subdivided mesh if it exists. */
+    const SubsurfRuntimeData *subsurf_runtime_data = nullptr;
+    if (mesh_eval->runtime->mesh_eval) {
+      mesh_eval = mesh_eval->runtime->mesh_eval;
+    }
+    else {
+      subsurf_runtime_data = mesh_eval->runtime->subsurf_runtime_data;
+    }
+
+    /* Get GPU subdivision stats if they exist. If there is no 3D viewport or the mesh is
+     * hidden it will not be subdivided, fall back to unsubdivided in that case. */
+    if (subsurf_runtime_data && subsurf_runtime_data->has_gpu_subdiv &&
+        subsurf_runtime_data->stats_totvert)
+    {
+      totvert = subsurf_runtime_data->stats_totvert;
+      totedge = subsurf_runtime_data->stats_totedge;
+      totface = subsurf_runtime_data->stats_faces_num;
+      totloop = subsurf_runtime_data->stats_totloop;
+    }
+    else {
+      totvert = mesh_eval->verts_num;
+      totedge = mesh_eval->edges_num;
+      totface = mesh_eval->faces_num;
+      totloop = mesh_eval->corners_num;
+    }
   }
 
   stats->totvert += totvert;
