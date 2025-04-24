@@ -882,6 +882,16 @@ ARegion *BKE_area_find_region_xy(const ScrArea *area, const int regiontype, cons
   return nullptr;
 }
 
+ARegion *BKE_screen_find_region_type(const bScreen *screen, const int region_type)
+{
+  LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
+    if (region_type == region->regiontype) {
+      return region;
+    }
+  }
+  return nullptr;
+}
+
 ARegion *BKE_screen_find_region_xy(const bScreen *screen, const int regiontype, const int xy[2])
 {
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {

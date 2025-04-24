@@ -37,6 +37,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_screen.hh"
 
 #include "NOD_texture.h"
 
@@ -1461,12 +1462,10 @@ static void paint_update_mouse_cursor(PaintCursorContext &pcontext)
 
   /* Don't set the cursor when a temporary popup is opened (e.g. a context menu, pie menu or
    * dialog), see: #137386. */
-  if (!BLI_listbase_is_empty(&pcontext.screen->regionbase)) {
-    LISTBASE_FOREACH (ARegion *, region, &pcontext.screen->regionbase) {
-      if (region->regiontype == RGN_TYPE_TEMPORARY) {
-        return;
-      }
-    }
+  if (!BLI_listbase_is_empty(&pcontext.screen->regionbase) &&
+      (BKE_screen_find_region_type(pcontext.screen, RGN_TYPE_TEMPORARY) != nullptr))
+  {
+    return;
   }
 
   if (ELEM(pcontext.mode, PaintMode::GPencil, PaintMode::VertexGPencil)) {

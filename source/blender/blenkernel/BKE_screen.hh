@@ -767,6 +767,11 @@ ARegion *BKE_area_find_region_type(const ScrArea *area, int region_type);
 ARegion *BKE_area_find_region_active_win(const ScrArea *area);
 ARegion *BKE_area_find_region_xy(const ScrArea *area, int regiontype, const int xy[2])
     ATTR_NONNULL(3);
+
+/**
+ * \note This is only for screen level regions (typically menus/popups).
+ */
+ARegion *BKE_screen_find_region_type(const bScreen *screen, int region_type) ATTR_NONNULL(1);
 /**
  * \note This is only for screen level regions (typically menus/popups).
  */
