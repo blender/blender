@@ -39,10 +39,10 @@ struct VertOut {
 
 VertOut vertex_main(VertIn vert_in)
 {
-  uint frame_current = mpath_line_settings.x;
-  // uint frameStart = mpath_line_settings.y; /* UNUSED */
-  // uint frameEnd = mpath_line_settings.z; /* UNUSED */
-  uint cache_start = mpath_line_settings.w;
+  int frame_current = mpath_line_settings.x;
+  // int frameStart = mpath_line_settings.y; /* UNUSED */
+  // int frameEnd = mpath_line_settings.z; /* UNUSED */
+  int cache_start = mpath_line_settings.w;
 
   VertOut vert_out;
   /* Optionally transform from view space to world space for screen space motion paths. */
