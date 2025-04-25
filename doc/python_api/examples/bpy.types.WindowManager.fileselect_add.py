@@ -17,4 +17,8 @@ The following properties are supported:
 ``filter_glob``: ``bpy.props.StringProperty(default="*.ext")``
    When present in the operator and it's not empty,
    it will be used as a file filter (example value: ``*.zip;*.py;*.exe``).
+``check_existing``: ``bpy.props.BoolProperty()``
+   If this property is present and set to ``True``,
+   the operator will warn if the provided file-path already exists
+   by highlighting the filename input field in red.
 """
