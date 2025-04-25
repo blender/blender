@@ -1873,13 +1873,16 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
   return kb;
 }
 
-KeyBlock *BKE_keyblock_duplicate(Key *key, const KeyBlock *kb_src)
+KeyBlock *BKE_keyblock_duplicate(Key *key, KeyBlock *kb_src)
 {
   BLI_assert(BLI_findindex(&key->block, kb_src) != -1);
   KeyBlock *kb_dst = BKE_keyblock_add(key, kb_src->name);
   kb_dst->totelem = kb_src->totelem;
   kb_dst->data = MEM_dupallocN(kb_src->data);
+  BLI_remlink(&key->block, kb_dst);
+  BLI_insertlinkafter(&key->block, kb_src, kb_dst);
   BKE_keyblock_copy_settings(kb_dst, kb_src);
+  kb_dst->flag = kb_src->flag;
   return kb_dst;
 }
 
