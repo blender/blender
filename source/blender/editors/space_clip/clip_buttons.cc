@@ -126,13 +126,13 @@ void uiTemplateMovieClip(uiLayout *layout,
   }
 
   if (clip) {
-    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayout *row = &layout->row(false);
     uiBlock *block = uiLayoutGetBlock(row);
     uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, "");
 
-    row = uiLayoutRow(layout, false);
+    row = &layout->row(false);
     uiLayout *split = uiLayoutSplit(row, 0.0f, false);
-    row = uiLayoutRow(split, true);
+    row = &split->row(true);
 
     uiItemR(row, &clipptr, "filepath", UI_ITEM_NONE, "", ICON_NONE);
     uiItemO(row, "", ICON_FILE_REFRESH, "clip.reload");

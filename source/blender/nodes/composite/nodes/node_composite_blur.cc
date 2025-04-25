@@ -74,7 +74,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
 
   if (RNA_boolean_get(ptr, "use_relative")) {
     uiItemL(col, IFACE_("Aspect Correction"), ICON_NONE);
-    row = uiLayoutRow(layout, true);
+    row = &layout->row(true);
     uiItemR(row,
             ptr,
             "aspect_correction",

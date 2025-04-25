@@ -800,7 +800,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemS(layout);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiLayoutSetEnabled(row, has_vertex_group);
   uiItemO(row,
           is_bind ? IFACE_("Unbind") : IFACE_("Bind"),

@@ -80,7 +80,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
   }
 
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
 
   PointerRNA op_ptr;
   wmOperatorType *ot = WM_operatortype_find("MESH_OT_select_mode", true);
@@ -129,7 +129,7 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, bContext *C)
       uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
     }
     else {
-      uiLayout *row = uiLayoutRow(layout, true);
+      uiLayout *row = &layout->row(true);
       uiItemR(row, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
       uiItemR(row, &meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 

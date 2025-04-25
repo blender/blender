@@ -63,7 +63,7 @@ static void node_composit_init_distance_matte(bNodeTree * /*ntree*/, bNode *node
 static void node_composit_buts_distance_matte(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiItemR(
       row, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }

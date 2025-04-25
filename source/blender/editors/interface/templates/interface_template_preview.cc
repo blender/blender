@@ -119,7 +119,7 @@ void uiTemplatePreview(uiLayout *layout,
 
   /* layout */
   uiBlock *block = uiLayoutGetBlock(layout);
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiLayout *col = uiLayoutColumn(row, false);
   uiLayoutSetKeepAspect(col, true);
 
@@ -174,7 +174,7 @@ void uiTemplatePreview(uiLayout *layout,
       /* Create RNA Pointer */
       PointerRNA texture_ptr = RNA_id_pointer_create(id);
 
-      uiLayoutRow(layout, true);
+      layout->row(true);
       uiDefButS(block,
                 UI_BTYPE_ROW,
                 B_MATPRV,
@@ -258,7 +258,7 @@ void uiTemplatePreview(uiLayout *layout,
 
       /* Alpha button for texture preview */
       if (*pr_texture != TEX_PR_OTHER) {
-        row = uiLayoutRow(layout, false);
+        row = &layout->row(false);
         uiItemR(row, &texture_ptr, "use_preview_alpha", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
     }

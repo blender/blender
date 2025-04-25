@@ -745,7 +745,7 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
   uiLayoutSetPropDecorate(layout, false);
 
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
-  uiLayout *name_row = uiLayoutRow(split, false);
+  uiLayout *name_row = &split->row(false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
 
   const bool use_attribute = RNA_boolean_get(md_ptr, rna_path_use_attribute.c_str());
@@ -756,7 +756,7 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
     uiItemL(name_row, socket.name ? socket.name : "", ICON_NONE);
   }
 
-  uiLayout *prop_row = uiLayoutRow(split, true);
+  uiLayout *prop_row = &split->row(true);
   if (socket_type == SOCK_BOOLEAN) {
     uiLayoutSetPropSep(prop_row, false);
     uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_EXPAND);
@@ -801,7 +801,7 @@ static void draw_property_for_socket(const bNodeTree &node_tree,
   char rna_path[sizeof(socket_id_esc) + 4];
   SNPRINTF(rna_path, "[\"%s\"]", socket_id_esc);
 
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   uiLayoutSetActive(row, affects_output);
   uiLayoutSetPropDecorate(row, false);
 

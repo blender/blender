@@ -1188,7 +1188,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetActive(row, has_vertex_group);
   uiItemR(row, ptr, "protect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

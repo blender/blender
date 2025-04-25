@@ -445,7 +445,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   int deform_method = RNA_enum_get(ptr, "deform_method");
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, ptr, "deform_method", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);

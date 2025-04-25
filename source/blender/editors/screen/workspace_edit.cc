@@ -482,7 +482,7 @@ static void workspace_add_menu(bContext * /*C*/, uiLayout *layout, void *templat
 
   if (startup_config) {
     LISTBASE_FOREACH (WorkSpace *, workspace, &startup_config->workspaces) {
-      uiLayout *row = uiLayoutRow(layout, false);
+      uiLayout *row = &layout->row(false);
       workspace_append_button(row, ot_append, workspace, startup_config->main);
       has_startup_items = true;
     }
@@ -505,7 +505,7 @@ static void workspace_add_menu(bContext * /*C*/, uiLayout *layout, void *templat
         has_title = true;
       }
 
-      uiLayout *row = uiLayoutRow(layout, false);
+      uiLayout *row = &layout->row(false);
       workspace_append_button(row, ot_append, workspace, builtin_config->main);
     }
   }

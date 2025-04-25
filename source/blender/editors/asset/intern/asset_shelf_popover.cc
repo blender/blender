@@ -240,7 +240,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
       &screen->id, &RNA_AssetLibraryReference, &shelf->settings.asset_library_reference);
   uiLayoutSetContextPointer(layout, "asset_library_reference", &library_ref_ptr);
 
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiLayout *catalogs_col = uiLayoutColumn(row, false);
   uiLayoutSetUnitsX(catalogs_col, LEFT_COL_WIDTH_UNITS);
   uiLayoutSetFixedSize(catalogs_col, true);
@@ -248,7 +248,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   catalog_tree_draw(*C, *catalogs_col, *shelf);
 
   uiLayout *right_col = uiLayoutColumn(row, false);
-  uiLayout *sub = uiLayoutRow(right_col, false);
+  uiLayout *sub = &right_col->row(false);
   /* Same as file/asset browser header. */
   PointerRNA shelf_ptr = RNA_pointer_create_discrete(&screen->id, &RNA_AssetShelf, shelf);
   uiItemR(sub,

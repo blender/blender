@@ -514,7 +514,7 @@ static bool node_update_basis_socket(const bContext &C,
     uiLayoutSetActive(layout, false);
   }
 
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
   uiLayoutSetContextPointer(row, "node", &nodeptr);
 

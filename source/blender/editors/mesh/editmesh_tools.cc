@@ -5742,7 +5742,7 @@ static void edbm_decimate_ui(bContext * /*C*/, wmOperator *op)
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
   uiItemR(row, op->ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "use_symmetry"));
   uiItemR(sub, op->ptr, "symmetry_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }

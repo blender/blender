@@ -39,7 +39,7 @@ static void cmp_node_split_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_buts_split(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiItemR(
       row, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }

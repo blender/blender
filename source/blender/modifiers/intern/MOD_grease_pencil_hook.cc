@@ -289,7 +289,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
     bool use_falloff = RNA_enum_get(ptr, "falloff_type") != eWarp_Falloff_None;
 
-    uiLayout *row = uiLayoutRow(sub, false);
+    uiLayout *row = &sub->row(false);
     uiLayoutSetActive(row, use_falloff);
     uiItemR(row, ptr, "falloff_radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

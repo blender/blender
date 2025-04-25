@@ -1461,7 +1461,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
     UI_block_func_handle_set(block, do_view3d_vgroup_buttons, nullptr);
 
     bcol = uiLayoutColumn(panel->layout, true);
-    row = uiLayoutRow(bcol, true); /* The filter button row */
+    row = &bcol->row(true); /* The filter button row */
 
     PointerRNA tools_ptr = RNA_pointer_create_discrete(nullptr, &RNA_ToolSettings, ts);
     uiItemR(row, &tools_ptr, "vertex_group_subset", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
@@ -1482,7 +1482,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
           int x, xco = 0;
           int icon;
           uiLayout *split = uiLayoutSplit(col, 0.45, true);
-          row = uiLayoutRow(split, true);
+          row = &split->row(true);
 
           /* The Weight Group Name */
 
@@ -1505,7 +1505,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
           }
           xco += x;
 
-          row = uiLayoutRow(split, true);
+          row = &split->row(true);
           uiLayoutSetEnabled(row, !locked);
 
           /* The weight group value */
@@ -1566,7 +1566,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
     yco -= 2;
 
     col = uiLayoutColumn(panel->layout, true);
-    row = uiLayoutRow(col, true);
+    row = &col->row(true);
 
     ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active_vertex", true);
     but = uiDefButO_ptr(

@@ -213,7 +213,7 @@ class LayerViewItem : public AbstractTreeViewItem {
   {
     build_layer_name(row);
 
-    uiLayout *sub = uiLayoutRow(&row, true);
+    uiLayout *sub = &row.row(true);
     uiLayoutSetPropDecorate(sub, false);
 
     build_layer_buttons(*sub);
@@ -311,19 +311,19 @@ class LayerViewItem : public AbstractTreeViewItem {
     PointerRNA layer_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
 
-    sub = uiLayoutRow(&row, true);
+    sub = &row.row(true);
     uiLayoutSetActive(sub, layer_.parent_group().use_masks());
     uiItemR(sub, &layer_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutRow(&row, true);
+    sub = &row.row(true);
     uiLayoutSetActive(sub, layer_.parent_group().use_onion_skinning());
     uiItemR(sub, &layer_ptr, "use_onion_skinning", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutRow(&row, true);
+    sub = &row.row(true);
     uiLayoutSetActive(sub, layer_.parent_group().is_visible());
     uiItemR(sub, &layer_ptr, "hide", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutRow(&row, true);
+    sub = &row.row(true);
     uiLayoutSetActive(sub, !layer_.parent_group().is_locked());
     uiItemR(sub, &layer_ptr, "lock", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
   }
@@ -370,7 +370,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   {
     build_layer_group_name(row);
 
-    uiLayout *sub = uiLayoutRow(&row, true);
+    uiLayout *sub = &row.row(true);
     uiLayoutSetPropDecorate(sub, false);
 
     build_layer_group_buttons(*sub);
@@ -474,25 +474,25 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     PointerRNA group_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
 
-    sub = uiLayoutRow(&row, true);
+    sub = &row.row(true);
     if (group_.as_node().parent_group()) {
       uiLayoutSetActive(sub, group_.as_node().parent_group()->use_masks());
     }
     uiItemR(sub, &group_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutRow(&row, true);
+    sub = &row.row(true);
     if (group_.as_node().parent_group()) {
       uiLayoutSetActive(sub, group_.as_node().parent_group()->use_onion_skinning());
     }
     uiItemR(sub, &group_ptr, "use_onion_skinning", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutRow(&row, true);
+    sub = &row.row(true);
     if (group_.as_node().parent_group()) {
       uiLayoutSetActive(sub, group_.as_node().parent_group()->is_visible());
     }
     uiItemR(sub, &group_ptr, "hide", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutRow(&row, true);
+    sub = &row.row(true);
     if (group_.as_node().parent_group()) {
       uiLayoutSetActive(sub, !group_.as_node().parent_group()->is_locked());
     }

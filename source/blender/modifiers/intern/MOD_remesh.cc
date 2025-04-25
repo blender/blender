@@ -245,7 +245,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     }
 
     uiItemR(layout, ptr, "use_remove_disconnected", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    row = uiLayoutRow(layout, false);
+    row = &layout->row(false);
     uiLayoutSetActive(row, RNA_boolean_get(ptr, "use_remove_disconnected"));
     uiItemR(layout, ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }

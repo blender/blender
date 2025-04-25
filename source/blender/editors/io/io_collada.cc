@@ -245,7 +245,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   bool sampling = animation_type == BC_ANIMATION_EXPORT_SAMPLES;
 
   /* Export Options: */
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, imfptr, "prop_bc_export_ui_section", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
@@ -263,7 +263,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemR(sub, imfptr, "include_shapekeys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     box = uiLayoutBox(layout);
-    row = uiLayoutRow(box, false);
+    row = &box->row(false);
     uiItemL(row, IFACE_("Global Orientation"), ICON_ORIENTATION_GLOBAL);
 
     uiItemR(box, imfptr, "apply_global_orientation", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
@@ -330,7 +330,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemR(box, imfptr, "include_animations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(box, false);
-    row = uiLayoutRow(col, false);
+    row = &col->row(false);
     uiLayoutSetActive(row, include_animations);
     uiItemR(
         row, imfptr, "export_animation_type_selection", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
@@ -373,7 +373,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   else if (ui_section == BC_UI_SECTION_COLLADA) {
     /* Collada options: */
     box = uiLayoutBox(layout);
-    row = uiLayoutRow(box, false);
+    row = &box->row(false);
     uiItemL(row, IFACE_("Collada Options"), ICON_MODIFIER);
 
     col = uiLayoutColumn(box, false);

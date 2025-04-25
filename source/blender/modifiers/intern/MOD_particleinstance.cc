@@ -564,7 +564,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemS(layout);
 
   uiItemR(layout, ptr, "space", UI_ITEM_NONE, IFACE_("Coordinate Space"), ICON_NONE);
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_panel_end(layout, ptr);

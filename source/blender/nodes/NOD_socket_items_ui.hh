@@ -33,7 +33,7 @@ static void draw_item_in_list(uiList * /*ui_list*/,
                               int /*index*/,
                               int /*flt_flag*/)
 {
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   if constexpr (Accessor::has_type) {
     float4 color;
     RNA_float_get_array(itemptr, "color", color);
@@ -65,7 +65,7 @@ static void draw_items_list_with_operators(const bContext *C,
     return list;
   }();
 
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiTemplateList(row,
                  C,
                  items_list->idname,

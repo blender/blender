@@ -75,12 +75,12 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*
 {
   uiLayout *row;
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, ptr, "red", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "green", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "blue", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemL(row, "", ICON_NONE);
   uiItemL(row, IFACE_("Saturation"), ICON_NONE);
   uiItemL(row, IFACE_("Contrast"), ICON_NONE);
@@ -88,7 +88,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*
   uiItemL(row, IFACE_("Gain"), ICON_NONE);
   uiItemL(row, IFACE_("Lift"), ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemL(row, IFACE_("Master"), ICON_NONE);
   uiItemR(
       row, ptr, "master_saturation", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, "", ICON_NONE);
@@ -98,7 +98,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*
   uiItemR(row, ptr, "master_gain", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemR(row, ptr, "master_lift", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemL(row, IFACE_("Highlights"), ICON_NONE);
   uiItemR(row,
           ptr,
@@ -119,7 +119,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*
   uiItemR(
       row, ptr, "highlights_lift", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemL(row, IFACE_("Midtones"), ICON_NONE);
   uiItemR(row,
           ptr,
@@ -134,7 +134,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*
   uiItemR(row, ptr, "midtones_gain", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemR(row, ptr, "midtones_lift", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemL(row, IFACE_("Shadows"), ICON_NONE);
   uiItemR(row,
           ptr,
@@ -148,7 +148,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*
   uiItemR(row, ptr, "shadows_gain", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemR(row, ptr, "shadows_lift", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row,
           ptr,
           "midtones_start",
@@ -169,7 +169,7 @@ static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
 {
   uiLayout *row;
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, ptr, "red", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "green", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "blue", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
@@ -304,7 +304,7 @@ static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
           std::nullopt,
           ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, ptr, "midtones_start", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }

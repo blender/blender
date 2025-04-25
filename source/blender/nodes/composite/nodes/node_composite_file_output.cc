@@ -354,7 +354,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
   uiItemO(layout, IFACE_("Add Input"), ICON_ADD, "NODE_OT_output_file_add_socket");
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   col = uiLayoutColumn(row, true);
 
   const int active_index = RNA_int_get(ptr, "active_input_index");
@@ -412,7 +412,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
       col = uiLayoutColumn(layout, true);
 
       uiItemL(col, IFACE_("Layer:"), ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(row, &active_input_ptr, "name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
       uiItemFullO(row,
                   "NODE_OT_output_file_remove_active_socket",
@@ -427,7 +427,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
       col = uiLayoutColumn(layout, true);
 
       uiItemL(col, IFACE_("File Subpath:"), ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(row, &active_input_ptr, "path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
       uiItemFullO(row,
                   "NODE_OT_output_file_remove_active_socket",

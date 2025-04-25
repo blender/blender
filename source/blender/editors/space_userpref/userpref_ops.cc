@@ -444,7 +444,7 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
 
       uiLayout *row = uiLayoutRowWithHeading(layout, true, IFACE_("Authentication"));
       uiItemR(row, op->ptr, "use_access_token", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiLayout *col = uiLayoutRow(layout, false);
+      uiLayout *col = &layout->row(false);
       uiLayoutSetActive(col, use_access_token);
       /* Use "immediate" flag to refresh the icon. */
       uiItemR(col, op->ptr, "access_token", UI_ITEM_R_IMMEDIATE, std::nullopt, token_icon);
@@ -460,7 +460,7 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
   }
 
   uiItemR(layout, op->ptr, "use_custom_directory", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiLayout *col = uiLayoutRow(layout, false);
+  uiLayout *col = &layout->row(false);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_custom_directory"));
   uiItemR(col, op->ptr, "custom_directory", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }

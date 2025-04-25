@@ -174,7 +174,7 @@ static void template_search_buttons(const bContext *C,
     type = active_ptr.type;
   }
 
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   UI_block_align_begin(block);
 
   uiLayout *decorator_layout = nullptr;

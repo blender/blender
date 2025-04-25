@@ -733,7 +733,7 @@ static void graph_panel_driverVar_fallback(uiLayout *layout,
                                            PointerRNA *dtar_ptr)
 {
   if (dtar->options & DTAR_OPTION_USE_FALLBACK) {
-    uiLayout *row = uiLayoutRow(layout, true);
+    uiLayout *row = &layout->row(true);
     uiItemR(row, dtar_ptr, "use_fallback_value", UI_ITEM_NONE, "", ICON_NONE);
     uiItemR(row, dtar_ptr, "fallback_value", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -752,7 +752,7 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
   PointerRNA dtar_ptr = RNA_pointer_create_discrete(id, &RNA_DriverTarget, dtar);
 
   /* Target ID */
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetRedAlert(row, ((dtar->flag & DTAR_FLAG_INVALID) && !dtar->id));
   uiTemplateAnyID(row, &dtar_ptr, "id", "id_type", IFACE_("Prop:"));
 
@@ -902,7 +902,7 @@ static void graph_panel_driverVar__contextProp(uiLayout *layout, ID *id, DriverV
 
   /* Target Property. */
   {
-    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayout *row = &layout->row(false);
     uiItemR(row, &dtar_ptr, "context_property", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
@@ -977,7 +977,7 @@ static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *f
   }
 
   /* panel layout... */
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
   /* -> user friendly 'name' for datablock that owns F-Curve */
@@ -1017,7 +1017,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     char valBuf[32];
 
     /* value of driver */
-    row = uiLayoutRow(col, true);
+    row = &col->row(true);
     uiItemL(row, IFACE_("Driver Value:"), ICON_NONE);
     SNPRINTF(valBuf, "%.3f", driver->curval);
     uiItemL(row, valBuf, ICON_NONE);
@@ -1098,10 +1098,10 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   uiItemS(layout);
 
   /* add/copy/paste driver variables */
-  row_outer = uiLayoutRow(layout, false);
+  row_outer = &layout->row(false);
 
   /* add driver variable - add blank */
-  row = uiLayoutRow(row_outer, true);
+  row = &row_outer->row(true);
   block = uiLayoutGetBlock(row);
   but = uiDefIconTextBut(
       block,
@@ -1126,7 +1126,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   }
 
   /* copy/paste (as sub-row) */
-  row = uiLayoutRow(row_outer, true);
+  row = &row_outer->row(true);
   block = uiLayoutGetBlock(row);
 
   uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
@@ -1144,17 +1144,17 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     box = uiLayoutBox(col);
     PointerRNA dvar_ptr = RNA_pointer_create_discrete(id, &RNA_DriverVariable, dvar);
 
-    row = uiLayoutRow(box, false);
+    row = &box->row(false);
     block = uiLayoutGetBlock(row);
 
     /* 1.1) variable type and name */
-    subrow = uiLayoutRow(row, true);
+    subrow = &row->row(true);
 
     /* 1.1.1) variable type */
 
     /* HACK: special group just for the enum,
      * otherwise we get ugly layout with text included too... */
-    sub = uiLayoutRow(subrow, true);
+    sub = &subrow->row(true);
 
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
@@ -1164,7 +1164,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
     /* HACK: special group to counteract the effects of the previous enum,
      * which now pushes everything too far right */
-    sub = uiLayoutRow(subrow, true);
+    sub = &subrow->row(true);
 
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);
 
@@ -1231,7 +1231,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
       char valBuf[32];
 
       box = uiLayoutBox(col);
-      row = uiLayoutRow(box, true);
+      row = &box->row(true);
       uiItemL(row, IFACE_("Value:"), ICON_NONE);
 
       if ((dvar->type == DVAR_TYPE_ROT_DIFF) ||
@@ -1263,7 +1263,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
   /* XXX: This should become redundant. But sometimes the flushing fails,
    * so keep this around for a while longer as a "last resort" */
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   block = uiLayoutGetBlock(row);
   but = uiDefIconTextBut(
       block,
@@ -1423,7 +1423,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
 
   /* 'add modifier' button at top of panel */
   {
-    row = uiLayoutRow(panel->layout, false);
+    row = &panel->layout->row(false);
 
     /* this is an operator button which calls a 'add modifier' operator...
      * a menu might be nicer but would be tricky as we need some custom filtering
@@ -1431,7 +1431,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
     uiItemMenuEnumO(row, C, "GRAPH_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
 
     /* copy/paste (as sub-row) */
-    row = uiLayoutRow(row, true);
+    row = &row->row(true);
     uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_fmodifier_copy");
     uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_fmodifier_paste");
   }

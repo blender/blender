@@ -2030,11 +2030,11 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemR(layout, ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemO(row, IFACE_("Create Armature"), ICON_NONE, "OBJECT_OT_skin_armature_create");
   uiItemO(row, std::nullopt, ICON_NONE, "MESH_OT_customdata_skin_add");
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemFullO(row,
               "OBJECT_OT_skin_loose_mark_clear",
               IFACE_("Mark Loose"),

@@ -256,7 +256,7 @@ static void fmodifier_influence_draw(uiLayout *layout, PointerRNA *ptr)
 
   uiLayout *row = uiLayoutRowWithHeading(layout, true, IFACE_("Influence"));
   uiItemR(row, ptr, "use_influence", UI_ITEM_NONE, "", ICON_NONE);
-  uiLayout *sub = uiLayoutRow(row, true);
+  uiLayout *sub = &row->row(true);
 
   uiLayoutSetActive(sub, fcm->flag & FMODIFIER_FLAG_USEINFLUENCE);
   uiItemR(sub, ptr, "influence", UI_ITEM_NONE, "", ICON_NONE);
@@ -304,7 +304,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
 
   uiBlock *block = uiLayoutGetBlock(layout);
 
-  uiLayout *sub = uiLayoutRow(layout, true);
+  uiLayout *sub = &layout->row(true);
 
   /* Checkbox for 'active' status (for now). */
   uiItemR(sub, ptr, "active", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
@@ -317,7 +317,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
     uiItemL(sub, IFACE_("<Unknown Modifier>"), ICON_NONE);
   }
   /* Right align. */
-  sub = uiLayoutRow(layout, true);
+  sub = &layout->row(true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
   uiLayoutSetEmboss(sub, blender::ui::EmbossType::None);
 
@@ -396,17 +396,17 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
         uiLayout *split = uiLayoutSplit(col, 0.4f, false);
         uiLayoutColumn(split, false);
         uiLayout *title_col = uiLayoutColumn(split, false);
-        uiLayout *title_row = uiLayoutRow(title_col, true);
+        uiLayout *title_row = &title_col->row(true);
         uiItemL(title_row, CTX_IFACE_(BLT_I18NCONTEXT_ID_ACTION, "A"), ICON_NONE);
         uiItemL(title_row, CTX_IFACE_(BLT_I18NCONTEXT_ID_ACTION, "B"), ICON_NONE);
       }
 
-      uiLayout *first_row = uiLayoutRow(col, true);
+      uiLayout *first_row = &col->row(true);
       uiItemFullR(first_row, ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("y = (Ax + B)"), ICON_NONE);
       uiItemFullR(first_row, ptr, prop, 1, 0, UI_ITEM_NONE, "", ICON_NONE);
       for (int i = 2; i < data->arraysize - 1; i += 2) {
         /* \u00d7 is the multiplication symbol. */
-        uiLayout *row = uiLayoutRow(col, true);
+        uiLayout *row = &col->row(true);
         uiItemFullR(row, ptr, prop, i, 0, UI_ITEM_NONE, IFACE_("\u00d7 (Ax + B)"), ICON_NONE);
         uiItemFullR(row, ptr, prop, i + 1, 0, UI_ITEM_NONE, "", ICON_NONE);
       }
@@ -683,7 +683,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
 
   /* Control points list. */
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiBlock *block = uiLayoutGetBlock(row);
 
   uiBut *but = uiDefBut(block,
@@ -709,7 +709,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
         owner_id, &RNA_FModifierEnvelopeControlPoint, fed);
 
     /* get a new row to operate on */
-    row = uiLayoutRow(col, true);
+    row = &col->row(true);
     block = uiLayoutGetBlock(row);
 
     uiItemR(row, &ctrl_ptr, "frame", UI_ITEM_NONE, std::nullopt, ICON_NONE);

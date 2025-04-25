@@ -65,7 +65,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
   uiLayout *col, *row;
 
   uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row,
           ptr,
           "color_space",
@@ -75,7 +75,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
 
   col = uiLayoutColumn(layout, false);
   uiItemL(col, IFACE_("Key Channel:"), ICON_NONE);
-  row = uiLayoutRow(col, false);
+  row = &col->row(false);
   uiItemR(row,
           ptr,
           "matte_channel",
@@ -88,7 +88,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
   uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "limit_method") == 0) {
     uiItemL(col, IFACE_("Limiting Channel:"), ICON_NONE);
-    row = uiLayoutRow(col, false);
+    row = &col->row(false);
     uiItemR(row,
             ptr,
             "limit_channel",

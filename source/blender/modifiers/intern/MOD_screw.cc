@@ -1070,7 +1070,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  row = uiLayoutRow(col, false);
+  row = &col->row(false);
   uiLayoutSetActive(row,
                     RNA_pointer_is_null(&screw_obj_ptr) ||
                         !RNA_boolean_get(ptr, "use_object_screw_offset"));
@@ -1079,7 +1079,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemS(layout);
   col = uiLayoutColumn(layout, false);
-  row = uiLayoutRow(col, false);
+  row = &col->row(false);
   uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "object", UI_ITEM_NONE, IFACE_("Axis Object"), ICON_NONE);
   sub = uiLayoutColumn(col, false);
@@ -1096,7 +1096,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Merge"));
   uiItemR(row, ptr, "use_merge_vertices", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_merge_vertices"));
   uiItemR(sub, ptr, "merge_threshold", UI_ITEM_NONE, "", ICON_NONE);
 

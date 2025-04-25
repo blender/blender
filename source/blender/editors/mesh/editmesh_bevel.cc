@@ -898,7 +898,7 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, op->ptr, "affect", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiItemS(layout);
@@ -954,7 +954,7 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
 
   uiItemS(layout);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, op->ptr, "profile_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   if (profile_type == BEVEL_PROFILE_CUSTOM) {
     /* Get an RNA pointer to ToolSettings to give to the curve profile template code. */

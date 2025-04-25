@@ -340,14 +340,14 @@ static void grease_pencil_export_svg_draw(bContext * /*C*/, wmOperator *op)
 
   box = uiLayoutBox(layout);
 
-  row = uiLayoutRow(box, false);
+  row = &box->row(false);
   uiItemL(row, IFACE_("Scene Options"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
+  row = &box->row(false);
   uiItemR(row, op->ptr, "selected_object_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   box = uiLayoutBox(layout);
-  row = uiLayoutRow(box, false);
+  row = &box->row(false);
   uiItemL(row, IFACE_("Export Options"), ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(box, false);
@@ -499,14 +499,14 @@ static void ui_gpencil_export_pdf_settings(uiLayout *layout, PointerRNA *imfptr)
 
   box = uiLayoutBox(layout);
 
-  row = uiLayoutRow(box, false);
+  row = &box->row(false);
   uiItemL(row, IFACE_("Scene Options"), ICON_NONE);
 
-  row = uiLayoutRow(box, false);
+  row = &box->row(false);
   uiItemR(row, imfptr, "selected_object_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   box = uiLayoutBox(layout);
-  row = uiLayoutRow(box, false);
+  row = &box->row(false);
   uiItemL(row, IFACE_("Export Options"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);

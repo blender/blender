@@ -321,7 +321,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
     PointerRNA id_ptr = RNA_id_pointer_create(id);
 
     /* ID-block name > AnimData */
-    row = uiLayoutRow(layout, true);
+    row = &layout->row(true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
     uiItemL(row, id->name + 2, RNA_struct_ui_icon(id_ptr.type)); /* id-block (src) */
@@ -346,15 +346,15 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
                    IFACE_("Slot"));
 
   /* extrapolation */
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, &adt_ptr, "action_extrapolation", UI_ITEM_NONE, IFACE_("Extrapolation"), ICON_NONE);
 
   /* blending */
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, &adt_ptr, "action_blend_type", UI_ITEM_NONE, IFACE_("Blending"), ICON_NONE);
 
   /* influence */
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, &adt_ptr, "action_influence", UI_ITEM_NONE, IFACE_("Influence"), ICON_NONE);
 }
 
@@ -375,7 +375,7 @@ static void nla_panel_stripname(const bContext *C, Panel *panel)
 
   /* Strip Properties ------------------------------------- */
   /* strip type */
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   if (RNA_enum_get(&strip_ptr, "type") == NLASTRIP_TYPE_CLIP) {
     uiItemL(row, "", ICON_ANIM);
   }
@@ -448,7 +448,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
     uiItemR(column, &strip_ptr, "blend_in", UI_ITEM_NONE, IFACE_("Blend In"), ICON_NONE);
     uiItemR(column, &strip_ptr, "blend_out", UI_ITEM_NONE, IFACE_("Out"), ICON_NONE);
 
-    row = uiLayoutRow(column, true);
+    row = &column->row(true);
     uiLayoutSetActive(row, RNA_boolean_get(&strip_ptr, "use_animated_influence") == false);
     uiItemR(row,
             &strip_ptr,
@@ -459,7 +459,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
 
     /* settings */
     column = uiLayoutColumnWithHeading(layout, true, IFACE_("Playback"));
-    row = uiLayoutRow(column, true);
+    row = &column->row(true);
     uiLayoutSetActive(row,
                       !(RNA_boolean_get(&strip_ptr, "use_animated_influence") ||
                         RNA_boolean_get(&strip_ptr, "use_animated_time")));
@@ -637,7 +637,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *panel)
 
   /* 'add modifier' button at top of panel */
   {
-    row = uiLayoutRow(panel->layout, false);
+    row = &panel->layout->row(false);
     block = uiLayoutGetBlock(row);
 
     /* FIXME: we need to set the only-active property so that this
@@ -645,7 +645,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *panel)
     uiItemMenuEnumO(row, C, "NLA_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
 
     /* copy/paste (as sub-row) */
-    row = uiLayoutRow(row, true);
+    row = &row->row(true);
     uiItemO(row, "", ICON_COPYDOWN, "NLA_OT_fmodifier_copy");
     uiItemO(row, "", ICON_PASTEDOWN, "NLA_OT_fmodifier_paste");
   }

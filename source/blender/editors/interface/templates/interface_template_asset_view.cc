@@ -243,7 +243,7 @@ void uiTemplateAssetView(uiLayout *layout,
   AssetLibraryReference asset_library_ref = asset::library_reference_from_enum_value(
       RNA_property_enum_get(asset_library_dataptr, asset_library_prop));
 
-  uiLayout *row = uiLayoutRow(col, true);
+  uiLayout *row = &col->row(true);
   if ((display_flags & UI_TEMPLATE_ASSET_DRAW_NO_LIBRARY) == 0) {
     uiItemFullR(row,
                 asset_library_dataptr,

@@ -101,7 +101,7 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, true);
-  row = uiLayoutRow(col, true);
+  row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
   uiItemPointerR(row,
                  ptr,
@@ -110,14 +110,14 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
                  "layers",
                  std::nullopt,
                  ICON_OUTLINER_DATA_GP_LAYER);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "invert_layer_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
   row = uiLayoutRowWithHeading(col, true, IFACE_("Layer Pass"));
   uiLayoutSetPropDecorate(row, false);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "use_layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
-  subsub = uiLayoutRow(sub, true);
+  subsub = &sub->row(true);
   uiLayoutSetActive(subsub, use_layer_pass);
   uiItemR(subsub, ptr, "layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(subsub, ptr, "invert_layer_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
@@ -133,18 +133,18 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, true);
-  row = uiLayoutRow(col, true);
+  row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
   uiItemPointerR(
       row, ptr, "material_filter", &obj_data_ptr, "materials", std::nullopt, ICON_SHADING_TEXTURE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "invert_material_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
   row = uiLayoutRowWithHeading(col, true, IFACE_("Material Pass"));
   uiLayoutSetPropDecorate(row, false);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "use_material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
-  subsub = uiLayoutRow(sub, true);
+  subsub = &sub->row(true);
   uiLayoutSetActive(subsub, use_material_pass);
   uiItemR(subsub, ptr, "material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(subsub, ptr, "invert_material_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
@@ -159,10 +159,10 @@ void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, true);
-  row = uiLayoutRow(col, true);
+  row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
   uiItemPointerR(row, ptr, "vertex_group_name", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetActive(sub, has_vertex_group);
   uiLayoutSetPropDecorate(sub, false);
   uiItemR(sub, ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
@@ -174,7 +174,7 @@ void draw_custom_curve_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   uiLayout *row;
 
   uiLayoutSetPropSep(layout, true);
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiLayoutSetPropDecorate(row, false);
   uiItemR(row, ptr, "use_custom_curve", UI_ITEM_NONE, IFACE_("Custom Curve"), ICON_NONE);
   if (use_custom_curve) {

@@ -95,7 +95,7 @@ static void node_buts_value(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   bNodeSocket *output = (bNodeSocket *)node->outputs.first;
   PointerRNA sockptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_NodeSocket, output);
 
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   uiItemR(row, &sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
@@ -117,7 +117,7 @@ static void node_buts_mix_rgb(uiLayout *layout, bContext * /*C*/, PointerRNA *pt
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
 
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiLayout *row = uiLayoutRow(col, true);
+  uiLayout *row = &col->row(true);
   uiItemR(row, ptr, "blend_type", DEFAULT_FLAGS, "", ICON_NONE);
   if (ELEM(ntree->type, NTREE_COMPOSIT, NTREE_TEXTURE)) {
     uiItemR(row, ptr, "use_alpha", DEFAULT_FLAGS, "", ICON_IMAGE_RGB_ALPHA);
@@ -599,7 +599,7 @@ static void node_composit_buts_cryptomatte_legacy(uiLayout *layout,
 
   uiItemL(col, IFACE_("Matte Objects:"), ICON_NONE);
 
-  uiLayout *row = uiLayoutRow(col, true);
+  uiLayout *row = &col->row(true);
   uiTemplateCryptoPicker(row, ptr, "add", ICON_ADD);
   uiTemplateCryptoPicker(row, ptr, "remove", ICON_REMOVE);
 
@@ -618,7 +618,7 @@ static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, Pointe
 {
   bNode *node = (bNode *)ptr->data;
 
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   uiItemR(row, ptr, "source", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, false);
@@ -642,7 +642,7 @@ static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, Pointe
   uiItemR(col, ptr, "layer_name", UI_ITEM_NONE, "", ICON_NONE);
   uiItemL(col, IFACE_("Matte ID:"), ICON_NONE);
 
-  row = uiLayoutRow(col, true);
+  row = &col->row(true);
   uiItemR(row, ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
   uiTemplateCryptoPicker(row, ptr, "add", ICON_ADD);
   uiTemplateCryptoPicker(row, ptr, "remove", ICON_REMOVE);
@@ -733,7 +733,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext * /*C*/, PointerRN
   switch (tex->type) {
     case TEX_BLEND:
       uiItemR(col, &tex_ptr, "progression", DEFAULT_FLAGS, "", ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(row,
               &tex_ptr,
               "use_flip_axis",
@@ -743,15 +743,15 @@ static void node_texture_buts_proc(uiLayout *layout, bContext * /*C*/, PointerRN
       break;
 
     case TEX_MARBLE:
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(
           row, &tex_ptr, "marble_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(
           row, &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(row, &tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(row,
               &tex_ptr,
               "noise_basis_2",
@@ -765,10 +765,10 @@ static void node_texture_buts_proc(uiLayout *layout, bContext * /*C*/, PointerRN
       break;
 
     case TEX_STUCCI:
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(
           row, &tex_ptr, "stucci_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(
           row, &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       uiItemR(col, &tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
@@ -777,14 +777,14 @@ static void node_texture_buts_proc(uiLayout *layout, bContext * /*C*/, PointerRN
     case TEX_WOOD:
       uiItemR(col, &tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
       uiItemR(col, &tex_ptr, "wood_type", DEFAULT_FLAGS, "", ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(row,
               &tex_ptr,
               "noise_basis_2",
               DEFAULT_FLAGS | UI_ITEM_R_EXPAND,
               std::nullopt,
               ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiLayoutSetActive(row, !ELEM(tex->stype, TEX_BAND, TEX_RING));
       uiItemR(
           row, &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
@@ -792,10 +792,10 @@ static void node_texture_buts_proc(uiLayout *layout, bContext * /*C*/, PointerRN
 
     case TEX_CLOUDS:
       uiItemR(col, &tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(
           row, &tex_ptr, "cloud_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      row = uiLayoutRow(col, false);
+      row = &col->row(false);
       uiItemR(
           row, &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       uiItemR(col,
@@ -1098,7 +1098,7 @@ static void node_file_output_socket_draw(bContext *C,
   uiLayout *row;
   PointerRNA inputptr;
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
 
   PointerRNA imfptr = RNA_pointer_get(node_ptr, "format");
   int imtype = RNA_enum_get(&imfptr, "file_format");
@@ -1231,13 +1231,13 @@ static void std_node_socket_draw(
                                          NODE_GROUP_INPUT))
     {
       if (node->is_group_input()) {
-        uiLayout *row = uiLayoutRow(layout, false);
+        uiLayout *row = &layout->row(false);
         uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
         node_socket_button_label(C, row, ptr, node_ptr, text);
         uiItemL(row, "", ICON_GIZMO);
       }
       else if (nodes::partial_eval::is_supported_value_node(*node)) {
-        uiLayout *row = uiLayoutRow(layout, false);
+        uiLayout *row = &layout->row(false);
         uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
         node_socket_button_label(C, row, ptr, node_ptr, text);
         draw_gizmo_pin_icon(row, ptr);
@@ -1247,7 +1247,7 @@ static void std_node_socket_draw(
     if (sock->in_out == SOCK_IN && sock->index() == 0 &&
         nodes::gizmos::is_builtin_gizmo_node(*node))
     {
-      uiLayout *row = uiLayoutRow(layout, false);
+      uiLayout *row = &layout->row(false);
       node_socket_button_label(C, row, ptr, node_ptr, text);
       draw_gizmo_pin_icon(row, ptr);
       return;
@@ -1284,7 +1284,7 @@ static void std_node_socket_draw(
         else {
           uiLayout *column = uiLayoutColumn(layout, false);
           {
-            uiLayout *row = uiLayoutRow(column, true);
+            uiLayout *row = &column->row(true);
             draw_node_socket_name_editable(row, sock, text);
             if (has_gizmo) {
               draw_gizmo_pin_icon(row, ptr);
@@ -1298,7 +1298,7 @@ static void std_node_socket_draw(
     case SOCK_ROTATION: {
       uiLayout *column = uiLayoutColumn(layout, false);
       {
-        uiLayout *row = uiLayoutRow(column, true);
+        uiLayout *row = &column->row(true);
         draw_node_socket_name_editable(row, sock, text);
         if (has_gizmo) {
           draw_gizmo_pin_icon(row, ptr);

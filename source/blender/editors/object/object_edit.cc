@@ -463,7 +463,7 @@ void collection_hide_menu_draw(const bContext *C, uiLayout *layout)
 
   LISTBASE_FOREACH (LayerCollection *, lc, &lc_scene->layer_collections) {
     int index = BKE_layer_collection_findindex(view_layer, lc);
-    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayout *row = &layout->row(false);
 
     if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
       continue;

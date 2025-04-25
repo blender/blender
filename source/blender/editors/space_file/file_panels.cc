@@ -109,7 +109,7 @@ void file_tool_props_region_panels_register(ARegionType *art)
 
 static void file_panel_execution_cancel_button(uiLayout *layout)
 {
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiLayoutSetScaleX(row, 0.8f);
   uiLayoutSetFixedSize(row, true);
   uiItemO(row, IFACE_("Cancel"), ICON_NONE, "FILE_OT_cancel");
@@ -117,7 +117,7 @@ static void file_panel_execution_cancel_button(uiLayout *layout)
 
 static void file_panel_execution_execute_button(uiLayout *layout, const char *title)
 {
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiLayoutSetScaleX(row, 0.8f);
   uiLayoutSetFixedSize(row, true);
   /* Just a display hint. */
@@ -146,7 +146,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   PointerRNA params_rna_ptr = RNA_pointer_create_discrete(
       &screen->id, &RNA_FileSelectParams, params);
 
-  row = uiLayoutRow(panel->layout, false);
+  row = &panel->layout->row(false);
   uiLayoutSetScaleY(row, 1.3f);
 
   /* callbacks for operator check functions */
@@ -191,7 +191,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   UI_block_func_set(block, nullptr, nullptr, nullptr);
 
   {
-    uiLayout *sub = uiLayoutRow(row, false);
+    uiLayout *sub = &row->row(false);
     uiLayoutSetOperatorContext(sub, WM_OP_EXEC_REGION_WIN);
 
     if (windows_layout) {
@@ -229,7 +229,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
   BLI_assert(params != nullptr);
 
   uiLayout *col = uiLayoutColumn(panel->layout, false);
-  uiLayout *row = uiLayoutRow(col, true);
+  uiLayout *row = &col->row(true);
 
   PointerRNA params_ptr = RNA_pointer_create_discrete(
       &screen->id, &RNA_FileAssetSelectParams, params);

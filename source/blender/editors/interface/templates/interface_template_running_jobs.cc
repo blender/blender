@@ -221,7 +221,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
     const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
     const bool active = !(G.is_break || WM_jobs_is_stopped(wm, owner));
 
-    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayout *row = &layout->row(false);
     block = uiLayoutGetBlock(row);
 
     /* get percentage done and set it as the UI text */
@@ -262,7 +262,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                      "");
 
     /* stick progress bar and cancel button together */
-    row = uiLayoutRow(layout, true);
+    row = &layout->row(true);
     uiLayoutSetActive(row, active);
     block = uiLayoutGetBlock(row);
 

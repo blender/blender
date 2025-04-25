@@ -536,16 +536,16 @@ static void panel_draw(const bContext *C, Panel *panel)
   const char *text = use_fixed_offset ? IFACE_("Frame") : IFACE_("Frame Offset");
   uiItemR(col, ptr, "offset", UI_ITEM_NONE, text, ICON_NONE);
 
-  row = uiLayoutRow(col, false);
+  row = &col->row(false);
   uiLayoutSetActive(row, !use_fixed_offset);
   uiItemR(row, ptr, "frame_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetActive(row, !use_fixed_offset);
   uiItemR(row, ptr, "use_keep_loop", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (mode == MOD_GREASE_PENCIL_TIME_MODE_CHAIN) {
-    row = uiLayoutRow(layout, false);
+    row = &layout->row(false);
     uiLayoutSetPropSep(row, false);
 
     uiTemplateList(row,
@@ -630,7 +630,7 @@ static void segment_list_item_draw(uiList * /*ui_list*/,
                                    int /*index*/,
                                    int /*flt_flag*/)
 {
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   uiItemR(row, itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
 

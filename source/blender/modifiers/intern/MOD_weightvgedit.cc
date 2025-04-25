@@ -300,22 +300,22 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "default_weight", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumnWithHeading(layout, false, IFACE_("Group Add"));
-  row = uiLayoutRow(col, true);
+  row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "use_add", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(sub, true);
+  sub = &sub->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_add"));
   uiLayoutSetPropSep(sub, false);
   uiItemR(sub, ptr, "add_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   uiItemDecoratorR(row, ptr, "add_threshold", 0);
 
   col = uiLayoutColumnWithHeading(layout, false, IFACE_("Group Remove"));
-  row = uiLayoutRow(col, true);
+  row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "use_remove", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(sub, true);
+  sub = &sub->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_remove"));
   uiLayoutSetPropSep(sub, false);
   uiItemR(sub, ptr, "remove_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
@@ -336,9 +336,9 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetPropSep(sub, false);
   uiItemR(row, ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {

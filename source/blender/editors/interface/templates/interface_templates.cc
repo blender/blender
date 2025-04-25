@@ -116,7 +116,7 @@ void template_add_button_search_menu(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_DISABLED);
     }
     if (use_big_size) {
-      uiLayoutRow(col ? col : layout, true);
+      (col ? col : layout)->row(true);
     }
   }
   else {
@@ -267,7 +267,7 @@ void uiTemplatePathBuilder(uiLayout *layout,
   }
 
   /* Start drawing UI Elements using standard defines */
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
 
   /* Path (existing string) Widget */
   uiItemR(row, ptr, propname, UI_ITEM_NONE, text, ICON_RNA);

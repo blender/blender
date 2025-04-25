@@ -1198,7 +1198,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  uiLayout *row = uiLayoutRow(panel->layout, true);
+  uiLayout *row = &panel->layout->row(true);
   uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
   bool first = true;
@@ -1255,7 +1255,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     first = false;
   }
 
-  uiLayout *pin_row = uiLayoutRow(row, false);
+  uiLayout *pin_row = &row->row(false);
   uiLayoutSetAlignment(pin_row, UI_LAYOUT_ALIGN_RIGHT);
   uiItemSpacer(pin_row);
   uiLayoutSetEmboss(pin_row, blender::ui::EmbossType::None);

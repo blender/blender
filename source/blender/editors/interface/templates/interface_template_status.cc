@@ -264,7 +264,7 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
 
   /* Workspace status text has priority. */
   if (!workspace->runtime->status.is_empty()) {
-    uiLayout *row = uiLayoutRow(layout, true);
+    uiLayout *row = &layout->row(true);
     for (const blender::bke::WorkSpaceStatusItem &item : workspace->runtime->status) {
       if (item.space_factor != 0.0f) {
         uiItemS_ex(row, item.space_factor);
@@ -289,7 +289,7 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
 
   bScreen *screen = CTX_wm_screen(C);
   ARegion *region = screen->active_region;
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
 
   if (region == nullptr) {
     /* Check if over an action zone. */
@@ -398,7 +398,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
 
   const char *status_info_txt = ED_info_statusbar_string_ex(
       bmain, scene, view_layer, (U.statusbar_flag & ~STATUSBAR_SHOW_VERSION));

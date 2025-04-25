@@ -982,12 +982,12 @@ static wmOperatorStatus armature_parent_set_invoke(bContext *C,
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Parent"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  uiLayout *row_offset = uiLayoutRow(layout, false);
+  uiLayout *row_offset = &layout->row(false);
   uiLayoutSetEnabled(row_offset, enable_offset);
   uiItemEnumO(
       row_offset, "ARMATURE_OT_parent_set", std::nullopt, ICON_NONE, "type", ARM_PAR_OFFSET);
 
-  uiLayout *row_connect = uiLayoutRow(layout, false);
+  uiLayout *row_connect = &layout->row(false);
   uiLayoutSetEnabled(row_connect, enable_connect);
   uiItemEnumO(
       row_connect, "ARMATURE_OT_parent_set", std::nullopt, ICON_NONE, "type", ARM_PAR_CONNECT);
@@ -1102,12 +1102,12 @@ static wmOperatorStatus armature_parent_clear_invoke(bContext *C,
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Parent"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  uiLayout *row_clear = uiLayoutRow(layout, false);
+  uiLayout *row_clear = &layout->row(false);
   uiLayoutSetEnabled(row_clear, enable_clear);
   uiItemEnumO(
       row_clear, "ARMATURE_OT_parent_clear", std::nullopt, ICON_NONE, "type", ARM_PAR_CLEAR);
 
-  uiLayout *row_disconnect = uiLayoutRow(layout, false);
+  uiLayout *row_disconnect = &layout->row(false);
   uiLayoutSetEnabled(row_disconnect, enable_disconnect);
   uiItemEnumO(row_disconnect,
               "ARMATURE_OT_parent_clear",

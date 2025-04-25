@@ -177,11 +177,11 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   row = uiLayoutRowWithHeading(col, true, IFACE_("Merge"));
   uiItemR(row, ptr, "use_mirror_merge", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_merge"));
   uiItemR(sub, ptr, "merge_threshold", UI_ITEM_NONE, "", ICON_NONE);
 
-  sub = uiLayoutRow(col, true);
+  sub = &col->row(true);
   uiLayoutSetActive(sub, has_bisect);
   uiItemR(sub, ptr, "bisect_threshold", UI_ITEM_NONE, IFACE_("Bisect Distance"), ICON_NONE);
 
@@ -200,18 +200,18 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   col = uiLayoutColumn(layout, true);
   row = uiLayoutRowWithHeading(col, true, IFACE_("Mirror U"));
   uiLayoutSetPropDecorate(row, false);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "use_mirror_u", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(sub, true);
+  sub = &sub->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_u"));
   uiItemR(sub, ptr, "mirror_offset_u", UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemDecoratorR(row, ptr, "mirror_offset_u", 0);
 
   row = uiLayoutRowWithHeading(col, true, IFACE_("V"));
   uiLayoutSetPropDecorate(row, false);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "use_mirror_v", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(sub, true);
+  sub = &sub->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_v"));
   uiItemR(sub, ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemDecoratorR(row, ptr, "mirror_offset_v", 0);

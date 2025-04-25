@@ -210,15 +210,15 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, ptr, "object", UI_ITEM_NONE, IFACE_("Source"), ICON_NONE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetPropDecorate(sub, false);
   uiItemR(sub, ptr, "use_object_transform", UI_ITEM_NONE, "", ICON_ORIENTATION_GLOBAL);
 
   uiItemR(layout, ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetActive(row,
                     !ELEM(RNA_enum_get(ptr, "mix_mode"),
                           CDT_MIX_NOMIX,
@@ -423,7 +423,7 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Max Distance"));
   uiItemR(row, ptr, "use_max_distance", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max_distance"));
   uiItemR(sub, ptr, "max_distance", UI_ITEM_NONE, "", ICON_NONE);
 

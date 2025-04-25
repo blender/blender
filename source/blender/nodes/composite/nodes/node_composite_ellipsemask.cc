@@ -57,10 +57,10 @@ static void node_composit_init_ellipsemask(bNodeTree * /*ntree*/, bNode *node)
 static void node_composit_buts_ellipsemask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, ptr, "x", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "y", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row,
           ptr,
           "mask_width",

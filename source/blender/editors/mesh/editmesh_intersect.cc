@@ -248,14 +248,14 @@ static void edbm_intersect_ui(bContext * /*C*/, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, op->ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   uiItemS(layout);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, op->ptr, "separate_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   uiItemS(layout);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, op->ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   uiItemS(layout);
 
@@ -409,11 +409,11 @@ static void edbm_intersect_boolean_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, op->ptr, "operation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   uiItemS(layout);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(row, op->ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   uiItemS(layout);
 

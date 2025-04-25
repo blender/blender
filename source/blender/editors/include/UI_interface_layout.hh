@@ -92,6 +92,13 @@ struct uiLayout : uiItem {
   float search_weight_;
 
   LayoutSuppressFlag suppress_flag_;
+
+ public:
+  /**
+   * Add a new row sub-layout, items placed in this sub-layout are added horizontally next to each
+   * other in row.
+   */
+  uiLayout &row(bool align);
 };
 
 enum {
@@ -269,8 +276,6 @@ void uiLayoutSuppressFlagSet(uiLayout *layout, LayoutSuppressFlag flag);
 void uiLayoutSuppressFlagClear(uiLayout *layout, LayoutSuppressFlag flag);
 
 /* Layout create functions. */
-
-uiLayout *uiLayoutRow(uiLayout *layout, bool align);
 
 struct PanelLayout {
   uiLayout *header;

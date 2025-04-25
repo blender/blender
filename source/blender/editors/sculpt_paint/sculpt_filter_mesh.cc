@@ -2533,7 +2533,7 @@ static void sculpt_mesh_ui_exec(bContext * /*C*/, wmOperator *op)
   uiItemR(layout, op->ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(layout, op->ptr, "iteration_count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(layout, op->ptr, "orientation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout = uiLayoutRow(layout, true);
+  layout = &layout->row(true);
   uiItemR(layout, op->ptr, "deform_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 

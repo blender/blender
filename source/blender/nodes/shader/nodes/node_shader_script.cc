@@ -19,11 +19,11 @@ static void node_shader_buts_script(uiLayout *layout, bContext * /*C*/, PointerR
 {
   uiLayout *row;
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemR(
       row, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
 
   if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_INTERNAL) {
     uiItemR(row, ptr, "script", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);

@@ -1895,7 +1895,7 @@ static void uv_pack_islands_ui(bContext * /*C*/, wmOperator *op)
   uiItemR(layout, op->ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   {
     uiItemR(layout, op->ptr, "rotate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayout *sub = uiLayoutRow(layout, true);
+    uiLayout *sub = &layout->row(true);
     uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "rotate"));
     uiItemR(sub, op->ptr, "rotate_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemS(layout);
@@ -1905,7 +1905,7 @@ static void uv_pack_islands_ui(bContext * /*C*/, wmOperator *op)
   uiItemS(layout);
   {
     uiItemR(layout, op->ptr, "pin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayout *sub = uiLayoutRow(layout, true);
+    uiLayout *sub = &layout->row(true);
     uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "pin"));
     uiItemR(sub, op->ptr, "pin_method", UI_ITEM_NONE, IFACE_("Lock Method"), ICON_NONE);
     uiItemS(layout);

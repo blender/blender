@@ -343,7 +343,7 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   if (ELEM(profile_type, MOD_BEVEL_PROFILE_SUPERELLIPSE, MOD_BEVEL_PROFILE_CUSTOM)) {
-    row = uiLayoutRow(layout, false);
+    row = &layout->row(false);
     uiLayoutSetActive(
         row,
         profile_type == MOD_BEVEL_PROFILE_SUPERELLIPSE ||
@@ -376,24 +376,24 @@ static void geometry_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetActive(row, edge_bevel);
   uiItemR(row, ptr, "miter_outer", UI_ITEM_NONE, IFACE_("Miter Outer"), ICON_NONE);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetActive(row, edge_bevel);
   uiItemR(row, ptr, "miter_inner", UI_ITEM_NONE, IFACE_("Inner"), ICON_NONE);
   if (RNA_enum_get(ptr, "miter_inner") == BEVEL_MITER_ARC) {
-    row = uiLayoutRow(layout, false);
+    row = &layout->row(false);
     uiLayoutSetActive(row, edge_bevel);
     uiItemR(row, ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   uiItemS(layout);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetActive(row, edge_bevel);
   uiItemR(row, ptr, "vmesh_method", UI_ITEM_NONE, IFACE_("Intersections"), ICON_NONE);
   uiItemR(layout, ptr, "use_clamp_overlap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetActive(row, edge_bevel);
   uiItemR(row, ptr, "loop_slide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }

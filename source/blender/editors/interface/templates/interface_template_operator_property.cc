@@ -96,7 +96,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
 
     UI_block_set_active_operator(block, op, false);
 
-    row = uiLayoutRow(layout, true);
+    row = &layout->row(true);
     uiItemM(row, "WM_MT_operator_presets", std::nullopt, ICON_NONE);
 
     wmOperatorType *ot = WM_operatortype_find("WM_OT_operator_preset_add", false);
@@ -353,7 +353,7 @@ static void draw_export_controls(
 {
   uiItemL(layout, label, ICON_NONE);
   if (valid) {
-    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayout *row = &layout->row(false);
     uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
     uiItemPopoverPanel(row, C, "WM_PT_operator_presets", "", ICON_PRESET);
     uiItemIntO(row, "", ICON_EXPORT, "COLLECTION_OT_exporter_export", "index", index);
@@ -410,7 +410,7 @@ static void draw_exporter_item(uiList * /*ui_list*/,
                                int /*index*/,
                                int /*flt_flag*/)
 {
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
   uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
@@ -432,7 +432,7 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
 
   /* Draw exporter list and controls. */
   PointerRNA collection_ptr = RNA_id_pointer_create(&collection->id);
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiTemplateList(row,
                  C,
                  exporter_item_list->idname,

@@ -142,12 +142,12 @@ struct uiButtonItem : uiItem {
   uiBut *but;
 };
 
-struct uiLayoutItemFlow : uiLayout {
+struct uiLayoutItemFlow : public uiLayout {
   int number;
   int totcol;
 };
 
-struct uiLayoutItemGridFlow : uiLayout {
+struct uiLayoutItemGridFlow : public uiLayout {
   /* Extra parameters */
   bool row_major;    /* Fill first row first, instead of filling first column first. */
   bool even_columns; /* Same width for all columns. */
@@ -164,22 +164,22 @@ struct uiLayoutItemGridFlow : uiLayout {
   int tot_items, tot_columns, tot_rows;
 };
 
-struct uiLayoutItemBx : uiLayout {
+struct uiLayoutItemBx : public uiLayout {
   uiBut *roundbox;
 };
 
-struct uiLayoutItemPanelHeader : uiLayout {
+struct uiLayoutItemPanelHeader : public uiLayout {
   PointerRNA open_prop_owner;
   char open_prop_name[64];
 };
 
-struct uiLayoutItemPanelBody : uiLayout {};
+struct uiLayoutItemPanelBody : public uiLayout {};
 
-struct uiLayoutItemSplit : uiLayout {
+struct uiLayoutItemSplit : public uiLayout {
   float percentage;
 };
 
-struct uiLayoutItemRoot : uiLayout {};
+struct uiLayoutItemRoot : public uiLayout {};
 
 /** \} */
 
@@ -465,7 +465,7 @@ static uiLayout *ui_item_local_sublayout(uiLayout *test, uiLayout *layout, bool 
 {
   uiLayout *sub;
   if (uiLayoutGetLocalDir(test) == UI_LAYOUT_HORIZONTAL) {
-    sub = uiLayoutRow(layout, align);
+    sub = &layout->row(align);
   }
   else {
     sub = uiLayoutColumn(layout, align);
@@ -1011,7 +1011,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
     /* Also avoid setting 'align' if possible. Set the space to zero instead as aligning a large
      * number of labels can end up aligning thousands of buttons when displaying key-map search (a
      * heavy operation), see: #78636. */
-    sub = uiLayoutRow(layout, layout->align_);
+    sub = &layout->row(layout->align_);
     sub->space_ = 0;
   }
 
@@ -1043,7 +1043,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
 
   uiBut *but;
   if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
-    UI_block_layout_set_current(block, uiLayoutRow(sub, true));
+    UI_block_layout_set_current(block, &sub->row(true));
     but = uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, prop_but_width - UI_UNIT_X, h);
 
     if (but != nullptr) {
@@ -2076,7 +2076,7 @@ static uiLayout *ui_item_prop_split_layout_hack(uiLayout *layout_parent, uiLayou
     /* Prevent further splits within the row. */
     uiLayoutSetPropSep(layout_parent, false);
 
-    layout_parent->child_items_layout_ = uiLayoutRow(layout_split, true);
+    layout_parent->child_items_layout_ = &layout_split->row(true);
     return layout_parent->child_items_layout_;
   }
   return layout_split;
@@ -2249,7 +2249,7 @@ void uiItemFullR(uiLayout *layout,
     uiLayout *layout_row = nullptr;
 #ifdef UI_PROP_DECORATE
     if (ui_decorate.use_prop_decorate) {
-      layout_row = uiLayoutRow(layout, true);
+      layout_row = &layout->row(true);
       layout_row->space_ = 0;
       ui_decorate.len = max_ii(1, len);
     }
@@ -2325,7 +2325,7 @@ void uiItemFullR(uiLayout *layout,
         /* Often expanded enum's are better arranged into a row,
          * so check the existing layout. */
         if (uiLayoutGetLocalDir(layout) == UI_LAYOUT_HORIZONTAL) {
-          layout = uiLayoutRow(layout_split, true);
+          layout = &layout_split->row(true);
         }
         else {
           layout = uiLayoutColumn(layout_split, true);
@@ -3213,7 +3213,7 @@ void uiItemPopoverPanel_ptr(uiLayout *layout,
 
   const bool ok = (pt->poll == nullptr) || pt->poll(C, pt);
   if (ok && (pt->draw_header != nullptr)) {
-    layout = uiLayoutRow(layout, true);
+    layout = &layout->row(true);
     Panel panel{};
     Panel_Runtime panel_runtime{};
     panel.runtime = &panel_runtime;
@@ -3352,7 +3352,7 @@ uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
 {
   uiPropertySplitWrapper split_wrapper = {nullptr};
 
-  uiLayout *layout_row = uiLayoutRow(parent_layout, true);
+  uiLayout *layout_row = &parent_layout->row(true);
   uiLayout *layout_split = uiLayoutSplit(layout_row, UI_ITEM_PROP_SEP_DIVIDE, true);
 
   split_wrapper.label_column = uiLayoutColumn(layout_split, true);
@@ -4970,17 +4970,17 @@ static void ui_layout_heading_set(uiLayout *layout, const StringRef heading)
   heading.copy_utf8_truncated(layout->heading_);
 }
 
-uiLayout *uiLayoutRow(uiLayout *layout, bool align)
+uiLayout &uiLayout::row(bool align)
 {
   uiLayout *litem = MEM_new<uiLayout>(__func__);
-  ui_litem_init_from_parent(litem, layout, align);
+  ui_litem_init_from_parent(litem, this, align);
 
   litem->type_ = uiItemType::LayoutRow;
-  litem->space_ = (align) ? 0 : layout->root_->style->buttonspacex;
+  litem->space_ = (align) ? 0 : this->root_->style->buttonspacex;
 
-  UI_block_layout_set_current(layout->root_->block, litem);
+  UI_block_layout_set_current(this->root_->block, litem);
 
-  return litem;
+  return *litem;
 }
 
 PanelLayout uiLayoutPanelProp(const bContext *C,
@@ -5003,7 +5003,7 @@ PanelLayout uiLayoutPanelProp(const bContext *C,
     header_litem->open_prop_owner = *open_prop_owner;
     STRNCPY(header_litem->open_prop_name, open_prop_name.c_str());
 
-    uiLayout *row = uiLayoutRow(header_litem, true);
+    uiLayout *row = &header_litem->row(true);
     uiLayoutSetUnitsY(row, 1.2f);
 
     uiBlock *block = uiLayoutGetBlock(row);
@@ -5096,7 +5096,7 @@ bool uiLayoutEndsWithPanelHeader(const uiLayout &layout)
 
 uiLayout *uiLayoutRowWithHeading(uiLayout *layout, bool align, const StringRef heading)
 {
-  uiLayout *litem = uiLayoutRow(layout, align);
+  uiLayout *litem = &layout->row(align);
   ui_layout_heading_set(litem, heading);
   return litem;
 }
@@ -5456,7 +5456,7 @@ int uiLayoutListItemPaddingWidth()
 void uiLayoutListItemAddPadding(uiLayout *layout)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   uiLayoutSetFixedSize(row, true);
 
   uiDefBut(
@@ -6319,7 +6319,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
 
   /* Draw main panel. */
   if (show_header) {
-    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayout *row = &layout->row(false);
     if (pt->draw_header) {
       panel->layout = row;
       pt->draw_header(C, panel);
@@ -6517,7 +6517,7 @@ uiLayout *uiItemsAlertBox(uiBlock *block,
   uiLayout *split_block = uiLayoutSplit(block_layout, split_factor, false);
 
   /* Alert icon on the left. */
-  uiLayout *layout = uiLayoutRow(split_block, false);
+  uiLayout *layout = &split_block->row(false);
   /* Using 'align_left' with 'row' avoids stretching the icon along the width of column. */
   uiLayoutSetAlignment(layout, UI_LAYOUT_ALIGN_LEFT);
   uiDefButAlert(block, icon, 0, 0, icon_size, icon_size);

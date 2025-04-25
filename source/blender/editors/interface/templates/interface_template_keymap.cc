@@ -50,7 +50,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
 
     uiLayout *box = uiLayoutBox(flow);
     uiLayoutSetActive(box, is_set);
-    uiLayout *row = uiLayoutRow(box, false);
+    uiLayout *row = &box->row(false);
 
     /* property value */
     uiItemFullR(row, ptr, prop, -1, 0, UI_ITEM_NONE, std::nullopt, ICON_NONE);

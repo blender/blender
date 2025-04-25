@@ -504,7 +504,7 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
   uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
   uiLayout *col = uiLayoutColumn(layout, false);
   {
-    uiLayout *row = uiLayoutRow(col, true);
+    uiLayout *row = &col->row(true);
     uiLayoutSetEnabled(row, !ctx.is_baked);
     uiItemR(row, &ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
   }
@@ -526,14 +526,14 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   {
     uiLayout *col = uiLayoutColumn(layout, false);
     {
-      uiLayout *row = uiLayoutRow(col, true);
+      uiLayout *row = &col->row(true);
       uiLayoutSetEnabled(row, !ctx.is_baked);
       uiItemR(row, &ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
     }
 
     draw_bake_button_row(ctx, col, true);
     if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
-      uiLayout *row = uiLayoutRow(col, true);
+      uiLayout *row = &col->row(true);
       uiItemL(row, *bake_state_str, ICON_NONE);
     }
   }
@@ -695,7 +695,7 @@ std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx)
 void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bool is_in_sidebar)
 {
   uiLayout *col = uiLayoutColumn(layout, true);
-  uiLayout *row = uiLayoutRow(col, true);
+  uiLayout *row = &col->row(true);
   {
     const char *bake_label = IFACE_("Bake");
     if (is_in_sidebar) {
@@ -717,7 +717,7 @@ void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bo
     RNA_int_set(&ptr, "bake_id", ctx.bake->id);
   }
   {
-    uiLayout *subrow = uiLayoutRow(row, true);
+    uiLayout *subrow = &row->row(true);
     uiLayoutSetActive(subrow, ctx.is_baked);
     if (is_in_sidebar) {
       if (ctx.is_baked && !G.is_rendering) {
@@ -850,7 +850,7 @@ static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
                                            int /*flt_flag*/)
 {
   auto &data_block = *static_cast<NodesModifierDataBlock *>(itemptr->data);
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
 
   std::string name;
   if (StringRef(data_block.lib_name).is_empty()) {

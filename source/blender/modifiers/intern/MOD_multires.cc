@@ -350,7 +350,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::CatmullClark));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemFullO(row,
               "OBJECT_OT_multires_subdivide",
               IFACE_("Simple"),
@@ -388,7 +388,7 @@ static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetEnabled(layout, RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemO(row, IFACE_("Reshape"), ICON_NONE, "OBJECT_OT_multires_reshape");
   uiItemO(row, IFACE_("Apply Base"), ICON_NONE, "OBJECT_OT_multires_base_apply");
 }
@@ -409,11 +409,11 @@ static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   col = uiLayoutColumn(layout, false);
-  row = uiLayoutRow(col, false);
+  row = &col->row(false);
   if (is_external) {
     uiItemO(row, IFACE_("Pack External"), ICON_NONE, "OBJECT_OT_multires_external_pack");
     uiLayoutSetPropSep(col, true);
-    row = uiLayoutRow(col, false);
+    row = &col->row(false);
     uiItemR(row, ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {

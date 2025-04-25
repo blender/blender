@@ -200,7 +200,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
     uiLayout *col = uiLayoutColumn(panel, true);
     uiItemR(col, ptr, "uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiLayout *row = uiLayoutRow(col, false);
+    uiLayout *row = &col->row(false);
     uiLayoutSetActive(row, RNA_boolean_get(ptr, "uvs"));
     uiItemR(row, ptr, "packuv", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

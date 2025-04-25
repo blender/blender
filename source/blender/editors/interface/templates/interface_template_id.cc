@@ -1547,11 +1547,11 @@ static void ui_template_id(uiLayout *layout,
    */
   if (template_ui.idlb) {
     if (use_tabs) {
-      layout = uiLayoutRow(layout, true);
+      layout = &layout->row(true);
       template_ID_tabs(C, layout, template_ui, type, flag, newop, menu);
     }
     else {
-      layout = uiLayoutRow(layout, true);
+      layout = &layout->row(true);
       template_ID(C,
                   layout,
                   template_ui,
@@ -1640,7 +1640,7 @@ void uiTemplateAction(uiLayout *layout,
   template_ui.idlb = which_libbase(CTX_data_main(C), ID_AC);
   BLI_assert(template_ui.idlb);
 
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   template_ID(
       C, row, template_ui, &RNA_Action, flag, newop, nullptr, unlinkop, text, false, false);
 }
@@ -1788,7 +1788,7 @@ void uiTemplateAnyID(uiLayout *layout,
   uiLayout *split = uiLayoutSplit(layout, 0.33f, false);
 
   /* FIRST PART ................................................ */
-  uiLayout *row = uiLayoutRow(split, false);
+  uiLayout *row = &split->row(false);
 
   /* Label - either use the provided text, or will become "ID-Block:" */
   if (text) {
@@ -1801,13 +1801,13 @@ void uiTemplateAnyID(uiLayout *layout,
   }
 
   /* SECOND PART ................................................ */
-  row = uiLayoutRow(split, true);
+  row = &split->row(true);
 
   /* ID-Type Selector - just have a menu of icons */
 
   /* HACK: special group just for the enum,
    * otherwise we get ugly layout with text included too... */
-  uiLayout *sub = uiLayoutRow(row, true);
+  uiLayout *sub = &row->row(true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
   uiItemFullR(sub, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
@@ -1816,7 +1816,7 @@ void uiTemplateAnyID(uiLayout *layout,
 
   /* HACK: special group to counteract the effects of the previous enum,
    * which now pushes everything too far right. */
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);
 
   uiItemFullR(sub, ptr, propID, 0, 0, UI_ITEM_NONE, "", ICON_NONE);

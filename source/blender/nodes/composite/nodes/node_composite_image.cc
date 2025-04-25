@@ -661,7 +661,7 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   }
 
   col = uiLayoutColumn(layout, false);
-  row = uiLayoutRow(col, true);
+  row = &col->row(true);
   uiItemR(row, ptr, "layer", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "layer");

@@ -566,7 +566,7 @@ static void spray_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
   bool use_foam = RNA_boolean_get(ptr, "use_foam");
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetActive(row, use_foam);
   uiItemR(row,
           ptr,

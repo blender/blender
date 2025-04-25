@@ -114,12 +114,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemS(layout);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiLayoutSetActive(row, has_vertex_group);
   uiItemR(row, ptr, "thickness_vertex_group", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 
   if (solidify_mode == MOD_SOLIDIFY_MODE_NONMANIFOLD) {
-    row = uiLayoutRow(layout, false);
+    row = &layout->row(false);
     uiLayoutSetActive(row, has_vertex_group);
     uiItemR(row, ptr, "use_flat_faces", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -205,7 +205,7 @@ static void clamp_panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "thickness_clamp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  row = uiLayoutRow(col, false);
+  row = &col->row(false);
   uiLayoutSetActive(row, RNA_float_get(ptr, "thickness_clamp") > 0.0f);
   uiItemR(row, ptr, "use_thickness_angle_clamp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }

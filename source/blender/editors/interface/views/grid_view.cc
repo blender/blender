@@ -391,7 +391,7 @@ void GridViewLayoutBuilder::build_grid_tile(const bContext &C,
   uiLayoutSetFixedSize(overlap, true);
 
   item.add_grid_tile_button(block_);
-  item.build_grid_tile(C, *uiLayoutRow(overlap, false));
+  item.build_grid_tile(C, overlap->row(false));
 }
 
 void GridViewLayoutBuilder::build_from_view(const bContext &C,
@@ -430,7 +430,7 @@ void GridViewLayoutBuilder::build_from_view(const bContext &C,
 
     /* Start a new row for every first item in the row. */
     if ((item_idx % cols_per_row) == 0) {
-      row = uiLayoutRow(&layout, true);
+      row = &layout.row(true);
     }
 
     this->build_grid_tile(C, *row, item);

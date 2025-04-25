@@ -121,7 +121,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Crease Edges"));
   uiItemR(row, ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_crease"));
   uiItemR(sub, ptr, "crease_weight", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
@@ -144,7 +144,7 @@ static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiLayoutSetActive(row, has_vertex_group);
   uiItemR(row, ptr, "thickness_vertex_group", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 }

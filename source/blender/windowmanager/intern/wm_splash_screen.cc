@@ -372,8 +372,8 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
     uiItemS_ex(layout, 2.0f, LayoutSeparatorType::Line);
 
     uiLayout *split = uiLayoutSplit(layout, 0.725, true);
-    uiLayout *row1 = uiLayoutRow(split, true);
-    uiLayout *row2 = uiLayoutRow(split, true);
+    uiLayout *row1 = &split->row(true);
+    uiLayout *row2 = &split->row(true);
 
     uiItemL(row1, RPT_("Intel binary detected. Expect reduced performance."), ICON_ERROR);
 
@@ -457,16 +457,16 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
     const uchar *color = btheme->tui.wcol_menu_back.text_sel;
 
     /* The top margin. */
-    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayout *row = &layout->row(false);
     uiItemS_ex(row, 0.2f);
 
     /* The logo image. */
-    row = uiLayoutRow(layout, false);
+    row = &layout->row(false);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
     uiDefButImage(block, ibuf, 0, U.widget_unit, ibuf->x, ibuf->y, show_color ? nullptr : color);
 
     /* Padding below the logo. */
-    row = uiLayoutRow(layout, false);
+    row = &layout->row(false);
     uiItemS_ex(row, 2.7f);
   }
 #endif /* !WITH_HEADLESS */

@@ -564,7 +564,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
     return;
   }
 
-  uiLayoutRow(layout, true);
+  layout->row(true);
 
   /* layer menu is 1/3 larger than pass */
   wmenu1 = (2 * w) / 5;
@@ -809,7 +809,7 @@ void uiTemplateImage(uiLayout *layout,
   /* Disable editing if image was modified, to avoid losing changes. */
   const bool is_dirty = BKE_image_is_dirty(ima);
   if (is_dirty) {
-    uiLayout *row = uiLayoutRow(layout, true);
+    uiLayout *row = &layout->row(true);
     uiItemO(row, IFACE_("Save"), ICON_NONE, "image.save");
     uiItemO(row, IFACE_("Discard"), ICON_NONE, "image.reload");
     uiItemS(layout);
@@ -833,7 +833,7 @@ void uiTemplateImage(uiLayout *layout,
   if ((ima->source != IMA_SRC_GENERATED) && !no_filepath) {
     uiItemS(layout);
 
-    uiLayout *row = uiLayoutRow(layout, true);
+    uiLayout *row = &layout->row(true);
     if (is_packed) {
       uiItemO(row, "", ICON_PACKAGE, "image.unpack");
     }
@@ -841,7 +841,7 @@ void uiTemplateImage(uiLayout *layout,
       uiItemO(row, "", ICON_UGLYPACKAGE, "image.pack");
     }
 
-    row = uiLayoutRow(row, true);
+    row = &row->row(true);
     uiLayoutSetEnabled(row, is_packed == false);
 
     prop = RNA_struct_find_property(&imaptr, "filepath");
@@ -890,7 +890,7 @@ void uiTemplateImage(uiLayout *layout,
     uiLayoutSetPropSep(col, true);
 
     uiLayout *sub = uiLayoutColumn(col, true);
-    uiLayout *row = uiLayoutRow(sub, true);
+    uiLayout *row = &sub->row(true);
     uiItemR(row, userptr, "frame_duration", UI_ITEM_NONE, IFACE_("Frames"), ICON_NONE);
     uiItemO(row, "", ICON_FILE_REFRESH, "IMAGE_OT_match_movie_length");
 
@@ -979,12 +979,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 
   /* Multi-layer always saves raw unmodified channels. */
   if (imf->imtype != R_IMF_IMTYPE_MULTILAYER) {
-    uiItemR(uiLayoutRow(col, true),
-            imfptr,
-            "color_mode",
-            UI_ITEM_R_EXPAND,
-            IFACE_("Color"),
-            ICON_NONE);
+    uiItemR(&col->row(true), imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
   }
 
   /* only display depth setting if multiple depths can be used */
@@ -997,8 +992,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
            R_IMF_CHAN_DEPTH_24,
            R_IMF_CHAN_DEPTH_32) == 0)
   {
-    uiItemR(
-        uiLayoutRow(col, true), imfptr, "color_depth", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    uiItemR(&col->row(true), imfptr, "color_depth", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 
   if (BKE_imtype_supports_quality(imf->imtype)) {

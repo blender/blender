@@ -347,15 +347,15 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
   if (tone) {
     uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
-    uiItemR(uiLayoutRow(split, false), ptr, "tone", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    uiItemR(&split->row(false), ptr, "tone", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 
   /* curve chooser */
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
 
   if (labeltype == 'v') {
     /* vector */
-    uiLayout *sub = uiLayoutRow(row, true);
+    uiLayout *sub = &row->row(true);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
     if (cumap->cm[0].curve) {
@@ -373,7 +373,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   }
   else if (labeltype == 'c' && cumap->tone != CURVE_TONE_FILMLIKE) {
     /* color */
-    uiLayout *sub = uiLayoutRow(row, true);
+    uiLayout *sub = &row->row(true);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
     if (cumap->cm[3].curve) {
@@ -439,7 +439,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   }
   else if (labeltype == 'h') {
     /* HSV */
-    uiLayout *sub = uiLayoutRow(row, true);
+    uiLayout *sub = &row->row(true);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
     if (cumap->cm[0].curve) {
@@ -498,7 +498,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
   /* operation buttons */
   /* (Right aligned) */
-  uiLayout *sub = uiLayoutRow(row, true);
+  uiLayout *sub = &row->row(true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 
   if (!(cumap->flag & CUMA_USE_WRAPPING)) {
@@ -569,7 +569,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
   /* Curve itself. */
   const int size = max_ii(uiLayoutGetWidth(layout), UI_UNIT_X);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiButCurveMapping *curve_but = (uiButCurveMapping *)uiDefBut(
       block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, "");
   curve_but->gradient_type = bg;
@@ -600,7 +600,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
     UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
-    uiLayoutRow(layout, true);
+    layout->row(true);
 
     /* Curve handle buttons. */
     bt = uiDefIconBut(block,
@@ -739,7 +739,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
             std::nullopt,
             ICON_NONE);
 
-    uiLayoutRow(layout, false);
+    layout->row(false);
     bt = uiDefBut(block,
                   UI_BTYPE_BUT,
                   0,
