@@ -51,8 +51,8 @@ void thickness_from_shadow_single(uint l_idx,
   float3 P_offset = P;
   /* Invert all biases to get value inside the surface.
    * The additional offset is to make the pcf kernel fully inside the object. */
-  float normal_offset = shadow_normal_offset(Ng, lv.L);
-  P_offset -= Ng * (texel_radius * normal_offset);
+  float normal_offset = shadow_normal_offset(Ng, lv.L, texel_radius);
+  P_offset -= Ng * normal_offset;
   /* Inverting this bias means we will over estimate the distance. Which removes some artifacts. */
   P_offset -= texel_radius * shadow_pcf_offset(lv.L, Ng, pcf_random);
 

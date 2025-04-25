@@ -43,8 +43,8 @@
 
 struct GBufferData {
   ClosureUndetermined closure[GBUFFER_LAYER_MAX];
-  /* True if surface uses a dedicated light linking group. Otherwise, assume group is 0. */
-  bool use_light_linking;
+  /* True if surface uses a dedicated object id layer. Should only be turned on if needed. */
+  bool use_object_id;
   /* Additional object information if any closure needs it. */
   float thickness;
   /* First world normal stored in the gbuffer. Only valid if `has_any_surface` is true. */
@@ -344,12 +344,12 @@ float3 gbuffer_geometry_normal_unpack(uint data, float3 N)
 }
 
 /* Light Linking flag. */
-uint gbuffer_light_linking_pack(bool use_light_linking)
+uint gbuffer_use_object_id_pack(bool use_object_id)
 {
-  return int(use_light_linking) << 31u;
+  return int(use_object_id) << 31u;
 }
 
-bool gbuffer_light_linking_unpack(uint header)
+bool gbuffer_use_object_id_unpack(uint header)
 {
   return flag_test(header, 1u << 31u);
 }
@@ -902,7 +902,7 @@ GBufferWriter gbuffer_pack(GBufferData data_in, float3 Ng)
 
   /* Pack geometric normal into the header if needed. */
   gbuf.header |= gbuffer_geometry_normal_pack(Ng, gbuf.surface_N);
-  gbuf.header |= gbuffer_light_linking_pack(data_in.use_light_linking);
+  gbuf.header |= gbuffer_use_object_id_pack(data_in.use_object_id);
 
   if (has_additional_data) {
     gbuffer_additional_info_pack(gbuf, data_in.thickness);

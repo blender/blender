@@ -559,6 +559,35 @@ class OBJECT_PT_shadow_linking(ObjectButtonsPanel, Panel):
         sub.menu("OBJECT_MT_shadow_linking_context_menu", icon='DOWNARROW_HLT', text="")
 
 
+class OBJECT_PT_shadow_terminator(ObjectButtonsPanel, Panel):
+    bl_label = "Shadow Terminator"
+    bl_parent_id = "OBJECT_PT_shading"
+    bl_context = "object"
+    COMPAT_ENGINES = {
+        'BLENDER_EEVEE_NEXT',
+        'CYCLES',
+    }
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object) and (context.engine in cls.COMPAT_ENGINES) and (context.object.type != 'LIGHT')
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+
+        ob = context.object
+        if context.engine == 'BLENDER_EEVEE_NEXT':
+            flow.prop(ob, "shadow_terminator_normal_offset", text="Normal Offset")
+
+        flow.prop(ob, "shadow_terminator_geometry_offset", text="Geometry Offset")
+
+        if context.engine != 'BLENDER_EEVEE_NEXT':
+            flow.prop(ob, "shadow_terminator_shading_offset", text="Shading Offset")
+
+
 class OBJECT_PT_animation(ObjectButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
     _animated_id_context_property = "object"
 
@@ -589,6 +618,7 @@ classes = (
     OBJECT_PT_light_linking,
     OBJECT_MT_shadow_linking_context_menu,
     OBJECT_PT_shadow_linking,
+    OBJECT_PT_shadow_terminator,
     OBJECT_PT_visibility,
     OBJECT_PT_lineart,
     OBJECT_PT_animation,

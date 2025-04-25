@@ -388,17 +388,37 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
  * shadowing from the current polygon, which is not enough in cases with adjacent polygons with
  * very different slopes.
  */
-float shadow_normal_offset(float3 Ng, float3 L)
+float shadow_normal_offset(float3 Ng, float3 L, float texel_radius)
 {
   /* Attenuate depending on light angle. */
   float cos_theta = abs(dot(Ng, L));
+  float slope_offset = sin_from_cos(cos_theta);
+
   /* Ng might have been quantized. Compensate the error by scaling the offset. */
   const float max_angular_quantization_error = 0.534f; /* Radians. */
   const float max_error_cos_inv = 1.0f / cos(max_angular_quantization_error);
   /* The scaling is only to fix the self shadowing we need another bias for shadowing of adjacent
    * polygons. */
   const float max_error_adjacent_polygon = 0.195f; /* Eye-balled. */
-  return sin_from_cos(cos_theta) * max_error_cos_inv + max_error_adjacent_polygon;
+  float biased_offset = slope_offset * max_error_cos_inv + max_error_adjacent_polygon;
+
+  return biased_offset * texel_radius;
+}
+
+float shadow_terminator_offset(float3 N,
+                               float3 L,
+                               float shadow_terminator_normal_offset,
+                               float shadow_terminator_geometry_offset)
+{
+  const float offset_cutoff = shadow_terminator_geometry_offset;
+
+  if (shadow_terminator_geometry_offset == 0.0) {
+    return 0.0;
+  }
+
+  float cos_theta = dot(N, L);
+  const float offset_amount = saturate(1.0f - cos_theta / offset_cutoff);
+  return offset_amount * shadow_terminator_normal_offset;
 }
 
 /**
@@ -412,6 +432,9 @@ float shadow_eval(LightData light,
                   float thickness, /* Only used if is_transmission is true. */
                   float3 P,
                   float3 Ng,
+                  float3 N,
+                  float terminator_normal_offset,
+                  float terminator_geometry_offset,
                   int ray_count,
                   int ray_step_count)
 {
@@ -462,7 +485,10 @@ float shadow_eval(LightData light,
   /* Stochastic Percentage Closer Filtering. */
   P += (light.filter_radius * texel_radius) * shadow_pcf_offset(L, Ng, random_pcf_2d);
   /* Add normal bias to avoid aliasing artifacts. */
-  P += N_bias * (texel_radius * shadow_normal_offset(Ng, L));
+  P += N_bias * shadow_normal_offset(Ng, L, texel_radius);
+
+  /* Bias more to avoid terminator artifacts. */
+  P += N * shadow_terminator_offset(N, L, terminator_normal_offset, terminator_geometry_offset);
 
   float3 lP = is_directional ? light_world_to_local_direction(light, P) :
                                light_world_to_local_point(light, P);

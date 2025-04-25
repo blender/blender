@@ -62,19 +62,27 @@ void main()
   cl_transmit.N = gbuf.surface_N;
   cl_transmit.type = CLOSURE_BSDF_TRANSLUCENT_ID;
 
-  uint object_id = texelFetch(gbuf_header_tx, int3(texel, 1), 0).x;
-  ObjectInfos object_infos = drw_infos[object_id];
-  uchar receiver_light_set = receiver_light_set_get(object_infos);
+  uchar receiver_light_set = 0;
+  float normal_offset = 0.0f;
+  float geometry_offset = 0.0f;
+  if (gbuffer_use_object_id_unpack(gbuf.header)) {
+    uint object_id = texelFetch(gbuf_header_tx, int3(texel, 1), 0).x;
+    ObjectInfos object_infos = drw_infos[object_id];
+    receiver_light_set = receiver_light_set_get(object_infos);
+    normal_offset = object_infos.shadow_terminator_normal_offset;
+    geometry_offset = object_infos.shadow_terminator_geometry_offset;
+  }
 
   /* Direct light. */
   ClosureLightStack stack;
   stack.cl[0] = closure_light_new(cl, V);
-  light_eval_reflection(stack, P, Ng, V, vPz, receiver_light_set);
+  light_eval_reflection(stack, P, Ng, V, vPz, receiver_light_set, normal_offset, geometry_offset);
 
   float3 radiance_front = stack.cl[0].light_shadowed;
 
   stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
-  light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness, receiver_light_set);
+  light_eval_transmission(
+      stack, P, Ng, V, vPz, gbuf.thickness, receiver_light_set, normal_offset, geometry_offset);
 
   float3 radiance_back = stack.cl[0].light_shadowed;
 

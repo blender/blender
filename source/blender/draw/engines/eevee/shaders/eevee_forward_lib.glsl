@@ -41,7 +41,10 @@ void forward_lighting_eval(float thickness, out float3 radiance, out float3 tran
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
   ObjectInfos object_infos = drw_infos[drw_resource_id()];
   uchar receiver_light_set = receiver_light_set_get(object_infos);
-  light_eval_reflection(stack, g_data.P, g_data.Ng, V, vPz, receiver_light_set);
+  float normal_offset = object_infos.shadow_terminator_normal_offset;
+  float geometry_offset = object_infos.shadow_terminator_geometry_offset;
+  light_eval_reflection(
+      stack, g_data.P, g_data.Ng, V, vPz, receiver_light_set, normal_offset, geometry_offset);
 
 #if defined(MAT_SUBSURFACE) || defined(MAT_REFRACTION) || defined(MAT_TRANSLUCENT)
 
@@ -58,7 +61,15 @@ void forward_lighting_eval(float thickness, out float3 radiance, out float3 tran
     stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
 
     /* NOTE: Only evaluates `stack.cl[0]`. */
-    light_eval_transmission(stack, g_data.P, g_data.Ng, V, vPz, thickness, receiver_light_set);
+    light_eval_transmission(stack,
+                            g_data.P,
+                            g_data.Ng,
+                            V,
+                            vPz,
+                            thickness,
+                            receiver_light_set,
+                            normal_offset,
+                            geometry_offset);
 
 #  if defined(MAT_SUBSURFACE)
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {

@@ -3644,6 +3644,36 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, "rna_Object_light_linking_get", nullptr, nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Light Linking", "Light linking settings");
 
+  /* Shadow terminator. */
+  prop = RNA_def_property(srna, "shadow_terminator_normal_offset", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 10, 0.01f, 4);
+  RNA_def_property_ui_text(
+      prop,
+      "Shadow Terminator Normal Offset",
+      "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry."
+      "Only affect triangles that are affected by the geometry offset");
+
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
+
+  prop = RNA_def_property(srna, "shadow_terminator_geometry_offset", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 2);
+  RNA_def_property_ui_text(prop,
+                           "Shadow Terminator Geometry Offset",
+                           "Offset rays from the surface to reduce shadow terminator artifact on "
+                           "low poly geometry. Only affects triangles at grazing angles to light");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
+
+  prop = RNA_def_property(srna, "shadow_terminator_shading_offset", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 2);
+  RNA_def_property_ui_text(
+      prop,
+      "Shadow Terminator Shading Offset",
+      "Push the shadow terminator towards the light to hide artifacts on low poly geometry");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
+
   RNA_define_lib_overridable(false);
 
   /* anim */

@@ -86,6 +86,7 @@ void main()
 
   ObjectInfos object_infos = drw_infos[drw_resource_id()];
   bool use_light_linking = receiver_light_set_get(object_infos) != 0;
+  bool use_terminator_offset = object_infos.shadow_terminator_normal_offset > 0.0;
 
   /* ----- Render Passes output ----- */
 
@@ -112,7 +113,7 @@ void main()
 #endif
   gbuf_data.surface_N = g_data.N;
   gbuf_data.thickness = g_thickness;
-  gbuf_data.use_light_linking = use_light_linking;
+  gbuf_data.use_object_id = use_sss || use_light_linking || use_terminator_offset;
 
   GBufferWriter gbuf = gbuffer_pack(gbuf_data, g_data.Ng);
 
@@ -142,7 +143,7 @@ void main()
                    int3(out_texel, layer - GBUF_NORMAL_FB_LAYER_COUNT),
                    gbuf.N[layer].xyyy);
   }
-  if (use_sss || use_light_linking) {
+  if (gbuf_data.use_object_id) {
     constexpr int layer = GBUF_HEADER_FB_LAYER_COUNT;
     /* NOTE: The image view start at layer GBUF_HEADER_FB_LAYER_COUNT so all destination layer is
      * `layer - GBUF_HEADER_FB_LAYER_COUNT`. */

@@ -1287,27 +1287,6 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
             col.prop(cob, "use_deform_motion", text="Deformation")
 
 
-class CYCLES_OBJECT_PT_shading_shadow_terminator(CyclesButtonsPanel, Panel):
-    bl_label = "Shadow Terminator"
-    bl_parent_id = "OBJECT_PT_shading"
-    bl_context = "object"
-
-    @classmethod
-    def poll(cls, context):
-        return CyclesButtonsPanel.poll(context) and context.object.type != 'LIGHT'
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
-
-        ob = context.object
-        cob = ob.cycles
-        flow.prop(cob, "shadow_terminator_geometry_offset", text="Geometry Offset")
-        flow.prop(cob, "shadow_terminator_offset", text="Shading Offset")
-
-
 class CYCLES_OBJECT_PT_shading_gi_approximation(CyclesButtonsPanel, Panel):
     bl_label = "Fast GI Approximation"
     bl_parent_id = "OBJECT_PT_shading"
@@ -2523,7 +2502,6 @@ classes = (
     CYCLES_CAMERA_PT_dof_aperture,
     CYCLES_PT_context_material,
     CYCLES_OBJECT_PT_motion_blur,
-    CYCLES_OBJECT_PT_shading_shadow_terminator,
     CYCLES_OBJECT_PT_shading_gi_approximation,
     CYCLES_OBJECT_PT_shading_caustics,
     CYCLES_OBJECT_PT_lightgroup,

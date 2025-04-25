@@ -98,6 +98,17 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
       flag, ref.object->transflag & OB_NEG_SCALE, eObjectInfoFlag::OBJECT_NEGATIVE_SCALE);
   SET_FLAG_FROM_TEST(flag, is_holdout, eObjectInfoFlag::OBJECT_HOLDOUT);
 
+  if (ref.object->shadow_terminator_normal_offset > 0.0f) {
+    using namespace blender::math;
+    shadow_terminator_geometry_offset = ref.object->shadow_terminator_geometry_offset;
+    shadow_terminator_normal_offset = ref.object->shadow_terminator_normal_offset *
+                                      reduce_max(to_scale(ref.object->object_to_world()));
+  }
+  else {
+    shadow_terminator_geometry_offset = 0.0f;
+    shadow_terminator_normal_offset = 0.0f;
+  }
+
   if (ref.dupli_object == nullptr) {
     /* TODO(fclem): this is rather costly to do at draw time. Maybe we can
      * put it in ob->runtime and make depsgraph ensure it is up to date. */

@@ -272,12 +272,9 @@ Object *BlenderSync::sync_object(BL::ViewLayer &b_view_layer,
 
   object->set_is_shadow_catcher(b_ob.is_shadow_catcher() || b_parent.is_shadow_catcher());
 
-  const float shadow_terminator_shading_offset = get_float(cobject, "shadow_terminator_offset");
-  object->set_shadow_terminator_shading_offset(shadow_terminator_shading_offset);
+  object->set_shadow_terminator_shading_offset(b_ob.shadow_terminator_shading_offset());
 
-  const float shadow_terminator_geometry_offset = get_float(cobject,
-                                                            "shadow_terminator_geometry_offset");
-  object->set_shadow_terminator_geometry_offset(shadow_terminator_geometry_offset);
+  object->set_shadow_terminator_geometry_offset(b_ob.shadow_terminator_geometry_offset());
 
   float ao_distance = get_float(cobject, "ao_distance");
   if (ao_distance == 0.0f && b_parent.ptr.data != b_ob.ptr.data) {

@@ -620,6 +620,14 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
   }
 
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    const Object *dob = DNA_struct_default_get(Object);
+    /* Set default for shadow terminator bias. */
+    object->shadow_terminator_normal_offset = dob->shadow_terminator_normal_offset;
+    object->shadow_terminator_geometry_offset = dob->shadow_terminator_geometry_offset;
+    object->shadow_terminator_shading_offset = dob->shadow_terminator_shading_offset;
+  }
+
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     /* Match default for new meshes. */
     mesh->smoothresh_legacy = DEG2RADF(30);
