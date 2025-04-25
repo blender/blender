@@ -198,7 +198,9 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
 #  ifdef WITH_OSL
-  const bool use_osl = (kernel_features & KERNEL_FEATURE_OSL);
+  /* TODO: Consider splitting kernels into an OSL-camera-only and a full-OSL variant. */
+  const uint osl_mask = KERNEL_FEATURE_OSL_SHADING | KERNEL_FEATURE_OSL_CAMERA;
+  const bool use_osl = (kernel_features & osl_mask);
 #  else
   const bool use_osl = false;
 #  endif
@@ -570,6 +572,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].raygen.module = optix_module;
     group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].raygen.entryFunctionName =
         "__raygen__kernel_optix_shader_eval_curve_shadow_transparency";
+    group_descs[PG_RGEN_INIT_FROM_CAMERA].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_INIT_FROM_CAMERA].raygen.module = optix_module;
+    group_descs[PG_RGEN_INIT_FROM_CAMERA].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_init_from_camera";
   }
 
   optix_assert(optixProgramGroupCreate(
@@ -749,6 +755,7 @@ bool OptiXDevice::load_osl_kernels()
   /* This has to be in the same order as the ShaderType enum, so that the index calculation in
    * osl_eval_nodes checks out */
   vector<OSLKernel> osl_kernels;
+  osl_kernels.emplace_back(get_osl_kernel(osl_globals.camera_state));
   for (const OSL::ShaderGroupRef &group : osl_globals.surface_state) {
     osl_kernels.emplace_back(get_osl_kernel(group));
   }
@@ -785,8 +792,9 @@ bool OptiXDevice::load_osl_kernels()
     }
   }
 
-  if (osl_kernels.empty()) {
-    /* No OSL shader groups, so no need to create a pipeline. */
+  /* We always need to reserve a spot for the camera shader group, but if it's unused
+   * and there are no other shader groups, we can skip creating the pipeline. */
+  if (osl_kernels.size() == 1 && osl_kernels[0].ptx.empty()) {
     return true;
   }
 
@@ -951,6 +959,7 @@ bool OptiXDevice::load_osl_kernels()
     pipeline_groups.push_back(groups[PG_RGEN_EVAL_DISPLACE]);
     pipeline_groups.push_back(groups[PG_RGEN_EVAL_BACKGROUND]);
     pipeline_groups.push_back(groups[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY]);
+    pipeline_groups.push_back(groups[PG_RGEN_INIT_FROM_CAMERA]);
 
     for (const OptixProgramGroup &group : osl_groups) {
       if (group != nullptr) {

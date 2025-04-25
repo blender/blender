@@ -1,0 +1,18 @@
+/* SPDX-FileCopyrightText: 2011-2025 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+/* A basic perspective camera. */
+
+shader camera(float focal_length = 90.0,
+              output point position = 0.0,
+              output vector direction = 0.0,
+              output color throughput = 1.0)
+{
+  vector sensor_size;
+  getattribute("cam:sensor_size", sensor_size);
+
+  point Pcam = camera_shader_raster_position() - point(0.5);
+  Pcam *= sensor_size / focal_length;
+  direction = normalize(vector(Pcam.x, Pcam.y, 1.0));
+}

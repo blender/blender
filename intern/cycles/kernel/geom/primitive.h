@@ -247,8 +247,22 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
   float3 motion_center;
 
   /* camera motion, for perspective/orthographic motion.pre/post will be a
-   * world-to-raster matrix, for panorama it's world-to-camera */
-  if (kernel_data.cam.type != CAMERA_PANORAMA) {
+   * world-to-raster matrix, for panorama it's world-to-camera, for custom
+   * we fall back to the world position until we have inverse mapping for it */
+  if (kernel_data.cam.type == CAMERA_CUSTOM) {
+    /* TODO: Custom cameras don't have inverse mappings yet, so we fall back to
+     * camera-space vectors here for now. */
+    tfm = kernel_data.cam.worldtocamera;
+    motion_center = normalize(transform_point(&tfm, center));
+
+    tfm = kernel_data.cam.motion_pass_pre;
+    motion_pre = normalize(transform_point(&tfm, motion_pre));
+
+    tfm = kernel_data.cam.motion_pass_post;
+    motion_post = normalize(transform_point(&tfm, motion_post));
+  }
+  else if (kernel_data.cam.type != CAMERA_PANORAMA) {
+    /* Perspective and orthographics camera use the world-to-raster matrix. */
     ProjectionTransform projection = kernel_data.cam.worldtoraster;
     motion_center = transform_perspective(&projection, center);
 
@@ -259,6 +273,7 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
     motion_post = transform_perspective(&projection, motion_post);
   }
   else {
+    /* Panorama cameras have their own inverse mappings. */
     tfm = kernel_data.cam.worldtocamera;
     motion_center = normalize(transform_point(&tfm, center));
     motion_center = make_float3(direction_to_panorama(&kernel_data.cam, motion_center));

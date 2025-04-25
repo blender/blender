@@ -7,6 +7,7 @@
 #include "scene/camera.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
+#include "scene/osl.h"
 #include "scene/scene.h"
 #include "scene/stats.h"
 #include "scene/tables.h"
@@ -75,6 +76,7 @@ NODE_DEFINE(Camera)
   type_enum.insert("perspective", CAMERA_PERSPECTIVE);
   type_enum.insert("orthograph", CAMERA_ORTHOGRAPHIC);
   type_enum.insert("panorama", CAMERA_PANORAMA);
+  type_enum.insert("custom", CAMERA_CUSTOM);
   SOCKET_ENUM(camera_type, "Type", type_enum, CAMERA_PERSPECTIVE);
 
   static NodeEnum panorama_type_enum;
@@ -193,7 +195,7 @@ Camera::~Camera() = default;
 
 void Camera::compute_auto_viewplane()
 {
-  if (camera_type == CAMERA_PANORAMA) {
+  if (camera_type == CAMERA_PANORAMA || camera_type == CAMERA_CUSTOM) {
     viewplane.left = 0.0f;
     viewplane.right = 1.0f;
     viewplane.bottom = 0.0f;
@@ -347,7 +349,7 @@ void Camera::update(Scene *scene)
   }
 
   if (need_motion == Scene::MOTION_PASS) {
-    if (camera_type == CAMERA_PANORAMA) {
+    if (camera_type == CAMERA_PANORAMA || camera_type == CAMERA_CUSTOM) {
       if (have_motion) {
         kcam->motion_pass_pre = transform_inverse(motion[0]);
         kcam->motion_pass_post = transform_inverse(motion[motion.size() - 1]);
@@ -607,7 +609,7 @@ BoundBox Camera::viewplane_bounds_get()
   const float max_aperture_size = aperture_ratio < 1.0f ? aperturesize / aperture_ratio :
                                                           aperturesize;
 
-  if (camera_type == CAMERA_PANORAMA) {
+  if (camera_type == CAMERA_PANORAMA || camera_type == CAMERA_CUSTOM) {
     const float extend = max_aperture_size + nearclip;
     if (use_spherical_stereo == false) {
       bounds.grow(make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w), extend);
@@ -780,7 +782,7 @@ float Camera::world_to_raster_size(const float3 P)
       }
     }
   }
-  else if (camera_type == CAMERA_PANORAMA) {
+  else if (camera_type == CAMERA_PANORAMA || camera_type == CAMERA_CUSTOM) {
     const float3 D = transform_point(&worldtocamera, P);
     const float dist = len(D);
 
@@ -789,28 +791,38 @@ float Camera::world_to_raster_size(const float3 P)
     /* Distortion can become so great that the results become meaningless, there
      * may be a better way to do this, but calculating differentials from the
      * point directly ahead seems to produce good enough results. */
+    if (camera_type == CAMERA_CUSTOM) {
+      camera_sample_custom(nullptr,
+                           &kernel_camera,
+                           kernel_camera_motion.data(),
+                           0.5f * make_float2(full_width, full_height),
+                           zero_float2(),
+                           &ray);
+    }
+    else {
 #if 0
-    float2 dir = direction_to_panorama(&kernel_camera, kernel_camera_motion.data(), normalize(D));
-    float3 raster = transform_perspective(&full_cameratoraster, make_float3(dir.x, dir.y, 0.0f));
+      float2 dir = direction_to_panorama(&kernel_camera, kernel_camera_motion.data(), normalize(D));
+      float3 raster = transform_perspective(&full_cameratoraster, make_float3(dir.x, dir.y, 0.0f));
 
-    ray.t = 1.0f;
-    camera_sample_panorama(
-        &kernel_camera, kernel_camera_motion.data(), raster.x, raster.y, 0.0f, 0.0f, &ray);
-    if (ray.t == 0.0f) {
-      /* No differentials, just use from directly ahead. */
+      ray.t = 1.0f;
+      camera_sample_panorama(
+          &kernel_camera, kernel_camera_motion.data(), raster.x, raster.y, 0.0f, 0.0f, &ray);
+      if (ray.t == 0.0f) {
+        /* No differentials, just use from directly ahead. */
+        camera_sample_panorama(&kernel_camera,
+                              kernel_camera_motion.data(),
+                              0.5f * make_float2(full_width, full_height),
+                              zero_float2(),
+                              &ray);
+      }
+#else
       camera_sample_panorama(&kernel_camera,
                              kernel_camera_motion.data(),
                              0.5f * make_float2(full_width, full_height),
                              zero_float2(),
                              &ray);
-    }
-#else
-    camera_sample_panorama(&kernel_camera,
-                           kernel_camera_motion.data(),
-                           0.5f * make_float2(full_width, full_height),
-                           zero_float2(),
-                           &ray);
 #endif
+    }
 
     /* TODO: would it help to use more accurate differentials here? */
     return differential_transfer_compact(ray.dP, ray.D, ray.dD, dist);
@@ -852,6 +864,139 @@ int Camera::motion_step(const float time) const
   }
 
   return -1;
+}
+
+void Camera::set_osl_camera(Scene *scene,
+                            OSLCameraParamQuery &params,
+                            const std::string &filepath,
+                            const std::string &bytecode_hash,
+                            const std::string &bytecode)
+{
+#ifdef WITH_OSL
+  /* Load the shader. */
+  const char *hash;
+
+  if (!filepath.empty()) {
+    hash = scene->osl_manager->shader_load_filepath(filepath);
+  }
+  else {
+    hash = scene->osl_manager->shader_test_loaded(bytecode_hash);
+    if (!hash)
+      hash = scene->osl_manager->shader_load_bytecode(bytecode_hash, bytecode);
+  }
+
+  bool changed = false;
+
+  if (!hash) {
+    changed = (!script_name.empty() || !script_params.empty());
+    script_name = "";
+    script_params.clear();
+  }
+  else {
+    changed = (script_name != hash);
+    script_name = hash;
+
+    OSLShaderInfo *info = scene->osl_manager->shader_loaded_info(hash);
+
+    /* Fetch parameter values. */
+    std::set<ustring> used_params;
+    for (int i = 0; i < info->query.nparams(); i++) {
+      const OSL::OSLQuery::Parameter *param = info->query.getparam(i);
+
+      /* Skip unsupported types. */
+      if (param->varlenarray || param->isstruct || param->type.arraylen > 1 || param->isoutput ||
+          param->isclosure)
+        continue;
+
+      vector<uint8_t> raw_data;
+      int vec_size = (int)param->type.aggregate;
+      if (param->type.basetype == TypeDesc::INT) {
+        vector<int> data;
+        if (!params.get_int(param->name, data) || data.size() != vec_size)
+          continue;
+        raw_data.resize(sizeof(int) * vec_size);
+        memcpy(raw_data.data(), data.data(), sizeof(int) * vec_size);
+      }
+      else if (param->type.basetype == TypeDesc::FLOAT) {
+        vector<float> data;
+        if (!params.get_float(param->name, data) || data.size() != vec_size)
+          continue;
+        raw_data.resize(sizeof(float) * vec_size);
+        memcpy(raw_data.data(), data.data(), sizeof(float) * vec_size);
+      }
+      else if (param->type.basetype == TypeDesc::STRING) {
+        string data;
+        if (!params.get_string(param->name, data))
+          continue;
+        raw_data.resize(data.length() + 1);
+        memcpy(raw_data.data(), data.c_str(), data.length() + 1);
+      }
+      else
+        continue;
+
+      auto entry = std::make_pair(raw_data, param->type);
+      auto it = script_params.find(param->name);
+      if (it == script_params.end()) {
+        script_params[param->name] = entry;
+        changed = true;
+      }
+      else if (it->second != entry) {
+        it->second = entry;
+        changed = true;
+      }
+
+      used_params.insert(param->name);
+    }
+
+    /* Remove unused parameters. */
+    for (auto it = script_params.begin(); it != script_params.end();) {
+      if (used_params.count(it->first))
+        it++;
+      else {
+        it = script_params.erase(it);
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
+    tag_modified();
+    scene->osl_manager->tag_update();
+  }
+#else
+  (void)scene;
+  (void)params;
+  (void)filepath;
+  (void)bytecode_hash;
+  (void)bytecode;
+#endif
+}
+
+void Camera::clear_osl_camera(Scene *scene)
+{
+#ifdef WITH_OSL
+  if (script_name == "") {
+    return;
+  }
+
+  script_name = "";
+  script_params.clear();
+
+  scene->osl_manager->tag_update();
+#else
+  (void)scene;
+#endif
+}
+
+uint Camera::get_kernel_features() const
+{
+  uint kernel_features = 0;
+
+  if (!script_name.empty()) {
+    kernel_features |= KERNEL_FEATURE_OSL_CAMERA;
+  }
+
+  return kernel_features;
 }
 
 CCL_NAMESPACE_END

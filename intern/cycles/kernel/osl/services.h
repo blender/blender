@@ -252,6 +252,8 @@ class OSLRenderServices : public OSL::RendererServices {
                                        const TypeDesc type,
                                        bool derivatives,
                                        void *val);
+  static bool get_camera_attribute(
+      ShaderGlobals *globals, OSLUStringHash name, TypeDesc type, bool derivatives, void *val);
   static bool get_object_standard_attribute(ShaderGlobals *globals,
                                             OSLUStringHash name,
                                             const TypeDesc type,
@@ -318,6 +320,14 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_empty;
   static ustring u_at_bevel;
   static ustring u_at_ao;
+
+  /* Attributes for camera shaders. */
+  static ustring u_sensor_size;
+  static ustring u_image_resolution;
+  static ustring u_aperture_aspect_ratio;
+  static ustring u_aperture_size;
+  static ustring u_aperture_position;
+  static ustring u_focal_distance;
 
   /* Texture system and texture handle map are part of the services instead of
    * globals to be shared between different render sessions. This saves memory,

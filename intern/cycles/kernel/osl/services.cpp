@@ -117,6 +117,13 @@ ustring OSLRenderServices::u_u("u");
 ustring OSLRenderServices::u_v("v");
 ustring OSLRenderServices::u_empty;
 
+ustring OSLRenderServices::u_sensor_size("cam:sensor_size");
+ustring OSLRenderServices::u_image_resolution("cam:image_resolution");
+ustring OSLRenderServices::u_aperture_aspect_ratio("cam:aperture_aspect_ratio");
+ustring OSLRenderServices::u_aperture_size("cam:aperture_size");
+ustring OSLRenderServices::u_aperture_position("cam:aperture_position");
+ustring OSLRenderServices::u_focal_distance("cam:focal_distance");
+
 ImageManager *OSLRenderServices::image_manager = nullptr;
 
 OSLRenderServices::OSLRenderServices(OSL::TextureSystem *texture_system, const int device_type)
@@ -949,6 +956,36 @@ bool OSLRenderServices::get_background_attribute(
   return false;
 }
 
+bool OSLRenderServices::get_camera_attribute(
+    ShaderGlobals *globals, OSLUStringHash name, TypeDesc type, bool derivatives, void *val)
+{
+  const ThreadKernelGlobalsCPU *kg = globals->kg;
+  if (name == u_sensor_size) {
+    const float2 sensor = make_float2(kernel_data.cam.sensorwidth, kernel_data.cam.sensorheight);
+    return set_attribute(sensor, type, derivatives, val);
+  }
+  else if (name == u_image_resolution) {
+    const float2 image = make_float2(kernel_data.cam.width, kernel_data.cam.height);
+    return set_attribute(image, type, derivatives, val);
+  }
+  else if (name == u_aperture_aspect_ratio) {
+    return set_attribute(1.0f / kernel_data.cam.inv_aperture_ratio, type, derivatives, val);
+  }
+  else if (name == u_aperture_size) {
+    return set_attribute(kernel_data.cam.aperturesize, type, derivatives, val);
+  }
+  else if (name == u_aperture_position) {
+    /* The random numbers for aperture sampling are packed into N. */
+    const float2 rand_lens = make_float2(globals->N.x, globals->N.y);
+    const float2 pos = camera_sample_aperture(&kernel_data.cam, rand_lens);
+    return set_attribute(pos * kernel_data.cam.aperturesize, type, derivatives, val);
+  }
+  else if (name == u_focal_distance) {
+    return set_attribute(kernel_data.cam.focaldistance, type, derivatives, val);
+  }
+  return false;
+}
+
 bool OSLRenderServices::get_attribute(OSL::ShaderGlobals *sg,
                                       bool derivatives,
                                       OSLUStringHash object_name,
@@ -957,16 +994,19 @@ bool OSLRenderServices::get_attribute(OSL::ShaderGlobals *sg,
                                       void *val)
 {
   ShaderGlobals *globals = reinterpret_cast<ShaderGlobals *>(sg);
-
-  if (globals == nullptr || globals->sd == nullptr) {
+  if (globals == nullptr) {
     return false;
   }
 
   ShaderData *sd = globals->sd;
   const ThreadKernelGlobalsCPU *kg = globals->kg;
-  int object;
+  if (sd == nullptr) {
+    /* Camera shader. */
+    return get_camera_attribute(globals, name, type, derivatives, val);
+  }
 
   /* lookup of attribute on another object */
+  int object;
   if (object_name != u_empty) {
     const OSLGlobals::ObjectNameMap::iterator it = kg->osl.globals->object_name_map.find(
         object_name);
@@ -1535,6 +1575,10 @@ bool OSLRenderServices::trace(TraceOpt &options,
   ShaderGlobals *globals = reinterpret_cast<ShaderGlobals *>(sg);
   ShaderData *sd = globals->sd;
   const ThreadKernelGlobalsCPU *kg = globals->kg;
+
+  if (sd == nullptr) {
+    return false;
+  }
 
   /* setup ray */
   Ray ray;

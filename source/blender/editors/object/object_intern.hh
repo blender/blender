@@ -181,6 +181,10 @@ void OBJECT_OT_light_linking_blockers_link(wmOperatorType *ot);
 
 void OBJECT_OT_light_linking_unlink_from_collection(wmOperatorType *ot);
 
+/* object_camera.cc */
+
+void OBJECT_OT_camera_custom_update(wmOperatorType *ot);
+
 /* `object_modifier.cc` */
 
 bool edit_modifier_poll_generic(bContext *C,

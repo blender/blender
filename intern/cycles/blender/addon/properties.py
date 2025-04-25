@@ -1104,6 +1104,21 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         del bpy.types.Scene.cycles
 
 
+class CyclesCustomCameraSettings(bpy.types.PropertyGroup):
+
+    @classmethod
+    def register(cls):
+        bpy.types.Camera.cycles_custom = PointerProperty(
+            name="Cycles Custom Camera Settings",
+            description="Parameters for custom (OSL-based) Cameras",
+            type=cls,
+        )
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.Camera.cycles_custom
+
+
 class CyclesMaterialSettings(bpy.types.PropertyGroup):
 
     emission_sampling: EnumProperty(
@@ -1900,6 +1915,7 @@ class CyclesView3DShadingSettings(bpy.types.PropertyGroup):
 
 def register():
     bpy.utils.register_class(CyclesRenderSettings)
+    bpy.utils.register_class(CyclesCustomCameraSettings)
     bpy.utils.register_class(CyclesMaterialSettings)
     bpy.utils.register_class(CyclesLightSettings)
     bpy.utils.register_class(CyclesWorldSettings)
@@ -1920,6 +1936,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(CyclesRenderSettings)
+    bpy.utils.unregister_class(CyclesCustomCameraSettings)
     bpy.utils.unregister_class(CyclesMaterialSettings)
     bpy.utils.unregister_class(CyclesLightSettings)
     bpy.utils.unregister_class(CyclesWorldSettings)

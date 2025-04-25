@@ -284,6 +284,9 @@ void operatortypes_object()
 
   WM_operatortype_append(OBJECT_OT_light_linking_unlink_from_collection);
 
+  /* Custom cameras. */
+  WM_operatortype_append(OBJECT_OT_camera_custom_update);
+
   object_modifier_add_asset_register();
   collection_exporter_register();
 }

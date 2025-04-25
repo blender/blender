@@ -285,6 +285,22 @@ static void engine_update_render_passes(RenderEngine *engine, Scene *scene, View
   RNA_parameter_list_free(&list);
 }
 
+static void engine_update_custom_camera(RenderEngine *engine, Camera *cam)
+{
+  extern FunctionRNA rna_RenderEngine_update_custom_camera_func;
+  ParameterList list;
+  FunctionRNA *func;
+
+  PointerRNA ptr = RNA_pointer_create_discrete(nullptr, engine->type->rna_ext.srna, engine);
+  func = &rna_RenderEngine_update_custom_camera_func;
+
+  RNA_parameter_list_create(&list, &ptr, func);
+  RNA_parameter_set_lookup(&list, "cam", &cam);
+  engine->type->rna_ext.call(nullptr, &ptr, func, &list);
+
+  RNA_parameter_list_free(&list);
+}
+
 /* RenderEngine registration */
 
 static bool rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
@@ -316,7 +332,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
   const char *error_prefix = "Registering render engine class:";
   RenderEngineType *et, dummy_et = {nullptr};
   RenderEngine dummy_engine = {nullptr};
-  bool have_function[9];
+  bool have_function[10];
 
   /* setup dummy engine & engine type to store static properties in */
   dummy_engine.type = &dummy_et;
@@ -382,6 +398,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
   et->view_draw = (have_function[6]) ? engine_view_draw : nullptr;
   et->update_script_node = (have_function[7]) ? engine_update_script_node : nullptr;
   et->update_render_passes = (have_function[8]) ? engine_update_render_passes : nullptr;
+  et->update_custom_camera = (have_function[9]) ? engine_update_custom_camera : nullptr;
 
   RE_engines_register(et);
 
@@ -630,6 +647,11 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
   parm = RNA_def_pointer(func, "scene", "Scene", "", "");
   parm = RNA_def_pointer(func, "renderlayer", "ViewLayer", "", "");
+
+  func = RNA_def_function(srna, "update_custom_camera", nullptr);
+  RNA_def_function_ui_description(func, "Compile custom camera");
+  RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
+  parm = RNA_def_pointer(func, "cam", "Camera", "", "");
 
   /* tag for redraw */
   func = RNA_def_function(srna, "tag_redraw", "engine_tag_redraw");

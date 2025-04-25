@@ -111,6 +111,7 @@ struct RenderEngineType {
   void (*update_render_passes)(struct RenderEngine *engine,
                                struct Scene *scene,
                                struct ViewLayer *view_layer);
+  void (*update_custom_camera)(struct RenderEngine *engine, struct Camera *cam);
 
   struct DrawEngineType *draw_engine;
 

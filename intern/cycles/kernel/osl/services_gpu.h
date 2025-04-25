@@ -142,6 +142,18 @@ ccl_device_constant DeviceString u_path_glossy_depth = 15717768399057252940ull;
 ccl_device_constant DeviceString u_path_transparent_depth = 7821650266475578543ull;
 /* "path:transmission_depth" */
 ccl_device_constant DeviceString u_path_transmission_depth = 15113408892323917624ull;
+/* "cam:sensor_size" */
+ccl_device_constant DeviceString u_sensor_size = 7525693591727141378ull;
+/* "cam:image_resolution" */
+ccl_device_constant DeviceString u_image_resolution = 5199143367706113607ull;
+/* "cam:aperture_aspect_ratio" */
+ccl_device_constant DeviceString u_aperture_aspect_ratio = 8708221138893210943ull;
+/* "cam:aperture_size" */
+ccl_device_constant DeviceString u_aperture_size = 3708482920470008383ull;
+/* "cam:aperture_position" */
+ccl_device_constant DeviceString u_aperture_position = 12926784411960338650ull;
+/* "cam:focal_distance" */
+ccl_device_constant DeviceString u_focal_distance = 7162995161881858159ull;
 
 }  // namespace DeviceStrings
 
@@ -1362,6 +1374,39 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
   return get_background_attribute(kg, sg, sd, name, type, derivatives, val);
 }
 
+ccl_device_inline bool get_camera_attribute(ccl_private ShaderGlobals *sg,
+                                            KernelGlobals kg,
+                                            DeviceString name,
+                                            TypeDesc type,
+                                            bool derivatives,
+                                            ccl_private void *val)
+{
+  if (name == DeviceStrings::u_sensor_size) {
+    const float2 sensor = make_float2(kernel_data.cam.sensorwidth, kernel_data.cam.sensorheight);
+    return set_attribute(sensor, type, derivatives, val);
+  }
+  else if (name == DeviceStrings::u_image_resolution) {
+    const float2 image = make_float2(kernel_data.cam.width, kernel_data.cam.height);
+    return set_attribute(image, type, derivatives, val);
+  }
+  else if (name == DeviceStrings::u_aperture_aspect_ratio) {
+    return set_attribute(1.0f / kernel_data.cam.inv_aperture_ratio, type, derivatives, val);
+  }
+  else if (name == DeviceStrings::u_aperture_size) {
+    return set_attribute(kernel_data.cam.aperturesize, type, derivatives, val);
+  }
+  else if (name == DeviceStrings::u_aperture_position) {
+    /* The random numbers for aperture sampling are packed into N. */
+    const float2 rand_lens = make_float2(sg->N.x, sg->N.y);
+    const float2 pos = camera_sample_aperture(&kernel_data.cam, rand_lens);
+    return set_attribute(pos * kernel_data.cam.aperturesize, type, derivatives, val);
+  }
+  else if (name == DeviceStrings::u_focal_distance) {
+    return set_attribute(kernel_data.cam.focaldistance, type, derivatives, val);
+  }
+  return false;
+}
+
 ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
                                          const int derivatives,
                                          DeviceString object_name,
@@ -1374,6 +1419,11 @@ ccl_device_extern bool osl_get_attribute(ccl_private ShaderGlobals *sg,
   KernelGlobals kg = nullptr;
   ccl_private ShaderData *const sd = sg->sd;
   int object;
+
+  if (sd == nullptr) {
+    /* Camera shader. */
+    return get_camera_attribute(sg, kg, name, type, derivatives, res);
+  }
 
   if (object_name != DeviceStrings::_emptystring_) {
     /* TODO: Get object index from name */

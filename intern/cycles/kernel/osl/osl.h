@@ -198,7 +198,7 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
     globals.shade_index = state + 1;
   }
 
-  unsigned int optix_dc_index = 2 /* NUM_CALLABLE_PROGRAM_GROUPS */ +
+  unsigned int optix_dc_index = 2 /* NUM_CALLABLE_PROGRAM_GROUPS */ + 1 /* camera program */ +
                                 (shader + type * kernel_data.max_shaders);
   optixDirectCall<void>(optix_dc_index,
                         /* shaderglobals_ptr = */ &globals,

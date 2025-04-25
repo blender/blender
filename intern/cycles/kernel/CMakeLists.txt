@@ -231,6 +231,7 @@ set(SRC_KERNEL_SVM_HEADERS
 if(WITH_CYCLES_OSL)
   set(SRC_KERNEL_OSL_HEADERS
     osl/osl.h
+    osl/camera.h
     osl/closures_setup.h
     osl/closures_template.h
     osl/services_gpu.h

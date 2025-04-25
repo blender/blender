@@ -89,83 +89,172 @@ def shader_param_ensure(node, param):
     return sock
 
 
+def osl_param_ensure_property(ccam, param):
+    import idprop
+
+    if param.isoutput or param.isclosure:
+        return None
+
+    # Get metadata for the parameter to control UI display
+    metadata = {meta.name: meta.value for meta in param.metadata}
+    if 'label' not in metadata:
+        metadata['label'] = param.name
+
+    datatype = None
+    if param.type.basetype == param.type.basetype.INT:
+        datatype = int
+    elif param.type.basetype == param.type.basetype.FLOAT:
+        datatype = float
+    elif param.type.basetype == param.type.basetype.STRING:
+        datatype = str
+
+    # OSl doesn't have boolean as a type, but we do
+    if (datatype == int) and (metadata.get('widget') in ('boolean', 'checkBox')):
+        datatype = bool
+    default = param.value if isinstance(param.value, tuple) else [param.value]
+    default = [datatype(v) for v in default]
+
+    name = param.name
+    if name in ccam:
+        # If the parameter already exists, only reset its value if its type
+        # or array length changed
+        cur_data = ccam[name]
+        if isinstance(cur_data, idprop.types.IDPropertyArray):
+            cur_length = len(cur_data)
+            cur_type = type(cur_data[0])
+        else:
+            cur_length = 1
+            cur_type = type(cur_data)
+        do_replace = datatype != cur_type or len(default) != cur_length
+    else:
+        # Parameter doesn't exist yet, so set it from the defaults
+        do_replace = True
+
+    if do_replace:
+        ccam[name] = tuple(default) if len(default) > 1 else default[0]
+
+    ui = ccam.id_properties_ui(name)
+    ui.clear()
+
+    # Determine subtype (no unit support for now)
+    if param.type.vecsemantics == param.type.vecsemantics.COLOR:
+        ui.update(subtype='COLOR')
+    elif metadata.get('slider'):
+        ui.update(subtype='FACTOR')
+
+    # Map OSL metadata to Blender names
+    option_map = {
+        'help': 'description',
+        'sensitivity': 'step', 'digits': 'precision',
+        'min': 'min', 'max': 'max',
+        'slidermin': 'soft_min', 'slidermax': 'soft_max',
+    }
+    if 'sensitivity' in metadata:
+        # Blender divides this value by 100 by convention, so counteract that.
+        metadata['sensitivity'] *= 100
+    for option, value in metadata.items():
+        if option in option_map:
+            ui.update(**{option_map[option]: value})
+
+    return name
+
+
+def update_external_script(report, filepath, library):
+    """compile and update OSL script"""
+    import os
+    import shutil
+
+    oso_file_remove = False
+
+    script_path = bpy.path.abspath(filepath, library=library)
+    script_path_noext, script_ext = os.path.splitext(script_path)
+
+    if script_ext == ".oso":
+        # it's a .oso file, no need to compile
+        ok, oso_path = True, script_path
+    elif script_ext == ".osl":
+        # compile .osl file
+        ok, oso_path = osl_compile(script_path, report)
+        oso_file_remove = True
+
+        if ok:
+            # copy .oso from temporary path to .osl directory
+            dst_path = script_path_noext + ".oso"
+            try:
+                shutil.copy2(oso_path, dst_path)
+            except:
+                report({'ERROR'}, "Failed to write .oso file next to external .osl file at " + dst_path)
+    elif os.path.dirname(filepath) == "":
+        # module in search path
+        oso_path = filepath
+        ok = True
+    else:
+        # unknown
+        report({'ERROR'}, "External shader script must have .osl or .oso extension, or be a module name")
+        ok = False
+
+    return ok, oso_path, oso_file_remove
+
+
+def update_internal_script(report, script):
+    """compile and update shader script node"""
+    import os
+    import tempfile
+    import pathlib
+    import hashlib
+
+    bytecode = None
+    bytecode_hash = None
+
+    osl_path = bpy.path.abspath(script.filepath, library=script.library)
+
+    if script.is_in_memory or script.is_dirty or script.is_modified or not os.path.exists(osl_path):
+        # write text datablock contents to temporary file
+        osl_file = tempfile.NamedTemporaryFile(mode='w', suffix=".osl", delete=False)
+        osl_file.write(script.as_string())
+        osl_file.write("\n")
+        osl_file.close()
+
+        ok, oso_path = osl_compile(osl_file.name, report)
+        os.remove(osl_file.name)
+    else:
+        # compile text datablock from disk directly
+        ok, oso_path = osl_compile(osl_path, report)
+
+    if ok:
+        # read bytecode
+        try:
+            bytecode = pathlib.Path(oso_path).read_text()
+            md5 = hashlib.md5(usedforsecurity=False)
+            md5.update(bytecode.encode())
+            bytecode_hash = md5.hexdigest()
+        except:
+            import traceback
+            traceback.print_exc()
+
+            report({'ERROR'}, "Can't read OSO bytecode to store in node at %r" % oso_path)
+            ok = False
+
+    return ok, oso_path, bytecode, bytecode_hash
+
+
 def update_script_node(node, report):
     """compile and update shader script node"""
     import os
-    import shutil
-    import tempfile
-    import hashlib
-    import pathlib
     import oslquery
 
     oso_file_remove = False
 
     if node.mode == 'EXTERNAL':
         # compile external script file
-        script_path = bpy.path.abspath(node.filepath, library=node.id_data.library)
-        script_path_noext, script_ext = os.path.splitext(script_path)
-
-        if script_ext == ".oso":
-            # it's a .oso file, no need to compile
-            ok, oso_path = True, script_path
-        elif script_ext == ".osl":
-            # compile .osl file
-            ok, oso_path = osl_compile(script_path, report)
-            oso_file_remove = True
-
-            if ok:
-                # copy .oso from temporary path to .osl directory
-                dst_path = script_path_noext + ".oso"
-                try:
-                    shutil.copy2(oso_path, dst_path)
-                except:
-                    report({'ERROR'}, "Failed to write .oso file next to external .osl file at " + dst_path)
-        elif os.path.dirname(node.filepath) == "":
-            # module in search path
-            oso_path = node.filepath
-            ok = True
-        else:
-            # unknown
-            report({'ERROR'}, "External shader script must have .osl or .oso extension, or be a module name")
-            ok = False
-
-        if ok:
-            node.bytecode = ""
-            node.bytecode_hash = ""
+        ok, oso_path, oso_file_remove = update_external_script(report, node.filepath, node.id_data.library)
 
     elif node.mode == 'INTERNAL' and node.script:
         # internal script, we will store bytecode in the node
-        script = node.script
-        osl_path = bpy.path.abspath(script.filepath, library=script.library)
-
-        if script.is_in_memory or script.is_dirty or script.is_modified or not os.path.exists(osl_path):
-            # write text datablock contents to temporary file
-            osl_file = tempfile.NamedTemporaryFile(mode='w', suffix=".osl", delete=False)
-            osl_file.write(script.as_string())
-            osl_file.write("\n")
-            osl_file.close()
-
-            ok, oso_path = osl_compile(osl_file.name, report)
-            os.remove(osl_file.name)
-        else:
-            # compile text datablock from disk directly
-            ok, oso_path = osl_compile(osl_path, report)
-
-        if ok:
-            # read bytecode
-            try:
-                bytecode = pathlib.Path(oso_path).read_text()
-                md5 = hashlib.md5(usedforsecurity=False)
-                md5.update(bytecode.encode())
-
-                node.bytecode = bytecode
-                node.bytecode_hash = md5.hexdigest()
-            except:
-                import traceback
-                traceback.print_exc()
-
-                report({'ERROR'}, "Can't read OSO bytecode to store in node at %r" % oso_path)
-                ok = False
+        ok, oso_path, bytecode, bytecode_hash = update_internal_script(report, node.script)
+        if bytecode:
+            node.bytecode = bytecode
+            node.bytecode_hash = bytecode_hash
 
     else:
         report({'WARNING'}, "No text or file specified in node, nothing to compile")
@@ -189,6 +278,58 @@ def update_script_node(node, report):
             report({'ERROR'}, tip_("OSL query failed to open %s") % oso_path)
     else:
         report({'ERROR'}, "OSL script compilation failed, see console for errors")
+
+    # remove temporary oso file
+    if oso_file_remove:
+        try:
+            os.remove(oso_path)
+        except:
+            pass
+
+    return ok
+
+
+def update_custom_camera_shader(cam, report):
+    """compile and update custom camera shader"""
+    import os
+    import oslquery
+
+    oso_file_remove = False
+
+    custom_props = cam.cycles_custom
+    if cam.custom_mode == 'EXTERNAL':
+        # compile external script file
+        ok, oso_path, oso_file_remove = update_external_script(report, cam.custom_filepath, cam.library)
+
+    elif cam.custom_mode == 'INTERNAL' and cam.custom_shader:
+        # internal script, we will store bytecode in the node
+        ok, oso_path, bytecode, bytecode_hash = update_internal_script(report, cam.custom_shader)
+        if bytecode:
+            cam.custom_bytecode = bytecode
+            cam.custom_bytecode_hash = bytecode_hash
+            cam.update_tag()
+
+    else:
+        report({'WARNING'}, "No text or file specified in node, nothing to compile")
+        return
+
+    if ok:
+        if query := oslquery.OSLQuery(oso_path):
+            # Ensure that all parameters have a matching property
+            used_params = set()
+            for param in query.parameters:
+                if name := osl_param_ensure_property(custom_props, param):
+                    used_params.add(name)
+
+            # Clean up unused parameters
+            for prop in list(custom_props.keys()):
+                if prop not in used_params:
+                    del custom_props[prop]
+        else:
+            ok = False
+            report({'ERROR'}, tip_("OSL query failed to open %s") % oso_path)
+    else:
+        report({'ERROR'}, "Custom Camera shader compilation failed, see console for errors")
 
     # remove temporary oso file
     if oso_file_remove:

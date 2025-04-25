@@ -131,7 +131,7 @@ ProjCameraInfo *BKE_uvproject_camera_info(const Object *ob,
   const Camera *camera = static_cast<Camera *>(ob->data);
 
   uci.do_pano = (camera->type == CAM_PANO);
-  uci.do_persp = (camera->type == CAM_PERSP);
+  uci.do_persp = ELEM(camera->type, CAM_PERSP, CAM_CUSTOM);
 
   uci.camangle = focallength_to_fov(camera->lens, camera->sensor_x) / 2.0f;
   uci.camsize = uci.do_persp ? tanf(uci.camangle) : camera->ortho_scale;

@@ -72,4 +72,14 @@ closure color absorption() BUILTIN;
 // Ray Portal
 closure color ray_portal_bsdf(vector position, vector direction) BUILTIN;
 
+point camera_shader_raster_position()
+{
+  return P;
+}
+
+vector camera_shader_random_sample()
+{
+  return vector(N);
+}
+
 #endif /* CCL_STDOSL_H */

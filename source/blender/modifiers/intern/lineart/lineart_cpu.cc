@@ -2554,7 +2554,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
     int fit = BKE_camera_sensor_fit(cam->sensor_fit, ld->w, ld->h);
     double asp = (double(ld->w) / double(ld->h));
-    if (cam->type == CAM_PERSP) {
+    if (ELEM(cam->type, CAM_PERSP, CAM_PANO, CAM_CUSTOM)) {
       if (fit == CAMERA_SENSOR_FIT_VERT && asp > 1) {
         sensor *= asp;
       }
@@ -2567,6 +2567,10 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
     else if (cam->type == CAM_ORTHO) {
       const double w = cam->ortho_scale / 2;
       lineart_matrix_ortho_44d(proj, -w, w, -w / asp, w / asp, cam->clip_start, cam->clip_end);
+    }
+    else {
+      BLI_assert(!"Unsupported camera type in lineart_main_load_geometries");
+      unit_m4_db(proj);
     }
 
     invert_m4_m4(inv, ld->conf.cam_obmat);

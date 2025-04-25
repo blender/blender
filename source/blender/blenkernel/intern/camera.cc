@@ -18,6 +18,7 @@
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BLI_listbase.h"
@@ -29,6 +30,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.hh"
+#include "BKE_bpath.hh"
 #include "BKE_camera.h"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
@@ -85,6 +87,10 @@ static void camera_copy_data(Main * /*bmain*/,
     CameraBGImage *bgpic_dst = BKE_camera_background_image_copy(bgpic_src, flag_subdata);
     BLI_addtail(&cam_dst->bg_images, bgpic_dst);
   }
+
+  if (cam_src->custom_bytecode) {
+    cam_dst->custom_bytecode = static_cast<char *>(MEM_dupallocN(cam_src->custom_bytecode));
+  }
 }
 
 /** Free (or release) any data used by this camera (does not free the camera itself). */
@@ -92,6 +98,9 @@ static void camera_free_data(ID *id)
 {
   Camera *cam = (Camera *)id;
   BLI_freelistN(&cam->bg_images);
+  if (cam->custom_bytecode) {
+    MEM_freeN(cam->custom_bytecode);
+  }
 }
 
 static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -108,6 +117,18 @@ static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
   if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
     BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, camera->ipo, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, camera->dof_ob, IDWALK_CB_NOP);
+  }
+
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, camera->custom_shader, IDWALK_CB_NOP);
+}
+
+static void camera_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Camera *camera = reinterpret_cast<Camera *>(id);
+
+  if (camera->custom_filepath[0]) {
+    BKE_bpath_foreach_path_fixed_process(
+        bpath_data, camera->custom_filepath, sizeof(camera->custom_filepath));
   }
 }
 
@@ -205,6 +226,10 @@ static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   if (!is_undo) {
     camera_write_cycles_compatibility_data_clear(id, cycles_data);
   }
+
+  if (cam->custom_bytecode) {
+    BLO_write_string(writer, cam->custom_bytecode);
+  }
 }
 
 static void camera_blend_read_data(BlendDataReader *reader, ID *id)
@@ -221,6 +246,8 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
       bgpic->flag &= ~CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
     }
   }
+
+  BLO_read_string(reader, &ca->custom_bytecode);
 }
 
 IDTypeInfo IDType_ID_CA = {
@@ -241,7 +268,7 @@ IDTypeInfo IDType_ID_CA = {
     /*make_local*/ nullptr,
     /*foreach_id*/ camera_foreach_id,
     /*foreach_cache*/ nullptr,
-    /*foreach_path*/ nullptr,
+    /*foreach_path*/ camera_foreach_path,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ camera_blend_write,
@@ -1076,7 +1103,8 @@ bool BKE_camera_multiview_spherical_stereo(const RenderData *rd, const Object *c
 
   const Camera *cam = static_cast<const Camera *>(camera->data);
 
-  if ((rd->views_format == SCE_VIEWS_FORMAT_STEREO_3D) && ELEM(cam->type, CAM_PANO, CAM_PERSP) &&
+  if ((rd->views_format == SCE_VIEWS_FORMAT_STEREO_3D) &&
+      ELEM(cam->type, CAM_PANO, CAM_PERSP, CAM_CUSTOM) &&
       ((cam->stereo.flag & CAM_S3D_SPHERICAL) != 0))
   {
     return true;

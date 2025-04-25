@@ -170,6 +170,8 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot);
 
 bool text_space_edit_poll(bContext *C);
 
+void TEXT_OT_update_shader(wmOperatorType *ot);
+
 /* `text_autocomplete.cc` */
 
 void TEXT_OT_autocomplete(wmOperatorType *ot);

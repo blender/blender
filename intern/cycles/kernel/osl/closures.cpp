@@ -21,6 +21,7 @@
 #include "kernel/geom/object.h"
 #include "kernel/util/differential.h"
 
+#include "kernel/osl/camera.h"
 #include "kernel/osl/osl.h"
 
 #define TO_VEC3(v) OSL::Vec3(v.x, v.y, v.z)
@@ -274,6 +275,52 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const ThreadKernelGlobalsCPU *kg,
 
   /* get back position */
   sd->P = TO_FLOAT3(globals->P);
+}
+
+/* Camera */
+
+packed_float3 osl_eval_camera(const ThreadKernelGlobalsCPU *kg,
+                              const packed_float3 sensor,
+                              const packed_float3 dSdx,
+                              const packed_float3 dSdy,
+                              const float2 rand_lens,
+                              packed_float3 &P,
+                              packed_float3 &dPdx,
+                              packed_float3 &dPdy,
+                              packed_float3 &D,
+                              packed_float3 &dDdx,
+                              packed_float3 &dDdy)
+{
+  if (!kg->osl.globals->camera_state) {
+    return zero_spectrum();
+  }
+
+  /* Setup shader globals from from the sensor position. */
+  cameradata_to_shaderglobals(sensor, dSdx, dSdy, rand_lens, &kg->osl.shader_globals);
+
+  /* Clear trace data. */
+  kg->osl.tracedata.init = false;
+
+  /* Provide kernel globals to the render-services. */
+  kg->osl.shader_globals.kg = kg;
+
+  /* Execute the shader. */
+  OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
+  OSL::ShaderGlobals *globals = reinterpret_cast<OSL::ShaderGlobals *>(&kg->osl.shader_globals);
+  OSL::ShadingContext *octx = kg->osl.context;
+
+  float output[21] = {0.0f};
+
+  ss->execute(
+      *octx, *kg->osl.globals->camera_state, kg->osl.thread_index, 0, *globals, nullptr, output);
+
+  P = make_float3(output[0], output[1], output[2]);
+  dPdx = make_float3(output[3], output[4], output[5]);
+  dPdy = make_float3(output[6], output[7], output[8]);
+  D = make_float3(output[9], output[10], output[11]);
+  dDdx = make_float3(output[12], output[13], output[14]);
+  dDdy = make_float3(output[15], output[16], output[17]);
+  return make_float3(output[18], output[19], output[20]);
 }
 
 CCL_NAMESPACE_END

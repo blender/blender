@@ -40,7 +40,8 @@ ccl_device_inline void path_state_init(IntegratorState state,
 ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
                                                   IntegratorState state,
                                                   const int sample,
-                                                  const uint rng_pixel)
+                                                  const uint rng_pixel,
+                                                  const Spectrum throughput)
 {
   INTEGRATOR_STATE_WRITE(state, path, sample) = sample;
   INTEGRATOR_STATE_WRITE(state, path, bounce) = 0;
@@ -57,7 +58,7 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = 0.0f;
   INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = FLT_MAX;
   INTEGRATOR_STATE_WRITE(state, path, continuation_probability) = 1.0f;
-  INTEGRATOR_STATE_WRITE(state, path, throughput) = one_spectrum();
+  INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput;
 
 #ifdef __PATH_GUIDING__
   INTEGRATOR_STATE_WRITE(state, path, unguided_throughput) = 1.0f;

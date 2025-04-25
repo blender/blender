@@ -1175,7 +1175,7 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
   sd->closure_transparent_extinction = zero_spectrum();
 
 #ifdef __OSL__
-  if (kernel_data.kernel_features & KERNEL_FEATURE_OSL) {
+  if (kernel_data.kernel_features & KERNEL_FEATURE_OSL_SHADING) {
     osl_eval_nodes<SHADER_TYPE_SURFACE>(kg, state, sd, path_flag);
   }
   else

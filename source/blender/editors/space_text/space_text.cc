@@ -213,6 +213,8 @@ static void text_operatortypes()
   WM_operatortype_append(TEXT_OT_resolve_conflict);
 
   WM_operatortype_append(TEXT_OT_autocomplete);
+
+  WM_operatortype_append(TEXT_OT_update_shader);
 }
 
 static void text_keymap(wmKeyConfig *keyconf)
