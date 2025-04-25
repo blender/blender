@@ -1584,7 +1584,9 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext &pcontext)
         const bke::greasepencil::Layer *layer = grease_pencil->get_active_layer();
         const ed::greasepencil::DrawingPlacement placement(
             *pcontext.scene, *pcontext.region, *pcontext.vc.v3d, *object, layer);
-        const float3 location = placement.project(float2(pcontext.mval.x, pcontext.mval.y));
+        const float3 location = math::transform_point(
+            placement.to_world_space(),
+            placement.project(float2(pcontext.mval.x, pcontext.mval.y)));
         pcontext.pixel_radius = project_brush_radius(
             &pcontext.vc, brush->unprojected_radius, location);
         brush->size = std::max(pcontext.pixel_radius, 1);
