@@ -2465,7 +2465,8 @@ static void make_object_duplilist_real(bContext *C,
   Object *object_eval = DEG_get_evaluated_object(depsgraph, base->object);
 
   if (!(base->object->transflag & OB_DUPLI) &&
-      !bke::object_has_geometry_set_instances(*object_eval)) {
+      !bke::object_has_geometry_set_instances(*object_eval))
+  {
     return;
   }
 
