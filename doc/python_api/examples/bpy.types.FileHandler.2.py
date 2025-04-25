@@ -7,7 +7,7 @@ but for this it is require to define the following properties:
 
 .. code-block:: python
 
-    directory: StringProperty(subtype='FILE_PATH')
+    directory: StringProperty(subtype='DIR_PATH')
     files: CollectionProperty(type=bpy.types.OperatorFileListElement)
 
 This ``directory`` and ``files`` properties now will be used by the
@@ -29,7 +29,7 @@ class ShaderScriptImport(bpy.types.Operator, ImportHelper):
     This Operator can import multiple .txt files, we need following directory and files
     properties that the file handler will use to set files path data
     """
-    directory: bpy.props.StringProperty(subtype='FILE_PATH', options={'SKIP_SAVE', 'HIDDEN'})
+    directory: bpy.props.StringProperty(subtype='DIR_PATH', options={'SKIP_SAVE', 'HIDDEN'})
     files: bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE', 'HIDDEN'})
 
     """Allow the user to select if the node's label is set or not"""

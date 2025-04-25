@@ -1,6 +1,6 @@
 """
-This method is used from the operators ``invoke`` callback.
-On success they should return ``{'RUNNING_MODAL'}`` otherwise ``{'CANCELLED'}``.
+This method is used from the operators ``invoke`` callback
+which must then return ``{'RUNNING_MODAL'}``.
 
 Accepting the file selector will run the operators ``execute`` callback.
 
