@@ -3018,7 +3018,9 @@ blender::gpu::Batch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight)
   Lattice *lt = static_cast<Lattice *>(ob->data);
   int actdef = -1;
 
-  if (use_weight && !BLI_listbase_is_empty(&lt->vertex_group_names) && lt->editlatt->latt->dvert) {
+  if (use_weight && !BLI_listbase_is_empty(&lt->vertex_group_names) && lt->editlatt &&
+      lt->editlatt->latt->dvert)
+  {
     actdef = lt->vertex_group_active_index - 1;
   }
 
