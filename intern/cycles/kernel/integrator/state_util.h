@@ -230,7 +230,7 @@ ccl_device_forceinline void integrator_state_copy_volume_stack_to_shadow(
       INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_volume_stack, index, shader) = shader;
 
       ++index;
-    } while (shader != OBJECT_NONE);
+    } while (shader != SHADER_NONE);
   }
 }
 
@@ -249,7 +249,7 @@ ccl_device_forceinline void integrator_state_copy_volume_stack(KernelGlobals kg,
       INTEGRATOR_STATE_ARRAY_WRITE(to_state, volume_stack, index, shader) = shader;
 
       ++index;
-    } while (shader != OBJECT_NONE);
+    } while (shader != SHADER_NONE);
   }
 }
 
