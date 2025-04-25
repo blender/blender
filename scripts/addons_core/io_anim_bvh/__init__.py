@@ -277,6 +277,13 @@ class ExportBVH(bpy.types.Operator, ExportHelper):
         return super().invoke(context, event)
 
     def execute(self, context):
+
+        if self.options.is_invoke:
+            # The context may have changed since invoking the file selector.
+            if not self.poll(context):
+                self.report({'ERROR'}, "Invalid context")
+                return {'CANCELLED'}
+
         if self.frame_start == 0 and self.frame_end == 0:
             self.frame_start = context.scene.frame_start
             self.frame_end = context.scene.frame_end
