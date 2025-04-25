@@ -2773,6 +2773,10 @@ static bool actcon_get_tarmat(Depsgraph *depsgraph,
 {
   bActionConstraint *data = static_cast<bActionConstraint *>(con->data);
 
+  /* Initialize return matrix. This needs to happen even when there is no
+   * Action, to avoid returning an all-zeroes matrix. */
+  unit_m4(ct->matrix);
+
   if (!data->act) {
     /* Without an Action, this constraint cannot do anything. */
     return false;
@@ -2786,9 +2790,6 @@ static bool actcon_get_tarmat(Depsgraph *depsgraph,
   float tempmat[4][4], vec[3];
   float s, t;
   short axis;
-
-  /* initialize return matrix */
-  unit_m4(ct->matrix);
 
   /* Skip targets if we're using local float property to set action time */
   if (use_eval_time) {
