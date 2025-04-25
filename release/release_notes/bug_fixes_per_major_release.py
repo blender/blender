@@ -175,6 +175,8 @@ from pathlib import Path
 # -----------------------------------------------------------------------------
 # Constants used throughout the script
 
+BLENDER_API_URL = "https://projects.blender.org/api/v1"
+
 UNKNOWN = "UNKNOWN"
 
 FIXED_NEW_ISSUE = "FIXED NEW"
@@ -377,8 +379,7 @@ class CommitInfo:
             return
 
         for report_number in self.fixed_reports:
-            report_information = url_json_get(
-                f"https://projects.blender.org/api/v1/repos/blender/blender/issues/{report_number}")
+            report_information = url_json_get(f"{BLENDER_API_URL}/repos/blender/blender/issues/{report_number}")
 
             report_title = report_information['title']
             module = self.get_module(report_information['labels'])
@@ -617,8 +618,7 @@ def classify_based_on_report(
 def get_backported_commits(issue_number: str) -> dict[str, list[str]]:
     # Adapted from https://projects.blender.org/blender/blender/src/branch/main/release/lts/lts_issue.py
 
-    base_url = "https://projects.blender.org/api/v1/repos"
-    issues_url = base_url + "/blender/blender/issues/"
+    issues_url = f"{BLENDER_API_URL}/repos/blender/blender/issues/"
 
     response = url_json_get(issues_url + issue_number)
     description = response["body"]
