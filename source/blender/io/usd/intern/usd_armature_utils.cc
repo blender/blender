@@ -35,7 +35,7 @@ FCurve *create_fcurve(blender::animrig::Channelbag &channelbag,
 }
 
 /* Utility: fill in a single fcurve sample at the provided index. */
-void set_fcurve_sample(FCurve *fcu, uint sample_index, const float frame, const float value)
+void set_fcurve_sample(FCurve *fcu, int64_t sample_index, const float frame, const float value)
 {
   BLI_assert(sample_index >= 0 && sample_index < fcu->totvert);
   BezTriple &bez = fcu->bezt[sample_index];
