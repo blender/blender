@@ -154,7 +154,7 @@ struct UVVertex {
 
 struct UVEdge {
   std::array<UVVertex *, 2> vertices;
-  Vector<UVPrimitive *, 2> uv_primitives;
+  Vector<int, 2> uv_primitive_indices;
 
   UVVertex *get_other_uv_vertex(const int vertex_index);
   bool has_shared_edge(Span<float2> uv_map, const int loop_1, const int loop_2) const;
