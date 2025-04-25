@@ -679,7 +679,7 @@ struct Resources : public select::SelectMap {
   int64_t depth_planes_count = 0;
 
   draw::UniformBuffer<GlobalsUboStorage> globals_buf;
-  GlobalsUboStorage &theme_settings = globals_buf;
+  GlobalsUboStorage &theme = globals_buf;
   draw::UniformArrayBuffer<float4, 6> clip_planes_buf;
   /* Wrappers around #DefaultTextureList members. */
   TextureRef depth_in_front_tx;
@@ -864,27 +864,27 @@ struct Resources : public select::SelectMap {
   const float4 &object_wire_color(const ObjectRef &ob_ref, ThemeColorID theme_id) const
   {
     if (UNLIKELY(ob_ref.object->base_flag & BASE_FROM_SET)) {
-      return theme_settings.color_wire;
+      return theme.colors.wire;
     }
     switch (theme_id) {
       case TH_WIRE_EDIT:
-        return theme_settings.color_wire_edit;
+        return theme.colors.wire_edit;
       case TH_ACTIVE:
-        return theme_settings.color_active;
+        return theme.colors.active;
       case TH_SELECT:
-        return theme_settings.color_select;
+        return theme.colors.select;
       case TH_TRANSFORM:
-        return theme_settings.color_transform;
+        return theme.colors.transform;
       case TH_SPEAKER:
-        return theme_settings.color_speaker;
+        return theme.colors.speaker;
       case TH_CAMERA:
-        return theme_settings.color_camera;
+        return theme.colors.camera;
       case TH_EMPTY:
-        return theme_settings.color_empty;
+        return theme.colors.empty;
       case TH_LIGHT:
-        return theme_settings.color_light;
+        return theme.colors.light;
       default:
-        return theme_settings.color_wire;
+        return theme.colors.wire;
     }
   }
 
@@ -933,7 +933,7 @@ struct Resources : public select::SelectMap {
   static float vertex_size_get()
   {
     /* M_SQRT2 to be at least the same size of the old square */
-    return U.pixelsize * max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f);
+    return max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f);
   }
 
   /** Convenience functions. */

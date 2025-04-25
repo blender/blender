@@ -44,10 +44,10 @@ class Metaballs : Overlay {
     const MetaBall &mb = DRW_object_get_data_for_drawing<MetaBall>(*ob);
 
     const float *color;
-    const float *col_radius = res.theme_settings.color_mball_radius;
-    const float *col_radius_select = res.theme_settings.color_mball_radius_select;
-    const float *col_stiffness = res.theme_settings.color_mball_stiffness;
-    const float *col_stiffness_select = res.theme_settings.color_mball_stiffness_select;
+    const float *col_radius = res.theme.colors.mball_radius;
+    const float *col_radius_select = res.theme.colors.mball_radius_select;
+    const float *col_stiffness = res.theme.colors.mball_stiffness;
+    const float *col_stiffness_select = res.theme.colors.mball_stiffness_select;
 
     int elem_num = 0;
     LISTBASE_FOREACH (MetaElem *, ml, mb.editelems) {

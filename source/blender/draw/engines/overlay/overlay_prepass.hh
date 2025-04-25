@@ -85,7 +85,7 @@ class Prepass : Overlay {
 
     use_material_slot_selection_ = state.is_material_select;
 
-    bool use_cull = res.theme_settings.backface_culling;
+    bool use_cull = res.globals_buf.backface_culling;
     DRWState backface_cull_state = use_cull ? DRW_STATE_CULL_BACK : DRWState(0);
 
     ps_.init();

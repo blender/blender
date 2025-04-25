@@ -434,8 +434,8 @@ class Cameras : Overlay {
     int track_index = 1;
 
     float4 bundle_color_custom;
-    float *bundle_color_solid = res.theme_settings.color_bundle_solid;
-    float *bundle_color_unselected = res.theme_settings.color_wire;
+    float *bundle_color_solid = res.theme.colors.bundle_solid;
+    float *bundle_color_unselected = res.theme.colors.wire;
     uchar4 text_color_selected, text_color_unselected;
     /* Color Management: Exception here as texts are drawn in sRGB space directly. */
     UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
@@ -812,7 +812,7 @@ class Cameras : Overlay {
         /* Connecting line between cameras. */
         call_buffers_.stereo_connect_lines.append(stereodata.matrix.location(),
                                                   instdata.object_to_world.location(),
-                                                  res.theme_settings.color_wire,
+                                                  res.theme.colors.wire,
                                                   cam_select_id);
       }
 

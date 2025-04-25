@@ -108,15 +108,15 @@ float4 get_bezier_handle_color(uint color_id, float sel)
 {
   switch (color_id) {
     case 0u: /* BEZIER_HANDLE_FREE */
-      return mix(globalsBlock.color_handle_free, globalsBlock.color_handle_sel_free, sel);
+      return mix(globalsBlock.colors.handle_free, globalsBlock.colors.handle_sel_free, sel);
     case 1u: /* BEZIER_HANDLE_AUTO */
-      return mix(globalsBlock.color_handle_auto, globalsBlock.color_handle_sel_auto, sel);
+      return mix(globalsBlock.colors.handle_auto, globalsBlock.colors.handle_sel_auto, sel);
     case 2u: /* BEZIER_HANDLE_VECTOR */
-      return mix(globalsBlock.color_handle_vect, globalsBlock.color_handle_sel_vect, sel);
+      return mix(globalsBlock.colors.handle_vect, globalsBlock.colors.handle_sel_vect, sel);
     case 3u: /* BEZIER_HANDLE_ALIGN */
-      return mix(globalsBlock.color_handle_align, globalsBlock.color_handle_sel_align, sel);
+      return mix(globalsBlock.colors.handle_align, globalsBlock.colors.handle_sel_align, sel);
   }
-  return mix(globalsBlock.color_handle_autoclamp, globalsBlock.color_handle_sel_autoclamp, sel);
+  return mix(globalsBlock.colors.handle_autoclamp, globalsBlock.colors.handle_sel_autoclamp, sel);
 }
 
 void geometry_main(VertOut geom_in[2],
@@ -154,13 +154,13 @@ void geometry_main(VertOut geom_in[2],
     inner_color = get_bezier_handle_color(color_id, geom_in[line_end_point].sel);
   }
   else if ((geom_in[line_end_point].flag & EDIT_CURVES_NURBS_CONTROL_POINT) != 0u) {
-    inner_color = mix(globalsBlock.color_nurb_uline,
-                      globalsBlock.color_nurb_sel_uline,
+    inner_color = mix(globalsBlock.colors.nurb_uline,
+                      globalsBlock.colors.nurb_sel_uline,
                       geom_in[line_end_point].sel);
   }
   else {
     inner_color = mix(
-        globalsBlock.color_wire, globalsBlock.color_vertex_select, geom_in[line_end_point].sel);
+        globalsBlock.colors.wire, globalsBlock.colors.vert_select, geom_in[line_end_point].sel);
   }
 
   /* Minimize active color bleeding on inner_color. */

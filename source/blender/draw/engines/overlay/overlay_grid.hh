@@ -69,7 +69,7 @@ class Grid : Overlay {
       auto &sub = grid_ps_.sub("grid_background");
       sub.shader_set(res.shaders->grid_background.get());
       const float4 color_back = math::interpolate(
-          res.theme_settings.color_background, res.theme_settings.color_grid, 0.5);
+          res.theme.colors.background, res.theme.colors.grid, 0.5);
       sub.push_constant("ucolor", color_back);
       sub.push_constant("tile_scale", float3(data_.size));
       sub.bind_texture("depth_buffer", depth_tx);
