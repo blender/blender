@@ -1352,10 +1352,7 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
     int scemode;
     int timeline_frame;
     float subframe;
-
-#ifdef DURIAN_CAMERA_SWITCH
     int mode;
-#endif
   } orig_data;
 
   /* Old info:
@@ -1424,9 +1421,7 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
   orig_data.scemode = scene->r.scemode;
   orig_data.timeline_frame = scene->r.cfra;
   orig_data.subframe = scene->r.subframe;
-#ifdef DURIAN_CAMERA_SWITCH
   orig_data.mode = scene->r.mode;
-#endif
 
   BKE_scene_frame_set(scene, frame);
 
@@ -1449,10 +1444,8 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
   /* prevent eternal loop */
   scene->r.scemode &= ~R_DOSEQ;
 
-#ifdef DURIAN_CAMERA_SWITCH
   /* stooping to new low's in hackyness :( */
   scene->r.mode |= R_NO_CAMERA_SWITCH;
-#endif
 
   is_frame_update = (orig_data.timeline_frame != scene->r.cfra) ||
                     (orig_data.subframe != scene->r.subframe);
@@ -1597,10 +1590,8 @@ finally:
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
 
-#ifdef DURIAN_CAMERA_SWITCH
   /* stooping to new low's in hackyness :( */
   scene->r.mode &= orig_data.mode | ~R_NO_CAMERA_SWITCH;
-#endif
 
   return ibuf;
 }

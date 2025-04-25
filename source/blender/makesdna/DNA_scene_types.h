@@ -10,9 +10,6 @@
 
 #include "DNA_defs.h"
 
-/* XXX(@ideasman42): temp feature. */
-#define DURIAN_CAMERA_SWITCH
-
 /**
  * Check for cyclic set-scene.
  * Libraries can cause this case which is normally prevented, see (#42009).
@@ -2205,9 +2202,8 @@ enum {
   R_BORDER = 1 << 9,
   R_MODE_UNUSED_10 = 1 << 10, /* cleared */
   R_CROP = 1 << 11,
-  /** Disable camera switching: runtime (DURIAN_CAMERA_SWITCH) */
-  R_NO_CAMERA_SWITCH = 1 << 12,
-  R_MODE_UNUSED_13 = 1 << 13, /* cleared */
+  R_NO_CAMERA_SWITCH = 1 << 12, /* Disable cache switching */
+  R_MODE_UNUSED_13 = 1 << 13,   /* cleared */
   R_MBLUR = 1 << 14,
   /* unified was here */
   R_MODE_UNUSED_16 = 1 << 16, /* cleared */
