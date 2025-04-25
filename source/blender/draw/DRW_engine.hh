@@ -107,6 +107,12 @@ bool DRW_draw_in_progress();
  */
 bool DRW_render_check_grease_pencil(Depsgraph *depsgraph);
 /**
+ * Helper to check if exit object type to render.
+ * Faster and more conservative than DRW_render_check_grease_pencil().
+ * Used for viewport.
+ */
+bool DRW_gpencil_engine_needed(Depsgraph *depsgraph, View3D *v3d);
+/**
  * Render grease pencil on top of other render engine output.
  * This function creates a DRWContext.
  */

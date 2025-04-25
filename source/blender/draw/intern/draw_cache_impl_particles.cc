@@ -8,6 +8,7 @@
  * \brief Particle API for render engines
  */
 
+#include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
@@ -1700,6 +1701,26 @@ gpu::Batch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
   particle_batch_cache_ensure_edit_tip_pos(edit, cache);
   cache->edit_tip_points = GPU_batch_create(GPU_PRIM_POINTS, cache->edit_tip_pos, nullptr);
   return cache->edit_tip_points;
+}
+
+float4x4 DRW_particles_dupli_matrix_get(const ObjectRef &ob_ref)
+{
+  float4x4 dupli_mat = float4x4::identity();
+
+  if ((ob_ref.dupli_parent != nullptr) && (ob_ref.dupli_object != nullptr)) {
+    if (ob_ref.dupli_object->type & OB_DUPLICOLLECTION) {
+      Collection *collection = ob_ref.dupli_parent->instance_collection;
+      if (collection != nullptr) {
+        dupli_mat[3] -= float4(float3(collection->instance_offset), 0.0f);
+      }
+      dupli_mat = ob_ref.dupli_parent->object_to_world() * dupli_mat;
+    }
+    else {
+      dupli_mat = ob_ref.object->object_to_world() *
+                  math::invert(ob_ref.dupli_object->ob->object_to_world());
+    }
+  }
+  return dupli_mat;
 }
 
 bool particles_ensure_procedural_data(Object *object,

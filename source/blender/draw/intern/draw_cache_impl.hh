@@ -10,6 +10,7 @@
 
 #include <cstdint>
 
+#include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
 struct GPUMaterial;
@@ -36,6 +37,8 @@ struct GreasePencil;
 enum eMeshBatchDirtyMode : int8_t;
 
 namespace blender::draw {
+
+struct ObjectRef;
 
 /* -------------------------------------------------------------------- */
 /** \name Expose via BKE callbacks
@@ -323,6 +326,10 @@ blender::gpu::Batch *DRW_particles_batch_cache_get_edit_inner_points(Object *obj
 blender::gpu::Batch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
                                                                    ParticleSystem *psys,
                                                                    PTCacheEdit *edit);
+
+/* Particle data are stored in world space. If an object is instanced, the associated particle
+ * systems need to be offset appropriately. */
+float4x4 DRW_particles_dupli_matrix_get(const ObjectRef &ob_ref);
 
 /** \} */
 

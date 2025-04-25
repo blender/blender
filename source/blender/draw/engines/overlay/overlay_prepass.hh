@@ -146,8 +146,8 @@ class Prepass : Overlay {
             /* Case where the render engine should have rendered it, but we need to draw it for
              * selection purpose. */
             if (handle.raw == 0u) {
-              handle = manager.resource_handle_for_psys(
-                  ob_ref, overlay::Particles::dupli_matrix_get(ob_ref));
+              handle = manager.resource_handle_for_psys(ob_ref,
+                                                        DRW_particles_dupli_matrix_get(ob_ref));
             }
 
             select::ID select_id = use_material_slot_selection_ ?
