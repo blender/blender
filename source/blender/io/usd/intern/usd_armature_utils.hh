@@ -16,13 +16,27 @@
 
 struct Bone;
 struct Depsgraph;
+struct FCurve;
 struct ModifierData;
 struct Object;
+
+namespace blender::animrig {
+class Channelbag;
+struct FCurveDescriptor;
+}  // namespace blender::animrig
 
 namespace blender::io::usd {
 
 /* Custom Blender Primvar name used for storing armature bone lengths. */
 inline const pxr::TfToken BlenderBoneLengths("blender:bone_lengths", pxr::TfToken::Immortal);
+
+/* Utility: create new fcurve and add it as a channel to a group. */
+FCurve *create_fcurve(blender::animrig::Channelbag &channelbag,
+                      const blender::animrig::FCurveDescriptor &fcurve_descriptor,
+                      const int sample_count);
+
+/* Utility: fill in a single fcurve sample at the provided index. */
+void set_fcurve_sample(FCurve *fcu, uint sample_index, const float frame, const float value);
 
 /**
  * Recursively invoke the given function on the given armature object's bones.

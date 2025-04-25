@@ -1136,6 +1136,7 @@ if(WITH_USD AND TEST_SRC_DIR_EXISTS)
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_usd_import_test.py
     --
     --testdir "${TEST_SRC_DIR}/usd"
+    --outdir "${TEST_OUT_DIR}/io_usd"
   )
 endif()
 

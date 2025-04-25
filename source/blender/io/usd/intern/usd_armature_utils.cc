@@ -5,7 +5,11 @@
 #include "usd_armature_utils.hh"
 #include "usd_utils.hh"
 
+#include "ANIM_action.hh"
+#include "ANIM_fcurve.hh"
+
 #include "BKE_armature.hh"
+#include "BKE_fcurve.hh"
 #include "BKE_modifier.hh"
 
 #include "BLI_listbase.h"
@@ -18,6 +22,29 @@
 #include "DNA_armature_types.h"
 
 namespace blender::io::usd {
+
+/* Utility: create new fcurve and add it as a channel to a group. */
+FCurve *create_fcurve(blender::animrig::Channelbag &channelbag,
+                      const blender::animrig::FCurveDescriptor &fcurve_descriptor,
+                      const int sample_count)
+{
+  FCurve *fcurve = channelbag.fcurve_create_unique(nullptr, fcurve_descriptor);
+  BLI_assert_msg(fcurve, "The same F-Curve is being created twice, this is unexpected.");
+  BKE_fcurve_bezt_resize(fcurve, sample_count);
+  return fcurve;
+}
+
+/* Utility: fill in a single fcurve sample at the provided index. */
+void set_fcurve_sample(FCurve *fcu, uint sample_index, const float frame, const float value)
+{
+  BLI_assert(sample_index >= 0 && sample_index < fcu->totvert);
+  BezTriple &bez = fcu->bezt[sample_index];
+  bez.vec[1][0] = frame;
+  bez.vec[1][1] = value;
+  bez.ipo = BEZT_IPO_LIN;
+  bez.f1 = bez.f2 = bez.f3 = SELECT;
+  bez.h1 = bez.h2 = HD_AUTO;
+}
 
 /* Recursively invoke the 'visitor' function on the given bone and its children. */
 static void visit_bones(const Bone *bone, FunctionRef<void(const Bone *)> visitor)
