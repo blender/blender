@@ -420,8 +420,17 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   }
 }
 
-static void view3d_collection_drop_on_enter(wmDropBox *drop, wmDrag * /*drag*/)
+static void view3d_collection_drop_on_enter(wmDropBox *drop, wmDrag *drag)
 {
+  if (WM_drag_asset_will_import_linked(drag)) {
+    const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+    /* Linked collections cannot be transformed except when using instancing. Don't enable
+     * snapping. */
+    if (!asset_drag->import_settings.use_instance_collections) {
+      return;
+    }
+  }
+
   view3d_drop_snap_init(drop);
 }
 
