@@ -18,6 +18,8 @@
 #include "DNA_object_types.h"   /* for OB_DATA_SUPPORT_ID */
 #include "DNA_screen_types.h"
 
+#include "ANIM_keyframing.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_rect.h"
@@ -369,7 +371,14 @@ static wmOperatorStatus reset_default_button_exec(bContext *C, wmOperator *op)
 
   /* if there is a valid property that is editable... */
   if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
-    if (RNA_property_reset(&ptr, prop, (all) ? -1 : index)) {
+    const int array_index = (all) ? -1 : index;
+    if (RNA_property_reset(&ptr, prop, array_index)) {
+
+      /* Apply auto keyframe when proprety is successfully reset. */
+      Scene *scene = CTX_data_scene(C);
+      blender::animrig::autokeyframe_property(
+          C, scene, &ptr, prop, array_index, scene->r.cfra, true);
+
       return operator_button_property_finish_with_undo(C, &ptr, prop);
     }
   }
