@@ -10,7 +10,7 @@ The following properties are supported:
    Represents the absolute path to the file.
 ``dirpath``: ``bpy.props.StringProperty(subtype='DIR_PATH')``
    Represents the absolute path to the directory.
-``dirpath``: ``bpy.props.StringProperty(subtype='DIR_PATH')``
+``filename``: ``bpy.props.StringProperty(subtype='FILE_NAME')``
    Represents the filename without the leading directory.
 ``files``: ``bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement)``
    When present in the operator this collection includes all selected files.
