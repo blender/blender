@@ -660,6 +660,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
  */
 static wmGizmo *gizmo_find_intersected_3d(bContext *C,
                                           const int co[2],
+                                          const bool is_tablet,
                                           wmGizmo **visible_gizmos,
                                           const int visible_gizmos_len,
                                           int *r_part)
@@ -716,14 +717,11 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
                                   });
     GPU_framebuffer_bind(depth_read_fb);
 
-    const wmWindow *win = CTX_wm_window(C);
     /* How much this gizmo is bigger or smaller than default. */
     const float gizmo_ratio = float(U.gizmo_size) / 75.0f;
     /* Wider test area for tablet pens. */
-    const int test_min = ((win->event_last_handled->tablet.active) ? 6.0f : 4.0f) * UI_SCALE_FAC *
-                         gizmo_ratio;
-    const int test_max = ((win->event_last_handled->tablet.active) ? 12.0f : 10.0f) *
-                         UI_SCALE_FAC * gizmo_ratio;
+    const int test_min = (is_tablet ? 6.0f : 4.0f) * UI_SCALE_FAC * gizmo_ratio;
+    const int test_max = (is_tablet ? 12.0f : 10.0f) * UI_SCALE_FAC * gizmo_ratio;
 
     const int hotspot_radii[] = {
         test_min,
@@ -820,6 +818,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
     if (gz == nullptr) {
       gz = gizmo_find_intersected_3d(C,
                                      mval,
+                                     event->tablet.active != EVT_TABLET_NONE,
                                      static_cast<wmGizmo **>(visible_3d_gizmos.data),
                                      visible_3d_gizmos.count,
                                      r_part);
