@@ -47,7 +47,7 @@ from . import (
 )
 
 rna_prop_url = StringProperty(name="URL", subtype='FILE_PATH', options={'HIDDEN'})
-rna_prop_directory = StringProperty(name="Repo Directory", subtype='FILE_PATH')
+rna_prop_directory = StringProperty(name="Repo Directory", subtype='DIR_PATH')
 rna_prop_repo_index = IntProperty(name="Repo Index", default=-1)
 rna_prop_remote_url = StringProperty(name="Repo URL", subtype='FILE_PATH')
 rna_prop_pkg_id = StringProperty(name="Package ID")
