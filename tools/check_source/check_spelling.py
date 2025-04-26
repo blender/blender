@@ -231,14 +231,6 @@ re_ignore_elems_generic_double_backtick: tuple[str, ...] = (
     r"[\s\(\[\{]\`\`[^\n`]+\`\`",
 )
 
-
-re_ignore_elems_generic_single_quote: tuple[str, ...] = (
-    # Single and quotes.
-    # Allow white-space or any bracket prefix, e.g:
-    # ('reference')
-    r"[\s\(\[\{]'[^\n']+'",
-)
-
 re_ignore_elems_lang_c_doxygen: tuple[str, ...] = (
     # DOXYGEN style: `<pre> ... </pre>`
     r"<pre>.+</pre>",
@@ -261,13 +253,11 @@ re_ignore_map: dict[tuple[LangType, TokenType], re.Pattern[str]] = {
         *re_ignore_elems_lang_c_doxygen,
         *re_ignore_elems_generic_expressions,
         *re_ignore_elems_generic_single_backtick,
-        *re_ignore_elems_generic_single_quote,
     )),
     (LangType.C, TokenType.STRING): re_compile_from_sequence((
         *re_ignore_elems_generic_url_email_tags,
         *re_ignore_elems_generic_expressions,
         *re_ignore_elems_generic_single_backtick,
-        *re_ignore_elems_generic_single_quote,
     )),
 
     (LangType.PYTHON, TokenType.COMMENT): re_compile_from_sequence((
@@ -301,7 +291,6 @@ re_ignore_map: dict[tuple[LangType, TokenType], re.Pattern[str]] = {
 
 del re_ignore_elems_generic_url_email_tags
 del re_ignore_elems_generic_expressions
-del re_ignore_elems_generic_single_quote
 del re_ignore_elems_generic_double_backtick
 del re_ignore_elems_lang_c_doxygen
 
