@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include "draw_common_shader_shared.hh"
-
 struct FluidModifierData;
 struct GPUMaterial;
 struct GPUTexture;

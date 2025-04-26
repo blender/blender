@@ -164,7 +164,6 @@ set(SRC
   intern/draw_command.hh
   intern/draw_common.hh
   intern/draw_common_c.hh
-  intern/draw_common_shader_shared.hh
   intern/draw_context_private.hh
   intern/draw_curves_private.hh
   intern/draw_debug.hh
@@ -572,7 +571,6 @@ set(GLSL_SRC
   intern/shaders/draw_visibility_comp.glsl
 
   intern/draw_command_shared.hh
-  intern/draw_common_shader_shared.hh
   intern/draw_defines.hh
   intern/draw_pointcloud_private.hh
   intern/draw_shader_shared.hh
