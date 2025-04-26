@@ -391,7 +391,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
         name = RNA_property_ui_name(prop);
 
         if (label_align == UI_BUT_LABEL_ALIGN_COLUMN) {
-          col = uiLayoutColumn(layout, true);
+          col = &layout->column(true);
 
           if (!is_boolean) {
             uiItemL(col, *name, ICON_NONE);
@@ -399,7 +399,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
         }
         else {
           BLI_assert(label_align == UI_BUT_LABEL_ALIGN_SPLIT_COLUMN);
-          col = uiLayoutColumn(layout, true);
+          col = &layout->column(true);
           /* Let uiItemFullR() create the split layout. */
           uiLayoutSetPropSep(col, true);
         }

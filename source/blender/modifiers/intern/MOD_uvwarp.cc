@@ -254,14 +254,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemPointerR(
       layout, ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiItemR(col, ptr, "center", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiItemR(col, ptr, "axis_u", UI_ITEM_NONE, IFACE_("Axis U"), ICON_NONE);
   uiItemR(col, ptr, "axis_v", UI_ITEM_NONE, IFACE_("V"), ICON_NONE);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiItemR(col, ptr, "object_from", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   warp_obj_ptr = RNA_pointer_get(ptr, "object_from");
   if (!RNA_pointer_is_null(&warp_obj_ptr) && RNA_enum_get(&warp_obj_ptr, "type") == OB_ARMATURE) {

@@ -417,12 +417,12 @@ static void panel_draw(const bContext *C, Panel *panel)
                  1,
                  UI_TEMPLATE_LIST_FLAG_NONE);
 
-  uiLayout *col = uiLayoutColumn(row, false);
-  uiLayout *sub = uiLayoutColumn(col, true);
+  uiLayout *col = &row->column(false);
+  uiLayout *sub = &col->column(true);
   uiItemO(sub, "", ICON_ADD, "OBJECT_OT_grease_pencil_dash_modifier_segment_add");
   uiItemO(sub, "", ICON_REMOVE, "OBJECT_OT_grease_pencil_dash_modifier_segment_remove");
   uiItemS(col);
-  sub = uiLayoutColumn(col, true);
+  sub = &col->column(true);
   uiItemEnumO_string(
       sub, "", ICON_TRIA_UP, "OBJECT_OT_grease_pencil_dash_modifier_segment_move", "type", "UP");
   uiItemEnumO_string(sub,
@@ -437,11 +437,11 @@ static void panel_draw(const bContext *C, Panel *panel)
                                                     &RNA_GreasePencilDashModifierSegment,
                                                     &dmd->segments()[dmd->segment_active_index]);
 
-    sub = uiLayoutColumn(layout, true);
+    sub = &layout->column(true);
     uiItemR(sub, &ds_ptr, "dash", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(sub, &ds_ptr, "gap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutColumn(layout, false);
+    sub = &layout->column(false);
     uiItemR(sub, &ds_ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(sub, &ds_ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(sub, &ds_ptr, "material_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);

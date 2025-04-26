@@ -735,19 +735,19 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   uiBut *confirm = nullptr;
   uiBut *cancel = nullptr;
   uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
-  uiLayoutColumn(split, false);
+  split->column(false);
 
   if (windows_layout) {
     confirm = uiDefIconTextBut(
         block, UI_BTYPE_BUT, 0, 0, "Insert", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, std::nullopt);
-    uiLayoutColumn(split, false);
+    split->column(false);
   }
 
   cancel = uiDefIconTextBut(
       block, UI_BTYPE_BUT, 0, 0, "Cancel", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, std::nullopt);
 
   if (!windows_layout) {
-    uiLayoutColumn(split, false);
+    split->column(false);
     confirm = uiDefIconTextBut(
         block, UI_BTYPE_BUT, 0, 0, "Insert", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, std::nullopt);
   }

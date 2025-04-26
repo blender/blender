@@ -100,7 +100,7 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
   uiItemPointerR(row,
@@ -132,7 +132,7 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
   uiItemPointerR(
@@ -158,7 +158,7 @@ void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, Pointe
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
   uiItemPointerR(row, ptr, "vertex_group_name", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);

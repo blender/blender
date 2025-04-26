@@ -236,7 +236,7 @@ void uiTemplateAssetView(uiLayout *layout,
     return;
   }
 
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayout *col = &layout->column(false);
 
   PropertyRNA *asset_library_prop = RNA_struct_find_property(asset_library_dataptr,
                                                              asset_library_propname);
@@ -278,7 +278,7 @@ void uiTemplateAssetView(uiLayout *layout,
     template_list_flags |= UI_TEMPLATE_LIST_NO_FILTER_OPTIONS;
   }
 
-  uiLayout *subcol = uiLayoutColumn(col, false);
+  uiLayout *subcol = &col->column(false);
 
   uiLayoutSetScaleX(subcol, 0.8f);
   uiLayoutSetScaleY(subcol, 0.8f);

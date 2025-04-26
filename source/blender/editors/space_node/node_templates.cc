@@ -538,7 +538,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
       }
 
       if (first) {
-        column = uiLayoutColumn(layout, false);
+        column = &layout->column(false);
         UI_block_layout_set_current(block, column);
 
         uiItemL(column, IFACE_(cname), ICON_NODE);
@@ -626,7 +626,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
     ntreetype->foreach_nodeclass(arg, node_menu_column_foreach_cb);
   }
 
-  column = uiLayoutColumn(split, false);
+  column = &split->column(false);
   UI_block_layout_set_current(block, column);
 
   if (sock->link) {
@@ -908,7 +908,7 @@ static void ui_node_draw_input(uiLayout &layout,
       switch (input.type) {
         case SOCK_VECTOR:
           uiItemS(sub);
-          sub = uiLayoutColumn(sub, true);
+          sub = &sub->column(true);
           ATTR_FALLTHROUGH;
         case SOCK_FLOAT:
         case SOCK_INT:

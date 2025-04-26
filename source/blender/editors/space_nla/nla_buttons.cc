@@ -333,7 +333,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
 
   /* Active Action Properties ------------------------------------- */
   /* action */
-  uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayout *col = &layout->column(true);
   uiTemplateID(col, C, &adt_ptr, "action", "ACTION_OT_new", nullptr, "NLA_OT_action_unlink");
   uiTemplateSearch(col,
                    C,
@@ -419,7 +419,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
   uiLayoutSetPropDecorate(layout, false);
 
   /* strip extents */
-  column = uiLayoutColumn(layout, true);
+  column = &layout->column(true);
   uiItemR(column, &strip_ptr, "frame_start_ui", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
   uiItemR(column, &strip_ptr, "frame_end_ui", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 
@@ -433,7 +433,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
   /* only show if allowed to... */
   if (showEvalProps) {
     /* extrapolation */
-    column = uiLayoutColumn(layout, false);
+    column = &layout->column(false);
     uiItemR(column, &strip_ptr, "extrapolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(column, &strip_ptr, "blend_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -443,7 +443,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
 
     uiItemS(layout);
 
-    column = uiLayoutColumn(layout, true);
+    column = &layout->column(true);
     uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_auto_blend") == false);
     uiItemR(column, &strip_ptr, "blend_in", UI_ITEM_NONE, IFACE_("Blend In"), ICON_NONE);
     uiItemR(column, &strip_ptr, "blend_out", UI_ITEM_NONE, IFACE_("Out"), ICON_NONE);
@@ -489,7 +489,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
 
   /* Strip Properties ------------------------------------- */
   /* action pointer */
-  column = uiLayoutColumn(layout, true);
+  column = &layout->column(true);
   uiItemR(column, &strip_ptr, "action", UI_ITEM_NONE, std::nullopt, ICON_ACTION);
 
   NlaStrip *strip = static_cast<NlaStrip *>(strip_ptr.data);
@@ -515,7 +515,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
   }
 
   /* action extents */
-  column = uiLayoutColumn(layout, true);
+  column = &layout->column(true);
   uiItemR(
       column, &strip_ptr, "action_frame_start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
   uiItemR(column, &strip_ptr, "action_frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
@@ -525,7 +525,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
   uiItemO(row, IFACE_("Now"), ICON_FILE_REFRESH, "NLA_OT_action_sync_length");
 
   /* action usage */
-  column = uiLayoutColumn(layout, true);
+  column = &layout->column(true);
   uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_time") == false);
   uiItemR(column, &strip_ptr, "scale", UI_ITEM_NONE, IFACE_("Playback Scale"), ICON_NONE);
   uiItemR(column, &strip_ptr, "repeat", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -547,7 +547,7 @@ static void nla_panel_animated_influence_header(const bContext *C, Panel *panel)
   block = uiLayoutGetBlock(layout);
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, &strip_ptr, "use_animated_influence", UI_ITEM_NONE, "", ICON_NONE);
 }
 
@@ -586,7 +586,7 @@ static void nla_panel_animated_strip_time_header(const bContext *C, Panel *panel
   block = uiLayoutGetBlock(layout);
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, &strip_ptr, "use_animated_time", UI_ITEM_NONE, "", ICON_NONE);
 }
 

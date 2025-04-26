@@ -45,7 +45,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "size");
   uiItemFullR(col, ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Size X"), ICON_NONE);
   uiItemFullR(col, ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);

@@ -84,7 +84,7 @@ static void wm_stl_export_draw(bContext *C, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_export_general", false, IFACE_("General"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
 
     uiLayout *sub = uiLayoutColumnWithHeading(col, false, IFACE_("Format"));
     uiItemR(sub, ptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
@@ -106,7 +106,7 @@ static void wm_stl_export_draw(bContext *C, wmOperator *op)
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_export_geometry", false, IFACE_("Geometry")))
   {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
   }
 }
@@ -248,7 +248,7 @@ static void ui_stl_import_settings(const bContext *C, uiLayout *layout, PointerR
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_import_general", false, IFACE_("General"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
@@ -256,7 +256,7 @@ static void ui_stl_import_settings(const bContext *C, uiLayout *layout, PointerR
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_import_options", false, IFACE_("Options"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "use_facet_normal", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_mesh_validate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }

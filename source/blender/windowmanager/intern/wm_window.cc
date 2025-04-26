@@ -2118,14 +2118,14 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
   uiLayout *layout = uiItemsAlertBox(
       block, style, dialog_width + icon_size, ALERT_ICON_ERROR, icon_size);
 
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayout *col = &layout->column(false);
   uiLayoutSetScaleY(col, 0.9f);
 
   /* Title and explanation text. */
   uiItemL_ex(col, title, ICON_NONE, true, false);
   uiItemS_ex(col, 0.8f, LayoutSeparatorType::Space);
 
-  uiLayout *messages = uiLayoutColumn(col, false);
+  uiLayout *messages = &col->column(false);
   uiLayoutSetScaleY(messages, 0.8f);
 
   uiItemL(messages, message1, ICON_NONE);
@@ -2194,7 +2194,7 @@ static uiBlock *block_create_gpu_backend_fallback(bContext *C, ARegion *region, 
   uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_ERROR);
 
   /* Title and explanation text. */
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayout *col = &layout->column(false);
   uiLayoutSetScaleY(col, 0.8f);
   uiItemL_ex(
       col, RPT_("Failed to load using Vulkan, using OpenGL instead."), ICON_NONE, true, false);

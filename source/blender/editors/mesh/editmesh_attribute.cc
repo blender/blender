@@ -240,7 +240,7 @@ static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
 
 static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = uiLayoutColumn(op->layout, true);
+  uiLayout *layout = &op->layout->column(true);
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 

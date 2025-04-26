@@ -108,7 +108,7 @@ static void wm_ply_export_draw(bContext *C, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "PLY_export_general", false, IFACE_("General"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
 
     uiLayout *sub = uiLayoutColumnWithHeading(col, false, IFACE_("Format"));
     uiItemR(sub, ptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
@@ -127,7 +127,7 @@ static void wm_ply_export_draw(bContext *C, wmOperator *op)
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "PLY_export_geometry", false, IFACE_("Geometry")))
   {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
 
     uiItemR(col, ptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
     uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, IFACE_("Vertex Normals"), ICON_NONE);
@@ -291,7 +291,7 @@ static void ui_ply_import_settings(const bContext *C, uiLayout *layout, PointerR
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "PLY_import_general", false, IFACE_("General"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -299,7 +299,7 @@ static void ui_ply_import_settings(const bContext *C, uiLayout *layout, PointerR
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "PLY_import_options", false, IFACE_("Options"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "merge_verts", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }

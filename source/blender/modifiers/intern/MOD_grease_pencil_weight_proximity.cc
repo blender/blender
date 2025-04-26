@@ -263,7 +263,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  sub = uiLayoutColumn(layout, true);
+  sub = &layout->column(true);
   uiItemR(sub, ptr, "distance_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(sub, ptr, "distance_end", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

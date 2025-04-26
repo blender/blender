@@ -71,7 +71,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
   uiItemS(layout);
 
   /* Move to first. */
-  row = uiLayoutColumn(layout, false);
+  row = &layout->column(false);
   uiItemFullO(row,
               "CONSTRAINT_OT_move_to_index",
               IFACE_("Move to First"),
@@ -86,7 +86,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
   }
 
   /* Move to last. */
-  row = uiLayoutColumn(layout, false);
+  row = &layout->column(false);
   uiItemFullO(row,
               "CONSTRAINT_OT_move_to_index",
               IFACE_("Move to Last"),

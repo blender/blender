@@ -120,7 +120,7 @@ void uiTemplatePreview(uiLayout *layout,
   /* layout */
   uiBlock *block = uiLayoutGetBlock(layout);
   uiLayout *row = &layout->row(false);
-  uiLayout *col = uiLayoutColumn(row, false);
+  uiLayout *col = &row->column(false);
   uiLayoutSetKeepAspect(col, true);
 
   /* add preview */
@@ -158,7 +158,7 @@ void uiTemplatePreview(uiLayout *layout,
       /* Create RNA Pointer */
       PointerRNA material_ptr = RNA_id_pointer_create(&ma->id);
 
-      col = uiLayoutColumn(row, true);
+      col = &row->column(true);
       uiLayoutSetScaleX(col, 1.5);
       uiItemR(col, &material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", ICON_NONE);
 

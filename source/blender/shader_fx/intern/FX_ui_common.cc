@@ -129,7 +129,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
   uiItemS(layout);
 
   /* Move to first. */
-  row = uiLayoutColumn(layout, false);
+  row = &layout->column(false);
   uiItemFullO(row,
               "OBJECT_OT_shaderfx_move_to_index",
               IFACE_("Move to First"),
@@ -144,7 +144,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
   }
 
   /* Move to last. */
-  row = uiLayoutColumn(layout, false);
+  row = &layout->column(false);
   uiItemFullO(row,
               "OBJECT_OT_shaderfx_move_to_index",
               IFACE_("Move to Last"),

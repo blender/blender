@@ -29,18 +29,18 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
   uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN);
 
-  uiLayout *layout = uiLayoutColumn(UI_block_layout(block,
-                                                    UI_LAYOUT_VERTICAL,
-                                                    UI_LAYOUT_PANEL,
-                                                    0,
-                                                    0,
-                                                    UI_UNIT_X * 6,
-                                                    UI_UNIT_Y,
-                                                    0,
-                                                    UI_style_get()),
-                                    false);
+  uiLayout &layout = UI_block_layout(block,
+                                     UI_LAYOUT_VERTICAL,
+                                     UI_LAYOUT_PANEL,
+                                     0,
+                                     0,
+                                     UI_UNIT_X * 6,
+                                     UI_UNIT_Y,
+                                     0,
+                                     UI_style_get())
+                         ->column(false);
 
-  uiItemR(layout, &args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
+  uiItemR(&layout, &args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
 
   UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
   UI_block_direction_set(block, UI_DIR_DOWN);

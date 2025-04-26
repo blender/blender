@@ -81,14 +81,14 @@ static void draw_items_list_with_operators(const bContext *C,
                  0,
                  UI_TEMPLATE_LIST_FLAG_NONE);
 
-  uiLayout *ops_col = uiLayoutColumn(row, false);
+  uiLayout *ops_col = &row->column(false);
   {
-    uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
+    uiLayout *add_remove_col = &ops_col->column(true);
     uiItemO(add_remove_col, "", ICON_ADD, Accessor::operator_idnames::add_item);
     uiItemO(add_remove_col, "", ICON_REMOVE, Accessor::operator_idnames::remove_item);
   }
   {
-    uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
+    uiLayout *up_down_col = &ops_col->column(true);
     uiItemEnumO(
         up_down_col, Accessor::operator_idnames::move_item, "", ICON_TRIA_UP, "direction", 0);
     uiItemEnumO(

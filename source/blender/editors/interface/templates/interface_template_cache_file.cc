@@ -164,7 +164,7 @@ void uiTemplateCacheFileLayers(uiLayout *layout, const bContext *C, PointerRNA *
   uiLayoutSetContextPointer(layout, "edit_cachefile", fileptr);
 
   uiLayout *row = &layout->row(false);
-  uiLayout *col = uiLayoutColumn(row, true);
+  uiLayout *col = &row->column(true);
 
   uiTemplateList(col,
                  (bContext *)C,
@@ -181,7 +181,7 @@ void uiTemplateCacheFileLayers(uiLayout *layout, const bContext *C, PointerRNA *
                  1,
                  UI_TEMPLATE_LIST_FLAG_NONE);
 
-  col = uiLayoutColumn(row, true);
+  col = &row->column(true);
   uiItemO(col, "", ICON_ADD, "cachefile.layer_add");
   uiItemO(col, "", ICON_REMOVE, "cachefile.layer_remove");
 

@@ -418,7 +418,7 @@ void ui_template_modifier_asset_menu_items(uiLayout &layout, const StringRef cat
     return;
   }
   uiItemS(&layout);
-  uiLayout *col = uiLayoutColumn(&layout, false);
+  uiLayout *col = &layout.column(false);
   uiLayoutSetContextString(col, "asset_catalog_path", item->catalog_path().str());
   uiItemMContents(col, "OBJECT_MT_add_modifier_catalog_assets");
 }

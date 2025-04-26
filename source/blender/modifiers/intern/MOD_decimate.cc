@@ -257,7 +257,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
   else { /* decimate_type == MOD_DECIM_MODE_DISSOLVE. */
     uiItemR(layout, ptr, "angle_limit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayout *col = uiLayoutColumn(layout, false);
+    uiLayout *col = &layout->column(false);
     uiItemR(col, ptr, "delimit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(layout, ptr, "use_dissolve_boundaries", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }

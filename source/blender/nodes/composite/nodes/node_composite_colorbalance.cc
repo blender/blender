@@ -105,35 +105,35 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
 
   if (method == CMP_NODE_COLOR_BALANCE_LGG) {
     split = uiLayoutSplit(layout, 0.0f, false);
-    col = uiLayoutColumn(split, false);
+    col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "lift", true, true, false, true);
     row = &col->row(false);
     uiItemR(row, ptr, "lift", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-    col = uiLayoutColumn(split, false);
+    col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "gamma", true, true, true, true);
     row = &col->row(false);
     uiItemR(row, ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-    col = uiLayoutColumn(split, false);
+    col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "gain", true, true, true, true);
     row = &col->row(false);
     uiItemR(row, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else if (method == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
     split = uiLayoutSplit(layout, 0.0f, false);
-    col = uiLayoutColumn(split, false);
+    col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "offset", true, true, false, true);
     row = &col->row(false);
     uiItemR(row, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "offset_basis", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-    col = uiLayoutColumn(split, false);
+    col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "power", true, true, false, true);
     row = &col->row(false);
     uiItemR(row, ptr, "power", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-    col = uiLayoutColumn(split, false);
+    col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "slope", true, true, false, true);
     row = &col->row(false);
     uiItemR(row, ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
@@ -141,7 +141,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
   else if (method == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
     split = uiLayoutSplit(layout, 0.0f, false);
 
-    col = uiLayoutColumn(split, false);
+    col = &split->column(false);
     row = &col->row(true);
     uiItemL(row, IFACE_("Input"), ICON_NONE);
     uiTemplateCryptoPicker(row, ptr, "input_whitepoint", ICON_EYEDROPPER);
@@ -153,7 +153,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
             ICON_NONE);
     uiItemR(col, ptr, "input_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Tint"), ICON_NONE);
 
-    col = uiLayoutColumn(split, false);
+    col = &split->column(false);
     row = &col->row(true);
     uiItemL(row, IFACE_("Output"), ICON_NONE);
     uiTemplateCryptoPicker(row, ptr, "output_whitepoint", ICON_EYEDROPPER);

@@ -57,7 +57,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
 {
   uiLayout *col, *row;
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   const int filter = RNA_enum_get(ptr, "filter_type");
   const int reference = RNA_boolean_get(ptr, "use_variable_size");
 
@@ -82,12 +82,12 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
             std::nullopt,
             ICON_NONE);
 
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     uiItemR(col, ptr, "factor_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
     uiItemR(col, ptr, "factor_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
   }
   else {
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     uiItemR(col, ptr, "size_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
     uiItemR(col, ptr, "size_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
   }

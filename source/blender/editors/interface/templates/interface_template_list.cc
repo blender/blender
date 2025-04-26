@@ -733,9 +733,9 @@ static void ui_template_list_layout_draw(const bContext *C,
     case UILST_LAYOUT_DEFAULT: {
       /* layout */
       box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
-      glob = uiLayoutColumn(box, true);
+      glob = &box->column(true);
       row = &glob->row(false);
-      col = uiLayoutColumn(row, true);
+      col = &row->column(true);
 
       TemplateListLayoutDrawData adjusted_layout_data = *layout_data;
       adjusted_layout_data.columns = 1;
@@ -826,7 +826,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       /* Add scroll-bar. */
       if (items->item_vec.size() > visual_info.visual_items) {
-        uiLayoutColumn(row, false);
+        row->column(false);
         but = uiDefButI(block,
                         UI_BTYPE_SCROLL,
                         0,
@@ -896,9 +896,9 @@ static void ui_template_list_layout_draw(const bContext *C,
       break;
     case UILST_LAYOUT_GRID: {
       box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
-      glob = uiLayoutColumn(box, true);
+      glob = &box->column(true);
       row = &glob->row(false);
-      col = uiLayoutColumn(row, true);
+      col = &row->column(true);
       subrow = nullptr; /* Quite gcc warning! */
 
       uilist_prepare(ui_list, items, layout_data, &visual_info);
@@ -973,7 +973,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       /* Add scroll-bar. */
       if (items->item_vec.size() > visual_info.visual_items) {
-        /* col = */ uiLayoutColumn(row, false);
+        /* col = */ row->column(false);
         but = uiDefButI(block,
                         UI_BTYPE_SCROLL,
                         0,
@@ -994,7 +994,7 @@ static void ui_template_list_layout_draw(const bContext *C,
     case UILST_LAYOUT_BIG_PREVIEW_GRID:
       box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
       /* For grip button. */
-      glob = uiLayoutColumn(box, true);
+      glob = &box->column(true);
       /* For scroll-bar. */
       row = &glob->row(false);
 
@@ -1019,7 +1019,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           const int flt_flag = items->item_vec[i].flt_flag;
 
           overlap = uiLayoutOverlap(grid);
-          col = uiLayoutColumn(overlap, false);
+          col = &overlap->column(false);
 
           uiBlock *subblock = uiLayoutGetBlock(col);
           UI_block_flag_enable(subblock, UI_BLOCK_LIST_ITEM);
@@ -1040,7 +1040,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                                std::nullopt);
           UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
 
-          col = uiLayoutColumn(overlap, false);
+          col = &overlap->column(false);
 
           icon = UI_icon_from_rnaptr(C, itemptr, rnaicon, false);
           layout_data->draw_item(ui_list,
@@ -1068,7 +1068,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       }
 
       if (items->item_vec.size() > visual_info.visual_items) {
-        /* col = */ uiLayoutColumn(row, false);
+        /* col = */ row->column(false);
         but = uiDefButI(block,
                         UI_BTYPE_SCROLL,
                         0,
@@ -1145,7 +1145,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       UI_block_emboss_set(subblock, blender::ui::EmbossType::Emboss);
 
-      col = uiLayoutColumn(glob, false);
+      col = &glob->column(false);
       subblock = uiLayoutGetBlock(col);
       uiDefBut(subblock,
                UI_BTYPE_SEPR,

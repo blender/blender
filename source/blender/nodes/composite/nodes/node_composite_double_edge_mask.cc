@@ -40,7 +40,7 @@ static void node_composit_buts_double_edge_mask(uiLayout *layout,
 {
   uiLayout *col;
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
 
   uiItemL(col, IFACE_("Inner Edge:"), ICON_NONE);
   uiItemR(col, ptr, "inner_mode", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);

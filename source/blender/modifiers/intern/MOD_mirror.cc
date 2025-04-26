@@ -142,7 +142,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   bool has_bisect = (mmd->flag &
                      (MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_AXIS_Y | MOD_MIR_BISECT_AXIS_Z));
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiLayoutSetPropSep(col, true);
 
   prop = RNA_struct_find_property(ptr, "use_axis");
@@ -197,7 +197,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   row = &col->row(true, IFACE_("Mirror U"));
   uiLayoutSetPropDecorate(row, false);
   sub = &row->row(true);
@@ -216,7 +216,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(sub, ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemDecoratorR(row, ptr, "mirror_offset_v", 0);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, ptr, "offset_u", UI_ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
   uiItemR(col, ptr, "offset_v", UI_ITEM_R_SLIDER, IFACE_("V"), ICON_NONE);
 

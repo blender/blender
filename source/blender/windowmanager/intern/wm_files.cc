@@ -3336,7 +3336,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
 
   uiItemR(layout, op->ptr, "load_ui", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayout *col = &layout->column(false);
   if (file_info->is_untrusted) {
     autoexec_text = IFACE_("Trusted Source [Untrusted Path]");
     uiLayoutSetActive(col, false);
@@ -4130,7 +4130,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
       block, style, dialog_width + icon_size, ALERT_ICON_ERROR, icon_size);
 
   /* Title and explanation text. */
-  uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayout *col = &layout->column(true);
   uiItemL_ex(col, title, ICON_NONE, true, false);
   uiItemL_ex(col, G.autoexec_fail, ICON_NONE, false, true);
   uiItemL(col, message, ICON_NONE);
@@ -4148,10 +4148,10 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   uiLayoutSetScaleY(split, 1.2f);
 
   /* Empty space. */
-  col = uiLayoutColumn(split, false);
+  col = &split->column(false);
   uiItemS(col);
 
-  col = uiLayoutColumn(split, false);
+  col = &split->column(false);
 
   /* Allow reload if we have a saved file.
    * Otherwise just enable scripts and reset the depsgraphs. */
@@ -4191,7 +4191,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   }
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 
-  col = uiLayoutColumn(split, false);
+  col = &split->column(false);
   but = uiDefIconTextBut(block,
                          UI_BTYPE_BUT,
                          0,
@@ -4311,7 +4311,7 @@ static const char *save_file_overwrite_dialog_name = "save_file_overwrite_popup"
 
 static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bmain)
 {
-  uiLayout *layout = uiLayoutColumn(parent_layout, true);
+  uiLayout *layout = &parent_layout->column(true);
   /* Trick to make both lines of text below close enough to look like they are part of a same
    * block. */
   uiLayoutSetScaleY(layout, 0.70f);
@@ -4504,7 +4504,7 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
   uiLayout *split = uiLayoutSplit(layout, 0.3f, true);
   uiLayoutSetScaleY(split, 1.2f);
 
-  uiLayoutColumn(split, false);
+  split->column(false);
   /* Asset files don't actually allow overriding. */
   const bool allow_overwrite = !bmain->is_asset_edit_file;
   if (allow_overwrite) {
@@ -4513,13 +4513,13 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
 
   uiLayout *split_right = uiLayoutSplit(split, 0.1f, true);
 
-  uiLayoutColumn(split_right, false);
+  split_right->column(false);
   /* Empty space. */
 
-  uiLayoutColumn(split_right, false);
+  split_right->column(false);
   save_file_overwrite_cancel_button(block, post_action);
 
-  uiLayoutColumn(split_right, false);
+  split_right->column(false);
   save_file_overwrite_saveas_button(block, post_action);
 
   UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
@@ -4722,7 +4722,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
   uint modified_images_count = ED_image_save_all_modified_info(bmain, &reports);
 
   LISTBASE_FOREACH (Report *, report, &reports.list) {
-    uiLayout *row = uiLayoutColumn(layout, false);
+    uiLayout *row = &layout->column(false);
     uiLayoutSetScaleY(row, 0.6f);
     uiItemS(row);
 
@@ -4817,13 +4817,13 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
     uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
     uiLayoutSetScaleY(split, 1.2f);
 
-    uiLayoutColumn(split, false);
+    split->column(false);
     wm_block_file_close_save_button(block, post_action, needs_overwrite_confirm);
 
-    uiLayoutColumn(split, false);
+    split->column(false);
     wm_block_file_close_discard_button(block, post_action);
 
-    uiLayoutColumn(split, false);
+    split->column(false);
     wm_block_file_close_cancel_button(block, post_action);
   }
   else {
@@ -4832,18 +4832,18 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
     uiLayout *split = uiLayoutSplit(layout, 0.3f, true);
     uiLayoutSetScaleY(split, 1.2f);
 
-    uiLayoutColumn(split, false);
+    split->column(false);
     wm_block_file_close_discard_button(block, post_action);
 
     uiLayout *split_right = uiLayoutSplit(split, 0.1f, true);
 
-    uiLayoutColumn(split_right, false);
+    split_right->column(false);
     /* Empty space. */
 
-    uiLayoutColumn(split_right, false);
+    split_right->column(false);
     wm_block_file_close_cancel_button(block, post_action);
 
-    uiLayoutColumn(split_right, false);
+    split_right->column(false);
     wm_block_file_close_save_button(block, post_action, needs_overwrite_confirm);
   }
 

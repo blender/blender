@@ -170,7 +170,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
   }
 
   UI_block_layout_set_current(block, layout);
-  uiLayoutColumn(layout, false);
+  layout->column(false);
 
   const char *fake_name = ui_imageuser_layer_fake_name(rr);
   if (fake_name) {
@@ -245,7 +245,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
   rl = static_cast<RenderLayer *>(BLI_findlink(&rr->layers, rpass_index));
 
   UI_block_layout_set_current(block, layout);
-  uiLayoutColumn(layout, false);
+  layout->column(false);
 
   nr = (rl == nullptr) ? 1 : 0;
 
@@ -316,7 +316,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
   }
 
   UI_block_layout_set_current(block, layout);
-  uiLayoutColumn(layout, false);
+  layout->column(false);
 
   uiDefBut(block,
            UI_BTYPE_LABEL,
@@ -364,7 +364,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout,
   ImageView *iv;
 
   UI_block_layout_set_current(block, layout);
-  uiLayoutColumn(layout, false);
+  layout->column(false);
 
   uiDefBut(block,
            UI_BTYPE_LABEL,
@@ -815,13 +815,13 @@ void uiTemplateImage(uiLayout *layout,
     uiItemS(layout);
   }
 
-  layout = uiLayoutColumn(layout, false);
+  layout = &layout->column(false);
   uiLayoutSetEnabled(layout, !is_dirty);
   uiLayoutSetPropDecorate(layout, false);
 
   /* Image source */
   {
-    uiLayout *col = uiLayoutColumn(layout, false);
+    uiLayout *col = &layout->column(false);
     uiLayoutSetPropSep(col, true);
     uiItemR(col, &imaptr, "source", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -855,10 +855,10 @@ void uiTemplateImage(uiLayout *layout,
     uiItemS(layout);
 
     /* Generated */
-    uiLayout *col = uiLayoutColumn(layout, false);
+    uiLayout *col = &layout->column(false);
     uiLayoutSetPropSep(col, true);
 
-    uiLayout *sub = uiLayoutColumn(col, true);
+    uiLayout *sub = &col->column(true);
     uiItemR(sub, &imaptr, "generated_width", UI_ITEM_NONE, "X", ICON_NONE);
     uiItemR(sub, &imaptr, "generated_height", UI_ITEM_NONE, "Y", ICON_NONE);
 
@@ -886,10 +886,10 @@ void uiTemplateImage(uiLayout *layout,
     /* Animation */
     uiItemS(layout);
 
-    uiLayout *col = uiLayoutColumn(layout, true);
+    uiLayout *col = &layout->column(true);
     uiLayoutSetPropSep(col, true);
 
-    uiLayout *sub = uiLayoutColumn(col, true);
+    uiLayout *sub = &col->column(true);
     uiLayout *row = &sub->row(true);
     uiItemR(row, userptr, "frame_duration", UI_ITEM_NONE, IFACE_("Frames"), ICON_NONE);
     uiItemO(row, "", ICON_FILE_REFRESH, "IMAGE_OT_match_movie_length");
@@ -910,7 +910,7 @@ void uiTemplateImage(uiLayout *layout,
     if ((scene->r.scemode & R_MULTIVIEW) != 0) {
       uiItemS(layout);
 
-      uiLayout *col = uiLayoutColumn(layout, false);
+      uiLayout *col = &layout->column(false);
       uiLayoutSetPropSep(col, true);
       uiItemR(col, &imaptr, "use_multiview", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -924,14 +924,14 @@ void uiTemplateImage(uiLayout *layout,
   {
     uiItemS(layout);
 
-    uiLayout *col = uiLayoutColumn(layout, false);
+    uiLayout *col = &layout->column(false);
     uiLayoutSetPropSep(col, true);
     uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
 
     if (compact == 0) {
       if (ima->source != IMA_SRC_GENERATED) {
         if (BKE_image_has_alpha(ima)) {
-          uiLayout *sub = uiLayoutColumn(col, false);
+          uiLayout *sub = &col->column(false);
           uiItemR(sub, &imaptr, "alpha_mode", UI_ITEM_NONE, IFACE_("Alpha"), ICON_NONE);
 
           bool is_data = IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name);
@@ -970,7 +970,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 
   uiLayout *col;
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
 
   uiLayoutSetPropSep(col, true);
   uiLayoutSetPropDecorate(col, false);
@@ -1067,7 +1067,7 @@ void uiTemplateImageStereo3d(uiLayout *layout, PointerRNA *stereo3d_format_ptr)
   Stereo3dFormat *stereo3d_format = static_cast<Stereo3dFormat *>(stereo3d_format_ptr->data);
   uiLayout *col;
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiItemR(col, stereo3d_format_ptr, "display_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   switch (stereo3d_format->display_mode) {
@@ -1104,7 +1104,7 @@ static void uiTemplateViewsFormat(uiLayout *layout,
 {
   uiLayout *col;
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
 
   uiLayoutSetPropSep(col, true);
   uiLayoutSetPropDecorate(col, false);
@@ -1188,7 +1188,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
   void *lock;
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
-  uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayout *col = &layout->column(true);
   uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_RIGHT);
 
   if (ibuf == nullptr) {

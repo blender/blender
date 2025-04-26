@@ -2428,7 +2428,7 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
 
   std::string unused_message;
   unused_message_gen(unused_message, data.num_local);
-  uiLayout *column = uiLayoutColumn(layout, true);
+  uiLayout *column = &layout->column(true);
   uiItemR(column, ptr, "do_local_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiLayout *row = &column->row(true);
   uiItemS_ex(row, 2.67f);
@@ -2436,7 +2436,7 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
 
   unused_message = "";
   unused_message_gen(unused_message, data.num_linked);
-  column = uiLayoutColumn(layout, true);
+  column = &layout->column(true);
   uiItemR(column, ptr, "do_linked_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row = &column->row(true);
   uiItemS_ex(row, 2.67f);

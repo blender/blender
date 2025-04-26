@@ -122,7 +122,7 @@ static void graph_panel_cursor_header(const bContext *C, Panel *panel)
   PointerRNA spaceptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceGraphEditor, sipo);
 
   /* 2D-Cursor */
-  col = uiLayoutColumn(panel->layout, false);
+  col = &panel->layout->column(false);
   uiItemR(col, &spaceptr, "show_cursor", UI_ITEM_NONE, "", ICON_NONE);
 }
 
@@ -142,10 +142,10 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
   uiLayoutSetPropDecorate(layout, false);
 
   /* 2D-Cursor */
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiLayoutSetActive(col, RNA_boolean_get(&spaceptr, "show_cursor"));
 
-  sub = uiLayoutColumn(col, true);
+  sub = &col->column(true);
   if (sipo->mode == SIPO_MODE_DRIVERS) {
     uiItemR(sub, &spaceptr, "cursor_position_x", UI_ITEM_NONE, IFACE_("Cursor X"), ICON_NONE);
   }
@@ -155,7 +155,7 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
 
   uiItemR(sub, &spaceptr, "cursor_position_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
-  sub = uiLayoutColumn(col, true);
+  sub = &col->column(true);
   uiItemO(sub, IFACE_("Cursor to Selection"), ICON_NONE, "GRAPH_OT_frame_jump");
   uiItemO(sub, IFACE_("Cursor Value to Selection"), ICON_NONE, "GRAPH_OT_snap_cursor_value");
 }
@@ -183,7 +183,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   PointerRNA fcu_ptr = RNA_pointer_create_discrete(ale->fcurve_owner_id, &RNA_FCurve, fcu);
 
   /* user-friendly 'name' for F-Curve */
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   if (ale->type == ANIMTYPE_FCURVE) {
     /* get user-friendly name for F-Curve */
     const std::optional<int> optional_icon = getname_anim_fcurve(name, ale->id, fcu);
@@ -221,13 +221,13 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   uiLayoutSetPropDecorate(layout, false);
 
   /* RNA-Path Editing - only really should be enabled when things aren't working */
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED) != 0);
   uiItemR(col, &fcu_ptr, "data_path", UI_ITEM_NONE, "", ICON_RNA);
   uiItemR(col, &fcu_ptr, "array_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   /* color settings */
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, &fcu_ptr, "color_mode", UI_ITEM_NONE, IFACE_("Display Color"), ICON_NONE);
 
   if (fcu->color_mode == FCURVE_COLOR_CUSTOM) {
@@ -235,7 +235,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   }
 
   /* smoothing setting */
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, &fcu_ptr, "auto_smoothing", UI_ITEM_NONE, IFACE_("Handle Smoothing"), ICON_NONE);
 
   MEM_freeN(ale);
@@ -386,7 +386,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     }
 
     /* interpolation */
-    col = uiLayoutColumn(layout, false);
+    col = &layout->column(false);
     if (fcu->flag & FCURVE_DISCRETE_VALUES) {
       uiLayout *split = uiLayoutSplit(col, 0.33f, true);
       uiItemL(split, IFACE_("Interpolation:"), ICON_NONE);
@@ -404,11 +404,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     /* easing extra */
     switch (bezt->ipo) {
       case BEZT_IPO_BACK:
-        col = uiLayoutColumn(layout, true);
+        col = &layout->column(true);
         uiItemR(col, &bezt_ptr, "back", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         break;
       case BEZT_IPO_ELASTIC:
-        col = uiLayoutColumn(layout, true);
+        col = &layout->column(true);
         uiItemR(col, &bezt_ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         uiItemR(col, &bezt_ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         break;
@@ -420,7 +420,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
      * - we use the button-versions of the calls so that we can attach special update handlers
      *   and unit conversion magic that cannot be achieved using a purely RNA-approach
      */
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     /* keyframe itself */
     {
       uiItemL_respect_property_split(col, IFACE_("Key Frame"), ICON_NONE);
@@ -462,7 +462,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     /* previous handle - only if previous was Bezier interpolation */
     if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ)) {
 
-      col = uiLayoutColumn(layout, true);
+      col = &layout->column(true);
       uiItemL_respect_property_split(col, IFACE_("Left Handle Type"), ICON_NONE);
       but = uiDefButR(block,
                       UI_BTYPE_MENU,
@@ -520,7 +520,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     if (bezt->ipo == BEZT_IPO_BEZ) {
       /* NOTE: special update callbacks are needed on the coords here due to #39911 */
 
-      col = uiLayoutColumn(layout, true);
+      col = &layout->column(true);
       uiItemL_respect_property_split(col, IFACE_("Right Handle Type"), ICON_NONE);
       but = uiDefButR(block,
                       UI_BTYPE_MENU,
@@ -762,7 +762,7 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
     PointerRNA root_ptr = RNA_id_pointer_create(dtar->id);
 
     /* rna path */
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     uiLayoutSetRedAlert(col, (dtar->flag & (DTAR_FLAG_INVALID | DTAR_FLAG_FALLBACK_USED)));
     uiTemplatePathBuilder(col,
                           &dtar_ptr,
@@ -790,7 +790,7 @@ static void graph_panel_driverVar__rotDiff(uiLayout *layout, ID *id, DriverVar *
   PointerRNA dtar2_ptr = RNA_pointer_create_discrete(id, &RNA_DriverTarget, dtar2);
 
   /* Object 1 */
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
   uiItemR(col, &dtar_ptr, "id", UI_ITEM_NONE, IFACE_("Object 1"), ICON_NONE);
 
@@ -800,7 +800,7 @@ static void graph_panel_driverVar__rotDiff(uiLayout *layout, ID *id, DriverVar *
   }
 
   /* Object 2 */
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiLayoutSetRedAlert(col, (dtar2->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
   uiItemR(col, &dtar2_ptr, "id", UI_ITEM_NONE, IFACE_("Object 2"), ICON_NONE);
 
@@ -824,7 +824,7 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
   PointerRNA dtar2_ptr = RNA_pointer_create_discrete(id, &RNA_DriverTarget, dtar2);
 
   /* Object 1 */
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
   uiItemR(col, &dtar_ptr, "id", UI_ITEM_NONE, IFACE_("Object 1"), ICON_NONE);
 
@@ -840,7 +840,7 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
   uiItemR(col, &dtar_ptr, "transform_space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   /* Object 2 */
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiLayoutSetRedAlert(col, (dtar2->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
   uiItemR(col, &dtar2_ptr, "id", UI_ITEM_NONE, IFACE_("Object 2"), ICON_NONE);
 
@@ -867,7 +867,7 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
   PointerRNA dtar_ptr = RNA_pointer_create_discrete(id, &RNA_DriverTarget, dtar);
 
   /* properties */
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
   uiItemR(col, &dtar_ptr, "id", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
 
@@ -877,7 +877,7 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
         col, &dtar_ptr, "bone_target", &tar_ptr, "bones", IFACE_("Bone"), ICON_BONE_DATA);
   }
 
-  sub = uiLayoutColumn(layout, true);
+  sub = &layout->column(true);
   uiItemR(sub, &dtar_ptr, "transform_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(dtar->transChan,
@@ -908,7 +908,7 @@ static void graph_panel_driverVar__contextProp(uiLayout *layout, ID *id, DriverV
 
   /* Target Path */
   {
-    uiLayout *col = uiLayoutColumn(layout, true);
+    uiLayout *col = &layout->column(true);
     uiLayoutSetRedAlert(col, (dtar->flag & (DTAR_FLAG_INVALID | DTAR_FLAG_FALLBACK_USED)));
     uiTemplatePathBuilder(col,
                           &dtar_ptr,
@@ -1009,7 +1009,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   /* driver-level settings - type, expressions, and errors */
   PointerRNA driver_ptr = RNA_pointer_create_discrete(id, &RNA_Driver, driver);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   block = uiLayoutGetBlock(col);
   uiItemR(col, &driver_ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -1034,7 +1034,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
     /* expression */
     /* TODO: "Show syntax hints" button */
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     block = uiLayoutGetBlock(col);
 
     uiItemL(col, IFACE_("Expression:"), ICON_NONE);
@@ -1042,7 +1042,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     uiItemR(col, &driver_ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     /* errors? */
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     block = uiLayoutGetBlock(col);
 
     if (driver->flag & DRIVER_FLAG_PYTHON_BLOCKED) {
@@ -1072,7 +1072,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   }
   else {
     /* errors? */
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     block = uiLayoutGetBlock(col);
 
     if (driver->flag & DRIVER_FLAG_INVALID) {
@@ -1138,7 +1138,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     uiLayout *subrow, *sub;
 
     /* sub-layout column for this variable's settings */
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
 
     /* 1) header panel */
     box = uiLayoutBox(col);

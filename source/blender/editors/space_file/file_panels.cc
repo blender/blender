@@ -228,7 +228,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
   FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
   BLI_assert(params != nullptr);
 
-  uiLayout *col = uiLayoutColumn(panel->layout, false);
+  uiLayout *col = &panel->layout->column(false);
   uiLayout *row = &col->row(true);
 
   PointerRNA params_ptr = RNA_pointer_create_discrete(

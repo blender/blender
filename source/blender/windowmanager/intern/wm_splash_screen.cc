@@ -471,7 +471,7 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
   }
 #endif /* !WITH_HEADLESS */
 
-  uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayout *col = &layout->column(true);
 
   uiItemL_ex(col, IFACE_("Blender"), ICON_NONE, true, false);
 

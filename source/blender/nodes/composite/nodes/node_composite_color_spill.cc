@@ -43,7 +43,7 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
             std::nullopt,
             ICON_NONE);
 
-    uiLayout *col = uiLayoutColumn(layout, false);
+    uiLayout *col = &layout->column(false);
     uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     if (RNA_enum_get(ptr, "limit_method") == 0) {

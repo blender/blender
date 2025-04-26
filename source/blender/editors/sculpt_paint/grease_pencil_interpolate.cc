@@ -1472,7 +1472,7 @@ static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
   row = &layout->row(true);
   uiItemR(row, op->ptr, "flip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, op->ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, op->ptr, "smooth_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

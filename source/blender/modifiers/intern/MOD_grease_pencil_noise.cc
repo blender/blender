@@ -278,7 +278,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiItemR(col, ptr, "factor", UI_ITEM_NONE, IFACE_("Position"), ICON_NONE);
   uiItemR(col,
           ptr,
@@ -297,7 +297,7 @@ static void panel_draw(const bContext *C, Panel *panel)
               C, layout, ptr, "open_random_panel", ptr, "use_random", IFACE_("Random"))
               .body)
   {
-    uiLayout *random_col = uiLayoutColumn(random_layout, false);
+    uiLayout *random_col = &random_layout->column(false);
     uiLayoutSetActive(random_col, RNA_boolean_get(ptr, "use_random"));
 
     uiItemR(random_col, ptr, "random_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);

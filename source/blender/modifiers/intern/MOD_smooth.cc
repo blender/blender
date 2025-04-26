@@ -190,7 +190,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(row, ptr, "use_y", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "use_z", toggles_flag, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiItemR(col, ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "iterations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

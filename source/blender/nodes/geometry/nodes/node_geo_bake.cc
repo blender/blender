@@ -502,7 +502,7 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
   }
 
   uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayout *col = &layout->column(false);
   {
     uiLayout *row = &col->row(true);
     uiLayoutSetEnabled(row, !ctx.is_baked);
@@ -524,7 +524,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
 
   {
-    uiLayout *col = uiLayoutColumn(layout, false);
+    uiLayout *col = &layout->column(false);
     {
       uiLayout *row = &col->row(true);
       uiLayoutSetEnabled(row, !ctx.is_baked);
@@ -694,7 +694,7 @@ std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx)
 
 void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bool is_in_sidebar)
 {
-  uiLayout *col = uiLayoutColumn(layout, true);
+  uiLayout *col = &layout->column(true);
   uiLayout *row = &col->row(true);
   {
     const char *bake_label = IFACE_("Bake");
@@ -787,16 +787,16 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayout *settings_col = uiLayoutColumn(layout, false);
+  uiLayout *settings_col = &layout->column(false);
   uiLayoutSetActive(settings_col, !ctx.is_baked);
   {
-    uiLayout *col = uiLayoutColumn(settings_col, true);
+    uiLayout *col = &settings_col->column(true);
     uiItemR(col, &ctx.bake_rna, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayout *subcol = uiLayoutColumn(col, true);
+    uiLayout *subcol = &col->column(true);
     uiLayoutSetActive(subcol, ctx.bake_target == NODES_MODIFIER_BAKE_TARGET_DISK);
     uiItemR(
         subcol, &ctx.bake_rna, "use_custom_path", UI_ITEM_NONE, IFACE_("Custom Path"), ICON_NONE);
-    uiLayout *subsubcol = uiLayoutColumn(subcol, true);
+    uiLayout *subsubcol = &subcol->column(true);
     const bool use_custom_path = ctx.bake->flag & NODES_MODIFIER_BAKE_CUSTOM_PATH;
     uiLayoutSetActive(subsubcol, use_custom_path);
     Main *bmain = CTX_data_main(C);
@@ -824,14 +824,14 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
                 placeholder_path);
   }
   {
-    uiLayout *col = uiLayoutColumn(settings_col, true);
+    uiLayout *col = &settings_col->column(true);
     uiItemR(col,
             &ctx.bake_rna,
             "use_custom_simulation_frame_range",
             UI_ITEM_NONE,
             IFACE_("Custom Range"),
             ICON_NONE);
-    uiLayout *subcol = uiLayoutColumn(col, true);
+    uiLayout *subcol = &col->column(true);
     uiLayoutSetActive(subcol, ctx.bake->flag & NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE);
     uiItemR(subcol, &ctx.bake_rna, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     uiItemR(subcol, &ctx.bake_rna, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);

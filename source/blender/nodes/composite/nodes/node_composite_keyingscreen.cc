@@ -79,7 +79,7 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
     PointerRNA tracking_ptr = RNA_pointer_create_discrete(
         &clip->id, &RNA_MovieTracking, &clip->tracking);
 
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
   }
 }

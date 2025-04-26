@@ -2593,7 +2593,7 @@ static void draw_output_attributes_panel(DrawGroupInputsContext &ctx, uiLayout *
 
 static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
 {
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayout *col = &layout->column(false);
   uiLayoutSetPropSep(col, true);
   uiLayoutSetPropDecorate(col, false);
   uiItemR(col, modifier_ptr, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -2729,7 +2729,7 @@ static void draw_warnings(const bContext *C,
     return BLI_strcasecmp_natural(a->message.c_str(), b->message.c_str()) < 0;
   });
 
-  uiLayout *col = uiLayoutColumn(panel.body, false);
+  uiLayout *col = &panel.body->column(false);
   for (const NodeWarning *warning : warnings) {
     const int icon = node_warning_type_icon(warning->type);
     uiItemL(col, warning->message, icon);

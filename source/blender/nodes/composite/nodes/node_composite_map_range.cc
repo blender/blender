@@ -57,7 +57,7 @@ static void node_composit_buts_map_range(uiLayout *layout, bContext * /*C*/, Poi
 {
   uiLayout *col;
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, ptr, "use_clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 

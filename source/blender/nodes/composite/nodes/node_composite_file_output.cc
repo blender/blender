@@ -327,7 +327,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   node_composit_buts_file_output(layout, C, ptr);
 
   {
-    uiLayout *column = uiLayoutColumn(layout, true);
+    uiLayout *column = &layout->column(true);
     uiLayoutSetPropSep(column, true);
     uiLayoutSetPropDecorate(column, false);
     uiItemR(column, ptr, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
@@ -336,7 +336,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   uiTemplateImageSettings(layout, &imfptr, save_as_render);
 
   if (!save_as_render) {
-    uiLayout *col = uiLayoutColumn(layout, true);
+    uiLayout *col = &layout->column(true);
     uiLayoutSetPropSep(col, true);
     uiLayoutSetPropDecorate(col, false);
 
@@ -355,7 +355,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   uiItemO(layout, IFACE_("Add Input"), ICON_ADD, "NODE_OT_output_file_add_socket");
 
   row = &layout->row(false);
-  col = uiLayoutColumn(row, true);
+  col = &row->column(true);
 
   const int active_index = RNA_int_get(ptr, "active_input_index");
   /* using different collection properties if multilayer format is enabled */
@@ -399,7 +399,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
    * setting this manually here */
   active_input_ptr.owner_id = ptr->owner_id;
 
-  col = uiLayoutColumn(row, true);
+  col = &row->column(true);
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_output_file_move_active_socket", false);
   uiItemFullO_ptr(col, ot, "", ICON_TRIA_UP, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &op_ptr);
   RNA_enum_set(&op_ptr, "direction", 1);
@@ -409,7 +409,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
   if (active_input_ptr.data) {
     if (multilayer) {
-      col = uiLayoutColumn(layout, true);
+      col = &layout->column(true);
 
       uiItemL(col, IFACE_("Layer:"), ICON_NONE);
       row = &col->row(false);
@@ -424,7 +424,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
                   nullptr);
     }
     else {
-      col = uiLayoutColumn(layout, true);
+      col = &layout->column(true);
 
       uiItemL(col, IFACE_("File Subpath:"), ICON_NONE);
       row = &col->row(false);
@@ -441,7 +441,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
       /* format details for individual files */
       imfptr = RNA_pointer_get(&active_input_ptr, "format");
 
-      col = uiLayoutColumn(layout, true);
+      col = &layout->column(true);
       uiItemL(col, IFACE_("Format:"), ICON_NONE);
       uiItemR(col,
               &active_input_ptr,
@@ -454,7 +454,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
       if (!use_node_format) {
         {
-          uiLayout *column = uiLayoutColumn(layout, true);
+          uiLayout *column = &layout->column(true);
           uiLayoutSetPropSep(column, true);
           uiLayoutSetPropDecorate(column, false);
           uiItemR(column,
@@ -467,11 +467,11 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
         const bool use_color_management = RNA_boolean_get(&active_input_ptr, "save_as_render");
 
-        col = uiLayoutColumn(layout, false);
+        col = &layout->column(false);
         uiTemplateImageSettings(col, &imfptr, use_color_management);
 
         if (!use_color_management) {
-          uiLayout *col = uiLayoutColumn(layout, true);
+          uiLayout *col = &layout->column(true);
           uiLayoutSetPropSep(col, true);
           uiLayoutSetPropDecorate(col, false);
 
@@ -481,7 +481,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
         }
 
         if (is_multiview) {
-          col = uiLayoutColumn(layout, false);
+          col = &layout->column(false);
           uiTemplateImageFormatViews(col, &imfptr, nullptr);
         }
       }

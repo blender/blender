@@ -1588,7 +1588,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiLayoutSetActive(col, !is_bound);
   uiItemR(col, ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "falloff", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1597,14 +1597,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiLayoutSetEnabled(col, !is_bound);
   uiLayoutSetActive(col, !is_bound && RNA_string_length(ptr, "vertex_group") != 0);
   uiItemR(col, ptr, "use_sparse_bind", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemS(layout);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   if (is_bound) {
     uiItemO(col, IFACE_("Unbind"), ICON_NONE, "OBJECT_OT_surfacedeform_bind");
   }

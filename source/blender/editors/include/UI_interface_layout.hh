@@ -95,6 +95,11 @@ struct uiLayout : uiItem {
 
  public:
   /**
+   * Add a new column sub-layout, items placed in this sub-layout are added vertically one under
+   * each other in a column.
+   */
+  uiLayout &column(bool align);
+  /**
    * Add a new row sub-layout, items placed in this sub-layout are added horizontally next to each
    * other in row.
    */
@@ -363,9 +368,8 @@ uiLayout *uiLayoutPanel(const bContext *C,
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
 
-uiLayout *uiLayoutColumn(uiLayout *layout, bool align);
 /**
- * Variant of #uiLayoutColumn() that sets a heading label for the layout if the first item is
+ * Variant of #uiLayout::column() that sets a heading label for the layout if the first item is
  * added through #uiItemFullR(). If split layout is used and the item has no string to add to the
  * first split-column, the heading is added there instead. Otherwise the heading inserted with a
  * new row.

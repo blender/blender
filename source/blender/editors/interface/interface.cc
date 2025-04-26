@@ -4608,7 +4608,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
         }
       }
 
-      column = uiLayoutColumn(split, false);
+      column = &split->column(false);
     }
 
     const EnumPropertyItem *item = &item_array[a];

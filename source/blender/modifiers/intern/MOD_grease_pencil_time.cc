@@ -531,7 +531,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
 
   const char *text = use_fixed_offset ? IFACE_("Frame") : IFACE_("Frame Offset");
   uiItemR(col, ptr, "offset", UI_ITEM_NONE, text, ICON_NONE);
@@ -563,13 +563,13 @@ static void panel_draw(const bContext *C, Panel *panel)
                    1,
                    UI_TEMPLATE_LIST_FLAG_NONE);
 
-    col = uiLayoutColumn(row, false);
+    col = &row->column(false);
 
-    uiLayout *sub = uiLayoutColumn(col, true);
+    uiLayout *sub = &col->column(true);
     uiItemO(sub, "", ICON_ADD, "OBJECT_OT_grease_pencil_time_modifier_segment_add");
     uiItemO(sub, "", ICON_REMOVE, "OBJECT_OT_grease_pencil_time_modifier_segment_remove");
     uiItemS(col);
-    sub = uiLayoutColumn(col, true);
+    sub = &col->column(true);
     uiItemEnumO_string(
         sub, "", ICON_TRIA_UP, "OBJECT_OT_grease_pencil_time_modifier_segment_move", "type", "UP");
     uiItemEnumO_string(sub,
@@ -585,9 +585,9 @@ static void panel_draw(const bContext *C, Panel *panel)
           &RNA_GreasePencilTimeModifierSegment,
           &tmd->segments()[tmd->segment_active_index]);
 
-      sub = uiLayoutColumn(layout, true);
+      sub = &layout->column(true);
       uiItemR(sub, &segment_ptr, "segment_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      sub = uiLayoutColumn(layout, true);
+      sub = &layout->column(true);
       uiItemR(sub, &segment_ptr, "segment_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       uiItemR(sub, &segment_ptr, "segment_end", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       uiItemR(sub, &segment_ptr, "segment_repeat", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -605,7 +605,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiLayoutSetPropSep(body, true);
     uiLayoutSetActive(body, use_custom_range && RNA_boolean_get(ptr, "use_custom_frame_range"));
 
-    col = uiLayoutColumn(body, true);
+    col = &body->column(true);
     uiItemR(col, ptr, "frame_start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
     uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }

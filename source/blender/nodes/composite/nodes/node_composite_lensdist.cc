@@ -67,10 +67,10 @@ static void node_composit_buts_lensdist(uiLayout *layout, bContext * /*C*/, Poin
 {
   uiLayout *col;
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiItemR(col, ptr, "use_projector", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumn(col, false);
+  col = &col->column(false);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector") == false);
   uiItemR(col, ptr, "use_jitter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "use_fit", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);

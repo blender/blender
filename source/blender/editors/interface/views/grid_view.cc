@@ -400,7 +400,7 @@ void GridViewLayoutBuilder::build_from_view(const bContext &C,
 {
   uiLayout *parent_layout = this->current_layout();
 
-  uiLayout &layout = *uiLayoutColumn(parent_layout, true);
+  uiLayout &layout = parent_layout->column(true);
   const GridViewStyle &style = grid_view.get_style();
 
   /* We might not actually know the width available for the grid view. Let's just assume that

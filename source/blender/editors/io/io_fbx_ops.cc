@@ -92,7 +92,7 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "FBX_import_general", false, IFACE_("General"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_custom_props", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "use_custom_props"));
@@ -101,7 +101,7 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "FBX_import_geometry", false, IFACE_("Geometry")))
   {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -114,14 +114,14 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
     uiItemR(panel.header, ptr, "use_anim", UI_ITEM_NONE, "", ICON_NONE);
     uiItemL(panel.header, IFACE_("Animation"), ICON_NONE);
     if (panel.body) {
-      uiLayout *col = uiLayoutColumn(panel.body, false);
+      uiLayout *col = &panel.body->column(false);
       uiItemR(col, ptr, "anim_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "FBX_import_armature", false, IFACE_("Armature")))
   {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "ignore_leaf_bones", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }

@@ -73,7 +73,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
           std::nullopt,
           ICON_NONE);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiItemL(col, IFACE_("Key Channel:"), ICON_NONE);
   row = &col->row(false);
   uiItemR(row,
@@ -83,7 +83,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
           std::nullopt,
           ICON_NONE);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
 
   uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "limit_method") == 0) {
