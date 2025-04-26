@@ -253,7 +253,7 @@ static std::optional<Bounds<float2>> compute_objects_bounds(
       }
 
       std::optional<Bounds<float2>> layer_bounds = compute_screen_space_drawing_bounds(
-          region, rv3d, *info.object, layer_index, *drawing);
+          region, rv3d, *object_eval, layer_index, *drawing);
 
       full_bounds = bounds::merge(full_bounds, layer_bounds);
     }
