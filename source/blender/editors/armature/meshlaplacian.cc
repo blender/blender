@@ -1613,7 +1613,7 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   mdb->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "harmonic coords arena");
   BLI_memarena_use_calloc(mdb->memarena);
 
-  /* initialize data from 'cagedm' for reuse */
+  /* Initialize data from `cagedm` for reuse. */
   {
     Mesh *mesh = mdb->cagemesh;
     mdb->cagemesh_cache.faces = mesh->faces();

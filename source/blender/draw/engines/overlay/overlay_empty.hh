@@ -281,7 +281,7 @@ class Empties : Overlay {
     }
 
     {
-      /* Calling 'BKE_image_get_size' may free the texture. Get the size from 'tex' instead,
+      /* Calling #BKE_image_get_size may free the texture. Get the size from 'tex' instead,
        * see: #59347 */
       int2 size = int2(0);
       if (ima != nullptr) {

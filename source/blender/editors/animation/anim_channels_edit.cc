@@ -3189,7 +3189,7 @@ static wmOperatorStatus animchannels_setflag_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* duplicate of 'ANIM_OT_channels_setting_toggle' for menu title only, weak! */
+/* Duplicate of `ANIM_OT_channels_setting_toggle` for menu title only, weak! */
 static void ANIM_OT_channels_setting_enable(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -3215,7 +3215,7 @@ static void ANIM_OT_channels_setting_enable(wmOperatorType *ot)
   /* setting to set */
   ot->prop = RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
-/* duplicate of 'ANIM_OT_channels_setting_toggle' for menu title only, weak! */
+/* Duplicate of `ANIM_OT_channels_setting_toggle` for menu title only, weak! */
 static void ANIM_OT_channels_setting_disable(wmOperatorType *ot)
 {
   PropertyRNA *prop;

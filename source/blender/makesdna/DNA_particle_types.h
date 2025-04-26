@@ -300,11 +300,11 @@ typedef struct ParticleSettings {
 } ParticleSettings;
 
 typedef struct ParticleSystem {
-  /* note1: make sure all (run-time) are NULL's in 'copy_particlesystem' XXX,
+  /* note1: make sure all (run-time) are NULL's in `copy_particlesystem` XXX,
    * this function is no more! - need to investigate. */
 
   /* note2: make sure any uses of this struct in DNA are
-   * accounted for in 'BKE_object_copy_particlesystems'. */
+   * accounted for in #BKE_object_copy_particlesystems. */
 
   struct ParticleSystem *next, *prev;
 

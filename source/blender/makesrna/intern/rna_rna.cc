@@ -1332,7 +1332,7 @@ struct RNACompareOverrideDiffPropPtrContext {
    * Such a callback is mandatory for REPLACE operations unless the pointer is an ID one, and
    * INSERT operations in all cases (for RNA collections).
    *
-   * \note IDproperty-based 'RNA property' are handled by default apply call, so they are
+   * \note IDproperty-based "RNA property" are handled by default apply call, so they are
    *       considered as always having an apply callback.
    */
   bool has_liboverride_apply_cb = false;

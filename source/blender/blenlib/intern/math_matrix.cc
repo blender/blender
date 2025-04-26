@@ -282,8 +282,8 @@ template double4x4 pseudo_invert(const double4x4 &mat, double epsilon);
  * Right polar decomposition:
  *     M = UP
  *
- * U is the 'rotation'-like component, the closest orthogonal matrix to M.
- * P is the 'scaling'-like component, defined in U space.
+ * U is the *rotation*-like component, the closest orthogonal matrix to M.
+ * P is the *scaling*-like component, defined in U space.
  *
  * See https://en.wikipedia.org/wiki/Polar_decomposition for more.
  */

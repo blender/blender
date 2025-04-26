@@ -2749,7 +2749,7 @@ static void mesh_to_softbody(Object *ob)
         /* yes we need to do it again. */
         build_bps_springlist(ob);
       }
-      springs_from_mesh(ob); /* write the 'rest'-length of the springs */
+      springs_from_mesh(ob); /* write the *rest*-length of the springs */
       if (ob->softflag & OB_SB_SELF) {
         calculate_collision_balls(ob);
       }

@@ -7511,7 +7511,7 @@ void MESH_OT_offset_edge_loops(wmOperatorType *ot)
   ot->poll = ED_operator_editmesh;
 
   /* Keep internal, since this is only meant to be accessed via
-   * 'MESH_OT_offset_edge_loops_slide'. */
+   * `MESH_OT_offset_edge_loops_slide`. */
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

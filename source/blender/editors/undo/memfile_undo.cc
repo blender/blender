@@ -5,7 +5,7 @@
 /** \file
  * \ingroup edundo
  *
- * Wrapper between 'ED_undo.hh' and 'BKE_undo_system.hh' API's.
+ * Wrapper between `ED_undo.hh` and `BKE_undo_system.hh` API's.
  */
 
 #include "BLI_sys_types.h"

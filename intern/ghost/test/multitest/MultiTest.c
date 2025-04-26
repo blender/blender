@@ -10,8 +10,8 @@
  * More work is needed for logging drawing to work properly.
  *
  * - Use GPU_matrix API.
- * - Replace old OpenGL calls to glColor, etc with 'imm' API.
- * - Investigate BLF font flushing (UI_widgetbase_draw_cache_flush) which is currently disabled.
+ * - Replace old OpenGL calls to `glColor`, etc with `imm` API.
+ * - Investigate BLF font flushing (`UI_widgetbase_draw_cache_flush`) which is currently disabled.
  */
 
 #ifdef _MSC_VER

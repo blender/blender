@@ -1358,7 +1358,7 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
       BLI_assert(bmain->is_locked_for_linking == false || ELEM(type, ID_WS, ID_GR, ID_NT));
       ListBase *lb = which_libbase(bmain, type);
 
-      /* This is important in 'readfile doversion after liblink' context mainly, but is a good
+      /* This is important in "read-file do-version after lib-link" context mainly, but is a good
        * behavior for consistency in general: ID created for a Main should get that main's current
        * library pointer.
        *

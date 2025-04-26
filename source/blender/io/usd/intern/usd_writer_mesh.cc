@@ -297,8 +297,8 @@ struct USDMeshData {
   pxr::VtIntArray crease_vertex_indices;
   /* The per-crease or per-edge sharpness for all creases (Usd.Mesh.SHARPNESS_INFINITE for a
    * perfectly sharp crease). Since 'creaseLengths' encodes the number of vertices in each crease,
-   * the number of elements in this array will be either 'len(creaseLengths)' or the sum over all X
-   * of '(creaseLengths[X] - 1)'. Note that while the RI spec allows each crease to have either a
+   * the number of elements in this array will be either `len(creaseLengths)` or the sum over all X
+   * of `(creaseLengths[X] - 1)`. Note that while the RI spec allows each crease to have either a
    * single sharpness or a value per-edge, USD will encode either a single sharpness per crease on
    * a mesh, or sharpness's for all edges making up the creases on a mesh. */
   pxr::VtFloatArray crease_sharpnesses;

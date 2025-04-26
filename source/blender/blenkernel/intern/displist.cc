@@ -166,7 +166,7 @@ static void curve_to_displist(const Curve *cu,
       const bool use_cyclic_sample = is_cyclic && (samples_len != 2);
 
       DispList *dl = MEM_callocN<DispList>(__func__);
-      /* Add one to the length because of 'BKE_curve_forward_diff_bezier'. */
+      /* Add one to the length because of #BKE_curve_forward_diff_bezier. */
       dl->verts = MEM_malloc_arrayN<float>(3 * size_t(samples_len + 1), __func__);
       BLI_addtail(r_dispbase, dl);
       dl->parts = 1;

@@ -31,7 +31,7 @@
  *       Global screen level regions, e.g. popups, popovers, menus.
  *
  *   - #wmWindow.global_areas -> #ScrAreaMap <br>
- *     Global screen via 'areabase', e.g. top-bar & status-bar.
+ *     Global screen via `areabase`, e.g. top-bar & status-bar.
  *
  *
  * Window Layout

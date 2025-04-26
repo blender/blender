@@ -488,7 +488,7 @@ void BKE_lib_query_unused_ids_tag(Main *bmain, int tag, LibQueryUnusedIDsData &p
 
 /**
  * Detect orphaned linked data blocks (i.e. linked data not used (directly or indirectly)
- * in any way by any local data), including complex cases like 'linked archipelagoes', i.e.
+ * in any way by any local data), including complex cases like "linked archipelagos", i.e.
  * linked data-blocks that use each other in loops,
  * which prevents their deletion by 'basic' usage checks.
  *

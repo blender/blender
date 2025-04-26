@@ -702,12 +702,12 @@ enum {
  * code:
  *
  * - RESET_BEFORE_USE: piece of code that wants to use such flag has to ensure they are properly
- *   'reset' first.
+ *   "reset" first.
  * - RESET_AFTER_USE: piece of code that wants to use such flag has to ensure they are properly
- *   'reset' after usage (though 'lifetime' of those flags is a bit fuzzy, e.g. _RECALC ones are
+ *   "reset" after usage (though "lifetime" of those flags is a bit fuzzy, e.g. _RECALC ones are
  *   reset on depsgraph evaluation...).
  * - RESET_NEVER: these flags are 'status' ones, and never actually need any reset (except on
- *   initialization during .blend file reading).
+ *   initialization during `.blend` file reading).
  *
  * \note These tags are purely runtime, so changing there value is not an issue. When adding new
  * tags, please put them in the relevant category and always keep their values strictly increasing.

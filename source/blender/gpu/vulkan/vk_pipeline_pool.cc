@@ -688,7 +688,7 @@ void VKPipelinePool::free_data()
 
 #ifdef WITH_BUILDINFO
 struct VKPipelineCachePrefixHeader {
-  /* 'B'lender 'C'ache + 2 bytes for file versioning. */
+  /* `BC` stands for "Blender Cache" + 2 bytes for file versioning. */
   uint32_t magic = 0xBC00;
   uint32_t blender_version = BLENDER_VERSION;
   uint32_t blender_version_patch = BLENDER_VERSION_PATCH;

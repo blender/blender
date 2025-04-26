@@ -1167,7 +1167,7 @@ static void do_render_compositor_scene(Render *re, Scene *sce, int cfra)
   /* initial setup */
   RE_InitState(resc, re, &sce->r, &sce->view_layers, nullptr, winx, winy, &re->disprect);
 
-  /* We still want to use 'rendercache' setting from org (main) scene... */
+  /* We still want to use "Render Cache" setting from the original (main) scene. */
   resc->r.scemode = (resc->r.scemode & ~R_EXR_CACHE_FILE) | (re->r.scemode & R_EXR_CACHE_FILE);
 
   /* still unsure entity this... */

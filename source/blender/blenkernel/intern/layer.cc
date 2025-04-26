@@ -515,7 +515,7 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
   view_layer_dst->object_bases_hash = nullptr;
 
   /* Copy layer collections and object bases. */
-  /* Inline 'BLI_duplicatelist' and update the active base. */
+  /* Inline #BLI_duplicatelist and update the active base. */
   BLI_listbase_clear(&view_layer_dst->object_bases);
   BLI_assert_msg((view_layer_src->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
                  "View Layer Object Base out of sync, invoke BKE_view_layer_synced_ensure.");

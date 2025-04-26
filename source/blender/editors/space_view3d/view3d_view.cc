@@ -454,9 +454,9 @@ void view3d_viewmatrix_set(const Depsgraph *depsgraph,
       vec[2] = 0.0f;
 
       if (rect_scale) {
-        /* Since 'RegionView3D.winmat' has been calculated and this function doesn't take the
-         * 'ARegion' we don't know about the region size.
-         * Use 'rect_scale' when drawing a sub-region to apply 2D offset,
+        /* Since `RegionView3D.winmat` has been calculated and this function doesn't take the
+         * #ARegion we don't know about the region size.
+         * Use `rect_scale` when drawing a sub-region to apply 2D offset,
          * scaled by the difference between the sub-region and the region size.
          */
         vec[0] /= rect_scale[0];
@@ -590,7 +590,7 @@ int view3d_gpu_select_ex(const ViewContext *vc,
     gpu_select_mode = GPU_SELECT_ALL;
   }
 
-  /* Important to use 'vc->obact', not 'BKE_view_layer_active_object_get(vc->view_layer)' below,
+  /* Important to use `vc->obact`, not `BKE_view_layer_active_object_get(vc->view_layer)` below,
    * so it will be nullptr when hidden. */
   struct {
     DRW_ObjectFilterFn fn;
@@ -618,7 +618,7 @@ int view3d_gpu_select_ex(const ViewContext *vc,
     case VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK: {
       Object *obact = vc->obact;
       BLI_assert(obact && (obact->mode & OB_MODE_ALL_WEIGHT_PAINT));
-      /* While this uses 'alloca' in a loop (which we typically avoid),
+      /* While this uses `alloca` in a loop (which we typically avoid),
        * the number of items is nearly always 1, maybe 2..3 in rare cases. */
       LinkNode *ob_pose_list = nullptr;
       VirtualModifierData virtual_modifier_data;

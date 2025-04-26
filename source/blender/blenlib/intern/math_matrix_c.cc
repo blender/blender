@@ -2017,8 +2017,8 @@ void mat4_decompose(float loc[3], float quat[4], float size[3], const float wmat
  * Right polar decomposition:
  *     M = UP
  *
- * U is the 'rotation'-like component, the closest orthogonal matrix to M.
- * P is the 'scaling'-like component, defined in U space.
+ * U is the *rotation*-like component, the closest orthogonal matrix to M.
+ * P is the *scaling*-like component, defined in U space.
  *
  * See https://en.wikipedia.org/wiki/Polar_decomposition for more.
  */

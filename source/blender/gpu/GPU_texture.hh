@@ -1007,7 +1007,7 @@ void GPU_texture_get_mipmap_size(GPUTexture *texture, int mip_level, int *r_size
 
 /**
  * Width & Height (of source data), optional.
- * WORKAROUND: Calling 'BKE_image_get_size' may free the texture. Store the source image size
+ * WORKAROUND: Calling #BKE_image_get_size may free the texture. Store the source image size
  * (before down-scaling) inside the #GPUTexture to retrieve the original size later (Ref #59347).
  */
 int GPU_texture_original_width(const GPUTexture *texture);

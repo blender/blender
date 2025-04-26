@@ -3037,7 +3037,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  /* NOTE: keep in sync with operator 'MESH_OT_decimate'. */
+  /* NOTE: keep in sync with operator `MESH_OT_decimate`. */
 
   StructRNA *srna;
   PropertyRNA *prop;

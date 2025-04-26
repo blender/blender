@@ -743,8 +743,8 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
     return strip->actend;
   }
 
-  /* - the 'fmod(..., actlength * scale)' is needed to get the repeats working
-   * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
+  /* - The `fmod(..., actlength * scale)` is needed to get the repeats working.
+   * - The `/ scale` is needed to ensure that scaling influences the timing within the repeat.
    */
   return strip->actstart + fmodf(cframe - strip->start, actlength * scale) / scale;
 }
@@ -2399,7 +2399,7 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
     }
   }
   else {
-    /* This is a strange situation to be in, as every 'tweakable' NLA strip should have an Action.
+    /* This is a strange situation to be in, as every *tweak-able* NLA strip should have an Action.
      */
     BLI_assert_unreachable();
     const bool unassign_ok = animrig::unassign_action(owned_adt);

@@ -329,7 +329,7 @@ wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm);
 
 void WM_gizmogroup_ensure_init(const bContext *C, wmGizmoGroup *gzgroup);
 
-/* Sort utilities for use with 'BLI_listbase_sort'. */
+/* Sort utilities for use with `BLI_listbase_sort`. */
 
 int WM_gizmo_cmp_temp_fl(const void *gz_a_ptr, const void *gz_b_ptr);
 int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr);

@@ -68,7 +68,7 @@
 #  define ATTR_PRINTF_FORMAT(format_param, dots_param)
 #endif
 
-/* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */
+/* Use to suppress `-Wimplicit-fallthrough` (in place of `break`). */
 #ifndef ATTR_FALLTHROUGH
 #  ifdef __GNUC__
 #    define ATTR_FALLTHROUGH __attribute__((fallthrough))

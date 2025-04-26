@@ -21,7 +21,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_system.h" /* for 'BLI_system_backtrace' stub. */
+#include "BLI_system.h" /* For #BLI_system_backtrace stub. */
 #include "BLI_utildefines.h"
 
 #include "RNA_define.hh"

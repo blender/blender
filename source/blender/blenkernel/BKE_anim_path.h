@@ -17,9 +17,9 @@ int BKE_anim_path_get_array_size(const struct CurveCache *curve_cache);
 float BKE_anim_path_get_length(const struct CurveCache *curve_cache);
 
 /**
- * This function populates the 'ob->runtime->curve_cache->anim_path_accum_length' data.
+ * This function populates the `ob->runtime->curve_cache->anim_path_accum_length` data.
  * You should never have to call this manually as it should already have been called by
- * 'BKE_displist_make_curveTypes'. Do not call this manually unless you know what you are doing.
+ * #BKE_displist_make_curveTypes. Do not call this manually unless you know what you are doing.
  */
 void BKE_anim_path_calc_data(struct Object *ob);
 

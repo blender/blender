@@ -149,7 +149,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
     }
     else if (found || params->deselect_all) {
       /* Deselect everything. */
-      /* Don't use 'BKE_object_pose_base_array_get_unique'
+      /* Don't use #BKE_object_pose_base_array_get_unique
        * because we may be selecting from object mode. */
       FOREACH_VISIBLE_BASE_BEGIN (scene, view_layer, v3d, base_iter) {
         Object *ob_iter = base_iter->object;

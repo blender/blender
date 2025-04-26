@@ -7,7 +7,7 @@
  *
  * Routines for working with single linked lists of 'links' - pointers to other data.
  *
- * For double linked lists see 'BLI_listbase.h'.
+ * For double linked lists see `BLI_listbase.h`.
  */
 
 #include <cstdlib>

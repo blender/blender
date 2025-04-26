@@ -182,7 +182,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     pxr::VtVec3fArray positions;
     pxr::VtVec3fArray normals;
 
-    /* Our export doesn't use 'primvars:normals' so we're not
+    /* Our export doesn't use `primvars:normals` so we're not
      * looking for that to be written here. */
     mesh_prim.GetFaceVertexIndicesAttr().Get(&face_indices, 0.0);
     mesh_prim.GetFaceVertexCountsAttr().Get(&face_counts, 0.0);

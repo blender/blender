@@ -333,7 +333,7 @@ void MESH_OT_intersect(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Boolean Intersect
  *
- * \note internally this is nearly exactly the same as 'MESH_OT_intersect',
+ * \note internally this is nearly exactly the same as `MESH_OT_intersect`,
  * however from a user perspective they are quite different, so expose as different tools.
  * \{ */
 

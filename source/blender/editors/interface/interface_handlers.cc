@@ -2983,7 +2983,7 @@ void ui_but_clipboard_free()
 /** \name Button Text Password
  *
  * Functions to convert password strings that should not be displayed
- * to asterisk representation (e.g. 'mysecretpasswd' -> '*************')
+ * to asterisk representation (e.g. `mysecretpasswd` -> `*************`)
  *
  * It converts every UTF-8 character to an asterisk, and also remaps
  * the cursor position and selection start/end.

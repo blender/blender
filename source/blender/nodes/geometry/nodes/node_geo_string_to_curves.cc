@@ -132,10 +132,10 @@ struct TextLayout {
   /* The text that fit into the text box, with newline character sequences replaced. */
   std::string text;
 
-  /* The text that didn't fit into the text box in 'Truncate' mode. May be empty. */
+  /* The text that didn't fit into the text box in "Truncate" mode. May be empty. */
   std::string truncated_text;
 
-  /* Font size could be modified if in 'Scale to fit'-mode. */
+  /* Font size could be modified if in "Scale to fit"-mode. */
   float final_font_size;
 };
 

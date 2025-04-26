@@ -324,6 +324,7 @@ dict_custom = {
     "realtime",
     "rebalancing",
     "rebase",
+    "rebased",
     "recomputation",
     "reconnection",
     "recurse",

@@ -85,16 +85,16 @@ struct WeightPaintGroupData {
   /**
    * Index of active group or its mirror:
    *
-   * - 'active' is always `ob.actdef`.
-   * - 'mirror' is -1 when 'ME_EDIT_MIRROR_X' flag id disabled,
+   * - "active" is always `ob.actdef`.
+   * - "mirror" is -1 when #ME_EDIT_MIRROR_X flag id disabled,
    *   otherwise this will be set to the mirror or the active group (if the group isn't mirrored).
    */
   int index;
   /**
    * Lock that includes the 'index' as locked too:
    *
-   * - 'active' is set of locked or active/selected groups.
-   * - 'mirror' is set of locked or mirror groups.
+   * - "active" is set of locked or active/selected groups.
+   * - "mirror" is set of locked or mirror groups.
    */
   const bool *lock;
 };

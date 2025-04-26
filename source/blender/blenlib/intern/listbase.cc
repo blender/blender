@@ -7,7 +7,7 @@
  *
  * Manipulations on double-linked list (#ListBase structs).
  *
- * For single linked lists see 'BLI_linklist.h'
+ * For single linked lists see `BLI_linklist.h`.
  */
 
 #include <cstdlib>

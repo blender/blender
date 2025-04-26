@@ -299,7 +299,7 @@ std::optional<int64_t> CTX_data_int_get(const bContext *C, const char *member);
 /**
  * \param C: Context.
  * \param use_store: Use 'C->wm.store'.
- * \param use_rna: Use Include the properties from 'RNA_Context'.
+ * \param use_rna: Use Include the properties from #RNA_Context.
  * \param use_all: Don't skip values (currently only "scene").
  */
 ListBase CTX_data_dir_get_ex(const bContext *C, bool use_store, bool use_rna, bool use_all);

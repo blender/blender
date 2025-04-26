@@ -4752,7 +4752,7 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
 
   if (tot == 0) {
     *items = MEM_calloc_arrayN<EnumPropertyItem>(8, __func__);
-/* Ensure we get crashes on missing calls to 'RNA_enum_item_end', see #74227. */
+/* Ensure we get crashes on missing calls to #RNA_enum_item_end, see #74227. */
 #ifndef NDEBUG
     memset(*items, 0xff, sizeof(EnumPropertyItem[8]));
 #endif

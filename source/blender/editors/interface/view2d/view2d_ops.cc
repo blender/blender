@@ -1432,7 +1432,7 @@ static wmOperatorStatus view_borderzoom_exec(bContext *C, wmOperator *op)
   rctf cur_new = v2d->cur;
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
-  /* convert coordinates of rect to 'tot' rect coordinates */
+  /* convert coordinates of rect to `tot` rect coordinates */
   rctf rect;
   WM_operator_properties_border_to_rctf(op, &rect);
   UI_view2d_region_to_view_rctf(v2d, &rect, &rect);
@@ -1442,8 +1442,8 @@ static wmOperatorStatus view_borderzoom_exec(bContext *C, wmOperator *op)
 
   if (zoom_in) {
     /* zoom in:
-     * - 'cur' rect will be defined by the coordinates of the border region
-     * - just set the 'cur' rect to have the same coordinates as the border region
+     * - `cur` rect will be defined by the coordinates of the border region
+     * - just set the `cur` rect to have the same coordinates as the border region
      *   if zoom is allowed to be changed
      */
     if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
@@ -1457,8 +1457,8 @@ static wmOperatorStatus view_borderzoom_exec(bContext *C, wmOperator *op)
   }
   else {
     /* zoom out:
-     * - the current 'cur' rect coordinates are going to end up where the 'rect' ones are,
-     *   but the 'cur' rect coordinates will need to be adjusted to take in more of the view
+     * - the current `cur` rect coordinates are going to end up where the `rect` ones are,
+     *   but the `cur` rect coordinates will need to be adjusted to take in more of the view
      * - calculate zoom factor, and adjust using center-point
      */
     float zoom, center, size;
@@ -1776,9 +1776,9 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
 
 /**
  * Scrollers should behave in the following ways, when clicked on with LMB (and dragged):
- * -# 'Handles' on end of 'bubble' - when the axis that the scroller represents is zoomable,
- *    enlarge 'cur' rect on the relevant side.
- * -# 'Bubble'/'bar' - just drag, and bar should move with mouse (view pans opposite).
+ * -# "Handles" on end of "bubble" - when the axis that the scroller represents is zoomable,
+ *    enlarge `cur` rect on the relevant side.
+ * -# "Bubble"/"bar" - just drag, and bar should move with mouse (view pans opposite).
  *
  * In order to make sure this works, each operator must define the following RNA-Operator Props:
  * - `deltax, deltay` - define how much to move view by (relative to zoom-correction factor)
@@ -1791,7 +1791,7 @@ struct v2dScrollerMove {
   /** region that the scroller is in */
   ARegion *region;
 
-  /** scroller that mouse is in ('h' or 'v') */
+  /** Scroller that mouse is in (`h` or `v`). */
   char scroller;
 
   /* XXX find some way to provide visual feedback of this (active color?) */
@@ -1899,8 +1899,8 @@ static void scroller_activate_init(bContext *C,
   /* store mouse-coordinates, and convert mouse/screen coordinates to region coordinates */
   vsm->lastx = event->xy[0];
   vsm->lasty = event->xy[1];
-  /* 'zone' depends on where mouse is relative to bubble
-   * - zooming must be allowed on this axis, otherwise, default to pan
+  /* `zone` depends on where mouse is relative to bubble
+   * - zooming must be allowed on this axis, otherwise, default to pan.
    */
   View2DScrollers scrollers;
   /* Reconstruct the custom scroller mask passed to #UI_view2d_scrollers_draw().
@@ -1948,7 +1948,7 @@ static void scroller_activate_init(bContext *C,
     /* pixel rounding */
     vsm->fac_round = BLI_rctf_size_y(&v2d->cur) / float(BLI_rcti_size_y(&region->winrct) + 1);
 
-    /* get 'zone' (i.e. which part of scroller is activated) */
+    /* Get `zone` (i.e. which part of scroller is activated). */
     vsm->zone = scrollbar_zone_get(event->mval[1], scrollers.vert_min, scrollers.vert_max);
 
     if ((v2d->keepzoom & V2D_LOCKZOOM_Y) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {

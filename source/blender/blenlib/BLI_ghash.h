@@ -328,7 +328,7 @@ BLI_INLINE bool BLI_ghashIterator_done(const GHashIterator *ghi)
 
 /* -------------------------------------------------------------------- */
 /** \name GSet Types
- * A 'set' implementation (unordered collection of unique elements).
+ * A "set" implementation (unordered collection of unique elements).
  *
  * Internally this is a 'GHash' without any keys,
  * which is why this API's are in the same header & source file.

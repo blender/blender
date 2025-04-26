@@ -612,7 +612,7 @@ static void fsmenu_bookmark_validate_job_startjob(void *fsmenuv, wmJobWorkerStat
         return;
       }
       /* Note that we do not really need atomics primitives or thread locks here, since this only
-       * sets one short, which is assumed to be 'atomic'-enough for us here. */
+       * sets one short, which is assumed to be *atomic* enough for us here. */
       fsmenu_entry_refresh_valid(fsm_iter);
       worker_status->do_update = true;
     }

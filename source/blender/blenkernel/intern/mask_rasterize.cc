@@ -21,7 +21,7 @@
  *
  * To rasterize the mask its converted into geometry that use a ray-cast for each pixel lookup.
  *
- * Initially 'kdopbvh' was used but this ended up being too slow.
+ * Initially `kdopbvh` was used but this ended up being too slow.
  *
  * To gain some extra speed we take advantage of a few shortcuts
  * that can be made rasterizing masks specifically.

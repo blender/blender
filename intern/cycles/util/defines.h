@@ -72,7 +72,7 @@
 #  define ccl_attr_maybe_unused [[maybe_unused]]
 #  define __KERNEL_WITH_SSE_ALIGN__
 
-/* Use to suppress '-Wimplicit-fallthrough' (in place of 'break'). */
+/* Use to suppress `-Wimplicit-fallthrough` (in place of `break`). */
 #  ifndef ATTR_FALLTHROUGH
 #    if defined(__GNUC__) && (__GNUC__ >= 7) /* gcc7.0+ only */
 #      define ATTR_FALLTHROUGH __attribute__((fallthrough))

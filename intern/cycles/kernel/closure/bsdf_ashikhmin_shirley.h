@@ -89,7 +89,7 @@ ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(const ccl_private Sh
     const float norm = (n_x + 1.0f) / (8.0f * M_PI_F);
 
     out = NdotO * norm * lobe * pump;
-    /* this is p_h / 4(H.I)  (conversion from 'wh measure' to 'wi measure', eq. 8 in paper). */
+    /* this is p_h / 4(H.I)  (conversion from `wh measure` to `wi measure`, eq. 8 in paper). */
     *pdf = norm * lobe / HdotI;
   }
   else {

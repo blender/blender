@@ -524,7 +524,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
        * fix to #4544.
        *
        * warning, this can hang on un-ordered edges, see: #33281.
-       * for now disable 'BLI_SCANFILL_CALC_REMOVE_DOUBLES' for ngons.
+       * for now disable #BLI_SCANFILL_CALC_REMOVE_DOUBLES for ngons.
        */
       if (eed->v1->f == SF_VERT_ZERO_LEN) {
         v1 = eed->v1;

@@ -2222,7 +2222,7 @@ static int mixed_bones_object_selectbuffer_extended(const ViewContext *vc,
 }
 
 /**
- * Compare result of 'GPU_select': 'GPUSelectResult',
+ * Compare result of `GPU_select`: #GPUSelectResult,
  * Needed for stable sorting, so cycling through all items near the cursor behaves predictably.
  */
 static int gpu_select_buffer_depth_id_cmp(const void *sel_a_p, const void *sel_b_p)

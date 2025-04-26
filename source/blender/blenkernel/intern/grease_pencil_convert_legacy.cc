@@ -158,7 +158,7 @@ class AnimDataConvertor {
    * destination ID.
    *
    * \note All paths here are relative the their respective (source or destination) root path.
-   * \note If this array is empty, all FCurves starting with `root_path_source` will be 'rebased'
+   * \note If this array is empty, all FCurves starting with `root_path_source` will be "rebased"
    * on `root_path_dst`.
    */
   const Array<AnimDataFCurveConvertor> fcurve_convertors;
