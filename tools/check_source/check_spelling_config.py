@@ -177,6 +177,7 @@ dict_custom = {
     "extrema",
     "fallbacks",
     "finalizer",
+    "fisheye",
     "flippable",
     "flushable",
     "formatter",

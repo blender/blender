@@ -171,7 +171,7 @@ class Value {
  * For generating value types that represent types that are typically known processor data types.
  */
 template<
-    /** Wrapped c/cpp data type that is used to store the value. */
+    /** Wrapped C/C++ data type that is used to store the value. */
     typename T,
     /** Value type of the class. */
     eValueType V>

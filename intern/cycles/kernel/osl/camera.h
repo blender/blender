@@ -56,13 +56,13 @@ ccl_device_inline packed_float3 osl_eval_camera(KernelGlobals kg,
 
   float output[21] = {0.0f};
 #  ifdef __KERNEL_OPTIX__
-  optixDirectCall<void>(/* NUM_CALLABLE_PROGRAM_GROUPS */ 2,
-                        /* shaderglobals_ptr = */ &globals,
-                        /* groupdata_ptr = */ (void *)nullptr,
-                        /* userdata_base_ptr = */ (void *)nullptr,
-                        /* output_base_ptr = */ (void *)output,
-                        /* shadeindex = */ 0,
-                        /* interactive_params_ptr */ (void *)nullptr);
+  optixDirectCall<void>(/*NUM_CALLABLE_PROGRAM_GROUPS*/ 2,
+                        /*shaderglobals_ptr*/ &globals,
+                        /*groupdata_ptr*/ (void *)nullptr,
+                        /*userdata_base_ptr*/ (void *)nullptr,
+                        /*output_base_ptr*/ (void *)output,
+                        /*shadeindex*/ 0,
+                        /*interactive_params_ptr*/ (void *)nullptr);
 #  endif
 
   P = make_float3(output[0], output[1], output[2]);

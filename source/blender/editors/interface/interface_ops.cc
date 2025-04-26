@@ -374,7 +374,7 @@ static wmOperatorStatus reset_default_button_exec(bContext *C, wmOperator *op)
     const int array_index = (all) ? -1 : index;
     if (RNA_property_reset(&ptr, prop, array_index)) {
 
-      /* Apply auto keyframe when proprety is successfully reset. */
+      /* Apply auto keyframe when property is successfully reset. */
       Scene *scene = CTX_data_scene(C);
       blender::animrig::autokeyframe_property(
           C, scene, &ptr, prop, array_index, scene->r.cfra, true);
