@@ -22,7 +22,7 @@ void main()
 
   pos -= 0.5f;
 
-  float3 world_pos = x_axis * pos.x + y_axis * pos.y + origin;
+  float3 world_pos = axis_x * pos.x + axis_y * pos.y + origin;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
