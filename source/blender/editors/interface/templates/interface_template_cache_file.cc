@@ -114,7 +114,7 @@ void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
   row = &layout->row(false);
   uiItemR(row, fileptr, "is_sequence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Override Frame"));
+  row = &layout->row(true, IFACE_("Override Frame"));
   sub = &row->row(true);
   uiLayoutSetPropDecorate(sub, false);
   uiItemR(sub, fileptr, "override_frame", UI_ITEM_NONE, "", ICON_NONE);

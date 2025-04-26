@@ -281,7 +281,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     col = uiLayoutColumn(box, false);
     uiItemR(col, imfptr, "use_texture_copies", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    row = uiLayoutRowWithHeading(col, true, IFACE_("UV"));
+    row = &col->row(true, IFACE_("UV"));
     uiItemR(row, imfptr, "active_uv_only", UI_ITEM_NONE, IFACE_("Only Selected Map"), ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_GEOMETRY) {
@@ -292,7 +292,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     uiItemR(col, imfptr, "triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    row = uiLayoutRowWithHeading(col, true, IFACE_("Apply Modifiers"));
+    row = &col->row(true, IFACE_("Apply Modifiers"));
     uiItemR(row, imfptr, "apply_modifiers", UI_ITEM_NONE, "", ICON_NONE);
     sub = uiLayoutColumn(row, false);
     uiLayoutSetActive(sub, RNA_boolean_get(imfptr, "apply_modifiers"));

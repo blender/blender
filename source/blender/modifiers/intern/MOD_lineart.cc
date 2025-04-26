@@ -293,7 +293,7 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
-  sub = uiLayoutRowWithHeading(col, false, IFACE_("Create"));
+  sub = &col->row(false, IFACE_("Create"));
   uiItemR(sub, ptr, "use_contour", UI_ITEM_NONE, "", ICON_NONE);
 
   uiLayout *entry = &sub->row(true);
@@ -404,7 +404,7 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
     return;
   }
 
-  uiLayout *row = uiLayoutRowWithHeading(layout, false, IFACE_("Custom Camera"));
+  uiLayout *row = &layout->row(false, IFACE_("Custom Camera"));
   uiItemR(row, ptr, "use_custom_camera", UI_ITEM_NONE, "", ICON_NONE);
   uiLayout *subrow = &row->row(true);
   uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "use_custom_camera"));
@@ -504,7 +504,7 @@ static void material_mask_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, RNA_boolean_get(ptr, "use_material_mask"));
 
   uiLayout *col = uiLayoutColumn(layout, true);
-  uiLayout *sub = uiLayoutRowWithHeading(col, true, IFACE_("Masks"));
+  uiLayout *sub = &col->row(true, IFACE_("Masks"));
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_material_mask_bits");
   for (int i = 0; i < 8; i++) {
@@ -530,7 +530,7 @@ static void intersection_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_intersection"));
 
   uiLayout *col = uiLayoutColumn(layout, true);
-  uiLayout *sub = uiLayoutRowWithHeading(col, true, IFACE_("Collection Masks"));
+  uiLayout *sub = &col->row(true, IFACE_("Collection Masks"));
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_intersection_mask");
   for (int i = 0; i < 8; i++) {

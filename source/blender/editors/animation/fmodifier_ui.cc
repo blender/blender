@@ -254,7 +254,7 @@ static void fmodifier_influence_draw(uiLayout *layout, PointerRNA *ptr)
   FModifier *fcm = static_cast<FModifier *>(ptr->data);
   uiItemS(layout);
 
-  uiLayout *row = uiLayoutRowWithHeading(layout, true, IFACE_("Influence"));
+  uiLayout *row = &layout->row(true, IFACE_("Influence"));
   uiItemR(row, ptr, "use_influence", UI_ITEM_NONE, "", ICON_NONE);
   uiLayout *sub = &row->row(true);
 
@@ -768,13 +768,13 @@ static void limits_panel_draw(const bContext *C, Panel *panel)
 
   /* Minimums. */
   col = uiLayoutColumn(layout, false);
-  row = uiLayoutRowWithHeading(col, true, IFACE_("Minimum X"));
+  row = &col->row(true, IFACE_("Minimum X"));
   uiItemR(row, ptr, "use_min_x", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutColumn(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_min_x"));
   uiItemR(sub, ptr, "min_x", UI_ITEM_NONE, "", ICON_NONE);
 
-  row = uiLayoutRowWithHeading(col, true, IFACE_("Y"));
+  row = &col->row(true, IFACE_("Y"));
   uiItemR(row, ptr, "use_min_y", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutColumn(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_min_y"));
@@ -782,13 +782,13 @@ static void limits_panel_draw(const bContext *C, Panel *panel)
 
   /* Maximums. */
   col = uiLayoutColumn(layout, false);
-  row = uiLayoutRowWithHeading(col, true, IFACE_("Maximum X"));
+  row = &col->row(true, IFACE_("Maximum X"));
   uiItemR(row, ptr, "use_max_x", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutColumn(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max_x"));
   uiItemR(sub, ptr, "max_x", UI_ITEM_NONE, "", ICON_NONE);
 
-  row = uiLayoutRowWithHeading(col, true, IFACE_("Y"));
+  row = &col->row(true, IFACE_("Y"));
   uiItemR(row, ptr, "use_max_y", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutColumn(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max_y"));
@@ -834,14 +834,14 @@ static void stepped_panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "frame_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   /* Start range settings. */
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Start Frame"));
+  row = &layout->row(true, IFACE_("Start Frame"));
   uiItemR(row, ptr, "use_frame_start", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutColumn(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_frame_start"));
   uiItemR(sub, ptr, "frame_start", UI_ITEM_NONE, "", ICON_NONE);
 
   /* End range settings. */
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("End Frame"));
+  row = &layout->row(true, IFACE_("End Frame"));
   uiItemR(row, ptr, "use_frame_end", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutColumn(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_frame_end"));

@@ -1094,7 +1094,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemS(layout);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Merge"));
+  row = &layout->row(true, IFACE_("Merge"));
   uiItemR(row, ptr, "use_merge_vertices", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_merge_vertices"));
@@ -1102,7 +1102,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemS(layout);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Stretch UVs"));
+  row = &layout->row(true, IFACE_("Stretch UVs"));
   uiItemR(row, ptr, "use_stretch_u", toggles_flag, IFACE_("U"), ICON_NONE);
   uiItemR(row, ptr, "use_stretch_v", toggles_flag, IFACE_("V"), ICON_NONE);
 

@@ -421,7 +421,7 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Max Distance"));
+  row = &layout->row(true, IFACE_("Max Distance"));
   uiItemR(row, ptr, "use_max_distance", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max_distance"));

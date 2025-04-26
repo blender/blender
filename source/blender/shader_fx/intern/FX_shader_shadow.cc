@@ -95,7 +95,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Object Pivot"));
+  row = &layout->row(true, IFACE_("Object Pivot"));
   uiItemR(row, ptr, "use_object", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(row, ptr, "object", UI_ITEM_NONE, "", ICON_NONE);
 

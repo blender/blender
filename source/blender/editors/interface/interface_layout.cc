@@ -5094,10 +5094,10 @@ bool uiLayoutEndsWithPanelHeader(const uiLayout &layout)
   return item->type_ == uiItemType::LayoutPanelHeader;
 }
 
-uiLayout *uiLayoutRowWithHeading(uiLayout *layout, bool align, const StringRef heading)
+uiLayout &uiLayout::row(bool align, const StringRef heading)
 {
-  uiLayout *litem = &layout->row(align);
-  ui_layout_heading_set(litem, heading);
+  uiLayout &litem = row(align);
+  ui_layout_heading_set(&litem, heading);
   return litem;
 }
 

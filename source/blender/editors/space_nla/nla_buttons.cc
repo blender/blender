@@ -520,7 +520,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
       column, &strip_ptr, "action_frame_start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
   uiItemR(column, &strip_ptr, "action_frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, false, IFACE_("Sync Length"));
+  row = &layout->row(false, IFACE_("Sync Length"));
   uiItemR(row, &strip_ptr, "use_sync_length", UI_ITEM_NONE, "", ICON_NONE);
   uiItemO(row, IFACE_("Now"), ICON_FILE_REFRESH, "NLA_OT_action_sync_length");
 

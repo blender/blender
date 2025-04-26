@@ -119,7 +119,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(col, ptr, "use_even_offset", UI_ITEM_NONE, IFACE_("Even"), ICON_NONE);
   uiItemR(col, ptr, "use_relative_offset", UI_ITEM_NONE, IFACE_("Relative"), ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Crease Edges"));
+  row = &layout->row(true, IFACE_("Crease Edges"));
   uiItemR(row, ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_crease"));

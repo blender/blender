@@ -873,7 +873,7 @@ static uiLayout *rna_uiLayoutRowWithHeading(
   /* Get translated heading. */
   std::optional<StringRefNull> text = rna_translate_ui_text(
       heading, heading_ctxt, nullptr, nullptr, translate);
-  return uiLayoutRowWithHeading(layout, align, text.value_or(""));
+  return &layout->row(align, text.value_or(""));
 }
 
 static uiLayout *rna_uiLayoutColumnWithHeading(

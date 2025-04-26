@@ -99,6 +99,14 @@ struct uiLayout : uiItem {
    * other in row.
    */
   uiLayout &row(bool align);
+  /**
+   * Add a new row sub-layout, items placed in this sub-layout are added horizontally next to each
+   * other in row.
+   * \param heading: Heading label to set to the first child element added in the sub-layout
+   * through #uiItemFullR. When property split is used, this heading label is set in the split
+   * label column when there is no label defined.
+   */
+  uiLayout &row(bool align, blender::StringRef heading);
 };
 
 enum {
@@ -355,10 +363,6 @@ uiLayout *uiLayoutPanel(const bContext *C,
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
 
-/**
- * See #uiLayoutColumnWithHeading().
- */
-uiLayout *uiLayoutRowWithHeading(uiLayout *layout, bool align, blender::StringRef heading);
 uiLayout *uiLayoutColumn(uiLayout *layout, bool align);
 /**
  * Variant of #uiLayoutColumn() that sets a heading label for the layout if the first item is

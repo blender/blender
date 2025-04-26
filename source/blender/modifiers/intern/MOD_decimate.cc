@@ -235,7 +235,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   if (decimate_type == MOD_DECIM_MODE_COLLAPSE) {
     uiItemR(layout, ptr, "ratio", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-    row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
+    row = &layout->row(true, IFACE_("Symmetry"));
     uiLayoutSetPropDecorate(row, false);
     sub = &row->row(true);
     uiItemR(sub, ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);

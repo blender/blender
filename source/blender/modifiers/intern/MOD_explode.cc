@@ -1175,7 +1175,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemPointerR(
       layout, ptr, "particle_uv", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Show"));
+  row = &layout->row(true, IFACE_("Show"));
   uiItemR(row, ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "show_dead", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "show_unborn", toggles_flag, std::nullopt, ICON_NONE);

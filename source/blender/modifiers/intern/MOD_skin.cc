@@ -2023,7 +2023,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemR(layout, ptr, "branch_smoothing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
+  row = &layout->row(true, IFACE_("Symmetry"));
   uiItemR(row, ptr, "use_x_symmetry", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "use_y_symmetry", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "use_z_symmetry", toggles_flag, std::nullopt, ICON_NONE);

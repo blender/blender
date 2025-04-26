@@ -299,7 +299,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Motion"));
+  row = &layout->row(true, IFACE_("Motion"));
   uiItemR(row,
           ptr,
           "use_x",
@@ -315,7 +315,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemR(layout, ptr, "use_cyclic", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Along Normals"));
+  row = &layout->row(true, IFACE_("Along Normals"));
   uiItemR(row, ptr, "use_normal", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_normal"));

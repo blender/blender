@@ -5740,7 +5740,7 @@ static void edbm_decimate_ui(bContext * /*C*/, wmOperator *op)
   uiItemR(col, op->ptr, "vertex_group_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, op->ptr, "invert_vertex_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
+  row = &layout->row(true, IFACE_("Symmetry"));
   uiItemR(row, op->ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "use_symmetry"));

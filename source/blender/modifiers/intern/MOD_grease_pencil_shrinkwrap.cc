@@ -264,7 +264,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(layout, ptr, "subsurf_levels", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(layout, false);
-    row = uiLayoutRowWithHeading(col, true, IFACE_("Axis"));
+    row = &col->row(true, IFACE_("Axis"));
     uiItemR(row, ptr, "use_project_x", toggles_flag, std::nullopt, ICON_NONE);
     uiItemR(row, ptr, "use_project_y", toggles_flag, std::nullopt, ICON_NONE);
     uiItemR(row, ptr, "use_project_z", toggles_flag, std::nullopt, ICON_NONE);

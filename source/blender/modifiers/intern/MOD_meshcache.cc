@@ -352,7 +352,7 @@ static void axis_mapping_panel_draw(const bContext * /*C*/, Panel *panel)
 
   const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
   PropertyRNA *prop = RNA_struct_find_property(ptr, "flip_axis");
-  uiLayout *row = uiLayoutRowWithHeading(col, true, IFACE_("Flip Axis"));
+  uiLayout *row = &col->row(true, IFACE_("Flip Axis"));
   uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
   uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);

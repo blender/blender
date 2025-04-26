@@ -113,7 +113,7 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   sub = &row->row(true);
   uiItemR(sub, ptr, "invert_layer_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  row = uiLayoutRowWithHeading(col, true, IFACE_("Layer Pass"));
+  row = &col->row(true, IFACE_("Layer Pass"));
   uiLayoutSetPropDecorate(row, false);
   sub = &row->row(true);
   uiItemR(sub, ptr, "use_layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
@@ -140,7 +140,7 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
   sub = &row->row(true);
   uiItemR(sub, ptr, "invert_material_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  row = uiLayoutRowWithHeading(col, true, IFACE_("Material Pass"));
+  row = &col->row(true, IFACE_("Material Pass"));
   uiLayoutSetPropDecorate(row, false);
   sub = &row->row(true);
   uiItemR(sub, ptr, "use_material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);

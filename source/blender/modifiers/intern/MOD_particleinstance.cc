@@ -548,12 +548,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemS(layout);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Create Instances"));
+  row = &layout->row(true, IFACE_("Create Instances"));
   uiItemR(row, ptr, "use_normal", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "use_children", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "use_size", toggles_flag, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Show"));
+  row = &layout->row(true, IFACE_("Show"));
   uiItemR(row, ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "show_dead", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "show_unborn", toggles_flag, std::nullopt, ICON_NONE);

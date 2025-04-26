@@ -139,7 +139,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Edge Angle"));
+  row = &layout->row(true, IFACE_("Edge Angle"));
   uiItemR(row, ptr, "use_edge_angle", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_edge_angle"));

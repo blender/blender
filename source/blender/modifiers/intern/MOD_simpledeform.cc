@@ -485,7 +485,7 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
   {
     int deform_axis = RNA_enum_get(ptr, "deform_axis");
 
-    row = uiLayoutRowWithHeading(layout, true, IFACE_("Lock"));
+    row = &layout->row(true, IFACE_("Lock"));
     if (deform_axis != 0) {
       uiItemR(row, ptr, "lock_x", toggles_flag, std::nullopt, ICON_NONE);
     }
