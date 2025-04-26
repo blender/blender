@@ -5838,14 +5838,7 @@ static void text_input_handle_commit_string(void *data,
   CLOG_INFO(LOG, 2, "commit_string (text=\"%s\")", text ? text : "<null>");
 
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  seat->ime.result_is_null = (text == nullptr);
-  if (seat->ime.result_is_null) {
-    seat->ime.result = "";
-  }
-  else {
-    seat->ime.result = text;
-  }
-
+  seat->ime.result = text ? text : "";
   seat->ime.result_is_null = (text == nullptr);
   seat->ime.event_ime_data.result = (void *)seat->ime.result.c_str();
   seat->ime.event_ime_data.result_len = (void *)seat->ime.result.size();
