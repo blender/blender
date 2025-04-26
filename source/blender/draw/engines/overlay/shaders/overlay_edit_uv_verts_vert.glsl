@@ -17,7 +17,7 @@ void main()
   bool is_selected = (flag & (VERT_UV_SELECT | FACE_UV_SELECT)) != 0u;
   bool is_pinned = (flag & VERT_UV_PINNED) != 0u;
   float4 deselect_col = (is_pinned) ? pinned_col : float4(color.rgb, 1.0f);
-  fill_color = (is_selected) ? colorVertexSelect : deselect_col;
+  fill_color = (is_selected) ? theme.colors.vert_select : deselect_col;
   outline_color = (is_pinned) ? pinned_col : float4(fill_color.rgb, 0.0f);
 
   float3 world_pos = float3(au, 0.0f);

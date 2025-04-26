@@ -29,24 +29,24 @@ void wire_color_get(out float3 rim_col, out float3 wire_col)
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
 
   if (is_from_set) {
-    rim_col = colorWire.rgb;
-    wire_col = colorWire.rgb;
+    rim_col = theme.colors.wire.rgb;
+    wire_col = theme.colors.wire.rgb;
   }
   else if (is_selected && use_coloring) {
     if (is_transform) {
-      rim_col = colorTransform.rgb;
+      rim_col = theme.colors.transform.rgb;
     }
     else if (is_active) {
-      rim_col = colorActive.rgb;
+      rim_col = theme.colors.active.rgb;
     }
     else {
-      rim_col = colorSelect.rgb;
+      rim_col = theme.colors.select.rgb;
     }
-    wire_col = colorWire.rgb;
+    wire_col = theme.colors.wire.rgb;
   }
   else {
-    rim_col = colorWire.rgb;
-    wire_col = colorBackground.rgb;
+    rim_col = theme.colors.wire.rgb;
+    wire_col = theme.colors.background.rgb;
   }
 }
 
@@ -94,7 +94,8 @@ void main()
 
   gl_Position = drw_point_world_to_homogenous(ws_P);
 
-  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) *
+                          uniform_buf.size_viewport;
 
   float3 rim_col, wire_col;
   if (color_type == V3D_SHADING_OBJECT_COLOR || color_type == V3D_SHADING_RANDOM_COLOR) {

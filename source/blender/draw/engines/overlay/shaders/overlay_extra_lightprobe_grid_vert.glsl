@@ -15,16 +15,16 @@ VERTEX_SHADER_CREATE_INFO(draw_modelmat)
 float4 color_from_id(float color_id)
 {
   if (is_transform) {
-    return colorTransform;
+    return theme.colors.transform;
   }
   else if (color_id == 1.0f) {
-    return colorActive;
+    return theme.colors.active;
   }
   else /* 2.0f */ {
-    return colorSelect;
+    return theme.colors.select;
   }
 
-  return colorTransform;
+  return theme.colors.transform;
 }
 
 void main()
@@ -50,7 +50,7 @@ void main()
 
   float3 ws_cell_location = (model_mat * float4(ls_cell_location, 1.0f)).xyz;
   gl_Position = drw_point_world_to_homogenous(ws_cell_location);
-  gl_PointSize = sizeVertex * 2.0f;
+  gl_PointSize = theme.sizes.vert * 2.0f;
 
   final_color = color_from_id(color_id);
 
@@ -61,7 +61,7 @@ void main()
   if (z_delta > 0.0f) {
     float fac = 1.0f - z_delta * 10000.0f;
     /* Smooth blend to avoid flickering. */
-    final_color = mix(colorBackground, final_color, clamp(fac, 0.2f, 1.0f));
+    final_color = mix(theme.colors.background, final_color, clamp(fac, 0.2f, 1.0f));
   }
 
   view_clipping_distances(ws_cell_location);

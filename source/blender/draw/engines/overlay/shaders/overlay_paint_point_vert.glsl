@@ -25,10 +25,10 @@ void main()
     gl_Position = float4(-2.0f, -2.0f, -2.0f, 1.0f);
   }
 
-  final_color = (is_select) ? float4(1.0f) : colorWire;
+  final_color = (is_select) ? float4(1.0f) : theme.colors.wire;
   final_color.a = nor.w;
 
-  gl_PointSize = sizeVertex * 2.0f;
+  gl_PointSize = theme.sizes.vert * 2.0f;
 
   view_clipping_distances(world_pos);
 }

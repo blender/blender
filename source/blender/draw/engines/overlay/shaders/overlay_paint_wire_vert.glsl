@@ -27,7 +27,7 @@ void main()
 
   constexpr float4 colSel = float4(1.0f);
 
-  final_color = (is_select) ? colSel : colorWire;
+  final_color = (is_select) ? colSel : theme.colors.wire;
 
   /* Weight paint needs a light color to contrasts with dark weights. */
   if (!use_select) {

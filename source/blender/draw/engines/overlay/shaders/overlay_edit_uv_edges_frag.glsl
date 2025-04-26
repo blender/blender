@@ -23,32 +23,33 @@ void main()
       /* TODO(@ideasman42): The current wire-edit color contrast enough against the selection.
        * Look into changing the default theme color instead of reducing contrast with edge-select.
        */
-      inner_color = (selection_fac != 0.0f) ? colorEdgeSelect : (colorWireEdit * 0.5f);
+      inner_color = (selection_fac != 0.0f) ? theme.colors.edge_select :
+                                              (theme.colors.wire_edit * 0.5f);
     }
     else {
-      inner_color = mix(colorWireEdit, colorEdgeSelect, selection_fac);
+      inner_color = mix(theme.colors.wire_edit, theme.colors.edge_select, selection_fac);
     }
     outer_color = float4(float3(0.0f), 1.0f);
   }
   else if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_DASH) {
     if (fract(line_distance / dash_length) < 0.5f) {
-      inner_color = mix(float4(float3(0.35f), 1.0f), colorEdgeSelect, selection_fac);
+      inner_color = mix(float4(float3(0.35f), 1.0f), theme.colors.edge_select, selection_fac);
     }
   }
   else if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_BLACK) {
     float4 base_color = float4(float3(0.0f), 1.0f);
-    inner_color = mix(base_color, colorEdgeSelect, selection_fac);
+    inner_color = mix(base_color, theme.colors.edge_select, selection_fac);
   }
   else if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_WHITE) {
     float4 base_color = float4(1.0f);
-    inner_color = mix(base_color, colorEdgeSelect, selection_fac);
+    inner_color = mix(base_color, theme.colors.edge_select, selection_fac);
   }
   else if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_SHADOW) {
-    inner_color = colorUVShadow;
+    inner_color = theme.colors.uv_shadow;
   }
 
-  float dist = abs(edge_coord) - max(sizeEdge - 0.5f, 0.0f);
-  float dist_outer = dist - max(sizeEdge, 1.0f);
+  float dist = abs(edge_coord) - max(theme.sizes.edge - 0.5f, 0.0f);
+  float dist_outer = dist - max(theme.sizes.edge, 1.0f);
   float mix_w;
   float mix_w_outer;
 

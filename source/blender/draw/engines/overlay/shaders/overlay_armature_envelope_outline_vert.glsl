@@ -13,7 +13,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_armature_envelope_outline)
 /* project to screen space */
 float2 proj(float4 pos)
 {
-  return (0.5f * (pos.xy / pos.w) + 0.5f) * sizeViewport;
+  return (0.5f * (pos.xy / pos.w) + 0.5f) * uniform_buf.size_viewport;
 }
 
 float2 compute_dir(float2 v0, float2 v1, float2 v2)
@@ -148,7 +148,7 @@ void main()
   float2 ofs_dir = compute_dir(ss0, ss1, ss2);
 
   /* Offset away from the center to avoid overlap with solid shape. */
-  gl_Position.xy += ofs_dir * sizeViewportInv * gl_Position.w;
+  gl_Position.xy += ofs_dir * uniform_buf.size_viewport_inv * gl_Position.w;
 
   edge_start = edge_pos = proj(gl_Position);
 

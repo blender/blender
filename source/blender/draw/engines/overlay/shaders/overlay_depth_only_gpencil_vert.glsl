@@ -20,7 +20,7 @@ void main()
   float unused_strength;
   float2 unused_uv;
 
-  gl_Position = gpencil_vertex(float4(sizeViewport, sizeViewportInv),
+  gl_Position = gpencil_vertex(float4(uniform_buf.size_viewport, uniform_buf.size_viewport_inv),
                                world_pos,
                                unused_N,
                                unused_color,

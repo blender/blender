@@ -162,11 +162,11 @@ void geometry_main(VertOut geom_in[2],
   }
 
   /* Minimize active color bleeding on inner_color. */
-  float4 active_color = mix(colorActiveSpline, inner_color, 0.25f);
+  float4 active_color = mix(theme.colors.active_spline, inner_color, 0.25f);
   float4 outer_color = is_active ? active_color : float4(inner_color.rgb, 0.0f);
 
   float2 v1_2 = (v2.xy / v2.w - v1.xy / v1.w);
-  float2 offset = sizeEdge * 4.0f * sizeViewportInv; /* 4.0f is eyeballed */
+  float2 offset = theme.sizes.edge * 4.0f * uniform_buf.size_viewport_inv; /* 4.0f is eyeballed */
 
   if (abs(v1_2.x) <= M_TAN_PI_BY_8 * abs(v1_2.y)) {
     offset.y = 0.0f;
@@ -178,7 +178,7 @@ void geometry_main(VertOut geom_in[2],
     offset.x = 0.0f;
   }
 
-  float4 border_color = float4(colorActiveSpline.rgb, 0.0f);
+  float4 border_color = float4(theme.colors.active_spline.rgb, 0.0f);
   /* Draw the transparent border (AA). */
   if (is_active) {
     offset *= 0.75f; /* Don't make the active "halo" appear very thick. */

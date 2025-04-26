@@ -16,19 +16,19 @@ void main()
   bool is_gpencil = ((data & EDGE_FREESTYLE) != 0u);
   if ((data & VERT_SELECTED) != 0u) {
     if ((data & VERT_ACTIVE) != 0u) {
-      final_color = colorEditMeshActive;
+      final_color = theme.colors.edit_mesh_active;
     }
     else {
-      final_color = (!is_gpencil) ? colorVertexSelect : colorGpencilVertexSelect;
+      final_color = (!is_gpencil) ? theme.colors.vert_select : theme.colors.gpencil_vertex_select;
     }
   }
   else {
-    final_color = (!is_gpencil) ? colorVertex : colorGpencilVertex;
+    final_color = (!is_gpencil) ? theme.colors.vert : theme.colors.gpencil_vertex;
   }
 
   float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
-  gl_PointSize = (!is_gpencil) ? sizeVertex * 2.0f : sizeVertexGpencil * 2.0f;
+  gl_PointSize = (!is_gpencil) ? theme.sizes.vert * 2.0f : theme.sizes.vertex_gpencil * 2.0f;
   view_clipping_distances(world_pos);
 
   bool show_handle = show_curve_handles;

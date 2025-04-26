@@ -44,7 +44,7 @@ bool4 gather_edges(float2 uv, uint ref)
 #ifdef GPU_ARB_texture_gather
   ids = textureGather(outline_id_tx, uv);
 #else
-  float3 ofs = float3(0.5f, 0.5f, -0.5f) * sizeViewportInv.xyy;
+  float3 ofs = float3(0.5f, 0.5f, -0.5f) * uniform_buf.size_viewport_inv.xyy;
   ids.x = textureLod(outline_id_tx, uv - ofs.xz, 0.0f).r;
   ids.y = textureLod(outline_id_tx, uv + ofs.xy, 0.0f).r;
   ids.z = textureLod(outline_id_tx, uv + ofs.xz, 0.0f).r;
@@ -169,8 +169,8 @@ void main()
   uint ref = textureLod(outline_id_tx, screen_uv, 0.0f).r;
   uint ref_col = ref;
 
-  float2 uvs = gl_FragCoord.xy * sizeViewportInv;
-  float3 ofs = float3(sizeViewportInv, 0.0f);
+  float2 uvs = gl_FragCoord.xy * uniform_buf.size_viewport_inv;
+  float3 ofs = float3(uniform_buf.size_viewport_inv, 0.0f);
 
   float2 depth_uv = uvs;
 
@@ -236,13 +236,13 @@ void main()
     frag_color = float4(0.0f);
   }
   else if (color_id == 1u) {
-    frag_color = colorSelect;
+    frag_color = theme.colors.select;
   }
   else if (color_id == 3u) {
-    frag_color = colorActive;
+    frag_color = theme.colors.active;
   }
   else {
-    frag_color = colorTransform;
+    frag_color = theme.colors.transform;
   }
 
   float ref_depth = textureLod(outline_depth_tx, depth_uv, 0.0f).r;
@@ -280,13 +280,13 @@ void main()
   switch (edge_case) {
       /* Straight lines. */
     case YPOS:
-      extra_edges = gather_edges(uvs + sizeViewportInv * float2(2.5f, 0.5f), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv * float2(-2.5f, 0.5f), ref);
+      extra_edges = gather_edges(uvs + uniform_buf.size_viewport_inv * float2(2.5f, 0.5f), ref);
+      extra_edges2 = gather_edges(uvs + uniform_buf.size_viewport_inv * float2(-2.5f, 0.5f), ref);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
       break;
     case YNEG:
-      extra_edges = gather_edges(uvs + sizeViewportInv * float2(-2.5f, -0.5f), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv * float2(2.5f, -0.5f), ref);
+      extra_edges = gather_edges(uvs + uniform_buf.size_viewport_inv * float2(-2.5f, -0.5f), ref);
+      extra_edges2 = gather_edges(uvs + uniform_buf.size_viewport_inv * float2(2.5f, -0.5f), ref);
       extra_edges = rotate_180(extra_edges);
       extra_edges2 = rotate_180(extra_edges2);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -294,8 +294,8 @@ void main()
       line_end = rotate_180(line_end);
       break;
     case XPOS:
-      extra_edges = gather_edges(uvs + sizeViewportInv * float2(0.5f, 2.5f), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv * float2(0.5f, -2.5f), ref);
+      extra_edges = gather_edges(uvs + uniform_buf.size_viewport_inv * float2(0.5f, 2.5f), ref);
+      extra_edges2 = gather_edges(uvs + uniform_buf.size_viewport_inv * float2(0.5f, -2.5f), ref);
       extra_edges = rotate_90(extra_edges);
       extra_edges2 = rotate_90(extra_edges2);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -303,8 +303,8 @@ void main()
       line_end = rotate_90(line_end);
       break;
     case XNEG:
-      extra_edges = gather_edges(uvs + sizeViewportInv * float2(-0.5f, 2.5f), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv * float2(-0.5f, -2.5f), ref);
+      extra_edges = gather_edges(uvs + uniform_buf.size_viewport_inv * float2(-0.5f, 2.5f), ref);
+      extra_edges2 = gather_edges(uvs + uniform_buf.size_viewport_inv * float2(-0.5f, -2.5f), ref);
       extra_edges = rotate_270(extra_edges);
       extra_edges2 = rotate_270(extra_edges2);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);

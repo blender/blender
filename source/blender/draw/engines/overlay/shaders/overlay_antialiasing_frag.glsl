@@ -80,7 +80,7 @@ void neighbor_blend(float line_coverage,
 void main()
 {
   int2 center_texel = int2(gl_FragCoord.xy);
-  float line_kernel = sizePixel * 0.5f - 0.5f;
+  float line_kernel = theme.sizes.pixel * 0.5f - 0.5f;
 
   frag_color = texelFetch(color_tx, center_texel, 0);
 

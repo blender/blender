@@ -46,12 +46,12 @@ void main()
 
   switch (type) {
     case BG_SOLID:
-      bg_col = colorBackground.rgb;
+      bg_col = theme.colors.background.rgb;
       break;
     case BG_GRADIENT:
       /* XXX do interpolation in a non-linear space to have a better visual result. */
-      col_high = pow(colorBackground.rgb, float3(1.0f / 2.2f));
-      col_low = pow(colorBackgroundGradient.rgb, float3(1.0f / 2.2f));
+      col_high = pow(theme.colors.background.rgb, float3(1.0f / 2.2f));
+      col_low = pow(theme.colors.background_gradient.rgb, float3(1.0f / 2.2f));
       bg_col = mix(col_low, col_high, screen_uv.y);
       /* Convert back to linear. */
       bg_col = pow(bg_col, float3(2.2f));
@@ -60,8 +60,8 @@ void main()
       break;
     case BG_RADIAL: {
       /* Do interpolation in a non-linear space to have a better visual result. */
-      col_high = pow(colorBackground.rgb, float3(1.0f / 2.2f));
-      col_low = pow(colorBackgroundGradient.rgb, float3(1.0f / 2.2f));
+      col_high = pow(theme.colors.background.rgb, float3(1.0f / 2.2f));
+      col_low = pow(theme.colors.background_gradient.rgb, float3(1.0f / 2.2f));
 
       float2 uv_n = screen_uv - 0.5f;
       bg_col = mix(col_high, col_low, length(uv_n) * M_SQRT2);
@@ -73,10 +73,10 @@ void main()
       break;
     }
     case BG_CHECKER: {
-      float size = sizeChecker * sizePixel;
+      float size = theme.sizes.checker * theme.sizes.pixel;
       int2 p = int2(floor(gl_FragCoord.xy / size));
       bool check = mod(p.x, 2) == mod(p.y, 2);
-      bg_col = (check) ? colorCheckerPrimary.rgb : colorCheckerSecondary.rgb;
+      bg_col = (check) ? theme.colors.checker_primary.rgb : theme.colors.checker_secondary.rgb;
       break;
     }
     case BG_MASK:

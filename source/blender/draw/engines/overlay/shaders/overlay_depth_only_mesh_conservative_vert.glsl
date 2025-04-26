@@ -58,13 +58,13 @@ void do_vertex(const uint i,
   if (all(is_subpixel)) {
     float2 ofs = (i == 0) ? float2(-1.0f) : ((i == 1) ? float2(2.0f, -1.0f) : float2(-1.0f, 2.0f));
     /* HACK: Fix cases where the triangle is too small make it cover at least one pixel. */
-    gl_Position.xy += sizeViewportInv * geom_in.hs_P.w * ofs;
+    gl_Position.xy += uniform_buf.size_viewport_inv * geom_in.hs_P.w * ofs;
   }
   /* Test if the triangle is almost parallel with the view to avoid precision issues. */
   else if (any(is_subpixel) || is_coplanar) {
     /* HACK: Fix cases where the triangle is Parallel to the view by deforming it slightly. */
     float2 ofs = (i == 0) ? float2(-1.0f) : ((i == 1) ? float2(1.0f, -1.0f) : float2(1.0f));
-    gl_Position.xy += sizeViewportInv * geom_in.hs_P.w * ofs;
+    gl_Position.xy += uniform_buf.size_viewport_inv * geom_in.hs_P.w * ofs;
   }
   else {
     /* Triangle expansion should happen here, but we decide to not implement it for
@@ -85,7 +85,7 @@ void geometry_main(VertOut geom_in[3],
   /* Compute NDC bound box. */
   float4 bbox = float4(min(min(pos0.xy, pos1.xy), pos2.xy), max(max(pos0.xy, pos1.xy), pos2.xy));
   /* Convert to pixel space. */
-  bbox = (bbox * 0.5f + 0.5f) * sizeViewport.xyxy;
+  bbox = (bbox * 0.5f + 0.5f) * uniform_buf.size_viewport.xyxy;
   /* Detect failure cases where triangles would produce no fragments. */
   bool2 is_subpixel = lessThan(bbox.zw - bbox.xy, float2(1.0f));
   /* View aligned triangle. */

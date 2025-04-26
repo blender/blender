@@ -25,7 +25,7 @@ float4x4 extract_matrix_packed_data(float4x4 mat, out float4 dataA, out float4 d
   return mat;
 }
 
-/* edge_start and edge_pos needs to be in the range [0..sizeViewport]. */
+/* edge_start and edge_pos needs to be in the range [0..uniform_buf.size_viewport]. */
 float4 pack_line_data(float2 frag_co, float2 edge_start, float2 edge_pos)
 {
   float2 edge = edge_start - edge_pos;

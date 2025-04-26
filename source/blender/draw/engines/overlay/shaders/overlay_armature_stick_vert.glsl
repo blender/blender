@@ -15,7 +15,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_armature_stick)
 /* project to screen space */
 float2 proj(float4 hs_P)
 {
-  return (0.5f * (hs_P.xy / hs_P.w) + 0.5f) * sizeViewport;
+  return (0.5f * (hs_P.xy / hs_P.w) + 0.5f) * uniform_buf.size_viewport;
 }
 
 void main()
@@ -69,9 +69,9 @@ void main()
   vpos *= (data_buf[gl_InstanceID].wire_color.a > 0.0f) ? 1.0f : 0.5f;
 
   if (final_inner_color.a > 0.0f) {
-    float stick_size = sizePixel * 5.0f;
+    float stick_size = theme.sizes.pixel * 5.0f;
     gl_Position = (is_head) ? p0 : p1;
-    gl_Position.xy += stick_size * (vpos * sizeViewportInv);
+    gl_Position.xy += stick_size * (vpos * uniform_buf.size_viewport_inv);
     gl_Position.z += (is_bone) ? 0.0f : 1e-6f; /* Avoid Z fighting of head/tails. */
     view_clipping_distances((is_head ? boneStart_4d : boneEnd_4d).xyz);
   }

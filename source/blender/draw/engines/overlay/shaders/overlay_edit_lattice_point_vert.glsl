@@ -13,13 +13,13 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_lattice_point)
 void main()
 {
   if ((data & VERT_SELECTED) != 0u) {
-    final_color = colorVertexSelect;
+    final_color = theme.colors.vert_select;
   }
   else if ((data & VERT_ACTIVE) != 0u) {
-    final_color = colorEditMeshActive;
+    final_color = theme.colors.edit_mesh_active;
   }
   else {
-    final_color = colorVertex;
+    final_color = theme.colors.vert;
   }
 
   float3 world_pos = drw_point_object_to_world(pos);
@@ -28,7 +28,7 @@ void main()
   /* Small offset in Z */
   gl_Position.z -= 3e-4f;
 
-  gl_PointSize = sizeVertex * 2.0f;
+  gl_PointSize = theme.sizes.vert * 2.0f;
 
   view_clipping_distances(world_pos);
 }

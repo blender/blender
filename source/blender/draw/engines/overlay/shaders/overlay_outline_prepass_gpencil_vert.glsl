@@ -18,13 +18,13 @@ uint outline_colorid_get()
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
 
   if (is_transform) {
-    return 0u; /* colorTransform */
+    return 0u; /* theme.colors.transform */
   }
   else if (is_active) {
-    return 3u; /* colorActive */
+    return 3u; /* theme.colors.active */
   }
   else {
-    return 1u; /* colorSelect */
+    return 1u; /* theme.colors.select */
   }
 
   return 0u;
@@ -38,7 +38,7 @@ void main()
   float unused_strength;
   float2 unused_uv;
 
-  gl_Position = gpencil_vertex(float4(sizeViewport, sizeViewportInv),
+  gl_Position = gpencil_vertex(float4(uniform_buf.size_viewport, uniform_buf.size_viewport_inv),
                                world_pos,
                                unused_N,
                                unused_color,

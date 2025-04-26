@@ -45,10 +45,10 @@ void main()
     float2 dir = line_output.xy * 2.0f - 1.0f;
     bool dir_horiz = abs(dir.x) > abs(dir.y);
 
-    float2 uv = gl_FragCoord.xy * sizeViewportInv;
+    float2 uv = gl_FragCoord.xy * uniform_buf.size_viewport_inv;
     float depth_occluder = texture(depth_tx, uv).r;
     float depth_min = depth_occluder;
-    float2 uv_offset = sizeViewportInv;
+    float2 uv_offset = uniform_buf.size_viewport_inv;
     if (dir_horiz) {
       uv_offset.y = 0.0f;
     }

@@ -281,7 +281,8 @@ BLI_STATIC_ASSERT_ALIGN(ThemeColors, 16)
 
 /* All values in this struct are premultiplied by U.pixelsize. */
 struct ThemeSizes {
-  float pixel;
+  float pixel; /* Equivalent to U.pixelsize. */
+
   float object_center;
 
   float light_center;
@@ -304,7 +305,8 @@ struct UniformData {
 
   /** Other global states. */
 
-  float4 size_viewport; /* Packed as float4. */
+  float2 size_viewport;
+  float2 size_viewport_inv;
 
   float fresnel_mix_edit;
   float pixel_fac;
@@ -314,117 +316,9 @@ struct UniformData {
 BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
 
 #ifdef GPU_SHADER
+/* The uniform_buf mostly contains theme properties.
+ * This alias has better semantic and shorter syntax. */
 #  define theme uniform_buf
-/* Keep compatibility_with old global scope syntax. */
-/* TODO(@fclem) Mass rename and remove the camel case. */
-#  define colorWire theme.colors.wire
-#  define colorWireEdit theme.colors.wire_edit
-#  define colorActive theme.colors.active
-#  define colorSelect theme.colors.select
-#  define colorLibrarySelect theme.colors.library_select
-#  define colorLibrary theme.colors.library
-#  define colorTransform theme.colors.transform
-#  define colorLight theme.colors.light
-#  define colorSpeaker theme.colors.speaker
-#  define colorCamera theme.colors.camera
-#  define colorCameraPath theme.colors.camera_path
-#  define colorEmpty theme.colors.empty
-#  define colorVertex theme.colors.vert
-#  define colorVertexSelect theme.colors.vert_select
-#  define colorVertexUnreferenced theme.colors.vert_unreferenced
-#  define colorVertexMissingData theme.colors.vert_missing_data
-#  define colorEditMeshActive theme.colors.edit_mesh_active
-#  define colorEdgeSelect theme.colors.edge_select
-#  define colorEdgeModeSelect theme.colors.edge_mode_select
-#  define colorEdgeSeam theme.colors.edge_seam
-#  define colorEdgeSharp theme.colors.edge_sharp
-#  define colorEdgeCrease theme.colors.edge_crease
-#  define colorEdgeBWeight theme.colors.edge_bweight
-#  define colorEdgeFaceSelect theme.colors.edge_face_select
-#  define colorEdgeFreestyle theme.colors.edge_freestyle
-#  define colorFace theme.colors.face
-#  define colorFaceSelect theme.colors.face_select
-#  define colorFaceModeSelect theme.colors.face_mode_select
-#  define colorFaceRetopology theme.colors.face_retopology
-#  define colorFaceFreestyle theme.colors.face_freestyle
-#  define colorGpencilVertex theme.colors.gpencil_vertex
-#  define colorGpencilVertexSelect theme.colors.gpencil_vertex_select
-#  define colorNormal theme.colors.normal
-#  define colorVNormal theme.colors.vnormal
-#  define colorLNormal theme.colors.lnormal
-#  define colorFaceDot theme.colors.facedot
-#  define colorSkinRoot theme.colors.skinroot
-#  define colorDeselect theme.colors.deselect
-#  define colorOutline theme.colors.outline
-#  define colorLightNoAlpha theme.colors.light_no_alpha
-#  define colorBackground theme.colors.background
-#  define colorBackgroundGradient theme.colors.background_gradient
-#  define colorCheckerPrimary theme.colors.checker_primary
-#  define colorCheckerSecondary theme.colors.checker_secondary
-#  define colorClippingBorder theme.colors.clipping_border
-#  define colorEditMeshMiddle theme.colors.edit_mesh_middle
-#  define colorHandleFree theme.colors.handle_free
-#  define colorHandleAuto theme.colors.handle_auto
-#  define colorHandleVect theme.colors.handle_vect
-#  define colorHandleAlign theme.colors.handle_align
-#  define colorHandleAutoclamp theme.colors.handle_autoclamp
-#  define colorHandleSelFree theme.colors.handle_sel_free
-#  define colorHandleSelAuto theme.colors.handle_sel_auto
-#  define colorHandleSelVect theme.colors.handle_sel_vect
-#  define colorHandleSelAlign theme.colors.handle_sel_align
-#  define colorHandleSelAutoclamp theme.colors.handle_sel_autoclamp
-#  define colorNurbUline theme.colors.nurb_uline
-#  define colorNurbVline theme.colors.nurb_vline
-#  define colorNurbSelUline theme.colors.nurb_sel_uline
-#  define colorNurbSelVline theme.colors.nurb_sel_vline
-#  define colorActiveSpline theme.colors.active_spline
-#  define colorBonePose theme.colors.bone_pose
-#  define colorBonePoseActive theme.colors.bone_pose_active
-#  define colorBonePoseActiveUnsel theme.colors.bone_pose_active_unsel
-#  define colorBonePoseConstraint theme.colors.bone_pose_constraint
-#  define colorBonePoseIK theme.colors.bone_pose_ik
-#  define colorBonePoseSplineIK theme.colors.bone_pose_spline_ik
-#  define colorBonePoseTarget theme.colors.bone_pose_no_target
-#  define colorBoneSolid theme.colors.bone_solid
-#  define colorBoneLocked theme.colors.bone_locked
-#  define colorBoneActive theme.colors.bone_active
-#  define colorBoneActiveUnsel theme.colors.bone_active_unsel
-#  define colorBoneSelect theme.colors.bone_select
-#  define colorBoneIKLine theme.colors.bone_ik_line
-#  define colorBoneIKLineNoTarget theme.colors.bone_ik_line_no_target
-#  define colorBoneIKLineSpline theme.colors.bone_ik_line_spline
-#  define colorText theme.colors.text
-#  define colorTextHi theme.colors.text_hi
-#  define colorBundleSolid theme.colors.bundle_solid
-#  define colorMballRadius theme.colors.mball_radius
-#  define colorMballRadiusSelect theme.colors.mball_radius_select
-#  define colorMballStiffness theme.colors.mball_stiffness
-#  define colorMballStiffnessSelect theme.colors.mball_stiffness_select
-#  define colorCurrentFrame theme.colors.current_frame
-#  define colorBeforeFrame theme.colors.before_frame
-#  define colorAfterFrame theme.colors.after_frame
-#  define colorGrid theme.colors.grid
-#  define colorGridEmphasis theme.colors.grid_emphasis
-#  define colorGridAxisX theme.colors.grid_axis_x
-#  define colorGridAxisY theme.colors.grid_axis_y
-#  define colorGridAxisZ theme.colors.grid_axis_z
-#  define colorFaceBack theme.colors.face_back
-#  define colorFaceFront theme.colors.face_front
-#  define colorUVShadow theme.colors.uv_shadow
-#  define sizeViewport float2(uniform_buf.size_viewport.xy)
-#  define sizeViewportInv float2(uniform_buf.size_viewport.zw)
-#  define sizePixel theme.sizes.pixel
-#  define pixelFac uniform_buf.pixel_fac
-#  define sizeObjectCenter theme.sizes.object_center
-#  define sizeLightCenter theme.sizes.light_center
-#  define sizeLightCircle theme.sizes.light_circle
-#  define sizeLightCircleShadow theme.sizes.light_circle_shadow
-#  define sizeVertex theme.sizes.vert
-#  define sizeEdge theme.sizes.edge
-#  define sizeFaceDot theme.sizes.face_dot
-#  define sizeChecker theme.sizes.checker
-#  define sizeVertexGpencil theme.sizes.vertex_gpencil
-#  define fresnelMixEdit theme.fresnel_mix_edit
 #endif
 
 struct ExtraInstanceData {

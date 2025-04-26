@@ -46,8 +46,8 @@ VertOut vertex_main(VertIn v_in)
   float3 world_pos = float3(v_in.uv, 0.0f);
   vert_out.hs_P = drw_point_world_to_homogenous(world_pos);
   /* Snap vertices to the pixel grid to reduce artifacts. */
-  float2 half_viewport_res = sizeViewport * 0.5f;
-  float2 half_pixel_offset = sizeViewportInv * 0.5f;
+  float2 half_viewport_res = uniform_buf.size_viewport * 0.5f;
+  float2 half_pixel_offset = uniform_buf.size_viewport_inv * 0.5f;
   vert_out.hs_P.xy = floor(vert_out.hs_P.xy * half_viewport_res) / half_viewport_res +
                      half_pixel_offset;
 
@@ -108,11 +108,11 @@ void geometry_main(VertOut geom_in[2],
   float2 ss_pos0 = drw_perspective_divide(geom_in[0].hs_P).xy;
   float2 ss_pos1 = drw_perspective_divide(geom_in[1].hs_P).xy;
 
-  float half_size = sizeEdge;
+  float half_size = theme.sizes.edge;
   /* Enlarge edge for outline drawing. */
   /* Factor of 3.0 out of nowhere! Seems to fix issues with float imprecision. */
   half_size += (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_OUTLINE) ?
-                   max(sizeEdge * (do_smooth_wire ? 1.0f : 3.0f), 1.0f) :
+                   max(theme.sizes.edge * (do_smooth_wire ? 1.0f : 3.0f), 1.0f) :
                    0.0f;
   /* Add 1 PX for AA. */
   if (do_smooth_wire) {
@@ -121,7 +121,7 @@ void geometry_main(VertOut geom_in[2],
 
   float2 line_dir = normalize(ss_pos0 - ss_pos1);
   float2 line_perp = float2(-line_dir.y, line_dir.x);
-  float2 edge_ofs = line_perp * sizeViewportInv * ceil(half_size);
+  float2 edge_ofs = line_perp * uniform_buf.size_viewport_inv * ceil(half_size);
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
   edge_ofs *= 2.0f;
 

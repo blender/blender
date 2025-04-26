@@ -18,13 +18,13 @@ uint outline_colorid_get()
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
 
   if (is_transform) {
-    return 0u; /* colorTransform */
+    return 0u; /* theme.colors.transform */
   }
   else if (is_active) {
-    return 3u; /* colorActive */
+    return 3u; /* theme.colors.active */
   }
   else {
-    return 1u; /* colorSelect */
+    return 1u; /* theme.colors.select */
   }
 
   return 0u;

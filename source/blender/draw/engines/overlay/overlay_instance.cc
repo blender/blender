@@ -400,7 +400,8 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
   }
 
   gb.pixel_fac = (state.rv3d) ? state.rv3d->pixsize : 1.0f;
-  gb.size_viewport = float4(ctx->viewport_size_get(), 1.0f / ctx->viewport_size_get());
+  gb.size_viewport = ctx->viewport_size_get();
+  gb.size_viewport_inv = 1.0f / gb.size_viewport;
 
   if (state.v3d) {
     const View3DShading &shading = state.v3d->shading;
