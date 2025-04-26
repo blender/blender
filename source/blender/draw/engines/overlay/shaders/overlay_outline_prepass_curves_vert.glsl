@@ -49,7 +49,7 @@ void main()
   if (hairThicknessRes > 1) {
     /* Calculate the thickness, thick-time, world-position taken into account the outline. */
     float outline_width = drw_point_world_to_homogenous(center_wpos).w * 1.25f *
-                          globalsBlock.size_viewport.w * drw_view().wininv[1][1];
+                          uniform_buf.size_viewport.w * drw_view().wininv[1][1];
     thickness += outline_width;
     float thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
     thick_time = thickness * (thick_time * 2.0f - 1.0f);

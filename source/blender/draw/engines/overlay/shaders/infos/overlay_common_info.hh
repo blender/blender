@@ -18,7 +18,7 @@
 
 GPU_SHADER_CREATE_INFO(draw_globals)
 TYPEDEF_SOURCE("overlay_shader_shared.hh")
-UNIFORM_BUF_FREQ(OVERLAY_GLOBALS_SLOT, GlobalsUboStorage, globalsBlock, PASS)
+UNIFORM_BUF_FREQ(OVERLAY_GLOBALS_SLOT, UniformData, uniform_buf, PASS)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_INTERFACE_INFO(select_id_patch_iface)

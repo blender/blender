@@ -170,7 +170,7 @@ void main()
     /* Relative to DPI scaling. Have constant screen size. */
     float3 screen_pos = drw_view().viewinv[0].xyz * vpos.x + drw_view().viewinv[1].xyz * vpos.y;
     float3 p = (obmat * float4(vofs, 1.0f)).xyz;
-    float screen_size = mul_project_m4_v3_zfac(globalsBlock.pixel_fac, p) * sizePixel;
+    float screen_size = mul_project_m4_v3_zfac(uniform_buf.pixel_fac, p) * sizePixel;
     world_pos = p + screen_pos * screen_size;
   }
   else if ((vclass & VCLASS_SCREENALIGNED) != 0) {

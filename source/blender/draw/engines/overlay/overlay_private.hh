@@ -678,8 +678,8 @@ struct Resources : public select::SelectMap {
   detail::SubPassVector<GreasePencilDepthPlane, 16> depth_planes;
   int64_t depth_planes_count = 0;
 
-  draw::UniformBuffer<GlobalsUboStorage> globals_buf;
-  GlobalsUboStorage &theme = globals_buf;
+  draw::UniformBuffer<UniformData> globals_buf;
+  UniformData &theme = globals_buf;
   draw::UniformArrayBuffer<float4, 6> clip_planes_buf;
   /* Wrappers around #DefaultTextureList members. */
   TextureRef depth_in_front_tx;

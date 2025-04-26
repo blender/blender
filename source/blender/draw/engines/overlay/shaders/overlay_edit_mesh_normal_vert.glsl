@@ -124,11 +124,11 @@ void main()
       if (is_persp) {
         float dist_fac = length(drw_view_position() - world_pos);
         float cos_fac = dot(drw_view_forward(), drw_world_incident_vector(world_pos));
-        world_pos += n * normal_screen_size * dist_fac * cos_fac * globalsBlock.pixel_fac *
+        world_pos += n * normal_screen_size * dist_fac * cos_fac * uniform_buf.pixel_fac *
                      sizePixel;
       }
       else {
-        float frustrum_fac = mul_project_m4_v3_zfac(globalsBlock.pixel_fac, n) * sizePixel;
+        float frustrum_fac = mul_project_m4_v3_zfac(uniform_buf.pixel_fac, n) * sizePixel;
         world_pos += n * normal_screen_size * frustrum_fac;
       }
     }

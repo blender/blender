@@ -21,7 +21,7 @@ void main()
   float3 inst_pos = data_buf[gl_InstanceID].xyz;
   float3 p = inst_pos;
   p.z *= (pos.z == 0.0f) ? 0.0f : 1.0f;
-  float screen_size = mul_project_m4_v3_zfac(globalsBlock.pixel_fac, p) * sizePixel;
+  float screen_size = mul_project_m4_v3_zfac(uniform_buf.pixel_fac, p) * sizePixel;
   float3 world_pos = p + screen_pos * screen_size;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
