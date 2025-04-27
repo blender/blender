@@ -147,6 +147,7 @@ PatchHandle find_patch(int face_index, float u, float v)
 
     node = quad_nodes[get_index(node.child[quadrant])];
   }
+  return bogus_patch_handle();
 }
 
 OsdPatchCoord bogus_patch_coord(int face_index, float u, float v)
