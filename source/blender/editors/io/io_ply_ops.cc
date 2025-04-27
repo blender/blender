@@ -110,12 +110,12 @@ static void wm_ply_export_draw(bContext *C, wmOperator *op)
   if (uiLayout *panel = uiLayoutPanel(C, layout, "PLY_export_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
 
-    uiLayout *sub = uiLayoutColumnWithHeading(col, false, IFACE_("Format"));
+    uiLayout *sub = &col->column(false, IFACE_("Format"));
     uiItemR(sub, ptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
 
     /* The Selection only options only make sense when using regular export. */
     if (CTX_wm_space_file(C)) {
-      sub = uiLayoutColumnWithHeading(col, false, IFACE_("Include"));
+      sub = &col->column(false, IFACE_("Include"));
       uiItemR(
           sub, ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
     }

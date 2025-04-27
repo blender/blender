@@ -458,7 +458,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
             ICON_NONE); /* XXX as toggle? */
 
     /* settings */
-    column = uiLayoutColumnWithHeading(layout, true, IFACE_("Playback"));
+    column = &layout->column(true, IFACE_("Playback"));
     row = &column->row(true);
     uiLayoutSetActive(row,
                       !(RNA_boolean_get(&strip_ptr, "use_animated_influence") ||

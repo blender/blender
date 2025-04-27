@@ -157,7 +157,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
 
     col = &panel->column(false);
     if (CTX_wm_space_file(C)) {
-      uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Include"));
+      uiLayout *sub = &col->column(true, IFACE_("Include"));
       uiItemR(sub, ptr, "selected", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
       uiItemR(sub, ptr, "visible_objects_only", UI_ITEM_NONE, IFACE_("Visible Only"), ICON_NONE);
     }
@@ -212,7 +212,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
 
     uiItemS(col);
 
-    uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Subdivision"));
+    uiLayout *sub = &col->column(true, IFACE_("Subdivision"));
     uiItemR(sub, ptr, "apply_subdiv", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
     uiItemR(sub, ptr, "subdiv_schema", UI_ITEM_NONE, IFACE_("Use Schema"), ICON_NONE);
 

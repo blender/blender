@@ -5114,10 +5114,10 @@ uiLayout &uiLayout::column(bool align)
   return *litem;
 }
 
-uiLayout *uiLayoutColumnWithHeading(uiLayout *layout, bool align, const StringRef heading)
+uiLayout &uiLayout::column(bool align, const StringRef heading)
 {
-  uiLayout *litem = &layout->column(align);
-  ui_layout_heading_set(litem, heading);
+  uiLayout &litem = column(align);
+  ui_layout_heading_set(&litem, heading);
   return litem;
 }
 

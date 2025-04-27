@@ -929,7 +929,7 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   uiItemR(col, op->ptr, "clamp_overlap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, op->ptr, "loop_slide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumnWithHeading(layout, true, IFACE_("Mark"));
+  col = &layout->column(true, IFACE_("Mark"));
   uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
   uiItemR(col, op->ptr, "mark_seam", UI_ITEM_NONE, IFACE_("Seams"), ICON_NONE);
   uiItemR(col, op->ptr, "mark_sharp", UI_ITEM_NONE, IFACE_("Sharp"), ICON_NONE);

@@ -133,7 +133,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
     uiLayout *col = &panel->column(false);
 
     if (CTX_wm_space_file(C)) {
-      uiLayout *sub = uiLayoutColumnWithHeading(col, false, IFACE_("Include"));
+      uiLayout *sub = &col->column(false, IFACE_("Include"));
       uiItemR(
           sub, ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
     }

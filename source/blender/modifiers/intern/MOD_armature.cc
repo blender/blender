@@ -222,7 +222,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(col, ptr, "use_deform_preserve_volume", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "use_multi_modifier", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumnWithHeading(layout, true, IFACE_("Bind To"));
+  col = &layout->column(true, IFACE_("Bind To"));
   uiItemR(col, ptr, "use_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
   uiItemR(col, ptr, "use_bone_envelopes", UI_ITEM_NONE, IFACE_("Bone Envelopes"), ICON_NONE);
 

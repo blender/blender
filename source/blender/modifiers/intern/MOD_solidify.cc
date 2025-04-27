@@ -104,7 +104,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     uiItemR(layout, ptr, "use_even_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  col = uiLayoutColumnWithHeading(layout, false, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"));
+  col = &layout->column(false, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"));
   uiItemR(
       col, ptr, "use_rim", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Fill"), ICON_NONE);
   sub = &col->column(false);

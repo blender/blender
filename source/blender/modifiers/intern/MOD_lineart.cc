@@ -612,7 +612,7 @@ static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
     return;
   }
 
-  uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Chain"));
+  uiLayout *col = &layout->column(true, IFACE_("Chain"));
   uiItemR(col, ptr, "use_fuzzy_intersections", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "use_fuzzy_all", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "use_loose_edge_chain", UI_ITEM_NONE, IFACE_("Loose Edges"), ICON_NONE);

@@ -115,7 +115,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(col, ptr, "use_boundary", UI_ITEM_NONE, IFACE_("Boundary"), ICON_NONE);
   uiItemR(col, ptr, "use_replace", UI_ITEM_NONE, IFACE_("Replace Original"), ICON_NONE);
 
-  col = uiLayoutColumnWithHeading(layout, true, IFACE_("Thickness"));
+  col = &layout->column(true, IFACE_("Thickness"));
   uiItemR(col, ptr, "use_even_offset", UI_ITEM_NONE, IFACE_("Even"), ICON_NONE);
   uiItemR(col, ptr, "use_relative_offset", UI_ITEM_NONE, IFACE_("Relative"), ICON_NONE);
 

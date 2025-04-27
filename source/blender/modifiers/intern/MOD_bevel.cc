@@ -411,7 +411,7 @@ static void shading_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemR(layout, ptr, "harden_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumnWithHeading(layout, true, IFACE_("Mark"));
+  col = &layout->column(true, IFACE_("Mark"));
   uiLayoutSetActive(col, edge_bevel);
   uiItemR(col, ptr, "mark_seam", UI_ITEM_NONE, IFACE_("Seam"), ICON_NONE);
   uiItemR(col, ptr, "mark_sharp", UI_ITEM_NONE, IFACE_("Sharp"), ICON_NONE);

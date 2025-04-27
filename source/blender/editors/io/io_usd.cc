@@ -451,14 +451,14 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "root_prim_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Include"));
+    uiLayout *sub = &col->column(true, IFACE_("Include"));
     if (CTX_wm_space_file(C)) {
       uiItemR(sub, ptr, "selected_objects_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       uiItemR(sub, ptr, "visible_objects_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     uiItemR(sub, ptr, "export_animation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutColumnWithHeading(col, true, IFACE_("Blender Data"));
+    sub = &col->column(true, IFACE_("Blender Data"));
     uiItemR(sub, ptr, "export_custom_properties", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayout *props_col = &sub->column(true);
     uiItemR(props_col, ptr, "custom_properties_namespace", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -466,7 +466,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiLayoutSetActive(props_col, RNA_boolean_get(op->ptr, "export_custom_properties"));
     uiItemR(sub, ptr, "allow_unicode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutColumnWithHeading(col, true, IFACE_("File References"));
+    sub = &col->column(true, IFACE_("File References"));
     uiItemR(sub, ptr, "relative_paths", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = &panel->column(false);
@@ -1100,7 +1100,7 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
 
     uiItemR(col, ptr, "prim_path_mask", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Include"));
+    uiLayout *sub = &col->column(true, IFACE_("Include"));
     uiItemR(sub, ptr, "import_visible_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(sub, ptr, "import_defined_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -1134,12 +1134,12 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     uiItemR(col, ptr, "import_points", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_shapes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    col = uiLayoutColumnWithHeading(panel, true, IFACE_("Display Purpose"));
+    col = &panel->column(true, IFACE_("Display Purpose"));
     uiItemR(col, ptr, "import_render", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_proxy", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_guide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    col = uiLayoutColumnWithHeading(panel, true, IFACE_("Material Purpose"));
+    col = &panel->column(true, IFACE_("Material Purpose"));
     uiItemR(col, ptr, "mtl_purpose", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
