@@ -337,14 +337,16 @@ static void fluid_bake_endjob(void *customdata)
   if (job->success) {
     /* Show bake info. */
     WM_global_reportf(
-        RPT_INFO, "Fluid: %s complete (%.2f)", job->name, BLI_time_now_seconds() - job->start);
+        RPT_INFO, "Fluid: %s complete (%.2fs)", job->name, BLI_time_now_seconds() - job->start);
   }
   else {
     if (fds->error[0] != '\0') {
-      WM_global_reportf(RPT_ERROR, "Fluid: %s failed: %s", job->name, fds->error);
+      WM_global_reportf(
+          RPT_ERROR, "Fluid: %s failed at frame %d: %s", job->name, *job->pause_frame, fds->error);
     }
     else { /* User canceled the bake. */
-      WM_global_reportf(RPT_WARNING, "Fluid: %s canceled!", job->name);
+      WM_global_reportf(
+          RPT_WARNING, "Fluid: %s canceled at frame %d!", job->name, *job->pause_frame);
     }
   }
 }
@@ -445,14 +447,16 @@ static void fluid_free_endjob(void *customdata)
   if (job->success) {
     /* Show free job info */
     WM_global_reportf(
-        RPT_INFO, "Fluid: %s complete (%.2f)", job->name, BLI_time_now_seconds() - job->start);
+        RPT_INFO, "Fluid: %s complete (%.2fs)", job->name, BLI_time_now_seconds() - job->start);
   }
   else {
     if (fds->error[0] != '\0') {
-      WM_global_reportf(RPT_ERROR, "Fluid: %s failed: %s", job->name, fds->error);
+      WM_global_reportf(
+          RPT_ERROR, "Fluid: %s failed at frame %d: %s", job->name, *job->pause_frame, fds->error);
     }
     else { /* User canceled the free job */
-      WM_global_reportf(RPT_WARNING, "Fluid: %s canceled!", job->name);
+      WM_global_reportf(
+          RPT_WARNING, "Fluid: %s canceled at frame %d!", job->name, *job->pause_frame);
     }
   }
 }
