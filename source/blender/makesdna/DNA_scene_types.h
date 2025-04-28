@@ -304,6 +304,8 @@ typedef enum eScenePassType {
 #define RE_PASSNAME_CRYPTOMATTE_ASSET "CryptoAsset"
 #define RE_PASSNAME_CRYPTOMATTE_MATERIAL "CryptoMaterial"
 
+#define RE_PASSNAME_GREASE_PENCIL "GreasePencil"
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

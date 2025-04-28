@@ -682,6 +682,14 @@ void RNA_def_view_layer(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "FreestyleSettings");
   RNA_def_property_ui_text(prop, "Freestyle Settings", "");
 
+  /* Grease Pencil */
+  prop = RNA_def_property(srna, "use_pass_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "grease_pencil_flags", GREASE_PENCIL_AS_SEPARATE_PASS);
+  RNA_def_property_ui_text(
+      prop, "Grease Pencil", "Deliver Grease Pencil render result in a separate pass");
+  RNA_def_property_update(prop, NC_SCENE | ND_LAYER, nullptr);
+
   /* debug update routine */
   func = RNA_def_function(srna, "update", "rna_ViewLayer_update_tagged");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);

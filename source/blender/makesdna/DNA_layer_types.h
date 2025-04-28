@@ -50,6 +50,11 @@ typedef enum eViewLayerEEVEEPassType {
 #define EEVEE_RENDER_PASS_MAX_BIT 21
 ENUM_OPERATORS(eViewLayerEEVEEPassType, 1 << EEVEE_RENDER_PASS_MAX_BIT)
 
+/* #ViewLayer::grease_pencil_flags */
+typedef enum eViewLayerGreasePencilFlags {
+  GREASE_PENCIL_AS_SEPARATE_PASS = (1 << 0),
+} eViewLayerGreasePencilFlags;
+
 /* #ViewLayerAOV.type */
 typedef enum eViewLayerAOVType {
   AOV_TYPE_VALUE = 0,
@@ -166,7 +171,7 @@ typedef struct ViewLayer {
   float pass_alpha_threshold;
   short cryptomatte_flag;
   short cryptomatte_levels;
-  char _pad1[4];
+  int grease_pencil_flags;
 
   int samples;
 

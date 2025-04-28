@@ -1028,6 +1028,7 @@ class CYCLES_RENDER_PT_passes_data(CyclesButtonsPanel, Panel):
         sub.active = not rd.use_motion_blur
         sub.prop(view_layer, "use_pass_vector")
         col.prop(view_layer, "use_pass_uv")
+        col.prop(view_layer, "use_pass_grease_pencil", text="Grease Pencil")
 
         col.prop(cycles_view_layer, "denoising_store_passes", text="Denoising Data")
 
