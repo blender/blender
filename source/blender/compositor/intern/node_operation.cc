@@ -59,7 +59,10 @@ void NodeOperation::evaluate()
 void NodeOperation::compute_preview()
 {
   if (bool(context().needed_outputs() & OutputTypes::Previews) && is_node_preview_needed(node())) {
-    compositor::compute_preview(context(), node(), *get_preview_result());
+    const Result *result = get_preview_result();
+    if (result) {
+      compositor::compute_preview(context(), node(), *result);
+    }
   }
 }
 
@@ -77,7 +80,12 @@ Result *NodeOperation::get_preview_result()
     }
   }
 
-  /* No linked outputs, find the first allocated input. */
+  /* No linked outputs, but no inputs either, so nothing to preview. */
+  if (node()->input_sockets().is_empty()) {
+    return nullptr;
+  }
+
+  /* Find the first allocated input. */
   for (const bNodeSocket *input : node()->input_sockets()) {
     if (!input->is_available()) {
       continue;
