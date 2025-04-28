@@ -738,6 +738,7 @@ class EmissionNode : public ShaderNode {
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float, strength)
   NODE_SOCKET_API(float, surface_mix_weight)
+  NODE_SOCKET_API(float, volume_mix_weight)
 
   bool from_auto_conversion = false;
 };
