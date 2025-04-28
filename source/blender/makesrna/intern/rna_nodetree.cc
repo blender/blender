@@ -4015,6 +4015,33 @@ static const char node_input_index[] = "Index";
 /* Stabilize 2D node. */
 static const char node_input_invert[] = "Invert";
 
+/* Color Correction node. */
+static const char node_input_master_saturation[] = "Master Saturation";
+static const char node_input_master_contrast[] = "Master Contrast";
+static const char node_input_master_gamma[] = "Master Gamma";
+static const char node_input_master_gain[] = "Master Gain";
+static const char node_input_master_lift[] = "Master Lift";
+static const char node_input_highlights_saturation[] = "Highlights Saturation";
+static const char node_input_highlights_contrast[] = "Highlights Contrast";
+static const char node_input_highlights_gamma[] = "Highlights Gamma";
+static const char node_input_highlights_gain[] = "Highlights Gain";
+static const char node_input_highlights_lift[] = "Highlights Lift";
+static const char node_input_midtones_saturation[] = "Midtones Saturation";
+static const char node_input_midtones_contrast[] = "Midtones Contrast";
+static const char node_input_midtones_gamma[] = "Midtones Gamma";
+static const char node_input_midtones_gain[] = "Midtones Gain";
+static const char node_input_midtones_lift[] = "Midtones Lift";
+static const char node_input_shadows_saturation[] = "Shadows Saturation";
+static const char node_input_shadows_contrast[] = "Shadows Contrast";
+static const char node_input_shadows_gamma[] = "Shadows Gamma";
+static const char node_input_shadows_gain[] = "Shadows Gain";
+static const char node_input_shadows_lift[] = "Shadows Lift";
+static const char node_input_midtones_start[] = "Midtones Start";
+static const char node_input_midtones_end[] = "Midtones End";
+static const char node_input_apply_on_red[] = "Apply On Red";
+static const char node_input_apply_on_green[] = "Apply On Green";
+static const char node_input_apply_on_blue[] = "Apply On Blue";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -9493,178 +9520,305 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
   prop = RNA_def_property(srna, "red", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
+  RNA_def_property_boolean_funcs(
+      prop,
+      "rna_node_property_to_input_getter<bool, node_input_apply_on_red>",
+      "rna_node_property_to_input_setter<bool, node_input_apply_on_red>");
   RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_ui_text(prop, "Red", "Red channel active");
+  RNA_def_property_ui_text(
+      prop, "Red", "Red channel active. (Deprecated: Use Apply On Red input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "green", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 2);
+  RNA_def_property_boolean_funcs(
+      prop,
+      "rna_node_property_to_input_getter<bool, node_input_apply_on_green>",
+      "rna_node_property_to_input_setter<bool, node_input_apply_on_green>");
   RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_ui_text(prop, "Green", "Green channel active");
+  RNA_def_property_ui_text(
+      prop, "Green", "Green channel active. (Deprecated: Use Apply On Green input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "blue", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 4);
+  RNA_def_property_boolean_funcs(
+      prop,
+      "rna_node_property_to_input_getter<bool, node_input_apply_on_blue>",
+      "rna_node_property_to_input_setter<bool, node_input_apply_on_blue>");
   RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_ui_text(prop, "Blue", "Blue channel active");
+  RNA_def_property_ui_text(
+      prop, "Blue", "Blue channel active. (Deprecated: Use Apply On Blue input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  RNA_def_struct_sdna_from(srna, "NodeColorCorrection", "storage");
-
   prop = RNA_def_property(srna, "midtones_start", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "startmidtones");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_midtones_start>",
+      "rna_node_property_to_input_setter<float, node_input_midtones_start>",
+      nullptr);
   RNA_def_property_float_default(prop, 0.2f);
   RNA_def_property_range(prop, 0, 1);
-  RNA_def_property_ui_text(prop, "Midtones Start", "Start of midtones");
+  RNA_def_property_ui_text(prop,
+                           "Midtones Start",
+                           "Start of midtones. (Deprecated: Use Midtones Start input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "midtones_end", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "endmidtones");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_midtones_end>",
+                               "rna_node_property_to_input_setter<float, node_input_midtones_end>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.7f);
   RNA_def_property_range(prop, 0, 1);
-  RNA_def_property_ui_text(prop, "Midtones End", "End of midtones");
+  RNA_def_property_ui_text(
+      prop, "Midtones End", "End of midtones. (Deprecated: Use Midtones End input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "master_saturation", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "master.saturation");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_master_saturation>",
+      "rna_node_property_to_input_setter<float, node_input_master_saturation>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Master Saturation", "Master saturation");
+  RNA_def_property_ui_text(prop,
+                           "Master Saturation",
+                           "Master saturation. (Deprecated: Use Master Saturation input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "master_contrast", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "master.contrast");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_master_contrast>",
+      "rna_node_property_to_input_setter<float, node_input_master_contrast>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Master Contrast", "Master contrast");
+  RNA_def_property_ui_text(
+      prop, "Master Contrast", "Master contrast. (Deprecated: Use Master Contrast input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "master_gamma", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "master.gamma");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_master_gamma>",
+                               "rna_node_property_to_input_setter<float, node_input_master_gamma>",
+                               nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Master Gamma", "Master gamma");
+  RNA_def_property_ui_text(
+      prop, "Master Gamma", "Master gamma. (Deprecated: Use Master Gamma input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "master_gain", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "master.gain");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_master_gain>",
+                               "rna_node_property_to_input_setter<float, node_input_master_gain>",
+                               nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Master Gain", "Master gain");
+  RNA_def_property_ui_text(
+      prop, "Master Gain", "Master gain. (Deprecated: Use Master Gain input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "master_lift", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "master.lift");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_master_lift>",
+                               "rna_node_property_to_input_setter<float, node_input_master_lift>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -1, 1);
-  RNA_def_property_ui_text(prop, "Master Lift", "Master lift");
+  RNA_def_property_ui_text(
+      prop, "Master Lift", "Master lift. (Deprecated: Use Master Lift input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   //
   prop = RNA_def_property(srna, "shadows_saturation", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "shadows.saturation");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_shadows_saturation>",
+      "rna_node_property_to_input_setter<float, node_input_shadows_saturation>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Shadows Saturation", "Shadows saturation");
+  RNA_def_property_ui_text(
+      prop,
+      "Shadows Saturation",
+      "Shadows saturation. (Deprecated: Use Shadows Saturation input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shadows_contrast", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "shadows.contrast");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_shadows_contrast>",
+      "rna_node_property_to_input_setter<float, node_input_shadows_contrast>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Shadows Contrast", "Shadows contrast");
+  RNA_def_property_ui_text(prop,
+                           "Shadows Contrast",
+                           "Shadows contrast. (Deprecated: Use Shadows Contrast input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shadows_gamma", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "shadows.gamma");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_shadows_gamma>",
+      "rna_node_property_to_input_setter<float, node_input_shadows_gamma>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Shadows Gamma", "Shadows gamma");
+  RNA_def_property_ui_text(
+      prop, "Shadows Gamma", "Shadows gamma. (Deprecated: Use Shadows Gamma input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shadows_gain", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "shadows.gain");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_shadows_gain>",
+                               "rna_node_property_to_input_setter<float, node_input_shadows_gain>",
+                               nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Shadows Gain", "Shadows gain");
+  RNA_def_property_ui_text(
+      prop, "Shadows Gain", "Shadows gain. (Deprecated: Use Shadows Gain input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shadows_lift", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "shadows.lift");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_shadows_lift>",
+                               "rna_node_property_to_input_setter<float, node_input_shadows_lift>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -1, 1);
-  RNA_def_property_ui_text(prop, "Shadows Lift", "Shadows lift");
+  RNA_def_property_ui_text(
+      prop, "Shadows Lift", "Shadows lift. (Deprecated: Use Shadows Lift input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
   //
   prop = RNA_def_property(srna, "midtones_saturation", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "midtones.saturation");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_midtones_saturation>",
+      "rna_node_property_to_input_setter<float, node_input_midtones_saturation>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Midtones Saturation", "Midtones saturation");
+  RNA_def_property_ui_text(
+      prop,
+      "Midtones Saturation",
+      "Midtones saturation. (Deprecated: Use Midtones Saturation input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "midtones_contrast", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "midtones.contrast");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_midtones_contrast>",
+      "rna_node_property_to_input_setter<float, node_input_midtones_contrast>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Midtones Contrast", "Midtones contrast");
+  RNA_def_property_ui_text(prop,
+                           "Midtones Contrast",
+                           "Midtones contrast. (Deprecated: Use Midtones Contrast input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "midtones_gamma", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "midtones.gamma");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_midtones_gamma>",
+      "rna_node_property_to_input_setter<float, node_input_midtones_gamma>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Midtones Gamma", "Midtones gamma");
+  RNA_def_property_ui_text(
+      prop, "Midtones Gamma", "Midtones gamma. (Deprecated: Use Midtones Gamma input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "midtones_gain", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "midtones.gain");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_midtones_gain>",
+      "rna_node_property_to_input_setter<float, node_input_midtones_gain>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Midtones Gain", "Midtones gain");
+  RNA_def_property_ui_text(
+      prop, "Midtones Gain", "Midtones gain. (Deprecated: Use Midtones Gain input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "midtones_lift", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "midtones.lift");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_midtones_lift>",
+      "rna_node_property_to_input_setter<float, node_input_midtones_lift>",
+      nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -1, 1);
-  RNA_def_property_ui_text(prop, "Midtones Lift", "Midtones lift");
+  RNA_def_property_ui_text(
+      prop, "Midtones Lift", "Midtones lift. (Deprecated: Use Midtones Lift input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
   //
   prop = RNA_def_property(srna, "highlights_saturation", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "highlights.saturation");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_highlights_saturation>",
+      "rna_node_property_to_input_setter<float, node_input_highlights_saturation>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Highlights Saturation", "Highlights saturation");
+  RNA_def_property_ui_text(
+      prop,
+      "Highlights Saturation",
+      "Highlights saturation. (Deprecated: Use Highlights Saturation input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "highlights_contrast", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "highlights.contrast");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_highlights_contrast>",
+      "rna_node_property_to_input_setter<float, node_input_highlights_contrast>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Highlights Contrast", "Highlights contrast");
+  RNA_def_property_ui_text(
+      prop,
+      "Highlights Contrast",
+      "Highlights contrast. (Deprecated: Use Highlights Contrast input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "highlights_gamma", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "highlights.gamma");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_highlights_gamma>",
+      "rna_node_property_to_input_setter<float, node_input_highlights_gamma>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Highlights Gamma", "Highlights gamma");
+  RNA_def_property_ui_text(prop,
+                           "Highlights Gamma",
+                           "Highlights gamma. (Deprecated: Use Highlights Gamma input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "highlights_gain", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "highlights.gain");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_highlights_gain>",
+      "rna_node_property_to_input_setter<float, node_input_highlights_gain>",
+      nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop, "Highlights Gain", "Highlights gain");
+  RNA_def_property_ui_text(
+      prop, "Highlights Gain", "Highlights gain. (Deprecated: Use Highlights Gain input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "highlights_lift", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "highlights.lift");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_highlights_lift>",
+      "rna_node_property_to_input_setter<float, node_input_highlights_lift>",
+      nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -1, 1);
-  RNA_def_property_ui_text(prop, "Highlights Lift", "Highlights lift");
+  RNA_def_property_ui_text(
+      prop, "Highlights Lift", "Highlights lift. (Deprecated: Use Highlights Lift input instead.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

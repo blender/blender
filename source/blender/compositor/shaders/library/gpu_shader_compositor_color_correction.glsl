@@ -7,29 +7,31 @@
 
 void node_composite_color_correction(float4 color,
                                      float mask,
-                                     const float3 enabled_channels,
-                                     float start_midtones,
-                                     float end_midtones,
                                      float master_saturation,
                                      float master_contrast,
                                      float master_gamma,
                                      float master_gain,
                                      float master_lift,
-                                     float shadows_saturation,
-                                     float shadows_contrast,
-                                     float shadows_gamma,
-                                     float shadows_gain,
-                                     float shadows_lift,
-                                     float midtones_saturation,
-                                     float midtones_contrast,
-                                     float midtones_gamma,
-                                     float midtones_gain,
-                                     float midtones_lift,
                                      float highlights_saturation,
                                      float highlights_contrast,
                                      float highlights_gamma,
                                      float highlights_gain,
                                      float highlights_lift,
+                                     float midtones_saturation,
+                                     float midtones_contrast,
+                                     float midtones_gamma,
+                                     float midtones_gain,
+                                     float midtones_lift,
+                                     float shadows_saturation,
+                                     float shadows_contrast,
+                                     float shadows_gamma,
+                                     float shadows_gain,
+                                     float shadows_lift,
+                                     float start_midtones,
+                                     float end_midtones,
+                                     float apply_on_red,
+                                     float apply_on_green,
+                                     float apply_on_blue,
                                      const float3 luminance_coefficients,
                                      out float4 result)
 {
@@ -86,6 +88,7 @@ void node_composite_color_correction(float4 color,
   corrected = fallback_pow(corrected * gain + lift, inverse_gamma, corrected);
   corrected = mix(color.rgb, corrected, min(mask, 1.0f));
 
+  float3 enabled_channels = float3(apply_on_red, apply_on_green, apply_on_blue);
   result.rgb = mix(corrected, color.rgb, equal(enabled_channels, float3(0.0f)));
   result.a = color.a;
 }

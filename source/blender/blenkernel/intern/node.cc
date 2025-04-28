@@ -922,6 +922,35 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_char("Motion Blur Samples", storage->motion_blur_samples);
       write_input_to_property_float("Motion Blur Shutter", storage->motion_blur_shutter);
     }
+
+    if (node->type_legacy == CMP_NODE_COLORCORRECTION) {
+      NodeColorCorrection *storage = static_cast<NodeColorCorrection *>(node->storage);
+      write_input_to_property_float("Master Saturation", storage->master.saturation);
+      write_input_to_property_float("Master Contrast", storage->master.contrast);
+      write_input_to_property_float("Master Gamma", storage->master.gamma);
+      write_input_to_property_float("Master Gain", storage->master.gain);
+      write_input_to_property_float("Master Lift", storage->master.lift);
+      write_input_to_property_float("Shadows Saturation", storage->shadows.saturation);
+      write_input_to_property_float("Shadows Contrast", storage->shadows.contrast);
+      write_input_to_property_float("Shadows Gamma", storage->shadows.gamma);
+      write_input_to_property_float("Shadows Gain", storage->shadows.gain);
+      write_input_to_property_float("Shadows Lift", storage->shadows.lift);
+      write_input_to_property_float("Midtones Saturation", storage->midtones.saturation);
+      write_input_to_property_float("Midtones Contrast", storage->midtones.contrast);
+      write_input_to_property_float("Midtones Gamma", storage->midtones.gamma);
+      write_input_to_property_float("Midtones Gain", storage->midtones.gain);
+      write_input_to_property_float("Midtones Lift", storage->midtones.lift);
+      write_input_to_property_float("Highlights Saturation", storage->highlights.saturation);
+      write_input_to_property_float("Highlights Contrast", storage->highlights.contrast);
+      write_input_to_property_float("Highlights Gamma", storage->highlights.gamma);
+      write_input_to_property_float("Highlights Gain", storage->highlights.gain);
+      write_input_to_property_float("Highlights Lift", storage->highlights.lift);
+      write_input_to_property_float("Midtones Start", storage->startmidtones);
+      write_input_to_property_float("Midtones End", storage->endmidtones);
+      write_input_to_property_bool_int16_flag("Apply On Red", node->custom1, 1 << 0);
+      write_input_to_property_bool_int16_flag("Apply On Green", node->custom1, 1 << 1);
+      write_input_to_property_bool_int16_flag("Apply On Blue", node->custom1, 1 << 2);
+    }
   }
 }
 

@@ -3520,6 +3520,310 @@ static void do_version_plane_track_deform_node_options_to_inputs_animation(bNode
   });
 }
 
+/* The options were converted into inputs. */
+static void do_version_color_correction_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeColorCorrection *storage = static_cast<NodeColorCorrection *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Saturation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Master Saturation",
+                                                              "Master Saturation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.saturation;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Contrast")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Master Contrast", "Master Contrast");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.contrast;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Gamma")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Master Gamma", "Master Gamma");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.gamma;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Gain")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Master Gain", "Master Gain");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.gain;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Lift")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Master Lift", "Master Lift");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.lift;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Saturation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Shadows Saturation",
+                                                              "Shadows Saturation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.saturation;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Contrast")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Shadows Contrast",
+                                                              "Shadows Contrast");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.contrast;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Gamma")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Shadows Gamma", "Shadows Gamma");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.gamma;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Gain")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Shadows Gain", "Shadows Gain");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.gain;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Lift")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Shadows Lift", "Shadows Lift");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.lift;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Saturation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Midtones Saturation",
+                                                              "Midtones Saturation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.saturation;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Contrast")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Midtones Contrast",
+                                                              "Midtones Contrast");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.contrast;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Gamma")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones Gamma", "Midtones Gamma");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.gamma;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Gain")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones Gain", "Midtones Gain");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.gain;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Lift")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones Lift", "Midtones Lift");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.lift;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Saturation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Highlights Saturation",
+                                                              "Highlights Saturation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.saturation;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Contrast")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Highlights Contrast",
+                                                              "Highlights Contrast");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.contrast;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Gamma")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Highlights Gamma",
+                                                              "Highlights Gamma");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.gamma;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Gain")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Highlights Gain", "Highlights Gain");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.gain;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Lift")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Highlights Lift", "Highlights Lift");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.lift;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Start")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones Start", "Midtones Start");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->startmidtones;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones End")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones End", "Midtones End");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->endmidtones;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Apply On Red")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Apply On Red", "Apply On Red");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 & (1 << 0));
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Apply On Green")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Apply On Green", "Apply On Green");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 & (1 << 1));
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Apply On Blue")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Apply On Blue", "Apply On Blue");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 & (1 << 2));
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_color_correction_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                         bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "use_motion_blur")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_saturation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_contrast")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_gamma")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_gain")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_lift")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[6].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_saturation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[7].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_contrast")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[8].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_gamma")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[9].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_gain")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[10].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_lift")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[11].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_saturation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[12].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_contrast")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[13].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_gamma")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[14].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_gain")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[15].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_lift")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[16].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_saturation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[17].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_contrast")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[18].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_gamma")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[19].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_gain")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[20].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_lift")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[21].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_start")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[22].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_end")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[23].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "red")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[24].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "green")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[25].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "blue")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[26].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
 static void do_version_viewer_shortcut(bNodeTree *node_tree)
 {
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
@@ -4318,6 +4622,19 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
         LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
           if (node->type_legacy == CMP_NODE_PLANETRACKDEFORM) {
             do_version_plane_track_deform_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 52)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_COLORCORRECTION) {
+            do_version_color_correction_node_options_to_inputs_animation(node_tree, node);
           }
         }
       }
@@ -9282,6 +9599,19 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
             cob, "shadow_terminator_offset", dob->shadow_terminator_shading_offset);
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 52)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_COLORCORRECTION) {
+            do_version_color_correction_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /* Always run this versioning (keep at the bottom of the function). Meshes are written with the
